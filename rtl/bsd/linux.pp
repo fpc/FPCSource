@@ -174,7 +174,7 @@ Type
     Sa_Handler  : SignalHandler;
     Sa_Mask     : SigSet;
     Sa_Flags    : Longint;
-    Sa_restorer : SignalRestorer; { Obsolete - Don't use }
+  {  Sa_restorer : SignalRestorer; }
   end;
   PSigActionRec = ^SigActionRec;
 
@@ -568,10 +568,10 @@ Function  FStat(var F:File;Var Info:stat):Boolean;
 Function  Lstat(Filename: PathStr;var Info:stat):Boolean;
 Function  FSStat(Path:Pathstr;Var Info:statfs):Boolean;
 Function  FSStat(Fd: Longint;Var Info:statfs):Boolean;
-Function  Fcntl(Fd:longint;Cmd:Integer):integer;
-Procedure Fcntl(Fd:longint;Cmd:Integer;Arg:Longint);
-Function  Fcntl(var Fd:Text;Cmd:Integer):integer;
-Procedure Fcntl(var Fd:Text;Cmd:Integer;Arg:Longint);
+Function  Fcntl(Fd:longint;Cmd:longint):longint;
+Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
+Function  Fcntl(var Fd:Text;Cmd:longint):longint;
+Procedure Fcntl(var Fd:Text;Cmd:longint;Arg:Longint);
 Function  Dup(oldfile:longint;var newfile:longint):Boolean;
 Function  Dup(var oldfile,newfile:text):Boolean;
 Function  Dup(var oldfile,newfile:file):Boolean;
@@ -761,6 +761,10 @@ Uses Strings;
 {$i textrec.inc}
 {$i filerec.inc}
 
+{This seems ridiculus, but the proc name gets $linux$ prefixed, the external
+not}
+procedure _actualsyscall; external '_actualsyscall';
+
 { Raw System calls are in Syscalls.inc}
 {$i syscalls.inc}
 
@@ -826,9 +830,10 @@ Function Fork:longint;
 }
 
 Begin
- fork:=Do_syscall(2)
+ fork:=Do_syscall(2);
  LinuxError:=ErrNo;
 End;
+
 
 function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 {NOT IMPLEMENTED YET UNDER BSD}
@@ -887,7 +892,7 @@ Procedure Execve(path:pathstr;args:ppchar;ep:ppchar);
 
 Begin
   path:=path+#0;
-  execve:=do_syscall(59,longint(@path[1]),Args,ep);
+  do_syscall(59,longint(@path[1]),longint(Args),longint(ep));
  LinuxError:=ErrNo;
 End;
 
@@ -905,7 +910,7 @@ Procedure Execve(path:pchar;args:ppchar;ep:ppchar);
 }
 
 Begin
-   execve:=do_syscall(59,path,Args,ep);
+  do_syscall(59,longint(path),longint(Args),longint(ep));
  LinuxError:=ErrNo;
 End;
 
@@ -1002,7 +1007,7 @@ Procedure ExitProcess(val:longint);
 
 
 begin
-  ExitProcess:=do_syscall(1,val);
+ do_syscall(1,val);
  LinuxError:=ErrNo;
 end;
 
@@ -1016,7 +1021,7 @@ Function WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
 
 
 begin
- WaitPID:=do_syscall(7,PID,Status,options,0);
+ WaitPID:=do_syscall(7,PID,longint(Status),options,0);
  LinuxError:=ErrNo;
 end;
 
@@ -1190,7 +1195,7 @@ Function GetGid:Longint;
 }
 
 begin
-  GetEUID:=do_syscall(47);
+  GetGID:=do_syscall(47);
   LinuxError:=ErrNo;
 end;
 
@@ -1263,7 +1268,7 @@ Procedure GetTimeOfDay(var tv:timeval);
 var  tz : timezone;
 
 begin
- do_syscall(116,@tv,@tz);
+ do_syscall(116,longint(@tv),longint(@tz));
  LinuxError:=Errno;
 end;
 
@@ -1433,7 +1438,7 @@ end;
 Function fdTruncate(fd,size:longint):boolean;
 
 begin
- fdtruncate:=do_syscall(201,fd,size);
+ fdtruncate:=do_syscall(201,fd,size)=0;
  LinuxError:=Errno;
 end;
 
@@ -1449,21 +1454,19 @@ end;
 
 Function  fdFlush (fd : Longint) : Boolean;
 
-Var Retval : LONGINT;
-
 begin
-  fdflush:=do_syscall(95,fd);
+  fdflush:=do_syscall(95,fd)=0;
   LinuxError:=Errno;
 end;
 
-function sys_fcntl(Fd:longint;Cmd:Integer;Arg:Longint):longint;
+function sys_fcntl(Fd:longint;Cmd:longint;Arg:Longint):longint;
 
 begin
- sys_fcntl:=do_syscall(92,fd,cmd,arg)
+ sys_fcntl:=do_syscall(92,fd,cmd,arg);
  LinuxError:=Errno;
 end;
 
-Function Fcntl(Fd:longint;Cmd:integer):integer;
+Function Fcntl(Fd:longint;Cmd:longint):longint;
 {
   Read or manipulate a file.(See also fcntl (2) )
   Possible values for Cmd are :
@@ -1495,7 +1498,7 @@ begin
 end;
 
 
-Procedure Fcntl(Fd:longint;Cmd:Integer;Arg:Longint);
+Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
 {
   Read or manipulate a file. (See also fcntl (2) )
   Possible values for Cmd are :
@@ -1515,12 +1518,12 @@ begin
 end;
 
 
-Function Fcntl(var Fd:Text;Cmd:integer):integer;
+Function Fcntl(var Fd:Text;Cmd:longint):longint;
 begin
   Fcntl := Fcntl(textrec(Fd).handle, Cmd);
 end;
 
-Procedure Fcntl(var Fd:Text;Cmd:Integer;Arg:Longint);
+Procedure Fcntl(var Fd:Text;Cmd:longint;Arg:Longint);
 begin
   Fcntl(textrec(Fd).handle, Cmd, Arg);
 end;
@@ -1530,11 +1533,10 @@ Function Chmod(path:pathstr;Newmode:longint):Boolean;
 {
   Changes the permissions of a file.
 }
-var
-  retval : longint;
+
 begin
   path:=path+#0;
-  chmod:=do_syscall(15,longint(@path[1]),newmode);
+  chmod:=do_syscall(15,longint(@path[1]),newmode)=0;
   LinuxError:=Errno;
 end;
 
@@ -1547,14 +1549,14 @@ Function Chown(path:pathstr;NewUid,NewGid:longint):boolean;
 
 begin
   path:=path+#0;
-  ChOwn:=do_syscall(16,longint(@path[1],newuid,newgid);
+  ChOwn:=do_syscall(16,longint(@path[1]),newuid,newgid)=0;
  LinuxError:=Errno;
 end;
 
 Function Utime(path:pathstr;utim:utimebuf):boolean;
 
 begin
-  UTime:=do_syscall(138,longint(@path[1],utim);
+  UTime:=do_syscall(138,longint(@path[1]),longint(@utim))=0;
   LinuxError:=Errno;
 end;
 
@@ -1592,7 +1594,7 @@ Function Fstat(Fd:Longint;var Info:stat):Boolean;
 }
 
 begin
- FStat:=do_syscall(189,fd,info)=0;
+ FStat:=do_syscall(189,fd,longint(@info))=0;
  LinuxError:=Errno;
 end;
 
@@ -1602,7 +1604,6 @@ Function  FStat(var F:Text;Var Info:stat):Boolean;
 }
 begin
   FStat:=Fstat(TextRec(F).Handle,INfo);
-
 end;
 
 Function  FStat(var F:File;Var Info:stat):Boolean;
@@ -1617,11 +1618,10 @@ Function Lstat(Filename: PathStr;var Info:stat):Boolean;
 {
   Get all information on a link (the link itself), and return it in info.
 }
-var
-  Retval : longint;
+
 begin
  FileName:=FileName+#0;
- LStat:=Do_syscall(189,info,longint(@filename[1]))=0;
+ LStat:=Do_syscall(189,longint(@filename[1]),longint(@info))=0;
  LinuxError:=Errno;
 end;
 
@@ -1635,7 +1635,7 @@ Function FSStat(Path:Pathstr;Var Info:statfs):Boolean;
 
 begin
   path:=path+#0;
-  FSStat:=DoSyscall(157,longint(@path[1]),info);
+  FSStat:=Do_Syscall(157,longint(@path[1]),longint(@info))=0;
   LinuxError:=Errno;
 end;
 
@@ -1647,7 +1647,7 @@ Function FSStat(Fd:Longint;Var Info:statfs):Boolean;
 }
 
 begin
- FSStat:=do_syscall(158,fd,info);
+ FSStat:=do_syscall(158,fd,longint(@info))=0;
  LinuxError:=Errno;
 end;
 
@@ -1659,7 +1659,7 @@ Function Link(OldPath,NewPath:pathstr):boolean;
 begin
   oldpath:=oldpath+#0;
   newpath:=newpath+#0;
-  Link:=DoSyscall(9,longint(@oldpath[1]),longint(@newpath[1]))=0;
+  Link:=Do_Syscall(9,longint(@oldpath[1]),longint(@newpath[1]))=0;
  LinuxError:=Errno;
 end;
 
@@ -1668,10 +1668,10 @@ Function SymLink(OldPath,newPath:pathstr):boolean;
   Proceduces a soft link from new to old.
 }
 
-bwgin
+begin
   oldpath:=oldpath+#0;
   newpath:=newpath+#0;
-  SymLink:=DoSyscall(57,longint(@oldpath[1]),longint(@newpath[1]))=0;
+  SymLink:=Do_Syscall(57,longint(@oldpath[1]),longint(@newpath[1]))=0;
   LinuxError:=Errno;
 end;
 
@@ -1738,7 +1738,7 @@ Function Access(Path:Pathstr ;mode:longint):boolean;
 
 begin
   path:=path+#0;
- Access:=do_syscall(33,mode,longint(@path[1]));
+ Access:=do_syscall(33,mode,longint(@path[1]))=0;
  LinuxError:=Errno;
 end;
 
@@ -1832,14 +1832,14 @@ Function Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):lo
   Select checks whether the file descriptor sets in readfs/writefs/exceptfs
   have changed.
 }
-Var
-  Retval : LONGINT;
+
 begin
- Select:=do_syscall(93,n,readfds,writefds,exceptfds,timeout);
+ Select:=do_syscall(93,n,longint(readfds),longint(writefds),longint(exceptfds),longint(timeout));
  LinuxError:=Errno;
 end;
 
-Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:Longint):longint;
+Function  Select(N:longint;readfds,writefds
+	 ,exceptfds:PFDSet;TimeOut:Longint):longint;
 {
   Select checks whether the file descriptor sets in readfs/writefs/exceptfs
   have changed.
@@ -1992,7 +1992,6 @@ var
 
 begin
  do_syscall(42,longint(@pip));
- checkreturnvalue(retval,retval);
  LinuxError:=Errno;
  pipe_in:=pip[1];
  pipe_out:=pip[2];
@@ -2263,7 +2262,7 @@ end;
 
 
 Function mkFifo(pathname:string;mode:longint):boolean;
-var retval : LONGINT;
+
 begin
   pathname:=pathname+#0;
   mkfifo:=do_syscall(14,longint(@pathname[1]),mode or STAT_IFIFO,0)=0;
@@ -2514,6 +2513,7 @@ Function GetHostName:String;
 {
   Get machines name. Returns empty string if not set.
 }
+
 Var
   Sysn : utsname;
 begin
@@ -2556,7 +2556,7 @@ Procedure SigAction(Signum:Integer;Var Act,OldAct:PSigActionRec );
 }
 
 begin
- do_syscall(46,longint(signum),act,oldact);
+ do_syscall(46,longint(signum),longint(act),longint(oldact));
  LinuxError:=Errno;
 end;
 
@@ -2571,8 +2571,7 @@ Procedure SigProcMask(How:Integer;SSet,OldSSet:PSigSet);
 }
 
 begin
-  do_syscall(48,longint(how),sset,oldsset);
- checkreturnvalue(retval,retval);
+  do_syscall(48,longint(how),longint(sset),longint(oldsset));
  LinuxError:=Errno;
 end;
 
@@ -3646,7 +3645,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  2000-03-01 20:04:38  marco
+  Revision 1.6  2000-03-02 15:33:20  marco
+   * fixed some types and errors that needed longint(@ typecasting.
+
+  Revision 1.5  2000/03/01 20:04:38  marco
    * some small fixes.
 
   Revision 1.4  2000/03/01 17:27:46  marco
