@@ -89,7 +89,7 @@ unit pexports;
                              val(pattern,hp^.index,code);
                              consume(_INTCONST);
                              if target_os.id=os_i386_win32 then
-                               DefString:=ProcName+' @'+tostr(hp^.index)+'='+InternalProcName
+                               DefString:=ProcName+'='+InternalProcName+' @ '+tostr(hp^.index)
                              else
                                DefString:=ProcName+'='+InternalProcName; {Index ignored!}
                           end;
@@ -136,7 +136,13 @@ end.
 
 {
   $Log$
-  Revision 1.14  1999-11-20 01:19:10  pierre
+  Revision 1.15  1999-11-22 22:20:43  pierre
+    * Def file syntax for win32 with index corrected
+    * direct output of .edata leads to same indexes
+      (index 5 leads to next export being 6 unless otherwise
+      specified like for enums)
+
+  Revision 1.14  1999/11/20 01:19:10  pierre
     * DLL index used for win32 target with DEF file
     + DLL initialization/finalization support
 

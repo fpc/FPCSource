@@ -400,24 +400,18 @@ unit t_win32;
                  message1(parser_e_export_invalid_index,tostr(hp^.index));
                  exit;
                end;
-             hp2:=pexported_item(current_module^._exports^.first);
-             while assigned(hp2) do
+             if (hp^.index<=last_index) then
                begin
-                  if (hp^.index=hp2^.index) then
-                    if ((hp2^.options and eo_index)<>0) then
-                      begin
-                        message1(parser_e_export_ordinal_double,tostr(hp^.index));
-                        exit;
-                      end
-                    else
-                      begin
-                         inc(last_index);
-                         hp2^.index:=last_index;
-                      end;
-                  hp2:=pexported_item(hp2^.next);
+                 message1(parser_e_export_ordinal_double,tostr(hp^.index));
+                 { disregard index value }
+                 inc(last_index);
+                 hp^.index:=last_index;
+                 exit;
+               end
+             else
+               begin
+                 last_index:=hp^.index;
                end;
-             if hp^.index=last_index+1 then
-               inc(last_index);
           end
         else
           begin
@@ -1056,7 +1050,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-11-16 23:39:04  peter
+  Revision 1.9  1999-11-22 22:20:43  pierre
+    * Def file syntax for win32 with index corrected
+    * direct output of .edata leads to same indexes
+      (index 5 leads to next export being 6 unless otherwise
+      specified like for enums)
+
+  Revision 1.8  1999/11/16 23:39:04  peter
     * use outputexedir for link.res location
 
   Revision 1.7  1999/11/15 15:01:56  pierre
