@@ -7,7 +7,6 @@ clrscr;
 textcolor(blue);
 writeln('ole');
 textcolor(red);
-readln(i);
 writeln('rasmussen');
 writeln(i);
 end.
