@@ -1054,7 +1054,10 @@ do_jmp:
          flowcontrol:=oldflowcontrol+flowcontrol;
          { next on node }
          if assigned(p^.left) then
-           secondpass(p^.left);
+           begin
+              cleartempgen;
+              secondpass(p^.left);
+           end;
       end;
 
 {*****************************************************************************
@@ -1231,7 +1234,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.74  2000-05-09 19:05:56  florian
+  Revision 1.75  2000-07-06 20:43:44  florian
+    * the on statement has to clear the temp. gen before calling secondpass for
+      the next on statement
+
+  Revision 1.74  2000/05/09 19:05:56  florian
     * fixed a problem when returning int64/qword from a function in -Or: in some
       cases a wrong result was returned
 
