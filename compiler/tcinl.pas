@@ -709,6 +709,7 @@ implementation
                             hp:=p^.left;
                             while assigned(hp) do
                               begin
+                                incrementregisterpushed($ff);
                                 if (hp^.left^.treetype=typen) then
                                   CGMessage(type_e_cant_read_write_type);
                                 if assigned(hp^.left^.resulttype) then
@@ -1315,7 +1316,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2000-03-27 09:42:50  pierre
+  Revision 1.73  2000-04-02 18:30:12  florian
+    * fixed another problem with readln(<floating point register variable>);
+    * the register allocator takes now care of necessary pushes/pops for
+      readln/writeln
+
+  Revision 1.72  2000/03/27 09:42:50  pierre
     + add error if trying to use readln or writeln for files
       or read or write on untyped files.
       Reset and rewrite are still incompatible with BP

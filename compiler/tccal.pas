@@ -503,8 +503,7 @@ implementation
 {$ifndef newcg}
               { calc the correture value for the register }
 {$ifdef i386}
-              for regi:=R_EAX to R_EDI do
-                inc(reg_pushes[regi],t_times*2);
+              incrementregisterpushed($ff);
 {$endif}
 {$ifdef m68k}
               for regi:=R_D0 to R_A6 do
@@ -1063,11 +1062,7 @@ implementation
                 end;
 {$ifndef newcg}
 {$ifdef i386}
-              for regi:=R_EAX to R_EDI do
-                begin
-                   if (pprocdef(p^.procdefinition)^.usedregisters and ($80 shr word(regi)))<>0 then
-                     inc(reg_pushes[regi],t_times*2);
-                end;
+              incrementregisterpushed(pprocdef(p^.procdefinition)^.usedregisters);
 {$endif}
 {$ifdef m68k}
              for regi:=R_D0 to R_A6 do
@@ -1236,7 +1231,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2000-02-29 22:13:41  pierre
+  Revision 1.83  2000-04-02 18:30:12  florian
+    * fixed another problem with readln(<floating point register variable>);
+    * the register allocator takes now care of necessary pushes/pops for
+      readln/writeln
+
+  Revision 1.82  2000/02/29 22:13:41  pierre
    + use $GOTO ON
 
   Revision 1.81  2000/02/24 18:41:39  peter

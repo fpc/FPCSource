@@ -132,9 +132,6 @@ implementation
        { Boolean, wenn eine loadn kein Assembler erzeugt hat }
        simple_loadn : boolean;
 
-       { tries to hold the amount of times which the current tree is processed  }
-       t_times : longint;
-
        { true, if an error while code generation occurs }
        codegenerror : boolean;
 
@@ -159,7 +156,6 @@ implementation
     procedure codegen_donemodule;
     procedure codegen_newmodule;
     procedure codegen_newprocedure;
-
 
 implementation
 
@@ -449,7 +445,12 @@ end.
 
 {
   $Log$
-  Revision 1.57  2000-02-18 20:53:14  pierre
+  Revision 1.58  2000-04-02 18:30:12  florian
+    * fixed another problem with readln(<floating point register variable>);
+    * the register allocator takes now care of necessary pushes/pops for
+      readln/writeln
+
+  Revision 1.57  2000/02/18 20:53:14  pierre
     * fixes a stabs problem for functions
     + includes a stabs local var for with statements
       the name is with in lowercase followed by an index

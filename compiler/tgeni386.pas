@@ -44,6 +44,10 @@ unit tgeni386;
        usableregmmx : byte = 8;
 {$endif SUPPORT_MMX}
 
+    var
+       { tries to hold the amount of times which the current tree is processed  }
+       t_times : longint;
+
 {$ifdef TEMPREGDEBUG}
     procedure testregisters32;
 {$endif TEMPREGDEBUG}
@@ -70,6 +74,9 @@ unit tgeni386;
     { saves and restores used registers to temp. values }
     procedure saveusedregisters(var saved : tsaved;b : byte);
     procedure restoreusedregisters(const saved : tsaved);
+
+    { increments the push count of all registers in b}
+    procedure incrementregisterpushed(b : byte);
 
     procedure clearregistercount;
     procedure resetusableregisters;
@@ -109,6 +116,19 @@ implementation
 
     uses
       globtype,temp_gen;
+
+    procedure incrementregisterpushed(b : byte);
+
+      var
+         regi : tregister;
+
+      begin
+         for regi:=R_EAX to R_EDI do
+           begin
+              if (b and ($80 shr word(regi)))<>0 then
+                inc(reg_pushes[regi],t_times*2);
+           end;
+      end;
 
     procedure pushusedregisters(var pushed : tpushed;b : byte);
 
@@ -631,7 +651,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2000-02-10 11:27:18  jonas
+  Revision 1.42  2000-04-02 18:30:12  florian
+    * fixed another problem with readln(<floating point register variable>);
+    * the register allocator takes now care of necessary pushes/pops for
+      readln/writeln
+
+  Revision 1.41  2000/02/10 11:27:18  jonas
     * esi is never deallocated anymore in methods
 
   Revision 1.40  2000/02/09 13:23:08  peter
@@ -685,4 +710,3 @@ end.
     * small changes for the new code generator
 
 }
-

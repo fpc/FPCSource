@@ -101,7 +101,12 @@ implementation
                  emit_reg(op,opsize,correct_fpuregister(dest^.location.register,fpuvaroffset+1));
               end
             else
-              floatstore(PFloatDef(dest^.resulttype)^.typ,dest^.location.reference);
+              begin
+                 floatstore(PFloatDef(dest^.resulttype)^.typ,dest^.location.reference);
+                 { floatstore decrements the fpu var offset }
+                 { but in fact we didn't increment it       }
+                 inc(fpuvaroffset);
+              end;
           orddef:
             begin
               if is_64bitint(dest^.resulttype) then
@@ -1520,7 +1525,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2000-04-02 17:47:47  florian
+  Revision 1.98  2000-04-02 18:30:11  florian
+    * fixed another problem with readln(<floating point register variable>);
+    * the register allocator takes now care of necessary pushes/pops for
+      readln/writeln
+
+  Revision 1.97  2000/04/02 17:47:47  florian
     * readln(r); works now, if r is a fpu register variable
 
   Revision 1.96  2000/03/31 22:56:46  pierre
