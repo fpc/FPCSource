@@ -24,6 +24,7 @@ export FPCDIR
 endif
 
 # New ppc386 (or ppc68k if on m68k machine !)
+ifndef PPNEW
 ifeq ($(findstring /,$(FPC)),)
 ifdef FPC
 PPNEWBASE=$(FPC)
@@ -31,10 +32,11 @@ else
 PPNEWBASE=ppc386
 endif
 else
-FPNEWBASE=ppc386
+PPNEWBASE=ppc386
 endif
 
 PPNEW=$(BASEDIR)/compiler/$(PPNEWBASE)$(SRCEXEEXT)
+endif
 
 # Check if there is already a ppc386 binary in compiler, then
 # we will use that version for target and version info
