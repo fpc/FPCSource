@@ -29,7 +29,7 @@ unit cpupara;
 
     uses
        cpubase,
-       symconst,symbase,symdef,paramgr;
+       symconst,symbase,symtype,symdef,paramgr;
 
     type
        tppcparamanager = class(tparamanager)
@@ -43,8 +43,8 @@ unit cpupara;
     uses
        verbose,
        globtype,
-       cpuinfo,cginfo,
-       symtype,defbase;
+       cpuinfo,cginfo,cgbase,
+       defbase;
 
     function tppcparamanager.getintparaloc(nr : longint) : tparalocation;
 
@@ -120,6 +120,7 @@ unit cpupara;
          stack_offset : aword;
          hp : tparaitem;
          loc : tloc;
+         is_64bit: boolean;
 
       begin
          nextintreg:=R_3;
@@ -129,7 +130,7 @@ unit cpupara;
          { pointer for structured results ? }
          if not is_void(p.rettype.def) then
            begin
-              if not(ret_in_reg(p)) then
+              if not(ret_in_reg(p.rettype.def)) then
                 inc(nextintreg);
            end;
 
@@ -145,28 +146,41 @@ unit cpupara;
               case loc of
                  LOC_REGISTER:
                    begin
-                      hp.paraloc.size:=OS_32;
-                      if nextintreg<=R_8 then
+                      hp.paraloc.size := def_cgsize(hp.paratype.def);
+                      { for things like formaldef }
+                      if hp.paraloc.size = OS_NO then
+                        hp.paraloc.size := OS_ADDR;
+                      is_64bit := hp.paraloc.size in [OS_64,OS_S64];
+                      if nextintreg<=tregister(ord(R_10)-ord(is_64bit))  then
                         begin
                            hp.paraloc.loc:=LOC_REGISTER;
-                           hp.paraloc.register:=nextintreg;
+                           hp.paraloc.registerlow:=nextintreg;
                            inc(nextintreg);
+                           if is_64bit then
+                             begin
+                               hp.paraloc.registerhigh:=nextintreg;
+                               inc(nextintreg);
+                             end;
                         end
                       else
                          begin
+                            nextintreg := R_11;
                             hp.paraloc.loc:=LOC_REFERENCE;
                             hp.paraloc.reference.index:=stack_pointer_reg;
                             hp.paraloc.reference.offset:=stack_offset;
-                            inc(stack_offset,4);
+                            if not is_64bit then
+                              inc(stack_offset,4)
+                            else
+                              inc(stack_offset,8);
                         end;
                    end;
                  LOC_FPUREGISTER:
                    begin
-                      hp.paraloc.size:=OS_F32;
                       if hp.paratyp in [vs_var,vs_out] then
                         begin
-                           if nextintreg<=R_8 then
+                            if nextintreg<=R_10 then
                              begin
+                                hp.paraloc.size:=OS_ADDR;
                                 hp.paraloc.loc:=LOC_REGISTER;
                                 hp.paraloc.register:=nextintreg;
                                 inc(nextintreg);
@@ -174,11 +188,13 @@ unit cpupara;
                            else
                               begin
                                  {!!!!!!!}
+                                 hp.paraloc.size:=def_cgsize(hp.paratype.def);
                                  internalerror(2002071006);
                              end;
                         end
-                      else if nextfloatreg<=R_F8 then
+                      else if nextfloatreg<=R_F10 then
                         begin
+                           hp.paraloc.size:=def_cgsize(hp.paratype.def);
                            hp.paraloc.loc:=LOC_FPUREGISTER;
                            hp.paraloc.register:=nextfloatreg;
                            inc(nextfloatreg);
@@ -186,15 +202,16 @@ unit cpupara;
                       else
                          begin
                             {!!!!!!!}
+                             hp.paraloc.size:=def_cgsize(hp.paratype.def);
                             internalerror(2002071004);
                         end;
                    end;
                  LOC_REFERENCE:
                    begin
-                      hp.paraloc.size:=OS_32;
+                      hp.paraloc.size:=OS_ADDR;
                       if push_addr_param(hp.paratype.def,p.proccalloption in [pocall_cdecl,pocall_cppdecl]) or (hp.paratyp in [vs_var,vs_out]) then
                         begin
-                           if nextintreg<=R_8 then
+                           if nextintreg<=R_10 then
                              begin
                                 hp.paraloc.loc:=LOC_REGISTER;
                                 hp.paraloc.register:=nextintreg;
@@ -225,17 +242,56 @@ unit cpupara;
 
     function tppcparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
       begin
-         getfuncretparaloc.loc:=LOC_REGISTER;
-         getfuncretparaloc.register:=R_3;
-         getfuncretparaloc.size:=OS_ADDR;
+         case p.rettype.def.deftype of
+            orddef,
+            enumdef:
+              begin
+                getfuncretparaloc.loc:=LOC_REGISTER;
+                getfuncretparaloc.register:=R_3;
+                getfuncretparaloc.size:=def_cgsize(p.rettype.def);
+                if getfuncretparaloc.size in [OS_S64,OS_64] then
+                  getfuncretparaloc.registerhigh:=R_4;                 
+              end;
+            floatdef:
+              begin
+                getfuncretparaloc.loc:=LOC_FPUREGISTER;
+                getfuncretparaloc.register:=R_F1;
+                getfuncretparaloc.size:=def_cgsize(p.rettype.def);
+              end;
+            pointerdef,
+            formaldef,
+            classrefdef,
+            recorddef,
+            objectdef,
+            stringdef,
+            procvardef,
+            filedef,
+            arraydef,
+            errordef:
+              begin
+                getfuncretparaloc.loc:=LOC_REGISTER;
+                getfuncretparaloc.register:=R_3;
+                getfuncretparaloc.size:=OS_ADDR;
+              end;
+            else
+              internalerror(2002090903);
+        end;
       end;
+
 
 begin
    paramanager:=tppcparamanager.create;
 end.
 {
   $Log$
-  Revision 1.12  2002-09-09 09:11:37  florian
+  Revision 1.13  2002-09-10 21:28:05  jonas
+    * int64 paras are now handled correctly (until the registers are used up
+      anyway :)
+    * the return location is now initialized correctly
+    * fixed bug where ret_in_reg() was called for the procdefinition instead
+      of for the result of the procedure
+
+  Revision 1.12  2002/09/09 09:11:37  florian
     - removed passes_parameters_in_reg
 
   Revision 1.11  2002/09/07 17:54:59  florian
