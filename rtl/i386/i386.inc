@@ -3,6 +3,9 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993,97 by the Free Pascal development team.
 
+    Processor dependent implementation for the system unit for
+    intel i386+
+    
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -11,100 +14,203 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
 {****************************************************************************
+                                Move / Fill
+****************************************************************************}
 
-           i386.inc : Processor dependent implementation of the system unit
-                      for the Intel Ix86, x>=3
-
- ****************************************************************************}
-
-    procedure int_help_constructor;
-
-      begin
-         asm
-.globl HELP_CONSTRUCTOR_NE
-{$IFDEF LINUX}
-  .type HELP_CONSTRUCTOR_NE,@function
-{$ENDIF}
-HELP_CONSTRUCTOR_NE:
-
-.globl HELP_CONSTRUCTOR
-{$IFDEF LINUX}
-  .type HELP_CONSTRUCTOR,@function
-{$ENDIF}
-HELP_CONSTRUCTOR:
-      { Entry without preamble, since we need the ESP of the
-        constructor }
-      { Stack (relative to %ebp):
-          12 Self
-          8 VMT-Address
-          4 main programm-Addr
-          0 %ebp
-      }
-      {eax isn't touched anywhere, so it doesn't have to reloaded}
-      movl 8(%ebp),%eax
-      { initialise self ? }
-      orl %esi,%esi
-      jne .LHC_4
-      { get memory, but save register first }
-      { temporary variable }
-      subl $4,%esp
-      movl %esp,%esi
-      { Save Register}
-      pushal
-      { Memory size }
-      pushl (%eax)
-      pushl %esi
-      call GETMEM
-      popal
-      { Memory size to %esi }
-      movl (%esi),%esi
-      addl $4,%esp
-      { If no memory available : fail() }
-      orl %esi,%esi
-      jz .LHC_5
-      { init self for the constructor }
-      movl %esi,12(%ebp)
-   .LHC_4:
-      { is there a VMT address ? }
-      orl %eax,%eax
-      jnz .LHC_7
-      { In case the constructor doesn't do anything, the Zero-Flag }
-      { can't be put, because this calls Fail() }
-      incl %eax
-      ret
-   .LHC_7:
-      { set zero inside the object }
-      pushal
-      pushw $0
-      pushl (%eax)
-      pushl %esi
-      {                }
-      call .L_FILL_OBJECT
-      popal
-      { set the VMT address for the new created object }
-      movl %eax,(%esi)
-      orl %eax,%eax
-   .LHC_5:
-      ret
-   end;
+procedure Move(var source;var dest;count:longint);
+begin
+        asm
+        movl    dest,%edi
+        movl    source,%esi
+        movl    %edi,%eax
+        movl    count,%ebx
+{ Check for back or forward }
+        sub     %esi,%eax
+        jz      .LMoveEnd               { Do nothing when source=dest }
+        jc      .LFMove                 { Do forward, dest<source }
+        cmp     %ebx,%eax
+        jb      .LBMove                 { Dest is in range of move, do backward }
+{ Forward Copy }
+.LFMove:
+        cld
+        cmpl    $15,%ebx
+        jl      .LFMove1
+        movl    %edi,%ecx       { Align on 32bits }
+        negl    %ecx
+        andl    $3,%ecx
+        subl    %ecx,%ebx
+        rep
+        movsb
+        movl    %ebx,%ecx
+        andl    $3,%ebx
+        shrl    $2,%ecx
+        rep
+        movsl
+.LFMove1:
+        movl    %ebx,%ecx
+        rep
+        movsb
+        jmp .LMoveEnd
+{ Backward Copy }
+.LBMove:
+        std
+        addl    %ebx,%esi
+        addl    %ebx,%edi
+        movl    %edi,%ecx
+        decl    %esi
+        decl    %edi
+        cmpl    $15,%ebx
+        jl      .LBMove1
+        negl    %ecx            { Align on 32bits }
+        andl    $3,%ecx
+        subl    %ecx,%ebx
+        rep
+        movsb
+        movl    %ebx,%ecx
+        andl    $3,%ebx
+        shrl    $2,%ecx
+        subl    $3,%esi
+        subl    $3,%edi
+        rep
+        movsl
+        addl    $3,%esi
+        addl    $3,%edi
+.LBMove1:
+        movl    %ebx,%ecx
+        rep
+        movsb
+        cld
+.LMoveEnd:
+        end;
 end;
 
-procedure help_fail;
 
-  begin
-     asm
-     end;
-  end;
+Procedure FillChar(var x;count:longint;value:byte);[alias: '.L_FILL_OBJECT'];
+begin
+        asm
+        cld
+        movl    x,%edi
+        movl    value,%eax      { Only lower 8 bits will be used }
+        movl    count,%ecx
+        cmpl    $7,%ecx
+        jl      .LFill1
+        movb    %al,%ah
+        movl    %eax,%ebx
+        shll    $16,%eax
+        movl    %ecx,%edx
+        movw    %bx,%ax
+        movl    %edi,%ecx       { Align on 32bits }
+        negl    %ecx
+        andl    $3,%ecx
+        subl    %ecx,%edx
+        rep
+        stosb
+        movl    %edx,%ecx
+        andl    $3,%edx
+        shrl    $2,%ecx
+        rep
+        stosl
+        movl    %edx,%ecx
+.LFill1:
+        rep
+        stosb
+        end;
+end;
 
-procedure int_new_class;assembler;
 
+procedure fillword(var x;count : longint;value : word);
+begin
   asm
-  .global NEW_CLASS
-{$IFDEF LINUX}
-  .type NEW_CLASS,@function
-{$ENDIF}
-  NEW_CLASS:
+        movl 8(%ebp),%edi
+        movl 12(%ebp),%ecx
+        movl 16(%ebp),%eax
+        movl %eax,%edx
+        shll $16,%eax
+        movw %dx,%ax
+        movl %ecx,%edx
+        shrl $1,%ecx
+        cld
+        rep
+        stosl
+        movl %edx,%ecx
+        andl $1,%ecx
+        rep
+        stosw
+  end ['EAX','ECX','EDX','EDI'];
+end;
+
+
+
+{****************************************************************************
+                              Object Helpers
+****************************************************************************}
+
+{$I386_DIRECT}
+
+procedure int_help_constructor;assembler; [public,alias:'HELP_CONSTRUCTOR'];
+asm
+{ Entry without preamble, since we need the ESP of the constructor
+  Stack (relative to %ebp):
+    12 Self
+     8 VMT-Address
+     4 main programm-Addr
+     0 %ebp
+}
+      { eax isn't touched anywhere, so it doesn't have to reloaded }
+	movl	8(%ebp),%eax
+      { initialise self ? }
+	orl	%esi,%esi
+	jne	.LHC_4
+      { get memory, but save register first temporary variable }
+        subl	$4,%esp
+        movl	%esp,%esi
+      { Save Register}
+        pushal
+      { Memory size }
+        pushl	(%eax)
+        pushl	%esi
+        call	GETMEM
+        popal
+      { Memory size to %esi }
+        movl	(%esi),%esi
+        addl	$4,%esp
+      { If no memory available : fail() }
+        orl	%esi,%esi
+        jz	.LHC_5
+      { init self for the constructor }
+        movl	%esi,12(%ebp)
+.LHC_4:
+      { is there a VMT address ? }
+        orl	%eax,%eax
+        jnz	.LHC_7
+      { In case the constructor doesn't do anything, the Zero-Flag }
+      { can't be put, because this calls Fail() }
+        incl	%eax
+        ret
+.LHC_7:
+      { set zero inside the object }
+        pushal
+        pushw	$0
+        pushl	(%eax)
+        pushl	%esi
+        call	.L_FILL_OBJECT
+        popal
+      { set the VMT address for the new created object }
+        movl	%eax,(%esi)
+        orl	%eax,%eax
+.LHC_5:
+end;
+
+
+procedure help_fail;assembler;
+asm
+end;
+
+
+procedure int_new_class;assembler;[public,alias:'NEW_CLASS'];
+asm
      { create class ? }
      movl 8(%ebp),%edi
      orl %edi,%edi
@@ -121,17 +227,11 @@ procedure int_new_class;assembler;
      ret
 .LNEW_CLASS1:
      movl %esi,8(%ebp)
-     ret
-  end;
+end;
 
-procedure int_dispose_class;assembler;
 
-  asm
-  .global DISPOSE_CLASS
-{$IFDEF LINUX}
-  .type DISPOSE_CLASS,@function
-{$ENDIF}
-  DISPOSE_CLASS:
+procedure int_dispose_class;assembler;[public,alias:'DISPOSE_CLASS'];
+asm
      { destroy class ? }
      movl 8(%ebp),%edi
      { save self }
@@ -147,18 +247,12 @@ procedure int_dispose_class;assembler;
 .LDISPOSE_CLASS1:
      { load self }
      movl 8(%ebp),%esi
-     ret
-  end;
+end;
+
 
 { checks for a correct vmt pointer }
-procedure co;assembler;
-
-  asm
-  .globl CHECK_OBJECT
-{$IFDEF LINUX}
-  .type CHECK_OBJECT,@function
-{$ENDIF}
-  CHECK_OBJECT:
+procedure int_check_obhject;assembler;[public,alias:'CHECK_OBJECT'];
+asm
      pushl %edi
      movl 8(%esp),%edi
      pushl %eax
@@ -178,151 +272,52 @@ procedure co;assembler;
 .Lco_re:
      pushw $210
      call runerror
-  end;
+end;
 
-procedure int_help_destructor;
 
-  begin
-     asm
-        { Stack (relative to %ebp):
-            12 Self
-            8 VMT-Address
-            4 Main program-Addr
-            0 %ebp
-        }
-.globl HELP_DESTRUCTOR_NE
-{$IFDEF LINUX}
-  .type HELP_DESTRUCTOR_NE,@function
-{$ENDIF}
-HELP_DESTRUCTOR_NE:
-.globl HELP_DESTRUCTOR
-{$IFDEF LINUX}
-  .type HELP_DESTRUCTOR,@function
-{$ENDIF}
-HELP_DESTRUCTOR:
+procedure int_help_destructor;assembler;[public,alias:'HELP_DESTRUCTOR'];
+asm
+{ Stack (relative to %ebp):
+    12 Self
+     8 VMT-Address
+     4 Main program-Addr
+     0 %ebp
+}
       { temporary Variable }
-      subl $4,%esp
-      movl %esp,%edi
-      pushal
+	subl 	$4,%esp
+        movl 	%esp,%edi
+        pushal
       { Should the object be resolved ? }
-      movl 8(%ebp),%eax
-      orl %eax,%eax
-      jz .LHD_3
+        movl 	8(%ebp),%eax
+        orl 	%eax,%eax
+        jz 	.LHD_3
       { Yes, get size from SELF! }
-      movl 12(%ebp),%eax
+        movl 	12(%ebp),%eax
       { get VMT-pointer (from Self) to %ebx }
-      movl (%eax),%ebx
+        movl 	(%eax),%ebx
       { And put size on the Stack }
-      pushl (%ebx)
+        pushl 	(%ebx)
       { SELF }
       { I think for precaution }
       { that we should clear the VMT here }
-      movl $0,(%eax)
-      movl %eax,(%edi)
-      pushl %edi
-      call FREEMEM
-   .LHD_3:
-      popal
-      addl $4,%esp
-      ret
-   end;
+        movl 	$0,(%eax)
+        movl 	%eax,(%edi)
+        pushl 	%edi
+        call 	FREEMEM
+.LHD_3:
+        popal
+        addl	$4,%esp
 end;
 
-function get_addr(BP : longint) : longint;
 
-  begin
-     asm
-        movl BP,%eax
-        cmpl $0,%eax
-        je .Lnul_address
-        movl 4(%eax),%eax
-     .Lnul_address:
-        movl %eax,__RESULT
-     end ['EAX'];
-  end;
+{****************************************************************************
+                                 String 
+****************************************************************************}
 
-function get_next_frame(bp : longint) : longint;
-
-  begin
-     asm
-        movl bp,%eax
-        cmpl $0,%eax
-        je .Lnul_frame
-        movl (%eax),%eax
-     .Lnul_frame:
-        movl %eax,__RESULT
-     end ['EAX'];
-  end;
-
-procedure runerror(w : word);[alias: 'runerror'];
-
-  function get_addr : longint;
-
-    begin
-       asm
-          movl (%ebp),%eax
-          movl 4(%eax),%eax
-          movl %eax,__RESULT
-       end ['EAX'];
-    end;
-
-  function get_error_bp : longint;
-
-    begin
-       asm
-          movl (%ebp),%eax {%ebp of run_error}
-          movl %eax,__RESULT
-       end ['EAX'];
-    end;
-
-  begin
-     errorcode:=w;
-     exitcode:=w;
-     erroraddr:=pointer(get_addr);
-     errorbase:=get_error_bp;
-     doError:=True;
-     halt(errorcode);
-  end;
-
-procedure io1(addr : longint);[public,alias: 'IOCHECK'];
-
-  var
-     l : longint;
-
-  begin
-     { Since IOCHECK is called directly and only later the optimiser }
-     { Maybe also save global registers  }
-     asm
-        pushal
-     end;
-     l:=ioresult;
-     if l<>0 then
-       begin
-          writeln('IO-Error ',l,' at ',addr);
-          halt(l);
-       end;
-     asm
-        popal
-     end;
-  end;
-
-procedure re_overflow;[public,alias: 'RE_OVERFLOW'];
-
-  var
-     addr : longint;
-
-  begin
-     { Overflow was shortly before the return address }
-     asm
-        movl 4(%ebp),%edi
-        movl %edi,addr
-     end;
-     writeln('Overflow at ',addr);
-     RunError(215);
-  end;
-
-{ this procedure must save all modified registers except EDI and ESI !!! }
-procedure strcopy(dstr,sstr : pointer;len : longint);[public,alias: 'STRCOPY'];
+procedure strcopy(dstr,sstr:pointer;len:longint);[public,alias:'STRCOPY'];
+{
+  this procedure must save all modified registers except EDI and ESI !!!
+}
 begin
   asm
         pushl %eax
@@ -340,7 +335,7 @@ begin
         stosb
         cmpl    $7,%eax
         jl      .LStrCopy2
-        movl    %edi,%ecx       # Align on 32bits
+        movl    %edi,%ecx       { Align on 32bits }
         negl    %ecx
         andl    $3,%ecx
         subl    %ecx,%eax
@@ -381,7 +376,7 @@ begin
         addb    %al,(%ebx)
         cmpl    $7,%eax
         jl      .LStrConcat2
-        movl    %edi,%ecx       # Align on 32bits
+        movl    %edi,%ecx       { Align on 32bits }
         negl    %ecx
         andl    $3,%ecx
         subl    %ecx,%eax
@@ -419,7 +414,7 @@ begin
 .LStrCmp1:
         cmpl    $7,%eax
         jl      .LStrCmp2
-        movl    %edi,%ecx       # Align on 32bits
+        movl    %edi,%ecx       { Align on 32bits }
         negl    %ecx
         andl    $3,%ecx
         subl    %ecx,%eax
@@ -449,7 +444,7 @@ begin
 end;
 
 
-function strpas(p : pchar) : string;
+function strpas(p:pchar):string;
 begin
   asm
         cld
@@ -467,7 +462,7 @@ begin
         stosb
         cmpl    $7,%eax
         jl      .LStrPas2
-        movl    %edi,%ecx       # Align on 32bits
+        movl    %edi,%ecx       { Align on 32bits }
         negl    %ecx
         andl    $3,%ecx
         subl    %ecx,%eax
@@ -485,198 +480,131 @@ begin
   end ['ECX','EAX','ESI','EDI'];
 end;
 
-
-function strlen(p : pchar) : longint;
-begin
-  asm
-        cld
-        movl    8(%ebp),%edi
+function strlen(p:pchar):longint;assembler;
+asm
+        movl    p,%edi
         movl    $0xffffffff,%ecx
         xorl    %eax,%eax
+        cld
         repne
         scasb
         movl    $0xfffffffe,%eax
         subl    %ecx,%eax
-        leave
-        ret     $4
-  end ['EDI','ECX','EAX'];
-end;
+end ['EDI','ECX','EAX'];
+
+{****************************************************************************
+                                 Other 
+****************************************************************************}
+
+function get_addr(addrbp:longint):longint;assembler;
+asm
+	movl	addrbp,%eax
+	orl	%eax,%eax
+	jz	.Lg_a_null
+        movl	4(%eax),%eax
+.Lg_a_null:
+end ['EAX'];
 
 
-procedure Move(var source;var dest;count:longint);
+function get_next_frame(framebp:longint):longint;assembler;
+asm
+	movl	framebp,%eax
+	orl	%eax,%eax
+	jz	.Lgnf_null
+        movl	(%eax),%eax
+.Lgnf_null:
+end ['EAX'];
+
+
+procedure runerror(w : word);[alias: 'runerror'];
+
+  function get_addr : longint;
+
+    begin
+       asm
+          movl (%ebp),%eax
+          movl 4(%eax),%eax
+          movl %eax,__RESULT
+       end ['EAX'];
+    end;
+
+  function get_error_bp : longint;
+
+    begin
+       asm
+          movl (%ebp),%eax {%ebp of run_error}
+          movl %eax,__RESULT
+       end ['EAX'];
+    end;
+
+  begin
+     errorcode:=w;
+     exitcode:=w;
+     erroraddr:=pointer(get_addr);
+     errorbase:=get_error_bp;
+     doError:=True;
+     halt(errorcode);
+  end;
+
+procedure io1(addr : longint);[public,alias: 'IOCHECK'];
+var
+  l : longint;
 begin
-        asm
-        movl    dest,%edi
-        movl    source,%esi
-        movl    %edi,%eax
-        movl    count,%ebx
-## Check for back or forward
-        sub     %esi,%eax
-        jz      .LMoveEnd               # Do nothing when source=dest
-        jc      .LFMove                 # Do forward, dest<source
-        cmp     %ebx,%eax
-        jb      .LBMove                 # Dest is in range of move, do backward
-## Forward Copy
-.LFMove:
-        cld
-        cmpl    $7,%ebx
-        jl      .LFMove1
-        movl    %edi,%ecx       # Align on 32bits
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%ebx
-        rep
-        movsb
-        movl    %ebx,%ecx
-        andl    $3,%ebx
-        shrl    $2,%ecx
-        rep
-        movsl
-.LFMove1:
-        movl    %ebx,%ecx
-        rep
-        movsb
-        jmp .LMoveEnd
-## Backward Copy
-.LBMove:
-        std
-        addl    %ebx,%esi
-        addl    %ebx,%edi
-        movl    %edi,%ecx
-        decl    %esi
-        decl    %edi
-        cmpl    $7,%ebx
-        jl      .LBMove1
-        negl    %ecx            # Align on 32bits
-        andl    $3,%ecx
-        subl    %ecx,%ebx
-        rep
-        movsb
-        movl    %ebx,%ecx
-        andl    $3,%ebx
-        shrl    $2,%ecx
-        subl    $3,%esi
-        subl    $3,%edi
-        rep
-        movsl
-        addl    $3,%esi
-        addl    $3,%edi
-.LBMove1:
-        movl    %ebx,%ecx
-        rep
-        movsb
-        cld
-.LMoveEnd:
-        end;
+{ Since IOCHECK is called directly and only later the optimiser }
+{ Maybe also save global registers  }
+  asm
+	pushal
+  end;
+  l:=ioresult;
+  if l<>0 then
+   begin
+     writeln('IO-Error ',l,' at ',addr);
+     halt(l);
+   end;
+  asm
+	popal
+   end;
 end;
 
 
-Procedure FillChar(var x;count:longint;value:byte);[alias: '.L_FILL_OBJECT'];
+procedure re_overflow;[public,alias: 'RE_OVERFLOW'];
+var
+  addr : longint;
 begin
-        asm
-        cld
-        movl    x,%edi
-        movl    value,%eax      # Only lower 8 bits will be used
-        movl    count,%ecx
-        cmpl    $7,%ecx
-        jl      .LFill1
-        movb    %al,%ah
-        movl    %eax,%ebx
-        shll    $16,%eax
-        movl    %ecx,%edx
-        movw    %bx,%ax
-        movl    %edi,%ecx       # Align on 32bits
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%edx
-        rep
-        stosb
-        movl    %edx,%ecx
-        andl    $3,%edx
-        shrl    $2,%ecx
-        rep
-        stosl
-        movl    %edx,%ecx
-.LFill1:
-        rep
-        stosb
-        end;
+{ Overflow was shortly before the return address }
+   asm
+	movl	4(%ebp),%edi
+        movl	%edi,addr
+   end;
+   writeln('Overflow at ',addr);
+   RunError(215);
 end;
 
 
-procedure fillword(var x;count : longint;value : word);
-
-  begin
-     asm
-        movl 8(%ebp),%edi
-        movl 12(%ebp),%ecx
-        movl 16(%ebp),%eax
-        movl %eax,%edx
-        shll $16,%eax
-        movw %dx,%ax
-        movl %ecx,%edx
-        shrl $1,%ecx
-        cld
-        rep
-        stosl
-        movl %edx,%ecx
-        andl $1,%ecx
-        rep
-        stosw
-     end ['EAX','ECX','EDX','EDI'];
-  end;
+function abs(l:longint):longint;assembler;
+asm
+	movl	l,%eax
+        orl	%eax,%eax
+        jns	.LMABS1
+        negl	%eax
+.LMABS1:
+end ['EAX'];
 
 
-{$ifndef ordintern}
-{!!!!!! not very fast, but easy. }
-function ord(b : boolean) : byte;
-
-  begin
-     asm
-        movb 8(%ebp),%al
-        leave
-        ret $2
-     end;
-  end;
-{$endif}
-
-function abs(l : longint) : longint;
-
-  begin
-     asm
-        movl 8(%ebp),%eax
-        orl %eax,%eax
-        jns .LMABS1
-        negl %eax
-        .LMABS1:
-        leave
-        ret $4
-     end ['EAX'];
-  end;
+function odd(l:longint):boolean;assembler;
+asm
+       movl	l,%eax
+       andl	$1,%eax
+       setnz	%al
+end ['EAX'];
 
 
-function odd(l : longint) : boolean;
+function sqr(l:longint):longint;assembler;
+asm
+        mov	l,%eax
+        imull	%eax,%eax
+end ['EAX'];
 
-  begin
-    asm
-       movl 8(%ebp),%eax
-       andl $1,%eax
-       setnz %al
-       leave
-       ret $4
-    end ['EAX'];
-  end;
-
-function sqr(l : longint) : longint;
-
-  begin
-     asm
-        movl 8(%ebp),%eax
-        imull %eax,%eax
-        leave
-        ret $4
-     end ['EAX'];
-  end;
 
 {$ifndef str_intern }
     procedure str(l : longint;var s : string);
@@ -773,6 +701,7 @@ function sqr(l : longint) : longint;
          end;
       end;
 
+      
 Function Sptr : Longint;
 begin
   asm
@@ -782,24 +711,33 @@ begin
   end ['EAX'];
 end;
 
-Function Random(L: LongInt): LongInt;{assembler;
-asm
-  movl $134775813,%eax
-  mull U_SYSTEM_RANDSEED
-  incl %eax
-  movl %eax,U_SYSTEM_RANDSEED
-  mull 4(%esp)
-  movl %edx,%eax
-end;}
 
+{$I386_ATT}
+
+Function Random(L: LongInt): LongInt;assembler;
+asm
+	  movl	$134775813,%eax
+          mull	RandSeed
+          incl	%eax
+          movl	%eax,RandSeed
+          mull	4(%esp)
+          movl	%edx,%eax
+end;
+{
 begin
   Randseed:=Randseed*134775813+1;
   Random:=abs(Randseed mod l);
 end;
+}
+
+{$I386_DIRECT}
 
 {
   $Log$
-  Revision 1.4  1998-04-10 15:41:54  florian
+  Revision 1.5  1998-04-29 13:28:19  peter
+    * some cleanup and i386_att usage
+
+  Revision 1.4  1998/04/10 15:41:54  florian
     + some small comments added
 
   Revision 1.3  1998/04/10 15:25:23  michael
