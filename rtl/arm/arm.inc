@@ -18,6 +18,10 @@
 
 {$asmmode gas}
 
+procedure fpc_cpuinit;
+begin
+end;
+
 {****************************************************************************
                        stack frame related stuff
 ****************************************************************************}
@@ -119,7 +123,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-11-21 00:40:06  florian
+  Revision 1.4  2004-01-20 21:01:57  florian
+    * fixed setjump
+    * fixed syscalls
+
+  Revision 1.3  2003/11/21 00:40:06  florian
     * some arm issues fixed
 
   Revision 1.2  2003/09/03 14:09:37  florian

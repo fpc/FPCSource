@@ -177,12 +177,31 @@ end;
 
 // Old style syscall:
 // Better use ktrace/strace/gdb for debugging.
-Procedure FpSysCall( callnr:longint;var regs : SysCallregs );assembler;
+Procedure FpSysCall(callnr:longint;var regs : SysCallregs);assembler;
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
 asm
+  stmfd r13!,{r4-r6}
+  ldr  r2,[r1,#4]
+  ldr  r3,[r1,#8]
+  ldr  r4,[r1,#12]
+  ldr  r5,[r1,#16]
+  ldr  r6,[r1,#20]
+  ldr  r1,[r1]
+  swi  #0x900071
+  cmn  r0,#126
+  bls  .LDone
+  ldr  r1,.LErrno
+  rsb  r0,r0,#0
+  str  r0,[r1]
+  mvn  r0,#0
+  b    .LDone
+.LErrno:
+  .word Errno
+.LDone:
+  ldmfd r13!,{r4-r6}
 end;
 
 {$IFDEF SYSCALL_DEBUG}
@@ -241,7 +260,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-12-29 19:24:12  florian
+  Revision 1.4  2004-01-20 21:01:57  florian
+    * fixed setjump
+    * fixed syscalls
+
+  Revision 1.3  2003/12/29 19:24:12  florian
     + introduced PtrInt and PtrUInt
     * made strscan 64 bit safe
 
@@ -251,4 +274,3 @@ end;
   Revision 1.1  2003/08/28 00:08:29  florian
     * syscall skeleton
 }
-

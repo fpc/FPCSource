@@ -18,7 +18,7 @@
 function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];
   asm
      stmia   r0,{v1-v6, sl, fp, sp, lr}
-     (*!!!! fix me ?*)
+     mov     r0,#0
   end;
 
 procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP'];
@@ -32,7 +32,11 @@ procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'F
 
 {
   $Log$
-  Revision 1.2  2003-09-03 14:09:37  florian
+  Revision 1.3  2004-01-20 21:01:57  florian
+    * fixed setjump
+    * fixed syscalls
+
+  Revision 1.2  2003/09/03 14:09:37  florian
     * arm fixes to the common rtl code
     * some generic math code fixed
     * ...
