@@ -263,12 +263,21 @@ UNITDIR=$(RTLDIR)/dos/go32v2
 endif
 endif
 
+# set the prefix directory where to install everything
+ifndef PREFIXINSTALLDIR
+ifdef inlinux
+PREFIXINSTALLDIR=/usr
+else
+PREFIXINSTALLDIR=/pp
+endif
+endif
+
 # set the base directory where to install everything
 ifndef BASEINSTALLDIR
 ifdef inlinux
-BASEINSTALLDIR=/usr/lib/fpc/$(RELEASEVER)
+BASEINSTALLDIR=$(PREFIXINSTALLDIR)/lib/fpc/$(RELEASEVER)
 else
-BASEINSTALLDIR=/pp
+BASEINSTALLDIR=$(PREFIXINSTALLDIR)
 endif
 endif
 
@@ -289,7 +298,7 @@ endif
 # set the directory where to install the binaries
 ifndef BININSTALLDIR
 ifdef inlinux
-BININSTALLDIR=/usr/bin
+BININSTALLDIR=$(PREFIXINSTALLDIR)/bin
 else
 BININSTALLDIR=$(BASEINSTALLDIR)/bin/$(OS_TARGET)
 endif
@@ -334,7 +343,7 @@ endif
 # set the directory where to install the libs (must exist)
 ifndef SHARED_LIBINSTALLDIR
 ifdef inlinux
-SHARED_LIBINSTALLDIR=/usr/lib
+SHARED_LIBINSTALLDIR=$(PREFIXINSTALLDIR)/lib
 else
 SHARED_LIBINSTALLDIR=$(SHARED_UNITINSTALLDIR)
 endif
@@ -352,7 +361,7 @@ endif
 # Where the doc files will be stored
 ifndef DOCINSTALLDIR
 ifdef inlinux
-DOCINSTALLDIR=/usr/doc/fpc/$(RELEASEVER)
+DOCINSTALLDIR=$(PREFIXINSTALLDIR)/doc/fpc/$(RELEASEVER)
 else
 DOCINSTALLDIR=$(BASEINSTALLDIR)/doc
 endif
@@ -650,7 +659,10 @@ endif
 
 #
 # $Log$
-# Revision 1.2  1998-10-28 00:14:13  peter
+# Revision 1.3  1998-11-10 15:06:25  peter
+#   + PREFIXINSTALLDIR to allow /usr/local and pwd/debian/tmp
+#
+# Revision 1.2  1998/10/28 00:14:13  peter
 #   * argh.. ifndef winnt -> ifdef winnt  :(
 #
 # Revision 1.1  1998/10/27 14:23:59  peter
