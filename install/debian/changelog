@@ -1,8 +1,8 @@
-fpc (1.1.0-1) unstable; urgency=low
+fpc (1.9.0-1) unstable; urgency=low
 
-  * New Snapshot.
+  * First beta release for 2.0
 
- -- Mazen NEIFER <mazen@freepascal.org>  Thu,  14 Aug 2003 11:54:50 +0100
+ -- Peter Vreman <peter@freepascal.org>  Sat,  1 Nov 2003 22:00:00 +0100
 
 fpc (1.0.6-20020228) unstable; urgency=low
 

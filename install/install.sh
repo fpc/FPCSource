@@ -1,14 +1,14 @@
 #!/bin/sh
 #
 # Free Pascal installation script for Linux.
-# Copyright 1996-2000 Michael Van Canneyt and Peter Vreman
+# Copyright 1996-2002 Michael Van Canneyt and Peter Vreman
 #
 # Don't edit this file. 
 # Everything can be set when the script is run.
 #
 
 # Release Version
-VERSION=1.0.4
+VERSION=1.9.0
 
 # some useful functions
 # ask displays 1st parameter, and ask new value for variable, whose name is
@@ -94,42 +94,50 @@ makedirhierarch $PREFIX
 # Set some defaults.
 LIBDIR=$PREFIX/lib/fpc/$VERSION
 SRCDIR=$PREFIX/src/fpc-$VERSION
-DOCDIR=$PREFIX/doc/fpc-$VERSION
-MANDIR=$PREFIX/man
-DEMODIR=$DOCDIR/examples
 EXECDIR=$PREFIX/bin
+OSNAME=`uname -s | tr A-Z a-z`
+
+BSDHIER=0
+case $OSNAME in 
+*bsd)
+  BSDHIER=1;;
+esac
+
+
+if [ "${BSDHIER}" = "1" ]; then
+DOCDIR=$PREFIX/share/doc/fpc-$VERSION
+else
+DOCDIR=$PREFIX/doc/fpc-$VERSION
+fi
+
+echo $DOCDIR
+
+DEMODIR=$DOCDIR/examples
 
 # Install compiler/RTL. Mandatory.
 echo Unpacking ...
 tar xf binary.tar
 echo Installing compiler and RTL ...
-unztar baselinux.tar.gz $PREFIX
+unztar base${OSNAME}.tar.gz $PREFIX
 rm -f $EXECDIR/ppc386
 ln -sf $LIBDIR/ppc386 $EXECDIR/ppc386
 echo Installing utilities...
-unztar utillinux.tar.gz $PREFIX
+unztar util${OSNAME}.tar.gz $PREFIX
 if yesno "Install FCL"; then
-    unztar unitsfcllinux.tar.gz $PREFIX
+    unztar unitsfcl${OSNAME}.tar.gz $PREFIX
 fi
-if yesno "Install API"; then
-    unztar unitsapilinux.tar.gz $PREFIX
+if yesno "Install packages"; then
+  for f in units*.tar.gz 
+  do
+    if [ $f != unitsfcl${OSNAME}.tar.gz ]; then
+      basename $f .tar.gz |\
+      sed -e s/units// -e s/${OSNAME}// |\
+      xargs echo Installing 
+      unztar $f $PREFIX
+    fi
+  done
 fi
-if yesno "Install Base (zlib,ncurses,x11) Packages"; then
-    unztar unitsbaselinux.tar.gz $PREFIX
-fi
-if yesno "Install Net (inet,uncgi) Packages"; then
-    unztar unitsnetlinux.tar.gz $PREFIX
-fi
-if yesno "Install Database (mysql,interbase,postgres) Packages"; then
-    unztar unitsdblinux.tar.gz $PREFIX
-fi
-if yesno "Install Graphics (svgalib,opengl,ggi,forms) Packages"; then
-    unztar unitsgfxlinux.tar.gz $PREFIX
-fi
-if yesno "Install Misc (utmp,paszlib) Packages"; then
-    unztar unitsmisclinux.tar.gz $PREFIX
-fi
-rm -f *linux.tar.gz
+rm -f *${OSNAME}.tar.gz
 echo Done.
 echo
 
@@ -148,14 +156,20 @@ if yesno "Install sources"; then
   if yesno "Install FCL source"; then
     unztar fclsrc.tar.gz $PREFIX
   fi    
-  if yesno "Install API source"; then
-    unztar apisrc.tar.gz $PREFIX
+  if yesno "Install IDE source"; then
+    unztar idesrc.tar.gz $PREFIX
+  fi    
+  if yesno "Install installer source"; then
+    unztar installersrc.tar.gz $PREFIX
   fi    
   if yesno "Install Packages source"; then
-    unztar packagessrc.tar.gz $PREFIX
-  fi    
-  if yesno "Install Utils source"; then
-    unztar utilsrc.tar.gz $PREFIX
+    for f in units*src.tar.gz 
+    do
+      basename $f .tar.gz |\
+      sed -e s/units// -e s/src// |\
+      xargs echo Installing sources for 
+      unztar $f $PREFIX
+    done
   fi    
   rm -f *src.tar.gz
   echo Done.
@@ -166,14 +180,6 @@ echo
 if yesno "Install documentation"; then
   echo Installing documentation in $DOCDIR ...
   unztar docs.tar.gz $PREFIX
-  echo Done.
-fi
-echo
-
-# Install the documentation. Optional.
-if yesno "Install manual pages"; then
-  echo Installing documentation in $MANDIR ...
-  unztar man.tar.gz $PREFIX
   echo Done.
 fi
 echo

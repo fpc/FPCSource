@@ -1,5 +1,5 @@
 Name: fpc
-Version: 1.1
+Version: 1.9.0
 Release: 0
 ExclusiveArch: i386 i586 i686
 Copyright: GPL
@@ -92,7 +92,9 @@ fi
 	make packages_clean
 	make fcl_clean
 	make utils_clean
+if [ -z ${NODOCS} ]; then
 	make -C docs clean
+fi
 
 if [ %{buildroot} != "/" ]; then
 	rm -rf %{buildroot}

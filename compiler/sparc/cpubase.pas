@@ -550,7 +550,7 @@ implementation
 
     function findreg_by_number(r:Tregister):tregisterindex;
       begin
-        rgBase.findreg_by_number_table(r,regnumber_index);
+        result:=findreg_by_number_table(r,regnumber_index);
       end;
 
 
@@ -558,7 +558,7 @@ implementation
       var
         p : tregisterindex;
       begin
-        p:=rgBase.findreg_by_number_table(r,regnumber_index);
+        p:=findreg_by_number_table(r,regnumber_index);
         if p<>0 then
           result:=std_regname_table[p]
         else
@@ -568,7 +568,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2003-10-31 08:47:13  mazen
+  Revision 1.56  2003-11-01 19:27:54  peter
+    * 1.9.0
+
+  Revision 1.55  2003/10/31 08:47:13  mazen
   * rgHelper renamed to rgBase
   * using findreg_by_<name|number>_table directly to decrease heap overheading
 
