@@ -199,7 +199,7 @@ Var
 Function Translate (Name,Value : AnsiString; Hash : Longint) : AnsiString;
 
 begin
-  Result:=TheFile.Translate(Value);
+  Result:=TheFile.Translate(Value,Hash);
 end;
 
 procedure TranslateResourceStrings(AFile: TMOFile);
@@ -222,7 +222,8 @@ begin
     Count:=ResourceStringCount(I);
     For J:=0 to Count-1 do
       begin
-      S:=AFile.Translate(GetResourceStringDefaultValue(I,J));
+      S:=AFile.Translate(GetResourceStringDefaultValue(I,J),
+                         GetResourceStringHash(I,J));
       if S <> '' then
         SetResourceStringValue(I,J,S);
       end;
@@ -250,7 +251,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-08-28 13:35:16  michael
+  Revision 1.5  1999-10-15 19:42:18  michael
+  hash is available in tables
+
+  Revision 1.4  1999/08/28 13:35:16  michael
   * Uses now hash function of objpas
 
   Revision 1.3  1999/08/27 15:53:36  michael
