@@ -37,9 +37,11 @@
 //    _UTSNAME_NODENAME_LENGTH = ;
 
 CONST                		// OS specific parameters for general<fd,sig>set behaviour
+   BITSINWORD      = 8*sizeof(longint);
    FD_MAXFDSET	   = 1024;
    ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
    ln2bitmask	   = 1 shl ln2bitsinword - 1;
+   wordsinfdset    = FD_MAXFDSET DIV BITSINWORD;        // words in fdset_t   
 
 TYPE
    { system information services }
@@ -212,7 +214,10 @@ CONST
 
 {
   $Log$
-  Revision 1.7  2004-01-04 20:08:45  jonas
+  Revision 1.8  2004-02-29 13:46:52  marco
+   * forgotten?
+
+  Revision 1.7  2004/01/04 20:08:45  jonas
     * moved SIG_MAXSIG and wordsinsigset constants from bunxtype.inc to
       ptypes.inc (already there for Darwin)
 
