@@ -1552,7 +1552,7 @@ begin
 //  SetCurrentRecord(FActiverecord);
 
 // Now look if the data on the current cursor of the underlying dataset is still available
-  If GetRecord(Fbuffers[0],gmcurrent,True)<>grOk Then
+  If GetRecord(Fbuffers[0],gmcurrent,False)<>grOk Then
 // If that fails and rmExact is set, then raise an exception
     If rmExact in Mode then
       DatabaseError(SNoSuchRecord,Self)
@@ -1721,7 +1721,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2004-08-30 12:02:17  michael
+  Revision 1.23  2004-09-15 12:22:33  michael
+  Suggested fix from Luiz Americo to .resync method
+
+  Revision 1.22  2004/08/30 12:02:17  michael
   + Patch from Joost van der Sluis for Insert/Resync
 
   Revision 1.21  2004/08/23 07:30:19  michael
