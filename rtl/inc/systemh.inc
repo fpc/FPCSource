@@ -106,8 +106,6 @@ Type
   {$define SUPPORT_COMP}
 
   ValReal = Extended;
-
-  FarPointer = Pointer;
 {$endif CPUX86_64}
 
 {$ifdef CPUM68K}
@@ -127,7 +125,9 @@ Type
   Comp    = int64;
   PComp = ^Comp;
 
+{$ifdef FPC_HASNOFARPOINTER}
   FarPointer = Pointer;
+{$endif FPC_HASNOFARPOINTER}
 {$endif CPUM68K}
 
 {$ifdef CPUPOWERPC}
@@ -144,7 +144,9 @@ Type
   Comp = Int64;
   PComp = ^Comp;
 
+{$ifdef FPC_HASNOFARPOINTER}
   FarPointer = Pointer;
+{$endif FPC_HASNOFARPOINTER}
 {$endif CPUPOWERPC}
 
 {$ifdef CPUSPARC}
@@ -161,7 +163,9 @@ Type
   Comp = Int64;
   PComp = ^Comp;
 
+{$ifdef FPC_HASNOFARPOINTER}
   FarPointer = Pointer;
+{$endif FPC_HASNOFARPOINTER}
 {$endif CPUSPARC}
 
 {$ifdef CPUARM}
@@ -180,7 +184,9 @@ Type
   Comp = Int64;
   PComp = ^Comp;
 
+{$ifdef FPC_HASNOFARPOINTER}
   FarPointer = Pointer;
+{$endif FPC_HASNOFARPOINTER}
 {$endif CPUARM}
 
 {$ifdef CPU64}
@@ -747,7 +753,10 @@ const
 
 {
   $Log$
-  Revision 1.114  2005-02-05 10:07:21  florian
+  Revision 1.115  2005-02-05 10:47:38  florian
+    * fixed previous commit
+
+  Revision 1.114  2005/02/05 10:07:21  florian
     * map farpointer to pointer on platforms not having farpointers
 
   Revision 1.113  2005/02/01 20:22:49  florian
