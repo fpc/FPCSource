@@ -16,8 +16,18 @@
  *       Class implementations are in separate files.                 *
  **********************************************************************}
 
-{!!!TSE 21.08.1998 added german exception messages}
+{
+ Include all message strings
+
+ Add a language with IFDEF LANG_NAME
+ just befor the final ELSE. This way English will always be the default.
+}
+
+{$IFDEF LANG_GERMAN}
 {$i constsg.inc}
+{$ELSE}
+{$i constse.inc}
+{$ENDIF}
 
 { Utility routines }
 {$i util.inc}
@@ -336,7 +346,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-09-23 07:47:40  michael
+  Revision 1.5  1998-09-23 08:41:55  michael
+  Added switch to select language
+
+  Revision 1.4  1998/09/23 07:47:40  michael
   + Some changes by TSE
 
   Revision 1.3  1998/06/03 15:10:20  michael
@@ -375,7 +388,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-09-23 07:47:40  michael
+  Revision 1.5  1998-09-23 08:41:55  michael
+  Added switch to select language
+
+  Revision 1.4  1998/09/23 07:47:40  michael
   + Some changes by TSE
 
   Revision 1.3  1998/06/03 15:10:20  michael
