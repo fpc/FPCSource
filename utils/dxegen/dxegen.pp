@@ -17,11 +17,7 @@ Uses Strings,DxeLoad,Coff,Dos;
 {$inline on}
 
 Const
-{$ifdef Unix}
-  DirSep  = '/';
-{$else}
-  DirSep  = '\';
-{$endif}
+  DirSep  = System.DirectorySeparator;
   Tempname= 'dxe__tmp.o';
 
 { This next function is needed for cross-compiling when the machine
@@ -314,7 +310,10 @@ Begin
 End.
 {
  $Log$
- Revision 1.4  2002-06-01 18:39:15  marco
+ Revision 1.5  2002-07-14 13:39:45  carl
+   * use special symbols for portability's sake
+
+ Revision 1.4  2002/06/01 18:39:15  marco
   * Renamefest
 
  Revision 1.3  2001/08/02 12:50:46  jonas

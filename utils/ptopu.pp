@@ -561,11 +561,7 @@ end;
 Procedure WriteCR (S: PStream);
 
 Const
-{$ifdef Unix}
-  Newline = #10;
-{$else}
-  NewLine = #13#10;
-{$endif}
+  Newline = System.LineEnding;
 
 begin
   WriteString(S,Newline);
@@ -1223,7 +1219,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-06-01 18:39:14  marco
+  Revision 1.4  2002-07-14 13:39:45  carl
+    * use special symbols for portability's sake
+
+  Revision 1.3  2002/06/01 18:39:14  marco
    * Renamefest
 
   Revision 1.2  2002/02/27 16:35:31  carl
