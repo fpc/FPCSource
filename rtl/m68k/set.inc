@@ -427,15 +427,8 @@
 
 {
   $Log$
-  Revision 1.4  1998-06-17 13:59:08  carl
-    * bugfix of set_in_byte, long must be used at start, same is true for
-  another routine
-
-  Revision 1.3  1998/06/05 12:32:07  carl
-    * calculating sets is COMPLETELY different from the intel in
-  determining the bit number
-    * new passing parameters conventions
-    * misc bugfixes
+  Revision 1.5  1998-07-01 14:27:13  carl
+    * set_set and set_in bugfix
 
   Revision 1.2  1998/03/27 23:47:35  carl
     * bugfix of FLAGS as return values for SET_IN_BYTE and SET_SET_BYTE
