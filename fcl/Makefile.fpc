@@ -20,7 +20,7 @@ units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszl
 
 [target]
 dirs=xml image db shedit passrc net 
-units=classes contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
+units=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
       iostream zstream cachecls xmlreg registry eventlog custapp cgiapp \
       wformat whtml wtex
 units_freebsd=process ssockets resolve fpasync
@@ -29,7 +29,7 @@ units_openbsd=process ssockets resolve fpasync
 units_linux=process resolve ssockets fpasync syncobjs
 units_win32=process fileinfo resolve ssockets syncobjs
 units_netware=resolve ssockets
-rsts=classes ssockets cachecls resolve custapp cgiapp eventlog registry
+rsts=$(CLASSES10) ssockets cachecls resolve custapp cgiapp eventlog registry
 exampledirs=tests
 
 [compiler]
@@ -54,5 +54,16 @@ fpcpackage=y
 [default]
 fpcdir=..
 
+[prerules]
+# Also build classes for 1.0.x 
+ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
+CLASSES10=classes
+endif
+
 [rules]
+ifdef CLASSES10
+classes$(PPUEXT):
+	$(COMPILER) -Ficlasses -Ficlasses/$(OS_TARGET) classes/$(OS_TARGET)/classes.pp
+endif
+
 xmlreg.pp: xml
