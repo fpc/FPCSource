@@ -1756,10 +1756,20 @@ const
                  implementation settings }
                if hd.forwarddef then
                  begin
-                   { Check if the procedure type and return type are correct }
+                   forwardfound:=true;
+
+                   { Check if the procedure type and return type are correct,
+                     also the parameters must match also with the type }
                    if (hd.proctypeoption<>aprocdef.proctypeoption) or
-                      (not(is_equal(hd.rettype.def,aprocdef.rettype.def)) and
-                      (m_repeat_forward in aktmodeswitches)) then
+                      (
+                       (m_repeat_forward in aktmodeswitches) and
+                       (
+                        not(is_equal(hd.rettype.def,aprocdef.rettype.def) and
+                            ((aprocdef.maxparacount=0) or
+                             equal_paras(aprocdef.para,hd.para,cp_all))
+                           )
+                       )
+                      ) then
                      begin
                        MessagePos1(aprocdef.fileinfo,parser_e_header_dont_match_forward,
                                    aprocdef.fullprocname);
@@ -1866,8 +1876,6 @@ const
 
                    { return the forwarddef }
                    aprocdef:=hd;
-
-                   forwardfound:=true;
                  end
                else
                 begin
@@ -1961,7 +1969,10 @@ const
 end.
 {
   $Log$
-  Revision 1.66  2002-08-19 19:36:44  peter
+  Revision 1.67  2002-08-25 11:33:06  peter
+    * also check the paratypes when a forward was found
+
+  Revision 1.66  2002/08/19 19:36:44  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small
