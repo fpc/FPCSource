@@ -3,16 +3,16 @@
 
 unit dbtests;
 
-Interface 
+Interface
 
-Uses 
+Uses
   mysql,testu;
 
 { ---------------------------------------------------------------------
-  High-level access  
+  High-level access
   ---------------------------------------------------------------------}
 
-Function GetTestID(Name : string) : Integer; 
+Function GetTestID(Name : string) : Integer;
 Function GetOSID(Name : String) : Integer;
 Function GetCPUID(Name : String) : Integer;
 Function GetVersionID(Name : String) : Integer;
@@ -20,7 +20,7 @@ Function GetRunID(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
 Function AddRun(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
 Function AddTest(Name : String; AddSource : Boolean) : Integer;
 Function UpdateTest(ID : Integer; Info : TConfig; Source : String) : Boolean;
-Function AddTestResult(TestID,RunID,TestRes : Integer; 
+Function AddTestResult(TestID,RunID,TestRes : Integer;
                        OK, Skipped : Boolean;
                        Log : String) : Integer;
 Function RequireTestID(Name : String): Integer;
@@ -29,7 +29,7 @@ Function CleanTestRun(ID : Integer) : Boolean;
 { ---------------------------------------------------------------------
     Low-level DB access.
   ---------------------------------------------------------------------}
- 
+
 
 Type
   TQueryResult = PMYSQL_RES;
@@ -45,7 +45,7 @@ Function SQLDate(D : TDateTime) : String;
 
 Implementation
 
-Uses 
+Uses
   SysUtils;
 
 { ---------------------------------------------------------------------
@@ -55,17 +55,17 @@ Uses
 
 Var
   Connection : TMYSQL;
-    
+
 
 Function ConnectToDatabase(DatabaseName,Host,User,Password : String) : Boolean;
 
-Var 
+Var
   S : String;
 
 begin
   Verbose(V_DEBUG,'Connection params : '+DatabaseName+' '+Host+' '+User+' '+Password);
   Result:=mysql_connect(@Connection,PChar(Host),PChar(User),PChar(Password))<>Nil;
-  If Not Result then 
+  If Not Result then
     begin
     S:=Strpas(mysql_error(@connection));
     Verbose(V_ERROR,'Failed to connect to database : '+S);
@@ -79,7 +79,7 @@ begin
       DisconnectDatabase;
       Verbose(V_Error,'Failed to select database : '+S);
       end;
-    end;  
+    end;
 end;
 
 Procedure DisconnectDatabase;
@@ -107,15 +107,15 @@ Var
 begin
   if Res=Nil then
     Result:=''
-  else  
+  else
     begin
     Row:=mysql_fetch_row(Res);
     If (Row=Nil) or (Row[ID]=Nil) then
       Result:=''
-    else  
-      Result:=strpas(Row[ID]); 
+    else
+      Result:=strpas(Row[ID]);
     end;
-  Verbose(V_DEBUG,'Field value '+Result);  
+  Verbose(V_DEBUG,'Field value '+Result);
 end;
 
 Procedure FreeQueryResult (Res : TQueryResult);
@@ -136,7 +136,7 @@ begin
     Result:=StrToIntDef(GetResultField(Res,0),-1);
     FreeQueryResult(Res);
     end;
-end; 
+end;
 
 Function EscapeSQL( S : String) : String;
 
@@ -154,16 +154,16 @@ begin
 end;
 
 { ---------------------------------------------------------------------
-  High-level access  
+  High-level access
   ---------------------------------------------------------------------}
- 
-  
-Function GetTestID(Name : string) : Integer; 
+
+
+Function GetTestID(Name : string) : Integer;
 
 Const
   SFromName = 'SELECT T_ID FROM TESTS WHERE (T_NAME="%s")';
   SFromFullName = 'SELECT T_ID FROM TESTS WHERE (T_FULLNAME="%s")';
-  
+
 Var
   FN : String;
 
@@ -176,7 +176,7 @@ end;
 
 Function GetOSID(Name : String) : Integer;
 
-Const 
+Const
   SFromName = 'SELECT TO_ID FROM TESTOS WHERE (TO_NAME="%s")';
 
 begin
@@ -185,7 +185,7 @@ end;
 
 Function GetVersionID(Name : String) : Integer;
 
-Const 
+Const
   SFromName = 'SELECT TV_ID FROM TESTVERSION WHERE (TV_VERSION="%s")';
 
 begin
@@ -194,7 +194,7 @@ end;
 
 Function GetCPUID(Name : String) : Integer;
 
-Const 
+Const
   SFromName = 'SELECT TC_ID FROM TESTCPU WHERE (TC_NAME="%s")';
 
 begin
@@ -205,24 +205,24 @@ end;
 Function GetRunID(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
 
 
-Const 
+Const
   SFromIDS = 'SELECT TU_ID FROM TESTRUN WHERE '+
              ' (TU_OS_FK=%d) '+
              ' AND (TU_CPU_FK=%d) '+
              ' AND (TU_VERSION_FK=%d) '+
              ' AND (TU_DATE="%s")';
-              
+
 begin
   Result:=IDQuery(Format(SFromIDS,[OSID,CPUID,VERSIONID,SQLDate(Date)]));
 end;
 
 Function AddRun(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
 
-Const 
+Const
   SInsertRun = 'INSERT INTO TESTRUN '+
                '(TU_OS_FK,TU_CPU_FK,TU_VERSION_FK,TU_DATE)'+
                ' VALUES '+
-               '(%d,%d,%d,"%s")'; 
+               '(%d,%d,%d,"%s")';
 
 Var
   Res : TQueryResult;
@@ -231,20 +231,20 @@ begin
   If RunQuery(Format(SInsertRun,[OSID,CPUID,VERSIONID,SQLDate(Date)]),Res) then
     Result:=mysql_insert_id(@connection)
   else
-    Result:=-1;  
+    Result:=-1;
 end;
 
 
 Function AddTest(Name : String; AddSource : Boolean) : Integer;
 
-Const 
+Const
   SInsertTest = 'INSERT INTO TESTS (T_NAME,T_FULLNAME,T_ADDDATE)'+
-                ' VALUES ("%s","%s",NOW())'; 
+                ' VALUES ("%s","%s",NOW())';
 
 Var
   Info : TConfig;
   Res  : TQueryResult;
-    
+
 begin
   Result:=-1;
   If FileExists(Name) and GetConfig(Name,Info) then
@@ -258,10 +258,10 @@ begin
         If AddSource then
           UpdateTest(Result,Info,GetFileContents(Name))
         else
-          UpdateTest(Result,Info,'');  
+          UpdateTest(Result,Info,'');
       end
     end
-  else    
+  else
     Verbose(V_ERROR,'Could not find test "'+Name+'" or info about this test.');
 end;
 
@@ -281,11 +281,11 @@ Const
                 'WHERE'+
                 ' T_ID=%d';
 
- 
+
 Var
   Qry : String;
   Res : TQueryResult;
-      
+
 begin
   If Source<>'' then
     begin
@@ -297,14 +297,14 @@ begin
                              B[usesGraph],B[IsInteractive],ResultCode,
                              B[ShouldFail],B[NeedRecompile],B[NoRun],
                              B[NeedLibrary],KnownRunError,
-                             B[IsKnown],EscapeSQL(Note),EscapeSQL(NeedOptions),
+                             B[IsKnownCompileError],EscapeSQL(Note),EscapeSQL(NeedOptions),
                              Source,
                              ID
      ]);
   Result:=RunQuery(Qry,res)
 end;
 
-Function AddTestResult(TestID,RunID,TestRes : Integer; 
+Function AddTestResult(TestID,RunID,TestRes : Integer;
                        OK, Skipped : Boolean;
                        Log : String) : Integer;
 
@@ -317,7 +317,7 @@ Const
 Var
   Qry : String;
   Res : TQueryResult;
-   
+
 begin
   Result:=-1;
   Qry:=Format(SInsertRes,
