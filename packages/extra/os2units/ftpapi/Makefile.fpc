@@ -1,0 +1,17 @@
+#
+#   Makefile.fpc for FTPAPI.DLL interface unit
+#
+
+[package]
+name=ftpapi
+version=1.0.6
+
+[target]
+units=ftpapi
+examples=ftptest
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
