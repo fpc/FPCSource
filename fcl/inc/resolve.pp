@@ -33,7 +33,7 @@ Unit resolve;
 interface
 
 uses 
-  Classes;
+  Classes,UriParser;
 
 Type
   THostAddr = array[1..4] of byte;
@@ -160,6 +160,43 @@ Type
     Property Port : Integer Read FPort;
     Property NetPort : Integer Read GetNetPort;
   end;
+
+  TURIParser = Class(TComponent)
+  Private
+    FActive : Boolean;
+    FProtocol: String;
+    FUsername: String;
+    FPassword: String;
+    FHost: String;
+    FPort: Word;
+    FPath: String;
+    FDocument: String;
+    FParams: String;
+    FBookmark: String;
+    FURI : String;
+  Protected  
+    Procedure SetElement (Index : Integer; Value : String);Virtual;
+    Function GetElement(Index : Integer) : String;
+    Procedure SetPort(Value : Word);
+    Procedure SetURI(Value : String);
+  Public  
+    Procedure Clear;   
+    Procedure ParseUri(AURI : String);
+    Function ComposeURI : String;
+  Published
+    Property Port: Word  Read FPort Write SetPort;
+    Property Protocol: String Index 0 Read GetElement Write SetElement;
+    Property Username: String Index 1 Read GetElement Write SetElement;
+    Property Password: String Index 2 Read GetElement Write SetElement;
+    Property Host: String     Index 3 Read GetElement Write SetElement;
+    Property Path: String     index 4 Read GetElement Write SetElement;
+    Property Document: String index 5 read GetElement Write SetElement;
+    Property Params: String   Index 6 read GetElement Write SetElement;
+    Property Bookmark: String Index 7 Read GetElement Write SetElement;
+    Property URI : String Read FURI write SetURI; 
+    Property Active : Boolean Read FActive Write FActive;
+  end;
+
 
 Resourcestring
   SErrHostByName = 'Host by name';
@@ -779,6 +816,118 @@ begin
   Result:=ShortHostToNet(FPort);
 end;
 
+{ ---------------------------------------------------------------------
+    TURIParser
+  ---------------------------------------------------------------------}
+  
+
+Procedure TURIParser.SetElement (Index : Integer; Value : String);
+
+begin
+ Case index of
+   0  : FProtocol := Value;
+   1  : FUsername := Value;
+   2  : FPassword := Value;
+   3  : FHost     := Value;
+   4  : FPath     := Value;
+   5  : FDocument := Value;
+   6  : FParams   := Value;
+   7  : FBookmark := Value;
+  else  
+  end;
+  If FActive and not (csLoading in ComponentState) then
+    FURI:=ComposeURI;
+end;
+
+Function  TURIParser.GetElement(Index : Integer) : String;
+
+begin
+  Case Index of
+  0  : Result := FProtocol;
+  1  : Result := FUsername;
+  2  : Result := FPassword;
+  3  : Result := FHost    ;
+  4  : Result := FPath    ;
+  5  : Result := FDocument;
+  6  : Result := FParams  ;
+  7  : Result := FBookmark;
+  else  
+    Result:='';
+  end;  
+end;
+
+Procedure TURIParser.SetPort(Value : Word);
+
+begin
+  FPort:=Value;
+  If FActive and not (csLoading in ComponentState) then
+    FURI:=ComposeURI;
+end;
+
+Procedure TURIParser.SetURI(Value : String);
+
+begin
+  If Active and not (csLoading in ComponentState) then
+    begin
+    Clear;
+    ParseUri(Value);
+    end;
+  FURI:=Value;  
+end;
+
+Procedure TURIParser.Clear;   
+
+begin
+   FProtocol :='';
+   FUsername :='';
+   FPassword :='';
+   FHost     :='';
+   FPort     :=0;
+   FPath     :='';
+   FDocument :='';
+   FParams   :='';
+   FBookmark :='';
+   FURI      :='';
+end;
+
+Procedure TURIParser.ParseUri(AURI : String);
+
+Var
+  U : TURI;
+  
+begin
+  U:=UriParser.ParseURI(AUri);
+  FProtocol := u.Protocol;
+  FUsername := u.Username;
+  FPassword := u.Password;
+  FHost     := u.Host    ;
+  FPort     := u.Port    ;
+  FPath     := u.Path    ;
+  FDocument := u.Document;
+  FParams   := u.Params  ;
+  FBookmark := u.Bookmark;
+end;
+
+
+Function  TURIParser.ComposeURI : String;
+
+var
+  U : TURI;
+
+begin
+  U.Protocol := FProtocol;
+  U.Username := FUsername;
+  U.Password := FPassword;
+  U.Host     := FHost    ;
+  U.Port     := FPort    ;
+  U.Path     := FPath    ;
+  U.Document := FDocument;
+  U.Params   := FParams  ;
+  U.Bookmark := FBookmark;
+  Result:=EncodeUri(U);
+end;
+
+
 {$ifdef usenetdb}
 Procedure InitResolve;
 
@@ -800,7 +949,10 @@ Finalization
 end.
 {
    $Log$
-   Revision 1.3  2003-03-07 20:33:33  michael
+   Revision 1.4  2003-05-17 21:52:37  michael
+   + Added TURIParser class
+
+   Revision 1.3  2003/03/07 20:33:33  michael
    Use native pascal netdb on Linux
 
    Revision 1.2  2003/02/03 10:14:12  michael
