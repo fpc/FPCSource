@@ -6,6 +6,8 @@
 }
 program find_gdb_version;
 
+{$R-}
+
 {$Linklib gdb}
 
 uses
@@ -75,7 +77,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:52  peter
+  Revision 1.3  2002-09-10 12:17:15  pierre
+   * avoid RTE 201
+
+  Revision 1.2  2002/09/07 15:42:52  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:54:49  peter
