@@ -1369,7 +1369,7 @@ Begin
             begin
               F.BufPtr^[i] := #10;
               if not(OutputRedir or InputRedir) then
-                write(#13);
+                write(#10);
               inc(i);
             end;
           else
@@ -1662,7 +1662,12 @@ Begin
 End.
 {
   $Log$
-  Revision 1.28  2000-06-06 08:22:41  sg
+  Revision 1.29  2000-06-06 13:51:18  jonas
+    * fixed linefeed problem with new crtread (I wrote #13 instead of #10 to
+      the screen, causing the cursor to jump to the start of the current
+      line instead of to the next line)
+
+  Revision 1.28  2000/06/06 08:22:41  sg
   * Implemented "Sound" and "NoSound". Please notice that these normally only
     work on Linux textmode console, as the sound is created using special
     Linux terminal IOCTLs.
