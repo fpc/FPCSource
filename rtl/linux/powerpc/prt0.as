@@ -20,14 +20,27 @@
         .section ".text"
         .globl  _start
 _start:
- 	/* Save the stack pointer, in case we're statically linked under Linux.  */
-	mr	9,1
+	mr 	26,1	
 	/* Set up an initial stack frame, and clear the LR.  */
 	clrrwi	1,1,4
 	li	0,0
 	stwu	1,-16(1)
 	mtlr	0
 	stw	0,0(1)
+	lwz     3,0(26)       /* get argc */
+        lis 	11,U_SYSTEM_ARGC@ha
+	stw 	3,U_SYSTEM_ARGC@l(11); 
+	
+	addi    4,26,4        /* get argv */
+        lis 	11,U_SYSTEM_ARGV@ha
+	stw 	4,U_SYSTEM_ARGV@l(11); 
+	
+	addi    27,3,1        /* calculate argc + 1 into r27 */
+        slwi    27,27,2       /* calculate (argc + 1) * sizeof(char *) into r27 */
+        add     5,4,27       /* get address of env[0] */
+	lis 	11,U_SYSTEM_ENVP@ha
+	stw 	5,U_SYSTEM_ENVP@l(11); 
+	
 	bl	PASCALMAIN
 
         .globl  _haltproc
@@ -51,7 +64,10 @@ ___fpc_brk_addr:
         .long   0
 /*
   $Log$
-  Revision 1.9  2002-09-07 16:01:20  peter
+  Revision 1.10  2003-05-12 22:36:45  florian
+    + added setup of argv, argc and envp
+
+  Revision 1.9  2002/09/07 16:01:20  peter
     * old logs removed and tabs fixed
 
   Revision 1.8  2002/08/31 21:29:57  florian
