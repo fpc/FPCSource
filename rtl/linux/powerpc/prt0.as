@@ -33,8 +33,8 @@ _start:
         .type   _haltproc,@function
 _haltproc:
         li      0,1	         /* exit call */
-	lis	r3,U_SYSTEM_EXITCODE@h
-	stw	r3,U_SYSTEM_EXITCODE@l(r3)
+	lis	3,U_SYSTEM_EXITCODE@h
+	stw	3,U_SYSTEM_EXITCODE@l(3)
         sc
         b	_haltproc
 
@@ -50,7 +50,10 @@ ___fpc_brk_addr:
         .long   0
 /*
   $Log$
-  Revision 1.5  2002-08-31 14:01:28  florian
+  Revision 1.6  2002-08-31 14:02:23  florian
+    * r3 renamed to 3
+
+  Revision 1.5  2002/08/31 14:01:28  florian
     * _haltproc to prt0.as added (Linux/PPC)
 
   Revision 1.4  2002/08/31 13:11:11  florian
