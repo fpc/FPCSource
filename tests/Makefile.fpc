@@ -82,7 +82,7 @@ endif
 # Digest program
 #
 ifeq ($(USESQL),YES)
-DIGEST=./dbdigest$(EXEEXT)
+DIGEST=./dbdigest$(EXEEXT) -v $(FPCVERSION)
 else
 DIGEST=./digest$(EXEEXT)
 endif
