@@ -46,7 +46,7 @@ interface
           lo,hi : byte;
        end;
 
-{$ifdef USE_EXCEPIONS}
+{$ifdef USE_EXCEPTIONS}
        { exceptions }
        exception = class(tobject)
         private
@@ -71,7 +71,7 @@ interface
        eintoverflow = class(einterror);
 
        ematherror = class(exception);
-{$endif USE_EXCEPIONS}
+{$endif USE_EXCEPTIONS}
 
   { Read date & Time function declarations }
   {$i datih.inc}
@@ -106,7 +106,7 @@ interface
   { Read pchar handling functions implementation }
   {$i syspch.inc}
 
-{$ifdef USE_EXCEPIONS}
+{$ifdef USE_EXCEPTIONS}
     constructor exception.create(const msg : string);
 
       begin
@@ -129,13 +129,16 @@ interface
          inherited create;
          {!!!!!}
       end;
-{$endif USE_EXCEPIONS}
+{$endif USE_EXCEPTIONS}
 
 end.
 
 {
     $Log$
-    Revision 1.7  1998-09-16 14:34:38  pierre
+    Revision 1.8  1998-09-18 23:57:26  michael
+    * Changed use_excepions to useexceptions
+
+    Revision 1.7  1998/09/16 14:34:38  pierre
       * go32v2 did not compile
       * wrong code in systr.inc corrected
 

@@ -39,7 +39,7 @@ unit math;
 
   interface
 
-{$ifdef USE_EXCEPIONS}
+{$ifdef USE_EXCEPTIONS}
     uses
        sysutils;
 {$endif}
@@ -614,7 +614,10 @@ end.
 
 {
     $Log$
-    Revision 1.3  1998-09-09 15:29:05  peter
+    Revision 1.4  1998-09-18 23:57:27  michael
+    * Changed use_excepions to useexceptions
+
+    Revision 1.3  1998/09/09 15:29:05  peter
       * removed some warnings
 
     Revision 1.2  1998/07/29 15:44:34  michael
