@@ -16,7 +16,7 @@
 
 ****************************************************************************}
 
-unit {$ifdef VER1_0}sysos2{$else}System{$endif};
+unit {$ifdef VER1_0}sysemx{$else}System{$endif};
 
 {Changelog:
 
@@ -1241,7 +1241,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-06-26 17:12:29  yuri
+  Revision 1.6  2003-09-24 11:13:09  yuri
+  * Cosmetic changes
+  * Slightly improved emx.pas
+
+  Revision 1.5  2003/06/26 17:12:29  yuri
   * pmbidi added
   * some cosmetic changes
 

@@ -20,20 +20,55 @@ Modifying this unit is allowed, under the following conditions:
 
 ****************************************************************************}
 
-unit emx;
+Unit emx;
 
-type    PFar=record
-            Segment,Offset:word;
-        end;
+Interface
+
+{$Mode ObjFpc}
+
+{16:16 far pointer}
+type
+  Far16Ptr=record
+    Segment, Offset: Word;
+  end;
 
 {! Don't call this one. It is used by the startup code.}
-procedure __emxinit;
-{! Calling this is not recommended. Use ___syscall instead.}
-procedure __emx_syscall;
-{This one converts 16:16 far pointers to 32 bit flat ones.}
-procedure __emx_16to32(APtr:PFar):pointer;
-{This one converts 32 bit flat pointers to 16:16 far ones.}
-procedure __emx_32to16(APtr:pointer):PFar;
-{This one should be called to call 16-bit procedures and functions.}
-procedure __emx_thunk1(APtr:pointer)
+//procedure emxinit; cdecl;
+//  external 'emx' index 1;
 
+{! Calling this is not recommended. Use ___syscall instead.}
+//procedure emx_syscall; cdecl;
+//  external 'emx' index 2;
+
+{This one converts 16:16 far pointers to 32 bit flat ones.}
+function emx_16to32(APtr: Far16Ptr): pointer; cdecl;
+  external 'emx' index 3;
+
+{This one converts 32 bit flat pointers to 16:16 far ones.}
+function emx_32to16(APtr: pointer): Far16Ptr; cdecl;
+  external 'emx' index 4;
+
+{This one should be called to call 16-bit procedures and functions.}
+function emx_thunk1(Args: Pointer; Fun: Pointer): cardinal; cdecl;
+  external 'emx' index 5;
+
+procedure emx_exception; cdecl;
+  external 'emx' index 6;
+
+// REXX function
+//ULONG emx_revision (PCSZ name, LONG argc, const RXSTRING *argv,
+//                    PCSZ queuename, PRXSTRING retstr)
+procedure emx_revision; cdecl;
+  external 'emx' index 128;
+
+Implementation
+
+End.
+
+{
+$Log$
+Revision 1.2  2003-09-24 11:13:09  yuri
+* Cosmetic changes
+* Slightly improved emx.pas
+
+}
