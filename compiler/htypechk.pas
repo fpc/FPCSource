@@ -731,11 +731,30 @@ implementation
         while assigned(hp) do
          begin
            { property allowed? calln has a property check itself }
-           if not(valid_property in opts) and
-              (nf_isproperty in hp.flags) and
-              (hp.nodetype<>calln) then
+           if (nf_isproperty in hp.flags) then
             begin
-              CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
+              if (valid_property in opts) then
+               valid_for_assign:=true
+              else
+               begin
+                 { check return type }
+                 case hp.resulttype.def.deftype of
+                   pointerdef :
+                     gotpointer:=true;
+                   objectdef :
+                     gotclass:=is_class_or_interface(hp.resulttype.def);
+                   recorddef, { handle record like class it needs a subscription }
+                   classrefdef :
+                     gotclass:=true;
+                 end;
+                 { 1. if it returns a pointer and we've found a deref,
+                   2. if it returns a class or record and a subscription or with is found }
+                 if (gotpointer and gotderef) or
+                    (gotclass and (gotsubscript or gotwith)) then
+                   valid_for_assign:=true
+                 else
+                   CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
+               end;
               exit;
             end;
            case hp.nodetype of
@@ -789,8 +808,10 @@ implementation
                end;
              addrn :
                begin
-                 if not(gotderef) and
-                    not(nf_procvarload in hp.flags) then
+                 if gotderef or
+                    (nf_procvarload in hp.flags) then
+                  valid_for_assign:=true
+                 else
                   CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
                  exit;
                end;
@@ -813,11 +834,9 @@ implementation
                      gotclass:=true;
                  end;
                  { 1. if it returns a pointer and we've found a deref,
-                   2. if it returns a class or record and a subscription or with is found,
-                   3. property is allowed }
+                   2. if it returns a class or record and a subscription or with is found }
                  if (gotpointer and gotderef) or
-                    (gotclass and (gotsubscript or gotwith)) or
-                    ((nf_isproperty in hp.flags) and (valid_property in opts)) then
+                    (gotclass and (gotsubscript or gotwith)) then
                   valid_for_assign:=true
                  else
                   CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
@@ -918,7 +937,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2001-06-04 11:48:02  peter
+  Revision 1.29  2001-06-04 18:04:36  peter
+    * fixes to valid_for_assign for properties
+
+  Revision 1.28  2001/06/04 11:48:02  peter
     * better const to var checking
 
   Revision 1.27  2001/05/18 22:57:08  peter
