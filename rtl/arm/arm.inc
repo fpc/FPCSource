@@ -62,68 +62,67 @@ end ['R0'];
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-        mov    r0,sp
+  mov    r0,sp
 end ['R0'];
 
 
-{
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-Procedure FillChar(var x;count:longint;value:byte);assembler;
-
-* void *memset (dstpp, c, len) */
-
+Procedure FillChar(var x;count:longint;value:byte);assembler;nostackframe;
 asm
-	mov	a4, a1
-	cmp	a2, $8		// at least 8 bytes to do?
-	blt	.Fillchar2
-	orr	a3, a3, a3, lsl $8
-	orr	a3, a3, a3, lsl $16
-.Fillchar0:
-	tst	a4, $3		// aligned yet?
-	strneb	a3, [a4], $1
-	subne	a2, a2, $1
-	bne	.Fillchar0
-	mov	ip, a3
-.Fillchar1:
-	cmp	a2, $8		// 8 bytes still to do?
-	blt	.Fillchar2
-	stmia	a4!, {a3, ip}
-	sub	a2, a2, $8
-	cmp	a2, $8		// 8 bytes still to do?
-	blt	.Fillchar2
-	stmia	a4!, {a3, ip}
-	sub	a2, a2, $8
-	cmp	a2, $8		// 8 bytes still to do?
-	blt	.Fillchar2
-	stmia	a4!, {a3, ip}
-	sub	a2, a2, $8
-	cmp	a2, $8		// 8 bytes still to do?
-	stmgeia	a4!, {a3, ip}
-	subge	a2, a2, $8
-	bge	.Fillchar1
-.Fillchar2:
-	movs	a2, a2		// anything left?
-	RETINSTR(moveq,pc,lr)	// nope
-	rsb	a2, a2, $7
-	add	pc, pc, a2, lsl $2
-	mov	r0, r0
-	strb	a3, [a4], $1
-	strb	a3, [a4], $1
-	strb	a3, [a4], $1
-	strb	a3, [a4], $1
-	strb	a3, [a4], $1
-	strb	a3, [a4], $1
-	strb	a3, [a4], $1
-	RETINSTR(mov,pc,lr)
+	// less than 0?
+	cmp r1,#0
+	movlt pc,lr
+	mov	r3,r0
+	cmp	r1,#8		// at least 8 bytes to do?
+	blt	.LFillchar2
+	orr r2,r2,r2,lsl #8
+	orr r2,r2,r2,lsl #16
+.LFillchar0:
+	tst	r3,#3		// aligned yet?
+	strneb r2,[r3],#1
+	subne	r1,r1,#1
+	bne	.LFillchar0
+	mov	ip,r2
+.LFillchar1:
+	cmp	r1,#8		// 8 bytes still to do?
+	blt	.LFillchar2
+	stmia	r3!,{r2,ip}
+	sub	r1,r1,#8
+	cmp	r1,#8		// 8 bytes still to do?
+	blt	.LFillchar2
+	stmia	r3!,{r2,ip}
+	sub	r1,r1,#8
+	cmp	r1,#8		// 8 bytes still to do?
+	blt	.LFillchar2
+	stmia	r3!,{r2,ip}
+	sub	r1,r1,#8
+	cmp	r1,#8		// 8 bytes still to do?
+	stmgeia	r3!,{r2,ip}
+	subge	r1,r1,#8
+	bge	.LFillchar1
+.LFillchar2:
+	movs r1,r1		// anything left?
+	moveq pc,lr
+	rsb	r1,r1,#7
+	add	pc,pc,r1,lsl #2
+	mov	r0,r0
+	strb r2,[r3],#1
+	strb r2,[r3],#1
+	strb r2,[r3],#1
+	strb r2,[r3],#1
+	strb r2,[r3],#1
+	strb r2,[r3],#1
+	strb r2,[r3],#1
+	mov pc,lr
 end;
-
-}
-
 
 
 {
   $Log$
-  Revision 1.8  2005-01-04 16:46:38  florian
+  Revision 1.9  2005-01-05 15:21:14  florian
+    * fillchar fixed; it's used now
+
+  Revision 1.8  2005/01/04 16:46:38  florian
     + correct setting of FPU exception mask
 
   Revision 1.7  2004/03/23 21:03:10  florian
