@@ -1,3 +1,5 @@
+{ %version=1.1 }
+
  {****************************************************************}
  {  CODE GENERATOR TEST PROGRAM                                   }
  {  By Carl Eric Codere                                           }
@@ -15,7 +17,7 @@
  {            FPC     = Target is FreePascal compiler             }
  {****************************************************************}
  { REMARKS: This tests a subset of the secondcalln() node         }
- {          (function return values with popstack calling cnvs)   }
+ {          (function return values with oldfpcall calling cnvs)   }
  {          (also tests nested routines up to 2 level deep)       }
  {****************************************************************}
  program tcalfun4;
@@ -189,7 +191,7 @@
  {********************************* FUNCTION RESULTS *************************}
 
 { LOC_MEM return values }
-function func_array: tsmallarray;popstack;
+function func_array: tsmallarray;oldfpcall;
  var
   smallarray: tsmallarray;
  begin
@@ -199,7 +201,7 @@ function func_array: tsmallarray;popstack;
   func_array := smallarray;
  end;
 
-function func_largerecord: tlargerecord;popstack;
+function func_largerecord: tlargerecord;oldfpcall;
  var
    largerecord : tlargerecord;
  begin
@@ -209,12 +211,12 @@ function func_largerecord: tlargerecord;popstack;
    func_largerecord := largerecord;
  end;
 
-function func_shortstring: shortstring;popstack;
+function func_shortstring: shortstring;oldfpcall;
  begin
    func_shortstring := RESULT_BIGSTRING;
  end;
 
-function func_largeset : tlargeset;popstack;
+function func_largeset : tlargeset;oldfpcall;
  var
   largeset : tlargeset;
  begin
@@ -222,49 +224,49 @@ function func_largeset : tlargeset;popstack;
   func_largeset := largeset;
  end;
 
-function func_u8bit : byte;popstack;
+function func_u8bit : byte;oldfpcall;
  begin
    func_u8bit := RESULT_U8BIT;
  end;
 
-function func_u16bit : word;popstack;
+function func_u16bit : word;oldfpcall;
  begin
    func_u16bit := RESULT_U16BIT;
  end;
 
-function func_s32bit : longint;popstack;
+function func_s32bit : longint;oldfpcall;
  begin
    func_s32bit := RESULT_S32BIT;
  end;
 
-function func_s64bit : int64;popstack;
+function func_s64bit : int64;oldfpcall;
  begin
    func_s64bit := RESULT_S64BIT;
  end;
 
-function func_s32real : single;popstack;
+function func_s32real : single;oldfpcall;
  begin
    func_s32real := RESULT_S32REAL;
  end;
 
-function func_s64real : double;popstack;
+function func_s64real : double;oldfpcall;
  begin
    func_s64real := RESULT_S64REAl;
  end;
 
-function func_ansistring : ansistring;popstack;
+function func_ansistring : ansistring;oldfpcall;
  begin
    func_ansistring := RESULT_BIGSTRING;
  end;
 
-function func_pchar : pchar;popstack;
+function func_pchar : pchar;oldfpcall;
  begin
    func_pchar := RESULT_PCHAR;
  end;
 
  {************************** FUNCTION RESULT WITH PARAMS ******************}
 { LOC_MEM return values }
-function func_array_mixed(b: byte): tsmallarray;popstack;
+function func_array_mixed(b: byte): tsmallarray;oldfpcall;
  var
   local_b: byte;
   smallarray: tsmallarray;
@@ -277,7 +279,7 @@ function func_array_mixed(b: byte): tsmallarray;popstack;
   global_u8bit := b;
  end;
 
-function func_largerecord_mixed(b: byte): tlargerecord;popstack;
+function func_largerecord_mixed(b: byte): tlargerecord;oldfpcall;
  var
    local_b: byte;
    largerecord : tlargerecord;
@@ -290,7 +292,7 @@ function func_largerecord_mixed(b: byte): tlargerecord;popstack;
    global_u8bit := b;
  end;
 
-function func_shortstring_mixed(b: byte): shortstring;popstack;
+function func_shortstring_mixed(b: byte): shortstring;oldfpcall;
  var
   local_b: byte;
  begin
@@ -299,7 +301,7 @@ function func_shortstring_mixed(b: byte): shortstring;popstack;
    global_u8bit := b;
  end;
 
-function func_largeset_mixed(b: byte) : tlargeset;popstack;
+function func_largeset_mixed(b: byte) : tlargeset;oldfpcall;
  var
   local_b: byte;
   largeset : tlargeset;
@@ -310,7 +312,7 @@ function func_largeset_mixed(b: byte) : tlargeset;popstack;
    global_u8bit := b;
  end;
 
-function func_u8bit_mixed(b: byte) : byte;popstack;
+function func_u8bit_mixed(b: byte) : byte;oldfpcall;
  var
   local_b: byte;
  begin
@@ -319,7 +321,7 @@ function func_u8bit_mixed(b: byte) : byte;popstack;
    global_u8bit := b;
  end;
 
-function func_u16bit_mixed(b: byte) : word;popstack;
+function func_u16bit_mixed(b: byte) : word;oldfpcall;
  var
   local_b: byte;
  begin
@@ -328,7 +330,7 @@ function func_u16bit_mixed(b: byte) : word;popstack;
    global_u8bit := b;
  end;
 
-function func_s32bit_mixed(b: byte) : longint;popstack;
+function func_s32bit_mixed(b: byte) : longint;oldfpcall;
  var
   local_b: byte;
  begin
@@ -337,7 +339,7 @@ function func_s32bit_mixed(b: byte) : longint;popstack;
    global_u8bit := b;
  end;
 
-function func_s64bit_mixed(b: byte) : int64;popstack;
+function func_s64bit_mixed(b: byte) : int64;oldfpcall;
  var
   local_b: byte;
  begin
@@ -346,7 +348,7 @@ function func_s64bit_mixed(b: byte) : int64;popstack;
    global_u8bit := b;
  end;
 
-function func_s32real_mixed(b: byte) : single;popstack;
+function func_s32real_mixed(b: byte) : single;oldfpcall;
  var
   local_b: byte;
  begin
@@ -355,7 +357,7 @@ function func_s32real_mixed(b: byte) : single;popstack;
    global_u8bit := b;
  end;
 
-function func_s64real_mixed(b: byte) : double;popstack;
+function func_s64real_mixed(b: byte) : double;oldfpcall;
  var
   local_b: byte;
  begin
@@ -364,7 +366,7 @@ function func_s64real_mixed(b: byte) : double;popstack;
    global_u8bit := b;
  end;
 
-function func_ansistring_mixed(b: byte) : ansistring;popstack;
+function func_ansistring_mixed(b: byte) : ansistring;oldfpcall;
  var
   local_b: byte;
  begin
@@ -373,7 +375,7 @@ function func_ansistring_mixed(b: byte) : ansistring;popstack;
    global_u8bit := b;
  end;
 
-function func_pchar_mixed(b: byte) : pchar;popstack;
+function func_pchar_mixed(b: byte) : pchar;oldfpcall;
  var
   local_b: byte;
  begin
@@ -384,7 +386,7 @@ function func_pchar_mixed(b: byte) : pchar;popstack;
 
  {********************* FUNCTION RESULT WITH PARAMS (NESTED) ******************}
 { LOC_MEM return values }
-function func_array_mixed_nested(b: byte): tsmallarray;popstack;
+function func_array_mixed_nested(b: byte): tsmallarray;oldfpcall;
 
     procedure nested_one_proc(l: longint);
      begin
@@ -430,7 +432,7 @@ function func_array_mixed_nested(b: byte): tsmallarray;popstack;
 {  nested_one_proc(RESULT_S32BIT);}
  end;
 
-function func_largerecord_mixed_nested(b: byte): tlargerecord;popstack;
+function func_largerecord_mixed_nested(b: byte): tlargerecord;oldfpcall;
 
     procedure nested_one_proc(l: longint);
      begin
@@ -475,7 +477,7 @@ function func_largerecord_mixed_nested(b: byte): tlargerecord;popstack;
    global_u8bit := nested_one_func(local_b, RESULT_BIGSTRING);
  end;
 
-function func_shortstring_mixed_nested(b: byte): shortstring;popstack;
+function func_shortstring_mixed_nested(b: byte): shortstring;oldfpcall;
 
     procedure nested_one_proc(l: longint);
      begin
@@ -515,7 +517,7 @@ function func_shortstring_mixed_nested(b: byte): shortstring;popstack;
    global_u8bit := nested_one_func(local_b, RESULT_BIGSTRING);
  end;
 
-function func_largeset_mixed_nested(b: byte) : tlargeset;popstack;
+function func_largeset_mixed_nested(b: byte) : tlargeset;oldfpcall;
 
     procedure nested_one_proc(l: longint);
      begin
@@ -558,7 +560,7 @@ function func_largeset_mixed_nested(b: byte) : tlargeset;popstack;
   global_u8bit := nested_one_func(local_b, RESULT_BIGSTRING);
  end;
 
-function func_u8bit_mixed_nested(b: byte) : byte;popstack;
+function func_u8bit_mixed_nested(b: byte) : byte;oldfpcall;
 
     procedure nested_one_proc(l: longint);
      begin
@@ -599,7 +601,7 @@ function func_u8bit_mixed_nested(b: byte) : byte;popstack;
    global_u8bit := nested_one_func(local_b, RESULT_BIGSTRING);
  end;
 
-function func_u16bit_mixed_nested(b: byte) : word;popstack;
+function func_u16bit_mixed_nested(b: byte) : word;oldfpcall;
 
     procedure nested_one_proc(l: longint);
      begin
@@ -640,7 +642,7 @@ function func_u16bit_mixed_nested(b: byte) : word;popstack;
    global_u8bit := nested_one_func(local_b, RESULT_BIGSTRING);
  end;
 
-function func_s32bit_mixed_nested(b: byte) : longint;popstack;
+function func_s32bit_mixed_nested(b: byte) : longint;oldfpcall;
 
     procedure nested_one_proc(l: longint);
      begin
@@ -681,7 +683,7 @@ function func_s32bit_mixed_nested(b: byte) : longint;popstack;
    global_u8bit := nested_one_func(local_b, RESULT_BIGSTRING);
  end;
 
-function func_s64bit_mixed_nested(b: byte) : int64;popstack;
+function func_s64bit_mixed_nested(b: byte) : int64;oldfpcall;
 
     procedure nested_one_proc(l: longint);
      begin
@@ -722,7 +724,7 @@ function func_s64bit_mixed_nested(b: byte) : int64;popstack;
    global_u8bit := nested_one_func(local_b, RESULT_BIGSTRING);
  end;
 
-function func_s32real_mixed_nested(b: byte) : single;popstack;
+function func_s32real_mixed_nested(b: byte) : single;oldfpcall;
 
     procedure nested_one_proc(l: longint);
      begin
@@ -763,7 +765,7 @@ function func_s32real_mixed_nested(b: byte) : single;popstack;
    global_u8bit := nested_one_func(local_b, RESULT_BIGSTRING);
  end;
 
-function func_s64real_mixed_nested(b: byte) : double;popstack;
+function func_s64real_mixed_nested(b: byte) : double;oldfpcall;
 
     procedure nested_one_proc(l: longint);
      begin
@@ -804,7 +806,7 @@ function func_s64real_mixed_nested(b: byte) : double;popstack;
    global_u8bit := nested_one_func(local_b, RESULT_BIGSTRING);
  end;
 
-function func_ansistring_mixed_nested(b: byte) : ansistring;popstack;
+function func_ansistring_mixed_nested(b: byte) : ansistring;oldfpcall;
 
     procedure nested_one_proc(l: longint);
      begin
@@ -845,7 +847,7 @@ function func_ansistring_mixed_nested(b: byte) : ansistring;popstack;
    global_u8bit := nested_one_func(local_b, RESULT_BIGSTRING);
  end;
 
-function func_pchar_mixed_nested(b: byte) : pchar;popstack;
+function func_pchar_mixed_nested(b: byte) : pchar;oldfpcall;
 
     procedure nested_one_proc(l: longint);
      begin
@@ -1402,7 +1404,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-04-22 10:24:29  florian
+  Revision 1.5  2003-10-03 14:46:37  peter
+    * popstack to oldfpccall
+
+  Revision 1.4  2003/04/22 10:24:29  florian
     * fixed defines for powerpc
 
   Revision 1.3  2002/09/07 15:40:51  peter

@@ -61,7 +61,7 @@ modifiers:
   pascal directive
   safecall directive
   stdcall directive
-  popstack directive
+  oldfpcall directive
   register directive
 }
 
@@ -236,7 +236,10 @@ end.
 
 {
  $Log$
- Revision 1.4  2002-09-07 15:40:52  peter
+ Revision 1.5  2003-10-03 14:46:37  peter
+   * popstack to oldfpccall
+
+ Revision 1.4  2002/09/07 15:40:52  peter
    * old logs removed and tabs fixed
 
  Revision 1.3  2002/08/25 19:27:40  peter
