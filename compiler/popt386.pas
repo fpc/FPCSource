@@ -60,9 +60,9 @@ Procedure PeepHoleOptPass1(Asml: PAasmOutput; BlockStart, BlockEnd: Pai);
 
 Var
   l : longint;
-  p ,hp1, hp2 : pai;
+  p,hp1,hp2 : pai;
 {$ifdef foropt}
-  hp3, hp4: pai;
+  hp3,hp4: pai;
 {$endif foropt}
   TmpBool1, TmpBool2: Boolean;
 
@@ -287,7 +287,7 @@ Begin
                            If (LabDif <> 0) Then
                              GetFinalDestination(asml, paicpu(p));
                      end;
-                 end
+                 end;
              end
             else
             { All other optimizes }
@@ -1582,11 +1582,27 @@ End;
 
 Procedure PeepHoleOptPass2(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
 
+  function CanBeCMOV(p : pai) : boolean;
+
+    begin
+       CanBeCMOV:=assigned(p) and (p^.typ=ait_instruction) and
+         (paicpu(p)^.opcode=A_MOV) and
+         (paicpu(p)^.opsize in [S_L,S_W]) and
+         (paicpu(p)^.oper[0].typ in [top_reg,top_ref]) and
+         (paicpu(p)^.oper[1].typ in [top_reg,top_ref]);
+    end;
+
 var
   p,hp1,hp2: pai;
+{$ifdef  USECMOV}
+  l : longint;
+  condition : tasmcond;
+  hp3: pai;
+{$endif USECMOV}
 {$ifdef foldArithOps}
   UsedRegs, TmpUsedRegs: TRegSet;
 {$endif foldArithOps}
+
 Begin
   P := BlockStart;
 {$ifdef foldArithOps}
@@ -1614,6 +1630,79 @@ Begin
                     AsmL^.Remove(hp1);
                     Dispose(hp1, Done)
                   End;
+
+{$ifdef USECMOV}
+              A_Jcc:
+                if (aktspecificoptprocessor=ClassP6) then
+                  begin
+                     { check for
+                            jCC   xxx
+                            <several movs>
+                         xxx:
+                     }
+                     l:=0;
+                     GetNextInstruction(p, hp1);
+                     while assigned(hp1) And
+                       CanBeCMOV(hp1) do
+                       begin
+                          inc(l);
+                          hp1:=pai(hp1^.next);
+                          while assigned(hp1) and (hp1^.typ in skipinstr) do
+                            hp1:=pai(hp1^.next);
+                       end;
+                     if assigned(hp1) then
+                       begin
+                          if FindLabel(PAsmLabel(paicpu(p)^.oper[0].sym),hp1) then
+                            begin
+                               if (l<=4) and (l>0) then
+                                 begin
+                                    condition:=inverse_cond[paicpu(p)^.condition];
+                                    GetNextInstruction(p,hp1);
+                                    asml^.remove(p);
+                                    dispose(p,done);
+                                    p:=hp1;
+                                    repeat
+                                      paicpu(hp1)^.opcode:=A_CMOVcc;
+                                      paicpu(hp1)^.condition:=condition;
+                                      GetNextInstruction(hp1,hp1);
+                                    until not(assigned(hp1)) or
+                                      not(CanBeCMOV(hp1));
+                                    asml^.remove(hp1);
+                                    p:=hp1;
+                                    continue;
+                                 end;
+                            end
+                          else
+                            begin
+                               { check further for
+                                      jCC   xxx
+                                      <several movs>
+                                      jmp   yyy
+                              xxx:
+                                      <several movs>
+                              yyy:
+                               }
+                               {!!!!!!!!!!!1
+                               hp1:=hp1^.next;
+                               if assigned(hp3) and
+                                 (l<=3) and
+                                 (hp3^.typ=ait_instruction) and
+                                 (paicpu(hp3)^.is_jmp) and
+                                 (paicpu(hp3)^.condition=C_None) and
+                                 FindLabel(PAsmLabel(paicpu(p)^.oper[0].sym),hp1) then
+                                 begin
+                                    while GetNextInstruction(p, hp1) And
+                                      CanBeCMOV(hp1) do
+                                      begin
+                                         hp2:=hp1;
+                                         inc(l);
+                                      end;
+                                 end;
+                               }
+                            end;
+                       end;
+                  end;
+{$endif USECMOV}
               A_MOV:
                 Begin
                   If (Paicpu(p)^.oper[0].typ = top_reg) And
@@ -1741,7 +1830,11 @@ End.
 
 {
  $Log$
- Revision 1.80  2000-01-22 16:05:15  jonas
+ Revision 1.81  2000-01-23 21:29:17  florian
+   * CMOV support in optimizer (in define USECMOV)
+   + start of support of exceptions in constructors
+
+ Revision 1.80  2000/01/22 16:05:15  jonas
    + change "lea x(reg),reg" to "add x,reg" (-dnewoptimizations)
    * detection whether edi is used after instructions (since regalloc
      info for it is now available)

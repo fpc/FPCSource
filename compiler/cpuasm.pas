@@ -202,7 +202,7 @@ uses
            bufptr:=@buf;
            while (fillsize>0) do
             begin
-              for j:=0to 5 do
+              for j:=0 to 5 do
                if (fillsize>=length(alignarray[j])) then
                 break;
               move(alignarray[j][1],bufptr^,length(alignarray[j]));
@@ -1600,7 +1600,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-01-12 10:38:18  peter
+  Revision 1.11  2000-01-23 21:29:14  florian
+    * CMOV support in optimizer (in define USECMOV)
+    + start of support of exceptions in constructors
+
+  Revision 1.10  2000/01/12 10:38:18  peter
     * smartlinking fixes for binary writer
     * release alignreg code and moved instruction writing align to cpuasm,
       but it doesn't use the specified register yet

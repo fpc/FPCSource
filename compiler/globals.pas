@@ -153,7 +153,8 @@ unit globals;
        initpackenum       : longint;
        initpackrecords    : tpackrecords;
        initoutputformat   : tasm;
-       initoptprocessor   : tprocessors;
+       initoptprocessor,
+       initspecificoptprocessor : tprocessors;
        initasmmode        : tasmmode;
      { current state values }
        aktglobalswitches : tglobalswitches;
@@ -164,7 +165,8 @@ unit globals;
        aktmaxfpuregisters: longint;
        aktpackrecords    : tpackrecords;
        aktoutputformat   : tasm;
-       aktoptprocessor   : tprocessors;
+       aktoptprocessor,
+       aktspecificoptprocessor : tprocessors;
        aktasmmode        : tasmmode;
 
      { Memory sizes }
@@ -1448,6 +1450,7 @@ implementation
         initglobalswitches:=[cs_check_unit_name,cs_link_static];
 {$ifdef i386}
         initoptprocessor:=Class386;
+        initspecificoptprocessor:=Class386;
         initpackenum:=4;
         initpackrecords:=packrecord_2;
         initoutputformat:=target_asm.id;
@@ -1488,7 +1491,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2000-01-23 16:36:37  peter
+  Revision 1.49  2000-01-23 21:29:14  florian
+    * CMOV support in optimizer (in define USECMOV)
+    + start of support of exceptions in constructors
+
+  Revision 1.48  2000/01/23 16:36:37  peter
     * better auto RTL dir detection
 
   Revision 1.47  2000/01/20 00:23:03  pierre

@@ -71,7 +71,21 @@ begin
                          Inc(j);
                        End
                      Else IllegalPara(opt)
+                   End;
+{$ifdef USECMOV}
+                 's' :
+                   Begin
+                     If j < Length(Opt) Then
+                       Begin
+                         Case opt[j+1] Of
+                           '3': initspecificoptprocessor:=ClassP6
+                           Else IllegalPara(Opt)
+                         End;
+                         Inc(j);
+                       End
+                     Else IllegalPara(opt)
                    End
+{$endif USECMOV}
                  else IllegalPara(opt);
                End;
                Inc(j)
@@ -97,7 +111,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2000-01-07 01:14:28  peter
+  Revision 1.18  2000-01-23 21:29:17  florian
+    * CMOV support in optimizer (in define USECMOV)
+    + start of support of exceptions in constructors
+
+  Revision 1.17  2000/01/07 01:14:28  peter
     * updated copyright to 2000
 
   Revision 1.16  1999/08/04 13:02:47  jonas

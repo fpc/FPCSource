@@ -3087,6 +3087,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       { a constructor needs a help procedure }
       if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
         begin
+          procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
           if procinfo^._class^.is_class then
             begin
               exprasmlist^.insert(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
@@ -3405,6 +3406,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        hr : treference;
        oldexprasmlist : paasmoutput;
        ai : paicpu;
+       pd : pprocdef;
+       r : preference;
 
   begin
       oldexprasmlist:=exprasmlist;
@@ -3470,6 +3473,34 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            exprasmlist^.concat(new(paicpu,
              op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
            emitjmp(C_E,noreraiselabel);
+           if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
+             begin
+                {
+                if assigned(procinfo^._class) then
+                  begin
+                     pd:=procinfo^._class^.searchdestructor;
+                     if procinfo^._class^.is_class then
+                       begin
+                          emit_const(A_PUSH,S_L,1);
+                          emit_reg(A_PUSH,S_L,R_ESI);
+                       end
+                     else
+                       begin
+                          emit_reg(A_PUSH,S_L,R_ESI);
+                          emit_sym(A_PUSH,S_L,newasmsymbol(procinfo._class^.vmt_mangledname);
+                       end;
+                      if (po_virtualmethod in pd^.procoptions) then
+                        begin
+                           emit_ref_reg(A_MOV,S_L,ref,R_EDI)
+                           emit_ref(A_CALL,S_NO,ref);
+                        end
+                      else
+                        begin
+                        end;
+                  end
+                }
+             end
+           else
            { must be the return value finalized before reraising the exception? }
            if (procinfo^.returntype.def<>pdef(voiddef)) and
              (procinfo^.returntype.def^.needs_inittable) and
@@ -3684,7 +3715,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.72  2000-01-23 11:11:36  michael
+  Revision 1.73  2000-01-23 21:29:14  florian
+    * CMOV support in optimizer (in define USECMOV)
+    + start of support of exceptions in constructors
+
+  Revision 1.72  2000/01/23 11:11:36  michael
   + Fixes from Jonas.
 
   Revision 1.71  2000/01/22 16:02:37  jonas

@@ -267,6 +267,7 @@ unit parser;
          oldaktpackenum,oldaktmaxfpuregisters : longint;
          oldaktpackrecords  : tpackrecords;
          oldaktoutputformat : tasm;
+         oldaktspecificoptprocessor,
          oldaktoptprocessor : tprocessors;
          oldaktasmmode      : tasmmode;
          oldaktmodeswitches : tmodeswitches;
@@ -328,6 +329,7 @@ unit parser;
          oldaktmaxfpuregisters:=aktmaxfpuregisters;
          oldaktoutputformat:=aktoutputformat;
          oldaktoptprocessor:=aktoptprocessor;
+         oldaktspecificoptprocessor:=aktspecificoptprocessor;
          oldaktasmmode:=aktasmmode;
          oldaktfilepos:=aktfilepos;
          oldaktmodeswitches:=aktmodeswitches;
@@ -379,6 +381,7 @@ unit parser;
          aktpackenum:=initpackenum;
          aktoutputformat:=initoutputformat;
          aktoptprocessor:=initoptprocessor;
+         aktspecificoptprocessor:=initspecificoptprocessor;
          aktasmmode:=initasmmode;
          { we need this to make the system unit }
          if compile_system then
@@ -513,6 +516,7 @@ unit parser;
               aktmaxfpuregisters:=oldaktmaxfpuregisters;
               aktoutputformat:=oldaktoutputformat;
               aktoptprocessor:=oldaktoptprocessor;
+              aktspecificoptprocessor:=oldaktspecificoptprocessor;
               aktasmmode:=oldaktasmmode;
               aktfilepos:=oldaktfilepos;
               aktmodeswitches:=oldaktmodeswitches;
@@ -587,7 +591,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.97  2000-01-11 09:52:06  peter
+  Revision 1.98  2000-01-23 21:29:17  florian
+    * CMOV support in optimizer (in define USECMOV)
+    + start of support of exceptions in constructors
+
+  Revision 1.97  2000/01/11 09:52:06  peter
     * fixed placing of .sl directories
     * use -b again for base-file selection
     * fixed group writing for linux with smartlinking
