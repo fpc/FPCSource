@@ -47,7 +47,7 @@ const
 {$ifdef ansistring_bits}
   CurrentPPUVersion=41;
 {$else}
-  CurrentPPUVersion=40;
+  CurrentPPUVersion=41;
 {$endif}
 
 { buffer sizes }
@@ -1053,7 +1053,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.51  2004-06-20 08:55:30  florian
+  Revision 1.52  2004-07-09 23:11:05  peter
+    * new format
+
+  Revision 1.51  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.50  2004/06/16 20:07:09  florian
