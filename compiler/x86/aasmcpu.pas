@@ -89,10 +89,16 @@ interface
       OT_REG_AL    = $00211001;    { REG_ACCUM | BITSxx  }
       OT_REG_AX    = $00211002;    { ditto  }
       OT_REG_EAX   = $00211004;    { and again  }
+{$ifdef x86_64}
+      OT_REG_RAX   = $00211008;
+{$endif x86_64}
       OT_REG_COUNT = $00221000;  { counter: CL, CX or ECX  }
       OT_REG_CL    = $00221001;    { REG_COUNT | BITSxx  }
       OT_REG_CX    = $00221002;    { ditto  }
       OT_REG_ECX   = $00221004;    { another one  }
+{$ifdef x86_64}
+      OT_REG_RCX   = $00221008;
+{$endif x86_64}
       OT_REG_DX    = $00241002;
 
       OT_REG_SREG  = $00081002;  { any segment register  }
@@ -218,7 +224,7 @@ implementation
 
      uses
        cutils,
-       agx86att;
+       itx86att;
 
 {*****************************************************************************
                               Instruction table
@@ -308,7 +314,7 @@ implementation
        { Convert reg to operand type }
        reg2type : array[firstreg..lastreg] of longint = (OT_NONE,
          OT_REG_RAX,OT_REG_RCX,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,
-         OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG_RIP,
+         OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,
          OT_REG_EAX,OT_REG_ECX,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
          OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
          OT_REG_AX,OT_REG_CX,OT_REG_DX,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,
@@ -325,6 +331,11 @@ implementation
          OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,
          OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG
        );
+
+      subreg2type:array[R_SUBL..R_SUBQ] of longint = (
+        OT_REG8,OT_REG8,OT_REG16,OT_REG32,OT_REG64
+      );
+
 {$else x86_64}
        { Intel style operands ! }
        opsize_2_type:array[0..2,topsize] of longint=(
@@ -2013,7 +2024,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-04-25 12:43:40  florian
+  Revision 1.3  2003-05-22 21:33:31  peter
+    * removed some unit dependencies
+
+  Revision 1.2  2002/04/25 16:12:09  florian
+    * fixed more problems with cpubase and x86-64
+
+  Revision 1.1  2003/04/25 12:43:40  florian
     * merged i386/aasmcpu and x86_64/aasmcpu to x86/aasmcpu
 
   Revision 1.18  2003/04/25 12:04:31  florian

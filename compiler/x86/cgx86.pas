@@ -33,7 +33,7 @@ unit cgx86;
     uses
        cginfo,cgbase,cgobj,
        aasmbase,aasmtai,aasmcpu,
-       cpubase,cpuinfo,cpupara,
+       cpubase,cpuinfo,
        node,symconst;
 
     type
@@ -1941,7 +1941,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.46  2003-05-16 14:33:31  peter
+  Revision 1.47  2003-05-22 21:33:31  peter
+    * removed some unit dependencies
+
+  Revision 1.46  2003/05/16 14:33:31  peter
     * regvar fixes
 
   Revision 1.45  2003/05/15 18:58:54  peter

@@ -51,7 +51,7 @@ interface
        { codegen }
        cgbase,
        { constants }
-       agx86att,
+       itx86att,
        cpubase
        ;
 
@@ -361,7 +361,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-05-15 18:58:54  peter
+  Revision 1.5  2003-05-22 21:33:31  peter
+    * removed some unit dependencies
+
+  Revision 1.4  2003/05/15 18:58:54  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

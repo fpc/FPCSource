@@ -31,7 +31,7 @@ unit cgcpu;
     uses
        cginfo,cgbase,cgobj,cg64f32,cgx86,
        aasmbase,aasmtai,aasmcpu,
-       cpubase,cpuinfo,cpupara,
+       cpubase,cpuinfo,
        node,symconst
 {$ifdef delphi}
        ,dmisc
@@ -56,7 +56,7 @@ unit cgcpu;
     uses
        globtype,globals,verbose,systems,cutils,
        symdef,symsym,defutil,paramgr,
-       rgobj,tgobj,rgcpu;
+       rgobj,tgobj;
 
 
 { ************* 64bit operations ************ }
@@ -174,7 +174,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-11-25 17:43:26  peter
+  Revision 1.33  2003-05-22 21:32:28  peter
+    * removed some unit dependencies
+
+  Revision 1.32  2002/11/25 17:43:26  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

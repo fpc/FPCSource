@@ -58,7 +58,7 @@ implementation
       cginfo,cgbase,pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,
-      cga,tgobj,ncgutil,cgobj,rgobj,rgcpu;
+      cga,tgobj,ncgutil,cgobj,rgobj;
 
 {*****************************************************************************
                              TI386MODDIVNODE
@@ -1183,7 +1183,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-04-22 23:50:23  peter
+  Revision 1.54  2003-05-22 21:32:29  peter
+    * removed some unit dependencies
+
+  Revision 1.53  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

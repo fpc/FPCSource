@@ -63,7 +63,7 @@ implementation
       cginfo,cgbase,pass_2,
       ncon,ncal,ncnv,
       cpubase,
-      cgobj,cga,tgobj,rgobj,rgcpu,ncgutil;
+      cgobj,cga,tgobj,rgobj,ncgutil;
 
 
     procedure tx86typeconvnode.second_int_to_bool;
@@ -167,6 +167,9 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-05-01 08:02:42  florian
+  Revision 1.2  2003-05-22 21:33:31  peter
+    * removed some unit dependencies
+
+  Revision 1.1  2003/05/01 08:02:42  florian
     * i386 and x86-64 share second_int_to_bool, moved to nx86cnv.pas
 }

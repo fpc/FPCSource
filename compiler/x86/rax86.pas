@@ -84,7 +84,8 @@ implementation
 
 uses
   globtype,globals,systems,verbose,
-  cpuinfo,agx86att;
+  cpuinfo,
+  itx86att;
 
 {$define ATTOP}
 {$define INTELOP}
@@ -683,7 +684,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2003-04-30 15:45:35  florian
+  Revision 1.2  2003-05-22 21:33:31  peter
+    * removed some unit dependencies
+
+  Revision 1.1  2003/04/30 15:45:35  florian
     * merged more x86-64/i386 code
 
   Revision 1.30  2003/04/25 12:04:31  florian

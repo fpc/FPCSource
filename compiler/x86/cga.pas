@@ -63,7 +63,7 @@ implementation
     uses
        cutils,
        systems,globals,verbose,
-       cgbase,cgobj,tgobj,rgobj,rgcpu;
+       cgbase,cgobj,tgobj,rgobj;
 
 
 {*****************************************************************************
@@ -190,7 +190,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-04-30 20:53:32  florian
+  Revision 1.2  2003-05-22 21:33:31  peter
+    * removed some unit dependencies
+
+  Revision 1.1  2003/04/30 20:53:32  florian
     * error when address of an abstract method is taken
     * fixed some x86-64 problems
     * merged some more x86-64 and i386 code

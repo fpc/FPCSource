@@ -54,7 +54,8 @@ implementation
       cginfo,cgbase,pass_2,
       ncon,
       cpubase,cpuinfo,
-      cga,cgx86,cgobj,tgobj,ncgutil,rgobj;
+      cga,cgobj,tgobj,ncgutil,rgobj,
+      cgx86;
 
 
 {*****************************************************************************
@@ -738,7 +739,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-04-27 11:21:35  peter
+  Revision 1.58  2003-05-22 21:32:29  peter
+    * removed some unit dependencies
+
+  Revision 1.57  2003/04/27 11:21:35  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

@@ -60,9 +60,8 @@ interface
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmcpu,defutil,htypechk,
       cgbase,pass_2,regvars,
-      cpupara,
       ncon,nset,
-      cga,ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+      cga,ncgutil,tgobj,rgobj,cgobj,cg64f32,rgcpu;
 
 {*****************************************************************************
                                   Helpers
@@ -1664,7 +1663,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-04-26 09:12:55  peter
+  Revision 1.67  2003-05-22 21:32:29  peter
+    * removed some unit dependencies
+
+  Revision 1.66  2003/04/26 09:12:55  peter
     * add string returns in LOC_REFERENCE
 
   Revision 1.65  2003/04/23 20:16:04  peter

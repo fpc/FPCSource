@@ -58,7 +58,7 @@ implementation
       cpubase,paramgr,
       aasmbase,aasmtai,aasmcpu,
       node,ncal,nbas,nmem,nld,ncnv,
-      ncgutil,cga,cgobj,tgobj,rgobj,rgcpu,cgcpu,cpuinfo;
+      ncgutil,cga,cgobj,tgobj,rgobj,cpuinfo;
 
 
 {*****************************************************************************
@@ -201,7 +201,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2003-04-23 14:42:08  daniel
+  Revision 1.91  2003-05-22 21:32:29  peter
+    * removed some unit dependencies
+
+  Revision 1.90  2003/04/23 14:42:08  daniel
     * Further register allocator work. Compiler now smaller with new
       allocator than without.
     * Somebody forgot to adjust ppu version number

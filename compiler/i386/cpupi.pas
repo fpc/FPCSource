@@ -29,16 +29,18 @@ unit cpupi;
   interface
 
     uses
-       cgbase;
+       psub;
 
     type
-       ti386procinfo = class(tprocinfo)
+       ti386procinfo = class(tcgprocinfo)
           procedure allocate_interrupt_stackframe;override;
        end;
 
 
   implementation
 
+    uses
+      cgbase;
 
     procedure ti386procinfo.allocate_interrupt_stackframe;
       begin
@@ -53,7 +55,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-04-27 11:21:35  peter
+  Revision 1.4  2003-05-22 21:32:29  peter
+    * removed some unit dependencies
+
+  Revision 1.3  2003/04/27 11:21:35  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
