@@ -178,11 +178,11 @@ interface
 type
   psyminfo=^tsyminfo;
   tsyminfo=record
-    address  : longint;
+    address  : ptrint;
     fname    : pchar;
     line     : longint;
     funcname : pchar;
-    offset   : longint;
+    offset   : ptrint;
   end;
 
   tframeentry = object
@@ -190,7 +190,7 @@ type
     function_name : pchar;
     args : pchar;
     line_number : longint;
-    address : longint;
+    address : ptrint;
     level : longint;
     constructor init;
     destructor done;
@@ -207,9 +207,9 @@ const
  k=1;
  
 type
-  CORE_ADDR = cardinal; { might be target dependent PM }
+  CORE_ADDR = ptrint; { might be target dependent PM }
   streamtype = (afile,astring);
-  C_FILE     = longint; { at least under DJGPP }
+  C_FILE     = ptrint; { at least under DJGPP }
   P_C_FILE   = ^C_FILE;
 
 type
@@ -270,8 +270,8 @@ type
    pinferior_ptid = ^tinferior_ptid;
    tinferior_ptid = record
       pid : longint{C int};
-      lwp : longint{ C long};
-      tid : longint{ C long};
+      lwp : ptrint{ C long};
+      tid : ptrint{ C long};
      end;
 
 {$ifdef win32}
@@ -359,13 +359,13 @@ type
     procedure resize_frames;
     function  add_frameentry:pframeentry;
     function  get_frameentry(level : longint):pframeentry;
-    function  get_current_frame : longint;
+    function  get_current_frame : ptrint;
     function  set_current_frame(level : longint) : boolean;
     procedure clear_frames;
     { Highlevel }
     user_screen_shown,
     switch_to_user     : boolean;
-    procedure GetAddrSyminfo(addr:longint;var si:tsyminfo);
+    procedure GetAddrSyminfo(addr:ptrint;var si:tsyminfo);
     procedure SelectSourceline(fn:pchar;line:longint);
     procedure StartSession;
     procedure BreakSession;
@@ -2200,7 +2200,7 @@ begin
   frame_size:=0;
 end;
 
-function tgdbinterface.get_current_frame : longint;
+function tgdbinterface.get_current_frame : ptrint;
 begin
   record_frames:=false;
   gdb_command('f');
@@ -2227,7 +2227,7 @@ end;
                       Highlevel tgdbinterface
 *****************************************************************************}
 
-procedure tgdbinterface.GetAddrSyminfo(addr:longint;var si:tsyminfo);
+procedure tgdbinterface.GetAddrSyminfo(addr:ptrint;var si:tsyminfo);
 var
   sym : symtab_and_line;
   symbol : psymbol;
@@ -2463,7 +2463,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2004-12-19 18:35:56  florian
+  Revision 1.26  2004-12-19 21:00:00  florian
+    * 64 bit adaptions
+
+  Revision 1.25  2004/12/19 18:35:56  florian
     * fixed for gdb 6.3.x
 
   Revision 1.24  2004/12/04 23:06:38  peter
