@@ -32,13 +32,18 @@ var
 begin
   dbl1 := -1e-128;
   comp1 := comp(dbl1);
+{$ifdef cpuarm}
+  comp1:=swap(comp1);
+{$endif cpuarm}
   str(comp1,s);
 {$if defined(cpui386) or defined(cpux86_64)}
   if s<>'-6.53142228756617E+0018' then
 {$else cpui386}
-  if s<>'-6531422287566170215' then
+  { this constant has been verified and is correct (FK) }
+  if s<>'-6531422287566170211' then
 {$endif cpui386}
     begin
+      writeln(s);
       writeln('error');
       halt(1);
     end;
