@@ -153,7 +153,7 @@ end;
     VESAPtr := pointer(Ptrlong shl 16);
 {$else fpc}
     Ptrlong:=Global_Dos_Alloc(sizeof(TVESAInfo));
-    Getmem(VESAPtr,SizeOf(TVESAInfo));
+    New(VESAPtr);
 {$endif fpc}
     { Get segment value }
     RealSeg := word(Ptrlong shr 16);
@@ -177,9 +177,10 @@ end;
 {$ifndef fpc}
          GlobalDosFree(word(PtrLong and $ffff));
 {$else fpc}
-         Global_Dos_Free(word(PtrLong and $ffff));
+         If not Global_Dos_Free(word(PtrLong and $ffff)) then
+           RunError(216);
          { also free the extra allocated buffer }
-         Freemem(VESAPtr,SizeOf(TVESAInfo));
+         Dispose(VESAPtr);
 {$endif fpc}
          exit;
      end
@@ -224,9 +225,9 @@ end;
      { copy VESA mode information to a protected mode buffer and }
      { then free the real mode buffer...                         }
      Move(VESAPtr^, VESAInfo, sizeof(TVESAInfo));
-     Global_Dos_Free(word(PtrLong and $ffff));
-     Freemem(VESAPtr,SizeOf(TVESAInfo));
-
+     If not Global_Dos_Free(word(PtrLong and $ffff)) then
+       RunError(216);
+     Dispose(VESAPtr);
 {$endif fpc}
 
     i:=0;
@@ -249,20 +250,20 @@ end;
    var
     Ptr: longint;
 {$ifndef fpc}
-    VESAPtr : ^TModeInfo;
+    VESAPtr : ^TVESAModeInfo;
 {$endif fpc}
     regs : TDPMIRegisters;
     RealSeg: word;
    begin
     { Alllocate real mode buffer }
 {$ifndef fpc}
-    Ptr:=GlobalDosAlloc(sizeof(TModeInfo));
+    Ptr:=GlobalDosAlloc(sizeof(TVESAModeInfo));
     { get the selector value }
     VESAPtr := pointer(longint(Ptr shl 16));
     if not assigned(VESAPtr) then
       RunError(203);
 {$else fpc}
-    Ptr:=Global_Dos_Alloc(sizeof(TModeInfo));
+    Ptr:=Global_Dos_Alloc(sizeof(TVESAModeInfo));
 {$endif fpc}
     { get the segment value }
     RealSeg := word(Ptr shr 16);
@@ -280,15 +281,16 @@ end;
       getModeInfo := TRUE;
     { copy to protected mode buffer ... }
 {$ifndef fpc}
-    Move(VESAPtr^, ModeInfo, sizeof(TModeInfo));
+    Move(VESAPtr^, ModeInfo, sizeof(TVESAModeInfo));
 {$else fpc}
-    DosMemGet(RealSeg,0,ModeInfo,sizeof(TModeInfo));
+    DosMemGet(RealSeg,0,ModeInfo,sizeof(TVESAModeInfo));
 {$endif fpc}
     { free real mode memory  }
 {$ifndef fpc}
     GlobalDosFree(Word(Ptr and $ffff));
 {$else fpc}
-    Global_Dos_Free(Word(Ptr and $ffff));
+    If not Global_Dos_Free(Word(Ptr and $ffff)) then
+      RunError(216);
 {$endif fpc}
    end;
 
@@ -354,8 +356,8 @@ end;
           { we have to init everything to zero, since VBE < 1.1  }
           { may not setup fields correctly.                      }
           FillChar(ModeInfo, sizeof(ModeInfo), #0);
-          GetModeInfo(ModeInfo, Mode);
-          if (ModeInfo.attr and modeAvail) <> 0 then
+          If GetModeInfo(ModeInfo, Mode) And
+             ((ModeInfo.attr and modeAvail) <> 0) then
             ModeSupported := TRUE
           else
             ModeSupported := FALSE;
@@ -459,7 +461,7 @@ end;
      Y:= Y + StartYViewPort;
      offs := longint(y) * BytesPerLine + x;
      SetReadBank(integer(offs shr 16));
-     GetPixVESA256:=mem[WinWriteSeg : word(offs)];
+     GetPixVESA256:=mem[WinReadSeg : word(offs)];
   end;
 
  {************************************************************************}
@@ -515,7 +517,7 @@ end;
      Y:= Y + StartYViewPort;
      offs := longint(y) * BytesPerLine + 2*x;
      SetReadBank(integer(offs shr 16));
-     GetPixVESA32k:=memW[WinWriteSeg : word(offs)];
+     GetPixVESA32k:=memW[WinReadSeg : word(offs)];
   end;
 
   function GetPixVESA64k(x, y : integer): word; far;
@@ -527,7 +529,7 @@ end;
      Y:= Y + StartYViewPort;
      offs := longint(y) * BytesPerLine + 2*x;
      SetReadBank(integer(offs shr 16));
-     GetPixVESA64k:=memW[WinWriteSeg : word(offs)];
+     GetPixVESA64k:=memW[WinReadSeg : word(offs)];
   end;
 
   procedure DirectPutPixVESA32k(x, y : integer); far;
@@ -682,7 +684,8 @@ end;
 {$ifndef fpc}
             GlobalDosFree(word(Ptr and $ffff));
 {$else fpc}
-            Global_Dos_Free(word(Ptr and $ffff));
+            If not Global_Dos_Free(word(Ptr and $ffff)) then
+              RunError(216);
 {$endif fpc}
 
             if word(regs.eax) <> $004F then
@@ -750,7 +753,8 @@ end;
 {$ifndef fpc}
            GlobalDosFree(word(Ptr and $ffff));
 {$else fpc}
-           Global_Dos_Free(word(Ptr and $ffff));
+           If not Global_Dos_Free(word(Ptr and $ffff)) then
+             RunError(216);
 {$endif fpc}
 
             if word(regs.eax) <> $004F then
@@ -1406,7 +1410,13 @@ end;
 
 {
 $Log$
-Revision 1.5  1999-07-12 13:28:33  jonas
+Revision 1.6  1999-07-14 13:17:29  jonas
+  * bugfix in getmodeinfo (SizeOf(TModeInfo) -> SizeOf(TVESAModeInfo))
+  * as the result of the above bugfix, the graph unit doesn't crash
+    anymore under FPC if compiler with -dsupportVESA, but it doesn't
+    work yet either...
+
+Revision 1.5  1999/07/12 13:28:33  jonas
   * forgot log tag in previous commit
 
 }
