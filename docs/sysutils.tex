@@ -330,7 +330,7 @@ Function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
 None.
 \SeeAlso
 \seef{DateTimeToFileDate}, \seef{SystemTimeToDateTime},
-\seef{DateTimeToSystemTime}
+\seep{DateTimeToSystemTime}
 \end{function}
 
 \latex{\inputlisting{sysutex/ex6.pp}}
@@ -511,7 +511,7 @@ None.
 Function IsLeapYear(Year: Word): boolean;
 \Description
 \var{IsLeapYear} returns \var{True} if \var{Year} is a leap year,
-\var{False} otherwise
+\var{False} otherwise.
 \Errors
 None.
 \SeeAlso
@@ -527,6 +527,9 @@ Function MSecsToTimeStamp(MSecs: Comp): TTimeStamp;
 \Description
 \var{MSecsTiTimeStamp} converts the given number of milliseconds to
 a \var{TTimeStamp} date/time notation.
+
+Use \var{TTimeStamp} variables if you need to keep very precise track of
+time.
 \Errors
 None.
 \SeeAlso
@@ -566,183 +569,362 @@ The order of the digits (y/m/d, m/d/y, d/m/y) is determined from the
 \var{ShortDateFormat} variable.
 \Errors
 On error (e.g. an invalid date or invalid character), 
-a \var{EConvertError} exception is raised.
+an \var{EConvertError} exception is raised.
 \SeeAlso
 \seef{StrToTime}, \seef{DateToStr}n \seef{TimeToStr}.
 \end{function}
 
- \latex{\inputlisting{sysutex/ex19.pp}}
+\latex{\inputlisting{sysutex/ex19.pp}}
 \html{\input{sysutex/ex19.tex}}
 
 \begin{function}{StrToDateTime}
 \Declaration
 Function StrToDateTime(const S: string): TDateTime;
 \Description
+\var{StrToDateTime} converts the string \var{S} to a \var{TDateTime} date 
+and time value. The Date must consist of 1 to three digits, separated by the 
+\var{DateSeparator} character. If two numbers are given, they
+are supposed to form the day and month of the current year. If only 
+one number is given, it is supposed to represent the day of the 
+current month. (This is \em{not} supported in Delphi)
 
+The order of the digits (y/m/d, m/d/y, d/m/y) is determined from the 
+\var{ShortDateFormat} variable.
 \Errors
+On error (e.g. an invalid date or invalid character), 
+an \var{EConvertError} exception is raised.
 \SeeAlso
+\seef{StrToDate}, \seef{StrToTime}, \seef{DateTimeToStr}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex20.pp}}
+\html{\input{sysutex/ex20.tex}}
  
 \begin{function}{StrToTime}
 \Declaration
 Function StrToTime(const S: string): TDateTime;
 \Description
+\var{StrToTime} converts the string \var{S} to a \var{TDateTime} time 
+value. The time must consist of 1 to 4 digits, separated by the 
+\var{TimeSeparator} character. If two numbers are given, they
+are supposed to form the hour and minutes. 
 \Errors
+On error (e.g. an invalid date or invalid character), 
+an \var{EConvertError} exception is raised.
 \SeeAlso
+\seef{StrToDate}, \seef{StrToDateTime}, \seef{TimeToStr}
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex21.pp}}
+\html{\input{sysutex/ex21.tex}}
+
 \begin{function}{SystemTimeToDateTime}
 \Declaration
 Function SystemTimeToDateTime(const SystemTime: TSystemTime): TDateTime;
 \Description
+\var{SystemTimeToDateTime} converts a \var{TSystemTime} record to a
+\var{TDateTime} style date/time indication.
 \Errors
+None.
 \SeeAlso
+\seep{DateTimeToSystemTime}
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex22.pp}}
+\html{\input{sysutex/ex22.tex}}
+
 \begin{function}{Time}
 \Declaration
 Function Time: TDateTime;
 \Description
+\var{Time} returns the current time in \var{TDateTime} format. The date
+part of the \var{TDateTimeValue} is set to zero.
 \Errors
+None.
 \SeeAlso
+\seef{Now}, \seef{Date}
 \end{function}
 
+
+\latex{\inputlisting{sysutex/ex23.pp}}
+\html{\input{sysutex/ex23.tex}}
  
 \begin{function}{TimeStampToDateTime}
 \Declaration
 Function TimeStampToDateTime(const TimeStamp: TTimeStamp): TDateTime;
 \Description
+\var{TimeStampToDateTime} converts \var{TimeStamp} to a \var{TDateTime}
+format variable. It is the inverse operation of \seef{DateTimeToTimeStamp}.
 \Errors
+None.
 \SeeAlso
+\seef{DateTimeToTimeStamp}, \seef{TimeStampToMSecs}
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex24.pp}}
+\html{\input{sysutex/ex24.tex}}
+
 \begin{function}{TimeStampToMSecs}
 \Declaration
 Function TimeStampToMSecs(const TimeStamp: TTimeStamp): comp;
 \Description
+\var{TimeStampToMSecs} converts {TimeStamp} to the number of seconds
+since \var{1/1/0001}.
+
+Use \var{TTimeStamp} variables if you need to keep very precise track of
+time.
 \Errors
+None.
 \SeeAlso
+\seef{MSecsToTimeStamp}, \seef{TimeStampToDateTime}
 \end{function}
 
- 
+For an example, see \seef{MSecsToTimeStamp}.
+
 \begin{function}{TimeToStr}
 \Declaration
 Function TimeToStr(Time: TDateTime): string;
 \Description
+\var{TimeToStr} converts the time in \var{Time} to a string. It uses
+the \var{ShortTimeFormat} variable to see what formatting needs to be
+applied. It is therefor entirely equivalent to a
+\var{FormatDateTime('t',Time)} call.
 \Errors
+None.
 \SeeAlso
 \end{function}
 
+\latex{\inputlisting{sysutex/ex25.pp}}
+\html{\input{sysutex/ex25.tex}}
  
 
 \section{Disk functions}
+
+\begin{functionl}{AddDisk (Linux only)}{AddDisk}
+\Declaration
+Function AddDisk (Const PAth : String) : Longint;
+\Description
+On Linux  both the \seef{Diskfree} and \seef{Disksize} functions need a 
+file on the specified drive, since is required for the statfs system call.
+
+These filenames are set in drivestr[0..26], and the first 4 have been 
+preset to :
+\begin{description}
+\item[Disk 0]  \var{'.'} default drive - hence current directory is used.
+\item[Disk 1]  \var{'/fd0/.'} floppy drive 1.
+\item[Disk 2]  \var{'/fd1/.'} floppy drive 2.
+\item[Disk 3]  \var{'/'} \file{C:} equivalent of DOS is the root partition.
+\end{description}
+Drives 4..26 can be set by your own applications with the \var{AddDisk} call.
+
+The \var{AddDisk} call adds \var{Path} to the names of drive files, and
+returns the number of the disk that corresponds to this drive. If you
+add more than 21 drives, the count is wrapped to 4.
+\Errors
+None. 
+\SeeAlso
+\seef{DiskFree}, \seef{DiskSize}
+\end{functionl}
 
 \begin{function}{CreateDir}
 \Declaration
 Function CreateDir(Const NewDir : String) : Boolean;
 \Description
+\var{CreateDir} creates a new directory with name \var{NewDir}.
+If the directory doesn't contain an absolute path, then the directory is
+created below the current working directory.
+
+The function returns \var{True} if the directory was successfully 
+created, \var{False} otherwise.
 \Errors
+In case of an error, the function returns \var{False}.
 \SeeAlso
+\seef{RemoveDir}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex26.pp}}
+\html{\input{sysutex/ex26.tex}}
  
 \begin{function}{DiskFree}
 \Declaration
 Function DiskFree(Drive : Byte) : Longint;
 \Description
+\var{DiskFree} returns the free space (in bytes) on disk \var{Drive}.
+Drive is the number of the disk drive: 
+\begin{description}
+\item[0] for the current drive.
+\item[1] for the first floppy drive.
+\item[2] for the second floppy drive.
+\item[3] for the first hard-disk parttion.
+\item[4-26] for all other drives and partitions.
+\end{description}
+
+{\em Remark} Under \linux, and Unix in general, the concept of disk is
+different than the \dos one, since the filesystem is seen as one big
+directory tree. For this reason, the \var{DiskFree} and \seef{DiskSize}
+functions must be mimicked using filenames that reside on the partitions.
+For more information, see \seef{AddDisk}
 \Errors
+On error, \var{-1} is returned.
 \SeeAlso
+\seef{DiskSize}, \seef{AddDisk}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex27.pp}}
+\html{\input{sysutex/ex27.tex}}
  
 \begin{function}{DiskSize}
 \Declaration
 Function DiskSize(Drive : Byte) : Longint;
 \Description
+\var{DiskSize} returns the size (in bytes) of disk \var{Drive}.
+Drive is the number of the disk drive: 
+\begin{description}
+\item[0] for the current drive.
+\item[1] for the first floppy drive.
+\item[2] for the second floppy drive.
+\item[3] for the first hard-disk parttion.
+\item[4-26] for all other drives and partitions.
+\end{description}
+
+{\em Remark} Under \linux, and Unix in general, the concept of disk is
+different than the \dos one, since the filesystem is seen as one big
+directory tree. For this reason, the \seef{DiskFree} and \var{DiskSize}
+functions must be mimicked using filenames that reside on the partitions.
+For more information, see \seef{AddDisk}
 \Errors
+On error, \var{-1} is returned.
 \SeeAlso
+\seef{DiskFree}, \seef{AddDisk}
 \end{function}
 
+For an example, see \seef{DiskFree}.
  
 \begin{function}{GetCurrentDir}
 \Declaration
 Function GetCurrentDir : String;
 \Description
+\var{GetCurrentDir} returns the current working directory.
 \Errors
+None.
 \SeeAlso
+\seef{SetCurrentDir}, \seef{DiskFree}, \seef{DiskSize}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex28.pp}}
+\html{\input{sysutex/ex28.tex}}
  
 \begin{function}{RemoveDir}
 \Declaration
 Function RemoveDir(Const Dir : String) : Boolean;
 \Description
+\var{RemoveDir} removes directory \var{Dir} from the disk.
+If the directory is not absolue, it is appended to the current working 
+directory.
 \Errors
+In case of error (e.g. the directory isn't empty) the function returns 
+\var{False}. If successful, \var{True} is returned.
 \SeeAlso
 \end{function}
 
+For an example, see \seef{CreateDir}.
  
 \begin{function}{SetCurrentDir}
 \Declaration
 Function SetCurrentDir(Const NewDir : String) : Boolean;
 \Description
+\var{SetCurrentDir} sets the current working directory of your program
+to \var{NewDir}. It returns \var{True} if the function was successfull,
+\var{False} otherwise.
 \Errors
+In case of error, \var{False} is returned.
 \SeeAlso
+\seef{GetCurrentDir}
 \end{function}
 
- 
-
+\latex{\inputlisting{sysutex/ex29.pp}}
+\html{\input{sysutex/ex29.tex}}
 
 \section{File handling functions}
 
-      
-  
 \begin{function}{ChangeFileExt}
 \Declaration
 Function ChangeFileExt(const FileName, Extension: string): string;
 \Description
+\var{ChangeFileExt} changes the file extension in \var{FileName} to
+\var{Extension}. 
+The extension \var{Extension} includes the starting \var{.} (dot).
+The previous extension of \var{FileName} are all characters after the
+last \var{.}, the \var{.} character included.
+
+If \var{FileName} doesn't have an extension, \var{Extension} is just
+appended.
 \Errors
+None.
 \SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExpandFileName}
 \end{function}
 
- 
+
 \begin{function}{DeleteFile}
 \Declaration
 Function DeleteFile(Const FileName : String) : Boolean;
 \Description
+\var{DeleteFile} deletes file \var{FileName} from disk. The function
+returns \var{True} if the file was successfully removed, \var{False}
+otherwise.
 \Errors
+On error, \var{False} is returned.
 \SeeAlso
+\seef{CreateFile}, \seef{FileExists}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex31.pp}}
+\html{\input{sysutex/ex31.tex}}
  
 \begin{procedure}{DoDirSeparators}
 \Declaration
 Procedure DoDirSeparators(Var FileName : String);
 \Description
+This function replaces all directory separators \var{'\' and '/'}
+to the directory separator character for the current system.
 \Errors
+None.
 \SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}
 \end{procedure}
 
- 
+\latex{\inputlisting{sysutex/ex32.pp}}
+\html{\input{sysutex/ex32.tex}}
+
 \begin{function}{ExpandFileName}
 \Declaration
 Function ExpandFileName(Const FileName : string): String;
 \Description
+\var{ExpandFileName} expands the filename to an absolute filename.
+It changes all directory separator characters to the one appropriate for the
+system first.
 \Errors
+None.
 \SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
 \end{function}
+
+\latex{\inputlisting{sysutex/ex33.pp}}
+\html{\input{sysutex/ex33.tex}}
 
  
 \begin{function}{ExpandUNCFileName}
 \Declaration
 Function ExpandUNCFileName(Const FileName : string): String;
 \Description
+\var{ExpandUNCFileName} runs \seef{ExpandFileName} on \var{FileName}
+and then attempts to replace the driveletter by the name of a shared disk.
 \Errors
 \SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
 \end{function}
 
  
@@ -750,71 +932,134 @@ Function ExpandUNCFileName(Const FileName : string): String;
 \Declaration
 Function ExtractFileDir(Const FileName : string): string;
 \Description
+\var{ExtractFileDir} returns only the directory part of \var{FileName},
+not including a driveletter. The directory name has NO ending directory
+separator, in difference with \seef{ExtractFilePath}. 
 \Errors
+None.
 \SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex34.pp}}
+\html{\input{sysutex/ex34.tex}}
+
 \begin{function}{ExtractFileDrive}
 \Declaration
 Function ExtractFileDrive(const FileName: string): string;
 \Description
+\var{Extract}
 \Errors
 \SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
 \end{function}
 
+For an example, see \seef{ExtractFileDir}.
  
 \begin{function}{ExtractFileExt}
 \Declaration
 Function ExtractFileExt(const FileName: string): string; 
 \Description
+\var{ExtractFileExt} returns the extension (including the 
+\var{.}(dot) character) of \var{FileName}.
 \Errors
+None.
 \SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
 \end{function}
 
+For an example, see \seef{ExtractFileDir}.
  
 \begin{function}{ExtractFileName}
 \Declaration
 Function ExtractFileName(const FileName: string): string;
 \Description
+\var{ExtractFileName} returns the filename part from \var{FileName}.
+The filename consists of all characters after the last directory separator
+character ('/' or '\') or drive letter. 
+
+The full filename can always be reconstucted by concatenating the result
+of \seef{ExtractFilePath} and \var{ExtractFileName}.
 \Errors
+None.
 \SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt},\seef{ExtractRelativePath}
 \end{function}
 
+For an example, see \seef{ExtractFileDir}.
  
 \begin{function}{ExtractFilePath}
 \Declaration
 Function ExtractFilePath(const FileName: string): string;
 \Description
+\var{ExtractFilePath} returns the path part (including driveletter) from 
+\var{FileName}. The path consists of all characters before the last 
+directory separator character ('/' or '\'), including the directory
+separator itself. 
+In case there is only a drive letter, that will be returned.
+
+The full filename can always be reconstucted by concatenating the result
+of \var{ExtractFilePath} and \seef{ExtractFileName}.
 \Errors
+None.
 \SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
 \end{function}
 
+For an example, see \seef{ExtractFileDir}.
  
-\begin{function}{ExtractRelativepath}
+\begin{function}{ExtractRelativePath}
 \Declaration
-Function ExtractRelativepath(Const BaseName,DestNAme : String): String;
+Function ExtractRelativePath(Const BaseName,DestNAme : String): String;
 \Description
+\var{ExtractRelativePath} constructs a relative path to go from
+\var{BaseName} to \var{DestName}. If \var{DestName} is on another drive
+(Not on Linux) then the whole \var{Destname} is returned.
+
+{\em Note:} This function does not exist in the Delphi unit.
 \Errors
+None.
 \SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt},
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex35.pp}}
+\html{\input{sysutex/ex35.tex}}
+
 \begin{function}{FileAge}
 \Declaration
 Function FileAge(Const FileName : String): Longint;
 \Description
+\var{FileAge} returns the last modification time of file \var{FileName}.
+The FileDate format can be transformed to \var{TDateTime} format with the
+\seef{FileDateToDateTime} function.
 \Errors
+In case of errors, \var{-1} is returned.
 \SeeAlso
+\seef{FileDateToDateTime}, \seef{FileExists}, \seef{FileGetAttr}
 \end{function}
+
+\latex{\inputlisting{sysutex/ex36.pp}}
+\html{\input{sysutex/ex36.tex}}
 
  
 \begin{procedure}{FileClose}
 \Declaration
 Procedure FileClose(Handle : Longint);
 \Description
+\var{FileClose} closes the file handle \var{Handle}. After this call,
+attempting to read or write from the handle will result in an error.
 \Errors
+None.
 \SeeAlso
+\seef{FileCreate}, \seef{FileWrite}, \seef{FileOpen}, \seef{FileRead},
+\seef{FileTruncate}, \seef{FileSeek}
 \end{procedure}
 
  
@@ -822,8 +1067,18 @@ Procedure FileClose(Handle : Longint);
 \Declaration
 Function FileCreate(Const FileName : String) : Longint;
 \Description
+\var{FileCreate} creates a new file with name \var{FileName} on the disk and
+returns a file handle which can be used to read or write from the file with
+the \seef{FileRead} and \seef{FileWrite} functions.
+
+If a file with name \var{FileName} already existed on the disk, it is
+overwritten.
 \Errors
+If an error occurs (e.g. disk full or non-existent path), the function
+returns \var{-1}.
 \SeeAlso
+\seef{FileClose}, \seef{FileWrite}, \seef{FileOpen}, \seef{FileRead},
+\seef{FileTruncate}, \seef{FileSeek}
 \end{function}
 
  
@@ -831,8 +1086,12 @@ Function FileCreate(Const FileName : String) : Longint;
 \Declaration
 Function FileExists(Const FileName : String) : Boolean;
 \Description
+\var{FileExists} returns \var{True} if a file with name \var{FileName}
+exists on the disk, \var{False} otherwise.
 \Errors
+None.
 \SeeAlso
+\seef{FileAge}, \seef{FileGetAttr}, \seef{FileSetAttr}
 \end{function}
 
  
@@ -840,11 +1099,25 @@ Function FileExists(Const FileName : String) : Boolean;
 \Declaration
 Function FileGetAttr(Const FileName : String) : Longint;
 \Description
+\var{FileGetAttr} returns the attribute settings of file 
+\var{FileName}. The attribute is a \var{OR}-ed combination
+of the following constants: 
+\begin{description}
+\item[faReadOnly] The file is read-only.
+\item[faHidden] The file is hidden. (On \linux, this means that the filename
+starts with a dot)
+\item[faSysFile] The file is a system file (On \linux, this means that the
+file is a character, block or FIFO file).
+\item[faVolumeId] Volume Label. Not possible under \linux.
+\item[faDirectory] File is a directory.
+\item[faArchive] file is an archive. Not possible on \linux.
+\end{description}
 \Errors
+In case of error, -1 is returned.
 \SeeAlso
+\seef{FileSetAttr}, \seef{FileAge}, \seef{FileGetDate}.
 \end{function}
 
- 
 \begin{function}{FileGetDate}
 \Declaration
 Function FileGetDate(Handle : Longint) : Longint;
@@ -860,6 +1133,8 @@ Function FileOpen(Const FileName : string; Mode : Integer) : Longint;
 \Description
 \Errors
 \SeeAlso
+\seef{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileRead},
+\seef{FileTruncate}, \seef{FileSeek}
 \end{function}
 
  
@@ -869,6 +1144,8 @@ Function FileRead(Handle : Longint; Var Buffer; Count : longint) : Longint;
 \Description
 \Errors
 \SeeAlso
+\seef{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen},
+\seef{FileTruncate}, \seef{FileSeek}
 \end{function}
 
  
@@ -887,6 +1164,8 @@ Function FileSeek(Handle,Offset,Origin : Longint) : Longint;
 \Description
 \Errors
 \SeeAlso
+\seef{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen}
+\seef{FileRead}, \seef{FileTruncate}
 \end{function}
 
  
@@ -914,6 +1193,8 @@ Function FileTruncate(Handle,Size: Longint) : boolean;
 \Description
 \Errors
 \SeeAlso
+\seef{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen}
+\seef{FileRead}, \seef{FileSeek}
 \end{function}
 
  
@@ -923,6 +1204,8 @@ Function FileWrite(Handle : Longint; Var Buffer; Count : Longint) : Longint;
 \Description
 \Errors
 \SeeAlso
+\seef{FileClose}, \seef{FileCreate}, \seef{FileOpen}
+\seef{FileRead}, \seef{FileTruncate}, \seef{FileSeek}
 \end{function}
 
  
