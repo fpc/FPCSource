@@ -75,9 +75,9 @@ TYPE    CtlNameRec = Record
 // function is not implemented
 //
 
-function sys_sysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
-function sys_sysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
-function sys_sysctlnametomib (Name: pchar; mibp:plongint;sizep:psize_t):cint;
+function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
+function FPsysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
+function FPsysctlnametomib (Name: pchar; mibp:plongint;sizep:psize_t):cint;
 
 Implementation
 
@@ -89,7 +89,7 @@ CONST  syscall_nr___sysctl                    = 202;
 {$I sysnr.inc}
 {$I syscallh.inc}
 
-function sys_sysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
+function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 
 Begin
         if (name[0] <> chr(CTL_USER)) Then
@@ -98,7 +98,7 @@ Begin
          Exit(0);
 End;
 
-function sys_sysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
+function FPsysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 Var
         name2oid_oid    : array[0..1] of cint;
         real_oid        : array[0..CTL_MAXNAME+1] of cint;
@@ -109,16 +109,16 @@ Begin
         name2oid_oid[1] := 3;
 
         oidlen := sizeof(real_oid);
-        error := sys_sysctl(@name2oid_oid, 2, @real_oid, @oidlen, name,
+        error := FPsysctl(@name2oid_oid, 2, @real_oid, @oidlen, name,
                        strlen(name));
         if (error < 0)  Then
                 Exit(error);
         oidlen := Oidlen DIV sizeof (cint);
-        error := sys_sysctl(@real_oid, oidlen, oldp, oldlenp, newp, newlen);
+        error := FPsysctl(@real_oid, oidlen, oldp, oldlenp, newp, newlen);
         exit(error);
 End;
 
-function sys_sysctlnametomib (Name: pchar; mibp:plongint;sizep:psize_t):cint;
+function FPsysctlnametomib (Name: pchar; mibp:plongint;sizep:psize_t):cint;
 Var     oid   : array[0..1] OF cint;
         error : cint;
 
@@ -126,19 +126,22 @@ Begin
         oid[0] := 0;
         oid[1] := 3;
         sizep^:=sizep^*sizeof(cint);
-        error := sys_sysctl(@oid, 2, mibp, sizep, name, strlen(name));
+        error := FPsysctl(@oid, 2, mibp, sizep, name, strlen(name));
         sizep^ := sizep^ div sizeof (cint);
 
         if (error < 0)  Then
                 Exit (error);
-        sys_sysctlnametomib:=0;
+        FPsysctlnametomib:=0;
 End;
 
 end.
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:17  peter
+  Revision 1.4  2003-01-05 19:01:28  marco
+   * FreeBSD compiles now with baseunix mods.
+
+  Revision 1.3  2002/09/07 16:01:17  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/08/19 12:29:11  marco

@@ -53,17 +53,11 @@ end;
 { OS dependant parts  }
 
 {$I errno.inc}
-{$I osposixh.inc}
-{$ifdef BSD}
-{$I bsdsysc.inc}
-{$else}
-{$I linsysc.inc}
-{$endif}
-{$I sysposix.inc}
+{$I bunxtype.inc}
+{$I ossysc.inc}
+{$I osmain.inc}
 {$I text.inc}
 {$I heap.inc}
-
-
 
 {*****************************************************************************
                            UnTyped File Handling
@@ -108,7 +102,10 @@ End.
 
 {
   $Log$
-  Revision 1.7  2002-11-12 14:57:48  marco
+  Revision 1.8  2003-01-05 19:01:28  marco
+   * FreeBSD compiles now with baseunix mods.
+
+  Revision 1.7  2002/11/12 14:57:48  marco
    * Ugly hack to temporarily be able to use system.pp for Linux too
 
   Revision 1.6  2002/10/27 11:58:30  marco

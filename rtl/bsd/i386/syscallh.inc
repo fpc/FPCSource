@@ -22,19 +22,34 @@
 
 }
 
-function Do_SysCall(sysnr:LONGINT):longint;  external name 'FPC_DOSYS0';
-function Do_SysCall(sysnr,param1:longint):longint; external name 'FPC_DOSYS1';
-function Do_SysCall(sysnr,param1:integer):longint; external name 'FPC_DOSYS1w';
-function Do_SysCall(sysnr,param1,param2:LONGINT):longint;  external name 'FPC_DOSYS2';
-function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint; external name 'FPC_DOSYS3';
-function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint; external name 'FPC_DOSYS4';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;  external name 'FPC_DOSYS5';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):int64;  external name 'FPC_DOSYS6';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):int64;   external name 'FPC_DOSYS7';
+Type
+
+  TSysResult = longint; // all platforms, cint=32-bit.
+                        // On platforms with off_t =64-bit, people should
+                        // use int64, and typecast all calls that don't
+                        // return off_t to cint.
+
+// I don't think this is going to work on several platforms
+// 64-bit machines don't have only 64-bit params.
+
+  TSysParam  = Longint;
+
+function Do_SysCall(sysnr:TSysParam):TSysResult;  external name 'FPC_DOSYS0';
+function Do_SysCall(sysnr,param1:TSysParam):TSysResult; external name 'FPC_DOSYS1';
+function Do_SysCall(sysnr,param1:integer):TSysResult; external name 'FPC_DOSYS1w';
+function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult;  external name 'FPC_DOSYS2';
+function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; external name 'FPC_DOSYS3';
+function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; external name 'FPC_DOSYS4';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  external name 'FPC_DOSYS5';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):int64;  external name 'FPC_DOSYS6';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):int64;   external name 'FPC_DOSYS7';
 
 {
   $Log$
-  Revision 1.4  2002-10-16 18:44:00  marco
+  Revision 1.5  2003-01-05 19:01:28  marco
+   * FreeBSD compiles now with baseunix mods.
+
+  Revision 1.4  2002/10/16 18:44:00  marco
    * and again for ftruncate (sigh)
 
   Revision 1.3  2002/10/16 18:41:14  marco
@@ -45,6 +60,5 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGI
 
   Revision 1.1  2002/08/20 08:28:14  marco
    * Updates for new errno scheme.
-
 
 }

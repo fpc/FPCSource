@@ -23,35 +23,35 @@
 {   var
      Errno : cint; external name 'errno';}
 
-    function sys_time(tloc:ptime_t): time_t; cdecl; external name 'time';
-    function sys_open(const path: pchar; flags : cint; mode: mode_t):cint; cdecl; external name 'open';
-    function sys_close(fd : cint): cint; cdecl; external name 'close';
-    function sys_lseek(fd : cint; offset : off_t; whence : cint): off_t; cdecl; external name 'lseek';
-    function sys_read(fd: cint; buf: pchar; nbytes : size_t): ssize_t; cdecl; external name 'read';
-    function sys_write(fd: cint;const buf:pchar; nbytes : size_t): ssize_t; cdecl; external name 'write';
-    function sys_unlink(const path: pchar): cint; cdecl; external name 'unlink';
-    function sys_rename(const old : pchar; const newpath: pchar): cint; cdecl;external name 'rename';
-    function sys_stat(const path: pchar; var buf : stat): cint; cdecl; external name 'stat';
-    function sys_chdir(const path : pchar): cint; cdecl; external name 'chdir';
-    function sys_mkdir(const path : pchar; mode: mode_t):cint; cdecl; external name 'mkdir';
-    function sys_rmdir(const path : pchar): cint; cdecl; external name 'rmdir';
-    function sys_opendir(const dirname : pchar): pdir; cdecl; external name 'opendir';
-    function sys_readdir(var dirp : dir) : pdirent;cdecl; external name 'readdir';
-    function sys_closedir(var dirp : dir): cint; cdecl; external name 'closedir';
-    procedure sys_exit(status : cint); cdecl; external name '_exit';
-    function sys_sigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec): cint; cdecl; external name 'sigaction';
-    function sys_ftruncate(fd : cint; flength : off_t): cint; cdecl; external name 'ftruncate';
-    function sys_rename(const old : pchar; const newpath: pchar): cint; cdecl;external name 'rename';
-    function sys_fstat(fd : cint; var sb : stat): cint; cdecl; external name 'fstat';
-    function sys_fork : pid_t; cdecl; external name 'fork';
-    function sys_execve(const path : pchar; const argv : ppchar; const envp: ppchar): cint; cdecl; external name 'execve';
-    function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; cdecl; external name 'waitpid';
-    function sys_access(const pathname : pchar; amode : cint): cint; cdecl; external name 'access';
+    function Fptime(tloc:ptime_t): time_t; cdecl; external name 'time';
+    function Fpopen(const path: pchar; flags : cint; mode: mode_t):cint; cdecl; external name 'open';
+    function Fpclose(fd : cint): cint; cdecl; external name 'close';
+    function Fplseek(fd : cint; offset : off_t; whence : cint): off_t; cdecl; external name 'lseek';
+    function Fpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; cdecl; external name 'read';
+    function Fpwrite(fd: cint;const buf:pchar; nbytes : size_t): ssize_t; cdecl; external name 'write';
+    function Fpunlink(const path: pchar): cint; cdecl; external name 'unlink';
+    function Fprename(const old : pchar; const newpath: pchar): cint; cdecl;external name 'rename';
+    function Fpstat(const path: pchar; var buf : stat): cint; cdecl; external name 'stat';
+    function Fpchdir(const path : pchar): cint; cdecl; external name 'chdir';
+    function Fpmkdir(const path : pchar; mode: mode_t):cint; cdecl; external name 'mkdir';
+    function Fprmdir(const path : pchar): cint; cdecl; external name 'rmdir';
+    function Fpopendir(const dirname : pchar): pdir; cdecl; external name 'opendir';
+    function Fpreaddir(var dirp : dir) : pdirent;cdecl; external name 'readdir';
+    function Fpclosedir(var dirp : dir): cint; cdecl; external name 'closedir';
+    procedure Fpexit(status : cint); cdecl; external name '_exit';
+    function Fpsigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec): cint; cdecl; external name 'sigaction';
+    function Fpftruncate(fd : cint; flength : off_t): cint; cdecl; external name 'ftruncate';
+    function Fprename(const old : pchar; const newpath: pchar): cint; cdecl;external name 'rename';
+    function Fpfstat(fd : cint; var sb : stat): cint; cdecl; external name 'fstat';
+    function Fpfork : pid_t; cdecl; external name 'fork';
+    function Fpexecve(const path : pchar; const argv : ppchar; const envp: ppchar): cint; cdecl; external name 'execve';
+    function Fpwaitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; cdecl; external name 'waitpid';
+    function Fpaccess(const pathname : pchar; amode : cint): cint; cdecl; external name 'access';
 
-    function sys_uname(var name: utsname): cint; cdecl; external name 'uname';
+    function Fpuname(var name: utsname): cint; cdecl; external name 'uname';
 
-    function sys_Dup(oldd:cint):cint; cdecl; external name 'dup';
-    function sys_Dup2(oldd:cint;newd:cint):cint; cdecl; external name 'dup2';
+    function FpDup(oldd:cint):cint; cdecl; external name 'dup';
+    function FpDup2(oldd:cint;newd:cint):cint; cdecl; external name 'dup2';
 
 {$else}
 
@@ -64,28 +64,29 @@
 
 // Var ErrNo : Longint;
 
+{$I syscallh.inc}
 {$I syscall.inc}
 {$I sysnr.inc}
-{$I bsdmacro.inc}
-{$I bsdtypes.inc}
+{$I bunxmacr.inc}
+{$I ostypes.inc}
 
 // Should be moved to a FreeBSD specific unit in the future.
 
-function sys_time( tloc:ptime_t): time_t; [public, alias : 'FPC_SYSC_TIME'];
+function Fptime( tloc:ptime): time_t; [public, alias : 'FPC_SYSC_TIME'];
 
 VAR tv     : timeval;
     tz     : timezone;
     retval : longint;
 
 begin
-  Retval:=do_syscall(syscall_nr_gettimeofday,longint(@tv),longint(@tz));
+  Retval:=do_syscall(syscall_nr_gettimeofday,TSysParam(@tv),TSysParam(@tz));
   If retval=-1 then
-   sys_time:=-1
+   Fptime:=-1
   else
    Begin
    If Assigned(tloc) Then
      TLoc^:=tv.tv_sec;
-    sys_time:=tv.tv_sec;
+    Fptime:=tv.tv_sec;
    End;
 End;
 
@@ -93,19 +94,19 @@ End;
                --- File:File handling related calls ---
 *****************************************************************************}
 
-function sys_open(const path: pchar; flags : cint; mode: mode_t):cint; [public, alias : 'FPC_SYSC_OPEN'];
+function Fpopen(path: pchar; flags : cint; mode: mode_t):cint; [public, alias : 'FPC_SYSC_OPEN'];
 
 Begin
- sys_open:=do_syscall(syscall_nr_open,longint(path),longint(flags),longint(mode));
+ Fpopen:=do_syscall(syscall_nr_open,TSysParam(path),TSysParam(flags),TSysParam(mode));
 End;
 
-function sys_close(fd : cint): cint;
+function Fpclose(fd : cint): cint;
 
 begin
- sys_close:=do_syscall(syscall_nr_close,fd);
+ Fpclose:=do_syscall(syscall_nr_close,fd);
 end;
 
-function sys_lseek(fd : cint; offset : off_t; whence : cint): off_t; [public, alias : 'FPC_SYSC_LSEEK'];
+function Fplseek(fd : cint; offset : off_t; whence : cint): off_t; [public, alias : 'FPC_SYSC_LSEEK'];
 {
 this one is special for the return value being 64-bit..
 hi/lo offset not yet tested.
@@ -115,37 +116,37 @@ FreeBSD: same implementation as NetBSD.
 }
 
 begin
-  sys_lseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,longint(fd),0,lo(Offset),{0} hi(offset),Whence);
+  Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,TSysParam(fd),0,lo(Offset),{0} hi(offset),Whence);
 end;
 
-function sys_read(fd: cint; buf: pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_READ'];
+function Fpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_READ'];
 
 begin
-  sys_read:=do_syscall(syscall_nr_read,Fd,longint(buf),nbytes);
+  Fpread:=do_syscall(syscall_nr_read,Fd,TSysParam(buf),nbytes);
 end;
 
-function sys_write(fd: cint;const buf:pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_WRITE'];
+function Fpwrite(fd: cint;buf:pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_WRITE'];
 
 begin
- sys_write:=do_syscall(syscall_nr_write,Fd,longint(buf),nbytes);
+ Fpwrite:=do_syscall(syscall_nr_write,Fd,TSysParam(buf),nbytes);
 end;
 
-function sys_unlink(const path: pchar): cint; [public, alias : 'FPC_SYSC_UNLINK'];
+function Fpunlink(const path: pchar): cint; [public, alias : 'FPC_SYSC_UNLINK'];
 
 begin
-  sys_unlink:=do_syscall(syscall_nr_unlink,longint(path));
+  Fpunlink:=do_syscall(syscall_nr_unlink,TSysParam(path));
 end;
 
-function sys_rename(const old : pchar; const newpath: pchar): cint; [public, alias : 'FPC_SYSC_RENAME'];
+function Fprename(old : pchar; newpath: pchar): cint; [public, alias : 'FPC_SYSC_RENAME'];
 
 begin
-  sys_rename:=do_syscall(syscall_nr_rename,longint(old),longint(newpath));
+  Fprename:=do_syscall(syscall_nr_rename,TSysParam(old),TSysParam(newpath));
 end;
 
-function sys_stat(const path: pchar; var buf : stat):cint; [public, alias : 'FPC_SYSC_STAT'];
+function Fpstat(const path: pchar; var buf : stat):cint; [public, alias : 'FPC_SYSC_STAT'];
 
 begin
- sys_stat:=do_syscall(syscall_nr_stat,longint(path),longint(@buf));
+ Fpstat:=do_syscall(syscall_nr_stat,TSysParam(path),TSysParam(@buf));
 end;
 
 
@@ -153,22 +154,22 @@ end;
                --- Directory:Directory related calls ---
 *****************************************************************************}
 
-function sys_chdir(const path : pchar): cint; [public, alias : 'FPC_SYSC_CHDIR'];
+function Fpchdir(path : pchar): cint; [public, alias : 'FPC_SYSC_CHDIR'];
 
 begin
- sys_chdir:=do_syscall(syscall_nr_chdir,longint(path));
+ Fpchdir:=do_syscall(syscall_nr_chdir,TSysParam(path));
 end;
 
-function sys_mkdir(const path : pchar; mode: mode_t):cint; [public, alias : 'FPC_SYSC_MKDIR'];
+function Fpmkdir(path : pchar; mode: mode_t):cint; [public, alias : 'FPC_SYSC_MKDIR'];
 
-begin {Mode is 16-bit on F-BSD}
-  sys_mkdir:=do_syscall(syscall_nr_mkdir,longint(path),mode);
+begin {Mode is 16-bit on F-BSD 4!}
+  Fpmkdir:=do_syscall(syscall_nr_mkdir,TSysParam(path),mode);
 end;
 
-function sys_rmdir(const path : pchar): cint;  [public, alias : 'FPC_SYSC_RMDIR'];
+function Fprmdir(path : pchar): cint;  [public, alias : 'FPC_SYSC_RMDIR'];
 
 begin
- sys_rmdir:=do_syscall(syscall_nr_rmdir,longint(path));
+ Fprmdir:=do_syscall(syscall_nr_rmdir,TSysParam(path));
 end;
 
 {$ifndef NewReaddir}
@@ -176,15 +177,15 @@ end;
 const DIRBLKSIZ=1024;
 
 
-function sys_opendir(const dirname : pchar): pdir;  [public, alias : 'FPC_SYSC_OPENDIR'];
+function Fpopendir(dirname : pchar): pdir;  [public, alias : 'FPC_SYSC_OPENDIR'];
 
 var
   fd:longint;
   st:stat;
   ptr:pdir;
 begin
-  sys_opendir:=nil;
-  if sys_stat(dirname,st)<0 then
+  Fpopendir:=nil;
+  if Fpstat(dirname,st)<0 then
    exit;
 { Is it a dir ? }
   if not((st.st_mode and $f000)=$4000)then
@@ -193,7 +194,7 @@ begin
      exit
    end;
 { Open it}
-  fd:=sys_open(dirname,O_RDONLY,438);
+  fd:=Fpopen(dirname,O_RDONLY,438);
   if fd<0 then
    Begin
     Errno:=-1;
@@ -213,18 +214,18 @@ begin
   ptr^.dd_rewind:=longint(ptr^.dd_buf);
   ptr^.dd_size:=0;
 //  ptr^.dd_max:=sizeof(ptr^.dd_buf^);
-  sys_opendir:=ptr;
+  Fpopendir:=ptr;
 end;
 
-function sys_closedir(dirp : pdir): cint; [public, alias : 'FPC_SYSC_CLOSEDIR'];
+function Fpclosedir(dirp : pdir): cint; [public, alias : 'FPC_SYSC_CLOSEDIR'];
 
 begin
-  sys_closedir:=sys_close(dirp^.dd_fd);
+  Fpclosedir:=Fpclose(dirp^.dd_fd);
   Freemem(dirp^.dd_buf);
   dispose(dirp);
 end;
 
-function sys_readdir(dirp : pdir) : pdirent; [public, alias : 'FPC_SYSC_READDIR'];
+function Fpreaddir(dirp : pdir) : pdirent; [public, alias : 'FPC_SYSC_READDIR'];
 
 {Different from Linux, Readdir on BSD is based on Getdents, due to the
 missing of the readdir syscall.
@@ -237,8 +238,8 @@ function readbuffer:longint;
 var retval :longint;
 
 begin
- Retval:=do_syscall(syscall_nr_getdents,longint(dirp^.dd_fd),longint(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)});
-   dirp^.dd_rewind:=longint(dirp^.dd_buf);
+ Retval:=do_syscall(syscall_nr_getdents,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)});
+   dirp^.dd_rewind:=TSysParam(dirp^.dd_buf);
    if retval=0 then
     begin
      dirp^.dd_rewind:=0;
@@ -286,7 +287,7 @@ begin
  until (FinalEntry<>nil) or novalid;
  If novalid then
   FinalEntry:=nil;
- Sys_ReadDir:=FinalEntry;
+ FpReadDir:=FinalEntry;
 end;
 {$endif}
 
@@ -294,7 +295,7 @@ end;
         --- Process:Process & program handling - related calls ---
 *****************************************************************************}
 
-procedure sys_exit(status : cint); [public, alias : 'FPC_SYSC_EXIT'];
+procedure Fpexit(status : cint); [public, alias : 'FPC_SYSC_EXIT'];
 
 begin
   do_syscall(syscall_nr_exit,status);
@@ -307,7 +308,7 @@ end;
   If OldAct is non-nil the previous action is saved there.
 }
 
-function sys_sigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec): cint; [public, alias : 'FPC_SYSC_SIGACTION'];
+function Fpsigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec): cint; [public, alias : 'FPC_SYSC_SIGACTION'];
 
 {
   Change action of process upon receipt of a signal.
@@ -317,30 +318,30 @@ function sys_sigaction(sig: cint; var act : sigactionrec; var oact : sigactionre
 }
 
 begin
-  do_syscall(syscall_nr_sigaction,longint(sig),longint(@act),longint(@oact));
+  do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(@act),TSysParam(@oact));
 end;
 
 (*=================== MOVED from sysunix.inc ========================*)
 
-function sys_ftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SYSC_FTRUNCATE'];
+function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SYSC_FTRUNCATE'];
 { See notes lseek. This one is completely similar.
 
 }
 begin
- sys_ftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,lo(flength),hi(flength));
+ Fpftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,lo(flength),hi(flength));
 end;
 
-function sys_fstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
+function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
 
 begin
-  Sys_FStat:=do_SysCall(syscall_nr_fstat,fd,longint(@sb));
+  fpFStat:=do_SysCall(syscall_nr_fstat,fd,TSysParam(@sb));
 end;
 
 {$ifdef NewReaddir}
 {$I readdir.inc}
 {$endif}
 
-function sys_fork : pid_t;  [public, alias : 'FPC_SYSC_FORK'];
+function Fpfork : pid_t;  [public, alias : 'FPC_SYSC_FORK'];
 {
   This function issues the 'fork' System call. the program is duplicated in memory
   and Execution continues in parent and child process.
@@ -351,11 +352,11 @@ function sys_fork : pid_t;  [public, alias : 'FPC_SYSC_FORK'];
 }
 
 Begin
- sys_fork:=Do_syscall(SysCall_nr_fork);
+ Fpfork:=Do_syscall(SysCall_nr_fork);
 End;
 
 {
-function sys_execve(const path : pathstr; const argv : ppchar; const envp: ppchar): cint;
+function Fpexecve(const path : pathstr; const argv : ppchar; const envp: ppchar): cint;
 }
 {
   Replaces the current program by the program specified in path,
@@ -366,11 +367,11 @@ function sys_execve(const path : pathstr; const argv : ppchar; const envp: ppcha
 {
 Begin
   path:=path+#0;
-  do_syscall(syscall_nr_Execve,longint(@path[1]),longint(Argv),longint(envp));
+  do_syscall(syscall_nr_Execve,TSysParam(@path[1]),TSysParam(Argv),TSysParam(envp));
 End;
 }
 {
-function sys_execve(const path : pchar; const argv : ppchar; const envp: ppchar): cint;  [public, alias : 'FPC_SYSC_EXECVE'];
+function Fpexecve(const path : pchar; const argv : ppchar; const envp: ppchar): cint;  [public, alias : 'FPC_SYSC_EXECVE'];
 }
 {
   Replaces the current program by the program specified in path,
@@ -379,10 +380,10 @@ function sys_execve(const path : pchar; const argv : ppchar; const envp: ppchar)
 }
 {
 Begin
-  do_syscall(syscall_nr_Execve,longint(path),longint(Argv),longint(envp));
+  do_syscall(syscall_nr_Execve,TSysParam(path),TSysParam(Argv),TSysParam(envp));
 End;
 }
-function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; [public, alias : 'FPC_SYSC_WAITPID'];
+function Fpwaitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; [public, alias : 'FPC_SYSC_WAITPID'];
 {
   Waits until a child with PID Pid exits, or returns if it is exited already.
   Any resources used by the child are freed.
@@ -391,10 +392,10 @@ function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; [p
 }
 
 begin // actually a wait4() call with 4th arg 0.
- sys_WaitPID:=do_syscall(syscall_nr_WaitPID,PID,longint(@Stat_loc),options,0);
+ FpWaitPID:=do_syscall(syscall_nr_WaitPID,PID,TSysParam(@Stat_loc),options,0);
 end;
 
-function sys_access(const pathname : pchar; amode : cint): cint; [public, alias : 'FPC_SYSC_ACCESS'];
+function Fpaccess(const pathname : pchar; amode : cint): cint; [public, alias : 'FPC_SYSC_ACCESS'];
 {
   Test users access rights on the specified file.
   Mode is a mask xosisting of one or more of R_OK, W_OK, X_OK, F_OK.
@@ -409,10 +410,10 @@ function sys_access(const pathname : pchar; amode : cint): cint; [public, alias 
 }
 
 begin
- sys_Access:=do_syscall(syscall_nr_access,longint(pathname),amode);
+ FpAccess:=do_syscall(syscall_nr_access,TSysParam(pathname),amode);
 end;
 {
-function sys_access(const pathname : pathstr; amode : cint): cint;
+function Fpaccess(const pathname : pathstr; amode : cint): cint;
 
 {
   Test users access rights on the specified file.
@@ -429,20 +430,20 @@ function sys_access(const pathname : pathstr; amode : cint): cint;
 
 begin
  pathname:=pathname+#0;
- Access:=do_syscall(syscall_nr_access, longint(@pathname[1]),mode)=0;
+ Access:=do_syscall(syscall_nr_access, TSysParam(@pathname[1]),mode)=0;
 end;
 }
 
-Function sys_Dup(fildes:cint):cint; [public, alias : 'FPC_SYSC_DUP'];
+Function FpDup(fildes:cint):cint; [public, alias : 'FPC_SYSC_DUP'];
 
 begin
-  sys_dup:=Do_syscall(syscall_nr_dup,longint(fildes));
+  Fpdup:=Do_syscall(syscall_nr_dup,TSysParam(fildes));
 end;
 
-Function sys_Dup2(fildes,fildes2:cint):cint; [public, alias : 'FPC_SYSC_DUP2'];
+Function FpDup2(fildes,fildes2:cint):cint; [public, alias : 'FPC_SYSC_DUP2'];
 
 begin
- sys_dup2:=do_syscall(syscall_nr_dup2,longint(fildes),longint(fildes2));
+ Fpdup2:=do_syscall(syscall_nr_dup2,TSysParam(fildes),TSysParam(fildes2));
 end;
 
 CONST
@@ -451,19 +452,19 @@ CONST
   MAP_ANONYMOUS =$1000;
 
 
-Function Sys_mmap(adr,len,prot,flags,fdes,off:longint):longint;  [public, alias : 'FPC_SYSC_MMAP'];
+Function Fpmmap(adr,len,prot,flags,fdes,off:longint):longint;  [public, alias : 'FPC_SYSC_MMAP'];
 begin
-  Sys_mmap:=do_syscall(syscall_nr_mmap,Adr,Len,Prot,Flags,fdes,off,0);
+  Fpmmap:=do_syscall(syscall_nr_mmap,Adr,Len,Prot,Flags,fdes,off,0);
 end;
 
-Function Sys_munmap(adr:longint;len:size_t):longint; [public, alias :'FPC_SYSC_MUNMAP'];
+Function Fpmunmap(adr:longint;len:size_t):longint; [public, alias :'FPC_SYSC_MUNMAP'];
 begin
-  Sys_munmap:=do_syscall(syscall_nr_munmap,longint(Adr),Len);
+  Fpmunmap:=do_syscall(syscall_nr_munmap,TSysParam(Adr),Len);
 end;
 
 Function sbrk(size : longint) : Longint;
 begin
-  sbrk:=Sys_mmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+  sbrk:=Fpmmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
   if sbrk<>-1 then
    errno:=0;
   {! It must be -1, not 0 as before, see heap.inc. Should be in sysmmap?}
@@ -476,10 +477,10 @@ end;
   Data points to data needed for the Ndx function. The structure of this
   data is function-dependent.
 }
-Function Sys_IOCtl(Handle,Ndx: Longint;Data: Pointer):LongInt;  [public, alias : 'FPC_SYSC_IOCTL'];
+Function FpIOCtl(Handle,Ndx: Longint;Data: Pointer):LongInt;  [public, alias : 'FPC_SYSC_IOCTL'];
 // This was missing here, instead hardcoded in Do_IsDevice
 begin
-  Sys_IOCtl:=do_SysCall(syscall_nr_ioctl,handle,Ndx,longint(data));
+  FpIOCtl:=do_SysCall(syscall_nr_ioctl,handle,Ndx,TSysParam(data));
 end;
 
 CONST
@@ -496,30 +497,30 @@ Function Do_IsDevice(Handle:Longint):boolean;
 var
   Data : array[0..255] of byte; {Large enough for termios info}
 begin
-  Do_IsDevice:=(sys_ioctl(handle,IOCTL_TCGETS,@data)<>-1);
+  Do_IsDevice:=(Fpioctl(handle,IOCTL_TCGETS,@data)<>-1);
 end;
 
-Function sys_GetPid:LongInt;   [public, alias : 'FPC_SYSC_GETPID'];
+Function FpGetPid:LongInt;   [public, alias : 'FPC_SYSC_GETPID'];
 {
   Get Process ID.
 }
 
 begin
- sys_GetPID:=do_syscall(syscall_nr_getpid);
+ FpGetPID:=do_syscall(syscall_nr_getpid);
 end;
 
-Function Sys_ReadLink(name,linkname:pchar;maxlen:longint):longint;  [public, alias : 'FPC_SYSC_READLINK'];
+Function FpReadLink(name,linkname:pchar;maxlen:longint):longint;  [public, alias : 'FPC_SYSC_READLINK'];
 
 begin
-  sys_readlink:=do_syscall(syscall_nr_readlink, longint(name),longint(linkname),maxlen);
+  Fpreadlink:=do_syscall(syscall_nr_readlink, TSysParam(name),TSysParam(linkname),maxlen);
 end;
 
-Function sys_NanoSleep(const req : timespec;var rem : timespec) : longint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
+Function FpNanoSleep(const req : timespec;var rem : timespec) : longint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
 begin
-  sys_NanoSleep:=Do_SysCall(syscall_nr_nanosleep,longint(@req),longint(@rem));
+  FpNanoSleep:=Do_SysCall(syscall_nr_nanosleep,TSysParam(@req),TSysParam(@rem));
 end;
 
-function sys_getcwd(pt:pchar; _size:size_t):pchar;[public, alias :'FPC_SYSC_GETCWD'];
+function Fpgetcwd(pt:pchar; _size:size_t):pchar;[public, alias :'FPC_SYSC_GETCWD'];
 
 const intpathmax = 1024-4;	// didn't use POSIX data in libc
 				// implementation.
@@ -552,7 +553,7 @@ begin
       ept:=pt+_size;
     end; 
 
-    ret := do_syscall(syscall_nr___getcwd,longint(pt),longint( ept - pt));
+    ret := do_syscall(syscall_nr___getcwd,TSysParam(pt),TSysParam( ept - pt));
     If (ret = 0) Then 
 	If (pt[0] <> '/') Then
 	   Begin
@@ -567,18 +568,18 @@ begin
 		 dec(ept);		
                End;
            End;
- sys_getcwd:=pt;
+ Fpgetcwd:=pt;
 end;
 
 {$endif}
 
 {
  $Log$
- Revision 1.10  2003-01-05 19:01:28  marco
+ Revision 1.1  2003-01-05 19:01:28  marco
   * FreeBSD compiles now with baseunix mods.
 
  Revision 1.9  2002/11/13 18:15:08  marco
-  * sigset functions more flexible, small changes to sys_time
+  * sigset functions more flexible, small changes to sys_ktime
 
  Revision 1.8  2002/10/27 17:21:29  marco
   * Only "difficult" functions + execvp + termios + rewinddir left to do
