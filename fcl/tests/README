@@ -4,6 +4,13 @@ the FCL.
 If you add a test give in this file a short description of what 
 class/function it tests, and your initials..
 
+Names
+-----
+MVC : Michael Van Canneyt
+SG  : Sebastian Guenther
+MH  : Michael Hess
+
+
 File         Tests what ?
 ----         ------------
 
@@ -19,3 +26,4 @@ testrtf.pp   TRTFParser object from rtfpars (MVC)
 cfgtest.pp   Example for using XML read/write as cfg file (SG)
 xmldump.pp   xml dump program (SG)
 htdump.pp    htdump dumps XL IDL definition as ObjectPascal classes (MVC)
+testcgi.pp   test program or ezcgi class (MH)

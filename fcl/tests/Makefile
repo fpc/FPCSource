@@ -36,7 +36,7 @@ NEEDOPT=-S2
 
 UNITOBJECTS=
 EXEOBJECTS=stringl dparser fstream mstream list threads testrtf\
-           cfgtest testz testz2 xmldump htdump
+           cfgtest testz testz2 xmldump htdump testcgi
 
 
 #####################################################################
@@ -113,7 +113,10 @@ endif
 
 #
 # $Log$
-# Revision 1.7  1999-07-11 22:43:23  michael
+# Revision 1.8  1999-07-15 12:05:55  michael
+# + Added testcgi program
+#
+# Revision 1.7  1999/07/11 22:43:23  michael
 # + Added htdump
 #
 # Revision 1.6  1999/07/09 21:08:16  michael
