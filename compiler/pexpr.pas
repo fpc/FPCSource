@@ -1804,10 +1804,18 @@ implementation
                    end
                   else
                    begin
-                     { we didn't find a member in the parents so
-                       we do nothing. This is compatible with delphi (PFV) }
+                     if auto_inherited then
+                      begin
+                        { we didn't find a member in the parents so
+                          we do nothing. This is compatible with delphi (PFV) }
+                        p1:=cnothingnode.create;
+                      end
+                     else
+                      begin
+                        Message1(sym_e_id_no_member,hs);
+                        p1:=cerrornode.create;
+                      end;
                      again:=false;
-                     p1:=cnothingnode.create;
                    end;
                   { turn auto inheriting off }
                   auto_inherited:=false;
@@ -2312,7 +2320,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2003-01-12 17:51:42  peter
+  Revision 1.99  2003-01-14 23:48:09  peter
+    * fixed tw2273
+
+  Revision 1.98  2003/01/12 17:51:42  peter
     * tp procvar handling fix for tb0448
 
   Revision 1.97  2003/01/05 22:44:14  peter
