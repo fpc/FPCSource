@@ -131,7 +131,7 @@ endif
 
 # Default FPCDIR
 ifeq ($(FPCDIR),wrong)
-override FPCDIR=../..
+override FPCDIR=../../..
 ifeq ($(wildcard $(FPCDIR)/rtl),)
 ifeq ($(wildcard $(FPCDIR)/units),)
 override FPCDIR=wrong
@@ -184,27 +184,25 @@ endif
 
 # Targets
 
-override EXEOBJECTS+=fp
-override RSTOBJECTS+=fpstrings
+override EXEOBJECTS+=testds createds mtest tested
 
 # Clean
 
 
 # Install
 
-DATAINSTALLDIR=$(BASEINSTALLDIR)/ide
 ZIPTARGET=install
 
 # Defaults
 
-override NEEDOPT=-Sg
+override NEEDOPT=-S2
 
 # Directories
 
 
 # Packages
 
-override PACKAGES+=rtl api fv gdbint
+override PACKAGES+=rtl fcl mysql
 
 # Libraries
 
@@ -213,50 +211,6 @@ override NEEDGCCLIB=1
 # Info
 
 INFOTARGET=fpc_infocfg fpc_infoobjects fpc_infoinstall 
-
-#####################################################################
-# Post Settings
-#####################################################################
-
-# when making a full version include the compiler
-ifeq ($(FULL),1)
-override UNITDIR+=../../compiler
-else
-override UNITDIR+=../fake/compiler
-endif
-
-# when including debugger include the gdbinterface
-ifndef GDBINT
-GDBINT=gdbint
-endif
-
-ifeq ($(GDB),1)
-GDBLIBDIR+=$(PACKAGESDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
-GDBOBJDIR+=$(PACKAGESDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
-ifeq ($(OS_TARGET),go32v2)
-ifneq ($(DJDIR),)
-GDBLIBDIR+=$(DJDIR)/lib
-endif
-endif
-ifeq ($(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))),)
-override GDB=0
-endif
-endif
-
-ifeq ($(GDB),1)
-# The gdbint is already included due the gdbint package dependency
-override LIBDIR+=$(GDBLIBDIR)
-override OBJDIR+=$(GDBOBJDIR)
-else
-override UNITDIR+=../fake/gdb
-endif
-
-ifeq ($(FULL),1)
-override OPT+=-dBrowserCol -dGDB
-ifeq ($(CPU_TARGET),i386)
-override OPT+=-dSUPPORT_MMX
-endif
-endif
 
 #####################################################################
 # Shell tools
@@ -544,9 +498,8 @@ endif
 # PACKAGESDIR packages
 
 PACKAGERTL=1
-PACKAGEAPI=1
-PACKAGEFV=1
-PACKAGEGDBINT=1
+PACKAGEFCL=1
+PACKAGEMYSQL=1
 
 ifdef PACKAGERTL
 ifneq ($(wildcard $(FPCDIR)/rtl),)
@@ -577,91 +530,62 @@ ifdef UNITDIR_RTL
 override NEEDUNITDIR+=$(UNITDIR_RTL)
 endif
 endif
-ifdef PACKAGEAPI
-ifneq ($(wildcard $(FPCDIR)/api),)
-ifneq ($(wildcard $(FPCDIR)/api/$(OS_TARGET)),)
-PACKAGEDIR_API=$(FPCDIR)/api/$(OS_TARGET)
+ifdef PACKAGEFCL
+ifneq ($(wildcard $(FPCDIR)/fcl),)
+ifneq ($(wildcard $(FPCDIR)/fcl/$(OS_TARGET)),)
+PACKAGEDIR_FCL=$(FPCDIR)/fcl/$(OS_TARGET)
 else
-PACKAGEDIR_API=$(FPCDIR)/api
+PACKAGEDIR_FCL=$(FPCDIR)/fcl
 endif
-ifeq ($(wildcard $(PACKAGEDIR_API)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_api
-package_api:
-	$(MAKE) -C $(PACKAGEDIR_API) all
+ifeq ($(wildcard $(PACKAGEDIR_FCL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_fcl
+package_fcl:
+	$(MAKE) -C $(PACKAGEDIR_FCL) all
 endif
-UNITDIR_API=$(PACKAGEDIR_API)
+UNITDIR_FCL=$(PACKAGEDIR_FCL)
 else
-PACKAGEDIR_API=
-ifneq ($(wildcard $(UNITSDIR)/api),)
-ifneq ($(wildcard $(UNITSDIR)/api/$(OS_TARGET)),)
-UNITDIR_API=$(UNITSDIR)/api/$(OS_TARGET)
+PACKAGEDIR_FCL=
+ifneq ($(wildcard $(UNITSDIR)/fcl),)
+ifneq ($(wildcard $(UNITSDIR)/fcl/$(OS_TARGET)),)
+UNITDIR_FCL=$(UNITSDIR)/fcl/$(OS_TARGET)
 else
-UNITDIR_API=$(UNITSDIR)/api
-endif
-else
-UNITDIR_API=
-endif
-endif
-ifdef UNITDIR_API
-override NEEDUNITDIR+=$(UNITDIR_API)
-endif
-endif
-ifdef PACKAGEFV
-ifneq ($(wildcard $(FPCDIR)/fv),)
-ifneq ($(wildcard $(FPCDIR)/fv/$(OS_TARGET)),)
-PACKAGEDIR_FV=$(FPCDIR)/fv/$(OS_TARGET)
-else
-PACKAGEDIR_FV=$(FPCDIR)/fv
-endif
-ifeq ($(wildcard $(PACKAGEDIR_FV)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_fv
-package_fv:
-	$(MAKE) -C $(PACKAGEDIR_FV) all
-endif
-UNITDIR_FV=$(PACKAGEDIR_FV)
-else
-PACKAGEDIR_FV=
-ifneq ($(wildcard $(UNITSDIR)/fv),)
-ifneq ($(wildcard $(UNITSDIR)/fv/$(OS_TARGET)),)
-UNITDIR_FV=$(UNITSDIR)/fv/$(OS_TARGET)
-else
-UNITDIR_FV=$(UNITSDIR)/fv
+UNITDIR_FCL=$(UNITSDIR)/fcl
 endif
 else
-UNITDIR_FV=
+UNITDIR_FCL=
 endif
 endif
-ifdef UNITDIR_FV
-override NEEDUNITDIR+=$(UNITDIR_FV)
+ifdef UNITDIR_FCL
+override NEEDUNITDIR+=$(UNITDIR_FCL)
 endif
 endif
-ifdef PACKAGEGDBINT
-ifneq ($(wildcard $(PACKAGESDIR)/gdbint),)
-ifneq ($(wildcard $(PACKAGESDIR)/gdbint/$(OS_TARGET)),)
-PACKAGEDIR_GDBINT=$(PACKAGESDIR)/gdbint/$(OS_TARGET)
+ifdef PACKAGEMYSQL
+ifneq ($(wildcard $(PACKAGESDIR)/mysql),)
+ifneq ($(wildcard $(PACKAGESDIR)/mysql/$(OS_TARGET)),)
+PACKAGEDIR_MYSQL=$(PACKAGESDIR)/mysql/$(OS_TARGET)
 else
-PACKAGEDIR_GDBINT=$(PACKAGESDIR)/gdbint
+PACKAGEDIR_MYSQL=$(PACKAGESDIR)/mysql
 endif
-ifeq ($(wildcard $(PACKAGEDIR_GDBINT)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_gdbint
-package_gdbint:
-	$(MAKE) -C $(PACKAGEDIR_GDBINT) all
+ifeq ($(wildcard $(PACKAGEDIR_MYSQL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_mysql
+package_mysql:
+	$(MAKE) -C $(PACKAGEDIR_MYSQL) all
 endif
-UNITDIR_GDBINT=$(PACKAGEDIR_GDBINT)
+UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)
 else
-PACKAGEDIR_GDBINT=
-ifneq ($(wildcard $(UNITSDIR)/gdbint),)
-ifneq ($(wildcard $(UNITSDIR)/gdbint/$(OS_TARGET)),)
-UNITDIR_GDBINT=$(UNITSDIR)/gdbint/$(OS_TARGET)
+PACKAGEDIR_MYSQL=
+ifneq ($(wildcard $(UNITSDIR)/mysql),)
+ifneq ($(wildcard $(UNITSDIR)/mysql/$(OS_TARGET)),)
+UNITDIR_MYSQL=$(UNITSDIR)/mysql/$(OS_TARGET)
 else
-UNITDIR_GDBINT=$(UNITSDIR)/gdbint
+UNITDIR_MYSQL=$(UNITSDIR)/mysql
 endif
 else
-UNITDIR_GDBINT=
+UNITDIR_MYSQL=
 endif
 endif
-ifdef UNITDIR_GDBINT
-override NEEDUNITDIR+=$(UNITDIR_GDBINT)
+ifdef UNITDIR_MYSQL
+override NEEDUNITDIR+=$(UNITDIR_MYSQL)
 endif
 endif
 
@@ -950,6 +874,8 @@ shared: fpc_shared
 
 showinstall: fpc_showinstall
 
+install: fpc_install
+
 sourceinstall: fpc_sourceinstall
 
 exampleinstall: fpc_exampleinstall
@@ -960,11 +886,15 @@ zipsourceinstall: fpc_zipsourceinstall
 
 zipexampleinstall: fpc_zipexampleinstall
 
+clean: fpc_clean
+
+distclean: fpc_distclean
+
 cleanall: fpc_cleanall
 
 info: fpc_info
 
-.PHONY:  all debug smart shared showinstall sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall cleanall info
+.PHONY:  all debug smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall clean distclean cleanall info
 
 #####################################################################
 # Exes
@@ -982,16 +912,6 @@ override CLEANEXEFILES+=$(EXEFILES) $(EXEOFILES)
 endif
 
 fpc_exes: $(EXEFILES)
-
-#####################################################################
-# Resource strings
-#####################################################################
-
-ifdef RSTOBJECTS
-override RSTFILES=$(addsuffix $(RSTEXT),$(RSTOBJECTS))
-
-override CLEANRSTFILES+=$(RSTFILES)
-endif
 
 #####################################################################
 # General compile rules
@@ -1364,41 +1284,3 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 
-#####################################################################
-# Users rules
-#####################################################################
-
-.PHONY: gdb full fullgdb clean_compiler clean
-
-clean: fpc_cleanall
-
-distclean: clean
-
-fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
-
-gdb:
-	$(MAKE) all GDB=1
-
-full:
-	$(MAKE) all FULL=1
-
-fullgdb:
-	$(MAKE) all FULL=1 GDB=1
-
-# This is necessary because we don't have all units separate in the
-# units targets
-clean: fpc_cleanall
-
-#
-# Installation
-#
-
-install: fpc_install
-	$(MKDIR) $(DATAINSTALLDIR)
-	$(INSTALL) $(wildcard *.pt) $(wildcard *.tdf) readme.txt $(DATAINSTALLDIR)
-
-#
-# Misc
-#
-clean_compiler:
-	$(MAKE) -C ../../compiler clean

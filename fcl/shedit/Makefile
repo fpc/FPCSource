@@ -184,79 +184,37 @@ endif
 
 # Targets
 
-override EXEOBJECTS+=fp
-override RSTOBJECTS+=fpstrings
+override UNITOBJECTS+=doc_text shedit sh_xml sh_pas
 
 # Clean
 
 
 # Install
 
-DATAINSTALLDIR=$(BASEINSTALLDIR)/ide
+UNITSUBDIR=fcl
+PACKAGENAME=fcl
 ZIPTARGET=install
 
 # Defaults
 
-override NEEDOPT=-Sg
+override NEEDOPT=-S2
 
 # Directories
 
+ifndef TARGETDIR
+TARGETDIR=../$(OS_TARGET)
+endif
 
 # Packages
 
-override PACKAGES+=rtl api fv gdbint
+override PACKAGES+=rtl fcl
 
 # Libraries
 
-override NEEDGCCLIB=1
 
 # Info
 
 INFOTARGET=fpc_infocfg fpc_infoobjects fpc_infoinstall 
-
-#####################################################################
-# Post Settings
-#####################################################################
-
-# when making a full version include the compiler
-ifeq ($(FULL),1)
-override UNITDIR+=../../compiler
-else
-override UNITDIR+=../fake/compiler
-endif
-
-# when including debugger include the gdbinterface
-ifndef GDBINT
-GDBINT=gdbint
-endif
-
-ifeq ($(GDB),1)
-GDBLIBDIR+=$(PACKAGESDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
-GDBOBJDIR+=$(PACKAGESDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
-ifeq ($(OS_TARGET),go32v2)
-ifneq ($(DJDIR),)
-GDBLIBDIR+=$(DJDIR)/lib
-endif
-endif
-ifeq ($(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))),)
-override GDB=0
-endif
-endif
-
-ifeq ($(GDB),1)
-# The gdbint is already included due the gdbint package dependency
-override LIBDIR+=$(GDBLIBDIR)
-override OBJDIR+=$(GDBOBJDIR)
-else
-override UNITDIR+=../fake/gdb
-endif
-
-ifeq ($(FULL),1)
-override OPT+=-dBrowserCol -dGDB
-ifeq ($(CPU_TARGET),i386)
-override OPT+=-dSUPPORT_MMX
-endif
-endif
 
 #####################################################################
 # Shell tools
@@ -544,9 +502,7 @@ endif
 # PACKAGESDIR packages
 
 PACKAGERTL=1
-PACKAGEAPI=1
-PACKAGEFV=1
-PACKAGEGDBINT=1
+PACKAGEFCL=1
 
 ifdef PACKAGERTL
 ifneq ($(wildcard $(FPCDIR)/rtl),)
@@ -577,91 +533,33 @@ ifdef UNITDIR_RTL
 override NEEDUNITDIR+=$(UNITDIR_RTL)
 endif
 endif
-ifdef PACKAGEAPI
-ifneq ($(wildcard $(FPCDIR)/api),)
-ifneq ($(wildcard $(FPCDIR)/api/$(OS_TARGET)),)
-PACKAGEDIR_API=$(FPCDIR)/api/$(OS_TARGET)
+ifdef PACKAGEFCL
+ifneq ($(wildcard $(FPCDIR)/fcl),)
+ifneq ($(wildcard $(FPCDIR)/fcl/$(OS_TARGET)),)
+PACKAGEDIR_FCL=$(FPCDIR)/fcl/$(OS_TARGET)
 else
-PACKAGEDIR_API=$(FPCDIR)/api
+PACKAGEDIR_FCL=$(FPCDIR)/fcl
 endif
-ifeq ($(wildcard $(PACKAGEDIR_API)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_api
-package_api:
-	$(MAKE) -C $(PACKAGEDIR_API) all
+ifeq ($(wildcard $(PACKAGEDIR_FCL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_fcl
+package_fcl:
+	$(MAKE) -C $(PACKAGEDIR_FCL) all
 endif
-UNITDIR_API=$(PACKAGEDIR_API)
+UNITDIR_FCL=$(PACKAGEDIR_FCL)
 else
-PACKAGEDIR_API=
-ifneq ($(wildcard $(UNITSDIR)/api),)
-ifneq ($(wildcard $(UNITSDIR)/api/$(OS_TARGET)),)
-UNITDIR_API=$(UNITSDIR)/api/$(OS_TARGET)
+PACKAGEDIR_FCL=
+ifneq ($(wildcard $(UNITSDIR)/fcl),)
+ifneq ($(wildcard $(UNITSDIR)/fcl/$(OS_TARGET)),)
+UNITDIR_FCL=$(UNITSDIR)/fcl/$(OS_TARGET)
 else
-UNITDIR_API=$(UNITSDIR)/api
-endif
-else
-UNITDIR_API=
-endif
-endif
-ifdef UNITDIR_API
-override NEEDUNITDIR+=$(UNITDIR_API)
-endif
-endif
-ifdef PACKAGEFV
-ifneq ($(wildcard $(FPCDIR)/fv),)
-ifneq ($(wildcard $(FPCDIR)/fv/$(OS_TARGET)),)
-PACKAGEDIR_FV=$(FPCDIR)/fv/$(OS_TARGET)
-else
-PACKAGEDIR_FV=$(FPCDIR)/fv
-endif
-ifeq ($(wildcard $(PACKAGEDIR_FV)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_fv
-package_fv:
-	$(MAKE) -C $(PACKAGEDIR_FV) all
-endif
-UNITDIR_FV=$(PACKAGEDIR_FV)
-else
-PACKAGEDIR_FV=
-ifneq ($(wildcard $(UNITSDIR)/fv),)
-ifneq ($(wildcard $(UNITSDIR)/fv/$(OS_TARGET)),)
-UNITDIR_FV=$(UNITSDIR)/fv/$(OS_TARGET)
-else
-UNITDIR_FV=$(UNITSDIR)/fv
+UNITDIR_FCL=$(UNITSDIR)/fcl
 endif
 else
-UNITDIR_FV=
+UNITDIR_FCL=
 endif
 endif
-ifdef UNITDIR_FV
-override NEEDUNITDIR+=$(UNITDIR_FV)
-endif
-endif
-ifdef PACKAGEGDBINT
-ifneq ($(wildcard $(PACKAGESDIR)/gdbint),)
-ifneq ($(wildcard $(PACKAGESDIR)/gdbint/$(OS_TARGET)),)
-PACKAGEDIR_GDBINT=$(PACKAGESDIR)/gdbint/$(OS_TARGET)
-else
-PACKAGEDIR_GDBINT=$(PACKAGESDIR)/gdbint
-endif
-ifeq ($(wildcard $(PACKAGEDIR_GDBINT)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_gdbint
-package_gdbint:
-	$(MAKE) -C $(PACKAGEDIR_GDBINT) all
-endif
-UNITDIR_GDBINT=$(PACKAGEDIR_GDBINT)
-else
-PACKAGEDIR_GDBINT=
-ifneq ($(wildcard $(UNITSDIR)/gdbint),)
-ifneq ($(wildcard $(UNITSDIR)/gdbint/$(OS_TARGET)),)
-UNITDIR_GDBINT=$(UNITSDIR)/gdbint/$(OS_TARGET)
-else
-UNITDIR_GDBINT=$(UNITSDIR)/gdbint
-endif
-else
-UNITDIR_GDBINT=
-endif
-endif
-ifdef UNITDIR_GDBINT
-override NEEDUNITDIR+=$(UNITDIR_GDBINT)
+ifdef UNITDIR_FCL
+override NEEDUNITDIR+=$(UNITDIR_FCL)
 endif
 endif
 
@@ -685,14 +583,6 @@ ifndef DESTZIPDIR
 DESTZIPDIR:=$(BASEDIR)
 endif
 export DESTZIPDIR
-
-# On linux, try to find where libgcc.a is.
-ifdef inlinux
-ifndef GCCLIBDIR
-GCCLIBDIR:=$(shell dirname `(gcc -v 2>&1)| head -n 1| awk '{ print $$4 } '`)
-endif
-endif
-export GCCLIBDIR
 
 #####################################################################
 # Install Directories
@@ -868,11 +758,6 @@ ifdef UNITSDIR
 override FPCOPT+=-Fu$(UNITSDIR)
 endif
 
-# Add GCC lib path if asked
-ifdef GCCLIBDIR
-override FPCOPT+=-Fl$(GCCLIBDIR)
-endif
-
 # Target dirs and the prefix to use for clean/install
 ifdef TARGETDIR
 override FPCOPT+=-FE$(TARGETDIR)
@@ -950,6 +835,8 @@ shared: fpc_shared
 
 showinstall: fpc_showinstall
 
+install: fpc_install
+
 sourceinstall: fpc_sourceinstall
 
 exampleinstall: fpc_exampleinstall
@@ -960,38 +847,29 @@ zipsourceinstall: fpc_zipsourceinstall
 
 zipexampleinstall: fpc_zipexampleinstall
 
+clean: fpc_clean
+
+distclean: fpc_distclean
+
 cleanall: fpc_cleanall
 
 info: fpc_info
 
-.PHONY:  all debug smart shared showinstall sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall cleanall info
+.PHONY:  all debug smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall clean distclean cleanall info
 
 #####################################################################
-# Exes
+# Units
 #####################################################################
 
-.PHONY: fpc_exes
+.PHONY: fpc_units
 
-ifdef EXEOBJECTS
-override EXEFILES=$(addsuffix $(EXEEXT),$(EXEOBJECTS))
-override EXEOFILES=$(addsuffix $(OEXT),$(EXEOBJECTS))
+override ALLTARGET+=fpc_units
 
-override ALLTARGET+=fpc_exes
-override INSTALLEXEFILES+=$(EXEFILES)
-override CLEANEXEFILES+=$(EXEFILES) $(EXEOFILES)
-endif
+override UNITPPUFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
+override INSTALLPPUFILES+=$(UNITPPUFILES)
+override CLEANPPUFILES+=$(UNITPPUFILES)
 
-fpc_exes: $(EXEFILES)
-
-#####################################################################
-# Resource strings
-#####################################################################
-
-ifdef RSTOBJECTS
-override RSTFILES=$(addsuffix $(RSTEXT),$(RSTOBJECTS))
-
-override CLEANRSTFILES+=$(RSTFILES)
-endif
+fpc_units: $(UNITPPUFILES)
 
 #####################################################################
 # General compile rules
@@ -1368,37 +1246,4 @@ endif
 # Users rules
 #####################################################################
 
-.PHONY: gdb full fullgdb clean_compiler clean
-
-clean: fpc_cleanall
-
-distclean: clean
-
-fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
-
-gdb:
-	$(MAKE) all GDB=1
-
-full:
-	$(MAKE) all FULL=1
-
-fullgdb:
-	$(MAKE) all FULL=1 GDB=1
-
-# This is necessary because we don't have all units separate in the
-# units targets
-clean: fpc_cleanall
-
-#
-# Installation
-#
-
-install: fpc_install
-	$(MKDIR) $(DATAINSTALLDIR)
-	$(INSTALL) $(wildcard *.pt) $(wildcard *.tdf) readme.txt $(DATAINSTALLDIR)
-
-#
-# Misc
-#
-clean_compiler:
-	$(MAKE) -C ../../compiler clean
+vpath %$(PPUEXT) $(UNITTARGETDIR)
