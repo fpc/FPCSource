@@ -1033,7 +1033,12 @@ begin
                     'D':
                       ForceDeffileForExport:=not UnsetBool(More, j);
                     'F':
-                      apptype:=app_fs;
+                      begin
+                        if UnsetBool(More, j) then
+                          apptype:=app_cui
+                        else
+                          apptype:=app_fs;
+                      end;
                     'G':
                       begin
                         if UnsetBool(More, j) then
@@ -1048,7 +1053,7 @@ begin
                       end;
                     'R':
                       begin
-                        { support -WR+ / -WR- as synonims to -WR / -WN }
+                        { support -WR+ / -WR- as synonyms to -WR / -WN }
                         RelocSection:=not UnsetBool(More,j);
                         RelocSectionSetExplicitly:=true;
                       end;
@@ -1893,7 +1898,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.92  2003-03-08 08:59:07  daniel
+  Revision 1.93  2003-03-23 23:20:38  hajny
+    + emx target added
+
+  Revision 1.92  2003/03/08 08:59:07  daniel
     + $define newra will enable new register allocator
     + getregisterint will return imaginary registers with $newra
     + -sr switch added, will skip register allocation so you can see

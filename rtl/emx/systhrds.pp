@@ -379,7 +379,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-11-17 22:32:05  hajny
+  Revision 1.3  2003-03-23 23:11:17  hajny
+    + emx target added
+
+  Revision 1.2  2002/11/17 22:32:05  hajny
     * type corrections (longing x cardinal)
 
   Revision 1.1  2002/11/17 16:45:35  hajny
@@ -392,4 +395,3 @@ end.
     * threads unit added for thread support
 
 }
-  

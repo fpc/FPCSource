@@ -496,7 +496,8 @@ implementation
       begin
         { these operating systems have dos type drives }
         if source_info.system in [system_m68k_atari,system_i386_go32v2,
-                                  system_i386_win32,system_i386_os2] then
+                                  system_i386_win32,system_i386_os2,
+                                  system_i386_emx,system_i386_wdosx] then
         Begin
           if (Length(f)=3) and (F[2]=':') and (F[3] in ['/','\']) then
             begin
@@ -1526,7 +1527,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2003-01-30 21:45:53  peter
+  Revision 1.84  2003-03-23 23:21:42  hajny
+    + emx target added
+
+  Revision 1.83  2003/01/30 21:45:53  peter
     * amiga path fix (merged)
 
   Revision 1.82  2003/01/12 15:42:23  peter

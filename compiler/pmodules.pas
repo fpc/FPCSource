@@ -362,7 +362,7 @@ implementation
               ;
 {$endif x86_64}
 {$ifdef i386}
-            system_i386_OS2:
+            system_i386_OS2,system_i386_EMX:
               ;
 {$endif i386}
 {$ifdef powerpc}
@@ -1444,7 +1444,10 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.98  2003-03-17 22:20:08  peter
+  Revision 1.99  2003-03-23 23:21:42  hajny
+    + emx target added
+
+  Revision 1.98  2003/03/17 22:20:08  peter
   *** empty log message ***
 
   Revision 1.97  2003/03/17 13:36:39  peter

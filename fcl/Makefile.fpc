@@ -39,6 +39,7 @@ includedir_netbsd=unix
 includedir_openbsd=unix
 includedir_sunos=posix
 includedir_qnx=posix
+includedir_emx=os2
 sourcedir=$(OS_TARGET) inc
 
 [libs]

@@ -181,8 +181,8 @@ implementation
       var
          hs : string;
       begin
-        if (target_info.system<>system_i386_win32)
-                                 and (target_info.system<>system_i386_os2) then
+        if not (target_info.system in [system_i386_win32,system_i386_os2,
+                                       system_i386_emx]) then
           Message(scan_w_app_type_not_support);
         if not current_module.in_global then
           Message(scan_w_switch_is_global)
@@ -194,7 +194,8 @@ implementation
                apptype:=app_gui
              else if hs='CONSOLE' then
                apptype:=app_cui
-             else if (hs='FS') and (target_info.system=system_i386_os2) then
+             else if (hs='FS') and (target_info.system in [system_i386_os2,
+                                                         system_i386_emx]) then
                apptype:=app_fs
              else
                Message1(scan_w_unsupported_app_type,hs);
@@ -236,7 +237,8 @@ implementation
 
     procedure dir_description;
       begin
-        if not (target_info.system in [system_i386_os2,system_i386_win32,system_i386_netware,system_i386_wdosx]) then
+        if not (target_info.system in [system_i386_os2,system_i386_emx,
+                 system_i386_win32,system_i386_netware,system_i386_wdosx]) then
           Message(scan_w_description_not_support);
         { change description global var in all cases }
         { it not used but in win32, os2 and netware }
@@ -763,7 +765,8 @@ implementation
         major, minor, revision : longint;
         error : integer;
       begin
-        if not (target_info.system in [system_i386_os2,system_i386_win32,system_i386_netware,system_i386_wdosx]) then
+        if not (target_info.system in [system_i386_os2,system_i386_emx,
+                 system_i386_win32,system_i386_netware,system_i386_wdosx]) then
           begin
             Message(scan_n_version_not_support);
             exit;
@@ -980,7 +983,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2003-01-03 21:25:01  peter
+  Revision 1.25  2003-03-23 23:20:38  hajny
+    + emx target added
+
+  Revision 1.24  2003/01/03 21:25:01  peter
     * OBJECTCHECKS added, equivalent of -CR
     * WRITEABLECONST added, equivalent of $J
 

@@ -844,8 +844,8 @@ begin
     Message(parser_e_methods_dont_be_export);
   if lexlevel<>normal_function_level then
     Message(parser_e_dont_nest_export);
-  { only os/2 needs this }
-  if target_info.system=system_i386_os2 then
+  { only os/2 and emx need this }
+  if target_info.system in [system_i386_os2,system_i386_emx] then
    begin
      aktprocdef.aliasnames.insert(aktprocsym.realname);
      procinfo.exported:=true;
@@ -2123,7 +2123,10 @@ const
 end.
 {
   $Log$
-  Revision 1.108  2003-03-19 17:34:04  peter
+  Revision 1.109  2003-03-23 23:21:42  hajny
+    + emx target added
+
+  Revision 1.108  2003/03/19 17:34:04  peter
     * only allow class [procedure|function]
 
   Revision 1.107  2003/03/17 18:56:02  peter

@@ -113,7 +113,7 @@ begin
    exit;
 {$ifdef i386}
   case target_info.system of
-    system_i386_Os2 :
+    system_i386_Os2, system_i386_emx:
       begin
         write(t,'NAME '+inputfile);
         if usewindowapi then
@@ -160,7 +160,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2002-07-26 21:15:38  florian
+  Revision 1.12  2003-03-23 23:20:38  hajny
+    + emx target added
+
+  Revision 1.11  2002/07/26 21:15:38  florian
     * rewrote the system handling
 
   Revision 1.10  2002/05/18 13:34:08  peter

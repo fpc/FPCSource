@@ -164,7 +164,11 @@ uses
   ,i_nwm
 {$endif nwm}
 {$ifdef os2}
+ {$ifdef emx}
+  ,i_emx
+ {$else emx}
   ,i_os2
+ {$endif emx}
 {$endif os2}
 {$ifdef palmos}
   ,i_palmos
@@ -386,7 +390,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  2003-02-02 19:25:54  carl
+  Revision 1.37  2003-03-23 23:20:38  hajny
+    + emx target added
+
+  Revision 1.36  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

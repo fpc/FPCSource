@@ -22,6 +22,7 @@ dirs_openbsd=unzip uncgi  \
 dirs_win32=unzip uncgi opengl gtk \
            zlib mmsystem tcl cdrom fpgtk
 dirs_os2=unzip uncgi zlib os2units rexx x11 gtk fpgtk
+dirs_emx=unzip uncgi zlib os2units rexx x11 gtk fpgtk
 dirs_go32v2=unzip uncgi
 dirs_netware=cmem zlib
 

@@ -192,11 +192,12 @@ function DosScanEnv (Name: PChar; var Value: PChar): longint; cdecl;
                                                  external 'DOSCALLS' index 227;
 
 function DosFindFirst (FileMask: PChar; var Handle: longint; Attrib: longint;
-                       AFileStatus: PFileStatus; FileStatusLen: longint;
-                       var Count: longint; InfoLevel: longint): longint; cdecl;
+                       AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                    var Count: cardinal; InfoLevel: cardinal): longint; cdecl;
                                                  external 'DOSCALLS' index 264;
+
 function DosFindNext (Handle: longint; AFileStatus: PFileStatus;
-                FileStatusLen: longint; var Count: longint): longint; cdecl;
+                FileStatusLen: cardinal; var Count: cardinal): longint; cdecl;
                                                  external 'DOSCALLS' index 265;
 
 function DosFindClose (Handle: longint): longint; cdecl;
@@ -283,6 +284,12 @@ begin
 end;
 
 
+Function FileCreate (Const FileName : String; Mode:longint) : Longint;
+begin
+  FileCreate:=FileCreate(FileName);
+end;
+
+
 function FileRead (Handle: longint; var Buffer; Count: longint): longint;
                                                                      assembler;
 asm
@@ -331,7 +338,7 @@ end;
 
 procedure FileClose (Handle: longint);
 begin
-    if (Handle <= 4) or (os_mode = osOS2) and (Handle <= 2) then
+    if (Handle > 4) or (os_mode = osOS2) and (Handle > 2) then
         asm
             mov eax, 3E00h
             mov ebx, Handle
@@ -410,7 +417,7 @@ function FindFirst (const Path: string; Attr: longint; var Rslt: TSearchRec): lo
 
 var SR: PSearchRec;
     FStat: PFileFindBuf3;
-    Count: longint;
+    Count: cardinal;
     Err: longint;
 
 begin
@@ -459,7 +466,7 @@ function FindNext (var Rslt: TSearchRec): longint;
 
 var SR: PSearchRec;
     FStat: PFileFindBuf3;
-    Count: longint;
+    Count: cardinal;
     Err: longint;
 
 begin
@@ -929,12 +936,8 @@ end;
 
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
-var P: PChar;
-
 begin
-    if DosScanEnv (PChar (EnvVar), P) = 0
-                  then GetEnvironmentVariable := StrPas (P)
-                                             else GetEnvironmentVariable := '';
+    GetEnvironmentVariable := StrPas (GetEnvPChar (EnvVar));
 end;
 
 
@@ -951,19 +954,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-17 16:22:54  hajny
+  Revision 1.2  2003-03-23 23:11:17  hajny
+    + emx target added
+
+  Revision 1.1  2002/11/17 16:22:54  hajny
     + RTL for emx target
-
-  Revision 1.18  2002/09/23 17:42:37  hajny
-    * AnsiString to PChar typecast
-
-  Revision 1.17  2002/09/07 16:01:25  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.16  2002/07/11 16:00:05  hajny
-    * FindFirst fix (invalid attribute bits masked out)
-
-  Revision 1.15  2002/01/25 16:23:03  peter
-    * merged filesearch() fix
 
 }

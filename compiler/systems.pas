@@ -109,7 +109,8 @@ interface
              target_i386_openbsd,       { 24 }
              target_m68k_openbsd,       { 25 }
              system_x86_64_linux,       { 26 }
-             system_powerpc_macosx      { 27 }
+             system_powerpc_macosx,     { 27 }
+             system_i386_EMX            { 28 }
        );
 
        tasm = (as_none
@@ -678,7 +679,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.59  2003-01-12 15:42:23  peter
+  Revision 1.60  2003-03-23 23:21:42  hajny
+    + emx target added
+
+  Revision 1.59  2003/01/12 15:42:23  peter
     * m68k pathexist update from 1.0.x
     * palmos res update from 1.0.x
 

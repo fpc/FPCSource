@@ -134,7 +134,7 @@ var
   hr : presourcefile;
 begin
   { OS/2 (EMX) must be processed elsewhere (in the linking/binding stage). }
-  if target_info.system<>system_i386_os2 then
+  if not (target_info.system in [system_i386_os2,system_i386_emx]) then
    While not current_module.ResourceFiles.Empty do
     begin
       case target_info.system of
@@ -154,7 +154,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2003-01-30 21:45:40  peter
+  Revision 1.18  2003-03-23 23:20:38  hajny
+    + emx target added
+
+  Revision 1.17  2003/01/30 21:45:40  peter
     * path fix (merged)
 
   Revision 1.16  2003/01/12 15:42:23  peter

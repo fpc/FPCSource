@@ -9,7 +9,7 @@ main=rtl
 loaders=prt0 prt1
 units=$(SYSTEMUNIT) objpas strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
-      pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl dive \
+      pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl \
       dos crt objects printer \
       sysutils math typinfo varutils \
       charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
@@ -28,8 +28,8 @@ target=emx
 cpu=i386
 
 [compiler]
-includedir=$(INC) $(PROCINC) ../os2
-sourcedir=$(INC) $(PROCINC) ../os2
+includedir=$(INC) $(PROCINC) $(OS2INC)
+sourcedir=$(INC) $(PROCINC) $(OS2INC)
 targetdir=.
 
 
@@ -37,6 +37,7 @@ targetdir=.
 RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
+OS2INC=$(RTL)/os2
 
 UNITPREFIX=rtl
 
@@ -102,31 +103,31 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 
 ports$(PPUEXT) : ports.pas objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-doscalls$(PPUEXT) : doscalls.pas strings$(PPUEXT) objects$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+doscalls$(PPUEXT) : $(OS2INC)/doscalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-kbdcalls$(PPUEXT) : kbdcalls.pas $(SYSTEMUNIT)$(PPUEXT)
+kbdcalls$(PPUEXT) : $(OS2INC)/kbdcalls.pas $(SYSTEMUNIT)$(PPUEXT)
 
-moucalls$(PPUEXT) : moucalls.pas $(SYSTEMUNIT)$(PPUEXT)
+moucalls$(PPUEXT) : $(OS2INC)/moucalls.pas $(SYSTEMUNIT)$(PPUEXT)
 
-moncalls$(PPUEXT) : moncalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+moncalls$(PPUEXT) : $(OS2INC)/moncalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-os2def$(PPUEXT) : os2def.pas $(SYSTEMUNIT)$(PPUEXT)
+os2def$(PPUEXT) : $(OS2INC)/os2def.pas $(SYSTEMUNIT)$(PPUEXT)
 
-pmwin$(PPUEXT) : pmwin.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+pmwin$(PPUEXT) : $(OS2INC)/pmwin.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-pmbitmap$(PPUEXT) : pmbitmap.pas $(SYSTEMUNIT)$(PPUEXT)
+pmbitmap$(PPUEXT) : $(OS2INC)/pmbitmap.pas $(SYSTEMUNIT)$(PPUEXT)
 
-pmgpi$(PPUEXT) : pmgpi.pas pmbitmap$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+pmgpi$(PPUEXT) : $(OS2INC)/pmgpi.pas pmbitmap$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-pmstddlg$(PPUEXT) : pmstddlg.pas os2def$(PPUEXT) doscalls$(PPUEXT) pmwin$(PPUEXT) pmgpi$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+pmstddlg$(PPUEXT) : $(OS2INC)/pmstddlg.pas os2def$(PPUEXT) doscalls$(PPUEXT) pmwin$(PPUEXT) pmgpi$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-pmhelp$(PPUEXT) : pmhelp.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+pmhelp$(PPUEXT) : $(OS2INC)/pmhelp.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-pmdev$(PPUEXT) : pmdev.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+pmdev$(PPUEXT) : $(OS2INC)/pmdev.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-pmspl$(PPUEXT) : pmspl.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+pmspl$(PPUEXT) : $(OS2INC)/pmspl.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-dive$(PPUEXT) : dive.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+pmshl$(PPUEXT) : $(OS2INC)/pmshl.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
@@ -139,9 +140,9 @@ dos$(PPUEXT) : dos.pas $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 
 crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
-objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
+objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
+printer$(PPUEXT) : $(OS2INC)/printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
 #graph$(PPUEXT) : graph.pp
 
@@ -160,8 +161,8 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
 
 varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-                    $(OBJPASDIR)/varutilh.inc varutils.pp
-        $(COMPILER) -I$(OBJPASDIR) varutils.pp $(REDIR)
+                    $(OBJPASDIR)/varutilh.inc $(OS2INC)/varutils.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OS2INC)/varutils.pp $(REDIR)
 
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp

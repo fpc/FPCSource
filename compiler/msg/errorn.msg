@@ -1900,8 +1900,8 @@ option_help_pages=11025_[
 6*1T<x>_Doel besturingssysteem:
 3*2TGO32V2_version 2 of DJ Delorie DOS extender
 3*2TLINUX_Linux
-3*2TOS2_OS/2 2.x
-3*2TWin32_Windows 32 Bit
+3*2TOS2_OS/2 / eComStation
+3*2TWIN32_Windows 32 Bit
 3*1W<x>_Win32 Doel opties
 3*2WB<x>_Stel Image base in op (hexadecimale) waarde <x>
 3*2WC_Maak een console applicatie

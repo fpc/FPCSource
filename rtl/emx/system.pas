@@ -37,7 +37,11 @@ Coding style:
 interface
 
 {Link the startup code.}
-{$l prt1.oo2}
+{$ifdef VER1_0}
+ {$l prt1.oo2}
+{$else}
+ {$l prt1.o}
+{$endif}
 
 {$I systemh.inc}
 
@@ -589,9 +593,9 @@ begin
             exit;
         end;
     Action := Action or (Flags and $FF);
-(* DenyAll if sharing not specified. *)
+(* DenyNone if sharing not specified. *)
     if Flags and 112 = 0 then
-        Action := Action or 16;
+        Action := Action or 64;
     asm
         movl $0x7f2b, %eax
         movl Action, %ecx
@@ -1237,7 +1241,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-12-15 22:46:29  hajny
+  Revision 1.4  2003-03-23 23:11:17  hajny
+    + emx target added
+
+  Revision 1.3  2002/12/15 22:46:29  hajny
     * First_Meg fixed + Environment initialization under Dos
 
   Revision 1.2  2002/11/17 22:32:05  hajny
@@ -1245,32 +1252,5 @@ end.
 
   Revision 1.1  2002/11/17 16:22:54  hajny
     + RTL for emx target
-
-  Revision 1.26  2002/10/27 14:29:00  hajny
-    * heap management (hopefully) fixed
-
-  Revision 1.25  2002/10/14 19:39:17  peter
-    * threads unit added for thread support
-
-  Revision 1.24  2002/10/13 09:28:45  florian
-    + call to initvariantmanager inserted
-
-  Revision 1.23  2002/09/07 16:01:25  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.22  2002/07/01 16:29:05  peter
-    * sLineBreak changed to normal constant like Kylix
-
-  Revision 1.21  2002/04/21 15:54:20  carl
-  + initialize some global variables
-
-  Revision 1.20  2002/04/12 17:42:16  carl
-  + generic stack checking
-
-  Revision 1.19  2002/03/11 19:10:33  peter
-    * Regenerated with updated fpcmake
-
-  Revision 1.18  2002/02/10 13:46:20  hajny
-    * heap management corrected (heap_brk)
 
 }

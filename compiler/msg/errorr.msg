@@ -1980,8 +1980,8 @@ option_help_pages=11025_[
 3*1T<x>_тип операционная системы, для котоpой пpоисходит компиляция:
 3*2TGO32V2_version 2 (DJ Delorie расширитель DOS)
 3*2TLINUX_Linux
-3*2TOS2_OS/2 2.x
-3*2TWin32_Windows 32 Bit
+3*2TOS2_OS/2 / eComStation
+3*2TWIN32_Windows 32 Bit
 3*1W<x>_Win32 опции
 3*1WB<x>_ Установка Image базы в шестнадцетиричное <x> значение
 3*1WC_ Определить, что это будет консольное приложение

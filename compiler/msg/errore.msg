@@ -2109,14 +2109,15 @@ option_help_pages=11025_[
 3*3Op2_set target processor to Pentium/PentiumMMX (tm)
 3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)
 3*1T<x>_Target operating system:
-3*2TGO32V2_version 2 of DJ Delorie DOS extender
-3*2TWDOSX DOS 32 Bit Extender
+3*2TEMX_OS/2 via EMX (including EMX/RSX extender)
+3*2TGO32V2_Version 2 of DJ Delorie DOS extender
 3*2TLINUX_Linux
-3*2Tnetware_Novell Netware Module (experimental)
-3*2TOS2_OS/2 2.x
+3*2TNETWARE_Novell Netware Module (experimental)
+3*2TOS2_OS/2 / eComStation
 3*2TSUNOS_SunOS/Solaris
-3*2TWin32_Windows 32 Bit
-3*1W<x>_Win32 target options
+3*2TWDOSX_WDOSX DOS extender
+3*2TWIN32_Windows 32 Bit
+3*1W<x>_Win32-like target options
 3*2WB<x>_Set Image base to Hexadecimal <x> value
 3*2WC_Specify console type application
 3*2WD_Use DEFFILE to export functions of DLL or EXE

@@ -1870,8 +1870,8 @@ option_help_pages=11025_[
 3*1T<x>_Sistema operativo de destino
 3*2TGO32V2_versi¢n 2 del extensor del DOS de DJ Delorie
 3*2TLINUX_Linux
-3*2TOS2_OS/2 2.x
-3*2TWin32_Windows 32 Bit
+3*2TOS2_OS/2
+3*2TWIN32_Windows 32 Bit
 6*1A<x>_formato de salida
 6*2Aas_Unix o-file usando GNU AS
 6*2Agas_Ensamblador GNU Motorola

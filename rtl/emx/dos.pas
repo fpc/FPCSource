@@ -175,6 +175,7 @@ function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
               const comline:comstr):longint;
 function envcount:longint;
 function envstr(index:longint) : string;
+function GetEnvPChar (EnvVar: string): PChar;
 function getenv(const envvar:string): string;
 
 implementation
@@ -846,7 +847,7 @@ procedure FindFirst (const Path: PathStr; Attr: word; var F: SearchRec);
 
 
 var path0: array[0..255] of char;
-    Count: longint;
+    Count: cardinal;
 
 begin
     {No error.}
@@ -854,9 +855,9 @@ begin
     if os_mode = osOS2 then
     begin
         New (F.FStat);
-        F.Handle := $FFFFFFFF;
+        F.Handle := longint ($FFFFFFFF);
         Count := 1;
-        DosError := Integer(DosFindFirst (Path, F.Handle,
+        DosError := integer (DosFindFirst (Path, F.Handle,
                        Attr and FindResvdMask, F.FStat, SizeOf (F.FStat^),
                                                            Count, ilStandard));
         if (DosError = 0) and (Count = 0) then DosError := 18;
@@ -883,7 +884,7 @@ end;
 
 
 procedure FindNext (var F: SearchRec);
-var Count: longint;
+var Count: cardinal;
 
 
 begin
@@ -893,7 +894,8 @@ begin
     if os_mode = osOS2 then
     begin
         Count := 1;
-        DosError := Integer(DosFindNext (F.Handle, F.FStat, SizeOf (F.FStat^), Count));
+        DosError := integer (DosFindNext (F.Handle, F.FStat, SizeOf (F.FStat^),
+                                                                       Count));
         if (DosError = 0) and (Count = 0) then DosError := 18;
     end else _findnext (F);
     DosSearchRec2SearchRec (F);
@@ -932,18 +934,17 @@ begin
     envstr:=strpas(hp);
 end;
 
-function GetEnv (const EnvVar: string): string;
+function GetEnvPChar (EnvVar: string): PChar;
 (* The assembler version is more than three times as fast as Pascal. *)
 var
  P: PChar;
- _EnvVar: string;
 begin
- _EnvVar := UpCase (EnvVar);
+ EnvVar := UpCase (EnvVar);
 {$ASMMODE INTEL}
  asm
   cld
   mov edi, Environment
-  lea esi, _EnvVar
+  lea esi, EnvVar
   xor eax, eax
   lodsb
 @NewVar:
@@ -988,7 +989,14 @@ begin
   mov P, edi      { place pointer to variable contents in P }
 @End:
  end;
- GetEnv := StrPas (P);
+ GetEnvPChar := P;
+end;
+{$ASMMODE ATT}
+
+function GetEnv (const EnvVar: string): string;
+(* The assembler version is more than three times as fast as Pascal. *)
+begin
+ GetEnv := StrPas (GetEnvPChar (EnvVar));
 end;
 {$ASMMODE ATT}
 
@@ -1153,7 +1161,8 @@ var
  ptr : pchar;
  base : pchar;
  i: integer;
- tib : pprocessinfoblock;
+ PIB: PProcessInfoBlock;
+ TIB: PThreadInfoBlock;
 begin
   { We need to setup the environment     }
   { only in the case of OS/2             }
@@ -1162,8 +1171,8 @@ begin
     exit;
   cnt := 0;
   { count number of environment pointers }
-  dosgetinfoblocks (nil, PPProcessInfoBlock (@tib));
-  ptr := pchar(tib^.env);
+  DosGetInfoBlocks (PPThreadInfoBlock (@TIB), PPProcessInfoBlock (@PIB));
+  ptr := pchar(PIB^.env);
   { stringz,stringz...,#0 }
   i := 0;
   repeat
@@ -1180,7 +1189,7 @@ begin
   { got count of environment strings }
   GetMem(envp, cnt*sizeof(pchar)+16384);
   cnt := 0;
-  ptr := pchar(tib^.env);
+  ptr := pchar(PIB^.env);
   i:=0;
   repeat
     envp[cnt] := ptr;
@@ -1213,22 +1222,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-12-15 22:50:29  hajny
+  Revision 1.3  2003-03-23 23:11:17  hajny
+    + emx target added
+
+  Revision 1.2  2002/12/15 22:50:29  hajny
     * GetEnv fix merged from os2 target
 
   Revision 1.1  2002/11/17 16:22:53  hajny
     + RTL for emx target
-
-  Revision 1.19  2002/09/07 16:01:24  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.18  2002/07/11 16:00:05  hajny
-    * FindFirst fix (invalid attribute bits masked out)
-
-  Revision 1.17  2002/07/07 18:00:48  hajny
-    * DosGetInfoBlock modification to allow overloaded version (in DosCalls)
-
-  Revision 1.16  2002/03/03 11:19:20  hajny
-    * GetEnv rewritten to assembly - 3x faster now
 
 }

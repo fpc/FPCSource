@@ -1815,10 +1815,14 @@ option_help_pages=11025_[
 3*3Op2_Optimierungen fÅr Pentium/PentiumMMX (R)
 3*3Op3_Optimierungen fÅr PPro/PII/c6x86/K6 (R)
 3*1T<x>_Ziel-Betriebssystem
+3*2TEMX_OS/2 via EMX (EMX/RSX extender inclusive)
 3*2TGO32V2_Version 2 von DJ Delorie's DOS extender
 3*2TLINUX_Linux
-3*2TOS2_OS/2 2.x
-3*2TWin32_Windows 32 Bit
+3*2TNETWARE_Novell Netware Module (experimental)
+3*2TOS2_OS/2 / eComStation
+3*2TSUNOS_SunOS/Solaris
+3*2TWDOSX_WDOSX DOS extender
+3*2TWIN32_Windows 32 Bit
 6*1A<x>_Ausgabe Format:
 6*2Aas_Unix o-Datei mit Hilfe von GNU AS
 6*2Agas_GNU Motorola Assembler
