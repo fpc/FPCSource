@@ -920,17 +920,26 @@ unit pstatmnt;
                              end
                            else
                              begin
-                               p2:=genmethodcallnode(pprocsym(sym),srsymtable,p2);
-                               { support dispose(p,done()); }
-                               if try_to_consume(_LKLAMMER) then
-                                begin
-                                  if not try_to_consume(_RKLAMMER) then
-                                   begin
-                                     Message(parser_e_no_paras_for_destructor);
-                                     consume_all_until(_RKLAMMER);
-                                     consume(_RKLAMMER);
-                                   end;
-                                end;
+                               if (m_tp in aktmodeswitches) then
+                                 begin
+                                   { Constructors can take parameters.}
+                                   p2^.resulttype:=ppointerdef(pd)^.pointertype.def;
+                                   do_member_read(false,sym,p2,pd,again);
+                                 end
+                               else
+                                 begin
+                                   p2:=genmethodcallnode(pprocsym(sym),srsymtable,p2);
+                                   { support dispose(p,done()); }
+                                   if try_to_consume(_LKLAMMER) then
+                                     begin
+                                       if not try_to_consume(_RKLAMMER) then
+                                         begin
+                                           Message(parser_e_no_paras_for_destructor);
+                                           consume_all_until(_RKLAMMER);
+                                           consume(_RKLAMMER);
+                                         end;
+                                     end;
+                                 end;
                              end;
 
                            { we need the real called method }
@@ -1349,7 +1358,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.123  2000-02-29 23:59:47  pierre
+  Revision 1.124  2000-03-14 16:37:25  pierre
+   * destructor can have args in TP mode only (bug825 and 839)
+
+  Revision 1.123  2000/02/29 23:59:47  pierre
    Use $GOTO ON
 
   Revision 1.122  2000/02/09 13:22:59  peter

@@ -707,7 +707,8 @@ uses
 {$endif}
            consume(_SEMICOLON);
            if not(aktprocsym^.definition^.para^.empty) then
-            Message(parser_e_no_paras_for_destructor);
+             if not (m_tp in aktmodeswitches) then
+               Message(parser_e_no_paras_for_destructor);
            { no return value }
            aktprocsym^.definition^.rettype.def:=voiddef;
         end;
@@ -1548,7 +1549,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.21  2000-03-11 21:11:24  daniel
+  Revision 1.22  2000-03-14 16:37:26  pierre
+   * destructor can have args in TP mode only (bug825 and 839)
+
+  Revision 1.21  2000/03/11 21:11:24  daniel
     * Ported hcgdata to new symtable.
     * Alignment code changed as suggested by Peter
     + Usage of my is operator replacement, is_object
