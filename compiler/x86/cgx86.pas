@@ -43,10 +43,10 @@ unit cgx86;
         function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
         procedure ungetregister(list:Taasmoutput;r:Tregister);override;
-        procedure ungetreference(list:Taasmoutput;const r:Treference);override;
         procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
         procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
         function  uses_registers(rt:Tregistertype):boolean;override;
+        procedure add_reg_instruction(instr:Tai;r:tregister);override;
         procedure dec_fpu_stack;
         procedure inc_fpu_stack;
 
@@ -211,15 +211,6 @@ unit cgx86;
       end;
 
 
-    procedure tcgx86.ungetreference(list:Taasmoutput;const r:Treference);
-      begin
-        if r.base<>NR_NO then
-          ungetregister(list,r.base);
-        if r.index<>NR_NO then
-          ungetregister(list,r.index);
-      end;
-
-
     procedure Tcgx86.allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
       begin
         if rt<>R_FPUREGISTER then
@@ -240,6 +231,13 @@ unit cgx86;
           result:=false
         else
           result:=inherited uses_registers(rt);
+      end;
+
+
+    procedure tcgx86.add_reg_instruction(instr:Tai;r:tregister);
+      begin
+        if getregtype(r)<>R_FPUREGISTER then
+          inherited add_reg_instruction(instr,r);
       end;
 
 
@@ -1426,18 +1424,18 @@ unit cgx86;
            system_i386_win32,
         {$endif}
            system_i386_freebsd,
-	   system_i386_netbsd,
-//	   system_i386_openbsd,
+           system_i386_netbsd,
+//         system_i386_openbsd,
            system_i386_wdosx,
            system_i386_linux:
              begin
-		Case target_info.system Of
-		 system_i386_freebsd : mcountprefix:='.';
-		 system_i386_netbsd : mcountprefix:='__';
-//		 system_i386_openbsd : mcountprefix:='.';
-		else
-  		 mcountPrefix:='';
-		end;
+                Case target_info.system Of
+                 system_i386_freebsd : mcountprefix:='.';
+                 system_i386_netbsd : mcountprefix:='__';
+//               system_i386_openbsd : mcountprefix:='.';
+                else
+                 mcountPrefix:='';
+                end;
                 objectlibrary.getaddrlabel(pl);
                 list.concat(Tai_section.Create(sec_data));
                 list.concat(Tai_align.Create(4));
@@ -1684,7 +1682,13 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.90  2003-12-12 17:16:18  peter
+  Revision 1.91  2003-12-15 21:25:49  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.90  2003/12/12 17:16:18  peter
     * rg[tregistertype] added in tcg
 
   Revision 1.89  2003/12/06 01:15:23  florian

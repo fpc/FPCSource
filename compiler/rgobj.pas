@@ -146,6 +146,9 @@ unit rgobj;
       Treginfoflagset=set of Treginfoflag;
 
       Treginfo=record
+        live_start,
+        live_end   : Tai;
+        subreg   : tsubregister;
         alias    : Tsuperregister;
         { The register allocator assigns each register a colour }
         colour   : Tsuperregister;
@@ -155,21 +158,6 @@ unit rgobj;
         flags    : Treginfoflagset;
       end;
       Preginfo=^TReginfo;
-
-      { This is the base class used for a register allocator. }
-      trgbase=class
-        function getregister(list:Taasmoutput;subreg:Tsubregister):Tregister;virtual;abstract;
-        {# Get the register specified.}
-        procedure getexplicitregister(list:Taasmoutput;r:Tregister);virtual;abstract;
-        {# Get multiple registers specified.}
-        procedure allocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);virtual;abstract;
-        {# Free multiple registers specified.}
-        procedure deallocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);virtual;abstract;
-        function uses_registers:boolean;virtual;abstract;
-        {# Deallocate any kind of register }
-        procedure ungetregister(list:Taasmoutput;r:Tregister);virtual;abstract;
-      end;
-
 
       {#------------------------------------------------------------------
 
@@ -181,7 +169,7 @@ unit rgobj;
       by cpu-specific implementations.
 
       --------------------------------------------------------------------}
-      trgobj=class(trgbase)
+      trgobj=class
         preserved_by_proc : tcpuregisterset;
         used_in_proc : tcpuregisterset;
 //        is_reg_var : Tsuperregisterset; {old regvars}
@@ -206,37 +194,18 @@ unit rgobj;
         function uses_registers:boolean;virtual;
         {# Deallocate any kind of register }
         procedure ungetregister(list:Taasmoutput;r:Tregister);virtual;
-        procedure add_constraints(reg:Tregister);virtual;
-
+        procedure add_reg_instruction(instr:Tai;r:tregister);
+        procedure add_move_instruction(instr:Taicpu);
         {# Do the register allocation.}
         procedure do_register_allocation(list:Taasmoutput;headertai:tai);virtual;
-
-{        procedure resetusableregisters;virtual;}
-
-{        procedure makeregvar(reg:Tsuperregister);}
-
-{$ifdef EXTDEBUG}
-        procedure writegraph(loopidx:longint);
-{$endif EXTDEBUG}
-        procedure add_move_instruction(instr:Taicpu);
-        {# Prepare the register colouring.}
-        procedure prepare_colouring;
-        {# Clean up after register colouring.}
-        procedure epilogue_colouring;
-        {# Colour the registers; that is do the register allocation.}
-        procedure colour_registers;
-        {# Spills certain registers in the specified assembler list.}
-        function  spill_registers(list:Taasmoutput;headertai:tai):boolean;
-        procedure translate_registers(list:Taasmoutput);
-        {# Adds an interference edge.}
-        procedure add_edge(u,v:Tsuperregister);
-        procedure check_unreleasedregs;
-
-
       protected
         regtype           : Tregistertype;
         { default subregister used }
         defaultsub        : tsubregister;
+        {# Adds an interference edge.}
+        procedure add_edge(u,v:Tsuperregister);
+        procedure add_constraints(reg:Tregister);virtual;
+      private
         {# First imaginary register.}
         first_imaginary   : Tsuperregister;
         {# Highest register allocated until now.}
@@ -259,7 +228,21 @@ unit rgobj;
         coalesced_moves,
         constrained_moves : Tlinkedlist;
         live_registers:Tsuperregisterworklist;
-        function  getnewreg:tsuperregister;
+{$ifdef EXTDEBUG}
+        procedure writegraph(loopidx:longint);
+{$endif EXTDEBUG}
+        {# Prepare the register colouring.}
+        procedure prepare_colouring;
+        {# Clean up after register colouring.}
+        procedure epilogue_colouring;
+        {# Colour the registers; that is do the register allocation.}
+        procedure colour_registers;
+        {# Spills certain registers in the specified assembler list.}
+        procedure insert_regalloc_info(list:Taasmoutput;headertai:tai);
+        procedure generate_interference_graph(list:Taasmoutput;headertai:tai);
+        procedure translate_registers(list:Taasmoutput);
+        function  spill_registers(list:Taasmoutput;headertai:tai):boolean;
+        function  getnewreg(subreg:tsubregister):tsuperregister;
         procedure getregisterinline(list:Taasmoutput;position:Tai;subreg:Tsubregister;var result:Tregister);
         procedure ungetregisterinline(list:Taasmoutput;position:Tai;r:Tregister);
         procedure add_edges_used(u:Tsuperregister);
@@ -429,7 +412,7 @@ implementation
     end;
 
 
-    function trgobj.getnewreg:tsuperregister;
+    function trgobj.getnewreg(subreg:tsubregister):tsuperregister;
       var
         oldmaxreginfo : tsuperregister;
       begin
@@ -447,24 +430,16 @@ implementation
             { Do we really need it to clear it ? At least for 1.0.x (PFV) }
             fillchar(reginfo[oldmaxreginfo],(maxreginfo-oldmaxreginfo)*sizeof(treginfo),0);
           end;
+        reginfo[result].subreg:=subreg;
       end;
 
 
     function trgobj.getregister(list:Taasmoutput;subreg:Tsubregister):Tregister;
-      var
-        p : Tsuperregister;
-        r : Tregister;
       begin
-         p:=getnewreg;
-         live_registers.add(p);
          if defaultsub=R_SUBNONE then
-           r:=newreg(regtype,p,R_SUBNONE)
+           result:=newreg(regtype,getnewreg(R_SUBNONE),R_SUBNONE)
          else
-           r:=newreg(regtype,p,subreg);
-         list.concat(Tai_regalloc.alloc(r));
-         add_edges_used(p);
-         add_constraints(r);
-         result:=r;
+           result:=newreg(regtype,getnewreg(subreg),subreg);
       end;
 
 
@@ -475,29 +450,23 @@ implementation
 
 
     procedure trgobj.ungetregister(list:Taasmoutput;r:Tregister);
-
-    var supreg:Tsuperregister;
-
-    begin
-      supreg:=getsupreg(r);
-      if live_registers.delete(supreg) then
-        list.concat(Tai_regalloc.dealloc(r));
-    end;
+      begin
+        { Only explicit allocs insert regalloc info }
+        if getsupreg(r)<first_imaginary then
+          list.concat(Tai_regalloc.dealloc(r));
+      end;
 
 
     procedure trgobj.getexplicitregister(list:Taasmoutput;r:Tregister);
-
-    var supreg:Tsuperregister;
-
-    begin
-      supreg:=getsupreg(r);
-      live_registers.add(supreg);
-      if supreg<first_imaginary then
+      var
+        supreg:Tsuperregister;
+      begin
+        supreg:=getsupreg(r);
+        if supreg>=first_imaginary then
+          internalerror(2003121503);
         include(used_in_proc,supreg);
-      list.concat(Tai_regalloc.alloc(r));
-      add_edges_used(supreg);
-      add_constraints(r);
-    end;
+        list.concat(Tai_regalloc.alloc(r));
+      end;
 
 
     procedure trgobj.allocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);
@@ -507,7 +476,7 @@ implementation
     begin
       for i:=0 to first_imaginary-1 do
         if i in r then
-          getexplicitregister(list,i);
+          getexplicitregister(list,newreg(regtype,i,defaultsub));
     end;
 
 
@@ -518,7 +487,7 @@ implementation
     begin
       for i:=0 to first_imaginary-1 do
         if i in r then
-          ungetregister(list,i);
+          ungetregister(list,newreg(regtype,i,defaultsub));
     end;
 
 
@@ -527,6 +496,12 @@ implementation
         spillingcounter:byte;
         endspill:boolean;
       begin
+        { Insert regalloc info for imaginary registers }
+        insert_regalloc_info(list,headertai);
+        generate_interference_graph(list,headertai);
+        { Don't do the real allocation when -sr is passed }
+        if (cs_no_regalloc in aktglobalswitches) then
+          exit;
         {Do register allocation.}
         spillingcounter:=0;
         repeat
@@ -542,6 +517,7 @@ implementation
               endspill:=not spill_registers(list,headertai);
             end;
         until endspill;
+        translate_registers(list);
       end;
 
 
@@ -588,8 +564,9 @@ implementation
     var i:word;
 
     begin
-      for i:=0 to live_registers.length-1 do
-        add_edge(u,live_registers.buf[i]);
+      if live_registers.length>0 then
+        for i:=0 to live_registers.length-1 do
+          add_edge(u,live_registers.buf[i]);
     end;
 
 {$ifdef EXTDEBUG}
@@ -643,6 +620,21 @@ implementation
       reginfo[u].movelist^.data[reginfo[u].movelist^.count]:=data;
       inc(reginfo[u].movelist^.count);
     end;
+
+
+    procedure trgobj.add_reg_instruction(instr:Tai;r:tregister);
+      var
+        supreg : tsuperregister;
+      begin
+        supreg:=getsupreg(r);
+        if supreg>=first_imaginary then
+          begin
+            if not assigned(reginfo[supreg].live_start) then
+              reginfo[supreg].live_start:=instr;
+            reginfo[supreg].live_end:=instr;
+          end;
+      end;
+
 
     procedure trgobj.add_move_instruction(instr:Taicpu);
 
@@ -827,8 +819,8 @@ implementation
     procedure trgobj.simplify;
 
     var adj : Psuperregisterworklist;
-        p,n : Tsuperregister;
-        min,i:word;
+        n : Tsuperregister;
+        i : word;
     begin
       {We take the element with the least interferences out of the
        simplifyworklist. Since the simplifyworklist is now sorted, we
@@ -1367,7 +1359,7 @@ implementation
     var p:Tsuperregister;
         r:Tregister;
     begin
-       p:=getnewreg;
+       p:=getnewreg(subreg);
        live_registers.add(p);
        r:=newreg(regtype,p,subreg);
        if position=nil then
@@ -1393,6 +1385,105 @@ implementation
       else
         list.insertafter(Tai_regalloc.dealloc(r),position);
     end;
+
+
+    procedure trgobj.insert_regalloc_info(list:Taasmoutput;headertai:tai);
+      var
+        supreg : tsuperregister;
+        p : tai;
+        r : tregister;
+      begin
+        { Insert regallocs for all imaginary registers }
+        for supreg:=first_imaginary to maxreg-1 do
+          begin
+            r:=newreg(regtype,supreg,reginfo[supreg].subreg);
+            if assigned(reginfo[supreg].live_start) then
+              begin
+{$ifdef EXTDEBUG}
+                if reginfo[supreg].live_start=reginfo[supreg].live_end then
+                  Comment(V_Warning,'Register '+std_regname(r)+' is only used once');
+{$endif EXTDEBUG}
+                list.insertbefore(Tai_regalloc.alloc(r),reginfo[supreg].live_start);
+                { Insert live end deallocation before reg allocations
+                  to reduce conflicts }
+                p:=reginfo[supreg].live_end;
+                while assigned(p) and
+                      assigned(p.previous) and
+                      (tai(p.previous).typ=ait_regalloc) and
+                      tai_regalloc(p.previous).allocation do
+                  p:=tai(p.previous);
+                list.insertbefore(Tai_regalloc.dealloc(r),p);
+              end
+{$ifdef EXTDEBUG}
+            else
+              Comment(V_Warning,'Register '+std_regname(r)+' not used');
+{$endif EXTDEBUG}
+          end;
+      end;
+
+
+    procedure trgobj.generate_interference_graph(list:Taasmoutput;headertai:tai);
+      var
+        p : tai;
+        i : integer;
+        supreg : tsuperregister;
+      begin
+        { All allocations are available. Now we can generate the
+          interference graph. Walk through all instructions, we can
+          start with the headertai, because before the header tai is
+          only symbols. }
+        live_registers.clear;
+        p:=headertai;
+        while assigned(p) do
+          begin
+            case p.typ of
+              ait_regalloc:
+                begin
+                  if (getregtype(Tai_regalloc(p).reg)=regtype) then
+                    begin
+                      supreg:=getsupreg(Tai_regalloc(p).reg);
+                      if Tai_regalloc(p).allocation then
+                        live_registers.add(supreg)
+                      else
+                        live_registers.delete(supreg);
+                      add_edges_used(supreg);
+                      add_constraints(Tai_regalloc(p).reg);
+                    end;
+                end;
+{              ait_instruction:
+                begin
+                  aktfilepos:=Taicpu_abstract(p).fileinfo;
+                  for i:=0 to Taicpu_abstract(p).ops-1 do
+                    with Taicpu_abstract(p).oper[i]^ do
+                      begin
+                        case typ of
+                          top_reg :
+                            begin
+                              add_edges_used(getsupreg(reg));
+                              add_constraints(reg);
+                            end;
+                          top_ref :
+                            begin
+                              add_edges_used(getsupreg(ref^.base));
+                              add_constraints(ref^.base);
+                              add_edges_used(getsupreg(ref^.index));
+                              add_constraints(ref^.index);
+                            end;
+                        end;
+                      end;
+                end; }
+            end;
+            p:=Tai(p.next);
+          end;
+
+{$ifdef EXTDEBUG}
+        if live_registers.length>0 then
+          begin
+            for i:=0 to live_registers.length-1 do
+              Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,live_registers.buf[i],defaultsub))+' not released');
+          end;
+{$endif}
+      end;
 
 
     function trgobj.spill_registers(list:Taasmoutput;headertai:tai):boolean;
@@ -1473,8 +1564,7 @@ implementation
                                                       live_registers,
                                                       spill_temps^) then
                   spill_registers:=true;
-
-                if Taicpu_abstract(p).is_move then
+                if Taicpu_abstract(p).is_reg_move then
                   add_move_instruction(Taicpu(p));
               end;
           end;
@@ -1579,15 +1669,16 @@ implementation
     end;
 
 
-    procedure Trgobj.check_unreleasedregs;
-      begin
-      end;
-
-
 end.
 {
   $Log$
-  Revision 1.102  2003-12-15 16:37:47  daniel
+  Revision 1.103  2003-12-15 21:25:49  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.102  2003/12/15 16:37:47  daniel
     * More microoptimizations
 
   Revision 1.101  2003/12/15 15:58:58  peter

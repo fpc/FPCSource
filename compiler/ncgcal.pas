@@ -113,7 +113,7 @@ implementation
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           internalerror(200304235);
         location_release(exprasmlist,left.location);
-        allocate_tempparaloc;
+//        allocate_tempparaloc;
         cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
         inc(tcgcallnode(aktcallnode).pushedparasize,POINTER_SIZE);
       end;
@@ -137,7 +137,7 @@ implementation
         if left.resulttype.def.deftype=floatdef then
          begin
            location_release(exprasmlist,left.location);
-           allocate_tempparaloc;
+//           allocate_tempparaloc;
 {$ifdef i386}
            if tempparaloc.loc<>LOC_REFERENCE then
              internalerror(200309291);
@@ -215,7 +215,6 @@ implementation
                   aktcallnode.procdefinition.proccalloption) then
             begin
               location_release(exprasmlist,left.location);
-              allocate_tempparaloc;
 {$ifdef i386}
               if tempparaloc.loc<>LOC_REFERENCE then
                 internalerror(200309292);
@@ -249,14 +248,14 @@ implementation
                     if cgsize in [OS_64,OS_S64] then
                      begin
                        inc(tcgcallnode(aktcallnode).pushedparasize,8);
-                       allocate_tempparaloc;
+//                       allocate_tempparaloc;
                        cg64.a_param64_loc(exprasmlist,left.location,tempparaloc);
                        location_release(exprasmlist,left.location);
                      end
                     else
                      begin
                        location_release(exprasmlist,left.location);
-                       allocate_tempparaloc;
+//                       allocate_tempparaloc;
                        inc(tcgcallnode(aktcallnode).pushedparasize,align(tcgsize2size[tempparaloc.size],tempparaloc.alignment));
                        cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                      end;
@@ -266,7 +265,7 @@ implementation
                 LOC_CMMXREGISTER:
                   begin
                      location_release(exprasmlist,left.location);
-                     allocate_tempparaloc;
+//                     allocate_tempparaloc;
                      inc(tcgcallnode(aktcallnode).pushedparasize,8);
                      cg.a_parammm_reg(exprasmlist,left.location.register);
                   end;
@@ -300,6 +299,8 @@ implementation
              objectlibrary.getlabel(truelabel);
              objectlibrary.getlabel(falselabel);
              secondpass(left);
+
+             allocate_tempparaloc;
 
              { handle varargs first, because paraitem.parasym is not valid }
              if (nf_varargs_para in flags) then
@@ -337,7 +338,7 @@ implementation
                     begin
                       inc(tcgcallnode(aktcallnode).pushedparasize,POINTER_SIZE);
                       location_release(exprasmlist,left.location);
-                      allocate_tempparaloc;
+//                      allocate_tempparaloc;
                       cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                     end
                   else
@@ -1129,7 +1130,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.145  2003-12-07 12:41:32  jonas
+  Revision 1.146  2003-12-15 21:25:48  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.145  2003/12/07 12:41:32  jonas
     * fixed ansistring/widestring results: deallocate result reg only after
       it has been stored to memory, as the storing itself may require extra
       results (e.g. on ppc)

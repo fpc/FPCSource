@@ -13,6 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}
 {$i+}
 program mkx86reg;
 
@@ -383,8 +384,8 @@ begin
         end
       else
         first:=false;
-      writeln(confile,names[i],' = ',numbers[i],';');
-      write(numfile,numbers[i]);
+      writeln(confile,names[i],' = ','tregister(',numbers[i],')',';');
+      write(numfile,'tregister(',numbers[i],')');
       write(stdfile,'''',stdnames[i],'''');
       write(attfile,'''',attnames[i],'''');
       if not(x86_64) then
@@ -457,7 +458,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-09-24 17:11:33  florian
+  Revision 1.4  2003-12-15 21:25:49  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.3  2003/09/24 17:11:33  florian
     * x86_64 support; turn on by passing x86_64
 
   Revision 1.2  2003/09/03 15:55:02  peter

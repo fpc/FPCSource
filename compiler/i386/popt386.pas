@@ -1808,7 +1808,7 @@ begin
                       TmpUsedRegs := UsedRegs;
                       UpdateUsedRegs(TmpUsedRegs,tai(hp1.next));
                       if (RefsEqual(taicpu(hp2).oper[1]^.ref^, taicpu(p).oper[0]^.ref^) and
-                         not(RegUsedAfterInstruction(getsupreg(taicpu(p).oper[1]^.reg),
+                         not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,
                               hp2, TmpUsedRegs))) then
   { change   mov            (ref), reg            }
   {          add/sub/or/... reg2/$const, reg      }
@@ -1996,7 +1996,13 @@ end.
 
 {
   $Log$
-  Revision 1.52  2003-12-14 22:42:14  peter
+  Revision 1.53  2003-12-15 21:25:49  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.52  2003/12/14 22:42:14  peter
     * fixed csdebug
 
   Revision 1.51  2003/12/13 15:48:47  jonas

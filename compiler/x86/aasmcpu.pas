@@ -201,7 +201,7 @@ interface
          procedure Pass2(sec:TAsmObjectdata);virtual;
          procedure SetOperandOrder(order:TOperandOrder);
          function is_nop:boolean;override;
-         function is_move:boolean;override;
+         function is_reg_move:boolean;override;
          function spill_registers(list:Taasmoutput;
                                   rgget:Trggetproc;
                                   rgunget:Trgungetproc;
@@ -1904,7 +1904,7 @@ implementation
               (opcode=A_XCHG) and (oper[0]^.typ=top_reg) and (oper[1]^.typ=top_reg) and (oper[0]^.reg=oper[1]^.reg);
     end;
 
-    function Taicpu.is_move:boolean;
+    function Taicpu.is_reg_move:boolean;
 
     begin
       {We do not check the number of operands; we assume that nobody constructs
@@ -1912,7 +1912,7 @@ implementation
        a move between a reference and a register is not a move that is of
        interrest to the register allocation, therefore we only return true
        for a move between two registers. (DM)}
-      is_move:=((opcode=A_MOV) or (opcode=A_MOVZX) or (opcode=A_MOVSX)) and
+      result:=((opcode=A_MOV) or (opcode=A_MOVZX) or (opcode=A_MOVSX)) and
         ((oper[0]^.typ=top_reg) and (oper[1]^.typ=top_reg));
     end;
 
@@ -2344,7 +2344,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2003-12-14 20:24:28  daniel
+  Revision 1.40  2003-12-15 21:25:49  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.39  2003/12/14 20:24:28  daniel
     * Register allocator speed optimizations
       - Worklist no longer a ringbuffer
       - No find operations are left

@@ -178,7 +178,7 @@ begin
               tmpRef.base := NR_EDI;
               tmpRef.index := NR_EDI;
               for regCounter := RS_EAX to RS_EDI do
-                if writeToMemDestroysContents(NR_NO,tmpRef,regCounter,c[regCounter],dummy) then
+                if writeToMemDestroysContents(RS_INVALID,tmpRef,regCounter,c[regCounter],dummy) then
                   begin
                     exclude(regsStillValid,regCounter);
                     modifiesConflictingMemLocation := not(supreg in regsStillValid);
@@ -1954,7 +1954,7 @@ begin
                               if (memreg <> NR_NO) and
                                  (not getNextInstruction(p,hp1) or
                                   (RegLoadedWithNewValue(getsupreg(memreg),false,hp1) or
-                                   FindRegDealloc(getsupreg(regcounter),hp1))) then
+                                   FindRegDealloc(regcounter,hp1))) then
                                 begin
                                   hp1 := Tai_Marker.Create(NoPropInfoEnd);
                                   insertllitem(asml,p,p.next,hp1);
@@ -2074,7 +2074,13 @@ end.
 
 {
   $Log$
-  Revision 1.57  2003-12-15 16:08:15  jonas
+  Revision 1.58  2003-12-15 21:25:49  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.57  2003/12/15 16:08:15  jonas
     - disable removal of dead loads before a call, because register
       parameters are released before a call
     * fix storeback of registers in case of different sizes (e.g., first

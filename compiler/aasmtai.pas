@@ -447,6 +447,7 @@ interface
 
       Taasmoutput=class;
 
+      tadd_reg_instruction_proc=procedure(instr:Tai;r:tregister) of object;
       Trggetproc=procedure(list:Taasmoutput;position:Tai;subreg:Tsubregister;var result:Tregister) of object;
       Trgungetproc=procedure(list:Taasmoutput;position:Tai;r:Tregister) of object;
 
@@ -491,7 +492,7 @@ interface
           procedure loadoper(opidx:longint;o:toper);
           procedure clearop(opidx:longint);
           function is_nop:boolean;virtual;abstract;
-          function is_move:boolean;virtual;abstract;
+          function is_reg_move:boolean;virtual;abstract;
           { register allocator }
           function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister;var live_registers_int:Tsuperregisterworklist):Tai;
           procedure forward_allocation(p:Tai;var {unusedregsint:tsuperregisterset}live_registers_int:Tsuperregisterworklist);
@@ -541,6 +542,9 @@ interface
 
       { label when the result is true or false }
       truelabel,falselabel : tasmlabel;
+
+      { hook to notify uses of registers }
+      add_reg_instruction_hook : tadd_reg_instruction_proc;
 
       { default lists }
       datasegment,codesegment,bsssegment,
@@ -1677,6 +1681,8 @@ implementation
               segprefix:=ref^.segment;
 {$endif}
             typ:=top_ref;
+            add_reg_instruction_hook(self,ref^.base);
+            add_reg_instruction_hook(self,ref^.index);
             { mark symbol as used }
             if assigned(ref^.symbol) then
               ref^.symbol.increfs;
@@ -1694,6 +1700,7 @@ implementation
            reg:=r;
            typ:=top_reg;
          end;
+        add_reg_instruction_hook(self,r);
 {$ifdef ARM}
         { R15 is the PC on the ARM thus moves to R15 are jumps.
           Due to speed considerations we don't use a virtual overridden method here.
@@ -1714,10 +1721,14 @@ implementation
         with oper[opidx]^ do
           begin
             case typ of
+              top_reg:
+                add_reg_instruction_hook(self,reg);
               top_ref:
                 begin
                   new(ref);
                   ref^:=o.ref^;
+                  add_reg_instruction_hook(self,ref^.base);
+                  add_reg_instruction_hook(self,ref^.index);
                 end;
 {$ifdef ARM}
               top_shifterop:
@@ -2202,7 +2213,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2003-12-14 20:24:28  daniel
+  Revision 1.61  2003-12-15 21:25:48  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.60  2003/12/14 20:24:28  daniel
     * Register allocator speed optimizations
       - Worklist no longer a ringbuffer
       - No find operations are left

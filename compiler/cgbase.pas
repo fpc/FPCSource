@@ -133,12 +133,17 @@ interface
       {
         The new register coding:
 
-        SuperRegister   (bits 0..7)
-        Unused          (bits 8..15)
+        SuperRegister   (bits 0..15)
         Subregister     (bits 16..23)
         Register type   (bits 24..31)
+
+        TRegister is defined as an enum to make it incompatible
+        with TSuperRegister to avoid mixing them
       }
-      TRegister = type cardinal;
+      TRegister = (
+        TRegisterLowEnum := $80000000,
+        TRegisterHighEnum := $7fffffff
+      );
       TRegisterRec=packed record
 {$ifdef FPC_BIG_ENDIAN}
          regtype : Tregistertype;
@@ -316,7 +321,7 @@ implementation
     end;
 
     destructor tsuperregisterworklist.done;
-    
+
     begin
       if assigned(buf) then
         freemem(buf);
@@ -324,7 +329,7 @@ implementation
 
 
     procedure tsuperregisterworklist.add(s:tsuperregister);
-    
+
     begin
       inc(length);
       { Need to increase buffer length? }
@@ -341,14 +346,14 @@ implementation
 
 
     procedure tsuperregisterworklist.clear;
-    
+
     begin
       length:=0;
     end;
 
 
     procedure tsuperregisterworklist.deleteidx(i:word);
-    
+
     begin
       if length=0 then
         internalerror(200310144);
@@ -358,7 +363,7 @@ implementation
 
 
     function tsuperregisterworklist.get:tsuperregister;
-    
+
     begin
       if length=0 then
         internalerror(200310142);
@@ -369,9 +374,9 @@ implementation
 
 
     function tsuperregisterworklist.delete(s:tsuperregister):boolean;
-    
+
     var i:word;
-    
+
     begin
       delete:=false;
       for i:=1 to length do
@@ -569,7 +574,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.78  2003-12-14 20:24:28  daniel
+  Revision 1.79  2003-12-15 21:25:48  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.78  2003/12/14 20:24:28  daniel
     * Register allocator speed optimizations
       - Worklist no longer a ringbuffer
       - No find operations are left

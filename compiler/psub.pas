@@ -749,10 +749,7 @@ implementation
 
             { The procedure body is finished, we can now
               allocate the registers }
-            if not(cs_no_regalloc in aktglobalswitches) then
-              begin
-                cg.do_register_allocation(aktproccode,headertai);
-              end;
+            cg.do_register_allocation(aktproccode,headertai);
 
             { Add save and restore of used registers }
             aktfilepos:=entrypos;
@@ -1333,7 +1330,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.176  2003-12-10 16:37:01  peter
+  Revision 1.177  2003-12-15 21:25:48  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.176  2003/12/10 16:37:01  peter
     * global property support for fpc modes
 
   Revision 1.175  2003/12/03 23:13:20  peter

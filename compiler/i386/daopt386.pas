@@ -1785,7 +1785,7 @@ begin
           (typ in [con_ref,con_noRemoveRef]) and
           (not(cs_UncertainOpts in aktglobalswitches) or
          { for movsl }
-           ((ref.base = RS_EDI) and (ref.index = RS_EDI)) or
+           ((ref.base = NR_EDI) and (ref.index = NR_EDI)) or
          { don't destroy if reg contains a parameter, local or global variable }
            containsPointerLoad(c)
           );
@@ -1963,7 +1963,7 @@ var
   p, prev: tai;
   hp1, hp2: tai;
 {$ifdef i386}
-  regcounter: tregister;
+  regcounter,
   supreg : tsuperregister;
 {$endif i386}
   usedregs, nodeallocregs: tregset;
@@ -2052,7 +2052,7 @@ begin
   usedRegs := usedRegs - noDeallocRegs;
   for regCounter := RS_EAX to RS_EDI do
     if regCounter in usedRegs then
-      addRegDeallocFor(list,regCounter,prev);
+      addRegDeallocFor(list,newreg(R_INTREGISTER,regCounter,R_SUBWHOLE),prev);
 {$endif i386}
 end;
 
@@ -2714,7 +2714,13 @@ end.
 
 {
   $Log$
-  Revision 1.60  2003-12-15 15:58:58  peter
+  Revision 1.61  2003-12-15 21:25:49  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.60  2003/12/15 15:58:58  peter
     * fix statedebug compile
 
   Revision 1.59  2003/12/14 22:42:14  peter

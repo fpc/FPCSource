@@ -526,26 +526,32 @@ implementation
                   tt.def.needs_inittable) then
                 generate_inittable(newtype);
 
-              { Always generate RTTI info for all types. This is to have typeinfo() return
-                the same pointer }
-              generate_rtti(newtype);
-
               { for objects we should write the vmt and interfaces.
                 This need to be done after the rtti has been written, because
                 it can contain a reference to that data (PFV)
                 This is not for forward classes }
-              if (tt.def.deftype=objectdef) and
-                 not(oo_is_forward in tobjectdef(tt.def).objectoptions) then
+              if (tt.def.deftype=objectdef) then
                begin
-                 ch:=cclassheader.create(tobjectdef(tt.def));
-                 { generate and check virtual methods, must be done
-                   before RTTI is written }
-                 ch.genvmt;
-                 if is_interface(tobjectdef(tt.def)) then
-                   ch.writeinterfaceids;
-                 if (oo_has_vmt in tobjectdef(tt.def).objectoptions) then
-                   ch.writevmt;
-                 ch.free;
+                 if not(oo_is_forward in tobjectdef(tt.def).objectoptions) then
+                   begin
+                     ch:=cclassheader.create(tobjectdef(tt.def));
+                     { generate and check virtual methods, must be done
+                       before RTTI is written }
+                     ch.genvmt;
+                     { Generate RTTI for class }
+                     generate_rtti(newtype);
+                     if is_interface(tobjectdef(tt.def)) then
+                       ch.writeinterfaceids;
+                     if (oo_has_vmt in tobjectdef(tt.def).objectoptions) then
+                       ch.writevmt;
+                     ch.free;
+                   end;
+               end
+              else
+               begin
+                 { Always generate RTTI info for all types. This is to have typeinfo() return
+                   the same pointer }
+                 generate_rtti(newtype);
                end;
 
               aktfilepos:=oldfilepos;
@@ -656,7 +662,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2003-12-12 12:09:40  marco
+  Revision 1.75  2003-12-15 21:25:48  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.74  2003/12/12 12:09:40  marco
    * always generate RTTI patch from peter
 
   Revision 1.73  2003/12/10 16:37:01  peter

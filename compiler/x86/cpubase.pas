@@ -176,7 +176,7 @@ uses
 {$endif x86_64}
       );
 
-      regstabs_table : array[tregisterindex] of tregister = (
+      regstabs_table : array[tregisterindex] of shortint = (
 {$ifdef x86_64}
         {$i r8664stab.inc}
 {$else x86_64}
@@ -526,7 +526,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2003-10-31 09:22:55  mazen
+  Revision 1.31  2003-12-15 21:25:49  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.30  2003/10/31 09:22:55  mazen
   * using findreg_by_<name|number>_table directly to decrease heap overheading
 
   Revision 1.29  2003/10/30 17:13:18  peter

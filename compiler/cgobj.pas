@@ -84,6 +84,7 @@ unit cgobj;
           procedure ungetregister(list:Taasmoutput;r:Tregister);virtual;
           procedure ungetreference(list:Taasmoutput;const r:Treference);virtual;
 
+          procedure add_reg_instruction(instr:Tai;r:tregister);virtual;
           procedure add_move_instruction(instr:Taicpu);virtual;
 
           function  uses_registers(rt:Tregistertype):boolean;virtual;
@@ -553,6 +554,7 @@ implementation
 
     constructor tcg.create;
       begin
+        add_reg_instruction_hook:={$ifdef FPCPROCVAR}@{$endif}add_reg_instruction;
       end;
 
 
@@ -627,6 +629,8 @@ implementation
       begin
         if r.base<>NR_NO then
           ungetregister(list,r.base);
+        if r.index<>NR_NO then
+          ungetregister(list,r.index);
       end;
 
 
@@ -657,6 +661,19 @@ implementation
       end;
 
 
+    procedure tcg.add_reg_instruction(instr:Tai;r:tregister);
+      var
+        rt : tregistertype;
+      begin
+        rt:=getregtype(r);
+        { Only add it when a register allocator is configured.
+          No IE can be generated, because the VMT is written
+          without a valid rg[] }
+        if assigned(rg[rt]) then
+          rg[rt].add_reg_instruction(instr,r);
+      end;
+
+
     procedure tcg.add_move_instruction(instr:Taicpu);
       var
         rt : tregistertype;
@@ -676,11 +693,7 @@ implementation
         for rt:=low(tregistertype) to high(tregistertype) do
           begin
             if assigned(rg[rt]) then
-              begin
-                rg[rt].check_unreleasedregs;
-                rg[rt].do_register_allocation(list,headertai);
-                rg[rt].translate_registers(list);
-              end;
+              rg[rt].do_register_allocation(list,headertai);
           end;
       end;
 
@@ -1941,7 +1954,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.138  2003-12-12 17:16:17  peter
+  Revision 1.139  2003-12-15 21:25:48  peter
+    * reg allocations for imaginary register are now inserted just
+      before reg allocation
+    * tregister changed to enum to allow compile time check
+    * fixed several tregister-tsuperregister errors
+
+  Revision 1.138  2003/12/12 17:16:17  peter
     * rg[tregistertype] added in tcg
 
   Revision 1.137  2003/12/06 22:11:47  jonas
