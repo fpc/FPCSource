@@ -17,23 +17,25 @@ rem *** One of the following parameters may be specified: rtl, compiler,
 rem *** both, cycle and snapshot ("snapshot" being the default), optionally
 rem *** followed by parameters "debug" (causing debugging symbols not to be
 rem *** stripped from the created compiler), "release" (code optimization,
-rem *** debug info stripped out), and "verbose" (compiler messages are
-rem *** shown; the same can be accomplished with setting environment
-rem *** variable DOVERBOSE to 1). Parameters "debug" and "release" are
-rem *** mutually exclusive (the later one is used if both are present).
-rem *** Parameter "ppas" forces only PPAS script to be created
-rem *** by the compiler and called manually afterwards. This might help
-rem *** to resolve LD crashes due to low stack (e.g. under WinXX).
-rem *** Parameters _must_ be in lowercase to be recognized correctly,
-rem *** unless running under 4dos or compatible (e.g. NDOS).
-rem *** Meaning of parameters:
+rem *** debug info stripped out, no SNAPSHOT.TXT file generated), and
+rem *** "verbose" (compiler messages are shown). Parameters "debug" and
+rem *** "release" are mutually exclusive (the later one is used if both are
+rem *** present). Parameter "ppas" forces only PPAS script to be created by
+rem *** the compiler and called manually afterwards. This might help to
+rem *** resolve LD crashes due to low stack (e.g. under WinXX). Parameter
+rem *** "continue" disables the standard cleanup (deleting possible
+rem *** previously compiled versions), so compilation can continue after
+rem *** previous unsuccessful attempt. All the parameters _must_ be in
+rem *** lowercase to be recognized correctly, unless running under 4dos
+rem *** or compatible (e.g. NDOS for DOS, 4nt under WinNT, etc.).
+rem *** Meaning of basic parameters:
 rem ***  rtl .......... RTL only, _no_ snapshot created
 rem ***  compiler ..... compiler only, _no_ snapshot created
 rem ***  both ......... both RTL and compiler, _no_ snapshot created
 rem ***  snapshot ..... both RTL and compiler, snapshot _is_ created
 rem ***  cycle ........ RTL and compiler compiled, the resulting compiler
 rem ***                 is then copied to %FPCTOOLS% (BIN\OS2 by default)
-rem ***                 backing up possible previous version to ppos2.x),
+rem ***                 backing up possible previous version to ppc386.x),
 rem ***                 the whole procedure is started again (RTL is compiled
 rem ***                 with the new compiler version this time) and after
 rem ***                 another cycle (to make sure the new compiler works
@@ -73,6 +75,8 @@ if exist %FPCDIR%\makefile goto DirOK
 if exist %FPCDIR%\COMPILER\pp.pas goto DirOK
 if exist %FPCDIR%\SOURCE\makefile goto DirOK
 if exist %FPCDIR%\SOURCE\COMPILER\pp.pas goto DirOK
+if exist %FPCDIR%\SRC\makefile goto DirOK
+if exist %FPCDIR%\SRC\COMPILER\pp.pas goto DirOK
 goto ErrorDir
 
 :DirOK
@@ -82,11 +86,19 @@ if exist %FPCDIR%\SOURCE goto SrcExists
 if exist %FPCDIR%\SOURCE\. goto SrcExists
 if exist %FPCDIR%\SOURCE\makefile goto SrcExists
 if exist %FPCDIR%\SOURCE\COMPILER\pp.pas goto SrcExists
+if exist %FPCDIR%\SRC goto Src2Exists
+if exist %FPCDIR%\SRC\. goto Src2Exists
+if exist %FPCDIR%\SRC\makefile goto Src2Exists
+if exist %FPCDIR%\SRC\COMPILER\pp.pas goto Src2Exists
 set FPCSRC=%FPCDIR%
 goto SnapDir
 
 :SrcExists
 set FPCSRC=%FPCDIR%\SOURCE
+goto SnapDir
+
+:Src2Exists
+set FPCSRC=%FPCDIR%\SRC
 
 :SnapDir
 set FPCSNAP=%FPCSNAPPATH%
@@ -205,8 +217,9 @@ set OS2OPT2=-dGDB
 set OS2OPT3=-dI386
 set OS2OPT4=-Sg
 rem "Release" options (optimizations, strip debug symbols)
-set RELEASEOPT1=-Og2p1
+set RELEASEOPT1=-OG3p3
 set RELEASEOPT2=-Xs
+set DORELEASE=
 rem "Debug" options (add debug symbols, do all code generation checks)
 set DEBUGOPT1=-g
 set DEBUGOPT2=-Crtoi
@@ -243,6 +256,8 @@ rem Name of the PPAS script
 set PPASNAME=PPAS.BAT
 rem Default compiler for the first compilation
 set CYCLE=0
+rem Do the cleanup by default
+set CONT=
 if not .%CYCLE% == .0 goto EnvErr
 set COMPILER=%FPCCOMPILER%
 if not .%COMPILER% == .%FPCCOMPILER% goto EnvErr
@@ -294,22 +309,26 @@ if not %@EVAL[0] == 0 goto ParLoop
 set PARAMS=%@LOWER[%PARAMS%]
 :ParLoop
 shift
-if %1. == . goto NoPars
+if .%1 == . goto NoPars
 if %@EVAL[0] == 0 goto Shl1
 if %1 == debug set CURRENTOPT1=%DEBUGOPT1%
 if %1 == debug set CURRENTOPT2=%DEBUGOPT2%
 if %1 == release set CURRENTOPT1=%RELEASEOPT1%
 if %1 == release set CURRENTOPT2=%RELEASEOPT2%
+if %1 == release set DORELEASE=1
 if %1 == verbose set DOVERBOSE=1
 if %1 == ppas set FORCEPPAS=1
+if %1 == continue set CONT=1
 goto ParLoop
 :Shl1
 if %@LOWER[%1] == debug set CURRENTOPT1=%DEBUGOPT1%
 if %@LOWER[%1] == debug set CURRENTOPT2=%DEBUGOPT2%
 if %@LOWER[%1] == release set CURRENTOPT1=%RELEASEOPT1%
 if %@LOWER[%1] == release set CURRENTOPT2=%RELEASEOPT2%
+if %@LOWER[%1] == release set DORELEASE=1
 if %@LOWER[%1] == verbose set DOVERBOSE=1
 if %@LOWER[%1] == ppas set FORCEPPAS=1
+if %@LOWER[%1] == continue set CONT=1
 goto ParLoop
 :NoPars
 if %PARAMS% == clean goto CleanRTL
@@ -322,6 +341,7 @@ echo *Error: Unknown parameter - %PARAMS% >> %FPCERRLOG%
 goto End
 
 :CleanRTL
+if .%CONT% == .1 goto ContClRTL
 if %@EVAL[0] == 0 goto JPCleanRTL
 echo *Cleaning up the RTL (error messages are OK here) ... >> %FPCERRLOG%
 del %OS2OPTF% >> %FPCERRLOG%
@@ -351,6 +371,7 @@ del %FPCSNAPRTL%\ppas.cmd >& nul >> %FPCERRLOG%
 del %FPCSNAPRTL%\link.res >& nul >> %FPCERRLOG%
 :ContClRTL
 if %PARAMS% == rtl goto Branches
+if .%CONT% == .1 goto ContClComp
 :CleanCompiler
 if %@EVAL[0] == 0 goto JPCleanComp
 echo *Cleaning up the compiler (error messages are OK here) ... >> %FPCERRLOG%
@@ -359,7 +380,7 @@ del %COMPSPATH%\*.ppo >> %FPCERRLOG%
 del %COMPSPATH%\*.oo2 >> %FPCERRLOG%
 del %COMPSPATH%\pp >> %FPCERRLOG%
 del %COMPSPATH%\pp.exe >> %FPCERRLOG%
-del %COMPSPATH%\ppos2.exe >> %FPCERRLOG%
+del %COMPSPATH%\ppc386.exe >> %FPCERRLOG%
 del %COMPSPATH%\ppas.bat >> %FPCERRLOG%
 del %COMPSPATH%\ppas.cmd >> %FPCERRLOG%
 del %COMPSPATH%\link.res >> %FPCERRLOG%
@@ -367,7 +388,7 @@ del %FPCSNAPBIN%\*.ppo >> %FPCERRLOG%
 del %FPCSNAPBIN%\*.oo2 >> %FPCERRLOG%
 del %FPCSNAPBIN%\pp >> %FPCERRLOG%
 del %FPCSNAPBIN%\pp.exe >> %FPCERRLOG%
-del %FPCSNAPBIN%\ppos2.exe >> %FPCERRLOG%
+del %FPCSNAPBIN%\ppc386.exe >> %FPCERRLOG%
 del %FPCSNAPBIN%\ppas.bat >> %FPCERRLOG%
 del %FPCSNAPBIN%\ppas.cmd >> %FPCERRLOG%
 del %FPCSNAPBIN%\link.res >> %FPCERRLOG%
@@ -379,7 +400,7 @@ del %COMPSPATH%\*.ppo >& nul >> %FPCERRLOG%
 del %COMPSPATH%\*.oo2 >& nul >> %FPCERRLOG%
 del %COMPSPATH%\pp >& nul >> %FPCERRLOG%
 del %COMPSPATH%\pp.exe >& nul >> %FPCERRLOG%
-del %COMPSPATH%\ppos2.exe >& nul >> %FPCERRLOG%
+del %COMPSPATH%\ppc386.exe >& nul >> %FPCERRLOG%
 del %COMPSPATH%\ppas.bat >& nul >> %FPCERRLOG%
 del %COMPSPATH%\ppas.cmd >& nul >> %FPCERRLOG%
 del %COMPSPATH%\link.res >& nul >> %FPCERRLOG%
@@ -387,13 +408,14 @@ del %FPCSNAPBIN%\*.ppo >& nul >> %FPCERRLOG%
 del %FPCSNAPBIN%\*.oo2 >& nul >> %FPCERRLOG%
 del %FPCSNAPBIN%\pp >& nul >> %FPCERRLOG%
 del %FPCSNAPBIN%\pp.exe >& nul >> %FPCERRLOG%
-del %FPCSNAPBIN%\ppos2.exe >& nul >> %FPCERRLOG%
+del %FPCSNAPBIN%\ppc386.exe >& nul >> %FPCERRLOG%
 del %FPCSNAPBIN%\ppas.bat >& nul >> %FPCERRLOG%
 del %FPCSNAPBIN%\ppas.cmd >& nul >> %FPCERRLOG%
 del %FPCSNAPBIN%\link.res >& nul >> %FPCERRLOG%
 :ContClComp
 if %PARAMS% == compiler goto Branches
 if %PARAMS% == both goto Branches
+if .%CONT% == .1 goto ContClSnap
 :CleanSnapshot
 if %@EVAL[0] == 0 goto JPCleanSnap
 echo *Deleting the old snapshot (error messages are OK here) ... >> %FPCERRLOG%
@@ -489,7 +511,11 @@ echo *Compiling unit MMX ... >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit SysUtils ... >> %FPCERRLOG%
-%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\SYSUTILS.PP
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\SYSUTILS.PP
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
+echo *Compiling unit VarUtils (doesn't exist in 1.0.x - won't be found then) ... >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\VARUTILS.PP
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit TypInfo ... >> %FPCERRLOG%
@@ -595,8 +621,8 @@ if .%FORCEPPAS% == .1 echo * Deleting the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 del %FPCSNAPBIN%\%PPASNAME% >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 del %FPCSNAPBIN%\link.res >> %FPCERRLOG%
 :Comp2
-ren %FPCSNAPBIN%\pp.exe ppos2.exe >> %FPCERRLOG%
-if exist %FPCSNAPBIN%\ppos2.exe goto OKCompiler
+ren %FPCSNAPBIN%\pp.exe ppc386.exe >> %FPCERRLOG%
+if exist %FPCSNAPBIN%\ppc386.exe goto OKCompiler
 if not exist %FPCSNAPBIN%\pp goto C2Cont
 if exist %FPCSNAPBIN%\ppas.bat goto PPasBat
 if exist %FPCSNAPBIN%\ppas.cmd goto PPasCmd
@@ -622,13 +648,13 @@ goto CopyFiles
 :Cycle
 
 rem Another loop?
-if %CYCLE% == 2 goto CopyFiles
-echo *Backing up previous compiler version to ppos2.%CYCLE% ... >> %FPCERRLOG%
-copy %REALTOOLS%ppos2.exe %REALTOOLS%ppos2.%CYCLE% >> %FPCERRLOG%
+if .%CYCLE% == .2 goto CopyFiles
+echo *Backing up previous compiler version to ppc386.%CYCLE% ... >> %FPCERRLOG%
+copy %REALTOOLS%ppc386.exe %REALTOOLS%ppc386.%CYCLE% >> %FPCERRLOG%
 echo *Copying the newly created compiler to %REALTOOLS% ... >> %FPCERRLOG%
-copy %FPCSNAPBIN%\ppos2.exe %REALTOOLS%. >> %FPCERRLOG%
-if %CYCLE% == 1 goto Cycle2
-set COMPILER=PPOS2.EXE
+copy %FPCSNAPBIN%\ppc386.exe %REALTOOLS%. >> %FPCERRLOG%
+if .%CYCLE% == .1 goto Cycle2
+set COMPILER=PPC386.EXE
 set CYCLE=1
 goto NoPars
 
@@ -637,12 +663,15 @@ set CYCLE=2
 goto NoPars
 
 :CopyFiles
-set FPCSNAPTXT=%FPCSNAPDOC%\snapshot.txt
+echo *Copying the message files ... >> %FPCERRLOG%
+copy %COMPSPATH%\*.msg %FPCSNAPMSG% >> %FPCERRLOG%
 echo *Copying the documentation ... >> %FPCERRLOG%
 copy %FPCSRC%\INSTALL\DOC\*.txt %FPCSNAPDOC% >> %FPCERRLOG%
 copy %FPCSRC%\INSTALL\DOC\*.htm* %FPCSNAPDOC% >> %FPCERRLOG%
 copy %FPCSRC%\INSTALL\DOC\copying.* %FPCSNAPDOC% >> %FPCERRLOG%
+if .%DORELEASE% == .1 goto CopyDone
 echo *Creating the snapshot readme file ... >> %FPCERRLOG%
+set FPCSNAPTXT=%FPCSNAPDOC%\snapshot.txt
 echo This is a FPC snapshot for OS/2. It contains compilation of the most current >> %FPCSNAPTXT%
 echo developers' sources as of time of its creation. It contains the latest fixes >> %FPCSNAPTXT%
 echo but might contain some new bugs as well, since it's less tested than regular >> %FPCSNAPTXT%
@@ -652,30 +681,29 @@ echo the list in your e-mail, if it's the case). >> %FPCSNAPTXT%
 echo The snapshot has the same structure as the release ZIP files, so it may be >> %FPCSNAPTXT%
 echo installed using the normal installer (INSTALL.EXE and INSTALL.DAT must be >> %FPCSNAPTXT%
 echo in the same directory) or directly unzipped into your FPC tree. >> %FPCSNAPTXT%
-echo *Copying the message files ... >> %FPCERRLOG%
-copy %COMPSPATH%\*.msg %FPCSNAPMSG% >> %FPCERRLOG%
 
+:CopyDone
 if %@EVAL[0] == 0 goto Pack
 echo *Warning: Packing in this environment might fail. >> %FPCERRLOG%
-echo *You should press Ctrl-Break now if the current drive is different from that >> %FPCERRLOG%
-echo *of %FPCSNAP%; otherwise press any key to continue. >> %FPCERRLOG%
-if not %FPCERRLOG% == CON echo *Warning: Packing in this environment might fail.
-if not %FPCERRLOG% == CON echo *You should press Ctrl-Break now if the current drive is different from that
-if not %FPCERRLOG% == CON echo *of %FPCDIR%; otherwise press any key to continue.
-pause>nul
+echo *Should you encounter any problems, make sure the current directory, i.e. >> %FPCERRLOG%
+cd >> %FPCERRLOG%
+echo *is on the same drive as %FPCSNAP%. >> %FPCERRLOG%
 cd %FPCSNAP%
 
 :Pack
 echo *Packing the snapshot ... >> %FPCERRLOG%
 if %@EVAL[0] == 0 goto SHL2
+rem ZIP.EXE must be on the PATH
+rem Redirection to the log file doesn't fit to the maximum command line length
+zip -9r baseemx bin\os2\*.exe doc\*.* msg\*.* units\os2\rtl\*.ppo units\os2\rtl\*.oo2 units\os2\rtl\*.ao2 units\os2\rtl\*.rst
 goto Cmd2
 :Shl2
 pushd
 cdd %FPCSNAP%
-:Cmd2
-
 rem ZIP.EXE must be on the PATH
-zip -9 -r baseemx.zip bin\os2\ppos2.exe doc\*.* msg\*.* units\os2\rtl\*.ppo units\os2\rtl\*.oo2 units\os2\rtl\*.ao2 >> %FPCERRLOG%
+zip -9r baseemx bin\os2\*.exe doc\*.* msg\*.* units\os2\rtl\*.ppo units\os2\rtl\*.oo2 units\os2\rtl\*.ao2 units\os2\rtl\*.rst  >> %FPCERRLOG%
+
+:Cmd2
 if exist baseemx.zip goto ZipOK
 echo *Error: The ZIP file hasn't been created!! >> %FPCERRLOG%
 :ZipOK
@@ -695,7 +723,10 @@ goto End
 
 
   $Log$
-  Revision 1.1  2000-07-14 10:09:29  michael
+  Revision 1.2  2000-10-07 11:47:54  hajny
+    * updates for 1.1, etc.
+
+  Revision 1.1  2000/07/14 10:09:29  michael
   + Moved from base
 
   Revision 1.1  2000/07/13 06:31:26  michael
