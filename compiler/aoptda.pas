@@ -131,7 +131,7 @@ Begin
                           End
                     End;
   {$ifdef StateDebug}
-                    hp := new(pai_asm_comment,init(strpnew(gas_reg2str[TmpReg]+': '+tostr(CurProp^.Regs[TmpReg].WState))));
+                    hp := new(pai_asm_comment,init(strpnew(std_reg2str[TmpReg]+': '+tostr(CurProp^.Regs[TmpReg].WState))));
                     InsertLLItem(AsmL, p, p^.next, hp);
   {$endif StateDebug}
 
@@ -177,7 +177,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2002-04-14 16:49:30  carl
+  Revision 1.3  2002-04-15 18:55:40  carl
+  + change reg2str array use
+
+  Revision 1.2  2002/04/14 16:49:30  carl
   + att_reg2str -> gas_reg2str
 
   Revision 1.1  2001/08/26 13:36:35  florian
