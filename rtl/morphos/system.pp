@@ -26,7 +26,7 @@ interface
 {$I systemh.inc}
 
 type 
-  THandle = DWord;
+  THandle = LongInt;
 
 {$I heaph.inc}
 
@@ -50,13 +50,150 @@ const
 
   BreakOn : Boolean = True;
 
+
+{*****************************************************************************
+                           MorphOS structures
+*****************************************************************************}
+
+type
+  TDateStamp = packed record
+    ds_Days   : LongInt;      { Number of days since Jan. 1, 1978 }
+    ds_Minute : LongInt;      { Number of minutes past midnight }
+    ds_Tick   : LongInt;      { Number of ticks past minute }
+  end;
+  PDateStamp = ^TDateStamp;
+
+  PFileInfoBlock = ^TFileInfoBlock;
+  TFileInfoBlock = packed record
+    fib_DiskKey      : LongInt;
+    fib_DirEntryType : LongInt;
+    { Type of Directory. If < 0, then a plain file. If > 0 a directory }
+    fib_FileName     : Array [0..107] of Char;
+    { Null terminated. Max 30 chars used for now }
+    fib_Protection   : LongInt;
+    { bit mask of protection, rwxd are 3-0. }
+    fib_EntryType    : LongInt;
+    fib_Size         : LongInt;      { Number of bytes in file }
+    fib_NumBlocks    : LongInt;      { Number of blocks in file }
+    fib_Date         : TDateStamp; { Date file last changed }
+    fib_Comment      : Array [0..79] of Char;
+    { Null terminated comment associated with file }
+    fib_Reserved     : Array [0..35] of Char;
+  end;
+
+  PNode = ^TNode;
+  TNode = packed record
+    ln_Succ,             { Pointer to next (successor) }
+    ln_Pred: pNode;      { Pointer to previous (predecessor) }
+    ln_Type: Byte;
+    ln_Pri : Shortint;   { Priority, for sorting }
+    ln_Name: PChar;      { ID string, null terminated }
+  end;  { Note: Integer aligned }
+ 
+  PMinNode = ^TMinNode;
+  tMinNode = packed record
+    mln_Succ,
+    mln_Pred: pMinNode;
+  end;
+
+  PList = ^TList;
+  tList = packed record
+    lh_Head    : pNode;
+    lh_Tail    : pNode;
+    lh_TailPred: pNode;
+    lh_Type    : Byte;
+    l_pad      : Byte;
+  end;
+
+  PMinList = ^TMinList;
+  TMinList = packed record
+    mlh_Head    : PMinNode;
+    mlh_Tail    : PMinNode;
+    mlh_TailPred: PMinNode;
+  end;
+
+  PMsgPort = ^TMsgPort;
+  TMsgPort = packed record
+    mp_Node   : TNode;
+    mp_Flags  : Byte;
+    mp_SigBit : Byte;     { signal bit number    }
+    mp_SigTask: Pointer;  { task to be signalled (TaskPtr) }
+    mp_MsgList: TList;    { message linked list  }
+  end;
+
+  PMessage = ^TMessage;
+  TMessage = packed record
+    mn_Node     : TNode;
+    mn_ReplyPort: PMsgPort;
+    mn_Length   : Word;
+  end;
+
+  PTask = ^TTask;
+  TTask = packed record
+    tc_Node      : TNode;
+    tc_Flags     : Byte;
+    tc_State     : Byte;
+    tc_IDNestCnt : Shortint;  { intr disabled nesting         }
+    tc_TDNestCnt : Shortint;  { task disabled nesting         }
+    tc_SigAlloc  : DWord;     { sigs allocated                }
+    tc_SigWait   : DWord;     { sigs we are waiting for       }
+    tc_SigRecvd  : DWord;     { sigs we have received         }
+    tc_SigExcept : DWord;     { sigs we will take excepts for }
+    tc_TrapAlloc : Word;      { traps allocated               }
+    tc_TrapAble  : Word;      { traps enabled                 }
+    tc_ExceptData: Pointer;   { points to except data         }
+    tc_ExceptCode: Pointer;   { points to except code         }
+    tc_TrapData  : Pointer;   { points to trap data           }
+    tc_TrapCode  : Pointer;   { points to trap code           }
+    tc_SPReg     : Pointer;   { stack pointer                 }
+    tc_SPLower   : Pointer;   { stack lower bound             }
+    tc_SPUpper   : Pointer;   { stack upper bound + 2         }
+    tc_Switch    : Pointer;   { task losing CPU               }
+    tc_Launch    : Pointer;   { task getting CPU              }
+    tc_MemEntry  : TList;     { allocated memory              }
+    tc_UserData  : Pointer;   { per task data                 }
+  end;
+
+  PProcess = ^TProcess;
+  TProcess = packed record
+    pr_Task          : TTask;
+    pr_MsgPort       : TMsgPort;  { This is BPTR address from DOS functions    }
+    pr_Pad           : Word;      { Remaining variables on 4 byte boundaries   }
+    pr_SegList       : Pointer;   { Array of seg lists used by this process    }
+    pr_StackSize     : Longint;   { Size of process stack in bytes             }
+    pr_GlobVec       : Pointer;   { Global vector for this process (BCPL)      }
+    pr_TaskNum       : Longint;   { CLI task number of zero if not a CLI       }
+    pr_StackBase     : DWord;     { Ptr to high memory end of process stack    }
+    pr_Result2       : Longint;   { Value of secondary result from last call   }
+    pr_CurrentDir    : DWord;     { Lock associated with current directory     }
+    pr_CIS           : DWord;     { Current CLI Input Stream                   }
+    pr_COS           : DWord;     { Current CLI Output Stream                  }
+    pr_ConsoleTask   : Pointer;   { Console handler process for current window } 
+    pr_FileSystemTask: Pointer;   { File handler process for current drive     }
+    pr_CLI           : DWord;     { pointer to ConsoleLineInterpreter          }
+    pr_ReturnAddr    : Pointer;   { pointer to previous stack frame            }
+    pr_PktWait       : Pointer;   { Function to be called when awaiting msg    }
+    pr_WindowPtr     : Pointer;   { Window for error printing }
+    { following definitions are new with 2.0 }
+    pr_HomeDir       : DWord;     { Home directory of executing program      }
+    pr_Flags         : Longint;   { flags telling dos about process          }
+    pr_ExitCode      : Pointer;   { code to call on exit of program OR NULL  }
+    pr_ExitData      : Longint;   { Passed as an argument to pr_ExitCode.    }
+    pr_Arguments     : PChar;     { Arguments passed to the process at start }
+    pr_LocalVars     : TMinList;  { Local environment variables              }
+    pr_ShellPrivate  : Longint;   { for the use of the current shell         }
+    pr_CES           : DWord;     { Error stream - IF NULL, use pr_COS       }
+  end;
+
 var
-  MOS_ExecBase : Pointer; external name '_ExecBase';
-  MOS_DOSBase  : Pointer;
+  MOS_ExecBase: Pointer; external name '_ExecBase';
+  MOS_DOSBase : Pointer;
 
-  MOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
-  MOS_origDir  : LongInt; { original directory on startup }
-
+  MOS_heapPool: Pointer; { pointer for the OS pool for growing the heap }
+  MOS_origDir : LongInt; { original directory on startup }
+  MOS_ambMsg  : PMessage; 
+  MOS_ConName : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
+  
 
 {*****************************************************************************
                            MorphOS functions
@@ -77,6 +214,9 @@ function exec_AllocPooled(poolHeader: Pointer location 'a0';
 function exec_SetSignal(newSignals: LongInt location 'd0';
                         signalMask: LongInt location 'd1'): LongInt; SysCall MOS_ExecBase 306;
 
+function exec_FindTask(tname: PChar location 'a1'): PTask; SysCall MOS_ExecBase 294;
+function exec_GetMsg(port: PMsgPort location 'a0'): PMessage; SysCall MOS_ExecBase 372;
+function exec_WaitPort(port: PMsgPort location 'a0'): PMessage; SysCall MOS_ExecBase 384;
 
 { dos.library functions }
 
@@ -118,43 +258,16 @@ function dos_CurrentDir(lock: LongInt location 'd1'): LongInt; SysCall MOS_DOSBa
 function dos_Examine(lock: LongInt location 'd1';
                      FileInfoBlock: Pointer location 'd2'): Boolean; SysCall MOS_DOSBase 102;
 function dos_CreateDir(dname: PChar location 'd1'): LongInt; SysCall MOS_DOSBase 120;
+function dos_DateStamp(var ds: TDateStamp location 'd1'): LongInt; SysCall MOS_DOSBase 192;
 
 
 implementation
 
 {$I system.inc}
 
-
 {*****************************************************************************
                     System Dependent Structures/Consts
 *****************************************************************************}
-
-{ Used system structures }
-Type
-  TDateStamp = packed record
-    ds_Days   : LongInt;      { Number of days since Jan. 1, 1978 }
-    ds_Minute : LongInt;      { Number of minutes past midnight }
-    ds_Tick   : LongInt;      { Number of ticks past minute }
-  end;
-  PDateStamp = ^TDateStamp;
-
-  PFileInfoBlock = ^TFileInfoBlock;
-  TFileInfoBlock = packed record
-    fib_DiskKey      : LongInt;
-    fib_DirEntryType : LongInt;
-    { Type of Directory. If < 0, then a plain file. If > 0 a directory }
-    fib_FileName     : Array [0..107] of Char;
-    { Null terminated. Max 30 chars used for now }
-    fib_Protection   : LongInt;
-    { bit mask of protection, rwxd are 3-0. }
-    fib_EntryType    : LongInt;
-    fib_Size         : LongInt;      { Number of bytes in file }
-    fib_NumBlocks    : LongInt;      { Number of blocks in file }
-    fib_Date         : TDateStamp; { Date file last changed }
-    fib_Comment      : Array [0..79] of Char;
-    { Null terminated comment associated with file }
-    fib_Reserved     : Array [0..35] of Char;
-  end;
 
 { Errors from dos_IoErr(), etc. }
 const
@@ -352,8 +465,8 @@ begin
   { Closing opened files }
   CloseList(MOS_fileList);
 
-  if MOS_DOSBase<>NIL then exec_CloseLibrary(MOS_DOSBase);
-  if MOS_heapPool<>NIL then exec_DeletePool(MOS_heapPool);
+  if MOS_DOSBase<>nil then exec_CloseLibrary(MOS_DOSBase);
+  if MOS_heapPool<>nil then exec_DeletePool(MOS_heapPool);
   haltproc(ExitCode);
 end;
 
@@ -417,7 +530,7 @@ end;
 
 
 {*****************************************************************************
-                              ParamStr/Randomize
+                             ParamStr/Randomize
 *****************************************************************************}
 
 { number of args }
@@ -438,12 +551,10 @@ end;
 
 { set randseed to a new pseudo random value }
 procedure randomize;
+var tmpTime: TDateStamp;
 begin
-  {regs.realeax:=$2c00;
-  sysrealintr($21,regs);
-  hl:=regs.realedx and $ffff;
-  randseed:=hl*$10000+ (regs.realecx and $ffff);}
-  randseed:=0;
+  dos_DateStamp(tmpTime);
+  randseed:=tmpTime.ds_tick;
 end;
 
 
@@ -842,17 +953,23 @@ end;
 {$I text.inc}
 
 
-
-
 { MorphOS specific startup }
 procedure SysInitMorphOS;
+var self: PProcess;
 begin
+ self:=PProcess(exec_FindTask(nil));
+ if self^.pr_CLI<>0 then begin
+   { if we're running from Ambient, we catch its message }
+   exec_WaitPort(@self^.pr_MsgPort);
+   MOS_ambMsg:=exec_GetMsg(@self^.pr_MsgPort);   
+ end;
+
  MOS_DOSBase:=exec_OpenLibrary('dos.library',50);
- if MOS_DOSBase=NIL then Halt(1);
+ if MOS_DOSBase=nil then Halt(1);
 
  { Creating the memory pool for growing heap }
  MOS_heapPool:=exec_CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
- if MOS_heapPool=NIL then Halt(1);
+ if MOS_heapPool=nil then Halt(1);
 
  StdInputHandle:=dos_Input;
  StdOutputHandle:=dos_Output;
@@ -896,6 +1013,9 @@ Begin
   StackLength := InitialStkLen;
   StackBottom := Sptr - StackLength;
 { OS specific startup }
+  MOS_ambMsg:=nil;
+  MOS_origDir:=0;
+  MOS_fileList:=nil;
   SysInitMorphOS;
 { Set up signals handlers }
 //  InstallSignals;
@@ -915,13 +1035,14 @@ Begin
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
-  MOS_origDir:=0;
-  MOS_fileList:=nil;
 End.
 
 {
   $Log$
-  Revision 1.5  2004-05-09 02:02:42  karoly
+  Revision 1.6  2004-05-09 14:42:59  karoly
+    * again, few more new things added
+
+  Revision 1.5  2004/05/09 02:02:42  karoly
     * more things got implemented
 
   Revision 1.4  2004/05/02 02:06:57  karoly
@@ -930,6 +1051,9 @@ End.
   Revision 1.3  2004/05/01 15:09:47  karoly
     * first working system unit (very limited yet)
 
+  Revision 1.2  2004/04/08 06:28:29  karoly 
+    * first steps to have a morphos system unit
+
   Revision 1.1  2004/02/13 07:19:53  karoly
-   * quick hack from Linux system unit
+    * quick hack from Linux system unit
 }
