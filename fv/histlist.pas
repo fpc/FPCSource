@@ -295,7 +295,8 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE InitHistory;
 BEGIN
-   GetMem(HistoryBlock, HistorySize);                 { Allocate block }
+   if HistorySize>0 then
+     GetMem(HistoryBlock, HistorySize);                 { Allocate block }
    ClearHistory;                                      { Clear the history }
 END;
 
@@ -305,7 +306,10 @@ END;
 PROCEDURE DoneHistory;
 BEGIN
    If (HistoryBlock <> Nil) Then                      { History block valid }
-     FreeMem(HistoryBlock, HistorySize);              { Release history block }
+     begin
+       FreeMem(HistoryBlock);              { Release history block }
+       HistoryBlock:=nil;
+     end;  
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -424,7 +428,10 @@ END.
 
 {
  $Log$
- Revision 1.12  2004-11-06 17:08:48  peter
+ Revision 1.13  2004-12-22 15:45:34  peter
+   * fixed overflow when histsize=0
+
+ Revision 1.12  2004/11/06 17:08:48  peter
    * drawing of tview merged from old fv code
 
 }
