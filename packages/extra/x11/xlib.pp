@@ -16,12 +16,12 @@ const
 {$endif}
 
 type
-  culong = dword;
+  culong = sizeuint;
   cuchar = byte;
 
-  clong = longint;
+  clong = sizeint;
   cint = longint;
-  cuint = dword;
+  cuint = longword;
   cshort = smallint;
   cushort = word;
 
