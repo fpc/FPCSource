@@ -293,16 +293,20 @@ implementation
                               begin
                                  hregister:=p^.left^.location.register;
                                  ungetregister32(p^.left^.location.register);
-                                 { such code is allowed !
-                                   CGMessage(cg_e_illegal_expression); }
+                                 if not(pobjectdef(p^.left^.resulttype)^.is_class) then
+                                   CGMessage(cg_e_illegal_expression);
                               end;
 
                             LOC_MEM,
                             LOC_REFERENCE:
                               begin
                                  hregister:=R_EDI;
-                                 emit_ref_reg(A_MOV,S_L,
-                                   newreference(p^.left^.location.reference),R_EDI);
+                                 if pobjectdef(p^.left^.resulttype)^.is_class then
+                                   emit_ref_reg(A_MOV,S_L,
+                                     newreference(p^.left^.location.reference),R_EDI)
+                                 else
+                                   emit_ref_reg(A_LEA,S_L,
+                                     newreference(p^.left^.location.reference),R_EDI);
                                  del_reference(p^.left^.location.reference);
                                  ungetiftemp(p^.left^.location.reference);
                               end;
@@ -980,7 +984,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  1999-09-01 09:37:14  peter
+  Revision 1.84  1999-09-11 09:08:31  florian
+    * fixed bug 596
+    * fixed some problems with procedure variables and procedures of object,
+      especially in TP mode. Procedure of object doesn't apply only to classes,
+      it is also allowed for objects !!
+
+  Revision 1.83  1999/09/01 09:37:14  peter
     * removed warning
 
   Revision 1.82  1999/09/01 09:26:21  peter

@@ -656,8 +656,8 @@ implementation
                   begin
                     {if p^.left^.right=nil then
                      begin}
-                       if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                          (pobjectdef(p^.left^.symtableprocentry^.owner^.defowner)^.is_class) then
+                       if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable){ and
+                          (pobjectdef(p^.left^.symtableprocentry^.owner^.defowner)^.is_class) }then
                         hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc,
                               getcopy(p^.left^.methodpointer))
                        else
@@ -928,7 +928,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1999-08-13 15:43:59  peter
+  Revision 1.47  1999-09-11 09:08:34  florian
+    * fixed bug 596
+    * fixed some problems with procedure variables and procedures of object,
+      especially in TP mode. Procedure of object doesn't apply only to classes,
+      it is also allowed for objects !!
+
+  Revision 1.46  1999/08/13 15:43:59  peter
     * fixed proc->procvar conversion for tp_procvar mode, it now uses
       also the genload(method)call() function
 

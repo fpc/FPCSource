@@ -188,6 +188,13 @@ implementation
                    if assigned(pprocsym(p^.symtableentry)^.definition^.nextoverloaded) then
                      CGMessage(parser_e_no_overloaded_procvars);
                    p^.resulttype:=pprocsym(p^.symtableentry)^.definition;
+                   { if the owner of the procsym is a object,  }
+                   { left must be set, if left isn't set       }
+                   { it can be only self                       }
+                   { this code is only used in TP procvar mode }
+                   if not(assigned(p^.left)) and
+                     (pprocsym(p^.symtableentry)^.owner^.symtabletype=objectsymtable) then
+                      p^.left:=genselfnode(procinfo._class);
                    { method pointer ? }
                    if assigned(p^.left) then
                      begin
@@ -496,7 +503,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1999-09-10 18:48:11  florian
+  Revision 1.43  1999-09-11 09:08:34  florian
+    * fixed bug 596
+    * fixed some problems with procedure variables and procedures of object,
+      especially in TP mode. Procedure of object doesn't apply only to classes,
+      it is also allowed for objects !!
+
+  Revision 1.42  1999/09/10 18:48:11  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 

@@ -131,7 +131,8 @@ implementation
                            CGMessage(cg_n_inefficient_code)
                          else
                            begin
-                              hp^.left^.right^.left:=getcopy(hp^.right^.right);
+                              hp^.left^.right^.left:=hp^.right^.right;
+                              hp^.right^.right:=nil;
                               disposetree(hp^.right);
                               hp^.right:=nil;
                            end;
@@ -367,7 +368,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.103  1999-08-04 00:23:09  florian
+  Revision 1.104  1999-09-11 09:08:31  florian
+    * fixed bug 596
+    * fixed some problems with procedure variables and procedures of object,
+      especially in TP mode. Procedure of object doesn't apply only to classes,
+      it is also allowed for objects !!
+
+  Revision 1.103  1999/08/04 00:23:09  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.102  1999/05/27 19:44:42  peter

@@ -543,7 +543,6 @@ unit pexpr;
                    consume(_RKLAMMER);
                 end
               else p1^.left:=nil;
-
               { do firstpass because we need the  }
               { result type                       }
               Store_valid:=Must_be_valid;
@@ -2093,7 +2092,13 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.139  1999-09-10 18:48:07  florian
+  Revision 1.140  1999-09-11 09:08:33  florian
+    * fixed bug 596
+    * fixed some problems with procedure variables and procedures of object,
+      especially in TP mode. Procedure of object doesn't apply only to classes,
+      it is also allowed for objects !!
+
+  Revision 1.139  1999/09/10 18:48:07  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 

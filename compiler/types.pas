@@ -254,9 +254,12 @@ implementation
            exit;
          { check for method pointer }
          ismethod:=assigned(def1^.owner) and
-                   (def1^.owner^.symtabletype=objectsymtable) and
+                   (def1^.owner^.symtabletype=objectsymtable);
+                   { I think methods of objects are also not compatible }
+                   { with procedure variables! (FK)
+                   and
                    assigned(def1^.owner^.defowner) and
-                   (pobjectdef(def1^.owner^.defowner)^.is_class);
+                   (pobjectdef(def1^.owner^.defowner)^.is_class); }
          if (ismethod and not (po_methodpointer in def2^.procoptions)) or
             (not(ismethod) and (po_methodpointer in def2^.procoptions)) then
           begin
@@ -981,7 +984,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  1999-08-13 21:27:08  peter
+  Revision 1.86  1999-09-11 09:08:35  florian
+    * fixed bug 596
+    * fixed some problems with procedure variables and procedures of object,
+      especially in TP mode. Procedure of object doesn't apply only to classes,
+      it is also allowed for objects !!
+
+  Revision 1.85  1999/08/13 21:27:08  peter
     * more fixes for push_addr
 
   Revision 1.84  1999/08/13 15:38:23  peter

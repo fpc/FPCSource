@@ -191,8 +191,7 @@ implementation
                    else
                       begin
                         { generate a methodcallnode or proccallnode }
-                        if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                           (pobjectdef(p^.left^.symtableprocentry^.owner^.defowner)^.is_class) then
+                        if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) then
                          begin
                            hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc,
                              getcopy(p^.left^.methodpointer));
@@ -594,7 +593,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-08-23 23:34:15  pierre
+  Revision 1.26  1999-09-11 09:08:34  florian
+    * fixed bug 596
+    * fixed some problems with procedure variables and procedures of object,
+      especially in TP mode. Procedure of object doesn't apply only to classes,
+      it is also allowed for objects !!
+
+  Revision 1.25  1999/08/23 23:34:15  pierre
    * one more register needed if hnewn with CREGISTER
 
   Revision 1.24  1999/08/05 16:53:25  peter
