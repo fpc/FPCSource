@@ -635,7 +635,7 @@ implementation
         );
       begin
         inherited printnodeinfo(t);
-        write(', convtype = ',strpas(convtyp2str[convtype]));
+        write(t,', convtype = ',strpas(convtyp2str[convtype]));
       end;
 
 
@@ -2595,7 +2595,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.177  2005-02-14 17:13:06  peter
+  Revision 1.178  2005-03-05 16:09:20  jonas
+    * fixed small bug in ttypeconvnode.printnodeinfo
+
+  Revision 1.177  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.176  2005/02/03 18:43:59  florian
