@@ -637,7 +637,7 @@ implementation
       begin
          stringdispose(p^.location.reference.symbol);
          gettempofsizereference(256,p^.location.reference);
-      { call loadstring with correct left and right }
+         { call loadstring with correct left and right }
          p^.right:=p^.left;
          p^.left:=p;
          loadstring(p);
@@ -1084,27 +1084,51 @@ implementation
         pushed : tpushed;
       begin
          case pstringdef(p^.resulttype)^.string_typ of
-           st_shortstring : begin
-                              pushusedregisters(pushed,$ff);
-                              stringdispose(p^.location.reference.symbol);
-                              gettempofsizereference(p^.resulttype^.size,p^.location.reference);
-                              case p^.left^.location.loc of
-                                 LOC_REGISTER,LOC_CREGISTER:
-                                   begin
-                                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
-                                      ungetregister32(p^.left^.location.register);
-                                   end;
-                                 LOC_REFERENCE,LOC_MEM:
-                                   begin
-                                      emit_push_mem(p^.left^.location.reference);
-                                      del_reference(p^.left^.location.reference);
-                                   end;
-                              end;
-                              emitpushreferenceaddr(exprasmlist,p^.location.reference);
-                              emitcall('FPC_PCHAR_TO_STR',true);
-                              maybe_loadesi;
-                              popusedregisters(pushed);
-                            end;
+           st_shortstring:
+             begin
+                pushusedregisters(pushed,$ff);
+                stringdispose(p^.location.reference.symbol);
+                gettempofsizereference(p^.resulttype^.size,p^.location.reference);
+                case p^.left^.location.loc of
+                   LOC_REGISTER,LOC_CREGISTER:
+                     begin
+                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
+                        ungetregister32(p^.left^.location.register);
+                     end;
+                   LOC_REFERENCE,LOC_MEM:
+                     begin
+                        emit_push_mem(p^.left^.location.reference);
+                        del_reference(p^.left^.location.reference);
+                     end;
+                end;
+                emitpushreferenceaddr(exprasmlist,p^.location.reference);
+                emitcall('FPC_PCHAR_TO_STR',true);
+                maybe_loadesi;
+                popusedregisters(pushed);
+             end;
+           st_ansistring:
+             begin
+                stringdispose(p^.location.reference.symbol);
+                gettempofsizereference(p^.resulttype^.size,p^.location.reference);
+                case p^.left^.location.loc of
+                   LOC_REGISTER,LOC_CREGISTER:
+                     begin
+                        ungetregister32(p^.left^.location.register);
+                        pushusedregisters(pushed,$ff);
+                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
+                     end;
+                   LOC_REFERENCE,LOC_MEM:
+                     begin
+                        del_reference(p^.left^.location.reference);
+                        pushusedregisters(pushed,$ff);
+                        emit_push_mem(p^.left^.location.reference);
+                     end;
+                end;
+                emitpushreferenceaddr(exprasmlist,p^.location.reference);
+                emitcall('FPC_PCHAR_TO_ANSISTRING',true);
+                maybe_loadesi;
+                popusedregisters(pushed);
+             end;
          else
           begin
             p^.location.loc:=LOC_REGISTER;
@@ -1282,7 +1306,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1998-09-23 12:03:51  peter
+  Revision 1.24  1998-09-27 10:16:22  florian
+    * type casts pchar<->ansistring fixed
+    * ansistring[..] calls does now an unique call
+
+  Revision 1.23  1998/09/23 12:03:51  peter
     * overloading fix for array of const
 
   Revision 1.22  1998/09/22 15:34:09  peter

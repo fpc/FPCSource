@@ -279,6 +279,7 @@ implementation
          if p^.left^.treetype=ordconstn then
            begin
               hp:=genstringconstnode(chr(p^.left^.value));
+              hp^.stringtype:=pstringdef(p^.resulttype)^.string_typ;
               firstpass(hp);
               disposetree(p);
               p:=hp;
@@ -488,13 +489,10 @@ implementation
       end;
 
 
-    procedure first_pchar_to_ansistring(var p : ptree);
+    procedure first_pchar_to_string(var p : ptree);
       begin
-         p^.location.loc:=LOC_REGISTER;
-         if p^.registers32<1 then
-           p^.registers32:=1;
+         p^.location.loc:=LOC_MEM;
       end;
-
 
     procedure first_ansistring_to_pchar(var p : ptree);
       begin
@@ -550,12 +548,12 @@ implementation
                            first_cchar_charpointer,
                            first_load_smallset,
                            first_ansistring_to_pchar,
-                           first_pchar_to_ansistring,
+                           first_pchar_to_string,
                            first_arrayconstructor_to_set);
 
      begin
        aprocdef:=nil;
-       { if explicite type conversation, then run firstpass }
+       { if explicite type cast, then run firstpass }
        if p^.explizit then
          firstpass(p^.left);
 
@@ -720,6 +718,13 @@ implementation
                           firstconvert[p^.convtyp](p);
                           exit;
                        end;
+                     if is_pchar(p^.resulttype) and
+                       is_ansistring(p^.left^.resulttype) then
+                       begin
+                          p^.convtyp:=tc_ansistring_2_pchar;
+                          firstconvert[p^.convtyp](p);
+                          exit;
+                       end;
                      { normal tc_equal-Konvertierung durchfhren }
                      p^.convtyp:=tc_equal;
                      { wenn Aufz„hltyp nach Ordinal konvertiert werden soll }
@@ -738,7 +743,7 @@ implementation
                           else
                             begin
                                if not isconvertable(s32bitdef,p^.resulttype,p^.convtyp,
-                               ordconstn { nur Dummy},false ) then
+                               ordconstn { only Dummy},false ) then
                                  CGMessage(cg_e_illegal_type_conversion);
                             end;
 
@@ -898,7 +903,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-24 23:49:22  peter
+  Revision 1.3  1998-09-27 10:16:26  florian
+    * type casts pchar<->ansistring fixed
+    * ansistring[..] calls does now an unique call
+
+  Revision 1.2  1998/09/24 23:49:22  peter
     + aktmodeswitches
 
   Revision 1.1  1998/09/23 20:42:24  peter

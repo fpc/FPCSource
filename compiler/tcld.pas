@@ -174,6 +174,9 @@ implementation
          store_valid:=must_be_valid;
          must_be_valid:=false;
 
+         { must be made unique }
+         set_unique(p^.left);
+
          firstpass(p^.left);
          if codegenerror then
            exit;
@@ -396,7 +399,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-24 15:13:48  peter
+  Revision 1.3  1998-09-27 10:16:27  florian
+    * type casts pchar<->ansistring fixed
+    * ansistring[..] calls does now an unique call
+
+  Revision 1.2  1998/09/24 15:13:48  peter
     * fixed type node which was always set to void :(
 
   Revision 1.1  1998/09/23 20:42:24  peter

@@ -324,7 +324,7 @@ implementation
 
     procedure secondvecn(var p : ptree);
       var
-        pushed : boolean;
+        is_pushed : boolean;
         ind,hr : tregister;
         _p : ptree;
 
@@ -358,6 +358,7 @@ implementation
          t   : ptree;
          hp  : preference;
          tai : Pai386;
+         pushed : tpushed;
 
       begin
          secondpass(p^.left);
@@ -370,11 +371,34 @@ implementation
            begin
               reset_reference(p^.location.reference);
               p^.location.loc:=LOC_REFERENCE;
+              if is_ansistring(p^.left^.resulttype) then
+                begin
+                   if p^.callunique then
+                     begin
+                        pushusedregisters(pushed,$ff);
+                        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                        emitcall('FPC_UNIQUE_ANSISTRING',true);
+                        maybe_loadesi;
+                        popusedregisters(pushed);
+                     end;
+                end
+              else
+                begin
+                   if p^.callunique then
+                     begin
+                        pushusedregisters(pushed,$ff);
+                        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                        emitcall('FPC_UNIQUE_WIDESTRING',true);
+                        maybe_loadesi;
+                        popusedregisters(pushed);
+                     end;
+                end;
               del_reference(p^.left^.location.reference);
               p^.location.reference.base:=getregister32;
               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                 newreference(p^.left^.location.reference),
                 p^.location.reference.base)));
+
               if is_ansistring(p^.left^.resulttype) then
                 begin
                    { in ansistrings S[1] is pchar(S)[0] !! }
@@ -480,9 +504,9 @@ implementation
               if (p^.location.loc<>LOC_REFERENCE) and
                  (p^.location.loc<>LOC_MEM) then
                 CGMessage(cg_e_illegal_expression);
-              pushed:=maybe_push(p^.right^.registers32,p);
+              is_pushed:=maybe_push(p^.right^.registers32,p);
               secondpass(p^.right);
-              if pushed then restore(p);
+              if is_pushed then restore(p);
               case p^.right^.location.loc of
                  LOC_REGISTER:
                    begin
@@ -649,7 +673,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-09-23 15:46:36  florian
+  Revision 1.13  1998-09-27 10:16:23  florian
+    * type casts pchar<->ansistring fixed
+    * ansistring[..] calls does now an unique call
+
+  Revision 1.12  1998/09/23 15:46:36  florian
     * problem with with and classes fixed
 
   Revision 1.11  1998/09/17 09:42:18  peter

@@ -214,7 +214,7 @@ unit tree;
              fixconstn : (value_fix: longint);
              funcretn : (funcretprocinfo : pointer;retdef : pdef);
              subscriptn : (vs : pvarsym);
-             vecn : (memindex,memseg:boolean);
+             vecn : (memindex,memseg:boolean;callunique : boolean);
 {$ifdef UseAnsiString}
              stringconstn : (value_str : pchar;length : longint; lab_str : plabel;stringtype : tstringtype);
 {$else UseAnsiString}
@@ -285,6 +285,10 @@ unit tree;
     const
        maxfirstpasscount : longint = 0;
 {$endif extdebug}
+
+    { sets the callunique flag, if the node is a vecn, }
+    { takes care of type casts etc.                    }
+    procedure set_unique(p : ptree);
 
     { gibt den ordinalen Werten der Node zurueck oder falls sie }
     { keinen ordinalen Wert hat, wird ein Fehler erzeugt        }
@@ -1493,6 +1497,20 @@ unit tree;
           equal_trees:=false;
      end;
 
+    procedure set_unique(p : ptree);
+
+      begin
+         if assigned(p) then
+           begin
+              case p^.treetype of
+                 vecn:
+                    p^.callunique:=true;
+                 typeconvn:
+                    set_unique(p^.left);
+              end;
+           end;
+      end;
+
     {This is needed if you want to be able to delete the string with the nodes !!}
     procedure set_location(var destloc,sourceloc : tlocation);
 
@@ -1570,7 +1588,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.42  1998-09-23 12:03:59  peter
+  Revision 1.43  1998-09-27 10:16:28  florian
+    * type casts pchar<->ansistring fixed
+    * ansistring[..] calls does now an unique call
+
+  Revision 1.42  1998/09/23 12:03:59  peter
     * overloading fix for array of const
 
   Revision 1.41  1998/09/23 09:58:55  peter

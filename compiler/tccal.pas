@@ -182,7 +182,10 @@ implementation
               { is this usefull here ? }
               { this was missing in formal parameter list   }
               if defcoll^.paratyp=vs_var then
-                make_not_regable(p^.left);
+                begin
+                   set_unique(p^.left);
+                   make_not_regable(p^.left);
+                end;
 
               p^.resulttype:=defcoll^.data;
            end;
@@ -907,7 +910,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-09-24 14:27:40  peter
+  Revision 1.4  1998-09-27 10:16:24  florian
+    * type casts pchar<->ansistring fixed
+    * ansistring[..] calls does now an unique call
+
+  Revision 1.3  1998/09/24 14:27:40  peter
     * some better support for openarray
 
   Revision 1.2  1998/09/24 09:02:16  peter
