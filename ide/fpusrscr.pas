@@ -95,6 +95,9 @@ type
 {$endif}
 
 {$ifdef Unix}
+
+    TConsoleType = (ttyNetwork,ttyLinux,ttyFreeBSD,ttyNetBSD);
+
     PLinuxScreen = ^TLinuxScreen;
     TLinuxScreen = object(TScreen)
       constructor Init;
@@ -110,9 +113,15 @@ type
       procedure   SwitchToConsoleScreen; virtual;
       procedure   SwitchBackToIDEScreen; virtual;
     private
-      IDE_screen: pvideobuf;
-      IDE_size : longint;
+      IdeScreen: PByteArray;
+      IdeSize : longint;
       IsXterm : boolean;
+      Console : TConsoleType;
+      TTyfd : longint;
+      ConsVideoBuf : PByteArray;
+      ConsHeight, ConsWidth,
+      ConsCursorX, ConsCursorY : byte;
+      ConsVideoBufSize : longint;
     end;
 {$endif}
 
@@ -162,6 +171,13 @@ uses
   {$ifdef FPC}
     {$ifdef GO32V2}
     ,Dpmiexcp, Go32
+    {$endif}
+    {$ifdef Unix}
+      {$ifdef VER1_0}
+        ,linux
+      {$else}
+        ,unix
+      {$endif}
     {$endif}
   {$endif}
     ,Drivers,App
@@ -630,43 +646,98 @@ end;
 {$ifdef Unix}
 
 constructor TLinuxScreen.Init;
+var
+  ThisTTY: string[30];
+  FName: string;
+  WS: packed record
+    ws_row, ws_col, ws_xpixel, ws_ypixel: Word;
+  end;
 begin
   inherited Init;
-  IDE_screen := nil;
+  IdeScreen := nil;
   IsXterm:=getenv('TERM')='xterm';
+  ThisTTY:=TTYName(stdinputhandle);
+  if Not IsXterm and IsATTY(stdinputhandle) then
+    begin
+      Console:=TTyNetwork;  {Default: Network or other vtxxx tty}
+      if (Copy(ThisTTY, 1, 8) = '/dev/tty') and (ThisTTY[9]<>'p') Then
+        begin
+          Case ThisTTY[9] of
+            '0'..'9' :
+              begin { running Linux on native console or native-emulation }
+                FName:='/dev/vcsa' + ThisTTY[9];
+                TTYFd:=fdOpen(FName, Octal(666), Open_RdWr); { open console }
+                If TTYFd <>-1 Then
+       		  Console:=ttyLinux;
+              end;
+       	 'v'  :  { check for (Free?)BSD native}
+       		If (ThisTTY[10]>='0') and (ThisTTY[10]<='9') Then
+       		 Console:=ttyFreeBSD;	{TTYFd ?}
+    	 end;
+       end;
+     If Copy(GetEnv('TERM'),1,6)='cons25' Then
+       Console:=ttyFreeBSD;
+     ioctl(stdinputhandle, TIOCGWINSZ, @WS);
+     if WS.ws_Col=0 then
+       WS.ws_Col:=80;
+     if WS.ws_Row=0 then
+       WS.ws_Row:=25;
+     ConsWidth:=WS.ws_Col;
+     ConsHeight:=WS.ws_row;
+   end;
   Capture;
 end;
 
 
 destructor TLinuxScreen.Done;
 begin
+  if assigned(IdeScreen) then
+    freemem(IdeScreen,IdeSize);
+  if assigned(ConsVideoBuf) then
+    freemem(ConsVideoBuf,ConsVideoBufSize);
   inherited Done;
 end;
 
 
 function TLinuxScreen.GetWidth: integer;
 begin
-  GetWidth:=ScreenWidth;
+  GetWidth:=ConsWidth;
 end;
 
 
 function TLinuxScreen.GetHeight: integer;
 begin
-  GetHeight:=ScreenHeight;
+  GetHeight:=ConsHeight;
 end;
 
 
 procedure TLinuxScreen.GetLine(Line: integer; var Text, Attr: string);
+var
+  X, W : longint;
 begin
   Text:='';
   Attr:='';
+  if (TtyFd<>-1) and assigned(ConsVideoBuf) then
+    begin
+      if Line<GetHeight then
+        begin
+          W:=(ConsWidth*Line)*Sizeof(word);
+          for X:=0 to GetWidth-1 do
+             begin
+               {Text:=Text+chr(VBuffer^[W+X*2]);
+               Attr:=Attr+chr(VBuffer^[W+X*2+1]);}
+               System.Insert(chr(ConsVideoBuf^[W+X*2]),Text,Length(Text)+1);
+               System.Insert(chr(ConsVideoBuf^[W+X*2+1]),Attr,Length(Attr)+1);
+             end;
+        end;
+    end;
 end;
 
 
 procedure TLinuxScreen.GetCursorPos(var P: TPoint);
 begin
-  P.X:=0;
-  P.Y:=0;
+  P.X:=ConsCursorX;
+  P.Y:=ConsCursorY;
 end;
 
 
@@ -677,17 +748,46 @@ end;
 
 procedure TLinuxScreen.SaveIDEScreen;
 begin
-  if assigned(IDE_screen) then
-    dispose(IDE_screen);
-  getmem(IDE_screen,videobufsize);
-  Ide_size:=videobufsize;
-  move(videobuf^,IDE_screen^,videobufsize);
+  if assigned(IdeScreen) then
+    freemem(IdeScreen,IdeSize);
+  getmem(IdeScreen,videobufsize);
+  IdeSize:=videobufsize;
+  move(videobuf^,IdeScreen^,videobufsize);
 end;
 
 procedure TLinuxScreen.SaveConsoleScreen;
+var
+  NewSize : longint;
 begin
   if IsXTerm then
-    write(#27'7'#27'[?47h');
+    write(#27'7'#27'[?47h')
+  else if (TTYfd<>-1) then
+    begin
+     fdSeek(TTYFd, 0, Seek_Set);
+     fdRead(TTYFd,ConsHeight,sizeof(byte));
+     fdRead(TTYFd,ConsWidth,sizeof(byte));
+     fdRead(TTYFd,ConsCursorX,sizeof(byte));
+     fdRead(TTYFd,ConsCursorY,sizeof(byte));
+     NewSize:=ConsWidth*ConsHeight*sizeof(word);
+     if (NewSize<>ConsVideoBufSize) and
+        assigned(ConsVideoBuf) then
+       Begin
+         FreeMem(ConsVideoBuf,ConsVideoBufSize);
+         ConsVideoBuf:=nil;
+       End;
+     If not assigned(ConsVideoBuf) then
+       GetMem(ConsVideoBuf,NewSize);
+     ConsVideoBufSize:=NewSize;
+     fdRead(TTYFd,ConsVideoBuf^,ConsVideoBufSize);
+    end
+  else
+    begin
+      ConsWidth:=80;
+      ConsHeight:=25;
+      ConsCursorX:=0;
+      ConsCursorY:=0;
+      ConsVideoBuf:=nil;
+    end;
 end;
 
 
@@ -697,16 +797,25 @@ begin
     begin
       write(#27'[0m');
       write(#27'[?47l'#27'8'#27'[m');
+    end
+  else if (TTyfd<>-1) then
+    begin
+      fdSeek(TTYFd, 4, Seek_Set);
+      fdWrite(TTYFd, ConsVideoBuf^,ConsVideoBufSize);
+      fdWrite(TTYFd, ConsCursorX, sizeof(word));
+      fdWrite(TTYFd, ConsCursorY, sizeof(word));
+      { FreeMem(ConsVideoBuf,ConsVideoBufSize);
+      ConsVideoBuf:=nil; }
     end;
 end;
 
 procedure TLinuxScreen.SwitchBackToIDEScreen;
 begin
-  if IDE_screen = nil then
+  if IdeScreen = nil then
     exit;
-  move(IDE_screen^,videobuf^,videobufsize);
-  freemem(IDE_screen,Ide_size);
-  IDE_screen := nil;
+  move(IdeScreen^,videobuf^,videobufsize);
+  freemem(IdeScreen,IdeSize);
+  IdeScreen := nil;
 end;
 
 {$endif}
@@ -1112,7 +1221,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2002-09-07 21:04:42  carl
+  Revision 1.19  2002-09-13 07:17:33  pierre
+   + use vcsa for linux console
+
+  Revision 1.18  2002/09/07 21:04:42  carl
     * fix range check errors for version 1.1 compilation
 
   Revision 1.17  2002/09/07 15:40:46  peter
