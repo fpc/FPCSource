@@ -2376,6 +2376,9 @@
           end;
          lastref:=defref;
        { first, we assume that all registers are used }
+{$ifdef newcg}
+         usedregisters:=[firstreg..lastreg];
+{$else newcg}
 {$ifdef i386}
          usedregisters:=$ff;
 {$endif i386}
@@ -2386,6 +2389,7 @@
          usedregisters_int:=$ffffffff;
          usedregisters_fpu:=$ffffffff;
 {$endif alpha}
+{$endif newcg}
          forwarddef:=true;
          interfacedef:=false;
          _class := nil;
@@ -2401,6 +2405,10 @@
       begin
          inherited load;
          deftype:=procdef;
+
+{$ifdef newcg}
+         readnormalset(usedregisters);
+{$else newcg}
 {$ifdef i386}
          usedregisters:=readbyte;
 {$endif i386}
@@ -2411,7 +2419,7 @@
          usedregisters_int:=readlong;
          usedregisters_fpu:=readlong;
 {$endif alpha}
-
+{$endif newcg}
          s:=readstring;
          setstring(_mangledname,s);
 
@@ -2600,6 +2608,9 @@ Const local_symtable_index : longint = $8001;
       begin
          inherited write;
          current_ppu^.do_interface_crc:=false;
+{$ifdef newcg}
+         writenormalset(usedregisters);
+{$else newcg}
 {$ifdef i386}
          writebyte(usedregisters);
 {$endif i386}
@@ -2610,6 +2621,7 @@ Const local_symtable_index : longint = $8001;
          writelong(usedregisters_int);
          writelong(usedregisters_fpu);
 {$endif alpha}
+{$endif newcg}
          writestring(mangledname);
          current_ppu^.do_interface_crc:=true;
          writelong(extnumber);
@@ -3531,7 +3543,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.137  1999-07-31 22:37:17  michael
+  Revision 1.138  1999-08-02 21:29:02  florian
+    * the main branch psub.pas is now used for
+      newcg compiler
+
+  Revision 1.137  1999/07/31 22:37:17  michael
   * Fix of initialization information generation
 
   Revision 1.136  1999/07/29 20:54:07  peter

@@ -57,7 +57,7 @@
    {$endif GDB}
    
    { One of Alpha, I386 or M68K must be defined }
-   {$UNDEFINE CPUOK}
+   {$UNDEF CPUOK}
    
    {$ifdef I386}
    {$define CPUOK}
@@ -270,7 +270,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-08-02 17:15:03  michael
+  Revision 1.5  1999-08-02 21:29:06  florian
+    * the main branch psub.pas is now used for
+      newcg compiler
+
+  Revision 1.4  1999/08/02 17:15:03  michael
   + CPU check better
 
   Revision 1.3  1999/08/02 17:14:10  florian

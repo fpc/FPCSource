@@ -465,24 +465,6 @@ const
 
 
 {*****************************************************************************
-                                Operands
-*****************************************************************************}
-
-
-       { Types of operand }
-        toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
-
-        toper=record
-          ot  : longint;
-          case typ : toptype of
-           top_none   : ();
-           top_reg    : (reg:tregister);
-           top_ref    : (ref:preference);
-           top_const  : (val:longint);
-           top_symbol : (sym:pasmsymbol;symofs:longint);
-        end;
-
-{*****************************************************************************
                                 Conditions
 *****************************************************************************}
 
@@ -656,7 +638,22 @@ type
      options     : trefoptions;
   end;
 
+{*****************************************************************************
+                                Operands
+*****************************************************************************}
 
+       { Types of operand }
+        toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
+
+        toper=record
+          ot  : longint;
+          case typ : toptype of
+           top_none   : ();
+           top_reg    : (reg:tregister);
+           top_ref    : (ref:preference);
+           top_const  : (val:longint);
+           top_symbol : (sym:pasmsymbol;symofs:longint);
+        end;
 
 {*****************************************************************************
                                Generic Location
@@ -1007,7 +1004,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1999-08-02 21:01:45  michael
+  Revision 1.10  1999-08-02 21:28:58  florian
+    * the main branch psub.pas is now used for
+      newcg compiler
+
+  Revision 1.9  1999/08/02 21:01:45  michael
   * Moved toperand type back =(
 
   Revision 1.8  1999/08/02 20:45:49  michael

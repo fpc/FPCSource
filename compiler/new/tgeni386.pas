@@ -24,12 +24,34 @@ unit tgeni386;
 
   interface
 
+    procedure cleartempgen;
+    procedure resettempgen;
+
   implementation
+
+    uses
+       tgcpu;
+
+    procedure cleartempgen;
+
+      begin
+         tg.cleartempgen;
+      end;
+
+    procedure resettempgen;
+
+      begin
+         tg.resettempgen;
+      end;
 
 end.
 {
   $Log$
-  Revision 1.1  1999-08-02 17:15:05  florian
+  Revision 1.2  1999-08-02 21:29:09  florian
+    * the main branch psub.pas is now used for
+      newcg compiler
+
+  Revision 1.1  1999/08/02 17:15:05  florian
     * dummy implementation
 
 }

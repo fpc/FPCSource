@@ -62,7 +62,10 @@ uses
 {$ifdef dummy}
   end   { avoid the stupid highlighting of the TP IDE }
 {$endif dummy}
-  ,tgeni386,cgai386
+  ,tgeni386
+{$ifndef newcg}
+  ,cgai386
+{$endif newcg}
   {$ifndef NoOpt}
   ,aopt386
   {$endif}
@@ -72,6 +75,9 @@ uses
 {$endif}
   { parser specific stuff }
   ,pbase,pdecl,pexpr,pstatmnt
+{$ifdef newcg}
+  ,tgcpu,convtree,cgobj
+{$endif newcg}
   ;
 
 var
@@ -1367,7 +1373,11 @@ var
    { switches can change inside the procedure }
    entryswitches, exitswitches : tlocalswitches;
    { code for the subroutine as tree }
+{$ifdef newcg}
+   code:pnode;
+{$else newcg}
    code:ptree;
+{$endif newcg}
    { size of the local strackframe }
    stackframe:longint;
    { true when no stackframe is required }
@@ -1438,18 +1448,29 @@ begin
 
    { reset the temporary memory }
    cleartempgen;
+
+{$ifdef newcg}
+   tg.usedinproc:=[];
+{$else newcg}
    { no registers are used }
    usedinproc:=0;
-
+{$endif newcg}
    { save entry info }
    entrypos:=aktfilepos;
    entryswitches:=aktlocalswitches;
-
+{$ifdef newcg}
+   { parse the code ... }
+   if (aktprocsym^.definition^.options and poassembler)<> 0 then
+     code:=convtree2node(assembler_block)
+   else
+     code:=convtree2node(block(current_module^.islibrary));
+{$else newcg}
    { parse the code ... }
    if (aktprocsym^.definition^.options and poassembler)<> 0 then
      code:=assembler_block
    else
      code:=block(current_module^.islibrary);
+{$endif newcg}
 
    { get a better entry point }
    if assigned(code) then
@@ -1470,14 +1491,22 @@ begin
    { set the framepointer to esp for assembler functions }
    { but only if the are no local variables           }
    { already done in assembler_block }
+{$ifdef newcg}
+   tg.setfirsttemp(procinfo.firsttemp);
+{$else newcg}
    setfirsttemp(procinfo.firsttemp);
+{$endif newcg}
 
    { ... and generate assembler }
    { but set the right switches for entry !! }
    aktlocalswitches:=entryswitches;
 {$ifndef NOPASS2}
+{$ifdef newcg}
+   tg.setfirsttemp(procinfo.firsttemp);
+{$else newcg}
    if assigned(code) then
      generatecode(code);
+{$endif newcg}
    { set switches to status at end of procedure }
    aktlocalswitches:=exitswitches;
 
@@ -1487,23 +1516,40 @@ begin
 
         { the procedure is now defined }
         aktprocsym^.definition^.forwarddef:=false;
+{$ifdef newcg}
+        aktprocsym^.definition^.usedregisters:=tg.usedinproc;
+{$else newcg}
         aktprocsym^.definition^.usedregisters:=usedinproc;
+{$endif newcg}
      end;
 
+{$ifdef newcg}
+   stackframe:=tg.gettempsize;
+{$else newcg}
    stackframe:=gettempsize;
+{$endif newcg}
 
    { first generate entry code with the correct position and switches }
    aktfilepos:=entrypos;
    aktlocalswitches:=entryswitches;
+{$ifdef newcg}
+   if assigned(code) then
+     cg^.g_entrycode(procinfo.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
+{$else newcg}
    if assigned(code) then
      genentrycode(procinfo.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
+{$endif newcg}
 
    { now generate exit code with the correct position and switches }
    aktfilepos:=exitpos;
    aktlocalswitches:=exitswitches;
    if assigned(code) then
      begin
+{$ifdef newcg}
+       cg^.g_exitcode(procinfo.aktexitcode,parasize,nostackframe,false);
+{$else newcg}
        genexitcode(procinfo.aktexitcode,parasize,nostackframe,false);
+{$endif newcg}
        procinfo.aktproccode^.insertlist(procinfo.aktentrycode);
        procinfo.aktproccode^.concatlist(procinfo.aktexitcode);
 {$ifdef i386}
@@ -1581,7 +1627,11 @@ begin
 
    { remove code tree, if not inline procedure }
    if assigned(code) and ((aktprocsym^.definition^.options and poinline)=0) then
+{$ifdef newcg}
+     dispose(code,done);
+{$else newcg}
      disposetree(code);
+{$endif newcg}
 
    { remove class member symbol tables }
    while symtablestack^.symtabletype=objectsymtable do
@@ -1854,7 +1904,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  1999-07-27 23:42:16  peter
+  Revision 1.7  1999-08-02 21:29:01  florian
+    * the main branch psub.pas is now used for
+      newcg compiler
+
+  Revision 1.6  1999/07/27 23:42:16  peter
     * indirect type referencing is now allowed
 
   Revision 1.5  1999/07/26 09:42:15  florian

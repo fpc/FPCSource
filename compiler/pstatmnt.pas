@@ -727,6 +727,7 @@ unit pstatmnt;
          { Read first the _ASM statement }
          consume(_ASM);
 
+{$ifndef newcg}
          { END is read }
          if try_to_consume(LECKKLAMMER) then
            begin
@@ -773,6 +774,7 @@ unit pstatmnt;
               consume(RECKKLAMMER);
            end
          else usedinproc:=$ff;
+{$endif newcg}
 
 { mark the start and the end of the assembler block for the optimizer }
 
@@ -1169,6 +1171,7 @@ unit pstatmnt;
                      {opsym^.address:=procinfo.call_offset; is wrong PM }
                      opsym^.address:=-procinfo.retoffset;
                    { eax is modified by a function }
+{$ifndef newcg}
 {$ifdef i386}
                    usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
@@ -1181,6 +1184,7 @@ unit pstatmnt;
                    if is_64bitint(procinfo.retdef) then
                      usedinproc:=usedinproc or ($800 shr byte(R_D1))
 {$endif}
+{$endif newcg}
                 end;
            end;
 
@@ -1238,12 +1242,14 @@ unit pstatmnt;
                    procinfo.retoffset:=procinfo.firsttemp-procinfo.retdef^.size;
                    procinfo.firsttemp:=procinfo.retoffset;                 }
 
+{$ifndef newcg}
 {$ifdef i386}
                    usedinproc:=usedinproc or ($80 shr byte(R_EAX))
 {$endif}
 {$ifdef m68k}
                    usedinproc:=usedinproc or ($800 shr word(R_D0))
 {$endif}
+{$endif newcg}
                 end
               {
               else if not is_fpu(procinfo.retdef) then
@@ -1278,7 +1284,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.92  1999-07-26 09:42:14  florian
+  Revision 1.93  1999-08-02 21:28:59  florian
+    * the main branch psub.pas is now used for
+      newcg compiler
+
+  Revision 1.92  1999/07/26 09:42:14  florian
     * bugs 494-496 fixed
 
   Revision 1.91  1999/06/30 22:16:22  florian

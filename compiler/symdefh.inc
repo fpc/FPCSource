@@ -418,6 +418,9 @@
           count      : boolean;
           is_used    : boolean;
           { set which contains the modified registers }
+{$ifdef newcg}
+          usedregisters : tregisterset;
+{$else newcg}
 {$ifdef i386}
           usedregisters : byte;
 {$endif}
@@ -428,6 +431,7 @@
           usedregisters_int : longint;
           usedregisters_fpu : longint;
 {$endif}
+{$endif newcg}
           constructor init;
           destructor done;virtual;
           constructor load;
@@ -527,7 +531,11 @@
 
 {
   $Log$
-  Revision 1.35  1999-07-27 23:42:20  peter
+  Revision 1.36  1999-08-02 21:29:04  florian
+    * the main branch psub.pas is now used for
+      newcg compiler
+
+  Revision 1.35  1999/07/27 23:42:20  peter
     * indirect type referencing is now allowed
 
   Revision 1.34  1999/07/23 16:05:30  peter

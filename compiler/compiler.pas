@@ -41,12 +41,12 @@
 
 {$ifdef FPC}
    { One of Alpha, I386 or M68K must be defined }
-   {$UNDEFINE CPUOK}
-   
+   {$UNDEF CPUOK}
+
    {$ifdef I386}
    {$define CPUOK}
    {$endif}
-   
+
    {$ifdef M68K}
    {$ifndef CPUOK}
    {$DEFINE CPUOK}
@@ -290,7 +290,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  1999-08-02 20:46:57  michael
+  Revision 1.27  1999-08-02 21:28:56  florian
+    * the main branch psub.pas is now used for
+      newcg compiler
+
+  Revision 1.26  1999/08/02 20:46:57  michael
   * Alpha aware switch detection
 
   Revision 1.25  1999/07/18 14:47:22  florian
