@@ -34,30 +34,34 @@ function DoEncodeDate(Year, Month, Day: Word): longint;
 var
   c, ya: cardinal;
 begin
-if (Month > 0) and (Month < 13) and (Day > 0) and (Day < 32) then
+  if (Month > 0) and (Month < 13) and (Day > 0) and (Day < 32) then
    begin
-     if month > 2 then Month := Month - 3 else
-     begin
-       Month := Month + 9;
-       Year:= Year - 1;
-     end;
+     if month > 2 then
+      Dec(Month,3)
+     else
+      begin
+        Inc(Month,9);
+        Dec(Year);
+      end;
      c:= Year DIV 100;
      ya:= Year - 100*c;
-     result := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*Month+2) DIV 5 + Day -
-693900;
-   end else result:=0;
+     result := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*Month+2) DIV 5 + Day - 693900;
+   end
+  else
+   result:=0;
 end;
 
 function DoEncodeTime(Hour, Minute, Second, MilliSecond: word): longint;
 begin
-If ((hour>=0) and (Hour<24)) and
-   ((Minute>=0) and (Minute<60)) and
-   ((Second>=0) and (Second<60)) and
-   ((MilliSecond>=0) and (Millisecond<1000)) then
-  Result := (Hour * 3600000 + Minute * 60000 + Second * 1000 + MilliSecond)
-else
-  Result:=0;
-end ;
+  If ((hour>=0) and (Hour<24)) and
+     ((Minute>=0) and (Minute<60)) and
+     ((Second>=0) and (Second<60)) and
+     ((MilliSecond>=0) and (Millisecond<1000)) then
+    Result := (Hour * 3600000 + Minute * 60000 + Second * 1000 + MilliSecond)
+  else
+    Result:=0;
+end;
+
 
 {==============================================================================}
 {   Public functions                                                           }
@@ -66,29 +70,25 @@ end ;
 {   DateTimeToTimeStamp converts DateTime to a TTimeStamp   }
 
 function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
-
-
 begin
-result.Time := Trunc(Frac(DateTime) * MSecsPerDay);
-result.Date := 1
-               + DateDelta
-               + Trunc(System.Int(DateTime));
+  result.Time := Trunc(Frac(DateTime) * MSecsPerDay);
+  result.Date := 1 + DateDelta + Trunc(System.Int(DateTime));
 end ;
 
 {   TimeStampToDateTime converts TimeStamp to a TDateTime value   }
 
 function TimeStampToDateTime(const TimeStamp: TTimeStamp): TDateTime;
 begin
-result := (TimeStamp.Date - DateDelta - 1) + (TimeStamp.Time / MSecsPerDay);
+  result := (TimeStamp.Date - DateDelta - 1) + (TimeStamp.Time / MSecsPerDay);
 end ;
 
 {   MSecsToTimeStamp   }
 
 function MSecsToTimeStamp(MSecs: comp): TTimeStamp;
 begin
-  result.Date := trunc(msecs / msecsperday);
+  result.Date := Round(msecs / msecsperday);
   msecs:= comp(msecs-result.date*msecsperday);
-  result.Time := Trunc(MSecs);
+  result.Time := Round(MSecs);
 end ;
 
 {   TimeStampToMSecs   }
@@ -103,7 +103,7 @@ end ;
 
 function EncodeDate(Year, Month, Day: word): TDateTime;
 begin
-result := DoEncodeDate(Year, Month, Day);
+  result := DoEncodeDate(Year, Month, Day);
 end ;
 
 {   EncodeTime packs four variables Hour, Minute, Second and MilliSecond into
@@ -111,7 +111,7 @@ end ;
 
 function EncodeTime(Hour, Minute, Second, MilliSecond:word):TDateTime;
 begin
-Result := DoEncodeTime(hour, minute, second, millisecond) / MSecsPerDay;
+  Result := DoEncodeTime(hour, minute, second, millisecond) / MSecsPerDay;
 end ;
 
 {   DecodeDate unpacks the value Date into three values:
@@ -130,11 +130,14 @@ begin
   Month:=(5 * Day-3) DIV 153;
   Day:= (5 * Day +2 - 153*Month) DIV 5;
   Year:= 100 * Year + j;
-  if Month < 10 then Month:= Month + 3 else begin
-    Month:= Month-9;
-    inc(Year);
-  end;
-end ;
+  if Month < 10 then
+   inc(Month,3)
+  else
+    begin
+      dec(Month,9);
+      inc(Year);
+    end;
+end;
 
 {   DecodeTime unpacks Time into four values:
     Hour, Minute, Second and MilliSecond    }
@@ -143,7 +146,7 @@ procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: wor
 Var
   l : cardinal;
 begin
- l := Trunc(Frac(time) * MSecsPerDay);
+ l := Round(Frac(time) * MSecsPerDay);
  Hour   := l div 3600000;
  l := l mod 3600000;
  Minute := l div 60000;
@@ -165,13 +168,8 @@ end ;
 
 function SystemTimeToDateTime(const SystemTime: TSystemTime): TDateTime;
 begin
-result := DoEncodeDate(SystemTime.Year,
-                       SystemTime.Month,
-                       SystemTime.Day) +
-          DoEncodeTime(SystemTime.Hour,
-                       SystemTime.Minute,
-                       SystemTime.Second,
-                       SystemTime.MilliSecond) / MSecsPerDay;
+  result := DoEncodeDate(SystemTime.Year, SystemTime.Month, SystemTime.Day) +
+            DoEncodeTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond) / MSecsPerDay;
 end ;
 
 {   DayOfWeek returns the Day of the week (sunday is day 1)  }
@@ -184,89 +182,86 @@ end ;
 {   Date returns the current Date   }
 
 function Date: TDateTime;
-var SystemTime: TSystemTime;
+var
+  SystemTime: TSystemTime;
 begin
-GetLocalTime(SystemTime);
-result := DoEncodeDate(SystemTime.Year,
-                       SystemTime.Month,
-                       SystemTime.Day);
+  GetLocalTime(SystemTime);
+  result := DoEncodeDate(SystemTime.Year, SystemTime.Month, SystemTime.Day);
 end ;
 
 {   Time returns the current Time   }
 
 function Time: TDateTime;
-var SystemTime: TSystemTime;
+var
+  SystemTime: TSystemTime;
 begin
-GetLocalTime(SystemTime);
-Result := DoEncodeTime(SystemTime.Hour,
-                       SystemTime.Minute,
-                       SystemTime.Second,
-                       SystemTime.MilliSecond) / MSecsPerDay;
+  GetLocalTime(SystemTime);
+  Result := DoEncodeTime(SystemTime.Hour,SystemTime.Minute,SystemTime.Second,SystemTime.MilliSecond) / MSecsPerDay;
 end ;
 
 {   Now returns the current Date and Time    }
 
 function Now: TDateTime;
-var SystemTime: TSystemTime;
+var
+  SystemTime: TSystemTime;
 begin
-GetLocalTime(SystemTime);
-result := DoEncodeDate(SystemTime.Year,
-                       SystemTime.Month,
-                       SystemTime.Day) +
-          DoEncodeTime(SystemTime.Hour,
-                       SystemTime.Minute,
-                       SystemTime.Second,
-                       SystemTime.MilliSecond) / MSecsPerDay;
+  GetLocalTime(SystemTime);
+  result := DoEncodeDate(SystemTime.Year,SystemTime.Month,SystemTime.Day) +
+            DoEncodeTime(SystemTime.Hour,SystemTime.Minute,SystemTime.Second,SystemTime.MilliSecond) / MSecsPerDay;
 end ;
 
 {   IncMonth increments DateTime with NumberOfMonths months,
     NumberOfMonths can be less than zero   }
 
 function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer): TDateTime;
-var Year, Month, Day: word;
-    S : Integer;
-
+var
+  Year, Month, Day: word;
+  S : Integer;
 begin
-If NumberOfMonths>=0 then s:=1 else s:=-1;
-DecodeDate(DateTime, Year, Month, Day);
-Year := Year + (NumberOfMonths div 12);
-Month := Month + (NumberOfMonths mod 12)-1 ; // Mod result always positive
-if Month>11 then begin
-   Dec(Month, S*12);
-   Inc(Year, S);
-   end ;
-Inc(Month, 1);                            {   Months from 1 to 12   }
-if (Month = 2) and (IsLeapYear(Year)) and (Day > 28) then
+  If NumberOfMonths>=0 then
+    s:=1
+  else
+    s:=-1;
+  DecodeDate(DateTime, Year, Month, Day);
+  inc(Year,(NumberOfMonths div 12));
+  inc(Month,(NumberOfMonths mod 12)-1); // Mod result always positive
+  if Month>11 then
+   begin
+     Dec(Month, S*12);
+     Inc(Year, S);
+   end;
+  Inc(Month);                            {   Months from 1 to 12   }
+  if (Month = 2) and (IsLeapYear(Year)) and (Day > 28) then
    Day := 28;
-result := Frac(DateTime) + DoEncodeDate(Year, Month, Day);
+  result := Frac(DateTime) + DoEncodeDate(Year, Month, Day);
 end ;
 
 {  IsLeapYear returns true if Year is a leap year   }
 
 function IsLeapYear(Year: Word): boolean;
 begin
-Result := (Year mod 4 = 0) and ((Year mod 100 <> 0) or (Year mod 400 = 0));
+  Result := (Year mod 4 = 0) and ((Year mod 100 <> 0) or (Year mod 400 = 0));
 end;
 
 {  DateToStr returns a string representation of Date using ShortDateFormat   }
 
 function DateToStr(Date: TDateTime): string;
 begin
-result := FormatDateTime('ddddd', Date);
+  result := FormatDateTime('ddddd', Date);
 end ;
 
 {  TimeToStr returns a string representation of Time using ShortTimeFormat   }
 
 function TimeToStr(Time: TDateTime): string;
 begin
-result := FormatDateTime('t', Time);
+  result := FormatDateTime('t', Time);
 end ;
 
 {   DateTimeToStr returns a string representation of DateTime using ShortDateTimeFormat   }
 
 function DateTimeToStr(DateTime: TDateTime): string;
 begin
-result := FormatDateTime('c', DateTime);
+  result := FormatDateTime('c', DateTime);
 end ;
 
 {   StrToDate converts the string S to a TDateTime value
@@ -274,7 +269,6 @@ end ;
     an EConvertError will be raised   }
 
 function StrToDate(const S: string): TDateTime;
-
 var
    df:string;
    d,m,y:word;
@@ -284,7 +278,6 @@ var
    s1:string[4];
    values:array[1..3] of longint;
    LocalTime:tsystemtime;
-
 begin
   df := UpperCase(ShortDateFormat);
   { Determine order of D,M,Y }
@@ -680,7 +673,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  2000-02-27 14:41:25  peter
+  Revision 1.22  2000-06-18 18:02:54  peter
+    * fixed decodetime which used trunc instead of round
+
+  Revision 1.21  2000/02/27 14:41:25  peter
     * removed warnings/notes
 
   Revision 1.20  2000/02/09 16:59:32  peter
