@@ -381,7 +381,7 @@ uses
             LOC_CONSTANT : (
               case longint of
                 1 : (value : AWord);
-                2 : (valuelow, valuehigh:AWord);
+                2 : (valuehigh, valuelow:AWord);
                 { overlay a complete 64 Bit value }
                 3 : (valueqword : qword);
               );
@@ -520,7 +520,7 @@ uses
       { WARNING: don't change to R_ST0!! See comments above implementation of }
       { a_loadfpu* methods in rgcpu (JM)                                      }
 {$warning I don't know the exact values, please check (PFV) }
-      FPU_RESULT_REG = R_F0;
+      fpu_result_reg = R_F1;
       mmresultreg = R_M0;
 
 {*****************************************************************************
@@ -646,7 +646,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2002-08-06 20:55:24  florian
+  Revision 1.25  2002-08-10 17:15:06  jonas
+    * endianess fix
+
+  Revision 1.24  2002/08/06 20:55:24  florian
     * first part of ppc calling conventions fix
 
   Revision 1.23  2002/08/04 12:57:56  jonas

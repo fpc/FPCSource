@@ -152,8 +152,7 @@ implementation
     procedure tcgordconstnode.pass_2;
       begin
          location_reset(location,LOC_CONSTANT,def_cgsize(resulttype.def));
-         location.valuelow:=AWord(value);
-         location.valuehigh:=AWord(value shr 32);
+         location.valueqword:=qword(value);
       end;
 
 
@@ -392,7 +391,7 @@ implementation
          neededtyp   : tait;
       type
          setbytes=array[0..31] of byte;
-	 Psetbytes=^setbytes;
+         Psetbytes=^setbytes;
       begin
         { small sets are loaded as constants }
         if tsetdef(resulttype.def).settype=smallset then
@@ -423,11 +422,11 @@ implementation
                              i:=0;
                              while assigned(hp1) and (i<32) do
                               begin
-			    {$ifdef oldset}
+                            {$ifdef oldset}
                                 if tai_const(hp1).value<>value_set^[i] then
-			    {$else}
+                            {$else}
                                 if tai_const(hp1).value<>Psetbytes(value_set)^[i] then
-			    {$endif}
+                            {$endif}
                                  break;
                                 inc(i);
                                 hp1:=tai(hp1.next);
@@ -526,7 +525,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-07-23 12:34:30  daniel
+  Revision 1.16  2002-08-10 17:15:06  jonas
+    * endianess fix
+
+  Revision 1.15  2002/07/23 12:34:30  daniel
   * Readded old set code. To use it define 'oldset'. Activated by default
     for ppc.
 
