@@ -117,6 +117,9 @@ endif
 
 override COMPILER+=$(LOCALOPT)
 
+ifneq (,$(findstring -s ,$(LOCALOPT)))
+override EXECPPAS=@$(PPAS)
+endif
 
 # include OPT also for the RTL (also needed to pass the RELEASE options
 # to the RTL !!)
@@ -358,7 +361,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.18  1999-03-09 01:35:48  peter
+# Revision 1.19  1999-03-10 12:30:12  pierre
+#  + override EXECPPAS if LOCALOPT contains win32
+#
+# Revision 1.18  1999/03/09 01:35:48  peter
 #   * makefile.fpc updates and defaultfpcdir var
 #
 #
