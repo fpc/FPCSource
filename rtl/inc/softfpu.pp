@@ -63,13 +63,29 @@ TYPE
   sbits16 = integer;
   sbits32 = longint;
   bits32 = longword;
+{$ifndef fpc}
+  qword = int64;
+{$endif}
+  uint64 = qword;
+  bits64 = qword;
+  sbits64 = int64;
+  
 {$ifdef ENDIAN_LITTLE}
   float64 = packed record
     low: bits32;
     high: bits32;
   end;
+
+  int64rec = packed record
+    low: bits32;
+    high: bits32;
+  end;
 {$else}
  float64 = packed record
+   high,low : bits32;
+ end;
+
+ int64rec = packed record
    high,low : bits32;
  end;
 
@@ -322,6 +338,20 @@ according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *}
 Function int32_to_float32( a: int32): float32; 
 
+{*----------------------------------------------------------------------------
+| Returns the result of converting the 64-bit two's complement integer `a'
+| to the double-precision floating-point format.  The conversion is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+function int64_to_float64( a: int64 ): float64;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the 64-bit two's complement integer `a'
+| to the single-precision floating-point format.  The conversion is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+function int64_to_float32( a: int64 ): float32;
+
 
 CONST
 {-------------------------------------------------------------------------------
@@ -553,6 +583,9 @@ Begin
     z1Ptr := z1;
     z0Ptr := z0;
 End;
+
+
+
 
 {*
 -------------------------------------------------------------------------------
@@ -1039,6 +1072,26 @@ Begin
     shiftCount := shiftcount + countLeadingZerosHigh[ a shr 24 ];
     countLeadingZeros32:= shiftCount;
 End;
+
+{*----------------------------------------------------------------------------
+| Returns the number of leading 0 bits before the most-significant 1 bit of
+| `a'.  If `a' is zero, 64 is returned.
+*----------------------------------------------------------------------------*}
+
+function countLeadingZeros64( a : bits64): int8;
+var
+ shiftcount : int8;
+Begin 
+    shiftCount := 0;
+    if ( a <  (bits64(1)  shl 32 )) then
+        shiftCount := shiftcount + 32
+    else
+        a := a shr 32;
+    shiftCount := shiftCount + countLeadingZeros32( a );
+    countLeadingZeros64:= shiftCount;
+End;
+
+
 
 {*
 -------------------------------------------------------------------------------
@@ -4488,10 +4541,110 @@ Begin
       float64_lt_quiet := lt64( a.high, a.low, b.high, b.low );
 End;
 
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the 64-bit two's complement integer `a'
+| to the single-precision floating-point format.  The conversion is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+function int64_to_float32( a: int64 ): float32;
+var
+    zSign : flag;
+    absA : uint64;
+    shiftCount: int8;
+    zSig : bits32;
+    intval : int64rec;
+Begin
+    if ( a = 0 ) then
+      begin
+       int64_to_float32 := 0;
+       exit;
+      end;
+    if a < 0 then
+      zSign := flag(TRUE)
+    else
+      zSign := flag(FALSE);
+    if zSign<>0 then
+       absA := -a
+    else
+       absA := a;
+    shiftCount := countLeadingZeros64( absA ) - 40;
+    if ( 0 <= shiftCount ) then
+      begin
+        int64_to_float32:= packFloat32( zSign, $95 - shiftCount, absA shl shiftCount );
+      end
+    else 
+       begin
+        shiftCount := shiftCount + 7;
+        if ( shiftCount < 0 ) then
+          begin
+            intval.low := int64rec(AbsA).low;
+            intval.high := int64rec(AbsA).high;
+            shift64RightJamming( intval.low, intval.high, - shiftCount, 
+               intval.low, intval.high);
+            int64rec(absA).low := intval.low;
+            int64rec(absA).high := intval.high;
+          end
+        else
+            absA := absA shl shiftCount;
+        int64_to_float32:=roundAndPackFloat32( zSign, $9C - shiftCount, absA );
+      end;
+End;
+
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the 64-bit two's complement integer `a'
+| to the double-precision floating-point format.  The conversion is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function int64_to_float64( a: int64 ): float64;
+var
+ zSign : flag;
+ float_result : float64;
+ intval : int64rec;
+Begin
+    if ( a = 0 ) then
+      begin
+        int64_to_float64.low := 0;
+        int64_to_float64.high := 0;
+        exit;
+      end;
+    if ( a =  sbits64 ( 1 shl 64 ) ) then
+      begin
+        packFloat64(1, $43E, 0, 0, float_result);
+        int64_to_float64 := float_result;
+        exit;
+      end;  
+    if a < 0 then
+      zSign := flag(TRUE)
+    else
+      zSign := flag(FALSE);
+    if zSign<>0 then 
+      a := -a;
+    if zSign <> 0 then
+     begin
+       a:=-a;
+       intval.low := int64rec(a).low;
+       intval.high := int64rec(a).high;
+       normalizeRoundAndPackFloat64( zSign, $43C, intval.low, intval.high , float_result )
+     end
+    else
+     begin 
+       intval.low := int64rec(a).low;
+       intval.high := int64rec(a).high;
+       normalizeRoundAndPackFloat64( zSign, $43C, intval.low, intval.high , float_result );
+     end;
+    int64_to_float64:= float_result;
+End;
+
 end.
 {
    $Log$
-   Revision 1.2  2002-10-08 20:07:08  carl
+   Revision 1.3  2002-10-12 20:24:22  carl
+     + int64_tof_loat conversion routines
+
+   Revision 1.2  2002/10/08 20:07:08  carl
      * fix range check errors
      - overflow checking must be off always
      * debugged and works as expected
