@@ -176,9 +176,9 @@ Type
 {$ifndef HASCURRENCY}
   Currency            = Int64;
 {$endif HASCURRENCY}
-  HRESULT             = Longint;
-  TDateTime           = Double;
-  Error               = Longint;
+  HRESULT             = type Longint;
+  TDateTime           = type Double;
+  Error               = type Longint;
 
   PSingle             = ^Single;
   PDouble             = ^Double;
@@ -665,7 +665,10 @@ const
 
 {
   $Log$
-  Revision 1.64  2003-03-17 14:30:11  peter
+  Revision 1.65  2003-04-01 15:36:31  peter
+    * make HResult unique type
+
+  Revision 1.64  2003/03/17 14:30:11  peter
     * changed address parameter/return values to pointer instead
       of longint
 
