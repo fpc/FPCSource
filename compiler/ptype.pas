@@ -116,6 +116,18 @@ implementation
                srsym:=nil;
               consume(_ID);
            end;
+         { Types are first defined with an error def before assigning
+           the real type so check if it's an errordef. if so then
+           give an error. Only check for typesyms in the current symbol
+           table as forwarddef are not resolved directly }
+         if assigned(srsym) and
+            (srsym.owner=symtablestack) and
+            (ttypesym(srsym).restype.def.deftype=errordef) then
+          begin
+            Message1(type_e_type_is_not_completly_defined,ttypesym(srsym).realname);
+            tt:=generrortype;
+            exit;
+          end;
          { are we parsing a possible forward def ? }
          if isforwarddef and
             not(is_unit_specific) then
@@ -137,22 +149,18 @@ implementation
             tt:=generrortype;
             exit;
           end;
-         { Types are first defined with an error def before assigning
-           the real type so check if it's an errordef. if so then
-           give an error }
+         { Give an error when referring to an errordef }
          if (ttypesym(srsym).restype.def.deftype=errordef) then
           begin
             Message(sym_e_error_in_type_def);
             tt:=generrortype;
             exit;
           end;
-         { Only use the definitions for system/current unit, becuase
+         { Only use the definitions for current unit, becuase
            they can be refered from the parameters and symbols are not
            loaded at that time. A symbol reference to an other unit
            is still possible, because it's already loaded (PFV)
            can't use in [] here, becuase unitid can be > 255 }
-{         if (ttypesym(srsym).owner.unitid=0) or
-            (ttypesym(srsym).owner.unitid=1) then }
          if (ttypesym(srsym).owner.unitid=0) then
           tt.setdef(ttypesym(srsym).restype.def)
          else
@@ -631,7 +639,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2002-07-20 11:57:56  florian
+  Revision 1.43  2002-09-09 19:34:07  peter
+    * check for incomplete types in the current symtable when parsing
+      forwarddef. Maybe this shall be delphi/tp only
+
+  Revision 1.42  2002/07/20 11:57:56  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
