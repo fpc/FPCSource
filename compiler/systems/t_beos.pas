@@ -216,6 +216,10 @@ procedure TLinkerBeOS.SetDefaultInfo;
 begin
   with Info do
    begin
+     ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE cat `$RES`';
+     DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
+     DllCmd[2]:='strip --strip-unneeded $EXE';
+     {
      ExeCmd[1]:='sh $RES $EXE $OPT $STATIC $STRIP -L.';
 {     ExeCmd[1]:='sh $RES $EXE $OPT $DYNLINK $STATIC $STRIP -L.';}
       DllCmd[1]:='sh $RES $EXE $OPT -L.';
@@ -223,6 +227,7 @@ begin
 {     DllCmd[1]:='sh $RES $EXE $OPT -L. -g -nostart -soname=$EXE';
  }    DllCmd[2]:='strip --strip-unneeded $EXE';
 {     DynamicLinker:='/lib/ld-beos.so.2';}
+      }
    end;
 end;
 
@@ -261,12 +266,12 @@ begin
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
-
+  {
   if not isdll then
    LinkRes.Add('ld -o $1 $2 $3 $4 $5 $6 $7 $8 $9 \')
   else
    LinkRes.Add('ld -o $1 -e 0 $2 $3 $4 $5 $6 $7 $8 $9\');
-
+  }
   LinkRes.Add('-m elf_i386_be -shared -Bsymbolic \');
 
   { Write path to search libraries }
@@ -470,7 +475,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2003-10-03 14:16:48  marco
+  Revision 1.7  2004-01-29 22:50:53  florian
+    * tried to fix BeOS linking
+
+  Revision 1.6  2003/10/03 14:16:48  marco
    * -XP<prefix> support
 
   Revision 1.5  2003/04/27 07:29:52  peter
