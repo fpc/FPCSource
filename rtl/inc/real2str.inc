@@ -80,9 +80,10 @@ begin
       end;
     rt_s64bit  :
       begin
-         maxlen:=24;
+         maxlen:=22;
          minlen:=9;
-         explen:=5;
+         { according to TP (was 5) (FK) }
+         explen:=6;
       end;
     end;
   { check parameters }
@@ -204,8 +205,11 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-04-07 22:40:46  florian
+    * final fix of comp writing
+
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 
   Revision 1.7  1998/03/16 23:38:17  peter
     * fixed 0.997:0:2 bugs

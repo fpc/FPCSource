@@ -461,12 +461,10 @@ End;
 Procedure w(fixkomma,Len : Longint;var t : TextRec;r : comp);[Public,Alias: 'WRITE_TEXT_COMP'];
 var
   s : String;
-  e : extended;
   L : longint;
 
 Begin
-  e:=r;
-  Str_real(Len,fixkomma,e,rt_s80real,s);
+  Str_real(Len,fixkomma,r,rt_s64bit,s);
   w(Len,t,s);
 End;
 {$endif comp_support}
@@ -906,7 +904,10 @@ End;
 
 {
   $Log$
-  Revision 1.3  1998-04-04 17:06:17  michael
+  Revision 1.4  1998-04-07 22:40:46  florian
+    * final fix of comp writing
+
+  Revision 1.3  1998/04/04 17:06:17  michael
   * fixed initialization bug in assign.
 
   Revision 1.2  1998/03/26 14:41:22  michael
