@@ -525,7 +525,7 @@ implementation
                   { ELSE-label                                      }
                   if first then
                     begin
-                       { have we to ajust the first value ?}
+                       { have we to ajust the first value ? }
                        if t^._low>get_min_value(p^.left^.resulttype) then
                          begin
                             if t^._low=1 then
@@ -551,13 +551,12 @@ implementation
                   { immediately. else check the range in between:        }
                   if (t^._low-last>1) then
                     begin
-                       if t^._low-last-1=1 then
-                         exprasmlist^.concat(new(pai386,op_reg(A_DEC,opsize,hregister)))
-                       else
-                         exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,t^._low-last-1,hregister)));
+                       exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,t^._low-last,hregister)));
                        emitl(jmp_le,elselabel);
-                    end;
-                  exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,t^._high-t^._low+1,hregister)));
+                    end
+                  else
+                    exprasmlist^.concat(new(pai386,op_reg(A_DEC,opsize,hregister)));
+                  exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,t^._high-t^._low,hregister)));
                   emitl(jmp_lee,t^.statement);
 
                   last:=t^._high;
@@ -784,7 +783,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1998-09-09 16:44:21  florian
+  Revision 1.15  1998-09-09 17:51:59  florian
+    * the next try to fix the case problem ...
+
+  Revision 1.14  1998/09/09 16:44:21  florian
     * I hope, the case bug is fixed now
 
   Revision 1.13  1998/09/07 18:45:54  peter
