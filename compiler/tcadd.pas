@@ -521,7 +521,7 @@ implementation
                 else
                  begin
                    if not(p^.treetype in [addn,subn,symdifn,muln,equaln,unequaln]) then
-                    CGMessage(type_e_mismatch);
+                    CGMessage(type_e_set_operation_unknown );
                  { right def must be a also be set }
                    if (rd^.deftype<>setdef) or not(is_equal(rd,ld)) then
                     CGMessage(type_e_set_element_are_not_comp);
@@ -945,7 +945,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-10-21 15:12:57  pierre
+  Revision 1.8  1998-10-22 12:12:28  pierre
+   + better error info on unimplemented set operators
+
+  Revision 1.7  1998/10/21 15:12:57  pierre
     * bug fix for IOCHECK inside a procedure with iocheck modifier
     * removed the GPF for unexistant overloading
       (firstcall was called with procedinition=nil !)
