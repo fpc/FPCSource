@@ -457,20 +457,24 @@ implementation
          hp : tordconstnode;
       begin
          result:=nil;
-         if torddef(resulttype.def).typ=uchar then
+         if (torddef(resulttype.def).typ=uchar) and
+           (torddef(left.resulttype.def).typ=uwidechar) then
            begin
               hp:=cordconstnode.create(
                 ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value))),cchartype);
               resulttypepass(hp);
               result:=hp;
            end
-         else
+         else if (torddef(resulttype.def).typ=uwidechar) and
+           (torddef(left.resulttype.def).typ=uchar) then
            begin
               hp:=cordconstnode.create(
                 asciichar2unicode(chr(tordconstnode(left).value)),cwidechartype);
               resulttypepass(hp);
               result:=hp;
-           end;
+           end
+         else
+           internalerror(200105131);
       end;
 
 
@@ -1363,7 +1367,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2001-05-08 21:06:30  florian
+  Revision 1.28  2001-05-13 15:43:46  florian
+    * made resultype_char_to_char a little bit robuster
+
+  Revision 1.27  2001/05/08 21:06:30  florian
     * some more support for widechars commited especially
       regarding type casting and constants
 
