@@ -1293,10 +1293,13 @@ end;
                    end;
                   { reinsert the hp3 in the tree from hp2 }
                   inserttree(hp3,hp2);
-                  { reinsert }
+                  { reset node with new values }
                   stringdispose(hp^._name);
                   hp^._name:=stringdup(news);
                   hp^.speedvalue:=getspeedvalue(news);
+                  hp^.left:=nil;
+                  hp^.right:=nil;
+                  { reinsert }
                   if assigned(hasharray) then
                    rename:=insertnode(hp,hasharray^[hp^.speedvalue mod hasharraysize])
                   else
@@ -2012,7 +2015,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  1999-05-27 19:44:23  peter
+  Revision 1.33  1999-05-31 23:33:21  peter
+    * fixed tdictionary rename which didn't reset left,right when
+      reinserting
+
+  Revision 1.32  1999/05/27 19:44:23  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
