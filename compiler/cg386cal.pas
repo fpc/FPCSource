@@ -873,26 +873,50 @@ implementation
               if (p^.procdefinition^.options and pomethodpointer)<>0 then
                 begin
                    { method pointer can't be in a register }
+                   hregister:=R_NO;
+
+                   { do some hacking if we call a method pointer }
+                   { which is a class member                     }
+                   { else ESI is overwritten !                   }
+                   if (p^.right^.location.reference.base=R_ESI) or
+                     (p^.right^.location.reference.index=R_ESI) then
+                     begin
+                        del_reference(p^.right^.location.reference);
+                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                          newreference(p^.right^.location.reference),R_EDI)));
+                        hregister:=R_EDI;
+                     end;
+
                    inc(p^.right^.location.reference.offset,4);
+
                    { load ESI }
                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                      newreference(p^.right^.location.reference),R_ESI)));
                    { push self pointer }
                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
-                   del_reference(p^.right^.location.reference);
                    dec(p^.right^.location.reference.offset,4);
+
+                   if hregister=R_NO then
+                     exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,newreference(p^.right^.location.reference))))
+                   else
+                     exprasmlist^.concat(new(pai386,op_reg(A_CALL,S_NO,hregister)));
+
+                   del_reference(p^.right^.location.reference);
+                end
+              else
+                begin
+                   case p^.right^.location.loc of
+                      LOC_REGISTER,LOC_CREGISTER:
+                         begin
+                             exprasmlist^.concat(new(pai386,op_reg(A_CALL,S_NO,p^.right^.location.register)));
+                             ungetregister32(p^.right^.location.register);
+                         end
+                      else
+                         exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,newreference(p^.right^.location.reference))));
+                         del_reference(p^.right^.location.reference);
+                   end;
                 end;
-              case p^.right^.location.loc of
-                 LOC_REGISTER,LOC_CREGISTER:
-                    begin
-                        exprasmlist^.concat(new(pai386,op_reg(A_CALL,S_NO,p^.right^.location.register)));
-                        ungetregister32(p^.right^.location.register);
-                    end
-                 else
-                    exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,newreference(p^.right^.location.reference))));
-                    del_reference(p^.right^.location.reference);
-              end;
-             end;
+           end;
 
            { this was only for normal functions
              displaced here so we also get
@@ -1258,7 +1282,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  1999-02-02 11:04:36  florian
+  Revision 1.62  1999-02-02 23:52:32  florian
+    * problem with calls to method pointers in methods fixed
+    - double ansistrings temp management removed
+
+  Revision 1.61  1999/02/02 11:04:36  florian
     * class destructors fixed, class instances weren't disposed correctly
 
   Revision 1.60  1999/01/28 23:56:44  florian

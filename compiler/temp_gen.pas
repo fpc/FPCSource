@@ -70,7 +70,6 @@ unit temp_gen;
           pos : longint;
           size : longint;
           persistant : boolean; { used for inlined procedures }
-          istempansistring : boolean;
 {$ifdef EXTDEBUG}
           posinfo,releaseposinfo : tfileposinfo;
 {$endif}
@@ -198,7 +197,6 @@ unit temp_gen;
          tl^.size:=size;
          tl^.next:=templist;
          tl^.persistant:=false;
-         tl^.istempansistring:=false;
          templist:=tl;
 {$ifdef EXTDEBUG}
          tl^.posinfo:=aktfilepos;
@@ -256,7 +254,6 @@ unit temp_gen;
          { do a reset, because the reference isn't used }
          reset_reference(ref);
          ref.offset:=gettempofsize(4);
-         templist^.istempansistring:=true;
          ref.base:=procinfo.framepointer;
       end;
 
@@ -452,8 +449,6 @@ unit temp_gen;
                        end;
                    if (ref.offset=tl^.pos) then
                      begin
-                        if tl^.istempansistring then
-                          decransiref(ref);
                         ungettemp(ref.offset,tl^.size);
 {$ifdef TEMPDEBUG}
                    Comment(V_Debug,'temp managment  : ungettemp()'+
@@ -508,7 +503,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-01-15 11:34:23  pierre
+  Revision 1.7  1999-02-02 23:52:33  florian
+    * problem with calls to method pointers in methods fixed
+    - double ansistrings temp management removed
+
+  Revision 1.6  1999/01/15 11:34:23  pierre
    + better info for temp allocation debugging
 
   Revision 1.5  1998/11/30 09:43:24  pierre
