@@ -1189,6 +1189,7 @@ begin
   if Index<RecentFileCount then
      Move(RecentFiles[Index+1],RecentFiles[Index],SizeOf(RecentFiles[1])*(RecentFileCount-Index));
   Dec(RecentFileCount);
+  UpdateRecentFileList;
 end;
 
 function TIDEApp.GetPalette: PPalette;
@@ -1216,7 +1217,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.17  2002-08-26 13:02:15  pierre
+  Revision 1.18  2002-09-03 13:58:05  pierre
+   * fix bug about Recent file list not updated correctly when opening a file from the list
+
+  Revision 1.17  2002/08/26 13:02:15  pierre
    * avoid a crash with fvision
 
   Revision 1.16  2002/08/13 08:59:12  pierre
