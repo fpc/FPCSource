@@ -514,7 +514,10 @@ begin
         StaticStr:='-static';
     end;
   if (cs_link_strip in aktglobalswitches) then
-   StripStr:='-s';
+   if (target_info.system <> system_powerpc_darwin) then
+     StripStr:='-s'
+   else
+     StripStr:='-x';
   If (cs_profile in aktmoduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
@@ -618,7 +621,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2004-06-02 07:03:49  jonas
+  Revision 1.17  2004-06-08 17:14:49  jonas
+    * use -x instead of -s for stripping under Mac OS X (-s strips too much
+      sometimes)
+
+  Revision 1.16  2004/06/02 07:03:49  jonas
     - disabled automatic adding of libraries from "external lib name 'xxx'"
       for now (until we have proper framework support)
 
