@@ -724,14 +724,15 @@ end ['D0'];
 {$ifdef cpusparc}
 {$define FPC_PreviousFramePointer_Implemented}
 asm
+    { flush register windows, so they are stored in the stack }
+    ta      3
     { we have first our own frame }
-    ld [%fp],%i0
-    ld [%i0],%i0
+    ld [%fp+56],%i0
+    ld [%i0+56],%i0
 end;
 {$endif}
 {$ifdef cpupowerpc}
 {$define FPC_PreviousFramePointer_Implemented}
-{$warning FIX ME !!!! }
 asm
     lwz  r3,0(r1)
 end;
@@ -2945,7 +2946,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.33  2004-08-26 22:58:01  carl
+  Revision 1.34  2004-10-03 17:43:47  florian
+    * fixedPreviousFramePointer on sparc
+
+  Revision 1.33  2004/08/26 22:58:01  carl
     * bugfix with file sharing modes. They are now kept, as is the case in BP.
 
   Revision 1.32  2004/06/20 09:24:40  peter

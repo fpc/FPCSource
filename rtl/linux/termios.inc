@@ -1,7 +1,19 @@
 {
-  $Id$
-}
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2004 by Marco van de Voort
+    member of the Free Pascal development team
 
+    ioctls constants for linux
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 {********************
    IOCtl(TermIOS)
 ********************}
@@ -11,7 +23,7 @@ Const
   NCCS = 32;
   NCC = 8;
 
-{$ifdef powerpc}
+{$ifdef cpupowerpc}
   TCGETS            = $402c7413;
   TCSETS            = $802c7414;
   TCSETSW           = $802c7415;
@@ -72,8 +84,9 @@ Const
   TIOCPKT_START     = $8;
   TIOCPKT_NOSTOP    = $10;
   TIOCPKT_DOSTOP    = $20;
+{$endif}
 
-{$else}
+{$ifdef cpui386}
   { For Terminal handling }
   TCGETS          = $5401;
   TCSETS          = $5402;
@@ -136,8 +149,78 @@ Const
   TIOCPKT_START      = 8;
   TIOCPKT_NOSTOP     = 16;
   TIOCPKT_DOSTOP     = 32;
+{$endif cpui386}
 
-{$endif}
+{$ifdef cpusparc}
+  TCGETA = $40125401;
+  TCSETA = $80125402;
+  TCSETAW = $80125403;
+  TCSETAF = $80125404;
+  TCSBRK = $20005405;
+  TCXONC = $20005406;
+  TCFLSH = $20005407;
+  TCGETS = $40245408;
+  TCSETS = $80245409;
+  TCSETSW = $8024540a;
+  TCSETSF = $8024540b;
+  TIOCGETD = $40047400;
+  TIOCSETD = $80047401;
+  TIOCEXCL = $2000740d;
+  TIOCNXCL = $2000740e;
+  TIOCCONS = $20007424;
+  TIOCGSOFTCAR = $40047464;
+  TIOCSSOFTCAR = $80047465;
+  TIOCSWINSZ = $80087467;
+  TIOCGWINSZ = $40087468;
+  TIOCMGET = $4004746a;
+  TIOCMBIC = $8004746b;
+  TIOCMBIS = $8004746c;
+  TIOCMSET = $8004746d;
+  TIOCSTART = $2000746e;
+  TIOCSTOP = $2000746f;
+  TIOCPKT = $80047470;
+  TIOCNOTTY = $20007471;
+  TIOCSTI = $80017472;
+  TIOCOUTQ = $40047473;
+  TIOCCBRK = $2000747a;
+  TIOCSBRK = $2000747b;
+  TIOCSPGRP = $80047482;
+  TIOCGPGRP = $40047483;
+  TIOCSCTTY = $20007484;
+  TIOCGSID = $40047485;
+  TIOCGPTN = $40047486;
+  TIOCSPTLCK = $80047487;
+  FIOCLEX = $20006601;
+  FIONCLEX = $20006602;
+  FIOASYNC = $8004667d;
+  FIONBIO = $8004667e;
+  FIONREAD = $4004667f;
+  TIOCINQ = $4004667f;
+  TIOCLINUX = $541c;
+  TIOCGSERIAL = $541e;
+  TIOCSSERIAL = $541f;
+  TCSBRKP = $5425;
+  TIOCTTYGSTRUCT = $5426;
+  TIOCSERCONFIG = $5453;
+  TIOCSERGWILD = $5454;
+  TIOCSERSWILD = $5455;
+  TIOCGLCKTRMIOS = $5456;
+  TIOCSLCKTRMIOS = $5457;
+  TIOCSERGSTRUCT = $5458;
+  TIOCSERGETLSR = $5459;
+  TIOCSERGETMULTI = $545a;
+  TIOCSERSETMULTI = $545b;
+  TIOCMIWAIT = $545c;
+  TIOCGICOUNT = $545d;
+  TIOCPKT_DATA = $0;
+  TIOCPKT_FLUSHREAD = $1;
+  TIOCPKT_FLUSHWRITE = $2;
+  TIOCPKT_STOP = $4;
+  TIOCPKT_START = $8;
+  TIOCPKT_NOSTOP = $10;
+  TIOCPKT_DOSTOP = $20;
+{$endif cpusparc}
+
 Type
   winsize = packed record
     ws_row,
@@ -333,7 +416,10 @@ const
 
 {
   $Log$
-  Revision 1.7  2004-02-21 16:24:47  marco
+  Revision 1.8  2004-10-03 17:43:47  florian
+    * fixedPreviousFramePointer on sparc
+
+  Revision 1.7  2004/02/21 16:24:47  marco
    * ppc ioctl nr fixed
 
 }
