@@ -87,11 +87,11 @@ begin
                  Writeln('FPE error computing constant expression')
                else
                  Writeln('FPE error inside compiler');
-               Stop;
+               Stop(1);
              end;
     SIGINT : begin
                WriteLn('Ctrl-C Signaled!');
-               Stop;
+               Stop(1);
              end;
   end;
 {$ifndef unix}
@@ -115,7 +115,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  2004-06-20 08:55:28  florian
+  Revision 1.19  2004-09-09 08:19:47  olle
+    + Added argument to Stop
+
+  Revision 1.18  2004/06/20 08:55:28  florian
     * logs truncated
 
 }
