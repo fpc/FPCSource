@@ -3060,12 +3060,12 @@ requested, things aren't aligned on 4-byte boundaries.  When speed is
 requested, things are aligned on 4-byte boundaries as much as possible.
 \item Fast optimizations (\var{-O1}): activate the peephole optimizer
 \item Slower optimizations (\var{-O2}): also activate the common subexpression
-elimination (formaerly called the "reloading optimizer)
+elimination (formerly called the "reloading optimizer")
 \item Uncertain optimizations (\var{-Ou}): With this switch, the common subexpression
 elimination algorithm can be forced into making uncertain optimizations.
 
 Although you can enable uncertain optimizations in most cases, for people who
-do not understand the follwong technical explanation, it might be the safes to
+do not understand the following technical explanation, it might be the safest to
 leave them off.
 
 \begin{quote}
@@ -3218,8 +3218,8 @@ when they cannot be used.
 \end{description}
 
 \section{Tips to get faster code}
-Here some general tips for getting better code are presented. They are
-mainly concerned with coding style.
+Here some general tips for getting better code are presented. They
+mainly concern coding style.
 
 \begin{itemize}
 \item Find a better algorithm. No matter how much you and the compiler 
@@ -3232,9 +3232,12 @@ using longint and cardinal variables.
 
 \item Turn on the optimizer.
 
+\item Write your if/then/else statements so that the code in the "then"-part
+gets executed most of the time (improves the rate of successful jump prediction).
+
 \item If you are allocating and disposing a lot of small memory blocks, 
-check out the heapblocks variable. (heapblocks are on by default from
-release 0.99.8 on)
+check out the heapblocks variable (heapblocks are on by default from
+release 0.99.8 and later)
 
 \item Profile your code (see the -pg switch) to find out where the 
 bottlenecks are. If you want, you can rewrite those parts in assembler. 
