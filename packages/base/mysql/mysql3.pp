@@ -156,11 +156,11 @@ st_mysql = Record
 {$ifndef use_mysql_321}
   server_status : cardinal;
 {$endif}
-  thread_id : cardinal;         { Id for connection in server }
+  thread_id : ptruint;         { Id for connection in server }
   affected_rows : my_ulonglong;
   insert_id : my_ulonglong;             { id if insert on table with NEXTNR }
   extra_info : my_ulonglong;            { Used by mysqlshow }
-  packet_length : cardinal;
+  packet_length : sizeint;
   status : mysql_status;
   fields : PMYSQL_FIELD;
   field_alloc : TMEM_ROOT;
@@ -186,7 +186,7 @@ st_mysql_res = record
   field_alloc :    TMEM_ROOT;
   row :            TMYSQL_ROW;                  { If unbuffered read }
   current_row :    TMYSQL_ROW;          { buffer to current row }
-  lengths :        pcardinal;           { column lengths of current row }
+  lengths :        psizeint;           { column lengths of current row }
   handle :         PMYSQL;              { for unbuffered reads }
   eof :            my_bool;                     { Used my mysql_fetch_row }
 end;
@@ -208,7 +208,7 @@ Function mysql_insert_id(mysql : PMYSQL): my_ulonglong;
 Function mysql_errno(mysql : PMYSQL) : Cardinal;
 Function mysql_info(mysql : PMYSQL): Pchar;
 Function mysql_reload(mysql : PMYSQL) : Longint;
-Function mysql_thread_id(mysql : PMYSQL) : Cardinal;
+Function mysql_thread_id(mysql : PMYSQL) : ptruint;
 Function mysql_error(mysql : PMYSQL) : pchar;
 
 { Original functions }
@@ -368,7 +368,7 @@ begin
    mysql_reload:=mysql_refresh(mysql,REFRESH_GRANT)
 end;
 
-Function mysql_thread_id(mysql : PMysql) : Cardinal;
+Function mysql_thread_id(mysql : PMysql) : ptruint;
 
 begin
   mysql_thread_id:=mysql^.thread_id
@@ -378,7 +378,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-09-30 19:34:47  michael
+  Revision 1.2  2004-11-02 23:33:32  florian
+    * 64 bit fixes
+
+  Revision 1.1  2004/09/30 19:34:47  michael
   + Split everything in version 3 and version 4
 
   Revision 1.1  2004/09/28 18:38:23  michael

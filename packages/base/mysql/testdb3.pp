@@ -24,7 +24,7 @@ begin
     DataBase:=@Dummy[1];
     end;
   Write ('Connecting to MySQL...');
-  sock :=  mysql_connect(PMysql(@qmysql),nil,'michael','geen');
+  sock :=  mysql_connect(PMysql(@qmysql),'cvs.freepascal.org','michael','geen');
   if sock=Nil then
     begin
     Writeln (stderr,'Couldn''t connect to MySQL.');
@@ -83,7 +83,10 @@ begin
   halt(0);
 end.
   $Log$
-  Revision 1.1  2004-09-30 19:34:47  michael
+  Revision 1.2  2004-11-02 23:33:32  florian
+    * 64 bit fixes
+
+  Revision 1.1  2004/09/30 19:34:47  michael
   + Split everything in version 3 and version 4
 
   Revision 1.4  2004/09/28 19:08:09  michael

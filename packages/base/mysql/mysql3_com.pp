@@ -29,7 +29,7 @@ Const mysqllib = 'mysqlclient';
  Common definition between mysql server & client
 }
 
-{$packrecords 4}
+{$packrecords c}
 { Extra types introduced for pascal }
 Type
   pbyte = ^byte;
@@ -154,7 +154,7 @@ st_net  = record
 {$ifndef use_mysql_321}
   no_send_ok : my_bool;
 {$endif}
-  remain_in_buf,r_length, buf_length, where_b : cardinal; //DT
+  remain_in_buf,r_length, buf_length, where_b : ptruint; //DT
 {$ifndef use_mysql_321}
   return_status : ^Cardinal;
   reading_or_writing : my_bool;
@@ -290,7 +290,10 @@ function  get_tty_password(opt_message:  pchar) : pchar;stdcall;external;
 
 end.
   $Log$
-  Revision 1.1  2004-09-30 19:34:47  michael
+  Revision 1.2  2004-11-02 23:33:32  florian
+    * 64 bit fixes
+
+  Revision 1.1  2004/09/30 19:34:47  michael
   + Split everything in version 3 and version 4
 
   Revision 1.1  2004/09/28 18:38:23  michael
