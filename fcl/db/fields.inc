@@ -231,6 +231,7 @@ Const
   SDateTime = 'TDateTime';
   SFloat = 'Float';
   SInteger = 'Integer';
+  SVariant = 'Variant';
   SString = 'String';
 
 constructor TField.Create(AOwner: TComponent);
@@ -327,6 +328,13 @@ begin
   AccessError(SInteger);
 end;
 
+function TField.GetAsVariant: Variant;
+
+begin
+  AccessError(SVariant);
+end;
+
+
 function TField.GetAsInteger: Integer;
 
 begin
@@ -337,6 +345,20 @@ function TField.GetAsString: string;
 
 begin
   AccessError(SString);
+end;
+
+function TField.GetOldValue: Variant;
+
+var SaveState : tDatasetState;
+
+begin
+  with FDataset do
+    begin
+    SaveState := State;
+    SetTempState(dsOldValue);
+    Result := GetAsVariant;
+    RestoreState(SaveState);
+    end;
 end;
 
 function TField.GetCanModify: Boolean;
@@ -481,6 +503,13 @@ procedure TField.SetAsFloat(AValue: Double);
 begin
   AccessError(SFloat);
 end;
+
+procedure TField.SetAsVariant(AValue: Variant);
+
+begin
+  AccessError(SVariant);
+end;
+
 
 procedure TField.SetAsLongint(AValue: Longint);
 
@@ -699,6 +728,18 @@ begin
     Result:='';
 end;
 
+function TStringField.GetAsVariant: Variant;
+
+Var s : string;
+
+begin
+  If GetValue(s) then
+    Result:=s
+  else
+    Result:=Null;
+end;
+
+
 function TStringField.GetDataSize: Word;
 
 begin
@@ -831,6 +872,17 @@ begin
     Result:=0;
 end;
 
+function TLongintField.GetAsVariant: Variant;
+
+Var L : Longint;
+
+begin
+  If GetValue(L) then
+    Result:=L
+  else
+    Result:=Null;
+end;
+
 function TLongintField.GetAsString: string;
 
 Var L : Longint;
@@ -900,6 +952,12 @@ begin
     SetData(@AValue)
   else
     RangeError(Avalue,FMinrange,FMaxRange);
+end;
+
+procedure TLongintField.SetAsVariant(AValue: Variant);
+
+begin
+  SetAsLongint(AValue);
 end;
 
 procedure TLongintField.SetAsString(const AValue: string);
@@ -982,6 +1040,17 @@ function TLargeintField.GetAsLargeint: Largeint;
 begin
   If Not GetValue(Result) then
     Result:=0;
+end;
+
+function TLargeIntField.GetAsVariant: Variant;
+
+Var L : Largeint;
+
+begin
+  If GetValue(L) then
+    Result:=L
+  else
+    Result:=Null;
 end;
 
 function TLargeintField.GetAsLongint: Longint;
@@ -1173,6 +1242,17 @@ begin
     Result:=0.0;
 end;
 
+function TFloatField.GetAsVariant: Variant;
+
+Var f : Double;
+
+begin
+  If GetData(@f) then
+    Result := f
+  else
+    Result:=Null;
+end;
+
 function TFloatField.GetAsLongint: Longint;
 
 begin
@@ -1270,6 +1350,17 @@ begin
     Result:=False;
 end;
 
+function TBooleanField.GetAsVariant: Variant;
+
+Var b : boolean;
+
+begin
+  If GetData(@b) then
+    Result := b
+  else
+    Result:=Null;
+end;
+
 function TBooleanField.GetAsString: string;
 
 Var B : boolean;
@@ -1353,6 +1444,16 @@ begin
     Result:=0;
 end;
 
+function TDateTimeField.GetAsVariant: Variant;
+
+Var d : tDateTime;
+
+begin
+  If Getdata(@d) then
+    Result := d
+  else
+    Result:=Null;
+end;
 
 function TDateTimeField.GetAsFloat: Double;
 
@@ -1581,6 +1682,17 @@ Var C : system.Currency;
 begin
   if GetData(@C) then
     result := C;
+end;
+
+function TBCDField.GetAsVariant: Variant;
+
+Var c : system.Currency;
+
+begin
+  If GetData(@c) then
+    Result := c
+  else
+    Result:=Null;
 end;
 
 function TBCDField.GetAsFloat: Double;
@@ -2095,7 +2207,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2004-12-13 19:20:42  michael
+  Revision 1.20  2004-12-29 20:27:08  michael
+  + Patch from Joost van der Sluis to correct AsVariant
+
+  Revision 1.19  2004/12/13 19:20:42  michael
     * Patch from Joost van der Sluis
     - fixed bug #3180, TFields.Clear implemented
     - implemented TLargeintField
