@@ -586,20 +586,20 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
-function fpc_shortstr_compare(const rightstr,leftstr:shortstring) : longint;[public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_shortstr_compare(const dstr,sstr:shortstring) : longint;[public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
    s1,s2,max,i : byte;
    d : longint;
 begin
-  s1:=length(rightstr);
-  s2:=length(leftstr);
+  s1:=length(dstr);
+  s2:=length(sstr);
   if s1<s2 then
     max:=s1
   else
     max:=s2;
   for i:=1 to max do
     begin
-     d:=byte(leftstr[i])-byte(rightstr[i]);
+     d:=byte(sstr[i])-byte(dstr[i]);
      if d>0 then
        exit(1)
      else if d<0 then
@@ -948,7 +948,10 @@ end;
 
 {
   $Log$
-  Revision 1.43  2002-10-20 11:51:54  carl
+  Revision 1.44  2002-12-23 21:27:13  peter
+    * fix wrong var names for shortstr_compare
+
+  Revision 1.43  2002/10/20 11:51:54  carl
    * avoid crashes with negative len counts on fills/moves
    * movechar0 was wrong and did not do the behavior as
      described in docs
