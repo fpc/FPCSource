@@ -1,17 +1,16 @@
 Name: fpc-docs
 Version: 1.1
-Release: 1
+Release: 0
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-docs-1.1-src.tar.gz
+Source: %{name}-%{version}-src.tar.gz
 Summary: Free Pascal Compiler Documentation
 Packager: Peter Vreman (peter@freepascal.org)
 URL: http://www.freepascal.org/
-BuildRoot: /tmp/fpc-docs-build
+BuildRoot: %{_tmppath}/fpc-build
 
-%define fpcversion 1.1
-%define fpcdir /usr/lib/fpc/%{fpcversion}
-%define docdir /usr/doc/fpc-%{fpcversion}
+%define fpcdir %{_libdir}/fpc/%{version}
+%define docdir %{_docdir}/fpc-%{version}
 
 %define builddocdir %{buildroot}%{docdir}
 
@@ -30,12 +29,18 @@ This package contains the documentation in PDF format
 	make -C docs pdf
 
 %install
+if [ %{buildroot} != "/" ]; then
 	rm -rf %{buildroot}
+fi
+
 	make -C docs pdfinstall DOCINSTALLDIR=%{builddocdir}
 
 %clean
 	make -C docs clean
+if [ %{buildroot} != "/" ]; then
 	rm -rf %{buildroot}
+fi
 
 %files
-/usr
+%defattr(-, root, root)
+%doc %{docdir}/*
