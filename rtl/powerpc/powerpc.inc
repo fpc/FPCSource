@@ -674,8 +674,11 @@ LShortStrCopyLoop2:
 LShortStrCopyDone2:
 end ['R0','R3','R4','R5','R10','CR0','CTR'];
 
-{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
+(*
+!!! fast version like for the i386, but not called this way currently (JM)
+
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
 function fpc_shortstr_concat(const s1,s2: shortstring): shortstring; compilerproc;
 { expects that results (r3) contains a pointer to the current string and s1 }
@@ -707,6 +710,7 @@ LShortStrConcatLoop:
       bdnz    LShortStrConcatLoop
 LShortStrConcatDone:
 end ['R3','R4','R8','R9','R10','CTR'];
+*)
 
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
@@ -877,7 +881,11 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.37  2003-04-26 20:37:17  jonas
+  Revision 1.38  2003-04-27 16:24:44  jonas
+    - disabled fpc_shortstr_concat because it's called differently than that
+      routine is declared
+
+  Revision 1.37  2003/04/26 20:37:17  jonas
     * fixed and re-enabled routines commented out by Florian :)
 
   Revision 1.36  2003/04/26 17:46:49  florian
