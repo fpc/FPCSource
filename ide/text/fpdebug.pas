@@ -29,6 +29,8 @@ type
      LastFileName : string;
      LastSource   : PView; {PsourceWindow !! }
      HiddenStepsCount : longint;
+     { no need to switch if using another terminal }
+     NoSwitch : boolean;
     constructor Init(const exefn:string);
     destructor  Done;
     procedure DoSelectSourceline(const fn:string;line:longint);virtual;
@@ -254,6 +256,7 @@ const
      BreakpointStateStr : Array[BreakpointState] of String[8]
        = ( 'enabled','disabled','invalid' );
 
+     DebuggeeTTY : string = '';
 var
   Debugger             : PDebugController;
   BreakpointsCollection : PBreakpointCollection;
@@ -359,6 +362,7 @@ constructor TDebugController.Init(const exefn:string);
 begin
   inherited Init;
   f := exefn;
+  NoSwitch:=False;
   LoadFile(f);
   SetArgs(GetRunParameters);
   Debugger:=@self;
@@ -421,7 +425,23 @@ end;
 procedure TDebugController.Run;
 begin
   ResetBreakpointsValues;
+{$ifdef win32}
+  { Run the debugge in another console }
+  if DebuggeeTTY<>'' then
+    Command('set new-console on')
+  else
+    Command('set new-console off');
+  NoSwitch:=DebuggeeTTY<>'';
+{$endif win32}
+{$ifdef linux}
+  { Run the debugge in another tty }
+  Command('set tty '+DebuggeeTTY);
+  NoSwitch:=DebuggeeTTY<>'';
+{$endif win32}
+  { Switch to user screen to get correct handles }
+  UserScreen;
   inherited Run;
+  DebuggerScreen;
   MyApp.SetCmdState([cmResetDebugger,cmUntilReturn],true);
   If assigned(StackWindow) then
     StackWindow^.Update;
@@ -498,6 +518,7 @@ var
 
 begin
   inherited Reset;
+  NoSwitch:=false;
   MyApp.SetCmdState([cmResetDebugger,cmUntilReturn],false);
   W:=PSourceWindow(LastSource);
   if assigned(W) then
@@ -637,6 +658,7 @@ begin
    W:=PSourceWindow(LastSource);
    if assigned(W) then
      W^.Editor^.SetDebuggerRow(-1);
+   LastExitCode:=Code;
    If HiddenStepsCount=0 then
      InformationBox(#3'Program exited with '#13#3'exitcode = %d',@code)
    else
@@ -652,12 +674,14 @@ end;
 
 procedure TDebugController.DoDebuggerScreen;
 begin
+  if NoSwitch then exit;
   MyApp.ShowIDEScreen;
 end;
 
 
 procedure TDebugController.DoUserScreen;
 begin
+  if NoSwitch then exit;
   MyApp.ShowUserScreen;
 end;
 
@@ -2373,7 +2397,10 @@ end.
 
 {
   $Log$
-  Revision 1.33  1999-10-25 16:39:03  pierre
+  Revision 1.34  1999-11-10 17:19:58  pierre
+   + Other window for Debuggee code
+
+  Revision 1.33  1999/10/25 16:39:03  pierre
    + GetPChar to avoid nil pointer problems
 
   Revision 1.32  1999/09/16 14:34:57  pierre
