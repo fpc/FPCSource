@@ -55,6 +55,7 @@ implementation
       globtype,systems,
       verbose,globals,
       symconst,symdef,types,
+      cpupara,
       pass_2,
       ncon,
       cga,tgobj,ncgutil,regvars,rgobj;
@@ -561,8 +562,8 @@ implementation
                   cg.a_load_loc_reg(exprasmlist,left.location,pleftreg);
                   location_freetemp(exprasmlist,left.location);
                   location_release(exprasmlist,left.location);
-                  cg.a_param_reg(exprasmlist,OS_8,pleftreg,2);
-                  cg.a_param_ref(exprasmlist,OS_ADDR,right.location.reference,1);
+                  cg.a_param_reg(exprasmlist,OS_8,pleftreg,getintparaloc(2));
+                  cg.a_param_ref(exprasmlist,OS_ADDR,right.location.reference,getintparaloc(1));
                   cg.a_call_name(exprasmlist,'FPC_SET_IN_BYTE');
                   { result of value is always one full register }
                   cg.a_load_reg_reg(exprasmlist,OS_INT,ACCUMULATOR,location.register);
@@ -580,13 +581,14 @@ implementation
 
 begin
    csetelementnode:=tcgsetelementnode;
-{$ifdef TEST_GENERIC}
    cinnode:=tcginnode;
-{$endif}
 end.
 {
   $Log$
-  Revision 1.3  2002-07-06 20:19:25  carl
+  Revision 1.4  2002-07-07 10:16:29  florian
+    * problems with last commit fixed
+
+  Revision 1.3  2002/07/06 20:19:25  carl
   + generic set handling
 
   Revision 1.2  2002/07/01 16:23:53  peter

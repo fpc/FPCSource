@@ -1288,10 +1288,10 @@ unit cgobj;
               both in stack and in self register.
             }
             { 2nd parameter  : flag }
-            a_param_const(list,OS_32,1,2);
+            a_param_const(list,OS_32,1,getintparaloc(2));
             { 1st parameter to destructor : self }
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
-            a_param_ref(list, OS_ADDR,href,1);
+            a_param_ref(list, OS_ADDR,href,getintparaloc(1));
             a_call_name(list,'FPC_DISPOSE_CLASS');
             { SET SELF TO NIL }
             a_load_const_reg(list,OS_ADDR,0,SELF_POINTER_REG);
@@ -1344,8 +1344,8 @@ finalization
 end.
 {
   $Log$
-  Revision 1.34  2002-07-07 10:05:34  florian
-    * typo fixed
+  Revision 1.35  2002-07-07 10:16:29  florian
+    * problems with last commit fixed
 
   Revision 1.33  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
