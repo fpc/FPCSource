@@ -70,7 +70,7 @@ const
     AllocMem: @SysAllocMem;
     ReAllocMem: @SysReAllocMem;
     MemSize: @SysMemSize;
-    GetHeapStatus: @GetHeapStatus;
+    GetHeapStatus: @SysGetHeapStatus;
   );
 
   MemoryMutexManager: TMemoryMutexManager = (
@@ -1271,7 +1271,10 @@ end;
 
 {
   $Log$
-  Revision 1.38  2004-11-22 19:34:58  peter
+  Revision 1.39  2004-11-22 22:26:21  peter
+    * typo for GetHeapStatus
+
+  Revision 1.38  2004/11/22 19:34:58  peter
     * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
 
   Revision 1.37  2004/10/25 15:38:59  peter
