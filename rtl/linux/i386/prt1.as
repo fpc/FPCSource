@@ -48,10 +48,10 @@ _haltproc:
 .data
 	.align	4
 	
-	.globl	___brk_addr		/* heap management */
-	.type	___brk_addr,@object
-	.size	___brk_addr,4
-___brk_addr:
+	.globl	___fpc_brk_addr		/* heap management */
+	.type	___fpc_brk_addr,@object
+	.size	___fpc_brk_addr,4
+___fpc_brk_addr:
 	.long	0
 	
 	.globl	__curbrk		/* necessary for libc */

@@ -158,7 +158,7 @@ End;
 Function Get_Brk_addr : longint;assembler;
 {$ifdef i386}
 asm
-        movl    ___brk_addr,%eax
+        movl    ___fpc_brk_addr,%eax
 end ['EAX'];
 {$endif}
 
@@ -167,7 +167,7 @@ Procedure Set_brk_addr (NewAddr : longint);assembler;
 {$ifdef i386}
 asm
         movl    NewAddr,%eax
-        movl    %eax,___brk_addr
+        movl    %eax,___fpc_brk_addr
 end ['EAX'];
 {$endif}
 
@@ -675,7 +675,10 @@ End.
 
 {
   $Log$
-  Revision 1.8  1998-07-13 21:19:14  florian
+  Revision 1.9  1998-07-20 23:40:20  michael
+  changed sbrk to fc_sbrk, to avoid conflicts with C library.
+
+  Revision 1.8  1998/07/13 21:19:14  florian
     * some problems with ansi string support fixed
 
   Revision 1.7  1998/07/02 12:36:21  carl

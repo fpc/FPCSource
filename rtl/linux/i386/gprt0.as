@@ -59,7 +59,7 @@ _haltproc:
 	.globl	___brk_addr
 	.type	___brk_addr,@object
 	.size	___brk_addr,4
-___brk_addr:
+___fpc_brk_addr:
 	.long	0
 	
 	.globl	__curbrk		/* necessary for libc */
