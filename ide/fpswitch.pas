@@ -425,7 +425,10 @@ function TSwitches.ItemName(index:integer):string;
 var
   P : PSwitchItem;
 begin
-  P:=Items^.At(Index);
+  if index<ItemCount then
+    P:=Items^.At(Index)
+  else
+    P:=nil;
   if assigned(P) then
    ItemName:=P^.Name
   else
@@ -437,7 +440,10 @@ function TSwitches.ItemParam(index:integer):string;
 var
   P : PSwitchItem;
 begin
-  P:=Items^.At(Index);
+  if index<ItemCount then
+    P:=Items^.At(Index)
+  else
+    P:=nil;
   if assigned(P) then
    ItemParam:='-'+Prefix+P^.Param
   else
@@ -449,7 +455,10 @@ function TSwitches.GetBooleanItem(index:integer):boolean;
 var
   P : PBooleanItem;
 begin
-  P:=Items^.At(Index);
+  if index<ItemCount then
+    P:=Items^.At(Index)
+  else
+    P:=nil;
   if assigned(P) and (P^.Typ=ot_boolean) then
    GetBooleanItem:=P^.IsSet[SwitchesMode]
   else
@@ -461,7 +470,10 @@ function TSwitches.GetLongintItem(index:integer):longint;
 var
   P : PLongintItem;
 begin
-  P:=Items^.At(Index);
+  if index<ItemCount then
+    P:=Items^.At(Index)
+  else
+    P:=nil;
   if assigned(P) and (P^.Typ=ot_longint) then
    GetLongintItem:=P^.Val[SwitchesMode]
   else
@@ -473,7 +485,10 @@ function TSwitches.GetStringItem(index:integer):string;
 var
   P : PStringItem;
 begin
-  P:=Items^.At(Index);
+  if index<ItemCount then
+    P:=Items^.At(Index)
+  else
+    P:=nil;
   if assigned(P) and (P^.Typ=ot_string) then
    GetStringItem:=P^.Str[SwitchesMode]
   else
@@ -485,7 +500,10 @@ procedure TSwitches.SetBooleanItem(index:integer;b:boolean);
 var
   P : PBooleanItem;
 begin
-  P:=Items^.At(Index);
+  if index<ItemCount then
+    P:=Items^.At(Index)
+  else
+    P:=nil;
   if assigned(P) and (P^.Typ=ot_boolean) then
    P^.IsSet[SwitchesMode]:=b;
 end;
@@ -495,7 +513,10 @@ procedure TSwitches.SetLongintItem(index:integer;l:longint);
 var
   P : PLongintItem;
 begin
-  P:=Items^.At(Index);
+  if index<ItemCount then
+    P:=Items^.At(Index)
+  else
+    P:=nil;
   if assigned(P) and (P^.Typ=ot_longint) then
    P^.Val[SwitchesMode]:=l;
 end;
@@ -505,7 +526,10 @@ procedure TSwitches.SetStringItem(index:integer;const s:string);
 var
   P : PStringItem;
 begin
-  P:=Items^.At(Index);
+  if index<ItemCount then
+    P:=Items^.At(Index)
+  else
+    P:=nil;
   if assigned(P) and (P^.Typ=ot_string) then
    P^.Str[SwitchesMode]:=s;
 end;
@@ -1193,7 +1217,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:24  peter
+  Revision 1.2  2001-08-07 21:27:34  pierre
+   * avoid RTE 211 on At method with wrong index
+
+  Revision 1.1  2001/08/04 11:30:24  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.11  2001/08/03 13:07:47  pierre
