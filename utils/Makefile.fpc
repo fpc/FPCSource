@@ -10,7 +10,11 @@ programs=ppufiles ppudump ppumove ppdep ptop rstconv data2inc fpcmake delp bin2o
 units=ppu ptopu
 
 [require]
-packages=fcl zlib
+packages=fcl
+packages_linux=zlib
+packages_os2=paszlib
+packages_win32=paszlib
+packages_go32v2=paszlib
 
 [tools]
 tooldata2inc=1

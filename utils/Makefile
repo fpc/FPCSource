@@ -200,7 +200,19 @@ endif
 
 # Packages
 
-override PACKAGES+=rtl fcl zlib
+override PACKAGES+=rtl fcl
+ifeq ($(OS_TARGET),linux)
+override PACKAGES+=zlib
+endif
+ifeq ($(OS_TARGET),go32v2)
+override PACKAGES+=paszlib
+endif
+ifeq ($(OS_TARGET),win32)
+override PACKAGES+=paszlib
+endif
+ifeq ($(OS_TARGET),os2)
+override PACKAGES+=paszlib
+endif
 ifneq ($(wildcard $(FPCDIR)/rtl),)
 ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
 PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
@@ -266,6 +278,72 @@ endif
 endif
 ifdef UNITDIR_ZLIB
 override NEEDUNITDIR+=$(UNITDIR_ZLIB)
+endif
+ifneq ($(wildcard $(PACKAGEDIR)/paszlib),)
+ifneq ($(wildcard $(PACKAGEDIR)/paszlib/$(OS_TARGET)),)
+PACKAGEDIR_PASZLIB=$(PACKAGEDIR)/paszlib/$(OS_TARGET)
+else
+PACKAGEDIR_PASZLIB=$(PACKAGEDIR)/paszlib
+endif
+UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)
+else
+PACKAGEDIR_PASZLIB=
+ifneq ($(wildcard $(UNITSDIR)/paszlib),)
+ifneq ($(wildcard $(UNITSDIR)/paszlib/$(OS_TARGET)),)
+UNITDIR_PASZLIB=$(UNITSDIR)/paszlib/$(OS_TARGET)
+else
+UNITDIR_PASZLIB=$(UNITSDIR)/paszlib
+endif
+else
+UNITDIR_PASZLIB=
+endif
+endif
+ifdef UNITDIR_PASZLIB
+override NEEDUNITDIR+=$(UNITDIR_PASZLIB)
+endif
+ifneq ($(wildcard $(PACKAGEDIR)/paszlib),)
+ifneq ($(wildcard $(PACKAGEDIR)/paszlib/$(OS_TARGET)),)
+PACKAGEDIR_PASZLIB=$(PACKAGEDIR)/paszlib/$(OS_TARGET)
+else
+PACKAGEDIR_PASZLIB=$(PACKAGEDIR)/paszlib
+endif
+UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)
+else
+PACKAGEDIR_PASZLIB=
+ifneq ($(wildcard $(UNITSDIR)/paszlib),)
+ifneq ($(wildcard $(UNITSDIR)/paszlib/$(OS_TARGET)),)
+UNITDIR_PASZLIB=$(UNITSDIR)/paszlib/$(OS_TARGET)
+else
+UNITDIR_PASZLIB=$(UNITSDIR)/paszlib
+endif
+else
+UNITDIR_PASZLIB=
+endif
+endif
+ifdef UNITDIR_PASZLIB
+override NEEDUNITDIR+=$(UNITDIR_PASZLIB)
+endif
+ifneq ($(wildcard $(PACKAGEDIR)/paszlib),)
+ifneq ($(wildcard $(PACKAGEDIR)/paszlib/$(OS_TARGET)),)
+PACKAGEDIR_PASZLIB=$(PACKAGEDIR)/paszlib/$(OS_TARGET)
+else
+PACKAGEDIR_PASZLIB=$(PACKAGEDIR)/paszlib
+endif
+UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)
+else
+PACKAGEDIR_PASZLIB=
+ifneq ($(wildcard $(UNITSDIR)/paszlib),)
+ifneq ($(wildcard $(UNITSDIR)/paszlib/$(OS_TARGET)),)
+UNITDIR_PASZLIB=$(UNITSDIR)/paszlib/$(OS_TARGET)
+else
+UNITDIR_PASZLIB=$(UNITSDIR)/paszlib
+endif
+else
+UNITDIR_PASZLIB=
+endif
+endif
+ifdef UNITDIR_PASZLIB
+override NEEDUNITDIR+=$(UNITDIR_PASZLIB)
 endif
 
 # Libraries
@@ -794,7 +872,18 @@ endif
 
 PACKAGERTL=1
 PACKAGEFCL=1
+ifeq ($(OS_TARGET),linux)
 PACKAGEZLIB=1
+endif
+ifeq ($(OS_TARGET),go32v2)
+PACKAGEPASZLIB=1
+endif
+ifeq ($(OS_TARGET),win32)
+PACKAGEPASZLIB=1
+endif
+ifeq ($(OS_TARGET),os2)
+PACKAGEPASZLIB=1
+endif
 ifdef PACKAGERTL
 ifneq ($(wildcard $(PACKAGEDIR_RTL)),)
 ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
@@ -822,8 +911,17 @@ zlib_package:
 endif
 endif
 endif
+ifdef PACKAGEPASZLIB
+ifneq ($(wildcard $(PACKAGEDIR_PASZLIB)),)
+ifeq ($(wildcard $(PACKAGEDIR_PASZLIB)/$(FPCMADE)),)
+override COMPILEPACKAGES+=paszlib
+paszlib_package:
+	$(MAKE) -C $(PACKAGEDIR_PASZLIB) all
+endif
+endif
+endif
 
-.PHONY:  rtl_package rtl_package fcl_package zlib_package
+.PHONY:  rtl_package rtl_package fcl_package zlib_package paszlib_package
 
 #####################################################################
 # Exes
