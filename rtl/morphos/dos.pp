@@ -1233,7 +1233,7 @@ begin
    rewrite(f);
    writeln(f,'path >ram:temp.lst');
    close(f);
-   exec('c:protect','ram:makepathstr sarwed');
+   exec('c:protect','ram:makepathstr sarwed quiet');
    exec('C:execute','ram:makepathstr');
    exec('c:delete','ram:makepathstr quiet');
    assign(f,'ram:temp.lst');
@@ -1251,7 +1251,7 @@ begin
       end;
    end;
    close(f);
-   exec('C:delete','ram:temp.lst quiet');
+   exec('C:delete','sram:temp.lst quiet');
    getpathstring := temp;
 end;
 
@@ -1373,7 +1373,10 @@ End.
 
 {
   $Log$
-  Revision 1.1  2004-05-12 20:27:29  karoly
+  Revision 1.2  2004-05-13 00:42:29  karoly
+    * getpathstring displayed dos messages, fixed
+
+  Revision 1.1  2004/05/12 20:27:29  karoly
     * first implementation of MorphOS DOS unit, based on Amiga version
 
 }
