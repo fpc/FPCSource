@@ -115,7 +115,7 @@ unit tgobj;
 
     uses
        systems,
-       verbose,cutils;
+       verbose,cutils,rgobj;
 
 
     const
@@ -542,7 +542,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.24  2003-02-03 23:07:39  daniel
+  Revision 1.25  2003-02-03 23:10:39  daniel
+    * Fixed last commit
+
+  Revision 1.24  2003/02/03 23:07:39  daniel
     * Made gettemp use intended procedure for setting reference
 
   Revision 1.23  2003/01/08 18:43:57  daniel
