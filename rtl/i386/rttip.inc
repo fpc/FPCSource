@@ -191,7 +191,11 @@ asm
 # AnsiString handling :
 .DoAnsiStringFinal:
         pushl   8(%ebp)
+{$ifdef NEWSTRNAMES}
+        call    FPC_ANSISTR_DECR_REF
+{$else}
         call    FPC_DECR_ANSI_REF
+{$endif}
 .ExitFinalize:
         pop     %edx
         pop     %ecx
@@ -276,7 +280,11 @@ asm
 # AnsiString handling :
 .DoAnsiStringAddRef:
         pushl   8(%ebp)
+{$ifdef NEWSTRNAMES}
+        call    FPC_ANSISTR_INCR_REF
+{$else}
         call    FPC_INCR_ANSI_REF
+{$endif}
 .ExitAddRef:
         pop     %edx
         pop     %ecx
@@ -362,7 +370,11 @@ asm
 .DoAnsiStringDecRef:
         movl    8(%ebp),%eax
         pushl   %eax
+{$ifdef NEWSTRNAMES}
+        call    FPC_ANSISTR_DECR_REF
+{$else}
         call    FPC_DECR_ANSI_REF
+{$endif}
 .ExitDecRef:
         pop     %edx
         pop     %ecx
@@ -374,7 +386,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1998-11-16 12:21:47  peter
+  Revision 1.11  1998-11-17 00:41:10  peter
+    * renamed string functions
+
+  Revision 1.10  1998/11/16 12:21:47  peter
     * fixes for 0.99.8
 
   Revision 1.9  1998/09/29 08:38:25  michael

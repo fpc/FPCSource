@@ -350,7 +350,7 @@ end;
                                  String
 ****************************************************************************}
 
-procedure strcopy(dstr,sstr:pointer;len:longint);[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCOPY'];
+procedure strcopy(dstr,sstr:pointer;len:longint);[public,alias:{$ifdef NEWSTRNAMES}'FPC_SHORTSTR_COPY'{$else}{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCOPY'{$endif}];
 {
   this procedure must save all modified registers except EDI and ESI !!!
 }
@@ -392,7 +392,7 @@ begin
 end;
 
 
-procedure strconcat(s1,s2 : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'STRCONCAT'];
+procedure strconcat(s1,s2 : pointer);[public,alias:{$ifdef NEWSTRNAMES}'FPC_SHORTSTR_CONCAT'{$else}{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCONCAT'{$endif}];
 begin
   asm
         xorl    %ecx,%ecx
@@ -431,7 +431,7 @@ begin
 end;
 
 
-procedure strcmp(dstr,sstr : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'STRCMP'];
+procedure strcmp(dstr,sstr : pointer);[public,alias:{$ifdef NEWSTRNAMES}'FPC_SHORTSTR_COMPARE'{$else}{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCMP'{$endif}];
 begin
   asm
         cld
@@ -481,7 +481,7 @@ end;
 
 
 {$ASMMODE DIRECT}
-function strpas(p:pchar):string;[public,alias:'FPC_PCHAR_TO_STR'];
+function strpas(p:pchar):string;[public,alias:{$ifdef NEWSTRNAMES}'FPC_PCHAR_TO_SHORTSTR'{$else}'FPC_PCHAR_TO_STR'{$endif}];
 begin
   asm
         cld
@@ -712,7 +712,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  1998-10-19 08:49:16  pierre
+  Revision 1.30  1998-11-17 00:41:08  peter
+    * renamed string functions
+
+  Revision 1.29  1998/10/19 08:49:16  pierre
    * removed old code forgotten about vmtoffset
 
   Revision 1.28  1998/10/16 13:37:46  pierre

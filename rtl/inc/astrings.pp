@@ -41,86 +41,89 @@ Procedure DisposeAnsiString (Var S : Pointer); forward;
 Procedure Decr_Ansi_Ref (Var S : Pointer); forward;
 Procedure Incr_Ansi_Ref (Var S : Pointer); forward;
 Procedure AssignAnsiString (Var S1 : Pointer; S2 : Pointer); forward;
-Function Ansi_String_Concat (S1,S2 : Pointer): Pointer; forward;
+Function  Ansi_String_Concat (S1,S2 : Pointer): Pointer; forward;
 Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Var S2 : ShortString); forward;
 Procedure Ansi_To_ShortString (Var S1 : ShortString; S2 : Pointer; maxlen : longint); forward;
 Procedure Short_To_AnsiString (Var S1 : Pointer; Const S2 : ShortString); forward;
-Procedure Char_To_Ansi(var S1 : Pointer; c : Char); forward;
+Procedure Char_To_AnsiString(var S1 : Pointer; c : Char); forward;
 Function  AnsiCompare (S1,S2 : Pointer): Longint; forward;
 Function  AnsiCompare (var S1 : Pointer; Var S2 : ShortString): Longint; forward;
 Procedure SetCharAtIndex (Var S : AnsiString; Index : Longint; C : CHar); forward;
 
-{$PACKRECORDS 1}
-Type TAnsiRec = Record
-      Maxlen, len, ref :  Longint;
-      First : Char;
-     end;
-     PAnsiRec = ^TAnsiRec;
+Type
+  TAnsiRec = Packed Record
+    Maxlen, len, ref :  Longint;
+    First : Char;
+  end;
+  PAnsiRec = ^TAnsiRec;
 
-Const AnsiRecLen = SizeOf(TAnsiRec);
-      FirstOff   = SizeOf(TAnsiRec)-1;
+Const
+  AnsiRecLen = SizeOf(TAnsiRec);
+  FirstOff   = SizeOf(TAnsiRec)-1;
+
 
 { ---------------------------------------------------------------------
   Internal functions, not in interface.
   ---------------------------------------------------------------------}
 
 Procedure DumpAnsiRec(S : Pointer);
-
 begin
   If S=Nil then
     Writeln ('String is nil')
   Else
     Begin
-    With PAnsiRec(S-Firstoff)^ do
-      begin
-      Write   ('(Maxlen: ',maxlen);
-      Write   (' Len:',len);
-      Writeln (' Ref: ',ref,')');
-      end;
+      With PAnsiRec(S-Firstoff)^ do
+       begin
+         Write   ('(Maxlen: ',maxlen);
+         Write   (' Len:',len);
+         Writeln (' Ref: ',ref,')');
+       end;
     end;
 end;
+
 
 Function NewAnsiString(Len : Longint) : Pointer;
 {
   Allocate a new AnsiString on the heap.
   initialize it to zero length and reference count 1.
 }
-Var P : Pointer;
-
+Var
+  P : Pointer;
 begin
   GetMem(P,Len+AnsiRecLen);
   If P<>Nil then
-     begin
+   begin
      PAnsiRec(P)^.Maxlen:=Len;    { Maximal length }
      PAnsiRec(P)^.Len:=0;         { Initial length }
      PAnsiRec(P)^.Ref:=1;         { Set reference count }
      PAnsiRec(P)^.First:=#0;      { Terminating #0 }
      P:=P+FirstOff;               { Points to string now }
-     end;
+   end;
   NewAnsiString:=P;
 end;
+
 
 Procedure DisposeAnsiString(Var S : Pointer);
 {
   Deallocates a AnsiString From the heap.
 }
 begin
-  If S=Nil
-    then exit;
+  If S=Nil then exit;
   Dec (Longint(S),FirstOff);
   FreeMem (S,PAnsiRec(S)^.Maxlen+AnsiRecLen);
   S:=Nil;
 end;
 
 
-Procedure Decr_Ansi_Ref (Var S : Pointer);
-  [Public,Alias : 'FPC_DECR_ANSI_REF'];
+Procedure Decr_Ansi_Ref (Var S : Pointer);[Public,Alias:{$ifdef NEWSTRNAMES}'FPC_ANSISTR_DECR_REF'{$else}'FPC_DECR_ANSI_REF'{$endif}];
 {
- Decreases the ReferenceCount of a non constant ansistring;
- If the reference count is zero, deallocate the string;
+  Decreases the ReferenceCount of a non constant ansistring;
+  If the reference count is zero, deallocate the string;
 }
-Type plongint = ^longint;
-Var l : plongint;
+Type
+  plongint = ^longint;
+Var
+  l : plongint;
 Begin
   { Zero string }
   If S=Nil then exit;
@@ -133,9 +136,8 @@ Begin
     DisposeAnsiString (S);        { Remove...}
 end;
 
-Procedure Incr_Ansi_Ref (Var S : Pointer);
-  [Public,Alias : 'FPC_INCR_ANSI_REF'];
 
+Procedure Incr_Ansi_Ref (Var S : Pointer);[Public,Alias:{$ifdef NEWSTRNAMES}'FPC_ANSISTR_INCR_REF'{$else}'FPC_INCR_ANSI_REF'{$endif}];
 Begin
   If S=Nil then
     exit;
@@ -144,14 +146,14 @@ Begin
   Inc(PAnsiRec(S-FirstOff)^.Ref);
 end;
 
-Procedure UniqueAnsiString (Var S : AnsiString); [Public,Alias : 'FPC_UNIQUE_ANSISTRING'];
+
+Procedure UniqueAnsiString (Var S : AnsiString); [Public,Alias : 'FPC_ANSISTR_UNIQUE'];
 {
   Make sure reference count of S is 1,
   using copy-on-write semantics.
 }
-
-Var SNew : Pointer;
-
+Var
+  SNew : Pointer;
 begin
   If Pointer(S)=Nil
     then exit;
@@ -165,11 +167,10 @@ begin
     end;
 end;
 
-Procedure AssignAnsiString (Var S1 : Pointer;S2 : Pointer);
-  [Public, Alias : 'FPC_ASSIGN_ANSI_STRING'];
 
+Procedure AssignAnsiString (Var S1 : Pointer;S2 : Pointer);[Public,Alias:{$ifdef NEWSTRNAMES}'FPC_ANSISTR_ASSIGN'{$else}'FPC_ASSIGN_ANSI_STRING'{$endif}];
 {
- Assigns S2 to S1 (S1:=S2), taking in account reference counts.
+  Assigns S2 to S1 (S1:=S2), taking in account reference counts.
 }
 begin
   If S2<>nil then
@@ -181,16 +182,15 @@ begin
   S1:=S2;
 end;
 
-function Ansi_String_Concat (S1,S2 : Pointer) : pointer;
-  [Public, alias: 'FPC_ANSICAT'];
+
+function Ansi_String_Concat (S1,S2 : Pointer) : pointer;[Public, alias: 'FPC_ANSISTR_CONCAT'];
 {
   Concatenates 2 AnsiStrings : S1+S2.
   Result Goes to S3;
 }
-  Var
-     Size,Location : Longint;
-     S3 : pointer;
-
+Var
+  Size,Location : Longint;
+  S3 : pointer;
 begin
   if (S1=Nil) then
      AssignAnsiString(S3,S2)
@@ -210,14 +210,12 @@ begin
 end;
 
 
-
 Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Var S2 : ShortString);
 {
   Concatenates a Ansi with a short string; : S2 + S2
 }
-
-Var Size,Location : Longint;
-
+Var
+  Size,Location : Longint;
 begin
   Size:=byte(S2[0]);
   Location:=Length(S1);
@@ -231,13 +229,12 @@ begin
 end;
 
 
-Procedure Ansi_To_ShortString (Var S1 : ShortString;S2 : Pointer; Maxlen : Longint);
-  [Public, alias: 'FPC_ANSI2SHORT'];
+Procedure Ansi_To_ShortString (Var S1 : ShortString;S2 : Pointer; Maxlen : Longint);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];
 {
- Converts a AnsiString to a ShortString;
+  Converts a AnsiString to a ShortString;
 }
-Var Size : Longint;
-
+Var
+  Size : Longint;
 begin
   Size:=PAnsiRec(S2-FirstOff)^.Len;
   If Size>maxlen then Size:=maxlen;
@@ -246,14 +243,12 @@ begin
 end;
 
 
-Procedure Short_To_AnsiString (Var S1 : Pointer; Const S2 : ShortString);
-  [Public, alias: 'FPC_SHORT2ANSI'];
+Procedure Short_To_AnsiString (Var S1 : Pointer; Const S2 : ShortString);[Public, alias: 'FPC_SHORTSTR_TO_ANSISTR'];
 {
- Converts a ShortString to a AnsiString;
+  Converts a ShortString to a AnsiString;
 }
-
-Var Size : Longint;
-
+Var
+  Size : Longint;
 begin
   Size:=Byte(S2[0]);
   Setlength (AnsiString(S1),Size);
@@ -263,9 +258,9 @@ begin
 end;
 
 
-Procedure Char_To_Ansi(var S1 : Pointer; c : Char);[Public, alias: 'FPC_CHAR2ANSI'];
+Procedure Char_To_AnsiString(var S1 : Pointer; c : Char);[Public, alias: 'FPC_CHAR_TO_ANSISTR'];
 {
- Converts a ShortString to a AnsiString;
+  Converts a ShortString to a AnsiString;
 }
 begin
   Setlength (AnsiString(S1),1);
@@ -274,22 +269,21 @@ begin
   PByte(Pointer(S1)+1)^:=0;
 end;
 
-Procedure PChar2Ansi(var a : ansistring;p : pchar);[Public,Alias : 'FPC_PCHAR_TO_ANSISTRING'];
 
-  begin
-     //!!!!!!!!! needs to be fixed (FK)
-     if p[0]=#0 Then
-       Pointer(a):=nil
-     else
-       Pointer(a):=p;
-  end;
+Procedure PChar2Ansi(var a : ansistring;p : pchar);[Public,Alias : 'FPC_PCHAR_TO_ANSISTR'];
+begin
+  { !!!!!!!!! needs to be fixed (FK) }
+  if p[0]=#0 Then
+    Pointer(a):=nil
+  else
+    Pointer(a):=p;
+end;
 
 { the compiler generates inline code for that
 
-Const EmptyChar : char = #0;
-
-Function Ansi2pchar (S : Pointer) : Pchar; [Alias : 'FPC_ANSI2PCHAR'];
-
+Const
+  EmptyChar : char = #0;
+Function Ansi2pchar (S : Pointer) : Pchar; [Alias : 'FPC_ANSISTR_TO_PCHAR'];
 begin
   If S<>Nil then
     Ansi2Pchar:=S
@@ -308,7 +302,8 @@ procedure dummy;assembler;
   end;
 {$ASMMODE ATT}
 
-Function AnsiCompare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_ANSICOMPARE'];
+
+Function AnsiCompare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_ANSISTR_COMPARE'];
 {
   Compares 2 AnsiStrings;
   The result is
@@ -316,21 +311,23 @@ Function AnsiCompare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_ANSICOMPARE'
    0 if S1=S2
    >0 if S1>S2
 }
-Var i,MaxI,Temp : Longint;
-
+Var
+  i,MaxI,Temp : Longint;
 begin
- i:=0;
- Maxi:=Length(AnsiString(S1));
- temp:=Length(AnsiString(S2));
- If MaxI>Temp then MaxI:=Temp;
- Temp:=0;
- While (i<MaxI) and (Temp=0) do
+  i:=0;
+  Maxi:=Length(AnsiString(S1));
+  temp:=Length(AnsiString(S2));
+  If MaxI>Temp then
+   MaxI:=Temp;
+  Temp:=0;
+  While (i<MaxI) and (Temp=0) do
    begin
-   Temp:= PByte(S1+I)^ - PByte(S2+i)^;
-   inc(i);
+     Temp:= PByte(S1+I)^ - PByte(S2+i)^;
+     inc(i);
    end;
- if temp=0 then temp:=Length(AnsiString(S1))-Length(AnsiString(S2));
- AnsiCompare:=Temp;
+  if temp=0 then
+   temp:=Length(AnsiString(S1))-Length(AnsiString(S2));
+  AnsiCompare:=Temp;
 end;
 
 
@@ -343,8 +340,8 @@ Function AnsiCompare (Var S1 : Pointer; Var S2 : ShortString): Longint;
    0 if S1=S2
    >0 if S1>S2
 }
-Var i,MaxI,Temp : Longint;
-
+Var
+  i,MaxI,Temp : Longint;
 begin
  Temp:=0;
  i:=0;
@@ -361,7 +358,6 @@ end;
 
 { Not used, can be removed. }
 Procedure SetCharAtIndex (Var S : AnsiString; Index : Longint; C : CHar);
-
 begin
   if Index<=Length(S) then
     begin
@@ -376,8 +372,8 @@ end;
 
 Function Length (Const S : AnsiString) : Longint;
 {
- Returns the length of an AnsiString.
- Takes in acount that zero strings are NIL;
+  Returns the length of an AnsiString.
+  Takes in acount that zero strings are NIL;
 }
 begin
   If Pointer(S)=Nil then
@@ -387,14 +383,13 @@ begin
 end;
 
 
-
 Procedure SetLength (Var S : AnsiString; l : Longint);
 {
- Sets The length of string S to L.
- Makes sure S is unique, and contains enough room.
+  Sets The length of string S to L.
+  Makes sure S is unique, and contains enough room.
 }
-Var Temp : Pointer;
-
+Var
+  Temp : Pointer;
 begin
    If (Pointer(S)=Nil) and (l>0) then
     begin
@@ -429,10 +424,10 @@ begin
     end;
 end;
 
+
 Function Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
-
-var ResultAddress : Pointer;
-
+var
+  ResultAddress : Pointer;
 begin
   ResultAddress:=Nil;
   dec(index);
@@ -709,7 +704,10 @@ end;
 
 {
   $Log$
-  Revision 1.33  1998-11-16 15:42:04  peter
+  Revision 1.34  1998-11-17 00:41:11  peter
+    * renamed string functions
+
+  Revision 1.33  1998/11/16 15:42:04  peter
     + char2ansi
 
   Revision 1.32  1998/11/16 11:11:47  michael
