@@ -56,6 +56,9 @@ interface
 implementation
 
     uses
+{$ifdef delphi}
+       SysUtils,
+{$endif}
        { common }
        cutils,
        { global }
@@ -878,7 +881,7 @@ implementation
                                       proc_to_procvar_equal(tprocsym(sym).definition,getprocvardef)
                                      )
                                     )
-                                   ),again,tcallnode(p1));
+                                   ),again,p1);
                       if (block_type=bt_const) and
                          getprocvar then
                         handle_procvar(getprocvardef,p1,getaddr);
@@ -1158,12 +1161,14 @@ implementation
                       constint :
                         begin
                           { do a very dirty trick to bootstrap this code }
-                          if (tconstsym(srsym).value>=-(int64(2147483647)+int64(1))) and (tconstsym(srsym).value<=2147483647) then
-                           p1:=cordconstnode.create(tconstsym(srsym).value,s32bittype)
-                          else if (tconstsym(srsym).value > maxlongint) and (tconstsym(srsym).value <= int64(maxlongint)+int64(maxlongint)+1) then
-                           p1:=cordconstnode.create(tconstsym(srsym).value,u32bittype)
+                          if (tconstsym(srsym).valueord>=-(int64(2147483647)+int64(1))) and
+                             (tconstsym(srsym).valueord<=2147483647) then
+                           p1:=cordconstnode.create(tconstsym(srsym).valueord,s32bittype)
+                          else if (tconstsym(srsym).valueord > maxlongint) and
+                                  (tconstsym(srsym).valueord <= int64(maxlongint)+int64(maxlongint)+1) then
+                           p1:=cordconstnode.create(tconstsym(srsym).valueord,u32bittype)
                           else
-                           p1:=cordconstnode.create(tconstsym(srsym).value,cs64bittype);
+                           p1:=cordconstnode.create(tconstsym(srsym).valueord,cs64bittype);
                         end;
                       conststring :
                         begin
@@ -1171,22 +1176,22 @@ implementation
                           if not(cs_ansistrings in aktlocalswitches) and (len>255) then
                            len:=255;
                           getmem(pc,len+1);
-                          move(pchar(tpointerord(tconstsym(srsym).value))^,pc^,len);
+                          move(pchar(tconstsym(srsym).valueptr)^,pc^,len);
                           pc[len]:=#0;
                           p1:=cstringconstnode.createpchar(pc,len);
                         end;
                       constchar :
-                        p1:=cordconstnode.create(tconstsym(srsym).value,cchartype);
+                        p1:=cordconstnode.create(tconstsym(srsym).valueord,cchartype);
                       constreal :
-                        p1:=crealconstnode.create(pbestreal(tpointerord(tconstsym(srsym).value))^,pbestrealtype^);
+                        p1:=crealconstnode.create(pbestreal(tconstsym(srsym).valueptr)^,pbestrealtype^);
                       constbool :
-                        p1:=cordconstnode.create(tconstsym(srsym).value,booltype);
+                        p1:=cordconstnode.create(tconstsym(srsym).valueord,booltype);
                       constset :
-                        p1:=csetconstnode.create(pconstset(tpointerord(tconstsym(srsym).value)),tconstsym(srsym).consttype);
+                        p1:=csetconstnode.create(pconstset(tconstsym(srsym).valueptr),tconstsym(srsym).consttype);
                       constord :
-                        p1:=cordconstnode.create(tconstsym(srsym).value,tconstsym(srsym).consttype);
+                        p1:=cordconstnode.create(tconstsym(srsym).valueord,tconstsym(srsym).consttype);
                       constpointer :
-                        p1:=cpointerconstnode.create(tconstsym(srsym).value,tconstsym(srsym).consttype);
+                        p1:=cpointerconstnode.create(tconstsym(srsym).valueordptr,tconstsym(srsym).consttype);
                       constnil :
                         p1:=cnilnode.create;
                       constresourcestring:
@@ -2320,7 +2325,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2001-08-26 13:36:45  florian
+  Revision 1.42  2001-09-02 21:18:28  peter
+    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
+      is used for holding target platform pointer values. As those can be
+      bigger than the source platform.
+
+  Revision 1.41  2001/08/26 13:36:45  florian
     * some cg reorganisation
     * some PPC updates
 

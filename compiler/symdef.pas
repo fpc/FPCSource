@@ -3132,15 +3132,16 @@ implementation
               case hpc.consttyp of
                 conststring,
                 constresourcestring :
-                  hs:=strpas(pchar(tpointerord(hpc.value)));
+                  hs:=strpas(pchar(hpc.valueptr));
                 constreal :
-                  str(pbestreal(tpointerord(hpc.value))^,hs);
-                constord,
+                  str(pbestreal(hpc.valueptr)^,hs);
+                constord :
+                  hs:=tostr(hpc.valueord);
                 constpointer :
-                  hs:=tostr(hpc.value);
+                  hs:=tostr(hpc.valueordptr);
                 constbool :
                   begin
-                    if hpc.value<>0 then
+                    if hpc.valueord<>0 then
                      hs:='TRUE'
                     else
                      hs:='FALSE';
@@ -3148,7 +3149,7 @@ implementation
                 constnil :
                   hs:='nil';
                 constchar :
-                  hs:=chr(hpc.value);
+                  hs:=chr(hpc.valueord);
                 constset :
                   hs:='<set>';
               end;
@@ -3318,7 +3319,8 @@ implementation
          parast:=tparasymtable.create;
          tparasymtable(parast).load(ppufile);
          parast.defowner:=self;
-         if (pocall_inline in proccalloptions) then
+         if (pocall_inline in proccalloptions) or
+            ((current_module.flags and uf_local_browser)<>0) then
           begin
             localst:=tlocalsymtable.create;
             tlocalsymtable(localst).load(ppufile);
@@ -5394,7 +5396,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2001-08-30 20:13:54  peter
+  Revision 1.47  2001-09-02 21:18:28  peter
+    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
+      is used for holding target platform pointer values. As those can be
+      bigger than the source platform.
+
+  Revision 1.46  2001/08/30 20:13:54  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces

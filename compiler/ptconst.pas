@@ -61,7 +61,7 @@ implementation
 
       var
          len,base  : longint;
-         p,hp      : tnode;
+         p,hp,hpstart : tnode;
          i,j,l,offset,
          strlength : longint;
          curconstsegment : TAAsmoutput;
@@ -312,16 +312,25 @@ implementation
               else
                 if p.nodetype=addrn then
                   begin
-                    hp:=taddrnode(p).left;
+                    inserttypeconv(p,t);
+                    { if a typeconv node was inserted then check if it was an tc_equal. If
+                      true then we remove the node. If not tc_equal then we leave the typeconvn
+                      and the nodetype=loadn will always be false and generate the error (PFV) }
+                    if (p.nodetype=typeconvn) then
+                     begin
+                       if (ttypeconvnode(p).convtype=tc_equal) then
+                        hpstart:=taddrnode(ttypeconvnode(p).left).left
+                       else
+                        hpstart:=p;
+                     end
+                    else
+                     hpstart:=taddrnode(p).left;
+                    hp:=hpstart;
                     while assigned(hp) and (hp.nodetype in [subscriptn,vecn]) do
                       hp:=tbinarynode(hp).left;
-                    if (is_equal(tpointerdef(p.resulttype.def).pointertype.def,tpointerdef(t.def).pointertype.def) or
-                       (is_void(tpointerdef(p.resulttype.def).pointertype.def)) or
-                       (is_void(tpointerdef(t.def).pointertype.def))) and
-                       (hp.nodetype=loadn) then
+                    if (hp.nodetype=loadn) then
                       begin
-                        do_resulttypepass(taddrnode(p).left);
-                        hp:=taddrnode(p).left;
+                        hp:=hpstart;
                         offset:=0;
                         while assigned(hp) and (hp.nodetype<>loadn) do
                           begin
@@ -461,7 +470,7 @@ implementation
                 end
               else if is_constresourcestringnode(p) then
                 begin
-                  strval:=pchar(tpointerord(tconstsym(tloadnode(p).symtableentry).value));
+                  strval:=pchar(tconstsym(tloadnode(p).symtableentry).valueptr);
                   strlength:=tconstsym(tloadnode(p).symtableentry).len;
                 end
               else
@@ -916,7 +925,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2001-08-26 13:36:47  florian
+  Revision 1.32  2001-09-02 21:18:28  peter
+    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
+      is used for holding target platform pointer values. As those can be
+      bigger than the source platform.
+
+  Revision 1.31  2001/08/26 13:36:47  florian
     * some cg reorganisation
     * some PPC updates
 

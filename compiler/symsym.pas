@@ -245,13 +245,18 @@ interface
        end;
 
        tconstsym = class(tstoredsym)
-          consttype  : ttype;
-          consttyp : tconsttyp;
+          consttype   : ttype;
+          consttyp    : tconsttyp;
           resstrindex,    { needed for resource strings }
-          value      : tconstexprint;
-          len        : longint; { len is needed for string length }
-          constructor create(const n : string;t : tconsttyp;v : tconstexprint);
-          constructor create_typed(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
+          valueord    : tconstexprint; { used for ordinal values }
+          valueordptr : TConstPtrUInt; { used for pointer values }
+          valueptr    : pointer; { used for string, set, real values }
+          len         : longint; { len is needed for string length }
+          constructor create_ord(const n : string;t : tconsttyp;v : tconstexprint);
+          constructor create_ord_typed(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
+          constructor create_ordptr_typed(const n : string;t : tconsttyp;v : tconstptruint;const tt:ttype);
+          constructor create_ptr(const n : string;t : tconsttyp;v : pointer);
+          constructor create_ptr_typed(const n : string;t : tconsttyp;v : pointer;const tt:ttype);
           constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint);
           constructor load(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -1797,24 +1802,70 @@ implementation
                                   TCONSTSYM
 ****************************************************************************}
 
-    constructor tconstsym.create(const n : string;t : tconsttyp;v : TConstExprInt);
+    constructor tconstsym.create_ord(const n : string;t : tconsttyp;v : TConstExprInt);
       begin
          inherited create(n);
          typ:=constsym;
          consttyp:=t;
-         value:=v;
+         valueord:=v;
+         valueordptr:=0;
+         valueptr:=nil;
          ResStrIndex:=0;
          consttype.reset;
          len:=0;
       end;
 
 
-    constructor tconstsym.create_typed(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
+    constructor tconstsym.create_ord_typed(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
       begin
          inherited create(n);
          typ:=constsym;
          consttyp:=t;
-         value:=v;
+         valueord:=v;
+         valueordptr:=0;
+         valueptr:=nil;
+         ResStrIndex:=0;
+         consttype:=tt;
+         len:=0;
+      end;
+
+
+    constructor tconstsym.create_ordptr_typed(const n : string;t : tconsttyp;v : tconstptruint;const tt:ttype);
+      begin
+         inherited create(n);
+         typ:=constsym;
+         consttyp:=t;
+         valueord:=0;
+         valueordptr:=v;
+         valueptr:=nil;
+         ResStrIndex:=0;
+         consttype:=tt;
+         len:=0;
+      end;
+
+
+    constructor tconstsym.create_ptr(const n : string;t : tconsttyp;v : pointer);
+      begin
+         inherited create(n);
+         typ:=constsym;
+         consttyp:=t;
+         valueord:=0;
+         valueordptr:=0;
+         valueptr:=v;
+         ResStrIndex:=0;
+         consttype.reset;
+         len:=0;
+      end;
+
+
+    constructor tconstsym.create_ptr_typed(const n : string;t : tconsttyp;v : pointer;const tt:ttype);
+      begin
+         inherited create(n);
+         typ:=constsym;
+         consttyp:=t;
+         valueord:=0;
+         valueordptr:=0;
+         valueptr:=v;
          ResStrIndex:=0;
          consttype:=tt;
          len:=0;
@@ -1826,12 +1877,15 @@ implementation
          inherited create(n);
          typ:=constsym;
          consttyp:=t;
-         value:=longint(str);
+         valueord:=0;
+         valueordptr:=0;
+         valueptr:=str;
          consttype.reset;
          len:=l;
          if t=constresourcestring then
-           ResStrIndex:=ResourceStrings.Register(name,pchar(tpointerord(value)),len);
+           ResStrIndex:=ResourceStrings.Register(name,pchar(valueptr),len);
       end;
+
 
     constructor tconstsym.load(ppufile:tcompilerppufile);
       var
@@ -1845,6 +1899,9 @@ implementation
          typ:=constsym;
          consttype.reset;
          consttyp:=tconsttyp(ppufile.getbyte);
+         valueord:=0;
+         valueordptr:=0;
+         valueptr:=nil;
          case consttyp of
            constint:
              if sizeof(tconstexprint)=8 then
@@ -1855,19 +1912,18 @@ implementation
   {$define Range_check_on}
 {$endif opt R+}
 {$R- needed here }
-                  value:=qword(l1)+(int64(l2) shl 32);
+                  valueord:=qword(l1)+(int64(l2) shl 32);
 {$ifdef Range_check_on}
   {$R+}
   {$undef Range_check_on}
 {$endif Range_check_on}
                end
              else
-               value:=ppufile.getlongint;
+               valueord:=ppufile.getlongint;
            constwchar,
            constbool,
            constchar :
-             value:=ppufile.getlongint;
-           constpointer,
+             valueord:=ppufile.getlongint;
            constord :
              begin
                ppufile.gettype(consttype);
@@ -1879,36 +1935,57 @@ implementation
   {$define Range_check_on}
 {$endif opt R+}
 {$R- needed here }
-                    value:=qword(l1)+(int64(l2) shl 32);
+                    valueord:=qword(l1)+(int64(l2) shl 32);
 {$ifdef Range_check_on}
   {$R+}
   {$undef Range_check_on}
 {$endif Range_check_on}
                  end
                else
-                 value:=ppufile.getlongint;
+                 valueord:=ppufile.getlongint;
              end;
-           conststring,constresourcestring :
+           constpointer :
+             begin
+               ppufile.gettype(consttype);
+               if sizeof(TConstPtrUInt)=8 then
+                 begin
+                    l1:=ppufile.getlongint;
+                    l2:=ppufile.getlongint;
+{$ifopt R+}
+  {$define Range_check_on}
+{$endif opt R+}
+{$R- needed here }
+                    valueordptr:=qword(l1)+(int64(l2) shl 32);
+{$ifdef Range_check_on}
+  {$R+}
+  {$undef Range_check_on}
+{$endif Range_check_on}
+                 end
+               else
+                 valueordptr:=ppufile.getlongint;
+             end;
+           conststring,
+           constresourcestring :
              begin
                len:=ppufile.getlongint;
                getmem(pc,len+1);
                ppufile.getdata(pc^,len);
                if consttyp=constresourcestring then
                  ResStrIndex:=ppufile.getlongint;
-               value:=tpointerord(pc);
+               valueptr:=pc;
              end;
            constreal :
              begin
                new(pd);
                pd^:=ppufile.getreal;
-               value:=tpointerord(pd);
+               valueptr:=pd;
              end;
            constset :
              begin
                ppufile.gettype(consttype);
                new(ps);
                ppufile.getnormalset(ps^);
-               value:=tpointerord(ps);
+               valueptr:=ps;
              end;
            constnil : ;
            else
@@ -1920,12 +1997,13 @@ implementation
     destructor tconstsym.destroy;
       begin
         case consttyp of
-          conststring,constresourcestring :
-            freemem(pchar(tpointerord(value)),len+1);
+          conststring,
+          constresourcestring :
+            freemem(pchar(valueptr),len+1);
           constreal :
-            dispose(pbestreal(tpointerord(value)));
+            dispose(pbestreal(valueptr));
           constset :
-            dispose(pnormalset(tpointerord(value)));
+            dispose(pnormalset(valueptr));
         end;
         inherited destroy;
       end;
@@ -1951,42 +2029,54 @@ implementation
          case consttyp of
            constnil : ;
            constint:
-             if sizeof(TConstExprInt)=8 then
-               begin
-                  ppufile.putlongint(longint(lo(value)));
-                  ppufile.putlongint(longint(hi(value)));
-               end
-             else
-               ppufile.putlongint(value);
-
+             begin
+               if sizeof(TConstExprInt)=8 then
+                 begin
+                    ppufile.putlongint(longint(lo(valueord)));
+                    ppufile.putlongint(longint(hi(valueord)));
+                 end
+               else
+                 ppufile.putlongint(valueord);
+             end;
            constbool,
            constchar :
-             ppufile.putlongint(value);
-           constpointer,
+             ppufile.putlongint(valueord);
            constord :
              begin
                ppufile.puttype(consttype);
                if sizeof(TConstExprInt)=8 then
                  begin
-                    ppufile.putlongint(longint(lo(value)));
-                    ppufile.putlongint(longint(hi(value)));
+                    ppufile.putlongint(longint(lo(valueord)));
+                    ppufile.putlongint(longint(hi(valueord)));
                  end
                else
-                 ppufile.putlongint(value);
+                 ppufile.putlongint(valueord);
              end;
-           conststring,constresourcestring :
+           constpointer :
+             begin
+               ppufile.puttype(consttype);
+               if sizeof(TConstPtrUInt)=8 then
+                 begin
+                    ppufile.putlongint(longint(lo(valueordptr)));
+                    ppufile.putlongint(longint(hi(valueordptr)));
+                 end
+               else
+                 ppufile.putlongint(valueordptr);
+             end;
+           conststring,
+           constresourcestring :
              begin
                ppufile.putlongint(len);
-               ppufile.putdata(pchar(TPointerOrd(value))^,len);
+               ppufile.putdata(pchar(valueptr)^,len);
                if consttyp=constresourcestring then
                  ppufile.putlongint(ResStrIndex);
              end;
            constreal :
-             ppufile.putreal(pbestreal(TPointerOrd(value))^);
+             ppufile.putreal(pbestreal(valueptr)^);
            constset :
              begin
                ppufile.puttype(consttype);
-               ppufile.putnormalset(pointer(TPointerOrd(value))^);
+               ppufile.putnormalset(valueptr^);
              end;
          else
            internalerror(13);
@@ -2001,18 +2091,16 @@ implementation
          {even GDB v4.16 only now 'i' 'r' and 'e' !!!}
          case consttyp of
             conststring : begin
-                          { I had to remove ibm2ascii !! }
-                          st := pstring(TPointerOrd(value))^;
-                          {st := ibm2ascii(pstring(value)^);}
-                          st := 's'''+st+'''';
+                          st := 's'''+strpas(pchar(valueptr))+'''';
                           end;
             constbool,
             constint,
-            constpointer,
             constord,
-            constchar : st := 'i'+int64tostr(value);
+            constchar : st := 'i'+int64tostr(valueord);
+            constpointer :
+              st := 'i'+int64tostr(valueordptr);
             constreal : begin
-                        system.str(pbestreal(TPointerOrd(value))^,st);
+                        system.str(pbestreal(valueptr)^,st);
                         st := 'r'+st;
                         end;
          { if we don't know just put zero !! }
@@ -2392,7 +2480,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2001-08-30 20:13:54  peter
+  Revision 1.21  2001-09-02 21:18:29  peter
+    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
+      is used for holding target platform pointer values. As those can be
+      bigger than the source platform.
+
+  Revision 1.20  2001/08/30 20:13:54  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces

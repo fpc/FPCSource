@@ -32,7 +32,11 @@ interface
 implementation
 
     uses
+{$ifdef delphi}
+      dmisc,
+{$else}
       dos,
+{$endif}
       cutils,
       version,globtype,globals,systems,
       verbose,comphook,
@@ -913,7 +917,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2001-08-19 11:22:24  peter
+  Revision 1.8  2001-09-02 21:18:28  peter
+    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
+      is used for holding target platform pointer values. As those can be
+      bigger than the source platform.
+
+  Revision 1.7  2001/08/19 11:22:24  peter
     * palmos support from v10 merged
 
   Revision 1.6  2001/08/07 18:47:13  peter

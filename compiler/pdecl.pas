@@ -82,17 +82,17 @@ implementation
            ordconstn:
              begin
                 if is_constintnode(p) then
-                  hp:=tconstsym.create_typed(name,constint,tordconstnode(p).value,tordconstnode(p).resulttype)
+                  hp:=tconstsym.create_ord_typed(name,constint,tordconstnode(p).value,tordconstnode(p).resulttype)
                 else if is_constcharnode(p) then
-                  hp:=tconstsym.create(name,constchar,tordconstnode(p).value)
+                  hp:=tconstsym.create_ord(name,constchar,tordconstnode(p).value)
                 else if is_constboolnode(p) then
-                  hp:=tconstsym.create(name,constbool,tordconstnode(p).value)
+                  hp:=tconstsym.create_ord(name,constbool,tordconstnode(p).value)
                 else if is_constwidecharnode(p) then
-                  hp:=tconstsym.create(name,constwchar,tordconstnode(p).value)
+                  hp:=tconstsym.create_ord(name,constwchar,tordconstnode(p).value)
                 else if p.resulttype.def.deftype=enumdef then
-                  hp:=tconstsym.create_typed(name,constord,tordconstnode(p).value,p.resulttype)
+                  hp:=tconstsym.create_ord_typed(name,constord,tordconstnode(p).value,p.resulttype)
                 else if p.resulttype.def.deftype=pointerdef then
-                  hp:=tconstsym.create_typed(name,constord,tordconstnode(p).value,p.resulttype)
+                  hp:=tconstsym.create_ordptr_typed(name,constpointer,tordconstnode(p).value,p.resulttype)
                 else internalerror(111);
              end;
            stringconstn:
@@ -105,21 +105,21 @@ implementation
              begin
                 new(pd);
                 pd^:=trealconstnode(p).value_real;
-                hp:=tconstsym.create(name,constreal,longint(pd));
+                hp:=tconstsym.create_ptr(name,constreal,pd);
              end;
            setconstn :
              begin
                new(ps);
                ps^:=tsetconstnode(p).value_set^;
-               hp:=tconstsym.create_typed(name,constset,longint(ps),p.resulttype);
+               hp:=tconstsym.create_ptr_typed(name,constset,ps,p.resulttype);
              end;
            pointerconstn :
              begin
-               hp:=tconstsym.create_typed(name,constpointer,tordconstnode(p).value,p.resulttype);
+               hp:=tconstsym.create_ordptr_typed(name,constpointer,tpointerconstnode(p).value,p.resulttype);
              end;
            niln :
              begin
-               hp:=tconstsym.create_typed(name,constnil,0,p.resulttype);
+               hp:=tconstsym.create_ord_typed(name,constnil,0,p.resulttype);
              end;
            else
              Message(cg_e_illegal_expression);
@@ -595,7 +595,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2001-08-30 20:13:53  peter
+  Revision 1.33  2001-09-02 21:18:28  peter
+    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
+      is used for holding target platform pointer values. As those can be
+      bigger than the source platform.
+
+  Revision 1.32  2001/08/30 20:13:53  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces

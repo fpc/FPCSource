@@ -35,13 +35,11 @@ Type
    TConstExprUInt = {$ifdef fpc}qword{$else}int64{$endif};
 
    { this must be an ordinal type with the same size as a pointer }
-   { to allow some dirty type casts for example when using        }
-   { tconstsym.value                                              }
    { Note: must be unsigned!! Otherwise, ugly code like           }
    { pointer(-1) will result in a pointer with the value          }
    { $fffffffffffffff on a 32bit machine if the compiler uses     }
    { int64 constants internally (JM)                              }
-   TPointerOrd = cardinal;
+   TConstPtrUInt = cardinal;
 
 Const
    { Size of native extended type }
@@ -52,7 +50,12 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.3  2001-06-03 20:21:08  peter
+  Revision 1.4  2001-09-02 21:18:29  peter
+    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
+      is used for holding target platform pointer values. As those can be
+      bigger than the source platform.
+
+  Revision 1.3  2001/06/03 20:21:08  peter
     * Kylix fixes, mostly case names of units
 
   Revision 1.2  2001/02/08 13:09:03  jonas

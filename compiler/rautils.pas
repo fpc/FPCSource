@@ -957,7 +957,7 @@ Begin
         if tconstsym(sym).consttyp in [constint,constchar,constbool] then
          begin
            opr.typ:=OPR_CONSTANT;
-           opr.val:=tconstsym(sym).value;
+           opr.val:=tconstsym(sym).valueord;
            SetupVar:=true;
            Exit;
          end;
@@ -1267,7 +1267,7 @@ Begin
          begin
            if (tconstsym(srsym).consttyp in [constord,constint,constchar,constbool]) then
             Begin
-              l:=tconstsym(srsym).value;
+              l:=tconstsym(srsym).valueord;
               SearchIConstant:=TRUE;
               exit;
             end;
@@ -1581,7 +1581,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2001-08-26 13:36:48  florian
+  Revision 1.24  2001-09-02 21:18:28  peter
+    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
+      is used for holding target platform pointer values. As those can be
+      bigger than the source platform.
+
+  Revision 1.23  2001/08/26 13:36:48  florian
     * some cg reorganisation
     * some PPC updates
 

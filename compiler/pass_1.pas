@@ -78,6 +78,9 @@ implementation
            if assigned(hp) then
             begin
                p.free;
+               { run resulttypepass }
+               resulttypepass(hp);
+               { switch to new node }
                p:=hp;
             end;
            aktlocalswitches:=oldlocalswitches;
@@ -92,7 +95,12 @@ implementation
            codegenerror:=codegenerror or oldcodegenerror;
          end
         else
-         inc(multiresulttypepasscnt);
+         begin
+           { update the codegenerror boolean with the previous result of this node }
+           if (nf_error in p.flags) then
+            codegenerror:=true;
+           inc(multiresulttypepasscnt);
+         end;
       end;
 
 
@@ -170,7 +178,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2001-08-26 13:36:44  florian
+  Revision 1.17  2001-09-02 21:18:28  peter
+    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
+      is used for holding target platform pointer values. As those can be
+      bigger than the source platform.
+
+  Revision 1.16  2001/08/26 13:36:44  florian
     * some cg reorganisation
     * some PPC updates
 
