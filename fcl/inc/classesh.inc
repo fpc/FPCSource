@@ -295,7 +295,6 @@ type
 
   { !!!! Interfaces aren't supported by FPC
   IStringsAdapter = interface
-    ['{739C2F34-52EC-11D0-9EA6-0020AF3D82DA}']
     procedure ReferenceStrings(S: TStrings);
     procedure ReleaseStrings;
   end;
@@ -847,7 +846,6 @@ type
   TComponentName = type string;
 
   IVCLComObject = interface
-    ['{E07892A0-F52F-11CF-BD2F-0020AF0E5B81}']
     function GetTypeInfoCount(out Count: Integer): Integer; stdcall;
     function GetTypeInfo(Index, LocaleID: Integer; out TypeInfo): Integer; stdcall;
     function GetIDsOfNames(const IID: TGUID; Names: Pointer;
@@ -942,9 +940,9 @@ type
     property DesignInfo: Longint read FDesignInfo write FDesignInfo;
     property Owner: TComponent read FOwner;
     property VCLComObject: Pointer read FVCLComObject write FVCLComObject;
-  published
-    //!!!! property Name: TComponentName read FName write SetName stored False;
-    //!!!! property Tag: Longint read FTag write FTag default 0;
+//!!  published
+    property Name: TComponentName read FName write SetName ; // stored False;
+    property Tag: Longint read FTag write FTag ; // default 0;
   end;
 
 { TComponent class reference type }
@@ -962,9 +960,10 @@ var
   RegisterNoIconProc: procedure(ComponentClasses: array of TComponentClass) = nil;
   RegisterNonActiveXProc: procedure(ComponentClasses: array of TComponentClass;
     AxRegType: TActiveXRegType) = nil;
-  CurrentGroup: Integer = -1; { Current design group }
+  CurrentGroup: Integer = -1; 
   CreateVCLComObjectProc: procedure(Component: TComponent) = nil;
 }
+
 { Point and rectangle constructors }
 
 function Point(AX, AY: Integer): TPoint;
@@ -1049,7 +1048,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.6  1998-06-11 13:46:32  michael
+  Revision 1.7  1998-08-22 10:41:00  michael
+  + Some adaptations for changed comment and published handling
+
+  Revision 1.6  1998/06/11 13:46:32  michael
   + Fixed some functions. TFileStream OK.
 
   Revision 1.5  1998/06/10 21:53:06  michael
