@@ -1,5 +1,9 @@
 {
+<<<<<<< fpini.pas
     $Id$
+=======
+    $Id$
+>>>>>>> 1.1.2.3
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -56,6 +60,7 @@ const
 (*  ieOpenFile         = 'OpenFile';
   ieOpenFileCount    = 'OpenFileCount'; *)
   ieRunParameters    = 'Parameters';
+  ieDebuggeeRedir    = 'DebugRedirection';
   iePrimaryFile      = 'PrimaryFile';
   ieCompileMode      = 'CompileMode';
   iePalette          = 'Palette';
@@ -312,6 +317,7 @@ begin
     be overruled with the parameter loading }
   SetPrimaryFile(INIFile^.GetEntry(secCompile,iePrimaryFile,PrimaryFile));
   SetRunParameters(INIFile^.GetEntry(secRun,ieRunParameters,GetRunParameters));
+  DebuggeeTTY := INIFile^.GetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
   { Compile }
   S:=INIFile^.GetEntry(secCompile,ieCompileMode,'');
   for ts:=low(TSwitchMode) to high(TSwitchMode) do
@@ -489,6 +495,8 @@ begin
 *)
   { Run }
   INIFile^.SetEntry(secRun,ieRunParameters,GetRunParameters);
+  If DebuggeeTTY<>'' then
+    INIFile^.SetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
   { Compile }
   INIFile^.SetEntry(secCompile,iePrimaryFile,PrimaryFile);
   INIFile^.SetEntry(secCompile,ieCompileMode,SwitchesModeStr[SwitchesMode]);
@@ -570,7 +578,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:39  pierre
+  Revision 1.3  2000-10-06 22:58:59  pierre
+   * fixes for linux GDB tty command (merged)
+
+  Revision 1.2  2000/08/22 09:41:39  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.2  2000/08/16 18:46:14  peter

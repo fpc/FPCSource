@@ -600,9 +600,13 @@ begin
 {$endif win32}
 {$ifdef linux}
   { Run the debuggee in another tty }
-  Command('set tty '+DebuggeeTTY);
-  NoSwitch:=DebuggeeTTY<>'';
-{$endif win32}
+  if DebuggeeTTY <> '' then
+    begin
+      Command('tty '+DebuggeeTTY);
+      NoSwitch:= true;
+    end
+  else NoSwitch := false;
+{$endif linux}
   { Switch to user screen to get correct handles }
   UserScreen;
   inherited Run;
@@ -896,7 +900,11 @@ begin
   Inc(RunCount);
   if NoSwitch then
     begin
+{$ifdef linux}
+      PushStatus(msg_runninginanotherwindow+DebuggeeTTY);
+{$else not linux}
       PushStatus(msg_runninginanotherwindow);
+{$endif linux}
     end
   else
     begin
@@ -3346,7 +3354,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:39  pierre
+  Revision 1.3  2000-10-06 22:58:59  pierre
+   * fixes for linux GDB tty command (merged)
+
+  Revision 1.2  2000/08/22 09:41:39  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.1  2000/07/18 05:50:22  michael

@@ -378,6 +378,7 @@ const
       label_editor_autoclosingbrackets = 'Aut~o~-closing brackets';
       label_editor_keeptrailingspaces = '~K~eep trailing spaces';
       label_editor_codecomplete = 'Co~d~eComplete enabled';
+      label_editor_folds = 'E~n~able folds';
       label_editor_editoroptions = '~E~ditor options';
       label_editor_tabsize = '~T~ab size';
       label_editor_highlightextensions = '~H~ighlight extensions';
@@ -479,9 +480,9 @@ const
       label_debugger_debuginfo = 'Debugging information';
       label_debugger_profileswitches = 'Profiling Switches';
       label_debugger_compilerargs = '~A~dditional compiler args';
-      label_debugger_useanotherconsole = 'Use ~A~nother console';
+      label_debugger_useanotherconsole = '~U~se another console';
       label_debugger_redirection = 'Debuggee ~R~edirection';
-      label_debugger_useanothertty = 'Use ~A~nother tty for Debuggee';
+      label_debugger_useanothertty = '~U~se Another tty for Debuggee';
 
       dialog_helpfiles = 'Install Help Files';
       label_helpfiles_helpfiles = '~H~elp files';
@@ -558,6 +559,7 @@ const
       msg_errorprocessingfilteredoutput = 'Error processing filtered output.';
       msg_errorexecutingfilter = 'Error executing filter %s';
       msg_errorexecutingtool = 'Error executing tool %s';
+      msg_errorexecutingshell = 'Error cannot run shell';
       msg_filterexecutionsuccessfulexitcodeis = 'Filter execution successful. Exit code = %d';
       msg_toolexecutionsuccessfulexitcodeis = 'Tool execution successful. Exit code = %d';
 
@@ -979,7 +981,10 @@ const
 
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:40  pierre
+  Revision 1.3  2000-10-06 22:58:59  pierre
+   * fixes for linux GDB tty command (merged)
+
+  Revision 1.2  2000/08/22 09:41:40  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.3  2000/08/16 18:46:14  peter
