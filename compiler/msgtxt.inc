@@ -671,25 +671,25 @@ const msgtxt : array[0..000107,1..240] of char=(
   '3*2TLINUX_Linu','x'#000+
   '3*2TOS2_OS/2 2.x'#000+
   '3*2TWin32_Windows 32 Bit'#000+
-  '3*2WB<x> Set Image base to Hexadecimal <x> value'#000+
-  '3*2WC Specify console type application'#000+
-  '3*2WD Use DEFFILE to export functions of DLL or EXE'#000+
-  '3*2WG Specify graphic type application'#000+
-  '3*2WN Do not gene','rate relocation code (necessary for debugging)'#000+
-  '3*2WR Generate relocation code'#000+
+  '3*1WB<x>_ Set Image base to Hexadecimal <x> value'#000+
+  '3*1WC_ Specify console type application'#000+
+  '3*1WD_ Use DEFFILE to export functions of DLL or EXE'#000+
+  '3*1WG_ Specify graphic type application'#000+
+  '3*1WN_ Do not',' generate relocation code (necessary for debugging)'#000+
+  '3*1WR_ Generate relocation code'#000+
   '6*1A<x>_output format'#000+
   '6*2Aas_Unix o-file using GNU AS'#000+
   '6*2Agas_GNU Motorola assembler'#000+
   '6*2Amit_MIT Syntax (old GAS)'#000+
   '6*2Amot_Standard Motorola assembler'#000+
-  '6*1O_optimiz','ations:'#000+
+  '6*1O_o','ptimizations:'#000+
   '6*2Oa_turn on the optimizer'#000+
   '6*2Og_generate smaller code'#000+
   '6*2OG_generate faster code (default)'#000+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#000+
   '6*2O2_set target processor to a MC68020+'#000+
   '6*1R<x>_assembler reading style:'#000+
-  '6*2RMOT_read motorola sty','le assembler'#000+
+  '6*2RMOT_read motoro','la style assembler'#000+
   '6*1T<x>_Target operating system:'#000+
   '6*2TAMIGA_Commodore Amiga'#000+
   '6*2TATARI_Atari ST/STe/TT'#000+
