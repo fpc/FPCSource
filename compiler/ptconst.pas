@@ -333,16 +333,14 @@ unit ptconst;
 
                       if def^.size>strlength then
                         begin
-                           getmem(ca,def^.size-strlength+1);
+                           getmem(ca,def^.size-strlength);
                            { def^.size contains also the leading length, so we }
                            { we have to subtract one                           }
                            fillchar(ca[0],def^.size-strlength-1,' ');
                            ca[def^.size-strlength-1]:=#0;
                            { this can also handle longer strings }
-                           generate_pascii(datasegment,ca,def^.size-strlength);
-                        end
-                      else
-                        datasegment^.concat(new(pai_const,init_8bit(0)));
+                           generate_pascii(datasegment,ca,def^.size-strlength-1);
+                        end;
                    end;
 {$ifdef UseLongString}
                  st_longstring:
@@ -628,7 +626,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.25  1998-11-10 16:10:47  peter
+  Revision 1.26  1998-11-10 17:53:06  peter
+    * fixed const string
+
+  Revision 1.25  1998/11/10 16:10:47  peter
     * fixed const pchar
 
   Revision 1.24  1998/11/05 12:02:55  peter
