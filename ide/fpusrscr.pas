@@ -58,6 +58,28 @@ type
       procedure   SwitchBackToIDEScreen; virtual;
     end;
 
+{$IFDEF netwlibc}
+    PNWLScreen = ^TNWLScreen;
+    TNWLScreen = object(TScreen)
+      function    GetWidth: integer; virtual;
+      function    GetHeight: integer; virtual;
+      procedure   GetLine(Line: integer; var Text, Attr: string); virtual;
+      procedure   GetCursorPos(var P: TPoint); virtual;
+      { remember the initial video screen }
+      procedure   Capture; virtual;
+      { restore the initial video mode }
+      procedure   Restore; virtual;
+      { saves the current IDE screen }
+      procedure   SaveIDEScreen; virtual;
+      { saves the current console screen }
+      procedure   SaveConsoleScreen; virtual;
+      { restores the saved console screen }
+      procedure   SwitchToConsoleScreen; virtual;
+      { restores the saved IDE screen }
+      procedure   SwitchBackToIDEScreen; virtual;
+    end;
+{$ENDIF}
+
 {$IFDEF OS2}
     POS2Screen = ^TOS2Screen;
     TOS2Screen = object(TScreen)
@@ -1409,6 +1431,68 @@ end;
 
 {$ENDIF}
 
+
+{****************************************************************************
+                                 TNWLScreen
+****************************************************************************}
+
+
+{$ifdef netwlibc}
+function TNWLScreen.GetWidth: integer;
+begin
+  GetWidth:=80;
+end;
+
+function TNWLScreen.GetHeight: integer;
+begin
+  GetHeight:=25;
+end;
+
+procedure TNWLScreen.GetLine(Line: integer; var Text, Attr: string);
+begin
+  Text:='                                                                               ';
+  Attr:='                                                                               ';
+end;
+
+procedure TNWLScreen.GetCursorPos(var P: TPoint);
+begin
+  P.X:=1;
+  P.Y:=1;
+end;
+
+{ remember the initial video screen }
+procedure TNWLScreen.Capture;
+begin
+end;
+
+{ restore the initial video mode }
+procedure TNWLScreen.Restore;
+begin
+end;
+
+{ saves the current IDE screen }
+procedure TNWLScreen.SaveIDEScreen;
+begin
+end;
+
+{ saves the current console screen }
+procedure TNWLScreen.SaveConsoleScreen;
+begin
+end;
+
+{ restores the saved console screen }
+procedure TNWLScreen.SwitchToConsoleScreen;
+begin
+end;
+
+{ restores the saved IDE screen }
+procedure TNWLScreen.SwitchBackToIDEScreen;
+begin
+end;
+
+{$ENDIF}
+
+
 {****************************************************************************
                                  Initialize
 ****************************************************************************}
@@ -1428,7 +1512,11 @@ begin
       {$ifdef OS2}
         UserScreen:=New(POS2Screen, Init);
       {$else}
-        UserScreen:=New(PScreen, Init);
+        {$ifdef netwlibc}
+          UserScreen:=New(PNWLScreen, Init);
+        {$else}
+          UserScreen:=New(PScreen, Init);
+        {$endif netwlibc}
       {$endif OS2}
     {$endif Win32}
   {$endif Unix}
@@ -1449,7 +1537,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  2004-07-09 23:17:26  peter
+  Revision 1.35  2004-09-19 14:51:03  armin
+  * added support for target netwlibc
+
+  Revision 1.34  2004/07/09 23:17:26  peter
     * revert isatty patch
 
   Revision 1.32  2004/02/20 21:46:06  peter

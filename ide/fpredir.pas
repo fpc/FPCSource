@@ -43,6 +43,9 @@ Interface
 {$ifdef BSD}
 {$define implemented}
 {$endif}
+{$ifdef netwlibc}
+{$define implemented}
+{$endif}
 
 { be sure msdos is not set for FPC compiler }
 {$ifdef FPC}
@@ -85,9 +88,9 @@ Uses
 {$ifdef go32v2}
   go32,
 {$endif go32v2}
-{$ifdef win32}
-  windows,
-{$endif win32}
+{$ifdef netwlibc}
+  Libc,
+{$endif netwlibc}
 {$ifdef unix}
   {$ifdef ver1_0}
     linux,
@@ -968,7 +971,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.6  2003-10-14 08:29:29  peter
+  Revision 1.7  2004-09-19 14:51:03  armin
+  * added support for target netwlibc
+
+  Revision 1.6  2003/10/14 08:29:29  peter
     * go32v2 fixed
 
   Revision 1.5  2003/09/29 14:36:59  peter

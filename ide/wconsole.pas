@@ -40,6 +40,9 @@ interface
 {$ifdef go32v2}
       longint
 {$endif go32v2}
+{$ifdef netwlibc}
+      longint
+{$endif netwlibc}
     ;
 
 Procedure SaveConsoleMode(var ConsoleMode : TConsoleMode);
@@ -62,6 +65,9 @@ Begin
 {$ifdef go32v2}
   ConsoleMode:=0;
 {$endif go32v2}
+{$ifdef netwlibc}
+  ConsoleMode:=0;
+{$endif}
 End;
 
 Procedure RestoreConsoleMode(const ConsoleMode : TConsoleMode);
@@ -80,7 +86,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-11-19 17:11:40  marco
+  Revision 1.7  2004-09-19 14:51:03  armin
+  * added support for target netwlibc
+
+  Revision 1.6  2003/11/19 17:11:40  marco
    * termio unit
 
   Revision 1.5  2002/10/12 19:42:01  hajny
