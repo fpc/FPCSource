@@ -4,6 +4,7 @@ Priority: optional
 Architecture: i386
 Maintainer: Mika Fischer <mf@debian.org>
 Standards-Version: 3.1.1
+Build-Depends: fp-compiler, debhelper, tetex-bin, awk
 
 Package: fp-compiler
 Architecture: i386

@@ -1,3 +1,14 @@
+fpc (1.0.1-0.20000811.1) unstable; urgency=low
+
+  * Built for `official' upload. CVS as of 2000/08/11 - NMU.
+  * Update to latest version, thus Closes: #56873.
+  * Removes /usr/bin/ppc386 link upon package removal. Closes: #64403.
+  * This upload also Closes: #68801.
+  * Added Build-Depends. Hmmm, 'fp-compiler' is somehow like `the chicken
+    and the egg' story...
+
+ -- Ulf Jaenicke-Roessler <ujr@debian.org>  Fri, 11 Aug 2000 22:49:37 +0200
+
 fpc (1.0.1-0) unstable; urgency=low
 
   * New Upstream Release

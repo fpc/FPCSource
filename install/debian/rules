@@ -46,6 +46,7 @@ clean:
 	$(MAKE) packages_distclean
 
 	$(MAKE) -C docs clean
+	rm -f docs/syntax.sty
 
 	dh_clean
 
@@ -115,7 +116,7 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 
 # Create ppc386.cfg which is included as conffile
 	chmod 755 compiler/utils/samplecfg 
-	compiler/utils/samplecfg /usr/lib/fpc/$(FPCVERSION) $(INSTALL_DIR)/etc
+	compiler/utils/samplecfg "/usr/lib/fpc/\$$version" $(INSTALL_DIR)/etc
 	touch install-arch-stamp
 
 
@@ -138,6 +139,9 @@ build-indep-stamp: debian-files-stamp
 	@echo "--- Building Documentation"
 	dh_testdir
 
+# We need our own syntax.sty (v1.9) which is not in the current tetex and
+# on ctan.org (PFV)
+	cp debian/syntax.sty docs
 	$(MAKE) -C docs $(DOCTYPE)
 
 	touch build-indep-stamp
