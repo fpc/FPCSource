@@ -516,7 +516,7 @@ procedure tvmtobject.method_virtual_call_normal_params_mixed(
    end;
 
 procedure tvmtobject.method_virtual_call_constructor_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
    begin
      constructor_params_mixed(u8, u16, bigstring, s32, s64);
    end;
@@ -3294,7 +3294,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-12-29 15:30:55  peter
+  Revision 1.5  2003-01-05 18:21:30  peter
+    * removed more conflicting calling directives
+
+  Revision 1.4  2002/12/29 15:30:55  peter
     * updated for 1.1 compiler that does not allow calling conventions
       for constructor/destructor
 

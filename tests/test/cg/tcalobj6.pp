@@ -192,9 +192,9 @@ type
    object_s32bit : longint;
    object_s64bit : int64;
    constructor constructor_params_mixed(u8 :byte; u16: word;
-      bigstring: shortstring; s32: longint; s64: int64);register;
-   constructor constructor_init;register;
-   destructor destructor_params_done;register;
+      bigstring: shortstring; s32: longint; s64: int64);
+   constructor constructor_init;
+   destructor destructor_params_done;
    procedure method_normal_params_mixed(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);register;
    procedure method_virtual_params_mixed(u8 :byte; u16: word;
@@ -225,15 +225,15 @@ type
  pheritedvmtobject = ^theritedvmtobject;
  theritedvmtobject = object(tvmtobject)
    constructor constructor_params_mixed_call_virtual(u8 :byte; u16: word;
-      bigstring: shortstring; s32: longint; s64: int64);register;
+      bigstring: shortstring; s32: longint; s64: int64);
    constructor constructor_params_mixed_call_overriden(u8 :byte; u16: word;
-      bigstring: shortstring; s32: longint; s64: int64);register;
+      bigstring: shortstring; s32: longint; s64: int64);
    constructor constructor_params_mixed_call_static(u8 :byte; u16: word;
-      bigstring: shortstring; s32: longint; s64: int64);register;
+      bigstring: shortstring; s32: longint; s64: int64);
    constructor constructor_params_mixed_call_normal(u8 :byte; u16: word;
-      bigstring: shortstring; s32: longint; s64: int64);register;
+      bigstring: shortstring; s32: longint; s64: int64);
    constructor constructor_params_mixed_call_inherited(u8 :byte; u16: word;
-      bigstring: shortstring; s32: longint; s64: int64);register;
+      bigstring: shortstring; s32: longint; s64: int64);
    procedure method_virtual_overriden_params_mixed(
     u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;register;
 
@@ -260,7 +260,7 @@ type
  pfailvmtobject = ^tfailvmtobject;
  tfailvmtobject = object(tvmtobject)
  public
-    constructor constructor_public_none;register;
+    constructor constructor_public_none;
  end;
 
 
@@ -402,7 +402,7 @@ type
 {**************************************************************************}
 {                             FAILED OBJECT                                }
 {**************************************************************************}
-constructor tfailvmtobject.constructor_public_none;register;
+constructor tfailvmtobject.constructor_public_none;
  begin
     { this calls the constructor fail special keyword }
     fail;
@@ -412,7 +412,7 @@ constructor tfailvmtobject.constructor_public_none;register;
 {                               VMT  OBJECT                                }
 {**************************************************************************}
 constructor tvmtobject.constructor_params_mixed(u8 :byte; u16: word;
-   bigstring: shortstring; s32: longint; s64: int64);register;
+   bigstring: shortstring; s32: longint; s64: int64);
  begin
    object_u8bit := u8;
    object_u16bit := u16;
@@ -422,7 +422,7 @@ constructor tvmtobject.constructor_params_mixed(u8 :byte; u16: word;
  end;
 
 
-constructor tvmtobject.constructor_init;register;
+constructor tvmtobject.constructor_init;
  begin
    object_u8bit := 0;
    object_u16bit := 0;
@@ -431,7 +431,7 @@ constructor tvmtobject.constructor_init;register;
    object_s64bit := 0;
  end;
 
-destructor tvmtobject.destructor_params_done;register;
+destructor tvmtobject.destructor_params_done;
  begin
    object_u8bit := 0;
    object_u16bit := 0;
@@ -536,7 +536,7 @@ procedure tvmtobject.method_virtual_call_inherited_params_mixed(
 {                          INHERITED VMT OBJECT                            }
 {**************************************************************************}
 constructor theritedvmtobject.constructor_params_mixed_call_virtual(
-   u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);register;
+   u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
  begin
    object_u8bit := 0;
    object_u16bit := 0;
@@ -547,7 +547,7 @@ constructor theritedvmtobject.constructor_params_mixed_call_virtual(
  end;
 
 constructor theritedvmtobject.constructor_params_mixed_call_overriden(
-   u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);register;
+   u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
  begin
    object_u8bit := 0;
    object_u16bit := 0;
@@ -558,7 +558,7 @@ constructor theritedvmtobject.constructor_params_mixed_call_overriden(
  end;
 
 constructor theritedvmtobject.constructor_params_mixed_call_static(
-    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);register;
+    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
  begin
    object_u8bit := 0;
    object_u16bit := 0;
@@ -569,7 +569,7 @@ constructor theritedvmtobject.constructor_params_mixed_call_static(
  end;
 
 constructor theritedvmtobject.constructor_params_mixed_call_normal(
-    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);register;
+    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
  begin
    object_u8bit := 0;
    object_u16bit := 0;
@@ -580,7 +580,7 @@ constructor theritedvmtobject.constructor_params_mixed_call_normal(
  end;
 
 constructor theritedvmtobject.constructor_params_mixed_call_inherited
-   (u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);register;
+   (u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
  begin
    object_u8bit := 0;
    object_u16bit := 0;
@@ -3295,7 +3295,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:54  peter
+  Revision 1.4  2003-01-05 18:21:30  peter
+    * removed more conflicting calling directives
+
+  Revision 1.3  2002/09/07 15:40:54  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/05/05 19:13:19  carl

@@ -32,14 +32,14 @@ type
   troutineresult = function (x: longint; y: byte): int64;register;
 
   tsimpleobject = object
-    constructor init;register;
+    constructor init;
     procedure test_normal(x: byte);register;
     procedure test_static(x: byte);static;register;
     procedure test_virtual(x: byte);virtual;register;
   end;
 
   tsimpleclass = class
-    constructor create;register;
+    constructor create;
     procedure test_normal(x: byte);register;
     class procedure test_static(x: byte);register;
     procedure test_virtual(x: byte);virtual;register;
@@ -174,7 +174,7 @@ var
 
  {****************************************************************************************************}
 
-  constructor tsimpleobject.init;register;
+  constructor tsimpleobject.init;
    begin
    end;
 
@@ -194,7 +194,7 @@ var
    end;
 
  {****************************************************************************************************}
-  constructor tsimpleclass.create;register;
+  constructor tsimpleclass.create;
    begin
     inherited create;
    end;
@@ -601,7 +601,10 @@ end.
 
 {
    $Log$
-   Revision 1.2  2002-09-07 15:40:55  peter
+   Revision 1.3  2003-01-05 18:21:30  peter
+     * removed more conflicting calling directives
+
+   Revision 1.2  2002/09/07 15:40:55  peter
      * old logs removed and tabs fixed
 
    Revision 1.1  2002/05/05 13:58:50  carl
