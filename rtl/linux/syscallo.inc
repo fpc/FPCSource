@@ -29,7 +29,6 @@ Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler;
   copies back the registers as they are after the SysCall.
 }
 {$ifdef i386}
-{$ASMMODE ATT}
 {$define fpc_syscall_ok}
 asm
 { load the registers... }
@@ -54,7 +53,6 @@ asm
   popl %ebx
   movl %ebx,(%eax)
 end;
-{$ASMMODE DEFAULT}
 {$endif i386}
 {$ifdef m68k}
 {$define fpc_syscall_ok}
@@ -103,6 +101,26 @@ asm
   stw    r5, 8(r8)
   stw    r6, 12(r8)
   stw    r7, 16(r8)
+end;
+{$endif powerpc}
+{$ifdef sparc}
+{$define fpc_syscall_ok}
+asm
+{ we are using the callers register window }
+  or   %i0,%g0,%g1
+  ld   [%i1],%o0
+  ld   [%i1+4],%o1
+  ld   [%i1+8],%o2
+  ld   [%i1+12],%o3
+  ld   [%i1+16],%o4
+{ Go ! }
+  ta   0x10
+{ Put back the registers... }
+  st   %o0,[%i1]
+  st   %o1,[%i1+4]
+  st   %o2,[%i1+8]
+  st   %o3,[%i1+12]
+  st   %o4,[%i1+16]
 end;
 {$endif powerpc}
 {$ifndef fpc_syscall_ok}
@@ -166,7 +184,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-04-22 17:07:55  florian
+  Revision 1.3  2003-06-04 15:18:14  peter
+    * compile fix for systhrds
+
+  Revision 1.2  2003/04/22 17:07:55  florian
     * there where two SYSCALL1 procedures for the powerpc, fixed
 
   Revision 1.1  2002/11/11 21:40:26  marco
