@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for ZLib (LibC version)
+#
+
+[package]
+name=zlib
+version=1.0.6
+
+[target]
+units=zlib
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

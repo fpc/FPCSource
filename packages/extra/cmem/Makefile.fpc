@@ -1,0 +1,17 @@
+#
+#   Makefile.fpc for C Memory Manager
+#
+
+[package]
+name=cmem
+version=1.0.6
+
+[target]
+units=cmem
+examples=testcmem
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# Small script to remove the demo database again.
+# This script accepts 1 (optional) argument : 
+# a database you can connect to. Default is 'testdb'
+# 
+echo -n "Removing table email from db ${1-testdb}..." 
+psql ${1-testdb} << EOF >/dev/null 2>&1
+drop table email;
+EOF
+if [ ! $? = 0 ]; then
+  echo "Failed."
+else
+  echo "Done."
+fi
+# Ready

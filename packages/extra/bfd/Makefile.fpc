@@ -1,0 +1,20 @@
+#
+#   Makefile.fpc for BFD library
+#
+
+[package]
+name=bfd
+version=1.0.6
+
+[target]
+units=bfd
+examples=
+
+[require]
+package=rtl
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

@@ -1,0 +1,123 @@
+{
+    $Id$
+    This file is part of the Numlib package.
+    Copyright (c) 1986-2000 by
+     Kees van Ginneken, Wil Kortsmit and Loek van Reij of the
+     Computational centre of the Eindhoven University of Technology
+
+    FPC port Code          by Marco van de Voort (marco@freepascal.org)
+             Documentation by Michael van Canneyt (Michael@freepascal.org)
+
+    This is an internal document with information collected during porting
+    numlib to FPC
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+NumLib ported.txt, internals or "Developpers docs".
+
+ARBFLOAT, basic Floating point type.
+-----------------------------------
+
+In the FPC revision instead of picking a certain floating point type,
+a new type "ArbFloat" is defined which is used as floating point type
+throughout the entire library. If the floating point type is changed,
+define or undefine ArbExtended and add the machineconstants change to
+the type selected.
+
+This allows IEEE Double (64bit) and Extended(80bit).
+
+ARBINT, basic INTEGER type.
+-----------------------------------
+
+Because in plain FPC mode Integer =16-bits (for TP compatibility), and in
+Delphi 32-bits, I changed all integers to ArbInt.
+The basic idea is the same as ArbFloat, but it is less consequently used,
+mainly because some typecastings of pointers to words existed. These
+typecastings should never be 16-bits in FPC, so all local variables are
+longint. (which is currently always 32bits)
+
+VECTOR or MATRIX as ArbFloat.
+-----------------------------------
+NumLib often passes Matrices and Vectors as one ArbFloat + some integer
+values, then maps the following pmatrix type over it, and accesses it as an
+array or vector:
+
+procedure dosomething(var invalue:ArbFloat);
+
+type Row=ARRAY[0..maxelements] OF ArbFloat;
+     Matrix=Array[0..maxelements] OF ^ROW;
+     pmatrix=^matrix;
+
+Var pa : pmatrix;
+begin
+ pa=@invalue;
+ pa[x]^[y]:=valuexy
+END;
+
+The calling side looks like this:
+
+VAR L : ARRAY[0..1999] OF ArbFloat;
+
+DoSomething(L[0]);
+
+-----------
+Questions that remain open/incompleteneses in the package we got:
+
+- Typ, mdt and Dsl,spl are undocumented. Typ is quite understandable though.
+  Mdt and dsl contain probably procedures that, in earlier version were
+  used as locals in some unit. When the procedures were also used in other units,
+  they were moved to a different unit, but the documentation wasn't extended.
+  SPL is different in many ways. Contains comments (including some english
+  ones)
+- All procedures with an extra l appended to the name in unit SLE are
+  undocumented.
+- The archive we got seems to be a copy of the working directory of the author,
+    a snapshot during a never finished restructure. (probably matlab and
+    similar programs took over)
+   The sources/finished directory was the "new" archive, which generated a
+   .dll. All graphics using routines, and new units were never finished.
+   The problem is that also the documentation was never finished.
+- How to implement a less ugly calling convention, without loosing speed.
+  (which still can be important in nummerics)?
+
+Other remarks:
+- Spe needs some constants recalculated to get full precision for extended,
+  the files to calc the constants aren't included. (copied from some reference
+  book?) Some units have literature references in the documentation. Spe
+  (Murphy's law) doesn't. Some other units (INT) also have this problem.
+- Found out what MDT does. MDT is the core of DET. Det just reads a vector,
+    reformats it to form a matrix, and then passes it to MDT.
+  Such a vector only contains the required fields to build a certain kind of
+  matrix. (e.g. for a bandmatrix, the diagonals). MDT=Matrix determinant.
+
+-------------
+Some translation problems:
+
+I left the term "Bandmatrix" untranslated, and give the mathematical definition
+here, and hope you know what it is in english:
+
+If A is a "n x n" bandmatrix with leftbound l, and rightbound r then
+
+Aij=0 if j<i-l or j>i+r
+{
+  $Log$
+  Revision 1.1  2002-01-29 17:55:18  peter
+    * splitted to base and extra
+
+  Revision 1.1  2000/07/13 06:34:15  michael
+  + Initial import
+
+  Revision 1.2  2000/01/25 20:22:31  marco
+   * small changes
+
+  Revision 1.1  2000/01/24 22:11:28  marco
+   * initial version
+
+}

@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# Small script to remove the demo database again.
+# This script accepts 1 (optional) argument : 
+# a database you can connect to. Default is 'testdb'
+# 
+echo -n "Removing table FPdev from db ${1-testdb}..." 
+mysql ${1-testdb} << EOF >/dev/null
+drop table FPdev
+EOF
+if [ ! $? = 0 ]; then
+  echo "Failed."
+else
+  echo "Done."
+fi
+# Ready

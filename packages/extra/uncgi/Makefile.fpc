@@ -1,0 +1,22 @@
+#
+#   Makefile.fpc for CGI Units
+#
+
+[package]
+name=uncgi
+version=1.0.6
+
+[target]
+units=uncgi
+examples=testcgi
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+
+[rules]
+exampleinstall: fpc_exampleinstall
+        $(COPY) testcgi.sh testcgi.bat $(INSTALL_EXAMPLEDIR)

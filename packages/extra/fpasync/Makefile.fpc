@@ -1,0 +1,26 @@
+#
+#   Makefile.fpc for fpAsync
+#
+
+[package]
+name=fpasync
+version=1.0.6
+
+[target]
+units=fpasync
+
+[require]
+packages=rtl fcl libasync
+
+[install]
+fpcpackage=y
+createpackagefpc=y
+
+[compiler]
+unitdir=../libasync
+sourcedir_linux=unix
+sourcedir_freebsd=unix
+targetdir=.
+
+[default]
+fpcdir=../../..

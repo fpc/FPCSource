@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# Script to create a table 'email' and to fill it with data.
+# The script accepts an optional argument : 
+# A database to connect to. (default 'testdb')
+echo -n "Creating and filling table email in database ${1-testdb}..."
+psql ${1-testdb} << EOF >/dev/null 2>&1
+create table email ( 
+id int4,
+name text,
+email text);
+insert into email values (1,'Michael Van Canneyt','Michael@tfdec1.fys.kuleuven.ac.be');
+insert into email values (2,'Florian Klaempfl','ba2395@fen.baynet.de');
+insert into email values (3,'Carl-Eric Codere','codc01@gel.usherb.ca');
+insert into email values (4,'Daniel Mantione','d.s.p.mantione@twi.tudelft.nl');
+insert into email values (5,'Pierre Muller','muller@europe.u-strasbg.fr');
+insert into email values (6,'Jonas Maebe','jmaebe@mail.dma.be');
+insert into email values (7,'Peter Vreman','pfv@worldonline.nl');
+insert into email values (8,'Gerry Dubois','gerry@webworks.ml.org');
+EOF
+if [ ! $? = 0 ]; then
+  echo "Failed."
+else
+  echo "Done."
+fi
+# Ready

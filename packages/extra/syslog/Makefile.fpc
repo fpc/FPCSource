@@ -1,0 +1,20 @@
+#
+#   Makefile.fpc for SysLog Units
+#
+
+[package]
+name=syslog
+version=1.0.6
+
+[target]
+units=systemlog
+examples=testlog
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

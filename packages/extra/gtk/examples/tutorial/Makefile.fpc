@@ -1,0 +1,15 @@
+#
+#   Makefile.fpc for Free Pascal GTK 1.2.x Tutorial
+#
+
+[targets]
+programs=$(subst .pp,,$(wildcard tut*.pp))
+
+[require]
+packages=gtk
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../../..

@@ -1,0 +1,17 @@
+#
+#   Makefile.fpc for Internet Units
+#
+
+[package]
+name=inet
+version=1.0.6
+
+[target]
+units=inet
+examples=testinet pfinger
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

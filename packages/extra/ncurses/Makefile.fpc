@@ -1,0 +1,20 @@
+#
+#   Makefile.fpc for NCurses bindings
+#
+
+[package]
+name=ncurses
+version=1.0.6
+
+[target]
+units=ncurses panel ncrt ocrt menu
+examples=firework testn ocrt_demo edit_demo db_demo screen_demo
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

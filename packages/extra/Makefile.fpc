@@ -1,0 +1,28 @@
+#
+#   Makefile.fpc for Free Pascal Packages
+#
+
+[target]
+dirs=unzip
+dirs_linux=uncgi fpasync \
+           x11 opengl gtk syslog \
+           forms svgalib ggi libpng libgd \
+           utmp cmem bfd zlib gdbm
+dirs_netbsd=uncgi fpasync \
+            x11 opengl gtk syslog \
+            forms svgalib ggi libpng libgd \
+            utmp cmem bfd zlib gdbm
+dirs_freebsd=uncgi fpasync \
+             x11 opengl gtk syslog \
+             forms svgalib ggi libpng libgd \
+             utmp cmem bfd zlib gdbm
+dirs_win32=uncgi opengl gtk \
+           zlib mmsystem
+dirs_os2=uncgi
+dirs_go32v2=uncgi
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..

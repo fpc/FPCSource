@@ -1,0 +1,11 @@
+#!/bin/csh
+# Simple script to do some VERY basic c->pascal conversions.
+# 
+foreach f ( $1 )
+sed s/\\\"/\\\'/g <$f | sed s/\\\/\\\*/\{/g |sed s/\\\*\\\//\}/g |\
+sed s/\ =\ /\ :=\ /g | sed s/-\>/\\^\\\./g >`basename $f .c`.pp
+
+
+
+
+

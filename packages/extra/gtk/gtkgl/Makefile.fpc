@@ -1,0 +1,22 @@
+#
+#   Makefile.fpc for GtkGLArea
+#
+
+[package]
+main=gtk
+
+[target]
+units=gtkglarea
+examples=gtkgldemo
+
+[require]
+packages=opengl
+
+[compiler]
+targetdir=..
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..

@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# Script to create a table 'FPdev' and to fill it with data.
+# The script accepts an optional argument : 
+# A database to connect to. (default 'testdb')
+#
+# Collect  the database
+DATABASE=${1-./testdb.gdb}
+# Choose one of the following:
+# ISQL=isql
+ISQL=/opt/interbase/i586_V4.0G/bin/isql
+#
+# Don't edit after this.
+#
+echo -n "Creating and filling table FPdev in database $DATABASE..."
+${ISQL} << EOF >/dev/null 2>&1
+CREATE DATABASE "$DATABASE";
+create table FPdev ( 
+id INT NOT NULL,
+UserName CHAR(255),
+InstEmail CHAR(255),
+PRIMARY KEY (id));
+insert into FPdev values ('1','Michael Van Canneyt','Michael@tfdec1.fys.kuleuven.ac.be');
+insert into FPdev values ('2','Florian Klaempfl','ba2395@fen.baynet.de');
+insert into FPdev values ('3','Carl-Eric Codere','codc01@gel.usherb.ca');
+insert into FPdev values ('4','Daniel Mantione','d.s.p.mantione@twi.tudelft.nl');
+insert into FPdev values ('5','Pierre Muller','muller@europe.u-strasbg.fr');
+insert into FPdev values ('6','Jonas Maebe','jmaebe@mail.dma.be');
+insert into FPdev values ('7','Peter Vreman','pfv@worldonline.nl');
+insert into FPdev values ('8','Gerry Dubois','gerry@webworks.ml.org');
+EOF
+if [ ! $? = 0 ]; then
+  echo "Failed."
+else
+  echo "Done."
+fi
+# Ready

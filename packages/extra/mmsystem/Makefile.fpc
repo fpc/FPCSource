@@ -1,0 +1,17 @@
+#
+#   Makefile.fpc for CGI Units
+#
+
+[package]
+name=mmsystem
+version=1.0.6
+
+[target]
+units=mmsystem
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+

@@ -1,0 +1,20 @@
+#
+#   Makefile.fpc for MySql bindings
+#
+
+[package]
+name=mysql
+version=1.0.6
+
+[target]
+units=mysql_com mysql_version mysql
+examples=testdb
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

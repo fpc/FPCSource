@@ -1,0 +1,20 @@
+#
+#   Makefile.fpc for GD Library interface
+#
+
+[package]
+name=libgd
+version=1.0.6
+
+[require]
+libc=y
+
+[target]
+units=gd
+examples=gdtest
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

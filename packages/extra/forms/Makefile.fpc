@@ -1,0 +1,22 @@
+#
+#   Makefile.fpc for Forms Bindings
+#
+
+[package]
+name=forms
+version=1.0.6
+
+[target]
+units=forms
+programs=fd2pascal
+exampledirs=demo
+
+[require]
+packages=x11
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

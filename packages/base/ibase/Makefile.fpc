@@ -1,0 +1,20 @@
+#
+#   Makefile.fpc for InterBase bindings
+#
+
+[package]
+name=ibase
+version=1.0.6
+
+[target]
+units=ibase40 ibase60
+examples=testib40 testib60
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
