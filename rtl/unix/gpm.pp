@@ -704,7 +704,7 @@ function gpm_fitvalues(var x,y:longint):longint;
 {$ifndef VER1_0}inline;{$endif}
 
 begin
-  gpm_fitvalues:=gpm_fitvalues(x,y);
+  gpm_fitvalues:=gpm_fitvaluesm(x,y,-1);
 end;
 
 function gpm_handle_roi(var eptr:Tgpm_event;clientdata:pointer):longint;cdecl;
@@ -953,7 +953,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2004-07-09 19:03:35  peter
+  Revision 1.9  2004-07-09 22:40:02  daniel
+    * Fixed fitvalues
+
+  Revision 1.8  2004/07/09 19:03:35  peter
     * isatty return cint again
 
   Revision 1.7  2004/07/08 13:23:21  daniel
