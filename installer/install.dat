@@ -56,6 +56,8 @@ package=uuncgigo32.zip[ucgigo32.zip],Uncgi unit
 # Dos 14
 package=upasjpeggo32.zip[upjpgo32.zip],Pas~J~PEG units
 # Dos 15
+package=umd5go32.zip,Unit for MD~5~ processing
+# Dos 16
 #package=ufvgo32.zip,Free ~V~ision (FV)
 
 
@@ -121,6 +123,8 @@ package=uuncgiw32.zip,Uncgi unit
 # Win32-2 14
 package=upasjpegw32.zip,Pas~J~PEG units
 # Win32-2 15
+package=umd5w32.zip,Unit for MD~5~ processing
+# Win32-2 16
 #package=ufvw32.zip,Free ~V~ision (FV)
 
 
@@ -156,9 +160,11 @@ package=uuncgios2.zip[ucgios2.zip],Uncgi unit
 # OS/2 10
 package=uclkdllos2.zip[uclkos2.zip],CLKDLL interface unit (eCS 1.1+)
 # OS/2 11
-package=ulvmos2.zip,LVM interface unit
+package=ulvmos2.zip,LVM interface unit (OS/2 v4.5 / eCS)
 # OS/2 12
 package=upasjpegos2.zip[upjpos2.zip],Pas~J~PEG units
+# OS/2 13
+package=umd5os2.zip,Unit for MD~5~ processing
 
 
 #
@@ -232,9 +238,11 @@ package=uuncgiemx.zip[ucgiemx.zip],Uncgi unit
 # EMX 10
 package=uclkdllemx.zip[uclkemx.zip],CLKDLL interface unit (eCS 1.1+)
 # EMX 11
-package=ulvmemx.zip,LVM interface unit
+package=ulvmemx.zip,LVM interface unit (OS/2 v4.5 / eCS)
 # EMX 12
 package=upasjpegemx.zip[upjpemx.zip],Pas~J~PEG units
+# EMX 13
+package=umd5emx.zip,Unit for MD~5~ processing
 
 
 #
