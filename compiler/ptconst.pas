@@ -192,13 +192,18 @@ implementation
                          else if is_constrealnode(p) and
                                  (torddef(t.def).typ=scurrency)
                            { allow bootstrapping }
-{$ifndef VER1_0}
+{$ifdef VER1_0}
                                  and (trealconstnode(p).value_real*10000 >= low(int64)) and
                                  (trealconstnode(p).value_real*10000 <= high(int64))
-{$endif ndef VER1_0}
+{$endif VER1_0}
                            then
                              begin
+{$ifdef VER1_0}
+                               { only trunc is 64 bit in 1.0.x so use trunc here to allow bootstrapping }
+                               intvalue:=trunc(trealconstnode(p).value_real*10000);
+{$else VER1_0}
                                intvalue:=round(trealconstnode(p).value_real*10000);
+{$endif VER1_0}
                              end
                          else
                            begin
@@ -1092,7 +1097,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2004-06-20 08:55:30  florian
+  Revision 1.89  2004-06-20 20:41:47  florian
+    * fixed bootstrapping problems
+
+  Revision 1.88  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.87  2004/06/18 15:16:46  peter

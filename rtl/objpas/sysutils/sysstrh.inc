@@ -45,7 +45,7 @@ const
   MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
 
 {$ifndef VER1_0}
-{$if defined(FPC_HAS_TYPE_EXTENDED) or defined(FPC_HAS_TYPE_FLOAT)}
+{$if defined(FPC_HAS_TYPE_EXTENDED) or defined(FPC_HAS_TYPE_FLOAT128)}
   MinCurrency: Currency = -922337203685477.5807;
   MaxCurrency: Currency =  922337203685477.5807;
 {$else}
@@ -190,7 +190,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.6  2004-06-13 10:49:50  florian
+  Revision 1.7  2004-06-20 20:42:37  florian
+    * fixed bootstrapping problems
+
+  Revision 1.6  2004/06/13 10:49:50  florian
     * fixed some bootstrapping problems as well as some 64 bit stuff
 
   Revision 1.5  2004/06/12 13:23:17  michael
