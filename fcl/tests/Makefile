@@ -36,7 +36,8 @@ NEEDOPT=-S2
 
 UNITOBJECTS=
 EXEOBJECTS=stringl dparser fstream mstream list threads testrtf\
-           cfgtest testz testz2 xmldump htdump testcgi tidea b64test
+           cfgtest testz testz2 xmldump htdump testcgi tidea\
+           b64test b64test2 b64enc b64dec
 
 
 #####################################################################
@@ -113,7 +114,10 @@ endif
 
 #
 # $Log$
-# Revision 1.10  1999-08-03 17:02:36  michael
+# Revision 1.11  1999-08-09 16:12:26  michael
+# * Fixes and new examples from Sebastian Guenther
+#
+# Revision 1.10  1999/08/03 17:02:36  michael
 # * Base64 en/de cdeing streams added
 #
 # Revision 1.9  1999/07/25 14:30:39  michael

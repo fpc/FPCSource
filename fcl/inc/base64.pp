@@ -81,7 +81,7 @@ destructor TBase64EncodingStream.Destroy;
 var
   WriteBuf: array[0..3] of Char;
 begin
-  // Fill output to multiple of 3
+  // Fill output to multiple of 4
   case (TotalBytesProcessed mod 3) of
     1: begin
         WriteBuf[0] := EncodingTable[Buf[0] shr 2];
@@ -109,19 +109,18 @@ end;
 function TBase64EncodingStream.Write(const Buffer; Count: Longint): Longint;
 var
   ReadNow: LongInt;
-  p: PChar;
+  p: Pointer;
   WriteBuf: array[0..3] of Char;
 begin
   Inc(TotalBytesProcessed, Count);
   Result := Count;
 
-  p := PChar(Buffer);
+  p := @Buffer;
   while count > 0 do begin
     // Fetch data into the Buffer
     ReadNow := 3 - BufSize;
     if ReadNow > Count then break;    // Not enough data available
-
-    Move(p, Buf[BufSize], ReadNow);
+    Move(p^, Buf[BufSize], ReadNow);
     Inc(p, ReadNow);
     Dec(Count, ReadNow);
 
@@ -134,7 +133,7 @@ begin
     Inc(BytesWritten, 4);
     BufSize := 0;
   end;
-  Move(p, Buf[BufSize], count);
+  Move(p^, Buf[BufSize], count);
   Inc(BufSize, count);
 end;
 
@@ -173,7 +172,6 @@ begin
     if endbytes[0] = '=' then
       Dec(DataLen);
   end;
-  // WriteLn('DataLen = ', DataLen);
 end;
 
 function TBase64DecodingStream.Read(var Buffer; Count: Longint): Longint;
@@ -211,11 +209,9 @@ begin
 	  end;
 	end;
       end;
-      // WriteLn('ReadBuf: ', ReadBuf[0], ' ', ReadBuf[1], ' ', ReadBuf[2], ' ', ReadBuf[3]);
       Buf[0] := ReadBuf[0] shl 2 or ReadBuf[1] shr 4;
       Buf[1] := (ReadBuf[1] and 15) shl 4 or ReadBuf[2] shr 2;
       Buf[2] := (ReadBuf[2] and 3) shl 6 or ReadBuf[3];
-      // WriteLn('Gelesen: ', Buf[0], ' ', Buf[1], ' ', Buf[2]);
     end;
 
     p[0] := Chr(Buf[BufPos]);
@@ -250,7 +246,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-08-03 17:02:38  michael
+  Revision 1.2  1999-08-09 16:12:28  michael
+  * Fixes and new examples from Sebastian Guenther
+
+  Revision 1.1  1999/08/03 17:02:38  michael
   * Base64 en/de cdeing streams added
 
 }
