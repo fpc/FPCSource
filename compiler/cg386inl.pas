@@ -373,6 +373,8 @@ implementation
                                    hp:=node;
                                    node:=node^.right;
                                    hp^.right:=nil;
+                                   dummycoll.data:=hp^.resulttype;
+                                   dummycoll.paratyp:=vs_value;
                                    secondcallparan(hp,@dummycoll,false,false,false,0);
                                    hp^.right:=node;
                                    if codegenerror then
@@ -390,6 +392,8 @@ implementation
                                    hp:=node;
                                    node:=node^.right;
                                    hp^.right:=nil;
+                                   dummycoll.data:=hp^.resulttype;
+                                   dummycoll.paratyp:=vs_value;
                                    secondcallparan(hp,@dummycoll,false,false,false,0);
                                    hp^.right:=node;
                                    if pararesult^.deftype<>floatdef then
@@ -574,6 +578,7 @@ implementation
               node^.is_colon_para then
              begin
                 dummycoll.data:=hp^.resulttype;
+                dummycoll.paratyp:=vs_value;
                 secondcallparan(hp,@dummycoll,false
                   ,false,false,0
                   );
@@ -593,6 +598,7 @@ implementation
            if hp^.is_colon_para then
              begin
                 dummycoll.data:=hp^.resulttype;
+                dummycoll.paratyp:=vs_value;
                 secondcallparan(hp,@dummycoll,false
                   ,false,false,0
                   );
@@ -617,6 +623,8 @@ implementation
             end;
 
            { last arg longint or real }
+           dummycoll.data:=hp^.resulttype;
+           dummycoll.paratyp:=vs_value;
            secondcallparan(hp,@dummycoll,false
              ,false,false,0
              );
@@ -1432,7 +1440,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  1999-11-20 01:22:18  pierre
+  Revision 1.80  1999-11-29 00:30:06  pierre
+   * fix for form bug 699
+
+  Revision 1.79  1999/11/20 01:22:18  pierre
     + cond FPC_USE_CPREFIX (needs also some RTL changes)
       this allows to use unit global vars as DLL exports
       (the underline prefix seems needed by dlltool)
