@@ -379,21 +379,27 @@ implementation
       {
         handle_procvar needs the same changes
       }
+      type
+        tppv = (pv_none,pv_proc,pv_func);
       var
         sc      : tsinglelist;
         tt      : ttype;
         arrayelementtype : ttype;
         vs      : tparavarsym;
         srsym   : tsym;
+        pv      : tprocvardef;
+        hs,
         hs1 : string;
         varspez : Tvarspez;
         defaultvalue : tconstsym;
         defaultrequired : boolean;
         old_object_option : tsymoptions;
         currparast : tparasymtable;
+        parseprocvar : tppv;
         explicit_paraloc : boolean;
         locationstr : string;
         paranr : integer;
+        dummytype : ttypesym;
       begin
         explicit_paraloc:=false;
         consume(_LKLAMMER);
@@ -413,23 +419,36 @@ implementation
         current_object_option:=[sp_public];
         inc(testcurobject);
         repeat
+          parseprocvar:=pv_none;
           if try_to_consume(_VAR) then
             varspez:=vs_var
           else
             if try_to_consume(_CONST) then
               varspez:=vs_const
           else
-            if (idtoken=_OUT) and (m_out in aktmodeswitches) then
-              begin
-                 consume(_OUT);
-                 varspez:=vs_out
-              end
+            if (m_out in aktmodeswitches) and
+               try_to_consume(_OUT) then
+              varspez:=vs_out
           else
-            if (token=_POINTPOINTPOINT) and (m_mac in aktmodeswitches) then
+            if (m_mac in aktmodeswitches) and
+               try_to_consume(_POINTPOINTPOINT) then
               begin
-                consume(_POINTPOINTPOINT);
                 include(pd.procoptions,po_varargs);
                 break;
+              end
+          else
+            if (m_mac in aktmodeswitches) and
+               try_to_consume(_PROCEDURE) then
+              begin
+                parseprocvar:=pv_proc;
+                varspez:=vs_const;
+              end
+          else
+            if (m_mac in aktmodeswitches) and
+               try_to_consume(_FUNCTION) then
+              begin
+                parseprocvar:=pv_func;
+                varspez:=vs_const;
               end
           else
               varspez:=vs_value;
@@ -448,8 +467,40 @@ implementation
             consume(_ID);
           until not try_to_consume(_COMMA);
           locationstr:='';
+          { macpas anonymous procvar }
+          if parseprocvar<>pv_none then
+           begin
+             pv:=tprocvardef.create(normal_function_level);
+             if token=_LKLAMMER then
+               parse_parameter_dec(pv);
+             if parseprocvar=pv_func then
+              begin
+                consume(_COLON);
+                single_type(pd.rettype,hs,false);
+              end;
+             if token=_OF then
+               begin
+                 consume(_OF);
+                 consume(_OBJECT);
+                 include(pd.procoptions,po_methodpointer);
+               end;
+             tt.def:=pv;
+             { possible proc directives }
+             if check_proc_directive(true) then
+               begin
+                  dummytype:=ttypesym.create('unnamed',tt);
+                  parse_var_proc_directives(tsym(dummytype));
+                  dummytype.restype.def:=nil;
+                  tt.def.typesym:=nil;
+                  dummytype.free;
+               end;
+             { Add implicit hidden parameters and function result }
+             handle_calling_convention(pv);
+             hs1:='procvar';
+           end
+          else
           { read type declaration, force reading for value and const paras }
-          if (token=_COLON) or (varspez=vs_value) then
+           if (token=_COLON) or (varspez=vs_value) then
            begin
              consume(_COLON);
              { check for an open array }
@@ -2408,7 +2459,10 @@ const
 end.
 {
   $Log$
-  Revision 1.226  2005-01-19 22:19:41  peter
+  Revision 1.227  2005-01-31 21:27:51  peter
+    * macpas procvars in parameters
+
+  Revision 1.226  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 
