@@ -1482,7 +1482,8 @@ const localsymtablestack : psymtable = nil;
         loadsyms;
 
 {$ifndef OLDPPU}
-        deref;
+        if not(symtabletype in [objectsymtable,recordsymtable]) then
+          deref;
 {$endif}
 
 {$ifdef NEWMAP}
@@ -3203,7 +3204,10 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.3  1999-04-26 18:30:03  peter
+  Revision 1.4  1999-04-29 17:25:37  peter
+    * small fix for deref
+
+  Revision 1.3  1999/04/26 18:30:03  peter
     * farpointerdef moved into pointerdef.is_far
 
   Revision 1.151  1999/04/26 13:31:54  peter
