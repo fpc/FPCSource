@@ -120,9 +120,13 @@ end;
 function DetectMouse:byte;
 var
  Buttons: word;
+ RC: longint;
+ TempHandle: word;
 begin
- if MouGetNumButtons (Buttons, DefaultMouse) = 0 then DetectMouse := Buttons
+ MouOpen (nil, TempHandle);
+ if MouGetNumButtons (Buttons, TempHandle) = 0 then DetectMouse := Buttons
                                                          else DetectMouse := 0;
+ MouClose (TempHandle);
 end;
 
 procedure ShowMouse;
@@ -402,7 +406,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:26  michael
+  Revision 1.3  2000-11-04 20:03:27  hajny
+    * DetectMouse correction
+
+  Revision 1.2  2000/07/13 11:32:26  michael
   + removed logs
  
 }
