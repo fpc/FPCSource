@@ -70,7 +70,7 @@ implementation
 
 function SerOpen(const DeviceName: String): TSerialHandle;
 begin
-  Result := fdOpen(DeviceName, OPEN_RDWR or OPEN_EXCL or OPEN_NOCTTY);
+  Result := fdOpen(DeviceName, OPEN_RDWR or OPEN_NOCTTY);
 end;
 
 procedure SerClose(Handle: TSerialHandle);
@@ -99,8 +99,7 @@ procedure SerSetParams(Handle: TSerialHandle; BitsPerSec: LongInt;
 var
   tios: termios;
 begin
-  TcGetAttr(handle,tios);
- // ioctl(Handle, TCGETS, @tios);
+  FillChar(tios, SizeOf(tios), #0);
 
   case BitsPerSec of
     50: tios.c_cflag := B50;
@@ -125,6 +124,10 @@ begin
 {$endif}
     else tios.c_cflag := B9600;
   end;
+  tios.c_ispeed := tios.c_cflag;
+  tios.c_ospeed := tios.c_ispeed;
+
+  tios.c_cflag := tios.c_cflag or CREAD or CLOCAL;
 
   case ByteSize of
     5: tios.c_cflag := tios.c_cflag or CS5;
@@ -144,9 +147,8 @@ begin
   if RtsCtsFlowControl in Flags then
     tios.c_cflag := tios.c_cflag or CRTSCTS;
 
-  tios.c_cflag := tios.c_cflag or CLOCAL or CREAD;
-  TCSetAttr(handle,TCSANOW,tios)
-//  ioctl(Handle, TCSETS, @tios);
+  tcflush(Handle, TCIOFLUSH);
+  tcsetattr(Handle, TCSANOW, tios)
 end;
 
 function SerSaveState(Handle: TSerialHandle): TSerialState;
@@ -213,7 +215,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2001-01-21 20:21:40  marco
+  Revision 1.6  2002-08-06 13:31:50  sg
+  * serial ports are now set to raw mode
+
+  Revision 1.5  2001/01/21 20:21:40  marco
    * Rename fest II. Rtl OK
 
   Revision 1.4  2000/12/28 20:50:04  peter
