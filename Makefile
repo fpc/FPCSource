@@ -966,53 +966,53 @@ override INSTALLEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(INSTALLEXEFILES))
 endif
 fpc_install: all $(INSTALLTARGET)
 ifdef INSTALLEXEFILES
-        $(MKDIR) $(INSTALL_BINDIR)
+	$(MKDIR) $(INSTALL_BINDIR)
 ifdef UPXPROG
-        -$(UPXPROG) $(INSTALLEXEFILES)
+	-$(UPXPROG) $(INSTALLEXEFILES)
 endif
-        $(INSTALLEXE) $(INSTALLEXEFILES) $(INSTALL_BINDIR)
+	$(INSTALLEXE) $(INSTALLEXEFILES) $(INSTALL_BINDIR)
 endif
 ifdef INSTALL_CREATEPACKAGEFPC
 ifdef FPCMAKE
 ifdef PACKAGE_VERSION
 ifneq ($(wildcard Makefile.fpc),)
-        $(FPCMAKE) -p -T$(OS_TARGET) Makefile.fpc
-        $(MKDIR) $(INSTALL_UNITDIR)
-        $(INSTALL) Package.fpc $(INSTALL_UNITDIR)
+	$(FPCMAKE) -p -T$(OS_TARGET) Makefile.fpc
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) Package.fpc $(INSTALL_UNITDIR)
 endif
 endif
 endif
 endif
 ifdef INSTALLPPUFILES
-        $(MKDIR) $(INSTALL_UNITDIR)
-        $(INSTALL) $(INSTALLPPUFILES) $(INSTALL_UNITDIR)
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) $(INSTALLPPUFILES) $(INSTALL_UNITDIR)
 ifneq ($(INSTALLPPULINKFILES),)
-        $(INSTALL) $(INSTALLPPULINKFILES) $(INSTALL_UNITDIR)
+	$(INSTALL) $(INSTALLPPULINKFILES) $(INSTALL_UNITDIR)
 endif
 ifneq ($(wildcard $(LIB_FULLNAME)),)
-        $(MKDIR) $(INSTALL_LIBDIR)
-        $(INSTALL) $(LIB_FULLNAME) $(INSTALL_LIBDIR)
+	$(MKDIR) $(INSTALL_LIBDIR)
+	$(INSTALL) $(LIB_FULLNAME) $(INSTALL_LIBDIR)
 ifdef inUnix
-        ln -sf $(LIB_FULLNAME) $(INSTALL_LIBDIR)/$(LIB_NAME)
+	ln -sf $(LIB_FULLNAME) $(INSTALL_LIBDIR)/$(LIB_NAME)
 endif
 endif
 endif
 ifdef INSTALL_FILES
-        $(MKDIR) $(INSTALL_DATADIR)
-        $(INSTALL) $(INSTALL_FILES) $(INSTALL_DATADIR)
+	$(MKDIR) $(INSTALL_DATADIR)
+	$(INSTALL) $(INSTALL_FILES) $(INSTALL_DATADIR)
 endif
 fpc_sourceinstall: distclean
-        $(MKDIR) $(INSTALL_SOURCEDIR)
-        $(COPYTREE) $(BASEDIR)/* $(INSTALL_SOURCEDIR)
+	$(MKDIR) $(INSTALL_SOURCEDIR)
+	$(COPYTREE) $(BASEDIR)/* $(INSTALL_SOURCEDIR)
 fpc_exampleinstall: $(addsuffix _distclean,$(TARGET_EXAMPLEDIRS))
 ifdef HASEXAMPLES
-        $(MKDIR) $(INSTALL_EXAMPLEDIR)
+	$(MKDIR) $(INSTALL_EXAMPLEDIR)
 endif
 ifdef EXAMPLESOURCEFILES
-        $(COPY) $(EXAMPLESOURCEFILES) $(INSTALL_EXAMPLEDIR)
+	$(COPY) $(EXAMPLESOURCEFILES) $(INSTALL_EXAMPLEDIR)
 endif
 ifdef TARGET_EXAMPLEDIRS
-        $(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
+	$(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
 endif
 .PHONY: fpc_distinstall
 fpc_distinstall: install exampleinstall
@@ -1062,37 +1062,37 @@ ZIPDESTFILE:=$(DIST_DESTDIR)/$(ZIPNAME)$(ZIPEXT)
 ZIPCMD_ZIP:=$(subst /,$(ZIPPATHSEP),$(ZIPPROG)) -Dr $(ZIPOPT) $(ZIPDESTFILE) *
 endif
 fpc_zipinstall:
-        $(MAKE) $(ZIPTARGET) INSTALL_PREFIX=$(PACKDIR) ZIPINSTALL=1
-        $(MKDIR) $(DIST_DESTDIR)
-        $(DEL) $(ZIPDESTFILE)
+	$(MAKE) $(ZIPTARGET) INSTALL_PREFIX=$(PACKDIR) ZIPINSTALL=1
+	$(MKDIR) $(DIST_DESTDIR)
+	$(DEL) $(ZIPDESTFILE)
 ifdef USEZIPWRAPPER
 ifneq ($(ECHOREDIR),echo)
-        $(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDPACK))" > $(ZIPWRAPPER)
-        $(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_ZIP))" >> $(ZIPWRAPPER)
-        $(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDBASE))" >> $(ZIPWRAPPER)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDPACK))" > $(ZIPWRAPPER)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_ZIP))" >> $(ZIPWRAPPER)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDBASE))" >> $(ZIPWRAPPER)
 else
-        echo $(ZIPCMD_CDPACK) > $(ZIPWRAPPER)
-        echo $(ZIPCMD_ZIP) >> $(ZIPWRAPPER)
-        echo $(ZIPCMD_CDBASE) >> $(ZIPWRAPPER)
+	echo $(ZIPCMD_CDPACK) > $(ZIPWRAPPER)
+	echo $(ZIPCMD_ZIP) >> $(ZIPWRAPPER)
+	echo $(ZIPCMD_CDBASE) >> $(ZIPWRAPPER)
 endif
 ifdef inUnix
-        /bin/sh $(ZIPWRAPPER)
+	/bin/sh $(ZIPWRAPPER)
 else
-        $(ZIPWRAPPER)
+	$(ZIPWRAPPER)
 endif
-        $(DEL) $(ZIPWRAPPER)
+	$(DEL) $(ZIPWRAPPER)
 else
-        $(ZIPCMD_CDPACK) ; $(ZIPCMD_ZIP) ; $(ZIPCMD_CDBASE)
+	$(ZIPCMD_CDPACK) ; $(ZIPCMD_ZIP) ; $(ZIPCMD_CDBASE)
 endif
-        $(DELTREE) $(PACKDIR)
+	$(DELTREE) $(PACKDIR)
 fpc_zipsourceinstall:
-        $(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall ZIPSUFFIX=src
+	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall ZIPSUFFIX=src
 fpc_zipexampleinstall:
 ifdef HASEXAMPLES
-        $(MAKE) fpc_zipinstall ZIPTARGET=exampleinstall ZIPSUFFIX=exm
+	$(MAKE) fpc_zipinstall ZIPTARGET=exampleinstall ZIPSUFFIX=exm
 endif
 fpc_zipdistinstall:
-        $(MAKE) fpc_zipinstall ZIPTARGET=distinstall
+	$(MAKE) fpc_zipinstall ZIPTARGET=distinstall
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
 override CLEANEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEFILES))
@@ -1107,135 +1107,135 @@ override CLEANPPULINKFILES:=$(wildcard $(addprefix $(UNITTARGETDIRPREFIX),$(CLEA
 endif
 fpc_clean: $(CLEANTARGET)
 ifdef CLEANEXEFILES
-        -$(DEL) $(CLEANEXEFILES)
+	-$(DEL) $(CLEANEXEFILES)
 endif
 ifdef CLEANPPUFILES
-        -$(DEL) $(CLEANPPUFILES)
+	-$(DEL) $(CLEANPPUFILES)
 endif
 ifneq ($(CLEANPPULINKFILES),)
-        -$(DEL) $(CLEANPPULINKFILES)
+	-$(DEL) $(CLEANPPULINKFILES)
 endif
 ifdef CLEANRSTFILES
-        -$(DEL) $(addprefix $(UNITTARGETDIRPREFIX),$(CLEANRSTFILES))
+	-$(DEL) $(addprefix $(UNITTARGETDIRPREFIX),$(CLEANRSTFILES))
 endif
 ifdef CLEAN_FILES
-        -$(DEL) $(CLEAN_FILES)
+	-$(DEL) $(CLEAN_FILES)
 endif
 ifdef LIB_NAME
-        -$(DEL) $(LIB_NAME) $(LIB_FULLNAME)
+	-$(DEL) $(LIB_NAME) $(LIB_FULLNAME)
 endif
-        -$(DEL) $(FPCMADE) Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
+	-$(DEL) $(FPCMADE) Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
 fpc_distclean: clean
 ifdef COMPILER_UNITTARGETDIR
 TARGETDIRCLEAN=fpc_clean
 endif
 fpc_cleanall: $(CLEANTARGET) $(TARGETDIRCLEAN)
 ifdef CLEANEXEFILES
-        -$(DEL) $(CLEANEXEFILES)
+	-$(DEL) $(CLEANEXEFILES)
 endif
-        -$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
-        -$(DELTREE) *$(SMARTEXT)
-        -$(DEL) $(FPCMADE) Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
+	-$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+	-$(DELTREE) *$(SMARTEXT)
+	-$(DEL) $(FPCMADE) Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
 ifdef AOUTEXT
-        -$(DEL) *$(AOUTEXT)
+	-$(DEL) *$(AOUTEXT)
 endif
 .PHONY: fpc_baseinfo
 override INFORULES+=fpc_baseinfo
 fpc_baseinfo:
-        @$(ECHO)
-        @$(ECHO)  == Package info ==
-        @$(ECHO)  Package Name..... $(PACKAGE_NAME)
-        @$(ECHO)  Package Version.. $(PACKAGE_VERSION)
-        @$(ECHO)
-        @$(ECHO)  == Configuration info ==
-        @$(ECHO)
-        @$(ECHO)  FPC.......... $(FPC)
-        @$(ECHO)  FPC Version.. $(FPC_VERSION)
-        @$(ECHO)  Source CPU... $(CPU_SOURCE)
-        @$(ECHO)  Target CPU... $(CPU_TARGET)
-        @$(ECHO)  Source OS.... $(OS_SOURCE)
-        @$(ECHO)  Target OS.... $(OS_TARGET)
-        @$(ECHO)  Full Source.. $(FULL_SOURCE)
-        @$(ECHO)  Full Target.. $(FULL_TARGET)
-        @$(ECHO)
-        @$(ECHO)  == Directory info ==
-        @$(ECHO)
-        @$(ECHO)  Required pkgs... $(REQUIRE_PACKAGES)
-        @$(ECHO)
-        @$(ECHO)  Basedir......... $(BASEDIR)
-        @$(ECHO)  FPCDir.......... $(FPCDIR)
-        @$(ECHO)  CrossBinDir..... $(CROSSBINDIR)
-        @$(ECHO)  UnitsDir........ $(UNITSDIR)
-        @$(ECHO)  PackagesDir..... $(PACKAGESDIR)
-        @$(ECHO)
-        @$(ECHO)  GCC library..... $(GCCLIBDIR)
-        @$(ECHO)  Other library... $(OTHERLIBDIR)
-        @$(ECHO)
-        @$(ECHO)  == Tools info ==
-        @$(ECHO)
-        @$(ECHO)  As........ $(AS)
-        @$(ECHO)  Ld........ $(LD)
-        @$(ECHO)  Ar........ $(AR)
-        @$(ECHO)  Rc........ $(RC)
-        @$(ECHO)
-        @$(ECHO)  Mv........ $(MVPROG)
-        @$(ECHO)  Cp........ $(CPPROG)
-        @$(ECHO)  Rm........ $(RMPROG)
-        @$(ECHO)  GInstall.. $(GINSTALL)
-        @$(ECHO)  Echo...... $(ECHO)
-        @$(ECHO)  Date...... $(DATE)
-        @$(ECHO)  FPCMake... $(FPCMAKE)
-        @$(ECHO)  PPUMove... $(PPUMOVE)
-        @$(ECHO)  Upx....... $(UPXPROG)
-        @$(ECHO)  Zip....... $(ZIPPROG)
-        @$(ECHO)
-        @$(ECHO)  == Object info ==
-        @$(ECHO)
-        @$(ECHO)  Target Loaders........ $(TARGET_LOADERS)
-        @$(ECHO)  Target Units.......... $(TARGET_UNITS)
-        @$(ECHO)  Target Implicit Units. $(TARGET_IMPLICITUNITS)
-        @$(ECHO)  Target Programs....... $(TARGET_PROGRAMS)
-        @$(ECHO)  Target Dirs........... $(TARGET_DIRS)
-        @$(ECHO)  Target Examples....... $(TARGET_EXAMPLES)
-        @$(ECHO)  Target ExampleDirs.... $(TARGET_EXAMPLEDIRS)
-        @$(ECHO)
-        @$(ECHO)  Clean Units......... $(CLEAN_UNITS)
-        @$(ECHO)  Clean Files......... $(CLEAN_FILES)
-        @$(ECHO)
-        @$(ECHO)  Install Units....... $(INSTALL_UNITS)
-        @$(ECHO)  Install Files....... $(INSTALL_FILES)
-        @$(ECHO)
-        @$(ECHO)  == Install info ==
-        @$(ECHO)
-        @$(ECHO)  DateStr.............. $(DATESTR)
-        @$(ECHO)  ZipPrefix............ $(ZIPPREFIX)
-        @$(ECHO)  ZipSuffix............ $(ZIPSUFFIX)
-        @$(ECHO)  Install FPC Package.. $(INSTALL_FPCPACKAGE)
-        @$(ECHO)
-        @$(ECHO)  Install base dir..... $(INSTALL_BASEDIR)
-        @$(ECHO)  Install binary dir... $(INSTALL_BINDIR)
-        @$(ECHO)  Install library dir.. $(INSTALL_LIBDIR)
-        @$(ECHO)  Install units dir.... $(INSTALL_UNITDIR)
-        @$(ECHO)  Install source dir... $(INSTALL_SOURCEDIR)
-        @$(ECHO)  Install doc dir...... $(INSTALL_DOCDIR)
-        @$(ECHO)  Install example dir.. $(INSTALL_EXAMPLEDIR)
-        @$(ECHO)  Install data dir..... $(INSTALL_DATADIR)
-        @$(ECHO)
-        @$(ECHO)  Dist destination dir. $(DIST_DESTDIR)
-        @$(ECHO)  Dist zip name........ $(DIST_ZIPNAME)
-        @$(ECHO)
+	@$(ECHO)
+	@$(ECHO)  == Package info ==
+	@$(ECHO)  Package Name..... $(PACKAGE_NAME)
+	@$(ECHO)  Package Version.. $(PACKAGE_VERSION)
+	@$(ECHO)
+	@$(ECHO)  == Configuration info ==
+	@$(ECHO)
+	@$(ECHO)  FPC.......... $(FPC)
+	@$(ECHO)  FPC Version.. $(FPC_VERSION)
+	@$(ECHO)  Source CPU... $(CPU_SOURCE)
+	@$(ECHO)  Target CPU... $(CPU_TARGET)
+	@$(ECHO)  Source OS.... $(OS_SOURCE)
+	@$(ECHO)  Target OS.... $(OS_TARGET)
+	@$(ECHO)  Full Source.. $(FULL_SOURCE)
+	@$(ECHO)  Full Target.. $(FULL_TARGET)
+	@$(ECHO)
+	@$(ECHO)  == Directory info ==
+	@$(ECHO)
+	@$(ECHO)  Required pkgs... $(REQUIRE_PACKAGES)
+	@$(ECHO)
+	@$(ECHO)  Basedir......... $(BASEDIR)
+	@$(ECHO)  FPCDir.......... $(FPCDIR)
+	@$(ECHO)  CrossBinDir..... $(CROSSBINDIR)
+	@$(ECHO)  UnitsDir........ $(UNITSDIR)
+	@$(ECHO)  PackagesDir..... $(PACKAGESDIR)
+	@$(ECHO)
+	@$(ECHO)  GCC library..... $(GCCLIBDIR)
+	@$(ECHO)  Other library... $(OTHERLIBDIR)
+	@$(ECHO)
+	@$(ECHO)  == Tools info ==
+	@$(ECHO)
+	@$(ECHO)  As........ $(AS)
+	@$(ECHO)  Ld........ $(LD)
+	@$(ECHO)  Ar........ $(AR)
+	@$(ECHO)  Rc........ $(RC)
+	@$(ECHO)
+	@$(ECHO)  Mv........ $(MVPROG)
+	@$(ECHO)  Cp........ $(CPPROG)
+	@$(ECHO)  Rm........ $(RMPROG)
+	@$(ECHO)  GInstall.. $(GINSTALL)
+	@$(ECHO)  Echo...... $(ECHO)
+	@$(ECHO)  Date...... $(DATE)
+	@$(ECHO)  FPCMake... $(FPCMAKE)
+	@$(ECHO)  PPUMove... $(PPUMOVE)
+	@$(ECHO)  Upx....... $(UPXPROG)
+	@$(ECHO)  Zip....... $(ZIPPROG)
+	@$(ECHO)
+	@$(ECHO)  == Object info ==
+	@$(ECHO)
+	@$(ECHO)  Target Loaders........ $(TARGET_LOADERS)
+	@$(ECHO)  Target Units.......... $(TARGET_UNITS)
+	@$(ECHO)  Target Implicit Units. $(TARGET_IMPLICITUNITS)
+	@$(ECHO)  Target Programs....... $(TARGET_PROGRAMS)
+	@$(ECHO)  Target Dirs........... $(TARGET_DIRS)
+	@$(ECHO)  Target Examples....... $(TARGET_EXAMPLES)
+	@$(ECHO)  Target ExampleDirs.... $(TARGET_EXAMPLEDIRS)
+	@$(ECHO)
+	@$(ECHO)  Clean Units......... $(CLEAN_UNITS)
+	@$(ECHO)  Clean Files......... $(CLEAN_FILES)
+	@$(ECHO)
+	@$(ECHO)  Install Units....... $(INSTALL_UNITS)
+	@$(ECHO)  Install Files....... $(INSTALL_FILES)
+	@$(ECHO)
+	@$(ECHO)  == Install info ==
+	@$(ECHO)
+	@$(ECHO)  DateStr.............. $(DATESTR)
+	@$(ECHO)  ZipPrefix............ $(ZIPPREFIX)
+	@$(ECHO)  ZipSuffix............ $(ZIPSUFFIX)
+	@$(ECHO)  Install FPC Package.. $(INSTALL_FPCPACKAGE)
+	@$(ECHO)
+	@$(ECHO)  Install base dir..... $(INSTALL_BASEDIR)
+	@$(ECHO)  Install binary dir... $(INSTALL_BINDIR)
+	@$(ECHO)  Install library dir.. $(INSTALL_LIBDIR)
+	@$(ECHO)  Install units dir.... $(INSTALL_UNITDIR)
+	@$(ECHO)  Install source dir... $(INSTALL_SOURCEDIR)
+	@$(ECHO)  Install doc dir...... $(INSTALL_DOCDIR)
+	@$(ECHO)  Install example dir.. $(INSTALL_EXAMPLEDIR)
+	@$(ECHO)  Install data dir..... $(INSTALL_DATADIR)
+	@$(ECHO)
+	@$(ECHO)  Dist destination dir. $(DIST_DESTDIR)
+	@$(ECHO)  Dist zip name........ $(DIST_ZIPNAME)
+	@$(ECHO)
 .PHONY: fpc_info
 fpc_info: $(INFORULES)
 .PHONY: fpc_makefile fpc_makefiles fpc_makefile_sub1 fpc_makefile_sub2 \
-        fpc_makefile_dirs
+	fpc_makefile_dirs
 fpc_makefile:
-        $(FPCMAKE) -w -T$(OS_TARGET) Makefile.fpc
+	$(FPCMAKE) -w -T$(OS_TARGET) Makefile.fpc
 fpc_makefile_sub1:
 ifdef TARGET_DIRS
-        $(FPCMAKE) -w -T$(OS_TARGET) $(addsuffix /Makefile.fpc,$(TARGET_DIRS))
+	$(FPCMAKE) -w -T$(OS_TARGET) $(addsuffix /Makefile.fpc,$(TARGET_DIRS))
 endif
 ifdef TARGET_EXAMPLEDIRS
-        $(FPCMAKE) -w -T$(OS_TARGET) $(addsuffix /Makefile.fpc,$(TARGET_EXAMPLEDIRS))
+	$(FPCMAKE) -w -T$(OS_TARGET) $(addsuffix /Makefile.fpc,$(TARGET_EXAMPLEDIRS))
 endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
@@ -1250,346 +1250,346 @@ TARGET_DIRS_IDE=1
 TARGET_DIRS_INSTALLER=1
 ifdef TARGET_DIRS_COMPILER
 compiler_all:
-        $(MAKE) -C compiler all
+	$(MAKE) -C compiler all
 compiler_debug:
-        $(MAKE) -C compiler debug
+	$(MAKE) -C compiler debug
 compiler_smart:
-        $(MAKE) -C compiler smart
+	$(MAKE) -C compiler smart
 compiler_release:
-        $(MAKE) -C compiler release
+	$(MAKE) -C compiler release
 compiler_examples:
-        $(MAKE) -C compiler examples
+	$(MAKE) -C compiler examples
 compiler_shared:
-        $(MAKE) -C compiler shared
+	$(MAKE) -C compiler shared
 compiler_install:
-        $(MAKE) -C compiler install
+	$(MAKE) -C compiler install
 compiler_sourceinstall:
-        $(MAKE) -C compiler sourceinstall
+	$(MAKE) -C compiler sourceinstall
 compiler_exampleinstall:
-        $(MAKE) -C compiler exampleinstall
+	$(MAKE) -C compiler exampleinstall
 compiler_distinstall:
-        $(MAKE) -C compiler distinstall
+	$(MAKE) -C compiler distinstall
 compiler_zipinstall:
-        $(MAKE) -C compiler zipinstall
+	$(MAKE) -C compiler zipinstall
 compiler_zipsourceinstall:
-        $(MAKE) -C compiler zipsourceinstall
+	$(MAKE) -C compiler zipsourceinstall
 compiler_zipexampleinstall:
-        $(MAKE) -C compiler zipexampleinstall
+	$(MAKE) -C compiler zipexampleinstall
 compiler_zipdistinstall:
-        $(MAKE) -C compiler zipdistinstall
+	$(MAKE) -C compiler zipdistinstall
 compiler_clean:
-        $(MAKE) -C compiler clean
+	$(MAKE) -C compiler clean
 compiler_distclean:
-        $(MAKE) -C compiler distclean
+	$(MAKE) -C compiler distclean
 compiler_cleanall:
-        $(MAKE) -C compiler cleanall
+	$(MAKE) -C compiler cleanall
 compiler_info:
-        $(MAKE) -C compiler info
+	$(MAKE) -C compiler info
 compiler_makefiles:
-        $(MAKE) -C compiler makefiles
+	$(MAKE) -C compiler makefiles
 compiler:
-        $(MAKE) -C compiler all
+	$(MAKE) -C compiler all
 .PHONY: compiler_all compiler_debug compiler_smart compiler_release compiler_examples compiler_shared compiler_install compiler_sourceinstall compiler_exampleinstall compiler_distinstall compiler_zipinstall compiler_zipsourceinstall compiler_zipexampleinstall compiler_zipdistinstall compiler_clean compiler_distclean compiler_cleanall compiler_info compiler_makefiles compiler
 endif
 ifdef TARGET_DIRS_RTL
 rtl_all:
-        $(MAKE) -C rtl all
+	$(MAKE) -C rtl all
 rtl_debug:
-        $(MAKE) -C rtl debug
+	$(MAKE) -C rtl debug
 rtl_smart:
-        $(MAKE) -C rtl smart
+	$(MAKE) -C rtl smart
 rtl_release:
-        $(MAKE) -C rtl release
+	$(MAKE) -C rtl release
 rtl_examples:
-        $(MAKE) -C rtl examples
+	$(MAKE) -C rtl examples
 rtl_shared:
-        $(MAKE) -C rtl shared
+	$(MAKE) -C rtl shared
 rtl_install:
-        $(MAKE) -C rtl install
+	$(MAKE) -C rtl install
 rtl_sourceinstall:
-        $(MAKE) -C rtl sourceinstall
+	$(MAKE) -C rtl sourceinstall
 rtl_exampleinstall:
-        $(MAKE) -C rtl exampleinstall
+	$(MAKE) -C rtl exampleinstall
 rtl_distinstall:
-        $(MAKE) -C rtl distinstall
+	$(MAKE) -C rtl distinstall
 rtl_zipinstall:
-        $(MAKE) -C rtl zipinstall
+	$(MAKE) -C rtl zipinstall
 rtl_zipsourceinstall:
-        $(MAKE) -C rtl zipsourceinstall
+	$(MAKE) -C rtl zipsourceinstall
 rtl_zipexampleinstall:
-        $(MAKE) -C rtl zipexampleinstall
+	$(MAKE) -C rtl zipexampleinstall
 rtl_zipdistinstall:
-        $(MAKE) -C rtl zipdistinstall
+	$(MAKE) -C rtl zipdistinstall
 rtl_clean:
-        $(MAKE) -C rtl clean
+	$(MAKE) -C rtl clean
 rtl_distclean:
-        $(MAKE) -C rtl distclean
+	$(MAKE) -C rtl distclean
 rtl_cleanall:
-        $(MAKE) -C rtl cleanall
+	$(MAKE) -C rtl cleanall
 rtl_info:
-        $(MAKE) -C rtl info
+	$(MAKE) -C rtl info
 rtl_makefiles:
-        $(MAKE) -C rtl makefiles
+	$(MAKE) -C rtl makefiles
 rtl:
-        $(MAKE) -C rtl all
+	$(MAKE) -C rtl all
 .PHONY: rtl_all rtl_debug rtl_smart rtl_release rtl_examples rtl_shared rtl_install rtl_sourceinstall rtl_exampleinstall rtl_distinstall rtl_zipinstall rtl_zipsourceinstall rtl_zipexampleinstall rtl_zipdistinstall rtl_clean rtl_distclean rtl_cleanall rtl_info rtl_makefiles rtl
 endif
 ifdef TARGET_DIRS_UTILS
 utils_all:
-        $(MAKE) -C utils all
+	$(MAKE) -C utils all
 utils_debug:
-        $(MAKE) -C utils debug
+	$(MAKE) -C utils debug
 utils_smart:
-        $(MAKE) -C utils smart
+	$(MAKE) -C utils smart
 utils_release:
-        $(MAKE) -C utils release
+	$(MAKE) -C utils release
 utils_examples:
-        $(MAKE) -C utils examples
+	$(MAKE) -C utils examples
 utils_shared:
-        $(MAKE) -C utils shared
+	$(MAKE) -C utils shared
 utils_install:
-        $(MAKE) -C utils install
+	$(MAKE) -C utils install
 utils_sourceinstall:
-        $(MAKE) -C utils sourceinstall
+	$(MAKE) -C utils sourceinstall
 utils_exampleinstall:
-        $(MAKE) -C utils exampleinstall
+	$(MAKE) -C utils exampleinstall
 utils_distinstall:
-        $(MAKE) -C utils distinstall
+	$(MAKE) -C utils distinstall
 utils_zipinstall:
-        $(MAKE) -C utils zipinstall
+	$(MAKE) -C utils zipinstall
 utils_zipsourceinstall:
-        $(MAKE) -C utils zipsourceinstall
+	$(MAKE) -C utils zipsourceinstall
 utils_zipexampleinstall:
-        $(MAKE) -C utils zipexampleinstall
+	$(MAKE) -C utils zipexampleinstall
 utils_zipdistinstall:
-        $(MAKE) -C utils zipdistinstall
+	$(MAKE) -C utils zipdistinstall
 utils_clean:
-        $(MAKE) -C utils clean
+	$(MAKE) -C utils clean
 utils_distclean:
-        $(MAKE) -C utils distclean
+	$(MAKE) -C utils distclean
 utils_cleanall:
-        $(MAKE) -C utils cleanall
+	$(MAKE) -C utils cleanall
 utils_info:
-        $(MAKE) -C utils info
+	$(MAKE) -C utils info
 utils_makefiles:
-        $(MAKE) -C utils makefiles
+	$(MAKE) -C utils makefiles
 utils:
-        $(MAKE) -C utils all
+	$(MAKE) -C utils all
 .PHONY: utils_all utils_debug utils_smart utils_release utils_examples utils_shared utils_install utils_sourceinstall utils_exampleinstall utils_distinstall utils_zipinstall utils_zipsourceinstall utils_zipexampleinstall utils_zipdistinstall utils_clean utils_distclean utils_cleanall utils_info utils_makefiles utils
 endif
 ifdef TARGET_DIRS_FCL
 fcl_all:
-        $(MAKE) -C fcl all
+	$(MAKE) -C fcl all
 fcl_debug:
-        $(MAKE) -C fcl debug
+	$(MAKE) -C fcl debug
 fcl_smart:
-        $(MAKE) -C fcl smart
+	$(MAKE) -C fcl smart
 fcl_release:
-        $(MAKE) -C fcl release
+	$(MAKE) -C fcl release
 fcl_examples:
-        $(MAKE) -C fcl examples
+	$(MAKE) -C fcl examples
 fcl_shared:
-        $(MAKE) -C fcl shared
+	$(MAKE) -C fcl shared
 fcl_install:
-        $(MAKE) -C fcl install
+	$(MAKE) -C fcl install
 fcl_sourceinstall:
-        $(MAKE) -C fcl sourceinstall
+	$(MAKE) -C fcl sourceinstall
 fcl_exampleinstall:
-        $(MAKE) -C fcl exampleinstall
+	$(MAKE) -C fcl exampleinstall
 fcl_distinstall:
-        $(MAKE) -C fcl distinstall
+	$(MAKE) -C fcl distinstall
 fcl_zipinstall:
-        $(MAKE) -C fcl zipinstall
+	$(MAKE) -C fcl zipinstall
 fcl_zipsourceinstall:
-        $(MAKE) -C fcl zipsourceinstall
+	$(MAKE) -C fcl zipsourceinstall
 fcl_zipexampleinstall:
-        $(MAKE) -C fcl zipexampleinstall
+	$(MAKE) -C fcl zipexampleinstall
 fcl_zipdistinstall:
-        $(MAKE) -C fcl zipdistinstall
+	$(MAKE) -C fcl zipdistinstall
 fcl_clean:
-        $(MAKE) -C fcl clean
+	$(MAKE) -C fcl clean
 fcl_distclean:
-        $(MAKE) -C fcl distclean
+	$(MAKE) -C fcl distclean
 fcl_cleanall:
-        $(MAKE) -C fcl cleanall
+	$(MAKE) -C fcl cleanall
 fcl_info:
-        $(MAKE) -C fcl info
+	$(MAKE) -C fcl info
 fcl_makefiles:
-        $(MAKE) -C fcl makefiles
+	$(MAKE) -C fcl makefiles
 fcl:
-        $(MAKE) -C fcl all
+	$(MAKE) -C fcl all
 .PHONY: fcl_all fcl_debug fcl_smart fcl_release fcl_examples fcl_shared fcl_install fcl_sourceinstall fcl_exampleinstall fcl_distinstall fcl_zipinstall fcl_zipsourceinstall fcl_zipexampleinstall fcl_zipdistinstall fcl_clean fcl_distclean fcl_cleanall fcl_info fcl_makefiles fcl
 endif
 ifdef TARGET_DIRS_FV
 fv_all:
-        $(MAKE) -C fv all
+	$(MAKE) -C fv all
 fv_debug:
-        $(MAKE) -C fv debug
+	$(MAKE) -C fv debug
 fv_smart:
-        $(MAKE) -C fv smart
+	$(MAKE) -C fv smart
 fv_release:
-        $(MAKE) -C fv release
+	$(MAKE) -C fv release
 fv_examples:
-        $(MAKE) -C fv examples
+	$(MAKE) -C fv examples
 fv_shared:
-        $(MAKE) -C fv shared
+	$(MAKE) -C fv shared
 fv_install:
-        $(MAKE) -C fv install
+	$(MAKE) -C fv install
 fv_sourceinstall:
-        $(MAKE) -C fv sourceinstall
+	$(MAKE) -C fv sourceinstall
 fv_exampleinstall:
-        $(MAKE) -C fv exampleinstall
+	$(MAKE) -C fv exampleinstall
 fv_distinstall:
-        $(MAKE) -C fv distinstall
+	$(MAKE) -C fv distinstall
 fv_zipinstall:
-        $(MAKE) -C fv zipinstall
+	$(MAKE) -C fv zipinstall
 fv_zipsourceinstall:
-        $(MAKE) -C fv zipsourceinstall
+	$(MAKE) -C fv zipsourceinstall
 fv_zipexampleinstall:
-        $(MAKE) -C fv zipexampleinstall
+	$(MAKE) -C fv zipexampleinstall
 fv_zipdistinstall:
-        $(MAKE) -C fv zipdistinstall
+	$(MAKE) -C fv zipdistinstall
 fv_clean:
-        $(MAKE) -C fv clean
+	$(MAKE) -C fv clean
 fv_distclean:
-        $(MAKE) -C fv distclean
+	$(MAKE) -C fv distclean
 fv_cleanall:
-        $(MAKE) -C fv cleanall
+	$(MAKE) -C fv cleanall
 fv_info:
-        $(MAKE) -C fv info
+	$(MAKE) -C fv info
 fv_makefiles:
-        $(MAKE) -C fv makefiles
+	$(MAKE) -C fv makefiles
 fv:
-        $(MAKE) -C fv all
+	$(MAKE) -C fv all
 .PHONY: fv_all fv_debug fv_smart fv_release fv_examples fv_shared fv_install fv_sourceinstall fv_exampleinstall fv_distinstall fv_zipinstall fv_zipsourceinstall fv_zipexampleinstall fv_zipdistinstall fv_clean fv_distclean fv_cleanall fv_info fv_makefiles fv
 endif
 ifdef TARGET_DIRS_PACKAGES
 packages_all:
-        $(MAKE) -C packages all
+	$(MAKE) -C packages all
 packages_debug:
-        $(MAKE) -C packages debug
+	$(MAKE) -C packages debug
 packages_smart:
-        $(MAKE) -C packages smart
+	$(MAKE) -C packages smart
 packages_release:
-        $(MAKE) -C packages release
+	$(MAKE) -C packages release
 packages_examples:
-        $(MAKE) -C packages examples
+	$(MAKE) -C packages examples
 packages_shared:
-        $(MAKE) -C packages shared
+	$(MAKE) -C packages shared
 packages_install:
-        $(MAKE) -C packages install
+	$(MAKE) -C packages install
 packages_sourceinstall:
-        $(MAKE) -C packages sourceinstall
+	$(MAKE) -C packages sourceinstall
 packages_exampleinstall:
-        $(MAKE) -C packages exampleinstall
+	$(MAKE) -C packages exampleinstall
 packages_distinstall:
-        $(MAKE) -C packages distinstall
+	$(MAKE) -C packages distinstall
 packages_zipinstall:
-        $(MAKE) -C packages zipinstall
+	$(MAKE) -C packages zipinstall
 packages_zipsourceinstall:
-        $(MAKE) -C packages zipsourceinstall
+	$(MAKE) -C packages zipsourceinstall
 packages_zipexampleinstall:
-        $(MAKE) -C packages zipexampleinstall
+	$(MAKE) -C packages zipexampleinstall
 packages_zipdistinstall:
-        $(MAKE) -C packages zipdistinstall
+	$(MAKE) -C packages zipdistinstall
 packages_clean:
-        $(MAKE) -C packages clean
+	$(MAKE) -C packages clean
 packages_distclean:
-        $(MAKE) -C packages distclean
+	$(MAKE) -C packages distclean
 packages_cleanall:
-        $(MAKE) -C packages cleanall
+	$(MAKE) -C packages cleanall
 packages_info:
-        $(MAKE) -C packages info
+	$(MAKE) -C packages info
 packages_makefiles:
-        $(MAKE) -C packages makefiles
+	$(MAKE) -C packages makefiles
 packages:
-        $(MAKE) -C packages all
+	$(MAKE) -C packages all
 .PHONY: packages_all packages_debug packages_smart packages_release packages_examples packages_shared packages_install packages_sourceinstall packages_exampleinstall packages_distinstall packages_zipinstall packages_zipsourceinstall packages_zipexampleinstall packages_zipdistinstall packages_clean packages_distclean packages_cleanall packages_info packages_makefiles packages
 endif
 ifdef TARGET_DIRS_IDE
 ide_all:
-        $(MAKE) -C ide all
+	$(MAKE) -C ide all
 ide_debug:
-        $(MAKE) -C ide debug
+	$(MAKE) -C ide debug
 ide_smart:
-        $(MAKE) -C ide smart
+	$(MAKE) -C ide smart
 ide_release:
-        $(MAKE) -C ide release
+	$(MAKE) -C ide release
 ide_examples:
-        $(MAKE) -C ide examples
+	$(MAKE) -C ide examples
 ide_shared:
-        $(MAKE) -C ide shared
+	$(MAKE) -C ide shared
 ide_install:
-        $(MAKE) -C ide install
+	$(MAKE) -C ide install
 ide_sourceinstall:
-        $(MAKE) -C ide sourceinstall
+	$(MAKE) -C ide sourceinstall
 ide_exampleinstall:
-        $(MAKE) -C ide exampleinstall
+	$(MAKE) -C ide exampleinstall
 ide_distinstall:
-        $(MAKE) -C ide distinstall
+	$(MAKE) -C ide distinstall
 ide_zipinstall:
-        $(MAKE) -C ide zipinstall
+	$(MAKE) -C ide zipinstall
 ide_zipsourceinstall:
-        $(MAKE) -C ide zipsourceinstall
+	$(MAKE) -C ide zipsourceinstall
 ide_zipexampleinstall:
-        $(MAKE) -C ide zipexampleinstall
+	$(MAKE) -C ide zipexampleinstall
 ide_zipdistinstall:
-        $(MAKE) -C ide zipdistinstall
+	$(MAKE) -C ide zipdistinstall
 ide_clean:
-        $(MAKE) -C ide clean
+	$(MAKE) -C ide clean
 ide_distclean:
-        $(MAKE) -C ide distclean
+	$(MAKE) -C ide distclean
 ide_cleanall:
-        $(MAKE) -C ide cleanall
+	$(MAKE) -C ide cleanall
 ide_info:
-        $(MAKE) -C ide info
+	$(MAKE) -C ide info
 ide_makefiles:
-        $(MAKE) -C ide makefiles
+	$(MAKE) -C ide makefiles
 ide:
-        $(MAKE) -C ide all
+	$(MAKE) -C ide all
 .PHONY: ide_all ide_debug ide_smart ide_release ide_examples ide_shared ide_install ide_sourceinstall ide_exampleinstall ide_distinstall ide_zipinstall ide_zipsourceinstall ide_zipexampleinstall ide_zipdistinstall ide_clean ide_distclean ide_cleanall ide_info ide_makefiles ide
 endif
 ifdef TARGET_DIRS_INSTALLER
 installer_all:
-        $(MAKE) -C installer all
+	$(MAKE) -C installer all
 installer_debug:
-        $(MAKE) -C installer debug
+	$(MAKE) -C installer debug
 installer_smart:
-        $(MAKE) -C installer smart
+	$(MAKE) -C installer smart
 installer_release:
-        $(MAKE) -C installer release
+	$(MAKE) -C installer release
 installer_examples:
-        $(MAKE) -C installer examples
+	$(MAKE) -C installer examples
 installer_shared:
-        $(MAKE) -C installer shared
+	$(MAKE) -C installer shared
 installer_install:
-        $(MAKE) -C installer install
+	$(MAKE) -C installer install
 installer_sourceinstall:
-        $(MAKE) -C installer sourceinstall
+	$(MAKE) -C installer sourceinstall
 installer_exampleinstall:
-        $(MAKE) -C installer exampleinstall
+	$(MAKE) -C installer exampleinstall
 installer_distinstall:
-        $(MAKE) -C installer distinstall
+	$(MAKE) -C installer distinstall
 installer_zipinstall:
-        $(MAKE) -C installer zipinstall
+	$(MAKE) -C installer zipinstall
 installer_zipsourceinstall:
-        $(MAKE) -C installer zipsourceinstall
+	$(MAKE) -C installer zipsourceinstall
 installer_zipexampleinstall:
-        $(MAKE) -C installer zipexampleinstall
+	$(MAKE) -C installer zipexampleinstall
 installer_zipdistinstall:
-        $(MAKE) -C installer zipdistinstall
+	$(MAKE) -C installer zipdistinstall
 installer_clean:
-        $(MAKE) -C installer clean
+	$(MAKE) -C installer clean
 installer_distclean:
-        $(MAKE) -C installer distclean
+	$(MAKE) -C installer distclean
 installer_cleanall:
-        $(MAKE) -C installer cleanall
+	$(MAKE) -C installer cleanall
 installer_info:
-        $(MAKE) -C installer info
+	$(MAKE) -C installer info
 installer_makefiles:
-        $(MAKE) -C installer makefiles
+	$(MAKE) -C installer makefiles
 installer:
-        $(MAKE) -C installer all
+	$(MAKE) -C installer all
 .PHONY: installer_all installer_debug installer_smart installer_release installer_examples installer_shared installer_install installer_sourceinstall installer_exampleinstall installer_distinstall installer_zipinstall installer_zipsourceinstall installer_zipexampleinstall installer_zipdistinstall installer_clean installer_distclean installer_cleanall installer_info installer_makefiles installer
 endif
 debug: $(addsuffix _debug,$(TARGET_DIRS))
@@ -1614,125 +1614,125 @@ unexport FPC_VERSION OS_SOURCE
 override TARGET_DIRS:=$(wildcard $(TARGET_DIRS))
 .PHONY: help checkfpcdir
 help:
-        @$(ECHO)
-        @$(ECHO) Directory targets:
-        @$(ECHO)
-        @$(ECHO) $(TARGET_DIRS)
-        @$(ECHO)
-        @$(ECHO) Packing targets are:
-        @$(ECHO)
-        @$(ECHO) go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip,os2zip,beoszip,sunoszip,qnxzip
-        @$(ECHO)
-        @exit
+	@$(ECHO)
+	@$(ECHO) Directory targets:
+	@$(ECHO)
+	@$(ECHO) $(TARGET_DIRS)
+	@$(ECHO)
+	@$(ECHO) Packing targets are:
+	@$(ECHO)
+	@$(ECHO) go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip,os2zip,beoszip,sunoszip,qnxzip
+	@$(ECHO)
+	@exit
 .PHONY: compiler_cycle
 compiler_cycle:
-        $(MAKE) -C compiler cycle
+	$(MAKE) -C compiler cycle
 .PHONY: packages_base_all packages_extra_all \
-        packages_base_smart packages_extra_smart
+	packages_base_smart packages_extra_smart
 packages_base_all:
-        $(MAKE) -C packages base_all
+	$(MAKE) -C packages base_all
 packages_base_smart:
-        $(MAKE) -C packages base_smart
+	$(MAKE) -C packages base_smart
 packages_extra_all:
-        $(MAKE) -C packages extra_all
+	$(MAKE) -C packages extra_all
 packages_extra_smart:
-        $(MAKE) -C packages extra_smart
+	$(MAKE) -C packages extra_smart
 demo_install:
-        $(MAKE) -C $(CVSINSTALL)/demo sourceinstall
+	$(MAKE) -C $(CVSINSTALL)/demo sourceinstall
 man_install:
-        $(MAKE) -C $(CVSINSTALL)/man installman
+	$(MAKE) -C $(CVSINSTALL)/man installman
 doc_install:
-        $(MAKE) -C $(CVSINSTALL)/doc installdoc
+	$(MAKE) -C $(CVSINSTALL)/doc installdoc
 optzips: optcompinstall optcompzip
 optcompinstall:
-        $(MAKE) compiler_cycle OPT=-dNEWOPTIMIZATIONS
-        $(MAKE) compiler_install
-        $(MAKE) rtl_install
+	$(MAKE) compiler_cycle OPT=-dNEWOPTIMIZATIONS
+	$(MAKE) compiler_install
+	$(MAKE) rtl_install
 optcompzip:
-        $(MAKE) fpc_zipinstall PACKAGENAME=optcomp ZIPTARGET=optcompinstall
+	$(MAKE) fpc_zipinstall PACKAGENAME=optcomp ZIPTARGET=optcompinstall
 .PHONY: all clean distclean build install installbase zipinstall zipinstallbase zipinstallfcl \
-        zipinstallpackages
+	zipinstallpackages
 all: build
 clean: $(addsuffix _distclean,$(TARGET_DIRS))
-        $(DEL) build-stamp.$(OS_TARGET)
+	$(DEL) build-stamp.$(OS_TARGET)
 distclean: clean
 build: build-stamp.$(OS_TARGET)
 build-stamp.$(OS_TARGET):
-        $(MAKE) compiler_cycle
-        $(MAKE) rtl_clean
-        $(MAKE) packages_clean
-        $(MAKE) fcl_clean
-        $(MAKE) utils_clean
+	$(MAKE) compiler_cycle
+	$(MAKE) rtl_clean
+	$(MAKE) packages_clean
+	$(MAKE) fcl_clean
+	$(MAKE) utils_clean
 ifdef IDE
-        $(MAKE) fv_clean
-        $(MAKE) ide_clean
+	$(MAKE) fv_clean
+	$(MAKE) ide_clean
 endif
-        $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
-        $(MAKE) packages_base_$(ALLTARGET) $(BUILDOPTS)
-        $(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
-        $(MAKE) packages_extra_$(ALLTARGET) $(BUILDOPTS)
-        $(MAKE) utils_all $(BUILDOPTS)
+	$(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
+	$(MAKE) packages_base_$(ALLTARGET) $(BUILDOPTS)
+	$(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
+	$(MAKE) packages_extra_$(ALLTARGET) $(BUILDOPTS)
+	$(MAKE) utils_all $(BUILDOPTS)
 ifdef IDE
-        $(MAKE) fv_all $(BUILDOPTS)
-        $(MAKE) ide_all $(BUILDOPTS)
-        $(MAKE) installer_all $(BUILDOPTS)
+	$(MAKE) fv_all $(BUILDOPTS)
+	$(MAKE) ide_all $(BUILDOPTS)
+	$(MAKE) installer_all $(BUILDOPTS)
 endif
-        $(ECHOREDIR) Build > build-stamp.$(OS_TARGET)
+	$(ECHOREDIR) Build > build-stamp.$(OS_TARGET)
 installbase: build-stamp.$(OS_TARGET)
-        $(MKDIR) $(INSTALL_BASEDIR)
-        $(MKDIR) $(INSTALL_DOCDIR)
-        $(MKDIR) $(INSTALL_BINDIR)
+	$(MKDIR) $(INSTALL_BASEDIR)
+	$(MKDIR) $(INSTALL_DOCDIR)
+	$(MKDIR) $(INSTALL_BINDIR)
 ifndef SNAPSHOT
-        $(COPY) $(CVSINSTALL)/doc/*.txt $(CVSINSTALL)/doc/copying* $(CVSINSTALL)/doc/faq.* $(INSTALL_DOCDIR)
+	$(COPY) $(CVSINSTALL)/doc/*.txt $(CVSINSTALL)/doc/copying* $(CVSINSTALL)/doc/faq.* $(INSTALL_DOCDIR)
 ifeq ($(OS_TARGET),go32v2)
-        $(COPY) $(CVSINSTALL)/bingo32/* $(INSTALL_BINDIR)
+	$(COPY) $(CVSINSTALL)/bingo32/* $(INSTALL_BINDIR)
 endif
 ifeq ($(OS_TARGET),win32)
-        -$(COPY) $(CVSINSTALL)/binw32/* $(INSTALL_BINDIR)
+	$(COPY) $(CVSINSTALL)/binw32/* $(INSTALL_BINDIR)
 endif
 ifeq ($(OS_TARGET),linux)
-        $(MAKE) -C $(CVSINSTALL)/man installman
+	$(MAKE) -C $(CVSINSTALL)/man installman
 endif
 ifeq ($(OS_TARGET),freebsd)
-        $(MAKE) -C $(CVSINSTALL)/man installman
+	$(MAKE) -C $(CVSINSTALL)/man installman
 endif
 ifeq ($(OS_TARGET),sunos)
-        $(MAKE) -C $(CVSINSTALL)/man installman
+	$(MAKE) -C $(CVSINSTALL)/man installman
 endif
 ifeq ($(OS_TARGET),qnx)
-        $(MAKE) -C $(CVSINSTALL)/man installman
+	$(MAKE) -C $(CVSINSTALL)/man installman
 endif
 endif
-        $(MAKE) compiler_$(INSTALLTARGET) $(INSTALLOPTS)
-        $(MAKE) rtl_$(INSTALLTARGET) $(INSTALLOPTS)
+	$(MAKE) compiler_$(INSTALLTARGET) $(INSTALLOPTS)
+	$(MAKE) rtl_$(INSTALLTARGET) $(INSTALLOPTS)
 install: build-stamp.$(OS_TARGET)
-        $(MAKE) installbase $(INSTALLOPTS)
-        $(MAKE) packages_$(INSTALLTARGET) $(INSTALLOPTS)
-        $(MAKE) fcl_$(INSTALLTARGET) $(INSTALLOPTS)
-        $(MAKE) utils_$(INSTALLTARGET) $(INSTALLOPTS)
+	$(MAKE) installbase $(INSTALLOPTS)
+	$(MAKE) packages_$(INSTALLTARGET) $(INSTALLOPTS)
+	$(MAKE) fcl_$(INSTALLTARGET) $(INSTALLOPTS)
+	$(MAKE) utils_$(INSTALLTARGET) $(INSTALLOPTS)
 ifdef IDE
-        $(NOSTOP)$(MAKE) ide_$(INSTALLTARGET) $(BUILDOPTS)
+	$(NOSTOP)$(MAKE) ide_$(INSTALLTARGET) $(BUILDOPTS)
 endif
 zipinstall: build-stamp.$(OS_TARGET)
-        $(MAKE) fpc_zipinstall ZIPTARGET=installbase ZIPNAME=base$(ZIPSUFFIX) $(INSTALLOPTS)
-        $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)
-        $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)
-        $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=util$(ZIPSUFFIX)
+	$(MAKE) fpc_zipinstall ZIPTARGET=installbase ZIPNAME=base$(ZIPSUFFIX) $(INSTALLOPTS)
+	$(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)
+	$(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)
+	$(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=util$(ZIPSUFFIX)
 ifdef IDE
-        $(NOSTOP)$(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=ide$(ZIPSUFFIX)
+	$(NOSTOP)$(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=ide$(ZIPSUFFIX)
 endif
 .PHONY: docspdf docs docsrcinstall docsrc
 DOCSOURCEDIR=$(INSTALL_SOURCEDIR)/../docs
 docspdf:
-        $(MAKE) -C docs pdfinstall DOCINSTALLDIR=$(PACKDIR)
+	$(MAKE) -C docs pdfinstall DOCINSTALLDIR=$(PACKDIR)
 docs:
-        $(MAKE) fpc_zipinstall ZIPTARGET=docspdf ZIPNAME=docs
+	$(MAKE) fpc_zipinstall ZIPTARGET=docspdf ZIPNAME=docs
 docsrcinstall:
-        $(MAKE) -C docs clean
-        $(MKDIR) $(DOCSOURCEDIR)
-        $(COPYTREE) docs/* $(DOCSOURCEDIR)
+	$(MAKE) -C docs clean
+	$(MKDIR) $(DOCSOURCEDIR)
+	$(COPYTREE) docs/* $(DOCSOURCEDIR)
 docsrc:
-        $(MAKE) fpc_zipinstall ZIPTARGET=docsrcinstall ZIPNAME=docsrc
+	$(MAKE) fpc_zipinstall ZIPTARGET=docsrcinstall ZIPNAME=docsrc
 .PHONY: demozip
 ifdef UNIXINSTALLDIR
 DEMOSOURCEDIR=$(INSTALL_DOCDIR)/../demo
@@ -1740,76 +1740,76 @@ else
 DEMOSOURCEDIR=$(INSTALL_PREFIX)/demo
 endif
 demosrcinstall:
-        $(MAKE) -C demo clean
-        $(MKDIR) $(DEMOSOURCEDIR)
-        $(COPYTREE) demo/* $(DEMOSOURCEDIR)
+	$(MAKE) -C demo clean
+	$(MKDIR) $(DEMOSOURCEDIR)
+	$(COPYTREE) demo/* $(DEMOSOURCEDIR)
 demozip:
-        $(MAKE) fpc_zipinstall ZIPTARGET=demosrcinstall ZIPNAME=demo
+	$(MAKE) fpc_zipinstall ZIPTARGET=demosrcinstall ZIPNAME=demo
 .PHONY: sourcebase sourcezip
 INSTALL_BASESOURCEDIR=$(INSTALL_SOURCEDIR)/..
 sourcebase:
-        $(MKDIR) $(INSTALL_BASESOURCEDIR)
-        $(MKDIR) $(INSTALL_BASESOURCEDIR)/rtl
-        $(MKDIR) $(INSTALL_BASESOURCEDIR)/packages
-        $(MKDIR) $(INSTALL_BASESOURCEDIR)/packages/base
-        $(MKDIR) $(INSTALL_BASESOURCEDIR)/packages/extra
-        $(COPY) Makefile*  $(INSTALL_BASESOURCEDIR)
-        $(COPY) rtl/Makefile* $(INSTALL_BASESOURCEDIR)/rtl
-        $(COPY) packages/Makefile* $(INSTALL_BASESOURCEDIR)/packages
-        $(COPY) packages/base/Makefile* $(INSTALL_BASESOURCEDIR)/packages/base
-        $(COPY) packages/extra/Makefile* $(INSTALL_BASESOURCEDIR)/packages/extra
+	$(MKDIR) $(INSTALL_BASESOURCEDIR)
+	$(MKDIR) $(INSTALL_BASESOURCEDIR)/rtl
+	$(MKDIR) $(INSTALL_BASESOURCEDIR)/packages
+	$(MKDIR) $(INSTALL_BASESOURCEDIR)/packages/base
+	$(MKDIR) $(INSTALL_BASESOURCEDIR)/packages/extra
+	$(COPY) Makefile*  $(INSTALL_BASESOURCEDIR)
+	$(COPY) rtl/Makefile* $(INSTALL_BASESOURCEDIR)/rtl
+	$(COPY) packages/Makefile* $(INSTALL_BASESOURCEDIR)/packages
+	$(COPY) packages/base/Makefile* $(INSTALL_BASESOURCEDIR)/packages/base
+	$(COPY) packages/extra/Makefile* $(INSTALL_BASESOURCEDIR)/packages/extra
 sourcezip:
-        $(MAKE) fpc_zipinstall ZIPTARGET=sourcebase ZIPNAME=basesrc
-        $(MAKE) compiler_zipsourceinstall
-        $(MAKE) rtl_zipsourceinstall
-        $(MAKE) packages_zipsourceinstall ZIPPREFIX=$(PKGPRE)
-        $(MAKE) fcl_zipsourceinstall
-        $(MAKE) utils_zipsourceinstall
-        $(MAKE) ide_zipsourceinstall
-        $(MAKE) installer_zipsourceinstall
+	$(MAKE) fpc_zipinstall ZIPTARGET=sourcebase ZIPNAME=basesrc
+	$(MAKE) compiler_zipsourceinstall
+	$(MAKE) rtl_zipsourceinstall
+	$(MAKE) packages_zipsourceinstall ZIPPREFIX=$(PKGPRE)
+	$(MAKE) fcl_zipsourceinstall
+	$(MAKE) utils_zipsourceinstall
+	$(MAKE) ide_zipsourceinstall
+	$(MAKE) installer_zipsourceinstall
 .PHONY: go32v2 win32 linux freebsd os2 go32v2zip win32zip linuxzip freebsdzip os2zip
 go32v2: checkfpcdir
-        $(MAKE) install OS_TARGET=go32v2
+	$(MAKE) install OS_TARGET=go32v2
 win32: checkfpcdir
-        $(MAKE) install OS_TARGET=win32
+	$(MAKE) install OS_TARGET=win32
 linux: checkfpcdir
-        $(MAKE) install OS_TARGET=linux
+	$(MAKE) install OS_TARGET=linux
 freebsd: checkfpcdir
-        $(MAKE) install OS_TARGET=freebsd
+	$(MAKE) install OS_TARGET=freebsd
 os2: checkfpcdir
-        $(MAKE) install OS_TARGET=os2
+	$(MAKE) install OS_TARGET=os2
 sunos: checkfpcdir
-        $(MAKE) install OS_TARGET=sunos
+	$(MAKE) install OS_TARGET=sunos
 go32v2zip: checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=go32v2
+	$(MAKE) zipinstall OS_TARGET=go32v2
 win32zip: checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=win32
+	$(MAKE) zipinstall OS_TARGET=win32
 linuxzip: checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=linux
+	$(MAKE) zipinstall OS_TARGET=linux
 freebsdzip : checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=freebsd
+	$(MAKE) zipinstall OS_TARGET=freebsd
 beoszip : checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=beos USEZIP=1
+	$(MAKE) zipinstall OS_TARGET=beos USEZIP=1
 os2zip: checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=os2
+	$(MAKE) zipinstall OS_TARGET=os2
 sunoszip: checkfpcdir
-        $(MAKE) zipinstall OS_TARGET=sunos TARPROG=gtar
+	$(MAKE) zipinstall OS_TARGET=sunos TARPROG=gtar
 qnxzip: checkfpcdir
-                $(MAKE) zipinstall OS_TARGET=qnx
+		$(MAKE) zipinstall OS_TARGET=qnx
 .PHONY: renametoshort shortsrc shortbin shortnames
 renametoshort:
-        -mv compiler$(ZIPSUFFIX).zip comp$(ZIPSUFFIX).zip
-        -mv utils$(ZIPSUFFIX).zip util$(ZIPSUFFIX).zip
-        -mv installer$(ZIPSUFFIX).zip inst$(ZIPSUFFIX).zip
-        -mv ugdbint$(ZIPSUFFIX).zip ugdb$(ZIPSUFFIX).zip
-        -mv uregexpr$(ZIPSUFFIX).zip ureg$(ZIPSUFFIX).zip
-        -mv upaszlib$(ZIPSUFFIX).zip upzl$(ZIPSUFFIX).zip
-        -mv uuncgi$(ZIPSUFFIX).zip ucgi$(ZIPSUFFIX).zip
-        -mv uunzip$(ZIPSUFFIX).zip uzip$(ZIPSUFFIX).zip
+	-mv compiler$(ZIPSUFFIX).zip comp$(ZIPSUFFIX).zip
+	-mv utils$(ZIPSUFFIX).zip util$(ZIPSUFFIX).zip
+	-mv installer$(ZIPSUFFIX).zip inst$(ZIPSUFFIX).zip
+	-mv ugdbint$(ZIPSUFFIX).zip ugdb$(ZIPSUFFIX).zip
+	-mv uregexpr$(ZIPSUFFIX).zip ureg$(ZIPSUFFIX).zip
+	-mv upaszlib$(ZIPSUFFIX).zip upzl$(ZIPSUFFIX).zip
+	-mv uuncgi$(ZIPSUFFIX).zip ucgi$(ZIPSUFFIX).zip
+	-mv uunzip$(ZIPSUFFIX).zip uzip$(ZIPSUFFIX).zip
 shortsrc:
-        $(MAKE) renametoshort ZIPSUFFIX=src
+	$(MAKE) renametoshort ZIPSUFFIX=src
 shortbin:
-        $(MAKE) renametoshort
+	$(MAKE) renametoshort
 shortnames: shortsrc shortbin
 ifdef inUnix
 ifneq ($(wildcard $(CVSINSTALL)/debian/changelog),)
@@ -1818,24 +1818,24 @@ DEBPACKAGEVERSION:=$(shell head -n 1 $(CVSINSTALL)/debian/changelog | awk '{ pri
 DEBFPCVERSION:=$(shell echo $(DEBPACKAGEVERSION) | awk -F '-' '{ print $$1 }')
 DEBSRCDIR:=/usr/src/fpc-$(DEBFPCVERSION)
 debcopy: distclean
-        rm -rf $(DEBSRCDIR)
-        install -d $(DEBSRCDIR)
-        $(COPYTREE) compiler $(DEBSRCDIR)
-        $(COPYTREE) rtl $(DEBSRCDIR)
-        $(COPYTREE) fcl $(DEBSRCDIR)
-        $(COPYTREE) packages $(DEBSRCDIR)
-        $(COPYTREE) utils $(DEBSRCDIR)
-        $(COPYTREE) demo $(DEBSRCDIR)
-        $(COPYTREE) logs $(DEBSRCDIR)
-        $(COPYTREE) docs $(DEBSRCDIR)
-        $(COPYTREE) Makefile* $(DEBSRCDIR)
-        $(COPYTREE) $(CVSINSTALL)/debian $(DEBSRCDIR)
-        $(COPYTREE) $(CVSINSTALL)/man $(DEBSRCDIR)
-        $(COPYTREE) $(CVSINSTALL)/doc $(DEBSRCDIR)
-        find $(DEBSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
-        chmod 755 $(DEBSRCDIR)/debian/rules
+	rm -rf $(DEBSRCDIR)
+	install -d $(DEBSRCDIR)
+	$(COPYTREE) compiler $(DEBSRCDIR)
+	$(COPYTREE) rtl $(DEBSRCDIR)
+	$(COPYTREE) fcl $(DEBSRCDIR)
+	$(COPYTREE) packages $(DEBSRCDIR)
+	$(COPYTREE) utils $(DEBSRCDIR)
+	$(COPYTREE) demo $(DEBSRCDIR)
+	$(COPYTREE) logs $(DEBSRCDIR)
+	$(COPYTREE) docs $(DEBSRCDIR)
+	$(COPYTREE) Makefile* $(DEBSRCDIR)
+	$(COPYTREE) $(CVSINSTALL)/debian $(DEBSRCDIR)
+	$(COPYTREE) $(CVSINSTALL)/man $(DEBSRCDIR)
+	$(COPYTREE) $(CVSINSTALL)/doc $(DEBSRCDIR)
+	find $(DEBSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
+	chmod 755 $(DEBSRCDIR)/debian/rules
 deb: checkfpcdir debcopy
-        cd $(DEBSRCDIR) ; debian/rules binary
+	cd $(DEBSRCDIR) ; debian/rules binary
 endif   # changelog found
 endif
 ifdef inUnix
@@ -1848,32 +1848,32 @@ RPMSPECDIR:=$(REDHATDIR)/SPECS
 RPMSRCDIR:=$(RPMSOURCESDIR)/fpc
 DOCSRCDIR:=$(RPMSOURCESDIR)/fpcdoc
 rpmcopy: distclean
-        install -d $(REDHATDIR)
-        install -d $(RPMSPECDIR)
-        install -d $(RPMSOURCESDIR)
-        rm -rf $(RPMSRCDIR)
-        cp $(CVSINSTALL)/fpc.spec $(RPMSPECDIR)/fpc-$(RPMFPCVERSION).spec
-        install -d $(RPMSRCDIR)
-        $(COPYTREE) compiler $(RPMSRCDIR)
-        $(COPYTREE) rtl $(RPMSRCDIR)
-        $(COPYTREE) fcl $(RPMSRCDIR)
-        $(COPYTREE) packages $(RPMSRCDIR)
-        $(COPYTREE) utils $(RPMSRCDIR)
-        $(COPYTREE) demo $(RPMSRCDIR)
-        $(COPYTREE) logs $(RPMSRCDIR)
-        $(COPYTREE) Makefile* $(RPMSRCDIR)
-        $(COPYTREE) $(CVSINSTALL)/man $(RPMSRCDIR)
-        $(COPYTREE) $(CVSINSTALL)/doc $(RPMSRCDIR)
-        find $(RPMSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
-        cd $(RPMSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-$(RPMFPCVERSION)-src.tar.gz
-        rm -rf $(DOCSRCDIR)
-        cp $(CVSINSTALL)/fpc-docs.spec $(RPMSPECDIR)/fpc-docs-$(RPMFPCVERSION).spec
-        install -d $(DOCSRCDIR)
-        $(COPYTREE) docs $(DOCSRCDIR)
-        find $(DOCSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
-        cd $(DOCSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-docs-$(RPMFPCVERSION)-src.tar.gz
+	install -d $(REDHATDIR)
+	install -d $(RPMSPECDIR)
+	install -d $(RPMSOURCESDIR)
+	rm -rf $(RPMSRCDIR)
+	cp $(CVSINSTALL)/fpc.spec $(RPMSPECDIR)/fpc-$(RPMFPCVERSION).spec
+	install -d $(RPMSRCDIR)
+	$(COPYTREE) compiler $(RPMSRCDIR)
+	$(COPYTREE) rtl $(RPMSRCDIR)
+	$(COPYTREE) fcl $(RPMSRCDIR)
+	$(COPYTREE) packages $(RPMSRCDIR)
+	$(COPYTREE) utils $(RPMSRCDIR)
+	$(COPYTREE) demo $(RPMSRCDIR)
+	$(COPYTREE) logs $(RPMSRCDIR)
+	$(COPYTREE) Makefile* $(RPMSRCDIR)
+	$(COPYTREE) $(CVSINSTALL)/man $(RPMSRCDIR)
+	$(COPYTREE) $(CVSINSTALL)/doc $(RPMSRCDIR)
+	find $(RPMSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
+	cd $(RPMSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-$(RPMFPCVERSION)-src.tar.gz
+	rm -rf $(DOCSRCDIR)
+	cp $(CVSINSTALL)/fpc-docs.spec $(RPMSPECDIR)/fpc-docs-$(RPMFPCVERSION).spec
+	install -d $(DOCSRCDIR)
+	$(COPYTREE) docs $(DOCSRCDIR)
+	find $(DOCSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
+	cd $(DOCSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-docs-$(RPMFPCVERSION)-src.tar.gz
 rpm: checkfpcdir rpmcopy
-        cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-$(RPMFPCVERSION).spec
-        cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-docs-$(RPMFPCVERSION).spec
+	cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-$(RPMFPCVERSION).spec
+	cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-docs-$(RPMFPCVERSION).spec
 endif   # spec found
 endif
