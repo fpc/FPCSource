@@ -153,6 +153,39 @@
            end;
       end;
 
+    function modint64(n,z : int64) : int64;[public,alias: 'FPC_MOD_INT64'];
+
+      var
+         signed : boolean;
+         r,nq,zq : qword;
+
+      begin    
+         if n=0 then
+           HandleErrorFrame(200,get_frame);
+         if n<0 then
+           begin
+              nq:=-n;
+              signed:=true;
+           end
+         else
+           begin
+              signed:=false;
+              nq:=n;
+           end;
+         if z<0 then
+           begin
+              zq:=qword(-z);
+              signed:=not(signed);
+           end
+         else
+           zq:=z;
+         r:=zq mod nq;
+         if signed then
+           modint64:=-int64(r)
+         else
+           modint64:=r;
+      end;
+
     { multiplies two qwords
       the longbool for checkoverflow avoids a misaligned stack
     }
@@ -433,7 +466,10 @@
 
 {
   $Log$
-  Revision 1.18  2000-02-09 16:59:30  peter
+  Revision 1.19  2000-02-09 22:19:24  florian
+    + helper routine for <int64> mod <in64> added
+
+  Revision 1.18  2000/02/09 16:59:30  peter
     * truncated log
 
   Revision 1.17  2000/01/27 15:43:02  florian
@@ -447,5 +483,4 @@
 
   Revision 1.14  2000/01/07 16:41:34  daniel
     * copyright 2000
-
 }
