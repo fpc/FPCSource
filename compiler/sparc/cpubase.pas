@@ -37,7 +37,7 @@ CONST
 {the natural int size for a processor}
   OS_INT=OS_32;
 {the maximum float size for a processor}
-  OS_FLOAT=OS_F80;{$WARNING "OS_FLOAT" was set to "OS_F80" but not verified!}
+  OS_FLOAT=OS_F64;
 {the size of a vector register for a processor}
   OS_VECTOR=OS_M64;{$WARNING "OS_VECTOR" was set to "OS_M64" but not verified!}
 CONST
@@ -203,18 +203,9 @@ CONST
      OT_NEAR,OT_FAR,OT_SHORT
     )
   );
-
-{$IFDEF ATTOP}
-  att_opsize2str : ARRAY[topsize] of string[2] = ('',
-    'b','w','l','bw','bl','wl',
-    's','l','q',
-    's','l','t','d','q','v',
-    '','',''
-  );
-{$ENDIF}
-{*****************************************************************************
-                                Conditions
-*****************************************************************************}
+{*****************************************************************************}
+{                               Conditions                                    }
+{*****************************************************************************}
 TYPE
   TAsmCond=(C_None,
     C_A,C_AE,C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_NA,C_NAE,
@@ -236,9 +227,9 @@ CONST
   CondAsmOps=3;
   CondAsmOp:ARRAY[0..CondAsmOps-1] of TAsmOp=(A_FCMPd, A_JMPL, A_FCMPs);
   CondAsmOpStr:ARRAY[0..CondAsmOps-1] of string[4]=('FCMPd','JMPL','FCMPs');
-{*****************************************************************************
-                                  Registers
-*****************************************************************************}
+{*****************************************************************************}
+{                                 Registers                                   }
+{*****************************************************************************}
 TYPE
   { enumeration for registers, don't change the order }
   { it's used by the register size conversions        }
@@ -408,7 +399,7 @@ used, because contains a lot of unnessary fields.}
 *****************************************************************************}
 
 CONST
-  general_registers = [R_G0..R_I7];
+  general_registers = [R_L0..R_L7];
 
   { legEND:                                                                }
   { xxxregs = set of all possibly used registers of that type in the code  }
@@ -582,7 +573,10 @@ FUNCTION flags_to_cond(CONST f:TResFlags):TAsmCond;
 END.
 {
   $Log$
-  Revision 1.6  2002-09-24 03:57:53  mazen
+  Revision 1.7  2002-09-27 04:30:53  mazen
+  * cleanup made
+
+  Revision 1.6  2002/09/24 03:57:53  mazen
   * some cleanup  was made
 
 }

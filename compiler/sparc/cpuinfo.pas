@@ -53,7 +53,7 @@ TYPE
   tprocessors=(no_processor,SPARC_V8,SPARC_V9);
 CONST
 {# Size of native extended floating point type }
-  extended_size = 10;
+  extended_size = 8;
 {# Size of a pointer                           }
   pointer_size  = 4;
 {# Size of a multimedia register               }
