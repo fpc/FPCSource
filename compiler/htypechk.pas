@@ -846,10 +846,15 @@ implementation
            v:=true;
          calln : { procvars are callnodes first }
            v:=assigned(p^.right) and not assigned(p^.left);
-         addrn,
-         typen : { addrn is not allowed as this generate a constant value (PFV) }
-           v:=false;
-         { no other node accepted (PM) }
+         addrn :
+           begin
+             { addrn is not allowed as this generate a constant value,
+               but a tp procvar are allowed (PFV) }
+             if p^.procvarload then
+              v:=true
+             else
+              v:=false;
+           end;
          else
            v:=false;
         end;
@@ -865,8 +870,15 @@ implementation
         case p^.treetype of
           calln,
           statementn,
-          addrn : { addrn is not allowed as this generate a constant value and not a reference (PFV) }
-            v:=false;
+          addrn :
+           begin
+             { addrn is not allowed as this generate a constant value,
+               but a tp procvar are allowed (PFV) }
+             if p^.procvarload then
+              v:=true
+             else
+              v:=false;
+           end;
           else
             v:=true;
         end;
@@ -1077,7 +1089,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2000-06-02 21:22:04  pierre
+  Revision 1.66  2000-06-04 09:04:30  peter
+    * check for procvar in valid_for_formal
+
+  Revision 1.65  2000/06/02 21:22:04  pierre
     + isbinaryoperatoracceptable and isunaryoperatoracceptable
       for a more coherent operator overloading implementation
       tok2node moved from pexpr unit to htypechk
