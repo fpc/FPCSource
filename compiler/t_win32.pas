@@ -1,9 +1,9 @@
 {
     $Id$
-    Copyright (c) 1998 by Florian Klaempfl
+    Copyright (c) 1999 by Peter Vreman
 
-    This unit implements some support routines for the win32 target like
-    import/export handling
+    This unit implements support import,export,link routines
+    for the (i386) Win32 target
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
  ****************************************************************************
 }
-unit win_targ;
+unit t_win32;
 
   interface
 
@@ -52,14 +52,21 @@ unit win_targ;
 
     plinkerwin32=^tlinkerwin32;
     tlinkerwin32=object(tlinker)
-      procedure postprocessexecutable(const n : string);virtual;
+    private
+       Function  WriteResponseFile(isdll:boolean) : Boolean;
+       Function  PostProcessExecutable(const fn:string;isdll:boolean) : Boolean;
+    public
+       Procedure SetDefaultInfo;virtual;
+       function  MakeExecutable:boolean;virtual;
+       function  MakeSharedLibrary:boolean;virtual;
     end;
 
 
   implementation
 
     uses
-       aasm,files,strings,globtype,globals,cobjects,systems,verbose,
+       aasm,files,globtype,globals,cobjects,systems,verbose,
+       script,gendef,
        cpubase,cpuasm
 {$ifdef GDB}
        ,gdb
@@ -75,12 +82,18 @@ unit win_targ;
          else
            DllName:=Name+target_os.sharedlibext;
       end;
-    procedure timportlibwin32.preparelib(const s : string);
 
+
+{*****************************************************************************
+                             TIMPORTLIBWIN32
+*****************************************************************************}
+
+    procedure timportlibwin32.preparelib(const s : string);
       begin
          if not(assigned(importssection)) then
            importssection:=new(paasmoutput,init);
       end;
+
 
     procedure timportlibwin32.importprocedure(const func,module : string;index : longint;const name : string);
       var
@@ -88,8 +101,6 @@ unit win_targ;
          hp2 : pimported_item;
          hs  : string;
       begin
-         { that IS wrong for DRV files
-         hs:=SplitName(module); }
          hs:=DllName(module);
          { search for the module }
          hp1:=pimportlist(current_module^.imports^.first);
@@ -366,8 +377,12 @@ unit win_targ;
            end;
       end;
 
-    procedure texportlibwin32.preparelib(const s:string);
 
+{*****************************************************************************
+                             TEXPORTLIBWIN32
+*****************************************************************************}
+
+    procedure texportlibwin32.preparelib(const s:string);
       begin
          if not(assigned(exportssection)) then
            exportssection:=new(paasmoutput,init);
@@ -384,22 +399,27 @@ unit win_targ;
 
 
     procedure texportlibwin32.exportprocedure(hp : pexported_item);
-
       { must be ordered at least for win32 !! }
-      var hp2 : pexported_item;
-
-    begin
-        hp2:=pexported_item(current_module^._exports^.first);
+      var
+        hp2 : pexported_item;
+      begin
         { first test the index value }
         if (hp^.options and eo_index)<>0 then
           begin
              if (hp^.index<=0) or (hp^.index>$ffff) then
-               message1(parser_e_export_invalid_index,tostr(hp^.index))
-             else while assigned(hp2) do
+               begin
+                 message1(parser_e_export_invalid_index,tostr(hp^.index));
+                 exit;
+               end;
+             hp2:=pexported_item(current_module^._exports^.first);
+             while assigned(hp2) do
                begin
                   if (hp^.index=hp2^.index) then
                     if ((hp2^.options and eo_index)<>0) then
-                      message1(parser_e_export_ordinal_double,tostr(hp^.index))
+                      begin
+                        message1(parser_e_export_ordinal_double,tostr(hp^.index));
+                        exit;
+                      end
                     else
                       begin
                          inc(last_index);
@@ -421,7 +441,6 @@ unit win_targ;
              hp^.name:=stringdup(hp^.sym^.name);
              hp^.options:=hp^.options or eo_name;
           end;
-
         { now place in correct order }
         hp2:=pexported_item(current_module^._exports^.first);
         while assigned(hp2) and
@@ -432,6 +451,7 @@ unit win_targ;
           begin
              { this is not allowed !! }
              message1(parser_e_export_name_double,hp^.name^);
+             exit;
           end;
         if hp2=pexported_item(current_module^._exports^.first) then
           current_module^._exports^.insert(hp)
@@ -445,11 +465,10 @@ unit win_targ;
           end
         else
           current_module^._exports^.concat(hp);
-    end;
+      end;
 
 
     procedure texportlibwin32.generatelib;
-
       var
          ordinal_base,ordinal_max,ordinal_min : longint;
          current_index : longint;
@@ -460,7 +479,6 @@ unit win_targ;
          tempexport : plinkedlist;
          address_table,name_table_pointers,
          name_table,ordinal_table : paasmoutput;
-
       begin
          ordinal_max:=0;
          ordinal_min:=$7FFFFFFF;
@@ -579,8 +597,6 @@ unit win_targ;
               hp:=pexported_item(current_module^._exports^.first);;
            end;
 
-
-
          { write the export adress table }
          current_index:=ordinal_base;
          hp:=pexported_item(tempexport^.first);
@@ -610,320 +626,430 @@ unit win_targ;
 
 
 {****************************************************************************
-                            Postprocess Executable
+                              TLINKERWIN32
 ****************************************************************************}
 
-    procedure tlinkerwin32.postprocessexecutable(const n : string);
-      type
-         tdosheader = packed record
-            e_magic : word;
-            e_cblp : word;
-            e_cp : word;
-            e_crlc : word;
-            e_cparhdr : word;
-            e_minalloc : word;
-            e_maxalloc : word;
-            e_ss : word;
-            e_sp : word;
-            e_csum : word;
-            e_ip : word;
-            e_cs : word;
-            e_lfarlc : word;
-            e_ovno : word;
-            e_res : array[0..3] of word;
-            e_oemid : word;
-            e_oeminfo : word;
-            e_res2 : array[0..9] of word;
-            e_lfanew : longint;
-         end;
+Procedure TLinkerWin32.SetDefaultInfo;
+begin
+  with Info do
+   begin
+     ExeCmd[1]:='ldw $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
+     DllCmd[1]:='ldw $OPT --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
+     DllCmd[2]:='dlltool --as asw.exe --dllname $EXE --output-exp exp.$$$ $RELOC -d $DEF';
+     DllCmd[3]:='ldw $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
+   end;
+end;
 
-         tpeheader = packed record
-            PEMagic : array[0..3] of char;
-            Machine : word;
-            NumberOfSections : word;
-            TimeDateStamp : longint;
-            PointerToSymbolTable : longint;
-            NumberOfSymbols : longint;
-            SizeOfOptionalHeader : word;
-            Characteristics : word;
-            Magic : word;
-            MajorLinkerVersion : byte;
-            MinorLinkerVersion : byte;
-            SizeOfCode : longint;
-            SizeOfInitializedData : longint;
-            SizeOfUninitializedData : longint;
-            AddressOfEntryPoint : longint;
-            BaseOfCode : longint;
-            BaseOfData : longint;
-            ImageBase : longint;
-            SectionAlignment : longint;
-            FileAlignment : longint;
-            MajorOperatingSystemVersion : word;
-            MinorOperatingSystemVersion : word;
-            MajorImageVersion : word;
-            MinorImageVersion : word;
-            MajorSubsystemVersion : word;
-            MinorSubsystemVersion : word;
-            Reserved1 : longint;
-            SizeOfImage : longint;
-            SizeOfHeaders : longint;
-            CheckSum : longint;
-            Subsystem : word;
-            DllCharacteristics : word;
-            SizeOfStackReserve : longint;
-            SizeOfStackCommit : longint;
-            SizeOfHeapReserve : longint;
-            SizeOfHeapCommit : longint;
-            LoaderFlags : longint;
-            NumberOfRvaAndSizes : longint;
-            DataDirectory : array[1..$80] of byte;
-         end;
-        tcoffsechdr=packed record
-          name     : array[0..7] of char;
-          vsize    : longint;
-          rvaofs   : longint;
-          datalen  : longint;
-          datapos  : longint;
-          relocpos : longint;
-          lineno1  : longint;
-          nrelocs  : word;
-          lineno2  : word;
-          flags    : longint;
-        end;
-        psecfill=^tsecfill;
-        tsecfill=record
-          fillpos,
-          fillsize : longint;
-          next : psecfill;
-        end;
 
-      var
-         f : file;
-         dosheader : tdosheader;
-         peheader : tpeheader;
-         firstsecpos,
-         maxfillsize,
-         l,peheaderpos : longint;
-         coffsec : tcoffsechdr;
-         secroot,hsecroot : psecfill;
-         zerobuf : pointer;
+Function TLinkerWin32.WriteResponseFile(isdll:boolean) : Boolean;
+Var
+  linkres  : TLinkRes;
+  i        : longint;
+  s,s2     : string;
+  linklibc : boolean;
+begin
+  WriteResponseFile:=False;
+
+  { Open link.res file }
+  LinkRes.Init(Info.ResName);
+
+  { Write path to search libraries }
+  if assigned(current_module^.locallibrarysearchpath) then
+   begin
+     S:=current_module^.locallibrarysearchpath^;
+     while s<>'' do
       begin
-         { when -s is used quit, because there is no .exe }
-         if cs_link_extern in aktglobalswitches then
-          exit;
-         { open file }
-         assign(f,n);
-         {$I-}
-          reset(f,1);
-         if ioresult<>0 then
-           Message1(execinfo_f_cant_open_executable,n);
-         { read headers }
-         blockread(f,dosheader,sizeof(tdosheader));
-         peheaderpos:=dosheader.e_lfanew;
-         seek(f,peheaderpos);
-         blockread(f,peheader,sizeof(tpeheader));
-         { write info }
-         Message1(execinfo_x_codesize,tostr(peheader.SizeOfCode));
-         Message1(execinfo_x_initdatasize,tostr(peheader.SizeOfInitializedData));
-         Message1(execinfo_x_uninitdatasize,tostr(peheader.SizeOfUninitializedData));
-
-         { change stack size (PM) }
-         { I am not sure that the default value is adequate !! }
-         peheader.SizeOfStackReserve:=stacksize;
-         { change the header }
-         { sub system }
-         { gui=2 }
-         { cui=3 }
-         if apptype=at_gui then
-           peheader.Subsystem:=2
-         else if apptype=at_cui then
-           peheader.Subsystem:=3;
-         seek(f,peheaderpos);
-         blockwrite(f,peheader,sizeof(tpeheader));
-         if ioresult<>0 then
-           Message1(execinfo_f_cant_process_executable,n);
-         seek(f,peheaderpos);
-         blockread(f,peheader,sizeof(tpeheader));
-         { write the value after the change }
-
-         Message1(execinfo_x_stackreserve,tostr(peheader.SizeOfStackReserve));
-         Message1(execinfo_x_stackcommit,tostr(peheader.SizeOfStackCommit));
-
-         { read section info }
-         maxfillsize:=0;
-         firstsecpos:=0;
-         secroot:=nil;
-         for l:=1to peheader.NumberOfSections do
-          begin
-            blockread(f,coffsec,sizeof(tcoffsechdr));
-            if coffsec.datapos>0 then
-             begin
-               if secroot=nil then
-                firstsecpos:=coffsec.datapos;
-               new(hsecroot);
-               hsecroot^.fillpos:=coffsec.datapos+coffsec.vsize;
-               hsecroot^.fillsize:=coffsec.datalen-coffsec.vsize;
-               hsecroot^.next:=secroot;
-               secroot:=hsecroot;
-               if secroot^.fillsize>maxfillsize then
-                maxfillsize:=secroot^.fillsize;
-             end;
-          end;
-         if firstsecpos>0 then
-          begin
-            l:=firstsecpos-filepos(f);
-            if l>maxfillsize then
-             maxfillsize:=l;
-          end
-         else
-          l:=0;
-         { get zero buffer }
-         getmem(zerobuf,maxfillsize);
-         fillchar(zerobuf^,maxfillsize,0);
-         { zero from sectioninfo until first section }
-         blockwrite(f,zerobuf^,l);
-         { zero section alignments }
-         while assigned(secroot) do
-          begin
-            seek(f,secroot^.fillpos);
-            blockwrite(f,zerobuf^,secroot^.fillsize);
-            hsecroot:=secroot;
-            secroot:=secroot^.next;
-            dispose(hsecroot);
-          end;
-         freemem(zerobuf,maxfillsize);
-         close(f);
-         {$I+}
+        s2:=GetPathFromList(s);
+        LinkRes.Add('SEARCH_DIR('+s2+')');
       end;
+   end;
+  S:=LibrarySearchPath;
+  while s<>'' do
+   begin
+     s2:=GetPathFromList(s);
+     LinkRes.Add('SEARCH_DIR('+s2+')');
+   end;
+
+  { add objectfiles, start with prt0 always }
+  LinkRes.Add('INPUT(');
+  if isdll then
+   LinkRes.AddFileName(FindObjectFile('wdllprt0'))
+  else
+   LinkRes.AddFileName(FindObjectFile('wprt0'));
+  while not ObjectFiles.Empty do
+   begin
+     s:=ObjectFiles.Get;
+     if s<>'' then
+      LinkRes.AddFileName(s);
+   end;
+
+  { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
+    here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+  While not SharedLibFiles.Empty do
+   begin
+     S:=SharedLibFiles.Get;
+     if s<>'c' then
+      begin
+        i:=Pos(target_os.sharedlibext,S);
+        if i>0 then
+         Delete(S,i,255);
+        LinkRes.Add('-l'+s);
+      end
+     else
+      begin
+        LinkRes.Add('-l'+s);
+        linklibc:=true;
+      end;
+   end;
+  { be sure that libc is the last lib }
+  if linklibc then
+   LinkRes.Add('-lc');
+  LinkRes.Add(')');
+
+  { Write staticlibraries }
+  if not StaticLibFiles.Empty then
+   begin
+     LinkRes.Add('GROUP(');
+     While not StaticLibFiles.Empty do
+      begin
+        S:=StaticLibFiles.Get;
+        LinkRes.AddFileName(s)
+      end;
+     LinkRes.Add(')');
+   end;
+
+{ Write and Close response }
+  linkres.writetodisk;
+  linkres.done;
+
+  WriteResponseFile:=True;
+end;
+
+
+function TLinkerWin32.MakeExecutable:boolean;
+var
+  binstr,
+  cmdstr  : string;
+  success : boolean;
+  i       : longint;
+  StripStr,
+  RelocStr,
+  AppTypeStr,
+  ImageBaseStr : string[40];
+begin
+  if not(cs_link_extern in aktglobalswitches) then
+   Message1(exec_i_linking,current_module^.exefilename^);
+
+{ Create some replacements }
+  RelocStr:='';
+  AppTypeStr:='';
+  ImageBaseStr:='';
+  StripStr:='';
+  if RelocSection then
+   RelocStr:='--base-file base.$$$';
+  if apptype=at_gui then
+   AppTypeStr:='--subsystem windows';
+  if assigned(DLLImageBase) then
+   ImageBaseStr:='--image-base=0x'+DLLImageBase^;
+  if (cs_link_strip in aktglobalswitches) then
+   StripStr:='-s';
+
+{ Write used files and libraries }
+  WriteResponseFile(false);
+
+{ Call linker }
+  success:=false;
+  for i:=1to 1 do
+   begin
+     SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
+     if binstr<>'' then
+      begin
+        Replace(cmdstr,'$EXE',current_module^.exefilename^);
+        Replace(cmdstr,'$OPT',Info.ExtraOptions);
+        Replace(cmdstr,'$RES',current_module^.outpath^+Info.ResName);
+        Replace(cmdstr,'$APPTYPE',AppTypeStr);
+        Replace(cmdstr,'$RELOC',RelocStr);
+        Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
+        Replace(cmdstr,'$STRIP',StripStr);
+        success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false);
+        if not success then
+         break;
+      end;
+   end;
+
+{ Post process }
+  if success then
+   success:=PostProcessExecutable(current_module^.exefilename^,false);
+
+{ Remove ReponseFile }
+  if (success) and not(cs_link_extern in aktglobalswitches) then
+   begin
+     RemoveFile(current_module^.outpath^+Info.ResName);
+     RemoveFile('base.$$$');
+     RemoveFile('exp.$$$');
+   end;
+
+  MakeExecutable:=success;   { otherwise a recursive call to link method }
+end;
+
+
+Function TLinkerWin32.MakeSharedLibrary:boolean;
+var
+  binstr,
+  cmdstr  : string;
+  success : boolean;
+  i       : longint;
+  StripStr,
+  RelocStr,
+  AppTypeStr,
+  ImageBaseStr : string[40];
+begin
+  MakeSharedLibrary:=false;
+  if not(cs_link_extern in aktglobalswitches) then
+   Message1(exec_i_linking,current_module^.sharedlibfilename^);
+
+{ Create some replacements }
+  RelocStr:='';
+  AppTypeStr:='';
+  ImageBaseStr:='';
+  StripStr:='';
+  if RelocSection then
+   RelocStr:='--base-file base.$$$';
+  if apptype=at_gui then
+   AppTypeStr:='--subsystem windows';
+  if assigned(DLLImageBase) then
+   ImageBaseStr:='--image-base=0x'+DLLImageBase^;
+  if (cs_link_strip in aktglobalswitches) then
+   StripStr:='-s';
+
+{ Write used files and libraries }
+  WriteResponseFile(true);
+
+{ Call linker }
+  success:=false;
+  for i:=1to 3 do
+   begin
+     SplitBinCmd(Info.DllCmd[i],binstr,cmdstr);
+     if binstr<>'' then
+      begin
+        Replace(cmdstr,'$EXE',current_module^.sharedlibfilename^);
+        Replace(cmdstr,'$OPT',Info.ExtraOptions);
+        Replace(cmdstr,'$RES',current_module^.outpath^+Info.ResName);
+        Replace(cmdstr,'$APPTYPE',AppTypeStr);
+        Replace(cmdstr,'$RELOC',RelocStr);
+        Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
+        Replace(cmdstr,'$STRIP',StripStr);
+        Replace(cmdstr,'$DEF',deffile.fname);
+        success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false);
+        if not success then
+         break;
+      end;
+   end;
+
+{ Post process }
+  if success then
+   success:=PostProcessExecutable(current_module^.sharedlibfilename^,true);
+
+{ Remove ReponseFile }
+  if (success) and not(cs_link_extern in aktglobalswitches) then
+   begin
+     RemoveFile(current_module^.outpath^+Info.ResName);
+     RemoveFile('base.$$$');
+     RemoveFile('exp.$$$');
+   end;
+  MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
+end;
+
+
+function tlinkerwin32.postprocessexecutable(const fn : string;isdll:boolean):boolean;
+type
+  tdosheader = packed record
+     e_magic : word;
+     e_cblp : word;
+     e_cp : word;
+     e_crlc : word;
+     e_cparhdr : word;
+     e_minalloc : word;
+     e_maxalloc : word;
+     e_ss : word;
+     e_sp : word;
+     e_csum : word;
+     e_ip : word;
+     e_cs : word;
+     e_lfarlc : word;
+     e_ovno : word;
+     e_res : array[0..3] of word;
+     e_oemid : word;
+     e_oeminfo : word;
+     e_res2 : array[0..9] of word;
+     e_lfanew : longint;
+  end;
+  tpeheader = packed record
+     PEMagic : array[0..3] of char;
+     Machine : word;
+     NumberOfSections : word;
+     TimeDateStamp : longint;
+     PointerToSymbolTable : longint;
+     NumberOfSymbols : longint;
+     SizeOfOptionalHeader : word;
+     Characteristics : word;
+     Magic : word;
+     MajorLinkerVersion : byte;
+     MinorLinkerVersion : byte;
+     SizeOfCode : longint;
+     SizeOfInitializedData : longint;
+     SizeOfUninitializedData : longint;
+     AddressOfEntryPoint : longint;
+     BaseOfCode : longint;
+     BaseOfData : longint;
+     ImageBase : longint;
+     SectionAlignment : longint;
+     FileAlignment : longint;
+     MajorOperatingSystemVersion : word;
+     MinorOperatingSystemVersion : word;
+     MajorImageVersion : word;
+     MinorImageVersion : word;
+     MajorSubsystemVersion : word;
+     MinorSubsystemVersion : word;
+     Reserved1 : longint;
+     SizeOfImage : longint;
+     SizeOfHeaders : longint;
+     CheckSum : longint;
+     Subsystem : word;
+     DllCharacteristics : word;
+     SizeOfStackReserve : longint;
+     SizeOfStackCommit : longint;
+     SizeOfHeapReserve : longint;
+     SizeOfHeapCommit : longint;
+     LoaderFlags : longint;
+     NumberOfRvaAndSizes : longint;
+     DataDirectory : array[1..$80] of byte;
+  end;
+  tcoffsechdr=packed record
+    name     : array[0..7] of char;
+    vsize    : longint;
+    rvaofs   : longint;
+    datalen  : longint;
+    datapos  : longint;
+    relocpos : longint;
+    lineno1  : longint;
+    nrelocs  : word;
+    lineno2  : word;
+    flags    : longint;
+  end;
+  psecfill=^tsecfill;
+  tsecfill=record
+    fillpos,
+    fillsize : longint;
+    next : psecfill;
+  end;
+var
+  f : file;
+  dosheader : tdosheader;
+  peheader : tpeheader;
+  firstsecpos,
+  maxfillsize,
+  i,l,peheaderpos : longint;
+  coffsec : tcoffsechdr;
+  secroot,hsecroot : psecfill;
+  zerobuf : pointer;
+begin
+  postprocessexecutable:=false;
+  { when -s is used or it's a dll then quit }
+  if (cs_link_extern in aktglobalswitches) then
+   begin
+     postprocessexecutable:=true;
+     exit;
+   end;
+  { open file }
+  assign(f,fn);
+  {$I-}
+   reset(f,1);
+  if ioresult<>0 then
+    Message1(execinfo_f_cant_open_executable,fn);
+  { read headers }
+  blockread(f,dosheader,sizeof(tdosheader));
+  peheaderpos:=dosheader.e_lfanew;
+  seek(f,peheaderpos);
+  blockread(f,peheader,sizeof(tpeheader));
+  { write info }
+  Message1(execinfo_x_codesize,tostr(peheader.SizeOfCode));
+  Message1(execinfo_x_initdatasize,tostr(peheader.SizeOfInitializedData));
+  Message1(execinfo_x_uninitdatasize,tostr(peheader.SizeOfUninitializedData));
+  { change stack size (PM) }
+  { I am not sure that the default value is adequate !! }
+  peheader.SizeOfStackReserve:=stacksize;
+  { change the header }
+  { sub system }
+  { gui=2 }
+  { cui=3 }
+  if apptype=at_gui then
+    peheader.Subsystem:=2
+  else if apptype=at_cui then
+    peheader.Subsystem:=3;
+  seek(f,peheaderpos);
+  blockwrite(f,peheader,sizeof(tpeheader));
+  if ioresult<>0 then
+    Message1(execinfo_f_cant_process_executable,fn);
+  seek(f,peheaderpos);
+  blockread(f,peheader,sizeof(tpeheader));
+  { write the value after the change }
+  Message1(execinfo_x_stackreserve,tostr(peheader.SizeOfStackReserve));
+  Message1(execinfo_x_stackcommit,tostr(peheader.SizeOfStackCommit));
+  { read section info }
+  maxfillsize:=0;
+  firstsecpos:=0;
+  secroot:=nil;
+  for l:=1to peheader.NumberOfSections do
+   begin
+     blockread(f,coffsec,sizeof(tcoffsechdr));
+     if coffsec.datapos>0 then
+      begin
+        if secroot=nil then
+         firstsecpos:=coffsec.datapos;
+        new(hsecroot);
+        hsecroot^.fillpos:=coffsec.datapos+coffsec.vsize;
+        hsecroot^.fillsize:=coffsec.datalen-coffsec.vsize;
+        hsecroot^.next:=secroot;
+        secroot:=hsecroot;
+        if secroot^.fillsize>maxfillsize then
+         maxfillsize:=secroot^.fillsize;
+      end;
+   end;
+  if firstsecpos>0 then
+   begin
+     l:=firstsecpos-filepos(f);
+     if l>maxfillsize then
+      maxfillsize:=l;
+   end
+  else
+   l:=0;
+  { get zero buffer }
+  getmem(zerobuf,maxfillsize);
+  fillchar(zerobuf^,maxfillsize,0);
+  { zero from sectioninfo until first section }
+  blockwrite(f,zerobuf^,l);
+  { zero section alignments }
+  while assigned(secroot) do
+   begin
+     seek(f,secroot^.fillpos);
+     blockwrite(f,zerobuf^,secroot^.fillsize);
+     hsecroot:=secroot;
+     secroot:=secroot^.next;
+     dispose(hsecroot);
+   end;
+  freemem(zerobuf,maxfillsize);
+  close(f);
+  {$I+}
+  i:=ioresult;
+  postprocessexecutable:=true;
+end;
 
 end.
 {
   $Log$
-  Revision 1.34  1999-09-20 16:39:04  peter
-    * cs_create_smart instead of cs_smartlink
-    * -CX is create smartlink
-    * -CD is create dynamic, but does nothing atm.
-
-  Revision 1.33  1999/08/25 12:00:07  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.32  1999/08/11 17:26:38  peter
-    * tlinker object is now inherited for win32 and dos
-    * postprocessexecutable is now a method of tlinker
-
-  Revision 1.31  1999/08/04 00:23:50  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.30  1999/07/29 20:54:11  peter
-    * write .size also
-
-  Revision 1.29  1999/07/22 16:12:28  peter
-    * merged
-
-  Revision 1.28  1999/07/18 10:20:03  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.27.2.1  1999/07/22 16:09:30  peter
-    * reuse old import entries
-
-  Revision 1.27  1999/05/27 19:45:30  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.26  1999/05/21 13:55:24  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.25  1999/05/17 13:02:13  pierre
-   * -Csmmm works for win32 but default is set to 32Mb
-
-  Revision 1.24  1999/05/01 13:25:04  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.23  1999/04/07 14:18:32  pierre
-   * typo correction
-
-  Revision 1.22  1999/04/07 14:04:40  pierre
-    * adds .dll as library suffix only if
-      the name does not end with .dll .drv or .exe !
-
-  Revision 1.21  1999/02/25 21:02:59  peter
-    * ag386bin updates
-    + coff writer
-
-  Revision 1.20  1999/02/22 02:44:14  peter
-    * ag386bin doesn't use i386.pas anymore
-
-  Revision 1.19  1998/12/11 00:04:06  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.18  1998/12/02 10:26:13  pierre
-    * writing of .edata was wrong for indexes above number of exported items
-    * importing by index only did not work !
-
-  Revision 1.17  1998/12/01 23:35:43  pierre
-   * alignment fixes
-
-  Revision 1.16  1998/11/30 13:26:26  pierre
-    * the code for ordering the exported procs/vars was buggy
-    + added -WB to force binding (Ozerski way of creating DLL)
-      this is off by default as direct writing of .edata section seems
-      OK
-
-  Revision 1.15  1998/11/30 09:43:25  pierre
-    * some range check bugs fixed (still not working !)
-    + added DLL writing support for win32 (also accepts variables)
-    + TempAnsi for code that could be used for Temporary ansi strings
-      handling
-
-  Revision 1.14  1998/11/28 16:21:00  peter
-    + support for dll variables
-
-  Revision 1.13  1998/10/29 11:35:54  florian
-    * some dll support for win32
-    * fixed assembler writing for PalmOS
-
-  Revision 1.12  1998/10/27 10:22:35  florian
-    + First things for win32 export sections
-
-  Revision 1.11  1998/10/22 17:54:09  florian
-    + switch $APPTYPE for win32 added
-
-  Revision 1.10  1998/10/22 15:18:51  florian
-    + switch -vx for win32 added
-
-  Revision 1.9  1998/10/19 15:41:03  peter
-    * better splitname to support glib-1.1.dll alike names
-
-  Revision 1.8  1998/09/07 18:33:35  peter
-    + smartlinking for win95 imports
-
-  Revision 1.7  1998/09/03 17:39:06  florian
-    + better code for type conversation longint/dword to real type
-
-  Revision 1.6  1998/08/10 14:50:38  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.5  1998/06/10 10:43:18  peter
-    * write also the .dll extension (needed for NT)
-
-  Revision 1.4  1998/06/08 22:59:56  peter
-    * smartlinking works for win32
-    * some defines to exclude some compiler parts
-
-  Revision 1.3  1998/06/04 23:52:06  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
-
-  Revision 1.2  1998/05/06 18:36:55  peter
-    * tai_section extended with code,data,bss sections and enumerated type
-    * ident 'compiled by FPC' moved to pmodules
-    * small fix for smartlink
+  Revision 1.1  1999-10-21 14:29:38  peter
+    * redesigned linker object
+    + library support for linux (only procedures can be exported)
 
 }

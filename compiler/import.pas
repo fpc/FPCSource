@@ -67,10 +67,34 @@ implementation
 uses
   systems,verbose,globals
 {$ifdef i386}
-  ,os2_targ
-  ,win_targ
+  {$ifndef NOTARGETLINUX}
+    ,t_linux
+  {$endif}
+  {$ifndef NOTARGETOS2}
+    ,t_os2
+  {$endif}
+  {$ifndef NOTARGETWIN32}
+    ,t_win32
+  {$endif}
+  {$ifndef NOTARGETGO32V2}
+    ,t_go32v2
+  {$endif}
 {$endif}
-  ,lin_targ
+{$ifdef m68k}
+  {$ifndef NOTARGETLINUX}
+    ,t_linux
+  {$endif}
+{$endif}
+{$ifdef powerpc}
+  {$ifndef NOTARGETLINUX}
+    ,t_linux
+  {$endif}
+{$endif}
+{$ifdef alpha}
+  {$ifndef NOTARGETLINUX}
+    ,t_linux
+  {$endif}
+{$endif}
   ;
 
 {****************************************************************************
@@ -203,7 +227,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1999-08-04 13:02:44  jonas
+  Revision 1.13  1999-10-21 14:29:34  peter
+    * redesigned linker object
+    + library support for linux (only procedures can be exported)
+
+  Revision 1.12  1999/08/04 13:02:44  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

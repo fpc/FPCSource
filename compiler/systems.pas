@@ -97,20 +97,6 @@ unit systems;
        ];
 
      type
-       tlink = (link_none
-            ,link_i386_ld,link_i386_ldgo32v1,
-            link_i386_ldgo32v2,link_i386_ldw,
-            link_i386_ldos2
-            ,link_m68k_ld,link_alpha_ld,link_powerpc_ld
-       );
-     const
-       {$ifdef i386} i386linkcnt=5; {$else} i386linkcnt=0; {$endif}
-       {$ifdef m68k} m68klinkcnt=1; {$else} m68klinkcnt=0; {$endif}
-       {$ifdef alpha} alphalinkcnt=1; {$else} alphalinkcnt=0; {$endif}
-       {$ifdef powerpc} powerpclinkcnt=1; {$else} powerpclinkcnt=0; {$endif}
-       linkcnt=i386linkcnt+m68klinkcnt+alphalinkcnt+powerpclinkcnt+1;
-
-     type
        tar = (ar_none
             ,ar_i386_ar,ar_i386_arw
             ,ar_m68k_ar,ar_alpha_ar,ar_powerpc_ar
@@ -149,9 +135,9 @@ unit systems;
 
    type
        tosinfo = packed record
-          id    : tos;
-          name      : string[30];
-          shortname : string[8];
+          id           : tos;
+          name         : string[30];
+          shortname    : string[8];
           sharedlibext : string[10];
           staticlibext,
           sourceext,
@@ -171,7 +157,7 @@ unit systems;
        end;
 
        tasminfo = packed record
-          id      : tasm;
+          id          : tasm;
           idtxt       : string[8];
           asmbin      : string[8];
           asmcmd      : string[50];
@@ -181,24 +167,6 @@ unit systems;
           labelprefix : string[2];
           comment     : string[2];
           secnames    : array[tsection] of string[20];
-       end;
-
-       tlinkinfo = packed record
-          id        : tlink;
-          linkbin       : string[8];
-          linkcmd       : string[127];
-          binders       : word;
-          bindbin       : array[1..2]of string[8];
-          bindcmd       : array[1..2]of string[127];
-          stripopt      : string[2];
-          stripbind     : boolean;     { Strip symbols in binder? }
-          libpathprefix : string[13];
-          libpathsuffix : string[2];
-          groupstart    : string[8];
-          groupend      : string[2];
-          inputstart    : string[8];
-          inputend      : string[2];
-          libprefix     : string[2];
        end;
 
        tarinfo = packed record
@@ -229,7 +197,6 @@ unit systems;
           resobjext,
           exeext      : string[4];
           os          : tos;
-          link        : tlink;
           assem       : tasm;
           assemsrc    : tasm; { default source writing assembler }
           ar          : tar;
@@ -249,7 +216,6 @@ unit systems;
        target_info : ttargetinfo;
        target_os   : tosinfo;
        target_asm  : tasminfo;
-       target_link : tlinkinfo;
        target_ar   : tarinfo;
        target_res  : tresinfo;
        target_path : string[12]; { for rtl/<X>/,fcl/<X>/, etc. }
@@ -257,7 +223,6 @@ unit systems;
 
     function set_target_os(t:tos):boolean;
     function set_target_asm(t:tasm):boolean;
-    function set_target_link(t:tlink):boolean;
     function set_target_ar(t:tar):boolean;
     function set_target_res(t:tres):boolean;
     function set_target_info(t:ttarget):boolean;
@@ -829,162 +794,6 @@ implementation
 
 
 {****************************************************************************
-                            Linker Info
-****************************************************************************}
-
-       link_infos : array[1..linkcnt] of tlinkinfo = (
-          (
-            id      : link_none
-          )
-{$ifdef i386}
-          ,(
-            id      : link_i386_ld;
-            linkbin : 'ld';
-            linkcmd : '$OPT -o $EXE $RES';
-            binders : 0;
-            bindbin : ('','');
-            bindcmd : ('','');
-            stripopt   : '-s';
-            stripbind  : false;
-            libpathprefix : 'SEARCH_DIR(';
-            libpathsuffix : ')';
-            groupstart : 'GROUP(';
-            groupend   : ')';
-            inputstart : 'INPUT(';
-            inputend   : ')';
-            libprefix  : '-l'
-          )
-          ,(
-            id      : link_i386_ldgo32v1;
-            linkbin : 'ld';
-            linkcmd : '-oformat coff-go32 $OPT -o $EXE @$RES';
-            binders : 1;
-            bindbin : ('aout2exe','');
-            bindcmd : ('$EXE','');
-            stripopt   : '-s';
-            stripbind  : false;
-            libpathprefix : '-L';
-            libpathsuffix : '';
-            groupstart : '-(';
-            groupend   : '-)';
-            inputstart : '';
-            inputend   : '';
-            libprefix  : '-l'
-          )
-          ,(
-            id      : link_i386_ldgo32v2;
-            linkbin : 'ld';
-            linkcmd : '-oformat coff-go32-exe $OPT -o $EXE @$RES';
-            binders:0;
-            bindbin : ('','');
-            bindcmd : ('','');
-            stripopt   : '-s';
-            stripbind  : false;
-            libpathprefix : '-L';
-            libpathsuffix : '';
-            groupstart : '-(';
-            groupend   : '-)';
-            inputstart : '';
-            inputend   : '';
-            libprefix  : '-l'
-          )
-          ,(
-            id      : link_i386_ldw;
-            linkbin : 'ldw';
-            linkcmd : '$OPT -o $EXE $RES';
-            binders : 0;
-            bindbin : ('dlltool','ldw');
-            bindcmd : ('--as asw.exe --dllname $EXE --output-exp exp.$$$',
-                       '$OPT -o $EXE $RES exp.$$$');
-            stripopt   : '-s';
-            stripbind  : false;
-            libpathprefix : 'SEARCH_DIR(';
-            libpathsuffix : ')';
-            groupstart : 'GROUP(';
-            groupend   : ')';
-            inputstart : 'INPUT(';
-            inputend   : ')';
-            libprefix  : '-l'
-          )
-          ,(
-            id      : link_i386_ldos2;
-            linkbin : 'ld';  { Os/2 }
-            linkcmd : '-o $EXE @$RES';
-            binders : 1;
-            bindbin : ('emxbind','');
-            bindcmd : ('-b $STRIP$PM -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB',
-                       '');
-            stripopt   : '-s';
-            stripbind  : true;
-            libpathprefix : '-L';
-            libpathsuffix : '';
-            groupstart : ''; {Linker is too primitive...}
-            groupend   : '';
-            inputstart : '';
-            inputend   : '';
-            libprefix  : '-l'
-          )
-{$endif i386}
-{$ifdef m68k}
-          ,(
-            id      : link_m68k_ld;
-            linkbin : 'ld';
-            linkcmd : '$OPT -o $EXE $RES';
-            binders:0;
-            bindbin : ('','');
-            bindcmd : ('','');
-            stripopt   : '-s';
-            stripbind  : false;
-            libpathprefix : 'SEARCH_DIR(';
-            libpathsuffix : ')';
-            groupstart : 'GROUP(';
-            groupend   : ')';
-            inputstart : 'INPUT(';
-            inputend   : ')';
-            libprefix  : '-l'
-          )
-{$endif m68k}
-{$ifdef alpha}
-          ,(
-            id      : link_alpha_ld;
-            linkbin : 'ld';
-            linkcmd : '$OPT -o $EXE $RES';
-            binders : 0;
-            bindbin : ('','');
-            bindcmd : ('','');
-            stripopt   : '-s';
-            stripbind  : false;
-            libpathprefix : 'SEARCH_DIR(';
-            libpathsuffix : ')';
-            groupstart : 'GROUP(';
-            groupend   : ')';
-            inputstart : 'INPUT(';
-            inputend   : ')';
-            libprefix  : '-l'
-          )
-{$endif}
-{$ifdef powerpc}
-          ,(
-            id      : link_powerpc_ld;
-            linkbin : 'ld';
-            linkcmd : '$OPT -o $EXE $RES';
-            binders : 0;
-            bindbin : ('','');
-            bindcmd : ('','');
-            stripopt   : '-s';
-            stripbind  : false;
-            libpathprefix : 'SEARCH_DIR(';
-            libpathsuffix : ')';
-            groupstart : 'GROUP(';
-            groupend   : ')';
-            inputstart : 'INPUT(';
-            inputend   : ')';
-            libprefix  : '-l'
-          )
-{$endif}
-          );
-
-{****************************************************************************
                                  Ar Info
 ****************************************************************************}
        ar_infos : array[1..arcnt] of tarinfo = (
@@ -1071,7 +880,6 @@ implementation
             resobjext   : '.o1r';
             exeext      : ''; { The linker produces a.out }
             os          : os_i386_GO32V1;
-            link        : link_i386_ldgo32v1;
             assem       : as_i386_as;
             assemsrc    : as_i386_as;
             ar          : ar_i386_ar;
@@ -1096,7 +904,6 @@ implementation
             resobjext   : '.or';
             exeext      : '.exe';
             os          : os_i386_GO32V2;
-            link        : link_i386_ldgo32v2;
             assem       : as_i386_coff;
             assemsrc    : as_i386_as;
             ar          : ar_i386_ar;
@@ -1121,7 +928,6 @@ implementation
             resobjext   : '.or';
             exeext      : '';
             os          : os_i386_Linux;
-            link        : link_i386_ld;
             assem       : as_i386_as;
             assemsrc    : as_i386_as;
             ar          : ar_i386_ar;
@@ -1146,7 +952,6 @@ implementation
             resobjext   : '.oor';
             exeext      : ''; { The linker produces a.out }
             os          : os_i386_OS2;
-            link        : link_i386_ldos2;
             assem       : as_i386_as_aout;
             assemsrc    : as_i386_as_aout;
             ar          : ar_i386_ar;
@@ -1171,7 +976,6 @@ implementation
             resobjext   : '.owr';
             exeext      : '.exe';
             os          : os_i386_Win32;
-            link        : link_i386_ldw;
             assem       : as_i386_pecoff;
             assemsrc    : as_i386_asw;
             ar          : ar_i386_arw;
@@ -1198,7 +1002,6 @@ implementation
             resobjext   : '.or';
             exeext      : '';
             os          : os_m68k_Amiga;
-            link        : link_m68k_ld;
             assem       : as_m68k_as;
             assemsrc    : as_m68k_as;
             ar          : ar_m68k_ar;
@@ -1223,7 +1026,6 @@ implementation
             resobjext   : '.or';
             exeext      : '.ttp';
             os          : os_m68k_Atari;
-            link        : link_m68k_ld;
             assem       : as_m68k_as;
             assemsrc    : as_m68k_as;
             ar          : ar_m68k_ar;
@@ -1248,7 +1050,6 @@ implementation
             resobjext   : '.or';
             exeext      : '';
             os          : os_m68k_Mac;
-            link        : link_m68k_ld;
             assem       : as_m68k_mpw;
             assemsrc    : as_m68k_mpw;
             ar          : ar_m68k_ar;
@@ -1273,7 +1074,6 @@ implementation
             resobjext   : '.or';
             exeext      : '';
             os          : os_m68k_Linux;
-            link        : link_m68k_ld;
             assem       : as_m68k_as;
             assemsrc    : as_m68k_as;
             ar          : ar_m68k_ar;
@@ -1298,7 +1098,6 @@ implementation
             resobjext   : '.or';
             exeext      : '';
             os          : os_m68k_PalmOS;
-            link        : link_m68k_ld;
             assem       : as_m68k_as;
             assemsrc    : as_m68k_as;
             ar          : ar_m68k_ar;
@@ -1325,7 +1124,6 @@ implementation
             resobjext   : '.or';
             exeext      : '';
             os          : os_alpha_Linux;
-            link        : link_alpha_ld;
             assem       : as_alpha_as;
             assemsrc    : as_alpha_as;
             ar          : ar_alpha_ar;
@@ -1352,7 +1150,6 @@ implementation
             resobjext   : '.or';
             exeext      : '';
             os          : os_powerpc_Linux;
-            link        : link_powerpc_ld;
             assem       : as_powerpc_as;
             assemsrc    : as_powerpc_as;
             ar          : ar_powerpc_ar;
@@ -1482,21 +1279,6 @@ begin
 end;
 
 
-function set_target_link(t:tlink):boolean;
-var
-  i : longint;
-begin
-  set_target_link:=false;
-  for i:=1 to linkcnt do
-   if link_infos[i].id=t then
-    begin
-      target_link:=link_infos[i];
-      set_target_link:=true;
-      exit;
-    end;
-end;
-
-
 function set_target_ar(t:tar):boolean;
 var
   i : longint;
@@ -1538,7 +1320,6 @@ begin
       target_info:=target_infos[i];
       set_target_os(target_info.os);
       set_target_asm(target_info.assem);
-      set_target_link(target_info.link);
       set_target_ar(target_info.ar);
       set_target_res(target_info.res);
       target_path:=lower(target_info.short_name);
@@ -1734,7 +1515,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  1999-09-15 22:09:27  florian
+  Revision 1.95  1999-10-21 14:29:37  peter
+    * redesigned linker object
+    + library support for linux (only procedures can be exported)
+
+  Revision 1.94  1999/09/15 22:09:27  florian
     + rtti is now automatically generated for published classes, i.e.
       they are handled like an implicit property
 

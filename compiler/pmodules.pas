@@ -274,33 +274,6 @@ unit pmodules;
               datasegment^.concat(new(pai_symbol,initname_global('__stklen',4)));
               datasegment^.concat(new(pai_const,init_32bit(stacksize)));
             end;
-          target_i386_WIN32 :
-            begin
-              target_link.bindcmd[1]:=target_link.bindcmd[1]+' -d '+deffile.fname;
-              if DLLsource then
-               begin
-                 target_link.binders:=2;
-                 target_link.linkcmd:='--dll '+target_link.linkcmd;
-                 target_link.bindcmd[2]:='--dll '+target_link.bindcmd[2];
-                 if RelocSection then
-                  begin
-                    target_link.linkcmd:=target_link.linkcmd+' --base-file base.$$$';
-                    target_link.bindcmd[1]:=target_link.bindcmd[1]+' --base-file base.$$$';
-                  end;
-                 if assigned(DLLImageBase) then
-                   begin
-                     target_link.linkcmd:=target_link.linkcmd+' --image-base=0x'+DLLImageBase^;
-                     target_link.bindcmd[2]:=target_link.bindcmd[2]+' --image-base=0x'+DLLImageBase^;
-                   end;
-               end;
-              if apptype=at_gui then
-               begin
-                target_link.linkcmd:='--subsystem windows '+target_link.linkcmd;
-                target_link.bindcmd[2]:='--subsystem windows '+target_link.bindcmd[2];
-               end;
-              if (cs_link_strip in aktglobalswitches) then
-                target_link.bindcmd[2]:='-s '+target_link.bindcmd[2];
-            end;
 {$endif i386}
 {$ifdef m68k}
           target_m68k_Atari :
@@ -1453,14 +1426,23 @@ unit pmodules;
              deffile.writefile;
             { finally we can create a executable }
             if (not current_module^.is_unit) then
-             Linker^.MakeExecutable;
+             begin
+               if DLLSource then
+                Linker^.MakeSharedLibrary
+               else
+                Linker^.MakeExecutable;
+             end;
           end;
       end;
 
 end.
 {
   $Log$
-  Revision 1.159  1999-10-12 21:20:45  florian
+  Revision 1.160  1999-10-21 14:29:37  peter
+    * redesigned linker object
+    + library support for linux (only procedures can be exported)
+
+  Revision 1.159  1999/10/12 21:20:45  florian
     * new codegenerator compiles again
 
   Revision 1.158  1999/10/03 19:44:42  peter

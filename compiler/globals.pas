@@ -235,13 +235,16 @@ unit globals;
     Function ForceExtension(Const HStr,ext:String):String;
     Function FixPath(s:string;allowdot:boolean):string;
     function FixFileName(const s:string):string;
+    procedure SplitBinCmd(const s:string;var bstr,cstr:string);
     procedure AddPathToList(var list:string;s:string;first:boolean);
-    function search(const f : string;path : string;var b : boolean) : string;
+    function  getpathfromlist(var list:string):string;
+    function  search(const f : string;path : string;var b : boolean) : string;
     procedure SynchronizeFileTime(const fn1,fn2:string);
     function FindExe(bin:string;var found:boolean):string;
+    Procedure Shell(const command:string);
 
-   procedure InitGlobals;
-   procedure DoneGlobals;
+    procedure InitGlobals;
+    procedure DoneGlobals;
 
     procedure strdispose(var p : pchar);
 
@@ -972,6 +975,24 @@ unit globals;
        {$endif}
      end;
 
+   procedure SplitBinCmd(const s:string;var bstr,cstr:string);
+     var
+       i : longint;
+     begin
+       i:=pos(' ',s);
+       if i>0 then
+        begin
+          bstr:=Copy(s,1,i-1);
+          cstr:=Copy(s,i+1,length(s)-i);
+        end
+       else
+        begin
+          bstr:='';
+          cstr:='';
+        end;
+     end;
+
+
 
    procedure AddPathToList(var list:string;s:string;first:boolean);
      var
@@ -1036,6 +1057,26 @@ unit globals;
           if not Found then
            List:=List+CurrPath
        until (s='');
+     end;
+
+
+   function getpathfromlist(var list:string):string;
+     var
+       s : string;
+       i : longint;
+     begin
+       s:='';
+       while (list<>'') do
+        begin
+          i:=Pos(';',list);
+          If i=0 then
+           i:=255;
+          S:=Copy(list,1,i-1);
+          Delete (list,1,i);
+          if (S<>'') then
+           break;
+        end;
+       GetPathFromList:=s;
      end;
 
 
@@ -1158,6 +1199,22 @@ unit globals;
      end;
 
 
+Procedure Shell(const command:string);
+{ This is already defined in the linux.ppu for linux, need for the *
+  expansion under linux }
+{$ifdef linux}
+begin
+  Linux.Shell(command);
+end;
+{$else}
+var
+  comspec : string;
+begin
+  comspec:=getenv('COMSPEC');
+  Exec(comspec,' /C '+command);
+end;
+{$endif}
+
  {****************************************************************************
                                     Init
  ****************************************************************************}
@@ -1258,7 +1315,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  1999-09-10 18:48:02  florian
+  Revision 1.26  1999-10-21 14:29:34  peter
+    * redesigned linker object
+    + library support for linux (only procedures can be exported)
+
+  Revision 1.25  1999/09/10 18:48:02  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 

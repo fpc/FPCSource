@@ -28,10 +28,11 @@
    port, please send questions to Daniel Mantione
    <d.s.p.mantione@twi.tudelft.nl>.
 }
-unit os2_targ;
+unit t_os2;
 
 interface
-uses import;
+uses
+  import,link;
 
 type
   pimportlibos2=^timportlibos2;
@@ -40,6 +41,17 @@ type
     procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
     procedure generatelib;virtual;
   end;
+
+    plinkeros2=^tlinkeros2;
+    tlinkeros2=object(tlinker)
+    private
+       Function  WriteResponseFile(isdll:boolean) : Boolean;
+    public
+       constructor Init;
+       procedure SetDefaultInfo;virtual;
+       function  MakeExecutable:boolean;virtual;
+    end;
+
 
 {***************************************************************************}
 
@@ -53,8 +65,8 @@ implementation
 {$else Delphi}
      dos,
 {$endif Delphi}
-     globtype,strings,comphook,
-     globals,link,files;
+     globtype,strings,comphook,systems,
+     globals,verbose,files,script;
 
 const   profile_flag:boolean=false;
 
@@ -331,49 +343,155 @@ begin
 end;
 
 
+{****************************************************************************
+                               TLinkeros2
+****************************************************************************}
+
+Constructor TLinkeros2.Init;
+begin
+  Inherited Init;
+  { allow duplicated libs (PM) }
+  SharedLibFiles.doubles:=true;
+  StaticLibFiles.doubles:=true;
+end;
+
+
+procedure TLinkeros2.SetDefaultInfo;
+begin
+  with Info do
+   begin
+     ExeCmd[1]:='ld -o $EXE @$RES';
+     ExeCmd[2]:='emxbind -b $STRIP$PM -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB';
+   end;
+end;
+
+
+Function TLinkeros2.WriteResponseFile(isdll:boolean) : Boolean;
+Var
+  linkres  : TLinkRes;
+  i        : longint;
+  s,s2     : string;
+begin
+  WriteResponseFile:=False;
+
+  { Open link.res file }
+  LinkRes.Init(Info.ResName);
+
+  { Write path to search libraries }
+  if assigned(current_module^.locallibrarysearchpath) then
+   begin
+     S:=current_module^.locallibrarysearchpath^;
+     while s<>'' do
+      begin
+        s2:=GetPathFromList(s);
+        LinkRes.Add('-L'+s2);
+      end;
+   end;
+  S:=LibrarySearchPath;
+  while s<>'' do
+   begin
+     s2:=GetPathFromList(s);
+     LinkRes.Add('-L'+s2);
+   end;
+
+  { add objectfiles, start with prt0 always }
+  LinkRes.AddFileName(FindObjectFile('prt0'));
+  while not ObjectFiles.Empty do
+   begin
+     s:=ObjectFiles.Get;
+     if s<>'' then
+      LinkRes.AddFileName(s);
+   end;
+
+  { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
+    here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+  While not SharedLibFiles.Empty do
+   begin
+     S:=SharedLibFiles.Get;
+     i:=Pos(target_os.sharedlibext,S);
+     if i>0 then
+      Delete(S,i,255);
+     LinkRes.Add('-l'+s);
+   end;
+
+  { Write staticlibraries }
+  if not StaticLibFiles.Empty then
+   begin
+     While not StaticLibFiles.Empty do
+      begin
+        S:=StaticLibFiles.Get;
+        LinkRes.AddFileName(s)
+      end;
+   end;
+
+{ Write and Close response }
+  linkres.writetodisk;
+  linkres.done;
+
+  WriteResponseFile:=True;
+end;
+
+
+function TLinkeros2.MakeExecutable:boolean;
+var
+  binstr,
+  cmdstr  : string;
+  success : boolean;
+  i       : longint;
+  PMStr,
+  StripStr : string[40];
+begin
+  if not(cs_link_extern in aktglobalswitches) then
+   Message1(exec_i_linking,current_module^.exefilename^);
+
+{ Create some replacements }
+  StripStr:='';
+  PMStr:='';
+  if (cs_link_strip in aktglobalswitches) then
+   StripStr:='-s';
+  if usewindowapi then
+   PMStr:='-p';
+
+{ Write used files and libraries }
+  WriteResponseFile(false);
+
+{ Call linker }
+  success:=false;
+  for i:=1to 2 do
+   begin
+     SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
+     if binstr<>'' then
+      begin
+        Replace(cmdstr,'$EXE',current_module^.exefilename^);
+        Replace(cmdstr,'$OPT',Info.ExtraOptions);
+        Replace(cmdstr,'$RES',current_module^.outpath^+Info.ResName);
+        Replace(cmdstr,'$STRIP',StripStr);
+        Replace(cmdstr,'$HEAPMB',tostr((maxheapsize+1048575) shr 20));
+        {Size of the stack when an EMX program runs in OS/2.}
+        Replace(cmdstr,'$STACKKB',tostr((stacksize+1023) shr 10));
+        {When an EMX program runs in DOS, the heap and stack share the
+         same memory pool. The heap grows upwards, the stack grows downwards.}
+        Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+maxheapsize+1023) shr 10));
+        Replace(cmdstr,'$PM',PMStr);
+        success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false);
+        if not success then
+         break;
+      end;
+   end;
+
+{ Remove ReponseFile }
+  if (success) and not(cs_link_extern in aktglobalswitches) then
+   RemoveFile(current_module^.outpath^+Info.ResName);
+
+  MakeExecutable:=success;   { otherwise a recursive call to link method }
+end;
+
 
 end.
-
 {
   $Log$
-  Revision 1.11  1999-09-20 16:38:59  peter
-    * cs_create_smart instead of cs_smartlink
-    * -CX is create smartlink
-    * -CD is create dynamic, but does nothing atm.
-
-  Revision 1.10  1999/09/07 15:05:19  pierre
-  * use do_halt instead of runerror
-
-  Revision 1.9  1999/07/18 10:19:58  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.8  1999/07/03 00:29:55  peter
-    * new link writing to the ppu, one .ppu is needed for all link types,
-      static (.o) is now always created also when smartlinking is used
-
-  Revision 1.7  1999/05/04 21:44:52  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.6  1998/12/11 00:03:25  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.5  1998/10/16 14:20:53  daniel
-  * Faster keyword scanning.
-  * Import library and smartlink library in one file.
-
-  Revision 1.4  1998/06/17 14:10:14  peter
-    * small os2 fixes
-    * fixed interdependent units with newppu (remake3 under linux works now)
-
-  Revision 1.3  1998/06/04 23:51:48  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
-
-  Revision 1.2  1998/05/04 17:54:27  peter
-    + smartlinking works (only case jumptable left todo)
-    * redesign of systems.pas to support assemblers and linkers
-    + Unitname is now also in the PPU-file, increased version to 14
+  Revision 1.1  1999-10-21 14:29:38  peter
+    * redesigned linker object
+    + library support for linux (only procedures can be exported)
 
 }

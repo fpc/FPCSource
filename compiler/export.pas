@@ -39,6 +39,7 @@ type
       index : longint;
       name : pstring;
       options : word;
+      is_var : boolean;
       constructor init;
       destructor done;virtual;
    end;
@@ -64,10 +65,34 @@ implementation
 uses
   systems,verbose,globals,files
 {$ifdef i386}
-  ,os2_targ
-  ,win_targ
+  {$ifndef NOTARGETLINUX}
+    ,t_linux
+  {$endif}
+  {$ifndef NOTARGETOS2}
+    ,t_os2
+  {$endif}
+  {$ifndef NOTARGETWIN32}
+    ,t_win32
+  {$endif}
+  {$ifndef NOTARGETGO32V2}
+    ,t_go32v2
+  {$endif}
 {$endif}
-  ,lin_targ
+{$ifdef m68k}
+  {$ifndef NOTARGETLINUX}
+    ,t_linux
+  {$endif}
+{$endif}
+{$ifdef powerpc}
+  {$ifndef NOTARGETLINUX}
+    ,t_linux
+  {$endif}
+{$endif}
+{$ifdef alpha}
+  {$ifndef NOTARGETLINUX}
+    ,t_linux
+  {$endif}
+{$endif}
   ;
 
 {****************************************************************************
@@ -81,6 +106,7 @@ begin
   index:=-1;
   name:=nil;
   options:=0;
+  is_var:=false;
 end;
 
 
@@ -137,9 +163,8 @@ procedure InitExport;
 begin
   case target_info.target of
 {$ifdef i386}
-{    target_i386_Linux :
-      importlib:=new(pimportliblinux,Init);
-}
+    target_i386_Linux :
+      exportlib:=new(pexportliblinux,Init);
     target_i386_Win32 :
       exportlib:=new(pexportlibwin32,Init);
 {
@@ -168,7 +193,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-08-04 13:02:41  jonas
+  Revision 1.7  1999-10-21 14:29:34  peter
+    * redesigned linker object
+    + library support for linux (only procedures can be exported)
+
+  Revision 1.6  1999/08/04 13:02:41  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

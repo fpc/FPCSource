@@ -33,17 +33,21 @@ Interface
 uses cobjects,files;
 
 Type
+    TLinkerInfo=record
+      ExeCmd,
+      DllCmd        : array[1..3] of string[80];
+      ResName       : string[12];
+      ExtraOptions  : string;
+      DynamicLinker : string[80];
+    end;
+
+    PLinker=^TLinker;
     TLinker = Object
-       Glibc2,
-       Glibc21,
-       LinkToC,                           { Should we link to the C libs? }
-       Strip             : Boolean;       { Strip symbols ? }
+    public
+       Info            : TLinkerInfo;
        ObjectFiles,
        SharedLibFiles,
-       StaticLibFiles    : TStringContainer;
-       LinkOptions       : string;        { Additional options to the linker }
-       DynamicLinker     : String[80];    { What Dynamic linker ? }
-       LinkResName       : String[32];    { Name of response file }
+       StaticLibFiles  : TStringContainer;
      { Methods }
        Constructor Init;
        Destructor Done;
@@ -53,15 +57,14 @@ Type
        Procedure AddObject(const S : String);
        Procedure AddStaticLibrary(const S : String);
        Procedure AddSharedLibrary(S : String);
-       Function  FindLinker:String;      { Find linker, sets Name }
-       Function  DoExec(const command,para:string;info,useshell:boolean):boolean;
-       Function  WriteResponseFile:Boolean;
-       Function  MakeExecutable:boolean;
-       Procedure MakeStaticLibrary(filescnt:longint);
-       Procedure MakeSharedLibrary;
-       procedure postprocessexecutable(const n : string);virtual;
+       Function  FindUtil(const s:string):String;
+       Function  DoExec(const command,para:string;showinfo,useshell:boolean):boolean;
+     { Virtuals }
+       procedure SetDefaultInfo;virtual;
+       Function  MakeExecutable:boolean;virtual;
+       Function  MakeSharedLibrary:boolean;virtual;
+       Function  MakeStaticLibrary(filescnt:longint):boolean;virtual;
      end;
-     PLinker=^TLinker;
 
 Var
   Linker : PLinker;
@@ -81,61 +84,61 @@ uses
   globtype,systems,
   script,globals,verbose,ppu
 {$ifdef i386}
-  ,win_targ
-  ,dos_targ
+  {$ifndef NOTARGETLINUX}
+    ,t_linux
+  {$endif}
+  {$ifndef NOTARGETOS2}
+    ,t_os2
+  {$endif}
+  {$ifndef NOTARGETWIN32}
+    ,t_win32
+  {$endif}
+  {$ifndef NOTARGETGO32V1}
+    ,t_go32v1
+  {$endif}
+  {$ifndef NOTARGETGO32V2}
+    ,t_go32v2
+  {$endif}
 {$endif}
-{$ifdef linux}
-  ,linux
+{$ifdef m68k}
+  {$ifndef NOTARGETLINUX}
+    ,t_linux
+  {$endif}
+{$endif}
+{$ifdef powerpc}
+  {$ifndef NOTARGETLINUX}
+    ,t_linux
+  {$endif}
+{$endif}
+{$ifdef alpha}
+  {$ifndef NOTARGETLINUX}
+    ,t_linux
+  {$endif}
 {$endif}
   ,gendef
   ;
 
-{$ifndef linux}
-Procedure Shell(const command:string);
-{ This is already defined in the linux.ppu for linux, need for the *
-  expansion under linux }
-var
-  comspec : string;
-begin
-  comspec:=getenv('COMSPEC');
-  Exec(comspec,' /C '+command);
-end;
-{$endif}
-
-
+{*****************************************************************************
+                                   TLINKER
+*****************************************************************************}
 
 Constructor TLinker.Init;
 begin
   ObjectFiles.Init_no_double;
-  { libraries sometimes need to be loaded several times PM }
-  SharedLibFiles.Init{_no_double};
-  StaticLibFiles.Init{_no_double};
-  LinkToC:=(cs_link_toc in aktglobalswitches);
-  Strip:=(cs_link_strip in aktglobalswitches);
-  LinkOptions:=ParaLinkOptions;
-  DynamicLinker:=ParaDynamicLinker;
-  LinkResName:='link.res';
-  Glibc2:=false;
-  Glibc21:=false;
-  if target_info.target=target_i386_linux then
+  SharedLibFiles.Init_no_double;
+  StaticLibFiles.Init_no_double;
+{ set generic defaults }
+  FillChar(Info,sizeof(Info),0);
+  Info.ResName:='link.res';
+{ set the linker specific defaults }
+  SetDefaultInfo;
+{ Allow Parameter overrides for linker info }
+  with Info do
    begin
-     if DynamicLinker='' then
-      begin
-        { first try glibc2 }
-        DynamicLinker:='/lib/ld-linux.so.2';
-        if FileExists(DynamicLinker) then
-         begin
-           Glibc2:=true;
-           { also glibc 2.1 / 2.1.1 / 2.1.2 ? }
-           if FileExists('/lib/ld-2.1.so') or
-              FileExists('/lib/ld-2.1.1.so') or
-              FileExists('/lib/ld-2.1.2.so') then
-            Glibc21:=true;
-         end
-        else
-         DynamicLinker:='/lib/ld-linux.so.1';
-      end;
-     AddPathToList(LibrarySearchPath,'/lib;/usr/lib;/usr/X11R6/lib',true);
+     if ParaLinkOptions<>'' then
+      ExtraOptions:=ParaLinkOptions;
+     if ParaDynamicLinker<>'' then
+      DynamicLinker:=ParaDynamicLinker;
    end;
 end;
 
@@ -145,6 +148,11 @@ begin
   ObjectFiles.Done;
   SharedLibFiles.Done;
   StaticLibFiles.Done;
+end;
+
+
+Procedure TLinker.SetDefaultInfo;
+begin
 end;
 
 
@@ -229,28 +237,24 @@ begin
 end;
 
 
-var
-  LastLDBin : string;
-Function TLinker.FindLinker:string;
+Function TLinker.FindUtil(const s:string):string;
 var
   ldfound : boolean;
+  LastBin : string;
 begin
-  if LastLDBin='' then
+  LastBin:='';
+  if utilsdirectory<>'' then
+   LastBin:=Search(s+source_os.exeext,utilsdirectory,ldfound)+s+source_os.exeext;
+  if LastBin='' then
+   LastBin:=FindExe(s,ldfound);
+  if (not ldfound) and not(cs_link_extern in aktglobalswitches) then
    begin
-     if utilsdirectory<>'' then
-       LastLDBin:=Search(target_link.linkbin+source_os.exeext,utilsdirectory,ldfound)+
-         target_link.linkbin+source_os.exeext;
-     if LastLDBin='' then
-       LastLDBin:=FindExe(target_link.linkbin,ldfound);
-     if (not ldfound) and not(cs_link_extern in aktglobalswitches) then
-      begin
-        Message1(exec_w_linker_not_found,LastLDBin);
-        aktglobalswitches:=aktglobalswitches+[cs_link_extern];
-      end;
-     if ldfound then
-      Message1(exec_t_using_linker,LastLDBin);
+     Message1(exec_w_util_not_found,s);
+     aktglobalswitches:=aktglobalswitches+[cs_link_extern];
    end;
-  FindLinker:=LastLDBin;
+  if ldfound then
+   Message1(exec_t_using_util,LastBin);
+  FindUtil:=LastBin;
 end;
 
 
@@ -349,7 +353,7 @@ begin
 end;
 
 
-Function TLinker.DoExec(const command,para:string;info,useshell:boolean):boolean;
+Function TLinker.DoExec(const command,para:string;showinfo,useshell:boolean):boolean;
 begin
   DoExec:=true;
   if not(cs_link_extern in aktglobalswitches) then
@@ -381,7 +385,7 @@ begin
 { Update asmres when externmode is set }
   if cs_link_extern in aktglobalswitches then
    begin
-     if info then
+     if showinfo then
       AsmRes.AddLinkCommand(Command,Para,current_module^.exefilename^)
      else
       AsmRes.AddLinkCommand(Command,Para,'');
@@ -389,329 +393,43 @@ begin
 end;
 
 
-Function TLinker.WriteResponseFile : Boolean;
-Var
-  LinkResponse : Text;
-  i            : longint;
-  cprtobj,
-  gprtobj,
-  prtobj       : string[80];
-  s,s2         : string;
-  found,linux_link_c,
-  linkdynamic,
-  linklibc     : boolean;
-
-  procedure WriteRes(const s:string);
-  begin
-    if s<>'' then
-     WriteLn(Linkresponse,s);
-  end;
-
-  procedure WriteResFileName(const s:string);
-  begin
-    if s<>'' then
-     begin
-       if not(s[1] in ['a'..'z','A'..'Z','/','\','.']) then
-         Write(Linkresponse,'.',DirSep);
-       WriteLn(Linkresponse,s);
-     end;
-  end;
-
-begin
-  WriteResponseFile:=False;
-  linux_link_c:=false;
-{ set special options for some targets }
-  linkdynamic:=not(SharedLibFiles.empty);
-  linklibc:=SharedLibFiles.Find('c');
-  prtobj:='prt0';
-  cprtobj:='cprt0';
-  gprtobj:='gprt0';
-  if glibc21 then
-   begin
-     cprtobj:='cprt21';
-     gprtobj:='gprt21';
-   end;
-  case target_info.target of
-   target_m68k_Palmos,
-   target_i386_Win32 :
-     begin
-       if DLLsource then
-         prtobj:='wdllprt0'
-       else
-         prtobj:='wprt0';
-     end;
-   target_m68k_linux,
-   target_i386_linux :
-     begin
-       if cs_profile in aktmoduleswitches then
-        begin
-          prtobj:=gprtobj;
-          if not glibc2 then
-           AddSharedLibrary('gmon');
-          AddSharedLibrary('c');
-          linklibc:=true;
-        end
-       else
-        begin
-          if linklibc then
-           prtobj:=cprtobj;
-        end;
-       if linklibc then
-         linux_link_c:=true;
-     end;
-  end;
-
-{ Fix command line options }
-  If (DynamicLinker<>'') and (not SharedLibFiles.Empty) then
-   LinkOptions:='-dynamic-linker='+DynamicLinker+' '+LinkOptions;
-  if Strip and not(cs_debuginfo in aktmoduleswitches) and
-                           not (Target_Link.StripBind) then
-   LinkOptions:=LinkOptions+' '+target_link.stripopt;
-
-{ Open linkresponse and write header }
-  assign(linkresponse,current_module^.outpath^+LinkResName);
-  {$I-}
-   rewrite(linkresponse);
-  {$I+}
-  if ioresult<>0 then
-   exit;
-
-  { Write library searchpath }
-  if assigned(current_module^.locallibrarysearchpath) then
-   begin
-     S2:=current_module^.locallibrarysearchpath^;
-     Repeat
-       i:=Pos(';',S2);
-       If i=0 then
-        i:=255;
-       S:=Copy(S2,1,i-1);
-       If S<>'' then
-         WriteRes(target_link.libpathprefix+s+target_link.libpathsuffix);
-       Delete (S2,1,i);
-     until S2='';
-   end;
-  S2:=LibrarySearchPath;
-  Repeat
-    i:=Pos(';',S2);
-    If i=0 then
-     i:=255;
-    S:=Copy(S2,1,i-1);
-    If S<>'' then
-      WriteRes(target_link.libpathprefix+s+target_link.libpathsuffix);
-    Delete (S2,1,i);
-  until S2='';
-
-  WriteRes(target_link.inputstart);
-  { add objectfiles, start with prt0 always }
-  if prtobj<>'' then
-   WriteResFileName(FindObjectFile(prtobj));
-  { try to add crti and crtbegin, they are normally not required, but
-    adding can sometimes be usefull }
-  if linux_link_c then
-   begin
-     s:=search('crtbegin.o',librarysearchpath,found)+'crtbegin.o';
-     if found then
-      WriteResFileName(s);
-     s:=search('crti.o',librarysearchpath,found)+'crti.o';
-     if found then
-      WriteResFileName(s);
-   end;
-  while not ObjectFiles.Empty do
-   begin
-     s:=ObjectFiles.Get;
-     if s<>'' then
-      WriteResFileName(s);
-   end;
-  if linux_link_c then
-   begin
-     s:=search('crtend.o',librarysearchpath,found)+'crtend.o';
-     if found then
-      WriteResFileName(s);
-     s:=search('crtn.o',librarysearchpath,found)+'crtn.o';
-     if found then
-      WriteResFileName(s);
-   end;
-
-  { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
-    here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-  While not SharedLibFiles.Empty do
-   begin
-     S:=SharedLibFiles.Get;
-     if s<>'c' then
-      begin
-        i:=Pos(target_os.sharedlibext,S);
-        if i>0 then
-         Delete(S,i,255);
-        WriteRes(target_link.libprefix+s);
-      end
-     else
-      begin
-        { Some times several references to libc are necessary !! PM }
-        WriteRes(target_link.libprefix+s);
-        linklibc:=true;
-        linkdynamic:=false; { C add's it automaticly }
-      end;
-   end;
-  { be sure that libc is the last lib }
-  { arghhhh  this is wrong for DJGPP !!!
-    DJGPP need gcc after c lib (umod...) (PM) }
-  if linklibc then
-   WriteRes(target_link.libprefix+'c');
-  { add libgcc after ! }
-  if linklibc and (target_info.target=target_i386_go32v2) then
-   WriteRes(target_link.libprefix+'gcc');
-  if linkdynamic and (DynamicLinker<>'') then
-   WriteResFileName(DynamicLinker);
-  WriteRes(target_link.inputend);
-
-  { Write staticlibraries }
-  if not StaticLibFiles.Empty then
-   begin
-     WriteRes(target_link.GroupStart);
-     While not StaticLibFiles.Empty do
-      begin
-        S:=StaticLibFiles.Get;
-        WriteResFileName(s)
-      end;
-     WriteRes(target_link.GroupEnd);
-   end;
-
-{ Close response }
-  close(linkresponse);
-  WriteResponseFile:=True;
-end;
-
-
 function TLinker.MakeExecutable:boolean;
-var
-  bindbin    : string[80];
-  bindfound  : boolean;
-  s          : string;
-  success    : boolean;
-  ii         : longint;
 begin
-  { can be changed after InitLinker
-    for DLLs due to relocation problems PM }
-  Strip:=(cs_link_strip in aktglobalswitches);
-{$ifdef linux}
-  if LinkToC then
-   begin
-     AddObject('/usr/lib/crt0.o');
-     AddObject('lprt');
-     AddStaticLibrary('libc.a');
-     AddStaticLibrary('libgcc.a');
-   end;
-{$endif Linux}
-
-{ Write used files and libraries }
-  WriteResponseFile;
-
-{ Call linker }
-  if not(cs_link_extern in aktglobalswitches) then
-   Message1(exec_i_linking,current_module^.exefilename^);
-  s:=target_link.linkcmd;
-  if DLLsource then
-    Replace(s,'$EXE',current_module^.sharedlibfilename^)
-  else
-    Replace(s,'$EXE',current_module^.exefilename^);
-  Replace(s,'$OPT',LinkOptions);
-  Replace(s,'$RES',current_module^.outpath^+LinkResName);
-  success:=DoExec(FindLinker,s,true,false);
-{Bind}
-  if (target_link.bindbin[1]<>'') and
-     ((target_info.target<>target_i386_win32) or
-     (RelocSection and not Deffile.empty)) then
-   for ii:=1 to target_link.binders do
-   begin
-     s:=target_link.bindcmd[ii];
-     Replace(s,'$OPT',LinkOptions);
-     Replace(s,'$RES',current_module^.outpath^+LinkResName);
-     if DLLsource then
-       Replace(s,'$EXE',current_module^.sharedlibfilename^)
-     else
-       Replace(s,'$EXE',current_module^.exefilename^);
-     {Size of the heap when an EMX program runs in OS/2.}
-     Replace(s,'$HEAPMB',tostr((maxheapsize+1048575) shr 20));
-     {Size of the stack when an EMX program runs in OS/2.}
-     Replace(s,'$STACKKB',tostr((stacksize+1023) shr 10));
-     {When an EMX program runs in DOS, the heap and stack share the
-      same memory pool. The heap grows upwards, the stack grows downwards.}
-     Replace(s,'$DOSHEAPKB',tostr((stacksize+maxheapsize+1023) shr 10));
-     if Strip and Target_Link.StripBind then
-       Replace (S, '$STRIP', Target_Link.StripOpt)
-     else
-       Replace (S, '$STRIP', '');
-     {This is a hack. But I don't think other platforms have a presenation
-      manager, so it should work. (DM)}
-     if usewindowapi then
-       replace (s, '$PM',' -p')
-     else
-       replace (s, '$PM','');
-     if utilsdirectory<>'' then
-       begin
-          bindbin:=Search(target_link.bindbin[ii]+source_os.exeext,
-            utilsdirectory,bindfound)+target_link.bindbin[ii]+source_os.exeext;
-       end
-     else
-       bindbin:=FindExe(target_link.bindbin[ii],bindfound);
-     if (not bindfound) and not (cs_link_extern in aktglobalswitches) then
-      begin
-        Message1(exec_w_binder_not_found,bindbin);
-        aktglobalswitches:=aktglobalswitches+[cs_link_extern];
-      end;
-     DoExec(bindbin,s,false,false);
-   end;
-
-{ Post processor executable }
-  if success and
-     not(cs_link_extern in aktglobalswitches) then
-   begin
-     if DLLsource then
-      postprocessexecutable(current_module^.sharedlibfilename^)
-     else
-      postprocessexecutable(current_module^.exefilename^);
-   end;
-
-{Remove ReponseFile}
-  if (success) and not(cs_link_extern in aktglobalswitches) then
-   RemoveFile(current_module^.outpath^+LinkResName);
-  MakeExecutable:=success;   { otherwise a recursive call to link method }
+  MakeExecutable:=false;
+  Message(exec_e_exe_not_supported);
 end;
 
 
-Procedure TLinker.MakeStaticLibrary(filescnt:longint);
+Function TLinker.MakeSharedLibrary:boolean;
+begin
+  MakeSharedLibrary:=false;
+  Message(exec_e_dll_not_supported);
+end;
+
+
+Function TLinker.MakeStaticLibrary(filescnt:longint):boolean;
 {
   FilesCnt holds the amount of .o files created, if filescnt=0 then
   no smartlinking is used
 }
 var
   smartpath,
-  s,
-  arbin   : string;
-  arfound : boolean;
+  cmdstr,
+  binstr  : string;
+  success : boolean;
   cnt     : longint;
 begin
+  MakeStaticLibrary:=false;
+
   smartpath:=current_module^.path^+FixPath(FixFileName(current_module^.modulename^)+target_info.smartext,false);
-{ find ar binary }
-  if utilsdirectory<>'' then
-    begin
-       arbin:=Search(target_ar.arbin+source_os.exeext,
-         utilsdirectory,arfound)+target_ar.arbin+source_os.exeext;
-    end
-  else
-    arbin:=FindExe(target_ar.arbin,arfound);
-  if (not arfound) and not(cs_link_extern in aktglobalswitches) then
-   begin
-     Message(exec_w_ar_not_found);
-     aktglobalswitches:=aktglobalswitches+[cs_link_extern];
-   end;
-  s:=target_ar.arcmd;
-  Replace(s,'$LIB',current_module^.staticlibfilename^);
+  SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
+  Replace(cmdstr,'$LIB',current_module^.staticlibfilename^);
   if filescnt=0 then
-    Replace(s,'$FILES',current_module^.objfilename^)
+    Replace(cmdstr,'$FILES',current_module^.objfilename^)
   else
-    Replace(s,'$FILES',FixFileName(smartpath+current_module^.asmprefix^+'*'+target_info.objext));
-  DoExec(arbin,s,false,true);
+    Replace(cmdstr,'$FILES',FixFileName(smartpath+current_module^.asmprefix^+'*'+target_info.objext));
+  success:=DoExec(FindUtil(binstr),cmdstr,false,true);
+
 { Clean up }
   if not(cs_asm_leave in aktglobalswitches) then
    if not(cs_link_extern in aktglobalswitches) then
@@ -736,45 +454,56 @@ begin
          AsmRes.Add('rmdir '+smartpath);
        end;
     end;
+  MakeStaticLibrary:=success;
 end;
 
 
-Procedure TLinker.MakeSharedLibrary;
-var
-  s : string;
-begin
-  s:=' -shared -o $LIB $FILES';
-  Replace(s,'$LIB',current_module^.sharedlibfilename^);
-  Replace(s,'$FILES',current_module^.objfilename^);
-  if DoExec(FindLinker,s,false,false) then
-   RemoveFile(current_module^.objfilename^);
-end;
-
-procedure tlinker.postprocessexecutable(const n:string);
-begin
-end;
-
+{*****************************************************************************
+                                 Init/Done
+*****************************************************************************}
 
 procedure InitLinker;
 begin
   case target_info.target of
 {$ifdef i386}
+  {$ifndef NOTARGETLINUX}
+    target_i386_linux :
+      linker:=new(plinkerlinux,Init);
+  {$endif}
+  {$ifndef NOTARGETWIN32}
     target_i386_Win32 :
       linker:=new(plinkerwin32,Init);
+  {$endif}
+  {$ifndef NOTARGETGO32V1}
+    target_i386_Go32v1 :
+      linker:=new(plinkergo32v1,Init);
+  {$endif}
+  {$ifndef NOTARGETGO32V2}
     target_i386_Go32v2 :
       linker:=new(plinkergo32v2,Init);
+  {$endif}
 {$endif i386}
 {$ifdef m68k}
+  {$ifndef NOTARGETPALMOS}
     target_m68k_palmos:
       linker:=new(plinker,Init);
+  {$endif}
+  {$ifndef NOTARGETLINUX}
+    target_m68k_linux :
+      linker:=new(plinkerlinux,Init);
+  {$endif}
 {$endif m68k}
 {$ifdef alpha}
-    target_alpha_linux:
-      linker:=new(plinker,Init);
+  {$ifndef NOTARGETLINUX}
+    target_alpha_linux :
+      linker:=new(plinkerlinux,Init);
+  {$endif}
 {$endif alpha}
 {$ifdef powerpc}
-    target_powerpc_linux:
-      linker:=new(plinker,Init);
+  {$ifndef NOTARGETLINUX}
+    target_powerpc_linux :
+      linker:=new(plinkerlinux,Init);
+  {$endif}
 {$endif powerpc}
     else
       linker:=new(plinker,Init);
@@ -792,8 +521,9 @@ end;
 end.
 {
   $Log$
-  Revision 1.73  1999-10-08 15:38:42  pierre
-   * library list keeps doubles
+  Revision 1.74  1999-10-21 14:29:34  peter
+    * redesigned linker object
+    + library support for linux (only procedures can be exported)
 
   Revision 1.72  1999/09/16 23:05:52  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)

@@ -27,7 +27,7 @@ unit cgai386;
     uses
        cobjects,tree,
        cpubase,cpuasm,
-       symconst,symtable,aasm,win_targ;
+       symconst,symtable,aasm;
 
 {$define TESTGETTEMP to store const that
  are written into temps for later release PM }
@@ -150,6 +150,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        tgeni386,temp_gen,hcodegen,ppu
 {$ifdef GDB}
        ,gdb
+{$endif}
+{$ifndef NOTARGETWIN32}
+       ,t_win32
 {$endif}
        ;
 
@@ -2605,6 +2608,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               exprasmlist^.concat(new(paicpu,
                 op_const_reg(A_IMUL,S_L,
                 parraydef(pvarsym(p)^.definition)^.definition^.size,R_EDI)));
+{$ifndef NOTARGETWIN32}
               { windows guards only a few pages for stack growing, }
               { so we have to access every page first              }
               if target_os.id=os_i386_win32 then
@@ -2642,6 +2646,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                      parraydef(pvarsym(p)^.definition)^.definition^.size,R_EDI)));
                 end
               else
+{$endif NOTARGETWIN32}
                 begin
                    exprasmlist^.concat(new(paicpu,
                      op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
@@ -3414,7 +3419,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.53  1999-10-13 22:09:29  pierre
+  Revision 1.54  1999-10-21 14:29:32  peter
+    * redesigned linker object
+    + library support for linux (only procedures can be exported)
+
+  Revision 1.53  1999/10/13 22:09:29  pierre
    * fix for uggly bug of Marco
 
   Revision 1.52  1999/10/08 15:40:47  pierre

@@ -31,7 +31,9 @@ type
   TScript=object
     fn   : string[80];
     data : TStringQueue;
+    executable : boolean;
     constructor Init(const s:string);
+    constructor InitExec(const s:string);
     destructor Done;
     procedure AddStart(const s:string);
     procedure Add(const s:string);
@@ -39,18 +41,24 @@ type
     procedure WriteToDisk;virtual;
   end;
 
+  PAsmScript = ^TAsmScript;
   TAsmScript = Object (TScript)
     Constructor Init (Const ScriptName : String);
     Procedure AddAsmCommand (Const Command, Options,FileName : String);
     Procedure AddLinkCommand (Const Command, Options, FileName : String);
     Procedure AddDeleteCommand (Const FileName : String);
     Procedure WriteToDisk;virtual;
-    end;
-  PAsmScript = ^TAsmScript;
+  end;
 
-{ Asm response file }
+  PLinkRes = ^TLinkRes;
+  TLinkRes = Object (TScript)
+    procedure Add(const s:string);
+    procedure AddFileName(const s:string);
+  end;
+
 var
   AsmRes : TAsmScript;
+  LinkRes : TLinkRes;
 
 
 implementation
@@ -68,7 +76,16 @@ uses
 
 constructor TScript.Init(const s:string);
 begin
+  fn:=FixFileName(s);
+  executable:=false;
+  data.Init;
+end;
+
+
+constructor TScript.InitExec(const s:string);
+begin
   fn:=FixFileName(s)+source_os.scriptext;
+  executable:=true;
   data.Init;
 end;
 
@@ -107,7 +124,8 @@ begin
    Writeln(t,data.Get);
   Close(t);
 {$ifdef linux}
-  ChMod(fn,493);
+  if executable then
+   ChMod(fn,493);
 {$endif}
 end;
 
@@ -118,7 +136,7 @@ end;
 
 Constructor TAsmScript.Init (Const ScriptName : String);
 begin
-  Inherited Init(ScriptName);
+  Inherited InitExec(ScriptName);
 end;
 
 
@@ -188,14 +206,39 @@ Begin
   Add('echo An error occured while linking %THEFILE%');
   Add(':end');
 {$endif}
-  TScript.WriteToDisk;
+  inherited WriteToDisk;
 end;
 
+
+{****************************************************************************
+                                  Link Response
+****************************************************************************}
+
+procedure TLinkRes.Add(const s:string);
+begin
+  if s<>'' then
+   inherited Add(s);
+end;
+
+procedure TLinkRes.AddFileName(const s:string);
+begin
+  if s<>'' then
+   begin
+     if not(s[1] in ['a'..'z','A'..'Z','/','\','.']) then
+      inherited Add('.'+DirSep+s)
+     else
+      inherited Add(s);
+   end;
+end;
 
 end.
 {
   $Log$
-  Revision 1.2  1998-05-04 17:54:29  peter
+  Revision 1.3  1999-10-21 14:29:37  peter
+    * redesigned linker object
+    + library support for linux (only procedures can be exported)
+
+  Revision 1.2  1998/05/04 17:54:29  peter
     + smartlinking works (only case jumptable left todo)
     * redesign of systems.pas to support assemblers and linkers
     + Unitname is now also in the PPU-file, increased version to 14
