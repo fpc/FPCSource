@@ -1,3 +1,24 @@
+{
+  $Id$
+
+  GTK (demo) implementation for shedit
+  Copyright (C) 1999  Sebastian Guenther (sguenther@gmx.de)
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+}
+
 {$MODE objfpc}
 {$H+}
 
@@ -177,15 +198,9 @@ begin
   Edit.shSelected   := AddSHStyle('Selected',   colWhite, colBlack, fsNormal);
 end;
 
-function TGtkSHEdit.AddSHStyle(AName: String; AColor, ABackground: LongWord;
-  AStyle: TSHFontStyle): Integer;
-var
-  NewStyles: PSHStyleArray;
+function TGtkSHEdit.AddSHStyle(AName: String; AColor, ABackground: LongWord; AStyle: TSHFontStyle): Integer;
 begin
-  GetMem(NewStyles, SizeOf(TSHStyle) * (SHStyleCount + 1));
-  Move(SHStyles^, NewStyles^, SizeOf(TSHStyle) * SHStyleCount);
-  FreeMem(SHStyles);
-  SHStyles := NewStyles;
+  ReAllocMem(SHStyles, SizeOf(TSHStyle) * (SHStyleCount + 1));
   Inc(SHStyleCount);
   SHStyles^[SHStyleCount].Name       := AName;
   SHStyles^[SHStyleCount].Color      := AColor;
@@ -282,7 +297,7 @@ begin
         SetGCColor(SHStyles^[Ord(RequestedColor)].Color);
         gdk_draw_text(PGdkDrawable(GdkWnd),
           Font[SHStyles^[Ord(RequestedColor)].FontStyle], GC,
-	  px * CharW + LeftIndent, (y + 1) * CharH - 3, s, 1);
+          px * CharW + LeftIndent, (y + 1) * CharH - 3, s, 1);
       end;
       Inc(s);
       Inc(i);
@@ -368,8 +383,10 @@ begin
   gtk_signal_connect(PGtkObject(MainWindow), 'destroy', GTK_SIGNAL_FUNC(@OnMainWindowDestroyed), nil);
 
   // Set up documents
-  PasDoc := TTextDoc.Create; PasDoc.LoadFromFile('gtkdemo.pp');
-  XMLDoc := TTextDoc.Create; XMLDoc.LoadFromFile('gtkdemo.pp');
+  PasDoc := TTextDoc.Create;
+  PasDoc.LoadFromFile('gtkdemo.pp');
+  XMLDoc := TTextDoc.Create;
+  XMLDoc.LoadFromFile('gtkdemo.pp');
 
   // Create notebook pages (editor widgets)
   Pages[0] := TGtkSHPasEdit.Create(PasDoc);
@@ -386,3 +403,9 @@ begin
   gtk_widget_show(MainWindow);
   gtk_main;
 end.
+{
+  $Log$
+  Revision 1.3  1999-11-14 21:32:55  peter
+    * fixes to get it working without crashes
+
+}

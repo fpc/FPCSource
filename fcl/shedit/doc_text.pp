@@ -110,6 +110,8 @@ uses Strings;
 
 constructor TTextDoc.Create;
 begin
+  FModified := false;
+  FLines := nil;
   FLineCount := 0;
   FViewInfos := TCollection.Create(TViewInfo);
 end;
@@ -125,7 +127,8 @@ var
 begin
   for i := 0 to FLineCount - 1 do
     StrDispose(FLines^[i].s);
-  FreeMem(FLines);
+  if assigned(FLines) then
+   FreeMem(FLines);
 
   for i := 0 to FViewInfos.Count - 1 do
     if Assigned(TViewInfo(FViewInfos.Items[i]).OnLineRemove) then
@@ -135,16 +138,11 @@ end;
 procedure TTextDoc.InsertLine(BeforeLine: Integer; const s: String);
 var
   l: PLine;
-  NewLines: PLineArray;
   i: Integer;
 begin
   if BeforeLine > FLineCount then exit;  // *** throw an intelligent exception
-  GetMem(NewLines, (FLineCount + 1) * SizeOf(TLine));
-  Move(FLines^, NewLines^, BeforeLine * SizeOf(TLine));
-  Move(FLines^[BeforeLine], NewLines^[BeforeLine + 1],
-    (FLineCount - BeforeLine) * SizeOf(TLine));
-  FreeMem(FLines);
-  FLines := NewLines;
+  ReAllocMem(FLines, (FLineCount + 1) * SizeOf(TLine));
+  Move(FLines^[BeforeLine], FLines^[BeforeLine + 1],(FLineCount - BeforeLine) * SizeOf(TLine));
   l := @(FLines^[BeforeLine]);
   FillChar(l^, SizeOf(TLine), 0);
   l^.len := Length(s);
@@ -163,17 +161,12 @@ end;
 
 procedure TTextDoc.RemoveLine(LineNumber: Integer);
 var
-  NewLines: PLineArray;
   i: Integer;
 begin
   StrDispose(FLines^[LineNumber].s);
-  GetMem(NewLines, (FLineCount - 1) * SizeOf(TLine));
-  Move(FLines^, NewLines^, LineNumber * SizeOf(TLine));
+  ReAllocMem(FLines, (FLineCount - 1) * SizeOf(TLine));
   if LineNumber < FLineCount - 1 then
-    Move(FLines^[LineNumber + 1], NewLines^[LineNumber],
-      (FLineCount - LineNumber - 1) * SizeOf(TLine));
-  FreeMem(FLines);
-  FLines := NewLines;
+    Move(FLines^[LineNumber + 1], FLines^[LineNumber],(FLineCount - LineNumber - 1) * SizeOf(TLine));
   Dec(FLineCount);
 
   for i := 0 to FViewInfos.Count - 1 do
@@ -263,7 +256,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-10-29 15:59:03  peter
+  Revision 1.2  1999-11-14 21:32:55  peter
+    * fixes to get it working without crashes
+
+  Revision 1.1  1999/10/29 15:59:03  peter
     * inserted in fcl
 
 }
