@@ -1356,6 +1356,8 @@ implementation
             exit;
          end;
         {No register, so memory reference.}
+        if (input.typ<>top_ref) then
+          internalerror(200409262);
         if ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)<>R_INTREGISTER)) or
            ((input.ref^.base<>NR_NO) and (getregtype(input.ref^.base)<>R_INTREGISTER)) then
           internalerror(200301081);
@@ -1993,7 +1995,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2004-06-20 08:55:32  florian
+  Revision 1.58  2004-09-27 15:12:47  peter
+    * IE when expecting top_ref
+
+  Revision 1.57  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.56  2004/06/16 20:07:11  florian
