@@ -647,87 +647,89 @@ implementation
                begin
                   procinfo.flags:=procinfo.flags or pi_do_call;
                   p^.resulttype:=voiddef;
-                  if assigned(p^.left) then
-                    begin
-                       hp:=p^.left^.right;
-                       { first pass just the string for first local use }
-                       must_be_valid:=false;
-                       count_ref:=true;
-                       p^.left^.right:=nil;
-                       firstcallparan(p^.left,nil);
-                       must_be_valid:=true;
-                       p^.left^.right:=hp;
-                       firstcallparan(p^.left^.right,nil);
-                       hp:=p^.left;
-                       { valid string ? }
-                       if not assigned(hp) or
-                          (hp^.left^.resulttype^.deftype<>stringdef) or
-                          (hp^.right=nil) or
-                          (hp^.left^.location.loc<>LOC_REFERENCE) then
-                         CGMessage(cg_e_illegal_expression);
-                       { !!!! check length of string }
+                  { check the amount of parameters }
+                  if not(assigned(p^.left)) or
+                     not(assigned(p^.left^.right)) then
+                   begin
+                     CGMessage(parser_e_wrong_parameter_size);
+                     exit;
+                   end;
+                  { first pass just the string for first local use }
+                  hp:=p^.left^.right;
+                  must_be_valid:=false;
+                  count_ref:=true;
+                  p^.left^.right:=nil;
+                  firstcallparan(p^.left,nil);
+                  must_be_valid:=true;
+                  p^.left^.right:=hp;
+                  firstcallparan(p^.left^.right,nil);
+                  hp:=p^.left;
+                  { valid string ? }
+                  if not assigned(hp) or
+                     (hp^.left^.resulttype^.deftype<>stringdef) or
+                     (hp^.right=nil) or
+                     (hp^.left^.location.loc<>LOC_REFERENCE) then
+                    CGMessage(cg_e_illegal_expression);
+                  { !!!! check length of string }
 
-                       while assigned(hp^.right) do
-                         hp:=hp^.right;
-                       { check and convert the first param }
-                       if hp^.is_colon_para then
-                         CGMessage(cg_e_illegal_expression);
+                  while assigned(hp^.right) do
+                    hp:=hp^.right;
+                  { check and convert the first param }
+                  if hp^.is_colon_para then
+                    CGMessage(cg_e_illegal_expression);
 
-                       isreal:=false;
-                       case hp^.resulttype^.deftype of
-                        orddef : begin
-                                   case porddef(hp^.left^.resulttype)^.typ of
+                  isreal:=false;
+                  case hp^.resulttype^.deftype of
+                   orddef : begin
+                              case porddef(hp^.left^.resulttype)^.typ of
 
-                                      u32bit,
-                                      s32bit,
-                                      s64bitint,
-                                      u64bit:
-                                        ;
+                                 u32bit,
+                                 s32bit,
+                                 s64bitint,
+                                 u64bit:
+                                   ;
 
-                                      u8bit,s8bit,
-                                      u16bit,s16bit:
-                                        hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
+                                 u8bit,s8bit,
+                                 u16bit,s16bit:
+                                   hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
 
-                                   else
-                                     CGMessage(type_e_integer_or_real_expr_expected);
-                                   end;
-                                 end;
-                      floatdef : begin
-                                   isreal:=true;
-                                 end;
-                       else
-                         CGMessage(type_e_integer_or_real_expr_expected);
-                       end;
-
-                       { some format options ? }
-                       hpp:=p^.left^.right;
-                       if assigned(hpp) and hpp^.is_colon_para then
-                         begin
-                           if (not is_integer(hpp^.resulttype)) then
-                             CGMessage(type_e_integer_expr_expected)
-                           else
-                             hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
-                           hpp:=hpp^.right;
-                           if assigned(hpp) and hpp^.is_colon_para then
-                             begin
-                               if isreal then
-                                begin
-                                  if (not is_integer(hpp^.resulttype)) then
-                                    CGMessage(type_e_integer_expr_expected)
-                                  else
-                                    hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
-                                end
-                               else
-                                CGMessage(parser_e_illegal_colon_qualifier);
-                             end;
-                         end;
-
-                       { for first local use }
-                       must_be_valid:=false;
-                       count_ref:=true;
-                    end
+                              else
+                                CGMessage(type_e_integer_or_real_expr_expected);
+                              end;
+                            end;
+                 floatdef : begin
+                              isreal:=true;
+                            end;
                   else
-                    CGMessage(parser_e_illegal_parameter_list);
+                    CGMessage(type_e_integer_or_real_expr_expected);
+                  end;
+
+                  { some format options ? }
+                  hpp:=p^.left^.right;
+                  if assigned(hpp) and hpp^.is_colon_para then
+                    begin
+                      if (not is_integer(hpp^.resulttype)) then
+                        CGMessage(type_e_integer_expr_expected)
+                      else
+                        hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
+                      hpp:=hpp^.right;
+                      if assigned(hpp) and hpp^.is_colon_para then
+                        begin
+                          if isreal then
+                           begin
+                             if (not is_integer(hpp^.resulttype)) then
+                               CGMessage(type_e_integer_expr_expected)
+                             else
+                               hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
+                           end
+                          else
+                           CGMessage(parser_e_illegal_colon_qualifier);
+                        end;
+                    end;
+
+                  { for first local use }
+                  must_be_valid:=false;
+                  count_ref:=true;
                   { pass all parameters again for the typeconversions }
                   if codegenerror then
                     exit;
@@ -891,7 +893,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-12-15 10:23:31  peter
+  Revision 1.13  1998-12-30 22:13:13  peter
+    * check the amount of paras for Str()
+
+  Revision 1.12  1998/12/15 10:23:31  peter
     + -iSO, -iSP, -iTO, -iTP
 
   Revision 1.11  1998/12/11 23:36:08  florian
