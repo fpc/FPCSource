@@ -222,7 +222,8 @@ end;
 procedure TCollection.Changed;
 
 begin
-  Update(Nil);
+  If FUpdateCount=0 then
+    Update(Nil);
 end;
 
 
@@ -291,11 +292,13 @@ Var I : Longint;
 
 begin
   If Source is TCollection then
-    begin
-    Clear;
-    For I:=0 To TCollection(Source).Count-1 do
-     Add.Assign(TCollection(Source).Items[I]);
-    exit;
+    try
+      BeginUpdate;
+      Clear;
+      For I:=0 To TCollection(Source).Count-1 do
+        Add.Assign(TCollection(Source).Items[I]);
+    finally
+      EndUpdate;
     end
   else
     Inherited Assign(Source);
@@ -306,6 +309,7 @@ end;
 procedure TCollection.BeginUpdate;
 
 begin
+  Inc(FUpdateCount);
 end;
 
 
@@ -313,8 +317,14 @@ end;
 procedure TCollection.Clear;
 
 begin
-  If Assigned(FItems) then
-    While FItems.Count>0 do TCollectionItem(FItems.Last).Free;
+  try
+    BeginUpdate;
+    If Assigned(FItems) then
+    While FItems.Count>0 do 
+      TCollectionItem(FItems.Last).Free;
+  Finally    
+    EndUpdate;  
+  end;  
 end;
 
 
@@ -322,6 +332,8 @@ end;
 procedure TCollection.EndUpdate;
 
 begin
+  Dec(FUpdateCount);
+  Changed;
 end;
 
 
@@ -341,7 +353,37 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-11-01 16:28:12  michael
+  + Implemented beginupdate/endupdate
+
+  Revision 1.1  2000/07/13 06:31:30  michael
+  + Initial import
+
+  Revision 1.9  2000/01/07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.8  2000/01/06 01:20:32  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  2000/01/03 19:33:07  peter
+    * moved to packages dir
+
+  Revision 1.6  1999/04/17 08:04:55  michael
+  + RemoveItem now sets FCollection, to avoid a loop.
+
+  Revision 1.5  1999/04/13 12:46:15  michael
+  + Some bug fixes by Romio
+
+  Revision 1.4  1999/04/05 09:56:04  michael
+  + Fixed bugs reported by Romio in TCollection
+
+  Revision 1.3  1998/10/02 22:41:23  michael
+  + Added exceptions for error handling
+
+  Revision 1.2  1998/05/27 11:41:41  michael
+  Implemented TCollection and TCollectionItem
+
+  Revision 1.1  1998/05/04 14:30:11  michael
+  * Split file according to Class; implemented dummys for all methods, so unit compiles.
+
 }
