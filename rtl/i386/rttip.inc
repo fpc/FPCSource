@@ -131,7 +131,7 @@ asm
 end;
 
 
-Procedure Finalize (Data,TypeInfo: Pointer);[Public,Alias:'FPC_FINALIZE'];assembler;
+Procedure int_finalize (Data,TypeInfo: Pointer);[Public,Alias:'FPC_FINALIZE'];assembler;
 asm
         push    %eax
         push    %ebx
@@ -202,7 +202,7 @@ asm
         addl     $4,%ebx
 // push data
         pushl    %eax
-        call    FINALIZE
+        call    INT_FINALIZE
         jmp     .LMyRecordFinalLoop
 // Array handling
 .LDoArrayFinal:
@@ -230,7 +230,7 @@ asm
         addl    Data,%eax
 // push data
         pushl   %eax
-        call    FINALIZE
+        call    INT_FINALIZE
         jmp     .LMyArrayFinalLoop
 // AnsiString handling :
 .LDoAnsiStringFinal:
@@ -470,9 +470,24 @@ asm
         pop     %eax
 end;
 
+procedure FinalizeArray(data,typeinfo : pointer;count,size : longint);
+  [Public,Alias:'FPC_FINALIZEARRAY'];
+
+  var
+     i : longint;
+
+  begin
+     for i:=0 to count-1 do
+       int_finalize(data+size*i,typeinfo);
+  end;
+
 {
   $Log$
-  Revision 1.6  2000-11-06 21:52:21  florian
+  Revision 1.7  2000-11-09 17:49:34  florian
+    + FPC_FINALIZEARRAY
+    * Finalize to int_finalize renamed
+
+  Revision 1.6  2000/11/06 21:52:21  florian
     * another fix for interfaces
 
   Revision 1.5  2000/11/06 21:35:59  peter
