@@ -1,5 +1,6 @@
 {
     $Id$
+
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -59,13 +60,22 @@ Const
    STooManyOpenFiles = 'Too many open files';
    SUnKnownRunTimeError = 'Unknown Run-Time error : %3.3d';
    SUnderflow = 'Floating point underflow';
-     
+   SUnknownErrorCode = 'Unknown error code: %d';
+   
 {
   $Log$
-  Revision 1.3  2000-08-13 17:55:38  michael
+  Revision 1.4  2000-08-30 06:50:49  michael
+  + Merged changes from fixes
+
+  Revision 1.3  2000/08/13 17:55:38  michael
   + Added some missing functions needed for variant support
 
   Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
  
+  Revision 1.1.2.1  2000/08/22 19:21:48  michael
+  + Implemented syserrormessage. Made dummies for go32v2 and OS/2
+  * Changed linux/errors.pp so it uses pchars for storage.
+
+
 }
