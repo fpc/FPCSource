@@ -26,7 +26,6 @@ interface
 
 uses
   os2def,
-  pmbitmap,
   pmwin;
 
 resourcestring  
