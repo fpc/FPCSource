@@ -118,6 +118,7 @@ unit pdecl;
          ps : pconstset;
          pd : pbestreal;
          sp : pstring;
+         l  : longint;
       begin
          consume(_CONST);
          old_block_type:=block_type;
@@ -151,17 +152,21 @@ unit pdecl;
                         end;
                       stringconstn:
                         begin
+                           if p^.length>255 then
+                            l:=255
+                           else
+                            l:=p^.length;
                            { value_str is disposed with p so I need a copy }
-                           getmem(sp,p^.length+1);
-                           move(p^.value_str^,sp^[1],p^.length);
+                           getmem(sp,l+1);
+                           move(p^.value_str^,sp^[1],l);
                            {$ifndef TP}
                              {$ifopt H+}
-                               setlength(sp^,p^.length);
+                               setlength(sp^,l);
                              {$else}
-                               sp^[0]:=chr(p^.length);
+                               sp^[0]:=chr(l);
                              {$endif}
                            {$else}
-                             sp^[0]:=chr(p^.length);
+                             sp^[0]:=chr(l);
                            {$endif}
                            symtablestack^.insert(new(pconstsym,init(name,conststring,longint(sp),nil)));
                         end;
@@ -2134,7 +2139,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.93  1999-01-15 13:08:23  peter
+  Revision 1.94  1999-01-19 12:17:00  peter
+    * fixed constant strings > 255 chars
+
+  Revision 1.93  1999/01/15 13:08:23  peter
     * error if upper<lower in array decl
 
   Revision 1.92  1999/01/14 21:49:58  peter
