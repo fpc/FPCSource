@@ -993,7 +993,7 @@ begin
   LockCount:=0;
   GrowMode:=gfGrowHiX or gfGrowHiY;
   New(Console, Init(@Self));
-  Console^.Size.X:=132; Console^.Size.Y:=50;
+  Console^.Size.X:=Bounds.B.X+1; Console^.Size.Y:=Bounds.B.Y+1;
   Console^.ClrScr;
   Console^.CursorOn;
 end;
@@ -1091,7 +1091,10 @@ end;
 END.
 {
  $Log$
- Revision 1.4  2002-09-07 15:40:47  peter
+ Revision 1.5  2004-11-03 12:36:24  florian
+   * fixed background clearing for large screens
+
+ Revision 1.4  2002/09/07 15:40:47  peter
    * old logs removed and tabs fixed
 
  Revision 1.3  2002/03/25 11:51:43  pierre
