@@ -408,7 +408,6 @@ implementation
           hp:=registerunit(current_module,s,'');
           hp.loadppu;
           hp.adddependency(current_module);
-          current_module.addusedunit(hp,false);
           { add to symtable stack }
           tsymtable(hp.globalsymtable).next:=symtablestack;
           symtablestack:=hp.globalsymtable;
@@ -416,6 +415,8 @@ implementation
           unitsym:=tunitsym.create(s,hp.globalsymtable);
           inc(unitsym.refs);
           refsymtable.insert(unitsym);
+          { add to used units }
+          current_module.addusedunit(hp,false,unitsym);
         end;
 
       begin
@@ -511,8 +512,13 @@ implementation
               { Need to register the unit? }
               if not assigned(hp2) then
                 hp2:=registerunit(current_module,sorg,fn);
+              { Create unitsym, we need to use the name as specified, we
+                can not use the modulename because that can be different
+                when -Un is used }
+              unitsym:=tunitsym.create(sorg,nil);
+              refsymtable.insert(unitsym);
               { the current module uses the unit hp2 }
-              current_module.addusedunit(hp2,true);
+              current_module.addusedunit(hp2,true,unitsym);
             end
            else
             Message1(sym_e_duplicate_id,s);
@@ -530,29 +536,27 @@ implementation
          pu:=tused_unit(current_module.used_units.first);
          while assigned(pu) do
           begin
-            if pu.in_uses then
+            { Only load the units that are in the current
+              (interface/implementation) uses clause }
+            if pu.in_uses and
+               (pu.in_interface=current_module.in_interface) then
              begin
-               { store the original name to create the unitsym }
-               sorg:=pu.u.realmodulename^;
                tppumodule(pu.u).loadppu;
                { is our module compiled? then we can stop }
                if current_module.state=ms_compiled then
                 exit;
                { add this unit to the dependencies }
                pu.u.adddependency(current_module);
+               { save crc values }
                pu.checksum:=pu.u.crc;
                pu.interface_checksum:=pu.u.interface_crc;
-               { Create unitsym, we need to use the name as specified, we
-                 can not use the modulename because that can be different
-                 when -Un is used. But when the names are the same then
-                 force the name of the module so there will be no difference
-                 in the case of the name }
-               if upper(sorg)=pu.u.modulename^ then
-                sorg:=pu.u.realmodulename^;
-               unitsym:=tunitsym.create(sorg,pu.u.globalsymtable);
+               { connect unitsym to the globalsymtable of the unit }
+               pu.unitsym.unitsymtable:=pu.u.globalsymtable;
+               { increase refs of the unitsym when the unit contains
+                 initialization/finalization code so it doesn't trigger
+                 the unit not used hint }
                if (pu.u.flags and (uf_init or uf_finalize))<>0 then
-                 inc(unitsym.refs);
-               refsymtable.insert(unitsym);
+                 inc(pu.unitsym.refs);
              end;
             pu:=tused_unit(pu.next);
           end;
@@ -654,7 +658,7 @@ implementation
 {$EndIf GDB}
 
 
-    procedure parse_implementation_uses(symt:tsymtable);
+    procedure parse_implementation_uses;
       begin
          if token=_USES then
            begin
@@ -749,7 +753,7 @@ implementation
       end;
 
 
-    procedure gen_implicit_initfinal(list:taasmoutput;flag:word;st:tsymtable);
+    procedure gen_implicit_initfinal(flag:word;st:tsymtable);
       var
         pd : tprocdef;
       begin
@@ -802,7 +806,6 @@ implementation
          store_crc,store_interface_crc : cardinal;
          s2  : ^string; {Saves stack space}
          force_init_final : boolean;
-         initfinalcode : taasmoutput;
          pd : tprocdef;
       begin
          consume(_UNIT);
@@ -879,13 +882,7 @@ implementation
                    loadunits;
                    { has it been compiled at a higher level ?}
                    if current_module.state=ms_compiled then
-                     begin
-                        { this unit symtable is obsolete }
-                        { dispose(unitst,done);
-                        disposed as localsymtable !! }
-                        RestoreUnitSyms;
-                        exit;
-                     end;
+                     exit;
                 end;
               { ... but insert the symbol table later }
               st.next:=symtablestack;
@@ -956,13 +953,10 @@ implementation
          refsymtable:=st;
 
          { Read the implementation units }
-         parse_implementation_uses(unitst);
+         parse_implementation_uses;
 
          if current_module.state=ms_compiled then
-           begin
-              RestoreUnitSyms;
-              exit;
-           end;
+           exit;
 
          { reset ranges/stabs in exported definitions }
          reset_global_defs;
@@ -1015,12 +1009,7 @@ implementation
          { should we force unit initialization? }
          { this is a hack, but how can it be done better ? }
          if force_init_final and ((current_module.flags and uf_init)=0) then
-           begin
-              initfinalcode:=taasmoutput.create;
-              gen_implicit_initfinal(initfinalcode,uf_init,st);
-              codesegment.concatlist(initfinalcode);
-              initfinalcode.free;
-           end;
+           gen_implicit_initfinal(uf_init,st);
          { finalize? }
          if token=_FINALIZATION then
            begin
@@ -1036,12 +1025,7 @@ implementation
               release_main_proc(pd);
            end
          else if force_init_final then
-           begin
-              initfinalcode:=taasmoutput.create;
-              gen_implicit_initfinal(initfinalcode,uf_finalize,st);
-              codesegment.concatlist(initfinalcode);
-              initfinalcode.free;
-           end;
+           gen_implicit_initfinal(uf_finalize,st);
 
          { the last char should always be a point }
          consume(_POINT);
@@ -1059,16 +1043,13 @@ implementation
              ResourceStrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
           end;
 
-         { test static symtable }
          if (Errorcount=0) then
            begin
+             { test static symtable }
              tstoredsymtable(st).allsymbolsused;
-             tstoredsymtable(st).allunitsused;
              tstoredsymtable(st).allprivatesused;
+             current_module.allunitsused;
            end;
-
-         { size of the static data }
-//         datasize:=st.datasize;
 
 {$ifdef GDB}
          { add all used definitions even for implementation}
@@ -1169,8 +1150,6 @@ implementation
               current_module.localsymtable:=nil;
            end;
 
-         RestoreUnitSyms;
-
          { leave when we got an error }
          if (Errorcount>0) and not status.skip_error then
           begin
@@ -1188,7 +1167,6 @@ implementation
          main_file: tinputfile;
          st    : tsymtable;
          hp    : tmodule;
-         initfinalcode : taasmoutput;
          pd : tprocdef;
       begin
          DLLsource:=islibrary;
@@ -1317,14 +1295,10 @@ implementation
          { should we force unit initialization? }
          if tstaticsymtable(current_module.localsymtable).needs_init_final then
            begin
-              initfinalcode:=taasmoutput.create;
               { initialize section }
-              gen_implicit_initfinal(initfinalcode,uf_init,st);
-              codesegment.concatlist(initfinalcode);
+              gen_implicit_initfinal(uf_init,st);
               { finalize section }
-              gen_implicit_initfinal(initfinalcode,uf_finalize,st);
-              codesegment.concatlist(initfinalcode);
-              initfinalcode.free;
+              gen_implicit_initfinal(uf_finalize,st);
            end;
 
          { Add symbol to the exports section for win32 so smartlinking a
@@ -1371,12 +1345,12 @@ implementation
             exit;
           end;
 
-         { test static symtable }
          if (Errorcount=0) then
            begin
+             { test static symtable }
              tstoredsymtable(st).allsymbolsused;
-             tstoredsymtable(st).allunitsused;
              tstoredsymtable(st).allprivatesused;
+             current_module.allunitsused;
            end;
 
          { generate a list of threadvars }
@@ -1444,7 +1418,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.129  2003-10-21 15:14:33  peter
+  Revision 1.130  2003-10-22 15:22:33  peter
+    * fixed unitsym-globalsymtable relation so the uses of a unit
+      is counted correctly
+
+  Revision 1.129  2003/10/21 15:14:33  peter
     * fixed memleak for initfinalcode
     * exit from generatecode when there are already errors
 

@@ -79,8 +79,6 @@ interface
        maxparasize = high(word);
        { maximum nesting of routines }
        maxnesting = 32;
-       { maximum of units which are supported for a compilation }
-       maxunits = 1024;
 
        treelogfilename = 'tree.log';
 
@@ -238,7 +236,7 @@ interface
        RelocSection : boolean = true;
        RelocSectionSetExplicitly : boolean = false;
        LinkTypeSetExplicitly : boolean = false;
-       	
+
        DLLsource : boolean = false;
        DLLImageBase : pstring = nil;
        UseDeffileForExport : boolean = true;
@@ -1616,7 +1614,7 @@ implementation
       { Utils directory }
         utilsdirectory:='';
         utilsprefix:='';
-               
+
 
       { Search Paths }
         librarysearchpath:=TSearchPathList.Create;
@@ -1712,7 +1710,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.109  2003-10-11 19:32:04  marco
+  Revision 1.110  2003-10-22 15:22:33  peter
+    * fixed unitsym-globalsymtable relation so the uses of a unit
+      is counted correctly
+
+  Revision 1.109  2003/10/11 19:32:04  marco
    * -Xd
 
   Revision 1.108  2003/10/08 14:10:16  mazen

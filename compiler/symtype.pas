@@ -772,9 +772,9 @@ implementation
                 begin
                   idx:=(data[i] shl 8) or data[i+1];
                   inc(i,2);
-                  if idx>maxunits then
+                  if idx>current_module.mapsize then
                     internalerror(200306231);
-                  pm:=current_module.map^[idx];
+                  pm:=current_module.map[idx].u;
                   if not assigned(pm) then
                     internalerror(200212273);
                   st:=pm.globalsymtable;
@@ -862,7 +862,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.29  2003-10-17 14:38:32  peter
+  Revision 1.30  2003-10-22 15:22:33  peter
+    * fixed unitsym-globalsymtable relation so the uses of a unit
+      is counted correctly
+
+  Revision 1.29  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

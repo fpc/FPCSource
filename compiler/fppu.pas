@@ -692,7 +692,7 @@ uses
            { set the state of this unit before registering, this is
              needed for a correct circular dependency check }
            hp:=registerunit(self,hs,'');
-           pu:=addusedunit(hp,false);
+           pu:=addusedunit(hp,false,nil);
            pu.checksum:=checksum;
            pu.interface_checksum:=intfchecksum;
          end;
@@ -834,7 +834,7 @@ uses
     procedure tppumodule.load_symtable_refs;
       var
          b : byte;
-         unitindex : word;
+         i : longint;
       begin
         { load local symtable first }
         if ((flags and uf_local_browser)<>0) then
@@ -847,13 +847,8 @@ uses
         if (flags and uf_has_browser)<>0 then
           begin
             tstoredsymtable(globalsymtable).load_references(ppufile,true);
-            unitindex:=1;
-            while assigned(map^[unitindex]) do
-             begin
-               { each unit wrote one browser entry }
-               tstoredsymtable(globalsymtable).load_references(ppufile,false);
-               inc(unitindex);
-             end;
+            for i:=0 to mapsize-1 do
+              tstoredsymtable(globalsymtable).load_references(ppufile,false);
             b:=ppufile.readentry;
             if b<>ibendbrowser then
              Message1(unit_f_ppu_invalid_entry,tostr(b));
@@ -1046,14 +1041,10 @@ uses
       var
         pu           : tused_unit;
         load_refs    : boolean;
-        nextmapentry : longint;
       begin
         if current_module<>self then
          internalerror(200212284);
         load_refs:=true;
-        { Add current unit to the map }
-        map^[0]:=self;
-        nextmapentry:=1;
         { load the used units from interface }
         in_interface:=true;
         pu:=tused_unit(used_units.first);
@@ -1081,14 +1072,10 @@ uses
                  do_compile:=true;
                  exit;
                end;
-              { setup the map entry for deref }
-              map^[nextmapentry]:=pu.u;
-              inc(nextmapentry);
-              if nextmapentry>maxunits then
-               Message(unit_f_too_much_units);
             end;
            pu:=tused_unit(pu.next);
          end;
+        numberunits;
 
         { ok, now load the interface of this unit }
         if current_module<>self then
@@ -1118,14 +1105,10 @@ uses
                   do_compile:=true;
                   exit;
                 end;
-              { setup the map entry for deref }
-              map^[nextmapentry]:=pu.u;
-              inc(nextmapentry);
-              if nextmapentry>maxunits then
-               Message(unit_f_too_much_units);
             end;
            pu:=tused_unit(pu.next);
          end;
+        numberunits;
 
         { read the implementation/objectdata part }
         load_implementation;
@@ -1326,7 +1309,7 @@ uses
            if second_time then
             reload_flagged_units
            else
-            usedunits.concat(tused_unit.create(self,true,false));
+            usedunits.concat(tused_unit.create(self,true,false,nil));
 
            { reopen the old module }
 {$ifdef SHORT_ON_FILE_HANDLES}
@@ -1421,7 +1404,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.39  2003-09-05 17:41:12  florian
+  Revision 1.40  2003-10-22 15:22:33  peter
+    * fixed unitsym-globalsymtable relation so the uses of a unit
+      is counted correctly
+
+  Revision 1.39  2003/09/05 17:41:12  florian
     * merged Wiktor's Watcom patches in 1.1
 
   Revision 1.38  2003/08/23 22:29:24  peter

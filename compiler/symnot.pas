@@ -28,7 +28,7 @@ unit symnot;
 
 interface
 
-uses  cclasses,symbase,symtype;
+uses  cclasses,symtype;
 
 type  Tnotification_flag=(vn_onread,vn_onwrite,vn_unknown);
       Tnotification_flags=set of Tnotification_flag;
@@ -65,7 +65,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-12-31 09:55:58  daniel
+  Revision 1.3  2003-10-22 15:22:33  peter
+    * fixed unitsym-globalsymtable relation so the uses of a unit
+      is counted correctly
+
+  Revision 1.2  2002/12/31 09:55:58  daniel
    + Notification implementation complete
    + Add for loop code optimization using notifications
      results in 1.5-1.9% speed improvement in nestloop benchmark

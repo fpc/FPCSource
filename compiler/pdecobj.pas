@@ -833,9 +833,8 @@ implementation
         begin
            hp:=nil;
            { reads the parent class }
-           if token=_LKLAMMER then
+           if try_to_consume(_LKLAMMER) then
              begin
-                consume(_LKLAMMER);
                 id_type(tt,pattern,false);
                 childof:=tobjectdef(tt.def);
                 if (not assigned(childof)) or
@@ -1158,7 +1157,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2003-10-21 18:16:13  peter
+  Revision 1.71  2003-10-22 15:22:33  peter
+    * fixed unitsym-globalsymtable relation so the uses of a unit
+      is counted correctly
+
+  Revision 1.70  2003/10/21 18:16:13  peter
     * IncompatibleTypes() added that will include unit names when
       the typenames are the same
 

@@ -32,8 +32,8 @@ uses
 {$else}
   strings,
 {$endif}
-  globtype,cpubase,
-  globals,aasmtai;
+  globtype,
+  aasmtai;
 
 {stab constants }
 Const
@@ -233,7 +233,11 @@ end.
 
 {
   $Log$
-  Revision 1.16  2002-11-17 16:31:56  carl
+  Revision 1.17  2003-10-22 15:22:33  peter
+    * fixed unitsym-globalsymtable relation so the uses of a unit
+      is counted correctly
+
+  Revision 1.16  2002/11/17 16:31:56  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

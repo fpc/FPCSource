@@ -50,7 +50,6 @@ interface
           procedure _needs_init_final(p : tnamedindexitem;arg:pointer);
           procedure check_forward(sym : TNamedIndexItem;arg:pointer);
           procedure labeldefined(p : TNamedIndexItem;arg:pointer);
-          procedure unitsymbolused(p : TNamedIndexItem;arg:pointer);
           procedure varsymbolused(p : TNamedIndexItem;arg:pointer);
           procedure TestPrivate(p : TNamedIndexItem;arg:pointer);
           procedure objectprivatesymbolused(p : TNamedIndexItem;arg:pointer);
@@ -77,7 +76,6 @@ interface
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;override;
           procedure allsymbolsused;
           procedure allprivatesused;
-          procedure allunitsused;
           procedure check_forwards;
           procedure checklabels;
           function  needs_init_final : boolean;
@@ -147,10 +145,8 @@ interface
 
        tglobalsymtable = class(tabstractunitsymtable)
        public
-          unitsym       : tunitsym;
           unittypecount : word;
           constructor create(const n : string);
-          destructor  destroy;override;
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
@@ -214,7 +210,6 @@ interface
     function search_default_property(pd : tobjectdef) : tpropertysym;
 
 {*** symtable stack ***}
-    procedure RestoreUnitSyms;
 {$ifdef DEBUG}
     procedure test_symtablestack;
     procedure list_symtablestack;
@@ -592,8 +587,10 @@ implementation
            { unit uses count }
            if (unitid<>0) and
               (symtabletype = globalsymtable) and
-              assigned(tglobalsymtable(self).unitsym) then
-             inc(tglobalsymtable(self).unitsym.refs);
+              assigned(current_module) and
+              (unitid<current_module.mapsize) and
+              assigned(current_module.map[unitid].unitsym) then
+             inc(current_module.map[unitid].unitsym.refs);
 
 {$ifdef GDB}
            { if it is a type, we need the stabs of this type
@@ -674,17 +671,6 @@ implementation
            else
             Message1(sym_w_label_not_defined,tlabelsym(p).realname);
          end;
-      end;
-
-
-    procedure TStoredSymtable.unitsymbolused(p : TNamedIndexItem;arg:pointer);
-      begin
-         if (tsym(p).typ=unitsym) and
-            (tunitsym(p).refs=0) and
-            { do not claim for unit name itself !! }
-            assigned(tunitsym(p).unitsymtable) and
-            (tunitsym(p).unitsymtable.symtabletype=globalsymtable) then
-           MessagePos2(tsym(p).fileinfo,sym_n_unit_not_used,p.name,current_module.modulename^);
       end;
 
 
@@ -888,12 +874,6 @@ implementation
     procedure tstoredsymtable.checklabels;
       begin
          foreach({$ifdef FPCPROCVAR}@{$endif}labeldefined,nil);
-      end;
-
-
-    procedure tstoredsymtable.allunitsused;
-      begin
-         foreach({$ifdef FPCPROCVAR}@{$endif}unitsymbolused,nil);
       end;
 
 
@@ -1338,12 +1318,12 @@ implementation
              exit;
            if not assigned(name) then
              name := stringdup('Main_program');
-           if (symtabletype = globalsymtable) and
+           {if (symtabletype = globalsymtable) and
               (current_module.globalsymtable<>self) then
              begin
                 unitid:=current_module.unitcount;
                 inc(current_module.unitcount);
-             end;
+             end;}
            asmList.concat(tai_comment.Create(strpnew('Begin unit '+name^+' has index '+tostr(unitid))));
            if cs_gdb_dbx in aktglobalswitches then
              begin
@@ -1479,7 +1459,6 @@ implementation
          symtabletype:=globalsymtable;
          symtablelevel:=main_program_level;
          unitid:=0;
-         unitsym:=nil;
 {$ifdef GDB}
          if cs_gdb_dbx in aktglobalswitches then
            begin
@@ -1498,22 +1477,6 @@ implementation
            end;
 {$endif GDB}
       end;
-
-
-     destructor tglobalsymtable.destroy;
-       var
-          pus : tunitsym;
-       begin
-          pus:=unitsym;
-          while assigned(pus) do
-            begin
-               unitsym:=pus.prevsym;
-               pus.prevsym:=nil;
-               pus.unitsymtable:=nil;
-               pus:=unitsym;
-            end;
-          inherited destroy;
-       end;
 
 
     procedure tglobalsymtable.ppuload(ppufile:tcompilerppufile);
@@ -2215,22 +2178,6 @@ implementation
                             Symtable Stack
 ****************************************************************************}
 
-    procedure RestoreUnitSyms;
-      var
-         p : tsymtable;
-      begin
-         p:=symtablestack;
-         while assigned(p) do
-           begin
-             if (p.symtabletype=globalsymtable) and
-                assigned(tglobalsymtable(p).unitsym) and
-                ((tglobalsymtable(p).unitsym.owner=current_module.globalsymtable) or
-                 (tglobalsymtable(p).unitsym.owner=current_module.localsymtable)) then
-               tglobalsymtable(p).unitsym.restoreunitsym;
-             p:=p.next;
-           end;
-      end;
-
 {$ifdef DEBUG}
     procedure test_symtablestack;
       var
@@ -2312,7 +2259,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.117  2003-10-21 18:16:13  peter
+  Revision 1.118  2003-10-22 15:22:33  peter
+    * fixed unitsym-globalsymtable relation so the uses of a unit
+      is counted correctly
+
+  Revision 1.117  2003/10/21 18:16:13  peter
     * IncompatibleTypes() added that will include unit names when
       the typenames are the same
 

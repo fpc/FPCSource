@@ -89,12 +89,10 @@ interface
 
        tunitsym = class(tstoredsym)
           unitsymtable : tsymtable;
-          prevsym      : tunitsym;
           constructor create(const n : string;ref : tsymtable);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure restoreunitsym;
 {$ifdef GDB}
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
@@ -681,12 +679,6 @@ implementation
          make_ref:=old_make_ref;
          typ:=unitsym;
          unitsymtable:=ref;
-         if assigned(ref) and
-            (ref.symtabletype=globalsymtable) then
-          begin
-            prevsym:=tglobalsymtable(ref).unitsym;
-            tglobalsymtable(ref).unitsym:=self;
-          end;
       end;
 
     constructor tunitsym.ppuload(ppufile:tcompilerppufile);
@@ -695,43 +687,11 @@ implementation
          inherited loadsym(ppufile);
          typ:=unitsym;
          unitsymtable:=nil;
-         prevsym:=nil;
          refs:=0;
-      end;
-
-    { we need to remove it from the prevsym chain ! }
-
-    procedure tunitsym.restoreunitsym;
-      var pus,ppus : tunitsym;
-      begin
-         if assigned(unitsymtable) and
-            (unitsymtable.symtabletype=globalsymtable) then
-           begin
-             ppus:=nil;
-             pus:=tglobalsymtable(unitsymtable).unitsym;
-             if pus=self then
-               tglobalsymtable(unitsymtable).unitsym:=prevsym
-             else while assigned(pus) do
-               begin
-                  if pus=self then
-                    begin
-                       ppus.prevsym:=prevsym;
-                       break;
-                    end
-                  else
-                    begin
-                       ppus:=pus;
-                       pus:=ppus.prevsym;
-                    end;
-               end;
-           end;
-         unitsymtable:=nil;
-         prevsym:=nil;
       end;
 
     destructor tunitsym.destroy;
       begin
-         restoreunitsym;
          inherited destroy;
       end;
 
@@ -2645,7 +2605,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.128  2003-10-21 18:14:30  peter
+  Revision 1.129  2003-10-22 15:22:33  peter
+    * fixed unitsym-globalsymtable relation so the uses of a unit
+      is counted correctly
+
+  Revision 1.128  2003/10/21 18:14:30  peter
     * fix writing of widechar to ppu
 
   Revision 1.127  2003/10/17 14:38:32  peter

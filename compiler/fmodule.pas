@@ -42,7 +42,7 @@ interface
     uses
        cutils,cclasses,
        globals,finput,
-       symbase,aasmbase;
+       symbase,symsym,aasmbase;
 
 
     type
@@ -76,8 +76,11 @@ interface
       tmodule = class;
       tused_unit = class;
 
-      tunitmap = array[0..maxunits-1] of tmodule;
-      punitmap = ^tunitmap;
+      tunitmaprec = record
+        u : tmodule;
+        unitsym : tunitsym;
+      end;
+      punitmap = ^tunitmaprec;
 
       tmodule = class(tmodulebase)
         do_reload,                { force reloading of the unit }
@@ -93,7 +96,7 @@ interface
         flags         : cardinal;  { the PPU flags }
         islibrary     : boolean;  { if it is a library (win32 dll) }
         map           : punitmap; { mapping of all used units }
-        unitcount     : longint;  { local unit counter }
+        mapsize       : longint;  { number of units in the map }
         globalsymtable,           { pointer to the global symtable of this unit }
         localsymtable : tsymtable;{ pointer to the local symtable of this unit }
         scanner       : pointer;  { scanner object used }
@@ -130,8 +133,9 @@ interface
         procedure reset;virtual;
         procedure adddependency(callermodule:tmodule);
         procedure flagdependent(callermodule:tmodule);
-        function  addusedunit(hp:tmodule;inuses:boolean):tused_unit;
+        function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         procedure numberunits;
+        procedure allunitsused;
         procedure setmodulename(const s:string);
       end;
 
@@ -143,7 +147,8 @@ interface
           in_interface,
           is_stab_written : boolean;
           u               : tmodule;
-          constructor create(_u : tmodule;intface,inuses:boolean);
+          unitsym         : tunitsym;
+          constructor create(_u : tmodule;intface,inuses:boolean;usym:tunitsym);
        end;
 
        tdependent_unit = class(tlinkedlistitem)
@@ -302,13 +307,14 @@ implementation
                               TUSED_UNIT
  ****************************************************************************}
 
-    constructor tused_unit.create(_u : tmodule;intface,inuses:boolean);
+    constructor tused_unit.create(_u : tmodule;intface,inuses:boolean;usym:tunitsym);
       begin
         u:=_u;
         in_interface:=intface;
         in_uses:=inuses;
         is_stab_written:=false;
         unitid:=0;
+        unitsym:=usym;
         if _u.state=ms_compiled then
          begin
            checksum:=u.crc;
@@ -373,12 +379,12 @@ implementation
         interface_crc:=0;
         flags:=0;
         scanner:=nil;
-        new(map);
+        map:=nil;
+        mapsize:=0;
         globalsymtable:=nil;
         localsymtable:=nil;
         loaded_from:=LoadedFrom;
         do_reload:=false;
-        unitcount:=1;
         do_compile:=false;
         sources_avail:=true;
         recompile_reason:=rr_unknown;
@@ -509,7 +515,12 @@ implementation
             localsymtable.free;
             localsymtable:=nil;
           end;
-        fillchar(map^,sizeof(tunitmap),#0);
+        if assigned(map) then
+          begin
+            freemem(map);
+            map:=nil;
+          end;
+        mapsize:=0;
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
         librarydata.free;
@@ -546,7 +557,6 @@ implementation
         crc:=0;
         interface_crc:=0;
         flags:=0;
-        unitcount:=1;
         recompile_reason:=rr_unknown;
         {
           The following fields should not
@@ -596,11 +606,11 @@ implementation
       end;
 
 
-    function tmodule.addusedunit(hp:tmodule;inuses:boolean):tused_unit;
+    function tmodule.addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
       var
         pu : tused_unit;
       begin
-        pu:=tused_unit.create(hp,in_interface,inuses);
+        pu:=tused_unit.create(hp,in_interface,inuses,usym);
         used_units.concat(pu);
         addusedunit:=pu;
       end;
@@ -608,33 +618,54 @@ implementation
 
     procedure tmodule.numberunits;
       var
-        counter : word;
-        hp      : tused_unit;
-        hp1     : tmodule;
+        pu : tused_unit;
+        hp : tmodule;
+        i  : integer;
       begin
         { Reset all numbers to -1 }
-        hp1:=tmodule(loaded_units.first);
-        while assigned(hp1) do
+        hp:=tmodule(loaded_units.first);
+        while assigned(hp) do
          begin
-           if assigned(hp1.globalsymtable) then
-             hp1.globalsymtable.unitid:=$ffff;
-           hp1:=tmodule(hp1.next);
+           if assigned(hp.globalsymtable) then
+             hp.globalsymtable.unitid:=$ffff;
+           hp:=tmodule(hp.next);
          end;
+        { Allocate map }
+        mapsize:=used_units.count+1;
+        reallocmem(map,mapsize*sizeof(tunitmaprec));
         { Our own symtable gets unitid 0, for a program there is
           no globalsymtable }
         if assigned(globalsymtable) then
           globalsymtable.unitid:=0;
-        map^[0]:=self;
+        map[0].u:=self;
+        map[0].unitsym:=nil;
         { number units and map }
-        counter:=1;
-        hp:=tused_unit(used_units.first);
-        while assigned(hp) do
-         begin
-           tsymtable(hp.u.globalsymtable).unitid:=counter;
-           map^[counter]:=hp.u;
-           inc(counter);
-           hp:=tused_unit(hp.next);
-         end;
+        i:=1;
+        pu:=tused_unit(used_units.first);
+        while assigned(pu) do
+          begin
+            if assigned(pu.u.globalsymtable) then
+              begin
+                tsymtable(pu.u.globalsymtable).unitid:=i;
+                map[i].u:=pu.u;
+                map[i].unitsym:=pu.unitsym;
+                inc(i);
+              end;
+            pu:=tused_unit(pu.next);
+          end;
+      end;
+
+
+    procedure tmodule.allunitsused;
+      var
+        i : longint;
+      begin
+        for i:=0 to mapsize-1 do
+          begin
+            if assigned(map[i].unitsym) and
+               (map[i].unitsym.refs=0) then
+              MessagePos2(map[i].unitsym.fileinfo,sym_n_unit_not_used,map[i].u.modulename^,modulename^);
+          end;
       end;
 
 
@@ -652,7 +683,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2003-10-01 20:34:48  peter
+  Revision 1.39  2003-10-22 15:22:33  peter
+    * fixed unitsym-globalsymtable relation so the uses of a unit
+      is counted correctly
+
+  Revision 1.38  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
