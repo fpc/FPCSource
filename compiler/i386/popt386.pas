@@ -1946,7 +1946,12 @@ Begin
                     Taicpu(p).LoadReg(0,Taicpu(p).oper[1].reg);
                   End;
               A_MOVZX:
-                Begin
+                { if register vars are on, it's possible there is code like }
+                {   "cmpl $3,%eax; movzbl 8(%ebp),%ebx; je .Lxxx"           }
+                { so we can't safely replace the movzx then with xor/mov,   }
+                { since that would change the flags (JM)                    }
+                if not(cs_regalloc in aktglobalswitches) then
+                 Begin
                   If (Taicpu(p).oper[1].typ = top_reg) Then
                     If (Taicpu(p).oper[0].typ = top_reg)
                       Then
@@ -2003,7 +2008,10 @@ End.
 
 {
   $Log$
-  Revision 1.11  2001-04-02 21:20:39  peter
+  Revision 1.12  2001-04-06 14:06:03  jonas
+    * fixed incompatibility between new regvar handling and -Op2
+
+  Revision 1.11  2001/04/02 21:20:39  peter
     * resulttype rewrite
 
   Revision 1.10  2001/02/08 12:13:40  jonas
