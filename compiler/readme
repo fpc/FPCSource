@@ -1,0 +1,15 @@
+This directory contains the sources of the Free Pascal Compiler
+
+To recompile the compiler, use the batch file
+mppc386.bat
+
+If you want to build a m68k version to cross compile from i386 to m68k
+use the batch file
+mppc68k.bat
+
+If you want to modify the compiler, please read first the compiler
+writer's guide (cws.txt) in that directory.
+
+
+Changes in the syntax or semantic of FPC:
+-----------------------------------------
