@@ -28,13 +28,18 @@ uses
 
 implementation
 
+{ Read OS-dependent files }
+{$i osfile.inc}
 {$i classes.inc}
 
 end.
 
 {
   $Log$
-  Revision 1.4  1998-10-26 23:01:52  florian
+  Revision 1.5  1998-10-30 14:49:03  michael
+  + Empty implementation of file functions
+
+  Revision 1.4  1998/10/26 23:01:52  florian
     * reference to objpas unit removed, is now done by -S2
 
   Revision 1.3  1998/05/06 13:00:25  michael
