@@ -31,7 +31,6 @@ Fixed bugs:
                 and the evalution of constant sets                  OK 0.9.3
   bug0022.pp    tests getting the address of a method               OK 0.9.3
   bug0023.pp    tests handling of self pointer in nested methods    OK 0.9.3
-
   bug0025.pp    tests for a wrong uninit. var. warning              OK 0.9.3
   bug0026.pp    tests for a wrong unused. var. warning              OK 0.9.4
   bug0027.pp    tests
@@ -64,7 +63,7 @@ Fixed bugs:
   bug0046.pp    problems with sets with values over 128 due to      OK 0.99.1 (FK)
                 sign extension
                  (already fixed ) but also for SET_IN_BYTE
-  bug0047.pp    compiling with -So crashes the compiler             OK 0.99.1 (CEC)
+  bug0047.pp    compiling with -So crashes the compiler              OK 0.99.1 (CEC)
   bug0053.pp    shows a problem with open arrays                     OK 0.99.1 (FK)
                 (crashes a win95-DOS box :) )
   bug0054.pp    wordbool and longbool types are missed               OK 0.99.6 (PFV)
@@ -78,16 +77,17 @@ Fixed bugs:
                 constants
   bug0060.pp    shows missing type checking for case statements      OK 0.99.1 (CEC)
   bug0061.pp    shows wrong errors when compiling (NOT A BUG)        OK 0.99.1
-  bug0062.pp    shows illegal type conversion for boolean            OK 0.99.6
+  bug0062.pp    shows illegal type conversion for boolean            OK 0.99.6 (PFV)
+  bug0063.pp    shows problem with ranges in sets for variables      OK 0.99.7 (PFV)
   bug0064.pp    shows other types of problems with case statements   OK 0.99.1 (FK)
   bug0065.pp    shows that frac() doesn't work correctly.            OK 0.99.1 (PFV)
   bug0066.pp    shows that Round doesn't work correctly. (NOT A BUG) OK 0.99.1
   bug0067.pp and bug0067b.pp (Work together)                         OK 0.99.1
       Shows incorrect symbol resolution when using uses in implementation
       More info can be found in file bug0067b.pp.
-  bug0068.pp   Shows incorrect type of ofs()                         OK 0.99.1 (PFV and FK)
+  bug0068.pp    Shows incorrect type of ofs()                        OK 0.99.1 (PFV and FK)
   bug0069.pp    Shows problem with far qualifier in units            OK 0.99.1 (CEC)
-  bug0070.pp   shows missing include and exclude from rtl            OK 0.99.6 (MVC)
+  bug0070.pp    shows missing include and exclude from rtl           OK 0.99.6 (MVC)
   bug0071.pp    shows that an unterminated constant string in a      OK 0.99.1 (PFV)
                 writeln() statement crashes the compiler.
   bug0072.pp    causes an internal error 10  ( i386 ONLY )           OK 0.99.1 (FK)
@@ -104,6 +104,7 @@ Fixed bugs:
   bug0080.pp   Shows Missing High() (internal) function.             OK 0.99.6 (MVC)
   bug0081.pp   Shows incompatibility with borland's 'array of char'. OK 0.99.1 (FK)
   bug0082.pp   Shows incompatibility with BP : Multiple destructors. OK 0.99.1 (FK)
+  bug0083.pp   shows missing "dynamic" set constructor               OK 0.99.7 (PFV)
   bug0084.pp   no more pascal type checking                          OK 0.99.1 (FK)
   bug0085.pp   shows runerror 216                                    OK 0.99.1 (CEC)
   bug0086.pp   shows runerror 216                                    OK 0.99.1 (CEC)
@@ -186,8 +187,6 @@ bug0050.pp   can't set a function result in a nested procedure of a function
 bug0051.pp   shows a problem with putpixel
 bug0052.pp   collects missing graph unit routines
 bug0057.pp   shows a crash with switch graph/text/graph
-bug0063.pp   shows problem with ranges in sets for variables
-bug0083.pp   shows missing "dynamic" set constructor
 bug0090.pp   shows PChar comparison problem
 bug0091.pp   missing standard functions in constant expressions
 bug0123.pp   problem with intel assembler (shrd)
@@ -203,3 +202,7 @@ bug0148.pp   crash when setting function result of a declared but not yet
 bug0150.pp   Shows that the assert() macro is missing under Delphi.
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
+bug0153.pp   indexing a local/para var should produce an error like tp7 because
+             it's doomed to crash
+bug0154.pp   Subrange types give type mismatch when assigning to base type
+
