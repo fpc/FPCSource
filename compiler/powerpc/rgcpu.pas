@@ -62,7 +62,7 @@ unit rgcpu;
     function trgcpu.getexplicitregisterint(list: taasmoutput; reg: Tnewregister): tregister;
 
       begin
-        if ((reg shr 8) in [RS_R0,RS_R2..RS_R12]) and
+        if ((reg shr 8) in [RS_R0{$ifndef newra},RS_R2..RS_R12{$endif}]) and
            not((reg shr 8) in is_reg_var_int) then
           begin
             if (reg shr 8) in usedpararegs then
@@ -80,7 +80,7 @@ unit rgcpu;
     procedure trgcpu.ungetregisterint(list: taasmoutput; reg: tregister);
 
       begin
-        if ((reg.number shr 8) in [RS_R0,RS_R2..RS_R12]) and
+        if ((reg.number shr 8) in [RS_R0{$ifndef newra},RS_R2..RS_R12{$endif newra}]) and
             not((reg.number shr 8) in is_reg_var_int) then
           begin
             if not((reg.number shr 8) in usedpararegs) then
@@ -163,7 +163,11 @@ end.
 
 {
   $Log$
-  Revision 1.12  2003-06-17 16:34:44  jonas
+  Revision 1.13  2003-07-06 15:27:44  jonas
+    * make sure all registers except r0 are handled by the register
+      allocator for -dnewra
+
+  Revision 1.12  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent
