@@ -67,6 +67,7 @@ Const
   SUnknownParamFieldType   = 'Unknown fieldtype for parameter "%s".';
   SMetadataUnavailable     = 'The metadata is not available for this type of database.';
   SDeletedRecord           = 'The record is deleted.';
+  SIndexNotFound           = 'Index ''%s'' not found';
 
 Implementation
 
@@ -74,7 +75,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2005-02-14 17:13:12  peter
+  Revision 1.9  2005-03-18 10:17:34  michael
+  + Patch to IndexDefs from Alexandrov Alexandru
+
+  Revision 1.8  2005/02/14 17:13:12  peter
     * truncate log
 
   Revision 1.7  2005/02/07 11:23:04  joost

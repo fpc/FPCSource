@@ -48,8 +48,8 @@ type
 { Misc Dataset types }
 
   TDataSetState = (dsInactive, dsBrowse, dsEdit, dsInsert, dsSetKey,
-    dsCalcFields, dsFilter, dsNewValue, dsOldValue, dsCurValue);
-
+    dsCalcFields, dsFilter, dsNewValue, dsOldValue, dsCurValue, dsBlockRead,
+    dsInternalCalc, dsOpening);
 
   TDataEvent = (deFieldChange, deRecordChange, deDataSetChange,
     deDataSetScroll, deLayoutChange, deUpdateRecord, deUpdateState,
@@ -678,8 +678,9 @@ type
 
   TIndexDefs = class;
 
-  TIndexOptions = set of (ixPrimary, ixUnique, ixDescending,
-    ixCaseInsensitive, ixExpression);
+  TIndexOption = (ixPrimary, ixUnique, ixDescending, ixCaseInsensitive,
+    ixExpression, ixNonMaintained);
+  TIndexOptions = set of TIndexOption;
 
   TIndexDef = class(TCollectionItem)
   Private
@@ -714,10 +715,11 @@ type
     Function AddIndexDef: TIndexDef;
     procedure Assign(IndexDefs: TIndexDefs);
 //    procedure Clear;
+    function Find(const IndexName: string): TIndexDef;
     function FindIndexForFields(const Fields: string): TIndexDef;
     function GetIndexForFields(const Fields: string;
       CaseInsensitive: Boolean): TIndexDef;
-//    function IndexOf(const Name: string): Longint;
+    function IndexOf(const Name: string): Longint;
     procedure Update;
 //    property Count: Longint read FCount;
     Property Items[Index: Integer] : TIndexDef read GetItem write SetItem; default;
@@ -1637,7 +1639,10 @@ Const
       'Cursor'
     );}
 
-   dsEditModes = [dsEdit, dsInsert];
+  dsEditModes = [dsEdit, dsInsert, dsSetKey];
+  dsWriteModes = [dsEdit, dsInsert, dsSetKey, dsCalcFields, dsFilter,
+    dsNewValue, dsInternalCalc];
+
 { Auxiliary functions }
 
 Procedure DatabaseError (Const Msg : String);
@@ -1754,6 +1759,18 @@ begin
   //!! To be implemented
 end;}
 
+function TIndexDefs.Find(const IndexName: string): TIndexDef;
+var i: integer;
+begin
+  Result := Nil;
+  for i := 0 to Count - 1 do
+    if AnsiSameText(Items[i].Name, IndexName) then begin
+      Result := Items[i];
+      Break;
+    end;
+  if Result := Nil Then DatabaseErrorFmt(SIndexNotFound, [IndexName], DataSet);
+end;
+
 function TIndexDefs.FindIndexForFields(const Fields: string): TIndexDef;
 
 begin
@@ -1769,11 +1786,17 @@ begin
 end;
 
 
-{function TIndexDefs.IndexOf(const Name: string): Longint;
+function TIndexDefs.IndexOf(const Name: string): Longint;
 
+var i: LongInt;
 begin
-  //!! To be implemented
-end;}
+  Result := -1;
+  for i := 0 to Count - 1 do 
+    if Items[i].Name = Name then begin
+      Result := i;
+      Break;
+    end;
+end;
 
 
 procedure TIndexDefs.Update;
@@ -1842,7 +1865,10 @@ end.
 
 {
   $Log$
-  Revision 1.38  2005-02-16 09:31:58  michael
+  Revision 1.39  2005-03-18 10:17:34  michael
+  + Patch to IndexDefs from Alexandrov Alexandru
+
+  Revision 1.38  2005/02/16 09:31:58  michael
   - Remove TTimeField and TDateField GetDataSize functions since both are exactly
     equal to their ancestor: TDateTimeField.GetDataSize
   - TAutoInc fields are set to ReadyOnly on create
