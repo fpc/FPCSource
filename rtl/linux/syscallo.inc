@@ -93,7 +93,9 @@ asm
   lwz  r4, 8(r4)
 { Go ! }
   sc
-  nop
+  bns  Lsyscallo_ok
+  neg  r3,r3
+Lsyscallo_ok:
 { Put back the registers... }
   lwz    r8, regs
   stw    r3, 0(r8)
@@ -184,7 +186,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-06-04 15:18:14  peter
+  Revision 1.4  2003-06-17 16:39:58  jonas
+    * fixed old syscall handling for ppc
+
+  Revision 1.3  2003/06/04 15:18:14  peter
     * compile fix for systhrds
 
   Revision 1.2  2003/04/22 17:07:55  florian
