@@ -25,8 +25,8 @@
 
  begin
   //init the array
-  for i:=0 to 299
-      do werte[i]:=Random(5)-2;
+  for i:=0 to 299  do
+    werte[i]:=random(5);
 
   //and do something with it
   writeln(erwwert(werte):6:5);
