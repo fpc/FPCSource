@@ -22,3 +22,5 @@ ex12.pp This program demonstrates the GetPropInfos function
 ex13.pp This program demonstrates the GetPropList function 
 ex14.pp This program demonstrates the FindPropInfo function
 ex15.pp This program demonstrates the GetInt64Prop function
+ex16.pp This program demonstrates the PropIsType function
+ex17.pp This program demonstrates the PropType function

@@ -454,8 +454,7 @@ If the property \var{PropName} does not exist, \var{Nil} is returned.
 \seep{GetPropInfos},\seef{GetPropList}
 \end{function}
 
-for an example, see most of the other functions.
-
+For an example, see most of the other functions.
 
 \begin{procedure}{GetPropInfos}
 \Declaration
@@ -596,6 +595,8 @@ in an \var{EPropertyError} exception.
 \seef{IsStoredProp}, \seef{PropIsType}
 \end{function}
 
+\FPCexample{ex10}
+
 \begin{function}{IsStoredProp}
 \Declaration
 Function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;\\
@@ -619,6 +620,8 @@ Specifying an invalid property name in \var{PropName} will result in an
 \seef{IsPublishedProp}, \seef{PropIsType}
 \end{function}
 
+\FPCexample{ex11}
+
 \begin{function}{PropIsType}
 \Declaration
 Function PropIsType(AClass: TClass; 
@@ -641,6 +644,8 @@ in an \var{EPropertyError} exception.
 \seef{IsPublishedProp}, \seef{IsStoredProp}, \seef{PropType}
 \end{function}
 
+\FPCexample{ex16}
+
 \begin{function}{PropType}
 \Declaration
 Function PropType(AClass: TClass; const PropName: string): TTypeKind;\\
@@ -659,6 +664,8 @@ in an \var{EPropertyError} exception.
 \SeeAlso
 \seef{IsPublishedProp}, \seef{IsStoredProp}, \seef{PropIsType}
 \end{function}
+
+\FPCexample{ex17}
 
 \begin{procedure}{SetEnumProp}
 \Declaration
@@ -679,6 +686,8 @@ in an \var{EPropertyError} exception.
 \seef{GetEnumProp}, \seep{SetStrProp}, \seep{SetFloatProp},
 \seep{SetInt64Prop},\seep{SetMethodProp}.
 \end{procedure}
+
+For an example, see \seef{GetEnumProp}.
 
 \begin{procedure}{SetFloatProp}
 \Declaration
@@ -701,6 +710,9 @@ Specifying an invalid property name in \var{PropName} will result in an
 \seep{SetInt64Prop},\seep{SetMethodProp}
 \end{procedure}
 
+For an example, see \seef{GetFloatProp}.
+
+
 \begin{procedure}{SetInt64Prop}
 \Declaration
 Procedure SetInt64Prop(Instance: TObject; PropInfo: PPropInfo; const Value: Int64);\\
@@ -718,6 +730,9 @@ Specifying an invalid property name in \var{PropName} will result in an
 \seef{GetInt64Prop}, \seef{GetMethodProp}, \seep{SetOrdProp}, \seep{SetStrProp},
 \seep{SetFloatProp}
 \end{procedure}
+
+For an example, see \seef{GetInt64Prop}.
+
 
 \begin{procedure}{SetMethodProp}
 \Declaration
@@ -747,6 +762,9 @@ Specifying an invalid property name in \var{PropName} will result in an
 \seep{SetFloatProp}, \seep{SetInt64Prop}
 \end{procedure}
 
+For an example, see \seef{GetMethodProp}.
+
+
 \begin{procedure}{SetObjectProp}
 \Declaration
 Procedure SetObjectProp(Instance: TObject; 
@@ -765,6 +783,8 @@ Specifying an invalid property name in \var{PropName} will result in an
 \seef{GetObjectProp}, \seep{SetOrdProp}, \seep{SetStrProp},
 \seep{SetFloatProp}, \seep{SetInt64Prop}, \seep{SetMethodProp}
 \end{procedure}
+
+For an example, see \seef{GetObjectProp}.
 
 \begin{procedure}{SetOrdProp}
 \Declaration
@@ -798,11 +818,17 @@ Specifying an invalid property name in \var{PropName} will result in an
 \seep{SetInt64Prop},\seep{SetMethodProp}
 \end{procedure}
 
+
+For an example, see \seef{GetOrdProp}.
+
+
 \begin{procedure}{SetPropValue}
 \Declaration
 Procedure SetPropValue(Instance: TObject; 
                        const PropName: string; const Value: Variant);                   
 \Description
+Due to missing Variant support, this function is not yet implemented;
+it is provided for Delphi compatibility only.
 \Errors
 \SeeAlso
 \end{procedure}
@@ -814,9 +840,26 @@ Procedure SetSetProp(Instance: TObject;
 Procedure SetSetProp(Instance: TObject;
                      const PropName: string; const Value: string);                      
 \Description
+\var{SetSetProp} sets the property specified by \var{PropInfo} or
+\var{PropName} for object \var{Instance} to \var{Value}. \var{Value} is a
+string which contains a comma-separated list of values, each value being a
+string-representation of the enumerated value that should be included in
+the set. The value should be accepted by the \seef{StringToSet} function.
+
+The value can be formed using the \seef{SetToString} function.
 \Errors
+No checking is done whether \var{Instance} is non-nil, or whether
+\var{PropInfo} describes a valid ordinal property of \var{Instance}.
+No range checking is performed.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.                                                 
 \SeeAlso
+\seef{GetSetProp}, \seep{SetOrdProp}, \seep{SetStrProp}, \seep{SetFloatProp},
+\seep{SetInt64Prop},\seep{SetMethodProp}, \seef{SetToString},
+\seef{StringToSet}
 \end{procedure}
+
+For an example, see \seef{GetSetProp}.
 
 \begin{procedure}{SetStrProp}
 \Declaration
@@ -827,6 +870,7 @@ Procedure SetStrProp(Instance: TObject; const PropName: string;
 \Description
 \var{SetStrProp} assigns \var{Value} to the string property described by
 \var{PropInfo} or with name \var{Propname} for object \var{Instance}. 
+
 \Errors
 No checking is done whether \var{Instance} is non-nil, or whether
 \var{PropInfo} describes a valid string property of \var{Instance}.
@@ -837,6 +881,8 @@ Specifying an invalid property name in \var{PropName} will result in an
 \seep{SetInt64Prop},\seep{SetMethodProp}
 \end{procedure}
 
+For an example, see \seef{GetStrProp}
+
 \begin{function}{SetToString}
 \Declaration
 function SetToString(PropInfo: PPropInfo; 
@@ -844,6 +890,10 @@ function SetToString(PropInfo: PPropInfo;
 function SetToString(PropInfo: PPropInfo; 
                      Value: Integer; Brackets: Boolean) : String;
 \Description
+\var{SetToString} takes an integer representation of a set (as received e.g.
+by \var{GetOrdProp}) and turns it into a string representing the elements in
+the set, based on the type information found in the \var{PropInfo} property
+information.
 \Errors
 \SeeAlso
 \end{function}
