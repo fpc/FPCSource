@@ -37,7 +37,7 @@ BININSTALLDIR=/usr/bin
 # BININSTALLDIR=\pp\bin
 
 # set here the type of the ppc386 you use:
-# Choose from: dos go32v2 linux or os2
+# Choose from: go32v1 go32v2 linux or os2
 OS_SRC=linux
 
 # Set redir to YES if you want a log file to be kept.
@@ -160,24 +160,24 @@ OPT:=$(OPT) -d$(CPU)
 export OS_SRC DOS SEP PP OPT REDIR COPY DEL LIBINSTALLDIR INSTALL MKDIR \
        REFPATH CPU PPUMOVE UNITINSTALLDIR
 
-.PHONY: rtl_dos rtl_go32v2 rtl_linux rtl_os2 clean install install_os2 install_linux \
-        install_go3v2 install_dos native diffs diffclean libs libinstall utils\
+.PHONY: rtl_go32v1 rtl_go32v2 rtl_linux rtl_os2 clean install install_os2 install_linux \
+        install_go3v2 install_go32v1 native diffs diffclean libs libinstall utils\
         utils_install
 
 native: rtl$(OS_SRC)
 
 nativelibs : $(OS_SRC)libs
 
-all: rtldos rtlgo32v2 rtllinux rtlos2
+all: rtlgo32v1 rtlgo32v2 rtllinux rtlos2
 
-libs: doslibs go32v2libs linuxlibs os2libs
+libs: go32v1libs go32v2libs linuxlibs os2libs
 
 diffs: diffs_rtl diffs_inc diffs_i386 diffs_m68k diffs_dos diffs_cfg \
 	diffs_os2 diffs_go32v1 diffs_go32v2 diffs_linux diffs_template
 
 
-rtldos:
-	$(MAKE) -C dos/go32v1 CFGFILE=../../cfg/ppdos.cfg OS_TARGET=dos
+rtlgo32v1:
+	$(MAKE) -C dos/go32v1 CFGFILE=../../cfg/ppdos.cfg OS_TARGET=go32v1
 
 rtlgo32v2:
 	$(MAKE) -C dos/go32v2 CFGFILE=../../cfg/ppgo32v2.cfg  OS_TARGET=go32v2
@@ -188,8 +188,8 @@ rtllinux:
 rtlos2:
 	$(MAKE) -C os2 CFGFILE=../cfg/ppos2.cfg OS_TARGET=os2
 
-doslibs:
-	$(MAKE) -C dos/go32v1 CFGFILE=../../cfg/ppdos.cfg OS_TARGET=dos libs
+go32v1libs:
+	$(MAKE) -C dos/go32v1 CFGFILE=../../cfg/ppdos.cfg OS_TARGET=go32v1 libs
 
 go32v2libs:
 	$(MAKE) -C dos/go32v2 CFGFILE=../../cfg/ppgo32v2.cfg  OS_TARGET=go32v2 libs
@@ -227,9 +227,9 @@ diffclean:
 	-$(DEL) *.dif
 
 
-install: install_linux install_dos install_go32v2 install_os2
+install: install_linux install_go32v1 install_go32v2 install_os2
 
-libinstall: libinstall_linux libinstall_dos libinstall_go32v2 libinstall_os2
+libinstall: libinstall_linux libinstall_go32v1 libinstall_go32v2 libinstall_os2
 
 native_install: install_$(OS_SRC)
 
@@ -262,7 +262,7 @@ diffs_linux:
 diffs_os2:
 	$(MAKE) -C os2 diffs
 
-install_dos:
+install_go32v1:
 	$(MAKE) -C dos/go32v1 install
 install_go32v2:
 	$(MAKE) -C dos/go32v2 install
@@ -271,7 +271,7 @@ install_linux:
 install_os2:
 	$(MAKE) -C os2 install
 
-libinstall_dos:
+libinstall_go32v1:
 	$(MAKE) -C dos/go32v1 libinstall
 libinstall_go32v2:
 	$(MAKE) -C dos/go32v2 libinstall
