@@ -57,6 +57,7 @@ ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
 LINUXUNIT=
 PRT0=prt0
+override FPCOPT+=-dNOMOUSE
 else
 SYSTEMUNIT=sysbsd
 LINUXUNIT=linux
