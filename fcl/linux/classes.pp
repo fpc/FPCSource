@@ -16,6 +16,11 @@
 
 {$mode objfpc}
 
+{ Require threading }
+{$ifndef ver1_0}
+  {$threading on}
+{$endif ver1_0}
+
 { determine the type of the resource/form file }
 {$define Win16Res}
 
@@ -55,7 +60,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:15:27  peter
+  Revision 1.6  2002-10-14 19:45:54  peter
+    * threading switch
+
+  Revision 1.5  2002/09/07 15:15:27  peter
     * old logs removed and tabs fixed
 
 }
