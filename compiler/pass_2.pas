@@ -288,6 +288,13 @@ implementation
 {$ifdef TEMPREGDEBUG}
             curptree:=prevp;
 {$endif TEMPREGDEBUG}
+{$ifdef EXTTEMPREGDEBUG}
+            if p^.usableregs-usablereg32>p^.reallyusedregs then
+              p^.reallyusedregs:=p^.usableregs-usablereg32;
+            if p^.reallyusedregs<p^.registers32 then
+              Comment(V_Debug,'registers32 overestimated '+tostr(p^.registers32)+
+                '>'+tostr(p^.reallyusedregs));
+{$endif EXTTEMPREGDEBUG}
           end
          else
            codegenerror:=true;
@@ -664,7 +671,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-08-25 12:00:01  jonas
+  Revision 1.35  1999-08-27 10:46:26  pierre
+   + some EXTTEMPREGDEBUG code added
+
+  Revision 1.34  1999/08/25 12:00:01  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.33  1999/08/24 09:07:04  pierre
