@@ -1,4 +1,10 @@
-{$if linux or win32}
+{$ifdef linux}
+  {$define doit}
+{$endif}
+{$ifdef win32}
+  {$define doit}
+{$endif}
+{$ifdef doit}
 library tbs0263;
 
 {
