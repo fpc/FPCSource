@@ -12,7 +12,7 @@ rule=allexectests
 
 [rules]
 # Subdirs available in the test subdir
-TESTSUBDIRS=cg units/system units/dos units/crt
+TESTSUBDIRS=cg units/system units/dos units/crt units/objects
 
 # All full dirnames in the test/ dir including the subdir self
 TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
@@ -77,7 +77,7 @@ endif
 # Test run targets
 #
 
-DIRS=webtbs webtbf tbs tbf test
+DIRS=webtbs webtbf tbs tbf test test/cg test/units/system test/units/objects
 
 %.log : %.pp
         $(DOTEST) $(DOTESTOPT) $<
