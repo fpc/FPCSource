@@ -1522,7 +1522,7 @@ TYPE
 
    IClassFactory = Interface(IUnknown)
       ['{00000001-0000-0000-C000-000000000046}']
-      Function CreateInstance(Const unkOuter:IUnknown;Const riid : TIID;Out vObject : Pointer):HResult; StdCall;
+      Function CreateInstance(Const unkOuter:IUnknown;Const riid : TIID;Out vObject):HResult; StdCall;
       Function LockServer(fLock : Bool):HResult;StdCall;
       End;
 
@@ -2684,7 +2684,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2003-10-05 20:30:09  florian
+  Revision 1.12  2004-05-07 13:26:31  marco
+   * COM related fixes from bug 3090
+
+  Revision 1.11  2003/10/05 20:30:09  florian
     + necessary declarations for dx8 headers added
 
   Revision 1.10  2003/10/05 19:10:31  florian

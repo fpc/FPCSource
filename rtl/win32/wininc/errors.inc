@@ -746,7 +746,7 @@
      E_NOTIMPL = DWORD($80004001);
      E_OUTOFMEMORY = DWORD($8007000E);
      E_INVALIDARG = DWORD($80070057);
-     E_NOINTERFACE = DWORD($80004002);
+     E_NOINTERFACE = HRESULT($80004002);
      E_POINTER = DWORD($80004003);
      E_HANDLE = DWORD($80070006);
      E_ABORT = DWORD($80004004);
@@ -1166,7 +1166,10 @@
 
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:31  peter
+  Revision 1.5  2004-05-07 13:26:31  marco
+   * COM related fixes from bug 3090
+
+  Revision 1.4  2002/09/07 16:01:31  peter
     * old logs removed and tabs fixed
 
 }
