@@ -525,24 +525,23 @@ Begin
 End;
 
 
+{$ifdef INTERNDOUBLE}
 
-Procedure Write_Real(fixkomma,Len : Longint;var t : TextRec;r : real);[Public,Alias:'FPC_WRITE_TEXT_REAL'];
+Procedure Write_Float(rt,fixkomma,Len : Longint;var t : TextRec;r : ValReal);[Public,Alias:'FPC_WRITE_TEXT_FLOAT'];
 var
-   s : String;
+  s : String;
 Begin
   If (InOutRes<>0) then
    exit;
-{$ifdef i386}
-   Str_real(Len,fixkomma,r,rt_s64real,s);
-{$else}
-   Str_real(Len,fixkomma,r,rt_s32real,s);
-{$endif}
-   Write_Str(Len,t,s);
+  Str_real(Len,fixkomma,r,treal_type(rt),s);
+  Write_Str(Len,t,s);
 End;
+
+{$else INTERNDOUBLE}
 
 
 {$ifdef SUPPORT_SINGLE}
-Procedure Write_Single(fixkomma,Len : Longint;var t : TextRec;r : single);[Public,Alias:'FPC_WRITE_TEXT_SINGLE'];
+Procedure Write_S32Real(fixkomma,Len : Longint;var t : TextRec;r : single);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef INTERNDOUBLE}'S32REAL'{$else}'SINGLE'{$endif}];
 var
   s : String;
 Begin
@@ -551,11 +550,24 @@ Begin
   Str_real(Len,fixkomma,r,rt_s32real,s);
   Write_Str(Len,t,s);
 End;
-{$endif SUPPORT_SINGLE}
+{$endif SUPPORT_S32REAL}
+
+
+{$ifdef SUPPORT_DOUBLE}
+Procedure Write_s64Real(fixkomma,Len : Longint;var t : TextRec;r : double);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef INTERNDOUBLE}'S64'{$endif}+'REAL'];
+var
+   s : String;
+Begin
+  If (InOutRes<>0) then
+   exit;
+   Str_real(Len,fixkomma,r,rt_s64real,s);
+   Write_Str(Len,t,s);
+End;
+{$endif SUPPORT_S64REAL}
 
 
 {$ifdef SUPPORT_EXTENDED}
-Procedure Write_Extended(fixkomma,Len : Longint;var t : TextRec;r : extended);[Public,Alias:'FPC_WRITE_TEXT_EXTENDED'];
+Procedure Write_S80Real(fixkomma,Len : Longint;var t : TextRec;r : extended);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef INTERNDOUBLE}'S80REAL'{$else}'EXTENDED'{$endif}];
 var
   s : String;
 Begin
@@ -564,24 +576,24 @@ Begin
   Str_real(Len,fixkomma,r,rt_s80real,s);
   Write_Str(Len,t,s);
 End;
-{$endif SUPPORT_EXTENDED}
+{$endif SUPPORT_S80REAL}
 
 
 {$ifdef SUPPORT_COMP}
-Procedure Write_Comp(fixkomma,Len : Longint;var t : TextRec;r : comp);[Public,Alias:'FPC_WRITE_TEXT_COMP'];
+Procedure Write_C64Bit(fixkomma,Len : Longint;var t : TextRec;r : comp);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef INTERNDOUBLE}'C64BIT'{$else}'COMP'{$endif}];
 var
   s : String;
 Begin
   If (InOutRes<>0) then
    exit;
-  Str_real(Len,fixkomma,r,rt_s64bit,s);
+  Str_real(Len,fixkomma,r,rt_c64bit,s);
   Write_Str(Len,t,s);
 End;
-{$endif SUPPORT_COMP}
+{$endif SUPPORT_C64BIT}
 
 
 {$ifdef SUPPORT_FIXED}
-Procedure Write_Fixed(fixkomma,Len : Longint;var t : TextRec;r : fixed);[Public,Alias:'FPC_WRITE_TEXT_FIXED'];
+Procedure Write_Fixed(fixkomma,Len : Longint;var t : TextRec;r : fixed16);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef INTERNDOUBLE}'F16BIT'{$else}'FIXED'{$endif}];
 var
   s : String;
 Begin
@@ -590,7 +602,9 @@ Begin
   Str_real(Len,fixkomma,r,rt_f32bit,s);
   Write_Str(Len,t,s);
 End;
-{$endif SUPPORT_FIXED}
+{$endif SUPPORT_F16BIT}
+
+{$endif INTERNDOUBLE}
 
 
 Procedure Write_Boolean(Len : Longint;var t : TextRec;b : Boolean);[Public,Alias:'FPC_WRITE_TEXT_BOOLEAN'];
@@ -1211,7 +1225,10 @@ end;
 
 {
   $Log$
-  Revision 1.45  1999-04-26 18:27:26  peter
+  Revision 1.46  1999-05-06 09:05:16  peter
+    * generic write_float str_float
+
+  Revision 1.45  1999/04/26 18:27:26  peter
     * fixed write array
     * read array with maxlen
 

@@ -14,25 +14,17 @@
  **********************************************************************}
 
 type
+  { See symdefh.inc tfloattyp }
+  treal_type = (rt_s32real,rt_s64real,rt_s80real,rt_c64bit,rt_f16bit,rt_f32bit);
+  { corresponding to single   double   extended   fixed      comp for i386 }
 
-  treal_type = (rt_s64real,rt_s32real,rt_f32bit,rt_s80real,rt_s64bit);
-  { corresponding to real    single     fixed   extended and comp for i386 }
-
-{$ifdef i386}
-  {$ifdef DEFAULT_EXTENDED}
-    bestreal = extended;
-  {$else}
-    bestreal = double;
-  {$endif DEFAULT_EXTENDED}
-{$else i386}
-  bestreal = single;
-{$endif i386}
 const
    { do not use real constants else you get rouding errors }
    i10 = 10;
    i2 = 2;
    i1 = 1;
-Procedure str_real (len,f : longint; d : bestreal; real_type :treal_type; var s : string);
+
+Procedure str_real (len,f : longint; d : ValReal; real_type :treal_type; var s : string);
 {
   These numbers are for the double type...
   At the moment these are mapped onto a double but this may change
@@ -49,7 +41,7 @@ const
 
 var correct : longint;  { Power correction }
     currprec : longint;
-    roundcorr : bestreal;
+    roundcorr : Valreal;
     temp : string;
     power : string[10];
     sign : boolean;
@@ -58,13 +50,32 @@ var correct : longint;  { Power correction }
 
 begin
   case real_type of
+    rt_s32real :
+      begin
+         maxlen:=16;
+         minlen:=8;
+         explen:=4;
+      end;
     rt_s64real :
       begin
          maxlen:=23;
          minlen:=9;
          explen:=5;
       end;
-    rt_s32real :
+    rt_s80real :
+      begin
+         maxlen:=26;
+         minlen:=10;
+         explen:=6;
+      end;
+    rt_c64bit  :
+      begin
+         maxlen:=22;
+         minlen:=9;
+         { according to TP (was 5) (FK) }
+         explen:=6;
+      end;
+    rt_f16bit  :
       begin
          maxlen:=16;
          minlen:=8;
@@ -75,19 +86,6 @@ begin
          maxlen:=16;
          minlen:=8;
          explen:=4;
-      end;
-    rt_s80real :
-      begin
-         maxlen:=26;
-         minlen:=10;
-         explen:=6;
-      end;
-    rt_s64bit  :
-      begin
-         maxlen:=22;
-         minlen:=9;
-         { according to TP (was 5) (FK) }
-         explen:=6;
       end;
     end;
   { check parameters }
@@ -216,7 +214,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  1999-03-10 21:49:02  florian
+  Revision 1.13  1999-05-06 09:05:12  peter
+    * generic write_float str_float
+
+  Revision 1.12  1999/03/10 21:49:02  florian
     * str and val for extended use now int constants to minimize
       rounding error
 

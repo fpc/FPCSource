@@ -282,46 +282,56 @@ end;
                               Str() Helpers
 *****************************************************************************}
 
-procedure int_str_real(d : real;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_REAL'];
+{$ifdef INTERNDOUBLE}
+
+procedure ShortStr_Float(d : ValReal;len,fr,rt : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT'];
 begin
-{$ifdef i386}
-   str_real(len,fr,d,rt_s64real,s);
-{$else}
-   str_real(len,fr,d,rt_s32real,s);
-{$endif}
+  str_real(len,fr,d,treal_type(rt),s);
 end;
+
+{$else}
 
 
 {$ifdef SUPPORT_SINGLE}
-procedure int_str_single(d : single;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_SINGLE'];
+procedure ShortStr_Single(d : single;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_'+{$ifdef INTERNDOUBLE}'S32REAL'{$else}'SINGLE'{$endif}];
 begin
    str_real(len,fr,d,rt_s32real,s);
 end;
-{$endif SUPPORT_SINGLE}
+{$endif}
+
+
+{$ifdef SUPPORT_DOUBLE}
+procedure ShortStr_Real(d : real;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_'+{$ifdef INTERNDOUBLE}'S64'+{$endif}'REAL'];
+begin
+   str_real(len,fr,d,rt_s64real,s);
+end;
+{$endif SUPPORT_S64REAL}
 
 
 {$ifdef SUPPORT_EXTENDED}
-procedure int_str_extended(d : extended;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_EXTENDED'];
+procedure ShortStr_Extended(d : extended;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_'+{$ifdef INTERNDOUBLE}'S80REAL'{$else}'EXTENDED'{$endif}];
 begin
    str_real(len,fr,d,rt_s80real,s);
 end;
-{$endif SUPPORT_EXTENDED}
+{$endif SUPPORT_S80REAL}
 
 
 {$ifdef SUPPORT_COMP}
-procedure int_str_comp(d : comp;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_COMP'];
+procedure ShortStr_Comp(d : comp;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_'+{$ifdef INTERNDOUBLE}'C64BIT'{$else}'COMP'{$endif}];
 begin
-   str_real(len,fr,d,rt_s64bit,s);
+   str_real(len,fr,d,rt_c64bit,s);
 end;
-{$endif SUPPORT_COMP}
+{$endif SUPPORT_C64BIT}
 
 
 {$ifdef SUPPORT_FIXED}
-procedure int_str_fixed(d : fixed;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_FIXED'];
+procedure ShortStr_Fixed(d : fixed;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_'+{$ifdef INTERNDOUBLE}'F16BIT'{$else}'FIXED'{$endif}];
 begin
    str_real(len,fr,d,rt_f32bit,s);
 end;
-{$endif SUPPORT_FIXED}
+{$endif SUPPORT_F16BIT}
+
+{$endif}
 
 
 procedure int_str_longint(v : longint;len : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_LONGINT'];
@@ -1190,7 +1200,10 @@ end;
 
 {
   $Log$
-  Revision 1.27  1999-04-08 15:57:54  peter
+  Revision 1.28  1999-05-06 09:05:13  peter
+    * generic write_float str_float
+
+  Revision 1.27  1999/04/08 15:57:54  peter
     + subrange checking for readln()
 
   Revision 1.26  1999/04/05 12:28:27  michael

@@ -624,20 +624,27 @@ end;
 {$EndIf ValInternCompiled}
 
 
-{!!!!!!!!!!!!
-  We need ansistring str routines for the following types:
-  FIXED16
-  QWORD
-  INT64
-}
+
+{$ifdef INTERNDOUBLE}
+
+procedure AnsiStr_Float(d : ValReal;len,fr,rt : longint;var s : ansistring);[public,alias:'FPC_ANSISTR_FLOAT'];
+var
+  ss : shortstring;
+begin
+  str_real(len,fr,d,treal_type(rt),ss);
+  s:=ss;
+end;
+
+{$else INTERNDOUBLE}
+
 
 Procedure ACoStr (Co : Comp;Len,fr: Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_COMP'];
+  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI_'{$endif}+'COMP'];
 
 Var SS : ShortString;
 
 begin
- int_Str_comp (Co,Len,fr,SS);
+ ShortStr_comp (Co,Len,fr,SS);
  S:=SS;
 end;
 
@@ -648,7 +655,7 @@ Procedure ASiStr (Si : Single;Len,fr: Longint; Var S : AnsiString);
 Var SS : ShortString;
 
 begin
- int_Str_Single (Si,Len,fr,SS);
+ ShortStr_Single (Si,Len,fr,SS);
  S:=SS;
 end;
 
@@ -659,10 +666,11 @@ Procedure AFiStr (fi : Comp;Len,fr: Longint; Var S : AnsiString);
 Var SS : ShortString;
 
 begin
- int_Str_Fixed (fi,Len,fr,SS);
+ ShortStr_Fixed (fi,Len,fr,SS);
  S:=SS;
 end;
 {$EndIf Support_Fixed}
+
 
 Procedure ARStr (D : Real;Len,fr: Longint; Var S : AnsiString);
   [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_REAL'];
@@ -670,7 +678,7 @@ Procedure ARStr (D : Real;Len,fr: Longint; Var S : AnsiString);
 Var SS : ShortString;
 
 begin
- int_Str_real (D,Len,fr,SS);
+ ShortStr_real (D,Len,fr,SS);
  S:=SS;
 end;
 
@@ -681,10 +689,12 @@ Procedure AEStr (E : Extended;Len,Fr: Longint; Var S : AnsiString);
 Var SS : ShortString;
 
 begin
- int_Str_Extended (E,Len,fr,SS);
+ ShortStr_Extended (E,Len,fr,SS);
  S:=SS;
 end;
 
+
+{$endif INTERNDOUBLE}
 
 
 Procedure ACStr (C : Cardinal;Len : Longint; Var S : AnsiString);
@@ -761,7 +771,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  1999-04-22 10:51:17  peter
+  Revision 1.23  1999-05-06 09:05:11  peter
+    * generic write_float str_float
+
+  Revision 1.22  1999/04/22 10:51:17  peter
     * fixed pchar 2 ansi
 
   Revision 1.21  1999/04/13 09:02:06  michael

@@ -47,15 +47,19 @@ Type
 
 { at least declare Turbo Pascal real types }
 {$ifdef i386}
-  Double = real;
   StrLenInt = LongInt;
 
+  {$ifndef INTERNDOUBLE}
+    Double = real;
+  {$endif}
+
   {$define DEFAULT_EXTENDED}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
   {$define SUPPORT_EXTENDED}
   {$define SUPPORT_COMP}
-  {$define SUPPORT_SINGLE}
-  {causes internalerror(17) with internal val handling, and is not yet fully
-   supported anyway (JM)}
+
   { define SUPPORT_FIXED}
 
   ValSInt = Longint;
@@ -69,6 +73,8 @@ Type
   ValSInt = Longint;
   ValUInt = Cardinal;
   ValReal = Real;
+
+  {$define SUPPORT_SINGLE}
 {$endif}
 
 { some type aliases }
@@ -454,7 +460,10 @@ const
 
 {
   $Log$
-  Revision 1.55  1999-04-17 13:10:26  peter
+  Revision 1.56  1999-05-06 09:05:14  peter
+    * generic write_float str_float
+
+  Revision 1.55  1999/04/17 13:10:26  peter
     * addr() internal
 
   Revision 1.54  1999/04/08 15:57:56  peter
