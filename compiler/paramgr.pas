@@ -29,7 +29,7 @@ unit paramgr;
   interface
 
     uses
-       cpubase,
+       cpubase,cginfo,
        aasmtai,
        globtype,
        symconst,symtype,symdef;
@@ -70,6 +70,8 @@ unit paramgr;
             @param(list Current assembler list)
             @param(nr Parameter number of routine, starting from 1)
           }
+          function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;virtual;
+          function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;virtual;
           function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;virtual;abstract;
 
           {# frees a parameter location allocated with getintparaloc
@@ -123,7 +125,7 @@ implementation
        cpuinfo,globals,systems,
        symbase,symsym,
        rgobj,
-       defutil,cgbase,cginfo,verbose;
+       defutil,cgbase,verbose;
 
     { true if uses a parameter as return value }
     function tparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
@@ -244,6 +246,18 @@ implementation
       end;
 
 
+    function tparamanager.get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;
+      begin
+        result:=[];
+      end;
+
+
+    function tparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;
+      begin
+        result:=[];
+      end;
+
+
     procedure tparamanager.allocparaloc(list: taasmoutput; const loc: tparalocation);
       begin
         case loc.loc of
@@ -348,7 +362,11 @@ end.
 
 {
    $Log$
-   Revision 1.52  2003-09-04 15:39:58  peter
+   Revision 1.53  2003-09-07 22:09:35  peter
+     * preparations for different default calling conventions
+     * various RA fixes
+
+   Revision 1.52  2003/09/04 15:39:58  peter
      * released useparatemp
 
    Revision 1.51  2003/09/03 15:55:01  peter

@@ -138,6 +138,9 @@ interface
              exit;
            end;
 
+         { Allocate registers used in the assembler block }
+         rg.allocexplicitregistersint(exprasmlist,used_regs_int);
+
          if inlining_procedure then
            begin
              objectlibrary.CreateUsedAsmSymbolList;
@@ -220,6 +223,9 @@ interface
              else
                exprasmList.concatlist(p_asm);
            end;
+
+         { Release register used in the assembler block }
+         rg.deallocexplicitregistersint(exprasmlist,used_regs_int);
        end;
 
 
@@ -309,7 +315,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2003-09-03 15:55:00  peter
+  Revision 1.39  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.38  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.37.2.1  2003/08/27 20:23:55  peter

@@ -208,9 +208,9 @@ implementation
        paramanager.freeintparaloc(exprasmlist,3);
        paramanager.freeintparaloc(exprasmlist,2);
        paramanager.freeintparaloc(exprasmlist,1);
-       rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+       rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
        cg.a_call_name(exprasmlist,'FPC_ASSERT');
-       rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+       rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
        cg.a_label(exprasmlist,truelabel);
        truelabel:=otlabel;
        falselabel:=oflabel;
@@ -653,7 +653,11 @@ end.
 
 {
   $Log$
-  Revision 1.40  2003-09-03 15:55:00  peter
+  Revision 1.41  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.40  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.39.2.1  2003/08/29 17:28:59  peter

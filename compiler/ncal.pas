@@ -2288,7 +2288,7 @@ type
                      begin
                        { consider it has not inlined if called
                          again inside the args }
-                       procdefinition.proccalloption:=pocall_fpccall;
+                       procdefinition.proccalloption:=pocall_default;
                        firstpass(inlinecode);
                      end;
                 end
@@ -2514,7 +2514,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.178  2003-09-06 22:27:08  florian
+  Revision 1.179  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.178  2003/09/06 22:27:08  florian
     * fixed web bug 2669
     * cosmetic fix in printnode
     * tobjectdef.gettypename implemented

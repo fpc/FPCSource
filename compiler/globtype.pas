@@ -132,7 +132,7 @@ interface
          pocall_cppdecl,       { C++ calling conventions }
          pocall_compilerproc,  { Procedure is used for internal compiler calls }
          pocall_far16,         { Far16 for OS/2 }
-         pocall_fpccall,       { FPC default calling }
+         pocall_oldfpccall,    { Old style FPC default calling }
          pocall_inline,        { Procedure is an assembler macro }
          pocall_internproc,    { Procedure has compiler magic}
          pocall_palmossyscall, { procedure is a PalmOS system call }
@@ -143,13 +143,14 @@ interface
        );
        tproccalloptions = set of tproccalloption;
 
+
      const
        proccalloptionStr : array[tproccalloption] of string[14]=('',
            'CDecl',
            'CPPDecl',
            'CompilerProc',
            'Far16',
-           'FPCCall',
+           'OldFPCCall',
            'Inline',
            'InternProc',
            'PalmOSSysCall',
@@ -158,6 +159,9 @@ interface
            'SafeCall',
            'StdCall'
          );
+
+       { Default calling convention }
+       pocall_default = pocall_oldfpccall;
 
     type
        stringid = string[maxidlen];
@@ -206,7 +210,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2003-09-04 21:37:29  olle
+  Revision 1.42  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.41  2003/09/04 21:37:29  olle
     + added new lagnuage mode: MAC
 
   Revision 1.40  2003/09/03 15:55:00  peter

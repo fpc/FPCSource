@@ -1453,7 +1453,7 @@ end;
                else
                  MemInfo.Size:=getsize;
                { this is not completely correct... }
-               MemInfo.PushSize:=paramanager.push_size(varspez,vartype.def,pocall_none);
+               MemInfo.PushSize:=paramanager.push_size(varspez,vartype.def,pocall_default);
                Symbol^.SetMemInfo(MemInfo);
              end;
           constsym :
@@ -2111,7 +2111,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-04-26 00:29:17  peter
+  Revision 1.34  2003-09-07 22:09:34  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.33  2003/04/26 00:29:17  peter
     * adapted for removed funcretsym
 
   Revision 1.32  2002/12/29 14:57:50  peter

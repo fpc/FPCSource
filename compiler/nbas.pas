@@ -27,7 +27,7 @@ unit nbas;
 interface
 
     uses
-       cpubase,
+       cpubase,cginfo,
        aasmbase,aasmtai,aasmcpu,
        node,
        tgobj,
@@ -53,6 +53,9 @@ interface
           p_asm : taasmoutput;
           currenttai : tai;
           getposition : boolean;
+          { Used registers in assembler block }
+          used_regs_int : tsuperregisterset;
+          used_regs_fpu : totherregisterset;
           constructor create(p : taasmoutput);virtual;
           constructor create_get_position;
           destructor destroy;override;
@@ -180,7 +183,7 @@ implementation
       verbose,globals,globtype,systems,
       symconst,symdef,symsym,symutil,defutil,defcmp,
       pass_1,
-      nld,ncal,nflw,rgobj,cginfo,cgbase
+      nld,ncal,nflw,rgobj,cgbase
       ;
 
 
@@ -483,6 +486,8 @@ implementation
         p_asm:=p;
         getposition:=false;
         currenttai:=nil;
+        used_regs_int:=[];
+        used_regs_fpu:=[];
       end;
 
 
@@ -531,6 +536,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putbyte(byte(getposition));
+{$warning FIXME Add saving of register sets}
         if not getposition then
           begin
             hp:=tai(p_asm.first);
@@ -848,7 +854,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2003-09-03 15:55:00  peter
+  Revision 1.61  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.60  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.59.2.1  2003/08/27 20:23:55  peter

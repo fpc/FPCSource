@@ -86,19 +86,10 @@ unit cgbase;
           }
           flags : tprocinfoflags;
 
-          {# register used as frame pointer }
+          { register used as frame pointer }
           framepointer : tregister;
 
-          {# Holds the reference used to store the original stackpointer
-             after all registers are saved
-          }
-          save_stackptr_ref :treference;
-          {# Holds the reference used to store alll saved registers.
-
-             This is used on systems which do not have direct stack
-             operations (such as the PowerPC), it is unused on other
-             systems
-          }
+          { Holds the reference used to store alll saved registers. }
           save_regs_ref : treference;
 
           { label to leave the sub routine }
@@ -324,7 +315,7 @@ implementation
         { asmlists }
         aktproccode:=Taasmoutput.Create;
         aktlocaldata:=Taasmoutput.Create;
-        reference_reset(save_stackptr_ref);
+        reference_reset(save_regs_ref);
         { labels }
         objectlibrary.getlabel(aktexitlabel);
       end;
@@ -385,6 +376,8 @@ implementation
            current_procinfo.firsttemp_offset := tg.direction*symtablestack.datasize
          else
            current_procinfo.firsttemp_offset := 0;
+(*
+         THe registers are also allocated when loading the result
 
          { include return value registers }
          if not is_void(procdef.rettype.def) then
@@ -397,21 +390,22 @@ implementation
                LOC_CMMREGISTER :
                  begin
                    regidx:=findreg_by_number(paramloc.register);
-                   include(rg.used_in_proc_other,regidx);
+                   include(used_regs_fpu,regidx);
                  end;
                LOC_REGISTER,LOC_CREGISTER :
                  begin
                    if ((paramloc.size in [OS_S64,OS_64]) and
                       (sizeof(aword) < 8)) then
                      begin
-                       include(rg.used_in_proc_int,getsupreg(paramloc.registerhigh));
-                       include(rg.used_in_proc_int,getsupreg(paramloc.registerlow));
+                       include(used_regs_int,getsupreg(paramloc.registerhigh));
+                       include(used_regs_fpu,getsupreg(paramloc.registerlow));
                      end
                    else
-                     include(rg.used_in_proc_int,getsupreg(paramloc.register));
+                     include(used_regs_fpu,getsupreg(paramloc.register));
                  end;
              end;
            end;
+*)
       end;
 
 
@@ -582,7 +576,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2003-09-03 15:55:00  peter
+  Revision 1.62  2003-09-07 22:09:34  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.61  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.60.2.1  2003/08/29 17:28:59  peter

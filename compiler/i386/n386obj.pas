@@ -47,9 +47,9 @@ uses
 
 {
 possible calling conventions:
-              default stdcall cdecl pascal popstack register saveregisters
-default(0):      OK     OK    OK(1)  OK     OK(1)      OK          OK
-virtual(2):      OK     OK    OK(3)  OK     OK(3)      OK          OK(4)
+              default stdcall cdecl pascal register saveregisters
+default(0):      OK     OK    OK(1)  OK       OK          OK
+virtual(2):      OK     OK    OK(3)  OK       OK          OK(4)
 
 (0):
     set self parameter to correct value
@@ -177,7 +177,7 @@ begin
   adjustselfvalue(procdef,ioffset);
 
   { case 1 or 2 }
-  if (po_clearstack in procdef.procoptions) then
+  if (procdef.proccalloption in clearstack_pocalls) then
     begin
       if po_virtualmethod in procdef.procoptions then
         begin { case 2 }
@@ -228,7 +228,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2003-09-03 15:55:01  peter
+  Revision 1.22  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.21  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.20.2.1  2003/08/29 17:29:00  peter

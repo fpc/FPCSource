@@ -44,6 +44,8 @@ unit cpupara;
        ti386paramanager = class(tparamanager)
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
+          function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
+          function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
           function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
           procedure freeintparaloc(list: taasmoutput; nr : longint); override;
           function getparaloc(p : tdef) : tcgloc;
@@ -59,6 +61,10 @@ unit cpupara;
        cpuinfo,
        cgbase;
 
+
+{****************************************************************************
+                                TI386PARAMANAGER
+****************************************************************************}
 
     function ti386paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
@@ -109,6 +115,35 @@ unit cpupara;
             end;
         end;
         result:=inherited push_addr_param(def,calloption);
+      end;
+
+
+    function ti386paramanager.get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;
+      begin
+        case calloption of
+          pocall_internproc :
+            result:=[];
+          pocall_inline,
+          pocall_compilerproc,
+          pocall_register,
+          pocall_safecall,
+          pocall_stdcall,
+          pocall_cdecl,
+          pocall_cppdecl :
+            result:=[RS_EAX,RS_EDX,RS_ECX];
+          pocall_far16,
+          pocall_pascal,
+          pocall_oldfpccall :
+            result:=[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI,RS_EBX];
+          else
+            internalerror(200309071);
+        end;
+      end;
+
+
+    function ti386paramanager.get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;
+      begin
+        result:=[first_fpu_supreg..last_fpu_supreg];;
       end;
 
 
@@ -202,12 +237,17 @@ unit cpupara;
          getselflocation.reference.offset:=hsym.adjusted_address;
       end;
 
+
 begin
    paramanager:=ti386paramanager.create;
 end.
 {
   $Log$
-  Revision 1.23  2003-09-03 15:55:01  peter
+  Revision 1.24  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.23  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.22.2.2  2003/08/28 18:35:08  peter

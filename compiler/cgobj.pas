@@ -1146,9 +1146,9 @@ unit cgobj;
         paramanager.freeintparaloc(list,3);
         paramanager.freeintparaloc(list,2);
         paramanager.freeintparaloc(list,1);
-        rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+        rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
         a_call_name(list,'FPC_SHORTSTR_ASSIGN');
-        rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+        rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
       end;
 
 
@@ -1175,9 +1175,9 @@ unit cgobj;
             { these functions get the pointer by value }
             a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1));
             paramanager.freeintparaloc(list,1);
-            rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+            rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,incrfunc);
-            rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+            rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
           end
          else
           begin
@@ -1189,9 +1189,9 @@ unit cgobj;
               a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
             paramanager.freeintparaloc(list,1);
             paramanager.freeintparaloc(list,2);
-            rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+            rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,'FPC_ADDREF');
-            rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+            rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
          end;
       end;
 
@@ -1229,9 +1229,9 @@ unit cgobj;
             else
               a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
             paramanager.freeintparaloc(list,1);
-            rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+            rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,decrfunc);
-            rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+            rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
             if needrtti then
               paramanager.freeintparaloc(list,2);
           end
@@ -1245,9 +1245,9 @@ unit cgobj;
               a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
             paramanager.freeintparaloc(list,1);
             paramanager.freeintparaloc(list,2);
-            rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+            rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,'FPC_DECREF');
-            rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+            rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
          end;
       end;
 
@@ -1270,9 +1270,9 @@ unit cgobj;
                 a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
               paramanager.freeintparaloc(list,1);
               paramanager.freeintparaloc(list,2);
-              rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+              rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
               a_call_name(list,'FPC_INITIALIZE');
-              rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+              rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
            end;
       end;
 
@@ -1295,9 +1295,9 @@ unit cgobj;
                 a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
               paramanager.freeintparaloc(list,1);
               paramanager.freeintparaloc(list,2);
-              rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+              rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
               a_call_name(list,'FPC_FINALIZE');
-              rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+              rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
            end;
       end;
 
@@ -1461,18 +1461,18 @@ unit cgobj;
            a_param_reg(list,OS_ADDR,reg,paramanager.getintparaloc(list,1));
            paramanager.freeintparaloc(list,2);
            paramanager.freeintparaloc(list,1);
-           rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+           rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
            a_call_name(list,'FPC_CHECK_OBJECT_EXT');
-           rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+           rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
          end
         else
          if (cs_check_range in aktlocalswitches) then
           begin
             a_param_reg(list,OS_ADDR,reg,paramanager.getintparaloc(list,1));
             paramanager.freeintparaloc(list,1);
-            rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+            rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,'FPC_CHECK_OBJECT');
-            rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+            rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
           end;
       end;
 
@@ -1536,7 +1536,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.118  2003-09-03 15:55:00  peter
+  Revision 1.119  2003-09-07 22:09:34  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.118  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.117  2003/09/03 11:18:36  florian

@@ -661,6 +661,7 @@ implementation
               else
                 iolabel:=nil;
 
+(*
               regs_to_alloc:=Tprocdef(procdefinition).usedintregisters;
 
 {$ifdef i386}
@@ -675,23 +676,16 @@ implementation
               rg.used_in_proc_int:=rg.used_in_proc_int + tprocdef(procdefinition).usedintregisters;
               rg.used_in_proc_other:=rg.used_in_proc_other + tprocdef(procdefinition).usedotherregisters;
 {$endif i386}
+*)
            end
          else
            begin
-              regs_to_alloc:=VOLATILE_INTREGISTERS;
-{$ifdef i386}
-              regs_to_push_other := all_otherregisters;
-{$else i386}
-              regs_to_push_other := VOLATILE_FPUREGISTERS;
-{$endif i386}
-{$ifdef i386}
-              rg.used_in_proc_int:=VOLATILE_INTREGISTERS;
-              rg.used_in_proc_other:=all_otherregisters;
-{$endif i386}
-
               { no IO check for methods and procedure variables }
               iolabel:=nil;
            end;
+
+        regs_to_alloc:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
+        regs_to_push_other:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
 
         { Include Function result registers }
         if (not is_void(resulttype.def)) then
@@ -758,7 +752,7 @@ implementation
          if assigned(left) then
            begin
               tcallparanode(left).secondcallparan(
-                (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
+                (procdefinition.proccalloption in pushleftright_pocalls),procdefinition.proccalloption,
                  para_alignment,0);
 
              pushparas;
@@ -875,7 +869,7 @@ implementation
            end;
 
          { Need to remove the parameters from the stack? }
-         if (po_clearstack in procdefinition.procoptions) then
+         if (procdefinition.proccalloption in clearstack_pocalls) then
           begin
             { the old pop_size was already included in pushedparasize }
             pop_size:=pushedparasize;
@@ -933,9 +927,9 @@ implementation
               //reference_reset_symbol(href,iolabel,0);
               //cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(exprasmlist,1));
               //paramanager.freeintparaloc(exprasmlist,1);
-              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+              rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
-              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+              rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
            end;
 
          { restore registers }
@@ -1133,8 +1127,12 @@ implementation
 
          { save all used registers and possible registers
            used for the return value }
+(*
          regs_to_push_int := tprocdef(procdefinition).usedintregisters;
          regs_to_push_other := tprocdef(procdefinition).usedotherregisters;
+*)
+         regs_to_push_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
+         regs_to_push_other:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
          if (not is_void(resulttype.def)) then
            begin
              case procdefinition.funcret_paraloc[callerside].loc of
@@ -1155,11 +1153,13 @@ implementation
 
          rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
 
+(*
 {$ifdef i386}
          { give used registers through }
          rg.used_in_proc_int:=rg.used_in_proc_int + tprocdef(procdefinition).usedintregisters;
          rg.used_in_proc_other:=rg.used_in_proc_other + tprocdef(procdefinition).usedotherregisters;
 {$endif i386}
+*)
 
          { Initialize for pushing the parameters }
          oldpushedparasize:=pushedparasize;
@@ -1174,7 +1174,7 @@ implementation
               { we push from right to left, so start with parameters at the end of
                 the parameter block }
               tcallparanode(left).secondcallparan(
-                  (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
+                  (procdefinition.proccalloption in pushleftright_pocalls),procdefinition.proccalloption,
                   0,procdefinition.parast.address_fixup+procdefinition.parast.datasize);
            end;
          aktcallnode:=oldaktcallnode;
@@ -1249,9 +1249,9 @@ implementation
               //reference_reset_symbol(href,iolabel,0);
               //cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(exprasmlist,1));
               //paramanager.freeintparaloc(exprasmlist,1);
-              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+              rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
-              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+              rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
            end;
 
          { restore registers }
@@ -1331,7 +1331,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.110  2003-09-04 15:39:58  peter
+  Revision 1.111  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.110  2003/09/04 15:39:58  peter
     * released useparatemp
 
   Revision 1.109  2003/09/03 15:55:00  peter
@@ -1403,7 +1407,7 @@ end.
 
   Revision 1.95  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
-    * renamed all_intregisters to volatile_intregisters and made it
+    * renamed all_intregisters to paramanager.get_volatile_registers_int(pocall_default) and made it
       processor dependent
 
   Revision 1.94  2003/06/15 16:52:02  jonas

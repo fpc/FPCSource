@@ -40,7 +40,7 @@ implementation
        globals,verbose,fmodule,finput,fppu,
        symconst,symbase,symtype,symdef,symsym,symtable,
        aasmbase,aasmtai,aasmcpu,
-       cgbase,cpuinfo,
+       cgbase,cpuinfo,rgobj,
        ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr,cpubase,
@@ -725,6 +725,8 @@ implementation
         current_procinfo:=cprocinfo.create(nil);
         current_module.procinfo:=current_procinfo;
         current_procinfo.procdef:=pd;
+        { start register allocator }
+        rg:=crgobj.create;
         { return procdef }
         create_main_proc:=pd;
       end;
@@ -737,6 +739,8 @@ implementation
            assigned(current_procinfo.parent) or
            not(current_procinfo.procdef=pd) then
          internalerror(200304276);
+        { remove register allocator }
+        rg.free;
         { remove procinfo }
         current_module.procinfo:=nil;
         current_procinfo.free;
@@ -786,11 +790,15 @@ implementation
         usesfpu:=false;
         usesacchi:=false;
         gen_load_return_value(list,usesacc,usesacchi,usesfpu);
+        { Add save and restore of used registers }
+        gen_save_used_regs(templist);
+        list.insertlistafter(headertai,templist);
+        gen_restore_used_regs(list,usesacc,usesacchi,usesfpu);
         { Add stack allocation code after header }
         gen_stackalloc_code(templist);
         list.insertlistafter(headertai,templist);
         { Add exit code at the end }
-        gen_exit_code(list,false,usesacc,usesacchi,usesfpu);
+        gen_exit_code(list,false,usesacc,usesacchi);
         release_main_proc(pd);
         templist.free;
       end;
@@ -1322,9 +1330,6 @@ implementation
             { Win32 startup code needs a single name }
 //            if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
             pd.aliasnames.insert('PASCALMAIN');
-            { this code is called from C so we need to save some
-              registers }
-            include(pd.procoptions,po_savestdregs);
           end
          else
           begin
@@ -1465,7 +1470,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.121  2003-09-05 17:41:12  florian
+  Revision 1.122  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.121  2003/09/05 17:41:12  florian
     * merged Wiktor's Watcom patches in 1.1
 
   Revision 1.120  2003/08/23 22:29:24  peter

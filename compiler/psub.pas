@@ -574,6 +574,7 @@ implementation
 
     procedure tcgprocinfo.generate_code;
       var
+        oldrg : trgobj;
         oldprocinfo : tprocinfo;
         oldaktmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
@@ -591,6 +592,7 @@ implementation
           exit;
 
         oldprocinfo:=current_procinfo;
+        oldrg:=rg;
         oldfilepos:=aktfilepos;
         oldaktmaxfpuregisters:=aktmaxfpuregisters;
 
@@ -604,8 +606,11 @@ implementation
         { add parast/localst to symtablestack }
         add_to_symtablestack;
 
-        { reset the temporary memory }
-        rg.cleartempgen;
+        { set the start offset to the start of the temp area in the stack }
+        tg.setfirsttemp(firsttemp_offset);
+
+        { Create register allocator }
+        rg:=crgobj.create;
 
 {$warning FIXME!!}
         { FIXME!! If a procedure contains assembler blocks (or is pure assembler), }
@@ -615,21 +620,14 @@ implementation
         { assembler procedures... For non-i386, the changed registers are even     }
         { always all volatile registers (JM)                                       }
 {$ifdef i386}
-        if not(po_assembler in current_procinfo.procdef.procoptions) then
+        if (po_assembler in current_procinfo.procdef.procoptions) then
           begin
-            rg.used_in_proc_int:=[{RS_STACK_POINTER_REG}];
-            rg.used_in_proc_other:=[];
-          end
-        else
-{$endif i386}
-          begin
-            rg.used_in_proc_int:={$ifdef i386}[]{$else}VOLATILE_INTREGISTERS{$endif};
-            rg.used_in_proc_other:=VOLATILE_FPUREGISTERS;
+            rg.used_in_proc_int:=paramanager.get_volatile_registers_int(pocall_oldfpccall);
+            rg.used_in_proc_other:=paramanager.get_volatile_registers_int(pocall_oldfpccall);
           end;
+{$endif i386}
 
-        { set the start offset to the start of the temp area in the stack }
-        tg.setfirsttemp(firsttemp_offset);
-
+        { generate code for the body }
         generatecode(code);
 
         { first generate entry and initialize code with the correct
@@ -682,21 +680,21 @@ implementation
 
         { The procedure body is finished, we can now
           allocate the registers }
-{$ifdef ra_debug2}
-        rg.writegraph;
-{$endif}
         if not(cs_no_regalloc in aktglobalswitches) then
           begin
             {Do register allocation.}
             spillingcounter:=0;
             repeat
+{$ifdef EXTDEBUG}
+//              if aktfilepos.line=1207 then
+//                rg.writegraph(spillingcounter);
+{$endif EXTDEBUG}
               rg.prepare_colouring;
               rg.colour_registers;
               rg.epilogue_colouring;
               if rg.spillednodes='' then
                 break;
-              if not rg.spill_registers(aktproccode,rg.spillednodes) then
-                break;
+              rg.spill_registers(aktproccode,rg.spillednodes);
               inc(spillingcounter);
               if spillingcounter>maxspillingcounter then
                 internalerror(200309041);
@@ -713,17 +711,23 @@ implementation
           end;
 
         translate_regvars(aktproccode,rg.colour);
+        { Add save and restore of used registers }
+        gen_save_used_regs(templist);
+        aktproccode.insertlistafter(headertai,templist);
+        gen_restore_used_regs(aktproccode,usesacc,usesacchi,usesfpu);
         { Add stack allocation code after header }
         gen_stackalloc_code(templist);
         aktproccode.insertlistafter(headertai,templist);
         { Add exit code at the end }
-        gen_exit_code(templist,false,usesacc,usesacchi,usesfpu);
+        gen_exit_code(templist,false,usesacc,usesacchi);
         aktproccode.concatlist(templist);
 
+(*
         { now all the registers used are known }
         { Remove all imaginary registers from the used list.}
-        procdef.usedintregisters:=rg.used_in_proc_int*VOLATILE_INTREGISTERS-rg.savedintbyproc;
+        procdef.usedintregisters:=rg.used_in_proc_int*paramanager.get_volatile_registers_int(pocall_default)-rg.preserved_by_proc_int;
         procdef.usedotherregisters:=rg.used_in_proc_other;
+*)
 
         { save local data (casetable) also in the same file }
         if assigned(aktlocaldata) and
@@ -745,8 +749,6 @@ implementation
           codesegment.concat(Tai_cut.Create);
         codesegment.concatlist(aktproccode);
 
-        { all registers can be used again }
-        rg.resetusableregisters;
         { only now we can remove the temps }
         tg.resettempgen;
 
@@ -754,7 +756,9 @@ implementation
         remove_from_symtablestack;
 
         { restore }
+        rg.free;
         templist.free;
+        rg:=oldrg;
         aktmaxfpuregisters:=oldaktmaxfpuregisters;
         aktfilepos:=oldfilepos;
         current_procinfo:=oldprocinfo;
@@ -872,11 +876,6 @@ implementation
 
          { constant symbols are inserted in this symboltable }
          constsymtable:=symtablestack;
-
-         { reset the temporary memory }
-         rg.cleartempgen;
-         rg.used_in_proc_int:=[];
-         rg.used_in_proc_other:=[];
 
          { save entry info }
          entrypos:=aktfilepos;
@@ -1216,7 +1215,7 @@ implementation
              Begin
                 Message1(parser_w_not_supported_for_inline,tokenstring(t));
                 Message(parser_w_inlining_disabled);
-                current_procinfo.procdef.proccalloption:=pocall_fpccall;
+                current_procinfo.procdef.proccalloption:=pocall_default;
              End;
         end;
 
@@ -1315,7 +1314,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.141  2003-09-04 14:46:12  peter
+  Revision 1.142  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.141  2003/09/04 14:46:12  peter
     * abort with IE when spilling requires > 20 loops
 
   Revision 1.140  2003/09/03 15:55:01  peter
@@ -1371,7 +1374,7 @@ end.
 
   Revision 1.129  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
-    * renamed all_intregisters to volatile_intregisters and made it
+    * renamed all_intregisters to paramanager.get_volatile_registers_int(pocall_default) and made it
       processor dependent
 
   Revision 1.128  2003/06/14 14:53:50  jonas

@@ -554,7 +554,7 @@ implementation
                     end
                   else
                     begin
-                      setsubreg(reg,cgsize2subreg(OS_INT));
+                      reg:=rg.makeregsize(reg,OS_INT);
                       regidx:=findreg_by_number(reg);
                       if (rg.regvar_loaded_other[regidx]) then
                        asml.concat(tai_regalloc.dealloc(reg));
@@ -610,7 +610,11 @@ end.
 
 {
   $Log$
-  Revision 1.63  2003-09-03 15:55:01  peter
+  Revision 1.64  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.63  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.62.2.2  2003/08/29 17:28:59  peter

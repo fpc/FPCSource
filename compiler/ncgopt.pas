@@ -185,7 +185,7 @@ begin
     end
   else
     cg.a_load_const_ref(exprasmlist,OS_8,tordconstnode(right).value,href2);
-  setsubreg(lengthreg,R_SUBL);
+  lengthreg:=rg.makeregsize(lengthreg,OS_8);
   { increase the string length }
   cg.a_op_const_reg(exprasmlist,OP_ADD,OS_8,1,lengthreg);
   cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,lengthreg,left.location.reference);
@@ -201,7 +201,11 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-09-03 15:55:00  peter
+  Revision 1.8  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.7  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.6.2.1  2003/08/29 17:28:59  peter

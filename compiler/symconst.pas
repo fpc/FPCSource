@@ -25,6 +25,9 @@ unit symconst;
 
 interface
 
+uses
+  globtype;
+
 const
   def_alignment = 4;
 
@@ -193,12 +196,9 @@ type
     po_msgint,            { method for int message handling }
     po_exports,           { Procedure has export directive (needed for OS/2) }
     po_external,          { Procedure is external (in other object or lib)}
-    po_savestdregs,       { save std regs cdecl and stdcall need that ! }
     po_saveregisters,     { save all registers }
     po_overload,          { procedure is declared with overload directive }
     po_varargs,           { printf like arguments }
-    po_leftright,         { push arguments from left to right }
-    po_clearstack,        { caller clears the stack }
     po_internconst,       { procedure has constant evaluator intern }
     po_addressonly,       { flag that only the address of a method is returned and not a full methodpointer }
     po_public             { procedure is exported }
@@ -333,7 +333,22 @@ const
     objectdef];
 {$endif GDB}
 
+
 const
+   savestdregs_pocalls = [
+     pocall_cdecl,pocall_cppdecl,pocall_palmossyscall,
+     pocall_stdcall,pocall_safecall,pocall_compilerproc,
+     pocall_register
+   ];
+
+   clearstack_pocalls = [
+     pocall_cdecl,pocall_cppdecl,pocall_palmossyscall
+   ];
+
+   pushleftright_pocalls = [
+     pocall_pascal
+   ];
+
      SymTypeName : array[tsymtyp] of string[12] = (
        'abstractsym','variable','type','proc','unit',
        'const','enum','typed const','errorsym','system sym',
@@ -357,7 +372,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2003-08-11 21:18:20  peter
+  Revision 1.61  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.60  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.59  2003/08/10 17:25:23  peter

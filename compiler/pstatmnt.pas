@@ -800,7 +800,7 @@ implementation
                  Begin
                     Message1(parser_w_not_supported_for_inline,'direct asm');
                     Message(parser_w_inlining_disabled);
-                    current_procinfo.procdef.proccalloption:=pocall_fpccall;
+                    current_procinfo.procdef.proccalloption:=pocall_default;
                  End;
                asmstat:=tasmnode(radirect.assemble);
              end;
@@ -814,7 +814,7 @@ implementation
          { END is read, got a list of changed registers? }
          if try_to_consume(_LECKKLAMMER) then
            begin
-             rg.used_in_proc_other:=ALL_OTHERREGISTERS;
+             asmstat.used_regs_fpu:=ALL_OTHERREGISTERS;
              if token<>_RECKKLAMMER then
               begin
                 repeat
@@ -823,7 +823,7 @@ implementation
                   if reg<>NR_NO then
                     begin
                       if getregtype(reg)=R_INTREGISTER then
-                        include(rg.used_in_proc_int,getsupreg(reg));
+                        include(asmstat.used_regs_int,getsupreg(reg));
                     end
                   else
                     Message(asmr_e_invalid_register);
@@ -836,8 +836,8 @@ implementation
            end
          else
            begin
-              rg.used_in_proc_int:=VOLATILE_INTREGISTERS;
-              rg.used_in_proc_other:=ALL_OTHERREGISTERS;
+              asmstat.used_regs_int:=paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
+              asmstat.used_regs_fpu:=ALL_OTHERREGISTERS;
            end;
 
          { mark the start and the end of the assembler block
@@ -1181,7 +1181,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.107  2003-09-03 15:55:01  peter
+  Revision 1.108  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.107  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.106.2.3  2003/08/31 15:46:26  peter
@@ -1198,7 +1202,7 @@ end.
 
   Revision 1.105  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
-    * renamed all_intregisters to volatile_intregisters and made it
+    * renamed all_intregisters to paramanager.get_volatile_registers_int(pocall_default) and made it
       processor dependent
 
   Revision 1.104  2003/06/13 21:19:31  peter

@@ -2061,13 +2061,15 @@ implementation
         begin
           case p.typ of
             ait_regalloc:
-              setsupreg(Tai_regalloc(p).reg,table[getsupreg(Tai_regalloc(p).reg)]);
+              if (getregtype(Tai_regalloc(p).reg)=R_INTREGISTER) then
+                setsupreg(Tai_regalloc(p).reg,table[getsupreg(Tai_regalloc(p).reg)]);
             ait_instruction:
               begin
                 for i:=0 to Taicpu_abstract(p).ops-1 do
                   case Taicpu_abstract(p).oper[i].typ of
                     Top_reg:
-                      setsupreg(Taicpu_abstract(p).oper[i].reg,table[getsupreg(Taicpu_abstract(p).oper[i].reg)]);
+                       if (getregtype(Taicpu_abstract(p).oper[i].reg)=R_INTREGISTER) then
+                         setsupreg(Taicpu_abstract(p).oper[i].reg,table[getsupreg(Taicpu_abstract(p).oper[i].reg)]);
                     Top_ref:
                       begin
                         r:=Taicpu_abstract(p).oper[i].ref;
@@ -2104,7 +2106,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2003-09-04 00:15:28  florian
+  Revision 1.39  2003-09-07 22:09:34  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.38  2003/09/04 00:15:28  florian
     * first bunch of adaptions of arm compiler for new register type
 
   Revision 1.37  2003/09/03 15:55:00  peter

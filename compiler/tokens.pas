@@ -169,7 +169,6 @@ type
     _EXPORTS,
     _FINALLY,
     _FORWARD,
-    _FPCCALL,
     _IOCHECK,
     _LIBRARY,
     _MESSAGE,
@@ -189,7 +188,6 @@ type
     _OVERLOAD,
     _OVERRIDE,
     _PLATFORM,
-    _POPSTACK,
     _PROPERTY,
     _REGISTER,
     _RESIDENT,
@@ -208,6 +206,7 @@ type
     _DESTRUCTOR,
     _IMPLEMENTS,
     _INTERNPROC,
+    _OLDFPCCALL,
     _OPENSTRING,
     _CONSTRUCTOR,
     _INTERNCONST,
@@ -392,7 +391,6 @@ const
       (str:'EXPORTS'       ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'FINALLY'       ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'FORWARD'       ;special:false;keyword:m_none;op:NOTOKEN),
-      (str:'FPCCALL'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'IOCHECK'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'LIBRARY'       ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'MESSAGE'       ;special:false;keyword:m_none;op:NOTOKEN),
@@ -412,7 +410,6 @@ const
       (str:'OVERLOAD'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OVERRIDE'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'PLATFORM'      ;special:false;keyword:m_none;op:NOTOKEN),
-      (str:'POPSTACK'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'PROPERTY'      ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'REGISTER'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'RESIDENT'      ;special:false;keyword:m_none;op:NOTOKEN),
@@ -431,6 +428,7 @@ const
       (str:'DESTRUCTOR'    ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'IMPLEMENTS'    ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'INTERNPROC'    ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'OLDFPCCALL'    ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OPENSTRING'    ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'CONSTRUCTOR'   ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'INTERNCONST'   ;special:false;keyword:m_none;op:NOTOKEN),
@@ -504,7 +502,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2003-09-04 21:58:16  olle
+  Revision 1.24  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.23  2003/09/04 21:58:16  olle
     + bugfix, put token UNIMPLEMENTED in right order
 
   Revision 1.22  2003/08/10 17:25:23  peter

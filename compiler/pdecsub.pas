@@ -273,7 +273,7 @@ implementation
               { Give a warning that cdecl routines does not include high()
                 support }
               if (pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-                 paramanager.push_high_param(currpara.paratype.def,pocall_fpccall) then
+                 paramanager.push_high_param(currpara.paratype.def,pocall_default) then
                begin
                  if is_open_string(currpara.paratype.def) then
                     Message(parser_w_cdecl_no_openstring);
@@ -965,7 +965,7 @@ begin
           begin
             Message1(parser_w_not_supported_for_inline,'array of const');
             Message(parser_w_inlining_disabled);
-            pd.proccalloption:=pocall_fpccall;
+            pd.proccalloption:=pocall_default;
           end;
       end;
      hp:=tparaitem(hp.next);
@@ -1185,7 +1185,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=35;
+  num_proc_directives=34;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1277,7 +1277,7 @@ const
       pooption : [];
       mutexclpocall : [];
       mutexclpotype : [];
-      mutexclpo     : [po_external,po_leftright]
+      mutexclpo     : [po_external]
     ),(
       idtok:_FORWARD;
       pd_flags : [pd_implemen,pd_notobject,pd_notobjintf];
@@ -1288,14 +1288,14 @@ const
       mutexclpotype : [];
       mutexclpo     : [po_external]
     ),(
-      idtok:_FPCCALL;
+      idtok:_OLDFPCCALL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
       handler  : nil;
-      pocall   : pocall_fpccall;
+      pocall   : pocall_oldfpccall;
       pooption : [];
       mutexclpocall : [];
       mutexclpotype : [];
-      mutexclpo     : [po_leftright]
+      mutexclpo     : []
     ),(
       idtok:_INLINE;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
@@ -1322,17 +1322,17 @@ const
       pooption : [];
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
-      mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck,po_leftright]
+      mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck]
     ),(
       idtok:_INTERRUPT;
       pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_interrupt;
       pocall   : pocall_none;
       pooption : [po_interrupt];
-      mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,
-                       pocall_inline,pocall_pascal,pocall_far16,pocall_fpccall];
+      mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,pocall_stdcall,
+                       pocall_inline,pocall_pascal,pocall_far16,pocall_oldfpccall];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
-      mutexclpo     : [po_external,po_leftright,po_clearstack]
+      mutexclpo     : [po_external]
     ),(
       idtok:_IOCHECK;
       pd_flags : [pd_implemen,pd_body,pd_notobjintf];
@@ -1387,15 +1387,6 @@ const
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_external]
-    ),(
-      idtok:_POPSTACK;
-      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
-      handler  : nil;
-      pocall   : pocall_none;
-      pooption : [po_clearstack];
-      mutexclpocall : [pocall_inline,pocall_internproc,pocall_stdcall];
-      mutexclpotype : [potype_constructor,potype_destructor];
-      mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_PUBLIC;
       pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
@@ -1482,7 +1473,7 @@ const
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
       handler  : nil;
       pocall   : pocall_cppdecl;
-      pooption : [po_savestdregs];
+      pooption : [];
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_assembler,po_external,po_virtualmethod]
@@ -1493,9 +1484,9 @@ const
       pocall   : pocall_none;
       pooption : [po_varargs];
       mutexclpocall : [pocall_internproc,pocall_stdcall,pocall_register,
-                       pocall_inline,pocall_far16,pocall_fpccall];
+                       pocall_inline,pocall_far16,pocall_oldfpccall];
       mutexclpotype : [];
-      mutexclpo     : [po_assembler,po_interrupt,po_leftright]
+      mutexclpo     : [po_assembler,po_interrupt]
     ),(
       idtok:_COMPILERPROC;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
@@ -1656,9 +1647,6 @@ const
         case pd.proccalloption of
           pocall_cdecl :
             begin
-              { use popstack and save std registers }
-              include(pd.procoptions,po_clearstack);
-              include(pd.procoptions,po_savestdregs);
               { set mangledname }
               if (pd.deftype=procdef) then
                begin
@@ -1677,9 +1665,6 @@ const
             end;
           pocall_cppdecl :
             begin
-              { use popstack and save std registers }
-              include(pd.procoptions,po_clearstack);
-              include(pd.procoptions,po_savestdregs);
               { set mangledname }
               if (pd.deftype=procdef) then
                begin
@@ -1693,26 +1678,17 @@ const
             end;
           pocall_stdcall :
             begin
-              include(pd.procoptions,po_savestdregs);
               if (pd.deftype=procdef) then
                begin
                  { Adjust alignment to match cdecl or stdcall }
                  pd.parast.dataalignment:=std_param_align;
                end;
             end;
-          pocall_safecall :
-            begin
-              include(pd.procoptions,po_savestdregs);
-            end;
           pocall_compilerproc :
             begin
               if (pd.deftype<>procdef) then
                internalerror(200110232);
               tprocdef(pd).setmangledname(lower(tprocdef(pd).procsym.name));
-            end;
-          pocall_pascal :
-            begin
-              include(pd.procoptions,po_leftright);
             end;
           pocall_register :
             begin
@@ -1725,9 +1701,6 @@ const
             end;
           pocall_palmossyscall :
             begin
-              { use popstack and save std registers }
-              include(pd.procoptions,po_clearstack);
-              include(pd.procoptions,po_savestdregs);
               if (pd.deftype=procdef) then
                begin
                  { Adjust positions of args for cdecl or stdcall }
@@ -1739,7 +1712,7 @@ const
               if not(cs_support_inline in aktmoduleswitches) then
                begin
                  Message(parser_e_proc_inline_not_supported);
-                 pd.proccalloption:=pocall_fpccall;
+                 pd.proccalloption:=pocall_default;
                end;
             end;
         end;
@@ -1795,7 +1768,7 @@ const
 
            { Calculate symtable addresses }
            st:=pd.parast;
-           if po_leftright in pd.procoptions then
+           if pd.proccalloption in pushleftright_pocalls then
             begin
               { pushed from left to right, so the in reverse order
                 on the stack }
@@ -2022,7 +1995,7 @@ const
                    { Check procedure options, Delphi requires that class is
                      repeated in the implementation for class methods }
                    if (m_fpc in aktmodeswitches) then
-                     po_comp:=[po_varargs,po_methodpointer,po_interrupt,po_clearstack]
+                     po_comp:=[po_varargs,po_methodpointer,po_interrupt]
                    else
                      po_comp:=[po_classmethod,po_methodpointer];
 
@@ -2168,7 +2141,11 @@ const
 end.
 {
   $Log$
-  Revision 1.130  2003-09-03 11:18:37  florian
+  Revision 1.131  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.130  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around

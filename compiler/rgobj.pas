@@ -178,9 +178,8 @@ unit rgobj;
           { Contains the registers which are really used by the proc itself.
             It doesn't take care of registers used by called procedures
           }
-          savedintbyproc,
-          used_in_proc_int,
-          usedaddrinproc : Tsuperregisterset;
+          preserved_by_proc_int,
+          used_in_proc_int : Tsuperregisterset;
           used_in_proc_other : totherregisterset;
 
           reg_pushes_other : regvarother_longintarray;
@@ -194,7 +193,8 @@ unit rgobj;
           { tries to hold the amount of times which the current tree is processed  }
           t_times: longint;
 
-          constructor create(Acpu_registers:byte);
+          constructor create;virtual;
+          destructor destroy;virtual;
 
           {# Allocate a general purpose register
 
@@ -287,14 +287,6 @@ unit rgobj;
           }
           procedure ungetreference(list: taasmoutput; const ref : treference); virtual;
 
-          {# Reset the register allocator information (usable registers etc).
-             Please note that it is mortal sins to call cleartempgen during
-             graph colouring (that is between prepare_colouring and
-             epilogue_colouring).
-          }
-
-          procedure cleartempgen;virtual;
-
           {# Convert a register to a specified register size, and return that register size }
           function makeregsize(reg: tregister; size: tcgsize): tregister; virtual;
 
@@ -338,9 +330,9 @@ unit rgobj;
 
           procedure saveUnusedState(var state: pointer);virtual;
           procedure restoreUnusedState(var state: pointer);virtual;
-{$ifdef ra_debug2}
-          procedure writegraph;
-{$endif ra_debug2}
+{$ifdef EXTDEBUG}
+          procedure writegraph(loopidx:longint);
+{$endif EXTDEBUG}
           procedure add_move_instruction(instr:Taicpu);
           procedure prepare_colouring;
           procedure epilogue_colouring;
@@ -395,6 +387,8 @@ unit rgobj;
          procedure clear_interferences(u:Tsuperregister);
        end;
 
+       trgobjclass = class of trgobj;
+
      const
        {# This value is used in tsaved. If the array value is equal
           to this, then this means that this register is not used.
@@ -403,7 +397,8 @@ unit rgobj;
 
      var
        {# This is the class instance used to access the register allocator class }
-       rg: trgobj;
+       crgobj : trgobjclass;
+       rg : trgobj;
 
      { trerefence handling }
 
@@ -462,11 +457,11 @@ unit rgobj;
   implementation
 
     uses
-       systems,{$ifdef ra_debug2}fmodule,{$endif}
+       systems,{$ifdef EXTDEBUG}fmodule,{$endif}
        globals,verbose,
        cgobj,tgobj,regvars;
 
-    constructor Trgobj.create(Acpu_registers:byte);
+    constructor Trgobj.create;
 
      begin
        used_in_proc_int := [];
@@ -475,12 +470,17 @@ unit rgobj;
        resetusableregisters;
        lastintreg:=0;
        maxintreg:=first_int_imreg;
-       {What madman decided to change the code like this: (??)
-       cpu_registers:=last_int_supreg-first_int_supreg+1;
-       The amount of registers available for register allocation is
-       allmost allways smaller than the amount of registers that exists!
-       Therefore: }
-       cpu_registers:=Acpu_registers;
+       cpu_registers:=0;
+       unusedregsint:=[0..254]; { 255 (RS_INVALID) can't be used }
+       unusedregsfpu:=usableregsfpu;
+       unusedregsmm:=usableregsmm;
+       countunusedregsfpu:=countusableregsfpu;
+       countunusedregsmm:=countusableregsmm;
+{$ifdef powerpc}
+       preserved_by_proc_int:=[RS_R13..RS_R31];
+{$else powerpc}
+       preserved_by_proc_int:=[];
+{$endif powerpc}
        fillchar(igraph,sizeof(igraph),0);
        fillchar(degree,sizeof(degree),0);
        {Precoloured nodes should have an infinite degree, which we can approach
@@ -488,7 +488,24 @@ unit rgobj;
        fillchar(movelist,sizeof(movelist),0);
        worklist_moves:=Tlinkedlist.create;
        abtlist:='';
+       fillchar(colour,sizeof(colour),RS_INVALID);
      end;
+
+
+    destructor Trgobj.destroy;
+
+    var i:Tsuperregister;
+
+    begin
+      for i:=low(Tsuperregister) to high(Tsuperregister) do
+        begin
+          if igraph.adjlist[i]<>nil then
+            dispose(igraph.adjlist[i]);
+          if movelist[i]<>nil then
+            dispose(movelist[i]);
+        end;
+      worklist_moves.free;
+    end;
 
 
     function trgobj.getregistergenother(list: taasmoutput; const lowreg, highreg: tsuperregister;
@@ -541,6 +558,7 @@ unit rgobj;
             if i>maxintreg then
               maxintreg:=i;
             add_edges_used(i);
+            add_constraints(r);
             exit;
           end;
       until i=lastintreg;
@@ -581,6 +599,7 @@ unit rgobj;
         include(unusedregs,supreg);
         list.concat(tai_regalloc.dealloc(r));
         add_edges_used(supreg);
+        add_constraints(r);
       end;
 
 
@@ -590,10 +609,11 @@ unit rgobj;
 
     begin
       subreg:=cgsize2subreg(size);
+      { Leave 2 imaginary registers free for spilling (PFV) }
       result:=getregistergenint(list,
                                 subreg,
                                 first_int_imreg,
-                                last_int_imreg,
+                                last_int_imreg-2,
                                 used_in_proc_int,
                                 unusedregsint);
       add_constraints(getregisterint);
@@ -625,6 +645,7 @@ unit rgobj;
           include(used_in_proc_int,supreg);
           list.concat(tai_regalloc.alloc(r));
           add_edges_used(supreg);
+          add_constraints(r);
          end
        else
 {$ifndef ALLOWDUPREG}
@@ -770,42 +791,6 @@ unit rgobj;
            ungetaddressregister(list,r)
          else internalerror(2002070602);
       end;
-
-
-    procedure Trgobj.cleartempgen;
-
-    var i:Tsuperregister;
-
-    begin
-      countunusedregsfpu:=countusableregsfpu;
-      countunusedregsmm:=countusableregsmm;
-      lastintreg:=0;
-      maxintreg:=first_int_imreg;
-      unusedregsint:=[0..255];
-      unusedregsfpu:=usableregsfpu;
-      unusedregsmm:=usableregsmm;
-{$ifdef powerpc}
-      savedintbyproc:=[RS_R13..RS_R31];
-{$else powerpc}
-      savedintbyproc:=[];
-{$endif powerpc}
-      for i:=low(Tsuperregister) to high(Tsuperregister) do
-        begin
-          if igraph.adjlist[i]<>nil then
-            dispose(igraph.adjlist[i]);
-          if movelist[i]<>nil then
-            dispose(movelist[i]);
-        end;
-      fillchar(movelist,sizeof(movelist),0);
-      fillchar(igraph,sizeof(igraph),0);
-      fillchar(degree,sizeof(degree),0);
-      {Precoloured nodes should have an infinite degree, which we can approach
-       by 255.}
-      for i:=first_int_supreg to last_int_supreg do
-        degree[i]:=255;
-      worklist_moves.clear;
-      abtlist:='';
-    end;
 
 
     procedure trgobj.ungetreference(list : taasmoutput; const ref : treference);
@@ -1164,6 +1149,7 @@ unit rgobj;
         end;
     end;
 
+
     procedure Trgobj.add_edges_used(u:Tsuperregister);
 
     var i:Tsuperregister;
@@ -1174,8 +1160,8 @@ unit rgobj;
           add_edge(u,i);
     end;
 
-{$ifdef ra_debug2}
-    procedure Trgobj.writegraph;
+{$ifdef EXTDEBUG}
+    procedure Trgobj.writegraph(loopidx:longint);
 
     {This procedure writes out the current interference graph in the
     register allocator.}
@@ -1185,7 +1171,7 @@ unit rgobj;
         i,j:Tsuperregister;
 
     begin
-      assign(f,'igraph.'+Lower(current_module.modulename^));
+      assign(f,'igraph'+tostr(loopidx));
       rewrite(f);
       writeln(f,'Interference graph');
       writeln(f);
@@ -1210,7 +1196,7 @@ unit rgobj;
         end;
       close(f);
     end;
-{$endif ra_debug2}
+{$endif EXTDEBUG}
 
     procedure Trgobj.add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
 
@@ -1750,11 +1736,10 @@ unit rgobj;
           freeze
         else if length(spillworklist)<>0 then
           select_spill;
-      until (length(simplifyworklist) or
-             byte(not(worklist_moves.empty)) or
-             length(freezeworklist) or
-             length(spillworklist)
-            )=0;
+      until (length(simplifyworklist)=0) and
+            worklist_moves.empty and
+            (length(freezeworklist)=0) and
+            (length(spillworklist)=0);
       assign_colours;
     end;
 
@@ -1911,7 +1896,11 @@ unit rgobj;
           i:=first_int_imreg
         else
           inc(i);
-        if (i in unusedregsint) and (pos(char(i),abtlist)=0) then
+        if (i in unusedregsint) and
+           (pos(char(i),abtlist)=0) and
+           (pos(char(i),spillednodes)=0) and
+            ((rg.colour[i] in unusedregsint) or
+            (rg.colour[i]=RS_INVALID)) then
           begin
             exclude(unusedregsint,i);
             include(used_in_proc_int,i);
@@ -1920,12 +1909,12 @@ unit rgobj;
               list.insert(Tai_regalloc.alloc(r))
             else
               list.insertafter(Tai_regalloc.alloc(r),position);
-            result:=r;
             lastintreg:=i;
             if i>maxintreg then
               maxintreg:=i;
             add_edges_used(i);
-            add_constraints(result);
+            add_constraints(r);
+            result:=r;
             exit;
           end;
       until i=lastintreg;
@@ -1958,6 +1947,7 @@ unit rgobj;
 
     var i:Tsuperregister;
         r:Tregister;
+        subreg:tsubregister;
         found:boolean;
 
     begin
@@ -1986,19 +1976,20 @@ unit rgobj;
         begin
           exclude(unusedregsint,i);
           include(used_in_proc_int,i);
-          r:=newreg(R_INTREGISTER,i,cgsize2subreg(size));
+          subreg:=cgsize2subreg(size);
+          r:=newreg(R_INTREGISTER,i,subreg);
           list.concat(Tai_regalloc.alloc(r));
           getabtregisterint:=r;
           lastintreg:=i;
           if i>maxintreg then
             maxintreg:=i;
           add_edges_used(i);
+          add_constraints(r);
           if pos(char(i),abtlist)=0 then
             abtlist:=abtlist+char(i);
         end
       else
         internalerror(10);
-      add_constraints(getabtregisterint);
     end;
 
     procedure Trgobj.ungetregisterintinline(list:Taasmoutput;position:Tai;r:Tregister);
@@ -2013,6 +2004,7 @@ unit rgobj;
       else
         list.insertafter(Tai_regalloc.dealloc(r),position);
       add_edges_used(supreg);
+      add_constraints(r);
     end;
 
     function Trgobj.spill_registers(list:Taasmoutput;const regs_to_spill:string):boolean;
@@ -2203,14 +2195,19 @@ unit rgobj;
 
 
 initialization
-   ;
-finalization
-  rg.free;
+  { This check is required because rgcpu is initialized before rgobj
+    when compiling with FPC 1.0.x (PFV) }
+  if not assigned(crgobj) then
+    crgobj:=trgobj;
 end.
 
 {
   $Log$
-  Revision 1.70  2003-09-03 21:06:45  peter
+  Revision 1.71  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.70  2003/09/03 21:06:45  peter
     * fixes for FPU register allocation
 
   Revision 1.69  2003/09/03 15:55:01  peter

@@ -238,10 +238,9 @@ implementation
 
 
     function tmoddivnode.first_moddivint: tnode;
+{$ifdef cpuneedsdiv32helper}
       var
         procname: string[31];
-      begin
-{$ifdef cpuneedsdiv32helper}
       begin
         result := nil;
 
@@ -264,9 +263,10 @@ implementation
         firstpass(result);
       end;
 {$else cpuneedsdiv32helper}
+      begin
         result:=nil;
-{$endif cpuneedsdiv32helper}
       end;
+{$endif cpuneedsdiv32helper}
 
 
     function tmoddivnode.first_moddiv64bitint: tnode;
@@ -831,7 +831,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-09-03 11:18:37  florian
+  Revision 1.51  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.50  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around

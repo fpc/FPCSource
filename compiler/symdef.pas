@@ -3419,7 +3419,7 @@ implementation
           end;
          lastref:=defref;
        { first, we assume that all registers are used }
-         usedintregisters:=VOLATILE_INTREGISTERS;
+         usedintregisters:=paramanager.get_volatile_registers_int(pocall_default);
          usedotherregisters:=ALL_OTHERREGISTERS;
          forwarddef:=true;
          interfacedef:=false;
@@ -3561,7 +3561,7 @@ implementation
          { set all registers to used for simplified compilation PM }
          if simplify_ppu then
            begin
-             usedintregisters:=VOLATILE_INTREGISTERS;
+             usedintregisters:=paramanager.get_volatile_registers_int(pocall_default);
              usedotherregisters:=ALL_OTHERREGISTERS;
            end;
 
@@ -4302,7 +4302,7 @@ implementation
 
              { write parameter info. The parameters must be written in reverse order
                if this method uses right to left parameter pushing! }
-             if (po_leftright in procoptions) then
+             if proccalloption in pushleftright_pocalls then
               pdc:=TParaItem(Para.first)
              else
               pdc:=TParaItem(Para.last);
@@ -4322,7 +4322,7 @@ implementation
                  { write name of type of current parameter }
                  tstoreddef(pdc.paratype.def).write_rtti_name;
 
-                 if (po_leftright in procoptions) then
+                 if proccalloption in pushleftright_pocalls then
                   pdc:=TParaItem(pdc.next)
                  else
                   pdc:=TParaItem(pdc.previous);
@@ -5848,7 +5848,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.161  2003-09-06 22:27:09  florian
+  Revision 1.162  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.161  2003/09/06 22:27:09  florian
     * fixed web bug 2669
     * cosmetic fix in printnode
     * tobjectdef.gettypename implemented
@@ -5893,7 +5897,7 @@ end.
 
   Revision 1.152  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
-    * renamed all_intregisters to volatile_intregisters and made it
+    * renamed all_intregisters to paramanager.get_volatile_registers_int(pocall_default) and made it
       processor dependent
 
   Revision 1.151  2003/06/08 11:41:21  peter

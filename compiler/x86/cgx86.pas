@@ -346,9 +346,9 @@ unit cgx86;
           OS_16,OS_S16:
             begin
               if target_info.alignment.paraalign = 2 then
-                setsubreg(r,R_SUBW)
+                r:=rg.makeregsize(r,OS_16)
               else
-                setsubreg(r,R_SUBD);
+                r:=rg.makeregsize(r,OS_32);
               list.concat(taicpu.op_reg(A_PUSH,S_L,r));
             end;
           OS_32,OS_S32:
@@ -1372,8 +1372,7 @@ unit cgx86;
                else
                  begin
                     objectlibrary.getlabel(again);
-                    r:=NR_EDI;
-                    rg.getexplicitregisterint(list,r);
+                    r:=rg.getexplicitregisterint(list,NR_EDI);
                     list.concat(Taicpu.op_const_reg(A_MOV,S_L,localsize div winstackpagesize,r));
                     a_label(list,again);
                     list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,NR_ESP));
@@ -1395,7 +1394,7 @@ unit cgx86;
 
     begin
       list.concat(tai_regalloc.alloc(NR_EBP));
-      include(rg.savedintbyproc,RS_EBP);
+      include(rg.preserved_by_proc_int,RS_EBP);
       list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EBP));
       list.concat(Taicpu.op_reg_reg(A_MOV,S_L,NR_ESP,NR_EBP));
       if localsize>0 then
@@ -1415,7 +1414,7 @@ unit cgx86;
       begin
         { Routines with the poclearstack flag set use only a ret }
         { also routines with parasize=0     }
-        if (po_clearstack in current_procinfo.procdef.procoptions) then
+        if current_procinfo.procdef.proccalloption in clearstack_pocalls then
          begin
            { complex return values are removed from stack in C code PM }
            if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,
@@ -1438,26 +1437,68 @@ unit cgx86;
 
 
     procedure tcgx86.g_save_standard_registers(list:Taasmoutput;usedinproc:Tsuperregisterset);
-
-    begin
-      if (RS_EBX in usedinproc) then
-        list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EBX));
-      list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_ESI));
-      list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EDI));
-      include(rg.savedintbyproc,RS_EBX);
-      include(rg.savedintbyproc,RS_ESI);
-      include(rg.savedintbyproc,RS_EDI);
-    end;
+      var
+        href : treference;
+        size : longint;
+      begin
+        { Get temp }
+        size:=0;
+        if (RS_EBX in usedinproc) then
+          inc(size,POINTER_SIZE);
+        if (RS_ESI in usedinproc) then
+          inc(size,POINTER_SIZE);
+        if (RS_EDI in usedinproc) then
+          inc(size,POINTER_SIZE);
+        if size>0 then
+          begin
+            tg.GetTemp(list,size,tt_noreuse,current_procinfo.save_regs_ref);
+            { Copy registers to temp }
+            href:=current_procinfo.save_regs_ref;
+            if (RS_EBX in usedinproc) then
+              begin
+                cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_EBX,href);
+                inc(href.offset,POINTER_SIZE);
+              end;
+            if (RS_ESI in usedinproc) then
+              begin
+                cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_ESI,href);
+                inc(href.offset,POINTER_SIZE);
+              end;
+            if (RS_EDI in usedinproc) then
+              begin
+                cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_EDI,href);
+                inc(href.offset,POINTER_SIZE);
+              end;
+          end;
+        include(rg.preserved_by_proc_int,RS_EBX);
+        include(rg.preserved_by_proc_int,RS_ESI);
+        include(rg.preserved_by_proc_int,RS_EDI);
+      end;
 
 
     procedure tcgx86.g_restore_standard_registers(list:Taasmoutput;usedinproc:Tsuperregisterset);
-
-    begin
-        list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDI));
-        list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ESI));
+      var
+        href : treference;
+      begin
+        { Copy registers from temp }
+        href:=current_procinfo.save_regs_ref;
         if (RS_EBX in usedinproc) then
-         list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EBX));
-    end;
+          begin
+            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EBX);
+            inc(href.offset,POINTER_SIZE);
+          end;
+        if (RS_ESI in usedinproc) then
+          begin
+            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_ESI);
+            inc(href.offset,POINTER_SIZE);
+          end;
+        if (RS_EDI in usedinproc) then
+          begin
+            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EDI);
+            inc(href.offset,POINTER_SIZE);
+          end;
+        tg.UnGetTemp(list,current_procinfo.save_regs_ref);
+      end;
 
 
     procedure tcgx86.g_save_all_registers(list : taasmoutput);
@@ -1516,7 +1557,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.60  2003-09-05 17:41:13  florian
+  Revision 1.61  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.60  2003/09/05 17:41:13  florian
     * merged Wiktor's Watcom patches in 1.1
 
   Revision 1.59  2003/09/03 15:55:02  peter

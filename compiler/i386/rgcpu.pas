@@ -31,12 +31,14 @@ unit rgcpu;
     uses
       cpubase,
       cpuinfo,
-      aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,
       cclasses,globtype,cgbase,cginfo,rgobj;
 
     type
        trgcpu = class(trgobj)
           fpuvaroffset : byte;
+
+          constructor create;override;
 
           { to keep the same allocation order as with the old routines }
           procedure add_constraints(reg:Tregister);override;
@@ -72,7 +74,6 @@ unit rgcpu;
 
          { corrects the fpu stack register by ofs }
          function correct_fpuregister(r : tregister;ofs : byte) : tregister;
-
        end;
 
 
@@ -80,12 +81,18 @@ unit rgcpu;
 
     uses
        systems,
-       globals,verbose,
-       tgobj;
+       globals,verbose;
 
 {************************************************************************}
 {                               trgcpu                                   }
 {************************************************************************}
+
+    constructor Trgcpu.create;
+      begin
+        inherited create;
+        cpu_registers:=6;
+      end;
+
 
     procedure Trgcpu.add_constraints(reg:Tregister);
     var
@@ -230,22 +237,29 @@ unit rgcpu;
 
 
     function trgcpu.makeregsize(reg: tregister; size: tcgsize): tregister;
+      var
+        subreg : tsubregister;
       begin
         if getregtype(reg)<>R_INTREGISTER then
           internalerror(200306032);
+        subreg:=cgsize2subreg(size);
         result:=reg;
-        setsubreg(result,cgsize2subreg(size));
+        setsubreg(result,subreg);
+        add_constraints(result);
       end;
 
 
-
 initialization
-  rg := trgcpu.create(6);   {We use 6 int registers on i386.}
+  crgobj:=trgcpu;
 end.
 
 {
   $Log$
-  Revision 1.32  2003-09-03 15:55:01  peter
+  Revision 1.33  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.32  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.31.2.3  2003/08/31 13:50:16  daniel

@@ -1920,7 +1920,7 @@ implementation
                     if oper[0].ref^.index=NR_NO then
                       pos:=Tai(previous)
                     else
-                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].ref^.index),0,0,unusedregsint);
+                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].ref^.index),RS_INVALID,RS_INVALID,unusedregsint);
                     rgget(list,pos,subreg,helpreg);
                     spill_registers:=true;
                     helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0].ref^.base),spilltemplist[supreg],helpreg);
@@ -1946,7 +1946,7 @@ implementation
                     if oper[0].ref^.base=NR_NO then
                       pos:=Tai(previous)
                     else
-                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].ref^.base),0,0,unusedregsint);
+                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].ref^.base),RS_INVALID,RS_INVALID,unusedregsint);
                     rgget(list,pos,subreg,helpreg);
                     spill_registers:=true;
                     helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0].ref^.index),spilltemplist[supreg],helpreg);
@@ -1981,9 +1981,9 @@ implementation
                       subreg:=getsubreg(oper[i].ref^.base);
                       if i=1 then
                         pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.index),getsupreg(oper[0].reg),
-                                            0,unusedregsint)
+                                            RS_INVALID,unusedregsint)
                       else
-                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.index),0,0,unusedregsint);
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.index),RS_INVALID,RS_INVALID,unusedregsint);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
                       helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.base),spilltemplist[supreg],helpreg);
@@ -2008,9 +2008,9 @@ implementation
                       subreg:=getsubreg(oper[i].ref^.index);
                       if i=1 then
                         pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.base),getsupreg(oper[0].reg),
-                                            0,unusedregsint)
+                                            RS_INVALID,unusedregsint)
                       else
-                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.base),0,0,unusedregsint);
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.base),RS_INVALID,RS_INVALID,unusedregsint);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
                       helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.index),spilltemplist[supreg],helpreg);
@@ -2082,7 +2082,7 @@ implementation
                          mov r22d,[r21d]      ; Use a help register
                          add [ebp-12],r22d    ; Replace register by helpregister }
                         pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].ref^.base),
-                                            getsupreg(oper[0].ref^.index),0,unusedregsint);
+                                            getsupreg(oper[0].ref^.index),RS_INVALID,unusedregsint);
                         rgget(list,pos,subreg,helpreg);
                         spill_registers:=true;
                         op:=A_MOV;
@@ -2123,7 +2123,7 @@ implementation
                             op:=opcode;
                             opcode:=A_MOV;
                             opsize:=reg2opsize(oper[1].reg);
-                            pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].reg),0,0,unusedregsint);
+                            pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].reg),RS_INVALID,RS_INVALID,unusedregsint);
                             rgget(list,pos,subreg,helpreg);
                             helpins:=Taicpu.op_reg_reg(op,hopsize,oper[0].reg,helpreg);
                             if pos=nil then
@@ -2228,7 +2228,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2003-09-03 15:55:02  peter
+  Revision 1.18  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.17  2003/09/03 15:55:02  peter
     * NEWRA branch merged
 
   Revision 1.16.2.4  2003/08/31 15:46:26  peter

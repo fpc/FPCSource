@@ -1660,7 +1660,7 @@ implementation
         initfputype:=fpu_fpa;
 {$endif arm}
         initinterfacetype:=it_interfacecom;
-        initdefproccall:=pocall_none;
+        initdefproccall:=pocall_default;
         initdefines:=TStringList.Create;
 
       { memory sizes, will be overriden by parameter or default for target
@@ -1674,7 +1674,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2003-09-06 16:47:24  florian
+  Revision 1.97  2003-09-07 22:09:34  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.96  2003/09/06 16:47:24  florian
     + support of NaN and Inf in the compiler as values of real constants
 
   Revision 1.95  2003/09/05 17:41:12  florian

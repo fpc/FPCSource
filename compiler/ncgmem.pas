@@ -232,9 +232,9 @@ implementation
           begin
             cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
             paramanager.freeintparaloc(exprasmlist,1);
-            rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+            rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-            rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+            rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
           end;
       end;
 
@@ -282,9 +282,9 @@ implementation
               begin
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
                 paramanager.freeintparaloc(exprasmlist,1);
-                rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+                rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-                rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+                rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
               end;
            end
          else if is_interfacecom(left.resulttype.def) then
@@ -298,9 +298,9 @@ implementation
               begin
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
                 paramanager.freeintparaloc(exprasmlist,1);
-                rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+                rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-                rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+                rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
               end;
 
            end
@@ -482,11 +482,11 @@ implementation
             begin
                cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(exprasmlist,2));
                cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(exprasmlist,1));
-               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+               rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                cg.a_call_name(exprasmlist,'FPC_DYNARRAY_RANGECHECK');
                paramanager.freeintparaloc(exprasmlist,2);
                paramanager.freeintparaloc(exprasmlist,1);
-               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+               rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
             end
          else
            cg.g_rangecheck(exprasmlist,right.location,right.resulttype.def,left.resulttype.def);
@@ -540,10 +540,10 @@ implementation
               if (cs_check_range in aktlocalswitches) then
                 begin
                    cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
-                   rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+                   rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
                    paramanager.freeintparaloc(exprasmlist,1);
-                   rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+                   rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                 end;
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
@@ -620,11 +620,11 @@ implementation
                               href:=location.reference;
                               dec(href.offset,7);
                               cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(exprasmlist,1));
-                              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+                              rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
                               paramanager.freeintparaloc(exprasmlist,2);
                               paramanager.freeintparaloc(exprasmlist,1);
-                              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+                              rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                            end;
 
                          st_shortstring:
@@ -750,11 +750,11 @@ implementation
                               href:=location.reference;
                               dec(href.offset,7);
                               cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(exprasmlist,1));
-                              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+                              rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
                               paramanager.freeintparaloc(exprasmlist,2);
                               paramanager.freeintparaloc(exprasmlist,1);
-                              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+                              rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                            end;
                          st_shortstring:
                            begin
@@ -787,7 +787,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2003-09-03 15:55:00  peter
+  Revision 1.71  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.70  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.69.2.1  2003/08/29 17:28:59  peter
@@ -817,7 +821,7 @@ end.
 
   Revision 1.63  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
-    * renamed all_intregisters to volatile_intregisters and made it
+    * renamed all_intregisters to paramanager.get_volatile_registers_int(pocall_default) and made it
       processor dependent
 
   Revision 1.62  2003/06/13 21:19:30  peter

@@ -214,8 +214,7 @@ implementation
                { use the register as base in a reference (JM)                }
                if ranges then
                  begin
-                   pleftreg:=left.location.register;
-                   setsubreg(pleftreg,R_SUBWHOLE);
+                   pleftreg:=rg.makeregsize(left.location.register,OS_INT);
                    cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,pleftreg);
                    if opsize <> S_L then
                      emit_const_reg(A_AND,S_L,255,pleftreg);
@@ -225,8 +224,7 @@ implementation
                  { otherwise simply use the lower 8 bits (no "and" }
                  { necessary this way) (JM)                        }
                  begin
-                   pleftreg:=left.location.register;
-                   setsubreg(pleftreg,R_SUBL);
+                   pleftreg:=rg.makeregsize(left.location.register,OS_8);
                    opsize := S_B;
                  end;
              end
@@ -494,10 +492,7 @@ implementation
                else
                 begin
                   if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                    begin
-                      pleftreg:=left.location.register;
-                      setsubreg(pleftreg,R_SUBWHOLE);
-                    end
+                    pleftreg:=rg.makeregsize(left.location.register,OS_INT)
                   else
                     pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
                   cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,pleftreg);
@@ -689,7 +684,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2003-09-05 11:21:39  marco
+  Revision 1.65  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.64  2003/09/05 11:21:39  marco
    * applied Peter's patch. Now cycles.
 
   Revision 1.63  2003/09/03 15:55:01  peter

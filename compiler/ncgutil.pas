@@ -60,8 +60,10 @@ interface
 
     procedure gen_proc_symbol(list:Taasmoutput);
     procedure gen_stackalloc_code(list:Taasmoutput);
+    procedure gen_save_used_regs(list : TAAsmoutput);
+    procedure gen_restore_used_regs(list : TAAsmoutput;usesacc,usesacchi,usesfpu:boolean);
     procedure gen_entry_code(list:TAAsmoutput;inlined:boolean);
-    procedure gen_exit_code(list : TAAsmoutput;inlined,usesacc,usesacchi,usesfpu:boolean);
+    procedure gen_exit_code(list:TAAsmoutput;inlined,usesacc,usesacchi:boolean);
 
 (*
     procedure geninlineentrycode(list : TAAsmoutput;stackframe:longint);
@@ -263,15 +265,15 @@ implementation
        paramanager.freeintparaloc(list,3);
        paramanager.freeintparaloc(list,2);
        paramanager.freeintparaloc(list,1);
-       rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+       rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
-       rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+       rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
 
        cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paramanager.getintparaloc(list,1));
        paramanager.freeintparaloc(list,1);
-       rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+       rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
        cg.a_call_name(list,'FPC_SETJMP');
-       rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+       rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
 
        cg.g_exception_reason_save(list, href);
        cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,NR_FUNCTION_RESULT_REG,exceptlabel);
@@ -282,9 +284,9 @@ implementation
      a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
 
      begin
-         rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+         rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(list,'FPC_POPADDRSTACK');
-         rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+         rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
 
          if not onlyfree then
           begin
@@ -315,8 +317,7 @@ implementation
               { load a smaller size to OS_64 }
               if l.loc=LOC_REGISTER then
                begin
-                 hregister:=l.registerlow;
-                 setsubreg(hregister,R_SUBWHOLE);
+                 hregister:=rg.makeregsize(l.registerlow,OS_32);
                  cg.a_load_reg_reg(list,l.size,OS_32,l.registerlow,hregister);
                end
               else
@@ -1039,9 +1040,9 @@ implementation
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
                  paramanager.freeintparaloc(list,1);
-                 rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+                 rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
                  cg.a_call_name(list,'FPC_ANSISTR_DECR_REF');
-                 rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+                 rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
                end;
              tt_widestring,
              tt_freewidestring :
@@ -1049,24 +1050,28 @@ implementation
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
                  paramanager.freeintparaloc(list,1);
-                 rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+                 rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
                  cg.a_call_name(list,'FPC_WIDESTR_DECR_REF');
-                 rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+                 rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
                end;
              tt_interfacecom :
                begin
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
                  paramanager.freeintparaloc(list,1);
-                 rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+                 rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
                  cg.a_call_name(list,'FPC_INTF_DECR_REF');
-                 rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+                 rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
                end;
            end;
            hp:=hp^.next;
          end;
       end;
 
+
+(*
+    Return value is in the localst/parast and will be initialized by the
+    foreach loop (PFV)
 
     procedure initretvalue(list:taasmoutput);
       var
@@ -1091,6 +1096,7 @@ implementation
                end;
           end;
       end;
+*)
 
 
     procedure gen_load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
@@ -1230,8 +1236,10 @@ implementation
               cg.g_profilecode(list);
           end;
 
+(*
         { initialize return value }
         initretvalue(list);
+*)
 
         { initialize local data like ansistrings }
         case current_procinfo.procdef.proctypeoption of
@@ -1278,15 +1286,15 @@ implementation
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
                  paramanager.freeintparaloc(list,2);
                  paramanager.freeintparaloc(list,1);
-                 rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+                 rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_cdecl));
                  cg.a_call_name(list,'_monstartup');
-                 rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+                 rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_cdecl));
                end;
 
               { initialize units }
-              rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+              rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(list,'FPC_INITIALIZEUNITS');
-              rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+              rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
             end;
 
 {$ifdef GDB}
@@ -1417,6 +1425,62 @@ implementation
       end;
 
 
+    procedure gen_save_used_regs(list : TAAsmoutput);
+      begin
+        { Pure assembler routines need to save the registers themselves }
+        if (po_assembler in current_procinfo.procdef.procoptions) then
+          exit;
+
+        { for the save all registers we can simply use a pusha,popa which
+          push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
+        if (po_saveregisters in current_procinfo.procdef.procoptions) then
+          cg.g_save_all_registers(list)
+        else
+          if current_procinfo.procdef.proccalloption in savestdregs_pocalls then
+            cg.g_save_standard_registers(list,rg.used_in_proc_int);
+
+(*
+        { Save stackpointer value }
+        if not inlined and
+           (current_procinfo.framepointer<>NR_STACK_POINTER_REG) and
+           ((po_savestdregs in current_procinfo.procdef.procoptions) or
+            (po_saveregisters in current_procinfo.procdef.procoptions)) then
+         begin
+           tg.GetTemp(list,POINTER_SIZE,tt_noreuse,current_procinfo.save_stackptr_ref);
+           cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_STACK_POINTER_REG,current_procinfo.save_stackptr_ref);
+         end;
+*)
+      end;
+
+
+    procedure gen_restore_used_regs(list : TAAsmoutput;usesacc,usesacchi,usesfpu:boolean);
+      begin
+        { Pure assembler routines need to save the registers themselves }
+        if (po_assembler in current_procinfo.procdef.procoptions) then
+          exit;
+
+(*
+        { Restore stackpointer if it was saved }
+        if not inlined and
+           (current_procinfo.framepointer<>NR_STACK_POINTER_REG) and
+           ((po_savestdregs in current_procinfo.procdef.procoptions) or
+            (po_saveregisters in current_procinfo.procdef.procoptions)) then
+         begin
+           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,current_procinfo.save_stackptr_ref,NR_STACK_POINTER_REG);
+           tg.UngetTemp(list,current_procinfo.save_stackptr_ref);
+         end;
+*)
+
+        { for the save all registers we can simply use a pusha,popa which
+          push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
+        if (po_saveregisters in current_procinfo.procdef.procoptions) then
+          cg.g_restore_all_registers(list,usesacc,usesacchi)
+        else
+          if current_procinfo.procdef.proccalloption in savestdregs_pocalls then
+            cg.g_restore_standard_registers(list,rg.used_in_proc_int);
+      end;
+
+
     procedure gen_entry_code(list:TAAsmoutput;inlined:boolean);
       var
         href : treference;
@@ -1470,29 +1534,10 @@ implementation
                   end;
               end;
           end;
-
-        { for the save all registers we can simply use a pusha,popa which
-          push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
-        if (po_saveregisters in current_procinfo.procdef.procoptions) then
-          cg.g_save_all_registers(list)
-        else
-         { should we save edi,esi,ebx like C ? }
-         if (po_savestdregs in current_procinfo.procdef.procoptions) then
-           cg.g_save_standard_registers(list,current_procinfo.procdef.usedintregisters);
-
-        { Save stackpointer value }
-        if not inlined and
-           (current_procinfo.framepointer<>NR_STACK_POINTER_REG) and
-           ((po_savestdregs in current_procinfo.procdef.procoptions) or
-            (po_saveregisters in current_procinfo.procdef.procoptions)) then
-         begin
-           tg.GetTemp(list,POINTER_SIZE,tt_noreuse,current_procinfo.save_stackptr_ref);
-           cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_STACK_POINTER_REG,current_procinfo.save_stackptr_ref);
-         end;
       end;
 
 
-    procedure gen_exit_code(list : TAAsmoutput;inlined,usesacc,usesacchi,usesfpu:boolean);
+    procedure gen_exit_code(list:TAAsmoutput;inlined,usesacc,usesacchi:boolean);
       var
 {$ifdef GDB}
         stabsendlabel : tasmlabel;
@@ -1510,25 +1555,6 @@ implementation
             cg.a_label(list,stabsendlabel);
           end;
 {$endif GDB}
-
-        { Restore stackpointer if it was saved }
-        if not inlined and
-           (current_procinfo.framepointer<>NR_STACK_POINTER_REG) and
-           ((po_savestdregs in current_procinfo.procdef.procoptions) or
-            (po_saveregisters in current_procinfo.procdef.procoptions)) then
-         begin
-           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,current_procinfo.save_stackptr_ref,NR_STACK_POINTER_REG);
-           tg.UngetTemp(list,current_procinfo.save_stackptr_ref);
-         end;
-
-        { for the save all registers we can simply use a pusha,popa which
-          push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
-        if (po_saveregisters in current_procinfo.procdef.procoptions) then
-          cg.g_restore_all_registers(list,usesacc,usesacchi)
-        else
-         { should we restore edi ? }
-         if (po_savestdregs in current_procinfo.procdef.procoptions) then
-           cg.g_restore_standard_registers(list,current_procinfo.procdef.usedintregisters);
 
 {$ifndef powerpc}
         { remove stackframe }
@@ -1552,7 +1578,7 @@ implementation
             cg.g_interrupt_stackframe_exit(list,usesacc,usesacchi)
            else
             begin
-              if (po_clearstack in current_procinfo.procdef.procoptions) then
+              if current_procinfo.procdef.proccalloption in clearstack_pocalls then
                 begin
                   retsize:=0;
                   if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
@@ -1779,7 +1805,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.139  2003-09-03 15:55:01  peter
+  Revision 1.140  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.139  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.138  2003/09/03 11:18:37  florian

@@ -300,8 +300,7 @@ implementation
                 { need a cmp and jmp, but this should be done by the         }
                 { type cast code which does range checking if necessary (FK) }
                 begin
-                  hregister:=Tcallparanode(Tcallparanode(left).right).left.location.register;
-                  setsubreg(hregister,R_SUBWHOLE);
+                  hregister:=rg.makeregsize(Tcallparanode(Tcallparanode(left).right).left.location.register,OS_INT);
                 end
               else
                 begin
@@ -323,7 +322,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2003-09-03 15:55:01  peter
+  Revision 1.66  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.65  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.64.2.2  2003/08/31 15:46:26  peter

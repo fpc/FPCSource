@@ -488,7 +488,7 @@ implementation
                 { we need a register for call by reference parameters }
                 if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
                    ((tvarsym(symtableentry).varspez=vs_const) and
-                    paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,pocall_none)) or
+                    paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,pocall_default)) or
                     { call by value open arrays are also indirect addressed }
                     is_open_array(tvarsym(symtableentry).vartype.def) then
                   registers32:=1;
@@ -1287,7 +1287,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2003-07-08 15:20:56  peter
+  Revision 1.104  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.103  2003/07/08 15:20:56  peter
     * don't allow add/assignments for formaldef
     * formaldef size changed to 0
 

@@ -185,10 +185,6 @@ uses
 {$endif x86_64}
       );
 
-      { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [first_int_supreg..last_int_supreg]-[RS_EBP,RS_ESP];
-      VOLATILE_FPUREGISTERS = [first_fpu_supreg..last_fpu_supreg];
-
    type
       totherregisterset = set of tregisterindex;
 
@@ -563,7 +559,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2003-09-04 21:07:03  florian
+  Revision 1.17  2003-09-07 22:09:35  peter
+    * preparations for different default calling conventions
+    * various RA fixes
+
+  Revision 1.16  2003/09/04 21:07:03  florian
     * ARM compiler compiles again
 
   Revision 1.15  2003/09/03 15:55:02  peter
