@@ -389,35 +389,17 @@
 
     procedure tstringdef.write;
       begin
-{$ifdef OLDPPU}
-         case string_typ of
-            shortstring:
-              writebyte(ibstringdef);
-            longstring:
-              writebyte(iblongstringdef);
-            ansistring:
-              writebyte(ibansistringdef);
-            widestring:
-              writebyte(ibwidestringdef);
-         end;
-{$endif}
          tdef.write;
          if string_typ=st_shortstring then
            writebyte(len)
          else
            writelong(len);
-{$ifndef OLDPPU}
          case string_typ of
-            st_shortstring:
-              current_ppu^.writeentry(ibstringdef);
-            st_longstring:
-              current_ppu^.writeentry(iblongstringdef);
-            st_ansistring:
-              current_ppu^.writeentry(ibansistringdef);
-            st_widestring:
-              current_ppu^.writeentry(ibwidestringdef);
+          st_shortstring : current_ppu^.writeentry(ibstringdef);
+           st_longstring : current_ppu^.writeentry(iblongstringdef);
+           st_ansistring : current_ppu^.writeentry(ibansistringdef);
+           st_widestring : current_ppu^.writeentry(ibwidestringdef);
          end;
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -539,14 +521,9 @@
     procedure tenumdef.write;
 
       begin
-{$ifdef OLDPPU}
-         writebyte(ibenumdef);
-{$endif}
          tdef.write;
          writelong(max);
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibenumdef);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -701,16 +678,11 @@
 
     procedure torddef.write;
       begin
-{$ifdef OLDPPU}
-         writebyte(iborddef);
-{$endif}
          tdef.write;
          writebyte(byte(typ));
          writelong(low);
          writelong(high);
-{$ifndef OLDPPU}
          current_ppu^.writeentry(iborddef);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -776,14 +748,9 @@
 
     procedure tfloatdef.write;
       begin
-{$ifdef OLDPPU}
-         writebyte(ibfloatdef);
-{$endif}
          tdef.write;
          writebyte(byte(typ));
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibfloatdef);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -906,16 +873,11 @@
 
     procedure tfiledef.write;
       begin
-{$ifdef OLDPPU}
-         writebyte(ibfiledef);
-{$endif}
          tdef.write;
          writebyte(byte(filetype));
          if filetype=ft_typed then
            writedefref(typed_as);
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibfiledef);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -1029,14 +991,9 @@
 
     procedure tpointerdef.write;
       begin
-{$ifdef OLDPPU}
-         writebyte(ibpointerdef);
-{$endif}
          tdef.write;
          writedefref(definition);
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibpointerdef);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -1115,14 +1072,9 @@
 
     procedure tclassrefdef.write;
       begin
-{$ifdef OLDPPU}
-         writebyte(ibclassrefdef);
-{$endif}
          tdef.write;
          writedefref(definition);
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibclassrefdef);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -1190,17 +1142,12 @@
 
     procedure tsetdef.write;
       begin
-{$ifdef OLDPPU}
-         writebyte(ibsetdef);
-{$endif}
          tdef.write;
          writedefref(setof);
          writebyte(byte(settype));
          if settype=varset then
            writelong(savesize);
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibsetdef);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -1257,13 +1204,8 @@
     procedure tformaldef.write;
 
       begin
-{$ifdef OLDPPU}
-         writebyte(ibformaldef);
-{$endif}
          tdef.write;
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibformaldef);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -1340,17 +1282,12 @@
     procedure tarraydef.write;
 
       begin
-{$ifdef OLDPPU}
-         writebyte(ibarraydef);
-{$endif}
          tdef.write;
          writedefref(definition);
          writedefref(rangedef);
          writelong(lowrange);
          writelong(highrange);
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibarraydef);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -1499,14 +1436,9 @@
       begin
          oldread_member:=read_member;
          read_member:=true;
-{$ifdef OLDPPU}
-         writebyte(ibrecorddef);
-{$endif}
          tdef.write;
          writelong(savesize);
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibrecorddef);
-{$endif}
          self.symtable^.writeasstruct;
          read_member:=oldread_member;
       end;
@@ -1889,7 +1821,6 @@
 
 {$ifdef UseBrowser}
 
-{$ifndef OLDPPU}
 
     procedure tprocdef.load_references;
       var
@@ -1928,78 +1859,6 @@
         lastwritten:=lastref;
       end;
 
-{$else OLDPPU}
-
-    procedure tprocdef.load_references;
-      var
-        pos : tfileposinfo;
-        b   : byte;
-      begin
-         b:=readbyte;
-         while b=ibref do
-           begin
-              readposinfo(pos);
-              inc(refcount);
-              lastref:=new(pref,init(lastref,@pos));
-              if refcount=1 then
-                defref:=lastref;
-              b:=readbyte;
-           end;
-          if b <> ibend then
-           Comment(V_fatal,'error in load_reference');
-      end;
-
-
-    procedure tprocdef.write_references;
-
-      var ref : pref;
-
-      begin
-      { references do not change the ppu caracteristics      }
-      { this only save the references to variables/functions }
-      { defined in the unit what about the others            }
-         ppufile.do_crc:=false;
-         if assigned(lastwritten) then
-           ref:=lastwritten
-         else
-           ref:=defref;
-         while assigned(ref) do
-           begin
-              writebyte(ibref);
-              writeposinfo(ref^.posinfo);
-              ref:=ref^.nextref;
-           end;
-         lastwritten:=lastref;
-         writebyte(ibend);
-         ppufile.do_crc:=true;
-      end;
-
-    procedure tprocdef.write_external_references;
-
-      var ref : pref;
-
-      begin
-         ppufile.do_crc:=false;
-         if lastwritten=lastref then exit;
-         writebyte(ibextdefref);
-         writedefref(@self);
-         if assigned(lastwritten) then
-           ref:=lastwritten
-         else
-           ref:=defref;
-         while assigned(ref) do
-           begin
-              writebyte(ibref);
-              writeposinfo(ref^.posinfo);
-              ref:=ref^.nextref;
-           end;
-         lastwritten:=lastref;
-         writebyte(ibend);
-         ppufile.do_crc:=false;
-      end;
-
-
-{$endif OLDPPU}
 
     procedure tprocdef.add_to_browserlog;
       begin
@@ -2033,9 +1892,6 @@
 
     procedure tprocdef.write;
       begin
-{$ifdef OLDPPU}
-         writebyte(ibprocdef);
-{$endif}
          inherited write;
 {$ifdef i386}
          writebyte(usedregisters);
@@ -2070,9 +1926,7 @@
                writeptree(ptree(code));
                }
            end;
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibprocdef);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -2226,9 +2080,6 @@
 
     procedure tprocvardef.write;
       begin
-{$ifdef OLDPPU}
-         writebyte(ibprocvardef);
-{$endif}
          { here we cannot get a real good value so just give something }
          { plausible (PM) }
 {$ifdef StoreFPULevel}
@@ -2238,9 +2089,7 @@
            fpu_used:=0;
 {$endif StoreFPULevel}
          inherited write;
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibprocvardef);
-{$endif}
       end;
 
     function tprocvardef.size : longint;
@@ -2482,17 +2331,12 @@
       begin
          oldread_member:=read_member;
          read_member:=true;
-{$ifdef OLDPPU}
-         writebyte(ibobjectdef);
-{$endif}
          tdef.write;
          writelong(size);
          writestring(name^);
          writedefref(childof);
          writelong(options);
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibobjectdef);
-{$endif}
          if (options and (oo_hasprivate or oo_hasprotected))<>0 then
            object_options:=true;
          publicsyms^.writeasstruct;
@@ -2666,7 +2510,10 @@
 
 {
   $Log$
-  Revision 1.21  1998-08-10 14:50:28  peter
+  Revision 1.22  1998-08-17 10:10:10  peter
+    - removed OLDPPU
+
+  Revision 1.21  1998/08/10 14:50:28  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.20  1998/07/18 22:54:30  florian

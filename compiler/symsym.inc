@@ -73,8 +73,6 @@
 
 {$ifdef UseBrowser}
 
-{$ifndef OLDPPU}
-
     procedure tsym.load_references;
       var
         pos : tfileposinfo;
@@ -124,94 +122,6 @@
          end;
       end;
 
-{$else OLDPPU}
-
-    procedure tsym.load_references;
-
-      var fileindex : word;
-          b : byte;
-          l,c : longint;
-
-      begin
-         b:=readbyte;
-         while b=ibref do
-           begin
-              fileindex:=readword;
-              l:=readlong;
-              c:=readword;
-              inc(refcount);
-              lastref:=new(pref,load(lastref,fileindex,l,c));
-              if refcount=1 then defref:=lastref;
-              b:=readbyte;
-           end;
-         lastwritten:=lastref;
-         if b <> ibend then
-          Message(unit_f_ppu_read_error);
-      end;
-
-    procedure tsym.write_references;
-
-      var ref : pref;
-
-      begin
-      { references do not change the ppu caracteristics      }
-      { this only save the references to variables/functions }
-      { defined in the unit what about the others            }
-         ppufile.do_crc:=false;
-         if assigned(lastwritten) then
-           ref:=lastwritten
-         else
-           ref:=defref;
-         while assigned(ref) do
-           begin
-              writebyte(ibref);
-              writeword(ref^.posinfo.fileindex);
-              writelong(ref^.posinfo.line);
-              writeword(ref^.posinfo.column);
-              ref:=ref^.nextref;
-           end;
-         lastwritten:=lastref;
-         writebyte(ibend);
-         ppufile.do_crc:=true;
-      end;
-
-
-    procedure tsym.write_external_references;
-      var ref : pref;
-          prdef : pdef;
-      begin
-         ppufile.do_crc:=false;
-         if lastwritten=lastref then
-           exit;
-         writebyte(ibextsymref);
-         writesymref(@self);
-         if assigned(lastwritten) then
-           ref:=lastwritten
-         else
-           ref:=defref;
-         while assigned(ref) do
-           begin
-              writebyte(ibref);
-              writeword(ref^.posinfo.fileindex);
-              writelong(ref^.posinfo.line);
-              writeword(ref^.posinfo.column);
-              ref:=ref^.nextref;
-           end;
-         lastwritten:=lastref;
-         writebyte(ibend);
-         if typ=procsym then
-           begin
-              prdef:=pprocsym(@self)^.definition;
-              while assigned(prdef) do
-                begin
-                   pprocdef(prdef)^.write_external_references;
-                   prdef:=pprocdef(prdef)^.nextoverloaded;
-                end;
-           end;
-         ppufile.do_crc:=true;
-      end;
-
-{$endif OLDPPU}
 
     procedure tsym.add_to_browserlog;
       var
@@ -509,14 +419,9 @@
 
     procedure tprocsym.write;
       begin
-{$ifdef OLDPPU}
-         writebyte(ibprocsym);
-{$endif}
          tsym.write;
          writedefref(pdef(definition));
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibprocsym);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -656,9 +561,6 @@
     procedure tpropertysym.write;
 
       begin
-{$ifdef OLDPPU}
-         writebyte(ibpropertysym);
-{$endif}
          tsym.write;
          writedefref(proptype);
          writelong(options);
@@ -673,9 +575,7 @@
            writestring('');
          writedefref(readaccessdef);
          writedefref(writeaccessdef);
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibpropertysym);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -742,9 +642,6 @@
     procedure tabsolutesym.write;
 
       begin
-{$ifdef OLDPPU}
-         writebyte(ibabsolutesym);
-{$endif}
          tsym.write;
          writebyte(byte(varspez));
          if read_member then
@@ -756,9 +653,7 @@
            toasm : writestring(asmname^);
           toaddr : writelong(address);
          end;
-{$ifndef OLDPPU}
         current_ppu^.writeentry(ibabsolutesym);
-{$endif}
       end;
 
     procedure tabsolutesym.deref;
@@ -883,12 +778,6 @@
     procedure tvarsym.write;
 
       begin
-{$ifdef OLDPPU}
-         if (var_options and vo_is_C_var)<>0 then
-           writebyte(ibvarsym_C)
-         else
-           writebyte(ibvarsym);
-{$endif}
          tsym.write;
          writebyte(byte(varspez));
 
@@ -901,13 +790,12 @@
               writebyte(var_options);
               writestring(mangledname);
            end;
-{$ifndef OLDPPU}
          if (var_options and vo_is_C_var)<>0 then
            current_ppu^.writeentry(ibvarsym_C)
          else
-         current_ppu^.writeentry(ibvarsym);
-{$endif}
+           current_ppu^.writeentry(ibvarsym);
       end;
+
 
     function tvarsym.mangledname : string;
       var
@@ -1254,15 +1142,10 @@
     procedure ttypedconstsym.write;
 
       begin
-{$ifdef OLDPPU}
-         writebyte(ibtypedconstsym);
-{$endif}
          tsym.write;
          writedefref(definition);
          writestring(prefix^);
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibtypedconstsym);
-{$endif}
       end;
 
       { for most symbol types ther is nothing to do at all }
@@ -1394,9 +1277,6 @@
 
     procedure tconstsym.write;
       begin
-{$ifdef OLDPPU}
-         writebyte(ibconstsym);
-{$endif}
          tsym.write;
          writebyte(byte(consttype));
          case consttype of
@@ -1416,9 +1296,7 @@
          else
            internalerror(13);
          end;
-{$ifndef OLDPPU}
         current_ppu^.writeentry(ibconstsym);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -1521,15 +1399,10 @@
     procedure tenumsym.write;
 
       begin
-{$ifdef OLDPPU}
-         writebyte(ibenumsym);
-{$endif}
          tsym.write;
          writedefref(definition);
          writelong(value);
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibenumsym);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -1598,14 +1471,9 @@
     procedure ttypesym.write;
 
       begin
-{$ifdef OLDPPU}
-         writebyte(ibtypesym);
-{$endif}
          tsym.write;
          writedefref(definition);
-{$ifndef OLDPPU}
          current_ppu^.writeentry(ibtypesym);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -1676,7 +1544,10 @@
 
 {
   $Log$
-  Revision 1.30  1998-08-13 10:57:29  peter
+  Revision 1.31  1998-08-17 10:10:12  peter
+    - removed OLDPPU
+
+  Revision 1.30  1998/08/13 10:57:29  peter
     * constant sets are now written correctly to the ppufile
 
   Revision 1.29  1998/08/11 15:31:42  peter

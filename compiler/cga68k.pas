@@ -75,16 +75,11 @@ unit cga68k;
 
     uses
        systems,globals,verbose,files,types,pbase,
-       tgen68k,hcodegen,temp_gen
-{$ifndef OLDPPU}
-       ,ppu
-{$endif}
-
+       tgen68k,hcodegen,temp_gen,ppu
 {$ifdef GDB}
        ,gdb
 {$endif}
        ;
-
 
 
     {
@@ -1220,7 +1215,10 @@ end;
   end.
 {
   $Log$
-  Revision 1.8  1998-08-10 14:43:16  peter
+  Revision 1.9  1998-08-17 10:10:04  peter
+    - removed OLDPPU
+
+  Revision 1.8  1998/08/10 14:43:16  peter
     * string type st_ fixed
 
   Revision 1.7  1998/07/10 10:51:01  peter

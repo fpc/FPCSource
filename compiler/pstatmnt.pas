@@ -40,10 +40,7 @@ unit pstatmnt;
 
     uses
        cobjects,globals,files,verbose,systems,
-       symtable,aasm,pass_1,types,scanner,hcodegen
-{$ifndef OLDPPU}
-       ,ppu
-{$endif}
+       symtable,aasm,pass_1,types,scanner,hcodegen,ppu
        ,pbase,pexpr,pdecl
 {$ifdef i386}
        ,i386,tgeni386
@@ -1241,7 +1238,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.33  1998-08-12 19:39:30  peter
+  Revision 1.34  1998-08-17 10:10:09  peter
+    - removed OLDPPU
+
+  Revision 1.33  1998/08/12 19:39:30  peter
     * fixed some crashes
 
   Revision 1.32  1998/08/10 14:50:17  peter
