@@ -33,6 +33,7 @@ uses
   Objects,
   Drivers,Views,Dialogs,
   WViews,
+  FPSymbol, 
   FPViews;
 
 type
@@ -508,6 +509,8 @@ begin
       FileName:=P^.Editor^.FileName;
     end;
   WriteSwitches(SwitchesPath);
+  { leaving open browsers leads to crashes !! (PM) }
+  CloseAllBrowsers;
   MainFile:=FixFileName(FExpand(FileName));
   If GetEXEPath<>'' then
     EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+ExeExt)
@@ -601,7 +604,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  1999-06-21 23:42:16  pierre
+  Revision 1.29  1999-06-28 12:39:14  pierre
+   + close all browsers before compiling
+
+  Revision 1.28  1999/06/21 23:42:16  pierre
    + LinkAfter and Esc to abort support added
 
   Revision 1.27  1999/05/22 13:44:29  peter
