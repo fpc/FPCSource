@@ -783,8 +783,8 @@ Implementation
                   end;
               end;
           end;
-        { external bss need speical handling (PM) }
-        if assigned(ps) and (ps.section=nil) then
+        { External .bss (AB_COMMON) need a symbol relocation }
+        if assigned(ps) and (ps.currbind=AB_COMMON) then
           begin
             if currpass=2 then
               begin
@@ -1629,7 +1629,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.74  2004-08-27 20:53:52  peter
+  Revision 1.75  2004-10-04 15:48:11  peter
+    * AB_COMMON symbols need special relocation in stabs
+
+  Revision 1.74  2004/08/27 20:53:52  peter
   don't lowercase filenames in stabs
 
   Revision 1.73  2004/08/25 15:55:32  peter
