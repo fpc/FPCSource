@@ -414,6 +414,7 @@ var
          hp : PTypeData;
          i : longint;
          p : string;
+    pd : ^TPropData;
 
 begin
          P:=UpCase(PropName);
@@ -421,9 +422,10 @@ begin
            begin
               // skip the name
               hp:=GetTypeData(Typeinfo);
-    // the class info rtti the property rtti follows immediatly
-              Result:=PPropInfo(pointer(@hp^.UnitName)+Length(hp^.UnitName)+1+SizeOF(Word));
-              for i:=1 to hp^.PropCount do
+     // the class info rtti the property rtti follows immediatly
+     pd:=pointer(pointer(@hp^.UnitName)+Length(hp^.UnitName)+1);
+     Result:=@pd^.PropList;
+     for i:=1 to pd^.PropCount do
                 begin
                    // found a property of that name ?
                    if Upcase(Result^.Name)=P then
@@ -1149,7 +1151,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2001-08-04 11:03:42  peter
+  Revision 1.13  2002-04-04 18:32:59  peter
+    * merged getpropinfo fix
+
+  Revision 1.12  2001/08/04 11:03:42  peter
     * moved i386 specific code to include file
 
   Revision 1.11  2001/07/29 13:50:44  peter
