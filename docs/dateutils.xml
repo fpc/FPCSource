@@ -1193,6 +1193,10 @@ returns  a <var>TDateTime</var> value with the date of the last day of that year
 <seealso>
 <link id="StartOfAYear"/>
 <link id="StartOfTheYear"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfAMonth"/>
+<link id="StartOfAWeek"/>
+<link id="StartOfTheWeek"/>
 <link id="EndOfAYear"/>
 </seealso>
 <example file="datutex/ex25"/>
@@ -1218,6 +1222,10 @@ returns  a <var>TDateTime</var> value with the date of the last day of that year
 <link id="StartOfTheYear"/>
 <link id="EndOfTheYear"/>
 <link id="EndOfAYear"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfAMonth"/>
+<link id="StartOfAWeek"/>
+<link id="StartOfTheWeek"/>
 </seealso>
 <example file="datutex/ex26"/>
 </element>
@@ -1243,6 +1251,10 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <link id="StartOfTheYear"/>
 <link id="EndOfTheYear"/>
 <link id="EndOfAYear"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfAMonth"/>
+<link id="StartOfAWeek"/>
+<link id="StartOfTheWeek"/>
 </seealso>
 <example file="datutex/ex27"/>
 </element>
@@ -1260,6 +1272,21 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="StartOfTheMonth">
 <short>Calculate the first day of the month, given a date in that month.</short>
+<descr>
+<var>StartOfTheMonth</var> extracts the year and month parts of <var>AValue</var> and
+returns  a <var>TDateTime</var> value with the date of the first day of that year
+and month as the <link id="StartOfAMonth"/> function.
+</descr>
+<seealso>
+<link id="StartOfAMonth"/>
+<link id="EndOfTheYear"/>
+<link id="EndOfAYear"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfAMonth"/>
+<link id="StartOfAWeek"/>
+<link id="StartOfTheWeek"/>
+</seealso>
+<example file="datutex/ex28"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1275,6 +1302,21 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="EndOfTheMonth">
 <short>Calculate a DateTime value representing the last day of the month, given a day in that month.</short>
+<descr>
+<var>EndOfTheMonth</var> extracts the year and month parts of <var>AValue</var> and
+returns  a <var>TDateTime</var> value with the date of the first day of that year
+and month as the <link id="EndOfAMonth"/> function.
+</descr>
+<seealso>
+<link id="StartOfAMonth"/>
+<link id="StartOfTheMonth"/>
+<link id="EndOfAMonth"/>
+<link id="EndOfTheYear"/>
+<link id="EndOfAYear"/>
+<link id="StartOfAWeek"/>
+<link id="StartOfTheWeek"/>
+</seealso>
+<example file="datutex/ex29"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1290,6 +1332,21 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="StartOfAMonth">
 <short>Return first date of month, given a year/month pair.</short>
+<descr>
+<var>StartOfAMonth</var> e
+returns  a <var>TDateTime</var> value with the date of the first day of the
+month indicated by the <var>AYear</var>, <var>AMonth</var> pair.
+</descr>
+<seealso>
+<link id="StartOfTheMonth"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfAMonth"/>
+<link id="EndOfTheYear"/>
+<link id="EndOfAYear"/>
+<link id="StartOfAWeek"/>
+<link id="StartOfTheWeek"/>
+</seealso>
+<example file="datutex/ex30"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1310,6 +1367,21 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="EndOfAMonth">
 <short>Calculate a datetime value representing the last day of the indicated month</short>
+<descr>
+<var>EndOfAMonth</var> e
+returns  a <var>TDateTime</var> value with the date of the last day of the
+month indicated by the <var>AYear</var>, <var>AMonth</var> pair.
+</descr>
+<seealso>
+<link id="StartOfTheMonth"/>
+<link id="StartOfAMonth"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfTheYear"/>
+<link id="EndOfAYear"/>
+<link id="StartOfAWeek"/>
+<link id="StartOfTheWeek"/>
+</seealso>
+<example file="datutex/ex31"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1330,6 +1402,22 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="StartOfTheWeek">
 <short>Return the first day of the week, given a date.</short>
+<descr>
+<var>StartOfTheWeek</var> extracts the year and week parts of <var>AValue</var> and
+returns  a <var>TDateTime</var> value with the date of the first day of that
+week as the <link id="StartOfAWeek"/> function.
+</descr>
+<seealso>
+<link id="StartOfAWeek"/>
+<link id="EndOfTheWeek"/>
+<link id="EndOfAWeek"/>
+<link id="StartOfAMonth"/>
+<link id="EndOfTheYear"/>
+<link id="EndOfAYear"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfAMonth"/>
+</seealso>
+<example file="datutex/ex32"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1345,6 +1433,22 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="EndOfTheWeek">
 <short>Calculate a DateTime value which represents the end of a week, given a date in that week.</short>
+<descr>
+<var>EndOfTheWeek</var> extracts the year and week parts of <var>AValue</var> and
+returns  a <var>TDateTime</var> value with the date of the last day of that
+week as the <link id="EndOfAWeek"/> function.
+</descr>
+<seealso>
+<link id="StartOfAWeek"/>
+<link id="StartOfTheWeek"/>
+<link id="EndOfAWeek"/>
+<link id="StartOfAMonth"/>
+<link id="EndOfTheYear"/>
+<link id="EndOfAYear"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfAMonth"/>
+</seealso>
+<example file="datutex/ex33"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1359,7 +1463,29 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 
 <!-- function Visibility: default -->
 <element name="StartOfAWeek">
-<short>Return the first day of the week, given a year and a week in the year.</short>
+<short>Return a day of the week, given a year, week and day in the week.</short>
+<descr>
+<p>
+<var>StartOfAWeek</var> 
+returns  a <var>TDateTime</var> value with the date of the indicated day of the
+week indicated by the <var>AYear</var>, <var>AWeek</var>,
+<var>ADayOfWeek</var> values.
+</p>
+<p>
+The default value for <var>ADayOfWeek</var> is 1.
+</p>
+</descr>
+<seealso>
+<link id="StartOfTheWeek"/>
+<link id="EndOfTheWeek"/>
+<link id="EndOfAWeek"/>
+<link id="StartOfAMonth"/>
+<link id="EndOfTheYear"/>
+<link id="EndOfAYear"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfAMonth"/>
+</seealso>
+<example file="datutex/ex34"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1384,7 +1510,28 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 
 <!-- function Visibility: default -->
 <element name="EndOfAWeek">
-<short></short>
+<short>Return the last moment of day of the week, given a year and a week in the year.</short>
+<descr>
+<p>
+<var>EndOfAWeek</var> returns  a <var>TDateTime</var> value with the date of the
+last moment (23:59:59:999) on the indicated day of the week indicated by the 
+<var>AYear</var>, <var>AWeek</var>, <var>ADayOfWeek</var> values.
+</p>
+<p>
+The default value for <var>ADayOfWeek</var> is 7.
+</p>
+</descr>
+<seealso>
+<link id="StartOfTheWeek"/>
+<link id="EndOfTheWeek"/>
+<link id="EndOfAWeek"/>
+<link id="StartOfAMonth"/>
+<link id="EndOfTheYear"/>
+<link id="EndOfAYear"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfAMonth"/>
+</seealso>
+<example file="datutex/ex35"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1408,28 +1555,31 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 </element>
 
 <!-- function Visibility: default -->
-<element name="EndOfAWeek">
-<short>Calculate a datetime value which represents the end of a specified week.</short>
-</element>
-
-<!-- function result Visibility: default -->
-<element name="EndOfAWeek.Result">
-<short>DateTime value representing the end of the week specified by <var>AYear</var>, <var>AWeekOfYear</var> and <var>DayOfWeek</var></short>
-</element>
-
-<!-- argument Visibility: default -->
-<element name="EndOfAWeek.AYear">
-<short>Year</short>
-</element>
-
-<!-- argument Visibility: default -->
-<element name="EndOfAWeek.AWeekOfYear">
-<short>Week of the year</short>
-</element>
-
-<!-- function Visibility: default -->
 <element name="StartOfTheDay">
 <short>Calculate the start of the day as a DateTime value, given a moment in the day.</short>
+<descr>
+<p>
+<var>StartOfTheDay</var> extracts the date part of <var>AValue</var> and
+returns a <var>TDateTime</var> value with the date/time indication of 
+the start (0:0:0.000) of this day.
+</p>
+</descr>
+<seealso>
+<link id="StartOfADay"/>
+<link id="StartOfTheWeek"/>
+<link id="StartOfAWeek"/>
+<link id="StartOfAMonth"/>
+<link id="StartOfTheMonth"/>
+<link id="EndOfTheWeek"/>
+<link id="EndOfAWeek"/>
+<link id="EndOfTheYear"/>
+<link id="EndOfAYear"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfAMonth"/>
+<link id="EndOftheDay"/>
+<link id="EndOfADay"/>
+</seealso>
+<example file="datutex/ex36"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1445,6 +1595,29 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="EndOfTheDay">
 <short>Calculate a datetime value that represents the end of a given day.</short>
+<descr>
+<p>
+<var>EndOfTheDay</var> extracts the date part of <var>AValue</var> and
+returns a <var>TDateTime</var> value with the date/time indication of 
+the last moment (23:59:59.999) of this day.
+</p>
+</descr>
+<seealso>
+<link id="StartOftheDay"/>
+<link id="StartOfADay"/>
+<link id="StartOfTheWeek"/>
+<link id="StartOfAWeek"/>
+<link id="StartOfAMonth"/>
+<link id="StartOfTheMonth"/>
+<link id="EndOfTheWeek"/>
+<link id="EndOfAWeek"/>
+<link id="EndOfTheYear"/>
+<link id="EndOfAYear"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfAMonth"/>
+<link id="EndOfADay"/>
+</seealso>
+<example file="datutex/ex37"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1460,6 +1633,33 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="StartOfADay">
 <short>Return the start of a day as a DateTime value, given a day indication</short>
+<descr>
+<p>
+<var>StartOfADay</var> 
+returns a <var>TDateTime</var> value with the date/time indication of 
+the start (0:0:0.000) of the day given by <var>AYear</var>,
+<var>AMonth</var>, <var>ADay</var>.
+</p>
+<p>
+The day may also be indicated with a <var>AYear</var>, <var>ADayOfYear</var> pair.
+</p>
+</descr>
+<seealso>
+<link id="StartOfTheDay"/>
+<link id="StartOfTheWeek"/>
+<link id="StartOfAWeek"/>
+<link id="StartOfAMonth"/>
+<link id="StartOfTheMonth"/>
+<link id="EndOfTheWeek"/>
+<link id="EndOfAWeek"/>
+<link id="EndOfTheYear"/>
+<link id="EndOfAYear"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfAMonth"/>
+<link id="EndOfTheDay"/>
+<link id="EndOfADay"/>
+</seealso>
+<example file="datutex/ex38"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1490,6 +1690,33 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="EndOfADay">
 <short>Calculates a DateTime value representing the end of a specified day</short>
+<descr>
+<p>
+<var>EndOfADay</var> 
+returns a <var>TDateTime</var> value with the date/time indication of 
+the last moment  (23:59:59.999) of the day given by <var>AYear</var>,
+<var>AMonth</var>, <var>ADay</var>.
+</p>
+<p>
+The day may also be indicated with a <var>AYear</var>, <var>ADayOfYear</var> pair.
+</p>
+</descr>
+<seealso>
+<link id="StartOfTheDay"/>
+<link id="StartOfADay"/>
+<link id="StartOfTheWeek"/>
+<link id="StartOfAWeek"/>
+<link id="StartOfAMonth"/>
+<link id="StartOfTheMonth"/>
+<link id="EndOfTheWeek"/>
+<link id="EndOfAWeek"/>
+<link id="EndOfTheYear"/>
+<link id="EndOfAYear"/>
+<link id="EndOfTheMonth"/>
+<link id="EndOfAMonth"/>
+<link id="EndOfTheDay"/>
+</seealso>
+<example file="datutex/ex39"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1520,6 +1747,25 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="MonthOfTheYear">
 <short>Extract the month of a DateTime indication.</short>
+<descr>
+<p>
+<var>MonthOfTheYear</var> extracts the month part of <var>Avalue</var> and
+returns it. It is an alias for <link id="MonthOf"/>, and is provided for
+completeness only, corresponding to the other <var>PartOfTheYear</var> functions.
+</p>
+<p>
+For an example, see the <link id="WeekOfTheYear"/> function.
+</p>
+</descr>
+<seealso>
+<link id="MonthOf"/>
+<link id="WeekOfTheYear"/>
+<link id="DayOfTheYear"/>
+<link id="HourOfTheYear"/>
+<link id="MinuteOfTheYear"/>
+<link id="SecondOfTheYear"/>
+<link id="MilliSecondOfTheYear"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1535,6 +1781,28 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="WeekOfTheYear">
 <short>Extract the week of the year (and optionally year) of a DateTime indication.</short>
+<descr>
+<p>
+<var>WeekOfTheYear</var> extracts the week of the year from <var>Avalue</var> and
+returns it, and optionally returns the year as well. It returns the same value as <link id="WeekOf"/>.
+</p>
+<remark>
+Note that weeks are numbered from 1 using the ISO 8601 standard, and the day of the week as well. 
+This means that the year may not be the same as the year part of the date, since the week may
+start in the previous year as the first week of the year is the week with at
+least 4 days in it.
+</remark>
+</descr>
+<seealso>
+<link id="WeekOf"/>
+<link id="MonthOfTheYear"/>
+<link id="DayOfTheYear"/>
+<link id="HourOfTheYear"/>
+<link id="MinuteOfTheYear"/>
+<link id="SecondOfTheYear"/>
+<link id="MilliSecondOfTheYear"/>
+</seealso>
+<example file="datutex/ex40"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1555,7 +1823,25 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 
 <!-- function Visibility: default -->
 <element name="DayOfTheYear">
-<short>Extracts the day of the week from a DateTime value</short>
+<short>Extracts the day of the year from a <var>TDateTime</var> value</short>
+<descr>
+<p>
+<var>DayOfTheYear</var> returns the number of days that have passed since
+the start of the year till the moment indicated by
+<var>AValue</var>. This is a one-based number, i.e. January 1 will
+return 1.
+</p>
+<p>
+For an example, see the <link id="WeekOfTheYear"/> function.
+</p>
+</descr>
+<seealso>
+<link id="WeekOfTheYear"/>
+<link id="HourOfTheYear"/>
+<link id="MinuteOfTheYear"/>
+<link id="SecondOfTheYear"/>
+<link id="MilliSecondOfTheYear"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1571,6 +1857,24 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="HourOfTheYear">
 <short>Calculate the number of hours passed since the start of the year.</short>
+<descr>
+<p>
+<var>HourOfTheYear</var> returns the number of hours that have passed since
+the start of the year (January 1, 00:00:00) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+January 1 00:59:59 will return 0.
+</p>
+<p>
+For an example, see the <link id="WeekOfTheYear"/> function.
+</p>
+</descr>
+<seealso>
+<link id="WeekOfTheYear"/>
+<link id="DayOfTheYear"/>
+<link id="MinuteOfTheYear"/>
+<link id="SecondOfTheYear"/>
+<link id="MilliSecondOfTheYear"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1586,6 +1890,25 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="MinuteOfTheYear">
 <short>Calculate the number of minutes elapsed since the start of the year</short>
+<descr>
+<p>
+<var>MinuteOfTheYear</var> returns the number of minutes that have passed since
+the start of the year (January 1, 00:00:00) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+January 1 00:00:59 will return 0.
+</p>
+<p>
+For an example, see the <link id="WeekOfTheYear"/> function.
+</p>
+</descr>
+<seealso>
+<link id="WeekOfTheYear"/>
+<link id="DayOfTheYear"/>
+<link id="HourOfTheYear"/>
+<link id="MinuteOfTheYear"/>
+<link id="SecondOfTheYear"/>
+<link id="MilliSecondOfTheYear"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1601,6 +1924,25 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="SecondOfTheYear">
 <short>Calculate the number of seconds elapsed since the start of the year.</short>
+<descr>
+<p>
+<var>SecondOfTheYear</var> returns the number of seconds that have passed since
+the start of the year (January 1, 00:00:00) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+January 1 00:00:00.999 will return 0.
+</p>
+<p>
+For an example, see the <link id="WeekOfTheYear"/> function.
+</p>
+</descr>
+<seealso>
+<link id="WeekOfTheYear"/>
+<link id="DayOfTheYear"/>
+<link id="HourOfTheYear"/>
+<link id="MinuteOfTheYear"/>
+<link id="SecondOfTheYear"/>
+<link id="MilliSecondOfTheYear"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -1616,6 +1958,25 @@ returns a <var>TDateTime</var> value with the date of the last day of the year <
 <!-- function Visibility: default -->
 <element name="MilliSecondOfTheYear">
 <short>Calculate the number of milliseconds elapsed since the start of the year.</short>
+<descr>
+<p>
+<var>MilliSecondOfTheYear</var> returns the number of milliseconds that have passed since
+the start of the year (January 1, 00:00:00.000) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+January 1 00:00:00.000 will return 0.
+</p>
+<p>
+For an example, see the <link id="WeekOfTheYear"/> function.
+</p>
+</descr>
+<seealso>
+<link id="WeekOfTheYear"/>
+<link id="DayOfTheYear"/>
+<link id="HourOfTheYear"/>
+<link id="MinuteOfTheYear"/>
+<link id="SecondOfTheYear"/>
+<link id="MilliSecondOfTheYear"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->

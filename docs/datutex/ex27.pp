@@ -1,4 +1,4 @@
-Program Example25;
+Program Example27;
 
 { This program demonstrates the EndOfAYear function }
 

@@ -21,3 +21,19 @@ ex21.pp contains an example of the IsSameDay function.
 ex22.pp contains an example of the PreviousDayOfWeek function.
 ex23.pp contains an example of the YearOf function.
 ex24.pp contains an example of the StartOfTheYear function.
+ex25.pp contains an example of the EndOfTheYear function.
+ex26.pp contains an example of the StartOfAYearfunction.
+ex27.pp contains an example of the EndOfAYear function.
+ex28.pp contains an example of the StartOfTheMonth function.
+ex29.pp contains an example of the EndOfTheMonth function.
+ex30.pp contains an example of the StartOfAMonth function.
+ex31.pp contains an example of the EndOfAMonth function.
+ex32.pp contains an example of the StartOfTheWeek function.
+ex33.pp contains an example of the EndOfTheWeek function.
+ex34.pp contains an example of the StartOfAWeek function.
+ex35.pp contains an example of the EndOfAWeek function.
+ex36.pp contains an example of the StartOfTheDay function.
+ex37.pp contains an example of the EndOfTheDay function.
+ex38.pp contains an example of the StartOfADay function.
+ex34.pp contains an example of the EndOfADay function.
+ex40.pp contains an example of the WeekOfTheYear function.
