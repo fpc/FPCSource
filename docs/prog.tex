@@ -5613,6 +5613,57 @@ what variables are set by \var{fpcmake}, what variables it expects to be set,
 and what targets it defines. After that, some settings in the resulting
 \file{Makefile} are explained.
 
+\section{Functionality}
+\label{se:fpcmakefunctionality}
+\file{fpcmake} generates a makefile, suitable for GNU \file{make}, 
+which can be used to 
+\begin{enumerate}
+\item Compile units and programs, fit for testing or for final distribution.
+\item Compile example units and programs separately.
+\item Install compiled units and programs in standard locations.
+\item Make archives for distribution of the generated programs and units.
+\item Clean up after compilation and tests.
+\end{enumerate}
+\file{fpcmake} knows how the \fpc compiler operates, which command line
+options it uses, how it searches for files and so on; It uses this knowledge
+to construct sensible command-lines. 
+
+Specifically, it constructs the following targets in the final makefile:
+\begin{description}
+\item[all] Makes all units and programs.
+\item[debug] Makes all units and programs with debug info included.
+\item[smart] Makes all units and programs in smartlinked version.
+\item[examples] Makes all example units and programs.
+\item[shared] Makes all units and programs in shared library version
+(currently disabled)
+\item[install] Installs all units and programs.
+\item[sourceinstall] Installs the sources to the \fpc source tree.
+\item[exampleinstall] Installs any example programs and units.
+\item[distinstall] Installs all units and programs, as well as example units
+and programs.
+\item[zipinstall] Makes an archive of the programs and units which can be
+used to install them on another location, i.e. it makes an archive that can
+be used to distribute the units and programs.
+\item[zipsourceinstall] Makes an archive of the program and unit sources
+which can be used to distribute the sources.
+\item[zipexampleinstall] Makes an archive of the example programs and units 
+which can be used to install them on another location, i.e. it makes an 
+archive that can be used to distribute the example units and programs.
+\item[zipdistinstall] Makes an archive of both the normal as well as the
+example programs and units. This archive can be used to install them on 
+another location, i.e. it makes an archive that can be used to 
+distribute.
+\item[clean] Cleans all files that are produced by a compilation.
+\item[distclean] Cleans all files that are produced by a compilation, as
+well as any archives, examples or files left by examples.
+\item[cleanall] Same as clean.
+\item[info] Produces some information on the screen about used programs,
+file and directory locations, where things will go when installing and so
+on.
+\end{description}
+Each of these targets can be highly configured, or even totally overridden
+by the configuration file \file{Makefile.fpc}
+
 \section{Usage}
 \file {fpcmake} reads a \file{Makefile.fpc} and converts it to a
 \file{Makefile} suitable for reading by \gnu \file{make}
@@ -5841,7 +5892,8 @@ In this section dependency rules for the units and any other needed
 targets can be inserted. It will be included at the end of the generated
 makefile. Targets or 'default rules' that are defined by \fpcmake{} 
 can be inserted here; if they are not present, then \fpcmake{} will generate
-a rule that will call the generic \var{fpc\_} version.
+a rule that will call the generic \var{fpc\_} version. For a list of standard 
+targets that will be defined by \fpcmake{}, see \sees{fpcmakefunctionality}.
 
 For example, it is possible to define a target \var{all:}. If it is not
 defined, then \fpcmake{} will generate one which simply calls
@@ -5853,8 +5905,11 @@ The \var{fpc\_all} rule will make all targets as defined in the \var{Target}
 section.
 
 \subsection{Target}
-In this section the various targets must be defined. The following keywords
-can be used there:
+This is the most important section of the \file{makefile.fpc} file. Here the
+files are defined which should be compiled when the 'all' target is
+executed. 
+
+The following keywords can be used there:
 \begin{description}
 \item[dirs]
 A space separated list of directories where make should also be run.
