@@ -36,6 +36,9 @@ unit KbdCalls;
 
 { Interface library to KBDCALLS.DLL (through EMXWRAP.DLL)
 
+Variant records and aliases for some record types created to maintain highest
+possible level of compatibility with other existing OS/2 compilers.
+
 Changelog:
 
     People:
@@ -71,7 +74,8 @@ uses    strings;
 {$endif FPK}
 
 const
-{return codes / error constants (those marked with * shouldn't occur)}
+{return codes / error constants (those marked with * shouldn't occur under
+normal conditions)}
     NO_ERROR                        =  0;
     ERROR_SEM_TIMEOUT               =121;
     ERROR_KBD_PARAMETER             =373;
@@ -171,6 +175,16 @@ const
     KBDTRF_FINAL_CHAR_IN        =$40;   {either $40 or $80 or both}
     KBDTRF_INTERIM_CHAR_IN      =$80;   {must be present          }
 
+{TKbdHWID.idKbd}
+    Keyboard_Undetermined   =$0000; {undetermined keyboard type}
+    Keyboard_AT_Compatible  =$0001; {PC-AT Standard Keyboard}
+    Keyboard_Enhanced_101   =$AB41; {101 Key Enhanced Keyboard}
+    Keyboard_Enhanced_102   =$AB41; {102 Key Enhanced Keyboard}
+    Keyboard_Enhanced_88_89 =$AB54; {88 and 89 Key Enhanced Keyboards}
+    Keyboard_Enhanced_122   =$AB85; {122 Key Enhanced Keyboard}
+    Keyboard_AT_Compatable=Keyboard_AT_Compatible;
+    Keyboard_SpaceSaver=Keyboard_Enhanced_88_89;
+
 
 type
 
@@ -183,22 +197,30 @@ type
         chChar:char;    {ASCII character code; the scan code received}
                         {from the keyboard is translated to the ASCII}
                         {character code                              }
+        case boolean of
+        false:(
         chScan:byte;    {scan Code received from the keyboard}
         fbStatus:byte;  {state of the keystroke event, see KBDTRF_*}
         bNlsShift:byte; {NLS shift status (always 0?)}
         fsState:word;   {shift key status, see KBDSTF_*}
-        Time:cardinal;  {time stamp indicating when a key was pressed,}
+        Time:cardinal); {time stamp indicating when a key was pressed,}
                         {specified in milliseconds from the time      }
                         {the system was started                       }
+        true:(
+        chScan2:char;   (* should be chScan and bNlsShift, but this *)
+        fbStatus2:byte; (* construct is unsupported currently       *)
+        bNlsShift2:char);
     end;
     PKbdKeyInfo=^TKbdKeyInfo;
+    KbdKeyInfo=TKbdKeyInfo; {for better compatibility with other compilers}
 
 {record type for KbdStringIn}
     TStringInBuf=record
         cb:word;    {length of the input buffer, maximum length is 255}
         cchIn:word; {number of bytes actually read into the buffer}
     end;
-    PStringInBuf=TStringInBuf;
+    PStringInBuf=^TStringInBuf;
+    StringInBuf=TStringInBuf;
 
 {TKbdInfo record type, for KbdSet/GetStatus}
     TKbdInfo=record
@@ -209,7 +231,7 @@ type
                         {and extended-ASCII format, the turn-around character}
                         {is defined as the carriage return, in ASCII format  }
                         {only, the turn-around character is defined in the   }
-                        {low-order byte; usually $000D                       }
+                        {low-order byte; usually $000D                                }
         fsInterim,      {interim character flags: bits 0-4 and 6 - reserved   }
                         {                                        and set to 0,}
                         {                         bit 5          - application}
@@ -224,6 +246,7 @@ type
         fsState:word;   {shift state, see TKbdInfo.fsState constants}
     end;
     PKbdInfo=^TKbdInfo;
+    KbdInfo=TKbdInfo;
 
 {record type for KbdGetHWID}
     TKbdHWID=record
@@ -237,10 +260,12 @@ type
                             {               $AB54 = 88 and 89 Key Enhanced    }
                             {                        Keyboards                }
                             {               $AB85 = 122 Key Enhanced Keyboard }
+                            {- see KEYBOARD_* constants                       }
         usReserved1,        {reserved, returned set to zero (secondary ID?)}
         usReserved2:word;   {reserved, returned set to zero}
     end;
     PKbdHWID=^TKbdHWID;
+    KbdHWID=TKbdHWID;
 
 {record type for KbdXlate}
 (*   #pragma pack(2) ???*)
@@ -252,15 +277,17 @@ type
             chChar:char;    {ASCII character code; the scan code received}
                             {from the keyboard is translated to the ASCII}
                             {character code                              }
-            chScan:byte;    {scan Code received from the keyboard}
-            fbStatus:byte;  {state of the keystroke event, see KBDTRF_*}
+            case boolean of
+            false:(
+            chScan,         {scan Code received from the keyboard}
+            fbStatus,       {state of the keystroke event, see KBDTRF_*}
             bNlsShift:byte; {NLS shift status (always 0?)}
             fsState:word;   {shift key status, see KBDSTF_*}
             Time:cardinal;  {time stamp indicating when a key was pressed,}
                             {specified in milliseconds from the time      }
                             {the system was started                       }
-            fsDD:word;      {device driver returned flag,}
-                            {see KbdDDFlagWord notes     }
+            fsDD:word;      {device driver returned flag, }
+                            {see KbdDDFlagWord notes below}
             fsXlate:word;   {translation flag: 0 - translation incomplete,}
                             {                  1 - translation complete   }
             fsShift:word;   {identifies the state of translation across    }
@@ -270,8 +297,13 @@ type
                             {should not be changed unless a new translation}
                             {is required (that is, reset value to zero)    }
             sZero:word);    {reserved, set to 0}
+            true:(
+            chScan2,        (* should be chScan, fbStatus and bNlsShift,   *)
+            fbStatus2,      (* but this construct is unsupported currently *)
+            bNlsShift2:char));
     end;
     PKbdTrans=^TKbdTrans;
+    KbdTrans=TKbdTrans;
 
 {KbdDDFlagWord notes:
   bits 15-14    Available. These bits are available for communication between
@@ -1317,6 +1349,8 @@ default keyboard (0) or a logical keyboard.}
   (focus), or is equal to zero and no other handle has the focus.}
 function KbdStringIn(var CharBuf;var LenInOut:TStringInBuf;WaitFlag:word;
                                                           KbdHandle:word):word;
+function KbdStringIn(CharBuf:PChar;LenInOutP:PStringInBuf;WaitFlag:word;
+                                                          KbdHandle:word):word;
 
 {Clear the keystroke buffer.}
 {KbdHandle is the default keyboard (0) or a logical keyboard.}
@@ -1520,6 +1554,7 @@ function KbdGetHWID(var HWID:TKbdHWID;KbdHandle:word):word;
 
 {Undocumented in official IBM documentation}
 function KbdSetHWID(var HWID:TKbdHWID;KbdHandle:word):word;
+function KbdSetHWID(HWIDP:PKbdHWID;KbdHandle:word):word;
 
 {Translate scan codes with shift states into ASCII codes.}
 {TransData - see TKbdTransData, KbdHandle is the default keyboard (0) or a
@@ -1545,8 +1580,9 @@ function KbdXlate(var TransData:TKbdTrans;KbdHandle:word):word;
 {Install, on the specified handle, the translate table which this call points
 to. This translate table affects only this handle.}
 {XLateTbl is the translation table used to translate scan code to ASCII code
-for a specified handle, KbdHandle is the default keyboard (0) or a logical
-keyboard.}
+for a specified handle (the format of the translation table is documented in
+the Set Code Page IOCTL 50h), KbdHandle is the default keyboard (0) or a
+logical keyboard.}
 {Possible return codes:
     0         NO_ERROR
     377       ERROR_KBD_INVALID_ECHO_MASK
@@ -1564,6 +1600,8 @@ keyboard.}
   the caller for the translate table and is freed before the KbdSetCp is
   performed, KbdSetCp and future translations may fail.}
 function KbdSetCustXt(var XLateTbl:TXLateTbl;KbdHandle:word):word;
+function KbdSetCustXt(var CodePage:word;KbdHandle:word):word;
+function KbdSetCustXt(var XLateTblP:pointer;KbdHandle:word):word;
 
 
 (* Following routines are not supported
@@ -1608,6 +1646,11 @@ external 'EMXWRAP' index 222;
 {external 'KBDCALLS' index 22;}
 
 function KbdStringIn(var CharBuf;var LenInOut:TStringInBuf;WaitFlag:word;
+                                                          KbdHandle:word):word;
+external 'EMXWRAP' index 209;
+{external 'KBDCALLS' index 9;}
+
+function KbdStringIn(CharBuf:PChar;LenInOutP:PStringInBuf;WaitFlag:word;
                                                           KbdHandle:word):word;
 external 'EMXWRAP' index 209;
 {external 'KBDCALLS' index 9;}
@@ -1664,11 +1707,23 @@ function KbdSetHWID(var HWID:TKbdHWID;KbdHandle:word):word;
 external 'EMXWRAP' index 225;
 {external 'KBDCALLS' index 25;}
 
+function KbdSetHWID(HWIDP:PKbdHWID;KbdHandle:word):word;
+external 'EMXWRAP' index 225;
+{external 'KBDCALLS' index 25;}
+
 function KbdXlate(var TransData:TKbdTrans;KbdHandle:word):word;
 external 'EMXWRAP' index 214;
 {external 'KBDCALLS' index 14;}
 
 function KbdSetCustXt(var XLateTbl:TXLateTbl;KbdHandle:word):word;
+external 'EMXWRAP' index 201;
+{external 'KBDCALLS' index 1;}
+
+function KbdSetCustXt(var CodePage:word;KbdHandle:word):word;
+external 'EMXWRAP' index 201;
+{external 'KBDCALLS' index 1;}
+
+function KbdSetCustXt(var XLateTblP:pointer;KbdHandle:word):word;
 external 'EMXWRAP' index 201;
 {external 'KBDCALLS' index 1;}
 

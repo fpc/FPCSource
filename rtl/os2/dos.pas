@@ -20,7 +20,7 @@ unit dos;
 
 {$I os.inc}
 
-{$I386_DIRECT}
+{$ASMMODE ATT}
 
 {***************************************************************************}
 
@@ -72,35 +72,8 @@ type    {Some string types:}
             name:string;            {Filenames can be long in OS/2!}
         end;
 
-        {File record for untyped files:}
-        filerec = record
-            handle:word;
-            mode:word;
-            recsize:word;
-            _private:array[1..26] of byte;
-            userdata:array[1..16] of byte;
-            name:array[0..79] of char;
-        end;
-
-        {File record for text files:}
-        textbuf=array[0..127] of char;
-
-        textrec = record
-            handle:word;
-            mode:word;
-            bufSize:word;
-            _private:word;
-            bufpos:word;
-            bufend:word;
-            bufptr:^textbuf;
-            openfunc:pointer;
-            inoutfunc:pointer;
-            flushfunc:pointer;
-            closefunc:pointer;
-            userdata:array[1..16] of byte;
-            name:array[0..79] of char;
-            buffer:textbuf;
-        end;
+{$i filerec.inc}
+{$i textrec.inc}
 
         {Data structure for the registers needed by msdos and intr:}
        registers=record
@@ -195,9 +168,9 @@ implementation
 
 uses    doscalls;
 
-{Import ___SYSCALL to call it nicely from assembler procedures.
+{Import syscall to call it nicely from assembler procedures.}
 
-procedure syscall;external name '___SYSCALL';}
+procedure syscall;external name '___SYSCALL';
 
 
 function fsearch(path:pathstr;dirlist:string):pathstr;
@@ -249,13 +222,13 @@ begin
         movw (%ebx),%bx
         {Get date}
         movw $0x5700,%ax
-        call ___SYSCALL
+        call syscall
         shll $16,%edx
         movw %cx,%dx
         movl time,%ebx
         movl %edx,(%ebx)
         xorb %ah,%ah
-        movw %ax,U_DOS_DOSERROR
+        movw %ax,doserror
     end;
 end;
 
@@ -270,9 +243,9 @@ begin
         shldl $16,%ecx,%edx
         {Set date}
         movw $0x5701,%ax
-        call ___SYSCALL
+        call syscall
         xorb %ah,%ah
-        movw %ax,U_DOS_DOSERROR
+        movw %ax,doserror
     end;
 end;
 
@@ -283,6 +256,8 @@ procedure msdos(var regs:registers);
 begin
     intr($21,regs);
 end;
+
+{$ASMMODE DIRECT}
 
 procedure intr(intno:byte;var regs:registers);
 
@@ -342,6 +317,8 @@ begin
         {FS and GS too}
     end;
 end;
+
+{$ASMMODE ATT}
 
 procedure exec(const path:pathstr;const comline:comstr);
 
@@ -424,6 +401,8 @@ begin
      Oh boy, I always had the opinion that executing a program under Dos
      was a hard job!}
 
+    {$ASMMODE DIRECT}
+
     asm
         movl env,%edi       {Setup destination pointer.}
         movl _envc,%ecx     {Load number of arguments in edx.}
@@ -445,6 +424,8 @@ begin
         movl %edx,(24)es    {Store environment size.}
     end;
 
+    {$ASMMODE ATT}
+
     {Environtment ready, now set-up exec structure.}
     es.argofs:=args;
     es.envofs:=env;
@@ -457,9 +438,9 @@ begin
     end;
     es.nameofs:=pointer(longint(@path)+1);
     asm
-        movw %ss,(12)es     {Compiler doesn't like record elems in asm.}
-        movw %ss,(14)es
-        movw %ss,(16)es
+        movw %ss,es.argseg
+        movw %ss,es.envseg
+        movw %ss,es.nameseg
     end;
     es.sizearg:=j;
     es.numenv:=0;
@@ -471,14 +452,14 @@ begin
     asm
         leal es,%edx
         mov $0x7f06,%ax
-        call ___SYSCALL
+        call syscall
         xorl %edi,%edi
-        jnc exprg1
+        jnc .Lexprg1
         xchgl %eax,%edi
         xorl %eax,%eax
         decl %eax
-    exprg1:
-        movl %edi,U_DOS_DOSERROR
+    .Lexprg1:
+        movw %di,doserror
         movl %eax,__RESULT
     end;
 
@@ -493,7 +474,7 @@ function dosversion:word;assembler;
 {Returns DOS version in DOS and OS/2 version in OS/2}
 asm
     movb $0x30,%ah
-    call ___SYSCALL
+    call syscall
 end;
 
 procedure getdate(var year,month,day,dayofweek:word);
@@ -501,7 +482,7 @@ procedure getdate(var year,month,day,dayofweek:word);
 begin
     asm
         movb $0x2a,%ah
-        call ___SYSCALL
+        call syscall
         xorb %ah,%ah
         movl 20(%ebp),%edi
         stosw
@@ -526,9 +507,9 @@ begin
         movb 10(%ebp),%dh
         movb 12(%ebp),%dl
         movb $0x2b,%ah
-        call ___SYSCALL
+        call syscall
         xorb %ah,%ah
-        movw %ax,U_DOS_DOSERROR
+        movw %ax,doserror
     end;
 end;
 
@@ -537,7 +518,7 @@ procedure gettime(var hour,minute,second,sec100:word);
 begin
     asm
         movb $0x2c,%ah
-        call ___SYSCALL
+        call syscall
         xorb %ah,%ah
         movl 20(%ebp),%edi
         movb %dl,%al
@@ -563,9 +544,9 @@ begin
         movb 12(%ebp),%dh
         movb 14(%ebp),%dl
         movb $0x2d,%ah
-        call ___SYSCALL
+        call syscall
         xorb %ah,%ah
-        movw %ax,U_DOS_DOSERROR
+        movw %ax,doserror
     end;
 end;
 
@@ -576,7 +557,7 @@ begin
         signal handling instead.}
     asm
         movw $0x3300,%ax
-        call ___SYSCALL
+        call syscall
         movl 8(%ebp),%eax
         movb %dl,(%eax)
     end;
@@ -589,8 +570,8 @@ begin
        signal handling instead.}
     asm
         movb 8(%ebp),%dl
-        movl $0x3301,%ax
-        call ___SYSCALL
+        movw $0x3301,%ax
+        call syscall
     end;
 end;
 
@@ -600,7 +581,7 @@ begin
     {! Do not use in OS/2.}
     asm
         movb $0x54,%ah
-        call ___SYSCALL
+        call syscall
         movl 8(%ebp),%edi
         stosb
     end;
@@ -613,7 +594,7 @@ begin
     asm
         movb 8(%ebp),%al
         movb $0x2e,%ah
-        call ___SYSCALL
+        call syscall
     end;
 end;
 
@@ -627,9 +608,9 @@ begin
         asm
             movb 8(%ebp),%dl
             movb $0x36,%ah
-            call ___SYSCALL
+            call syscall
             cmpw $-1,%ax
-            je LDISKFREE1
+            je .LDISKFREE1
             mulw %cx
             mulw %bx
             shll $16,%edx
@@ -637,7 +618,7 @@ begin
             xchgl %edx,%eax
             leave
             ret
-         LDISKFREE1:
+         .LDISKFREE1:
             cwde
             leave
             ret
@@ -664,10 +645,10 @@ begin
         asm
             movb 8(%ebp),%dl
             movb $0x36,%ah
-            call ___SYSCALL
+            call syscall
             movw %dx,%bx
             cmpw $-1,%ax
-            je LDISKSIZE1
+            je .LDISKSIZE1
             mulw %cx
             mulw %bx
             shll $16,%edx
@@ -675,7 +656,7 @@ begin
             xchgl %edx,%eax
             leave
             ret
-        LDISKSIZE1:
+        .LDISKSIZE1:
             cwde
             leave
             ret
@@ -734,10 +715,10 @@ procedure findfirst(const path:pathstr;attr:word;var f:searchRec);
             {No need to set DTA in EMX. Just give a pointer in ESI.}
             movl 18(%ebp),%esi
             movb $0x4e,%ah
-            call ___SYSCALL
-            jnc LFF
-            movw %ax,U_DOS_DOSERROR
-        LFF:
+            call syscall
+            jnc .LFF
+            movw %ax,doserror
+        .LFF:
         end;
     end;
 
@@ -759,10 +740,10 @@ procedure findnext(var f:searchRec);
         asm
             movl 12(%ebp),%esi
             movb $0x4f,%ah
-            call ___SYSCALL
-            jnc LFN
-            movw %ax,U_DOS_DOSERROR
-        LFN:
+            call syscall
+            jnc .LFN
+            movw %ax,doserror
+        .LFN:
         end;
     end;
 
@@ -783,6 +764,8 @@ end;
 
 type    PPchar=^Pchar;
 
+{$ASMMODE DIRECT}
+
 function envs:PPchar;assembler;
 
 asm
@@ -796,6 +779,8 @@ var hp : ppchar;
 asm
     movl _envc,%eax
 end ['EAX'];
+
+{$ASMMODE ATT}
 
 function envstr(index : longint) : string;
 
@@ -863,8 +848,8 @@ begin
     for i:=length(path) downto 1 do
         if path[i]='.' then
             begin
-                ext:=copy(path,p1,high(extstr));
-                delete(path,p1,length(path)-p1+1);
+                ext:=copy(path,i,high(extstr));
+                delete(path,i,length(path)-i+1);
                 break;
             end;
     name:=path;
@@ -876,7 +861,7 @@ function fexpand(const path:pathstr):pathstr;
 
     asm
         movb $0x19,%ah
-        call ___SYSCALL
+        call syscall
     end;
 
 var s,pa:string;
@@ -969,41 +954,36 @@ begin
     d.year:=time+1980;
 end;
 
-procedure getfattr(var f;var attr : word);
+procedure getfattr(var f;var attr : word);assembler;
 
-var      n:array[0..255] of char;
-
-begin
-    strpcopy(n,filerec(f).name);
-    {Alas, msdos(r) doesn't work when we are running in OS/2.}
-    asm
-        movw $0x4300,%ax
-        leal n,%edx
-        call ___SYSCALL
-        movl attr,%ebx
-        movw %cx,(%ebx)
-    end;
+asm
+    movw $0x4300,%ax
+    movl f,%edx
+    {addl $filerec.name,%edx Doesn't work!!}
+    addl $60,%edx
+    call syscall
+    movl attr,%ebx
+    movw %cx,(%ebx)
 end;
 
-procedure setfattr(var f;attr : word);
+procedure setfattr(var f;attr : word);assembler;
 
-var n:array[0..255] of char;
-
-begin
-    strpcopy(n,filerec(f).name);
-    {Alas, msdos(r) doesn't work when we are running in OS/2.}
-    asm
-        movw $0x4301,%ax
-        leal n,%edx
-        movw attr,%cx
-        call ___SYSCALL
-    end;
+asm
+    movw $0x4301,%ax
+    movl f,%edx
+    {addl $filerec.name,%edx Doesn't work!!}
+    addl $60,%edx
+    movw attr,%cx
+    call syscall
 end;
 
 end.
 {
   $Log$
-  Revision 1.7  1998-07-08 14:44:11  daniel
+  Revision 1.8  1998-10-16 14:18:02  daniel
+  * Updates
+
+  Revision 1.7  1998/07/08 14:44:11  daniel
   + Added moucalls and viocalls written by Tomas Hajny.
   + Final routines in doscalls implemented.
   * Fixed bugs in dos.pas.

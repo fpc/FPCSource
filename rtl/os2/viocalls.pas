@@ -36,11 +36,14 @@ unit VioCalls;
 
 { Interface library to VIOCALLS.DLL (through EMXWRAP.DLL)
 
+Variant records and aliases for some record types created to maintain highest
+possible level of compatibility with other existing OS/2 compilers.
+
 Changelog:
 
     People:
 
-        TH - Tomas Hajny
+        TH - Tomas Hajny (xhajt03@mbox.vol.cz on Internet)
 
     Date:           Description of change:              Changed by:
 
@@ -74,6 +77,7 @@ uses    strings;
 
 const
 {return codes / error constants}
+    NO_ERROR                        =  0;
     ERROR_VIO_INVALID_MASK          =349;
     ERROR_VIO_PTR                   =350;
     ERROR_VIO_APTR                  =351;
@@ -364,39 +368,55 @@ type
         Attr:word;      {Cursor colour attribute (-1=hidden)}
     end;
     PVioCursorInfo=^TVioCursorInfo;
+    VioCursorInfo=TVioCursorInfo;
 
 {record type for VioSetMode/GetMode}
     TVioModeInfo=record
         cb:word;                    {Size of the record}
-        fbType:byte;                {8-bit mask identifying the mode}
+        case boolean of
+        false:(
+        fbType,                     {8-bit mask identifying the mode}
                                     {- see VGMT_* constants         }
         Color:byte;                 {Number of colour bits available}
                                     {(1=>2 colours, 2=>4,...) - see }
                                     {COLORS_* constants             }
-        Col:word;                   {Number of text character columns}
-        Row:word;                   {Number of text character rows}
-        HRes:word;                  {Display width in pixels}
+        Col,                        {Number of text character columns}
+        Row,                        {Number of text character rows}
+        HRes,                       {Display width in pixels}
         VRes:word;                  {Display height in pixels}
-        fmt_ID:byte;                {Format of the attributes}
+        fmt_ID,                     {Format of the attributes}
         Attrib:byte;                {Number of attributes in fmt_ID field}
-        Buf_Addr:cardinal;          {Address of the physical display buffer}
-        Buf_Length:cardinal;        {Length of the physical display buffer}
-        Full_Length:cardinal;       {Size of the buffer needed to save}
+        Buf_Addr,                   {Address of the physical display buffer}
+        Buf_Length,                 {Length of the physical display buffer}
+        Full_Length,                {Size of the buffer needed to save}
                                     {the whole physical buffer        }
         Partial_Length:cardinal;    {Size of the buffer needed to save}
                                     {the part of the physical buffer  }
                                     {overwritten with VioPopup        }
-        Ext_Data_Addr:pointer;      {Address of an extended-mode data}
+        Ext_Data_Addr:pointer);     {Address of an extended-mode data}
+        true:(
+        fbType2,                (* should be fbType, Color, etc., but this *)
+        Color2:char;            (* construct is unsupported currently      *)
+        Col2,
+        Row2,
+        HRes2,
+        VRes2:word;
+        fmt_ID2,
+        Attrib2:char);
     end;
     PVioModeInfo=^TVioModeInfo;
+    VioModeInfo=TVioModeInfo;
 
 {record type for VioGetPhysBuf}
     TVioPhysBuf=record
-        pBuf:pointer;   {Absolute screen address}
-        cb:cardinal;    {Length of the buffer in bytes}
-        Sel:word;       {Selector for video access}
+        pBuf:pointer;       {Absolute screen address}
+        cb:cardinal;        {Length of the buffer in bytes}
+        case boolean of
+        false:(Sel:word);   {Selector for video access}
+        true:(aSel:array[0..0] of word);
     end;
     PVioPhysBuf=^TVioPhysBuf;
+    VioPhysBuf=TVioPhysBuf;
 
 {record type for VioGetConfig}
 (*   #pragma pack(2) ??? *)
@@ -425,17 +445,27 @@ type
                                     {about emulated display types}
        end;
        PVioConfigInfo=^TVioConfigInfo;
+       VioConfigInfo=TVioConfigInfo;
 
 {record type for VioGetFont/VioSetFont}
     TVioFontInfo=record
-        cb:word;        {Size of the record}
-        rType:word;     {Request type}
-        cxCell:word;    {Columns per cell (cell width)}
-        cyCell:word;    {Rows per cell (cell height)}
-        pbData:pointer; {Address of caller's buffer}
-        cbData:word;    {Size of caller's buffer in bytes}
+        cb:word;            {Size of the data record}
+        case byte of
+        1:(
+        rType,              {Request type}
+        cxCell,             {Columns per cell (cell width)}
+        cyCell:word;        {Rows per cell (cell height)}
+        pbData:pointer;     {Address of caller's buffer}
+        cbData:word);       {Size of caller's buffer in bytes}
+        2:(
+        aType,
+        cxCell2,
+        cyCell2:word;
+        pbData2:longint);   (* should be pbData, but this construct *)
+        3:(_type:word);     (* is not supported currently           *)
     end;
     PVioFontInfo=^TVioFontInfo;
+    VioFontInfo=TVioFontInfo;  (* *)
 
 {record types for VioGetState/VioSetState}
     TVioPalState=record
@@ -445,6 +475,7 @@ type
         AColor:array[0..15] of word;    {Up to 16 register values}
     end;
     PVioPalState=^TVioPalState;
+    VioPalState=TVioPalState;
 
     TVioOverscan=record
         cb:word;    {Size of the record}
@@ -452,6 +483,7 @@ type
         Color:word; {The colour of the border area}
     end;
     PVioOverscan=^TVioOverscan;
+    VioOverScan=TVioOverScan;
 
     TVioIntensity=record
         cb:word;    {Size of the record}
@@ -459,6 +491,7 @@ type
         fs:word;    {The flink/bold background switch}
     end;
     PVioIntensity=^TVioIntensity;
+    VioIntensity=TVioIntensity;
 
     TVioColorReg=record
         cb:word;                {Size of the record}
@@ -468,6 +501,7 @@ type
         ColorRegAddr:pointer;   {pointer to an array with colour values}
     end;
     PVioColorReg=^TVioColorReg;
+    VioColorReg=TVioColorReg;
 
     TVioSetULineLoc=record
         cb:word;        {Size of the record}
@@ -475,6 +509,7 @@ type
         ScanLine:word;  {Location of the underline (32=no underline)}
     end;
     PVioSetULineLoc=^TVioSetULineLoc;
+    VioSetULineLoc=TVioSetULineLoc;
 
     TVioSetTarget=record
         cb:word;                {Size of the record}
@@ -483,6 +518,7 @@ type
                                 {(see VIO_CONFIG_* constants)}
     end;
     PVioSetTarget=^TVioSetTarget;
+    VioSetTarget=TVioSetTarget;
 
     TStr8=array[0..7] of char;
     PStr8=^TStr8;
@@ -501,6 +537,7 @@ type
         fsFontUse:word;
     end;
     PFAttrs=^TFAttrs;
+    FAttrs=TFAttrs;
 
 {font metrics returned by GpiQueryFonts and others}
     TPanose=record
@@ -517,6 +554,7 @@ type
         fbPassedISO:byte;
         fbFailedISO:byte;
     end;
+    PPanose=^TPanose;
 
     TFontMetrics=record
         szFamilyname:array[0..FACESIZE-1] of char;
@@ -573,6 +611,7 @@ type
         Panose:TPanose;
     end;
     PFontMetrics=^TFontMetrics;
+    FontMetrics=TFontMetrics;
 
 
 function VioRegister(ModuleName,ProcName:PChar;FnMask1,FnMask2:cardinal):word;
@@ -1058,3 +1097,4 @@ external 'EMXWRAP' index 30;
 {external 'PMVIOP' index 30;}
 
 end.
+
