@@ -48,9 +48,13 @@ var
 const
   gpm_fs : longint = -1;
 
-
+{$ifndef NOGPM}
 procedure GPMEvent2MouseEvent(const e:TGPMEvent;var mouseevent:tmouseevent);
+var
+  PrevButtons : byte;
+
 begin
+  PrevButtons:=SysLastMouseEvent.Buttons;
   if e.x>0 then
    mouseevent.x:=e.x-1
   else
@@ -80,14 +84,25 @@ begin
       end;
     GPM_UP :
       begin
-        MouseEvent.Action:=MouseActionUp;
+        { gpm apparently sends the button that is left up
+          while mouse unit expects the button state after
+          the button was released PM }
+        if MouseEvent.Buttons<>0 then
+          begin
+            MouseEvent.Buttons:=MouseEvent.Buttons xor PrevButtons;
+            MouseEvent.Action:=MouseActionUp;
+          end
+        { this does probably never happen...
+          but its just a security PM }
+        else
+          MouseEvent.Action:=MouseActionMove;
         WaitMouseMove:=false;
       end;
   else
    MouseEvent.Action:=0;
   end;
 end;
-
+{$ENDIF}
 
 procedure PlaceMouseCur(ofs:longint);
 var
@@ -299,7 +314,8 @@ begin
 {$ifndef NOGPM}
   if PollMouseEvent(ME) then
     begin
-      GetMouseEvent(ME);
+      // why should we remove that event ?? PM
+      // GetMouseEvent(ME);
       SysGetMouseButtons:=ME.buttons
     end
   else
@@ -369,8 +385,8 @@ begin
        SysPollMouseEvent:=false;
    end
   else
+{$endif NOGPM}
    SysPollMouseEvent:=false;
-{$endif ndef NOGPM}
 end;
 
 
@@ -418,7 +434,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2003-09-16 16:13:56  marco
+  Revision 1.12  2003-10-24 18:09:56  marco
+   * 1.0.x fixes merged
+
+  Revision 1.11  2003/09/16 16:13:56  marco
    * fdset functions renamed to fp<posix name>
 
   Revision 1.10  2003/09/14 20:15:01  marco
