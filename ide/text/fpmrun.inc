@@ -192,10 +192,12 @@ begin
 end;
 
 procedure TIDEApp.DoContToCursor;
+{$ifndef NODEBUG}
 var
   W : PSourceWindow;
   FileName : string;
   LineNr : longint;
+{$endif}
 begin
 {$ifndef NODEBUG}
   if (DeskTop^.Current=nil) or
@@ -236,11 +238,13 @@ begin
 end;
 
 procedure TIDEApp.DoToggleBreak;
+{$ifndef NODEBUG}
 var
   W : PSourceWindow;
   FileName : string;
   b : boolean;
   LineNr : longint;
+{$endif}
 begin
 {$ifndef NODEBUG}
   if (DeskTop^.Current=nil) or
@@ -266,7 +270,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  2000-03-08 16:58:12  pierre
+  Revision 1.30  2000-03-21 23:27:35  pierre
+   Gabor fixes to avoid unused vars
+
+  Revision 1.29  2000/03/08 16:58:12  pierre
    Uses Debugger^.IsRunning
 
   Revision 1.28  2000/02/04 00:15:31  pierre

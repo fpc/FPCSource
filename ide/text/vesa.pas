@@ -307,7 +307,11 @@ end;
 function VESAGetModeList(var B: TVESAModeList): boolean;
 var OK: boolean;
     VI: TVESAInfoBlock;
+    {$ifdef TP}
+    {$ifdef DPMI}
     Sel: word;
+    {$endif}
+    {$endif}
 begin
   FillChar(B,SizeOf(B),0);
   OK:=VESAGetInfo(VI);
@@ -360,7 +364,11 @@ end;
 function VESAGetOemString: string;
 var OK: boolean;
     VI: TVESAInfoBlock;
+    {$ifdef TP}
+    {$ifdef DPMI}
     Sel: word;
+    {$endif}
+    {$endif}
     S: array[0..256] of char;
 begin
   FillChar(S,SizeOf(S),0);
@@ -482,7 +490,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.6  2000-01-03 11:38:35  michael
+  Revision 1.7  2000-03-21 23:22:37  pierre
+   Gabor fixes to avoid unused vars
+
+  Revision 1.6  2000/01/03 11:38:35  michael
   Changes from Gabor
 
   Revision 1.4  1999/04/07 21:55:58  peter
