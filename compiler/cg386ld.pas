@@ -496,7 +496,8 @@ implementation
                     begin
                        { we do not need destination anymore }
                        del_reference(p^.left^.location.reference);
-                       del_reference(p^.right^.location.reference);
+                       {del_reference(p^.right^.location.reference);
+                        done in loadshortstring }
                        loadshortstring(p);
                        ungetiftemp(p^.right^.location.reference);
                     end;
@@ -985,7 +986,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  1999-09-12 08:48:03  florian
+  Revision 1.86  1999-09-16 07:56:46  pierre
+   * double del_reference removed
+
+  Revision 1.85  1999/09/12 08:48:03  florian
     * bugs 593 and 607 fixed
     * some other potential bugs with array constructors fixed
     * for classes compiled in $M+ and it's childs, the default access method
