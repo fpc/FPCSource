@@ -6,20 +6,17 @@
 units=db ddg_ds ddg_rec mysqldb
 examples=testds createds mtest tested
 
-[defaults]
-defaultcpu=i386
-
 [require]
 options=-S2
 packages=fcl mysql
 
+[install]
+unitsubdir=fcl
+packagename=fcl
+
 [dirs]
 fpcdir=../..
-targetdir=.
-
-[libs]
-libgcc=1
-
+targetdir=../$(OS_TARGET)
 
 [rules]
 db$(PPUEXT): db.pp fields.inc dataset.inc dbs.inc

@@ -4,7 +4,7 @@
 
 [targets]
 dirs=go32v2 linux win32 os2
-exampledirs=tests shedit/gtk
+exampledirs=tests db/tests shedit/gtk
 
 [install]
 examplesubdir=fcl
