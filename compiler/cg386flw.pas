@@ -621,6 +621,7 @@ do_jmp:
               }
               push_int (-1);
               emitcall('FPC_CATCHES');
+              maybe_loadesi;
               secondpass(p^.t1);
               emitcall('FPC_POPOBJECTSTACK');
            end
@@ -660,7 +661,13 @@ do_jmp:
            R_EAX,newreference(ref));
 
          if assigned(p^.right) then
-           secondpass(p^.right);
+           begin
+             { esi is destroyed by FPC_CATCHES }
+             maybe_loadesi;
+             secondpass(p^.right);
+           end;
+        
+
          emit_ref(A_PUSH,S_L,
            newreference(ref));
          emitcall('FPC_DESTROYEXCEPTION');
@@ -773,7 +780,8 @@ do_jmp:
          emit_reg(A_PUSH,S_L,R_EDI);
          emitcall('FPC_FREEMEM');
          emitjmp(C_None,afterfreememcall);
-         
+
+
          emitlab(nofreememcall);
          { reset VMT field for static object }
          new(hp);
@@ -796,7 +804,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.47  1999-08-25 11:59:42  jonas
+  Revision 1.48  1999-09-07 07:56:37  peter
+    * reload esi in except block to allow virtual methods
+
+  Revision 1.47  1999/08/25 11:59:42  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.46  1999/08/19 13:06:47  pierre
