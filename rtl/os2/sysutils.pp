@@ -856,6 +856,7 @@ begin
             CurrencyString := PChar (CtryInfo.CurrencyUnit);
         end;
     InitAnsi;
+    InitInternationalGeneric;
 end;
 
 function SysErrorMessage(ErrorCode: Integer): String;
@@ -1033,7 +1034,10 @@ end.
 
 {
   $Log$
-  Revision 1.49  2005-02-14 17:13:31  peter
+  Revision 1.50  2005-03-01 23:27:57  hajny
+    * SysLocale initialized to empty for OS/2 too - probably wrong for DBCS versions
+
+  Revision 1.49  2005/02/14 17:13:31  peter
     * truncate log
 
 }
