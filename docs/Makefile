@@ -36,6 +36,8 @@ ifndef DOCINSTALLDIR
 DOCINSTALLDIR:=$(PREFIXINSTALLDIR)/doc/fpc-$(shell ppc386 -iV)
 endif 
 
+
+
 #
 # Program definitions
 #
@@ -254,14 +256,23 @@ date.inc:
 preamble.inc:
 	cp -f preamble.$(PREAMBLETYPE) preamble.inc
 
+ifeq ($(OS),Windows_NT)
+inWinNT=1
+endif
+
+ifndef inWinNT
 scripts.chk:
 	chmod +x tex2htex
 	chmod +x pp2tex
 	chmod +x progex/c2tex
 	touch scripts.chk
+endif
 
+ifndef inWinNT
 includes: date.inc preamble.inc scripts.chk
-
+else
+includes: date.inc preamble.inc
+endif
 
 #
 # DVI files
@@ -528,7 +539,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.8  2001-10-04 21:03:13  michael
+# Revision 1.9  2001-10-11 23:36:54  carl
+# + reinstated Windows NT support
+#
+# Revision 1.8  2001/10/04 21:03:13  michael
 # + Added video and keyboard units
 #
 # Revision 1.7  2001/09/22 11:15:04  peter
