@@ -76,6 +76,7 @@ Type
   ValReal = Real;
 
   {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
 {$endif}
 
 { Zero - terminated strings }
@@ -153,14 +154,14 @@ const
 
 { Compatibility With  TP }
 const
+  { code to use comps in int64mul and div code is commented out! (JM) }
+  FPUInt64 : boolean = false; { set this to false if you don't want that }
+                              { the fpu does int64*int64 and             }
+                              { int64 div int64, if the * is overflow    }
+                              { checked, it is done in software          }
 {$ifdef i386}
   Test8086 : byte = 2;       { Always i386 or newer }
   Test8087 : byte = 3;       { Always 387 or newer. Emulated if needed. }
-  { code to use comps in int64mul and div code is commented out! (JM) }
-  FPUInt64 : boolean = false; { set this to false if you don't want that }
-                             { the fpu does int64*int64 and             }
-                             { int64 div int64, if the * is overflow    }
-                             { checked, it is done in software          }
 {$endif i386}
 {$ifdef m68k}
   Test68000 : byte = 0;      { Must be determined at startup for both }
@@ -491,7 +492,10 @@ const
 
 {
   $Log$
-  Revision 1.19  2001-04-13 18:06:07  peter
+  Revision 1.20  2001-04-23 18:25:45  peter
+    * m68k updates
+
+  Revision 1.19  2001/04/13 18:06:07  peter
     * upcase, lowercase for ansistring
 
   Revision 1.18  2001/03/22 23:26:05  florian

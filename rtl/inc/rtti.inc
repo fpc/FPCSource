@@ -85,11 +85,17 @@ TArrayRec = record
 
 { The actual Routines are implemented per processor. }
 
+{ Include the cpu dependant part }
 {$i rttip.inc}
+{ Include the generic part }
+{$i genrtti.inc}
 
 {
   $Log$
-  Revision 1.3  2000-10-21 18:20:17  florian
+  Revision 1.4  2001-04-23 18:25:45  peter
+    * m68k updates
+
+  Revision 1.3  2000/10/21 18:20:17  florian
     * a lot of small changes:
        - setlength is internal
        - win32 graph unit extended

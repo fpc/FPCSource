@@ -115,12 +115,15 @@
       var
          sign : boolean;
          q1,q2 : qword;
+{$ifdef SUPPORT_COMP}
          c : comp;
+{$endif}
 
       begin
          if n=0 then
            HandleErrorFrame(200,get_frame);
          { can the fpu do the work? }
+{$ifdef support_comp}
          if fpuint64 then
            begin
               // the c:=comp(...) is necessary to shut up the compiler
@@ -128,6 +131,7 @@
               divint64:=qword(c);
            end
          else
+{$endif}
            begin
               sign:=false;
               if z<0 then
@@ -262,9 +266,12 @@
       var
          sign : boolean;
          q1,q2,q3 : qword;
+{$ifdef support_comp}
          c : comp;
+{$endif}
 
       begin
+{$ifdef support_comp}
          { can the fpu do the work ? }
          if fpuint64 and not(checkoverflow) then
            begin
@@ -273,6 +280,7 @@
               mulint64:=int64(c);
            end
          else
+{$endif}
            begin
               sign:=false;
               if f1<0 then
@@ -477,7 +485,10 @@
 
 {
   $Log$
-  Revision 1.9  2001-04-13 22:30:04  peter
+  Revision 1.10  2001-04-23 18:25:45  peter
+    * m68k updates
+
+  Revision 1.9  2001/04/13 22:30:04  peter
     * remove warnings
 
   Revision 1.8  2001/03/03 12:39:09  jonas

@@ -85,7 +85,7 @@ var
     until carry = 0;
   end;
 
-  procedure getIntPart(d: extended);
+  procedure getIntPart(d: valreal);
   var
     intPartStack: TIntPartStack;
     stackPtr, endStackPtr, digits: longint;
@@ -403,7 +403,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:45  michael
+  Revision 1.3  2001-04-23 18:25:45  peter
+    * m68k updates
+
+  Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
- 
+
 }

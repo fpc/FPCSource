@@ -17,6 +17,7 @@
 { I think we should use the pascal version, this code isn't     }
 { much faster                                                   }
 
+{$define FPC_SYSTEM_HAS_FPC_INITIALIZE}
 Procedure Initialize (Data,TypeInfo : pointer);[Public,Alias:'FPC_INITIALIZE'];assembler;
 asm
 // Save registers
@@ -131,6 +132,7 @@ asm
 end;
 
 
+{$define FPC_SYSTEM_HAS_FPC_FINALIZE}
 Procedure int_finalize (Data,TypeInfo: Pointer);[Public,Alias:'FPC_FINALIZE'];assembler;
 asm
         push    %eax
@@ -244,6 +246,7 @@ asm
 end;
 
 
+{$define FPC_SYSTEM_HAS_FPC_ADDREF}
 Procedure Addref (Data,TypeInfo : Pointer); [Public,alias : 'FPC_ADDREF'];Assembler;
 asm
 // Save registers
@@ -358,6 +361,7 @@ asm
 end;
 
 
+{$define FPC_SYSTEM_HAS_FPC_DECREF}
 Procedure DecRef (Data,TypeInfo : Pointer); [Public,alias : 'FPC_DECREF'];Assembler;
 asm
 // Save registers
@@ -470,20 +474,12 @@ asm
         pop     %eax
 end;
 
-procedure FinalizeArray(data,typeinfo : pointer;count,size : longint);
-  [Public,Alias:'FPC_FINALIZEARRAY'];
-
-  var
-     i : longint;
-
-  begin
-     for i:=0 to count-1 do
-       int_finalize(data+size*i,typeinfo);
-  end;
-
 {
   $Log$
-  Revision 1.7  2000-11-09 17:49:34  florian
+  Revision 1.8  2001-04-23 18:25:44  peter
+    * m68k updates
+
+  Revision 1.7  2000/11/09 17:49:34  florian
     + FPC_FINALIZEARRAY
     * Finalize to int_finalize renamed
 

@@ -719,7 +719,7 @@ var
    data_end : cardinal;external name '__data_end__';
 {$endif}
 
-procedure CheckPointer(p : pointer);[public, alias : 'FPC_CHECKPOINTER'];
+procedure CheckPointer(p : pointer);[saveregisters, public, alias : 'FPC_CHECKPOINTER'];
 var
   i  : longint;
   pp : pheap_mem_info;
@@ -728,9 +728,6 @@ var
 label
   _exit;
 begin
-  asm
-     pushal
-  end;
   if p=nil then
     goto _exit;
 
@@ -835,11 +832,6 @@ begin
   writeln(ptext^,'pointer $',hexstr(longint(p),8),' does not point to valid memory block');
   runerror(204);
 _exit:
-  asm
-     popal
-     { avoid 386DX popad bug }
-     nop
-  end;
 end;
 
 {*****************************************************************************
@@ -1154,7 +1146,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.12  2001-04-21 12:18:09  peter
+  Revision 1.13  2001-04-23 18:25:44  peter
+    * m68k updates
+
+  Revision 1.12  2001/04/21 12:18:09  peter
     * add nop after popa (merged)
 
   Revision 1.11  2001/04/13 18:05:34  peter
