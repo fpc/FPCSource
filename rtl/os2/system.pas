@@ -1006,7 +1006,7 @@ begin
   StdInputHandle := longint(GetStdHandle(cardinal(STD_INPUT_HANDLE)));
   StdOutputHandle := longint(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
   StdErrorHandle := longint(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
-*)
+
   if not IsConsole then
     begin
       if (DosLoadModule (nil, 0, 'PMWIN', PMWinHandle) = 0) and
@@ -1030,11 +1030,14 @@ begin
    end
   else
    begin
+*)
      OpenStdIO (Input, fmInput, StdInputHandle);
      OpenStdIO (Output, fmOutput, StdOutputHandle);
      OpenStdIO (StdOut, fmOutput, StdOutputHandle);
      OpenStdIO (StdErr, fmOutput, StdErrorHandle);
+(*
    end;
+*)
 end;
 
 
@@ -1170,7 +1173,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-12-07 19:17:14  hajny
+  Revision 1.29  2002-12-08 16:39:58  hajny
+    - WriteLn in GUI mode support commented out until fixed
+
+  Revision 1.28  2002/12/07 19:17:14  hajny
     * GetEnv correction, better PM support, ...
 
   Revision 1.27  2002/11/17 22:31:02  hajny
