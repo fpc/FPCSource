@@ -361,7 +361,9 @@ implementation
           On OS/2 the heap is also intialized by the RTL. We do
           not output a pointer }
          case target_info.system of
-            system_i386_OS2,system_i386_EMX:
+            system_i386_OS2:
+                bssSegment.concat(Tai_datablock.Create_global('HEAP',4));
+            system_i386_EMX:
               ;
             system_powerpc_macos:
               ;
@@ -1452,7 +1454,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.147  2004-03-18 11:43:57  olle
+  Revision 1.148  2004-03-24 20:24:25  hajny
+    * OS/2 heap management modified to be able to grow heap as needed
+
+  Revision 1.147  2004/03/18 11:43:57  olle
     * change AT_FUNCTION to AT_DATA where appropriate
 
   Revision 1.146  2004/03/14 20:10:14  peter
