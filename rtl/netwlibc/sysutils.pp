@@ -175,7 +175,7 @@ Function FileAge (Const FileName : String): Longint;
 var Info : TStat;
     TM  : TTM;
 begin
-  If stat (pchar(FileName),Info) <> 0 then
+  If Fpstat (pchar(FileName),Info) <> 0 then
     exit(-1)
   else
     begin
@@ -189,7 +189,7 @@ end;
 Function FileExists (Const FileName : String) : Boolean;
 VAR Info : TStat;
 begin
-  FileExists:=(stat(pchar(filename),Info) = 0);
+  FileExists:=(Fpstat(pchar(filename),Info) = 0);
 end;
 
 
@@ -239,7 +239,7 @@ begin
       size := Pdirent(FindData.EntryP)^.d_size;
       name := strpas (Pdirent(FindData.EntryP)^.d_name);
       fname := FindData._dir + name;
-      if stat (pchar(fname),StatBuf) = 0 then
+      if Fpstat (pchar(fname),StatBuf) = 0 then
         time := UnixToWinAge (StatBuf.st_mtim.tv_sec)
       else
         time := 0;
@@ -337,7 +337,7 @@ Function FileGetDate (Handle : Longint) : Longint;
 Var Info : TStat;
     _PTM : PTM;
 begin
-  If fstat(Handle,Info) <> 0 then
+  If Fpfstat(Handle,Info) <> 0 then
     Result:=-1
   else
     begin
@@ -361,7 +361,7 @@ end;
 Function FileGetAttr (Const FileName : String) : Longint;
 Var Info : TStat;
 begin
-  If stat (pchar(FileName),Info) <> 0 then
+  If Fpstat (pchar(FileName),Info) <> 0 then
     Result:=-1
   Else
     Result := (Info.st_mode shr 16) and $ffff;
@@ -373,7 +373,7 @@ var
   StatBuf : TStat;
   newMode : longint;
 begin
-  if stat (pchar(Filename),StatBuf) = 0 then
+  if Fpstat (pchar(Filename),StatBuf) = 0 then
   begin
     {what should i do here ?
      only support sysutils-standard attributes or also support the extensions defined
@@ -389,7 +389,7 @@ begin
       newmode := StatBuf.st_mode and ($ffff0000-M_A_RDONLY-M_A_HIDDEN- M_A_SYSTEM-M_A_SUBDIR-M_A_ARCH);
       newmode := newmode or (attr shl 16) or M_A_BITS_SIGNIFICANT;
     end;
-    if chmod (pchar(Filename),newMode) < 0 then
+    if Fpchmod (pchar(Filename),newMode) < 0 then
       result := ___errno^ else
       result := 0;
   end else
@@ -509,7 +509,7 @@ end;
 function DirectoryExists (const Directory: string): boolean;
 var Info : TStat;
 begin
-  If stat (pchar(Directory),Info) <> 0 then
+  If Fpstat (pchar(Directory),Info) <> 0 then
     exit(false)
   else
     Exit ((Info.st_mode and M_A_SUBDIR) <> 0);
@@ -638,7 +638,11 @@ end.
 {
 
   $Log$
-  Revision 1.3  2004-09-19 20:06:37  armin
+  Revision 1.4  2004-09-26 19:23:34  armin
+  * exiting threads at nlm unload
+  * renamed some libc functions
+
+  Revision 1.3  2004/09/19 20:06:37  armin
   * removed get/free video buf from video.pp
   * implemented sockets
   * basic library support

@@ -66,7 +66,7 @@ uses
 function dosversion : word;
 var i : Tutsname;
 begin
-  if uname (i) >= 0 then
+  if Fpuname (i) >= 0 then
     dosversion := WORD (i.netware_minor) SHL 8 + i.netware_major
   else dosversion := $0005;
 end;
@@ -217,7 +217,7 @@ begin
   //writeln (stderr,'Ok');
   if i <> -1 then
   begin
-    waitpid(i,@wstat,0);
+    Fpwaitpid(i,@wstat,0);
     doserror := 0;
     lastdosexitcode := wstat;
   end else
@@ -393,7 +393,7 @@ begin
       fname := f._dir + f.name;
       if length (fname) = 255 then dec (byte(fname[0]));
       fname := fname + #0;
-      if stat (@fname[1],StatBuf) = 0 then
+      if Fpstat (@fname[1],StatBuf) = 0 then
         timet2dostime (StatBuf.st_mtim.tv_sec, time)
       else
         time := 0;
@@ -624,7 +624,7 @@ var
   StatBuf : TStat;
 begin
   doserror := 0;
-  if fstat (filerec (f).handle, StatBuf) = 0 then
+  if Fpfstat (filerec (f).handle, StatBuf) = 0 then
     timet2dostime (StatBuf.st_mtim.tv_sec,time)
   else begin
     time := 0;
@@ -671,7 +671,7 @@ procedure getfattr(var f;var attr : word);
 VAR StatBuf : TStat;
 begin
   doserror := 0;
-  if stat (@textrec(f).name, StatBuf) = 0 then
+  if Fpstat (@textrec(f).name, StatBuf) = 0 then
     attr := nwattr2dosattr (StatBuf.st_mode)
   else
   begin
@@ -686,7 +686,7 @@ var
   StatBuf : TStat;
   newMode : longint;
 begin
-  if stat (@textrec(f).name,StatBuf) = 0 then
+  if Fpstat (@textrec(f).name,StatBuf) = 0 then
   begin
     newmode := StatBuf.st_mode and ($FFFF0000 - M_A_RDONLY-M_A_HIDDEN-M_A_SYSTEM-M_A_ARCH); {only this can be set by dos unit}
     newmode := newmode or M_A_BITS_SIGNIFICANT;  {set netware attributes}
@@ -698,7 +698,7 @@ begin
       newmode := newmode or M_A_SYSTEM;
     if attr and archive > 0 then
       newmode := newmode or M_A_ARCH;
-    if chmod (@textrec(f).name,newMode) < 0 then
+    if Fpchmod (@textrec(f).name,newMode) < 0 then
       doserror := ___errno^ else
       doserror := 0;
   end else
@@ -822,7 +822,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2004-09-19 20:06:37  armin
+  Revision 1.4  2004-09-26 19:23:34  armin
+  * exiting threads at nlm unload
+  * renamed some libc functions
+
+  Revision 1.3  2004/09/19 20:06:37  armin
   * removed get/free video buf from video.pp
   * implemented sockets
   * basic library support

@@ -39,10 +39,21 @@ implementation
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
 
+initialization
+  CommonInit;
+
+finalization
+  DoneThreads;
+  CommonCleanup;
+
 end.
 {
   $Log$
-  Revision 1.1  2004-09-05 20:58:47  armin
+  Revision 1.2  2004-09-26 19:23:34  armin
+  * exiting threads at nlm unload
+  * renamed some libc functions
+
+  Revision 1.1  2004/09/05 20:58:47  armin
   * first rtl version for netwlibc
 
 }

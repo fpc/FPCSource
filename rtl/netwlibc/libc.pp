@@ -213,45 +213,22 @@ function memcpy(__restrict:pointer; __restrict1:pointer; _para3:size_t):pointer;
 function memmove(_para1:pointer; _para2:pointer; _para3:size_t):pointer;cdecl;external libc_nlm name 'memmove';
 function memset(_para1:pointer; _para2:longint; _para3:size_t):pointer;cdecl;external libc_nlm name 'memset';
 
-
 function strcasecmp(_para1:Pchar; _para2:Pchar):longint;cdecl;external libc_nlm name 'strcasecmp';
-
-function strcat(__restrict:Pchar; __restrict1:Pchar):Pchar;cdecl;external libc_nlm name 'strcat';
-
+function strcat(dst,src:Pchar):Pchar;cdecl;external libc_nlm name 'strcat';
 function strchr(_para1:Pchar; _para2:longint):Pchar;cdecl;external libc_nlm name 'strchr';
-
-
 function strcmp(_para1:Pchar; _para2:Pchar):longint;cdecl;external libc_nlm name 'strcmp';
-
-
 function strcoll(_para1:Pchar; _para2:Pchar):longint;cdecl;external libc_nlm name 'strcoll';
-
 function strcpy(__restrict:Pchar; __restrict1:Pchar):Pchar;cdecl;external libc_nlm name 'strcpy';
-
-
 function strcspn(_para1:Pchar; _para2:Pchar):size_t;cdecl;external libc_nlm name 'strcspn';
 function strerror(_para1:longint):Pchar;cdecl;external libc_nlm name 'strerror';
-
 function strlcat(__restrict:Pchar; __restrict1:Pchar; _para3:size_t):size_t;cdecl;external libc_nlm name 'strlcat';
-
 function strlcpy(__restrict:Pchar; __restrict1:Pchar; _para3:size_t):size_t;cdecl;external libc_nlm name 'strlcpy';
-
 function {$ifdef INCLUDED_FROM_SYSTEM}libc_strlen{$else}strlen{$endif}(_para1:Pchar):size_t;cdecl;external libc_nlm name 'strlen';
-
-
 function strncasecmp(_para1:Pchar; _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'strncasecmp';
-
 function strncat(__restrict:Pchar; __restrict1:Pchar; _para3:size_t):Pchar;cdecl;external libc_nlm name 'strncat';
-
-
 function strncmp(_para1:Pchar; _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'strncmp';
-
-
 function strncoll(_para1:Pchar; _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'strncoll';
-
 function strncpy(__restrict:Pchar; __restrict1:Pchar; _para3:size_t):Pchar;cdecl;external libc_nlm name 'strncpy';
-
-
 function strnicmp(_para1:Pchar; _para2:Pchar; _para3:size_t):longint;cdecl;external libc_nlm name 'strnicmp';
 function strnset(_para1:Pchar; _para2:longint; _para3:size_t):Pchar;cdecl;external libc_nlm name 'strnset';
 function strpbrk(_para1:Pchar; _para2:Pchar):Pchar;cdecl;external libc_nlm name 'strpbrk';
@@ -416,9 +393,16 @@ function sprintf(__restrict:Pchar; __restrict1:Pchar; args:array of const):longi
 {$endif}
 function sprintf(__restrict:Pchar; __restrict1:Pchar):longint;cdecl;external libc_nlm name 'sprintf';
 {$ifndef DisableArrayOfConst}
-function snprintf(__restrict:Pchar; n:size_t; __restrict1:Pchar; args:array of const):longint;cdecl;external libc_nlm name 'snprintf';
+function snprintf(__restrict:Pchar; n:size_t; Format:Pchar; args:array of const):longint;cdecl;external libc_nlm name 'snprintf';
 {$endif}
-function snprintf(__restrict:Pchar; n:size_t; __restrict1:Pchar):longint;cdecl;external libc_nlm name 'snprintf';
+function snprintf(__restrict:Pchar; n:size_t; Format:Pchar):longint;cdecl;external libc_nlm name 'snprintf';
+function snprintf(__restrict:Pchar; n:size_t; Format:Pchar; p1:longint):longint;cdecl;external libc_nlm name 'snprintf';
+function snprintf(__restrict:Pchar; n:size_t; Format:Pchar; p1:longint; p2:pchar):longint;cdecl;external libc_nlm name 'snprintf';
+function snprintf(__restrict:Pchar; n:size_t; Format:Pchar; p1:pchar):longint;cdecl;external libc_nlm name 'snprintf';
+function snprintf(__restrict:Pchar; n:size_t; Format:Pchar; p1,p2:pchar):longint;cdecl;external libc_nlm name 'snprintf';
+function snprintf(__restrict:Pchar; n:size_t; Format:Pchar; p1,p2,p3:pchar):longint;cdecl;external libc_nlm name 'snprintf';
+function snprintf(__restrict:Pchar; n:size_t; Format:Pchar; p1,p2:longint):longint;cdecl;external libc_nlm name 'snprintf';
+function snprintf(__restrict:Pchar; n:size_t; Format:Pchar; p1,p2,p3:longint):longint;cdecl;external libc_nlm name 'snprintf';
 
 {$ifndef DisableArrayOfConst}
 function sscanf(__restrict:Pchar; __restrict1:Pchar; args:array of const):longint;cdecl;external libc_nlm name 'sscanf';
@@ -429,17 +413,11 @@ function tmpnam(_para1:Pchar):Pchar;cdecl;external libc_nlm name 'tmpnam';
 function ungetc(_para1:longint; _para2:PFILE):longint;cdecl;external libc_nlm name 'ungetc';
 
 function vfprintf(__restrict:PFILE; __restrict1:Pchar; _para3:va_list):longint;cdecl;external libc_nlm name 'vfprintf';
-
 function vfscanf(__restrict:PFILE; __restrict1:Pchar; _para3:va_list):longint;cdecl;external libc_nlm name 'vfscanf';
-
 function vprintf(__restrict:Pchar; _para2:va_list):longint;cdecl;external libc_nlm name 'vprintf';
-
 function vscanf(__restrict:Pchar; _para2:va_list):longint;cdecl;external libc_nlm name 'vscanf';
-
 function vsnprintf(__restrict:Pchar; n:size_t; __restrict1:Pchar; _para4:va_list):longint;cdecl;external libc_nlm name 'vsnprintf';
-
 function vsprintf(__restrict:Pchar; __restrict1:Pchar; _para3:va_list):longint;cdecl;external libc_nlm name 'vsprintf';
-
 
 function vsscanf(__restrict:Pchar; __restrict1:Pchar; _para3:va_list):longint;cdecl;external libc_nlm name 'vsscanf';
 { functions underlying macro support...  }
@@ -459,18 +437,13 @@ function getc_unlocked(_para1:PFILE):longint;cdecl;external libc_nlm name 'getc_
 function getchar_unlocked:longint;cdecl;external libc_nlm name 'getchar_unlocked';
 function getw(_para1:PFILE):longint;cdecl;external libc_nlm name 'getw';
 function pclose(stream:PFILE):longint;cdecl;external libc_nlm name 'pclose';
-
-
 function popen(command:Pchar; mode:Pchar):PFILE;cdecl;external libc_nlm name 'popen';
 function putc_unlocked(c:longint; _para2:PFILE):longint;cdecl;external libc_nlm name 'putc_unlocked';
 function putchar_unlocked(c:longint):longint;cdecl;external libc_nlm name 'putchar_unlocked';
-
-
 function tempnam(dirpath:Pchar; prefix:Pchar):Pchar;cdecl;external libc_nlm name 'tempnam';
 { nonstandard (transitional) addtions for 64-bit file I/O...  }
 function fgetpos64(_para1:PFILE; _para2:Pfpos64_t):longint;cdecl;external libc_nlm name 'fgetpos64';
 function fseek64(fp:PFILE; offset:fpos64_t; whence:longint):longint;cdecl;external libc_nlm name 'fseek64';
-
 function fsetpos64(_para1:PFILE; _para2:Pfpos64_t):longint;cdecl;external libc_nlm name 'fsetpos64';
 function ftell64(_para1:PFILE):off64_t;cdecl;external libc_nlm name 'ftell64';
 { hard-wired console I/O support (cannot be redirected)...  }
@@ -482,18 +455,13 @@ function cprintf(_para1:Pchar; args:array of const):longint;cdecl;external libc_
 {$endif}
 function cprintf(_para1:Pchar):longint;cdecl;external libc_nlm name 'cprintf';
 function cputc(_para1:longint):longint;cdecl;external libc_nlm name 'cputc';
-
 function cputs(_para1:Pchar):longint;cdecl;external libc_nlm name 'cputs';
-
 {$ifndef DisableArrayOfConst}
 function cscanf(__restrict:Pchar; args:array of const):longint;cdecl;external libc_nlm name 'cscanf';
 {$endif}
 function cscanf(__restrict:Pchar):longint;cdecl;external libc_nlm name 'cscanf';
-
 function vcprintf(__restrict:Pchar; _para2:va_list):longint;cdecl;external libc_nlm name 'vcprintf';
-
 function vcscanf(__restrict:Pchar; _para2:va_list):longint;cdecl;external libc_nlm name 'vcscanf';
-
 function vasprintf(__restrict:PPchar; __restrict1:Pchar; _para3:va_list):longint;cdecl;external libc_nlm name 'vasprintf';
 { defined as macros in both C and C++...  }
 { UNIX 98/POSIX.1-2002 defined additions  }
@@ -510,7 +478,6 @@ function vasprintf(__restrict:PPchar; __restrict1:Pchar; _para3:va_list):longint
 
 
 type
-
    Pdiv_t = ^div_t;
    div_t = record
         quot : longint;
@@ -536,24 +503,16 @@ type TCDeclProcedure = procedure; cdecl;
 procedure abort;cdecl;external libc_nlm name 'abort';
 // function {$ifdef INCLUDED_FROM_SYSTEM}libc_abs{$else}abs{$endif}(_para1:longint):longint;cdecl;external libc_nlm name 'abs';
 function atexit(_para1:TCDeclProcedure ):longint;cdecl;external libc_nlm name 'atexit';
-
 function atof(_para1:Pchar):double;cdecl;external libc_nlm name 'atof';
-
 function atoi(_para1:Pchar):longint;cdecl;external libc_nlm name 'atoi';
-
 function atol(_para1:Pchar):longint;cdecl;external libc_nlm name 'atol';
-
 function atoll(_para1:Pchar):int64_t;cdecl;external libc_nlm name 'atoll';
-
-
-
 
 //!! function bsearch(_para1:pointer; _para2:pointer; _para3:size_t; _para4:size_t; _para5:function (_para1:pointer; _para2:pointer):longint):pointer;cdecl;external libc_nlm name 'bsearch';
 function calloc(_para1:size_t; _para2:size_t):pointer;cdecl;external libc_nlm name 'calloc';
 function __CW_div(_para1:longint; _para2:longint):div_t;cdecl;external libc_nlm name '__CW_div';
 procedure libc_exit(status:longint);cdecl;external libc_nlm name 'exit';
 procedure free(_para1:pointer);cdecl;external libc_nlm name 'free';
-
 function getenv(_para1:Pchar):Pchar;cdecl;external libc_nlm name 'getenv';
 function labs(_para1:longint):longint;cdecl;external libc_nlm name 'labs';
 function __CW_ldiv(_para1:longint; _para2:longint):ldiv_t;cdecl;external libc_nlm name '__CW_ldiv';
@@ -652,7 +611,6 @@ function min(a:longint; b:longint):longint;cdecl;external libc_nlm name 'min';
 // sys/types.h
 
 type
-
    Puchar_t = ^uchar_t;
    uchar_t = byte;
 
@@ -776,13 +734,10 @@ type
 function access(path:Pchar; mode:longint):longint;cdecl;external libc_nlm name 'access';
 function FpAccess(path:Pchar; mode:longint):longint;cdecl;external libc_nlm name 'access';
 function alarm(seconds:dword):dword;cdecl;external libc_nlm name 'alarm';
-
 function FpChdir(path:Pchar):longint;cdecl;external libc_nlm name 'chdir';
 function {$ifdef INCLUDED_FROM_SYSTEM}libc_chsize{$else}chsize{$endif}(fildes:longint; size:size_t):longint;cdecl;external libc_nlm name 'chsize';
 function FpChsize(fildes:longint; size:size_t):longint;cdecl;external libc_nlm name 'chsize';
 function FpClose(fildes:longint):longint;cdecl;external libc_nlm name 'close';
-
-
 function crypt(key:Pchar; salt:Pchar):Pchar;cdecl;external libc_nlm name 'crypt';
 function dup(fildes:longint):longint;cdecl;external libc_nlm name 'dup';
 function Fpdup(fildes:longint):longint;cdecl;external libc_nlm name 'dup';
@@ -815,18 +770,14 @@ function pathconf(path:Pchar; name:longint):longint;cdecl;external libc_nlm name
 //!!function pipe(fildes:array[0..1] of longint):longint;cdecl;external libc_nlm name 'pipe';
 function FpPipe(var fildes:TFilDes):cInt;cdecl;external libc_nlm name 'pipe';
 function pread(fildes:longint; buf:pointer; nbytes:size_t; off:off_t):ssize_t;cdecl;external libc_nlm name 'pread';
-
 function pwrite(fildes:longint; buf:pointer; nbytes:size_t; off:off_t):ssize_t;cdecl;external libc_nlm name 'pwrite';
 function FpRead(fildes:longint; buf:pointer; nbytes:size_t):ssize_t;cdecl;external libc_nlm name 'read';
 function FpRead(fildes:longint; var buf; nbytes:size_t):ssize_t;cdecl;external libc_nlm name 'read';
-
 function Fprmdir(path:Pchar):longint;cdecl;external libc_nlm name 'rmdir';
 procedure sync;cdecl;external libc_nlm name 'sync';
 function sysconf(name:longint):longint;cdecl;external libc_nlm name 'sysconf';
-
 function unlink(path:Pchar):longint;cdecl;external libc_nlm name 'unlink';
 function FpUnlink(path:Pchar):longint;cdecl;external libc_nlm name 'unlink';
-
 function FpWrite(fildes:longint; buf:pointer; nbytes:size_t):ssize_t;cdecl;external libc_nlm name 'write';
 function FpWrite(fildes:longint; var buf; nbytes:size_t):ssize_t;cdecl;external libc_nlm name 'write';
 { appeared in BSD...  }
@@ -854,9 +805,7 @@ function ftruncate64(fildes:longint; len:off64_t):longint;cdecl;external libc_nl
 function Fpftruncate64(fildes:longint; len:off64_t):longint;cdecl;external libc_nlm name 'ftruncate64';
 function lseek64(fildes:longint; offset:off64_t; whence:longint):off64_t;cdecl;external libc_nlm name 'lseek64';
 function Fplseek64(fildes:longint; offset:off64_t; whence:longint):off64_t;cdecl;external libc_nlm name 'lseek64';
-
 function pread64(fildes:longint; buf:pointer; nbytes:size_t; off:off64_t):ssize_t;cdecl;external libc_nlm name 'pread64';
-
 function pwrite64(fildes:longint; buf:pointer; nbytes:size_t; off:off64_t):ssize_t;cdecl;external libc_nlm name 'pwrite64';
 function tell64(fildes:longint):off64_t;cdecl;external libc_nlm name 'tell64';
 function Fptell64(fildes:longint):off64_t;cdecl;external libc_nlm name 'tell64';
@@ -968,9 +917,7 @@ function ntohs(_para1:word):word;cdecl;external libc_nlm name 'ntohs';
      DT_BLK = S_IFBLK;     { blocking device (unused) }
      DT_LNK = S_IFLNK;     { symbolic or hard link (won't occur) }
 
-
 type
-
    Pdirent = ^Tdirent;
    Tdirent = record
         d_userspec : dword;
@@ -1048,10 +995,10 @@ const
  O_SYNC       =$00001000; // synchronized I/O file integrity
  O_DSYNC      =$00002000; // synchronized I/O data integrity
  O_RSYNC      =$00004000; // synchronized read I/O
- O_NONBLOCK   = O_NDELAY;   // alias
- FD_CLOEXEC   =$00008000;   // parent closes after call to process()
- O_UPDATE     =$00010000;   // keep legacy files updated
- O_FIFO       =$00100000;   // opening one end of a FIFO [non-standard]
+ O_NONBLOCK   = O_NDELAY; // alias
+ FD_CLOEXEC   =$00008000; // parent closes after call to process()
+ O_UPDATE     =$00010000; // keep legacy files updated
+ O_FIFO       =$00100000; // opening one end of a FIFO [non-standard]
 
 // value for third argument when 'cmd' is F_SETFL in fcntl()...
  FNDELAY      = O_NDELAY;   // fcntl() non-blocking I/O
@@ -1116,21 +1063,15 @@ function sopen(path:Pchar; oflag:longint; shflag:longint):longint;cdecl;external
 { keys...  }
 { control commands for semctl() and shmctl()...  }
 type
-
    Pkey_t = ^key_t;
    key_t = longint;
-{ owner                              }
-{ owner                              }
-{ creator                            }
-{ creator                            }
-{ read/write permission              }
    Pipc_perm = ^ipc_perm;
    ipc_perm = record
-        uid : uid_t;
-        gid : gid_t;
-        cuid : uid_t;
-        cgid : gid_t;
-        mode : mode_t;
+        uid  : uid_t;    // owner
+        gid  : gid_t;    // owner
+        cuid : uid_t;    // creator
+        cgid : gid_t;    // creator
+        mode : mode_t;   // read write permission
      end;
 
 
@@ -1195,13 +1136,11 @@ type
    Ptimespec_t = ^timespec_t;
    timestrc_t = Ttimespec;
    Ptimestrc_t = ^timestrc_t;
-{ timer period                               }
-{ timer expiration                           }
 
    Pitimerspec = ^Titimerspec;
    Titimerspec = record
-        it_interval : Ttimespec;
-        it_value    : Ttimespec;
+        it_interval : Ttimespec;  // timer period
+        it_value    : Ttimespec;  // expiration
      end;
    itimerspec_t = Titimerspec;
    Pitimerspec_t = ^itimerspec_t;
@@ -1267,39 +1206,17 @@ type
           2 : ( struct_tm : Tdos_tm );
        end;
 
-{============================================================================
-=  Novell Software Development Kit
-=
-=  Copyright (C) 1999-2002 Novell, Inc. All Rights Reserved.
-=
-=  This work is subject to U.S. and international copyright laws and treaties.
-=  Use and redistribution of this work is subject  to  the  license  agreement
-=  accompanying  the  software  development kit (SDK) that contains this work.
-=  However, no part of this work may be revised and/or  modified  without  the
-=  prior  written consent of Novell, Inc. Any use or exploitation of this work
-=  without authorization could subject the perpetrator to criminal  and  civil
-=  liability.
-=
-=  Source(s): Novell Header
-=
-=  poppack.h
-==============================================================================
- }
-
 (** unsupported pragma#pragma pack()*)
 
 
 function asctime(localtime:Ptm):Pchar;cdecl;external libc_nlm name 'asctime';
 function asctime(var localtime:Ttm):Pchar;cdecl;external libc_nlm name 'asctime';
 function clock:clock_t;cdecl;external libc_nlm name 'clock';
-
 function ctime(calendar:Ptime_t):Pchar;cdecl;external libc_nlm name 'ctime';
 function ctime(var calendar:Ttime):Pchar;cdecl;external libc_nlm name 'ctime';
 function difftime(t1, t2:Ttime):double;cdecl;external libc_nlm name 'difftime';
-
 function gmtime(calendar:Ptime_t):Ptm;cdecl;external libc_nlm name 'gmtime';
 function gmtime(var calendar:Ttime):Ptm;cdecl;external libc_nlm name 'gmtime';
-
 function localtime(calendar:Ptime_t):Ptm;cdecl;external libc_nlm name 'localtime';
 function localtime(var calendar:Ttime):Ptm;cdecl;external libc_nlm name 'localtime';
 function mktime(localtime:Ptm):time_t;cdecl;external libc_nlm name 'mktime';
@@ -1324,17 +1241,13 @@ procedure tzset;cdecl;external libc_nlm name 'tzset';
 
 function asctime_r(localtime:Ptm; timestr:Pchar):Pchar;cdecl;external libc_nlm name 'asctime_r';
 function asctime_r(var localtime:Ttm; timestr:Pchar):Pchar;cdecl;external libc_nlm name 'asctime_r';
-
 function ctime_r(calendar:Ptime_t; timestr:Pchar):Pchar;cdecl;external libc_nlm name 'ctime_r';
 function ctime_r(var calendar:Ttime; timestr:Pchar):Pchar;cdecl;external libc_nlm name 'ctime_r';
-
 function gmtime_r(calendar:Ptime_t; localtime:Ptm):Ptm;cdecl;external libc_nlm name 'gmtime_r';
 function gmtime_r(var calendar:Ttime; localtime:Ptm):Ptm;cdecl;external libc_nlm name 'gmtime_r';
-
 function localtime_r(calendar:Ptime_t; localtime:Ptm):Ptm;cdecl;external libc_nlm name 'localtime_r';
 function localtime_r(var calendar:Ttime; var localtime:Ttm):Ptm;cdecl;external libc_nlm name 'localtime_r';
 { Single UNIX Specification additions...  }
-
 function nanosleep(rqtp, rmtp:Ptimespec):longint;cdecl;external libc_nlm name 'nanosleep';
 function nanosleep(var rqtp, rmtp:Ttimespec):longint;cdecl;external libc_nlm name 'nanosleep';
 { Novell-defined additions...  }
@@ -1389,17 +1302,13 @@ type
 
 function gettimeofday(tp:Ptimeval; tpz:Ptimezone):longint;cdecl;external libc_nlm name 'gettimeofday';
 function Fpgettimeofday(tp:Ptimeval; tpz:Ptimezone):longint;cdecl;external libc_nlm name 'gettimeofday';
-
 function settimeofday(tp:Ptimeval; tpz:Ptimezone):longint;cdecl;external libc_nlm name 'settimeofday';
-
 function gettimeofday(var tp:Ttimeval; var tpz:Ttimezone):longint;cdecl;external libc_nlm name 'gettimeofday';
 function settimeofday(var tp:Ttimeval; var tpz:Ttimezone):longint;cdecl;external libc_nlm name 'settimeofday';
 function Fpgettimeofday(var tp:Ttimeval; var tpz:Ttimezone):longint;cdecl;external libc_nlm name 'gettimeofday';
 function Fpsettimeofday(var tp:Ttimeval; var tpz:Ttimezone):longint;cdecl;external libc_nlm name 'settimeofday';
 
-
 { turn on 1-byte packing...  }
-
 type
    Pstat = ^Tstat;
    Tstat = record
@@ -1437,23 +1346,19 @@ type
 (** unsupported pragma#pragma pack()*)
 
 
-function chmod(path:Pchar; mode:mode_t):longint;cdecl;external libc_nlm name 'chmod';
-function fchmod(fildes:longint; mode:mode_t):longint;cdecl;external libc_nlm name 'fchmod';
-
-function fstat(fildes:longint; buf:Pstat):longint;cdecl;external libc_nlm name 'fstat';
-function fstat(fildes:longint; var buf:Tstat):longint;cdecl;external libc_nlm name 'fstat';
-
-function lstat(path:Pchar; buf:Pstat):longint;cdecl;external libc_nlm name 'lstat';
-function lstat(path:Pchar; var buf:Tstat):longint;cdecl;external libc_nlm name 'lstat';
-
+function Fpchmod(path:Pchar; mode:mode_t):longint;cdecl;external libc_nlm name 'chmod';
+function Fpfchmod(fildes:longint; mode:mode_t):longint;cdecl;external libc_nlm name 'fchmod';
+function Fpfstat(fildes:longint; buf:Pstat):longint;cdecl;external libc_nlm name 'fstat';
+function Fpfstat(fildes:longint; var buf:Tstat):longint;cdecl;external libc_nlm name 'fstat';
+function Fplstat(path:Pchar; buf:Pstat):longint;cdecl;external libc_nlm name 'lstat';
+function Fplstat(path:Pchar; var buf:Tstat):longint;cdecl;external libc_nlm name 'lstat';
 function Fpmkdir(pathname:Pchar; mode:mode_t):longint;cdecl;external libc_nlm name 'mkdir';
-
-function mkfifo(pathname:Pchar; mode:mode_t):longint;cdecl;external libc_nlm name 'mkfifo';
-function mknod(path:Pchar; mode:mode_t; dev:dev_t):longint;cdecl;external libc_nlm name 'mknod';
-function realname(pathname:Pchar; name:Pchar):longint;cdecl;external libc_nlm name 'realname';
-function stat(path:Pchar; buf:Pstat):longint;cdecl;external libc_nlm name 'stat';
-function stat(path:Pchar; var buf:Tstat):longint;cdecl;external libc_nlm name 'stat';
-function umask(cmask:mode_t):mode_t;cdecl;external libc_nlm name 'umask';
+function Fpmkfifo(pathname:Pchar; mode:mode_t):longint;cdecl;external libc_nlm name 'mkfifo';
+function Fpmknod(path:Pchar; mode:mode_t; dev:dev_t):longint;cdecl;external libc_nlm name 'mknod';
+function Fprealname(pathname:Pchar; name:Pchar):longint;cdecl;external libc_nlm name 'realname';
+function Fpstat(path:Pchar; buf:Pstat):longint;cdecl;external libc_nlm name 'stat';
+function Fpstat(path:Pchar; var buf:Tstat):longint;cdecl;external libc_nlm name 'stat';
+function Fpumask(cmask:mode_t):mode_t;cdecl;external libc_nlm name 'umask';
 {
 ** The following value is not really correct, but it is a value that has been
 ** used for a long time seems to be usable. Normally, NOFILE should not be used
@@ -1481,11 +1386,11 @@ type
 { heterogeneous select calls (socket+pipe) unsupported on NetWare...  }
 
 
-function pipe_select(nfds:longint; readfds, writefds, exceptfds:Pfd_set; timeout:Ptimeval):longint;cdecl;external libc_nlm name 'pipe_select';
-function pipe_select(nfds:longint; var readfds, writefds, exceptfds:Tfd_set; var timeout:Ttimeval):longint;cdecl;external libc_nlm name 'pipe_select';
+function Fppipe_select(nfds:longint; readfds, writefds, exceptfds:Pfd_set; timeout:Ptimeval):longint;cdecl;external libc_nlm name 'pipe_select';
+function Fppipe_select(nfds:longint; var readfds, writefds, exceptfds:Tfd_set; var timeout:Ttimeval):longint;cdecl;external libc_nlm name 'pipe_select';
 
-function select(nfds:longint; readfds:Pfd_set; writefds:Pfd_set; exceptfds:Pfd_set; timeout:Ptimeval):longint;cdecl;external libc_nlm name 'select';
-function select(nfds:longint; var readfds, writefds, exceptfds:Tfd_set; var timeout:Ttimeval):longint;cdecl;external libc_nlm name 'select';
+//function select(nfds:longint; readfds:Pfd_set; writefds:Pfd_set; exceptfds:Pfd_set; timeout:Ptimeval):longint;cdecl;external libc_nlm name 'select';
+//function select(nfds:longint; var readfds, writefds, exceptfds:Tfd_set; var timeout:Ttimeval):longint;cdecl;external libc_nlm name 'select';
 function FpSelect(nfds:longint; readfds:Pfd_set; writefds:Pfd_set; exceptfds:Pfd_set; timeout:Ptimeval):longint;cdecl;external libc_nlm name 'select';
 function FpSelect(nfds:longint; var readfds, writefds, exceptfds:Tfd_set; var timeout:Ttimeval):longint;cdecl;external libc_nlm name 'select';
 function ___fd_isset(fd:longint; _set:Pfd_set):longint;cdecl;external libc_nlm name '___fd_isset';
@@ -1636,7 +1541,6 @@ function shmget(key:key_t; size:size_t; shmflag:longint):longint;cdecl;external 
 
 
 type
-
    Psig_atomic_t = ^sig_atomic_t;
    sig_atomic_t = longint;
 
@@ -1651,27 +1555,22 @@ type
      end;
 
 type TCDeclProc1LIntPara = procedure (_para1:longint); cdecl;
-function _raise(_para1:longint):longint;cdecl;external libc_nlm name 'raise';
-function signal(sig:longint; func:TCDeclProc1LIntPara):TCDeclProc1LIntPara;cdecl;external libc_nlm name 'signal';
-
-function sigwait(_set:Psigset_t; sig:Plongint):longint;cdecl;external libc_nlm name 'sigwait';
+function Fpraise(_para1:longint):longint;cdecl;external libc_nlm name 'raise';
+function Fpsignal(sig:longint; func:TCDeclProc1LIntPara):TCDeclProc1LIntPara;cdecl;external libc_nlm name 'signal';
+function Fpsigwait(_set:Psigset_t; sig:Plongint):longint;cdecl;external libc_nlm name 'sigwait';
 { signal vector functions...  }
 
 //!! function sigaction(sig:longint; act:Psigaction; oact:Psigaction):longint;cdecl;external libc_nlm name 'sigaction';
 
-function sigaddset(_para1:Psigset_t; _para2:longint):longint;cdecl;external libc_nlm name 'sigaddset';
-
-function sigdelset(_para1:Psigset_t; _para2:longint):longint;cdecl;external libc_nlm name 'sigdelset';
-
-function sigismember(_para1:Psigset_t; _para2:longint):longint;cdecl;external libc_nlm name 'sigismember';
-function sigfillset(_para1:Psigset_t):longint;cdecl;external libc_nlm name 'sigfillset';
-function sigemptyset(_para1:Psigset_t):longint;cdecl;external libc_nlm name 'sigemptyset';
-function sigpending(_set:Psigset_t):longint;cdecl;external libc_nlm name 'sigpending';
-
-function sigsuspend(mask:Psigset_t):longint;cdecl;external libc_nlm name 'sigsuspend';
-
-function sigprocmask(how:longint; act:Psigset_t; oldact:Psigset_t):longint;cdecl;external libc_nlm name 'sigprocmask';
-function kill(pid:pid_t; sig:longint):longint;cdecl;external libc_nlm name 'kill';
+function Fpsigaddset(_para1:Psigset_t; _para2:longint):longint;cdecl;external libc_nlm name 'sigaddset';
+function Fpsigdelset(_para1:Psigset_t; _para2:longint):longint;cdecl;external libc_nlm name 'sigdelset';
+function Fpsigismember(_para1:Psigset_t; _para2:longint):longint;cdecl;external libc_nlm name 'sigismember';
+function Fpsigfillset(_para1:Psigset_t):longint;cdecl;external libc_nlm name 'sigfillset';
+function Fpsigemptyset(_para1:Psigset_t):longint;cdecl;external libc_nlm name 'sigemptyset';
+function Fpsigpending(_set:Psigset_t):longint;cdecl;external libc_nlm name 'sigpending';
+function Fpsigsuspend(mask:Psigset_t):longint;cdecl;external libc_nlm name 'sigsuspend';
+function Fpsigprocmask(how:longint; act:Psigset_t; oldact:Psigset_t):longint;cdecl;external libc_nlm name 'sigprocmask';
+function Fpkill(pid:pid_t; sig:longint):longint;cdecl;external libc_nlm name 'kill';
 
 
 // sys/socket.h
@@ -1679,7 +1578,6 @@ function kill(pid:pid_t; sig:longint):longint;cdecl;external libc_nlm name 'kill
 { turn on 1-byte packing...  }
 
 type
-
    Piovec = ^iovec;
    iovec = record
         iov_base : caddr_t;
@@ -1687,31 +1585,12 @@ type
      end;
    iovec_t = iovec;
    Piovec_t = ^iovec_t;
-{============================================================================
-=  Novell Software Development Kit
-=
-=  Copyright (C) 1999-2002 Novell, Inc. All Rights Reserved.
-=
-=  This work is subject to U.S. and international copyright laws and treaties.
-=  Use and redistribution of this work is subject  to  the  license  agreement
-=  accompanying  the  software  development kit (SDK) that contains this work.
-=  However, no part of this work may be revised and/or  modified  without  the
-=  prior  written consent of Novell, Inc. Any use or exploitation of this work
-=  without authorization could subject the perpetrator to criminal  and  civil
-=  liability.
-=
-=  Source(s): Novell Header
-=
-=  poppack.h
-==============================================================================
- }
 
 (** unsupported pragma#pragma pack()*)
 
 
-function readv(fildes:longint; iov:Piovec; iovcnt:longint):ssize_t;cdecl;external libc_nlm name 'readv';
-
-function writev(fildes:longint; iov:Piovec; iovcnt:longint):ssize_t;cdecl;external libc_nlm name 'writev';
+function Fpreadv(fildes:longint; iov:Piovec; iovcnt:longint):ssize_t;cdecl;external libc_nlm name 'readv';
+function Fpwritev(fildes:longint; iov:Piovec; iovcnt:longint):ssize_t;cdecl;external libc_nlm name 'writev';
 { socket types...  }
 { option flags per-socket...  }
 { additional options, not kept in so_options...  }
@@ -1720,24 +1599,7 @@ function writev(fildes:longint; iov:Piovec; iovcnt:longint):ssize_t;cdecl;extern
 { address families  }
 { protocol families, same as address families for now...  }
 { values for shutdown() 'how'...  }
-{============================================================================
-=  Novell Software Development Kit
-=
-=  Copyright (C) 1999-2001 Novell, Inc. All Rights Reserved.
-=
-=  This work is subject to U.S. and international copyright laws and treaties.
-=  Use and redistribution of this work is subject  to  the  license  agreement
-=  accompanying  the  software  development kit (SDK) that contains this work.
-=  However, no part of this work may be revised and/or  modified  without  the
-=  prior  written consent of Novell, Inc. Any use or exploitation of this work
-=  without authorization could subject the perpetrator to criminal  and  civil
-=  liability.
-=
-=  Source(s): Novell Header
-=
-=  pshpack1.h
-==============================================================================
- }
+
 {
 ** Note:
 **
@@ -1777,7 +1639,7 @@ type
 { address family                         }
 { protocol                               }
    Psockproto = ^sockproto;
-   sockproto = record
+   sockproto = packed record
         sp_family : word;
         sp_protocol : word;
      end;
@@ -1823,31 +1685,24 @@ type
 
 (** unsupported pragma#pragma pack()*)
 
-function accept(s:longint; addr:Psockaddr; len:Psize_t):longint;cdecl;external libc_nlm name 'accept';
-
-function bind(s:longint; addr:Psockaddr; _para3:size_t):longint;cdecl;external libc_nlm name 'bind';
-
-function connect(s:longint; addr:Psockaddr; len:size_t):longint;cdecl;external libc_nlm name 'connect';
-function getpeername(s:longint; addr:Psockaddr; len:Psize_t):longint;cdecl;external libc_nlm name 'getpeername';
-function getsockname(s:longint; addr:Psockaddr; len:Psize_t):longint;cdecl;external libc_nlm name 'getsockname';
-function getsockopt(s:longint; level:longint; optname:longint; optval:pointer; optlen:Psize_t):longint;cdecl;external libc_nlm name 'getsockopt';
-function listen(s:longint; backlog:longint):longint;cdecl;external libc_nlm name 'listen';
-function recv(s:longint; buf:pointer; len:size_t; flags:longint):ssize_t;cdecl;external libc_nlm name 'recv';
-function recvfrom(s:longint; buf:pointer; len:size_t; flags:longint; from:Psockaddr;
+function Fpaccept(s:longint; addr:Psockaddr; len:Psize_t):longint;cdecl;external libc_nlm name 'accept';
+function Fpbind(s:longint; addr:Psockaddr; _para3:size_t):longint;cdecl;external libc_nlm name 'bind';
+function Fpconnect(s:longint; addr:Psockaddr; len:size_t):longint;cdecl;external libc_nlm name 'connect';
+function Fpgetpeername(s:longint; addr:Psockaddr; len:Psize_t):longint;cdecl;external libc_nlm name 'getpeername';
+function Fpgetsockname(s:longint; addr:Psockaddr; len:Psize_t):longint;cdecl;external libc_nlm name 'getsockname';
+function Fpgetsockopt(s:longint; level:longint; optname:longint; optval:pointer; optlen:Psize_t):longint;cdecl;external libc_nlm name 'getsockopt';
+function Fplisten(s:longint; backlog:longint):longint;cdecl;external libc_nlm name 'listen';
+function Fprecv(s:longint; buf:pointer; len:size_t; flags:longint):ssize_t;cdecl;external libc_nlm name 'recv';
+function Fprecvfrom(s:longint; buf:pointer; len:size_t; flags:longint; from:Psockaddr;
            fromlen:Psize_t):ssize_t;cdecl;external libc_nlm name 'recvfrom';
-function recvmsg(s:longint; msg:Pmsghdr; flags:longint):ssize_t;cdecl;external libc_nlm name 'recvmsg';
-
-function send(s:longint; msg:pointer; len:size_t; flags:longint):ssize_t;cdecl;external libc_nlm name 'send';
-
-function sendmsg(s:longint; _para2:Pmsghdr; flags:longint):ssize_t;cdecl;external libc_nlm name 'sendmsg';
-
-
-function sendto(s:longint; msg:pointer; len:size_t; flags:longint; _to:Psockaddr;
+function Fprecvmsg(s:longint; msg:Pmsghdr; flags:longint):ssize_t;cdecl;external libc_nlm name 'recvmsg';
+function Fpsend(s:longint; msg:pointer; len:size_t; flags:longint):ssize_t;cdecl;external libc_nlm name 'send';
+function Fpsendmsg(s:longint; _para2:Pmsghdr; flags:longint):ssize_t;cdecl;external libc_nlm name 'sendmsg';
+function Fpsendto(s:longint; msg:pointer; len:size_t; flags:longint; _to:Psockaddr;
            tolen:size_t):ssize_t;cdecl;external libc_nlm name 'sendto';
-
-function setsockopt(s:longint; level:longint; optname:longint; optval:pointer; optlen:size_t):longint;cdecl;external libc_nlm name 'setsockopt';
-function shutdown(s:longint; how:longint):longint;cdecl;external libc_nlm name 'shutdown';
-function socket(domain:longint; _type:longint; protocol:longint):longint;cdecl;external libc_nlm name 'socket';
+function Fpsetsockopt(s:longint; level:longint; optname:longint; optval:pointer; optlen:size_t):longint;cdecl;external libc_nlm name 'setsockopt';
+function Fpshutdown(s:longint; how:longint):longint;cdecl;external libc_nlm name 'shutdown';
+function Fpsocket(domain:longint; _type:longint; protocol:longint):longint;cdecl;external libc_nlm name 'socket';
 
 
 // sys/sockio.h
@@ -1883,10 +1738,10 @@ type
 (** unsupported pragma#pragma pack()*)
 
 
-function statfs(path:Pchar; buf:Pstatfs):longint;cdecl;external libc_nlm name 'statfs';
-function statfs(path:Pchar; var buf:Tstatfs):longint;cdecl;external libc_nlm name 'statfs';
-function fstatfs(fildes:longint; buf:Pstatfs):longint;cdecl;external libc_nlm name 'fstatfs';
-function fstatfs(fildes:longint; var buf:Tstatfs):longint;cdecl;external libc_nlm name 'fstatfs';
+function Fpstatfs(path:Pchar; buf:Pstatfs):longint;cdecl;external libc_nlm name 'statfs';
+function Fpstatfs(path:Pchar; var buf:Tstatfs):longint;cdecl;external libc_nlm name 'statfs';
+function Fpfstatfs(fildes:longint; buf:Pstatfs):longint;cdecl;external libc_nlm name 'fstatfs';
+function Fpfstatfs(fildes:longint; var buf:Tstatfs):longint;cdecl;external libc_nlm name 'fstatfs';
 
 // sys/ttydefaults.h
 
@@ -1987,18 +1842,18 @@ type
 
 (** unsupported pragma#pragma pack()*)
 
-function uname(name:Putsname):longint;cdecl;external libc_nlm name 'uname';
-function uname(var name:Tutsname):longint;cdecl;external libc_nlm name 'uname';
-function uname2(handle:pointer; info:Putsname; bits:dword):longint;cdecl;external libc_nlm name 'uname2';
-function uname2(handle:pointer; var info:Tutsname; bits:dword):longint;cdecl;external libc_nlm name 'uname2';
+function Fpuname(name:Putsname):longint;cdecl;external libc_nlm name 'uname';
+function Fpuname(var name:Tutsname):longint;cdecl;external libc_nlm name 'uname';
+function Fpuname2(handle:pointer; info:Putsname; bits:dword):longint;cdecl;external libc_nlm name 'uname2';
+function Fpuname2(handle:pointer; var info:Tutsname; bits:dword):longint;cdecl;external libc_nlm name 'uname2';
 
 
 // sys/wait.h
 
-function wait(stat_loc:Plongint):pid_t;cdecl;external libc_nlm name 'wait';
-function wait(var stat_loc:longint):pid_t;cdecl;external libc_nlm name 'wait';
-function waitpid(pid:pid_t; stat_loc:Plongint; options:longint):pid_t;cdecl;external libc_nlm name 'waitpid';
-function waitpid(pid:pid_t; var stat_loc:longint; options:longint):pid_t;cdecl;external libc_nlm name 'waitpid';
+function Fpwait(stat_loc:Plongint):pid_t;cdecl;external libc_nlm name 'wait';
+function Fpwait(var stat_loc:longint):pid_t;cdecl;external libc_nlm name 'wait';
+function Fpwaitpid(pid:pid_t; stat_loc:Plongint; options:longint):pid_t;cdecl;external libc_nlm name 'waitpid';
+function Fpwaitpid(pid:pid_t; var stat_loc:longint; options:longint):pid_t;cdecl;external libc_nlm name 'waitpid';
 
 // arpa/inet.h
 // netinet/in.h
@@ -3397,14 +3252,43 @@ function wcswidth(_para1:Pwchar_t; _para2:size_t):longint;cdecl;external libc_nl
 
 
 type
-
    Prtag_t = ^rtag_t;
-   rtag_t = void;
+   rtag_t = pointer;
    Trtag = rtag_t;
    Prtag = Prtag_t;
 
+   {this is from the lan driver sdk () cmsm.h
+
+    but be warned, like the ScanScreen function available in
+    clib, there is no MP save way to access netware screens, a
+    comment from Russell Bateman (libc developer @ novell) dated
+    way to do screen discovery on NetWare. }
+
+   PScreenStruct = ^TScreenStruct;
+   TScreenStruct = packed record
+     previousScreen       : PScreenStruct;
+     nextScreen           : PScreenStruct;
+     popUpOriginalScreen  : PScreenStruct;
+     CLIBScreenStructure  : pdword;
+     currentPalette       : byte;
+     _Filler1             : byte;
+     popUpCount           : byte;
+     _Filler2             : byte;
+     screenList           : byte;
+     _Filler3             : byte;
+     activeCount          : byte;
+     _Filler4             : byte;
+     resourceTag          : Prtag_t;
+     screenName           : pchar;
+     screenMemory         : pointer;
+     flags                : dword;
+     state                : dword;
+     outputCursorPosition : word;
+     inputCursorPosition  : word;
+   end;
+
    Pscr_t = ^scr_t;
-   scr_t = pointer;
+   scr_t = PScreenStruct;
    TScr = scr_t;
    PScr = Pscr_t;
 
@@ -3414,30 +3298,29 @@ type
   const
      MAX_SCREEN_STRING_LEN = 255;
   { screen mode flags...  }
-     SCR_NO_MODE = $00000000;
-  { (default)  }
-     SCR_AUTOCLOSE_ON_EXIT = $00000001;
+     SCR_NO_MODE           = $00000000;
+     SCR_AUTOCLOSE_ON_EXIT = $00000001;   // default
      SCR_COLOR_ATTRS       = $00000002;
   { key types...  }
-     NORMAL_KEY       = $00;
-     FUNCTION_KEY     = $01;
-     ENTER_KEY        = $02;
-     ESCAPE_KEY       = $03;
-     BACKSPACE_KEY    = $04;
-     DELETE_KEY       = $05;
-     INSERT_KEY       = $06;
-     CURSOR_UP_KEY    = $07;
-     CURSOR_DOWN_KEY  = $08;
-     CURSOR_RIGHT_KEY = $09;
-     CURSOR_LEFT_KEY  = $0A;
-     CURSOR_HOME_KEY  = $0B;
-     CURSOR_END_KEY   = $0C;
-     CURSOR_PUP_KEY   = $0D;
-     CURSOR_PDOWN_KEY = $0E;
+     NORMAL_KEY        = $00;
+     FUNCTION_KEY      = $01;
+     ENTER_KEY         = $02;
+     ESCAPE_KEY        = $03;
+     BACKSPACE_KEY     = $04;
+     DELETE_KEY        = $05;
+     INSERT_KEY        = $06;
+     CURSOR_UP_KEY     = $07;
+     CURSOR_DOWN_KEY   = $08;
+     CURSOR_RIGHT_KEY  = $09;
+     CURSOR_LEFT_KEY   = $0A;
+     CURSOR_HOME_KEY   = $0B;
+     CURSOR_END_KEY    = $0C;
+     CURSOR_PUP_KEY    = $0D;
+     CURSOR_PDOWN_KEY  = $0E;
   { some name equivalents...  }
-     ENTER     = $0D;
-     ESCAPE    = $1B;
-     BACKSPACE = $08;
+     ENTER             = $0D;
+     ESCAPE            = $1B;
+     BACKSPACE         = $08;
   { modifier code constituents...  }
      SHIFT_KEY_HELD    = $01;
      CTRL_KEY_HELD     = $04;
@@ -3445,8 +3328,7 @@ type
      CAPS_LOCK_IS_ON   = $40;
      NUM_LOCK_IS_ON    = $20;
      SCROLL_LOCK_IS_ON = $10;
-  { suggested 'maxlen' argument for getpassword()...  }
-     _PASSWORD_LEN = 128;
+     _PASSWORD_LEN     = 128;  // suggested 'maxlen' argument for getpassword()...
   { string-embeddable color representations...  }
      COLOR_STR_BLACK   = '\x1B[0;30m';
      COLOR_STR_MAROON  = '\x1B[0;31m';
@@ -3464,36 +3346,27 @@ type
      COLOR_STR_MAGENTA = '\x1B[1;35m';
      COLOR_STR_CYAN    = '\x1B[1;36m';
      COLOR_STR_WHITE   = '\x1B[1;37m';
-  { dim/unhighlighted white  }
-     COLOR_STR_NORMAL = COLOR_STR_SILVER;
-     COLOR_STR_GRAY = COLOR_STR_GREY;
+
+     COLOR_STR_NORMAL  = COLOR_STR_SILVER;  // dim/unhighlighted white
+     COLOR_STR_GRAY    = COLOR_STR_GREY;
   { attributes for OutputToScreenWithAttributes(); cf. HTML color names  }
-  { (black, no color at all)         }
-     COLOR_ATTR_NONE = 0;
-  { (dim blue)                       }
-     COLOR_ATTR_NAVY = 1;
-     COLOR_ATTR_BLUE = $01 or 8;
-     COLOR_ATTR_GREEN = 2;
-  { (bright green)                   }
-     COLOR_ATTR_LIME = $02 or 8;
-  { (dim cyan)                       }
-     COLOR_ATTR_TEAL = 3;
-     COLOR_ATTR_CYAN = $03 or 8;
-  { (dim red)                        }
-     COLOR_ATTR_MAROON = 4;
-     COLOR_ATTR_RED = $04 or 8;
+
+     COLOR_ATTR_NONE   = 0;            // black, no color at all
+     COLOR_ATTR_NAVY   = 1;            // dim blue
+     COLOR_ATTR_BLUE   = $01 or 8;
+     COLOR_ATTR_GREEN  = 2;
+     COLOR_ATTR_LIME   = 2 or 8;       // bright green
+     COLOR_ATTR_TEAL   = 3;            // dim cyan
+     COLOR_ATTR_CYAN   = 3 or 8;
+     COLOR_ATTR_MAROON = 4;            // dim red
+     COLOR_ATTR_RED    = 4 or 8;
      COLOR_ATTR_PURPLE = 5;
-  { (bright purple)                  }
-     COLOR_ATTR_MAGENTA = $05 or 8;
-  { (brown, dim yellow)              }
-     COLOR_ATTR_OLIVE = 6;
-     COLOR_ATTR_YELLOW = $06 or 8;
-  { normal white, dim/unhighlighted  }
-     COLOR_ATTR_SILVER = 7;
-  { (dimmed white)                   }
-     COLOR_ATTR_GREY = 8;
-  { bright, highlighted white        }
-     COLOR_ATTR_WHITE = 15;
+     COLOR_ATTR_MAGENTA= 5 or 8;       // bright purple
+     COLOR_ATTR_OLIVE  = 6;            // brown, dim yellow
+     COLOR_ATTR_YELLOW = 6 or 8;
+     COLOR_ATTR_SILVER = 7;            // normal white, dim/unhighlighted
+     COLOR_ATTR_GREY   = 8;            // dimmed white
+     COLOR_ATTR_WHITE  = 15;           // bright, highlighted white
 
   const
 //     OutputToScreenWithVaList = OutputToScreenWithPointer;
@@ -3537,12 +3410,12 @@ type
 procedure clearscreen;cdecl;external libc_nlm name 'clearscreen';
 
 {$ifndef DisableArrayOfConst}
-function consoleprintf(_para1:Pchar; args:array of const):longint;cdecl;external libc_nlm name 'consoleprintf';
+function __consoleprintf(_para1:Pchar; args:array of const):longint;cdecl;external libc_nlm name 'consoleprintf';
 {$endif}
-function consoleprintf(txt:Pchar):longint;cdecl;external libc_nlm name 'consoleprintf';
-function consoleprintfl1(txt:Pchar;p1:longint):longint;cdecl;external libc_nlm name 'consoleprintf';
-function consoleprintfl2(txt:Pchar;p1,p2:longint):longint;cdecl;external libc_nlm name 'consoleprintf';
-function consoleprintfl3(txt:Pchar;p1,p2,p3:longint):longint;cdecl;external libc_nlm name 'consoleprintf';
+function __consoleprintf(txt:Pchar):longint;cdecl;external libc_nlm name 'consoleprintf';
+function __consoleprintfl1(txt:Pchar;p1:longint):longint;cdecl;external libc_nlm name 'consoleprintf';
+function __consoleprintfl2(txt:Pchar;p1,p2:longint):longint;cdecl;external libc_nlm name 'consoleprintf';
+function __consoleprintfl3(txt:Pchar;p1,p2,p3:longint):longint;cdecl;external libc_nlm name 'consoleprintf';
 function getscreenmode(mode:Pdword):longint;cdecl;external libc_nlm name 'getscreenmode';
 function getscreenmode(var mode:dword):longint;cdecl;external libc_nlm name 'getscreenmode';
 function getcharacter:longint;cdecl;external libc_nlm name 'getcharacter';
@@ -3569,9 +3442,9 @@ function putstring(_string:Pchar):longint;cdecl;external libc_nlm name 'putstrin
 function screenprintf(_para1:scr_t; _para2:Pchar; args:array of const):longint;cdecl;external libc_nlm name 'screenprintf';
 {$endif}
 function screenprintf(_para1:scr_t; _para2:Pchar):longint;cdecl;external libc_nlm name 'screenprintf';
-function screenprintfL1(_para1:scr_t; _para2:Pchar; l1:longint):longint;cdecl;external libc_nlm name 'screenprintf';
-function screenprintfL2(_para1:scr_t; _para2:Pchar; l1,l2:longint):longint;cdecl;external libc_nlm name 'screenprintf';
-function screenprintfL3(_para1:scr_t; _para2:Pchar; l1,l2,l3:longint):longint;cdecl;external libc_nlm name 'screenprintf';
+function screenprintf(_para1:scr_t; _para2:Pchar; l1:longint):longint;cdecl;external libc_nlm name 'screenprintf';
+function screenprintf(_para1:scr_t; _para2:Pchar; l1,l2:longint):longint;cdecl;external libc_nlm name 'screenprintf';
+function screenprintf(_para1:scr_t; _para2:Pchar; l1,l2,l3:longint):longint;cdecl;external libc_nlm name 'screenprintf';
 
 function setscreenmode(mode:dword):longint;cdecl;external libc_nlm name 'setscreenmode';
 
@@ -3596,7 +3469,7 @@ type
    scroll_t =  Longint;
    Const
      SCROLL_DOWN = 0;
-     SCROLL_UP = 1;
+     SCROLL_UP   = 1;
      SCROLL_NONE = 2147483647;
 
 
@@ -3771,17 +3644,16 @@ const
      EVENT_CONSOLE_VERSION_COMMAND = 65;
      EVENT_PRE_LOAD_NLM = 66;
      EVENT_LOW_MEMORY = 67;
-     EVENT_PRE_DOWN_SERVER = 129;     { (called before NDS disappears)  }
+     EVENT_PRE_DOWN_SERVER = 129;     // called before NDS disappears
      EVENT_GET_KEY_INFORMATION = 148;
      EGKStructVersion =  $00000001;
      EVENT_PRIORITY_APPLICATION = 20;
-     EVENT_PRIORITY_DEVICE = 40;      { (lowest)   }
-  {
-  ** A consumer registering for an event sets this flag in the event type to
-  ** denote that the consumer is multiprocessor safe. This allows us to
-  ** distinguish multiprocessor safe consumers from unsafe ones.
-   }
-     EVENT_CONSUMER_MT_SAFE = $40000000;
+     EVENT_PRIORITY_DEVICE = 40;      // lowest
+
+  {** A consumer registering for an event sets this flag in the event type to
+   ** denote that the consumer is multiprocessor safe. This allows us to
+   ** distinguish multiprocessor safe consumers from unsafe ones. }
+     EVENT_CONSUMER_MT_SAFE     = $40000000;
   { ** Values for fields of EventNetWareAlertStruct_t. }
      QueueThisAlertMask         = $00000001;
      AlertIDValidMask           = $00000002;
@@ -3806,42 +3678,24 @@ const
      //QAlertMask = ((AlertIDValidMask or AlertLocusValidMask) or NoDisplayAlertIDBit) or QueueThisAle
      //QAlert320Mask = Alert320Mask or QueueThisAlertMask;
  { allotted ModuleNumbers for 'alertID' in EventNetWareAlertStruct_t...  }
-  { Bindery Subject               }
-     ALERT_BINDERY = $01020000;
-  { OS Event Subject              }
-     ALERT_OS = $01030000;
-  { LLC                           }
-     ALERT_LLC = $01040000;
-  { SDLC Stack                    }
-     ALERT_SDLC = $01050000;
-  { RConsole                      }
-     ALERT_REMOTE = $01060000;
-  { MLID LAN Drivers              }
-     ALERT_MLID = $01070000;
-  { QLLC                          }
-     ALERT_QLLC = $01080000;
-  { UPS Monitor                   }
-     ALERT_UPS = $01090000;
-  { Directory Service             }
-     ALERT_DS = $010a0000;
-  { RSPX                          }
-     ALERT_RSPX = $010c0000;
-  { R232                          }
-     ALERT_R232 = $010d0000;
-  { TimeSync                      }
-     ALERT_TIME_SYNC = $010e0000;
-  { CLib                          }
-     ALERT_CLIB = $010f0000;
-  { Print                         }
-     ALERT_PRINT = $01100000;
-  { Novell Replication Services   }
-     ALERT_NRS = $01200000;
-  { IP/Domain Name Services       }
-     ALERT_DNS = $01300000;
-  { DHCP Services                 }
-     ALERT_DHCP = $01400000;
-  { Media Manager                 }
-     ALERT_MM = $01500000;
+     ALERT_BINDERY    = $01020000;   // Bindary
+     ALERT_OS         = $01030000;   // OS Event Subject
+     ALERT_LLC        = $01040000;   // LLC
+     ALERT_SDLC       = $01050000;   // SDLC Stack
+     ALERT_REMOTE     = $01060000;   // RConsole
+     ALERT_MLID       = $01070000;   // MLID Lan Drivers
+     ALERT_QLLC       = $01080000;   // QLLC
+     ALERT_UPS        = $01090000;   // UPS Monitor
+     ALERT_DS         = $010a0000;   // Directory Service
+     ALERT_RSPX       = $010c0000;   // RSPX
+     ALERT_R232       = $010d0000;   // Serial
+     ALERT_TIME_SYNC  = $010e0000;   // TimeSync
+     ALERT_CLIB       = $010f0000;   // Clib
+     ALERT_PRINT      = $01100000;   // Print
+     ALERT_NRS        = $01200000;   // Novell Replication Services
+     ALERT_DNS        = $01300000;   // IP/Domain Name Services
+     ALERT_DHCP       = $01400000;   // DHCP Services
+     ALERT_MM         = $01500000;   // Media Manager
 {
   ** OS-defined AlertNumber values for 'alertID' in EventNetWareAlertStruct_t
   ** structure.
@@ -4462,13 +4316,13 @@ type
 
    Prtag_info = ^rtag_info;
    rtag_info = record
-        tag : rtag_t;
-        signature : dword;
-        NLMHandle : pointer;
-        use_count : longint;
+        tag         : rtag_t;
+        signature   : dword;
+        NLMHandle   : pointer;
+        use_count   : longint;
         description : array[0..(63 + 1)-1] of char;
      end;
-   rtag_info_t = rtag_info;
+   rtag_info_t  = rtag_info;
    Prtag_info_t = ^rtag_info_t;
 
 
@@ -4580,29 +4434,29 @@ procedure _Free(addr:pointer);cdecl;external system_nlm name 'Free';
        CMD_NOT_RUNNING     = $70000011;   { won't execute until server up  }
        CMD_LINE_FAULT      = $70000012;   { command line fault--no error display  }
        CMD_BAD_MOD_HANDLE  = $70000021;   { NLM handle is invalid  }
-       CMD_BAD_RTAG = $70000022;          { invalid resource tag  }
-       CMD_BAD_KEY = $70000023;           { keyword is invalid  }
-       CMD_RTAG_AND_MOD = $70000024;      { resource tag doesn't match NLM  }
-       CMD_NO_HANDLER = $70000025;        { handler is missing  }
-       CMD_KEY_TOO_LONG = $70000026;      { keyword is too long  }
-       CMD_INVAL_PERM = $70000027;        { invalid syntax to make permanent  }
-       CMD_NO_MEMORY = $70000028;         { unable to allocate memory  }
-       CMD_NOT_REGISTERED = $70000029;    { unregistered command  }
-       CMD_HAS_CHAIN = $7000002A;         { command has a chain  }
-       CMD_CANT_MAKE_HEAD = $7000002B;    { cannot make command permanent head  }
-       CMD_CANT_MAKE_TAIL = $7000002C;    { cannot make command permanent tail  }
-       CMD_PASS_TO_NEXT = $7000002D;      { not processed, go to next handler  }
-       CMD_PRIV_ON_ALT = $7000002E;       { no privilege on alternate handler  }
-       CMD_STOP_CMDS = $7000002F;         { system no longer parsing commands  }
+       CMD_BAD_RTAG        = $70000022;   { invalid resource tag  }
+       CMD_BAD_KEY         = $70000023;   { keyword is invalid  }
+       CMD_RTAG_AND_MOD    = $70000024;   { resource tag doesn't match NLM  }
+       CMD_NO_HANDLER      = $70000025;   { handler is missing  }
+       CMD_KEY_TOO_LONG    = $70000026;   { keyword is too long  }
+       CMD_INVAL_PERM      = $70000027;   { invalid syntax to make permanent  }
+       CMD_NO_MEMORY       = $70000028;   { unable to allocate memory  }
+       CMD_NOT_REGISTERED  = $70000029;   { unregistered command  }
+       CMD_HAS_CHAIN       = $7000002A;   { command has a chain  }
+       CMD_CANT_MAKE_HEAD  = $7000002B;   { cannot make command permanent head  }
+       CMD_CANT_MAKE_TAIL  = $7000002C;   { cannot make command permanent tail  }
+       CMD_PASS_TO_NEXT    = $7000002D;   { not processed, go to next handler  }
+       CMD_PRIV_ON_ALT     = $7000002E;   { no privilege on alternate handler  }
+       CMD_STOP_CMDS       = $7000002F;   { system no longer parsing commands  }
     { simplified versions of returns from command handler...  }
-       CMD_PROCESSED_OK = CMD_HALT_CMD_CHAIN;
-       CMD_CHAIN_NEXT_CMD = CMD_CMD_EXECUTED;
-       CMD_SYNTAX_ERROR = CMD_BAD_CMD_SYNTAX;
-       CMD_NOT_MY_COMMAND = CMD_PASS_TO_NEXT;
+       CMD_PROCESSED_OK    = CMD_HALT_CMD_CHAIN;
+       CMD_CHAIN_NEXT_CMD  = CMD_CMD_EXECUTED;
+       CMD_SYNTAX_ERROR    = CMD_BAD_CMD_SYNTAX;
+       CMD_NOT_MY_COMMAND  = CMD_PASS_TO_NEXT;
     { command handler function codes...  }
-       CMD_HELP_ON_CMD  = $00000000;
-       CMD_GET_SUB_CMDS = $00000001;
-       CMD_PROCESS_CMD  = $00000002;
+       CMD_HELP_ON_CMD     = $00000000;
+       CMD_GET_SUB_CMDS    = $00000001;
+       CMD_PROCESS_CMD     = $00000002;
        //CMD_MAX_HELP_CMDS = ProcessCommand;
     { error codes...  }
        ERR_INVALID_MODULE     = $00000001;
@@ -4786,13 +4640,13 @@ procedure OSGetCountryInfo(_para1:Pcountryinfo_t);cdecl;external system_nlm name
 procedure OSGetCountryInfo(var _para1:Tcountryinfo);cdecl;external system_nlm name 'OSGetCountryInfo';
 
     const
-       EXCEPTION_HANDLED = 0;
-       EXCEPTION_NOT_HANDLED = 1;        { chain to next handler  }
+       EXCEPTION_HANDLED     = 0;
+       EXCEPTION_NOT_HANDLED = 1;     // chain to next handler
        { registered debugger parser returns:  }
-       NEXT_DEBUG_PARSER = -(2);         { call next debug parser  }
-       NEXT_ALT_DEBUG_PARSER = -(1);     { call next registered debug parser  }
-       COMMAND_HANDLED = 0;              { call no other parser  }
-       INTERNAL_DEBUGGER = 1;            { pass to NetWare System Debugger  }
+       NEXT_DEBUG_PARSER     = -(2);  // call next debug parser
+       NEXT_ALT_DEBUG_PARSER = -(1);  // call next registered debug parser
+       COMMAND_HANDLED       = 0;     // call no other parser
+       INTERNAL_DEBUGGER     = 1;     // pass to NetWare System Debugger
 
 
 type
@@ -4975,46 +4829,30 @@ procedure _NonAppStop;cdecl;external libc_nlm name '_NonAppStop';
 { d_ddatetim & d_deletedID valid only in scanerasedfiles                     }
 { c.f. these fields in struct dirent...  }
 { untouched by scanerasedfiles()         }
-{ flags for this entry                   }
-{ type of entry                          }
-{ emulated file mode                     }
-{ directory entry number of d_name       }
-{ size if file                           }
-{      c.f. this field in struct dirent  }
-{ creation date and time                 }
-{ last access date--files only           }
-{ last archive date and time             }
-{ deleted date/time                      }
-{ owner id (object id)                   }
-{ object ID that last archived file      }
-{ object ID that last updated file       }
-{ deleted ID                             }
-{ lenght of following name:              }
-{ only portable field in this structure  }
-type
 
+type
    Pnwdirent = ^Tnwdirent;
    Tnwdirent = record
         d_userspec : dword;
-        d_flags : dword;
-        d_type : mode_t;
-        d_mode : mode_t;
-        d_ino : ino_t;
-        d_size : off64_t;
+        d_flags : dword;                         // flags for this entry
+        d_type : mode_t;                         // type of entry
+        d_mode : mode_t;                         // emulated file mode
+        d_ino : ino_t;                           // directory entry number of d_name
+        d_size : off64_t;                        // size of file
         d_spare : array[0..38] of dword;
-        d_cdatetim : timespec_t;
-        d_adatetim : timespec_t;
-        d_bdatetim : timespec_t;
-        d_ddatetim : timespec_t;
-        d_uid : uid_t;
-        d_archivedID : uid_t;
-        d_updatedID : uid_t;
-        d_deletedID : uid_t;
+        d_cdatetim : timespec_t;                 // creation date and time
+        d_adatetim : timespec_t;                 // last access date--files only
+        d_bdatetim : timespec_t;                 // last archive date and time
+        d_ddatetim : timespec_t;                 // deleted date/time
+        d_uid : uid_t;                           // owner id (object id)
+        d_archivedID : uid_t;                    // object ID that last archived file
+        d_updatedID : uid_t;                     // object ID that last updated file
+        d_deletedID : uid_t;                     // deleted ID
         d_pad1 : byte;
         d_pad2 : byte;
         d_pad3 : byte;
-        d_namelen : byte;
-        d_name : array[0..(255 + 1)-1] of char;
+        d_namelen : byte;                        // lenght of following name:
+        d_name : array[0..(255 + 1)-1] of char;  // only portable field in this structure
      end;
    TNWDIR = Tnwdirent;
    PNWDIR = ^TNWDIR;
@@ -5185,27 +5023,6 @@ type
         deAlternativeFileName : array[0..15] of char;
         deName : pointer;
      end;
-{============================================================================
-=  Novell Software Development Kit
-=
-=  Copyright (C) 1999-2002 Novell, Inc. All Rights Reserved.
-=
-=  This work is subject to U.S. and international copyright laws and treaties.
-=  Use and redistribution of this work is subject  to  the  license  agreement
-=  accompanying  the  software  development kit (SDK) that contains this work.
-=  However, no part of this work may be revised and/or  modified  without  the
-=  prior  written consent of Novell, Inc. Any use or exploitation of this work
-=  without authorization could subject the perpetrator to criminal  and  civil
-=  liability.
-=
-=  Source(s): Novell Header
-=
-=  poppack.h
-==============================================================================
- }
-
-(** unsupported pragma#pragma pack()*)
-
 
 // nks/errno.h
 
@@ -5957,22 +5774,7 @@ type
         sema : pointer;
         ccode : longint;
      end;
-{============================================================================
-=  Novell Software Development Kit
-=
-=  Copyright (C) 1999-2003 Novell, Inc. All Rights Reserved.
-=
-=  This work is subject to U.S. and international copyright laws and treaties.
-=  Use and redistribution of this work is subject  to  the  license  agreement
-=  accompanying  the  software  development kit (SDK) that contains this work.
-=  However, no part of this work may be revised and/or  modified  without  the
-=  prior  written consent of Novell, Inc. Any use or exploitation of this work
-=  without authorization could subject the perpetrator to criminal  and  civil
-=  liability.
-=
-=  Source(s): Open Group Header
-=
-=  dlfcn.h
+{  dlfcn.h
 ==============================================================================
 =  Interfaces from the Single UNIX Specification of the Open Group for the
 =  management of imported symbols and shared (dynamic) libraries. The imple-
@@ -6369,51 +6171,47 @@ type
      end;
    userid_t = volid_t;
    Puserid_t = ^userid_t;
-{ last time file was accessed           }
-{ time file was created                 }
-{ last time data was changed            }
-{ last time metadata was changed        }
 
    Ptimeinfo_t = ^timeinfo_t;
    timeinfo_t = record
-        accessedTime : time_t;
-        createdTime : time_t;
-        modifiedTime : time_t;
-        metaDataModifiedTime : time_t;
+        accessedTime,                    // last time file was accessed
+        createdTime,                     // time file was created
+        modifiedTime,                    // last time data was changed
+        metaDataModifiedTime : time_t;   // last time metadata was changed
      end;
 { commonlity in call-back structures...  }
 { NSS (NetWare 6) filesystem hooks events and call-back data structures...  }
 
    Pdel_warn_t = ^del_warn_t;
    del_warn_t = record
-        enterExitID : dword;
-        slotID : dword;
+        enterExitID,
+        slotID,
         taskID : dword;
-        zid : zid_t;
-        volID : volid_t;
+        zid    : zid_t;
+        volID  : volid_t;
      end;
 
    Pdel_report_t = ^del_report_t;
    del_report_t = record
-        enterExitID : dword;
-        enterRetStatus : longint;
-        opRetCode : longint;
+        enterExitID    : dword;
+        enterRetStatus,
+        opRetCode      : longint;
      end;
 
    Pcreate_warn_t = ^create_warn_t;
    create_warn_t = record
-        enterExitID : dword;
-        slotID : dword;
-        taskID : dword;
-        zid : zid_t;
-        volID : volid_t;
-        name : Punicode_t;
-        fileType : dword;
-        fileAttributes : dword;
-        createFlags : dword;
-        createParms : pointer;
-        requestedRights : dword;
-        createAndOpen : dword;
+        enterExitID,
+        slotID,
+        taskID          : dword;
+        zid             : zid_t;
+        volID           : volid_t;
+        name            : Punicode_t;
+        fileType,
+        fileAttributes,
+        createFlags     : dword;
+        createParms     : pointer;
+        requestedRights,
+        createAndOpen   : dword;
      end;
 
    Pcreate_report_t = ^create_report_t;
@@ -8544,36 +8342,22 @@ function pthread_rwlockattr_setpshared(attr:Ppthread_rwlockattr_t; pshared:longi
 function pthread_atfork(prepare, parent, child:TCDeclProcedure):longint;cdecl;external libc_nlm name 'pthread_atfork';
 
 
-// pwd.h
-
-{ user ID                }
-{ group ID               }
-{ username               }
-{ home directory         }
-{ default shell          }
-{ non-mandated fields    }
-{ real name              }
-{ password (always nil)  }
-{ general information    }
-{ comment                }
-{ password change time   }
-{ account expiration     }
 type
    Ppasswd = ^passwd;
    passwd = record
-        pw_uid : uid_t;//cdecl;
-        pw_spare1 : uid_t;
-        pw_gid : gid_t;
-        pw_spare2 : gid_t;
-        pw_name : Pchar;
-        pw_dir : Pchar;
-        pw_shell : Pchar;
-        pw_LDAPName : Pchar;
-        pw_passwd : Pchar;
-        pw_gecos : Pchar;
-        pw_comment : Pchar;
-        pw_change : time_t;
-        pw_expire : time_t;
+        pw_uid     : uid_t;     // user id
+        pw_spare1  : uid_t;
+        pw_gid     : gid_t;     // group id
+        pw_spare2  : gid_t;
+        pw_name    : Pchar;     // username
+        pw_dir     : Pchar;     // home directory
+        pw_shell   : Pchar;     // default shell
+        pw_LDAPName: Pchar;     // real name
+        pw_passwd  : Pchar;     // password (always nil)
+        pw_gecos   : Pchar;     // general information
+        pw_comment : Pchar;     // commend
+        pw_change  : time_t;    // password change time
+        pw_expire  : time_t;    // account expiration
         spare1 : array[0..2] of pointer;
         spare2 : array[0..3] of pointer;
      end;

@@ -66,6 +66,16 @@
   change them completely.
 }
 
+{ ok, so this is a hack, but it works nicely. Just never use
+  a multiline argument with WRITE_DEBUG! }
+{$MACRO ON}
+{$IFDEF DEBUG_MT}
+{$define WRITE_DEBUG := ConsolePrintf} // actually write something
+{$ELSE}
+{$define WRITE_DEBUG := //}      // just comment out those lines
+{$ENDIF}
+
+
 function SemaphoreInit: Pointer;
 begin
   SemaphoreInit := GetMem(SizeOf(TFilDes));
@@ -95,11 +105,22 @@ end;
 
 // =========== semaphore end ===========
 
+type
+  PThreadRec=^TThreadRec;
+  TThreadRec=record
+    thread : TThread;
+    next   : PThreadRec;
+  end;
+
 var
-  ThreadsInited: boolean = false;
+  ThreadRoot : PThreadRec;
+  ThreadsInited : boolean = false;
+  DisableRemoveThread : boolean;
+  ThreadCount: longint = 0;
 {$IFDEF LINUX}
   GMainPID: LongInt = 0;
 {$ENDIF}
+
 const
   // stupid, considering its not even implemented...
   Priorities: array [TThreadPriority] of Integer =
@@ -112,29 +133,83 @@ begin
     {$IFDEF LINUX}
     GMainPid := fpgetpid();
     {$ENDIF}
+    ThreadRoot:=nil;
+    ThreadsInited:=true;
+    DisableRemoveThread:=false;
   end;
 end;
 
 procedure DoneThreads;
+var
+  hp,next : PThreadRec;
 begin
-  ThreadsInited := false;
+  DisableRemoveThread := true;    {to avoid that Destroy calling RemoveThread modifies Thread List}
+  while assigned(ThreadRoot) do
+   begin
+     WRITE_DEBUG('DoneThreads: calling Destroy'#13#10);
+     ThreadRoot^.Thread.Destroy;
+     hp:=ThreadRoot;
+     ThreadRoot:=ThreadRoot^.Next;
+     dispose(hp);
+     WRITE_DEBUG('DoneThreads: called destroy, remaining threads: %d ThreadRoot: %x'#13#10,ThreadCount,longint(ThreadRoot));
+   end;
+  ThreadsInited:=false;
 end;
 
-{ ok, so this is a hack, but it works nicely. Just never use
-  a multiline argument with WRITE_DEBUG! }
-{$MACRO ON}
-{$IFDEF DEBUG_MT}
-{$define WRITE_DEBUG := writeln} // actually write something
-{$ELSE}
-{$define WRITE_DEBUG := //}      // just comment out those lines
-{$ENDIF}
+procedure AddThread(t:TThread);
+var
+  hp : PThreadRec;
+begin
+  { Need to initialize threads ? }
+  if not ThreadsInited then
+   InitThreads;
+
+  { Put thread in the linked list }
+  new(hp);
+  hp^.Thread:=t;
+  hp^.next:=ThreadRoot;
+  ThreadRoot:=hp;
+
+  inc(ThreadCount);
+end;
+
+
+procedure RemoveThread(t:TThread);
+var
+  lasthp,hp : PThreadRec;
+begin
+  if not DisableRemoveThread then  {disabled while in DoneThreads}
+  begin
+    hp:=ThreadRoot;
+    lasthp:=nil;
+    while assigned(hp) do
+    begin
+      if hp^.Thread=t then
+      begin
+        if assigned(lasthp) then
+         lasthp^.next:=hp^.next
+        else
+         ThreadRoot:=hp^.next;
+        dispose(hp);
+        Dec(ThreadCount);
+        if ThreadCount = 0 then ThreadsInited := false;
+        exit;
+      end;
+      lasthp:=hp;
+      hp:=hp^.next;
+    end;
+  end else
+    dec(ThreadCount);
+end;
+
+
 
 function ThreadFunc(parameter: Pointer): LongInt;
 var
   LThread: TThread;
   c: char;
 begin
-  WRITE_DEBUG('ThreadFunc is here...');
+  WRITE_DEBUG('ThreadFunc is here...'#13#10);
   LThread := TThread(parameter);
   {$IFDEF LINUX}
   // save the PID of the "thread"
@@ -142,38 +217,38 @@ begin
   // the LinuxThreads implementation is used
   LThread.FPid := fpgetpid();
   {$ENDIF}
-  WRITE_DEBUG('thread initing, parameter = ', LongInt(LThread));
+  WRITE_DEBUG('thread initing, parameter = %d'#13#10, LongInt(LThread));
   try
     if LThread.FInitialSuspended then begin
       SemaphoreWait(LThread.FSem);
       if not LThread.FInitialSuspended then begin
-        WRITE_DEBUG('going into LThread.Execute');
+        WRITE_DEBUG('going into LThread.Execute'#13#10);
         LThread.Execute;
       end;
     end else begin
-      WRITE_DEBUG('going into LThread.Execute');
+      WRITE_DEBUG('going into LThread.Execute'#13#10);
       LThread.Execute;
     end;
   except
     on e: exception do begin
-      WRITE_DEBUG('got exception: ',e.message);
+      WRITE_DEBUG('got exception: %s'#13#10,pchar(e.message));
       LThread.FFatalException :=  TObject(AcquireExceptionObject);
       // not sure if we should really do this...
       // but .Destroy was called, so why not try FreeOnTerminate?
       if e is EThreadDestroyCalled then LThread.FFreeOnTerminate := true;
     end;
   end;
-  WRITE_DEBUG('thread done running');
+  WRITE_DEBUG('thread done running'#13#10);
   Result := LThread.FReturnValue;
-  WRITE_DEBUG('Result is ',Result);
+  WRITE_DEBUG('Result is %d'#13#10,Result);
   LThread.FFinished := True;
   LThread.DoTerminate;
   if LThread.FreeOnTerminate then begin
-    WRITE_DEBUG('Thread should be freed');
+    WRITE_DEBUG('Thread should be freed'#13#10);
     LThread.Free;
-    WRITE_DEBUG('Thread freed');
+    WRITE_DEBUG('Thread freed'#13#10);
   end;
-  WRITE_DEBUG('thread func exiting');
+  WRITE_DEBUG('thread func exiting'#13#10);
 end;
 
 { TThread }
@@ -182,15 +257,16 @@ begin
   // lets just hope that the user doesn't create a thread
   // via BeginThread and creates the first TThread Object in there!
   InitThreads;
+  AddThread(self);
   inherited Create;
   FSem := SemaphoreInit;
   FSuspended :=CreateSuspended;
   FSuspendedExternal := false;
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;
-  WRITE_DEBUG('creating thread, self = ',longint(self));
+  WRITE_DEBUG('creating thread, self = %d'#13#10,longint(self));
   FHandle:= BeginThread(@ThreadFunc, Pointer(Self), FThreadID);
-  WRITE_DEBUG('TThread.Create done');
+  WRITE_DEBUG('TThread.Create done'#13#10);
 end;
 
 
@@ -215,6 +291,7 @@ begin
   FFatalException := nil;
   SemaphoreDestroy(FSem);
   inherited Destroy;
+  RemoveThread(self);          {remove it from the list of active threads}
 end;
 
 procedure TThread.SetSuspended(Value: Boolean);
@@ -326,7 +403,11 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-09-05 20:58:47  armin
+  Revision 1.2  2004-09-26 19:23:34  armin
+  * exiting threads at nlm unload
+  * renamed some libc functions
+
+  Revision 1.1  2004/09/05 20:58:47  armin
   * first rtl version for netwlibc
 
 }

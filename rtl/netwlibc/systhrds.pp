@@ -34,6 +34,14 @@ type
 
 implementation
 
+{ ok, so this is a hack, but it works nicely. Just never use
+  a multiline argument with WRITE_DEBUG! }
+{$MACRO ON}
+{$IFDEF DEBUG_MT}
+{$define WRITE_DEBUG := ConsolePrintf} // actually write something
+{$ELSE}
+{$define WRITE_DEBUG := //}      // just comment out those lines
+{$ENDIF}
 
 {*****************************************************************************
                              Generic overloaded
@@ -82,17 +90,13 @@ implementation
         pthread_setspecific(tlskey,dataindex);
         if thredvarsmainthread = nil then
           thredvarsmainthread := dataindex;
-        {$ifdef DEBUG_MT}
-        __ConsolePrintf ('SysAllocateThreadVars');
-        {$endif}
+        WRITE_DEBUG ('SysAllocateThreadVars'#13#10);
       end;
 
 
     procedure SysReleaseThreadVars;
       begin
-        {$ifdef DEBUG_MT}
-        __ConsolePrintf ('SysReleaseThreadVars');
-        {$endif}
+        WRITE_DEBUG ('SysReleaseThreadVars'#13#10);
         _Free (pthread_getspecific(tlskey));
       end;
 
@@ -128,9 +132,7 @@ implementation
       begin
         { Release Threadvars }
 {$ifdef HASTHREADVAR}
-{$ifdef DEBUG_MT}
-        __ConsolePrintf('DoneThread, releasing threadvars');
-{$endif DEBUG_MT}
+        WRITE_DEBUG('DoneThread, releasing threadvars'#13#10);
         SysReleaseThreadVars;
 {$endif HASTHREADVAR}
       end;
@@ -139,39 +141,25 @@ implementation
     function ThreadMain(param : pointer) : pointer;cdecl;
       var
         ti : tthreadinfo;
-{$ifdef DEBUG_MT}
-        // in here, don't use write/writeln before having called
-        // InitThread! I wonder if anyone ever debugged these routines,
-        // because they will have crashed if DEBUG_MT was enabled!
-        // this took me the good part of an hour to figure out
-        // why it was crashing all the time!
-        // this is kind of a workaround, we simply write(2) to fd 0
-        s: string[100]; // not an ansistring
-{$endif DEBUG_MT}
       begin
-{$ifdef DEBUG_MT}
-        __ConsolePrintf('New thread started, initing threadvars');
-{$endif DEBUG_MT}
+        WRITE_DEBUG('New thread started, initing threadvars'#13#10);
 {$ifdef HASTHREADVAR}
         { Allocate local thread vars, this must be the first thing,
           because the exception management and io depends on threadvars }
         SysAllocateThreadVars;
 {$endif HASTHREADVAR}
         { Copy parameter to local data }
-{$ifdef DEBUG_MT}
-        __ConsolePrintf ('New thread started, initialising ...');
-{$endif DEBUG_MT}
+        WRITE_DEBUG('New thread started, initialising ...'#13#10);
         ti:=pthreadinfo(param)^;
         dispose(pthreadinfo(param));
         { Initialize thread }
         InitThread(ti.stklen);
         { Start thread function }
-{$ifdef DEBUG_MT}
-        __ConsolePrintf('Jumping to thread function');
-{$endif DEBUG_MT}
+        WRITE_DEBUG('Jumping to thread function'#13#10);
         ThreadMain:=pointer(ti.f(ti.p));
         DoneThread;
-	pthread_detach(pointer(pthread_self));
+	//pthread_detach(pointer(pthread_self));
+        pthread_exit (nil);
       end;
 
 
@@ -182,9 +170,7 @@ implementation
         ti : pthreadinfo;
         thread_attr : pthread_attr_t;
       begin
-{$ifdef DEBUG_MT}
-        __ConsolePrintf('Creating new thread');
-{$endif DEBUG_MT}
+        WRITE_DEBUG('SysBeginThread: Creating new thread'#13#10);
         { Initialize multithreading if not done }
         if not IsMultiThread then
          begin
@@ -202,9 +188,7 @@ implementation
         ti^.p:=p;
         ti^.stklen:=stacksize;
         { call pthread_create }
-{$ifdef DEBUG_MT}
-        __ConsolePrintf('Starting new thread');
-{$endif DEBUG_MT}
+        WRITE_DEBUG('SysBeginThread: Starting new thread'#13#10);
         pthread_attr_init(@thread_attr);
         pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
 
@@ -218,9 +202,7 @@ implementation
           threadid := 0;
         end;
         SysBeginThread:=threadid;
-{$ifdef DEBUG_MT}
-        writeln('BeginThread returning ',SysBeginThread);
-{$endif DEBUG_MT}
+        WRITE_DEBUG('SysBeginThread returning %d'#13#10,SysBeginThread);
       end;
 
 
@@ -262,6 +244,7 @@ implementation
     begin
       LResult := 0;
       LResultP := @LResult;
+      WRITE_DEBUG('SysWaitForThreadTerminate: waiting for %d, timeout %d'#13#10,threadHandle,timeoutMS);
       pthread_join(Pointer(threadHandle), @LResultP);
       SysWaitForThreadTerminate := LResult;
     end;
@@ -500,7 +483,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2004-09-19 20:06:37  armin
+  Revision 1.3  2004-09-26 19:23:34  armin
+  * exiting threads at nlm unload
+  * renamed some libc functions
+
+  Revision 1.2  2004/09/19 20:06:37  armin
   * removed get/free video buf from video.pp
   * implemented sockets
   * basic library support

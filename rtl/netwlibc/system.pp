@@ -82,6 +82,7 @@ const
   Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Attach_Hook  : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook  : TDLL_Entry_Hook = nil;
+  NetwareUnloadProc       : pointer = nil;  {like exitProc but for nlm unload only}
   envp : ppchar = nil;
 
 
@@ -96,7 +97,12 @@ procedure NWSysSetThreadFunctions (atv:TSysReleaseThreadVars;
                                    stdata:TSysSetThreadDataAreaPtr);
 
 
-procedure __ConsolePrintf (s :shortstring);
+procedure ConsolePrintf (s :shortstring);
+procedure ConsolePrintf (FormatStr : PCHAR; Param : LONGINT);
+procedure ConsolePrintf (FormatStr : PCHAR; Param : pchar);
+procedure ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT);
+procedure ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT);
+procedure ConsolePrintf (FormatStr : PCHAR);
 procedure __EnterDebugger; cdecl;
 
 function NWGetCodeStart : pointer;  // needed for Lineinfo
@@ -126,6 +132,7 @@ var
   ReleaseThreadVars : TSysReleaseThreadVars = nil;
   AllocateThreadVars: TSysReleaseThreadVars = nil;
   SetThreadDataAreaPtr : TSysSetThreadDataAreaPtr = nil;
+  TerminatingThreadID : dword = 0;
 
 procedure NWSysSetThreadFunctions (atv:TSysReleaseThreadVars;
                                    rtv:TSysReleaseThreadVars;
@@ -153,7 +160,18 @@ var SigTermHandlerActive : boolean;
 
 Procedure system_exit;
 begin
-  //__ConsolePrintf ('system_exit');
+  if TerminatingThreadID <> 0 then
+    if TerminatingThreadID <> ThreadId then
+      if TerminatingThreadID <> dword(pthread_self) then
+      begin
+        {$ifdef DEBUG_MT}
+        ConsolePrintf ('Terminating Thread %x because halt was called while Thread %x terminates nlm'#13#10,dword(pthread_self),TerminatingThreadId);
+        {$endif}
+        pthread_exit (nil);
+        // only for the case ExitThread fails
+        while true do
+          NXThreadYield;
+      end;
   if assigned (ReleaseThreadVars) then ReleaseThreadVars;
 
   {$ifdef autoHeapRelease}
@@ -260,7 +278,7 @@ var P2 : POINTER;
 begin
   if HeapSbrkReleased then
   begin
-    __ConsolePrintf ('Error: SysOSFree called after all heap memory was released');
+    ConsolePrintf ('Error: SysOSFree called after all heap memory was released'#13#10);
     exit(nil);
   end;
   SysOSAlloc := _Alloc (size,HeapAllocResourceTag);
@@ -332,7 +350,7 @@ var i : longint;
 begin
   if HeapSbrkReleased then
   begin
-    __ConsolePrintf ('Error: SysOSFree called after all heap memory was released');
+    ConsolePrintf ('Error: SysOSFree called after all heap memory was released'#13#10);
   end else
   if (HeapSbrkLastUsed > 0) then
     for i := 1 to HeapSbrkLastUsed do
@@ -541,7 +559,7 @@ VAR res     : LONGINT;
     statbuf : TStat;
 begin
   {$ifdef IOpossix}
-  res := fstat (handle, statbuf);
+  res := Fpfstat (handle, statbuf);
   {$else}
   res := _fstat (_fileno (_TFILE(handle)), statbuf);  // was _filelength for clib
   {$endif}
@@ -858,7 +876,7 @@ procedure InitFPU;assembler;
 function CheckFunction : longint; CDECL; [public,alias: '_NonAppCheckUnload'];
 var oldPtr : pointer;
 begin
-  //__ConsolePrintf ('CheckFunction');
+  //ConsolePrintf ('CheckFunction'#13#10);
   if assigned (NetwareCheckFunction) then
   begin
     if assigned (SetThreadDataAreaPtr) then
@@ -875,14 +893,49 @@ begin
 end;
 
 
-procedure __ConsolePrintf (s : shortstring);
+procedure ConsolePrintf (s : shortstring);
 begin
-  if length(s) > 252 then
-    byte(s[0]) := 252;
-  s := s + #13#10#0;
+  if length(s) > 254 then
+    byte(s[0]) := 254;
+  s := s + #0;
+  ConsolePrintf (@s[1]);
+end;
+
+procedure ConsolePrintf (FormatStr : PCHAR);
+begin
   if NWLoggerScreen = nil then
     NWLoggerScreen := getnetwarelogger;
-  screenprintf (NWLoggerScreen,@s[1]);
+  if NWLoggerScreen <> nil then
+    screenprintf (NWLoggerScreen,FormatStr);
+end;
+
+procedure ConsolePrintf (FormatStr : PCHAR; Param : LONGINT);
+begin
+  if NWLoggerScreen = nil then
+    NWLoggerScreen := getnetwarelogger;
+  if NWLoggerScreen <> nil then
+    screenprintf (NWLoggerScreen,FormatStr,Param);
+end;
+
+procedure ConsolePrintf (FormatStr : PCHAR; Param : pchar);
+begin
+  ConsolePrintf (FormatStr,longint(Param));
+end;
+
+procedure ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT);
+begin
+  if NWLoggerScreen = nil then
+    NWLoggerScreen := getnetwarelogger;
+  if NWLoggerScreen <> nil then
+    screenprintf (NWLoggerScreen,FormatStr,P1,P2);
+end;
+
+procedure ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT);
+begin
+  if NWLoggerScreen = nil then
+    NWLoggerScreen := getnetwarelogger;
+  if NWLoggerScreen <> nil then
+    screenprintf (NWLoggerScreen,FormatStr,P1,P2,P3);
 end;
 
 
@@ -892,7 +945,7 @@ var NWUts : Tutsname;
 
 procedure getCodeAddresses;
 begin
-  if uname(NWUts) < 0 then
+  if Fpuname(NWUts) < 0 then
     FillChar(NWuts,sizeof(NWUts),0);
 end;
 
@@ -973,6 +1026,7 @@ end;
   Halt (or _exit) can not be called from this callback procedure }
 procedure TermSigHandler (Sig:longint); CDecl;
 var oldPtr : pointer;
+    current_exit : procedure;
 begin
   { Threadvar Pointer will not be valid because the signal
     handler is called by netware with a differnt thread. To avoid
@@ -980,6 +1034,28 @@ begin
     here }
   if assigned (SetThreadDataAreaPtr) then
     oldPtr := SetThreadDataAreaPtr (NIL);  { nil means main thread }
+
+  TerminatingThreadID := dword(pthread_self);
+
+  {we need to finalize winock to release threads
+   waiting on a blocking socket call. If that thread
+   calls halt, we have to avoid that unit finalization
+   is called by that thread because we are doing it
+   here
+
+   like the old exitProc, mainly to allow winsock to release threads
+   blocking in a winsock calls }
+  while NetwareUnloadProc<>nil Do
+  Begin
+    InOutRes:=0;
+    current_exit:=tProcedure(NetwareUnloadProc);
+    NetwareUnloadProc:=nil;
+    current_exit();
+    NXThreadYield;
+    //hadExitProc := true;
+  End;
+
+
   SigTermHandlerActive := true;  { to avoid that system_exit calls _exit }
   do_exit;                       { calls finalize units }
   if assigned (SetThreadDataAreaPtr) then
@@ -1025,7 +1101,9 @@ function _DLLMain (hInstDLL:pointer; fdwReason:dword; DLLParam:longint):longbool
 [public, alias : '_FPC_DLL_Entry'];
 var res : longbool;
 begin
-  __ConsolePrintf ('_FPC_DLL_Entry called');
+  {$ifdef DEBUG_MT}
+  ConsolePrintf ('_FPC_DLL_Entry called');
+  {$endif}
   _DLLMain := false;
   isLibrary := true;
   case fdwReason of
@@ -1094,7 +1172,7 @@ Begin
   HeapListAllocResourceTag :=
     AllocateResourceTag(NLMHandle,'Heap Memory List',AllocSignature);
   {$endif}
-  Signal (SIGTERM, @TermSigHandler);
+  FpSignal (SIGTERM, @TermSigHandler);
 
 { Setup heap }
   InitHeap;
@@ -1116,7 +1194,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.3  2004-09-19 20:06:37  armin
+  Revision 1.4  2004-09-26 19:23:34  armin
+  * exiting threads at nlm unload
+  * renamed some libc functions
+
+  Revision 1.3  2004/09/19 20:06:37  armin
   * removed get/free video buf from video.pp
   * implemented sockets
   * basic library support
