@@ -995,6 +995,7 @@ implementation
                 is_widestring(p^.resulttype) then
                 begin
                    hregister:=getexplicitregister32(R_EAX);
+                   emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
                    if gettempansistringreference(hr) then
                      decrstringref(p^.resulttype,hr);
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,hregister,
@@ -1165,7 +1166,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90.2.1  1999-06-14 17:24:42  peter
+  Revision 1.90.2.2  1999-06-16 09:30:44  peter
+    * fixed loading of ansistring when eax was already used
+
+  Revision 1.90.2.1  1999/06/14 17:24:42  peter
     * fixed saving of registers with decr_ansistr
 
   Revision 1.90  1999/06/02 10:11:40  florian
