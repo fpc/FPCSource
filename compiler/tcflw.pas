@@ -323,6 +323,11 @@ implementation
          if assigned(p^.left) then
            begin
               firstpass(p^.left);
+              if codegenerror then
+               exit;
+              { Check the 2 types }
+              p^.left:=gentypeconvnode(p^.left,p^.resulttype);
+              firstpass(p^.left);
               p^.registers32:=p^.left^.registers32;
               p^.registersfpu:=p^.left^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -488,7 +493,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1999-02-22 02:15:48  peter
+  Revision 1.7  1999-03-09 19:24:42  peter
+    * type check the exit()
+
+  Revision 1.6  1999/02/22 02:15:48  peter
     * updates for ag386bin
 
   Revision 1.5  1999/01/13 12:01:43  peter
