@@ -320,3 +320,4 @@ bug0230.pp   several strange happen on the ln function: ln(0): no
 bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
 bug0234.pp   New with void pointer
+bug0237.pp   Can't have sub procedures with names defined in interface
