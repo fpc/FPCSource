@@ -11,14 +11,18 @@ pp: pp.pas \
 	files.ppu \
 	verb_def.ppu \
 	verbose.ppu
+	$(COMPILER) pp.pas
 
 cobjects.ppu: cobjects.pas
+	$(COMPILER) cobjects.pas
 
 globals.ppu: globals.pas \
 	cobjects.ppu \
 	systems.ppu
+	$(COMPILER) globals.pas
 
 systems.ppu: systems.pas
+	$(COMPILER) systems.pas
 
 parser.ppu: parser.pas \
 	cobjects.ppu \
@@ -45,6 +49,7 @@ parser.ppu: parser.pas \
 	pdecl.ppu \
 	assemble.ppu \
 	link.ppu
+	$(COMPILER) parser.pas
 
 scanner.ppu: scanner.pas \
 	cobjects.ppu \
@@ -54,6 +59,7 @@ scanner.ppu: scanner.pas \
 	files.ppu \
 	verbose.ppu \
 	link.ppu
+	$(COMPILER) scanner.pas
 
 symtable.ppu: symtable.pas \
 	cobjects.ppu \
@@ -65,24 +71,29 @@ symtable.ppu: symtable.pas \
 	link.ppu \
 	i386.ppu \
 	gdb.ppu
+	$(COMPILER) symtable.pas
 
 verbose.ppu: verbose.pas \
 	messages.ppu \
 	globals.ppu
+	$(COMPILER) verbose.pas
 
 messages.ppu: messages.pas
+	$(COMPILER) messages.pas
 
 aasm.ppu: aasm.pas \
 	cobjects.ppu \
 	files.ppu \
 	globals.ppu \
 	verbose.ppu
+	$(COMPILER) aasm.pas
 
 files.ppu: files.pas \
 	cobjects.ppu \
 	globals.ppu \
 	verbose.ppu \
 	systems.ppu
+	$(COMPILER) files.pas
 
 link.ppu: link.pas \
 	cobjects.ppu \
@@ -90,11 +101,13 @@ link.ppu: link.pas \
 	globals.ppu \
 	systems.ppu \
 	verbose.ppu
+	$(COMPILER) link.pas
 
 script.ppu: script.pas \
 	cobjects.ppu \
 	globals.ppu \
 	systems.ppu
+	$(COMPILER) script.pas
 
 i386.ppu: i386.pas \
 	systems.ppu \
@@ -103,12 +116,14 @@ i386.ppu: i386.pas \
 	aasm.ppu \
 	files.ppu \
 	verbose.ppu
+	$(COMPILER) i386.pas
 
 gdb.ppu: gdb.pas \
 	i386.ppu \
 	cobjects.ppu \
 	globals.ppu \
 	aasm.ppu
+	$(COMPILER) gdb.pas
 
 tree.ppu: tree.pas \
 	globals.ppu \
@@ -118,6 +133,7 @@ tree.ppu: tree.pas \
 	aasm.ppu \
 	files.ppu \
 	i386.ppu
+	$(COMPILER) tree.pas
 
 types.ppu: types.pas \
 	cobjects.ppu \
@@ -126,6 +142,7 @@ types.ppu: types.pas \
 	tree.ppu \
 	aasm.ppu \
 	verbose.ppu
+	$(COMPILER) types.pas
 
 pass_1.ppu: pass_1.pas \
 	tree.ppu \
@@ -140,6 +157,7 @@ pass_1.ppu: pass_1.pas \
 	files.ppu \
 	i386.ppu \
 	tgeni386.ppu
+	$(COMPILER) pass_1.pas
 
 hcodegen.ppu: hcodegen.pas \
 	cobjects.ppu \
@@ -150,6 +168,7 @@ hcodegen.ppu: hcodegen.pas \
 	types.ppu \
 	aasm.ppu \
 	i386.ppu
+	$(COMPILER) hcodegen.pas
 
 tgeni386.ppu: tgeni386.pas \
 	cobjects.ppu \
@@ -160,18 +179,21 @@ tgeni386.ppu: tgeni386.pas \
 	files.ppu \
 	aasm.ppu \
 	i386.ppu
+	$(COMPILER) tgeni386.pas
 
 import.ppu: import.pas \
 	systems.ppu \
 	verbose.ppu \
 	os2_targ.ppu \
 	win_targ.ppu
+	$(COMPILER) import.pas
 
 os2_targ.ppu: os2_targ.pas \
 	import.ppu \
 	globals.ppu \
 	link.ppu \
 	files.ppu
+	$(COMPILER) os2_targ.pas
 
 win_targ.ppu: win_targ.pas \
 	import.ppu \
@@ -180,6 +202,7 @@ win_targ.ppu: win_targ.pas \
 	globals.ppu \
 	cobjects.ppu \
 	i386.ppu
+	$(COMPILER) win_targ.pas
 
 cgi386.ppu: cgi386.pas \
 	verbose.ppu \
@@ -197,6 +220,7 @@ cgi386.ppu: cgi386.pas \
 	files.ppu \
 	cgai386.ppu \
 	gdb.ppu
+	$(COMPILER) cgi386.pas
 
 cgai386.ppu: cgai386.pas \
 	cobjects.ppu \
@@ -213,6 +237,7 @@ cgai386.ppu: cgai386.pas \
 	files.ppu \
 	verbose.ppu \
 	gdb.ppu
+	$(COMPILER) cgai386.pas
 
 aopt386.ppu: aopt386.pas \
 	aasm.ppu \
@@ -220,8 +245,10 @@ aopt386.ppu: aopt386.pas \
 	globals.ppu \
 	symtable.ppu \
 	verbose.ppu \
+	hcodegen.ppu \
 	i386.ppu \
 	cgi386.ppu
+	$(COMPILER) aopt386.pas
 
 pbase.ppu: pbase.pas \
 	cobjects.ppu \
@@ -230,6 +257,7 @@ pbase.ppu: pbase.pas \
 	symtable.ppu \
 	systems.ppu \
 	verbose.ppu
+	$(COMPILER) pbase.pas
 
 pmodules.ppu: pmodules.pas \
 	cobjects.ppu \
@@ -257,6 +285,7 @@ pmodules.ppu: pmodules.pas \
 	cgi386.ppu \
 	aopt386.ppu \
 	parser.ppu
+	$(COMPILER) pmodules.pas
 
 assemble.ppu: assemble.pas \
 	cobjects.ppu \
@@ -268,6 +297,7 @@ assemble.ppu: assemble.pas \
 	verbose.ppu \
 	ag386att.ppu \
 	ag386int.ppu
+	$(COMPILER) assemble.pas
 
 ag386att.ppu: ag386att.pas \
 	aasm.ppu \
@@ -279,6 +309,7 @@ ag386att.ppu: ag386att.pas \
 	files.ppu \
 	verbose.ppu \
 	gdb.ppu
+	$(COMPILER) ag386att.pas
 
 ag386int.ppu: ag386int.pas \
 	aasm.ppu \
@@ -290,6 +321,7 @@ ag386int.ppu: ag386int.pas \
 	files.ppu \
 	verbose.ppu \
 	gdb.ppu
+	$(COMPILER) ag386int.pas
 
 pdecl.ppu: pdecl.pas \
 	globals.ppu \
@@ -302,6 +334,7 @@ pdecl.ppu: pdecl.pas \
 	types.ppu \
 	hcodegen.ppu \
 	verbose.ppu \
+	systems.ppu \
 	gdb.ppu \
 	pbase.ppu \
 	ptconst.ppu \
@@ -309,6 +342,7 @@ pdecl.ppu: pdecl.pas \
 	psub.ppu \
 	pexports.ppu \
 	i386.ppu
+	$(COMPILER) pdecl.pas
 
 ptconst.ppu: ptconst.pas \
 	symtable.ppu \
@@ -324,6 +358,7 @@ ptconst.ppu: ptconst.pas \
 	pbase.ppu \
 	pexpr.ppu \
 	i386.ppu
+	$(COMPILER) ptconst.pas
 
 pexpr.ppu: pexpr.pas \
 	symtable.ppu \
@@ -333,12 +368,14 @@ pexpr.ppu: pexpr.pas \
 	scanner.ppu \
 	aasm.ppu \
 	pass_1.ppu \
+	systems.ppu \
 	hcodegen.ppu \
 	types.ppu \
 	verbose.ppu \
 	pbase.ppu \
 	pdecl.ppu \
 	i386.ppu
+	$(COMPILER) pexpr.pas
 
 psub.ppu: psub.pas \
 	cobjects.ppu \
@@ -366,6 +403,7 @@ psub.ppu: psub.pas \
 	tgeni386.ppu \
 	cgi386.ppu \
 	aopt386.ppu
+	$(COMPILER) psub.pas
 
 pstatmnt.ppu: pstatmnt.pas \
 	tree.ppu \
@@ -387,6 +425,7 @@ pstatmnt.ppu: pstatmnt.pas \
 	pbase.ppu \
 	pexpr.ppu \
 	pdecl.ppu
+	$(COMPILER) pstatmnt.pas
 
 rai386.ppu: rai386.pas \
 	tree.ppu \
@@ -398,6 +437,7 @@ rai386.ppu: rai386.pas \
 	scanner.ppu \
 	cobjects.ppu \
 	verbose.ppu
+	$(COMPILER) rai386.pas
 
 asmutils.ppu: asmutils.pas \
 	symtable.ppu \
@@ -409,6 +449,7 @@ asmutils.ppu: asmutils.pas \
 	files.ppu \
 	cobjects.ppu \
 	i386.ppu
+	$(COMPILER) asmutils.pas
 
 ratti386.ppu: ratti386.pas \
 	i386.ppu \
@@ -421,6 +462,7 @@ ratti386.ppu: ratti386.pas \
 	cobjects.ppu \
 	verbose.ppu \
 	symtable.ppu
+	$(COMPILER) ratti386.pas
 
 radi386.ppu: radi386.pas \
 	tree.ppu \
@@ -434,6 +476,7 @@ radi386.ppu: radi386.pas \
 	types.ppu \
 	verbose.ppu \
 	asmutils.ppu
+	$(COMPILER) radi386.pas
 
 pexports.ppu: pexports.pas \
 	cobjects.ppu \
@@ -442,6 +485,7 @@ pexports.ppu: pexports.pas \
 	symtable.ppu \
 	pbase.ppu \
 	verbose.ppu
+	$(COMPILER) pexports.pas
 
 options.ppu: options.pas \
 	cobjects.ppu \
@@ -454,6 +498,7 @@ options.ppu: options.pas \
 	messages.ppu \
 	os2_targ.ppu \
 	opts386.ppu
+	$(COMPILER) options.pas
 
 verb_def.ppu: verb_def.pas \
 	verbose.ppu \
@@ -461,8 +506,10 @@ verb_def.ppu: verb_def.pas \
 	systems.ppu \
 	globals.ppu \
 	files.ppu
+	$(COMPILER) verb_def.pas
 
 opts386.ppu: opts386.pas \
 	options.ppu \
 	globals.ppu
+	$(COMPILER) opts386.pas
 

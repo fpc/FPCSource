@@ -6,6 +6,8 @@ Copyright: GPL
 Group: Development/Languages
 Source: fpc-0.99.0-src.tar.gz
 Summary: Free Pascal Compiler
+Packager: Peter Vreman (pfv@worldonline.nl)
+URL: http://www.brain.uni-freiburg.de/~klaus/fpk-pas
 %description
 The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi II compatible
 Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
@@ -26,30 +28,30 @@ Some extensions are added to the language, like function overloading.
 
 %build
 cd rtl/linux
-#make
+make
 cd ../../compiler
-#make cycle
+make cycle
 cd ../docs
-#make html
+make html
 
 %install
 cd rtl/linux
-#make install UNITINSTALLDIR=%{unitdir}
+make install UNITINSTALLDIR=%{unitdir}
 cd ../../compiler
-#make install PROGINSTALLDIR=%{bindir} LIBINSTALLDIR=%{vlibdir}
+make install PROGINSTALLDIR=%{bindir} LIBINSTALLDIR=%{vlibdir}
 cd ../docs
-#make install DOCINSTALLDIR=%{docdir}
+make install DOCINSTALLDIR=%{docdir}
 
 %post
 %{vlibdir}/samplecfg
 
 %clean
 cd rtl/linux
-#make clean
+make clean
 cd ../../compiler
-#make clean
+make clean
 cd ../docs
-#make clean
+make clean
 
 %files
 %{bindir}/ppc386
