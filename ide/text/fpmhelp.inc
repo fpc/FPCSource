@@ -1,6 +1,6 @@
 {
     $Id$
-    This file is part of the Free Pascal Integrated Development Environment
+    This file is part of the ffff
     Copyright (c) 1998 by Berczi Gabor
 
     Help menu entries
@@ -190,11 +190,15 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-03-01 15:41:56  peter
+  Revision 1.7  1999-05-22 13:44:31  peter
+    * fixed couple of bugs
+
+  Revision 1.6  1999/03/01 15:41:56  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

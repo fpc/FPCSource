@@ -110,6 +110,7 @@ type
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
       destructor  Done; virtual;
+      procedure   SizeLimits(var Min, Max: TPoint); virtual;
     private
       MsgLB : PToolMessageListBox;
     end;
@@ -1448,6 +1449,13 @@ begin
   inherited HandleEvent(Event);
 end;
 
+procedure TMessagesWindow.SizeLimits(var Min, Max: TPoint);
+begin
+  inherited SizeLimits(Min,Max);
+  Min.X:=20;
+  Min.Y:=4;
+end;
+
 function TMessagesWindow.GetPalette: PPalette;
 const S: string[length(CBrowserWindow)] = CBrowserWindow;
 begin
@@ -1486,7 +1494,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  1999-04-07 21:55:54  peter
+  Revision 1.9  1999-05-22 13:44:32  peter
+    * fixed couple of bugs
+
+  Revision 1.8  1999/04/07 21:55:54  peter
     + object support for browser
     * html help fixes
     * more desktop saving things

@@ -282,6 +282,8 @@ type
       procedure HideSelect; virtual;
       procedure CopyBlock; virtual;
       procedure MoveBlock; virtual;
+      procedure IdentBlock; virtual;
+      procedure UnidentBlock; virtual;
       procedure AddChar(C: char); virtual;
       function  ClipCopy: Boolean; virtual;
       procedure ClipCut; virtual;
@@ -430,11 +432,12 @@ const
     Ord('H'), cmDelStart, Ord('R'), cmTextStart,
     Ord('S'), cmLineStart, Ord('Y'), cmDelEnd,
     Ord('G'), cmJumpLine, Ord('P'), cmReplace );
-  BlockKeyCount = 6;
+  BlockKeyCount = 8;
   BlockKeys: array[0..BlockKeyCount * 2] of Word = (BlockKeyCount,
     Ord('B'), cmStartSelect, Ord('C'), cmCopyBlock,
     Ord('H'), cmHideSelect, Ord('K'), cmEndSelect,
-    Ord('Y'), cmDelSelect, Ord('V'), cmMoveBlock);
+    Ord('Y'), cmDelSelect, Ord('V'), cmMoveBlock,
+    Ord('I'), cmIdentBlock, Ord('U'), cmUnidentBlock);
   KeyMap: array[0..2] of Pointer = (@FirstKeys, @QuickKeys, @BlockKeys);
 
 function ScanKeyMap(KeyMap: Pointer; KeyCode: Word): Word;
@@ -1194,6 +1197,8 @@ begin
           cmDelSelect   : DelSelect;
           cmCopyBlock   : CopyBlock;
           cmMoveBlock   : MoveBlock;
+          cmIdentBlock   : IdentBlock;
+          cmUnidentBlock : UnidentBlock;
         { ------ }
           cmFind        : Find;
           cmReplace     : Replace;
@@ -1890,8 +1895,8 @@ begin
     SetDisplayText(CurPos.Y,copy(S,1,CurPos.X-1+1));
     if PointOfs(SelStart)<>PointOfs(SelEnd) then { !!! check it - it's buggy !!! }
       begin SelEnd.Y:=CurPos.Y+1; SelEnd.X:=length(GetLineText(CurPos.Y+1))-SelBack; end;
-    UpdateAttrs(CurPos.Y,attrAll);
     SetCurPtr(Ind,CurPos.Y+1);
+    UpdateAttrs(CurPos.Y,attrAll);
   end else
   begin
     if CurPos.Y=GetLineCount-1 then
@@ -1972,6 +1977,7 @@ begin
      Delete(S,CurPos.X+1,1);
      SetLineText(CurPos.Y,S);
    end;
+  SetCurPtr(CurPos.X,CurPos.Y);
   UpdateAttrs(CurPos.Y,attrAll);
   DrawLines(CurPos.Y);
   Modified:=true;
@@ -2000,6 +2006,7 @@ begin
   if (S<>'') and (CurPos.X<>length(S)) then
   begin
     SetLineText(CurPos.Y,copy(S,1,CurPos.X));
+    SetCurPtr(CurPos.X,CurPos.Y);
     UpdateAttrs(CurPos.Y,attrAll);
     DrawLines(CurPos.Y);
     Modified:=true;
@@ -2105,8 +2112,8 @@ begin
        end;
     Inc(LineDelta);
   end;
-  SetCurPtr(LastX,CurLine-1);
   HideSelect;
+  SetCurPtr(LastX,CurLine-1);
   UpdateAttrs(CurPos.Y,attrAll);
   DrawLines(CurPos.Y);
   Modified:=true;
@@ -2146,6 +2153,52 @@ begin
   SetCurPtr(OldPos.X,OldPos.Y);
   InsertFrom(Temp);
   Dispose(Temp, Done);
+end;
+
+procedure TCodeEditor.IdentBlock;
+var
+  ey,i : Sw_integer;
+  S : String;
+begin
+  if IsReadOnly then Exit;
+  if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
+  ey:=selend.y;
+  if selend.x=0 then
+   dec(ey);
+  for i:=selstart.y to ey do
+   begin
+     S:=GetLineText(i);
+     SetLineText(i,' '+S);
+   end;
+  SetCurPtr(CurPos.X,CurPos.Y);
+  UpdateAttrs(SelStart.Y,attrAll);
+  DrawLines(CurPos.Y);
+  Modified:=true;
+  UpdateIndicator;
+end;
+
+procedure TCodeEditor.UnidentBlock;
+var
+  ey,i : Sw_integer;
+  S : String;
+begin
+  if IsReadOnly then Exit;
+  if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
+  ey:=selend.y;
+  if selend.x=0 then
+   dec(ey);
+  for i:=selstart.y to ey do
+   begin
+     S:=GetLineText(i);
+     if (length(s)>1) and (S[1]=' ') then
+      Delete(s,1,1);
+     SetLineText(i,S);
+   end;
+  SetCurPtr(CurPos.X,CurPos.Y);
+  UpdateAttrs(SelStart.Y,attrAll);
+  DrawLines(CurPos.Y);
+  Modified:=true;
+  UpdateIndicator;
 end;
 
 procedure TCodeEditor.AddChar(C: char);
@@ -2213,7 +2266,8 @@ begin
   if Clipboard<>nil then
      if Clipboard^.InsertFrom(@Self) then
      begin
-       DelSelect;
+       if not IsClipBoard then
+        DelSelect;
        Modified:=true;
        UpdateIndicator;
      end;
@@ -2931,11 +2985,15 @@ begin
       OK:=GetLineCount<MaxLineCount;
     end;
     if OK=false then EditorDialog(edTooManyLines,nil);
+    SetCurPtr(CurPos.X,CurPos.Y);
     UpdateAttrs(StartPos.Y,attrAll);
     LimitsChanged;
     SetSelection(CurPos,SEnd);
     if IsClipboard then
-       begin Inc(DestPos.X,length(S)); SetCurPtr(DestPos.X,DestPos.Y); end;
+     begin
+       Inc(DestPos.X,length(S));
+       SetCurPtr(DestPos.X,DestPos.Y);
+     end;
     DrawView;
   end;
   InsertFrom:=OK;
@@ -3513,7 +3571,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.30  1999-04-15 08:58:10  peter
+  Revision 1.31  1999-05-22 13:44:35  peter
+    * fixed couple of bugs
+
+  Revision 1.30  1999/04/15 08:58:10  peter
     * syntax highlight fixes
     * browser updates
 

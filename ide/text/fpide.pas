@@ -456,6 +456,8 @@ begin
              SaveCancelled:=true;
            cmUpdateTools :
              UpdateTools;
+           cmCommandSetChanged :
+             UpdateMenu(MenuBar^.Menu);
            cmUpdate              :
              Update;
            cmSourceWndClosing :
@@ -738,7 +740,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.26  1999-04-07 21:55:47  peter
+  Revision 1.27  1999-05-22 13:44:30  peter
+    * fixed couple of bugs
+
+  Revision 1.26  1999/04/07 21:55:47  peter
     + object support for browser
     * html help fixes
     * more desktop saving things

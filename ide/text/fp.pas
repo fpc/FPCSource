@@ -30,9 +30,9 @@ uses
   FPIDE,FPCalc,FPCompile,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
   FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk
-{$ifdef TEMPHEAP}
+{$ifdef FPC}
   ,dpmiexcp
-{$endif TEMPHEAP}
+{$endif FPC}
   ;
 
 
@@ -191,7 +191,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.21  1999-04-07 21:55:40  peter
+  Revision 1.22  1999-05-22 13:44:28  peter
+    * fixed couple of bugs
+
+  Revision 1.21  1999/04/07 21:55:40  peter
     + object support for browser
     * html help fixes
     * more desktop saving things

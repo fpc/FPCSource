@@ -1252,6 +1252,7 @@ end;
 constructor TMessageListBox.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
 begin
   inherited Init(Bounds,1,AHScrollBar, AVScrollBar);
+  GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;
   New(ModuleNames, Init(50,100));
   NoSelection:=true;
 end;
@@ -2606,7 +2607,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.29  1999-04-15 08:58:08  peter
+  Revision 1.30  1999-05-22 13:44:33  peter
+    * fixed couple of bugs
+
+  Revision 1.29  1999/04/15 08:58:08  peter
     * syntax highlight fixes
     * browser updates
 

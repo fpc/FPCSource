@@ -56,6 +56,7 @@ type
       function    GetPalette: PPalette; virtual;
       procedure   Close;virtual;
       destructor  Done; virtual;
+      procedure   SizeLimits(var Min, Max: TPoint); virtual;
       procedure   AddMessage(AClass: longint;const Msg, Module: string; Line, Column: longint);
       procedure   ClearMessages;
       constructor Load(var S: TStream);
@@ -196,8 +197,10 @@ begin
   HelpCtx:=hcMessagesWindow;
 
   HSB:=StandardScrollBar(sbHorizontal+sbHandleKeyboard);
+  HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY;
   Insert(HSB);
   VSB:=StandardScrollBar(sbVertical+sbHandleKeyboard);
+  VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;
   Insert(VSB);
 
   GetExtent(R);
@@ -253,6 +256,14 @@ begin
       end;
   end;
   inherited HandleEvent(Event);
+end;
+
+
+procedure TCompilerMessageWindow.SizeLimits(var Min, Max: TPoint);
+begin
+  inherited SizeLimits(Min,Max);
+  Min.X:=20;
+  Min.Y:=4;
 end;
 
 
@@ -553,7 +564,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  1999-05-02 14:29:35  peter
+  Revision 1.27  1999-05-22 13:44:29  peter
+    * fixed couple of bugs
+
+  Revision 1.26  1999/05/02 14:29:35  peter
     * fixed typo disableredir -> redirdisable
 
   Revision 1.25  1999/04/29 22:58:09  pierre
