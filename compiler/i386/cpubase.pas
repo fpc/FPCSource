@@ -513,13 +513,13 @@ uses
       { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
 
       maxintregs = 4;
-      intregs = [R_EAX..R_BL];
+      intregs = [R_EAX..R_BL]-[R_ESI,R_SI];
 {$ifdef newra}
       usableregsint = [first_imreg..last_imreg];
 {$else}
-      usableregsint = [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI];
+      usableregsint = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
 {$endif}
-      c_countusableregsint = 5;
+      c_countusableregsint = 4;
 
       maxfpuregs = 8;
       fpuregs = [R_ST0..R_ST7];
@@ -530,14 +530,14 @@ uses
       usableregsmm = [R_MM0..R_MM7];
       c_countusableregsmm  = 8;
 
-      maxaddrregs = 0;
-      addrregs    = [];
-      usableregsaddr = [];
-      c_countusableregsaddr = 0;
+      maxaddrregs = 1;
+      addrregs    = [R_ESI];
+      usableregsaddr = [RS_ESI];
+      c_countusableregsaddr = 1;
 
 
       firstsaveintreg = RS_EAX;
-      lastsaveintreg  = RS_ESI;
+      lastsaveintreg  = RS_EDX;
       firstsavefpureg = R_NO;
       lastsavefpureg  = R_NO;
       firstsavemmreg  = R_MM0;
@@ -814,7 +814,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2003-03-28 19:16:57  peter
+  Revision 1.46  2003-04-21 19:16:50  peter
+    * count address regs separate
+
+  Revision 1.45  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

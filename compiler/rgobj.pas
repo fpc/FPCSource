@@ -131,14 +131,17 @@ unit rgobj;
           { allocated                                                    }
           lastintreg:Tsuperregister;
           unusedregsint,usableregsint:Tsupregset;
+          unusedregsaddr,usableregsaddr:Tsupregset;
           unusedregsfpu,usableregsfpu : tregisterset;
           unusedregsmm,usableregsmm : tregisterset;
           { these counters contain the number of elements in the }
           { unusedregsxxx/usableregsxxx sets                     }
           countunusedregsint,
+          countunusedregsaddr,
           countunusedregsfpu,
           countunusedregsmm : byte;
           countusableregsint,
+          countusableregsaddr,
           countusableregsfpu,
           countusableregsmm : byte;
 
@@ -147,7 +150,10 @@ unit rgobj;
           }
           usedbyproc,
           usedinproc : tregisterset;
-          usedintbyproc,usedintinproc:Tsupregset;
+          usedintbyproc,
+          usedaddrbyproc,
+          usedintinproc,
+          usedaddrinproc:Tsupregset;
 
           reg_pushes : regvar_longintarray;
           reg_pushes_int : regvarint_longintarray;
@@ -1397,7 +1403,10 @@ end.
 
 {
   $Log$
-  Revision 1.34  2003-04-17 16:48:21  daniel
+  Revision 1.35  2003-04-21 19:16:49  peter
+    * count address regs separate
+
+  Revision 1.34  2003/04/17 16:48:21  daniel
     * Added some code to keep track of move instructions in register
       allocator
 

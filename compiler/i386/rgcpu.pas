@@ -240,30 +240,33 @@ unit rgcpu;
 
     function trgcpu.getaddressregister(list:Taasmoutput):Tregister;
     begin
-      if countunusedregsint=0 then
-        internalerror(10);
-      result.enum:=R_INTREGISTER;
+      if countunusedregsaddr>0 then
+       begin
+         result.enum:=R_INTREGISTER;
 {$ifdef TEMPREGDEBUG}
-      if curptree^.usableregsint-countunusedregsint>curptree^.registers32 then
-        internalerror(10);
+         if curptree^.usableregsaddr-countunusedregsaddr>curptree^.registers32 then
+           internalerror(10);
 {$endif TEMPREGDEBUG}
 {$ifdef EXTTEMPREGDEBUG}
-      if curptree^.usableregs-countunusedregistersint>curptree^^.reallyusedregs then
-        curptree^.reallyusedregs:=curptree^^.usableregs-countunusedregistersint;
+         if curptree^.usableregs-countunusedregistersaddr>curptree^^.reallyusedregs then
+           curptree^.reallyusedregs:=curptree^^.usableregs-countunusedregistersaddr;
 {$endif EXTTEMPREGDEBUG}
-      if RS_ESI in unusedregsint then
-        begin
-          dec(countunusedregsint);
-          exclude(unusedregsint,RS_ESI);
-          include(usedintinproc,RS_ESI);
-          result.number:=NR_ESI;
+         if RS_ESI in unusedregsaddr then
+           begin
+             dec(countunusedregsaddr);
+             exclude(unusedregsaddr,RS_ESI);
+             include(usedaddrinproc,RS_ESI);
+             result.number:=NR_ESI;
 {$ifdef TEMPREGDEBUG}
-          reg_user[R_ESI]:=curptree^;
+             reg_user[R_ESI]:=curptree^;
 {$endif TEMPREGDEBUG}
-          exprasmlist.concat(tai_regalloc.alloc(result));
-        end
+             exprasmlist.concat(tai_regalloc.alloc(result));
+           end
+         else
+           internalerror(10);
+       end
       else
-        result:=getregisterint(list,OS_ADDR);
+       result:=getregisterint(list,OS_ADDR);
     end;
 
 
@@ -559,7 +562,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2003-03-28 19:16:57  peter
+  Revision 1.18  2003-04-21 19:16:50  peter
+    * count address regs separate
+
+  Revision 1.17  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386
