@@ -99,8 +99,13 @@ unit cgx86;
 
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
 
-        procedure g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);override;
-        procedure g_pop_exception(list : taasmoutput;endexceptlabel:tasmlabel);override;
+        procedure g_new_exception(list : taasmoutput;var jmpbuf,envbuf,href : treference;
+               a : aword; exceptlabel : tasmlabel);override;
+        procedure g_free_exception(list : taasmoutput;var jmpbuf, envbuf, href : treference;
+               a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);override;
+        procedure g_exception_reason_save(list : taasmoutput; const href : treference);override;
+        procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aword);override;
+        procedure g_exception_reason_load(list : taasmoutput; const href : treference);override;
 
         class function reg_cgsize(const reg: tregister): tcgsize; override;
 
@@ -1218,17 +1223,24 @@ unit cgx86;
           tg.ungetiftemp(list,source);
       end;
 
-
-    procedure tcgx86.g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);
+    procedure tcgx86.g_new_exception(list : taasmoutput;var jmpbuf,envbuf,href : treference;
+              a : aword; exceptlabel : tasmlabel);
       var
-        tempaddr,tempbuf : treference;
-      begin
-         tempaddr:=exceptbuf;
-         tempbuf:=exceptbuf;
-         inc(tempbuf.offset,12);
-         a_paramaddr_ref(list,tempaddr,paramanager.getintparaloc(3));
-         a_paramaddr_ref(list,tempbuf,paramanager.getintparaloc(2));
-         a_param_const(list,OS_INT,l,paramanager.getintparaloc(1));
+       tmpreg : tregister;
+       tempbuf : treference;
+      begin        
+         { allocate exception frame buffer }
+         cg.a_op_const_reg(list,OP_SUB,36,STACK_POINTER_REG);
+         tmpreg:=rg.getaddressregister(list);
+         cg.a_load_reg_reg(list,OS_ADDR,STACK_POINTER_REG,tmpreg);
+         reference_reset_base(tempbuf,tmpreg,0);
+         
+         jmpbuf:=tempbuf;
+         envbuf:=tempbuf;
+         inc(envbuf.offset,12);
+         a_paramaddr_ref(list,jmpbuf,paramanager.getintparaloc(3));
+         a_paramaddr_ref(list,envbuf,paramanager.getintparaloc(2));
+         a_param_const(list,OS_S32,a,paramanager.getintparaloc(1));
          a_call_name(list,'FPC_PUSHEXCEPTADDR');
 
          a_reg_alloc(list,accumulator);
@@ -1239,17 +1251,39 @@ unit cgx86;
          list.concat(Taicpu.op_reg(A_PUSH,S_L,accumulator));
          list.concat(tai_regalloc.DeAlloc(accumulator));
          a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,accumulator,exceptlabel);
+         reference_release(list,tempbuf);
       end;
 
 
-    procedure tcgx86.g_pop_exception(list : taasmoutput;endexceptlabel:tasmlabel);
-      begin
-        a_call_name(list,'FPC_POPADDRSTACK');
-        a_reg_alloc(list,accumulator);
-        list.concat(Taicpu.op_reg(A_POP,S_L,accumulator));
-        a_reg_dealloc(list,accumulator);
-        a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,accumulator,endexceptlabel);
-      end;
+    procedure tcgx86.g_free_exception(list : taasmoutput;var jmpbuf, envbuf, href : treference;
+     a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
+     begin
+         cg.a_call_name(list,'FPC_POPADDRSTACK');
+         
+         if not onlyfree then
+          begin
+            a_reg_alloc(list,accumulator);
+            g_exception_reason_load(list,href);
+            a_reg_dealloc(list,accumulator);
+            cg.a_cmp_const_reg_label(list,OS_S32,OC_EQ,0,accumulator,endexceptlabel);
+          end;
+     end;
+
+
+    procedure tcgx86.g_exception_reason_save(list : taasmoutput; const href : treference);
+     begin
+        list.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+     end;
+     
+    procedure tcgx86.g_exception_reason_save_const(list : taasmoutput;const href : treference; a: aword);
+     begin
+        list.concat(Taicpu.op_const(A_PUSH,S_L,a));
+     end;
+     
+    procedure tcgx86.g_exception_reason_load(list : taasmoutput; const href : treference);
+     begin
+        list.concat(Taicpu.op_reg(A_POP,S_L,R_EAX));
+     end;
 
 
 {****************************************************************************
@@ -1666,7 +1700,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.4  2002-07-27 19:53:51  jonas
+  Revision 1.5  2002-08-04 19:52:04  carl
+    + updated exception routines
+
+  Revision 1.4  2002/07/27 19:53:51  jonas
     + generic implementation of tcg.g_flags2ref()
     * tcg.flags2xxx() now also needs a size parameter
 
