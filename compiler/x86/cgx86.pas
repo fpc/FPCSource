@@ -141,7 +141,7 @@ unit cgx86;
 
     uses
        globtype,globals,verbose,systems,cutils,
-       symdef,symsym,defutil,paramgr,procinfo,
+       symdef,paramgr,procinfo,
        rgobj,tgobj,rgcpu;
 
 {$ifndef NOTARGETWIN32}
@@ -1544,6 +1544,8 @@ unit cgx86;
     procedure tcgx86.g_save_all_registers(list : taasmoutput);
       begin
         list.concat(Taicpu.Op_none(A_PUSHA,S_L));
+        tg.GetTemp(list,POINTER_SIZE,tt_noreuse,current_procinfo.save_regs_ref);
+        cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_ESP,current_procinfo.save_regs_ref);
       end;
 
 
@@ -1551,6 +1553,8 @@ unit cgx86;
       var
         href : treference;
       begin
+        cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,current_procinfo.save_regs_ref,NR_ESP);
+        tg.UnGetTemp(list,current_procinfo.save_regs_ref);
         if acchiused then
          begin
            reference_reset_base(href,NR_ESP,20);
@@ -1597,7 +1601,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.70  2003-10-01 20:34:51  peter
+  Revision 1.71  2003-10-03 14:45:37  peter
+    * save ESP after pusha and restore before popa for save all registers
+
+  Revision 1.70  2003/10/01 20:34:51  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
