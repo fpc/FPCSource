@@ -709,9 +709,9 @@ begin
                 res:=206
               else
                 res:=207;  {'Coprocessor Error'}
-              ResetFPU;
             end;
 {$endif I386}
+          ResetFPU;
           HandleError(res);
         end;
    11 : HandleError(216);
@@ -808,7 +808,10 @@ End.
 
 {
   $Log$
-  Revision 1.41  2000-03-31 23:21:19  pierre
+  Revision 1.42  2000-03-31 23:26:32  pierre
+   * FPU needs reset for all SIGFPE even from integer division by zero
+
+  Revision 1.41  2000/03/31 23:21:19  pierre
     * multiple exception handling works
       (for linux only if syslinux is compiled with -dnewsignal)
 
