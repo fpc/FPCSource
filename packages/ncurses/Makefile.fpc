@@ -3,8 +3,8 @@
 #
 
 [targets]
-units=ncurses
-examples=firework testn
+units=ncurses ncrt
+examples=firework testn ncrt_demo
 
 [dirs]
 fpcdir=../..

@@ -17,15 +17,12 @@
 {
   Many thanks to Ken Wright for his patches !
 }
-
 unit ncurses;
-
-  interface
-
-{$linklib ncurses}
-{$linklib c}
+interface
 
 {$packrecords C}
+{$linklib ncurses}
+{$linklib c}
 
    { Manually Added types }
    Type
@@ -435,6 +432,9 @@ Var
     Function wtimeout(_para1:pWINDOW; _para2:longint):longint; cdecl;
     Function wtouchln(_para1:pWINDOW; _para2:longint; _para3:longint; _para4:longint):longint; cdecl;
     Function wvline(_para1:pWINDOW; _para2:chtype; _para3:longint):longint; cdecl;
+    Function mvwchgat(_para1:pWINDOW; _para2:longint; _para3:longint;
+                      _para4:longint; _para5:longint; _para6:longint;
+                      _para7:longint):longint;Cdecl;
 
     const
            A_NORMAL = 0;
@@ -854,6 +854,9 @@ const External_library='';
     function wtimeout(_para1:pWINDOW; _para2:longint):longint;Cdecl; External;
     function wtouchln(_para1:pWINDOW; _para2:longint; _para3:longint; _para4:longint):longint;Cdecl; External;
     function wvline(_para1:pWINDOW; _para2:chtype; _para3:longint):longint;Cdecl; External;
+    function mvwchgat(_para1:pWINDOW; _para2:longint; _para3:longint;
+                      _para4:longint; _para5:longint; _para6:longint;
+                      _para7:longint):longint;Cdecl; External;
 
     function wgetstr(w : pwindow;s : pchar) : longint;
       begin
@@ -1339,9 +1342,7 @@ const External_library='';
       end;
     function mvchgat(y,x,n,a,c,o : longint) : longint;
       begin
-      {
          mvchgat:=mvwchgat(stdscr,y,x,n,a,c,o);
-      }
       end;
 
     function mvhline_set(y,x,c,n : longint) : longint;
@@ -1735,9 +1736,3 @@ const External_library='';
       ACS_STERLING:=acs_map['}'];
     end;
 end.
-{
-  $Log$
-  Revision 1.3  1999-11-24 23:42:00  peter
-    * fpcmake updates
-
-}
