@@ -241,12 +241,6 @@ begin
  {$ELSE FPC_FEXPAND_DRIVESEP_IS_ROOT}
                                  and (Pa [1] = DirectorySeparator)
  {$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
- {$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
-  {$IFNDEF FPC_FEXPAND_UNC}
-              or (Length (Pa) > 1) and (Pa [1] = DirectorySeparator)
-                                    and (Pa [2] = DirectorySeparator)
-  {$ENDIF FPC_FEXPAND_UNC}
- {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
                                                                    then
                 begin
  {$IFDEF FPC_FEXPAND_UNC}
@@ -348,7 +342,22 @@ begin
             Delete (Dirs, Succ (J), I - J + 3);
             I := Pos (DirectorySeparator + '..' + DirectorySeparator, Dirs);
         end;
+{$ENDIF FPC_FEXPAND_NO_DOTS_UPDIR}
 
+{$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+    (* Now remove all references to '//' plus previous directories... *)
+    I := Pos (DirectorySeparator + DirectorySeparator, Dirs);
+    while I <> 0 do
+        begin
+            J := Pred (I);
+            while (J > 0) and (Dirs [J] <> DirectorySeparator) do
+                Dec (J);
+            Delete (Dirs, Succ (J), Succ (I - J));
+            I := Pos (DirectorySeparator + DirectorySeparator, Dirs);
+        end;
+{$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+
+{$IFNDEF FPC_FEXPAND_NO_DOTS_UPDIR}
     {Then remove also a reference to '\..' at the end of line
     + the previous directory, of course,...}
     I := Pos (DirectorySeparator + '..', Dirs);
@@ -365,8 +374,8 @@ begin
 {$ENDIF FPC_FEXPAND_NO_DOTS_UPDIR}
 
 {$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
-    (* Remove a reference to '/' at the end *)
-    (* of line + the previous directory.    *)
+    (* Remove a possible reference to '/' at the *)
+    (* end of line plus the previous directory.  *)
     I := Length (Dirs);
     if (I > 0) and (Dirs [I] = DirectorySeparator) then
         begin
@@ -451,7 +460,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2002-12-01 20:46:44  hajny
+  Revision 1.15  2002-12-07 16:26:39  hajny
+    * '//' behaviour for Amiga corrected
+
+  Revision 1.14  2002/12/01 20:46:44  hajny
     * Amiga support hopefully finished
 
   Revision 1.13  2002/11/25 21:03:57  hajny
