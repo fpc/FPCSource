@@ -25,7 +25,7 @@ Unit link;
 
 Interface
 
-uses cobjects;
+uses cobjects,files;
 
 Type
     TLinker = Object
@@ -34,20 +34,14 @@ Type
        ObjectFiles,
        SharedLibFiles,
        StaticLibFiles    : TStringContainer;
-       OutputName,
        LibrarySearchPath,                 { Search path for libraries }
-       ExeName,                           { FileName of the exe to be created }
-       SharedLibName,
-       StaticLibName,                     { FileName of the lib to be created }
        LinkOptions       : string;        { Additional options to the linker }
        DynamicLinker     : String[80];    { What Dynamic linker ? }
        LinkResName       : String[32];    { Name of response file }
      { Methods }
        Constructor Init;
        Destructor Done;
-       Procedure SetOutputName(const s:string);
-       Procedure SetExeName(const s:string);
-       Procedure SetLibName(const s:string);
+       procedure AddModuleFiles(hp:pmodule);
        function  FindObjectFile(s : string) : string;
        function  FindLibraryFile(s:string;const ext:string) : string;
        Procedure AddObject(const S : String);
@@ -100,13 +94,11 @@ begin
   LinkToC:=False;
   Strip:=false;
   LinkOptions:='';
-  ExeName:='';
-  OutputName:='';
-  SharedLibName:='';
-  StaticLibName:='';
-  ObjectSearchPath:='';
 {$ifdef linux}
-  DynamicLinker:='/lib/ld-linux.so.1';
+  { first try glibc2 }
+  DynamicLinker:='/lib/ld-linux.so.2';
+  if not FileExists(DynamicLinker) then
+   DynamicLinker:='/lib/ld-linux.so.1';
   LibrarySearchPath:='/lib;/usr/lib';
 {$else}
   DynamicLinker:='';
@@ -121,44 +113,16 @@ begin
 end;
 
 
-Procedure TLinker.SetOutputName(const s:string);
+procedure TLinker.AddModuleFiles(hp:pmodule);
 begin
-  OutputName:=s;
-end;
-
-
-Procedure TLinker.SetExeName(const s:string);
-var
-  path : dirstr;
-  name : namestr;
-  ext  : extstr;
-begin
-  if OutputName='' then
+  with hp^ do
    begin
-     FSplit(s,path,name,ext);
-     ExeName:=Path+Name+target_info.ExeExt;
-   end
-  else
-   ExeName:=OutputName;
-end;
-
-
-Procedure TLinker.SetLibName(const s:string);
-var
-  path : dirstr;
-  name : namestr;
-  ext  : extstr;
-begin
-  if OutputName='' then
-   begin
-     FSplit(s,path,name,ext);
-     SharedLibName:=Path+Name+target_os.SharedLibExt;
-     StaticLibName:=Path+Name+target_os.StaticLibExt;
-   end
-  else
-   begin
-     SharedLibName:=OutputName;
-     StaticLibName:=OutputName;
+     while not linkofiles.empty do
+      AddObject(linkofiles.Get);
+     while not linksharedlibs.empty do
+      AddSharedLibrary(linksharedlibs.Get);
+     while not linkstaticlibs.empty do
+      AddStaticLibrary(linkstaticlibs.Get);
    end;
 end;
 
@@ -230,7 +194,6 @@ end;
 Procedure TLinker.AddSharedLibrary(const S:String);
 begin
   SharedLibFiles.Insert (S);
-{ SharedLibFiles.Insert(FindLibraryFile(s,target_os.sharedlibext)); }
 end;
 
 
@@ -269,7 +232,7 @@ begin
   if cs_link_extern in aktglobalswitches then
    begin
      if info then
-      AsmRes.AddLinkCommand(Command,Para,ExeName)
+      AsmRes.AddLinkCommand(Command,Para,current_module^.libfilename^)
      else
       AsmRes.AddLinkCommand(Command,Para,'');
    end;
@@ -433,9 +396,9 @@ begin
 
 { Call linker }
   if not(cs_link_extern in aktglobalswitches) then
-   Message1(exec_i_linking,ExeName);
+   Message1(exec_i_linking,current_module^.exefilename^);
   s:=target_link.linkcmd;
-  Replace(s,'$EXE',exename);
+  Replace(s,'$EXE',current_module^.exefilename^);
   Replace(s,'$OPT',LinkOptions);
   Replace(s,'$RES',inputdir+LinkResName);
   success:=DoExec(FindLinker,s,true,false);
@@ -443,7 +406,7 @@ begin
   if target_link.bindbin<>'' then
    begin
      s:=target_link.bindcmd;
-     Replace(s,'$EXE',exename);
+     Replace(s,'$EXE',current_module^.exefilename^);
      Replace(s,'$HEAPKB',tostr((heapsize+1023) shr 10));
      Replace(s,'$STACKKB',tostr((stacksize+1023) shr 10));
      bindbin:=FindExe(target_link.bindbin,bindfound);
@@ -483,15 +446,15 @@ begin
      aktglobalswitches:=aktglobalswitches+[cs_link_extern];
    end;
   s:=target_ar.arcmd;
-  Replace(s,'$LIB',staticlibname);
-  Replace(s,'$FILES',FixPath(path)+'*'+target_info.objext);
+  Replace(s,'$LIB',current_module^.libfilename^);
+  Replace(s,'$FILES',FixPath(path)+current_module^.asmprefix^+'*'+target_info.objext);
   DoExec(arbin,s,false,true);
 { Clean up }
   if not(cs_asm_leave in aktglobalswitches) and not(cs_link_extern in aktglobalswitches) then
    begin
      for cnt:=1to filescnt do
       begin
-        assign(f,FixPath(path)+'as'+tostr(cnt)+target_info.objext);
+        assign(f,FixPath(path)+current_module^.asmprefix^+tostr(cnt)+target_info.objext);
         {$I-}
          erase(f);
         {$I+}
@@ -507,14 +470,17 @@ end;
 
 Procedure TLinker.MakeSharedLibrary;
 begin
-  DoExec(FindLinker,' -shared -o '+sharedlibname+' link.res',false,false);
+  DoExec(FindLinker,' -shared -o '+current_module^.libfilename^+' link.res',false,false);
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.17  1998-08-14 18:16:08  peter
+  Revision 1.18  1998-08-14 21:56:34  peter
+    * setting the outputfile using -o works now to create static libs
+
+  Revision 1.17  1998/08/14 18:16:08  peter
     * return after a failed call will now add it to ppas
 
   Revision 1.16  1998/08/12 19:28:15  peter

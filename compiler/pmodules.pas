@@ -29,7 +29,6 @@ unit pmodules;
     uses
       files;
 
-    procedure addlinkerfiles(hp:pmodule);
     procedure loadsystemunit;
     procedure proc_unit;
     procedure proc_program(islibrary : boolean);
@@ -52,18 +51,15 @@ unit pmodules;
        ,scanner,pbase,psystem,pdecl,psub,parser;
 
 
-    procedure addlinkerfiles(hp:pmodule);
+    procedure setlinkerfile;
       begin
-        with hp^ do
-         begin
-           while not linkofiles.empty do
-            Linker.AddObject(linkofiles.Get);
-           while not linksharedlibs.empty do
-            Linker.AddSharedLibrary(linksharedlibs.Get);
-           while not linkstaticlibs.empty do
-            Linker.AddStaticLibrary(linkstaticlibs.Get);
-         end;
+      { Add Object File }
+        if (cs_smartlink in aktmoduleswitches) then
+          current_module^.linkstaticlibs.insert(current_module^.libfilename^)
+        else
+          current_module^.linkofiles.insert(current_module^.objfilename^);
       end;
+
 
     procedure insertsegment;
 
@@ -271,7 +267,7 @@ unit pmodules;
              if (current_module^.do_assemble) then
               OnlyAsm(current_module^.asmfilename^);
            { add the files for the linker }
-             addlinkerfiles(current_module);
+             Linker.AddModuleFiles(current_module);
            end;
          if assigned(current_module^.ppufile) then
            begin
@@ -519,11 +515,11 @@ unit pmodules;
                     Message1(unit_f_cant_compile_unit,hp^.modulename^)
                    else
                     begin
-                       if assigned(old_current_module^.current_inputfile) then
+                      if assigned(old_current_module^.current_inputfile) then
                          old_current_module^.current_inputfile^.tempclose;
-                       compile(hp^.mainsource^,compile_system);
+                        compile(hp^.mainsource^,compile_system);
                       if (not old_current_module^.compiled) and assigned(old_current_module^.current_inputfile) then
-                         old_current_module^.current_inputfile^.tempreopen;
+                        old_current_module^.current_inputfile^.tempreopen;
                     end;
                 end
               else
@@ -784,12 +780,6 @@ unit pmodules;
                Message(unit_w_switch_us_missed);
              dispose(s2);
              dispose(s1);
-
-          { Add Object File }
-             if (cs_smartlink in aktmoduleswitches) then
-              current_module^.linkstaticlibs.insert(current_module^.libfilename^)
-             else
-              current_module^.linkofiles.insert(current_module^.objfilename^);
           end;
 
          consume(ID);
@@ -981,6 +971,9 @@ unit pmodules;
 {$endif dummy}
          consume(POINT);
 
+         { add files which need to be linked }
+         setlinkerfile;
+
          { size of the static data }
          datasize:=symtablestack^.datasize;
 
@@ -1129,10 +1122,7 @@ unit pmodules;
 
          consume(POINT);
 
-         if (cs_smartlink in aktmoduleswitches) then
-          current_module^.linkstaticlibs.insert(current_module^.libfilename^)
-         else
-          current_module^.linkofiles.insert(current_module^.objfilename^);
+         setlinkerfile;
 
          { insert heap }
          insertheap;
@@ -1152,7 +1142,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.38  1998-08-10 14:50:13  peter
+  Revision 1.39  1998-08-14 21:56:37  peter
+    * setting the outputfile using -o works now to create static libs
+
+  Revision 1.38  1998/08/10 14:50:13  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.37  1998/08/10 10:18:31  peter

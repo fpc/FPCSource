@@ -126,7 +126,9 @@ unit files;
           objfilename,              { fullname of the objectfile }
           asmfilename,              { fullname of the assemblerfile }
           ppufilename,              { fullname of the ppufile }
-          libfilename,              { fullname of the libraryfile }
+          libfilename,              { fullname of the libraryfile/exefile }
+          exefilename,              { fullname of the exefile }
+          asmprefix,                { prefix for the smartlink asmfiles }
           mainsource    : pstring;  { name of the main sourcefile }
 
           constructor init(const s:string;_is_unit:boolean);
@@ -400,20 +402,28 @@ unit files;
 
     procedure tmodule.setfilename(const fn:string);
       var
-        p,n,e,s : string;
+        p : dirstr;
+        n : NameStr;
+        e : ExtStr;
+        s : string;
       begin
-         fsplit(fn,p,n,e);
          stringdispose(objfilename);
          stringdispose(asmfilename);
          stringdispose(ppufilename);
          stringdispose(libfilename);
+         stringdispose(exefilename);
          stringdispose(path);
+         fsplit(fn,p,n,e);
          path:=stringdup(FixPath(p));
          s:=FixFileName(FixPath(p)+n);
          objfilename:=stringdup(s+target_info.objext);
          asmfilename:=stringdup(s+target_info.asmext);
          ppufilename:=stringdup(s+target_info.unitext);
+         { lib and exe could be loaded with a file specified with -o }
+         if OutputFile<>'' then
+          s:=OutputFile;
          libfilename:=stringdup(s+target_os.staticlibext);
+         exefilename:=stringdup(s+target_os.exeext);
       end;
 
 {$ifndef OLDPPU}
@@ -856,10 +866,18 @@ unit files;
          else
            modulename:=stringdup('PROGRAM');
          mainsource:=stringdup(s);
+         ppufilename:=nil;
          objfilename:=nil;
          asmfilename:=nil;
          libfilename:=nil;
-         ppufilename:=nil;
+         exefilename:=nil;
+         { go32v2 has the famous 8.3 limit ;) }
+{$ifdef go32v2}
+         asmprefix:=stringdup('as');
+{$else}
+         asmprefix:=stringdup(Lower(n));
+{$endif}        
+
          path:=nil;
          setfilename(p+n);
          used_units.init;
@@ -916,9 +934,11 @@ unit files;
         stringdispose(asmfilename);
         stringdispose(ppufilename);
         stringdispose(libfilename);
+        stringdispose(exefilename);
         stringdispose(path);
         stringdispose(modulename);
         stringdispose(mainsource);
+        stringdispose(asmprefix);
         inherited done;
       end;
 
@@ -1004,7 +1024,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.33  1998-08-11 14:09:08  peter
+  Revision 1.34  1998-08-14 21:56:31  peter
+    * setting the outputfile using -o works now to create static libs
+
+  Revision 1.33  1998/08/11 14:09:08  peter
     * fixed some messages and smaller msgtxt.inc
 
   Revision 1.32  1998/08/10 14:49:58  peter

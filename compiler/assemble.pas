@@ -225,8 +225,8 @@ begin
   inc(SmartLinkFilesCnt);
   if SmartLinkFilesCnt>999999 then
    Message(assem_f_too_many_asm_files);
-  AsmFile:=Path+FixFileName('as'+tostr(SmartLinkFilesCnt)+target_info.asmext);
-  ObjFile:=Path+FixFileName('as'+tostr(SmartLinkFilesCnt)+target_info.objext);
+  AsmFile:=Path+FixFileName(current_module^.asmprefix^+tostr(SmartLinkFilesCnt)+target_info.asmext);
+  ObjFile:=Path+FixFileName(current_module^.asmprefix^+tostr(SmartLinkFilesCnt)+target_info.objext);
 end;
 
 
@@ -452,7 +452,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1998-08-14 18:16:09  peter
+  Revision 1.16  1998-08-14 21:56:30  peter
+    * setting the outputfile using -o works now to create static libs
+
+  Revision 1.15  1998/08/14 18:16:09  peter
     * return after a failed call will now add it to ppas
 
   Revision 1.14  1998/08/10 14:49:41  peter

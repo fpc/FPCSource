@@ -272,15 +272,12 @@ unit parser;
              GenerateAsm(filename);
 
              if (cs_smartlink in aktmoduleswitches) then
-              begin
-                Linker.SetLibName(current_module^.libfilename^);
-                Linker.MakeStaticLibrary(SmartLinkPath(FileName),SmartLinkFilesCnt);
-              end;
+               Linker.MakeStaticLibrary(SmartLinkPath(FileName),SmartLinkFilesCnt);
 
            { add the files for the linker from current_module, this must be
              after the makestaticlibrary, because it will add the library
              name (PFV) }
-             addlinkerfiles(current_module);
+             Linker.AddModuleFiles(current_module);
 
            { Check linking  => we are at first level in compile }
              if (compile_level=1) then
@@ -288,11 +285,7 @@ unit parser;
                 if (cs_link_deffile in aktglobalswitches) then
                  deffile.writefile;
                 if (not current_module^.is_unit) then
-                 begin
-                   if Linker.ExeName='' then
-                     Linker.SetExeName(FileName);
-                   Linker.MakeExecutable;
-                 end;
+                 Linker.MakeExecutable;
               end;
            end
          else
@@ -309,9 +302,9 @@ done:
 {$endif Splitheap}
 
          { restore old state, close trees }
-{$ifdef VER0_99_5}      
+{$ifdef VER0_99_5}
          if dispose_asm_lists then
-{$else} 
+{$else}
   {$ifndef go32v2}
     {$ifndef linux}
          if dispose_asm_lists then
@@ -405,7 +398,10 @@ done:
 end.
 {
   $Log$
-  Revision 1.35  1998-08-12 19:22:09  peter
+  Revision 1.36  1998-08-14 21:56:36  peter
+    * setting the outputfile using -o works now to create static libs
+
+  Revision 1.35  1998/08/12 19:22:09  peter
     * reset also the link* lists when recompiling an existing unit
 
   Revision 1.34  1998/08/10 23:58:56  peter
