@@ -19,7 +19,6 @@
 *****************************************************************************}
 
     const
-{$ifdef NEWVMTOFFSET}
        vmtInstanceSize         = 0;
        vmtParent               = 8;
        { These were negative value's, but are now positive, else classes
@@ -44,27 +43,6 @@
        vmtAfterConstruction    = vmtMethodStart+20;
        vmtBeforeDestruction    = vmtMethodStart+24;
        vmtDefaultHandlerStr    = vmtMethodStart+28;
-{$else}
-       vmtMsgStrPtr            = -36;
-       vmtIntfTable            = -32;
-       vmtAutoTable            = -28;
-       vmtInitTable            = -24;
-       vmtTypeInfo             = -20;
-       vmtFieldTable           = -16;
-       vmtMethodTable          = -12;
-       vmtDynamicTable         = -8;
-       vmtClassName            = -4;
-       vmtInstanceSize         = 0;
-       vmtParent               = 8;
-       vmtDestroy              = 12;
-       vmtNewInstance          = 16;
-       vmtFreeInstance         = 20;
-       vmtSafeCallException    = 24;
-       vmtDefaultHandler       = 28;
-       vmtAfterConstruction    = 32;
-       vmtBeforeDestruction    = 36;
-       vmtDefaultHandlerStr    = 40;
-{$endif}
 
     type
        { some pointer definitions }
@@ -233,7 +211,10 @@
        end;
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:45  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
  
 }

@@ -3953,31 +3953,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:04  michael
+  Revision 1.2  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.1  2000/07/13 06:31:04  michael
   + Initial import
-
-  Revision 1.13  2000/05/09 17:29:52  hajny
-    * DosGetInfoBlocks updated again
-
-  Revision 1.12  2000/04/01 10:46:07  hajny
-    * DosGetInfoBloBlocks updated
-
-  Revision 1.11  2000/01/09 20:51:03  hajny
-    * FPK changed to FPC
-
-  Revision 1.10  2000/01/07 16:41:46  daniel
-    * copyright 2000
-
-  Revision 1.9  2000/01/07 16:32:30  daniel
-    * copyright 2000 added
-
-  Revision 1.8  1999/12/26 19:30:18  hajny
-    * cdecl modifications
-
-  Revision 1.7  1999/12/18 18:32:38  hajny
-    + Starting cdecl additions
-
-  Revision 1.6  1999/08/10 14:18:40  hajny
-    * corrected characters >127 broken by DBCS editor
 
 }

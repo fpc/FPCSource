@@ -140,13 +140,8 @@ procedure setcbreak(breakvalue:boolean);
 procedure getverify(var verify:boolean);
 procedure setverify(verify : boolean);
 
-{$IFDEF INT64}
 function DiskFree (Drive: byte) : int64;
 function DiskSize (Drive: byte) : int64;
-{$ELSE}
-function DiskFree (Drive: byte) : longint;
-function DiskSize (Drive: byte) : longint;
-{$ENDIF}
 
 procedure findfirst(const path:pathstr;attr:word;var f:searchRec);
 procedure findnext(var f:searchRec);
@@ -679,7 +674,6 @@ begin
     end;
 end;
 
-{$IFDEF INT64}
 
 function DiskFree (Drive: byte): int64;
 
@@ -758,86 +752,6 @@ begin
         end;
 end;
 
-{$ELSE}
-
-function DiskFree (Drive: byte): longint;
-
-var FI: TFSinfo;
-    RC: longint;
-
-begin
-    if (os_mode = osDOS) or (os_mode = osDPMI) then
-    {Function 36 is not supported in OS/2.}
-        asm
-            movb 8(%ebp),%dl
-            movb $0x36,%ah
-            call syscall
-            cmpw $-1,%ax
-            je .LDISKFREE1
-            mulw %cx
-            mulw %bx
-            shll $16,%edx
-            movw %ax,%dx
-            xchgl %edx,%eax
-            leave
-            ret
-         .LDISKFREE1:
-            cltd
-            leave
-            ret
-        end
-    else
-        {In OS/2, we use the filesystem information.}
-        begin
-            RC := DosQueryFSInfo (Drive, 1, FI, SizeOf (FI));
-            if RC = 0 then
-                DiskFree := FI.Free_Clusters *
-                                   FI.Sectors_Per_Cluster * FI.Bytes_Per_Sector
-            else
-                DiskFree := -1;
-        end;
-end;
-
-function DiskSize (Drive: byte): longint;
-
-var FI: TFSinfo;
-    RC: longint;
-
-begin
-    if (os_mode = osDOS) or (os_mode = osDPMI) then
-        {Function 36 is not supported in OS/2.}
-        asm
-            movb 8(%ebp),%dl
-            movb $0x36,%ah
-            call syscall
-            movw %dx,%bx
-            cmpw $-1,%ax
-            je .LDISKSIZE1
-            mulw %cx
-            mulw %bx
-            shll $16,%edx
-            movw %ax,%dx
-            xchgl %edx,%eax
-            leave
-            ret
-        .LDISKSIZE1:
-            cltd
-            leave
-            ret
-        end
-    else
-        {In OS/2, we use the filesystem information.}
-        begin
-            RC := DosQueryFSinfo (Drive, 1, FI, SizeOf (FI));
-            if RC = 0 then
-                DiskSize := FI.Total_Clusters *
-                                   FI.Sectors_Per_Cluster * FI.Bytes_Per_Sector
-            else
-                DiskSize := -1;
-        end;
-end;
-
-{$ENDIF}
 
 procedure SearchRec2DosSearchRec (var F: SearchRec);
 
@@ -1209,55 +1123,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:04  michael
+  Revision 1.2  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.1  2000/07/13 06:31:04  michael
   + Initial import
-
-  Revision 1.28  2000/07/06 18:57:40  hajny
-    * SetFTime for OS/2 mode corrected
-
-  Revision 1.27  2000/06/05 18:50:55  hajny
-    * SetDate, SetTime corrected
-
-  Revision 1.26  2000/06/01 18:38:46  hajny
-    * warning about SetDate added (TODO)
-
-  Revision 1.25  2000/05/28 18:20:16  hajny
-    * DiskFree/DiskSize updated
-
-  Revision 1.24  2000/05/21 16:06:38  hajny
-    + FSearch and Find* reworked
-
-  Revision 1.23  2000/04/18 20:30:02  hajny
-    * FSearch with given path corrected
-
-  Revision 1.22  2000/03/12 18:32:17  hajny
-    * missing parentheses added
-
-  Revision 1.21  2000/03/05 19:00:37  hajny
-    * DiskFree, DiskSize - int64 result, fix for osDPMI mode
-
-  Revision 1.20  2000/02/09 16:59:33  peter
-    * truncated log
-
-  Revision 1.19  2000/01/09 20:51:03  hajny
-    * FPK changed to FPC
-
-  Revision 1.18  2000/01/07 16:41:45  daniel
-    * copyright 2000
-
-  Revision 1.17  1999/10/13 12:21:56  daniel
-  * OS/2 compiler works again.
-
-  Revision 1.16  1999/09/13 18:21:02  hajny
-    * again didn't manage to read docu for DosFindFirst properly :-(
-
-  Revision 1.15  1999/09/13 17:56:26  hajny
-    * another correction to FSearch fix - mistyping
-
-  Revision 1.14  1999/09/13 17:35:15  hajny
-    * little addition/correction to FSearch fix
-
-  Revision 1.13  1999/09/09 09:20:43  hajny
-    * FSearch under OS/2 fixed
 
 }

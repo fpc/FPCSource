@@ -605,16 +605,10 @@ const
 Procedure ResetFPU;
 begin
 {$ifdef I386}
-{$ifndef CORRECTFLDCW}
-  {$asmmode direct}
-{$endif}
   asm
     fninit
     fldcw   fpucw
   end;
-{$ifndef CORRECTFLDCW}
-  {$asmmode att}
-{$endif}
 {$endif I386}
 end;
 
@@ -793,7 +787,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:49  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:49  michael
   + removed logs
  
 }

@@ -29,10 +29,6 @@ unit objpas;
        integer = longint;
 
 { Old compilers search for these variables in objpas unit }
-{$ifndef SYSTEMTVARREC}
-       pvarrec = system.pvarrec;
-       tvarrec = system.tvarrec;
-{$endif}
 
 {****************************************************************************
                              Compatibility routines.
@@ -61,7 +57,6 @@ unit objpas;
      Function ParamStr(Param : Integer) : Ansistring;
 
 
-{$ifdef HasResourceStrings}
 Type
    TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint) : AnsiString;
 
@@ -76,7 +71,6 @@ Type
    Function GetResourceStringCurrentValue(TableIndex,StringIndex : Longint) : AnsiString;
    Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;
 
-{$endif}
 
 
   implementation
@@ -176,7 +170,6 @@ begin
   end;
 
 
-{$IFDEF HasResourceStrings}
 
 { ---------------------------------------------------------------------
     ResourceString support
@@ -346,13 +339,9 @@ begin
    ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].CurrentValue:=Value;
 end;
 
-{$endif}
-
 
 Initialization
-{$IFDEF HasResourceStrings}
   ResetResourceTables;
-{$endif}
 
 finalization
 
@@ -360,7 +349,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
  
 }

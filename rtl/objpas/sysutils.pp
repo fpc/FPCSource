@@ -275,7 +275,7 @@ begin
   else
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
   end;
-  Raise E at longint(Address){$ifdef ENHANCEDRAISE},longint(Frame){$endif};
+  Raise E at longint(Address),longint(Frame);
 end;
 
 
@@ -402,7 +402,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
  
 }

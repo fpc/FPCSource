@@ -116,13 +116,8 @@ Function  DosExitCode: word;
 
 {Disk}
 Procedure AddDisk(const path:string);
-{$ifdef Int64}
- Function  DiskFree(drive: byte) : int64;
- Function  DiskSize(drive: byte) : int64;
-{$else}
- Function  DiskFree(drive: byte) : longint;
- Function  DiskSize(drive: byte) : longint;
-{$endif}
+Function  DiskFree(drive: byte) : int64;
+Function  DiskSize(drive: byte) : int64;
 Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
 Procedure FindNext(var f: searchRec);
 Procedure FindClose(Var f: SearchRec);
@@ -400,8 +395,6 @@ end;
 
 
 
-{$ifdef INT64}
-
 Function DiskFree(Drive: Byte): int64;
 var
   fs : statfs;
@@ -425,34 +418,6 @@ Begin
   else
    DiskSize:=-1;
 End;
-
-{$else}
-
-Function DiskFree(Drive: Byte): Longint;
-var
-  fs : statfs;
-Begin
-  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
-     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
-   Diskfree:=fs.bavail*fs.bsize
-  else
-   Diskfree:=-1;
-End;
-
-
-
-Function DiskSize(Drive: Byte): Longint;
-var
-  fs : statfs;
-Begin
-  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
-     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
-   DiskSize:=fs.blocks*fs.bsize
-  else
-   DiskSize:=-1;
-End;
-
-{$endif INT64}
 
 
 {******************************************************************************
@@ -914,7 +879,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:48  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:48  michael
   + removed logs
  
 }

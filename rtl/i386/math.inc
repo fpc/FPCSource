@@ -19,7 +19,6 @@
                        EXTENDED data type routines
  ****************************************************************************}
 
-{$ifdef hasinternmath}
     function pi : extended;[internproc:in_pi];
     function abs(d : extended) : extended;[internproc:in_abs_extended];
     function sqr(d : extended) : extended;[internproc:in_sqr_extended];
@@ -28,90 +27,6 @@
     function ln(d : extended) : extended;[internproc:in_ln_extended];
     function sin(d : extended) : extended;[internproc:in_sin_extended];
     function cos(d : extended) : extended;[internproc:in_cos_extended];
-{$else hasinternmath}
-    function pi : extended;assembler;[internconst:in_const_pi];
-      asm
-            fldpi
-      end [];
-
-
-    function abs(d : extended) : extended;assembler;[internconst:in_const_abs];
-      asm
-            fldt d
-            fabs
-      end [];
-
-
-    function sqr(d : extended) : extended;assembler;[internconst:in_const_sqr];
-      asm
-            fldt d
-            fldt d
-            fmulp %st(1)
-      end [];
-
-
-    function sqrt(d : extended) : extended;assembler;[internconst:in_const_sqrt];
-      asm
-            fldt d
-            fsqrt
-      end [];
-
-
-    function arctan(d : extended) : extended;assembler;[internconst:in_const_arctan];
-      asm
-            fldt d
-            fld1
-            fpatan
-      end [];
-
-    function cos(d : extended) : extended;assembler;[internconst:in_const_cos];
-      asm
-            fldt d
-            fcos
-            fstsw
-            sahf
-            jnp .LCOS1
-            fstp %st(0)
-            fldt .LCOS0
-            jmp .LCOS1
-         .data
-         .LCOS0:
-            .long       0xffffffff
-            .long       0xffffffff
-            .long       0xffffffff
-         .text
-         .LCOS1:
-      end ['EAX'];
-
-    function ln(d : extended) : extended;assembler;[internconst:in_const_ln];
-      asm
-            fldln2
-            fldt d
-            fyl2x
-      end [];
-
-
-    function sin(d : extended) : extended;assembler;[internconst:in_const_sin];
-      asm
-            fldt d
-            fsin
-            fstsw
-            sahf
-            jnp .LSIN1
-            fstp %st(0)
-            fldt .LSIN0
-            jmp .LSIN1
-         .data
-         .LSIN0:
-            .long       0xffffffff
-            .long       0xffffffff
-            .long       0xffffffff
-         .text
-         .LSIN1:
-      end ['EAX'];
-
-
-{$endif hasinternmath}
 
     function exp(d : extended) : extended;assembler;[internconst:in_const_exp];
        asm
@@ -384,7 +299,10 @@
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:41  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:41  michael
   + removed logs
  
 }

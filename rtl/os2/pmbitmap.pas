@@ -200,25 +200,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:06  michael
+  Revision 1.2  2000-07-14 10:33:11  michael
+  + Conditionals fixed
+
+  Revision 1.1  2000/07/13 06:31:06  michael
   + Initial import
-
-  Revision 1.10  2000/02/09 16:59:33  peter
-    * truncated log
-
-  Revision 1.9  2000/01/09 20:48:04  hajny
-    * FPK changed to FPC
-
-  Revision 1.8  2000/01/07 16:41:48  daniel
-    * copyright 2000
-
-  Revision 1.7  2000/01/07 16:32:32  daniel
-    * copyright 2000 added
-
-  Revision 1.6  1999/09/15 09:13:49  hajny
-    * mistyping corrected
-
-  Revision 1.5  1999/08/04 15:51:10  hajny
-    * merging changes by RB and DM :-(
 
 }

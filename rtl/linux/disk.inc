@@ -50,7 +50,6 @@ end;
 
 
 
-{$ifdef INT64}
 
 Function DiskFree(Drive: Byte): int64;
 var
@@ -75,35 +74,6 @@ Begin
   else
    DiskSize:=-1;
 End;
-
-{$else}
-
-Function DiskFree(Drive: Byte): Longint;
-var
-  fs : statfs;
-Begin
-  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
-     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
-   Diskfree:=fs.bavail*fs.bsize
-  else
-   Diskfree:=-1;
-End;
-
-
-
-Function DiskSize(Drive: Byte): Longint;
-var
-  fs : statfs;
-Begin
-  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
-     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
-   DiskSize:=fs.blocks*fs.bsize
-  else
-   DiskSize:=-1;
-End;
-
-{$endif INT64}
-
 
 
 Function GetCurrentDir : String;
@@ -141,7 +111,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:48  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:48  michael
   + removed logs
  
 }

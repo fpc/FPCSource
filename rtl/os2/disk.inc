@@ -16,8 +16,6 @@
 
 {$ASMMODE ATT}
 
-{$IFDEF INT64}
-
 function DiskFree (Drive: byte): int64;
 
 var FI: TFSinfo;
@@ -95,86 +93,6 @@ begin
         end;
 end;
 
-{$ELSE}
-
-function DiskFree (Drive: byte): longint;
-
-var FI: TFSinfo;
-    RC: longint;
-
-begin
-    if (os_mode = osDOS) or (os_mode = osDPMI) then
-    {Function 36 is not supported in OS/2.}
-        asm
-            movb 8(%ebp),%dl
-            movb $0x36,%ah
-            call syscall
-            cmpw $-1,%ax
-            je .LDISKFREE1
-            mulw %cx
-            mulw %bx
-            shll $16,%edx
-            movw %ax,%dx
-            xchgl %edx,%eax
-            leave
-            ret
-         .LDISKFREE1:
-            cltd
-            leave
-            ret
-        end
-    else
-        {In OS/2, we use the filesystem information.}
-        begin
-            RC := DosQueryFSInfo (Drive, 1, FI, SizeOf (FI));
-            if RC = 0 then
-                DiskFree := FI.Free_Clusters *
-                                   FI.Sectors_Per_Cluster * FI.Bytes_Per_Sector
-            else
-                DiskFree := -1;
-        end;
-end;
-
-function DiskSize (Drive: byte): longint;
-
-var FI: TFSinfo;
-    RC: longint;
-
-begin
-    if (os_mode = osDOS) or (os_mode = osDPMI) then
-        {Function 36 is not supported in OS/2.}
-        asm
-            movb 8(%ebp),%dl
-            movb $0x36,%ah
-            call syscall
-            movw %dx,%bx
-            cmpw $-1,%ax
-            je .LDISKSIZE1
-            mulw %cx
-            mulw %bx
-            shll $16,%edx
-            movw %ax,%dx
-            xchgl %edx,%eax
-            leave
-            ret
-        .LDISKSIZE1:
-            cltd
-            leave
-            ret
-        end
-    else
-        {In OS/2, we use the filesystem information.}
-        begin
-            RC := DosQueryFSinfo (Drive, 1, FI, SizeOf (FI));
-            if RC = 0 then
-                DiskSize := FI.Total_Clusters *
-                                   FI.Sectors_Per_Cluster * FI.Bytes_Per_Sector
-            else
-                DiskSize := -1;
-        end;
-end;
-
-{$ENDIF}
 
 function GetCurrentDir: string;
 begin
@@ -212,7 +130,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:52  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:52  michael
   + removed logs
  
 }

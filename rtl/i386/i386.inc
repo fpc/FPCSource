@@ -566,11 +566,7 @@ asm
         { esi contains the vmt }
         pushl   %esi
         { call newinstance (class method!) }
-{$ifdef NEWVMTOFFSET}
         call    *52{vmtNewInstance}(%esi)
-{$else}
-        call    *16(%esi)
-{$endif}
         popl    %edx
         popl    %ecx
         popl    %ebx
@@ -604,11 +600,7 @@ asm
         { push self }
         pushl   %esi
         { call freeinstance }
-{$ifdef NEWVMTOFFSET}
         call    *56{vmtFreeInstance}(%edi)
-{$else}
-        call    *20(%edi)
-{$endif}
         popl    %edx
         popl    %ecx
         popl    %ebx
@@ -1127,36 +1119,12 @@ end;
 {$endif def SYSTEMDEBUG}
 
 
-{$ifndef HASSAVEREGISTERS}
-
-{****************************************************************************
-                                 IoCheck
-****************************************************************************}
-{$define FPC_SYSTEM_HAS_FPC_IOCHECK}
-
-procedure int_iocheck(addr : longint);[public,alias:'FPC_IOCHECK'];
-var
-  l : longint;
-begin
-  asm
-        pushal
-  end;
-  if InOutRes<>0 then
-   begin
-     l:=InOutRes;
-     InOutRes:=0;
-     HandleErrorFrame(l,get_frame);
-   end;
-  asm
-        popal
-  end;
-end;
-
-{$endif not HASSAVEREGISTERS}
-
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:41  michael
+  Revision 1.3  2000-07-14 10:33:09  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:41  michael
   + removed logs
  
 }

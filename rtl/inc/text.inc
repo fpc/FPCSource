@@ -558,7 +558,6 @@ Begin
 End;
 
 
-{$ifdef INT64}
 procedure write_qword(len : longint;var t : textrec;q : qword);[public,alias:'FPC_WRITE_TEXT_QWORD'];
 var
   s : string;
@@ -578,7 +577,6 @@ begin
   int64_str(i,s);
   write_str(len,t,s);
 end;
-{$endif INT64}
 
 
 Procedure Write_Float(rt,fixkomma,Len : Longint;var t : TextRec;r : ValReal);[Public,Alias:'FPC_WRITE_TEXT_FLOAT'];
@@ -944,7 +942,6 @@ begin
 end;
 
 
-{$ifdef INT64}
 function Read_QWord(var f : textrec) : qword;[public,alias:'FPC_READ_TEXT_QWORD'];
 var
   hs   : String;
@@ -1002,7 +999,6 @@ Begin
   If code<>0 Then
    InOutRes:=106;
 End;
-{$endif INT64}
 
 
 {*****************************************************************************
@@ -1031,7 +1027,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:46  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:46  michael
   + removed logs
  
 }

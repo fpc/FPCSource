@@ -14,8 +14,6 @@
 
  **********************************************************************}
 
-{$ifdef Int64}
-
 TYPE  ExtendedFat32FreeSpaceRec=packed Record
          RetSize           : WORD; { (ret) size of returned structure}
          Strucversion      : WORD; {(call) structure version (0000h)
@@ -99,36 +97,6 @@ function disksize(drive : byte) : int64;
 begin
   disksize:=Do_DiskData(drive,false);
 end;
-{$else}
-
-Function DiskFree (Drive : Byte) : Longint;
-var
-  Regs: Registers;
-begin
-  Regs.Dl := Drive;
-  Regs.Ah := $36;
-  intr($21, Regs);
-  if Regs.Ax <> $FFFF then
-    result := Regs.Ax * Regs.Bx * Regs.Cx
-  else
-    result := -1;
-end;
-
-
-Function DiskSize (Drive : Byte) : Longint;
-var
-  Regs: Registers;
-begin
-  Regs.Dl := Drive;
-  Regs.Ah := $36;
-  Intr($21, Regs);
-  if Regs.Ax <> $FFFF then
-    result := Regs.Ax * Regs.Cx * Regs.Dx
-  else
-    result := -1;
-end;
-
-{$endif}
 
 
 Function GetCurrentDir : String;
@@ -166,7 +134,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:39  michael
+  Revision 1.3  2000-07-14 10:33:09  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:39  michael
   + removed logs
  
 }

@@ -126,13 +126,13 @@ begin
 end;
 
 
-procedure GetMem(Var p:pointer;Size:Longint);{$ifndef NEWMM}[public,alias:'FPC_GETMEM'];{$endif}
+procedure GetMem(Var p:pointer;Size:Longint);
 begin
   p:=MemoryManager.GetMem(Size);
 end;
 
 
-procedure FreeMem(Var p:pointer;Size:Longint);{$ifndef NEWMM}[public,alias:'FPC_FREEMEM'];{$endif}
+procedure FreeMem(Var p:pointer;Size:Longint);
 begin
   MemoryManager.FreeMemSize(p,Size);
   p:=nil;
@@ -190,13 +190,13 @@ end;
 
 
 { Needed for calls from Assembler }
-procedure AsmGetMem(var p:pointer;size:longint);{$ifdef NEWMM}[public,alias:'FPC_GETMEM'];{$endif}
+procedure AsmGetMem(var p:pointer;size:longint);[public,alias:'FPC_GETMEM'];
 begin
   p:=MemoryManager.GetMem(size);
 end;
 
 
-procedure AsmFreeMem(var p:pointer);{$ifdef NEWMM}[public,alias:'FPC_FREEMEM'];{$endif}
+procedure AsmFreeMem(var p:pointer);[public,alias:'FPC_FREEMEM'];
 begin
   if p <> nil then
    begin
@@ -1021,7 +1021,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:43  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:43  michael
   + removed logs
  
 }

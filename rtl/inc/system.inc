@@ -67,12 +67,10 @@ Function  hi(w : Word) : byte;     [INTERNPROC: In_hi_Word];
 Function  hi(l : Longint) : Word;  [INTERNPROC: In_hi_long];
 Function  hi(l : DWord) : Word;    [INTERNPROC: In_hi_long];
 
-{$ifdef INT64}
 Function  lo(q : QWord) : DWord;  [INTERNPROC: In_lo_qword];
 Function  lo(i : Int64) : DWord;  [INTERNPROC: In_lo_qword];
 Function  hi(q : QWord) : DWord;  [INTERNPROC: In_hi_qword];
 Function  hi(i : Int64) : DWord;  [INTERNPROC: In_hi_qword];
-{$endif}
 
 Function chr(b : byte) : Char;      [INTERNPROC: In_chr_byte];
 Function Length(s : string) : byte; [INTERNPROC: In_Length_string];
@@ -148,7 +146,6 @@ Begin
   Swap:=(X and $ffff) shl 16 + (X shr 16)
 End;
 
-{$ifdef INT64}
 Function Swap (X : QWord) : QWord;
 Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
@@ -158,7 +155,6 @@ Function swap (X : Int64) : Int64;
 Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
 End;
-{$endif}
 
 {$endif RTLLITE}
 
@@ -186,9 +182,7 @@ End;
 {$i rtti.inc}
 
 { requires sstrings.inc for initval }
-{$ifdef INT64}
 {$I int64.inc}
-{$endif INT64}
 
 
 {****************************************************************************
@@ -343,7 +337,6 @@ begin
 end;
 
 
-{$ifdef HASSAVEREGISTERS}
 procedure int_iocheck(addr : longint);[saveregisters,public,alias:'FPC_IOCHECK'];
 var
   l : longint;
@@ -355,8 +348,6 @@ begin
      HandleErrorFrame(l,get_frame);
    end;
 end;
-{$endif}
-
 
 Function IOResult:Word;
 Begin
@@ -600,7 +591,7 @@ begin
 end;
 
 
-Procedure int_assert(Const Msg,FName:Shortstring;LineNo,ErrorAddr:Longint); [{$ifdef HASSAVEREGISTERS}SaveRegisters,{$endif}Public,Alias : 'FPC_ASSERT'];
+Procedure int_assert(Const Msg,FName:Shortstring;LineNo,ErrorAddr:Longint); [SaveRegisters,Public,Alias : 'FPC_ASSERT'];
 begin
   if pointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
@@ -647,7 +638,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:45  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
  
 }

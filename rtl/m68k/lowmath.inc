@@ -14,7 +14,7 @@
  **********************************************************************}
 {*************************************************************************}
 {  lowmath.inc                                                            }
-{  Ported to FPK-Pascal by Carl Eric Codere                               }
+{  Ported to FPC-Pascal by Carl Eric Codere                               }
 {  Terms of use: This source code is freeware.                            }
 {*************************************************************************}
 {  This inc. implements low-level mathemtical routines  for the motorola  }
@@ -914,7 +914,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:50  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:50  michael
   + removed logs
  
 }

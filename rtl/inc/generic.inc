@@ -724,33 +724,12 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_BOUNDCHECK}
 
 
-{$ifndef HASSAVEREGISTERS}
-
-{****************************************************************************
-                                 IoCheck
-****************************************************************************}
-
-{$ifndef FPC_SYSTEM_HAS_FPC_IOCHECK}
-
-procedure int_iocheck(addr : longint);[public,alias:'FPC_IOCHECK'];
-var
-  l : longint;
-begin
-  if InOutRes<>0 then
-   begin
-     l:=InOutRes;
-     InOutRes:=0;
-     HandleErrorFrame(l,get_frame);
-   end;
-end;
-
-{$endif ndef FPC_SYSTEM_HAS_FPC_IOCHECK}
-
-{$endif}
-
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:43  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:43  michael
   + removed logs
  
 }

@@ -289,22 +289,10 @@ const
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:06  michael
+  Revision 1.2  2000-07-14 10:33:11  michael
+  + Conditionals fixed
+
+  Revision 1.1  2000/07/13 06:31:06  michael
   + Initial import
-
-  Revision 1.10  2000/01/09 20:48:04  hajny
-    * FPK changed to FPC
-
-  Revision 1.9  2000/01/07 16:41:48  daniel
-    * copyright 2000
-
-  Revision 1.8  2000/01/07 16:32:32  daniel
-    * copyright 2000 added
-
-  Revision 1.7  1999/08/10 14:20:54  hajny
-    * compatibility updates
-
-  Revision 1.6  1999/08/05 07:37:27  hajny
-    * 'solution' for a compiler problem
 
 }

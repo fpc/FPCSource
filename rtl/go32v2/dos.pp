@@ -103,13 +103,8 @@ Procedure Exec(const path: pathstr; const comline: comstr);
 Function  DosExitCode: word;
 
 {Disk}
-{$ifdef Int64}
  Function  DiskFree(drive: byte) : int64;
  Function  DiskSize(drive: byte) : int64;
-{$else}
- Function  DiskFree(drive: byte) : longint;
- Function  DiskSize(drive: byte) : longint;
-{$endif}
 Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
 Procedure FindNext(var f: searchRec);
 Procedure FindClose(Var f: SearchRec);
@@ -449,7 +444,6 @@ end;
                                --- Disk ---
 ******************************************************************************}
 
-{$ifdef Int64}
 
 TYPE  ExtendedFat32FreeSpaceRec=packed Record
          RetSize           : WORD; { (ret) size of returned structure}
@@ -532,34 +526,6 @@ function disksize(drive : byte) : int64;
 begin
   disksize:=Do_DiskData(drive,false);
 end;
-{$else}
-
-function diskfree(drive : byte) : longint;
-begin
-  DosError:=0;
-  dosregs.dl:=drive;
-  dosregs.ah:=$36;
-  msdos(dosregs);
-  if dosregs.ax<>$FFFF then
-   diskfree:=dosregs.ax*dosregs.bx*dosregs.cx
-  else
-   diskfree:=-1;
-end;
-
-
-function disksize(drive : byte) : longint;
-begin
-  DosError:=0;
-  dosregs.dl:=drive;
-  dosregs.ah:=$36;
-  msdos(dosregs);
-  if dosregs.ax<>$FFFF then
-   disksize:=dosregs.ax*dosregs.cx*dosregs.dx
-  else
-   disksize:=-1;
-end;
-
-{$endif}
 
 
 {******************************************************************************
@@ -1173,7 +1139,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:39  michael
+  Revision 1.3  2000-07-14 10:33:09  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:39  michael
   + removed logs
  
 }

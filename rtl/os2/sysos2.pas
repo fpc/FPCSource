@@ -806,62 +806,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:07  michael
+  Revision 1.2  2000-07-14 10:33:11  michael
+  + Conditionals fixed
+
+  Revision 1.1  2000/07/13 06:31:07  michael
   + Initial import
-
-  Revision 1.34  2000/07/09 17:09:47  hajny
-    * little mistyping
-
-  Revision 1.33  2000/07/09 17:05:24  hajny
-    * default sharing mode changed to deny all (compatibility)
-
-  Revision 1.32  2000/06/11 09:47:57  hajny
-    * error handling and sharing corrected
-
-  Revision 1.31  2000/06/05 18:53:30  hajny
-    * FileHandleCount handling for OS/2 added
-
-  Revision 1.30  2000/06/04 14:14:01  hajny
-    * do_truncate corrected, do_open might work under W9x now
-
-  Revision 1.29  2000/05/28 18:17:39  hajny
-    do_isdevice corrected
-
-  Revision 1.28  2000/05/21 15:58:50  hajny
-    + FileNameCaseSensitive added
-
-  Revision 1.27  2000/04/07 17:47:34  hajny
-    * got rid of os.inc
-
-  Revision 1.26  2000/02/09 16:59:34  peter
-    * truncated log
-
-  Revision 1.25  2000/02/09 12:39:11  peter
-    * halt moved to system.inc
-
-  Revision 1.24  2000/01/20 23:38:02  peter
-    * support fm_inout as stdoutput for assign(f,'');rewrite(f,1); becuase
-      rewrite opens always with filemode 2
-
-  Revision 1.23  2000/01/16 23:10:15  peter
-    * handle check fixed
-
-  Revision 1.22  2000/01/16 22:25:38  peter
-    * check handle for file closing
-
-  Revision 1.21  2000/01/09 20:45:58  hajny
-    * FPK changed to FPC
-
-  Revision 1.20  2000/01/07 16:41:50  daniel
-    * copyright 2000
-
-  Revision 1.19  2000/01/07 16:32:33  daniel
-    * copyright 2000 added
-
-  Revision 1.18  2000/01/02 17:45:25  hajny
-    * cdecl added for doscalls routines
-
-  Revision 1.17  1999/09/10 15:40:35  peter
-    * fixed do_open flags to be > $100, becuase filemode can be upto 255
 
 }

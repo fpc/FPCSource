@@ -23,8 +23,8 @@ Function RemoveDir (Const Dir : String) : Boolean;
 
 {
   $Log$
-  Revision 1.3  2000-07-14 09:31:37  michael
-  + Forgot int64
+  Revision 1.4  2000-07-14 10:33:10  michael
+  + Conditionals fixed
 
   Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs

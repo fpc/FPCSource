@@ -206,14 +206,12 @@ Function  Swap (X:Word):Word;
 Function  Swap (X:Integer):Integer;
 Function  Swap (X:Cardinal):Cardinal;
 Function  Swap (X:LongInt):LongInt;
-{$ifdef INT64}
 Function  lo(q : QWord) : DWord;
 Function  lo(i : Int64) : DWord;
 Function  hi(q : QWord) : DWord;
 Function  hi(i : Int64) : DWord;
 Function  Swap (X:QWord):QWord;
 Function  Swap (X:Int64):Int64;
-{$endif}
 {$endif RTLLITE}
 
 Function  Random(l:cardinal):cardinal;
@@ -445,7 +443,10 @@ const
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:45  michael
+  Revision 1.3  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
  
 }

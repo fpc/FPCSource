@@ -328,20 +328,10 @@ End.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:04  michael
+  Revision 1.2  2000-07-14 10:33:10  michael
+  + Conditionals fixed
+
+  Revision 1.1  2000/07/13 06:31:04  michael
   + Initial import
-
-  Revision 1.4  2000/02/09 16:59:33  peter
-    * truncated log
-
-  Revision 1.3  2000/01/09 20:51:03  hajny
-    * FPK changed to FPC
-
-  Revision 1.2  2000/01/07 16:41:45  daniel
-    * copyright 2000
-
-  Revision 1.1  1999/10/01 11:17:09  hajny
-    + initial version
-
 
 }
