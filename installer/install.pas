@@ -58,9 +58,6 @@ program install;
 {$endif}
 
 
-{$ifdef FPC}
-{$define USE_FPUSRSCR}
-{$endif FPC}
 
   uses
 {$IFDEF OS2}
@@ -75,7 +72,7 @@ program install;
  {$ENDIF FPC}
 {$ENDIF OS2}
 {$IFDEF GO32V2}
-     { emu387, not needed anymore PM }
+     emu387,
 {$ENDIF}
 {$ifdef HEAPTRC}
      heaptrc,
@@ -1953,7 +1950,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-01-22 14:15:13  pierre
+  Revision 1.16  2003-02-08 21:49:59  carl
+    * DOS : fix user screen problem
+       DOS: emu386 reinstated
+
+  Revision 1.15  2003/01/22 14:15:13  pierre
    * center all dialogs
 
   Revision 1.14  2003/01/22 13:42:35  pierre
