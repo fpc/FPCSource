@@ -59,6 +59,7 @@ interface
     function is_number(const s : string) : boolean;
     function ispowerof2(value : longint;var power : longint) : boolean;
     function maybequoted(const s:string):string;
+    function CompareText(S1, S2: string): longint;
 
     { releases the string p and assignes nil to p }
     { if p=nil then freemem isn't called          }
@@ -606,6 +607,19 @@ uses
       end;
 
 
+    function CompareText(S1, S2: string): longint;
+      begin
+        UpperVar(S1);
+        UpperVar(S2);
+        if S1<S2 then
+         CompareText:=-1
+        else
+         if S1>S2 then
+          CompareText:= 1
+        else
+         CompareText:=0;
+      end;
+
 
 {*****************************************************************************
                                GetSpeedValue
@@ -734,7 +748,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2001-07-30 20:59:27  peter
+  Revision 1.10  2001-08-04 11:06:30  peter
+    * browcol has no depends on ide/fv
+
+  Revision 1.9  2001/07/30 20:59:27  peter
     * m68k updates from v10 merged
 
   Revision 1.8  2001/07/01 20:16:15  peter

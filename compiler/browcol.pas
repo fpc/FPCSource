@@ -261,11 +261,11 @@ procedure RegisterSymbols;
 implementation
 
 uses
-  Dos,Drivers,{Views,App,}{$ifndef FPC}strings,{$endif}
+  Dos,{$ifndef FPC}strings,{$endif}
 {$ifdef DEBUG}
   verbose,
 {$endif DEBUG}
-  WUtils,CUtils,
+  CUtils,
   globtype,globals,comphook,
   finput,fmodule,
   cpuinfo,aasm,
@@ -2125,7 +2125,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-08-04 10:23:54  peter
+  Revision 1.19  2001-08-04 11:06:29  peter
+    * browcol has no depends on ide/fv
+
+  Revision 1.18  2001/08/04 10:23:54  peter
     * updates so it works with the ide
 
   Revision 1.1.2.6  2001/03/22 17:30:11  pierre
