@@ -196,7 +196,8 @@ bug0144.pp   problem with 'with object do'
 bug0145.pp   typed files with huges records (needs filerec.size:longint)
 bug0146.pp   no sizeof() for var arrays and the size is pushed incorrect
 bug0147.pp   function b; is not allowed in implementation
-bug0148.pp   triple fault exception when setting function result of a declared
-             but not yet implemented function in another function
-bug0149.pp  (a, b) compile bug0149b twice and you'll get a triple exc. fault
-bug0150.pp  Shows that the assert() macro is missing under Delphi.
+bug0148.pp   crash when setting function result of a declared but not yet
+             implemented function in another function
+bug0149.pp   (a, b) compile bug0149b twice and you'll get a crash
+bug0150.pp   Shows that the assert() macro is missing under Delphi.
+bug0151.pp   crash when using undeclared variable in with-statement
