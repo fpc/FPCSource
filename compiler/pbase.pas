@@ -90,7 +90,7 @@ unit pbase;
 
     function tokenstring(i : ttoken):string;
       begin
-        tokenstring:=tokeninfo[i].str;
+        tokenstring:=tokeninfo^[i].str;
       end;
 
     { consumes token i, write error if token is different }
@@ -98,9 +98,9 @@ unit pbase;
       begin
         if (token<>i) and (idtoken<>i) then
           if token=_id then
-            Message2(scan_f_syn_expected,tokeninfo[i].str,'identifier '+pattern)
+            Message2(scan_f_syn_expected,tokeninfo^[i].str,'identifier '+pattern)
           else
-            Message2(scan_f_syn_expected,tokeninfo[i].str,tokeninfo[token].str)
+            Message2(scan_f_syn_expected,tokeninfo^[i].str,tokeninfo^[token].str)
         else
           begin
             if token=_END then
@@ -165,7 +165,12 @@ end.
 
 {
   $Log$
-  Revision 1.24  1999-08-04 13:02:50  jonas
+  Revision 1.25  1999-09-02 18:47:44  daniel
+    * Could not compile with TP, some arrays moved to heap
+    * NOAG386BIN default for TP
+    * AG386* files were not compatible with TP, fixed.
+
+  Revision 1.24  1999/08/04 13:02:50  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

@@ -38,7 +38,7 @@
                       use external messagefiles, default for TP
   NOAG386INT          no Intel Assembler output
   NOAG386NSM          no NASM output
-  NOAG386BIN          leaves out the binary writer
+  NOAG386BIN          leaves out the binary writer, default for TP
   LOGMEMBLOCKS        adds memory manager which logs the size of
                       each allocated memory block, the information
                       is written to memuse.log after compiling
@@ -95,6 +95,7 @@ program pp;
   {$IFDEF DPMI}
     {$UNDEF USEOVERLAY}
   {$ENDIF}
+  {$DEFINE NOAG386BIN}
 {$ENDIF}
 {$ifdef FPC}
   {$UNDEF USEOVERLAY}
@@ -279,7 +280,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  1999-08-28 15:34:20  florian
+  Revision 1.47  1999-09-02 18:47:45  daniel
+    * Could not compile with TP, some arrays moved to heap
+    * NOAG386BIN default for TP
+    * AG386* files were not compatible with TP, fixed.
+
+  Revision 1.46  1999/08/28 15:34:20  florian
     * bug 519 fixed
 
   Revision 1.45  1999/08/04 00:23:18  florian

@@ -121,7 +121,7 @@ uses
   dos,
 {$endif Delphi}
   verbose,comphook,systems,
-  globals,options,parser,symtable,link,import,export;
+  globals,options,parser,symtable,link,import,export,tokens;
 
 function Compile(const cmd:string):longint;
 
@@ -177,6 +177,7 @@ begin
   CompilerInited:=false;
   DoneSymtable;
   DoneGlobals;
+  donetokens;
 {$ifdef USEEXCEPT}
   recoverpospointer:=nil;
   longjump_used:=false;
@@ -198,6 +199,7 @@ begin
   InitBrowserCol;
 {$endif BrowserCol}
   InitGlobals;
+  inittokens;
   InitSymtable;
   CompilerInited:=true;
 { read the arguments }
@@ -297,7 +299,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  1999-08-20 10:17:01  michael
+  Revision 1.32  1999-09-02 18:47:44  daniel
+    * Could not compile with TP, some arrays moved to heap
+    * NOAG386BIN default for TP
+    * AG386* files were not compatible with TP, fixed.
+
+  Revision 1.31  1999/08/20 10:17:01  michael
   + Patch from pierre
 
   Revision 1.30  1999/08/11 17:26:31  peter

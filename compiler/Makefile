@@ -275,12 +275,12 @@ msg: msgtxt.inc
 
 # Make only the compiler
 ifndef COMPLETE
-$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
+$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg tokens.dat
 	$(COMPILER) pp.pas
 	$(EXECPPAS)
 	$(MOVE) $(PPEXENAME) $(EXENAME)
 else
-$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
+$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg tokens.dat
 	$(COMPILER) $(LOCALOPT) pp.pas
 	$(EXECPPAS)
 	$(COMPILER) $(LOCALOPT) pp.pas
@@ -289,6 +289,10 @@ $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
 	$(EXECPPAS)
 	$(MOVE) $(PPEXENAME) $(EXENAME)
 endif
+
+tokens.dat : $(wildcard *.pas) $(wildcard *.inc)
+	$(COMPILER) $(LOCALOPT) tokendat.pas
+	./tokendat
 
 # This target remakes the units with the currently made version
 remake: $(EXENAME)
@@ -399,7 +403,12 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.35  1999-08-15 22:16:51  michael
+# Revision 1.36  1999-09-02 18:47:41  daniel
+#   * Could not compile with TP, some arrays moved to heap
+#   * NOAG386BIN default for TP
+#   * AG386* files were not compatible with TP, fixed.
+#
+# Revision 1.35  1999/08/15 22:16:51  michael
 # + No Intel and binary writer for linux=smaller executable
 #
 # Revision 1.34  1999/06/15 15:10:06  peter

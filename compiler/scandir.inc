@@ -21,7 +21,7 @@
  ****************************************************************************
 }
 const
-   directivelen=16;
+   directivelen=15;
 type
    directivestr=string[directivelen];
    tdirectivetoken=(
@@ -54,30 +54,81 @@ const
    firstdirective=_DIR_NONE;
    lastdirective=_DIR_Z4;
    directive:array[tdirectivetoken] of directivestr=(
+     {12345678901234567890 (To determine longest string.)}
      '',
-     'ALIGN','APPTYPE','ASMMODE','ASSERTIONS',
+     'ALIGN',
+     'APPTYPE',
+     'ASMMODE',
+     'ASSERTIONS',
      'BOOLEVAL',
-     'D','DEBUGINFO','DEFINE','DESCRIPTION',
-     'ELSE','ENDIF','ERROR','EXTENDEDSYNTAX',
+     'D',
+     'DEBUGINFO',
+     'DEFINE',
+     'DESCRIPTION',
+     'ELSE',
+     'ENDIF',
+     'ERROR',
+     'EXTENDEDSYNTAX',
      'FATAL',
      'GOTO',
-     'HINT','HINTS',
-     'I','I386_ATT','I386_DIRECT','I386_INTEL','IOCHECKS',
-       'IF','IFDEF','IFNDEF','IFOPT','INCLUDE','INCLUDEPATH',
-       'INFO','INLINE',
-     'L','LIBRARYPATH','LINK','LINKLIB','LOCALSYMBOLS',
-       'LONGSTRINGS',
-     'M','MACRO','MEMORY','MESSAGE','MINENUMSIZE','MMX','MODE',
-     'NOTE','NOTES',
-     'OBJECTPATH','OPENSTRINGS','OUTPUT_FORMAT','OVERFLOWCHECKS',
-     'PACKENUM','PACKRECORDS',
-     'R','RANGECHECKS','REFERENCEINFO',
-     'SATURATION','SMARTLINK','STACKFRAMES','STATIC','STOP',
-     'TYPEDADDRESS','TYPEINFO',
-     'UNDEF','UNITPATH',
+     'HINT',
+     'HINTS',
+     'I',
+     {12345678901234567890 (To determine longest string.)}
+     'I386_ATT',
+     'I386_DIRECT',
+     'I386_INTEL',
+     'IOCHECKS',
+     'IF',
+     'IFDEF',
+     'IFNDEF',
+     'IFOPT',
+     'INCLUDE',
+     'INCLUDEPATH',
+     'INFO',
+     'INLINE',
+     'L',
+     'LIBRARYPATH',
+     'LINK',
+     'LINKLIB',
+     'LOCALSYMBOLS',
+     'LONGSTRINGS',
+     'M',
+     {12345678901234567890 (To determine longest string.)}
+     'MACRO',
+     'MEMORY',
+     'MESSAGE',
+     'MINENUMSIZE',
+     'MMX',
+     'MODE',
+     'NOTE',
+     'NOTES',
+     'OBJECTPATH',
+     'OPENSTRINGS',
+     'OUTPUT_FORMAT',
+     'OVERFLOWCHECKS',
+     'PACKENUM',
+     'PACKRECORDS',
+     'R',
+     'RANGECHECKS',
+     'REFERENCEINFO',
+     'SATURATION',
+     'SMARTLINK',
+     {12345678901234567890 (To determine longest string.)}
+     'STACKFRAMES',
+     'STATIC',
+     'STOP',
+     'TYPEDADDRESS',
+     'TYPEINFO',
+     'UNDEF',
+     'UNITPATH',
      'VARSTRINGCHECKS',
-     'WAIT','WARNING','WARNINGS',
-     'Z1','Z2','Z4'
+     'WAIT',
+     'WARNING',
+     'WARNINGS',
+     'Z1',
+     'Z2',
+     'Z4'
      );
 
 
@@ -307,8 +358,6 @@ const
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
                   mac:=pmacrosym(macros^.search(hs));
-                  if assigned(mac) then
-                    mac^.is_used:=true;
                   current_scanner^.addpreprocstack(pp_ifdef,assigned(mac) and mac^.defined,hs,scan_c_ifdef_found);
                 end;
    _DIR_IFOPT : begin
@@ -335,8 +384,6 @@ const
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
                   mac:=pmacrosym(macros^.search(hs));
-                  if assigned(mac) then
-                    mac^.is_used:=true;
                   current_scanner^.addpreprocstack(pp_ifndef,not(assigned(mac) and mac^.defined),hs,scan_c_ifndef_found);
                 end;
            end;
@@ -387,7 +434,6 @@ const
                mac^.buftext:=nil;
              end;
           end;
-        mac^.is_used:=true;
         if (cs_support_macro in aktmoduleswitches) then
           begin
           { key words are never substituted }
@@ -455,7 +501,6 @@ const
                   mac^.buftext:=nil;
                end;
           end;
-        mac^.is_used:=true;
       end;
 
 
@@ -1095,8 +1140,10 @@ const
 
 {
   $Log$
-  Revision 1.60  1999-08-31 15:55:45  pierre
-   + tmacrosym.is_used set
+  Revision 1.61  1999-09-02 18:47:46  daniel
+    * Could not compile with TP, some arrays moved to heap
+    * NOAG386BIN default for TP
+    * AG386* files were not compatible with TP, fixed.
 
   Revision 1.59  1999/08/05 16:53:10  peter
     * V_Fatal=1, all other V_ are also increased

@@ -141,37 +141,11 @@ implementation
                               Helper routines
 *****************************************************************************}
 
-    type
-      tokenidxrec=record
-        first,last : ttoken;
-      end;
-    var
-      tokenidx:array[2..tokenidlen,'A'..'Z'] of tokenidxrec;
-
     const
       { use any special name that is an invalid file name to avoid problems }
       macro_special_name = '____Macro____';
-      preprocstring : array [preproctyp] of string[7]
+      preprocstring : array [preproctyp] of string[6]
         = ('$IFDEF','$IFNDEF','$IF','$IFOPT','$ELSE');
-
-
-    procedure create_tokenidx;
-    { create an index with the first and last token for every possible token
-      length, so a search only will be done in that small part }
-      var
-        t : ttoken;
-      begin
-        fillchar(tokenidx,sizeof(tokenidx),0);
-        for t:=low(ttoken) to high(ttoken) do
-         begin
-           if not tokeninfo[t].special then
-            begin
-              if ord(tokenidx[length(tokeninfo[t].str),tokeninfo[t].str[1]].first)=0 then
-               tokenidx[length(tokeninfo[t].str),tokeninfo[t].str[1]].first:=t;
-              tokenidx[length(tokeninfo[t].str),tokeninfo[t].str[1]].last:=t;
-            end;
-         end;
-      end;
 
 
     function is_keyword(const s:string):boolean;
@@ -183,18 +157,18 @@ implementation
            is_keyword:=false;
            exit;
          end;
-        low:=ord(tokenidx[length(s),s[1]].first);
-        high:=ord(tokenidx[length(s),s[1]].last);
+        low:=ord(tokenidx^[length(s),s[1]].first);
+        high:=ord(tokenidx^[length(s),s[1]].last);
         while low<high do
          begin
            mid:=(high+low+1) shr 1;
-           if pattern<tokeninfo[ttoken(mid)].str then
+           if pattern<tokeninfo^[ttoken(mid)].str then
             high:=mid-1
            else
             low:=mid;
          end;
-        is_keyword:=(pattern=tokeninfo[ttoken(high)].str) and
-                    (tokeninfo[ttoken(high)].keyword in aktmodeswitches);
+        is_keyword:=(pattern=tokeninfo^[ttoken(high)].str) and
+                    (tokeninfo^[ttoken(high)].keyword in aktmodeswitches);
       end;
 
 
@@ -1102,19 +1076,19 @@ implementation
            pattern is always uppercased }
            if (pattern[1]<>'_') and (length(pattern) in [2..tokenidlen]) then
             begin
-              low:=ord(tokenidx[length(pattern),pattern[1]].first);
-              high:=ord(tokenidx[length(pattern),pattern[1]].last);
+              low:=ord(tokenidx^[length(pattern),pattern[1]].first);
+              high:=ord(tokenidx^[length(pattern),pattern[1]].last);
               while low<high do
                begin
                  mid:=(high+low+1) shr 1;
-                 if pattern<tokeninfo[ttoken(mid)].str then
+                 if pattern<tokeninfo^[ttoken(mid)].str then
                   high:=mid-1
                  else
                   low:=mid;
                end;
-              if pattern=tokeninfo[ttoken(high)].str then
+              if pattern=tokeninfo^[ttoken(high)].str then
                begin
-                 if tokeninfo[ttoken(high)].keyword in aktmodeswitches then
+                 if tokeninfo^[ttoken(high)].keyword in aktmodeswitches then
                   token:=ttoken(high);
                  idtoken:=ttoken(high);
                end;
@@ -1692,12 +1666,15 @@ exit_label:
          end;
       end;
 
-begin
-  create_tokenidx;
 end.
 {
   $Log$
-  Revision 1.93  1999-08-30 10:17:58  peter
+  Revision 1.94  1999-09-02 18:47:47  daniel
+    * Could not compile with TP, some arrays moved to heap
+    * NOAG386BIN default for TP
+    * AG386* files were not compatible with TP, fixed.
+
+  Revision 1.93  1999/08/30 10:17:58  peter
     * fixed crash in psub
     * ansistringcompare fixed
     * support for #$0b8

@@ -574,9 +574,9 @@ ait_stab_function_name : ;
     var
       currentasmlist : PAsmList;
 
-    procedure writeexternal(p:pasmsymbol);{$ifndef FPC}far;{$endif}
+    procedure writeexternal(p:pnamedindexobject);{$ifndef FPC}far;{$endif}
       begin
-        if p^.typ=AS_EXTERNAL then
+        if pasmsymbol(p)^.typ=AS_EXTERNAL then
          currentasmlist^.AsmWriteln(#9'EXTRN'#9+p^.name);
       end;
 
@@ -627,7 +627,12 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.52  1999-08-25 11:59:36  jonas
+  Revision 1.53  1999-09-02 18:47:42  daniel
+    * Could not compile with TP, some arrays moved to heap
+    * NOAG386BIN default for TP
+    * AG386* files were not compatible with TP, fixed.
+
+  Revision 1.52  1999/08/25 11:59:36  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.51  1999/08/04 00:22:36  florian

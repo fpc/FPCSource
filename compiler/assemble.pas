@@ -144,7 +144,7 @@ end;
 const
   lastas  : byte=255;
 var
-  LastASBin : string;
+  LastASBin : pathstr;
 Function TAsmList.FindAssembler:string;
 var
   asfound : boolean;
@@ -557,7 +557,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.52  1999-07-18 10:19:42  florian
+  Revision 1.53  1999-09-02 18:47:44  daniel
+    * Could not compile with TP, some arrays moved to heap
+    * NOAG386BIN default for TP
+    * AG386* files were not compatible with TP, fixed.
+
+  Revision 1.52  1999/07/18 10:19:42  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 

@@ -2013,17 +2013,17 @@ begin
        names^.insert(aktprocsym^.definition^.mangledname);
       { set _FAIL as keyword if constructor }
       if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
-        tokeninfo[_FAIL].keyword:=m_all;
+        tokeninfo^[_FAIL].keyword:=m_all;
       if assigned(aktprocsym^.definition^._class) then
-        tokeninfo[_SELF].keyword:=m_all;
+        tokeninfo^[_SELF].keyword:=m_all;
 
        compile_proc_body(names^,((pdflags and pd_global)<>0),assigned(oldprocinfo._class));
 
       { reset _FAIL as normal }
       if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
-        tokeninfo[_FAIL].keyword:=m_none;
+        tokeninfo^[_FAIL].keyword:=m_none;
       if assigned(aktprocsym^.definition^._class) and (lexlevel=main_program_level) then
-        tokeninfo[_SELF].keyword:=m_none;
+        tokeninfo^[_SELF].keyword:=m_none;
        consume(_SEMICOLON);
      end;
 { close }
@@ -2052,7 +2052,12 @@ end.
 
 {
   $Log$
-  Revision 1.17  1999-08-30 10:17:57  peter
+  Revision 1.18  1999-09-02 18:47:45  daniel
+    * Could not compile with TP, some arrays moved to heap
+    * NOAG386BIN default for TP
+    * AG386* files were not compatible with TP, fixed.
+
+  Revision 1.17  1999/08/30 10:17:57  peter
     * fixed crash in psub
     * ansistringcompare fixed
     * support for #$0b8
