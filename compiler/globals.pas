@@ -285,6 +285,7 @@ interface
     function  path_absolute(const s : string) : boolean;
     Function  PathExists ( F : String) : Boolean;
     Function  FileExists ( Const F : String) : Boolean;
+    function  FileExistsNonCase(const path,fn:string;var foundfile:string):boolean;
     Function  RemoveFile(const f:string):boolean;
     Function  RemoveDir(d:string):boolean;
     Function  GetFileTime ( Var F : File) : Longint;
@@ -524,6 +525,61 @@ implementation
              do_comment(V_Tried,'Searching file '+F+'... not found');
          end;
         FileExists:=res;
+      end;
+
+
+    function FileExistsNonCase(const path,fn:string;var foundfile:string):boolean;
+      var
+        fn2 : string;
+      begin
+        result:=false;
+        if source_info.files_case_relevent then
+          begin
+            {
+              Search order for case sensitive systems:
+               1. NormalCase
+               2. lowercase
+               3. UPPERCASE
+            }
+            FoundFile:=path+fn;
+            If FileExists(FoundFile) then
+             begin
+               result:=true;
+               exit;
+             end;
+            fn2:=Lower(fn);
+            if fn2<>fn then
+              begin
+                FoundFile:=path+fn2;
+                If FileExists(FoundFile) then
+                 begin
+                   result:=true;
+                   exit;
+                 end;
+              end;
+            fn2:=Upper(fn);
+            if fn2<>fn then
+              begin
+                FoundFile:=path+fn2;
+                If FileExists(FoundFile) then
+                 begin
+                   result:=true;
+                   exit;
+                 end;
+              end;
+          end
+        else
+          begin
+            { None case sensitive only lowercase }
+            FoundFile:=path+Lower(fn);
+            If FileExists(FoundFile) then
+             begin
+               result:=true;
+               exit;
+             end;
+          end;
+        { Set foundfile to something usefull }
+        FoundFile:=fn;
       end;
 
 
@@ -1058,33 +1114,9 @@ implementation
        p:=TStringListItem(first);
        while assigned(p) do
         begin
-          {
-            Search order for case sensitive systems:
-             1. lowercase
-             2. NormalCase
-             3. UPPERCASE
-            None case sensitive only lowercase
-          }
-          FoundFile:=p.Str+Lower(f);
-          If FileExists(FoundFile) then
-           begin
-             FindFile:=true;
-             exit;
-           end;
-{$ifdef UNIX}
-          FoundFile:=p.Str+f;
-          If FileExists(FoundFile) then
-           begin
-             FindFile:=true;
-             exit;
-           end;
-          FoundFile:=p.Str+Upper(f);
-          If FileExists(FoundFile) then
-           begin
-             FindFile:=true;
-             exit;
-           end;
-{$endif UNIX}
+          result:=FileExistsNonCase(p.Str,f,FoundFile);
+          if result then
+            exit;
           p:=TStringListItem(p.next);
         end;
        { Return original filename if not found }
@@ -1137,33 +1169,9 @@ implementation
            i:=256;
           singlepathstring:=FixPath(copy(path,1,i-1),false);
           delete(path,1,i);
-          {
-            Search order for case sensitive systems:
-             1. lowercase
-             2. NormalCase
-             3. UPPERCASE
-            None case sensitive only lowercase
-          }
-          FoundFile:=singlepathstring+Lower(f);
-          If FileExists(FoundFile) then
-           begin
-             FindFile:=true;
-             exit;
-           end;
-{$ifdef UNIX}
-          FoundFile:=singlepathstring+f;
-          If FileExists(FoundFile) then
-           begin
-             FindFile:=true;
-             exit;
-           end;
-          FoundFile:=singlepathstring+Upper(f);
-          If FileExists(FoundFile) then
-           begin
-             FindFile:=true;
-             exit;
-           end;
-{$endif UNIX}
+          result:=FileExistsNonCase(singlepathstring,f,FoundFile);
+          if result then
+            exit;
        until path='';
        FoundFile:=f;
      end;
@@ -1171,6 +1179,7 @@ implementation
 
    function FindFilePchar(const f : string;path : pchar;var foundfile:string):boolean;
       Var
+        flower,
         singlepathstring : string;
         startpc,pc : pchar;
         sepch : char;
@@ -1193,37 +1202,14 @@ implementation
           move(startpc^,singlepathstring[1],pc-startpc);
           singlepathstring[0]:=char(longint(pc-startpc));
           singlepathstring:=FixPath(singlepathstring,false);
-          {
-            Search order for case sensitive systems:
-             1. lowercase
-             2. NormalCase
-             3. UPPERCASE
-            None case sensitive only lowercase
-          }
-          FoundFile:=singlepathstring+Lower(f);
-          If FileExists(FoundFile) then
-           begin
-             FindFilePchar:=true;
-             exit;
-           end;
-{$ifdef UNIX}
-          FoundFile:=singlepathstring+f;
-          If FileExists(FoundFile) then
-           begin
-             FindFilePchar:=true;
-             exit;
-           end;
-          FoundFile:=singlepathstring+Upper(f);
-          If FileExists(FoundFile) then
-           begin
-             FindFilePchar:=true;
-             exit;
-           end;
-{$endif UNIX}
+          result:=FileExistsNonCase(singlepathstring,f,FoundFile);
+          if result then
+            exit;
           if (pc^=#0) then
-           break;
+            break;
           inc(pc);
        until false;
+       foundfile:=f;
      end;
 
 
@@ -1825,7 +1811,7 @@ implementation
         OutputPrefix:=Nil;
         OutputSuffix:=Nil;
         OutputExtension:='';
-        
+
         OutputExeDir:='';
         OutputUnitDir:='';
 
@@ -1936,7 +1922,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.135  2004-08-20 10:29:31  olle
+  Revision 1.136  2004-08-28 20:25:25  peter
+    * optimized search for noncasesensitive names. It now searches
+      first for NormalCase and skips double tests
+
+  Revision 1.135  2004/08/20 10:29:31  olle
     + made fpc work as an MPW tool, by itself calling asm and link.
     * bugfix in fp exception flag settings routine
 
