@@ -97,7 +97,7 @@ unit cg64f32;
        globtype,globals,systems,
        cgbase,
        verbose,
-       symbase,symconst,symdef,defutil;
+       symbase,symconst,symdef,defutil,rgobj;
 
 
     function joinreg64(reglo,reghi : tregister) : tregister64;
@@ -170,7 +170,11 @@ unit cg64f32;
           internalerror(200302035);
         if (tmpref.base.number=reg.reglo.number) then
          begin
+         {$ifdef newra}
+           tmpreg:=rg.getaddressregister(list);
+         {$else}
            tmpreg := cg.get_scratch_reg_address(list);
+         {$endif}
            got_scratch:=true;
            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
            tmpref.base:=tmpreg;
@@ -181,7 +185,11 @@ unit cg64f32;
          { implementation FK                                              }
          if (tmpref.index.number=reg.reglo.number) then
           begin
+          {$ifdef newra}
+            tmpreg:=rg.getaddressregister(list);
+          {$else}
             tmpreg:=cg.get_scratch_reg_address(list);
+          {$endif}
             got_scratch:=true;
             cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.index,tmpreg);
             tmpref.index:=tmpreg;
@@ -189,8 +197,13 @@ unit cg64f32;
         cg.a_load_ref_reg(list,OS_32,tmpref,reg.reglo);
         inc(tmpref.offset,4);
         cg.a_load_ref_reg(list,OS_32,tmpref,reg.reghi);
+{$ifdef newra}
+        if got_scratch then
+          rg.ungetregisterint(list,tmpreg);
+{$else}
         if got_scratch then
           cg.free_scratch_reg(list,tmpreg);
+{$endif}
       end;
 
 
@@ -399,12 +412,22 @@ unit cg64f32;
       var
         tempreg: tregister64;
       begin
+      {$ifdef newra}
+        tempreg.reghi:=rg.getregisterint(list,OS_INT);
+        tempreg.reglo:=rg.getregisterint(list,OS_INT);
+      {$else}
         tempreg.reghi := cg.get_scratch_reg_int(list,OS_INT);
         tempreg.reglo := cg.get_scratch_reg_int(list,OS_INT);
+      {$endif}
         a_load64_ref_reg(list,ref,tempreg);
         a_op64_reg_reg(list,op,tempreg,reg);
+      {$ifdef newra}
+        rg.ungetregisterint(list,tempreg.reglo);
+        rg.ungetregisterint(list,tempreg.reghi);
+      {$else}
         cg.free_scratch_reg(list,tempreg.reglo);
         cg.free_scratch_reg(list,tempreg.reghi);
+      {$endif}
       end;
 
 
@@ -412,13 +435,23 @@ unit cg64f32;
       var
         tempreg: tregister64;
       begin
+      {$ifdef newra}
+        tempreg.reghi:=rg.getregisterint(list,OS_INT);
+        tempreg.reglo:=rg.getregisterint(list,OS_INT);
+      {$else}
         tempreg.reghi := cg.get_scratch_reg_int(list,OS_INT);
         tempreg.reglo := cg.get_scratch_reg_int(list,OS_INT);
+      {$endif}
         a_load64_ref_reg(list,ref,tempreg);
         a_op64_reg_reg(list,op,reg,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
+      {$ifdef newra}
+        rg.ungetregisterint(list,tempreg.reglo);
+        rg.ungetregisterint(list,tempreg.reghi);
+      {$else}
         cg.free_scratch_reg(list,tempreg.reglo);
         cg.free_scratch_reg(list,tempreg.reghi);
+      {$endif}
       end;
 
 
@@ -426,13 +459,23 @@ unit cg64f32;
       var
         tempreg: tregister64;
       begin
+      {$ifdef newra}
+        tempreg.reghi:=rg.getregisterint(list,OS_INT);
+        tempreg.reglo:=rg.getregisterint(list,OS_INT);
+      {$else}
         tempreg.reghi := cg.get_scratch_reg_int(list,OS_INT);
         tempreg.reglo := cg.get_scratch_reg_int(list,OS_INT);
+      {$endif}
         a_load64_ref_reg(list,ref,tempreg);
         a_op64_const_reg(list,op,value,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
+      {$ifdef newra}
+        rg.ungetregisterint(list,tempreg.reglo);
+        rg.ungetregisterint(list,tempreg.reghi);
+      {$else}
         cg.free_scratch_reg(list,tempreg.reglo);
         cg.free_scratch_reg(list,tempreg.reghi);
+      {$endif}
       end;
 
     procedure tcg64f32.a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);
@@ -539,7 +582,11 @@ unit cg64f32;
                end
              else
                begin
+               {$ifdef newra}
+                 hreg:=rg.getregisterint(list,OS_INT);
+               {$else}
                  hreg := cg.get_scratch_reg_int(list,OS_INT);
+               {$endif}
                  got_scratch := true;
                  a_load64high_ref_reg(list,p.location.reference,hreg);
                end;
@@ -555,8 +602,13 @@ unit cg64f32;
                  cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,aword(-1),hreg,neglabel);
                end;
              { !!! freeing of register should happen directly after compare! (JM) }
+           {$ifdef newra}
+             if got_scratch then
+               rg.ungetregisterint(list,hreg);
+           {$else}
              if got_scratch then
                cg.free_scratch_reg(list,hreg);
+           {$endif}
              { For all other values we have a range check error }
              cg.a_call_name(list,'FPC_RANGEERROR');
 
@@ -587,7 +639,11 @@ unit cg64f32;
                    end
                  else
                    begin
+                   {$ifdef newra}
+                     hreg:=rg.getregisterint(list,OS_INT);
+                   {$else}
                      hreg := cg.get_scratch_reg_int(list,OS_INT);
+                   {$endif}
                      got_scratch := true;
                      a_load64low_ref_reg(list,p.location.reference,hreg);
                    end;
@@ -595,8 +651,13 @@ unit cg64f32;
                  objectlibrary.getlabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_LT,0,hreg,neglabel);
                  { !!! freeing of register should happen directly after compare! (JM) }
+               {$ifdef newra}
+                 if got_scratch then
+                   rg.ungetregisterint(list,hreg);
+               {$else}
                  if got_scratch then
                    cg.free_scratch_reg(list,hreg);
+               {$endif}
 
                  cg.a_call_name(list,'FPC_RANGEERROR');
 
@@ -641,7 +702,11 @@ unit cg64f32;
                  end
                else
                  begin
+                 {$ifdef newra}
+                   hreg:=rg.getregisterint(list,OS_INT);
+                 {$else}
                    hreg := cg.get_scratch_reg_int(list,OS_INT);
+                 {$endif}
                    got_scratch := true;
 
                    opsize := def_cgsize(p.resulttype.def);
@@ -654,8 +719,13 @@ unit cg64f32;
                cg.a_cmp_const_reg_label(list,opsize,OC_GTE,0,hreg,poslabel);
 
                { !!! freeing of register should happen directly after compare! (JM) }
+             {$ifdef newra}
+               if got_scratch then
+                 rg.ungetregisterint(list,hreg);
+             {$else}
                if got_scratch then
                  cg.free_scratch_reg(list,hreg);
+             {$endif}
                cg.a_call_name(list,'FPC_RANGEERROR');
                cg.a_label(list,poslabel);
              end;
@@ -766,7 +836,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2003-04-07 08:52:58  jonas
+  Revision 1.39  2003-04-22 10:09:34  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.38  2003/04/07 08:52:58  jonas
     * fixed compiling error
 
   Revision 1.37  2003/04/07 08:45:09  jonas

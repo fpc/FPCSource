@@ -110,11 +110,15 @@ implementation
        { also a second value ? }
          if assigned(right) then
            begin
+           {$ifndef newra}
              maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+           {$endif}
              secondpass(right);
              if codegenerror then
                exit;
+           {$ifndef newra}
              maybe_restore(exprasmlist,left.location,pushedregs);
+           {$endif newra}
              if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
               location_force_reg(exprasmlist,right.location,OS_32,false);
            end;
@@ -264,9 +268,13 @@ implementation
          { Only process the right if we are not generating jumps }
          if not genjumps then
           begin
+          {$ifndef newra}
             maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+          {$endif}
             secondpass(right);
+          {$ifndef newra}
             maybe_restore(exprasmlist,left.location,pushedregs);
+          {$endif}
           end;
          if codegenerror then
           exit;
@@ -312,7 +320,11 @@ implementation
             else
              begin
                { load the value in a register }
+             {$ifdef newra}
+               pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
+             {$else}
                pleftreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+             {$endif}
                opsize := OS_INT;
                cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,pleftreg);
              end;
@@ -340,7 +352,11 @@ implementation
                       if (left.location.loc = LOC_CREGISTER) and
                          (hr.enum <> pleftreg.enum) then
                         begin
+                        {$ifdef newra}
+                          hr:=rg.getregisterint(exprasmlist,OS_INT);
+                        {$else}
                           hr:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
+                        {$endif}
                           cg.a_op_const_reg_reg(exprasmlist,OP_SUB,opsize,setparts[i].start,pleftreg,hr);
                           pleftreg:=hr;
                           opsize := OS_INT;
@@ -388,13 +404,21 @@ implementation
              cg.a_label(exprasmlist,l3);
              case left.location.loc of
                LOC_CREGISTER :
+                {$ifdef newra}
+                 rg.ungetregisterint(exprasmlist,pleftreg);
+                {$else}
                  cg.free_scratch_reg(exprasmlist,pleftreg);
+                {$endif}
                LOC_REGISTER :
                  rg.ungetregister(exprasmlist,pleftreg);
                else
                  begin
                    reference_release(exprasmlist,left.location.reference);
+                  {$ifdef newra}
+                   rg.ungetregisterint(exprasmlist,pleftreg);
+                  {$else}
                    cg.free_scratch_reg(exprasmlist,pleftreg);
+                  {$endif}
                  end;
              end;
           end
@@ -412,7 +436,11 @@ implementation
                 begin
                   { clear the register value, indicating result is FALSE }
                   cg.a_load_const_reg(exprasmlist,OS_INT,0,location.register);
+                {$ifdef newra}
+                  hr:=rg.getregisterint(exprasmlist,OS_INT);
+                {$else}
                   hr:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
+                {$endif}
                   case right.location.loc of
                     LOC_REGISTER,
                     LOC_CREGISTER:
@@ -444,14 +472,23 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr3:=rg.makeregsize(left.location.register,OS_INT);
+                          hr3.enum:=R_INTREGISTER;
+                          hr3.number:=(left.location.register.number and not $ff) or R_SUBWHOLE;
                           cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr3);
+                        {$ifdef newra}
+                          hr:=rg.getregisterint(exprasmlist,OS_INT);
+                        {$else}
                           hr:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
+                        {$endif}
                           cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,hr3,hr);
                        end;
                   else
                     begin
+                    {$ifdef newra}
+                      hr:=rg.getregisterint(exprasmlist,OS_INT);
+                    {$else}
                       hr:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
+                    {$endif}
                       cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),
                          left.location.reference,hr);
                       location_release(exprasmlist,left.location);
@@ -496,7 +533,11 @@ implementation
                        internalerror(2002032210);
                   end;
                   { free bitnumber register }
+                {$ifdef newra}
+                  rg.ungetregisterint(exprasmlist,hr);
+                {$else}
                   cg.free_scratch_reg(exprasmlist,hr);
+                {$endif}
                 end;
              end
             else
@@ -683,9 +724,17 @@ implementation
            begin
               last:=0;
               first:=true;
+            {$ifdef newra}
+              scratch_reg:=rg.getregisterint(exprasmlist,OS_INT);
+            {$else newra}
               scratch_reg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+            {$endif}
               genitem(hp);
+            {$ifdef newra}
+              rg.ungetregisterint(exprasmlist,scratch_reg);
+            {$else}
               cg.free_scratch_reg(exprasmlist,scratch_reg);
+            {$endif}
               cg.a_jmp_always(exprasmlist,elselabel);
            end;
       end;
@@ -1063,7 +1112,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2003-02-19 22:00:14  daniel
+  Revision 1.27  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.26  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

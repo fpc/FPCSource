@@ -373,10 +373,26 @@ implementation
                 procinfo.aktproccode.insertlist(procinfo.aktentrycode);
                 procinfo.aktproccode.concatlist(procinfo.aktexitcode);
 {$ifdef newra}
-                rg.writegraph;
+{                rg.writegraph;}
 {$endif}
                 if not(cs_no_regalloc in aktglobalswitches) then
                   begin
+{$ifdef newra}
+                    {Do register allocation.}
+                    repeat
+                      rg.prepare_colouring;
+                      rg.colour_registers;
+                      rg.epilogue_colouring;
+                      {Are there spilled registers? We cannot do that yet.}
+                      if rg.spillednodes<>'' then
+                        internalerror(200304221);
+                      {if not try_fast_spill(rg) then
+                        slow_spill(rg);
+                      }
+                    until rg.spillednodes='';
+                    procinfo.aktproccode.translate_registers(rg.colour);
+                    procinfo.aktproccode.convert_registers;
+{$else newra}
                     procinfo.aktproccode.convert_registers;
 {$ifndef NoOpt}
                     if (cs_optimize in aktglobalswitches) and
@@ -384,6 +400,7 @@ implementation
                        ((procinfo.flags and pi_is_assembler)=0)  then
                       optimize(procinfo.aktproccode);
 {$endif NoOpt}
+{$endif newra}
                   end;
                 { save local data (casetable) also in the same file }
                 if assigned(procinfo.aktlocaldata) and
@@ -867,7 +884,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2003-04-17 07:50:24  daniel
+  Revision 1.99  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.98  2003/04/17 07:50:24  daniel
     * Some work on interference graph construction
 
   Revision 1.97  2003/04/16 09:26:55  jonas

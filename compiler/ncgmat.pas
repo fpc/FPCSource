@@ -257,9 +257,13 @@ implementation
          secondpass(left);
          if codegenerror then
           exit;
+        {$ifndef newra}
          maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+        {$endif}
          secondpass(right);
+        {$ifndef newra}
          maybe_restore(exprasmlist,left.location,pushedregs);
+        {$endif newra}
          if codegenerror then
           exit;
          location_copy(location,left.location);
@@ -350,9 +354,13 @@ implementation
       begin
          freescratch:=false;
          secondpass(left);
+      {$ifndef newra}
          maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+      {$endif newra}
          secondpass(right);
+      {$ifndef newra}
          maybe_restore(exprasmlist,left.location,pushedregs);
+      {$endif}
          { determine operator }
          case nodetype of
            shln: op:=OP_SHL;
@@ -428,15 +436,24 @@ implementation
                      begin
                        if right.location.loc<>LOC_CREGISTER then
                         location_release(exprasmlist,right.location);
+                     {$ifdef newra}
+                       hcountreg:=rg.getregisterint(exprasmlist,OS_INT);
+                     {$else}
                        hcountreg:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
+                     {$endif}
                        freescratch := true;
                        cg.a_load_loc_reg(exprasmlist,right.location,hcountreg);
                      end
                    else
                      hcountreg:=right.location.register;
                    cg.a_op_reg_reg(exprasmlist,op,OS_INT,hcountreg,location.register);
+                 {$ifdef newra}
+                   if freescratch then
+                      rg.ungetregisterint(exprasmlist,hcountreg);
+                 {$else}
                    if freescratch then
                       cg.free_scratch_reg(exprasmlist,hcountreg);
+                 {$endif}
                 end;
            end;
       end;
@@ -450,7 +467,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-03-28 19:16:56  peter
+  Revision 1.8  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.7  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

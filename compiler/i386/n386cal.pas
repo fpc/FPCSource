@@ -146,9 +146,17 @@ implementation
         { better than an add on all processors }
         if pop_size=4 then
           begin
+          {$ifdef newra}
+            hreg:=rg.getregisterint(exprasmlist,OS_INT);
+          {$else}
             hreg:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
+          {$endif}
             exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
+          {$ifdef newra}
+            rg.ungetregisterint(exprasmlist,hreg);
+          {$else}
             cg.free_scratch_reg(exprasmlist,hreg);
+          {$endif newra}
           end
         { the pentium has two pipes and pop reg is pairable }
         { but the registers must be different!        }
@@ -158,9 +166,17 @@ implementation
              (aktoptprocessor=ClassP5) and
              (rg.countunusedregsint>0) then
             begin
+            {$ifdef newra}
+               hreg:=rg.getregisterint(exprasmlist,OS_INT);
+            {$else}
                hreg:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
+            {$endif}
                exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
+            {$ifdef newra}
+               rg.ungetregisterint(exprasmlist,hreg);
+            {$else}
                cg.free_scratch_reg(exprasmlist,hreg);
+            {$endif}
                hreg:=rg.getregisterint(exprasmlist,OS_INT);
                exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
                rg.ungetregisterint(exprasmlist,hreg);
@@ -185,7 +201,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2003-04-04 15:38:56  peter
+  Revision 1.88  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.87  2003/04/04 15:38:56  peter
     * moved generic code from n386cal to ncgcal, i386 now also
       uses the generic ncgcal
 

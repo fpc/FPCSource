@@ -77,9 +77,7 @@ implementation
       secondpass(left);
       if codegenerror then
         exit;
-      maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
       secondpass(right);
-      maybe_restore(exprasmlist,left.location,pushedregs);
       if codegenerror then
         exit;
 
@@ -154,15 +152,22 @@ implementation
             emit_none(A_CDQ,S_NO);
 
           {Division depends on the right type.}
-          if torddef(right.resulttype.def).typ=u32bit then
+          if Torddef(right.resulttype.def).typ=u32bit then
             op:=A_DIV
           else
             op:=A_IDIV;
 
           if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
             emit_ref(op,S_L,right.location.reference)
+          else if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+            emit_reg(op,S_L,right.location.register)
           else
-            emit_reg(op,S_L,right.location.register);
+            begin
+              hreg1:=rg.getregisterint(exprasmlist,right.location.size);
+              cg.a_load_loc_reg(exprasmlist,right.location,hreg1);
+              rg.ungetregisterint(exprasmlist,hreg1);
+              emit_reg(op,S_L,hreg1);
+            end;
           location_release(exprasmlist,right.location);
 
           {Copy the result into a new register. Release EAX & EDX.}
@@ -425,9 +430,13 @@ implementation
 
     begin
       secondpass(left);
+    {$ifndef newra}
       maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+    {$endif}
       secondpass(right);
+    {$ifndef newra}
       maybe_restore(exprasmlist,left.location,pushedregs);
+    {$endif newra}
 
       { determine operator }
       if nodetype=shln then
@@ -1172,7 +1181,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-04-21 19:15:26  peter
+  Revision 1.51  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.50  2003/04/21 19:15:26  peter
     * when ecx is not available allocated another register
 
   Revision 1.49  2003/04/17 10:02:48  daniel

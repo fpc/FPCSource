@@ -435,6 +435,7 @@ interface
           procedure loadref(opidx:longint;const r:treference);
           procedure loadreg(opidx:longint;r:tregister);
           procedure loadoper(opidx:longint;o:toper);
+          function is_nop:boolean;virtual;abstract;
        end;
 
        { alignment for operator }
@@ -450,9 +451,12 @@ interface
           function calculatefillbuf(var buf : tfillbuffer):pchar;virtual;
        end;
 
+       Ttranstable=array[Tsuperregister] of Tsuperregister;
+
        taasmoutput = class(tlinkedlist)
           function getlasttaifilepos : pfileposinfo;
           procedure convert_registers;
+          procedure translate_registers(const table:Ttranstable);
        end;
 
 
@@ -1767,10 +1771,56 @@ uses
         end;
     end;
 
+    procedure Taasmoutput.translate_registers(const table:Ttranstable);
+
+    var p,q:Tai;
+        i:shortint;
+        r:Preference;
+
+    begin
+      p:=Tai(first);
+      while assigned(p) do
+        begin
+          case p.typ of
+            ait_regalloc:
+              Tai_regalloc(p).reg.number:=(Tai_regalloc(p).reg.number and $ff) or
+                                          (table[Tai_regalloc(p).reg.number shr 8] shl 8);
+            ait_instruction:
+              begin
+                for i:=0 to Taicpu_abstract(p).ops-1 do
+                  if Taicpu_abstract(p).oper[i].typ=Top_reg then
+                    Taicpu_abstract(p).oper[i].reg.number:=(Taicpu_abstract(p).oper[i].reg.number and $ff) or
+                                                           (table[Taicpu_abstract(p).oper[i].reg.number shr 8] shl 8)
+                  else if Taicpu_abstract(p).oper[i].typ=Top_ref then
+                    begin
+                      r:=Taicpu_abstract(p).oper[i].ref;
+                      r^.base.number:=(r^.base.number and $ff) or
+                                      (table[r^.base.number shr 8] shl 8);
+                      r^.index.number:=(r^.index.number and $ff) or
+                                       (table[r^.index.number shr 8] shl 8);
+                    end;
+                if Taicpu_abstract(p).is_nop then
+                  begin
+                    q:=p;
+                    p:=Tai(p.next);
+                    remove(q);
+                    continue;
+                  end;
+              end;
+          end;
+          p:=Tai(p.next);
+        end;
+    end;
+
 end.
 {
   $Log$
-  Revision 1.21  2003-02-19 22:00:14  daniel
+  Revision 1.22  2003-04-22 10:09:34  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.21  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

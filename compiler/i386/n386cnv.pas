@@ -117,7 +117,11 @@ implementation
                    hregister:=left.location.register;
                  else
                    begin
+                    {$ifdef newra}
+                     hregister:=rg.getregisterint(exprasmlist,OS_32);
+                    {$else}
                      hregister:=cg.get_scratch_reg_int(exprasmlist,OS_32);
+                    {$endif}
                      freereg:=true;
                      cg.a_load_reg_reg(exprasmlist,left.location.size,OS_32,left.location.register,hregister);
                    end;
@@ -126,7 +130,11 @@ implementation
            LOC_REFERENCE,
            LOC_CREFERENCE :
              begin
+              {$ifdef newra}
+               hregister:=rg.getregisterint(exprasmlist,OS_INT);
+              {$else}
                hregister:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
+              {$endif newra}
                freereg:=true;
                if left.location.size in [OS_64,OS_S64] then
                 begin
@@ -147,8 +155,13 @@ implementation
 
          { for 64 bit integers, the high dword is already pushed }
          exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,hregister));
+        {$ifdef newra}
+         if freereg then
+           rg.ungetregisterint(exprasmlist,hregister);
+        {$else}
          if freereg then
            cg.free_scratch_reg(exprasmlist,hregister);
+        {$endif}
          r.enum:=R_INTREGISTER;
          r.number:=NR_ESP;
          reference_reset_base(href,r,0);
@@ -268,10 +281,18 @@ implementation
               begin
                 if left.location.size in [OS_64,OS_S64] then
                  begin
+                 {$ifdef newra}
+                   hregister:=rg.getregisterint(exprasmlist,OS_32);
+                 {$else}
                    hregister:=cg.get_scratch_reg_int(exprasmlist,OS_32);
+                 {$endif}
                    cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.registerlow,hregister);
                    cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
+                 {$ifdef newra}
+                   rg.ungetregisterint(exprasmlist,hregister);
+                 {$else}
                    cg.free_scratch_reg(exprasmlist,hregister);
+                 {$endif}
                  end
                 else
                  cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
@@ -432,7 +453,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-03-13 19:52:23  jonas
+  Revision 1.58  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.57  2003/03/13 19:52:23  jonas
     * and more new register allocator fixes (in the i386 code generator this
       time). At least now the ppc cross compiler can compile the linux
       system unit again, but I haven't tested it.

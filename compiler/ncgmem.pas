@@ -406,12 +406,20 @@ implementation
                   usetemp:=true;
                   if is_class_or_interface(left.resulttype.def) then
                     begin
+                    {$ifdef newra}
+                      tmpreg:=rg.getregisterint(exprasmlist,OS_INT);
+                    {$else}
                       tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+                    {$endif}
                       cg.a_load_loc_reg(exprasmlist,left.location,tmpreg)
                     end
                   else
                     begin
+                    {$ifdef newra}
+                      tmpreg:=rg.getaddressregister(exprasmlist);
+                    {$else}
                       tmpreg := cg.get_scratch_reg_address(exprasmlist);
+                    {$endif newra}
                       cg.a_loadaddr_ref_reg(exprasmlist,
                         left.location.reference,tmpreg);
                     end;
@@ -444,7 +452,11 @@ implementation
                   tg.GetTemp(exprasmlist,pointer_size,tt_persistant,withreference);
                   { move to temp reference }
                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,withreference);
+                {$ifdef newra}
+                  rg.ungetregisterint(exprasmlist,tmpreg);
+                {$else}
                   cg.free_scratch_reg(exprasmlist,tmpreg);
+                {$endif}
 {$ifdef GDB}
                   if (cs_debuginfo in aktmoduleswitches) then
                     begin
@@ -580,7 +592,11 @@ implementation
                  hreg:=right.location.register
                else
                  begin
+                 {$ifdef newra}
+                   hreg:=rg.getregisterint(exprasmlist,OS_INT);
+                 {$else}
                    hreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+                 {$endif}
                    freereg:=true;
                    cg.a_load_loc_reg(exprasmlist,right.location,hreg);
                  end;
@@ -588,8 +604,13 @@ implementation
                objectlibrary.getlabel(poslabel);
                cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_LT,0,hreg,poslabel);
                cg.a_cmp_loc_reg_label(exprasmlist,OS_INT,OC_BE,hightree.location,hreg,neglabel);
+             {$ifdef newra}
+               if freereg then
+                 rg.ungetregisterint(exprasmlist,hreg);
+             {$else}
                if freereg then
                  cg.free_scratch_reg(exprasmlist,hreg);
+             {$endif}
                cg.a_label(exprasmlist,poslabel);
                cg.a_call_name(exprasmlist,'FPC_RANGEERROR');
                cg.a_label(exprasmlist,neglabel);
@@ -843,9 +864,13 @@ implementation
                  ofl:=falselabel;
                  objectlibrary.getlabel(falselabel);
                end;
+            {$ifndef newra}
               maybe_save(exprasmlist,right.registers32,location,pushedregs);
+            {$endif}
               secondpass(right);
+            {$ifndef newra}
               maybe_restore(exprasmlist,location,pushedregs);
+            {$endif}
 
               if cs_check_range in aktlocalswitches then
                begin
@@ -919,7 +944,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-04-06 21:11:23  olle
+  Revision 1.46  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.45  2003/04/06 21:11:23  olle
     * changed newasmsymbol to newasmsymboldata for data symbols
 
   Revision 1.44  2003/03/28 19:16:56  peter

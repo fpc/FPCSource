@@ -200,9 +200,13 @@ implementation
          { Only process the right if we are not generating jumps }
          if not genjumps then
           begin
+          {$ifndef newra}
             maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+          {$endif}
             secondpass(right);
+          {$ifndef newra}
             maybe_restore(exprasmlist,left.location,pushedregs);
+          {$endif newra}
           end;
          if codegenerror then
           exit;
@@ -720,7 +724,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2003-03-13 19:52:23  jonas
+  Revision 1.52  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.51  2003/03/13 19:52:23  jonas
     * and more new register allocator fixes (in the i386 code generator this
       time). At least now the ppc cross compiler can compile the linux
       system unit again, but I haven't tested it.

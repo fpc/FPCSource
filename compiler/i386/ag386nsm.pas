@@ -460,7 +460,7 @@ interface
                else
                 regstr:=std_reg2str[tai_regalloc(hp).reg.enum];
                if (cs_asm_regalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Register '+regstr+
+                 AsmWriteLn(#9#9+target_asm.comment+'Register '+regstr+
                    allocstr[tai_regalloc(hp).allocation]);
              end;
 
@@ -921,7 +921,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.32  2003-03-08 13:59:17  daniel
+  Revision 1.33  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.32  2003/03/08 13:59:17  daniel
     * Work to handle new register notation in ag386nsm
     + Added newra version of Ti386moddivnode
 

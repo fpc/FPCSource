@@ -363,10 +363,18 @@ implementation
                           rg.ungetregisterint(exprasmlist,hregister);
                           { load address of the function }
                           reference_reset_symbol(href,objectlibrary.newasmsymbol(tprocdef(resulttype.def).mangledname),0);
+                        {$ifdef newra}
+                          hregister:=rg.getaddressregister(exprasmlist);
+                        {$else}
                           hregister:=cg.get_scratch_reg_address(exprasmlist);
+                        {$endif}
                           cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
                           cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,location.reference);
+                        {$ifdef newra}
+                          rg.ungetregisterint(exprasmlist,hregister);
+                        {$else newra}
                           cg.free_scratch_reg(exprasmlist,hregister);
+                        {$endif}
                         end;
                     end
                   else
@@ -443,12 +451,16 @@ implementation
             begin
               { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
               { can be false                                             }
+            {$ifndef newra}
               maybe_save(exprasmlist,left.registers32,right.location,pushedregs);
+            {$endif}
               secondpass(left);
               { decrement destination reference counter }
               if (left.resulttype.def.needs_inittable) then
                cg.g_decrrefcount(exprasmlist,left.resulttype.def,left.location.reference);
+            {$ifndef newra}
               maybe_restore(exprasmlist,right.location,pushedregs);
+            {$endif newra}
               if codegenerror then
                 exit;
             end;
@@ -469,14 +481,18 @@ implementation
 
            { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
            { can be false                                             }
+          {$ifndef newra}
            maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+          {$endif newra}
            secondpass(right);
            { increment source reference counter, this is
              useless for string constants}
            if (right.resulttype.def.needs_inittable) and
               (right.nodetype<>stringconstn) then
             cg.g_incrrefcount(exprasmlist,right.resulttype.def,right.location.reference);
+          {$ifndef newra}
            maybe_restore(exprasmlist,left.location,pushedregs);
+          {$endif}
 
            if codegenerror then
              exit;
@@ -633,9 +649,13 @@ implementation
                   { generate the leftnode for the true case, and
                     release the location }
                   cg.a_label(exprasmlist,truelabel);
+                {$ifndef newra}
                   maybe_save(exprasmlist,left.registers32,right.location,pushedregs);
+                {$endif newra}
                   secondpass(left);
+                {$ifndef newra}
                   maybe_restore(exprasmlist,right.location,pushedregs);
+                {$endif newra}
                   if codegenerror then
                     exit;
                   cg.a_load_const_loc(exprasmlist,1,left.location);
@@ -643,9 +663,13 @@ implementation
                   cg.a_jmp_always(exprasmlist,hlabel);
                   { generate the leftnode for the false case }
                   cg.a_label(exprasmlist,falselabel);
+                {$ifndef newra}
                   maybe_save(exprasmlist,left.registers32,right.location,pushedregs);
+                {$endif}
                   secondpass(left);
+                {$ifndef newra}
                   maybe_restore(exprasmlist,right.location,pushedregs);
+                {$endif newra}
                   if codegenerror then
                     exit;
                   cg.a_load_const_loc(exprasmlist,0,left.location);
@@ -910,10 +934,18 @@ implementation
                     if vaddr then
                      begin
                        location_force_mem(exprasmlist,hp.left.location);
+                     {$ifdef newra}
+                       tmpreg:=rg.getaddressregister(exprasmlist);
+                     {$else}
                        tmpreg:=cg.get_scratch_reg_address(exprasmlist);
+                     {$endif}
                        cg.a_loadaddr_ref_reg(exprasmlist,hp.left.location.reference,tmpreg);
                        cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
+                     {$ifdef newra}
+                       rg.ungetregisterint(exprasmlist,tmpreg);
+                     {$else}
                        cg.free_scratch_reg(exprasmlist,tmpreg);
+                     {$endif}
                        location_release(exprasmlist,hp.left.location);
                        if freetemp then
                          location_freetemp(exprasmlist,hp.left.location);
@@ -970,7 +1002,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-04-06 21:11:23  olle
+  Revision 1.48  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.47  2003/04/06 21:11:23  olle
     * changed newasmsymbol to newasmsymboldata for data symbols
 
   Revision 1.46  2003/03/28 19:16:56  peter

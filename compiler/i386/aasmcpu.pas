@@ -199,6 +199,7 @@ interface
          function  NeedAddrPrefix(opidx:byte):boolean;
          procedure Swapoperands;
     {$endif NOAG386BIN}
+         function is_nop:boolean;override;
       end;
 
 
@@ -1898,6 +1899,17 @@ implementation
       end;
 {$endif NOAG386BIN}
 
+    function Taicpu.is_nop:boolean;
+
+    begin
+      {We do not check the number of operands; we assume that nobody constructs
+       a mov or xchg instruction with less than 2 operands.}
+      is_nop:=(opcode=A_NOP) or
+              (opcode=A_MOV) and (oper[0].typ=top_reg) and (oper[1].typ=top_reg) and (oper[0].reg.number=oper[1].reg.number) or
+              (opcode=A_XCHG) and (oper[0].typ=top_reg) and (oper[1].typ=top_reg) and (oper[0].reg.number=oper[1].reg.number);
+    end;
+
+
 {*****************************************************************************
                               Instruction table
 *****************************************************************************}
@@ -1947,7 +1959,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2003-03-26 12:50:54  armin
+  Revision 1.16  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.15  2003/03/26 12:50:54  armin
   * avoid problems with the ide in init/dome
 
   Revision 1.14  2003/03/08 08:59:07  daniel

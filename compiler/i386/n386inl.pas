@@ -288,10 +288,14 @@ implementation
           else
             begin
               { generate code for the element to set }
+            {$ifndef newra}
               maybe_save(exprasmlist,tcallparanode(tcallparanode(left).right).left.registers32,
                         tcallparanode(left).left.location,pushedregs);
+            {$endif}
               secondpass(tcallparanode(tcallparanode(left).right).left);
+            {$ifndef newra}
               maybe_restore(exprasmlist,tcallparanode(left).left.location,pushedregs);
+            {$endif}
               { determine asm operator }
               if inlinenumber=in_include_x_y then
                  asmop:=A_BTS
@@ -316,15 +320,24 @@ implementation
               else
                 begin
                   scratch_reg := TRUE;
+                {$ifdef newra}
+                  hregister:=rg.getregisterint(exprasmlist,OS_INT);
+                {$else}
                   hregister:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
+                {$endif newra}
                 end;
               cg.a_load_loc_reg(exprasmlist,tcallparanode(tcallparanode(left).right).left.location,hregister);
               if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
                 emit_reg_ref(asmop,S_L,hregister,tcallparanode(left).left.location.reference)
               else
                 emit_reg_reg(asmop,S_L,hregister,tcallparanode(left).left.location.register);
+            {$ifdef newra}
+              if scratch_reg then
+                rg.ungetregisterint(exprasmlist,hregister);
+            {$else}
               if scratch_reg then
                 cg.free_scratch_reg(exprasmlist,hregister);
+            {$endif newra}
             end;
         end;
 
@@ -334,7 +347,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-02-19 22:00:15  daniel
+  Revision 1.57  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.56  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

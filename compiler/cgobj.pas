@@ -59,9 +59,11 @@ unit cgobj;
           sould be @link(tcg64f32) and not @var(tcg).
        }
        tcg = class
+{$ifndef newra}
           scratch_register_array_pointer : aword;
           {# List of currently unused scratch registers }
           unusedscratchregisters:Tsupregset;
+{$endif}
 
           alignment : talignment;
           {************************************************}
@@ -79,6 +81,7 @@ unit cgobj;
           {# Deallocates register r by inserting a pa_regdealloc record}
           procedure a_reg_dealloc(list : taasmoutput;r : tregister);
 
+{$ifndef newra}
           {# @abstract(Returns an int register for use as scratch register)
              This routine returns a register which can be used by
              the code generator as a general purpose scratch register.
@@ -102,6 +105,7 @@ unit cgobj;
              was previously allocated using @link(get_scratch_reg).
           }
           procedure free_scratch_reg(list : taasmoutput;r : tregister);
+{$endif newra}
           {# Pass a parameter, which is located in a register, to a routine.
 
              This routine should push/send the parameter to the routine, as
@@ -503,7 +507,9 @@ unit cgobj;
        rgobj,cutils;
 
     const
+{$ifndef newra}
       max_scratch_regs = high(scratch_regs) - low(scratch_regs) + 1;
+{$endif}
 
       { Please leave this here, this module should NOT use
         exprasmlist, the lists are always passed as arguments.
@@ -520,9 +526,11 @@ unit cgobj;
          i : longint;
 
       begin
+{$ifndef newra}
          scratch_register_array_pointer:=1;
          for i:=low(scratch_regs) to high(scratch_regs) do
            include(unusedscratchregisters,scratch_regs[i]);
+{$endif}
       end;
 
     procedure tcg.a_reg_alloc(list : taasmoutput;r : tregister);
@@ -543,6 +551,7 @@ unit cgobj;
          list.concat(tai_label.create(l));
       end;
 
+{$ifndef newra}
     function tcg.get_scratch_reg_int(list:taasmoutput;size:Tcgsize):tregister;
 
       var
@@ -587,6 +596,7 @@ unit cgobj;
          include(unusedscratchregisters,r.number shr 8);
          a_reg_dealloc(list,r);
       end;
+{$endif newra}
 
 {*****************************************************************************
           for better code generation these methods should be overridden
@@ -626,20 +636,36 @@ unit cgobj;
          hr : tregister;
 
       begin
+      {$ifdef newra}
+         hr:=rg.getregisterint(list,size);
+      {$else}
          hr:=get_scratch_reg_int(list,size);
+      {$endif}
          a_load_const_reg(list,size,a,hr);
          a_param_reg(list,size,hr,locpara);
+      {$ifdef newra}
+         rg.ungetregisterint(list,hr);
+      {$else}
          free_scratch_reg(list,hr);
+      {$endif}
       end;
 
     procedure tcg.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
       var
          hr : tregister;
       begin
+      {$ifdef newra}
+         hr:=rg.getregisterint(list,size);
+      {$else}
          hr:=get_scratch_reg_int(list,size);
+      {$endif}
          a_load_ref_reg(list,size,r,hr);
          a_param_reg(list,size,hr,locpara);
+      {$ifdef newra}
+         rg.ungetregisterint(list,hr);
+      {$else}
          free_scratch_reg(list,hr);
+      {$endif}
       end;
 
 
@@ -664,10 +690,18 @@ unit cgobj;
       var
          hr : tregister;
       begin
+      {$ifdef newra}
+         hr:=rg.getaddressregister(list);
+      {$else newra}
          hr:=get_scratch_reg_address(list);
+      {$endif}
          a_loadaddr_ref_reg(list,r,hr);
          a_param_reg(list,OS_ADDR,hr,locpara);
+      {$ifdef newra}
+         rg.ungetregisterint(list,hr);
+      {$else}
          free_scratch_reg(list,hr);
+      {$endif}
       end;
 
 
@@ -732,7 +766,11 @@ unit cgobj;
             tmpreg := rg.getregisterint(list,size)
         else
 {$endif i386}
+{$ifdef newra}
+        tmpreg:=rg.getregisterint(list,size);
+{$else}
         tmpreg := get_scratch_reg_int(list,size);
+{$endif}
         a_load_ref_reg(list,size,sref,tmpreg);
         a_load_reg_ref(list,size,tmpreg,dref);
 {$ifdef i386}
@@ -745,7 +783,11 @@ unit cgobj;
           end
         else
 {$endif i386}
+{$ifdef newra}
+        rg.ungetregisterint(list,tmpreg);
+{$else}
         free_scratch_reg(list,tmpreg);
+{$endif}
       end;
 
 
@@ -755,10 +797,18 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
+{$ifdef newra}
+        tmpreg:=rg.getregisterint(list,size);
+{$else}
         tmpreg := get_scratch_reg_int(list,size);
+{$endif}
         a_load_const_reg(list,size,a,tmpreg);
         a_load_reg_ref(list,size,tmpreg,ref);
+{$ifdef newra}
+        rg.ungetregisterint(list,tmpreg);
+{$else}
         free_scratch_reg(list,tmpreg);
+{$endif}
       end;
 
 
@@ -949,11 +999,19 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
+      {$ifdef newra}
+        tmpreg:=rg.getregisterint(list,size);
+      {$else}
         tmpreg := get_scratch_reg_int(list,size);
+      {$endif}
         a_load_ref_reg(list,size,ref,tmpreg);
         a_op_const_reg(list,op,a,tmpreg);
         a_load_reg_ref(list,size,tmpreg,ref);
+      {$ifdef newra}
+        rg.ungetregisterint(list,tmpreg);
+      {$else}
         free_scratch_reg(list,tmpreg);
+      {$endif}
       end;
 
 
@@ -977,11 +1035,19 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
+      {$ifdef newra}
+        tmpreg:=rg.getregisterint(list,size);
+      {$else}
         tmpreg := get_scratch_reg_int(list,size);
+      {$endif}
         a_load_ref_reg(list,size,ref,tmpreg);
         a_op_reg_reg(list,op,size,reg,tmpreg);
         a_load_reg_ref(list,size,tmpreg,ref);
+      {$ifdef newra}
+        rg.ungetregisterint(list,tmpreg);
+      {$else}
         free_scratch_reg(list,tmpreg);
+      {$endif}
       end;
 
 
@@ -1000,10 +1066,18 @@ unit cgobj;
             end;
           else
             begin
+            {$ifdef newra}
+              tmpreg:=rg.getregisterint(list,size);
+            {$else}
               tmpreg := get_scratch_reg_int(list,size);
+            {$endif}
               a_load_ref_reg(list,size,ref,tmpreg);
               a_op_reg_reg(list,op,size,tmpreg,reg);
+            {$ifdef newra}
+              rg.ungetregisterint(list,tmpreg);
+            {$else}
               free_scratch_reg(list,tmpreg);
+            {$endif}
             end;
         end;
       end;
@@ -1034,10 +1108,18 @@ unit cgobj;
             a_op_ref_reg(list,op,loc.size,ref,loc.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
+            {$ifdef newra}
+              tmpreg:=rg.getregisterint(list,loc.size);
+            {$else}
               tmpreg := get_scratch_reg_int(list,loc.size);
+            {$endif}
               a_load_ref_reg(list,loc.size,ref,tmpreg);
               a_op_reg_ref(list,op,loc.size,tmpreg,loc.reference);
+            {$ifdef newra}
+              rg.ungetregisterint(list,tmpreg);
+            {$else}
               free_scratch_reg(list,tmpreg);
+            {$endif}
             end;
           else
             internalerror(200109061);
@@ -1067,10 +1149,18 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
+      {$ifdef newra}
+        tmpreg:=rg.getregisterint(list,size);
+      {$else}
         tmpreg := get_scratch_reg_int(list,size);
+      {$endif}
         a_load_ref_reg(list,size,ref,tmpreg);
         a_cmp_const_reg_label(list,size,cmp_op,a,tmpreg,l);
+      {$ifdef newra}
+        rg.ungetregisterint(list,tmpreg);
+      {$else}
         free_scratch_reg(list,tmpreg);
+      {$endif}
       end;
 
     procedure tcg.a_cmp_const_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const loc : tlocation;
@@ -1093,10 +1183,18 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
+      {$ifdef newra}
+        tmpreg:=rg.getregisterint(list,size);
+      {$else}
         tmpreg := get_scratch_reg_int(list,size);
+      {$endif}
         a_load_ref_reg(list,size,ref,tmpreg);
         a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
+      {$ifdef newra}
+        rg.ungetregisterint(list,tmpreg);
+      {$else}
         free_scratch_reg(list,tmpreg);
+      {$endif}
       end;
 
     procedure tcg.a_cmp_loc_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
@@ -1128,6 +1226,12 @@ unit cgobj;
             a_cmp_ref_reg_label(list,size,cmp_op,ref,loc.register,l);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
+{$ifdef newra}
+              tmpreg := rg.getregisterint(list,size);
+              a_load_ref_reg(list,size,loc.reference,tmpreg);
+              a_cmp_ref_reg_label(list,size,cmp_op,ref,tmpreg,l);
+              rg.ungetregisterint(list,tmpreg);
+{$else newra}
 {$ifdef i386}
               { the following is done with defines to avoid a speed penalty,  }
               { since all this is only necessary for the 80x86 (because EDI   }
@@ -1145,7 +1249,8 @@ unit cgobj;
                 rg.ungetregisterint(list,tmpreg)
               else
 {$endif i386}
-              free_scratch_reg(list,tmpreg);
+                free_scratch_reg(list,tmpreg);
+{$endif newra}
             end
           else
             internalerror(200109061);
@@ -1392,8 +1497,11 @@ unit cgobj;
               if lto < 0 then
                 lto := 0;
             end;
-
+{$ifdef newra}
+        hreg:=rg.getregisterint(list,OS_INT);
+{$else}
         hreg := get_scratch_reg_int(list,OS_INT);
+{$endif}
         if (p.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           a_op_const_reg_reg(list,OP_SUB,def_cgsize(p.resulttype.def),
            aword(lto),p.location.register,hreg)
@@ -1406,7 +1514,11 @@ unit cgobj;
         objectlibrary.getlabel(neglabel);
         a_cmp_const_reg_label(list,OS_INT,OC_BE,aword(hto-lto),hreg,neglabel);
         { !!! should happen right after the compare (JM) }
+{$ifdef newra}
+        rg.ungetregisterint(list,hreg);
+{$else}
         free_scratch_reg(list,hreg);
+{$endif}
         a_call_name(list,'FPC_RANGEERROR');
         a_label(list,neglabel);
       end;
@@ -1425,10 +1537,18 @@ unit cgobj;
       var
         tmpreg : tregister;
       begin
+      {$ifdef newra}
+        tmpreg:=rg.getregisterint(list,size);
+      {$else}
         tmpreg := get_scratch_reg_int(list,size);
+      {$endif}
         g_flags2reg(list,size,f,tmpreg);
         a_load_reg_ref(list,size,tmpreg,ref);
+      {$ifdef newra}
+        rg.ungetregisterint(list,tmpreg);
+      {$else}
         free_scratch_reg(list,tmpreg);
+      {$endif}
       end;
 
 
@@ -1719,7 +1839,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.81  2003-04-06 21:11:23  olle
+  Revision 1.82  2003-04-22 10:09:34  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.81  2003/04/06 21:11:23  olle
     * changed newasmsymbol to newasmsymboldata for data symbols
 
   Revision 1.80  2003/03/28 19:16:56  peter

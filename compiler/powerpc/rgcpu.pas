@@ -70,12 +70,17 @@ unit rgcpu;
       end;
 
 initialization
-  rg := trgcpu.create;
+  rg := trgcpu.create(32);  {PPC has 32 registers.}
 end.
 
 {
   $Log$
-  Revision 1.5  2003-02-19 22:00:16  daniel
+  Revision 1.6  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.5  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -329,9 +329,9 @@ unit rgcpu;
     procedure trgcpu.ungetreference(list: taasmoutput; const ref : treference);
 
       begin
-         if ref.base.number<>NR_NO then
+         if (ref.base.number<>NR_NO) and (ref.base.number<>NR_FRAME_POINTER_REG) then
            ungetregisterint(list,ref.base);
-         if ref.index.number<>NR_NO then
+         if (ref.index.number<>NR_NO) and (ref.index.number<>NR_FRAME_POINTER_REG) then
            ungetregisterint(list,ref.index);
       end;
 
@@ -557,12 +557,17 @@ unit rgcpu;
 
 
 initialization
-  rg := trgcpu.create;
+  rg := trgcpu.create(7);   {We use 7 int registers on i386.}
 end.
 
 {
   $Log$
-  Revision 1.18  2003-04-21 19:16:50  peter
+  Revision 1.19  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.18  2003/04/21 19:16:50  peter
     * count address regs separate
 
   Revision 1.17  2003/03/28 19:16:57  peter

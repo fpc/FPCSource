@@ -84,13 +84,17 @@ interface
         secondpass(left);
 
         { are too few registers free? }
+      {$ifndef newra}
         maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+      {$endif newra}
         if location.loc=LOC_FPUREGISTER then
           pushedfpu:=maybe_pushfpu(exprasmlist,right.registersfpu,left.location)
         else
           pushedfpu:=false;
         secondpass(right);
+      {$ifndef newra}
         maybe_restore(exprasmlist,left.location,pushedregs);
+      {$endif}
       end;
 
 
@@ -476,7 +480,9 @@ interface
                falselabel:=ofl;
              end;
 
+          {$ifndef newra}
             maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+          {$endif}
             isjump:=(right.location.loc=LOC_JUMP);
             if isjump then
               begin
@@ -486,7 +492,9 @@ interface
                  objectlibrary.getlabel(falselabel);
               end;
             secondpass(right);
+          {$ifndef newra}
             maybe_restore(exprasmlist,left.location,pushedregs);
+          {$endif newra}
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
              location_force_reg(exprasmlist,right.location,opsize_2_cgsize[opsize],false);
             if isjump then
@@ -1642,7 +1650,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-04-17 10:02:48  daniel
+  Revision 1.62  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.61  2003/04/17 10:02:48  daniel
     * Tweaked register allocate/deallocate positition to less interferences
       are generated.
 

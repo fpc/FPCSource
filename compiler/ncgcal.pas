@@ -171,11 +171,19 @@ implementation
                      begin
                        if calloption=pocall_inline then
                          begin
+                         {$ifdef newra}
+                           tmpreg:=rg.getaddressregister(exprasmlist);
+                         {$else}
                            tmpreg:=cg.get_scratch_reg_address(exprasmlist);
+                         {$endif newra}
                            cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
                            reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
                            cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
+                         {$ifdef newra}
+                           rg.ungetregisterint(exprasmlist,tmpreg);
+                         {$else}
                            cg.free_scratch_reg(exprasmlist,tmpreg);
+                         {$endif}
                          end
                        else
                          cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.paraloc);
@@ -202,11 +210,19 @@ implementation
               inc(pushedparasize,POINTER_SIZE);
               if calloption=pocall_inline then
                 begin
+                {$ifdef newra}
+                   tmpreg:=rg.getaddressregister(exprasmlist);
+                {$else}
                    tmpreg:=cg.get_scratch_reg_address(exprasmlist);
+                {$endif}
                    cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
                    reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
                    cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
+                {$ifdef newra}
+                   rg.ungetregisterint(exprasmlist,tmpreg);
+                {$else}
                    cg.free_scratch_reg(exprasmlist,tmpreg);
+                {$endif}
                 end
               else
                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.paraloc);
@@ -250,11 +266,19 @@ implementation
                    inc(pushedparasize,POINTER_SIZE);
                    if calloption=pocall_inline then
                      begin
+                     {$ifdef newra}
+                        tmpreg:=rg.getaddressregister(exprasmlist);
+                     {$else}
                         tmpreg:=cg.get_scratch_reg_address(exprasmlist);
+                     {$endif}
                         cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
                         reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
                         cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
+                     {$ifdef newra}
+                        rg.ungetregisterint(exprasmlist,tmpreg);
+                     {$else}
                         cg.free_scratch_reg(exprasmlist,tmpreg);
+                     {$endif}
                      end
                    else
                      cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.paraloc);
@@ -719,6 +743,14 @@ implementation
                         r.number:=NR_ACCUMULATOR;
                         hregister.enum:=R_INTREGISTER;
                         hregister.number:=NR_ACCUMULATORHIGH;
+{$ifdef newra}
+                        rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR);
+                        rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATORHIGH);
+                        rg.ungetregisterint(exprasmlist,r);
+                        rg.ungetregisterint(exprasmlist,hregister);
+                        location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
+                        location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
+{$else newra}
                         cg.a_reg_alloc(exprasmlist,r);
                         cg.a_reg_alloc(exprasmlist,hregister);
                         if RS_ACCUMULATOR in rg.unusedregsint then
@@ -729,6 +761,7 @@ implementation
                           location.registerhigh:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATORHIGH)
                         else
                           location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
+{$endif newra}
                         cg64.a_load64_reg_reg(exprasmlist,joinreg64(r,hregister),
                             location.register64);
                       end
@@ -740,11 +773,17 @@ implementation
                         nr:=RS_ACCUMULATOR shl 8 or cgsize2subreg(cgsize);
                         r.enum:=R_INTREGISTER;
                         r.number:=nr;
+{$ifdef newra}
+                        rg.getexplicitregisterint(exprasmlist,nr);
+                        rg.ungetregisterint(exprasmlist,r);
+                        location.register:=rg.getregisterint(exprasmlist,cgsize);
+{$else newra}
                         cg.a_reg_alloc(exprasmlist,r);
                         if RS_ACCUMULATOR in rg.unusedregsint then
                           location.register:=rg.getexplicitregisterint(exprasmlist,nr)
                         else
                           location.register:=rg.getregisterint(exprasmlist,cgsize);
+{$endif newra}
                         cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,r,location.register);
                       end;
                    end;
@@ -783,12 +822,18 @@ implementation
               else
                 begin
                   location_reset(location,LOC_REGISTER,OS_INT);
+                  r.enum:=R_INTREGISTER;
+                  r.number:=NR_ACCUMULATOR;
+{$ifdef newra}
+                  rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR);
+                  rg.ungetregisterint(exprasmlist,r);
+                  location.register:=rg.getregisterint(exprasmlist,OS_INT);
+{$else newra}
                   if RS_ACCUMULATOR in rg.unusedregsint then
                     location.register:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR)
                   else
                     location.register:=rg.getregisterint(exprasmlist,OS_INT);
-                  r.enum:=R_INTREGISTER;
-                  r.number:=NR_ACCUMULATOR;
+{$endif newra}
                   cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,r,location.register);
                 end;
             end;
@@ -999,11 +1044,19 @@ implementation
                by function itself !   }
              if inlined then
                begin
+                {$ifdef newra}
+                  hregister:=rg.getaddressregister(exprasmlist);
+                {$else}
                   hregister:=cg.get_scratch_reg_address(exprasmlist);
+                {$endif}
                   cg.a_loadaddr_ref_reg(exprasmlist,funcretref,hregister);
                   reference_reset_base(href,procinfo.framepointer,inlinecode.retoffset);
                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,href);
+                {$ifdef newra}
+                  rg.ungetregisterint(exprasmlist,hregister);
+                {$else}
                   cg.free_scratch_reg(exprasmlist,hregister);
+                {$endif}
                end
              else
                cg.a_paramaddr_ref(exprasmlist,funcretref,paramanager.getfuncretparaloc(procdefinition));
@@ -1423,7 +1476,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-04-22 09:49:44  peter
+  Revision 1.48  2003-04-22 10:09:34  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.47  2003/04/22 09:49:44  peter
     * do not load self when calling a non-inherited class constructor
 
   Revision 1.46  2003/04/21 20:03:32  peter

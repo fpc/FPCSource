@@ -52,8 +52,10 @@ interface
     procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
     procedure location_force_mem(list: TAAsmoutput;var l:tlocation);
 
+{$ifndef newra}
     procedure maybe_save(list:taasmoutput;needed:integer;var l:tlocation;var s:tmaybesave);
     procedure maybe_restore(list:taasmoutput;var l:tlocation;const s:tmaybesave);
+{$endif}
     function  maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
 
     procedure push_value_para(list:taasmoutput;p:tnode;calloption:tproccalloption;
@@ -607,6 +609,7 @@ implementation
                                   Maybe_Save
 *****************************************************************************}
 
+{$ifndef newra}
     procedure maybe_save(list:taasmoutput;needed:integer;var l:tlocation;var s:tmaybesave);
       begin
         s.saved:=false;
@@ -707,6 +710,7 @@ implementation
         end;
         tg.ungetiftemp(list,s.ref);
       end;
+{$endif newra}
 
 
     function maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
@@ -1064,11 +1068,19 @@ implementation
              vs_out :
                begin
                  reference_reset_base(href,procinfo.framepointer,tvarsym(p).address+procinfo.para_offset);
+               {$ifdef newra}
+                 tmpreg:=rg.getaddressregister(list);
+               {$else}
                  tmpreg:=cg.get_scratch_reg_address(list);
+               {$endif}
                  cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
                  reference_reset_base(href,tmpreg,0);
                  cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
+               {$ifdef newra}
+                 rg.ungetregisterint(list,tmpreg);
+               {$else}
                  cg.free_scratch_reg(list,tmpreg);
+               {$endif newra}
                end;
            end;
          end;
@@ -1518,14 +1530,22 @@ function returns in a register and the caller receives it in an other one}
            reference_reset_base(href,procinfo.framepointer,procinfo.inheritedflag_offset);
            cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,inheriteddesctructorlabel);
            reference_reset_base(href,procinfo.framepointer,procinfo.selfpointer_offset);
+         {$ifdef newra}
+           tmpreg:=rg.getaddressregister(list);
+         {$else}
            tmpreg:=cg.get_scratch_reg_address(list);
+         {$endif}
            cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
            cg.a_param_reg(list,OS_ADDR,tmpreg,paramanager.getintparaloc(1));
            reference_reset_base(href,tmpreg,0);
            cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
            reference_reset_base(href,tmpreg,72);
            cg.a_call_ref(list,href);
+         {$ifdef newra}
+           rg.ungetregisterint(list,tmpreg);
+         {$else}
            cg.free_scratch_reg(list,tmpreg);
+         {$endif}
            cg.a_label(list,inheriteddesctructorlabel);
          end;
 
@@ -1801,11 +1821,19 @@ function returns in a register and the caller receives it in an other one}
                    cg.a_load_ref_reg(list,OS_ADDR,href,r);
                    cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(1));
                    reference_reset_base(href,r,0);
+                 {$ifdef newra}
+                   tmpreg:=rg.getaddressregister(list);
+                 {$else newra}
                    tmpreg:=cg.get_scratch_reg_address(list);
+                 {$endif}
                    cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
                    reference_reset_base(href,tmpreg,68);
                    cg.a_call_ref(list,href);
+                 {$ifdef newra}
+                   rg.ungetregisterint(list,tmpreg);
+                 {$else}
                    cg.free_scratch_reg(list,tmpreg);
+                 {$endif}
                  end;
                 { return the self pointer }
                 cg.a_label(list,inheritedconstructorlabel);
@@ -2018,7 +2046,12 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.84  2003-04-16 09:26:55  jonas
+  Revision 1.85  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.84  2003/04/16 09:26:55  jonas
     * assembler procedures now again get a stackframe if they have local
       variables. No space is reserved for a function result however.
       Also, the register parameters aren't automatically saved on the stack

@@ -363,13 +363,24 @@ unit cgx86;
           OS_8,OS_S8,
           OS_16,OS_S16:
             begin
+            {$ifdef newra}
+              if target_info.alignment.paraalign = 2 then
+                tmpreg:=rg.getregisterint(list,OS_16)
+              else
+                tmpreg:=rg.getregisterint(list,OS_32);
+            {$else}
               if target_info.alignment.paraalign = 2 then
                 tmpreg:=get_scratch_reg_int(list,OS_16)
               else
                 tmpreg:=get_scratch_reg_int(list,OS_32);
+            {$endif}
               a_load_ref_reg(list,size,r,tmpreg);
               list.concat(taicpu.op_reg(A_PUSH,S_L,tmpreg));
+            {$ifdef newra}
+              rg.ungetregisterint(list,tmpreg);
+            {$else}
               free_scratch_reg(list,tmpreg);
+            {$endif}
             end;
           OS_32,OS_S32:
             list.concat(taicpu.op_ref(A_PUSH,S_L,r));
@@ -405,10 +416,18 @@ unit cgx86;
           list.concat(Taicpu.Op_reg(A_PUSH,S_L,r.base))
         else
           begin
+          {$ifdef newra}
+            tmpreg:=rg.getaddressregister(list);
+          {$else}
             tmpreg := get_scratch_reg_address(list);
+          {$endif}
             a_loadaddr_ref_reg(list,r,tmpreg);
             list.concat(taicpu.op_reg(A_PUSH,S_L,tmpreg));
+          {$ifdef newra}
+            rg.ungetregisterint(list,tmpreg);
+          {$else}
             free_scratch_reg(list,tmpreg);
+          {$endif}
           end;
       end;
 
@@ -780,7 +799,9 @@ unit cgx86;
           regloadsize: tcgsize;
           dstsize: topsize;
           tmpreg : tregister;
+    {$ifndef newra}
           popecx : boolean;
+    {$endif}
           r:Tregister;
           instr:Taicpu;
 
@@ -805,6 +826,13 @@ unit cgx86;
               internalerror(200109233);
             OP_SHR,OP_SHL,OP_SAR:
               begin
+              {$ifdef newra}
+                tmpreg:=rg.getexplicitregisterint(list,NR_CL);
+                a_load_reg_reg(list,size,OS_8,dst,tmpreg);
+                list.concat(taicpu.op_reg_reg(Topcg2asmop[op],S_B,src,
+                            tmpreg));
+                rg.ungetregisterint(list,tmpreg);
+              {$else newra}
                 tmpreg.enum:=R_INTREGISTER;
                 tmpreg.number:=NR_NO;
                 popecx := false;
@@ -821,8 +849,6 @@ unit cgx86;
                         regloadsize:=OS_32;
                     end;
                     tmpreg := get_scratch_reg_int(list,OS_INT);
-                    tmpreg.enum:=R_INTREGISTER;
-                    tmpreg.number:=NR_EDI;
                     a_load_reg_reg(list,regloadsize,regloadsize,src,tmpreg);
                   end;
                 if src.number shr 8<>RS_ECX then
@@ -862,16 +888,13 @@ unit cgx86;
                   list.concat(taicpu.op_reg(A_POP,S_L,r))
                 else if not (dst.number shr 8=RS_ECX) then
                   rg.ungetregisterint(list,r);
+              {$endif newra}
               end;
             else
               begin
                 if reg2opsize(src) <> dstsize then
                   internalerror(200109226);
                 instr:=taicpu.op_reg_reg(TOpCG2AsmOp[op],dstsize,src,dst);
-{$ifdef newra}
-                if op in [_MOV,_XCHG] then
-                  rg.add_move_instruction(instr);
-{$endif newra}
                 list.concat(instr);
               end;
           end;
@@ -1839,7 +1862,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.38  2003-04-17 16:48:21  daniel
+  Revision 1.39  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.38  2003/04/17 16:48:21  daniel
     * Added some code to keep track of move instructions in register
       allocator
 

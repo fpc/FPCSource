@@ -66,11 +66,16 @@ procedure trgcpu.UngetRegisterInt(list:taasmoutput;reg:tregister);
       inherited ungetregisterint(list,reg);
   end;
 begin
-  rg := trgcpu.create;
+  rg := trgcpu.create(24); {24 registers.}
 end.
 {
   $Log$
-  Revision 1.8  2003-03-15 22:51:58  mazen
+  Revision 1.9  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.8  2003/03/15 22:51:58  mazen
   * remaking sparc rtl compile
 
   Revision 1.7  2003/03/10 21:59:54  mazen

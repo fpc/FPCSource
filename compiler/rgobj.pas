@@ -42,8 +42,7 @@ published by Cambridge University Press.
 Reading this book is recommended for a complete understanding. Here is a small
 introduction.
 
-The code generator thinks it has an infinite amount of registers. Our processor
-has a limited amount of registers. Therefore we must reduce the amount of
+The code generator thinks it has an infinite amount of registers. Our processorhas a limited amount of registers. Therefore we must reduce the amount of
 registers until there are less enough to fit into the processors registers.
 
 Registers can interfere or not interfere. If two imaginary registers interfere
@@ -61,7 +60,7 @@ if two registers interfere there is a connection between them in the graph.
 In addition to the imaginary registers in the code generator, the psysical
 CPU registers are also present in this graph. This allows us to make
 interferences between imaginary registers and cpu registers. This is very
-usefull for describing archtectural constrains, like for example that
+usefull for describing archtectural constraints, like for example that
 the div instruction modifies edx, so variables that are in use at that time
 cannot be stored into edx. This can be modelled by making edx interfere
 with those variables.
@@ -108,8 +107,21 @@ unit rgobj;
       end;
       Pinterferencegraph=^Tinterferencegraph;
 
+      Tmovelist=record
+        count:cardinal;
+        data:array[0..$ffff] of Tlinkedlistitem;
+      end;
+      Pmovelist=^Tmovelist;
+
+      {In the register allocator we keep track of move instructions.
+       These instructions are moved between five linked lists. There
+       is also a linked list per register to keep track about the moves
+       it is associated with. Because we need to determine quickly in 
+       which of the five lists it is we add anu enumeradtion to each 
+       move instruction.}
+
       Tmoveset=(ms_coalesced_moves,ms_constrained_moves,ms_frozen_moves,
-                ms_worklist_moves,ms_activemoves);
+                ms_worklist_moves,ms_active_moves);
       Tmoveins=class(Tlinkedlistitem)
         moveset:Tmoveset;
         instruction:Taicpu;
@@ -129,7 +141,7 @@ unit rgobj;
           { aren't currently allocated to a regvar. The "unusedregsxxx"  }
           { contain all registers of type "xxx" that aren't currenly     }
           { allocated                                                    }
-          lastintreg:Tsuperregister;
+          lastintreg,maxintreg:Tsuperregister;
           unusedregsint,usableregsint:Tsupregset;
           unusedregsaddr,usableregsaddr:Tsupregset;
           unusedregsfpu,usableregsfpu : tregisterset;
@@ -161,12 +173,15 @@ unit rgobj;
           is_reg_var_int:Tsupregset;
           regvar_loaded: regvar_booleanarray;
           regvar_loaded_int: Tsupregset;
-
+{$ifdef newra}
+          colour:array[Tsuperregister] of Tsuperregister;
+          spillednodes:string;
+{$endif}
 
           { tries to hold the amount of times which the current tree is processed  }
           t_times: longint;
 
-          constructor create;
+          constructor create(Acpu_registers:byte);
 
           {# Allocate a general purpose register
 
@@ -245,7 +260,12 @@ unit rgobj;
           }
           procedure ungetreference(list: taasmoutput; const ref : treference); virtual;
 
-          {# Reset the register allocator information (usable registers etc) }
+          {# Reset the register allocator information (usable registers etc).
+             Please note that it is mortal sins to call cleartempgen during
+             graph colouring (that is between prepare_colouring and
+             epilogue_colouring).
+          }
+
           procedure cleartempgen;virtual;
 
           {# Convert a register to a specified register size, and return that register size }
@@ -299,13 +319,26 @@ unit rgobj;
           procedure saveUnusedState(var state: pointer);virtual;
           procedure restoreUnusedState(var state: pointer);virtual;
 {$ifdef newra}
+{$ifdef ra_debug}
           procedure writegraph;
 {$endif}
+          procedure add_move_instruction(instr:Taicpu);
+          procedure prepare_colouring;
+          procedure epilogue_colouring;
+          procedure colour_registers;
+{$endif newra}
        protected
+          cpu_registers:byte;
 {$ifdef newra}
           igraph:Tinterferencegraph;
-          movelist:array[Tsuperregister] of Tlinkedlist;
-          worklistmoves:Tlinkedlist;
+          degree:array[0..255] of byte;
+          alias:array[Tsuperregister] of Tsuperregister;
+          simplifyworklist,freezeworklist,spillworklist:string;
+          coalescednodes:string;
+          selectstack:string;
+          movelist:array[Tsuperregister] of Pmovelist;
+          worklist_moves,active_moves,frozen_moves,
+          coalesced_moves,constrained_moves:Tlinkedlist;
 {$endif}
           { the following two contain the common (generic) code for all }
           { get- and ungetregisterxxx functions/procedures              }
@@ -332,6 +365,23 @@ unit rgobj;
 {$ifdef newra}
          procedure add_edge(u,v:Tsuperregister);
          procedure add_edges_used(u:Tsuperregister);
+         procedure add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
+         function move_related(n:Tsuperregister):boolean;
+         procedure make_work_list;
+         procedure enable_moves(n:Tsuperregister);
+         procedure decrement_degree(m:Tsuperregister);
+         procedure simplify;
+
+         function get_alias(n:Tsuperregister):Tsuperregister;
+         procedure add_worklist(u:Tsuperregister);
+         function adjacent_ok(u,v:Tsuperregister):boolean;
+         function conservative(u,v:Tsuperregister):boolean;
+         procedure combine(u,v:Tsuperregister);
+         procedure coalesce;
+         procedure freeze_moves(u:Tsuperregister);
+         procedure freeze;
+         procedure select_spill;
+         procedure assign_colours;
 {$endif}
        end;
 
@@ -415,7 +465,7 @@ unit rgobj;
        globals,verbose,
        cgobj,tgobj,regvars;
 
-    constructor trgobj.create;
+    constructor Trgobj.create(Acpu_registers:byte);
 
      begin
        usedinproc := [];
@@ -423,14 +473,17 @@ unit rgobj;
        t_times := 0;
        resetusableregisters;
        lastintreg:=0;
+       maxintreg:=first_imreg;
+       cpu_registers:=Acpu_registers;
 {$ifdef TEMPREGDEBUG}
        fillchar(reg_user,sizeof(reg_user),0);
        fillchar(reg_releaser,sizeof(reg_releaser),0);
 {$endif TEMPREGDEBUG}
 {$ifdef newra}
        fillchar(igraph,sizeof(igraph),0);
+       fillchar(degree,sizeof(degree),0);
        fillchar(movelist,sizeof(movelist),0);
-       worklistmoves.create;
+       worklist_moves:=Tlinkedlist.create;
 {$endif}
      end;
 
@@ -487,6 +540,8 @@ unit rgobj;
             list.concat(Tai_regalloc.alloc(r));
             result:=r;
             lastintreg:=i;
+            if i>maxintreg then
+              maxintreg:=i;
 {$ifdef newra}
             add_edges_used(i);
 {$endif}
@@ -749,6 +804,8 @@ unit rgobj;
       countunusedregsint:=countusableregsint;
       countunusedregsfpu:=countusableregsfpu;
       countunusedregsmm:=countusableregsmm;
+      lastintreg:=0;
+      maxintreg:=first_imreg;
    {$ifdef newra}
       unusedregsint:=[0..255];
    {$else}
@@ -762,10 +819,12 @@ unit rgobj;
           if igraph.adjlist[i]<>nil then
             dispose(igraph.adjlist[i]);
           if movelist[i]<>nil then
-            movelist[i].destroy;
+            dispose(movelist[i]);
         end;
+      fillchar(movelist,sizeof(movelist),0);
       fillchar(igraph,sizeof(igraph),0);
-      worklistmoves.destroy;
+      fillchar(degree,sizeof(degree),0);
+      worklist_moves.clear;
    {$endif}
     end;
 
@@ -1224,9 +1283,15 @@ unit rgobj;
           include(igraph.bitmap[v],u);
           {Precoloured nodes are not stored in the interference graph.}
           if not(u in [first_supreg..last_supreg]) then
-            addadj(u,v);
+            begin
+              addadj(u,v);
+              inc(degree[u]);
+            end;
           if not(v in [first_supreg..last_supreg]) then
-            addadj(v,u);
+            begin
+              addadj(v,u);
+              inc(degree[v]);
+            end;
         end;
     end;
 
@@ -1240,13 +1305,18 @@ unit rgobj;
           add_edge(u,i);
     end;
 
+{$ifdef ra_debug}
     procedure Trgobj.writegraph;
+
+    {This procedure writes out the current interference graph in the
+    register allocator.}
+
 
     var f:text;
         i,j:Tsuperregister;
 
     begin
-      assign(f,'igraph');
+      assign(f,'igraph'+char(48+random(10))+char(48+random(10)));
       rewrite(f);
       writeln(f,'Interference graph');
       writeln(f);
@@ -1272,6 +1342,502 @@ unit rgobj;
       close(f);
     end;
 {$endif}
+
+    procedure Trgobj.add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
+
+    begin
+      if movelist[u]=nil then
+        begin
+          getmem(movelist[u],64);
+          movelist[u]^.count:=0;
+        end
+      else if (movelist[u]^.count and 15)=15 then
+        reallocmem(movelist[u],(movelist[u]^.count+1)*4+64);
+      movelist[u]^.data[movelist[u]^.count]:=data;
+      inc(movelist[u]^.count);
+    end;
+
+    procedure Trgobj.add_move_instruction(instr:Taicpu);
+
+    {This procedure notifies a certain as a move instruction so the
+     register allocator can try to eliminate it.}
+
+    var i:Tmoveins;
+        ssupreg,dsupreg:Tsuperregister;
+
+    begin
+      i:=Tmoveins.create;
+      i.moveset:=ms_worklist_moves;
+      i.instruction:=instr;
+      worklist_moves.insert(i);
+      ssupreg:=instr.oper[0].reg.number shr 8;
+      add_to_movelist(ssupreg,i);
+      dsupreg:=instr.oper[1].reg.number shr 8;
+      add_to_movelist(dsupreg,i);
+    end;
+
+    function Trgobj.move_related(n:Tsuperregister):boolean;
+
+    var i:cardinal;
+
+    begin
+      move_related:=false;
+      if movelist[n]<>nil then
+        begin
+          for i:=0 to movelist[n]^.count-1 do
+            if Tmoveins(movelist[n]^.data[i]).moveset in
+               [ms_worklist_moves,ms_active_moves] then
+              begin
+                move_related:=true;
+                break;
+              end;
+        end;
+    end;
+
+    procedure Trgobj.make_work_list;
+
+    var n:Tsuperregister;
+
+    begin
+      for n:=first_imreg to maxintreg do
+        if degree[n]>cpu_registers then
+          spillworklist:=spillworklist+char(n)
+        else if move_related(n) then
+          freezeworklist:=freezeworklist+char(n)
+        else
+          simplifyworklist:=simplifyworklist+char(n);
+    end;
+
+    procedure Trgobj.prepare_colouring;
+
+    begin
+      make_work_list;
+      active_moves:=Tlinkedlist.create;
+      frozen_moves:=Tlinkedlist.create;
+      coalesced_moves:=Tlinkedlist.create;
+      constrained_moves:=Tlinkedlist.create;
+      fillchar(alias,sizeof(alias),0);
+      coalescednodes:='';
+      selectstack:='';
+    end;
+
+    procedure Trgobj.enable_moves(n:Tsuperregister);
+
+    var m:Tlinkedlistitem;
+        i:cardinal;
+
+    begin
+      if movelist[n]<>nil then
+        for i:=0 to movelist[n]^.count-1 do
+          begin 
+            m:=movelist[n]^.data[i];
+            if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
+              begin
+                if Tmoveins(m).moveset=ms_active_moves then
+                  begin
+                    {Move m from the set active_moves to the set worklist_moves.}
+                    active_moves.remove(m);
+                    Tmoveins(m).moveset:=ms_worklist_moves;
+                    worklist_moves.concat(m);
+                  end;
+              end;
+          end;
+    end;
+
+    procedure Trgobj.decrement_degree(m:Tsuperregister);
+
+    var adj:Pstring;
+        d:byte;
+        i:byte;
+        n:char;
+
+    begin
+      d:=degree[m];
+      dec(degree[m]);
+      if d=cpu_registers then
+        begin
+          {Enable moves for m.}
+          enable_moves(m);
+          {Enable moves for adjacent.}
+          adj:=igraph.adjlist[m];
+          if adj<>nil then
+            for i:=1 to length(adj^) do
+              begin
+                n:=adj^[i];
+                if (pos(n,selectstack) or pos(n,coalescednodes))=0 then
+                  enable_moves(Tsuperregister(n));
+              end;
+          {In case the node is in the spillworklist, delete it.}
+          delete(spillworklist,pos(char(m),spillworklist),1);
+          if move_related(m) then
+            freezeworklist:=freezeworklist+char(m)
+          else
+            simplifyworklist:=simplifyworklist+char(m);
+        end;
+    end;
+
+    procedure Trgobj.simplify;
+
+    var adj:Pstring;
+        i:byte;
+        m:char;
+        n:Tsuperregister;
+
+    begin
+      {We need to take a random element out of the simplifyworklist. We take
+       the last element. Dirty code!}
+      n:=Tsuperregister(simplifyworklist[byte(simplifyworklist[0])]);
+      dec(simplifyworklist[0]);
+      {Push it on the selectstack.}
+      selectstack:=selectstack+char(n);
+      adj:=igraph.adjlist[n];
+      if adj<>nil then
+        for i:=1 to length(adj^) do
+          begin
+            m:=adj^[i];
+            if (pos(m,selectstack) or pos(m,coalescednodes))=0 then
+              decrement_degree(Tsuperregister(m));
+          end;
+    end;
+
+    function Trgobj.get_alias(n:Tsuperregister):Tsuperregister;
+
+    begin
+      while pos(char(n),coalescednodes)<>0 do
+        n:=alias[n];
+      get_alias:=n;
+    end;
+
+    procedure Trgobj.add_worklist(u:Tsuperregister);
+
+    begin
+      if not(u in [first_supreg..last_supreg]) and not move_related(u) and
+         (degree[u]<cpu_registers) then
+        begin
+          delete(freezeworklist,pos(char(u),freezeworklist),1);
+          simplifyworklist:=simplifyworklist+char(u);
+        end;
+    end;
+
+    function Trgobj.adjacent_ok(u,v:Tsuperregister):boolean;
+
+    {Check wether u and v should be coalesced. u is precoloured.}
+
+      function ok(t,r:Tsuperregister):boolean;
+
+      begin
+        ok:=(degree[t]<cpu_registers) or
+            (t in [first_supreg..last_supreg]) or
+            (r in igraph.bitmap[t]);
+      end;
+
+    var adj:Pstring;
+        i:byte;
+        t:char;
+
+    begin
+      adjacent_ok:=true;
+      adj:=igraph.adjlist[v];
+      if adj<>nil then
+        for i:=1 to length(adj^) do
+          begin
+            t:=adj^[i];
+            if (pos(t,selectstack) or pos(t,coalescednodes))=0 then
+              if not ok(Tsuperregister(t),u) then
+                begin
+                  adjacent_ok:=false;
+                  break;
+                end;
+          end;
+    end;
+
+    function Trgobj.conservative(u,v:Tsuperregister):boolean;
+
+    var adj:Pstring;
+        done:set of char; {To prevent that we count nodes twice.}
+        i,k:byte;
+        n:char;
+
+    begin
+      k:=0;
+      done:=[];
+      adj:=igraph.adjlist[u];
+      if adj<>nil then
+        for i:=1 to length(adj^) do
+          begin
+            n:=adj^[i];
+            if (pos(n,selectstack) or pos(n,coalescednodes))=0 then
+              begin
+                include(done,n);
+                if degree[Tsuperregister(n)]>=cpu_registers then
+                  inc(k);
+              end;
+          end;
+      adj:=igraph.adjlist[v];
+      if adj<>nil then
+        for i:=1 to length(adj^) do
+          begin
+            n:=adj^[i];
+            if ((pos(n,selectstack) or pos(n,coalescednodes))=0) and
+               not (n in done) and
+               (degree[Tsuperregister(n)]>=cpu_registers) then
+              inc(k);
+         end;
+      conservative:=(k<cpu_registers);
+    end;
+
+    procedure Trgobj.combine(u,v:Tsuperregister);
+
+    var add:boolean;
+        adj:Pstring;
+        i,p:byte;
+        n,o:cardinal;
+        t:char;
+
+    begin
+      p:=pos(char(v),freezeworklist);
+      if p<>0 then
+        delete(freezeworklist,p,1)
+      else
+        delete(spillworklist,pos(char(v),spillworklist),1);
+      coalescednodes:=coalescednodes+char(v);
+      alias[v]:=u;
+
+      {Combine both movelists. Since the movelists are sets, only add
+       elements that are not already present.}
+      for n:=0 to movelist[v]^.count-1 do
+        begin
+          add:=true;
+          for o:=0 to movelist[u]^.count-1 do
+            if movelist[u]^.data[o]=movelist[v]^.data[n] then
+              begin
+                add:=false;
+                break;
+              end;
+          if add then
+            add_to_movelist(u,movelist[v]^.data[n]);
+        end;
+      enable_moves(v);
+
+      adj:=igraph.adjlist[v];
+      if adj<>nil then
+        for i:=1 to length(adj^) do
+          begin
+            t:=adj^[i];
+            if (pos(t,selectstack) or pos(t,coalescednodes))=0 then
+              begin
+                add_edge(Tsuperregister(t),u);
+                decrement_degree(Tsuperregister(t));
+              end;
+          end;
+      p:=pos(char(u),freezeworklist);
+      if (degree[u]>=cpu_registers) and (p<>0) then
+        begin
+          delete(freezeworklist,p,1);
+          spillworklist:=spillworklist+char(u);
+        end;
+    end;
+
+    procedure Trgobj.coalesce;
+
+    var m:Tmoveins;
+        x,y,u,v:Tsuperregister;
+
+    begin
+      m:=Tmoveins(worklist_moves.getfirst);
+      x:=get_alias(m.instruction.oper[0].reg.number shr 8);
+      y:=get_alias(m.instruction.oper[1].reg.number shr 8);
+      if y in [first_supreg..last_supreg] then
+        begin
+          u:=y;
+          v:=x;
+        end
+      else
+        begin
+          u:=x;
+          v:=y;
+        end;
+      if (u=v) then
+        begin
+          m.moveset:=ms_coalesced_moves;  {Already coalesced.}
+          coalesced_moves.insert(m);
+          add_worklist(u);
+        end
+      {Do u and v interfere? In that case the move is constrained. Two
+       precoloured nodes interfere allways. If v is precoloured, by the above
+       code u is precoloured, thus interference...}
+      else if (v in [first_supreg..last_supreg]) or (u in igraph.bitmap[v]) then
+        begin
+          m.moveset:=ms_constrained_moves;  {Cannot coalesce yet...}
+          constrained_moves.insert(m);
+          add_worklist(u);
+          add_worklist(v);
+        end
+      {Next test: is it possible and a good idea to coalesce??}
+      else if ((u in [first_supreg..last_supreg]) and adjacent_ok(u,v)) or
+              (not(u in [first_supreg..last_supreg]) and conservative(u,v)) then
+        begin
+          m.moveset:=ms_coalesced_moves;  {Move coalesced!}
+          coalesced_moves.insert(m);
+          combine(u,v);
+          add_worklist(u);
+        end
+      else
+        begin
+          m.moveset:=ms_active_moves;
+          active_moves.insert(m);
+        end;
+    end;
+
+    procedure Trgobj.freeze_moves(u:Tsuperregister);
+
+    var i:cardinal;
+        m:Tlinkedlistitem;
+        v,x,y:Tsuperregister;
+
+    begin
+      for i:=0 to movelist[u]^.count-1 do
+        begin
+          m:=movelist[u]^.data[i];
+          if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
+            begin
+              x:=Tmoveins(m).instruction.oper[0].reg.number shr 8;
+              y:=Tmoveins(m).instruction.oper[1].reg.number shr 8;
+              if get_alias(y)=get_alias(u) then
+                v:=get_alias(x)
+              else
+                v:=get_alias(y);
+              {Move m from active_moves/worklist_moves to frozen_moves.}
+              if Tmoveins(m).moveset=ms_active_moves then
+                active_moves.remove(m)
+              else
+                worklist_moves.remove(m);
+              Tmoveins(m).moveset:=ms_frozen_moves;
+              frozen_moves.insert(m);
+        
+              if not(move_related(v)) and (degree[v]<cpu_registers) then
+                begin
+                  delete(freezeworklist,pos(char(v),freezeworklist),1);
+                  simplifyworklist:=simplifyworklist+char(v);
+                end;
+            end;
+        end;
+    end;
+
+    procedure Trgobj.freeze;
+
+    var n:Tsuperregister;
+
+    begin
+      {We need to take a random element out of the freezeworklist. We take
+       the last element. Dirty code!}
+      n:=Tsuperregister(freezeworklist[byte(freezeworklist[0])]);
+      dec(freezeworklist[0]);
+      {Add it to the simplifyworklist.}
+      simplifyworklist:=simplifyworklist+char(n);
+      freeze_moves(n);
+    end;
+
+    procedure Trgobj.select_spill;
+
+    var n:char;
+
+    begin
+      {This code is WAY too naive. We need not to select just a register, but
+       the register that is used the least...}
+      n:=spillworklist[byte(spillworklist[0])];
+      dec(spillworklist[0]);
+      simplifyworklist:=simplifyworklist+n;
+      freeze_moves(Tsuperregister(n));
+    end;
+
+    procedure Trgobj.assign_colours;
+
+    {Assign_colours assigns the actual colours to the registers.}
+
+    var adj:Pstring;
+        i,j,k:byte;
+        n,a:Tsuperregister;
+        adj_colours,colourednodes:set of Tsuperregister;
+        w:char;
+
+    begin
+      spillednodes:='';
+      {Colour the cpu registers...}
+      colourednodes:=[first_supreg..last_supreg];
+      for i:=first_supreg to last_supreg do
+        colour[i]:=i;
+      {Now colour the imaginary registers on the select-stack.}
+      for i:=length(selectstack) downto 1 do
+        begin
+          n:=Tsuperregister(selectstack[i]);
+          {Create a list of colours that we cannot assign to n.}
+          adj_colours:=[];
+          adj:=igraph.adjlist[n];
+          if adj<>nil then
+            for j:=1 to length(adj^) do
+              begin
+                w:=adj^[j];
+                a:=get_alias(Tsuperregister(w));
+                if a in colourednodes then
+                  include(adj_colours,colour[a]);
+              end;
+          {Assume a spill by default...}
+          spillednodes:=spillednodes+char(n);
+          {Search for a colour not in this list.}
+          for k:=1 to cpu_registers do
+            if not(k in adj_colours) then
+              begin
+                colour[n]:=k;
+                dec(spillednodes[0]);  {Colour found: no spill.}
+                include(colourednodes,n);
+                break;
+              end;
+        end;
+      {Finally colour the nodes that were coalesced.}
+      for i:=1 to length(coalescednodes) do
+        begin
+          n:=Tsuperregister(coalescednodes[i]);
+          colour[n]:=colour[get_alias(n)];
+        end;
+      for i:=first_imreg to maxintreg do
+        writeln(i:4,'   ',colour[i]:4)
+    end;
+
+    procedure Trgobj.colour_registers;
+
+    begin
+      repeat
+        if length(simplifyworklist)<>0 then
+          simplify
+        else if not(worklist_moves.empty) then
+          coalesce
+        else if length(freezeworklist)<>0 then
+          freeze
+        else if length(spillworklist)<>0 then
+          select_spill;
+      until (length(simplifyworklist) or
+             byte(not(worklist_moves.empty)) or
+             length(freezeworklist) or
+             length(spillworklist)
+            )=0;
+      assign_colours;
+    end;
+
+    procedure Trgobj.epilogue_colouring;
+
+    begin
+      active_moves.destroy;
+      active_moves:=nil;
+      frozen_moves.destroy;
+      frozen_moves:=nil;
+      coalesced_moves.destroy;
+      coalesced_moves:=nil;
+      constrained_moves.destroy;
+      constrained_moves:=nil;
+    end;
+
+{$endif newra}
 
 
 {****************************************************************************
@@ -1403,7 +1969,12 @@ end.
 
 {
   $Log$
-  Revision 1.35  2003-04-21 19:16:49  peter
+  Revision 1.36  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.35  2003/04/21 19:16:49  peter
     * count address regs separate
 
   Revision 1.34  2003/04/17 16:48:21  daniel

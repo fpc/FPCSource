@@ -552,8 +552,10 @@ uses
       {# Registers which are defined as scratch and no need to save across
          routine calls or in assembler blocks.
       }
+{$ifndef newra}
       max_scratch_regs = 1;
       scratch_regs : array[1..max_scratch_regs] of Tsuperregister = (RS_EDI);
+{$endif}
 
 
 {*****************************************************************************
@@ -814,7 +816,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2003-04-21 19:16:50  peter
+  Revision 1.47  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.46  2003/04/21 19:16:50  peter
     * count address regs separate
 
   Revision 1.45  2003/03/28 19:16:57  peter

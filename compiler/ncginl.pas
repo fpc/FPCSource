@@ -390,10 +390,14 @@ implementation
           { second_ argument specified?, must be a s32bit in register }
           if assigned(tcallparanode(left).right) then
             begin
+            {$ifndef newra}
               maybe_save(exprasmlist,tcallparanode(tcallparanode(left).right).left.registers32,
                  tcallparanode(left).left.location,pushedregs);
+            {$endif}
               secondpass(tcallparanode(tcallparanode(left).right).left);
+            {$ifndef newra}
               maybe_restore(exprasmlist,tcallparanode(left).left.location,pushedregs);
+            {$endif}
               { when constant, just multiply the addvalue }
               if is_constintnode(tcallparanode(tcallparanode(left).right).left) then
                  addvalue:=addvalue*get_ordinal_value(tcallparanode(tcallparanode(left).right).left)
@@ -504,13 +508,21 @@ implementation
                    (tenumdef(tcallparanode(tcallparanode(left).right).left.resulttype.def).max<=32));
 
               { generate code for the element to set }
+            {$ifndef newra}
               maybe_save(exprasmlist,tcallparanode(tcallparanode(left).right).left.registers32,
                         tcallparanode(left).left.location,pushedregs);
+            {$endif newra}
               secondpass(tcallparanode(tcallparanode(left).right).left);
+            {$ifndef newra}
               maybe_restore(exprasmlist,tcallparanode(left).left.location,pushedregs);
+            {$endif newra}
 
               { bitnumber - which must be loaded into register }
+            {$ifdef newra}
+              hregister:=rg.getregisterint(exprasmlist,OS_INT);
+            {$else}
               hregister := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+            {$endif}
               hregister2 := rg.getregisterint(exprasmlist,OS_INT);
 
               case tcallparanode(tcallparanode(left).right).left.location.loc of
@@ -568,7 +580,11 @@ implementation
                   }
                   { hregister contains the bitnumber (div 32 to get the correct offset) }
                   cg.a_op_const_reg(exprasmlist, OP_SHR, 5, hregister);
+              {$ifdef newra}
+                  addrreg:=rg.getaddressregister(exprasmlist);
+              {$else}
                   addrreg := cg.get_scratch_reg_address(exprasmlist);
+              {$endif}
                   { calculate the correct address of the operand }
                   cg.a_loadaddr_ref_reg(exprasmlist, tcallparanode(left).left.location.reference,addrreg);
                   cg.a_op_reg_reg(exprasmlist, OP_ADD, OS_INT, hregister, addrreg);
@@ -583,10 +599,17 @@ implementation
                          cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, hregister2);
                          cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, href);
                        end;
-
+                {$ifdef newra}
+                  rg.ungetregisterint(exprasmlist,addrreg);
+                {$else}
                   cg.free_scratch_reg(exprasmlist, addrreg);
+                {$endif}
                 end;
+              {$ifdef newra}
+                rg.ungetregisterint(exprasmlist,hregister);
+              {$else}
                 cg.free_scratch_reg(exprasmlist,hregister);
+              {$endif}
                 rg.ungetregisterint(exprasmlist,hregister2);
             end;
         end;
@@ -646,7 +669,12 @@ end.
 
 {
   $Log$
-  Revision 1.23  2003-04-06 21:11:23  olle
+  Revision 1.24  2003-04-22 10:09:35  daniel
+    + Implemented the actual register allocator
+    + Scratch registers unavailable when new register allocator used
+    + maybe_save/maybe_restore unavailable when new register allocator used
+
+  Revision 1.23  2003/04/06 21:11:23  olle
     * changed newasmsymbol to newasmsymboldata for data symbols
 
   Revision 1.22  2003/03/28 19:16:56  peter
