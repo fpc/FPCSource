@@ -1024,12 +1024,13 @@ unit types;
                                   if (procdefcoll^.data^.options and poabstractmethod)<>0 then
                                     begin
                                        _class^.options:=_class^.options or oo_is_abstract;
-                                       datasegment^.concat(new(pai_const,init_symbol('FPC_ABSTRACTERROR')));
+                                       datasegment^.concat(new(pai_const,
+                                         init_symbol(strpnew('FPC_ABSTRACTERROR'))));
                                     end
                                   else
                                     begin
-                                      datasegment^.concat(new(pai_const,init_symbol(
-                                        strpnew(procdefcoll^.data^.mangledname))));
+                                      datasegment^.concat(new(pai_const,
+                                        init_symbol(strpnew(procdefcoll^.data^.mangledname))));
                                       maybe_concat_external(procdefcoll^.data^.owner,
                                         procdefcoll^.data^.mangledname);
                                     end;
@@ -1061,7 +1062,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.48  1999-02-09 23:03:08  florian
+  Revision 1.49  1999-02-16 00:45:30  peter
+    * fixed crashes by forgotten strpnew() for init_symbol
+
+  Revision 1.48  1999/02/09 23:03:08  florian
     * check for duplicate field names in inherited classes/objects
     * bug with self from the mailing list solved (the problem
       was that classes were sometimes pushed wrong)

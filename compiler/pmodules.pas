@@ -72,14 +72,23 @@ unit pmodules;
     { Insert the used object file for this unit in the used list for this unit }
       begin
         if (cs_create_sharedlib in aktmoduleswitches) then
-          current_module^.linksharedlibs.insert(current_module^.sharedlibfilename^)
+          begin
+            current_module^.linksharedlibs.insert(current_module^.sharedlibfilename^);
+            current_module^.flags:=current_module^.flags or uf_shared_linked;
+          end
         else
          begin
            if (cs_create_staticlib in aktmoduleswitches) or
               (cs_smartlink in aktmoduleswitches) then
-             current_module^.linkstaticlibs.insert(current_module^.staticlibfilename^)
+             begin
+               current_module^.linkstaticlibs.insert(current_module^.staticlibfilename^);
+               current_module^.flags:=current_module^.flags or uf_static_linked;
+             end
            else
-             current_module^.linkunitfiles.insert(current_module^.objfilename^);
+             begin
+               current_module^.linkunitfiles.insert(current_module^.objfilename^);
+               current_module^.flags:=current_module^.flags or uf_obj_linked;
+             end;
          end;
       end;
 
@@ -181,10 +190,10 @@ unit pmodules;
                target_link.binders:=2;
               end;
              if apptype=at_cui then
-              datasegment^.concat(new(pai_const,init_symbol('_mainCRTStartup')))
+              datasegment^.concat(new(pai_const,init_symbol(strpnew('_mainCRTStartup'))))
              else
               begin
-               datasegment^.concat(new(pai_const,init_symbol('_WinMainCRTStartup')));
+               datasegment^.concat(new(pai_const,init_symbol(strpnew('_WinMainCRTStartup'))));
                target_link.linkcmd:='--subsystem windows '+target_link.linkcmd;
                target_link.bindcmd[2]:='--subsystem windows '+target_link.bindcmd[2];
               end;
@@ -1035,9 +1044,7 @@ unit pmodules;
          { insert own objectfile, or say that it's in a library
            (no check for an .o when loading) }
          if is_assembler_generated then
-           insertobjectfile
-         else
-           current_module^.flags:=current_module^.flags or uf_in_library;
+           insertobjectfile;
 
          { Write out the ppufile }
          if (status.errorcount=0) then
@@ -1178,7 +1185,7 @@ unit pmodules;
          { for browser }
          current_module^.globalsymtable:=current_module^.localsymtable;
          current_module^.localsymtable:=nil;
-         
+
          codegen_doneprocedure;
 
          { consume the last point }
@@ -1234,7 +1241,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.96  1999-02-05 08:54:27  pierre
+  Revision 1.97  1999-02-16 00:45:31  peter
+    * fixed crashes by forgotten strpnew() for init_symbol
+
+  Revision 1.96  1999/02/05 08:54:27  pierre
     + linkofiles splitted inot linkofiles and linkunitfiles
       because linkofiles must be stored with directory
       to enabled linking of different objects with same name
