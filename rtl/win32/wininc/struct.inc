@@ -658,6 +658,27 @@
      TLOGFONTA = LOGFONT;
      PLOGFONT = ^LOGFONT;
 
+     PLogFontW = ^TLogFontW;
+     LOGFONTW = record
+       lfHeight: LONG;
+       lfWidth: LONG;
+       lfEscapement: LONG;
+       lfOrientation: LONG;
+       lfWeight: LONG;
+       lfItalic: BYTE;
+       lfUnderline: BYTE;
+       lfStrikeOut: BYTE;
+       lfCharSet: BYTE;
+       lfOutPrecision: BYTE;
+       lfClipPrecision: BYTE;
+       lfQuality: BYTE;
+       lfPitchAndFamily: BYTE;
+       lfFaceName: array [0..LF_FACESIZE - 1] of WCHAR;
+     end;
+     LPLOGFONTW = ^LOGFONTW;
+     NPLOGFONTW = ^LOGFONTW;
+     TLogFontW = LOGFONTW;
+
      {CHOOSEFONT = record conflicts with ChosseFont function }
      TCHOOSEFONT = record
           lStructSize : DWORD;
@@ -7143,7 +7164,10 @@ type
 
 {
   $Log$
-  Revision 1.30  2005-01-08 14:39:01  florian
+  Revision 1.31  2005-01-08 14:43:34  florian
+    + added LOGFONTW
+
+  Revision 1.30  2005/01/08 14:39:01  florian
     * DEVMODE fixed
 
   Revision 1.29  2004/12/18 20:00:59  michael
