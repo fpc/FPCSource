@@ -314,7 +314,7 @@ unit typinfo;
          //!! now what ?? MVC
       end;
 
-    function CallSStringProc(s : Pointer;Address : Pointer;Value : ShortString; INdex,IVAlue : Longint);assembler;
+    Procedure CallSStringProc(s : Pointer;Address : Pointer;Value : ShortString; INdex,IVAlue : Longint);assembler;
 
       label LSSPNoPush;
 
@@ -781,7 +781,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  1998-12-15 22:43:13  peter
+  Revision 1.18  1999-01-19 16:08:12  pierre
+   ?? is callSStringProc a function ??
+
+  Revision 1.17  1998/12/15 22:43:13  peter
     * removed temp symbols
 
   Revision 1.16  1998/12/02 12:35:07  michael
