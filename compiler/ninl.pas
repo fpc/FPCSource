@@ -44,6 +44,7 @@ interface
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
           function handle_read_write: tnode;
+          function handle_val: tnode;
 {$endif hascompilerproc}
        end;
 
@@ -97,7 +98,26 @@ implementation
 
 
 {$ifdef hascompilerproc}
-    function tinlinenode.handle_str : tnode;
+
+      { helper, doesn't really belong here (JM) }
+      function reverseparameters(p: tcallparanode): tcallparanode;
+        var
+          hp1, hp2: tcallparanode;
+        begin
+          hp1:=nil;
+          while assigned(p) do
+            begin
+               { pull out }
+               hp2:=p;
+               p:=tcallparanode(p.right);
+               { pull in }
+               hp2.right:=hp1;
+               hp1:=hp2;
+            end;
+          reverseparameters:=hp1;
+        end;
+
+      function tinlinenode.handle_str : tnode;
       var
         lenpara,
         fracpara,
@@ -117,8 +137,10 @@ implementation
         { this parameter may not be encapsulated in a callparan)        }
         if not assigned(left) or
            (left.nodetype <> callparan) then
-          exit;
-
+          begin
+            CGMessage(parser_e_wrong_parameter_size);
+            exit;
+          end;
         { get destination string }
         dest := tcallparanode(left);
 
@@ -209,7 +231,7 @@ implementation
         if is_real then
           procname := procname + 'float'
         else
-          case torddef(dest.resulttype.def).typ of
+          case torddef(source.resulttype.def).typ of
             u32bit:
               procname := procname + 'cardinal';
             u64bit:
@@ -256,24 +278,6 @@ implementation
 
     function tinlinenode.handle_read_write: tnode;
 
-      function reverseparameters(p: tnode): tnode;
-        var
-          hp1, hp2: tnode;
-        begin
-          hp1:=nil;
-          while assigned(p) do
-            begin
-               { pull out }
-               hp2:=p;
-               p:=tcallparanode(p).right;
-               { pull in }
-               tcallparanode(hp2).right:=hp1;
-               hp1:=hp2;
-            end;
-          reverseparameters:=hp1;
-        end;
-
-
       const
         procnames: array[boolean,boolean] of string[11] =
           (('write_text_','read_text_'),('typed_write','typed_read'));
@@ -313,7 +317,7 @@ implementation
 
         { reverse the parameters (needed to get the colon parameters in the }
         { correct order when processing write(ln)                           }
-        left := reverseparameters(left);
+        left := reverseparameters(tcallparanode(left));
 
         if assigned(left) then
           begin
@@ -339,8 +343,6 @@ implementation
                         is_typed := true;
                       end
                   end;
-                { the file para is a var parameter, but it must be valid already }
-                set_varstate(filepara,true);
               end
             else
               filepara := nil;
@@ -385,6 +387,8 @@ implementation
           begin
             left := filepara.right;
             filepara.right := nil;
+            { the file para is a var parameter, but it must be valid already }
+            set_varstate(filepara,true);
             { check if we should make a temp to store the result of a complex }
             { expression (better heuristics, anyone?) (JM)                    }
             if (filepara.left.nodetype <> loadn) then
@@ -507,7 +511,7 @@ implementation
             filepara.free;
           end
         else
-          { text write }
+          { text read/write }
           begin
             while assigned(para) do
               begin
@@ -805,6 +809,181 @@ implementation
               resulttypepass(newblock);
               result := newblock
             end;
+      end;
+      
+      
+    function tinlinenode.handle_val: tnode;
+      var
+        procname,
+        suffix        : string[31];
+        sourcepara,
+        destpara,
+        codepara,
+        sizepara,
+        newparas      : tcallparanode;
+        orgcode       : tnode;
+        newstatement  : tstatementnode;
+        newblock      : tblocknode;
+        tempcode      : ttempcreatenode;
+      begin
+        { for easy exiting if something goes wrong }
+        result := cerrornode.create;
+
+        { check the amount of parameters }
+        if not(assigned(left)) or
+           not(assigned(tcallparanode(left).right)) then
+         begin
+           CGMessage(parser_e_wrong_parameter_size);
+           exit;
+         end;
+
+        { reverse parameters for easier processing }
+        left := reverseparameters(tcallparanode(left));
+
+        { get the parameters }
+        tempcode := nil;
+        orgcode := nil;
+        sizepara := nil;
+        sourcepara := tcallparanode(left);
+        destpara := tcallparanode(sourcepara.right);
+        codepara := tcallparanode(destpara.right);
+
+        { check if codepara is valid }
+        if assigned(codepara) and
+           ((codepara.resulttype.def.deftype <> orddef) or
+            is_64bitint(codepara.resulttype.def)) then
+          begin
+            CGMessagePos(codepara.fileinfo,type_e_mismatch);
+            exit;
+          end;
+
+        { check if dest para is valid }
+        if not(destpara.resulttype.def.deftype in [orddef,floatdef]) then
+          begin
+            CGMessagePos(destpara.fileinfo,type_e_integer_or_real_expr_expected);
+            exit;
+          end;
+
+        { we're going to reuse the exisiting para's, so make sure they }
+        { won't be disposed                                            }
+        left := nil;
+
+        { create the blocknode which will hold the generated statements + }
+        { an initial dummy statement                                      }
+        newstatement := cstatementnode.create(nil,cnothingnode.create);
+        newblock := cblocknode.create(newstatement);
+
+        { do we need a temp for code? Yes, if no code specified, or if  }
+        { code is not a 32bit parameter (we already checked whether the }
+        { the code para, if specified, was an orddef)                   }
+        if not assigned(codepara) or
+           (torddef(codepara.resulttype.def).typ in [u8bit,u16bit,s8bit,s16bit]) then
+          begin
+            tempcode := ctempcreatenode.create(s32bittype,4);
+            newstatement.left := cstatementnode.create(nil,tempcode);
+            newstatement := tstatementnode(newstatement.left);
+            { set the resulttype of the temp (needed to be able to get }
+            { the resulttype of the tempref used in the new code para) }
+            resulttypepass(tempcode);
+            { create a temp codepara, but save the original code para to }
+            { assign the result to later on                              }
+            if assigned(codepara) then
+              orgcode := codepara.left
+            else
+              codepara := ccallparanode.create(nil,nil);
+            codepara.left := ctemprefnode.create(tempcode);
+            { we need its resulttype later on }
+            codepara.get_paratype;
+          end
+        else if (torddef(codepara.resulttype.def).typ = u32bit) then
+          { because code is a var parameter, it must match types exactly    }
+          { however, since it will return values in [0..255], both longints }
+          { and cardinals are fine. Since the formal code para type is      }
+          { longint, insert a typecoversion to longint for cardinal para's  }
+          begin
+            codepara.left := ctypeconvnode.create(codepara.left,s32bittype);
+            codepara.get_paratype;
+          end;
+
+        { create the procedure name }
+        procname := 'fpc_val_';
+
+        case destpara.resulttype.def.deftype of
+          orddef:
+            begin
+              case torddef(destpara.resulttype.def).typ of
+                s8bit,s16bit,s32bit:
+                  begin
+                    suffix := 'sint_';
+                    { we also need a destsize para in this case }
+                    sizepara := ccallparanode.create(cordconstnode.create
+                      (destpara.resulttype.def.size,s32bittype),nil);
+                  end;
+                u8bit,u16bit,u32bit:
+                   suffix := 'uint_';
+                s64bit: suffix := 'int64_';
+                u64bit: suffix := 'qword_';
+              end;
+            end;
+          floatdef:
+            begin
+              suffix := 'real_';
+            end;
+        end;
+
+        procname := procname + suffix;
+
+        { play a trick to have tcallnode handle invalid source parameters: }
+        { the shortstring-longint val routine by default                   }
+        if (sourcepara.resulttype.def.deftype = stringdef) then
+          procname := procname + lower(tstringdef(sourcepara.resulttype.def).stringtypname)
+        else procname := procname + 'shortstr';
+
+        { set up the correct parameters for the call: the code para... }
+        newparas := codepara;
+        { and the source para }
+        codepara.right := sourcepara;
+        { sizepara either contains nil if none is needed (which is ok, since   }
+        { then the next statement severes any possible links with other paras  }
+        { that sourcepara may have) or it contains the necessary size para and }
+        { its right field is nil                                               }
+        sourcepara.right := sizepara;
+
+        { create the call and assign the result to dest  }
+        { (val helpers are functions)                    }
+        { the assignment will take care of rangechecking }
+        newstatement.left := cstatementnode.create(nil,cassignmentnode.create(
+          destpara.left,ccallnode.createintern(procname,newparas)));
+        newstatement := tstatementnode(newstatement.left);
+
+        { dispose of the enclosing paranode of the destination }
+        destpara.left := nil;
+        destpara.right := nil;
+        destpara.free;
+
+        { check if we used a temp for code and whether we have to store }
+        { it to the real code parameter                                 }
+        if assigned(orgcode) then
+          begin
+            newstatement.left := cstatementnode.create(nil,cassignmentnode.create(
+              orgcode,ctemprefnode.create(tempcode)));
+            newstatement := tstatementnode(newstatement.left);
+          end;
+
+        { release the temp if we allocated one }
+        if assigned(tempcode) then
+          begin
+            newstatement.left := cstatementnode.create(nil,
+              ctempdeletenode.create(tempcode));
+            newstatement := tstatementnode(newstatement.left);
+          end;
+
+        { free the errornode }
+        result.free;
+        { resulttypepass our new code }
+        resulttypepass(newblock);
+        { and return it }
+        result := newblock;
       end;
 {$endif hascompilerproc}
 
@@ -1767,11 +1946,14 @@ implementation
                        CGMessage(parser_e_illegal_colon_qualifier);
                     end;
                 end;
-{$endif not hascompilerproc}
+{$endif hascompilerproc}
                 end;
 
               in_val_x :
                 begin
+{$ifdef hascompilerproc}
+                  result := handle_val;
+{$else hascompilerproc}
                   resulttype:=voidtype;
               { check the amount of parameters }
               if not(assigned(left)) or
@@ -1826,6 +2008,7 @@ implementation
               If (tcallparanode(hp).left.resulttype.def.deftype<>stringdef) then
                inserttypeconv(tcallparanode(hp).left,cshortstringtype);
               set_varstate(hp,true);
+{$endif hascompilerproc}
                 end;
 
               in_include_x_y,
@@ -2388,6 +2571,10 @@ implementation
 
          in_val_x :
            begin
+{$ifdef hascompilerproc}
+              { should already be removed in det_resulttype (JM) }
+              internalerror(200108242);
+{$else hascompilerproc}
               procinfo^.flags:=procinfo^.flags or pi_do_call;
               { calc registers }
               left_max;
@@ -2403,6 +2590,7 @@ implementation
                 inc(registers32,2)
               else
                 inc(registers32,1);
+{$endif hascompilerproc}
            end;
 
          in_include_x_y,
@@ -2542,7 +2730,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2001-08-23 14:28:35  jonas
+  Revision 1.50  2001-08-24 12:33:54  jonas
+    * fixed big bug in handle_str that caused it to (almost) always call
+      fpc_<stringtype>_longint
+    * fixed small bug in handle_read_write that caused wrong warnigns about
+      uninitialized vars with read(ln)
+    + handle_val (processor independent val() handling)
+
+  Revision 1.49  2001/08/23 14:28:35  jonas
     + tempcreate/ref/delete nodes (allows the use of temps in the
       resulttype and first pass)
     * made handling of read(ln)/write(ln) processor independent

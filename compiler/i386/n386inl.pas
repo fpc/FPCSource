@@ -546,9 +546,7 @@ implementation
         myexit:
            dummycoll.free;
         end;
-{$endif not hascomppilerproc}
 
-{$ifndef hascompilerproc}
       procedure handle_str;
 
         var
@@ -679,8 +677,6 @@ implementation
         myexit:
            dummycoll.free;
         end;
-{$endif hascompilerproc}
-
 
         Procedure Handle_Val;
         var
@@ -905,6 +901,7 @@ implementation
         myexit:
            dummycoll.free;
         end;
+{$endif not hascompilerproc}
 
       var
          r : preference;
@@ -1517,13 +1514,18 @@ implementation
                  handle_str;
                  maybe_loadself;
 {$else not hascompilerproc}
-                 { should be removed in pass 1 (JM) }
+                 { should be removed in det_resulttype (JM) }
                  internalerror(200108131);
 {$endif not hascompilerproc}
               end;
             in_val_x :
               Begin
+{$ifdef hascompilerproc}
+                 { should be removed in det_resulttype (JM) }
+                 internalerror(200108241);
+{$else hascompilerproc}
                 handle_val;
+{$endif hascompilerproc}
               End;
             in_include_x_y,
             in_exclude_x_y:
@@ -1717,7 +1719,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-08-23 14:28:36  jonas
+  Revision 1.20  2001-08-24 12:33:54  jonas
+    * fixed big bug in handle_str that caused it to (almost) always call
+      fpc_<stringtype>_longint
+    * fixed small bug in handle_read_write that caused wrong warnigns about
+      uninitialized vars with read(ln)
+    + handle_val (processor independent val() handling)
+
+  Revision 1.19  2001/08/23 14:28:36  jonas
     + tempcreate/ref/delete nodes (allows the use of temps in the
       resulttype and first pass)
     * made handling of read(ln)/write(ln) processor independent
