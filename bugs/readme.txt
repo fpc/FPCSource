@@ -345,3 +345,4 @@ bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !
 bug0246.pp   const para can be changed without error
 bug0249.pp   procedure of object cannot be assigned to property.
 bug0252.pp   typecasting not possible within typed const
+bug0254.pp   problem of endless loop if string at end of main file without new line.
