@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-uses linux;
+uses Unix;
 
 Function TProcess.GetRunning : Boolean;
 
@@ -106,7 +106,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:01  michael
+  Revision 1.3  2001-01-21 20:45:09  marco
+   * Rename fest II  FCL version.
+
+  Revision 1.2  2000/07/13 11:33:01  michael
   + removed logs
  
 }

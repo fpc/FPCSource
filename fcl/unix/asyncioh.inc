@@ -12,7 +12,7 @@
 
  **********************************************************************}
 
-uses linux,classes;
+uses Unix,classes;
 
 const
   MaxHandle = SizeOf(TFDSet) * 8 - 1;
@@ -25,7 +25,10 @@ Type
 
 {
   $Log$
-  Revision 1.2  2000-10-26 22:30:21  peter
+  Revision 1.3  2001-01-21 20:45:09  marco
+   * Rename fest II  FCL version.
+
+  Revision 1.2  2000/10/26 22:30:21  peter
     * freebsd update
     * classes.rst
 

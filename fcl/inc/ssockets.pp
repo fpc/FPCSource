@@ -144,7 +144,7 @@ type
 
 Implementation
 
-uses inet,linux;
+uses inet,Unix;
 
 Const
   SocketWouldBlock = -2;
@@ -497,7 +497,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-11-17 13:40:53  sg
+  Revision 1.4  2001-01-21 20:45:09  marco
+   * Rename fest II  FCL version.
+
+  Revision 1.3  2000/11/17 13:40:53  sg
   * Fixed header and log section
 
   Revision 1.2  2000/07/13 11:33:00  michael
