@@ -1731,7 +1731,7 @@ implementation
          while assigned(hp) do
            begin
               rttiList.concat(Tai_const.Create_8bit(length(hp.name)));
-              rttiList.concat(Tai_string.Create(lower(hp.name)));
+              rttiList.concat(Tai_string.Create(hp.name));
               hp:=hp.nextenum;
            end;
          rttiList.concat(Tai_const.Create_8bit(0));
@@ -6152,7 +6152,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.195  2003-12-24 01:47:22  florian
+  Revision 1.196  2003-12-24 20:51:11  peter
+    * don't lowercase enumnames
+
+  Revision 1.195  2003/12/24 01:47:22  florian
     * first fixes to compile the x86-64 system unit
 
   Revision 1.194  2003/12/21 19:42:43  florian
