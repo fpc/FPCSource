@@ -11,8 +11,7 @@
 *** WARNING *** WARNING *** WARNING ***
 This a beta release and it still contains some known bugs. However, it would
 be very useful if you could test your projects with it and tell us when
-you find bugs. You can submit bug reports on the website or mail them to
-bugrep@freepascal.org.
+you find bugs. You can submit bug reports on the website.
 *** WARNING *** WARNING *** WARNING ***
 
 This package contains a freeware 32-bit pascal compiler for 386+. The language
@@ -25,6 +24,7 @@ Free Pascal 1.9.2 is currently available for the following platforms:
 - Dos (i386), using the Go32v2 dos extender
 - Win32 (Win32s, Win95/98/Me/XP/2000 and WinNT)
 - FreeBSD i386
+- Mac OS X/Darwin for PowerPC
 
 More platforms will be supported in future 1.9.x beta releases.
 Because release building is quite time intensive, we decide to start the
@@ -49,9 +49,9 @@ targets, feel free to contact us, E-Mail addresses are listed below.
   - dyn. array support
   - variant support
 - code optimizer:
-  - peephole optimizer
-  - loading of variables into registers
-  - assembler level dataflow analyzer
+  - peephole optimizer (80x86-only)
+  - loading of variables into registers (currently non-functional)
+  - assembler level dataflow analyzer (80x86-only)
   - stack frame eliminations
   - sophisticated register allocator
 - integrated BASM (built-in assembler) parser
@@ -62,9 +62,10 @@ targets, feel free to contact us, E-Mail addresses are listed below.
   - Netwide assembler (Nasm)
   - Microsoft Assembler/Turbo Assembler (Masm/Tasm)
 - can call external C code
-- smartlinking
+- smartlinking (not yet supported under Mac OS X)
 - support for the GNU debugger
-- IDE (currently for GO32v2, Linux,FreeBSD and Win32 only, in beta testing phase)
+- IDE (currently for GO32v2, Linux, FreeBSD and Win32 only, in beta testing
+  phase)
 - can create binaries running natively under both DOS and OS/2 (EMX version)
 
 
@@ -72,7 +73,7 @@ targets, feel free to contact us, E-Mail addresses are listed below.
 * Minimum requirements
 ****************************************************************************
 
-386 processor
+386 or PowerPC processor
 Win32:
  - Win95/98/Me/2000/XP or WinNT
  - 8 MB RAM (16+ MB recommended)
@@ -81,6 +82,8 @@ Linux:
 FreeBSD:
 - FreeBSD 4.x system or 5.x system that has COMPAT_4 system (which is 
   default)
+- Mac OS X:
+ - Mac OS X 10.1 and higher (10.0 may also work, but is untested)
 
 ****************************************************************************
 * Quick start
@@ -119,8 +122,8 @@ the MS help file for this can be obtained.
 
 Suggestions, Help ...
 ---------------------
-e-mail: fpc-devel@lists.freepascal.org (bugs, developer related qs)
-e-mail: fpc-pascal@lists.freepascal.org (general pascal related qs)
+e-mail: fpc-devel@lists.freepascal.org (bugs, developer related questions)
+e-mail: fpc-pascal@lists.freepascal.org (general pascal related questions)
 
 Both these adresses are for mailing lists. If you're not subscribed,
 be sure to mention this fact when sending questions to these lists,
