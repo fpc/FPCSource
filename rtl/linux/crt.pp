@@ -123,7 +123,7 @@ Const
 Var
   CurrX,CurrY : Byte;
   ExitSave    : Pointer;
-  Redir       : boolean; { is the output being redirected (not a TTY) }
+  OutputRedir, InputRedir       : boolean; { is the output/input being redirected (not a TTY) }
 
 
 {*****************************************************************************
@@ -445,7 +445,7 @@ begin
      y:=CurrY;
      CurrY:=$ff;
    end;
-  if Redir then
+  if OutputRedir then
    begin
      if longint(y)-longint(CurrY)=1 then
       ttySendStr(#10);
@@ -465,7 +465,7 @@ procedure ttyColor(a:longint);
 begin
   if a<>TextAttr then
    begin
-     if not Redir then
+     if not OutputRedir then
       ttySendStr(Attr2Ansi(a,TextAttr));
      TextAttr:=a;
      OldTextAttr:=a;
@@ -600,7 +600,7 @@ begin
   For x:=xl To xh Do
    Begin
      attr:=ConsoleBuf^[idx+x].attr;
-     if (attr<>OldAttr) and (not Redir) then
+     if (attr<>OldAttr) and (not OutputRedir) then
       begin
         temp:=temp+Attr2Ansi(Attr,OldAttr);
         OldAttr:=Attr;
@@ -718,7 +718,7 @@ Begin
   oldflush:=ttySetFlush(Flushing);
   if FullWin then
    begin
-     if not Redir then
+     if not OutputRedir then
       ttySendStr(#27'[H'#27'[2J');
      CurrX:=1;
      CurrY:=1;
@@ -752,7 +752,7 @@ Begin
    end;
   if FullWin or (WinMaxX = ScreenWidth) then
    begin
-     if not Redir then
+     if not OutputRedir then
       ttySendStr(#27'[K');
    end
   else
@@ -1335,7 +1335,9 @@ Begin
       F.BufPtr^[i-1]:=#10;
    end;
   F.BufPos:=F.BufEnd;
-  CrtWrite(F);
+  if not(OutputRedir or InputRedir) then
+    CrtWrite(F)
+  else F.BufPos := 0;
   CrtRead:=0;
 End;
 
@@ -1527,7 +1529,7 @@ var
 begin
   if Assigned(ConsoleBuf) then
    FreeMem(ConsoleBuf,ScreenHeight*ScreenWidth*2);
-  if (not Redir) and IOCtl(TextRec(Output).Handle,TIOCGWINSZ,@Wininfo) then
+  if (not OutputRedir) and IOCtl(TextRec(Output).Handle,TIOCGWINSZ,@Wininfo) then
    begin
      ScreenWidth:=Wininfo.ws_col;
      ScreenHeight:=Wininfo.ws_row;
@@ -1569,12 +1571,17 @@ Begin
   Reset(Input);
   TextRec(Input).Handle:=StdInputHandle;
 { Are we redirected to a file ? }
-  Redir:=not IsAtty(TextRec(Output).Handle);
+ OutputRedir:= not IsAtty(TextRec(Output).Handle);
+{ does the input come from another console or from a file? }
+ InputRedir := 
+   not IsAtty(TextRec(Input).Handle) or
+   (not OutputRedir and
+    (TTYName(TextRec(Input).Handle) <> TTYName(TextRec(Output).Handle)));
 { Get Size of terminal and set WindMax to the window }
   GetConsoleBuf;
   WindMax:=((ScreenHeight-1) Shl 8)+(ScreenWidth-1);
 {Get Current X&Y or Reset to Home}
-  if Redir then
+  if OutputRedir then
    begin
      CurrX:=1;
      CurrY:=1;
@@ -1597,7 +1604,12 @@ Begin
 End.
 {
   $Log$
-  Revision 1.22  2000-02-09 16:59:31  peter
+  Revision 1.23  2000-04-07 13:26:27  jonas
+    * fix for web bug 917
+    * also do not mirror input if input is another TTY than output or if
+      input is redirected
+
+  Revision 1.22  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.21  2000/01/07 16:41:39  daniel
