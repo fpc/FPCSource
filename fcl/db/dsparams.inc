@@ -113,7 +113,7 @@ Procedure TParams.GetParamList(List: TList; const ParamNames: string);
     If (P=0) then
       P:=Length(S)+1;
     Result:=Copy(S,1,P-1);
-    Delete(S,1,P);
+    system.Delete(S,1,P);
   end;
 
 Var
@@ -700,7 +700,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-12-15 23:02:42  florian
+  Revision 1.3  2005-02-01 09:05:52  marco
+   * delete fix
+
+  Revision 1.2  2004/12/15 23:02:42  florian
     * fixed compilation for targets where comp=int64
 
   Revision 1.1  2004/12/13 20:19:49  michael
