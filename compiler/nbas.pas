@@ -376,6 +376,7 @@ implementation
          hp:=tstatementnode(left);
          while assigned(hp) do
            begin
+(*
               if cs_regalloc in aktglobalswitches then
                 begin
                    { node transformations }
@@ -422,6 +423,7 @@ implementation
                         aktfilepos:=hp.left.fileinfo;
                      end;
                 end;
+*)
               if assigned(hp.left) then
                 begin
                    codegenerror:=false;
@@ -800,7 +802,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2003-05-23 14:27:35  peter
+  Revision 1.53  2003-05-30 21:01:44  jonas
+    - disabled "result := value; exit;" -> exit(value) optimization because
+      a) it was wrong
+      b) exit(value) works now exactly the same as that
+     (it was only activated with -Or)
+
+  Revision 1.52  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 
