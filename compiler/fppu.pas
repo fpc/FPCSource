@@ -104,6 +104,7 @@ uses
         if assigned(ppufile) then
          ppufile.free;
         ppufile:=nil;
+        stringdispose(sourcefn);
         inherited Destroy;
       end;
 
@@ -1331,7 +1332,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.29  2002-12-29 14:57:50  peter
+  Revision 1.30  2003-03-27 17:44:13  peter
+    * fixed small mem leaks
+
+  Revision 1.29  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed

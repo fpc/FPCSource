@@ -734,9 +734,13 @@ implementation
               { generate a methodcallnode or proccallnode }
               { we shouldn't convert things like @tcollection.load }
               p2:=cloadnode.create_procvar(sym,aprocdef,st);
-              if assigned(p1) and
-                 (p1.nodetype<>typen) then
-                tloadnode(p2).set_mp(p1);
+              if assigned(p1) then
+               begin
+                 if (p1.nodetype<>typen) then
+                   tloadnode(p2).set_mp(p1)
+                 else
+                   p1.free;
+               end;
               p1:=p2;
 
               { no postfix operators }
@@ -2340,7 +2344,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  2003-03-17 18:55:30  peter
+  Revision 1.105  2003-03-27 17:44:13  peter
+    * fixed small mem leaks
+
+  Revision 1.104  2003/03/17 18:55:30  peter
     * allow more tokens instead of only semicolon after inherited
 
   Revision 1.103  2003/03/17 16:54:41  peter
