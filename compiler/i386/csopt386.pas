@@ -1189,16 +1189,16 @@ begin
           removeLast := storeBack(endP, orgsupreg, newsupreg);
           sequenceEnd :=
             { no support for (i)div, mul and imul with hardcoded operands }
-            (noHardCodedRegs(taicpu(endP),orgsupreg,newsupreg) and
+            noHardCodedRegs(taicpu(endP),orgsupreg,newsupreg) and
             { if newsupreg gets loaded with a new value, we can stop   }
             { replacing newsupreg with oldReg here (possibly keeping   }
             { the original contents of oldReg so we still know them }
             { afterwards)                                           }
-             RegLoadedWithNewValue(newsupreg,true,taicpu(endP)) or
+             (RegLoadedWithNewValue(newsupreg,true,taicpu(endP)) or
             { we can also stop if we reached the end of the use of }
             { newReg's current contents                            }
-             (GetNextInstruction(endp,hp) and
-              FindRegDealloc(newsupreg,hp)));
+              (GetNextInstruction(endp,hp) and
+               FindRegDealloc(newsupreg,hp)));
           { to be able to remove the first and last instruction of  }
           {   movl %reg1, %reg2                                     }
           {   <operations on %reg2> (replacing reg2 with reg1 here) }
@@ -1612,6 +1612,30 @@ begin
 end;
 
 
+procedure replaceoperandwithreg(asml: taasmoutput; p: tai; opnr: byte; reg: tregister);
+var
+  hp: tai;
+begin
+  { new instruction -> it's info block is not in the big one allocated at the start }
+  hp := Tai_Marker.Create(NoPropInfoStart);
+  InsertLLItem(asml, p.previous,p, hp);
+  { duplicate the original instruction and replace it's designated operant with the register }
+  hp := p.getcopy;
+  taicpu(hp).loadreg(opnr,reg);
+  { add optimizer state info }
+  new(ptaiprop(hp.optinfo));
+  ptaiprop(hp.optinfo)^ := ptaiprop(p.optinfo)^;
+  { new instruction can not be removed }
+  ptaiprop(hp.optinfo)^.canBeRemoved := false;
+  { but the old one can }
+  ptaiprop(p.optinfo)^.canBeRemoved := true;
+  { insert end marker }
+  InsertLLItem(asml, p.previous, p, hp);
+  hp := Tai_Marker.Create(NoPropInfoEnd);
+  InsertLLItem(asml, p.previous, p, hp);
+end;
+
+
 procedure doCSE(asml: TAAsmOutput; First, Last: tai; findPrevSeqs, doSubOpts: boolean);
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
@@ -1692,44 +1716,7 @@ begin
                                    Cnt2 := 1;
                                    while Cnt2 <= Cnt do
                                      begin
-(*
-                                       if not(regInInstruction(getsupreg(taicpu(hp2).oper[1]^.reg), p)) and
-                                          not(ptaiprop(p.optinfo)^.canBeRemoved) then
-                                         begin
-                                           if (p.typ = ait_instruction) and
-                                              ((taicpu(p).OpCode = A_MOV)  or
-                                               (taicpu(p).opcode = A_MOVZX) or
-                                               (taicpu(p).opcode = A_MOVSX)) and
-                                              (taicpu(p).oper[1]^.typ = top_reg) then
-                                             if not is_mov_for_div(taicpu(p)) then
-                                               begin
-                                                 regCounter := getsupreg(taicpu(p).oper[1]^.reg);
-                                                 if (regCounter in reginfo.regsStillUsedAfterSeq) then
-                                                   begin
-                                                    if (hp1 = nil) then
-                                                      hp1 := reginfo.lastReload[regCounter];
-                                                   end
 {$ifndef noremove}
-                                                 else
-                                                   begin
-                                                     hp5 := p;
-                                                     for cnt3 := ptaiprop(p.optinfo)^.regs[regCounter].nrofmods downto 1 do
-                                                       begin
-                                                         if regModifiedByInstruction(regCounter,hp5) then
-                                                           ptaiprop(hp5.optinfo)^.CanBeRemoved := True;
-                                                         getNextInstruction(hp5,hp5);
-                                                       end;
-                                                   end
-{$endif noremove}
-                                               end
-{$ifndef noremove}
-                                             else
-                                               ptaiprop(p.optinfo)^.CanBeRemoved := True
-{$endif noremove}
-                                         end
-*)
-{$ifndef noremove}
-(*                                       else *)
                                          ptaiprop(p.optinfo)^.CanBeRemoved := True
 {$endif noremove}
                                        ; inc(Cnt2);
@@ -1739,56 +1726,19 @@ begin
                                    GetLastInstruction(hp2, hp4);
 
 {$IfDef CSDebug}
-              for regcounter := RS_EAX To RS_EDI do
-                if (regcounter in reginfo.RegsLoadedforRef) then
-                  begin
-           hp5 := tai_comment.Create(strpnew('New: '+std_reg2str[regcounter]+', Old: '+
-                                                  std_reg2str[reginfo.new2oldreg[regcounter]])));
-           InsertLLItem(asml, tai(hp2.previous), hp2, hp5);
-                  end;
+                                   for regcounter := RS_EAX To RS_EDI do
+                                     if (regcounter in reginfo.RegsLoadedforRef) then
+                                       begin
+                                         hp5 := tai_comment.Create(strpnew('New: '+std_reg2str[regcounter]+', Old: '+
+                                           std_reg2str[reginfo.new2oldreg[regcounter]])));
+                                         InsertLLItem(asml, tai(hp2.previous), hp2, hp5);
+                                       end;
 {$EndIf CSDebug}
  { if some registers were different in the old and the new sequence, move }
  { the contents of those old registers to the new ones                    }
                                    loadcseregs(asml,reginfo,p,prevseq,hp2,hp4,cnt);
                                    continue;
                                  end
-(*
-                               else
-                                 if (ptaiprop(p.optinfo)^.
-                                      regs[getsupreg(taicpu(p).oper[1]^.reg)].typ
-                                        in [con_ref,con_noRemoveRef]) and
-                                    (ptaiprop(p.optinfo)^.CanBeRemoved) then
-                                   if (cnt > 0) then
-                                     begin
-                                       p := hp2;
-                                       Cnt2 := 1;
-                                       while Cnt2 <= Cnt do
-                                         begin
-                                           if RegInInstruction(getsupregtaicpu(hp2).oper[1]^.reg), p) then
-                                             ptaiprop(p.optinfo)^.CanBeRemoved := False;
-                                           inc(Cnt2);
-                                           GetNextInstruction(p, p);
-                                         end;
-                                       Continue;
-                                     end
-                                   else
-                                     begin
-                                       { Fix for web bug 972 }
-                                       regCounter := getsupreg(taicpu(p).oper[1]^.reg);
-                                       cnt := ptaiprop(p.optinfo)^.Regs[regCounter].nrofMods;
-                                       hp3 := p;
-                                       for cnt2 := 1 to cnt do
-                                         if not(regModifiedByInstruction(regCounter,hp3) and
-                                                not(ptaiprop(hp3.optinfo)^.canBeRemoved)) then
-                                           getNextInstruction(hp3,hp3)
-                                         else
-                                           break;
-                                       getLastInstruction(p,hp4);
-                                       RestoreRegContentsTo(regCounter,
-                                         ptaiprop(hp4.optinfo)^.Regs[regCounter],
-                                         p,hp3);
-                                     end;
-*)
                               end;
                           end;
                       { try to replace the new reg with the old reg }
@@ -1812,9 +1762,9 @@ begin
                           end
                         else
                           begin
-                            if (taicpu(p).oper[1]^.typ = top_reg) and
-                               not regInOp(getsupreg(taicpu(p).oper[1]^.reg),taicpu(p).oper[0]^) then
-                             removePrevNotUsedLoad(p,getsupreg(taicpu(p).oper[1]^.reg),false);
+                             if (taicpu(p).oper[1]^.typ = top_reg) and
+                                not regInOp(getsupreg(taicpu(p).oper[1]^.reg),taicpu(p).oper[0]^) then
+                               removePrevNotUsedLoad(p,getsupreg(taicpu(p).oper[1]^.reg),false);
                              if doSubOpts and
                                 (taicpu(p).opcode <> A_LEA) and
                                 (taicpu(p).oper[0]^.typ = top_ref) then
@@ -1832,7 +1782,7 @@ begin
                                     end
                                   else
                                     begin
-                                      taicpu(p).loadreg(0,memreg);
+                                      replaceoperandwithreg(asml,p,0,memreg);
                                       allocregbetween(asml,memreg,hp5,p);
                                       regcounter := getsupreg(memreg);
                                       incstate(pTaiProp(p.optinfo)^.regs[regcounter].rstate,1);
@@ -1910,7 +1860,7 @@ begin
                                 taicpu(p).oper[0]^.ref^,hp5);
                               if memreg <> NR_NO then
                                 begin
-                                  taicpu(p).loadreg(0,memreg);
+                                  replaceoperandwithreg(asml,p,0,memreg);
                                   allocregbetween(asml,memreg,hp5,p);
                                   regcounter := getsupreg(memreg);
                                   incstate(pTaiProp(p.optinfo)^.regs[regcounter].rstate,1);
@@ -1941,7 +1891,7 @@ begin
                                   updatestate(regcounter,hp1);
                                   hp1 := Tai_Marker.Create(NoPropInfoStart);
                                   insertllitem(asml,p,p.next,hp1);
-                                  taicpu(p).loadreg(0,memreg);
+                                  replaceoperandwithreg(asml,p,0,memreg);
                                   allocregbetween(asml,memreg,hp5,
                                     tai(p.next.next));
                                 end;
@@ -1956,7 +1906,7 @@ begin
                                 taicpu(p).oper[1]^.ref^,hp5);
                               if memreg <> NR_NO then
                                 begin
-                                  taicpu(p).loadreg(1,memreg);
+                                  replaceoperandwithreg(asml,p,1,memreg);
                                   allocregbetween(asml,memreg,hp5,p);
                                   regcounter := getsupreg(memreg);
                                   incstate(pTaiProp(p.optinfo)^.regs[regcounter].rstate,1);
@@ -1993,7 +1943,7 @@ begin
                                   updatestate(regcounter,hp1);
                                   hp1 := Tai_Marker.Create(NoPropInfoStart);
                                   insertllitem(asml,p,p.next,hp1);
-                                  taicpu(p).loadreg(1,memreg);
+                                  replaceoperandwithreg(asml,p,1,memreg);
                                   allocregbetween(asml,memreg,hp5,
                                     tai(p.next.next));
                                 end;
@@ -2099,7 +2049,10 @@ end.
 
 {
   $Log$
-  Revision 1.52  2003-11-28 18:49:05  jonas
+  Revision 1.53  2003-12-07 19:19:56  jonas
+    * fixed some more bugs which only showed up in a ppc cross compiler
+
+  Revision 1.52  2003/11/28 18:49:05  jonas
     * fixed bug which only showed up in the ppc crosscompiler :)
 
   Revision 1.51  2003/11/22 13:10:32  jonas

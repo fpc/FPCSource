@@ -251,15 +251,19 @@ begin
           if not reg2Modified then
             reg2Modified := regModifiedByInstruction(reg2,endP);
 
+          tmpResult :=
+            ((not isInstruction) or
+             (NoHardCodedRegs(taicpu(endP),reg1,reg2) and
+              RegSizesOk(reg1,reg2,taicpu(endP))));
+
           if sequenceEnd then
             break;
 
           tmpResult :=
+            tmpresult and
             (endp.typ <> ait_label) and
             ((not isInstruction) or
-             (NoHardCodedRegs(taicpu(endP),reg1,reg2) and
-              RegSizesOk(reg1,reg2,taicpu(endP)) and
-              (taicpu(endp).opcode <> A_JMP)));
+             (taicpu(endp).opcode <> A_JMP));
         end;
     end;
 
@@ -346,7 +350,10 @@ End.
 
 {
   $Log$
-  Revision 1.23  2003-11-22 00:40:19  jonas
+  Revision 1.24  2003-12-07 19:19:56  jonas
+    * fixed some more bugs which only showed up in a ppc cross compiler
+
+  Revision 1.23  2003/11/22 00:40:19  jonas
     * fixed optimiser so it compiles again
     * fixed several bugs which were in there already for a long time, but
       which only popped up now :) -O2/-O3 will now optimise less than in

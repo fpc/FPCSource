@@ -843,6 +843,8 @@ var
   Cnt: Byte;
 begin
   TmpResult := False;
+  if supreg = RS_INVALID then
+    exit;
   if (p1.typ = ait_instruction) then
     case taicpu(p1).opcode of
       A_IMUL:
@@ -2705,7 +2707,10 @@ end.
 
 {
   $Log$
-  Revision 1.55  2003-11-22 13:10:32  jonas
+  Revision 1.56  2003-12-07 19:19:56  jonas
+    * fixed some more bugs which only showed up in a ppc cross compiler
+
+  Revision 1.55  2003/11/22 13:10:32  jonas
     * fixed double unit usage
 
   Revision 1.54  2003/11/22 00:40:19  jonas
