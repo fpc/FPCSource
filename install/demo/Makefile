@@ -128,7 +128,7 @@ endif
 
 # Default FPCDIR
 ifeq ($(FPCDIR),wrong)
-override FPCDIR=../..
+override FPCDIR=..
 ifeq ($(wildcard $(FPCDIR)/rtl),)
 override FPCDIR=wrong
 endif
@@ -174,7 +174,7 @@ ifeq ($(OS_TARGET),go32v2)
 override EXEOBJECTS+=mandel samegame quad maze gravwars voxel
 endif
 ifeq ($(OS_TARGET),win32)
-override EXEOBJECTS+=winhello menu mandel dlltest testdll
+override EXEOBJECTS+=mandel samegame quad maze gravwars winhello menu dlltest testdll
 endif
 
 # Clean
@@ -190,7 +190,6 @@ ZIPTARGET=install
 
 # Directories
 
-override NEEDUNITDIR=$(FPCDIR)/api
 ifndef TARGETDIR
 TARGETDIR=.
 endif

@@ -5,9 +5,11 @@
 [targets]
 units=gameunit
 programs=eratos qsort hello blackbox magic lines fpctris
-programs_win32=winhello menu mandel dlltest testdll
+programs_win32=mandel samegame quad maze gravwars \
+               winhello menu dlltest testdll
 programs_linux=mandel samegame quad maze gravwars
-programs_go32v2=mandel samegame quad maze gravwars voxel
+programs_go32v2=mandel samegame quad maze gravwars \
+                voxel
 
 [require]
 # Not always necessary, but saves a lot of trouble
@@ -20,8 +22,7 @@ packagename=demo
 defaultrule=both
 
 [dirs]
-fpcdir=../..
-unitdir=$(FPCDIR)/api
+fpcdir=..
 targetdir=.
 
 [postsettings]
@@ -66,3 +67,4 @@ endif
 installexamples:
         $(MKDIR) $(EXAMPLESINSTALLDIR)
         $(COPYTREE) * $(EXAMPLESINSTALLDIR)
+
