@@ -25,6 +25,7 @@ uses
 const
   Version='v0.99.13';
   Title='fpcmake '+Version;
+  TitleDate=Title+' ['+{$i %DATE}+']';
 
 { Include default fpcmake.ini }
 {$i fpcmake.inc}
@@ -32,7 +33,7 @@ const
 type
   tsections=(sec_none,
     sec_units,sec_exes,sec_loaders,sec_examples,sec_package,
-    sec_compile,sec_depend,sec_install,sec_sourceinstall,sec_zipinstall,
+    sec_compile,sec_require,sec_install,sec_sourceinstall,sec_zipinstall,
     sec_clean,sec_libs,sec_command,sec_exts,sec_dirs,sec_tools,sec_info
   );
 
@@ -44,7 +45,7 @@ const
 
   sectionstr : array[tsections] of string=('none',
     'units','exes','loaders','examples','package',
-    'compile','depend','install','sourceinstall','zipinstall',
+    'compile','require','install','sourceinstall','zipinstall',
     'clean','libs','command','exts','dirs','tools','info'
   );
 
@@ -66,7 +67,7 @@ const
     'smart','shared',
     'showinstall','install','sourceinstall','zipinstall','zipinstalladd',
     'clean','cleanall',
-    'depend','info'
+    'require','info'
   );
 
   rule2sec : array[1..rules] of tsections=(
@@ -75,7 +76,7 @@ const
     sec_libs,sec_libs,
     sec_install,sec_install,sec_sourceinstall,sec_zipinstall,sec_zipinstall,
     sec_clean,sec_clean,
-    sec_depend,sec_info
+    sec_require,sec_info
   );
 
   rule2bic : array[1..rules] of tbic=(
@@ -102,7 +103,7 @@ const
   ini_zip='zip';
   ini_clean='clean';
   ini_dirs='dirs';
-  ini_packages='packages';
+  ini_require='require';
   ini_libs='libs';
   ini_targets='targets';
   ini_info='info';
@@ -116,7 +117,9 @@ type
     TargetLoaders,
     TargetUnits,
     TargetPrograms,
-    TargetExamples : TTargetsString;
+    TargetExamples,
+    TargetRST      : TTargetsString;
+    InstallUnitSub,
     InstallPrefix,
     InstallBase    : string;
     InstallUnits,
@@ -131,8 +134,7 @@ type
     DefaultCleanDir,
     DefaultDir,
     DefaultTarget,
-    DefaultCPU,
-    DefaultOptions : string;
+    DefaultCPU     : string;
     DirFpc,
     DirPackage,
     DirComponent,
@@ -143,10 +145,9 @@ type
     DirUnitTarget,
     DirSources,
     DirInc         : string;
-    PackageRTL,
-    PackageFCL     : boolean;
-    Components,
-    Packages       : TTargetsString;
+    RequireOptions  : string;
+    RequirePackages,
+    RequireComponents : TTargetsString;
     LibName,
     LibUnits       : string;
     LibGCC,
@@ -289,12 +290,14 @@ begin
      ReadTargetsString(TargetUnits,ini_targets,'units','');
      ReadTargetsString(TargetPrograms,ini_targets,'programs','');
      ReadTargetsString(TargetExamples,ini_targets,'examples','');
+     ReadTargetsString(TargetRST,ini_targets,'rst','');
    { clean }
      ReadTargetsString(CleanUnits,ini_clean,'units','');
      ReadTargetsString(CleanFiles,ini_clean,'files','');
    { install }
      InstallPrefix:=ReadString(ini_install,'dirprefix','');
      InstallBase:=ReadString(ini_install,'dirbase','');
+     InstallUnitSub:=ReadString(ini_install,'unitsubdir','');
      ReadTargetsString(InstallUnits,ini_install,'units','');
      ReadTargetsString(InstallFiles,ini_install,'files','');
    { zip }
@@ -308,15 +311,13 @@ begin
      DefaultRule:=ReadString(ini_defaults,'defaultrule','all');
      DefaultTarget:=ReadString(ini_defaults,'defaulttarget','');
      DefaultCPU:=ReadString(ini_defaults,'defaultcpu','');
-     DefaultOptions:=ReadString(ini_defaults,'defaultoptions','');
    { packages }
-     ReadTargetsString(Components,ini_packages,'components','');
-     ReadTargetsString(Packages,ini_packages,'packages','');
-     PackageRTL:=ReadBool(ini_packages,'rtl',true);
-     PackageFCL:=ReadBool(ini_packages,'fcl',false);
+     RequireOptions:=ReadString(ini_require,'options','');
+     ReadTargetsString(requireComponents,ini_require,'components','');
+     ReadTargetsString(requirePackages,ini_require,'packages','');
    { dirs }
      DirFpc:=ReadString(ini_dirs,'fpcdir','');
-     DirPackage:=ReadString(ini_dirs,'packagedir','$(FPCDIR)/packages');
+     DirPackage:=ReadString(ini_dirs,'packagedir','');
      DirComponent:=ReadString(ini_dirs,'componentdir','$(FPCDIR)/components');
      DirUnit:=ReadString(ini_dirs,'unitdir','');
      DirLib:=ReadString(ini_dirs,'libdir','');
@@ -557,7 +558,7 @@ var
   procedure AddTargetsUnitDir(const pre:string;var t:TTargetsString);
   var
     i,j : integer;
-    hs,packdir : string;
+    hs,packdirvar,packdir : string;
   begin
     for i:=0 to targets do
      if (t[i]<>'') then
@@ -567,12 +568,14 @@ var
           j:=pos(' ',hs);
           if j=0 then
            j:=length(hs)+1;
+          packdirvar:='PACKAGEDIR_'+Uppercase(Copy(hs,1,j-1));
           packdir:=pre+'/'+Copy(hs,1,j-1);
           mf.Add('ifneq ($(wildcard '+packdir+'/$(OS_TARGET)),)');
-          mf.Add('override NEEDUNITDIR+='+packdir+'/$(OS_TARGET)');
+          mf.Add(packdirvar+'='+packdir+'/$(OS_TARGET)');
           mf.Add('else');
-          mf.Add('override NEEDUNITDIR+='+packdir);
+          mf.Add(packdirvar+'='+packdir);
           mf.Add('endif');
+          mf.Add('override NEEDUNITDIR+=$('+packdirvar+')');
           system.delete(hs,1,j);
         until hs='';
       end;
@@ -600,40 +603,33 @@ var
     mf.Add('endif');
   end;
 
-  procedure AddPackageDep(const packagedir,s,s2:string;ifdefneed:boolean);
-  var
-    s3 : string;
+  procedure AddDirDetect(const varname,checkdir,elsedir:string);
   begin
-    if s<>'' then
-     s3:='/'+s
-    else
-     s3:='';
-    if ifdefneed then
-     mf.Add('ifdef PACKAGE'+Uppercase(s));
-    mf.Add('ifneq ($(wildcard '+packagedir+s3+'),)');
-    mf.Add('ifeq ($(wildcard '+packagedir+s3+'/$(FPCMADE)),)');
-    mf.Add('override COMPILEPACKAGES+='+s2);
-    mf.Add(s2+'_package:');
-    mf.Add(#9'$(MAKE) -C '+packagedir+s3+' all');
+    mf.Add('ifneq ($(wildcard '+checkdir+'),)');
+    mf.Add(varname+'='+checkdir);
+    if elsedir<>'' then
+     begin
+       mf.Add('else');
+       mf.Add(varname+'='+elsedir);
+     end;
     mf.Add('endif');
-    mf.Add('endif');
-    if ifdefneed then
-     mf.Add('endif');
-    Phony:=Phony+' '+s2+'_package';
   end;
 
-  procedure AddComponentDep(const s:string);
+  procedure AddPackageDep(const s:string);
+  var
+    packagedir : string;
   begin
-    mf.Add('ifdef COMPONENT'+Uppercase(s));
-    mf.Add('ifneq ($(wildcard $(COMPONENTDIR)/'+s+'),)');
-    mf.Add('ifeq ($(wildcard $(COMPONENTDIR)/'+s+'/$(FPCMADE)),)');
-    mf.Add('override COMPILECOMPONENTS+='+s);
-    mf.Add(s+'_component:');
-    mf.Add(#9'$(MAKE) -C $(COMPONENTDIR)/'+s+' all');
+    packagedir:='$(PACKAGEDIR_'+Uppercase(s)+')';
+    mf.Add('ifdef PACKAGE'+Uppercase(s));
+    mf.Add('ifneq ($(wildcard '+packagedir+'),)');
+    mf.Add('ifeq ($(wildcard '+packagedir+'/$(FPCMADE)),)');
+    mf.Add('override COMPILEPACKAGES+='+s);
+    mf.Add(s+'_package:');
+    mf.Add(#9'$(MAKE) -C '+packagedir+' all');
     mf.Add('endif');
     mf.Add('endif');
     mf.Add('endif');
-    Phony:=Phony+' '+s+'_component';
+    Phony:=Phony+' '+s+'_package';
   end;
 
   function AddTargetDefines(const ts:TTargetsString;const prefix:string):string;
@@ -676,7 +672,7 @@ begin
    begin
    { write header & autodetection }
      Add('#');
-     Add('# Makefile generated by '+title+' on '+FormatDateTime(TimeFormat,Now));
+     Add('# Makefile generated by '+titledate);
      Add('#');
      Add('');
      Add('defaultrule: '+userini.defaultrule);
@@ -697,6 +693,15 @@ begin
    { fpc detection }
      AddSection(true,'fpcdetect');
 
+   { fpc dir }
+     Add('ifndef FPCDIR');
+     if userini.dirfpc<>'' then
+      Add('FPCDIR='+userini.dirfpc)
+     else
+      AddSection(true,'fpcdirdetect');
+     Add('endif');
+     Add('export FPCDIR');
+
    { write the default & user settings }
      AddSection(true,'defaultsettings');
      AddSection(true,'usersettings');
@@ -715,6 +720,7 @@ begin
      AddTargets('UNITOBJECTS',userini.targetunits,false);
      AddTargets('EXEOBJECTS',userini.targetprograms,false);
      AddTargets('EXAMPLEOBJECTS',userini.targetexamples,false);
+     AddTargets('RSTOBJECTS',userini.targetrst,false);
 
    { Clean }
      AddHead('Clean');
@@ -729,6 +735,8 @@ begin
       Add('PREFIXINSTALLDIR='+userini.installprefix);
      if userini.installbase<>'' then
       Add('BASEINSTALLDIR='+userini.installbase);
+     if userini.InstallUnitSub>'' then
+      Add('UNITSUBDIR='+userini.InstallUnitSub);
 
    { Zip }
      if userini.zipname<>'' then
@@ -738,34 +746,27 @@ begin
 
    { Defaults }
      AddHead('Defaults');
-     if userini.defaultoptions<>'' then
-      Add('override NEEDOPT='+userini.defaultoptions);
+     if userini.Requireoptions<>'' then
+      Add('override NEEDOPT='+userini.Requireoptions);
 
    { Dirs }
      AddHead('Directories');
      if userini.dirsources<>'' then
       Add('vpath %$(PASEXT) '+userini.dirsources);
-     if userini.dirfpc<>'' then
-      begin
-        { this dir can be set in the environment, it's more a default }
-        Add('ifndef FPCDIR');
-        Add('FPCDIR='+userini.dirfpc);
-        Add('endif');
-      end;
+     { packages dir }
+     Add('ifndef PACKAGEDIR');
      if userini.dirpackage<>'' then
-      begin
-        { this dir can be set in the environment, it's more a default }
-        Add('ifndef PACKAGEDIR');
-        Add('PACKAGEDIR='+userini.dirpackage);
-        Add('endif');
-      end;
+      Add('PACKAGEDIR='+userini.dirpackage)
+     else
+      AddDirDetect('PACKAGEDIR','$(FPCDIR)/packages','$(FPCDIR)/units/$(OS_TARGET)');
+     Add('endif');
+     { component dir }
+     Add('ifndef COMPONENTDIR');
      if userini.dircomponent<>'' then
-      begin
-        { this dir can be set in the environment, it's more a default }
-        Add('ifndef COMPONENTDIR');
-        Add('COMPONENTDIR='+userini.dircomponent);
-        Add('endif');
-      end;
+      Add('COMPONENTDIR='+userini.dircomponent)
+     else
+      AddDirDetect('COMPONENTDIR','$(FPCDIR)/components','$(FPCDIR)/units/$(OS_TARGET)');
+     Add('endif');
      if userini.dirunit<>'' then
       Add('override NEEDUNITDIR='+userini.dirunit);
      if userini.dirlib<>'' then
@@ -789,12 +790,12 @@ begin
 
    { Packages }
      AddHead('Packages');
-     AddTargets('PACKAGES',userini.packages,false);
-     AddTargets('COMPONENTS',userini.components,false);
-     if userini.PackageFCL then
-      Add('override NEEDUNITDIR+=$(FPCDIR)/fcl/$(OS_TARGET)');
-     AddTargetsUnitDir('$(PACKAGEDIR)',userini.packages);
-     AddTargetsUnitDir('$(COMPONENTDIR)',userini.components);
+     Add('override PACKAGES=rtl');
+     AddTargets('PACKAGES',userini.Requirepackages,false);
+     AddTargets('COMPONENTS',userini.Requirecomponents,false);
+     Add('PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)');
+     AddTargetsUnitDir('$(PACKAGEDIR)',userini.Requirepackages);
+     AddTargetsUnitDir('$(COMPONENTDIR)',userini.Requirecomponents);
 
    { Libs }
      AddHead('Libraries');
@@ -847,13 +848,12 @@ begin
       begin
         Add('');
         AddSection(true,'command_begin');
-        AddSection((userini.defaultoptions<>''),'command_needopt');
+        AddSection((userini.Requireoptions<>''),'command_needopt');
         AddSection((userini.dirfpc<>''),'command_rtldir');
         AddSection((userini.dirfpc<>''),'command_unitsdir');
         AddSection((userini.dirunit<>'') or
-                   (userini.packagefcl) or
-                   (not TargetStringEmpty(userini.packages)) or
-                   (not TargetStringEmpty(userini.components))
+                   (not TargetStringEmpty(userini.Requirepackages)) or
+                   (not TargetStringEmpty(userini.Requirecomponents))
                    ,'command_needunit');
         AddSection((userini.dirlib<>''),'command_needlib');
         AddSection((userini.dirobj<>''),'command_needobj');
@@ -898,22 +898,19 @@ begin
         Add('');
       end;
 
-   { Package depends, must be before the other rules so it's done first! }
-     AddSection(true,'packagedependrules');
+   { Package requirements, must be before the other rules so it's done first }
+     AddSection(true,'packagerequirerules');
      Phony:='';
-     if userini.packagertl then
-      AddPackageDep('$(RTLDIR)','','rtl',false);
-     if userini.packagefcl then
-      AddPackageDep('$(FCLDIR)','','fcl',false);
+     AddPackageDep('rtl');
      Add('');
-     if not TargetStringEmpty(userini.Packages) then
+     if not TargetStringEmpty(userini.RequirePackages) then
       begin
-        hs:=AddTargetDefines(userini.Packages,'PACKAGE');
+        hs:=AddTargetDefines(userini.RequirePackages,'PACKAGE');
         repeat
           i:=pos(' ',hs);
           if i=0 then
            i:=length(hs)+1;
-          AddPackageDep('$(PACKAGEDIR)',Copy(hs,1,i-1),Copy(hs,1,i-1),true);
+          AddPackageDep(Copy(hs,1,i-1));
           system.delete(hs,1,i);
         until hs='';
         Add('');
@@ -926,14 +923,14 @@ begin
 
    { Components }
      Phony:='';
-     if not TargetStringEmpty(userini.Components) then
+     if not TargetStringEmpty(userini.RequireComponents) then
       begin
-        hs:=AddTargetDefines(userini.Components,'COMPONENT');
+        hs:=AddTargetDefines(userini.RequireComponents,'COMPONENT');
         repeat
           i:=pos(' ',hs);
           if i=0 then
            i:=length(hs)+1;
-          AddComponentDep(Copy(hs,1,i-1));
+          AddPackageDep(Copy(hs,1,i-1));
           system.delete(hs,1,i);
         until hs='';
         Add('');
@@ -949,6 +946,7 @@ begin
      AddSection(not TargetStringEmpty(userini.targetunits),'unitrules');
      AddSection(not TargetStringEmpty(userini.targetprograms),'exerules');
      AddSection(not TargetStringEmpty(userini.targetexamples),'examplerules');
+     AddSection(not TargetStringEmpty(userini.targetrst),'rstrules');
 
    { default fpc_ rules }
      AddSection(userini.Section[sec_Compile],'compilerules');
@@ -957,7 +955,7 @@ begin
      AddSection(userini.Section[sec_SourceInstall],'sourceinstallrules');
      AddSection(userini.Section[sec_ZipInstall],'zipinstallrules');
      AddSection(userini.Section[sec_Clean],'cleanrules');
-     AddSection(userini.Section[sec_Depend],'dependrules');
+     AddSection(userini.Section[sec_require],'requirerules');
      if userini.Section[sec_Info] then
       begin
         AddSection(true,'inforules');
@@ -1051,7 +1049,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  1999-12-23 19:32:28  peter
+  Revision 1.16  2000-01-03 19:42:41  peter
+    * regenerated
+
+  Revision 1.15  1999/12/23 19:32:28  peter
     * automatic support for package/target dir structure
 
   Revision 1.14  1999/12/23 13:52:23  peter
@@ -1071,7 +1072,7 @@ end.
     * fpcmake updated
 
   Revision 1.9  1999/11/25 20:23:01  peter
-    * package dependencies
+    * package requireencies
 
   Revision 1.8  1999/11/24 23:53:00  peter
     * packages
