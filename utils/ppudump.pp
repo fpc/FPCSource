@@ -47,8 +47,6 @@ const
 var
   ppufile     : pppufile;
   space       : string;
-  symcnt,
-  defcnt      : longint;
   read_member : boolean;
   verbose     : longint;
 
@@ -226,7 +224,7 @@ begin
 end;
 
 
-function readderef(const s:string):boolean;
+function readderef(const s:string;skipnil:boolean):boolean;
 type
   tdereftype = (derefnil,derefaktrecordindex,derefaktstaticindex,derefunit,
                derefrecord,derefindex,dereflocal,derefpara);
@@ -239,7 +237,8 @@ begin
     case b of
       derefnil :
         begin
-          writeln('nil');
+          if not skipnil then
+           writeln('nil');
           readderef:=false;
           break;
         end;
@@ -281,13 +280,38 @@ end;
 
 function readdefref:boolean;
 begin
-  readdefref:=readderef('Definition');
+  readdefref:=readderef('Definition',false);
 end;
 
 
 function readsymref:boolean;
 begin
-  readsymref:=readderef('Symbol');
+  readsymref:=readderef('Symbol',false);
+end;
+
+
+procedure readtype;
+var
+  b1,b2 : boolean;
+begin
+  b1:=readderef('Definition',true);
+  b2:=readderef('Symbol',true);
+  if not(b1 or b2) then
+   Writeln('nil')
+  else
+   if (b1 and b2) then
+    Writeln('!! Type has both definition and symbol stored');
+end;
+
+
+procedure readsymlist(const s:string);
+begin
+  readdefref;
+  repeat
+    write(s);
+    if not readsymref then
+     break;
+  until false;
 end;
 
 
@@ -401,7 +425,7 @@ var
   first    : boolean;
 begin
   write(space,'      Return type : ');
-  readdefref;
+  readtype;
   writeln(space,'         Fpu used : ',ppufile^.getbyte);
   proctypeoption:=tproctypeoption(ppufile^.getlongint);
   if proctypeoption<>potype_none then
@@ -456,11 +480,8 @@ begin
   if params>0 then
    begin
      repeat
-       writeln(space,'       - ',tvarspez[ppufile^.getbyte]);
-       write  (space,'         def : ');
-       readdefref;
-       write  (space,'         defsym : ');
-       readsymref;
+       write(space,'  - ',tvarspez[ppufile^.getbyte],' : ');
+       readtype;
        dec(params);
      until params=0;
    end;
@@ -536,26 +557,21 @@ end;
 ****************************************************************************}
 
 procedure readsymbols;
-
-  procedure readpropsymlist;
-  begin
-    repeat
-      if not readsymref then
-       break;
-      write(space,'                ');
-    until false;
-  end;
-
 Const
   vo_is_C_var = 2;
 Type
   absolutetyp = (tovar,toasm,toaddr);
-  tconsttype  = (constord,conststring,constreal,constbool,constint,constchar,constseta);
+  tconsttyp = (constnone,
+    constord,conststring,constreal,constbool,
+    constint,constchar,constset,constpointer,constnil,
+    constresourcestring
+  );
 var
   b      : byte;
+  pc     : pchar;
   totalsyms,
   symcnt,
-  i,j    : longint;
+  i,j,len : longint;
 begin
   symcnt:=1;
   with ppufile^ do
@@ -588,8 +604,8 @@ begin
          ibtypesym :
            begin
              readcommonsym('Type symbol ');
-             write(space,'  Definition: ');
-             readdefref;
+             write(space,' Result Type: ');
+             readtype;
            end;
 
          ibprocsym :
@@ -603,15 +619,31 @@ begin
            begin
              readcommonsym('Constant symbol ');
              b:=getbyte;
-             case tconsttype(b) of
+             case tconsttyp(b) of
                constord :
                  begin
-                   write (space,'  Definition : ');
-                   readdefref;
-                   writeln (space,'  Value : ',getlongint)
+                   write (space,' Ordinal Type : ');
+                   readtype;
+                   writeln (space,'      Value : ',getlongint)
                  end;
-               conststring :
-                 writeln(space,'  Value : "'+getstring+'"');
+               constpointer :
+                 begin
+                   write (space,' Pointer Type : ');
+                   readtype;
+                   writeln (space,'      Value : ',getlongint)
+                 end;
+               conststring,
+               constresourcestring :
+                 begin
+                   len:=getlongint;
+                   getmem(pc,len+1);
+                   getdata(pc^,len);
+                   writeln(space,' Length : ',len);
+                   writeln(space,'  Value : "',pc,'"');
+                   freemem(pc,len+1);
+                   if tconsttyp(b)=constresourcestring then
+                    writeln(space,'  Index : ',getlongint);
+                 end;
                constreal :
                  writeln(space,'  Value : ',getreal);
                constbool :
@@ -623,10 +655,10 @@ begin
                  writeln(space,'  Value : ',getlongint);
                constchar :
                  writeln(space,'  Value : "'+chr(getlongint)+'"');
-               constseta :
+               constset :
                  begin
-                   write (space,'  Definition : ');
-                   readdefref;
+                   write (space,'  Set Type : ');
+                   readtype;
                    for i:=1to 4 do
                     begin
                       write (space,'  Value : ');
@@ -650,10 +682,8 @@ begin
              writeln(space,'        Type: ',getbyte);
              if read_member then
                writeln(space,'     Address: ',getlongint);
-             write  (space,'    Definition: ');
-             readdefref;
-             write  (space,' DefinitionSym: ');
-             readsymref;
+             write  (space,'    Var Type: ');
+             readtype;
              i:=getlongint;
              writeln(space,'       Options: ',i);
              if (i and vo_is_C_var)<>0 then
@@ -677,10 +707,8 @@ begin
          ibtypedconstsym :
            begin
              readcommonsym('Typed constant ');
-             write  (space,'    Definition: ');
-             readdefref;
-             write  (space,' DefinitionSym: ');
-             readsymref;
+             write  (space,' Constant Type: ');
+             readtype;
              writeln(space,'         Label: ',getstring);
              writeln(space,'   ReallyConst: ',(getbyte<>0));
            end;
@@ -691,11 +719,9 @@ begin
              writeln(space,'          Type: ',getbyte);
              if read_member then
                writeln(space,'       Address: ',getlongint);
-             write  (space,'    Definition: ');
-             readdefref;
-             write  (space,'   DefinitionSym: ');
-             readsymref;
-             writeln(space,'     Options: ',getbyte);
+             write  (space,'      Var Type: ');
+             readtype;
+             writeln(space,'       Options: ',getlongint);
              Write (space,'    Relocated to ');
              b:=getbyte;
              case absolutetyp(b) of
@@ -716,33 +742,27 @@ begin
          ibpropertysym :
            begin
              readcommonsym('Property ');
-             write  (space,'  Definition: ');
-             readdefref;
-             writeln(space,'     Options: ',getlongint);
-             writeln(space,'       Index: ',getlongint);
-             writeln(space,'     Default: ',getlongint);
-             write  (space,'   Read symbol: ');
-             readpropsymlist;
-             write  (space,'  Write symbol: ');
-             readpropsymlist;
-             write  (space,' Stored symbol: ');
-             readpropsymlist;
-             write  (space,'   Read Definition: ');
-             readdefref;
-             write  (space,'  Write Definition: ');
-             readdefref;
-             write  (space,' Stored Definition: ');
-             readdefref;
-             write  (space,'  Index Definition: ');
-             readdefref;
+             write  (space,'     Prop Type: ');
+             readtype;
+             writeln(space,'       Options: ',getlongint);
+             writeln(space,'         Index: ',getlongint);
+             writeln(space,'       Default: ',getlongint);
+             write  (space,'    Index Type: ');
+             readtype;
+             write  (space,'   Read access: ');
+             readsymlist(space+'           Sym: ');
+             write  (space,'  Write access: ');
+             readsymlist(space+'           Sym: ');
+             write  (space,' Stored access: ');
+             readsymlist(space+'           Sym: ');
            end;
 
          ibfuncretsym :
            begin
              readcommonsym('Func return value ');
-             write  (space,'  Definition: ');
-             readdefref;
-             writeln(space,'  Address: ',getlongint);
+             write  (space,' Return Type: ');
+             readtype;
+             writeln(space,'     Address: ',getlongint);
            end;
 
          iberror :
@@ -809,9 +829,9 @@ begin
          ibpointerdef :
            begin
              readcommondef('Pointer definition');
-             write  (space,'    To Definition : ');
-             readdefref;
-             writeln(space,'           Is Far : ',(getbyte<>0));
+             write  (space,'    Pointed Type : ');
+             readtype;
+             writeln(space,'          Is Far : ',(getbyte<>0));
            end;
 
          iborddef :
@@ -849,9 +869,9 @@ begin
            begin
              readcommondef('Array definition');
              write  (space,'     Element type : ');
-             readdefref;
+             readtype;
              write  (space,'       Range Type : ');
-             readdefref;
+             readtype;
              writeln(space,'            Range : ',getlongint,' to ',getlongint);
              writeln(space,'   Is Constructor : ',(getbyte<>0));
            end;
@@ -941,8 +961,9 @@ begin
              case getbyte of
               0 : writeln('Text');
               1 : begin
-                    write('Typed with definition ');
-                    readdefref;
+                    writeln('Typed');
+                    write  (space,'      File of Type : ');
+                    Readtype;
                   end;
               2 : writeln('Untyped');
              end;
@@ -964,15 +985,15 @@ begin
          ibclassrefdef :
            begin
              readcommondef('Class reference definition');
-             write  (space,'    To definition : ');
-             readdefref;
+             write  (space,'    Pointed Type : ');
+             readtype;
            end;
 
          ibsetdef :
            begin
              readcommondef('Set definition');
              write  (space,'     Element type : ');
-             readdefref;
+             readtype;
              b:=getbyte;
              case tsettype(b) of
                smallset : writeln(space,'  Set with 32 Elements');
@@ -1207,8 +1228,6 @@ var
 begin
 { reset }
   space:='';
-  defcnt:=0;
-  symcnt:=0;
 { fix filename }
   if pos('.',filename)=0 then
    filename:=filename+'.ppu';
@@ -1423,7 +1442,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1999-11-08 14:06:45  florian
+  Revision 1.11  1999-11-30 10:35:37  peter
+    * support new readtype
+
+  Revision 1.10  1999/11/08 14:06:45  florian
     + indexref of propertysym is handle too now
 
   Revision 1.9  1999/08/31 16:07:37  pierre
