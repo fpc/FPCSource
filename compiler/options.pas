@@ -1571,7 +1571,7 @@ begin
   if s<>'' then
    begin
      writeln(s);
-     stopoptions(1);
+     stopoptions(0);
    end;
 end;
 
@@ -2087,7 +2087,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.140  2004-09-08 11:23:31  michael
+  Revision 1.141  2004-09-10 21:00:23  jonas
+    * exit with exit code 0 instead of 1 after writing out quick options
+      (such as -iV)
+
+  Revision 1.140  2004/09/08 11:23:31  michael
   + Check if outputdir exists,  Fix exitcode when displaying help pages
 
   Revision 1.139  2004/08/27 21:59:26  peter
