@@ -1,3 +1,6 @@
+{ 
+  $Id$ 
+}
 unit wincd;
 
 {$mode objfpc}
@@ -16,7 +19,7 @@ TTOCTrack = packed record
   trackNumber,
   rsvd2 : Byte;
   addr : Array[0..3] of byte;
-end;  
+end;
 
 TTOC = packed Record
   toclen : word;
@@ -28,7 +31,7 @@ end;
 Const
   AccessMethodNames : Array[TCDAccessMethod] of string
                     = ('None','ASPI','SPTI','IOCTL');
-                    
+
 Function  GetCDAccessMethod : TCDAccessMethod;
 Procedure SetCDAccessMethod (Value : TCDAccessMethod);
 Function  ReadTOC(Device : String; Var TOC : TTOc) : Integer;
@@ -46,7 +49,7 @@ Var
 { ---------------------------------------------------------------------
   SPTI Defines.
   ---------------------------------------------------------------------}
-  
+
 Type
 
 {$packrecords C}
@@ -143,7 +146,7 @@ end;
 { ---------------------------------------------------------------------
   Actual reading of table of contents.
   ---------------------------------------------------------------------}
-  
+
 { ---------------------------------------------------------------------
   1. SPTI
   ---------------------------------------------------------------------}
@@ -163,7 +166,7 @@ begin
     Flags:=Flags or Cardinal(GENERIC_WRITE);
   Device:=Upcase('\\.\'+Device);
   DriveHandle:=CreateFile(pchar(Device),Flags,FILE_SHARE_READ,
-                          NULL,OPEN_EXISTING, 0, 0 );
+                          nil,OPEN_EXISTING, 0, 0 );
   if (DriveHandle=INVALID_HANDLE_VALUE) then
     begin
     Result:=-1;
@@ -209,7 +212,7 @@ end;
 { ---------------------------------------------------------------------
   2. ASPI
   ---------------------------------------------------------------------}
-  
+
 Function AspiGetNumAdapters : Integer;
 
 Var
@@ -253,13 +256,13 @@ begin
         Lun:=StrToIntDef(Copy(Device,1,Code-1),-1);
         Result:=Lun<>-1;
         end;
-      end;  
+      end;
     end;
 end;
 
 Var
   Atoc : TTOc;
-  
+
 Function AspiReadTOC(Device : String; Var TOC : TTOC) : Integer;
 
 Var
@@ -274,11 +277,11 @@ begin
     Result:=-1;
     Exit;
     end;
-  Writeln('About to read toc from ',haid,' ',tgt,' ',lun);  
-  hEvent:=CreateEvent( NULL, TRUE, FALSE, NULL );
-  Writeln('Resetting event');  
+  Writeln('About to read toc from ',haid,' ',tgt,' ',lun);
+  hEvent:=CreateEvent( nil, TRUE, FALSE, nil );
+  Writeln('Resetting event');
   ResetEvent(hEvent);
-  Writeln('Reset event');  
+  Writeln('Reset event');
   Try
    FillChar(S,sizeof(s),0);
    s.SRB_Cmd      := SC_EXEC_SCSI_CMD;
@@ -299,12 +302,12 @@ begin
    SendASPI32Command(LPSRB(@s));
    Writeln('Sent Command');
    Status:=S.SRB_STATUS;
-   Writeln('Command status,',Status);  
+   Writeln('Command status,',Status);
    if (Status=SS_PENDING ) then
      begin
-     Writeln('Waiting for object');  
+     Writeln('Waiting for object');
      WaitForSingleObject( hEvent, 10000 );  // wait up to 10 secs
-     Writeln('Waiting ended');  
+     Writeln('Waiting ended');
      end;
   Finally
     CloseHandle( hEvent );
@@ -314,7 +317,7 @@ begin
     Result:=-1;
     Exit;
     end;
-  Writeln('Command completed');  
+  Writeln('Command completed');
   With TOC do
     Result:=LastTrack-FirstTrack+1;
 end;
@@ -335,7 +338,7 @@ begin
   Flags:=Cardinal(GENERIC_READ);
   device:=Upcase('\\.\'+device);
   DriveHandle:=CreateFile(PChar(Device), Flags,
-                          FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, 0 );
+                          FILE_SHARE_READ, nil, OPEN_EXISTING, 0, 0 );
   if (DriveHandle = INVALID_HANDLE_VALUE) then
     begin
     result:=-1;
@@ -371,7 +374,7 @@ var
   Drives : Array[0..105] of char;
   P : PChar;
 
-begin  
+begin
   FillChar(Drives,SizeOf(Drives),0);
   GetLogicalDriveStrings(105,Drives);
   P:=@Drives;
@@ -393,7 +396,7 @@ Function NTGetNumDrives: Integer;
 Var A : Array[1..1] of string;
 
 begin
-  Result:=NTDriveInfo(False,A); 
+  Result:=NTDriveInfo(False,A);
 end;
 
 Function ioctlEnumDrives(Var Drives : Array of string) : Integer;
@@ -414,7 +417,7 @@ begin
     camASPI  : Result:=AspiReadTOC(Device,TOC);
     camSPTI  : Result:=SptiReadTOC(Device,TOC);
     camIOCTL : Result:=IOCTLReadTOC(Device,TOC);
-  end;  
+  end;
 end;
 
 Function  GetCDAccessMethod : TCDAccessMethod;
@@ -442,7 +445,7 @@ var
 begin
   Result:=0;
   numAdapters := AspiGetNumAdapters;
-  if (numAdapters=0) then 
+  if (numAdapters=0) then
     exit;
   For I:=0 to NumAdapters-1 do
     begin
@@ -470,7 +473,7 @@ begin
             If CopyInfo and (Result<High(Drives)) then
               Drives[Result]:=Format('ASPI[%d;%d;%d]',[I,J,K]);
             Inc(Result);
-            end;  
+            end;
           end;
       end;
     end;
@@ -492,9 +495,9 @@ begin
  If CurrenTAccessMethod=camASPI then
    Result:=AspiGetNumDrives
  else
-   Result:=NTGetNumDrives;  
+   Result:=NTGetNumDrives;
 end;
- 
+
 Function EnumCDDrives(Var Drives : Array of String) : Integer;
 
 begin
@@ -507,3 +510,8 @@ end;
 Initialization
   InitWinCD;
 end.
+{
+  $Log$
+  Revision 1.2  2002-10-12 09:23:57  florian
+    * changed NULL to nil
+}
