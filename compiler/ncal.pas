@@ -576,21 +576,27 @@ type
          if not assigned(left.resulttype.def) then
            resulttypepass(left);
 
-         { Handle varargs directly, no typeconvs or typechecking needed }
-         if (nf_varargs_para in flags) then
+         { Handle varargs and hidden paras directly, no typeconvs or }
+         { typechecking needed                                       }
+         if (nf_varargs_para in flags) or
+            (paraitem.paratyp = vs_hidden) then
           begin
-            { convert pascal to C types }
-            case left.resulttype.def.deftype of
-              stringdef :
-                inserttypeconv(left,charpointertype);
-              floatdef :
-                inserttypeconv(left,s64floattype);
-            end;
+            if (paraitem.paratyp <> vs_hidden) then
+              begin
+                { convert pascal to C types }
+                case left.resulttype.def.deftype of
+                  stringdef :
+                    inserttypeconv(left,charpointertype);
+                  floatdef :
+                    inserttypeconv(left,s64floattype);
+                end;
+              end;
             set_varstate(left,true);
             resulttype:=left.resulttype;
             dec(parsing_para_level);
             exit;
           end;
+
 
          { Do we need arrayconstructor -> set conversion, then insert
            it here before the arrayconstructor node breaks the tree
@@ -793,7 +799,10 @@ type
         loadconst : boolean;
         hightree : tnode;
       begin
-        if assigned(hightree) then
+{        if assigned(hightree) then
+          exit;
+}
+        if (nf_hightree_generated in flags) then
           exit;
         len:=-1;
         loadconst:=true;
@@ -848,6 +857,7 @@ type
         temp:=ccallparanode.create(hightree,right);
 
         right:=temp;
+        include(flags,nf_hightree_generated);
       end;
 {$else VS_HIDDEN}
     procedure tcallparanode.gen_high_tree(openstring:boolean);
@@ -2276,7 +2286,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.122  2002-12-15 22:50:00  florian
+  Revision 1.123  2002-12-26 18:24:33  jonas
+  * fixed check for whether or not a high parameter was already generated
+  * no type checking/conversions for invisible parameters
+
+  Revision 1.122  2002/12/15 22:50:00  florian
     + some stuff for the new hidden parameter handling added
 
   Revision 1.121  2002/12/15 21:34:15  peter

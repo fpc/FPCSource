@@ -226,6 +226,7 @@ interface
 
          { flags used by tcallparanode }
          nf_varargs_para,  { belongs this para to varargs }
+         nf_hightree_generated, { has the hightree for thispara been generated }
 
          { taddrnode }
          nf_procvarload,
@@ -973,7 +974,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2002-11-28 11:17:04  florian
+  Revision 1.46  2002-12-26 18:24:33  jonas
+  * fixed check for whether or not a high parameter was already generated
+  * no type checking/conversions for invisible parameters
+
+  Revision 1.45  2002/11/28 11:17:04  florian
     * loop node flags from node flags splitted
 
   Revision 1.44  2002/10/05 00:48:57  peter
