@@ -417,14 +417,12 @@
       procedure TObject.Dispatch(var message);
 
         type
-           tmsgtable = record
+           tmsgtable = packed record
               index : dword;
               method : pointer;
            end;
 
            pmsgtable = ^tmsgtable;
-
-           PSizeUInt = ^SizeUInt;
 
         var
            index : dword;
@@ -443,8 +441,8 @@
                 p:=pointer(vmt)+vmtDynamicTable;
                 If Assigned(p) and (Pdword(p)^<>0) then
                   begin
-                     msgtable:=pmsgtable(PSizeUInt(P)^+4);
-                     count:=pdword(PSizeUInt(P)^)^;
+                     msgtable:=pmsgtable(PtrInt(p^)+4);
+                     count:=pdword(p^)^;
                   end
                 else
                   Count:=0;
@@ -747,7 +745,10 @@
 
 {
   $Log$
-  Revision 1.37  2004-04-28 20:48:20  peter
+  Revision 1.38  2004-04-29 21:33:22  florian
+    * fixed tobject.dispatch for 64 bit cpus
+
+  Revision 1.37  2004/04/28 20:48:20  peter
     * ordinal-pointer conversions fixed
 
   Revision 1.36  2004/03/22 22:19:36  florian
