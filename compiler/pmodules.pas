@@ -851,6 +851,7 @@ unit pmodules;
          { of the program                                              }
          st:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
 
+         current_module^.symtable:=st;
          { necessary for browser }
          loaded_units.insert(current_module);
 
@@ -967,7 +968,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.52  1998-09-22 17:13:49  pierre
+  Revision 1.53  1998-09-23 12:20:50  pierre
+    * main program tmodule had no symtable (crashed browser)
+    * unit symbols problem fixed !!
+
+  Revision 1.52  1998/09/22 17:13:49  pierre
     + browsing updated and developed
       records and objects fields are also stored
 
