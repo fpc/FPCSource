@@ -190,7 +190,6 @@ set STACKOPT=-Cs256000
 rem Path to object files
 set OS2OBJP=-Fo%OS2RTL%
 rem Path to units
-rem set OS2UNITP=-Fu%FPCSNAPRTL%;%OS2RTL%
 set OS2UNITP=-Fu%FPCSNAPRTL%
 rem Path to compiler units
 set COMPUNITP=-Fu%COMPSPATH%
@@ -256,7 +255,8 @@ echo *Warning: Cannot locate your %COMPILER% and AS.EXE, make sure they're on PA
 echo *Checking parameters >> %FPCERRLOG%
 set PARAMS=%1
 if .%PARAMS% == . set PARAMS=snapshot
-if %@EVAL[0] == 0 set PARAMS=%@LOWER[%PARAMS%]
+if not %@EVAL[0] == 0 goto ParLoop
+set PARAMS=%@LOWER[%PARAMS%]
 :ParLoop
 shift
 if %1. == . goto NoPars
@@ -287,7 +287,7 @@ echo *Error: Unknown parameter - %PARAMS% >> %FPCERRLOG%
 goto End
 
 :CleanRTL
-if %@eval[0] == 0 goto JPCleanRTL
+if %@EVAL[0] == 0 goto JPCleanRTL
 echo *Cleaning up the RTL (error messages are OK here) ... >> %FPCERRLOG%
 del %OS2OPTF% >> %FPCERRLOG%
 del %OS2RTL%\*.ppo >> %FPCERRLOG%
@@ -317,7 +317,7 @@ del %FPCSNAPRTL%\link.res >& nul >> %FPCERRLOG%
 :ContCleanRTL
 if %PARAMS% == rtl goto Branches
 :CleanCompiler
-if %@eval[0] == 0 goto JPCleanComp
+if %@EVAL[0] == 0 goto JPCleanComp
 echo *Cleaning up the compiler (error messages are OK here) ... >> %FPCERRLOG%
 del %OS2OPTF% >> %FPCERRLOG%
 del %COMPSPATH%\*.ppo >> %FPCERRLOG%
@@ -360,7 +360,7 @@ del %FPCSNAPBIN%\link.res >& nul >> %FPCERRLOG%
 if %PARAMS% == compiler goto Branches
 if %PARAMS% == both goto Branches
 :CleanSnapshot
-if %@eval[0] == 0 goto JPCleanSnap
+if %@EVAL[0] == 0 goto JPCleanSnap
 echo *Deleting the old snapshot (error messages are OK here) ... >> %FPCERRLOG%
 del %FPCSNAPDOC%\*.txt >> %FPCERRLOG%
 del %FPCSNAPDOC%\*.htm* >> %FPCERRLOG%
@@ -658,7 +658,10 @@ goto End
 
 
   $Log$
-  Revision 1.15  2000-04-03 17:42:46  hajny
+  Revision 1.16  2000-05-14 16:46:09  hajny
+    * cmd.exe compatibility problem fixed
+
+  Revision 1.15  2000/04/03 17:42:46  hajny
     + LineInfo added
 
   Revision 1.14  2000/03/28 19:30:50  hajny
