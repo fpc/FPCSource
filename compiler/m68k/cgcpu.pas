@@ -1100,6 +1100,7 @@ unit cgcpu;
         tosave : tcpuregisterset;
         ref : treference;
       begin
+      {!!!!!
         tosave:=std_saved_registers;
         { only save the registers which are not used and must be saved }
         tosave:=tosave*(rg[R_INTREGISTER].used_in_proc+rg[R_ADDRESSREGISTER].used_in_proc);
@@ -1107,6 +1108,7 @@ unit cgcpu;
         ref.direction:=dir_dec;
         if tosave<>[] then
           list.concat(taicpu.op_regset_ref(A_MOVEM,S_L,tosave,ref));
+      }
       end;
 
 
@@ -1116,6 +1118,7 @@ unit cgcpu;
         r:Tregister;
         ref : treference;
       begin
+      {!!!!!!!!
         torestore:=std_saved_registers;
         { should be intersected with used regs, no ? }
         torestore:=torestore*(rg[R_INTREGISTER].used_in_proc+rg[R_ADDRESSREGISTER].used_in_proc);
@@ -1123,6 +1126,7 @@ unit cgcpu;
         ref.direction:=dir_inc;
         if torestore<>[] then
           list.concat(taicpu.op_ref_regset(A_MOVEM,S_L,ref,torestore));
+      }
       end;
 
 
@@ -1309,7 +1313,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  2004-05-06 20:30:51  florian
+  Revision 1.26  2004-05-06 22:01:54  florian
+    * register numbers for address registers fixed
+
+  Revision 1.25  2004/05/06 20:30:51  florian
     * m68k compiler compilation fixed
 
   Revision 1.24  2004/04/19 21:15:12  florian

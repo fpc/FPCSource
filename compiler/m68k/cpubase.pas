@@ -368,7 +368,8 @@ unit cpubase;
          This value can be deduced from CALLED_USED_REGISTERS array in the
          GCC source.
       }
-      std_saved_registers = [RS_D2..RS_D7,RS_A2..RS_A5];
+      std_saved_intregisters = [RS_D2..RS_D7];
+      std_saved_addrregisters = [RS_A2..RS_A5];
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
          by GCC or the target ABI.
@@ -513,7 +514,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2004-05-06 20:30:51  florian
+  Revision 1.28  2004-05-06 22:01:54  florian
+    * register numbers for address registers fixed
+
+  Revision 1.27  2004/05/06 20:30:51  florian
     * m68k compiler compilation fixed
 
   Revision 1.26  2004/04/25 21:26:16  florian

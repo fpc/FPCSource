@@ -142,14 +142,14 @@ implementation
 
     constructor taicpu.op_none(op : tasmop;_size : topsize);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
       end;
 
 
     constructor taicpu.op_reg(op : tasmop;_size : topsize;_op1 : tregister);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=1;
          loadreg(0,_op1);
@@ -158,7 +158,7 @@ implementation
 
     constructor taicpu.op_const(op : tasmop;_size : topsize;_op1 : longint);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=1;
          loadconst(0,aword(_op1));
@@ -167,7 +167,7 @@ implementation
 
     constructor taicpu.op_ref(op : tasmop;_size : topsize;_op1 : treference);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=1;
          loadref(0,_op1);
@@ -176,7 +176,7 @@ implementation
 
     constructor taicpu.op_reg_reg(op : tasmop;_size : topsize;_op1,_op2 : tregister);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=2;
          loadreg(0,_op1);
@@ -186,7 +186,7 @@ implementation
 
     constructor taicpu.op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: longint);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=2;
          loadreg(0,_op1);
@@ -196,7 +196,7 @@ implementation
 
     constructor taicpu.op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : treference);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=2;
          loadreg(0,_op1);
@@ -206,7 +206,7 @@ implementation
 
     constructor taicpu.op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=2;
          loadconst(0,aword(_op1));
@@ -216,7 +216,7 @@ implementation
 
     constructor taicpu.op_const_const(op : tasmop;_size : topsize;_op1,_op2 : longint);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=2;
          loadconst(0,aword(_op1));
@@ -226,7 +226,7 @@ implementation
 
     constructor taicpu.op_const_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : treference);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=2;
          loadconst(0,aword(_op1));
@@ -236,7 +236,7 @@ implementation
 
     constructor taicpu.op_ref_reg(op : tasmop;_size : topsize;_op1 : treference;_op2 : tregister);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=2;
          loadref(0,_op1);
@@ -246,7 +246,7 @@ implementation
 
     constructor taicpu.op_ref_ref(op : tasmop;_size : topsize;_op1,_op2 : treference);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=2;
          loadref(0,_op1);
@@ -256,7 +256,7 @@ implementation
 
     constructor taicpu.op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=3;
          loadreg(0,_op1);
@@ -266,7 +266,7 @@ implementation
 
     constructor taicpu.op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=3;
          loadconst(0,aword(_op1));
@@ -276,7 +276,7 @@ implementation
 
     constructor taicpu.op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;_op3 : treference);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=3;
          loadreg(0,_op1);
@@ -287,7 +287,7 @@ implementation
 
     constructor taicpu.op_const_ref_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : treference;_op3 : tregister);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=3;
          loadconst(0,aword(_op1));
@@ -298,7 +298,7 @@ implementation
 
     constructor taicpu.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : treference);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=3;
          loadconst(0,aword(_op1));
@@ -309,7 +309,7 @@ implementation
 
    constructor taicpu.op_ref_regset(op: tasmop; _size : topsize; _op1: treference;const _op2: tcpuregisterset);
      Begin
-        inherited create(op);;
+        inherited create(op);
         init(_size);
         ops:=2;
         loadref(0,_op1);
@@ -318,7 +318,7 @@ implementation
 
    constructor taicpu.op_regset_ref(op: tasmop; _size : topsize;const _op1: tcpuregisterset; _op2: treference);
      Begin
-        inherited create(op);;
+        inherited create(op);
         init(_size);
         ops:=2;
         loadregset(0,_op1);
@@ -329,7 +329,7 @@ implementation
 
    constructor taicpu.op_reg_regset(op: tasmop; _size : topsize; _op1: tregister;const _op2: tcpuregisterset);
      Begin
-        inherited create(op);;
+        inherited create(op);
         init(_size);
         ops:=2;
         loadreg(0,_op1);
@@ -339,7 +339,7 @@ implementation
 
    constructor taicpu.op_regset_reg(op: tasmop; _size : topsize;const _op1: tcpuregisterset; _op2: tregister);
      Begin
-        inherited create(op);;
+        inherited create(op);
         init(_size);
         ops:=2;
         loadregset(0,_op1);
@@ -349,7 +349,7 @@ implementation
 
     constructor taicpu.op_sym(op : tasmop;_size : topsize;_op1 : tasmsymbol);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=1;
          loadsymbol(0,_op1,0);
@@ -386,7 +386,7 @@ implementation
 
     constructor taicpu.op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
       begin
-         inherited create(op);;
+         inherited create(op);
          init(_size);
          ops:=2;
          if ((op >= A_DBCC) and (op <= A_DBF))
@@ -426,7 +426,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2004-01-30 12:17:18  florian
+  Revision 1.11  2004-05-06 22:01:54  florian
+    * register numbers for address registers fixed
+
+  Revision 1.10  2004/01/30 12:17:18  florian
     * fixed some m68k compilation problems
 
   Revision 1.9  2003/06/14 14:53:50  jonas
