@@ -127,6 +127,7 @@ uses
   { cpu overrides }
   ,cpuswtch
   { cpu codegenerator }
+  ,cgcpu
 {$ifndef NOPASS2}
   ,cpunode
 {$endif}
@@ -390,7 +391,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  2003-03-23 23:20:38  hajny
+  Revision 1.38  2003-05-22 21:39:51  peter
+    * add cgcpu
+
+  Revision 1.37  2003/03/23 23:20:38  hajny
     + emx target added
 
   Revision 1.36  2003/02/02 19:25:54  carl
