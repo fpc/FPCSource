@@ -1369,6 +1369,9 @@ implementation
                     case tconstsym(srsym).consttyp of
                       constint :
                         begin
+{$ifdef cpu64bit}
+                          p1:=cordconstnode.create(tconstsym(srsym).value.valueord,sinttype,true);
+{$else cpu64bit}
                           { do a very dirty trick to bootstrap this code }
                           if (tconstsym(srsym).value.valueord>=-(int64(2147483647)+int64(1))) and
                              (tconstsym(srsym).value.valueord<=2147483647) then
@@ -1378,6 +1381,7 @@ implementation
                            p1:=cordconstnode.create(tconstsym(srsym).value.valueord,u32inttype,true)
                           else
                            p1:=cordconstnode.create(tconstsym(srsym).value.valueord,s64inttype,true);
+{$endif cpu64bit}
                         end;
                       conststring :
                         begin
@@ -1809,7 +1813,9 @@ implementation
 
       var
          l        : longint;
+{$ifndef cpu64bit}
          card     : cardinal;
+{$endif cpu64bit}
          ic       : TConstExprInt;
          oldp1,
          p1       : tnode;
@@ -1957,56 +1963,68 @@ implementation
 
            _INTCONST :
              begin
+{$ifdef cpu64bit}
+               val(pattern,ic,code);
+               if code=0 then
+                 begin
+                    consume(_INTCONST);
+                    p1:=cordconstnode.create(ic,sinttype,true);
+                 end;
+{$else cpu64bit}
                { try cardinal first }
                val(pattern,card,code);
-               if code<>0 then
+               if code=0 then
+                 begin
+                    consume(_INTCONST);
+                    { check whether the value isn't in the longint range as well }
+                    { (longint is easier to perform calculations with) (JM)      }
+                    if card <= $7fffffff then
+                      { no sign extension necessary, so not longint typecast (JM) }
+                      { use the native int types here instead of fixed 32bit,
+                        this is needed to have integer values the same size as
+                        pointers (PFV) }
+                      p1:=cordconstnode.create(card,s32inttype,true)
+                    else
+                      p1:=cordconstnode.create(card,u32inttype,true)
+                 end
+               else
                  begin
                    { then longint }
                    valint(pattern,l,code);
-                   if code <> 0 then
-                     begin
-                       { then int64 }
-                       val(pattern,ic,code);
-                       if code<>0 then
-                         begin
-                            {finally float }
-                            val(pattern,d,code);
-                            if code<>0 then
-                             begin
-                                Message(cg_e_invalid_integer);
-                                consume(_INTCONST);
-                                l:=1;
-                                p1:=cordconstnode.create(l,s32inttype,true);
-                             end
-                            else
-                             begin
-                                consume(_INTCONST);
-                                p1:=crealconstnode.create(d,pbestrealtype^);
-                             end;
-                         end
-                       else
-                         begin
-                            consume(_INTCONST);
-                            p1:=cordconstnode.create(ic,s64inttype,true);
-                         end
-                     end
-                   else
+                   if code = 0 then
                      begin
                        consume(_INTCONST);
                        p1:=cordconstnode.create(l,sinttype,true)
                      end
-                 end
-               else
-                begin
-                   consume(_INTCONST);
-                   { check whether the value isn't in the longint range as well }
-                   { (longint is easier to perform calculations with) (JM)      }
-                   if card <= $7fffffff then
-                     { no sign extension necessary, so not longint typecast (JM) }
-                     p1:=cordconstnode.create(card,s32inttype,true)
                    else
-                     p1:=cordconstnode.create(card,u32inttype,true)
-                end;
+                     begin
+                       { then int64 }
+                       val(pattern,ic,code);
+                       if code=0 then
+                         begin
+                            consume(_INTCONST);
+                            p1:=cordconstnode.create(ic,s64inttype,true);
+                         end;
+                     end;
+                 end;
+{$endif cpu64bit}
+               if code<>0 then
+                 begin
+                   { finally float }
+                   val(pattern,d,code);
+                   if code<>0 then
+                     begin
+                        Message(cg_e_invalid_integer);
+                        consume(_INTCONST);
+                        l:=1;
+                        p1:=cordconstnode.create(l,sinttype,true);
+                     end
+                   else
+                     begin
+                        consume(_INTCONST);
+                        p1:=crealconstnode.create(d,pbestrealtype^);
+                     end;
+                 end;
              end;
 
            _REALNUMBER :
@@ -2471,7 +2489,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.148  2004-02-17 23:36:40  daniel
+  Revision 1.149  2004-02-18 21:58:53  peter
+    * constants are now parsed as 64bit for cpu64bit
+
+  Revision 1.148  2004/02/17 23:36:40  daniel
     * Make better use of try_to_consume
 
   Revision 1.147  2004/02/17 15:57:49  peter
