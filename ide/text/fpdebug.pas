@@ -2212,7 +2212,9 @@ end;
   procedure TRegistersView.Draw;
 
     var
-       p : pchar;
+       p,po : pchar;
+       p10 : pchar;
+       i : integer;
        s : string;
 
     begin
@@ -2228,13 +2230,25 @@ end;
          WriteStr(0,0,'<Debugger error>',7)
        else
          begin
-            p:=StrNew(Debugger^.GetOutput);
+            po:=StrNew(Debugger^.GetOutput);
+            p:=po;
+            i:=0;
             if assigned(p) then
               begin
-                 {!!!!!!!!! here we crash!! }
-                 move(p^,s,strlen(p));
-                 s[0]:=chr(strlen(p));
-                 WriteStr(0,0,s,7);
+                 p10:=strpos(p,#10);
+                 while p10<>nil do
+                   begin
+                     move(p^,@s[1],dword(p10)-dword(p));
+                     s[0]:=chr(dword(p10)-dword(p));
+                     WriteStr(0,i,s,7);
+                     inc(i);
+                     p:=pchar(p10+1);
+                     p10:=strpos(p,#10);
+                     if (p10=nil) and (strlen(p)>0) then
+                       p10:=p+strlen(p);
+                   end;
+                 { free allocated memory }
+                 strdispose(po);
               end
             else
               WriteStr(0,0,'<unknown values>',7);
@@ -2257,13 +2271,13 @@ end;
 
     begin
        Desktop^.GetExtent(R);
-       R.A.X:=R.B.X-24;
-       R.B.Y:=8;
+       R.A.X:=R.B.X-48;
+       R.B.Y:=R.A.Y+18;
        inherited Init(R,' Register View', wnNoNumber);
        Flags:=wfClose or wfMove;
        Palette:=wpCyanWindow;
        HelpCtx:=hcRegisters;
-       R.Assign(1,1,22,6);
+       R.Assign(1,1,47,17);
        RV:=new(PRegistersView,init(R));
        Insert(RV);
        If assigned(RegistersWindow) then
@@ -2578,7 +2592,10 @@ end.
 
 {
   $Log$
-  Revision 1.38  2000-01-09 21:05:51  florian
+  Revision 1.39  2000-01-10 00:25:06  pierre
+   * RegisterWindow problem fixed
+
+  Revision 1.38  2000/01/09 21:05:51  florian
     * some fixes for register view
 
   Revision 1.37  2000/01/08 18:26:20  florian
