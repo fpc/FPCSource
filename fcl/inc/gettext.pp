@@ -21,7 +21,7 @@ unit gettext;
 
 interface
 
-uses sysutils, classes;
+uses SysUtils, Classes;
 
 const
   MOFileHeaderMagic = $950412de;
@@ -55,24 +55,25 @@ type
 
   TMOFile = class
   protected
-    HashTableSize: LongWord;
+    StringCount, HashTableSize: LongWord;
     HashTable: PLongWordArray;
     OrigTable, TranslTable: PMOStringTable;
     OrigStrings, TranslStrings: PPCharArray;
   public
-    constructor Create(AFilename: String);
+    constructor Create(const AFilename: String);
     constructor Create(AStream: TStream);
+    destructor Destroy; override;
     function Translate(AOrig: PChar; ALen: Integer; AHash: LongWord): String;
     function Translate(AOrig: String; AHash: LongWord): String;
     function Translate(AOrig: String): String;
   end;
 
-  EMOFileError = class(Exception)
-  end;
+  EMOFileError = type Exception;
 
 
   procedure TranslateResourceStrings(AFile: TMOFile);
-  procedure TranslateResourceStrings(AFilename: String);
+  procedure TranslateResourceStrings(const AFilename: String);
+
 
 implementation
 
@@ -110,16 +111,17 @@ begin
   AStream.Position := header.TransTabOffset;
   AStream.Read(TranslTable^, header.nstrings * SizeOf(TMOStringInfo));
 
+  StringCount := header.nstrings;
 
   // Read strings
-  for i := 0 to header.nstrings - 1 do begin
+  for i := 0 to StringCount - 1 do begin
     AStream.Position := OrigTable^[i].offset;
     SetLength(s, OrigTable^[i].length);
     AStream.Read(s[1], OrigTable^[i].length);
     OrigStrings^[i] := StrNew(PChar(s));
   end;
 
-  for i := 0 to header.nstrings - 1 do begin
+  for i := 0 to StringCount - 1 do begin
     AStream.Position := TranslTable^[i].offset;
     SetLength(s, TranslTable^[i].length);
     AStream.Read(s[1], TranslTable^[i].length);
@@ -133,7 +135,7 @@ begin
   AStream.Read(HashTable^, 4 * HashTableSize);
 end;
 
-constructor TMOFile.Create(AFilename: String);
+constructor TMOFile.Create(const AFilename: String);
 var
   f: TStream;
 begin
@@ -145,6 +147,21 @@ begin
   end;
 end;
 
+destructor TMOFile.Destroy;
+var
+  i: Integer;
+begin
+  for i := 0 to StringCount - 1 do begin
+    StrDispose(OrigStrings^[i]);
+    StrDispose(TranslStrings^[i]);
+  end;
+  FreeMem(OrigTable);
+  FreeMem(TranslTable);
+  FreeMem(OrigStrings);
+  FreeMem(TranslStrings);
+  FreeMem(HashTable);
+  inherited Destroy;
+end;
 
 function TMOFile.Translate(AOrig: PChar; ALen: Integer; AHash: LongWord): String;
 var
@@ -193,10 +210,10 @@ end;
 }
 
 {$ifdef USEITERATOR}
-Var
+var
   Thefile : TMOFile;
 
-Function Translate (Name,Value : AnsiString; Hash : Longint) : AnsiString;
+function Translate (Name,Value : AnsiString; Hash : Longint) : AnsiString;
 
 begin
   Result:=TheFile.Translate(Value,Hash);
@@ -214,24 +231,22 @@ end;
 
 procedure TranslateResourceStrings(AFile: TMOFile);
 var
-  i,j,count : Integer;
-  s : String;
+  i, j, count: Integer;
+  s: String;
 begin
-  For I:=0 to ResourceStringTableCount-1 do
-    begin
-    Count:=ResourceStringCount(I);
-    For J:=0 to Count-1 do
-      begin
-      S:=AFile.Translate(GetResourceStringDefaultValue(I,J),
-                         GetResourceStringHash(I,J));
-      if S <> '' then
-        SetResourceStringValue(I,J,S);
-      end;
+  for i:=0 to ResourceStringTableCount - 1 do begin
+    count := ResourceStringCount(I);
+    for j := 0 to count - 1 do begin
+      s := AFile.Translate(GetResourceStringDefaultValue(i, j),
+        GetResourceStringHash(i, j));
+      if Length(s) > 0 then
+        SetResourceStringValue(i, j, s);
     end;
+  end;
 end;
 {$endif}
 
-procedure TranslateResourceStrings(AFilename: String);
+procedure TranslateResourceStrings(const AFilename: String);
 var
   mo: TMOFile;
   lang: String;
@@ -239,8 +254,11 @@ begin
   lang := Copy(GetEnv('LANG'), 1, 2);
   try
     mo := TMOFile.Create(Format(AFilename, [lang]));
-    TranslateResourceStrings(mo);
-    mo.Free;
+    try
+      TranslateResourceStrings(mo);
+    finally
+      mo.Free;
+    end;
   except
     on e: Exception do;
   end;
@@ -251,7 +269,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2000-01-07 01:24:33  peter
+  Revision 1.9  2000-01-30 22:16:59  sg
+  * Fixed memory leaks
+
+  Revision 1.8  2000/01/07 01:24:33  peter
     * updated copyright to 2000
 
   Revision 1.7  2000/01/06 01:20:33  peter
