@@ -512,6 +512,7 @@ implementation
          objname,objrealname : stringid;
          srsym : tsym;
          srsymtable : tsymtable;
+         oldaktexceptblock: integer;
 
       begin
          procinfo^.flags:=procinfo^.flags or pi_uses_exceptions;
@@ -522,7 +523,9 @@ implementation
          { read statements to try }
          consume(_TRY);
          first:=nil;
-         inc(aktexceptblock);
+         inc(exceptblockcounter);
+         oldaktexceptblock := aktexceptblock;
+         aktexceptblock := exceptblockcounter;
          inc(statement_level);
 
          while (token<>_FINALLY) and (token<>_EXCEPT) do
@@ -545,7 +548,8 @@ implementation
 
          if try_to_consume(_FINALLY) then
            begin
-              inc(aktexceptblock);
+              inc(exceptblockcounter);
+              aktexceptblock := exceptblockcounter;
               p_finally_block:=statements_til_end;
               try_statement:=ctryfinallynode.create(p_try_block,p_finally_block);
               dec(statement_level);
@@ -555,7 +559,8 @@ implementation
               consume(_EXCEPT);
               old_block_type:=block_type;
               block_type:=bt_except;
-              inc(aktexceptblock);
+              inc(exceptblockcounter);
+              aktexceptblock := exceptblockcounter;
               ot:=generrortype;
               p_specific:=nil;
               if (idtoken=_ON) then
@@ -689,6 +694,7 @@ implementation
               block_type:=old_block_type;
               try_statement:=ctryexceptnode.create(p_try_block,p_specific,p_default);
            end;
+         aktexceptblock := oldaktexceptblock;
       end;
 
 
@@ -1264,7 +1270,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2001-09-22 11:11:43  peter
+  Revision 1.38  2001-10-16 15:10:35  jonas
+    * fixed goto/label/try bugs
+
+  Revision 1.37  2001/09/22 11:11:43  peter
     * "fpc -P?" command to query for used ppcXXX compiler
 
   Revision 1.36  2001/09/06 10:21:50  jonas

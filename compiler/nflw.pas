@@ -733,10 +733,7 @@ implementation
     constructor tgotonode.create(p : tlabelsym);
       begin
         inherited create(goton);
-        if statement_level>1 then
-         exceptionblock:=aktexceptblock
-        else
-         exceptionblock:=0;
+        exceptionblock:=aktexceptblock;
         labsym:=p;
         labelnr:=p.lab;
       end;
@@ -756,7 +753,11 @@ implementation
          if assigned(labsym) and
             assigned(labsym.code) and
             (exceptionblock<>tlabelnode(labsym.code).exceptionblock) then
-           CGMessage(cg_e_goto_inout_of_exception_block);
+           begin
+             writeln('goto exceptblock: ',exceptionblock);
+             writeln('label exceptblock: ',tlabelnode(labsym.code).exceptionblock);
+             CGMessage(cg_e_goto_inout_of_exception_block);
+           end;
       end;
 
 
@@ -795,10 +796,7 @@ implementation
     constructor tlabelnode.create(p : tlabelsym;l:tnode);
       begin
         inherited create(labeln,l);
-        if statement_level>1 then
-         exceptionblock:=aktexceptblock
-        else
-         exceptionblock:=0;
+        exceptionblock:=aktexceptblock;
         labsym:=p;
         labelnr:=p.lab;
         { save the current labelnode in the labelsym }
@@ -1180,7 +1178,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2001-09-02 21:12:07  peter
+  Revision 1.25  2001-10-16 15:10:35  jonas
+    * fixed goto/label/try bugs
+
+  Revision 1.24  2001/09/02 21:12:07  peter
     * move class of definitions into type section for delphi
 
   Revision 1.23  2001/08/30 20:56:38  peter

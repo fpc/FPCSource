@@ -275,7 +275,9 @@ implementation
          oldaktinterfacetype: tinterfacetypes;
          oldaktmodeswitches : tmodeswitches;
          old_compiled_module : tmodule;
-         oldaktexceptblock  : integer;
+{        will only be increased once we start parsing blocks in the }
+{         implementation, so doesn't need to be saved/restored (JM) }
+{          oldexceptblockcounter  : integer;                        }
          oldstatement_level : integer;
          prev_name          : pstring;
 {$ifdef USEEXCEPT}
@@ -350,10 +352,10 @@ implementation
          oldaktfilepos:=aktfilepos;
          oldaktmodeswitches:=aktmodeswitches;
          oldstatement_level:=statement_level;
-         oldaktexceptblock:=aktexceptblock;
+{         oldexceptblockcounter:=exceptblockcounter; }
 {$ifdef newcg}
          oldcg:=cg;
-{$endif newcg}
+{$endif newcg} 
 {$ifdef GDB}
          store_dbx:=dbx_counter;
          dbx_counter:=nil;
@@ -371,6 +373,7 @@ implementation
          registerdef:=true;
          statement_level:=0;
          aktexceptblock:=0;
+         exceptblockcounter:=0;
          aktmaxfpuregisters:=-1;
          fillchar(overloaded_operators,sizeof(toverloaded_operators),0);
        { reset the unit or create a new program }
@@ -547,7 +550,8 @@ implementation
               aktfilepos:=oldaktfilepos;
               aktmodeswitches:=oldaktmodeswitches;
               statement_level:=oldstatement_level;
-              aktexceptblock:=oldaktexceptblock;
+              aktexceptblock:=0;
+              exceptblockcounter:=0;
            end;
        { Shut down things when the last file is compiled }
          if (compile_level=1) then
@@ -617,7 +621,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2001-08-26 13:36:43  florian
+  Revision 1.23  2001-10-16 15:10:35  jonas
+    * fixed goto/label/try bugs
+
+  Revision 1.22  2001/08/26 13:36:43  florian
     * some cg reorganisation
     * some PPC updates
 

@@ -143,7 +143,8 @@ interface
        use_esp_stackframe : boolean;     { to test for call with ESP as stack frame }
        inlining_procedure : boolean;     { are we inlining a procedure }
        statement_level : integer;
-       aktexceptblock : integer;         { each except block gets a number check gotos }
+       exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
+       aktexceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
 
      { commandline values }
        initdefines        : tstringlist;
@@ -1410,7 +1411,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2001-10-12 16:06:17  peter
+  Revision 1.45  2001-10-16 15:10:34  jonas
+    * fixed goto/label/try bugs
+
+  Revision 1.44  2001/10/12 16:06:17  peter
     * pathexists fix (merged)
 
   Revision 1.43  2001/09/18 11:30:47  michael
