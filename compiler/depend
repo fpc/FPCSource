@@ -1,6 +1,7 @@
 pp: pp.pas \
 	globals.ppu \
 	compiler.ppu
+	$(COMPILER) $(LOCALOPT) pp.pas
 
 globals.ppu: globals.pas \
 	cobjects.ppu \
