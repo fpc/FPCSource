@@ -6,7 +6,7 @@
 main=fcl
 
 [require]
-packages=paszlib
+packages=paszlib pasjpeg
 
 [target]
 units=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm \
