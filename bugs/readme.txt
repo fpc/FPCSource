@@ -233,3 +233,6 @@ bug0152.pp   End value of loop variable must be calculated before loop
 bug0163.pp   missing <= and >= operators for sets.
 bug0169.pp   missing new(type) support for not object/class
 bug0171.pp   missing typecasting in constant expressions
+bug0182.pp   @record.field doesn't work in constant expr
+
+
