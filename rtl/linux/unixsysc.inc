@@ -95,7 +95,7 @@ begin
   SysCall (syscall_nr_close,sr);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(textrec(f).userdata[2]);
-  fpwaitpid(pl^,res,0);
+  fpwaitpid(pl^,@res,0);
   pclose:=res shr 8;
 end;
 
@@ -109,7 +109,7 @@ begin
   SysCall (Syscall_nr_close,sr);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(filerec(f).userdata[2]);
-  fpwaitpid(pl^,res,0);
+  fpwaitpid(pl^,@res,0);
   pclose:=res shr 8;
 end;
 
@@ -149,7 +149,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2003-09-16 21:46:27  marco
+  Revision 1.13  2003-09-20 12:45:34  marco
+   * Small fix. Cycle works
+
+  Revision 1.12  2003/09/16 21:46:27  marco
    * small fixes, checking things on linux
 
   Revision 1.11  2003/09/15 21:07:32  marco
