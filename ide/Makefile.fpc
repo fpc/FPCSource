@@ -21,7 +21,7 @@ targetdir=.
 unitdir=compiler
 
 [require]
-packages=fv gdbint
+packages=fv gdbint regexpr
 
 [default]
 fpcdir=..
@@ -101,6 +101,7 @@ else
 override UNITDIR+=fakegdb
 endif
 
+override UNITDIR+=$(PACKAGESDIR)/regexpr
 
 [rules]
 .PHONY: compilerunits compilerclean \
