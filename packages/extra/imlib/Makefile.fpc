@@ -11,7 +11,7 @@ units=gdk_imlib imlib
 
 [require]
 libc=y
-packages=gtk
+packages=gtk x11
 
 [compiler]
 sourcedir=imlib gdk_imlib
