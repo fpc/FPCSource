@@ -344,7 +344,7 @@ implementation
          oldcallprocsym : pprocsym;
          nextprocsym : pprocsym;
          def_from,def_to,conv_to : pdef;
-         pt,inlinecode : ptree;
+         hpt,pt,inlinecode : ptree;
          exactmatch,inlined : boolean;
          paralength,l,lastpara : longint;
          lastparatype : pdef;
@@ -599,12 +599,15 @@ implementation
                       if not(assigned(p^.left)) and
                          (m_tp_procvar in aktmodeswitches) then
                         begin
-                          p^.treetype:=loadn;
-                          p^.resulttype:=pprocsym(p^.symtableprocentry)^.definition;
-                          p^.symtableentry:=p^.symtableprocentry;
-                          p^.is_first:=false;
-                          p^.disposetyp:=dt_nothing;
-                          firstpass(p);
+                          if (p^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                             (pobjectdef(p^.symtableprocentry^.owner^.defowner)^.is_class) then
+                           hpt:=genloadmethodcallnode(pprocsym(p^.symtableprocentry),p^.symtableproc,
+                                 getcopy(p^.methodpointer))
+                          else
+                           hpt:=genloadcallnode(pprocsym(p^.symtableprocentry),p^.symtableproc);
+                          disposetree(p);
+                          firstpass(hpt);
+                          p:=hpt;
                         end
                       else
                         begin
@@ -1195,7 +1198,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  1999-08-05 16:53:19  peter
+  Revision 1.58  1999-08-12 14:34:28  peter
+    * tp_procvar mode call->loadn fixed
+
+  Revision 1.57  1999/08/05 16:53:19  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives
