@@ -833,7 +833,7 @@ implementation
                 end
               else
 {$ifndef OLDPPU}
-                CGMessage2(type_e_incompatible_types,p^.resulttype^.typename,p^.left^.resulttype^.typename);
+                CGMessage2(type_e_incompatible_types,p^.left^.resulttype^.typename,p^.resulttype^.typename);
 {$else}
                 CGMessage(type_e_mismatch);
 {$endif}
@@ -933,7 +933,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-05-06 09:05:34  peter
+  Revision 1.29  1999-05-09 11:37:05  peter
+    * fixed order of arguments for incompatible types message
+
+  Revision 1.28  1999/05/06 09:05:34  peter
     * generic write_float and str_float
     * fixed constant float conversions
 
