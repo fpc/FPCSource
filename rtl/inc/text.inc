@@ -760,7 +760,7 @@ Begin
     maxp:=@f.Bufptr^[f.BufEnd];
     startp:=p;
   { search linefeed }
-    while (p<=maxp) and (P^<>#10) do
+    while (p<maxp) and (P^<>#10) do
      inc(p);
   { calculate read bytes }
     len:=p-startp;
@@ -840,7 +840,7 @@ Begin
     maxp:=@f.Bufptr^[f.BufEnd];
     startp:=p;
   { search linefeed }
-    while (p<=maxp) and (P^<>#10) do
+    while (p<maxp) and (P^<>#10) do
      inc(p);
   { calculate read bytes }
     len:=p-startp;
@@ -888,7 +888,7 @@ Begin
     maxp:=@f.Bufptr^[f.BufEnd];
     startp:=p;
   { search linefeed }
-    while (p<=maxp) and (P^<>#10) do
+    while (p<maxp) and (P^<>#10) do
      inc(p);
   { calculate read bytes }
     len:=p-startp;
@@ -940,7 +940,7 @@ Begin
     maxp:=@f.Bufptr^[f.BufEnd];
     startp:=p;
   { search linefeed }
-    while (p<=maxp) and (P^<>#10) do
+    while (p<maxp) and (P^<>#10) do
      inc(p);
   { calculate read bytes }
     len:=p-startp;
@@ -1242,7 +1242,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  1998-09-17 16:34:18  peter
+  Revision 1.27  1998-09-18 12:23:22  peter
+    * fixed a bug introduced by my previous update
+
+  Revision 1.26  1998/09/17 16:34:18  peter
     * new eof,eoln,seekeoln,seekeof
     * speed upgrade for read_string
     * inoutres 104/105 updates for read_* and write_*
