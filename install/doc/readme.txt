@@ -21,6 +21,7 @@ releases.
 
 Free Pascal 1.9.0 is currently available for the following platforms:
 - Linux (i386), both aout and elf
+- Dos (i386), using the Go32v2 dos extender
 - Win32 (Win32s, Win95/98/Me/XP/2000 and WinNT)
 - FreeBSD i386
 
@@ -62,7 +63,7 @@ targets, feel free to contact us, E-Mail addresses are listened below.
 - can call external C code
 - smartlinking
 - support for the GNU debugger
-- IDE (currently for GO32v2, Linux and Win32 only, in beta testing phase)
+- IDE (currently for GO32v2, Linux,FreeBSD and Win32 only, in beta testing phase)
 - can create binaries running natively under both DOS and OS/2 (EMX version)
 
 
@@ -76,6 +77,9 @@ Win32:
  - 8 MB RAM (16+ MB recommended)
 Linux:
  - system running a 2.0.x kernel
+FreeBSD:
+- FreeBSD 4.x system or 5.x system that has COMPAT_4 system (which is 
+	default)
 
 ****************************************************************************
 * Quick start
