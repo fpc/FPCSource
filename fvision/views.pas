@@ -3495,9 +3495,9 @@ VAR S: Sw_Integer;
 BEGIN
    If TextModeGFV then Begin
      If Size.X = 1 Then
-       S:= Size.Y-3
+       S:= (Size.Y-3)*FontHeight
      else
-       S:= Size.X-3;
+       S:= (Size.X-3)*FontWidth;
    end else If (Size.X = 1) Then S := RawSize.Y-3*FontHeight+1 { Vertical bar }
      Else S := RawSize.X-3*FontWidth+1;               { Horizontal bar }
    If (S < 1) Then S := 1;                            { Fix minimum size }
@@ -3526,10 +3526,17 @@ BEGIN
        Y1 := 0;                                       { Initial y position }
        If TextModeGFV then Begin
          If (Size.X = 1) Then Begin                         { Vertical scrollbar }
+           Pos:=Pos div FontHeight;
+           WriteChar(0,0,Chars[0],2,1);
            For i:=1 to Size.Y-2 do
              WriteChar(0,i,Chars[2],2,1);
-         End Else
+           WriteChar(0,Size.Y-1,Chars[1],2,1);
+         End Else Begin
+           Pos:=Pos div FontWidth;
+           WriteChar(0,0,Chars[0],2,1);
            WriteChar(1,0,Chars[2],2,Size.X-2);
+           WriteChar(Size.X-1,0,Chars[1],2,1);
+         End;
          If (Size.X=1) Then Y1 := Pos+1                 { Vertical bar }
            Else X1 := Pos+1;                            { Horizontal bar }
            WriteChar(X1,Y1,Chars[3],2,1);
@@ -5391,7 +5398,9 @@ BEGIN
          LeftLowCorner:='È';
          RightLowCorner:='¼';
        end;
-     if Focused then
+     if (State AND sfDragging)<>0 then
+       Color := 5
+     else if Focused then
        Color := 2
      else
        Color := 1;
@@ -5417,7 +5426,7 @@ BEGIN
        OutTextXY(RawOrigin.X+X-ViewPort.X1,
          RawOrigin.Y+Y+1-ViewPort.Y1+2, ' '+Title^+' ');      { Write the title }
      End Else Begin                                   { LEON??? }
-       WriteStr(X div SysFontWidth,0,' '+Title^+' ',2);
+       WriteStr(X div SysFontWidth,0,' '+Title^+' ',Color);
      End;
    End;
    If (Number>0) AND (Number<10) Then Begin           { Valid number }
@@ -5431,10 +5440,10 @@ BEGIN
          I:=7
        else
          I:=3;
-       WriteCStr(Size.X-I,0,S,1,3);
+       WriteCStr(Size.X-I,0,S,1,Color);
      End;
    End;
-   If (Flags AND wfClose<>0) Then Begin               { Close icon request }
+   If Focused and (Flags AND wfClose<>0) Then Begin   { Close icon request }
      If (TextModeGFV <> True) Then Begin              { GRAPHICS MODE GFV }
        SetColor(Fc);
        OutTextXY(RawOrigin.X+Y+FontWidth-ViewPort.X1,
@@ -5443,7 +5452,7 @@ BEGIN
        WriteCStr(2,0,'[~'+ClickC[LowAscii]+'~]', 2, 3);
      End;
    End;
-   If (Flags AND wfZoom<>0) Then Begin
+   If Focused and (Flags AND wfZoom<>0) Then Begin
      if assigned(Owner) and
         (Size.X=Owner^.Size.X) and (Size.Y=Owner^.Size.Y) then
       C:=RestoreC[LowAscii]
@@ -5558,7 +5567,10 @@ END.
 
 {
  $Log$
- Revision 1.23  2002-05-24 13:16:11  pierre
+ Revision 1.24  2002-05-25 23:30:47  pierre
+  * partly fix the scrollbar behavior
+
+ Revision 1.23  2002/05/24 13:16:11  pierre
   * add window number and resize handle
 
  Revision 1.22  2002/05/23 10:27:12  pierre
