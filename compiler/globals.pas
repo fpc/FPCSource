@@ -82,10 +82,13 @@ interface
        MathQNaN : tdoublearray = (0,0,252,255,0,0,0,0);
        MathInf : tdoublearray = (0,0,240,127,0,0,0,0);
        MathNegInf : tdoublearray = (0,0,240,255,0,0,0,0);
+       MathPi : tdoublearray =  (251,33,9,64,24,45,68,84);
 {$else}
        MathQNaN : tdoublearray = (0,0,0,0,0,0,252,255);
        MathInf : tdoublearray = (0,0,0,0,0,0,240,127);
        MathNegInf : tdoublearray = (0,0,0,0,0,0,240,255);
+       MathPi : tdoublearray =  (24,45,68,84,251,33,9,64);
+       MathPiExtended : textendedarray = (53,194,104,33,162,218,15,201,0,64);
 {$endif}
 
     type
@@ -2180,7 +2183,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.161  2005-01-20 16:38:45  peter
+  Revision 1.162  2005-01-23 21:09:11  florian
+    + added pi bit pattern to the compiler, so pi should always be correct
+
+  Revision 1.161  2005/01/20 16:38:45  peter
     * load jmp_buf_size from system unit
 
   Revision 1.160  2005/01/09 20:24:43  olle

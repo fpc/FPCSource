@@ -1210,14 +1210,7 @@ implementation
           begin
             { no parameters? }
             if not assigned(left) then
-             begin
-               case inlinenumber of
-                 in_pi_real :
-                   hp:=crealconstnode.create(pi,pbestrealtype^);
-                 else
-                   internalerror(89);
-               end;
-             end
+              internalerror(200501231)
             else
              begin
                vl:=0;
@@ -2351,7 +2344,16 @@ implementation
 
      function tinlinenode.first_pi : tnode;
       begin
-        result := crealconstnode.create(pi,pbestrealtype^);
+      {$ifdef x86}
+        { x86 has pi in hardware }
+        result:=crealconstnode.create(pi,pbestrealtype^);
+      {$else x86}
+        {$ifdef cpuextended}
+          result:=crealconstnode.create(extended(MathPiExtended),pbestrealtype^);
+        {$else cpuextended}
+          result:=crealconstnode.create(double(MathPi),pbestrealtype^);
+        {$endif cpuextended}
+      {$endif x86}
       end;
 
 
@@ -2463,7 +2465,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.156  2004-12-05 12:28:11  peter
+  Revision 1.157  2005-01-23 21:09:12  florian
+    + added pi bit pattern to the compiler, so pi should always be correct
+
+  Revision 1.156  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that
