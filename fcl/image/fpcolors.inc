@@ -17,9 +17,9 @@ const
   BytesNeeded : array[TColorFormat] of byte =
       (1,1,1,1,2,3,1,2,4,2,2,3,4,6,1,2,4,8,2,2,3,4,6,1,2,4,8);
 
-  alphaTransparant = $0000;
+  alphaTransparent = $0000;
   alphaOpaque      = $FFFF;
-  colTransparent: TFPColor = (Red: $0000; Green: $0000; Blue: $0000; Alpha: alphaTransparant);
+  colTransparent: TFPColor = (Red: $0000; Green: $0000; Blue: $0000; Alpha: alphaTransparent);
   colBlack      : TFPColor = (Red: $0000; Green: $0000; Blue: $0000; Alpha: alphaOpaque);
   colBlue       : TFPColor = (Red: $0000; Green: $0000; Blue: $ffff; Alpha: alphaOpaque);
   colGreen      : TFPColor = (Red: $0000; Green: $ffff; Blue: $0000; Alpha: alphaOpaque);
