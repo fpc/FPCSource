@@ -801,10 +801,11 @@ The result of such a typecast must be use with care. In general, it is best
 to consider the result of such a typecast as read-only, i.e. suitable for
 passing to a procedure that needs a constant pchar argument. 
 
-It is safe to use the result of such a typecast for modification ONLY 
-if the following  conditios are met:
+It is therefore NOT advisable to typecast one of the following:
 \begin{enumerate}
-\item If you're typecasting an expre
+\item expressions.
+\item strings that have reference count>0.  (call uniquestring if you want to
+ensure a string has reference count 1)
 \end{enumerate}
 \subsection{Constant strings}
  
@@ -824,7 +825,8 @@ The example shows also that you can add two strings. The resulting string is
 just the concatenation of the first with the second string, without spaces in
 between them. Strings can not be substracted, however.
 
-Whether the constant string is stord as an ansistring or a short string
+Whether the constant string is stored as an ansistring or a short string
+depends on the settings of the \var{\{\$H\}} switch.
 
 
 \subsection{PChar}
@@ -2991,7 +2993,7 @@ statements, procedures, and variable or type declarations.
 A pascal program consists of the program header, followed possibly by a 
 'uses' clause, and a block.
 \input{syntax/program.syn}
-The program header is provided for backwards compatibility, nd is oignored
+The program header is provided for backwards compatibility, and is ignored
 by the compiler.
 The uses clause serves to identify all units that are needed by the program.
 The system unit doesn't have to be in this list, since it is always loaded

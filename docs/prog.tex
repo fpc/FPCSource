@@ -854,7 +854,29 @@ greater than 1024. The first number sets the size of the stack, and the
 second the size of the heap. (Stack setting is ignored under \linux).
 The two numbers can be set on the command line using the \var{-Ch}
 (and \var{-Cs} switches.
- 
+
+\subsection{\var{\$MODE} : Set compiler compatibility mode}
+
+The \var{\{\$MODE\}} sets the compatibility mode of the compiler. This 
+is equivalent to setting one of the command-line options \var{-So} or
+\var{-Sd} or \var{-S2}. it has the following arguments:
+\begin{description}
+\item[Default] Default mode. This reverts back to the mode that was set on
+the command-line.
+\item[Delphi] Delphi compatibility mode. All object-pascal extensions are
+enabled. This is the same as the command-line option \var{-Sd}.
+\item[TP] Turbo pascal compatibility mode. Object pascal extensions are
+disabled, except ansistrings, which remain valid. This is the same as the command-line option \var{-So}
+\item[FPC] FPC mode. 
+\item[OBJFPC] Object pascal mode. This is the same as the \var{-S2}
+command-line option.
+\item[GPC] GNU pascal mode. This is the same as the \var{-Sp} command-line
+option.
+\end{description}
+
+For an exact description of each of these modes, see appendix \ref{ch:AppD}, 
+on page \pageref{ch:AppD}
+
 \subsection{\var{\$N} : Numeric processing }
 
 This switch is recognised for Turbo Pascal compatibility, but is otherwise
@@ -3585,6 +3607,82 @@ some limitations to the compiler:
 compiler (i.e. a binary that was compiled by Borland Pascal). When using the 32-bit compiler, the limit is set to 1024. You can
 change this by redefining the \var{maxunits} constant in the 
 \file{files.pas} compiler source file.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendix D
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Compiler modes}
+\label{ch:AppD}
+
+Here we list the exact effect of the different compiler modes. They can be
+set with the \var{\$Mode} switch, or by command line switches.
+
+\section{FPC mode}
+This mode is selected by the \var{{\$MODE FPC}} switch. On the command-line,
+this means that you use none of the other compatibility mode switches.
+It is the default mode of the compiler. This means essentially:
+\begin{enumerate}
+\item You must use the address operator to assign procedural variables.
+\item A forward declaration must be repeated exactly the same by the
+implementation of a function/procedure. In particular, you can not omit the
+parameters when implementing the function or procedure.
+\item Overloading of functions is allowed.
+\item Nested comments are allowed.
+\item The Objpas unit is NOT loaded.
+\item You can use the cvar type.
+\item PChars are converted to strings automatically.
+\end{enumerate}
+\section{TP mode}
+This mode is selected by the \var{{\$MODE TP}} switch. On the command-line,
+this mode is selected by the \var{-So} switch.
+
+\begin{enumerate}
+\item You cannot use the address operator to assign procedural variables.
+\item A forward declaration must not be repeated exactly the same by the
+implementation of a function/procedure. In particular, you can omit the
+parameters when implementing the function or procedure.
+\item Overloading of functions is not allowed.
+\item Nested comments are not allowed.
+\item You can not use the cvar type.
+\end{enumerate}
+\section{Delphi mode}
+This mode is selected by the \var{{\$MODE DELPHI}} switch. On the command-line,
+this mode is selected by the \var{-Sd} switch.
+\begin{enumerate}
+\item You can not use the address operator to assign procedural variables.
+\item A forward declaration must not be repeated exactly the same by the
+implementation of a function/procedure. In particular, you can not omit the
+parameters when implementing the function or procedure.
+\item Overloading of functions is not allowed.
+\item Nested comments are not  allowed.
+\item The Objpas unit is loaded right after the system unit.
+\end{enumerate}
+\section{GPC mode}
+This mode is selected by the \var{{\$MODE GPC}} switch. On the command-line,
+this mode is selected by the \var{-Sp} switch.
+\begin{enumerate}
+\item You cmust use the address operator to assign procedural variables.
+\item A forward declaration must not be repeated exactly the same by the
+implementation of a function/procedure. In particular, you can omit the
+parameters when implementing the function or procedure.
+\item Overloading of functions is not allowed.
+\item Nested comments are not allowed.
+\item You can not use the cvar type.
+\end{enumerate}
+\section{OBJFPC mode}
+This mode is selected by the \var{{\$MODE OBJFPC}} switch. On the command-line,
+this mode is selected by the \var{-S2} switch.
+\begin{enumerate}
+\item You must use the address operator to assign procedural variables.
+\item A forward declaration must be repeated exactly the same by the
+implementation of a function/procedure. In particular, you can not omit the
+parameters when implementing the function or procedure.
+\item Overloading of functions is allowed.
+\item Nested comments are allowed.
+\item The Objpas unit is loaded right after the system unit.
+\item You can use the cvar type.
+\item PChars are converted to strings automatically.
 \end{enumerate}
 
 \end{document}
