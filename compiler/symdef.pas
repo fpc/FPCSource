@@ -366,12 +366,7 @@ interface
           procedure deref;override;
           function size : longint;override;
           function alignment : longint;override;
-          { generates the ranges needed by the asm instruction BOUND (i386)
-            or CMP2 (Motorola) }
-          procedure genrangecheck;
-
           { returns the label of the range check string }
-          function getrangecheckstring : string;
           function needs_inittable : boolean;override;
           procedure write_child_rtti_data(rt:trttitype);override;
           procedure write_rtti_data(rt:trttitype);override;
@@ -388,10 +383,6 @@ interface
           function  is_publishable : boolean;override;
           function  gettypename:string;override;
           procedure setsize;
-          { generates the ranges needed by the asm instruction BOUND }
-          { or CMP2 (Motorola)                                       }
-          procedure genrangecheck;
-          function  getrangecheckstring : string;
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
@@ -592,8 +583,6 @@ interface
           procedure setmin(_min:longint);
           function  min:longint;
           function  max:longint;
-          function  getrangecheckstring:string;
-          procedure genrangecheck;
           { debug }
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -1510,31 +1499,6 @@ implementation
       end;
 
 
-    function tenumdef.getrangecheckstring : string;
-      begin
-         if (cs_create_smart in aktmoduleswitches) then
-           getrangecheckstring:='R_'+current_module.modulename^+tostr(rangenr)
-         else
-           getrangecheckstring:='R_'+tostr(rangenr);
-      end;
-
-
-    procedure tenumdef.genrangecheck;
-      begin
-         if rangenr=0 then
-           begin
-              { generate two constant for bounds }
-              objectlibrary.getlabelnr(rangenr);
-              if (cs_create_smart in aktmoduleswitches) then
-                dataSegment.concat(Tai_symbol.Createname_global(getrangecheckstring,8))
-              else
-                dataSegment.concat(Tai_symbol.Createname(getrangecheckstring,8));
-              dataSegment.concat(Tai_const.Create_32bit(min));
-              dataSegment.concat(Tai_const.Create_32bit(max));
-           end;
-      end;
-
-
     { used for enumdef because the symbols are
       inserted in the owner symtable }
     procedure tenumdef.correct_owner_symtable;
@@ -1721,48 +1685,6 @@ implementation
          end;
        { there are no entrys for range checking }
          rangenr:=0;
-      end;
-
-
-    function torddef.getrangecheckstring : string;
-
-      begin
-         if (cs_create_smart in aktmoduleswitches) then
-           getrangecheckstring:='R_'+current_module.modulename^+tostr(rangenr)
-         else
-           getrangecheckstring:='R_'+tostr(rangenr);
-      end;
-
-    procedure torddef.genrangecheck;
-      var
-        rangechecksize : longint;
-      begin
-         if rangenr=0 then
-           begin
-              if low<=high then
-               rangechecksize:=8
-              else
-               rangechecksize:=16;
-              { generate two constant for bounds }
-              objectlibrary.getlabelnr(rangenr);
-              if (cs_create_smart in aktmoduleswitches) then
-                dataSegment.concat(Tai_symbol.Createname_global(getrangecheckstring,rangechecksize))
-              else
-                dataSegment.concat(Tai_symbol.Createname(getrangecheckstring,rangechecksize));
-              if low<=high then
-                begin
-                   dataSegment.concat(Tai_const.Create_32bit(low));
-                   dataSegment.concat(Tai_const.Create_32bit(high));
-                end
-              { for u32bit we need two bounds }
-              else
-                begin
-                   dataSegment.concat(Tai_const.Create_32bit(low));
-                   dataSegment.concat(Tai_const.Create_32bit($7fffffff));
-                   dataSegment.concat(Tai_const.Create_32bit(longint($80000000)));
-                   dataSegment.concat(Tai_const.Create_32bit(high));
-                end;
-           end;
       end;
 
 
@@ -2607,42 +2529,6 @@ implementation
          IsVariant:=false;
          IsConstructor:=false;
          rangenr:=0;
-      end;
-
-
-    function tarraydef.getrangecheckstring : string;
-      begin
-         if (cs_create_smart in aktmoduleswitches) then
-           getrangecheckstring:='R_'+current_module.modulename^+tostr(rangenr)
-         else
-           getrangecheckstring:='R_'+tostr(rangenr);
-      end;
-
-
-    procedure tarraydef.genrangecheck;
-      begin
-         if rangenr=0 then
-           begin
-              { generates the data for range checking }
-              objectlibrary.getlabelnr(rangenr);
-              if (cs_create_smart in aktmoduleswitches) then
-                dataSegment.concat(Tai_symbol.Createname_global(getrangecheckstring,8))
-              else
-                dataSegment.concat(Tai_symbol.Createname(getrangecheckstring,8));
-              if lowrange<=highrange then
-                begin
-                  dataSegment.concat(Tai_const.Create_32bit(lowrange));
-                  dataSegment.concat(Tai_const.Create_32bit(highrange));
-                end
-              { for big arrays we need two bounds }
-              else
-                begin
-                  dataSegment.concat(Tai_const.Create_32bit(lowrange));
-                  dataSegment.concat(Tai_const.Create_32bit($7fffffff));
-                  dataSegment.concat(Tai_const.Create_32bit(longint($80000000)));
-                  dataSegment.concat(Tai_const.Create_32bit(highrange));
-                end;
-           end;
       end;
 
 
@@ -5566,7 +5452,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2002-10-05 15:14:26  peter
+  Revision 1.99  2002-10-07 21:30:27  peter
+    * removed obsolete rangecheck stuff
+
+  Revision 1.98  2002/10/05 15:14:26  peter
     * getparamangeldname for errordef
 
   Revision 1.97  2002/10/05 12:43:28  carl
