@@ -196,8 +196,8 @@ unit i386;
 
 
     type
-       { enumeration for registers, don't change this }
-       { it's used by the register size converstaions }
+       { enumeration for registers, don't change the order }
+       { it's used by the register size conversions        }
        tregister = (R_NO,
          R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
          R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
@@ -1977,7 +1977,11 @@ Begin
 end.
 {
   $Log$
-  Revision 1.32  1999-01-24 22:32:33  florian
+  Revision 1.33  1999-01-25 09:29:38  florian
+    * very rare problem with in-operator fixed, mainly it was a problem of
+      emit_to_reg32 (typo in case ranges)
+
+  Revision 1.32  1999/01/24 22:32:33  florian
     * well, more changes, especially parts of secondload ported
 
   Revision 1.31  1999/01/23 23:29:31  florian
