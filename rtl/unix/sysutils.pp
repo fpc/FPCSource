@@ -318,11 +318,11 @@ begin
   RenameFile:=BaseUnix.FpRename(OldNAme,NewName)>=0;
 end;
 
-Function FileIsReadOnly(const FileName: String): Boolean; 
- 
+Function FileIsReadOnly(const FileName: String): Boolean;
+
 begin
-  Result := fpAccess(PChar(FileName),W_OK)= 0;
-end;  
+  Result := fpAccess(PChar(FileName),W_OK)<>0;
+end;
 
 {****************************************************************************
                               Disk Functions
@@ -500,8 +500,8 @@ Begin
     so that long filenames will always be accepted. But don't
     do it if there are already double quotes!
   }
-  {$ifdef FPC_USE_FPEXEC}	// Only place we still parse
-   cmdline2:=nil;		
+  {$ifdef FPC_USE_FPEXEC}       // Only place we still parse
+   cmdline2:=nil;
    if Comline<>'' Then
      begin
        CommandLine:=ComLine;
@@ -512,7 +512,7 @@ Begin
      begin
        getmem(cmdline2,2*sizeof(pchar));
        cmdline2^:=pchar(Path);
-       cmdline2[1]:=nil; 
+       cmdline2[1]:=nil;
      end;
   {$else}
   if Pos ('"', Path) = 0 then
@@ -527,7 +527,7 @@ Begin
    begin
    {The child does the actual exec, and then exits}
     {$ifdef FPC_USE_FPEXEC}
-      fpexecv(pchar(Path),Cmdline2);	
+      fpexecv(pchar(Path),Cmdline2);
     {$else}
       Execl(CommandLine);
     {$endif}
@@ -541,7 +541,7 @@ Begin
       e.ErrorCode:=-1;
       raise e;
     end;
-    
+
   { We're in the parent, let's wait. }
   result:=WaitProcess(pid); // WaitPid and result-convert
 
@@ -582,7 +582,7 @@ Begin
       e.ErrorCode:=-1;
       raise e;
     end;
-    
+
   { We're in the parent, let's wait. }
   result:=WaitProcess(pid); // WaitPid and result-convert
 
@@ -603,7 +603,7 @@ Var
   fd : Integer;
   fds : TfdSet;
   timeout : TimeVal;
-  
+
 begin
   fd:=FileOpen('/dev/null',fmOpenRead);
   If Not(Fd<0) then
@@ -621,7 +621,7 @@ Function GetLastOSError : Integer;
 begin
   Result:=fpgetErrNo;
 end;
-  
+
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -635,7 +635,10 @@ end.
 {
 
   $Log$
-  Revision 1.38  2004-04-20 18:24:32  marco
+  Revision 1.39  2004-04-26 14:50:19  peter
+    * FileIsReadOnly fixed
+
+  Revision 1.38  2004/04/20 18:24:32  marco
    * small fix for NIL arg ptr in first executeprocess
 
   Revision 1.37  2004/03/04 22:15:16  marco
@@ -643,13 +646,13 @@ end.
 
   Revision 1.36  2004/02/13 10:50:23  marco
    * Hopefully last large changes to fpexec and friends.
-  	- naming conventions changes from Michael.
-  	- shell functions get alternative under ifdef.
-  	- arraystring function moves to unixutil
-  	- unixutil now regards quotes in stringtoppchar.
-  	- sysutils/unix get executeprocess(ansi,array of ansi), and
-  		both executeprocess functions are fixed
-   	- Sysutils/win32 get executeprocess(ansi,array of ansi)
+        - naming conventions changes from Michael.
+        - shell functions get alternative under ifdef.
+        - arraystring function moves to unixutil
+        - unixutil now regards quotes in stringtoppchar.
+        - sysutils/unix get executeprocess(ansi,array of ansi), and
+                both executeprocess functions are fixed
+        - Sysutils/win32 get executeprocess(ansi,array of ansi)
 
   Revision 1.35  2004/02/12 15:31:06  marco
    * First version of fpexec change. Still under ifdef or silently overloaded
