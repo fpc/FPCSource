@@ -61,7 +61,7 @@ begin
         Inc(ACount);
         Writeln('Record ',ACount,' : ');
         Writeln('------------------------');
-        For I:=0 to FieldCount-1 do
+        For I:=0 to Fields.Count-1 do
           Writeln(Fields[I].FieldName,' : ',Fields[I].AsString);
         Writeln;  
         Next;  
