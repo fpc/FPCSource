@@ -517,11 +517,15 @@ end;
 
 Function FpNanoSleep(const req : timespec;var rem : timespec) : longint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
 begin
+{$ifndef darwin}
   FpNanoSleep:=Do_SysCall(syscall_nr_nanosleep,TSysParam(@req),TSysParam(@rem));
+{$else not darwin}
+{$warning: TODO: nanosleep!!!}
+{$endif not darwin}
 end;
 
 function Fpgetcwd(pt:pchar; _size:size_t):pchar;[public, alias :'FPC_SYSC_GETCWD'];
-
+{$ifndef darwin}
 const intpathmax = 1024-4;	// didn't use POSIX data in libc
 				// implementation.
 var ept,bpt : pchar;
@@ -570,12 +574,19 @@ begin
            End;
  Fpgetcwd:=pt;
 end;
+{$else not darwin}
+{$i getcwd.inc}
+{$endif darwin}
 
 {$endif}
 
 {
  $Log$
- Revision 1.1  2003-01-05 19:01:28  marco
+ Revision 1.2  2003-05-26 21:29:16  jonas
+   - disabled nanosleep for darwin for now
+   + getcwd for darwin
+
+ Revision 1.1  2003/01/05 19:01:28  marco
   * FreeBSD compiles now with baseunix mods.
 
  Revision 1.9  2002/11/13 18:15:08  marco
