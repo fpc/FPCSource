@@ -875,8 +875,7 @@ implementation
          { handle the global switches }
          setupglobalswitches;
 
-         Comment(V_Used,'Loading interface units from '+current_module.modulename^);
-//         Message1(unit_u_start_parse_interface,current_module.modulename^);
+         Message1(unit_u_loading_interface_units,current_module.modulename^);
 
          { update status }
          status.currentmodule:=current_module.realmodulename^;
@@ -948,8 +947,7 @@ implementation
          current_module.numberunits;
 
          { ... parse the declarations }
-         Comment(V_Used,'Parsing interface of '+current_module.modulename^);
-//         Message1(parser_u_parsing_interface,current_module.realmodulename^);
+         Message1(parser_u_parsing_interface,current_module.realmodulename^);
          read_interface_declarations;
 
          { leave when we got an error }
@@ -974,8 +972,7 @@ implementation
          consume(_IMPLEMENTATION);
          current_module.in_interface:=false;
 
-         Comment(V_Used,'Loading implementation units from '+current_module.modulename^);
-//         Message1(unit_u_start_parse_implementation,current_module.modulename^);
+         Message1(unit_u_loading_implementation_units,current_module.modulename^);
 
          parse_only:=false;
 
@@ -1030,10 +1027,9 @@ implementation
          allow_special:=false;
 {$endif Splitheap}
 
-         Comment(V_Used,'Parsing implementation of '+current_module.modulename^);
+         Message1(parser_u_parsing_implementation,current_module.modulename^);
          if current_module.in_interface then
            internalerror(200212285);
-//         Message1(parser_u_parsing_implementation,current_module.modulename^);
 
          { Compile the unit }
          pd:=create_main_proc(current_module.modulename^+'_init',potype_unitinit,st);
@@ -1187,13 +1183,11 @@ implementation
 
          if not(cs_compilesystem in aktmoduleswitches) then
            if store_interface_crc<>current_module.interface_crc then
-             Comment(V_Warning,current_module.ppufilename^+' Interface CRC changed '+
-               hexstr(store_crc,8)+'<>'+hexstr(current_module.interface_crc,8));
+             Message1(unit_u_interface_crc_changed,current_module.ppufilename^);
 {$ifdef EXTDEBUG}
          if not(cs_compilesystem in aktmoduleswitches) then
            if (store_crc<>current_module.crc) and simplify_ppu then
-             Comment(V_Note,current_module.ppufilename^+' implementation CRC changed '+
-               hexstr(store_crc,8)+'<>'+hexstr(current_module.crc,8));
+             Message1(unit_u_implementation_crc_changed,current_module.ppufilename^);
 {$endif EXTDEBUG}
 
          { remove static symtable (=refsymtable) here to save some mem }
@@ -1215,7 +1209,7 @@ implementation
 
         initfinalcode.free;
 
-        Comment(V_Used,'Finished compiling module '+current_module.modulename^);
+        Message1(unit_u_finished_compiling,current_module.modulename^);
       end;
 
 
@@ -1488,7 +1482,10 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.107  2003-05-22 21:31:35  peter
+  Revision 1.108  2003-05-25 10:27:12  peter
+    * moved Comment calls to messge file
+
+  Revision 1.107  2003/05/22 21:31:35  peter
     * defer codegeneration for nested procedures
 
   Revision 1.106  2003/05/15 18:58:53  peter

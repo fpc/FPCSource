@@ -198,7 +198,7 @@ scan_e_keyword_cant_be_a_macro=02028_E_Keyword redefined as macro has no effect
 % You cannot redefine keywords with macros.
 scan_f_macro_buffer_overflow=02029_F_Macro buffer overflow while reading or expanding a macro
 % Your macro or it's result  was too long for the compiler.
-scan_w_macro_deep_ten=02030_W_Extension of macros exceeds a deep of 16.
+scan_w_macro_deep_ten=02030_W_Extension of macros exceeds a depth of 16.
 % When expanding a macro macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
@@ -289,6 +289,10 @@ scan_w_appname_not_support=02060_W_APPNAME is only supported for PalmOS
 scan_e_string_exceeds_255_chars=02061_E_Constant strings can't be longer than 255 chars
 % A single string constant can contain at most 255 chars. Try splitting up the
 % string in multiple smaller parts and concatenate them with a + operator.
+scan_f_include_deep_ten=02062_F_Including include files exceeds a depth of 16.
+% When including include files the files have been nested to a level of 16.
+% The compiler will expand no further, since this may be a sign that
+% recursion is used.
 % \end{description}
 #
 # Parser
@@ -1803,10 +1807,10 @@ unit_u_recompile_obj_and_asm_older=10032_U_Recompiling unit, obj and asm are old
 unit_u_recompile_obj_older_than_asm=10033_U_Recompiling unit, obj is older than asm
 % When you use the \var{-vu} flag, the compiler warns if the assembler
 % file of the unit is older than the object file of the unit.
-unit_u_start_parse_interface=10034_U_Parsing interface of $1
+unit_u_parsing_interface=10034_U_Parsing interface of $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % parsing the interface part of the unit
-unit_u_start_parse_implementation=10035_U_Parsing implementation of $1
+unit_u_parsing_implementation=10035_U_Parsing implementation of $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % parsing the implementation part of the unit
 unit_u_second_load_unit=10036_U_Second load for unit $1
@@ -1837,6 +1841,55 @@ unit_u_ppu_invalid_fpumode=10042_U_Using a unit which was not compiled with corr
 % Trying to compile code while using units which were not compiled with
 % the same floating point format mode. Either all code should be compiled
 % with FPU emulation on, or with FPU emulation off.
+unit_u_loading_interface_units=10043_U_Loading interface units from $1
+% When you use the \var{-vu} flag, the compiler warns that it starts
+% loading the units defined in the interface part of the unit.
+unit_u_loading_implementation_units=10044_U_Loading implementation units from $1
+% When you use the \var{-vu} flag, the compiler warns that it starts
+% loading the units defined in the implementation part of the unit.
+unit_u_interface_crc_changed=10045_U_Interface CRC changed for unit $1
+% When you use the \var{-vu} flag, the compiler warns that it the
+% CRC calculated for the interface has been changed after the implementation
+% has been parsed.
+unit_u_implementation_crc_changed=10046_U_Implementation CRC changed for unit $1
+% When you use the \var{-vu} flag, the compiler warns that it the
+% CRC calculated has been changed after the implementation
+% has been parsed.
+unit_u_finished_compiling=10047_U_Finished compiling unit $1
+% When you use the \var{-vu} flag, the compiler warns that it
+% has finished compiling the unit.
+unit_u_add_depend_to=10048_U_Add dependency of $1 to $2
+% When you use the \var{-vu} flag, the compiler warns that it
+% has added a dependency between the two units.
+unit_u_no_reload_is_caller=10049_U_No reload, is caller: $1
+% When you use the \var{-vu} flag, the compiler warns that it
+% has will not reload the unit because it is the unit that wants
+% to load this unit
+unit_u_no_reload_in_second_compile=10050_U_No reload, already in second compile: $1
+% When you use the \var{-vu} flag, the compiler warns that it
+% has will not reload the unit because it is already in a second recompile
+unit_u_flag_for_reload=10051_U_Flag for reload: $1
+% When you use the \var{-vu} flag, the compiler warns that it
+% has to reload the unit
+unit_u_forced_reload=10052_U_Forced reloading
+% When you use the \var{-vu} flag, the compiler warns that it
+% has is reloading the unit because it was required
+unit_u_previous_state=10053_U_Previous state of $1: $2
+% When you use the \var{-vu} flag, the compiler shows the
+% previous state of the unit
+unit_u_second_compile_unit=10054_U_Already compiling $1, setting second compile
+% When you use the \var{-vu} flag, the compiler warns that it starts
+% recompiling a unit for the second time. This can happend with interdepend
+% units.
+unit_u_loading_unit=10055_U_Loading unit $1
+% When you use the \var{-vu} flag, the compiler warns that it starts
+% loading the unit.
+unit_u_finished_loading_unit=10056_U_Finished loading unit $1
+% When you use the \var{-vu} flag, the compiler warns that it finished
+% loading the unit.
+unit_u_registering_new_unit=10057_U_Registering new unit $1
+% When you use the \var{-vu} flag, the compiler warns that it has
+% found a new unit and registers it in the internal lists.
 % \end{description}
 # EndOfTeX
 

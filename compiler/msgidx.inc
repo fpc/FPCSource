@@ -75,6 +75,7 @@ const
   scan_w_appid_not_support=02059;
   scan_w_appname_not_support=02060;
   scan_e_string_exceeds_255_chars=02061;
+  scan_f_include_deep_ten=02062;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -559,8 +560,8 @@ const
   unit_u_recompile_sharedlib_is_older=10031;
   unit_u_recompile_obj_and_asm_older=10032;
   unit_u_recompile_obj_older_than_asm=10033;
-  unit_u_start_parse_interface=10034;
-  unit_u_start_parse_implementation=10035;
+  unit_u_parsing_interface=10034;
+  unit_u_parsing_implementation=10035;
   unit_u_second_load_unit=10036;
   unit_u_check_time=10037;
   unit_h_cond_not_set_in_last_compile=10038;
@@ -568,6 +569,21 @@ const
   unit_w_cant_compile_unit_with_changed_incfile=10040;
   unit_h_source_modified=10041;
   unit_u_ppu_invalid_fpumode=10042;
+  unit_u_loading_interface_units=10043;
+  unit_u_loading_implementation_units=10044;
+  unit_u_interface_crc_changed=10045;
+  unit_u_implementation_crc_changed=10046;
+  unit_u_finished_compiling=10047;
+  unit_u_add_depend_to=10048;
+  unit_u_no_reload_is_caller=10049;
+  unit_u_no_reload_in_second_compile=10050;
+  unit_u_flag_for_reload=10051;
+  unit_u_forced_reload=10052;
+  unit_u_previous_state=10053;
+  unit_u_second_compile_unit=10054;
+  unit_u_loading_unit=10055;
+  unit_u_finished_loading_unit=10056;
+  unit_u_registering_new_unit=10057;
   option_usage=11000;
   option_only_one_source_support=11001;
   option_def_only_for_os2=11002;
@@ -609,9 +625,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 34495;
+  MsgTxtSize = 35105;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,62,195,51,57,44,98,19,35,43,
+    17,63,195,51,57,44,98,19,35,58,
     40,1,1,1,1,1,1,1,1,1
   );

@@ -1142,7 +1142,7 @@ uses
           we must reload when the do_reload flag is set }
         if do_reload then
          begin
-           Comment(V_Used,'Forced reloading');
+           Message(unit_u_forced_reload);
            do_reload:=false;
          end
         else
@@ -1169,14 +1169,14 @@ uses
          begin
            { try to load the unit a second time first }
            Message1(unit_u_second_load_unit,modulename^);
-           Comment(V_Used,'Previous state '+modulename^+': '+ModuleStateStr[state]);
+           Message2(unit_u_previous_state,modulename^,ModuleStateStr[state]);
            { Flag modules to reload }
            flagdependent(old_current_module);
            { Reset the module }
            reset;
            if state=ms_compile then
              begin
-               Comment(V_Used,'Already compiling '+modulename^+' setting second compile');
+               Message1(unit_u_second_compile_unit,modulename^);
                state:=ms_second_compile;
                do_compile:=true;
              end
@@ -1197,7 +1197,7 @@ uses
           know that we need to compile the unit }
         if not do_compile then
          begin
-           Comment(V_Used,'Loading module '+modulename^);
+           Message1(unit_u_loading_unit,modulename^);
            search_unit(false,false);
            if not do_compile then
             begin
@@ -1206,7 +1206,7 @@ uses
                begin
                  load_usedunits;
                  if not do_compile then
-                   Comment(V_Used,'Finished loading module '+modulename^);
+                   Message1(unit_u_finished_loading_unit,modulename^);
                end;
             end;
            { PPU is not needed anymore }
@@ -1347,7 +1347,7 @@ uses
           we create an entry and register the unit }
         if not assigned(hp) then
          begin
-           Comment(V_Used,'Registering new unit '+Upper(s));
+           Message1(unit_u_registering_new_unit,Upper(s));
            hp:=tppumodule.create(callermodule,s,fn,true);
            hp.loaded_from:=callermodule;
            loaded_units.insert(hp);
@@ -1359,7 +1359,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.34  2003-05-23 17:04:37  peter
+  Revision 1.35  2003-05-25 10:27:12  peter
+    * moved Comment calls to messge file
+
+  Revision 1.34  2003/05/23 17:04:37  peter
     * write interface crc to .ppu.intf when enabled
     * when a unit is compiled with -Ur check only interface crc
 

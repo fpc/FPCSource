@@ -567,7 +567,7 @@ uses
         { This is not needed for programs }
         if not callermodule.is_unit then
           exit;
-        Comment(V_Used,'Add dependency for '+callermodule.modulename^+' to '+modulename^);
+        Message2(unit_u_add_depend_to,callermodule.modulename^,modulename^);
         dependent_units.concat(tdependent_unit.create(callermodule));
       end;
 
@@ -583,14 +583,14 @@ uses
            { We do not have to reload the unit that wants to load
              this unit }
            if pm.u=callermodule then
-            Comment(v_used,'No reload, is caller: '+pm.u.modulename^)
+             Message1(unit_u_no_reload_is_caller,pm.u.modulename^)
            else
             if pm.u.state=ms_second_compile then
-             Comment(v_used,'No reload, already in second compile: '+pm.u.modulename^)
+              Message1(unit_u_no_reload_in_second_compile,pm.u.modulename^)
            else
             begin
               pm.u.do_reload:=true;
-              Comment(v_used,'Flag for reload '+pm.u.modulename^);
+              Message1(unit_u_flag_for_reload,pm.u.modulename^);
             end;
            pm:=tdependent_unit(pm.next);
          end;
@@ -651,7 +651,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.34  2003-05-23 14:27:35  peter
+  Revision 1.35  2003-05-25 10:27:12  peter
+    * moved Comment calls to messge file
+
+  Revision 1.34  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 
