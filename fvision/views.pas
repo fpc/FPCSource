@@ -182,6 +182,8 @@ CONST
    vdBorder  = $08;                                   { Draw view border }
    vdFocus   = $10;                                   { Draw focus state }
    vdNoChild = $20;                                   { Draw no children }
+   vdShadow  = $40;
+   vdAll     = vdBackGnd + vdInner + vdCursor + vdBorder + vdFocus + vdShadow;
 
 {---------------------------------------------------------------------------}
 {                            TView HELP CONTEXTS                            }
@@ -836,6 +838,7 @@ CONST
      Store:   @TWindow.Store                          { Object store method }
    );
 
+
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                              IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
@@ -1228,12 +1231,6 @@ PROCEDURE TView.DrawView;
 VAR ViewPort: ViewPortType;                           { Common variables }
     Parent : PGroup;
 BEGIN
-   Parent:=Owner;
-   While Assigned(Parent) do Begin
-     If (Parent^.LockFlag>0) then
-       exit;
-     Parent:=Parent^.Owner;
-   End;
    If (State AND sfVisible <> 0) AND                  { View is visible }
    (State AND sfExposed <> 0) AND                     { View is exposed }
    (State AND sfIconised = 0) Then Begin              { View not iconised }
@@ -1241,6 +1238,16 @@ BEGIN
      GetViewSettings(ViewPort, TextModeGFV);          { Get set viewport }
      If OverlapsArea(ViewPort.X1, ViewPort.Y1,
      ViewPort.X2, ViewPort.Y2) Then Begin             { Must be in area }
+         Parent:=Owner;
+         While Assigned(Parent) do Begin
+           If (Parent^.LockFlag>0) then
+             Begin
+               If (DrawMask = 0) OR (DrawMask = vdNoChild)  then
+                 SetDrawMask(vdAll);
+               exit;
+             End;
+           Parent:=Parent^.Owner;
+         End;
          HideMouseCursor;                             { Hide mouse cursor }
          If (DrawMask = 0) OR (DrawMask = vdNoChild)  { No special masks set }
             { OR Assigned(LimitsLocked) }
@@ -1254,9 +1261,11 @@ BEGIN
            If (Options AND ofFramed <> 0) OR
            (GOptions AND goThickFramed <> 0)          { View has border }
              Then DrawBorder;                         { Draw border }
+{$ifndef NoShadow}
            If ((State AND sfShadow) <> 0) AND
               (GOptions And goNoShadow = 0) Then
              DrawShadow;
+{$endif ndef NoShadow}
          End Else Begin                               { Masked draws only  }
            If (DrawMask AND vdBackGnd <> 0) Then      { Chk background mask }
              Begin
@@ -1284,6 +1293,16 @@ BEGIN
                DrawMask := DrawMask and Not vdBorder;
                DrawBorder;                              { Draw border }
              End;
+{$ifndef NoShadow}
+           If ((State AND sfShadow) <> 0) AND
+              (DrawMask AND vdShadow <> 0) AND
+              (GOptions And goNoShadow = 0) AND
+              (not assigned(Owner) OR (Owner^.GOptions And goNoShadow = 0)) Then
+             Begin
+               DrawMask := DrawMask and Not vdShadow;
+               DrawShadow;
+             End;
+{$endif ndef NoShadow}
          End;
          ShowMouseCursor;                             { Show mouse cursor }
      End;
@@ -1384,6 +1403,14 @@ END;
 PROCEDURE TView.DrawShadow;
 VAR X1, Y1, X2, Y2 : Integer;
 BEGIN
+{$ifdef DEBUG}
+   if WriteDebugInfo then
+     Begin
+       Writeln(stderr,'TView(',hexstr(longint(@self),8),')');
+       Writeln(stderr,'Object Type(',hexstr(plongint(@self)^,8),')');
+       Writeln(stderr,'DrawShadow');
+     End;
+{$endif DEBUG}
   If not TextModeGFV then
     exit;
   If Assigned(Owner) Then Begin
@@ -1392,6 +1419,7 @@ BEGIN
     Y1:=RawOrigin.Y+SysFontHeight;
     Y2:=RawOrigin.Y+RawSize.Y+1+ShadowSize.Y*SysFontHeight;
     GOptions := GOptions OR goNoShadow;
+    Owner^.GOptions := Owner^.GOptions OR goNoShadow;
     Owner^.RedrawArea(X1,Y1,X2,Y2);
     WriteShadow(X1 div SysFontWidth, Y1 div SysFontHeight,
       X2 div SysFontWidth, Y2 div SysFontHeight);
@@ -1403,6 +1431,7 @@ BEGIN
     WriteShadow(X1 div SysFontWidth, Y1 div SysFontHeight,
       X2 div SysFontWidth, Y2 div SysFontHeight);
     GOptions := GOptions AND not goNoShadow;
+    Owner^.GOptions := Owner^.GOptions AND not goNoShadow;
   End;
 END;
 
@@ -1498,6 +1527,7 @@ BEGIN
        If (X2 > ViewPort.X2) Then X2 := ViewPort.X2;  { Adjust x2 to locked }
        If (Y2 > ViewPort.Y2) Then Y2 := ViewPort.Y2;  { Adjust y2 to locked }
      End;
+
      SetViewPort(X1, Y1, X2, Y2, ClipOn, TextModeGFV);{ Set new clip limits }
    End;
 END;
@@ -1609,18 +1639,6 @@ BEGIN
      Mask := Mask AND NOT vdFocus;                    { Clear focus draws }
    OldMask:=DrawMask;
    DrawMask := DrawMask OR Mask;                      { Set draw masks }
-   (*If TextModeGFV and (DrawMask<>0) and (DrawMask<>OldMask) then Begin
-     Mask:=vdBackGnd OR vdInner OR vdBorder OR vdCursor OR vdFocus;
-     If (Options AND ofFramed = 0) AND                  { Check for no frame }
-       (GOptions AND goThickFramed = 0) AND             { Check no thick frame }
-       (GOptions AND goTitled = 0) Then                 { Check for title }
-         Mask := Mask AND NOT vdBorder;                 { Clear border draw }
-     If (State AND sfCursorVis = 0) Then                { Check for no cursor }
-       Mask := Mask AND NOT vdCursor;                   { Clear cursor draw }
-     If (GOptions AND goDrawFocus = 0) Then             { Check no focus draw }
-       Mask := Mask AND NOT vdFocus;                    { Clear focus draws }
-     DrawMask := DrawMask OR Mask;                      { Set draw masks }
-   End; *)
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -1675,7 +1693,11 @@ BEGIN
        Owner^.RemoveView(@Self);                      { Remove from list }
        Owner^.InsertView(@Self, Target);              { Insert into list }
        State := State OR sfVisible;                   { Allow drawing again }
-       If (LastView <> Target) Then DrawView;         { Draw the view now }
+       If (LastView <> Target) Then
+         Begin
+           SetDrawMask(vdAll);
+           DrawView;         { Draw the view now }
+         End;
        If (Options AND ofSelectable <> 0) Then        { View is selectable }
          If (Owner <> Nil) Then Owner^.ResetCurrent;  { Reset current }
        Owner^.Unlock;
@@ -1714,6 +1736,14 @@ END;
 PROCEDURE TView.ReDrawArea (X1, Y1, X2, Y2: Integer);
 VAR HLimit: PView; ViewPort: ViewPortType;
 BEGIN
+{$ifdef DEBUG}
+   if WriteDebugInfo then
+     Begin
+       Writeln(stderr,'TView(',hexstr(longint(@self),8),')');
+       Writeln(stderr,'Object Type(',hexstr(plongint(@self)^,8),')');
+       Writeln(stderr,'ReDrawArea(',X1,',',Y1,',',X2,',',Y2,')');
+     End;
+{$endif DEBUG}
    GetViewSettings(ViewPort, TextModeGFV);            { Hold view port }
    If TextModeGFV then Begin
      X1 := X1 div SysFontWidth;
@@ -2595,8 +2625,8 @@ BEGIN
      sfFocused: Begin
          If (Current <> Nil) Then
            Current^.SetState(sfFocused, Enable);          { Focus current view }
-         If TextModeGFV then
-           SetDrawMask(vdBackGnd OR vdFocus OR vdInner OR vdBorder); { Set redraw masks }
+         {If TextModeGFV then
+           SetDrawMask(vdBackGnd OR vdFocus OR vdInner OR vdBorder);  Set redraw masks }
        End;
      sfExposed: Begin
          ForEach(@DoExpose);                          { Expose each subview }
@@ -4562,7 +4592,6 @@ BEGIN
    End;
 END;
 
-{define DirectWrite}
 PROCEDURE TView.WriteAbs(X, Y, L : Integer; Var Buf);
 VAR
   P: PGroup;
@@ -4570,16 +4599,18 @@ VAR
   CurOrigin : TPoint;
   I,XI : longint;
   ViewPort : ViewPortType;
+  Skip : boolean;
 BEGIN
+{$ifdef DEBUG}
+   if WriteDebugInfo then
+     Begin
+       Writeln(stderr,'TView(',hexstr(longint(@self),8),')');
+       Writeln(stderr,'Object Type(',hexstr(plongint(@self)^,8),')');
+       Writeln(stderr,'WriteAbs(',X,',',Y,',',L,',',hexstr(longint(@Buf),8),')');
+     End;
+{$endif DEBUG}
   { Direct wrong method }
   GetViewSettings(ViewPort, TextModeGFV);          { Get set viewport }
-{$ifdef DirectWrite}
-  For i:=0 to L-1 do Begin
-    if (X+I>=ViewPort.X1) AND (Y>=ViewPort.Y1) AND
-       (X+I<ViewPort.X2) AND (Y<ViewPort.Y2) Then
-      VideoBuf^[Y*ScreenWidth+X+i]:=TDrawBuffer(Buf)[i];
-  End;
-{$else not DirectWrite}
   { Pedestrian character method }
   { Must be in area }
   If (X+L<ViewPort.X1) OR (Y<ViewPort.Y1) OR
@@ -4593,35 +4624,48 @@ BEGIN
     If (XI<ViewPort.X1) OR
        (XI>=ViewPort.X2) Then
       Continue;
+    Skip:=false;
     While Assigned(P) do Begin
+      { If parent not visible or
+        position outside parent's limit then skip }
       if not assigned(P^.Buffer) AND
          (((P^.State AND sfVisible) = 0) OR
-         (P^.Origin.X>XI) OR (P^.Origin.X+P^.Size.X<=XI) OR
-         (P^.Origin.Y>Y) OR (P^.Origin.Y+P^.Size.Y<=Y)) then
-        continue;
+         (XI<P^.Origin.X) OR (XI>=P^.Origin.X+P^.Size.X) OR
+         (Y<P^.Origin.Y) OR (Y>=P^.Origin.Y+P^.Size.Y)) then
+        Begin
+          Skip:=true;
+          Break;
+        End;
       { Here we must check if X,Y is exposed for this view }
       PP:=P^.Last;
       { move to first }
       If Assigned(PP) then
         PP:=PP^.Next;
       While Assigned(PP) and (PP<>P^.Last) and (PP<>PrevP) do Begin
+        { If position is owned by another view that is before self
+         then skip }
         If ((PP^.State AND sfVisible) <> 0) AND
-           (PP^.Origin.X>=XI) AND
-           (PP^.Origin.X+PP^.Size.X<XI) AND
-           (PP^.Origin.Y>=Y) AND
-           (PP^.Origin.Y+PP^.Size.Y<Y) then
-          exit;
+           (XI>=PP^.Origin.X) AND
+           (XI<PP^.Origin.X+PP^.Size.X) AND
+           (Y>=PP^.Origin.Y) AND
+           (Y<PP^.Origin.Y+PP^.Size.Y) then
+          Begin
+            Skip:=true;
+            break;
+          End;
         PP:=PP^.Next;
       End;
 
-      If Assigned(P^.Buffer) then Begin
+      If Not Skip and Assigned(P^.Buffer) then Begin
         P^.Buffer^[(Y-P^.Origin.Y)*P^.size.X+(XI-P^.Origin.X)]:=TDrawBuffer(Buf)[I];
       End;
       PrevP:=P;
-      P:=P^.Owner;
+      If Skip then
+        P:=Nil
+      else
+        P:=P^.Owner;
     End;
   End;
-{$endif not DirectWrite}
 END;
 
 {define DirectWriteShadow}
@@ -4633,6 +4677,7 @@ VAR
   I,J : longint;
   B : Word;
   ViewPort : ViewPortType;
+  Skip : boolean;
 BEGIN
   { Direct wrong method }
   GetViewSettings(ViewPort, TextModeGFV);          { Get set viewport }
@@ -4661,12 +4706,16 @@ BEGIN
     If (XI<ViewPort.X1) OR
        (XI>=ViewPort.X2) Then
       Continue;    }
+    Skip:=false;
     While Assigned(P) do Begin
       if not assigned(P^.Buffer) AND
          (((P^.State AND sfVisible) = 0) OR
-         (P^.Origin.X>I) OR (P^.Origin.X+P^.Size.X<=I) OR
-         (P^.Origin.Y>J) OR (P^.Origin.Y+P^.Size.Y<=J)) then
-        continue;
+         (I<P^.Origin.X) OR (I>=P^.Origin.X+P^.Size.X) OR
+         (J<P^.Origin.Y) OR (J>=P^.Origin.Y+P^.Size.Y)) then
+        Begin
+          Skip:=true;
+          Break;
+        End;
       { Here we must check if X,Y is exposed for this view }
       PP:=P^.Last;
       { move to first }
@@ -4674,20 +4723,26 @@ BEGIN
         PP:=PP^.Next;
       While Assigned(PP) and (PP<>P^.Last) and (PP<>PrevP) do Begin
         If ((PP^.State AND sfVisible) <> 0) AND
-           (PP^.Origin.X>=I) AND
-           (PP^.Origin.X+PP^.Size.X<I) AND
-           (PP^.Origin.Y>=J) AND
-           (PP^.Origin.Y+PP^.Size.Y<J) then
-          continue;
+           (I>=PP^.Origin.X) AND
+           (I<PP^.Origin.X+PP^.Size.X) AND
+           (J>=PP^.Origin.Y) AND
+           (J<PP^.Origin.Y+PP^.Size.Y) then
+          Begin
+            Skip:=true;
+            Break;
+          End;
         PP:=PP^.Next;
       End;
 
-      If Assigned(P^.Buffer) then Begin
+      If not Skip and Assigned(P^.Buffer) then Begin
         B:=P^.Buffer^[(J-P^.Origin.Y)*P^.size.X+(I-P^.Origin.X)];
-        P^.Buffer^[(J-P^.Origin.Y)*P^.size.X+(I-P^.Origin.X)]:= (B and $7FF);
+        P^.Buffer^[(J-P^.Origin.Y)*P^.size.X+(I-P^.Origin.X)]:= (B and $FFF);
       End;
       PrevP:=P;
-      P:=P^.Owner;
+      If Skip then
+        P:=Nil
+      else
+        P:=P^.Owner;
     End;
   End;
   End;
@@ -5088,7 +5143,10 @@ END.
 
 {
  $Log$
- Revision 1.10  2001-05-10 16:46:28  pierre
+ Revision 1.11  2001-05-30 10:22:25  pierre
+  * fix Shadow bugs
+
+ Revision 1.10  2001/05/10 16:46:28  pierre
   + some improovements made
 
  Revision 1.9  2001/05/07 23:36:35  pierre
