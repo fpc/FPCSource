@@ -1064,7 +1064,7 @@ end;
 
 { do a thread save inc/dec }
 
-{$define FPC_SYSTEM_HAS_DECLOCKED}
+{$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
 function declocked(var l : longint) : boolean;assembler;
 { input:  address of l in r3                                      }
 { output: boolean indicating whether l is zero after decrementing }
@@ -1078,7 +1078,7 @@ asm
     srwi    r3,r3,5
 end;
 
-{$define FPC_SYSTEM_HAS_INCLOCKED}
+{$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
 procedure inclocked(var l : longint);assembler;
 asm
 .LIncLockedLoop:
@@ -1091,7 +1091,10 @@ end;
 
 {
   $Log$
-  Revision 1.65  2004-01-11 11:10:07  jonas
+  Revision 1.66  2004-04-29 20:00:47  peter
+    * inclocked_longint ifdef fixed
+
+  Revision 1.65  2004/01/11 11:10:07  jonas
     + cgeneric.inc: implementations of rtl routines based on libc
     * system.inc: include cgeneric.inc before powerpc.inc/i386.inc/... if
       FPC_USE_LIBC is defined

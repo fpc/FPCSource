@@ -1391,7 +1391,7 @@ end;
 {$endif NOBOUNDCHECK}
 
 { do a thread save inc/dec }
-{$define FPC_SYSTEM_HAS_DECLOCKED}
+{$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
 function declocked(var l : longint) : boolean;assembler;
 
   asm
@@ -1411,7 +1411,7 @@ function declocked(var l : longint) : boolean;assembler;
      setzb      %al
   end;
 
-{$define FPC_SYSTEM_HAS_INCLOCKED}
+{$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
 procedure inclocked(var l : longint);assembler;
 
   asm
@@ -1457,7 +1457,10 @@ end;
 
 {
   $Log$
-  Revision 1.60  2004-04-26 15:55:01  peter
+  Revision 1.61  2004-04-29 20:00:47  peter
+    * inclocked_longint ifdef fixed
+
+  Revision 1.60  2004/04/26 15:55:01  peter
     * FPC_MOVE alias
 
   Revision 1.59  2004/02/05 01:16:12  florian
