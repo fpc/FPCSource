@@ -554,12 +554,16 @@ unit win_targ;
 
          {  export address table }
          address_table:=new(paasmoutput,init);
+         address_table^.concat(new(pai_align,init_op(4,0)));
          address_table^.concat(new(pai_label,init(export_address_table)));
          name_table_pointers:=new(paasmoutput,init);
+         name_table_pointers^.concat(new(pai_align,init_op(4,0)));
          name_table_pointers^.concat(new(pai_label,init(export_name_table_pointers)));
          ordinal_table:=new(paasmoutput,init);
+         ordinal_table^.concat(new(pai_align,init_op(4,0)));
          ordinal_table^.concat(new(pai_label,init(export_ordinal_table)));
          name_table:=new(paasmoutput,init);
+         name_table^.concat(new(pai_align,init_op(4,0)));
          { write each address }
          hp:=pexported_item(current_module^._exports^.first);
          while assigned(hp) do
@@ -569,7 +573,7 @@ unit win_targ;
                    getlabel(name_label);
                    name_table_pointers^.concat(new(pai_const,init_rva(strpnew(lab2str(name_label)))));
                    ordinal_table^.concat(new(pai_const,init_16bit(hp^.index-ordinal_base)));
-                   name_table^.concat(new(pai_align,init(2)));
+                   name_table^.concat(new(pai_align,init_op(2,0)));
                    name_table^.concat(new(pai_label,init(name_label)));
                    name_table^.concat(new(pai_string,init(hp^.name^+#0)));
                 end;
@@ -683,7 +687,10 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.16  1998-11-30 13:26:26  pierre
+  Revision 1.17  1998-12-01 23:35:43  pierre
+   * alignment fixes
+
+  Revision 1.16  1998/11/30 13:26:26  pierre
     * the code for ordering the exported procs/vars was buggy
     + added -WB to force binding (Ozerski way of creating DLL)
       this is off by default as direct writing of .edata section seems
