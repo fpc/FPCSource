@@ -320,7 +320,7 @@ const
   { 0A unassigned } 0,
   { 0B unassigned } 0,
   { 0C VK_CLEAR ?? } 0,
-  { 0D VK_RETURN } 0,
+  { 0D VK_RETURN } $1C,
   { 0E unassigned } 0,
   { 0F unassigned } 0,
   { 10 VK_SHIFT } 0,
@@ -339,7 +339,7 @@ const
   { 1D Reserved for Kanji systems} 0,
   { 1E Reserved for Kanji systems} 0,
   { 1F Reserved for Kanji systems} 0,
-  { 20 VK_SPACE} 0,
+  { 20 VK_SPACE} $39,
   { 21 VK_PRIOR (PgUp) } $49,
   { 22 VK_NEXT (PgDown) } $51,
   { 23 VK_END } $4F,
@@ -814,7 +814,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-05-29 21:20:49  pierre
+  Revision 1.5  2002-05-31 13:35:33  pierre
+   * recognize Enter key with kbEnter
+
+  Revision 1.4  2002/05/29 21:20:49  pierre
    * better key translations
 
   Revision 1.3  2002/05/29 19:34:27  pierre
