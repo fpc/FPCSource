@@ -69,7 +69,7 @@ begin
       VarDouble  : Result:=Round(VDouble);
       VarCurrency: Result:=Round(VCurrency);
       VarDate    : Result:=Round(VDate);
-      VarOleStr  : NoWideStrings;
+      VarOleStr  : Result:=StrToInt(WideCharToString(vOleStr));
       VarBoolean : Result:=SmallInt(VBoolean);
       VarByte    : Result:=VByte;
       VarWord    : Result:=VWord;
@@ -93,7 +93,7 @@ begin
       VarDouble  : Result:=Round(VDouble);
       VarCurrency: Result:=Round(VCurrency);
       VarDate    : Result:=Round(VDate);
-      VarOleStr  : NoWideStrings;
+      VarOleStr  : Result:=StrToInt(WideCharToString(vOleStr));
       VarBoolean : Result:=SmallInt(VBoolean);
       VarByte    : Result:=VByte;
       VarWord    : Result:=VWord;
@@ -117,7 +117,11 @@ begin
       VarDouble  : Result:=Round(VDouble);
       VarCurrency: Result:=Round(VCurrency);
       VarDate    : Result:=Round(VDate);
-      VarOleStr  : NoWideStrings;
+      VarOleStr  : begin
+                   Writeln('In VariantToLongint : "',Pchar(Pointer(vOleStr)),'"');
+                   Result:=StrToInt(WideCharToString(vOleStr));
+                   Writeln('Uit VariantToLongint');
+                   end;
       VarBoolean : Result:=Longint(VBoolean);
       VarByte    : Result:=VByte;
       VarWord    : Result:=VWord;
@@ -141,7 +145,7 @@ begin
       VarDouble  : Result:=Round(VDouble);
       VarCurrency: Result:=Round(VCurrency);
       VarDate    : Result:=Round(VDate);
-      VarOleStr  : NoWideStrings;
+      VarOleStr  : Result:=StrToInt(WideCharToString(vOleStr));
       VarBoolean : Result:=Longint(VBoolean);
       VarByte    : Result:=VByte;
       VarWord    : Result:=VWord;
@@ -525,7 +529,7 @@ begin
         vardouble : Write(F,vdouble);
         varcurrency : Write(F,vcurrency) ;
         vardate : Write(F,vdate) ;
-        varolestr : Write(F,'Not supported') ;
+        varolestr : Write(F,Pchar(vOleStr)) ;
         vardispatch : Write(F,'Not suppordted') ;
         varerror : Write(F,'Error') ;
         varboolean : Write(F,vboolean) ;
@@ -547,7 +551,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:22  peter
+  Revision 1.8  2003-11-04 22:27:43  michael
+  + Some fixes for string support
+
+  Revision 1.7  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/07/01 16:25:10  peter
