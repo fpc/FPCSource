@@ -18,13 +18,25 @@ freed by this process.
 .SH USAGE
 
 .B delp
-takes no options at this time. It just attempts to delete all known files.
+takes the following options at this time:
+.TP
+.B \-e
+Delete all executable files as well. This option has no effect on Linux.
+.TP
+.B \-h 
+Displays a short help message.
+.TP
+.B \-q
+Be more quiet. Normally, delp gives a count of the number of files deleted.
+If this option is given, no messages are displayed.
 
 .SH FILE TYPES:
 The following file types are recognized by the program and are deleted:
 .TP
 .I *.exe
-Executable files under dos and windows.
+Executable files under dos and windows. Only deleted if the 
+.I \-e
+option is given.
 .TP
 .I *.so *.dll
 Shared libraries under linux and Windows.
