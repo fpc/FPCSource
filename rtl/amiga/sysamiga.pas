@@ -18,10 +18,12 @@ unit sysamiga;
 
 { Things left to do :                                          }
 {   - Fix randomize                                            }
-{   - Fix DOSError result variable to conform to IOResult of   }
-{      Turbo Pascal                                            }
+{   - Fix Truncate!!                                           }
 
 {$I os.inc}
+
+{ AmigaOS uses character #10 as eoln only }
+{$DEFINE SHORT_LINEBREAK}
 
   interface
 
@@ -33,10 +35,11 @@ unit sysamiga;
     {$I heaph.inc}
 
 const
-  UnusedHandle    : longint = -1; 
+  UnusedHandle    : longint = -1;
   StdInputHandle  : longint = 0;
   StdOutputHandle : longint = 0;
-  StdErrorHandle  : longint = 0; 
+  StdErrorHandle  : longint = 0;
+  argc : longint = 0;
 
  _ExecBase:longint = $4;
  _WorkbenchMsg : longint = 0;
@@ -48,55 +51,347 @@ const
  _DosBase       : pointer = nil;       { DOS library pointer       }
  _UtilityBase   : pointer = nil;       { utiity library pointer    }
 
- _LVOFindTask          = -294;
- _LVOWaitPort          = -384;
- _LVOGetMsg            = -372;
- _LVOOpenLibrary       = -552;
- _LVOCloseLibrary      = -414;
- _LVOClose             = -36;
- _LVOOpen              = -30;
- _LVOIoErr             = -132;
- _LVOSeek              = -66;
- _LVODeleteFile        = -72;
- _LVORename            = -78;
- _LVOWrite             = -48;
- _LVORead              = -42;
- _LVOCreateDir         = -120;
- _LVOSetCurrentDirName = -558;
- _LVOGetCurrentDirName = -564;
- _LVOInput             = -54;
- _LVOOutput            = -60;
+ var
+  OrigDir : Longint;
+
 
 
   implementation
 
+    {$I EXEC.INC}
+
+  TYPE
+    TDateStamp = packed record
+        ds_Days         : Longint;      { Number of days since Jan. 1, 1978 }
+        ds_Minute       : Longint;      { Number of minutes past midnight }
+        ds_Tick         : Longint;      { Number of ticks past minute }
+    end;
+    PDateStamp = ^TDateStamp;
+
+
+    PFileInfoBlock = ^TfileInfoBlock;
+    TFileInfoBlock = packed record
+        fib_DiskKey     : Longint;
+        fib_DirEntryType : Longint;
+                        { Type of Directory. If < 0, then a plain file.
+                          If > 0 a directory }
+        fib_FileName    : Array [0..107] of Char;
+                        { Null terminated. Max 30 chars used for now }
+        fib_Protection  : Longint;
+                        { bit mask of protection, rwxd are 3-0. }
+        fib_EntryType   : Longint;
+        fib_Size        : Longint;      { Number of bytes in file }
+        fib_NumBlocks   : Longint;      { Number of blocks in file }
+        fib_Date        : TDateStamp; { Date file last changed }
+        fib_Comment     : Array [0..79] of Char;
+                        { Null terminated comment associated with file }
+        fib_Reserved    : Array [0..35] of Char;
+    end;
+
+
+    TProcess = packed record
+        pr_Task         : TTask;
+        pr_MsgPort      : TMsgPort;      { This is BPTR address from DOS functions  }
+{126}   pr_Pad          : Word;         { Remaining variables on 4 byte boundaries }
+{128}   pr_SegList      : Pointer;      { Array of seg lists used by this process  }
+{132}   pr_StackSize    : Longint;      { Size of process stack in bytes            }
+{136}   pr_GlobVec      : Pointer;      { Global vector for this process (BCPL)    }
+{140}   pr_TaskNum      : Longint;      { CLI task number of zero if not a CLI      }
+{144}   pr_StackBase    : BPTR;         { Ptr to high memory end of process stack  }
+{148}   pr_Result2      : Longint;      { Value of secondary result from last call }
+{152}   pr_CurrentDir   : BPTR;         { Lock associated with current directory   }
+{156}   pr_CIS          : BPTR;         { Current CLI Input Stream                  }
+{160}   pr_COS          : BPTR;         { Current CLI Output Stream                 }
+{164}   pr_ConsoleTask  : Pointer;      { Console handler process for current window}
+{168}   pr_FileSystemTask : Pointer;    { File handler process for current drive   }
+{172}   pr_CLI          : BPTR;         { pointer to ConsoleLineInterpreter         }
+        pr_ReturnAddr   : Pointer;      { pointer to previous stack frame           }
+        pr_PktWait      : Pointer;      { Function to be called when awaiting msg  }
+        pr_WindowPtr    : Pointer;      { Window for error printing }
+        { following definitions are new with 2.0 }
+        pr_HomeDir      : BPTR;         { Home directory of executing program      }
+        pr_Flags        : Longint;      { flags telling dos about process          }
+        pr_ExitCode     : Pointer;      { code to call on exit of program OR NULL  }
+        pr_ExitData     : Longint;      { Passed as an argument to pr_ExitCode.    }
+        pr_Arguments    : PChar;        { Arguments passed to the process at start }
+        pr_LocalVars    : TMinList;      { Local environment variables             }
+        pr_ShellPrivate : Longint;      { for the use of the current shell         }
+        pr_CES          : BPTR;         { Error stream - IF NULL, use pr_COS       }
+    end;
+    PProcess = ^TProcess;
+
+
+
+
+    Const
+
+    _LVOFindTask          = -294;
+    _LVOWaitPort          = -384;
+    _LVOGetMsg            = -372;
+    _LVOOpenLibrary       = -552;
+    _LVOCloseLibrary      = -414;
+    _LVOClose             = -36;
+    _LVOOpen              = -30;
+    _LVOIoErr             = -132;
+    _LVOSeek              = -66;
+    _LVODeleteFile        = -72;
+    _LVORename            = -78;
+    _LVOWrite             = -48;
+    _LVORead              = -42;
+    _LVOCreateDir         = -120;
+    _LVOSetCurrentDirName = -558;
+    _LVOGetCurrentDirName = -564;
+    _LVOInput             = -54;
+    _LVOOutput            = -60;
+    _LVOUnLock            = -90;
+    _LVOLock              = -84;
+    _LVOCurrentDir        = -126;
+
+    _LVONameFromLock      = -402;
+    _LVONameFromFH        = -408;
+    _LVOGetProgramName    = -576;
+    _LVOGetProgramDir     = -600;
+    _LVODupLock           =  -96;
+    _LVOExamine           = -102;
+    _LVOParentDir         = -210;
+
+      { Errors from IoErr(), etc. }
+      ERROR_NO_FREE_STORE              = 103;
+      ERROR_TASK_TABLE_FULL            = 105;
+      ERROR_BAD_TEMPLATE               = 114;
+      ERROR_BAD_NUMBER                 = 115;
+      ERROR_REQUIRED_ARG_MISSING       = 116;
+      ERROR_KEY_NEEDS_ARG              = 117;
+      ERROR_TOO_MANY_ARGS              = 118;
+      ERROR_UNMATCHED_QUOTES           = 119;
+      ERROR_LINE_TOO_LONG              = 120;
+      ERROR_FILE_NOT_OBJECT            = 121;
+      ERROR_INVALID_RESIDENT_LIBRARY   = 122;
+      ERROR_NO_DEFAULT_DIR             = 201;
+      ERROR_OBJECT_IN_USE              = 202;
+      ERROR_OBJECT_EXISTS              = 203;
+      ERROR_DIR_NOT_FOUND              = 204;
+      ERROR_OBJECT_NOT_FOUND           = 205;
+      ERROR_BAD_STREAM_NAME            = 206;
+      ERROR_OBJECT_TOO_LARGE           = 207;
+      ERROR_ACTION_NOT_KNOWN           = 209;
+      ERROR_INVALID_COMPONENT_NAME     = 210;
+      ERROR_INVALID_LOCK               = 211;
+      ERROR_OBJECT_WRONG_TYPE          = 212;
+      ERROR_DISK_NOT_VALIDATED         = 213;
+      ERROR_DISK_WRITE_PROTECTED       = 214;
+      ERROR_RENAME_ACROSS_DEVICES      = 215;
+      ERROR_DIRECTORY_NOT_EMPTY        = 216;
+      ERROR_TOO_MANY_LEVELS            = 217;
+      ERROR_DEVICE_NOT_MOUNTED         = 218;
+      ERROR_SEEK_ERROR                 = 219;
+      ERROR_COMMENT_TOO_BIG            = 220;
+      ERROR_DISK_FULL                  = 221;
+      ERROR_DELETE_PROTECTED           = 222;
+      ERROR_WRITE_PROTECTED            = 223;
+      ERROR_READ_PROTECTED             = 224;
+      ERROR_NOT_A_DOS_DISK             = 225;
+      ERROR_NO_DISK                    = 226;
+      ERROR_NO_MORE_ENTRIES            = 232;
+      { added for 1.4 }
+      ERROR_IS_SOFT_LINK               = 233;
+      ERROR_OBJECT_LINKED              = 234;
+      ERROR_BAD_HUNK                   = 235;
+      ERROR_NOT_IMPLEMENTED            = 236;
+      ERROR_RECORD_NOT_LOCKED          = 240;
+      ERROR_LOCK_COLLISION             = 241;
+      ERROR_LOCK_TIMEOUT               = 242;
+      ERROR_UNLOCK_ERROR               = 243;
+
+
+
     var
       Initial: boolean;
+      errno : word;
 
     {$I system.inc}
     {$I lowmath.inc}
 
-    type
-       plongint = ^longint;
+
+
+
+  { ************************ AMIGAOS STUB ROUTINES ************************* }
+
+  { UNLOCK the BPTR pointed to in L }
+  Procedure Unlock(alock: longint);
+  Begin
+    asm
+     move.l  alock,d1
+     move.l  a6,d6           { save base pointer    }
+     move.l   _DosBase,a6
+     jsr     _LVOUnlock(a6)
+     move.l  d6,a6           { restore base pointer }
+    end;
+  end;
+
+  { Change to the directory pointed to in the lock }
+  Function CurrentDir(alock : longint) : longint;
+  Begin
+    asm
+      move.l  alock,d1
+      move.l  a6,d6           { save base pointer    }
+      move.l  _DosBase,a6
+      jsr     _LVOCurrentDir(a6)
+      move.l  d6,a6           { restore base pointer }
+      move.l  d0,@Result
+    end;
+  end;
+
+  { Duplicate a lock }
+  Function DupLock(alock: longint): Longint;
+   Begin
+     asm
+       move.l  alock,d1
+       move.l  a6,d6           { save base pointer    }
+       move.l  _DosBase,a6
+       jsr     _LVODupLock(a6)
+       move.l  d6,a6           { restore base pointer }
+       move.l  d0,@Result
+     end;
+   end;
+
+  { Returns a lock on the directory was loaded from }
+  Function GetProgramLock: longint;
+  Begin
+   asm
+       move.l  a6,d6           { save base pointer    }
+       move.l  _DosBase,a6
+       jsr     _LVOGetProgramDir(a6)
+       move.l  d6,a6           { restore base pointer }
+       move.l  d0,@Result
+   end;
+  end;
+
+
+
+  Function Examine(alock :longint; var fib: TFileInfoBlock) : Boolean;
+  Begin
+    asm
+       move.l  d2,-(sp)
+       move.l  fib,d2         { pointer to FIB        }
+       move.l  alock,d1
+       move.l  a6,d6           { save base pointer    }
+       move.l  _DosBase,a6
+       jsr     _LVOExamine(a6)
+       move.l  d6,a6           { restore base pointer }
+       tst.l   d0
+       bne     @success
+       bra     @end
+    @success:
+       move.b  #1,d0
+    @end:
+       move.b  d0,@Result
+       move.l  (sp)+,d2
+    end;
+  end;
+
+  { Returns the parent directory of a lock }
+  Function ParentDir(alock : longint): longint;
+   Begin
+     asm
+       move.l  alock,d1
+       move.l  a6,d6           { save base pointer    }
+       move.l  _DosBase,a6
+       jsr     _LVOParentDir(a6)
+       move.l  d6,a6           { restore base pointer }
+       move.l  d0,@Result
+     end;
+   end;
+
+
+   Function FindTask(p : PChar): PProcess;
+   Begin
+    asm
+         move.l  a6,d6              { Save base pointer    }
+         move.l  p,d0
+         move.l  d0,a1
+         move.l  _ExecBase,a6
+         jsr     _LVOFindTask(a6)
+         move.l  d6,a6              { Restore base pointer }
+         move.l  d0,@Result
+    end;
+   end;
 
 
 {$S-}
-    PROCEDURE St1(stack_size: longint);[public,alias: 'STACKCHECK'];
-    begin
+    Procedure stack_check; assembler;
+    { Check for local variable allocation }
+    { On Entry -> d0 : size of local stack we are trying to allocate }
      asm
-         { called when trying to get local stack }
-         { if the compiler directive $S is set   }
-         { it must preserve all registers !!     }
-        move.l  stack_size, d0
-        add.l   sp,d0     { stacksize + actual stackpointer  }
+      XDEF STACKCHECK
+        move.l  sp,d1            { get value of stack pointer            }
+
+        { We must add some security, because Writing the RunError strings }
+        { requires a LOT of stack space (at least 1030 bytes!)            }
+        add.l   #2048,d0
+        sub.l   d0,d1            {  sp - stack_size                      }
+
         move.l  _ExecBase,a0
         move.l  276(A0),A0       { ExecBase.thisTask }
-        cmp.l   58(A0),D0        { Task.SpLower      }
+        { if allocated stack_pointer - splower <= 0 then stack_ovf       }
+        cmp.l   58(A0),D1        { Task.SpLower      }
         bgt     @Ok
         move.l  #202,d0
         jsr     HALT_ERROR       { stack overflow    }
     @Ok:
+   end;
+
+
+   { Converts an AMIGAOS error code to a TP compatible error code }
+   Procedure Error2InOut;
+   Begin
+     case errno of
+       ERROR_BAD_NUMBER,
+       ERROR_ACTION_NOT_KNOWN,
+       ERROR_NOT_IMPLEMENTED : InOutRes := 1;
+
+       ERROR_OBJECT_NOT_FOUND : InOutRes := 2;
+       ERROR_DIR_NOT_FOUND :  InOutRes := 3;
+
+       ERROR_DISK_WRITE_PROTECTED : InOutRes := 150;
+
+       ERROR_OBJECT_WRONG_TYPE : InOutRes := 151;
+
+       ERROR_OBJECT_EXISTS,
+       ERROR_DELETE_PROTECTED,
+       ERROR_WRITE_PROTECTED,
+       ERROR_READ_PROTECTED,
+       ERROR_OBJECT_IN_USE,
+       ERROR_DIRECTORY_NOT_EMPTY : InOutRes := 5;
+
+       ERROR_NO_MORE_ENTRIES : InOutRes := 18;
+
+       ERROR_RENAME_ACROSS_DEVICES : InOutRes := 17;
+
+       ERROR_DISK_FULL : InOutRes := 101;
+
+       ERROR_INVALID_RESIDENT_LIBRARY : InoutRes := 153;
+       ERROR_BAD_HUNK : InOutRes := 153;
+
+       ERROR_NOT_A_DOS_DISK : InOutRes := 157;
+
+       ERROR_NO_DISK,
+       ERROR_DISK_NOT_VALIDATED,
+       ERROR_DEVICE_NOT_MOUNTED : InOutRes := 152;
+
+       ERROR_SEEK_ERROR : InOutRes := 156;
+
+       ERROR_LOCK_COLLISION,
+       ERROR_LOCK_TIMEOUT,
+       ERROR_UNLOCK_ERROR,
+       ERROR_INVALID_LOCK,
+       ERROR_INVALID_COMPONENT_NAME,
+       ERROR_BAD_STREAM_NAME,
+       ERROR_FILE_NOT_OBJECT : InOutRes := 6;
+     else
+       InOutres := errno;
      end;
+     errno:=0;
    end;
 
 
@@ -116,7 +411,7 @@ const
    Function KickVersion: word; assembler;
    asm
      move.l  _ExecBase, a0       { Get Exec Base                           }
-     move.l  20(a0), d0          { Return version - version at this offset }
+     move.w  20(a0), d0          { Return version - version at this offset }
    end;
 
     procedure halt(errnum : byte);
@@ -131,6 +426,11 @@ const
           do_exit;
           flush(stderr);
         end;
+        if (OrigDir <> 0) then
+         Begin
+            Unlock(CurrentDir(OrigDir));
+            OrigDir := 0;
+         end;
          { close the libraries }
          If _UtilityBase <> nil then
          Begin
@@ -152,31 +452,193 @@ const
          end;
       end;
 
-    function paramcount : longint; assembler;
-    asm
-            clr.l   d0
-            move.w  __ARGC,d0
-            sub.w   #1,d0
-    end;
 
-    function paramstr(l : longint) : string;
+  { ************************ PARAMCOUNT/PARAMSTR *************************** }
+
+      function paramcount : longint;
+      Begin
+        paramcount := argc;
+      end;
+
 
       function args : pointer; assembler;
       asm
          move.l __ARGS,d0
       end;
 
-      var
-         p : ^pchar;
+   Function GetParamCount(const p: pchar): longint;
+   var
+    i: word;
+    count: word;
+   Begin
+    i:=0;
+    count:=0;
+    while p[count] <> #0 do
+     Begin
+       if (p[count] <> ' ') and (p[count] <> #9) and (p[count] <> #0) then
+       Begin
+          i:=i+1;
+          while (p[count] <> ' ') and (p[count] <> #9) and (p[count] <> #0) do
+           count:=count+1;
+       end;
+       if p[count] = #0 then break;
+       count:=count+1;
+     end;
+     GetParamCount:=longint(i);
+   end;
 
+
+   Function GetParam(index: word; const p : pchar): string;
+   { On Entry: index = string index to correct parameter  }
+   { On exit:  = correct character index into pchar array }
+   { Returns correct index to command line argument }
+   var
+    count: word;
+    localindex: word;
+    l: byte;
+    temp: string;
+   Begin
+     temp:='';
+     count := 0;
+     { first index is one }
+     localindex := 1;
+     l:=0;
+     While p[count] <> #0 do
+       Begin
+         if (p[count] <> ' ') and (p[count] <> #9) then
+           Begin
+             if localindex = index then
+              Begin
+               while (p[count] <> #0) and (p[count] <> ' ') and (p[count] <> #9) and (l < 256) do
+                Begin
+                  temp:=temp+p[count];
+                  l:=l+1;
+                  count:=count+1;
+                end;
+                temp[0]:=char(l);
+                GetParam:=temp;
+                exit;
+              end;
+             { Point to next argument in list }
+             while (p[count] <> #0) and (p[count] <> ' ') and (p[count] <> #9) do
+               Begin
+                 count:=count+1;
+               end;
+             localindex:=localindex+1;
+           end;
+         if p[count] = #0 then break;
+         count:=count+1;
+       end;
+     GetParam:=temp;
+   end;
+
+
+    Function GetProgramDir : String;
+    var
+     s1: string;
+     alock: longint;
+     counter : byte;
+    Begin
+     FillChar(@s1,255,#0);
+     { GetLock of program directory }
+     asm
+            move.l  a6,d6              { save a6 }
+            move.l  _DOSBase,a6
+            jsr     _LVOGetProgramDir(a6)
+            move.l  d6,a6              { restore a6 }
+            move.l  d0,alock           { save the lock }
+     end;
+     if alock <> 0 then
+      Begin
+        { Get the name from the lock! }
+        asm
+            movem.l d2/d3,-(sp)        { save used registers             }
+            move.l  alock,d1
+            lea     s1,a0              { Get pointer to string!          }
+            move.l  a0,d2
+            add.l   #1,d2              { let  us point past the length byte! }
+            move.l  #255,d3
+            move.l  a6,d6              { save a6 }
+            move.l  _DOSBase,a6
+            jsr     _LVONameFromLock(a6)
+            move.l  d6,a6              { restore a6 }
+            movem.l (sp)+,d2/d3
+        end;
+        { no check out the length of the string }
+        counter := 1;
+        while s1[counter] <> #0 do
+           Inc(counter);
+        s1[0] := char(counter-1);
+        GetProgramDir := s1;
+      end
+     else
+      GetProgramDir := '';
+    end;
+
+
+    Function GetProgramName : string;
+    { Returns ONLY the program name }
+    { There seems to be a bug in v39 since if the program is not }
+    { called from its home directory the program name will also  }
+    { contain the path!                                          }
+    var
+     s1: string;
+     counter : byte;
+    Begin
+      FillChar(@s1,255,#0);
+      asm
+            move.l  d2,-(sp)           { Save used register      }
+            lea     s1,a0              { Get pointer to string!  }
+            move.l  a0,d1
+            add.l   #1,d1              { point to correct offset }
+            move.l  #255,d2
+            move.l  a6,d6              { save a6 }
+            move.l  _DOSBase,a6
+            jsr     _LVOGetProgramName(a6)
+            move.l  d6,a6              { restore a6 }
+            move.l  (sp)+,d2           { restore saved register }
+      end;
+        { no check out and assign the length of the string }
+        counter := 1;
+        while s1[counter] <> #0 do
+           Inc(counter);
+        s1[0] := char(counter-1);
+        { now remove any component path which should not be there }
+        for counter:=length(s1) downto 1 do
+          if (s1[counter] = '/') or (s1[counter] = ':') then break;
+        { readjust counterv to point to character }
+        if counter <> 1 then
+          Inc(counter);
+        GetProgramName:=copy(s1,counter,length(s1));
+    end;
+
+
+    function paramstr(l : longint) : string;
+      var
+       p : pchar;
+       s1 : string;
       begin
-         if (l>=0) and (l<=paramcount) then
+         {   -> Call AmigaOS GetProgramName                             }
+         if l = 0 then
+         Begin
+           s1 := GetProgramDir;
+           { If this is a root, then simply don't add '/' }
+           if s1[length(s1)] = ':' then
+              paramstr:=s1+GetProgramName
+           else
+              { add backslash directory }
+              paramstr:=s1+'/'+GetProgramName
+         end
+         else
+         if (l>0) and (l<=paramcount) then
            begin
-              p:=args;
-              paramstr:=strpas(p[l]);
+             p:=args;
+             paramstr:=GetParam(word(l),p);
            end
          else paramstr:='';
       end;
+
+  { ************************************************************************ }
 
     procedure randomize;
 
@@ -232,11 +694,13 @@ begin
            bne     @noerror
 
            jsr     _LVOIoErr(a6)
-           move.l  d0,InOutRes
+           move.w  d0,errno
 
          @noerror:
            move.l  d6,a6               { restore a6 }
   end;
+  if errno <> 0 then
+     Error2InOut;
 end;
 
 
@@ -254,10 +718,12 @@ begin
            tst.l   d0
            bne     @dosreend              { if zero = error }
            jsr     _LVOIoErr(a6)
-           move.l  d0,InOutRes
+           move.w  d0,errno
          @dosreend:
            move.l  d6,a6                  { restore a6 }
   end;
+  if errno <> 0 then
+    Error2InOut;
 end;
 
 
@@ -279,10 +745,10 @@ begin
             jsr     _LVOWrite(a6)
             movem.l (sp)+,d2/d3
 
-            tst.l   d0
-            bne     @doswrend              { if zero = error }
+            cmp.l   #-1,d0
+            bne     @doswrend              { if -1 = error }
             jsr     _LVOIoErr(a6)
-            move.l  d0,InOutRes
+            move.w  d0,errno
             bra     @doswrend2
           @doswrend:
             { we must restore the base pointer before setting the result }
@@ -293,6 +759,8 @@ begin
             move.l  d6,a6
           @end:
   end;
+  If errno <> 0 then
+    Error2InOut;
 end;
 
 
@@ -314,10 +782,10 @@ begin
             jsr     _LVORead(a6)
             movem.l (sp)+,d2/d3
 
-            tst.l   d0
-            bne     @doswrend              { if zero = error }
+            cmp.l   #-1,d0
+            bne     @doswrend              { if -1 = error }
             jsr     _LVOIoErr(a6)
-            move.l  d0,InOutRes
+            move.w  d0,errno
             bra     @doswrend2
           @doswrend:
             { to store a result for the function  }
@@ -330,6 +798,8 @@ begin
             move.l  d6,a6
           @end:
   end;
+  If errno <> 0 then
+    Error2InOut;
 end;
 
 
@@ -352,7 +822,7 @@ begin
              cmp.l   #-1,d0                { is there a file access error? }
              bne     @noerr
              jsr     _LVOIoErr(a6)
-             move.l  d0,InOutRes
+             move.w  d0,errno
              bra     @fposend
       @noerr:
              move.l  d6,a6                 { restore a6 }
@@ -362,6 +832,8 @@ begin
              move.l  d6,a6                 { restore a6 }
       @end:
   end;
+  If errno <> 0 then
+    Error2InOut;
 end;
 
 
@@ -375,7 +847,8 @@ begin
              move.l  d3,-(sp)              { save registers              }
 
              move.l  pos,d2
-             move.l  #-1,d3                 { OFFSET_BEGINNING }
+             { -1 }
+             move.l  #$ffffffff,d3          { OFFSET_BEGINNING }
              move.l  _DOSBase,a6
              jsr    _LVOSeek(a6)
 
@@ -384,12 +857,14 @@ begin
              cmp.l   #-1,d0                { is there a file access error? }
              bne     @noerr
              jsr     _LVOIoErr(a6)
-             move.l  d0,InOutRes
+             move.w  d0,errno
              bra     @seekend
       @noerr:
       @seekend:
              move.l  d6,a6                 { restore a6 }
   end;
+  If errno <> 0 then
+    Error2InOut;
 end;
 
 
@@ -413,7 +888,7 @@ begin
              cmp.l   #-1,d0                { is there a file access error? }
              bne     @noerr
              jsr     _LVOIoErr(a6)
-             move.l  d0,InOutRes
+             move.w  d0,errno
              bra     @seekend
       @noerr:
              move.l  d6,a6                 { restore a6 }
@@ -423,6 +898,8 @@ begin
              move.l  d6,a6                 { restore a6 }
       @end:
   end;
+  If Errno <> 0 then
+    Error2InOut;
 end;
 
 
@@ -431,6 +908,9 @@ var
   aktfilepos : longint;
 begin
    aktfilepos:=do_filepos(handle);
+   { We have to do this two times, because seek returns the }
+   { OLD position                                           }
+   do_filesize:=do_seekend(handle);
    do_filesize:=do_seekend(handle);
    do_seek(handle,aktfilepos);
 end;
@@ -469,26 +949,31 @@ begin
    end;
 { reset file handle }
   filerec(f).handle:=UnusedHandle;
-  oflags:=$04;
 { convert filemode to filerec modes }
+  { READ/WRITE on existing file }
+  { RESET/APPEND                }
+  oflags := 1005;
   case (flags and 3) of
    0 : begin
          filerec(f).mode:=fminput;
-         oflags:=$01;
        end;
    1 : filerec(f).mode:=fmoutput;
    2 : filerec(f).mode:=fminout;
   end;
+  { READ/WRITE mode, create file in all cases }
+  { REWRITE                                   }
   if (flags and $100)<>0 then
    begin
      filerec(f).mode:=fmoutput;
-     oflags:=$02;
+     oflags := 1006;
    end
   else
+  { READ/WRITE mode on existing file }
+  { APPEND                           }
    if (flags and $10)<>0 then
     begin
       filerec(f).mode:=fmoutput;
-      oflags:=$04;
+      oflags := 1005;
     end;
 { empty name is special }
   if p[0]=#0 then
@@ -503,19 +988,17 @@ begin
      end;
      exit;
    end;
-    { THE AMIGA AUTOMATICALLY OPENS IN READ-WRITE MODE }
-    { FOR ALL CASES.                                   }
          asm
              move.l  a6,d6                  { save a6 }
 
-             move.l  f,d1
-             move.l  #1004,d0               { MODE_READWRITE }
+             move.l  p,d1
+             move.l  oflags,d2               { MODE_READWRITE }
              move.l  _DOSBase,a6
              jsr     _LVOOpen(a6)
              tst.l   d0
              bne     @noopenerror           { on zero an error occured }
              jsr     _LVOIoErr(a6)
-             move.l  d0,InOutRes
+             move.w  d0,errno
              bra     @openend
           @noopenerror:
              move.l  d6,a6                 { restore a6 }
@@ -525,9 +1008,12 @@ begin
              move.l  d6,a6                 { restore a6 }
           @end:
          end;
+    If Errno <> 0 then
+       Error2InOut;
     filerec(f).handle:=i;
     if (flags and $10)<>0 then
        do_seekend(filerec(f).handle);
+
 end;
 
 {*****************************************************************************
@@ -551,8 +1037,8 @@ end;
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
-      
-procedure mkdir(const s : string);
+
+procedure mkdir(const s : string);[IOCheck];
 var
   buffer : array[0..255] of char;
 begin
@@ -568,14 +1054,24 @@ begin
         jsr     _LVOCreateDir(a6)
         tst.l   d0
         bne     @noerror
-        move.l  #1,InOutRes
+        jsr     _LVOIoErr(a6)
+        move.w  d0,errno
+        bra     @end
 @noerror:
+        { Now we must unlock the directory }
+        { d0 = lock returned by create dir }
+        move.l  d0,d1
+        jsr     _LVOUnlock(a6)
+@end:
+        { restore base pointer }
         move.l  d6,a6
   end;
+  If errno <> 0 then
+    Error2InOut;
 end;
 
 
-procedure rmdir(const s : string);
+procedure rmdir(const s : string);[IOCheck];
 var
   buffer : array[0..255] of char;
 begin
@@ -583,58 +1079,136 @@ begin
   buffer[length(s)]:=#0;
   do_erase(buffer);
 end;
-  
 
-procedure chdir(const s : string);
+
+
+procedure chdir(const s : string);[IOCheck];
 var
   buffer : array[0..255] of char;
+  alock : longint;
+  FIB :pFileInfoBlock;
 begin
+  alock := 0;
+  fib:=nil;
+  new(fib);
+
   move(s[1],buffer,length(s));
   buffer[length(s)]:=#0;
+  { Changing the directory is a pretty complicated affair }
+  {   1) Obtain a lock on the directory                   }
+  {   2) CurrentDir the lock                              }
   asm
-        move.l  a6,d6
-        lea     buffer,a1
-        move.l  a1,d1
-        move.l  _DosBase,a6
-        jsr     _LVOSetCurrentDirName(a6)
-        bne     @noerror
-        move.l  #1,InOutRes
-@noerror:
-        move.l  d6,a6
+    lea      buffer,a0
+    move.l   a0,d1      { pointer to buffer in d1  }
+    move.l   d2,-(sp)   { save d2 register         }
+    move.l   #-2,d2     { ACCESS_READ lock         }
+    move.l   a6,d6      { Save base pointer        }
+    move.l   _DosBase,a6
+    jsr      _LVOLock(a6){ Lock the directory      }
+    move.l   (sp)+,d2   { Restore d2 register      }
+    tst.l    d0         { zero = error!            }
+    bne      @noerror
+    jsr      _LVOIoErr(a6)
+    move.w   d0,errno
+    move.l   d6,a6       { reset base pointer       }
+    bra      @End
+  @noerror:
+    move.l   d6,a6       { reset base pointer       }
+    move.l   d0,alock    { save the lock            }
+  @End:
   end;
+  If errno <> 0 then
+   Begin
+     Error2InOut;
+     exit;
+   end;
+  if (Examine(alock, fib^) = TRUE) AND (fib^.fib_DirEntryType > 0) then
+    Begin
+      alock := CurrentDir(alock);
+      if OrigDir = 0 then
+        Begin
+          OrigDir := alock;
+          alock := 0;
+        end;
+    end;
+  if alock <> 0 then
+    Unlock(alock);
+  if assigned(fib) then dispose(fib);
 end;
 
 
-procedure getdir(drivenr : byte;var dir : string);
-var
-  l : longint;
-  p : pointer;
+
+
+  Procedure GetCwd(var path: string);
+   var
+     lock: longint;
+     fib: PfileInfoBlock;
+     len : integer;
+     newlock : longint;
+     elen : integer;
+     Process : PProcess;
+    Begin
+     len := 0;
+     path := '';
+     fib := nil;
+     { By using a pointer instead of a local variable}
+     { we are assured that the pointer is aligned on }
+     { a dword boundary.                             }
+     new(fib);
+     Process := FindTask(nil);
+     if (process^.pr_Task.tc_Node.ln_Type = NT_TASK) then
+       Begin
+         path:='';
+         exit;
+       end;
+     lock := DupLock(process^.pr_CurrentDir);
+     if (Lock = 0) then
+       Begin
+         path:='';
+         exit;
+       end;
+
+    While (lock <> 0) and (Examine(lock,FIB^) = TRUE) do
+    Begin
+         elen := strlen(fib^.fib_FileName);
+         if (len + elen + 2 > 255) then
+            break;
+         newlock := ParentDir(lock);
+         if (len <> 0) then
+          Begin
+            if (newlock <> 0) then
+               path:='/'+path
+            else
+               path:=':'+path;
+            path:=strpas(fib^.fib_FileName)+path;
+            Inc(len);
+          end
+         else
+          Begin
+            path:=strpas(fib^.fib_Filename);
+            if (newlock = 0) then
+             path:=path+':';
+          end;
+
+	       len := len + elen;
+
+	       UnLock(lock);
+	       lock := newlock;
+    end;
+    if (lock <> 0) then
+    Begin
+	    UnLock(lock);
+	    path := '';
+    end;
+    if assigned(fib) then dispose(fib);
+ end;
+
+
+procedure getdir(drivenr : byte;var dir : string);[IOCheck];
 begin
-  l:=length(dir);
-  if drivenr <> 0 then
-   begin
-     dir:='';
-     exit;
-   end;
-  p:=@dir[1];
-  if l <> 0 then         { workaround for v36 bug }
-   Begin
-     asm
-        move.l  a6,d6
-        move.l  p,d1
-        move.l  l,d2
-        move.l  _DosBase,a6
-        jsr     _LVOGetCurrentDirName(a6)
-        bne     @noerror
-        move.l  #1,InOutRes
-      @noerror:
-        move.l  d6,a6
-     end;
-   end
-  else
-   dir:='';
-{ upcase the string (FPKPascal function) }
-  dir:=upcase(dir);
+  GetCwd(dir);
+  If errno <> 0 then
+     Error2InOut;
 end;
 
 
@@ -733,6 +1307,7 @@ end;
 
 
 begin
+  errno:= 0;
 {  Initial state is on -- in case of RunErrors before the i/o handles are }
 {  ok.                                                                    }
   Initial:=TRUE;
@@ -758,19 +1333,28 @@ begin
   InOutRes:=0;
 { Startup }
   { Only AmigaOS v2.04 or greater is supported }
-{  If KickVersion < 36 then
+  If KickVersion < 36 then
    Begin
      WriteLn('v36 or greater of Kickstart required.');
      Halt(1);
-   end; }
+   end;
+   argc:=GetParamCount(args);
+   OrigDir := 0;
 end.
 
 
 {
   $Log$
-  Revision 1.3  1998-06-05 12:34:45  carl
-    * temporarily disabled Kickstart version checking, because the offset
-  for getting the version is incorrect!
+  Revision 1.4  1998-07-01 14:13:50  carl
+    * do_open bugfix
+    * correct conversion of Amiga error codes to TP error codes
+    * InoutRes word bugfix
+    * parameter counting fixed
+    * new stack checking implemented
+    + IOCheck for chdir,rmdir,getdir and rmdir
+    * do_filepos was wrong
+    + chdir correctly implemented
+    * getdir correctly implemented
 
   Revision 1.1.1.1  1998/03/25 11:18:47  root
   * Restored version
