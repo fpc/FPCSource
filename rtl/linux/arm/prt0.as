@@ -60,7 +60,7 @@ _start:
 	ldr ip,=operatingsystem_parameter_envp
 
 	str sp,[a3]
-    str a2,[ip]
+   	str a2,[ip]
 
 	/* Let the libc call main and exit with its return code.  */
 	bl PASCALMAIN
@@ -68,11 +68,11 @@ _start:
 	.globl  _haltproc
     .type   _haltproc,#function
 _haltproc:
-	ldr		r0,=operatingsystem_result
-	ldrb	r0,[r0]
-	swi		0x900001
-	b		_haltproc
-	
+	ldr r0,=operatingsystem_result
+	ldrb r0,[r0]
+	swi 0x900001
+	b _haltproc
+
 	/* Define a symbol for the first piece of initialized data.  */
 	.data
 	.globl __data_start
@@ -106,7 +106,10 @@ __data_start:
 
 /*
   $Log$
-  Revision 1.4  2004-07-03 21:50:31  daniel
+  Revision 1.5  2004-11-05 12:48:15  florian
+    * beautified
+
+  Revision 1.4  2004/07/03 21:50:31  daniel
     * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
       longer necessary
 
