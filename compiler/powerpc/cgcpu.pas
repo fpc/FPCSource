@@ -380,10 +380,7 @@ const
              OS_64,OS_F64:
                size:=OS_F64;
              else
-               begin
-                  writeln(ord(size));
-                  internalerror(200201121);
-               end;
+               internalerror(200201121);
           end;
          ref2 := ref;
          fixref(list,ref2);
@@ -1413,7 +1410,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-07-28 21:34:31  florian
+  Revision 1.29  2002-07-28 21:38:30  florian
+    - removed debug code which was commited by accident
+
+  Revision 1.28  2002/07/28 21:34:31  florian
     * more powerpc fixes
     + dummy tcgvecnode
 
