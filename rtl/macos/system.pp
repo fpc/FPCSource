@@ -36,19 +36,31 @@ procedure fpc_initializeunits;[public,alias:'FPC_INITIALIZEUNITS'];
 begin
 end;
 
-procedure _restf14;[public,alias:'_restf14'];
+{ This is a hack to make it work until powerpc.inc is fixed.
 
-begin
-end;
-
-procedure _savef14;[public,alias:'_savef14'];
-
-begin
+  This function is never called directly, it's a dummy to hold the register save/
+  load subroutines
+}
+procedure saverestorereg;
+assembler;
+asm
+	export ._restf14[PR]
+	csect  ._restf14[PR]
+._restf14:
+                mtlr    r0
+                blr
+	export ._savef14[PR]
+	csect  ._savef14[PR]
+._savef14:
+                blr
 end;
 
 end.
 {
   $Log$
-  Revision 1.1  2002-10-02 21:34:31  florian
+  Revision 1.2  2002-10-10 19:44:05  florian
+    * changes from Olle to compile/link a simple program
+
+  Revision 1.1  2002/10/02 21:34:31  florian
     * first dummy implementation
 }
