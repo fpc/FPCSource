@@ -283,7 +283,7 @@ function  length(c:char):byte;
 ****************************************************************************}
 
 Procedure SetLength (Var S : AnsiString; l : Longint);
-Procedure UniqueAnsiString (Var S : AnsiString);
+Procedure UniqueString (Var S : AnsiString);
 Function  Length (Const S : AnsiString) : Longint;
 Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
 Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
@@ -440,7 +440,10 @@ const
 
 {
   $Log$
-  Revision 1.82  2000-05-14 18:46:54  florian
+  Revision 1.83  2000-06-11 07:02:30  peter
+    * UniqueAnsiString -> UniqueString for Delphi compatibility
+
+  Revision 1.82  2000/05/14 18:46:54  florian
     * TVarRec with In64/QWord stuff extended
 
   Revision 1.81  2000/04/24 11:11:50  peter

@@ -428,7 +428,7 @@ begin
 end;
 
 
-Procedure UniqueAnsiString(Var S : AnsiString); [Public,Alias : 'FPC_ANSISTR_UNIQUE'];
+Procedure UniqueString(Var S : AnsiString); [Public,Alias : 'FPC_ANSISTR_UNIQUE'];
 {
   Make sure reference count of S is 1,
   using copy-on-write semantics.
@@ -590,7 +590,7 @@ begin
   LS:=PAnsiRec(Pointer(S)-FirstOff)^.Len;
   if (Index<=LS) and (Size>0) then
    begin
-     UniqueAnsiString (S);
+     UniqueString (S);
      if Size+Index>LS then
       Size:=LS-Index+1;
      if Index+Size<=LS then
@@ -642,7 +642,10 @@ end;
 
 {
   $Log$
-  Revision 1.41  2000-05-18 17:04:48  peter
+  Revision 1.42  2000-06-11 07:02:30  peter
+    * UniqueAnsiString -> UniqueString for Delphi compatibility
+
+  Revision 1.41  2000/05/18 17:04:48  peter
     * use freemem without size
 
   Revision 1.40  2000/02/09 16:59:29  peter
