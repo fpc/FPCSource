@@ -158,11 +158,6 @@ ErrorHandler: TErrorHandler = DefaultErrorHandler;
 The \var{ErrorHandler} variable can be set to a custom-error handling
 function. It is set by default to the \seep{DefaultErrorHandler} function.
 
-The \var{Modes} list contains the list of supported video modes:
-\begin{verbatim}
-Modes: PVideoModeList = nil;
-\end{verbatim}
-
 \subsection{Types}
 The \var{TVideoMode} record describes a videomode. Its fields are
 self-explaining: \var{Col,Row} describe the number of columns and 
@@ -206,6 +201,24 @@ TErrorHandler =
 \var{Code} should contain the error code for the error condition, 
 and the \var{Info} parameter may contain any data type specific to 
 the error code passed to the function.
+
+The \var{TVideoDriver} record can be used to install a custom video
+driver, with the \seef{SetVideoDriver} call:
+\begin{verbatim}
+TVideoDriver = Record
+  InitDriver        : Procedure;
+  DoneDriver        : Procedure;
+  UpdateScreen      : Procedure(Force : Boolean);
+  ClearScreen       : Procedure;
+  SetVideoMode      : Function (Const Mode : TVideoMode) : Boolean;
+  GetVideoModeCount : Function : Word;
+  GetVideoModeData  : Function(Index : Word; Var Data : TVideoMode) : Boolean;
+  SetCursorPos      : procedure (NewCursorX, NewCursorY: Word);
+  GetCursorType     : function : Word;
+  SetCursorType     : procedure (NewType: Word);
+  GetCapabilities   : Function : Word;
+end;
+\end{verbatim}
 
 \subsection{Variables}
 The following variables contain information about the current screen
@@ -537,6 +550,12 @@ Note that the video mode may not always be set. E.g. a console on Linux
 or a telnet session cannot always set the mode. It is important to check
 the error value returned by this function if it was not succesful.
 
+The mode can be set when the video driver has not yet been initialized
+(i.e. before \seep{InitVideo} was called) In that case, the video mode will
+be stored, and after the driver was initialized, an attempt will be made to
+set the requested mode. Changing the video driver before the call to
+\var{InitVideo} will clear the stored video mode.
+
 To know which modes are valid, use the \seef{GetVideoModeCount} and
 \seef{GetVideoModeData} functions. To retrieve the current video mode, 
 use the \seep{GetVideoMode} procedure.
@@ -594,3 +613,77 @@ For an example, see most other functions.
 
 \section{Writing a custom video driver}
 \label{se:viddriver}
+Writing custom video driver is not difficult, and generally means
+implementing a couple of functions, which whould be registered with
+the \seef{SetVideoDriver} function. The various functions that can be
+implemented are located in the \var{TVideoDriver} record:
+\begin{verbatim}
+TVideoDriver = Record
+  InitDriver        : Procedure;
+  DoneDriver        : Procedure;
+  UpdateScreen      : Procedure(Force : Boolean);
+  ClearScreen       : Procedure;
+  SetVideoMode      : Function (Const Mode : TVideoMode) : Boolean;
+  GetVideoModeCount : Function : Word;
+  GetVideoModeData  : Function(Index : Word; Var Data : TVideoMode) : Boolean;
+  SetCursorPos      : procedure (NewCursorX, NewCursorY: Word);
+  GetCursorType     : function : Word;
+  SetCursorType     : procedure (NewType: Word);
+  GetCapabilities   : Function : Word;
+end;
+\end{verbatim}
+Not all of these functions must be implemented. In fact, the only absolutely
+necessary function to write a functioning driver is the \var{UpdateScreen} 
+function. The general calls in the \file{Video} unit will check which
+functionality is implemented by the driver.
+
+The functionality of these calls is the same as the functionality of the
+calls in the video unit, so the expected behaviour can be found in the
+previous section. Some of the calls, however, need some additional remarks.
+\begin{description}
+\item[InitDriver] Called by \var{InitVideo}, this function should initialize 
+any data structures needed for the functionality of the driver, maybe do some 
+screen initializations. The function is guaranteed to be called only once; It 
+can only be called again after a call to \var{DoneVideo}. The variables
+\var{ScreenWidth} and \var{ScreenHeight} should be initialized correctly
+after a call to this function, as the \var{InitVideo} call will initialize
+the \var{VideoBuf} and \var{OldVideoBuf} arrays based on their values.
+\item[DoneDriver] This should clean up any structures that have been
+initialized in the \var{InitDriver} function. It should possible also
+restore the screen as it was before the driver was initialized. The VideoBuf
+and \var{OldVideoBuf} arrays will be disposed of by the general \var{DoneVideo}
+call.
+\item[UpdateScreen] This is the only required function of the driver. It
+should update the screen based on the \var{VideoBuf} array's contents. It
+can optimize this process by comparing the values with values in the
+\var{OldVideoBuf} array. After updating the screen, the \var{UpdateScreen}
+procedure should update the \var{OldVideoBuf} by itself. If the \var{Force}
+parameter is \var{True}, the whole screen should be updated, not just the
+changed values.
+\item[ClearScreen] If there is a faster way to clear the screen than to
+write spaces in all character cells, then it can be implemented here. If the
+driver does not implement this function, then the general routines will
+write spaces in all video cells, and will call \var{UpdateScreen(True)}.
+\item[SetVideoMode] Should set the desired video mode, if available. It
+should return \var{True} if the mode was set, \var{False} if not.
+\item[GetVideoModeCount] Should return the number of supported video modes.
+If no modes are supported, this function should not be implemented; the
+general routines will return 1. (for the current mode)
+\item[GetVideoModeData] Should return the data for the \var{Index}-th mode;
+\var{Index} is zero based. The function should return true if the data was
+returned correctly, false if \var{Index} contains an invalid index.
+If this is not implemented, then the general routine will return the current 
+video mode when \var{Index} equals 0.
+\item[GetCapabilities] If this function is not implemented, zero will (i.e.
+no capabilities) will be returned by the general function.
+\end{description}
+
+The following unit shows how to override a video driver, with a driver
+that writes debug information to a file.
+
+\FPCexample{viddbg}
+
+The unit can be used in any of the demonstration programs, by simply
+including it in the \var{uses} clause. Setting \var{DetailedVideoLogging} to
+\var{True} will create a more detailed log (but will also slow down
+functioning)
