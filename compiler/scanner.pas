@@ -312,8 +312,11 @@ implementation
         preprocstack:=nil;
         comment_level:=0;
         do_special:=0;
+        yylexcount:=0;
         block_type:=bt_general;
         lasttokenpos:=0;
+        lasttoken:=_END;
+        lastasmgetchar:=#0;
       { load block }
         if not open then
          Message1(scan_f_cannot_open_input,fn);
@@ -1619,7 +1622,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.46  1998-08-29 13:49:00  peter
+  Revision 1.47  1998-09-01 09:01:52  peter
+    * initialize all object variables in .init
+
+  Revision 1.46  1998/08/29 13:49:00  peter
     * fixed freemem calls which had the wrong size sometimes
 
   Revision 1.45  1998/08/26 15:35:35  peter
