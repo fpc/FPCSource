@@ -123,16 +123,6 @@ ifndef DOTEST
 DOTEST=utils/dotest
 endif
 
-ifneq ($(wildcard utils/testfail$(SRCEXEEXT)),)
-#BUG: This will not run first time for a fresh tests dir:
-TESTCOMSPECRES:=$(shell utils/testfail$(SRCEXEEXT))
-else
-$(warning "*** WARNING testfail did not run ***")
-endif
-
-ifneq ($(TESTCOMSPECRES),)
-NOCOMSPEC=1
-endif
 
 ################################
 # Units
@@ -220,10 +210,6 @@ ifdef DOALL
 override DOTESTOPT+=-a
 endif
 
-ifdef NOCOMSPEC
-override DOTESTOPT+=-x
-endif
-
 
 ################################
 # Run tests
@@ -304,11 +290,11 @@ clean:
         $(MAKE) clean_test CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
         $(MAKE) -C units clean CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
 
-distclean: clean
-        $(MAKE) -C utils clean
+distclean: clean fpc_distclean
+        $(MAKE) -C utils distclean
 
-cleanall: clean
-        $(MAKE) -C utils cleanall
+#cleanall: clean
+#        $(MAKE) -C utils cleanall
 
 ################################
 # Main rules
@@ -351,9 +337,6 @@ info :
         @$(ECHO) Driver environment:
         @$(ECHO) "  $(OS_TARGET)-$(CPU_TARGET)"
         @$(ECHO) "  compiler: $(FPC) ver: $(FPC_VERSION)"
-ifdef COMSPEC
-        @$(ECHO) "  and using COMSPEC=$(COMSPEC)"
-endif
         @$(ECHO)
         @$(ECHO) Test environment:
         @$(ECHO) "  $(TEST_OS_TARGET)-$(TEST_CPU_TARGET)"

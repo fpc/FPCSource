@@ -1464,8 +1464,9 @@ zipinstall:
 zipsourceinstall:
 zipexampleinstall:
 zipdistinstall:
+cleanall:
 makefiles: fpc_makefiles
-.PHONY: debug smart release examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall makefiles
+.PHONY: debug smart release examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall cleanall makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
@@ -1543,14 +1544,6 @@ endif
 ifndef DOTEST
 DOTEST=utils/dotest
 endif
-ifneq ($(wildcard utils/testfail$(SRCEXEEXT)),)
-TESTCOMSPECRES:=$(shell utils/testfail$(SRCEXEEXT))
-else
-$(warning "*** WARNING testfail did not run ***")
-endif
-ifneq ($(TESTCOMSPECRES),)
-NOCOMSPEC=1
-endif
 units:
 	$(MAKE) -C units FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) \
 			 OPT="$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
@@ -1607,9 +1600,6 @@ endif
 ifdef DOALL
 override DOTESTOPT+=-a
 endif
-ifdef NOCOMSPEC
-override DOTESTOPT+=-x
-endif
 DIRS=webtbs webtbf tbs tbf $(TESTDIRS)
 %.log : %.pp
 	$(DOTEST) $(DOTESTOPT) $<
@@ -1654,10 +1644,8 @@ endif
 clean:
 	$(MAKE) clean_test CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
 	$(MAKE) -C units clean CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
-distclean: clean
-	$(MAKE) -C utils clean
-cleanall: clean
-	$(MAKE) -C utils cleanall
+distclean: clean fpc_distclean
+	$(MAKE) -C utils distclean
 .PHONY: all full rundigest dailytest onlyknown onlygraph onlyinteractive
 rundigest : utils
 	-$(DIGEST)
@@ -1688,9 +1676,6 @@ info :
 	@$(ECHO) Driver environment:
 	@$(ECHO) "  $(OS_TARGET)-$(CPU_TARGET)"
 	@$(ECHO) "  compiler: $(FPC) ver: $(FPC_VERSION)"
-ifdef COMSPEC
-	@$(ECHO) "  and using COMSPEC=$(COMSPEC)"
-endif
 	@$(ECHO)
 	@$(ECHO) Test environment:
 	@$(ECHO) "  $(TEST_OS_TARGET)-$(TEST_CPU_TARGET)"
