@@ -377,6 +377,11 @@ implementation
         do_delphiswitch('I');
       end;
 
+    procedure dir_libexport;
+      begin
+        {not implemented}
+      end;
+
     procedure dir_librarypath;
       begin
         if not current_module.in_global then
@@ -1027,6 +1032,7 @@ implementation
         AddDirective('INLINE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_inline);
         AddDirective('INTERFACES',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_interfaces);
         AddDirective('L',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_link);
+        AddDirective('LIBEXPORT',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_libexport);
         AddDirective('LIBRARYPATH',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_librarypath);
         AddDirective('LINK',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_link);
         AddDirective('LINKLIB',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_linklib);
@@ -1085,7 +1091,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2004-07-06 09:41:46  olle
+  Revision 1.40  2004-08-16 11:34:25  olle
+    + added directive LibExport for macpas, which does nothing atm
+
+  Revision 1.39  2004/07/06 09:41:46  olle
     * fixes compilation on 1.0.*
 
   Revision 1.38  2004/07/05 21:49:43  olle
