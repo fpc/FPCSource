@@ -27,7 +27,7 @@ type
    PXPointer = ^TXPointer;
    TXPointer = char;
    PBool = ^TBool;
-   TBool = longint;
+   TBool = longbool;
    PStatus = ^TStatus;
    TStatus = longint;
 
