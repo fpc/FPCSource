@@ -30,7 +30,7 @@ unit agppcmpw;
 interface
 
     uses
-       aasmbase,aasmtai,aasmcpu,assemble,
+       globals,aasmbase,aasmtai,aasmcpu,assemble,
        cpubase;
 
     const
@@ -52,6 +52,10 @@ interface
         procedure WriteAsmList;override;
         Function  DoAssemble:boolean;override;
         procedure WriteExternals;
+{$ifdef GDB}
+        procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
+        procedure WriteFileEndInfo;
+{$endif}
         procedure WriteAsmFileHeader;
         private
         procedure GenProcedureHeader(var hp:tai);
@@ -64,7 +68,7 @@ interface
 {$ifdef delphi}
       sysutils,
 {$endif}
-      cutils,globtype,globals,systems,cclasses,
+      cutils,globtype,systems,cclasses,
       verbose,finput,fmodule,script,cpuinfo
       ;
 
@@ -76,6 +80,18 @@ interface
 
       const_storage_class = '[RW]';
 
+
+
+{$ifdef GDB}
+var
+      n_line       : byte;     { different types of source lines }
+      linecount,
+      includecount : longint;
+      funcname     : pchar;
+      stabslastfileinfo : tfileposinfo;
+      isInFunction: Boolean;
+      firstLineInFunction: longint;
+{$endif}
 
     function ReplaceForbiddenChars(var s: string):Boolean;
          {Returns wheater a replacement has occured.}
@@ -499,10 +515,21 @@ function getreferencestring(var ref : treference) : string;
 
     begin
       GetAdjacentTaiSymbol:= false;
-      if assigned(hp.next) and (tai(hp.next).typ=ait_symbol) then
-        begin
-          hp:=tai(hp.next);
-          GetAdjacentTaiSymbol:= true;
+      while assigned(hp.next) do
+        case tai(hp.next).typ of
+          ait_symbol:
+            begin
+              hp:=tai(hp.next);
+              GetAdjacentTaiSymbol:= true;
+              Break;
+            end;
+          ait_stab_function_name:
+            hp:=tai(hp.next);
+          else
+            begin
+              //AsmWriteln('  ;#*#*# ' + tostr(Ord(tai(hp.next).typ)));
+              Break;
+            end;
         end;
     end;
 
@@ -533,7 +560,16 @@ function getreferencestring(var ref : treference) : string;
 
       AsmWriteLn(#9'csect'#9'.'+s+'[PR]');    //starts the section
       AsmWriteLn(#9'function'#9'.'+s+'[PR]'); //info for debugger
-
+      {$ifdef GDB}
+      if ((cs_debuginfo in aktmoduleswitches) or
+           (cs_gdb_lineinfo in aktglobalswitches)) then
+        begin
+          //info for debuggers:
+          firstLineInFunction:= stabslastfileinfo.line;
+          AsmWriteLn(#9'beginf ' + tostr(firstLineInFunction));
+          isInFunction:= true;
+        end;
+      {$endif}
       {Write all labels: }
       hp:= first;
       repeat
@@ -606,6 +642,84 @@ function getreferencestring(var ref : treference) : string;
        PadTabs:=s+#9;
     end;
 
+{$ifdef GDB}
+    procedure TPPCMPWAssembler.WriteFileLineInfo(var fileinfo : tfileposinfo);
+        var
+          curr_n : byte;
+        begin
+          if not ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
+           exit;
+        { file changed ? (must be before line info) }
+          if (fileinfo.fileindex<>0) and
+             (stabslastfileinfo.fileindex<>fileinfo.fileindex) then
+           begin
+             infile:=current_module.sourcefiles.get_file(fileinfo.fileindex);
+             if assigned(infile) then
+              begin
+              (*
+                if includecount=0 then
+                 curr_n:=n_sourcefile
+                else
+                 curr_n:=n_includefile;
+                if (infile.path^<>'') then
+                 begin
+                   AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile.path^,false)))+'",'+
+                     tostr(curr_n)+',0,0,'+target_asm.labelprefix+'text'+ToStr(IncludeCount));
+                 end;
+
+                AsmWriteLn(#9'.stabs "'+lower(FixFileName(infile.name^))+'",'+
+                  tostr(curr_n)+',0,0,'+target_asm.labelprefix+'text'+ToStr(IncludeCount));
+              *)
+              AsmWriteLn(#9'file '''+lower(FixFileName(infile.name^))+'''');
+
+              (*
+                AsmWriteLn(target_asm.labelprefix+'text'+ToStr(IncludeCount)+':');
+              *)
+
+                inc(includecount);
+                { force new line info }
+                stabslastfileinfo.line:=-1;
+              end;
+           end;
+        { line changed ? }
+          if (stabslastfileinfo.line<>fileinfo.line) and (fileinfo.line<>0) then
+           begin
+            (*
+             if (n_line=n_textline) and assigned(funcname) and
+                (target_info.use_function_relative_addresses) then
+              begin
+                AsmWriteLn(target_asm.labelprefix+'l'+tostr(linecount)+':');
+                AsmWrite(#9'.stabn '+tostr(n_line)+',0,'+tostr(fileinfo.line)+','+
+                           target_asm.labelprefix+'l'+tostr(linecount)+' - ');
+                AsmWritePChar(FuncName);
+                AsmLn;
+                inc(linecount);
+              end
+             else
+              AsmWriteLn(#9'.stabd'#9+tostr(n_line)+',0,'+tostr(fileinfo.line));
+            *)
+            if isInFunction then
+              AsmWriteln(#9'line '+ tostr(fileinfo.line - firstLineInFunction - 1));
+          end;
+          stabslastfileinfo:=fileinfo;
+        end;
+
+      procedure TPPCMPWAssembler.WriteFileEndInfo;
+
+        begin
+          if not ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
+           exit;
+          AsmLn;
+          (*
+          AsmWriteLn(ait_section2str(sec_code));
+          AsmWriteLn(#9'.stabs "",'+tostr(n_sourcefile)+',0,0,'+target_asm.labelprefix+'etext');
+          AsmWriteLn(target_asm.labelprefix+'etext:');
+          *)
+        end;
+
+{$endif}
 
     procedure TPPCMPWAssembler.WriteTree(p:TAAsmoutput);
     var
@@ -628,19 +742,29 @@ function getreferencestring(var ref : treference) : string;
     begin
       if not assigned(p) then
        exit;
+      InlineLevel:=0;
       { lineinfo is only needed for codesegment (PFV) }
       do_line:=((cs_asm_source in aktglobalswitches) or
                 (cs_lineinfo in aktmoduleswitches))
                  and (p=codesegment);
-      InlineLevel:=0;
       DoNotSplitLine:=false;
       hp:=tai(p.first);
       while assigned(hp) do
        begin
-         if do_line and not(hp.typ in SkipLineInfo) and
+         if not(hp.typ in SkipLineInfo) and
             not DoNotSplitLine then
            begin
              hp1 := hp as tailineinfo;
+
+{$ifdef GDB}
+             { write debug info }
+             if (cs_debuginfo in aktmoduleswitches) or
+                (cs_gdb_lineinfo in aktglobalswitches) then
+               WriteFileLineInfo(hp1.fileinfo);
+{$endif GDB}
+
+             if do_line then
+              begin
            { load infile }
              if lastfileinfo.fileindex<>hp1.fileinfo.fileindex then
               begin
@@ -682,7 +806,10 @@ function getreferencestring(var ref : treference) : string;
              lastfileinfo:=hp1.fileinfo;
              lastinfile:=infile;
            end;
+          end;
+
          DoNotSplitLine:=false;
+
          case hp.typ of
             ait_comment:
               begin
@@ -700,9 +827,10 @@ function getreferencestring(var ref : treference) : string;
                  if tai_section(hp).sec<>sec_none then
                   begin
                     AsmLn;
-                    AsmWriteLn(#9+target_asm.secnames[tai_section(hp).sec]){+#9#9+
-                               'SEGMENT'#9'PARA PUBLIC USE32 '''+
-                               target_asm.secnames[tai_section(hp).sec]+'''');}
+                    AsmWriteLn(#9+target_asm.secnames[tai_section(hp).sec]);
+{$ifdef GDB}
+                  lastfileinfo.line:=-1;
+{$endif GDB}
                   end;
                  LasTSec:=tai_section(hp).sec;
                end;
@@ -721,9 +849,9 @@ function getreferencestring(var ref : treference) : string;
                  replaced:= ReplaceForbiddenChars(s);
                  if tai_datablock(hp).is_global then
                    if replaced then
-                     AsmWriteLn(#9'export'#9+s+' => '''+tai_datablock(hp).sym.name+'''')
+                     AsmWriteLn(#9'export'#9+s+'[RW] => '''+tai_datablock(hp).sym.name+'''')
                    else
-                     AsmWriteLn(#9'export'#9+s);
+                     AsmWriteLn(#9'export'#9+s+'[RW]');
 
 
                  if not macos_direct_globals then
@@ -924,7 +1052,7 @@ function getreferencestring(var ref : treference) : string;
                        replaced:= ReplaceForbiddenChars(s);
                        if tai_symbol(hp).is_global then
                          if replaced then
-                           AsmWriteLn(#9'export'#9+s+' => '''+tai_symbol(hp).sym.name+'''')
+                           AsmWriteLn(#9'export'#9+s+'[RW] => '''+tai_symbol(hp).sym.name+'''')
                          else
                            AsmWriteLn(#9'export'#9+s+'[RW]');
 
@@ -943,16 +1071,30 @@ function getreferencestring(var ref : treference) : string;
                     end;
                 end;
               ait_symbol_end:
+{$ifdef GDB}
+                if isInFunction then
+                  if ((cs_debuginfo in aktmoduleswitches) or
+                       (cs_gdb_lineinfo in aktglobalswitches)) then
+                    begin
+                      //info for debuggers:
+                      AsmWriteLn(#9'endf ' + tostr(stabslastfileinfo.line));
+                      isInFunction:= false;
+                    end
+{$endif GDB}
                 ;
               ait_instruction:
                 AsmWriteLn(GetInstruction(hp));
 {$ifdef GDB}
-             ait_stabn,
-             ait_stabs,
-        ait_force_line,
-ait_stab_function_name : ;
+              ait_stabn: ;
+              ait_stabs: ;
+
+              ait_force_line :
+                 stabslastfileinfo.line:=0;
+
+              ait_stab_function_name: ;
 {$endif GDB}
-           ait_cut : begin
+              ait_cut :
+                begin
                      { only reset buffer if nothing has changed }
                        if AsmSize=AsmStartSize then
                         AsmClear
@@ -986,14 +1128,14 @@ ait_stab_function_name : ;
                                      target_asm.secnames[lasTSec]+'''');
                        }
                        AsmStartSize:=AsmSize;
-                     end;
-           ait_marker :
-             begin
-               if tai_marker(hp).kind=InlineStart then
-                 inc(InlineLevel)
-               else if tai_marker(hp).kind=InlineEnd then
-                 dec(InlineLevel);
-             end;
+                 end;
+               ait_marker :
+                 begin
+                   if tai_marker(hp).kind=InlineStart then
+                     inc(InlineLevel)
+                   else if tai_marker(hp).kind=InlineEnd then
+                     dec(InlineLevel);
+                 end;
          else
           internalerror(2002110303);
          end;
@@ -1039,13 +1181,11 @@ ait_stab_function_name : ;
               else
                 begin
                    if ReplaceForbiddenChars(s) then
-                     currentasmlist.AsmWriteLn(#9'import'#9+s+' <= '''+p.name+'''')
+                     currentasmlist.AsmWriteLn(#9'import'#9+s+'[RW] <= '''+p.name+'''')
                    else
-                     begin
-                       currentasmlist.AsmWriteLn(#9'import'#9+s+'[RW]');
-                       currentasmlist.AsmWriteLn(#9'toc');
-                       currentasmlist.AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[RW]');
-                     end;
+                     currentasmlist.AsmWriteLn(#9'import'#9+s+'[RW]');
+                   currentasmlist.AsmWriteLn(#9'toc');
+                   currentasmlist.AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[RW]');
                 end;
             end;
           end;
@@ -1101,12 +1241,37 @@ ait_stab_function_name : ;
     end;
 
     procedure TPPCMPWAssembler.WriteAsmList;
+
+
+{$ifdef GDB}
+    var
+      fileinfo : tfileposinfo;
+{$endif GDB}
+
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
        comment(v_info,'Start writing MPW-styled assembler output for '+current_module.mainsource^);
 {$endif}
       LasTSec:=sec_none;
+{$ifdef GDB}
+      FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
+{$endif GDB}
+{$ifdef GDB}
+      //n_line:=n_bssline;
+      funcname:=nil;
+      linecount:=1;
+      includecount:=0;
+      fileinfo.fileindex:=1;
+      fileinfo.line:=1;
+
+      isInFunction:= false;
+      firstLineInFunction:= 0;
+
+      { Write main file }
+      WriteFileLineInfo(fileinfo);
+
+{$endif GDB}
 
       WriteAsmFileHeader;
       WriteExternals;
@@ -1120,6 +1285,9 @@ ait_stab_function_name : ;
       WriteTree(rttilist);
       WriteTree(resourcestringlist);
       WriteTree(bsssegment);
+      {$ifdef GDB}
+      WriteFileEndInfo;
+      {$ENDIF}
 
       AsmWriteLn(#9'end');
       AsmLn;
@@ -1159,7 +1327,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2003-01-13 17:17:50  olle
+  Revision 1.19  2003-04-06 21:01:40  olle
+    + line numbers are now emitted in the assembler code
+    * bug in export and import directive fixed
+    * made code more in sync with aggas.pas
+
+  Revision 1.18  2003/01/13 17:17:50  olle
     * changed global var access, TOC now contain pointers to globals
     * fixed handling of function pointers
 
