@@ -47,6 +47,41 @@ unit og386elf;
       SHF_EXECINSTR = 4;
 
     type
+  telf32header=packed record
+      magic0123         : longint;
+      file_class        : byte;
+      data_encoding     : byte;
+      file_version      : byte;
+      padding           : array[$07..$0f] of byte;
+      e_type            : word;
+      e_machine         : word;
+      e_version         : longint;
+      e_entry           : longint;                  // entrypoint
+      e_phoff           : longint;                  // program header offset
+      e_shoff           : longint;                  // sections header offset
+      e_flags           : longint;
+      e_ehsize          : word;             // elf header size in bytes
+      e_phentsize       : word;             // size of an entry in the program header array
+      e_phnum           : word;             // 0..e_phnum-1 of entrys
+      e_shentsize       : word;             // size of an entry in sections header array
+      e_shnum           : word;             // 0..e_shnum-1 of entrys
+      e_shstrndx        : word;             // index of string section header
+  end;
+
+  telf32sechdr=packed record
+      sh_name           : longint;
+      sh_type           : longint;
+      sh_flags          : longint;
+      sh_addr           : longint;
+      sh_offset         : longint;
+      sh_size           : longint;
+      sh_link           : longint;
+      sh_info           : longint;
+      sh_addralign      : longint;
+      sh_entsize        : longint;
+    end;
+
+
        preloc = ^treloc;
        treloc = packed record
           next     : preloc;
@@ -71,18 +106,22 @@ unit og386elf;
        pelfsection = ^telfsection;
        telfsection = object
           index : tsection;
+          name  : string[16];
+          elftype,
+          elfflags,
+          align : longint;
           data  : PDynamicArray;
           len,
           pos,
-          nrelocs,
-          flags     : longint;
+          nrelocs   : longint;
           relochead : PReloc;
           reloctail : ^PReloc;
 
           rel       : PDynamicArray;
           gsyms     : PSymbol;
 
-          constructor init(sec:TSection;Aflags:longint);
+          constructor init(sec:TSection;Atype,Aflags,Aalign:longint);
+          constructor initname(const Aname:string;Atype,Aflags,Aalign:longint);
           destructor  done;
           procedure  write(var d;l:longint);
           procedure  alloc(l:longint);
@@ -93,11 +132,14 @@ unit og386elf;
        pelfoutput = ^telfoutput;
        telfoutput = object(tobjectoutput)
          sects   : array[TSection] of PElfSection;
-         elf_gotpc_sect,
-         elf_gotoff_sect,
-         elf_got_sect,
-         elf_plt_sect,
-         elf_sym_sect  : PElfSection;
+         symtab_sect,
+         strtab_sect,
+         shstrtab_sect,
+         gotpc_sect,
+         gotoff_sect,
+         got_sect,
+         plt_sect,
+         sym_sect  : PElfSection;
          strs,
          syms    : Pdynamicarray;
          initsym : longint;
@@ -111,7 +153,7 @@ unit og386elf;
          procedure writesymbol(p:pasmsymbol);virtual;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;
        private
-         procedure createsection(sec:tsection);
+         procedure createsection(sec:tsection;const name:string);
          procedure write_relocs(s:pcoffsection);
          procedure write_symbol(const name:string;strpos,value,section,typ,aux:longint);
          procedure write_symbols;
@@ -142,29 +184,54 @@ unit og386elf;
                                TSection
 ****************************************************************************}
 
-    constructor tcoffsection.init(sec:TSection;Aflags:longint);
+    constructor telfsection.init(sec:TSection;Atype,Aflags,Aalign:longint);
       begin
         index:=sec;
-        flags:=AFlags;
+        name:=sec_2_str[sec];
+        elftype:=AType;
+        elfflags:=AFlags;
+        align:=Aalign;
         relocHead:=nil;
         relocTail:=@relocHead;
         Len:=0;
+        Pos:=0;
         NRelocs:=0;
         if sec=sec_bss then
          data:=nil
         else
          new(Data,Init(1,8192));
+        new(rel,Init(1,8192));
+        gsyms:=nil;
       end;
 
 
-    destructor tcoffsection.done;
+    constructor initname(const Aname:string;Atype,Aflags,Aalign:longint);
+      begin
+        index:=sec_none;
+        name:=Aname;
+        elftype:=AType;
+        elfflags:=AFlags;
+        align:=Aalign;
+        relocHead:=nil;
+        relocTail:=@relocHead;
+        Len:=0;
+        Pos:=0;
+        NRelocs:=0;
+        new(Data,Init(1,8192));
+        new(rel,Init(1,8192));
+        gsyms:=nil;
+      end;
+
+    destructor telfsection.done;
       begin
         if assigned(Data) then
           dispose(Data,done);
+        if assigned(rel) then
+          dispose(rel,done);
       end;
 
 
-    procedure  tcoffsection.write(var d;l:longint);
+    procedure telfsection.write(var d;l:longint);
       begin
         if not assigned(Data) then
          Internalerror(3334441);
@@ -173,7 +240,7 @@ unit og386elf;
       end;
 
 
-    procedure  tcoffsection.alloc(l:longint);
+    procedure telfsection.alloc(l:longint);
       begin
         if assigned(Data) then
          Internalerror(3334442);
@@ -181,7 +248,7 @@ unit og386elf;
       end;
 
 
-    procedure tcoffsection.addsymreloc(ofs:longint;p:pasmsymbol;relative:relative_type);
+    procedure telfsection.addsymreloc(ofs:longint;p:pasmsymbol;typ:byte);
       var
         r : PReloc;
       begin
@@ -191,13 +258,13 @@ unit og386elf;
         r^.next:=nil;
         r^.address:=ofs;
         r^.symbol:=p;
-        r^.section:=sec_none;
-        r^.relative:=relative;
+        {r^.section:=sec_none;}
+        r^.typ:=typ;
         inc(nrelocs);
       end;
 
 
-    procedure tcoffsection.addsectionreloc(ofs:longint;sec:tsection);
+{    procedure telfsection.addsectionreloc(ofs:longint;sec:tsection);
       var
         r : PReloc;
       begin
@@ -210,7 +277,7 @@ unit og386elf;
         r^.section:=sec;
         r^.relative:=relative_false;
         inc(nrelocs);
-      end;
+      end; }
 
 
 {****************************************************************************
@@ -226,19 +293,19 @@ unit og386elf;
       strsresize   = 8192;
 {$endif}
 
-    constructor tgenericcoffoutput.init;
+    constructor telfoutputput.init;
       begin
         inherited init;
       end;
 
 
-    destructor tgenericcoffoutput.done;
+    destructor telfoutputput.done;
       begin
         inherited done;
       end;
 
 
-    procedure tgenericcoffoutput.initwriting;
+    procedure telfoutputput.initwriting;
       var
         s : string;
       begin
@@ -246,12 +313,16 @@ unit og386elf;
         { reset }
         initsym:=0;
         new(syms,init(sizeof(TSymbol),symbolresize));
-        new(strs,init(1,strsresize));
         FillChar(Sects,sizeof(Sects),0);
-        { we need at least the following 3 sections }
+        { default sections }
+        new(symtab_sect,initname('.symtab',2,4));
+        new(strtab_sect,initname('.strtab',3,1));
+        new(shstrtab_sect,initname('.shstrtab',3,1));
+        { we need at least the following sections }
         createsection(sec_code);
         createsection(sec_data);
         createsection(sec_bss);
+        { create stabs sections if debugging }
         if (cs_debuginfo in aktmoduleswitches) then
          begin
            createsection(sec_stab);
@@ -264,7 +335,7 @@ unit og386elf;
       end;
 
 
-    procedure tgenericcoffoutput.donewriting;
+    procedure telfoutputput.donewriting;
       var
         sec : tsection;
       begin
@@ -278,49 +349,37 @@ unit og386elf;
       end;
 
 
-    function tgenericcoffoutput.text_flags : longint;
-      begin
-        text_flags:=0;
-      end;
-
-    function tgenericcoffoutput.data_flags : longint;
-      begin
-        data_flags:=0;
-      end;
-
-    function tgenericcoffoutput.bss_flags : longint;
-      begin
-        bss_flags:=0;
-      end;
-
-    function tgenericcoffoutput.info_flags : longint;
-      begin
-        info_flags:=0;
-      end;
-
-
-    procedure tgenericcoffoutput.createsection(sec:TSection);
+    procedure telfoutputput.createsection(sec:tsection);
       var
-        Aflags : longint;
+        Aflags,AType,AAlign : longint;
       begin
         Aflags:=0;
+        Atype:=0;
         case sec of
           sec_code :
-            Aflags:=text_flags;
+            begin
+              Aflags:=SHF_ALLOC or SHF_EXECINSTR;
+              AType:=SHT_PROGBITS;
+              AAlign:=16;
+            end;
           sec_data :
-            Aflags:=data_flags;
+            begin
+              Aflags:=SHF_ALLOC or SHF_WRITE;
+              AType:=SHT_PROGBITS;
+              AAlign:=4;
+            end;
           sec_bss :
-            Aflags:=bss_flags;
-        { sec_info :
-            Aflags:=info_flags; }
-          else
-            Aflags:=0;
+            begin
+              Aflags:=SHF_ALLOC or SHF_WRITE;
+              AType:=SHT_NOBITS;
+              AAlign:=4;
+            end;
         end;
-        sects[sec]:=new(PcoffSection,init(Sec,Aflags));
+        sects[sec]:=new(PElfSection,init(Sec,AType,Aflags,AAlign));
       end;
 
 
-    procedure tgenericcoffoutput.writesymbol(p:pasmsymbol);
+    procedure telfoutputput.writesymbol(p:pasmsymbol);
       var
         pos : longint;
         sym : tsymbol;
@@ -371,7 +430,7 @@ unit og386elf;
       end;
 
 
-    procedure tgenericcoffoutput.writebytes(var data;len:longint);
+    procedure telfoutputput.writebytes(var data;len:longint);
       begin
         if not assigned(sects[currsec]) then
          createsection(currsec);
@@ -379,7 +438,7 @@ unit og386elf;
       end;
 
 
-    procedure tgenericcoffoutput.writealloc(len:longint);
+    procedure telfoutputput.writealloc(len:longint);
       begin
         if not assigned(sects[currsec]) then
          createsection(currsec);
@@ -387,7 +446,7 @@ unit og386elf;
       end;
 
 
-    procedure tgenericcoffoutput.writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);
+    procedure telfoutputput.writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);
       begin
         if not assigned(sects[currsec]) then
          createsection(currsec);
@@ -448,7 +507,7 @@ unit og386elf;
       end;
 
 
-    procedure tgenericcoffoutput.writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc : boolean);
+    procedure telfoutputput.writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc : boolean);
       var
         stab : coffstab;
         s : tsection;
@@ -483,7 +542,7 @@ unit og386elf;
       end;
 
 
-    procedure tgenericcoffoutput.write_relocs(s:pcoffsection);
+    procedure telfoutputput.write_relocs(s:pcoffsection);
       var
         rel  : coffreloc;
         hr,r : preloc;
@@ -515,7 +574,7 @@ unit og386elf;
       end;
 
 
-    procedure tgenericcoffoutput.write_symbol(const name:string;strpos,value,section,typ,aux:longint);
+    procedure telfoutputput.write_symbol(const name:string;strpos,value,section,typ,aux:longint);
       var
         sym : coffsymbol;
       begin
@@ -532,7 +591,7 @@ unit og386elf;
       end;
 
 
-    procedure tgenericcoffoutput.write_symbols;
+    procedure telfoutputput.write_symbols;
       var
         filename : string[18];
         sec : tsection;
@@ -572,7 +631,7 @@ unit og386elf;
       end;
 
 
-    procedure tgenericcoffoutput.writetodisk;
+    procedure telfoutputput.writetodisk;
       var
         datapos,
         nsects,pos,sympos,i,fillsize : longint;
@@ -753,7 +812,10 @@ unit og386elf;
 end.
 {
   $Log$
-  Revision 1.5  2000-03-19 18:46:50  peter
+  Revision 1.6  2000-03-21 21:36:05  peter
+    * some more updates
+
+  Revision 1.5  2000/03/19 18:46:50  peter
     * some beginning
 
 }
