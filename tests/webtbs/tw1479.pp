@@ -3,15 +3,18 @@
 uses
   sysutils;
 
+const
+  fname = 'Makefile';
+
 var
   fn : string;
 begin
-  fn:=FileSearch('tw1479.pp',';');
+  fn:=FileSearch(fname,';');
   writeln('found: ',fn);
-  if fn<>'tw1479.pp' then
+  if fn<>fname then
    halt(1);
-  fn:=FileSearch('.\tw1479.pp',';');
+  fn:=FileSearch('./'+fname,';');
   writeln('found: ',fn);
-  if fn<>'.\tw1479.pp' then
+  if fn<>'./'+fname then
    halt(1);
 end.

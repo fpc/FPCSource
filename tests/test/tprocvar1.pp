@@ -94,7 +94,7 @@ type
 const
    constmethodaddr : pointer = @to1.test2;
    MyRecord : TMyRecord = (
-     MyProc1 : TestProc;
+     MyProc1 : @TestProc;
      MyProc2 : @TestProc;
      MyVar : 0;
    );
@@ -147,7 +147,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2001-05-19 21:57:07  peter
+  Revision 1.5  2001-07-31 19:18:53  peter
+    * small fixes to compile
+
+  Revision 1.4  2001/05/19 21:57:07  peter
     * removed other warning
 
   Revision 1.3  2000/11/30 22:38:21  peter

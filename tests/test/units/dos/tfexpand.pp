@@ -32,7 +32,7 @@ const
 {$IFDEF FPC}
  {$IFDEF VER1_0}
   {$IFDEF UNIX}
- FileNameCaseSensitive = false;
+   FileNameCaseSensitive = true;
   {$ENDIF}
  {$ENDIF}
 {$ELSE}

@@ -19,7 +19,7 @@ const
   FILE_NAME2 = 'test1.tmp';
   DATA_SIZE = 17;
 
-  DATA: array[1..tmpA_SIZE] of byte =
+  DATA: array[1..DATA_SIZE] of byte =
   ($01,$02,$03,$04,$05,$06,$07,$08,
    $09,$A,$B,$C,$D,$E,$F,$10,
    $11
@@ -32,7 +32,7 @@ var
  F: File;
  I: Integer;
  b: byte;
- readData : array[1..tmpA_SIZE] of byte;
+ readData : array[1..DATA_SIZE] of byte;
  BytesRead, BytesWritten : word;
 Begin
   {------------------------ create and play with a new file --------------------------}
@@ -103,7 +103,10 @@ end.
 
 {
  $Log$
- Revision 1.2  2001-07-30 22:09:34  peter
+ Revision 1.3  2001-07-31 19:18:53  peter
+   * small fixes to compile
+
+ Revision 1.2  2001/07/30 22:09:34  peter
    * use .tmp as extension so it gets cleaned
 
  Revision 1.1  2001/07/14 04:25:00  carl
