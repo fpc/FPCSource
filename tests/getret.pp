@@ -10,6 +10,7 @@ program getret;
       filename,firstline : string;
       i : byte;	
       ppfile, retfile : text;	
+      exefile : file;
 
 begin
   assign(retfile,'retcode');
@@ -21,13 +22,18 @@ begin
        if pos('.',filename)=0 then
          filename:=filename+'.pp';
        assign(ppfile,filename);
+{$I-}
        reset(ppfile);
-       readln(ppfile,firstline);
-       if pos('$OPT=',firstline)>0 then
-         args:=copy(Firstline,pos('=',Firstline)+1,255);
-       if pos('}',args)>0 then
-         args:=copy(args,1,pos('}',args)-1);	
-       close(ppfile);
+       if ioresult=0 then
+         begin
+{$I+}
+            readln(ppfile,firstline);
+            if pos('$OPT=',firstline)>0 then
+              args:=copy(Firstline,pos('=',Firstline)+1,255);
+            if pos('}',args)>0 then
+            args:=copy(args,1,pos('}',args)-1);	
+            close(ppfile);
+         end;
     end;			
   for i:=2 to paramcount do
     args:=args+' '+paramstr(i);
@@ -37,7 +43,17 @@ begin
     com:=com+'.exe';
 {$endif not linux}
 
-  com:=fsearch(com,getenv('PATH'));
+  assign(exefile,com);
+{$I-}
+  Writeln('testing ',com);
+  reset(exefile,1);
+  if ioresult<>0 then
+    begin
+       com:=fsearch(com,getenv('PATH'));
+    end
+  else
+    close(exefile);
+{$I+}
   Writeln('Executing "',com,' ',args,'"');
   Flush(output);
   swapvectors;

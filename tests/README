@@ -24,6 +24,7 @@ ts010004.pp       tests forward classes
 ts010005.pp       tests method overriding
 ts010006.pp       tests libraries
 ts010015.pp       tests typed files.
+ts010016.pp       tests conversion of smallsets in normsets in consts 
 
 ts10100.pp        tests for delphi object model
 -

@@ -62,6 +62,8 @@ endif
 	
 ifndef PP
 PP=ppc386
+else
+export PP
 endif
 
 ifndef OPT
@@ -104,7 +106,10 @@ clean :
 	-rm *.re* *.o *.ppu ts*.exe tf*.exe log faillist
 
 # $Log$
-# Revision 1.4  1998-10-21 12:14:30  pierre
+# Revision 1.5  1998-10-21 16:24:16  pierre
+#  + tests to check if filename exists
+#
+# Revision 1.4  1998/10/21 12:14:30  pierre
 #  * stupid error removing getret.exe each time
 #
 # Revision 1.3  1998/10/21 12:12:09  pierre
