@@ -142,6 +142,7 @@ implementation
     function tloadnode.det_resulttype:tnode;
       var
         p1 : tnode;
+        p  : pprocinfo;
       begin
          result:=nil;
          { optimize simple with loadings }
@@ -175,6 +176,20 @@ implementation
          case symtableentry.typ of
             funcretsym :
               begin
+                { find the main funcret for the function }
+                p:=procinfo;
+                while assigned(p) do
+                 begin
+                   if assigned(p^.procdef.funcretsym) and
+                      ((tfuncretsym(symtableentry)=p^.procdef.resultfuncretsym) or
+                       (tfuncretsym(symtableentry)=p^.procdef.funcretsym)) then
+                     begin
+                       symtableentry:=p^.procdef.funcretsym; 
+                       break;
+                     end;
+                    p:=p^.parent;
+                  end;
+                { generate funcretnode }
                 p1:=cfuncretnode.create(symtableentry);
                 resulttypepass(p1);
                 { if it's refered as absolute then we need to have the
@@ -781,7 +796,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-08-26 13:36:41  florian
+  Revision 1.24  2001-08-30 15:48:34  jonas
+    * fix from Peter for getting correct symtableentry for funcret loads
+
+  Revision 1.23  2001/08/26 13:36:41  florian
     * some cg reorganisation
     * some PPC updates
 
