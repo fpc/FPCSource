@@ -1206,6 +1206,13 @@ begin
 {$else}
   AddPathToList(UnitSearchPath,dos.getenv(target_info.unit_env),false);
 {$endif Delphi}
+{$ifdef linux}
+  AddPathToList(UnitSearchPath,'/usr/lib/fpc/'+version_string+'/units/'+lower(target_info.short_name),false);
+  AddPathToList(UnitSearchPath,'/usr/lib/fpc/'+version_string+'/rtl/'+lower(target_info.short_name),false);
+{$else}
+  AddPathToList(UnitSearchPath,ExePath+'../units/'+lower(target_info.short_name),false);
+  AddPathToList(UnitSearchPath,ExePath+'../rtl/'+lower(target_info.short_name),false);
+{$endif}
   AddPathToList(UnitSearchPath,ExePath,false);
   { Add unit dir to the object and library path }
   AddPathToList(objectsearchpath,unitsearchpath,false);
@@ -1238,7 +1245,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  1999-10-30 17:35:26  peter
+  Revision 1.30  1999-11-03 23:43:09  peter
+    * default units/rtl paths
+
+  Revision 1.29  1999/10/30 17:35:26  peter
     * fpc_freemem fpc_getmem new callings updated
 
   Revision 1.28  1999/10/28 11:13:36  pierre
