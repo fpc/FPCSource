@@ -96,6 +96,11 @@ uses
 {$endif}
   ;
 
+    var
+      uppertbl,
+      lowertbl  : array[char] of char;
+
+
     function min(a,b : longint) : longint;
     {
       return the minimal of a and b
@@ -204,13 +209,10 @@ uses
       return uppercased string of s
     }
       var
-         i  : longint;
+        i  : longint;
       begin
-         for i:=1 to length(s) do
-          if s[i] in ['a'..'z'] then
-           upper[i]:=char(byte(s[i])-32)
-          else
-           upper[i]:=s[i];
+        for i:=1 to length(s) do
+          upper[i]:=uppertbl[s[i]];
         upper[0]:=s[0];
       end;
 
@@ -220,13 +222,10 @@ uses
       return lowercased string of s
     }
       var
-         i : longint;
+        i : longint;
       begin
-         for i:=1 to length(s) do
-          if s[i] in ['A'..'Z'] then
-           lower[i]:=char(byte(s[i])+32)
-          else
-           lower[i]:=s[i];
+        for i:=1 to length(s) do
+          lower[i]:=lowertbl[s[i]];
         lower[0]:=s[0];
       end;
 
@@ -239,9 +238,27 @@ uses
          i : longint;
       begin
          for i:=1 to length(s) do
-          if s[i] in ['a'..'z'] then
-           s[i]:=char(byte(s[i])-32);
+          s[i]:=uppertbl[s[i]];
       end;
+
+
+    procedure initupperlower;
+      var
+        c : char;
+      begin
+        for c:=#0 to #255 do
+         begin
+           lowertbl[c]:=c;
+           uppertbl[c]:=c;
+           case c of
+             'A'..'Z' :
+               lowertbl[c]:=char(byte(c)+32);
+             'a'..'z' :
+               uppertbl[c]:=char(byte(c)-32);
+           end;
+         end;
+      end;
+
 
     function hexstr(val : longint;cnt : byte) : string;
       const
@@ -577,12 +594,15 @@ end;
       end;
 
 
-
-
+initialization
+  initupperlower;
 end.
 {
   $Log$
-  Revision 1.2  2000-09-24 15:06:14  peter
+  Revision 1.3  2000-11-07 20:47:35  peter
+    * use tables for upper/lower
+
+  Revision 1.2  2000/09/24 15:06:14  peter
     * use defines.inc
 
   Revision 1.1  2000/08/27 16:11:50  peter
