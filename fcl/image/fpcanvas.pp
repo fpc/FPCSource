@@ -103,7 +103,7 @@ type
   end;
   TFPCustomFontClass = class of TFPCustomFont;
 
-  TFPPenStyle = (psClear, psSolid, psDash, psDot, psDashDot, psDashDotDot, psinsideFrame, psPattern);
+  TFPPenStyle = (psSolid, psDash, psDot, psDashDot, psDashDotDot, psinsideFrame, psPattern,psClear);
   TFPPenStyleSet = set of TFPPenStyle;
   TFPPenMode = (pmBlack, pmWhite, pmNop, pmNot, pmCopy, pmNotCopy,
                 pmMergePenNot, pmMaskPenNot, pmMergeNotPen, pmMaskNotPen, pmMerge,
