@@ -256,6 +256,7 @@ unit i386;
           constructor op_loc(op : tasmop;_size : topsize;_op1 : tlocation);
 
           constructor op_reg_reg(op : tasmop;_size : topsize;_op1,_op2 : tregister);
+          constructor op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
           constructor op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : preference);
           constructor op_reg_loc(op : tasmop;_size : topsize;_op1 : tregister;_op2 : tlocation);
           constructor op_loc_reg(op : tasmop;_size : topsize;_op1 : tlocation;_op2 : tregister);
@@ -1326,6 +1327,24 @@ unit i386;
 
       end;
 
+    type
+       twowords=record
+          word1,word2:word;
+       end;
+
+    constructor tai386.op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
+
+      begin
+         inherited init;
+         typ:=ait_instruction;
+         _operator:=op;
+         opxt:=Top_reg shl 8+Top_reg shl 4+Top_reg;
+         size:=_size;
+         op1:=pointer(_op1);
+         twowords(op2).word1:=word(_op2);
+         twowords(op2).word2:=word(_op3);
+      end;
+
     constructor tai386.op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : preference);
 
       begin
@@ -1409,10 +1428,6 @@ unit i386;
       end;
 
     constructor tai386.op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
-
-    type    twowords=record
-                word1,word2:word;
-            end;
 
       begin
          inherited init;
@@ -1736,7 +1751,11 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.19  1998-12-10 09:47:22  florian
+  Revision 1.20  1998-12-11 16:10:09  florian
+    + shifting for 64 bit ints added
+    * bug in getexplicitregister32 fixed: usableregs wasn't decremented !!
+
+  Revision 1.19  1998/12/10 09:47:22  florian
     + basic operations with int64/qord (compiler with -dint64)
     + rtti of enumerations extended: names are now written
 

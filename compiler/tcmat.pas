@@ -132,20 +132,30 @@ implementation
               p:=t;
               exit;
            end;
+         { 64 bit ints have their own shift handling }
+         if not(is_64bitint(p^.left^.resulttype)) then
+           begin
+              p^.left:=gentypeconvnode(p^.left,s32bitdef);
+              firstpass(p^.left);
+              regs:=1;
+              p^.resulttype:=s32bitdef;
+           end
+         else
+           begin
+              p^.resulttype:=p^.left^.resulttype;
+              regs:=2;
+           end;
+
          p^.right:=gentypeconvnode(p^.right,s32bitdef);
-         p^.left:=gentypeconvnode(p^.left,s32bitdef);
-         firstpass(p^.left);
          firstpass(p^.right);
 
          if codegenerror then
            exit;
 
-         regs:=1;
          if (p^.right^.treetype<>ordconstn) then
           inc(regs);
          calcregisters(p,regs,0,0);
 
-         p^.resulttype:=s32bitdef;
          p^.location.loc:=LOC_REGISTER;
       end;
 
@@ -332,7 +342,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-12-11 00:03:56  peter
+  Revision 1.9  1998-12-11 16:10:12  florian
+    + shifting for 64 bit ints added
+    * bug in getexplicitregister32 fixed: usableregs wasn't decremented !!
+
+  Revision 1.8  1998/12/11 00:03:56  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.7  1998/11/13 10:16:38  peter

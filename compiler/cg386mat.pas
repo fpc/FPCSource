@@ -185,9 +185,12 @@ implementation
 
     procedure secondshlshr(var p : ptree);
       var
-         hregister1,hregister2,hregister3 : tregister;
+         hregister1,hregister2,hregister3,
+         hregisterhigh,hregisterlow : tregister;
          pushed,popecx : boolean;
-         op : tasmop;
+         op,op2 : tasmop;
+         hr : preference;
+
       begin
          popecx:=false;
 
@@ -197,91 +200,227 @@ implementation
          if pushed then
            restore(p);
 
-         { load left operators in a register }
-         if p^.left^.location.loc<>LOC_REGISTER then
+         if is_64bitint(p^.left^.resulttype) then
            begin
-              if p^.left^.location.loc=LOC_CREGISTER then
+              { load left operators in a register }
+              if p^.left^.location.loc<>LOC_REGISTER then
                 begin
-                   hregister1:=getregister32;
-                   emit_reg_reg(A_MOV,S_L,p^.left^.location.register,
-                     hregister1);
-                end
-              else
-                begin
-                   del_reference(p^.left^.location.reference);
-                   hregister1:=getregister32;
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.left^.location.reference),
-                     hregister1)));
-                end;
-           end
-         else
-           hregister1:=p^.left^.location.register;
-
-         { determine operator }
-         if p^.treetype=shln then
-           op:=A_SHL
-         else
-           op:=A_SHR;
-
-         { shifting by a constant directly decode: }
-         if (p^.right^.treetype=ordconstn) then
-           begin
-              exprasmlist^.concat(new(pai386,op_const_reg(op,S_L,p^.right^.location.reference.offset and 31,
-                hregister1)));
-              p^.location.loc:=LOC_REGISTER;
-              p^.location.register:=hregister1;
-           end
-         else
-           begin
-              { load right operators in a register }
-              if p^.right^.location.loc<>LOC_REGISTER then
-                begin
-                  if p^.right^.location.loc=LOC_CREGISTER then
+                   if p^.left^.location.loc=LOC_CREGISTER then
                      begin
-                        hregister2:=getregister32;
-                        emit_reg_reg(A_MOV,S_L,p^.right^.location.register,
-                          hregister2);
+                        hregisterlow:=getregister32;
+                        hregisterhigh:=getregister32;
+                        emit_reg_reg(A_MOV,S_L,p^.left^.location.registerlow,
+                          hregisterlow);
+                        emit_reg_reg(A_MOV,S_L,p^.left^.location.registerhigh,
+                          hregisterlow);
                      end
                    else
                      begin
-                        del_reference(p^.right^.location.reference);
-                        hregister2:=getregister32;
-                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),
-                          hregister2)));
+                        del_reference(p^.left^.location.reference);
+                        hregisterlow:=getregister32;
+                        hregisterhigh:=getregister32;
+                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.left^.location.reference),
+                          hregisterlow)));
+                        hr:=newreference(p^.left^.location.reference);
+                        inc(hr^.offset,4);
+                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hr,
+                          hregisterhigh)));
                      end;
                 end
               else
-                hregister2:=p^.right^.location.register;
-
-              { left operator is already in a register }
-              { hence are both in a register }
-              { is it in the case ECX ? }
-              if (hregister1=R_ECX) then
                 begin
-                   { then only swap }
-                   emit_reg_reg(A_XCHG,S_L,hregister1,hregister2);
-                   hregister3:=hregister1;
-                   hregister1:=hregister2;
-                   hregister2:=hregister3;
-                end
-              { if second operator not in ECX ? }
-              else if (hregister2<>R_ECX) then
-                begin
-                   { ECX occupied then push it }
-                   if not (R_ECX in unused) then
-                    begin
-                      popecx:=true;
-                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ECX)));
-                    end;
-                   emit_reg_reg(A_MOV,S_L,hregister2,R_ECX);
-                   ungetregister32(hregister2);
+                   hregisterlow:=p^.left^.location.registerlow;
+                   hregisterhigh:=p^.left^.location.registerhigh;
                 end;
-              { right operand is in ECX }
-              emit_reg_reg(op,S_L,R_CL,hregister1);
-              { maybe ECX back }
-              if popecx then
-                exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ECX)));
-              p^.location.register:=hregister1;
+
+              { shifting by a constant directly coded: }
+              if (p^.right^.treetype=ordconstn) then
+                begin
+                   if p^.treetype=shln then
+                     begin
+                        exprasmlist^.concat(new(pai386,op_const_reg_reg(A_SHLD,S_L,p^.right^.location.reference.offset and 31,
+                          hregisterlow,hregisterhigh)));
+                        exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,p^.right^.location.reference.offset and 31,
+                          hregisterlow)));
+                     end
+                   else
+                     begin
+                        exprasmlist^.concat(new(pai386,op_const_reg_reg(A_SHRD,S_L,p^.right^.location.reference.offset and 31,
+                          hregisterhigh,hregisterlow)));
+                        exprasmlist^.concat(new(pai386,op_const_reg(A_SHR,S_L,p^.right^.location.reference.offset and 31,
+                          hregisterhigh)));
+                     end;
+                   p^.location.loc:=LOC_REGISTER;
+                   p^.location.registerlow:=hregisterlow;
+                   p^.location.registerhigh:=hregisterhigh;
+                end
+              else
+                begin
+                   { load right operators in a register }
+                   if p^.right^.location.loc<>LOC_REGISTER then
+                     begin
+                       if p^.right^.location.loc=LOC_CREGISTER then
+                          begin
+                             hregister2:=getexplicitregister32(R_ECX);
+                             emit_reg_reg(A_MOV,S_L,p^.right^.location.register,
+                               hregister2);
+                          end
+                        else
+                          begin
+                             del_reference(p^.right^.location.reference);
+                             hregister2:=getexplicitregister32(R_ECX);
+                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),
+                               hregister2)));
+                          end;
+                     end
+                   else
+                     hregister2:=p^.right^.location.register;
+
+                   { left operator is already in a register }
+                   { hence are both in a register }
+                   { is it in the case ECX ? }
+                   if (hregisterlow=R_ECX) then
+                     begin
+                        { then only swap }
+                        emit_reg_reg(A_XCHG,S_L,hregisterlow,hregister2);
+                        hregister3:=hregisterlow;
+                        hregisterlow:=hregister2;
+                        hregister2:=hregister3;
+                     end
+                   else if (hregisterhigh=R_ECX) then
+                     begin
+                        { then only swap }
+                        emit_reg_reg(A_XCHG,S_L,hregisterhigh,hregister2);
+                        hregister3:=hregisterhigh;
+                        hregisterhigh:=hregister2;
+                        hregister2:=hregister3;
+                     end
+
+                   { if second operator not in ECX ? }
+                   else if (hregister2<>R_ECX) then
+                     begin
+                        { ECX occupied then push it }
+                        if not (R_ECX in unused) then
+                         begin
+                           popecx:=true;
+                           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ECX)));
+                         end;
+                        emit_reg_reg(A_MOV,S_L,hregister2,R_ECX);
+                     end;
+
+                   ungetregister32(hregister2);
+
+                   if p^.treetype=shln then
+                     begin
+                        exprasmlist^.concat(new(pai386,op_reg_reg_reg(A_SHLD,S_L,R_CL,
+                          hregisterlow,hregisterhigh)));
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_SHL,S_L,R_CL,
+                          hregisterlow)));
+                     end
+                   else
+                     begin
+                        exprasmlist^.concat(new(pai386,op_reg_reg_reg(A_SHRD,S_L,R_CL,
+                          hregisterhigh,hregisterlow)));
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_SHR,S_L,R_CL,
+                          hregisterhigh)));
+                     end;
+
+                   { maybe put ECX back }
+                   if popecx then
+                     exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ECX)));
+
+                   p^.location.registerlow:=hregisterlow;
+                   p^.location.registerhigh:=hregisterhigh;
+                end;
+           end
+         else
+           begin
+              { load left operators in a register }
+              if p^.left^.location.loc<>LOC_REGISTER then
+                begin
+                   if p^.left^.location.loc=LOC_CREGISTER then
+                     begin
+                        hregister1:=getregister32;
+                        emit_reg_reg(A_MOV,S_L,p^.left^.location.register,
+                          hregister1);
+                     end
+                   else
+                     begin
+                        del_reference(p^.left^.location.reference);
+                        hregister1:=getregister32;
+                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.left^.location.reference),
+                          hregister1)));
+                     end;
+                end
+              else
+                hregister1:=p^.left^.location.register;
+
+              { determine operator }
+              if p^.treetype=shln then
+                op:=A_SHL
+              else
+                op:=A_SHR;
+
+              { shifting by a constant directly coded: }
+              if (p^.right^.treetype=ordconstn) then
+                begin
+                   exprasmlist^.concat(new(pai386,op_const_reg(op,S_L,p^.right^.location.reference.offset and 31,
+                     hregister1)));
+                   p^.location.loc:=LOC_REGISTER;
+                   p^.location.register:=hregister1;
+                end
+              else
+                begin
+                   { load right operators in a register }
+                   if p^.right^.location.loc<>LOC_REGISTER then
+                     begin
+                       if p^.right^.location.loc=LOC_CREGISTER then
+                          begin
+                             hregister2:=getexplicitregister32(R_ECX);
+                             emit_reg_reg(A_MOV,S_L,p^.right^.location.register,
+                               hregister2);
+                          end
+                        else
+                          begin
+                             del_reference(p^.right^.location.reference);
+                             hregister2:=getexplicitregister32(R_ECX);
+                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),
+                               hregister2)));
+                          end;
+                     end
+                   else
+                     hregister2:=p^.right^.location.register;
+
+                   { left operator is already in a register }
+                   { hence are both in a register }
+                   { is it in the case ECX ? }
+                   if (hregister1=R_ECX) then
+                     begin
+                        { then only swap }
+                        emit_reg_reg(A_XCHG,S_L,hregister1,hregister2);
+                        hregister3:=hregister1;
+                        hregister1:=hregister2;
+                        hregister2:=hregister3;
+                     end
+                   { if second operator not in ECX ? }
+                   else if (hregister2<>R_ECX) then
+                     begin
+                        { ECX occupied then push it }
+                        if not (R_ECX in unused) then
+                         begin
+                           popecx:=true;
+                           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ECX)));
+                         end;
+                        emit_reg_reg(A_MOV,S_L,hregister2,R_ECX);
+                     end;
+                   ungetregister32(hregister2);
+                   { right operand is in ECX }
+                   emit_reg_reg(op,S_L,R_CL,hregister1);
+                   { maybe ECX back }
+                   if popecx then
+                     exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ECX)));
+                   p^.location.register:=hregister1;
+                end;
            end;
       end;
 
@@ -535,7 +674,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-12-11 00:02:52  peter
+  Revision 1.14  1998-12-11 16:10:07  florian
+    + shifting for 64 bit ints added
+    * bug in getexplicitregister32 fixed: usableregs wasn't decremented !!
+
+  Revision 1.13  1998/12/11 00:02:52  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.12  1998/11/26 21:45:29  jonas

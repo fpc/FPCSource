@@ -311,6 +311,7 @@ implementation
     function getexplicitregister32(r : tregister) : tregister;
 
       begin
+         dec(usablereg32);
          if r in unused then
            begin
               unused:=unused-[r];
@@ -369,7 +370,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  1998-12-11 00:03:59  peter
+  Revision 1.15  1998-12-11 16:10:13  florian
+    + shifting for 64 bit ints added
+    * bug in getexplicitregister32 fixed: usableregs wasn't decremented !!
+
+  Revision 1.14  1998/12/11 00:03:59  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.13  1998/10/21 08:40:03  florian
