@@ -447,6 +447,7 @@ end;
             linkextern   : ld_i386_go32v2;
             ar           : ar_gnu_ar;
             res          : res_none;
+            script       : script_dos;
             endian       : endian_little;
             alignment    :
               (
@@ -481,7 +482,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2001-07-10 21:01:35  peter
+  Revision 1.10  2001-08-07 18:47:15  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.9  2001/07/10 21:01:35  peter
     * fixed crash with writing of the linker script
 
   Revision 1.8  2001/07/01 20:16:20  peter

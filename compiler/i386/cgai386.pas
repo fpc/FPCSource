@@ -1541,11 +1541,12 @@ implementation
       if (po_assembler in aktprocsym.definition.procoptions) then
        exit;
       case target_info.target of
+         target_i386_win32,
          target_i386_freebsd,
          target_i386_linux:
            begin
               getaddrlabel(pl);
-              emitinsertcall('mcount');
+              emitinsertcall(target_info.Cprefix+'mcount');
               usedinproc:=usedinproc or ($80 shr byte(R_EDX));
               exprasmList.insert(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,pl,0,R_EDX));
               exprasmList.insert(Tai_section.Create(sec_code));
@@ -2115,6 +2116,11 @@ implementation
        if (not inlined) and (aktprocsym.definition.proctypeoption=potype_proginit) then
            begin
               emitinsertcall('FPC_INITIALIZEUNITS');
+              { initialize profiling for win32 }
+              if (target_info.target=target_I386_WIN32) and
+                 (cs_profile in aktmoduleswitches) then
+                emitinsertcall('__monstartup');
+              { add threadvars }
               oldlist:=exprasmlist;
               exprasmlist:=TAAsmoutput.Create;
               p:=symtablestack;
@@ -3000,7 +3006,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2001-08-06 21:40:49  peter
+  Revision 1.28  2001-08-07 18:47:13  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.27  2001/08/06 21:40:49  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.26  2001/07/30 20:59:28  peter

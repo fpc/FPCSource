@@ -85,7 +85,7 @@ begin
   fsplit(resbin,respath,n,e);
   if (not resfound) and not(cs_link_extern in aktglobalswitches) then
    begin
-     Message(exec_w_res_not_found);
+     Message(exec_e_res_not_found);
      aktglobalswitches:=aktglobalswitches+[cs_link_extern];
    end;
   resobj:=ForceExtension(current_module.objfilename^,target_info.resobjext);
@@ -102,13 +102,13 @@ begin
      swapvectors;
      if (doserror<>0) then
       begin
-        Message(exec_w_cant_call_linker);
+        Message(exec_e_cant_call_linker);
         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
       end
      else
       if (dosexitcode<>0) then
        begin
-         Message(exec_w_error_while_linking);
+         Message(exec_e_error_while_linking);
          aktglobalswitches:=aktglobalswitches+[cs_link_extern];
        end;
     end;
@@ -142,7 +142,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-04-18 22:01:53  peter
+  Revision 1.10  2001-08-07 18:47:12  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.9  2001/04/18 22:01:53  peter
     * registration of targets and assemblers
 
   Revision 1.8  2001/03/13 21:01:14  peter

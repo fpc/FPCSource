@@ -373,10 +373,9 @@ var
 begin
   { Check only the most common opcodes here, the others are done in
     the assembler pass }
-  { movd also added as it needs special care here PM }
   case opcode of
     A_PUSH,A_POP,A_DEC,A_INC,A_NOT,A_NEG,
-    A_CMP,A_MOV,A_MOVD,
+    A_CMP,A_MOV,
     A_ADD,A_SUB,A_ADC,A_SBB,
     A_AND,A_OR,A_TEST,A_XOR: ;
   else
@@ -688,7 +687,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2001-08-06 21:40:50  peter
+  Revision 1.11  2001-08-07 18:47:14  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.10  2001/08/06 21:40:50  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.9  2001/04/13 01:22:19  peter

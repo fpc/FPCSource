@@ -1988,10 +1988,10 @@ rm8,reg_cl            \300\1\xD2\204                  8086
 rm8,imm               \300\1\xC0\204\25               186,SB
 rm16,unity            \320\300\1\xD1\204              8086
 rm16,reg_cl           \320\300\1\xD3\204              8086
-rm16,imm              \320\300\1\xC1\204\25           186,SB
+rm16,imm              \320\300\1\xC1\204\25           186,SW
 rm32,unity            \321\300\1\xD1\204              386
 rm32,reg_cl           \321\300\1\xD3\204              386
-rm32,imm              \321\300\1\xC1\204\25           386,SB
+rm32,imm              \321\300\1\xC1\204\25           386,SD
 
 [SHLD,shldX]
 (Ch_MOp3, Ch_RWFlags, Ch_Rop2)
@@ -2011,10 +2011,10 @@ rm8,reg_cl            \300\1\xD2\205                  8086
 rm8,imm               \300\1\xC0\205\25               186,SB
 rm16,unity            \320\300\1\xD1\205              8086
 rm16,reg_cl           \320\300\1\xD3\205              8086
-rm16,imm              \320\300\1\xC1\205\25           186,SB
+rm16,imm              \320\300\1\xC1\205\25           186,SW
 rm32,unity            \321\300\1\xD1\205              386
 rm32,reg_cl           \321\300\1\xD3\205              386
-rm32,imm              \321\300\1\xC1\205\25           386,SB
+rm32,imm              \321\300\1\xC1\205\25           386,SD
 
 [SHRD,shrdX]
 (Ch_MOp3, Ch_RWFlags, Ch_Rop2)

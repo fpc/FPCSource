@@ -295,7 +295,7 @@ Implementation
              asfound:=FindExe(UtilExe,LastASBin);
            if (not asfound) and not(cs_asm_extern in aktglobalswitches) then
             begin
-              Message1(exec_w_assembler_not_found,LastASBin);
+              Message1(exec_e_assembler_not_found,LastASBin);
               aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
             end;
            if asfound then
@@ -315,14 +315,14 @@ Implementation
            swapvectors;
            if (doserror<>0) then
             begin
-              Message1(exec_w_cant_call_assembler,tostr(doserror));
+              Message1(exec_e_cant_call_assembler,tostr(doserror));
               aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
               callassembler:=false;
             end
            else
             if (dosexitcode<>0) then
              begin
-              Message1(exec_w_error_while_assembling,tostr(dosexitcode));
+              Message1(exec_e_error_while_assembling,tostr(dosexitcode));
               callassembler:=false;
              end;
          end
@@ -1520,7 +1520,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.22  2001-07-01 20:16:15  peter
+  Revision 1.23  2001-08-07 18:47:12  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.22  2001/07/01 20:16:15  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

@@ -227,7 +227,7 @@ begin
    Found:=FindExe(utilexe,Foundbin);
   if (not Found) and not(cs_link_extern in aktglobalswitches) then
    begin
-     Message1(exec_w_util_not_found,utilexe);
+     Message1(exec_e_util_not_found,utilexe);
      aktglobalswitches:=aktglobalswitches+[cs_link_extern];
    end;
   if (FoundBin<>'') then
@@ -364,14 +364,14 @@ begin
      swapvectors;
      if (doserror<>0) then
       begin
-         Message(exec_w_cant_call_linker);
+         Message(exec_e_cant_call_linker);
          aktglobalswitches:=aktglobalswitches+[cs_link_extern];
          DoExec:=false;
       end
      else
       if (dosexitcode<>0) then
        begin
-        Message(exec_w_error_while_linking);
+        Message(exec_e_error_while_linking);
         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
         DoExec:=false;
        end;
@@ -482,7 +482,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2001-06-28 19:46:25  peter
+  Revision 1.19  2001-08-07 18:47:12  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.18  2001/06/28 19:46:25  peter
     * added override and virtual for constructors
 
   Revision 1.17  2001/06/03 15:15:31  peter

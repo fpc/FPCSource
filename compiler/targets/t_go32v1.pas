@@ -225,6 +225,7 @@ end;
             linkextern   : ld_i386_go32v1;
             ar           : ar_gnu_ar;
             res          : res_none;
+            script       : script_dos;
             endian       : endian_little;
             alignment    :
               (
@@ -259,7 +260,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2001-07-01 20:16:20  peter
+  Revision 1.8  2001-08-07 18:47:15  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.7  2001/07/01 20:16:20  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

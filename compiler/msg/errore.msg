@@ -1561,23 +1561,23 @@ exec_e_cant_create_objectfile=09003_E_Can't create object file: $1
 exec_e_cant_create_archivefile=09004_E_Can't create archive file: $1
 % The mentioned file can't be create. Check if you've
 % permission to create this file
-exec_w_assembler_not_found=09005_W_Assembler $1 not found, switching to external assembling
+exec_e_assembler_not_found=09005_E_Assembler $1 not found, switching to external assembling
 exec_t_using_assembler=09006_T_Using assembler: $1
-exec_w_error_while_assembling=09007_W_Error while assembling exitcode $1
-exec_w_cant_call_assembler=09008_W_Can't call the assembler, error $1 switching to external assembling
+exec_e_error_while_assembling=09007_E_Error while assembling exitcode $1
+exec_e_cant_call_assembler=09008_E_Can't call the assembler, error $1 switching to external assembling
 exec_i_assembling=09009_I_Assembling $1
 exec_i_assembling_smart=09010_I_Assembling smartlink $1
 exec_w_objfile_not_found=09011_W_Object $1 not found, Linking may fail !
 exec_w_libfile_not_found=09012_W_Library $1 not found, Linking may fail !
-exec_w_error_while_linking=09013_W_Error while linking
-exec_w_cant_call_linker=09014_W_Can't call the linker, switching to external linking
+exec_e_error_while_linking=09013_E_Error while linking
+exec_e_cant_call_linker=09014_E_Can't call the linker, switching to external linking
 exec_i_linking=09015_I_Linking $1
-exec_w_util_not_found=09016_W_Util $1 not found, switching to external linking
+exec_e_util_not_found=09016_E_Util $1 not found, switching to external linking
 exec_t_using_util=09017_T_Using util $1
 exec_e_exe_not_supported=09018_E_Creation of Executables not supported
 exec_e_dll_not_supported=09019_E_Creation of Dynamic/Shared Libraries not supported
 exec_i_closing_script=09020_I_Closing script $1
-exec_w_res_not_found=09021_W_resource compiler not found, switching to external mode
+exec_e_res_not_found=09021_E_resource compiler not found, switching to external mode
 exec_i_compilingresource=09022_I_Compiling resource $1
 exec_t_unit_not_static_linkable_switch_to_smart=09023_T_unit $1 can't be static linked, switching to smart linking
 exec_t_unit_not_smart_linkable_switch_to_static=09024_T_unit $1 can't be smart linked, switching to static linking
@@ -1831,6 +1831,9 @@ Free Pascal Compiler version $FPCVER
 
 Compiler Date  : $FPCDATE
 Compiler Target: $FPCTARGET
+
+Supported targets:
+  $OSTARGETS
 
 This program comes under the GNU General Public Licence
 For more information read COPYING.FPC

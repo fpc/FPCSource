@@ -489,23 +489,23 @@ const
   exec_d_cant_create_asmfile=09002;
   exec_e_cant_create_objectfile=09003;
   exec_e_cant_create_archivefile=09004;
-  exec_w_assembler_not_found=09005;
+  exec_e_assembler_not_found=09005;
   exec_t_using_assembler=09006;
-  exec_w_error_while_assembling=09007;
-  exec_w_cant_call_assembler=09008;
+  exec_e_error_while_assembling=09007;
+  exec_e_cant_call_assembler=09008;
   exec_i_assembling=09009;
   exec_i_assembling_smart=09010;
   exec_w_objfile_not_found=09011;
   exec_w_libfile_not_found=09012;
-  exec_w_error_while_linking=09013;
-  exec_w_cant_call_linker=09014;
+  exec_e_error_while_linking=09013;
+  exec_e_cant_call_linker=09014;
   exec_i_linking=09015;
-  exec_w_util_not_found=09016;
+  exec_e_util_not_found=09016;
   exec_t_using_util=09017;
   exec_e_exe_not_supported=09018;
   exec_e_dll_not_supported=09019;
   exec_i_closing_script=09020;
-  exec_w_res_not_found=09021;
+  exec_e_res_not_found=09021;
   exec_i_compilingresource=09022;
   exec_t_unit_not_static_linkable_switch_to_smart=09023;
   exec_t_unit_not_smart_linkable_switch_to_static=09024;
@@ -592,7 +592,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 33070;
+  MsgTxtSize = 33103;
 
   MsgIdxMax : array[1..20] of longint=(
     17,59,179,37,41,41,98,14,35,42,

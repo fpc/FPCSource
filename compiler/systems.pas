@@ -56,8 +56,9 @@ interface
             target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
               target_i386_OS2,target_i386_Win32,target_i386_freebsd,
               target_i386_Netware,target_i386_sunos,target_i386_beos,
+              target_i386_NetBsd,
             target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
-              target_m68k_linux,target_m68k_PalmOS,
+              target_m68k_linux,target_m68k_PalmOS,target_m68k_NetBsd,
             target_alpha_linux,
             target_powerpc_linux,target_powerpc_macos
        );
@@ -78,7 +79,7 @@ interface
               ld_i386_OS2,ld_i386_Win32,ld_i386_freebsd,
               ld_i386_Netware,ld_i386_sunos,ld_i386_beos,
             ld_m68k_Amiga,ld_m68k_Atari,ld_m68k_Mac,
-              ld_m68k_linux,ld_m68k_PalmOS,
+              ld_m68k_linux,ld_m68k_PalmOS,ld_m68k_freebsd,
             ld_alpha_linux,
             ld_powerpc_linux,ld_powerpc_macos
        );
@@ -89,6 +90,10 @@ interface
 
        tres = (res_none
             ,res_gnu_windres,res_emxbind
+       );
+
+       tscript = (script_none
+            ,script_dos,script_unix,script_amiga
        );
 
 
@@ -181,6 +186,7 @@ interface
           linkextern   : tld;  { external linker, used by -s }
           ar           : tar;
           res          : tres;
+          script       : tscript;
           endian       : tendian;
           alignment    : talignmentinfo;
           size_of_pointer : byte;
@@ -630,7 +636,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.21  2001-07-01 20:16:18  peter
+  Revision 1.22  2001-08-07 18:47:13  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.21  2001/07/01 20:16:18  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

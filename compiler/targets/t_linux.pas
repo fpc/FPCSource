@@ -509,6 +509,7 @@ end;
             linkextern   : ld_i386_linux;
             ar           : ar_gnu_ar;
             res          : res_none;
+            script       : script_unix;
             endian       : endian_little;
             alignment    :
               (
@@ -572,6 +573,7 @@ end;
             linkextern   : ld_m68k_linux;
             ar           : ar_m68k_ar;
             res          : res_none;
+            script       : script_unix;
             endian       : endian_big;
             stackalignment : 2;
             maxCrecordalignment : 32;
@@ -619,6 +621,7 @@ end;
             assemsrc     : as_powerpc_as;
             ar           : ar_powerpc_ar;
             res          : res_none;
+            script       : script_unix;
             endian       : endian_big;
             stackalignment : 8;
             maxCrecordalignment : 32;
@@ -668,6 +671,7 @@ end;
             linkextern   : ld_alpha_linux;
             ar           : ar_alpha_ar;
             res          : res_none;
+            script       : script_unix;
             endian       : endian_little;
             stackalignment : 8;
             maxCrecordalignment : 32;
@@ -711,7 +715,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2001-07-01 20:16:20  peter
+  Revision 1.11  2001-08-07 18:47:15  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.10  2001/07/01 20:16:20  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

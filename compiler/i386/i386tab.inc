@@ -6816,7 +6816,7 @@
     ops     : 2;
     optypes : (ot_regmem or ot_bits16,ot_immediate,ot_none);
     code    : #208#192#1#193#132#21;
-    flags   : if_186 or if_sb
+    flags   : if_186 or if_sw
   ),
   (
     opcode  : A_SHL;
@@ -6837,7 +6837,7 @@
     ops     : 2;
     optypes : (ot_regmem or ot_bits32,ot_immediate,ot_none);
     code    : #209#192#1#193#132#21;
-    flags   : if_386 or if_sb
+    flags   : if_386 or if_sd
   ),
   (
     opcode  : A_SHLD;
@@ -6935,7 +6935,7 @@
     ops     : 2;
     optypes : (ot_regmem or ot_bits16,ot_immediate,ot_none);
     code    : #208#192#1#193#133#21;
-    flags   : if_186 or if_sb
+    flags   : if_186 or if_sw
   ),
   (
     opcode  : A_SHR;
@@ -6956,7 +6956,7 @@
     ops     : 2;
     optypes : (ot_regmem or ot_bits32,ot_immediate,ot_none);
     code    : #209#192#1#193#133#21;
-    flags   : if_386 or if_sb
+    flags   : if_386 or if_sd
   ),
   (
     opcode  : A_SHRD;

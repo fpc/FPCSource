@@ -203,7 +203,7 @@ begin
      DllCmd[1]:='ld $OPT -shared -L. -o $EXE $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
      { first try glibc2 }
-     {$ifndef BSD} {Keep linux code in place. FBSD might go to a different
+{$ifdef GLIBC2} {Keep linux code in place. FBSD might go to a different
                                 glibc too once}
      DynamicLinker:='/lib/ld-linux.so.2';
      if FileExists(DynamicLinker) then
@@ -217,11 +217,10 @@ begin
       end
      else
       DynamicLinker:='/lib/ld-linux.so.1';
-     {$ELSE}
+{$else}
       DynamicLinker:='';
-     {$endif}
+{$endif}
    end;
-
 end;
 
 
@@ -449,6 +448,7 @@ end;
                                      Initialize
 *****************************************************************************}
 
+{$ifdef i386}
     const
        target_i386_freebsd_info : ttargetinfo =
           (
@@ -483,6 +483,7 @@ end;
             linkextern   : ld_i386_freebsd;
             ar           : ar_gnu_ar;
             res          : res_none;
+            script       : script_unix;
             endian       : endian_little;
             alignment    :
               (
@@ -510,16 +511,156 @@ end;
             use_function_relative_addresses : true
           );
 
+       target_i386_netbsd_info : ttargetinfo =
+          (
+            target       : target_i386_NetBSD;
+            name         : 'NetBSD for i386';
+            shortname    : 'NetBSD';
+            flags        : [];
+            cpu          : i386;
+            unit_env     : 'BSDUNITS';
+            extradefines : 'UNIX;BSD';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            Cprefix      : '';
+            newline      : #10;
+            assem        : as_i386_elf32;
+            assemextern  : as_i386_as;
+            link         : ld_i386_freebsd;
+            linkextern   : ld_i386_freebsd;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 1;
+                varalignmin     : 0;
+                varalignmax     : 1;
+                localalignmin   : 0;
+                localalignmax   : 1;
+                paraalign       : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            heapsize    : 256*1024;
+            maxheapsize : 32768*1024;
+            stacksize   : 8192;
+            DllScanSupported:false;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          );
+{$endif i386}
+
+{$ifdef m68k}
+    const
+       target_i386_netbsd_info : ttargetinfo =
+          (
+            target       : target_i386_NetBSD;
+            name         : 'NetBSD for i386';
+            shortname    : 'NetBSD';
+            flags        : [];
+            cpu          : i386;
+            unit_env     : 'BSDUNITS';
+            extradefines : 'UNIX;BSD';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            Cprefix      : '';
+            newline      : #10;
+            assem        : as_m68k_as;
+            assemextern  : as_m68k_as;
+            link         : ld_m68k_freebsd;
+            linkextern   : ld_m68k_freebsd;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 1;
+                varalignmin     : 0;
+                varalignmax     : 1;
+                localalignmin   : 0;
+                localalignmax   : 1;
+                paraalign       : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            heapsize    : 256*1024;
+            maxheapsize : 32768*1024;
+            stacksize   : 8192;
+            DllScanSupported:false;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          );
+{$endif m68k}
 
 initialization
+{$ifdef i386}
   RegisterLinker(ld_i386_freebsd,TLinkerFreeBSD);
   RegisterImport(target_i386_freebsd,timportlibfreebsd);
   RegisterExport(target_i386_freebsd,texportlibfreebsd);
   RegisterTarget(target_i386_freebsd_info);
+  RegisterImport(target_i386_netbsd,timportlibfreebsd);
+  RegisterExport(target_i386_netbsd,texportlibfreebsd);
+  RegisterTarget(target_i386_netbsd_info);
+{$endif i386}
+{$ifdef m68k}
+  RegisterLinker(ld_m68k_freebsd,TLinkerFreeBSD);
+  RegisterImport(target_m68k_netbsd,timportlibfreebsd);
+  RegisterExport(target_m68k_netbsd,texportlibfreebsd);
+  RegisterTarget(target_m68k_netbsd_info);
+{$endif m68k}
 end.
 {
   $Log$
-  Revision 1.8  2001-07-01 20:16:20  peter
+  Revision 1.9  2001-08-07 18:47:15  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.8  2001/07/01 20:16:20  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

@@ -597,6 +597,21 @@ implementation
       end;
 {$ENDIF}
 
+    procedure dir_profile;
+      var
+        mac : tmacro;
+      begin
+        do_moduleswitch(cs_profile);
+        { defined/undefine FPC_PROFILE }
+        mac:=tmacro(current_scanner.macros.search('FPC_PROFILE'));
+        if not assigned(mac) then
+         begin
+           mac:=tmacro.create('FPC_PROFILE');
+           current_scanner.macros.insert(mac);
+         end;
+        mac.defined:=(cs_profile in aktmoduleswitches);
+      end;
+
     procedure dir_rangechecks;
       begin
         do_delphiswitch('R');
@@ -839,6 +854,7 @@ implementation
 {$IFDEF TestVarsets}
         AddDirective('PACKSET',{$ifdef FPCPROCVAR}@{$endif}dir_packset);
 {$ENDIF}
+        AddDirective('PROFILE',{$ifdef FPCPROCVAR}@{$endif}dir_profile);
         AddDirective('R',{$ifdef FPCPROCVAR}@{$endif}dir_resource);
         AddDirective('RANGECHECKS',{$ifdef FPCPROCVAR}@{$endif}dir_rangechecks);
         AddDirective('REFERENCEINFO',{$ifdef FPCPROCVAR}@{$endif}dir_referenceinfo);
@@ -871,7 +887,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2001-07-01 20:16:16  peter
+  Revision 1.6  2001-08-07 18:47:13  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.5  2001/07/01 20:16:16  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

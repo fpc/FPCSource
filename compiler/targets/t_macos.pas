@@ -75,6 +75,7 @@ implementation
             linkextern   : ld_m68k_mac;
             ar           : ar_m68k_ar;
             res          : res_none;
+            script       : script_unix;
             endian       : endian_big;
             stackalignment : 2;
             maxCrecordalignment : 4;
@@ -125,6 +126,7 @@ implementation
             linkextern   : ld_powerpc_macos;
             ar           : ar_powerpc_ar;
             res          : res_powerpc_mpw;
+            script       : script_unix;
             endian       : endian_big;
             stackalignment : 8;
             maxCrecordalignment : 32;
@@ -150,7 +152,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2001-06-03 15:15:32  peter
+  Revision 1.4  2001-08-07 18:47:15  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.3  2001/06/03 15:15:32  peter
     * dllprt0 stub for linux shared libs
     * pass -init and -fini for linux shared libs
     * libprefix splitted into staticlibprefix and sharedlibprefix

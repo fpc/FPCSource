@@ -756,6 +756,12 @@ begin
      if s<>'' then
       LinkRes.AddFileName(GetShortName(s));
    end;
+  { add libaries required for profiling }
+  if cs_profile in aktmoduleswitches then
+   begin
+     LinkRes.Add('-lgmon');
+     LinkRes.Add('-lc');
+   end;
   LinkRes.Add(')');
 
   { Write staticlibraries }
@@ -1431,6 +1437,7 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
             linkextern   : ld_i386_win32;
             ar           : ar_gnu_arw;
             res          : res_gnu_windres;
+            script       : script_dos;
             endian       : endian_little;
             alignment    :
               (
@@ -1470,7 +1477,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2001-07-01 20:16:21  peter
+  Revision 1.15  2001-08-07 18:47:15  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.14  2001/07/01 20:16:21  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
