@@ -217,7 +217,7 @@ var
   p     : pchar;
 begin
   MaybeLoadMessageFile;
-  Message1(option_usage,paramstr(0));
+  Message1(option_usage,system.paramstr(0));
   lastident:=0;
   if DoWriteLogo then
    lines:=3
@@ -1067,7 +1067,7 @@ begin
   while paramindex<paramcount do
    begin
      inc(paramindex);
-     opts:=paramstr(paramindex);
+     opts:=system.paramstr(paramindex);
      case opts[1] of
        '@' :
          begin
@@ -1538,7 +1538,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.22  2000-12-23 19:46:49  peter
+  Revision 1.23  2000-12-24 12:21:41  peter
+    * use system.paramstr()
+
+  Revision 1.22  2000/12/23 19:46:49  peter
     * object to class conversion
     * more verbosity for -vt and -vd
     * -i options can be put after eachother so the Makefiles only need
