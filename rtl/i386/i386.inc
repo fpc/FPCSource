@@ -215,7 +215,7 @@ asm
 end;
 
 
-procedure int_new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
+procedure int_new_class;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'NEW_CLASS'];
 asm
      { create class ? }
      movl 8(%ebp),%edi
@@ -238,7 +238,7 @@ asm
 end;
 
 
-procedure int_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS'];
+procedure int_dispose_class;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'DISPOSE_CLASS'];
 asm
      { destroy class ? }
      movl 8(%ebp),%edi
@@ -259,7 +259,7 @@ end;
 
 
 { checks for a correct vmt pointer }
-procedure int_check_object;assembler;[public,alias:'FPC_CHECK_OBJECT'];
+procedure int_check_object;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'CHECK_OBJECT'];
 asm
      pushl %edi
      movl 8(%esp),%edi
@@ -690,7 +690,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  1998-09-28 10:23:43  florian
+  Revision 1.25  1998-09-28 11:02:34  peter
+    * added some more $ifdef FPCNAMES
+
+  Revision 1.24  1998/09/28 10:23:43  florian
     * FPC_NEW_CLASS optimized: addl $0,%eax => orl %eax,%eax
 
   Revision 1.23  1998/09/28 08:40:47  michael
