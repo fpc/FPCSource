@@ -126,6 +126,13 @@ begin
     Error (SListIndexError,Index);
   FCount:=FCount-1;
   System.Move (FList^[Index+1],FList^[Index],(FCount-Index)*SizeOf(Pointer));
+
+  // Shrink the list if appropiate
+  if (FCapacity > 256) and (FCount < FCapacity shr 2) then
+  begin
+    FCapacity := FCapacity shr 1;
+    ReallocMem(FList, SizeOf(Pointer) * FCapacity);
+  end;
 end;
 
 
@@ -160,6 +167,7 @@ begin
   IncSize:=4;
   if FCapacity>3 then IncSize:=IncSize+4;
   if FCapacity>8 then IncSize:=IncSize+8;
+  if FCapacity>127 then Inc(IncSize, FCapacity shr 2);
   SetCapacity(FCapacity+IncSize);
   Result:=Self;
 end;
@@ -399,7 +407,12 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-11-17 13:39:49  sg
+  Revision 1.5  2001-07-17 22:07:29  sg
+  * Added performance improvements suggested by Mattias Gaertner
+    - list grows in steps of 25% if size >= 128
+    - list shrinks by 50% if size drops below a quarter of the capacity
+
+  Revision 1.4  2000/11/17 13:39:49  sg
   * Extended Error methods so that exceptions are raised from the caller's
     address instead of the Error method
 
