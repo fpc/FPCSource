@@ -61,7 +61,8 @@ implementation
       verbose,globals,systems,
       symconst,symdef,aasmbase,aasmtai,
       defutil,
-      cgbase,pass_1,pass_2,
+      cgbase,cgutils,
+      pass_1,pass_2,
       ncon,ncal,
       ncgutil,
       cpubase,aasmcpu,
@@ -77,8 +78,13 @@ implementation
         fname: string[19];
       begin
         { converting a 64bit integer to a float requires a helper }
-        if is_64bitint(left.resulttype.def) then
+        if is_64bitint(left.resulttype.def) or
+          is_currency(left.resulttype.def) then
           begin
+            { hack to avoid double division by 10000, as it's
+              already done by resulttypepass.resulttype_int_to_real }
+            if is_currency(left.resulttype.def) then
+              left.resulttype := s64inttype;
             if is_signed(left.resulttype.def) then
               fname := 'fpc_int64_to_double'
             else
@@ -220,7 +226,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2004-10-31 21:45:03  peter
+  Revision 1.13  2004-11-01 12:10:26  florian
+    * fixed currency division
+
+  Revision 1.12  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
