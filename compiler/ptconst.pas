@@ -68,8 +68,8 @@ unit ptconst;
       procedure check_range;
 
         begin
-           if ((p^.value>porddef(def)^.bis) or
-               (p^.value<porddef(def)^.von)) then
+           if ((p^.value>porddef(def)^.high) or
+               (p^.value<porddef(def)^.low)) then
              Message(parser_e_range_check_error);
         end;
 
@@ -450,7 +450,12 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.4  1998-05-05 12:05:42  florian
+  Revision 1.5  1998-06-03 22:49:01  peter
+    + wordbool,longbool
+    * rename bis,von -> high,low
+    * moved some systemunit loading/creating to psystem.pas
+
+  Revision 1.4  1998/05/05 12:05:42  florian
     * problems with properties fixed
     * crash fixed:  i:=l when i and l are undefined, was a problem with
       implementation of private/protected

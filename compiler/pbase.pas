@@ -39,8 +39,6 @@ unit pbase;
        getprocvar : boolean = false;
        getprocvardef : pprocvardef = nil;
 
-    type
-       tblock_type = (bt_general,bt_type,bt_const);
 
     var
        { contains the current token to be processes }
@@ -62,9 +60,6 @@ unit pbase;
 
        { true, if we are in a except block }
        in_except_block : boolean;
-       { type of currently parsed block }
-       { isn't full implemented (FK)    }
-       block_type : tblock_type;
 
        { true, if we should ignore an equal in const x : 1..2=2 }
        ignore_equal : boolean;
@@ -223,7 +218,12 @@ end.
 
 {
   $Log$
-  Revision 1.8  1998-05-23 01:21:18  peter
+  Revision 1.9  1998-06-03 22:48:58  peter
+    + wordbool,longbool
+    * rename bis,von -> high,low
+    * moved some systemunit loading/creating to psystem.pas
+
+  Revision 1.8  1998/05/23 01:21:18  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

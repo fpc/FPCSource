@@ -59,8 +59,8 @@ implementation
          if (cs_rangechecking in aktswitches)  and
            { with $R+ explicit type conversations in TP aren't range checked! }
            (not(p^.explizit) or not(cs_tp_compatible in aktswitches)) and
-           ((porddef(p1)^.von>porddef(p2)^.von) or
-           (porddef(p1)^.bis<porddef(p2)^.bis) or
+           ((porddef(p1)^.low>porddef(p2)^.low) or
+           (porddef(p1)^.high<porddef(p2)^.high) or
            (porddef(p1)^.typ=u32bit) or
            (porddef(p2)^.typ=u32bit)) then
            begin
@@ -114,7 +114,7 @@ implementation
               else internalerror(6);
               hp:=new_reference(R_NO,0);
               hp^.symbol:=stringdup('R_'+tostr(porddef(p1)^.rangenr));
-              if porddef(p1)^.von>porddef(p1)^.bis then
+              if porddef(p1)^.low>porddef(p1)^.high then
                 begin
                    getlabel(neglabel);
                    getlabel(poslabel);
@@ -122,7 +122,7 @@ implementation
                    emitl(A_JL,neglabel);
                 end;
               exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hp)));
-              if porddef(p1)^.von>porddef(p1)^.bis then
+              if porddef(p1)^.low>porddef(p1)^.high then
                 begin
                    hp:=new_reference(R_NO,0);
                    hp^.symbol:=stringdup('R_'+tostr(porddef(p1)^.rangenr+1));
@@ -186,8 +186,8 @@ implementation
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
                 end
               else
-                if ((porddef(p^.resulttype)^.von>porddef(hp^.resulttype)^.von) or
-                (porddef(p^.resulttype)^.bis<porddef(hp^.resulttype)^.bis)) then
+                if ((porddef(p^.resulttype)^.low>porddef(hp^.resulttype)^.low) or
+                (porddef(p^.resulttype)^.high<porddef(hp^.resulttype)^.high)) then
                 begin
                    porddef(p^.resulttype)^.genrangecheck;
                    { per default the var is copied to EDI }
@@ -286,7 +286,7 @@ implementation
          gives me movl (%eax),%eax
          for the length(string !!!
          use only for constant values }
-           {Constanst cannot be loaded into registers using MOVZX!}
+           {Constant cannot be loaded into registers using MOVZX!}
            if (p^.left^.location.loc<>LOC_MEM) or (not p^.left^.location.reference.isintvalue) then
                 case convtyp of
                     tc_u8bit_2_s32bit,tc_u8bit_2_u32bit :
@@ -756,63 +756,107 @@ implementation
       var
          oldtruelabel,oldfalselabel,hlabel : plabel;
          hregister : tregister;
+         newsize,
+         opsize : topsize;
+         op     : tasmop;
      begin
          oldtruelabel:=truelabel;
          oldfalselabel:=falselabel;
-         secondpass(hp);
          getlabel(truelabel);
          getlabel(falselabel);
+         secondpass(hp);
          p^.location.loc:=LOC_REGISTER;
          del_reference(hp^.location.reference);
-         hregister:=reg32toreg8(getregister32);
-         case hp^.location.loc of
-            LOC_MEM,LOC_REFERENCE :
-              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,
-                newreference(hp^.location.reference),hregister)));
-            LOC_REGISTER,LOC_CREGISTER :
-              exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_B,
-                hp^.location.register,hregister)));
-           LOC_FLAGS:
-              exprasmlist^.concat(new(pai386,op_reg(flag_2_set[hp^.location.resflags],S_B,hregister)));
-           LOC_JUMP:
-             begin
-                getlabel(hlabel);
-                emitl(A_LABEL,truelabel);
-                exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_B,1,hregister)));
-                emitl(A_JMP,hlabel);
-                emitl(A_LABEL,falselabel);
-                exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_B,hregister,hregister)));
-                emitl(A_LABEL,hlabel);
-             end;
-         else
-           internalerror(10060);
+         hregister:=getregister32;
+         case porddef(hp^.resulttype)^.typ of
+          bool8bit : begin
+                       case porddef(p^.resulttype)^.typ of
+                     u8bit,s8bit,
+                        bool8bit : opsize:=S_B;
+                   u16bit,s16bit,
+                       bool16bit : opsize:=S_BW;
+                   u32bit,s32bit,
+                       bool32bit : opsize:=S_BL;
+                       end;
+                     end;
+         bool16bit : begin
+                       case porddef(p^.resulttype)^.typ of
+                     u8bit,s8bit,
+                        bool8bit : opsize:=S_B;
+                   u16bit,s16bit,
+                       bool16bit : opsize:=S_W;
+                   u32bit,s32bit,
+                       bool32bit : opsize:=S_WL;
+                       end;
+                     end;
+         bool32bit : begin
+                       case porddef(p^.resulttype)^.typ of
+                     u8bit,s8bit,
+                        bool8bit : opsize:=S_B;
+                   u16bit,s16bit,
+                       bool16bit : opsize:=S_W;
+                   u32bit,s32bit,
+                       bool32bit : opsize:=S_L;
+                       end;
+                     end;
          end;
+         if opsize in [S_B,S_W,S_L] then
+          op:=A_MOV
+         else
+          if (porddef(p^.resulttype)^.typ in [s8bit,s16bit,s32bit]) then
+           op:=A_MOVSX
+          else
+           op:=A_MOVZX;
          case porddef(p^.resulttype)^.typ of
-         bool8bit,
-            u8bit,
-            s8bit : p^.location.register:=hregister;
-           s16bit : begin
-                      p^.location.register:=reg8toreg16(hregister);
-                      exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVSX,S_BW,hregister,p^.location.register)));
-                    end;
-           u16bit : begin
-                      p^.location.register:=reg8toreg16(hregister);
-                      exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
-                    end;
-           s32bit : begin
-                      p^.location.register:=reg8toreg32(hregister);
-                      exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVSX,S_BL,hregister,p^.location.register)));
-                    end;
-           u32bit : begin
-                      p^.location.register:=reg8toreg32(hregister);
-                      exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
-                    end;
+          bool8bit,u8bit,s8bit : begin
+                                   p^.location.register:=reg32toreg8(hregister);
+                                   newsize:=S_B;
+                                 end;
+       bool16bit,u16bit,s16bit : begin
+                                   p^.location.register:=reg32toreg16(hregister);
+                                   newsize:=S_W;
+                                 end;
+       bool32bit,u32bit,s32bit : begin
+                                   p^.location.register:=hregister;
+                                   newsize:=S_L;
+                                 end;
+         else
+          internalerror(10060);
+         end;
+
+         case hp^.location.loc of
+            LOC_MEM,
+      LOC_REFERENCE : exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,
+                        newreference(hp^.location.reference),p^.location.register)));
+       LOC_REGISTER,
+      LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,
+                        hp^.location.register,p^.location.register)));
+          LOC_FLAGS : begin
+                        hregister:=reg32toreg8(hregister);
+                        exprasmlist^.concat(new(pai386,op_reg(flag_2_set[hp^.location.resflags],S_B,hregister)));
+                        case porddef(p^.resulttype)^.typ of
+                  bool16bit,
+              u16bit,s16bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
+                  bool32bit,
+              u32bit,s32bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
+                        end;
+                      end;
+           LOC_JUMP : begin
+                        getlabel(hlabel);
+                        emitl(A_LABEL,truelabel);
+                        exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,newsize,1,hregister)));
+                        emitl(A_JMP,hlabel);
+                        emitl(A_LABEL,falselabel);
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,newsize,hregister,hregister)));
+                        emitl(A_LABEL,hlabel);
+                      end;
          else
            internalerror(10060);
          end;
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
      end;
+
 
      procedure second_int_to_bool(p,hp : ptree;convtyp : tconverttype);
      var
@@ -835,13 +879,22 @@ implementation
             internalerror(10061);
           end;
          exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hregister,hregister)));
-       { return only lower 8 bits }
-         p^.location.register:=reg32toreg8(hregister);
-         exprasmlist^.concat(new(pai386,op_reg(flag_2_set[hp^.location.resflags],S_B,p^.location.register)));
+         hregister:=reg32toreg8(hregister);
+         exprasmlist^.concat(new(pai386,op_reg(flag_2_set[hp^.location.resflags],S_B,hregister)));
+         case porddef(p^.resulttype)^.typ of
+           bool8bit : p^.location.register:=hregister;
+          bool16bit : begin
+                        p^.location.register:=reg8toreg16(hregister);
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
+                      end;
+          bool32bit : begin
+                        p^.location.register:=reg16toreg32(hregister);
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
+                      end;
+         end;
      end;
 
     procedure second_nothing(p,hp : ptree;convtyp : tconverttype);
-
       begin
       end;
 
@@ -897,7 +950,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-06-02 10:52:10  peter
+  Revision 1.3  1998-06-03 22:48:50  peter
+    + wordbool,longbool
+    * rename bis,von -> high,low
+    * moved some systemunit loading/creating to psystem.pas
+
+  Revision 1.2  1998/06/02 10:52:10  peter
     * fixed second_bool_to_int with bool8bit return
 
   Revision 1.1  1998/06/01 16:50:18  peter

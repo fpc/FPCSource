@@ -159,9 +159,6 @@ unit scanner;
         lastasmgetchar : char;
         preprocstack   : ppreprocstack;
 
-
-      var tokenpos : tfileposinfo;
-
       {public}
         procedure syntaxerror(const s : string);
         function yylex : ttoken;
@@ -179,9 +176,7 @@ unit scanner;
   implementation
 
      uses
-       dos,verbose,systems,
-       pbase,symtable,
-       switches;
+       dos,verbose,systems,symtable,switches;
 
 {*****************************************************************************
                               TPreProcStack
@@ -1174,6 +1169,7 @@ exit_label:
         lasttokenpos:=inputpointer;
         lastlinepos:=inputpointer;
         s_point:=false;
+        block_type:=bt_general;
      end;
 
    procedure get_cur_file_pos(var fileinfo : tfileposinfo);
@@ -1260,8 +1256,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.22  1998-05-31 14:10:54  peter
-    * better get_current_col
+  Revision 1.23  1998-06-03 22:49:02  peter
+    + wordbool,longbool
+    * rename bis,von -> high,low
+    * moved some systemunit loading/creating to psystem.pas
 
   Revision 1.21  1998/05/27 00:20:32  peter
     * some scanner optimizes

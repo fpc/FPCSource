@@ -49,40 +49,10 @@ unit parser;
         ,cga68k
 {$endif m68k}
        { parser units }
-       ,pbase,pmodules,pdecl,
+       ,pbase,pmodules,pdecl,psystem,
        { assembling & linking }
        assemble,
        link;
-
-  { dummy variable for search when calling exec }
-  var
-     file_found : boolean;
-
-    procedure readconstdefs;
-
-      begin
-         s32bitdef:=porddef(globaldef('longint'));
-         u32bitdef:=porddef(globaldef('ulong'));
-         cstringdef:=pstringdef(globaldef('string'));
-         clongstringdef:=pstringdef(globaldef('longstring'));
-         cansistringdef:=pstringdef(globaldef('ansistring'));
-         cwidestringdef:=pstringdef(globaldef('widestring'));
-         cchardef:=porddef(globaldef('char'));
-{$ifdef i386}
-         c64floatdef:=pfloatdef(globaldef('s64real'));
-{$endif}
-{$ifdef m68k}
-         c64floatdef:=pfloatdef(globaldef('s32real'));
-{$endif m68k}
-         s80floatdef:=pfloatdef(globaldef('s80real'));
-         s32fixeddef:=pfloatdef(globaldef('cs32fixed'));
-         voiddef:=porddef(globaldef('void'));
-         u8bitdef:=porddef(globaldef('byte'));
-         u16bitdef:=porddef(globaldef('word'));
-         booldef:=porddef(globaldef('boolean'));
-         voidpointerdef:=ppointerdef(globaldef('void_pointer'));
-         cfiledef:=pfiledef(globaldef('file'));
-      end;
 
     procedure initparser;
 
@@ -91,7 +61,6 @@ unit parser;
 
          { ^M means a string or a char, because we don't parse a }
          { type declaration                                      }
-         block_type:=bt_general;
          ignore_equal:=false;
 
          { we didn't parse a object or class declaration }
@@ -329,38 +298,10 @@ unit parser;
            end
          else
            begin
-              { create definitions for constants }
-              registerdef:=false;
-              s32bitdef:=new(porddef,init(s32bit,$80000000,$7fffffff));
-              u32bitdef:=new(porddef,init(u32bit,0,$ffffffff));
-              cstringdef:=new(pstringdef,init(255));
-              { should we give a length to the default long and ansi string definition ?? }
-              clongstringdef:=new(pstringdef,longinit(-1));
-              cansistringdef:=new(pstringdef,ansiinit(-1));
-              cwidestringdef:=new(pstringdef,wideinit(-1));
-              cchardef:=new(porddef,init(uchar,0,255));
-{$ifdef i386}
-              c64floatdef:=new(pfloatdef,init(s64real));
-              s80floatdef:=new(pfloatdef,init(s80real));
-{$endif}
-{$ifdef m68k}
-              c64floatdef:=new(pfloatdef,init(s32real));
-              if (cs_fp_emulation in aktswitches) then
-               s80floatdef:=new(pfloatdef,init(s32real))
-              else
-               s80floatdef:=new(pfloatdef,init(s80real));
-{$endif}
-              s32fixeddef:=new(pfloatdef,init(f32bit));
-
-              { some other definitions }
-              voiddef:=new(porddef,init(uvoid,0,0));
-              u8bitdef:=new(porddef,init(u8bit,0,255));
-              u16bitdef:=new(porddef,init(u16bit,0,65535));
-              booldef:=new(porddef,init(bool8bit,0,1));
-              voidpointerdef:=new(ppointerdef,init(voiddef));
-              cfiledef:=new(pfiledef,init(ft_untyped,nil));
+              createconstdefs;
               systemunit:=nil;
            end;
+
          registerdef:=true;
          make_ref:=true;
 
@@ -511,7 +452,12 @@ done:
 end.
 {
   $Log$
-  Revision 1.19  1998-05-27 19:45:04  peter
+  Revision 1.20  1998-06-03 22:48:55  peter
+    + wordbool,longbool
+    * rename bis,von -> high,low
+    * moved some systemunit loading/creating to psystem.pas
+
+  Revision 1.19  1998/05/27 19:45:04  peter
     * symtable.pas splitted into includefiles
     * symtable adapted for $ifdef NEWPPU
 

@@ -25,7 +25,7 @@ unit types;
   interface
 
     uses
-       cobjects,globals,symtable,tree,aasm;
+       cobjects,globals,symtable,tree;
 
     type
        tmmxtype = (mmxno,mmxu8bit,mmxs8bit,mmxu16bit,mmxs16bit,
@@ -110,7 +110,7 @@ unit types;
 
   implementation
 
-    uses verbose;
+    uses verbose,aasm;
 
     function is_constintnode(p : ptree) : boolean;
 
@@ -143,7 +143,7 @@ unit types;
       begin
          is_constboolnode:=((p^.treetype=ordconstn) and
            (p^.resulttype^.deftype=orddef) and
-           (porddef(p^.resulttype)^.typ=bool8bit));
+           (porddef(p^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit]));
       end;
 
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
@@ -189,35 +189,32 @@ unit types;
       end;
 
     function is_ordinal(def : pdef) : boolean;
-
       var
          dt : tbasetype;
-
       begin
          case def^.deftype of
-            orddef : begin
-                          dt:=porddef(def)^.typ;
-                          is_ordinal:=(dt=s32bit) or (dt=u32bit) or (dt=uchar) or (dt=u8bit) or
-                            (dt=s8bit) or (dt=s16bit) or (dt=bool8bit) or (dt=u16bit);
-                       end;
-            enumdef : is_ordinal:=true;
-            else is_ordinal:=false;
+          orddef : begin
+                     dt:=porddef(def)^.typ;
+                     is_ordinal:=dt in [uchar,u8bit,u16bit,u32bit,s8bit,s16bit,s32bit,bool8bit,bool16bit,bool32bit];
+                   end;
+         enumdef : is_ordinal:=true;
+         else
+           is_ordinal:=false;
          end;
       end;
 
     function is_signed(def : pdef) : boolean;
-
       var
          dt : tbasetype;
-
       begin
          case def^.deftype of
             orddef : begin
-                          dt:=porddef(def)^.typ;
-                          is_signed:=(dt=s32bit) or (dt=s8bit) or (dt=s16bit);
-                       end;
-            enumdef : is_signed:=false;
-            else internalerror(1001);
+                       dt:=porddef(def)^.typ;
+                       is_signed:=(dt in [s8bit,s16bit,s32bit]);
+                     end;
+           enumdef : is_signed:=false;
+         else
+           is_signed:=false;
          end;
       end;
 
@@ -340,37 +337,20 @@ unit types;
     procedure getrange(def : pdef;var l : longint;var h : longint);
 
       begin
-         if def^.deftype=orddef then
-           case porddef(def)^.typ of
-              s32bit,s16bit,u16bit,s8bit,u8bit :
-                begin
-                   l:=porddef(def)^.von;
-                   h:=porddef(def)^.bis;
-                end;
-              bool8bit : begin
-                            l:=0;
-                            h:=1;
-                         end;
-              uchar : begin
-                         l:=0;
-                         h:=255;
-                      end;
-              u32bit : begin
-                          { this should work now }
-                          l:=porddef(def)^.von;
-                          h:=porddef(def)^.bis;
-                       end;
-           end
-         else
-           if def^.deftype=enumdef then
-             begin
-                l:=0;
-                h:=penumdef(def)^.max;
-             end;
+        case def^.deftype of
+         orddef : begin
+                    l:=porddef(def)^.low;
+                    h:=porddef(def)^.high;
+                  end;
+        enumdef : begin
+                    l:=0;
+                    h:=penumdef(def)^.max;
+                  end;
+        end;
       end;
 
-    function get_ordinal_value(p : ptree) : longint;
 
+    function get_ordinal_value(p : ptree) : longint;
       begin
          if p^.treetype=ordconstn then
            get_ordinal_value:=p^.value
@@ -378,8 +358,8 @@ unit types;
            Message(parser_e_ordinal_expected);
       end;
 
-    function mmx_type(p : pdef) : tmmxtype;
 
+    function mmx_type(p : pdef) : tmmxtype;
       begin
          mmx_type:=mmxno;
          if is_mmx_able_array(p) then
@@ -527,19 +507,16 @@ unit types;
                   b:=is_equal(ppointerdef(def1)^.definition,ppointerdef(def2)^.definition);
              end
          else
-         { Grundtypen sind gleich, wenn sie den selben Grundtyp haben, }
-         { und wenn noetig den selben Unterbereich haben }
+         { ordinals are equal only when the ordinal type is equal }
            if (def1^.deftype=orddef) and (def2^.deftype=orddef) then
              begin
                 case porddef(def1)^.typ of
-                   u32bit,u8bit,s32bit,s8bit,u16bit,s16bit : begin
-                                     if porddef(def1)^.typ=porddef(def2)^.typ then
-                                       if (porddef(def1)^.von=porddef(def2)^.von) and
-                                          (porddef(def1)^.bis=porddef(def2)^.bis) then
-                                           b:=true;
-                                  end;
-                   uvoid,bool8bit,uchar :
-                     b:=porddef(def1)^.typ=porddef(def2)^.typ;
+                u8bit,u16bit,u32bit,
+                s8bit,s16bit,s32bit : b:=((porddef(def1)^.typ=porddef(def2)^.typ) and
+                                          (porddef(def1)^.low=porddef(def2)^.low) and
+                                          (porddef(def1)^.high=porddef(def2)^.high));
+                        uvoid,uchar,
+       bool8bit,bool16bit,bool32bit : b:=(porddef(def1)^.typ=porddef(def2)^.typ);
                 end;
              end
          else
@@ -646,23 +623,10 @@ unit types;
             { see p.47 of Turbo Pascal 7.01 manual for the separation of types }
             { range checking for case statements is done with testrange        }
             case porddef(def1)^.typ of
-              s32bit,u32bit,u8bit,s8bit,s16bit,u16bit:
-                Begin
-{ PROBABLE CODE GENERATION BUG HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! }
-{                   if porddef(def2)^.typ in [s32bit,u32bit,u8bit,s8bit,s16bit,u16bit] then
-                     is_subequal := TRUE; }
-                    if (porddef(def2)^.typ = s32bit) or
-                       (porddef(def2)^.typ = u32bit) or
-                       (porddef(def2)^.typ = u8bit) or
-                       (porddef(def2)^.typ = s8bit) or
-                       (porddef(def2)^.typ = s16bit) or
-                       (porddef(def2)^.typ = u16bit) then
-                     Begin
-                       is_subequal:=TRUE;
-                     end;
-                end;
-              bool8bit: if porddef(def2)^.typ = bool8bit then is_subequal := TRUE;
-              uchar: if porddef(def2)^.typ = uchar then is_subequal := TRUE;
+           u8bit,u16bit,u32bit,
+           s8bit,s16bit,s32bit : is_subequal:=(porddef(def2)^.typ in [s32bit,u32bit,u8bit,s8bit,s16bit,u16bit]);
+  bool8bit,bool16bit,bool32bit : is_subequal:=(porddef(def2)^.typ in [bool8bit,bool16bit,bool32bit]);
+                         uchar : is_subequal:=(porddef(def2)^.typ=uchar);
             end;
           end
         else
@@ -897,7 +861,7 @@ unit types;
 
          if has_virtual_method and not(has_constructor) then
             Message1(parser_w_virtual_without_constructor,_class^.name^);
-        
+
 
          { generates the VMT }
 
@@ -964,7 +928,12 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.12  1998-05-12 10:47:00  peter
+  Revision 1.13  1998-06-03 22:49:07  peter
+    + wordbool,longbool
+    * rename bis,von -> high,low
+    * moved some systemunit loading/creating to psystem.pas
+
+  Revision 1.12  1998/05/12 10:47:00  peter
     * moved printstatus to verb_def
     + V_Normal which is between V_Error and V_Warning and doesn't have a
       prefix like error: warning: and is included in V_Default

@@ -171,63 +171,73 @@ unit pass_1;
              var doconv : tconverttype;fromtreetype : ttreetyp;
              explicit : boolean) : boolean;
 
-      { from_is_cstring muá true sein, wenn def_from die Definition einer }
-      { Stringkonstanten ist, n”tig wegen der Konvertierung von String-   }
-      { konstante zu nullterminiertem String                              }
-
-      { Hilfsliste: u8bit,s32bit,uvoid,
-                    bool8bit,uchar,s8bit,s16bit,u16bit,u32bit }
+      { Tbasetype:  uauto,uvoid,uchar,
+                    u8bit,u16bit,u32bit,
+                    s8bit,s16bit,s32,
+                    bool8bit,bool16bit,boot32bit }
 
       const
-         basedefconverts : array[u8bit..u32bit,u8bit..u32bit] of tconverttype =
-           {u8bit}
-           ((tc_only_rangechecks32bit,tc_u8bit_2_s32bit,tc_not_possible,
-             tc_int_2_bool,tc_not_possible,tc_only_rangechecks32bit,tc_u8bit_2_s16bit,
-             tc_u8bit_2_u16bit,{tc_not_possible}tc_u8bit_2_u32bit),
-
-           {s32bit}
-            (tc_s32bit_2_u8bit,tc_only_rangechecks32bit,tc_not_possible,
-             tc_int_2_bool,tc_not_possible,tc_s32bit_2_s8bit,
-             tc_s32bit_2_s16bit,tc_s32bit_2_u16bit,{tc_not_possible}tc_s32bit_2_u32bit),
-
+         basedefconverts : array[tbasetype,tbasetype] of tconverttype =
+           {uauto}
+           ((tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_not_possible,tc_not_possible,tc_not_possible),
            {uvoid}
-            (tc_not_possible,tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible),
-
-           {bool8bit}
-{            (tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_only_rangechecks32bit,tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_not_possible),}
-            (tc_bool_2_int,tc_bool_2_int,tc_not_possible,
-             tc_only_rangechecks32bit,tc_not_possible,tc_bool_2_int,
-             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int),
-
-           {uchar}
             (tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_only_rangechecks32bit,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_not_possible),
-
-           {s8bit}
-            (tc_only_rangechecks32bit,tc_s8bit_2_s32bit,tc_not_possible,
-             tc_int_2_bool,tc_not_possible,tc_only_rangechecks32bit,tc_s8bit_2_s16bit,
-             tc_s8bit_2_u16bit,{tc_not_possible}tc_s8bit_2_u32bit),
-
-           {s16bit}
-            (tc_s16bit_2_u8bit,tc_s16bit_2_s32bit,tc_not_possible,
-             tc_int_2_bool,tc_not_possible,tc_s16bit_2_s8bit,tc_only_rangechecks32bit,
-             tc_only_rangechecks32bit,{tc_not_possible}tc_s8bit_2_u32bit),
-
+             tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_not_possible,tc_not_possible,tc_not_possible),
+           {uchar}
+            (tc_not_possible,tc_not_possible,tc_only_rangechecks32bit,
+             tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_not_possible,tc_not_possible,tc_not_possible),
+           {u8bit}
+            (tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_only_rangechecks32bit,tc_u8bit_2_u16bit,tc_u8bit_2_u32bit,
+             tc_only_rangechecks32bit,tc_u8bit_2_s16bit,tc_u8bit_2_s32bit,
+             tc_int_2_bool,tc_int_2_bool,tc_int_2_bool),
            {u16bit}
-            (tc_u16bit_2_u8bit,tc_u16bit_2_s32bit,tc_not_possible,
-             tc_int_2_bool,tc_not_possible,tc_u16bit_2_s8bit,tc_only_rangechecks32bit,
-             tc_only_rangechecks32bit,{tc_not_possible}tc_u16bit_2_u32bit),
-
+            (tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_u16bit_2_u8bit,tc_only_rangechecks32bit,tc_u16bit_2_u32bit,
+             tc_u16bit_2_s8bit,tc_only_rangechecks32bit,tc_u16bit_2_s32bit,
+             tc_int_2_bool,tc_int_2_bool,tc_int_2_bool),
            {u32bit}
-            (tc_u32bit_2_u8bit,{tc_not_possible}tc_u32bit_2_s32bit,tc_not_possible,
-             tc_int_2_bool,tc_not_possible,tc_u32bit_2_s8bit,tc_u32bit_2_s16bit,
-             tc_u32bit_2_u16bit,tc_only_rangechecks32bit)
-            );
+            (tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_u32bit_2_u8bit,tc_u32bit_2_u16bit,tc_only_rangechecks32bit,
+             tc_u32bit_2_s8bit,tc_u32bit_2_s16bit,tc_only_rangechecks32bit,
+             tc_int_2_bool,tc_int_2_bool,tc_int_2_bool),
+           {s8bit}
+            (tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_only_rangechecks32bit,tc_s8bit_2_u16bit,tc_s8bit_2_u32bit,
+             tc_only_rangechecks32bit,tc_s8bit_2_s16bit,tc_s8bit_2_s32bit,
+             tc_int_2_bool,tc_int_2_bool,tc_int_2_bool),
+           {s16bit}
+            (tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_s16bit_2_u8bit,tc_only_rangechecks32bit,tc_s16bit_2_u32bit,
+             tc_s16bit_2_s8bit,tc_only_rangechecks32bit,tc_s16bit_2_s32bit,
+             tc_int_2_bool,tc_int_2_bool,tc_int_2_bool),
+           {s32bit}
+            (tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_s32bit_2_u8bit,tc_s32bit_2_u16bit,tc_only_rangechecks32bit,
+             tc_s32bit_2_s8bit,tc_s32bit_2_s16bit,tc_only_rangechecks32bit,
+             tc_int_2_bool,tc_int_2_bool,tc_int_2_bool),
+           {bool8bit}
+            (tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
+             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
+             tc_only_rangechecks32bit,tc_bool_2_int,tc_bool_2_int),
+           {bool16bit}
+            (tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
+             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
+             tc_bool_2_int,tc_only_rangechecks32bit,tc_bool_2_int),
+           {bool32bit}
+            (tc_not_possible,tc_not_possible,tc_not_possible,
+             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
+             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
+             tc_bool_2_int,tc_bool_2_int,tc_only_rangechecks32bit));
 
       var
          b : boolean;
@@ -588,6 +598,25 @@ unit pass_1;
 
     procedure firstadd(var p : ptree);
 
+      procedure make_bool_equal_size(var p:ptree);
+      begin
+        if porddef(p^.left^.resulttype)^.typ>porddef(p^.right^.resulttype)^.typ then
+         begin
+           p^.right:=gentypeconvnode(p^.right,porddef(p^.left^.resulttype));
+           p^.right^.convtyp:=tc_bool_2_int;
+           p^.right^.explizit:=true;
+           firstpass(p^.right);
+         end
+        else
+         if porddef(p^.left^.resulttype)^.typ<porddef(p^.right^.resulttype)^.typ then
+          begin
+            p^.left:=gentypeconvnode(p^.left,porddef(p^.right^.resulttype));
+            p^.left^.convtyp:=tc_bool_2_int;
+            p^.left^.explizit:=true;
+            firstpass(p^.left);
+          end;
+      end;
+
       var
          lt,rt : ttreetyp;
          t : ptree;
@@ -907,41 +936,28 @@ unit pass_1;
 
          { if both are boolean: }
          if ((ld^.deftype=orddef) and
-            (porddef(ld)^.typ=bool8bit)) and
+            (porddef(ld)^.typ in [bool8bit,bool16bit,bool32bit])) and
             ((rd^.deftype=orddef) and
-            (porddef(rd)^.typ=bool8bit)) then
+            (porddef(rd)^.typ in [bool8bit,bool16bit,bool32bit])) then
            begin
-              if (p^.treetype=andn) or (p^.treetype=orn) then
-                begin
-                   calcregisters(p,0,0,0);
-                   p^.location.loc:=LOC_JUMP;
-                end
-              else if p^.treetype in [unequaln,equaln,xorn] then
-                begin
-                   { I'am not very content with this solution, but it's
-                     a working hack    (FK)                             }
-                   p^.left:=gentypeconvnode(p^.left,u8bitdef);
-                   p^.right:=gentypeconvnode(p^.right,u8bitdef);
-                   p^.left^.convtyp:=tc_bool_2_int;
-                   p^.left^.explizit:=true;
-                   firstpass(p^.left);
-                   p^.left^.resulttype:=booldef;
-                   p^.right^.convtyp:=tc_bool_2_int;
-                   p^.right^.explizit:=true;
-                   firstpass(p^.right);
-                   p^.right^.resulttype:=booldef;
-                   calcregisters(p,1,0,0);
-                   { is done commonly for all data types
-                   p^.location.loc:=LOC_FLAGS;
-                   p^.resulttype:=booldef;
-                   }
-                end
-              else Message(sym_e_type_mismatch);
+             case p^.treetype of
+             andn,orn : begin
+                          calcregisters(p,0,0,0);
+                          p^.location.loc:=LOC_JUMP;
+                        end;
+             unequaln,
+          equaln,xorn : begin
+                          make_bool_equal_size(p);
+                          calcregisters(p,1,0,0);
+                        end
+             else
+               Message(sym_e_type_mismatch);
+             end;
            end
          { wenn beides vom Char dann keine Konvertiereung einfgen }
          { h”chstens es handelt sich um einen +-Operator           }
          else if ((rd^.deftype=orddef) and (porddef(rd)^.typ=uchar)) and
-            ((ld^.deftype=orddef) and (porddef(ld)^.typ=uchar)) then
+                 ((ld^.deftype=orddef) and (porddef(ld)^.typ=uchar)) then
             begin
                if p^.treetype=addn then
                  begin
@@ -1929,7 +1945,7 @@ unit pass_1;
                  { maybe type conversion }
                  if (p^.right^.resulttype^.deftype<>enumdef) and
                   not ((p^.right^.resulttype^.deftype=orddef) and
-                  (Porddef(p^.right^.resulttype)^.typ in [bool8bit,uchar])) then
+                  (Porddef(p^.right^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit,uchar])) then
                         begin
                                 p^.right:=gentypeconvnode(p^.right,s32bitdef);
                                 { once more firstpass }
@@ -2187,19 +2203,31 @@ unit pass_1;
     procedure first_bool_int(var p : ptree);
        begin
           p^.location.loc:=LOC_REGISTER;
+          { Florian I think this is overestimated
+            but I still do not really understand how to get this right (PM) }
+          { Hmmm, I think we need only one reg to return the result of      }
+          { this node => so }
           if p^.registers32<1 then
             p^.registers32:=1;
+          {  should work (FK)
+          p^.registers32:=p^.left^.registers32+1;}
        end;
 
     procedure first_int_bool(var p : ptree);
 
        begin
           p^.location.loc:=LOC_REGISTER;
+          { Florian I think this is overestimated
+            but I still do not really understand how to get this right (PM) }
+          { Hmmm, I think we need only one reg to return the result of      }
+          { this node => so }
           p^.left:=gentypeconvnode(p^.left,s32bitdef);
           firstpass(p^.left);
           if p^.registers32<1 then
             p^.registers32:=1;
-          p^.resulttype:=booldef;
+{          p^.resulttype:=booldef; }
+          {  should work (FK)
+          p^.registers32:=p^.left^.registers32+1;}
        end;
 
     procedure first_proc_to_procvar(var p : ptree);
@@ -2708,8 +2736,8 @@ unit pass_1;
         begin
            is_in_limit:=(def_from^.deftype = orddef) and
                         (def_to^.deftype = orddef) and
-                        (porddef(def_from)^.von>porddef(def_to)^.von) and
-                        (porddef(def_from)^.bis<porddef(def_to)^.bis);
+                        (porddef(def_from)^.low>porddef(def_to)^.low) and
+                        (porddef(def_from)^.high<porddef(def_to)^.high);
         end;
 
 
@@ -3038,8 +3066,8 @@ unit pass_1;
                                          begin
                                            def_to:=hp^.next^.nextpara^.data;
                                            if (conv_to^.size>def_to^.size) or
-                                              ((porddef(conv_to)^.von<porddef(def_to)^.von) and
-                                              (porddef(conv_to)^.bis>porddef(def_to)^.bis)) then
+                                              ((porddef(conv_to)^.low<porddef(def_to)^.low) and
+                                              (porddef(conv_to)^.high>porddef(def_to)^.high)) then
                                              begin
                                                 hp2:=procs;
                                                 procs:=hp;
@@ -3370,9 +3398,9 @@ unit pass_1;
              orddef:
                begin
                   if p^.inlinenumber=in_low_x then
-                    v:=porddef(Adef)^.von
+                    v:=porddef(Adef)^.low
                   else
-                    v:=porddef(Adef)^.bis;
+                    v:=porddef(Adef)^.high;
                   hp:=genordinalconstnode(v,adef);
                   firstpass(hp);
                   disposetree(p);
@@ -4921,42 +4949,15 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.24  1998-06-02 17:03:01  pierre
+  Revision 1.25  1998-06-03 22:48:57  peter
+    + wordbool,longbool
+    * rename bis,von -> high,low
+    * moved some systemunit loading/creating to psystem.pas
+
+  Revision 1.24  1998/06/02 17:03:01  pierre
     *  with node corrected for objects
     * small bugs for SUPPORT_MMX fixed
 
-<<<<<<< PASS_1.pas
-  Revision 1.22  1998/05/28 17:26:49  peter
-    * fixed -R switch, it didn't work after my previous akt/init patch
-    * fixed bugs 110,130,136
-
-  Revision 1.21  1998/05/25 17:11:41  pierre
-    * firstpasscount bug fixed
-      now all is already set correctly the first time
-      under EXTDEBUG try -gp to skip all other firstpasses
-      it works !!
-    * small bug fixes
-      - for smallsets with -dTESTSMALLSET
-      - some warnings removed (by correcting code !)
-
-  Revision 1.20  1998/05/23 01:21:17  peter
-    + aktasmmode, aktoptprocessor, aktoutputformat
-    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
-    + $LIBNAME to set the library name where the unit will be put in
-    * splitted cgi386 a bit (codeseg to large for bp7)
-    * nasm, tasm works again. nasm moved to ag386nsm.pas
-
-  Revision 1.19  1998/05/20 09:42:34  pierre
-    + UseTokenInfo now default
-    * unit in interface uses and implementation uses gives error now
-    * only one error for unknown symbol (uses lastsymknown boolean)
-      the problem came from the label code !
-    + first inlined procedures and function work
-      (warning there might be allowed cases were the result is still wrong !!)
-    * UseBrower updated gives a global list of all position of all used symbols
-      with switch -gb
-
-=======
   Revision 1.23  1998/06/01 16:50:20  peter
     + boolean -> ord conversion
     * fixed ord -> boolean conversion

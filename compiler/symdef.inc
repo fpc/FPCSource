@@ -534,8 +534,8 @@
       begin
          tdef.init;
          deftype:=orddef;
-         von:=v;
-         bis:=b;
+         low:=v;
+         high:=b;
          typ:=t;
          setsize;
       end;
@@ -545,8 +545,8 @@
          tdef.load;
          deftype:=orddef;
          typ:=tbasetype(readbyte);
-         von:=readlong;
-         bis:=readlong;
+         low:=readlong;
+         high:=readlong;
          rangenr:=0;
          setsize;
       end;
@@ -555,28 +555,28 @@
       begin
          if typ=uauto then
            begin
-              { generate a unsigned range if bis<0 and von>=0 }
-              if (von>=0) and (bis<0) then
+              { generate a unsigned range if high<0 and low>=0 }
+              if (low>=0) and (high<0) then
                 begin
                    savesize:=4;
                    typ:=u32bit;
                 end
-              else if (von>=0) and (bis<=255) then
+              else if (low>=0) and (high<=255) then
                 begin
                    savesize:=1;
                    typ:=u8bit;
                 end
-              else if (von>=-128) and (bis<=127) then
+              else if (low>=-128) and (high<=127) then
                 begin
                    savesize:=1;
                    typ:=s8bit;
                 end
-              else if (von>=0) and (bis<=65536) then
+              else if (low>=0) and (high<=65536) then
                 begin
                    savesize:=2;
                    typ:=u16bit;
                 end
-              else if (von>=-32768) and (bis<=32767) then
+              else if (low>=-32768) and (high<=32767) then
                 begin
                    savesize:=2;
                    typ:=s16bit;
@@ -588,14 +588,19 @@
                 end;
            end
          else
-           case typ of
-              uchar,u8bit,bool8bit,s8bit : savesize:=1;
-              u16bit,s16bit : savesize:=2;
-              s32bit,u32bit : savesize:=4;
-              else savesize:=0;
+           begin
+             case typ of
+           u8bit,s8bit,
+        uchar,bool8bit : savesize:=1;
+         u16bit,s16bit,
+             bool16bit : savesize:=2;
+         s32bit,u32bit,
+             bool32bit : savesize:=4;
+             else
+               savesize:=0;
+             end;
            end;
-
-         { there are no entrys for range checking }
+       { there are no entrys for range checking }
          rangenr:=0;
       end;
 
@@ -609,15 +614,15 @@
                 datasegment^.concat(new(pai_symbol,init_global('R_'+current_module^.mainsource^+tostr(rangenr))))
               else
                 datasegment^.concat(new(pai_symbol,init('R_'+tostr(rangenr))));
-              if von<=bis then
+              if low<=high then
                 begin
-                   datasegment^.concat(new(pai_const,init_32bit(von)));
-                   datasegment^.concat(new(pai_const,init_32bit(bis)));
+                   datasegment^.concat(new(pai_const,init_32bit(low)));
+                   datasegment^.concat(new(pai_const,init_32bit(high)));
                 end
               { for u32bit we need two bounds }
               else
                 begin
-                   datasegment^.concat(new(pai_const,init_32bit(von)));
+                   datasegment^.concat(new(pai_const,init_32bit(low)));
                    datasegment^.concat(new(pai_const,init_32bit($7fffffff)));
                    inc(nextlabelnr);
                    if (cs_smartlink in aktswitches) then
@@ -625,7 +630,7 @@
                    else
                      datasegment^.concat(new(pai_symbol,init('R_'+tostr(rangenr+1))));
                    datasegment^.concat(new(pai_const,init_32bit($80000000)));
-                   datasegment^.concat(new(pai_const,init_32bit(bis)));
+                   datasegment^.concat(new(pai_const,init_32bit(high)));
                 end;
            end;
       end;
@@ -637,8 +642,8 @@
 {$endif}
          tdef.write;
          writebyte(byte(typ));
-         writelong(von);
-         writelong(bis);
+         writelong(low);
+         writelong(high);
 {$ifdef NEWPPU}
          ppufile^.writeentry(iborddef);
 {$endif}
@@ -648,13 +653,15 @@
     function torddef.stabstring : pchar;
       begin
         case typ of
-         uvoid : stabstring := strpnew(numberstring+';');
+            uvoid : stabstring := strpnew(numberstring+';');
          {GDB 4.12 for go32 doesn't like boolean as range for 0 to 1 !!!}
-         bool8bit : stabstring := strpnew('r'+numberstring+';0;255;');
+         bool8bit,
+        bool16bit,
+        bool32bit : stabstring := strpnew('r'+numberstring+';0;255;');
          { u32bit : stabstring := strpnew('r'+
               s32bitdef^.numberstring+';0;-1;'); }
         else
-          stabstring := strpnew('r'+s32bitdef^.numberstring+';'+tostr(von)+';'+tostr(bis)+';');
+          stabstring := strpnew('r'+s32bitdef^.numberstring+';'+tostr(low)+';'+tostr(high)+';');
         end;
       end;
 {$endif GDB}
@@ -2368,7 +2375,12 @@
 
 {
   $Log$
-  Revision 1.2  1998-05-31 14:13:37  peter
+  Revision 1.3  1998-06-03 22:49:03  peter
+    + wordbool,longbool
+    * rename bis,von -> high,low
+    * moved some systemunit loading/creating to psystem.pas
+
+  Revision 1.2  1998/05/31 14:13:37  peter
     * fixed call bugs with assembler readers
     + OPR_SYMBOL to hold a symbol in the asm parser
     * fixed staticsymtable vars which were acessed through %ebp instead of

@@ -294,7 +294,7 @@ unit tree;
   implementation
 
     uses
-       scanner,verbose,files,types,pbase;
+       verbose,files;
 
 {****************************************************************************
         this is a pool for the tree nodes to get more performance
@@ -1534,9 +1534,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.11  1998-06-01 16:50:23  peter
-    + boolean -> ord conversion
-    * fixed ord -> boolean conversion
+  Revision 1.12  1998-06-03 22:49:06  peter
+    + wordbool,longbool
+    * rename bis,von -> high,low
+    * moved some systemunit loading/creating to psystem.pas
 
   Revision 1.10  1998/05/20 09:42:38  pierre
     + UseTokenInfo now default

@@ -421,59 +421,70 @@
          firstcomplex(p);
          { handling boolean expressions extra: }
          if ((p^.left^.resulttype^.deftype=orddef) and
-            (porddef(p^.left^.resulttype)^.typ=bool8bit)) or
+            (porddef(p^.left^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit])) or
             ((p^.right^.resulttype^.deftype=orddef) and
-            (porddef(p^.right^.resulttype)^.typ=bool8bit)) then
+            (porddef(p^.right^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit])) then
            begin
-              if (p^.treetype=andn) or (p^.treetype=orn) then
-                begin
-                   p^.location.loc:=LOC_JUMP;
-                   cmpop:=false;
-                   case p^.treetype of
-                     andn : begin
-                               otl:=truelabel;
-                               getlabel(truelabel);
-                               secondpass(p^.left);
-                               maketojumpbool(p^.left);
-                               emitl(A_LABEL,truelabel);
-                               truelabel:=otl;
-                            end;
-                     orn : begin
-                              ofl:=falselabel;
-                              getlabel(falselabel);
-                              secondpass(p^.left);
-                              maketojumpbool(p^.left);
-                              emitl(A_LABEL,falselabel);
-                              falselabel:=ofl;
-                           end;
-                     else Message(sym_e_type_mismatch);
-                   end;
-                  secondpass(p^.right);
-                  maketojumpbool(p^.right);
-                end
-              else if p^.treetype in [unequaln,equaln,xorn] then
-                begin
-                   opsize:=S_B;
-                   if p^.left^.treetype=ordconstn then
-                     begin
-                        swapp:=p^.right;
-                        p^.right:=p^.left;
-                        p^.left:=swapp;
-                        p^.swaped:=not(p^.swaped);
+             if (porddef(p^.left^.resulttype)^.typ=bool8bit) or
+                (porddef(p^.right^.resulttype)^.typ=bool8bit) then
+               opsize:=S_B
+             else
+               if (porddef(p^.left^.resulttype)^.typ=bool16bit) or
+                  (porddef(p^.right^.resulttype)^.typ=bool16bit) then
+                 opsize:=S_W
+             else
+               opsize:=S_L;
+             case p^.treetype of
+              andn,
+               orn : begin
+                       p^.location.loc:=LOC_JUMP;
+                       cmpop:=false;
+                       case p^.treetype of
+                        andn : begin
+                                  otl:=truelabel;
+                                  getlabel(truelabel);
+                                  secondpass(p^.left);
+                                  maketojumpbool(p^.left);
+                                  emitl(A_LABEL,truelabel);
+                                  truelabel:=otl;
+                               end;
+                        orn : begin
+                                 ofl:=falselabel;
+                                 getlabel(falselabel);
+                                 secondpass(p^.left);
+                                 maketojumpbool(p^.left);
+                                 emitl(A_LABEL,falselabel);
+                                 falselabel:=ofl;
+                              end;
+                       else
+                         Message(sym_e_type_mismatch);
+                       end;
+                       secondpass(p^.right);
+                       maketojumpbool(p^.right);
                      end;
-                   secondpass(p^.left);
-                   p^.location:=p^.left^.location;
-                   { are enough registers free ? }
-                   pushed:=maybe_push(p^.right^.registers32,p);
-                   secondpass(p^.right);
-                   if pushed then restore(p);
-                   goto do_normal;
-                end
-              else Message(sym_e_type_mismatch);
+          unequaln,
+       equaln,xorn : begin
+                       if p^.left^.treetype=ordconstn then
+                         begin
+                            swapp:=p^.right;
+                            p^.right:=p^.left;
+                            p^.left:=swapp;
+                            p^.swaped:=not(p^.swaped);
+                         end;
+                       secondpass(p^.left);
+                       p^.location:=p^.left^.location;
+                       { are enough registers free ? }
+                       pushed:=maybe_push(p^.right^.registers32,p);
+                       secondpass(p^.right);
+                       if pushed then restore(p);
+                       goto do_normal;
+                    end
+             else
+               Message(sym_e_type_mismatch);
+             end
            end
-         else
-         if (p^.left^.resulttype^.deftype=setdef) and
-            not(psetdef(p^.left^.resulttype)^.settype=smallset) then
+         else if (p^.left^.resulttype^.deftype=setdef) and
+                 not(psetdef(p^.left^.resulttype)^.settype=smallset) then
            begin
               mboverflow:=false;
               secondpass(p^.left);
@@ -728,6 +739,7 @@
                                   { first give free, then demand new register }
                                   case opsize of
                                      S_L : hregister:=getregister32;
+                                     S_W : hregister:=reg32toreg16(getregister32);
                                      S_B : hregister:=reg32toreg8(getregister32);
                                   end;
                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
@@ -1273,7 +1285,12 @@
 
 {
      $Log$
-     Revision 1.8  1998-05-11 13:07:53  peter
+     Revision 1.9  1998-06-03 22:48:53  peter
+       + wordbool,longbool
+       * rename bis,von -> high,low
+       * moved some systemunit loading/creating to psystem.pas
+
+     Revision 1.8  1998/05/11 13:07:53  peter
        + $ifdef NEWPPU for the new ppuformat
        + $define GDB not longer required
        * removed all warnings and stripped some log comments

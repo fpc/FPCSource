@@ -1242,14 +1242,14 @@ unit pdecl;
                             begin
                                if p=nil then
                                  begin
-                                    ap:=new(parraydef,init(porddef(pt^.resulttype)^.von,
-                                      porddef(pt^.resulttype)^.bis,pt^.resulttype));
+                                    ap:=new(parraydef,init(porddef(pt^.resulttype)^.low,
+                                      porddef(pt^.resulttype)^.high,pt^.resulttype));
                                     p:=ap;
                                  end
                                else
                                  begin
-                                    ap^.definition:=new(parraydef,init(porddef(pt^.resulttype)^.von,
-                                      porddef(pt^.resulttype)^.bis,pt^.resulttype));
+                                    ap^.definition:=new(parraydef,init(porddef(pt^.resulttype)^.low,
+                                      porddef(pt^.resulttype)^.high,pt^.resulttype));
                                     ap:=parraydef(ap^.definition);
                                  end;
                             end;
@@ -1370,8 +1370,8 @@ unit pdecl;
                                      uchar : p:=new(psetdef,init(hp1,255));
                                      u8bit,s8bit,u16bit,s16bit,s32bit :
                                        begin
-                                          if (porddef(hp1)^.von>=0) then
-                                            p:=new(psetdef,init(hp1,porddef(hp1)^.bis))
+                                          if (porddef(hp1)^.low>=0) then
+                                            p:=new(psetdef,init(hp1,porddef(hp1)^.high))
                                           else Message(sym_e_ill_type_decl_set);
                                        end;
                                   else Message(sym_e_ill_type_decl_set);
@@ -1797,7 +1797,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.21  1998-06-03 22:14:19  florian
+  Revision 1.22  1998-06-03 22:48:59  peter
+    + wordbool,longbool
+    * rename bis,von -> high,low
+    * moved some systemunit loading/creating to psystem.pas
+
+  Revision 1.21  1998/06/03 22:14:19  florian
     * problem with sizes of classes fixed (if the anchestor was declared
       forward, the compiler doesn't update the child classes size)
 

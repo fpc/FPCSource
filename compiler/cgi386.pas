@@ -626,11 +626,16 @@ implementation
 
       var
          hl : plabel;
-
+         opsize : topsize;
       begin
          if (p^.resulttype^.deftype=orddef) and
-            (porddef(p^.resulttype)^.typ=bool8bit) then
+            (porddef(p^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit]) then
               begin
+                 case porddef(p^.resulttype)^.typ of
+                   bool8bit : opsize:=S_B;
+                  bool16bit : opsize:=S_W;
+                  bool32bit : opsize:=S_L;
+                 end;
                  case p^.location.loc of
                     LOC_JUMP : begin
                                   hl:=truelabel;
@@ -649,30 +654,36 @@ implementation
                     LOC_REGISTER : begin
                                       secondpass(p^.left);
                                       p^.location.register:=p^.left^.location.register;
-                                      exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,S_B,1,p^.location.register)));
+                                      exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
                                    end;
                     LOC_CREGISTER : begin
                                        secondpass(p^.left);
                                        p^.location.loc:=LOC_REGISTER;
-                                       p^.location.register:=reg32toreg8(getregister32);
-                                       emit_reg_reg(A_MOV,S_B,p^.left^.location.register,
-                                         p^.location.register);
-                                       exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,S_B,1,p^.location.register)));
+                                       case porddef(p^.resulttype)^.typ of
+                                         bool8bit : p^.location.register:=reg32toreg8(getregister32);
+                                        bool16bit : p^.location.register:=reg32toreg16(getregister32);
+                                        bool32bit : p^.location.register:=getregister32;
+                                       end;
+                                       emit_reg_reg(A_MOV,opsize,p^.left^.location.register,p^.location.register);
+                                       exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
                                     end;
-                    LOC_REFERENCE,LOC_MEM : begin
-                                              secondpass(p^.left);
-                                              del_reference(p^.left^.location.reference);
-                                              p^.location.loc:=LOC_REGISTER;
-                                              p^.location.register:=reg32toreg8(getregister32);
-                                              if p^.left^.location.loc=LOC_CREGISTER then
-                                                emit_reg_reg(A_MOV,S_B,p^.left^.location.register,
-                                                   p^.location.register)
-                                              else
-                                                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,
-                                              newreference(p^.left^.location.reference),
-                                                p^.location.register)));
-                                              exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,S_B,1,p^.location.register)));
-                                           end;
+                    LOC_REFERENCE,
+                          LOC_MEM : begin
+                                       secondpass(p^.left);
+                                       del_reference(p^.left^.location.reference);
+                                       p^.location.loc:=LOC_REGISTER;
+                                       case porddef(p^.resulttype)^.typ of
+                                         bool8bit : p^.location.register:=reg32toreg8(getregister32);
+                                        bool16bit : p^.location.register:=reg32toreg16(getregister32);
+                                        bool32bit : p^.location.register:=getregister32;
+                                       end;
+                                       if p^.left^.location.loc=LOC_CREGISTER then
+                                         emit_reg_reg(A_MOV,opsize,p^.left^.location.register,p^.location.register)
+                                       else
+                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                           newreference(p^.left^.location.reference),p^.location.register)));
+                                       exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
+                                     end;
                  end;
               end
 {$ifdef SUPPORT_MMX}
@@ -1262,7 +1273,7 @@ implementation
                            orddef :
                              begin
                                 case porddef(p^.resulttype)^.typ of
-                                  s32bit,u32bit :
+                                  s32bit,u32bit,bool32bit :
                                     begin
                                        inc(pushedparasize,4);
                                        if inlined then
@@ -1276,7 +1287,7 @@ implementation
                                        else
                                          emit_push_mem(tempreference);
                                     end;
-                                  s8bit,u8bit,uchar,bool8bit,s16bit,u16bit :
+                                  s8bit,u8bit,uchar,bool8bit,bool16bit,s16bit,u16bit :
                                     begin
                                       inc(pushedparasize,2);
                                       if inlined then
@@ -2194,7 +2205,7 @@ implementation
                      begin
                         p^.location.loc:=LOC_REGISTER;
                         case porddef(p^.resulttype)^.typ of
-                          s32bit,u32bit :
+                          s32bit,u32bit,bool32bit :
                             begin
 {$ifdef test_dest_loc}
                                if dest_loc_known and (dest_loc_tree=p) then
@@ -2220,7 +2231,7 @@ implementation
                                           p^.location.register:=reg32toreg8(hregister);
                                        end;
                                   end;
-                                s16bit,u16bit :
+                                s16bit,u16bit,bool16bit :
                                   begin
 {$ifdef test_dest_loc}
                                      if dest_loc_known and (dest_loc_tree=p) then
@@ -2621,7 +2632,9 @@ implementation
                                                                        emitcall('READ_TEXT_CHAR',true)
                                                                     else
                                                                        emitcall('WRITE_TEXT_CHAR',true);
-                                                         bool8bit : if  doread then
+                                                         bool8bit,
+                                                         bool16bit,
+                                                         bool32bit : if  doread then
                                                                        { emitcall('READ_TEXT_BOOLEAN',true) }
                                                                        Message(parser_e_illegal_parameter_list)
                                                                     else
@@ -4119,36 +4132,32 @@ implementation
                  if (procinfo.retdef^.deftype=orddef) then
                 begin
                    case porddef(procinfo.retdef)^.typ of
-                      s32bit,u32bit : if is_mem then
-                                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+            s32bit,u32bit,bool32bit : if is_mem then
+                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                                           newreference(p^.left^.location.reference),R_EAX)))
                                       else
-                                        emit_reg_reg(A_MOV,S_L,
-                                          p^.left^.location.register,R_EAX);
-                           u8bit,s8bit,uchar,bool8bit : if is_mem then
+                                        emit_reg_reg(A_MOV,S_L,p^.left^.location.register,R_EAX);
+         u8bit,s8bit,uchar,bool8bit : if is_mem then
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,
                                           newreference(p^.left^.location.reference),R_AL)))
                                       else
-                                        emit_reg_reg(A_MOV,S_B,
-                                          p^.left^.location.register,R_AL);
-                      s16bit,u16bit : if is_mem then
+                                        emit_reg_reg(A_MOV,S_B,p^.left^.location.register,R_AL);
+            s16bit,u16bit,bool16bit : if is_mem then
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_W,
                                           newreference(p^.left^.location.reference),R_AX)))
                                       else
-                                        emit_reg_reg(A_MOV,S_W,
-                                                    p^.left^.location.register,R_AX);
+                                        emit_reg_reg(A_MOV,S_W,p^.left^.location.register,R_AX);
                    end;
                 end
                   else
-                     if (procinfo.retdef^.deftype in
-                          [pointerdef,enumdef,procvardef]) then
+                     if (procinfo.retdef^.deftype in [pointerdef,enumdef,procvardef]) then
                        begin
                            if is_mem then
-                              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                newreference(p^.left^.location.reference),R_EAX)))
+                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                               newreference(p^.left^.location.reference),R_EAX)))
                            else
-                              exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
-                                p^.left^.location.register,R_EAX)));
+                             exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
+                               p^.left^.location.register,R_EAX)));
                        end
                  else
                     if (procinfo.retdef^.deftype=floatdef) then
@@ -4159,8 +4168,7 @@ implementation
                                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                               newreference(p^.left^.location.reference),R_EAX)))
                           else
-                            emit_reg_reg(A_MOV,S_L,
-                              p^.left^.location.register,R_EAX);
+                            emit_reg_reg(A_MOV,S_L,p^.left^.location.register,R_EAX);
                        end
                      else
                        if is_mem then
@@ -4980,21 +4988,13 @@ do_jmp:
 
                                   { possibly no 32 bit register are needed }
                                   if  (regvars[i]^.definition^.deftype=orddef) and
-                                      (
-                                       (porddef(regvars[i]^.definition)^.typ=bool8bit) or
-                                       (porddef(regvars[i]^.definition)^.typ=uchar) or
-                                       (porddef(regvars[i]^.definition)^.typ=u8bit) or
-                                       (porddef(regvars[i]^.definition)^.typ=s8bit)
-                                      ) then
+                                      (porddef(regvars[i]^.definition)^.typ in [bool8bit,uchar,u8bit,s8bit]) then
                                     begin
                                        regvars[i]^.reg:=reg32toreg8(varregs[i]);
                                        regsize:=S_B;
                                     end
                                   else if  (regvars[i]^.definition^.deftype=orddef) and
-                                      (
-                                       (porddef(regvars[i]^.definition)^.typ=u16bit) or
-                                       (porddef(regvars[i]^.definition)^.typ=s16bit)
-                                      ) then
+                                           (porddef(regvars[i]^.definition)^.typ in [bool16bit,u16bit,s16bit]) then
                                     begin
                                        regvars[i]^.reg:=reg32toreg16(varregs[i]);
                                        regsize:=S_W;
@@ -5059,7 +5059,12 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.30  1998-06-02 17:03:00  pierre
+  Revision 1.31  1998-06-03 22:48:52  peter
+    + wordbool,longbool
+    * rename bis,von -> high,low
+    * moved some systemunit loading/creating to psystem.pas
+
+  Revision 1.30  1998/06/02 17:03:00  pierre
     *  with node corrected for objects
     * small bugs for SUPPORT_MMX fixed
 
