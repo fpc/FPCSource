@@ -170,10 +170,6 @@ normal conditions)}
     MOU_MICKEYS =2;
 
 type
-
-(*This should be removed as soon as cardinal arithmetic in FPC works OK.*)
-    cardinal=longint;
-
 {unnecessary, just FYI}
     THMOU=word;
     PHMOU=^THMOU;

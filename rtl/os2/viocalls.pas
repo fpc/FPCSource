@@ -343,10 +343,6 @@ resolution.}
 
 
 type
-
-(*This should be removed as soon as cardinal arithmetic in FPC works OK.*)
-    cardinal=longint;
-
 {unnecessary, just FYI}
     THVio=word;
     PHVio=^THVio;

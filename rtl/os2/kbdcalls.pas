@@ -186,10 +186,6 @@ normal conditions)}
 
 
 type
-
-(*This should be removed as soon as cardinal arithmetic in FPC works OK.*)
-    cardinal=longint;
-
 {TKbdKeyInfo - record type for character data for KbdCharIn and KbdPeek}
 (*   #pragma pack(2) ??? *)
     TKbdKeyInfo=record
