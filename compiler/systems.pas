@@ -152,7 +152,7 @@ interface
           exeext,
           defext,
           scriptext : string[4];
-          libprefix : string[3];
+          libprefix : string[4];
           Cprefix   : string[2];
           newline   : string[2];
           endian    : tendian;
@@ -313,7 +313,7 @@ implementation
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
-            libprefix    : 'lib';
+            libprefix    : 'libp';
             Cprefix      : '';
             newline      : #10;
             endian       : endian_little;
@@ -335,7 +335,7 @@ implementation
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
-            libprefix    : 'lib';
+            libprefix    : 'libp';
             Cprefix      : '';
             newline      : #10;
             endian       : endian_little;
@@ -379,7 +379,7 @@ implementation
             exeext       : '.exe';
             defext       : '.def';
             scriptext    : '.bat';
-            libprefix    : 'lib';
+            libprefix    : 'libp';
             Cprefix      : '_';
             newline      : #13#10;
             endian       : endian_little;
@@ -489,7 +489,7 @@ implementation
             exeext       : '';
             defext       : '';
             scriptext    : '.sh';
-            libprefix    : 'lib';
+            libprefix    : 'libp';
             Cprefix      : '';
             newline      : #10;
             endian       : endian_big;
@@ -511,7 +511,7 @@ implementation
             exeext       : '';
             defext       : '';
             scriptext    : '.sh';
-            libprefix    : 'lib';
+            libprefix    : 'libp';
             Cprefix      : '_';
             newline      : #10;
             endian       : endian_big;
@@ -533,7 +533,7 @@ implementation
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
-            libprefix    : 'lib';
+            libprefix    : 'libp';
             Cprefix      : '';
             newline      : #10;
             endian       : endian_little;
@@ -555,7 +555,7 @@ implementation
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
-            libprefix    : 'lib';
+            libprefix    : 'libp';
             Cprefix      : '';
             newline      : #10;
             endian       : endian_big;
@@ -1709,7 +1709,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-10-15 09:08:58  peter
+  Revision 1.12  2001-01-06 20:15:43  peter
+    * merged libp library prefix
+
+  Revision 1.11  2000/10/15 09:08:58  peter
     * use System for the systemunit instead of target dependent
 
   Revision 1.10  2000/09/24 21:12:41  hajny
