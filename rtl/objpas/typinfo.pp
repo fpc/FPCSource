@@ -190,8 +190,11 @@ Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo;
 Function FindPropInfo(Instance: TObject; const PropName: string): PPropInfo;
 Function FindPropInfo(AClass:TClass;const PropName: string): PPropInfo;
 Procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
-Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList) : Integer;
-
+{$ifdef ver1_0}
+Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean):longint;
+{$else}
+Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean = true):longint;
+{$endif}
 // Property information routines.
 Function IsStoredProp(Instance: TObject;PropInfo : PPropInfo) : Boolean;
 Function IsStoredProp(Instance: TObject; const PropName: string): Boolean;
@@ -572,7 +575,6 @@ begin
     GetPropInfos (TD^.ParentInfo,PropList);
 end;
 
-
 Procedure InsertProp (PL : PProplist;PI : PPropInfo; Count : longint);
 Var
   I : Longint;
@@ -585,18 +587,37 @@ begin
   PL^[I]:=PI;
 end;
 
+Procedure InsertPropnosort (PL : PProplist;PI : PPropInfo; Count : longint);
+begin
+  PL^[Count]:=PI;
+end;
 
-Function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList) : Integer;
+Type TInsertProp = Procedure (PL : PProplist;PI : PPropInfo; Count : longint); 
+
+//Const InsertProps : array[false..boolean] of TInsertProp = (InsertPropNoSort,InsertProp);
+
+{$ifdef ver1_0}
+Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean):longint;
+{$else}
+Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean = true):longint;
+{$endif}
+
 {
   Store Pointers to property information OF A CERTAIN KIND in the list pointed
   to by proplist. PRopList must contain enough space to hold ALL
   properties.
 }
+
 Var
   TempList : PPropList;
   PropInfo : PPropinfo;
   I,Count : longint;
+  DoInsertProp : TInsertProp;
 begin
+  if sorted then
+    DoInsertProp:=@InsertProp
+  else
+    DoInsertProp:=@InsertPropnosort;
   Result:=0;
   Count:=GetTypeData(TypeInfo)^.Propcount;
   If Count>0 then
@@ -610,7 +631,7 @@ begin
             If PropInfo^.PropType^.Kind in TypeKinds then
               begin
                 If (PropList<>Nil) then
-                  InsertProp(PropList,PropInfo,Result);
+                  DoInsertProp(PropList,PropInfo,Result);
                 Inc(Result);
               end;
           end;
@@ -1496,7 +1517,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  2005-02-14 17:13:31  peter
+  Revision 1.37  2005-02-22 12:14:56  marco
+   * getproplist sorted param added.
+
+  Revision 1.36  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.35  2005/02/08 16:10:29  florian
