@@ -201,6 +201,13 @@ begin
         else
           hs:=status.currentsource+'('+tostr(status.currentline)
               +','+tostr(status.currentcolumn)+') '+hs;
+      end
+{$ifdef Debug}
+     else
+      begin
+         if (Level<=V_ShowFile) then
+           hs:='No line '+hs;
+{$endif Debug}
       end;
    { add the message to the text }
      hs:=hs+s;
@@ -234,7 +241,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-08-18 09:24:40  pierre
+  Revision 1.4  1998-08-18 14:17:08  pierre
+    * bug about assigning the return value of a function to
+      a procvar fixed : warning
+      assigning a proc to a procvar need @ in FPC mode !!
+    * missing file/line info restored
+
+  Revision 1.3  1998/08/18 09:24:40  pierre
     * small warning position bug fixed
     * support_mmx switches splitting was missing
     * rhide error and warning output corrected

@@ -1011,7 +1011,7 @@ unit pexpr;
                   begin
                     if (pd^.deftype=procvardef) then
                      begin
-                       if getprocvar then
+                       if getprocvar and proc_to_procvar_equal(pprocvardef(pd),getprocvardef) then
                          again:=false
                        else
                          if (token=LKLAMMER) or
@@ -1672,7 +1672,9 @@ unit pexpr;
     begin
 {        if pred_level=high(Toperator_precedence) then }
          if pred_level=opmultiply then
-            p1:=factor(getprocvar)
+         { this IS wrong   !!! PM
+            p1:=factor(getprocvar)}
+            p1:=factor(false)
         else
             p1:=sub_expr(succ(pred_level),true);
         repeat
@@ -1739,9 +1741,13 @@ unit pexpr;
                             it must be assigned to a procvar }
                             { should be recursive for a:=b:=c !!! }
                             if (p1^.resulttype<>nil) and (p1^.resulttype^.deftype=procvardef) then
-                              getprocvar:=true;
+                              begin
+                                 getprocvar:=true;
+                                 getprocvardef:=pprocvardef(p1^.resulttype);
+                              end;
                             p2:=sub_expr(opcompare,true);
-                            if getprocvar and (p2^.treetype=calln) then
+                            if getprocvar and (p2^.treetype=calln) and
+                               (proc_to_procvar_equal(getprocvardef,pprocsym(p2^.symtableentry)^.definition)) then
                               begin
                                  p2^.treetype:=loadn;
                                  p2^.resulttype:=pprocsym(p2^.symtableprocentry)^.definition;
@@ -1829,7 +1835,13 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.37  1998-08-18 09:24:43  pierre
+  Revision 1.38  1998-08-18 14:17:09  pierre
+    * bug about assigning the return value of a function to
+      a procvar fixed : warning
+      assigning a proc to a procvar need @ in FPC mode !!
+    * missing file/line info restored
+
+  Revision 1.37  1998/08/18 09:24:43  pierre
     * small warning position bug fixed
     * support_mmx switches splitting was missing
     * rhide error and warning output corrected

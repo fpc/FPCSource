@@ -227,7 +227,7 @@ begin
      ((current_module^.unit_index<>lastmoduleidx) or
       (aktfilepos.fileindex<>lastfileidx)) then
    begin
-     status.currentsource:=current_module^.sourcefiles.get_file_name(current_module^.current_index);
+     status.currentsource:=current_module^.sourcefiles.get_file_name(aktfilepos.fileindex);
      lastmoduleidx:=current_module^.unit_index;
      lastfileidx:=aktfilepos.fileindex;
    end;
@@ -335,7 +335,11 @@ begin
    begin
      status.currentsource:=current_module^.sourcefiles.get_file_name(aktfilepos.fileindex);
      lastmoduleidx:=current_module^.unit_index;
-     lastfileidx:=aktfilepos.fileindex;
+     { update lastfileidx only if name known PM }
+     if status.currentsource<>'' then
+       lastfileidx:=aktfilepos.fileindex
+     else
+       lastfileidx:=0;
    end;
 { show comment }
   if do_comment(v,s) or dostop or (status.errorcount>=status.maxerrorcount) then
@@ -385,7 +389,13 @@ end.
 
 {
   $Log$
-  Revision 1.15  1998-08-18 09:24:49  pierre
+  Revision 1.16  1998-08-18 14:17:15  pierre
+    * bug about assigning the return value of a function to
+      a procvar fixed : warning
+      assigning a proc to a procvar need @ in FPC mode !!
+    * missing file/line info restored
+
+  Revision 1.15  1998/08/18 09:24:49  pierre
     * small warning position bug fixed
     * support_mmx switches splitting was missing
     * rhide error and warning output corrected

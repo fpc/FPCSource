@@ -630,7 +630,7 @@ implementation
         plongint(longint(linebuf)+line_no*2)^:=lastlinepos;
 {$endif SourceLine}
       { update for status and call the show status routine }
-        aktfilepos.line:=line_no; { update for v_status }
+        gettokenpos; { update for v_status }
         inc(status.compiledlines);
         ShowStatus;
       end;
@@ -1548,7 +1548,13 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.40  1998-08-11 14:04:33  peter
+  Revision 1.41  1998-08-18 14:17:10  pierre
+    * bug about assigning the return value of a function to
+      a procvar fixed : warning
+      assigning a proc to a procvar need @ in FPC mode !!
+    * missing file/line info restored
+
+  Revision 1.40  1998/08/11 14:04:33  peter
     * auto close an open file and better error msg
 
   Revision 1.39  1998/08/10 14:50:26  peter

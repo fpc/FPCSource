@@ -81,6 +81,9 @@ unit types;
     { equal                                         }
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
 
+    { true if a function can be assigned to a procvar }
+    function proc_to_procvar_equal(def1,def2 : pabstractprocdef) : boolean;
+
     { if l isn't in the range of def a range check error is generated }
     procedure testrange(def : pdef;l : longint);
 
@@ -136,6 +139,19 @@ unit types;
            equal_paras:=false;
       end;
 
+    { true if a function can be assigned to a procvar }
+    function proc_to_procvar_equal(def1,def2 : pabstractprocdef) : boolean;
+
+      begin
+         if is_equal(def1^.retdef,def2^.retdef) and
+            equal_paras(def1^.para1,def2^.para1,false) and
+            ((def1^.options and po_comptatibility_options)=
+             (def2^.options and po_comptatibility_options)) then
+           proc_to_procvar_equal:=true
+         else
+           proc_to_procvar_equal:=false;
+      end;
+      
     { returns true, if def uses FPU }
     function is_fpu(def : pdef) : boolean;
       begin
@@ -862,7 +878,13 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.19  1998-08-18 09:24:48  pierre
+  Revision 1.20  1998-08-18 14:17:14  pierre
+    * bug about assigning the return value of a function to
+      a procvar fixed : warning
+      assigning a proc to a procvar need @ in FPC mode !!
+    * missing file/line info restored
+
+  Revision 1.19  1998/08/18 09:24:48  pierre
     * small warning position bug fixed
     * support_mmx switches splitting was missing
     * rhide error and warning output corrected
@@ -874,7 +896,13 @@ end.
   Revision 1.17  1998/08/05 16:00:17  florian
     * some fixes for ansi strings
     * $log$ to $Log$
-    * $log$ to Revision 1.19  1998-08-18 09:24:48  pierre
+    * $log$ to Revision 1.20  1998-08-18 14:17:14  pierre
+    * $log$ to   * bug about assigning the return value of a function to
+    * $log$ to     a procvar fixed : warning
+    * $log$ to     assigning a proc to a procvar need @ in FPC mode !!
+    * $log$ to   * missing file/line info restored
+    * $log$ to
+    * $log$ to Revision 1.19  1998/08/18 09:24:48  pierre
     * $log$ to   * small warning position bug fixed
     * $log$ to   * support_mmx switches splitting was missing
     * $log$ to   * rhide error and warning output corrected
