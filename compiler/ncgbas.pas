@@ -355,16 +355,8 @@ interface
         else if may_be_in_reg then
           begin
             cgsize := def_cgsize(tempinfo^.restype.def);
-            if (OS_INT = OS_S32) then
-              begin
-                if not(cgsize in [OS_8,OS_16,OS_32,OS_S8,OS_S16,OS_S32]) then
-                  internalerror(2004020202);
-              end
-            else
-              begin
-                if not(cgsize in [OS_8,OS_16,OS_32,OS_64,OS_S8,OS_S16,OS_S32,OS_S64]) then
-                  internalerror(2004020202);
-              end;
+            if (TCGSize2Size[cgsize]>TCGSize2Size[OS_INT]) then
+              internalerror(2004020202);
             tempinfo^.loc.reg := cg.getintregister(exprasmlist,cgsize);
             if (tempinfo^.temptype = tt_persistent) then
               begin
@@ -474,7 +466,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2004-02-03 16:46:51  jonas
+  Revision 1.53  2004-02-03 17:55:50  jonas
+    * cleanup
+
+  Revision 1.52  2004/02/03 16:46:51  jonas
     + support to store ttempcreate/ref/deletenodes in registers
     * put temps for withnodes and some newnodes in registers
      Note: this currently only works because calling ungetregister()
