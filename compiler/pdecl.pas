@@ -169,6 +169,10 @@ unit pdecl;
                           ps^:=p^.value_set^;
                           symtablestack^.insert(new(pconstsym,init(name,constset,longint(ps),p^.resulttype)));
                         end;
+                      niln :
+                        begin
+                          symtablestack^.insert(new(pconstsym,init(name,constnil,0,p^.resulttype)));
+                        end;
                       else
                         Message(cg_e_illegal_expression);
                    end;
@@ -2086,7 +2090,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.79  1998-11-05 12:02:51  peter
+  Revision 1.80  1998-11-13 10:18:09  peter
+    + nil constants
+
+  Revision 1.79  1998/11/05 12:02:51  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 

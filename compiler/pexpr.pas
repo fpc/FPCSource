@@ -1004,6 +1004,7 @@ unit pexpr;
                                                 psetdef(pconstsym(srsym)^.definition));
                                constord : p1:=genordinalconstnode(pconstsym(srsym)^.value,
                                                 pconstsym(srsym)^.definition);
+                               constnil : p1:=genzeronode(niln);
                               end;
                               pd:=p1^.resulttype;
                             end;
@@ -1903,7 +1904,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.73  1998-11-05 12:02:52  peter
+  Revision 1.74  1998-11-13 10:18:11  peter
+    + nil constants
+
+  Revision 1.73  1998/11/05 12:02:52  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 

@@ -269,7 +269,7 @@
        end;
 
        tconsttype = (constord,conststring,constreal,constbool,
-                     constint,constchar,constset);
+                     constint,constchar,constset,constnil);
 
        pconstsym = ^tconstsym;
        tconstsym = object(tsym)
@@ -319,7 +319,10 @@
 
 {
   $Log$
-  Revision 1.5  1998-11-05 23:39:32  peter
+  Revision 1.6  1998-11-13 10:18:12  peter
+    + nil constants
+
+  Revision 1.5  1998/11/05 23:39:32  peter
     + typedconst.getsize
 
   Revision 1.4  1998/10/20 08:07:02  pierre
