@@ -1783,7 +1783,7 @@ implementation
                   classh:=procinfo._class.childof;
                   { if inherited; only then we need the method with
                     the same name }
-                  if token=_SEMICOLON then
+                  if token in endtokens then
                    begin
                      hs:=aktprocsym.name;
                      anon_inherited:=true;
@@ -2340,7 +2340,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.103  2003-03-17 16:54:41  peter
+  Revision 1.104  2003-03-17 18:55:30  peter
+    * allow more tokens instead of only semicolon after inherited
+
+  Revision 1.103  2003/03/17 16:54:41  peter
     * support DefaultHandler and anonymous inheritance fixed
       for message methods
 

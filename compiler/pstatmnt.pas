@@ -276,11 +276,11 @@ implementation
            { concats instruction }
            instruc:=cstatementnode.create(p,instruc);
 
-           if not((token=_ELSE) or (token=_OTHERWISE) or (token=_END)) then
+           if not(token in [_ELSE,_OTHERWISE,_END]) then
              consume(_SEMICOLON);
-         until (token=_ELSE) or (token=_OTHERWISE) or (token=_END);
+         until (token in [_ELSE,_OTHERWISE,_END]);
 
-         if (token=_ELSE) or (token=_OTHERWISE) then
+         if (token in [_ELSE,_OTHERWISE]) then
            begin
               if not try_to_consume(_ELSE) then
                 consume(_OTHERWISE);
@@ -488,7 +488,7 @@ implementation
          paddr:=nil;
          pframe:=nil;
          consume(_RAISE);
-         if not(token in [_SEMICOLON,_END,_ELSE]) then
+         if not(token in endtokens) then
            begin
               { object }
               pobj:=comp_expr(true);
@@ -683,19 +683,18 @@ implementation
                      if not try_to_consume(_SEMICOLON) then
                         break;
                      consume_emptystats;
-                   until (token=_END) or (token=_ELSE);
-                   if token=_ELSE then
-                     { catch the other exceptions }
+                   until (token in [_END,_ELSE]);
+                   if try_to_consume(_ELSE) then
                      begin
-                        consume(_ELSE);
-                        p_default:=statements_til_end;
+                       { catch the other exceptions }
+                       p_default:=statements_til_end;
                      end
                    else
                      consume(_END);
                 end
               else
-                { catch all exceptions }
                 begin
+                   { catch all exceptions }
                    p_default:=statements_til_end;
                 end;
               dec(statement_level);
@@ -1127,7 +1126,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2003-02-19 22:00:14  daniel
+  Revision 1.87  2003-03-17 18:55:30  peter
+    * allow more tokens instead of only semicolon after inherited
+
+  Revision 1.86  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -33,6 +33,10 @@ interface
        ;
 
     const
+       { tokens that end a block or statement. And don't require
+         a ; on the statement before }
+       endtokens = [_SEMICOLON,_END,_ELSE,_UNTIL];
+
        { true, if we are after an assignement }
        afterassignment : boolean = false;
 
@@ -167,7 +171,7 @@ implementation
       end;
 
 
-    { check if a symbol contains the hint directive, and if so gives out a hint 
+    { check if a symbol contains the hint directive, and if so gives out a hint
       if required.
     }
     procedure check_hints(const srsym: tsym);
@@ -263,7 +267,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2002-12-05 19:28:05  carl
+  Revision 1.23  2003-03-17 18:55:30  peter
+    * allow more tokens instead of only semicolon after inherited
+
+  Revision 1.22  2002/12/05 19:28:05  carl
     - remove lower in hint
 
   Revision 1.21  2002/11/30 11:12:48  carl
