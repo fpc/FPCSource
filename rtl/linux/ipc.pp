@@ -263,13 +263,15 @@ function ipccall(Call,First,Second,Third : Longint; P : Pointer) : longint;
 Var SR : SysCallRegs;
 
 begin
+ {$IFNDEF bsd}
   SR.Reg2:=Call;
   SR.reg3:=first;
   SR.reg4:=second;
   SR.Reg5:=third;
   SR.Reg6:=Longint(P);
   ipccall:=syscall(syscall_nr_ipc,sr);
-  ipcerror:=Errno;
+  {$Endif}
+ ipcerror:=Errno;
 end;
 
 Function ftok (Path : String; ID : char) : TKey;
@@ -369,7 +371,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-02-09 16:59:31  peter
+  Revision 1.9  2000-03-16 15:23:35  marco
+   * put one BSD incompability under a ifndef bsd
+
+  Revision 1.8  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.7  2000/01/07 16:41:40  daniel
