@@ -79,7 +79,7 @@ end;
   {********************************************************}
   var
 {$ifndef nonewmodes}
-    driverNr, modeNr: smallint;
+    i,driverNr, modeNr: smallint;
     prev: PModeInfo;
 {$endif nonewmodes}
     list: PModeInfo;
@@ -89,6 +89,7 @@ end;
     res2Mode(mode.maxx+1,mode.maxy+1,mode.maxColor,driverNr,ModeNr);
     { bitdepth supported? }
     if (driverNr <> maxsmallint) then
+     begin
       { Yes, add the mode }
       if not assigned(newModeList.modeinfo[driverNr]) then
         begin
@@ -98,13 +99,7 @@ end;
 {$endif logging}
           new(newModeList.modeinfo[driverNr]);
           newModeList.modeinfo[driverNr]^ := mode;
-          with newModeList.modeinfo[driverNr]^ do
-            begin
-              internModeNumber := 1;
-              next := nil;
-            end;
-          newModeList.loHiModeNr[driverNr].lo := 1;
-          newModeList.loHiModeNr[driverNr].hi := 1;
+          newModeList.modeinfo[driverNr]^.next:=nil;
         end
       else
         begin
@@ -130,17 +125,14 @@ end;
                 ' ('+strf(mode.maxx)+'x'+strf(mode.maxy)+')');
 {$endif logging}
               { save/restore next, drivernr and drivermode in list }
-              modeNr := list^.internModeNumber;
               prev := list^.next;
               list^ := mode;
-              list^.internModeNumber := modeNr;
               list^.next := prev;
             end
           else
             begin
               new(newLst);
               { Increase the number of modes for this driver }
-              inc(newModeList.loHiModeNr[driverNr].hi);
               newLst^ := mode;
 {$ifdef logging}
               logln('Adding resolution '+strf(modenr)+' for drivernr '+strf(drivernr)+
@@ -151,25 +143,23 @@ end;
               else
                 newLst^.next := nil;
               if assigned(prev) then
-                begin
-                  prev^.next := newLst;
-                  newLst^.internModeNumber := succ(prev^.internModeNumber)
-                end
+                prev^.next := newLst
               else
-                begin
-                  newModeList.modeinfo[driverNr] := newLst;
-                  newLst^.internModeNumber := 1;
-                end;
-              { Increase the modenumbers of all modes coming after this one }
-              { with 1                                                      }
-              newLst := newLst^.next;
-              while assigned(newLst) do
-                begin
-                  inc(newLst^.internModeNumber);
-                  newLst := newLst^.next;
-                end;
+                newModeList.modeinfo[driverNr] := newLst;
             end;
         end;
+       { renumber internmodenumber }
+       list := newModeList.modeinfo[driverNr];
+       i:=0;
+       while assigned(list) do
+        begin
+          inc(i);
+          list^.internmodenumber:=i;
+          list:=list^.next;
+        end;
+       newModeList.loHiModeNr[driverNr].lo:=1;
+       newModeList.loHiModeNr[driverNr].hi:=i;
+     end;
 {$endif nonewmodes}
     { TP-like mode stuff }
     if not assigned(ModeList) then
@@ -187,6 +177,7 @@ end;
         list^.next := NewLst;
         move(mode, NewLst^, sizeof(Mode));
       end;
+
   end;
 
 
@@ -588,7 +579,11 @@ end;
 
 {
 $Log$
-Revision 1.33  2000-07-08 13:00:08  jonas
+Revision 1.34  2000-07-09 07:21:14  peter
+  * initernmodenumber is now renumbered at the end of AddMode() it
+    also sets hi/lo for the driver
+
+Revision 1.33  2000/07/08 13:00:08  jonas
   * forgot to remove some non-working experimental code from last
     commit :(
 
