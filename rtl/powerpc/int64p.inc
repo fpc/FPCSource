@@ -151,44 +151,47 @@
         // (r3:r4) = (r3:r4) * (r5:r6),  checkoverflow is in r7
         //   res        f1        f2
 
-        or.     r8,r3,r5    // are both msw's 0?
+        or.     r10,r3,r5    // are both msw's 0?
         mulhwu  r8,r4,r6    // msw of product of lsw's
+        subi    r0,r7,1     // if no overflowcheck, r0 := $ffffffff, else r0 := 0;
+        beq     .LDone      // if both msw's are zero, skip cross products
+        mullw   r9,r4,r5    // lsw of first cross-product
         cntlzw  r11,r3      // count leading zeroes of msw1
         cntlzw  r12,r5      // count leading zeroes of msw2
-        subi    r0,r7,1     // if no overflowcheck, r0 := $ffffffff, else r0 := 0;
+        mullw   r7,r3,r6    // lsw of second cross-product
+        add     r12,r11,r12  // sum of leading zeroes
         mr      r10,r8
-        add     r9,r11,r12  // sum of leading zeroes
-        or      r0,r9,r0    // maximise sum if no overflow checking, otherwise it remains
+        add     r8,r8,r9    // add
+        or      r0,r12,r0    // maximise sum if no overflow checking, otherwise it remains
         cmplwi  cr1,r0,64   // >= 64 leading zero bits in total? If so, no overflow
-        beq     .Lmsw_zero  // if both msw's are zero, skip cross products
-        mullw   r7,r3,r6    // lsw of first cross-product
         add     r8,r8,r7    // add
-        mullw   r5,r4,r5    // lsw of second cross-product
-        add     r8,r8,r5    // add
-      .Lmsw_zero:
         bge+    cr1,.LDone  // if the sum of leading zero's >= 64 (or checkoverflow was 0)
                             // there's no overflow, otherwise more thorough check
+        add     r7,r7,r9
+        mulhwu  r3,r6,r3
+        addc    r7,r7,r10   // add the msw of the product of the lsw's, record carry
+        cntlzw  r9,r5
+        cntlzw  r10,r4      // get leading zeroes count of lsw f1
+        mulhwu  r5,r4,r5
+        addze   r3,r3
         subfic  r0,r11,31   // if msw f1 = 0, then r0 := -1, else r0 >= 0
-        cntlzw  r3,r4       // get leading zeroes count of lsw f1
+        cntlzw  r7,r6
+        subfic  r11,r9,31   // same for f2
         srawi   r0,r0,31    // if msw f1 = 0, then r0 := 1, else r0 := 0
-        subfic  r11,r12,31  // same for f2
-        cntlzw  r12,r6
         srawi   r11,r11,31
-        and     r3,r3,r0    // if msw f1 <> 0, the leading zero count lsw f1 := 0
-        and     r12,r12,r11 // same for f2
-        add     r9,r9,r3    // add leading zero counts of lsw's to sum if appropriate
+        and     r10,r10,r0    // if msw f1 <> 0, the leading zero count lsw f1 := 0
+        and     r9,r7,r11     // same for f2
+        or.     r5,r5,r3
+        add     r9,r9,r10    // add leading zero counts of lsw's to sum if appropriate
         add     r9,r9,r12
-        cmplwi  r9,64       // is the sum now >= 64?
+        cmplwi  cr7,r9,64   // is the sum now >= 64?
         cmplwi  cr1,r9,62   // or <= 62?
-        bge+    .LDone      // >= 64 leading zeroes -> no overflow
+        bge+    cr7,.LDone      // >= 64 leading zeroes -> no overflow
         ble+    cr1,.LOverflow  // <= 62 leading zeroes -> overflow
                             // for 63 zeroes, we need additional checks
-        add     r9,r7,r5    // sum of lsw's cross products can't produce a carry,
+                            // sum of lsw's cross products can't have produced a carry,
                             // because the sum of leading zeroes is 63 -> at least
                             // one of these cross products is 0
-        li      r0, 0
-        addc    r9,r9,r10   // add the msw of the product of the lsw's
-        addze.  r0,r0
         beq+    .LDone
       .LOverflow:
         b       FPC_OVERFLOW
@@ -200,7 +203,10 @@
 
 {
   $Log$
-  Revision 1.7  2005-02-14 17:13:31  peter
+  Revision 1.8  2005-02-19 14:16:02  jonas
+    * fixed overflow detection, + some small optimizations
+
+  Revision 1.7  2005/02/14 17:13:31  peter
     * truncate log
 
 }
