@@ -11,7 +11,7 @@ units=system objpas strings \
       beos \
       dos \
       sysutils typinfo math varutils \
-      cpu mmx getopts heaptrc lineinfo variants
+      cpu mmx getopts heaptrc lineinfo variants types
 rsts=math varutils typinfo
 
 [require]
@@ -151,4 +151,3 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 #
 # Other system-dependent RTL Units
 #
-

@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils math typinfo varutils \
       ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
-      video mouse keyboard variants
+      video mouse keyboard variants types
 rsts=math varutils typinfo
 
 [require]
@@ -175,4 +175,3 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 #
 # Other system-dependent RTL Units
 #
-
