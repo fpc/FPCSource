@@ -1074,7 +1074,7 @@ implementation
 
          { both point to the same definition ? }
          if def1=def2 then
-           b:=not((df_unique in def1.defoptions) or (df_unique in def2.defoptions))
+           b:=true
          else
          { pointer with an equal definition are equal }
            if (def1.deftype=pointerdef) and (def2.deftype=pointerdef) then
@@ -2026,7 +2026,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2002-10-10 16:07:57  florian
+  Revision 1.23  2002-10-20 15:34:16  peter
+    * removed df_unique flag. It breaks code. For a good type=type <id>
+      a def copy is required
+
+  Revision 1.22  2002/10/10 16:07:57  florian
     + several widestring/pwidechar related stuff added
 
   Revision 1.21  2002/10/09 21:01:41  florian

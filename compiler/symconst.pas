@@ -124,9 +124,7 @@ type
     { init data has been generated }
     df_has_inittable,
     { rtti data has been generated }
-    df_has_rttitable,
-    { unique type which is declared by <id> = type <another id>; }
-    df_unique
+    df_has_rttitable
   );
   tdefoptions=set of tdefoption;
 
@@ -339,7 +337,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2002-10-06 12:25:05  florian
+  Revision 1.36  2002-10-20 15:34:16  peter
+    * removed df_unique flag. It breaks code. For a good type=type <id>
+      a def copy is required
+
+  Revision 1.35  2002/10/06 12:25:05  florian
     + proper support of type <id> = type <another id>;
 
   Revision 1.34  2002/08/19 19:36:44  peter

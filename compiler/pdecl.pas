@@ -462,10 +462,6 @@ implementation
             end;
            if assigned(tt.def) then
             begin
-              if unique then
-                include(tt.def.defoptions,df_unique)
-              else
-                exclude(tt.def.defoptions,df_unique);
               case tt.def.deftype of
                 pointerdef :
                   begin
@@ -628,7 +624,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2002-10-19 15:09:25  peter
+  Revision 1.57  2002-10-20 15:34:16  peter
+    * removed df_unique flag. It breaks code. For a good type=type <id>
+      a def copy is required
+
+  Revision 1.56  2002/10/19 15:09:25  peter
     + tobjectdef.members_need_inittable that is used to generate only the
       inittable when it is really used. This saves a lot of useless calls
       to fpc_finalize when destroying classes
