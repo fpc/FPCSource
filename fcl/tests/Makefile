@@ -32,7 +32,7 @@ BININSTALLDIR=/usr/local/bin
 # If nothing special needs doing, then just fill in the names here.
 # The rest should be automatic.
 #UNITNAMES=
-PROGNAMES=fstream mstream list dparser
+PROGNAMES=fstream mstream list dparser stringl
 UNITOBJECTS=$(addsuffix .o, $(UNITNAMES))
 UNITFILES=$(addsuffix .ppu, $(UNITNAMES))
 PROGSOURCES=$(addsiffix .pp, $(PROGNAMES))
