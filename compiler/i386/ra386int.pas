@@ -44,7 +44,7 @@ Unit Ra386int;
       AS_ALIGN,AS_DB,AS_DW,AS_DD,AS_END,
        {------------------ Assembler Operators  --------------------}
       AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_NEAR,AS_FAR,
-      AS_HIGH,AS_LOW,AS_OFFSET,AS_SEG,AS_TYPE,AS_PTR,AS_MOD,AS_SHL,AS_SHR,AS_NOT,
+      AS_HIGH,AS_LOW,AS_OFFSET,AS_SIZEOF,AS_SEG,AS_TYPE,AS_PTR,AS_MOD,AS_SHL,AS_SHR,AS_NOT,
       AS_AND,AS_OR,AS_XOR);
 
     type
@@ -70,7 +70,7 @@ Unit Ra386int;
          procedure BuildOperand(oper: tx86operand);
          procedure BuildConstantOperand(oper: tx86operand);
          procedure BuildOpCode(instr : tx86instruction);
-         procedure BuildConstant(constsize: longint);
+         procedure BuildConstant(constsize: byte);
        end;
 
 
@@ -116,7 +116,7 @@ Unit Ra386int;
        { context sensitive.                                 }
        _asmoperators : array[0.._count_asmoperators] of tasmkeyword = (
         'BYTE','WORD','DWORD','QWORD','TBYTE','DQWORD','NEAR','FAR','HIGH',
-        'LOW','OFFSET','SEG','TYPE','PTR','MOD','SHL','SHR','NOT','AND',
+        'LOW','OFFSET','SIZEOF','SEG','TYPE','PTR','MOD','SHL','SHR','NOT','AND',
         'OR','XOR');
 
       token2str : array[tasmtoken] of string[10] = (
@@ -126,7 +126,7 @@ Unit Ra386int;
         ';','identifier','register','opcode','/',
         '','','','','END',
         '','','','','','','','','',
-        '','','','type','ptr','mod','shl','shr','not',
+        '','','sizeof','','type','ptr','mod','shl','shr','not',
         'and','or','xor'
       );
 
@@ -747,6 +747,9 @@ Unit Ra386int;
               end;
             AS_RPAREN:
               Begin
+                { Keep the AS_PAREN in actasmtoken, it is maybe a typecast }
+                if parenlevel=0 then
+                  break;
                 Consume(AS_RPAREN);
                 expr:=expr + ')';
                 dec(parenlevel);
@@ -828,11 +831,12 @@ Unit Ra386int;
                 if actasmtoken<>AS_ID then
                  Message(asmr_e_offset_without_identifier);
               end;
+            AS_SIZEOF,
             AS_TYPE:
               begin
                 l:=0;
                 hasparen:=false;
-                Consume(AS_TYPE);
+                Consume(actasmtoken);
                 if actasmtoken=AS_LPAREN then
                   begin
                     hasparen:=true;
@@ -1509,13 +1513,10 @@ Unit Ra386int;
           case actasmtoken of
 
             AS_OFFSET,
+            AS_SIZEOF,
             AS_TYPE,
             AS_NOT,
-            AS_STRING :
-              Begin
-                BuildConstantOperand(oper);
-              end;
-
+            AS_STRING,
             AS_PLUS,
             AS_MINUS,
             AS_LPAREN,
@@ -1844,7 +1845,7 @@ Unit Ra386int;
       end;
 
 
-    Procedure ti386intreader.BuildConstant(constsize: longint);
+    Procedure ti386intreader.BuildConstant(constsize: byte);
       var
         asmsymtyp : tasmsymtype;
         asmsym,
@@ -2037,7 +2038,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2004-11-29 18:50:15  peter
+  Revision 1.83  2004-12-22 17:09:55  peter
+    * support sizeof()
+    * fix typecasting a constant like dword(4)
+
+  Revision 1.82  2004/11/29 18:50:15  peter
     * os2 fixes for import
     * asmsymtype support for intel reader
 

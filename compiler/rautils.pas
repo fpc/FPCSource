@@ -427,7 +427,7 @@ begin
          Case Expr[I] OF
           '(' : OpPush('(',false);
           ')' : begin
-                  While OpStack[OpTop].ch <> '(' DO
+                  While (OpTop>0) and (OpStack[OpTop].ch <> '(') DO
                    Begin
                      OpPop(opr);
                      RPNCalc(opr.ch,opr.is_prefix);
@@ -1620,7 +1620,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.98  2004-12-12 10:50:34  florian
+  Revision 1.99  2004-12-22 17:09:55  peter
+    * support sizeof()
+    * fix typecasting a constant like dword(4)
+
+  Revision 1.98  2004/12/12 10:50:34  florian
     * fixed operand size calculation for sse operands
     + all nasm assembler targets to help page output added
 

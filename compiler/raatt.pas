@@ -55,7 +55,7 @@ unit raatt;
         AS_ASCIIZ,AS_LCOMM,AS_COMM,AS_SINGLE,AS_DOUBLE,AS_EXTENDED,
         AS_DATA,AS_TEXT,AS_END,
         {------------------ Assembler Operators  --------------------}
-        AS_TYPE,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
+        AS_TYPE,AS_SIZEOF,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
         AS_LO,AS_HI);
 
         tasmkeyword = string[10];
@@ -76,14 +76,14 @@ unit raatt;
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat',
         '.data','.text','END',
-        'TYPE','%','<<','>>','!','&','|','^','~','@','lo','hi');
+        'TYPE','SIZEOF','%','<<','>>','!','&','|','^','~','@','lo','hi');
 
     type
        tattreader = class(tasmreader)
          actasmtoken    : tasmtoken;
          prevasmtoken   : tasmtoken;
          procedure SetupTables;
-         procedure BuildConstant(constsize: longint);
+         procedure BuildConstant(constsize: byte);
          procedure BuildConstantOperand(oper : toperand);
          procedure BuildRealConstant(typ : tfloattype);
          procedure BuildStringConstant(asciiz: boolean);
@@ -352,6 +352,11 @@ unit raatt;
                  if actasmpattern = 'TYPE' then
                   Begin
                     actasmtoken:=AS_TYPE;
+                    exit;
+                  end;
+                 if actasmpattern = 'SIZEOF' then
+                  Begin
+                    actasmtoken:=AS_SIZEOF;
                     exit;
                   end;
                  if is_register(actasmpattern) then
@@ -756,7 +761,7 @@ unit raatt;
       end;
 
 
-    Procedure tattreader.BuildConstant(constsize: longint);
+    Procedure tattreader.BuildConstant(constsize: byte);
       var
        asmsymtyp : TAsmSymType;
        asmsym,
@@ -784,6 +789,8 @@ unit raatt;
             AS_PLUS,
             AS_MINUS,
             AS_LPAREN,
+            AS_TYPE,
+            AS_SIZEOF,
             AS_NOT,
             AS_ID :
               Begin
@@ -1319,10 +1326,11 @@ unit raatt;
                 expr:=expr + tempstr;
                 Consume(AS_STRING);
               end;
+            AS_SIZEOF,
             AS_TYPE:
               begin
                 l:=0;
-                Consume(AS_TYPE);
+                Consume(actasmtoken);
                 if actasmtoken<>AS_ID then
                  Message(asmr_e_type_without_identifier)
                 else
@@ -1514,7 +1522,11 @@ end.
 
 {
   $Log$
-  Revision 1.15  2004-11-29 18:50:15  peter
+  Revision 1.16  2004-12-22 17:09:55  peter
+    * support sizeof()
+    * fix typecasting a constant like dword(4)
+
+  Revision 1.15  2004/11/29 18:50:15  peter
     * os2 fixes for import
     * asmsymtype support for intel reader
 

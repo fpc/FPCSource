@@ -48,12 +48,12 @@ Implementation
       { helpers }
       cutils,
       { global }
-      globtype,globals,verbose,
+      globtype,verbose,
       systems,
       { aasm }
       aasmbase,aasmtai,aasmcpu,
       { symtable }
-      symconst,symsym,
+      symconst,
       { parser }
       scanner,
       procinfo,
@@ -775,7 +775,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.8  2004-11-21 15:35:23  peter
+  Revision 1.9  2004-12-22 17:09:55  peter
+    * support sizeof()
+    * fix typecasting a constant like dword(4)
+
+  Revision 1.8  2004/11/21 15:35:23  peter
     * float routines all use internproc and compilerproc helpers
 
   Revision 1.7  2004/11/08 22:09:59  peter
