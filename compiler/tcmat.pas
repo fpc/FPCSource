@@ -278,13 +278,15 @@ implementation
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=p^.left^.registersmmx;
 {$endif SUPPORT_MMX}
-         if is_equal(p^.resulttype,booldef) then
+         if is_boolean(p^.resulttype) then
            begin
-              p^.registers32:=p^.left^.registers32;
-              if ((p^.location.loc=LOC_REFERENCE) or
-                (p^.location.loc=LOC_CREGISTER)) and
-                (p^.registers32<1) then
-                p^.registers32:=1;
+             p^.registers32:=p^.left^.registers32;
+             if (p^.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
+              begin
+                p^.location.loc:=LOC_REGISTER;
+                if (p^.registers32<1) then
+                 p^.registers32:=1;
+              end;
            end
          else
 {$ifdef SUPPORT_MMX}
@@ -300,7 +302,6 @@ implementation
            begin
               p^.left:=gentypeconvnode(p^.left,s32bitdef);
               firstpass(p^.left);
-
               if codegenerror then
                 exit;
 
@@ -311,7 +312,7 @@ implementation
 {$endif SUPPORT_MMX}
 
               if (p^.left^.location.loc<>LOC_REGISTER) and
-                (p^.registers32<1) then
+                 (p^.registers32<1) then
                 p^.registers32:=1;
               p^.location.loc:=LOC_REGISTER;
            end;
@@ -322,7 +323,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-10-13 16:50:25  pierre
+  Revision 1.5  1998-10-20 13:12:39  peter
+    * fixed 'not not boolean', the location was not set to register
+
+  Revision 1.4  1998/10/13 16:50:25  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

@@ -420,140 +420,120 @@ implementation
          hl : plabel;
          opsize : topsize;
       begin
-         if (p^.resulttype^.deftype=orddef) and
-            (porddef(p^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit]) then
-              begin
-                 case porddef(p^.resulttype)^.typ of
-                   bool8bit : opsize:=S_B;
-                  bool16bit : opsize:=S_W;
-                  bool32bit : opsize:=S_L;
-                 end;
-                 case p^.location.loc of
-                    LOC_JUMP : begin
-                                  hl:=truelabel;
-                                  truelabel:=falselabel;
-                                  falselabel:=hl;
-                                  secondpass(p^.left);
-                                  maketojumpbool(p^.left);
-                                  hl:=truelabel;
-                                  truelabel:=falselabel;
-                                  falselabel:=hl;
-                               end;
-                    LOC_FLAGS : begin
-                                   secondpass(p^.left);
-                                   p^.location.resflags:=flagsinvers[p^.left^.location.resflags];
-                                end;
-                    LOC_REGISTER : begin
-                                      secondpass(p^.left);
-                                      p^.location.register:=p^.left^.location.register;
-                                      exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
-                                   end;
-                    LOC_CREGISTER : begin
-                                       secondpass(p^.left);
-                                       p^.location.loc:=LOC_REGISTER;
-                                       case porddef(p^.resulttype)^.typ of
-                                         bool8bit : p^.location.register:=reg32toreg8(getregister32);
-                                        bool16bit : p^.location.register:=reg32toreg16(getregister32);
-                                        bool32bit : p^.location.register:=getregister32;
-                                       end;
-                                       emit_reg_reg(A_MOV,opsize,p^.left^.location.register,p^.location.register);
-                                       exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
-                                    end;
-                    LOC_REFERENCE,
-                          LOC_MEM : begin
-                                       secondpass(p^.left);
-                                       del_reference(p^.left^.location.reference);
-                                       p^.location.loc:=LOC_REGISTER;
-                                       case porddef(p^.resulttype)^.typ of
-                                         bool8bit : p^.location.register:=reg32toreg8(getregister32);
-                                        bool16bit : p^.location.register:=reg32toreg16(getregister32);
-                                        bool32bit : p^.location.register:=getregister32;
-                                       end;
-                                       if p^.left^.location.loc=LOC_CREGISTER then
-                                         emit_reg_reg(A_MOV,opsize,p^.left^.location.register,p^.location.register)
-                                       else
-                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
-                                           newreference(p^.left^.location.reference),p^.location.register)));
-                                       exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
-                                     end;
-                 end;
-              end
-{$ifdef SUPPORT_MMX}
-            else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(p^.left^.resulttype) then
-              begin
-                 secondpass(p^.left);
-                 p^.location.loc:=LOC_MMXREGISTER;
-                 { prepare EDI }
-                 exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,$ffffffff,R_EDI)));
-                 { load operand }
-                 case p^.left^.location.loc of
-                    LOC_MMXREGISTER:
-                      set_location(p^.location,p^.left^.location);
-                    LOC_CMMXREGISTER:
-                      begin
-                         p^.location.register:=getregistermmx;
-                         emit_reg_reg(A_MOVQ,S_NO,p^.left^.location.register,
-                           p^.location.register);
-                      end;
-                    LOC_REFERENCE,LOC_MEM:
-                      begin
-                         del_reference(p^.left^.location.reference);
-                         p^.location.register:=getregistermmx;
-                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVQ,S_NO,
-                           newreference(p^.left^.location.reference),
-                           p^.location.register)));
-                      end;
-                 end;
-                 { load mask }
-                 emit_reg_reg(A_MOV,S_D,R_EDI,R_MM7);
-                 { lower 32 bit }
-                 emit_reg_reg(A_PXOR,S_D,R_MM7,p^.location.register);
-                 { shift mask }
-                 exprasmlist^.concat(new(pai386,op_const_reg(A_PSLLQ,S_NO,
-                   32,R_MM7)));
-                 { higher 32 bit }
-                 emit_reg_reg(A_PXOR,S_D,R_MM7,p^.location.register);
-              end
-{$endif SUPPORT_MMX}
-            else
-              begin
-                secondpass(p^.left);
-                p^.location.loc:=LOC_REGISTER;
-
-                case p^.left^.location.loc of
-                   LOC_REGISTER : begin
-                                     p^.location.register:=p^.left^.location.register;
-                                     exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.location.register)));
-                                  end;
-                   LOC_CREGISTER : begin
-                                     p^.location.register:=getregister32;
-                                     emit_reg_reg(A_MOV,S_L,p^.left^.location.register,
-                                       p^.location.register);
-                                     exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.location.register)));
-                                   end;
-                   LOC_REFERENCE,LOC_MEM :
-                                  begin
-                                     del_reference(p^.left^.location.reference);
-                                     p^.location.register:=getregister32;
-                                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                       newreference(p^.left^.location.reference),
-                                       p^.location.register)));
-                                     exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.location.register)));
-                                  end;
+         if is_boolean(p^.resulttype) then
+          begin
+            opsize:=def_opsize(p^.resulttype);
+            case p^.left^.location.loc of
+              LOC_JUMP :
+                begin
+                  hl:=truelabel;
+                  truelabel:=falselabel;
+                  falselabel:=hl;
+                  secondpass(p^.left);
+                  maketojumpbool(p^.left);
+                  hl:=truelabel;
+                  truelabel:=falselabel;
+                  falselabel:=hl;
                 end;
-                {if  p^.left^.location.loc=loc_register then
-                  p^.location.register:=p^.left^.location.register
-                else
-                  begin
-                     del_locref(p^.left^.location);
-                     p^.location.register:=getregister32;
-                     exprasmlist^.concat(new(pai386,op_loc_reg(A_MOV,S_L,
-                       p^.left^.location,
-                       p^.location.register)));
-                  end;
-                exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.location.register)));}
-
+              LOC_FLAGS :
+                begin
+                  secondpass(p^.left);
+                  p^.location.resflags:=flagsinvers[p^.left^.location.resflags];
+                end;
+              LOC_REGISTER :
+                begin
+                  secondpass(p^.left);
+                  p^.location.register:=p^.left^.location.register;
+                  exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
+                end;
+              LOC_CREGISTER :
+                begin
+                  secondpass(p^.left);
+                  clear_location(p^.location);
+                  p^.location.loc:=LOC_REGISTER;
+                  p^.location.register:=def_getreg(p^.resulttype);
+                  emit_reg_reg(A_MOV,opsize,p^.left^.location.register,p^.location.register);
+                  exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
+                end;
+              LOC_REFERENCE,
+              LOC_MEM :
+                begin
+                  secondpass(p^.left);
+                  clear_location(p^.location);
+                  p^.location.loc:=LOC_REGISTER;
+                  p^.location.register:=def_getreg(p^.resulttype);
+                  del_reference(p^.left^.location.reference);
+                  if p^.left^.location.loc=LOC_CREGISTER then
+                    emit_reg_reg(A_MOV,opsize,p^.left^.location.register,p^.location.register)
+                  else
+                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                  newreference(p^.left^.location.reference),p^.location.register)));
+                  exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
+                end;
+            end;
+          end
+{$ifdef SUPPORT_MMX}
+         else
+          if (cs_mmx in aktlocalswitches) and is_mmx_able_array(p^.left^.resulttype) then
+           begin
+             secondpass(p^.left);
+             p^.location.loc:=LOC_MMXREGISTER;
+             { prepare EDI }
+             exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,$ffffffff,R_EDI)));
+             { load operand }
+             case p^.left^.location.loc of
+               LOC_MMXREGISTER:
+                 set_location(p^.location,p^.left^.location);
+               LOC_CMMXREGISTER:
+                 begin
+                   p^.location.register:=getregistermmx;
+                   emit_reg_reg(A_MOVQ,S_NO,p^.left^.location.register,p^.location.register);
+                 end;
+               LOC_REFERENCE,LOC_MEM:
+                 begin
+                   del_reference(p^.left^.location.reference);
+                   p^.location.register:=getregistermmx;
+                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVQ,S_NO,
+                     newreference(p^.left^.location.reference),p^.location.register)));
+                 end;
              end;
+             { load mask }
+             emit_reg_reg(A_MOV,S_D,R_EDI,R_MM7);
+             { lower 32 bit }
+             emit_reg_reg(A_PXOR,S_D,R_MM7,p^.location.register);
+             { shift mask }
+             exprasmlist^.concat(new(pai386,op_const_reg(A_PSLLQ,S_NO,32,R_MM7)));
+             { higher 32 bit }
+             emit_reg_reg(A_PXOR,S_D,R_MM7,p^.location.register);
+           end
+{$endif SUPPORT_MMX}
+         else
+          begin
+            secondpass(p^.left);
+            clear_location(p^.location);
+            p^.location.loc:=LOC_REGISTER;
+            case p^.left^.location.loc of
+              LOC_REGISTER :
+                begin
+                  p^.location.register:=p^.left^.location.register;
+                  exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.location.register)));
+                end;
+              LOC_CREGISTER :
+                begin
+                  p^.location.register:=getregister32;
+                  emit_reg_reg(A_MOV,S_L,p^.left^.location.register,p^.location.register);
+                  exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.location.register)));
+                end;
+              LOC_REFERENCE,LOC_MEM :
+                begin
+                  del_reference(p^.left^.location.reference);
+                  p^.location.register:=getregister32;
+                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                    newreference(p^.left^.location.reference),p^.location.register)));
+                  exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.location.register)));
+                end;
+            end;
+          end;
       end;
 
 
@@ -561,7 +541,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-10-20 08:06:42  pierre
+  Revision 1.10  1998-10-20 13:12:38  peter
+    * fixed 'not not boolean', the location was not set to register
+
+  Revision 1.9  1998/10/20 08:06:42  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default
