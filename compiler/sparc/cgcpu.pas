@@ -78,6 +78,7 @@ specific processor ABI. It is overriden for each CPU target.
     procedure g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;reg:TRegister);override;
     procedure g_overflowCheck(List:TAasmOutput;const p:TNode);override;
     procedure g_stackframe_entry(list:TAasmOutput;localsize:LongInt);override;
+    procedure g_restore_all_registers(list:TAasmOutput;selfused,accused,acchiused:boolean);override;
     procedure g_restore_frame_pointer(list:TAasmOutput);override;
     procedure g_return_from_proc(list:TAasmOutput;parasize:aword);override;
     procedure g_save_all_registers(list : taasmoutput);override;
@@ -252,28 +253,55 @@ procedure TCgSparc.a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aword;CONST 
     WITH List DO
       IF a=0
       THEN
-        Concat(taicpu.op_reg_ref(A_ST,R_G0,ref))
+        Concat(taicpu.op_reg_ref(A_ST,R_G0,Ref))
       ELSE
         BEGIN
           a_load_const_reg(list,size,a,R_G1);
-          case size of
-            OS_32,OS_S32:
-              Concat(taicpu.op_reg_ref(A_ST,R_G1,ref));
-            OS_64,OS_S64:
-              Concat(taicpu.op_reg_ref(A_STD,R_G1,ref));
-            else
-              InternalError(2002102100);
-          end;
+          a_load_reg_ref(list,size,R_G1,Ref);
         END;
   END;
-procedure TCgSparc.a_load_reg_ref(list:TAasmOutput;size:TCGSize;reg:tregister;CONST ref:TReference);
-  BEGIN
-    list.concat(taicpu.op_reg_ref(A_ST,reg,ref));
-  END;
+procedure TCgSparc.a_load_reg_ref(list:TAasmOutput;size:TCGSize;reg:tregister;const Ref:TReference);
+  var
+    op:tasmop;
+  begin
+    case size of
+      { signed integer registers }
+      OS_S8:
+        Op:=A_STB;{Store Signed Byte}
+      OS_S16:
+        Op:=A_STH;{Store Signed Halfword}
+      OS_S32:
+        Op:=A_ST;{Store Word}
+      OS_S64:
+        Op:=A_STD;{Store Double Word}
+      { unsigned integer registers }
+    //A_STSTUB;{Store-Store Unsigned Byte}
+      OS_8:
+        Op:=A_STB;{Store Unsigned Bye}
+      OS_16:
+        Op:=A_STH;{Store Unsigned Halfword}
+      OS_32:
+        Op:=A_ST;{Store Word}
+      OS_64:
+        Op:=A_STD;{Store Double Word}
+      { floating-point real registers }
+      OS_F32:
+        Op:=A_STF;{Store Floating-point word}
+    //A_STFSR
+      OS_F64:
+        Op:=A_STDF;{Store Double Floating-point word}
+      //A_STC;{Store Coprocessor}
+      //A_STCSR;
+      //A_STDC;{Store Double Coprocessor}
+      else
+        InternalError(2002122100);
+    end;
+    with list do
+      concat(taicpu.op_reg_ref(op,reg,ref));
+  end;
 procedure TCgSparc.a_load_ref_reg(list:TAasmOutput;size:TCgSize;const ref:TReference;reg:tregister);
   var
     op:tasmop;
-    s:topsize;
   begin
     case size of
       { signed integer registers }
@@ -907,6 +935,10 @@ after execution of that instruction is the called function stack pointer}
     with list do
       concat(Taicpu.Op_reg_const_reg(A_SAVE,Stack_Pointer_Reg,-LocalSize,Stack_Pointer_Reg));
   end;
+procedure TCgSparc.g_restore_all_registers(list:TaasmOutput;selfused,accused,acchiused:boolean);
+  begin
+    {$warning FIX ME TCgSparc.g_restore_all_registers}
+  end;
 procedure TCgSparc.g_restore_frame_pointer(list:TAasmOutput);
   begin
 {This function intontionally does nothing as frame pointer is restored in the
@@ -1345,7 +1377,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.31  2003-01-05 21:32:35  mazen
+  Revision 1.32  2003-01-06 22:51:47  mazen
+  * fixing bugs related to load_reg_ref
+
+  Revision 1.31  2003/01/05 21:32:35  mazen
   * fixing several bugs compiling the RTL
 
   Revision 1.30  2003/01/05 13:36:53  florian
