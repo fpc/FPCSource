@@ -82,7 +82,7 @@
       if CurrClass<>nil then
        begin
          CurrSeek:=@Self.Seek;
-         TStreamSeek:=@TStream(CurrClass).Seek;
+         TStreamSeek:=@TStream(@CurrClass).Seek;
          if TMethod(TStreamSeek).Code=TMethod(CurrSeek).Code then
           CurrSeek:=nil;
        end;
@@ -784,7 +784,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2002-12-18 15:51:52  michael
+  Revision 1.10  2002-12-18 16:35:59  peter
+    * fix crash in Seek()
+
+  Revision 1.9  2002/12/18 15:51:52  michael
   + Hopefully fixed some issues with int64 seek
 
   Revision 1.8  2002/10/22 09:38:39  michael
