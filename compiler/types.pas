@@ -497,8 +497,9 @@ unit types;
               begin
                  if assigned(psetdef(def1)^.setof) and
                     assigned(psetdef(def2)^.setof) then
-                   b:=is_equal(psetdef(def1)^.setof,psetdef(def2)^.setof)
-                 else b:=true;
+                   b:=(psetdef(def1)^.setof^.deftype=psetdef(def2)^.setof^.deftype)
+                 else
+                   b:=true;
               end
           else
             if (def1^.deftype=procvardef) and (def2^.deftype=procvardef) then
@@ -861,9 +862,17 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.17  1998-08-05 16:00:17  florian
+  Revision 1.18  1998-08-14 18:18:49  peter
+    + dynamic set contruction
+    * smallsets are now working (always longint size)
+
+  Revision 1.17  1998/08/05 16:00:17  florian
     * some fixes for ansi strings
-    * $log$ to $Log$ changed
+    * $log$ to $Log$
+    * $log$ to Revision 1.18  1998-08-14 18:18:49  peter
+    * $log$ to   + dynamic set contruction
+    * $log$ to   * smallsets are now working (always longint size)
+    * $log$ to changed
 
   Revision 1.16  1998/07/20 23:35:50  michael
   Const ansistrings are not copied.

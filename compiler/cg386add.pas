@@ -36,26 +36,22 @@ implementation
       cgi386,cgai386,temp_gen,tgeni386,hcodegen;
 
 {*****************************************************************************
-                             SecondAdd
+                                Helpers
 *****************************************************************************}
 
-    procedure setaddresult(cmpop,unsigned : boolean;var p :ptree);
+    procedure SetResultLocation(cmpop,unsigned:boolean;var p :ptree);
       var
          flags : tresflags;
       begin
+         { remove temporary location if not a set or string }
          if (p^.left^.resulttype^.deftype<>stringdef) and
-             ((p^.left^.resulttype^.deftype<>setdef) or
-              (psetdef(p^.left^.resulttype)^.settype=smallset)) then
-              if (p^.left^.location.loc=LOC_REFERENCE) or
-                 (p^.left^.location.loc=LOC_MEM) then
-                ungetiftemp(p^.left^.location.reference);
+            ((p^.left^.resulttype^.deftype<>setdef) or (psetdef(p^.left^.resulttype)^.settype=smallset)) and
+            (p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
+           ungetiftemp(p^.left^.location.reference);
          if (p^.right^.resulttype^.deftype<>stringdef) and
-             ((p^.right^.resulttype^.deftype<>setdef) or
-              (psetdef(p^.right^.resulttype)^.settype=smallset)) then
-              { this can be useful if for instance length(string) is called }
-              if (p^.right^.location.loc=LOC_REFERENCE) or
-                 (p^.right^.location.loc=LOC_MEM) then
-                ungetiftemp(p^.right^.location.reference);
+            ((p^.right^.resulttype^.deftype<>setdef) or (psetdef(p^.right^.resulttype)^.settype=smallset)) and
+            (p^.right^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
+           ungetiftemp(p^.right^.location.reference);
          { in case of comparison operation the put result in the flags }
          if cmpop then
            begin
@@ -107,24 +103,21 @@ implementation
       end;
 
 
-  procedure addstring(var p : ptree);
+{*****************************************************************************
+                                Addstring
+*****************************************************************************}
 
-    var
-       swapp : ptree;
-       pushedregs : tpushed;
-       href : treference;
-       pushed,cmpop : boolean;
+    procedure addstring(var p : ptree);
+      var
+        pushedregs : tpushed;
+        href       : treference;
+        pushed,
+        cmpop      : boolean;
+      begin
+        { string operations are not commutative }
+        if p^.swaped then
+         swaptree(p);
 
-    begin
-       { string operations are not commutative }
-       if p^.swaped then
-         begin
-            swapp:=p^.left;
-            p^.left:=p^.right;
-            p^.right:=swapp;
-            { because of jump being produced at comparison below: }
-            p^.swaped:=not(p^.swaped);
-         end;
 {$ifdef UseAnsiString}
               if is_ansistring(p^.left^.resulttype) then
                 begin
@@ -278,11 +271,135 @@ implementation
             end;
             else Message(sym_e_type_mismatch);
           end;
-       setaddresult(cmpop,true,p);
-    end;
+        SetResultLocation(cmpop,true,p);
+      end;
+
+
+{*****************************************************************************
+                                Addset
+*****************************************************************************}
+
+    procedure addset(var p : ptree);
+      var
+        right_small,
+        cmpop,
+        pushed : boolean;
+        href2,
+        href   : treference;
+        swapp  : ptree;
+        pushedregs : tpushed;
+      begin
+        cmpop:=false;
+
+        { not commutative }
+        if p^.swaped then
+         swaptree(p);
+
+        secondpass(p^.left);
+        { are too few registers free? }
+        pushed:=maybe_push(p^.right^.registers32,p);
+        secondpass(p^.right);
+        if codegenerror then
+          exit;
+        if pushed then
+          restore(p);
+
+        set_location(p^.location,p^.left^.location);
+        right_small:=(p^.right^.resulttype^.deftype=setdef) and (psetdef(p^.right^.resulttype)^.settype=smallset);
+
+        { handle operations }
+        reset_reference(href2);
+        case p^.treetype of
+          equaln,
+        unequaln : begin
+                     cmpop:=true;
+                     del_reference(p^.left^.location.reference);
+                     del_reference(p^.right^.location.reference);
+                     pushusedregisters(pushedregs,$ff);
+                     emitpushreferenceaddr(exprasmlist,href2);
+                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                     emitcall('SET_COMP_SETS',true);
+                     maybe_loadesi;
+                     popusedregisters(pushedregs);
+                     ungetiftemp(p^.left^.location.reference);
+                     ungetiftemp(p^.right^.location.reference);
+                   end;
+            addn : begin
+                   { add can be an other SET or Range or Element ! }
+                     del_reference(p^.left^.location.reference);
+                     del_reference(p^.right^.location.reference);
+                     pushusedregisters(pushedregs,$ff);
+                     href.symbol:=nil;
+                     gettempofsizereference(32,href);
+                     case p^.right^.treetype of
+                    setelen : begin
+                                concatcopy(p^.left^.location.reference,href,32,false);
+                                pushsetelement(p^.right^.left);
+                                emitpushreferenceaddr(exprasmlist,href);
+                                emitcall('SET_SET_BYTE',true);
+                              end;
+                     rangen : begin
+                                concatcopy(p^.left^.location.reference,href,32,false);
+                                pushsetelement(p^.right^.right);
+                                pushsetelement(p^.right^.left);
+                                emitpushreferenceaddr(exprasmlist,href);
+                                emitcall('SET_SET_RANGE',true);
+                              end;
+                     else
+                      begin
+                      { must be an other set }
+                        emitpushreferenceaddr(exprasmlist,href);
+                        emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                        emitcall('SET_ADD_SETS',true);
+                      end;
+                     end;
+                     maybe_loadesi;
+                     popusedregisters(pushedregs);
+                     ungetiftemp(p^.left^.location.reference);
+                     ungetiftemp(p^.right^.location.reference);
+                     p^.location.loc:=LOC_MEM;
+                     stringdispose(p^.location.reference.symbol);
+                     p^.location.reference:=href;
+                   end;
+            subn,
+         symdifn,
+            muln : begin
+                     if p^.right^.treetype in [rangen,setelen] then
+                      internalerror(45362);
+                     del_reference(p^.left^.location.reference);
+                     del_reference(p^.right^.location.reference);
+                     href.symbol:=nil;
+                     pushusedregisters(pushedregs,$ff);
+                     gettempofsizereference(32,href);
+                     emitpushreferenceaddr(exprasmlist,href);
+                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                     case p^.treetype of
+                      subn : emitcall('SET_SUB_SETS',true);
+                   symdifn : emitcall('SET_SYMDIF_SETS',true);
+                      muln : emitcall('SET_MUL_SETS',true);
+                     end;
+                     maybe_loadesi;
+                     popusedregisters(pushedregs);
+                     ungetiftemp(p^.left^.location.reference);
+                     ungetiftemp(p^.right^.location.reference);
+                     p^.location.loc:=LOC_MEM;
+                     stringdispose(p^.location.reference.symbol);
+                     p^.location.reference:=href;
+                   end;
+        else
+          Message(sym_e_type_mismatch);
+        end;
+        SetResultLocation(cmpop,true,p);
+      end;
+
+
+{*****************************************************************************
+                                SecondAdd
+*****************************************************************************}
 
     procedure secondadd(var p : ptree);
-
     { is also being used for xor, and "mul", "sub, or and comparative }
     { operators                                                       }
 
@@ -317,11 +434,23 @@ implementation
 {$endif SUPPORT_MMX}
 
       begin
-         if (p^.left^.resulttype^.deftype=stringdef) then
-           begin
-              addstring(p);
-              exit;
-           end;
+      { to make it more readable, string and set (not smallset!) have their
+        own procedures }
+        case p^.left^.resulttype^.deftype of
+         stringdef : begin
+                       addstring(p);
+                       exit;
+                     end;
+            setdef : begin
+                     { not for smallsets }
+                       if not(psetdef(p^.left^.resulttype)^.settype=smallset) then
+                        begin
+                          addset(p);
+                          exit;
+                        end;
+                     end;
+        end;
+
          unsigned:=false;
          is_in_dest:=false;
          extra_not:=false;
@@ -376,12 +505,7 @@ implementation
           unequaln,
        equaln,xorn : begin
                        if p^.left^.treetype=ordconstn then
-                         begin
-                            swapp:=p^.right;
-                            p^.right:=p^.left;
-                            p^.left:=swapp;
-                            p^.swaped:=not(p^.swaped);
-                         end;
+                        swaptree(p);
                        secondpass(p^.left);
                        p^.location:=p^.left^.location;
                        { are enough registers free ? }
@@ -394,84 +518,11 @@ implementation
                Message(sym_e_type_mismatch);
              end
            end
-         else if (p^.left^.resulttype^.deftype=setdef) and
-                 not(psetdef(p^.left^.resulttype)^.settype=smallset) then
-           begin
-              mboverflow:=false;
-              secondpass(p^.left);
-              set_location(p^.location,p^.left^.location);
-              { are too few registers free? }
-              pushed:=maybe_push(p^.right^.registers32,p);
-              secondpass(p^.right);
-              if pushed then restore(p);
-              { not commutative }
-              if p^.swaped then
-                begin
-                   swapp:=p^.left;
-                   p^.left:=p^.right;
-                   p^.right:=swapp;
-                   { because of jump being produced by comparison }
-                   p^.swaped:=not(p^.swaped);
-                end;
-              case p^.treetype of
-                equaln,unequaln:
-                  begin
-                     cmpop:=true;
-                     del_reference(p^.left^.location.reference);
-                     del_reference(p^.right^.location.reference);
-                     pushusedregisters(pushedregs,$ff);
-                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                     emitcall('SET_COMP_SETS',true);
-                     maybe_loadesi;
-                     popusedregisters(pushedregs);
-                     ungetiftemp(p^.left^.location.reference);
-                     ungetiftemp(p^.right^.location.reference);
-                  end;
-                addn,symdifn,subn,muln:
-                  begin
-                     cmpop:=false;
-                     del_reference(p^.left^.location.reference);
-                     del_reference(p^.right^.location.reference);
-                     href.symbol:=nil;
-                     pushusedregisters(pushedregs,$ff);
-                     gettempofsizereference(32,href);
-                     emitpushreferenceaddr(exprasmlist,href);
-                     { wrong place !! was hard to find out
-                     pushusedregisters(pushedregs,$ff);}
-                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                     case p^.treetype of
-                       subn:
-                         emitcall('SET_SUB_SETS',true);
-                       addn:
-                         emitcall('SET_ADD_SETS',true);
-                       symdifn:
-                         emitcall('SET_SYMDIF_SETS',true);
-                       muln:
-                         emitcall('SET_MUL_SETS',true);
-                     end;
-                     maybe_loadesi;
-                     popusedregisters(pushedregs);
-                     ungetiftemp(p^.left^.location.reference);
-                     ungetiftemp(p^.right^.location.reference);
-                     p^.location.loc:=LOC_MEM;
-                     stringdispose(p^.location.reference.symbol);
-                     p^.location.reference:=href;
-                  end;
-                else Message(sym_e_type_mismatch);
-              end;
-           end
          else
            begin
               { in case of constant put it to the left }
               if p^.left^.treetype=ordconstn then
-                begin
-                   swapp:=p^.right;
-                   p^.right:=p^.left;
-                   p^.left:=swapp;
-                   p^.swaped:=not(p^.swaped);
-                end;
+               swaptree(p);
               secondpass(p^.left);
               { this will be complicated as
                a lot of code below assumes that
@@ -488,10 +539,13 @@ implementation
               else
 {$endif test_dest_loc}
                 set_location(p^.location,p^.left^.location);
+
               { are too few registers free? }
               pushed:=maybe_push(p^.right^.registers32,p);
               secondpass(p^.right);
-              if pushed then restore(p);
+              if pushed then
+                restore(p);
+
               if (p^.left^.resulttype^.deftype=pointerdef) or
 
                  (p^.right^.resulttype^.deftype=pointerdef) or
@@ -534,7 +588,6 @@ implementation
                       (porddef(p^.right^.resulttype)^.typ=u32bit)) then
                      unsigned:=true;
                    is_set:=p^.resulttype^.deftype=setdef;
-
                    case p^.treetype of
                       addn : begin
                                 if is_set then
@@ -606,7 +659,7 @@ implementation
                    { left and right no register?  }
                    { then one must be demanded    }
                    if (p^.left^.location.loc<>LOC_REGISTER) and
-                     (p^.right^.location.loc<>LOC_REGISTER) then
+                      (p^.right^.location.loc<>LOC_REGISTER) then
                      begin
                         { register variable ? }
                         if (p^.left^.location.loc=LOC_CREGISTER) then
@@ -633,12 +686,10 @@ implementation
                                   emit_reg_reg(A_MOV,opsize,p^.left^.location.register,
                                     hregister);
                                end
-
                           end
                         else
                           begin
                              del_reference(p^.left^.location.reference);
-
                              if is_in_dest then
                                begin
                                   hregister:=p^.location.register;
@@ -657,10 +708,8 @@ implementation
                                     newreference(p^.left^.location.reference),hregister)));
                                end;
                           end;
-
                         p^.location.loc:=LOC_REGISTER;
                         p^.location.register:=hregister;
-
                      end
                    else
                      { if on the right the register then swap }
@@ -896,12 +945,7 @@ implementation
                  begin
                     { real constants to the left }
                     if p^.left^.treetype=realconstn then
-                      begin
-                         swapp:=p^.right;
-                         p^.right:=p^.left;
-                         p^.left:=swapp;
-                         p^.swaped:=not(p^.swaped);
-                      end;
+                      swaptree(p);
                     cmpop:=false;
                     case p^.treetype of
                        addn : op:=A_FADDP;
@@ -1094,7 +1138,6 @@ implementation
                                   emit_reg_reg(A_MOVQ,S_NO,p^.left^.location.register,
                                     hregister);
                                end
-
                           end
                         else
                           begin
@@ -1113,17 +1156,14 @@ implementation
                                     newreference(p^.left^.location.reference),hregister)));
                                end;
                           end;
-
                         p^.location.loc:=LOC_MMXREGISTER;
                         p^.location.register:=hregister;
-
                      end
                    else
                      { if on the right the register then swap }
                      if (p^.right^.location.loc=LOC_MMXREGISTER) then
                        begin
                           swap_location(p^.location,p^.right^.location);
-
                           { newly swapped also set swapped flag }
                           p^.swaped:=not(p^.swaped);
                        end;
@@ -1142,7 +1182,6 @@ implementation
                                end
                              else
                                begin
-
                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVQ,S_NO,
                                     newreference(p^.right^.location.reference),R_MM7)));
                                   exprasmlist^.concat(new(pai386,op_reg_reg(op,S_NO,p^.location.register,
@@ -1191,14 +1230,18 @@ implementation
 {$endif SUPPORT_MMX}
               else Message(sym_e_type_mismatch);
            end;
-       setaddresult(cmpop,unsigned,p);
+       SetResultLocation(cmpop,unsigned,p);
     end;
 
 
 end.
 {
   $Log$
-  Revision 1.4  1998-08-10 14:49:42  peter
+  Revision 1.5  1998-08-14 18:18:37  peter
+    + dynamic set contruction
+    * smallsets are now working (always longint size)
+
+  Revision 1.4  1998/08/10 14:49:42  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.3  1998/06/25 08:48:04  florian

@@ -207,7 +207,7 @@ implementation
        const
          procedures : array[ttreetyp] of secondpassproc =
             (secondadd,secondadd,secondadd,secondmoddiv,secondadd,
-             secondmoddiv,secondassignment,secondload,secondnothing,
+             secondmoddiv,secondassignment,secondload,secondrange,
              secondadd,secondadd,secondadd,secondadd,
              secondadd,secondadd,secondin,secondadd,
              secondadd,secondshlshr,secondshlshr,secondadd,
@@ -219,7 +219,7 @@ implementation
              secondstringconst,secondfuncret,secondselfn,
              secondnot,secondinline,secondniln,seconderror,
              secondnothing,secondhnewn,secondhdisposen,secondnewn,
-             secondsimplenewdispose,secondnothing,secondsetcons,secondblockn,
+             secondsimplenewdispose,secondsetele,secondsetcons,secondblockn,
              secondstatement,secondnothing,secondifn,secondbreakn,
              secondcontinuen,second_while_repeatn,second_while_repeatn,secondfor,
              secondexitn,secondwith,secondcase,secondlabel,
@@ -506,7 +506,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1998-08-10 14:49:53  peter
+  Revision 1.48  1998-08-14 18:18:43  peter
+    + dynamic set contruction
+    * smallsets are now working (always longint size)
+
+  Revision 1.47  1998/08/10 14:49:53  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.46  1998/08/10 10:18:23  peter
@@ -570,8 +574,6 @@ end.
 
   Revision 1.32  1998/06/04 09:55:35  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
-
-  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
 
   Revision 1.31  1998/06/03 22:48:52  peter
     + wordbool,longbool

@@ -146,7 +146,7 @@ unit tree;
                       tc_int_2_real,tc_real_2_fix,
                       tc_fix_2_real,tc_int_2_fix,tc_real_2_real,
                       tc_chararray_2_string,
-                      tc_proc2procvar,tc_cchar_charpointer);
+                      tc_proc2procvar,tc_cchar_charpointer,tc_load_smallset);
 
        { allows to determine which elementes are to be replaced }
        tdisposetyp = (dt_nothing,dt_leftright,dt_left,
@@ -1557,7 +1557,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.28  1998-08-13 11:00:13  peter
+  Revision 1.29  1998-08-14 18:18:48  peter
+    + dynamic set contruction
+    * smallsets are now working (always longint size)
+
+  Revision 1.28  1998/08/13 11:00:13  peter
     * fixed procedure<>procedure construct
 
   Revision 1.27  1998/08/10 14:50:35  peter

@@ -106,307 +106,300 @@ unit pexpr;
          parse_paras:=p2;
       end;
 
-    function statement_syssym(l : longint;var pd : pdef) : ptree;
-{   const   regnames:array[R_EAX..R_EDI] of string[3]=
-             ('EAX','ECX','EDX','EBX','','','ESI','EDI'); }
 
+    function statement_syssym(l : longint;var pd : pdef) : ptree;
       var
          p1,p2 : ptree;
          paras : ptree;
          prev_in_args : boolean;
          Store_valid : boolean;
-
       begin
          prev_in_args:=in_args;
          Store_valid:=Must_be_valid;
          case l of
-            in_ord_x:
-              begin
-                 consume(LKLAMMER);
-                 in_args:=true;
-                 Must_be_valid:=true;
-                 p1:=comp_expr(true);
-                 consume(RKLAMMER);
-                 do_firstpass(p1);
-                 p1:=geninlinenode(in_ord_x,p1);
-                 do_firstpass(p1);
-                 statement_syssym := p1;
-                 pd:=p1^.resulttype;
-              end;
-            in_break:
-              begin
-                 statement_syssym:=genzeronode(breakn);
-                 pd:=voiddef;
-              end;
-            in_continue:
-              begin
-                 statement_syssym:=genzeronode(continuen);
-                 pd:=voiddef;
-              end;
-            in_typeof_x : begin
-                             consume(LKLAMMER);
-                             in_args:=true;
-                             p1:=comp_expr(true);
-                             consume(RKLAMMER);
-                             pd:=voidpointerdef;
-                             if p1^.treetype=typen then
-                               begin
-                                  if (p1^.resulttype=nil) then
-                                    begin
-                                       Message(sym_e_type_mismatch);
-                                       statement_syssym:=genzeronode(errorn);
-                                    end
-                                  else
-                                  if p1^.resulttype^.deftype=objectdef then
-                                    statement_syssym:=geninlinenode(in_typeof_x,p1)
-                                  else
-                                    begin
-                                       Message(sym_e_type_mismatch);
-                                       statement_syssym:=genzeronode(errorn);
-                                    end;
-                               end
-                             else
-                               begin
-                                  Must_be_valid:=false;
-                                  do_firstpass(p1);
-                                  if (p1^.resulttype=nil) then
-                                    begin
-                                       Message(sym_e_type_mismatch);
-                                       statement_syssym:=genzeronode(errorn)
-                                    end
-                                  else
-                                  if p1^.resulttype^.deftype=objectdef then
-                                    statement_syssym:=geninlinenode(in_typeof_x,p1)
-                                  else
-                                    begin
-                                       Message(sym_e_type_mismatch);
-                                       statement_syssym:=genzeronode(errorn)
-                                    end;
-                               end;
-                          end;
-            in_sizeof_x : begin
-                             consume(LKLAMMER);
-                             in_args:=true;
-                             p1:=comp_expr(true);
-                             consume(RKLAMMER);
-                             pd:=s32bitdef;
-                             if p1^.treetype=typen then
-                               begin
-                                  statement_syssym:=genordinalconstnode(
-                                    p1^.resulttype^.size,pd);
-                                  { p1 not needed !}
-                                  disposetree(p1);
-                               end
-                             else
-                               begin
-                                  Must_be_valid:=false;
-                                  do_firstpass(p1);
-                                  if (p1^.resulttype^.deftype=objectdef) or
-                                     is_open_array(p1^.resulttype) then
-                                    statement_syssym:=geninlinenode(in_sizeof_x,p1)
-                                  else
-                                    begin
-                                      statement_syssym:=genordinalconstnode(p1^.resulttype^.size,pd);
-                                      { p1 not needed !}
-                                      disposetree(p1);
-                                    end;
-                               end;
-                          end;
-            in_assigned_x : begin
-                               consume(LKLAMMER);
-                               in_args:=true;
-                               p1:=comp_expr(true);
-                               Must_be_valid:=true;
-                               do_firstpass(p1);
-                               case p1^.resulttype^.deftype of
-                                 pointerdef,procvardef,
-                                 classrefdef:
-                                   ;
-                                 objectdef:
-                                   if not(pobjectdef(p1^.resulttype)^.isclass) then
-                                     Message(parser_e_illegal_parameter_list);
-                                 else Message(parser_e_illegal_parameter_list);
-                               end;
-                               p2:=gencallparanode(p1,nil);
-                               p2:=geninlinenode(in_assigned_x,p2);
-                               consume(RKLAMMER);
-                               pd:=booldef;
-                               statement_syssym:=p2;
-                            end;
-            in_ofs_x : begin
-                          consume(LKLAMMER);
-                          in_args:=true;
-                          p1:=comp_expr(true);
-                          p1:=gensinglenode(addrn,p1);
-                          Must_be_valid:=false;
-                          do_firstpass(p1);
-                        { Ofs() returns a longint, not a pointer }
-                          p1^.resulttype:=u32bitdef;
-                          pd:=p1^.resulttype;
-                          consume(RKLAMMER);
-                          statement_syssym:=p1;
-                       end;
-            in_seg_x : begin
-                          consume(LKLAMMER);
-                          in_args:=true;
-                          p1:=comp_expr(true);
-                          do_firstpass(p1);
-                          if p1^.location.loc<>LOC_REFERENCE then
-                            Message(cg_e_illegal_expression);
-                          p1:=genordinalconstnode(0,s32bitdef);
-                          Must_be_valid:=false;
-                          pd:=s32bitdef;
-                          consume(RKLAMMER);
-                          statement_syssym:=p1;
-                       end;
-            in_high_x,
-            in_low_x : begin
-                          consume(LKLAMMER);
-                          in_args:=true;
-                          p1:=comp_expr(true);
-                          do_firstpass(p1);
-                          Must_be_valid:=false;
-                          p2:=geninlinenode(l,p1);
-                          consume(RKLAMMER);
-                          pd:=s32bitdef;
-                          statement_syssym:=p2;
-                       end;
-            in_succ_x,
-            in_pred_x : begin
-                          consume(LKLAMMER);
-                          in_args:=true;
-                          p1:=comp_expr(true);
-                          do_firstpass(p1);
-                          Must_be_valid:=false;
-                          p2:=geninlinenode(l,p1);
-                          consume(RKLAMMER);
-                          pd:=p1^.resulttype;
-                          statement_syssym:=p2;
-                       end;
-            in_inc_x,
-            in_dec_x : begin
-                          consume(LKLAMMER);
-                          in_args:=true;
-                          p1:=comp_expr(true);
-                          Must_be_valid:=false;
-                          if token=COMMA then
-                           begin
-                             consume(COMMA);
-                             p2:=gencallparanode(comp_expr(true),nil);
-                           end
-                          else
-                           p2:=nil;
-                          p2:=gencallparanode(p1,p2);
-                          statement_syssym:=geninlinenode(l,p2);
-                          consume(RKLAMMER);
-                          pd:=voiddef;
-                       end;
-            in_concat_x : begin
-                             consume(LKLAMMER);
-                             in_args:=true;
-                             p2:=nil;
-                             while true do
-                               begin
-                                  p1:=comp_expr(true);
-                                  Must_be_valid:=true;
-                                  do_firstpass(p1);
-                                  if not((p1^.resulttype^.deftype=stringdef) or
-                                         ((p1^.resulttype^.deftype=orddef) and
-                                          (porddef(p1^.resulttype)^.typ=uchar)
-                                         )
-                                    ) then Message(parser_e_illegal_parameter_list);
-                                  if p2<>nil then
-                                    p2:=gennode(addn,p2,p1)
-                                  else p2:=p1;
-                                  if token=COMMA then
-                                    consume(COMMA)
-                                  else break;
-                               end;
-                             consume(RKLAMMER);
-                             pd:=cstringdef;
-                             statement_syssym:=p2;
-                          end;
-            in_read_x,
-            in_readln_x : begin
-                             if token=LKLAMMER then
-                               begin
-                                  consume(LKLAMMER);
-                                  in_args:=true;
-                                  Must_be_valid:=false;
-                                  paras:=parse_paras(false,false);
-                                  consume(RKLAMMER);
-                               end
-                             else
-                               paras:=nil;
-                             pd:=voiddef;
-                             p1:=geninlinenode(l,paras);
-                             do_firstpass(p1);
-                             statement_syssym := p1;
-                          end;
-            in_write_x,
-            in_writeln_x : begin
-                             if token=LKLAMMER then
-                               begin
-                                  consume(LKLAMMER);
-                                  in_args:=true;
-                                  Must_be_valid:=true;
-                                  paras:=parse_paras(true,false);
-                                  consume(RKLAMMER);
-                               end
-                             else
-                               paras:=nil;
-                             pd:=voiddef;
-                             p1 := geninlinenode(l,paras);
-                             do_firstpass(p1);
-                             statement_syssym := p1;
-                          end;
-            in_str_x_string : begin
-                                 consume(LKLAMMER);
-                                 in_args:=true;
-                                 paras:=parse_paras(true,false);
-                                 consume(RKLAMMER);
-                                 p1 := geninlinenode(l,paras);
-                                 do_firstpass(p1);
-                                 statement_syssym := p1;
-                                 pd:=voiddef;
-                              end;
-            in_include_x_y,
-            in_exclude_x_y:
-              begin
-                 consume(LKLAMMER);
-                 in_args:=true;
-                 p1:=comp_expr(true);
-                 Must_be_valid:=false;
-                 consume(COMMA);
-                 p2:=comp_expr(true);
-                 { just a bit lisp feeling }
-                 statement_syssym:=geninlinenode(l,
-                   gencallparanode(p1,gencallparanode(p2,nil)));
-                 consume(RKLAMMER);
-                 pd:=voiddef;
-              end;
-            {in_val_x :        begin
-                                 consume(LKLAMMER);
-                                 paras:=parse_paras(false);
-                                 consume(RKLAMMER);
-                                 p1 := geninlinenode(l,paras);
-                                 do_firstpass(p1);
-                                 statement_syssym := p1;
-                                 pd:=voiddef;
-                              end;    }
-            else internalerror(15);
+        in_ord_x : begin
+                     consume(LKLAMMER);
+                     in_args:=true;
+                     Must_be_valid:=true;
+                     p1:=comp_expr(true);
+                     consume(RKLAMMER);
+                     do_firstpass(p1);
+                     p1:=geninlinenode(in_ord_x,p1);
+                     do_firstpass(p1);
+                     statement_syssym := p1;
+                     pd:=p1^.resulttype;
+                   end;
+        in_break : begin
+                     statement_syssym:=genzeronode(breakn);
+                     pd:=voiddef;
+                   end;
+     in_continue : begin
+                     statement_syssym:=genzeronode(continuen);
+                     pd:=voiddef;
+                   end;
+     in_typeof_x : begin
+                     consume(LKLAMMER);
+                     in_args:=true;
+                     p1:=comp_expr(true);
+                     consume(RKLAMMER);
+                     pd:=voidpointerdef;
+                     if p1^.treetype=typen then
+                      begin
+                        if (p1^.resulttype=nil) then
+                         begin
+                           Message(sym_e_type_mismatch);
+                           statement_syssym:=genzeronode(errorn);
+                         end
+                        else
+                         if p1^.resulttype^.deftype=objectdef then
+                          statement_syssym:=geninlinenode(in_typeof_x,p1)
+                        else
+                         begin
+                           Message(sym_e_type_mismatch);
+                           statement_syssym:=genzeronode(errorn);
+                         end;
+                      end
+                     else
+                      begin
+                        Must_be_valid:=false;
+                        do_firstpass(p1);
+                        if (p1^.resulttype=nil) then
+                         begin
+                           Message(sym_e_type_mismatch);
+                           statement_syssym:=genzeronode(errorn)
+                         end
+                        else
+                         if p1^.resulttype^.deftype=objectdef then
+                          statement_syssym:=geninlinenode(in_typeof_x,p1)
+                        else
+                         begin
+                           Message(sym_e_type_mismatch);
+                           statement_syssym:=genzeronode(errorn)
+                         end;
+                      end;
+                   end;
+     in_sizeof_x : begin
+                     consume(LKLAMMER);
+                     in_args:=true;
+                     p1:=comp_expr(true);
+                     consume(RKLAMMER);
+                     pd:=s32bitdef;
+                     if p1^.treetype=typen then
+                      begin
+                        statement_syssym:=genordinalconstnode(p1^.resulttype^.size,pd);
+                        { p1 not needed !}
+                        disposetree(p1);
+                      end
+                     else
+                      begin
+                        Must_be_valid:=false;
+                        do_firstpass(p1);
+                        if (p1^.resulttype^.deftype=objectdef) or
+                           is_open_array(p1^.resulttype) then
+                         statement_syssym:=geninlinenode(in_sizeof_x,p1)
+                        else
+                         begin
+                           statement_syssym:=genordinalconstnode(p1^.resulttype^.size,pd);
+                           { p1 not needed !}
+                           disposetree(p1);
+                         end;
+                      end;
+                   end;
+   in_assigned_x : begin
+                     consume(LKLAMMER);
+                     in_args:=true;
+                     p1:=comp_expr(true);
+                     Must_be_valid:=true;
+                     do_firstpass(p1);
+                     case p1^.resulttype^.deftype of
+                  pointerdef,
+                  procvardef,
+                 classrefdef : ;
+                   objectdef : if not(pobjectdef(p1^.resulttype)^.isclass) then
+                                Message(parser_e_illegal_parameter_list);
+                     else
+                       Message(parser_e_illegal_parameter_list);
+                     end;
+                     p2:=gencallparanode(p1,nil);
+                     p2:=geninlinenode(in_assigned_x,p2);
+                     consume(RKLAMMER);
+                     pd:=booldef;
+                     statement_syssym:=p2;
+                   end;
+        in_ofs_x : begin
+                     consume(LKLAMMER);
+                     in_args:=true;
+                     p1:=comp_expr(true);
+                     p1:=gensinglenode(addrn,p1);
+                     Must_be_valid:=false;
+                     do_firstpass(p1);
+                   { Ofs() returns a longint, not a pointer }
+                     p1^.resulttype:=u32bitdef;
+                     pd:=p1^.resulttype;
+                     consume(RKLAMMER);
+                     statement_syssym:=p1;
+                   end;
+        in_seg_x : begin
+                     consume(LKLAMMER);
+                     in_args:=true;
+                     p1:=comp_expr(true);
+                     do_firstpass(p1);
+                     if p1^.location.loc<>LOC_REFERENCE then
+                       Message(cg_e_illegal_expression);
+                     p1:=genordinalconstnode(0,s32bitdef);
+                     Must_be_valid:=false;
+                     pd:=s32bitdef;
+                     consume(RKLAMMER);
+                     statement_syssym:=p1;
+                   end;
+       in_high_x,
+        in_low_x : begin
+                     consume(LKLAMMER);
+                     in_args:=true;
+                     p1:=comp_expr(true);
+                     do_firstpass(p1);
+                     Must_be_valid:=false;
+                     p2:=geninlinenode(l,p1);
+                     consume(RKLAMMER);
+                     pd:=s32bitdef;
+                     statement_syssym:=p2;
+                   end;
+       in_succ_x,
+       in_pred_x : begin
+                     consume(LKLAMMER);
+                     in_args:=true;
+                     p1:=comp_expr(true);
+                     do_firstpass(p1);
+                     Must_be_valid:=false;
+                     p2:=geninlinenode(l,p1);
+                     consume(RKLAMMER);
+                     pd:=p1^.resulttype;
+                     statement_syssym:=p2;
+                   end;
+        in_inc_x,
+        in_dec_x : begin
+                     consume(LKLAMMER);
+                     in_args:=true;
+                     p1:=comp_expr(true);
+                     Must_be_valid:=false;
+                     if token=COMMA then
+                      begin
+                        consume(COMMA);
+                        p2:=gencallparanode(comp_expr(true),nil);
+                      end
+                     else
+                      p2:=nil;
+                     p2:=gencallparanode(p1,p2);
+                     statement_syssym:=geninlinenode(l,p2);
+                     consume(RKLAMMER);
+                     pd:=voiddef;
+                   end;
+     in_concat_x : begin
+                     consume(LKLAMMER);
+                     in_args:=true;
+                     p2:=nil;
+                     while true do
+                      begin
+                        p1:=comp_expr(true);
+                        Must_be_valid:=true;
+                        do_firstpass(p1);
+                        if not((p1^.resulttype^.deftype=stringdef) or
+                               ((p1^.resulttype^.deftype=orddef) and
+                                (porddef(p1^.resulttype)^.typ=uchar))) then
+                          Message(parser_e_illegal_parameter_list);
+                        if p2<>nil then
+                         p2:=gennode(addn,p2,p1)
+                        else
+                         p2:=p1;
+                        if token=COMMA then
+                         consume(COMMA)
+                        else
+                         break;
+                      end;
+                     consume(RKLAMMER);
+                     pd:=cstringdef;
+                     statement_syssym:=p2;
+                   end;
+       in_read_x,
+     in_readln_x : begin
+                     if token=LKLAMMER then
+                      begin
+                        consume(LKLAMMER);
+                        in_args:=true;
+                        Must_be_valid:=false;
+                        paras:=parse_paras(false,false);
+                        consume(RKLAMMER);
+                      end
+                     else
+                      paras:=nil;
+                     pd:=voiddef;
+                     p1:=geninlinenode(l,paras);
+                     do_firstpass(p1);
+                     statement_syssym := p1;
+                   end;
+      in_write_x,
+    in_writeln_x : begin
+                     if token=LKLAMMER then
+                      begin
+                        consume(LKLAMMER);
+                        in_args:=true;
+                        Must_be_valid:=true;
+                        paras:=parse_paras(true,false);
+                        consume(RKLAMMER);
+                      end
+                     else
+                      paras:=nil;
+                     pd:=voiddef;
+                     p1 := geninlinenode(l,paras);
+                     do_firstpass(p1);
+                     statement_syssym := p1;
+                   end;
+ in_str_x_string : begin
+                     consume(LKLAMMER);
+                     in_args:=true;
+                     paras:=parse_paras(true,false);
+                     consume(RKLAMMER);
+                     p1 := geninlinenode(l,paras);
+                     do_firstpass(p1);
+                     statement_syssym := p1;
+                     pd:=voiddef;
+                   end;
+  in_include_x_y,
+  in_exclude_x_y : begin
+                     consume(LKLAMMER);
+                     in_args:=true;
+                     p1:=comp_expr(true);
+                     Must_be_valid:=false;
+                     consume(COMMA);
+                     p2:=comp_expr(true);
+                     { just a bit lisp feeling }
+                     statement_syssym:=geninlinenode(l,
+                       gencallparanode(p1,gencallparanode(p2,nil)));
+                     consume(RKLAMMER);
+                     pd:=voiddef;
+                   end;
+       {in_val_x : begin
+                     consume(LKLAMMER);
+                     paras:=parse_paras(false);
+                     consume(RKLAMMER);
+                     p1 := geninlinenode(l,paras);
+                     do_firstpass(p1);
+                     statement_syssym := p1;
+                     pd:=voiddef;
+                   end; }
+         else
+           internalerror(15);
          end;
          in_args:=prev_in_args;
          Must_be_valid:=Store_valid;
       end;
 
+
     { reads the parameter for a subroutine call }
     procedure do_proc_call(getaddr : boolean;var again : boolean;var p1:Ptree;var pd:Pdef);
-
       var
          prev_in_args : boolean;
          prevafterassn : boolean;
-
       begin
          prev_in_args:=in_args;
          prevafterassn:=afterassignment;
@@ -441,6 +434,7 @@ unit pexpr;
          in_args:=prev_in_args;
          afterassignment:=prevafterassn;
       end;
+
 
     { the following procedure handles the access to a property symbol }
     procedure handle_propertysym(sym : psym;var p1 : ptree;
@@ -648,8 +642,178 @@ unit pexpr;
            end;
       end;
 
-    function factor(getaddr : boolean) : ptree;
 
+{****************************************************************************
+                            Factor_read_set
+****************************************************************************}
+
+    { Read a set between [] }
+    function factor_read_set:ptree;
+      var
+        constp,
+        buildp,
+        p2,p3,p4    : ptree;
+        pd          : pdef;
+        constset    : pconstset;
+        constsetlo,
+        constsethi  : longint;
+
+        procedure update_constsethi(p:pdef);
+        begin
+          if ((p^.deftype=orddef) and
+              (porddef(p)^.high>constsethi)) then
+            constsethi:=porddef(p)^.high
+          else
+            if ((p^.deftype=enumdef) and
+                (penumdef(p)^.max>constsethi)) then
+              constsethi:=penumdef(p)^.max;
+        end;
+
+        procedure do_set(pos : longint);
+        var
+          mask,l : longint;
+        begin
+          if (pos>255) or (pos<0) then
+           Message(parser_e_illegal_set_expr);
+          if pos>constsethi then
+           constsethi:=pos;
+          if pos<constsetlo then
+           constsetlo:=pos;
+          l:=pos shr 3;
+          mask:=1 shl (pos mod 8);
+          { do we allow the same twice }
+          if (constset^[l] and mask)<>0 then
+           Message(parser_e_illegal_set_expr);
+          constset^[l]:=constset^[l] or mask;
+        end;
+
+      var
+        l : longint;
+      begin
+        new(constset);
+        FillChar(constset^,sizeof(constset^),0);
+        constsetlo:=0;
+        constsethi:=0;
+
+        constp:=gensinglenode(setconstrn,nil);
+        constp^.constset:=constset;
+
+        buildp:=constp;
+        pd:=nil;
+
+        if token<>RECKKLAMMER then
+         begin
+           while true do
+            begin
+              p4:=nil; { will contain the tree to create the set }
+              p2:=comp_expr(true);
+              do_firstpass(p2);
+              if codegenerror then
+               break;
+              case p2^.resulttype^.deftype of
+            enumdef,
+             orddef : begin
+                        if (p2^.resulttype^.deftype=orddef) and
+                           (porddef(p2^.resulttype)^.typ in [s8bit,s16bit,s32bit,u16bit,u32bit]) then
+                         begin
+                           p2:=gentypeconvnode(p2,u8bitdef);
+                           do_firstpass(p2);
+                         end;
+                        { set settype result }
+                        if pd=nil then
+                          pd:=p2^.resulttype;
+                        if not(is_equal(pd,p2^.resulttype)) then
+                         begin
+                           Message(parser_e_typeconflict_in_set);
+                           disposetree(p2);
+                         end
+                        else
+                         begin
+                           if token=POINTPOINT then
+                            begin
+                              consume(POINTPOINT);
+                              p3:=comp_expr(true);
+                              do_firstpass(p3);
+                              if codegenerror then
+                               break;
+                              if (p3^.resulttype^.deftype=orddef) and
+                                 (porddef(p3^.resulttype)^.typ in [s8bit,s16bit,s32bit,u16bit,u32bit]) then
+                               begin
+                                 p3:=gentypeconvnode(p3,u8bitdef);
+                                 do_firstpass(p3);
+                               end;
+                              if not(is_equal(pd,p3^.resulttype)) then
+                                Message(parser_e_typeconflict_in_set)
+                              else
+                                begin
+                                  if (p2^.treetype=ordconstn) and (p3^.treetype=ordconstn) then
+                                   begin
+                                     for l:=p2^.value to p3^.value do
+                                      do_set(l);
+                                     disposetree(p3);
+                                     disposetree(p2);
+                                   end
+                                  else
+                                   begin
+                                     update_constsethi(p3^.resulttype);
+                                     p4:=gennode(rangen,p2,p3);
+                                   end;
+                                end;
+                            end
+                           else
+                            begin
+                           { Single value }
+                              if p2^.treetype=ordconstn then
+                               begin
+                                 do_set(p2^.value);
+                                 disposetree(p2);
+                               end
+                              else
+                               begin
+                                 update_constsethi(p2^.resulttype);
+                                 p4:=gensinglenode(setelen,p2);
+                               end;
+                            end;
+                         end;
+                      end;
+          stringdef : begin
+                        if pd=nil then
+                         pd:=cchardef;
+                        if not(is_equal(pd,cchardef)) then
+                         Message(parser_e_typeconflict_in_set)
+                        else
+                         for l:=1 to length(pstring(p2^.values)^) do
+                          do_set(ord(pstring(p2^.values)^[l]));
+                        disposetree(p2);
+                      end;
+              else
+               Internalerror(4234);
+              end;
+            { insert the set creation tree }
+              if assigned(p4) then
+               begin
+                 buildp:=gennode(addn,buildp,p4);
+               end;
+            { there could be more elements }
+              if token=COMMA then
+                consume(COMMA)
+              else
+                break;
+            end;
+         end;
+
+        constp^.resulttype:=new(psetdef,init(pd,constsethi));
+
+        factor_read_set:=buildp;
+      end;
+
+
+
+{****************************************************************************
+                               Factor
+****************************************************************************}
+
+    function factor(getaddr : boolean) : ptree;
       var
          l : longint;
          p1,p2,p3 : ptree;
@@ -660,496 +824,453 @@ unit pexpr;
          sym : pvarsym;
          classh : pobjectdef;
          d : bestreal;
-         constset : pconstset;
          propsym : ppropertysym;
          oldp1 : ptree;
          filepos : tfileposinfo;
 
-
-      procedure check_tokenpos;
+        procedure check_tokenpos;
         begin
-           if (p1<>oldp1) then
-             begin
-                if assigned(p1) then
-                  set_tree_filepos(p1,filepos);
-                oldp1:=p1;
-                filepos:=tokenpos;
-             end;
+          if (p1<>oldp1) then
+           begin
+             if assigned(p1) then
+              set_tree_filepos(p1,filepos);
+             oldp1:=p1;
+             filepos:=tokenpos;
+           end;
         end;
 
-      { p1 and p2 must contain valid values }
-      procedure postfixoperators;
-
+        procedure postfixoperators;
+        { p1 and p2 must contain valid values }
         begin
-           check_tokenpos;
-           while again do
-             begin
-                case token of
-                   CARET:
-                     begin
-                        consume(CARET);
-                        if pd^.deftype<>pointerdef then
+          check_tokenpos;
+          while again do
+           begin
+             case token of
+          CARET : begin
+                    consume(CARET);
+                    if pd^.deftype<>pointerdef then
+                      begin
+                         { ^ as binary operator is a problem!!!! (FK) }
+                         again:=false;
+                         Message(cg_e_invalid_qualifier);
+                         disposetree(p1);
+                         p1:=genzeronode(errorn);
+                      end
+                    else
+                      begin
+                         p1:=gensinglenode(derefn,p1);
+                         pd:=ppointerdef(pd)^.definition;
+                      end;
+                  end;
+    LECKKLAMMER : begin
+                    if (pd^.deftype=objectdef) and pobjectdef(pd)^.isclass then
+                      begin
+                        { default property }
+                        propsym:=search_default_property(pobjectdef(pd));
+                        if not(assigned(propsym)) then
                           begin
-                             { ^ as binary operator is a problem!!!! (FK) }
-                             again:=false;
-                             Message(cg_e_invalid_qualifier);
                              disposetree(p1);
                              p1:=genzeronode(errorn);
+                             again:=false;
+                             message(parser_e_no_default_property_available);
                           end
                         else
                           begin
-                             p1:=gensinglenode(derefn,p1);
-                             pd:=ppointerdef(pd)^.definition;
+                             p1:=nil;
+                             handle_propertysym(propsym,p1,pd);
                           end;
-                     end;
-                   LECKKLAMMER:
-                     begin
-                        if (pd^.deftype=objectdef) and
-                          pobjectdef(pd)^.isclass then
-                          begin
-                             { default property }
-                             propsym:=search_default_property(pobjectdef(pd));
-                             if not(assigned(propsym)) then
-                               begin
-                                  disposetree(p1);
-                                  p1:=genzeronode(errorn);
-                                  again:=false;
-                                  message(parser_e_no_default_property_available);
-                               end
-                             else
-                               begin
-                                  p1:=nil;
-                                  handle_propertysym(propsym,p1,pd);
-                               end;
-                          end
-                        else
-                          begin
-                             consume(LECKKLAMMER);
-                             repeat
-                               if (pd^.deftype<>arraydef) and
-                                  (pd^.deftype<>stringdef) and
-                                  (pd^.deftype<>pointerdef) then
-                                 begin
-                                    Message(cg_e_invalid_qualifier);
+                      end
+                    else
+                      begin
+                        consume(LECKKLAMMER);
+                        repeat
+                          case pd^.deftype of
+                    pointerdef : begin
+                                   p2:=comp_expr(true);
+                                   p1:=gennode(vecn,p1,p2);
+                                   pd:=ppointerdef(pd)^.definition;
+                                 end;
+                     stringdef : begin
+                                   p2:=comp_expr(true);
+                                   p1:=gennode(vecn,p1,p2);
+                                   pd:=cchardef
+                                 end;
+                      arraydef : begin
+                                   p2:=comp_expr(true);
+{$ifdef i386}
+                                 { support SEG:OFS for go32v2 Mem[] }
+                                   if (target_info.target=target_GO32V2) and
+                                      (p1^.treetype=loadn) and
+                                      assigned(p1^.symtableentry) and
+                                      assigned(p1^.symtableentry^.owner^.name) and
+                                      (p1^.symtableentry^.owner^.name^='SYSTEM') and
+                                      ((p1^.symtableentry^.name='MEM') or
+                                       (p1^.symtableentry^.name='MEMW') or
+                                       (p1^.symtableentry^.name='MEML')) then
+                                     begin
+                                       if (token=COLON) then
+                                        begin
+                                          consume(COLON);
+                                          p3:=gennode(muln,genordinalconstnode($10,s32bitdef),p2);
+                                          p2:=comp_expr(true);
+                                          p2:=gennode(addn,p2,p3);
+                                          p1:=gennode(vecn,p1,p2);
+                                          p1^.memseg:=true;
+                                          p1^.memindex:=true;
+                                        end
+                                       else
+                                        begin
+                                          p1:=gennode(vecn,p1,p2);
+                                          p1^.memindex:=true;
+                                        end;
+                                     end
+                                   else
+{$endif}
+                                     p1:=gennode(vecn,p1,p2);
+                                   pd:=parraydef(pd)^.definition;
+                                 end;
+                          else
+                            begin
+                              Message(cg_e_invalid_qualifier);
+                              disposetree(p1);
+                              p1:=genzeronode(errorn);
+                              again:=false;
+                            end;
+                          end;
+                          if token=COMMA then
+                            consume(COMMA)
+                          else
+                            break;
+                        until false;
+                        consume(RECKKLAMMER);
+                      end;
+                  end;
+          POINT : begin
+                    consume(POINT);
+                    case pd^.deftype of
+                  recorddef : begin
+                                sym:=pvarsym(precdef(pd)^.symtable^.search(pattern));
+                                consume(ID);
+                                if sym=nil then
+                                  begin
+                                    Message(sym_e_illegal_field);
                                     disposetree(p1);
                                     p1:=genzeronode(errorn);
-                                    again:=false;
-                                 end
-                               else if (pd^.deftype=pointerdef) then
-                                 begin
-                                    p2:=comp_expr(true);
-                                    p1:=gennode(vecn,p1,p2);
-                                    pd:=ppointerdef(pd)^.definition;
-                                 end
-                               else
-                                 begin
-                                    p2:=comp_expr(true);
-{$ifdef i386}
-
-                                  { support SEG:OFS for go32v2 Mem[] }
-                                    if (target_info.target=target_GO32V2) and
-                                       (p1^.treetype=loadn) and
-                                       assigned(p1^.symtableentry) and
-                                       assigned(p1^.symtableentry^.owner^.name) and
-                                       (p1^.symtableentry^.owner^.name^='SYSTEM') and
-                                       ((p1^.symtableentry^.name='MEM') or
-                                        (p1^.symtableentry^.name='MEMW') or
-                                        (p1^.symtableentry^.name='MEML')) then
-                                      begin
-                                        if (token=COLON) then
-                                         begin
-                                           consume(COLON);
-                                           p3:=gennode(muln,genordinalconstnode($10,s32bitdef),p2);
-                                           p2:=comp_expr(true);
-                                           p2:=gennode(addn,p2,p3);
-                                           p1:=gennode(vecn,p1,p2);
-                                           p1^.memseg:=true;
-                                           p1^.memindex:=true;
-                                         end
-                                        else
-                                         begin
-                                           p1:=gennode(vecn,p1,p2);
-                                           p1^.memindex:=true;
-                                         end;
-                                      end
-                                    else
-{$endif}
-
-                                      p1:=gennode(vecn,p1,p2);
-                                    if pd^.deftype=stringdef then
-                                      pd:=cchardef
-                                    else
-                                      pd:=parraydef(pd)^.definition;
-                                 end;
-                               if token=COMMA then consume(COMMA)
-                                 else break;
-                             until false;
-                             consume(RECKKLAMMER);
-                          end;
-                     end;
-                   POINT:
-                     begin
-                        consume(POINT);
-                        case pd^.deftype of
-                           recorddef:
-                                 begin
-                                    sym:=pvarsym(precdef(pd)^.symtable^.search(pattern));
-                                    consume(ID);
-                                    if sym=nil then
-                                      begin
-                                         Message(sym_e_illegal_field);
-                                         disposetree(p1);
-                                         p1:=genzeronode(errorn);
-                                      end
-                                    else
-                                      begin
-                                         p1:=gensubscriptnode(sym,p1);
-                                         pd:=sym^.definition;
-                                      end;
-                                 end;
-                           classrefdef:
-                             begin
+                                  end
+                                else
+                                  begin
+                                    p1:=gensubscriptnode(sym,p1);
+                                    pd:=sym^.definition;
+                                  end;
+                              end;
+                classrefdef : begin
                                 classh:=pobjectdef(pclassrefdef(pd)^.definition);
                                 sym:=nil;
                                 while assigned(classh) do
-                                  begin
-                                     sym:=pvarsym(classh^.publicsyms^.search(pattern));
-                                     srsymtable:=classh^.publicsyms;
-                                     if assigned(sym) then
-                                       break;
-                                     classh:=classh^.childof;
-                                  end;
+                                 begin
+                                   sym:=pvarsym(classh^.publicsyms^.search(pattern));
+                                   srsymtable:=classh^.publicsyms;
+                                   if assigned(sym) then
+                                    break;
+                                   classh:=classh^.childof;
+                                 end;
                                 consume(ID);
                                 do_member_read(false,sym,p1,pd,again);
-                             end;
-                           objectdef:
+                              end;
+                  objectdef : begin
+                                classh:=pobjectdef(pd);
+                                sym:=nil;
+                                while assigned(classh) do
                                  begin
-                                    classh:=pobjectdef(pd);
-                                    sym:=nil;
-                                    while assigned(classh) do
-                                      begin
-                                         sym:=pvarsym(classh^.publicsyms^.search(pattern));
-                                         srsymtable:=classh^.publicsyms;
-                                         if assigned(sym) then
-                                           break;
-                                         classh:=classh^.childof;
-                                      end;
-                                    consume(ID);
-                                    do_member_read(false,sym,p1,pd,again);
+                                   sym:=pvarsym(classh^.publicsyms^.search(pattern));
+                                   srsymtable:=classh^.publicsyms;
+                                   if assigned(sym) then
+                                    break;
+                                   classh:=classh^.childof;
                                  end;
-                           pointerdef:
-                              begin
-                                 if ppointerdef(pd)^.definition^.deftype
-                                    in [recorddef,objectdef,classrefdef] then
-                                    begin
-                                       Message(cg_e_invalid_qualifier);
-                                       Message(parser_h_maybe_deref_caret_missing);
-                                    end
-                                 else
-                                    Message(cg_e_invalid_qualifier);
-                              end
-                              else
-                                 begin
-                                    Message(cg_e_invalid_qualifier);
-                                    disposetree(p1);
-                                    p1:=genzeronode(errorn);
-                                 end;
-                        end;
-                     end;
-                   else
+                                consume(ID);
+                                do_member_read(false,sym,p1,pd,again);
+                              end;
+                 pointerdef : begin
+                                Message(cg_e_invalid_qualifier);
+                                if ppointerdef(pd)^.definition^.deftype in [recorddef,objectdef,classrefdef] then
+                                 Message(parser_h_maybe_deref_caret_missing);
+                              end;
+                    else
+                      begin
+                        Message(cg_e_invalid_qualifier);
+                        disposetree(p1);
+                        p1:=genzeronode(errorn);
+                      end;
+                    end;
+                  end;
+             else
+               begin
+               { is this a procedure variable ? }
+                 if assigned(pd) then
+                  begin
+                    if (pd^.deftype=procvardef) then
                      begin
-                        { is this a procedure variable ? }
-                        if assigned(pd) then
-                        begin
-                          if  (pd^.deftype=procvardef) then
-                          begin
-                             if getprocvar then
-                               again:=false
-                             else
-                             if (token=LKLAMMER) or
-                                ((pprocvardef(pd)^.para1=nil) and
-                                 (not((token in [ASSIGNMENT,UNEQUAL,EQUAL]))) and
-                                 (not afterassignment) and
-                                 (not in_args)) then
+                       if getprocvar then
+                         again:=false
+                       else
+                         if (token=LKLAMMER) or
+                            ((pprocvardef(pd)^.para1=nil) and
+                             (not((token in [ASSIGNMENT,UNEQUAL,EQUAL]))) and
+                             (not afterassignment) and
+                             (not in_args)) then
+                           begin
+                              { do this in a strange way  }
+                              { it's not a clean solution }
+                              p2:=p1;
+                              p1:=gencallnode(nil,nil);
+                              p1^.right:=p2;
+                              p1^.unit_specific:=unit_specific;
+                              p1^.symtableprocentry:=sym;
+                              if token=LKLAMMER then
+                                begin
+                                   consume(LKLAMMER);
+                                   p1^.left:=parse_paras(false,false);
+                                   consume(RKLAMMER);
+                                end;
+                              pd:=pprocvardef(pd)^.retdef;
+                           { proc():= is never possible }
+                              if token in [ASSIGNMENT,UNEQUAL,EQUAL] then
                                begin
-                                  { do this in a strange way  }
-                                  { it's not a clean solution }
-                                  p2:=p1;
-                                  p1:=gencallnode(nil,nil);
-                                  p1^.right:=p2;
-                                  p1^.unit_specific:=unit_specific;
-                                  p1^.symtableprocentry:=sym;
-                                  if token=LKLAMMER then
-                                    begin
-                                       consume(LKLAMMER);
-                                       p1^.left:=parse_paras(false,false);
-                                       consume(RKLAMMER);
-                                    end;
-                                  pd:=pprocvardef(pd)^.retdef;
-                               { proc():= is never possible }
-                                  if token in [ASSIGNMENT,UNEQUAL,EQUAL] then
-                                   begin
-                                     Message(cg_e_illegal_expression);
-                                     p1:=genzeronode(errorn);
-                                     again:=false;
-                                   end;
-                                  p1^.resulttype:=pd;
-                               end
-                             else
-                              again:=false;
-                             p1^.resulttype:=pd;
-                          end
-                          else again:=false;
-                        end
-                        else again:=false;
-                     end;
+                                 Message(cg_e_illegal_expression);
+                                 p1:=genzeronode(errorn);
+                                 again:=false;
+                               end;
+                              p1^.resulttype:=pd;
+                           end
+                       else
+                         again:=false;
+                       p1^.resulttype:=pd;
+                     end
+                    else
+                     again:=false;
+                  end
+                 else
+                  again:=false;
                 end;
+             end;
              check_tokenpos;
-           end;
-      end;
+           end; { while again }
+        end;
 
-    procedure do_set(p : pconstset;pos : longint);
-
-      var
-         l : longint;
-
-      begin
-         if (pos>255) or
-            (pos<0) then
-           Message(parser_e_illegal_set_expr);
-         l:=pos div 8;
-         { do we allow the same twice }
-         if (p^[l] and (1 shl (pos mod 8)))<>0 then
-           Message(parser_e_illegal_set_expr);
-         p^[l]:=p^[l] or (1 shl (pos mod 8));
-      end;
 
 {$ifdef TEST_FUNCRET}
-    function is_func_ret(sym : psym) : boolean;
-    var
-       p : pprocinfo;
-
-
-      begin
-         p:=@procinfo;
-         is_func_ret:=false;
-         while assigned(p) do
-           begin
-              { is this an access to a function result ? }
-              if assigned(aktprocsym) and
-                 ((sym^.name=aktprocsym^.name){ or
-                 ((pvarsym(srsym)=opsym) and
-                 ((p^.flags and pi_operator)<>0))}) and
-                 (p^.retdef<>pdef(voiddef)) and
-                 (token<>LKLAMMER) and
-                 (not ((cs_tp_compatible in aktswitches) and
-                 (afterassignment or in_args))) then
-                begin
-                   p1:=genzeronode(funcretn);
-                   pd:=p^.retdef;
-                   p1^.funcretprocinfo:=p;
-                   p1^.retdef:=pd;
-                   is_func_ret:=true;
-                   exit;
-                end;
-              p:=p^.parent;
-           end;
-      end;
+        function is_func_ret(sym : psym) : boolean;
+        var
+           p : pprocinfo;
+        begin
+          p:=@procinfo;
+          is_func_ret:=false;
+          while assigned(p) do
+            begin
+               { is this an access to a function result ? }
+               if assigned(aktprocsym) and
+                  ((sym^.name=aktprocsym^.name){ or
+                  ((pvarsym(srsym)=opsym) and
+                  ((p^.flags and pi_operator)<>0))}) and
+                  (p^.retdef<>pdef(voiddef)) and
+                  (token<>LKLAMMER) and
+                  (not ((cs_tp_compatible in aktswitches) and
+                  (afterassignment or in_args))) then
+                 begin
+                    p1:=genzeronode(funcretn);
+                    pd:=p^.retdef;
+                    p1^.funcretprocinfo:=p;
+                    p1^.retdef:=pd;
+                    is_func_ret:=true;
+                    exit;
+                 end;
+               p:=p^.parent;
+            end;
+        end;
 {$endif TEST_FUNCRET}
 
       var
-         possible_error : boolean;
-
+        possible_error : boolean;
       begin
-         oldp1:=nil;
-         filepos:=tokenpos;
-         case token of
-            ID:
-              begin
+        oldp1:=nil;
+        filepos:=tokenpos;
+        case token of
+          ID : begin
                  { allow post fix operators }
                  again:=true;
                  if (cs_delphi2_compatible in aktmoduleswitches) and
                     (pattern='RESULT') and
-                   assigned(aktprocsym) and
-                   (procinfo.retdef<>pdef(voiddef)) then
-                   begin
-                      consume(ID);
-                      p1:=genzeronode(funcretn);
-                      pd:=procinfo.retdef;
+                    assigned(aktprocsym) and
+                    (procinfo.retdef<>pdef(voiddef)) then
+                  begin
+                    consume(ID);
+                    p1:=genzeronode(funcretn);
+                    pd:=procinfo.retdef;
 {$ifdef TEST_FUNCRET}
-                      p1^.funcretprocinfo:=pointer(@procinfo);
-                      p1^.retdef:=pd;
+                    p1^.funcretprocinfo:=pointer(@procinfo);
+                    p1^.retdef:=pd;
 {$endif TEST_FUNCRET}
-                   end
+                  end
                  else
-                   begin
-                      if lastsymknown then
-                        begin
-                           srsym:=lastsrsym;
-                           srsymtable:=lastsrsymtable;
-                           lastsymknown:=false;
-                        end
-                      else
-                        getsym(pattern,true);
-                      consume(ID);
+                  begin
+                    if lastsymknown then
+                     begin
+                       srsym:=lastsrsym;
+                       srsymtable:=lastsrsymtable;
+                       lastsymknown:=false;
+                     end
+                    else
+                     getsym(pattern,true);
+                    consume(ID);
 {$ifndef TEST_FUNCRET}
-                      { is this an access to a function result ? }
-                       if assigned(aktprocsym) and
-                        ((srsym^.name=aktprocsym^.name){ or
-                        ((pvarsym(srsym)=opsym) and
+                    { is this an access to a function result ? }
+                    if assigned(aktprocsym) and
+                       ((srsym^.name=aktprocsym^.name){ or
+                       ((pvarsym(srsym)=opsym) and
                         ((procinfo.flags and pi_operator)<>0))}) and
-                        (procinfo.retdef<>pdef(voiddef)) and
-                        (token<>LKLAMMER) and
-                        (not ((cs_tp_compatible in aktmoduleswitches) and
-                        (afterassignment or in_args))) then
-                        begin
-                           p1:=genzeronode(funcretn);
-                           pd:=procinfo.retdef;
-                        end
-                      else
+                       (procinfo.retdef<>pdef(voiddef)) and
+                       (token<>LKLAMMER) and
+                       (not ((cs_tp_compatible in aktmoduleswitches) and
+                       (afterassignment or in_args))) then
+                     begin
+                       p1:=genzeronode(funcretn);
+                       pd:=procinfo.retdef;
+                     end
+                    else
 {$else TEST_FUNCRET}
-                    if not is_func_ret(srsym) then
+                     if not is_func_ret(srsym) then
 {$endif TEST_FUNCRET}
-                        { else it's a normal symbol }
-                        begin
-                           if srsym^.typ=unitsym then
-                             begin
-                                consume(POINT);
-                                getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-                                unit_specific:=true;
-                                consume(ID);
-                             end
-                           else
-                             unit_specific:=false;
-
-                           if not assigned(srsym) then
-                             Begin
-                                p1:=genzeronode(errorn);
-                                { try to clean up }
-                                pd:=generrordef;
-                             end
-                           else
-                           Begin
-                             { check semantics of private }
-                             if (srsym^.typ in [propertysym,procsym,varsym]) and
-                                (srsymtable^.symtabletype=objectsymtable) then
-                               begin
-                                  if ((srsym^.properties and sp_private)<>0) and
-                                    (pobjectdef(srsym^.owner^.defowner)^.
-                                    owner^.symtabletype=unitsymtable) then
-                                    Message(parser_e_cant_access_private_member);
-                               end;
-                             case srsym^.typ of
-                                absolutesym:
-                                  begin
-                                     p1:=genloadnode(pvarsym(srsym),srsymtable);
-                                     pd:=pabsolutesym(srsym)^.definition;
+                    { else it's a normal symbol }
+                      begin
+                      { is it defined like UNIT.SYMBOL ? }
+                        if srsym^.typ=unitsym then
+                         begin
+                           consume(POINT);
+                           getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
+                           unit_specific:=true;
+                           consume(ID);
+                         end
+                        else
+                         unit_specific:=false;
+                        if not assigned(srsym) then
+                         Begin
+                           p1:=genzeronode(errorn);
+                           { try to clean up }
+                           pd:=generrordef;
+                         end
+                        else
+                         Begin
+                           { check semantics of private }
+                           if (srsym^.typ in [propertysym,procsym,varsym]) and
+                              (srsymtable^.symtabletype=objectsymtable) then
+                            begin
+                              if ((srsym^.properties and sp_private)<>0) and
+                                 (pobjectdef(srsym^.owner^.defowner)^.owner^.symtabletype=unitsymtable) then
+                                Message(parser_e_cant_access_private_member);
+                            end;
+                           case srsym^.typ of
+                    absolutesym : begin
+                                    p1:=genloadnode(pvarsym(srsym),srsymtable);
+                                    pd:=pabsolutesym(srsym)^.definition;
                                   end;
-                                varsym:
-                                  begin
-                                     { are we in a class method ? }
-                                     if (srsymtable^.symtabletype=objectsymtable) and
+                         varsym : begin
+                                    { are we in a class method ? }
+                                    if (srsymtable^.symtabletype=objectsymtable) and
                                        assigned(aktprocsym) and
                                        ((aktprocsym^.definition^.options and poclassmethod)<>0) then
-                                       Message(parser_e_only_class_methods);
-
-                                       if (srsym^.properties and sp_static)<>0 then
-                                         begin
-                                            static_name:=lower(srsymtable^.name^)+'_'+srsym^.name;
-                                            getsym(static_name,true);
-                                         end;
-                                       p1:=genloadnode(pvarsym(srsym),srsymtable);
-                                       if pvarsym(srsym)^.is_valid=0 then
-                                         begin
-                                            p1^.is_first := true;
-                                           { set special between first loaded
-                                             until checked in firstpass }
-                                           pvarsym(srsym)^.is_valid:=2;
-                                        end;
-                                      pd:=pvarsym(srsym)^.definition;
-                                   end;
-                                typedconstsym:
-                                 begin
+                                      Message(parser_e_only_class_methods);
+                                    if (srsym^.properties and sp_static)<>0 then
+                                     begin
+                                       static_name:=lower(srsymtable^.name^)+'_'+srsym^.name;
+                                       getsym(static_name,true);
+                                     end;
+                                    p1:=genloadnode(pvarsym(srsym),srsymtable);
+                                    if pvarsym(srsym)^.is_valid=0 then
+                                     begin
+                                       p1^.is_first := true;
+                                       { set special between first loaded until checked in firstpass }
+                                       pvarsym(srsym)^.is_valid:=2;
+                                     end;
+                                    pd:=pvarsym(srsym)^.definition;
+                                  end;
+                  typedconstsym : begin
                                     p1:=gentypedconstloadnode(ptypedconstsym(srsym),srsymtable);
                                     pd:=ptypedconstsym(srsym)^.definition;
-                                 end;
-                                syssym:
-                                  p1:=statement_syssym(psyssym(srsym)^.number,pd);
-                                typesym:
-                                 begin
+                                  end;
+                         syssym : p1:=statement_syssym(psyssym(srsym)^.number,pd);
+                        typesym : begin
                                     pd:=ptypesym(srsym)^.definition;
                                     { if we read a type declaration  }
                                     { we have to return the type and }
                                     { nothing else                   }
                                     if block_type=bt_type then
-                                      begin
-                                         p1:=genzeronode(typen);
-                                         p1^.resulttype:=pd;
-                                         pd:=voiddef;
-                                      end
+                                     begin
+                                       p1:=genzeronode(typen);
+                                       p1^.resulttype:=pd;
+                                       pd:=voiddef;
+                                     end
                                     else
-                                      begin
-                                         if token=LKLAMMER then
-                                           begin
-                                              consume(LKLAMMER);
-                                              p1:=comp_expr(true);
-                                              consume(RKLAMMER);
-                                              p1:=gentypeconvnode(p1,pd);
-                                              p1^.explizit:=true;
-                                           end
-                                         else if (token=POINT) and
+                                     begin
+                                       if token=LKLAMMER then
+                                        begin
+                                          consume(LKLAMMER);
+                                          p1:=comp_expr(true);
+                                          consume(RKLAMMER);
+                                          p1:=gentypeconvnode(p1,pd);
+                                          p1^.explizit:=true;
+                                        end
+                                       else
+                                        if (token=POINT) and
                                            (pd^.deftype=objectdef) and
                                            ((pobjectdef(pd)^.options and oois_class)=0) then
-                                           begin
-                                              consume(POINT);
-                                              if assigned(procinfo._class) then
+                                          begin
+                                            consume(POINT);
+                                            if assigned(procinfo._class) then
+                                             begin
+                                               if procinfo._class^.isrelated(pobjectdef(pd)) then
                                                 begin
-                                                   if procinfo._class^.isrelated(pobjectdef(pd)) then
-                                                     begin
-                                                        p1:=genzeronode(typen);
-                                                        p1^.resulttype:=pd;
-                                                        srsymtable:=pobjectdef(pd)^.publicsyms;
-                                                        sym:=pvarsym(srsymtable^.search(pattern));
-                                                        { search also in inherited methods }
-                                                        while sym=nil do
-                                                          begin
-                                                             pd:=pobjectdef(pd)^.childof;
-                                                             srsymtable:=pobjectdef(pd)^.publicsyms;
-                                                             sym:=pvarsym(srsymtable^.search(pattern));
-                                                          end;
-                                                        consume(ID);
-                                                        do_member_read(false,sym,p1,pd,again);
-                                                     end
-                                                  else
-                                                    begin
-                                                       Message(parser_e_no_super_class);
-                                                       pd:=generrordef;
-                                                       again:=false;
-                                                    end;
-                                               end
-                                             else
-                                               begin
-                                                  { allows @TObject.Load }
-                                                  { also allows static methods and variables }
+                                                  p1:=genzeronode(typen);
+                                                  p1^.resulttype:=pd;
+                                                  srsymtable:=pobjectdef(pd)^.publicsyms;
+                                                  sym:=pvarsym(srsymtable^.search(pattern));
+                                                  { search also in inherited methods }
+                                                  while sym=nil do
+                                                   begin
+                                                     pd:=pobjectdef(pd)^.childof;
+                                                     srsymtable:=pobjectdef(pd)^.publicsyms;
+                                                     sym:=pvarsym(srsymtable^.search(pattern));
+                                                   end;
+                                                  consume(ID);
+                                                  do_member_read(false,sym,p1,pd,again);
+                                                end
+                                               else
+                                                begin
+                                                  Message(parser_e_no_super_class);
+                                                  pd:=generrordef;
+                                                  again:=false;
+                                                end;
+                                             end
+                                            else
+                                             begin
+                                               { allows @TObject.Load }
+                                               { also allows static methods and variables }
+                                               p1:=genzeronode(typen);
+                                               p1^.resulttype:=pd;
+                                               { srsymtable:=pobjectdef(pd)^.publicsyms;
+                                                 sym:=pvarsym(srsymtable^.search(pattern)); }
 
-                                                   p1:=genzeronode(typen);
-                                                   p1^.resulttype:=pd;
-                                                   {
-                                                   srsymtable:=pobjectdef(pd)^.publicsyms;
-                                                   sym:=pvarsym(srsymtable^.search(pattern));
-                                                   }
-                                                   { TP allows also @TMenu.Load if Load is only }
-                                                   { defined in an anchestor class              }
-                                                   sym:=pvarsym(search_class_member(pobjectdef(pd),pattern));
-                                                   if not(getaddr) and
-                                                     ((sym^.properties and sp_static)=0) then
-                                                     Message(sym_e_only_static_in_static)
-                                                   else
-                                                     begin
-                                                        consume(ID);
-                                                        do_member_read(getaddr,sym,p1,pd,again);
-                                                     end;
-                                               end
+                                               { TP allows also @TMenu.Load if Load is only }
+                                               { defined in an anchestor class              }
+                                               sym:=pvarsym(search_class_member(pobjectdef(pd),pattern));
+                                               if not(getaddr) and ((sym^.properties and sp_static)=0) then
+                                                 Message(sym_e_only_static_in_static)
+                                               else
+                                                begin
+                                                  consume(ID);
+                                                  do_member_read(getaddr,sym,p1,pd,again);
+                                                end;
+                                             end;
                                           end
                                         else
                                           begin
@@ -1173,253 +1294,234 @@ unit pexpr;
                                                end;
                                           end;
                                      end;
-                                 end;
-                                enumsym:
-                                 begin
-                                   p1:=genenumnode(penumsym(srsym));
-                                   pd:=p1^.resulttype;
-                                 end;
-                                constsym:
-                                 begin
-                                   case pconstsym(srsym)^.consttype of
-                                      constint:
-                                        p1:=genordinalconstnode(pconstsym(srsym)^.value,s32bitdef);
-                                      conststring:
-                                        p1:=genstringconstnode(pstring(pconstsym(srsym)^.value)^);
-                                      constchar:
-                                        p1:=genordinalconstnode(pconstsym(srsym)^.value,cchardef);
-                                      constreal:
-                                        p1:=genrealconstnode(pbestreal(pconstsym(srsym)^.value)^);
-                                      constbool:
-                                        p1:=genordinalconstnode(pconstsym(srsym)^.value,booldef);
-                                      constseta:
-                                        p1:=gensetconstruktnode(pconstset(pconstsym(srsym)^.value),
-                                          psetdef(pconstsym(srsym)^.definition));
-                                      constord:
-                                        p1:=genordinalconstnode(pconstsym(srsym)^.value,
-                                          pconstsym(srsym)^.definition);
-                                   end;
-                                   pd:=p1^.resulttype;
-                                 end;
-                                procsym:
-                                 begin
-                                   { are we in a class method ? }
-                                   possible_error:=(srsymtable^.symtabletype=objectsymtable) and
-                                     assigned(aktprocsym) and
-                                     ((aktprocsym^.definition^.options and poclassmethod)<>0);
-                                   p1:=gencallnode(pprocsym(srsym),srsymtable);
-                                   p1^.unit_specific:=unit_specific;
-                                   do_proc_call(getaddr,again,p1,pd);
-                                   if possible_error and
-                                     ((p1^.procdefinition^.options and poclassmethod)=0) then
+                                  end;
+                        enumsym : begin
+                                    p1:=genenumnode(penumsym(srsym));
+                                    pd:=p1^.resulttype;
+                                  end;
+                       constsym : begin
+                                    case pconstsym(srsym)^.consttype of
+                                     constint : p1:=genordinalconstnode(pconstsym(srsym)^.value,s32bitdef);
+                                  conststring : p1:=genstringconstnode(pstring(pconstsym(srsym)^.value)^);
+                                    constchar : p1:=genordinalconstnode(pconstsym(srsym)^.value,cchardef);
+                                    constreal : p1:=genrealconstnode(pbestreal(pconstsym(srsym)^.value)^);
+                                    constbool : p1:=genordinalconstnode(pconstsym(srsym)^.value,booldef);
+                                    constseta : p1:=gensetconstruktnode(pconstset(pconstsym(srsym)^.value),
+                                                      psetdef(pconstsym(srsym)^.definition));
+                                     constord : p1:=genordinalconstnode(pconstsym(srsym)^.value,
+                                                      pconstsym(srsym)^.definition);
+                                    end;
+                                    pd:=p1^.resulttype;
+                                  end;
+                        procsym : begin
+                                    { are we in a class method ? }
+                                    possible_error:=(srsymtable^.symtabletype=objectsymtable) and
+                                                    assigned(aktprocsym) and
+                                                    ((aktprocsym^.definition^.options and poclassmethod)<>0);
+                                    p1:=gencallnode(pprocsym(srsym),srsymtable);
+                                    p1^.unit_specific:=unit_specific;
+                                    do_proc_call(getaddr,again,p1,pd);
+                                    if possible_error and
+                                       ((p1^.procdefinition^.options and poclassmethod)=0) then
                                      Message(parser_e_only_class_methods);
-                                 end;
-                                propertysym:
-                                 begin
-                                   { access to property in a method }
-
-                                   { are we in a class method ? }
-                                   if (srsymtable^.symtabletype=objectsymtable) and
-                                     assigned(aktprocsym) and
-                                     ((aktprocsym^.definition^.options and poclassmethod)<>0) then
+                                  end;
+                    propertysym : begin
+                                    { access to property in a method }
+                                    { are we in a class method ? }
+                                    if (srsymtable^.symtabletype=objectsymtable) and
+                                       assigned(aktprocsym) and
+                                       ((aktprocsym^.definition^.options and poclassmethod)<>0) then
                                      Message(parser_e_only_class_methods);
-                                   { no method pointer }
-                                   p1:=nil;
-                                   handle_propertysym(srsym,p1,pd);
-                                 end;
-                                errorsym:
-                                 begin
-                                   p1:=genzeronode(errorn);
-                                   pd:=generrordef;
-                                   if token=LKLAMMER then
+                                    { no method pointer }
+                                    p1:=nil;
+                                    handle_propertysym(srsym,p1,pd);
+                                  end;
+                       errorsym : begin
+                                    p1:=genzeronode(errorn);
+                                    pd:=generrordef;
+                                    if token=LKLAMMER then
                                      begin
-                                        consume(LKLAMMER);
-                                        parse_paras(false,false);
-                                        consume(RKLAMMER);
+                                       consume(LKLAMMER);
+                                       parse_paras(false,false);
+                                       consume(RKLAMMER);
                                      end;
-                                 end;
-                                else
-                                 begin
-                                   p1:=genzeronode(errorn);
-                                   pd:=generrordef;
-                                   Message(cg_e_illegal_expression);
-                                 end;
-                             end; { end case }
-                           end;
-                        end;
-                   end;
+                                  end;
+                           else
+                             begin
+                               p1:=genzeronode(errorn);
+                               pd:=generrordef;
+                               Message(cg_e_illegal_expression);
+                             end;
+                           end; { end case }
+                         end;
+                      end;
+                  end;
                  { handle post fix operators }
                  postfixoperators;
-              end;
-            _NEW : begin
-                      consume(_NEW);
-                      consume(LKLAMMER);
-                      p1:=factor(false);
-                      if p1^.treetype<>typen then
-                        Message(sym_e_type_id_expected);
-                      pd:=p1^.resulttype;
-                      pd2:=pd;
-                      if (pd^.deftype<>pointerdef) or
-                         (ppointerdef(pd)^.definition^.deftype<>objectdef) then
-                        begin
-                           Message(parser_e_pointer_to_class_expected);
+               end;
+        _NEW : begin
+                 consume(_NEW);
+                 consume(LKLAMMER);
+                 p1:=factor(false);
+                 if p1^.treetype<>typen then
+                  Message(sym_e_type_id_expected);
+                 pd:=p1^.resulttype;
+                 pd2:=pd;
+                 if (pd^.deftype<>pointerdef) or
+                    (ppointerdef(pd)^.definition^.deftype<>objectdef) then
+                  begin
+                    Message(parser_e_pointer_to_class_expected);
+                    { if an error occurs, read til the end of
+                      the new statement }
+                    p1:=genzeronode(errorn);
+                    l:=1;
+                    while true do
+                     begin
+                       case token of
+                        LKLAMMER : inc(l);
+                        RKLAMMER : dec(l);
+                       end;
+                       consume(token);
+                       if l=0 then
+                        break;
+                     end;
+                  end
+                 else
+                  begin
+                    disposetree(p1);
+                    p1:=genzeronode(hnewn);
+                    p1^.resulttype:=ppointerdef(pd)^.definition;
+                    consume(COMMA);
+                    afterassignment:=false;
+                    { determines the current object defintion }
+                    classh:=pobjectdef(ppointerdef(pd)^.definition);
+                    { check for an abstract class }
+                    if (classh^.options and oois_abstract)<>0 then
+                      Message(sym_e_no_instance_of_abstract_object);
 
-                           { if an error occurs, read til the end of the new }
-                           { statement                                       }
-                           p1:=genzeronode(errorn);
-                           l:=1;
-                           while true do
-                             begin
-                                case token of
-                                   LKLAMMER : inc(l);
-                                   RKLAMMER : dec(l);
-                                end;
-                                consume(token);
-                                if l=0 then
-                                  break;
-                             end;
-                        end
-                      else
-                        begin
-                           disposetree(p1);
-                           p1:=genzeronode(hnewn);
-                           p1^.resulttype:=ppointerdef(pd)^.definition;
-                           consume(COMMA);
+                    { search the constructor also in the symbol tables of
+                      the parents }
 
-                           afterassignment:=false;
-                           { determines the current object defintion }
-                           classh:=pobjectdef(ppointerdef(pd)^.definition);
+                    { no constructor found }
+                    sym:=nil;
+                    while assigned(classh) do
+                     begin
+                       sym:=pvarsym(classh^.publicsyms^.search(pattern));
+                       srsymtable:=classh^.publicsyms;
+                       if assigned(sym) then
+                        break;
+                       classh:=classh^.childof;
+                     end;
 
-                           { check for an abstract class }
-                           if (classh^.options and oois_abstract)<>0 then
-                             Message(sym_e_no_instance_of_abstract_object);
-
-                           { search the constructor also in the symbol tables of }
-                           { the parents                                          }
-
-                           { no constructor found }
-                           sym:=nil;
-                           while assigned(classh) do
-                             begin
-                                sym:=pvarsym(classh^.publicsyms^.search(pattern));
-                                srsymtable:=classh^.publicsyms;
-                                if assigned(sym) then
-                                  break;
-                                classh:=classh^.childof;
-                             end;
-
-                           consume(ID);
-                           do_member_read(false,sym,p1,pd,again);
-                           if (p1^.treetype<>calln) or
-                              (assigned(p1^.procdefinition) and
-                               ((p1^.procdefinition^.options and poconstructor)=0)) then
-                             Message(parser_e_expr_have_to_be_constructor_call);
-                           p1:=gensinglenode(newn,p1);
-
-                           { set the resulttype }
-                           p1^.resulttype:=pd2;
-                           consume(RKLAMMER);
-                        end;
-                   end;
-            _SELF:
-              begin
+                    consume(ID);
+                    do_member_read(false,sym,p1,pd,again);
+                    if (p1^.treetype<>calln) or
+                       (assigned(p1^.procdefinition) and
+                       ((p1^.procdefinition^.options and poconstructor)=0)) then
+                      Message(parser_e_expr_have_to_be_constructor_call);
+                    p1:=gensinglenode(newn,p1);
+                    { set the resulttype }
+                    p1^.resulttype:=pd2;
+                    consume(RKLAMMER);
+                  end;
+               end;
+       _SELF : begin
                  again:=true;
                  consume(_SELF);
                  if not assigned(procinfo._class) then
-                   begin
-                      p1:=genzeronode(errorn);
-                      pd:=generrordef;
-                      again:=false;
-                      Message(parser_e_self_not_in_method);
-                   end
+                  begin
+                    p1:=genzeronode(errorn);
+                    pd:=generrordef;
+                    again:=false;
+                    Message(parser_e_self_not_in_method);
+                  end
                  else
-                   begin
-                      if (aktprocsym^.definition^.options and poclassmethod)<>0 then
+                  begin
+                    if (aktprocsym^.definition^.options and poclassmethod)<>0 then
+                     begin
+                       { self in class methods is a class reference type }
+                       pd:=new(pclassrefdef,init(procinfo._class));
+                       p1:=genselfnode(pd);
+                       p1^.resulttype:=pd;
+                     end
+                    else
+                     begin
+                       p1:=genselfnode(procinfo._class);
+                       p1^.resulttype:=procinfo._class;
+                     end;
+                    pd:=p1^.resulttype;
+                    postfixoperators;
+                  end;
+               end;
+  _INHERITED : begin
+                 again:=true;
+                 consume(_INHERITED);
+                 if assigned(procinfo._class) then
+                  begin
+                    classh:=procinfo._class^.childof;
+                    while assigned(classh) do
+                     begin
+                       srsymtable:=pobjectdef(classh)^.publicsyms;
+                       sym:=pvarsym(srsymtable^.search(pattern));
+                       if assigned(sym) then
                         begin
-                           { self in class methods is a class reference type }
-                           pd:=new(pclassrefdef,init(procinfo._class));
-                           p1:=genselfnode(pd);
-                           p1^.resulttype:=pd;
-                        end
-                      else
-                        begin
-                           p1:=genselfnode(procinfo._class);
-                           p1^.resulttype:=procinfo._class;
+                          p1:=genzeronode(typen);
+                          p1^.resulttype:=classh;
+                          pd:=p1^.resulttype;
+                          consume(ID);
+                          do_member_read(false,sym,p1,pd,again);
+                          break;
                         end;
-                      pd:=p1^.resulttype;
-                      postfixoperators;
-                   end;
-              end;
-            _INHERITED : begin
-                            again:=true;
-                            consume(_INHERITED);
-                            if assigned(procinfo._class) then
-                              begin
-                                 classh:=procinfo._class^.childof;
-                                 while assigned(classh) do
-                                   begin
-                                      srsymtable:=pobjectdef(classh)^.publicsyms;
-                                      sym:=pvarsym(srsymtable^.search(pattern));
-                                      if assigned(sym) then
-                                        begin
-                                           p1:=genzeronode(typen);
-                                           p1^.resulttype:=classh;
-                                           pd:=p1^.resulttype;
-                                           consume(ID);
-                                           do_member_read(false,sym,p1,pd,again);
-                                           break;
-                                        end;
-                                      classh:=classh^.childof;
-                                   end;
-                                 if classh=nil then
-                                   begin
-                                      Message1(sym_e_id_no_member,pattern);
-                                      again:=false;
-                                      pd:=generrordef;
-                                      p1:=genzeronode(errorn);
-                                   end;
-                              end
-                            else
-                              Message(parser_e_generic_methods_only_in_methods);
-                            postfixoperators;
-                         end;
-            INTCONST : begin
-                          valint(pattern,l,code);
-                          if code<>0 then
-                            begin
-                               val(pattern,d,code);
-                               if code<>0 then
-                                 begin
-                                    Message(cg_e_invalid_integer);
-                                    l:=1;
-                                    consume(INTCONST);
-                                    p1:=genordinalconstnode(l,s32bitdef);
-                                 end
-                               else
-                                 begin
-                                    consume(INTCONST);
-                                    p1:=genrealconstnode(d);
-                                 end;
-                            end
-                          else
-                            begin
-                               consume(INTCONST);
-                               p1:=genordinalconstnode(l,s32bitdef);
-                            end;
-                       end;
-            REALNUMBER : begin
-                          val(pattern,d,code);
-                          if code<>0 then
-                            begin
-                               Message(parser_e_error_in_real);
-                               d:=1.0;
-                            end;
-                          consume(REALNUMBER);
-                          p1:=genrealconstnode(d);
-                        end;
-            { FILE and STRING can be also a type cast }
-            _STRING:
-              begin
+                       classh:=classh^.childof;
+                     end;
+                    if classh=nil then
+                     begin
+                       Message1(sym_e_id_no_member,pattern);
+                       again:=false;
+                       pd:=generrordef;
+                       p1:=genzeronode(errorn);
+                     end;
+                  end
+                 else
+                  Message(parser_e_generic_methods_only_in_methods);
+                 postfixoperators;
+               end;
+    INTCONST : begin
+                 valint(pattern,l,code);
+                 if code<>0 then
+                  begin
+                    val(pattern,d,code);
+                    if code<>0 then
+                     begin
+                       Message(cg_e_invalid_integer);
+                       consume(INTCONST);
+                       l:=1;
+                       p1:=genordinalconstnode(l,s32bitdef);
+                     end
+                    else
+                     begin
+                       consume(INTCONST);
+                       p1:=genrealconstnode(d);
+                     end;
+                  end
+                 else
+                  begin
+                    consume(INTCONST);
+                    p1:=genordinalconstnode(l,s32bitdef);
+                  end;
+               end;
+  REALNUMBER : begin
+                 val(pattern,d,code);
+                 if code<>0 then
+                  begin
+                    Message(parser_e_error_in_real);
+                    d:=1.0;
+                  end;
+                 consume(REALNUMBER);
+                 p1:=genrealconstnode(d);
+               end;
+     _STRING : begin
+               { STRING can be also a type cast }
                  pd:=stringtype;
                  consume(LKLAMMER);
                  p1:=comp_expr(true);
@@ -1429,9 +1531,9 @@ unit pexpr;
                  { handle postfix operators here e.g. string(a)[10] }
                  again:=true;
                  postfixoperators;
-              end;
-            _FILE:
-              begin
+               end;
+       _FILE : begin
+               { FILE can be also a type cast }
                  pd:=cfiledef;
                  consume(_FILE);
                  if token=LKLAMMER then
@@ -1450,156 +1552,88 @@ unit pexpr;
                  { handle postfix operators here e.g. string(a)[10] }
                  again:=true;
                  postfixoperators;
-              end;
-            CSTRING:
-              begin
+               end;
+     CSTRING : begin
                  p1:=genstringconstnode(pattern);
                  consume(CSTRING);
-              end;
-            CCHAR:
-              begin
+               end;
+       CCHAR : begin
                  p1:=genordinalconstnode(ord(pattern[1]),cchardef);
                  consume(CCHAR);
-              end;
-            KLAMMERAFFE : begin
-                             consume(KLAMMERAFFE);
-                             p1:=factor(true);
-                             p1:=gensinglenode(addrn,p1);
-                          end;
-            LKLAMMER : begin
-                          consume(LKLAMMER);
-                          p1:=comp_expr(true);
-                          consume(RKLAMMER);
-                          { it's not a good solution        }
-                          { but (a+b)^ makes some problems  }
-                          case token of
-                             CARET,POINT,LECKKLAMMER:
-                               begin
-                                  { we need the resulttype  }
-                                  { of the expression in pd }
-                                  do_firstpass(p1);
-                                  pd:=p1^.resulttype;
-
-                                  again:=true;
-                                  postfixoperators;
-                               end;
-                          end;
-                       end;
-            LECKKLAMMER : begin
-                             consume(LECKKLAMMER);
-                             new(constset);
-                             for l:=0 to 31 do
-                               constset^[l]:=0;
-                             p2:=nil;
-                             pd:=nil;
-                             if token<>RECKKLAMMER then
-                               while true do
-                                 begin
-                                    p1:=comp_expr(true);
-                                    do_firstpass(p1);
-                                    case p1^.treetype of
-                                       ordconstn : begin
-                                                      if porddef(p1^.resulttype)=s32bitdef then
-                                                        p1^.resulttype:=u8bitdef;
-                                                      if pd=nil then
-                                                        pd:=p1^.resulttype;
-                                                      if not(is_equal(pd,p1^.resulttype)) then
-                                                        Message(parser_e_typeconflict_in_set)
-                                                      else
-                                                        if token=POINTPOINT then
-                                                          begin
-                                                             consume(POINTPOINT);
-                                                             p3:=comp_expr(true);
-                                                             do_firstpass(p3);
-                                                             if porddef(p3^.resulttype)=s32bitdef then
-                                                               p3^.resulttype:=u8bitdef;
-                                                            if not(is_equal(pd,p3^.resulttype)) then
-                                                              Message(parser_e_typeconflict_in_set)
-                                                            else
-                                                              for l:=p1^.value to p3^.value do
-                                                                do_set(constset,l);
-                                                            disposetree(p3);
-                                                         end
-                                                       else
-                                                         do_set(constset,p1^.value);
-                                                     disposetree(p1);
-                                                   end;
-                                       stringconstn : begin
-                                                         if pd=nil then
-                                                           pd:=cchardef;
-                                                   if not(is_equal(pd,cchardef)) then
-                                                     Message(parser_e_typeconflict_in_set)
-                                                   else
-                                                     for l:=1 to length(pstring(p1^.values)^) do
-                                                       do_set(constset,ord(pstring(p1^.values)^[l]));
-                                                   disposetree(p1);
-                                                end;
-                                       else
-                                          begin
-                                             if porddef(p1^.resulttype)=s32bitdef then
-                                               p1^.resulttype:=u8bitdef;
-                                             if pd=nil then
-                                               pd:=p1^.resulttype;
-                                             if not(is_equal(pd,p1^.resulttype)) then
-                                               Message(parser_e_typeconflict_in_set);
-                                             p2:=gennode(setelen,p1,p2);
-                                          end;
-                                    end;
-                                    if token=COMMA then
-                                      consume(COMMA)
-                                    else break;
-                                 end;
-                             consume(RECKKLAMMER);
-                             p1:=gensinglenode(setconstrn,p2);
-                             { use smallset if emudef with max < 32
-                             but allow sets for enumdefs with more than
-                             256 elements like tasmop !! }
-                             if assigned(pd) and (pd^.deftype=enumdef) and (penumdef(pd)^.max<=255) then
-                               p1^.resulttype:=new(psetdef,init(pd,penumdef(pd)^.max))
-                             else
-                               p1^.resulttype:=new(psetdef,init(pd,255));
-                             p1^.constset:=constset;
-                          end;
-            PLUS     : begin
-                          consume(PLUS);
-                          p1:=factor(false);
-                       end;
-            MINUS    : begin
-                          consume(MINUS);
-                          p1:=factor(false);
-                          p1:=gensinglenode(umminusn,p1);
-                       end;
-            _NOT     : begin
-                          consume(_NOT);
-                          p1:=factor(false);
-                          p1:=gensinglenode(notn,p1);
-                       end;
-            _TRUE    : begin
-                          consume(_TRUE);
-                          p1:=genordinalconstnode(1,booldef);
-                       end;
-            _FALSE    : begin
-                          consume(_FALSE);
-                          p1:=genordinalconstnode(0,booldef);
-                       end;
-            _NIL      : begin
-                           consume(_NIL);
-                           p1:=genzeronode(niln);
-                        end;
-            else
-              begin
-                 p1:=genzeronode(errorn);
-                 consume(token);
-                 Message(cg_e_illegal_expression);
-              end;
-         end;
-         factor:=p1;
-         check_tokenpos;
+               end;
+ KLAMMERAFFE : begin
+                 consume(KLAMMERAFFE);
+                 p1:=factor(true);
+                 p1:=gensinglenode(addrn,p1);
+               end;
+    LKLAMMER : begin
+                 consume(LKLAMMER);
+                 p1:=comp_expr(true);
+                 consume(RKLAMMER);
+                 { it's not a good solution        }
+                 { but (a+b)^ makes some problems  }
+                 if token in [CARET,POINT,LECKKLAMMER] then
+                  begin
+                    { we need the resulttype  }
+                    { of the expression in pd }
+                    do_firstpass(p1);
+                    pd:=p1^.resulttype;
+                    again:=true;
+                    postfixoperators;
+                  end;
+               end;
+ LECKKLAMMER : begin
+                 consume(LECKKLAMMER);
+                 p1:=factor_read_set;
+                 consume(RECKKLAMMER);
+               end;
+        PLUS : begin
+                 consume(PLUS);
+                 p1:=factor(false);
+               end;
+       MINUS : begin
+                 consume(MINUS);
+                 p1:=factor(false);
+                 p1:=gensinglenode(umminusn,p1);
+               end;
+        _NOT : begin
+                 consume(_NOT);
+                 p1:=factor(false);
+                 p1:=gensinglenode(notn,p1);
+               end;
+       _TRUE : begin
+                 consume(_TRUE);
+                 p1:=genordinalconstnode(1,booldef);
+               end;
+      _FALSE : begin
+                 consume(_FALSE);
+                 p1:=genordinalconstnode(0,booldef);
+               end;
+        _NIL : begin
+                 consume(_NIL);
+                 p1:=genzeronode(niln);
+               end;
+        else
+          begin
+            p1:=genzeronode(errorn);
+            consume(token);
+            Message(cg_e_illegal_expression);
+          end;
+        end;
+        factor:=p1;
+        check_tokenpos;
       end;
 
-    type    Toperator_precedence=(opcompare,opaddition,opmultiply);
 
-    const   tok2node:array[PLUS.._XOR] of Ttreetyp=
+{****************************************************************************
+                             Sub_Expr
+****************************************************************************}
+
+    type
+      Toperator_precedence=(opcompare,opaddition,opmultiply);
+
+    const
+      tok2node:array[PLUS.._XOR] of Ttreetyp=
                     (addn,subn,muln,slashn,equaln,gtn,ltn,gten,lten,
                      isn,asn,inn,
                      symdifn,starstarn,nothingn,caretn,unequaln,nothingn,
@@ -1795,7 +1829,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.34  1998-08-13 11:00:12  peter
+  Revision 1.35  1998-08-14 18:18:46  peter
+    + dynamic set contruction
+    * smallsets are now working (always longint size)
+
+  Revision 1.34  1998/08/13 11:00:12  peter
     * fixed procedure<>procedure construct
 
   Revision 1.33  1998/08/11 15:31:39  peter

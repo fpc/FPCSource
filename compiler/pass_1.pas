@@ -130,11 +130,25 @@ unit pass_1;
 
     procedure left_right_max(p : ptree);
       begin
-         p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
-         p^.registersfpu:=max(p^.left^.registersfpu,p^.right^.registersfpu);
+        if assigned(p^.left) then
+         begin
+           if assigned(p^.right) then
+            begin
+              p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
+              p^.registersfpu:=max(p^.left^.registersfpu,p^.right^.registersfpu);
 {$ifdef SUPPORT_MMX}
-         p^.registersmmx:=max(p^.left^.registersmmx,p^.right^.registersmmx);
+              p^.registersmmx:=max(p^.left^.registersmmx,p^.right^.registersmmx);
 {$endif SUPPORT_MMX}
+            end
+           else
+            begin
+              p^.registers32:=p^.left^.registers32;
+              p^.registersfpu:=p^.left^.registersfpu;
+{$ifdef SUPPORT_MMX}
+              p^.registersmmx:=p^.left^.registersmmx;
+{$endif SUPPORT_MMX}
+            end;
+         end;
       end;
 
     { calculates the needed registers for a binary operator }
@@ -142,20 +156,35 @@ unit pass_1;
 
       begin
          left_right_max(p);
-         { Nur wenn links und rechts ein Unterschied < ben”tige Anzahl ist, }
-         { wird ein zus„tzliches Register ben”tigt, da es dann keinen       }
-         { schwierigeren Ast gibt, welcher erst ausgewertet werden kann     }
 
-         if (abs(p^.left^.registers32-p^.right^.registers32)<r32) then
-           inc(p^.registers32,r32);
-
-         if (abs(p^.left^.registersfpu-p^.right^.registersfpu)<fpu) then
-           inc(p^.registersfpu,fpu);
-
+      { Only when the difference between the left and right registers < the
+        wanted registers allocate the amount of registers }
+        
+        if assigned(p^.left) then
+         begin
+           if assigned(p^.right) then
+            begin
+              if (abs(p^.left^.registers32-p^.right^.registers32)<r32) then
+               inc(p^.registers32,r32);
+              if (abs(p^.left^.registersfpu-p^.right^.registersfpu)<fpu) then
+               inc(p^.registersfpu,fpu);
 {$ifdef SUPPORT_MMX}
-         if (abs(p^.left^.registersmmx-p^.right^.registersmmx)<mmx) then
-           inc(p^.registersmmx,mmx);
+              if (abs(p^.left^.registersmmx-p^.right^.registersmmx)<mmx) then
+               inc(p^.registersmmx,mmx);
 {$endif SUPPORT_MMX}
+            end
+           else
+            begin
+              if (p^.left^.registers32<r32) then
+               inc(p^.registers32,r32);
+              if (p^.left^.registersfpu<fpu) then
+               inc(p^.registersfpu,fpu);
+{$ifdef SUPPORT_MMX}
+              if (p^.left^.registersmmx<mmx) then
+               inc(p^.registersmmx,mmx);
+{$endif SUPPORT_MMX}
+            end;
+         end;
 
          { error message, if more than 8 floating point }
          { registers are needed                         }
@@ -163,25 +192,25 @@ unit pass_1;
           Message(cg_e_too_complex_expr);
       end;
 
-    function both_rm(p : ptree) : boolean;
 
+    function both_rm(p : ptree) : boolean;
         begin
            both_rm:=(p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) and
-             (p^.right^.location.loc in [LOC_MEM,LOC_REFERENCE]);
+                    (p^.right^.location.loc in [LOC_MEM,LOC_REFERENCE]);
         end;
 
+
     function is_assignment_overloaded(from_def,to_def : pdef) : boolean;forward;
+
 
     function isconvertable(def_from,def_to : pdef;
              var doconv : tconverttype;fromtreetype : ttreetyp;
              explicit : boolean) : boolean;
-
+      const
       { Tbasetype:  uauto,uvoid,uchar,
                     u8bit,u16bit,u32bit,
                     s8bit,s16bit,s32,
                     bool8bit,bool16bit,boot32bit }
-
-      const
          basedefconverts : array[tbasetype,tbasetype] of tconverttype =
            {uauto}
            ((tc_not_possible,tc_not_possible,tc_not_possible,
@@ -624,6 +653,7 @@ unit pass_1;
          end;
       end;
 
+
     procedure firstadd(var p : ptree);
 
       procedure make_bool_equal_size(var p:ptree);
@@ -646,11 +676,11 @@ unit pass_1;
       end;
 
       var
-         lt,rt : ttreetyp;
-         t : ptree;
-         rv,lv : longint;
-         rvd,lvd : {double}bestreal;
-         rd,ld : pdef;
+         t       : ptree;
+         lt,rt   : ttreetyp;
+         rv,lv   : longint;
+         rvd,lvd : bestreal;
+         rd,ld   : pdef;
          concatstrings : boolean;
 
          { to evalute const sets }
@@ -1019,24 +1049,29 @@ unit pass_1;
               p^.location.loc:=LOC_MEM;
            end
          else
-           if ((rd^.deftype=setdef) and (ld^.deftype=setdef)) then
+           if (ld^.deftype=setdef) then
              begin
-                case p^.treetype of
-                   subn,symdifn,addn,muln,equaln,unequaln : ;
-                   else Message(sym_e_type_mismatch);
-                end;
-                if not(is_equal(rd,ld)) then
-                 Message(sym_e_set_element_are_not_comp);
-                { why here its is alredy in entry of firstadd
-                firstpass(p^.left);
-                firstpass(p^.right); }
+                if not(p^.treetype in [subn,symdifn,addn,muln,equaln,unequaln]) or
+                   ((rd^.deftype<>setdef) and (p^.treetype<>addn)) then
+                  Message(sym_e_type_mismatch);
+
+                if ((rd^.deftype=setdef) and not(is_equal(rd,ld))) and
+                   not((rt in [rangen,setelen]) and is_equal(psetdef(ld)^.setof,rd)) then
+                  Message(sym_e_set_element_are_not_comp);
+
+                { if the destination is not a smallset then insert a typeconv
+                  which loads a smallset into a normal set }
+                if (psetdef(ld)^.settype<>smallset) and
+                   (psetdef(rd)^.settype=smallset) then
+                 begin
+{                   Internalerror(34243);}
+                   p^.right:=gentypeconvnode(p^.right,psetdef(p^.left^.resulttype));
+                   firstpass(p^.right);
+                 end;
+
                 { do constant evalution }
-                { set constructor ? }
                 if (p^.right^.treetype=setconstrn) and
-                  (p^.left^.treetype=setconstrn) and
-                  { and no variables ? }
-                  (p^.right^.left=nil) and
-                  (p^.left^.left=nil) then
+                   (p^.left^.treetype=setconstrn) then
                   begin
                      new(resultset);
                      case p^.treetype of
@@ -1058,32 +1093,32 @@ unit pass_1;
                                       p^.left^.constset^[i] and not(p^.right^.constset^[i]);
                                   t:=gensetconstruktnode(resultset,psetdef(ld));
                                end;
-                        symdifn : begin
+                     symdifn : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
                                       p^.left^.constset^[i] xor p^.right^.constset^[i];
                                   t:=gensetconstruktnode(resultset,psetdef(ld));
                                end;
-                        unequaln : begin
-                                      b:=true;
-                                      for i:=0 to 31 do
-                                        if p^.right^.constset^[i]=p^.left^.constset^[i] then
-                                          begin
-                                             b:=false;
-                                             break;
-                                          end;
-                                      t:=genordinalconstnode(ord(b),booldef);
+                    unequaln : begin
+                                 b:=true;
+                                 for i:=0 to 31 do
+                                  if p^.right^.constset^[i]=p^.left^.constset^[i] then
+                                   begin
+                                     b:=false;
+                                     break;
                                    end;
-                        equaln : begin
-                                    b:=true;
-                                    for i:=0 to 31 do
-                                      if p^.right^.constset^[i]<>p^.left^.constset^[i] then
-                                        begin
-                                           b:=false;
-                                           break;
-                                        end;
-                                     t:=genordinalconstnode(ord(b),booldef);
-                                  end;
+                                 t:=genordinalconstnode(ord(b),booldef);
+                               end;
+                      equaln : begin
+                                 b:=true;
+                                 for i:=0 to 31 do
+                                  if p^.right^.constset^[i]<>p^.left^.constset^[i] then
+                                   begin
+                                     b:=false;
+                                     break;
+                                   end;
+                                 t:=genordinalconstnode(ord(b),booldef);
+                               end;
                      end;
                      dispose(resultset);
                      disposetree(p);
@@ -1091,12 +1126,13 @@ unit pass_1;
                      firstpass(p);
                      exit;
                   end
-                else if psetdef(rd)^.settype=smallset then
+                else
+                 if psetdef(rd)^.settype=smallset then
                   begin
                      calcregisters(p,1,0,0);
                      p^.location.loc:=LOC_REGISTER;
                   end
-                else
+                 else
                   begin
                      calcregisters(p,0,0,0);
                      { here we call SET... }
@@ -1948,35 +1984,25 @@ unit pass_1;
          firstpass(p^.right);
          if codegenerror then
            exit;
-         { allow only ordinal constants }
-         if not((p^.left^.treetype=ordconstn) and
-            (p^.right^.treetype=ordconstn)) then
-           Message(cg_e_illegal_expression);
-         { upper limit must be greater or equal than lower limit }
-         { not if u32bit }
-         if (p^.left^.value>p^.right^.value) and
-            (( p^.left^.value<0) or (p^.right^.value>=0)) then
-           Message(cg_e_upper_lower_than_lower);
          { both types must be compatible }
-         if not(isconvertable(p^.left^.resulttype,p^.right^.resulttype,
-           ct,ordconstn,false)) and
-           not(is_equal(p^.left^.resulttype,p^.right^.resulttype)) then
+         if not(is_equal(p^.left^.resulttype,p^.right^.resulttype)) and
+            not(isconvertable(p^.left^.resulttype,p^.right^.resulttype,ct,ordconstn,false)) then
            Message(sym_e_type_mismatch);
+         { Check if only when its a constant set }
+         if (p^.left^.treetype=ordconstn) and (p^.right^.treetype=ordconstn) then
+          begin
+          { upper limit must be greater or equal than lower limit }
+          { not if u32bit }
+            if (p^.left^.value>p^.right^.value) and
+               (( p^.left^.value<0) or (p^.right^.value>=0)) then
+              Message(cg_e_upper_lower_than_lower);
+          end;
+        left_right_max(p);
+        p^.resulttype:=p^.left^.resulttype;
+        set_location(p^.location,p^.left^.location);
       end;
 
-      {
-      begin
-         p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
-         if p^.right^.treetype<>ordconstn then
-           begin
-              case p^.right^.location.loc of
-                 LOC_MEM,LOC_REFERENCE,
-                 LOC_CREGISTER,LOC_FLAGS:
-                   inc(p^.registers32);
-              end;
-           end;
-      end;
-      }
+
     procedure firstvecn(var p : ptree);
 
       var
@@ -2440,21 +2466,41 @@ unit pass_1;
           exit;
         end;
 
-       { remove obsolete type conversions }
-       if is_equal(p^.left^.resulttype,p^.resulttype) then
-         begin
-            hp:=p;
-            p:=p^.left;
-            p^.resulttype:=hp^.resulttype;
-            putnode(hp);
-            exit;
-         end;
+       { load the values from the left part }
        p^.registers32:=p^.left^.registers32;
        p^.registersfpu:=p^.left^.registersfpu;
 {$ifdef SUPPORT_MMX}
        p^.registersmmx:=p^.left^.registersmmx;
 {$endif}
        set_location(p^.location,p^.left^.location);
+
+       { remove obsolete type conversions }
+       if is_equal(p^.left^.resulttype,p^.resulttype) then
+         begin
+         { becuase is_equal only checks the basetype for sets we need to
+           check here if we are loading a smallset into a normalset }
+           if (p^.resulttype^.deftype=setdef) and
+              (p^.left^.resulttype^.deftype=setdef) and
+              (psetdef(p^.resulttype)^.settype<>smallset) and
+              (psetdef(p^.left^.resulttype)^.settype=smallset) then
+            begin
+            { try to define the set as a normalset if it's a constant set }
+              if p^.left^.treetype=setconstrn then
+               psetdef(p^.left^.resulttype)^.settype:=normset
+              else
+               p^.convtyp:=tc_load_smallset;
+              exit;
+            end
+           else
+            begin
+              hp:=p;
+              p:=p^.left;
+              p^.resulttype:=hp^.resulttype;
+              putnode(hp);
+              exit;
+            end;
+         end;
+
        if is_assignment_overloaded(p^.left^.resulttype,p^.resulttype) then
          begin
             procinfo.flags:=procinfo.flags or pi_do_call;
@@ -4231,34 +4277,21 @@ unit pass_1;
          procinfo.flags:=procinfo.flags or pi_do_call;
       end;
 
+
+    procedure firstsetele(var p : ptree);
+      begin
+         firstpass(p^.left);
+         calcregisters(p,0,0,0);
+         p^.resulttype:=p^.left^.resulttype;
+         set_location(p^.location,p^.left^.location);
+      end;
+
+
     procedure firstsetcons(var p : ptree);
-
-      var
-         hp : ptree;
-
       begin
          p^.location.loc:=LOC_MEM;
-         hp:=p^.left;
-         { is done by getnode*
-         p^.registers32:=0;
-         p^.registersfpu:=0;
-         }
-         while assigned(hp) do
-           begin
-              firstpass(hp^.left);
-
-              if codegenerror then
-                exit;
-
-              p^.registers32:=max(p^.registers32,hp^.left^.registers32);
-              p^.registersfpu:=max(p^.registersfpu,hp^.left^.registersfpu);;
-{$ifdef SUPPORT_MMX}
-              p^.registersmmx:=max(p^.registersmmx,hp^.left^.registersmmx);
-{$endif SUPPORT_MMX}
-              hp:=hp^.right;
-           end;
-         { result type is already set }
       end;
+
 
     procedure firstin(var p : ptree);
 
@@ -4813,11 +4846,7 @@ unit pass_1;
          firstpass(p^.right);
          if codegenerror then
            exit;
-         p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
-         p^.registersfpu:=max(p^.left^.registersfpu,p^.right^.registersfpu);
-{$ifdef SUPPORT_MMX}
-         p^.registersmmx:=max(p^.left^.registersmmx,p^.right^.registersmmx);
-{$endif SUPPORT_MMX}
+         left_right_max(p);
       end;
 
     procedure firstis(var p : ptree);
@@ -4861,12 +4890,6 @@ unit pass_1;
            exit;
 
          left_right_max(p);
-(*       this was wrong,no ??
-         p^.registersfpu:=max(p^.left^.registersfpu,p^.left^.registersfpu);
-         p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
-{$ifdef SUPPORT_MMX}
-         p^.registersmmx:=max(p^.left^.registersmmx,p^.right^.registersmmx);
-{$endif SUPPORT_MMX}             *)
 
          { left must be a class }
          if (p^.left^.resulttype^.deftype<>objectdef) or
@@ -5089,7 +5112,7 @@ unit pass_1;
              firststringconst,firstfuncret,firstselfn,
              firstnot,firstinline,firstniln,firsterror,
              firsttypen,firsthnewn,firsthdisposen,firstnewn,
-             firstsimplenewdispose,firstnothing,firstsetcons,firstblock,
+             firstsimplenewdispose,firstsetele,firstsetcons,firstblock,
              firststatement,firstnothing,firstif,firstnothing,
              firstnothing,first_while_repeat,first_while_repeat,firstfor,
              firstexitn,firstwith,firstcase,firstlabel,
@@ -5183,7 +5206,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.54  1998-08-13 11:00:10  peter
+  Revision 1.55  1998-08-14 18:18:44  peter
+    + dynamic set contruction
+    * smallsets are now working (always longint size)
+
+  Revision 1.54  1998/08/13 11:00:10  peter
     * fixed procedure<>procedure construct
 
   Revision 1.53  1998/08/12 19:39:28  peter

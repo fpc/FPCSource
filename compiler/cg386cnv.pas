@@ -1018,6 +1018,26 @@ implementation
          end;
      end;
 
+
+    procedure second_load_smallset(p,hp : ptree;convtyp : tconverttype);
+      var
+        href : treference;
+        pushedregs : tpushed;
+      begin
+        href.symbol:=nil;
+        pushusedregisters(pushedregs,$ff);
+        gettempofsizereference(32,href);
+        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+        emitpushreferenceaddr(exprasmlist,href);
+        emitcall('SET_LOAD_SMALL',true);
+        maybe_loadesi;
+        popusedregisters(pushedregs);
+        p^.location.loc:=LOC_MEM;
+        stringdispose(p^.location.reference.symbol);
+        p^.location.reference:=href;
+      end;
+
+
     procedure second_nothing(p,hp : ptree;convtyp : tconverttype);
       begin
       end;
@@ -1030,8 +1050,9 @@ implementation
     procedure secondtypeconv(var p : ptree);
 
       const
-         secondconvert : array[tc_u8bit_2_s32bit..tc_cchar_charpointer] of
-           tsecondconvproc = (second_bigger,second_only_rangecheck,
+         secondconvert : array[tconverttype] of
+           tsecondconvproc = (second_nothing,second_nothing,
+           second_bigger,second_only_rangecheck,
            second_bigger,second_bigger,second_bigger,
            second_smaller,second_smaller,
            second_smaller,second_string_string,
@@ -1053,7 +1074,8 @@ implementation
            second_chararray_to_string,
            second_proc_to_procvar,
            { is constant char to pchar, is done by firstpass }
-           second_nothing);
+           second_nothing,
+           second_load_smallset);
 
       begin
          { this isn't good coding, I think tc_bool_2_int, shouldn't be }
@@ -1065,8 +1087,11 @@ implementation
            begin
               secondpass(p^.left);
               set_location(p^.location,p^.left^.location);
+              if codegenerror then
+               exit;
            end;
-         if (p^.convtyp<>tc_equal) and (p^.convtyp<>tc_not_possible) then
+
+         if not(p^.convtyp in [tc_equal,tc_not_possible]) then
            {the second argument only is for maybe_range_checking !}
            secondconvert[p^.convtyp](p,p^.left,p^.convtyp)
       end;
@@ -1180,7 +1205,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-08-10 23:59:59  peter
+  Revision 1.12  1998-08-14 18:18:38  peter
+    + dynamic set contruction
+    * smallsets are now working (always longint size)
+
+  Revision 1.11  1998/08/10 23:59:59  peter
     * fixed dup log
 
   Revision 1.10  1998/08/10 14:49:47  peter

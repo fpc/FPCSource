@@ -267,86 +267,23 @@ implementation
          i : longint;
          hp : ptree;
          href,sref : treference;
-{$ifdef TestSmallSet}
-         smallsetvalue : longint;
-         hr,hr2 : tregister;
-{$endif TestSmallSet}
       begin
-         { this should be reimplemented for smallsets }
-         { differently  (PM) }
-         { produce constant part }
-{$ifdef TestSmallSet}
-         if psetdef(p^.resulttype)^.settype=smallset then
-           begin
-              smallsetvalue:=(p^.constset^[3]*256)+p^.constset^[2];
-              smallsetvalue:=(smallsetvalue*256+p^.constset^[1])*256+p^.constset^[0];
-              {consts^.concat(new(pai_const,init_32bit(smallsetvalue)));}
-              hr:=getregister32;
-              exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,
-                smallsetvalue,hr)));
-              hp:=p^.left;
-              if assigned(hp) then
-                begin
-                   while assigned(hp) do
-                     begin
-                        secondpass(hp^.left);
-                        if codegenerror then
-                          exit;
-                        case hp^.left^.location.loc of
-                          LOC_MEM,LOC_REFERENCE :
-                            begin
-                               hr2:=getregister32;
-                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                               newreference(hp^.left^.location.reference),hr2)));
-                               exprasmlist^.concat(new(pai386,op_reg_reg(A_BTS,S_NO,
-                                 hr2,hr)));
-                               ungetregister32(hr2);
-                            end;
-                          LOC_REGISTER,LOC_CREGISTER :
-                            exprasmlist^.concat(new(pai386,op_reg_reg(A_BTS,S_NO,
-                              hp^.left^.location.register,hr)));
-                          else
-                            internalerror(10567);
-                          end;
-                        hp:=hp^.right;
-                     end;
-                end;
-              p^.location.loc:=LOC_REGISTER;
-              p^.location.register:=hr;
-           end
-         else
-{$endif TestSmallSet}
-           begin
-             href.symbol := Nil;
-             clear_reference(href);
-             getlabel(l);
-             stringdispose(p^.location.reference.symbol);
-             href.symbol:=stringdup(constlabel2str(l,constseta));
-             concat_constlabel(l,constseta);
-             for i:=0 to 31 do
-               consts^.concat(new(pai_const,init_8bit(p^.constset^[i])));
-             hp:=p^.left;
-             if assigned(hp) then
-               begin
-                  sref.symbol:=nil;
-                  gettempofsizereference(32,sref);
-                  concatcopy(href,sref,32,false);
-                  while assigned(hp) do
-                    begin
-                       secondpass(hp^.left);
-                       if codegenerror then
-                         exit;
-                       pushsetelement(hp^.left);
-                       emitpushreferenceaddr(exprasmlist,sref);
-                       { register is save in subroutine }
-                       emitcall('SET_SET_BYTE',true);
-                       hp:=hp^.right;
-                    end;
-                  p^.location.reference:=sref;
-               end
-             else
-               p^.location.reference:=href;
-           end;
+        reset_reference(href);
+        getlabel(l);
+        stringdispose(p^.location.reference.symbol);
+        href.symbol:=stringdup(constlabel2str(l,constseta));
+        concat_constlabel(l,constseta);
+        if psetdef(p^.resulttype)^.settype=smallset then
+         begin
+           move(p^.constset^,i,sizeof(longint));
+           consts^.concat(new(pai_const,init_32bit(i)));
+         end
+        else
+         begin
+           for i:=0 to 31 do
+             consts^.concat(new(pai_const,init_8bit(p^.constset^[i])));
+         end;
+        p^.location.reference:=href;
       end;
 
 
@@ -365,7 +302,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-08-04 13:22:46  pierre
+  Revision 1.11  1998-08-14 18:18:39  peter
+    + dynamic set contruction
+    * smallsets are now working (always longint size)
+
+  Revision 1.10  1998/08/04 13:22:46  pierre
     * weird bug fixed :
       a pchar ' ' (simple space or any other letter) was found to
       be equal to a string of length zero !!!
