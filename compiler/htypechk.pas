@@ -739,7 +739,7 @@ implementation
                    - implicit typecast made by absolute
                    - from formaldef
                    - from void
-                   - from open array
+                   - from/to open array
                    - typecast from pointer to array }
                  fromdef:=ttypeconvnode(hp).left.resulttype.def;
                  todef:=hp.resulttype.def;
@@ -747,6 +747,7 @@ implementation
                         (fromdef.deftype=formaldef) or
                         is_void(fromdef) or
                         is_open_array(fromdef) or
+                        is_open_array(todef) or
                         ((fromdef.deftype=pointerdef) and (todef.deftype=arraydef)) or
                         ((fromdef.deftype = objectdef) and (todef.deftype = objectdef) and
                          (tobjectdef(fromdef).is_related(tobjectdef(todef))))) and
@@ -943,7 +944,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2003-10-30 17:42:48  peter
+  Revision 1.74  2003-10-30 19:20:05  peter
+    * fix IE when passing array to open array
+
+  Revision 1.73  2003/10/30 17:42:48  peter
     * also check for uninited vars in staticsymtable
 
   Revision 1.72  2003/10/28 15:36:01  peter
