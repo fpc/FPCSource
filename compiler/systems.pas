@@ -540,7 +540,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             externals : true;
-            labelprefix : 'L';
+            labelprefix : '.L';
             comment : ''
           )
           ,(
@@ -1354,7 +1354,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  1999-02-26 00:48:25  peter
+  Revision 1.61  1999-03-03 11:41:51  pierre
+    + stabs info corrected to give results near to GAS output
+    * local labels (with .L are not stored in object anymore)
+      so we get the same number of symbols as from GAS !
+
+  Revision 1.60  1999/02/26 00:48:25  peter
     * assembler writers fixed for ag386bin
 
   Revision 1.59  1999/02/25 21:02:53  peter
