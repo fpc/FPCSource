@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="gpm">
+<short>Interface to GPM (General Purpose Mouse) library</short>
+<!-- \FPCexampledir{gpmex} -->
+<descr>
+<p>
+The <file>GPM</file> unit implements an interface to <file>libgpm</file>, 
+the console program for mouse handling. This unit was created by Peter 
+Vreman, and is only available on linux.
+</p>
+<p>
+When this unit is used, your program is linked to the C libraries, so
+you must take care of the C library version. Also, it will only work with
+version 1.17 or higher of the <file>libgpm</file> library.
+</p>
+</descr>
+
+<element name="_PATH_VARRUN">
+<short>Location of run PID files directory.</short>
+</element>
+<element name="_PATH_DEV">
+<short>Location of <file>/dev</file> directory. </short>
+</element>
+<element name="GPM_NODE_DIR">
+<short>Where to write socket.</short>
+</element>
+<element name="GPM_NODE_DIR_MODE">
+<short>Mode of socket.</short>
+</element>
+<element name="GPM_NODE_PID">
+<short>Name of PID file.</short>
+</element>
+<element name="GPM_NODE_DEV">
+<short>Device socket filename</short>
+</element>
+<element name="GPM_NODE_CTL">
+<short>Control socket</short>
+</element>
+<element name="GPM_NODE_FIFO">
+<short>FIFO name</short>
+</element>
+<element name="GPM_B_LEFT">
+<short>Left mouse button identifier.</short>
+</element>
+<element name="GPM_B_MIDDLE">
+<short>Middle mouse button identifier.</short>
+</element>
+<element name="GPM_B_RIGHT">
+<short>Right mouse button identifier.</short>
+</element>
+<element name="GPM_MOVE">
+<short>Mouse move event.</short>
+</element>
+<element name="GPM_DRAG">
+<short>Mouse drag event.</short>
+</element>
+<element name="GPM_DOWN">
+<short>Mouse button down event.</short>
+</element>
+<element name="GPM_UP">
+<short>Mouse button up event.</short>
+</element>
+<element name="GPM_SINGLE">
+<short>Mouse single click event.</short>
+</element>
+<element name="GPM_DOUBLE">
+<short>Mouse double click event.</short>
+</element>
+<element name="GPM_TRIPLE">
+<short>Mouse triple click event.</short>
+</element>
+<element name="GPM_MFLAG">
+<short>Motion flag.</short>
+</element>
+<element name="GPM_HARD">
+<short>?</short>
+</element>
+<element name="GPM_ENTER">
+<short>Enter area event.</short>
+</element>
+<element name="GPM_LEAVE">
+<short>Leave area event.</short>
+</element>
+<element name="GPM_TOP">
+<short>Top of area.</short>
+</element>
+<element name="GPM_BOT">
+<short>Bottom of area.</short>
+</element>
+<element name="GPM_LFT">
+<short>Left side of area.</short>
+</element>
+<element name="GPM_RGT">
+<short>Right side of area.</short>
+</element>
+<element name="TGpmEtype">
+<short>Type for event type.</short>
+</element>
+<element name="TGpmMargin">
+<short>Type to hold area margin.</short>
+</element>
+<element name="PGpmEvent">
+<short>Pointer to <link id="TGpmEvent"/> record</short>
+</element>
+<element name="PGpm_Event">
+<short>Pointer to <link id="TGpm_Event"/> record</short>
+</element>
+<element name="TGpmEvent">
+<short>Alias for <link id="TGPM_EVent"/> record</short>
+</element>
+<element name="Tgpm_event">
+<short>GPM event record</short>
+<descr>
+<var>Tgpm_event</var> describes the events that are reported by GPM.
+</descr>
+</element>
+<element name="Tgpm_event.buttons">
+<short>Pressed buttons</short>
+</element>
+<element name="Tgpm_event.modifiers">
+<short>Modifier flags</short>
+</element>
+<element name="Tgpm_event.vc">
+<short>Virtual console</short>
+</element>
+<element name="Tgpm_event.dx">
+<short>Change in horizontal position since last event</short>
+</element>
+<element name="Tgpm_event.dy">
+<short>Change in vertical position since last event</short>
+</element>
+<element name="Tgpm_event.x">
+<short>Horizontal position of event</short>
+</element>
+<element name="Tgpm_event.y">
+<short>Vertical position of event</short>
+</element>
+<element name="Tgpm_event.EventType">
+<short>Event type</short>
+</element>
+<element name="Tgpm_event.clicks">
+<short>Number of clicks</short>
+</element>
+<element name="Tgpm_event.margin">
+<short>Position where mouse cursor left the screen.</short>
+</element>
+<element name="TGpmHandler">
+<short>Mouse event handler callback.</short>
+</element>
+<element name="PGpmConnect">
+<short>Pointer to <link id="TGpmConnect"/> record.</short>
+</element>
+<element name="PGpm_Connect">
+<short>Pointer to <link id="TGpm_Connect"/> record.</short>
+</element>
+<element name="TGpmConnect">
+<short>Alias for <link id="TGpm_Connect"/> record.</short>
+</element>
+<element name="TGpm_Connect">
+<short>GPM server connection information.</short>
+</element>
+<element name="TGpm_Connect.eventMask">
+<short>Mask with events which client is interested in</short>
+</element>
+<element name="TGpm_Connect.defaultMask">
+<short>Mask with events that should be handled with defaults</short>
+</element>
+<element name="TGpm_Connect.minMod">
+<short>Minimum amount of modifiers required for client</short>
+</element>
+<element name="TGpm_Connect.maxMod">
+<short>Maximum amount of modifiers client can handle</short>
+</element>
+<element name="TGpm_Connect.pid">
+<short>PID of connecting application</short>
+</element>
+<element name="TGpm_Connect.vc">
+<short>Virtual console that should be handled.</short>
+</element>
+
+<element name="PGpmRoi">
+<short>Pointer to <link id="TGpmRoi"/> record.</short>
+</element>
+<element name="TGpmRoi">
+<short>Alias for <link id="TGpm_roi"/>Record</short>
+</element>
+<element name="Pgpm_roi">
+<short>Pointer to <link id="Tgpm_roi"/> record.</short>
+</element>
+<element name="Tgpm_roi">
+<short>Record used to define regions of interest.</short>
+</element>
+<element name="Tgpm_roi.xMin">
+<short>Minimum horizontal position.</short>
+</element>
+<element name="Tgpm_roi.xMax">
+<short>Maximum horizontal position.</short>
+</element>
+<element name="Tgpm_roi.yMin">
+<short>Minimum vertical position.</short>
+</element>
+<element name="Tgpm_roi.yMax">
+<short>Maximum horizontal position.</short>
+</element>
+<element name="Tgpm_roi.minMod">
+<short>Minimum modifiers required</short>
+</element>
+<element name="Tgpm_roi.maxMod">
+<short>Maximum modifiers allowed</short>
+</element>
+<element name="Tgpm_roi.eventMask">
+<short>Events to signal</short>
+</element>
+<element name="Tgpm_roi.owned">
+<short>?</short>
+</element>
+<element name="Tgpm_roi.handler">
+<short>Handler to call in case of event.</short>
+</element>
+<element name="Tgpm_roi.clientdata">
+<short>Clientdata to pass to event handler</short>
+</element>
+<element name="Tgpm_roi.prev">
+<short>Previous region of interest.</short>
+</element>
+<element name="Tgpm_roi.next">
+<short>Next region of interest.</short>
+</element>
+<element name="gpm_flag">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_fd">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_morekeys">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_zerobased">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_visiblepointer">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_mx">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_my">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_timeout">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="_gpm_buf">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="_gpm_arg">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_handler">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_data">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_roi_handler">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_roi_data">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_roi">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_current_roi">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="gpm_consolefd">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="Gpm_HandleRoi">
+<short>Internal gpm library variable. Do not use.</short>
+</element>
+<element name="">
+<short></short>
+</element>
+
+<element name="Gpm_AnyDouble">
+<short>Check whether event has double click event.</short>
+<descr>
+<var>Gpm_AnyDouble</var> returns <var>True</var> if <var>EventType</var> contains
+the <var>GPM_DOUBLE</var> flag, <var>False</var> otherwise.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_StrictSingle"/>
+<link id="Gpm_AnySingle"/>
+<link id="Gpm_StrictDouble"/>
+<link id="Gpm_StrictTriple"/>
+<link id="Gpm_AnyTriple"/>
+</seealso>
+</element>
+
+<element name="Gpm_AnySingle">
+<short>Check whether event has a single click event. </short>
+<descr>
+<var>Gpm_AnySingle</var> returns <var>True</var> if <var>EventType</var> contains
+the <var>GPM_SINGLE</var> flag, <var>False</var> otherwise. 
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_StrictSingle"/>
+<link id="Gpm_AnyDouble"/>
+<link id="Gpm_StrictDouble"/>
+<link id="Gpm_StrictTriple"/>
+<link id="Gpm_AnyTriple"/>
+</seealso>
+</element>
+
+<element name="Gpm_AnyTriple">
+<short>Check whether event has a triple click event.</short>
+<descr>
+<var>Gpm_AnySingle</var> returns <var>True</var> if <var>EventType</var> contains
+the <var>GPM_TRIPLE</var> flag, <var>False</var> otherwise. 
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_StrictSingle"/>
+<link id="Gpm_AnyDouble"/>
+<link id="Gpm_StrictDouble"/>
+<link id="Gpm_StrictTriple"/>
+<link id="Gpm_AnySingle"/>
+</seealso>
+</element>
+
+<element name="Gpm_Close">
+<short>Close connection to GPM server.</short>
+<descr>
+<p>
+<var>Gpm_Close</var> closes the current connection, and pops the connection
+stack; this means that the previous connection becomes active again.
+</p>
+<p>
+The function returns -1 if the current connection is not the last one,
+and it returns 0 if the current connection is the last one.
+</p>
+<p>
+for an example, see <link id="Gpm_GetEvent"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_Open"/>
+</seealso>
+</element>
+
+
+<element name="Gpm_FitValues">
+<short>Change coordinates to fit physical screen.</short>
+<descr>
+<var>Gpm_fitValues</var> changes <var>x</var> and <var>y</var> so they fit in the visible
+screen. The actual mouse pointer is not affected by this function.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_FitValuesM"/>
+</seealso>
+</element>
+
+<element name="Gpm_FitValuesM">
+<short>Change coordinates to fit margin.</short>
+<descr>
+<var>Gpm_FitValuesM</var> changes <var>x</var> and <var>y</var> so they fit in the margin
+indicated by <var>margin</var>. If <var>margin</var> is -1, then the values are fitted
+to the screen. The actual mouse pointer is not affected by this function.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_FitValues"/>
+</seealso>
+</element>
+
+<element name="Gpm_GetEvent">
+<short>Get event from event queue.</short>
+<descr>
+<p>
+<var>Gpm_GetEvent</var> Reads an event from the file descriptor <var>gpm_fd</var>.
+This file is only for internal use and should never be called by a client
+application. 
+</p>
+<p>
+It returns 1 on succes, and -1 on failue.
+</p>
+</descr>
+<errors>
+On error, -1 is returned. 
+</errors>
+<seealso>
+<link id="Gpm_GetSnapshot"/>
+</seealso>
+<example file="gpmex/gpmex"/>
+</element>
+
+
+<element name="Gpm_GetLibVersion">
+<short>Return GPM library version.</short>
+<descr>
+<p>
+<var>Gpm_GetLibVersion</var> returns a pointer to a version string, and returns
+in <var>where</var> an integer representing the version. The version string
+represents the version of the gpm library.
+</p>
+<p>
+The return value is a pchar, which should not be dealloacted, i.e. it is not
+on the heap.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_GetServerVersion"/>
+</seealso>
+</element>
+
+<element name="Gpm_GetServerVersion">
+<short>Return GPM server version.</short>
+<descr>
+<p>
+<var>Gpm_GetServerVersion</var> returns a pointer to a version string, and 
+returns in <var>where</var> an integer representing the version. The version string
+represents the version of the gpm server program.
+</p>
+<p>
+The return value is a pchar, which should not be dealloacted, i.e. it is not
+on the heap.
+</p>
+</descr>
+<errors>
+If the gpm program is not present, then the function returns <var>Nil</var>
+</errors>
+<seealso>
+<link id="Gpm_GetLibVersion"/>
+</seealso>
+</element>
+
+<element name="Gpm_GetSnapshot">
+<short>Return servers' current image of mouse state.</short>
+<descr>
+<p>
+<var>Gpm_GetSnapshot</var> returns the picture that the server has of the 
+current situation in <var>Event</var>. 
+This call will not read the current situation from the mouse file
+descriptor, but returns a buffered version.
+</p>
+<p>
+The function returns the number of mouse buttons, or -1 if this information
+is not available.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_GetEvent"/>
+</seealso>
+</element>
+
+<element name="Gpm_LowerRoi">
+<short>Lower a region of interest in the stack.</short>
+<descr>
+<p>
+<var>Gpm_LowerRoi</var> lowers the region of interest <var>which</var> after
+<var>after</var>. If <var>after</var> is <var>Nil</var>, the region of interest is moved to
+the bottom of the stack.
+</p>
+<p>
+The return value is the new top of the region-of-interest stack.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_RaiseRoi"/>
+<link id="Gpm_PopRoi"/>
+<link id="Gpm_PushRoi"/> 
+</seealso>
+</element>
+
+<element name="Gpm_Open">
+<short>Open connection to GPM server.</short>
+<descr>
+<p>
+<var>Gpm_Open</var> opens a new connection to the mouse server. The connection
+is described by the fields of the <var>conn</var> record of type
+<link id="TGPMConnect"/>.
+</p>
+<p>
+if <var>Flag</var> is 0, then the application only receives events that come from
+its own terminal device. If it is negative it will receive all events. If
+the value is positive then it is considered a console number to which to
+connect.
+</p>
+<p>
+The return value is -1 on error, or the file descriptor used to communicate
+with the client. Under an X-Term the return value is -2.
+</p>
+<p>
+for an example, see <link id="Gpm_GetEvent"/>.
+</p>
+</descr>
+<errors>
+On Error, the return value is -1.
+</errors>
+<seealso>
+<link id="Gpm_Open"/>
+</seealso>
+</element>
+
+
+<element name="Gpm_PopRoi">
+<short>Pop region of interest from the stack.</short>
+<descr>
+<var>Gpm_PopRoi</var> pops the topmost region of interest from the stack.
+It returns the next element on the stack, or <var>Nil</var> if the current 
+element was the last one.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_RaiseRoi"/>
+<link id="Gpm_LowerRoi"/>
+<link id="Gpm_PushRoi"/> 
+</seealso>
+</element>
+
+<element name="Gpm_PushRoi">
+<short>Push region of interest on the stack.</short>
+<descr>
+<p>
+<var>Gpm_PushRoi</var> puts a new <em> region of interest</em> on the stack.
+The region of interest is defined by a rectangle described by the corners
+<var>(X1,Y1)</var> and <var>(X2,Y2)</var>. 
+</p>
+<p>
+The <var>mask</var> describes which events the handler {fun} will handle;
+<var>ExtraData</var> will be put in the <var>xtradata</var> field of the {TGPM_Roi} 
+record passed to the <var>fun</var> handler.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_RaiseRoi"/>
+<link id="Gpm_PopRoi"/>
+<link id="Gpm_LowerRoi"/> 
+</seealso>
+</element>
+
+<element name="Gpm_RaiseRoi">
+<short>Raise region of interest in the stack.</short>
+<descr>
+<var>Gpm_RaiseRoi</var> raises the <em> region of interest</em> <var>which</var> till it
+is on top of region <var>before</var>. If <var>before</var> is nil then the region is
+put on top of the stack. The returned value is the top of the stack.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_PushRoi"/>
+<link id="Gpm_PopRoi"/>
+<link id="Gpm_LowerRoi"/> 
+</seealso>
+</element>
+
+<element name="Gpm_Repeat">
+<short>Check for presence of mouse event.</short>
+<descr>
+<var>Gpm_Repeat</var> returns 1 of no mouse event arrives in the next
+<var>millisec</var> miiliseconds, it returns 0 otherwise.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_GetEvent"/>
+</seealso>
+</element>
+
+<element name="Gpm_StrictDouble">
+<short>Check whether event contains only a double-click event.</short>
+<descr>
+<var>Gpm_StrictDouble</var> returns true if <var>EventType</var> contains only a 
+doubleclick event, <var>False</var> otherwise.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_StrictSingle"/>
+<link id="Gpm_AnyTriple"/>
+<link id="Gpm_AnyDouble"/>
+<link id="Gpm_StrictTriple"/>
+<link id="Gpm_AnySingle"/>
+</seealso>
+</element>
+
+<element name="Gpm_StrictSingle">
+<short>Check whether event contains only a single-click event.</short>
+<descr>
+<var>Gpm_StrictDouble</var> returns <var>True</var> if <var>EventType</var> contains only a 
+singleclick event, <var>False</var> otherwise. 
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_AnyTriple"/>
+<link id="Gpm_StrictDouble"/>
+<link id="Gpm_AnyDouble"/>
+<link id="Gpm_StrictTriple"/>
+<link id="Gpm_AnySingle"/>
+</seealso>
+</element>
+
+<element name="Gpm_StrictTriple">
+<short>Check whether event contains only a triple-click event.</short>
+<descr>
+<var>Gpm_StrictTriple</var> returns true if <var>EventType</var> contains only a
+triple click event, <var>False</var> otherwise.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Gpm_AnyTriple"/>
+<link id="Gpm_StrictDouble"/>
+<link id="Gpm_AnyDouble"/>
+<link id="Gpm_StrictSingle"/>
+<link id="Gpm_AnySingle"/>
+</seealso>
+</element>
+
+</module>
+</package>
+</fpdoc-descriptions>
