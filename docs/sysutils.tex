@@ -191,6 +191,7 @@ Const
 \section{Date and time functions}
 
 \subsection{Date and time formatting characters}
+\label{se:formatchars}
 
 Various date and time formatting routines accept a format string.
 to format the date and or time. The following characters can be used
@@ -260,7 +261,8 @@ instance by the \seef{FileAge} function.
 \Errors
 None.
 \SeeAlso
-\seef{Time}, \seef{Date}, \seef{FileDateToDateTime}
+\seef{Time}, \seef{Date}, \seef{FileDateToDateTime},
+\seep{DateTimeToSystemTime}, \seef{DateTimeToTimeStamp}
 \end{function}
 
 \latex{\inputlisting{sysutex/ex2.pp}}
@@ -273,7 +275,7 @@ Function DateTimeToStr(DateTime: TDateTime): string;
 \var{DateTimeToStr} returns a string representation of 
 \var{DateTime} using the formatting specified in
 \var{ShortDateTimeFormat}. It corresponds to a call to 
-\var{FormatDateTime('c',DateTime)}.
+\var{FormatDateTime('c',DateTime)} (see \sees{formatchars}).
 \Errors
 None.
 \SeeAlso
@@ -290,113 +292,164 @@ Procedure DateTimeToString(var Result: string; const FormatStr: string; const Da
 \var{DateTimeToString} returns in \var{Result} a string representation of 
 \var{DateTime} using the formatting specified in \var{FormatStr}. 
 
-The following formatting characters can be used in \var{FormatStr}:
-\begin{description}
-\item[c] : shortdateformat + ' ' + shorttimeformat
-\item[d] : day of month
-\item[dd] : day of month (leading zero)
-\item[ddd] : day of week (abbreviation)
-\item[dddd] : day of week (full)
-\item[ddddd] : shortdateformat
-\item[dddddd] : longdateformat
-\item[m] : month
-\item[mm] : month (leading zero)
-\item[mmm] : month (abbreviation)
-\item[mmmm] : month (full)
-\item[y] : year (four digits)
-\item[yy] : year (two digits)
-\item[yyyy] : year (with century)
-\item[h] : hour
-\item[hh] : hour (leading zero)
-\item[n] : minute
-\item[nn] : minute (leading zero)
-\item[s] : second
-\item[ss] : second (leading zero)
-\item[t] : shorttimeformat
-\item[tt] : longtimeformat
-\item[am/pm] : use 12 hour clock and display am and pm accordingly
-\item[a/p] : use 12 hour clock and display a and p accordingly
-\item[/] : insert date seperator
-\item[:] : insert time seperator
-\item["xx"] : literal text
-\item['xx'] : literal text
-\end{description}
+for a list of characters that can be used in the \var{FormatStr} formatting
+string, see \sees{formatchars}.
 \Errors
-None.
+In case a wrong formatting character is found, an \var{EConvertError} is
+raised.
 \SeeAlso
+\seef{FormatDateTime}, \sees{formatchars}.
 \end{procedure}
 
+\latex{\inputlisting{sysutex/ex4.pp}}
+\html{\input{sysutex/ex4.tex}}
  
 \begin{procedure}{DateTimeToSystemTime}
 \Declaration
 Procedure DateTimeToSystemTime(DateTime: TDateTime; var SystemTime: TSystemTime);
 \Description
+\var{DateTimeToSystemTime} converts a date/time pair in \var{DateTime}, with
+\var{TDateTime} format to a system time \var{SystemTime}.
 \Errors
+None.
 \SeeAlso
+\seef{DateTimeToFileDate}, \seef{SystemTimeToDateTime},
+\seef{DateTimeToTimeStamp}
 \end{procedure}
 
- 
+\latex{\inputlisting{sysutex/ex5.pp}}
+\html{\input{sysutex/ex5.tex}}
+
 \begin{function}{DateTimeToTimeStamp}
 \Declaration
 Function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
 \Description
+\var{DateTimeToSystemTime} converts a date/time pair in \var{DateTime}, with
+\var{TDateTime} format to a \var{TTimeStamp} format.
 \Errors
+None.
 \SeeAlso
+\seef{DateTimeToFileDate}, \seef{SystemTimeToDateTime},
+\seef{DateTimeToSystemTime}
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex6.pp}}
+\html{\input{sysutex/ex6.tex}}
+
 \begin{function}{DateToStr}
 \Declaration
 Function DateToStr(Date: TDateTime): string;
 \Description
+\var{DateToStr} converts \var{Date} to a string representation. It uses
+\var{ShortDateFormat} as it's formatting string. It is hence completely
+equivalent to a \var{FormatDateTime('ddddd', Date)}.
 \Errors
+None.
 \SeeAlso
+\seef{TimeToStr}, \seef{DateTimeToStr}, \seef{FormatDateTime},
+\seef{StrToDate}
 \end{function}
 
+
+\latex{\inputlisting{sysutex/ex7.pp}}
+\html{\input{sysutex/ex7.tex}}
  
 \begin{function}{DayOfWeek}
 \Declaration
 Function DayOfWeek(DateTime: TDateTime): integer;
 \Description
+\var{DayOfWeek} returns the day of the week from \var{DateTime}.
+\var{Sunday} is counted as day 1, \var{Saturday} is counted as 
+day 7. The result of \var{DayOfWeek} can serve as an index to 
+the \var{LongDayNames} constant array, to retrieve the name of 
+the day.
 \Errors
+None.
 \SeeAlso
+\seef{Date}, \seef{DateToStr}
 \end{function}
 
- 
+
+\latex{\inputlisting{sysutex/ex8.pp}}
+\html{\input{sysutex/ex8.tex}}
+
 \begin{procedure}{DecodeDate}
 \Declaration
 Procedure DecodeDate(Date: TDateTime; var Year, Month, Day: word);
 \Description
+\var{DecodeDate} decodes the Year, Month and Day stored in \var{Date},
+and returns them in the \var{Year}, \var{Month} and \var{Day} variables.
 \Errors
+None.
 \SeeAlso
+\seef{EncodeDate}, \seep{DecodeTime}.
 \end{procedure}
+
+\latex{\inputlisting{sysutex/ex9.pp}}
+\html{\input{sysutex/ex9.tex}}
 
  
 \begin{procedure}{DecodeTime}
 \Declaration
 Procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: word);
 \Description
+\var{DecodeDate} decodes the hours, minutes, second and milliseconds stored 
+in \var{Time}, and returns them in the \var{Hour}, \var{Minute} and
+\var{Second} and \var{MilliSecond} variables.
 \Errors
+None.
 \SeeAlso
+\seef{EncodeTime}, \seep{DecodeDate}.
 \end{procedure}
 
+\latex{\inputlisting{sysutex/ex10.pp}}
+\html{\input{sysutex/ex10.tex}}
  
 \begin{function}{EncodeDate}
 \Declaration
 Function EncodeDate(Year, Month, Day :word): TDateTime;
 \Description
+\var{EncodeDate} encodes the \var{Year}, \var{Month} and \var{Day} variables to 
+a date in \var{TDateTime} format. It does the opposite of the
+\seep{DecodeDate} procedure.
+
+The parameters must lie withing valid ranges (boundaries included):
+\begin{description}
+\item[Year] must be between 1 and 9999.
+\item[Month] must be within the range 1-12.
+\item[Day] msut be between 1 and 31.
+\end{description}
 \Errors
+In case one of the parameters is out of it's valid range, 0 is returned.
 \SeeAlso
+\seef{EncodeTime}, \seep{DecodeDate}.
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex11.pp}}
+\html{\input{sysutex/ex11.tex}}
+
 \begin{function}{EncodeTime}
 \Declaration
 Function EncodeTime(Hour, Minute, Second, MilliSecond:word): TDateTime;
 \Description
+\var{EncodeTime} encodes the \var{Hour}, \var{Minute}, \var{Second},
+\var{MilliSecond} variables to a \var{TDateTime} format result.
+It does the opposite of the \seep{DecodeTime} procedure.
+
+The parameters must have a valid range (boundaries included):
+\begin{description}
+\item[Hour] must be between 0 and 23.
+\item[Minute,second] must both be between 0 and 59.
+\item[Millisecond] must be between 0 and 999.
+\end{description}
 \Errors
+In case one of the parameters is outside of it's valid range, 0 is returned.
 \SeeAlso
+\seef{EncodeDate}, \seep{DecodeTime}.
 \end{function}
+
+\latex{\inputlisting{sysutex/ex12.pp}}
+\html{\input{sysutex/ex12.tex}}
 
  
 \begin{function}{FileDateToDateTime}
