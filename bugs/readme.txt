@@ -189,3 +189,4 @@ bug0135.pp   Unsupported subrange type construction.
 bug0137.pp   Cannot assign child object variable to parent objcet type variable
 bug0138.pp   with problem, %esi can be crushed and is not restored
 bug0139.pp   Cannot access protected method of ancestor class from other unit.
+bug0140.pp   Shows that interdependent units still are not OK. You need to compile a second time to see the error.
