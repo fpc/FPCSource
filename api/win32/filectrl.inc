@@ -95,7 +95,7 @@ var
   Result : CPUWord;
 begin
   ErrorCode:=0;
-  if Windows.ReadFile(Handle, @Buff, Count, Result, nil) then
+  if Windows.ReadFile(Handle, Buff, Count, Result, nil) then
     ErrorCode:=GetLastError;
   ReadFile:=result;
 end;
@@ -107,7 +107,7 @@ var
    Size: Longint;
 begin
   ErrorCode:=0;
-  if Windows.WriteFile(Handle, @Buff, Count, Size, nil) then
+  if Windows.WriteFile(Handle, Buff, Count, Size, nil) then
     ErrorCode:=GetLastError;
   WriteFile:=Written;
 end;
@@ -165,7 +165,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:31  peter
+  Revision 1.2  2000-05-31 07:27:12  jonas
+    * fixed formal parameters passed to var arguments problem
+
+  Revision 1.1  2000/01/06 01:20:31  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  1999/11/24 23:36:38  peter
