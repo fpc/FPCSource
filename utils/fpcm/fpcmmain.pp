@@ -1026,7 +1026,7 @@ implementation
            (CheckVar('target_programs') or
             CheckVar('target_units') or
             CheckVar('target_examples')) and
-           (Pos('rtl(',s)=0) then
+           (Pos('rtl(',s)=0) and (getvariable('package_name',false)<>'rtl') then
          begin
            s:='rtl '+s;
            SetVariable('require_packages',s,false);
@@ -1557,7 +1557,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2004-06-06 14:11:54  karoly
+  Revision 1.41  2004-06-29 19:20:49  marco
+   * rtl only autoadded if name<>rtl (+/- line 1030)
+
+  Revision 1.40  2004/06/06 14:11:54  karoly
     + added morphos target
 
   Revision 1.39  2004/06/05 11:14:49  olle
