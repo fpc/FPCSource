@@ -14,18 +14,26 @@
 
  **********************************************************************}
 
-Uses Dos;
+Uses DosCalls;
 
 { Declared EXPLICITLY with Ansistring, so NO mistaking is possible }
 
-Function Getenv (Var EnvVar  : AnsiString): AnsiString;
+function GetEnv (var EnvVar: AnsiString): AnsiString;
+
+var RC: longint;
+    P: PChar;
 
 begin
-  Result:=Dos.Getenv(EnvVar); 
+ RC := DosScanEnv (PChar (EnvVar), P);
+ GetEnv := P;
 end;
+
 {
   $Log$
-  Revision 1.3  2000-08-25 17:33:44  hajny
+  Revision 1.4  2000-10-28 16:56:02  hajny
+    + real (ansistring) implementation
+
+  Revision 1.3  2000/08/25 17:33:44  hajny
     * Made compilable again (missing bracket at the begin of logs)
 
   Revision 1.2  2000/07/13 11:33:01  michael
