@@ -707,7 +707,7 @@ Procedure POpen(var F:file;const Prog:String;rw:char);
 
 Function  mkFifo(pathname:string;mode:longint):boolean;
 
-Procedure AssignStream(Var StreamIn,Streamout:text;Const Prog:String);
+function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : longint;
 function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): LongInt;
 
 {**************************
@@ -1935,8 +1935,7 @@ begin
 end;
 
 
-
-Procedure AssignStream(Var StreamIn,Streamout:text;Const Prog:String);
+Function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : longint;
 {
   Starts the program in 'Prog' and makes its input and output the
   other end of two pipes, which are the stdin and stdout of a program
@@ -1946,6 +1945,7 @@ Procedure AssignStream(Var StreamIn,Streamout:text;Const Prog:String);
   Parent          Child
   STreamout -->  Input
   Streamin  <--  Output
+  Return value is the process ID of the process being spawned, or -1 in case of failure.
 }
 var
   pipi,
@@ -1954,6 +1954,7 @@ var
   pl   : ^Longint;
 begin
   LinuxError:=0;
+  AssignStream:=-1;
   AssignPipe(streamin,pipo);
   if Linuxerror<>0 then
    exit;
@@ -1999,6 +2000,7 @@ begin
      pl:=@(textrec(StreamOut).userdata[2]);
      pl^:=pid;
      textrec(StreamOut).closefunc:=@PCloseText;
+     AssignStream:=Pid;
    end;
 end;
 
@@ -2929,7 +2931,10 @@ End.
 
 {
   $Log$
-  Revision 1.69  2000-05-17 17:11:44  peter
+  Revision 1.70  2000-05-21 17:10:13  michael
+  + AssignStream now always returns PID of spawned process
+
+  Revision 1.69  2000/05/17 17:11:44  peter
     * added sigaction record from signal.inc
 
   Revision 1.68  2000/04/16 16:09:32  marco
