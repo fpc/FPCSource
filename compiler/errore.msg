@@ -48,6 +48,8 @@
 #
 # General
 #
+# 01016 is the last used one
+#
 # BeginOfTeX
 % \section{General compiler messages}
 % This section gives the compiler messages which are not fatal, but which
@@ -114,6 +116,8 @@ general_i_hint=01016_I_Hint:
 % \end{description}
 #
 # Scanner
+#
+# 02057 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -1309,6 +1313,8 @@ cg_e_control_flow_outside_finally=06040_E_Control flow statements aren't allowed
 #
 # Assembler reader
 #
+# 07085 is the last used one
+#
 asmr_d_start_reading=07000_D_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
 asmr_d_finish_reading=07001_D_Finished $1 styled assembler parsing
@@ -1389,6 +1395,8 @@ asmr_h_direct_global_to_mangled=07039_H_$1 translated to $2
 asmr_w_direct_global_is_overloaded_func=07040_W_$1 is associated to an overloaded function
 asmr_e_cannot_use_SELF_outside_a_method=07041_E_Cannot use SELF outside a method
 asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042_E_Cannot use OLDEBP outside a nested procedure
+asmr_e_cannot_use_RESULT_here=07084_E_Cannot use RESULT in this function
+asmr_h_RESULT_is_reg=07085_H_RESULT is register $1
 asmr_e_void_function=07043_W_Procedures can't return any value in asm code
 asmr_e_SEG_not_supported=07044_E_SEG not supported
 asmr_e_size_suffix_and_dest_dont_match=07045_E_Size suffix and destination or source size do not match
@@ -1441,6 +1449,8 @@ asmr_e_unable_to_determine_reference_size=07083_E_No size specified and unable t
 #
 # Assembler/binary writers
 #
+# 08013 is the last used one
+#
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 asmw_f_assembler_output_not_supported=08001_F_Selected assembler output not supported
 asmw_f_comp_not_supported=08002_F_Comp not supported
@@ -1459,6 +1469,8 @@ asmw_e_undefined_label=08013_E_Asm: Undefined label $1
 
 #
 # Executing linker/assembler
+#
+# 09034 is the last used one
 #
 # BeginOfTeX
 %
@@ -1516,6 +1528,8 @@ execinfo_x_stackcommit=09034_X_Stack space commited: $1 bytes
 
 #
 # Unit loading
+#
+# 10039 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -1640,6 +1654,8 @@ unit_h_cond_set_in_last_compile=10039_H_Conditional $1 was set at startup in las
 
 #
 #  Options
+#
+# 11025 is the last used one
 #
 option_usage=11000_$1 [options] <inputfile> [options]
 # BeginOfTeX

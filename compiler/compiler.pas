@@ -88,7 +88,8 @@ uses
   dos,
 {$endif Delphi}
   verbose,comphook,systems,
-  cutils,cobjects,globals,options,parser,symtable,link,import,export,tokens;
+  cutils,cobjects,globals,options,fmodule,parser,symtable,
+  link,import,export,tokens;
 
 function Compile(const cmd:string):longint;
 
@@ -182,6 +183,10 @@ begin
   inittokens;
   InitSymtable;
   CompilerInited:=true;
+{ this is needed here for the IDE
+  in case of compilation failure
+  at the previous compile }
+  current_module:=nil;
 { read the arguments }
   read_arguments(cmd);
 { inits which depend on arguments }
@@ -303,7 +308,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:14  peter
+  Revision 1.7  2000-10-08 10:26:33  peter
+    * merged @result fix from Pierre
+
+  Revision 1.6  2000/09/24 15:06:14  peter
     * use defines.inc
 
   Revision 1.5  2000/08/27 16:11:50  peter

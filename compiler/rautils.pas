@@ -91,7 +91,7 @@ type
     Procedure BuildOperand;virtual;
     Procedure SetSize(_size:longint;force:boolean);
     Procedure SetCorrectSize(opcode:tasmop);virtual;
-    Function  SetupResult:boolean;
+    Function  SetupResult:boolean;virtual;
     Function  SetupSelf:boolean;
     Function  SetupOldEBP:boolean;
     Function  SetupVar(const hs:string;GetOffset : boolean): Boolean;
@@ -734,6 +734,12 @@ Begin
   if assigned(procinfo^.returntype.def) and
      (procinfo^.returntype.def<>pdef(voiddef)) then
    begin
+     if (m_tp in aktmodeswitches) or
+        (m_delphi in aktmodeswitches) then
+       begin
+         Message(asmr_e_cannot_use_RESULT_here);
+         exit;
+       end;
      opr.ref.offset:=procinfo^.return_offset;
      opr.ref.base:= procinfo^.framepointer;
      { always assume that the result is valid. }
@@ -1542,7 +1548,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 21:19:51  peter
+  Revision 1.7  2000-10-08 10:26:33  peter
+    * merged @result fix from Pierre
+
+  Revision 1.6  2000/09/24 21:19:51  peter
     * delphi compile fixes
 
   Revision 1.5  2000/09/24 15:06:26  peter

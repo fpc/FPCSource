@@ -40,6 +40,7 @@ type
   P386Operand=^T386Operand;
   T386Operand=object(TOperand)
     Procedure SetCorrectSize(opcode:tasmop);virtual;
+    Function SetupResult : boolean;virtual;
   end;
 
   P386Instruction=^T386Instruction;
@@ -57,7 +58,12 @@ type
 implementation
 
 uses
-  globtype,systems,globals,verbose,cpuasm;
+{$ifdef NEWCG}
+  cgbase,
+{$else}
+  hcodegen,
+{$endif}
+  globtype,systems,types,globals,verbose,cpuasm;
 
 
 {*****************************************************************************
@@ -167,6 +173,36 @@ begin
       end;
     end;
 end;
+
+Function T386Operand.SetupResult:boolean;
+var
+  Res : boolean;
+Begin
+  Res:=TOperand.setupResult;
+  { replace by ref by register if not place was
+    reserved on stack }
+  if res and (procinfo^.return_offset=0) then
+   begin
+     opr.typ:=OPR_REGISTER;
+     if is_fpu(procinfo^.returntype.def) then
+       opr.reg:=R_ST0
+     else if ret_in_acc(procinfo^.returntype.def) then
+       case procinfo^.returntype.def^.size of
+       1 : opr.reg:=R_AL;
+       2 : opr.reg:=R_AX;
+       3,4 : opr.reg:=R_EAX;
+       else
+         begin
+           Message(asmr_e_cannot_use_RESULT_here);
+           exit;
+         end;
+       end;
+     Message1(asmr_h_RESULT_is_reg,reg2str(opr.reg));
+   end;
+  SetupResult:=res;
+end;
+
+
 
 {*****************************************************************************
                               T386Instruction
@@ -456,7 +492,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 21:33:47  peter
+  Revision 1.7  2000-10-08 10:26:33  peter
+    * merged @result fix from Pierre
+
+  Revision 1.6  2000/09/24 21:33:47  peter
     * message updates merges
 
   Revision 1.5  2000/09/24 15:06:25  peter

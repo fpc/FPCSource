@@ -398,6 +398,8 @@ const
   asmr_w_direct_global_is_overloaded_func=07040;
   asmr_e_cannot_use_SELF_outside_a_method=07041;
   asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042;
+  asmr_e_cannot_use_RESULT_here=07084;
+  asmr_h_RESULT_is_reg=07085;
   asmr_e_void_function=07043;
   asmr_e_SEG_not_supported=07044;
   asmr_e_size_suffix_and_dest_dont_match=07045;
@@ -555,9 +557,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 31005;
+  MsgTxtSize = 31078;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,58,165,34,41,41,84,14,35,40,
-    26,1,1,1,1,1,1,1,1,1
+    17,58,165,34,41,41,86,14,35,40,
+    26,1,1,1,1,1,1,1,1,16777217
   );
