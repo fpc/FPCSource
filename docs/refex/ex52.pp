@@ -6,7 +6,7 @@ Var F : File;
     I : longint;
 
 begin
-  Assign (F,'Test.dat');
+  Assign (F,'Test.tmp');
   { Create the file. Recordsize is 4 } 
   Rewrite (F,Sizeof(I));
   For I:=1 to 10 do

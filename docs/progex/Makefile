@@ -51,6 +51,7 @@ onetex : tex
 
 clean : 
 	rm -f *.o *.s *.so $(OBJECTS) $(COBJECTS) $(TEXOBJECTS) $(CTEXOBJECTS)
+	rm -f *.ow *.sw *.exe *.dll
  
 $(OBJECTS): %: %.pp $(LIBOBJECT)
 	$(PP) $(PPOPTS) $*

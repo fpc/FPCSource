@@ -49,6 +49,7 @@ onetex : tex
 clean : 
 	rm -f *.o *.s $(OBJECTS) $(TEXOBJECTS)
 	rm -f vidutil.ppu vidutil.o viddbg.ppu viddbg.o Video.log
+	rm -f *.ow *.sw *.exe *.dll
  
 $(OBJECTS): %: %.pp vidutil.ppu
 	$(PP) $(PPOPTS) $*

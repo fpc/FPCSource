@@ -7,7 +7,7 @@ Program Example88;
 Var F : text;
 
 begin
-  AssignFile(F,'textfile.txt');
+  AssignFile(F,'textfile.tmp');
   Rewrite(F);
   Writeln (F,'This is a silly example of AssignFile and CloseFile.');
   CloseFile(F);

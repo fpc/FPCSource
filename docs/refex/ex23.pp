@@ -8,7 +8,7 @@ Var F : File of Longint;
 begin
   { Fill a file with data : 
     Each position contains the position ! }
-  Assign (F,'test.dat');
+  Assign (F,'test.tmp');
   Rewrite (F);
   For L:=0 to 100 do
     begin

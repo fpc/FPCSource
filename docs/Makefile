@@ -164,8 +164,10 @@ help:
 	@echo ' txt           : dvi, convert to text using dvi2tty'
 	@echo ' htm           : Convert .html to .htm files, zip result'
 	@echo ' clean         : Clean up the mess.'
+	@echo ' examples      : Comple all generic examples'
 	@echo ' linuxexamples : Compile all examples for linux'
 	@echo ' dosexamples   : Compile all examples for dos'
+	@echo ' execute       : Execute examples (DOS/Windows/OS/2 only)'
 	@echo ' htmldist      : html, and rchive result.'
 	@echo ' psdist        : ps, and archive result.'
 	@echo ' pdfdist       : pdf, and archive result.'
@@ -538,6 +540,7 @@ examples:
 	$(MAKE) -C crtex
 	$(MAKE) -C dosex
 	$(MAKE) -C optex
+	$(MAKE) -C mathex
 	$(MAKE) -C printex
 	$(MAKE) -C refex
 	$(MAKE) -C stringex
@@ -554,11 +557,31 @@ linuxexamples: examples
 	$(MAKE) -C linuxex
 	$(MAKE) -C sockex
 	$(MAKE) -C ipcex
+	
+execute:
+	$(MAKE) -C dosex all
+	$(MAKE) -C dosex execute
+	$(MAKE) -C refex all
+	$(MAKE) -C refex execute
+	$(MAKE) -C mathex all
+	$(MAKE) -C mathex execute
+	$(MAKE) -C stringex all
+	$(MAKE) -C stringex execute
+	$(MAKE) -C objectex all
+	$(MAKE) -C objectex execute
+	$(MAKE) -C sysutex all
+	$(MAKE) -C sysutex execute
+	$(MAKE) -C typinfex all
+	$(MAKE) -C typinfex execute
 
 
 #
 # $Log$
-# Revision 1.14  2002-04-23 18:03:50  michael
+# Revision 1.15  2002-11-10 12:22:10  carl
+#   * update makefiles for testing
+#   * update example which did not compile
+#
+# Revision 1.14  2002/04/23 18:03:50  michael
 # + removed fcl target in HTML
 #
 # Revision 1.13  2002/03/19 14:33:18  pierre

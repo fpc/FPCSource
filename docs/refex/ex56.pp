@@ -8,7 +8,7 @@ Var
   
 begin
   { Create a file and fill it with data } 
-  Assign (F,'test.dat');
+  Assign (F,'test.tmp');
   Rewrite(F); { Create file }
   Close(f);   
   FileMode:=2;

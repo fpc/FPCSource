@@ -47,6 +47,7 @@ onetex : tex
 clean : 
 	rm -f *.o *.s $(OBJECTS) $(TEXOBJECTS) logkeys.ppu logkeys.o
 	rm -f keyboard.log
+	rm -f *.ow *.sw *.exe *.dll
  
 $(OBJECTS): %: %.pp
 	$(PP) $(PPOPTS) $*

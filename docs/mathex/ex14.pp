@@ -7,7 +7,7 @@ Uses math;
 Procedure dofrexp(Const X : extended);
 
 var man : extended;
-    exp: integer;
+    exp: longint;
 
 begin
   man:=0;

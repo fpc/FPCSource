@@ -30,7 +30,7 @@ endif
 
 .SUFFIXES: .pp .tex
 
-.PHONY: all tex clean
+.PHONY: all tex clean execute
 
 OBJECTS=ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9 ex10 ex11 ex12\
         ex13 ex14 ex15 ex16 ex17 ex18 ex19 ex20 ex21 ex22 ex23 ex24\
@@ -40,10 +40,26 @@ OBJECTS=ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9 ex10 ex11 ex12\
         ex59 ex60 ex61 ex62 ex63 ex64 ex65 ex66 ex67 ex68 ex69 ex70\
         ex71 ex72 ex73 ex74 ex75 ex76 ex77 ex78 ex79 ex80 \
         ex81 ex82 ex83 ex84 ex85 ex86 ex87 ex88
+        
+# This might not be the same list as objects, since some of the
+# tests might be interactive.
+TOTEST=ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9 ex10 ex11 ex12\
+        ex13 ex14 ex15 ex16 ex17 ex18 ex19 ex20 ex21 ex22 ex23 ex24\
+        ex25 ex26 ex27 ex28 ex29 ex30 ex31 ex32 ex35 ex36\
+        ex37 ex39 ex41 ex42 ex43 ex44 ex45 ex46 ex47\
+        ex48 ex49 ex50 ex51 ex52 ex53 ex54 ex55 ex56 ex57 ex58\
+        ex59 ex60 ex61 ex62 ex63 ex64 ex65 ex66 ex67 ex68 ex69 ex70\
+        ex72 ex73 ex74 ex75 ex76 ex77 ex78 ex79 ex80 \
+        ex81 ex82 ex83 ex84 ex85 ex86 ex87 ex88
+
+LOGFILE=$(addsuffix .log, $(TOTEST))
+        
 
 TEXOBJECTS=$(addsuffix .tex, $(OBJECTS))
 
 all : $(OBJECTS)
+
+execute: $(LOGFILE)
 
 tex : $(TEXOBJECTS)
 
@@ -52,9 +68,13 @@ onetex : tex
 
 clean : 
 	rm -f *.o *.s $(OBJECTS) $(TEXOBJECTS)
+	rm -f *.ow *.sw *.exe *.dll *.ppw *.tmp *.log *.dat
  
 $(OBJECTS): %: %.pp
 	$(PP) $(PPOPTS) $*
 
 $(TEXOBJECTS): %.tex: %.pp head.tex foot.tex
 	$(PP2TEX) $*
+
+$(LOGFILE): %.log: %.exe 
+	$* > $*.log

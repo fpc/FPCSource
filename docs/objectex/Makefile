@@ -30,12 +30,22 @@ endif
 
 .SUFFIXES: .pp .tex
 
-.PHONY: all tex clean
+.PHONY: all tex clean execute
 
 OBJECTS=ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9 ex10 \
         ex11 ex12 ex13 ex14 ex15 ex16 ex17 ex18 ex19 ex20 \
         ex21 ex22 ex23 ex24 ex25 ex26 ex27 ex28 ex29 ex30 \
         ex31 ex32 ex33 ex34 ex35 ex36 ex37 ex38 ex39 ex40 
+        
+# This might not be the same list as objects, since some of the
+# tests might be interactive.
+TOTEST=ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9 ex10 \
+        ex11 ex12 ex13 ex14 ex15 ex16 ex17 ex18 ex19 ex20 \
+        ex21 ex22 ex23 ex24 ex25 ex26 ex27 ex28 ex29 ex30 \
+        ex31 ex32 ex33 ex34 ex35 ex37 ex38 ex39 ex40 
+        
+LOGFILE=$(addsuffix .log, $(TOTEST))
+        
 
 TEXOBJECTS=$(addsuffix .tex, $(OBJECTS))
 
@@ -43,14 +53,21 @@ all : $(OBJECTS)
 
 tex : $(TEXOBJECTS) myobject.tex mysortc.tex
 
+execute: $(LOGFILE)
+
+
 onetex : tex
 	$(MAKETEX) $(TEXOBJECTS)
 
 clean : 
 	rm -f *.o *.s $(OBJECTS) $(TEXOBJECTS) mysortc.ppu myobject.ppu mysortc.tex myobject.tex test.dat
+	rm -f *.ow *.sw *.exe *.dll *.ppw
  
 $(OBJECTS): %: %.pp
 	$(PP) $(PPOPTS) $*
 
 $(TEXOBJECTS) myobject.tex mysortc.tex: %.tex: %.pp head.tex foot.tex
 	$(PP2TEX) $*
+
+$(LOGFILE): %.log: %.exe 
+	$* > $*.log
