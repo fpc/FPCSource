@@ -182,7 +182,7 @@ type
     FConstraintErrorMessage : String;
     FCustomConstraint : String;
     FDataSet : TDataSet;
-    FDataSize : Word;
+//    FDataSize : Word;
     FDataType : TFieldType;
     FDefaultExpression : String;
     FDisplayLabel : String;
@@ -542,8 +542,13 @@ type
 
   TBCDField = class(TNumericField)
   private
+    FMinValue,
+    FMaxValue   : currency;
+    FPrecision  : Longint;
+    FCurrency   : boolean;
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
+    function GetAsCurrency: Currency; virtual;
     function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
@@ -553,9 +558,16 @@ type
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
+    procedure SetAsCurrency(AValue: Currency); virtual;
   public
     constructor Create(AOwner: TComponent); override;
+    Function CheckRange(AValue : Currency) : Boolean;
+    property Value: Longint read GetAsLongint write SetAsLongint;
   published
+    property Precision: Longint read FPrecision write FPrecision;
+    property Currency: Boolean read FCurrency write FCurrency;
+    property MaxValue: Currency read FMaxValue write FMaxValue;
+    property MinValue: Currency read FMinValue write FMinValue;
     property Size default 4;
   end;
 
@@ -1300,21 +1312,28 @@ type
 
   TBufDataset = class(TDBDataSet)
   private
-    FBBuffers : TBufferArray;
-    FBRecordCount : integer;
-    FBBufferCount : integer;
+    FBBuffers       : TBufferArray;
+    FBRecordCount   : integer;
+    FBBufferCount   : integer;
     FBCurrentRecord : integer;
-    FIsEOF : boolean;
-    FIsBOF : boolean;
-    FPacketRecords : integer;
+    FIsEOF          : boolean;
+    FIsBOF          : boolean;
+    FPacketRecords  : integer;
+    FRecordSize     : Integer;
+    FNullmaskSize   : byte;
+    procedure CalcRecordSize;
+    function LoadBuffer(Buffer : PChar): TGetResult;
+    function GetFieldSize(FieldDef : TFieldDef) : longint;
   protected
     function  AllocRecordBuffer: PChar; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
+    procedure InternalInitRecord(Buffer: PChar); override;
     function  GetCanModify: Boolean; override;
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
     procedure InternalOpen; override;
     procedure InternalClose; override;
     function getnextpacket : integer;
+    function GetRecordSize: Word; override;
     procedure InternalFirst; override;
     procedure InternalLast; override;
     procedure InternalSetToRecord(Buffer: PChar); override;
@@ -1323,15 +1342,14 @@ type
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
     procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
     function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
+    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
   {abstracts, must be overidden by descendents}
-    function GetNextRecord(Buffer : pchar) : TGetResult; virtual; abstract;
-    function AllocRecord(ExtraSize : integer): PChar; virtual; abstract;
-    procedure FreeRecord(var Buffer: PChar); virtual; abstract;
+    function Fetch : boolean; virtual; abstract;
+    function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
-
 
 Const
   Fieldtypenames : Array [TFieldType] of String[15] =
@@ -1592,7 +1610,12 @@ end.
 
 {
   $Log$
-  Revision 1.28  2004-11-05 08:32:02  michael
+  Revision 1.29  2004-12-04 22:44:24  michael
+    * Patch from Joost van der Sluis
+    - implemented TBCDFields
+    - adapted for the changes in TBuffDataset
+
+  Revision 1.28  2004/11/05 08:32:02  michael
   TBufDataset.inc:
     - replaced Freemem by Reallocmem, Free by FreeAndNil
 
