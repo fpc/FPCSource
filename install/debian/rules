@@ -14,12 +14,12 @@ PWD:=$(shell pwd)
 BUILD_DIR=$(PWD)/debian/build
 INSTALL_DIR=$(PWD)/debian/tmp
 DOC_DIR=$(INSTALL_DIR)/usr/share/doc
+EXAMPLE_TEMP=$(INSTALL_DIR)/usr/doc/fpc-$(FPCVERSION)/examples
 # Get utils
 NEWPP=$(PWD)/compiler/ppc386
-NEWPPUFILES=$(PWD)/utils/ppufiles
 # Create default options
 BUILDOPTS=PP=$(NEWPP)
-INSTALLOPTS=PP=$(NEWPP) PPUFILES=$(NEWPPUFILES) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
+INSTALLOPTS=PP=$(NEWPP) INSTALL_PREFIX=$(INSTALL_DIR)/usr
 
 export DH_COMPAT=2
 # export DH_VERBOSE=1
@@ -40,10 +40,9 @@ clean:
 
 	$(MAKE) compiler_distclean
 	$(MAKE) rtl_distclean
-	$(MAKE) fcl_distclean
-	$(MAKE) api_distclean
-	$(MAKE) utils_distclean
 	$(MAKE) packages_distclean
+	$(MAKE) fcl_distclean
+	$(MAKE) utils_distclean
 
 	$(MAKE) -C docs clean
 
@@ -81,11 +80,9 @@ build-arch-stamp: debian-files-stamp
 # First make a new Compiler and RTL using a make cycle
 	$(MAKE) compiler_cycle
 	$(MAKE) rtl_clean rtl_smart $(BUILDOPTS)
-	$(MAKE) fcl_smart $(BUILDOPTS)
-	$(MAKE) api_smart $(BUILDOPTS)
 	$(MAKE) packages_smart $(BUILDOPTS)
+	$(MAKE) fcl_smart $(BUILDOPTS)
 	$(MAKE) utils_all $(BUILDOPTS)
-	$(MAKE) compiler_fpcexe $(BUILDOPTS)
 
 	touch build-arch-stamp
 
@@ -98,25 +95,55 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 	dh_clean -k
 
 # Specify the compiler to use so installing will use the correct versioned dir
-	$(MAKE) compiler_install $(INSTALLOPTS)
-	$(MAKE) rtl_install $(INSTALLOPTS)
-	$(MAKE) fcl_install $(INSTALLOPTS)
-	$(MAKE) api_install $(INSTALLOPTS)
-	$(MAKE) utils_install $(INSTALLOPTS)
-	$(MAKE) packages_install $(INSTALLOPTS)
+	$(MAKE) compiler_distinstall $(INSTALLOPTS)
+	$(MAKE) rtl_distinstall $(INSTALLOPTS)
+	$(MAKE) packages_distinstall $(INSTALLOPTS)
+	$(MAKE) fcl_distinstall $(INSTALLOPTS)
+	$(MAKE) utils_distinstall $(INSTALLOPTS)
 
-	$(MAKE) fcl_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-fcl
-	$(MAKE) api_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-api
-	$(MAKE) -C packages pkggtk_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-gtk
-	$(MAKE) -C packages pkggfx_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-gfx
-	$(MAKE) -C packages pkgmisc_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-misc
-	$(MAKE) -C packages pkgbase_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-base
-	$(MAKE) -C packages pkgnet_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-net
-	$(MAKE) -C packages pkgdb_exampleinstall $(INSTALLOPTS) DOCINSTALLDIR=$(DOC_DIR)/fp-units-db
+# Copy examples to the correct doc dir
+	install -d -m755 $(DOC_DIR)/fp-units-fcl/examples
+	install -d -m755 $(DOC_DIR)/fp-units-gtk/examples
+	install -d -m755 $(DOC_DIR)/fp-units-gfx/examples
+	install -d -m755 $(DOC_DIR)/fp-units-db/examples
+	install -d -m755 $(DOC_DIR)/fp-units-net/examples
+	install -d -m755 $(DOC_DIR)/fp-units-misc/examples
+	install -d -m755 $(DOC_DIR)/fp-units-base/examples
 
-	$(MAKE) man_install $(INSTALLOPTS) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr/share
-	$(MAKE) demo_install $(INSTALLOPTS) DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-compiler
-	$(MAKE) doc_install $(INSTALLOPTS) DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-compiler
+	mv -f $(EXAMPLE_TEMP)/fcl $(DOC_DIR)/fp-units-fcl/examples
+
+	mv -f $(EXAMPLE_TEMP)/gtk $(DOC_DIR)/fp-units-gtk/examples
+
+	mv -f $(EXAMPLE_TEMP)/paszlib $(DOC_DIR)/fp-units-base/examples
+	mv -f $(EXAMPLE_TEMP)/regexpr $(DOC_DIR)/fp-units-base/examples
+	mv -f $(EXAMPLE_TEMP)/ncurses $(DOC_DIR)/fp-units-base/examples
+
+	mv -f $(EXAMPLE_TEMP)/forms $(DOC_DIR)/fp-units-gfx/examples
+	mv -f $(EXAMPLE_TEMP)/ggi $(DOC_DIR)/fp-units-gfx/examples
+	mv -f $(EXAMPLE_TEMP)/libgd $(DOC_DIR)/fp-units-gfx/examples
+	mv -f $(EXAMPLE_TEMP)/svgalib $(DOC_DIR)/fp-units-gfx/examples
+	mv -f $(EXAMPLE_TEMP)/opengl $(DOC_DIR)/fp-units-gfx/examples
+
+	mv -f $(EXAMPLE_TEMP)/ibase $(DOC_DIR)/fp-units-db/examples
+	mv -f $(EXAMPLE_TEMP)/mysql $(DOC_DIR)/fp-units-db/examples
+	mv -f $(EXAMPLE_TEMP)/oracle $(DOC_DIR)/fp-units-db/examples
+	mv -f $(EXAMPLE_TEMP)/postgres $(DOC_DIR)/fp-units-db/examples
+	
+	mv -f $(EXAMPLE_TEMP)/cmem $(DOC_DIR)/fp-units-misc/examples
+	mv -f $(EXAMPLE_TEMP)/gdbint $(DOC_DIR)/fp-units-misc/examples
+	mv -f $(EXAMPLE_TEMP)/utmp $(DOC_DIR)/fp-units-misc/examples
+	mv -f $(EXAMPLE_TEMP)/syslog $(DOC_DIR)/fp-units-misc/examples
+
+	mv -f $(EXAMPLE_TEMP)/inet $(DOC_DIR)/fp-units-net/examples
+	mv -f $(EXAMPLE_TEMP)/uncgi $(DOC_DIR)/fp-units-net/examples
+
+# Check if all examples are removed, if not then the rmdir will fail
+	rmdir $(EXAMPLE_TEMP)
+
+# Install man pages and RTL demos and whatsnew and readme
+	$(MAKE) man_install $(INSTALLOPTS) INSTALL_PREFIX=$(INSTALL_DIR)/usr/share
+	$(MAKE) demo_install $(INSTALLOPTS) INSTALL_DOCDIR=$(DOC_DIR)/fp-compiler
+	$(MAKE) doc_install $(INSTALLOPTS) INSTALL_DOCDIR=$(DOC_DIR)/fp-compiler
 
 # Create ppc386.cfg which is included as conffile
 	chmod 755 compiler/utils/samplecfg 
@@ -204,9 +231,8 @@ binary-arch: build-arch arrange-arch debian-files
 
 	dh_installchangelogs -pfp-compiler logs/Changes.compiler
 	dh_installchangelogs -pfp-units-rtl logs/Changes.rtl
-	dh_installchangelogs -pfp-utils logs/Changes.utils
 	dh_installchangelogs -pfp-units-fcl logs/Changes.fcl
-	dh_installchangelogs -pfp-units-api logs/Changes.api
+	dh_installchangelogs -pfp-utils logs/Changes.utils
 
 	dh_undocumented -a
 	dh_installexamples -a
