@@ -148,10 +148,10 @@ implementation
                        { don't save the allocated register else the result will be destroyed later }
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
-                       { the called procedure isn't allowed to change }
-                       { any register except EAX                    }
-                       cg.a_call_reg(exprasmlist,hregister);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
+                       rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+                       cg.a_call_reg(exprasmlist,hregister);
+                       rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                        r:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
                        rg.ungetregisterint(exprasmlist,r);
                        cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,r,hregister);
@@ -888,7 +888,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2003-09-10 08:31:47  marco
+  Revision 1.81  2003-09-14 12:57:10  peter
+    * save destroyed registers when calling threadvar helper
+
+  Revision 1.80  2003/09/10 08:31:47  marco
    * Patch from Peter for paraloc
 
   Revision 1.79  2003/09/03 15:55:00  peter
