@@ -19,26 +19,50 @@
 
 function strcopy(dest,source : pchar) : pchar;assembler;
 asm
-        cld
         movl    source,%edi
-        orl     %edi,%edi
-        jz      .LStrCopyNil
-        movl    $0xffffffff,%ecx
-        xorb    %al,%al
-        repne
-        scasb
-        not     %ecx
-        movl    dest,%edi
+        testl   %edi,%edi
+        jz      .LStrCopyDone
+        movl    %edi,%ecx
+        andl    $0x0fffffff8,%edi
         movl    source,%esi
-        movl    %ecx,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-        movl    %eax,%ecx
-        andl    $3,%ecx
-        rep
-        movsb
-.LStrCopyNil:        
+        subl    %edi,%ecx
+        movl    dest,%edi
+        jz      .LStrCopyAligned
+.LStrCopyAlignLoop:
+        movb    (%esi),%al
+        incl    %edi
+        incl    %esi
+        testb   %al,%al
+        movb    %al,-1(%edi)
+        jz      .LStrCopyDone
+        decl    %ecx
+        jnz     .LStrCopyAlignLoop
+        .align  16
+.LStrCopyAligned:
+        movl    (%esi),%eax
+        addl    $4,%esi
+        testl   $0x0ff,%eax
+        jz      .LStrCopyByte
+        testl   $0x0ff00,%eax
+        jz      .LStrCopyWord
+        testl   $0x0ff0000,%eax
+        jz      .LStrCopy3Bytes
+        movl    %eax,(%edi)
+        testl   $0x0ff000000,%eax
+        jz      .LStrCopyDone
+        addl    $4,%edi
+        jmp     .LStrCopyAligned
+.LStrCopy3Bytes:
+        movw     %ax,(%edi)
+        xorl     %eax,%eax
+        addl     $2,%edi
+        jmp     .LStrCopyByte
+.LStrCopyWord:
+        movw    %ax,(%edi)
+        jmp     .LStrCopyDone
+.LStrCopyByte:
+        movb    %al,(%edi)
+.LStrCopyDone:
         movl    dest,%eax
 end ['EAX','ECX','ESI','EDI'];
 
@@ -243,25 +267,78 @@ end ['EAX','ECX','ESI','EDI'];
 
 function strscan(p : pchar;c : char) : pchar;assembler;
 asm
-	      xorl    %eax,%eax
-        movl    p,%edi
-        orl     %edi,%edi
+        movl    p,%eax
+        xorl    %ecx,%ecx
+        testl   %eax,%eax
         jz      .LSTRSCAN
-        movl    $0xffffffff,%ecx
-        cld
-        repne
-        scasb
-        not     %ecx
-        movb    c,%al
+// align
+        movb    c,%cl
+        movl    %eax,%esi
+        andl    $0xfffffff8,%eax
+        movl    $0xff,%edx
         movl    p,%edi
-        repne
-        scasb
-        movl    $0,%eax
-        jnz     .LSTRSCAN
+        subl    %eax,%esi
+        jz      .LSTRSCANLOOP
+.LSTRSCANALIGNLOOP:
+        movb    (%edi),%al
+// at .LSTRSCANFOUND, one is substracted from edi to calculate the position,
+// so add 1 here already (not after .LSTRSCAN, because then the test/jz and
+// cmp/je can't be paired)
+        incl    %edi
+        testb   %al,%al
+        jz      .LSTRSCAN
+        cmpb    %cl,%al
+        je      .LSTRSCANFOUND
+        decl    %esi
+        jnz     .LSTRSCANALIGNLOOP
+        jmp     .LSTRSCANLOOP
+        .align  16
+.LSTRSCANLOOP:
+        movl    (%edi),%eax
+        movl    %eax,%esi
+// first char
+        andl    %edx,%eax
+// end of string -> stop
+        jz      .LSTRSCAN
+        shrl    $8,%esi
+        cmpl    %ecx,%eax
+        movl    %esi,%eax
+        je      .LSTRSCANFOUND1
+// second char
+        andl    %edx,%eax
+        jz      .LSTRSCAN
+        shrl    $8,%esi
+        cmpl    %ecx,%eax
+        movl    %esi,%eax
+        je      .LSTRSCANFOUND2
+// third char
+        andl    %edx,%eax
+        jz      .LSTRSCAN
+        shrl    $8,%esi
+        cmpl    %ecx,%eax
+        movl    %esi,%eax
+        je      .LSTRSCANFOUND3
+// fourth char
+// all upper bits have already been cleared
+        testl   %eax,%eax
+        jz      .LSTRSCAN
+        addl    $4,%edi
+        cmpl    %ecx,%eax
+        je      .LSTRSCANFOUND
+        jmp     .LSTRSCANLOOP
+.LSTRSCANFOUND3:
+        leal    2(%edi),%eax
+        jmp     .LSTRSCAN
+.LSTRSCANFOUND2:
+        leal    1(%edi),%eax
+        jmp     .LSTRSCAN
+.LSTRSCANFOUND1:
         movl    %edi,%eax
-        decl    %eax
+        jmp     .LSTRSCAN
+.LSTRSCANFOUND:
+        leal    -1(%edi),%eax
 .LSTRSCAN:
-end ['EAX','ECX','EDI'];
+end ['EAX','ECX','ESI','EDI','EDX'];
 
 
 function strrscan(p : pchar;c : char) : pchar;assembler;
@@ -337,7 +414,10 @@ end ['EAX','ESI','EDI'];
 
 {
   $Log$
-  Revision 1.8  2000-03-28 11:14:33  jonas
+  Revision 1.9  2000-06-11 14:25:23  jonas
+    * much faster strcopy and strscan procedures
+
+  Revision 1.8  2000/03/28 11:14:33  jonas
     * added missing register that is destroyed by strecopy
     + some destroyed register lists for procedures that didn't have one yet
 
