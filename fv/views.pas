@@ -21,28 +21,9 @@
 {   ANY OTHER WARRANTIES WHETHER EXPRESSED OR IMPLIED.     }
 {                                                          }
 {*****************[ SUPPORTED PLATFORMS ]******************}
-{     16 and 32 Bit compilers                              }
-{        DOS      - Turbo Pascal 7.0 +      (16 Bit)       }
-{        DPMI     - Turbo Pascal 7.0 +      (16 Bit)       }
-{                 - FPC 0.9912+ (GO32V2)    (32 Bit)       }
-{        WINDOWS  - Turbo Pascal 7.0 +      (16 Bit)       }
-{                 - Delphi 1.0+             (16 Bit)       }
-{        WIN95/NT - Delphi 2.0+             (32 Bit)       }
-{                 - Virtual Pascal 2.0+     (32 Bit)       }
-{                 - Speedsoft Sybil 2.0+    (32 Bit)       }
-{                 - FPC 0.9912+             (32 Bit)       }
-{        OS2      - Virtual Pascal 1.0+     (32 Bit)       }
 {                                                          }
-{******************[ REVISION HISTORY ]********************}
-{  Version  Date        Fix                                }
-{  -------  ---------   ---------------------------------  }
-{  1.00     10 Nov 96   First multi platform release       }
-{  1.10     29 Aug 97   Platform.inc sort added.           }
-{  1.20     12 Sep 97   FPK pascal 0.92 conversion added.  }
-{  1.30     10 Jun 98   Virtual pascal 2.0 code added.     }
-{  1.40     10 Jul 99   Sybil 2.0 code added               }
-{  1.41     03 Nov 99   FPC Windows support added.         }
-{  1.50     26 Nov 99   Graphics stuff moved to GFVGraph   }
+{ Only Free Pascal Compiler supported                      }
+{                                                          }
 {**********************************************************}
 
 UNIT Views;
@@ -1270,12 +1251,11 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TView.MouseInView (Point: TPoint): Boolean;
 BEGIN
-   MouseInView := False;                              { Preset false }
-   If (Point.X < Origin.X) Then Exit;              { Point to left }
-   If (Point.X > (Origin.X+Size.X)) Then Exit;  { Point to right }
-   If (Point.Y < Origin.Y) Then Exit;              { Point is above }
-   If (Point.Y > (Origin.Y+Size.Y)) Then Exit;  { Point is below }
-   MouseInView := True;                               { Return true }
+  MakeLocal(Point,Point);
+  MouseInView := (Point.X >= 0) and
+                 (Point.Y >= 0) and
+                 (Point.X < Size.X) and
+                 (Point.Y < Size.Y);
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -4161,19 +4141,39 @@ end;
 {  MakeLocal -> Platforms DOS/DPMI/WIN/OS2 - Checked 12Sep97 LdB            }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.MakeLocal (Source: TPoint; Var Dest: TPoint);
-BEGIN
-  Dest.X := Source.X - Origin.X;                   { Local x value }
-  Dest.Y := Source.Y - Origin.Y;                   { Local y value }
-END;
+var
+  cur : PView;
+begin
+  cur:=@Self;
+  Dest:=Source;
+  repeat
+    dec(Dest.X,cur^.Origin.X);                   
+    if dest.x<0 then
+     break;
+    dec(Dest.Y,cur^.Origin.Y);                   
+    if dest.y<0 then
+     break;
+    cur:=cur^.Owner;
+  until cur=nil;  
+end;
+
 
 {--TView--------------------------------------------------------------------}
 {  MakeGlobal -> Platforms DOS/DPMI/WIN/OS2 - Checked 12Sep97 LdB           }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.MakeGlobal (Source: TPoint; Var Dest: TPoint);
-BEGIN
-  Dest.X := Source.X + Origin.X;                   { Global x value }
-  Dest.Y := Source.Y + Origin.Y;                   { Global y value }
-END;
+var
+  cur : PView;
+begin
+  cur:=@Self;
+  Dest:=Source;
+  repeat
+    inc(Dest.X,cur^.Origin.X);                   
+    inc(Dest.Y,cur^.Origin.Y);                   
+    cur:=cur^.Owner;
+  until cur=nil;  
+end;
+
 
 procedure TView.do_writeViewRec1(x1,x2:Sw_integer; p:PView; shadowCounter:Sw_integer);
 var
@@ -4667,7 +4667,10 @@ END.
 
 {
  $Log$
- Revision 1.47  2004-11-06 17:08:48  peter
+ Revision 1.48  2004-11-06 22:03:06  peter
+   * fixed mouse
+
+ Revision 1.47  2004/11/06 17:08:48  peter
    * drawing of tview merged from old fv code
 
 }

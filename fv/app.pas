@@ -914,15 +914,11 @@ BEGIN
        NextQueuedEvent(Event);                        { Next queued event }
        If (Event.What = evNothing) Then Begin
          GetKeyEvent(Event);                          { Fetch key event }
-{$ifdef DEBUG}
          If (Event.What = evKeyDown) then
            Begin
-             if Event.keyCode = kbAltF11 then
-               WriteDebugInfo := not WriteDebugInfo;
              if Event.keyCode = kbAltF12 then
                ReDraw;
            End;
-{$endif DEBUG}
          If (Event.What = evNothing) Then Begin       { No mouse event }
            Drivers.GetMouseEvent(Event);              { Load mouse event }
            If (Event.What = evNothing) Then
@@ -1157,7 +1153,10 @@ END;
 END.
 {
  $Log$
- Revision 1.25  2004-11-06 17:08:48  peter
+ Revision 1.26  2004-11-06 22:03:06  peter
+   * fixed mouse
+
+ Revision 1.25  2004/11/06 17:08:48  peter
    * drawing of tview merged from old fv code
 
 }

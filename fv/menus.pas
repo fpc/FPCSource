@@ -21,33 +21,9 @@
 {   ANY OTHER WARRANTIES WHETHER EXPRESSED OR IMPLIED.     }
 {                                                          }
 {*****************[ SUPPORTED PLATFORMS ]******************}
-{     16 and 32 Bit compilers                              }
-{        DOS      - Turbo Pascal 7.0 +      (16 Bit)       }
-{        DPMI     - Turbo Pascal 7.0 +      (16 Bit)       }
-{                 - FPC 0.9912+ (GO32V2)    (32 Bit)       }
-{        WINDOWS  - Turbo Pascal 7.0 +      (16 Bit)       }
-{                 - Delphi 1.0+             (16 Bit)       }
-{        WIN95/NT - Delphi 2.0+             (32 Bit)       }
-{                 - Virtual Pascal 2.0+     (32 Bit)       }
-{                 - Speedsoft Sybil 2.0+    (32 Bit)       }
-{                 - FPC 0.9912+             (32 Bit)       }
-{        OS2      - Virtual Pascal 1.0+     (32 Bit)       }
-{                 - Speed pascal 1.0+       (32 Bit)       }
 {                                                          }
-{******************[ REVISION HISTORY ]********************}
-{  Version  Date        Fix                                }
-{  -------  ---------   ---------------------------------  }
-{  1.00     12 Jun 96   Initial DOS/DPMI code released.    }
-{  1.10     18 Oct 97   Code converted to GUI & TEXT mode. }
-{  1.20     18 Jul 97   Windows conversion added.          }
-{  1.30     29 Aug 97   Platform.inc sort added.           }
-{  1.40     22 Oct 97   Delphi3 32 bit code added.         }
-{  1.50     05 May 98   Virtual pascal 2.0 code added.     }
-{  1.60     11 May 98   Clean up and ensure error checks.  }
-{  1.70     15 May 98   Documentation & format completed.  }
-{  1.80     30 Sep 99   Complete recheck preformed         }
-{  1.81     03 Nov 99   FPC windows support added          }
-{  1.90     26 Nov 99   Graphics stuff moved to GFVGraph   }
+{ Only Free Pascal Compiler supported                      }
+{                                                          }
 {**********************************************************}
 
 UNIT Menus;
@@ -1653,7 +1629,10 @@ END;
 END.
 {
  $Log$
- Revision 1.21  2004-11-06 17:08:48  peter
+ Revision 1.22  2004-11-06 22:03:06  peter
+   * fixed mouse
+
+ Revision 1.21  2004/11/06 17:08:48  peter
    * drawing of tview merged from old fv code
 
 }
