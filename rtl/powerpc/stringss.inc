@@ -16,9 +16,11 @@
 
  **********************************************************************}
 
+{$define FPC_UNIT_HAS_STRPAS}
 function strpas(p : pchar) : string; assembler;
 {$i strpas.inc}
 
+{$define FPC_UNIT_HAS_STRPCOPY}
 function strpcopy(d : pchar;const s : string) : pchar;assembler;
 asm
         { get length  }
@@ -41,7 +43,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2003-06-14 12:41:09  jonas
+  Revision 1.10  2003-07-07 20:23:46  peter
+    * added defines to override generic implementations
+
+  Revision 1.9  2003/06/14 12:41:09  jonas
     * fixed compilation problems (removed unnecessary modified registers
       lists from procedures)
 

@@ -18,6 +18,7 @@
 
 { Note: the implementation of these routines is for BIG ENDIAN only!! (JM) }
 
+{$define FPC_UNIT_HAS_STRCOPY}
 function strcopy(dest,source : pchar) : pchar;assembler;
 { in: dest in r3, source in r4 }
 { out: result (dest) in r3     }
@@ -69,8 +70,8 @@ LStrCopyAlignedLoop:
         b       LStrCopyAlignedLoop
 LStrCopyEndFound:
         { adjust for possible $01 bytes coming before the terminating 0 byte }
-	rlwinm	r8,r0,7,0,31
-	andc	r10,r10,r8
+        rlwinm  r8,r0,7,0,31
+        andc    r10,r10,r8
         { result is either 0, 8, 16 or 24 depending on which byte is zero }
         cntlzw  r10,r10
         addi    r9,r9,3
@@ -84,6 +85,7 @@ LStrCopyDone:
 end;
 
 
+{$define FPC_UNIT_HAS_STRECOPY}
 function strecopy(dest,source : pchar) : pchar;assembler;
 { in: dest in r3, source in r4        }
 { out: result (end of new dest) in r3 }
@@ -135,8 +137,8 @@ LStrECopyAlignedLoop:
         b       LStrECopyAlignedLoop
 LStrECopyEndFound:
         { adjust for possible $01 bytes coming before the terminating 0 byte }
-	rlwinm	r8,r0,7,0,31
-	andc	r10,r10,r8
+        rlwinm  r8,r0,7,0,31
+        andc    r10,r10,r8
         { result is either 0, 8, 16 or 24 depending on which byte is zero }
         cntlzw  r10,r10
         addi    r3,r3,3
@@ -150,6 +152,7 @@ LStrECopyDone:
 end;
 
 
+{$define FPC_UNIT_HAS_STRLCOPY}
 function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
 { in: dest in r3, source in r4, maxlen in r5 }
 { out: result (dest) in r3                   }
@@ -173,9 +176,11 @@ LStrlCopyDone:
 end;
 
 
+{$define FPC_UNIT_HAS_STRLEN}
 function strlen(p : pchar) : longint;assembler;
 {$i strlen.inc}
 
+{$define FPC_UNIT_HAS_STREND}
 function strend(p : pchar) : pchar;assembler;
 { in: p in r3                  }
 { out: result (end of p) in r3 }
@@ -195,6 +200,7 @@ LStrEndDone:
 end;
 
 
+{$define FPC_UNIT_HAS_STRCOMP}
 function strcomp(str1,str2 : pchar) : longint;assembler;
 { in: str1 in r3, str2 in r4                                                }
 { out: result (= 0 if strings equal, < 0 if str1 < str2, > 0 if str1 > str2 }
@@ -221,6 +227,7 @@ LStrCompDone:
 end;
 
 
+{$define FPC_UNIT_HAS_STRLCOMP}
 function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
 { (same as strcomp, but maximally compare until l'th character)             }
 { in: str1 in r3, str2 in r4, l in r5                                       }
@@ -254,6 +261,7 @@ LStrlCompDone:
 end;
 
 
+{$define FPC_UNIT_HAS_STRICOMP}
 function stricomp(str1,str2 : pchar) : longint;assembler;
 { in: str1 in r3, str2 in r4                                 }
 { out: result of case insensitive comparison (< 0, = 0, > 0) }
@@ -317,6 +325,7 @@ LStriCompDone:
 end;
 
 
+{$define FPC_UNIT_HAS_STRLICOMP}
 function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
 { (same as stricomp, but maximally compare until l'th character) }
 { in: str1 in r3, str2 in r4, l in r5                            }
@@ -375,6 +384,7 @@ LStrliCompDone:
 end;
 
 
+{$define FPC_UNIT_HAS_STRSCAN}
 function strscan(p : pchar;c : char) : pchar;assembler;
 asm
         { empty/invalid string? }
@@ -393,6 +403,7 @@ LStrScanDone:
 end;
 
 
+{$define FPC_UNIT_HAS_STRRSCAN}
 function strrscan(p : pchar;c : char) : pchar;assembler;
 asm
         { empty/invalid string? }
@@ -416,6 +427,7 @@ LStrrScanDone:
 end;
 
 
+{$define FPC_UNIT_HAS_STRUPPER}
 function strupper(p : pchar) : pchar;assembler;
 asm
         cmplwi  r3,0
@@ -436,6 +448,7 @@ LStrUpperNil:
 end;
 
 
+{$define FPC_UNIT_HAS_STRLOWER}
 function strlower(p : pchar) : pchar;assembler;
 asm
         cmplwi  r3,0
@@ -458,7 +471,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2003-06-14 12:41:08  jonas
+  Revision 1.20  2003-07-07 20:23:46  peter
+    * added defines to override generic implementations
+
+  Revision 1.19  2003/06/14 12:41:08  jonas
     * fixed compilation problems (removed unnecessary modified registers
       lists from procedures)
 
