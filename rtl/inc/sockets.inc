@@ -35,8 +35,8 @@ end;
 Procedure IOSock(var F:text);
 begin
   case textrec(f).mode of
-   fmoutput : fpWrite(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufpos);
-    fminput : textrec(f).BufEnd:=fpRead(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufsize);
+   fmoutput : {$ifdef unix}fpWrite{$else}fdwrite{$endif}(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufpos);
+    fminput : textrec(f).BufEnd:={$ifdef Unix}fpRead{$else}fpread{$endif}(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufsize);
   end;
   textrec(f).bufpos:=0;
 end;
@@ -167,7 +167,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.4  2003-09-14 20:15:01  marco
+  Revision 1.5  2003-09-15 07:51:09  marco
+   * fix
+
+  Revision 1.4  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.3  2002/09/07 15:07:46  peter
