@@ -410,11 +410,17 @@ begin
      end;
   except
 
-    Message(general_e_compilation_aborted);
-
-    DoneVerbose;
-
-    Raise;
+    on EControlCAbort do
+      begin
+        Message(general_e_compilation_aborted);
+        DoneVerbose;
+      end;
+    on Exception do
+      begin
+        Message(general_e_compilation_aborted);
+        DoneVerbose;
+        Raise;
+      end;
   end;
 {$ifdef SHOWUSEDMEM}
   {$ifdef HASGETHEAPSTATUS}
@@ -435,7 +441,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.56  2005-02-14 17:13:06  peter
+  Revision 1.57  2005-02-15 19:15:45  peter
+    * Handle Control-C exception more cleanly
+
+  Revision 1.56  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.55  2005/02/13 20:11:16  peter

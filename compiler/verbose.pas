@@ -27,6 +27,7 @@ unit verbose;
 interface
 
     uses
+      sysutils,
       cutils,
       globals,finput,
       cmsgs;
@@ -67,6 +68,11 @@ interface
     const
       msgfilename : string = '';
 
+    type
+      EControlCAbort=class(Exception)
+        constructor Create;
+      end;
+
     procedure SetRedirectFile(const fn:string);
     function  SetVerbosity(const s:string):boolean;
     procedure PrepareReport;
@@ -106,6 +112,7 @@ interface
     procedure DoneVerbose;
 
 
+
 implementation
 
     uses
@@ -113,6 +120,17 @@ implementation
 
 var
   compiling_module : tmodulebase;
+
+
+{****************************************************************************
+                          Control-C Exception
+****************************************************************************}
+
+     constructor EControlCAbort.Create;
+       begin
+         inherited Create('Ctrl-C Signaled!');
+       end;
+
 
 {****************************************************************************
                        Extra Handlers for default compiler
@@ -876,7 +894,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.38  2005-02-14 17:13:09  peter
+  Revision 1.39  2005-02-15 19:15:45  peter
+    * Handle Control-C exception more cleanly
+
+  Revision 1.38  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.37  2005/02/07 17:25:28  peter

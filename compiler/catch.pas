@@ -75,7 +75,7 @@ Function CatchSignal(Sig : longint):longint;
 begin
   case Sig of
     SIGINT :
-      raise Exception.Create('Ctrl-C Signaled!');
+      raise EControlCAbort.Create;
   end;
 {$ifndef unix}
   CatchSignal:=0;
@@ -94,7 +94,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  2005-02-14 17:13:06  peter
+  Revision 1.24  2005-02-15 19:15:45  peter
+    * Handle Control-C exception more cleanly
+
+  Revision 1.23  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.22  2005/01/31 21:30:56  olle
