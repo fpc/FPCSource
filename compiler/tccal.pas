@@ -1149,8 +1149,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-04-21 16:31:46  pierre
-  ra386att.pas
+  Revision 1.35  1999-04-21 21:49:18  pierre
+   * previous log corrected
+
+  Revision 1.34  1999/04/21 16:31:46  pierre
+  * checks for untyped var or const args
+    (refuse procsyms as var, types or voiddef as const)
 
   Revision 1.33  1999/04/21 09:44:00  peter
     * storenumber works
