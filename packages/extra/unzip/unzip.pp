@@ -2573,7 +2573,13 @@ BEGIN
     IF dlghandle <> 0 THEN
       sendmessage ( dlghandle, wm_command, dlgnotify, longint ( @oldpercent ) );
     {$endif}
+    {$ifdef win32}
+    { Win32 API needs GENERIC_WRITE attribute
+      to allow changing the time stamps on a file PM }
+    filemode := 2;
+    {$else not win32}
     filemode := 0;
+    {$endif not  win32}
     reset ( outfile );
     setftime ( outfile, timedate ); {set zipped time and date of oufile}
     close ( outfile );
@@ -3332,7 +3338,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.2  2002-03-13 17:29:50  carl
+  Revision 1.3  2002-03-15 11:33:33  pierre
+   * fix the win32 time stamp bug
+
+  Revision 1.2  2002/03/13 17:29:50  carl
   * arithmetic overflow bugfix
 
   Revision 1.1  2002/01/29 17:55:23  peter
