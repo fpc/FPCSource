@@ -2301,10 +2301,10 @@ implementation
    const
       { Warning these stay be ordered !! }
       operator_levels:array[Toperator_precedence] of set of Ttoken=
-         ([_LT,_LTE,_GT,_GTE,_EQUAL,_UNEQUAL,_OP_IN,_OP_IS],
+         ([_LT,_LTE,_GT,_GTE,_EQUAL,_UNEQUAL,_OP_IN],
           [_PLUS,_MINUS,_OP_OR,_PIPE,_OP_XOR],
           [_CARET,_SYMDIF,_STARSTAR,_STAR,_SLASH,
-           _OP_AS,_OP_AND,_AMPERSAND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR],
+           _OP_AS,_OP_IS,_OP_AND,_AMPERSAND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR],
           [_STARSTAR] );
 
     function sub_expr(pred_level:Toperator_precedence;accept_equal : boolean):tnode;
@@ -2527,7 +2527,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.179  2005-01-20 17:05:53  peter
+  Revision 1.180  2005-02-06 20:29:12  florian
+    * fixed precedence of is-operator
+
+  Revision 1.179  2005/01/20 17:05:53  peter
     * use val() for decoding integers
 
   Revision 1.178  2005/01/04 16:38:07  peter
