@@ -742,9 +742,7 @@ begin
   switch_to_base_heap;
 {$endif TEMPHEAP}
   CompilerComment:=false;
-{$ifndef DEV}
-  if (status.verbosity and Level)=Level then
-{$endif}
+  if (status.verbosity and Level)<>0 then
    begin
 {$ifdef redircompiler}
      RedirDisableAll;
@@ -1332,7 +1330,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2003-01-13 09:05:18  pierre
+  Revision 1.21  2003-03-27 14:11:53  pierre
+   * fix problem in CompilerComment procedure
+
+  Revision 1.20  2003/01/13 09:05:18  pierre
    * fix error in last commit
 
   Revision 1.19  2003/01/11 15:52:54  peter
