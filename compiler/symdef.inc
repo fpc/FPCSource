@@ -27,7 +27,7 @@
     const
        { if you change one of the following contants, }
        { you have also to change the typinfo unit     }
-       { and the rtl/[i386,template/rttip.inc files   }
+       { and the rtl/i386,template/rttip.inc files    }
        tkUnknown       = 0;
        tkInteger       = 1;
        tkChar          = 2;
@@ -3282,6 +3282,7 @@ Const local_symtable_index : longint = $8001;
 
     procedure tobjectdef.write_child_init_data;
       begin
+         publicsyms^.foreach({$ifndef TP}@{$endif}generate_child_inittable);
       end;
 
 
@@ -3530,7 +3531,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.136  1999-07-29 20:54:07  peter
+  Revision 1.137  1999-07-31 22:37:17  michael
+  * Fix of initialization information generation
+
+  Revision 1.136  1999/07/29 20:54:07  peter
     * write .size also
 
   Revision 1.135  1999/07/27 23:42:18  peter
