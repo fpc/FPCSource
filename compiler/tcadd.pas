@@ -640,11 +640,11 @@ implementation
                    (rt=setelementn) and
                    assigned(p^.right^.right) then
                  begin
-                   { generate a temporary normset def }
+                   { generate a temporary normset def, it'll be destroyed
+                     when the symtable is unloaded }
                    tempdef:=new(psetdef,init(psetdef(ld)^.elementtype.def,255));
                    p^.left:=gentypeconvnode(p^.left,tempdef);
                    firstpass(p^.left);
-                   dispose(tempdef,done);
                    ld:=p^.left^.resulttype;
                  end;
 
@@ -1291,7 +1291,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-08-29 08:24:45  jonas
+  Revision 1.8  2000-09-10 20:19:23  peter
+    * fixed crash with smallset -> normalset conversion (merged)
+
+  Revision 1.7  2000/08/29 08:24:45  jonas
     * some modifications to -dcardinalmulfix code
 
   Revision 1.6  2000/08/27 16:11:54  peter
