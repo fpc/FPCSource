@@ -104,8 +104,11 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
     href : treference;
   begin
     { mov offset(%esp),%eax }
-    reference_reset_base(href,NR_ESP,getselfoffsetfromsp(procdef)+offs);
-    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,NR_EAX);
+    if (procdef.proccalloption<>pocall_register) then
+      begin
+        reference_reset_base(href,NR_ESP,getselfoffsetfromsp(procdef)+offs);
+        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,NR_EAX);
+      end;
   end;
 
   procedure loadvmttoeax;
@@ -186,7 +189,8 @@ begin
       adjustselfvalue(procdef,-ioffset);
     end
   { case 3 }
-  else if [po_virtualmethod,po_saveregisters]*procdef.procoptions=[po_virtualmethod,po_saveregisters] then
+  else if (procdef.proccalloption=pocall_register) or
+          ([po_virtualmethod,po_saveregisters]*procdef.procoptions=[po_virtualmethod,po_saveregisters]) then
     begin
       emit_reg(A_PUSH,S_L,NR_EBX); { allocate space for address}
       emit_reg(A_PUSH,S_L,NR_EAX);
@@ -223,7 +227,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.27  2003-10-10 17:48:14  peter
+  Revision 1.28  2003-12-17 21:59:59  peter
+    * register call fix
+
+  Revision 1.27  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units
