@@ -1690,7 +1690,7 @@ begin
   if pocall_default = pocall_register then
     def_symbol('REGCALL');
   def_symbol('DECRREFNOTNIL');
-  
+
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1995,7 +1995,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.121  2004-01-21 22:13:20  peter
+  Revision 1.122  2004-01-24 18:12:40  florian
+    * fixed several arm floating point issues
+
+  Revision 1.121  2004/01/21 22:13:20  peter
     * decrrefcount resets temps to nil
 
   Revision 1.120  2004/01/10 00:16:21  jonas

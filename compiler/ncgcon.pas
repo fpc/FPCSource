@@ -88,11 +88,17 @@ implementation
          hp1 : tai;
          lastlabel : tasmlabel;
          realait : taitype;
+{$ifdef ARM}
+         hiloswapped : boolean;
+{$endif ARM}
 
       begin
         location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def));
         lastlabel:=nil;
         realait:=floattype2ait[tfloatdef(resulttype.def).typ];
+{$ifdef ARM}
+        hiloswapped:=aktfputype in [fpu_fpa,fpu_fpa10,fpu_fpa11];
+{$endif ARM}
         { const already used ? }
         if not assigned(lab_real) then
           begin
@@ -109,7 +115,11 @@ implementation
                             if is_number_float(value_real) and
                               (
                                ((realait=ait_real_32bit) and (tai_real_32bit(hp1).value=value_real) and is_number_float(tai_real_32bit(hp1).value)) or
-                               ((realait=ait_real_64bit) and (tai_real_64bit(hp1).value=value_real) and is_number_float(tai_real_64bit(hp1).value)) or
+                               ((realait=ait_real_64bit) and
+{$ifdef ARM}
+                                 ((tai_real_64bit(hp1).formatoptions=fo_hiloswapped)=hiloswapped) and
+{$endif ARM}
+                                 (tai_real_64bit(hp1).value=value_real) and is_number_float(tai_real_64bit(hp1).value)) or
                                ((realait=ait_real_80bit) and (tai_real_80bit(hp1).value=value_real) and is_number_float(tai_real_80bit(hp1).value)) or
 {$ifdef cpufloat128}
                                ((realait=ait_real_128bit) and (tai_real_128bit(hp1).value=value_real) and is_number_float(tai_real_128bit(hp1).value)) or
@@ -139,7 +149,12 @@ implementation
                     ait_real_32bit :
                       Consts.concat(Tai_real_32bit.Create(ts32real(value_real)));
                     ait_real_64bit :
-                      Consts.concat(Tai_real_64bit.Create(ts64real(value_real)));
+{$ifdef ARM}
+                      if hiloswapped then
+                        Consts.concat(Tai_real_64bit.Create_hiloswapped(ts64real(value_real)))
+                      else
+{$endif ARM}
+                        Consts.concat(Tai_real_64bit.Create(ts64real(value_real)));
                     ait_real_80bit :
                       Consts.concat(Tai_real_80bit.Create(value_real));
 {$ifdef cpufloat128}
@@ -559,7 +574,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2004-01-12 16:39:40  peter
+  Revision 1.36  2004-01-24 18:12:40  florian
+    * fixed several arm floating point issues
+
+  Revision 1.35  2004/01/12 16:39:40  peter
     * sparc updates, mostly float related
 
   Revision 1.34  2003/12/08 22:34:24  peter

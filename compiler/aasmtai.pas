@@ -359,9 +359,15 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
+       tformatoptions = (fo_none,fo_hiloswapped);
+
        { Generates a double float (64 bit real) }
        tai_real_64bit = class(tai)
           value : ts64real;
+{$ifdef ARM}
+          formatoptions : tformatoptions;
+          constructor Create_hiloswapped(_value : ts64real);
+{$endif ARM}
           constructor Create(_value : ts64real);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1053,10 +1059,24 @@ implementation
       end;
 
 
+{$ifdef ARM}
+    constructor tai_real_64bit.Create_hiloswapped(_value : ts64real);
+
+      begin
+         inherited Create;
+         typ:=ait_real_64bit;
+         value:=_value;
+         formatoptions:=fo_hiloswapped;
+      end;
+{$endif ARM}
+
     constructor tai_real_64bit.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
         value:=ppufile.getreal;
+{$ifdef ARM}
+        formatoptions:=tformatoptions(ppufile.getbyte);
+{$endif ARM}
       end;
 
 
@@ -1064,6 +1084,9 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putreal(value);
+{$ifdef ARM}
+        ppufile.putbyte(byte(formatoptions));
+{$endif ARM}
       end;
 
 
@@ -1948,7 +1971,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2004-01-23 15:12:49  florian
+  Revision 1.66  2004-01-24 18:12:40  florian
+    * fixed several arm floating point issues
+
+  Revision 1.65  2004/01/23 15:12:49  florian
     * fixed generic shl/shr operations
     + added register allocation hook calls for arm specific operand types:
       register set and shifter op

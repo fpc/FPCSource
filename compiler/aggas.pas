@@ -526,12 +526,31 @@ var
                if source_info.endian <> target_info.endian then
                  swap64bitarray(t64bitarray(d));
                AsmWrite(#9'.byte'#9);
-               for i:=0 to 7 do
-                begin
-                  if i<>0 then
-                   AsmWrite(',');
-                  AsmWrite(tostr(t64bitarray(d)[i]));
-                end;
+{$ifdef arm}
+               if tai_real_64bit(hp).formatoptions=fo_hiloswapped then
+                 begin
+                   for i:=4 to 7 do
+                     begin
+                       if i<>4 then
+                         AsmWrite(',');
+                       AsmWrite(tostr(t64bitarray(d)[i]));
+                     end;
+                   for i:=0 to 3 do
+                     begin
+                       AsmWrite(',');
+                       AsmWrite(tostr(t64bitarray(d)[i]));
+                     end;
+                 end
+               else
+{$endif arm}
+                 begin
+                   for i:=0 to 7 do
+                     begin
+                       if i<>0 then
+                         AsmWrite(',');
+                       AsmWrite(tostr(t64bitarray(d)[i]));
+                     end;
+                 end;
                AsmLn;
              end;
 
@@ -849,7 +868,10 @@ var
 end.
 {
   $Log$
-  Revision 1.44  2004-01-20 21:02:54  florian
+  Revision 1.45  2004-01-24 18:12:40  florian
+    * fixed several arm floating point issues
+
+  Revision 1.44  2004/01/20 21:02:54  florian
     * fixed symbol type writing for arm-linux
     * fixed assembler generation for abs
 

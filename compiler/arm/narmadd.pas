@@ -141,7 +141,7 @@ interface
                 subn :
                   op:=A_SUF;
                 slashn :
-                  op:=A_FDV;
+                  op:=A_DVF;
                 else
                   internalerror(200308313);
               end;
@@ -158,7 +158,7 @@ interface
                 location.register:=right.location.register;
 
               instr:=taicpu.op_reg_reg_reg(op,
-                 left.location.register,right.location.register,location.register);
+                 location.register,left.location.register,right.location.register);
               instr.oppostfix:=cgsize2fpuoppostfix[def_cgsize(resulttype.def)];
               exprasmlist.concat(instr);
 
@@ -314,7 +314,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2004-01-23 00:01:48  florian
+  Revision 1.9  2004-01-24 18:12:40  florian
+    * fixed several arm floating point issues
+
+  Revision 1.8  2004/01/23 00:01:48  florian
     * another fix to flag handling
 
   Revision 1.7  2004/01/22 20:13:18  florian
