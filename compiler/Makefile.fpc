@@ -23,7 +23,7 @@ toolupx=1
 
 [presettings]
 # Don't export OS_SOURCE because it can change after the first compile
-unexport OS_SOURCE
+unexport OS_SOURCE FPC_VERSION
 
 # Allow ALPHA, POWERPC, M68K, I386 defines for target cpu
 ifdef ALPHA
