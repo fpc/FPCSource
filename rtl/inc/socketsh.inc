@@ -85,8 +85,9 @@ Type
      sa_data    : array [0..13] of char;
     end;
   pSockAddr = ^TSockAddr;
+  sockaddr  = TSockAddr;		// Kylix compat	
 
-TInetSockAddr = packed Record
+  TInetSockAddr = packed Record
     case boolean of   
      false : (
   {$ifdef SOCK_HAS_SINLEN} 
@@ -108,6 +109,7 @@ TInetSockAddr = packed Record
       );                
     end;
   pInetSockAddr = ^TInetSockAddr;
+  TInAddr 	=  TInetSockAddr; 
 
   Tin6_addr = packed record
   case byte of
@@ -194,7 +196,10 @@ Function NToHs (Net : word):word;         {$ifdef HASINLINE} inline; {$endif}
 
 {
   $Log$
-  Revision 1.21  2004-12-23 18:32:26  marco
+  Revision 1.22  2005-02-12 17:34:56  marco
+   * some kylix stuf
+
+  Revision 1.21  2004/12/23 18:32:26  marco
    * cdecl stuff removed. Now works on FreeBSD with and without FPC_USE_LIBC
 
   Revision 1.20  2004/12/21 14:36:18  marco
