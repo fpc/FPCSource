@@ -33,6 +33,12 @@ Interface
 {$define FPC_USE_SYSCALL}
 {$endif}
 
+{$ifdef Darwin}
+var argc:cardinal;
+    argv:PPchar;
+    envp:PPchar;
+{$endif}
+
 {$define FPC_IS_SYSTEM}
 
 {$I sysunixh.inc}
@@ -205,7 +211,10 @@ End.
 
 {
   $Log$
-  Revision 1.16  2004-06-19 08:06:04  marco
+  Revision 1.17  2004-07-03 22:44:37  daniel
+    * Declared envp,argc,argv in interface for Darwin
+
+  Revision 1.16  2004/06/19 08:06:04  marco
    * moved heap.inc and text.inc before sysalloc as suggested. Why wasn't this
   	done directly?
 
