@@ -132,7 +132,6 @@ begin
   UpdateScreen(true);
 end;
 
-
 {$IFDEF FPC}
 function WriteConsoleOutput(hConsoleOutput:HANDLE; lpBuffer:pointer; dwBufferSize:COORD; dwBufferCoord:COORD;
    var lpWriteRegion:SMALL_RECT):WINBOOL; external 'kernel32' name 'WriteConsoleOutputA';
@@ -154,58 +153,7 @@ var
    LineCounter,
    ColCounter  : Longint;
    smallforce  : boolean;
-(*
-begin
-  if not force then
-   begin
-     asm
-        movl    VideoBuf,%esi
-        movl    OldVideoBuf,%edi
-        movl    VideoBufSize,%ecx
-        shrl    $2,%ecx
-        repe
-        cmpsl
-        setne   force
-     end;
-   end;
-  if Force then
-   begin
-      BufSize.X := ScreenWidth;
-      BufSize.Y := ScreenHeight;
-
-      BufCoord.X := 0;
-      BufCoord.Y := 0;
-      with WriteRegion do
-        begin
-           Top :=0;
-           Left :=0;
-           Bottom := ScreenHeight-1;
-           Right := ScreenWidth-1;
-        end;
-      New(LineBuf);
-      BufCounter := 0;
-
-      for LineCounter := 1 to ScreenHeight do
-        begin
-           for ColCounter := 1 to ScreenWidth do
-             begin
-               LineBuf^[BufCounter].UniCodeChar := Widechar(WordRec(VideoBuf^[BufCounter]).One);
-               LineBuf^[BufCounter].Attributes := WordRec(VideoBuf^[BufCounter]).Two;
-
-               Inc(BufCounter);
-             end; { for }
-        end; { for }
-
-      WriteConsoleOutput(TextRec(Output).Handle, LineBuf, BufSize, BufCoord, WriteRegion);
-      Dispose(LineBuf);
-
-      move(VideoBuf^,OldVideoBuf^,VideoBufSize);
-   end;
-end;
-*)
-var
    x1,y1,x2,y2 : longint;
-
 begin
   if force then
    smallforce:=true
@@ -218,10 +166,7 @@ begin
         shrl    $2,%ecx
         repe
         cmpsl
-        orl     %ecx,%ecx
-        jz      .Lno_update
-        movb    $1,smallforce
-.Lno_update:
+        setne   smallforce
      end;
    end;
   if SmallForce then
@@ -331,7 +276,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2002-10-06 20:00:22  peter
+  Revision 1.10  2002-12-15 20:22:56  peter
+    * fix updatescreen compare that was wrong when the last char was
+      different
+
+  Revision 1.9  2002/10/06 20:00:22  peter
     * Use Widechar in the Windows unit
 
   Revision 1.8  2002/09/07 16:01:29  peter
