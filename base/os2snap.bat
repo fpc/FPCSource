@@ -566,7 +566,7 @@ cdd %FPCSNAP%
 :Cmd2
 
 rem ZIP.EXE must be on the PATH
-zip -9 -r baseemx.zip bin\os2\ppos2.exe doc\* msg\* units\os2\rtl\*.ppo units\os2\rtl\*.oo2 units\os2\rtl\*.ao2 >> %FPCERRLOG%
+zip -9 -r baseemx.zip bin\os2\ppos2.exe doc\*.* msg\*.* units\os2\rtl\*.ppo units\os2\rtl\*.oo2 units\os2\rtl\*.ao2 >> %FPCERRLOG%
 if exist baseemx.zip goto ZipOK
 echo *Error: The ZIP file hasn't been created!! >> %FPCERRLOG%
 :ZipOK
@@ -586,7 +586,10 @@ goto End
 
 
   $Log$
-  Revision 1.9  2000-03-05 19:13:25  hajny
+  Revision 1.10  2000-03-06 17:38:39  hajny
+    * little omission (ZIP parameters)
+
+  Revision 1.9  2000/03/05 19:13:25  hajny
     * new snapshot structure
 
   Revision 1.8  2000/01/29 16:24:01  hajny
