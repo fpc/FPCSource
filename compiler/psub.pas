@@ -427,8 +427,10 @@ implementation
       begin
         generate_except_block:=internalstatements(newstatement,true);
 
-        { a constructor needs call destroy when it is not inherited }
-        if (current_procdef.proctypeoption=potype_constructor) then
+        { a constructor needs call destructor (if available) when it
+          is not inherited }
+        if assigned(current_procdef._class) and
+           (current_procdef.proctypeoption=potype_constructor) then
           begin
             pd:=current_procdef._class.searchdestructor;
             if assigned(pd) then
@@ -440,9 +442,7 @@ implementation
                         cnilnode.create),
                     ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node),
                     nil));
-              end
-            else
-              internalerror(200305107);
+              end;
           end
         else
           begin
@@ -1127,7 +1127,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.111  2003-05-13 19:14:41  peter
+  Revision 1.112  2003-05-13 21:26:38  peter
+    * only call destructor in except block when there is a destructor
+      available
+
+  Revision 1.111  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 
