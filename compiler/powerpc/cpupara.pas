@@ -36,7 +36,6 @@ unit cpupara;
           function getintparaloc(nr : longint) : tparalocation;override;
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getfuncretparaloc(p : tabstractprocdef) : tparalocation;override;
-          function passes_parameters_in_reg(p : tabstractprocdef) : boolean;override;
        end;
 
   implementation
@@ -231,17 +230,15 @@ unit cpupara;
          getfuncretparaloc.size:=OS_ADDR;
       end;
 
-    function tppcparamanager.passes_parameters_in_reg(p : tabstractprocdef) : boolean;
-      begin
-         passes_parameters_in_reg:=true;
-      end;
-
 begin
    paramanager:=tppcparamanager.create;
 end.
 {
   $Log$
-  Revision 1.11  2002-09-07 17:54:59  florian
+  Revision 1.12  2002-09-09 09:11:37  florian
+    - removed passes_parameters_in_reg
+
+  Revision 1.11  2002/09/07 17:54:59  florian
     * first part of PowerPC fixes
 
   Revision 1.10  2002/09/01 21:04:49  florian
