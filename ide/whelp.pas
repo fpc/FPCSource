@@ -556,7 +556,10 @@ begin
       { Try to read the title of the topic }
       T1:=HelpFacility^.LoadTopic(K1^.FileID,K1^.HelpCtx);
       T2:=HelpFacility^.LoadTopic(K2^.FileID,K2^.HelpCtx);
-      r:=strcomp(pchar(T1^.Text),pchar(T2^.Text));
+      if assigned(T1^.Text) and assigned(T2^.Text) then
+        r:=strcomp(pchar(T1^.Text),pchar(T2^.Text))
+      else
+        r:=0;
       if r>0 then
         begin
           Compare:=1;
@@ -900,7 +903,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2001-10-01 00:24:09  pierre
+  Revision 1.4  2001-10-02 16:31:20  pierre
+   * avoid crashes in topic text compares
+
+  Revision 1.3  2001/10/01 00:24:09  pierre
    * fix several help problems
 
   Revision 1.2  2001/09/18 11:33:53  pierre
