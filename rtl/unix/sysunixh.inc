@@ -33,16 +33,18 @@ const
   StdErrorHandle  = 2;
 
   sLineBreak : string[1] = #10;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
 var
   argc : longint;
   argv : ppchar;
   envp : ppchar;
-  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
 {
   $Log$
-  Revision 1.4  2001-03-21 23:32:13  florian
-    + header and log added
+  Revision 1.5  2001-03-22 21:56:27  florian
+    * typo fixed
 
-}  
+  Revision 1.4  2001/03/21 23:32:13  florian
+    + header and log added
+}
