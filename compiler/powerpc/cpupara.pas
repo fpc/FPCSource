@@ -31,10 +31,12 @@ unit cpupara;
        globtype,
        aasmtai,
        cpubase,
-       symconst,symbase,symtype,symdef,paramgr;
+       symconst,symbase,symtype,symdef,paramgr, cginfo;
 
     type
        tppcparamanager = class(tparamanager)
+          function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
+          function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);override;
@@ -44,9 +46,29 @@ unit cpupara;
 
     uses
        verbose,systems,
-       cpuinfo,cginfo,cgbase,
+       cpuinfo,cgbase,
        rgobj,
        defutil,symsym;
+
+
+    function tppcparamanager.get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;
+      begin
+        result := [RS_R3..RS_R12];
+      end;
+          
+    function tppcparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;
+      begin
+        case target_info.abi of
+          abi_powerpc_aix:
+            result := [RS_F0..RS_F13];
+          abi_powerpc_sysv:
+            { warning: the 64bit sysv abi also uses RS_F0..RS_F13 like the aix abi above }
+            result := [RS_F0..RS_F8];
+          else
+            internalerror(2003091401);
+        end;
+      end;
+
 
     function tppcparamanager.getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;
 
@@ -327,7 +349,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-09-14 16:37:20  jonas
+  Revision 1.46  2003-09-14 21:56:41  jonas
+    + implemented volatile register queries
+
+  Revision 1.45  2003/09/14 16:37:20  jonas
     * fixed some ppc problems
 
   Revision 1.44  2003/09/03 21:04:14  peter
