@@ -196,6 +196,24 @@ unit i386;
           destructor done;virtual;
        end;
 
+{$ifdef REGALLOC}
+
+       pairegalloc = ^tairegalloc;
+
+       tairegalloc = object(tai)
+          reg : tregister;
+          constructor init(r : tregister);
+       end;
+
+       pairegdealloc = ^tairegdealloc;
+
+       tairegdealloc = object(tai)
+          reg : tregister;
+          constructor init(r : tregister);
+       end;
+
+{$endif REGALLOC}
+
        pai386 = ^tai386;
 
        tai386 = object(tai)
@@ -1209,6 +1227,29 @@ unit i386;
       strdispose(p^.symbol);
       dispose(p);
       end;
+{****************************************************************************
+                       objects for register de/allocation
+ ****************************************************************************}
+
+{$ifdef REGALLOC}
+
+    constructor tairegalloc.init(r : tregister);
+
+      begin
+         inherited init;
+         typ:=ait_regalloc;
+         reg:=r;
+      end;
+
+    constructor tairegdealloc.init(r : tregister);
+
+      begin
+         inherited init;
+         typ:=ait_regdealloc;
+         reg:=r;
+      end;
+
+{$endif REGALLOC}
 
 {****************************************************************************
                              TAI386
@@ -1713,7 +1754,10 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.3  1998-04-08 16:58:02  pierre
+  Revision 1.4  1998-04-09 15:46:38  florian
+    + register allocation tracing stuff added
+
+  Revision 1.3  1998/04/08 16:58:02  pierre
     * several bugfixes
       ADD ADC and AND are also sign extended
       nasm output OK (program still crashes at end

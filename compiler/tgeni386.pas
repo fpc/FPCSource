@@ -204,7 +204,9 @@ unit tgeni386;
            begin
               if not(r in [R_EAX,R_EBX,R_ECX,R_EDX]) then
                 exit;
-              unused:=unused+[r];
+{$ifdef REGALLOC}
+              exprasmlist^.concat(new(pairegdealloc,init(r)));
+{$endif REGALLOC}
               inc(usablereg32);
            end;
       end;
@@ -271,33 +273,40 @@ unit tgeni386;
 
     function getregister32 : tregister;
 
+      var
+         r : tregister;
+
       begin
          dec(usablereg32);
          if R_EAX in unused then
            begin
               unused:=unused-[R_EAX];
               usedinproc:=usedinproc or ($80 shr byte(R_EAX));
-              getregister32:=R_EAX;
+              r:=R_EAX;
            end
          else if R_EDX in unused then
            begin
               unused:=unused-[R_EDX];
               usedinproc:=usedinproc or ($80 shr byte(R_EDX));
-              getregister32:=R_EDX;
+              r:=R_EDX;
            end
          else if R_EBX in unused then
            begin
               unused:=unused-[R_EBX];
               usedinproc:=usedinproc or ($80 shr byte(R_EBX));
-              getregister32:=R_EBX;
+              r:=R_EBX;
            end
          else if R_ECX in unused then
            begin
               unused:=unused-[R_ECX];
               usedinproc:=usedinproc or ($80 shr byte(R_ECX));
-              getregister32:=R_ECX;
+              r:=R_ECX;
            end
          else internalerror(10);
+{$ifdef REGALLOC}
+         exprasmlist^.concat(new(pairegalloc,init(r)));
+{$endif REGALLOC}
+         getregister32:=r;
       end;
 
     procedure cleartempgen;
@@ -591,8 +600,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-04-09 15:46:39  florian
+    + register allocation tracing stuff added
+
+  Revision 1.1.1.1  1998/03/25 11:18:15  root
+  * Restored version
 
   Revision 1.9  2036/02/07 09:26:57  florian
     * more fixes to get -Ox work

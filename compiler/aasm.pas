@@ -29,11 +29,6 @@ unit aasm;
 
 {$I version.inc}
     type
-{$ifdef klaempfl}
-{$ifdef ver0_9_2}
-       extended = double;
-{$endif ver0_9_2}
-{$endif klaempfl}
        tait = (
           ait_string,
           ait_label,
@@ -69,6 +64,10 @@ unit aasm;
           ait_cut,
 {$endif MAKELIB}
           { never used, makes insertation of new ait_ easier to type }
+{$ifdef REGALLOC}
+          ait_regalloc,
+          ait_regdealloc,
+{$endif REGALLOC}
           ait_dummy);
 
      type
@@ -678,8 +677,11 @@ type
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:16  root
-  Initial revision
+  Revision 1.2  1998-04-09 15:46:37  florian
+    + register allocation tracing stuff added
+
+  Revision 1.1.1.1  1998/03/25 11:18:16  root
+  * Restored version
 
   Revision 1.18  1998/03/10 16:27:36  pierre
     * better line info in stabs debug
