@@ -620,136 +620,46 @@ begin
    Name:=Copy(Path,1,DotPos - 1);
 end;
 
+{ <immobilizer> }
 
-function fexpand(const path : pathstr) : pathstr;
+  function GetFullPathName(lpFileName: PChar; nBufferLength: Longint; lpBuffer: PChar; var lpFilePart : PChar):DWORD;
+    external 'kernel32' name 'GetFullPathNameA';
 
-var
-   s,pa : string[255];
-   i,j  : longint;
+function FExpand(const path : pathstr) : pathstr;
+var value, tmp : PChar;
+    p          : string;
+    i          : Longint;
 begin
-   getdir(0,s);
-   i:=ioresult;
-   if FileNameCaseSensitive then
-    pa:=path
-   else
-    pa:=upcase(path);
-   { allow slash as backslash }
-   for i:=1 to length(pa) do
-    if pa[i]='/' then
-     pa[i]:='\';
-
-   if (length(pa)>1) and (pa[2]=':') and (pa[1] in ['A'..'Z','a'..'z']) then
-     begin
-        { Always uppercase driveletter }
-        if (pa[1] in ['a'..'z']) then
-         pa[1]:=Chr(Ord(Pa[1])-32);
-        { we must get the right directory }
-        getdir(ord(pa[1])-ord('A')+1,s);
-        if (ord(pa[0])>2) and (pa[3]<>'\') then
-          if pa[1]=s[1] then
-            pa:=s+'\'+copy (pa,3,length(pa))
-          else
-            pa:=pa[1]+':\'+copy (pa,3,length(pa))
-     end
-   else
-     if pa[1]='\' then
-       pa:=s[1]+':'+pa
-     else if s[0]=#3 then
-       pa:=s+pa
-     else
-       pa:=s+'\'+pa;
-
- { Turbo Pascal gives current dir on drive if only drive given as parameter! }
- if length(pa) = 2 then
-  begin
-    getdir(byte(pa[1])-64,s);
-    i:=ioresult;
-    pa := s;
-  end;
-
- {First remove all references to '\.\'}
-   while pos ('\.\',pa)<>0 do
-    delete (pa,pos('\.\',pa),2);
- {Now remove also all references to '\..\' + of course previous dirs..}
-   repeat
-     i:=pos('\..\',pa);
-     if i<>0 then
-      begin
-        j:=i-1;
-        while (j>1) and (pa[j]<>'\') do
-         dec (j);
-        if pa[j+1] = ':' then j := 3;
-        delete (pa,j,i-j+3);
-      end;
-   until i=0;
-
-   { Turbo Pascal gets rid of a \.. at the end of the path }
-   { Now remove also any reference to '\..'  at end of line
-     + of course previous dir.. }
-   i:=pos('\..',pa);
-   if i<>0 then
-    begin
-      if i = length(pa) - 2 then
-       begin
-         j:=i-1;
-         while (j>1) and (pa[j]<>'\') do
-          dec (j);
-         delete (pa,j,i-j+3);
-       end;
-       pa := pa + '\';
-     end;
-   { Remove End . and \}
-   if (length(pa)>0) and (pa[length(pa)]='.') then
-    dec(byte(pa[0]));
-   { if only the drive + a '\' is left then the '\' should be left to prevtn the program
-     accessing the current directory on the drive rather than the root!}
-   { if the last char of path = '\' then leave it in as this is what TP does! }
-   if ((length(pa)>3) and (pa[length(pa)]='\')) and (path[length(path)] <> '\') then
-    dec(byte(pa[0]));
-   { if only a drive is given in path then there should be a '\' at the
-     end of the string given back }
-   if length(path) = 2 then pa := pa + '\';
-   fexpand:=pa;
+  { allow slash as backslash }
+  p := path;
+  for i:=1 to length(p) do 
+   if p[i]='/' then
+    p[i]:='\';
+  StringToPchar(p);
+  getmem(value, 255);
+  getmem(tmp, 255);
+  GetFullPathName(@p, 255, value, tmp);
+  FExpand := strpas(value);
 end;
+
+  function SearchPath(lpPath : PChar; lpFileName : PChar; lpExtension : PChar; nBufferLength : Longint; lpBuffer : PChar;
+    var lpFilePart : PChar) : Longint; external 'kernel32' name 'SearchPathA';
 
 Function FSearch(path: pathstr; dirlist: string): pathstr;
-var
-   i,p1   : longint;
-   s      : searchrec;
-   newdir : pathstr;
+var temp, value : PChar;
+    i           : Longint;
 begin
-{ No wildcards allowed in these things }
-   if (pos('?',path)<>0) or (pos('*',path)<>0) then
-     fsearch:=''
-   else
-     begin
-        { allow slash as backslash }
-        for i:=1 to length(dirlist) do
-          if dirlist[i]='/' then dirlist[i]:='\';
-        repeat
-          p1:=pos(';',dirlist);
-          if p1<>0 then
-           begin
-             newdir:=copy(dirlist,1,p1-1);
-             delete(dirlist,1,p1);
-           end
-          else
-           begin
-             newdir:=dirlist;
-             dirlist:='';
-           end;
-          if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
-           newdir:=newdir+'\';
-          findfirst(newdir+path,anyfile,s);
-          if doserror=0 then
-           newdir:=newdir+path
-          else
-           newdir:='';
-        until (dirlist='') or (newdir<>'');
-        fsearch:=newdir;
-     end;
+  { allow slash as backslash }
+  for i:=1 to length(path) do
+   if path[i]='/' then
+    path[i]:='\';
+  StringToPchar(path); 
+  StringToPchar(dirlist);
+  SearchPath(@dirlist, @path, nil, 255, value, temp);
+  fsearch := strpas(value);
 end;
 
+{ </immobilizer> }
 
 procedure getftime(var f;var time : longint);
 var
@@ -896,7 +806,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.25  1999-10-14 08:57:51  peter
+  Revision 1.26  1999-11-18 15:28:47  michael
+  * Better and faster Fexpand, SearchPath fromPiotr Sawicki
+
+  Revision 1.25  1999/10/14 08:57:51  peter
     * getfattr resets doserror
 
   Revision 1.24  1999/10/12 08:56:48  pierre
