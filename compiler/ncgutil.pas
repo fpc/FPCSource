@@ -1343,11 +1343,7 @@ implementation
                        r2.enum:=R_INTREGISTER;
                        r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
                        cg.a_reg_alloc(list,r2);
-<<<<<<< ncgutil.pas
-                       cg64.a_load64_ref_reg(list,href,joinreg64(r,r2){$ifdef newra},false{$endif});
-=======
-                       cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2));
->>>>>>> 1.117
+                       cg64.a_load64_ref_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
                      end
                     else
 {$endif cpu64bit}
@@ -1871,11 +1867,7 @@ implementation
                   begin
                     r:=rg.getregisterint(list,OS_INT);
                     r2:=rg.getregisterint(list,OS_INT);
-<<<<<<< ncgutil.pas
-                    cg64.a_load64_ref_reg(list,href,joinreg64(r,r2){$ifdef newra},false{$endif});
-=======
-                    cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2));
->>>>>>> 1.117
+                    cg64.a_load64_ref_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
                   end
                  else
 {$endif cpu64bit}
@@ -1904,11 +1896,7 @@ implementation
                      begin
                        r:=rg.getregisterint(list,OS_INT);
                        r2:=rg.getregisterint(list,OS_INT);
-<<<<<<< ncgutil.pas
-                       cg64.a_load64_ref_reg(list,href,joinreg64(r,r2){$ifdef newra},false{$endif});
-=======
-                       cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2));
->>>>>>> 1.117
+                       cg64.a_load64_ref_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
                      end
                     else
 {$endif cpu64bit}
@@ -1983,7 +1971,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.118  2003-06-03 13:01:59  daniel
+  Revision 1.119  2003-06-03 15:06:37  daniel
+    * fixed conflict marks
+
+  Revision 1.118  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.117  2003/06/02 21:42:05  jonas
