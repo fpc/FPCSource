@@ -290,9 +290,6 @@ Var
 
 Procedure SetNoThreadManager;
 
-Var
-  Dummy : TThreadManager;
-
 begin
   With NoThreadManager do
     begin
@@ -317,13 +314,16 @@ begin
     AllocateThreadVars     :=@NoAllocateThreadVars;
     ReleaseThreadVars      :=@NoReleaseThreadVars;
     end;
-  SetThreadManager(NoThreadManager,Dummy);
+  SetThreadManager(NoThreadManager);
 end;
 
 
 {
   $Log$
-  Revision 1.5  2003-11-29 17:29:32  michael
+  Revision 1.6  2003-11-29 17:33:09  michael
+  + Removed dummy variable from SetNothreadManager
+
+  Revision 1.5  2003/11/29 17:29:32  michael
   + Added overloaded version of SetThreadManager without old parameter
 
   Revision 1.4  2003/11/26 20:10:59  michael
