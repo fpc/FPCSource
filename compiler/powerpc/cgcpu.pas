@@ -42,16 +42,16 @@ unit cgcpu;
         procedure done_register_allocators;override;
 
         function  getintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
-        function  getaddressregister(list:Taasmoutput):Tregister;override;
+        function  getaddressregister(list:Taasmoutput):Tregister;
         function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
-        function  getabtintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         procedure ungetregister(list:Taasmoutput;r:Tregister);override;
-        procedure ungetreference(list:Taasmoutput;const r:Treference);override;
+        {!!!
         procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);override;
         procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);override;
         procedure add_move_instruction(instr:Taicpu);override;
+        }
 
         { passing parameters, per default the parameter is pushed }
         { nr gives the number of the parameter (enumerated from   }
@@ -192,6 +192,60 @@ const
         rgint.free;
         rgmm.free;
         rgfpu.free;
+      end;
+
+
+    function tcgppc.getintregister(list:Taasmoutput;size:Tcgsize):Tregister;
+      begin
+        result:=rgint.getregister(list,cgsize2subreg(size));
+      end;
+
+
+    function tcgppc.getaddressregister(list:Taasmoutput):Tregister;
+      begin
+        result:=rgint.getregister(list,R_SUBWHOLE);
+      end;
+
+
+    function tcgppc.getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;
+      begin
+        result:=rgfpu.getregister(list,R_SUBWHOLE);
+      end;
+
+
+    function tcgppc.getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;
+      begin
+        result:=rgmm.getregister(list,R_SUBNONE);
+      end;
+
+
+    procedure tcgppc.getexplicitregister(list:Taasmoutput;r:Tregister);
+      begin
+        case getregtype(r) of
+          R_INTREGISTER :
+            rgint.getexplicitregister(list,r);
+          R_MMREGISTER :
+            rgmm.getexplicitregister(list,r);
+          R_FPUREGISTER :
+            rgfpu.getexplicitregister(list,r);
+          else
+            internalerror(200310091);
+        end;
+      end;
+
+
+    procedure tcgppc.ungetregister(list:Taasmoutput;r:Tregister);
+      begin
+        case getregtype(r) of
+          R_INTREGISTER :
+            rgint.ungetregister(list,r);
+          R_FPUREGISTER :
+            rgfpu.ungetregister(list,r);
+          R_MMREGISTER :
+            rgmm.ungetregister(list,r);
+          else
+            internalerror(200310091);
+        end;
       end;
 
 
@@ -2387,7 +2441,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.129  2003-10-13 01:58:04  florian
+  Revision 1.130  2003-10-17 01:22:08  florian
+    * compilation of the powerpc compiler fixed
+
+  Revision 1.129  2003/10/13 01:58:04  florian
     * some ideas for mm support implemented
 
   Revision 1.128  2003/10/11 16:06:42  florian

@@ -136,7 +136,7 @@ interface
           end;
         if pushedfpu then
           begin
-            tmpreg := rg.getregisterfpu(exprasmlist,left.location.size);
+            tmpreg := cg.getfpuregister(exprasmlist,left.location.size);
             cg.a_loadfpu_loc_reg(exprasmlist,left.location,tmpreg);
             location_reset(left.location,LOC_FPUREGISTER,left.location.size);
             left.location.register := tmpreg;
@@ -181,12 +181,12 @@ interface
 {$ifndef cpu64bit}
             if location.size in [OS_64,OS_S64] then
               begin
-                location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
-                location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
+                location.registerlow := cg.getintregister(exprasmlist,OS_INT);
+                location.registerhigh := cg.getintregister(exprasmlist,OS_INT);
               end
             else
 {$endif}
-              location.register := rg.getregisterint(exprasmlist,location.size);
+              location.register := cg.getintregister(exprasmlist,location.size);
           end;
       end;
 
@@ -294,7 +294,7 @@ interface
                       left.location.register,location.register)
                   else
                     begin
-                      tmpreg := rg.getregisterint(exprasmlist,location.size);
+                      tmpreg := cg.getintregister(exprasmlist,location.size);
                       cg.a_load_const_reg(exprasmlist,location.size,1,tmpreg);
                       cg.a_op_reg_reg(exprasmlist,OP_SHL,location.size,
                         right.location.register,tmpreg);
@@ -304,7 +304,7 @@ interface
                       else
                         cg.a_op_const_reg_reg(exprasmlist,OP_OR,location.size,
                             aword(left.location.value),tmpreg,location.register);
-                      rg.ungetregisterint(exprasmlist,tmpreg);
+                      cg.ungetregister(exprasmlist,tmpreg);
                     end;
                   opdone := true;
                 end
@@ -334,13 +334,13 @@ interface
                 begin
                   if left.location.loc = LOC_CONSTANT then
                     begin
-                      tmpreg := rg.getregisterint(exprasmlist,location.size);
+                      tmpreg := cg.getintregister(exprasmlist,location.size);
                       cg.a_load_const_reg(exprasmlist,location.size,
                         aword(left.location.value),tmpreg);
                       cg.a_op_reg_reg(exprasmlist,OP_NOT,location.size,right.location.register,right.location.register);
                       cg.a_op_reg_reg(exprasmlist,OP_AND,location.size,right.location.register,tmpreg);
                       cg.a_load_reg_reg(exprasmlist,OS_INT,location.size,tmpreg,location.register);
-                      rg.ungetregisterint(exprasmlist,tmpreg);
+                      cg.ungetregister(exprasmlist,tmpreg);
                     end
                   else
                     begin
@@ -660,12 +660,12 @@ interface
             end
           else
             begin
-              tmpreg := rg.getregisterint(exprasmlist,location.size);
+              tmpreg := cg.getintregister(exprasmlist,location.size);
               cg.a_load_const_reg(exprasmlist,location.size,
                 aword(left.location.value),tmpreg);
               cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,location.size,
                 right.location.register,tmpreg,location.register);
-              rg.ungetregisterint(exprasmlist,tmpreg);
+              cg.ungetregister(exprasmlist,tmpreg);
             end;
         end;
 
@@ -735,7 +735,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-10-10 17:48:13  peter
+  Revision 1.22  2003-10-17 01:22:08  florian
+    * compilation of the powerpc compiler fixed
+
+  Revision 1.21  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

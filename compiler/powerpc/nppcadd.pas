@@ -106,7 +106,7 @@ interface
         secondpass(right);
         if pushedfpu then
           begin
-            tmpreg := rg.getregisterfpu(exprasmlist,left.location.size);
+            tmpreg := cg.getfpuregister(exprasmlist,left.location.size);
             cg.a_loadfpu_loc_reg(exprasmlist,left.location,tmpreg);
             location_reset(left.location,LOC_FPUREGISTER,left.location.size);
             left.location.register := tmpreg;
@@ -156,9 +156,9 @@ interface
         if not(cmpop) and
            (location.register = NR_NO) then
          begin
-           location.register := rg.getregisterint(exprasmlist,OS_INT);
+           location.register := cg.getintregister(exprasmlist,OS_INT);
            if is_64bit(resulttype.def) then
-             location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
+             location.registerhigh := cg.getintregister(exprasmlist,OS_INT);
          end;
       end;
 
@@ -227,7 +227,7 @@ interface
             else
               begin
                 useconst := false;
-                tmpreg := rg.getregisterint(exprasmlist,OS_INT);
+                tmpreg := cg.getintregister(exprasmlist,OS_INT);
                 cg.a_load_const_reg(exprasmlist,OS_INT,
                   aword(right.location.value),tmpreg);
                end
@@ -255,7 +255,7 @@ interface
             begin
               exprasmlist.concat(taicpu.op_reg_reg(op,
                 left.location.register,tmpreg));
-              rg.ungetregisterint(exprasmlist,tmpreg);
+              cg.ungetregister(exprasmlist,tmpreg);
             end
         else
           exprasmlist.concat(taicpu.op_reg_reg(op,
@@ -469,7 +469,7 @@ interface
             else if right.location.loc = LOC_FPUREGISTER then
               location.register := right.location.register
             else
-              location.register := rg.getregisterfpu(exprasmlist,location.size);
+              location.register := cg.getfpuregister(exprasmlist,location.size);
           end
         else
          begin
@@ -526,7 +526,7 @@ interface
 
         if not(cmpop) and
            (location.register = NR_NO) then
-          location.register := rg.getregisterint(exprasmlist,OS_INT);
+          location.register := cg.getintregister(exprasmlist,OS_INT);
 
         case nodetype of
           addn :
@@ -545,7 +545,7 @@ interface
                       left.location.register,location.register)
                   else
                     begin
-                      tmpreg := rg.getregisterint(exprasmlist,OS_INT);
+                      tmpreg := cg.getintregister(exprasmlist,OS_INT);
                       cg.a_load_const_reg(exprasmlist,OS_INT,1,tmpreg);
                       cg.a_op_reg_reg(exprasmlist,OP_SHL,OS_INT,
                         right.location.register,tmpreg);
@@ -555,7 +555,7 @@ interface
                       else
                         cg.a_op_const_reg_reg(exprasmlist,OP_OR,OS_INT,
                           aword(left.location.value),tmpreg,location.register);
-                      rg.ungetregisterint(exprasmlist,tmpreg);
+                      cg.ungetregister(exprasmlist,tmpreg);
                     end;
                   opdone := true;
                 end
@@ -585,12 +585,12 @@ interface
                 begin
                   if left.location.loc = LOC_CONSTANT then
                     begin
-                      tmpreg := rg.getregisterint(exprasmlist,OS_INT);
+                      tmpreg := cg.getintregister(exprasmlist,OS_INT);
                       cg.a_load_const_reg(exprasmlist,OS_INT,
                         aword(left.location.value),tmpreg);
                       exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC,
                         location.register,tmpreg,right.location.register));
-                      rg.ungetregisterint(exprasmlist,tmpreg);
+                      cg.ungetregister(exprasmlist,tmpreg);
                     end
                   else
                     exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC,
@@ -612,7 +612,7 @@ interface
                   (nodetype = gten)) then
                 swapleftright;
               // now we have to check whether left >= right
-              tmpreg := rg.getregisterint(exprasmlist,OS_INT);
+              tmpreg := cg.getintregister(exprasmlist,OS_INT);
               if left.location.loc = LOC_CONSTANT then
                 begin
                   cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,
@@ -634,7 +634,7 @@ interface
                     exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC_,tmpreg,
                       right.location.register,left.location.register));
                 end;
-              rg.ungetregisterint(exprasmlist,tmpreg);
+              cg.ungetregister(exprasmlist,tmpreg);
               location.resflags.cr := RS_CR0;
               location.resflags.flag := F_EQ;
               opdone := true;
@@ -860,11 +860,11 @@ interface
                       else
                         begin
                           if (aword(right.location.valueqword) <> 0) then
-                            tempreg64.reglo := rg.getregisterint(exprasmlist,OS_32)
+                            tempreg64.reglo := cg.getintregister(exprasmlist,OS_32)
                           else
                             tempreg64.reglo := left.location.registerlow;
                           if ((right.location.valueqword shr 32) <> 0) then
-                            tempreg64.reghi := rg.getregisterint(exprasmlist,OS_32)
+                            tempreg64.reghi := cg.getintregister(exprasmlist,OS_32)
                           else
                             tempreg64.reghi := left.location.registerhigh;
                         end;
@@ -895,8 +895,8 @@ interface
                     end
                   else
                     begin
-                       tempreg64.reglo := rg.getregisterint(exprasmlist,OS_INT);
-                       tempreg64.reghi := rg.getregisterint(exprasmlist,OS_INT);
+                       tempreg64.reglo := cg.getintregister(exprasmlist,OS_INT);
+                       tempreg64.reghi := cg.getintregister(exprasmlist,OS_INT);
                        cg64.a_op64_reg_reg_reg(exprasmlist,OP_XOR,
                          left.location.register64,right.location.register64,
                          tempreg64);
@@ -907,9 +907,9 @@ interface
                     tempreg64.reglo,tempreg64.reghi));
                   cg.a_reg_dealloc(exprasmlist,NR_R0);
                   if (tempreg64.reglo <> left.location.registerlow) then
-                    rg.ungetregisterint(exprasmlist,tempreg64.reglo);
+                    cg.ungetregister(exprasmlist,tempreg64.reglo);
                   if (tempreg64.reghi <> left.location.registerhigh) then
-                    rg.ungetregisterint(exprasmlist,tempreg64.reghi);
+                    cg.ungetregister(exprasmlist,tempreg64.reghi);
 
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags := getresflags;
@@ -918,8 +918,8 @@ interface
                 begin
                   if (location.registerlow = NR_NO) then
                     begin
-                      location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
-                      location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
+                      location.registerlow := cg.getintregister(exprasmlist,OS_INT);
+                      location.registerhigh := cg.getintregister(exprasmlist,OS_INT);
                     end;
 
                   if (left.location.loc = LOC_CONSTANT) then
@@ -940,8 +940,8 @@ interface
                     begin
                       if (location.registerlow = NR_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
-                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerlow := cg.getintregister(exprasmlist,OS_INT);
+                         location.registerhigh := cg.getintregister(exprasmlist,OS_INT);
                       end;
                       if right.location.loc <> LOC_CONSTANT then
                         // reg64 - reg64
@@ -958,8 +958,8 @@ interface
                     begin
                       if (location.registerlow = NR_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
-                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerlow := cg.getintregister(exprasmlist,OS_INT);
+                         location.registerhigh := cg.getintregister(exprasmlist,OS_INT);
                       end;
                       if (int64(left.location.valueqword) >= low(smallint)) and
                          (int64(left.location.valueqword) <= high(smallint)) then
@@ -986,8 +986,8 @@ interface
                       // (const32 shl 32) - reg64
                       if (location.registerlow = NR_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
-                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerlow := cg.getintregister(exprasmlist,OS_INT);
+                         location.registerhigh := cg.getintregister(exprasmlist,OS_INT);
                       end;
                       exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                         location.registerlow,right.location.registerlow,0));
@@ -1006,8 +1006,8 @@ interface
                         location.register64 := left.location.register64
                       else if (location.registerlow = NR_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
-                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerlow := cg.getintregister(exprasmlist,OS_INT);
+                         location.registerhigh := cg.getintregister(exprasmlist,OS_INT);
                         end;
                       cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,
                         right.location.register64,left.location.register64,
@@ -1330,7 +1330,7 @@ interface
 
          if (location.register = NR_NO) and
             not(cmpop) then
-           location.register := rg.getregisterint(exprasmlist,OS_INT);
+           location.register := cg.getintregister(exprasmlist,OS_INT);
 
          if not(cs_check_overflow in aktlocalswitches) or
             (cmpop) or
@@ -1388,12 +1388,12 @@ interface
                        end
                      else
                        begin
-                         tmpreg := rg.getregisterint(exprasmlist,OS_INT);
+                         tmpreg := cg.getintregister(exprasmlist,OS_INT);
                          cg.a_load_const_reg(exprasmlist,OS_INT,
                            aword(left.location.value),tmpreg);
                          cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,OS_INT,
                            right.location.register,tmpreg,location.register);
-                         rg.ungetregisterint(exprasmlist,tmpreg);
+                         cg.ungetregister(exprasmlist,tmpreg);
                        end;
                  end;
                ltn,lten,gtn,gten,equaln,unequaln :
@@ -1428,7 +1428,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-10-01 20:34:49  peter
+  Revision 1.37  2003-10-17 01:22:08  florian
+    * compilation of the powerpc compiler fixed
+
+  Revision 1.36  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -614,7 +614,7 @@ implementation
         else
           write(t,', resulttype = <nil>');
         writeln(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
-                  // ', loc = ',tcgloc2str[location.loc],
+                  ', loc = ',tcgloc2str[location.loc],
                   ', expectloc = ',tcgloc2str[expectloc],
                   ', intregs = ',registers32,
                   ', fpuregs = ',registersfpu);
@@ -976,7 +976,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2003-10-08 19:19:45  peter
+  Revision 1.70  2003-10-17 01:22:08  florian
+    * compilation of the powerpc compiler fixed
+
+  Revision 1.69  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.68  2003/10/01 20:34:49  peter

@@ -91,7 +91,7 @@ implementation
            if (location.loc = LOC_CFPUREGISTER) then
              begin
                location.loc := LOC_FPUREGISTER;
-               location.register := rg.getregisterfpu(exprasmlist,OS_F64);
+               location.register := cg.getfpuregister(exprasmlist,OS_F64);
              end;
          end;
 
@@ -116,7 +116,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2003-10-01 20:34:49  peter
+  Revision 1.11  2003-10-17 01:22:08  florian
+    * compilation of the powerpc compiler fixed
+
+  Revision 1.10  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

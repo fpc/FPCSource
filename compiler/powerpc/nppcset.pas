@@ -78,11 +78,11 @@ implementation
                 hregister,value))
             else
               begin
-                tmpreg := rg.getregisterint(exprasmlist,OS_INT);
+                tmpreg := cg.getintregister(exprasmlist,OS_INT);
                  cg.a_load_const_reg(exprasmlist,OS_INT,aword(value),tmpreg);
                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_ADD_,hregister,
                   hregister,tmpreg));
-                rg.ungetregisterint(exprasmlist,tmpreg);
+                cg.ungetregister(exprasmlist,tmpreg);
                end;
           end;
 
@@ -158,7 +158,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-10-01 20:34:49  peter
+  Revision 1.12  2003-10-17 01:22:08  florian
+    * compilation of the powerpc compiler fixed
+
+  Revision 1.11  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

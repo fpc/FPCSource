@@ -466,7 +466,7 @@ implementation
 {$ifdef x86}
                 tcgx86(cg).inc_fpu_stack;
 {$else x86}
-                hregister := cg.getregister(exprasmlist,location.size);
+                hregister := cg.getfpuregister(exprasmlist,location.size);
                 cg.a_loadfpu_reg_reg(exprasmlist,location.size,location.register,hregister);
                 location.register := hregister;
 {$endif x86}
@@ -1104,7 +1104,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.130  2003-10-11 16:06:42  florian
+  Revision 1.131  2003-10-17 01:22:08  florian
+    * compilation of the powerpc compiler fixed
+
+  Revision 1.130  2003/10/11 16:06:42  florian
     * fixed some MMX<->SSE
     * started to fix ppc, needs an overhaul
     + stabs info improve for spilling, not sure if it works correctly/completly

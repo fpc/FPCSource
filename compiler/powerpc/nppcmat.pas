@@ -93,12 +93,12 @@ implementation
          if (location.loc = LOC_CREGISTER) then
            begin
              location.loc := LOC_REGISTER;
-             location.register := rg.getregisterint(exprasmlist,size);
+             location.register := cg.getintregister(exprasmlist,size);
              resultreg := location.register;
            end;
          if (nodetype = modn) then
            begin
-             resultreg := rg.getregisterint(exprasmlist,size);
+             resultreg := cg.getintregister(exprasmlist,size);
            end;
 
          if (nodetype = divn) and
@@ -138,18 +138,18 @@ implementation
              begin
                exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULLW,resultreg,
                  divider,resultreg));
-               rg.ungetregisterint(exprasmlist,divider);
+               cg.ungetregister(exprasmlist,divider);
                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
                  numerator,resultreg));
-               rg.ungetregisterint(exprasmlist,resultreg);
+               cg.ungetregister(exprasmlist,resultreg);
                resultreg := location.register;
              end
            else
-             rg.ungetregisterint(exprasmlist,divider);
+             cg.ungetregister(exprasmlist,divider);
            end;
        { free used registers }
         if numerator <> resultreg then
-          rg.ungetregisterint(exprasmlist,numerator);
+          cg.ungetregister(exprasmlist,numerator);
         { set result location }
         location.loc:=LOC_REGISTER;
         location.register:=resultreg;
@@ -190,8 +190,8 @@ implementation
              if (location.loc = LOC_CREGISTER) then
                begin
                  location.loc := LOC_REGISTER;
-                 location.registerhigh := rg.getregisterint(exprasmlist,OS_32);
-                 location.registerlow := rg.getregisterint(exprasmlist,OS_32);
+                 location.registerhigh := cg.getintregister(exprasmlist,OS_32);
+                 location.registerlow := cg.getintregister(exprasmlist,OS_32);
                end;
              if (right.nodetype = ordconstn) then
                begin
@@ -261,7 +261,7 @@ implementation
                      location.registerlow := resultreg;
                    end;
 
-                 rg.getexplicitregisterint(exprasmlist,NR_R0);
+                 cg.getexplicitregister(exprasmlist,NR_R0);
                  exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                    NR_R0,hregister1,32));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
@@ -278,7 +278,7 @@ implementation
                    location.registerhigh,location.registerhigh,NR_R0));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
                    location.registerlow,hregisterlow,hregister1));
-                 rg.ungetregisterint(exprasmlist,NR_R0);
+                 cg.ungetregister(exprasmlist,NR_R0);
 
                  if nodetype = shrn then
                    begin
@@ -287,7 +287,7 @@ implementation
                      location.registerlow := resultreg;
                    end;
 
-                   rg.ungetregisterint(exprasmlist,hregister1);
+                   cg.ungetregister(exprasmlist,hregister1);
                end
            end
          else
@@ -300,7 +300,7 @@ implementation
              if (location.loc = LOC_CREGISTER) then
                begin
                  location.loc := LOC_REGISTER;
-                 resultreg := rg.getregisterint(exprasmlist,OS_32);
+                 resultreg := cg.getintregister(exprasmlist,OS_32);
                  location.register := resultreg;
                end;
 
@@ -323,7 +323,7 @@ implementation
                   cg.a_op_reg_reg_reg(exprasmlist,op,OS_32,hregister2,
                     hregister1,resultreg);
 
-                  rg.ungetregisterint(exprasmlist,hregister2);
+                  cg.ungetregister(exprasmlist,hregister2);
                 end;
            end;
       end;
@@ -347,8 +347,8 @@ implementation
              location_copy(location,left.location);
              if (location.loc = LOC_CREGISTER) then
                begin
-                 location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
-                 location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
+                 location.registerlow := cg.getintregister(exprasmlist,OS_INT);
+                 location.registerhigh := cg.getintregister(exprasmlist,OS_INT);
                  location.loc := LOC_REGISTER;
                end;
              exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
@@ -374,15 +374,15 @@ implementation
                   begin
                      src1 := left.location.register;
                      if left.location.loc = LOC_CREGISTER then
-                       location.register := rg.getregisterint(exprasmlist,OS_INT)
+                       location.register := cg.getintregister(exprasmlist,OS_INT)
                      else
-                       location.register := rg.getregisterfpu(exprasmlist,location.size);
+                       location.register := cg.getfpuregister(exprasmlist,location.size);
                   end;
                 LOC_REFERENCE,LOC_CREFERENCE:
                   begin
                      if (left.resulttype.def.deftype=floatdef) then
                        begin
-                          src1 := rg.getregisterfpu(exprasmlist,def_cgsize(left.resulttype.def));
+                          src1 := cg.getfpuregister(exprasmlist,def_cgsize(left.resulttype.def));
                           location.register := src1;
                           cg.a_loadfpu_ref_reg(exprasmlist,
                             def_cgsize(left.resulttype.def),
@@ -390,7 +390,7 @@ implementation
                        end
                      else
                        begin
-                          src1 := rg.getregisterint(exprasmlist,OS_32);
+                          src1 := cg.getintregister(exprasmlist,OS_32);
                           location.register:= src1;
                           cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,
                             left.location.reference,src1);
@@ -493,7 +493,7 @@ implementation
              location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
              location_copy(location,left.location);
              if location.loc=LOC_CREGISTER then
-              location.register := rg.getregisterint(exprasmlist,OS_INT);
+              location.register := cg.getintregister(exprasmlist,OS_INT);
              { perform the NOT operation }
              exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.register,
                left.location.register));
@@ -508,7 +508,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-10-01 20:34:49  peter
+  Revision 1.35  2003-10-17 01:22:08  florian
+    * compilation of the powerpc compiler fixed
+
+  Revision 1.34  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
