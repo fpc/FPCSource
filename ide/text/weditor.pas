@@ -2273,7 +2273,7 @@ begin
    end
   else
    begin
-     Delete(S,CurPos.X+1,1);
+     Delete(S,LinePosToCharIdx(CurPos.Y,CurPos.X)+1,1);
      SetLineText(CurPos.Y,S);
      SDX:=-1; SDY:=0;
    end;
@@ -2294,12 +2294,19 @@ begin
 end;
 
 procedure TCodeEditor.DelStart;
+var S: string;
 begin
   if IsReadOnly then Exit;
+  S:=GetLineText(CurPos.Y);
 
-  NotImplemented; Exit;
-
-  SetModified(true);
+  if (S<>'') and (CurPos.X<>0) then
+  begin
+    SetLineText(CurPos.Y,copy(S,LinePosToCharIdx(CurPos.Y,CurPos.X)+1,255));
+    SetCurPtr(0,CurPos.Y);
+    UpdateAttrs(CurPos.Y,attrAll);
+    DrawLines(CurPos.Y);
+    SetModified(true);
+  end;
 end;
 
 procedure TCodeEditor.DelEnd;
@@ -2309,7 +2316,7 @@ begin
   S:=GetLineText(CurPos.Y);
   if (S<>'') and (CurPos.X<>length(S)) then
   begin
-    SetLineText(CurPos.Y,copy(S,1,CurPos.X));
+    SetLineText(CurPos.Y,copy(S,1,LinePosToCharIdx(CurPos.Y,CurPos.X)));
     SetCurPtr(CurPos.X,CurPos.Y);
     UpdateAttrs(CurPos.Y,attrAll);
     DrawLines(CurPos.Y);
@@ -2526,8 +2533,28 @@ begin
 end;
 
 procedure TCodeEditor.SelectWord;
+const WordChars = ['A'..'Z','a'..'z','0'..'9','_'];
+var S : String;
+    StartPos,EndPos : byte;
+    A,B: TPoint;
 begin
-  NotImplemented; Exit;
+  A:=CurPos;
+  B:=CurPos;
+  S:=GetLineText(A.Y);
+  StartPos:=A.X+1;
+  EndPos:=StartPos;
+  if not (S[StartPos] in WordChars) then
+    exit
+  else
+    begin
+       While (StartPos>0) and (S[StartPos-1] in WordChars) do
+         Dec(StartPos);
+       While (EndPos<Length(S)) and (S[EndPos+1] in WordChars) do
+         Inc(EndPos);
+       A.X:=StartPos-1;
+       B.X:=EndPos;
+       SetSelection(A,B);
+    end;
 end;
 
 procedure TCodeEditor.SelectLine;
@@ -2608,12 +2635,29 @@ var S,SC,TabS: string;
     SP: TPoint;
 begin
   if IsReadOnly then Exit;
+
   Lock;
   SP:=CurPos;
   if (C<>TAB) or ((Flags and efUseTabCharacters)<>0) then
     SC:=C
+  else if ((Flags and efAutoIndent)=0) then
+    SC:=CharStr(' ',TabSize)
   else
-    SC:=CharStr(' ',TabSize);
+    begin
+      if CurPos.Y>1 then
+        begin
+          S:=GetLineText(CurPos.Y-1);
+          BI:=CurPos.X+1;
+          while S[BI]=' ' do
+            inc(BI);
+          if BI=CurPos.X+1 then
+            SC:=CharStr(' ',TabSize)
+          else
+            SC:=CharStr(' ',BI-CurPos.X-1);
+        end
+      else
+        SC:=CharStr(' ',TabSize);
+    end;
   S:=GetLineText(CurPos.Y);
   if CharIdxToLinePos(CurPos.Y,length(S))<CurPos.X then
     begin
@@ -4475,7 +4519,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.51  1999-10-08 15:24:50  pierre
+  Revision 1.52  1999-10-12 23:35:18  pierre
+    + DelStart and SelectWord implemented
+    * AddChar(tab) now reacts correctly if efAutoIndent is set
+
+  Revision 1.51  1999/10/08 15:24:50  pierre
    * InsertFrom bug (end of line wasdiscarded)
 
   Revision 1.50  1999/09/28 23:44:13  pierre
