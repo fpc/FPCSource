@@ -939,15 +939,23 @@ var
     stream: TMemoryStream;
   begin
     case parser.Token of
-      toInteger: WriteInteger(parser.TokenInt);
-      toFloat: begin
+      toInteger:
+        begin
+	  WriteInteger(parser.TokenInt);
+	  parser.NextToken;
+	end;
+      toFloat:
+        begin
           Output.WriteByte(Ord(vaExtended));
           flt := Parser.TokenFloat;
           Output.Write(flt, SizeOf(flt));
+	  parser.NextToken;
         end;
-      toString: begin
+      toString:
+        begin
           s := parser.TokenString;
-          while parser.NextToken = '+' do begin
+          while parser.NextToken = '+' do
+	  begin
             parser.NextToken;   // Get next string fragment
             parser.CheckToken(toString);
             s := s + parser.TokenString;
@@ -956,55 +964,71 @@ var
           WriteString(s);
         end;
       toSymbol:
+        begin
           if CompareText(parser.TokenString, 'True') = 0 then
             Output.WriteByte(Ord(vaTrue))
           else if CompareText(parser.TokenString, 'False') = 0 then
             Output.WriteByte(Ord(vaFalse))
           else if CompareText(parser.TokenString, 'nil') = 0 then
             Output.WriteByte(Ord(vaNil))
-          else begin
+          else
+	  begin
             Output.WriteByte(Ord(vaIdent));
             WriteString(parser.TokenString);
           end;
+	  Parser.NextToken;
+	end;
       // Set
-      '[': begin
+      '[':
+        begin
           parser.NextToken;
           Output.WriteByte(Ord(vaSet));
           if parser.Token <> ']' then
-            while True do begin
+            while True do
+	    begin
               parser.CheckToken(toSymbol);
               WriteString(parser.TokenString);
               parser.NextToken;
-              if parser.Token = ']' then break;
+              if parser.Token = ']' then
+	        break;
               parser.CheckToken(',');
               parser.NextToken;
             end;
           Output.WriteByte(0);
+	  parser.NextToken;
         end;
       // List
-      '(': begin
+      '(':
+        begin
           parser.NextToken;
           Output.WriteByte(Ord(vaList));
-          while parser.Token <> ')' do ProcessValue;
+          while parser.Token <> ')' do
+	    ProcessValue;
           Output.WriteByte(0);
+	  parser.NextToken;
         end;
       // Collection
-      '<': begin
+      '<':
+        begin
           parser.NextToken;
           Output.WriteByte(Ord(vaCollection));
-          while parser.Token <> '>' do begin
+          while parser.Token <> '>' do
+	  begin
             parser.CheckTokenSymbol('item');
             parser.NextToken;
             // ConvertOrder
             Output.WriteByte(Ord(vaList));
-            while not parser.TokenSymbolIs('end') do ProcessProperty;
+            while not parser.TokenSymbolIs('end') do
+	      ProcessProperty;
             parser.NextToken;   // Skip 'end'
             Output.WriteByte(0);
           end;
           Output.WriteByte(0);
+	  parser.NextToken;
         end;
       // Binary data
-      '{': begin
+      '{':
+        begin
           Output.WriteByte(Ord(vaBinary));
           stream := TMemoryStream.Create;
           try
@@ -1014,10 +1038,11 @@ var
           finally
             stream.Free;
           end;
+	  parser.NextToken;
         end;
-    else WriteLn('Token: "', parser.Token, '" ', Ord(parser.Token));
+      else
+        parser.Error(SInvalidProperty);
     end;
-    parser.NextToken;
   end;
 
   procedure ProcessProperty;
@@ -1034,7 +1059,6 @@ var
       parser.CheckToken(toSymbol);
       name := name + '.' + parser.TokenString;
     end;
-    // WriteLn(name);
     WriteString(name);
     parser.CheckToken('=');
     parser.NextToken;
@@ -1198,7 +1222,37 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-07-22 14:54:11  sg
+  * Fixed some DFM parser bugs
+
+  Revision 1.1  2000/07/13 06:31:30  michael
+  + Initial import
+
+  Revision 1.18  2000/07/01 09:49:02  peter
+    * fixed go32v2,win32 build
+
+  Revision 1.17  2000/06/29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.16  2000/01/07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.15  2000/01/06 01:20:32  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.2  2000/01/04 18:07:16  michael
+  + Streaming implemented
+
+  Revision 1.1  2000/01/03 19:33:06  peter
+    * moved to packages dir
+
+  Revision 1.13  1999/10/19 11:27:03  sg
+  * Added DFM<->ASCII conversion procedures
+
+  Revision 1.12  1999/09/30 19:31:42  fcl
+  * Implemented LineStart  (sg)
+
+  Revision 1.11  1999/09/11 21:59:31  fcl
+  * Moved class and registration functions to cregist.inc  (sg)
 }
