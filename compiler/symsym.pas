@@ -1348,7 +1348,7 @@ implementation
          defaultconstsym:=nil;
          ppufile.gettype(_vartype);
          ppufile.getsmallset(varoptions);
-         if (vo_is_C_var in varoptions) then
+         if [vo_is_C_var,vo_is_dll_var]*varoptions<>[] then
            _mangledname:=stringdup(ppufile.getstring);
       end;
 
@@ -1385,7 +1385,7 @@ implementation
            turn off the regable }
          hvo:=varoptions-[vo_regable,vo_fpuregable];
          ppufile.putsmallset(hvo);
-         if (vo_is_C_var in varoptions) then
+         if [vo_is_C_var,vo_is_dll_var]*varoptions<>[] then
            ppufile.putstring(_mangledname^);
          ppufile.writeentry(ibvarsym);
       end;
@@ -2250,7 +2250,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.163  2004-03-02 17:32:12  florian
+  Revision 1.164  2004-03-02 18:12:31  florian
+    * for vars with is_dll_var the mangledname is written to the ppu as well
+
+  Revision 1.163  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented
