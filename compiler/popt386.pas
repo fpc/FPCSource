@@ -115,11 +115,14 @@ Begin
               Begin
                 hp1 := pai(p^.next);
                 While GetNextInstruction(p, hp1) and
-                      (hp1^.typ <> ait_label) Do
-                  Begin
-                    AsmL^.Remove(hp1);
-                    Dispose(hp1, done);
-                  End;
+                      ((hp1^.typ <> ait_label) or
+                { skip unused labels, they're not referenced anywhere }
+                       Not(Pai_Label(hp1)^.l^.is_used)) Do
+                  If (hp1^.typ <> ait_label) Then
+                    Begin
+                      AsmL^.Remove(hp1);
+                      Dispose(hp1, done);
+                    End;
                End;
             If GetNextInstruction(p, hp1) then
               Begin
@@ -755,8 +758,8 @@ Begin
                                       Then
                                         If (TRegister(Pai386(p)^.op2) = R_EDI)
                                           Then
-                                 {   mov mem1, reg1
-                                     mov reg1, mem2
+                                 {   mov mem1, %edi
+                                     mov %edi, mem2
                                      mov mem2, reg2
                                   to:
                                      mov mem1, reg2
@@ -768,24 +771,36 @@ Begin
                                               Dispose(hp2,Done);
                                             End
                                           Else
-                                 {   mov mem1, reg1
-                                     mov reg1, mem2
-                                     mov mem2, reg2
-                                  to:
-                                     mov mem1, reg1
-                                     mov mem1, reg2
+                                 {   mov mem1, reg1         mov mem1, reg1
+                                     mov reg1, mem2         mov reg1, mem2
+                                     mov mem2, reg2         mov mem2, reg1
+                                  to:                    to:
+                                     mov mem1, reg1         mov mem1, reg1
+                                     mov mem1, reg2         mov reg1, mem2
                                      mov reg1, mem2}
                                             Begin
-                                              Pai386(hp1)^.opxt := top_ref + top_reg shl 4;
-                                              Pai386(hp1)^.op1 := Pai386(hp1)^.op2; {move the treference}
-                                              TReference(Pai386(hp1)^.op1^) := TReference(Pai386(p)^.op1^);
-                                              If Assigned(TReference(Pai386(p)^.op1^).Symbol) Then
+                                              If (Pai386(p)^.op2 <> Pai386(hp2)^.op2) Then
                                                 Begin
-                                                  New(TReference(Pai386(hp1)^.op1^).Symbol);
-                                                  TReference(Pai386(hp1)^.op1^).Symbol^ :=
-                                                      TReference(Pai386(p)^.op1^).Symbol^;
+                                                  Pai386(hp1)^.opxt := top_ref + top_reg shl 4;
+                                                  If Assigned(TReference(Pai386(hp1)^.op2^).Symbol)
+                                                    Then Freemem(TReference(Pai386(hp1)^.op2^).Symbol,
+                                                                 Length(TReference(Pai386(hp1)^.op2^).Symbol^)+1);
+                                                  Pai386(hp1)^.op1 := Pai386(hp1)^.op2; {move the treference}
+                                                  TReference(Pai386(hp1)^.op1^) := TReference(Pai386(p)^.op1^);
+                                                  If Assigned(TReference(Pai386(p)^.op1^).Symbol) Then
+                                                    Begin
+                                                      Getmem(TReference(Pai386(hp1)^.op1^).Symbol,
+                                                             Length(TReference(Pai386(p)^.op1^).Symbol^)+1);
+                                                      TReference(Pai386(hp1)^.op1^).Symbol^ :=
+                                                          TReference(Pai386(p)^.op1^).Symbol^;
+                                                    End;
+                                                  Pai386(hp1)^.op2 := Pai386(hp2)^.op2;
+                                                End
+                                              Else
+                                                Begin
+                                                  AsmL^.Remove(hp1);
+                                                  Dispose(hp1, Done)
                                                 End;
-                                              Pai386(hp1)^.op2 := Pai386(hp2)^.op2;
                                               Pai386(hp2)^.opxt := top_reg + top_ref shl 4;
                                               Pai386(hp2)^.op2 := Pai386(hp2)^.op1;
                                               Pai386(hp2)^.op1 := Pai386(p)^.op2;
@@ -1419,7 +1434,12 @@ End.
 
 {
  $Log$
- Revision 1.17  1998-10-02 17:29:56  jonas
+ Revision 1.18  1998-10-05 14:41:14  jonas
+   * fixed small memory leak
+   * fixed small inefficiency
+   * tested multiple line comments ability of my new MacCVS client :)
+
+ Revision 1.17  1998/10/02 17:29:56  jonas
    + removal of "lea (reg), reg)", "imul $1, reg", change "mov reg1, reg2; mov (reg2), reg2" to "mov (reg1), reg2"
 
  Revision 1.16  1998/10/01 20:19:57  jonas
