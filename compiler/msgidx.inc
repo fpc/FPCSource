@@ -261,6 +261,8 @@ const
   parser_e_illegal_field_or_method=03181;
   parser_w_proc_overriding_calling=03182;
   parser_e_no_procvarobj_const=03183;
+  parser_e_default_value_only_one_para=03184;
+  parser_e_default_value_expected_for_para=03185;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -303,6 +305,7 @@ const
   type_e_classes_not_related=04039;
   type_w_classes_not_related=04040;
   type_e_class_or_interface_type_expected=04041;
+  type_e_type_is_not_completly_defined=04042;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -610,9 +613,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 34250;
+  MsgTxtSize = 34397;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,62,184,42,42,41,98,17,35,43,
+    17,62,186,43,42,41,98,17,35,43,
     31,1,1,1,1,1,1,1,1,1
   );

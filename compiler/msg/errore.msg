@@ -943,6 +943,8 @@ parser_e_no_procvarobj_const=03183_E_Typed constants of the type "procedure of o
 % 'procedure of object' type, because such a constant requires two addresses:
 % that of the method (which is known at compile time) and that of the object or
 % class instance it operates on (which can not be known at compile time).
+parser_e_default_value_only_one_para=03184_E_Default value can only be assigned to one parameter
+parser_e_default_value_expected_for_para=03185_E_Default parameter required for "$1"
 % \end{description}
 #
 # Type Checking
@@ -1112,7 +1114,8 @@ type_e_array_index_enums_with_assign_not_possible=04038_E_enums with assignments
 % you cannot use it as index of an array.
 type_e_classes_not_related=04039_E_Class types "$1" and "$2" are not related
 type_w_classes_not_related=04040_W_Class types "$1" and "$2" are not related
-type_e_class_or_interface_type_expected=04041_E_class or interface type expected, but got "$1"
+type_e_class_or_interface_type_expected=04041_E_Class or interface type expected, but got "$1"
+type_e_type_is_not_completly_defined=04042_E_Type "$1" is not completly defined
 % \end{description}
 #
 # Symtable
