@@ -647,10 +647,8 @@ interface
       var
         op         : TOpCG;
         op1,op2    : TAsmOp;
-        hl4        : tasmlabel;
         cmpop,
         unsigned   : boolean;
-        r          : Tregister;
 
 
       procedure emit_cmp64_hi;
@@ -1464,7 +1462,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2004-11-26 12:30:47  jonas
+  Revision 1.55  2004-12-24 11:58:33  jonas
+    - removed unused variables
+
+  Revision 1.54  2004/11/26 12:30:47  jonas
     * fixed intermittent bug in overflow checking of subtractions
 
   Revision 1.53  2004/11/26 12:17:04  jonas
