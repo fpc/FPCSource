@@ -1,5 +1,7 @@
 Program TestAOC;
 
+{$mode objfpc}
+
 { Program to test array of const }
 
 { All elements of the following record must be tested :
@@ -54,7 +56,7 @@ begin
       vtObject     : Writeln ('Object, name : ',Args[i].VObject.Classname);
       vtClass      : Writeln ('Class reference, name : ',Args[i].VClass.Classname);
       vtAnsiString : Writeln ('AnsiString, value :',AnsiString(Args[I].VAnsiString));
-      
+
 {
       vtWideChar   : (VWideChar: WideChar);
       vtPWideChar  : (VPWideChar: PWideChar);
@@ -63,7 +65,7 @@ begin
       vtInterface  : (VInterface: Pointer);
       vtWideString : (VWideString: Pointer);
       vtInt64      : (VInt64: PInt64);
-}      
+}
     else
       Writeln ('(Unknown) : ',args[i].vtype);
     end;
@@ -76,7 +78,7 @@ Const P1 : Pchar = 'Eerste Pchar';
 Var ObjA,ObjB : TObject;
     ACLass,BClass : TClass;
     S,T : AnsiString;
-    
+
 begin
   ObjA:=TObject.Create;
   ObjB:=TObject.Create;
