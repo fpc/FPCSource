@@ -951,8 +951,17 @@ BEGIN
            End;
 {$endif DEBUG}
          If (Event.What = evNothing) Then Begin       { No mouse event }
-           Drivers.GetMouseEvent(Event);                      { Load mouse event }
-           If (Event.What = evNothing) Then Idle;     { Idle if no event }
+           Drivers.GetMouseEvent(Event);              { Load mouse event }
+           If (Event.What = evNothing) Then
+{$ifdef HasSysMsgUnit}
+             begin
+               Drivers.GetSystemEvent(Event);         { Load system event }
+               If (Event.What = evNothing) Then
+{$endif HasSysMsgUnit}
+                 Idle;     { Idle if no event }
+{$ifdef HasSysMsgUnit}
+             end;
+{$endif HasSysMsgUnit}
          End;
        End;
      End;
@@ -1184,7 +1193,10 @@ END;
 END.
 {
  $Log$
- Revision 1.16  2002-05-25 23:24:29  pierre
+ Revision 1.17  2002-06-06 20:34:19  pierre
+  + also check for system events
+
+ Revision 1.16  2002/05/25 23:24:29  pierre
   * add DoneResource to fix memory leak
 
  Revision 1.15  2002/05/23 07:30:33  pierre
