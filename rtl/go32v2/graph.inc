@@ -1022,8 +1022,8 @@ End;
   {$else fpc}
   assembler;
   asm
-    movzx  edi, x
-    movzx  ebx, y
+    movsx  edi, x
+    movsx  ebx, y
     cmp    clippixels, 0
     je     @putpix320noclip
     test   edi, edi
@@ -1068,14 +1068,14 @@ End;
   {$else fpc}
   assembler;
   asm
-    movzx  edi, x
-    movzx  ebx, y
+    movsx  edi, x
+    movsx  ebx, y
     add    di, StartXViewPort
     add    bx, StartYViewPort
  {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
     shl    ebx, 6
     add    edi, ebx
-    mov    al, fs:[edi+ebx*4+$a0000]
+    movzx  ax, byte ptr fs:[edi+ebx*4+$a0000]
  {$endif fpc}
   end;
 
@@ -2517,7 +2517,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.10  1999-12-26 10:36:00  jonas
+Revision 1.11  1999-12-29 16:43:44  jonas
+  * fixed put- and getpixel320 for fpc
+
+Revision 1.10  1999/12/26 10:36:00  jonas
   * finished patternlineVESA256 and enabled it
   * folded (direct)put/getpixVESA32k and 64k into one procedure since
     they were exactly the same code
