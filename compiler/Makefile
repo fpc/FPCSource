@@ -44,6 +44,9 @@ MSGFILES=errore.msg errord.msg errorn.msg
 # Defaults
 #####################################################################
 
+# Default message file
+MSGFILE=error$(FPCLANG).msg
+
 # Default place of the makefile.fpc
 DEFAULTFPCDIR=..
 
@@ -143,8 +146,6 @@ override RTLOPTS+=$(OPT)
 #####################################################################
 # Setup Targets
 #####################################################################
-
-MSGFILE=error$(FPCLANG).msg
 
 ifeq ($(OS_TARGET),win32)
 ifdef CMP
@@ -254,19 +255,22 @@ endif
 $(MSG2INC): $(RTL)/utils/msg2inc.pp
 	$(COMPILER) -FE. $(RTL)/utils/msg2inc.pp
 
-msgtxt.inc: $(MSGFILE) $(MSG2INC)
+# The msgtxt.inc only depends on the error?.msg file, not on msg2inc,
+# because that one will be new almost everytime
+msgtxt.inc: $(MSGFILE)
+	$(MAKE) $(MSG2INC)
 	$(MSG2INC) $(MSGFILE) msg msg
 
 msg: msgtxt.inc
 
 # Make only the compiler
 ifndef COMPLETE
-$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc)
+$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
 	$(COMPILER) pp.pas
 	$(EXECPPAS)
 	$(MOVE) $(PPEXENAME) $(EXENAME)
 else
-$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc)
+$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
 	$(COMPILER) $(LOCALOPT) pp.pas
 	$(EXECPPAS)
 	$(COMPILER) $(LOCALOPT) pp.pas
@@ -386,7 +390,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.28  1999-05-09 11:36:32  peter
+# Revision 1.29  1999-05-09 12:45:05  peter
+#   * better messagefile recompiling
+#
+# Revision 1.28  1999/05/09 11:36:32  peter
 #   * makecfg inserted
 #
 # Revision 1.27  1999/04/26 13:31:24  peter
