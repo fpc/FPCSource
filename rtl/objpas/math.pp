@@ -437,7 +437,6 @@ function floor(x : float) : longint;
 
   begin
      Floor:=Trunc(x);
-     If frac(x)<0 then Floor:=Floor-1;
   end;
 
 procedure frexp(x : float;var mantissa,exponent : float);
@@ -664,7 +663,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.8  1999-01-15 11:44:56  peter
+    Revision 1.9  1999-06-03 13:37:30  jonas
+      * fixed floor function
+
+    Revision 1.8  1999/01/15 11:44:56  peter
       * fixed unresolved forwards
 
     Revision 1.7  1998/12/21 13:07:06  peter
