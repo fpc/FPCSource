@@ -84,67 +84,67 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
                     Include processor specific routines
 ****************************************************************************}
 
-{$ifdef i386}
+{$ifdef cpui386}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
   {$define ENDIAN_LITTLE}
   {$i i386.inc}  { Case dependent, don't change }
-{$endif i386}
+{$endif cpui386}
 
-{$ifdef m68k}
+{$ifdef cpum68k}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
   {$define ENDIAN_BIG}
   {$i m68k.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
-{$endif m68k}
+{$endif cpum68k}
 
-{$ifdef x86_64}
+{$ifdef cpux86_64}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
   {$define ENDIAN_LITTLE}
   {$i x86_64.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
-{$endif x86_64}
+{$endif cpux86_64}
 
-{$ifdef powerpc}
+{$ifdef cpupowerpc}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
   {$define ENDIAN_BIG}
   {$i powerpc.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
-{$endif powerpc}
+{$endif cpupowerpc}
 
-{$ifdef alpha}
+{$ifdef cpualpha}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
   {$define ENDIAN_BIG}
   {$i alpha.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
-{$endif alpha}
+{$endif cpualpha}
 
-{$ifdef iA64}
+{$ifdef cpuiA64}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
   {$define ENDIAN_LITTLE}
   {$i ia64.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
-{$endif iA64}
+{$endif cpuiA64}
 
-{$ifdef SPARC}
+{$ifdef cpusparc}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
   {$define ENDIAN_BIG}
   {$i sparc.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
-{$endif SPARC}
+{$endif cpusparc}
 
 procedure fillchar(var x;count : longint;value : boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
@@ -432,7 +432,7 @@ begin
 end;
 
 
-procedure fpc_iocheck(addr : longint);[saveregisters,public,alias:'FPC_IOCHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_iocheck;[saveregisters,public,alias:'FPC_IOCHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   l : longint;
 begin
@@ -766,7 +766,11 @@ end;
 
 {
   $Log$
-  Revision 1.40  2003-03-17 14:30:11  peter
+  Revision 1.41  2003-08-21 22:10:55  olle
+    - removed parameter from fpc_iocheck
+    * changed processor compiler directive * to cpu*
+
+  Revision 1.40  2003/03/17 14:30:11  peter
     * changed address parameter/return values to pointer instead
       of longint
 
