@@ -2973,66 +2973,66 @@ Const local_symtable_index : longint = $8001;
     procedure tprocvardef.write_rtti_data;
       var
          pdc, pdc2, pdcbefore : pdefcoll;
-	 methodkind, paracount, paraspec : byte;
+         methodkind, paracount, paraspec : byte;
       begin
         { write method id and name }
-	rttilist^.concat(new(pai_const,init_8bit(tkmethod)));
-	write_rtti_name;
+        rttilist^.concat(new(pai_const,init_8bit(tkmethod)));
+        write_rtti_name;
 
         { write kind of method (can only be function or procedure)}
-	if retdef = pdef(voiddef) then    { ### typecast shoudln't be necessary! (sg) }
-	  methodkind := mkProcedure
-	else
-	  methodkind := mkFunction;
-	rttilist^.concat(new(pai_const,init_8bit(methodkind)));
+        if retdef = pdef(voiddef) then    { ### typecast shoudln't be necessary! (sg) }
+          methodkind := mkProcedure
+        else
+          methodkind := mkFunction;
+        rttilist^.concat(new(pai_const,init_8bit(methodkind)));
 
         { get # of parameters }
         paracount:=0;
         pdc:=para1;
         while assigned(pdc) do
           begin
-	    inc(paracount);
+            inc(paracount);
             pdc:=pdc^.next;
           end;
-	rttilist^.concat(new(pai_const,init_8bit(paracount)));
+        rttilist^.concat(new(pai_const,init_8bit(paracount)));
 
-	{ write parameter info. The parameters must be written in reverse order
-	  if this method uses right to left parameter pushing! }
-	pdc:=para1;
-	if assigned(pdc) and not (pocall_leftright in proccalloptions) then
-	  while assigned(pdc^.next) do pdc := pdc^.next;
+        { write parameter info. The parameters must be written in reverse order
+          if this method uses right to left parameter pushing! }
+        pdc:=para1;
+        if assigned(pdc) and not (pocall_leftright in proccalloptions) then
+          while assigned(pdc^.next) do pdc := pdc^.next;
 
         while assigned(pdc) do
           begin
-	    case pdc^.paratyp of
-	      vs_value: paraspec := 0;
-	      vs_const: paraspec := pfConst;
-	      vs_var  : paraspec := pfVar;
-	    end;
-	    { write flags for current parameter }
-	    rttilist^.concat(new(pai_const,init_8bit(paraspec)));
-	    { write name of current parameter ### how can I get this??? (sg)}
-	    rttilist^.concat(new(pai_const,init_8bit(0)));
-	    { write name of type of current parameter }
-	    pdc^.data^.write_rtti_name;
-	    if pocall_leftright in proccalloptions then
+            case pdc^.paratyp of
+              vs_value: paraspec := 0;
+              vs_const: paraspec := pfConst;
+              vs_var  : paraspec := pfVar;
+            end;
+            { write flags for current parameter }
+            rttilist^.concat(new(pai_const,init_8bit(paraspec)));
+            { write name of current parameter ### how can I get this??? (sg)}
+            rttilist^.concat(new(pai_const,init_8bit(0)));
+            { write name of type of current parameter }
+            pdc^.data^.write_rtti_name;
+            if pocall_leftright in proccalloptions then
               pdc:=pdc^.next
-	    else
-	      begin
-	        { find previous argument }
-	        pdcbefore := nil;
-	        pdc2 := para1;
-		while pdc2 <> pdc do
-		  begin
-		    pdcbefore := pdc2;
-		    pdc2 := pdc2^.next;
-		  end;
-		pdc := pdcbefore;
-	      end;
+            else
+              begin
+                { find previous argument }
+                pdcbefore := nil;
+                pdc2 := para1;
+                while pdc2 <> pdc do
+                  begin
+                    pdcbefore := pdc2;
+                    pdc2 := pdc2^.next;
+                  end;
+                pdc := pdcbefore;
+              end;
           end;
 
          { write name of result type }
-	 retdef^.write_rtti_name;
+         retdef^.write_rtti_name;
       end;
 
 
@@ -3531,7 +3531,8 @@ Const local_symtable_index : longint = $8001;
                 else
                   begin
                      { virtual method, write vmt offset }
-                     rttilist^.concat(new(pai_const,init_32bit(pprocdef(def)^._class^.vmtmethodoffset(pprocdef(def)^.extnumber))));
+                     rttilist^.concat(new(pai_const,init_32bit(
+                       pprocdef(def)^._class^.vmtmethodoffset(pprocdef(def)^.extnumber))));
                      typvalue:=2;
                   end;
              end;
@@ -3703,7 +3704,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.150  1999-08-11 08:56:53  michael
+  Revision 1.151  1999-08-12 14:31:20  peter
+    * long line fix
+
+  Revision 1.150  1999/08/11 08:56:53  michael
   * RTTI fix from Sebastian Guenther
 
   Revision 1.149  1999/08/10 13:22:08  pierre
