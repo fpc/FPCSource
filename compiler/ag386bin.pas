@@ -26,7 +26,7 @@
 unit ag386bin;
 
 {$define MULTIPASS}
-{$define EXTERNALBSS}
+{define EXTERNALBSS}
 
   interface
 
@@ -316,13 +316,14 @@ unit ag386bin;
     function ti386binasmlist.TreePass0(hp:pai):pai;
       var
         lastsec : tsection;
+        l : longint;
       begin
         while assigned(hp) do
          begin
            case hp^.typ of
              ait_align :
                begin
-                 if objectalloc^.sectionsize mod pai_align(hp)^.aligntype<>0 then
+                 if (objectalloc^.sectionsize mod pai_align(hp)^.aligntype)<>0 then
                    begin
                      pai_align(hp)^.fillsize:=pai_align(hp)^.aligntype-
                        (objectalloc^.sectionsize mod pai_align(hp)^.aligntype);
@@ -335,8 +336,20 @@ unit ag386bin;
                begin
 {$ifdef EXTERNALBSS}
                  if not pai_datablock(hp)^.is_global then
-                  objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+                  begin
+                     l:=pai_datablock(hp)^.size;
+                     if l>2 then
+                       objectalloc^.sectionalign(4)
+                     else if l>1 then
+                       objectalloc^.sectionalign(2);
+                     objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+                  end;
 {$else}
+                 l:=pai_datablock(hp)^.size;
+                 if l>2 then
+                   objectalloc^.sectionalign(4)
+                 else if l>1 then
+                   objectalloc^.sectionalign(2);
                  objectalloc^.sectionalloc(pai_datablock(hp)^.size);
 {$endif}
                end;
@@ -352,6 +365,12 @@ unit ag386bin;
                objectalloc^.sectionalloc(4);
              ait_real_80bit :
                objectalloc^.sectionalloc(10);
+             ait_comp :
+{$ifdef I386}
+               objectalloc^.sectionalloc(8);
+{$else not I386}
+               Message(asmw_f_comp_not_supported);
+{$endif I386}
              ait_const_rva,
              ait_const_symbol :
                objectalloc^.sectionalloc(4);
@@ -393,6 +412,8 @@ unit ag386bin;
 
 
     function ti386binasmlist.TreePass1(hp:pai):pai;
+      var
+        l : longint;
       begin
         while assigned(hp) do
          begin
@@ -410,7 +431,7 @@ unit ag386bin;
            case hp^.typ of
              ait_align :
                begin
-                 if objectalloc^.sectionsize mod pai_align(hp)^.aligntype<>0 then
+                 if (objectalloc^.sectionsize mod pai_align(hp)^.aligntype)<>0 then
                    begin
                      pai_align(hp)^.fillsize:=pai_align(hp)^.aligntype-
                        (objectalloc^.sectionsize mod pai_align(hp)^.aligntype);
@@ -431,16 +452,25 @@ unit ag386bin;
                   end
                  else
                   begin
+                    l:=pai_datablock(hp)^.size;
+                    if l>2 then
+                      objectalloc^.sectionalign(4)
+                    else if l>1 then
+                      objectalloc^.sectionalign(2);
                     pai_datablock(hp)^.sym^.typ:=AS_LOCAL;
                     pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,pai_datablock(hp)^.size);
+                    objectalloc^.sectionalloc(pai_datablock(hp)^.size);
                   end;
-                 if not pai_datablock(hp)^.is_global then
-                  objectalloc^.sectionalloc(pai_datablock(hp)^.size);
 {$else}
                  if pai_datablock(hp)^.is_global then
                   pai_datablock(hp)^.sym^.typ:=AS_GLOBAL
                  else
                   pai_datablock(hp)^.sym^.typ:=AS_LOCAL;
+                 l:=pai_datablock(hp)^.size;
+                 if l>2 then
+                   objectalloc^.sectionalign(4)
+                 else if l>1 then
+                   objectalloc^.sectionalign(2);
                  pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,pai_datablock(hp)^.size);
                  objectalloc^.sectionalloc(pai_datablock(hp)^.size);
 {$endif}
@@ -457,6 +487,12 @@ unit ag386bin;
                objectalloc^.sectionalloc(4);
              ait_real_80bit :
                objectalloc^.sectionalloc(10);
+             ait_comp :
+{$ifdef I386}
+               objectalloc^.sectionalloc(8);
+{$else not I386}
+               Message(asmw_f_comp_not_supported);
+{$endif I386}
              ait_const_rva,
              ait_const_symbol :
                objectalloc^.sectionalloc(4);
@@ -517,8 +553,6 @@ unit ag386bin;
                objectalloc^.sectionalloc(pai386(hp)^.Pass1(objectalloc^.sectionsize));
              ait_direct :
                Message(asmw_f_direct_not_supported);
-             ait_comp :
-               Message(asmw_f_comp_not_supported);
              ait_cut :
                break;
            end;
@@ -540,6 +574,9 @@ unit ag386bin;
         );
       var
         l,j : longint;
+{$ifdef I386}
+        co : comp;
+{$endif I386}
       begin
         { main loop }
         while assigned(hp) do
@@ -588,6 +625,11 @@ unit ag386bin;
                objectoutput^.writesymbol(pai_symbol(hp)^.sym);
              ait_datablock :
                begin
+                 l:=pai_datablock(hp)^.size;
+                 if l>2 then
+                   objectoutput^.writealign(4)
+                 else if l>1 then
+                   objectoutput^.writealign(2);
                  objectoutput^.writesymbol(pai_datablock(hp)^.sym);
 {$ifdef EXTERNALBSS}
                  if not pai_datablock(hp)^.is_global then
@@ -606,6 +648,13 @@ unit ag386bin;
                objectoutput^.writebytes(pai_single(hp)^.value,4);
              ait_real_80bit :
                objectoutput^.writebytes(pai_extended(hp)^.value,10);
+{$ifdef I386}
+             ait_comp :
+               begin
+                 co:=pai_comp(hp)^.value;
+                 objectoutput^.writebytes(co,8);
+               end;
+{$endif I386}
              ait_string :
                objectoutput^.writebytes(pai_string(hp)^.str^,pai_string(hp)^.len);
              ait_const_rva :
@@ -774,7 +823,12 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.5  1999-05-06 09:05:07  peter
+  Revision 1.6  1999-05-07 00:36:58  pierre
+    * added alignment code for .bss
+    * stabs correct but externalbss disabled
+      would need a special treatment in writestabs
+
+  Revision 1.5  1999/05/06 09:05:07  peter
     * generic write_float and str_float
     * fixed constant float conversions
 

@@ -49,6 +49,7 @@ unit og386;
          procedure setsection(sec:tsection);
          function  sectionsize:longint;
          procedure sectionalloc(l:longint);
+         procedure sectionalign(l:longint);
          procedure staballoc(p:pchar);
          procedure resetsections;
        end;
@@ -69,6 +70,7 @@ unit og386;
          procedure setsectionsizes(var s:tsecsize);virtual;
          procedure writebytes(var data;len:longint);virtual;
          procedure writealloc(len:longint);virtual;
+         procedure writealign(len:longint);virtual;
          procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);virtual;
          procedure writesymbol(p:pasmsymbol);virtual;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;
@@ -116,6 +118,13 @@ unit og386;
     procedure tobjectalloc.sectionalloc(l:longint);
       begin
         inc(secsize[currsec],l);
+      end;
+
+
+    procedure tobjectalloc.sectionalign(l:longint);
+      begin
+        if (secsize[currsec] mod l)<>0 then
+          inc(secsize[currsec],l-(secsize[currsec] mod l));
       end;
 
 
@@ -245,6 +254,11 @@ unit og386;
         RunError(211);
       end;
 
+    procedure tobjectoutput.writealign(len:longint);
+      begin
+        RunError(211);
+      end;
+
    procedure tobjectoutput.writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);
       begin
         RunError(211);
@@ -253,7 +267,12 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.5  1999-05-05 22:21:57  peter
+  Revision 1.6  1999-05-07 00:36:56  pierre
+    * added alignment code for .bss
+    * stabs correct but externalbss disabled
+      would need a special treatment in writestabs
+
+  Revision 1.5  1999/05/05 22:21:57  peter
     * updated messages
 
   Revision 1.4  1999/05/05 17:34:30  peter

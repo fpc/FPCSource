@@ -128,6 +128,7 @@ unit og386cff;
          procedure setsectionsizes(var s:tsecsize);virtual;
          procedure writebytes(var data;len:longint);virtual;
          procedure writealloc(len:longint);virtual;
+         procedure writealign(len:longint);virtual;
          procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);virtual;
          procedure writesymbol(p:pasmsymbol);virtual;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;
@@ -473,6 +474,17 @@ unit og386cff;
       end;
 
 
+    procedure tgenericcoffoutput.writealign(len:longint);
+      var modulo : longint;
+      begin
+        if not assigned(sects[currsec]) then
+         createsection(currsec);
+        modulo:=sects[currsec]^.len mod len;
+        if modulo > 0 then
+          sects[currsec]^.alloc(len-modulo);
+      end;
+
+
     procedure tgenericcoffoutput.writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);
       var
         symaddr : longint;
@@ -537,9 +549,11 @@ unit og386cff;
         stab : coffstab;
         s : tsection;
       begin
+        { This is wrong because
+          sec_none is used only for external bss
         if section=sec_none then
          s:=currsec
-        else
+        else }
          s:=section;
         { local var can be at offset -1 !! PM }
         if reloc then
@@ -588,8 +602,10 @@ unit og386cff;
               else
                rel.sym:=r^.symbol^.idx+initsym;
             end
+           else if r^.section<>sec_none then
+            rel.sym:=2*sects[r^.section]^.secidx
            else
-            rel.sym:=2*sects[r^.section]^.secidx;
+            rel.sym:=0;
            case r^.relative of
              relative_true  : rel.relative:=$14;
              relative_false : rel.relative:=$6;
@@ -884,7 +900,12 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.3  1999-05-05 17:34:31  peter
+  Revision 1.4  1999-05-07 00:36:57  pierre
+    * added alignment code for .bss
+    * stabs correct but externalbss disabled
+      would need a special treatment in writestabs
+
+  Revision 1.3  1999/05/05 17:34:31  peter
     * output is more like as 2.9.1
     * stabs really working for go32v2
 
