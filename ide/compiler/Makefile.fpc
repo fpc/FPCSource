@@ -7,7 +7,7 @@ units=compunit
 
 [compiler]
 targetdir=.
-unitdir=$(COMPILERDIR) $(COMPILERDIR)/$(CPU_TARGET) $(COMPILERDIR)/targets
+unitdir=$(COMPILERDIR) $(COMPILERDIR)/$(CPU_TARGET) $(COMPILERDIR)/targets $(COMPILERDIR)/systems
 includedir=$(COMPILERDIR) $(COMPILERDIR)/$(CPU_TARGET)
 
 [install]
