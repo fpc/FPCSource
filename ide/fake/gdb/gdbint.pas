@@ -86,6 +86,8 @@ type
     { functions }
     function  error:boolean;
     function  error_num:longint;
+    function  get_current_frame : longint;
+    function  set_current_frame(level : longint) : boolean;
     procedure DebuggerScreen;
     procedure UserScreen;
     { Hooks }
@@ -133,6 +135,16 @@ end;
 function tgdbinterface.error_num:longint;
 begin
   error_num:=0;
+end;
+
+function TGDBInterface.get_current_frame : longint;
+begin
+  get_current_frame:=0;
+end;
+
+function TGDBInterface.set_current_frame(level : longint) : boolean;
+begin
+  set_current_frame:=true;
 end;
 
 procedure TGDBInterface.Clear_Frames;
@@ -286,7 +298,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-11-25 20:22:59  peter
+  Revision 1.7  2000-02-07 13:19:43  pierre
+   + Set_current_frame/Get_current_frame dummies
+
+  Revision 1.6  1999/11/25 20:22:59  peter
     * package dependencies
 
   Revision 1.5  1999/09/10 08:44:20  peter
@@ -307,4 +322,3 @@ end.
     * updated
 
 }
-
