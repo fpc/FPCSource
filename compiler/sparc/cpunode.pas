@@ -37,7 +37,7 @@ the behaviour of such a unit having just a USES clause!}
 IMPLEMENTATION
 USES
   ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,{ncgset,}
-  naddcpu,{n386cal,n386con,n386cnv,n386flw,n386mat,n386mem,}
+  naddcpu,ncpucall,{n386con,n386cnv,n386flw,n386mat,n386mem,}
   {n386set,n386inl,n386opt,}ncpucnv,
   { this not really a node }
   {nSPARCobj,}rgcpu;

@@ -1,8 +1,7 @@
-{
-    $Id$
+{    $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Generate PowerPC assembler for type converting nodes
+    Generate SPARC assembler for type converting nodes
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,8 +17,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- ****************************************************************************
-}
+ ****************************************************************************}
 unit ncpucnv;
 
 {$i fpcdefs.inc}
@@ -30,7 +28,7 @@ interface
       node,ncnv,ncgcnv,defbase;
 
     type
-       TSparctypeconvnode = class(tcgtypeconvnode)
+       TSparcTypeConvNode = class(TCgTypeConvNode)
          protected
           procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
@@ -423,7 +421,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-08-29 10:16:20  mazen
+  Revision 1.2  2002-08-30 06:15:27  mazen
+  ncgcall.pas moved to ncpucall.pas (I'd like ncpu* insteade of nsparc* since it
+  provides processor independent units naming)
+
+  Revision 1.1  2002/08/29 10:16:20  mazen
   File added support to the new generic parameter handling
 
   Revision 1.24  2002/08/23 16:14:50  peter
