@@ -29,6 +29,11 @@ interface
        maxidlen = 64;
 
     type
+{$ifdef ver1_0}
+       { Bootstrapping }
+       PtrInt = DWord;
+       SizeInt = Longint;
+{$endif ver1_0}
 
        { Switches which can be changed locally }
        tlocalswitch = (cs_localnone,
@@ -242,7 +247,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2004-04-29 19:56:36  daniel
+  Revision 1.54  2004-05-02 11:48:46  peter
+    * strlenint is replaced with sizeint
+
+  Revision 1.53  2004/04/29 19:56:36  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.52  2004/04/28 15:19:03  florian
