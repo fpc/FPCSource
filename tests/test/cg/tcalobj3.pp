@@ -1,3 +1,6 @@
+{ %FAIL }
+{ this test should fail at compilation
+  because cdecl and virtual are incompatible PM }
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {  Copyright (c) 2002 Carl Eric Codere                           }
@@ -3294,7 +3297,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:53  peter
+  Revision 1.4  2002-10-21 08:03:14  pierre
+   * added %FAIL because cdecl and virtual are not compatible
+
+  Revision 1.3  2002/09/07 15:40:53  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/05/05 19:13:19  carl
