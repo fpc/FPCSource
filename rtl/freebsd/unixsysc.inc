@@ -746,9 +746,47 @@ begin
   LinuxError:=ErrNo;
 end;
 
+Function SetITimer(Which : Longint;Const value : ItimerVal; VarOValue:ItimerVal):Longint;
+
+Begin
+ SetItimer:=Do_Syscall(syscall_nr_setitimer,Which,Longint(@Value),longint(@value));
+ LinuxError:=ErrNo;
+End;
+
+
+Function GetITimer(Which : Longint;Var value : ItimerVal):Longint;
+
+Begin
+ GetItimer:=Do_Syscall(syscall_nr_getItimer,Which,Longint(@value));
+ LinuxError:=ErrNo;
+End;
+
+
+Function Alarm(Sec: Longint):Longint;
+
+Var it,oitv : Itimerval;
+    
+Begin
+//	register struct itimerval *itp = &it;
+  
+ it.it_interval.sec:=0; 
+ it.it_interval.usec:=0;
+ it.it_value.sec:=sec; 
+ it.it_value.usec:=0;
+ If SetITimer(ITIMER_REAL,it,oitv)<0 Then
+   Exit(-1);
+ 
+ if oitv.it_value.usec<>0 Then
+   Inc(oitv.it_value.sec);
+ Alarm:=oitv.it_value.sec;
+End; 
+
 {
   $Log$
-  Revision 1.3  2001-06-19 08:59:01  marco
+  Revision 1.4  2002-05-06 09:35:09  marco
+   * Some stuff from 1.0.x ported
+
+  Revision 1.3  2001/06/19 08:59:01  marco
    * Fixes from Unix merge and changes of socketh.inc
 
   Revision 1.2  2001/06/02 00:31:30  peter

@@ -80,9 +80,8 @@ const
  syscall_nr_setgroups                   = 80;
  syscall_nr_getpgrp                     = 81;
  syscall_nr_setpgid                     = 82;
- syscall_nr_setitimer                   = 83;
  syscall_nr_swapon                      = 85;
- syscall_nr_getitimer                   = 86;
+
  syscall_nr_getdtablesize               = 89;
  syscall_nr_dup2                        = 90;
  syscall_nr_fcntl                       = 92;
@@ -242,6 +241,9 @@ syscall_nr_getdirentries                =196;
 }
 
 {More or less checked BSD syscalls}
+ syscall_nr_getitimer                   = 86;
+ syscall_nr_setitimer                   = 83;
+
  syscall_nr_sysarch                     = 165;
  syscall_nr_accept                      =  30;
  syscall_nr_access                      =  33;
@@ -316,7 +318,10 @@ syscall_nr_getdirentries                =196;
 
 {
   $Log$
-  Revision 1.4  2001-01-22 07:25:10  marco
+  Revision 1.5  2002-05-06 09:35:09  marco
+   * Some stuff from 1.0.x ported
+
+  Revision 1.4  2001/01/22 07:25:10  marco
    * IOPERM for FreeBSD. Port routines moved from linsysca to Unix again .
 
   Revision 1.3  2000/10/26 23:00:12  peter

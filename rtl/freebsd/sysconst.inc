@@ -100,12 +100,21 @@ Const
   CLONE_FILES   = $00000400; // set if open files shared between processes
   CLONE_SIGHAND = $00000800; // set if signal handlers shared
   CLONE_PID     = $00001000; // set if pid shared
+
+  ITimer_Real    =0;
+  ITimer_Virtual =1;
+  ITimer_Prof    =2;
+
 type
   TCloneFunc=function(args:pointer):longint;cdecl;
 
+
 {
   $Log$
-  Revision 1.5  2001-10-14 13:33:20  peter
+  Revision 1.6  2002-05-06 09:35:09  marco
+   * Some stuff from 1.0.x ported
+
+  Revision 1.5  2001/10/14 13:33:20  peter
     * start of thread support for linux
 
   Revision 1.4  2001/06/19 08:34:16  marco
