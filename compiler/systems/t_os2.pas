@@ -191,9 +191,9 @@ function aout_sym(const name:string;typ,other:byte;desc:word;
 
 begin
     if aout_str_size+length(name)+1>sizeof(aout_str_tab) then
-        Do_halt($da);
+        Stop($da);
     if aout_sym_count>=sizeof(aout_sym_tab) div sizeof(aout_sym_tab[0]) then
-        Do_halt($da);
+        Stop($da);
     aout_sym_tab[aout_sym_count].strofs:=aout_str_size;
     aout_sym_tab[aout_sym_count].typ:=typ;
     aout_sym_tab[aout_sym_count].other:=other;
@@ -209,7 +209,7 @@ procedure aout_text_byte(b:byte);
 
 begin
     if aout_text_size>=sizeof(aout_text) then
-        Do_halt($da);
+        Stop($da);
     aout_text[aout_text_size]:=b;
     inc(aout_text_size);
 end;
@@ -229,7 +229,7 @@ procedure aout_treloc(address,symbolnum,pcrel,len,ext:longint);
 
 begin
     if aout_treloc_count>=sizeof(aout_treloc_tab) div sizeof(reloc) then
-        Do_halt($da);
+        Stop($da);
     aout_treloc_tab[aout_treloc_count].address:=address;
     aout_treloc_tab[aout_treloc_count].remaining:=symbolnum+pcrel shl 24+
      len shl 25+ext shl 27;
@@ -518,7 +518,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2004-06-20 08:55:32  florian
+  Revision 1.9  2004-09-08 11:23:31  michael
+  + Check if outputdir exists,  Fix exitcode when displaying help pages
+
+  Revision 1.8  2004/06/20 08:55:32  florian
     * logs truncated
 
 }

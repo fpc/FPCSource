@@ -152,7 +152,7 @@ end;
                                  Toption
 ****************************************************************************}
 
-procedure StopOptions;
+procedure StopOptions(err:longint);
 begin
   if assigned(Option) then
    begin
@@ -160,7 +160,7 @@ begin
      Option:=nil;
    end;
   DoneVerbose;
-  Stop;
+  Stop(err);
 end;
 
 
@@ -201,7 +201,7 @@ begin
      else
       Comment(V_Normal,s);
    end;
-  StopOptions;
+  StopOptions(0);
 end;
 
 
@@ -321,7 +321,7 @@ begin
               Message(option_help_press_enter);
               readln(input);
               if upper(input)='Q' then
-               StopOptions;
+               StopOptions(0);
             end;
            lines:=0;
          end;
@@ -330,7 +330,7 @@ begin
         inc(Lines);
       end;
    end;
-  StopOptions;
+  StopOptions(0);
 end;
 
 
@@ -338,7 +338,7 @@ procedure Toption.IllegalPara(const opt:string);
 begin
   Message1(option_illegal_para,opt);
   Message(option_help_pages_para);
-  StopOptions;
+  StopOptions(1);
 end;
 
 
@@ -1198,7 +1198,7 @@ begin
     '@' :
       begin
         Message(option_no_nested_response_file);
-        StopOptions;
+        StopOptions(1);
       end;
 
     else
@@ -1293,7 +1293,7 @@ begin
                if Level>=maxlevel then
                 begin
                   Message(option_too_many_ifdef);
-                  stopOptions;
+                  stopOptions(1);
                 end;
                inc(Level);
                skip[level]:=(skip[level-1] or (not check_symbol(upper(GetName(opts)))));
@@ -1305,7 +1305,7 @@ begin
                if Level>=maxlevel then
                 begin
                   Message(option_too_many_ifdef);
-                  stopOptions;
+                  stopOptions(1);
                 end;
                inc(Level);
                skip[level]:=(skip[level-1] or (check_symbol(upper(GetName(opts)))));
@@ -1320,7 +1320,7 @@ begin
                if Level=0 then
                 begin
                   Message(option_too_many_endif);
-                  stopOptions;
+                  stopOptions(1);
                 end;
                dec(level);
              end
@@ -1571,7 +1571,7 @@ begin
   if s<>'' then
    begin
      writeln(s);
-     stopoptions;
+     stopoptions(1);
    end;
 end;
 
@@ -1887,7 +1887,7 @@ begin
 
 { Stop if errors in options }
   if ErrorCount>0 then
-   StopOptions;
+   StopOptions(1);
 
   { Non-core target defines }
   Option.TargetDefines(true);
@@ -1927,7 +1927,7 @@ begin
   if param_file='' then
    begin
      Message(option_no_source_found);
-     StopOptions;
+     StopOptions(1);
    end;
 {$ifndef Unix}
   param_file:=FixFileName(param_file);
@@ -1942,6 +1942,14 @@ begin
      else if (m_mac in aktmodeswitches) and FileExists(inputdir+inputfile+'.p') then
        inputextension:='.p';
    end;
+
+  { Check output dir }
+  if (OutputExeDir<>'') and
+     not PathExists(OutputExeDir) then
+    begin
+      Message1(general_e_path_does_not_exists,OutputExeDir);
+      StopOptions(1);
+    end;
 
   { Add paths specified with parameters to the searchpaths }
   UnitSearchPath.AddList(option.ParaUnitPath,true);
@@ -2079,7 +2087,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.139  2004-08-27 21:59:26  peter
+  Revision 1.140  2004-09-08 11:23:31  michael
+  + Check if outputdir exists,  Fix exitcode when displaying help pages
+
+  Revision 1.139  2004/08/27 21:59:26  peter
   browser disabled
   uf_local_symtable ppu flag when a localsymtable is stored
 

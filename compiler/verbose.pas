@@ -78,7 +78,7 @@ interface
 
     function  CheckVerbosity(v:longint):boolean;
     procedure SetCompileModule(p:tmodulebase);
-    procedure Stop;
+    procedure Stop(err:longint);
     procedure ShowStatus;
     function  ErrorCount:longint;
     procedure SetErrorFlags(const s:string);
@@ -374,9 +374,9 @@ var
       end;
 
 
-    procedure stop;
+    procedure stop(err:longint);
       begin
-        do_stop{$ifdef FPCPROCVAR}(){$endif};
+        do_stop(err);
       end;
 
 
@@ -384,7 +384,7 @@ var
       begin
         UpdateStatus;
         if do_status{$ifdef FPCPROCVAR}(){$endif} then
-         stop;
+         stop(1);
       end;
 
 
@@ -443,7 +443,7 @@ var
         UpdateStatus;
         do_internalerror(i);
         inc(status.errorcount);
-        stop;
+        stop(1);
       end;
 
 
@@ -468,12 +468,12 @@ var
         DefaultReplacements(s);
       { show comment }
         if do_comment(l,s) or dostop then
-         stop;
+         stop(1);
         if (status.errorcount>=status.maxerrorcount) and not status.skip_error then
          begin
            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
            status.skip_error:=true;
-           stop;
+           stop(1);
          end;
       end;
 
@@ -559,12 +559,12 @@ var
         DefaultReplacements(s);
       { show comment }
         if do_comment(v,s) or dostop then
-         stop;
+         stop(1);
         if (status.errorcount>=status.maxerrorcount) and not status.skip_error then
          begin
            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
            status.skip_error:=true;
-           stop;
+           stop(1);
          end;
       end;
 
@@ -873,7 +873,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.32  2004-06-20 08:55:30  florian
+  Revision 1.33  2004-09-08 11:23:31  michael
+  + Check if outputdir exists,  Fix exitcode when displaying help pages
+
+  Revision 1.32  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.31  2004/02/23 15:59:46  peter

@@ -97,8 +97,7 @@ var
   status : tcompilerstatus;
 
 { Default Functions }
-procedure def_stop;
-procedure def_halt(i : longint);
+procedure def_stop(err:longint);
 Function  def_status:boolean;
 Function  def_comment(Level:Longint;const s:string):boolean;
 function  def_internalerror(i:longint):boolean;
@@ -116,8 +115,7 @@ procedure def_gdb_stop(level : longint);
 {$endif DEBUG}
 { Function redirecting for IDE support }
 type
-  tstopprocedure         = procedure;
-  thaltprocedure         = procedure(i : longint);
+  tstopprocedure         = procedure(err:longint);
   tstatusfunction        = function:boolean;
   tcommentfunction       = function(Level:Longint;const s:string):boolean;
   tinternalerrorfunction = function(i:longint):boolean;
@@ -130,7 +128,6 @@ type
 
 const
   do_stop          : tstopprocedure   = {$ifdef FPCPROCVAR}@{$endif}def_stop;
-  do_halt          : thaltprocedure   = {$ifdef FPCPROCVAR}@{$endif}def_halt;
   do_status        : tstatusfunction  = {$ifdef FPCPROCVAR}@{$endif}def_status;
   do_comment       : tcommentfunction = {$ifdef FPCPROCVAR}@{$endif}def_comment;
   do_internalerror : tinternalerrorfunction = {$ifdef FPCPROCVAR}@{$endif}def_internalerror;
@@ -188,9 +185,9 @@ end;
 ****************************************************************************}
 
 { predefined handler when then compiler stops }
-procedure def_stop;
+procedure def_stop(err:longint);
 begin
-  Halt(1);
+  Halt(err);
 end;
 
 {$ifdef DEBUG}
@@ -204,10 +201,6 @@ begin
 end;
 {$endif DEBUG}
 
-procedure def_halt(i : longint);
-begin
-  halt(i);
-end;
 
 function def_status:boolean;
 begin
@@ -385,7 +378,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2004-06-20 08:55:29  florian
+  Revision 1.28  2004-09-08 11:23:30  michael
+  + Check if outputdir exists,  Fix exitcode when displaying help pages
+
+  Revision 1.27  2004/06/20 08:55:29  florian
     * logs truncated
 
 }

@@ -244,12 +244,12 @@ var
   olddo_stop : tstopprocedure;
 
 {$ifdef USEEXCEPT}
-procedure RecoverStop;
+procedure RecoverStop(err:longint);
 begin
   if recoverpospointer<>nil then
     LongJmp(recoverpospointer^,1)
   else
-    Do_Halt(1);
+    Stop(err);
 end;
 {$endif USEEXCEPT}
 
@@ -326,10 +326,10 @@ begin
   CompilerInitedAfterArgs:=true;
 end;
 
-procedure minimal_stop;
+procedure minimal_stop(err:longint);
 begin
   DoneCompiler;
-  olddo_stop{$ifdef FPCPROCVAR}(){$endif};
+  olddo_stop{$ifdef FPCPROCVAR}(err){$endif};
 end;
 
 
@@ -429,7 +429,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.46  2004-09-04 21:18:47  armin
+  Revision 1.47  2004-09-08 11:23:31  michael
+  + Check if outputdir exists,  Fix exitcode when displaying help pages
+
+  Revision 1.46  2004/09/04 21:18:47  armin
   * target netwlibc added (libc is preferred for newer netware versions)
 
   Revision 1.45  2004/06/20 08:55:29  florian

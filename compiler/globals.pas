@@ -588,6 +588,11 @@ implementation
         Info : SearchRec;
         disk : byte;
       begin
+        if F='' then
+          begin
+            result:=true;
+            exit;
+          end;
         { these operating systems have dos type drives }
         if source_info.system in [system_m68k_atari,system_i386_go32v2,
                                   system_i386_win32,system_i386_os2,
@@ -1211,7 +1216,6 @@ implementation
 
    function FindFilePchar(const f : string;path : pchar;var foundfile:string):boolean;
       Var
-        flower,
         singlepathstring : string;
         startpc,pc : pchar;
         sepch : char;
@@ -1786,7 +1790,9 @@ implementation
      var
        hs1 : namestr;
        hs2 : extstr;
+{$ifdef need_path_search}
        p   : pchar;
+{$endif need_path_search}
      begin
 {$ifdef delphi}
        exepath:=dmisc.getenv('PPC_EXEC_PATH');
@@ -1954,7 +1960,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.137  2004-08-31 22:02:30  olle
+  Revision 1.138  2004-09-08 11:23:31  michael
+  + Check if outputdir exists,  Fix exitcode when displaying help pages
+
+  Revision 1.137  2004/08/31 22:02:30  olle
     + support for quoting of paths in TSearchPathList.AddPath so that
       compiler directives which take paths, will support quotes.
     * uppdated TranslateMacPath
