@@ -45,6 +45,7 @@ type
   TGDBInterface=object
     gdberrorbuf,
     gdboutputbuf  : tgdbbuffer;
+    command_level,
     got_error,
     reset_command,
     call_reset,
@@ -98,7 +99,9 @@ type
     init_count : longint;
     constructor Init;
     destructor  Done;
+    procedure CommandBegin(const s:string);virtual;
     procedure Command(const s:string);
+    procedure CommandEnd(const s:string);virtual;
     procedure Reset;virtual;
     procedure StartTrace;
     procedure Run;virtual;
@@ -156,6 +159,13 @@ procedure TGDBController.Command(const s:string);
 begin
 end;
 
+procedure TGDBController.CommandBegin;
+begin
+end;
+
+procedure TGDBController.CommandEnd;
+begin
+end;
 
 procedure TGDBController.Reset;
 begin
@@ -379,7 +389,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-02-10 09:00:43  pierre
+  Revision 1.8  1999-02-11 11:41:26  pierre
+  gdbpas/gdbint/gdbint.pp
+
+  Revision 1.7  1999/02/10 09:00:43  pierre
      * duplicate call_reset removed
      * frames allocation and freeing corrected
      + GetError and GetOutput pchar function added
