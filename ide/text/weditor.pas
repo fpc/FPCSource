@@ -123,10 +123,15 @@ const
       eaDeleteLine        = 4;
       eaDeleteText        = 5;
       eaSelectionChanged  = 6;
-      LastAction          = eaSelectionChanged;
+      eaCut               = 7;
+      eaCopy              = 8;
+      eaPaste             = 9;
+      eaClear             = 10;
+      LastAction          = eaClear;
 
       ActionString : array [0..LastAction] of string[8] =
-        ('','Move','InsLine','InsText','DelLine','DelText','SelCh');
+        ('','Move','InsLine','InsText','DelLine','DelText',
+         'SelCh','Cut','Copy','Paste','Clear');
 
       CIndicator    = #2#3#1;
       CEditor       = #33#34#35#36#37#38#39#40#41#42#43#44#45#46#47#48#49;
@@ -198,6 +203,7 @@ type
 
     PEditorActionCollection = ^TEditorActionCollection;
     TEditorActionCollection = object(TCollection)
+      function At(Idx : sw_integer) : PEditorAction;
       procedure FreeItem(Item: Pointer); virtual;
     end;
 {$endif Undo}
@@ -4057,11 +4063,14 @@ begin
 end;
 
 procedure TCodeEditor.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string);
+{$ifdef Undo}
 var
   ActionIntegrated : boolean;
   pa : PEditorAction;
   S : String;
+{$endif Undo}
 begin
+{$ifdef Undo}
   if (UndoList=nil) or (not StoreUndo) then Exit;
   ActionIntegrated:=false;
   if UndoList^.count>0 then
@@ -4097,6 +4106,7 @@ begin
     UpdateUndoRedo(cmRedo,0);
     RedoList^.FreeAll;
   end;
+{$endif Undo}
 end;
 
 function TCodeEditor.ValidBlock: boolean;
@@ -4373,11 +4383,6 @@ begin
   DisposeStr(Text);
 end;
 
-function TEditorActionCollection.At(Idx : sw_integer) : PEditorAction;
-begin
-  At:=PEditorAction(Inherited At(Idx));
-end;
-
 {$else}
 procedure TEditorActionCollection.FreeItem(Item: Pointer);
 begin
@@ -4385,6 +4390,11 @@ begin
     freemem(Item,Sizeof(TEditorAction));
 end;
 {$endif Undo}
+
+function TEditorActionCollection.At(Idx : sw_integer) : PEditorAction;
+begin
+  At:=PEditorAction(Inherited At(Idx));
+end;
 
 constructor TFileEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
        PScrollBar; AIndicator: PIndicator;const AFileName: string);
@@ -4918,8 +4928,8 @@ end;
 END.
 {
   $Log$
-  Revision 1.57  1999-10-28 11:15:50  pierre
-   * do not agregate Insert/DeleteLine Undos
+  Revision 1.58  1999-10-28 15:14:22  pierre
+   * get it to compile with debug conditional
 
   Revision 1.56  1999/10/27 13:32:58  pierre
    * some more Undo Fixes
