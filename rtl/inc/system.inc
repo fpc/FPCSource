@@ -508,7 +508,7 @@ Type
 begin
   If AbstractErrorProc<>nil then
     TAbstractErrorProc(AbstractErrorProc);
-  RunError(211);
+  HandleError(211);
 end;
 
 
@@ -547,7 +547,10 @@ end;
 
 {
   $Log$
-  Revision 1.58  1999-05-17 21:52:39  florian
+  Revision 1.59  1999-06-05 20:45:12  michael
+  + AbstractErro should call HandleError, not runerror.
+
+  Revision 1.58  1999/05/17 21:52:39  florian
     * most of the Object Pascal stuff moved to the system unit
 
   Revision 1.57  1999/04/17 13:10:25  peter
