@@ -117,7 +117,7 @@ unit syswin32;
                    cmdline:=cmdline+1;
                 end
               else
-		quote:=[' ',#9];
+                quote:=[' ',#9];
               if cmdline^=#0 then
                 break;
               inc(count);
@@ -155,7 +155,7 @@ unit syswin32;
                         cmdline:=cmdline+1;
                      end
                    else
-		     quote:=[' ',#9];
+                     quote:=[' ',#9];
                    if cmdline^=#0 then
                      break;
                    if count=l then
@@ -317,9 +317,9 @@ procedure do_open(var f;p : pchar;flags:longint);
      begin
        case filerec(f).mode of
           fminput,fmoutput,fminout:
-	    Do_Close(filerec(f).handle);
+            Do_Close(filerec(f).handle);
           fmclosed:
-	    ;
+            ;
        else
         begin
           {not assigned}
@@ -339,12 +339,12 @@ procedure do_open(var f;p : pchar;flags:longint);
          end;
        1:
          begin
-	    filerec(f).mode:=fmoutput;
+            filerec(f).mode:=fmoutput;
             oflags:=GENERIC_WRITE;
          end;
        2:
          begin
-	    filerec(f).mode:=fminout;
+            filerec(f).mode:=fminout;
             oflags:=GENERIC_WRITE or GENERIC_READ;
          end;
     end;
@@ -364,10 +364,10 @@ procedure do_open(var f;p : pchar;flags:longint);
      begin
         case filerec(f).mode of
            fminput:
-	     filerec(f).handle:=StdInputHandle;
+             filerec(f).handle:=StdInputHandle;
            fmappend,
            fmoutput:
-	     begin
+             begin
                 filerec(f).handle:=StdOutputHandle;
                 filerec(f).mode:=fmoutput; {fool fmappend}
              end;
@@ -468,8 +468,9 @@ procedure getdir(drivenr:byte;var dir:string);
                          SystemUnit Initialization
 *****************************************************************************}
 
-procedure Entry;[public,alias: '_mainCRTStartup'];
+{$ASMMODE DIRECT}
 
+procedure Entry;[public,alias: '_mainCRTStartup'];
 begin
    { call to the pascal main }
    asm
@@ -478,6 +479,8 @@ begin
    { that's all folks }
    ExitProcess(0);
 end;
+
+{$ASMMODE ATT}
 
 
 procedure OpenStdIO(var f:text;mode:word;hdl:longint);
@@ -543,7 +546,11 @@ end.
 
 {
   $Log$
-  Revision 1.7  1998-05-06 12:36:51  michael
+  Revision 1.8  1998-06-08 23:07:47  peter
+    * dos interface is now 100% compatible
+    * fixed call PASCALMAIN which must be direct asm
+
+  Revision 1.7  1998/05/06 12:36:51  michael
   + Removed log from before restored version.
 
   Revision 1.6  1998/04/27 18:29:09  florian

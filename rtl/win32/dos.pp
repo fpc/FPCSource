@@ -1,9 +1,9 @@
 {
     $Id$
-    This unit mimics the DOS unit for Win32
-
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team.
+    Copyright (c) 1993,97 by the Free Pascal development team.
+
+    Dos unit for BP7 compatible RTL
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,334 +13,304 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+unit dos;
 
 {$I os.inc}
 
-unit dos;
+interface
 
-  interface
+Const
+  {Bitmasks for CPU Flags}
+  fcarry     = $0001;
+  fparity    = $0004;
+  fauxiliary = $0010;
+  fzero      = $0040;
+  fsign      = $0080;
+  foverflow  = $0800;
 
-    uses
-       strings;
+  {Bitmasks for file attribute}
+  readonly  = $01;
+  hidden    = $02;
+  sysfile   = $04;
+  volumeid  = $08;
+  directory = $10;
+  archive   = $20;
+  anyfile   = $3F;
 
-    const
-       { bit masks for file attributes }
-       readonly = $01;
-       hidden = $02;
-       sysfile = $04;
-       volumeid = $08;
-       directory = $10;
-       archive = $20;
-       anyfile = $3F;
-       fmclosed = $D7B0;
-       fminput = $D7B1;
-       fmoutput = $D7B2;
-       fminout = $D7B3;
+  {File Status}
+  fmclosed = $D7B0;
+  fminput  = $D7B1;
+  fmoutput = $D7B2;
+  fminout  = $D7B3;
 
-    type
-       { some string types }
-       comstr = string;          { command line string     }
-       pathstr = string;         { string for a file path  }
-       dirstr = string;          { string for a directory  }
-       namestr = string;         { string for a file name  }
-       extstr = string;          { string for an extension }
 
-       { search record which is used by findfirst and findnext }
-       { it is compatible with the DOS version                 }
-       { if the fields are access using there names            }
-       { the fields have another order                         }
-{$PACKRECORDS 1}
-       searchrec = record
-          time : longint;
-          size : longint;
-          attr : longint;
-          name : string;
-       end;
+Type
+{ Needed for Win95 LFN Support }
+  ComStr  = String[255];
+  PathStr = String[255];
+  DirStr  = String[255];
+  NameStr = String[255];
+  ExtStr  = String[255];
 
-{$PACKRECORDS 2}
-
-       { file record for untyped files comes from filerec.inc}
-       {$i filerec.inc}
-
-       { file record for text files  comes from textrec.inc}
-       {$i textrec.inc}
-
-{$PACKRECORDS 1}
-       { record for date and time }
-       datetime = record
-          year,month,day,hour,min,sec : word;
-       end;
-
-    var
-       { error variable }
-       doserror : longint;
-
-    procedure getdate(var year,month,day,dayofweek : word);
-    procedure gettime(var hour,minute,second,sec100 : word);
-    function dosversion : word;
-    procedure setdate(year,month,day : word);
-    procedure settime(hour,minute,second,sec100 : word);
-//    procedure getcbreak(var breakvalue : boolean);
-//    procedure setcbreak(breakvalue : boolean);
-//    procedure getverify(var verify : boolean);
-//    procedure setverify(verify : boolean);
-//    function diskfree(drive : byte) : longint;
-//    function disksize(drive : byte) : longint;
-    procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
-    procedure findnext(var f : searchRec);
-
-    { is a dummy in win32 }
-    procedure swapvectors;
-
-{   not supported:
-    procedure getintvec(intno : byte;var vector : pointer);
-    procedure setintvec(intno : byte;vector : pointer);
-    procedure keep(exitcode : word);
-    procedure msdos(var regs : registers);
-    procedure intr(intno : byte;var regs : registers);
+{
+  filerec.inc contains the definition of the filerec.
+  textrec.inc contains the definition of the textrec.
+  It is in a separate file to make it available in other units without
+  having to use the DOS unit for it.
 }
+{$i filerec.inc}
+{$i textrec.inc}
 
-    procedure getfattr(var f;var attr : word);
-    procedure setfattr(var f;attr : word);
+  DateTime = packed record
+    Year,
+    Month,
+    Day,
+    Hour,
+    Min,
+    Sec   : word;
+  End;
 
-    function fsearch(const path : pathstr;dirlist : string) : pathstr;
-    procedure getftime(var f;var time : longint);
-//    procedure setftime(var f;time : longint);
-    procedure packtime (var d: datetime; var time: longint);
-    procedure unpacktime (time: longint; var d: datetime);
-    function fexpand(const path : pathstr) : pathstr;
-    procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;
-      var ext : extstr);
-//    procedure exec(const path : pathstr;const comline : comstr);
-    function dosexitcode : word;
-    function envcount : longint;
-    function envstr(index : longint) : string;
-    function getenv(const envvar : string): string;
+  searchrec = packed record
+     time : longint;
+     size : longint;
+     attr : longint;
+     name : string;
+  end;
 
-  implementation
+  registers = packed record
+    case i : integer of
+     0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
+     1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
+     2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
+    end;
+
+Var
+  DosError : integer;
+
+{Interrupt}
+Procedure Intr(intno: byte; var regs: registers);
+Procedure MSDos(var regs: registers);
+
+{Info/Date/Time}
+Function  DosVersion: Word;
+Procedure GetDate(var year, month, mday, wday: word);
+Procedure GetTime(var hour, minute, second, sec100: word);
+procedure SetDate(year,month,day: word);
+Procedure SetTime(hour,minute,second,sec100: word);
+Procedure UnpackTime(p: longint; var t: datetime);
+Procedure PackTime(var t: datetime; var p: longint);
+
+{Exec}
+Procedure Exec(const path: pathstr; const comline: comstr);
+Function  DosExitCode: word;
+
+{Disk}
+Function  DiskFree(drive: byte) : longint;
+Function  DiskSize(drive: byte) : longint;
+Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
+Procedure FindNext(var f: searchRec);
+Procedure FindClose(Var f: SearchRec);
+
+{File}
+Procedure GetFAttr(var f; var attr: word);
+Procedure GetFTime(var f; var time: longint);
+Function  FSearch(path: pathstr; dirlist: string): pathstr;
+Function  FExpand(const path: pathstr): pathstr;
+Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
+
+{Environment}
+Function  EnvCount: longint;
+Function  EnvStr(index: integer): string;
+Function  GetEnv(envvar: string): string;
+
+{Misc}
+Procedure SetFAttr(var f; attr: word);
+Procedure SetFTime(var f; time: longint);
+Procedure GetCBreak(var breakvalue: boolean);
+Procedure SetCBreak(breakvalue: boolean);
+Procedure GetVerify(var verify: boolean);
+Procedure SetVerify(verify: boolean);
+
+{Do Nothing Functions}
+Procedure SwapVectors;
+Procedure GetIntVec(intno: byte; var vector: pointer);
+Procedure SetIntVec(intno: byte; vector: pointer);
+Procedure Keep(exitcode: word);
+
+implementation
+uses strings;
 
 {$I win32.inc}
 
-    { taken from the DOS version }
-    function fsearch(const path : pathstr;dirlist : string) : pathstr;
+{******************************************************************************
+                           --- Dos Interrupt ---
+******************************************************************************}
 
-      var
-         newdir : pathstr;
-         i,p1 : byte;
-         s : searchrec;
+procedure intr(intno : byte;var regs : registers);
+begin
+  { !!!!!!!! }
+end;
 
-      begin
-         if (pos('?',path)<>0) or (pos('*',path)<>0) then
-           { No wildcards allowed in these things }
-           fsearch:=''
-         else
-           begin
-              { allow slash as backslash }
-              for i:=1 to length(dirlist) do
-                if dirlist[i]='/' then dirlist[i]:='\';
+procedure msdos(var regs : registers);
+begin
+  intr($21,regs);
+end;
 
-              repeat
-                { get first path }
-                p1:=pos(';',dirlist);
-                if p1>0 then
-                  begin
-                     newdir:=copy(dirlist,1,p1-1);
-                     delete(dirlist,1,p1)
-                  end
-                else
-                  begin
-                     newdir:=dirlist;
-                     dirlist:=''
-                  end;
-                if (newdir[length(newdir)]<>'\') and
-                   (newdir[length(newdir)]<>':') then
-                   newdir:=newdir+'\';
-                findfirst(newdir+path,anyfile,s);
-                if doserror=0 then
-                  begin
-                     { this should be newdir:=newdir+path
-                     because path can contain a path part !! }
-                     {newdir:=newdir+s.name;}
-                     newdir:=newdir+path;
-                     { this was for LINUX:
-                     if pos('.\',newdir)=1 then
-                       delete(newdir, 1, 2)
-                      DOS strips off an initial .\
-                     }
-                  end
-                else newdir:='';
-              until(dirlist='') or (length(newdir)>0);
-              fsearch:=newdir;
-           end;
-      end;
 
-    procedure getftime(var f;var time : longint);
+{******************************************************************************
+                        --- Info / Date / Time ---
+******************************************************************************}
 
-      type
-         lr = record
-            lo,hi : word;
-         end;
+function dosversion : word;
+begin
+  dosversion:=GetVersion;
+end;
 
-      var
-         dostime : longint;
-         ft,lft : FILETIME;
 
-      begin
-         if GetFileTime(filerec(f).handle,nil,nil,@ft) and
-           FileTimeToLocalFileTime(ft,lft) and
-           FileTimeToDosDateTime(lft,lr(time).hi,lr(time).lo) then
-           exit
-         else
-           time:=0;
-      end;
+procedure getdate(var year,month,mday,wday : word);
+var
+  t : SYSTEMTIME;
+begin
+  GetLocalTime(t);
+  year:=t.wYear;
+  month:=t.wMonth;
+  mday:=t.wDay;
+  wday:=t.wDayOfWeek;
+end;
 
-   procedure setftime(var f;time : longint);
 
-      begin
-         {!!!!}
-      end;
+procedure setdate(year,month,day : word);
+var
+  t : SYSTEMTIME;
+begin
+  { we need the time set privilege   }
+  { so this function crash currently }
+  {!!!!!}
+  GetLocalTime(t);
+  t.wYear:=year;
+  t.wMonth:=month;
+  t.wDay:=day;
+  { only a quite good solution, we can loose some ms }
+  SetLocalTime(t);
+end;
 
-    var
-       lastdosexitcode : word;
 
-    procedure exec(const path : pathstr;const comline : comstr);
+procedure gettime(var hour,minute,second,sec100 : word);
+var
+  t : SYSTEMTIME;
+begin
+   GetLocalTime(t);
+   hour:=t.wHour;
+   minute:=t.wMinute;
+   second:=t.wSecond;
+   sec100:=t.wMilliSeconds div 10;
+end;
 
-      procedure do_system(p : pchar);
 
-        begin
-           {!!!!!}
-        end;
+procedure settime(hour,minute,second,sec100 : word);
+var
+   t : SYSTEMTIME;
+begin
+   { we need the time set privilege   }
+   { so this function crash currently }
+   {!!!!!}
+   GetLocalTime(t);
+   t.wHour:=hour;
+   t.wMinute:=minute;
+   t.wSecond:=second;
+   t.wMilliSeconds:=sec100*10;
+   SetLocalTime(t);
+end;
 
-      var
-         i : longint;
-         execute : string;
-         b : array[0..255] of char;
 
-      begin
-         doserror:=0;
-         execute:=path+' '+comline;
-         { allow slash as backslash for the program name only }
-         for i:=1 to length(path) do
-           if execute[i]='/' then execute[i]:='\';
-         move(execute[1],b,length(execute));
-         b[length(execute)]:=#0;
-         do_system(b);
-      end;
+Procedure packtime(var t : datetime;var p : longint);
+Begin
+  p:=(t.sec shr 1)+(t.min shl 5)+(t.hour shl 11)+(t.day shl 16)+(t.month shl 21)+((t.year-1980) shl 25);
+End;
 
-    function dosexitcode : word;
 
-      begin
-         dosexitcode:=lastdosexitcode;
-      end;
+Procedure unpacktime(p : longint;var t : datetime);
+Begin
+  with t do
+   begin
+     sec:=(p and 31) shl 1;
+     min:=(p shr 5) and 63;
+     hour:=(p shr 11) and 31;
+     day:=(p shr 16) and 31;
+     month:=(p shr 21) and 15;
+     year:=(p shr 25)+1980;
+   end;
+End;
 
-    function dosversion : word;
 
-      begin
-         dosversion:=lo(GetVersion);
-      end;
+{******************************************************************************
+                               --- Exec ---
+******************************************************************************}
 
-    procedure getdate(var year,month,day,dayofweek : word);
+var
+  lastdosexitcode : word;
 
-      var
-         t : SYSTEMTIME;
+procedure exec(const path : pathstr;const comline : comstr);
+begin
+  { !!!!!!!! }
+end;
 
-      begin
-         GetLocalTime(t);
-         year:=t.wYear;
-         month:=t.wMonth;
-         day:=t.wDay;
-         dayofweek:=t.wDayOfWeek;
-      end;
 
-    procedure setdate(year,month,day : word);
+function dosexitcode : word;
+begin
+  dosexitcode:=lastdosexitcode;
+end;
 
-      var
-         t : SYSTEMTIME;
 
-      begin
-         { we need the time set privilege   }
-         { so this function crash currently }
-         {!!!!!}
-         GetLocalTime(t);
-         t.wYear:=year;
-         t.wMonth:=month;
-         t.wDay:=day;
-         { only a quite good solution, we can loose some ms }
-         SetLocalTime(t);
-      end;
+procedure getcbreak(var breakvalue : boolean);
+begin
+{ !! No Win32 Function !! }
+end;
 
-    procedure gettime(var hour,minute,second,sec100 : word);
 
-      var
-         t : SYSTEMTIME;
+procedure setcbreak(breakvalue : boolean);
+begin
+{ !! No Win32 Function !! }
+end;
 
-      begin
-         GetLocalTime(t);
-         hour:=t.wHour;
-         minute:=t.wMinute;
-         second:=t.wSecond;
-         sec100:=t.wMilliSeconds div 10;
-      end;
 
-    procedure settime(hour,minute,second,sec100 : word);
+procedure getverify(var verify : boolean);
+begin
+{ !! No Win32 Function !! }
+end;
 
-      var
-         t : SYSTEMTIME;
 
-      begin
-         { we need the time set privilege   }
-         { so this function crash currently }
-         {!!!!!}
+procedure setverify(verify : boolean);
+begin
+{ !! No Win32 Function !! }
+end;
 
-         GetLocalTime(t);
-         t.wHour:=hour;
-         t.wMinute:=minute;
-         t.wSecond:=second;
-         t.wMilliSeconds:=sec100*10;
-         SetLocalTime(t);
-      end;
 
-    procedure getcbreak(var breakvalue : boolean);
+{******************************************************************************
+                               --- Disk ---
+******************************************************************************}
 
-      begin
-         {!!!!}
-      end;
+function diskfree(drive : byte) : longint;
+begin
+{ !!!!!!!!! }
+  diskfree:=-1;
+end;
 
-    procedure setcbreak(breakvalue : boolean);
 
-      begin
-         {!!!!}
-      end;
+function disksize(drive : byte) : longint;
+begin
+{ !!!!!!!!! }
+  disksize:=-1;
+end;
 
-    procedure getverify(var verify : boolean);
 
-      begin
-         {!!!!}
-      end;
-
-    procedure setverify(verify : boolean);
-
-      begin
-         {!!!!}
-      end;
-
-    function diskfree(drive : byte) : longint;
-
-      begin
-         {!!!!}
-      end;
-
-    function disksize(drive : byte) : longint;
-
-      begin
-         {!!!!}
-      end;
+{******************************************************************************
+                         --- Findfirst FindNext ---
+******************************************************************************}
 
     procedure searchrec2dossearchrec(var f : searchrec);
-
       var
          l,i : longint;
-
       begin
          l:=length(f.name);
          for i:=1 to 12 do
@@ -349,10 +319,8 @@ unit dos;
       end;
 
     procedure dossearchrec2searchrec(var f : searchrec);
-
       var
          l,i : longint;
-
       begin
          l:=12;
          for i:=0 to 12 do
@@ -369,19 +337,12 @@ unit dos;
     procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 
       procedure _findfirst(path : pchar;attr : word;var f : searchrec);
-
-        var
-           i : longint;
         begin
-           { allow slash as backslash }
-           for i:=0 to strlen(path) do
-             if path[i]='/' then path[i]:='\';
-           {!!!!!!!}
+          {!!!!!!!!!!!!!!}
         end;
 
       var
          path0 : array[0..80] of char;
-
       begin
          { no error }
          doserror:=0;
@@ -393,9 +354,8 @@ unit dos;
     procedure findnext(var f : searchRec);
 
       procedure _findnext(var f : searchrec);
-
         begin
-           {!!!!}
+          {!!!!!!!!!!!!!!}
         end;
 
       begin
@@ -407,238 +367,293 @@ unit dos;
       end;
 
     procedure swapvectors;
-
       begin
-         { only a dummy }
       end;
 
-    { the environment is a block of zero terminated strings }
-    { terminated by a #0                                    }
-    function envcount : longint;
 
-      var
-         hp,p : pchar;
-
+    Procedure FindClose(Var f: SearchRec);
       begin
-         p:=GetEnvironmentStrings;
-         hp:=p;
-         envcount:=0;
-         while  hp^<>#0 do
-           begin
-              { next string entry}
-              hp:=hp+strlen(hp)+1;
-              inc(envcount);
-           end;
-         FreeEnvironmentStrings(p);
       end;
 
-    function envstr(index : longint) : string;
+{******************************************************************************
+                               --- File ---
+******************************************************************************}
 
-      var
-         hp,p : pchar;
-         count,i : longint;
+procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;var ext : extstr);
+var
+   p1,i : longint;
+begin
+   { allow slash as backslash }
+   for i:=1 to length(path) do
+    if path[i]='/' then path[i]:='\';
+   { get drive name }
+   p1:=pos(':',path);
+   if p1>0 then
+     begin
+        dir:=path[1]+':';
+        delete(path,1,p1);
+     end
+   else
+     dir:='';
+   { split the path and the name, there are no more path informtions }
+   { if path contains no backslashes                                 }
+   while true do
+     begin
+        p1:=pos('\',path);
+        if p1=0 then
+          break;
+        dir:=dir+copy(path,1,p1);
+        delete(path,1,p1);
+     end;
+   { try to find out a extension }
+   p1:=pos('.',path);
+   if p1>0 then
+     begin
+        ext:=copy(path,p1,4);
+        delete(path,p1,length(path)-p1+1);
+     end
+   else
+     ext:='';
+   name:=path;
+end;
 
 
-      begin
-         { envcount takes some time in win32 }
-         count:=envcount;
-
-         { range checking }
-         if (index<=0) or (index>count) then
-           begin
-              envstr:='';
-              exit;
-           end;
-         p:=GetEnvironmentStrings;
-         hp:=p;
-
-         { retrive the string with the given index }
-         for i:=2 to index do
-           hp:=hp+strlen(hp)+1;
-
-         envstr:=strpas(hp);
-         FreeEnvironmentStrings(p);
-      end;
-
-    function getenv(const envvar : string) : string;
-
-      var
-         s : string;
-         i : longint;
-         hp,p : pchar;
-
-      begin
-         getenv:='';
-         p:=GetEnvironmentStrings;
-         hp:=p;
-         while hp^<>#0 do
-           begin
-              s:=strpas(hp);
-              i:=pos('=',s);
-              if copy(s,1,i-1)=envvar then
-                begin
-                   getenv:=copy(s,i+1,length(s)-i);
-                   break;
-                end;
-              { next string entry}
-              hp:=hp+strlen(hp)+1;
-           end;
-         FreeEnvironmentStrings(p);
-      end;
-
-    procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;
-      var ext : extstr);
-
-      var
-         p1 : byte;
-         i : longint;
-      begin
-         { allow slash as backslash }
-         for i:=1 to length(path) do
-             if path[i]='/' then path[i]:='\';
-         { get drive name }
-         p1:=pos(':',path);
-         if p1>0 then
-           begin
-              dir:=path[1]+':';
-              delete(path,1,p1);
-           end
-         else
-           dir:='';
-         { split the path and the name, there are no more path informtions }
-         { if path contains no backslashes                                 }
-         while true do
-           begin
-              p1:=pos('\',path);
-              if p1=0 then
-                break;
-              dir:=dir+copy(path,1,p1);
-              delete(path,1,p1);
-           end;
-         { try to find out a extension }
-         p1:=pos('.',path);
-         if p1>0 then
-           begin
-              ext:=copy(path,p1,4);
-              delete(path,p1,length(path)-p1+1);
-           end
-         else
-           ext:='';
-         name:=path;
-      end;
-
-    function fexpand(const path : pathstr) : pathstr;
-
-       var
-          s,pa : string[79];
-          i,j : byte;
-
-       begin
-          { There are differences between Free Pascal and Turbo Pascal
-            e.g. for the string 'D:\DEMO\..\HELLO' which isn't handled }
-          getdir(0,s);
-          pa:=upcase(path);
-          { allow slash as backslash }
-          for i:=1 to length(pa) do
-             if pa[i]='/' then pa[i]:='\';
-          if (ord(pa[0])>1) and (((pa[1]>='A') and (pa[1]<='Z')) and (pa[2]=':')) then
-            begin
-               { we must get the right directory }
-               getdir(ord(pa[1])-ord('A')+1,s);
-               if (ord(pa[0])>2) and (pa[3]<>'\') then
-                 if pa[1]=s[1] then
-                   pa:=s+'\'+copy (pa,3,length(pa))
-                 else
-                   pa:=pa[1]+':\'+copy (pa,3,length(pa))
-            end
+function fexpand(const path : pathstr) : pathstr;
+var
+  s,pa : string[79];
+  i,j  : longint;
+begin
+   getdir(0,s);
+   pa:=upcase(path);
+   { allow slash as backslash }
+   for i:=1 to length(pa) do
+    if pa[i]='/' then
+     pa[i]:='\';
+   if (length(pa)>1) and (pa[1] in ['A'..'Z']) and (pa[2]=':') then
+     begin
+        { we must get the right directory }
+        getdir(ord(pa[1])-ord('A')+1,s);
+        if (ord(pa[0])>2) and (pa[3]<>'\') then
+          if pa[1]=s[1] then
+            pa:=s+'\'+copy (pa,3,length(pa))
           else
-            if pa[1]='\' then 
-              pa:=s[1]+':'+pa
-            else if s[0]=#3 then
-              pa:=s+pa
-            else
-              pa:=s+'\'+pa;
-        {First remove all references to '\.\'}
-          while pos ('\.\',pa)<>0 do
-           delete (pa,pos('\.\',pa),2);
-        {Now remove also all references to '\..\' + of course previous dirs..}
-          repeat
-            i:=pos('\..\',pa);
-            j:=i-1;
-            while (j>1) and (pa[j]<>'\') do
-             dec (j);
-            delete (pa,j,i-j+3);
-          until i=0;
-        {Remove End . and \}
-          if (length(pa)>0) and (pa[length(pa)]='.') then
-           dec(byte(pa[0]));
-          if (length(pa)>0) and (pa[length(pa)]='\') then
-           dec(byte(pa[0]));
-          fexpand:=pa;
-       end;
-
-     procedure packtime(var d : datetime;var time : longint);
-
-       var
-          zs : longint;
-
-       begin
-          time:=-1980;
-          time:=time+d.year and 127;
-          time:=time shl 4;
-          time:=time+d.month;
-          time:=time shl 5;
-          time:=time+d.day;
-          time:=time shl 16;
-          zs:=d.hour;
-          zs:=zs shl 6;
-          zs:=zs+d.min;
-          zs:=zs shl 5;
-          zs:=zs+d.sec div 2;
-          time:=time+(zs and $ffff);
-       end;
-
-     procedure unpacktime (time: longint;var d : datetime);
-
-       begin
-          d.sec:=(time and 31) * 2;
-          time:=time shr 5;
-          d.min:=time and 63;
-          time:=time shr 6;
-          d.hour:=time and 31;
-          time:=time shr 5;
-          d.day:=time and 31;
-          time:=time shr 5;
-          d.month:=time and 15;
-          time:=time shr 4;
-          d.year:=time + 1980;
-       end;
-
-    procedure getfattr(var f;var attr : word);
-
-      var
-         l : longint;
-
+            pa:=pa[1]+':\'+copy (pa,3,length(pa))
+     end
+   else
+     if pa[1]='\' then
+       pa:=s[1]+':'+pa
+     else if s[0]=#3 then
+       pa:=s+pa
+     else
+       pa:=s+'\'+pa;
+ {First remove all references to '\.\'}
+   while pos ('\.\',pa)<>0 do
+    delete (pa,pos('\.\',pa),2);
+ {Now remove also all references to '\..\' + of course previous dirs..}
+   repeat
+     i:=pos('\..\',pa);
+     if i<>0 then
       begin
-         l:=GetFileAttributes(filerec(f).name);
-         if l=$ffffffff then
-           doserror:=getlasterror;
-          attr:=l;
+        j:=i-1;
+        while (j>1) and (pa[j]<>'\') do
+         dec (j);
+        delete (pa,j,i-j+3);
       end;
+   until i=0;
+ {Remove End . and \}
+   if (length(pa)>0) and (pa[length(pa)]='.') then
+    dec(byte(pa[0]));
+   if (length(pa)>0) and (pa[length(pa)]='\') then
+    dec(byte(pa[0]));
+   fexpand:=pa;
+end;
 
-    procedure setfattr(var f;attr : word);
 
-      begin
-         doserror:=0;
-         if not(SetFileAttributes(filerec(f).name,attr)) then
-           doserror:=getlasterror;
-      end;
+Function FSearch(path: pathstr; dirlist: string): pathstr;
+var
+   i,p1   : longint;
+   s      : searchrec;
+   newdir : pathstr;
+begin
+{ No wildcards allowed in these things }
+   if (pos('?',path)<>0) or (pos('*',path)<>0) then
+     fsearch:=''
+   else
+     begin
+        { allow slash as backslash }
+        for i:=1 to length(dirlist) do
+          if dirlist[i]='/' then dirlist[i]:='\';
+        repeat
+          p1:=pos(';',dirlist);
+          if p1=0 then
+           begin
+             newdir:=copy(dirlist,1,p1-1);
+             delete(dirlist,1,p1);
+           end
+          else
+           begin
+             newdir:=dirlist;
+             dirlist:='';
+           end;
+          if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
+           newdir:=newdir+'\';
+          findfirst(newdir+path,anyfile,s);
+          if doserror=0 then
+           newdir:=newdir+path
+          else
+           newdir:='';
+        until (dirlist='') or (newdir<>'');
+        fsearch:=newdir;
+     end;
+end;
 
-end.
+
+procedure getftime(var f;var time : longint);
+type
+   lr = record
+      lo,hi : word;
+   end;
+var
+   ft,lft : FILETIME;
+begin
+   if GetFileTime(filerec(f).handle,nil,nil,@ft) and
+      FileTimeToLocalFileTime(ft,lft) and
+      FileTimeToDosDateTime(lft,lr(time).hi,lr(time).lo) then
+     exit
+   else
+     time:=0;
+end;
+
+
+procedure setftime(var f;time : longint);
+begin
+   { !!!!!!!!!!!!! }
+end;
+
+
+procedure getfattr(var f;var attr : word);
+var
+   l : longint;
+begin
+  l:=GetFileAttributes(filerec(f).name);
+  if l=$ffffffff then
+   doserror:=getlasterror;
+  attr:=l;
+end;
+
+
+procedure setfattr(var f;attr : word);
+begin
+  doserror:=0;
+  if not(SetFileAttributes(filerec(f).name,attr)) then
+    doserror:=getlasterror;
+end;
+
+
+{******************************************************************************
+                             --- Environment ---
+******************************************************************************}
 
 {
+  The environment is a block of zero terminated strings
+  terminated by a #0
+}
+
+function envcount : longint;
+var
+   hp,p : pchar;
+   count : longint;
+begin
+   p:=GetEnvironmentStrings;
+   hp:=p;
+   count:=0;
+   while  hp^<>#0 do
+     begin
+        { next string entry}
+        hp:=hp+strlen(hp)+1;
+        inc(count);
+     end;
+   FreeEnvironmentStrings(p);
+   envcount:=count;
+end;
+
+
+Function  EnvStr(index: integer): string;
+var
+   hp,p : pchar;
+   count,i : longint;
+begin
+   { envcount takes some time in win32 }
+   count:=envcount;
+
+   { range checking }
+   if (index<=0) or (index>count) then
+     begin
+        envstr:='';
+        exit;
+     end;
+   p:=GetEnvironmentStrings;
+   hp:=p;
+
+   { retrive the string with the given index }
+   for i:=2 to index do
+     hp:=hp+strlen(hp)+1;
+
+   envstr:=strpas(hp);
+   FreeEnvironmentStrings(p);
+end;
+
+
+Function  GetEnv(envvar: string): string;
+var
+   s : string;
+   i : longint;
+   hp,p : pchar;
+begin
+   getenv:='';
+   p:=GetEnvironmentStrings;
+   hp:=p;
+   while hp^<>#0 do
+     begin
+        s:=strpas(hp);
+        i:=pos('=',s);
+        if copy(s,1,i-1)=envvar then
+          begin
+             getenv:=copy(s,i+1,length(s)-i);
+             break;
+          end;
+        { next string entry}
+        hp:=hp+strlen(hp)+1;
+     end;
+   FreeEnvironmentStrings(p);
+end;
+
+
+{******************************************************************************
+                             --- Not Supported ---
+******************************************************************************}
+
+Procedure keep(exitcode : word);
+Begin
+End;
+
+Procedure getintvec(intno : byte;var vector : pointer);
+Begin
+End;
+
+Procedure setintvec(intno : byte;vector : pointer);
+Begin
+End;
+
+
+end.
+{
   $Log$
-  Revision 1.5  1998-05-06 12:36:50  michael
+  Revision 1.6  1998-06-08 23:07:45  peter
+    * dos interface is now 100% compatible
+    * fixed call PASCALMAIN which must be direct asm
+
+  Revision 1.5  1998/05/06 12:36:50  michael
   + Removed log from before restored version.
 
   Revision 1.4  1998/04/27 14:01:38  florian
@@ -649,7 +664,4 @@ end.
 
   Revision 1.2  1998/04/26 21:49:09  florian
     + first compiling and working version
-
-  Revision 1.1.1.1  1998/03/25 11:18:47  root
-  * Restored version
 }
