@@ -480,6 +480,21 @@ CONST
 {
   registers_saved_on_cdecl = [R_ESI,R_EDI,R_EBX];}
 
+{*****************************************************************************
+                               GDB Information
+*****************************************************************************}
+
+      {# Register indexes for stabs information, when some
+         parameters or variables are stored in registers.
+
+         Taken from rs6000.h (DBX_REGISTER_NUMBER)
+         from GCC 3.x source code. PowerPC has 1:1 mapping
+         according to the order of the registers defined
+         in GCC
+
+      }
+
+  stab_regindex:ARRAY[tregister]OF ShortInt=({$INCLUDE stabregi.inc});
   { generic register names }
   stack_pointer_reg=R_O6;
   frame_pointer_reg=R_I6;
