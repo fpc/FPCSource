@@ -120,12 +120,12 @@ implementation
          cleartempgen;
          must_be_valid:=true;
          firstpass(p^.left);
-         if codegenerror then
-           exit;
-         if not is_boolean(p^.left^.resulttype) then
+         { Only check type if no error, we can't leave here because
+           the p^.right also needs to be firstpassed }
+         if not codegenerror then
           begin
-            Message1(type_e_boolean_expr_expected,p^.left^.resulttype^.typename);
-            exit;
+            if not is_boolean(p^.left^.resulttype) then
+              Message1(type_e_boolean_expr_expected,p^.left^.resulttype^.typename);
           end;
 
          p^.registers32:=p^.left^.registers32;
@@ -145,8 +145,6 @@ implementation
            begin
               cleartempgen;
               firstpass(p^.right);
-              if codegenerror then
-                exit;
 
               if p^.registers32<p^.right^.registers32 then
                 p^.registers32:=p^.right^.registers32;
@@ -163,8 +161,6 @@ implementation
            begin
               cleartempgen;
               firstpass(p^.t1);
-              if codegenerror then
-                exit;
 
               if p^.registers32<p^.t1^.registers32 then
                 p^.registers32:=p^.t1^.registers32;
@@ -175,6 +171,12 @@ implementation
                 p^.registersmmx:=p^.t1^.registersmmx;
 {$endif SUPPORT_MMX}
            end;
+
+         { leave if we've got an error in one of the paths }
+
+         if codegenerror then
+           exit;
+
          if p^.left^.treetype=ordconstn then
            begin
               { optimize }
@@ -293,9 +295,6 @@ implementation
 
          cleartempgen;
          firstpass(p^.right);
-         if codegenerror then
-          exit;
-
          if p^.right^.treetype<>ordconstn then
            begin
               p^.right:=gentypeconvnode(p^.right,p^.t2^.resulttype);
@@ -498,8 +497,8 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1999-10-03 19:39:40  peter
-    * error check after pass1 of second for argument
+  Revision 1.22  1999-10-04 20:27:41  peter
+    * fixed first pass for if branches if the expression got an error
 
   Revision 1.20  1999/09/27 23:45:01  peter
     * procinfo is now a pointer
