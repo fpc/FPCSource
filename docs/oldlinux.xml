@@ -1640,7 +1640,7 @@ buffer of <var>OldFile</var> in the case of text or untyped files.
 <p>
 <var>NewFile</var> can be an assigned file. If <var>newfile</var> was open, it is 
 closed first. Due to the buffering mechanism of Pascal, this has not
-the same functionality as the \seem{dup2}{2} call in C. The internal Pascal
+the same functionality as the <var>dup2</var> call in C. The internal Pascal
 buffers are not the same after this call, but when the buffers are flushed
 (e.g. after output), the output is sent to the same file.
 Doing an lseek will, however, work as in C, i.e. doing a lseek will change the
@@ -1708,7 +1708,7 @@ Errors are reported in <var>LinuxError</var>:
 <dd> File is not a regular file, or has no execute permission.
 A compononent of the path has no search permission.</dd>
 <dt>sys_eperm</dt>
-<dd> The file system is mounted \textit{noexec}.</dd>
+<dd> The file system is mounted <i>noexec</i>.</dd>
 <dt>sys_e2big</dt><dd> Argument list too big.</dd>
 <dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
 <dt>sys_enoent</dt><dd> The file does not exist.</dd>
@@ -1753,7 +1753,7 @@ Errors are reported in <var>LinuxError</var>:
 <dd> File is not a regular file, or has no execute permission.
 A compononent of the path has no search permission.</dd>
 <dt>sys_eperm</dt>
-<dd> The file system is mounted \textit{noexec}.</dd>
+<dd> The file system is mounted <i>noexec</i>.</dd>
 <dt>sys_e2big</dt><dd> Argument list too big.</dd>
 <dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
 <dt>sys_enoent</dt><dd> The file does not exist.</dd>
@@ -1792,7 +1792,7 @@ Errors are reported in <var>LinuxError</var>:
 <dt>sys_eacces</dt>
 <dd> File is not a regular file, or has no execute permission.
 A compononent of the path has no search permission.</dd>
-<dt>sys_eperm</dt><dd> The file system is mounted \textit{noexec}.</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted <i>noexec</i>.</dd>
 <dt>sys_e2big</dt><dd> Argument list too big.</dd>
 <dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
 <dt>sys_enoent</dt><dd> The file does not exist.</dd>
@@ -1832,7 +1832,7 @@ Errors are reported in <var>LinuxError</var>:
 <dt>sys_eacces</dt>
 <dd> File is not a regular file, or has no execute permission.
 A compononent of the path has no search permission.</dd>
-<dt>sys_eperm</dt><dd> The file system is mounted \textit{noexec}.</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted <i>noexec</i>.</dd>
 <dt>sys_e2big</dt><dd> Argument list too big.</dd>
 <dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
 <dt>sys_enoent</dt><dd> The file does not exist.</dd>
@@ -1870,7 +1870,7 @@ Errors are reported in <var>LinuxError</var>:
 <dt>sys_eacces</dt>
 <dd> File is not a regular file, or has no execute permission.
 A compononent of the path has no search permission.</dd>
-<dt>sys_eperm</dt><dd> The file system is mounted \textit{noexec}.</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted <i>noexec</i>.</dd>
 <dt>sys_e2big</dt><dd> Argument list too big.</dd>
 <dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
 <dt>sys_enoent</dt><dd> The file does not exist.</dd>
@@ -1911,7 +1911,7 @@ Errors are reported in <var>LinuxError</var>:
 <dt>sys_eacces</dt>
 <dd> File is not a regular file, or has no execute permission.
 A compononent of the path has no search permission.</dd>
-<dt>sys_eperm</dt><dd> The file system is mounted \textit{noexec}.</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted <i>noexec</i>.</dd>
 <dt>sys_e2big</dt><dd> Argument list too big.</dd>
 <dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
 <dt>sys_enoent</dt><dd> The file does not exist.</dd>
@@ -2247,7 +2247,7 @@ Errors are returned in LinuxError.
 <element name="FExpand">
 <short>Expand filename to fully qualified path</short>
 <descr>
-<var>FExpand</var> expands \var {Path} to a full path, starting from root,
+<var>FExpand</var> expands <var>Path</var> to a full path, starting from root,
 eliminating directory references such as . and .. from the result.
 </descr>
 <errors>
@@ -2455,7 +2455,7 @@ released.
 </p>
 <dl>
 <dt>sys_ebadf</dt><dd> <var>Fd</var> has a bad file descriptor.</dd>
-<dt>sys_eagain or sys_eaccess</dt><dd> For \textbf{F_SetLk}, if the lock is
+<dt>sys_eagain or sys_eaccess</dt><dd> For <b>F_SetLk</b>, if the lock is
 held by another process.</dd>
 </dl>
 </errors>
@@ -2767,8 +2767,8 @@ None.
 <p>
 GetPriority returns the priority with which a process is running.
 Which process(es) is determined by the <var>Which</var> and <var>Who</var> variables.
-<var>Which</var> can be one of the pre-defined \var{Prio_Process, Prio_PGrp,
-Prio_User}, in which case <var>Who</var> is the process ID, Process group ID or
+<var>Which</var> can be one of the pre-defined <var>Prio_Process</var>,
+<var>Prio_PGrp</var>, <var>Prio_User</var>, in which case <var>Who</var> is the process ID, Process group ID or
 User ID, respectively.
 </p>
 <p>
@@ -3182,7 +3182,7 @@ Errors are returned in <var>LinuxError</var>.
 </p>
 <dl>
 <dt>sys_exdev</dt>
-<dd> \var {OldPath} and \var {NewPath} are not on the same filesystem.</dd>
+<dd> <var>OldPath</var> and <var>NewPath</var> are not on the same filesystem.</dd>
 <dt>sys_eperm</dt><dd> The filesystem containing oldpath and newpath doesn't
 support linking files.</dd>
 <dt>sys_eaccess</dt>
@@ -3512,7 +3512,7 @@ be used to write data, which will then be read by the command from stdinput.
 If it is set to <var>'R'</var>, then the standard output of the command can be 
 read from <var>F</var>. <var>F</var> should be reset or rewritten prior to using it.
 <var>F</var> can be of type <var>Text</var> or <var>File</var>.
-A file opened with \var {POpen} can be closed with <var>Close</var>, but also
+A file opened with <var>POpen</var> can be closed with <var>Close</var>, but also
 with <link id="PClose"/>. The result is the same, but <var>PClose</var> returns the
 exit status of the command <var>Cmd</var>.
 </descr>
@@ -5691,7 +5691,6 @@ None.
 </errors>
 <seealso>
 <link id="WaitPID"/>
-<link id="WaitProcess"/>
 <link id="WTERMSIG"/>
 <link id="WSTOPSIG"/>
 <link id="WIFEXITED"/>
