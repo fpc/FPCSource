@@ -589,7 +589,7 @@ Var
 
 {************************ Create the Label table ************************}
 
-Function FindLoHiLabels(AsmL: PAasmOutput; Var LowLabel, HighLabel, LabelDif: Longint; BlockStart: Pai): Pai;
+Function FindLoHiLabels(Var LowLabel, HighLabel, LabelDif: Longint; BlockStart: Pai): Pai;
 {Walks through the paasmlist to find the lowest and highest label number}
 Var LabelFound: Boolean;
     P: Pai;
@@ -611,15 +611,7 @@ Begin
                 LowLabel := Pai_Label(p)^.l^.labelnr;
               If (Pai_Label(p)^.l^.labelnr > HighLabel) Then
                 HighLabel := Pai_Label(p)^.l^.labelnr;
-            End
-{          Else
-            Begin
-              hp1 := pai(p^.next);
-              AsmL^.Remove(p);
-              Dispose(p, Done);
-              p := hp1;
-              continue;
-            End};
+            End;
       GetNextInstruction(p, p);
     End;
   FindLoHiLabels := p;
@@ -1574,7 +1566,7 @@ Function DFAPass1(AsmL: PAasmOutput; BlockStart: Pai): Pai;
  avoid global vars}
 Var BlockEnd: Pai;
 Begin
-  BlockEnd := FindLoHiLabels(AsmL, LoLab, HiLab, LabDif, BlockStart);
+  BlockEnd := FindLoHiLabels(LoLab, HiLab, LabDif, BlockStart);
   BuildLabelTableAndFixRegAlloc(AsmL, LTable, LoLab, LabDif, BlockStart, BlockEnd);
   DFAPass1 := BlockEnd;
 End;
@@ -2105,7 +2097,10 @@ End.
 
 {
  $Log$
- Revision 1.47  1999-05-27 19:44:24  peter
+ Revision 1.48  1999-07-01 18:21:21  jonas
+   * removed unused AsmL parameter from FindLoHiLabels
+
+ Revision 1.47  1999/05/27 19:44:24  peter
    * removed oldasm
    * plabel -> pasmlabel
    * -a switches to source writing automaticly
