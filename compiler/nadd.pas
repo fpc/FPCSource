@@ -895,8 +895,18 @@ implementation
                          CGMessage(type_w_signed_unsigned_always_false);
                     end;
 
-                 inserttypeconv(right,sinttype);
-                 inserttypeconv(left,sinttype);
+                 { When there is a signed type we convert to signed int.
+                   Otherwise (both are unsigned) we keep the result also unsigned }
+                 if is_signed(ld) or is_signed(rd) then
+                   begin
+                     inserttypeconv(right,sinttype);
+                     inserttypeconv(left,sinttype);
+                   end
+                 else
+                   begin
+                     inserttypeconv(right,uinttype);
+                     inserttypeconv(left,uinttype);
+                   end;
                end;
            end
 
@@ -2048,7 +2058,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.132  2004-12-06 15:57:22  peter
+  Revision 1.133  2005-01-02 17:31:07  peter
+  unsigned*unsigned will also have unsigned result.
+
+  Revision 1.132  2004/12/06 15:57:22  peter
   * fix methodpointer compare, compare only the proc field
 
   Revision 1.131  2004/11/02 12:55:16  peter
