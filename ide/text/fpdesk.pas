@@ -122,7 +122,7 @@ begin
   if OK then
     begin
       OWC:=WatchesCollection;
-      New(WatchesCollection,Load(S^));
+      WatchesCollection:=PWatchesCollection(S^.Get);
       OK:=(S^.Status=stOK);
       if OK and assigned(OWC) then
         Dispose(OWC,Done);
@@ -171,7 +171,7 @@ begin
   if OK then
     begin
       OBC:=BreakpointsCollection;
-      New(BreakpointsCollection,Load(S^));
+      BreakpointsCollection:=PBreakpointCollection(S^.get);
       OK:=(S^.Status=stOK);
       If OK and assigned(OBC) then
         Dispose(OBC,Done);
@@ -403,7 +403,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  1999-09-17 16:28:58  pierre
+  Revision 1.12  1999-09-17 16:41:10  pierre
+   * other stream error for Watches/Breakpoints corrected
+
+  Revision 1.11  1999/09/17 16:28:58  pierre
    * ResWatches in WriteBreakpoints typo !
 
   Revision 1.10  1999/09/16 14:34:58  pierre
