@@ -840,6 +840,14 @@ var
   s      : searchrec;
   newdir : pathstr;
 begin
+{ check if the file specified exists }
+  findfirst(path,anyfile,s);
+  if doserror=0 then
+   begin
+     findclose(s);
+     fsearch:=path;
+     exit;
+   end;
 { No wildcards allowed in these things }
   if (pos('?',path)<>0) or (pos('*',path)<>0) then
     fsearch:=''
@@ -870,6 +878,7 @@ begin
        until (dirlist='') or (newdir<>'');
        fsearch:=newdir;
     end;
+  findclose(s);
 end;
 
 
@@ -1006,7 +1015,11 @@ End;
 end.
 {
   $Log$
-  Revision 1.9  1999-05-16 17:08:58  peter
+  Revision 1.10  1999-08-13 21:23:15  peter
+    * fsearch checks first if the specified file exists and returns that
+      if it was found
+
+  Revision 1.9  1999/05/16 17:08:58  peter
     * fixed driveletter checking
 
   Revision 1.8  1999/05/08 19:47:22  peter
