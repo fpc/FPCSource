@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) objpas strings \
       pmbitmap pmwin pmgpi dive \
       dos crt objects printer \
       sysutils math typinfo varutils \
-      ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
+      charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
       video mouse keyboard variants types
 rsts=math varutils typinfo
 
@@ -174,6 +174,8 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+
+charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

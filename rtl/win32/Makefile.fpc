@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) objpas strings \
       windows ole2 activex opengl32 winsock initc \
       dos crt objects graph messages \
       sysutils typinfo math varutils \
-      cpu mmx getopts heaptrc lineinfo \
+      cpu mmx charset ucomplex getopts heaptrc lineinfo \
       wincrt winmouse winevent sockets printer dynlibs \
       video mouse keyboard variants types
 rsts=math varutils typinfo
@@ -195,6 +195,10 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+
+charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+
+ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) objpas strings \
       $(LINUXUNIT) unix initc \
       dos crt objects printer \
       sysutils typinfo math varutils \
-      cpu mmx getopts heaptrc lineinfo \
+      cpu mmx charset ucomplex getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
       video mouse keyboard console serial variants types
 rsts=math varutils typinfo
@@ -30,8 +30,8 @@ fpcdir=../..
 target=freebsd
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(UNIXINC)
-sourcedir=$(INC) $(PROCINC) $(UNIXINC)
+includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC) $(POSIXINC)
+sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(POSIXINC)
 targetdir=.
 
 [lib]
@@ -48,6 +48,9 @@ libunits=$(SYSTEMUNIT) objpas strings \
 RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
+BSDINC=$(RTL)/bsd
+BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
+POSIXINC=$(RTL)/posix
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 
@@ -114,8 +117,8 @@ cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
 # System Units (System, Objpas, Strings)
 #
 
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
+$(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
+        $(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
@@ -172,7 +175,7 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
         $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
 
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/types.pp
+        $(COMPILER) $(OBJPASDIR)/types.pp
 
 #
 # Other system-independent RTL Units
@@ -188,6 +191,10 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+
+charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+
+ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

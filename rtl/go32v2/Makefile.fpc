@@ -11,7 +11,7 @@ units=system objpas strings \
       go32 dpmiexcp initc ports profile dxeload emu387 \
       dos crt objects printer graph \
       sysutils math typinfo \
-      cpu mmx getopts heaptrc lineinfo \
+      cpu mmx ucomplex getopts heaptrc lineinfo \
       msmouse charset varutils \
       video mouse keyboard variants vesamode types
 rsts=math varutils typinfo
@@ -181,6 +181,8 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
+
+ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

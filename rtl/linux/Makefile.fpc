@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) objpas strings \
       $(LINUXUNIT) unix initc $(CPU_UNITS) \
       dos crt objects printer ggigraph \
       sysutils typinfo math varutils \
-      getopts heaptrc lineinfo \
+      charset ucomplex getopts heaptrc lineinfo \
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard variants types
 rsts=math varutils typinfo variants
@@ -225,6 +225,9 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
+charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+
+ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Other $(SYSTEMUNIT)-dependent RTL Units
