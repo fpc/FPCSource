@@ -406,8 +406,8 @@ end ;
 function StrToInt(const S: string): integer;
 var Error: word;
 begin
-Val(S, result, Error);
-// if Error <> 0 then raise EConvertError.create(s + ' is not a valid integer');
+ Val(S, result, Error);
+ if Error <> 0 then raise EConvertError.create(s + ' is not a valid integer');
 end ;
 
 {   StrToIntDef converts the string S to an integer value,
@@ -428,11 +428,17 @@ end ;
 
 {   FmtLoadStr returns the string resource Ident and formats it accordingly   }
 
-{
+
 function FmtLoadStr(Ident: integer; const Args: array of const): string;
 begin
-end ;
-}
+end;
+
+
+Function Format (Const Fmt : String; Const Args: Array of const) : string;
+
+begin
+end;
+
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -628,7 +634,10 @@ end ;
 
 {
   $Log$
-  Revision 1.4  1998-09-17 12:39:52  michael
+  Revision 1.5  1998-10-01 16:05:37  michael
+  Added (empty) format function
+
+  Revision 1.4  1998/09/17 12:39:52  michael
   + Further fixes from GertJan Schouten
 
   Revision 1.3  1998/09/16 14:34:37  pierre
@@ -639,7 +648,10 @@ end ;
   Update from gertjan Schouten, plus small fix for linux
 
   $Log$
-  Revision 1.4  1998-09-17 12:39:52  michael
+  Revision 1.5  1998-10-01 16:05:37  michael
+  Added (empty) format function
+
+  Revision 1.4  1998/09/17 12:39:52  michael
   + Further fixes from GertJan Schouten
 
   Revision 1.1  1998/04/10 15:17:46  michael
