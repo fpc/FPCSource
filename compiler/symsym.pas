@@ -1070,11 +1070,11 @@ implementation
         index:=overriden.index;
         default:=overriden.default;
         indextype:=overriden.indextype;
-        readaccess.clear;
+        readaccess.free;
         readaccess:=overriden.readaccess.getcopy;
-        writeaccess.clear;
+        writeaccess.free;
         writeaccess:=overriden.writeaccess.getcopy;
-        storedaccess.clear;
+        storedaccess.free;
         storedaccess:=overriden.storedaccess.getcopy;
       end;
 
@@ -2517,7 +2517,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2002-07-01 18:46:27  peter
+  Revision 1.41  2002-07-10 07:24:40  jonas
+    * memory leak fixes from Sergey Korshunoff
+
+  Revision 1.40  2002/07/01 18:46:27  peter
     * internal linker
     * reorganized aasm layer
 

@@ -430,6 +430,7 @@ implementation
       begin
         if assigned(Data) then
           Data.Free;
+        relocations.free;
       end;
 
 
@@ -781,7 +782,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-07-07 09:52:32  florian
+  Revision 1.3  2002-07-10 07:24:40  jonas
+    * memory leak fixes from Sergey Korshunoff
+
+  Revision 1.2  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 

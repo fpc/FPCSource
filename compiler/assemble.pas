@@ -1490,6 +1490,9 @@ Implementation
               hp:=Tai(hp.next);
             end;
 
+           if not MaybeNextList(hp) then
+             break;
+
            { start next objectfile }
            NextSmartName(place);
            objectdata:=objectoutput.newobjectdata(Objfile);
@@ -1498,8 +1501,6 @@ Implementation
            if starTSec=sec_none then
              starTSec:=sec_code;
 
-           if not MaybeNextList(hp) then
-             break;
          end;
       end;
 
@@ -1595,7 +1596,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.37  2002-07-01 18:46:21  peter
+  Revision 1.38  2002-07-10 07:24:40  jonas
+    * memory leak fixes from Sergey Korshunoff
+
+  Revision 1.37  2002/07/01 18:46:21  peter
     * internal linker
     * reorganized aasm layer
 
