@@ -1132,7 +1132,7 @@ Var p : array[0..Infinity] of Longint;
 The difference is that the former declaration allocates memory for the
 pointer only (not for the array), and the second declaration allocates
 memory for the entire array. If you use the former, you must allocate memory
-yourself, using the \seef{GetMem} function.
+yourself, using the \seef{Getmem} function.
 
 The reference \var{P\^{}} is then the same as \var{p[0]}. The following program
 illustrates this maybe more clear:
@@ -2805,6 +2805,33 @@ closely related to classes.
 
 Exception support is explained in \seec{Exceptions}
 
+\section{Assembler statements}
+
+An assembler statement allows you to insert assembler code right in your
+pascal code.
+
+\input{syntax/statasm.syn}
+
+More information about assembler blocks can be found in the \progref.
+
+The register list is used to indicate the registers that are modified by an
+assembler statement in your code. The compiler stores certain results in the
+registers. If you modify the registers in an assembler statement, the compiler
+should, sometimes, be told about it. The registers are denoted with their
+Intel names for the I386 processor, i.e., \var{'EAX'}, \var{'ESI'} etc...
+
+As an example, consider the following assembler code:
+
+\begin{listing}
+asm
+  Movl $1,%ebx
+  Movl $0,%eax
+  addl %eax,%ebx
+end; ['EAX','EBX'];
+\end{listing}
+This will tell the compiler that it should save and restore the contents of 
+the \var{EAX} and \var{EBX} registers when it encounters this asm statement.
+
 \chapter{Using functions and procedures}
 \label{ch:Procedures}
 
@@ -2823,6 +2850,24 @@ block of code. The procedure can then be called with a procedure statement.
 
 \input{syntax/procedur.syn}
 
+\sees{Parameters} for the list of parameters.
+
+A procedure declaration that is followed by a block implements the action of
+the procedure in that block.
+
+The following is a valid procedure : 
+
+\begin{listing}
+Procedure DoSomething (Para : String);
+
+begin
+  Writeln ('Got parameter : ',Para);
+  Writeln ('Parameter in upper case : ',Upper(Para));
+end;
+\end{listing}
+
+Note that it is possible that a procedure calls itself.
+
 \section{Function declaration}
 A function declaration defines an identifier and associates it with a
 block of code. The block of code will return a result.  
@@ -2831,9 +2876,145 @@ statement.
 
 \input{syntax/function.syn}
 
+\section{Parameter lists}
+\label{se:Parameters}
+
+When you need to pass arguments to a function or procedure, these parameters
+must be declared in the formal parameter list of that function or procedure.
+
+The parameter list is a declaration of identifiers that can be referred to 
+only in that procedure or function's block.
+
+\input{syntax/params.syn}
+
+\var{const} parameters and \var{var} parameters can also be \var{untyped}
+parameters if they have no type identifier.
+
+\subsection{Value parameters}
+
+Value parameters are declared as follows:
+
+\input{syntax/paramval.syn}
+
+When you declare parameters as value parameters, the procedure gets {\em 
+a copy} of the parameters that the calling block passes. Any modifications
+to these parameters are purely local to the procedure's block, and do not 
+propagate back to the calling block.
+
+A block that wishes to call a procedure with value parameters must pass
+assignment compatible parameters to the procedure. This means that the types
+should not match exactly, but can be converted (conversion code is inserted
+by the compiler itself)
+
+Take care that using value parameters makes heavy use of the stack,
+especially if you pass large parameters. The total size of all parameters in
+the formal parameter list can only be 64K (on an Intel machine).
+
+You can pass open arrays as value parameters. See \sees{openarray} for
+more information on using open arrays.
+
+\subsection{\var{var} parameters}
+\label{se:varparams}
+
+Variable parameters are declared as follows:
+
+\input{syntax/paramvar.syn}
+
+When you declare parameters as variable parameters, the procedure or
+function accesses immediatly the variable that the calling block passed in
+its parameter list. The procedure gets a pointer to the variable that was
+passed, and uses this pointer to access the variable's value.
+From this, it follows that any changes that you make to the parameter, will
+proagate back to the calling block. This mechanism can be used to pass
+values back in procedures.
+
+Because of this, the calling block must pass a parameter of {\em exactly}
+the same type as the declared parameter's type. If it does not, the compiler
+will generate an error.
+
+Variable parameters can be untyped. In that case the variable has no type,
+and hence is incompatible with all othertypes. However, you can use the 
+address operator on it, or you can pass it to a function that has also an 
+untyped parameter. If you want to use an untyped parameter in an assigment,
+or you want to assign to it, you must use a typecast.
+
+File type variables must always be passed as variable parameters.
+
+You can pass open arrays as variable parameters. See \sees{openarray} for
+more information on using open arrays.
+
+\subsection{\var{Const} parameters}
+
+In addition to variable parameters and value parameters \fpc also supports 
+\var{Const} parameters. You can specify a \var{Const} parameter as follows:
+
+\input{syntax/paramcon.syn}
+
+A constant argument is passed by reference if it's size is larger than a
+longint. It is passed by value if the size equals 4 or less.
+This means that the function or procedure receives a pointer to the passed 
+argument, but you are not allowed to assign to it, this will result in a 
+compiler error. Likewise, you cannot pass a const parameter on to another
+function that requires a variable parameter.
+
+The main use for this is reducing the stack size, hence improving
+performance, and still retaining the semantics of passing by value...
+
+Constant parameters can also be untyped. See \sees{varparams} for more
+information about untyped parameters.
+
+You can pass open arrays as constant parameters. See \sees{openarray} for
+more information on using open arrays.
+
+\subsection{Open array parameters}
+\label{se:openarray}
+
+\fpc supports the passing of open arrays, i.e. you can declare a procedure
+with an array of unspecified length as a parameter, as in Delphi.
+
+Open array parameters can be accessed in the procedure or function as an
+array that is declared with starting starting index 0, and last element 
+index \var{High(paremeter)}.
+
+For example, the parameter
+\begin{listing}
+Row : Array of Integer;
+\end{listing}
+would be equivalent to
+\begin{listing}
+Row : Array[1..N-1] of Integer;
+\end{listing}
+Where  \var{N} would be the actual size of the array that is passed to the
+function. \var{N-1} can be calculated as \var{High(Row)}.
+
+Open parameters can be passed by value, by reference or as a constant 
+parameter. In the latter cases the procedure receives a pointer to the
+actual array. In the former case,it receives a copy of the array.
+
+In a function or procedure, you can pass open arrays only to functions which
+are also declared with open arrays as parameters, {\em not} to functions or
+procedures which accept arrays of fixed length.
+
+The following is an example of a function using an open array: 
+
+\begin{listing}
+Function Average (Row : Array of integer) : Real;
+
+Var I : longint;
+    Temp : Real;
+
+begin
+  Temp := Row[0];
+  For I := 1 to High(Row) do 
+    Temp := Temp + Row[i];
+  Average := Temp / (High(Row)+1);
+end;
+\end{listing}
+
 \section{Function overloading}
 Function overloading simply means that you can define the same function more
-than once, but each time with a different set of arguments.
+than once, but each time with a different formal parameter list.
+The parameter lists must differ at least in one of it's elements type.
 
 When the compiler encounters a function call, it will look at the function
 parameters to decide which od the defined function
@@ -2855,40 +3036,143 @@ specified parameter list. If the compiler finds such a function, a call is
 inserted to that function. If no such function is found, a compiler error is
 generated.
 
-\section{\var{Const} parameters}
-In addition to \var{var} parameters and normal parameters (call by value,
-call by reference), \fpc also supports \var{Const} parameters. You can
-specify a \var{Const} parameter as follows:
+You cannot have overloaded functions that have a \var{cdecl} or \var{export}
+modifier (Technically, because these two modifiers prevent the mangling of 
+the function name by the compiler)
+
+\section{forward defined functions}
+
+You can define a function without having it followed by it's implementation,
+by having it followed by the \var{forward} procedure. The effective 
+implementation of that function must follow later in the module.
+
+The function can be used after a \var{forward} declaration as if it had been
+implemented already.
+
+The following is an example of a forward declaration.
 \begin{listing}
-Function Name (Const S: Type_Of_S) : ResultType
+Program testforward;
+
+Procedure First (n : longint); forward;
+
+Procedure Second;
+begin
+  WriteLn ('In second. Calling first...');
+  First (1);
+end;
+
+Procedure First (n : longint);
+begin
+  WriteLn ('First received : ',n);
+end;
+
+begin
+  Second;
+end.
 \end{listing}
-A constant argument is passed by reference if it's size is larger than a
-longint. 
-(i.e. the function or procedure receives a pointer to the passed argument, 
-but you are not allowed to assign to it, this will result in a compiler error.
-Const parameters that have size smaller than (or equal to) 
-are passed by value, i.e. the procedure receives a private copy of the value.
 
-The main use for this is reducing the stack size, hence improving
-performance, and still retaining the semantics of passing by value...
+You cannot define a function twice as forward (nor is there any reason why
+you would want to do that).
 
-\section{Open array parameters}
-\fpc supports the passing of open arrays, i.e. You can declare a procedure
-with an array of unspecified length as a parameter, as in Delphi.
+Likewise, in units, you cannot have a forward declared function of a 
+function that has been declared in the interface part. The interface 
+declaration counts as a \var{forward} declaration.
 
-The prototype declaration for open array parameters is:
+The following unit will give an error when compiled:
 \begin{listing}
-Function Func ( ... [Var|Const] Ident : Array of Type ...) : ReturnType;
+Unit testforward;
 
-ProcedureFunction Func (... [Var|Const] Ident : Array of Type ...);
+interface
+
+Procedure First (n : longint);
+Procedure Second;
+
+implementation
+
+Procedure First (n : longint); forward;
+
+Procedure Second;
+begin
+  WriteLn ('In second. Calling first...');
+  First (1);
+end;
+
+Procedure First (n : longint);
+begin
+  WriteLn ('First received : ',n);
+end;
+
+end.
 \end{listing}
-The \var{[Var|Const]} means that open parameters can be passed by reference
-or as a constant parameter.
 
-In a function or procedure, you can pass open arrays only to functions which
-are also declared with open arrays as parameters, {\em not} to functions or
-procedures which accept arrays of fixed length.
+\section{External functions}
+\label{se:external}
+The \var{external} modifier can be used to declare a function that resides in
+an external object file. It allows you to use the function in
+your code, and at linking time, you must link the object file containing the
+implementation of the function or procedure.
 
+\input{syntax/external.syn}
+
+It replaces, in effect, the function or procedure code block. As such, it
+can be present only in an implementation block of a unit, or in a program. 
+
+As an example:
+\begin{listing}
+program CmodDemo;
+
+{$Linklib c}
+
+Const P : PChar = 'This is fun !';
+
+Function strlen (P : PChar) : Longint; cdecl; external;
+
+begin
+  WriteLn ('Length of (',p,') : ',strlen(p))
+end.
+\end{listing}
+
+{\em Remark} The parameters in our declaration of the \var{external} function 
+should match exactly the ones in the declaration in the object file.
+
+If the \var{external} modifier is followed by a string constant:
+\begin{listing}
+external 'lname';
+\end{listing}
+Then this tells the compiler that the function resides in library 
+'lname'. The compiler will the automatically link this library to 
+your program.
+ 
+You can also specify the name that the function has in the library:
+\begin{listing}
+external 'lname' name Fname;
+\end{listing}
+This tells the compiler that the function resides in library 'lname', 
+but with name 'Fname'. The compiler will the automatically link this 
+library to your program, and use the correct name for the function.
+
+Under \windows and \ostwo, you can also use the following form:
+\begin{listing}
+external 'lname' Index Ind;
+\end{listing}
+This tells the compiler that the function resides in library 'lname', 
+but with index \var{Ind}. The compiler will the automatically 
+link this library to your program, and use the correct index for the
+function. 
+
+\section{Assembler functions}
+
+Functions and procedures can be completely implemented in assembly
+language. To indicate this, you use the \var{assembler} keyword:
+
+\input{syntax/asm.syn}
+
+Contrary to Delphi, the assembler keyword must be present to indicate an
+assembler function.
+
+For more information about assembler functions, see the chapter on using
+assembler in the \progref.
+ 
 \section{Modifiers}
 A function or procedure declaration can contain modifiers. Here we list the
 various possibilities:
@@ -2975,61 +3259,6 @@ for a normal pascal function.
 With \var{popstack} you could access functions by their pascal names in a
 library.
 
-\subsection{external}
-\label{se:external}
-The \var{external} modifier can be used to declare a function that resides in
-an external object file. It allows you to use the function in
-your code, and at linking time, you must link the object file containing the
-implementation of the function or procedure.
-
-It replaces, in effect, the function or procedure code block. As such, it
-can be present only in an implementation block of a unit, or in a program. 
-
-As an example:
-\begin{listing}
-program CmodDemo;
-
-{$Linklib c}
-
-Const P : PChar = 'This is fun !';
-
-Function strlen (P : PChar) : Longint; cdecl; external;
-
-begin
-  WriteLn ('Length of (',p,') : ',strlen(p))
-end.
-\end{listing}
-
-{\em Remark} The parameters in our declaration of the \var{external} function 
-should match exactly the ones in the declaration in the object file.
-Since \var{C} is case sensitive, this means also that the name of the
-function must be exactly the same.
-
-The \var{external} modifier has also an extended syntax:
-\begin{enumerate}
-\item The first form specifies the name of the library
-\begin{listing}
-external 'lname';
-\end{listing}
-Tells the compiler that the function resides in library 'lname'. The
-compiler will the automatically link this library to your program.
-\item The second form specifies the library name and the name of the
-function:
-\begin{listing}
-external 'lname' name Fname;
-\end{listing}
-Tells the compiler that the function resides in library 'lname', but with
-name 'Fname'. The compiler will the automatically link this library to your
-program, and use the correct name for the function.
-\item \windows and \ostwo only:
-\begin{listing}
-external 'lname' Index Ind;
-\end{listing}
-Tells the compiler that the function resides in library 'lname', but with
-indexname \var{Ind}. The compiler will the automatically link this library to your
-program, and use the correct index for the function.
-\end{enumerate}
-
 \subsection{Export}
 Sometimes you must provide a callback function for a C library, or you want
 your routines to be callable from a C program. Since \fpc and C use
@@ -3047,28 +3276,6 @@ begin
 end;
 \end{listing}
 The square brackets around the modifier are not allowed in this case.
-
-{\em Remark:} You cannot call an exported function from within \fpc programs.
-If you try to do so, the compiler will complain when compiling your source
-code.
-
-If you do want to call an exported procedure from pascal, you must use a
-dummy function:
-\begin{listing}
-Procedure RealDoSomething;
-begin
-...
-end;
-
-Procedure DoSomething; export;
-
-begin
-  RealDoSomething;
-end; 
-\end{listing}
-In this example, from your \fpc code, you can call the \var{RealDoSomething}
-procedure. If someone wants to link to your code from a C program, he can
-call the \var{DoSomething} procedure. Both calls will have the same effect.
 
 {\em Remark:}
 as of version 0.9.8, \fpc supports the Delphi \var{cdecl} modifier. 
@@ -3113,19 +3320,6 @@ code, thus it is case sensitive.
 
 The \var{Alias} modifier, combined with the \var{Public} modifier, make a
 powerful tool for making externally accessible object files.
-
-\subsection{[RegisterList]}
-This modifier list is used to indicate the registers that are modified by an
-assembler block in your code. The compiler stores certain results in the
-registers. If you modify the registers in an assembly block, the compiler
-should, sometimes, be told about it.
-The prototype syntax of the \var{Registerlist} modifier is:
-\begin{listing}
-asm
-  statements
-end; ['register1','register2',...,'registern'];
-\end{listing}
-Where is register one of any of the available processor registers.
 
 
 \section{Unsupported Turbo Pascal modifiers}
@@ -3616,7 +3810,7 @@ behaviour as Turbo Pascal.
 %
 % System unit reference guide.
 %
-\end{document}
+%\end{document}
 \chapter{Reference : The system unit}
 \label{ch:refchapter}
 
