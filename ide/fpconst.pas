@@ -22,7 +22,7 @@ uses Views,App,
      WViews,WEditor,WHTMLHlp;
 
 const
-     VersionStr           = '0.9.3';
+     VersionStr           = '1.0.0';
 
      MaxRecentFileCount   = 9;
      MaxToolCount         = 16;
@@ -472,7 +472,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.17  2004-11-21 20:53:26  peter
+  Revision 1.18  2004-12-30 16:14:13  florian
+    * ide version to 1.0.0 changed
+
+  Revision 1.17  2004/11/21 20:53:26  peter
     * fixed breakpoint dialog
 
   Revision 1.16  2004/11/20 14:21:19  florian
