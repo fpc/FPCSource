@@ -40,7 +40,7 @@ Unit Ra386int;
       AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
       AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,
        {------------------ Assembler directives --------------------}
-      AS_DB,AS_DW,AS_DD,AS_END,
+      AS_ALIGN,AS_DB,AS_DW,AS_DD,AS_END,
        {------------------ Assembler Operators  --------------------}
       AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_NEAR,AS_FAR,
       AS_HIGH,AS_LOW,AS_OFFSET,AS_SEG,AS_TYPE,AS_PTR,AS_MOD,AS_SHL,AS_SHR,AS_NOT,
@@ -100,7 +100,7 @@ Unit Ra386int;
     const
        { These tokens should be modified accordingly to the modifications }
        { in the different enumerations.                                   }
-       firstdirective = AS_DB;
+       firstdirective = AS_ALIGN;
        lastdirective  = AS_END;
        firstoperator  = AS_BYTE;
        lastoperator   = AS_XOR;
@@ -109,7 +109,7 @@ Unit Ra386int;
        _count_asmoperators  = longint(lastoperator)-longint(firstoperator);
 
        _asmdirectives : array[0.._count_asmdirectives] of tasmkeyword =
-       ('DB','DW','DD','END');
+       ('ALIGN','DB','DW','DD','END');
 
        { problems with shl,shr,not,and,or and xor, they are }
        { context sensitive.                                 }
@@ -123,7 +123,7 @@ Unit Ra386int;
         ',','[',']','(',
         ')',':','.','+','-','*',
         ';','identifier','register','opcode','/',
-        '','','','END',
+        '','','','','END',
         '','','','','','','','','',
         '','','','type','ptr','mod','shl','shr','not',
         'and','or','xor'
@@ -1909,6 +1909,14 @@ Unit Ra386int;
               inexpression:=false;
             end;
 
+           AS_ALIGN:
+             Begin
+               Consume(AS_ALIGN);
+               ConcatAlign(curlist,BuildConstExpression);
+               if actasmtoken<>AS_SEPARATOR then
+                Consume(AS_SEPARATOR);
+             end;
+
           AS_OPCODE :
             Begin
               instr:=Tx86Instruction.Create(Tx86Operand);
@@ -1968,7 +1976,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2004-06-20 08:55:31  florian
+  Revision 1.75  2004-06-23 14:54:46  peter
+    * align directive added
+
+  Revision 1.74  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.73  2004/06/16 20:07:10  florian
