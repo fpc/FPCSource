@@ -1052,7 +1052,7 @@ implementation
 
          { both point to the same definition ? }
          if def1=def2 then
-           b:=true
+           b:=not((df_unique in def1.defoptions) or (df_unique in def2.defoptions))
          else
          { pointer with an equal definition are equal }
            if (def1.deftype=pointerdef) and (def2.deftype=pointerdef) then
@@ -1969,7 +1969,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2002-10-05 12:43:24  carl
+  Revision 1.17  2002-10-06 12:25:04  florian
+    + proper support of type <id> = type <another id>;
+
+  Revision 1.16  2002/10/05 12:43:24  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

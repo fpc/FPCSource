@@ -388,7 +388,8 @@ implementation
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
          ch       : tclassheader;
-         istyperenaming : boolean;
+         unique,istyperenaming : boolean;
+
       begin
          old_block_type:=block_type;
          block_type:=bt_type;
@@ -403,7 +404,12 @@ implementation
            consume(_EQUAL);
            { support 'ttype=type word' syntax }
            if token=_TYPE then
-            Consume(_TYPE);
+             begin
+                Consume(_TYPE);
+                unique:=true;
+             end
+           else
+             unique:=false;
            { is the type already defined? }
            searchsym(typename,sym,srsymtable);
            newtype:=nil;
@@ -456,6 +462,10 @@ implementation
             end;
            if assigned(tt.def) then
             begin
+              if unique then
+                include(tt.def.defoptions,df_unique)
+              else
+                exclude(tt.def.defoptions,df_unique);
               case tt.def.deftype of
                 pointerdef :
                   begin
@@ -617,7 +627,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2002-08-25 19:25:19  peter
+  Revision 1.54  2002-10-06 12:25:05  florian
+    + proper support of type <id> = type <another id>;
+
+  Revision 1.53  2002/08/25 19:25:19  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be

@@ -121,8 +121,12 @@ type
 
   { flags for a definition }
   tdefoption=(df_none,
-    df_has_inittable,           { init data has been generated }
-    df_has_rttitable            { rtti data has been generated }
+    { init data has been generated }
+    df_has_inittable,
+    { rtti data has been generated }
+    df_has_rttitable,
+    { unique type which is declared by <id> = type <another id>; }
+    df_unique
   );
   tdefoptions=set of tdefoption;
 
@@ -335,7 +339,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2002-08-19 19:36:44  peter
+  Revision 1.35  2002-10-06 12:25:05  florian
+    + proper support of type <id> = type <another id>;
+
+  Revision 1.34  2002/08/19 19:36:44  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small
