@@ -85,10 +85,10 @@ begin
    insert(SplitName(module),link_allways);
 {$ENDIF NEWST}
   { do nothing with the procedure, only set the mangledname }
-{  if name<>'' then
+  if name<>'' then
     aktprocsym^.definition^.setmangledname(name)
   else
-    Message(parser_e_empty_import_name);}
+    message(parser_e_empty_import_name);
 end;
 
 
@@ -467,7 +467,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2000-02-28 17:23:57  daniel
+  Revision 1.12  2000-03-02 13:12:37  daniel
+    * Removed a comment to fix gtk.
+
+  Revision 1.11  2000/02/28 17:23:57  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new
