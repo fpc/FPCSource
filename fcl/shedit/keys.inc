@@ -53,92 +53,107 @@ begin
 end;
 
 procedure TSHTextEdit.CursorUp;
-var
-  l1, l2: Integer;
 begin
   if FCursorY = 0 then
     FCursorX := 0
-  else begin
-    l1 := FDoc.LineLen[FCursorY];
+  else
     Dec(FCursorY);
-    l2 := FDoc.LineLen[FCursorY];
-    if FCursorX > l2 then
-      FCursorX := l2;
-  end;
+  if FCursorY<Renderer.VertPos then
+   Renderer.VertPos := Renderer.VertPos - 1;
 end;
 
+
 procedure TSHTextEdit.CursorDown;
-var
-  l1, l2: Integer;
 begin
-  if FCursorY < FDoc.LineCount - 1 then begin
-    l1 := FDoc.LineLen[FCursorY];
-    Inc(FCursorY);
-    l2 := FDoc.LineLen[FCursorY];
-    if FCursorX > l2 then
-      FCursorX := l2;
-  end else
-    FCursorX := FDoc.LineLen[FCursorY];
+  if FCursorY < FDoc.LineCount - 1 then
+   Inc(FCursorY)
+  else
+   FCursorX := FDoc.LineLen[FCursorY];
+  if FCursorY>Renderer.VertPos+Renderer.PageHeight then
+   Renderer.VertPos := Renderer.VertPos + 1;
 end;
+
 
 procedure TSHTextEdit.CursorLeft;
 begin
   if FCursorX > 0 then
     Dec(FCursorX)
-  else if FCursorY > 0 then begin
-    Dec(FCursorY);
-    FCursorX := FDoc.LineLen[FCursorY];
-  end;
-
+  else
+    if FCursorY > 0 then
+      begin
+        Dec(FCursorY);
+        FCursorX := FDoc.LineLen[FCursorY];
+        if FCursorY<Renderer.VertPos then
+         Renderer.VertPos := Renderer.VertPos - 1;
+      end;
 end;
+
 
 procedure TSHTextEdit.CursorRight;
 begin
   Inc(FCursorX);
   if FCursorX > FDoc.LineLen[FCursorY] then
-    if FCursorY < FDoc.LineCount - 1 then begin
-      Inc(FCursorY);
-      FCursorX := 0;
-    end else
-      FCursorX := FDoc.LineLen[FCursorY];
+    if FCursorY < FDoc.LineCount - 1 then
+     begin
+       Inc(FCursorY);
+       FCursorX := 0;
+       if FCursorY>Renderer.VertPos+Renderer.PageHeight then
+        Renderer.VertPos := Renderer.VertPos + 1;
+     end
+    else
+     FCursorX := FDoc.LineLen[FCursorY];
 end;
+
 
 procedure TSHTextEdit.CursorHome;
 begin
   FCursorX := 0;
 end;
 
+
 procedure TSHTextEdit.CursorEnd;
 begin
   FCursorX := FDoc.LineLen[FCursorY];
 end;
 
+
 procedure TSHTextEdit.CursorPageUp;
 begin
   if FCursorY = 0 then
     FCursorX := 0
-  else begin
-    Dec(FCursorY, Renderer.PageHeight);
-    if FCursorY < 0 then FCursorY := 0;
-    if FCursorX > FDoc.LineLen[FCursorY] then
-      FCursorX := FDoc.LineLen[FCursorY];
-  end;
-  Renderer.VertPos := Renderer.VertPos - Renderer.PageHeight;
+  else
+    begin
+      Dec(FCursorY, Renderer.PageHeight);
+      if FCursorY < 0 then
+       begin
+         FCursorY := 0;
+         Renderer.VertPos := 0;
+       end
+      else
+       Renderer.VertPos := Renderer.VertPos - Renderer.PageHeight;
+    end;
 end;
+
 
 procedure TSHTextEdit.CursorPageDown;
 begin
   if FCursorY = FDoc.LineCount - 1 then
     FCursorX := FDoc.LineLen[FCursorY]
-  else begin
-    Inc(FCursorY, Renderer.PageHeight);
-    if FCursorY >= FDoc.LineCount then
-      FCursorY := FDoc.LineCount - 1;
-    if FCursorX > FDoc.LineLen[FCursorY] then
-      FCursorX := FDoc.LineLen[FCursorY];
-  end;
-  Renderer.VertPos := Renderer.VertPos + Renderer.PageHeight;
+  else
+    begin
+      Inc(FCursorY, Renderer.PageHeight);
+      if FCursorY >= FDoc.LineCount then
+       begin
+         FCursorY := FDoc.LineCount - Renderer.PageHeight;
+         if FCursorY < 0 then
+          FCursorY:=0;
+         Renderer.VertPos := FCursorY;
+       end
+      else
+       Renderer.VertPos := Renderer.VertPos + Renderer.PageHeight;
+    end;
 end;
+
 
 procedure TSHTextEdit.EditDelLeft;
 var
@@ -569,7 +584,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  1999-11-15 21:47:36  peter
+  Revision 1.3  1999-12-08 01:03:15  peter
+    * changes so redrawing and walking with the cursor finally works
+      correct
+
+  Revision 1.2  1999/11/15 21:47:36  peter
     * first working keypress things
 
   Revision 1.1  1999/10/29 15:59:04  peter

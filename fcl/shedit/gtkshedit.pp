@@ -130,14 +130,14 @@ procedure TGtkSHEdit_Expose(GtkWidget: PGtkWidget; event: PGdkEventExpose; edit:
 var
   x1, y1, x2, y2: Integer;
 begin
-  x1 := event^.area.x div edit.CharW;
+  x1:=event^.area.x;
   if x1>0 then
-   dec(x1);
+   dec(x1,edit.LeftIndent);
+  x2:=x1+event^.area.width - 1;
+  x1:=x1 div edit.CharW;
+  x2:=(x2+edit.CharW-1) div edit.CharW;
   y1 := event^.area.y div edit.CharH;
-  if y1>0 then
-   dec(y1);
-  x2 := (event^.area.x + event^.area.width - 1) div edit.CharW+1;
-  y2 := (event^.area.y + event^.area.height - 1) div edit.CharH+1;
+  y2 := (event^.area.y + event^.area.height - 1) div edit.CharH;
   WriteLn(Format('Expose(%d/%d - %d/%d) for %s', [x1, y1, x2, y2, edit.ClassName]));
 
   edit.GdkWnd := edit.PaintBox^.window;
@@ -254,15 +254,15 @@ begin
 
   PGtkObject(PaintBox)^.flags := PGtkObject(PaintBox)^.flags or GTK_CAN_FOCUS;
 
-  gtk_signal_connect_after(PGtkObject(PaintBox), 'expose-event',
+  gtk_signal_connect(PGtkObject(PaintBox), 'expose-event',
     GTK_SIGNAL_FUNC(@TGtkSHEdit_Expose), self);
   gtk_signal_connect_after(PGtkObject(PaintBox), 'key-press-event',
     GTK_SIGNAL_FUNC(@TGtkSHEdit_KeyPressed), self);
-  gtk_signal_connect(PGtkObject(PaintBox), 'button-press-event',
+  gtk_signal_connect_after(PGtkObject(PaintBox), 'button-press-event',
     GTK_SIGNAL_FUNC(@TGtkSHEdit_KeyPressed), self);
-  gtk_signal_connect(PGtkObject(PaintBox), 'focus-in-event',
+  gtk_signal_connect_after(PGtkObject(PaintBox), 'focus-in-event',
     GTK_SIGNAL_FUNC(@TGtkSHEdit_FocusInEvent), self);
-  gtk_signal_connect(PGtkObject(PaintBox), 'focus-out-event',
+  gtk_signal_connect_after(PGtkObject(PaintBox), 'focus-out-event',
     GTK_SIGNAL_FUNC(@TGtkSHEdit_FocusOutEvent), self);
   gtk_widget_show(Widget);
 end;
@@ -348,11 +348,11 @@ var
 
   procedure doerase;
   begin
-    if rx2>rx1 then
+    if rx2>x1 then
      begin
        SetGCColor(CurColor);
        gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1,
-                          x1 * CharW + LeftIndent, y * CharH, (rx2 - rx1 + 1) * CharW, CharH);
+                          rx1 * CharW + LeftIndent, y * CharH, (rx2 - rx1 + 1) * CharW, CharH);
        rx1:=rx2;
      end;
   end;
@@ -363,7 +363,7 @@ var
   NewColor: LongWord;
   hs : pchar;
 begin
-  {WriteLn(Format('DrawTextLine(%d) for %s ', [y, ClassName]));}
+  // WriteLn(Format('DrawTextLine(%d) for %s ', [y, ClassName]));
 
   // Erase the (potentially multi-coloured) background
 
@@ -447,9 +447,6 @@ begin
         end;
     end;
   until false;
-{ Also draw the cursor }
-{  if y=edit.CursorY then
-   DrawCursor; }
 end;
 
 
@@ -462,19 +459,10 @@ end;
 procedure TGtkSHEdit.ShowCursor(x, y: Integer);
 var
   r : TGdkRectangle;
-  px,py : integer;
 begin
   writeln('Showcursor ',x,',',y);
-  px := x * CharW + LeftIndent;
-  py := y * CharH;
   SetGCColor(colBlack);
-  gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1, px, py, 2, CharH);
-
-{  r.x:=x * CharW;
-  r.y:=y * CharH;
-  r.Width:=CharW;
-  r.Height:=CharH;
-  gtk_widget_draw(PGtkWidget(PaintBox), @r); }
+  gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1, x*CharW + LeftIndent, y*CharH, 2, CharH);
 end;
 
 
@@ -519,7 +507,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-12-08 00:42:54  sg
+  Revision 1.4  1999-12-08 01:03:15  peter
+    * changes so redrawing and walking with the cursor finally works
+      correct
+
+  Revision 1.3  1999/12/08 00:42:54  sg
   * The cursor should be displayed correctly now
 
   Revision 1.2  1999/12/06 21:27:27  peter

@@ -130,11 +130,16 @@ begin
   gtk_container_add(PGtkContainer(MainWindow), Notebook);
   gtk_widget_show(Notebook);
   gtk_widget_show(MainWindow);
+  Pages[0].SetFocus;
   gtk_main;
 end.
 {
   $Log$
-  Revision 1.4  1999-11-15 21:47:36  peter
+  Revision 1.5  1999-12-08 01:03:15  peter
+    * changes so redrawing and walking with the cursor finally works
+      correct
+
+  Revision 1.4  1999/11/15 21:47:36  peter
     * first working keypress things
 
   Revision 1.3  1999/11/14 21:32:55  peter
