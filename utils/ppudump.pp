@@ -26,7 +26,7 @@ program pppdump;
 uses ppu;
 
 const
-  Version   = 'Version 0.99.11';
+  Version   = 'Version 0.99.12';
   Title     = 'PPU-Analyser';
   Copyright = 'Copyright (c) 1995-99 by the Free Pascal Development Team';
 
@@ -1181,7 +1181,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-05-14 17:52:04  peter
+  Revision 1.3  1999-06-08 22:16:06  peter
+    * version 0.99.12
+
+  Revision 1.2  1999/05/14 17:52:04  peter
     * new deref
 
   Revision 1.1  1999/05/12 16:11:39  peter

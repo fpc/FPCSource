@@ -33,9 +33,9 @@ uses
   getopts;
 
 const
-  Version   = 'Version 0.99.7';
+  Version   = 'Version 0.99.12';
   Title     = 'PPU-Mover';
-  Copyright = 'Copyright (c) 1998 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-99 by the Free Pascal Development Team';
 
   ShortOpts = 'o:e:d:qhsvbw';
   BufSize = 4096;
@@ -280,7 +280,7 @@ begin
   if IsStaticLinked then
    untilb:=iblinkstaticlibs
   else
-   untilb:=iblinkofiles;
+   untilb:=iblinkunitfiles;
   repeat
     b:=inppu^.readentry;
     if b in [ibendinterface,ibend] then
@@ -302,7 +302,7 @@ begin
 { we have now reached the section for the files which need to be added,
   now add them to the list }
   case b of
-       iblinkofiles : begin
+       iblinkunitfiles : begin
                         while not inppu^.endofentry do
                          AddToLinkFiles(inppu^.getstring);
                       end;
@@ -559,7 +559,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-05-12 16:11:39  peter
+  Revision 1.2  1999-06-08 22:16:07  peter
+    * version 0.99.12
+
+  Revision 1.1  1999/05/12 16:11:39  peter
     * moved
 
   Revision 1.3  1998/08/17 10:26:30  peter
