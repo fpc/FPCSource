@@ -867,45 +867,17 @@ implementation
                begin
                  if is_procsym_call(left) then
                   begin
-                    {if left.right=nil then
-                     begin}
-                       if (tcallnode(left).symtableprocentry^.owner^.symtabletype=objectsymtable) and
-			 assigned(tcallnode(left).methodpointer) then
-                        hp:=genloadmethodcallnode(pprocsym(tcallnode(left).symtableprocentry),
-                          tcallnode(left).symtableproc,
-                              tcallnode(left).methodpointer.getcopy)
-                       else
-                        hp:=genloadcallnode(pprocsym(tcallnode(left).symtableprocentry),
-                          tcallnode(left).symtableproc);
-                       firstpass(hp);
-                       left.free;
-                       left:=hp;
-                       aprocdef:=pprocdef(left.resulttype);
-                   (*  end
+                    if (tcallnode(left).symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                       assigned(tcallnode(left).methodpointer) then
+                     hp:=genloadmethodcallnode(pprocsym(tcallnode(left).symtableprocentry),
+                         tcallnode(left).symtableproc,tcallnode(left).methodpointer.getcopy)
                     else
-                     begin
-                       left.right.nodetype:=loadn;
-                       left.right.symtableentry:=left.right.symtableentry;
-                       left.right.resulttype:=pvarsym(left.symtableentry)^.definition;
-                       hp:=left.right;
-                       putnode(left);
-                       left:=hp;
-                       { should we do that ? }
-                       firstpass(left);
-                       if not is_equal(left.resulttype,resulttype) then
-                        begin
-                          CGMessage(type_e_mismatch);
-                          exit;
-                        end
-                       else
-                        begin
-                          hp:=p;
-                          p:=left;
-                          resulttype:=hp.resulttype;
-                          putnode(hp);
-                          exit;
-                        end;
-                     end; *)
+                     hp:=genloadcallnode(pprocsym(tcallnode(left).symtableprocentry),
+                         tcallnode(left).symtableproc);
+                    firstpass(hp);
+                    left.free;
+                    left:=hp;
+                    aprocdef:=pprocdef(left.resulttype);
                   end
                  else
                   begin
@@ -1219,7 +1191,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-02-20 13:14:18  marco
+  Revision 1.19  2001-02-20 18:37:10  peter
+    * removed unused code
+
+  Revision 1.18  2001/02/20 13:14:18  marco
    * Fix from Peter for passing a procedure of method to a other method in a method
 
   Revision 1.17  2001/02/08 13:09:03  jonas
