@@ -60,7 +60,7 @@ unit nppcld;
               if (symtableentry.typ = procsym) and
                  (tprocsym(symtableentry).owner.symtabletype in [staticsymtable,globalsymtable]) and
                  (
-                  (not tabstractunitsymtable(tprocsym(symtableentry).owner).iscurrentmodule) or
+                  (not tprocsym(symtableentry).owner.iscurrentunit) or
                   (po_external in tprocsym(symtableentry).procdef[1].procoptions)
                  ) then
                 begin
@@ -94,7 +94,7 @@ unit nppcld;
             begin
               if (vo_is_dll_var in tglobalvarsym(symtableentry).varoptions) and
                  (tglobalvarsym(symtableentry).owner.symtabletype in [staticsymtable,globalsymtable]) and
-                 not(tabstractunitsymtable(tglobalvarsym(symtableentry).owner).iscurrentmodule) then
+                 not(tglobalvarsym(symtableentry).owner.iscurrentunit) then
                 begin
                   l:=objectlibrary.getasmsymbol('L'+tglobalvarsym(symtableentry).mangledname+'$non_lazy_ptr');
                   if not(assigned(l)) then
@@ -125,7 +125,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2005-01-19 22:19:41  peter
+  Revision 1.7  2005-01-20 17:47:01  peter
+    * remove copy_value_on_stack and a_param_copy_ref
+
+  Revision 1.6  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 

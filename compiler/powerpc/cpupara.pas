@@ -43,8 +43,7 @@ unit cpupara;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
-         
-          function copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean; override;
+
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
@@ -216,14 +215,6 @@ unit cpupara;
         curintreg:=RS_R3;
         curfloatreg:=RS_F1;
         curmmreg:=RS_M1;
-      end;
-
-
-    function tppcparamanager.copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
-      begin
-        result := false;
-        if (target_info.abi <> abi_powerpc_aix) then
-          result := inherited copy_value_on_stack(varspez,def,calloption);
       end;
 
 
@@ -404,7 +395,7 @@ unit cpupara;
                     paralen := paradef.size
                   else
                     paralen := tcgsize2size[def_cgsize(paradef)];
-                  if (target_info.abi = abi_powerpc_aix) and 
+                  if (target_info.abi = abi_powerpc_aix) and
                      (paradef.deftype = recorddef) and
                      (hp.varspez in [vs_value,vs_const]) then
                     begin
@@ -629,7 +620,7 @@ unit cpupara;
                 paraloc^.reference.offset:=56
               { 'A7' is the stack pointer on 68k, can't be overwritten
                 by API calls, so it has no offset }
-              { 'R12' is special, used internally to support r12base sysv 
+              { 'R12' is special, used internally to support r12base sysv
                 calling convention }
               else if s='R12' then
                 begin
@@ -655,7 +646,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2005-01-14 20:59:17  jonas
+  Revision 1.85  2005-01-20 17:47:01  peter
+    * remove copy_value_on_stack and a_param_copy_ref
+
+  Revision 1.84  2005/01/14 20:59:17  jonas
     * fixed overallocation of stack space for parameters under SYSV
       (introduced in one of my previous commits)
     * unified code of get_volatile_registers_fpu for SYSV and AIX

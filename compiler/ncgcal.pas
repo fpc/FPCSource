@@ -275,44 +275,28 @@ implementation
          end
         else
          begin
-{$ifndef i386}
-{$warning TODO This can be removed, a_param_ref shall support this construct}
-           { copy the value on the stack or use normal parameter push?
-             Check for varargs first because that has no parasym }
-           if not(cpf_varargs_para in callparaflags) and
-              paramanager.copy_value_on_stack(parasym.varspez,left.resulttype.def,
-                  aktcallnode.procdefinition.proccalloption) then
-            begin
-              if not (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-                internalerror(200204241);
-              cg.a_param_copy_ref(exprasmlist,left.resulttype.def.size,left.location.reference,tempcgpara);
-            end
-           else
-{$endif i386}
-            begin
-              case left.location.loc of
-                LOC_CONSTANT,
-                LOC_REGISTER,
-                LOC_CREGISTER,
-                LOC_REFERENCE,
-                LOC_CREFERENCE :
-                  begin
+           case left.location.loc of
+             LOC_CONSTANT,
+             LOC_REGISTER,
+             LOC_CREGISTER,
+             LOC_REFERENCE,
+             LOC_CREFERENCE :
+               begin
 {$ifndef cpu64bit}
-                    { use cg64 only for int64, not for 8 byte records }
-                    if is_64bit(left.resulttype.def) then
-                      cg64.a_param64_loc(exprasmlist,left.location,tempcgpara)
-                    else
+                 { use cg64 only for int64, not for 8 byte records }
+                 if is_64bit(left.resulttype.def) then
+                   cg64.a_param64_loc(exprasmlist,left.location,tempcgpara)
+                 else
 {$endif cpu64bit}
-                      cg.a_param_loc(exprasmlist,left.location,tempcgpara);
-                  end;
+                   cg.a_param_loc(exprasmlist,left.location,tempcgpara);
+               end;
 {$ifdef SUPPORT_MMX}
-                LOC_MMXREGISTER,
-                LOC_CMMXREGISTER:
-                  cg.a_parammm_reg(exprasmlist,left.location.register);
+             LOC_MMXREGISTER,
+             LOC_CMMXREGISTER:
+               cg.a_parammm_reg(exprasmlist,left.location.register);
 {$endif SUPPORT_MMX}
-                else
-                  internalerror(200204241);
-              end;
+             else
+               internalerror(200204241);
            end;
          end;
       end;
@@ -1229,7 +1213,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.196  2005-01-18 22:19:20  peter
+  Revision 1.197  2005-01-20 17:47:01  peter
+    * remove copy_value_on_stack and a_param_copy_ref
+
+  Revision 1.196  2005/01/18 22:19:20  peter
     * multiple location support for i386 a_param_ref
     * remove a_param_copy_ref for i386
 

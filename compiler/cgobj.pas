@@ -166,8 +166,6 @@ unit cgobj;
           }
           procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const cgpara : TCGPara);virtual;
 
-          { Copies a whole memory block to the stack, the cgpara must be a memory location }
-          procedure a_param_copy_ref(list : taasmoutput;size : aint;const r : treference;const cgpara : TCGPara);virtual;
           { Remarks:
             * If a method specifies a size you have only to take care
               of that number of bits, i.e. load_const_reg with OP_8 must
@@ -795,18 +793,6 @@ implementation
          hr:=getaddressregister(list);
          a_loadaddr_ref_reg(list,r,hr);
          a_param_reg(list,OS_ADDR,hr,cgpara);
-      end;
-
-
-    procedure tcg.a_param_copy_ref(list : taasmoutput;size : aint;const r : treference;const cgpara : TCGPara);
-      var
-        ref : treference;
-      begin
-         cgpara.check_simple_location;
-         if not(cgpara.location^.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-           internalerror(2003010901);
-         reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset);
-         g_concatcopy(list,r,ref,size);
       end;
 
 
@@ -2045,7 +2031,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.189  2005-01-20 16:38:45  peter
+  Revision 1.190  2005-01-20 17:47:01  peter
+    * remove copy_value_on_stack and a_param_copy_ref
+
+  Revision 1.189  2005/01/20 16:38:45  peter
     * load jmp_buf_size from system unit
 
   Revision 1.188  2005/01/18 22:19:20  peter

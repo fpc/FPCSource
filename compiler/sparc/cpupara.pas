@@ -33,7 +33,6 @@ interface
 
     type
       TSparcParaManager=class(TParaManager)
-        function  copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;override;
         function  get_volatile_registers_fpu(calloption : tproccalloption):TCpuRegisterSet;override;
@@ -105,12 +104,6 @@ implementation
               end;
             size:=OS_INT;
           end;
-      end;
-
-
-    function tsparcparamanager.copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
-      begin
-        result:=false;
       end;
 
 
@@ -329,7 +322,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2005-01-10 21:50:05  jonas
+  Revision 1.54  2005-01-20 17:47:01  peter
+    * remove copy_value_on_stack and a_param_copy_ref
+
+  Revision 1.53  2005/01/10 21:50:05  jonas
     + support for passing records in registers under darwin
     * tcgpara now also has an intsize field, which contains the size in
       bytes of the whole parameter

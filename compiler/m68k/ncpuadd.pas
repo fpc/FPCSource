@@ -187,7 +187,7 @@ implementation
         if (right.location.loc = LOC_CONSTANT) then
           begin
 {$ifdef extdebug}
-            if (right.location.size in [OS_64,OS_S64]) and (hi(right.location.valueqword)<>0) and ((hi(right.location.valueqword)<>-1) or unsigned) then
+            if (right.location.size in [OS_64,OS_S64]) and (hi(right.location.value64)<>0) and ((hi(right.location.value64)<>-1) or unsigned) then
               internalerror(2002080301);
 {$endif extdebug}
             if (nodetype in [equaln,unequaln]) then
@@ -426,7 +426,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2005-01-08 04:10:36  karoly
+  Revision 1.8  2005-01-20 17:47:01  peter
+    * remove copy_value_on_stack and a_param_copy_ref
+
+  Revision 1.7  2005/01/08 04:10:36  karoly
     * made m68k to compile again
 
   Revision 1.6  2004/10/31 21:45:03  peter

@@ -1330,7 +1330,8 @@ implementation
          end;
 
       var
-        i, sizeleft : aint;
+        i : longint;
+        sizeleft : aint;
         currpara : tparavarsym;
         paraloc : pcgparalocation;
 {$ifdef sparc}
@@ -2364,7 +2365,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.256  2005-01-20 16:38:45  peter
+  Revision 1.257  2005-01-20 17:47:01  peter
+    * remove copy_value_on_stack and a_param_copy_ref
+
+  Revision 1.256  2005/01/20 16:38:45  peter
     * load jmp_buf_size from system unit
 
   Revision 1.255  2005/01/19 20:04:46  florian

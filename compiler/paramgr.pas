@@ -55,10 +55,6 @@ unit paramgr;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
           { return the size of a push }
           function push_size(varspez:tvarspez;def : tdef;calloption : tproccalloption) : longint;
-          { Returns true if a parameter needs to be copied on the stack, this
-            is required for cdecl procedures
-          }
-          function copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
           {# Returns a structure giving the information on
             the storage of the parameter (which must be
             an integer parameter). This is only used when calling
@@ -204,37 +200,6 @@ implementation
             result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (po_methodpointer in tprocvardef(def).procoptions);
           setdef :
             result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tsetdef(def).settype<>smallset);
-        end;
-      end;
-
-
-    { true if a parameter is too large to push and needs a concatcopy to get the value on the stack }
-    function tparamanager.copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
-      begin
-        copy_value_on_stack:=false;
-        { this is only for cdecl procedures with vs_const,vs_value }
-        if not(
-               (calloption in [pocall_cdecl,pocall_cppdecl]) and
-               (varspez in [vs_value,vs_const])
-              ) then
-          exit;
-        case def.deftype of
-          variantdef,
-          formaldef :
-            copy_value_on_stack:=true;
-          recorddef :
-            copy_value_on_stack:=(def.size>sizeof(aint));
-          arraydef :
-            copy_value_on_stack:=(tarraydef(def).highrange>=tarraydef(def).lowrange) and
-                                 (def.size>sizeof(aint));
-          objectdef :
-            copy_value_on_stack:=is_object(def);
-          stringdef :
-            copy_value_on_stack:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
-          procvardef :
-            copy_value_on_stack:=(po_methodpointer in tprocvardef(def).procoptions);
-          setdef :
-            copy_value_on_stack:=(tsetdef(def).settype<>smallset);
         end;
       end;
 
@@ -468,7 +433,10 @@ end.
 
 {
    $Log$
-   Revision 1.84  2005-01-18 22:19:20  peter
+   Revision 1.85  2005-01-20 17:47:01  peter
+     * remove copy_value_on_stack and a_param_copy_ref
+
+   Revision 1.84  2005/01/18 22:19:20  peter
      * multiple location support for i386 a_param_ref
      * remove a_param_copy_ref for i386
 
