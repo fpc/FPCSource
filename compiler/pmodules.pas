@@ -116,7 +116,12 @@ unit pmodules;
          else
            bsssegment^.concat(new(pai_datablock,init_global('HEAP',heapsize)));
          end;
+{$ifdef i386}
          datasegment^.concat(new(pai_symbol,init_global('HEAPSIZE')));
+{$endif i386}
+{$ifdef m68k}
+	 datasegment^.concat(new(pai_symbol,init_global('HEAP_SIZE')));
+{$endif m68k}
          datasegment^.concat(new(pai_const,init_32bit(heapsize)));
       end;
 
@@ -1177,7 +1182,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.34  1998-07-07 11:20:03  peter
+  Revision 1.35  1998-07-08 12:39:38  peter
+    * heap_size for m68k
+
+  Revision 1.34  1998/07/07 11:20:03  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.33  1998/06/25 11:15:34  pierre
