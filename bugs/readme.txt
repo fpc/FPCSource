@@ -365,7 +365,7 @@ bug0243.pp   Arguments of functions are computed from right to left this
              but only BP respects this convention Delphi and GPC also
              use right to left pushing !!
 bug0290.pp   problem with storing hex numbers in integers
-
+bug0294.pp   parameter with the same name as function is allowed in tp7/delphi
 
 Wishlist bugs:
 --------------
@@ -382,3 +382,5 @@ bug0262.pp   problems with virtual and overloaded methods
 bug0263.pp   export directive is not necessary in delphi anymore
 bug0265.pp   nested proc with for-counter in other lex level
 bug0281.pp   dup id checking with property is wrong
+bug0293.pp   no error with variable name = type name
+bug0295.pp   forward type definition is resolved wrong
