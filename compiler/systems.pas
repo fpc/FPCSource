@@ -412,7 +412,9 @@ end;
 function set_target_asm(t:tasm):boolean;
 begin
   set_target_asm:=false;
-  if assigned(asminfos[t]) and (asminfos[t]^.supported_target=target_info.system) then
+  if assigned(asminfos[t]) and
+    ((asminfos[t]^.supported_target=target_info.system) or
+     (asminfos[t]^.supported_target=system_any)) then
    begin
      target_asm:=asminfos[t]^;
      set_target_asm:=true;
@@ -713,7 +715,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.97  2004-12-12 00:31:52  florian
+  Revision 1.98  2004-12-12 00:35:19  florian
+    * check if the selected assembler supports current target improved
+
+  Revision 1.97  2004/12/12 00:31:52  florian
     * check if the selected assembler supports current target
 
   Revision 1.96  2004/11/08 22:09:59  peter
