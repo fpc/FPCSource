@@ -781,7 +781,7 @@ implementation
                     { remove subscriptn before checking for loadn }
                     hp:=pt;
                     while (hp.nodetype in [subscriptn,typeconvn,vecn]) do
-                      hp:=tsubscriptnode(hp).left;
+                      hp:=tunarynode(hp).left;
                     if (hp.nodetype=loadn) then
                      begin
                        { we should check the result type of loadn }
@@ -1135,7 +1135,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2004-02-03 22:32:54  peter
+  Revision 1.65  2004-02-12 15:54:03  peter
+    * make extcycle is working again
+
+  Revision 1.64  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

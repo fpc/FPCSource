@@ -68,7 +68,7 @@ interface
           procedure candidates_free(procs:pcandidate);
           procedure candidates_list(procs:pcandidate;all:boolean);
           procedure candidates_get_information(procs:pcandidate);
-          function  candidates_choose_best(procs:pcandidate;var bestpd:tprocdef):integer;
+          function  candidates_choose_best(procs:pcandidate;var bestpd:tabstractprocdef):integer;
           procedure candidates_find_wrong_para(procs:pcandidate);
 {$ifdef EXTDEBUG}
           procedure candidates_dump_info(lvl:longint;procs:pcandidate);
@@ -1615,7 +1615,7 @@ type
       end;
 
 
-    function Tcallnode.candidates_choose_best(procs:pcandidate;var bestpd:tprocdef):integer;
+    function Tcallnode.candidates_choose_best(procs:pcandidate;var bestpd:tabstractprocdef):integer;
       var
         besthpstart,
         hp       : pcandidate;
@@ -2116,7 +2116,7 @@ type
 
                    { Choose the best candidate and count the number of
                      candidates left }
-                   cand_cnt:=candidates_choose_best(procs,tprocdef(procdefinition));
+                   cand_cnt:=candidates_choose_best(procs,procdefinition);
 
                    { All parameters are checked, check if there are any
                      procedures left }
@@ -2716,7 +2716,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.223  2004-02-05 01:24:08  florian
+  Revision 1.224  2004-02-12 15:54:03  peter
+    * make extcycle is working again
+
+  Revision 1.223  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
   Revision 1.222  2004/02/03 22:32:54  peter

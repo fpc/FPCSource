@@ -766,7 +766,16 @@ implementation
                  hp:=tunarynode(hp).left;
                end;
              asn :
-               hp:=tunarynode(hp).left;
+               begin
+                 { asn can't be assigned directly, it returns the value in a register instead
+                   of reference. }
+                 if not(gotsubscript or gotderef or gotvec) then
+                   begin
+                     CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
+                     exit;
+                   end;
+                 hp:=tunarynode(hp).left;
+               end;
              subscriptn :
                begin
                  gotsubscript:=true;
@@ -929,7 +938,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2004-02-04 22:15:15  daniel
+  Revision 1.78  2004-02-12 15:54:03  peter
+    * make extcycle is working again
+
+  Revision 1.77  2004/02/04 22:15:15  daniel
     * Rtti generation moved to ncgutil
     * Assmtai usage of symsym removed
     * operator overloading cleanup up

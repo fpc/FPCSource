@@ -496,184 +496,182 @@ implementation
          load_all_regvars(exprasmlist);
 {$endif OLDREGVARS}
 
-         cmp_const:=Tordconstnode(right).value;
-         if do_loopvar_at_end then
-            begin
-              {Watch out for wrap around 255 -> 0.}
-              {Ugly: This code is way to long... Use tables?}
-              case opsize of
-                OS_8:
-                  begin
-                    if lnf_backward in loopflags then
-                      begin
-                        if byte(cmp_const)=low(byte) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=high(byte);
-                          end
-                      end
-                    else
-                      begin
-                        if byte(cmp_const)=high(byte) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=low(byte);
-                          end
-                      end
-                  end;
-                OS_16:
-                  begin
-                    if lnf_backward in loopflags then
-                      begin
-                        if word(cmp_const)=high(word) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=low(word);
-                          end
-                      end
-                    else
-                      begin
-                        if word(cmp_const)=low(word) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=high(word);
-                          end
-                      end
-                  end;
-                OS_32:
-                  begin
-                    if lnf_backward in loopflags then
-                      begin
-                        if cardinal(cmp_const)=high(cardinal) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=low(cardinal);
-                          end
-                      end
-                    else
-                      begin
-                        if cardinal(cmp_const)=low(cardinal) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=high(cardinal);
-                          end
-                      end
-                  end;
-                OS_64:
-                  begin
-                    if lnf_backward in loopflags then
-                      begin
-                        if qword(cmp_const)=high(qword) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=low(qword);
-                          end
-                      end
-                    else
-                      begin
-                        if qword(cmp_const)=low(qword) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=high(qword);
-                          end
-                      end
-                  end;
-                OS_S8:
-                  begin
-                    if lnf_backward in loopflags then
-                      begin
-                        if shortint(cmp_const)=low(shortint) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=high(shortint);
-                          end
-                      end
-                    else
-                      begin
-                        if shortint(cmp_const)=high(shortint) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=low(shortint);
-                          end
-                      end
-                  end;
-                OS_S16:
-                  begin
-                    if lnf_backward in loopflags then
-                      begin
-                        if integer(cmp_const)=high(integer) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=low(integer);
-                          end
-                      end
-                    else
-                      begin
-                        if integer(cmp_const)=low(integer) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=high(integer);
-                          end
-                      end
-                  end;
-                OS_S32:
-                  begin
-                    if lnf_backward in loopflags then
-                      begin
-                        if longint(cmp_const)=high(longint) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=low(longint);
-                          end
-                      end
-                    else
-                      begin
-                        if longint(cmp_const)=low(longint) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=high(longint);
-                          end
-                      end
-                  end;
-                OS_S64:
-                  begin
-                    if lnf_backward in loopflags then
-                      begin
-                        if int64(cmp_const)=high(int64) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=low(int64);
-                          end
-                      end
-                    else
-                      begin
-                        if int64(cmp_const)=low(int64) then
-                          begin
-                            hcond:=OC_NE;
-                            cmp_const:=high(int64);
-                          end
-                      end
-                  end;
-                else
-                  internalerror(200201021);
-              end;
-            end;
-
          { produce comparison and the corresponding }
          { jump                                     }
          if temptovalue then
            begin
              cg.a_cmp_ref_loc_label(exprasmlist,opsize,hcond,temp1,
                t2.location,l3);
+             tg.ungetiftemp(exprasmlist,temp1);
            end
          else
            begin
+             cmp_const:=Tordconstnode(right).value;
+             if do_loopvar_at_end then
+               begin
+                 {Watch out for wrap around 255 -> 0.}
+                 {Ugly: This code is way to long... Use tables?}
+                 case opsize of
+                   OS_8:
+                     begin
+                       if lnf_backward in loopflags then
+                         begin
+                           if byte(cmp_const)=low(byte) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=high(byte);
+                             end
+                         end
+                       else
+                         begin
+                           if byte(cmp_const)=high(byte) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=low(byte);
+                             end
+                         end
+                     end;
+                   OS_16:
+                     begin
+                       if lnf_backward in loopflags then
+                         begin
+                           if word(cmp_const)=high(word) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=low(word);
+                             end
+                         end
+                       else
+                         begin
+                           if word(cmp_const)=low(word) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=high(word);
+                             end
+                         end
+                     end;
+                   OS_32:
+                     begin
+                       if lnf_backward in loopflags then
+                         begin
+                           if cardinal(cmp_const)=high(cardinal) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=low(cardinal);
+                             end
+                         end
+                       else
+                         begin
+                           if cardinal(cmp_const)=low(cardinal) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=high(cardinal);
+                             end
+                         end
+                     end;
+                   OS_64:
+                     begin
+                       if lnf_backward in loopflags then
+                         begin
+                           if qword(cmp_const)=high(qword) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=low(qword);
+                             end
+                         end
+                       else
+                         begin
+                           if qword(cmp_const)=low(qword) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=high(qword);
+                             end
+                         end
+                     end;
+                   OS_S8:
+                     begin
+                       if lnf_backward in loopflags then
+                         begin
+                           if shortint(cmp_const)=low(shortint) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=high(shortint);
+                             end
+                         end
+                       else
+                         begin
+                           if shortint(cmp_const)=high(shortint) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=low(shortint);
+                             end
+                         end
+                     end;
+                   OS_S16:
+                     begin
+                       if lnf_backward in loopflags then
+                         begin
+                           if integer(cmp_const)=high(integer) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=low(integer);
+                             end
+                         end
+                       else
+                         begin
+                           if integer(cmp_const)=low(integer) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=high(integer);
+                             end
+                         end
+                     end;
+                   OS_S32:
+                     begin
+                       if lnf_backward in loopflags then
+                         begin
+                           if longint(cmp_const)=high(longint) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=low(longint);
+                             end
+                         end
+                       else
+                         begin
+                           if longint(cmp_const)=low(longint) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=high(longint);
+                             end
+                         end
+                     end;
+                   OS_S64:
+                     begin
+                       if lnf_backward in loopflags then
+                         begin
+                           if int64(cmp_const)=high(int64) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=low(int64);
+                             end
+                         end
+                       else
+                         begin
+                           if int64(cmp_const)=low(int64) then
+                             begin
+                               hcond:=OC_NE;
+                               cmp_const:=high(int64);
+                             end
+                         end
+                     end;
+                   else
+                     internalerror(200201021);
+                 end;
+               end;
+
              cg.a_cmp_const_loc_label(exprasmlist,opsize,hcond,
                cmp_const,t2.location,l3);
            end;
-
-         if temptovalue then
-           tg.ungetiftemp(exprasmlist,temp1);
 
          { this is the break label: }
          cg.a_label(exprasmlist,aktbreaklabel);
@@ -1463,7 +1461,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2004-02-05 18:28:37  peter
+  Revision 1.92  2004-02-12 15:54:03  peter
+    * make extcycle is working again
+
+  Revision 1.91  2004/02/05 18:28:37  peter
     * x86_64 fixes for opsize
 
   Revision 1.90  2004/01/31 17:45:17  peter

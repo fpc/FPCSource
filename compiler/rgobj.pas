@@ -534,11 +534,11 @@ implementation
 
 
     procedure trgobj.ungetregister(list:Taasmoutput;r:Tregister);
-      begin        
-        {$ifdef EXTDEBUG}
-        if reginfo=nil then
+      begin
+{$ifdef EXTDEBUG}
+        if (reginfo=nil) and (getsupreg(r)>=first_imaginary) then
           InternalError(2004020901);
-        {$endif EXTDEBUG}
+{$endif EXTDEBUG}
         { Only explicit allocs insert regalloc info }
         if getsupreg(r)<first_imaginary then
           list.concat(Tai_regalloc.dealloc(r));
@@ -915,7 +915,7 @@ implementation
               {Remove the node from the spillworklist.}
               if not spillworklist.delete(m) then
                 internalerror(200310145);
-    
+
               if move_related(m) then
                 freezeworklist.add(m)
               else
@@ -1092,7 +1092,7 @@ implementation
           p:=0;
           q:=reginfo[u].movelist^.sorted_until;
           i:=0;
-          if q<>0 then 
+          if q<>0 then
             repeat
               i:=(p+q) shr 1;
               if ptrint(searched)>ptrint(reginfo[u].movelist^.data[i]) then
@@ -1578,11 +1578,11 @@ implementation
                   begin
                     if (getregtype(reg)=regtype) then
                       setsupreg(reg,reginfo[getsupreg(reg)].colour);
-  
+
                     {
                       Remove sequences of release and
                       allocation of the same register like:
-  
+
                          # Register X released
                          # Register X allocated
                     }
@@ -1631,7 +1631,7 @@ implementation
                             end;
 {$endif arm}
                         end;
-  
+
                     { Maybe the operation can be removed when
                       it is a move and both arguments are the same }
                     if is_same_reg_move(regtype) then
@@ -2009,7 +2009,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.121  2004-02-09 20:12:23  olle
+  Revision 1.122  2004-02-12 15:54:03  peter
+    * make extcycle is working again
+
+  Revision 1.121  2004/02/09 20:12:23  olle
     + check that register allocation is not made at the wrong moment
 
   Revision 1.120  2004/02/08 23:10:21  jonas

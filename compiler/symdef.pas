@@ -847,7 +847,7 @@ implementation
              hp2:=p;
              p:=tparaitem(p.next);
              { pull in }
-             tparaitem(hp2.next):=hp1;
+             hp2.next:=hp1;
              hp1:=hp2;
           end;
         reverseparaitems:=hp1;
@@ -963,7 +963,7 @@ implementation
 
     procedure Tstoreddef.reset;
 
-    begin    
+    begin
 {$ifdef GDB}
       if assigned(typesym) then
         ttypesym(typesym).isusedinstab:=false;
@@ -6096,7 +6096,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.217  2004-02-08 18:08:59  jonas
+  Revision 1.218  2004-02-12 15:54:03  peter
+    * make extcycle is working again
+
+  Revision 1.217  2004/02/08 18:08:59  jonas
     * fixed regvars support. Needs -doldregvars to activate. Only tested with
       ppc, other processors should however only require maxregvars and
       maxfpuregvars constants in cpubase.pas. Remember to take scratch-

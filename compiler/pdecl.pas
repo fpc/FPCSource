@@ -341,7 +341,7 @@ implementation
                      begin
                        tpointerdef(pd).pointertype.setsym(srsym);
                        { avoid wrong unused warnings web bug 801 PM }
-                       inc(tstoredsym(srsym).refs);
+                       inc(ttypesym(srsym).refs);
 {$ifdef GDB}
                        if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
                           (tsym(p).owner.symtabletype in [globalsymtable,staticsymtable]) then
@@ -682,7 +682,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2004-02-11 19:59:06  peter
+  Revision 1.79  2004-02-12 15:54:03  peter
+    * make extcycle is working again
+
+  Revision 1.78  2004/02/11 19:59:06  peter
     * fix compilation without GDB
 
   Revision 1.77  2004/01/31 22:48:31  daniel

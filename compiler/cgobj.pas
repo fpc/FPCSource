@@ -918,7 +918,7 @@ implementation
 
               getexplicitregister(list,locpara.register);
               ungetregister(list,locpara.register);
-{ 
+{
               This is now a normal imaginary register, allocated the usual way (JM)
               getexplicitregister(list,reg);
 }
@@ -929,7 +929,7 @@ implementation
             begin
               getexplicitregister(list,locpara.register);
               ungetregister(list,locpara.register);
-{ 
+{
               This is now a normal imaginary register, allocated the usual way (JM)
               getexplicitregister(list,reg);
 }
@@ -1889,13 +1889,9 @@ implementation
            paramanager.freeparaloc(list,paraloc1);
            paramanager.freeparaloc(list,paraloc2);
            { No register saving needed, saveregisters is used }
-{$ifndef x86}
            allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$endif x86}
            a_call_name(list,'FPC_CHECK_OBJECT_EXT');
-{$ifndef x86}
            deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$endif x86}
          end
         else
          if (cs_check_range in aktlocalswitches) then
@@ -1904,13 +1900,9 @@ implementation
             a_param_reg(list,OS_ADDR,reg,paraloc1);
             paramanager.freeparaloc(list,paraloc1);
             { No register saving needed, saveregisters is used }
-{$ifndef x86}
             allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$endif x86}
             a_call_name(list,'FPC_CHECK_OBJECT');
-{$ifndef x86}
             deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$endif x86}
           end;
       end;
 
@@ -2151,7 +2143,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.156  2004-02-08 18:08:59  jonas
+  Revision 1.157  2004-02-12 15:54:03  peter
+    * make extcycle is working again
+
+  Revision 1.156  2004/02/08 18:08:59  jonas
     * fixed regvars support. Needs -doldregvars to activate. Only tested with
       ppc, other processors should however only require maxregvars and
       maxfpuregvars constants in cpubase.pas. Remember to take scratch-
