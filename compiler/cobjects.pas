@@ -403,7 +403,8 @@ unit cobjects;
 
     { allocates memory for s and copies s as zero terminated string
       to that mem and returns a pointer to that mem }
-    function strpnew(const s : string) : pchar;
+    function  strpnew(const s : string) : pchar;
+    procedure strdispose(var p : pchar);
 
     { makes a char lowercase, with spanish, french and german char set }
     function lowercase(c : char) : char;
@@ -603,6 +604,16 @@ end;
          getmem(p,length(s)+1);
          strpcopy(p,s);
          strpnew:=p;
+      end;
+
+
+    procedure strdispose(var p : pchar);
+      begin
+        if assigned(p) then
+         begin
+           freemem(p,strlen(p)+1);
+           p:=nil;
+         end;
       end;
 
 
@@ -2323,7 +2334,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.47  1999-11-15 14:59:55  pierre
+  Revision 1.48  1999-12-06 18:21:03  peter
+    * support !ENVVAR for long commandlines
+    * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
+      finally supported as installdir.
+
+  Revision 1.47  1999/11/15 14:59:55  pierre
    * last was not handled correctly in TStringQueue
 
   Revision 1.46  1999/11/14 15:56:36  peter

@@ -84,23 +84,23 @@ begin
   HPath:=current_module^.locallibrarysearchpath.First;
   while assigned(HPath) do
    begin
-     LinkRes.Add('-L'+HPath^.Data^);
+     LinkRes.Add('-L'+GetShortName(HPath^.Data^));
      HPath:=HPath^.Next;
    end;
   HPath:=LibrarySearchPath.First;
   while assigned(HPath) do
    begin
-     LinkRes.Add('-L'+HPath^.Data^);
+     LinkRes.Add('-L'+GetShortName(HPath^.Data^));
      HPath:=HPath^.Next;
    end;
 
   { add objectfiles, start with prt0 always }
-  LinkRes.AddFileName(FindObjectFile('prt0'));
+  LinkRes.AddFileName(GetShortName(FindObjectFile('prt0')));
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.Get;
      if s<>'' then
-      LinkRes.AddFileName(s);
+      LinkRes.AddFileName(GetShortName(s));
    end;
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
@@ -136,7 +136,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.Get;
-        LinkRes.AddFileName(s)
+        LinkRes.AddFileName(GetShortName(s))
       end;
      LinkRes.Add('-)');
    end;
@@ -288,7 +288,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-11-16 23:39:04  peter
+  Revision 1.6  1999-12-06 18:21:04  peter
+    * support !ENVVAR for long commandlines
+    * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
+      finally supported as installdir.
+
+  Revision 1.5  1999/11/16 23:39:04  peter
     * use outputexedir for link.res location
 
   Revision 1.4  1999/11/12 11:03:50  peter

@@ -2735,7 +2735,7 @@ Const local_symtable_index : longint = $8001;
          not(use_big) and
 {$endif}
            assigned(_mangledname) then
-           globals.strdispose(_mangledname);
+           strdispose(_mangledname);
          inherited done;
       end;
 
@@ -3841,7 +3841,12 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.179  1999-12-01 12:42:33  peter
+  Revision 1.180  1999-12-06 18:21:03  peter
+    * support !ENVVAR for long commandlines
+    * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
+      finally supported as installdir.
+
+  Revision 1.179  1999/12/01 12:42:33  peter
     * fixed bug 698
     * removed some notes about unused vars
 

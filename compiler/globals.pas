@@ -30,17 +30,20 @@ unit globals;
   interface
 
     uses
+{$ifdef win32}
+      windows,
+{$endif}
+{$ifdef linux}
+      linux,
+{$endif}
 {$ifdef Delphi4}
       dmisc,
       sysutils,
 {$else}
       strings,dos,
 {$endif}
-{$ifdef linux}
 {$ifdef TP}
       objects,
-{$endif}
-      linux,
 {$endif}
       globtype,version,tokens,systems,cobjects;
 
@@ -250,26 +253,24 @@ unit globals;
     procedure SynchronizeFileTime(const fn1,fn2:string);
     function  FindFile(const f : string;path : string;var b : boolean) : string;
     function  FindExe(bin:string;var found:boolean):string;
+    function  GetShortName(const n:string):string;
+
     Procedure Shell(const command:string);
+    function  GetEnvPChar(const envname:string):pchar;
+    procedure FreeEnvPChar(p:pchar);
 
     procedure InitGlobals;
     procedure DoneGlobals;
 
-    procedure strdispose(var p : pchar);
 
-  implementation
+implementation
 
     uses
       comphook;
 
-    procedure strdispose(var p : pchar);
-
+    procedure abstract;
       begin
-         if assigned(p) then
-           begin
-              freemem(p,strlen(p)+1);
-              p:=nil;
-           end;
+        do_internalerror(255);
       end;
 
 
@@ -328,14 +329,12 @@ unit globals;
 {$ifdef debug}
 
     function assigned(p : pointer) : boolean;
-
 {$ifndef FPC}
     {$ifndef DPMI}
       type
          ptrrec = record
             ofs,seg : word;
          end;
-
       var
          lp : longint;
     {$endif DPMI}
@@ -454,15 +453,7 @@ unit globals;
            upper[i]:=char(byte(s[i])-32)
           else
            upper[i]:=s[i];
-         {$ifdef FPC}
-           {$ifopt H+}
-             setlength(upper,length(s));
-           {$else}
-             upper[0]:=s[0];
-           {$endif}
-         {$else}
-           upper[0]:=s[0];
-         {$endif}
+        upper[0]:=s[0];
       end;
 
 
@@ -478,15 +469,7 @@ unit globals;
            lower[i]:=char(byte(s[i])+32)
           else
            lower[i]:=s[i];
-         {$ifndef TP}
-           {$ifopt H+}
-             setlength(lower,length(s));
-           {$else}
-             lower[0]:=s[0];
-           {$endif}
-         {$else}
-           lower[0]:=s[0];
-         {$endif}
+        lower[0]:=s[0];
       end;
 
 
@@ -503,26 +486,25 @@ unit globals;
       end;
 
 
-
 {$ifdef FPC}
    function tostru(i:cardinal):string;
    {
      return string of value i, but for cardinals
    }
-   var hs:string;
-
-   begin
-       str(i,hs);
-       tostru:=hs;
-   end;
+      var
+        hs : string;
+      begin
+        str(i,hs);
+        tostru:=hs;
+      end;
 {$else FPC}
-
-   function tostru(i:longint):string;
-
-   begin
+    function tostru(i:longint):string;
+      begin
         tostru:=tostr(i);
-   end;
+      end;
 {$endif FPC}
+
+
    function trimspace(const s:string):string;
    {
      return s with all leading and ending spaces and tabs removed
@@ -1225,27 +1207,99 @@ unit globals;
 {$endif delphi}
    end;
 
-   procedure abstract;
-     begin
-        do_internalerror(255);
-     end;
 
-
-Procedure Shell(const command:string);
-{ This is already defined in the linux.ppu for linux, need for the *
-  expansion under linux }
-{$ifdef linux}
-begin
-  Linux.Shell(command);
-end;
-{$else}
-var
-  comspec : string;
-begin
-  comspec:=getenv('COMSPEC');
-  Exec(comspec,' /C '+command);
-end;
+    function GetShortName(const n:string):string;
+{$ifdef win32}
+      var
+        hs,hs2 : string;
 {$endif}
+{$ifdef go32v2}
+      var
+        hs : string;
+{$endif}
+      begin
+        GetShortName:=n;
+{$ifdef win32}
+        hs:=n+#0;
+        Windows.GetShortPathName(@hs[1],@hs2[1],high(hs2));
+        hs2[0]:=chr(strlen(@hs2[1]));
+        GetShortName:=hs2;
+{$endif}
+{$ifdef go32v2}
+        hs:=n;
+        if Dos.GetShortName(hs) then
+         GetShortName:=hs;
+{$endif}
+      end;
+
+
+ {****************************************************************************
+                               OS Dependent things
+ ****************************************************************************}
+
+    function GetEnvPChar(const envname:string):pchar;
+      {$ifdef win32}
+      var
+        s     : string;
+        i,len : longint;
+        hp,p,p2 : pchar;
+      {$endif}
+      begin
+      {$ifdef linux}
+        GetEnvPchar:=Linux.Getenv(envname);
+        {$define GETENVOK}
+      {$endif}
+      {$ifdef win32}
+        GetEnvPchar:=nil;
+        p:=GetEnvironmentStrings;
+        hp:=p;
+        while hp^<>#0 do
+         begin
+           s:=strpas(hp);
+           i:=pos('=',s);
+           len:=strlen(hp);
+           if upcase(copy(s,1,i-1))=upcase(envname) then
+            begin
+              GetMem(p2,len-length(envname));
+              Move(hp[i],p2^,len-length(envname));
+              GetEnvPchar:=p2;
+              break;
+            end;
+           { next string entry}
+           hp:=hp+len+1;
+         end;
+        FreeEnvironmentStrings(p);
+        {$define GETENVOK}
+      {$endif}
+      {$ifdef GETENVOK}
+        {$undef GETENVOK}
+      {$else}
+        GetEnvPchar:=StrPNew(Dos.Getenv(envname));
+      {$endif}
+      end;
+
+    procedure FreeEnvPChar(p:pchar);
+      begin
+      {$ifndef linux}
+        StrDispose(p);
+      {$endif}
+      end;
+
+    Procedure Shell(const command:string);
+      { This is already defined in the linux.ppu for linux, need for the *
+        expansion under linux }
+      {$ifdef linux}
+      begin
+        Linux.Shell(command);
+      end;
+      {$else}
+      var
+        comspec : string;
+      begin
+        comspec:=getenv('COMSPEC');
+        Exec(comspec,' /C '+command);
+      end;
+      {$endif}
 
  {****************************************************************************
                                     Init
@@ -1358,7 +1412,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  1999-12-02 17:34:34  peter
+  Revision 1.38  1999-12-06 18:21:03  peter
+    * support !ENVVAR for long commandlines
+    * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
+      finally supported as installdir.
+
+  Revision 1.37  1999/12/02 17:34:34  peter
     * preprocessor support. But it fails on the caret in type blocks
 
   Revision 1.36  1999/11/18 15:34:45  pierre

@@ -48,6 +48,7 @@ type
     function  Unsetbool(const opts:string; pos: Longint):boolean;
     procedure interpret_proc_specific_options(const opt:string);virtual;
     procedure interpret_option(const opt :string);
+    procedure Interpret_envvar(const envname : string);
     procedure Interpret_file(const filename : string);
     procedure Read_Parameters;
     procedure parsecmd(cmd:string);
@@ -337,6 +338,12 @@ var
 begin
   if opt='' then
    exit;
+
+  { only parse define,undef,target,verbosity and link options the firsttime }
+  if firstpass and
+     not((opt[1]='-') and (opt[2] in ['i','d','v','T','u','n','X'])) then
+   exit;
+
   case opt[1] of
  '-' : begin
          more:=Copy(opt,3,255);
@@ -940,6 +947,51 @@ begin
 end;
 
 
+procedure Toption.Interpret_envvar(const envname : string);
+var
+  argstart,
+  env,
+  pc     : pchar;
+  arglen : longint;
+  quote  : set of char;
+  hs     : string;
+begin
+  env:=GetEnvPChar(envname);
+  pc:=env;
+  repeat
+    { skip leading spaces }
+    while pc^ in [' ',#9,#13] do
+     inc(pc);
+    case pc^ of
+      #0 : break;
+     '"' : begin
+             quote:=['"'];
+             inc(pc);
+           end;
+    '''' : begin
+             quote:=[''''];
+             inc(pc);
+           end;
+    else
+     quote:=[' ',#9,#13];
+    end;
+  { scan until the end of the argument }
+    argstart:=pc;
+    while (pc^<>#0) and not(pc^ in quote) do
+     inc(pc);
+  { create argument }
+    arglen:=pc-argstart;
+    hs[0]:=chr(arglen);
+    move(argstart^,hs[1],arglen);
+    interpret_option(hs);
+  { skip quote }
+    if pc^ in quote then
+     inc(pc);
+  until false;
+  FreeEnvPChar(env);
+end;
+
+
 procedure toption.read_parameters;
 var
   opts       : string;
@@ -950,23 +1002,24 @@ begin
    begin
      inc(paramindex);
      opts:=paramstr(paramindex);
-     if firstpass then
-      begin
-      { only parse define,undef,target,verbosity and link options }
-        if (opts[1]='-') and (opts[2] in ['i','d','v','T','u','n','X']) then
-         interpret_option(opts);
-      end
-     else
-      begin
-        if opts[1]='@' then
+     case opts[1] of
+       '@' :
          begin
            Delete(opts,1,1);
-           Message1(option_reading_further_from,opts);
+           if not firstpass then
+            Message1(option_reading_further_from,opts);
            interpret_file(opts);
-         end
-        else
+         end;
+       '!' :
+         begin
+           Delete(opts,1,1);
+           if not firstpass then
+            Message1(option_reading_further_from,'(env) '+opts);
+           interpret_envvar(opts);
+         end;
+       else
          interpret_option(opts);
-      end;
+     end;
    end;
 end;
 
@@ -985,23 +1038,24 @@ begin
       i:=255;
      opts:=Copy(cmd,1,i-1);
      Delete(cmd,1,i);
-     if firstpass then
-      begin
-      { only parse define,undef,target,verbosity and link options }
-        if (opts[1]='-') and (opts[2] in ['d','v','T','u','n','X']) then
-         interpret_option(opts);
-      end
-     else
-      begin
-        if opts[1]='@' then
+     case opts[1] of
+       '@' :
          begin
            Delete(opts,1,1);
-           Message1(option_reading_further_from,opts);
+           if not firstpass then
+            Message1(option_reading_further_from,opts);
            interpret_file(opts);
-         end
-        else
+         end;
+       '!' :
+         begin
+           Delete(opts,1,1);
+           if not firstpass then
+            Message1(option_reading_further_from,'(env) '+opts);
+           interpret_envvar(opts);
+         end;
+       else
          interpret_option(opts);
-      end;
+     end;
    end;
 end;
 
@@ -1183,6 +1237,7 @@ begin
        option^.parsecmd(cmd)
      else
        option^.read_parameters;
+     option^.firstpass:=false;
      if read_configfile then
       begin
 {$ifdef EXTDEBUG}
@@ -1191,7 +1246,6 @@ begin
         option^.interpret_file(ppccfg);
       end;
    end;
-  option^.firstpass:=false;
   if cmd<>'' then
     option^.parsecmd(cmd)
   else
@@ -1277,7 +1331,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  1999-12-02 17:34:34  peter
+  Revision 1.39  1999-12-06 18:21:03  peter
+    * support !ENVVAR for long commandlines
+    * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
+      finally supported as installdir.
+
+  Revision 1.38  1999/12/02 17:34:34  peter
     * preprocessor support. But it fails on the caret in type blocks
 
   Revision 1.37  1999/11/20 01:22:19  pierre

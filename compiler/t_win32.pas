@@ -628,9 +628,9 @@ begin
      DllCmd[1]:='ldw $OPT $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
      if RelocSection then
        begin
-          ExeCmd[2]:='dlltool --as asw.exe --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
+          ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
           ExeCmd[3]:='ldw $OPT $STRIP $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
-          DllCmd[2]:='dlltool --as asw.exe --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
+          DllCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
           DllCmd[3]:='ldw $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
        end;
    end;
@@ -654,27 +654,27 @@ begin
   HPath:=current_module^.locallibrarysearchpath.First;
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+HPath^.Data^+')');
+     LinkRes.Add('SEARCH_DIR('+GetShortName(HPath^.Data^)+')');
      HPath:=HPath^.Next;
    end;
   HPath:=LibrarySearchPath.First;
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+HPath^.Data^+')');
+     LinkRes.Add('SEARCH_DIR('+GetShortName(HPath^.Data^)+')');
      HPath:=HPath^.Next;
    end;
 
   { add objectfiles, start with prt0 always }
   LinkRes.Add('INPUT(');
   if isdll then
-   LinkRes.AddFileName(FindObjectFile('wdllprt0'))
+   LinkRes.AddFileName(GetShortName(FindObjectFile('wdllprt0')))
   else
-   LinkRes.AddFileName(FindObjectFile('wprt0'));
+   LinkRes.AddFileName(GetShortName(FindObjectFile('wprt0')));
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.Get;
      if s<>'' then
-      LinkRes.AddFileName(s);
+      LinkRes.AddFileName(GetShortName(s));
    end;
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
@@ -708,7 +708,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.Get;
-        LinkRes.AddFileName(s)
+        LinkRes.AddFileName(GetShortName(s));
       end;
      LinkRes.Add(')');
    end;
@@ -725,8 +725,10 @@ function TLinkerWin32.MakeExecutable:boolean;
 var
   binstr,
   cmdstr  : string;
+  found,
   success : boolean;
   i       : longint;
+  AsBinStr     : string[80];
   StripStr,
   RelocStr,
   AppTypeStr,
@@ -740,6 +742,7 @@ begin
   AppTypeStr:='';
   ImageBaseStr:='';
   StripStr:='';
+  AsBinStr:=FindExe('asw',found);
   if RelocSection then
    RelocStr:='--base-file base.$$$';
   if apptype=at_gui then
@@ -763,6 +766,7 @@ begin
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RES',outputexedir+Info.ResName);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
+        Replace(cmdstr,'$ASBIN',AsbinStr);
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
         Replace(cmdstr,'$STRIP',StripStr);
@@ -796,8 +800,10 @@ Function TLinkerWin32.MakeSharedLibrary:boolean;
 var
   binstr,
   cmdstr  : string;
+  found,
   success : boolean;
   i       : longint;
+  AsBinStr     : string[80];
   StripStr,
   RelocStr,
   AppTypeStr,
@@ -812,6 +818,7 @@ begin
   AppTypeStr:='';
   ImageBaseStr:='';
   StripStr:='';
+  AsBinStr:=FindExe('asw',found);
   if RelocSection then
    RelocStr:='--base-file base.$$$';
   if apptype=at_gui then
@@ -835,6 +842,7 @@ begin
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RES',outputexedir+Info.ResName);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
+        Replace(cmdstr,'$ASBIN',AsbinStr);
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
         Replace(cmdstr,'$STRIP',StripStr);
@@ -1050,7 +1058,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1999-11-24 11:45:36  pierre
+  Revision 1.11  1999-12-06 18:21:04  peter
+    * support !ENVVAR for long commandlines
+    * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
+      finally supported as installdir.
+
+  Revision 1.10  1999/11/24 11:45:36  pierre
    * $STRIP was missign in DllCmd[1]
 
   Revision 1.9  1999/11/22 22:20:43  pierre
