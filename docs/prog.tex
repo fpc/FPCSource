@@ -2506,7 +2506,7 @@ MMX operations and before using floating point operations, you
 have to call the routine \var{EMMS} of the \var{MMX} unit.
 This routine restores the FPU registers.
 
-{\em careful:} The compiler doesn't warn, if you mix floating point and
+{\em careful:} The compiler doesn't warn if you mix floating point and
 MMX operations, so be careful.
 
 The MMX instructions are optimized for multi media (what else?).
@@ -3246,8 +3246,9 @@ given the \var{-a} command-line switch, the compiler will not erase the
 assembler file at the end of the assembly process, so you can study the
 assembler file.
  
-{\em Note:} code blocks which contain an assembler block, are not processed 
-at all by the optimizer at this time.
+{\em Note:} Code blocks which contain an assembler block, are not processed 
+at all by the optimizer at this time. Update: as of versino 0.99.11, the Pascal
+code surrounding the assembler blocks is optimized.
 \end{itemize}
 
 \section{ Floating point }
