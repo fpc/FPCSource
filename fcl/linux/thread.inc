@@ -73,7 +73,7 @@ begin
 
   Act^.handler.sh := @SIGCHLDHandler;
   Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
-  Act^.sa_mask := 0; //Do not block all signals ??. Don't need if SA_NOMASK in flags
+  Fillchar(Act^.sa_mask,sizeof(Act^.sa_mask),0); //Do not block all signals ??. Don't need if SA_NOMASK in flags
 
   SigAction(SIGCHLD, Act, OldAct);
 
@@ -284,7 +284,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:15:27  peter
+  Revision 1.7  2002-12-18 20:44:36  peter
+    * use fillchar to clear sigset
+
+  Revision 1.6  2002/09/07 15:15:27  peter
     * old logs removed and tabs fixed
 
 }
