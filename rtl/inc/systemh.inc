@@ -38,6 +38,7 @@ Type
   Double = real;
   {$define SUPPORT_EXTENDED}
   {$define SUPPORT_COMP}
+  {$define SUPPORT_SINGLE}
 {$endif}
 
 { some type aliases }
@@ -228,9 +229,11 @@ Procedure Val(const s:string;Var b:Integer);
 Procedure Val(const s:string;Var d:Real;Var code:Word);
 Procedure Val(const s:string;Var d:Real;Var code:Integer);
 Procedure Val(const s:string;Var d:Real);
+{$ifdef SUPPORT_SINGLE}
 Procedure Val(const s:string;Var d:single;Var code:Word);
 Procedure Val(const s:string;Var d:single;Var code:Integer);
 Procedure Val(const s:string;Var d:single);
+{$endif SUPPORT_SINGLE}
 {$ifdef SUPPORT_EXTENDED}
 Procedure Val(const s:string;Var d:Extended;Var code:Word);
 Procedure Val(const s:string;Var d:Extended;Var code:Integer);
@@ -386,7 +389,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.15  1998-07-01 14:43:46  carl
+  Revision 1.16  1998-07-02 12:13:18  carl
+    * No SINGLE type for m68k or other non-intel processors!
+
+  Revision 1.15  1998/07/01 14:43:46  carl
     - max_frame_dump reduced to 8, 20 is too much!
 
   Revision 1.14  1998/06/25 14:04:26  peter
