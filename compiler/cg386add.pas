@@ -674,7 +674,8 @@ implementation
 
                  (p^.left^.resulttype^.deftype=procvardef) or
 
-                 (p^.left^.resulttype^.deftype=enumdef) or
+                 ((p^.left^.resulttype^.deftype=enumdef) and
+                  (p^.left^.resulttype^.size=4)) or
 
                  ((p^.left^.resulttype^.deftype=orddef) and
                  (porddef(p^.left^.resulttype)^.typ=s32bit)) or
@@ -1116,7 +1117,10 @@ implementation
 
               { Char type }
                 if ((p^.left^.resulttype^.deftype=orddef) and
-                    (porddef(p^.left^.resulttype)^.typ=uchar)) then
+                    (porddef(p^.left^.resulttype)^.typ=uchar)) or
+              { enumeration type 16 bit }
+                   ((p^.left^.resulttype^.deftype=enumdef) and
+                    (p^.left^.resulttype^.size=1)) then
                  begin
                    case p^.treetype of
                       ltn,lten,gtn,gten,
@@ -1187,6 +1191,81 @@ implementation
                         ungetregister32(reg8toreg32(p^.right^.location.register));
                      end;
                    ungetregister32(reg8toreg32(p^.location.register));
+                end
+              else
+              { 16 bit enumeration type }
+                if ((p^.left^.resulttype^.deftype=enumdef) and
+                    (p^.left^.resulttype^.size=2)) then
+                 begin
+                   case p^.treetype of
+                      ltn,lten,gtn,gten,
+                      equaln,unequaln :
+                                cmpop:=true;
+                      else CGMessage(type_e_mismatch);
+                   end;
+                   unsigned:=true;
+                   { left and right no register? }
+                   { the one must be demanded    }
+                   if (p^.location.loc<>LOC_REGISTER) and
+                     (p^.right^.location.loc<>LOC_REGISTER) then
+                     begin
+                        if p^.location.loc=LOC_CREGISTER then
+                          begin
+                             if cmpop then
+                               { do not disturb register }
+                               hregister:=p^.location.register
+                             else
+                               begin
+                                  hregister:=reg32toreg16(getregister32);
+                                  emit_reg_reg(A_MOV,S_W,p^.location.register,
+                                    hregister);
+                               end;
+                          end
+                        else
+                          begin
+                             del_reference(p^.location.reference);
+
+                             { first give free then demand new register }
+                             hregister:=reg32toreg16(getregister32);
+                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_W,newreference(p^.location.reference),
+                               hregister)));
+                          end;
+                        clear_location(p^.location);
+                        p^.location.loc:=LOC_REGISTER;
+                        p^.location.register:=hregister;
+                     end;
+
+                   { now p always a register }
+
+                   if (p^.right^.location.loc=LOC_REGISTER) and
+                      (p^.location.loc<>LOC_REGISTER) then
+                     begin
+                       swap_location(p^.location,p^.right^.location);
+                       { newly swapped also set swapped flag }
+                       p^.swaped:=not(p^.swaped);
+                     end;
+
+                   if p^.right^.location.loc<>LOC_REGISTER then
+                     begin
+                        if p^.right^.location.loc=LOC_CREGISTER then
+                          begin
+                             emit_reg_reg(A_CMP,S_W,
+                                p^.right^.location.register,p^.location.register);
+                          end
+                        else
+                          begin
+                             exprasmlist^.concat(new(pai386,op_ref_reg(A_CMP,S_W,newreference(
+                                p^.right^.location.reference),p^.location.register)));
+                             del_reference(p^.right^.location.reference);
+                          end;
+                     end
+                   else
+                     begin
+                        emit_reg_reg(A_CMP,S_W,p^.right^.location.register,
+                          p^.location.register);
+                        ungetregister32(reg16toreg32(p^.right^.location.register));
+                     end;
+                   ungetregister32(reg16toreg32(p^.location.register));
                 end
               else
               { 64 bit types }
@@ -1823,7 +1902,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1999-03-02 18:21:36  peter
+  Revision 1.47  1999-04-12 19:09:08  florian
+  * comparsions for small enumerations type are now generated
+    correct
+
+  Revision 1.46  1999/03/02 18:21:36  peter
     + flags support for add and case
 
   Revision 1.45  1999/02/25 21:02:20  peter
