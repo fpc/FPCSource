@@ -687,7 +687,7 @@ begin
     ftMemo     : AsMemo:=StrPas(Buffer);
     ftTime     : AsTime:=FromTimeStamp(PInteger(Buffer)^,DateDelta);
     ftDate     : Asdate:=FromTimeStamp(0,PInteger(Buffer)^);
-    ftDateTime : AsDateTime:=TimeStampToDateTime(MSecsToTimeStamp(PDouble(Buffer)^));
+    ftDateTime : AsDateTime:=TimeStampToDateTime(MSecsToTimeStamp(trunc(PDouble(Buffer)^)));
     ftCursor   : FValue:=0;
     ftBlob,
     ftGraphic..ftTypedBinary,
@@ -700,7 +700,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-12-13 20:19:49  michael
+  Revision 1.2  2004-12-15 23:02:42  florian
+    * fixed compilation for targets where comp=int64
+
+  Revision 1.1  2004/12/13 20:19:49  michael
   + Initial implementation of params
 
 }
