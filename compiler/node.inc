@@ -1,4 +1,4 @@
-{
+7{
     $Id$
     Copyright (c) 1999-2000 by Florian Klaempfl
 
@@ -42,6 +42,11 @@
          registersmmx:=0;
 {$endif SUPPORT_MMX}
          flags:=[];
+      end;
+
+    constructor tnode.createforcopy;
+
+      begin
       end;
 
     destructor tnode.destroy;
@@ -183,6 +188,36 @@
          docompare:=true;
       end;
 
+    function tnode.getcopy : tnode;
+
+      var
+         p : tnode;
+
+      begin
+         { this is quite tricky because we need a node of the current }
+         { node type and not one of tnode!                            }
+         p:=classtype.createforcopy;
+         p.nodetype:=nodetype;
+         p.location:=location;
+         p.varstateset:=varstateset;
+         p.parent:=parent;
+         p.flags:=flags;
+         p.registers32:=registers32
+         p.registersfpu:=registersfpu;
+{$ifdef SUPPORT_MMX}
+         p.registersmmx:=registersmmx;
+         p.registerskni:=registerskni
+{$endif SUPPORT_MMX}
+         p.resulttype:=resulttype;
+         p.fileinfo:=fileinfo;
+         p.localswitches:=localswitches;
+{$ifdef extdebug}
+         p.firstpasscount:=firstpasscount;
+{$endif extdebug}
+         p.list:=list;
+         getcopy:=p;
+      end;
+
     procedure tnode.set_file_line(from : tnode);
 
       begin
@@ -195,6 +230,148 @@
       begin
          fileinfo:=filepos;
       end;
+
+    procedure tnode.unset_varstate;
+
+      begin
+         internalerror(220920002);
+      end;
+
+    procedure tnode.set_varstate(must_be_valid : boolean);
+
+      begin
+         internalerror(220920001);
+      end;
+
+{$warning FIX ME !!!!!}
+{$ifdef dummy}
+    procedure unset_varstate(p : ptree);
+      begin
+        while assigned(p) do
+         begin
+           p^.varstateset:=false;
+           case p^.treetype of
+             typeconvn,
+             subscriptn,
+             vecn :
+               p:=p^.left;
+             else
+               break;
+           end;
+         end;
+      end;
+
+
+    procedure set_varstate(p : ptree;must_be_valid : boolean);
+
+      begin
+         if not assigned(p) then
+           exit
+         else
+           begin
+             if p^.varstateset then
+               exit;
+              case p^.treetype of
+           typeconvn :
+             if p^.convtyp in
+               [
+                tc_cchar_2_pchar,
+                tc_cstring_2_pchar,
+                tc_array_2_pointer
+               ] then
+               set_varstate(p^.left,false)
+             else if p^.convtyp in
+               [
+                tc_pchar_2_string,
+                tc_pointer_2_array
+               ] then
+               set_varstate(p^.left,true)
+             else
+               set_varstate(p^.left,must_be_valid);
+           subscriptn :
+             set_varstate(p^.left,must_be_valid);
+           vecn:
+             begin
+               if (p^.left^.resulttype^.deftype in [stringdef,arraydef]) then
+                 set_varstate(p^.left,must_be_valid)
+               else
+                 set_varstate(p^.left,true);
+               set_varstate(p^.right,true);
+             end;
+           { do not parse calln }
+           calln : ;
+           callparan:
+             begin
+               set_varstate(p^.left,must_be_valid);
+               set_varstate(p^.right,must_be_valid);
+             end;
+           loadn :
+         if (p^.symtableentry^.typ=varsym) then
+          begin
+            if must_be_valid and p^.is_first then
+              begin
+                if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) or
+                   (pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed) then
+                 if (assigned(pvarsym(p^.symtableentry)^.owner) and
+                    assigned(aktprocsym) and
+                    (pvarsym(p^.symtableentry)^.owner = aktprocsym^.definition^.localst)) then
+                  begin
+                    if p^.symtable^.symtabletype=localsymtable then
+                     CGMessage1(sym_n_uninitialized_local_variable,pvarsym(p^.symtableentry)^.name)
+                    else
+                     CGMessage1(sym_n_uninitialized_variable,pvarsym(p^.symtableentry)^.name);
+                  end;
+              end;
+          if (p^.is_first) then
+           begin
+             if pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found then
+             { this can only happen at left of an assignment, no ? PM }
+              if (parsing_para_level=0) and not must_be_valid then
+               pvarsym(p^.symtableentry)^.varstate:=vs_assigned
+              else
+               pvarsym(p^.symtableentry)^.varstate:=vs_used;
+             if pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed then
+               pvarsym(p^.symtableentry)^.varstate:=vs_used;
+             p^.is_first:=false;
+           end
+         else
+           begin
+             if (pvarsym(p^.symtableentry)^.varstate=vs_assigned) and
+                (must_be_valid or (parsing_para_level>0) or
+                 (p^.resulttype^.deftype=procvardef)) then
+               pvarsym(p^.symtableentry)^.varstate:=vs_used;
+             if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) and
+                (must_be_valid or (parsing_para_level>0) or
+                (p^.resulttype^.deftype=procvardef)) then
+               pvarsym(p^.symtableentry)^.varstate:=vs_set_but_first_not_passed;
+           end;
+         end;
+         funcretn:
+         begin
+         { no claim if setting higher return value_str }
+         if must_be_valid and
+            (procinfo=pprocinfo(p^.funcretprocinfo)) and
+            ((procinfo^.funcret_state=vs_declared) or
+            ((p^.is_first_funcret) and
+             (procinfo^.funcret_state=vs_declared_and_first_found))) then
+           begin
+             CGMessage(sym_w_function_result_not_set);
+             { avoid multiple warnings }
+             procinfo^.funcret_state:=vs_assigned;
+           end;
+         if p^.is_first_funcret and not must_be_valid then
+           pprocinfo(p^.funcretprocinfo)^.funcret_state:=vs_assigned;
+         end;
+         else
+           begin
+             {internalerror(565656);}
+           end;
+         end;{case }
+         p^.varstateset:=true;
+      end;
+    end;
+
+{$endif}
 
 {****************************************************************************
                                  TUNARYNODE
@@ -212,6 +389,16 @@
       begin
          docompare:=(inherited docompare(p)) and
            left.isequal(tunarynode(p).left);
+      end;
+
+    function.tunarynode.getcopy : tnode;
+
+      var
+         p : tunarynode;
+
+      begin
+         p:=tunarynode(inherited getcopy);
+         p.left:=left.getcopy;
       end;
 
 {$ifdef extdebug}
@@ -300,6 +487,16 @@
       begin
          docompare:=left.isequal(tbinarynode(p).left) and
            right.isequal(tbinarynode(p).right);
+      end;
+
+    function.tbinarynode.getcopy : tnode;
+
+      var
+         p : tbinarynode;
+
+      begin
+         p:=tbinarynode(inherited getcopy);
+         p.right:=right.getcopy;
       end;
 
     function tbinarynode.isbinaryoverloaded(var t : tnode) : boolean;
@@ -420,7 +617,10 @@
       end;
 {
   $Log$
-  Revision 1.2  2000-09-20 21:52:38  florian
+  Revision 1.3  2000-09-22 21:45:36  florian
+    * some updates e.g. getcopy added
+
+  Revision 1.2  2000/09/20 21:52:38  florian
     * removed a lot of errors
 
   Revision 1.1  2000/08/26 12:27:17  florian

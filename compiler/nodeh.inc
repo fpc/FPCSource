@@ -183,7 +183,11 @@
          nf_exact_match_found,
          nf_convlevel1found,
          nf_convlevel2found,
-         nf_is_colon_para
+         nf_is_colon_para,
+
+         { flags used by loop nodes }
+         nf_backward,  { set if it is a for ... downto ... do loop }
+         nf_varstate   { do we need to parse childs to set var state }
          );
 
        tnodeflagset = set of tnodeflags;
@@ -191,7 +195,7 @@
     const
        { contains the flags which must be equal for the equality }
        { of nodes                                                }
-       flagsequal : tnodeflagset = [nf_error,nf_static_call];
+       flagsequal : tnodeflagset = [nf_error,nf_static_call,nf_backward];
 
     type
        { later (for the newcg) tnode will inherit from tlinkedlist_item }
@@ -199,15 +203,13 @@
           nodetype : tnodetype;
           { the location of the result of this node }
           location : tlocation;
-          { do we need to parse childs to set var state }
-          varstateset : boolean;
           { the parent node of this is node    }
           { this field is set by concattolist  }
           parent : tnode;
           { there are some properties about the node stored }
           flags : tnodeflagset;
           { the number of registers needed to evalute the node }
-          registersint,registersfpu : longint;  { must be longint !!!! }
+          registers32,registersfpu : longint;  { must be longint !!!! }
 {$ifdef SUPPORT_MMX}
           registersmmx,registerskni : longint;
 {$endif SUPPORT_MMX}
@@ -218,7 +220,10 @@
           firstpasscount : longint;
 {$endif extdebug}
           list : paasmoutput;
-          constructor create(tt : tnodetype);virtual;
+          constructor create(tt : tnodetype);
+          { this constructor is only for creating copies of class }
+          { the fields are copied by getcopy                      }
+          constructor createforcopy;
           destructor destroy;virtual;
 
           { the 1.1 code generator may override pass_1 }
@@ -238,6 +243,10 @@
           function isequal(p : tnode) : boolean;
           { to implement comparisation, override this method }
           function docompare(p : tnode) : boolean;virtual;
+          { gets a copy of the node }
+          function getcopy : tnode;virtual;
+          procedure unset_varstate;virtual;
+          procedure set_varstate(must_be_valid : boolean);virtual;
 {$ifdef EXTDEBUG}
           { writes a node for debugging purpose, shouldn't be called }
           { direct, because there is no test for nil, use writenode  }
@@ -263,18 +272,19 @@
 {$ifdef extdebug}
           procedure dowrite;override;
 {$endif extdebug}
-          constructor create(tt : tnodetype;l : tnode);virtual;
+          constructor create(tt : tnodetype;l : tnode);
           procedure concattolist(l : plinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           procedure det_resulttype;override;
           procedure det_temp;override;
           function docompare(p : tnode) : boolean;override;
+          function getcopy : tnode;override;
        end;
 
        pbinarynode = ^tbinarynode;
        tbinarynode = class(tunarynode)
           right : tnode;
-          constructor create(tt : tnodetype;l,r : tnode);virtual;
+          constructor create(tt : tnodetype;l,r : tnode);
           procedure concattolist(l : plinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           procedure det_resulttype;override;
@@ -282,19 +292,23 @@
           function docompare(p : tnode) : boolean;override;
           procedure swapleftright;
           function isbinaryoverloaded(var t : tnode) : boolean;
+          function getcopy : tnode;override;
        end;
 
        pbinopnode = ^tbinopnode;
        tbinopnode = class(tbinarynode)
-          constructor create(tt : tnodetype;l,r : tnode);virtual;
+          constructor create(tt : tnodetype;l,r : tnode);
           function docompare(p : tnode) : boolean;override;
        end;
+
 {
   $Log$
-  Revision 1.2  2000-09-20 21:52:38  florian
+  Revision 1.3  2000-09-22 21:45:36  florian
+    * some updates e.g. getcopy added
+
+  Revision 1.2  2000/09/20 21:52:38  florian
     * removed a lot of errors
 
   Revision 1.1  2000/08/26 12:27:04  florian
     * initial release
-
 }
