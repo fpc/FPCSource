@@ -3192,6 +3192,16 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
+    function tobjectdef.vmtmethodoffset(index:longint):longint;
+      begin
+        { for offset of methods for classes, see rtl/inc/objpash.inc }
+        if is_class then
+         vmtmethodoffset:=index*4+48
+        else
+         vmtmethodoffset:=index*4+12;
+      end;
+
+
     function tobjectdef.vmt_mangledname : string;
     {DM: I get a nil pointer on the owner name. I don't know if this
      mayhappen, and I have therefore fixed the problem by doing nil pointer
@@ -3445,7 +3455,7 @@ Const local_symtable_index : longint = $8001;
                 else
                   begin
                      { virtual method, write vmt offset }
-                     rttilist^.concat(new(pai_const,init_32bit(pprocdef(def)^.extnumber*4+12)));
+                     rttilist^.concat(new(pai_const,init_32bit(pprocdef(def)^._class^.vmtmethodoffset(pprocdef(def)^.extnumber))));
                      typvalue:=2;
                   end;
              end;
@@ -3617,7 +3627,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.146  1999-08-07 14:21:00  florian
+  Revision 1.147  1999-08-09 22:19:55  peter
+    * classes vmt changed to only positive addresses
+    * sharedlib creation is working
+
+  Revision 1.146  1999/08/07 14:21:00  florian
     * some small problems fixed
 
   Revision 1.145  1999/08/07 13:36:54  daniel

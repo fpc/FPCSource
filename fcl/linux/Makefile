@@ -29,6 +29,9 @@ INC=../inc
 XML=../xml
 PROCINC=../$(CPU)
 
+# default library name
+LIBNAME=fpfcl
+
 # Where to place the files
 TARGETDIR=.
 
@@ -135,7 +138,11 @@ ezcgi$(PPUEXT): ezcgi$(PASEXT) ezcgi.inc
 
 #
 # $Log$
-# Revision 1.12  1999-07-09 08:43:26  michael
+# Revision 1.13  1999-08-09 22:19:58  peter
+#   * classes vmt changed to only positive addresses
+#   * sharedlib creation is working
+#
+# Revision 1.12  1999/07/09 08:43:26  michael
 # + Added XML units
 #
 # Revision 1.11  1999/05/31 12:46:31  peter

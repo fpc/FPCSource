@@ -331,7 +331,8 @@ implementation
                               new(hp);
                               reset_reference(hp^);
                               hp^.base:=R_EDI;
-                              hp^.offset:=pprocsym(p^.symtableentry)^.definition^.extnumber*4+12;
+                              hp^.offset:=pprocsym(p^.symtableentry)^.definition^._class^.vmtmethodoffset(
+                                pprocsym(p^.symtableentry)^.definition^.extnumber);
                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                                 hp,R_EDI)));
                               { ... and store it }
@@ -936,7 +937,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  1999-08-07 14:20:55  florian
+  Revision 1.72  1999-08-09 22:19:50  peter
+    * classes vmt changed to only positive addresses
+    * sharedlib creation is working
+
+  Revision 1.71  1999/08/07 14:20:55  florian
     * some small problems fixed
 
   Revision 1.70  1999/08/04 13:45:22  florian

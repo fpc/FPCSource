@@ -754,7 +754,7 @@ implementation
                    }
                    if pprocdef(p^.procdefinition)^.extnumber=-1 then
                      internalerror(44584);
-                   r^.offset:=pprocdef(p^.procdefinition)^.extnumber*4+12;
+                   r^.offset:=pprocdef(p^.procdefinition)^._class^.vmtmethodoffset(pprocdef(p^.procdefinition)^.extnumber);
 {$ifndef TESTOBJEXT}
                    if (cs_check_range in aktlocalswitches) then
                      begin
@@ -1178,7 +1178,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  1999-08-09 10:37:55  peter
+  Revision 1.99  1999-08-09 22:19:47  peter
+    * classes vmt changed to only positive addresses
+    * sharedlib creation is working
+
+  Revision 1.98  1999/08/09 10:37:55  peter
     * fixed pushing of self with methodpointer
 
   Revision 1.97  1999/08/04 13:45:18  florian

@@ -19,7 +19,32 @@
 *****************************************************************************}
 
     const
-       // vmtSelfPtr           = -36;  { not implemented yet }
+{$ifdef NEWVMTOFFSET}
+       vmtInstanceSize         = 0;
+       vmtParent               = 8;
+       { These were negative value's, but are now positive, else classes
+         couldn't be used with shared linking which copies only all data from
+         the .global directive and not the data before the directive (PFV) }
+       vmtClassName            = 12;
+       vmtDynamicTable         = 16;
+       vmtMethodTable          = 20;
+       vmtFieldTable           = 24;
+       vmtTypeInfo             = 28;
+       vmtInitTable            = 32;
+       vmtAutoTable            = 36;
+       vmtIntfTable            = 40;
+       vmtMsgStrPtr            = 44;
+       { methods }
+       vmtMethodStart          = 48;
+       vmtDestroy              = vmtMethodStart;
+       vmtNewInstance          = vmtMethodStart+4;
+       vmtFreeInstance         = vmtMethodStart+8;
+       vmtSafeCallException    = vmtMethodStart+12;
+       vmtDefaultHandler       = vmtMethodStart+16;
+       vmtAfterConstruction    = vmtMethodStart+20;
+       vmtBeforeDestruction    = vmtMethodStart+24;
+       vmtDefaultHandlerStr    = vmtMethodStart+28;
+{$else}
        vmtMsgStrPtr            = -36;
        vmtIntfTable            = -32;
        vmtAutoTable            = -28;
@@ -39,6 +64,7 @@
        vmtAfterConstruction    = 32;
        vmtBeforeDestruction    = 36;
        vmtDefaultHandlerStr    = 40;
+{$endif}
 
     type
        { some pointer definitions }
@@ -193,7 +219,11 @@
        end;
 {
   $Log$
-  Revision 1.3  1999-05-17 21:52:38  florian
+  Revision 1.4  1999-08-09 22:20:03  peter
+    * classes vmt changed to only positive addresses
+    * sharedlib creation is working
+
+  Revision 1.3  1999/05/17 21:52:38  florian
     * most of the Object Pascal stuff moved to the system unit
 
 }

@@ -187,6 +187,7 @@
           procedure deref;virtual;
           function  size : longint;virtual;
           function  alignment:longint;virtual;
+          function  vmtmethodoffset(index:longint):longint;
           function  is_publishable : boolean;virtual;
           function  vmt_mangledname : string;
           function  rtti_name : string;
@@ -519,7 +520,11 @@
 
 {
   $Log$
-  Revision 1.39  1999-08-07 14:21:02  florian
+  Revision 1.40  1999-08-09 22:19:57  peter
+    * classes vmt changed to only positive addresses
+    * sharedlib creation is working
+
+  Revision 1.39  1999/08/07 14:21:02  florian
     * some small problems fixed
 
   Revision 1.38  1999/08/05 16:53:15  peter

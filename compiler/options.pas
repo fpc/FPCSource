@@ -992,6 +992,7 @@ begin
   def_symbol('INT64');
   def_symbol('HASRESOURCESTRINGS');
   def_symbol('HASSAVEREGISTERS');
+  def_symbol('NEWVMTOFFSET');
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1161,7 +1162,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1999-08-05 23:45:10  peter
+  Revision 1.11  1999-08-09 22:19:52  peter
+    * classes vmt changed to only positive addresses
+    * sharedlib creation is working
+
+  Revision 1.10  1999/08/05 23:45:10  peter
     * saveregister is now working and used for assert and iocheck (which has
       been moved to system.inc because it's now system independent)
 

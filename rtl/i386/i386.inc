@@ -284,7 +284,11 @@ asm
         { esi contains the vmt }
         pushl   %esi
         { call newinstance (class method!) }
+{$ifdef NEWVMTOFFSET}
+        call    *52{vmtNewInstance}(%esi)
+{$else}
         call    *16(%esi)
+{$endif}
         popl    %edx
         popl    %ecx
         popl    %ebx
@@ -295,7 +299,7 @@ asm
 .LNEW_CLASS1:
         movl    %esi,8(%ebp)
         orl     %eax,%eax
-        popl   %edi
+        popl    %edi
 end;
 
 
@@ -319,13 +323,17 @@ asm
         { push self }
         pushl   %esi
         { call freeinstance }
+{$ifdef NEWVMTOFFSET}
+        call    *56{vmtFreeInstance}(%edi)
+{$else}
         call    *20(%edi)
+{$endif}
         popl    %edx
         popl    %ecx
         popl    %ebx
         popl    %eax
 .LDISPOSE_CLASS1:
-        popl   %edi
+        popl    %edi
 end;
 
 
@@ -824,7 +832,11 @@ end;
 
 {
   $Log$
-  Revision 1.50  1999-08-05 23:45:12  peter
+  Revision 1.51  1999-08-09 22:20:02  peter
+    * classes vmt changed to only positive addresses
+    * sharedlib creation is working
+
+  Revision 1.50  1999/08/05 23:45:12  peter
     * saveregister is now working and used for assert and iocheck (which has
       been moved to system.inc because it's now system independent)
 

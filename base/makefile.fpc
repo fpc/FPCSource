@@ -720,13 +720,11 @@ fpc_staticlib:
 	$(MAKE) libsclean
 	$(MAKE) all SMARTLINK=YES
 
-fpc_sharedlib:
+fpc_sharedlib: all
 ifdef inlinux
 ifndef LIBNAME
-	$(ECHO) LIBNAME not set
+	@$(ECHO) LIBNAME not set
 else
-	$(MAKE) libsclean
-	$(MAKE) all
 	$(PPUMOVE) $(SHAREDLIBUNITOBJECTS) -o$(LIBNAME)
 endif
 else
@@ -741,17 +739,17 @@ endif
 fpc_showinstallfiles : all
 ifndef DEFAULTUNITS
 ifdef EXEOBJECTS
-	$(ECHO) $(addprefix "\n"$(BININSTALLDIR)/,$(EXEFILES))
+	@$(ECHO) $(addprefix "\n"$(BININSTALLDIR)/,$(EXEFILES))
 endif
 endif
 ifdef LOADEROBJECTS
-	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(LOADEROFILES))
+	@$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(LOADEROFILES))
 endif
 ifdef UNITOBJECTS
-	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES)))
+	@$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES)))
 endif
 ifdef EXTRAINSTALLUNITS
-	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS))))
+	@$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS))))
 endif
 
 fpc_install : all
@@ -1045,7 +1043,11 @@ endif
 
 #
 # $Log$
-# Revision 1.42  1999-07-22 16:13:32  peter
+# Revision 1.43  1999-08-09 22:19:46  peter
+#   * classes vmt changed to only positive addresses
+#   * sharedlib creation is working
+#
+# Revision 1.42  1999/07/22 16:13:32  peter
 #   * install,clean fixes
 #
 # Revision 1.41  1999/07/21 14:21:00  peter

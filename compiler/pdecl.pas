@@ -1577,78 +1577,41 @@ unit pdecl;
            aktclass^.insertvmt;
          if (cs_smartlink in aktmoduleswitches) then
            datasegment^.concat(new(pai_cut,init));
-         { write extended info for classes }
-         if is_a_class then
-           begin
-              if (oo_can_have_published in aktclass^.objectoptions) then
-                aktclass^.generate_rtti;
-              { write class name }
-              getdatalabel(classnamelabel);
-              datasegment^.concat(new(pai_label,init(classnamelabel)));
-              datasegment^.concat(new(pai_const,init_8bit(length(aktclass^.objname^))));
-              datasegment^.concat(new(pai_string,init(aktclass^.objname^)));
 
-              { generate message and dynamic tables }
-              if (oo_has_msgstr in aktclass^.objectoptions) then
-                strmessagetable:=genstrmsgtab(aktclass);
-              if (oo_has_msgint in aktclass^.objectoptions) then
-                intmessagetable:=genintmsgtab(aktclass)
-              else
-                datasegment^.concat(new(pai_const,init_32bit(0)));
-
-              { table for string messages }
-              if (oo_has_msgstr in aktclass^.objectoptions) then
-                datasegment^.concat(new(pai_const_symbol,init(strmessagetable)))
-              else
-                datasegment^.concat(new(pai_const,init_32bit(0)));
-
-              { interface table }
-              datasegment^.concat(new(pai_const,init_32bit(0)));
-
-              { auto table }
-              datasegment^.concat(new(pai_const,init_32bit(0)));
-
-              { inittable for con-/destruction }
-              if aktclass^.needs_inittable then
-                datasegment^.concat(new(pai_const_symbol,init(aktclass^.get_inittable_label)))
-              else
-                datasegment^.concat(new(pai_const,init_32bit(0)));
-
-              { pointer to type info of published section }
-              if (oo_can_have_published in aktclass^.objectoptions) then
-                datasegment^.concat(new(pai_const_symbol,initname(aktclass^.rtti_name)))
-              else
-                datasegment^.concat(new(pai_const,init_32bit(0)));
-
-              { pointer to field table }
-              datasegment^.concat(new(pai_const,init_32bit(0)));
-              { pointer to method table }
-              datasegment^.concat(new(pai_const,init_32bit(0)));
-
-              { pointer to dynamic table }
-              if (oo_has_msgint in aktclass^.objectoptions) then
-                datasegment^.concat(new(pai_const_symbol,init(intmessagetable)))
-              else
-                datasegment^.concat(new(pai_const,init_32bit(0)));
-
-              { pointer to class name string }
-              datasegment^.concat(new(pai_const_symbol,init(classnamelabel)));
-
-              datasegment^.concat(new(pai_symbol_end,init(classnamelabel)));
-           end;
-{$ifdef GDB}
-         { generate the VMT }
-         if (cs_debuginfo in aktmoduleswitches) and
-            (oo_has_vmt in aktclass^.objectoptions) then
-           begin
-              do_count_dbx:=true;
-              if assigned(aktclass^.owner) and assigned(aktclass^.owner^.name) then
-               datasegment^.concat(new(pai_stabs,init(strpnew('"vmt_'+aktclass^.owner^.name^+n+':S'+
-                typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+aktclass^.vmt_mangledname))));
-           end;
-{$endif GDB}
+         { Write the start of the VMT, wich is equal for classes and objects }
          if (oo_has_vmt in aktclass^.objectoptions) then
            begin
+              { write tables for classes, this must be done before the actual
+                class is written, because we need the labels defined }
+              if is_a_class then
+               begin
+                 { rtti }
+                 if (oo_can_have_published in aktclass^.objectoptions) then
+                  aktclass^.generate_rtti;
+                 { write class name }
+                 getdatalabel(classnamelabel);
+                 datasegment^.concat(new(pai_label,init(classnamelabel)));
+                 datasegment^.concat(new(pai_const,init_8bit(length(aktclass^.objname^))));
+                 datasegment^.concat(new(pai_string,init(aktclass^.objname^)));
+                 { generate message and dynamic tables }
+                 if (oo_has_msgstr in aktclass^.objectoptions) then
+                   strmessagetable:=genstrmsgtab(aktclass);
+                 if (oo_has_msgint in aktclass^.objectoptions) then
+                   intmessagetable:=genintmsgtab(aktclass)
+                 else
+                   datasegment^.concat(new(pai_const,init_32bit(0)));
+               end;
+
+             { write debug info }
+{$ifdef GDB}
+             if (cs_debuginfo in aktmoduleswitches) then
+              begin
+                do_count_dbx:=true;
+                if assigned(aktclass^.owner) and assigned(aktclass^.owner^.name) then
+                  datasegment^.concat(new(pai_stabs,init(strpnew('"vmt_'+aktclass^.owner^.name^+n+':S'+
+                    typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+aktclass^.vmt_mangledname))));
+              end;
+{$endif GDB}
               datasegment^.concat(new(pai_symbol,initname_global(aktclass^.vmt_mangledname,0)));
 
               { determine the size with symtable^.datasize, because }
@@ -1665,6 +1628,41 @@ unit pdecl;
                 datasegment^.concat(new(pai_const_symbol,initname(aktclass^.childof^.vmt_mangledname)))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
+
+              { write extended info for classes, for the order see rtl/inc/objpash.inc }
+              if is_a_class then
+               begin
+                 { pointer to class name string }
+                 datasegment^.concat(new(pai_const_symbol,init(classnamelabel)));
+                 { pointer to dynamic table }
+                 if (oo_has_msgint in aktclass^.objectoptions) then
+                   datasegment^.concat(new(pai_const_symbol,init(intmessagetable)))
+                 else
+                   datasegment^.concat(new(pai_const,init_32bit(0)));
+                 { pointer to method table }
+                 datasegment^.concat(new(pai_const,init_32bit(0)));
+                 { pointer to field table }
+                 datasegment^.concat(new(pai_const,init_32bit(0)));
+                 { pointer to type info of published section }
+                 if (oo_can_have_published in aktclass^.objectoptions) then
+                   datasegment^.concat(new(pai_const_symbol,initname(aktclass^.rtti_name)))
+                 else
+                   datasegment^.concat(new(pai_const,init_32bit(0)));
+                 { inittable for con-/destruction }
+                 if aktclass^.needs_inittable then
+                   datasegment^.concat(new(pai_const_symbol,init(aktclass^.get_inittable_label)))
+                 else
+                   datasegment^.concat(new(pai_const,init_32bit(0)));
+                 { auto table }
+                 datasegment^.concat(new(pai_const,init_32bit(0)));
+                 { interface table }
+                 datasegment^.concat(new(pai_const,init_32bit(0)));
+                 { table for string messages }
+                 if (oo_has_msgstr in aktclass^.objectoptions) then
+                   datasegment^.concat(new(pai_const_symbol,init(strmessagetable)))
+                 else
+                   datasegment^.concat(new(pai_const,init_32bit(0)));
+               end;
 
               { this generates the entries }
               genvmt(aktclass);
@@ -2385,7 +2383,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.142  1999-08-05 16:53:02  peter
+  Revision 1.143  1999-08-09 22:19:53  peter
+    * classes vmt changed to only positive addresses
+    * sharedlib creation is working
+
+  Revision 1.142  1999/08/05 16:53:02  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives
