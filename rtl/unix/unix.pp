@@ -226,6 +226,14 @@ Procedure ExitProcess(val:longint);
 Function  WaitPid(Pid:longint;Status:pointer;Options:Longint):Longint;  {=>PID (Status Valid), 0 (No Status), -1: Error, special case errno=EINTR }
 Function  WaitProcess(Pid:longint):Longint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
 Procedure Nice(N:integer);
+function WEXITSTATUS(Status: Integer): Integer;
+function WTERMSIG(Status: Integer): Integer;
+function WSTOPSIG(Status: Integer): Integer;
+Function WIFEXITED(Status: Integer): Boolean;
+Function WIFSTOPPED(Status: Integer): Boolean;
+Function WIFSIGNALED(Status: Integer): Boolean;
+Function W_EXITCODE(ReturnCode, Signal: Integer): Integer;
+Function W_STOPCODE(Signal: Integer): Integer;
 {$ifdef bsd}
 Function  GetPriority(Which,Who:longint):longint;
 procedure SetPriority(Which,Who,What:longint);
@@ -717,6 +725,47 @@ begin { Changes as above }
   FreeShellArgV(p);
 end;
 
+function WEXITSTATUS(Status: Integer): Integer;
+begin
+  WEXITSTATUS:=(Status and $FF00) shr 8;
+end;
+  
+function WTERMSIG(Status: Integer): Integer;
+begin
+  WTERMSIG:=(Status and $7F);
+end;
+  
+function WSTOPSIG(Status: Integer): Integer;
+begin
+  WSTOPSIG:=WEXITSTATUS(Status);
+end;
+      
+Function WIFEXITED(Status: Integer): Boolean;
+begin
+  WIFEXITED:=(WTERMSIG(Status)=0);
+end;
+ 
+Function WIFSTOPPED(Status: Integer): Boolean;
+begin
+  WIFSTOPPED:=((Status and $FF)=$7F);
+end;
+      
+Function WIFSIGNALED(Status: Integer): Boolean;
+begin
+  WIFSIGNALED:=(not WIFSTOPPED(Status)) and 
+               (not WIFEXITED(Status));
+end;
+   
+Function W_EXITCODE(ReturnCode, Signal: Integer): Integer;
+begin
+  W_EXITCODE:=(ReturnCode shl 8) or Signal;
+end;
+          
+Function W_STOPCODE(Signal: Integer): Integer;
+
+begin
+  W_STOPCODE:=(Signal shl 8) or $7F;
+end;
 
 {******************************************************************************
                        Date and Time related calls
@@ -2922,7 +2971,10 @@ End.
 
 {
   $Log$
-  Revision 1.17  2001-10-14 13:33:21  peter
+  Revision 1.18  2001-11-05 21:46:06  michael
+  + Added exit status examining functions
+
+  Revision 1.17  2001/10/14 13:33:21  peter
     * start of thread support for linux
 
   Revision 1.16  2001/09/17 21:36:31  peter
