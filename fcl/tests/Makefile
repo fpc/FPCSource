@@ -36,7 +36,7 @@ NEEDOPT=-S2
 
 UNITOBJECTS=
 EXEOBJECTS=stringl dparser fstream mstream list threads testrtf\
-           cfgtest testz testz2 xmldump htdump testcgi
+           cfgtest testz testz2 xmldump htdump testcgi tidea
 
 
 #####################################################################
@@ -113,7 +113,10 @@ endif
 
 #
 # $Log$
-# Revision 1.8  1999-07-15 12:05:55  michael
+# Revision 1.9  1999-07-25 14:30:39  michael
+# Initial implementation of encryption stream
+#
+# Revision 1.8  1999/07/15 12:05:55  michael
 # + Added testcgi program
 #
 # Revision 1.7  1999/07/11 22:43:23  michael
