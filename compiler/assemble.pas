@@ -153,14 +153,14 @@ begin
      swapvectors;
      if (doserror<>0) then
       begin
-        Message(exec_w_cant_call_assembler);
+        Message1(exec_w_cant_call_assembler,tostr(doserror));
+        aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
         callassembler:=false;
       end
      else
       if (dosexitcode<>0) then
        begin
-        Message(exec_w_error_while_assembling);
-        aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
+        Message1(exec_w_error_while_assembling,tostr(dosexitcode));
         callassembler:=false;
        end;
    end;
@@ -446,7 +446,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  1998-08-26 10:06:34  peter
+  Revision 1.20  1998-09-04 17:34:20  pierre
+    * bug with datalabel corrected
+    + assembler errors better commented
+    * one nested record crash removed
+
+  Revision 1.19  1998/08/26 10:06:34  peter
     * reduce amount of asmfiles generated
     * no stabs are written in writefilelineinfo when debuginfo is off
 

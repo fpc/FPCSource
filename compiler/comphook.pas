@@ -211,13 +211,6 @@ begin
            else
              hs:=status.currentsource+'('+tostr(status.currentline)+') '+hs;
          end;
-{$ifdef Debug}
-      end
-     else
-      begin
-         if (Level<=V_ShowFile) then
-           hs:='No line '+hs;
-{$endif Debug}
       end;
    { add the message to the text }
      hs:=hs+s;
@@ -251,7 +244,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1998-09-01 17:37:59  peter
+  Revision 1.7  1998-09-04 17:34:21  pierre
+    * bug with datalabel corrected
+    + assembler errors better commented
+    * one nested record crash removed
+
+  Revision 1.6  1998/09/01 17:37:59  peter
     * nicer output when column=0
 
   Revision 1.5  1998/08/18 15:11:51  peter
