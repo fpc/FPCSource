@@ -6,7 +6,7 @@
 units=glib gmodule gdk gtk
 
 [dirs]
-fpcdir=..
+fpcdir=../..
 sourcesdir=glib gdk gtk
 targetdir=.
 
