@@ -73,9 +73,36 @@ const
    in_const_sin        = 116;
    in_lo_qword         = 117;
    in_hi_qword         = 118;
+   in_cos_extended     = 119;
+   in_pi               = 121;
+   in_abs_extended     = 122;
+   in_sqr_extended     = 123;
+   in_sqrt_extended    = 124; 
+   in_arctan_extended  = 125;
+   in_ln_extended      = 126;
+   in_sin_extended     = 127;
+
+{ MMX functions }
+{ these contants are used by the mmx unit }
+
+   { MMX }
+   in_mmx_pcmpeqb      = 200;
+   in_mmx_pcmpeqw      = 201;
+   in_mmx_pcmpeqd      = 202;
+   in_mmx_pcmpgtb      = 203;
+   in_mmx_pcmpgtw      = 204;
+   in_mmx_pcmpgtd      = 205;
+
+   { 3DNow }
+
+   { SSE }
+
 {
   $Log$
-  Revision 1.8  1999-07-02 18:06:40  florian
+  Revision 1.9  1999-09-15 20:23:16  florian
+    + constants for math functions
+
+  Revision 1.8  1999/07/02 18:06:40  florian
     + qword/int64: lo/hi/swap
 
   Revision 1.7  1999/04/17 13:10:23  peter
