@@ -960,6 +960,10 @@ implementation
              subscriptn :
                begin
                  gotsubscript:=true;
+                 { loop counter? }
+                 if not(Valid_Const in opts) and
+                    (vo_is_loop_counter in tsubscriptnode(hp).vs.varoptions) then
+                   CGMessage1(parser_e_illegal_assignment_to_count_var,tsubscriptnode(hp).vs.realname);
                  { a class/interface access is an implicit }
                  { dereferencing                           }
                  hp:=tsubscriptnode(hp).left;
@@ -1030,7 +1034,7 @@ implementation
                        if not(Valid_Const in opts) and
                           (vo_is_loop_counter in tvarsym(tloadnode(hp).symtableentry).varoptions) then
                          CGMessage1(parser_e_illegal_assignment_to_count_var,tloadnode(hp).symtableentry.realname);
-                       { derefed pointer }  
+                       { derefed pointer }
                        if (tvarsym(tloadnode(hp).symtableentry).varspez=vs_const) then
                         begin
                           { allow p^:= constructions with p is const parameter }
@@ -1918,7 +1922,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2004-09-13 20:28:27  peter
+  Revision 1.98  2004-09-27 15:15:52  peter
+    * register loopvarsym for fields instead of record variable
+    * don't allow class fields as loop var
+
+  Revision 1.97  2004/09/13 20:28:27  peter
     * for loop variable assignment is not allowed anymore
 
   Revision 1.96  2004/08/22 11:24:09  peter

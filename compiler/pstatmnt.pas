@@ -364,56 +364,76 @@ implementation
                 then
                MessagePos(hp.fileinfo,type_e_ordinal_expr_expected);
 
-             { record fields are also allowed in tp7 }
              while assigned(hp) and
                    (
-                    (hp.nodetype=subscriptn) or
-                    ((hp.nodetype=vecn) and
-                     is_constintnode(tvecnode(hp).right)) or
-                    ((hp.nodetype=typeconvn) and
-                     (ttypeconvnode(hp).convtype=tc_equal))
+                    { record/object fields are allowed }
+                    (
+                     (hp.nodetype=subscriptn) and
+                     ((tsubscriptnode(hp).left.resulttype.def.deftype=recorddef) or
+                      is_object(tsubscriptnode(hp).left.resulttype.def))
+                    ) or
+                    { constant array index }
+                    (
+                     (hp.nodetype=vecn) and
+                     is_constintnode(tvecnode(hp).right)
+                    ) or
+                    { equal typeconversions }
+                    (
+                     (hp.nodetype=typeconvn) and
+                     (ttypeconvnode(hp).convtype=tc_equal)
+                    )
                    ) do
-               hp:=tunarynode(hp).left;
-           end;
-         if assigned(hp) and
-            (hp.nodetype=loadn) then
-           begin
-             case tloadnode(hp).symtableentry.typ of
-               varsym :
-                 begin
-                   { we need a simple loadn and the load must be in a global symtable or
-                     in the same level as the para of the current proc }
-                   if (
-                       (tloadnode(hp).symtable.symtablelevel=main_program_level) or
-                       (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
-                      ) and
-                      not(
-                          (tloadnode(hp).symtableentry.typ=varsym) and
-                          ((tvarsym(tloadnode(hp).symtableentry).varspez in [vs_var,vs_out]) or
-                           (vo_is_thread_var in tvarsym(tloadnode(hp).symtableentry).varoptions))
-                         ) then
-                     begin
-                       tvarsym(tloadnode(hp).symtableentry).varstate:=vs_used;
+               begin
+                 { Use the recordfield for loopvarsym }
+                 if not assigned(loopvarsym) and
+                    (hp.nodetype=subscriptn) then
+                   loopvarsym:=tsubscriptnode(hp).vs;
+                 hp:=tunarynode(hp).left;
+               end;
 
-                       { Assigning for-loop variable is only allowed in tp7 }
-                       if not(m_tp7 in aktmodeswitches) then
+             if assigned(hp) and
+                (hp.nodetype=loadn) then
+               begin
+                 case tloadnode(hp).symtableentry.typ of
+                   varsym :
+                     begin
+                       { we need a simple loadn and the load must be in a global symtable or
+                         in the same level as the para of the current proc }
+                       if (
+                           (tloadnode(hp).symtable.symtablelevel=main_program_level) or
+                           (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
+                          ) and
+                          not(
+                              (tloadnode(hp).symtableentry.typ=varsym) and
+                              ((tvarsym(tloadnode(hp).symtableentry).varspez in [vs_var,vs_out]) or
+                               (vo_is_thread_var in tvarsym(tloadnode(hp).symtableentry).varoptions))
+                             ) then
                          begin
-                           loopvarsym:=tvarsym(tloadnode(hp).symtableentry);
-                           include(loopvarsym.varoptions,vo_is_loop_counter);
-                         end;
-                     end
+                           tvarsym(tloadnode(hp).symtableentry).varstate:=vs_used;
+
+                           { Assigning for-loop variable is only allowed in tp7 }
+                           if not(m_tp7 in aktmodeswitches) then
+                             begin
+                               if not assigned(loopvarsym) then
+                                 loopvarsym:=tvarsym(tloadnode(hp).symtableentry);
+                               include(loopvarsym.varoptions,vo_is_loop_counter);
+                             end;
+                         end
+                       else
+                         MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                     end;
+                   typedconstsym :
+                     begin
+                       { Bad programming, only allowed in tp7 mode }
+                       if not(m_tp7 in aktmodeswitches) then
+                         MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                     end;
                    else
                      MessagePos(hp.fileinfo,type_e_illegal_count_var);
                  end;
-               typedconstsym :
-                 begin
-                   { Bad programming, only allowed in tp7 mode }
-                   if not(m_tp7 in aktmodeswitches) then
-                     MessagePos(hp.fileinfo,type_e_illegal_count_var);
-                 end;
-               else
-                 MessagePos(hp.fileinfo,type_e_illegal_count_var);
-             end;
+               end
+             else
+               MessagePos(tassignmentnode(p_e).left.fileinfo,type_e_illegal_count_var);
            end
          else
            Message(parser_e_illegal_expression);
@@ -1186,7 +1206,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.140  2004-09-26 17:45:30  peter
+  Revision 1.141  2004-09-27 15:15:52  peter
+    * register loopvarsym for fields instead of record variable
+    * don't allow class fields as loop var
+
+  Revision 1.140  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.139  2004/09/21 17:25:12  peter
