@@ -550,7 +550,6 @@ unit pass_1;
                 b:=true;
              end
          else
-
            { ansi- and wide strings can be assigned to void pointers }
            if (def_from^.deftype=stringdef) and
              (pstringdef(def_from)^.string_typ in [st_ansistring,st_widestring]) and
@@ -559,6 +558,26 @@ unit pass_1;
              (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
              begin
                 doconv:=tc_equal;
+                b:=true;
+             end
+         else
+           { ansistrings can be assigned to pchar }
+           if is_ansistring(def_from) and
+             (def_to^.deftype=pointerdef) and
+             (ppointerdef(def_to)^.definition^.deftype=orddef) and
+             (porddef(ppointerdef(def_to)^.definition)^.typ=uchar) then
+             begin
+                doconv:=tc_ansistring_2_pchar;
+                b:=true;
+             end
+         else
+           { pchar can be assigned to ansistrings }
+           if ((def_from^.deftype=pointerdef) and
+             (ppointerdef(def_from)^.definition^.deftype=orddef) and
+             (porddef(ppointerdef(def_from)^.definition)^.typ=uchar)) and
+             is_ansistring(def_to) then
+             begin
+                doconv:=tc_pchar_2_ansistring;
                 b:=true;
              end
          else
@@ -2441,6 +2460,7 @@ unit pass_1;
     procedure first_proc_to_procvar(var p : ptree);
 
       begin
+         { hmmm, I'am not sure if that is necessary (FK) }
          firstpass(p^.left);
          if codegenerror then
            exit;
@@ -2454,13 +2474,34 @@ unit pass_1;
          p^.location.loc:=LOC_REGISTER;
       end;
 
-        function is_procsym_load(p:Ptree):boolean;
+    procedure first_load_smallset(var p : ptree);
 
-        begin
-           is_procsym_load:=((p^.treetype=loadn) and (p^.symtableentry^.typ=procsym)) or
-                            ((p^.treetype=addrn) and (p^.left^.treetype=loadn)
-                            and (p^.left^.symtableentry^.typ=procsym)) ;
-        end;
+      begin
+      end;
+
+    procedure first_pchar_to_ansistring(var p : ptree);
+
+      begin
+         p^.location.loc:=LOC_REGISTER;
+         if p^.registers32<1 then
+           p^.registers32:=1;
+      end;
+
+    procedure first_ansistring_to_pchar(var p : ptree);
+
+      begin
+         p^.location.loc:=LOC_REGISTER;
+         if p^.registers32<1 then
+           p^.registers32:=1;
+      end;
+
+    function is_procsym_load(p:Ptree):boolean;
+
+      begin
+         is_procsym_load:=((p^.treetype=loadn) and (p^.symtableentry^.typ=procsym)) or
+                          ((p^.treetype=addrn) and (p^.left^.treetype=loadn)
+                          and (p^.left^.symtableentry^.typ=procsym)) ;
+      end;
 
    { change a proc call to a procload for assignment to a procvar }
    { this can only happen for proc/function without arguments }
@@ -2495,19 +2536,21 @@ unit pass_1;
               passproc:=passproc^.nextoverloaded;
             end;
        end;
+
     { Attention: do *** no ***  recursive call of firstpass }
     { because the child tree is always passed               }
 
-        procedure firsttypeconv(var p : ptree);
+  procedure firsttypeconv(var p : ptree);
 
-          var
-                 hp : ptree;
-                 aprocdef : pprocdef;
-                 proctype : tdeftype;
+    var
+           hp : ptree;
+           aprocdef : pprocdef;
+           proctype : tdeftype;
 
     const
-       firstconvert : array[tc_u8bit_2_s32bit..tc_cchar_charpointer] of
-         tfirstconvproc = (first_bigger_smaller,first_nothing,first_bigger_smaller,
+       firstconvert : array[tconverttype] of
+         tfirstconvproc = (first_nothing,first_nothing,
+                           first_bigger_smaller,first_nothing,first_bigger_smaller,
                            first_bigger_smaller,first_bigger_smaller,
                            first_bigger_smaller,first_bigger_smaller,
                            first_bigger_smaller,first_string_string,
@@ -2527,7 +2570,10 @@ unit pass_1;
                            first_int_real,first_real_fix,
                            first_fix_real,first_int_fix,first_real_real,
                            first_locmem,first_proc_to_procvar,
-                           first_cchar_charpointer);
+                           first_cchar_charpointer,
+                           first_load_smallset,
+                           first_ansistring_to_pchar,
+                           first_pchar_to_ansistring);
 
     begin
        aprocdef:=nil;
@@ -5280,7 +5326,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.64  1998-08-28 10:54:22  peter
+  Revision 1.65  1998-08-28 12:51:40  florian
+    + ansistring to pchar type cast fixed
+
+  Revision 1.64  1998/08/28 10:54:22  peter
     * fixed smallset generation from elements, it has never worked before!
 
   Revision 1.63  1998/08/24 10:05:39  florian

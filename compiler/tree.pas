@@ -146,7 +146,8 @@ unit tree;
                       tc_int_2_real,tc_real_2_fix,
                       tc_fix_2_real,tc_int_2_fix,tc_real_2_real,
                       tc_chararray_2_string,
-                      tc_proc2procvar,tc_cchar_charpointer,tc_load_smallset);
+                      tc_proc2procvar,tc_cchar_charpointer,tc_load_smallset,
+                      tc_ansistring_2_pchar,tc_pchar_2_ansistring);
 
        { allows to determine which elementes are to be replaced }
        tdisposetyp = (dt_nothing,dt_leftright,dt_left,
@@ -1554,7 +1555,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.32  1998-08-28 10:54:25  peter
+  Revision 1.33  1998-08-28 12:51:44  florian
+    + ansistring to pchar type cast fixed
+
+  Revision 1.32  1998/08/28 10:54:25  peter
     * fixed smallset generation from elements, it has never worked before!
 
   Revision 1.31  1998/08/21 14:08:58  pierre

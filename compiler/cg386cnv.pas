@@ -1039,11 +1039,53 @@ implementation
         p^.location.reference:=href;
       end;
 
+    procedure second_ansistring_to_pchar(p,hp : ptree;convtyp : tconverttype);
+
+      var
+         l1,l2 : plabel;
+         hr : preference;
+
+      begin
+         p^.location.loc:=LOC_REGISTER;
+         getlabel(l1);
+         getlabel(l2);
+         case hp^.location.loc of
+            LOC_CREGISTER,LOC_REGISTER:
+              exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_L,0,
+                hp^.location.register)));
+            LOC_MEM,LOC_REFERENCE:
+              begin
+                 exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_L,0,
+                   newreference(hp^.location.reference))));
+                  del_reference(hp^.location.reference);
+                  p^.location.register:=getregister32;
+               end;
+         end;
+         emitl(A_JZ,l1);
+         if hp^.location.loc in [LOC_MEM,LOC_REFERENCE] then
+           exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(
+             hp^.location.reference),
+             p^.location.register)));
+         emitl(A_JMP,l2);
+         emitl(A_LABEL,l1);
+         new(hr);
+         reset_reference(hr^);
+         hr^.symbol:=stringdup('FPC_EMPTYCHAR');
+         exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,hr,
+           p^.location.register)));
+         emitl(A_LABEL,l2);
+      end;
+
+    procedure second_pchar_to_ansistring(p,hp : ptree;convtyp : tconverttype);
+
+      begin
+         p^.location.loc:=LOC_REGISTER;
+         internalerror(12121);
+      end;
 
     procedure second_nothing(p,hp : ptree;convtyp : tconverttype);
       begin
       end;
-
 
 {****************************************************************************
                              SecondTypeConv
@@ -1077,7 +1119,9 @@ implementation
            second_proc_to_procvar,
            { is constant char to pchar, is done by firstpass }
            second_nothing,
-           second_load_smallset);
+           second_load_smallset,
+           second_ansistring_to_pchar,
+           second_pchar_to_ansistring);
 
       begin
          { this isn't good coding, I think tc_bool_2_int, shouldn't be }
@@ -1207,7 +1251,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-08-28 10:56:56  peter
+  Revision 1.14  1998-08-28 12:51:39  florian
+    + ansistring to pchar type cast fixed
+
+  Revision 1.13  1998/08/28 10:56:56  peter
     * removed warnings
 
   Revision 1.12  1998/08/14 18:18:38  peter

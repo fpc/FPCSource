@@ -21,10 +21,49 @@
 }
 
 {*************************************************************************************************************************
-                     TDEF (base class for defenitions)
+                     TDEF (base class for definitions)
 ****************************************************************************}
 
+    const
+       { if you change one of the following contants, }
+       { you have also to change the typinfo unit     }
+       tkUnknown       = 0;
+       tkInteger       = 1;
+       tkChar          = 2;
+       tkEnumeration   = 3;
+       tkFloat         = 4;
+       tkSet           = 6;
+       tkMethod        = 7;
+       tkSString       = 8;
+       tkString        = tkSString;
+       tkLString       = 9;
+       tkAString       = 10;
+       tkWString       = 11;
+       tkVariant       = 12;
+       tkArray         = 13;
+       tkRecord        = 14;
+       tkInterface     = 15;
+       tkClass         = 16;
+       tkObject        = 17;
+       tkWChar         = 18;
+
+       otSByte         = 0;
+       otUByte         = 1;
+       otSWord         = 2;
+       otUWord         = 3;
+       otSLong         = 4;
+       otULong         = 5;
+
+       ftSingle        = 0;
+       ftDouble        = 1;
+       ftExtended      = 2;
+       ftComp          = 3;
+       ftCurr          = 4;
+       ftFixed16       = 5;
+       ftFixed32       = 6;
+
     constructor tdef.init;
+
       begin
          deftype:=abstractdef;
          owner := nil;
@@ -395,7 +434,7 @@
          else
            writelong(len);
          case string_typ of
-          st_shortstring : current_ppu^.writeentry(ibstringdef);
+           st_shortstring : current_ppu^.writeentry(ibstringdef);
            st_longstring : current_ppu^.writeentry(iblongstringdef);
            st_ansistring : current_ppu^.writeentry(ibansistringdef);
            st_widestring : current_ppu^.writeentry(ibwidestringdef);
@@ -468,21 +507,20 @@
          case string_typ of
             st_ansistring:
               begin
-                 rttilist^.concat(new(pai_const,init_8bit(10)));
+                 rttilist^.concat(new(pai_const,init_8bit(tkAString)));
               end;
             st_widestring:
               begin
-                 rttilist^.concat(new(pai_const,init_8bit(11)));
+                 rttilist^.concat(new(pai_const,init_8bit(tkWString)));
               end;
             st_longstring:
               begin
-                 rttilist^.concat(new(pai_const,init_8bit(9)));
-                 rttilist^.concat(new(pai_const,init_32bit(len)));
+                 rttilist^.concat(new(pai_const,init_8bit(tkLString)));
               end;
             st_shortstring:
               begin
-                 rttilist^.concat(new(pai_const,init_8bit(8)));
-                 rttilist^.concat(new(pai_const,init_32bit(len)));
+                 rttilist^.concat(new(pai_const,init_8bit(tkSString)));
+                 rttilist^.concat(new(pai_const,init_8bit(len)));
               end;
          end;
       end;
@@ -584,7 +622,8 @@
 
       begin
          inherited generate_rtti;
-         rttilist^.concat(new(pai_const,init_8bit(255)));
+         rttilist^.concat(new(pai_const,init_8bit(tkEnumeration)));
+         rttilist^.concat(new(pai_const,init_8bit(0)));
       end;
 
 {*************************************************************************************************************************
@@ -803,9 +842,14 @@
 
     procedure tfloatdef.generate_rtti;
 
+      const
+         translate : array[tfloattype] of byte =
+           (ftFixed32,ftSingle,ftDouble,ftExtended,ftComp,ftFixed16);
+
       begin
          inherited generate_rtti;
-         rttilist^.concat(new(pai_const,init_8bit(255)));
+         rttilist^.concat(new(pai_const,init_8bit(tkFloat)));
+         rttilist^.concat(new(pai_const,init_8bit(translate[typ])));
       end;
 
 {*************************************************************************************************************************
@@ -2535,7 +2579,10 @@
 
 {
   $Log$
-  Revision 1.26  1998-08-25 12:42:44  pierre
+  Revision 1.27  1998-08-28 12:51:43  florian
+    + ansistring to pchar type cast fixed
+
+  Revision 1.26  1998/08/25 12:42:44  pierre
     * CDECL changed to CVAR for variables
       specifications are read in structures also
     + started adding GPC compatibility mode ( option  -Sp)
