@@ -90,7 +90,8 @@ type
     _DIVASN,
     _NOTASN,
     _XORASN,
-    { Normal words }
+    { Normal words -- ATTENTION: These words must be sorted: }
+    { first in length order, then in alphabetical order.     }
     _C,
     _AS,
     _AT,
@@ -129,6 +130,7 @@ type
     _NEAR,
     _READ,
     _SELF,
+    _SYSV,
     _THEN,
     _TRUE,
     _TYPE,
@@ -156,6 +158,7 @@ type
     _EXCEPT,
     _EXPORT,
     _INLINE,
+    _LEGACY,
     _OBJECT,
     _PACKED,
     _PASCAL,
@@ -226,9 +229,7 @@ type
     _UNIMPLEMENTED,
     _IMPLEMENTATION,
     _INITIALIZATION,
-    _RESOURCESTRING,
-    _LEGACY,
-    _SYSV
+    _RESOURCESTRING
   );
 
 const
@@ -321,7 +322,8 @@ const
       (str:''              ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:''              ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:''              ;special:true ;keyword:m_none;op:NOTOKEN),
-    { Normal words }
+    { Normal words -- ATTENTION: These words must be sorted: }
+    { first in length order, then in alphabetical order.     }
       (str:'C'             ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'AS'            ;special:false;keyword:m_class;op:_OP_AS),
       (str:'AT'            ;special:false;keyword:m_none;op:NOTOKEN),
@@ -360,6 +362,7 @@ const
       (str:'NEAR'          ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'READ'          ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SELF'          ;special:false;keyword:m_none;op:NOTOKEN), {set inside methods only PM }
+      (str:'SYSV'          ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'THEN'          ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'TRUE'          ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'TYPE'          ;special:false;keyword:m_all;op:NOTOKEN),
@@ -387,6 +390,7 @@ const
       (str:'EXCEPT'        ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'EXPORT'        ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'INLINE'        ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'LEGACY'        ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OBJECT'        ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'PACKED'        ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'PASCAL'        ;special:false;keyword:m_none;op:NOTOKEN),
@@ -457,10 +461,9 @@ const
       (str:'UNIMPLEMENTED' ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'IMPLEMENTATION';special:false;keyword:m_all;op:NOTOKEN),
       (str:'INITIALIZATION';special:false;keyword:m_initfinal;op:NOTOKEN),
-      (str:'RESOURCESTRING';special:false;keyword:m_class;op:NOTOKEN),
-      (str:'LEGACY'        ;special:false;keyword:m_none;op:NOTOKEN),
-      (str:'SYSV'          ;special:false;keyword:m_none;op:NOTOKEN)
+      (str:'RESOURCESTRING';special:false;keyword:m_class;op:NOTOKEN)
   );
+
 
 var
   tokeninfo:ptokenarray;
@@ -520,7 +523,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  2005-01-04 17:40:33  karoly
+  Revision 1.34  2005-01-04 19:22:33  olle
+    * sorted in correctly new tokens added by Karoly
+
+  Revision 1.33  2005/01/04 17:40:33  karoly
     + sysv style syscalls added for MorphOS
 
   Revision 1.32  2004/10/24 20:01:08  peter
