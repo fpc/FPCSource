@@ -24,9 +24,6 @@ unit fmodule;
 
 {$i defines.inc}
 
-{$ifdef go32v1}
-  {$define shortasmprefix}
-{$endif}
 {$ifdef go32v2}
   {$define shortasmprefix}
 {$endif}
@@ -587,7 +584,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.19  2001-11-06 14:53:48  jonas
+  Revision 1.20  2002-03-28 20:46:59  carl
+  - remove go32v1 support
+
+  Revision 1.19  2001/11/06 14:53:48  jonas
     * compiles again with -dmemdebug
 
   Revision 1.18  2001/08/04 10:23:54  peter

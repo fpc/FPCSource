@@ -54,9 +54,6 @@ implementation
     {$ifndef NOTARGETNETWARE}
       ,t_nwm
     {$endif}
-    {$ifndef NOTARGETGO32V1}
-      ,t_go32v1
-    {$endif}
     {$ifndef NOTARGETGO32V2}
       ,t_go32v2
     {$endif}
@@ -85,7 +82,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-06-03 15:12:47  peter
+  Revision 1.3  2002-03-28 20:48:04  carl
+  - remove go32v1 support
+
+  Revision 1.2  2001/06/03 15:12:47  peter
     * t_beos target inclusion
 
   Revision 1.1  2001/04/18 22:02:01  peter

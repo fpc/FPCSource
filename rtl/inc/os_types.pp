@@ -13,11 +13,6 @@ INTERFACE
 
 TYPE
 // ordinal types
-{$ifdef Go32v1}
-  tOS_INT  = LongInt;
-  tOS_UINT = DWord;
-{$define OS_TYPES}
-{$endif}
 {$ifdef Go32v2}
   tOS_INT  = LongInt;
   tOS_UINT = DWord;
@@ -70,7 +65,10 @@ IMPLEMENTATION
 end.
 
   $Log$
-  Revision 1.4  2002-03-16 12:46:09  armin
+  Revision 1.5  2002-03-28 20:57:41  carl
+  - remove go32v1 support
+
+  Revision 1.4  2002/03/16 12:46:09  armin
   + Netware added
 
   Revision 1.3  2000/11/13 13:40:04  marco

@@ -1994,7 +1994,7 @@ Begin
         Begin
           Consume(AS_ALIGN);
           l1:=BuildConstExpression(false,false);
-          if (target_info.target in [target_i386_GO32V1,target_i386_GO32V2]) then
+          if (target_info.target in [target_i386_GO32V2]) then
             begin
                l2:=1;
                if (l1>=0) and (l1<=16) then
@@ -2135,7 +2135,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.16  2002-01-24 18:25:53  peter
+  Revision 1.17  2002-03-28 20:48:25  carl
+  - remove go32v1 support
+
+  Revision 1.16  2002/01/24 18:25:53  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 

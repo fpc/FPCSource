@@ -67,8 +67,8 @@ type
        { taken from systems.pas }
        ttarget =
        (
-             target_none,               { 0 }
-             target_i386_GO32V1,        { 1 }
+             target_none,                { 0 }
+             obsolete_target_i386_GO32V1,{ 1 }
              target_i386_GO32V2,        { 2 }
              target_i386_linux,         { 3 }
              target_i386_OS2,           { 4 }
@@ -92,7 +92,7 @@ type
 const
   Targets : array[ttarget] of string[12]=(
   { 0 }   'none',
-  { 1 }   'GO32V1',
+  { 1 }   '<obsolete>',
   { 2 }   'GO32V2',
   { 3 }   'Linux-i386',
   { 4 }   'OS/2',
@@ -1647,7 +1647,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-03-28 16:44:59  armin
+  Revision 1.14  2002-03-28 20:48:52  carl
+  - remove go32v1 support
+
+  Revision 1.13  2002/03/28 16:44:59  armin
   + new flag if unit has local threadvars
 
   Revision 1.12  2002/03/01 14:08:47  peter

@@ -149,14 +149,6 @@ TYPE
 {---------------------------------------------------------------------------}
 {                    OS dependent File type / consts                        }
 {---------------------------------------------------------------------------}
-{$IFDEF GO32V1}
-type
-   FNameStr = String[79];
-   THandle = Integer;
-const
-   MaxReadBytes = $fffe;
-   invalidhandle = -1;
-{$ENDIF}
 {$IFDEF GO32V2}
 type
    FNameStr = String;
@@ -2841,7 +2833,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.8  2001-07-31 19:36:09  peter
+  Revision 1.9  2002-03-28 20:56:00  carl
+  - remove go32v1 support
+
+  Revision 1.8  2001/07/31 19:36:09  peter
     * wordrec for big endian
 
   Revision 1.7  2001/07/30 21:38:55  peter

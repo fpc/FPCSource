@@ -1895,7 +1895,6 @@ option_help_pages=11025_[
 3*3Op2_Stel doel processor in op Pentium/PentiumMMX (tm)
 3*3Op3_Stel doel processor in op PPro/PII/c6x86/K6 (tm)
 6*1T<x>_Doel besturingssysteem:
-3*2TGO32V1_version 1 of DJ Delorie DOS extender
 3*2TGO32V2_version 2 of DJ Delorie DOS extender
 3*2TLINUX_Linux
 3*2TOS2_OS/2 2.x

@@ -83,7 +83,7 @@ interface
        ttarget =
        (
              target_none,               { 0 }
-             target_i386_GO32V1,        { 1 }
+             obsolete_target_i386_GO32V1,{ 1 }
              target_i386_GO32V2,        { 2 }
              target_i386_linux,         { 3 }
              target_i386_OS2,           { 4 }
@@ -581,9 +581,6 @@ begin
   source_info.name:='';
 { please note then we use cpu86 and cpu68 here on purpose !! }
 {$ifdef cpu86}
-  {$ifdef GO32V1}
-    set_source(target_i386_GO32V1);
-  {$else}
     {$ifdef GO32V2}
       set_source(target_i386_GO32V2);
     {$else}
@@ -622,7 +619,6 @@ begin
         {$endif win32}
       {$endif os2}
     {$endif go32v2}
-  {$endif go32v1}
 {$endif cpu86}
 {$ifdef cpu68}
   {$ifdef AMIGA}
@@ -682,7 +678,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.34  2002-01-29 19:44:50  peter
+  Revision 1.35  2002-03-28 20:47:45  carl
+  - remove go32v1 support
+
+  Revision 1.34  2002/01/29 19:44:50  peter
     * fixed updatealignment to not override settings with undefined
       values
 

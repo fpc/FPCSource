@@ -1996,7 +1996,6 @@ option_help_pages=11025_[
 3*3Op2_set target processor to Pentium/PentiumMMX (tm)
 3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)
 3*1T<x>_Target operating system:
-3*2TGO32V1_version 1 of DJ Delorie DOS extender
 3*2TGO32V2_version 2 of DJ Delorie DOS extender
 3*2TLINUX_Linux
 3*2Tnetware_Novell Netware Module (experimental)

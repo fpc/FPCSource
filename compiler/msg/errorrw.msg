@@ -1978,7 +1978,6 @@ option_help_pages=11025_[
 3*3Op2_дл€ процессор Pentium/PentiumMMX (tm)
 3*3Op3_процессор Pentium PRO/Pentium II/Cyrix 6X86/AMD K6 (tm)
 3*1T<x>_тип операционна€ системы, дл€ котоpой пpоисходит компил€ци€:
-3*2TGO32V1_version 1 (DJ Delorie расширитель DOS)
 3*2TGO32V2_version 2 (DJ Delorie расширитель DOS)
 3*2TLINUX_Linux
 3*2TOS2_OS/2 2.x

@@ -1854,7 +1854,6 @@ option_help_pages=11025_[
 3*3Op2_d‚finit Pentium/PentiumMMX (tm) comme processeur cycle
 3*3Op3_d‚finit  PPro/PII/c6x86/K6 (tm) comme processeur cycle
 3*1T<x>_systŠme d'explioitation cible :
-3*2TGO32V1_version 1 de l'extension DOS de DJ Delorie
 3*2TGO32V2_version 2 de l'extension DOS de DJ Delorie
 3*2TLINUX_Linux
 3*2TOS2_OS/2 2.x

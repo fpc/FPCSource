@@ -1815,7 +1815,6 @@ option_help_pages=11025_[
 3*3Op2_Optimierungen fÅr Pentium/PentiumMMX (R)
 3*3Op3_Optimierungen fÅr PPro/PII/c6x86/K6 (R)
 3*1T<x>_Ziel-Betriebssystem
-3*2TGO32V1_Version 1 von DJ Delorie's DOS extender ()
 3*2TGO32V2_Version 2 von DJ Delorie's DOS extender
 3*2TLINUX_Linux
 3*2TOS2_OS/2 2.x

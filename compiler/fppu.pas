@@ -26,9 +26,6 @@ unit fppu;
 
 { close ppufiles on system that are
   short on file handles like DOS system PM }
-{$ifdef GO32V1}
-  {$define SHORT_ON_FILE_HANDLES}
-{$endif GO32V1}
 {$ifdef GO32V2}
   {$define SHORT_ON_FILE_HANDLES}
 {$endif GO32V2}
@@ -1181,7 +1178,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.11  2002-01-19 14:20:13  peter
+  Revision 1.12  2002-03-28 20:46:44  carl
+  - remove go32v1 support
+
+  Revision 1.11  2002/01/19 14:20:13  peter
     * check for -Un when loading ppu with wrong name
 
   Revision 1.10  2001/08/19 09:39:27  peter
