@@ -191,7 +191,7 @@ help:
         @$(ECHO)
         @$(ECHO) Packing targets are:
         @$(ECHO)
-        @$(ECHO) go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip,os2zip,beoszip,sunoszip,qnxzip,amigazip
+        @$(ECHO) go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip,os2zip,emxzip,beoszip,sunoszip,qnxzip,amigazip
         @$(ECHO)
         @exit
 
@@ -437,7 +437,7 @@ sourcezip:
 # OS targets
 ##########################################################################
 
-.PHONY: go32v2 win32 linux freebsd os2 netbsd openbsd go32v2zip win32zip linuxzip freebsdzip os2zip netbsdzip openbsdzip
+.PHONY: go32v2 win32 linux freebsd os2 emx netbsd openbsd go32v2zip win32zip linuxzip freebsdzip os2zip emxzip netbsdzip openbsdzip
 
 go32v2: checkfpcdir
         $(MAKE) install OS_TARGET=go32v2
@@ -460,9 +460,11 @@ openbsd: checkfpcdir
 os2: checkfpcdir
         $(MAKE) install OS_TARGET=os2
 
+emx: checkfpcdir
+        $(MAKE) install OS_TARGET=emx
+
 sunos: checkfpcdir
         $(MAKE) install OS_TARGET=sunos
-
 
 go32v2zip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=go32v2
@@ -485,9 +487,11 @@ openbsdzip : checkfpcdir
 beoszip : checkfpcdir
         $(MAKE) zipinstall OS_TARGET=beos USEZIP=1
 
-
 os2zip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=os2
+
+emxzip: checkfpcdir
+        $(MAKE) zipinstall OS_TARGET=emx
 
 sunoszip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=sunos TARPROG=gtar

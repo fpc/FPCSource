@@ -358,7 +358,8 @@ interface
             idtxt  : 'AS_AOUT';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
-            supported_target : system_i386_os2;
+            supported_target : system_any;
+{            supported_target : system_i386_emx;}
             outputbinary: false;
             allowdirect : true;
             needar : true;
@@ -398,7 +399,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.30  2003-02-19 22:00:15  daniel
+  Revision 1.31  2003-03-23 23:33:10  hajny
+    + emx target added
+
+  Revision 1.30  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

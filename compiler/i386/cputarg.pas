@@ -45,6 +45,9 @@ implementation
     {$ifndef NOTARGETSUNOS}
       ,t_sunos
     {$endif}
+    {$ifndef NOTARGETEMX}
+      ,t_emx
+    {$endif}
     {$ifndef NOTARGETOS2}
       ,t_os2
     {$endif}
@@ -85,7 +88,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2002-05-18 13:34:22  peter
+  Revision 1.10  2003-03-23 23:33:10  hajny
+    + emx target added
+
+  Revision 1.9  2002/05/18 13:34:22  peter
     * readded missing revisions
 
   Revision 1.8  2002/05/16 19:46:50  carl
