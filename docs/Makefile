@@ -366,7 +366,7 @@ fcl.inc: classes.xml
 XMLUNITS=sysutils strutils dateutils systhrds strings mouse keyboard \
          crt video dos sockets objects heaptrc mmx ipc printer typinfo\
          ports getopts emu387 dxeload go32 gpm graph oldlinux baseunix\
-         unixtype unix classes unixutil x86 dynlibs linux
+         unixtype unix classes unixutil x86 dynlibs linux math
 RTLXML=$(addsuffix .xml,$(XMLUNITS))
 # RTLXML=baseunix.xml
 RTLOPTS=--package=rtl
@@ -402,10 +402,10 @@ RTLOPTS+= --descr=unixutil.xml --input="../rtl/unix/unixutil.pp"
 RTLOPTS+= --descr=x86.xml --input="../rtl/unix/x86.pp"
 RTLOPTS+=--descr=dynlibs.xml --input="../rtl/inc/dynlibs.pp -Fi../rtl/unix"
 RTLOPTS+=--descr=linux.xml --input="../rtl/unix/linux.pp -Fi../rtl/linux -Fi../rtl/unix"
+RTLOPTS+=--descr=math.xml --input="../rtl/objpas/math.pp -Fi../rtl/i386 -dFPC_HAS_TYPE_EXTENDED"
 
 rtl.inc: $(RTLXML)
 	$(FPDOC) --output=rtl.inc $(RTLOPTS) --format=latex
-
 
 
 #####################################################################
@@ -445,6 +445,10 @@ fpdoc.pdf: fpdoc.tex includes
 fcl.pdf: fcl.tex fcl.inc includes
 
 chart.pdf: chart.tex
+
+rtl.dvi: rtl.tex rtl.inc
+
+rtl.pdf: rtl.tex rtl.inc
 
 dvi : $(DVI)
 
@@ -643,7 +647,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.29  2004-10-22 20:45:50  michael
+# Revision 1.30  2004-10-22 23:02:40  michael
+# + Math.xml now ok to be used
+#
+# Revision 1.29  2004/10/22 20:45:50  michael
 # + Most units added
 #
 # Revision 1.28  2004/09/23 21:41:08  florian

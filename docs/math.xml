@@ -1,41 +1,47 @@
-<!--  -->
-<!--    $Id$ -->
-<!--    This file is part of the FPC documentation. -->
-<!--    Copyright (C) 2000 by Florian Klaempfl -->
-<!--  -->
-<!--    The FPC documentation is free text; you can redistribute it and/or -->
-<!--    modify it under the terms of the GNU Library General Public License as -->
-<!--    published by the Free Software Foundation; either version 2 of the -->
-<!--    License, or (at your option) any later version. -->
-<!--  -->
-<!--    The FPC Documentation is distributed in the hope that it will be useful, -->
-<!--    but WITHOUT ANY WARRANTY; without even the implied warranty of -->
-<!--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU -->
-<!--    Library General Public License for more details. -->
-<!--  -->
-<!--    You should have received a copy of the GNU Library General Public -->
-<!--    License along with the FPC documentation; see the file COPYING.LIB.  If not, -->
-<!--    write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, -->
-<!--    Boston, MA 02111-1307, USA. -->
-<!--  -->
-<topic><short>The MATH unit</short>
-\FPCexampledir{mathex}
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
 
-This chapter describes the <file>math</file> unit. The <var>math</var> unit
-was initially written by Florian Kl\"ampfl. It provides mathematical
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="math">
+<short>Additional mathematical routines.</short>
+<!-- \FPCexampledir{mathex} -->
+<descr>
+<p>
+This document describes the <file>math</file> unit. The <var>math</var> unit
+was initially written by Florian Klaempfl. It provides mathematical
 functions which aren't covered by the system unit.
-
+</p>
+<p>
 This chapter starts out with a definition of all types and constants
 that are defined, after which an overview is presented of the available 
 functions, grouped by category, and the last part contains a 
 complete explanation of each function.
-
+</p>
+<p>
 The following things must be taken into account when using this unit:
-</p><ol>
-</li>
-<li> This unit is compiled in Object Pascal mode so all
-<var>integers</var> are 32 bit.
-</li>
+</p>
+<ol>
+<li>This unit is compiled in Object Pascal mode so all <var>integers</var> are 32 bit.</li>
 <li> Some overloaded functions exist for data arrays of integers and
 floats. When using the address operator (<var>@</var>) to pass an array of 
 data to such a function, make sure the address is typecasted to the 
@@ -44,43 +50,14 @@ do so, will cause the compiler not be able to decide which function you
 want to call.
 </li>
 </ol>
-<p>
+</descr>
 
-<topic><short>Constants and types</short>
-
-The following types are defined in the <file>math</file> unit:
-</p>
-<code>
-Type
-  Float = Extended;
-  PFloat = ^FLoat
-</code>
+<topic name="MinMaxRoutines">
+<short>Min/max determination</short>
+<descr>
 <p>
-All calculations are done with the Float type. This allows to
-recompile the unit with a different float type to obtain a
-desired precision. The pointer type is used in functions that accept
-an array of values of arbitrary length.
-</p>
-<code>
-Type
-   TPaymentTime = (PTEndOfPeriod,PTStartOfPeriod);
-</code>
-<p>
-<var>TPaymentTime</var> is used in the financial calculations.
-</p>
-<code>
-Type
-   EInvalidArgument = Class(EMathError);
-</code>
-<p>
-The <var>EInvalidArgument</var> exception is used to report invalid arguments.
-
-<topic><short>Function list by category</short>
-What follows is a listing of the available functions, grouped by category.
-For each function there is a reference to the page where you can find the
-function.
-<topic><short>Min/max determination</short>
 Functions to determine the minimum or maximum of numbers:
+</p>
 <table>
 <th><td>Name</td><td>Description</td></th>
 <tr><td><link id="max"/></td><td>Maximum of 2 values</td></tr>
@@ -90,7 +67,15 @@ Functions to determine the minimum or maximum of numbers:
 <tr><td><link id="minIntValue"/></td><td>Minimum of an array of integer values</td></tr>
 <tr><td><link id="minvalue"/></td><td>Minimum of an array of values</td></tr>
 </table>
-<topic><short>Angle conversion</short>
+</descr>
+</topic>
+
+<topic name="AngleConversionRoutines">
+<short>Angle unit conversion</short>
+<descr>
+<p>
+Routines to convert angles between different angle units.
+</p>
 <table>
 <th><td>Name</td><td>Description</td></th>
 <tr><td><link id="cycletorad"/></td><td>convert cycles to radians</td></tr>
@@ -102,7 +87,12 @@ Functions to determine the minimum or maximum of numbers:
 <tr><td><link id="radtodeg"/></td><td>convert radians to degrees</td></tr>
 <tr><td><link id="radtograd"/></td><td>convert radians to grads</td></tr>
 </table>
-<topic><short>Trigoniometric functions</short>
+</descr>
+</topic>
+
+<topic name="TrigoniometricRoutines">
+<short>Trigoniometric functions</short>
+<descr>
 <table>
 <th><td>Name</td><td>Description</td></th>
 <tr><td><link id="arccos"/></td><td>calculate reverse cosine</td></tr>
@@ -112,7 +102,12 @@ Functions to determine the minimum or maximum of numbers:
 <tr><td><link id="sincos"/></td><td>calculate sine and cosine</td></tr>
 <tr><td><link id="tan"/></td><td>calculate tangent</td></tr>
 </table>
-<topic><short>Hyperbolic functions</short>
+</descr>
+</topic>
+
+<topic name="HyperbolicRoutines">
+<short>Hyperbolic functions</short>
+<descr>
 <table>
 <th><td>Name</td><td>Description</td></th>
 <tr><td><link id="arcosh"/></td><td>caculate reverse hyperbolic cosine</td></tr>
@@ -122,25 +117,40 @@ Functions to determine the minimum or maximum of numbers:
 <tr><td><link id="sinh"/></td><td>calculate hyperbolic sine</td></tr>
 <tr><td><link id="tanh"/></td><td>calculate hyperbolic tangent</td></tr>
 </table>
-<topic><short>Exponential and logarithmic functions</short>
+</descr>
+</topic>
+
+<topic name="ExpLogRoutines">
+<short>Exponential and logarithmic functions</short>
+<descr>
 <table>
 <th><td>Name</td><td>Description</td></th>
 <tr><td><link id="intpower"/></td><td>Raise float to integer power</td></tr>
 <tr><td><link id="ldexp"/></td><td>Calculate $2^p x$</td></tr>
-<tr><td><link id="lnxp1"/></td><td>calculate <var>log(x+1)</td></tr></var>
+<tr><td><link id="lnxp1"/></td><td>calculate <var>log(x+1)</var></td></tr>
 <tr><td><link id="log10"/></td><td>calculate 10-base log</td></tr>
 <tr><td><link id="log2"/></td><td>calculate 2-base log</td></tr>
 <tr><td><link id="logn"/></td><td>calculate N-base log</td></tr>
 <tr><td><link id="power"/></td><td>raise float to arbitrary power</td></tr>
 </table>
-<topic><short>Number converting</short>
+</descr>
+</topic>
+
+<topic name="NumberConversionRoutines">
+<short>Number converting</short>
+<descr>
 <table>
 <th><td>Name</td><td>Description</td></th>
 <tr><td><link id="ceil"/></td><td>Round to infinity</td></tr>
 <tr><td><link id="floor"/></td><td>Round to minus infinity</td></tr>
 <tr><td><link id="frexp"/></td><td>Return mantissa and exponent</td></tr>
 </table>
-<topic><short>Statistical functions</short>
+</descr>
+</topic>
+
+<topic name="StatisticalRoutines">
+<short>Statistical functions</short>
+<descr>
 <table>
 <th><td>Name</td><td>Description</td></th>
 <tr><td><link id="mean"/></td><td>Mean of values</td></tr>
@@ -156,14 +166,47 @@ Functions to determine the minimum or maximum of numbers:
 <tr><td><link id="totalvariance"/></td><td>Total variance of values</td></tr>
 <tr><td><link id="variance"/></td><td>variance of values</td></tr>
 </table>
-<topic><short>Geometrical functions</short>
+</descr>
+</topic>
+
+<topic name="GeometricalRoutines">
+<short>Geometrical functions</short>
+<descr>
 <table>
 <th><td>Name</td><td>Description</td></th>
 <tr><td><link id="hypot"/></td><td>Hypotenuse of triangle</td></tr>
 <tr><td><link id="norm"/></td><td>Euclidian norm</td></tr>
 </table>
+</descr>
+</topic>
 
-<topic><short>Functions and Procedures</short>
+<element name="Float">
+<short>Float type used in all calls</short>
+<descr>
+All calculations are done with the Float type. This allows to
+recompile the unit with a different float type to obtain a
+desired precision. The pointer type <link id="PFloat"/>
+is used in functions that accept an array of values of arbitrary length.
+</descr>
+</element>
+
+<element name="PFloat">
+<short>Pointer to <link id="Float"/> type.</short>
+</element>
+
+<element name="TPaymentTime">
+<short>Type used in financial (interest) calculations.</short>
+</element>
+<element name="TPaymentTime.PTEndOfPeriod">
+<short>End of period.</short>
+</element>
+<element name="TPaymentTime.PTStartOfPeriod">
+<short>Start of period.</short>
+</element>
+
+<element name="EInvalidArgument">
+<short>Exception raised when invalid arguments are passed to a function.</short>
+</element>
 
 <element name="arccos">
 <short></short>
@@ -181,9 +224,8 @@ If the argument <var>x</var> is not in the allowed range, an
 <link id="arsinh"/>
 <link id="artanh"/>
 </seealso>
+<example file="mathex/ex1"/>
 </element>
-
-<example file="ex1"/>
 
 <element name="arcosh">
 <short></short>
@@ -206,9 +248,8 @@ exception is raised.
 <link id="artanh"/>,
 <link id="tanh"/>
 </seealso>
+<example file="mathex/ex3"/>
 </element>
-
-<example file="ex3"/>
 
 <element name="arcsin">
 <short></short>
@@ -226,9 +267,8 @@ exception is raised.
 <link id="arsinh"/>
 <link id="artanh"/>
 </seealso>
+<example file="mathex/ex2"/>
 </element>
-
-<example file="ex2"/>
 
 
 <element name="arctan2">
@@ -252,9 +292,8 @@ If <var>x</var> is zero, an overflow error will occur.
 <link id="arsinh"/>
 <link id="artanh"/>
 </seealso>
+<example file="mathex/ex6"/>
 </element>
-
-<example file="ex6"/>
 
 <element name="arsinh">
 <short></short>
@@ -273,9 +312,8 @@ None.
 <link id="arcsin"/>
 <link id="artanh"/>
 </seealso>
+<example file="mathex/ex4"/>
 </element>
-
-<example file="ex4"/>
 
 
 <element name="artanh">
@@ -295,14 +333,9 @@ exception is raised.
 <link id="arccos"/>
 <link id="arcsin"/>
 <link id="artanh"/>
-</descr>
-<errors>
-</errors>
-<seealso>
 </seealso>
+<example file="mathex/ex5"/>
 </element>
-
-<example file="ex5"/>
 
 
 <element name="ceil">
@@ -318,9 +351,8 @@ occur.
 <seealso>
 <link id="floor"/>
 </seealso>
+<example file="mathex/ex7"/>
 </element>
-
-<example file="ex7"/>
 
 <element name="cosh">
 <short></short>
@@ -335,9 +367,8 @@ None.
 <link id="sinh"/>
 <link id="arsinh"/>
 </seealso>
+<example file="mathex/ex8"/>
 </element>
-
-<example file="ex8"/>
 
 
 <element name="cotan">
@@ -352,9 +383,8 @@ If <var>x</var> is zero then a overflow error will occur.
 <seealso>
 <link id="tanh"/>
 </seealso>
+<example file="mathex/ex9"/>
 </element>
-
-<example file="ex9"/>
 
 
 <element name="cycletorad">
@@ -374,9 +404,8 @@ None.
 <link id="radtograd"/>
 <link id="radtocycle"/>
 </seealso>
+<example file="mathex/ex10"/>
 </element>
-
-<example file="ex10"/>
 
 
 <element name="degtograd">
@@ -397,9 +426,8 @@ None.
 <link id="radtograd"/>
 <link id="radtocycle"/>
 </seealso>
+<example file="mathex/ex11"/>
 </element>
-
-<example file="ex11"/>
 
 
 <element name="degtorad">
@@ -420,9 +448,8 @@ None.
 <link id="radtograd"/>
 <link id="radtocycle"/>
 </seealso>
+<example file="mathex/ex12"/>
 </element>
-
-<example file="ex12"/>
 
 
 <element name="floor">
@@ -437,9 +464,8 @@ If <var>x</var> is larger than <var>maxint</var>, an overflow will occur.
 <seealso>
 <link id="ceil"/>
 </seealso>
+<example file="mathex/ex13"/>
 </element>
-
-<example file="ex13"/>
 
 
 <element name="frexp">
@@ -453,9 +479,8 @@ None
 </errors>
 <seealso>
 </seealso>
+<example file="mathex/ex14"/>
 </element>
-
-<example file="ex14"/>
 
 
 <element name="gradtodeg">
@@ -477,9 +502,8 @@ None.
 <link id="radtocycle"/>
 <link id="gradtorad"/>
 </seealso>
+<example file="mathex/ex15"/>
 </element>
-
-<example file="ex15"/>
 
 
 <element name="gradtorad">
@@ -501,9 +525,8 @@ None.
 <link id="radtocycle"/>
 <link id="gradtodeg"/>
 </seealso>
+<example file="mathex/ex16"/>
 </element>
-
-<example file="ex16"/>
 
 
 <element name="hypot">
@@ -519,9 +542,8 @@ None.
 </errors>
 <seealso>
 </seealso>
+<example file="mathex/ex17"/>
 </element>
-
-<example file="ex17"/>
 
 
 <element name="intpower">
@@ -537,9 +559,8 @@ overflow error will occur.
 <seealso>
 <link id="power"/>
 </seealso>
+<example file="mathex/ex18"/>
 </element>
-
-<example file="ex18"/>
 
 
 <element name="ldexp">
@@ -556,9 +577,8 @@ None.
 <link id="log2"/>
 <link id="logn"/>
 </seealso>
+<example file="mathex/ex19"/>
 </element>
-
-<example file="ex19"/>
 
 
 <element name="lnxp1">
@@ -577,9 +597,8 @@ If $x\leq -1$ then an <var>EInvalidArgument</var> exception will be raised.
 <link id="log2"/>
 <link id="logn"/>
 </seealso>
+<example file="mathex/ex20"/>
 </element>
-
-<example file="ex20"/>
 
 <element name="log10">
 <short></short>
@@ -596,9 +615,8 @@ will occur.
 <link id="log2"/>
 <link id="logn"/>
 </seealso>
+<example file="mathex/ex21"/>
 </element>
-
-<example file="ex21"/>
 
 
 <element name="log2">
@@ -616,9 +634,8 @@ will occur.
 <link id="log10"/>
 <link id="logn"/>
 </seealso>
+<example file="mathex/ex22"/>
 </element>
-
-<example file="ex22"/>
 
 
 <element name="logn">
@@ -636,9 +653,8 @@ will occur.
 <link id="log10"/>
 <link id="log2"/>
 </seealso>
+<example file="mathex/ex23"/>
 </element>
-
-<example file="ex23"/>
 
 <element name="max">
 <short></short>
@@ -653,9 +669,8 @@ None.
 <link id="maxIntValue"/>
 <link id="maxvalue"/>
 </seealso>
+<example file="mathex/ex24"/>
 </element>
-
-<example file="ex24"/>
 
 <element name="maxIntValue">
 <short></short>
@@ -674,9 +689,8 @@ None.
 <link id="minvalue"/>
 <link id="minIntValue"/>
 </seealso>
+<example file="mathex/ex25"/>
 </element>
-
-<example file="ex25"/>
 
 
 <element name="maxvalue">
@@ -697,9 +711,8 @@ None.
 <link id="minvalue"/>
 <link id="minIntValue"/>
 </seealso>
+<example file="mathex/ex26"/>
 </element>
-
-<example file="ex26"/>
 
 <element name="mean">
 <short></short>
@@ -716,9 +729,8 @@ None.
 <link id="momentskewkurtosis"/>
 <link id="sum"/>
 </seealso>
+<example file="mathex/ex27"/>
 </element>
-
-<example file="ex27"/>
 
 <element name="meanandstddev">
 <short></short>
@@ -738,9 +750,8 @@ None.
 <link id="sumofsquares"/>
 <link id="momentskewkurtosis"/>
 </seealso>
+<example file="mathex/ex28"/>
 </element>
-
-<example file="ex28"/>
 
 
 <element name="min">
@@ -754,9 +765,8 @@ None.
 <seealso>
 <link id="max"/>
 </seealso>
+<example file="mathex/ex29"/>
 </element>
-
-<example file="ex29"/>
 
 <element name="minIntValue">
 <short></short>
@@ -774,9 +784,8 @@ None
 <link id="maxIntValue"/>
 <link id="maxvalue"/>
 </seealso>
+<example file="mathex/ex30"/>
 </element>
-
-<example file="ex30"/>
 
 
 <element name="minvalue">
@@ -797,9 +806,8 @@ None.
 <link id="maxvalue"/>
 <link id="minIntValue"/>
 </seealso>
+<example file="mathex/ex31"/>
 </element>
-
-<example file="ex31"/>
 
 
 <element name="momentskewkurtosis">
@@ -816,9 +824,8 @@ None.
 <link id="mean"/>
 <link id="meanandstddev"/>
 </seealso>
+<example file="mathex/ex32"/>
 </element>
-
-<example file="ex32"/>
 
 <element name="norm">
 <short></short>
@@ -834,9 +841,8 @@ None.
 <seealso>
 <link id="sumofsquares"/>
 </seealso>
+<example file="mathex/ex33"/>
 </element>
-
-<example file="ex33"/>
 
 
 <element name="popnstddev">
@@ -858,9 +864,8 @@ None.
 <link id="stddev"/>,
 <link id="momentskewkurtosis"/>
 </seealso>
+<example file="mathex/ex35"/>
 </element>
-
-<example file="ex35"/>
 
 
 <element name="popnvariance">
@@ -882,9 +887,8 @@ None.
 <link id="stddev"/>,
 <link id="momentskewkurtosis"/>
 </seealso>
+<example file="mathex/ex36"/>
 </element>
-
-<example file="ex36"/>
 
 
 <element name="power">
@@ -899,9 +903,8 @@ None.
 <seealso>
 <link id="intpower"/>
 </seealso>
+<example file="mathex/ex34"/>
 </element>
-
-<example file="ex34"/>
 
 
 <element name="radtocycle">
@@ -922,9 +925,8 @@ None.
 <link id="radtograd"/>
 <link id="cycletorad"/>
 </seealso>
+<example file="mathex/ex37"/>
 </element>
-
-<example file="ex37"/>
 
 
 <element name="radtodeg">
@@ -945,9 +947,8 @@ None.
 <link id="radtograd"/>
 <link id="cycletorad"/>
 </seealso>
+<example file="mathex/ex38"/>
 </element>
-
-<example file="ex38"/>
 
 
 <element name="radtograd">
@@ -968,9 +969,8 @@ None.
 <link id="radtodeg"/>
 <link id="cycletorad"/>
 </seealso>
+<example file="mathex/ex39"/>
 </element>
-
-<example file="ex39"/>
 
 
 <element name="randg">
@@ -988,9 +988,8 @@ None.
 <link id="stddev"/>
 <link id="meanandstddev"/>
 </seealso>
+<example file="mathex/ex40"/>
 </element>
-
-<example file="ex40"/>
 
 
 <element name="sincos">
@@ -1009,9 +1008,8 @@ None.
 <link id="arcsin"/>
 <link id="arccos"/>.
 </seealso>
+<example file="mathex/ex41"/>
 </element>
-
-<example file="ex41"/>
 
 
 <element name="sinh">
@@ -1027,9 +1025,8 @@ None.
 <link id="tanh"/>
 <link id="artanh"/>
 </seealso>
+<example file="mathex/ex42"/>
 </element>
-
-<example file="ex42"/>
 
 
 <element name="stddev">
@@ -1050,9 +1047,8 @@ None.
 <link id="variance"/>
 <link id="totalvariance"/>
 </seealso>
+<example file="mathex/ex43"/>
 </element>
-
-<example file="ex43"/>
 
 
 <element name="sum">
@@ -1072,9 +1068,8 @@ None.
 <link id="totalvariance"/>
 , <link id="variance"/>
 </seealso>
+<example file="mathex/ex44"/>
 </element>
-
-<example file="ex44"/>
 
 
 <element name="sumofsquares">
@@ -1095,9 +1090,8 @@ None.
 <link id="totalvariance"/>
 , <link id="variance"/>
 </seealso>
+<example file="mathex/ex45"/>
 </element>
-
-<example file="ex45"/>
 
 
 <element name="sumsandsquares">
@@ -1119,9 +1113,8 @@ None.
 <link id="totalvariance"/>
 , <link id="variance"/>
 </seealso>
+<example file="mathex/ex46"/>
 </element>
-
-<example file="ex46"/>
 
 
 <element name="tan">
@@ -1138,9 +1131,8 @@ If <var>x</var> (normalized) is pi/2 or 3pi/2 then an overflow will occur.
 <link id="sincos"/>
 <link id="arccos"/>
 </seealso>
+<example file="mathex/ex47"/>
 </element>
-
-<example file="ex47"/>
 
 
 <element name="tanh">
@@ -1156,9 +1148,8 @@ None.
 <link id="sincos"/>
 <link id="arccos"/>
 </seealso>
+<example file="mathex/ex48"/>
 </element>
-
-<example file="ex48"/>
 
 
 <element name="totalvariance">
@@ -1178,9 +1169,8 @@ None.
 <link id="stddev"/>
 <link id="mean"/>
 </seealso>
+<example file="mathex/ex49"/>
 </element>
-
-<example file="ex49"/>
 
 
 <element name="variance">
@@ -1200,6 +1190,9 @@ None.
 <link id="stddev"/>
 <link id="mean"/>
 </seealso>
+<example file="mathex/ex50"/>
 </element>
 
-<example file="ex50"/>
+</module>
+</package>
+</fpdoc-descriptions>
