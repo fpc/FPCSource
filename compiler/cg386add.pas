@@ -141,6 +141,11 @@ implementation
 
     procedure addstring(var p : ptree);
       var
+{$ifdef newoptimizations}
+        l: pasmlabel;
+        hreg: tregister;
+        href2: preference;
+{$endif newoptimizations}
         pushedregs : tpushed;
         href       : treference;
         pushed,
@@ -291,30 +296,110 @@ implementation
                              clear_location(p^.left^.location);
                              p^.left^.location.loc:=LOC_MEM;
                              p^.left^.location.reference:=href;
+                             
+                             { length of temp string = 255 (JM) }
+                             pstringdef(p^.left^.resulttype)^.len := 255;
                           end;
 
                         secondpass(p^.right);
 
-                        { on the right we do not need the register anymore too }
+{$ifdef newoptimizations}
+                        { special case for string := string + char (JM) }
+                        hreg := R_NO;
+                        if is_shortstring(p^.left^.resulttype) and
+                           is_char(p^.right^.resulttype) then
+                          begin
+                            getlabel(l);
+                            getexplicitregister32(R_EDI);
+                            { load the current string length }
+                            emit_ref_reg(A_MOVZX,S_BL,
+                              newreference(p^.left^.location.reference),R_EDI);
+                            { is it already maximal? }
+                            emit_const_reg(A_CMP,S_L,
+                              pstringdef(p^.left^.resulttype)^.len,R_EDI);
+                            emitjmp(C_E,l);
+                            { no, so add the new character }
+                            { is it a constant char? }
+                            if (p^.right^.treetype <> ordconstn) then
+                              { no, make sure it is in a register }
+                              if p^.right^.location.loc in [LOC_REFERENCE,LOC_MEM] then
+                                begin
+                                  { free the registers of p^.right } 
+                                  del_reference(p^.right^.location.reference);
+                                  { get register for the char }
+                                  hreg := reg32toreg8(getregister32);
+                                  emit_ref_reg(A_MOV,S_B,
+                                    newreference(p^.right^.location.reference),
+                                    hreg);
+                                 { I don't think a temp char exists, but it won't hurt (JM)Ê}
+                                 ungetiftemp(p^.right^.location.reference);
+                                end
+                              else hreg := p^.right^.location.register;
+                            href2 := newreference(p^.left^.location.reference);
+                            { we need a new reference to store the character }
+                            { at the end of the string. Check if the base or }
+                            { index register is still free                   }
+                            if (p^.left^.location.reference.base <> R_NO) and
+                               (p^.left^.location.reference.index <> R_NO) then
+                              begin
+                                { they're not free, so add the base reg to }
+                                { the string length (since the index can   }
+                                { have a scalefactor) and use EDI as base  }
+                                emit_reg_reg(A_ADD,S_L,
+                                  p^.left^.location.reference.base,R_EDI);
+                                href2^.base := R_EDI;
+                              end
+                            else
+                              { at least one is still free, so put EDI there }
+                              if href2^.base = R_NO then
+                                href2^.base := R_EDI
+                              else
+                                begin
+                                  href2^.index := R_EDI;
+                                  href2^.scalefactor := 1;
+                                end;
+                            { we need to be one position after the last char }
+                            inc(href2^.offset);
+                            { increase the string length }
+                            emit_ref(A_INC,S_B,newreference(p^.left^.location.reference));
+                            { and store the character at the end of the string }
+                            if (p^.right^.treetype <> ordconstn) then
+                              begin
+                                { no new_reference(href2) because it's only }
+                                { used once (JM)                            }
+                                emit_reg_ref(A_MOV,S_B,hreg,href2);
+                                ungetregister(hreg);
+                              end
+                            else
+                              emit_const_ref(A_MOV,S_B,p^.right^.value,href2);
+                            emitlab(l);
+                            ungetregister32(R_EDI);
+                          end
+                        else
+                          begin
+{$endif  newoptimizations}
 {$IfNDef regallocfix}
-                        del_reference(p^.right^.location.reference);
-                        pushusedregisters(pushedregs,$ff);
+                        { on the right we do not need the register anymore too }
+                            del_reference(p^.right^.location.reference);
+                            pushusedregisters(pushedregs,$ff);
 {$Else regallocfix}
-                        pushusedregisters(pushedregs,$ff
-                          xor ($80 shr byte(p^.right^.location.reference.base))
-                          xor ($80 shr byte(p^.right^.location.reference.index)));
+                            pushusedregisters(pushedregs,$ff
+                              xor ($80 shr byte(p^.right^.location.reference.base))
+                              xor ($80 shr byte(p^.right^.location.reference.index)));
 {$EndIf regallocfix}
-                        emitpushreferenceaddr(p^.left^.location.reference);
-                        emitpushreferenceaddr(p^.right^.location.reference);
+                            emitpushreferenceaddr(p^.left^.location.reference);
+                            emitpushreferenceaddr(p^.right^.location.reference);
 {$IfDef regallocfix}
-                        del_reference(p^.right^.location.reference);
+                            del_reference(p^.right^.location.reference);
 {$EndIf regallocfix}
-                        emitcall('FPC_SHORTSTR_CONCAT');
-                        maybe_loadesi;
-                        popusedregisters(pushedregs);
-
+                            emitcall('FPC_SHORTSTR_CONCAT');
+                            maybe_loadesi;
+                            popusedregisters(pushedregs);
+                            ungetiftemp(p^.right^.location.reference);
+{$ifdef newoptimizations}
+                        end;
+{$endif newoptimizations}
                         set_location(p^.location,p^.left^.location);
-                        ungetiftemp(p^.right^.location.reference);
                      end;
                    ltn,lten,gtn,gten,
                    equaln,unequaln :
@@ -2271,7 +2356,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2000-04-10 12:23:19  jonas
+  Revision 1.99  2000-04-21 12:35:05  jonas
+    + special code for string + char, between -dnewoptimizations
+
+  Revision 1.98  2000/04/10 12:23:19  jonas
     * modified copyshortstring so it takes an extra paramter which allows it
       to delete the sref itself (so the reg deallocations are put in the
       right place for the optimizer)

@@ -841,8 +841,16 @@ implementation
                 end
               else
                 begin
-                   if not(is_shortstring(rd)) then
-                     p^.right:=gentypeconvnode(p^.right,cshortstringdef);
+                   if not(is_shortstring(rd))
+{$ifdef newoptimizations}
+{$ifdef i386}
+                      { shortstring + char handled seperately  (JM) }
+                      and (not(cs_optimize in aktglobalswitches) or
+                           (p^.treetype <> addn) or not(is_char(rd)))
+{$endif i386}
+{$endif newoptimizations}
+                    then
+                      p^.right:=gentypeconvnode(p^.right,cshortstringdef);
                    if not(is_shortstring(ld)) then
                      p^.left:=gentypeconvnode(p^.left,cshortstringdef);
                    p^.resulttype:=cshortstringdef;
@@ -861,6 +869,14 @@ implementation
                 calcregisters(p,0,0,0)
               else
                 calcregisters(p,1,0,0);
+{$ifdef newoptimizations}
+{$ifdef i386}
+              { not always necessary, only if it is not a constant char and }
+              { not a regvar, but don't know how to check this here (JM)    }
+              if is_char(rd) then
+                inc(p^.registers32);
+{$endif i386}
+{$endif newoptimizations}
               convdone:=true;
            end
          else
@@ -1285,7 +1301,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2000-03-28 21:14:18  pierre
+  Revision 1.74  2000-04-21 12:35:05  jonas
+    + special code for string + char, between -dnewoptimizations
+
+  Revision 1.73  2000/03/28 21:14:18  pierre
    * fix for bug 891
 
   Revision 1.72  2000/03/20 10:16:51  florian
