@@ -32,8 +32,11 @@ type
 
   TFPCustomCanvas = class;
 
+  { TFPCanvasHelper }
+
   TFPCanvasHelper = class(TPersistent)
   private
+    FDelayAllocate: boolean;
     FFPColor : TFPColor;
     FAllocated,
     FFixedCanvas : boolean;
@@ -41,10 +44,10 @@ type
     FFlags : word;
     FOnChange: TNotifyEvent;
     FOnChanging: TNotifyEvent;
-    function GetAllocated : boolean;
     procedure NotifyCanvas;
   protected
     // flags 0-15 are reserved for FPCustomCanvas
+    function GetAllocated: boolean; virtual;
     procedure SetFlags (index:integer; AValue:boolean); virtual;
     function GetFlags (index:integer) : boolean; virtual;
     procedure CheckAllocated (ValueNeeded:boolean);
@@ -52,17 +55,18 @@ type
     procedure DoAllocateResources; virtual;
     procedure DoDeAllocateResources; virtual;
     procedure DoCopyProps (From:TFPCanvasHelper); virtual;
-    procedure SetFPColor (AValue:TFPColor); virtual;
+    procedure SetFPColor (const AValue:TFPColor); virtual;
     procedure Changing; dynamic;
     procedure Changed; dynamic;
     Procedure Lock;
     Procedure UnLock;
   public
     constructor Create; virtual;
-    destructor destroy; override;
+    destructor Destroy; override;
     // prepare helper for use
-    procedure AllocateResources (ACanvas : TFPCustomCanvas);
-    // free all resource used bby this helper
+    procedure AllocateResources (ACanvas : TFPCustomCanvas;
+                                 CanDelay: boolean = true);
+    // free all resource used by this helper
     procedure DeallocateResources;
     property Allocated : boolean read GetAllocated;
     // properties cannot be changed when allocated
@@ -73,6 +77,7 @@ type
     property FPColor : TFPColor read FFPColor Write SetFPColor;
     property OnChanging: TNotifyEvent read FOnChanging write FOnChanging;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
+    property DelayAllocate: boolean read FDelayAllocate write FDelayAllocate;
   end;
 
   TFPCustomFont = class (TFPCanvasHelper)
@@ -149,9 +154,12 @@ type
   end;
   TFPCustomBrushClass = class of TFPCustomBrush;
 
-  TFPCustomCanvas = class
+  { TFPCustomCanvas }
+
+  TFPCustomCanvas = class(TPersistent)
   private
     FClipping,
+    FManageResources: boolean;
     FRemovingHelpers : boolean;
     FDefaultFont,
     FFont : TFPCustomFont;
@@ -159,7 +167,7 @@ type
     FBrush : TFPCustomBrush;
     FDefaultPen,
     FPen : TFPCustomPen;
-    FCurrent : TPoint;
+    FPenPos : TPoint;
     FClipRect : TRect;
     FHelpers : TList;
     FLocks : integer;
@@ -183,12 +191,15 @@ type
     function  DoAllowFont (AFont : TFPCustomFont) : boolean; virtual;
     function  DoAllowPen (APen : TFPCustomPen) : boolean; virtual;
     function  DoAllowBrush (ABrush : TFPCustomBrush) : boolean; virtual;
-    procedure SetColor (x,y:integer; Value:TFPColor); Virtual; abstract;
+    procedure SetColor (x,y:integer; const Value:TFPColor); Virtual; abstract;
     function  GetColor (x,y:integer) : TFPColor; Virtual; abstract;    
     procedure SetHeight (AValue : integer); virtual; abstract;
     function  GetHeight : integer; virtual; abstract;
     procedure SetWidth (AValue : integer); virtual; abstract;
     function  GetWidth : integer; virtual; abstract;
+    function  GetClipRect: TRect; virtual;
+    procedure SetClipRect(const AValue: TRect); virtual;
+    procedure SetPenPos(const AValue: TPoint); virtual;
     procedure DoLockCanvas; virtual;
     procedure DoUnlockCanvas; virtual;
     procedure DoTextOut (x,y:integer;text:string); virtual; abstract;
@@ -218,6 +229,7 @@ type
     destructor destroy; override;
     procedure LockCanvas;
     procedure UnlockCanvas;
+    function Locked: boolean;
     function CreateFont : TFPCustomFont;
     function CreatePen : TFPCustomPen;
     function CreateBrush : TFPCustomBrush;
@@ -243,7 +255,7 @@ type
     procedure LineTo (x,y:integer);
     procedure LineTo (p:TPoint);
     procedure Line (x1,y1,x2,y2:integer);
-    procedure Line (p1,p2:TPoint);
+    procedure Line (const p1,p2:TPoint);
     procedure Line (const points:TRect);
     // other procedures
     procedure CopyRect (x,y:integer; canvas:TFPCustomCanvas; SourceRect:TRect);
@@ -254,11 +266,12 @@ type
     property Pen : TFPCustomPen read GetPen write SetPen;
     property Brush : TFPCustomBrush read GetBrush write SetBrush;
     property Colors [x,y:integer] : TFPColor read GetColor write SetColor;
-    property ClipRect : TRect read FClipRect write FClipRect;
+    property ClipRect : TRect read GetClipRect write SetClipRect;
     property Clipping : boolean read FClipping write FClipping;
-    property PenPos : TPoint read FCurrent write FCurrent;
+    property PenPos : TPoint read FPenPos write SetPenPos;
     property Height : integer read GetHeight write SetHeight;
     property Width : integer read GetWidth write SetWidth;
+    property ManageResources: boolean read FManageResources write FManageResources;
   end;
 
   TFPCustomDrawFont = class (TFPCustomFont)
@@ -280,12 +293,12 @@ type
   TFPCustomDrawPen = class (TFPCustomPen)
   private
     procedure DrawLine (x1,y1,x2,y2:integer);
-    procedure Polyline (points:array of TPoint; close:boolean);
+    procedure Polyline (const points:array of TPoint; close:boolean);
     procedure Ellipse (left,top, right,bottom:integer);
     procedure Rectangle (left,top, right,bottom:integer);
   protected
     procedure DoDrawLine (x1,y1,x2,y2:integer); virtual; abstract;
-    procedure DoPolyline (points:array of TPoint; close:boolean); virtual; abstract;
+    procedure DoPolyline (const points:array of TPoint; close:boolean); virtual; abstract;
     procedure DoEllipse (left,top, right,bottom:integer); virtual; abstract;
     procedure DoRectangle (left,top, right,bottom:integer); virtual; abstract;
   end;
@@ -298,12 +311,12 @@ type
     procedure Rectangle (left,top, right,bottom:integer);
     procedure FloodFill (x,y:integer);
     procedure Ellipse (left,top, right,bottom:integer);
-    procedure Polygon (points:array of TPoint);
+    procedure Polygon (const points:array of TPoint);
   public
     procedure DoRectangle (left,top, right,bottom:integer); virtual; abstract;
     procedure DoEllipse (left,top, right,bottom:integer); virtual; abstract;
     procedure DoFloodFill (x,y:integer); virtual; abstract;
-    procedure DoPolygon (points:array of TPoint); virtual; abstract;
+    procedure DoPolygon (const points:array of TPoint); virtual; abstract;
   end;
 
   TFPEmptyBrush = class (TFPCustomBrush)

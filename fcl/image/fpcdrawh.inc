@@ -20,7 +20,7 @@ begin
   DoDrawLine (x1,y1,x2,y2);
 end;
 
-procedure TFPCustomDrawPen.Polyline (points:array of TPoint; close:boolean);
+procedure TFPCustomDrawPen.Polyline (const points:array of TPoint; close:boolean);
 begin
   DoPolyLine (points, false);
 end;
@@ -52,7 +52,7 @@ begin
   DoEllipse (left,top,right,bottom);
 end;
 
-procedure TFPCustomDrawBrush.Polygon (points:array of TPoint);
+procedure TFPCustomDrawBrush.Polygon (const points:array of TPoint);
 begin
   DoPolygon (points);
 end;

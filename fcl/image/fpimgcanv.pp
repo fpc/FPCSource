@@ -25,7 +25,7 @@ type
   private
     FImage : TFPCustomImage;
   protected
-    procedure SetColor (x,y:integer; AValue:TFPColor); override;
+    procedure SetColor (x,y:integer; const AValue:TFPColor); override;
     function  GetColor (x,y:integer) : TFPColor; override;
     procedure SetHeight (AValue : integer); override;
     function  GetHeight : integer; override;
@@ -52,7 +52,7 @@ begin
   inherited destroy;
 end;
 
-procedure TFPImageCanvas.SetColor (x,y:integer; AValue:TFPColor);
+procedure TFPImageCanvas.SetColor (x,y:integer; const AValue:TFPColor);
 begin
   if (x >= 0) and (x < width) and (y >= 0) and (y < height) then
     if not clipping or PointInside (x,y, ClipRect) then

@@ -32,7 +32,7 @@ begin
     self.Style := Style;
     self.Image := Image;
     end;
-  inherited;
+  inherited DoCopyProps(From);
 end;
 
 function TFPCustomBrush.CopyBrush : TFPCustomBrush;

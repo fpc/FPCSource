@@ -1,3 +1,4 @@
+{%MainUnit fpcanvas.pp}
 {
     $Id$
     This file is part of the Free Pascal run time library.
@@ -36,17 +37,26 @@ begin
 end;
 
 procedure TFPCanvasHelper.NotifyCanvas;
+// called to unbind from canvas
 begin
-  FCanvas.CheckHelper (self);
+  if FCanvas<>nil then
+    FCanvas.CheckHelper (self);
 end;
 
 procedure TFPCanvasHelper.CheckAllocated (ValueNeeded:boolean);
+
+  procedure RaiseErrAllocation;
+  begin
+    Raise TFPFontException.CreateFmt (ErrAllocation,
+                                      [EFont, ErrAlloc[ValueNeeded]]);
+  end;
+
 begin
   if (Allocated <> ValueNeeded) then
-    Raise TFPFontException.CreateFmt (ErrAllocation, [EFont, ErrAlloc[ValueNeeded]]);
+    RaiseErrAllocation;
 end;
 
-procedure TFPCanvasHelper.SetFPColor (AValue:TFPColor);
+procedure TFPCanvasHelper.SetFPColor(const AValue:TFPColor);
 begin
   FFPColor := AValue;
 end;
@@ -92,12 +102,14 @@ begin
     result := FAllocated;
 end;
 
-procedure TFPCanvasHelper.AllocateResources (ACanvas : TFPCustomCanvas);
+procedure TFPCanvasHelper.AllocateResources (ACanvas : TFPCustomCanvas;
+  CanDelay: boolean);
 begin
   if FFixedCanvas and FAllocated then
     DeallocateResources;
+  FCanvas := ACanvas;
+  if DelayAllocate and CanDelay then exit;
   try
-    FCanvas := ACanvas;
     DoAllocateResources;
     FAllocated := True;
   except
@@ -120,7 +132,6 @@ end;
 
 procedure TFPCanvasHelper.DoCopyProps (From:TFPCanvasHelper);
 begin
-  FCanvas := nil;
   FPColor := from.FPColor;
 end;
 

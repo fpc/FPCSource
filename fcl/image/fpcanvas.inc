@@ -1,3 +1,4 @@
+{%MainUnit fpcanvas.pp}
 {
     $Id$
     This file is part of the Free Pascal run time library.
@@ -30,17 +31,19 @@ end;
 destructor TFPCustomCanvas.Destroy;
 begin
   FRemovingHelpers := True;
+  // first remove all helper references
+  RemoveHelpers;
+  // then free helpers
   FDefaultFont.Free;
   FDefaultBrush.Free;
   FDefaultPen.Free;
-  RemoveHelpers;
   FHelpers.Free;
   FRemovingHelpers := False;
   inherited;
 end;
 
 procedure TFPCustomCanvas.CheckHelper (AHelper:TFPCanvasHelper);
-var r : integer;
+// remove references to AHelper
 begin
   if AHelper = FPen then
     FPen := nil
@@ -57,9 +60,7 @@ begin
     else if AHelper = FDefaultBrush then
       FDefaultBrush := CreateDefaultBrush;
     end;
-  r := FHelpers.IndexOf (AHelper);
-  if (r >= 0) then
-    FHelpers.delete (r);
+  FHelpers.Remove (AHelper);
 end;
 
 procedure TFPCustomCanvas.RemoveHelpers;
@@ -120,6 +121,11 @@ begin
     end;
 end;
 
+function TFPCustomCanvas.GetClipRect: TRect;
+begin
+  Result:=FClipRect;
+end;
+
 function TFPCustomCanvas.CreateFont : TFPCustomFont;
 begin
   result := DoCreateDefaultFont;
@@ -147,9 +153,14 @@ procedure TFPCustomCanvas.SetFont (AValue:TFPCustomFont);
 begin
   if (AValue <> FFont) and AllowFont(AValue) then
     begin
-    AValue.AllocateResources (self);
-    FFont := AValue;
-    AddHelper (AValue);
+      if FManageResources then
+        FFont.Assign(AValue)
+      else
+        begin
+          AValue.AllocateResources (self);
+          FFont := AValue;
+          AddHelper (AValue);
+        end;
     end;
 end;
 
@@ -178,9 +189,14 @@ procedure TFPCustomCanvas.SetBrush (AValue:TFPCustomBrush);
 begin
   if (AValue <> FBrush) and AllowBrush(AValue) then
     begin
-    AValue.AllocateResources (self);
-    FBrush := AValue;
-    AddHelper (AValue);
+      if FManageResources then
+        FBrush.Assign(AValue)
+      else
+        begin
+          AValue.AllocateResources (self);
+          FBrush := AValue;
+          AddHelper (AValue);
+        end;
     end;
 end;
 
@@ -209,9 +225,14 @@ procedure TFPCustomCanvas.SetPen (AValue:TFPCustomPen);
 begin
   if (AValue <> FPen) and AllowPen (AValue) then
     begin
-    AValue.AllocateResources (self);
-    FPen := AValue;
-    AddHelper (AValue);
+      if FManageResources then
+        FPen.Assign(AValue)
+      else
+        begin
+          AValue.AllocateResources (self);
+          FPen := AValue;
+          AddHelper (AValue);
+        end;
     end;
 end;
 
@@ -221,6 +242,16 @@ begin
     result := FPen
   else
     result := FDefaultPen;
+end;
+
+procedure TFPCustomCanvas.SetClipRect(const AValue: TRect);
+begin
+  FClipRect:=AValue;
+end;
+
+procedure TFPCustomCanvas.SetPenPos(const AValue: TPoint);
+begin
+  FPenPos:=AValue;
 end;
 
 function TFPCustomCanvas.DoAllowPen (APen : TFPCustomPen) : boolean;
@@ -253,6 +284,11 @@ begin
     end
   else
     raise TFPCanvasException.Create (ErrNoLock);
+end;
+
+function TFPCustomCanvas.Locked: boolean;
+begin
+  Result:=FLocks>0;
 end;
 
 procedure TFPCustomCanvas.TextOut (x,y:integer;text:string);
@@ -293,19 +329,19 @@ end;
 
 procedure TFPCustomCanvas.DoLineTo (x,y:integer);
 begin
-  DoLine (FCurrent.X,FCurrent.y, x,y);
+  DoLine (FPenPos.X,FPenPos.y, x,y);
 end;
 
 procedure TFPCustomCanvas.MoveTo (x,y:integer);
 begin
-  FCurrent.x := x;
-  FCurrent.y := y;
+  FPenPos.x := x;
+  FPenPos.y := y;
   DoMoveTo (x,y);
 end;
 
 procedure TFPCustomCanvas.MoveTo (p:TPoint);
 begin
-  FCurrent := p;
+  FPenPos := p;
   DoMoveTo (p.x,p.y);
 end;
 
@@ -313,11 +349,11 @@ procedure TFPCustomCanvas.LineTo (x,y:integer);
 begin
   if Pen.Style <> psClear then
     if Pen is TFPCustomDrawPen then
-      TFPCustomDrawPen(Pen).DrawLine (FCurrent.x, FCurrent.y, x, y)
+      TFPCustomDrawPen(Pen).DrawLine (FPenPos.x, FPenPos.y, x, y)
     else
       DoLineTo (x,y);
-  FCurrent.x := x;
-  FCurrent.y := y;
+  FPenPos.x := x;
+  FPenPos.y := y;
 end;
 
 procedure TFPCustomCanvas.LineTo (p:TPoint);
@@ -332,11 +368,11 @@ begin
       TFPCustomDrawPen(Pen).DrawLine (x1,y1, x2,y2)
     else
       DoLine (x1,y1, x2,y2);
-  FCurrent.x := x2;
-  FCurrent.y := y2;
+  FPenPos.x := x2;
+  FPenPos.y := y2;
 end;
 
-procedure TFPCustomCanvas.Line (p1,p2:TPoint);
+procedure TFPCustomCanvas.Line (const p1,p2:TPoint);
 begin
   Line (p1.x,p1.y,p2.x,p2.y);
 end;
@@ -354,7 +390,7 @@ begin
      TFPCustomDrawPen(Pen).Polyline (points,false)
    else
      DoPolyline (points);
-  FCurrent := points[high(points)];
+  FPenPos := points[high(points)];
 end;
 
 procedure TFPCustomCanvas.Clear;
@@ -538,7 +574,8 @@ begin
     end;
 end;
 
-procedure TFPCustomCanvas.CopyRect (x,y:integer; canvas:TFPCustomCanvas; SourceRect:TRect);
+procedure TFPCustomCanvas.CopyRect (x,y:integer; canvas:TFPCustomCanvas;
+  SourceRect:TRect);
 var xx,r,t : integer;
 begin
   SortRect (SourceRect);
