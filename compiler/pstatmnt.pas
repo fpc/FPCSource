@@ -217,7 +217,7 @@ implementation
            getlabel(aktcaselabel);
            firstlabel:=true;
 
-           { may be an instruction has more case labels }
+           { maybe an instruction has more case labels }
            repeat
              p:=expr;
              if is_widechar(casedef) then
@@ -226,10 +226,14 @@ implementation
                     begin
                        trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cwidechartype);
                        trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cwidechartype);
+                       do_resulttypepass(trangenode(p).left);
+                       do_resulttypepass(trangenode(p).right);
                     end
                   else
-                    p:=ctypeconvnode.create(p,cwidechartype);
-                  do_resulttypepass(p);
+                    begin
+                       p:=ctypeconvnode.create(p,cwidechartype);
+                       do_resulttypepass(p);
+                    end;
                end;
 
              hl1:=0;
@@ -1115,7 +1119,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2001-10-25 21:22:37  peter
+  Revision 1.42  2001-10-26 22:36:42  florian
+    * fixed ranges in case statements with widechars
+
+  Revision 1.41  2001/10/25 21:22:37  peter
     * calling convention rewrite
 
   Revision 1.40  2001/10/24 11:51:39  marco
