@@ -226,15 +226,18 @@ end;
 procedure TBinaryObjectWriter.Write(const Buffer; Count: LongInt);
 var
   CopyNow: LongInt;
+  SourceBuf: PChar;
 begin
+  SourceBuf:=@Buffer;
   while Count > 0 do
   begin
     CopyNow := Count;
     if CopyNow > FBufSize - FBufPos then
       CopyNow := FBufSize - FBufPos;
-    Move(Buffer, PChar(FBuffer)[FBufPos], CopyNow);
+    Move(SourceBuf^, PChar(FBuffer)[FBufPos], CopyNow);
     Dec(Count, CopyNow);
     Inc(FBufPos, CopyNow);
+    inc(SourceBuf, CopyNow);
     if FBufPos = FBufSize then
       FlushBuffer;
   end;
@@ -823,7 +826,10 @@ end;}
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:15:26  peter
+  Revision 1.7  2002-09-20 09:28:11  michael
+  Fix from mattias gaertner
+
+  Revision 1.6  2002/09/07 15:15:26  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/09/04 13:33:58  michael
