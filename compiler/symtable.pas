@@ -57,9 +57,9 @@ unit symtable;
    const
        hasharraysize    = 256;
   {$ifdef TP}
-       indexgrowsize    = 256;
+       indexgrowsize    = 16;
   {$else}
-       indexgrowsize    = 1024;
+       indexgrowsize    = 64;
   {$endif}
 
 
@@ -2348,7 +2348,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1999-08-03 00:03:24  florian
+  Revision 1.34  1999-08-03 17:51:45  florian
+    * reduced memory usage by factor 2-3 (it
+      improved also the speed) by reducing the
+      growsize of the symbol tables
+
+  Revision 1.33  1999/08/03 00:03:24  florian
     * added bestrealdef for alpha and powerpc
 
   Revision 1.32  1999/08/01 23:09:27  michael
