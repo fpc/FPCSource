@@ -945,7 +945,8 @@ function FillConsoleOutputAttribute(hConsoleOutput:HANDLE; wAttribute:WORD; nLen
 function GetConsoleMode(hConsoleHandle:HANDLE; lpMode:LPDWORD):WINBOOL; external 'kernel32' name 'GetConsoleMode';
 function GetNumberOfConsoleInputEvents(hConsoleInput:HANDLE; lpNumberOfEvents:PDWORD):WINBOOL; external 'kernel32' name 'GetNumberOfConsoleInputEvents';
 function GetConsoleScreenBufferInfo(hConsoleOutput:HANDLE; lpConsoleScreenBufferInfo:PCONSOLE_SCREEN_BUFFER_INFO):WINBOOL; external 'kernel32' name 'GetConsoleScreenBufferInfo';
-function GetLargestConsoleWindowSize(hConsoleOutput:HANDLE):COORD; external 'kernel32' name 'GetLargestConsoleWindowSize';
+//function GetLargestConsoleWindowSize(hConsoleOutput:HANDLE):COORD; external 'kernel32' name 'GetLargestConsoleWindowSize';
+function GetLargestConsoleWindowSize(hConsoleOutput:HANDLE):COORD;
 function GetConsoleCursorInfo(hConsoleOutput:HANDLE; lpConsoleCursorInfo:PCONSOLE_CURSOR_INFO):WINBOOL; external 'kernel32' name 'GetConsoleCursorInfo';
 function GetNumberOfConsoleMouseButtons(lpNumberOfMouseButtons:LPDWORD):WINBOOL; external 'kernel32' name 'GetNumberOfConsoleMouseButtons';
 function SetConsoleMode(hConsoleHandle:HANDLE; dwMode:DWORD):WINBOOL; external 'kernel32' name 'SetConsoleMode';
@@ -2284,11 +2285,27 @@ begin
   CommDlg_OpenSave_SetDefExt:=SNDMSG(_hdlg,CDM_SETDEFEXT,0,LPARAM(_pszext));
 end;
 
+function InternalGetLargestConsoleWindowSize(hConsoleOutput:HANDLE):DWord; external 'kernel32' name 'GetLargestConsoleWindowSize';
+
+function GetLargestConsoleWindowSize(hConsoleOutput:HANDLE):COORD;
+var
+  res : dword;
+begin
+  res:=InternalGetLargestConsoleWindowSize(hConsoleOutput);
+  GetLargestConsoleWindowSize:=COORD(res);
+end;
+
 {$endif read_implementation}
 
 {
   $Log$
-  Revision 1.7  2002-05-09 08:31:44  carl
+  Revision 1.8  2002-09-03 10:26:11  pierre
+   * fix for bug 1779 merged
+
+  Revision 1.1.2.9  2002/09/03 10:22:03  pierre
+   * fix web bug 1779
+
+  Revision 1.7  2002/05/09 08:31:44  carl
   * Merges from Fixes branch
 
   Revision 1.1.2.8  2002/02/18 23:46:21  pierre
