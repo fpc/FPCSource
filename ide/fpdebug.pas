@@ -605,6 +605,9 @@ end;
 procedure UpdateDebugViews;
 
   begin
+{$ifdef CrossGDB}
+     PushStatus(msg_getting_info_on+RemoteMachine);
+{$endif CrossGDB}
      DeskTop^.Lock;
      If assigned(StackWindow) then
        StackWindow^.Update;
@@ -615,6 +618,9 @@ procedure UpdateDebugViews;
      If assigned(FPUWindow) then
        FPUWindow^.Update;
      DeskTop^.UnLock;
+{$ifdef CrossGDB}
+     PopStatus;
+{$endif CrossGDB}
   end;
 
 constructor TDebugController.Init;
@@ -793,11 +799,21 @@ var
   Debuggeefile : text;
   ResetOK, TTYUsed  : boolean;
 {$endif Unix}
+{$ifdef CrossGDB}
+var
+  ErrorStr : string;
+{$endif CrossGDB}
 begin
   ResetBreakpointsValues;
 {$ifdef CrossGDB}
   NoSwitch:=true;
   Command('target remote '+RemoteMachine);
+  if Error then
+    begin
+       ErrorStr:=strpas(GetError);
+       ErrorBox(#3'Error in "target remote"'#13#3+ErrorStr,nil);
+       exit;
+    end;
 {$else CrossGDB}
 {$ifdef win32}
   { Run the debugge in another console }
@@ -1335,11 +1351,15 @@ begin
   Inc(RunCount);
   if NoSwitch then
     begin
+{$ifdef CrossGDB}
+      PushStatus(msg_runningremotely+RemoteMachine);
+{$else not CrossGDB}
 {$ifdef Unix}
       PushStatus(msg_runninginanotherwindow+DebuggeeTTY);
 {$else not Unix}
       PushStatus(msg_runninginanotherwindow);
 {$endif Unix}
+{$endif not CrossGDB}
     end
   else
     begin
@@ -4275,7 +4295,10 @@ end.
 
 {
   $Log$
-  Revision 1.35  2002-11-21 15:48:39  pierre
+  Revision 1.36  2002-11-21 17:52:28  pierre
+   * some crossgdb infos added
+
+  Revision 1.35  2002/11/21 15:48:39  pierre
    * fix several problems related to remote cross debugging
 
   Revision 1.34  2002/11/21 00:37:56  pierre

@@ -848,6 +848,8 @@ const
                                       #3'%s';
 
       msg_runningprogram = 'Running...';
+      msg_runningremotely = 'Executable running remotely on ';
+      msg_getting_info_on = 'Getting infos from ';
       msg_runninginanotherwindow = 'Executable running in another window..';
       msg_couldnotsetbreakpointat = #3'Could not set Breakpoint'#13+
                                     #3+'%s:%d';
@@ -1039,7 +1041,10 @@ const
 
 {
   $Log$
-  Revision 1.14  2002-11-21 00:37:56  pierre
+  Revision 1.15  2002-11-21 17:52:28  pierre
+   * some crossgdb infos added
+
+  Revision 1.14  2002/11/21 00:37:56  pierre
    + some cross gdb enhancements
 
   Revision 1.13  2002/09/07 15:40:44  peter
