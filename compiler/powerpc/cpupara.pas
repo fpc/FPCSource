@@ -269,7 +269,7 @@ unit cpupara;
                var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
       var
          stack_offset: aword;
-         nextintreg,nextfloatreg,nextmmreg : tsuperregister;
+         nextintreg,nextfloatreg,nextmmreg, maxfpureg : tsuperregister;
          paradef : tdef;
          paraloc : tparalocation;
          hp : tparaitem;
@@ -302,6 +302,13 @@ unit cpupara;
          nextfloatreg := curfloatreg;
          nextmmreg := curmmreg;
          stack_offset := cur_stack_offset;
+         case target_info.abi of
+           abi_powerpc_aix:
+             maxfpureg := RS_F13;
+           abi_powerpc_sysv:
+             maxfpureg := RS_F8;
+           else internalerror(2004070912);
+         end;
 
          hp:=firstpara;
          while assigned(hp) do
@@ -373,19 +380,34 @@ unit cpupara;
                  LOC_FPUREGISTER:
                    begin
                       paraloc.size:=def_cgsize(paradef);
-                      if nextfloatreg<=RS_F10 then
+                      if nextfloatreg<=maxfpureg then
                         begin
                            paraloc.loc:=LOC_FPUREGISTER;
                            paraloc.register:=newreg(R_FPUREGISTER,nextfloatreg,R_SUBWHOLE);
                            inc(nextfloatreg);
-                           if target_info.abi=abi_powerpc_aix then
-                             inc(stack_offset,8);
                         end
                       else
                          begin
-                            {!!!!!!!}
-                            paraloc.size:=def_cgsize(paradef);
-                            internalerror(2002071004);
+                            paraloc.loc:=LOC_REFERENCE;
+                            paraloc.reference.index:=NR_STACK_POINTER_REG;
+                            paraloc.reference.offset:=stack_offset;
+                        end;
+                      if target_info.abi=abi_powerpc_aix then
+                        begin
+                          if paraloc.size = OS_F32 then
+                            begin
+                              inc(stack_offset,4);
+                              if (nextintreg < RS_R11) then
+                                inc(nextintreg);
+                            end
+                          else
+                            begin
+                              inc(stack_offset,8);
+                              if (nextintreg < RS_R10) then
+                                inc(nextintreg,2)
+                              else
+                                nextintreg := RS_R11;
+                            end;
                         end;
                    end;
                  LOC_REFERENCE:
@@ -533,7 +555,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2004-07-01 18:00:37  jonas
+  Revision 1.65  2004-07-09 21:45:24  jonas
+    * fixed passing of fpu paras on the stack
+    * fixed number of fpu parameters passed in registers
+    * skip corresponding integer registers when using an fpu register for a
+      parameter under the AIX abi
+
+  Revision 1.64  2004/07/01 18:00:37  jonas
     * fix for broken TP-style constructor handling in the compiler
 
   Revision 1.63  2004/06/20 08:55:32  florian

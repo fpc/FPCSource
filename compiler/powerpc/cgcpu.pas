@@ -1030,12 +1030,12 @@ const
          href,href2 : treference;
          usesfpr,usesgpr,gotgot : boolean;
          parastart : aint;
-//         r,r2,rsp:Tregister;
          l : tasmlabel;
          regcounter2, firstfpureg: Tsuperregister;
          hp: tparaitem;
          cond : tasmcond;
          instr : taicpu;
+         size: tcgsize;
 
       begin
         { CR and LR only have to be saved in case they are modified by the current }
@@ -1215,23 +1215,43 @@ const
                               { we can't use functions here which allocate registers (FK)
                                cg.a_load_ref_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,href);
                               }
-                              cg.a_load_ref_reg(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,NR_R0);
-                              cg.a_load_reg_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,NR_R0,href);
+                              case hp.paraloc[calleeside].size of
+                                OS_F32:
+                                  size := OS_32;
+                                OS_64,OS_S64:
+                                  size := OS_F64;
+                                else
+                                  size := hp.paraloc[calleeside].size;
+                              end;
+                              case size of
+                                OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32:
+                                  begin
+                                    cg.a_load_ref_reg(list,size,size,href2,NR_R0);
+                                    cg.a_load_reg_ref(list,size,size,NR_R0,href);
+                                  end;
+                                OS_F64:
+                                  begin
+                                    cg.a_loadfpu_ref_reg(list,size,href2,NR_F0);
+                                    cg.a_loadfpu_reg_ref(list,size,NR_F0,href);
+                                  end;
+                                else
+                                  internalerror(2004070910);
+                              end;
                             end;
                           LOC_CREGISTER:
                             begin
                               reference_reset_base(href2,NR_R12,hp.paraloc[callerside].reference.offset);
                               cg.a_load_ref_reg(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,tvarsym(hp.parasym).localloc.register);
                             end;
+                          LOC_CFPUREGISTER:
+                            begin
+                              reference_reset_base(href2,NR_R12,hp.paraloc[callerside].reference.offset);
+                              cg.a_loadfpu_ref_reg(list,hp.paraloc[calleeside].size,href2,tvarsym(hp.parasym).localloc.register);
+                            end;
+                          else
+                            internalerror(2004070911);
                         end;
-                      end
-{$ifdef dummy}
-                    else if (hp.calleeparaloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                      begin
-                        rg.getexplicitregisterint(list,hp.calleeparaloc.register);
-                      end
-{$endif dummy}
-                      ;
+                      end;
                     hp := tparaitem(hp.next);
                   end;
               end;
@@ -2396,7 +2416,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.174  2004-07-01 18:00:00  jonas
+  Revision 1.175  2004-07-09 21:45:24  jonas
+    * fixed passing of fpu paras on the stack
+    * fixed number of fpu parameters passed in registers
+    * skip corresponding integer registers when using an fpu register for a
+      parameter under the AIX abi
+
+  Revision 1.174  2004/07/01 18:00:00  jonas
     * fixed several errors due to aword -> aint change
 
   Revision 1.173  2004/06/20 08:55:32  florian
