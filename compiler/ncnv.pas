@@ -1089,7 +1089,7 @@ implementation
              if not (cs_check_range in aktlocalswitches) and
                 is_signed(resulttype) then
                with tordconstnode(hp) do
-                 case left.resulttype^.size of
+                 case resulttype^.size of
                    1: value := shortint(value);
                    2: value := smallint(value);
                    4: value := longint(value);
@@ -1196,7 +1196,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2000-12-07 17:19:42  jonas
+  Revision 1.15  2000-12-08 12:41:01  jonas
+    * fixed bug in sign extension patch
+
+  Revision 1.14  2000/12/07 17:19:42  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range
