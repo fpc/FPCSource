@@ -2564,9 +2564,18 @@ Begin
       end
      else { SREG:[REG...] where SReg: is optional.    }
       Begin
-        if instr.operands[operandnum].ref.base <> R_NO then
-          Message(assem_e_defining_base_more_than_once);
-        instr.operands[operandnum].ref.base := findregister(reg);
+        if actasmtoken=AS_STAR then
+         begin
+           if instr.operands[operandnum].ref.index <> R_NO then
+             Message(assem_e_defining_index_more_than_once);
+           instr.operands[operandnum].ref.index := findregister(reg);
+         end
+        else
+         begin
+           if instr.operands[operandnum].ref.base <> R_NO then
+             Message(assem_e_defining_base_more_than_once);
+           instr.operands[operandnum].ref.base := findregister(reg);
+         end;
       end;
 
      { we process this type of syntax immediately... }
@@ -2654,7 +2663,10 @@ Begin
              Begin
                if instr.operands[operandnum].ref.offset <> 0 then
                  Message(assem_f_internal_error_in_buildreference);
-               instr.operands[operandnum].ref.offset := BuildRefExpression;
+               if negative then
+                instr.operands[operandnum].ref.offset := -BuildRefExpression
+               else
+                instr.operands[operandnum].ref.offset := BuildRefExpression;
                case actasmtoken of
                  AS_DOT: BuildRecordOffset(instr,'');
                  AS_COMMA,
@@ -3464,7 +3476,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  1999-02-25 21:02:50  peter
+  Revision 1.23  1999-03-02 22:51:08  peter
+    * [reg-ofs] now correctly compiles to -ofs(reg) instead of ofs(reg)
+    * [reg*2] is now allowed
+
+  Revision 1.22  1999/02/25 21:02:50  peter
     * ag386bin updates
     + coff writer
 
