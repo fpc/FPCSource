@@ -242,6 +242,11 @@ implementation
 uses SysUtils, XHTML, XMLWrite, HTMWrite, sh_pas;
 
 
+Function FixHTMLpath(S : String) : STring;
+
+begin
+  Result:=StringReplace(S,'\','/',[rfReplaceAll]
+end;
 
 procedure TFileAllocator.AllocFilename(AElement: TPasElement;
   ASubindex: Integer);
@@ -543,7 +548,7 @@ begin
   HeadEl.AppendChild(El);
   El['rel'] := 'stylesheet';
   El['type'] := 'text/css';
-  El['href'] := Allocator.GetCSSFilename(AElement);
+  El['href'] := FixHtmlPath(Allocator.GetCSSFilename(AElement));
 end;
 
 function THTMLWriter.CreateXHTMLPage(AElement: TPasElement;
@@ -628,7 +633,7 @@ $ENDIF
       AppendChild(El);
       El['rel'] := 'stylesheet';
       El['type'] := 'text/css';
-      El['href'] := CSSName;
+      El['href'] := FixHtmlPath(CSSName);
     end;
     Self.BodyElement := RequestBodyElement('en');
   end;
@@ -773,7 +778,7 @@ function THTMLWriter.CreateLink(Parent: TDOMNode;
   const AHRef: DOMString): THTMLElement;
 begin
   Result := CreateEl(Parent, 'a');
-  Result['href'] := AHRef;
+  Result['href'] := FixHtmlPath(AHRef);
 end;
 
 function THTMLWriter.CreateAnchor(Parent: TDOMNode;
@@ -2275,14 +2280,14 @@ var
     AppendText(ParaEl, '[');
     LinkEl := CreateEl(ParaEl, 'a');
     LinkEl['href'] :=
-      ResolveLinkWithinPackage(AClass, AListSubpageIndex);
+      FixHtmlPath(ResolveLinkWithinPackage(AClass, AListSubpageIndex));
     LinkEl['onClick'] := 'window.open(''' + LinkEl['href'] + ''', ''list'', ' +
      '''dependent=yes,resizable=yes,scrollbars=yes,height=400,width=300''); return false;';
     AppendText(LinkEl, AText);
     AppendText(ParaEl, ' (');
     LinkEl := CreateEl(ParaEl, 'a');
     LinkEl['href'] :=
-      ResolveLinkWithinPackage(AClass, AListSubpageIndex + 1);
+      FixHtmlPath(ResolveLinkWithinPackage(AClass, AListSubpageIndex + 1));
     LinkEl['onClick'] := 'window.open(''' + LinkEl['href'] + ''', ''list'', ' +
      '''dependent=yes,resizable=yes,scrollbars=yes,height=400,width=300''); return false;';
     AppendText(LinkEl, SDocByName);
@@ -2817,7 +2822,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-10-22 19:58:35  michael
+  Revision 1.11  2004-12-20 16:28:56  michael
+  + Fixed HTML path
+
+  Revision 1.10  2004/10/22 19:58:35  michael
   + Sort list of modules in package page
 
   Revision 1.9  2004/08/31 09:40:05  michael
