@@ -60,6 +60,7 @@
  *	table in <kern/syscall_sw.c>.
  *}
 
+const
   machtrap_mach_reply_port = -26;        { 0 args }
   machtrap_thread_self_trap = -27;        { 0 args }
   machtrap_task_self_trap = -28;        { 0 args }
@@ -99,7 +100,10 @@
 
 {
   $Log$
-  Revision 1.1  2003-05-25 12:59:57  jonas
+  Revision 1.2  2003-05-26 19:32:21  jonas
+    * added missing Const
+
+  Revision 1.1  2003/05/25 12:59:57  jonas
     * several fixes, addition of Mach trap numbers (thye are simply syscalls
       with a negative number)
 
