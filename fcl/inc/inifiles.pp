@@ -492,6 +492,7 @@ begin
   for i := 0 to AStrings.Count-1 do begin
     sLine := Trim(AStrings[i]);
     if sLine > '' then
+      begin
       if IsComment(sLine) and (oSection = nil) then begin
         // comment at the beginning of the ini file
         oSection := TIniFileSection.Create(sLine);
@@ -521,6 +522,7 @@ begin
            end;
         end;
         oSection.KeyList.Add(TIniFileKey.Create(sIdent, sValue));
+      end;
       end;
   end;
 end;
@@ -770,7 +772,17 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
+  Revision 1.3  2000-11-26 22:43:02  michael
+  + Merged fix from fixes branch
+
+
+  Revision 1.1.2.1  2000/11/26 22:41:26  michael
+  + Fix for addition of empty ident/value by Jean-Pierre Planas
+
+  Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
- 
+
+  Revision 1.1  2000/07/13 06:31:30  michael
+  + Initial import
+  
 }
