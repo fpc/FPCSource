@@ -1088,6 +1088,9 @@ implementation
              if (currpara1.is_hidden or
                  currpara2.is_hidden) then
               begin
+                { both must be hidden }
+                if currpara1.is_hidden<>currpara2.is_hidden then
+                  exit;
                 eq:=te_equal;
                 if not(vo_is_self in tvarsym(currpara1.parasym).varoptions) and
                    not(vo_is_self in tvarsym(currpara2.parasym).varoptions) then
@@ -1214,7 +1217,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2003-10-05 12:57:11  peter
+  Revision 1.30  2003-10-05 13:05:05  peter
+    * when comparing hidden parameters both must be hidden
+
+  Revision 1.29  2003/10/05 12:57:11  peter
     * set correct conversion for subranges
 
   Revision 1.28  2003/09/09 21:03:17  peter
