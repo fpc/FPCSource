@@ -205,7 +205,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=rtl
-override PACKAGE_VERSION=1.9.0
+override PACKAGE_VERSION=1.9.2
 ifeq ($(OS_TARGET),linux)
 override TARGET_DIRS+=linux
 endif
@@ -231,7 +231,7 @@ ifeq ($(OS_TARGET),amiga)
 override TARGET_DIRS+=amiga
 endif
 ifeq ($(OS_TARGET),darwin)
-override TARGET_DIRS+=darwin
+override TARGET_DIRS+=darwin darwin
 endif
 ifeq ($(OS_TARGET),emx)
 override TARGET_DIRS+=emx
@@ -1541,6 +1541,7 @@ ifeq ($(OS_TARGET),amiga)
 TARGET_DIRS_AMIGA=1
 endif
 ifeq ($(OS_TARGET),darwin)
+TARGET_DIRS_DARWIN=1
 TARGET_DIRS_DARWIN=1
 endif
 ifeq ($(OS_TARGET),emx)

@@ -205,7 +205,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=unzip
-override PACKAGE_VERSION=1.9.0
+override PACKAGE_VERSION=1.9.2
 override TARGET_UNITS+=ziptypes unzip
 ifeq ($(OS_TARGET),os2)
 override TARGET_UNITS+=unzipdll
@@ -958,6 +958,16 @@ endif
 endif
 ifeq ($(OS_TARGET),netbsd)
 ifeq ($(CPU_TARGET),m68k)
+REQUIRE_PACKAGES_RTL=1
+endif
+endif
+ifeq ($(OS_TARGET),netbsd)
+ifeq ($(CPU_TARGET),powerpc)
+REQUIRE_PACKAGES_RTL=1
+endif
+endif
+ifeq ($(OS_TARGET),netbsd)
+ifeq ($(CPU_TARGET),sparc)
 REQUIRE_PACKAGES_RTL=1
 endif
 endif

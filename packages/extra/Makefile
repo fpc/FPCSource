@@ -984,6 +984,16 @@ ifeq ($(CPU_TARGET),m68k)
 REQUIRE_PACKAGES_RTL=1
 endif
 endif
+ifeq ($(OS_TARGET),netbsd)
+ifeq ($(CPU_TARGET),powerpc)
+REQUIRE_PACKAGES_RTL=1
+endif
+endif
+ifeq ($(OS_TARGET),netbsd)
+ifeq ($(CPU_TARGET),sparc)
+REQUIRE_PACKAGES_RTL=1
+endif
+endif
 ifeq ($(OS_TARGET),amiga)
 ifeq ($(CPU_TARGET),m68k)
 REQUIRE_PACKAGES_RTL=1

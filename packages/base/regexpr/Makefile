@@ -205,7 +205,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=regexpr
-override PACKAGE_VERSION=1.9.0
+override PACKAGE_VERSION=1.9.2
 override TARGET_UNITS+=regexpr
 override TARGET_EXAMPLES+=testreg1
 override INSTALL_FPCPACKAGE=y
@@ -957,6 +957,16 @@ endif
 endif
 ifeq ($(OS_TARGET),netbsd)
 ifeq ($(CPU_TARGET),m68k)
+REQUIRE_PACKAGES_RTL=1
+endif
+endif
+ifeq ($(OS_TARGET),netbsd)
+ifeq ($(CPU_TARGET),powerpc)
+REQUIRE_PACKAGES_RTL=1
+endif
+endif
+ifeq ($(OS_TARGET),netbsd)
+ifeq ($(CPU_TARGET),sparc)
 REQUIRE_PACKAGES_RTL=1
 endif
 endif

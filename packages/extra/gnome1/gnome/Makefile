@@ -205,7 +205,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=gnome
-override PACKAGE_VERSION=1.0.8
+override PACKAGE_VERSION=1.9.2
 override TARGET_UNITS+=libart libgnome libgnomeui
 override INSTALL_FPCPACKAGE=y
 override COMPILER_SOURCEDIR+=libart_lgpl libgnome libgnomeui
@@ -1019,6 +1019,24 @@ endif
 endif
 ifeq ($(OS_TARGET),netbsd)
 ifeq ($(CPU_TARGET),m68k)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+endif
+ifeq ($(OS_TARGET),netbsd)
+ifeq ($(CPU_TARGET),powerpc)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+endif
+ifeq ($(OS_TARGET),netbsd)
+ifeq ($(CPU_TARGET),sparc)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_GTK=1
 REQUIRE_PACKAGES_X11=1
