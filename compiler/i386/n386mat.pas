@@ -636,7 +636,7 @@ implementation
                  LOC_CREGISTER:
                    begin
                       location.register:=rg.getregisterint(exprasmlist);
-                      emit_reg_reg(A_MOV,S_L,location.register,
+                      emit_reg_reg(A_MOV,S_L,left.location.register,
                         location.register);
                       emit_reg(A_NEG,S_L,location.register);
                    end;
@@ -830,7 +830,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-08-12 15:08:42  carl
+  Revision 1.38  2002-08-14 19:18:16  carl
+    * bugfix of unaryminus node with left LOC_CREGISTER
+
+  Revision 1.37  2002/08/12 15:08:42  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class
