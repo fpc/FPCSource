@@ -1,3 +1,4 @@
+{ %TARGET=go32v2 }
 { %FAIL }
 { Old file: tbf0172.pp }
 { with with absolute seg:ofs should not be possible OK 0.99.9 (PM) }
