@@ -152,6 +152,22 @@ begin
 end;
 {$endif USEEXCEPT}
 
+{$ifdef EXTDEBUG}
+{$ifdef FPC}
+  Var
+    LostMemory : longint;
+  Procedure CheckMemory(LostMemory : longint);
+  begin
+    if LostMemory<>0 then
+      begin
+        Writeln('Memory Lost = '+tostr(LostMemory));
+{$ifdef DEBUG}
+        def_gdb_stop(V_Warning);
+{$endif DEBUG}
+      end;
+  end;
+{$endif FPC}
+{$endif EXTDEBUG}
 {****************************************************************************
                                 Compiler
 ****************************************************************************}
@@ -322,7 +338,8 @@ begin
   DoneVerbose;
 {$ifdef EXTDEBUG}
 {$ifdef FPC}
-  Writeln('Memory Lost = '+tostr(system.HeapSize-MemAvail-EntryMemUsed));
+  LostMemory:=system.HeapSize-MemAvail-EntryMemUsed;
+  CheckMemory(LostMemory);
 {$endif FPC}
 {$ifndef newcg}
   Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
@@ -341,7 +358,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.48  2000-04-05 21:18:04  pierre
+  Revision 1.49  2000-05-03 16:31:22  pierre
+   + easier debug when memory is lost
+
+  Revision 1.48  2000/04/05 21:18:04  pierre
    * set NOUSEEXCEPT to remove use of setjump/longjump
 
   Revision 1.47  2000/03/18 15:05:33  jonas
