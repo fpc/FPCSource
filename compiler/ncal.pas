@@ -255,7 +255,7 @@ type
                 newdonestatement:=laststatement(aktcallnode.methodpointerdone);
               end;
             { temp create }
-            ptemp:=ctempcreatenode.create_reg(p.resulttype,p.resulttype.def.size,tt_persistent);
+            ptemp:=ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent,true);
             addstatement(newinitstatement,ptemp);
             addstatement(newinitstatement,cassignmentnode.create(
                 ctemprefnode.create(ptemp),
@@ -1311,7 +1311,7 @@ type
                     hiddentree:=internalstatements(newstatement);
                     { need to use resulttype instead of procdefinition.rettype,
                       because they can be different }
-                    temp:=ctempcreatenode.create(resulttype,resulttype.def.size,tt_persistent);
+                    temp:=ctempcreatenode.create(resulttype,resulttype.def.size,tt_persistent,false);
                     addstatement(newstatement,temp);
                     addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
                     addstatement(newstatement,ctemprefnode.create(temp));
@@ -1945,12 +1945,7 @@ type
         else
 {$endif ndef VER1_0}
           begin
-            if (cs_regvars in aktglobalswitches) and
-               (tabstractvarsym(p).varregable<>vr_none) and
-               (not tabstractvarsym(p).vartype.def.needs_inittable) then
-              tempnode := ctempcreatenode.create_reg(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent)
-            else
-              tempnode := ctempcreatenode.create(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent);
+            tempnode := ctempcreatenode.create(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent,true);
             addstatement(tempinfo^.createstatement,tempnode);
             if assigned(tlocalvarsym(p).defaultconstsym) then
               begin
@@ -1999,12 +1994,7 @@ type
                     { the problem is that we can't take the address of a function result :( }
                      (node_complexity(para.left) >= NODE_COMPLEXITY_INF))) then
                   begin
-                    if (cs_regvars in aktglobalswitches) and
-                       (tparavarsym(para.parasym).varregable<>vr_none) and
-                       (not tparavarsym(para.parasym).vartype.def.needs_inittable) then
-                      tempnode := ctempcreatenode.create_reg(para.left.resulttype,para.left.resulttype.def.size,tt_persistent)
-                    else
-                      tempnode := ctempcreatenode.create(para.left.resulttype,para.left.resulttype.def.size,tt_persistent);
+                    tempnode := ctempcreatenode.create(para.left.resulttype,para.left.resulttype.def.size,tt_persistent,true);
                     addstatement(createstatement,tempnode);
                     { assign the value of the parameter to the temp, except in case of the function result }
                     { (in that case, para.left is a block containing the creation of a new temp, while we  }
@@ -2027,11 +2017,7 @@ type
                   end
                 else if node_complexity(para.left) > 1 then
                   begin
-                    if (cs_regvars in aktglobalswitches) and
-                       not tparavarsym(para.parasym).vartype.def.needs_inittable then
-                      tempnode := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent)
-                    else
-                      tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent);
+                    tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,true);
                     addstatement(createstatement,tempnode);
                     addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                       caddrnode.create(para.left)));
@@ -2413,7 +2399,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.260  2004-11-15 23:35:31  peter
+  Revision 1.261  2004-11-21 17:54:59  peter
+    * ttempcreatenode.create_reg merged into .create with parameter
+      whether a register is allowed
+    * funcret_paraloc renamed to funcretloc
+
+  Revision 1.260  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

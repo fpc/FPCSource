@@ -519,7 +519,7 @@ implementation
                { when right is a call then load it first in a temp }
                if p.nodetype=calln then
                  begin
-                   calltempp:=ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent);
+                   calltempp:=ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent,false);
                    addstatement(newstatement,calltempp);
                    addstatement(newstatement,cassignmentnode.create(
                        ctemprefnode.create(calltempp),
@@ -537,10 +537,10 @@ implementation
                { we can't generate debuginfo for a withnode stored in a }
                { register                                               }
                if (cs_debuginfo in aktmoduleswitches) then
-                 loadp:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent)
+                 loadp:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent,false)
                else
 {$endif WITHNODEDEBUG}
-                 loadp:=ctempcreatenode.create_reg(htype,sizeof(aint),tt_persistent);
+                 loadp:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent,true);
                resulttypepass(loadp);
                if hasimplicitderef then
                 begin
@@ -1207,7 +1207,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.144  2004-11-08 22:09:59  peter
+  Revision 1.145  2004-11-21 17:54:59  peter
+    * ttempcreatenode.create_reg merged into .create with parameter
+      whether a register is allowed
+    * funcret_paraloc renamed to funcretloc
+
+  Revision 1.144  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.143  2004/10/15 10:35:23  mazen

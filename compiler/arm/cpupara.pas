@@ -384,14 +384,14 @@ unit cpupara;
           retcgsize:=OS_ADDR
         else
           retcgsize:=def_cgsize(p.rettype.def);
-        p.funcret_paraloc[side].reset;
-        p.funcret_paraloc[side].Alignment:=std_param_align;
-        p.funcret_paraloc[side].size:=retcgsize;
+        p.funcretloc[side].reset;
+        p.funcretloc[side].Alignment:=std_param_align;
+        p.funcretloc[side].size:=retcgsize;
         { void has no location }
         if is_void(p.rettype.def) then
           exit;
         { Function return }
-        paraloc:=p.funcret_paraloc[side].add_location;
+        paraloc:=p.funcretloc[side].add_location;
 
         { Return in FPU register? }
         if p.rettype.def.deftype=floatdef then
@@ -410,7 +410,7 @@ unit cpupara;
                 paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
 
                 { high }
-                paraloc:=p.funcret_paraloc[side].add_location;
+                paraloc:=p.funcretloc[side].add_location;
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.size:=OS_32;
                 paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
@@ -472,7 +472,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2004-11-06 17:44:47  florian
+  Revision 1.26  2004-11-21 17:54:59  peter
+    * ttempcreatenode.create_reg merged into .create with parameter
+      whether a register is allowed
+    * funcret_paraloc renamed to funcretloc
+
+  Revision 1.25  2004/11/06 17:44:47  florian
     + additional extdebug check for wrong add_reg_instructions added
     * too long manglednames are cut off at 200 chars using a crc
 

@@ -36,7 +36,7 @@ unit cpupara;
     type
        tx86_64paramanager = class(tparamanager)
        private
-          procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+          procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
           procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;firstpara:tparaitem;
                                                var intparareg,mmparareg,parasize:longint);
        public
@@ -185,7 +185,7 @@ unit cpupara;
       end;
 
 
-    procedure tx86_64paramanager.create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+    procedure tx86_64paramanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
       var
         paraloc : pcgparalocation;
         retcgsize : tcgsize;
@@ -195,13 +195,13 @@ unit cpupara;
           retcgsize:=OS_ADDR
         else
           retcgsize:=def_cgsize(p.rettype.def);
-        p.funcret_paraloc[side].reset;
-        p.funcret_paraloc[side].Alignment:=std_param_align;
-        p.funcret_paraloc[side].size:=retcgsize;
+        p.funcretloc[side].reset;
+        p.funcretloc[side].Alignment:=std_param_align;
+        p.funcretloc[side].size:=retcgsize;
         { void has no location }
         if is_void(p.rettype.def) then
           exit;
-        paraloc:=p.funcret_paraloc[side].add_location;
+        paraloc:=p.funcretloc[side].add_location;
         { Return in FPU register? }
         if p.rettype.def.deftype=floatdef then
           begin
@@ -418,7 +418,7 @@ unit cpupara;
         parasize:=0;
         create_paraloc_info_intern(p,side,tparaitem(p.para.first),intparareg,mmparareg,parasize);
         { Create Function result paraloc }
-        create_funcret_paraloc_info(p,side);
+        create_funcretloc_info(p,side);
         { We need to return the size allocated on the stack }
         result:=parasize;
       end;
@@ -429,7 +429,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2004-10-05 20:55:49  peter
+  Revision 1.12  2004-11-21 17:54:59  peter
+    * ttempcreatenode.create_reg merged into .create with parameter
+      whether a register is allowed
+    * funcret_paraloc renamed to funcretloc
+
+  Revision 1.11  2004/10/05 20:55:49  peter
     * fixed location size for s64comp
 
   Revision 1.10  2004/09/21 17:25:13  peter

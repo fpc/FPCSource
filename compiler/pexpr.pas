@@ -319,7 +319,7 @@ implementation
              resulttypepass(p1);
              result:=internalstatements(newstatement);
              htype.setdef(tpointerdef.create(p1.resulttype));
-             temp:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent);
+             temp:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent,false);
              addstatement(newstatement,temp);
              addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp),caddrnode.create(p1)));
              addstatement(newstatement,cassignmentnode.create(
@@ -2505,7 +2505,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.173  2004-11-17 22:21:35  peter
+  Revision 1.174  2004-11-21 17:54:59  peter
+    * ttempcreatenode.create_reg merged into .create with parameter
+      whether a register is allowed
+    * funcret_paraloc renamed to funcretloc
+
+  Revision 1.173  2004/11/17 22:21:35  peter
   mangledname setting moved to place after the complete proc declaration is read
   import generation moved to place where body is also parsed (still gives problems with win32)
 

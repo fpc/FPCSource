@@ -371,7 +371,7 @@ implementation
           begin
             { since the input/output variables are threadvars loading them into
               a temp once is faster. Create a temp which will hold a pointer to the file }
-            filetemp := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent);
+            filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,true);
             addstatement(newstatement,filetemp);
 
             { make sure the resulttype of the temp (and as such of the }
@@ -410,7 +410,7 @@ implementation
             if (filepara.left.nodetype <> loadn) then
               begin
                 { create a temp which will hold a pointer to the file }
-                filetemp := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent);
+                filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,true);
 
                 { add it to the statements }
                 addstatement(newstatement,filetemp);
@@ -522,7 +522,7 @@ implementation
                   begin
                     { create temp for result }
                     temp := ctempcreatenode.create(para.left.resulttype,
-                      para.left.resulttype.def.size,tt_persistent);
+                      para.left.resulttype.def.size,tt_persistent,true);
                     addstatement(newstatement,temp);
                     { assign result to temp }
                     addstatement(newstatement,
@@ -771,7 +771,7 @@ implementation
                        (para.left.resulttype.def<>readfunctype.def) then
                       begin
                         { create the parameter list: the temp ... }
-                        temp := ctempcreatenode.create(readfunctype,readfunctype.def.size,tt_persistent);
+                        temp := ctempcreatenode.create(readfunctype,readfunctype.def.size,tt_persistent,false);
                         addstatement(newstatement,temp);
 
                         { ... and the file }
@@ -938,7 +938,7 @@ implementation
         if not assigned(codepara) or
            (codepara.resulttype.def.size<>sinttype.def.size) then
           begin
-            tempcode := ctempcreatenode.create(sinttype,sinttype.def.size,tt_persistent);
+            tempcode := ctempcreatenode.create(sinttype,sinttype.def.size,tt_persistent,false);
             addstatement(newstatement,tempcode);
             { set the resulttype of the temp (needed to be able to get }
             { the resulttype of the tempref used in the new code para) }
@@ -2157,7 +2157,7 @@ implementation
                    { optimize the code generation)                                                }
                    if node_complexity(tcallparanode(left).left) > 1 then
                      begin
-                       tempnode := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent);
+                       tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,true);
                        addstatement(newstatement,tempnode);
                        addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                          caddrnode.create(tcallparanode(left).left.getcopy)));
@@ -2463,7 +2463,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.152  2004-11-21 15:35:23  peter
+  Revision 1.153  2004-11-21 17:54:59  peter
+    * ttempcreatenode.create_reg merged into .create with parameter
+      whether a register is allowed
+    * funcret_paraloc renamed to funcretloc
+
+  Revision 1.152  2004/11/21 15:35:23  peter
     * float routines all use internproc and compilerproc helpers
 
   Revision 1.151  2004/11/09 23:10:22  peter

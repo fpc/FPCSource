@@ -1237,8 +1237,8 @@ begin
           else
             Message(parser_e_32bitint_or_pointer_variable_expected);
          end;
-      (paramanager as tppcparamanager).create_funcret_paraloc_info(pd,calleeside);
-      (paramanager as tppcparamanager).create_funcret_paraloc_info(pd,callerside);
+      (paramanager as tppcparamanager).create_funcretloc_info(pd,calleeside);
+      (paramanager as tppcparamanager).create_funcretloc_info(pd,callerside);
     end;
 {$endif powerpc}
   tprocdef(pd).extnumber:=get_intconst;
@@ -2346,7 +2346,12 @@ const
 end.
 {
   $Log$
-  Revision 1.211  2004-11-21 16:33:19  peter
+  Revision 1.212  2004-11-21 17:54:59  peter
+    * ttempcreatenode.create_reg merged into .create with parameter
+      whether a register is allowed
+    * funcret_paraloc renamed to funcretloc
+
+  Revision 1.211  2004/11/21 16:33:19  peter
     * fixed message methods
     * fixed typo with win32 dll import from implementation
     * released external check

@@ -211,16 +211,16 @@ unit cgcpu;
         { return from proc }
         if (po_interrupt in current_procinfo.procdef.procoptions) then
           begin
-            if (current_procinfo.procdef.funcret_paraloc[calleeside].loc<>LOC_VOID) and
-               (current_procinfo.procdef.funcret_paraloc[calleeside].loc=LOC_REGISTER) then
+            if (current_procinfo.procdef.funcretloc[calleeside].loc<>LOC_VOID) and
+               (current_procinfo.procdef.funcretloc[calleeside].loc=LOC_REGISTER) then
               list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
             else
               list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EAX));
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EBX));
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ECX));
 
-            if (current_procinfo.procdef.funcret_paraloc[calleeside].loc=LOC_REGISTER) and
-               (current_procinfo.procdef.funcret_paraloc[calleeside].size in [OS_64,OS_S64]) then
+            if (current_procinfo.procdef.funcretloc[calleeside].loc=LOC_REGISTER) and
+               (current_procinfo.procdef.funcretloc[calleeside].size in [OS_64,OS_S64]) then
               list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
             else
               list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDX));
@@ -520,7 +520,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2004-11-21 17:17:04  florian
+  Revision 1.62  2004-11-21 17:54:59  peter
+    * ttempcreatenode.create_reg merged into .create with parameter
+      whether a register is allowed
+    * funcret_paraloc renamed to funcretloc
+
+  Revision 1.61  2004/11/21 17:17:04  florian
     * changed funcret location back to tlocation
 
   Revision 1.60  2004/10/31 21:45:03  peter

@@ -44,7 +44,7 @@ interface
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
         function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargsparalist):longint;override;
       private
-        procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+        procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tlist;
                                              var intparareg,parasize:longint);
       end;
@@ -141,7 +141,7 @@ implementation
       end;
 
 
-    procedure tsparcparamanager.create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+    procedure tsparcparamanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
       var
         retcgsize  : tcgsize;
       begin
@@ -151,23 +151,23 @@ implementation
         else
           retcgsize:=def_cgsize(p.rettype.def);
 
-        location_reset(p.funcret_paraloc[side],LOC_INVALID,OS_NO);
-        p.funcret_paraloc[side].size:=retcgsize;
+        location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
+        p.funcretloc[side].size:=retcgsize;
         { void has no location }
         if is_void(p.rettype.def) then
           begin
-            p.funcret_paraloc[side].loc:=LOC_VOID;
+            p.funcretloc[side].loc:=LOC_VOID;
             exit;
           end;
 
         { Return in FPU register? }
         if p.rettype.def.deftype=floatdef then
           begin
-            paraloc^.loc:=LOC_FPUREGISTER;
-            p.funcret_paraloc[side].register:=NR_FPU_RESULT_REG;
+            p.funcretloc[side].loc:=LOC_FPUREGISTER;
+            p.funcretloc[side].register:=NR_FPU_RESULT_REG;
             if retcgsize=OS_F64 then
-              setsubreg(p.funcret_paraloc[side].register,R_SUBFD);
-            p.funcret_paraloc[side].size:=retcgsize;
+              setsubreg(p.funcretloc[side].register,R_SUBFD);
+            p.funcretloc[side].size:=retcgsize;
           end
         else
          { Return in register? }
@@ -178,30 +178,30 @@ implementation
              begin
                { high }
                if (side=callerside)  or (p.proccalloption=pocall_inline)then
-                 p.funcret_paraloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
+                 p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
                else
-                 p.funcret_paraloc[side].register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
+                 p.funcretloc[side].register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
                { low }
                if (side=callerside) or (p.proccalloption=pocall_inline) then
-                 p.funcret_paraloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG
+                 p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG
                else
-                 p.funcret_paraloc[side].register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
+                 p.funcretloc[side].register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
              end
             else
 {$endif cpu64bit}
              begin
-               p.funcret_paraloc[side].loc:=LOC_REGISTER;
-               p.funcret_paraloc[side].size:=retcgsize;
+               p.funcretloc[side].loc:=LOC_REGISTER;
+               p.funcretloc[side].size:=retcgsize;
                if (side=callerside)  or (p.proccalloption=pocall_inline)then
-                 p.funcret_paraloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
+                 p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
                else
-                 p.funcret_paraloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
+                 p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
              end;
           end
         else
           begin
-            p.funcret_paraloc[side].loc:=LOC_REFERENCE;
-            p.funcret_paraloc[side].size:=retcgsize;
+            p.funcretloc[side].loc:=LOC_REFERENCE;
+            p.funcretloc[side].size:=retcgsize;
           end;
       end;
 
@@ -305,7 +305,7 @@ implementation
         parasize:=0;
         create_paraloc_info_intern(p,side,p.paras,intparareg,parasize);
         { Create Function result paraloc }
-        create_funcret_paraloc_info(p,side);
+        create_funcretloc_info(p,side);
         { We need to return the size allocated on the stack }
         result:=parasize;
       end;
@@ -316,7 +316,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2004-11-21 17:17:04  florian
+  Revision 1.49  2004-11-21 17:54:59  peter
+    * ttempcreatenode.create_reg merged into .create with parameter
+      whether a register is allowed
+    * funcret_paraloc renamed to funcretloc
+
+  Revision 1.48  2004/11/21 17:17:04  florian
     * changed funcret location back to tlocation
 
   Revision 1.47  2004/11/15 23:35:31  peter

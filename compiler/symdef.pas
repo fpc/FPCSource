@@ -443,7 +443,7 @@ interface
 {$ifdef i386}
           fpu_used        : byte;    { how many stack fpu must be empty }
 {$endif i386}
-          funcret_paraloc : array[tcallercallee] of TLocation;
+          funcretloc : array[tcallercallee] of TLocation;
           has_paraloc_info : boolean; { paraloc info is available }
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -3271,8 +3271,8 @@ implementation
          requiredargarea:=0;
          has_paraloc_info:=false;
 
-         location_reset(funcret_paraloc[callerside],LOC_INVALID,OS_NO);
-         location_reset(funcret_paraloc[calleeside],LOC_INVALID,OS_NO);
+         location_reset(funcretloc[callerside],LOC_INVALID,OS_NO);
+         location_reset(funcretloc[calleeside],LOC_INVALID,OS_NO);
       end;
 
 
@@ -3422,14 +3422,14 @@ implementation
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getsmallset(procoptions);
 
-         location_reset(funcret_paraloc[callerside],LOC_INVALID,OS_NO);
-         location_reset(funcret_paraloc[calleeside],LOC_INVALID,OS_NO);
+         location_reset(funcretloc[callerside],LOC_INVALID,OS_NO);
+         location_reset(funcretloc[calleeside],LOC_INVALID,OS_NO);
          if po_explicitparaloc in procoptions then
            begin
              b:=ppufile.getbyte;
-             if b<>sizeof(funcret_paraloc[callerside]) then
+             if b<>sizeof(funcretloc[callerside]) then
                internalerror(200411154);
-             ppufile.getdata(funcret_paraloc[callerside],sizeof(funcret_paraloc[callerside]));
+             ppufile.getdata(funcretloc[callerside],sizeof(funcretloc[callerside]));
            end;
 
          savesize:=sizeof(aint);
@@ -3462,9 +3462,9 @@ implementation
 
          if (po_explicitparaloc in procoptions) then
            begin
-             { Make a 'valid' funcret_paraloc for procedures }
-             ppufile.putbyte(sizeof(funcret_paraloc[callerside]));
-             ppufile.putdata(funcret_paraloc[callerside],sizeof(funcret_paraloc[callerside]));
+             { Make a 'valid' funcretloc for procedures }
+             ppufile.putbyte(sizeof(funcretloc[callerside]));
+             ppufile.putdata(funcretloc[callerside],sizeof(funcretloc[callerside]));
            end;
       end;
 
@@ -6129,7 +6129,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.276  2004-11-21 17:17:04  florian
+  Revision 1.277  2004-11-21 17:54:59  peter
+    * ttempcreatenode.create_reg merged into .create with parameter
+      whether a register is allowed
+    * funcret_paraloc renamed to funcretloc
+
+  Revision 1.276  2004/11/21 17:17:04  florian
     * changed funcret location back to tlocation
 
   Revision 1.275  2004/11/21 16:33:19  peter
@@ -6233,7 +6238,7 @@ end.
     * fixed web bug 3226: type p = type pointer;
 
   Revision 1.248  2004/07/19 19:15:50  florian
-    * fixed funcret_paraloc writing in units
+    * fixed funcretloc writing in units
 
   Revision 1.247  2004/07/14 21:37:41  olle
     - removed unused types

@@ -233,7 +233,7 @@ implementation
                   if is_new then
                    begin
                      { create temp for result }
-                     temp := ctempcreatenode.create_reg(p.resulttype,p.resulttype.def.size,tt_persistent);
+                     temp := ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent,true);
                      addstatement(newstatement,temp);
 
                      { create call to fpc_getmem }
@@ -314,7 +314,7 @@ implementation
             newblock:=internalstatements(newstatement);
 
             { create temp for result }
-            temp := ctempcreatenode.create_reg(p1.resulttype,p1.resulttype.def.size,tt_persistent);
+            temp := ctempcreatenode.create(p1.resulttype,p1.resulttype.def.size,tt_persistent,true);
             addstatement(newstatement,temp);
 
             { create call to fpc_getmem }
@@ -476,7 +476,7 @@ implementation
             newblock:=internalstatements(newstatement);
 
             { get temp for array of lengths }
-            temp := ctempcreatenode.create(sinttype,dims*sinttype.def.size,tt_persistent);
+            temp := ctempcreatenode.create(sinttype,dims*sinttype.def.size,tt_persistent,false);
             addstatement(newstatement,temp);
 
             { load array of lengths }
@@ -718,7 +718,7 @@ implementation
              end;
 
             { create typed temp for result so the temp is finalized }
-            temp := ctempcreatenode.create(ppn.left.resulttype,ppn.left.resulttype.def.size,tt_persistent);
+            temp := ctempcreatenode.create(ppn.left.resulttype,ppn.left.resulttype.def.size,tt_persistent,false);
             addstatement(newstatement,temp);
 
             { create call to fpc_dynarray_copy }
@@ -754,7 +754,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2004-11-02 18:37:08  florian
+  Revision 1.37  2004-11-21 17:54:59  peter
+    * ttempcreatenode.create_reg merged into .create with parameter
+      whether a register is allowed
+    * funcret_paraloc renamed to funcretloc
+
+  Revision 1.36  2004/11/02 18:37:08  florian
     * dyn. array dimensions are now stored as sinttype so it's target register size dependend
 
   Revision 1.35  2004/11/02 12:55:16  peter

@@ -125,8 +125,7 @@ interface
           { where the node that receives the temp becomes responsible for       }
           { freeing it. In this last case, you must use only one reference      }
           { to it and *not* generate a ttempdeletenode                          }
-          constructor create(const _restype: ttype; _size: longint; _temptype: ttemptype); virtual;
-          constructor create_reg(const _restype: ttype; _size: longint; _temptype: ttemptype); virtual;
+          constructor create(const _restype: ttype; _size: longint; _temptype: ttemptype;allowreg:boolean); virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -673,10 +672,17 @@ implementation
                           TEMPCREATENODE
 *****************************************************************************}
 
-    constructor ttempcreatenode.create_reg(const _restype: ttype; _size: longint; _temptype: ttemptype);
+    constructor ttempcreatenode.create(const _restype: ttype; _size: longint; _temptype: ttemptype;allowreg:boolean);
       begin
-        create(_restype,_size,_temptype);
+        inherited create(tempcreaten);
+        size := _size;
+        new(tempinfo);
+        fillchar(tempinfo^,sizeof(tempinfo^),0);
+        tempinfo^.restype := _restype;
+        tempinfo^.temptype := _temptype;
+        tempinfo^.owner:=self;
         tempinfo^.may_be_in_reg:=
+          allowreg and
           { temp must fit a single register }
           ((_restype.def.deftype = floatdef) or
            (_size<=TCGSize2Size[OS_INT])) and
@@ -686,17 +692,6 @@ implementation
           not (_restype.def.needs_inittable) and
           ((_restype.def.deftype <> pointerdef) or
            (not tpointerdef(_restype.def).pointertype.def.needs_inittable));
-      end;
-
-    constructor ttempcreatenode.create(const _restype: ttype; _size: longint; _temptype: ttemptype);
-      begin
-        inherited create(tempcreaten);
-        size := _size;
-        new(tempinfo);
-        fillchar(tempinfo^,sizeof(tempinfo^),0);
-        tempinfo^.restype := _restype;
-        tempinfo^.temptype := _temptype;
-        tempinfo^.owner:=self;
       end;
 
     function ttempcreatenode.getcopy: tnode;
@@ -1028,7 +1023,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2004-10-31 21:45:03  peter
+  Revision 1.90  2004-11-21 17:54:59  peter
+    * ttempcreatenode.create_reg merged into .create with parameter
+      whether a register is allowed
+    * funcret_paraloc renamed to funcretloc
+
+  Revision 1.89  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

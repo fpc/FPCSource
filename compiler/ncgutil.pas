@@ -1062,7 +1062,7 @@ implementation
         funcretloc : tlocation;
       begin
         { Is the loading needed? }
-        if (current_procinfo.procdef.funcret_paraloc[calleeside].loc=LOC_VOID) or
+        if (current_procinfo.procdef.funcretloc[calleeside].loc=LOC_VOID) or
            (
             (po_assembler in current_procinfo.procdef.procoptions) and
             (not(assigned(current_procinfo.procdef.funcretsym)) or
@@ -1070,7 +1070,7 @@ implementation
            ) then
            exit;
 
-        funcretloc:=current_procinfo.procdef.funcret_paraloc[calleeside];
+        funcretloc:=current_procinfo.procdef.funcretloc[calleeside];
 
         { constructors return self }
         if (current_procinfo.procdef.proctypeoption=potype_constructor) then
@@ -1120,9 +1120,9 @@ implementation
               LOC_REGISTER:
                 begin
 {$ifndef cpu64bit}
-                  if current_procinfo.procdef.funcret_paraloc[calleeside].size in [OS_64,OS_S64] then
+                  if current_procinfo.procdef.funcretloc[calleeside].size in [OS_64,OS_S64] then
                     begin
-                      resloc:=current_procinfo.procdef.funcret_paraloc[calleeside];
+                      resloc:=current_procinfo.procdef.funcretloc[calleeside];
                       if resloc.loc<>LOC_REGISTER then
                         internalerror(200409141);
                       { Load low and high register separate to generate better register
@@ -1769,7 +1769,7 @@ implementation
         cg.g_proc_exit(list,parasize,(po_nostackframe in current_procinfo.procdef.procoptions));
 
         { release return registers, needed for optimizer }
-        location_free(list,current_procinfo.procdef.funcret_paraloc[calleeside]);
+        location_free(list,current_procinfo.procdef.funcretloc[calleeside]);
 
         { end of frame marker for call frame info }
         dwarfcfi.end_frame(list);
@@ -2134,12 +2134,12 @@ implementation
             localloc.loc:=LOC_REFERENCE;
             localloc.size:=int_cgsize(paramanager.push_size(varspez,vartype.def,pocall_inline));
             tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
-            callerparaloc:=pd.funcret_paraloc[callerside];
-            case pd.funcret_paraloc[calleeside].loc of
+            callerparaloc:=pd.funcretloc[callerside];
+            case pd.funcretloc[calleeside].loc of
               LOC_FPUREGISTER:
                 begin
-                  pd.funcret_paraloc[calleeside].register:=cg.getfpuregister(list,pd.funcret_paraloc[calleeside].size);
-                  pd.funcret_paraloc[callerside].register:=pd.funcret_paraloc[calleeside].register;
+                  pd.funcretloc[calleeside].register:=cg.getfpuregister(list,pd.funcretloc[calleeside].size);
+                  pd.funcretloc[callerside].register:=pd.funcretloc[calleeside].register;
                 end;
               LOC_REGISTER:
                 begin
@@ -2150,21 +2150,21 @@ implementation
                   else
 {$endif cpu64bit}
                     begin
-                      pd.funcret_paraloc[calleeside].register:=cg.getintregister(list,pd.funcret_paraloc[calleeside].size);
-                      pd.funcret_paraloc[callerside].register:=pd.funcret_paraloc[calleeside].register;
+                      pd.funcretloc[calleeside].register:=cg.getintregister(list,pd.funcretloc[calleeside].size);
+                      pd.funcretloc[callerside].register:=pd.funcretloc[calleeside].register;
                     end;
                 end;
               LOC_MMREGISTER:
                 begin
-                  pd.funcret_paraloc[calleeside].register:=cg.getmmregister(list,pd.funcret_paraloc[calleeside].size);
-                  pd.funcret_paraloc[callerside].register:=pd.funcret_paraloc[calleeside].register;
+                  pd.funcretloc[calleeside].register:=cg.getmmregister(list,pd.funcretloc[calleeside].size);
+                  pd.funcretloc[callerside].register:=pd.funcretloc[calleeside].register;
                 end;
               LOC_REFERENCE:
                 begin
-                  pd.funcret_paraloc[calleeside].reference.offset := localloc.reference.offset;
-                  pd.funcret_paraloc[calleeside].reference.index := localloc.reference.base;
-                  pd.funcret_paraloc[callerside].reference.offset := localloc.reference.offset;
-                  pd.funcret_paraloc[callerside].reference.index := localloc.reference.base;
+                  pd.funcretloc[calleeside].reference.offset := localloc.reference.offset;
+                  pd.funcretloc[calleeside].reference.index := localloc.reference.base;
+                  pd.funcretloc[callerside].reference.offset := localloc.reference.offset;
+                  pd.funcretloc[callerside].reference.index := localloc.reference.base;
                 end;
               LOC_VOID:
                 ;
@@ -2259,7 +2259,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.243  2004-11-21 17:17:03  florian
+  Revision 1.244  2004-11-21 17:54:59  peter
+    * ttempcreatenode.create_reg merged into .create with parameter
+      whether a register is allowed
+    * funcret_paraloc renamed to funcretloc
+
+  Revision 1.243  2004/11/21 17:17:03  florian
     * changed funcret location back to tlocation
 
   Revision 1.242  2004/11/19 08:17:01  michael
