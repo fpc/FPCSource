@@ -1051,7 +1051,9 @@ implementation
     function tarrayconstructornode.pass_1 : tnode;
       var
         hp : tarrayconstructornode;
+        do_variant:boolean;
       begin
+        do_variant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
         result:=nil;
         { Insert required type convs, this must be
           done in pass 1, because the call must be
@@ -1063,7 +1065,15 @@ implementation
             hp:=self;
             while assigned(hp) do
               begin
-                firstpass(hp.left);
+                if hp.left<>nil then
+                  begin
+                    {This check is pessimistic; a call will happen depending
+                     on the location in which the elements will be found in
+                     pass 2.}
+                    if not do_variant then
+                      include(procinfo.flags,pi_do_call);
+                    firstpass(hp.left);
+                  end;
                 hp:=tarrayconstructornode(hp.right);
               end;
           end;
@@ -1073,10 +1083,10 @@ implementation
 
 
     function tarrayconstructornode.docompare(p: tnode): boolean;
-      begin
-        docompare :=
-          inherited docompare(p);
-      end;
+
+    begin
+      docompare:=inherited docompare(p);
+    end;
 
 
 {*****************************************************************************
@@ -1246,7 +1256,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.121  2004-02-03 22:32:54  peter
+  Revision 1.122  2004-02-20 20:21:16  daniel
+    * Tarrayconstructornode sets pi_do_call if a call is possible
+
+  Revision 1.121  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
