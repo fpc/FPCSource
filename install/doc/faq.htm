@@ -1,0 +1,591 @@
+<html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+"http://www.w3.org/TR/REC-html40/loose.dtd">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Author" CONTENT="Free Pascal Web Team">
+<META name="description" content="Free Pascal: free 32-bit Pascal compiler for DOS, Linux, Win32 and OS/2">
+<META NAME="keywords" content="32 bit, protected mode, compiler, pascal, FPC, FPC Pascal, Free Pascal">
+<TITLE>Free Pascal - Online documentation</TITLE>
+</HEAD>
+<BODY TEXT="#000000" BGCOLOR="#FFCC99" LINK="#0000EE" VLINK="#551A8B"
+ALINK="#FF8080"><TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH="100%">
+<center><h1> FreePascal FAQ</h1>
+<h3>As distributed with FPC 0.99.14</center></h3><p>
+
+<b>This FAQ might not be up to date. See <a href="http://www.freepascal.org/faq.html">the FPC FAQ on internet</a> for updates.</b><p>
+
+This FAQ is in no way a substitute for the extensive documentation that accompanies FPC.<p>
+
+<OL>
+<!-- IDXSTART -->
+  <LI><A HREF="#WhatIsFP">What is Free Pascal(FPC) ?</A></LI>
+  <LI><A HREF="#versions">Which versions exist, and which one should I use?</A></LI>
+  <LI><A HREF="#KnownBugs">Known bugs</A></LI>
+  <LI><A HREF="#FPandGNUPascal">Free Pascal and GNU Pascal - a comparison</A></LI>
+  <LI><A HREF="#WhereToGetFP">Where can I get the compiler ?</A></LI>
+  <LI><A HREF="#PortabilityTips">What are the considerations in porting</A></LI>
+  <LI><A HREF="#OOP">I tried to compile my Delphi code with the Free Pascal Compiler,</A></LI>
+  <LI><A HREF="#HOMEWORK">I have to write a program for homework. Can you help?</A></LI>
+  <LI><A HREF="#HowcanIbuildaunit">How can I build a unit?</A></LI>
+  <LI><A HREF="#TurboVision">Will Free Pascal support TV (Turbo Vision) in the future?</A></LI>
+  <LI><A HREF="#CompileSystemUnit">How can I compile the system unit ?</A></LI>
+  <LI><A HREF="#Internalerror9999">I get an internal error 9999</A></LI>
+  <LI><A HREF="#Howdoesfunctionoverloadingwork">How does function overloading work?</A></LI>
+  <LI><A HREF="#HowToCallCFuncuntions">How can I call C functions ?</A></LI>
+  <LI><A HREF="#DJGPP2support">When will Free Pascal use DJGPP 2.0 under DOS/Windows ?</A></LI>
+  <LI><A HREF="#HowToUseGraph">How can I use the graph unit with Free Pascal ?</A></LI>
+  <LI><A HREF="#IntegratedAssemblerSyntax">Integrated Assembler syntax</A></LI>
+  <LI><A HREF="#HowToAccessDosMemory">How to access DOS memory / How to do graphics ?</A></LI>
+  <LI><A HREF="#FPwithoutfpu">Free Pascal without a math coprocessor</A></LI>
+  <LI><A HREF="#AccessingMoreThan4MB">Accessing more than 4 megabytes</A></LI>
+  <LI><A HREF="#accessioports">Access I/O ports</A></LI>
+  <LI><A HREF="#ImusingWin95">I'm using the Dos compiler under Windows 95</A></LI>
+  <LI><A HREF="#ImusingOS2">I'm using OS/2</A></LI>
+  <LI><A HREF="#dpmi">INSTALL.EXE of Dos version 0.99.10 reports "Load error: no DPMI"</A></LI>
+  <LI><A HREF="#winnt">INSTALL.EXE of Dos version 0.99.10 does not run in Windows NT</A></LI>
+  <LI><A HREF="#snapshot">I want a new version NOW</A></LI>
+  <LI><A HREF="#ideinst">Where can I find a text mode IDE for Dos</A></LI>
+  <LI><A HREF="#ideconfig">How do I configure the Dos IDE</A></LI>
+  <LI><A HREF="#binariesbig">Why are the generated binaries so big?</A></LI>
+  <LI><A HREF="#systemnotfound">Unit system, syslinux or syswin32 not found errors</A></LI>
+
+<!-- IDXEND -->
+</OL>
+
+<OL>
+<A NAME="WhatIsFP"></A>
+<H3><LI>What is Free Pascal(FPC) ?</LI></H3>
+<P>
+  Originally named FPK-Pascal, the Free Pascal compiler is a 32 bit Turbo
+  Pascal compatible Pascal compiler for DOS, Linux, Win32, OS/2 and (based on
+  an older version) the AmigaOS.
+  More Operating systems are in the works. <BR>
+  The compiler is written in Pascal and is able to compile its own sources.
+  The source files are included. <BR>
+  Free Pascal requires a fast computer to run efficiently (386-25 Mhz for
+  the Intel version and ideally a 68020 processor for the Motorola
+  version). At least 2 megabytes of RAM is required. To remake the compiler
+  more than 16 is recommended.
+</P>
+
+  <P>Short history: <BR>
+  <B>&nbsp;6/1993</B> project start <BR>
+  <B>10/1993</B> first little programs work <BR>
+  <B>&nbsp;3/1995</B> the compiler compiles the own sources <BR>
+  <B>&nbsp;3/1996</B> released to the internet<br>
+  <B>&nbsp;probably 2000</b> 1.0 version
+</P>
+
+<A NAME="versions"></A>
+<H3><LI>Which versions exist, and which one should I use?</LI></H3>
+<p>
+
+Compilers with an <b>even</b> last number are <b>release</b> versions(e.g. 0.99.8, 0.99.10, 0.99.12 and 0.99.14)<br>
+Compilers and packages with an <b>odd</b> last number are <b>development</b> versions (e.g. 0.99.9, 0.99.11, 0.99.13 and 0.99.15).<p>
+
+0.99.5 is an exception to this rule, since <b>0.99.5 IS a release</b> (a release prior to the introduction of this odd/even system)<p>
+
+Letters behind the version number (0.99.12b, 0.99.5d) indicate release versions with some
+bugs and problems in the original release (respectively 0.99.12 and 0.99.5) fixed.<p>
+
+Normally you would want to use a release. Releases are considered stable, and
+easier to support. (the bugs, quirks and unintended &quot;features&quot; are wellknown after a period of time,
+and workarounds exist).<p>
+
+Development snapshots which are generated daily reflect the current status of the compiler.
+Development versions probably have new features and larger bugs fixed since the last release,
+but might have some temporary stability drawbacks, (btw which are usually fixed quite soon)<p>
+Most support for development snapshots are basically the advise to
+upgrading to newer snapshot in which the bugs are hopefully fixed.<p>
+
+
+Since version 0.99.8 the stability of the compiler steadily increased, and development
+snapshots are often quite useful for certain categories of users. Ask in the maillists
+if it is worth the effort in your case.<p>
+<br>
+
+The current release version is 0.99.14 for the OS/2,Linux,Windows and Dos (Go32V2) targets,<br>
+and 0.99.5d for the 680x0 based systems (mainly Amiga and Mac)<p>
+
+The current development snapshot version is 0.99.13 or 0.99.15.<p>
+</P>
+
+<A NAME="KnownBugs"></A>
+<H3><LI>Known bugs</LI></H3>
+<P>
+Go to the <A HREF="http://www.freepascal.org/bugs.html">bugs page</A>
+</P>
+
+
+<A NAME="FPandGNUPascal"></A>
+<H3><LI>Free Pascal and GNU Pascal - a comparison</LI></H3>
+<DL>
+  <DT><B>aim:</B></DT>
+
+  <DD>Free Pascal tries to implement a Borland compatible pascal compiler
+  on as many platforms as possible. GNU Pascal tries to implement a portable
+  pascal compiler based on POSIX.</DD>
+
+  <DT><B>Version:</B></DT>
+
+  <DD>Currently, Free Pascal is at version 0.99.12 for the Intel version,
+  and version 1.0 will be out soon,
+  and version 0.99.5d for the Motorola/Intel version. Version 0.99.5d differs
+  from version 0.99.5 in that all run time library fixes have been
+  applied, as well as all known code generation bugs. Version 0.99.12
+  differs from version 0.99.5c in that all parser bugfixes have also
+  been applied and also a lot of Delphi 2 and Delphi 3 extensions have
+  been implemented. GNU Pascal is at version 2.7.2 (but this numbering is
+  not really an indication, it follows the GNU
+
+  C numbering, since it is a derivation of it)</DD>
+
+  <DT><B>Operating systems:</B></DT>
+
+  <DD>Free pascal runs on a limited number of systems : DOS, Win32, Linux,
+  OS/2 and AmigaOS and is for the moment limited to the Intel and Motorola
+  architectures. GNU Pascal runs basically on any system that can run GNU C.
+  </DD>
+
+  <DT><B>Sources:</B></DT>
+
+  <DD>Free Pascal is entirely written in Pascal (about 4 Mb of source code),
+  while GNU Pascal is written in C (it's an adaptation of the GNU C compiler
+  : 2.8 Mb code + 8 MB of GNU C code)</DD>
+
+  <DT><B>Language:</B></DT>
+
+  <DD>Free Pascal supports the Borland Pascal dialect Borland, and implements
+
+  the Delphi Object PAscal language. GNU Pascal supports ISO 7185, ISO 10206,
+  (most of) Borland Pascal 7.0</DD>
+
+  <DT><B>Extensions:</B></DT>
+
+  <DD>Free Pascal implements function overloading, and operator overloading).
+  GNU Pascal implements operator overloading.</DD>
+
+  <DT><B>License:</B></DT>
+
+  <DD>Both compilers come under the GNU GPL.</DD>
+
+  <DT><B>Author:</B></DT>
+
+  <DD>Free Pascal was started by Florian Klaempfl, Germany (klaempfl@haegar.cip.mw.tu-muenchen.de),
+  GNU Pascal was started by Jukka Virtanen, Finland, (jtv@hut.fi).</DD>
+</DL>
+
+
+<A NAME="WhereToGetFP"></A>
+<H3><LI>Where can I get the compiler ?</LI></H3>
+<P>
+  Free Pascal is available for download from all <A HREF="http://www.freepascal.org/download.html"> official mirrors</A>
+</P>
+
+<A NAME="PortabilityTips"></A>
+<H3><LI>What are the considerations in porting
+code to other processors?</A></H3>
+<P>
+Because the compiler now supports processors other than the Intel, it is
+important to take a few precautions so that your code will execute
+correctly on all processors.
+<UL>
+  <LI> Limit your use of asm statements unless it is time critical code</LI>
+  <LI> Don't use the packed directive unless you know exactly what you are
+doing. Most processors require alignment of data, and using packed on
+objects,classes and records may break this requirement. If this is the
+case your code will simply crash on the target processors.</LI>
+  <LI> Clean up at the end of your program, i.e close all files on exit,
+  as some operating systems don't like it when some files are left opened. </LI>
+
+  <LI> Try not to rely on the endian of the specific machines when doing
+arithmetic operations. Furthermore, reading and writing of binary data
+to/from files will probably require byte swaps across different endian
+machines (swap is your friend in this case) </LI>
+   <LI> Try limiting your local variables in subroutines to 32K, as this
+is the limit of some processors, use dynamic allocation instead. </LI>
+   <LI> Try limiting the size of parameters passed to subroutines to 32K,
+as this is the limit of some processors, use const or var parameters
+instead. </LI>
+ </UL>
+ </P>
+
+<A NAME="OOP"></A>
+<H3><LI>I tried to compile my Delphi code with the Free Pascal Compiler,
+  it seems that it doesn't recognize the OOP.</LI></H3>
+
+<P>
+  The compiler supports the Delphi OOP. There may be some bugs, of course,
+  You should try the -S2, -Sd or -So switches (see the manuals for the
+  meaning of these switches)
+</P>
+
+<A NAME="HOMEWORK"></A>
+<H3><LI>I have to write a program for homework. Can you help?</LI></H3>
+<P>
+  No. Please, don't send us mail about homework, we are no teachers.
+  The Free Pascal development team tries to give good support for the Free
+  Pascal compiler and are trying to always reply to emails. If we get
+  emails like this, this becomes harder and harder.
+</P>
+
+<A NAME="HowcanIbuildaunit"></A>
+<H3><LI>How can I build a unit?</LI></H3>
+<P>
+  It works like in Turbo Pascal. The first keyword in the file must be
+  UNIT (not case sensitive). The compiler will generate two files: <TT>XXX.PPU</TT>
+  and <TT>XXX.O</TT>. The PPU file contains the interface information for
+  the compiler and the O-file the machine code (an object file, whose precise
+  structure depends on the assembler you used). To use this unit in another
+  unit or program, you must include its name in the USES clause of your program.
+</P>
+
+
+<A NAME="TurboVision"></A>
+<H3><LI>Will Free Pascal support TV (Turbo Vision) in the future?</LI></H3>
+<P>
+  A Turbo Vision port, called Free Vision, has progressed nicely lately. It's
+  already very usable, we are even writing an IDE in it. Due to copyrights
+  problem the FreeVision source code is not available at the moment. You can
+  download the IDE from the <a href="http://www.freepascal.org/develop.html#snapshot">development</a> page. and get an idea of the look and feel though.
+</P>
+
+
+<A NAME="CompileSystemUnit"></A>
+<H3><LI>How can I compile the system unit ?</LI></H3>
+<P>
+  To recompile the system unit, it is recommended to have GNU make installed.
+  typing 'make' in the rtl source directory will then recompile all RTL units
+  including the system unit.
+  You may choose to descend into the directory of your OS (e.g. rtl/go32v2)
+  and do a 'make' there.
+</P>
+<P>
+  It is possible to do all this manually, but you need more detailed knowledge
+  of the RTL tree structure for that.
+</P>
+
+
+<A NAME="Internalerror9999"></A>
+<H3><LI>I get an internal error 9999</LI></H3>
+<P>
+  The latest versions of the Free Pascal Compiler come with a Error Handling
+  routine which catches the segmentation fault, and lets the compiler exit
+  gracefully. This is reported as an internal error 9999. <BR>
+  Please try to reproduce the error and send <A HREF="http://www.freepascal.org/moreinfo.html">us</A>
+  a bug report.<p>
+  (For the curious, IE 9999 is not a specific bug. It is a safety measure which
+  terminates if during compiling a certain condition is not met, which can be
+  caused by several bugs. So if you report the bug, and get IE 9999 later in
+  a different piece or part of sourcecode, it could be a completely different
+  bug)
+</P>
+
+
+<A NAME="Howdoesfunctionoverloadingwork"></A>
+<H3><LI>How does function overloading work?</LI></H3>
+<P>
+  function overloading is implemented, like in C++:
+</P>
+<PRE>
+  procedure a(i : integer);
+
+   begin
+   end;
+
+  procedure a(s : string);
+
+   begin
+   end;
+
+  begin
+
+   a('asdfdasf&quot;);
+   a(1234);
+  end.
+</PRE>
+<P>
+  You must be careful. If one of your overloaded functions is in the interface
+  part of your unit, then all overloaded functions must be in the interface
+  part. If you leave one out, the compiler will complain with a 'This overloaded
+  function can't be local' message. Overloaded functions must differ in their
+  parameters, it's not enough if their return types are different.
+</P>
+
+
+<A NAME="HowToCallCFuncuntions"></A>
+<H3><LI>How can I call C functions ?</LI></H3>
+<P>
+  C calling convention is implemented as follows: The compiler pushes
+  the parameters from right to left, but the procedure has to clear the stack.
+  For calling the C function strcmp declare the following:
+</P>
+<PRE>
+  function strcmp(s1 : pchar;s2 : pchar) : integer;cdecl;external;
+  Since 0.99.5, the older [C]; won't work!
+</PRE>
+
+<A NAME="DJGPP2support"></A>
+<H3><LI>When will Free Pascal use DJGPP 2.0 under DOS/Windows ?</LI></H3>
+<P>
+  As of version 0.99.0 Free Pascal uses DJGPP 2.0. DJGPP v1.2 support has
+  been removed since version FPC 0.99.8.
+</P>
+
+<A NAME="HowToUseGraph"></A>
+<H3><LI>How can I use the graph unit with Free Pascal ?</LI></H3>
+<P>
+  Look at InitGraph.
+</P>
+<!---
+  If you want to use the GRAPH unit, a VESA 1.2 compliant graphics
+  card must be installed.
+ -->
+
+
+<A NAME="IntegratedAssemblerSyntax"></A>
+<H3><LI>Integrated Assembler syntax</LI></H3>
+<P>
+  The default assembler syntax (AT&amp;T style) is different from the
+  one in Borland Pascal (Intel style).
+</P>
+<P>
+  However, as of version 0.99.0, the
+  compiler supports Intel style assembly syntax.
+  See the documentation for more info on how to use different assembler styles.
+</P>
+<P>
+  A description of the AT&amp;T syntax can be found in the DJGPP FAQ <A HREF="http://www.delorie.com/djgpp/v2faq/faq102.html#Syntax">http://www.delorie.com/djgpp/v2faq/faq102.html#Syntax</A>
+  or in Brennan's Guide to Inline Assembly <A HREF="http://www.rt66.com/~brennan/djgpp/djgpp_asm.html">http://www.rt66.com/~brennan/djgpp/djgpp_asm.html</A>.
+  The documentation also contains a chapter where the difference between
+  the Intel and AT&amp;T style assembly is explained.
+</P>
+<P>
+  Or you can use the convertor program at http://rcs.urz.tu-dresden.de/
+  schoenfu/zip/asmtrans.zip.
+</P>
+
+
+<A NAME="HowToAccessDosMemory"></A>
+<H3><LI>How to access DOS memory / How to do graphics ?</LI></H3>
+<P>
+You can do like in TP, via absolute or mem, for larger blocks use the
+dosmemput/dosmemget routines in unit Go32
+</P>
+
+<A NAME="FPwithoutfpu"></A>
+<H3><LI>Free Pascal without a math coprocessor</LI></H3>
+<P>
+On the Intel version the emulator is automatically loaded by the compiler,
+the file is bin\emu387.
+</P>
+<PRE>
+  SET GO32=EMU C:\PP\BIN\EMU387
+</PRE>
+
+
+<A NAME="AccessingMoreThan4MB"></A>
+<H3><LI>Accessing more than 4 megabytes</LI></H3>
+<P>
+  By default Free Pascal allocates only 4 meg. If it just allocated all
+  it could get, people running windows would have problems as Windows would
+  increase the swap file size to give the program more memory on and on,
+  until the swap file drive would be full.
+</P>
+<P>
+  You can specify the size of the heap with -Chxxxx. The default value
+  is -Ch4000000. Try -Ch10000000, provided you got enough swap space.
+</P>
+<P>
+
+  However, the heap size doesn't really matter anymore, since the Heap
+  is able to grow. That is, if you've used all available heap space, the
+  program will try to get more memory from the OS, thus the heap is limited
+  to the maximum amount of free memory provided by the OS.
+</P>
+
+
+<A NAME="accessioports"></A>
+<H3><LI>Access I/O ports</LI></H3>
+<P>
+  If you're under DOS, you should use the <TT>outport*</TT> and <TT>inport*</TT>
+  procedures of the go32 unit.
+</P>
+<P>
+  Since version 0.99.8, the Port array is supported like in TP, as long as you
+  use the ports unit in your program.
+</P>
+
+<A NAME="ImusingWin95"></A>
+<H3><LI>I'm using the Dos compiler under Windows 95</LI></H3>
+<P>
+  There is a problem with the Dos compiler and Win 95 on computers with less
+  than 16 MB. First set in the properties of the DOS box the DPMI memory
+  size to max value. Now try to start a demo program in the DOS box, e.g.
+  HELLO (starting takes some time). If this works you will be able to get
+  the compiler to work by recompiling it with a smaller heap size, perhaps
+  2 or 4 MB (option -Chxxxx).
+</P>
+
+<A NAME="ImusingOS2"></A>
+<H3><LI>I'm using OS/2</LI></H3>
+<P>
+  Problems have been reported that the Go32v2 compiler does not run on
+  some OS/2 installations. You can use the native OS/2 compiler, or compile
+  a GO32V1 compiler yourself.
+</P>
+
+<A NAME="dpmi"></A>
+<H3><LI>INSTALL.EXE of Dos version 0.99.10 reports "Load error: no DPMI"</LI></H3>
+<p>
+  The file cwsdpmi.exe is missing in the main directory of the zip archive.
+  The above message pops up of no other DPMI services are available.
+  Such services are for example available in a Dos window of Windows.
+  You can either extract that file from basego32.zip or download it from
+  <a href="http://www.brain.uni-freiburg.de/~klaus/cwsdpmi.exe">
+  http://www.brain.uni-freiburg.de/~klaus/cwsdpmi.exe</a>.
+  Put it into the same directory as install.exe and run install again.
+</p>
+
+<A NAME="winnt"></A>
+<H3><LI>INSTALL.EXE of Dos version 0.99.10 does not run in Windows NT</LI></H3>
+<p>
+  This is an incompatibility of the mouse driver.
+  Use this new version of install.exe instead:
+  <a href="ftp://ftp.freepascal.org/pub/fpc/snapshot/install.exe">
+  ftp://ftp.freepascal.org/pub/fpc/snapshot/install.exe</a>
+</p>
+
+<A NAME="snapshot"></A>
+<H3><LI>I want a new version NOW</LI></H3>
+<p>
+  In the time between the release of new official versions, you
+  can have a look at and test developer versions.
+  Be warned though: this is work under progress, so in addition to
+  old bugs fixed and new features added, this may also contain new bugs.
+  The snapshot is generated automatically each night from the current
+  source at that moment. Somethimes this may fail due to bigger changes
+  not yet fully implemented. If your version doesn't work, try again one
+
+  or two days later. Don't download the Go32V1 version for Dos, it's not
+  supported any more.
+  </p>
+  <p>The latest snapshot can be downloaded from the
+      <a href="http://www.freepascal.org/develop.html#snapshot">development</a> web page.
+  </p>
+  <p>
+  To install a snapshot, extract the zip archive into the existing
+  program directory of the last official version of fee pascal (after
+  making a backup of the original of course). Or extract it into an
+  empty directory, then move the files to the program directory,
+
+  overwriting existing files. Make sure that you extract the ZIP archiv
+  such that the included directory structure remains intact, for example
+  if you use PKUNZIP, use "pkuzip -d" instead of just "pkunzip".
+</p>
+
+<A NAME="ideinst"></A>
+<H3><LI>Where can I find a text mode IDE for Dos</LI></H3>
+<p>
+  The development of the IDE (integrated development environment)
+  is not yet finished. However a working test version of the IDE is available
+  as snapshot. It requires the latest compiler snapshot be installed on
+  top of the last official Dos version 0.99.12 for Go32V2. So if you
+  have not already done it, first install the last official
+  version (file dos09912.zip or dos09912full.zip, you find these in
+  the <a href="http://www.freepascal.org/download.html">download</a> section).
+  Then get and extract the latest Dos snapshot for DOS-GO32V2 (snapshot.zip)
+  into the directory containing the last official version.
+  Then do the same with one of the IDE snapshots (the debugger does not
+
+  work very well yet, so start with the version "IDE with compiler").
+  For more details on where to find and how to install a snapshot,
+  please see the previous FAQ item. For additional instructions
+  for required IDE configuration please also read the next FAQ item.
+</p>
+
+<A NAME="ideconfig"></A>
+<H3><LI>How do I configure the Dos IDE</LI></H3>
+<p>
+  Once you have installed the IDE (see the previous FAQ item),
+  it requires two configuration changes before it can compile.
+  This is due to the fact that the IDE includes its own compiler,
+  it does not use ppc386.exe and thus it also does not use the
+  configuration in the file ppc386.cfg. Thus if you try to compile,
+  you get an error message telling that it can not compile
+  the system unit. To fix this start fp.exe, select from the
+  menu Compile, then Target then Go32V2. Next select the menu
+  Options/Directories and in the line "Unit directories" enter the path
+  to your copy of the rtl directory, usually c:\pp\units\go32v2\rtl.
+  If you have done everything correct and it still doesn't work,
+  you may have grabbed a snapshot that has a bug, in this case
+  try again one or two days later.
+</p>
+
+<A NAME="binariesbig"></A>
+<H3><LI>Why are the generated binaries so big?</LI></H3>
+<p>
+There are several reasons and remedies for this.
+<ol>
+<li>If you are using 0.99.12: Due to some problems with the binary writer, the 0.99.12 and fixes weren't
+released with smartlinking RTLs. Smartlinking causes only actually used procedures,
+functions and constants to be linked in.<br>
+You can remedy this by using a development version and creating a smartlinking
+RTL. See the <a href="http://www.freepascal.org/makecyc.html">make cycle faq</a> or use a later release if available.</li>
+<lI>Generating debug code (-g options) is enabled. Use the strip utility
+    (or stripw for the windows platform) to remove the debuginformation.<br>
+    The utility is supplied with the releases, except under Linux were it is part
+
+    of the GNU binutils package.</li>
+<lI>Under Dos(Go32V2) and windows targets you can use UPX to pack the .EXEs (just like e.g. pklite).
+    The architecture of linux doesn't allow binary packing.</li>
+<lI>You can use LXLITE for packing EMX binaries, but you won't be able to run
+    them under DOS any more then. It might even not be possible to use them
+    on lower OS/2 versions (like 2.x) depending on chosen type of compression.</li>
+<li>Turning on optimalisations, both for supplied packages (RTL,API,FV,FCL) as for
+    your own code, will also decrease code-size. </li>
+</ol>
+</p>
+
+<A NAME="systemnotfound"></A>
+<H3><LI>Unit system, syslinux or syswin32 not found errors</LI></H3>
+<p>
+System (syslinux, syswin32 depending on platform) is Pascal's base unit which is invisibly used
+in all programs. This unit defines several standard procedures and structures, and must
+be found to be able to compile any pascal program by FPC.<p>
+
+The location of the system.ppu and syslinux.o files are determined by the -Fu
+switch which can be specified commandline, but is usually in the ppc386.cfg
+(Win32: ppc386w.cfg) configuration file.<br>
+
+If the compiler can't find this unit there are three possible causes:
+<ol>
+<lI>The ppc386.cfg isn't in the same path as the compiler (go32v2 and win32),
+     or in /etc/ppc386.cfg or as .ppc386.cfg in your homedirectory (Linux). </li>
+<li>The ppc386.cfg doesn't contain the -Fu line, or a wrong one.
+      See the <a href="http://www.freepascal.org/makecyc.html">make cycle faq</a> specially the chapters
+      about the ppc386.cfg and the directory structure.</li>
+<li>The files ARE found but the wrong version or platform. Correct ppc386.cfg to
+        point to the right versions, or reinstall the right versions.</li>
+</ol>
+
+A handy trick can be executing &quot;ppc386 programname -vt&quot;, this shows
+where the compiler is currently looking for the system unit's files. You might
+want to pipe this through more(dos,windows) or less(Linux), since it can generate
+more than one screen information:
+<pre>
+Dos,Windows:<br>
+
+ppc386 programname -vt |more<br>
+
+
+Linux:<br>
+
+ppc386 programname -vt |less<br>
+</pre>
+</p>
+
+
+</ol>
+</HTML>
