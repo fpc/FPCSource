@@ -48,6 +48,7 @@ const
   secHelp        = 'Help';
   secEditor      = 'Editor';
   secBreakpoint  = 'Breakpoints';
+  secWatches     = 'Watches';
   secHighlight   = 'Highlight';
   secMouse       = 'Mouse';
   secSearch      = 'Search';
@@ -86,6 +87,8 @@ const
   ieBreakpointFile   = 'FileName';
   ieBreakpointLine   = 'LineNumber';
   ieBreakpointCond   = 'Condition';
+  ieWatchCount       = 'Count';
+  ieWatchName        = 'Watch';
   ieSourceList       = 'SourceList';
   ieVideoMode        = 'VideoMode';
   ieAutoSave         = 'AutoSaveFlags';
@@ -144,6 +147,19 @@ begin
 end;
 
 {$ifndef NODEBUG}
+procedure WriteOneWatchEntry(I : Longint;INIFile : PINIFile);
+var
+  PW : PWatch;
+  S  : String;
+begin
+  Str(I,S);
+  PW:=WatchesCollection^.At(I);
+  With PW^ do
+    begin
+      INIFile^.SetEntry(secWatches,ieWatchName+S,GetStr(expr));
+    end;
+end;
+
 procedure WriteOneBreakPointEntry(I : longint;INIFile : PINIFile);
 var PB : PBreakpoint;
     S : String;
@@ -165,6 +181,16 @@ begin
       if assigned(Conditions) then
         INIFile^.SetEntry(secBreakpoint,ieBreakpointCond+S,Conditions^);
     end;
+end;
+
+procedure ReadOneWatchEntry(I : Longint;INIFile : PINIFile);
+var
+  PW : PWatch;
+  S  : String;
+begin
+  Str(I,S);
+  PW:=new(PWatch,Init(INIFile^.GetEntry(secWatches,ieWatchName+S,'')));
+  WatchesCollection^.Insert(PW);
 end;
 
 procedure ReadOneBreakPointEntry(i : longint;INIFile : PINIFile);
@@ -218,7 +244,7 @@ var INIFile: PINIFile;
     S,PS,S1,S2,S3: string;
     I,P: integer;
     X,Y : sw_integer;
-    BreakPointCount:longint;
+    BreakPointCount,WatchesCount:longint;
     OK: boolean;
     ts : TSwitchMode;
     W: word;
@@ -288,6 +314,9 @@ begin
   BreakpointCount:=INIFile^.GetIntEntry(secBreakpoint,ieBreakpointCount,0);
   for i:=1 to BreakpointCount do
     ReadOneBreakPointEntry(i-1,INIFile);
+  WatchesCount:=INIFile^.GetIntEntry(secWatches,ieWatchCount,0);
+  for i:=1 to WatchesCount do
+    ReadOneWatchEntry(i-1,INIFile);
 {$endif}
   { Tools }
   for I:=1 to MaxToolCount do
@@ -366,7 +395,7 @@ var INIFile: PINIFile;
     R : TRect;
     S1,S2,S3: string;
     W: word;
-    BreakPointCount:longint;
+    BreakPointCount,WatchesCount:longint;
     I(*,OpenFileCount*): integer;
     OK: boolean;
     PW,PPW : PSourceWindow;
@@ -451,6 +480,10 @@ begin
   INIFile^.SetIntEntry(secBreakpoint,ieBreakpointCount,BreakpointCount);
   for i:=1 to BreakpointCount do
     WriteOneBreakPointEntry(I-1,INIFile);
+  WatchesCount:=WatchesCollection^.Count;
+  INIFile^.SetIntEntry(secWatches,ieWatchCount,WatchesCount);
+  for i:=1 to WatchesCount do
+    WriteOneWatchEntry(I-1,INIFile);
 {$endif}
   { Tools }
   INIFile^.DeleteSection(secTools);
@@ -494,7 +527,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  1999-08-03 20:22:33  peter
+  Revision 1.22  1999-09-07 09:21:54  pierre
+   + Watches saved
+
+  Revision 1.21  1999/08/03 20:22:33  peter
     + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
     + Desktop saving should work now
        - History saved
