@@ -300,10 +300,7 @@ unit cgx86;
       const
         regsize_2_cgsize: array[S_B..S_L] of tcgsize = (OS_8,OS_16,OS_32);
       begin
-        if reg.enum>lastreg then
-          internalerror(200301081);
-        if (reg.enum = R_INTREGISTER) then
-          result := regsize_2_cgsize[subreg2opsize[reg.number and $ff]];
+        result := regsize_2_cgsize[reg2opsize(reg)];
       end;
 
 
@@ -473,7 +470,7 @@ unit cgx86;
       begin
         if reg.enum<>R_INTREGISTER then
           internalerror(200302058);
-        o:=subreg2opsize[reg.number and $ff];
+        o:=reg2opsize(reg);
         sizes2load(size,o,op,s);
         list.concat(taicpu.op_ref_reg(op,s,ref,reg));
       end;
@@ -489,7 +486,7 @@ unit cgx86;
       begin
         if (reg1.enum=R_INTREGISTER) and (reg2.enum=R_INTREGISTER) then
           begin
-            sizes2load(fromsize,subreg2opsize[reg2.number and $ff],op,s);
+            sizes2load(fromsize,reg2opsize(reg2),op,s);
             eq:=(reg1.number shr 8)=(reg2.number shr 8);
           end
         else
@@ -505,12 +502,12 @@ unit cgx86;
               case fromsize of
                 OS_8:
                   begin
-                    list.concat(taicpu.op_const_reg(A_AND,subreg2opsize[reg2.number and $ff],255,reg2));
+                    list.concat(taicpu.op_const_reg(A_AND,reg2opsize(reg2),255,reg2));
                     exit;
                   end;
                 OS_16:
                   begin
-                    list.concat(taicpu.op_const_reg(A_AND,subreg2opsize[reg2.number and $ff],65535,reg2));
+                    list.concat(taicpu.op_const_reg(A_AND,reg2opsize(reg2),65535,reg2));
                     exit;
                   end;
               end;
@@ -639,7 +636,7 @@ unit cgx86;
                     OP_IDIV:
                       opcode := A_SAR;
                   end;
-                  list.concat(taicpu.op_const_reg(opcode,subreg2opsize[reg.number and $ff],
+                  list.concat(taicpu.op_const_reg(opcode,reg2opsize(reg),
                     power,reg));
                   exit;
                 end;
@@ -652,12 +649,12 @@ unit cgx86;
               if not(cs_check_overflow in aktlocalswitches) and
                  ispowerof2(a,power) then
                 begin
-                  list.concat(taicpu.op_const_reg(A_SHL,subreg2opsize[reg.number and $ff],
+                  list.concat(taicpu.op_const_reg(A_SHL,reg2opsize(reg),
                     power,reg));
                   exit;
                 end;
               if op = OP_IMUL then
-                list.concat(taicpu.op_const_reg(A_IMUL,subreg2opsize[reg.number and $ff],
+                list.concat(taicpu.op_const_reg(A_IMUL,reg2opsize(reg),
                   a,reg))
               else
                 { OP_MUL should be handled specifically in the code        }
@@ -669,14 +666,14 @@ unit cgx86;
                (a = 1) and
                (op in [OP_ADD,OP_SUB]) then
               if op = OP_ADD then
-                list.concat(taicpu.op_reg(A_INC,subreg2opsize[reg.number and $ff],reg))
+                list.concat(taicpu.op_reg(A_INC,reg2opsize(reg),reg))
               else
-                list.concat(taicpu.op_reg(A_DEC,subreg2opsize[reg.number and $ff],reg))
+                list.concat(taicpu.op_reg(A_DEC,reg2opsize(reg),reg))
             else if (a = 0) then
               if (op <> OP_AND) then
                 exit
               else
-                list.concat(taicpu.op_const_reg(A_MOV,subreg2opsize[reg.number and $ff],0,reg))
+                list.concat(taicpu.op_const_reg(A_MOV,reg2opsize(reg),0,reg))
             else if (a = high(aword)) and
                     (op in [OP_AND,OP_OR,OP_XOR]) then
                    begin
@@ -684,19 +681,19 @@ unit cgx86;
                        OP_AND:
                          exit;
                        OP_OR:
-                         list.concat(taicpu.op_const_reg(A_MOV,subreg2opsize[reg.number and $ff],high(aword),reg));
+                         list.concat(taicpu.op_const_reg(A_MOV,reg2opsize(reg),high(aword),reg));
                        OP_XOR:
-                         list.concat(taicpu.op_reg(A_NOT,subreg2opsize[reg.number and $ff],reg));
+                         list.concat(taicpu.op_reg(A_NOT,reg2opsize(reg),reg));
                      end
                    end
             else
-              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],subreg2opsize[reg.number and $ff],
+              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],reg2opsize(reg),
                 a,reg));
           OP_SHL,OP_SHR,OP_SAR:
             begin
               if (a and 31) <> 0 Then
                 list.concat(taicpu.op_const_reg(
-                  TOpCG2AsmOp[op],subreg2opsize[reg.number and $ff],a and 31,reg));
+                  TOpCG2AsmOp[op],reg2opsize(reg),a and 31,reg));
               if (a shr 5) <> 0 Then
                 internalerror(68991);
             end
@@ -879,7 +876,7 @@ unit cgx86;
               end;
             else
               begin
-                if subreg2opsize[src.number and $ff] <> dstsize then
+                if reg2opsize(src) <> dstsize then
                   internalerror(200109226);
                 list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],dstsize,
                   src,dst));
@@ -952,7 +949,7 @@ unit cgx86;
           internalerror(200302057);
         if dst.enum<>R_INTREGISTER then
           internalerror(200302057);
-        opsize := subreg2opsize[src.number and $ff];
+        opsize := reg2opsize(src);
         if (opsize <> S_L) or
            not (size in [OS_32,OS_S32]) then
           begin
@@ -1004,9 +1001,9 @@ unit cgx86;
           internalerror(200201081);
         if dst.enum>lastreg then
           internalerror(200201081);
-        opsize := subreg2opsize[src1.number and $ff];
+        opsize := reg2opsize(src1);
         if (opsize <> S_L) or
-           (subreg2opsize[src2.number and $ff] <> S_L) or
+           (reg2opsize(src2) <> S_L) or
            not (size in [OS_32,OS_S32]) then
           begin
             inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
@@ -1041,9 +1038,9 @@ unit cgx86;
           if reg.enum=R_INTREGISTER then
             begin
               if (a = 0) then
-                list.concat(taicpu.op_reg_reg(A_TEST,subreg2opsize[reg.number and $ff],reg,reg))
+                list.concat(taicpu.op_reg_reg(A_TEST,reg2opsize(reg),reg,reg))
               else
-                list.concat(taicpu.op_const_reg(A_CMP,subreg2opsize[reg.number and $ff],a,reg));
+                list.concat(taicpu.op_const_reg(A_CMP,reg2opsize(reg),a,reg));
             end
           else
             internalerror(200303131);
@@ -1067,9 +1064,9 @@ unit cgx86;
             internalerror(200101081);
           if reg2.enum<>R_INTREGISTER then
             internalerror(200101081);
-          if subreg2opsize[reg1.number and $ff] <> subreg2opsize[reg2.number and $ff] then
+          if reg2opsize(reg1) <> reg2opsize(reg2) then
             internalerror(200109226);
-          list.concat(taicpu.op_reg_reg(A_CMP,subreg2opsize[reg1.number and $ff],reg1,reg2));
+          list.concat(taicpu.op_reg_reg(A_CMP,reg2opsize(reg1),reg1,reg2));
           a_jmp_cond(list,cmp_op,l);
         end;
 
@@ -1921,7 +1918,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.35  2003-03-13 19:52:23  jonas
+  Revision 1.36  2003-03-18 18:17:46  peter
+    * reg2opsize()
+
+  Revision 1.35  2003/03/13 19:52:23  jonas
     * and more new register allocator fixes (in the i386 code generator this
       time). At least now the ppc cross compiler can compile the linux
       system unit again, but I haven't tested it.
