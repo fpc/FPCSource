@@ -248,32 +248,43 @@ implementation
          regi : tregister;
          store_valid, old_count_ref : boolean;
 
-      { types.is_equal can't handle a formaldef ! }
-      function is_equal(def1,def2 : pdef) : boolean;
+      { check if the resulttype from tree p is equal with def, needed
+        for stringconstn and formaldef }
+      function is_equal(p:ptree;def:pdef) : boolean;
 
         begin
            { safety check }
-           if not (assigned(def1) or assigned(def2)) then
+           if not (assigned(def) or assigned(p^.resulttype)) then
             begin
               is_equal:=false;
               exit;
             end;
            { all types can be passed to a formaldef }
-           is_equal:=(def1^.deftype=formaldef) or
-             (types.is_equal(def1,def2))
+           is_equal:=(def^.deftype=formaldef) or
+             (types.is_equal(p^.resulttype,def))
            { to support ansi/long/wide strings in a proper way }
            { string and string[10] are assumed as equal        }
            { when searching the correct overloaded procedure   }
              or
              (
-              (def1^.deftype=stringdef) and (def2^.deftype=stringdef) and
-              (pstringdef(def1)^.string_typ=pstringdef(def2)^.string_typ)
+              (def^.deftype=stringdef) and (p^.resulttype^.deftype=stringdef) and
+              (pstringdef(def)^.string_typ=pstringdef(p^.resulttype)^.string_typ)
+             )
+             or
+             (
+              (p^.left^.treetype=stringconstn) and
+              (is_ansistring(p^.resulttype) and is_pchar(def))
+             )
+             or
+             (
+              (p^.left^.treetype=ordconstn) and
+              (is_char(p^.resulttype) and (is_shortstring(def) or is_ansistring(def)))
              )
            { set can also be a not yet converted array constructor }
              or
              (
-              (def1^.deftype=setdef) and (def2^.deftype=arraydef) and
-              (parraydef(def2)^.IsConstructor) and not(parraydef(def2)^.IsVariant)
+              (def^.deftype=setdef) and (p^.resulttype^.deftype=arraydef) and
+              (parraydef(p^.resulttype)^.IsConstructor) and not(parraydef(p^.resulttype)^.IsVariant)
              )
              ;
         end;
@@ -483,7 +494,7 @@ implementation
                         hp:=procs;
                         while assigned(hp) do
                           begin
-                             if is_equal(hp^.nextpara^.data,pt^.resulttype) then
+                             if is_equal(pt,hp^.nextpara^.data) then
                                begin
                                   if hp^.nextpara^.data=pt^.resulttype then
                                     begin
@@ -503,7 +514,7 @@ implementation
                         if exactmatch then
                           begin
                              { the first .... }
-                             while (assigned(procs)) and not(is_equal(procs^.nextpara^.data,pt^.resulttype)) do
+                             while (assigned(procs)) and not(is_equal(pt,procs^.nextpara^.data)) do
                                begin
                                   hp:=procs^.next;
                                   dispose(procs);
@@ -513,7 +524,7 @@ implementation
                              hp:=procs;
                              while (assigned(hp)) and assigned(hp^.next) do
                                begin
-                                  if not(is_equal(hp^.next^.nextpara^.data,pt^.resulttype)) then
+                                  if not(is_equal(pt,hp^.next^.nextpara^.data)) then
                                     begin
                                        hp2:=hp^.next^.next;
                                        dispose(hp^.next);
@@ -611,7 +622,7 @@ implementation
                              hp:=procs;
                              while assigned(hp) do
                                begin
-                                  if not is_equal(hp^.nextpara^.data,pt^.resulttype) then
+                                  if not is_equal(pt,hp^.nextpara^.data) then
                                     begin
                                        def_to:=hp^.nextpara^.data;
                                        if ((def_from^.deftype=orddef) and (def_to^.deftype=orddef)) and
@@ -673,25 +684,40 @@ implementation
                              pt:=pt^.right;
                           end;
                      end;
+
+                   { reset nextpara for all procs left }
+                   hp:=procs;
+                   while assigned(hp) do
+                    begin
+                      hp^.nextpara:=hp^.firstpara;
+                      hp:=hp^.next;
+                    end;
+
                    { let's try to eliminate equal is exact is there }
-                   {if assigned(procs^.next) then
+                   if assigned(procs^.next) then
                      begin
                         pt:=p^.left;
                         while assigned(pt) do
                           begin
                              if pt^.exact_match_found then
                                begin
-                                  hp:=procs;
-                                  while (assigned(procs)) and (procs^.nextpara^.data<>pt^.resulttype) do
-                                    begin
-                                       hp:=procs^.next;
-                                       dispose(procs);
-                                       procs:=hp;
-                                    end;
+                                 while assigned(procs) and (procs^.nextpara^.data<>pt^.resulttype) do
+                                   begin
+                                      hp:=procs^.next;
+                                      dispose(procs);
+                                      procs:=hp;
+                                   end;
+                               end;
+                             { update nextpara for all procedures }
+                             hp:=procs;
+                             while assigned(hp) do
+                               begin
+                                  hp^.nextpara:=hp^.nextpara^.next;
+                                  hp:=hp^.next;
                                end;
                              pt:=pt^.right;
                           end;
-                     end; }
+                     end;
 
                    if assigned(procs^.next) then
                      begin
@@ -941,7 +967,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-11-10 10:09:17  peter
+  Revision 1.12  1998-11-16 10:18:10  peter
+    * fixes for ansistrings
+
+  Revision 1.11  1998/11/10 10:09:17  peter
     * va_list -> array of const
 
   Revision 1.10  1998/11/09 11:44:41  peter

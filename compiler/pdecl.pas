@@ -559,27 +559,19 @@ unit pdecl;
               consume(RECKKLAMMER);
               if p^.value>255 then
                 d:=new(pstringdef,longinit(p^.value))
-              else if p^.value<>255 then
-                d:=new(pstringdef,shortinit(p^.value))
-{$ifndef GDB}
-                 else d:=new(pstringdef,shortinit(255));
-{$else GDB}
-                 else d:=globaldef('STRING');
-{$endif GDB}
+              else
+                if p^.value<>255 then
+                  d:=new(pstringdef,shortinit(p^.value))
+              else
+                d:=cshortstringdef;
               disposetree(p);
            end
-           { should string without suffix be an ansistring also
-             in ansistring mode ?? (PM) Yes!!! (FK) }
           else
             begin
                if cs_ansistrings in aktlocalswitches then
-                 d:=new(pstringdef,ansiinit(0))
+                 d:=cansistringdef
                else
-{$ifndef GDB}
-                 d:=new(pstringdef,shortinit(255));
-{$else GDB}
-                 d:=globaldef('STRING');
-{$endif GDB}
+                 d:=cshortstringdef;
             end;
           stringtype:=d;
        end;
@@ -2094,7 +2086,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.81  1998-11-13 15:40:22  pierre
+  Revision 1.82  1998-11-16 10:18:07  peter
+    * fixes for ansistrings
+
+  Revision 1.81  1998/11/13 15:40:22  pierre
     + added -Se in Makefile cvstest target
     + lexlevel cleanup
       normal_function_level main_program_level and unit_init_level defined

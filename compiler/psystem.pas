@@ -69,9 +69,8 @@ procedure insert_intern_types(p : psymtable);
 {
   all the types inserted into the system unit
 }
-var
-  booleandef  : pdef;
 {$ifdef GDB}
+var
   { several defs to simulate more or less C++ objects for GDB }
   vmtdef      : precdef;
   pvmtdef     : ppointerdef;
@@ -100,9 +99,9 @@ begin
   p^.insert(new(ptypesym,init('char_pointer',charpointerdef)));
   p^.insert(new(ptypesym,init('file',cfiledef)));
 {$ifdef i386}
-  p^.insert(new(ptypesym,init('REAL',new(pfloatdef,init(s64real)))));
+  p^.insert(new(ptypesym,init('REAL',c64floatdef)));
+  p^.insert(new(ptypesym,init('EXTENDED',s80floatdef)));
   p^.insert(new(ptypesym,init('COMP',new(pfloatdef,init(s64bit)))));
-  p^.insert(new(ptypesym,init('EXTENDED',new(pfloatdef,init(s80real)))));
 {$endif}
 {$ifdef m68k}
   { internal definitions }
@@ -112,40 +111,33 @@ begin
   if (cs_fp_emulation) in aktmoduleswitches then
     p^.insert(new(ptypesym,init('DOUBLE',new(pfloatdef,init(s32real)))))
   else
-    p^.insert(new(ptypesym,init('DOUBLE',new(pfloatdef,init(s64real)))));
+    p^.insert(new(ptypesym,init('DOUBLE',c64floatdef)));
   if (cs_fp_emulation) in aktmoduleswitches then
     p^.insert(new(ptypesym,init('EXTENDED',new(pfloatdef,init(s32real)))))
   else
-    p^.insert(new(ptypesym,init('EXTENDED',new(pfloatdef,init(s80real)))));
+    p^.insert(new(ptypesym,init('EXTENDED',s80floatdef)));
 {  p^.insert(new(ptypesym,init('COMP',new(pfloatdef,init(s32real)))));}
 {$endif}
   p^.insert(new(ptypesym,init('SINGLE',new(pfloatdef,init(s32real)))));
-  p^.insert(new(ptypesym,init('POINTER',new(ppointerdef,init(voiddef)))));
+  p^.insert(new(ptypesym,init('POINTER',voidpointerdef)));
   p^.insert(new(ptypesym,init('STRING',cshortstringdef)));
   p^.insert(new(ptypesym,init('SHORTSTRING',cshortstringdef)));
   p^.insert(new(ptypesym,init('LONGSTRING',clongstringdef)));
   p^.insert(new(ptypesym,init('ANSISTRING',cansistringdef)));
   p^.insert(new(ptypesym,init('WIDESTRING',cwidestringdef)));
-  booleandef:=new(porddef,init(bool8bit,0,1));
-  p^.insert(new(ptypesym,init('BOOLEAN',booleandef)));
-  p^.insert(new(ptypesym,init('BYTEBOOL',booleandef)));
+  p^.insert(new(ptypesym,init('BOOLEAN',booldef)));
+  p^.insert(new(ptypesym,init('BYTEBOOL',booldef)));
   p^.insert(new(ptypesym,init('WORDBOOL',new(porddef,init(bool16bit,0,1)))));
   p^.insert(new(ptypesym,init('LONGBOOL',new(porddef,init(bool32bit,0,1)))));
-  p^.insert(new(ptypesym,init('CHAR',new(porddef,init(uchar,0,255)))));
+  p^.insert(new(ptypesym,init('CHAR',cchardef)));
   p^.insert(new(ptypesym,init('TEXT',new(pfiledef,init(ft_text,nil)))));
-  p^.insert(new(ptypesym,init('CARDINAL',new(porddef,init(u32bit,0,$ffffffff)))));
+  p^.insert(new(ptypesym,init('CARDINAL',u32bitdef)));
   p^.insert(new(ptypesym,init('FIXED',new(pfloatdef,init(f32bit)))));
   p^.insert(new(ptypesym,init('FIXED16',new(pfloatdef,init(f16bit)))));
   p^.insert(new(ptypesym,init('TYPEDFILE',new(pfiledef,init(ft_typed,voiddef)))));
-  { !!!!!
-  p^.insert(new(ptypesym,init('COMP',new(porddef,init(s64bit,0,0)))));
-  p^.insert(new(ptypesym,init('SINGLE',new(porddef,init(s32real,0,0)))));
-  p^.insert(new(ptypesym,init('EXTENDED',new(porddef,init(s80real,0,0)))));
-  p^.insert(new(ptypesym,init('FILE',new(pfiledef,init(ft_untyped,nil)))));
-  }
+{$ifdef GDB}
   { Add a type for virtual method tables in lowercase }
   { so it isn't reachable!                            }
-{$ifdef GDB}
   vmtsymtable:=new(psymtable,init(recordsymtable));
   vmtdef:=new(precdef,init(vmtsymtable));
   pvmtdef:=new(ppointerdef,init(vmtdef));
@@ -240,7 +232,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1998-11-09 11:44:36  peter
+  Revision 1.11  1998-11-16 10:18:09  peter
+    * fixes for ansistrings
+
+  Revision 1.10  1998/11/09 11:44:36  peter
     + va_list for printf support
 
   Revision 1.9  1998/11/05 12:02:54  peter
