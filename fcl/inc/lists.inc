@@ -344,28 +344,48 @@ end;
 
 
 constructor TThreadList.Create;
-
 begin
+inherited Create;
+//InitializeCriticalSection(FLock);
+FList := TList.Create;
 end;
 
 
 
 destructor TThreadList.Destroy;
-
 begin
+  LockList;
+  try
+    FList.Free;
+    inherited Destroy;
+  finally
+    UnlockList;
+  end;
 end;
 
 
 
 procedure TThreadList.Add(Item: Pointer);
-
 begin
+  Locklist;
+  try
+    //make sure it's not already in the list
+    if FList.indexof(Item) = -1 then
+       FList.Add(Item);
+  finally
+  UnlockList;
+  end;
 end;
 
 
 procedure TThreadList.Clear;
-
 begin
+  Locklist;
+  try
+    FList.Clear;
+  finally
+    UnLockList;
+  end;
 end;
 
 
@@ -374,28 +394,35 @@ function TThreadList.LockList: TList;
 
 
 begin
-  LockList:=nil;
+  Result := FList;
 end;
 
 
 
 procedure TThreadList.Remove(Item: Pointer);
-
-
 begin
+  LockList;
+  try
+    FList.Remove(Item);
+  finally
+    UnlockList;
+  end;
 end;
 
 
 
 procedure TThreadList.UnlockList;
-
 begin
+
 end;
 
 
 {
   $Log$
-  Revision 1.11  2000-03-20 14:30:03  pierre
+  Revision 1.12  2000-06-27 15:55:19  lazarus
+  Added TThreadlist code.   Shane
+
+  Revision 1.11  2000/03/20 14:30:03  pierre
    * fix of 877
 
   Revision 1.10  2000/01/07 01:24:33  peter

@@ -34,20 +34,29 @@ implementation
 uses
   linux;
 
+var
+ClassList : TThreadlist;
+
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
 
 
 initialization
+ClassList := TThreadList.Create;
 
 finalization
-  if ThreadsInited then
+ClassList.Free;
+
+if ThreadsInited then
    DoneThreads;
 
 end.
 {
   $Log$
-  Revision 1.15  2000-01-07 01:24:34  peter
+  Revision 1.16  2000-06-27 15:55:19  lazarus
+  Added TThreadlist code.   Shane
+
+  Revision 1.15  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.14  2000/01/07 00:01:33  peter
