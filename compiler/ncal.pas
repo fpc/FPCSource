@@ -121,7 +121,10 @@ interface
 
        tcallparanode = class(tbinarynode)
           callparaflags : set of tcallparaflags;
+          paraitem : tparaitem;
+{$ifndef VS_HIDDEN}
           hightree : tnode;
+{$endif VS_HIDDEN}
           { only the processor specific nodes need to override this }
           { constructor                                             }
           constructor create(expr,next : tnode);virtual;
@@ -135,9 +138,8 @@ interface
           procedure get_paratype;
           procedure insert_typeconv(defcoll : tparaitem;do_count : boolean);
           procedure det_registers;
-          procedure firstcallparan(defcoll : tparaitem;do_count : boolean);
-          procedure secondcallparan(defcoll : TParaItem;
-                push_from_left_to_right:boolean;calloption:tproccalloption;
+          procedure firstcallparan(do_count : boolean);
+          procedure secondcallparan(push_from_left_to_right:boolean;calloption:tproccalloption;
                 para_alignment,para_offset : longint);virtual;abstract;
           function docompare(p: tnode): boolean; override;
        end;
@@ -495,6 +497,7 @@ type
            n.hightree:=hightree.getcopy
          else
            n.hightree:=nil;
+         n.paraitem:=paraitem;
          result:=n;
       end;
 
@@ -535,6 +538,8 @@ type
 {$endif def extdebug}
       begin
          inc(parsing_para_level);
+
+         paraitem:=defcoll;
 
          if not assigned(defcoll) then
            internalerror(200104261);
@@ -631,7 +636,7 @@ type
                  if (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
                     (left.nodetype in [vecn,loadn,calln]) then
                    begin
-                      if (left.resulttype.def.size > defcoll.paratype.def.size) then
+                      if (left.resulttype.def.size>defcoll.paratype.def.size) then
                         begin
                           if (cs_check_range in aktlocalswitches) then
                              Message(type_w_smaller_possible_range_check)
@@ -756,13 +761,15 @@ type
       end;
 
 
-    procedure tcallparanode.firstcallparan(defcoll : tparaitem;do_count : boolean);
+    procedure tcallparanode.firstcallparan(do_count : boolean);
       begin
         if not assigned(left.resulttype.def) then
          begin
            get_paratype;
+           {
            if assigned(defcoll) then
             insert_typeconv(defcoll,do_count);
+           }
          end;
         det_registers;
       end;
@@ -2107,26 +2114,26 @@ type
         oldprocinfo : tprocinfo;
         oldinlining_procedure : boolean;
       begin
-         result:=nil;
-         oldinlining_procedure:=inlining_procedure;
-         oldprocdef:=aktprocdef;
-         oldprocinfo:=procinfo;
-         { we're inlining a procedure }
-         inlining_procedure:=true;
-         aktprocdef:=inlineprocdef;
+        result:=nil;
+        oldinlining_procedure:=inlining_procedure;
+        oldprocdef:=aktprocdef;
+        oldprocinfo:=procinfo;
+        { we're inlining a procedure }
+        inlining_procedure:=true;
+        aktprocdef:=inlineprocdef;
 
-         { clone procinfo, but not the asmlists }
-         procinfo:=tprocinfo(cprocinfo.newinstance);
-         move(pointer(oldprocinfo)^,pointer(procinfo)^,cprocinfo.InstanceSize);
-         procinfo.aktentrycode:=nil;
-         procinfo.aktexitcode:=nil;
-         procinfo.aktproccode:=nil;
-         procinfo.aktlocaldata:=nil;
+        { clone procinfo, but not the asmlists }
+        procinfo:=tprocinfo(cprocinfo.newinstance);
+        move(pointer(oldprocinfo)^,pointer(procinfo)^,cprocinfo.InstanceSize);
+        procinfo.aktentrycode:=nil;
+        procinfo.aktexitcode:=nil;
+        procinfo.aktproccode:=nil;
+        procinfo.aktlocaldata:=nil;
 
-         { set new procinfo }
-         procinfo.return_offset:=retoffset;
-         procinfo.para_offset:=para_offset;
-         procinfo.no_fast_exit:=false;
+        { set new procinfo }
+        procinfo.return_offset:=retoffset;
+        procinfo.para_offset:=para_offset;
+        procinfo.no_fast_exit:=false;
 
         { set it to the same lexical level }
         storesymtablelevel:=aktprocdef.localst.symtablelevel;
@@ -2136,27 +2143,27 @@ type
         aktprocdef.localst.symtabletype:=inlinelocalsymtable;
         aktprocdef.parast.symtabletype:=inlineparasymtable;
 
-                                                { pass inlinetree }
-         resulttypepass(inlinetree);
-         resulttype:=inlineprocdef.rettype;
+        { pass inlinetree }
+        resulttypepass(inlinetree);
+        resulttype:=inlineprocdef.rettype;
 
-         { retrieve info from inlineprocdef }
-         retoffset:=-POINTER_SIZE; { less dangerous as zero (PM) }
-         para_offset:=0;
-         para_size:=inlineprocdef.para_size(target_info.alignment.paraalign);
-         if paramanager.ret_in_param(inlineprocdef.rettype.def,inlineprocdef.proccalloption) then
-           inc(para_size,POINTER_SIZE);
+        { retrieve info from inlineprocdef }
+        retoffset:=-POINTER_SIZE; { less dangerous as zero (PM) }
+        para_offset:=0;
+        para_size:=inlineprocdef.para_size(target_info.alignment.paraalign);
+        if paramanager.ret_in_param(inlineprocdef.rettype.def,inlineprocdef.proccalloption) then
+          inc(para_size,POINTER_SIZE);
 
-         { restore procinfo }
-         procinfo.free;
-         procinfo:=oldprocinfo;
-         { restore symtable }
-         aktprocdef.localst.symtablelevel:=storesymtablelevel;
-         aktprocdef.localst.symtabletype:=storelocalsymtable;
-         aktprocdef.parast.symtabletype:=storeparasymtable;
-         { restore }
-         aktprocdef:=oldprocdef;
-         inlining_procedure:=oldinlining_procedure;
+        { restore procinfo }
+        procinfo.free;
+        procinfo:=oldprocinfo;
+        { restore symtable }
+        aktprocdef.localst.symtablelevel:=storesymtablelevel;
+        aktprocdef.localst.symtabletype:=storelocalsymtable;
+        aktprocdef.parast.symtabletype:=storeparasymtable;
+        { restore }
+        aktprocdef:=oldprocdef;
+        inlining_procedure:=oldinlining_procedure;
       end;
 
 
@@ -2187,7 +2194,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.119  2002-12-15 20:59:58  peter
+  Revision 1.120  2002-12-15 21:30:12  florian
+    * tcallnode.paraitem introduced, all references to defcoll removed
+
+  Revision 1.119  2002/12/15 20:59:58  peter
     * fix crash with default parameters
 
   Revision 1.118  2002/12/15 11:26:02  peter

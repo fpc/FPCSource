@@ -35,8 +35,7 @@ interface
 
     type
        ti386callparanode = class(tcallparanode)
-          procedure secondcallparan(defcoll : TParaItem;
-                push_from_left_to_right:boolean;calloption:tproccalloption;
+          procedure secondcallparan(push_from_left_to_right:boolean;calloption:tproccalloption;
                 para_alignment,para_offset : longint);override;
        end;
 
@@ -69,14 +68,13 @@ implementation
                              TI386CALLPARANODE
 *****************************************************************************}
 
-    procedure ti386callparanode.secondcallparan(defcoll : TParaItem;
-                push_from_left_to_right:boolean;calloption:tproccalloption;para_alignment,para_offset : longint);
+    procedure ti386callparanode.secondcallparan(push_from_left_to_right:boolean;calloption:tproccalloption;para_alignment,para_offset : longint);
 
       procedure maybe_push_high;
         begin
            { open array ? }
-           { defcoll.data can be nil for read/write }
-           if assigned(defcoll.paratype.def) and
+           { paraitem.data can be nil for read/write }
+           if assigned(paraitem.paratype.def) and
               assigned(hightree) then
             begin
               secondpass(hightree);
@@ -101,10 +99,10 @@ implementation
          if push_from_left_to_right and assigned(right) then
           begin
             if (nf_varargs_para in flags) then
-              tcallparanode(right).secondcallparan(defcoll,push_from_left_to_right,
+              tcallparanode(right).secondcallparan(push_from_left_to_right,
                                                    calloption,para_alignment,para_offset)
             else
-              tcallparanode(right).secondcallparan(TParaItem(defcoll.next),push_from_left_to_right,
+              tcallparanode(right).secondcallparan(push_from_left_to_right,
                                                    calloption,para_alignment,para_offset);
           end;
 
@@ -113,7 +111,7 @@ implementation
          objectlibrary.getlabel(truelabel);
          objectlibrary.getlabel(falselabel);
          secondpass(left);
-         { handle varargs first, because defcoll is not valid }
+         { handle varargs first, because paraitem is not valid }
          if (nf_varargs_para in flags) then
            begin
              if paramanager.push_addr_param(left.resulttype.def,calloption) then
@@ -130,12 +128,12 @@ implementation
            begin
              { nothing, everything is already pushed }
            end
-         { in codegen.handleread.. defcoll.data is set to nil }
-         else if assigned(defcoll.paratype.def) and
-                 (defcoll.paratype.def.deftype=formaldef) then
+         { in codegen.handleread.. paraitem.data is set to nil }
+         else if assigned(paraitem.paratype.def) and
+                 (paraitem.paratype.def.deftype=formaldef) then
            begin
               { allow passing of a constant to a const formaldef }
-              if (defcoll.paratyp=vs_const) and
+              if (paraitem.paratyp=vs_const) and
                  (left.location.loc=LOC_CONSTANT) then
                 location_force_mem(exprasmlist,left.location);
 
@@ -174,7 +172,7 @@ implementation
                 end;
            end
          { handle call by reference parameter }
-         else if (defcoll.paratyp in [vs_var,vs_out]) then
+         else if (paraitem.paratyp in [vs_var,vs_out]) then
            begin
               if (left.location.loc<>LOC_REFERENCE) then
                begin
@@ -188,11 +186,11 @@ implementation
               if not push_from_left_to_right then
 {$endif unused}
                 maybe_push_high;
-              if (defcoll.paratyp=vs_out) and
-                 assigned(defcoll.paratype.def) and
-                 not is_class(defcoll.paratype.def) and
-                 defcoll.paratype.def.needs_inittable then
-                cg.g_finalize(exprasmlist,defcoll.paratype.def,left.location.reference,false);
+              if (paraitem.paratyp=vs_out) and
+                 assigned(paraitem.paratype.def) and
+                 not is_class(paraitem.paratype.def) and
+                 paraitem.paratype.def.needs_inittable then
+                cg.g_finalize(exprasmlist,paraitem.paratype.def,left.location.reference,false);
               inc(pushedparasize,4);
               if calloption=pocall_inline then
                 begin
@@ -218,9 +216,9 @@ implementation
               { open array must always push the address, this is needed to
                 also push addr of small open arrays and with cdecl functions (PFV) }
               if (
-                  assigned(defcoll.paratype.def) and
-                  (is_open_array(defcoll.paratype.def) or
-                   is_array_of_const(defcoll.paratype.def))
+                  assigned(paraitem.paratype.def) and
+                  (is_open_array(paraitem.paratype.def) or
+                   is_array_of_const(paraitem.paratype.def))
                  ) or
                  (
                   paramanager.push_addr_param(resulttype.def,calloption)
@@ -275,10 +273,10 @@ implementation
          if not push_from_left_to_right and assigned(right) then
           begin
             if (nf_varargs_para in flags) then
-              tcallparanode(right).secondcallparan(defcoll,push_from_left_to_right,
+              tcallparanode(right).secondcallparan(push_from_left_to_right,
                                                    calloption,para_alignment,para_offset)
             else
-              tcallparanode(right).secondcallparan(TParaItem(defcoll.next),push_from_left_to_right,
+              tcallparanode(right).secondcallparan(push_from_left_to_right,
                                                    calloption,para_alignment,para_offset);
           end;
       end;
@@ -514,11 +512,13 @@ implementation
                 para_offset:=0;
               if not(inlined) and
                  assigned(right) then
-                tcallparanode(params).secondcallparan(TParaItem(tabstractprocdef(right.resulttype.def).Para.first),
+                tcallparanode(params).secondcallparan(
+                { TParaItem(tabstractprocdef(right.resulttype.def).Para.first), }
                   (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
                   para_alignment,para_offset)
               else
-                tcallparanode(params).secondcallparan(TParaItem(procdefinition.Para.first),
+                tcallparanode(params).secondcallparan(
+                  { TParaItem(procdefinition.Para.first), }
                   (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
                   para_alignment,para_offset);
            end;
@@ -1250,7 +1250,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2002-11-27 20:05:06  peter
+  Revision 1.78  2002-12-15 21:30:12  florian
+    * tcallnode.paraitem introduced, all references to defcoll removed
+
+  Revision 1.77  2002/11/27 20:05:06  peter
     * cdecl array of const fixes
 
   Revision 1.76  2002/11/25 17:43:26  peter

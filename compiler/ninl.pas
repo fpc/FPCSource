@@ -1982,7 +1982,7 @@ implementation
          if assigned(left) then
            begin
               if left.nodetype=callparan then
-                tcallparanode(left).firstcallparan(nil,false)
+                tcallparanode(left).firstcallparan(false)
               else
                 firstpass(left);
               left_max;
@@ -2399,7 +2399,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.101  2002-11-27 20:04:39  peter
+  Revision 1.102  2002-12-15 21:30:12  florian
+    * tcallnode.paraitem introduced, all references to defcoll removed
+
+  Revision 1.101  2002/11/27 20:04:39  peter
     * cdecl array of const fixes
 
   Revision 1.100  2002/11/27 15:33:47  peter
