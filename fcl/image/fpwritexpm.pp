@@ -87,7 +87,7 @@ begin
     l.add (format('"%d %d %d %d",',[img.width,img.height,c,len]));
     for r := 0 to c-1 do
       begin
-      if img.palette[r] <> clTransparent then
+      if img.palette[r] <> colTransparent then
         l.Add (format('"%s c #%s",',[p[r],ColorToHex(img.palette.color[r],12)]))
       else
         l.Add (format('"%s c None",',[p[r]]));

@@ -115,7 +115,7 @@ begin
       FData := NewData;
       end;
     for o := FCount to Value-1 do
-      FData^[o] := clBlack;
+      FData^[o] := colBlack;
     FCount := Value;
     end;
 end;

@@ -237,7 +237,7 @@ procedure TFPReaderPNG.SetColorTrPixel (x,y:integer; CD : TColordata);
 var c : TFPColor;
 begin  // both PNG and Img work without palette, and there is a transparency colordata
   if TransparentDataValue = CD then
-    c := clTransparent
+    c := colTransparent
   else
     c := ConvertColor (CD,CFmt);
   TheImage.Colors[x,y] := c;
