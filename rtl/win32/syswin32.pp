@@ -1060,7 +1060,7 @@ type
         end;
 
      { type of functions that should be used for exception handling }
-        TTopLevelExceptionFilter = function (excep : PExceptionPointers) : Longint;
+        TTopLevelExceptionFilter = function (excep : PExceptionPointers) : Longint;stdcall;
 
 function SetUnhandledExceptionFilter(lpTopLevelExceptionFilter : TTopLevelExceptionFilter) : TTopLevelExceptionFilter;
         external 'kernel32' name 'SetUnhandledExceptionFilter';
@@ -1380,7 +1380,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-10-11 16:05:55  peter
+  Revision 1.6  2000-10-13 12:01:52  peter
+    * fixed exception callback
+
+  Revision 1.5  2000/10/11 16:05:55  peter
     * stdcall for callbacks (merged)
 
   Revision 1.4  2000/09/11 20:19:28  florian
