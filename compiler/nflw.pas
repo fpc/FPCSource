@@ -700,16 +700,19 @@ implementation
            end;
 
          {Can we spare the first comparision?}
-         if (right.nodetype=ordconstn) and (Tassignmentnode(left).right.nodetype=ordconstn) then
-            if (
-                (lnf_backward in loopflags) and
-                (Tordconstnode(Tassignmentnode(left).right).value>=Tordconstnode(right).value)
-               )
-             or not(
-                    (lnf_backward in loopflags) and
-                    (Tordconstnode(Tassignmentnode(left).right).value<=Tordconstnode(right).value)
-                   ) then
-                exclude(loopflags,lnf_testatbegin);
+         if (right.nodetype=ordconstn) and
+            (Tassignmentnode(left).right.nodetype=ordconstn) and
+            (
+             (
+              (lnf_backward in loopflags) and
+              (Tordconstnode(Tassignmentnode(left).right).value>=Tordconstnode(right).value)
+             ) or
+             (
+               not(lnf_backward in loopflags) and
+               (Tordconstnode(Tassignmentnode(left).right).value<=Tordconstnode(right).value)
+             )
+            ) then
+           exclude(loopflags,lnf_testatbegin);
 
          { save counter var }
          t2:=tassignmentnode(left).left.getcopy;
@@ -1471,7 +1474,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2004-06-20 08:55:29  florian
+  Revision 1.99  2004-08-30 12:09:45  michael
+  + Patch from peter to fix bug 3272
+
+  Revision 1.98  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.97  2004/06/16 20:07:08  florian
