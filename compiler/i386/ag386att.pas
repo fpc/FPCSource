@@ -676,9 +676,9 @@ interface
                   inc(symendcount);
                   AsmWriteLn(s+':');
                   AsmWrite(#9'.size'#9);
-                  AsmWrite(tai_symbol(hp).sym.name);
+                  AsmWrite(tai_symbol_end(hp).sym.name);
                   AsmWrite(', '+s+' - ');
-                  AsmWriteLn(tai_symbol(hp).sym.name);
+                  AsmWriteLn(tai_symbol_end(hp).sym.name);
                 end;
              end;
 
@@ -962,11 +962,14 @@ initialization
   RegisterAssembler(as_i386_as_info,T386ATTAssembler);
   RegisterAssembler(as_i386_as_aout_info,T386ATTAssembler);
   RegisterAssembler(as_i386_asw_info,T386ATTAssembler);
-  RegisterAssembler(as_i386_aswwdosx_info,T386ATTAssembler); 
+  RegisterAssembler(as_i386_aswwdosx_info,T386ATTAssembler);
 end.
 {
   $Log$
-  Revision 1.15  2002-04-04 19:06:06  peter
+  Revision 1.16  2002-04-10 08:07:55  jonas
+    * fix for the ie9999 under Linux (patch from Peter)
+
+  Revision 1.15  2002/04/04 19:06:06  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

@@ -66,7 +66,7 @@ interface
       end;
 
       {# This is the base class which should be overriden for each each
-         assembler writer. It is used to actually assembler a file, 
+         assembler writer. It is used to actually assembler a file,
          and write the output to the assembler file.
       }
       TExternalAssembler=class(TAssembler)
@@ -80,8 +80,8 @@ interface
         outbuf   : array[0..AsmOutSize-1] of char;
         outfile  : file;
       public
-        {# Returns the complete path and executable name of the assembler program. 
-           
+        {# Returns the complete path and executable name of the assembler program.
+
            It first tries looking in the UTIL directory if specified, otherwise
            it searches in the free pascal binary directory, in the current
            working directory and the in the  directories in the $PATH environment.
@@ -105,11 +105,11 @@ interface
         Procedure AsmLn;
         procedure AsmCreate(Aplace:tcutplace);
         procedure AsmClose;
-        {# This routine should be overriden for each assembler, it is used 
-           to actually write the abstract assembler stream to file. 
+        {# This routine should be overriden for each assembler, it is used
+           to actually write the abstract assembler stream to file.
         }
         procedure WriteTree(p:TAAsmoutput);virtual;
-        {# This routine should be overriden for each assembler, it is used 
+        {# This routine should be overriden for each assembler, it is used
            to actually write all the different abstract assembler streams
            by calling for each stream type, the @var(WriteTree) method.
         }
@@ -1094,10 +1094,10 @@ Implementation
                end;
              ait_symbol_end :
                begin
-                 if target_info.target=target_i386_linux then
+                 if target_info.target in [target_i386_linux,target_i386_beos] then
                   begin
-                    Tai_symbol(hp).sym.size:=objectalloc.sectionsize-Tai_symbol(hp).sym.address;
-                    UsedAsmSymbolListInsert(Tai_symbol(hp).sym);
+                    Tai_symbol_end(hp).sym.size:=objectalloc.sectionsize-Tai_symbol_end(hp).sym.address;
+                    UsedAsmSymbolListInsert(Tai_symbol_end(hp).sym);
                   end;
                 end;
              ait_label :
@@ -1581,7 +1581,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.32  2002-04-07 13:19:14  carl
+  Revision 1.33  2002-04-10 08:07:55  jonas
+    * fix for the ie9999 under Linux (patch from Peter)
+
+  Revision 1.32  2002/04/07 13:19:14  carl
   + more documentation
 
   Revision 1.31  2002/04/04 19:05:54  peter
