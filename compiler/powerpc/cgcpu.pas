@@ -1,5 +1,5 @@
 {
-    $Id$
+    $id: cgcpu.pas,v 1.43 2002/08/17 09:23:49 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the code generator for the PowerPC
@@ -277,7 +277,7 @@ const
               list.concat(taicpu.op_reg_const(A_LI,reg,smallint(a and $ffff)));
               if ((a shr 16) <> 0) or
                  (smallint(a and $ffff) < 0) then
-                list.concat(taicpu.op_reg_const(A_ADDIS,reg,
+                list.concat(taicpu.op_reg_reg_const(A_ADDIS,reg,reg,
                   smallint((a shr 16)+ord(smallint(a and $ffff) < 0))))
             end
           else
@@ -855,6 +855,7 @@ const
          href : treference;
          usesfpr,usesgpr,gotgot : boolean;
          parastart : aword;
+         offset : aword;
 
       begin
         { we do our own localsize calculation }
@@ -936,9 +937,12 @@ const
              else
                list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)),0));
              }
-             for regcounter:=firstreggpr to R_F31 do
+             for regcounter:=firstregfpu to R_F31 do
                if regcounter in rg.usedbyproc then
                  begin
+                    { reference_reset_base(href,R_1,-localsize);
+                    list.concat(taicpu.op_reg_ref(A_STWU,R_1,href));
+                    }
                  end;
 
              { compute end of gpr save area }
@@ -1041,6 +1045,7 @@ const
           begin
              { address of fpr save area to r11 }
              list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_11,(ord(R_F31)-ord(firstregfpu)+1)*8));
+             {
              if (procinfo.flags and pi_do_call)<>0 then
                list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
                  '_x'),0))
@@ -1049,6 +1054,7 @@ const
                list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
                  '_l'),0));
              genret:=false;
+             }
           end;
         { if we didn't generate the return code, we've to do it now }
         if genret then
@@ -1668,7 +1674,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2002-08-17 09:23:49  florian
+  Revision 1.44  2002-08-17 18:23:53  florian
+    * some assembler writer bugs fixed
+
+  Revision 1.43  2002/08/17 09:23:49  florian
     * first part of procinfo rewrite
 
   Revision 1.42  2002/08/16 14:24:59  carl

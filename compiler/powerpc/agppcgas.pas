@@ -126,7 +126,7 @@ unit agppcgas;
         'xer','lr','ctr','fpscr'
       );
 
-     symaddr2str: array[trefsymaddr] of string[4] = ('','ha16','lo16');
+     symaddr2str: array[trefsymaddr] of string[2] = ('','ha','l');
 
     function getreferencestring(var ref : treference) : string;
     var
@@ -147,7 +147,7 @@ unit agppcgas;
           if not assigned(symbol) then
              s:=''
            else
-             s:=symaddr2str[symaddr]+'('+symbol.name + ')';
+             s:=symbol.name+symaddr2str[symaddr];
           if offset<0 then
            s:=s+tostr(offset)
           else
@@ -159,8 +159,12 @@ unit agppcgas;
                s:=s+tostr(offset);
             end;
            if (index=R_NO) and (base<>R_NO) then
-             s:=s+'('+reg2str[base]+')'
-           else if (index<>R_NO) and (base<>R_NO) and (offset = 0) then
+             begin
+                if offset=0 then
+                  s:=s+'0';
+                s:=s+'('+reg2str[base]+')'
+             end
+           else if (index<>R_NO) and (base<>R_NO) and (offset=0) then
              s:=s+reg2str[base]+','+reg2str[index]
            else if ((index<>R_NO) or (base<>R_NO)) then
 {$ifndef testing}
@@ -306,11 +310,14 @@ unit agppcgas;
       if is_calljmp(op) then
         begin
           { direct BO/BI in op[0] and op[1] not supported, put them in condition! }
-          if op <> A_B then
-            s:=cond2str(op,taicpu(hp).condition)+','
-          else
-            s:=#9'b'#9;
-          s := s+getopstr_jmp(taicpu(hp).oper[0]);
+          case op of
+             A_B,A_BA,A_BL,A_BLA:
+               s:=#9+op2str[op]+#9
+             else
+               s:=cond2str(op,taicpu(hp).condition)+',';
+          end;
+
+          s:=s+getopstr_jmp(taicpu(hp).oper[0]);
         end
       else
         { process operands }
@@ -339,7 +346,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-08-12 15:08:44  carl
+  Revision 1.11  2002-08-17 18:23:53  florian
+    * some assembler writer bugs fixed
+
+  Revision 1.10  2002/08/12 15:08:44  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class
