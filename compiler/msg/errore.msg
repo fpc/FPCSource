@@ -1084,6 +1084,9 @@ type_w_mixed_signed_unsigned2=04036_W_Mixing signed expressions and cardinals he
 % such a case both operands are converted to cardinal before the operation is
 % carried out. You can avoid this by typecasting one operand so it
 % matches the resulttype of the other one.
+type_e_typecast_wrong_size_for_assignment=04037_E_Typecast has different size ($1 -> $2) in assignment
+% Type casting to a type with a different size is not allowed when the variable is
+% used for assigning.
 % \end{description}
 #
 # Symtable

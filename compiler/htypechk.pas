@@ -710,6 +710,8 @@ implementation
         gotpointer,
         gotclass,
         gotderef : boolean;
+        fromdef,
+        todef    : tdef;
       begin
         valid_for_assign:=false;
         gotsubscript:=false;
@@ -766,6 +768,22 @@ implementation
                end;
              typeconvn :
                begin
+                 { typecast sizes must match, exceptions:
+                   - from formaldef
+                   - from void
+                   - typecast from pointer to array }
+                 fromdef:=ttypeconvnode(hp).left.resulttype.def;
+                 todef:=hp.resulttype.def;
+                 if not((fromdef.deftype=formaldef) or
+                        is_void(fromdef) or
+                        ((fromdef.deftype=pointerdef) and (todef.deftype=arraydef))) and
+                    (fromdef.size<>todef.size) then
+                  begin
+                    { in TP it is allowed to typecast to smaller types }
+                    if not(m_tp7 in aktmodeswitches) or
+                       (todef.size>fromdef.size) then
+                     CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
+                  end;
                  case hp.resulttype.def.deftype of
                    pointerdef :
                      gotpointer:=true;
@@ -938,7 +956,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2001-08-26 13:36:37  florian
+  Revision 1.33  2001-09-02 21:13:31  peter
+    * check for size differences in typecasts when assigning
+
+  Revision 1.32  2001/08/26 13:36:37  florian
     * some cg reorganisation
     * some PPC updates
 
