@@ -30,6 +30,7 @@ const
  DriveSeparator = ':';
  PathSeparator = ';';
  FileNameCaseSensitive = false;
+ maxExitCode = 255; {$ERROR TODO: CONFIRM THIS}
 
     Type
        { type and constant declartions doesn't hurt }
@@ -103,7 +104,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:25  peter
+  Revision 1.5  2004-09-03 19:26:52  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.4  2002/09/07 16:01:25  peter
     * old logs removed and tabs fixed
 
 }

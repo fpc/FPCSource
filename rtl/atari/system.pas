@@ -43,6 +43,7 @@ const
  DriveSeparator = ':';
  PathSeparator = ';';
  FileNameCaseSensitive = false;
+ maxExitCode = 255;
 
  sLineBreak: string [1] = LineEnding;
     { used for single computations }
@@ -765,7 +766,11 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-01-20 23:05:31  hajny
+  Revision 1.11  2004-09-03 19:25:21  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.10  2004/01/20 23:05:31  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.9  2003/10/25 23:42:35  hajny

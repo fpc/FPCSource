@@ -42,6 +42,7 @@ const
  DriveSeparator = ':';
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
+ maxExitCode = 255;
 
 type    Tos=(osDOS,osOS2,osDPMI);
 
@@ -1332,7 +1333,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2004-07-24 01:15:25  hajny
+  Revision 1.27  2004-09-03 19:25:41  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.26  2004/07/24 01:15:25  hajny
     * simulated support for new heap manager
 
   Revision 1.25  2004/05/16 20:39:59  hajny

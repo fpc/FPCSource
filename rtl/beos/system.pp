@@ -41,6 +41,7 @@ const
  DriveSeparator = ':';
  PathSeparator = ':';
 { FileNameCaseSensitive is defined separately below!!! }
+ maxExitCode = 255;
 
 const
   FileNameCaseSensitive : boolean = true;
@@ -549,7 +550,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2004-06-21 18:50:51  olle
+  Revision 1.15  2004-09-03 19:25:32  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.14  2004/06/21 18:50:51  olle
     + cleanup
 
   Revision 1.13  2004/06/17 16:16:13  peter

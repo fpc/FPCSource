@@ -48,6 +48,7 @@ const
  DriveSeparator = ':';
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
+ maxExitCode = 255;
 
 
 const
@@ -1622,7 +1623,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.37  2004-06-20 09:24:40  peter
+  Revision 1.38  2004-09-03 19:25:49  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.37  2004/06/20 09:24:40  peter
   fixed go32v2 compile
 
   Revision 1.36  2004/06/17 16:16:13  peter

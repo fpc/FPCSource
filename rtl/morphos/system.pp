@@ -39,6 +39,7 @@ const
   DirectorySeparator = '/';
   DriveSeparator = ':';
   PathSeparator = ';';
+  maxExitCode = 255;
 
 const
   UnusedHandle    : LongInt = -1;
@@ -917,7 +918,11 @@ end.
 
 {
   $Log$
-  Revision 1.18  2004-08-09 00:12:40  karoly
+  Revision 1.19  2004-09-03 19:26:15  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.18  2004/08/09 00:12:40  karoly
     * changes to work with updated doslib includes
 
   Revision 1.17  2004/08/03 15:59:41  karoly

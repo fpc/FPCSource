@@ -709,10 +709,12 @@ begin
   If pointer(ErrorProc)<>Nil then
     ErrorProc(Errno,addr,frame);
   errorcode:=word(Errno);
-  exitcode:=word(Errno);
   erroraddr:=addr;
   errorbase:=frame;
-  halt(errorcode);
+  if errorcode <= maxExitCode then
+    halt(errorcode)
+  else
+    halt(255)
 end;
 
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer);
@@ -736,13 +738,15 @@ begin
 end;
 
 
-procedure runerror(w : word);[alias: 'FPC_RUNERROR'];
+procedure RunError(w : word);[alias: 'FPC_RUNERROR'];
 begin
   errorcode:=w;
-  exitcode:=w;
   erroraddr:=get_caller_addr(get_frame);
   errorbase:=get_caller_frame(get_frame);
-  halt(errorcode);
+  if errorcode <= maxExitCode then
+    halt(errorcode)
+  else
+    halt(255)
 end;
 
 
@@ -883,7 +887,11 @@ end;
 
 {
   $Log$
-  Revision 1.63  2004-08-31 12:23:53  jonas
+  Revision 1.64  2004-09-03 19:26:01  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.63  2004/08/31 12:23:53  jonas
     * fixed compilation with 1.0.x
 
   Revision 1.62  2004/08/30 17:36:18  jonas

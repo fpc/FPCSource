@@ -43,7 +43,7 @@ const
  DriveSeparator = ':';
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
-
+ maxExitCode = 255;
 
 { include heap support headers }
 {$I heaph.inc}
@@ -889,7 +889,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.24  2004-08-01 20:02:48  armin
+  Revision 1.25  2004-09-03 19:26:27  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.24  2004/08/01 20:02:48  armin
   * changed dir separator from \ to /
   * long namespace by default
   * dos.exec implemented

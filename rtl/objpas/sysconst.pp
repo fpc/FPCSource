@@ -104,6 +104,8 @@ resourcestring
   SVarTypeTooManyCustom         = 'Too many custom variant types have been registered';
   SVarUnexpected                = 'Unexpected variant error';
       
+  SFallbackError                = 'An error, whose error code is larger than can be returned to the OS, has occured';
+
   SNoToolserver                 = 'Toolserver is not installed, cannot execute Tool';
 
   SShortMonthNameJan = 'Jan';
@@ -148,11 +150,11 @@ resourcestring
   SLongDayNameSat = 'Saturday';
   SLongDayNameSun = 'Sunday';
 
-Function GetRunError(Errno : Byte) : String;
+Function GetRunError(Errno : Word) : String;
 
 Implementation
 
-Function GetRunError(Errno : Byte) : String;
+Function GetRunError(Errno : Word) : String;
 
 begin
   Case Errno Of
@@ -197,8 +199,17 @@ begin
      231 : Result:=SExceptionStack;
      232 : Result:=SNoThreadSupport;
 
+     255 : Result:=SFallbackError;
+
+     {Error codes larger than 255 cannot be returned as an exit code to the OS,
+      for some OS's. If this happens, error 255 is returned instead.
+      Errors for which it is important that they can be distinguished,
+      shall be below 255}
+
      {Error in the range 900 - 999 is considered platform specific}
-//     900 : Result:=SNoToolserver;    {Mac OS specific}
+
+     900 : Result:=SNoToolserver;    {Mac OS specific}
+
   end;
   If length(Result)=0 then
 {$ifdef VER1_0}  
@@ -214,7 +225,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2004-08-25 15:29:58  peter
+  Revision 1.13  2004-09-03 19:26:42  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.12  2004/08/25 15:29:58  peter
     * disbaled error 900 that is out of range
 
   Revision 1.11  2004/08/20 10:18:58  olle

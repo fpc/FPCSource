@@ -39,7 +39,7 @@ const
  DriveSeparator = ':';
  PathSeparator = ':';
 { FileNameCaseSensitive is defined below! }
-
+ maxExitCode = 255;
 
 const
   UnusedHandle    = -1;
@@ -60,7 +60,11 @@ var argc:longint;external name 'operatingsystem_parameter_argc';
 
 {
   $Log$
-  Revision 1.21  2004-07-03 22:52:33  daniel
+  Revision 1.22  2004-09-03 19:27:10  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.21  2004/07/03 22:52:33  daniel
     * No envp,argv,argc declaration for Darwin
 
   Revision 1.20  2004/07/03 21:50:31  daniel

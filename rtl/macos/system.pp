@@ -35,6 +35,8 @@ const
  DriveSeparator = ':';
  PathSeparator = ',';  {Is used in MPW and OzTeX}
  FileNameCaseSensitive = false;
+ 
+ maxExitCode = 65535;
 
 { include heap support headers }
 {$I heaph.inc}
@@ -48,6 +50,8 @@ const
 
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCR;
+
+
 
 var
   argc : longint;
@@ -1296,7 +1300,11 @@ end.
 
 {
   $Log$
-  Revision 1.19  2004-08-20 10:18:15  olle
+  Revision 1.20  2004-09-03 19:26:08  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.19  2004/08/20 10:18:15  olle
     + added Yield routine
 
   Revision 1.18  2004/07/14 23:34:07  olle

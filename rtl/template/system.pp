@@ -42,6 +42,10 @@ const
  PathSeparator = ';';
  FileNameCaseSensitive = false;
 
+ {The highest exit code which can be returned to the operating system.
+  Should be at least 255.}
+ maxExitCode = 255;
+
 const
   UnusedHandle    = -1;
   StdInputHandle  = 0;
@@ -316,7 +320,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.11  2004-06-17 16:16:14  peter
+  Revision 1.12  2004-09-03 19:26:57  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.11  2004/06/17 16:16:14  peter
     * New heapmanager that releases memory back to the OS, donated
       by Micha Nelissen
 

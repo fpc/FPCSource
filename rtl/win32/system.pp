@@ -46,6 +46,7 @@ const
  DriveSeparator = ':';
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
+ maxExitCode = 65535;
 
 type
    PEXCEPTION_FRAME = ^TEXCEPTION_FRAME;
@@ -1621,7 +1622,11 @@ end.
 
 {
   $Log$
-  Revision 1.60  2004-06-27 11:57:18  florian
+  Revision 1.61  2004-09-03 19:27:25  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.60  2004/06/27 11:57:18  florian
     * finally (hopefully) fixed sysalloc trouble
 
   Revision 1.59  2004/06/26 15:05:14  florian

@@ -42,6 +42,7 @@ const
  DriveSeparator = ':';
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
+ maxExitCode = 255;
 
 const
 { Default filehandles }
@@ -1553,7 +1554,11 @@ End.
 
 {
   $Log$
-  Revision 1.14  2004-06-17 16:16:14  peter
+  Revision 1.15  2004-09-03 19:27:16  olle
+    + added maxExitCode to all System.pp
+    * constrained error code to be below maxExitCode in RunError et. al.
+
+  Revision 1.14  2004/06/17 16:16:14  peter
     * New heapmanager that releases memory back to the OS, donated
       by Micha Nelissen
 
