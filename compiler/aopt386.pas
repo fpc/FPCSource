@@ -60,19 +60,22 @@ Begin
       PeepHoleOptPass2(AsmL, BlockStart, BlockEnd);
 {dispose labeltabel}
       ShutDownDFA;
-
-      If Assigned(BlockEnd) And
-         GetNextInstruction(BlockEnd, BlockStart) Then
-       {we stopped at an assmbler block, so skip it}
+{continue where we left off, BlockEnd is either the start of an assembler
+ block or nil}
+      BlockStart := BlockEnd;
+      While Assigned(BlockStart) And
+            (BlockStart^.typ = ait_Marker) And
+            (Pai_Marker(BlockStart)^.Kind = AsmBlockStart) Do
         Begin
+         {we stopped at an assembler block, so skip it}
           While GetNextInstruction(BlockStart, BlockStart) And
                 ((BlockStart^.Typ <> Ait_Marker) Or
                  (Pai_Marker(Blockstart)^.Kind <> AsmBlockEnd)) Do;
-          If GetNextInstruction(BlockStart, BlockStart) Then
-            BlockEnd := DFAPass1(AsmL, BlockStart)
-          Else BlockStart := Nil
+          If GetNextInstruction(BlockStart, BlockStart) And
+             ((BlockStart^.typ <> ait_Marker) Or
+             (Pai_Marker(BlockStart)^.Kind <> AsmBlockStart)) Then
+            BlockEnd := DFAPass1(AsmL, BlockStart);
         End
-      Else BlockStart := Nil;
    End;
 End;
 
@@ -80,7 +83,10 @@ End.
 
 {
  $Log$
- Revision 1.24  1998-12-29 18:48:23  jonas
+ Revision 1.25  1998-12-29 19:58:27  jonas
+   * fixed crash when there are two asm blocks right after each other
+
+ Revision 1.24  1998/12/29 18:48:23  jonas
    + optimize pascal code surrounding assembler blocks
 
  Revision 1.23  1998/12/11 00:02:43  peter
