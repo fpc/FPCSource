@@ -80,16 +80,16 @@ end;
 
 
 
-Function Send(Sock:Longint;Const Addr;AddrLen,Flags:Longint):Longint;
+Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
 begin
-  Send:=SocketCall(Socket_Sys_Send,Sock,Longint(@Addr),AddrLen,Flags,0,0);
+  Send:=SocketCall(Socket_Sys_Send,Sock,Longint(@Buf),BufLen,Flags,0,0);
 end;
 
 
 
-Function Recv(Sock:Longint;Const Addr;AddrLen,Flags:Longint):Longint;
+Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
 begin
-  Recv:=SocketCall(Socket_Sys_Recv,Sock,Longint(@Addr),AddrLen,Flags,0,0);
+  Recv:=SocketCall(Socket_Sys_Recv,Sock,Longint(@Buf),BufLen,Flags,0,0);
 end;
 
 
@@ -261,7 +261,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2001-06-04 11:43:51  peter
+  Revision 1.4  2001-06-10 08:51:44  peter
+    * forgotten file for the const to var fixes
+
+  Revision 1.3  2001/06/04 11:43:51  peter
     * Formal const to var fixes
     * Hexstr(int64) added
 
