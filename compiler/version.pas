@@ -25,11 +25,11 @@ interface
 
     const
        { version string }
-       wordversion = (0 shl 9)+99;
+       wordversion = (0 shl 11)+99;
 
        version_nr = '0';
        release_nr = '99';
-       patch_nr   = '9';
+       patch_nr   = '11';
        version_string = version_nr+'.'+release_nr+'.'+patch_nr;
 
        { target string }
@@ -56,7 +56,9 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-12-11 00:04:06  peter
+  Revision 1.2  1998-12-14 12:58:45  peter
+    * version 0.99.11
+
     + globtype,tokens,version unit splitted from globals
 
 }
