@@ -38,7 +38,6 @@ asm
   jne .Ljnonzero
   movl $1,%eax
 .Ljnonzero:
-  fninit
   movl (%ecx),%ebx
   movl 4(%ecx),%esi
   movl 8(%ecx),%edi
@@ -51,7 +50,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-02-18 15:23:01  florian
+  Revision 1.11  2000-02-18 16:16:13  florian
+    * we don't need to to finit twice ...
+
+  Revision 1.10  2000/02/18 15:23:01  florian
     * fixed constants in rtti
     * longjmp does now a finit
 
