@@ -18,7 +18,13 @@ unit WHelp;
 
 interface
 
-uses Objects,
+uses
+{$ifdef Win32}
+   { placed here to avoid TRect to be found in windows unit
+     for win32 target whereas its found in objects unit for other targets PM }
+     windows,
+{$endif Win32}
+     Objects,
      WUtils;
 
 const
@@ -266,9 +272,6 @@ uses
 {$ifdef Linux}
   linux,
 {$endif Linux}
-{$ifdef Win32}
-  windows,
-{$endif Win32}
   WViews,WHTMLHlp;
 
 
@@ -1127,7 +1130,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.21  2000-05-30 07:18:33  pierre
+  Revision 1.22  2000-05-31 20:42:02  pierre
+   * fixthe TRect problem by 'using' windows before objects
+
+  Revision 1.21  2000/05/30 07:18:33  pierre
    + colors for HTML help by Gabor
 
   Revision 1.20  2000/05/29 10:44:59  pierre
