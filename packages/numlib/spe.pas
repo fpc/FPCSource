@@ -1300,7 +1300,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:16  michael
+  Revision 1.1.2.1  2002-01-16 14:57:46  florian
+  no message
+
+  Revision 1.1  2000/07/13 06:34:16  michael
   + Initial import
 
   Revision 1.2  2000/01/25 20:21:42  marco

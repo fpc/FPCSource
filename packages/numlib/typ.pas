@@ -52,11 +52,11 @@ CONST numlib_version=2;         {used to detect version conflicts between
                                  +/- highestelement*SIZEOF(arbfloat) is
                                   minimal size of matrix.}
 type {Definition of base types}
-     {$IFDEF ArbExtended}
+{$IFDEF ArbExtended}
       ArbFloat    = extended;
-     {$ELSE}
+{$ELSE}
      ArbFloat    = double;
-     {$ENDIF}
+{$ENDIF}
      ArbInt      = LONGINT;
 
      Float8Arb  =ARRAY[0..7] OF BYTE;
@@ -113,15 +113,19 @@ const               {  og = 8^-maxexp, ogý>=midget,
                        midget and giant are defined in typ.pas}
 
 {$IFDEF ArbExtended}
-     ogx: Float10Arb = (51,158,223,249,51,243,4,181,224,31);
-     bgx: Float10Arb = (108,119,117,92,70,38,155,234,254,95);
-  maxexpx : ArbInt = 2740;
+    ogx: Float10Arb = (51,158,223,249,51,243,4,181,224,31);
+    bgx: Float10Arb = (108,119,117,92,70,38,155,234,254,95);
+    maxexpx : ArbInt = 2740;
 {$ELSE}
-     ogx: Float8Arb= (84, 254, 32, 128, 32, 0, 0, 32);
-     bgx: Float8Arb= (149, 255, 255, 255, 255, 255, 239, 95);
-  maxexpx : ArbInt = 170;
+    ogx: Float8Arb= (84, 254, 32, 128, 32, 0, 0, 32);
+    bgx: Float8Arb= (149, 255, 255, 255, 255, 255, 239, 95);
+    maxexpx : ArbInt = 170;
 {$ENDIF}
 
+  var
+    og          : ArbFloat absolute ogx;
+    bg          : ArbFloat absolute bgx;
+    MaxExp      : ArbInt   absolute maxexpx;
 
 
 {Like standard EXP(), but for very small values (near lowest possible
@@ -129,10 +133,10 @@ const               {  og = 8^-maxexp, ogý>=midget,
 Function exp(x: ArbFloat): ArbFloat;
 
 type
-
-
-     Complex  = object          {Crude complex record. For me an example of
-                                 useless OOP, specially if you have operator overloading}
+     Complex  = object
+       { Crude complex record. For me an example of
+         useless OOP, specially if you have operator overloading
+       }
                    xreal, imag : ArbFloat;
                    procedure Init (r, i: ArbFloat);
                    procedure Add  (c: complex);
@@ -556,11 +560,16 @@ END;
 
 END.
 
-
-
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:16  michael
+  Revision 1.2.2.1  2002-01-16 14:57:47  florian
+  no message
+
+  Revision 1.2  2002/01/16 14:47:16  florian
+    + Makefile.fpc added
+    * several small changes to get things running with FPC 1.0.x
+
+  Revision 1.1  2000/07/13 06:34:16  michael
   + Initial import
 
   Revision 1.2  2000/01/25 20:21:41  marco
@@ -568,6 +577,4 @@ END.
 
   Revision 1.1  2000/01/24 22:08:58  marco
    * initial version
-
-
 }

@@ -883,7 +883,10 @@ end {splineparameters};
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:14  michael
+  Revision 1.1.2.1  2002-01-16 14:57:44  florian
+  no message
+
+  Revision 1.1  2000/07/13 06:34:14  michael
   + Initial import
 
   Revision 1.2  2000/01/25 20:21:42  marco
