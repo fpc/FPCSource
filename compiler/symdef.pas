@@ -2632,6 +2632,8 @@ implementation
 
 
     function tarraydef.size : longint;
+      var
+        cachedsize: TConstExprInt;
       begin
         if IsDynamicArray then
           begin
@@ -2641,18 +2643,19 @@ implementation
         {Tarraydef.size may never be called for an open array!}
         if highrange<lowrange then
             internalerror(99080501);
-        If (elesize>0) and
+        cachedsize := elesize;
+        If (cachedsize>0) and
            (
-            (int64(highrange)-int64(lowrange) >= $7fffffff) or
+            (TConstExprInt(highrange)-TConstExprInt(lowrange) >= $7fffffff) or
             { () are needed around elesize-1 to avoid a possible
               integer overflow for elesize=1 !! PM }
-            (($7fffffff div elesize + (elesize -1)) < (int64(highrange) - int64(lowrange)))
+            (($7fffffff div cachedsize + (cachedsize -1)) < (int64(highrange) - int64(lowrange)))
            ) Then
           Begin
             Message(sym_e_segment_too_large);
             size := 4
           End
-        Else size:=(highrange-lowrange+1)*elesize;
+        Else size:=(highrange-lowrange+1)*cachedsize;
       end;
 
 
@@ -5472,7 +5475,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2002-01-19 15:12:34  peter
+  Revision 1.65  2002-02-04 08:16:07  jonas
+    * fixed severe slowdown when compiling a program with arrays that have
+      a lot (15+) dimensions ("merged")
+
+  Revision 1.64  2002/01/19 15:12:34  peter
     * check for unresolved forward classes in the interface
 
   Revision 1.63  2002/01/06 21:52:30  peter
