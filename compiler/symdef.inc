@@ -963,9 +963,17 @@
         case typ of
             uvoid : stabstring := strpnew(numberstring+';');
          {GDB 4.12 for go32 doesn't like boolean as range for 0 to 1 !!!}
+{$ifdef Use_integer_types_for_boolean}
          bool8bit,
         bool16bit,
         bool32bit : stabstring := strpnew('r'+numberstring+';0;255;');
+{$else : not Use_integer_types_for_boolean}
+         bool8bit : stabstring := strpnew('-21;');
+        bool16bit : stabstring := strpnew('-22;');
+        bool32bit : stabstring := strpnew('-23;');
+        u64bit    : stabstring := strpnew('-32;');
+        s64bitint : stabstring := strpnew('-31;');
+{$endif not Use_integer_types_for_boolean}
          { u32bit : stabstring := strpnew('r'+
               s32bitdef^.numberstring+';0;-1;'); }
         else
@@ -3251,7 +3259,10 @@
 
 {
   $Log$
-  Revision 1.80  1998-12-10 09:47:26  florian
+  Revision 1.81  1998-12-11 08:57:22  pierre
+   * internal gdb types for booleans and 64bit integers
+
+  Revision 1.80  1998/12/10 09:47:26  florian
     + basic operations with int64/qord (compiler with -dint64)
     + rtti of enumerations extended: names are now written
 
