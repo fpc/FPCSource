@@ -1134,640 +1134,1221 @@
 
 <!-- procedure Visibility: default -->
 <element name="GetLocalTimezone">
-<short></short>
+<short>Return local timzeone information</short>
 <descr>
+<p>
+<var>GetLocalTimeZone</var> returns the local timezone information. It also
+initializes the <var>TZSeconds</var> variable, which is used to correct the epoch time
+to local time.
+</p>
+<p>
+There should never be any need to call this function directly. It is called by the
+initialization routines of the Linux unit.
+</p>
 </descr>
-<errors>
-</errors>
 <seealso>
-</seealso>
-</element>
-
-<!-- procedure Visibility: default -->
-<element name="GetLocalTimezone">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
+<link id="GetTimezoneFile"/>
+<link id="ReadTimezoneFile"/>
 </seealso>
 </element>
 
 <!-- procedure Visibility: default -->
 <element name="ReadTimezoneFile">
-<short></short>
+<short>Read the timezone file and initialize time routines</short>
 <descr>
+<p>
+<var>ReadTimeZoneFile</var> reads the timezone file <var>fn</var> and initializes
+the local time routines based on the information found there.
+</p>
+<p>
+There should be no need to call this function. The initialization routines
+of the <file>linux</file> unit call this routine at unit startup.
+</p>
 </descr>
-<errors>
+<errors> 
+None.
 </errors>
 <seealso>
+<link id="GetTimezoneFile"/>
+<link id="GetLocalTimezone"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="GetTimezoneFile">
-<short></short>
+<short>Return name of timezone information file</short>
 <descr>
+<p>
+<var>GetTimezoneFile</var> returns the location of the current timezone file.
+The location of file is determined as follows:
+</p>
+<ol>
+<li>If <file>/etc/timezone</file> exists, it is read, and the contents of this
+file is returned. This should work on Debian systems.</li>
+<li>If <file>/usr/lib/zoneinfo/localtime</file> exists, then it is returned.
+(this file is a symlink to the timezone file on SuSE systems)</li>
+<li>If <file>/etc/localtime</file> exists, then it is returned. 
+(this file is a symlink to the timezone file on RedHat systems)</li>
+</ol>
 </descr>
 <errors>
+If no file was found, an empty string is returned.
 </errors>
 <seealso>
+<link id="ReadTimezoneFile"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="GetEpochTime">
-<short></short>
+<short>Return the current unix time</short>
 <descr>
+<p>
+returns the number of seconds since 00:00:00 gmt, january 1, 1970.
+it is adjusted to the local time zone, but not to DST.
+</p>
 </descr>
 <errors>
+no errors
 </errors>
 <seealso>
+<link id="GetTime"/>
 </seealso>
+<example file="linuxex/ex1"/>
 </element>
 
 <!-- procedure Visibility: default -->
 <element name="GetTime">
-<short></short>
+<short>Return current system time</short>
 <descr>
+<p>
+Returns the current time of the day, adjusted to local time.
+Upon return, the parameters are filled with
+</p>
+<dl>
+<dt>hour</dt><dd> Hours since 00:00 today.</dd>
+<dt>min</dt><dd> minutes in current hour.</dd>
+<dt>sec</dt><dd> seconds in current minute.</dd>
+<dt>sec100</dt><dd> hundreds of seconds in current second.</dd>
+<dt>msec</dt><dd> milliseconds in current second.</dd>
+<dt>usec</dt><dd> microseconds in current second.</dd>
+</dl>
 </descr>
 <errors>
+None
 </errors>
 <seealso>
+<link id="GetEpochTime"/>
+<link id="GetDate"/>
+<link id="GetDateTime"/>
 </seealso>
-</element>
-
-<!-- procedure Visibility: default -->
-<element name="GetTime">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
-</element>
-
-<!-- procedure Visibility: default -->
-<element name="GetTime">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<example file="linuxex/ex5"/>
 </element>
 
 <!-- procedure Visibility: default -->
 <element name="GetDate">
-<short></short>
+<short>Return the system date</short>
 <descr>
+<p>
+Returns the current date. On return, the parameters are filled with
+</p>
+<dl>
+<dt>year</dt><dd> Year (4 digits).</dd>
+<dt>month</dt><dd> Month of the year.</dd>
+<dt>day</dt><dd> Day of the month.</dd>
+</dl>
 </descr>
 <errors>
+None
 </errors>
 <seealso>
+<link id="GetEpochTime"/>
+<link id="GetTime"/>
+<link id="GetDateTime"/>
+<link id="SetTime"/>
 </seealso>
+<example file="linuxex/ex6"/>
 </element>
 
 <!-- procedure Visibility: default -->
 <element name="GetDateTime">
-<short></short>
+<short>Return system date and time</short>
 <descr>
+Returns the current date and time. The time is corrected for the local time
+zone. This procedure is equivalent to the <link id="GetDate"/> and <var>GetTime</var>
+calls.
 </descr>
 <errors>
+None
 </errors>
 <seealso>
+<link id="GetEpochTime"/>
+<link id="GetTime"/>
+<link id="GetDate"/> 
+<link id="SetDate"/>
+<link id="SetTime"/>
 </seealso>
+<example file="linuxex/ex60"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="SetTime">
-<short></short>
+<short>Set the current system time.</short>
 <descr>
+<p>
+<var>SetTime</var> sets the system time to <var>hour</var>, <var>min</var>,
+<var>Sec</var>. This is the kernel time, so it is in GMT. The date is not
+touched. The function returns <var>True</var> if the call was executed corretly, 
+<var>False</var> otherwise.
+</p>
+<remark>
+You must be root to execute this call.
+</remark>
 </descr>
 <errors>
+Extended error information can be retrieved with <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link>
 </errors>
 <seealso>
+<link id="GetTime"/>
+<link id="SetDate"/>
+<link id="GetDate"/>
+<link id="SetDateTime"/>
+<link id="GetDateTime"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="SetDate">
-<short></short>
+<short>Set the current system date.</short>
 <descr>
+<p>
+<var>SetDate</var> sets the system date to <var>year</var>, <var>month</var>,
+<var>day</var>. This is the kernel date, so it is in GMT. The time is not
+touched. The function returns <var>True</var> if the call was executed 
+corretly, <var>False</var> otherwise.
+</p>
+<remark>
+You must be root to execute this call.
+</remark>
 </descr>
 <errors>
+Extended error information can be retrieved with <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link>
 </errors>
 <seealso>
+<link id="GetDate"/>
+<link id="SetTime"/>
+<link id="GetTime"/>
+<link id="SetDateTime"/>
+<link id="GetDateTime"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="SetDateTime">
-<short></short>
+<short>Set the current system date and time</short>
 <descr>
+<p>
+<var>SetDate</var> sets the system date and time to <var>year</var>,
+<var>month</var>, <var>day</var>, <var>hour</var>, <var>min</var>, <var>Sec</var>.
+This is the kernel date/time, so it is in GMT. The time is not
+touched. The function returns <var>True</var> if the call was executed
+corretly, <var>False</var> otherwise.
+</p>
+<remark>
+You must be root to execute this call.
+</remark>
 </descr>
 <errors>
+Extended error information can be retrieved with <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link>
 </errors>
 <seealso>
+<link id="SetDate"/>
+<link id="SetTime"/>
+<link id="GetDate"/>
+<link id="GetTime"/>
+<link id="GetDateTime"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="CreateShellArgV">
-<short></short>
+<short>Create an array of null-terminated strings</short>
 <descr>
+<p>
+<var>CreateShellArgV</var> creates an array of 3 <var>PChar</var> pointers that can
+be used as arguments to <var>ExecVE</var> the first elements in the array 
+will contain  <var>/bin/sh</var>, the second will contain <var>-c</var>, and the third
+will contain <var>prog</var>.
+</p>
+<p>
+The function returns a pointer to this array, of type <var>PPChar</var>.
+</p>
+<p>
+The memory allocated for the array can be disposed of with the <link id="FreeShellArgV"/> function.
+</p>
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="Shell"/>
+<link id="FreeShellArgV"/>
 </seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="CreateShellArgV">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<example file="linuxex/ex61"/>
 </element>
 
 <!-- procedure Visibility: default -->
 <element name="FreeShellArgV">
-<short></short>
+<short>Frees the memory allocated by the <link id="CreateShellArgV"/> call.</short>
 <descr>
+<p>
+<var>FreeShellArgV</var> frees the memory which was allocated by the
+<link id="CreateShellArgV"/> call.
+</p>
+<p>
+Do not attempt to free memory with this call which was allocated by some C
+or other library, this will lead to memory corruption.
+</p>
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="CreateShellArgV"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="Execv">
-<short></short>
+<short>Execute process</short>
 <descr>
+<var>Execv</var> replaces the currently running program with the program, specified in
+<var>path</var>.
+It gives the program the options in <var>args</var>.
+This is a pointer to an array of pointers to null-terminated
+strings. The last pointer in this array should be nil.
+The current environment is passed to the program.
+On success, <var>execv</var> does not return.
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted <i>noexec</i>.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt><dd> Not enough memory for kernel.</dd>
+<dt>sys_enotdir</dt><dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
+</dl>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.fpexecve">FpExecve</link>
+<link id="Execvp"/>
+<link id="Execle"/>
+<link id="Execl"/>
+<link id="Execlp"/>
+<link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="Execv">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<example file="linuxex/ex8"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="Execvp">
-<short></short>
+<short>Execute process, search path</short>
 <descr>
+<p>
+<var>Execvp</var> replaces the currently running program with the program, specified in
+<var>path</var>. The executable in <var>path</var> is searched in the
+contents of the <var>PATH</var> environment variable, if it isn't 
+an absolute filename. 
+</p>
+<p>
+It gives the program the options in <var>args</var>. 
+This is a pointer to an array of pointers to null-terminated
+strings. The last pointer in this array should be nil.
+The current environment is passed to the program.
+On success, <var>execvp</var> does not return.
+</p>
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted <i>noexec</i>.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt><dd> Not enough memory for kernel.</dd>
+<dt>sys_enotdir</dt><dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
+</dl>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.fpexecve">FpExecve</link>
+<link id="Execv"/>
+<link id="Execle"/>
+<link id="Execl"/>
+<link id="Execlp"/>
+<link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
+<example file="linuxex/ex9"/>
 </element>
 
-<!-- function Visibility: default -->
-<element name="Execvp">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
-</element>
-
-<!-- function Visibility: default -->
 <element name="Execl">
-<short></short>
+<short>Execute process (using argument list)</short>
 <descr>
+<var>Execl</var> replaces the currently running program with the program, specified in
+<var>Todo</var>. <var>Todo</var> is split into a command and it's options.
+The executable in <var>Todo</var> is NOT searched in the path.
+The current environment is passed to the program.
+On success, <var>execl</var> does not return.
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.</dd>
+<dt>sys_eperm</dt>
+<dd> The file system is mounted <i>noexec</i>.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt>
+<dd> Not enough memory for kernel, or to split command line.</dd>
+<dt>sys_enotdir</dt>
+<dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt>
+<dd> The path contains a circular reference (via symlinks).</dd>
+</dl>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.fpexecve">FpExecve</link>
+<link id="Execv"/>
+<link id="Execvp"/>
+<link id="Execle"/>
+<link id="Execlp"/>
+<link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="Execl">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<example file="linuxex/ex10"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="Execle">
-<short></short>
+<short>Execute process (using argument list, environment)</short>
 <descr>
+<p>
+<var>Execle</var> replaces the currently running program with the program, specified in
+<var>Todo</var>. <var>Todo</var> is split into a command and it's options.
+The executable in <var>Todo</var> is searched in the path, if it isn't
+an absolute filename.
+The environment in <var>ep</var> is passed to the program.
+On success, <var>execle</var> does not return.
+</p>
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.</dd>
+<dt>sys_eperm</dt>
+<dd> The file system is mounted <i>noexec</i>.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt>
+<dd> Not enough memory for kernel, or to split command line.</dd>
+<dt>sys_enotdir</dt><dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
+</dl>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.fpexecve">FpExecve</link>
+<link id="Execv"/>
+<link id="Execvp"/>
+<link id="Execl"/>
+<link id="Execlp"/>
+<link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="Execle">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<example file="linuxex/ex11"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="Execlp">
-<short></short>
+<short>Execute process (using argument list, environment; search path)</short>
 <descr>
+<var>Execlp</var> replaces the currently running program with the program, specified in
+<var>path</var>. Path is split into a command and it's options.
+The executable in <var>path</var> is searched in the path, if it isn't
+an absolute filename.
+The current environment is passed to the program.
+On success, <var>execlp</var> does not return.
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted <i>noexec</i>.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt><dd> Not enough memory for kernel, or to split command line.</dd>
+<dt>sys_enotdir</dt><dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
+</dl>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.fpexecve">FpExecve</link>
+<link id="Execv"/>
+<link id="Execvp"/>
+<link id="Execle"/>
+<link id="Execl"/>
+<link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="Execlp">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<example file="linuxex/ex12"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="FpExecLE">
-<short></short>
+<short>Execute process (using argument list, environment)</short>
 <descr>
+<p>
+<var>FpExecLE</var> replaces the currently running program with the program, specified in
+<var>PathName</var>. <var>S</var> is an array of command options.
+The executable in <var>PathName</var> must be an absolute pathname.
+The environment in <var>MyEnv</var> is passed to the program.
+On success, <var>FpExecLE</var> does not return.
+</p>
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.</dd>
+<dt>sys_eperm</dt>
+<dd> The file system is mounted <i>noexec</i>.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt>
+<dd> Not enough memory for kernel, or to split command line.</dd>
+<dt>sys_enotdir</dt><dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
+</dl>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.fpexecve">FpExecve</link>
+<link id="FpExecv"/>
+<link id="FpExecvp"/>
+<link id="FpExecl"/>
+<link id="FpExeclp"/>
+<link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
+<example file="linuxex/ex11"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="FpExecL">
-<short></short>
+<short>Execute process (using argument list, environment)</short>
 <descr>
+<p>
+<var>FpExecL</var> replaces the currently running program with the program, specified in
+<var>PathName</var>. <var>S</var> is an array of command options.
+The executable in <var>PathName</var> must be an absolute pathname.
+The current process'  environment is passed to the program.
+On success, <var>FpExecL</var> does not return.
+</p>
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.</dd>
+<dt>sys_eperm</dt>
+<dd> The file system is mounted <i>noexec</i>.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt>
+<dd> Not enough memory for kernel, or to split command line.</dd>
+<dt>sys_enotdir</dt><dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
+</dl>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.fpexecve">FpExecve</link>
+<link id="FpExecv"/>
+<link id="FpExecvp"/>
+<link id="FpExecle"/>
+<link id="FpExeclp"/>
+<link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
+<example file="linuxex/ex77"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="FpExecLP">
-<short></short>
+<short>Execute process (using argument list, environment; search path)</short>
 <descr>
+<var>FpExecLP</var> replaces the currently running program with the program, specified in
+<var>PathName</var>. <var>S</var> is an array of command options.
+The executable in <var>PathName</var> is searched in the path, if it isn't
+an absolute filename.
+The current environment is passed to the program.
+On success, <var>FpExecLP</var> does not return.
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted <i>noexec</i>.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt><dd> Not enough memory for kernel, or to split command line.</dd>
+<dt>sys_enotdir</dt><dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
+</dl>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.fpexecve">FpExecve</link>
+<link id="FpExecv"/>
+<link id="FpExecvp"/>
+<link id="FpExecle"/>
+<link id="FpExecl"/>
+<link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
+<example file="linuxex/ex76"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="FpExecV">
-<short></short>
+<short>Execute process</short>
 <descr>
+<var>FpExecV</var> replaces the currently running program with the program, specified in
+<var>PathName</var>.
+It gives the program the options in <var>args</var>.
+This is a pointer to an array of pointers to null-terminated
+strings. The last pointer in this array should be nil.
+The current environment is passed to the program.
+On success, <var>FpExecV</var> does not return.
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted <i>noexec</i>.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt><dd> Not enough memory for kernel.</dd>
+<dt>sys_enotdir</dt><dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
+</dl>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.fpexecve">FpExecve</link>
+<link id="FpExecvp"/>
+<link id="FpExecle"/>
+<link id="FpExecl"/>
+<link id="FpExeclp"/>
+<link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
+<example file="linuxex/ex8"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="FpExecVP">
-<short></short>
+<short>Execute process, search path</short>
 <descr>
+<var>FpExecVP</var> replaces the currently running program with the program, specified in
+<var>PathName</var>. The executable in <var>path</var> is searched in the path, if it isn't
+an absolute filename.
+It gives the program the options in <var>args</var>. This is a pointer to an array of pointers to null-terminated
+strings. The last pointer in this array should be nil.
+The current environment is passed to the program.
+On success, <var>execvp</var> does not return.
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted <i>noexec</i>.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt><dd> Not enough memory for kernel.</dd>
+<dt>sys_enotdir</dt><dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
+</dl>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.fpexecve">FpExecve</link>
+<link id="FpExecv"/>
+<link id="FpExecle"/>
+<link id="FpExecl"/>
+<link id="FpExeclp"/>
+<link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
+<example file="linuxex/ex79"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="FpExecVPE">
-<short></short>
+<short>Execute process, search path using environment</short>
 <descr>
+<var>FpExecVP</var> replaces the currently running program with the program, specified in
+<var>PathName</var>. The executable in <var>path</var> is searched in the path, if it isn't
+an absolute filename.
+It gives the program the options in <var>args</var>. This is a pointer to an array of pointers to null-terminated
+strings. The last pointer in this array should be nil.
+The environment in <var>Env</var> is passed to the program.
+On success, <var>execvp</var> does not return.
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted <i>noexec</i>.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt><dd> Not enough memory for kernel.</dd>
+<dt>sys_enotdir</dt><dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
+</dl>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.fpexecve">FpExecve</link>
+<link id="FpExecv"/>
+<link id="FpExecle"/>
+<link id="FpExecl"/>
+<link id="FpExeclp"/>
+<link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
+<example file="linuxex/ex79"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="Shell">
-<short></short>
+<short>Execute and feed command to system shell </short>
 <descr>
+<var>Shell</var> invokes the bash shell (<file>/bin/sh</file>), and feeds it the
+command <var>Command</var> (using the <var>-c</var> option). The function then waits
+for the command to complete, and then returns the exit
+status of the command, or 127 if it could not complete the <link id="#rtl.baseunix.FpFork">FpFork</link>
+or <link id="#rtl.baseunix.fpexecve">FpExecve</link> calls.
 </descr>
 <errors>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
 </errors>
 <seealso>
+<link id="POpen"/>
+<link id="FpSystem"/>
+<link id="#rtl.baseunix.FpFork">FpFork</link>
+<link id="#rtl.baseunix.fpexecve">FpExecve</link>
 </seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="Shell">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<example file="linuxex/ex56"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="fpSystem">
-<short></short>
+<short>Execute and feed command to system shell </short>
 <descr>
+<var>Shell</var> invokes the bash shell (<file>/bin/sh</file>), and feeds it the
+command <var>Command</var> (using the <var>-c</var> option). The function then waits
+for the command to complete, and then returns the exit
+status of the command, or 127 if it could not complete the <link id="#rtl.baseunix.FpFork">FpFork</link>
+or <link id="#rtl.baseunix.fpexecve">FpExecve</link> calls.
 </descr>
 <errors>
+Errors are reported in LinuxError.
 </errors>
 <seealso>
+<link id="POpen"/>
+<link id="Shell"/>
+<link id="#rtl.baseunix.FpFork">FpFork</link>
+<link id="#rtl.baseunix.fpexecve">FpExecve</link>
 </seealso>
+<example file="linuxex/ex80"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="WaitProcess">
-<short></short>
+<short>Wait for process to terminate.</short>
 <descr>
+<p>
+<var>WaitProcess</var> waits for process <var>PID</var> to exit.
+<var>WaitProcess</var> is equivalent to the <link id="#rtl.baseunix.FpWaitPID"/> call:
+</p>
+<code>
+FpWaitPid(PID,@result,0)
+</code>
+<p>
+Handles of Signal interrupts (errno=EINTR), and returns the Exitcode of 
+Process <var>PID</var> (>=0) or -Status if it was terminated
+</p>
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="#rtl.baseunix.FpWaitPID"/>
+<link id="#rtl.baseunix.WTERMSIG"/>
+<link id="#rtl.baseunix.WSTOPSIG"/>
+<link id="#rtl.baseunix.WIFEXITED"/>
+<link id="WIFSTOPPED"/>
+<link id="#rtl.baseunix.WIFSIGNALED"/>
+<link id="W_EXITCODE"/>
+<link id="W_STOPCODE"/>
+<link id="#rtl.baseunix.WEXITSTATUS"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="WIFSTOPPED">
-<short></short>
+<short>Check whether the process is currently stopped.</short>
 <descr>
+<var>WIFSTOPPED</var> checks <var>Status</var> and returns <var>true</var>
+if the process is currently stopped. This is only possible if WUNTRACED was
+specified in the options of <link id="#rtl.baseunix.FpWaitPID">FpWaitPID</link>.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="#rtl.baseunix.FpWaitPID"/>
+<link id="WaitProcess"/>
+<link id="#rtl.baseunix.WTERMSIG"/>
+<link id="#rtl.baseunix.WSTOPSIG"/>
+<link id="#rtl.baseunix.WIFEXITED"/>
+<link id="#rtl.baseunix.WIFSIGNALED"/>
+<link id="W_EXITCODE"/>
+<link id="W_STOPCODE"/>
+<link id="#rtl.baseunix.WEXITSTATUS"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="W_EXITCODE">
-<short></short>
+<short>Construct an exit status based on an return code and signal.</short>
 <descr>
+<var>W_EXITCODE</var> combines <var>ReturnCode</var> and <var>Signal</var>
+to a status code fit for <var>WaitPid</var>.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="#rtl.baseunix.FpWaitPID"/>
+<link id="WaitProcess"/>
+<link id="#rtl.baseunix.WTERMSIG"/>
+<link id="#rtl.baseunix.WSTOPSIG"/>
+<link id="#rtl.baseunix.WIFEXITED"/>
+<link id="WIFSTOPPED"/>
+<link id="#rtl.baseunix.WIFSIGNALED"/>
+<link id="W_EXITCODE"/>
+<link id="W_STOPCODE"/>
+<link id="#rtl.baseunix.WEXITSTATUS"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="W_STOPCODE">
-<short></short>
+<short>Construct an exit status based on a signal.</short>
 <descr>
+<var>W_STOPCODE</var> constructs an exit status based on 
+<var>Signal</var>, which will cause <link id="#rtl.baseunix.WIFSIGNALED">WIFSIGNALED</link> to return
+<var>True</var>
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="#rtl.baseunix.FpWaitPID"/>
+<link id="WaitProcess"/>
+<link id="#rtl.baseunix.WTERMSIG"/>
+<link id="#rtl.baseunix.WSTOPSIG"/>
+<link id="#rtl.baseunix.WIFEXITED"/>
+<link id="WIFSTOPPED"/>
+<link id="#rtl.baseunix.WIFSIGNALED"/>
+<link id="W_EXITCODE"/>
+<link id="#rtl.baseunix.WEXITSTATUS"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="fsync">
-<short></short>
+<short>Synchronize file's kernel data with disk.</short>
 <descr>
+<p>
+<var>Fsync</var> synchronizes the kernel data for file <var>fd</var> (the
+cache) with the disk. The call will not return till all file data was
+written to disk.
+</p>
+<p>
+If the call was succesfull, 0 is returned. On failure, a nonzero value is
+returned.
+</p>
 </descr>
 <errors>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
 </errors>
 <seealso>
+<link id="FpFLock"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="fpFlock">
-<short></short>
+<short>Lock a file (advisory lock)</short>
 <descr>
+<p>
+<var>FpFLock</var> implements file locking. it sets or removes a lock on the file
+<var>F</var>. F can be of type <var>Text</var> or <var>File</var>, or it can be a linux
+filedescriptor (a longint)
+<var>Mode</var> can be one of the following constants :
+</p>
+<dl>
+<dt>LOCK_SH</dt><dd>sets a shared lock.</dd>
+<dt>LOCK_EX</dt><dd>sets an exclusive lock.</dd>
+<dt>LOCK_UN</dt><dd>unlocks the file.</dd>
+<dt>LOCK_NB</dt><dd>This can be OR-ed together with the other.
+If this is done the application doesn't block when locking.
+</dd>
+</dl>
+<p>
+The function returns zero if successful, a nonzero return value indicates an
+error.
+</p>
 </descr>
 <errors>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
 </errors>
 <seealso>
+<link id="#rtl.baseunix.FpFcntl"/>
+<link id="FSync"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="fStatFS">
-<short></short>
+<short>Retrieve filesystem information from a file descriptor.</short>
 <descr>
+<p>
+<var>fStatFS</var> returns in <var>Info</var> information about the filesystem
+on which the file with file descriptor <var>fd</var> resides. 
+<var>Info</var> is of type <link id="#rtl.unixtype.TStatfs">TStatFS</link>. 
+</p>
+<p>
+The function returns zero if the call was succesful, a nonzero value is 
+returned if the call failed.
+</p>
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_enotdir</dt><dd> A component of <var>Path</var> is not a directory.</dd>
+<dt>sys_einval</dt><dd> Invalid character in <var>Path</var>.</dd>
+<dt>sys_enoent</dt><dd> <var>Path</var> does not exist.</dd>
+<dt>sys_eaccess</dt><dd> Search permission is denied for  component in<var>Path</var>.</dd>
+<dt>sys_eloop</dt><dd> A circular symbolic link was encountered in <var>Path</var>.</dd>
+<dt>sys_eio</dt><dd> An error occurred while reading from the filesystem.</dd>
+</dl>
 </errors>
 <seealso>
+<link id="StatFS"/>
+<link id="FpLStat"/>
 </seealso>
+<example file="linuxex/ex91"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="StatFS">
-<short></short>
+<short>Retrieve filesystem information from a path.</short>
 <descr>
+<p>
+<var>StatFS</var> returns in <var>Info</var> information about the filesystem on which the file
+<var>Path</var> resides. 
+<var>Info</var> is of type <link id="#rtl.unixtype.TStatfs">TStatFS</link>. 
+</p>
+<p>
+The function returns zero if the call was succesful, a nonzero value is 
+returned if the call failed.
+</p>
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_enotdir</dt><dd> A component of <var>Path</var> is not a directory.</dd>
+<dt>sys_einval</dt><dd> Invalid character in <var>Path</var>.</dd>
+<dt>sys_enoent</dt><dd> <var>Path</var> does not exist.</dd>
+<dt>sys_eaccess</dt><dd> Search permission is denied for  component in<var>Path</var>.</dd>
+<dt>sys_eloop</dt><dd> A circular symbolic link was encountered in <var>Path</var>.</dd>
+<dt>sys_eio</dt><dd> An error occurred while reading from the filesystem.</dd>
+</dl>
 </errors>
 <seealso>
+<link id="FpStat"/>
+<link id="FpLStat"/>
 </seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="fpFlock">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="fpFlock">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="SelectText">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<example file="linuxex/ex91"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="SelectText">
-<short></short>
+<short>Wait for event on text file.</short>
 <descr>
+<var>SelectText</var> executes the <link id="#rtl.baseunix.FpSelect">FpSelect</link> 
+call on a file of type
+<var>Text</var>. You can specify a timeout in <var>TimeOut</var>. The SelectText call
+determines itself whether it should check for read or write, depending on
+how the file was opened : With <var>Reset</var> it is checked for reading, with
+<var>Rewrite</var> and <var>Append</var> it is checked for writing.
 </descr>
 <errors>
+See <link id="#rtl.baseunix.FpSelect"/>. <var>SYS_EBADF</var> can also mean that the file wasn't
+opened.
 </errors>
 <seealso>
+<link id="#rtl.baseunix.FpSelect"/>
 </seealso>
 </element>
 
 <!-- procedure Visibility: default -->
 <element name="SeekDir">
-<short></short>
+<short>Seek to position in directory</short>
 <descr>
+<p>
+<var>SeekDir</var> sets the directory pointer to the <var>loc</var>-th entry in the
+directory structure pointed to by <var>p</var>.
+</p>
+<p>
+For an example, see <link id="#rtl.baseunix.fpOpenDir"/>.
+</p>
 </descr>
 <errors>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
 </errors>
 <seealso>
+<link id="#rtl.baseunix.fpCloseDir"/>
+<link id="#rtl.baseunix.fpReadDir"/>
+<link id="#rtl.baseunix.fpOpenDir"/>
+<link id="TellDir"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="TellDir">
-<short></short>
+<short>Return current location in a directory</short>
 <descr>
+<p>
+<var>TellDir</var> returns the current location in the directory structure
+pointed to by <var>p</var>. It returns -1 on failure.
+</p>
+<p>
+For an example, see <link id="#rtl.baseunix.fpOpenDir"/>.
+</p>
 </descr>
 <errors>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.fpCloseDir"/>
+<link id="#rtl.baseunix.fpReadDir"/>
+<link id="#rtl.baseunix.fpOpenDir"/>
+<link id="SeekDir"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="AssignPipe">
-<short></short>
+<short>Create a set of pipe file handlers</short>
 <descr>
+<p>
+<var>AssignePipe</var> creates a pipe, i.e. two file objects, one for input,
+one for output. What is written to <var>Pipe_out</var>, can be read from
+<var>Pipe_in</var>.
+</p>
+<p>
+This call is overloaded. The in and out pipe can take three forms:
+an typed or untyped file, a text file or a file descriptor.
+</p>
+<p>
+If a text file is passed then reading and writing from/to the pipe
+can be done through the usual <var>Readln(Pipe_in,...)</var> and
+<var>Writeln(Pipe_out,...)</var> procedures.
+</p>
+<p>
+The function returns <var>True</var> if everything went succesfully,
+<var>False</var> otherwise.
+</p>
 </descr>
 <errors>
+<p>
+In case the function fails and returns <var>False</var>, 
+extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function:
+</p>
+<dl>
+<dt>sys_emfile</dt>
+<dd> Too many file descriptors for this process.</dd>
+<dt>sys_enfile</dt>
+<dd> The system file table is full.</dd>
+</dl>
 </errors>
 <seealso>
+<link id="POpen"/>
+<link id="#rtl.baseunix.FpMkFifo"/>
 </seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="AssignPipe">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="AssignPipe">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<example file="linuxex/ex36"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="POpen">
-<short></short>
+<short>Pipe file to standard input/output of program</short>
 <descr>
+<var>POpen</var> runs the command specified in <var>Prog</var>,
+and redirects the standard in or output of the
+command to the other end of the pipe <var>F</var>. The parameter <var>rw</var>
+indicates the direction of the pipe. If it is set to <var>'W'</var>, then F can
+be used to write data, which will then be read by the command from stdinput.
+If it is set to <var>'R'</var>, then the standard output of the command can be 
+read from <var>F</var>. <var>F</var> should be reset or rewritten prior to using it.
+<var>F</var> can be of type <var>Text</var> or <var>File</var>.
+A file opened with <var>POpen</var> can be closed with <var>Close</var>, but also
+with <link id="PClose"/>. The result is the same, but <var>PClose</var> returns the
+exit status of the command <var>Prog</var>.
 </descr>
 <errors>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link>
+function. Errors  are essentially those of the Execve, Dup and AssignPipe commands.
 </errors>
 <seealso>
+<link id="AssignPipe"/>
+<link id="PClose"/>
 </seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="POpen">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="AssignStream">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<example file="linuxex/ex37"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="AssignStream">
-<short></short>
+<short>Assign stream for in and output to a program</short>
 <descr>
+<p>
+<var>AssignStream</var> creates a 2 or 3 pipes, i.e. two (or three) file objects, one for 
+input, one for output,(and one for standard error) the other ends of these 
+pipes are connected to standard input and output (and standard error) of 
+<var>Prog</var>. <var>Prog</var> is the name of a program (including path) with options,
+ which will be executed.
+</p>
+<p>
+What is written to <var>StreamOut</var>, will go to the standard input of
+<var>Prog</var>. Whatever is written by <var>Prog</var> to it's standard output 
+can be read from <var>StreamIn</var>. 
+Whatever is written by <var>Prog</var> to it's standard error read from 
+<var>StreamErr</var>, if present. 
+</p>
+<p>
+Reading and writing happens through the usual <var>Readln(StreamIn,...)</var> and
+<var>Writeln (StreamOut,...)</var> procedures.
+</p>
+<remark>
+You should <em> not</em> use <var>Reset</var> or <var>Rewrite</var> on a 
+file opened with <var>POpen</var>. This will close the file before re-opening 
+it again, thereby closing the connection with the program.
+</remark>
+<p>
+The function returns the process ID of the spawned process, or -1 in case of
+error.
+</p>
 </descr>
 <errors>
+<p>
+In case of error (return value -1) <var>LinuxError</var> is used to report 
+errors:
+</p>
+<dl>
+<dt>sys_emfile</dt>
+<dd> Too many file descriptors for this process.</dd>
+<dt>sys_enfile</dt>
+<dd> The system file table is full.</dd>
+</dl>
+<p>
+Other errors include the ones by the fork and exec programs
+</p>
 </errors>
 <seealso>
+<link id="AssignPipe"/>
+<link id="POpen"/>
 </seealso>
+<example file="linuxex/ex38"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="GetDomainName">
-<short></short>
+<short>Return current domain name</short>
 <descr>
+Get the domain name of the machine on which the process is running.
+An empty string is returned if the domain is not set.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="GetHostName"/>
 </seealso>
+<example file="linuxex/ex39"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="GetHostName">
-<short></short>
+<short>Return host name</short>
 <descr>
+Get the hostname of the machine on which the process is running.
+An empty string is returned if hostname is not set.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="GetDomainName"/>
 </seealso>
+<example file="linuxex/ex40"/>
 </element>
 
 
