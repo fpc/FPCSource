@@ -78,6 +78,7 @@ implementation
            start,stop : byte;    {Start/stop when range; Stop=element when an element.}
          end;
        var
+         genjumps,
          use_small,
          pushed,
          ranges     : boolean;
@@ -151,21 +152,8 @@ implementation
            end;
 
        begin
-         { calculate both operators }
-         { the complex one first }
-         firstcomplex(p);
-         secondpass(p^.left);
-         { are too few registers free? }
-         pushed:=maybe_push(p^.right^.registers32,p^.left);
-         secondpass(p^.right);
-         if pushed then
-          restore(p^.left);
-         if codegenerror then
-          exit;
-
-         { ofcourse not commutative }
-         if p^.swaped then
-          swaptree(p);
+         { We check first if we can generate jumps, this can be done
+           because the resulttype is already set in firstpass }
 
          { check if we can use smallset operation using btl which is limited
            to 32 bits, the left side may also not contain higher values !! }
@@ -174,8 +162,28 @@ implementation
                      (p^.left^.resulttype^.deftype=enumdef) and (penumdef(p^.left^.resulttype)^.max<=32));
 
          { Can we generate jumps? Possible for all types of sets }
-         if (p^.right^.treetype=setconstn) and
-            analizeset(p^.right^.value_set,use_small) then
+         genjumps:=(p^.right^.treetype=setconstn) and
+                   analizeset(p^.right^.value_set,use_small);
+         { calculate both operators }
+         { the complex one first }
+         firstcomplex(p);
+         secondpass(p^.left);
+         { Only process the right if we are not generating jumps }
+         if not genjumps then
+          begin
+            pushed:=maybe_push(p^.right^.registers32,p^.left);
+            secondpass(p^.right);
+            if pushed then
+             restore(p^.left);
+          end;
+         if codegenerror then
+          exit;
+
+         { ofcourse not commutative }
+         if p^.swaped then
+          swaptree(p);
+
+         if genjumps then
           begin
             { It gives us advantage to check for the set elements
               separately instead of using the SET_IN_BYTE procedure.
@@ -788,7 +796,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1998-12-11 00:02:56  peter
+  Revision 1.21  1999-02-17 10:12:59  peter
+    * removed memory leak when jumps are generated
+
+  Revision 1.20  1998/12/11 00:02:56  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.19  1998/10/09 08:56:25  pierre
