@@ -28,11 +28,9 @@ interface
 { include heap support headers }
 {$I heaph.inc}
 
-{ifdef debug removed (PM)}
 {$ifdef i386}
-{$define Set_i386_Exception_handler}
+  {$define Set_i386_Exception_handler}
 {$endif i386}
-{endif debug}
 
 const
 { Default filehandles }
@@ -711,48 +709,66 @@ end;
 {$endif}
 
   procedure install_exception_handlers;forward;
-  
-{$ASMMODE DIRECT}
-  var
+
+
+var
      { value of the stack segment
        to check if the call stack can be written on exceptions }
      _SS : longint;
-     
+
 procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
   begin
      IsLibrary:=false;
      { install the handlers for exe only ?
        or should we install them for DLL also ? (PM) }
      install_exception_handlers;
+     { This strange construction is needed to solve the _SS problem
+       with a smartlinked syswin32 (PFV) }
+{$ASMMODE ATT}
      asm
         pushl %ebp
         xorl %ebp,%ebp
         movw %ss,%bp
-        movl %ebp,__SS
+        movl %ebp,_SS
         xorl %ebp,%ebp
+     end;
+{$ASMMODE DIRECT}
+     asm
         call PASCALMAIN
         popl %ebp
      end;
      { if we pass here there was no error ! }
      ExitProcess(0);
   end;
-  
+
+
 procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
   begin
      IsLibrary:=true;
      case DLLreason of
-       1,2 : asm
-                xorl %edi,%edi
-                movw %ss,%di
-                movl %edi,__SS
-                call PASCALMAIN
-             end;
+       1,2 :
+         begin
+{$ASMMODE ATT}
+           asm
+             xorl %edi,%edi
+             movw %ss,%di
+             movl %edi,_SS
+           end;
+{$ASMMODE DIRECT}
+           asm
+             call PASCALMAIN
+           end;
+         end
        else
-          asm
+         begin
+           asm
              call FPC_DO_EXIT
-          end;
+           end;
+         end;
      end;
   end;
+{$ASMMODE ATT}
+
 
 {$ifdef Set_i386_Exception_handler}
 
@@ -828,7 +844,7 @@ const
      TCONTEXT = CONTEXT;
      PCONTEXT = ^CONTEXT;
 
-     
+
 type pexception_record = ^exception_record;
      EXCEPTION_RECORD  = record
        ExceptionCode   : longint;
@@ -847,11 +863,11 @@ type pexception_record = ^exception_record;
 
      { type of functions that should be used for exception handling }
      LPTOP_LEVEL_EXCEPTION_FILTER = function(excep :PEXCEPTION_POINTERS) : longint;
- 
+
      function SetUnhandledExceptionFilter(lpTopLevelExceptionFilter : LPTOP_LEVEL_EXCEPTION_FILTER)
        : LPTOP_LEVEL_EXCEPTION_FILTER;
        external 'kernel32' name 'SetUnhandledExceptionFilter';
-      
+
   function syswin32_i386_exception_handler(excep :PEXCEPTION_POINTERS) : longint;
     var frame : longint;
     begin
@@ -893,29 +909,27 @@ type pexception_record = ^exception_record;
          {EXCEPTION_INVALID_DISPOSITION = $c0000026;}
          end;
     end;
-    
+
 var
    old_exception : LPTOP_LEVEL_EXCEPTION_FILTER;
-   
+
   procedure install_exception_handlers;
     begin
        old_exception:=SetUnhandledExceptionFilter(@syswin32_i386_exception_handler);
     end;
-    
+
 
 {$else not i386 (Processor specific !!)}
   procedure install_exception_handlers;
     begin
     end;
-    
+
 
 {$endif Set_i386_Exception_handler}
 
-  const
-     Exe_entry_code : pointer = @Exe_entry;
-     Dll_entry_code : pointer = @Dll_entry;
-     
-{$ASMMODE ATT}
+const
+   Exe_entry_code : pointer = @Exe_entry;
+   Dll_entry_code : pointer = @Dll_entry;
 
 begin
 { get some helpful informations }
@@ -952,7 +966,10 @@ end.
 
 {
   $Log$
-  Revision 1.31  1998-12-28 15:50:51  peter
+  Revision 1.32  1998-12-28 23:30:11  peter
+    * fixes for smartlinking
+
+  Revision 1.31  1998/12/28 15:50:51  peter
     + stdout, which is needed when you write something in the system unit
       to the screen. Like the runtime error
 
