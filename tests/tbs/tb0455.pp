@@ -1,10 +1,12 @@
 {$IFDEF FPC}
 {$MODE DELPHI}
 {$ENDIF}
-uses windows,classes;
+uses classes;
 
 
 type
+  HDC = Cardinal;
+  
     TNotifyEventA    = procedure (Sender:TObject) of object;
 
    TwolBrushes = class
