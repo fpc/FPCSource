@@ -22,7 +22,7 @@ uses
   HeapTrc,
 {$endif IDEHeapTrc}
 {$ifdef go32v2}
-  ,dpmiexcp
+  dpmiexcp,
 {$endif go32v2}
   Dos,Objects,
   BrowCol,
@@ -194,7 +194,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.25  1999-06-28 19:25:34  peter
+  Revision 1.26  1999-06-28 23:31:14  pierre
+   * typo inside go32v2 cond error removed
+
+  Revision 1.25  1999/06/28 19:25:34  peter
     * fixes from gabor
 
   Revision 1.24  1999/06/28 12:40:56  pierre
