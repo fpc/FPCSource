@@ -15,6 +15,10 @@
  **********************************************************************}
 unit VESA;
 
+{$ifdef DEBUG}
+{$define TESTGRAPHIC}
+{$endif DEBUG}
+
 interface
 
 uses
@@ -133,6 +137,9 @@ uses
 {$ifdef FPC}
   video, mouse,
 {$endif FPC}
+{$ifdef TESTGRAPHIC}
+  graph,
+{$endif TESTGRAPHIC}
   pmode;
 
 type
@@ -143,6 +150,7 @@ type
           Color        : boolean;}
          V            : TVideoMode;
          Mode         : word;
+         IsGraphic    : boolean;
          { zero based vesa specific driver count }
          VideoIndex   : word;
          Next         : PVesaVideoMode;
@@ -151,10 +159,19 @@ type
 const
   VesaVideoModeHead : PVesaVideoMode = nil;
   VesaRegisteredModes : word = 0;
+{$ifdef TESTGRAPHIC}
+  IsGraphicMode : boolean = false;
+  GraphDriver   : integer = 0;
+  GraphMode     : Integer = 0;
+{$endif TESTGRAPHIC}
+
 Var
   SysGetVideoModeCount : function : word;
-  SysSetVideoMode : function (Const VideoMode : TVideoMode) : boolean;
-  SysGetVideoModeData : Function (Index : Word; Var Data : TVideoMode) : boolean;
+  SysSetVideoMode      : function (Const VideoMode : TVideoMode) : boolean;
+  SysGetVideoModeData  : function (Index : Word; Var Data : TVideoMode) : boolean;
+  SysUpdateScreen      : procedure(Force : Boolean);
+  SysDoneVideo         : procedure;
+  SysInitVideo         : procedure;
 
 
 function VESAGetInfo(var B: TVESAInfoBlock): boolean;
@@ -260,12 +277,22 @@ begin
           New(VH);
           VH^.next:=VesaVideoModeHead;
           VH^.mode:=mode;
+          VH^.IsGraphic:=(B.Attributes and vesa_vma_GraphicsMode)<>0;
           VH^.v.color:=(B.Attributes and vesa_vma_ColorMode)<>0;
-          VH^.v.col:=B.XResolution;
-          VH^.v.row:=B.YResolution;
+          if VH^.IsGraphic then
+            begin
+              VH^.v.col:=B.XResolution div 8;
+              VH^.v.row:=B.YResolution div 8;
+            end
+          else
+            begin
+              VH^.v.col:=B.XResolution;
+              VH^.v.row:=B.YResolution;
+            end;
           VH^.VideoIndex:=VesaRegisteredModes;
           Inc(VesaRegisteredModes);
           RegisterVesaVideoMode:=true;
+          VesaVideoModeHead:=VH;
         end;
     end;
 end;
@@ -352,7 +379,6 @@ end;
 function SetVESAMode(const VideoMode: TVideoMode): Boolean;
 
   var
-     w : word;
      res : boolean;
      VH : PVesaVideoMode;
 
@@ -365,12 +391,32 @@ function SetVESAMode(const VideoMode: TVideoMode): Boolean;
             (VideoMode.row=VH^.v.row) and
             (VideoMode.color=VH^.v.color) then
            begin
-             res:=VESASetMode(VH^.mode);
+{$ifdef TESTGRAPHIC}
+             if VH^.IsGraphic then
+               begin
+                 if IsGraphicMode then
+                   CloseGraph;
+                 GraphDriver:=Graph.Vesa;
+                 if (VideoMode.col = 100) and (VideoMode.row = 75) then
+                   GraphMode:=m800x600x256
+                 else if (VideoMode.col = 128) and (VideoMode.row = 96) then
+                   GraphMode:=m1024x768x256
+                 else
+                   GraphMode:=Graph.Detect;
+                 InitGraph(GraphDriver,GraphMode,'');
+                 res:=(GraphResult=grOK);
+               end
+             else
+{$endif TESTGRAPHIC}
+               res:=VESASetMode(VH^.mode);
              if res then
                begin
                   ScreenWidth:=VideoMode.Col;
                   ScreenHeight:=VideoMode.Row;
                   ScreenColor:=VideoMode.Color;
+{$ifdef TESTGRAPHIC}
+                  IsGraphicMode:=VH^.IsGraphic;
+{$endif TESTGRAPHIC}
                   // cheat to get a correct mouse
                   {
                   mem[$40:$84]:=ScreenHeight-1;
@@ -387,6 +433,85 @@ function SetVESAMode(const VideoMode: TVideoMode): Boolean;
      SetVESAMode:=SysSetVideoMode(VideoMode);
   end;
 
+procedure VesaUpdateScreen(Force: Boolean);
+{$ifdef TESTGRAPHIC}
+var
+  StoreDrawTextBackground,
+  MustUpdate : boolean;
+  x,y : longint;
+  w : word;
+  Color : byte;
+  Ch : char;
+{$endif TESTGRAPHIC}
+begin
+{$ifdef TESTGRAPHIC}
+  if not IsGraphicMode then
+{$endif TESTGRAPHIC}
+    begin
+      SysUpdateScreen(Force);
+      exit;
+    end;
+{$ifdef TESTGRAPHIC}
+  if not force then
+   begin
+     MustUpdate:=false;
+     asm
+        movl    VideoBuf,%esi
+        movl    OldVideoBuf,%edi
+        movl    VideoBufSize,%ecx
+        shrl    $2,%ecx
+        repe
+        cmpsl
+        setne   MustUpdate
+     end;
+   end;
+  StoreDrawTextBackground:=DrawTextBackground;
+  DrawTextBackground:=true;
+  if Force or MustUpdate then
+   begin
+     for x:=0 to Screenwidth-1 do
+       for y:=0 to ScreenHeight-1 do
+         begin
+           w:=VideoBuf^[x+y*ScreenWidth];
+           if Force or
+              (w<>OldVideoBuf^[x+y*ScreenWidth]) then
+             Begin
+               Color:=w shr 16;
+               Ch:=chr(w and $ff);
+               SetColor(Color and $f);
+               SetBkColor((Color shr 8) and 7);
+               OutTextXY(x*8,y*8,Ch);
+             End;
+         end;
+   end;
+  DrawTextBackground:=StoreDrawTextBackground;
+{$endif TESTGRAPHIC}
+end;
+
+procedure VesaDoneVideo;
+begin
+{$ifdef TESTGRAPHIC}
+  if IsGraphicMode then
+    begin
+      CloseGraph;
+      IsGraphicMode:=false;
+    end;
+{$endif TESTGRAPHIC}
+  SysDoneVideo();
+end;
+
+procedure VesaInitVideo;
+begin
+{$ifdef TESTGRAPHIC}
+  if IsGraphicMode then
+    begin
+      SysInitVideo();
+      InitGraph(GraphDriver,GraphMode,'');
+    end
+  else
+{$endif TESTGRAPHIC}
+    SysInitVideo();
+end;
 
 Function VesaGetVideoModeCount : Word;
 
@@ -408,13 +533,22 @@ BEGIN
   Driver.GetVideoModeData:=@VesaGetVideoModeData;
   SysSetVideoMode:=Driver.SetVideoMode;
   Driver.SetVideoMode:=@SetVESAMode;
+  SysUpdateScreen:=Driver.UpdateScreen;
+  Driver.UpdateScreen:=@VesaUpdateScreen;
+  SysDoneVideo:=Driver.DoneDriver;
+  Driver.DoneDriver:=@VesaDoneVideo;
+  SysInitVideo:=Driver.InitDriver;
+  Driver.InitDriver:=@VesaInitVideo;
 
   SetVideoDriver (Driver);
 {$endif FPC}
 END.
 {
   $Log$
-  Revision 1.2  2001-10-11 11:35:34  pierre
+  Revision 1.3  2001-10-11 23:45:27  pierre
+   + some preliminary code for graph use
+
+  Revision 1.2  2001/10/11 11:35:34  pierre
    * adapt to new video unit layout
 
   Revision 1.1  2001/08/04 11:30:25  peter

@@ -4147,7 +4147,14 @@ begin
     begin
       if VESAGetModeInfo(ML.Modes[I],MI) then
       with MI do
+{$ifndef DEBUG}
         if (Attributes and vesa_vma_GraphicsMode)=0 then
+{$else DEBUG}
+        if ((Attributes and vesa_vma_GraphicsMode)=0) or
+        { only allow 4 bit i.e. 16 color modes }
+          (((Attributes and vesa_vma_CanBeSetInCurrentConfig)<>0) and
+           (BitsPerPixel=8)) then
+{$endif DEBUG}
           RegisterVesaVideoMode(ML.Modes[I]);
     end;
 end;
@@ -4180,7 +4187,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  2001-10-11 11:36:30  pierre
+  Revision 1.9  2001-10-11 23:45:28  pierre
+   + some preliminary code for graph use
+
+  Revision 1.8  2001/10/11 11:36:30  pierre
    * adapt to new video unit layout
 
   Revision 1.7  2001/09/27 22:29:12  pierre
