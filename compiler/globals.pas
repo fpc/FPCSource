@@ -1457,6 +1457,12 @@ end;
       {$endif}
       end;
 
+{$IFDEF MORPHOS}
+{$DEFINE AMIGASHELL}
+{$ENDIF}
+{$IFDEF AMIGA}
+{$DEFINE AMIGASHELL}
+{$ENDIF}
 
     function Shell(const command:string): longint;
       { This is already defined in the linux.ppu for linux, need for the *
@@ -1466,7 +1472,7 @@ end;
         result := {$ifdef havelinuxrtl10}Linux{$else}Unix{$endif}.Shell(command);
       end;
       {$else}
-      {$ifdef amiga}
+      {$ifdef amigashell}
       begin
 {$IFDEF USE_SYSUTILS}
         result := ExecuteProcess('',command);
@@ -1496,6 +1502,7 @@ end;
       {$endif}
       {$endif}
 
+{$UNDEF AMIGASHELL}
 
 {$ifdef CPUI386}
   {$define HASSETFPUEXCEPTIONMASK}
@@ -2173,7 +2180,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.157  2005-01-04 17:40:33  karoly
+  Revision 1.158  2005-01-06 09:20:36  karoly
+    * made Shell() work correctly on MorphOS
+
+  Revision 1.157  2005/01/04 17:40:33  karoly
     + sysv style syscalls added for MorphOS
 
   Revision 1.156  2005/01/04 16:20:51  florian
