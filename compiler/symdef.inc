@@ -580,7 +580,6 @@
           savesize:=2
         else
          savesize:=1;
-      writeln('enum: ',aktpackenum,' save: ',savesize);
       end;
 
 
@@ -2308,14 +2307,14 @@
          name:=stringdup(readstring);
          childof:=pobjectdef(readdefref);
          options:=readlong;
-        
+
          oldread_member:=read_member;
          read_member:=true;
          object_options:=true;
          publicsyms:=new(psymtable,loadasstruct(objectsymtable));
          object_options:=false;
          read_member:=oldread_member;
-        
+
          publicsyms^.defowner:=@self;
          publicsyms^.datasize:=savesize;
          publicsyms^.name := stringdup(name^);
@@ -2450,7 +2449,7 @@
          writedefref(childof);
          writelong(options);
          current_ppu^.writeentry(ibobjectdef);
-        
+
          oldread_member:=read_member;
          read_member:=true;
          object_options:=true;
@@ -2629,7 +2628,10 @@
 
 {
   $Log$
-  Revision 1.29  1998-09-01 12:53:25  peter
+  Revision 1.30  1998-09-01 17:37:29  peter
+    * removed debug writeln :(
+
+  Revision 1.29  1998/09/01 12:53:25  peter
     + aktpackenum
 
   Revision 1.28  1998/09/01 07:54:22  pierre
