@@ -795,11 +795,11 @@ fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
       inc(code);
    end;
 { Decimal ? }
-  if (s[code]='.') and (length(s)>=code) then
+  if (length(s)>=code) and (s[code]='.') then
    begin
       hd:=1.0;
       inc(code);
-      while (s[code] in ['0'..'9']) and (length(s)>=code) do
+      while (length(s)>=code) and (s[code] in ['0'..'9']) do
         begin
            { Read fractional part. }
            flags:=flags or 2;
@@ -816,23 +816,24 @@ fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
       exit;
    end;
  { Exponent ? }
-  if (upcase(s[code])='E') and (length(s)>=code) then
+  if (length(s)>=code) and (upcase(s[code])='E') then
    begin
       inc(code);
-      if s[code]='+' then
-        inc(code)
-      else
-        if s[code]='-' then
-         begin
-           esign:=-1;
-           inc(code);
-         end;
-      if not(s[code] in ['0'..'9']) or (length(s)<code) then
+      if Length(s) >= code then
+        if s[code]='+' then
+          inc(code)
+        else
+          if s[code]='-' then
+           begin
+             esign:=-1;
+             inc(code);
+           end;
+      if (length(s)<code) or not(s[code] in ['0'..'9']) then
         begin
            fpc_Val_Real_ShortStr:=0.0;
            exit;
         end;
-      while (s[code] in ['0'..'9']) and (length(s)>=code) do
+      while (length(s)>=code) and (s[code] in ['0'..'9']) do
         begin
            exponent:=exponent*10;
            exponent:=exponent+ord(s[code])-ord('0');
@@ -880,7 +881,10 @@ end;
 
 {
   $Log$
-  Revision 1.34  2005-02-25 12:34:46  peter
+  Revision 1.35  2005-03-20 12:45:19  michael
+  + Patch from Colin Western to fix uninitialized memory reads
+
+  Revision 1.34  2005/02/25 12:34:46  peter
     * added HexStr(Pointer)
 
   Revision 1.33  2005/02/14 17:13:27  peter
