@@ -47,12 +47,10 @@ end ['RAX'];
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-{$ifndef REGCALL}
-        movq    framebp,%rax
-{$endif}
-        orq     %rax,%rax
+	{ %rdi = framebp }
+        orq     %rdi,%rdi
         jz      .Lg_a_null
-        movq    8(%rax),%rax
+        movq    8(%rdi),%rax
 .Lg_a_null:
 end ['RAX'];
 
@@ -60,13 +58,11 @@ end ['RAX'];
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-{$ifndef REGCALL}
-        movq    framebp,%rax
-{$endif}
-        orq     %rax,%rax
-        jz      .Lgnf_null
-        movq    (%rax),%rax
-.Lgnf_null:
+	{ %rdi = framebp }
+        orq     %rdi,%rdi
+        jz      .Lg_a_null
+        movq    (%rdi),%rax
+.Lg_a_null:
 end ['RAX'];
 
 (*
@@ -352,7 +348,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2004-05-01 15:59:17  florian
+  Revision 1.13  2004-06-05 07:55:22  peter
+    * fixed parameters of get_caller_*()
+
+  Revision 1.12  2004/05/01 15:59:17  florian
     * x86_64 exception handling fixed
 
   Revision 1.11  2004/04/29 19:50:13  peter
