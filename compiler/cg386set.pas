@@ -500,6 +500,12 @@ implementation
           begin
              if assigned(t^.less) then
                genitem(t^.less);
+             { need we to test the first value }
+             if first and (t^._low>get_min_value(p^.left^.resulttype)) then
+               begin
+                  exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,t^._low,hregister)));
+                  emitl(jmp_le,elselabel);
+               end;
              if t^._low=t^._high then
                begin
                   if t^._low-last=1 then
@@ -519,34 +525,37 @@ implementation
                   { ELSE-label                                      }
                   if first then
                     begin
-                       if t^._low-1=1 then
-                         exprasmlist^.concat(new(pai386,op_reg(A_DEC,opsize,
-                           hregister)))
-                       else if t^._low-1=0 then
-                         exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,opsize,
-                           hregister,hregister)))
-                       else
-                         exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,
-                           t^._low-1,hregister)));
+                       { have we to ajust the first value ?}
+                       if t^._low>get_min_value(p^.left^.resulttype) then
+                         begin
+                            if t^._low=1 then
+                              exprasmlist^.concat(new(pai386,op_reg(A_DEC,opsize,
+                                hregister)))
+                            else
+                              exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,
+                                t^._low,hregister)));
+                         end;
                        { work around: if the lower range=0 and we
                          do the subtraction we have to take care
                          of the sign!
-                       }
+                       this isn't necessary, this is tested before now (FK)
                        if t^._low=0 then
                          emitl(A_JBE,elselabel)
                        else
-                         emitl(jmp_lee,elselabel);
+                       emitl(jmp_lee,elselabel);
+                       }
                     end
+                  else
                   { if there is no unused label between the last and the }
                   { present label then the lower limit can be checked    }
                   { immediately. else check the range in between:        }
-                  else if (t^._low-last>1)then
+                  if (t^._low-last>1) then
                     begin
                        if t^._low-last-1=1 then
                          exprasmlist^.concat(new(pai386,op_reg(A_DEC,opsize,hregister)))
                        else
                          exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,t^._low-last-1,hregister)));
-                       emitl(jmp_lee,elselabel);
+                       emitl(jmp_le,elselabel);
                     end;
                   exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,t^._high-t^._low+1,hregister)));
                   emitl(jmp_lee,t^.statement);
@@ -713,8 +722,8 @@ implementation
                   { a linear list is always smaller than a jump tree }
                      genlinearlist(p^.nodes)
                    else
-                          { if the labels less or more a continuum then }
-                          genjumptable(p^.nodes,min_label,max_label);
+                  { if the labels less or more a continuum then }
+                     genjumptable(p^.nodes,min_label,max_label);
                 end
               else
                 begin
@@ -775,7 +784,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-09-07 18:45:54  peter
+  Revision 1.14  1998-09-09 16:44:21  florian
+    * I hope, the case bug is fixed now
+
+  Revision 1.13  1998/09/07 18:45:54  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 

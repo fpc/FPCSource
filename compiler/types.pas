@@ -34,6 +34,9 @@ unit types;
     { returns true, if def defines an ordinal type }
     function is_ordinal(def : pdef) : boolean;
 
+    { returns the min. value of the type }
+    function get_min_value(def : pdef) : longint;
+
     { returns true, if def defines an ordinal type }
     function is_integer(def : pdef) : boolean;
 
@@ -175,6 +178,20 @@ unit types;
          enumdef : is_ordinal:=true;
          else
            is_ordinal:=false;
+         end;
+      end;
+
+    { returns the min. value of the type }
+    function get_min_value(def : pdef) : longint;
+
+      begin
+         case def^.deftype of
+            orddef:
+                get_min_value:=porddef(def)^.low;
+            enumdef:
+                get_min_value:=penumdef(def)^.min;
+         else
+            get_min_value:=0;
          end;
       end;
 
@@ -902,7 +919,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.27  1998-09-07 17:37:07  florian
+  Revision 1.28  1998-09-09 16:44:23  florian
+    * I hope, the case bug is fixed now
+
+  Revision 1.27  1998/09/07 17:37:07  florian
     * first fixes for published properties
 
   Revision 1.26  1998/09/04 12:24:31  florian
