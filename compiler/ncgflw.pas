@@ -329,7 +329,6 @@ implementation
       var
          l3,oldclabel,oldblabel : tasmlabel;
          temptovalue : boolean;
-         hs : byte;
          temp1 : treference;
          hop : topcg;
          hcond : topcmp;
@@ -348,31 +347,40 @@ implementation
          objectlibrary.getlabel(l3);
 
          { only calculate reference }
-         secondpass(t2);
-         hs := t2.resulttype.def.size;
-         opsize := def_cgsize(t2.resulttype.def);
+         opsize := def_cgsize(left.resulttype.def);
+         count_var_is_signed:=is_signed(left.resulttype.def);
 
          { first set the to value
            because the count var can be in the expression !! }
          do_loopvar_at_end:=lnf_dont_mind_loopvar_on_exit in loopflags;
 
-         secondpass(right);
+         secondpass(t1);
          { calculate pointer value and check if changeable and if so }
          { load into temporary variable                       }
-         if right.nodetype<>ordconstn then
+         if t1.nodetype<>ordconstn then
            begin
               do_loopvar_at_end:=false;
-              tg.GetTemp(exprasmlist,hs,tt_normal,temp1);
+              tg.GetTemp(exprasmlist,t1.resulttype.def.size,tt_normal,temp1);
               temptovalue:=true;
-              cg.a_load_loc_ref(exprasmlist,opsize,right.location,temp1);
-              location_freetemp(exprasmlist,right.location);
+              cg.a_load_loc_ref(exprasmlist,opsize,t1.location,temp1);
+              location_freetemp(exprasmlist,t1.location);
            end
          else
            temptovalue:=false;
 
          { produce start assignment }
          secondpass(left);
-         count_var_is_signed:=is_signed(t2.resulttype.def);
+         secondpass(right);
+         case left.location.loc of
+           LOC_REFERENCE,
+           LOC_CREFERENCE :
+             cg.a_load_loc_ref(exprasmlist,left.location.size,right.location,left.location.reference);
+           LOC_REGISTER,
+           LOC_CREGISTER :
+             cg.a_load_loc_reg(exprasmlist,left.location.size,right.location,left.location.register);
+           else
+             internalerror(200501311);
+         end;
 
          if lnf_backward in loopflags then
            if count_var_is_signed then
@@ -392,15 +400,15 @@ implementation
          if temptovalue then
            begin
              cg.a_cmp_ref_loc_label(exprasmlist,opsize,hcond,
-               temp1,t2.location,aktbreaklabel);
+               temp1,left.location,aktbreaklabel);
            end
          else
            begin
              if lnf_testatbegin in loopflags then
                begin
                  cg.a_cmp_const_loc_label(exprasmlist,opsize,hcond,
-                   tordconstnode(right).value,
-                   t2.location,aktbreaklabel);
+                   tordconstnode(t1).value,
+                   left.location,aktbreaklabel);
                end;
            end;
 
@@ -413,11 +421,11 @@ implementation
                 hop:=OP_ADD
               else
                 hop:=OP_SUB;
-              cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
+              cg.a_op_const_loc(exprasmlist,hop,1,left.location);
             end;
 
+         { align loop target }
          if not(cs_littlesize in aktglobalswitches) then
-            { align loop target }
             exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
          cg.a_label(exprasmlist,l3);
 
@@ -430,13 +438,12 @@ implementation
                 hop:=OP_SUB
               else
                 hop:=OP_ADD;
-              cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
+              cg.a_op_const_loc(exprasmlist,hop,1,left.location);
             end;
 
-         { help register must not be in instruction block }
-         if assigned(t1) then
+         if assigned(t2) then
            begin
-             secondpass(t1);
+             secondpass(t2);
 {$ifdef OLDREGVARS}
              load_all_regvars(exprasmlist);
 {$endif OLDREGVARS}
@@ -451,7 +458,7 @@ implementation
                 hop:=OP_SUB
               else
                 hop:=OP_ADD;
-              cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
+              cg.a_op_const_loc(exprasmlist,hop,1,left.location);
             end;
 
          cg.a_label(exprasmlist,aktcontinuelabel);
@@ -487,12 +494,12 @@ implementation
          if temptovalue then
            begin
              cg.a_cmp_ref_loc_label(exprasmlist,opsize,hcond,temp1,
-               t2.location,l3);
+               left.location,l3);
              tg.ungetiftemp(exprasmlist,temp1);
            end
          else
            begin
-             cmp_const:=Tordconstnode(right).value;
+             cmp_const:=Tordconstnode(t1).value;
              if do_loopvar_at_end then
                begin
                  {Watch out for wrap around 255 -> 0.}
@@ -597,18 +604,18 @@ implementation
                      begin
                        if lnf_backward in loopflags then
                          begin
-                           if integer(cmp_const)=high(integer) then
+                           if integer(cmp_const)=high(smallint) then
                              begin
                                hcond:=OC_NE;
-                               cmp_const:=low(integer);
+                               cmp_const:=low(smallint);
                              end
                          end
                        else
                          begin
-                           if integer(cmp_const)=low(integer) then
+                           if integer(cmp_const)=low(smallint) then
                              begin
                                hcond:=OC_NE;
-                               cmp_const:=high(integer);
+                               cmp_const:=high(smallint);
                              end
                          end
                      end;
@@ -656,7 +663,7 @@ implementation
                end;
 
              cg.a_cmp_const_loc_label(exprasmlist,opsize,hcond,
-               cmp_const,t2.location,l3);
+               cmp_const,left.location,l3);
            end;
 
          { this is the break label: }
@@ -1443,7 +1450,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2004-11-08 22:09:59  peter
+  Revision 1.103  2005-01-31 16:16:21  peter
+    * for-node cleanup, checking for uninitialzed from and to values
+      is now supported
+
+  Revision 1.102  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.101  2004/10/24 11:44:28  peter

@@ -68,7 +68,7 @@ interface
        end;
 
        twhilerepeatnode = class(tloopnode)
-          constructor create(l,r,_t1:Tnode;tab,cn:boolean);virtual;
+          constructor create(l,r:Tnode;tab,cn:boolean);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
 {$ifdef state_tracking}
@@ -196,9 +196,6 @@ interface
        end;
        tonnodeclass = class of tonnode;
 
-    { for compatibilty }
-    function genloopnode(t : tnodetype;l,r,n1 : tnode;back : boolean) : tnode;
-
     var
        cwhilerepeatnode : twhilerepeatnodeclass;
        cifnode : tifnodeclass;
@@ -227,28 +224,6 @@ implementation
       cgbase,procinfo
       ;
 
-    function genloopnode(t : tnodetype;l,r,n1 : tnode;back : boolean) : tnode;
-
-      var
-         p : tnode;
-
-      begin
-         case t of
-            ifn:
-               p:=cifnode.create(l,r,n1);
-            whilerepeatn:
-               if back then
-                  {Repeat until.}
-                  p:=cwhilerepeatnode.create(l,r,n1,false,true)
-               else
-                  {While do.}
-                  p:=cwhilerepeatnode.create(l,r,n1,true,false);
-            forn:
-               p:=cfornode.create(l,r,n1,nil,back);
-         end;
-         resulttypepass(p);
-         genloopnode:=p;
-      end;
 
 {****************************************************************************
                                  TLOOPNODE
@@ -361,9 +336,9 @@ implementation
                                TWHILEREPEATNODE
 *****************************************************************************}
 
-    constructor Twhilerepeatnode.create(l,r,_t1:Tnode;tab,cn:boolean);
+    constructor Twhilerepeatnode.create(l,r:Tnode;tab,cn:boolean);
       begin
-          inherited create(whilerepeatn,l,r,_t1,nil);
+          inherited create(whilerepeatn,l,r,nil,nil);
           if tab then
               include(loopflags, lnf_testatbegin);
           if cn then
@@ -705,42 +680,39 @@ implementation
          resulttype:=voidtype;
 
          {Can we spare the first comparision?}
-         if (right.nodetype=ordconstn) and
-            (Tassignmentnode(left).right.nodetype=ordconstn) and
+         if (t1.nodetype=ordconstn) and
+            (right.nodetype=ordconstn) and
             (
              (
               (lnf_backward in loopflags) and
-              (Tordconstnode(Tassignmentnode(left).right).value>=Tordconstnode(right).value)
+              (Tordconstnode(right).value>=Tordconstnode(t1).value)
              ) or
              (
                not(lnf_backward in loopflags) and
-               (Tordconstnode(Tassignmentnode(left).right).value<=Tordconstnode(right).value)
+               (Tordconstnode(right).value<=Tordconstnode(t1).value)
              )
             ) then
            exclude(loopflags,lnf_testatbegin);
 
-         { save counter var }
-         t2:=tassignmentnode(left).left.getcopy;
-
+         { process the loopvar, from and to }
          resulttypepass(left);
-         set_varstate(left,vs_used,true);
-
-         if assigned(t1) then
-           begin
-             resulttypepass(t1);
-             if codegenerror then
-               exit;
-           end;
-
-         { process count var }
-         resulttypepass(t2);
-         set_varstate(t2,vs_used,false);
-         if codegenerror then
-           exit;
-
          resulttypepass(right);
+         resulttypepass(t1);
+
+         { first set the varstate for from and to, so
+           uses of loopvar in those expressions will also
+           trigger a warning when it is not used yet }
          set_varstate(right,vs_used,true);
-         inserttypeconv(right,t2.resulttype);
+         set_varstate(t1,vs_used,true);
+         set_varstate(left,vs_used,false);
+
+         { Make sure that the loop var and the
+           from and to values are compatible types }
+         inserttypeconv(right,left.resulttype);
+         inserttypeconv(t1,left.resulttype);
+
+         if assigned(t2) then
+           resulttypepass(t2);
       end;
 
 
@@ -750,25 +722,8 @@ implementation
      begin
          result:=nil;
          expectloc:=LOC_VOID;
-         { Calc register weight }
-         old_t_times:=cg.t_times;
-         if not(cs_littlesize in aktglobalswitches) then
-           cg.t_times:=cg.t_times*8;
 
          firstpass(left);
-
-         if assigned(t1) then
-          begin
-            firstpass(t1);
-            if codegenerror then
-             exit;
-          end;
-
-         registersint:=t1.registersint;
-         registersfpu:=t1.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
          if left.registersint>registersint then
            registersint:=left.registersint;
          if left.registersfpu>registersfpu then
@@ -778,32 +733,7 @@ implementation
            registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
 
-         { process count var }
-         firstpass(t2);
-         if codegenerror then
-          exit;
-         if t2.registersint>registersint then
-           registersint:=t2.registersint;
-         if t2.registersfpu>registersfpu then
-           registersfpu:=t2.registersfpu;
-{$ifdef SUPPORT_MMX}
-         if t2.registersmmx>registersmmx then
-           registersmmx:=t2.registersmmx;
-{$endif SUPPORT_MMX}
-
          firstpass(right);
-      {$ifdef loopvar_dont_mind}
-         { Check count var, record fields are also allowed in tp7 }
-         include(loopflags,lnf_dont_mind_loopvar_on_exit);
-         hp:=t2;
-         while (hp.nodetype=subscriptn) or
-               ((hp.nodetype=vecn) and
-                is_constintnode(tvecnode(hp).right)) do
-           hp:=tunarynode(hp).left;
-         if (hp.nodetype=loadn) and (Tloadnode(hp).symtableentry.typ=varsym) then
-            loopvar_notid:=Tvarsym(Tloadnode(hp).symtableentry).
-             register_notification([vn_onread,vn_onwrite],@loop_var_access);
-      {$endif}
          if right.registersint>registersint then
            registersint:=right.registersint;
          if right.registersfpu>registersfpu then
@@ -812,10 +742,40 @@ implementation
          if right.registersmmx>registersmmx then
            registersmmx:=right.registersmmx;
 {$endif SUPPORT_MMX}
+
+         firstpass(t1);
+         if t1.registersint>registersint then
+           registersint:=t1.registersint;
+         if t1.registersfpu>registersfpu then
+           registersfpu:=t1.registersfpu;
+{$ifdef SUPPORT_MMX}
+         if t1.registersmmx>registersmmx then
+           registersmmx:=t1.registersmmx;
+{$endif SUPPORT_MMX}
+
+         if assigned(t2) then
+          begin
+            { Calc register weight }
+            old_t_times:=cg.t_times;
+            if not(cs_littlesize in aktglobalswitches) then
+              cg.t_times:=cg.t_times*8;
+            firstpass(t2);
+            if codegenerror then
+             exit;
+            if t2.registersint>registersint then
+              registersint:=t2.registersint;
+            if t2.registersfpu>registersfpu then
+              registersfpu:=t2.registersfpu;
+{$ifdef SUPPORT_MMX}
+            if t2.registersmmx>registersmmx then
+              registersmmx:=t2.registersmmx;
+{$endif SUPPORT_MMX}
+            cg.t_times:=old_t_times;
+          end;
+
          { we need at least one register for comparisons PM }
          if registersint=0 then
            inc(registersint);
-         cg.t_times:=old_t_times;
       end;
 
 
@@ -1441,7 +1401,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.106  2005-01-16 14:44:03  peter
+  Revision 1.107  2005-01-31 16:16:21  peter
+    * for-node cleanup, checking for uninitialzed from and to values
+      is now supported
+
+  Revision 1.106  2005/01/16 14:44:03  peter
     * fix unreachable code check for repeat loop
 
   Revision 1.105  2005/01/16 10:50:32  peter

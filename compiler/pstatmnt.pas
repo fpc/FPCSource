@@ -81,7 +81,7 @@ implementation
             else_a:=statement
          else
            else_a:=nil;
-         if_statement:=genloopnode(ifn,ex,if_a,else_a,false);
+         result:=cifnode.create(ex,if_a,else_a);
       end;
 
     { creates a block (list) of statements, til the next END token }
@@ -116,7 +116,7 @@ implementation
     function case_statement : tnode;
       var
          casedef : tdef;
-         code,caseexpr,p,instruc,elseblock : tnode;
+         caseexpr,p : tnode;
          blockid : longint;
          hl1,hl2 : TConstExprInt;
          casedeferror : boolean;
@@ -221,10 +221,7 @@ implementation
               casenode.addelseblock(statements_til_end);
            end
          else
-           begin
-              elseblock:=nil;
-              consume(_END);
-           end;
+           consume(_END);
 
          result:=casenode;
       end;
@@ -259,7 +256,7 @@ implementation
 
          first:=cblocknode.create(first);
          p_e:=comp_expr(true);
-         repeat_statement:=genloopnode(whilerepeatn,p_e,first,nil,true);
+         result:=cwhilerepeatnode.create(p_e,first,false,true);
       end;
 
 
@@ -273,133 +270,131 @@ implementation
          p_e:=comp_expr(true);
          consume(_DO);
          p_a:=statement;
-         while_statement:=genloopnode(whilerepeatn,p_e,p_a,nil,false);
+         result:=cwhilerepeatnode.create(p_e,p_a,true,false);
       end;
 
 
     function for_statement : tnode;
 
       var
-         p_e,tovalue,p_a : tnode;
+         hp,
+         hloopvar,
+         hblock,
+         hto,hfrom : tnode;
          backward : boolean;
          loopvarsym : tabstractvarsym;
-         hp : tnode;
       begin
          { parse loop header }
          consume(_FOR);
-         p_e:=expr;
+
+         hloopvar:=factor(false);
 
          { Check loop variable }
-         hp:=nil;
          loopvarsym:=nil;
-         if (p_e.nodetype=assignn) then
-           begin
-             hp:=tassignmentnode(p_e).left;
 
-             { variable must be an ordinal, int64 is not allowed for 32bit targets }
-             if not(is_ordinal(hp.resulttype.def))
+         { variable must be an ordinal, int64 is not allowed for 32bit targets }
+         if not(is_ordinal(hloopvar.resulttype.def))
 {$ifndef cpu64bit}
-                or is_64bitint(hp.resulttype.def)
+            or is_64bitint(hloopvar.resulttype.def)
 {$endif cpu64bit}
-                then
-               MessagePos(hp.fileinfo,type_e_ordinal_expr_expected);
+            then
+           MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
 
-             while assigned(hp) and
-                   (
-                    { record/object fields are allowed }
-                    (
-                     (hp.nodetype=subscriptn) and
-                     ((tsubscriptnode(hp).left.resulttype.def.deftype=recorddef) or
-                      is_object(tsubscriptnode(hp).left.resulttype.def))
-                    ) or
-                    { constant array index }
-                    (
-                     (hp.nodetype=vecn) and
-                     is_constintnode(tvecnode(hp).right)
-                    ) or
-                    { equal typeconversions }
-                    (
-                     (hp.nodetype=typeconvn) and
-                     (ttypeconvnode(hp).convtype=tc_equal)
-                    )
-                   ) do
-               begin
-                 { Use the recordfield for loopvarsym }
-                 if not assigned(loopvarsym) and
-                    (hp.nodetype=subscriptn) then
-                   loopvarsym:=tsubscriptnode(hp).vs;
-                 hp:=tunarynode(hp).left;
-               end;
+         hp:=hloopvar;
+         while assigned(hp) and
+               (
+                { record/object fields are allowed in tp7 mode only }
+                (
+                 (m_tp7 in aktmodeswitches) and
+                 (hp.nodetype=subscriptn) and
+                 ((tsubscriptnode(hp).left.resulttype.def.deftype=recorddef) or
+                  is_object(tsubscriptnode(hp).left.resulttype.def))
+                ) or
+                { constant array index }
+                (
+                 (hp.nodetype=vecn) and
+                 is_constintnode(tvecnode(hp).right)
+                ) or
+                { equal typeconversions }
+                (
+                 (hp.nodetype=typeconvn) and
+                 (ttypeconvnode(hp).convtype=tc_equal)
+                )
+               ) do
+           begin
+             { Use the recordfield for loopvarsym }
+             if not assigned(loopvarsym) and
+                (hp.nodetype=subscriptn) then
+               loopvarsym:=tsubscriptnode(hp).vs;
+             hp:=tunarynode(hp).left;
+           end;
 
-             if assigned(hp) and
-                (hp.nodetype=loadn) then
-               begin
-                 case tloadnode(hp).symtableentry.typ of
-                   globalvarsym,
-                   localvarsym,
-                   paravarsym :
+         if assigned(hp) and
+            (hp.nodetype=loadn) then
+           begin
+             case tloadnode(hp).symtableentry.typ of
+               globalvarsym,
+               localvarsym,
+               paravarsym :
+                 begin
+                   { we need a simple loadn and the load must be in a global symtable or
+                     in the same level as the para of the current proc }
+                   if (
+                       (tloadnode(hp).symtable.symtablelevel=main_program_level) or
+                       (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
+                      ) and
+                      not(
+                          ((tabstractvarsym(tloadnode(hp).symtableentry).varspez in [vs_var,vs_out]) or
+                           (vo_is_thread_var in tabstractvarsym(tloadnode(hp).symtableentry).varoptions))
+                         ) then
                      begin
-                       { we need a simple loadn and the load must be in a global symtable or
-                         in the same level as the para of the current proc }
-                       if (
-                           (tloadnode(hp).symtable.symtablelevel=main_program_level) or
-                           (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
-                          ) and
-                          not(
-                              ((tabstractvarsym(tloadnode(hp).symtableentry).varspez in [vs_var,vs_out]) or
-                               (vo_is_thread_var in tabstractvarsym(tloadnode(hp).symtableentry).varoptions))
-                             ) then
-                         begin
-                           tabstractvarsym(tloadnode(hp).symtableentry).varstate:=vs_used;
-
-                           { Assigning for-loop variable is only allowed in tp7 }
-                           if not(m_tp7 in aktmodeswitches) then
-                             begin
-                               if not assigned(loopvarsym) then
-                                 loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
-                               include(loopvarsym.varoptions,vo_is_loop_counter);
-                             end;
-                         end
-                       else
-                         MessagePos(hp.fileinfo,type_e_illegal_count_var);
-                     end;
-                   typedconstsym :
-                     begin
-                       { Bad programming, only allowed in tp7 mode }
+                       { Assigning for-loop variable is only allowed in tp7 }
                        if not(m_tp7 in aktmodeswitches) then
-                         MessagePos(hp.fileinfo,type_e_illegal_count_var);
-                     end;
+                         begin
+                           if not assigned(loopvarsym) then
+                             loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
+                           include(loopvarsym.varoptions,vo_is_loop_counter);
+                         end;
+                     end
                    else
                      MessagePos(hp.fileinfo,type_e_illegal_count_var);
                  end;
-               end
-             else
-               MessagePos(tassignmentnode(p_e).left.fileinfo,type_e_illegal_count_var);
+               typedconstsym :
+                 begin
+                   { Bad programming, only allowed in tp7 mode }
+                   if not(m_tp7 in aktmodeswitches) then
+                     MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                 end;
+               else
+                 MessagePos(hp.fileinfo,type_e_illegal_count_var);
+             end;
            end
          else
-           Message(parser_e_illegal_expression);
+           MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
 
-         if token=_DOWNTO then
-           begin
-              consume(_DOWNTO);
-              backward:=true;
-           end
+         consume(_ASSIGNMENT);
+
+         hfrom:=comp_expr(true);
+
+         if try_to_consume(_DOWNTO) then
+           backward:=true
          else
            begin
-              consume(_TO);
-              backward:=false;
+             consume(_TO);
+             backward:=false;
            end;
-         tovalue:=comp_expr(true);
+
+         hto:=comp_expr(true);
          consume(_DO);
 
          { ... now the instruction block }
-         p_a:=statement;
+         hblock:=statement;
 
          { variable is not used a loop counter anymore }
          if assigned(loopvarsym) then
            exclude(loopvarsym.varoptions,vo_is_loop_counter);
 
-         for_statement:=genloopnode(forn,p_e,tovalue,p_a,backward);
+         result:=cfornode.create(hloopvar,hfrom,hto,hblock,backward);
       end;
 
 
@@ -1025,7 +1020,10 @@ implementation
            end;
          end;
          if assigned(code) then
-           code.fileinfo:=filepos;
+           begin
+             resulttypepass(code);
+             code.fileinfo:=filepos;
+           end;
          statement:=code;
       end;
 
@@ -1147,7 +1145,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.149  2004-12-26 16:22:01  peter
+  Revision 1.150  2005-01-31 16:16:21  peter
+    * for-node cleanup, checking for uninitialzed from and to values
+      is now supported
+
+  Revision 1.149  2004/12/26 16:22:01  peter
     * fix lineinfo for with blocks
 
   Revision 1.148  2004/12/07 16:11:52  peter
