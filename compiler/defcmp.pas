@@ -78,7 +78,8 @@ interface
           tc_variant_2_enum,
           tc_enum_2_variant,
           tc_interface_2_variant,
-          tc_variant_2_interface
+          tc_variant_2_interface,
+          tc_array_2_dynarray
        );
 
     function compare_defs_ext(def_from,def_to : tdef;
@@ -527,10 +528,20 @@ implementation
                         { to dynamic array }
                         if is_dynamic_array(def_to) then
                          begin
-                           { dynamic array -> dynamic array }
-                           if is_dynamic_array(def_from) and
-                              equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
-                            eq:=te_equal;
+                           if equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
+                             begin
+                               { dynamic array -> dynamic array }
+                               if is_dynamic_array(def_from) then
+                                 eq:=te_equal
+                               { fpc modes only: array -> dyn. array }
+                               else if (aktmodeswitches*[m_objfpc,m_fpc]<>[]) and
+                                 not(is_special_array(def_from)) and
+                                 is_zero_based_array(def_from) then
+                                 begin
+                                   eq:=te_convert_l2;
+                                   doconv:=tc_array_2_dynarray;
+                                 end;
+                             end
                          end
                         else
                          { to open array }
@@ -1387,7 +1398,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2005-02-14 17:13:06  peter
+  Revision 1.70  2005-03-11 21:55:43  florian
+    + array -> dyn. array type cast
+
+  Revision 1.69  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.68  2005/02/03 19:24:33  florian

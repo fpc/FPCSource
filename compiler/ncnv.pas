@@ -80,6 +80,7 @@ interface
           function resulttype_proc_to_procvar : tnode;
           function resulttype_variant_to_interface : tnode;
           function resulttype_interface_to_variant : tnode;
+          function resulttype_array_2_dynarray : tnode;
        protected
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
@@ -206,7 +207,7 @@ implementation
       cclasses,globtype,systems,
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symbase,symtable,
-      ncon,ncal,nset,nadd,ninl,nmem,nmat,nutils,
+      ncon,ncal,nset,nadd,ninl,nmem,nmat,nbas,nutils,
       cgbase,procinfo,
       htypechk,pass_1,cpuinfo;
 
@@ -631,7 +632,8 @@ implementation
           'tc_variant_2_enum',
           'tc_enum_2_variant',
           'tc_interface_2_variant',
-          'tc_variant_2_interface'
+          'tc_variant_2_interface',
+          'tc_array_2_dynarray'
         );
       begin
         inherited printnodeinfo(t);
@@ -1173,6 +1175,60 @@ implementation
       end;
 
 
+    function ttypeconvnode.resulttype_array_2_dynarray : tnode;
+      var
+        newstatement : tstatementnode;
+        temp         : ttempcreatenode;
+        temp2        : ttempcreatenode;
+      begin
+        { create statements with call to getmem+initialize }
+        result:=internalstatements(newstatement);
+
+        { create temp for result }
+        temp:=ctempcreatenode.create(resulttype,resulttype.def.size,tt_persistent,true);
+        addstatement(newstatement,temp);
+
+        { get temp for array of lengths }
+        temp2:=ctempcreatenode.create(sinttype,sinttype.def.size,tt_persistent,false);
+        addstatement(newstatement,temp2);
+
+        { one dimensional }
+        addstatement(newstatement,cassignmentnode.create(
+            ctemprefnode.create_offset(temp2,0),
+            cordconstnode.create
+               (tarraydef(left.resulttype.def).highrange+1,s32inttype,true)));
+        { create call to fpc_dynarr_setlength }
+        addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',
+            ccallparanode.create(caddrnode.create_internal
+                  (ctemprefnode.create(temp2)),
+               ccallparanode.create(cordconstnode.create
+                  (1,s32inttype,true),
+               ccallparanode.create(caddrnode.create_internal
+                  (crttinode.create(tstoreddef(resulttype.def),initrtti)),
+               ccallparanode.create(
+                 ctypeconvnode.create_internal(
+                   ctemprefnode.create(temp),voidpointertype),
+                 nil))))
+
+          ));
+        addstatement(newstatement,ctempdeletenode.create(temp2));
+
+        { copy ... }
+        addstatement(newstatement,cassignmentnode.create(
+          ctypeconvnode.create_internal(cderefnode.create(ctypeconvnode.create_internal(ctemprefnode.create(temp),voidpointertype)),left.resulttype),
+          left
+        ));
+        { left is reused }
+        left:=nil;
+        { the last statement should return the value as
+          location and type, this is done be referencing the
+          temp and converting it first from a persistent temp to
+          normal temp }
+        addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+        addstatement(newstatement,ctemprefnode.create(temp));
+      end;
+
+
     procedure copyparasym(p:TNamedIndexItem;arg:pointer);
       var
         newparast : tsymtable absolute arg;
@@ -1267,7 +1323,8 @@ implementation
           { variant_2_enum} @ttypeconvnode.resulttype_variant_to_enum,
           { enum_2_variant} @ttypeconvnode.resulttype_enum_to_variant,
           { variant_2_interface} @ttypeconvnode.resulttype_interface_to_variant,
-          { interface_2_variant} @ttypeconvnode.resulttype_variant_to_interface
+          { interface_2_variant} @ttypeconvnode.resulttype_variant_to_interface,
+          { array_2_dynarray} @ttypeconvnode.resulttype_array_2_dynarray
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -2100,6 +2157,7 @@ implementation
            nil,
            nil,
            nil,
+           nil,
            nil
          );
       type
@@ -2336,7 +2394,8 @@ implementation
            @ttypeconvnode._second_nothing,  { variant_2_enum }
            @ttypeconvnode._second_nothing,  { enum_2_variant }
            @ttypeconvnode._second_nothing,  { variant_2_interface }
-           @ttypeconvnode._second_nothing   { interface_2_variant }
+           @ttypeconvnode._second_nothing,  { interface_2_variant }
+           @ttypeconvnode._second_nothing   { array_2_dynarray }
          );
       type
          tprocedureofobject = procedure of object;
@@ -2595,7 +2654,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.178  2005-03-05 16:09:20  jonas
+  Revision 1.179  2005-03-11 21:55:43  florian
+    + array -> dyn. array type cast
+
+  Revision 1.178  2005/03/05 16:09:20  jonas
     * fixed small bug in ttypeconvnode.printnodeinfo
 
   Revision 1.177  2005/02/14 17:13:06  peter
