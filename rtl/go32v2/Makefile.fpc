@@ -153,5 +153,5 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
 
 msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
 
-ports$(PPUEXT) : ports.pp $(SYSTEMPPU)
+ports$(PPUEXT) : ports.pp objpas$(PPUEXT) $(SYSTEMPPU)
 
