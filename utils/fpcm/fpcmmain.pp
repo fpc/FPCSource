@@ -21,16 +21,17 @@ interface
       dos,
 {$ifdef Unix}
   {$ifdef VER1_0}
-  {$ifdef linux}
+    {$ifdef linux}
      {$ifndef BSD}
       linux,
      {$endif}
-  {$endif}
-  {$ifdef BSD}
+    {$endif}
+    {$ifdef BSD}
       Linux,
-  {$endif}
+    {$endif}
   {$else}
-      unix,
+     baseunix,
+     unix,
   {$endif}
 {$endif}
       sysutils,classes,
@@ -96,7 +97,7 @@ interface
         { netbsd }  ( true,  true,  false, false, false ),
         { amiga }   ( false, true,  false, false, false ),
         { atari }   ( false, true,  false, false, false ),
-	{ sunos }   ( true,  false, false, true,  false ),
+        { sunos }   ( true,  false, false, true,  false ),
         { qnx }     ( true,  false, false, false, false ),
         { netware } ( true,  false, false, false, false ),
         { openbsd } ( true,  true,  false, false, false ),
@@ -584,11 +585,11 @@ implementation
     procedure TFPCMake.Init;
       var
         t : ttarget;
-	c : tcpu;
+        c : tcpu;
       begin
         FSections:=TDictionary.Create;
         for t:=low(ttarget) to high(ttarget) do
-	 for c:=low(tcpu) to high(tcpu) do
+         for c:=low(tcpu) to high(tcpu) do
           FRequireList[t,c]:=TStringList.Create;
         FVariables:=TKeyValue.Create;
         FCommentChars:=[';','#'];
@@ -608,7 +609,7 @@ implementation
     destructor TFPCMake.Destroy;
       var
         t : ttarget;
-	c : tcpu;
+        c : tcpu;
       begin
         FSections.Free;
         for t:=low(ttarget) to high(ttarget) do
@@ -806,7 +807,7 @@ implementation
     procedure TFPCMake.CreateExportSection;
       var
         t : TTarget;
-	c : TCpu;
+        c : TCpu;
       begin
         { Don't create a section twice }
         if FExportSec<>nil then
@@ -821,7 +822,7 @@ implementation
         FExportSec.AddKey('version',FPackageVersion);
         { Add required packages }
         for t:=low(TTarget) to high(TTarget) do
-	 for c:=low(TCpu) to high(TCpu) do
+         for c:=low(TCpu) to high(TCpu) do
           FExportSec.AddKey('require'+TargetSuffix[t]+CpuSuffix[c],FPackageSec['require'+TargetSuffix[t]+CpuSuffix[c]]);
         { Unit dir }
         {FExportSec.AddKey('unitdir','$(UNITSDIR)/'+Lowercase(PackageName));}
@@ -915,8 +916,8 @@ implementation
           LoadRequires(t,c,ReqFPCMake);
           { Add the current requirements to our parents requirements }
           s:=Trim(ReqFPCMake.GetVariable('require_packages',true)+' '+
-	          ReqFPCMake.GetVariable('require_packages'+targetsuffix[t],true)+' '+
-		  ReqFPCMake.GetVariable('require_packages'+targetsuffix[t]+cpusuffix[c],true));
+                  ReqFPCMake.GetVariable('require_packages'+targetsuffix[t],true)+' '+
+                  ReqFPCMake.GetVariable('require_packages'+targetsuffix[t]+cpusuffix[c],true));
           SetVariable('require_packages'+targetsuffix[t]+cpusuffix[c],s,true);
           if ReqFPCMake.GetVariable('require_libc',false)<>'' then
            SetVariable('require_libc','y',false);
@@ -936,8 +937,8 @@ implementation
       begin
         { packages }
         s:=Trim(FromFPCMake.GetVariable('require_packages',true)+' '+
-	        FromFPCMake.GetVariable('require_packages'+TargetSuffix[t],true)+' '+
-		FromFPCMake.GetVariable('require_packages'+TargetSuffix[t]+CpuSuffix[c],true));
+                FromFPCMake.GetVariable('require_packages'+TargetSuffix[t],true)+' '+
+                FromFPCMake.GetVariable('require_packages'+TargetSuffix[t]+CpuSuffix[c],true));
         Verbose(FPCMakeDebug,'Required packages for '+TargetStr[t]+'-'+CpuStr[c]+': '+s);
         repeat
           reqname:=GetToken(s,' ');
@@ -965,8 +966,8 @@ implementation
         until false;
         { sub dirs }
         s:=Trim(FromFPCMake.GetVariable('target_dirs',true)+' '+
-   	        FromFPCMake.GetVariable('target_dirs'+TargetSuffix[t],true)+' '+
-	        FromFPCMake.GetVariable('target_dirs'+TargetSuffix[t]+CpuSuffix[c],true));
+                FromFPCMake.GetVariable('target_dirs'+TargetSuffix[t],true)+' '+
+                FromFPCMake.GetVariable('target_dirs'+TargetSuffix[t]+CpuSuffix[c],true));
         Verbose(FPCMakeDebug,'Required dirs for '+TargetStr[t]+'-'+CpuStr[c]+': '+s);
         repeat
           reqdir:=GetToken(s,' ');
@@ -982,7 +983,7 @@ implementation
         function CheckVar(const s:string):boolean;
         var
           t : ttarget;
-	  c : tcpu;
+          c : tcpu;
         begin
           result:=false;
           if GetVariable(s,false)<>'' then
@@ -1001,16 +1002,16 @@ implementation
               for c:=low(tcpu) to high(tcpu) do
                if (TargetCpuPossible[t,c]) and (c in FIncludeCpus) then
                 begin
-		  result:=true;
-		  exit;
-	        end;
+                  result:=true;
+                  exit;
+                end;
             end;
         end;
 
       var
         s : string;
         t : ttarget;
-	c : tcpu;
+        c : tcpu;
       begin
         { Check FPCMake version }
         s:=GetVariable('require_fpcmake',false);
@@ -1031,11 +1032,11 @@ implementation
         { Load recursively all required packages starting with this Makefile.fpc }
         for t:=low(TTarget) to high(TTarget) do
          if t in FIncludeTargets then
-	  begin
-	    for c:=low(TCpu) to high(TCpu) do
+          begin
+            for c:=low(TCpu) to high(TCpu) do
              if (TargetCpuPossible[t,c]) and (c in FIncludeCpus) then
               LoadRequires(t,c,self);
-	  end;
+          end;
       end;
 
 
@@ -1052,8 +1053,8 @@ implementation
           i : integer;
         begin
           s:=Sec['packages']+' '+
-	     Sec['packages'+TargetSuffix[t]]+' '+
-	     Sec['packages'+TargetSuffix[t]+CpuSuffix[c]];
+             Sec['packages'+TargetSuffix[t]]+' '+
+             Sec['packages'+TargetSuffix[t]+CpuSuffix[c]];
           repeat
             ReqName:=GetToken(s,' ');
             if ReqName='' then
@@ -1088,7 +1089,7 @@ implementation
         i : integer;
         RSec : TFPCMakeSection;
         t : ttarget;
-	c : tcpu;
+        c : tcpu;
       begin
         Result:=false;
         if GetVariable('require_libc',false)<>'' then
@@ -1101,7 +1102,7 @@ implementation
           begin
             for c:=low(tcpu) to high(tcpu) do
              if (TargetCpuPossible[t,c]) and (c in FIncludeCpus) then
-	      begin
+              begin
                 for i:=0 to RequireList[t,c].Count-1 do
                  begin
                    RSec:=TFPCMakeSection(FSections[RequireList[t,c][i]+'_require']);
@@ -1112,7 +1113,7 @@ implementation
                          Result:=true;
                          exit;
                        end;
-		    end;
+                    end;
                  end;
              end;
           end;
@@ -1158,7 +1159,7 @@ implementation
 {$ifndef NO_UNIX_UNIT}
            if FileExists('/usr/local/bin/ppc386') then
             begin
-              s:=ExtractFilePath(ReadLink('/usr/local/bin/ppc386'));
+              s:=ExtractFilePath({$ifdef ver1_0}ReadLink{$else}fpReadlink{$endif}('/usr/local/bin/ppc386'));
               if s<>'' then
                begin
                  if s[length(s)]='/' then
@@ -1170,7 +1171,7 @@ implementation
             begin
               if FileExists('/usr/bin/ppc386') then
                begin
-                 s:=ExtractFilePath(ReadLink('/usr/bin/ppc386'));
+                 s:=ExtractFilePath({$ifdef ver1_0}ReadLink{$else}fpReadLink{$endif}('/usr/bin/ppc386'));
                  if s<>'' then
                   begin
                     if s[length(s)]='/' then
@@ -1554,7 +1555,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2003-05-20 23:54:45  florian
+  Revision 1.33  2003-09-27 13:00:30  peter
+    * fixed for unix
+
+  Revision 1.32  2003/05/20 23:54:45  florian
     + darwin support added
 
   Revision 1.31  2003/04/24 23:21:01  peter
