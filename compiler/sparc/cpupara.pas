@@ -222,6 +222,19 @@ implementation
         hp:=firstpara;
         while assigned(hp) do
           begin
+            { currently only support C-style array of const,
+              there should be no location assigned to the vararg array itself }
+            if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+               is_array_of_const(hp.paratype.def) then
+              begin
+                paraloc:=hp.paraloc[side].add_location;
+                { hack: the paraloc must be valid, but is not actually used }
+                paraloc^.loc:=LOC_REGISTER;
+                paraloc^.register:=NR_G0;
+                paraloc^.size:=OS_ADDR;
+                break;
+              end;
+
             if push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption) then
               paracgsize:=OS_ADDR
             else
@@ -309,7 +322,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2004-09-21 17:25:13  peter
+  Revision 1.42  2004-09-25 20:28:39  florian
+    * handling of C styled varargs fixed
+
+  Revision 1.41  2004/09/21 17:25:13  peter
     * paraloc branch merged
 
   Revision 1.40.4.4  2004/09/19 18:08:15  peter
