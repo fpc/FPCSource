@@ -21,6 +21,7 @@
 # so a make html and make install goes quickly
 #INSTALLDEBUG=1
 
+HOSTOS=$(shell ppc386 -iSO)
 # Which docs are made when 'html' is specified
 HTML = user units ref prog fpdoc fcl
 
@@ -318,7 +319,7 @@ endif
 #####################################################################
 # Tex from XML
 #####################################################################
-FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/fcl/linux/classes.pp -Fi$(FPCSRCDIR)/fcl/inc'
+FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
 
 fcl.inc: classes.xml
 	$(FPDOC) --output=fcl.inc $(FCLOPTS) --format=latex
@@ -549,7 +550,11 @@ execute:
 
 #
 # $Log$
-# Revision 1.22  2003-05-29 10:25:51  peter
+# Revision 1.23  2003-11-02 00:14:23  marco
+#  * fixed classes moving to rtl, and the OS dependancy of the classes unit
+#    generation.
+#
+# Revision 1.22  2003/05/29 10:25:51  peter
 #   * allow to specify FPCSRCDIR and FPDOC
 #
 # Revision 1.21  2003/03/18 21:25:23  michael
