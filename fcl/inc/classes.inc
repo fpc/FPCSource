@@ -75,6 +75,10 @@ var
 { Class and component registration routines }
 {$I cregist.inc}
 
+{ Interface related stuff }
+{$ifdef HASINTF}
+{$I intf.inc}
+{$endif HASINTF}
 
 {**********************************************************************
  *       Miscellaneous procedures and functions                       *
@@ -1185,7 +1189,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-01-06 21:54:49  peter
+  Revision 1.9  2002-07-16 13:32:51  florian
+    + skeleton for TInterfaceList added
+
+  Revision 1.8  2002/01/06 21:54:49  peter
     * action classes added
 
   Revision 1.7  2001/04/10 23:24:51  peter

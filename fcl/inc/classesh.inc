@@ -12,7 +12,6 @@
 
  **********************************************************************}
 
-{ We NEED ansistrings !!}
 {$H+}
 
 { The 1.0 compiler cannot compile the Seek(int64) overloading correct }
@@ -375,15 +374,16 @@ type
   TStrings = class;
 
 { IStringsAdapter interface }
-{ Maintains link between TStrings and IStrings implementations }
 
-  { !!!! Interfaces aren't supported by FPC
-  IStringsAdapter = interface
+{$ifdef HASINTF}
+  { Maintains link between TStrings and IStrings implementations }
+  IStringsAdapter = interface ['{739C2F34-52EC-11D0-9EA6-0020AF3D82DA}']
     procedure ReferenceStrings(S: TStrings);
     procedure ReleaseStrings;
   end;
-  }
+{$else HASINTF}
   IStringsAdapter = class(TObject);
+{$endif HASINTF}
 
 { TStrings class }
 
@@ -1316,6 +1316,39 @@ type
     property Count : Integer read GetCount write SetCount;
     property Items[index : Integer] : IUnknown read Get write Put;default;
   end;
+
+  TInterfaceList = class(TInterfacedObject,IInterfaceList)
+  private
+    FList : TThreadList;
+  protected
+    function Get(i : Integer) : IUnknown;
+    function GetCapacity : Integer;
+    function GetCount : Integer;
+    procedure Put(i : Integer;item : IUnknown);
+    procedure SetCapacity(NewCapacity : Integer);
+    procedure SetCount(NewCount : Integer);
+  public
+    constructor Create;
+    destructor Destroy;
+
+    procedure Clear;
+    procedure Delete(index : Integer);
+    procedure Exchange(index1,index2 : Integer);
+    function First : IUnknown;
+    function IndexOf(item : IUnknown) : Integer;
+    function Add(item : IUnknown) : Integer;
+    procedure Insert(i : Integer;item : IUnknown);
+    function Last : IUnknown;
+    function Remove(item : IUnknown): Integer;
+    procedure Lock;
+    procedure Unlock;
+
+    function Expand : TInterfaceList;
+
+    property Capacity : Integer read GetCapacity write SetCapacity;
+    property Count : Integer read GetCount write SetCount;
+    property Items[Index : Integer] : IUnknown read Get write Put;default;
+  end;
 {$endif HASINTF}
 
 var
@@ -1415,7 +1448,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.20  2002-07-15 18:35:04  florian
+  Revision 1.21  2002-07-16 13:32:51  florian
+    + skeleton for TInterfaceList added
+
+  Revision 1.20  2002/07/15 18:35:04  florian
     + IInterfaceList added
 
   Revision 1.19  2002/03/28 12:08:47  michael
