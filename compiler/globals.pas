@@ -1288,6 +1288,8 @@ implementation
      if ioresult=0 then
       begin
         getftime(f,l);
+        { just to be sure in case there are rounding errors }
+        setftime(f,l);
         close(f);
         assign(f,fn2);
         {$I-}
@@ -1564,7 +1566,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2000-03-23 15:35:47  peter
+  Revision 1.58  2000-04-14 12:27:57  pierre
+   * setfiletime to both files in synchronize
+
+  Revision 1.57  2000/03/23 15:35:47  peter
     * $VERSION is now version_string
     + $FULLVERSION is now full_version_string
 
