@@ -793,11 +793,11 @@ begin
   New(AsmReaderSwitches,InitSelect('R'));
   with AsmReaderSwitches^ do
    begin
-     AddSelectItem('Di~r~ect assembler','direct');
+     AddSelectItem('~D~irect assembler','direct');
      AddSelectItem('~A~T&T style assembler','att');
-     AddSelectItem('Int~e~l style assembler','intel');
+     AddSelectItem('~I~ntel style assembler','intel');
    end;
-  New(AsmInfoSwitches,InitSelect('a'));
+  New(AsmInfoSwitches,Init('a'));
   with AsmInfoSwitches^ do
    begin
      AddBooleanItem('~L~ist source','l');
@@ -807,8 +807,8 @@ begin
   New(AsmOutputSwitches,InitSelect('A'));
   with AsmOutputSwitches^ do
    begin
-     AddSelectItem('Use GNU ~a~s','as');
-     AddSelectItem('Use NASM ~c~off','nasmcoff');
+     AddSelectItem('Use ~G~NU as','as');
+     AddSelectItem('Use ~N~ASM coff','nasmcoff');
      AddSelectItem('Use NASM ~e~lf','nasmelf');
      AddSelectItem('Use NASM ~o~bj','nasmobj');
      AddSelectItem('Use ~M~ASM','masm');
@@ -961,7 +961,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2000-03-07 21:17:29  pierre
+  Revision 1.19  2000-03-07 22:52:50  pierre
+   + Assembler tab in Options|Compiler
+
+  Revision 1.18  2000/03/07 21:17:29  pierre
    +ASMInfoSwitches AsmOutputSwitches
 
   Revision 1.17  2000/02/04 14:34:47  pierre

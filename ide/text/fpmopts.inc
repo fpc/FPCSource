@@ -55,21 +55,23 @@ begin
   if Desktop^.ExecView(D)=cmOK then
    SwitchesMode:=TSwitchMode(RB^.Value);
   Dispose(D, Done);
+  UpdateMode;
 end;
 
 procedure TIDEApp.DoCompilerSwitch;
 var R,R2,TabR,TabIR: TRect;
     D: PCenterDialog;
-    CB1,CB2,CB3,CB4: PCheckBoxes;
-    RB1,RB2,RB3,RB4: PRadioButtons;
+    CB1,CB2,CB3,CB4,CB5: PCheckBoxes;
+    RB1,{RB2,}RB3,RB4,RB5,RB6: PRadioButtons;
     Items: PSItem;
     IL: PInputLine;
     Count : integer;
     I,L: longint;
     Tab: PTab;
-    Label11,Label12,
+    Label11,{Label12,}
     Label21,Label22,Label23,
-    Label31,Label41: PLabel;
+    Label31,Label41,
+    Label51,Label52,Label53: PLabel;
 begin
   R.Assign(0,0,72,18);
   New(D, Init(R, 'Compiler Switches'));
@@ -99,21 +101,6 @@ begin
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
     New(Label11, Init(R2, 'Syntax Switches', CB1));
-
-    Count:=AsmReaderSwitches^.ItemCount;
-    R2.Copy(TabIR);
-    R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
-    Dec(R2.B.X,4);
-    R2.B.Y:=R2.A.Y+Count;
-    Items:=nil;
-    for I:=Count-1 downto 0 do
-      Items:=NewSItem(AsmReaderSwitches^.ItemName(I), Items);
-    New(RB2, Init(R2, Items));
-    L:=AsmReaderSwitches^.GetCurrSel;
-    RB2^.SetData(L);
-    Dec(R2.A.Y);
-    R2.B.Y:=R2.A.Y+1;
-    New(Label12, Init(R2, 'Assembler format', RB2));
 
     { --- Sheet 2 --- }
     Count:=CodegenSwitches^.ItemCount;
@@ -211,14 +198,60 @@ begin
     R2.B.Y:=R2.A.Y+1;
     New(Label41, Init(R2, 'Browser', RB4));
 
+    { --- Sheet 5 --- }
+    Count:=AsmReaderSwitches^.ItemCount;
+    R2.Copy(TabIR);
+    R2.B.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
+    Dec(R2.B.X,4);
+    R2.B.Y:=R2.A.Y+Count;
+    Items:=nil;
+    for I:=Count-1 downto 0 do
+      Items:=NewSItem(AsmReaderSwitches^.ItemName(I), Items);
+    New(RB5, Init(R2, Items));
+    L:=AsmReaderSwitches^.GetCurrSel;
+    RB5^.SetData(L);
+    Dec(R2.A.Y);
+    R2.B.Y:=R2.A.Y+1;
+    New(Label51, Init(R2, 'Assembler reader', RB5));
+
+    R2.Copy(TabIR);
+    R2.B.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
+    Dec(R2.B.X,4);
+    R2.A.Y:=R2.A.Y+Count+2;
+    Count:=AsmInfoSwitches^.ItemCount;
+    R2.B.Y:=R2.A.Y+Count;
+    Items:=nil;
+    for I:=Count-1 downto 0 do
+      Items:=NewSItem(AsmInfoSwitches^.ItemName(I), Items);
+    New(CB5, Init(R2, Items));
+    for I:=0 to Count-1 do
+      if AsmInfoSwitches^.GetBooleanItem(I) then
+        CB5^.Press(I);
+    Dec(R2.A.Y);
+    R2.B.Y:=R2.A.Y+1;
+    New(Label52, Init(R2, 'Assembler info', CB5));
+
+    Count:=AsmOutputSwitches^.ItemCount;
+    R2.Copy(TabIR);
+    R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
+    Dec(R2.B.X,4);
+    R2.B.Y:=R2.A.Y+Count;
+    Items:=nil;
+    for I:=Count-1 downto 0 do
+      Items:=NewSItem(AsmOutputSwitches^.ItemName(I), Items);
+    New(RB6, Init(R2, Items));
+    L:=AsmOutputSwitches^.GetCurrSel;
+    RB6^.SetData(L);
+    Dec(R2.A.Y);
+    R2.B.Y:=R2.A.Y+1;
+    New(Label53, Init(R2, 'Assembler output', RB6));
+
     { create tabs }
     New(Tab, Init(TabR,
       NewTabDef('S~y~ntax',CB1,
         NewTabItem(Label11,
         NewTabItem(CB1,
-        NewTabItem(Label12,
-        NewTabItem(RB2,
-        nil)))),
+        nil)),
       NewTabDef('Code ~g~eneration',CB3,
         NewTabItem(Label21,
         NewTabItem(CB3,
@@ -236,7 +269,15 @@ begin
         NewTabItem(Label41,
         NewTabItem(RB4,
         nil)),
-      nil))))));
+      NewTabDef('~A~ssembler',CB1,
+        NewTabItem(Label51,
+        NewTabItem(RB5,
+        NewTabItem(Label52,
+        NewTabItem(CB5,
+        NewTabItem(Label53,
+        NewTabItem(RB6,
+        nil)))))),
+      nil)))))));
     Tab^.GrowMode:=0;
     Insert(Tab);
 
@@ -261,7 +302,10 @@ begin
       VerboseSwitches^.SetBooleanItem(I,CB4^.Mark(I));
     OptimizingGoalSwitches^.SetCurrSel(RB3^.Value);
     ProcessorSwitches^.SetCurrSel(RB1^.Value);
-    AsmReaderSwitches^.SetCurrSel(RB2^.Value);
+    AsmReaderSwitches^.SetCurrSel(RB5^.Value);
+    for I:=0 to AsmInfoSwitches^.ItemCount-1 do
+      AsmInfoSwitches^.SetBooleanItem(I,CB5^.Mark(I));
+    AsmOutputSwitches^.SetCurrSel(RB6^.Value);
     BrowserSwitches^.SetCurrSel(RB4^.Value);
     ConditionalSwitches^.SetStringItem(0,IL^.Data^);
   end;
@@ -1168,7 +1212,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  2000-02-07 12:02:32  pierre
+  Revision 1.29  2000-03-07 22:52:50  pierre
+   + Assembler tab in Options|Compiler
+
+  Revision 1.28  2000/02/07 12:02:32  pierre
    Gabor's changes
 
   Revision 1.27  1999/11/10 17:18:17  pierre
