@@ -78,7 +78,7 @@ function SIG_IGN( x: longint) : longint;
 
 type
   SignalHandler  = function (v : longint) : longint;
-  PSignalHandler = SignalHandler; { to be compatible with linux.pp }
+  PSignalHandler = ^SignalHandler; { to be compatible with linux.pp }
 
 function signal(sig : longint;func : SignalHandler) : SignalHandler;
 function _raise(sig : longint) : longint;
@@ -907,7 +907,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-01-22 12:39:19  pierre
+  Revision 1.5  1999-01-22 15:46:33  pierre
+   * PsignalHandler is now a pointer as changed in linux.pp
+
+  Revision 1.4  1999/01/22 12:39:19  pierre
    + added text arg for dump_stack
 
   Revision 1.3  1999/01/18 09:14:20  pierre
