@@ -218,6 +218,8 @@ interface
             begin
               if extra_not then
                 emit_reg(A_NOT,S_L,right.location.register);
+              if (op=A_ADD) or (op=A_OR) or (op=A_AND) or (op=A_XOR) or (op=A_IMUL) then
+                location_swap(left.location,right.location);
               emit_reg_reg(op,opsize,right.location.register,left.location.register);
             end;
          end
@@ -1631,7 +1633,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2003-08-03 20:19:43  daniel
+  Revision 1.75  2003-08-03 20:38:00  daniel
+    * Made code generator reverse or/add/and/xor/imul instructions when
+      possible to reduce the slowdown of spills.
+
+  Revision 1.74  2003/08/03 20:19:43  daniel
     - Removed cmpop from Ti386addnode.second_addstring
 
   Revision 1.73  2003/07/06 15:31:21  daniel
