@@ -15,10 +15,6 @@
 
  ****************************************************************************
 }
-{$if defined(CPUARM) or defined(CPUX86_64) or defined(CPUSPARC) or defined(cpui386)}
-  {$define RTSIGACTION}
-{$endif CPUARM}
-
 {$I syscallh.inc}
 {$I ostypes.inc}
 
@@ -227,16 +223,12 @@ function Fpsigaction(sig: cint; act : psigactionrec; oact : psigactionrec): cint
   If OldAct is non-nil the previous action is saved there.
 }
 begin
-{$ifdef RTSIGACTION}
-  {$ifdef cpusparc}
-    { Sparc has an extra stub parameter }
-    Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),TSysParam(PtrInt(@Fprt_sigreturn_stub)-8),TSysParam(8));
-  {$else cpusparc}
-    Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),TSysParam(8));
-  {$endif cpusparc}
-{$else RTSIGACTION}
-  Fpsigaction:=do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact));
-{$endif RTSIGACTION}
+{$ifdef cpusparc}
+  { Sparc has an extra stub parameter }
+  Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),TSysParam(PtrInt(@Fprt_sigreturn_stub)-8),TSysParam(8));
+{$else cpusparc}
+  Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),TSysParam(8));
+{$endif cpusparc}
 end;
 
 
@@ -480,11 +472,7 @@ function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; [public, al
 }
 
 begin
-{$ifdef RTSIGACTION}
   FPsigprocmask:=do_syscall(syscall_nr_rt_sigprocmask,TSysParam(how),TSysParam(nset),TSysParam(oset),TSysParam(8));
-{$else RTSIGACTION}
-  FPsigprocmask:=do_syscall(syscall_nr_sigprocmask,TSysParam(how),TSysParam(nset),TSysParam(oset),TSysParam(8));
-{$endif RTSIGACTION}
 end;
 
 
@@ -545,7 +533,10 @@ end;
 
 {
  $Log$
- Revision 1.31  2005-01-31 19:22:48  peter
+ Revision 1.32  2005-01-31 20:13:24  peter
+   * rt_sigaction for all cpus
+
+ Revision 1.31  2005/01/31 19:22:48  peter
    * i386 also needs rtsignal
 
  Revision 1.30  2004/08/22 12:34:11  florian
