@@ -295,10 +295,6 @@ var
     procedure TGNUAssembler.WriteTree(p:TAAsmoutput);
     const
       allocstr : array[boolean] of string[10]=(' released',' allocated');
-    type
-      t80bitarray = array[0..9] of byte;
-      t64bitarray = array[0..7] of byte;
-      t32bitarray = array[0..3] of byte;
     var
       ch       : char;
       hp       : tai;
@@ -313,7 +309,6 @@ var
       d        : double;
       e        : extended;
       do_line  : boolean;
-      sep      : char;
 {$ifdef delphi}
       _64bitarray : t64bitarray;
 {$endif}
@@ -819,7 +814,10 @@ var
 end.
 {
   $Log$
-  Revision 1.17  2002-12-06 17:50:39  peter
+  Revision 1.18  2002-12-07 14:03:25  carl
+    - remove some duplicates and unused vars
+
+  Revision 1.17  2002/12/06 17:50:39  peter
     * long symbol name fix merged
 
   Revision 1.16  2002/11/17 16:31:55  carl
