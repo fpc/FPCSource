@@ -94,6 +94,11 @@ endif
 # System independent
 #####################################################################
 
+# Check if we need C library.
+ifeq ($(LINK_TO_C),YES)
+override OPT+=-dCRTLIB
+endif
+
 # Where are the include files ?
 INC=../inc
 PROCINC=../$(CPU)
@@ -127,15 +132,9 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # System dependent
 #####################################################################
 
-# Check if we need C library.
-ifeq ($(LINK_TO_C),YES)
-override OPT:=$(OPT) -dCRTLIB
-endif
-
-
 # Define Linux Units
 SYSTEMPPU=syslinux$(PPUEXT)
-OBJECTS=strings linux objpas sysutils math \
+OBJECTS=strings linux \
 	dos crt objects printer \
 	getopts errors sockets graph
 
@@ -185,15 +184,16 @@ PPUOBJECTS=$(SYSTEMPPU) $(addsuffix $(PPUEXT), $(OBJECTS))
 	 libs libsclean \
 	 diffs diffclean \
 
-all : $(OBJLOADERS) $(PPUOBJECTS)
+all : $(OBJLOADERS) $(PPUOBJECTS) objpas
 
 install : all
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)
 
 clean :
-	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) *.PPS log
+	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) $(PPAS) link.res log
 	-$(DELTREE) *$(SMARTEXT)
+	make -C $(OBJPASDIR) clean
 
 #####################################################################
 # Files
@@ -220,37 +220,23 @@ lprt$(OEXT) : lprt.c
 #
 
 $(SYSTEMPPU) : syslinux.pp $(SYSLINUXDEPS) $(SYSDEPS)
-	$(PP) $(OPT) -Us -Sg syslinux.pp $(REDIR)
+	$(COMPILER) -Us -Sg syslinux.pp $(REDIR)
 
 strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
 	$(COPY) $(PROCINC)/strings.pp .
-	$(PP) $(OPT) strings $(REDIR)
+	$(COMPILER) strings $(REDIR)
 	$(DEL) strings.pp
 
 linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
 		 syscalls.inc systypes.inc sysconst.inc $(SYSTEMPPU)
-	$(PP) $(OPT) linux.pp $(REDIR)
+	$(COMPILER) linux.pp $(REDIR)
 
 #
 # Delphi Object Model
 #
 
-objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
-	$(COPY) $(OBJPASDIR)/objpas.pp .
-	$(PP) $(OPT) objpas $(REDIR)
-	$(DEL) objpas.pp
-
-sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSTEMPPU) objpas$(PPUEXT) \
-                   dos$(PPUEXT)
-	$(COPY) $(OBJPASDIR)/sysutils.pp .
-	$(PP) $(OPT) -I$(OBJPASDIR) sysutils $(REDIR)
-	$(DEL) sysutils.pp
-
-math$(PPUEXT) : $(OBJPASDIR)/math.pp $(SYSTEMPPU) objpas$(PPUEXT) \
-                   dos$(PPUEXT)
-	$(COPY) $(OBJPASDIR)/math.pp .
-	$(PP) $(OPT) -I$(OBJPASDIR) math $(REDIR)
-	$(DEL) math.pp
+objpas:
+	make -C $(OBJPASDIR) UNITTARGETDIR=$(BASEDIR) UNITDIR=$(BASEDIR)
 
 #
 # System Dependent Units
@@ -258,31 +244,31 @@ math$(PPUEXT) : $(OBJPASDIR)/math.pp $(SYSTEMPPU) objpas$(PPUEXT) \
 
 sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
 		   linux$(PPUEXT) $(SYSTEMPPU)
-	$(PP) $(OPT) sockets.pp $(REDIR)
+	$(COMPILER) sockets.pp $(REDIR)
 
 errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMPPU)
-	$(PP) $(OPT) errors.pp $(REDIR)
+	$(COMPILER) errors.pp $(REDIR)
 
 #
 # TP7 Compatible RTL Units
 #
 
 dos$(PPUEXT) : $(DOSDEPS) $(SYSTEMPPU)
-	$(PP) $(OPT) dos $(REDIR)
+	$(COMPILER) dos $(REDIR)
 
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
-	$(PP) $(OPT) crt $(REDIR)
+	$(COMPILER) crt $(REDIR)
 
 objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 	$(COPY) $(INC)/objects.pp .
-	$(PP) $(OPT) objects $(REDIR)
+	$(COMPILER) objects $(REDIR)
 	$(DEL) objects.pp
 
 printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
-	$(PP) $(OPT) printer $(REDIR)
+	$(COMPILER) printer $(REDIR)
 
 graph$(PPUEXT) : graph.pp linux$(PPUEXT) objects$(PPUEXT)
-	$(PP) $(OPT) graph $(REDIR)
+	$(COMPILER) graph $(REDIR)
 
 #
 # Other RTL Units
@@ -290,7 +276,7 @@ graph$(PPUEXT) : graph.pp linux$(PPUEXT) objects$(PPUEXT)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 	$(COPY) $(INC)/getopts.pp .
-	$(PP) $(OPT) getopts $(REDIR)
+	$(COMPILER) getopts $(REDIR)
 	$(DEL) getopts.pp
 
 #####################################################################
@@ -306,20 +292,21 @@ staticlib:
 sharedlib:
 	make clean
 	make all
-	$(PPUMOVE) -o fpc $(SHAREDLIBFILES)
+	$(PPUMOVE) -ofpc $(SHAREDLIBFILES)
 
 staticlibinstall: staticlib
 	$(MKDIR) $(STATIC_LIBINSTALLDIR)
 	$(MKDIR) $(STATIC_UNITINSTALLDIR)
 	$(INSTALLEXE) libfpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
+	$(INSTALLEXE) libobjpas$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
 	$(INSTALL) *$(PPUEXT) $(OBJLOADERS) $(STATIC_UNITINSTALLDIR)
 
 sharedlibinstall: sharedlib
 	$(MKDIR) $(SHARED_LIBINSTALLDIR)
 	$(MKDIR) $(SHARED_UNITINSTALLDIR)
 	$(INSTALLEXE) libfpc$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
-	$(INSTALL) *$(PPUEXT)  $(OBJLOADERS) $(SHARED_UNITINSTALLDIR)
-	ldconfig
+	$(INSTALL) *$(PPUEXT) $(OBJLOADERS) $(SHARED_UNITINSTALLDIR)
+	$(LDCONFIG)
 
 libinstall: staticlibinstall sharedlibinstall
 
@@ -334,8 +321,14 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.2  1998-09-11 13:14:01  michael
+# Revision 1.3  1998-09-15 12:09:10  peter
+#   * merged updates
+#
+# Revision 1.2  1998/09/11 13:14:01  michael
 # many libs and libinstall fixes
+#
+# Revision 1.1.2.1  1998/09/15 12:02:04  peter
+#   * updates to get objpas using its own makefile
 #
 # Revision 1.1  1998/09/10 14:15:49  peter
 #   - renamed makefile to Makefile

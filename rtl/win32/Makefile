@@ -37,22 +37,6 @@ CPU=i386
 #CPU=m68k
 endif
 
-# What compiler to use ?
-ifndef PP
-PP=ppc386
-endif
-
-# What options to pass to the compiler ?
-# You may want to specify a config file or error definitions file here.
-ifndef OPT
-OPT=
-endif
-
-# Where is the PPUMOVE program ?
-ifndef PPUMOVE
-PPUMOVE=ppumove
-endif
-
 # Use smartlinking ?
 ifndef SMARTLINK
 SMARTLINK=NO
@@ -116,16 +100,11 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # System dependent
 #####################################################################
 
-# Override extensions
-PPUEXT=.ppw
-SHAREDLIBEXT=.dll
-
 # Define Linux Units
 SYSTEMPPU=syswin32$(PPUEXT)
-OBJECTS=strings objpas \
-	dos \
-        windows
-#	base messages defines
+OBJECTS=strings dos \
+	windows \
+	cpu mmx getopts
 
 # Files used by windows.pp
 WINDOWS_FILES=base errors defines \
@@ -142,7 +121,7 @@ WINDOWS_SOURCE_FILES=$(addsuffix .pp,$(WINDOWS_FILES))
 	 diffs diffclean \
 	dllnames test
 
-all : $(OBJLOADERS) $(PPUOBJECTS)
+all : $(OBJLOADERS) $(PPUOBJECTS) objpas
 
 install : all
 	$(MKDIR) $(UNITINSTALLDIR)
@@ -151,6 +130,7 @@ install : all
 clean :
 	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) log
 	-$(DELTREE) *$(SMARTEXT)
+	make -C $(OBJPASDIR) clean
 
 #####################################################################
 # Files
@@ -161,53 +141,67 @@ clean :
 #
 
 $(SYSTEMPPU) : syswin32.pp win32.inc $(SYSDEPS)
-	$(PP) $(OPT) -Us -Sg syswin32.pp $(REDIR)
+	$(COMPILER) -Us -Sg syswin32.pp $(REDIR)
 
 strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
 	$(COPY) $(PROCINC)/strings.pp .
-	$(PP) $(OPT) strings $(REDIR)
+	$(COMPILER) strings $(REDIR)
 	$(DEL) strings.pp
 
 #
 # Delphi Object Model
 #
 
-objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
-	$(COPY) $(OBJPASDIR)/objpas.pp .
-	$(PP) $(OPT) objpas $(REDIR)
-	$(DEL) objpas.pp
+objpas:
+	make -C $(OBJPASDIR) UNITTARGETDIR=$(BASEDIR) UNITDIR=$(BASEDIR)
 
 #
 # System Dependent Units
 #
 
 base$(PPUEXT) : base.pp $(SYSTEMPPU)
-	$(PP) $(OPT) base.pp $(REDIR)
+	$(COMPILER) base.pp $(REDIR)
 
 messages$(PPUEXT) : messages.pp $(SYSTEMPPU)
-	$(PP) $(OPT) messages.pp $(REDIR)
+	$(COMPILER) messages.pp $(REDIR)
 
 defines$(PPUEXT) : defines.pp $(SYSTEMPPU)
-	$(PP) $(OPT) defines.pp $(REDIR)
+	$(COMPILER) defines.pp $(REDIR)
 
 windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMPPU)
-	$(PP) $(OPT) windows.pp $(REDIR)
+	$(COMPILER) windows.pp $(REDIR)
 
 #
 # TP7 Compatible RTL Units
 #
 
 dos$(PPUEXT) : $(DOSDEPS) $(INC)/filerec.inc $(INC)/textrec.inc $(SYSTEMPPU)
-	$(PP) $(OPT) dos $(REDIR)
+	$(COMPILER) dos $(REDIR)
 
 #objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 #	 $(COPY) $(INC)/objects.pp .
-#	 $(PP) $(OPT) objects $(REDIR)
+#	 $(COMPILER) objects $(REDIR)
 #	 $(DEL) objects.pp
 
 #
 # Other RTL Units
 #
+
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
+	$(COPY) $(PROCINC)/cpu.pp .
+	$(COMPILER) cpu.pp $(REDIR)
+	$(DEL) cpu.pp
+
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
+	$(COPY) $(PROCINC)/mmx.pp .
+	$(COMPILER) mmx.pp $(REDIR)
+	$(DEL) mmx.pp
+
+getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
+	$(COPY) $(INC)/getopts.pp .
+	$(COMPILER) getopts.pp $(REDIR)
+	$(DEL) getopts.pp
+
 
 #####################################################################
 # Libs
@@ -244,7 +238,7 @@ libsclean : clean
 # not present in headers !!
 
 # first get the list of all exported function names
-# uses pedump 
+# uses pedump
 # for system dll 's
 # gdi32.exp will contain all exported functions names of gdi32.dll
 
@@ -269,7 +263,7 @@ dllexps : gdi32.exp kernel32.exp advapi32.exp user32.exp mapi32.exp  \
 allexps : $(notdir $(patsubst %.dll,%.exp,$(wildcard $(WINDOWS_DIR)/system/*.dll)) \
 	$(patsubst %.drv,%.exd,$(wildcard $(WINDOWS_DIR)/system/*.drv)))
 
-# extract the dllnames for which the real dll file is not 
+# extract the dllnames for which the real dll file is not
 # known yet
 # func.lst will contain all functions for which we still do
 # not know the origin DLL
@@ -278,13 +272,13 @@ allexps : $(notdir $(patsubst %.dll,%.exp,$(wildcard $(WINDOWS_DIR)/system/*.dll
 	sed -n -e "s/\(.*\)External_library name '\([^']*\)'\(.*\)/\2/p" $*.pp > $*.lst
 
 # get the DLL name from the listing in .exp files
-# of the current target 
+# of the current target
 define grepname
 $(filter %.dll %.drv ,$(subst .exd:,.drv ,$(subst .exp:,.dll ,$(shell grep @$*@ *.ex*))))
 endef
 
 # creating of a sed script that
-# will substitute all External_library 
+# will substitute all External_library
 # by the real name of the DLL if found in exports files
 
 # two stages
@@ -296,7 +290,7 @@ endef
 	-rm $*.sub
 	@echo # Substitutions for $* >$*.sub
 # call make for all names in lst file
-# define LongList if there is an error 
+# define LongList if there is an error
 # because the list is too long
 ifdef LongList
 	$(foreach name,$(shell cat $*.lst),$(MAKE) subfile=$*.sub $(name).find ; )
@@ -314,7 +308,7 @@ endif
 	sed -f $*.sub $*.pp > $*.npp
 	sed -n -e "s/\(.*\)External_library name \'\([^\']*\)\'\(.*\)/\2/p" $*.npp > $*.mis
 
-%.find : 
+%.find :
 	@echo $* is in $(grepname)
 ifdef subfile
 	@echo s/external External_library name \'$*\'/external\
@@ -323,7 +317,7 @@ ifdef subfile
 else
 	@echo external \
 	\'$(filter %.dll %.drv ,$(subst .exd:,.drv ,$(subst .exp:,.dll ,$(shell grep @$*@ *.ex*))))\'\
-	name $* 
+	name $*
 endif
 
 GNUWIN32LIBDIR=./
@@ -336,7 +330,7 @@ ifdef subfile
 else
 	sed -n -f find.sed alllibs.sym > $*.res
 endif
-	
+
 missing : $(GNUWIN32LIBDIR)alllibs.sym $(addsuffix .lst,$(WINDOWS_FILES))
 	-rm missing
 	$(MAKE) subfile=missing $(addsuffix .find2,$(shell cat *.lst))
@@ -357,7 +351,7 @@ test:
 
 # automatic conversion from ascfun.pp to ascdef.pp
 # and unifun.pp to unidef.pp
-# only if sed is present 
+# only if sed is present
 ifdef SED
 ascdef.pp : ascfun.pp ascdef.sed
 	sed -f ascdef.sed ascfun.pp > ascdef.pp
@@ -375,10 +369,16 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.2  1998-09-11 15:09:48  michael
+# Revision 1.3  1998-09-15 12:09:13  peter
+#   * merged updates
+#
+# Revision 1.2  1998/09/11 15:09:48  michael
 # fixed colon problem
 #
-# Revision 1.1  1998/09/10 14:15:55  peter
+# Revision 1.1.2.1  1998/09/15 12:02:06  peter
+#   * updates to get objpas using its own makefile
+#
+# Revision 1.1	1998/09/10 14:15:55  peter
 #   - renamed makefile to Makefile
 #
 # Revision 1.13  1998/09/07 18:31:54  peter
@@ -398,12 +398,12 @@ include $(CFG)/makefile.def
 #   * small improvements in number of found functions
 #     all remaining are in func.pp
 #
-# Revision 1.9  1998/09/03 17:14:54  pierre
+# Revision 1.9	1998/09/03 17:14:54  pierre
 #   * most functions found in main DLL's
 #     still some missing
 #     use 'make dllnames' to get missing names
 #
-# Revision 1.7  1998/08/21 15:17:01  peter
+# Revision 1.7	1998/08/21 15:17:01  peter
 #   * win32 compiles a bit better, no growheap crash
 #
 #

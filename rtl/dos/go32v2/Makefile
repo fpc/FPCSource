@@ -23,35 +23,18 @@
 
 # What is the Operating System
 ifndef OS_SOURCE
-OS_SOURCE=GO32V2
+OS_SOURCE=go32v1
 endif
 
 # What is the target operating system ?
 ifndef OS_TARGET
-OS_TARGET=GO32V2
+OS_TARGET=go32v2
 endif
 
 # What is the target processor :
 ifndef CPU
 CPU=i386
 #CPU=m68k
-endif
-
-# What compiler to use ?
-# I think ppc386 is better (it's mostly in path) (FK)
-ifndef PP
-PP=ppc386
-endif
-
-# What options to pass to the compiler ?
-# You may want to specify a config file or error definitions file here.
-ifndef OPT
-OPT=
-endif
-
-# Where is the ppumove program ?
-ifndef PPUMOVE
-PPUMOVE=ppumove
 endif
 
 #####################################################################
@@ -97,19 +80,10 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Define Go32v2 Units
 SYSTEMPPU=system$(PPUEXT)
 
-# BUGFIX branch cannot handle sysutils
-ifndef BUGFIX
-OBJECTS=strings go32 objpas sysutils math\
+OBJECTS=strings go32 \
 	dpmiexcp profile dxeload emu387 \
 	dos crt objects printer \
 	cpu mmx mouse getopts graph
-else
-OBJECTS=strings go32 objpas math\
-	dpmiexcp profile dxeload emu387 \
-	dos crt objects printer \
-	cpu mmx mouse getopts graph
-endif
-
 
 LOADERS=prt0 exceptn fpu
 
@@ -125,16 +99,16 @@ PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
 	 libs libsclean \
 	 diffs diffclean \
 
-all : $(OBJLOADERS) $(PPUOBJECTS)
+all : $(OBJLOADERS) $(PPUOBJECTS) objpas
 
 install : all
-	$(MKDIR) $(BASEINSTALLDIR)
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)
 
 clean :
-	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) *.PPS log
+	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) $(PPAS) link.res log
 	-$(DELTREE) *$(SMARTEXT)
+	make -C $(OBJPASDIR) clean
 
 #####################################################################
 # Files
@@ -158,55 +132,41 @@ fpu$(OEXT) : fpu.as
 #
 
 $(SYSTEMPPU) : system.pp $(SYSDEPS)
-	$(PP) $(OPT) -Us -Sg system.pp $(REDIR)
+	$(COMPILER) -Us -Sg system.pp $(REDIR)
 
 strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
 	$(COPY) $(PROCINC)/strings.pp .
-	$(PP) $(OPT) strings.pp $(REDIR)
+	$(COMPILER) strings.pp $(REDIR)
 	$(DEL) strings.pp
 
 go32$(PPUEXT) : ../go32.pp $(SYSTEMPPU)
 	$(COPY) ../go32.pp .
-	$(PP) $(OPT) go32.pp $(REDIR)
+	$(COMPILER) go32.pp $(REDIR)
 	$(DEL) go32.pp
 
 #
 # Delphi Object Model
 #
 
-objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
-	$(COPY) $(OBJPASDIR)/objpas.pp .
-	-$(PP) $(OPT) objpas.pp $(REDIR)
-	$(DEL) objpas.pp
-
-sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSTEMPPU) objpas$(PPUEXT) \
-		   dos$(PPUEXT)
-	$(COPY) $(OBJPASDIR)/sysutils.pp .
-	$(PP) $(OPT) -I$(OBJPASDIR) sysutils $(REDIR)
-	$(DEL) sysutils.pp
-
-math$(PPUEXT) : $(OBJPASDIR)/math.pp $(SYSTEMPPU) objpas$(PPUEXT) \
-		   dos$(PPUEXT)
-	$(COPY) $(OBJPASDIR)/math.pp .
-	$(PP) $(OPT) -I$(OBJPASDIR) math $(REDIR)
-	$(DEL) math.pp
+objpas:
+	make -C $(OBJPASDIR) UNITTARGETDIR=$(BASEDIR) UNITDIR=$(BASEDIR)
 
 #
 # System Dependent Units
 #
 
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) $(SYSTEMPPU)
-	$(PP) $(OPT) -Sg dpmiexcp.pp $(REDIR)
+	$(COMPILER) -Sg dpmiexcp.pp $(REDIR)
 
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT) $(SYSTEMPPU)
-	$(PP) $(OPT) profile.pp $(REDIR)
+	$(COMPILER) profile.pp $(REDIR)
 
 dxeload$(PPUEXT) : $(SYSTEMPPU)
-	$(PP) $(OPT) dxeload.pp $(REDIR)
+	$(COMPILER) dxeload.pp $(REDIR)
 
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 		  dpmiexcp$(PPUEXT) $(SYSTEMPPU)
-	$(PP) $(OPT) emu387.pp $(REDIR)
+	$(COMPILER) emu387.pp $(REDIR)
 
 #
 # TP7 Compatible RTL Units
@@ -215,22 +175,22 @@ emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 dos$(PPUEXT) : ../dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
 	       go32$(PPUEXT) strings$(PPUEXT) $(SYSTEMPPU)
 	$(COPY) ../dos.pp .
-	$(PP) $(OPT) dos $(REDIR)
+	$(COMPILER) dos $(REDIR)
 	$(DEL) dos.pp
 
 crt$(PPUEXT) : ../crt.pp $(INC)/textrec.inc go32$(PPUEXT) $(SYSTEMPPU)
 	$(COPY) ../crt.pp .
-	$(PP) $(OPT) crt $(REDIR)
+	$(COMPILER) crt $(REDIR)
 	$(DEL) crt.pp
 
 objects$(PPUEXT) : $(INC)/objects.pp $(INC)/platform.inc objinc.inc $(SYSTEMPPU)
 	$(COPY) $(INC)/objects.pp .
-	$(PP) $(OPT) objects.pp $(REDIR)
+	$(COMPILER) objects.pp $(REDIR)
 	$(DEL) objects.pp
 
 printer$(PPUEXT) : ../printer.pp $(SYSTEMPPU)
 	$(COPY) ../printer.pp .
-	$(PP) $(OPT) printer.pp $(REDIR)
+	$(COMPILER) printer.pp $(REDIR)
 	$(DEL) printer.pp
 
 #
@@ -239,28 +199,28 @@ printer$(PPUEXT) : ../printer.pp $(SYSTEMPPU)
 
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
 	$(COPY) $(PROCINC)/cpu.pp .
-	$(PP) $(OPT) cpu.pp $(REDIR)
+	$(COMPILER) cpu.pp $(REDIR)
 	$(DEL) cpu.pp
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
 	$(COPY) $(PROCINC)/mmx.pp .
-	$(PP) $(OPT) mmx.pp $(REDIR)
+	$(COMPILER) mmx.pp $(REDIR)
 	$(DEL) mmx.pp
 
 mouse$(PPUEXT) : ../mouse.pp $(SYSTEMPPU)
 	$(COPY) ../mouse.pp .
-	$(PP) $(OPT) mouse.pp $(REDIR)
+	$(COMPILER) mouse.pp $(REDIR)
 	$(DEL) mouse.pp
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 	$(COPY) $(INC)/getopts.pp .
-	$(PP) $(OPT) getopts.pp $(REDIR)
+	$(COMPILER) getopts.pp $(REDIR)
 	$(DEL) getopts.pp
 
 PPIFILES:=$(wildcard $(PPI)/*.ppi)
 graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) $(PPIFILES)
 	$(COPY) ../graph.pp .
-	$(PP) $(OPT) -I$(PPI) graph $(REDIR)
+	$(COMPILER) -I$(PPI) graph $(REDIR)
 	$(DEL) graph.pp
 
 #####################################################################
@@ -295,7 +255,13 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.1  1998-09-10 14:13:28  peter
+# Revision 1.2  1998-09-15 12:09:09  peter
+#   * merged updates
+#
+# Revision 1.1.2.1  1998/09/15 12:02:03  peter
+#   * updates to get objpas using its own makefile
+#
+# Revision 1.1	1998/09/10 14:13:28  peter
 #   * renamed
 #
 # Revision 1.16  1998/09/10 10:20:41  florian

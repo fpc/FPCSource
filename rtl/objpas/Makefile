@@ -14,13 +14,23 @@
 #
 
 #####################################################################
-# Include configuration makefile
+# Defaults
 #####################################################################
 
 # Where are the include files ?
 CFG=../cfg
 INC=../inc
 PROCINC=../$(CPU)
+
+# Libname is always objpas
+override LIBNAME=objpas
+
+# Don't forget the -S2 switch
+override OPT+=-S2
+
+#####################################################################
+# Include configuration makefile
+#####################################################################
 
 # Get some defaults for Programs and OSes.
 # This will set the following variables :
@@ -48,13 +58,33 @@ UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
 
 .PHONY : all clean diffs install diffclean
 
-all : $(EXEFILES) $(UNITFILES)
+
+all : $(EXEFILES) $(UNITFILES) targetdir
 
 $(EXEFILES): %$(EXEEXT): %$(PASEXT)
-	$(PP) $(OPT) $* 
+	$(COMPILER) $*
 
 $(UNITFILES): %$(PPUEXT): %$(PASEXT)
-	$(PP) $(OPT) $* 
+	$(COMPILER) $*
+
+
+targetdir:
+ifdef UNITTARGETDIR
+ifdef EXEOBJECTS
+	$(COPY) $(EXEFILES) $(BINTARGETDIR)
+endif
+endif
+ifdef UNITTARGETDIR
+ifdef UNITOBJECTS
+	$(COPY) $(UNITFILES) $(UNITTARGETDIR)
+ifeq ($(SMARTLINK),YES)
+	$(COPY) lib$(LIBNAME)$(LIBEXT) $(UNITTARGETDIR)
+else
+	$(COPY) $(UNITOFILES) $(UNITTARGETDIR)
+endif
+endif
+endif
+
 
 install : all
 ifdef EXEOBJECTS
@@ -63,11 +93,17 @@ ifdef EXEOBJECTS
 endif
 ifdef UNITOBJECTS
 	$(MKDIR) $(UNITINSTALLDIR)
+ifeq ($(SMARTLINK),YES)
+	$(INSTALL) lib$(LIBNAME)$(LIBEXT) $(UNITINSTALLDIR)
+else
 	$(INSTALL) $(UNITFILES) $(UNITOFILES) $(UNITINSTALLDIR)
 endif
+endif
+
 
 clean:
-	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) $(PPAS) link.res log
+	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) $(PPAS) link.res log
+	-$(DELTREE) *$(SMARTEXT)
 ifdef EXEOBJECTS
 	-$(DEL) $(EXEFILES)
 endif
@@ -84,7 +120,13 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.2  1998-09-10 14:15:50  peter
+# Revision 1.3  1998-09-15 12:09:12  peter
+#   * merged updates
+#
+# Revision 1.2.2.1  1998/09/15 12:02:05  peter
+#   * updates to get objpas using its own makefile
+#
+# Revision 1.2	1998/09/10 14:15:50  peter
 #   - renamed makefile to Makefile
 #
 #

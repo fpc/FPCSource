@@ -21,47 +21,20 @@
 # with the main makefile.
 #####################################################################
 
-# set the directory where to install the units.
-ifndef UNITINSTALLDIR
-UNITINSTALLDIR=c:\lib\ppc\go32v1
-endif
-
-# set the directory where to install libraries
-ifndef LIBINSTALLDIR
-LIBINSTALLDIR=c:\lib
-endif
-
 # What is the Operating System
-ifndef OS_SRC
-OS_SRC=GO32V2
+ifndef OS_SOURCE
+OS_SOURCE=go32v2
 endif
 
 # What is the target operating system ?
 ifndef OS_TARGET
-OS_TARGET=GO32V1
+OS_TARGET=go32v1
 endif
 
 # What is the target processor :
 ifndef CPU
 CPU=i386
 #CPU=m68k
-endif
-
-# What compiler to use ?
-# I think ppc386 is better (it's mostly in path) (FK)
-ifndef PP
-PP=ppc386
-endif
-
-# What options to pass to the compiler ?
-# You may want to specify a config file or error definitions file here.
-ifndef OPT
-OPT=
-endif
-
-# Where is the ppumove program ?
-ifndef PPUMOVE
-PPUMOVE=ppumove
 endif
 
 #####################################################################
@@ -106,21 +79,13 @@ PPIDEPS=$(addprefix $(PPI)/,$(PPIINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 
-
 #####################################################################
 # System dependent
 #####################################################################
 
-# Determine needed extensions
-PPUEXT=.pp1
-PPLEXT=.ppl
-OEXT=.o1
-ASMEXT=.s1
-LIBEXT=.a1
-
 # Define Linux Units
 SYSTEMPPU=system$(PPUEXT)
-OBJECTS=strings go32 objpas sysutils math\
+OBJECTS=strings go32 \
 	dos crt objects printer \
 	cpu mmx mouse getopts graph \
 
@@ -139,14 +104,16 @@ PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
 	 libs libsclean \
 	 diffs diffclean \
 
-all : $(OBJLOADERS) $(PPUOBJECTS)
+all : $(OBJLOADERS) $(PPUOBJECTS) objpas
 
 install : all
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)
 
 clean :
-	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) *.PPS log
+	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) $(PPAS) link.res log
+	-$(DELTREE) *$(SMARTEXT)
+	make -C $(OBJPASDIR) clean
 
 #####################################################################
 # Files
@@ -157,45 +124,32 @@ clean :
 #
 
 prt0$(OEXT) : prt0.as
-	as -D -o prt0$(OEXT) prt0.as
+	as -o prt0$(OEXT) prt0.as
 
 #
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
 $(SYSTEMPPU) : system.pp $(SYSDEPS)
-	$(PP) $(OPT) -Us -Sg system.pp $(REDIR)
+	$(COMPILER) -Us -Sg system.pp $(REDIR)
 
 strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
 	$(COPY) $(PROCINC)/strings.pp .
-	$(PP) $(OPT) strings.pp $(REDIR)
+	$(COMPILER) strings.pp $(REDIR)
 	$(DEL) strings.pp
 
 go32$(PPUEXT) : ../go32.pp $(SYSTEMPPU)
 	$(COPY) ../go32.pp .
-	$(PP) $(OPT) go32.pp $(REDIR)
+	$(COMPILER) go32.pp $(REDIR)
 	$(DEL) go32.pp
 
 #
 # Delphi Object Model
 #
 
-objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
-	$(COPY) $(OBJPASDIR)/objpas.pp .
-	$(PP) $(OPT) objpas $(REDIR)
-	$(DEL) objpas.pp
+objpas:
+	make -C $(OBJPASDIR) UNITTARGETDIR=$(BASEDIR) UNITDIR=$(BASEDIR)
 
-sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSTEMPPU) objpas$(PPUEXT) \
-                   dos$(PPUEXT)
-	$(COPY) $(OBJPASDIR)/sysutils.pp .
-	$(PP) $(OPT) -I$(OBJPASDIR) sysutils $(REDIR)
-	$(DEL) sysutils.pp
-
-math$(PPUEXT) : $(OBJPASDIR)/math.pp $(SYSTEMPPU) objpas$(PPUEXT) \
-                   dos$(PPUEXT)
-	$(COPY) $(OBJPASDIR)/math.pp .
-	$(PP) $(OPT) -I$(OBJPASDIR) math $(REDIR)
-	$(DEL) math.pp
 #
 # System Dependent Units
 #
@@ -208,22 +162,22 @@ math$(PPUEXT) : $(OBJPASDIR)/math.pp $(SYSTEMPPU) objpas$(PPUEXT) \
 dos$(PPUEXT) : ../dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
 	       go32$(PPUEXT) strings$(PPUEXT) $(SYSTEMPPU)
 	$(COPY) ../dos.pp .
-	$(PP) $(OPT) dos $(REDIR)
+	$(COMPILER) dos $(REDIR)
 	$(DEL) dos.pp
 
 crt$(PPUEXT) : ../crt.pp $(INC)/textrec.inc go32$(PPUEXT) $(SYSTEMPPU)
 	$(COPY) ../crt.pp .
-	$(PP) $(OPT) crt $(REDIR)
+	$(COMPILER) crt $(REDIR)
 	$(DEL) crt.pp
 
 objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 	$(COPY) $(INC)/objects.pp .
-	$(PP) $(OPT) objects.pp $(REDIR)
+	$(COMPILER) objects.pp $(REDIR)
 	$(DEL) objects.pp
 
 printer$(PPUEXT) : ../printer.pp $(SYSTEMPPU)
 	$(COPY) ../printer.pp .
-	$(PP) $(OPT) printer.pp $(REDIR)
+	$(COMPILER) printer.pp $(REDIR)
 	$(DEL) printer.pp
 
 #
@@ -232,70 +186,66 @@ printer$(PPUEXT) : ../printer.pp $(SYSTEMPPU)
 
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
 	$(COPY) $(PROCINC)/cpu.pp .
-	$(PP) $(OPT) cpu.pp $(REDIR)
+	$(COMPILER) cpu.pp $(REDIR)
 	$(DEL) cpu.pp
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
 	$(COPY) $(PROCINC)/mmx.pp .
-	$(PP) $(OPT) mmx.pp $(REDIR)
+	$(COMPILER) mmx.pp $(REDIR)
 	$(DEL) mmx.pp
 
 mouse$(PPUEXT) : ../mouse.pp $(SYSTEMPPU)
 	$(COPY) ../mouse.pp .
-	$(PP) $(OPT) mouse.pp $(REDIR)
+	$(COMPILER) mouse.pp $(REDIR)
 	$(DEL) mouse.pp
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 	$(COPY) $(INC)/getopts.pp .
-	$(PP) $(OPT) getopts.pp $(REDIR)
+	$(COMPILER) getopts.pp $(REDIR)
 	$(DEL) getopts.pp
 
 PPIFILES:=$(wildcard $(PPI)/*.ppi)
 graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) $(PPIFILES)
 	$(COPY) ../graph.pp .
-	$(PP) $(OPT) -I$(PPI) graph $(REDIR)
+	$(COMPILER) -I$(PPI) graph $(REDIR)
 	$(DEL) graph.pp
-
 
 #####################################################################
 # Libs
 #####################################################################
 
-libs: all
+staticlib:
+	make libsclean
+	make all SMARTLINK=YES LIBNAME=fpc LIBTYPE=static
+
+sharedlib:
+	@echo Shared Libraries not supported for Go32v1
+
+staticlibinstall: staticlib
+	$(MKDIR) $(STATIC_LIBINSTALLDIR)
+	$(MKDIR) $(STATIC_UNITINSTALLDIR)
+	$(INSTALLEXE) fpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
+
+sharedlibinstall: sharedlib
+
+libinstall: staticlibinstall
 
 libsclean : clean
-	-$(DEL) *.$(LIBEXT) *$(PPLEXT)
+	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 #####################################################################
-# Diffs
+# Default targets
 #####################################################################
 
-%.dif : %.pp
-	-$(DIFF) $(DIFFOPTS) $*.pp $(REFPATH)/dos/go32v1/$*.pp > $*.dif
-
-%.dif : %.inc
-	-$(DIFF) $(DIFFOPTS) $*.inc $(REFPATH)/dos/go32v1/$*.inc > $*.dif
-
-%.dif : %.as
-	-$(DIFF) $(DIFFOPTS) $*.as $(REFPATH)/dos/go32v1/$*.as > $*.dif
-
-diffclean:
-	-$(DEL) *.dif
-
-makefile.dif : makefile
-	-$(DIFF) $(DIFFOPTS) makefile $(REFPATH)/dos/go32v1/makefile > makefile.dif
-
-diffs: system.dif os.dif makefile.dif prt0.dif
-
-#####################################################################
-# Distribution
-#####################################################################
-
-distclean : clean libsclean diffclean
+include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.1  1998-09-10 14:15:48  peter
-#   - renamed makefile to Makefile
+# Revision 1.2  1998-09-15 12:09:08  peter
+#   * merged updates
+#
+# Revision 1.1.2.1  1998/09/15 12:02:02  peter
+#   * updates to get objpas using its own makefile
 #
 #
