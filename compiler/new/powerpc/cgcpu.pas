@@ -356,6 +356,11 @@ const
         a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],l);
       end;
 
+     procedure tcgppc.a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
+     
+        begin
+          a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],l);
+        end;
 
 { *********** entry/exit code and address loading ************ }
 
@@ -709,10 +714,14 @@ const
       create_cond_norm(c,0,p^.condition);
       list^.concat(p)
     end;
+
 end.
 {
   $Log$
-  Revision 1.8  1999-10-24 09:22:18  jonas
+  Revision 1.9  1999-11-05 07:05:56  jonas
+    + a_jmp_cond()
+
+  Revision 1.8  1999/10/24 09:22:18  jonas
     + entry/exitcode for SystemV (Linux) and AIX/Mac from the Altivec
       PIM (no AltiVec support yet though)
     * small fix to the a_cmp_* methods

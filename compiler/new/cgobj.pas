@@ -138,6 +138,8 @@ unit cgobj;
           procedure a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
             l : pasmlabel);
 
+          procedure a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
+
           procedure a_loadaddress_ref_reg(list : paasmoutput;const ref : treference;r : tregister);virtual;
           procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
           { restores the frame pointer at procedure exit, for the }
@@ -1089,6 +1091,12 @@ unit cgobj;
          abstract;
       end;
 
+    procedure tcg.a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
+    
+      begin
+        abstract;
+      end;
+
     procedure tcg.g_return_from_proc(list : paasmoutput;parasize : aword);
 
       begin
@@ -1110,7 +1118,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.29  1999-10-21 16:41:41  florian
+  Revision 1.30  1999-11-05 07:05:56  jonas
+    + a_jmp_cond()
+
+  Revision 1.29  1999/10/21 16:41:41  florian
     * problems with readln fixed: esi wasn't restored correctly when
       reading ordinal fields of objects futher the register allocation
       didn't take care of the extra register when reading ordinal values
