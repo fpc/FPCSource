@@ -1151,7 +1151,6 @@
      WM_KEYLAST = 264;
      WM_MOUSEFIRST = 512;
      WM_MOUSELAST     = 525;
-     WM_MOUSEWHEEL    = 522;
      WM_XBUTTONDOWN   = 523; 
      WM_XBUTTONUP     = 524;             
      WM_XBUTTONDBLCLK = 525;
@@ -1278,7 +1277,10 @@ Type
 
 {
   $Log$
-  Revision 1.10  2003-12-06 15:53:21  marco
+  Revision 1.11  2003-12-06 15:56:35  marco
+   * typo fix
+
+  Revision 1.10  2003/12/06 15:53:21  marco
    * mouse_last fixes for bug 2784
 
   Revision 1.9  2003/11/28 17:21:40  peter
