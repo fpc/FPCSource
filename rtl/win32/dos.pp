@@ -377,32 +377,33 @@ var
   PI: TProcessInformation;
   Proc : THandle;
   l    : Longint;
-  AppPath,
+  CommandLine : array[0..511] of char;
   AppParam : array[0..255] of char;
-  lpApplicationName : pchar;
+  SpacePos : integer;
+  pathlocal : string;  
 begin
+  DosError := 0;
   FillChar(SI, SizeOf(SI), 0);
   SI.cb:=SizeOf(SI);
   SI.wShowWindow:=1;
-  Move(Path[1],AppPath,length(Path));
-  AppPath[Length(Path)]:=#0;
-  { use the white token delimiter only if the program
-   name is not supplied in path, this means that the
-   program name is supplied after the - token. Windows accepts
-   - even if path <> '', but other shells (4nt) don't.
-  }
-  lpApplicationName := pchar(@Apppath);
-  if path = '' then
-     begin
-       AppParam[0]:='-';
-       lpApplicationName := nil; { must be null }
-     end
+  { always surroound the name of the application by quotes 
+    so that long filenames will always be accepted. But don't
+    do it if there are already double quotes, since Win32 does not
+    like double quotes which are duplicated!
+  } 
+  if pos('"',path) = 0 then
+    pathlocal:='"'+path+'"'
   else
-     AppParam[0]:=' ';
+    pathlocal := path;
+  Move(Pathlocal[1],CommandLine,length(Pathlocal));
+
+  AppParam[0]:=' ';
   AppParam[1]:=' ';
   Move(ComLine[1],AppParam[2],length(Comline));
   AppParam[Length(ComLine)+2]:=#0;
-  if not CreateProcess(lpApplicationName, PChar(@AppParam),
+  { concatenate both pathnames }
+  Move(Appparam[0],CommandLine[length(Pathlocal)],strlen(Appparam)+1);
+  if not CreateProcess(nil, PChar(@CommandLine),
            Nil, Nil, ExecInheritsHandles,$20, Nil, Nil, SI, PI) then
    begin
      DosError:=Last2DosError(GetLastError);
@@ -1031,7 +1032,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-12-03 20:39:14  carl
+  Revision 1.16  2002-12-04 21:35:50  carl
+    * bugfixes for dos.exec() : it would not be able to execute 16-bit apps
+    * doserror was not reset to zero in dos.exec
+
+  Revision 1.15  2002/12/03 20:39:14  carl
      * fix for dos.exec with non-microsoft shells
 
   Revision 1.14  2002/09/07 16:01:28  peter
