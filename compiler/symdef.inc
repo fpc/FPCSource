@@ -1451,6 +1451,10 @@
       var st,nb : string;
           sym_line_no : longint;
       begin
+      if assigned(definition) and
+         (definition^.deftype=forwarddef) then
+        exit;
+
       if ( (sym=nil) or sym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
          not is_def_stab_written then
         begin
@@ -3862,7 +3866,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.170  1999-10-04 13:46:04  michael
+  Revision 1.171  1999-10-06 17:39:15  peter
+    * fixed stabs writting for forward types
+
+  Revision 1.170  1999/10/04 13:46:04  michael
   * patch from peter for classes
 
   Revision 1.169  1999/10/03 19:41:38  peter

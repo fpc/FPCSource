@@ -113,6 +113,14 @@ unit pdecl;
                      (srsym^.typ=typesym) then
                    begin
                      ppointerdef(pd)^.definition:=ptypesym(srsym)^.definition;
+{$ifdef GDB}
+                     if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
+                        (psym(p)^.owner^.symtabletype in [globalsymtable,staticsymtable]) then
+                      begin
+                        ptypesym(p)^.isusedinstab := true;
+                        psym(p)^.concatstabto(debuglist);
+                      end;
+{$endif GDB}
                      { we need a class type for classrefdef }
                      if (pd^.deftype=classrefdef) and
                         not((ptypesym(srsym)^.definition^.deftype=objectdef) and
@@ -2603,7 +2611,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.162  1999-10-03 19:44:42  peter
+  Revision 1.163  1999-10-06 17:39:14  peter
+    * fixed stabs writting for forward types
+
+  Revision 1.162  1999/10/03 19:44:42  peter
     * removed objpasunit reference, tvarrec is now searched in systemunit
       where it already was located
 

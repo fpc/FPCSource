@@ -916,7 +916,8 @@ implementation
       end;
 {$endif}
 
-    procedure write_refs(sym : pnamedindexobject);       begin
+    procedure write_refs(sym : pnamedindexobject);
+      begin
          psym(sym)^.write_references;
       end;
 
@@ -2348,7 +2349,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  1999-10-03 19:44:42  peter
+  Revision 1.53  1999-10-06 17:39:15  peter
+    * fixed stabs writting for forward types
+
+  Revision 1.52  1999/10/03 19:44:42  peter
     * removed objpasunit reference, tvarrec is now searched in systemunit
       where it already was located
 
