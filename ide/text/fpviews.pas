@@ -26,7 +26,7 @@ uses
 {$endif}
   WHlpView,
   Comphook,
-  FPConst;
+  FPConst,FPUsrScr;
 
 type
 {$IFNDEF EDITORS}
@@ -121,6 +121,15 @@ type
       procedure HandleEvent(var Event: TEvent); virtual;
     end;
 
+    TLocalMenuListBox = object(TAdvancedListBox)
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure   LocalMenu(P: TPoint); virtual;
+      function    GetLocalMenu: PMenu; virtual;
+      function    GetCommandTarget: PView; virtual;
+    private
+      LastLocalCmd: word;
+    end;
+
     PColorStaticText = ^TColorStaticText;
     TColorStaticText = object(TAdvancedStaticText)
       Color: word;
@@ -132,11 +141,12 @@ type
 
     PUnsortedStringCollection = ^TUnsortedStringCollection;
     TUnsortedStringCollection = object(TCollection)
+      function  At(Index: Integer): PString;
       procedure FreeItem(Item: Pointer); virtual;
     end;
 
     PHSListBox = ^THSListBox;
-    THSListBox = object(TListBox)
+    THSListBox = object(TLocalMenuListBox)
       constructor Init(var Bounds: TRect; ANumCols: Word; AHScrollBar, AVScrollBar: PScrollBar);
     end;
 
@@ -173,9 +183,13 @@ type
       MaxWidth: integer;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
       procedure   AddItem(P: PMessageItem); virtual;
-      procedure   Clear; virtual;
       function    GetText(Item: Integer; MaxLen: Integer): String; virtual;
+      procedure   Clear; virtual;
+      procedure   TrackSource; virtual;
+      procedure   GotoSource; virtual;
       procedure   Draw; virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      function    GetLocalMenu: PMenu; virtual;
       destructor  Done; virtual;
     end;
 
@@ -230,6 +244,23 @@ type
       InDraw: boolean;
     end;
 
+    PScreenView = ^TScreenView;
+    TScreenView = object(TScroller)
+      Screen: PScreen;
+      constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar;
+                    AScreen: PScreen);
+      procedure   Draw; virtual;
+      procedure   Update; virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+    end;
+
+    PScreenWindow = ^TScreenWindow;
+    TScreenWindow = object(TWindow)
+      ScreenView : PScreenView;
+      constructor Init(AScreen: PScreen);
+      procedure   Close; virtual;
+    end;
+
 function  SearchFreeWindowNo: integer;
 
 procedure InsertOK(ADialog: PDialog);
@@ -237,6 +268,7 @@ procedure InsertButtons(ADialog: PDialog);
 
 procedure ErrorBox(S: string; Params: pointer);
 procedure InformationBox(S: string; Params: pointer);
+function  ConfirmBox(S: string; Params: pointer; CanCancel: boolean): word;
 
 function IsThereAnyEditor: boolean;
 function IsThereAnyWindow: boolean;
@@ -259,6 +291,8 @@ procedure DisposeTabDef(P: PTabDef);
 function  GetEditorCurWord(Editor: PEditor): string;
 procedure InitReservedWords;
 
+procedure TranslateMouseClick(View: PView; var Event: TEvent);
+
 const
       SourceCmds  : TCommandSet =
         ([cmSave,cmSaveAs,cmCompile]);
@@ -275,9 +309,9 @@ const
 implementation
 
 uses
-  Memory,MsgBox,Validate,
+  Keyboard,Memory,MsgBox,Validate,
   Tokens,
-  FPUtils,FPHelp;
+  FPVars,FPUtils,FPHelp;
 
 const
   NoNameCount    : integer = 0;
@@ -616,7 +650,9 @@ end;
 procedure TSourceEditor.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
     P: TPoint;
+    S: string;
 begin
+  TranslateMouseClick(@Self,Event);
   case Event.What of
     evMouseDown :
       if MouseInView(Event.Where) and (Event.Buttons=mbRightButton) then
@@ -645,9 +681,14 @@ begin
             end;
           cmOpenAtCursor :
             begin
-              OpenFileName:=LowerCaseStr(GetEditorCurWord(@Self))+'.pas';
+              S:=LowerCaseStr(GetEditorCurWord(@Self));
+              OpenFileName:=S+'.pp'+ListSeparator+
+                            S+'.pas'+ListSeparator+
+                            S+'.inc';
               Message(Application,evCommand,cmOpen,nil);
             end;
+          cmEditorOptions :
+            Message(Application,evCommand,cmEditorOptions,@Self);
           cmHelp :
             Message(@Self,evCommand,cmHelpTopicSearch,@Self);
           cmHelpTopicSearch :
@@ -683,6 +724,7 @@ var HSB,VSB: PScrollBar;
     LoadFile: boolean;
 begin
   inherited Init(Bounds,AFileName,SearchFreeWindowNo);
+  Options:=Options or ofTileAble;
   GetExtent(R); R.A.Y:=R.B.Y-1; R.Grow(-1,0); R.A.X:=14;
   New(HSB, Init(R)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY; Insert(HSB);
   GetExtent(R); R.A.X:=R.B.X-1; R.Grow(0,-1);
@@ -1621,6 +1663,11 @@ begin
   MessageBox(S,Params,mfInformation+mfInsertInApp+mfOKButton);
 end;
 
+function ConfirmBox(S: string; Params: pointer; CanCancel: boolean): word;
+begin
+  MessageBox(S,Params,mfConfirmation+mfInsertInApp+mfYesButton+mfNoButton+integer(CanCancel)*mfCancelButton);
+end;
+
 function IsSeparator(P: PMenuItem): boolean;
 begin
   IsSeparator:=(P<>nil) and (P^.Name=nil) and (P^.HelpCtx=hcNoContext);
@@ -1858,6 +1905,11 @@ begin
  end;
 end;
 
+function TUnsortedStringCollection.At(Index: Integer): PString;
+begin
+  At:=inherited At(Index);
+end;
+
 procedure TUnsortedStringCollection.FreeItem(Item: Pointer);
 begin
   if Item<>nil then DisposeStr(Item);
@@ -1876,10 +1928,119 @@ begin
   Flags:=Flags or (wfMove + wfGrow + wfClose + wfZoom);
 end;
 
+procedure TLocalMenuListBox.LocalMenu(P: TPoint);
+var M: PMenu;
+    MV: PAdvancedMenuPopUp;
+    R: TRect;
+    Re: word;
+begin
+  M:=GetLocalMenu;
+  if M=nil then Exit;
+  if LastLocalCmd<>0 then
+     M^.Default:=SearchMenuItem(M,LastLocalCmd);
+  Desktop^.GetExtent(R);
+  MakeGlobal(P,R.A); {Desktop^.MakeLocal(R.A,R.A);}
+  New(MV, Init(R, M));
+  Re:=Application^.ExecView(MV);
+  if M^.Default=nil then LastLocalCmd:=0
+     else LastLocalCmd:=M^.Default^.Command;
+  Dispose(MV, Done);
+  if Re<>0 then
+    Message(GetCommandTarget,evCommand,Re,@Self);
+end;
+
+function TLocalMenuListBox.GetLocalMenu: PMenu;
+begin
+  Abstract;
+end;
+
+function TLocalMenuListBox.GetCommandTarget: PView;
+begin
+  GetCommandTarget:=@Self;
+end;
+
+procedure TLocalMenuListBox.HandleEvent(var Event: TEvent);
+var DontClear: boolean;
+    P: TPoint;
+begin
+  case Event.What of
+    evMouseDown :
+      if MouseInView(Event.Where) and (Event.Buttons=mbRightButton) then
+        begin
+          MakeLocal(Event.Where,P); Inc(P.X); Inc(P.Y);
+          LocalMenu(P);
+          ClearEvent(Event);
+        end;
+    evKeyDown :
+      begin
+        DontClear:=false;
+        case Event.KeyCode of
+          kbAltF10 : Message(@Self,evCommand,cmLocalMenu,@Self);
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
+      end;
+    evCommand :
+      begin
+        DontClear:=false;
+        case Event.Command of
+          cmLocalMenu :
+            begin
+              P:=Cursor; Inc(P.X); Inc(P.Y);
+              LocalMenu(P);
+            end;
+        else DontClear:=true;
+        end;
+        if not DontClear then ClearEvent(Event);
+      end;
+  end;
+  inherited HandleEvent(Event);
+end;
+
+
 constructor TMessageListBox.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
 begin
   inherited Init(Bounds,1,AHScrollBar, AVScrollBar);
   NoSelection:=true;
+end;
+
+function TMessageListBox.GetLocalMenu: PMenu;
+var M: PMenu;
+begin
+  if (Owner<>nil) and (Owner^.GetState(sfModal)) then M:=nil else
+  M:=NewMenu(
+    NewItem('~C~lear','',kbNoKey,cmMsgClear,hcMsgClear,
+    NewLine(
+    NewItem('~G~oto source','',kbNoKey,cmMsgGotoSource,hcMsgGotoSource,
+    NewItem('~T~rack source','',kbNoKey,cmMsgTrackSource,hcMsgTrackSource,
+    nil)))));
+  GetLocalMenu:=M;
+end;
+
+procedure TMessageListBox.HandleEvent(var Event: TEvent);
+var DontClear: boolean;
+begin
+  case Event.What of
+    evCommand :
+      begin
+        DontClear:=false;
+        case Event.What of
+          cmDefault :
+            Message(@Self,evCommand,cmMsgGotoSource,nil);
+          cmMsgGotoSource :
+            if Range>0 then
+            GotoSource;
+          cmMsgTrackSource :
+            if Range>0 then
+            TrackSource;
+          cmMsgClear :
+            Clear;
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
+      end;
+  end;
+  inherited HandleEvent(Event);
 end;
 
 procedure TMessageListBox.AddItem(P: PMessageItem);
@@ -1913,6 +2074,16 @@ procedure TMessageListBox.Clear;
 begin
   if List<>nil then Dispose(List, Done); List:=nil; MaxWidth:=0;
   SetRange(0); DrawView;
+end;
+
+procedure TMessageListBox.TrackSource;
+begin
+end;
+
+procedure TMessageListBox.GotoSource;
+var P: PMessageItem;
+begin
+{  if TryToOpenSource(}
 end;
 
 procedure TMessageListBox.Draw;
@@ -2035,8 +2206,10 @@ begin
     V_Used        then ClassS:='Used'        else if TClass =
     V_Tried       then ClassS:='Tried'       else if TClass =
     V_Debug       then ClassS:='Debug'
-  else ClassS:='???';
-  if ClassS<>'' then ClassS:=RExpand(ClassS,0)+': ';
+  else
+   ClassS:='???';
+  if ClassS<>'' then
+   ClassS:=RExpand(ClassS,0)+': ';
   S:=ClassS;
   if (Module<>nil) and (ID<>0) then
      S:=S+Module^+' ('+IntToStr(ID)+'): ';
@@ -2485,12 +2658,118 @@ begin
         end;
 end;
 
+constructor TScreenView.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar;
+              AScreen: PScreen);
+begin
+  inherited Init(Bounds,AHScrollBar,AVScrollBar);
+  Screen:=AScreen;
+  if Screen=nil then
+   Fail;
+  SetState(sfCursorVis,true);
+  Update;
+end;
+
+procedure TScreenView.Update;
+begin
+  SetLimit(UserScreen^.GetWidth,UserScreen^.GetHeight);
+  DrawView;
+end;
+
+procedure TScreenView.HandleEvent(var Event: TEvent);
+begin
+  case Event.What of
+    evBroadcast :
+      case Event.Command of
+        cmUpdate  : Update;
+      end;
+  end;
+  inherited HandleEvent(Event);
+end;
+
+procedure TScreenView.Draw;
+var B: TDrawBuffer;
+    X,Y: integer;
+    Text,Attr: string;
+    P: TPoint;
+begin
+  Screen^.GetCursorPos(P);
+  for Y:=Delta.Y to Delta.Y+Size.Y-1 do
+  begin
+    if Y<Screen^.GetHeight then
+      Screen^.GetLine(Y,Text,Attr)
+    else
+       begin Text:=''; Attr:=''; end;
+    Text:=copy(Text,Delta.X+1,255); Attr:=copy(Attr,Delta.X+1,255);
+    MoveChar(B,' ',0,Size.X);
+    for X:=1 to length(Text) do
+      MoveChar(B[X-1],Text[X],ord(Attr[X]),1);
+    WriteLine(0,Y-Delta.Y,Size.X,1,B);
+  end;
+  SetCursor(P.X-Delta.X,P.Y-Delta.Y);
+end;
+
+constructor TScreenWindow.Init(AScreen: PScreen);
+var R: TRect;
+    VSB,HSB: PScrollBar;
+begin
+  Desktop^.GetExtent(R);
+  inherited Init(R, 'User screen', wnNoNumber);
+  Options:=Options or ofTileAble;
+  GetExtent(R); R.Grow(-1,-1); R.Move(1,0); R.A.X:=R.B.X-1;
+  New(VSB, Init(R)); VSB^.Options:=VSB^.Options or ofPostProcess;
+  VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY; Insert(VSB);
+  GetExtent(R); R.Grow(-1,-1); R.Move(0,1); R.A.Y:=R.B.Y-1;
+  New(HSB, Init(R)); HSB^.Options:=HSB^.Options or ofPostProcess;
+  HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY; Insert(HSB);
+  GetExtent(R); R.Grow(-1,-1);
+  New(ScreenView, Init(R, HSB, VSB, AScreen));
+  ScreenView^.GrowMode:=gfGrowHiX+gfGrowHiY;
+  Insert(ScreenView);
+end;
+
+procedure TScreenWindow.Close;
+begin
+  Hide;
+end;
+
+const InTranslate : boolean = false;
+
+procedure TranslateMouseClick(View: PView; var Event: TEvent);
+procedure TranslateAction(Action: integer);
+var E: TEvent;
+begin
+  if Action<>acNone then
+  begin
+    E:=Event;
+    E.What:=evMouseDown; E.Buttons:=mbLeftButton;
+    View^.HandleEvent(E);
+    Event.What:=evCommand;
+    Event.Command:=ActionCommands[Action];
+  end;
+end;
+begin
+  if InTranslate then Exit;
+  InTranslate:=true;
+  case Event.What of
+    evMouseDown :
+      if (GetShiftState and kbAlt)<>0 then
+        TranslateAction(AltMouseAction) else
+      if (GetShiftState and kbCtrl)<>0 then
+        TranslateAction(CtrlMouseAction);
+  end;
+  InTranslate:=false;
+end;
 
 END.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
-    * moved
+  Revision 1.2  1998-12-28 15:47:54  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
 
   Revision 1.4  1998/12/22 10:39:53  peter
     + options are now written/read

@@ -27,7 +27,7 @@ implementation
 
 uses
   Compiler,
-  FPCfgs;
+  FPSwitches;
 
 {****************************************************************************
                                    Run
@@ -53,15 +53,23 @@ end;
 
 procedure Compile(const FileName: string);
 begin
-  WriteOptions('fp.cfg');
+{   WriteSwitches('fp.cfg'); }
 { call the compiler }
-  Compiler.Compile('[fp.cfg] '+FileName);
+  Compiler.Compile('[fp.cfg] -d'+SwitchesModeStr[SwitchesMode]+' '+FileName);
 end;
 
 end.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
+  Revision 1.2  1998-12-28 15:47:45  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
+
+  Revision 1.1  1998/12/22 14:27:54  peter
     * moved
 
   Revision 1.4  1998/12/22 10:39:43  peter

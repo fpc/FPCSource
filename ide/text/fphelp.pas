@@ -36,8 +36,12 @@ type
 procedure Help(FileID, Context: word; Modal: boolean);
 procedure HelpIndex(Keyword: string);
 procedure HelpTopicSearch(Editor: PEditor);
+
 procedure InitHelpSystem;
 procedure DoneHelpSystem;
+
+procedure InitHelpFiles;
+procedure DoneHelpFiles;
 
 procedure PushStatus(S: string);
 procedure SetStatus(S: string);
@@ -52,7 +56,7 @@ implementation
 
 uses Objects,Views,App,MsgBox,
      WHelp,
-     FPConst,FPUtils;
+     FPConst,FPVars,FPUtils;
 
 var StatusStack : array[0..10] of string[MaxViewWidth];
 
@@ -86,6 +90,7 @@ begin
 
     hcFileMenu      : S:='File managment commands (Open, New, Save, etc.)';
     hcNew           : S:='Create a new file in a new edit window';
+    hcNewFromTemplate:S:='Create a new file using a code template';
     hcOpen          : S:='Locate and open a file in an edit window';
     hcSave          : S:='Save the file in the active edit window';
     hcSaveAs        : S:='Save the current file under a different name, directory or drive';
@@ -146,6 +151,10 @@ begin
     hcEditor        : S:='Specify default editor settings';
     hcMouse         : S:='Specify mouse settings';
     hcStartup       : S:='Permanently change default startup options';
+    hcColors        : S:='Costumize IDE colors for windows, menus, editors, etc.';
+    hcOpenINI       : S:='Load a previously saved options file';
+    hcSaveINI       : S:='Save all the changes made in the options menu';
+    hcSaveAsINI     : S:='Save all the changes made under a different name';
 
     hcWindowMenu    : S:='Windows managment commands';
     hcTile          : S:='Arrange windows on desktop by tiling';
@@ -181,13 +190,12 @@ begin
   HelpFacility^.AddHelpFile(HelpFile);
   {$IFDEF DEBUG}SetStatus(strLoadingHelp);{$ENDIF}
 end;
+var I: integer;
 begin
   New(HelpFacility, Init);
   PushStatus(strLoadingHelp);
-  AddFile('C:\BP\BIN\TURBO.TPH');
-{  AddFile('C:\BP\BIN\TVISION.TPH');
-  AddFile('C:\BP\BIN\OWL.TPH');
-  AddFile('C:\BP\BIN\WINDOWS.TPH');}
+  for I:=0 to HelpFiles^.Count-1 do
+    AddFile(HelpFiles^.At(I)^);
   PopStatus;
 end;
 
@@ -293,12 +301,26 @@ begin
   PAdvancedStatusLine(StatusLine)^.ClearStatusText;
 end;
 
+procedure InitHelpFiles;
+begin
+  New(HelpFiles, Init(10,10));
+end;
+
+procedure DoneHelpFiles;
+begin
+  if HelpFiles<>nil then Dispose(HelpFiles, Done);
+end;
 
 END.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
-    * moved
+  Revision 1.2  1998-12-28 15:47:44  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
 
   Revision 1.3  1998/12/22 10:39:42  peter
     + options are now written/read

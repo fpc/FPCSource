@@ -157,8 +157,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
-    * moved
+  Revision 1.2  1998-12-28 15:47:52  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
 
   Revision 1.2  1998/12/22 10:39:51  peter
     + options are now written/read

@@ -14,32 +14,6 @@
 
  **********************************************************************}
 
-procedure TIDEApp.Parameters;
-var R,R2: TRect;
-    D: PCenterDialog;
-    IL: PInputLine;
-begin
-  R.Assign(0,0,54,4);
-  New(D, Init(R, 'Program parameters'));
-  with D^ do
-  begin
-    GetExtent(R); R.Grow(-2,-1); Inc(R.A.Y); R.B.Y:=R.A.Y+1;
-    R2.Copy(R); R2.A.X:=14;
-    New(IL, Init(R2, 255));
-    IL^.Data^:=GetRunParameters;
-    Insert(IL);
-    R2.Copy(R); R2.B.X:=14;
-    Insert(New(PLabel, Init(R2, '~P~arameter', IL)));
-  end;
-  InsertButtons(D);
-  IL^.Select;
-  if Desktop^.ExecView(D)=cmOK then
-  begin
-    SetRunParameters(IL^.Data^);
-  end;
-  Dispose(D, Done);
-end;
-
 procedure TIDEApp.Target;
 var R,R2: TRect;
     D: PCenterDialog;
@@ -48,7 +22,7 @@ var R,R2: TRect;
     LastItem: PSItem;
     L: longint;
 begin
-  TargetCount:=TargetOptions^.ItemCount;
+  TargetCount:=TargetSwitches^.ItemCount;
   R.Assign(0,0,36,4+TargetCount);
   New(D, Init(R, 'Target'));
   with D^ do
@@ -57,9 +31,9 @@ begin
     R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+TargetCount;
     LastItem:=nil;
     for I:=TargetCount-1 downto 0 do
-      LastItem:=NewSItem(TargetOptions^.ItemName(I), LastItem);
+      LastItem:=NewSItem(TargetSwitches^.ItemName(I), LastItem);
     New(RB, Init(R2, LastItem));
-    L:=ord(TargetOptions^.GetCurrSel);
+    L:=ord(TargetSwitches^.GetCurrSel);
     RB^.SetData(L);
     Insert(RB);
     R2.Copy(R);
@@ -69,7 +43,7 @@ begin
   InsertButtons(D);
   RB^.Select;
   if Desktop^.ExecView(D)=cmOK then
-    TargetOptions^.SetCurrSel(RB^.Value);
+    TargetSwitches^.SetCurrSel(RB^.Value);
   Dispose(D, Done);
 end;
 
@@ -107,11 +81,19 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
+  Revision 1.2  1998-12-28 15:47:46  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
+
+  Revision 1.1  1998/12/22 14:27:54  peter
     * moved
 
   Revision 1.3  1998/12/22 10:39:44  peter
-    + options are now written/read
+    + Switches are now written/read
     + find and replace routines
 
 }

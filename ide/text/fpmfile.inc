@@ -18,6 +18,7 @@ function TIDEApp.OpenEditorWindow(FileName: string; CurX,CurY: integer): PSource
 var P: PView;
     R: TRect;
     W: PSourceWindow;
+    B,SH: boolean;
 begin
   P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);
   if P=nil then Desktop^.GetExtent(R) else
@@ -25,6 +26,7 @@ begin
        P^.GetBounds(R);
        Inc(R.A.X); Inc(R.A.Y);
      end;
+  PushStatus('Opening source file... ('+SmartPath(FileName)+')');
   New(W, Init(R, FileName));
   if W<>nil then
   begin
@@ -35,16 +37,31 @@ begin
          TrackCursor(true);
        end;
     W^.HelpCtx:=hcSourceWindow;
+    SH:=MatchesFileList(NameAndExtOf(FileName),HighlightExts);
+    with W^.Editor^ do
+     begin
+       b:=(Flags and efSyntaxHighlight)<>0;
+       if SH<>B then
+        begin
+          if SH then
+           SetFlags(Flags or efSyntaxHighlight)
+          else
+           SetFlags(Flags and not efSyntaxHighlight);
+        end;
+     end;
     Desktop^.Insert(W);
     Message(Application,evBroadcast,cmUpdate,nil);
   end;
+  PopStatus;
   OpenEditorWindow:=W;
 end;
+
 
 procedure TIDEApp.NewEditor;
 begin
   OpenEditorWindow('',0,0);
 end;
+
 
 procedure TIDEApp.NewFromTemplate;
 var D: PCenterDialog;
@@ -98,6 +115,7 @@ begin
   Dispose(C, Done);
 end;
 
+
 procedure TIDEApp.Open(FileName: string);
 var D: PFileDialog;
     OpenIt: boolean;
@@ -117,6 +135,7 @@ begin
   Dispose(D, Done);
 end;
 
+
 procedure TIDEApp.OpenRecentFile(RecentIndex: integer);
 begin
   with RecentFiles[RecentIndex] do
@@ -125,13 +144,16 @@ begin
 end;
 
 procedure TIDEApp.SaveAll;
-procedure SendSave(P: PView); {$ifndef FPC}far;{$endif}
-begin
-  Message(P,evCommand,cmSave,nil);
-end;
+
+  procedure SendSave(P: PView); {$ifndef FPC}far;{$endif}
+  begin
+    Message(P,evCommand,cmSave,nil);
+  end;
+
 begin
   Desktop^.ForEach(@SendSave);
 end;
+
 
 procedure TIDEApp.ChangeDir;
 begin
@@ -141,9 +163,16 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
-    * moved
+  Revision 1.2  1998-12-28 15:47:47  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
 
+  Revision 1.4  1998/12/24 08:27:12  gabor
+    + displaying 'opening source file...' text while reading
   Revision 1.3  1998/12/22 10:39:46  peter
     + options are now written/read
     + find and replace routines

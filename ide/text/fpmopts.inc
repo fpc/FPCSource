@@ -14,6 +14,43 @@
 
  **********************************************************************}
 
+procedure TIDEApp.SetSwitchesMode;
+var R,R2: TRect;
+    D: PCenterDialog;
+    RB: PRadioButtons;
+    i : TSwitchMode;
+    SwitchesCount : integer;
+    LastItem: PSItem;
+    L: longint;
+begin
+  SwitchesCount:=ord(high(TSwitchMode))-ord(low(TSwitchMode))+1;
+  R.Assign(0,0,36,4+SwitchesCount);
+  New(D, Init(R, 'SwitchesMode'));
+  with D^ do
+  begin
+    GetExtent(R);
+    R.Grow(-3,-1);
+    Inc(R.A.Y);
+    R2.Copy(R);
+    Inc(R2.A.Y);
+    R2.B.Y:=R2.A.Y+SwitchesCount;
+    LastItem:=nil;
+    for I:=high(TSwitchMode) downto low(TSwitchMode) do
+      LastItem:=NewSItem(SwitchesModeName[I], LastItem);
+    New(RB, Init(R2, LastItem));
+    RB^.SetData(SwitchesMode);
+    Insert(RB);
+    R2.Copy(R);
+    R2.B.Y:=R2.A.Y+1;
+    Insert(New(PLabel, Init(R2, 'Switches Mode', RB)));
+  end;
+  InsertButtons(D);
+  RB^.Select;
+  if Desktop^.ExecView(D)=cmOK then
+   SwitchesMode:=TSwitchMode(RB^.Value);
+  Dispose(D, Done);
+end;
+
 procedure TIDEApp.Compiler;
 var R,R2,TabR,TabIR: TRect;
     D: PCenterDialog;
@@ -27,7 +64,7 @@ var R,R2,TabR,TabIR: TRect;
     Label11,Label21,Label22,Label23,Label24,Label31: PLabel;
 begin
   R.Assign(0,0,72,18);
-  New(D, Init(R, 'Compiler Options'));
+  New(D, Init(R, 'Compiler Switches'));
   with D^ do
   begin
     GetExtent(R);
@@ -39,101 +76,101 @@ begin
     TabIR.Grow(0,-1);
 
     { --- Sheet 1 --- }
-    Count:=SyntaxOptions^.ItemCount;
+    Count:=SyntaxSwitches^.ItemCount;
     R.Copy(TabIR);
     R2.Copy(R);
     R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2;
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
-      Items:=NewSItem(SyntaxOptions^.ItemName(I), Items);
+      Items:=NewSItem(SyntaxSwitches^.ItemName(I), Items);
     New(CB1, Init(R2, Items));
     for I:=0 to Count-1 do
-      if SyntaxOptions^.ItemIsSet(I) then
+      if SyntaxSwitches^.GetBooleanItem(I) then
         CB1^.Press(I);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label11, Init(R2, 'Syntax options', CB1));
+    New(Label11, Init(R2, 'Syntax Switches', CB1));
 
     { --- Sheet 2 --- }
-    Count:=CodegenOptions^.ItemCount;
+    Count:=CodegenSwitches^.ItemCount;
     R2.Copy(TabIR);
     R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2-2;
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
-      Items:=NewSItem(CodegenOptions^.ItemName(I), Items);
+      Items:=NewSItem(CodegenSwitches^.ItemName(I), Items);
     New(CB3, Init(R2, Items));
     for I:=0 to Count-1 do
-      if CodegenOptions^.ItemIsSet(I) then
+      if CodegenSwitches^.GetBooleanItem(I) then
         CB3^.Press(I);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
     New(Label21, Init(R2, 'Run-time checks', CB3));
 
-    Count:=OptimizationOptions^.ItemCount;
+    Count:=OptimizationSwitches^.ItemCount;
     R2.Copy(TabIR);
     R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
     Dec(R2.B.X,4);
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
-      Items:=NewSItem(OptimizationOptions^.ItemName(I), Items);
+      Items:=NewSItem(OptimizationSwitches^.ItemName(I), Items);
     New(CB2, Init(R2, Items));
     for I:=0 to Count-1 do
-      if OptimizationOptions^.ItemIsSet(I) then
+      if OptimizationSwitches^.GetBooleanItem(I) then
         CB2^.Press(I);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
     New(Label22, Init(R2, 'Optimizations', CB2));
 
-    Count:=ProcessorOptions^.ItemCount;
+    Count:=ProcessorSwitches^.ItemCount;
     R2.Copy(TabIR);
     R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2-2;
-    Inc(R2.A.Y,1+CodegenOptions^.ItemCount);
+    Inc(R2.A.Y,1+CodegenSwitches^.ItemCount);
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
-      Items:=NewSItem(ProcessorOptions^.ItemName(I), Items);
+      Items:=NewSItem(ProcessorSwitches^.ItemName(I), Items);
     New(RB1, Init(R2, Items));
-    L:=ProcessorOptions^.GetCurrSel;
+    L:=ProcessorSwitches^.GetCurrSel;
     RB1^.SetData(L);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
     New(Label23, Init(R2, 'Target processor', RB1));
 
-    Count:=AsmReaderOptions^.ItemCount;
+    Count:=AsmReaderSwitches^.ItemCount;
     R2.Copy(TabIR);
     R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
     Dec(R2.B.X,4);
-    Inc(R2.A.Y, 1+OptimizationOptions^.ItemCount+1+ProcessorOptions^.ItemCount);
+    Inc(R2.A.Y, 1+OptimizationSwitches^.ItemCount+1+ProcessorSwitches^.ItemCount);
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
-      Items:=NewSItem(AsmReaderOptions^.ItemName(I), Items);
+      Items:=NewSItem(AsmReaderSwitches^.ItemName(I), Items);
     New(RB2, Init(R2, Items));
-    L:=AsmReaderOptions^.GetCurrSel;
+    L:=AsmReaderSwitches^.GetCurrSel;
     RB2^.SetData(L);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
     New(Label24, Init(R2, 'Assembler format', RB2));
 
     { --- Sheet 3 --- }
-    Count:=VerboseOptions^.ItemCount;
+    Count:=VerboseSwitches^.ItemCount;
     R.Copy(TabIR);
     R2.Copy(R);
     R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2;
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
-      Items:=NewSItem(VerboseOptions^.ItemName(I), Items);
+      Items:=NewSItem(VerboseSwitches^.ItemName(I), Items);
     New(CB4, Init(R2, Items));
     for I:=0 to Count-1 do
-      if VerboseOptions^.ItemIsSet(I) then
+      if VerboseSwitches^.GetBooleanItem(I) then
         CB4^.Press(I);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label31, Init(R2, 'Verbose options', CB4));
+    New(Label31, Init(R2, 'Verbose Switches', CB4));
 
     { create tabs }
     New(Tab, Init(TabR,
@@ -161,25 +198,25 @@ begin
 
     R2.Copy(TabR); R2.A.Y:=R2.B.Y+1; R2.B.Y:=R2.A.Y+1;
     New(IL, Init(R2, 128));
-    IL^.Data^:=GetConditionalDefines;
+    IL^.Data^:=ConditionalSwitches^.GetStringItem(0);
     Insert(IL);
     R2.Move(0,-1);
-    Insert(New(PLabel, Init(R2, 'Conditio~n~al defines', IL)));
+    Insert(New(PLabel, Init(R2,ConditionalSwitches^.ItemName(0), IL)));
   end;
   InsertButtons(D);
   if Desktop^.ExecView(D)=cmOK then
   begin
-    for I:=0 to SyntaxOptions^.ItemCount-1 do
-      SyntaxOptions^.ItemSet(I,CB1^.Mark(I));
-    for I:=0 to CodeGenOptions^.ItemCount-1 do
-      CodegenOptions^.ItemSet(I,CB3^.Mark(I));
-    for I:=0 to OptimizationOptions^.ItemCount-1 do
-      OptimizationOptions^.ItemSet(I,CB2^.Mark(I));
-    for I:=0 to VerboseOptions^.ItemCount-1 do
-      VerboseOptions^.ItemSet(I,CB4^.Mark(I));
-    ProcessorOptions^.SetCurrSel(RB1^.Value);
-    AsmReaderOptions^.SetCurrSel(RB2^.Value);
-    SetConditionalDefines(IL^.Data^);
+    for I:=0 to SyntaxSwitches^.ItemCount-1 do
+      SyntaxSwitches^.SetBooleanItem(I,CB1^.Mark(I));
+    for I:=0 to CodeGenSwitches^.ItemCount-1 do
+      CodegenSwitches^.SetBooleanItem(I,CB3^.Mark(I));
+    for I:=0 to OptimizationSwitches^.ItemCount-1 do
+      OptimizationSwitches^.SetBooleanItem(I,CB2^.Mark(I));
+    for I:=0 to VerboseSwitches^.ItemCount-1 do
+      VerboseSwitches^.SetBooleanItem(I,CB4^.Mark(I));
+    ProcessorSwitches^.SetCurrSel(RB1^.Value);
+    AsmReaderSwitches^.SetCurrSel(RB2^.Value);
+    ConditionalSwitches^.SetStringItem(0,IL^.Data^);
   end;
   Dispose(D, Done);
 end;
@@ -310,7 +347,7 @@ begin
     RB2^.SetData(L);
     Insert(RB2);
     R2.Copy(R); Inc(R2.A.Y,6); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Profiling options', RB2)));
+    Insert(New(PLabel, Init(R2, 'Profiling Switches', RB2)));
   end;
   InsertButtons(D);
   RB1^.Select;
@@ -323,63 +360,189 @@ begin
 {$endif}
 end;
 
+
 procedure TIDEApp.Directories;
 var R,R2: TRect;
     D: PCenterDialog;
-    IL1,IL2,IL3,IL4: PInputLine;
-{    Dirs: TDirectoryCfg; }
-const LW = 25;
+    IL : array[0..11] of PInputLine;
+    Count,I : integer;
+const
+  LW = 25;
 begin
-{$ifdef NOTYET}
-  GetDirectoryCfg(Dirs);
   R.Assign(0,0,64,10);
   New(D, Init(R, 'Directories'));
   with D^ do
   begin
-    GetExtent(R); R.Grow(-2,-2); Dec(R.B.X); R.B.Y:=R.A.Y+1;
-    R2.Copy(R); R2.A.X:=LW;
-    New(IL1, Init(R2, 128));
-    IL1^.Data^:=Dirs.EXETPUDir;
-    Insert(IL1);
-    R2.Copy(R); R2.B.X:=LW;
-    Insert(New(PLabel, Init(R2, '~E~XE & unit directory', IL1)));
-
-    R.Move(0,2);
-    R2.Copy(R); R2.A.X:=LW;
-    New(IL2, Init(R2, 128));
-    IL2^.Data^:=Dirs.IncludeDirs;
-    Insert(IL2);
-    R2.Copy(R); R2.B.X:=LW;
-    Insert(New(PLabel, Init(R2, '~I~nclude directories', IL2)));
-
-    R.Move(0,2);
-    R2.Copy(R); R2.A.X:=LW;
-    New(IL3, Init(R2, 128));
-    IL3^.Data^:=Dirs.UnitDirs;
-    Insert(IL3);
-    R2.Copy(R); R2.B.X:=LW;
-    Insert(New(PLabel, Init(R2, '~U~nit directories', IL3)));
-
-    R.Move(0,2);
-    R2.Copy(R); R2.A.X:=LW;
-    New(IL4, Init(R2, 128));
-    IL4^.Data^:=Dirs.ObjectDirs;
-    Insert(IL4);
-    R2.Copy(R); R2.B.X:=LW;
-    Insert(New(PLabel, Init(R2, '~O~bject directories', IL4)));
+    GetExtent(R);
+    R.Grow(-2,-2);
+    Dec(R.B.X);
+    R.B.Y:=R.A.Y+1;
+    Count:=DirectorySwitches^.ItemCount;
+    for i:=Count-1 downto 0 do
+     begin
+       R2.Copy(R);
+       R2.A.X:=LW;
+       New(IL[i], Init(R2, 255));
+       IL[i]^.Data^:=DirectorySwitches^.GetStringItem(i);
+       Insert(IL[i]);
+       R2.Copy(R);
+       R2.B.X:=LW;
+       Insert(New(PLabel, Init(R2, DirectorySwitches^.ItemName(i), IL[i])));
+       R.Move(0,2);
+     end;
   end;
   InsertButtons(D);
-  IL1^.Select;
+  IL[0]^.Select;
+  if Desktop^.ExecView(D)=cmOK then
+   begin
+     for i:=Count-1 downto 0 do
+      DirectorySwitches^.SetStringItem(i,IL[i]^.Data^);
+   end;
+  Dispose(D, Done);
+end;
+
+
+procedure TIDEApp.EditorOptions(Editor: PEditor);
+var D: PCenterDialog;
+    R,R2,R3: TRect;
+    CB: PCheckBoxes;
+    IL: PIntegerLine;
+    ExtIL: PInputLine;
+    TabSize: Integer;
+    EFlags: Longint;
+begin
+  if Editor=nil
+     then begin TabSize:=DefaultTabSize; EFlags:=DefaultCodeEditorFlags; end
+     else begin TabSize:=Editor^.TabSize; EFlags:=Editor^.Flags; end;
+  R.Assign(0,0,56,15);
+  New(D, Init(R, 'Editor Options'));
+  with D^ do
+  begin
+    GetExtent(R); R.Grow(-2,-2); R.B.Y:=R.A.Y+7;
+    R2.Copy(R); Inc(R2.A.Y);
+    New(CB, Init(R2,
+      NewSItem('Create backup ~f~iles',
+      NewSItem('~I~nsert mode',
+      NewSItem('~A~uto indent mode',
+      NewSItem('~U~se tab characters',
+      NewSItem('~B~ackspace unindents',
+      NewSItem('~P~ersistent blocks',
+      NewSItem('~S~yntax highlight',
+      NewSItem('~B~lock insert cursor',
+      NewSItem('~V~ertical blocks',
+      NewSItem('Highlight ~c~olumn',
+      NewSItem('Highlight ~r~ow',
+      NewSItem('Aut~o~-closing brackets',
+      nil))))))))))))));
+    CB^.Value:=EFlags;
+    Insert(CB);
+    R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
+    Insert(New(PLabel, Init(R2, 'Editor options', CB)));
+
+    R.Move(0,(R.B.Y-R.A.Y)+1); R.B.Y:=R.A.Y+1;
+    R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y;
+    R3.Copy(R); Inc(R3.A.X,10); R3.B.X:=R3.A.X+5;
+    New(IL, Init(R3, 0,100));
+    IL^.Data^:=IntToStr(TabSize);
+    Insert(IL);
+    R3.Copy(R); R3.B.X:=R3.A.X+10;
+    Insert(New(PLabel, Init(R3, '~T~ab size', IL)));
+
+    R.Move(0,(R.B.Y-R.A.Y)+1); R.B.Y:=R.A.Y+2;
+    R2.Copy(R); Inc(R2.A.Y);
+    New(ExtIL, Init(R2, 128));
+    ExtIL^.SetData(HighlightExts);
+    Insert(ExtIL);
+    R2.Move(0,-1);
+    Insert(New(PLabel, Init(R2, '~H~ighlight extensions', ExtIL)));
+  end;
+  InsertButtons(D);
+  CB^.Select;
   if Desktop^.ExecView(D)=cmOK then
   begin
-    Dirs.EXETPUDir:=IL1^.Data^;
-    Dirs.IncludeDirs:=IL2^.Data^;
-    Dirs.UnitDirs:=IL3^.Data^;
-    Dirs.ObjectDirs:=IL4^.Data^;
-    SetDirectoryCfg(Dirs);
+    TabSize:=StrToInt(IL^.Data^); EFlags:=CB^.Value;
+    if Editor=nil then
+       begin
+         DefaultTabSize:=TabSize;
+         DefaultCodeEditorFlags:=EFlags;
+       end
+    else
+       begin
+         Editor^.TabSize:=TabSize;
+         Editor^.SetFlags(EFlags);
+       end;
+    ExtIL^.GetData(HighlightExts);
   end;
   Dispose(D, Done);
-{$endif NOTYET}
+end;
+
+procedure TIDEApp.Mouse;
+var R,R2,R3: TRect;
+    D: PCenterDialog;
+    SB: PScrollBar;
+    CB: PCheckBoxes;
+    RB1,RB2: PRadioButtons;
+begin
+  R.Assign(0,0,62,15);
+  New(D, Init(R, 'Mouse Options'));
+  with D^ do
+  begin
+    GetExtent(R); R.Grow(-3,-2); R.B.Y:=R.A.Y+3;
+    R2.Copy(R); Inc(R2.A.Y,2); R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2 -1;
+    New(SB, Init(R2)); SB^.GrowMode:=0; SB^.Options:=SB^.Options or ofSelectable;
+    SB^.SetParams(DoubleDelay,1,20,1,1);
+    Insert(SB);
+    R2.Move(0,-1);
+    Insert(New(PStaticText, Init(R2, 'Fast       Medium      Slow')));
+    R2.Move(-1,-1);
+    Insert(New(PLabel, Init(R2, '~M~ouse double click', SB)));
+
+    R2.Copy(R); Inc(R2.A.Y,2); R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2 +1;
+    New(CB, Init(R2, NewSItem('~R~everse mouse buttons', nil) ));
+    if MouseReverse then CB^.Press(0);
+    Insert(CB);
+
+    R.Move(0,(R.B.Y-R.A.Y)+1); R.B.Y:=R.A.Y+8;
+    R2.Copy(R); Inc(R2.A.Y); R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2 -1;
+    New(RB1, Init(R2,
+      NewSItem('~N~othing',
+      NewSItem('~T~opic search',
+      NewSItem('~G~o to cursor',
+      NewSItem('~B~reakpoint',
+      NewSItem('~E~valuate',
+      NewSItem('~A~dd watch',
+      NewSItem('Browse ~s~ymbol',
+      nil)))))))));
+    RB1^.Press(CtrlMouseAction);
+    Insert(RB1);
+    R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
+    Insert(New(PLabel, Init(R2, 'Ctrl+Right mouse button', RB1)));
+
+    R2.Copy(R); Inc(R2.A.Y); R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2 +1;
+    New(RB2, Init(R2,
+      NewSItem('N~o~thing',
+      NewSItem('To~p~ic search',
+      NewSItem('Go to ~c~ursor',
+      NewSItem('Brea~k~point',
+      NewSItem('E~v~aluate',
+      NewSItem('Add ~w~atch',
+      NewSItem('Browse s~y~mbol',
+      nil)))))))));
+    RB2^.Press(AltMouseAction);
+    Insert(RB2);
+    R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
+    Insert(New(PLabel, Init(R2, 'Alt+Right mouse button', RB2)));
+  end;
+  InsertButtons(D);
+  RB1^.Select;
+  if Desktop^.ExecView(D)=cmOK then
+  begin
+    MouseReverse:=CB^.Mark(0);
+    DoubleDelay:=SB^.Value;
+    CtrlMouseAction:=RB1^.Value;
+    AltMouseAction:=RB2^.Value;
+  end;
+  Dispose(D, Done);
 end;
 
 procedure TIDEApp.Colors;
@@ -429,16 +592,72 @@ begin
       DoneMemory;
       Message(Application,evBroadcast,cmUpdate,nil);
       ReDraw;
+      UpdateScreen(true);
     end;
+end;
+
+procedure TIDEApp.OpenINI;
+var D: PFileDialog;
+    FileName: string;
+begin
+  New(D, Init(ININame,'Open Options',ININame,fdOpenButton,0));
+  if Desktop^.ExecView(D)<>cmCancel then
+    begin
+      D^.GetFileName(FileName);
+      if ExistsFile(FileName)=false then ErrorBox('Can''t open config file.',nil) else
+        begin
+          INIPath:=FileName;
+          ReadINIFile;
+          Message(Application,evBroadcast,cmUpdate,nil);
+        end;
+    end;
+  Dispose(D, Done);
+end;
+
+procedure TIDEApp.SaveINI;
+begin
+  if WriteINIFile=false then
+    ErrorBox('Error saving config file.',nil);
+end;
+
+procedure TIDEApp.SaveAsINI;
+var D: PFileDialog;
+    FileName: string;
+    CanWrite: boolean;
+begin
+  New(D, Init(ININame,'Save Options',ININame,fdOpenButton,0));
+  if Desktop^.ExecView(D)<>cmCancel then
+    begin
+      D^.GetFileName(FileName);
+      CanWrite:=(ExistsFile(FileName)=false);
+      if CanWrite=false then
+        CanWrite:=ConfirmBox('File '+SmartPath(FileName)+' already exists. Overwrite?',nil,false)=cmYes;
+      if CanWrite then
+        begin
+          INIPath:=FileName;
+          if WriteINIFile=false then
+            ErrorBox('Error saving config file.',nil);
+          Message(Application,evBroadcast,cmUpdate,nil);
+        end;
+    end;
+  Dispose(D, Done);
 end;
 
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
+  Revision 1.2  1998-12-28 15:47:49  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
+
+  Revision 1.1  1998/12/22 14:27:54  peter
     * moved
 
   Revision 1.3  1998/12/22 10:39:48  peter
-    + options are now written/read
+    + Switches are now written/read
     + find and replace routines
 
 }

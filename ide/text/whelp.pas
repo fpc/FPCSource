@@ -801,7 +801,11 @@ begin
   HelpFiles^.ForEach(@InsertKeywordsOfFile);
   New(Lines, Init((Keywords^.Count div 2)+100,100));
   T:=NewTopic(0,0,0);
-  if HelpFiles^.Count=0 then AddLine('No help files installed.') else
+  if HelpFiles^.Count=0 then
+    begin
+      AddLine('');
+      AddLine(' No help files installed.')
+    end else
   begin
     AddLine(' Help index');
     KWCount:=0; Line:='';
@@ -850,8 +854,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
-    * moved
+  Revision 1.2  1998-12-28 15:47:56  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
 
   Revision 1.4  1998/12/22 10:39:55  peter
     + options are now written/read

@@ -148,9 +148,28 @@ begin
   Dispose(W,Done);
 end;
 
+procedure TIDEApp.ShowScreenWindow;
+begin
+  if UserScreenWindow=nil then Exit;
+  with UserScreenWindow^ do
+   begin
+     if not GetState(sfVisible) then
+       Show;
+     MakeFirst;
+   end;
+end;
+
 {
   $Log$
-  Revision 1.2  1998-12-23 22:58:19  peter
+  Revision 1.3  1998-12-28 15:47:50  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
+
+  Revision 1.2  1998/12/23 22:58:19  peter
     * fixed windowlist for fpc
 
   Revision 1.1  1998/12/22 14:27:54  peter

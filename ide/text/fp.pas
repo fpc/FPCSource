@@ -16,10 +16,13 @@
 program FreePascal;
 
 uses
-  Dos,Objects,Memory,Drivers,Views,Menus,Dialogs,App,StdDlg,ColorSel,
+  Video,Mouse,Keyboard,
+  Dos,Objects,Memory,Drivers,Views,Menus,Dialogs,App,StdDlg,
+  ColorSel,
   Systems,Commands,HelpCtx,
-  WHelp,WHlpView,WINI,
-  FPConst,FPUtils,FPCfgs,FPIntf,FPCompile,FPHelp,FPViews,FPTemplt,FPCalc;
+  WHelp,WHlpView,WINI,{$ifdef EDITORS}Editors,{$else}WEditor,{$endif}
+  FPConst,FPVars,FPUtils,FPSwitches,FPIni,FPIntf,FPCompile,FPHelp,FPViews,
+  FPTemplt,FPCalc,FPUsrScr;
 
 type
     TIDEApp = object(TApplication)
@@ -28,6 +31,7 @@ type
       procedure   InitStatusLine; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetPalette: PPalette; virtual;
+      procedure   DosShell; virtual;
       destructor  Done; virtual;
     private
       function  OpenEditorWindow(FileName: string; CurX,CurY: integer): PSourceWindow;
@@ -39,18 +43,27 @@ type
       procedure ChangeDir;
       procedure ShowClipboard;
       procedure Parameters;
+      procedure DoRun;
       procedure Target;
       procedure PrimaryFile_;
       procedure ClearPrimary;
+      procedure ShowUserScreen;
       procedure Information;
       procedure Calculator;
+      procedure SetSwitchesMode;
       procedure Compiler;
       procedure MemorySizes;
       procedure Linker;
       procedure Debugger;
       procedure Directories;
+      procedure EditorOptions(Editor: PEditor);
+      procedure Mouse;
       procedure Colors;
+      procedure OpenINI;
+      procedure SaveINI;
+      procedure SaveAsINI;
       procedure CloseAll;
+      procedure ShowScreenWindow;
       procedure WindowList;
       procedure HelpContents;
       procedure HelpHelpIndex;
@@ -67,19 +80,9 @@ type
       procedure Update;
       procedure CurDirChanged;
       procedure UpdatePrimaryFile;
+      procedure UpdateINIFile;
       procedure UpdateRecentFileList;
     end;
-
-    TRecentFileEntry = record
-      FileName  : PathStr;
-      LastPos   : TPoint;
-    end;
-
-const ClipboardWindow  : PClipboardWindow = nil;
-      CalcWindow       : PCalculator = nil;
-      RecentFileCount  : integer = 0;
-
-var   RecentFiles      : array[1..5] of TRecentFileEntry;
 
 constructor TIDEApp.Init;
 begin
@@ -89,6 +92,7 @@ begin
   New(CalcWindow, Init); CalcWindow^.Hide;
   Desktop^.Insert(CalcWindow);
   New(ProgramInfoWindow, Init); ProgramInfoWindow^.Hide; Desktop^.Insert(ProgramInfoWindow);
+  New(UserScreenWindow, Init(UserScreen)); UserScreenWindow^.Hide; Desktop^.Insert(UserScreenWindow);
   Message(@Self,evBroadcast,cmUpdate,nil);
   InitTemplates;
   CurDirChanged;
@@ -152,13 +156,15 @@ begin
       NewItem('~I~nformation...','', kbNoKey, cmInformation, hcInformation,
       nil)))))))))),
     NewSubMenu('~D~ebug', hcDebugMenu, NewMenu(
-      nil),
+      NewItem('~U~ser screen','Alt+F5', kbAltF5, cmUserScreen, hcUserScreen,
+      nil)),
     NewSubMenu('~T~ools', hcToolsMenu, NewMenu(
       NewItem('~M~essages', '', kbNoKey, cmToolsMessages, hcToolsMessages,
       NewLine(
       NewItem('~C~alculator', '', kbNoKey, cmCalculator, hcCalculator,
       nil)))),
     NewSubMenu('~O~ptions', hcOptionsMenu, NewMenu(
+      NewItem('Mode...','', kbNoKey, cmSetSwitchesMode, hcSetSwitchesMode,
       NewItem('~C~ompiler...','', kbNoKey, cmCompiler, hcCompiler,
       NewItem('~M~emory sizes...','', kbNoKey, cmMemorySizes, hcMemorySizes,
       NewItem('~L~inker...','', kbNoKey, cmLinker, hcLinker,
@@ -173,7 +179,11 @@ begin
         NewItem('~S~tartup...','', kbNoKey, cmStartup, hcStartup,
         NewItem('~C~olors...','', kbNoKey, cmColors, hcColors,
         nil)))))),
-      nil))))))))),
+      NewLine(
+      NewItem('~O~pen...','', kbNoKey, cmOpenINI, hcOpenINI,
+      NewItem('~S~ave','', kbNoKey, cmSaveINI, hcSaveINI,
+      NewItem('Save ~a~s...','', kbNoKey, cmSaveAsINI, hcSaveAsINI,
+      nil)))))))))))))),
     NewSubMenu('~W~indow', hcWindowMenu, NewMenu(
       NewItem('~T~ile','', kbNoKey, cmTile, hcTile,
       NewItem('C~a~scade','', kbNoKey, cmCascade, hcCascade,
@@ -186,8 +196,9 @@ begin
       NewItem('~C~lose','Alt+F3', kbAltF3, cmClose, hcClose,
       NewLine(
       NewItem('~L~ist...','Alt+0', kbAlt0, cmWindowList, hcWindowList,
+      NewItem('~U~ser screen window','', kbNoKey, cmUserScreenWindow, hcUserScreenWindow,
       NewItem('~R~efresh display','', kbNoKey, cmUpdate, hcUpdate,
-      nil))))))))))))),
+      nil)))))))))))))),
     NewSubMenu('~H~elp', hcHelpMenu, NewMenu(
       NewItem('~C~ontents','', kbNoKey, cmHelpContents, hcHelpContents,
       NewItem('~I~ndex','Shift+F1', kbShiftF1, cmHelpIndex, hcHelpIndex,
@@ -259,11 +270,14 @@ begin
              cmNew           : NewEditor;
              cmNewFromTemplate: NewFromTemplate;
              cmOpen          : begin
+                                 if (DirOf(OpenFileName)='') or (Pos(ListSeparator,OpenFileName)<>0) then
+                                   OpenFileName:=LocateFile(OpenFileName);
                                  Open(OpenFileName);
                                  OpenFileName:='';
                                end;
              cmSaveAll       : SaveAll;
              cmChangeDir     : ChangeDir;
+             cmDOSShell      : DOSShell;
              cmRecentFileBase..
              cmRecentFileBase+10
                              : OpenRecentFile(Event.Command-cmRecentFileBase);
@@ -271,6 +285,7 @@ begin
              cmShowClipboard : ShowClipboard;
            { -- Run menu -- }
              cmParameters    : Parameters;
+             cmRun           : DoRun;
            { -- Compile menu -- }
              cmCompile       : DoCompile(cCompile);
              cmBuild         : DoCompile(cBuild);
@@ -279,18 +294,28 @@ begin
              cmPrimaryFile   : PrimaryFile_;
              cmClearPrimary  : ClearPrimary;
              cmInformation   : Information;
+           { -- Debug menu -- }
+             cmUserScreen    : ShowUserScreen;
            { -- Options menu -- }
+             cmSetSwitchesMode : SetSwitchesMode;
              cmCompiler      : Compiler;
              cmMemorySizes   : MemorySizes;
              cmLinker        : Linker;
              cmDebugger      : Debugger;
              cmDirectories   : Directories;
+             cmEditor        : EditorOptions(nil);
+             cmEditorOptions : EditorOptions(Event.InfoPtr);
+             cmMouse         : Mouse;
              cmColors        : Colors;
+             cmOpenINI       : OpenINI;
+             cmSaveINI       : SaveINI;
+             cmSaveAsINI     : SaveAsINI;
            { -- Tools menu -- }
              cmCalculator    : Calculator;
            { -- Window menu -- }
              cmCloseAll      : CloseAll;
              cmWindowList    : WindowList;
+             cmUserScreenWindow: ShowScreenWindow;
            { -- Help menu -- }
              cmHelpContents  : HelpContents;
              cmHelpIndex     : HelpHelpIndex;
@@ -322,6 +347,7 @@ begin
   SetCmdState([cmCloseAll,cmTile,cmCascade,cmWindowList],IsThereAnyWindow);
   SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals{,cmInformation}],IsEXECompiled);
   UpdatePrimaryFile;
+  UpdateINIFile;
   Message(MenuBar,evBroadcast,cmUpdate,nil);
   UpdateRecentFileList;
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
@@ -331,6 +357,7 @@ procedure TIDEApp.CurDirChanged;
 begin
   Message(Application,evBroadcast,cmUpdateTitle,nil);
   UpdatePrimaryFile;
+  UpdateINIFile;
   UpdateMenu(MenuBar^.Menu);
 end;
 
@@ -343,6 +370,11 @@ begin
   UpdateMenu(MenuBar^.Menu);
 end;
 
+procedure TIDEApp.UpdateINIFile;
+begin
+  SetMenuItemParam(SearchMenuItem(MenuBar^.Menu,cmSaveINI),SmartPath(INIPath));
+end;
+
 procedure TIDEApp.UpdateRecentFileList;
 var P: PMenuItem;
     ID,I: word;
@@ -351,9 +383,23 @@ begin
   ID:=cmRecentFileBase;
   FileMenu:=SearchSubMenu(MenuBar^.Menu,menuFile);
   repeat
-    Inc(ID);
+{    Inc(ID);
     P:=SearchMenuItem(FileMenu^.SubMenu,ID);
-    if P<>nil then RemoveMenuItem(FileMenu^.SubMenu,P);
+    if FileMenu^.SubMenu^.Default=P then
+      FileMenu^.SubMenu^.Default:=FileMenu^.SubMenu^.Items;
+    if P<>nil then RemoveMenuItem(FileMenu^.SubMenu,P);}
+    P:=GetMenuItemBefore(FileMenu^.SubMenu,nil);
+    if (P<>nil) then
+    begin
+      if (cmRecentFileBase<P^.Command) and (P^.Command<=cmRecentFileBase+MaxRecentFileCount) then
+        begin
+          RemoveMenuItem(FileMenu^.SubMenu,P);
+          if FileMenu^.SubMenu^.Default=P then
+            FileMenu^.SubMenu^.Default:=FileMenu^.SubMenu^.Items;
+        end
+      else
+        P:=nil;
+    end;
   until P=nil;
   P:=GetMenuItemBefore(FileMenu^.SubMenu,nil);
   if (P<>nil) and IsSeparator(P) then
@@ -369,11 +415,36 @@ begin
   end;
 end;
 
+procedure TIDEApp.DosShell;
+begin
+  DoneSysError;
+  DoneEvents;
+  DoneVideo;
+  DoneDosMem;
+  if UserScreen<>nil then UserScreen^.SwitchTo;
+  WriteShellMsg;
+  SwapVectors;
+  Exec(GetEnv('COMSPEC'), '');
+  SwapVectors;
+  if UserScreen<>nil then UserScreen^.SwitchBack;
+  InitDosMem;
+  InitVideo;
+  InitEvents;
+  InitSysError;
+  Redraw;
+  CurDirChanged;
+  Message(Application,evBroadcast,cmUpdate,nil);
+end;
+
 {$I FPMFILE.INC}
 
 {$I FPMEDIT.INC}
 
+{$I FPMRUN.INC}
+
 {$I FPMCOMP.INC}
+
+{$I FPMDEBUG.INC}
 
 {$I FPMTOOLS.INC}
 
@@ -442,24 +513,40 @@ begin
 end;
 
 BEGIN
+  writeln('þ Free Pascal IDE  Version '+VersionStr);
+  StartupDir:=CompleteDir(FExpand('.'));
+
   InitReservedWords;
+  InitHelpFiles;
+  InitSwitches;
+  InitINIFile;
+  InitUserScreen;
 
 { load old options }
-  InitOptions;
-  ReadOptions('fp.cfg');
+  ReadINIFile;
+  ReadSwitches(SwitchesPath);
 
   MyApp.Init;
   InitApp;
   MyApp.Run;
   MyApp.Done;
 
-  WriteOptions('fp.cfg');
-  DoneOptions;
+  WriteSwitches(SwitchesPath);
+  WriteINIFile;
+
+  DoneUserScreen;
+  DoneSwitches;
+  DoneHelpFiles;
 END.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
-    * moved
+  Revision 1.2  1998-12-28 15:47:40  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
 
   Revision 1.3  1998/12/22 10:39:38  peter
     + options are now written/read

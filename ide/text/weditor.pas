@@ -28,17 +28,18 @@ const
       MaxLineLength = 255;
       MaxLineCount  = 16380;
 
-      efBlockInsCursor      = $00000001;
-      efAutoIndent          = $00000002;
-      efPersistentBlocks    = $00000004;
-      efVerticalBlocks      = $00000008;
-      efUseTabCharacters    = $00000010;
-      efBackSpaceUnindents  = $00000020;
+      efBackupFiles         = $00000001;
+      efInsertMode          = $00000002;
+      efAutoIndent          = $00000004;
+      efUseTabCharacters    = $00000008;
+      efBackSpaceUnindents  = $00000010;
+      efPersistentBlocks    = $00000020;
       efSyntaxHighlight     = $00000040;
-      efAutoBrackets        = $00000080;
-      efHighlightColumn     = $00000100;
-      efHighlightRow        = $00000200;
-      efBackupFiles         = $00001000;
+      efBlockInsCursor      = $00000080;
+      efVerticalBlocks      = $00000100;
+      efHighlightColumn     = $00000200;
+      efHighlightRow        = $00000400;
+      efAutoBrackets        = $00000800;
 
       attrAsm       = 1;
       attrComment   = 2;
@@ -94,7 +95,7 @@ const
       coFirstColor        = 0;
       coLastColor         = coDirectiveColor;
 
-      CIndicator          = #2#3;
+      CIndicator          = #2#3#1;
       CEditor             = #33#34#35#36#37#38#39#40#41#42#43#44#45#46#47#48;
 
       TAB           = #9;
@@ -144,12 +145,12 @@ type
       CanUndo    : Boolean;
       Modified   : Boolean;
       IsReadOnly : Boolean;
-      Overwrite  : Boolean;
       NoSelect   : Boolean;
       Flags      : longint;
       TabSize    : integer;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
                     PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
+      procedure   SetFlags(AFlags: longint); virtual;
       procedure   ConvertEvent(var Event: TEvent); virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   SetState(AState: Word; Enable: Boolean); virtual;
@@ -172,6 +173,7 @@ type
       function    IsClipboard: Boolean;
       destructor  Done; virtual;
     public
+      { Text & info storage abstraction }
       function    GetLineCount: integer; virtual;
       function    GetLineText(I: integer): string; virtual;
       procedure   SetLineText(I: integer; S: string); virtual;
@@ -182,6 +184,7 @@ type
     private
       KeyState: Integer;
       ErrorMessage: PString;
+      function    Overwrite: boolean;
       function    GetLine(I: integer): PLine;
       procedure   CheckSels;
       function    UpdateAttrs(FromLine: integer; Attrs: byte): integer;
@@ -248,8 +251,9 @@ type
     TCodeEditorDialog = function(Dialog: Integer; Info: Pointer): Word;
 
 const
-     DefaulTCodeEditorFlags : longint =
-      efBackupFiles+efAutoIndent+efPersistentBlocks+efBackSpaceUnindents+efSyntaxHighlight;
+     DefaultCodeEditorFlags : longint =
+      efBackupFiles+efInsertMode+efAutoIndent+efPersistentBlocks+
+      efBackSpaceUnindents+efSyntaxHighlight;
      DefaultTabSize     : integer = 8;
 
      ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmClear]);
@@ -752,21 +756,29 @@ var
   S: String[15];
   B: TDrawBuffer;
 begin
-  Color := GetColor(1);
   if (State and sfDragging = 0) and (State and sfActive <> 0) then
-  begin
-    Frame := #205;
-  end else
-  begin
-    if (State and sfDragging)<>0 then Color := GetColor(2);
-    Frame := #196;
-  end;
+   begin
+     Color := GetColor(1);
+     Frame := #205;
+   end
+  else
+   begin
+     if (State and sfDragging)<>0 then
+      Color := GetColor(2)
+     else
+      Color := GetColor(3);
+     Frame := #196;
+   end;
   MoveChar(B, Frame, Color, Size.X);
-  if Modified then WordRec(B[0]).Lo := 15;
-  L[0] := Location.Y + 1;
-  L[1] := Location.X + 1;
-  FormatStr(S, ' %d:%d ', L);
-  MoveStr(B[8 - Pos(':', S)], S, Color);
+  if State and sfActive<>0 then
+   begin
+     if Modified then
+       WordRec (B[0]).Lo := 77;
+     L[0] := Location.Y + 1;
+     L[1] := Location.X + 1;
+     FormatStr(S, ' %d:%d ', L);
+     MoveStr(B[8 - Pos(':', S)], S, Color);
+   end;
   WriteBuf(0, 0, Size.X, 1, B);
 end;
 
@@ -780,7 +792,8 @@ end;
 procedure TIndicator.SetState(AState: Word; Enable: Boolean);
 begin
   inherited SetState(AState, Enable);
-  if (AState = sfDragging) or (AState=sfActive) then DrawView;
+  if (AState = sfDragging) or (AState=sfActive) then
+   DrawView;
 end;
 
 procedure TIndicator.SetValue(ALocation: TPoint; AModified: Boolean);
@@ -795,15 +808,33 @@ begin
   end;
 end;
 
+
+{*****************************************************************************
+                               TCodeEditor
+*****************************************************************************}
+
 constructor TCodeEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
                     PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
 begin
   inherited Init(Bounds,AHScrollBar,AVScrollBar);
-  SetState(sfCursorVis,true);
-  Flags:=DefaulTCodeEditorFlags; TabSize:=DefaultTabSize;
-  Indicator:=AIndicator;
   New(Lines, Init(500,1000));
+  SetState(sfCursorVis,true);
+  SetFlags(DefaultCodeEditorFlags); TabSize:=DefaultTabSize;
+  Indicator:=AIndicator;
   UpdateIndicator; LimitsChanged;
+end;
+
+procedure TCodeEditor.SetFlags(AFlags: longint);
+var I: integer;
+begin
+  Flags:=AFlags;
+  SetInsertMode((Flags and efInsertMode)<>0);
+  if (Flags and efSyntaxHighlight)<>0 then
+    UpdateAttrs(0,attrAll) else
+  for I:=0 to GetLineCount-1 do
+    SetLineFormat(I,'');
+  UpdateIndicator;
+  DrawView;
 end;
 
 function TCodeEditor.GetErrorMessage: string;
@@ -1019,6 +1050,15 @@ var SelectColor,
     ColorTab: array[coFirstColor..coLastColor] of word;
     ErrorLine: integer;
     ErrorMsg: string[MaxViewWidth];
+function CombineColors(Orig,Modifier: byte): byte;
+var Color: byte;
+begin
+  if (Modifier and $0f)=0 then
+    Color:=(Orig and $0f) or (Modifier and $f0)
+  else
+    Color:=(Orig and $f0) or (Modifier and $0f);
+  CombineColors:=Color;
+end;
 const NulLine : TLine = (Text: nil; Format: nil);
 begin
   ErrorMsg:=copy(GetErrorMessage,1,MaxViewWidth);
@@ -1055,8 +1095,8 @@ begin
     LineText:=GetLineText(AY);
     Format:=GetLineFormat(AY);
 
-    if (Flags and efSyntaxHighlight)<>0 then MaxX:=length(LineText)+1
-       else MaxX:=Size.X+Delta.X;
+{    if (Flags and efSyntaxHighlight)<>0 then MaxX:=length(LineText)+1
+       else }MaxX:=Size.X+Delta.X;
     for X:=1 to Min(MaxX,255) do
     begin
       AX:=Delta.X+X-1;
@@ -1083,14 +1123,14 @@ begin
           if (PointOfs(SelStart)<=PointOfs(PX)) and (PointOfs(PX)<PointOfs(SelEnd)) then
              begin Color:=SelectColor; FreeFormat[X]:=false; end;
       end;
-      if ( ((Flags and efHighlightRow)   <>0) and (AY=CurPos.Y) ) then
-         begin Color:=(Color and $f0)  or (HighlightRowColor and $0f); FreeFormat[X]:=false; end;
-      if ( ((Flags and efHighlightColumn)<>0) and (AX=CurPos.X) ) then
-         begin Color:=HighlightColColor; FreeFormat[X]:=false; end;
-
       if FreeFormat[X] then
          if X<=length(Format) then
             Color:=ColorTab[ord(Format[X])] else Color:=ColorTab[coTextColor];
+
+      if ( ((Flags and efHighlightRow)   <>0) and (PX.Y=CurPos.Y) ) then
+         begin Color:=CombineColors(Color,HighlightRowColor); FreeFormat[X]:=false; end;
+      if ( ((Flags and efHighlightColumn)<>0) and (PX.X=CurPos.X) ) then
+         begin Color:=CombineColors(Color,HighlightColColor); FreeFormat[X]:=false; end;
 
       if (0<=X-1-Delta.X) and (X-1-Delta.X<MaxViewWidth) then
       MoveChar(B[X-1-Delta.X],C,Color,1);
@@ -1104,6 +1144,11 @@ procedure TCodeEditor.DrawCursor;
 begin
   SetCursor(CurPos.X-Delta.X,CurPos.Y-Delta.Y);
   SetState(sfCursorIns,Overwrite);
+end;
+
+function TCodeEditor.Overwrite: boolean;
+begin
+  Overwrite:=(Flags and efInsertMode)=0;
 end;
 
 function TCodeEditor.GetLineCount: integer;
@@ -1877,7 +1922,8 @@ end;
 
 procedure TCodeEditor.SetInsertMode(InsertMode: boolean);
 begin
-  Overwrite:=not InsertMode;
+  if InsertMode then Flags:=Flags or efInsertMode
+                else Flags:=Flags and (not efInsertMode);
   DrawCursor;
 end;
 
@@ -1999,7 +2045,6 @@ end;
 function GetCharClass(C: char): TCharClass;
 var CC: TCharClass;
 begin
-  C:=Upcase(C);
   if C in WhiteSpaceChars then CC:=ccWhiteSpace else
   if C in AlphaChars      then CC:=ccAlpha else
   if C in NumberChars     then CC:=ccNumber else
@@ -2091,7 +2136,7 @@ begin
   end;
 end;
 var CurLine: Sw_integer;
-    Line,NextLine,OldLine: PLine;
+    Line,NextLine,PrevLine,OldLine: PLine;
     C: char;
 begin
   if ((Flags and efSyntaxHighlight)=0) or (FromLine>=GetLineCount) then
@@ -2101,13 +2146,14 @@ begin
     Exit;
   end;
   CurLine:=FromLine;
+  if CurLine>0 then PrevLine:=Lines^.At(CurLine-1) else PrevLine:=nil;
   repeat
     Line:=Lines^.At(CurLine);
-    if CurLine>0 then
+    if PrevLine<>nil then
        begin
-         InAsm:=Lines^.At(CurLine-1)^.EndsWithAsm;
-         InComment:=Lines^.At(CurLine-1)^.EndsWithComment;
-         InDirective:=Lines^.At(CurLine-1)^.EndsWithDirective;
+         InAsm:=PrevLine^.EndsWithAsm;
+         InComment:=PrevLine^.EndsWithComment;
+         InDirective:=PrevLine^.EndsWithDirective;
        end else
        begin
          InAsm:=false; InComment:=false; InDirective:=false;
@@ -2143,6 +2189,7 @@ begin
          (NextLine^.BeginsWithDirective=Line^.EndsWithDirective) and
          (NextLine^.Format<>nil)
          then Break;
+    PrevLine:=Line;
   until false;
   UpdateAttrs:=CurLine;
 end;
@@ -2281,13 +2328,15 @@ begin
 end;
 
 function TFileEditor.LoadFile: boolean;
-
 {$ifdef TPUNIXLF}
+var OnlyLF: boolean;
   procedure readln(var t:text;var s:string);
   var
     c : char;
     i : longint;
   begin
+    if OnlyLF=false then system.readln(t,s) else
+   begin
     c:=#0;
     i:=0;
     while (not eof(t)) and (c<>#10) do
@@ -2300,8 +2349,9 @@ function TFileEditor.LoadFile: boolean;
         end;
      end;
     if (i>0) and (s[i]=#13) then
-     dec(i);
+     begin dec(i); OnlyLF:=false; end;
     s[0]:=chr(i);
+   end;
   end;
 {$endif}
 
@@ -2315,6 +2365,7 @@ begin
   FM:=FileMode; FileMode:=0;
   Assign(f,FileName);
   Reset(f);
+  {$ifdef TPUNIXLF}OnlyLF:=true;{$endif}
   OK:=(IOResult=0);
   while OK and (Eof(f)=false) and (GetLineCount<MaxLineCount) do
   begin
@@ -2647,9 +2698,17 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
-    * moved
+  Revision 1.2  1998-12-28 15:47:55  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
 
+  Revision 1.4  1998/12/27 12:01:23  gabor
+    * efXXXX constants revised for BP compatibility
+    * fixed column and row highlighting (needs to rewrite default palette in the INI)
   Revision 1.3  1998/12/22 10:39:54  peter
     + options are now written/read
     + find and replace routines

@@ -41,8 +41,120 @@ begin
   Help(0,hcUsingHelp,false);
 end;
 
+type
+    PHelpFilesDialog = ^THelpFilesDialog;
+    THelpFilesDialog = object(TCenterDialog)
+      constructor Init;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      destructor  Done; virtual;
+    private
+      LB: PListBox;
+      C : PUnsortedStringCollection;
+    end;
+
+constructor THelpFilesDialog.Init;
+var R,R2: TRect;
+    SB: PScrollBar;
+    I: integer;
+begin
+  R.Assign(0,0,50,15);
+  inherited Init(R, 'Install Help Files');
+
+  New(C, Init(20,10));
+
+  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.X:=37;
+  R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
+  New(SB, Init(R2)); Insert(SB);
+  New(LB, Init(R, 1, SB));
+
+  for I:=0 to HelpFiles^.Count-1 do
+    begin
+      C^.Insert(NewStr(HelpFiles^.At(I)^));
+    end;
+
+  LB^.NewList(C);
+  Insert(LB);
+  R2.Copy(R); Dec(R2.A.Y); R2.B.Y:=R2.A.Y+1;
+  Insert(New(PLabel, Init(R2, '~H~elp files', LB)));
+
+  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.A.X:=38; R.B.Y:=R.A.Y+2;
+  Insert(New(PButton, Init(R, 'O~K~', cmOK, bfDefault)));
+  R.Move(0,2);
+  Insert(New(PButton, Init(R, '~N~ew', cmAddTPH, bfNormal)));
+  R.Move(0,2);
+  Insert(New(PButton, Init(R, '~D~elete', cmDeleteTPH, bfNormal)));
+  R.Move(0,2);
+  Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+
+  LB^.Select;
+end;
+
+procedure THelpFilesDialog.HandleEvent(var Event: TEvent);
+var I: integer;
+    D: PFileDialog;
+    FileName: string;
+begin
+  case Event.What of
+    evKeyDown :
+      case Event.KeyCode of
+        kbIns :
+          begin
+            Message(@Self,evCommand,cmAddTPH,nil);
+            ClearEvent(Event);
+          end;
+        kbDel :
+          begin
+            Message(@Self,evCommand,cmDeleteTPH,nil);
+            ClearEvent(Event);
+          end;
+      end;
+    evCommand :
+      case Event.Command of
+        cmAddTPH :
+          begin
+            New(D, Init('*.tph','Install a help file','*.tph',fdOpenButton,0));
+            if Desktop^.ExecView(D)<>cmCancel then
+            begin
+              D^.GetFileName(FileName);
+              LB^.List^.Insert(NewStr(FileName));
+              LB^.SetRange(LB^.List^.Count);
+              ReDraw;
+            end;
+            Dispose(D, Done);
+            ClearEvent(Event);
+          end;
+        cmDeleteTPH :
+          if LB^.Range>0 then
+          begin
+            LB^.List^.AtFree(LB^.Focused);
+            LB^.SetRange(LB^.List^.Count);
+            ReDraw;
+            ClearEvent(Event);
+          end;
+        cmOK :
+          begin
+            HelpFiles^.FreeAll;
+            for I:=0 to LB^.List^.Count-1 do
+              HelpFiles^.Insert(NewStr(C^.At(I)^));
+          end;
+      end;
+  end;
+  inherited HandleEvent(Event);
+end;
+
+destructor THelpFilesDialog.Done;
+begin
+  if C<>nil then begin C^.DeleteAll; Dispose(C, Done); end;
+  inherited Done;
+end;
+
 procedure TIDEApp.HelpFiles;
 begin
+  if Desktop^.ExecView(New(PHelpFilesDialog, Init))=cmOK then
+  begin
+    DoneHelpSystem;
+    InitHelpSystem;
+  end;
 end;
 
 procedure TIDEApp.About;
@@ -70,8 +182,13 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
-    * moved
+  Revision 1.2  1998-12-28 15:47:48  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
 
   Revision 1.2  1998/12/22 10:39:47  peter
     + options are now written/read

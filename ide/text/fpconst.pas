@@ -20,7 +20,12 @@ interface
 uses Views,App,Commands;
 
 const
-     VersionStr      = '0.9';
+     VersionStr           = '0.9';
+
+     MaxRecentFileCount   = 5;
+
+     ININame              = 'fp.ini';
+     SwitchesName         = 'fp.cfg';
 
      { Strings/Messages }
      strLoadingHelp       = 'Loading help files...';
@@ -30,6 +35,17 @@ const
      { Main menu submenu indexes }
      menuFile             = 0;
 
+     { MouseAction constants }
+     acNone               = 0;
+     acTopicSearch        = 1;
+     acGotoCursor         = 2;
+     acBreakpoint         = 3;
+     acEvaluate           = 4;
+     acAddWatch           = 5;
+     acBrowseSymbol       = 6;
+     acFirstAction        = acTopicSearch;
+     acLastAction         = acBrowseSymbol;
+
      { Command constants }
      cmShowClipboard     = 201;
      cmFindProcedure     = 206;
@@ -38,16 +54,20 @@ const
      cmGlobals           = 209;
      cmRun               = 210;
      cmParameters        = 211;
-     cmUserScreen        = 212;
-     cmCompile           = 213;
-     cmMake              = 214;
-     cmBuild             = 215;
-     cmTarget            = 216;
-     cmPrimaryFile       = 217;
-     cmClearPrimary      = 218;
-     cmInformation       = 219;
-     cmWindowList        = 220;
-     cmHelpTopicSearch   = 221;
+     cmCompile           = 212;
+     cmMake              = 213;
+     cmBuild             = 214;
+     cmTarget            = 215;
+     cmPrimaryFile       = 216;
+     cmClearPrimary      = 217;
+     cmInformation       = 218;
+     cmWindowList        = 219;
+     cmHelpTopicSearch   = 220;
+     cmMsgGotoSource     = 221;
+     cmMsgTrackSource    = 222;
+     cmGotoCursor        = 223;
+     cmToggleBreakpoint  = 224;
+     cmAddWatch          = 225;
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -58,6 +78,14 @@ const
      cmDeleteWnd         = 1602;
      cmLocalMenu         = 1603;
      cmCalculatorPaste   = 1604;
+     cmAddTPH            = 1605;
+     cmDeleteTPH         = 1606;
+     cmMsgClear          = 1607;
+
+     cmUserScreen        = 1650;
+     cmUserScreenWindow  = 1651;
+     cmEvaluate          = 1652;
+     cmCalculator        = 1653;
 
      cmToolsMessages     = 1700;
      cmToolsBase         = 1800;
@@ -74,14 +102,17 @@ const
      cmMouse             = 2008;
      cmStartup           = 2009;
      cmColors            = 2010;
-     cmCalculator        = 2011;
-     cmAbout             = 2050;
+     cmOpenINI           = 2011;
+     cmSaveINI           = 2012;
+     cmSaveAsINI         = 2013;
+     cmSetSwitchesMode   = 2014;
 
      cmHelpContents      = 2100;
      cmHelpIndex         = 2101;
      cmHelpPrevTopic     = 2103;
      cmHelpUsingHelp     = 2104;
      cmHelpFiles         = 2105;
+     cmAbout             = 2106;
 
      cmOpenAtCursor      = 2200;
      cmBrowseAtCursor    = 2201;
@@ -104,6 +135,9 @@ const
      hcSearchAgain       = hcShift+cmSearchAgain;
      hcGotoLine          = hcShift+cmJumpLine;
 
+     hcUserScreen        = hcShift+cmUserScreen;
+     hcUserScreenWindow  = hcShift+cmUserScreenWindow;
+
      hcToolsMessages     = hcShift+cmToolsMessages;
      hcToolsBase         = hcShift+cmToolsBase;
      hcRecentFileBase    = hcShift+cmRecentFileBase;
@@ -119,7 +153,11 @@ const
      hcMouse             = hcShift+cmMouse;
      hcStartup           = hcShift+cmStartup;
      hcColors            = hcShift+cmColors;
+     hcOpenINI           = hcShift+cmOpenINI;
+     hcSaveINI           = hcShift+cmSaveINI;
+     hcSaveAsINI         = hcShift+cmSaveAsINI;
      hcCalculator        = hcShift+cmCalculator;
+     hcSetSwitchesMode   = hcShift+cmSetSwitchesMode;
      hcAbout             = hcShift+cmAbout;
 
      hcSystemMenu        = 9000;
@@ -145,7 +183,6 @@ const
      hcGlobals           = hcShift+cmGlobals;
      hcRun               = hcShift+cmRun;
      hcParameters        = hcShift+cmParameters;
-     hcUserScreen        = hcShift+cmUserScreen;
      hcCompile           = hcShift+cmCompile;
      hcMake              = hcShift+cmMake;
      hcBuild             = hcShift+cmBuild;
@@ -162,6 +199,13 @@ const
      hcHelpUsingHelp     = hcShift+cmHelpUsingHelp;
      hcHelpFiles         = hcShift+cmHelpFiles;
      hcUpdate            = hcShift+cmUpdate;
+     hcMsgClear          = hcShift+cmMsgClear;
+     hcMsgGotoSource     = hcShift+cmMsgGotoSource;
+     hcMsgTrackSource    = hcShift+cmMsgTrackSource;
+     hcGotoCursor        = hcShift+cmGotoCursor;
+     hcToggleBreakpoint  = hcShift+cmToggleBreakpoint;
+     hcEvaluate          = hcShift+cmEvaluate;
+     hcAddWatch          = hcShift+cmAddWatch;
 
      hcOpenAtCursor      = hcShift+cmOpenAtCursor;
      hcBrowseAtCursor    = hcShift+cmBrowseAtCursor;
@@ -181,7 +225,7 @@ const
         #183#184#185#186#187#188#189#190#191#192#193#194#195#196#197#198 +
         #199#200#201#202#203#204#205#206#207#208#209#210#211#212#213#214 ;
 
-     CIDEAppColor        = CAppColor +
+     CIDEAppColor = CAppColor +
          { CIDEHelpDialog }
 {128-143}#$70#$7F#$7A#$13#$13#$70#$70#$7F#$7E#$20#$2B#$2F#$78#$2E#$70#$30 + { 1-16}
 {144-159}#$3F#$3E#$1F#$2F#$1A#$20#$72#$31#$31#$30#$2F#$3E#$31#$13#$38#$00 + {17-32}
@@ -197,8 +241,13 @@ implementation
 END.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
-    * moved
+  Revision 1.2  1998-12-28 15:47:43  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
 
   Revision 1.3  1998/12/22 10:39:41  peter
     + options are now written/read

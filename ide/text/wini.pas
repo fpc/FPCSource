@@ -20,6 +20,7 @@ interface
 uses Objects;
 
 type
+
     PINIEntry = ^TINIEntry;
     TINIEntry = object(TObject)
       constructor Init(ALine: string);
@@ -42,7 +43,9 @@ type
     TINISection = object(TObject)
       constructor Init(AName: string);
       function    GetName: string;
-      procedure   AddEntry(S: string);
+      function    AddEntry(S: string): PINIEntry;
+      function    SearchEntry(Tag: string): PINIEntry; virtual;
+      procedure   ForEachEntry(EnumProc: pointer); virtual;
       destructor  Done; virtual;
     private
       Name     : PString;
@@ -51,10 +54,18 @@ type
 
     PINIFile = ^TINIFile;
     TINIFile = object(TObject)
+      MakeNullEntries: boolean;
       constructor Init(AFileName: string);
       function    Read: boolean; virtual;
       function    Update: boolean; virtual;
       function    IsModified: boolean; virtual;
+      function    SearchSection(Section: string): PINISection; virtual;
+      function    SearchEntry(Section, Tag: string): PINIEntry; virtual;
+      procedure   ForEachEntry(Section: string; EnumProc: pointer); virtual;
+      function    GetEntry(Section, Tag, Default: string): string; virtual;
+      procedure   SetEntry(Section, Tag, Value: string); virtual;
+      function    GetIntEntry(Section, Tag: string; Default: longint): longint; virtual;
+      procedure   SetIntEntry(Section, Tag: string; Value: longint); virtual;
       destructor  Done; virtual;
     private
       ReadOnly: boolean;
@@ -67,6 +78,33 @@ const MainSectionName : string[40] = 'MainSection';
 
 implementation
 
+{$ifdef FPC}uses callspec;{$endif}
+
+const LastStrToIntResult : integer = 0;
+
+function IntToStr(L: longint): string;
+var S: string;
+begin
+  Str(L,S);
+  IntToStr:=S;
+end;
+
+function StrToInt(S: string): longint;
+var L: longint;
+    C: integer;
+begin
+  Val(S,L,C); if C<>0 then L:=-1;
+  LastStrToIntResult:=C;
+  StrToInt:=L;
+end;
+
+function UpcaseStr(S: string): string;
+var I: integer;
+begin
+  for I:=1 to length(S) do
+      S[I]:=Upcase(S[I]);
+  UpcaseStr:=S;
+end;
 
 function LTrim(S: string): string;
 begin
@@ -173,7 +211,7 @@ begin
           ValueS:=ValueS+C;
           Inc(P2);
         end;
-      Value:=NewStr(ValueS);
+      Value:=NewStr(Trim(ValueS));
       Comment:=NewStr(copy(S,P2+1,255));
     end else
     begin
@@ -207,13 +245,43 @@ begin
   GetName:=GetStr(Name);
 end;
 
-procedure TINISection.AddEntry(S: string);
+function TINISection.AddEntry(S: string): PINIEntry;
 var E: PINIEntry;
 begin
   New(E, Init(S));
   Entries^.Insert(E);
+  AddEntry:=E;
 end;
 
+procedure TINISection.ForEachEntry(EnumProc: pointer);
+var I: integer;
+    E: PINIEntry;
+begin
+  for I:=0 to Entries^.Count-1 do
+    begin
+      E:=Entries^.At(I);
+      {$ifdef FPC}
+        CallPointerMethodLocal(EnumProc,CurrentFramePointer,@Self,E);
+      {$else}
+      asm
+        push E.word[2]
+        push E.word[0]
+        push word ptr [bp]
+        call EnumProc
+      end;
+      {$endif}
+    end;
+end;
+
+function TINISection.SearchEntry(Tag: string): PINIEntry;
+function MatchingEntry(E: PINIEntry): boolean; {$ifndef FPC}far;{$endif}
+begin
+  MatchingEntry:=UpcaseStr(E^.GetTag)=Tag;
+end;
+begin
+  Tag:=UpcaseStr(Tag);
+  SearchEntry:=Entries^.FirstThat(@MatchingEntry);
+end;
 
 destructor TINISection.Done;
 begin
@@ -316,8 +384,110 @@ begin
   Close(f);
   EatIO;
 {$I+}
-  Update:=true;
+  if OK then
+    for I:=0 to Sections^.Count-1 do
+      begin
+        P:=Sections^.At(I);
+        for J:=0 to P^.Entries^.Count-1 do
+          begin
+            E:=P^.Entries^.At(J);
+            E^.Modified:=false;
+          end;
+      end;
+  Update:=OK;
 end;
+
+function TINIFile.SearchSection(Section: string): PINISection;
+function MatchingSection(P: PINISection): boolean; {$ifndef FPC}far;{$endif}
+var SN: string;
+    M: boolean;
+begin
+  SN:=UpcaseStr(P^.GetName);
+  M:=SN=Section;
+  MatchingSection:=M;
+end;
+begin
+  Section:=UpcaseStr(Section);
+  SearchSection:=Sections^.FirstThat(@MatchingSection);
+end;
+
+function TINIFile.SearchEntry(Section, Tag: string): PINIEntry;
+var P: PINISection;
+    E: PINIEntry;
+begin
+  P:=SearchSection(Section);
+  if P=nil then E:=nil else
+    E:=P^.SearchEntry(Tag);
+  SearchEntry:=E;
+end;
+
+procedure TINIFile.ForEachEntry(Section: string; EnumProc: pointer);
+var P: PINISection;
+    E: PINIEntry;
+    I: integer;
+begin
+  P:=SearchSection(Section);
+  if P<>nil then
+    for I:=0 to P^.Entries^.Count-1 do
+      begin
+        E:=P^.Entries^.At(I);
+      {$ifdef FPC}
+        CallPointerMethodLocal(EnumProc,CurrentFramePointer,@Self,E);
+      {$else}
+        asm
+          push E.word[2]
+          push E.word[0]
+          push word ptr [bp]
+          call EnumProc
+        end;
+      {$endif}
+      end;
+end;
+
+function TINIFile.GetEntry(Section, Tag, Default: string): string;
+var E: PINIEntry;
+    S: string;
+begin
+  E:=SearchEntry(Section,Tag);
+  if E=nil then S:=Default else
+    S:=E^.GetValue;
+  GetEntry:=S;
+end;
+
+procedure TINIFile.SetEntry(Section, Tag, Value: string);
+var E: PINIEntry;
+    P: PINISection;
+begin
+  E:=SearchEntry(Section,Tag);
+  if E=nil then
+   if (MakeNullEntries=true) or (Value<>'') then
+    begin
+      P:=SearchSection(Section);
+      if P=nil then
+        begin
+          New(P, Init(Section));
+          Sections^.Insert(P);
+        end;
+      E:=P^.AddEntry(Tag+'='+Value);
+      E^.Modified:=true;
+    end;
+  if E<>nil then
+    E^.SetValue(Value);
+end;
+
+function TINIFile.GetIntEntry(Section, Tag: string; Default: longint): longint;
+var L: longint;
+begin
+  L:=StrToInt(GetEntry(Section,Tag,IntToStr(Default)));
+  if LastStrToIntResult<>0 then L:=Default;
+  GetIntEntry:=L;
+end;
+
+procedure TINIFile.SetIntEntry(Section, Tag: string; Value: longint);
+begin
+  SetEntry(Section,Tag,IntToStr(Value));
+end;
+
 
 destructor TINIFile.Done;
 begin
@@ -333,8 +503,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:55  peter
-    * moved
+  Revision 1.2  1998-12-28 15:47:58  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
 
   Revision 1.1  1998/12/22 10:39:57  peter
     + options are now written/read

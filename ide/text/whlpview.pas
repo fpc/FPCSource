@@ -176,7 +176,8 @@ type
 
 implementation
 
-uses Crt;
+uses
+  Video;
 
 const CommentColor = Blue;
 
@@ -482,7 +483,7 @@ end;
 constructor THelpViewer.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
 begin
   inherited Init(Bounds, AHScrollBar, AVScrollBar, nil, 0);
-  Flags:=0; IsReadOnly:=true;
+  Flags:=efInsertMode; IsReadOnly:=true;
   New(WordList, Init(50,50));
   Margin:=1; CurLink:=-1;
 end;
@@ -1031,9 +1032,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
-    * moved
+  Revision 1.2  1998-12-28 15:47:57  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
 
+  Revision 1.31 1998/12/27 12:07:30  gabor
+    * changed THelpViewer.Init to reflect changes in WEDITOR
   Revision 1.3  1998/12/22 10:39:56  peter
     + options are now written/read
     + find and replace routines

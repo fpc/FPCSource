@@ -20,10 +20,7 @@ interface
 uses FPViews;
 
 type
-    TCompileMode = (cBuild,cMake,cCompile);
-
-{$ifdef OLDCOMPSTAT}
-    TCompPhase = (cpCompiling,cpLinking,cpDone);
+    TCompileMode = (cBuild,cMake,cCompile,cRun);
 
     PCompileStatusDialog = ^TCompileStatusDialog;
     TCompileStatusDialog = object(TCenterDialog)
@@ -31,39 +28,26 @@ type
       KeyST : PColorStaticText;
       constructor Init;
       procedure   Update;
+    private
+      MsgLB: PMessageListBox;
     end;
-{$endif}
-
-const
-      PrimaryFile    : string = '';
-      IsEXECompiled  : boolean = false;
-      MainFile         : string = '';
-
-{$ifdef OLDCOMPSTAT}
-      CompilationPhase : TCompPhase = cpDone;
-{$endif}
-      ProgramInfoWindow : PProgramInfoWindow = nil;
-
 
 procedure DoCompile(Mode: TCompileMode);
-
 
 implementation
 
 uses
-  Video,
+  Video,CRt,
   Objects,Drivers,Views,App,
   CompHook,
-  FPConst,FPUtils,FPIntf;
-
-{$ifdef OLDCOMPSTAT}
+  FPConst,FPVars,FPUtils,FPIntf,FPSwitches;
 
 const SD: PCompileStatusDialog = nil;
 
 constructor TCompileStatusDialog.Init;
 var R: TRect;
 begin
-  R.Assign(0,0,50,11{+7});
+  R.Assign(0,0,50,11+7);
   inherited Init(R, 'Compiling');
   GetExtent(R); R.B.Y:=11;
   R.Grow(-3,-2);
@@ -73,10 +57,10 @@ begin
   R.Grow(-1,-1); R.A.Y:=R.B.Y-1;
   New(KeyST, Init(R, '', Blue*16+White+longint($80+Blue*16+White)*256));
   Insert(KeyST);
-{  GetExtent(R); R.Grow(-1,-1); R.A.Y:=10;
-  New(MsgLB, Init(R, 1, nil));
+  GetExtent(R); R.Grow(-1,-1); R.A.Y:=10;
+  New(MsgLB, Init(R, nil, nil));
   MsgLB^.NewList(New(PUnsortedStringCollection, Init(100,100)));
-  Insert(MsgLB);}
+  Insert(MsgLB);
 end;
 
 
@@ -106,7 +90,7 @@ begin
   ST^.SetText(
     'Main file: '+MainFile+#13+
     StatusS+#13#13+
-    'Target: '+LExpand(KillTilde(GetTargetOSName(GetTargetOS)),12)+'    '+
+    'Target: '+LExpand(KillTilde(TargetSwitches^.ItemName(TargetSwitches^.GetCurrSel)),12)+'    '+
     'Line number: '+IntToStrL(Status.CurrentLine,7)+#13+
     'Free memory: '+IntToStrL(MemAvail div 1024,6)+'K'+ '    '+
     'Total lines: '+IntToStrL(Status.CompiledLines,7)+#13+
@@ -115,8 +99,6 @@ begin
   KeyST^.SetText(^C+KeyS);
 end;
 
-{$endif}
-
 
 {****************************************************************************
                                Compiler Hooks
@@ -124,9 +106,7 @@ end;
 
 function CompilerStatus: boolean; {$ifndef FPC}far;{$endif}
 begin
-{$ifdef OLDCOMPSTAT}
   SD^.Update;
-{$endif}
   CompilerStatus:=false;
 end;
 
@@ -138,8 +118,12 @@ end;
 
 function CompilerComment(Level:Longint; const s:string):boolean; {$ifndef FPC}far;{$endif}
 begin
-  ProgramInfoWindow^.AddMessage(Level,S,SmartPath(status.currentmodule),status.currentline);
   CompilerComment:=false;
+  if (status.verbosity and Level)=Level then
+   begin
+     ProgramInfoWindow^.AddMessage(Level,S,SmartPath(status.currentmodule),status.currentline);
+     SD^.MsgLB^.AddItem(New(PCompilerMessage, Init(Level, S, SmartPath(status.currentmodule),status.currentline)));
+   end;
 end;
 
 
@@ -160,7 +144,7 @@ var
   P: PSourceWindow;
   FileName: string;
   E: TEvent;
-  WasVisible: boolean;
+{  WasVisible: boolean;}
 begin
 { Get FileName }
   P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);
@@ -184,18 +168,17 @@ begin
 { Reset }
   CtrlBreakHit:=false;
 { Show Program Info }
-  WasVisible:=ProgramInfoWindow^.GetState(sfVisible);
+{  WasVisible:=ProgramInfoWindow^.GetState(sfVisible);
   ProgramInfoWindow^.LogLB^.Clear;
   if WasVisible=false then
     ProgramInfoWindow^.Show;
-  ProgramInfoWindow^.MakeFirst;
+  ProgramInfoWindow^.MakeFirst;}
 
-{$ifdef OLDCOMPSTAT}
   CompilationPhase:=cpCompiling;
   New(SD, Init);
+  SD^.SetState(sfModal,true);
   Application^.Insert(SD);
   SD^.Update;
-{$endif}
 
   do_status:=CompilerStatus;
   do_stop:=CompilerStop;
@@ -203,32 +186,34 @@ begin
 
   Compile(FileName);
 
-{$ifdef OLDCOMPSTAT}
   CompilationPhase:=cpDone;
   SD^.Update;
-{$endif}
 
-  if status.errorcount=0 then
+  if ((status.errorcount=0) or (ShowStatusOnError)) and (Mode<>cRun) then
    repeat
-     Application^.GetEvent(E);
+     SD^.GetEvent(E);
      if IsExitEvent(E)=false then
-      Application^.HandleEvent(E);
+      SD^.HandleEvent(E);
    until IsExitEvent(E);
 
-{$ifdef OLDCOMPSTAT}
   Application^.Delete(SD);
+  SD^.SetState(sfModal,false);
   Dispose(SD, Done);
-{$endif}
 
-  if (WasVisible=false) and (status.errorcount=0) then
-   ProgramInfoWindow^.Hide;
+{  if (WasVisible=false) and (status.errorcount=0) then
+   ProgramInfoWindow^.Hide;}
 end;
 
 end.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
-    * moved
+  Revision 1.2  1998-12-28 15:47:42  peter
+    + Added user screen support, display & window
+    + Implemented Editor,Mouse Options dialog
+    + Added location of .INI and .CFG file
+    + Option (INI) file managment implemented (see bottom of Options Menu)
+    + Switches updated
+    + Run program
 
   Revision 1.3  1998/12/22 10:39:40  peter
     + options are now written/read
