@@ -1114,6 +1114,10 @@ end;
 begin
 end;
 {$endif}
+{$IFDEF OS2}
+begin
+end;
+{$ENDIF}
 {$ifdef Win32}
 begin
 end;
@@ -1132,7 +1136,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:42  pierre
+  Revision 1.3  2000-10-11 20:07:23  hajny
+    * compilable for the OS/2 target now
+
+  Revision 1.2  2000/08/22 09:41:42  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.3  2000/08/20 15:00:23  peter
