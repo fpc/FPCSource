@@ -291,7 +291,7 @@ implementation
                    location_release(exprasmlist,right.location);
                   r.enum:=R_INTREGISTER;
                   r.number:=NR_EDI;
-                  cg.a_load_loc_reg(exprasmlist,right.location,r);
+                  cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,r);
                   popedx:=false;
                   popeax:=false;
                   r.number:=NR_EAX;
@@ -677,7 +677,7 @@ implementation
                         hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX)
                        else
                         hregister2:=rg.getregisterint(exprasmlist,OS_INT);
-                       cg.a_load_loc_reg(exprasmlist,right.location,hregister2);
+                       cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,hregister2);
                      end
                    else
                      hregister2:=right.location.register;
@@ -822,7 +822,7 @@ implementation
                        if right.location.loc<>LOC_CREGISTER then
                         location_release(exprasmlist,right.location);
                        hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX);
-                       cg.a_load_loc_reg(exprasmlist,right.location,hregister2);
+                       cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,hregister2);
                      end
                    else
                      hregister2:=right.location.register;
@@ -1183,7 +1183,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-05-22 21:32:29  peter
+  Revision 1.55  2003-05-31 15:04:31  peter
+    * load_loc_reg update
+
+  Revision 1.54  2003/05/22 21:32:29  peter
     * removed some unit dependencies
 
   Revision 1.53  2003/04/22 23:50:23  peter

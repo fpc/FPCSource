@@ -549,7 +549,7 @@ implementation
                   {$else}
                     pleftreg:=rg.getexplicitregisterint(exprasmlist,NR_EDI);
                   {$endif}
-                  cg.a_load_loc_reg(exprasmlist,left.location,pleftreg);
+                  cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,pleftreg);
                   location_freetemp(exprasmlist,left.location);
                   location_release(exprasmlist,left.location);
                   emit_reg_ref(A_BT,S_L,pleftreg,right.location.reference);
@@ -739,7 +739,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-05-22 21:32:29  peter
+  Revision 1.59  2003-05-31 15:04:31  peter
+    * load_loc_reg update
+
+  Revision 1.58  2003/05/22 21:32:29  peter
     * removed some unit dependencies
 
   Revision 1.57  2003/04/27 11:21:35  peter
