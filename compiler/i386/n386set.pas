@@ -718,7 +718,10 @@ implementation
                   if first then
                     begin
                        { have we to ajust the first value ? }
-                       if t^._low>get_min_value(left.resulttype) then
+                       if (with_sign and
+                           (t^._low>get_min_value(left.resulttype))) or
+                          (not with_sign and
+                           (cardinal(t^._low) > cardinal(get_min_value(left.resulttype)))) then
                          gensub(t^._low);
                     end
                   else
@@ -726,6 +729,9 @@ implementation
                       { if there is no unused label between the last and the }
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
+
+                      { note: you can't use gensub() here because dec doesn't }
+                      { change the carry flag (needed for jmp_lxx) (JM)       }
                       emit_const_reg(A_SUB,opsize,t^._low-last,hregister);
                       emitjmp(jmp_le,elselabel);
                     end;
@@ -1061,7 +1067,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-11-13 14:44:36  jonas
+  Revision 1.5  2000-11-17 14:09:00  jonas
+    * fixed webbug 1222 ("merged")
+
+  Revision 1.4  2000/11/13 14:44:36  jonas
     * fixes so no more range errors with improved range checking code
 
   Revision 1.3  2000/10/31 22:02:57  peter
