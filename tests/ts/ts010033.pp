@@ -42,7 +42,7 @@ begin
   m := 0;
 { get as much regvars occupied as possible }
   for j := 1 to 1000 do
-    for k := 1 to 100 do
+    for k := 1 to 1000 do
       for l := k downto 0 do
          inc(m,j - k + l);
   if (j = 5) and (k = 0) and (l = 100) and function1 then
