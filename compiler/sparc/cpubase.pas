@@ -141,37 +141,20 @@ CONST
                                 Operand Sizes
 *****************************************************************************}
 TYPE
-       { S_NO = No Size of operand }
-       { S_B  = Byte size operand  }
-       { S_W  = Word size operand  }
-       { S_L  = DWord size operand }
-       { USED FOR conversions in x86}
-       { S_BW = Byte to word       }
-       { S_BL = Byte to long       }
-       { S_WL = Word to long       }
-       { Floating point types      }
-       { S_FS  = single type (32 bit) }
-       { S_FL  = double/64bit integer }
-       { S_FX  = ExtENDed type      }
-       { S_IS  = integer on 16 bits   }
-       { S_IL  = integer on 32 bits   }
-       { S_IQ  = integer on 64 bits   }
   TOpSize=(S_NO,
-           S_B,
-           S_W,
-           S_L,
-           S_BW,
-           S_BL,
-           S_WL,
-           S_IS,
-           S_IL,
-           S_IQ,
-           S_FS,
-           S_FL,
-           S_FX,
-           S_D,
-           S_Q,
-           S_FV,
+           S_B,{Byte}
+           S_H,{Half word}
+           S_W,{Word}
+           S_D,{Double Word}
+           S_Q,{Quad word}
+           S_SB,{Signed byte}
+           S_SH,{Signed half word}
+           S_SW,{Signed word}
+           S_SD,{Signed double word}
+           S_SQ,{Signed quad word}
+           S_FW,{Float word}
+           S_FD,{Float double word}
+           S_FQ,{Float quad word}
            S_NEAR,
            S_FAR,
            S_SHORT);
@@ -475,7 +458,7 @@ calls or in assembler blocks.}
   pointersize   = 4;
   extENDed_size = 8;{SPARC architecture uses IEEE floating point numbers}
   mmreg_size = 8;
-  sizepostfix_pointer = S_L;
+  SizePostfix_pointer = S_SW;
 
 
 {*****************************************************************************
@@ -537,7 +520,10 @@ function flags_to_cond(const f:TResFlags):TAsmCond;
 END.
 {
   $Log$
-  Revision 1.14  2002-10-20 19:01:38  mazen
+  Revision 1.15  2002-10-28 20:37:44  mazen
+  * TOpSize values changed S_L --> S_SW
+
+  Revision 1.14  2002/10/20 19:01:38  mazen
   + op_raddr_reg and op_caddr_reg added to fix functions prologue
 
   Revision 1.13  2002/10/19 20:35:07  mazen
