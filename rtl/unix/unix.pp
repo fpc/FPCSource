@@ -521,15 +521,16 @@ begin
   else
    begin
 {$ifndef Solaris}
-     WaitProcess:=s; // s<0 should not occur, but wie return also a negativ value
+     { at least correct for Linux and Darwin (JM) }
+     if (s and $7F)=0 then // Only this is a valid returncode
 {$else}
      if (s and $FF)=0 then // Only this is a valid returncode
+{$endif}
       WaitProcess:=s shr 8
      else if (s>0) then  // Until now there is not use of the highest bit , but check this for the future
       WaitProcess:=-s // normal case
      else
       WaitProcess:=s; // s<0 should not occur, but wie return also a negativ value
-{$endif}
    end;
 end;
 
@@ -3058,7 +3059,11 @@ End.
 
 {
   $Log$
-  Revision 1.26  2003-03-11 08:27:59  michael
+  Revision 1.27  2003-05-24 20:39:54  jonas
+    * fixed ExitCode translation in WaitProcess for Linux and Darwin (and
+      probably other BSD's as well)
+
+  Revision 1.26  2003/03/11 08:27:59  michael
   * stringtoppchar should use tabs instead of backspace as delimiter
 
   Revision 1.25  2002/12/18 16:50:39  marco
