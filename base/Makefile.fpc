@@ -121,8 +121,7 @@ gtkzip: rtl_clean
         $(MAKE) -C packages gtk_all
         $(MAKE) -C packages gtk_zipinstall ZIPNAME=gtk-$(PACKAGESUFFIX)
 
-compilerzip:
-# compiler_clean rtl_clean
+compilerzip: compiler_clean rtl_clean
         $(MAKE) rtl_all
         $(MAKE) compiler_all
         $(MAKE) zipinstall ZIPTARGET='compiler_install rtl_install' ZIPNAME=compiler-$(PACKAGESUFFIX)
