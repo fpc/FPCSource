@@ -110,22 +110,31 @@ end;
 
 function TRegistry.GetKey(const Key: String): HKEY;
 begin
-  Result := 0;
+  Result := FCurrentKey;
 end;
 
 function TRegistry.GetKeyInfo(var Value: TRegKeyInfo): Boolean;
+
 begin
-  Result := True;
+  FillChar(Value, SizeOf(Value), 0);
+  With Value do
+    Result:=RegQueryInfoKey(CurrentKey,nil,nil,nil,@NumSubKeys,
+                            @MaxSubKeyLen,nil,@NumValues,@MaxValueLen,
+                            @MaxDataLen,nil,@FileTime)=ERROR_SUCCESS;
 end;
 
 function TRegistry.KeyExists(const Key: string): Boolean;
+
+Var
+  Value : TRegKeyInfo;
+
 begin
-  Result := True;
+  Result :=GetKeyInfo(Value);
 end;
 
 function TRegistry.LoadKey(const Key, FileName: string): Boolean;
 begin
-  Result := True;
+  Result := False;
 end;
 
 function TRegistry.OpenKey(const Key: string; CanCreate: Boolean): Boolean;
@@ -171,32 +180,36 @@ end;
 
 function TRegistry.RegistryConnect(const UNCName: string): Boolean;
 begin
-  Result := True;
+  Result := False;
 end;
 
 function TRegistry.ReplaceKey(const Key, FileName, BackUpFileName: string): Boolean;
 begin
-  Result := True;
+  Result := False;
 end;
 
 function TRegistry.RestoreKey(const Key, FileName: string): Boolean;
 begin
-  Result := True;
+  Result := False;
 end;
 
 function TRegistry.SaveKey(const Key, FileName: string): Boolean;
 begin
-  Result := True;
+  Result := False;
 end;
 
 function TRegistry.UnLoadKey(const Key: string): Boolean;
 begin
-  Result := True;
+  Result := false;
 end;
 
 function TRegistry.ValueExists(const Name: string): Boolean;
+
+var
+  Info : TRegDataInfo;
+
 begin
-  Result := True;
+  Result:=GetDataInfo(Name,Info);
 end;
 
 procedure TRegistry.CloseKey;
@@ -217,12 +230,57 @@ begin
 end;
 
 procedure TRegistry.GetKeyNames(Strings: TStrings);
-begin
 
+Var
+  L : Cardinal;
+  I: Integer;
+  Info: TRegKeyInfo;
+  P : PChar;
+  
+begin
+   Strings.Clear;
+   if GetKeyInfo(Info) then
+     begin
+     L:=Info.MaxSubKeyLen+1;
+     GetMem(P,L);
+     Try
+       for I:=0 to Info.NumSubKeys-1 do
+         begin
+         L:=Info.MaxSubKeyLen+1;
+         RegEnumKeyEx(CurrentKey,I,P,L,Nil,Nil,Nil,Nil);
+         Strings.Add(StrPas(P));
+         end;
+     Finally
+       FreeMem(P);    
+     end;
+     end;
 end;
 
 procedure TRegistry.GetValueNames(Strings: TStrings);
+
+Var
+  L : Cardinal;
+  I: Integer;
+  Info: TRegKeyInfo;
+  P : PChar;
+  
 begin
+   Strings.Clear;
+   if GetKeyInfo(Info) then
+     begin
+     L:=Info.MaxValueLen+1;
+     GetMem(P,L);
+     Try
+       for I:=0 to Info.NumValues-1 do
+         begin
+         L:=Info.MaxValueLen+1;
+         RegEnumValue(CurrentKey,I,P,L,Nil,Nil,Nil,Nil);
+         Strings.Add(StrPas(P));
+         end;
+     Finally
+       FreeMem(P);    
+     end;
+     end;
 
 end;
 
@@ -246,8 +304,29 @@ begin
 end;
 
 procedure TRegistry.RenameValue(const OldName, NewName: string);
-begin
 
+var
+  L: Integer;
+  InfoO,InfoN : TRegDataInfo;
+  D : TRegDataType;
+  P: PChar;
+  
+begin
+  If GetDataInfo(OldName,InfoO) and Not GetDataInfo(NewName,InfoN) then 
+    begin
+    L:=InfoO.DataSize;
+    if L>0 then
+      begin
+      GetMem(P,L);
+      try
+        L:=GetData(OldName,P,L,D);
+        If SysPutData(NewName,P,L,D) then
+          DeleteValue(OldName);
+      finally
+        FreeMem(P);
+      end;
+      end;
+    end;  
 end;
 
 procedure TRegistry.SetCurrentKey(Value: HKEY);
