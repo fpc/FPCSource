@@ -1557,7 +1557,13 @@ end;
     Begin
        case real_typ of
           s32real : p.concat(Tai_real_32bit.Create(value));
-          s64real : p.concat(Tai_real_64bit.Create(value));
+          s64real :
+{$ifdef ARM}
+           if aktfputype in [fpu_fpa,fpu_fpa10,fpu_fpa11] then
+             p.concat(Tai_real_64bit.Create_hiloswapped(value))
+           else
+{$endif ARM}
+             p.concat(Tai_real_64bit.Create(value));
           s80real : p.concat(Tai_real_80bit.Create(value));
           s64comp : p.concat(Tai_comp_64bit.Create(trunc(value)));
        end;
@@ -1626,7 +1632,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.82  2004-03-02 00:36:33  olle
+  Revision 1.83  2004-03-17 22:27:41  florian
+    * fixed handling of doubles in a native arm compiler
+    * fixed handling of typed double constants on arm
+
+  Revision 1.82  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.81  2004/02/21 21:04:09  daniel

@@ -230,7 +230,12 @@ implementation
                  s32real :
                    curconstSegment.concat(Tai_real_32bit.Create(ts32real(value)));
                  s64real :
-                   curconstSegment.concat(Tai_real_64bit.Create(ts64real(value)));
+{$ifdef ARM}
+                   if aktfputype in [fpu_fpa,fpu_fpa10,fpu_fpa11] then
+                     curconstSegment.concat(Tai_real_64bit.Create_hiloswapped(ts64real(value)))
+                   else
+{$endif ARM}
+                     curconstSegment.concat(Tai_real_64bit.Create(ts64real(value)));
                  s80real :
                    curconstSegment.concat(Tai_real_80bit.Create(value));
 
@@ -1020,7 +1025,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2004-03-02 00:36:33  olle
+  Revision 1.81  2004-03-17 22:27:41  florian
+    * fixed handling of doubles in a native arm compiler
+    * fixed handling of typed double constants on arm
+
+  Revision 1.80  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.79  2004/02/26 16:15:23  peter
