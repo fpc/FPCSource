@@ -84,25 +84,21 @@ implementation
          maybe_restore(exprasmlist,left.location,saved);
          location_copy(location,left.location);
 
-         resultreg := R_NO;
          { put numerator in register }
-         if (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+         location_force_reg(exprasmlist,left.location,
+           def_cgsize(left.resulttype.def),true);
+         location_copy(location,left.location);
+         numerator := location.register;
+         resultreg := location.register;
+         if (location.loc = LOC_CREGISTER) then
+           begin 
+             location.loc := LOC_REGISTER;
+             location.register := rg.getregisterint(exprasmlist);
+             resultreg := location.register;
+           end;
+         if (nodetype = modn) then
            begin
-             reference_release(exprasmlist,left.location.reference);
-             numerator := rg.getregisterint(exprasmlist);
-             { OS_32 because everything is always converted to longint/ }
-             { cardinal in the resulttype pass (JM)                     }
-             cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
-               numerator);
-             resultreg := numerator;
-           end
-         else
-           begin
-             numerator := left.location.register;
-             if left.location.loc = LOC_CREGISTER then
-               resultreg := rg.getregisterint(exprasmlist)
-             else
-               resultreg := numerator;
+             resultreg := cg.get_scratch_reg_int(exprasmlist);
            end;
 
          if (nodetype = divn) and
@@ -126,17 +122,9 @@ implementation
          else
            begin
              { load divider in a register if necessary }
-             case right.location.loc of
-               LOC_CREGISTER, LOC_REGISTER:
-                 divider := right.location.register;
-               LOC_REFERENCE, LOC_CREFERENCE:
-                 begin
-                   divider := cg.get_scratch_reg_int(exprasmlist);
-                   cg.a_load_ref_reg(exprasmlist,OS_32,
-                     right.location.reference,divider);
-                   reference_release(exprasmlist,right.location.reference);
-                 end;
-             end;
+             location_force_reg(exprasmlist,right.location,
+               def_cgsize(right.resulttype.def),true);
+             divider := right.location.register;
 
              { needs overflow checking, (-maxlongint-1) div (-1) overflows! }
              { And on PPC, the only way to catch a div-by-0 is by checking  }
@@ -144,13 +132,22 @@ implementation
              op := divops[is_signed(right.resulttype.def),
                           cs_check_overflow in aktlocalswitches];
              exprasmlist.concat(taicpu.op_reg_reg_reg(op,resultreg,numerator,
-               divider))
+               divider));
+
+           if (nodetype = modn) then
+             begin
+               exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULLW,resultreg,
+                 divider,resultreg));
+               rg.ungetregister(exprasmlist,divider);
+               exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
+                 numerator,resultreg));
+               cg.free_scratch_reg(exprasmlist,resultreg);
+               resultreg := location.register;
+             end
+           else
+             rg.ungetregister(exprasmlist,divider);
            end;
-         { free used registers }
-         if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-           cg.free_scratch_reg(exprasmlist,divider)
-         else
-           rg.ungetregister(exprasmlist,divider);
+       { free used registers }
         if numerator <> resultreg then
           rg.ungetregisterint(exprasmlist,numerator);
         { set result location }
@@ -182,34 +179,17 @@ implementation
 
          if is_64bitint(left.resulttype.def) then
            begin
-             case left.location.loc of
-               LOC_REGISTER, LOC_CREGISTER:
-                 begin
-                   hregisterhigh := left.location.registerhigh;
-                   hregisterlow := left.location.registerlow;
-                   if left.location.loc = LOC_REGISTER then
-                     begin
-                       location.registerhigh := hregisterhigh;
-                       location.registerlow := hregisterlow
-                     end
-                   else
-                     begin
-                       location.registerhigh := rg.getregisterint(exprasmlist);
-                       location.registerlow := rg.getregisterint(exprasmlist);
-                     end;
-                 end;
-               LOC_REFERENCE,LOC_CREFERENCE:
-                 begin
-                  { !!!!!!!! not good, registers are release too soon this way !!!! (JM) }
-                   reference_release(exprasmlist,left.location.reference);
-                   hregisterhigh := rg.getregisterint(exprasmlist);
-                   location.registerhigh := hregisterhigh;
-                   hregisterlow := rg.getregisterint(exprasmlist);
-                   location.registerlow := hregisterlow;
-                   cg64.a_load64_ref_reg(exprasmlist,
-                     left.location.reference,joinreg64(hregisterlow,hregisterhigh));
-                 end;
-             end;
+             location_force_reg(exprasmlist,left.location,
+               def_cgsize(left.resulttype.def),true);
+             location_copy(location,left.location);
+             hregisterhigh := location.registerhigh;
+             hregisterlow := location.registerlow;
+             if (location.loc = LOC_CREGISTER) then
+               begin
+                 location.loc := LOC_REGISTER;
+                 location.registerhigh := rg.getregisterint(exprasmlist);
+                 location.registerlow := rg.getregisterint(exprasmlist);
+               end;
              if (right.nodetype = ordconstn) then
                begin
                  shiftval := tordconstnode(right).value;
@@ -261,18 +241,8 @@ implementation
              else
                { no constant shiftcount }
                begin
-                 case right.location.loc of
-                   LOC_REGISTER,LOC_CREGISTER:
-                     begin
-                       hregister1 := right.location.register;
-                     end;
-                   LOC_REFERENCE,LOC_CREFERENCE:
-                     begin
-                       hregister1 := cg.get_scratch_reg_int(exprasmlist);
-                       cg.a_load_ref_reg(exprasmlist,OS_S32,
-                         right.location.reference,hregister1);
-                     end;
-                 end;
+                 location_force_reg(exprasmlist,right.location,OS_S32,true);
+                 hregister1 := right.location.register;
                  if nodetype = shln then
                    begin
                      asmop1 := A_SLW;
@@ -519,7 +489,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-07-09 19:45:01  jonas
+  Revision 1.13  2002-07-11 07:41:27  jonas
+    * fixed tppcmoddivnode
+    * fixed 64bit parts of tppcshlshrnode
+
+  Revision 1.12  2002/07/09 19:45:01  jonas
     * unarynminus and shlshr node fixed for 32bit and smaller ordinals
     * small fixes in the assembler writer
     * changed scratch registers, because they were used by the linker (r11
