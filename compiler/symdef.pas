@@ -5187,12 +5187,13 @@ implementation
            end;
      end;
 
+
    function tobjectdef.classnumberstring : string;
      begin
-       { write stabs again if needed }
-       numberstring;
        if objecttype=odt_class then
          begin
+           if globalnb=0 then
+             numberstring;
            dec(globalnb);
            classnumberstring:=numberstring;
            inc(globalnb);
@@ -5245,16 +5246,15 @@ implementation
           exit;
         stab_state:=stab_state_writing;
         tstoreddef(vmtarraytype.def).concatstabto(asmlist);
-        symtable.foreach({$ifdef FPCPROCVAR}@{$endif}field_concatstabto,asmlist);
-        symtable.foreach({$ifdef FPCPROCVAR}@{$endif}proc_concatstabto,asmlist);
-        { parents }
+        { first the parents }
         anc:=self;
-        while assigned(anc.childof) and
-              (oo_has_vmt in anc.childof.objectoptions) do
+        while assigned(anc.childof) do
           begin
             anc:=anc.childof;
             anc.concatstabto(asmlist);
           end;
+        symtable.foreach({$ifdef FPCPROCVAR}@{$endif}field_concatstabto,asmlist);
+        symtable.foreach({$ifdef FPCPROCVAR}@{$endif}proc_concatstabto,asmlist);
         stab_state:=stab_state_used;
         if objecttype=odt_class then
           begin
@@ -6089,7 +6089,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.227  2004-03-09 20:45:04  peter
+  Revision 1.228  2004-03-09 22:18:22  peter
+    * first write parent classes
+
+  Revision 1.227  2004/03/09 20:45:04  peter
     * more stabs updates
 
   Revision 1.226  2004/03/08 22:07:47  peter
