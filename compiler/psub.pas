@@ -146,12 +146,21 @@ implementation
 
     procedure check_finalize_locals(p : tnamedindexitem;arg:pointer);
       begin
-        if (tsym(p).typ=varsym) and
-           (tvarsym(p).refs>0) and
-           not(vo_is_funcret in tvarsym(p).varoptions) and
-           not(is_class(tvarsym(p).vartype.def)) and
-           tvarsym(p).vartype.def.needs_inittable then
-          include(current_procinfo.flags,pi_needs_implicit_finally);
+        case tsym(p).typ of
+          varsym :
+            begin
+              if (tvarsym(p).refs>0) and
+                 not(vo_is_funcret in tvarsym(p).varoptions) and
+                 not(is_class(tvarsym(p).vartype.def)) and
+                 tvarsym(p).vartype.def.needs_inittable then
+                include(current_procinfo.flags,pi_needs_implicit_finally);
+            end;
+          typedconstsym :
+            begin
+              if ttypedconstsym(p).typedconsttype.def.needs_inittable then
+                include(current_procinfo.flags,pi_needs_implicit_finally);
+            end;
+        end;
       end;
 
 
@@ -1380,7 +1389,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.192  2004-05-23 18:28:41  peter
+  Revision 1.193  2004-05-24 17:31:12  peter
+    * also check local typed const
+
+  Revision 1.192  2004/05/23 18:28:41  peter
     * methodpointer is loaded into a temp when it was a calln
 
   Revision 1.191  2004/05/23 15:06:21  peter
