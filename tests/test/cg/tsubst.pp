@@ -759,7 +759,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-04-22 13:03:36  florian
+  Revision 1.4  2004-01-24 21:12:47  florian
+    * newlines fixed
+
+  Revision 1.3  2003/04/22 13:03:36  florian
     * fixed for non i386/m68k cpus
 
   Revision 1.2  2002/09/07 15:40:56  peter
