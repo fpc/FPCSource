@@ -114,6 +114,7 @@ Type
 
   TElementEditor = Class(TFPGtkVBox)
   Private
+    FExampleNode,
     FShortNode,
     FDescrNode,
     FErrorsNode,
@@ -124,6 +125,7 @@ Type
     FDescrMemo,
     FErrorsMemo,
     FSeeAlsoMemo : TFPGtkScrollText;
+    FExample : TFPGtkEntry;
     FCurrentEditable : TFPGtkEditable;
     FModified : Boolean;
     Procedure GetNodes;
@@ -231,11 +233,9 @@ begin
   FLabel:=TFPgtkLabel.Create(SNoElement);
   PackStart(FLabel,False,False,0);
   L:=TFPGtkLabel.Create(SShortDescription);
-  V:=TFPGtkVBox.Create;
   // Short
+  V:=TFPGtkVBox.Create;
   FShortEntry:=TFPGtkEntry.Create;
-//  FShortEntry.ConnectEnterNotify(@OnEnterEditable,Nil);
-//  FShortEntry.ConnectStateChanged(@OnEditableStateChanged,Nil);
   FShortEntry.ConnectFocusInEvent(@OnEditableFocusIn,Nil);
   FShortEntry.ConnectChanged(@OnTextModified,Nil);
   V.PackStart(L,False,False,0);
@@ -245,7 +245,6 @@ begin
   L:=TFPGtkLabel.Create(SErrors);
   V:=TFPGtkVBox.Create;
   FErrorsMemo:=TFPGtkScrollText.Create;
-//  FErrorsMemo.TheText.ConnectEnterNotify(@OnEnterEditable,Nil);
   FErrorsMemo.TheText.ConnectFocusInEvent(@OnEditableFocusIn,Nil);
   FErrorsMemo.TheText.ConnectChanged(@OnTextModified,Nil);
   FErrorsMemo.setusize(400,50);
@@ -253,9 +252,10 @@ begin
   V.PackStart(FErrorsMemo,True,true,0);
   F2:=TFPGtkVPaned.Create;
   F2.Pack1(V,True,True);
+
   // See Also
-  L:=TFPGtkLabel.Create(SSeeAlso);
   V:=TFPGtkVBox.Create;
+  L:=TFPGtkLabel.Create(SSeeAlso);
   FSeeAlsoMemo:=TFPGtkScrollText.Create;
 //  FSeeAlsoMemo.TheText.ConnectEnterNotify(@OnEnterEditable,Nil);
   FSeeAlsoMemo.TheText.ConnectFocusInEvent(@OnEditableFocusIn,Nil);
@@ -278,6 +278,15 @@ begin
   F1.Pack1(V,True,True);
   F1.Pack2(F2,False,True);
   PackStart(F1,true,true,0);
+  // Example
+  V:=TFPGtkVBox.Create;
+  L:=TFPGtkLabel.Create(SCodeExample);
+  FExample:=TFPGtkEntry.Create;
+  FExample.ConnectFocusInEvent(@OnEditableFocusIn,Nil);
+  FExample.ConnectChanged(@OnTextModified,Nil);
+  V.PackStart(L,False,False,0);
+  V.PackStart(FExample,True,true,0);
+  PackStart(V,false,false,0);
 end;
 
 Procedure TElementEditor.SetElement (Value : TDomElement);
@@ -357,6 +366,10 @@ begin
     FDescrMemo.Text:=NodeToString(FDescrNode);
     FErrorsMemo.Text:=NodeToString(FErrorsNode);
     FSeeAlsoMemo.Text:=NodeToString(FSeeAlsoNode);
+    If FExampleNode=Nil then
+      FExample.Text:=''
+    else 
+      FExample.Text:=FExampleNode['file'];
     FModified:=False;
   Finally
     S.Free;
@@ -409,7 +422,9 @@ Function  TElementEditor.CurrentXML : String;
       result:='<'+NodeName+'/>';
   end;
 
-
+Var
+  S : String;
+  
 begin
 //  Writeln('In currentxml');
   Result:='';
@@ -419,6 +434,9 @@ begin
   Result:=Result+GetNodeString('descr',trim(FDescrMemo.Text));
   Result:=Result+GetNodeString('errors',trim(FErrorsMemo.Text));
   Result:=Result+GetNodeString('seealso',trim(FSeeAlsoMemo.Text));
+  S:=Trim(FExample.Text);
+  If (S<>'') then
+    Result:=Result+'<example file="'+S+'"/>';
 //  Writeln('Currentxml : ',Result);
 end;
 
@@ -538,6 +556,7 @@ begin
   FDescrNode:=Nil;
   FErrorsNode:=Nil;
   FSeeAlsoNode:=Nil;
+  FExampleNode:=Nil;
   If Assigned(FElement) then
     begin
     Node:=FElement.FirstChild;
@@ -553,7 +572,9 @@ begin
         else if S='errors' then
           FErrorsNode:=TDomElement(Node)
         else if S='seealso' then
-          FSeeAlsoNode:=TDomElement(Node);
+          FSeeAlsoNode:=TDomElement(Node)
+        else if S='example' then
+          FExampleNode:=TDomElement(Node);
         end;
       Node:=Node.NextSibling;
       end;

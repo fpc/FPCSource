@@ -44,6 +44,7 @@ ResourceString
   SDescription = 'Description';
   SErrors = 'Errors';
   SSeeAlso = 'See Also';
+  SCodeExample = 'Example code File';
   SMakeSkelFromSource = 'Make new document from source file';
   SSkelErrorWithFile = 'makeskel reported an error (%d). Try to load produced file anyway ?';
   SSkelErrorWithoutFile = 'makeskel reported an error (%d) and produced no file.';
