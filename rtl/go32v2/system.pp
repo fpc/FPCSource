@@ -610,7 +610,7 @@ end;
                          System Dependent Exit code
 *****************************************************************************}
 
-procedure ___exit(exitcode:byte);cdecl;external name '___exit';
+procedure ___exit(exitcode:longint);cdecl;external name '___exit';
 
 procedure do_close(handle : longint);forward;
 
@@ -1417,7 +1417,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:40  michael
+  Revision 1.3  2000-08-13 19:23:26  peter
+    * fixed double declared ___exit() (merged)
+
+  Revision 1.2  2000/07/13 11:33:40  michael
   + removed logs
- 
+
 }

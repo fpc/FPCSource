@@ -815,7 +815,9 @@ end;
 
 const message_level : byte = 0;
 
+{$ifdef IN_DPMIEXCP_UNIT}
 procedure ___exit(c:longint);cdecl;external name '___exit';
+{$endif}
 {$endif CREATE_C_FUNCTIONS}
 
 function do_faulting_finish_message(fake : boolean) : integer;cdecl;
@@ -1466,7 +1468,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:39  michael
+  Revision 1.3  2000-08-13 19:23:26  peter
+    * fixed double declared ___exit() (merged)
+
+  Revision 1.2  2000/07/13 11:33:39  michael
   + removed logs
- 
+
 }
