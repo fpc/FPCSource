@@ -604,7 +604,7 @@ begin
        Shell('./'+PpasFile+source_os.scriptext);
        Error:=LinuxError;
 {$else}
-       Dos.Exec(GetEnv('COMSPEC'),'/C '+PpasFile+source_os.scriptext);
+       DosExecute(GetEnv('COMSPEC'),'/C '+PpasFile+source_os.scriptext);
        Error:=DosError;
 {$endif}
 {$ifndef redircompiler}
@@ -745,7 +745,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.41  1999-10-25 16:34:19  pierre
+  Revision 1.42  1999-11-10 17:20:41  pierre
+   * Use fpredir.dosexecute
+
+  Revision 1.41  1999/10/25 16:34:19  pierre
     * some units have no object files
       led to wrong NeedRecompile result
 
