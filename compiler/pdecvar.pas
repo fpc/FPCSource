@@ -186,11 +186,11 @@ implementation
                   the symbols of the types }
                 oldsymtablestack:=symtablestack;
                 symtablestack:=symtablestack.next;
-                read_type(tt,'');
+                read_type(tt,'',true);
                 symtablestack:=oldsymtablestack;
               end
              else
-              read_type(tt,'');
+              read_type(tt,'',true);
              { types that use init/final are not allowed in variant parts, but
                classes are allowed }
              if (variantrecordlevel>0) and
@@ -306,6 +306,10 @@ implementation
              { Records and objects can't have default values }
              if is_record or is_object then
                begin
+                 { try to parse the hint directives }
+                 dummysymoptions:=[];
+                 try_consume_hintdirective(dummysymoptions);
+
                  { for a record there doesn't need to be a ; before the END or ) }
                  if not(token in [_END,_RKLAMMER]) then
                    consume(_SEMICOLON);
@@ -324,6 +328,10 @@ implementation
                       newtype.free;
                    end;
 
+                 { try to parse the hint directives }
+                 dummysymoptions:=[];
+                 try_consume_hintdirective(dummysymoptions);
+
                  { Handling of Delphi typed const = initialized vars ! }
                  { When should this be rejected ?
                    - in parasymtable
@@ -335,12 +343,12 @@ implementation
                     not is_record and
                     not is_object then
                    begin
-                      vs:=tvarsym(sc.first);
-                      if assigned(vs.listnext) then
+                     vs:=tvarsym(sc.first);
+                     if assigned(vs.listnext) then
                         Message(parser_e_initialized_only_one_var);
-                      if is_threadvar then
+                     if is_threadvar then
                         Message(parser_e_initialized_not_for_threadvar);
-                      if symtablestack.symtabletype=localsymtable then
+                     if symtablestack.symtabletype=localsymtable then
                        begin
                          consume(_EQUAL);
                          tconstsym:=ttypedconstsym.createtype('default'+vs.realname,tt,false);
@@ -349,7 +357,7 @@ implementation
                          insertconstdata(tconstsym);
                          readtypedconst(tt,tconstsym,false);
                        end
-                      else
+                     else
                        begin
                          tconstsym:=ttypedconstsym.createtype(vs.realname,tt,true);
                          tconstsym.fileinfo:=vs.fileinfo;
@@ -359,20 +367,13 @@ implementation
                          consume(_EQUAL);
                          readtypedconst(tt,tconstsym,true);
                          symdone:=true;
-                         consume(_SEMICOLON);
-                       end
+                       end;
+                     consume(_SEMICOLON);
                    end
                  else
                    begin
                      consume(_SEMICOLON);
                    end;
-               end;
-             { if the symbol is not completely handled, then try to parse the
-               hint directives }
-             if not symdone then
-               begin
-                 dummysymoptions:=[];
-                 try_consume_hintdirective(dummysymoptions);
                end;
              { Parse procvar directives after ; }
              if (tt.def.deftype=procvardef) and
@@ -540,7 +541,7 @@ implementation
                    the symbols of the types }
                  oldsymtablestack:=symtablestack;
                  symtablestack:=symtablestack.next;
-                 read_type(casetype,'');
+                 read_type(casetype,'',true);
                  symtablestack:=oldsymtablestack;
                end
               else
@@ -551,7 +552,7 @@ implementation
                     the symbols of the types }
                   oldsymtablestack:=symtablestack;
                   symtablestack:=symtablestack.next;
-                  read_type(casetype,'');
+                  read_type(casetype,'',true);
                   symtablestack:=oldsymtablestack;
                   vs:=tvarsym.create(sorg,vs_value,casetype);
                   tabstractrecordsymtable(symtablestack).insertfield(vs,true);
@@ -647,7 +648,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2003-10-02 21:13:09  peter
+  Revision 1.55  2003-10-03 14:45:09  peter
+    * more proc directive for procvar fixes
+
+  Revision 1.54  2003/10/02 21:13:09  peter
     * procvar directive parsing fixes
 
   Revision 1.53  2003/10/02 15:12:07  peter

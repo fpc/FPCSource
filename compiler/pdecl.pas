@@ -52,7 +52,7 @@ implementation
        globtype,tokens,verbose,
        systems,
        { aasm }
-       aasmbase,aasmtai,aasmcpu,fmodule,
+       aasmbase,aasmtai,fmodule,
        { symtable }
        symconst,symbase,symtype,symdef,symtable,paramgr,
        { pass 1 }
@@ -187,7 +187,7 @@ implementation
                    block_type:=bt_type;
                    consume(_COLON);
                    ignore_equal:=true;
-                   read_type(tt,'');
+                   read_type(tt,'',false);
                    ignore_equal:=false;
                    block_type:=bt_const;
                    skipequal:=false;
@@ -198,17 +198,15 @@ implementation
                    akttokenpos:=storetokenpos;
                    symtablestack.insert(sym);
                    insertconstdata(ttypedconstsym(sym));
-                   { procvar can have proc directives }
-                   if (tt.def.deftype=procvardef) then
+                   { procvar can have proc directives, but not type references }
+                   if (tt.def.deftype=procvardef) and
+                      (tt.sym=nil) then
                     begin
                       { support p : procedure;stdcall=nil; }
                       if try_to_consume(_SEMICOLON) then
                        begin
                          if is_proc_directive(token,true) then
-                          begin
-                            parse_var_proc_directives(sym);
-                            handle_calling_convention(tprocvardef(tt.def));
-                          end
+                          parse_var_proc_directives(sym)
                          else
                           begin
                             Message(parser_e_proc_directive_expected);
@@ -223,6 +221,7 @@ implementation
                        end;
                       { add default calling convention }
                       handle_calling_convention(tabstractprocdef(tt.def));
+                      calc_parast(tprocvardef(tt.def));
                     end;
                    if not skipequal then
                     begin
@@ -451,7 +450,7 @@ implementation
               akttokenpos:=defpos;
               akttokenpos:=storetokenpos;
               { read the type definition }
-              read_type(tt,orgtypename);
+              read_type(tt,orgtypename,false);
               { update the definition of the type }
               newtype.restype:=tt;
               if assigned(tt.sym) then
@@ -494,6 +493,8 @@ implementation
                        if not is_proc_directive(token,true) then
                         consume(_SEMICOLON);
                        parse_var_proc_directives(tsym(newtype));
+                       handle_calling_convention(tprocvardef(tt.def));
+                       calc_parast(tprocvardef(tt.def));
                      end;
                   end;
                 objectdef,
@@ -635,7 +636,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2003-10-02 21:13:09  peter
+  Revision 1.71  2003-10-03 14:45:09  peter
+    * more proc directive for procvar fixes
+
+  Revision 1.70  2003/10/02 21:13:09  peter
     * procvar directive parsing fixes
 
   Revision 1.69  2003/09/23 17:56:05  peter

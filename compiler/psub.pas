@@ -72,7 +72,7 @@ implementation
        globtype,tokens,verbose,comphook,
        systems,
        { aasm }
-       cpubase,cpuinfo,aasmbase,aasmtai,
+       aasmtai,
        { symtable }
        symconst,symbase,symsym,symtype,symtable,defutil,
        paramgr,
@@ -1201,17 +1201,6 @@ implementation
 
 
     procedure read_declarations(islibrary : boolean);
-
-        procedure Not_supported_for_inline(t : ttoken);
-        begin
-           if (current_procinfo.procdef.proccalloption=pocall_inline) then
-             Begin
-                Message1(parser_w_not_supported_for_inline,tokenstring(t));
-                Message(parser_w_inlining_disabled);
-                current_procinfo.procdef.proccalloption:=pocall_default;
-             End;
-        end;
-
       begin
          repeat
            if not assigned(current_procinfo) then
@@ -1219,17 +1208,14 @@ implementation
            case token of
               _LABEL:
                 begin
-                   Not_supported_for_inline(token);
                    label_dec;
                 end;
               _CONST:
                 begin
-                   Not_supported_for_inline(token);
                    const_dec;
                 end;
               _TYPE:
                 begin
-                   Not_supported_for_inline(token);
                    type_dec;
                 end;
               _VAR:
@@ -1239,14 +1225,12 @@ implementation
               _CONSTRUCTOR,_DESTRUCTOR,
               _FUNCTION,_PROCEDURE,_OPERATOR,_CLASS:
                 begin
-                   Not_supported_for_inline(token);
                    read_proc;
                 end;
               _RESOURCESTRING:
                 resourcestring_dec;
               _EXPORTS:
                 begin
-                   Not_supported_for_inline(token);
                    if not(assigned(current_procinfo.procdef.localst)) or
                       (current_procinfo.procdef.localst.symtablelevel>main_program_level) or
                       (current_module.is_unit) then
@@ -1307,7 +1291,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.156  2003-10-02 21:20:32  peter
+  Revision 1.157  2003-10-03 14:45:09  peter
+    * more proc directive for procvar fixes
+
+  Revision 1.156  2003/10/02 21:20:32  peter
     * handle_calling_convention removed from parse_proc_directive to
       separate call
 

@@ -43,7 +43,7 @@ interface
     { tdef }
     procedure single_type(var tt:ttype;var s : string;isforwarddef:boolean);
 
-    procedure read_type(var tt:ttype;const name : stringid);
+    procedure read_type(var tt:ttype;const name : stringid;parseprocvardir:boolean);
 
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
@@ -251,7 +251,7 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure read_type(var tt : ttype;const name : stringid);
+    procedure read_type(var tt : ttype;const name : stringid;parseprocvardir:boolean);
       var
         pt : tnode;
         tt2 : ttype;
@@ -389,7 +389,7 @@ implementation
                     be parsed by readtype (PFV) }
                   if token=_LKLAMMER then
                    begin
-                     read_type(ht,'');
+                     read_type(ht,'',true);
                      setdefdecl(ht);
                    end
                   else
@@ -448,7 +448,7 @@ implementation
                 tt.setdef(ap);
              end;
            consume(_OF);
-           read_type(tt2,'');
+           read_type(tt2,'',true);
            { if no error, set element type }
            if assigned(ap) then
              ap.setelementtype(tt2);
@@ -530,7 +530,7 @@ implementation
               begin
                 consume(_SET);
                 consume(_OF);
-                read_type(tt2,'');
+                read_type(tt2,'',true);
                 if assigned(tt2.def) then
                  begin
                    case tt2.def.deftype of
@@ -618,17 +618,20 @@ implementation
                   end;
                 tt.def:=pd;
                 { possible proc directives }
-                if is_proc_directive(token,true) then
+                if parseprocvardir then
                   begin
-                     newtype:=ttypesym.create('unnamed',tt);
-                     parse_var_proc_directives(tsym(newtype));
-                     newtype.restype.def:=nil;
-                     tt.def.typesym:=nil;
-                     newtype.free;
+                    if is_proc_directive(token,true) then
+                      begin
+                         newtype:=ttypesym.create('unnamed',tt);
+                         parse_var_proc_directives(tsym(newtype));
+                         newtype.restype.def:=nil;
+                         tt.def.typesym:=nil;
+                         newtype.free;
+                      end;
+                    { Add implicit hidden parameters and function result }
+                    handle_calling_convention(pd);
+                    calc_parast(pd);
                   end;
-                { Add implicit hidden parameters and function result }
-                handle_calling_convention(pd);
-                calc_parast(pd);
               end;
             else
               expr_type;
@@ -640,7 +643,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2003-10-02 21:13:09  peter
+  Revision 1.59  2003-10-03 14:45:09  peter
+    * more proc directive for procvar fixes
+
+  Revision 1.58  2003/10/02 21:13:09  peter
     * procvar directive parsing fixes
 
   Revision 1.57  2003/10/01 19:05:33  peter
