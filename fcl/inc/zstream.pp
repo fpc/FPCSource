@@ -50,7 +50,7 @@ type
     FStrmPos: Integer;
     FOnProgress: TNotifyEvent;
     FZRec: TZStream;
-    FBuffer: array [Word] of Char;
+    FBuffer: array [Word] of Byte;
   protected
     procedure Progress(Sender: TObject); dynamic;
     property OnProgress: TNotifyEvent read FOnProgress write FOnProgress;
@@ -117,12 +117,12 @@ Const
   SSeekError = 'Compression stream seek error';
   SInvalidSeek = 'Invalid Compression seek operation';
 
-function zlibAllocMem(opaque:pointer; items:uInt; size:uInt):pointer;cdecl;
+function zlibAllocMem(opaque:pointer; items:uInt; size:uInt):pointer;{$ifndef usepaszlib}cdecl;{$endif}
 begin
   Result:=GetMem(Items*Size);
 end;
 
-procedure zlibFreeMem(opaque:pointer; address:pointer);cdecl;
+procedure zlibFreeMem(opaque:pointer; address:pointer);{$ifndef usepaszlib}cdecl;{$endif}
 begin
   FreeMem(address);
 end;
@@ -135,13 +135,8 @@ var
   P: Pointer;
 begin
   FillChar(strm, sizeof(strm), 0);
-{$ifndef usepaszlib}
   strm.zalloc := @zlibAllocMem;
   strm.zfree := @zlibFreeMem;
-{$else}
-  strm.zalloc :=  @zcalloc;
-  strm.zfree :=  @zcfree;
-{$endif}
   OutBytes := ((InBytes + (InBytes div 10) + 12) + 255) and not 255;
   OutBuf:=GetMem(OutBytes);
   try
@@ -156,11 +151,7 @@ begin
         P := OutBuf;
         Inc(OutBytes, 256);
         ReallocMem(OutBuf,OutBytes);
-{$ifndef usepaszlib}
-        strm.next_out := PChar(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
-{$else}
-        strm.next_out := PByteF(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
-{$endif}
+        strm.next_out := PByte(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
         strm.avail_out := 256;
       end;
     finally
@@ -183,13 +174,8 @@ var
   BufInc: Integer;
 begin
   FillChar(strm, sizeof(strm), 0);
-{$ifndef usepaszlib}
   strm.zalloc := @zlibAllocMem;
   strm.zfree := @zlibFreeMem;
-{$else}
-  strm.zalloc := @zcalloc;
-  strm.zfree := @zcfree;
-{$endif}
   BufInc := (InBytes + 255) and not 255;
   if OutEstimate = 0 then
     OutBytes := BufInc
@@ -208,11 +194,7 @@ begin
         P := OutBuf;
         Inc(OutBytes, BufInc);
         ReallocMem(OutBuf, OutBytes);
-{$ifndef usepaszlib}
-        strm.next_out := PChar(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
-{$else}
-        strm.next_out := Pbytef(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
-{$endif}
+        strm.next_out := Pbyte(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
         strm.avail_out := BufInc;
       end;
     finally
@@ -234,13 +216,8 @@ begin
   inherited Create;
   FStrm := Strm;
   FStrmPos := Strm.Position;
-{$ifndef usepaszlib}
   FZRec.zalloc := @zlibAllocMem;
   FZRec.zfree := @zlibFreeMem;
-{$else}
-  FZRec.zalloc :=  @zcalloc;
-  FZRec.zfree :=  @zcfree;
-{$endif}
 end;
 
 procedure TCustomZLibStream.Progress(Sender: TObject);
@@ -258,11 +235,7 @@ const
     (Z_NO_COMPRESSION, Z_BEST_SPEED, Z_DEFAULT_COMPRESSION, Z_BEST_COMPRESSION);
 begin
   inherited Create(Dest);
-{$ifndef usepaszlib}
-  FZRec.next_out := FBuffer;
-{$else}
-  FZRec.next_out :=@FBuffer;
-{$endif}
+  FZRec.next_out := @FBuffer;
   FZRec.avail_out := sizeof(FBuffer);
   CompressionCheck(deflateInit_(FZRec, Levels[CompressionLevel], ZLIB_VERSION, sizeof(FZRec)));
 end;
@@ -277,11 +250,7 @@ begin
       and (FZRec.avail_out = 0) do
     begin
       FStrm.WriteBuffer(FBuffer, sizeof(FBuffer));
-{$ifndef usepaszlib}
-      FZRec.next_out := FBuffer;
-{$else}
       FZRec.next_out := @FBuffer;
-{$endif}
       FZRec.avail_out := sizeof(FBuffer);
     end;
     if FZRec.avail_out < sizeof(FBuffer) then
@@ -320,11 +289,7 @@ begin
     if FZRec.avail_out = 0 then
     begin
       FStrm.WriteBuffer(FBuffer, sizeof(FBuffer));
-{$ifndef usepaszlib}
-      FZRec.next_out := FBuffer;
-{$else}
       FZRec.next_out := @FBuffer;
-{$endif}
       FZRec.avail_out := sizeof(FBuffer);
       FStrmPos := FStrm.Position;
       Progress(Self);
@@ -358,11 +323,7 @@ end;
 constructor TDecompressionStream.Create(Source: TStream);
 begin
   inherited Create(Source);
-{$ifndef usepaszlib}
-  FZRec.next_in := FBuffer;
-{$else}
   FZRec.next_in := @FBuffer;
-{$endif}
   DecompressionCheck(inflateInit_(FZRec, ZLIB_VERSION, sizeof(FZRec)));
 end;
 
@@ -397,11 +358,7 @@ begin
           Result := Count - FZRec.avail_out;
           Exit;
         end;
-{$ifndef usepaszlib}
-      FZRec.next_in := FBuffer;
-{$else}
       FZRec.next_in := @FBuffer;
-{$endif}
       FStrmPos := FStrm.Position;
       Progress(Self);
     end;
@@ -424,11 +381,7 @@ begin
   if (Offset = 0) and (Origin = soFromBeginning) then
   begin
     DecompressionCheck(inflateReset(FZRec));
-{$ifndef usepaszlib}
-    FZRec.next_in := FBuffer;
-{$else}
     FZRec.next_in := @FBuffer;
-{$endif}
     FZRec.avail_in := 0;
     FStrm.Position := 0;
     FStrmPos := 0;
