@@ -277,7 +277,7 @@ end;
 function THandleStream.Read(var Buffer; Count: Longint): Longint;
 
 begin
-  Result:=OSReadHandle(FHandle,Buffer,Count);
+  Result:=FileRead(FHandle,Buffer,Count);
   If Result=-1 then Result:=0;
 end;
 
@@ -285,7 +285,7 @@ end;
 function THandleStream.Write(const Buffer; Count: Longint): Longint;
 
 begin
-  Result:=OSWriteHandle(FHandle,Buffer,Count);
+  Result:=FileWrite (FHandle,Buffer,Count);
   If Result=-1 then Result:=0;
 end;
 
@@ -299,7 +299,10 @@ end;
 constructor TFileStream.Create(const FileName: string; Mode: Word);
 
 begin
-  FHandle:=OSCreateFile (Filename,Mode);
+  If Mode=fmcreate then
+    FHandle:=FileCreate(FileName)
+  else
+    FHAndle:=FileOpen(FileName,Mode);
   If FHandle<0 then
     If Mode=fmcreate then    
       raise EFCreateError.createfmt(SFCreateError,[FileName])
@@ -311,20 +314,20 @@ end;
 destructor TFileStream.Destroy;
 
 begin
-  OSCloseHandle(FHandle);
+  FileClose(FHandle);
 end;
 
 Procedure TFileStream.SetSize(NewSize: Longint);
 
 begin
-  OSSetHandleSize (FHandle,NewSize);
+  FileTruncate(FHandle,NewSize);
 end;
 
 
 function TFileStream.Seek(Offset: Longint; Origin: Word): Longint;
 
 begin
-  Result:=OSSeekHandle (FHandle,OffSet,Origin);
+  Result:=FileSeek(FHandle,Offset,Origin);
 end;
 
 
@@ -610,7 +613,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-01-28 23:55:42  florian
+  Revision 1.10  1999-02-02 21:23:19  michael
+  + only sysutils is used now
+
+  Revision 1.9  1999/01/28 23:55:42  florian
     * made it compilable
 
   Revision 1.8  1998/10/02 22:41:30  michael
