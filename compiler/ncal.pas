@@ -184,9 +184,8 @@ implementation
       systems,
       verbose,globals,
       symconst,paramgr,defutil,defcmp,
-      htypechk,pass_1,cpubase,
+      htypechk,pass_1,
       ncnv,nld,ninl,nadd,ncon,nmem,
-      nutils,
       rgobj,
       cgbase,procinfo
       ;
@@ -2308,18 +2307,19 @@ type
                      CGMessage(cg_e_unable_inline_object_methods);
                    if assigned(right) then
                      CGMessage(cg_e_unable_inline_procvar);
-                   if assigned(inlinecode) then
-                     internalerror(200305261);
-                   if assigned(tprocdef(procdefinition).code) then
-                     inlinecode:=tprocdef(procdefinition).code.getcopy
-                   else
-                     CGMessage(cg_e_no_code_for_inline_stored);
-                   if assigned(inlinecode) then
+                   if not assigned(inlinecode) then
                      begin
-                       { consider it has not inlined if called
-                         again inside the args }
-                       procdefinition.proccalloption:=pocall_default;
-                       firstpass(inlinecode);
+                       if assigned(tprocdef(procdefinition).code) then
+                         inlinecode:=tprocdef(procdefinition).code.getcopy
+                       else
+                         CGMessage(cg_e_no_code_for_inline_stored);
+                       if assigned(inlinecode) then
+                         begin
+                           { consider it has not inlined if called
+                             again inside the args }
+                           procdefinition.proccalloption:=pocall_default;
+                           firstpass(inlinecode);
+                         end;
                      end;
                 end
               else
@@ -2544,7 +2544,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.186  2003-10-02 21:13:46  peter
+  Revision 1.187  2003-10-03 14:44:38  peter
+    * fix IE when callnode was firstpassed twice
+
+  Revision 1.186  2003/10/02 21:13:46  peter
     * protected visibility fixes
 
   Revision 1.185  2003/10/01 20:34:48  peter
