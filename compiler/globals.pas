@@ -77,7 +77,7 @@ interface
        maxlocalsize = high(smallint);
        { maximum number of paras in bytes before warning is emitted }
        maxparasize = high(word);
-       
+
 
     type
        pfileposinfo = ^tfileposinfo;
@@ -815,7 +815,13 @@ implementation
           begin
             CurrPath:=FixPath(FExpand(CurrPath),false);
             if (CurrentDir<>'') and (Copy(CurrPath,1,length(CurrentDir))=CurrentDir) then
-             CurrPath:='.'+source_info.DirSep+Copy(CurrPath,length(CurrentDir)+1,255);
+             begin
+{$ifdef AMIGA}
+               CurrPath:=Copy(CurrPath,length(CurrentDir)+1,255);
+{$else}
+               CurrPath:='.'+source_info.DirSep+Copy(CurrPath,length(CurrentDir)+1,255);
+{$endif}
+             end;
           end;
          { wildcard adding ? }
          if pos('*',currpath)>0 then
@@ -1130,12 +1136,18 @@ implementation
         {$ifdef ver1_0}Linux{$else}Unix{$endif}.Shell(command);
       end;
       {$else}
+      {$ifdef amiga}
+      begin
+        exec('',command);
+      end;
+      {$else}
       var
         comspec : string;
       begin
         comspec:=getenv('COMSPEC');
         Exec(comspec,' /C '+command);
       end;
+      {$endif}
       {$endif}
 
 
@@ -1521,7 +1533,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2002-12-01 22:07:41  carl
+  Revision 1.77  2002-12-06 17:50:00  peter
+    * amiga fixes merged
+
+  Revision 1.76  2002/12/01 22:07:41  carl
     * warning of portabilitiy problems with parasize / localsize
     + some added documentation
 
