@@ -627,9 +627,8 @@ uses
                      if not(is_ordinal(p^.proptype.def) or
                             is_64bitint(p^.proptype.def) or
                             ((p^.proptype.def^.deftype=setdef) and
-                             (psetdef(p^.proptype.def)^.settype=smallset)) or
-                            not(propertyparas^.empty)
-                        ) then
+                             (psetdef(p^.proptype.def)^.settype=smallset))) or
+                        not(propertyparas^.empty) then
                        Message(parser_e_property_cant_have_a_default_value);
                      { Get the result of the default, the firstpass is
                        needed to support values like -1 }
@@ -1594,7 +1593,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.25  2000-06-02 18:48:47  florian
+  Revision 1.26  2000-06-13 17:09:56  kaz
+    * array type property can have default value, fixed.
+
+  Revision 1.25  2000/06/02 18:48:47  florian
     + fieldtable support for classes
 
   Revision 1.24  2000/03/27 21:51:19  pierre
