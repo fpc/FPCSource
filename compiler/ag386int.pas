@@ -20,12 +20,11 @@
 
  ****************************************************************************
 }
-{$ifdef TP}
-  {$N+,E+}
-{$endif}
 unit ag386int;
 
-    interface
+{$i defines.inc}
+
+interface
 
     uses aasm,assemble;
 
@@ -40,7 +39,11 @@ unit ag386int;
   implementation
 
     uses
+{$ifdef delphi}
+      sysutils,
+{$else}
       strings,
+{$endif}
       cutils,globtype,globals,systems,cobjects,
       fmodule,finput,verbose,cpubase,cpuasm
 {$ifdef GDB}
@@ -50,12 +53,6 @@ unit ag386int;
 
     const
       line_length = 70;
-
-{$ifdef EXTTYPE}
-      extstr : array[EXT_NEAR..EXT_ABS] of String[8] =
-             ('NEAR','FAR','PROC','BYTE','WORD','DWORD',
-              'CODEPTR','DATAPTR','FWORD','PWORD','QWORD','TBYTE','ABS');
-{$endif}
 
     function single2str(d : single) : string;
       var
@@ -592,7 +589,7 @@ ait_stab_function_name : ;
     var
       currentasmlist : PAsmList;
 
-    procedure writeexternal(p:pnamedindexobject);{$ifndef FPC}far;{$endif}
+    procedure writeexternal(p:pnamedindexobject);
       begin
         if pasmsymbol(p)^.defbind=AB_EXTERNAL then
          currentasmlist^.AsmWriteln(#9'EXTRN'#9+p^.name);
@@ -601,7 +598,7 @@ ait_stab_function_name : ;
     procedure ti386intasmlist.WriteExternals;
       begin
         currentasmlist:=@self;
-        AsmSymbolList^.foreach({$ifndef VER70}@{$endif}writeexternal);
+        AsmSymbolList^.foreach({$ifdef fpcprocvar}@{$endif}writeexternal);
       end;
 
 
@@ -645,7 +642,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:49  peter
+  Revision 1.6  2000-09-24 15:06:10  peter
+    * use defines.inc
+
+  Revision 1.5  2000/08/27 16:11:49  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

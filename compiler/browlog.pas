@@ -20,21 +20,16 @@
 
  ****************************************************************************
 }
-{$ifdef TP}
-  {$N+,E+}
-{$endif}
 unit browlog;
+
+{$i defines.inc}
 
 interface
 uses
   cobjects,globtype,fmodule,finput,symconst,symtable;
 
 const
-{$ifdef TP}
-  logbufsize   = 1024;
-{$else}
   logbufsize   = 16384;
-{$endif}
 
 type
   pbrowserlog=^tbrowserlog;
@@ -155,11 +150,11 @@ implementation
          else
            begin
              buf[bufidx]:=#0;
-{$ifndef TP}
+{$ifdef FPC}
              write(stderr,buf);
-{$else TP}
+{$else FPC}
              write(buf);
-{$endif TP}
+{$endif FPC}
            end;
         bufidx:=0;
       end;
@@ -448,7 +443,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-08-27 16:11:49  peter
+  Revision 1.4  2000-09-24 15:06:11  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/27 16:11:49  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

@@ -18,48 +18,48 @@
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-    
+
     First Implementation 10 Sept 2000 Armin Diehl
-    
+
     Currently generating NetWare-NLM's only work under Linux. This is
     because nlmconf from binutils does not work with i.e. win32 coff
     object files. It works fine with ELF-Objects.
-    
+
     The following compiler-swiches are supported for NetWare:
     $DESCRIPTION    : NLM-Description, will be displayed at load-time
     $M              : For Stack-Size, Heap-Size will be ignored
     $VERSION x.x.x  : Sets Major, Minor and Revision
-    
+
     Sorry, Displaying copyright does not work with nlmconv from gnu bunutils.
-    
+
     Exports will be handled like in win32:
     procedure bla;
     begin
     end;
-    
+
     exports bla name 'bla';
-    
+
     Without Name 'bla' this will be exported in upper-case.
-    
+
     The path to the import-Files (from netware-sdk, see developer.novell.com)
     must be specified by the library-path. All external modules are defined
     as autoload.
-    
+
     i.e. Procedure ConsolePrintf (p:pchar); cdecl; external 'clib.nlm';
     sets IMPORT @clib.imp and MODULE clib.
-    
+
     If you dont have nlmconv, compile gnu-binutils with
        ./configure --enable-targets=i386-linux,i386-netware
        make all
-       
+
     Debugging is currently only possible at assembler level with nwdbg, written
     by Jan Beulich. Nwdbg supports symbols but it's not a source-level
-    debugger. You can get nwdbg from developer.novell.com. To enter the 
+    debugger. You can get nwdbg from developer.novell.com. To enter the
     debugger from your program, define "EnterDebugger" as external cdecl and
     call it. Int3 will not work with Netware 5.
-    
+
     A sample program:
-    
+
     Program Hello;
     (*$DESCRIPTION HelloWorldNlm*)
     (*$VERSION 1.2.2*)
@@ -67,17 +67,20 @@
     begin
       writeLn ('hello world');
     end.
-    
+
     compile with:
     ppc386 -Tnetware hello
-    
+
     ToDo:
       - No duplicate imports and autoloads
       - Screen and Thread-Names
-    
+
 ****************************************************************************
 }
 unit t_nwm;
+
+{$i defines.inc}
+
 interface
 
   uses
@@ -114,7 +117,7 @@ interface
 implementation
 
   uses
-    cutils,verbose,strings,cobjects,systems,globtype,globals,
+    cutils,verbose,cobjects,systems,globtype,globals,
     symconst,script,
     fmodule,aasm,cpuasm,cpubase,symtable{$IFDEF NEWST},symbols{$ENDIF NEWST};
 
@@ -130,43 +133,22 @@ end;
 procedure timportlibnetware.importprocedure(const func,module : string;index : longint;const name : string);
 begin
   { insert sharedlibrary }
-{$IFDEF NEWST}
-  current_module^.linkothersharedlibs.
-   insert(new(Plinkitem,init(SplitName(module),link_allways)));
-  { do nothing with the procedure, only set the mangledname }
-  if name<>'' then
-    aktprocdef^.setmangledname(name)
-  else
-    message(parser_e_empty_import_name);
-{$ELSE}
-  current_module^.linkothersharedlibs.
-   insert(SplitName(module),link_allways);
+  current_module^.linkothersharedlibs.insert(SplitName(module),link_allways);
   { do nothing with the procedure, only set the mangledname }
   if name<>'' then
     aktprocsym^.definition^.setmangledname(name)
   else
     message(parser_e_empty_import_name);
-{$ENDIF NEWST}
 end;
 
 
 procedure timportlibnetware.importvariable(const varname,module:string;const name:string);
 begin
   { insert sharedlibrary }
-{$IFDEF NEWST}
-  current_module^.linkothersharedlibs.
-   insert(new(Plinkitem,init(SplitName(module),link_allways)));
-{$ELSE}
-  current_module^.linkothersharedlibs.
-   insert(SplitName(module),link_allways);
-{$ENDIF NEWST}
+  current_module^.linkothersharedlibs.insert(SplitName(module),link_allways);
   { reset the mangledname and turn off the dll_var option }
   aktvarsym^.setmangledname(name);
-{$IFDEF NEWST}
-  exclude(aktvarsym^.properties,vo_is_dll_var);
-{$ELSE}
   exclude(aktvarsym^.varoptions,vo_is_dll_var);
-{$ENDIF NEWST}
 end;
 
 
@@ -321,7 +303,7 @@ begin
      if s<>'' then
       LinkRes.Add ('INPUT ' + FindObjectFile (s,''));
    end;
-   
+
   { output file (nlm) }
   LinkRes.Add ('OUTPUT ' + NlmNam);
 
@@ -359,8 +341,8 @@ begin
          names but nlmconv ignores that.
          Here we are setting the import-files for nlmconv. I.e. for
          the module clib or clib.nlm we add IMPORT @clib.imp and also
-	 the module clib.nlm (autoload) 
-	 ? may it be better to set autoload's via StaticLibFiles ? }
+         the module clib.nlm (autoload)
+         ? may it be better to set autoload's via StaticLibFiles ? }
         S:=lower (SharedLibFiles.Get);
         if s<>'' then
          begin
@@ -442,7 +424,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-09-11 17:00:23  florian
+  Revision 1.2  2000-09-24 15:06:31  peter
+    * use defines.inc
+
+  Revision 1.1  2000/09/11 17:00:23  florian
     + first implementation of Netware Module support, thanks to
       Armin Diehl (diehl@nordrhein.de) for providing the patches
 

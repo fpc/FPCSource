@@ -23,7 +23,9 @@
 }
 unit t_win32;
 
-  interface
+{$i defines.inc}
+
+interface
 
   uses
     import,export,link;
@@ -64,7 +66,7 @@ unit t_win32;
     end;
 
 
-  implementation
+implementation
 
     uses
 {$ifdef PAVEL_LINKLIB}
@@ -659,11 +661,7 @@ Function TLinkerWin32.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
-{$IFDEF NEWST}
-  HPath    : PStringItem;
-{$ELSE}
   HPath    : PStringQueueItem;
-{$ENDIF NEWST}
   s,s2        : string;
   found,linklibc : boolean;
 begin
@@ -764,9 +762,9 @@ end;
 Function TLinkerWin32.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
-  HPath    : {$ifdef NEWST} PStringItem {$else} PStringQueueItem {$endif};
-  s,s2        : string;
-  success : boolean;
+  HPath    : PStringQueueItem;
+  s,s2     : string;
+  success  : boolean;
 function ExpandName(const s:string):string;
 var
   sysdir:string;
@@ -1303,7 +1301,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-27 16:11:54  peter
+  Revision 1.5  2000-09-24 15:06:31  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 16:11:54  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

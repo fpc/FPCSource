@@ -22,6 +22,8 @@
 }
 unit export;
 
+{$i defines.inc}
+
 interface
 
 uses
@@ -75,7 +77,7 @@ uses
     ,t_linux
   {$endif}
   {$ifndef NOTARGETFREEBSD}
-    ,t_freebsd
+    ,t_fbsd
   {$endif}
   {$ifndef NOTARGETOS2}
     ,t_os2
@@ -224,7 +226,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-16 12:22:52  peter
+  Revision 1.6  2000-09-24 15:06:16  peter
+    * use defines.inc
+
+  Revision 1.5  2000/09/16 12:22:52  peter
     * freebsd support merged
 
   Revision 1.4  2000/09/11 17:00:22  florian

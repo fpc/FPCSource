@@ -22,6 +22,9 @@
  ****************************************************************************
 }
 unit nflw;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -839,7 +842,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-09-22 22:46:03  florian
+  Revision 1.2  2000-09-24 15:06:19  peter
+    * use defines.inc
+
+  Revision 1.1  2000/09/22 22:46:03  florian
     + initial revision
 
 }

@@ -45,7 +45,7 @@ implementation
 *****************************************************************************}
 
     { reverts the parameter list }
-    var nb_para : integer;
+    var nb_para : longint;
 
     function reversparameter(p : ptree) : ptree;
 
@@ -1537,7 +1537,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-08-27 16:11:49  peter
+  Revision 1.8  2000-09-24 15:06:11  peter
+    * use defines.inc
+
+  Revision 1.7  2000/08/27 16:11:49  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

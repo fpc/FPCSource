@@ -20,13 +20,10 @@
 
  ****************************************************************************
 }
-{$ifdef FPC}
-  {$goto on}
-{$endif FPC}
-{$ifdef TP}
-  {$E+,F+,N+}
-{$endif}
 unit pass_2;
+
+{$i defines.inc}
+
 interface
 
 uses
@@ -558,7 +555,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-08-27 16:11:51  peter
+  Revision 1.8  2000-09-24 15:06:21  peter
+    * use defines.inc
+
+  Revision 1.7  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

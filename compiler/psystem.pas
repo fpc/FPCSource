@@ -21,14 +21,19 @@
  ****************************************************************************
 }
 unit psystem;
+
+{$i defines.inc}
+
 interface
-uses symtable;
+uses
+  symtable;
 
 procedure insertinternsyms(p : psymtable);
 procedure insert_intern_types(p : psymtable);
 
 procedure readconstdefs;
 procedure createconstdefs;
+
 
 implementation
 
@@ -250,7 +255,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-27 20:19:39  peter
+  Revision 1.5  2000-09-24 15:06:24  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 20:19:39  peter
     * store strings with case in ppu, when an internal symbol is created
       a '$' is prefixed so it's not automatic uppercased
 

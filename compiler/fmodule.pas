@@ -22,13 +22,8 @@
 }
 unit fmodule;
 
-{$ifdef TP}
-  {$V+}
-{$endif}
+{$i defines.inc}
 
-{$ifdef TP}
-  {$define SHORTASMPREFIX}
-{$endif}
 {$ifdef go32v1}
   {$define SHORTASMPREFIX}
 {$endif}
@@ -42,19 +37,14 @@ unit fmodule;
   {$define SHORTASMPREFIX}
 {$endif}
 
-
-  interface
+interface
 
     uses
        cutils,cobjects,
        globals,ppu,finput;
 
     const
-{$ifdef tp}
-       maxunits = 128;
-{$else}
        maxunits = 1024;
-{$endif}
 
     type
        trecompile_reason = (rr_unknown,
@@ -911,7 +901,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-08-27 16:11:50  peter
+  Revision 1.2  2000-09-24 15:06:16  peter
+    * use defines.inc
+
+  Revision 1.1  2000/08/27 16:11:50  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

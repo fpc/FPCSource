@@ -18,7 +18,9 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- ****************************************************************************}
+ ****************************************************************************
+}
+program pp;
 
 {
   possible compiler switches (* marks a currently required switch):
@@ -55,6 +57,8 @@
   GDB;M68k;TP
 }
 
+{$i defines.inc}
+
 {$ifdef FPC}
    {$ifndef GDB}
       { people can try to compile without GDB }
@@ -79,180 +83,38 @@
    {$endif support_mmx}
 {$endif}
 
-{$ifdef TP}
-  {$IFNDEF DPMI}
-    {$M 24000,0,655360}
-  {$ELSE}
-    {$M 65000}
-  {$ENDIF DPMI}
-  {$E+,N+,F+,S-,R-}
-{$endif TP}
-
-
-program pp;
-
-{$IFDEF TP}
-  {$UNDEF PROFILE}
-  {$IFDEF DPMI}
-    {$UNDEF USEOVERLAY}
-  {$ENDIF}
-  {$DEFINE NOAG386BIN}
-{$ENDIF}
-{$ifdef FPC}
-  {$UNDEF USEOVERLAY}
-{$ENDIF}
-
 uses
-{$ifdef useoverlay}
-  {$ifopt o+}
-    Overlay,ppovin,
-  {$else}
-    {$error You must compile with the $O+ switch}
-  {$endif}
-{$endif useoverlay}
-{$ifdef profile}
-  profile,
-{$endif profile}
 {$ifdef FPC}
-{$ifdef heaptrc}
-  ppheap,
-{$endif heaptrc}
-{$ifdef linux}
-  catch,
-{$endif}
-{$ifdef go32v2}
+  {$ifdef profile}
+    profile,
+  {$endif profile}
+  {$ifdef heaptrc}
+    ppheap,
+  {$endif heaptrc}
+  {$ifdef linux}
+    catch,
+  {$endif}
+  {$ifdef go32v2}
+    {$ifdef DEBUG}
+      {$define NOCATCH}
+    {$endif DEBUG}
+    catch,
+  {$endif}
+  { we've now a lineinfo unit for all OSes }
   {$ifdef DEBUG}
-    {$define NOCATCH}
+    lineinfo,
   {$endif DEBUG}
-  catch,
-{$endif}
-{ we've now a lineinfo unit for all OSes }
-{$ifdef DEBUG}
-lineinfo,
-{$endif DEBUG}
 {$endif FPC}
-  globals,compiler
-{$ifdef logmemblocks}
-{$ifdef fpc}
-  ,memlog
-{$endif fpc}
-{$endif logmemblocks}
-  ;
-
-{$ifdef useoverlay}
-  {$O files}
-  {$O globals}
-  {$O hcodegen}
-  {$O pass_1}
-  {$O pass_2}
-  {$O tree}
-  {$O types}
-  {$O objects}
-  {$O options}
-  {$O cobjects}
-  {$O globals}
-  {$O systems}
-  {$O parser}
-  {$O pbase}
-  {$O pdecl}
-  {$O pexports}
-  {$O pexpr}
-  {$O pmodules}
-  {$O pstatmnt}
-  {$O psub}
-  {$O psystem}
-  {$O ptconst}
-  {$O script}
-  {$O switches}
-  {$O temp_gen}
-  {$O comphook}
-  {$O dos}
-  {$O scanner}
-  {$O symtable}
-  {$O objects}
-  {$O aasm}
-  {$O link}
-  {$O assemble}
-  {$O messages}
-  {$O gendef}
-  {$O import}
-  {$ifdef gdb}
-        {$O gdb}
-  {$endif gdb}
-  {$ifdef i386}
-        {$O cpubase}
-        {$O cgai386}
-        {$O tgeni386}
-        {$O cg386add}
-        {$O cg386cal}
-        {$O cg386cnv}
-        {$O cg386con}
-        {$O cg386flw}
-        {$O cg386ld}
-        {$O cg386inl}
-        {$O cg386mat}
-        {$O cg386set}
-        {$ifndef NOOPT}
-          {$O aopt386}
-          {$O opts386}
-        {$endif}
-        {$IfNDef Nora386dir}
-          {$O ra386dir}
-        {$endif}
-        {$IfNDef Nora386int}
-          {$O ra386int}
-        {$endif}
-        {$IfNDef Nora386att}
-          {$O ra386att}
-        {$endif}
-        {$ifndef NoAg386Int}
-          {$O ag386int}
-        {$endif}
-        {$ifndef NoAg386Att}
-          {$O ag386att}
-        {$endif}
-        {$ifndef NoAg386Nsm}
-          {$O ag386nsm}
-        {$endif}
-  {$endif}
-  {$ifdef m68k}
-        {$O opts68k}
-        {$O cpubase}
-        {$O cga68k}
-        {$O tgen68k}
-        {$O cg68kadd}
-        {$O cg68kcal}
-        {$O cg68kcnv}
-        {$O cg68kcon}
-        {$O cg68kflw}
-        {$O cg68kld}
-        {$O cg68kinl}
-        {$O cg68kmat}
-        {$O cg68kset}
-        {$IfNDef Nora68kMot}
-          {$O ra68kmot}
-        {$endif}
-        {$IfNDef Noag68kGas}
-          {$O ag68kgas}
-        {$endif}
-        {$IfNDef Noag68kMot}
-          {$O ag68kmot}
-        {$endif}
-        {$IfNDef Noag68kMit}
-          {$O ag68kmit}
-        {$endif}
-  {$endif}
-{$endif useoverlay}
+  globals,compiler;
 
 var
   oldexit : pointer;
-procedure myexit;{$ifndef FPC}far;{$endif}
+procedure myexit;
 begin
   exitproc:=oldexit;
 { Show Runtime error if there was an error }
   if (erroraddr<>nil) then
    begin
-
      case exitcode of
       100:
         begin
@@ -285,16 +147,16 @@ end;
 begin
   oldexit:=exitproc;
   exitproc:=@myexit;
-{$ifdef UseOverlay}
-  InitOverlay;
-{$endif}
 
 { Call the compiler with empty command, so it will take the parameters }
   Halt(compiler.Compile(''));
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:45  michael
+  Revision 1.3  2000-09-24 15:06:23  peter
+    * use defines.inc
+
+  Revision 1.2  2000/07/13 11:32:45  michael
   + removed logs
 
 }

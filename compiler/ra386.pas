@@ -20,7 +20,10 @@
 
  ****************************************************************************
 }
-Unit Ra386;
+unit Ra386;
+
+{$i defines.inc}
+
 interface
 
 uses
@@ -453,7 +456,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-09-16 12:22:52  peter
+  Revision 1.5  2000-09-24 15:06:25  peter
+    * use defines.inc
+
+  Revision 1.4  2000/09/16 12:22:52  peter
     * freebsd support merged
 
   Revision 1.3  2000/09/03 11:44:00  peter

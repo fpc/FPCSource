@@ -22,12 +22,14 @@
 }
 unit pexports;
 
-  interface
+{$i defines.inc}
+
+interface
 
     { reads an exports statement in a library }
     procedure read_exports;
 
-  implementation
+implementation
 
     uses
       globtype,systems,tokens,
@@ -153,7 +155,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-08-27 16:11:51  peter
+  Revision 1.4  2000-09-24 15:06:21  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

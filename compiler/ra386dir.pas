@@ -22,7 +22,9 @@
 }
 unit Ra386dir;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses
       tree;
@@ -58,15 +60,7 @@ unit Ra386dir;
            i:=length(s);
            while (i>0) and (s[i] in [' ',#9]) do
             dec(i);
-           {$ifndef TP}
-             {$ifopt H+}
-               setlength(s,i);
-             {$else}
-               s[0]:=chr(i);
-             {$endif}
-           {$else}
-             s[0]:=chr(i);
-           {$endif}
+           s[0]:=chr(i);
            if s<>'' then
             code^.concat(new(pai_direct,init(strpnew(s))));
             { consider it set function set if the offset was loaded }
@@ -107,15 +101,7 @@ unit Ra386dir;
                            hs[i]:=c;
                            c:=current_scanner^.asmgetchar;
                         end;
-                      {$ifndef TP}
-                        {$ifopt H+}
-                          setlength(hs,i);
-                        {$else}
-                          hs[0]:=chr(i);
-                        {$endif}
-                      {$else}
-                         hs[0]:=chr(i);
-                      {$endif}
+                      hs[0]:=chr(i);
                       if upper(hs)='END' then
                          ende:=true
                       else
@@ -276,15 +262,7 @@ unit Ra386dir;
              else
                begin
                  current_scanner^.gettokenpos;
-                 {$ifndef TP}
-                   {$ifopt H+}
-                     setlength(s,length(s)+1);
-                   {$else}
-                     inc(byte(s[0]));
-                   {$endif}
-                 {$else}
-                    inc(byte(s[0]));
-                 {$endif}
+                 inc(byte(s[0]));
                  s[length(s)]:=c;
                  c:=current_scanner^.asmgetchar;
                end;
@@ -297,7 +275,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-27 16:11:52  peter
+  Revision 1.4  2000-09-24 15:06:26  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/27 16:11:52  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit psub;
+
+{$i defines.inc}
+
 interface
 
 uses
@@ -487,10 +490,6 @@ end;
                         Procedure directive handlers
 ****************************************************************************}
 
-{$ifdef tp}
-  {$F+}
-{$endif}
-
 procedure pd_far(const procnames:Tstringcontainer);
 begin
   Message(parser_w_proc_far_ignored);
@@ -661,7 +660,7 @@ begin
 end;
 
 
-procedure resetvaluepara(p:pnamedindexobject);{$ifndef FPC}far;{$endif}
+procedure resetvaluepara(p:pnamedindexobject);
 begin
   if psym(p)^.typ=varsym then
     with pvarsym(p)^ do
@@ -677,7 +676,7 @@ begin
   { do not copy on local !! }
   if (aktprocsym^.definition^.deftype=procdef) and
      assigned(aktprocsym^.definition^.parast) then
-    aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}resetvaluepara);
+    aktprocsym^.definition^.parast^.foreach({$ifdef FPCPROCVAR}@{$endif}resetvaluepara);
 end;
 
 
@@ -800,16 +799,6 @@ begin
     end;
 end;
 
-{$ifdef TP}
-  {$F-}
-{$endif}
-
-{$ifdef Delphi}
-  {$define TP}
-{$endif Delphi}
-
-{const
-   namelength=15;}
 type
    pd_handler=procedure(const procnames:Tstringcontainer);
    proc_dir_rec=record
@@ -830,7 +819,7 @@ const
     (
       idtok:_ABSTRACT;
       pd_flags : pd_interface+pd_object;
-      handler  : {$ifndef TP}@{$endif}pd_abstract;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_abstract;
       pocall   : [];
       pooption : [po_abstractmethod];
       mutexclpocall : [pocall_internproc,pocall_inline];
@@ -839,7 +828,7 @@ const
     ),(
       idtok:_ALIAS;
       pd_flags : pd_implemen+pd_body;
-      handler  : {$ifndef TP}@{$endif}pd_alias;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_alias;
       pocall   : [];
       pooption : [];
       mutexclpocall : [pocall_inline];
@@ -848,7 +837,7 @@ const
     ),(
       idtok:_ASMNAME;
       pd_flags : pd_interface+pd_implemen;
-      handler  : {$ifndef TP}@{$endif}pd_asmname;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_asmname;
       pocall   : [pocall_cdecl,pocall_clearstack];
       pooption : [po_external];
       mutexclpocall : [pocall_internproc];
@@ -866,7 +855,7 @@ const
     ),(
       idtok:_CDECL;
       pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
-      handler  : {$ifndef TP}@{$endif}pd_cdecl;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_cdecl;
       pocall   : [pocall_cdecl,pocall_clearstack];
       pooption : [po_savestdregs];
       mutexclpocall : [pocall_internproc,pocall_leftright,pocall_inline];
@@ -875,7 +864,7 @@ const
     ),(
       idtok:_DYNAMIC;
       pd_flags : pd_interface+pd_object;
-      handler  : {$ifndef TP}@{$endif}pd_virtual;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_virtual;
       pocall   : [];
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_internproc,pocall_inline];
@@ -884,7 +873,7 @@ const
     ),(
       idtok:_EXPORT;
       pd_flags : pd_body+pd_global+pd_interface+pd_implemen{??};
-      handler  : {$ifndef TP}@{$endif}pd_export;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_export;
       pocall   : [];
       pooption : [po_exports];
       mutexclpocall : [pocall_internproc,pocall_inline];
@@ -893,7 +882,7 @@ const
     ),(
       idtok:_EXTERNAL;
       pd_flags : pd_implemen+pd_interface;
-      handler  : {$ifndef TP}@{$endif}pd_external;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_external;
       pocall   : [];
       pooption : [po_external];
       mutexclpocall : [pocall_internproc,pocall_inline,pocall_palmossyscall];
@@ -902,7 +891,7 @@ const
     ),(
       idtok:_FAR;
       pd_flags : pd_implemen+pd_body+pd_interface+pd_procvar;
-      handler  : {$ifndef TP}@{$endif}pd_far;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_far;
       pocall   : [];
       pooption : [];
       mutexclpocall : [pocall_internproc,pocall_inline];
@@ -911,7 +900,7 @@ const
     ),(
       idtok:_FORWARD;
       pd_flags : pd_implemen;
-      handler  : {$ifndef TP}@{$endif}pd_forward;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_forward;
       pocall   : [];
       pooption : [];
       mutexclpocall : [pocall_internproc,pocall_inline];
@@ -920,7 +909,7 @@ const
     ),(
       idtok:_INLINE;
       pd_flags : pd_implemen+pd_body;
-      handler  : {$ifndef TP}@{$endif}pd_inline;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_inline;
       pocall   : [pocall_inline];
       pooption : [];
       mutexclpocall : [pocall_internproc];
@@ -929,7 +918,7 @@ const
     ),(
       idtok:_INTERNCONST;
       pd_flags : pd_implemen+pd_body;
-      handler  : {$ifndef TP}@{$endif}pd_intern;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_intern;
       pocall   : [pocall_internconst];
       pooption : [];
       mutexclpocall : [];
@@ -938,7 +927,7 @@ const
     ),(
       idtok:_INTERNPROC;
       pd_flags : pd_implemen;
-      handler  : {$ifndef TP}@{$endif}pd_intern;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_intern;
       pocall   : [pocall_internproc];
       pooption : [];
       mutexclpocall : [pocall_inline,pocall_clearstack,pocall_leftright,pocall_cdecl];
@@ -947,7 +936,7 @@ const
     ),(
       idtok:_INTERRUPT;
       pd_flags : pd_implemen+pd_body;
-      handler  : {$ifndef TP}@{$endif}pd_interrupt;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_interrupt;
       pocall   : [];
       pooption : [po_interrupt];
       mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_clearstack,pocall_leftright,pocall_inline];
@@ -965,7 +954,7 @@ const
     ),(
       idtok:_MESSAGE;
       pd_flags : pd_interface+pd_object;
-      handler  : {$ifndef TP}@{$endif}pd_message;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_message;
       pocall   : [];
       pooption : []; { can be po_msgstr or po_msgint }
       mutexclpocall : [pocall_inline,pocall_internproc];
@@ -974,7 +963,7 @@ const
     ),(
       idtok:_NEAR;
       pd_flags : pd_implemen+pd_body+pd_procvar;
-      handler  : {$ifndef TP}@{$endif}pd_near;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_near;
       pocall   : [];
       pooption : [];
       mutexclpocall : [pocall_internproc];
@@ -983,7 +972,7 @@ const
     ),(
       idtok:_OVERLOAD;
       pd_flags : pd_implemen+pd_interface+pd_body;
-      handler  : {$ifndef TP}@{$endif}pd_overload;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_overload;
       pocall   : [];
       pooption : [po_overload];
       mutexclpocall : [pocall_internproc];
@@ -992,7 +981,7 @@ const
     ),(
       idtok:_OVERRIDE;
       pd_flags : pd_interface+pd_object;
-      handler  : {$ifndef TP}@{$endif}pd_override;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_override;
       pocall   : [];
       pooption : [po_overridingmethod,po_virtualmethod];
       mutexclpocall : [pocall_inline,pocall_internproc];
@@ -1001,7 +990,7 @@ const
     ),(
       idtok:_PASCAL;
       pd_flags : pd_implemen+pd_body+pd_procvar;
-      handler  : {$ifndef TP}@{$endif}pd_pascal;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_pascal;
       pocall   : [pocall_leftright];
       pooption : [];
       mutexclpocall : [pocall_internproc];
@@ -1028,7 +1017,7 @@ const
     ),(
       idtok:_REGISTER;
       pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
-      handler  : {$ifndef TP}@{$endif}pd_register;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_register;
       pocall   : [pocall_register];
       pooption : [];
       mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_internproc];
@@ -1037,7 +1026,7 @@ const
     ),(
       idtok:_REINTRODUCE;
       pd_flags : pd_interface+pd_object;
-      handler  : {$ifndef TP}@{$endif}pd_reintroduce;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_reintroduce;
       pocall   : [];
       pooption : [];
       mutexclpocall : [];
@@ -1046,7 +1035,7 @@ const
     ),(
       idtok:_SAFECALL;
       pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
-      handler  : {$ifndef TP}@{$endif}pd_safecall;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_safecall;
       pocall   : [pocall_safecall];
       pooption : [po_savestdregs];
       mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_internproc,pocall_inline];
@@ -1064,7 +1053,7 @@ const
     ),(
       idtok:_STATIC;
       pd_flags : pd_interface+pd_object;
-      handler  : {$ifndef TP}@{$endif}pd_static;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_static;
       pocall   : [];
       pooption : [po_staticmethod];
       mutexclpocall : [pocall_inline,pocall_internproc];
@@ -1073,7 +1062,7 @@ const
     ),(
       idtok:_STDCALL;
       pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
-      handler  : {$ifndef TP}@{$endif}pd_stdcall;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_stdcall;
       pocall   : [pocall_stdcall];
       pooption : [po_savestdregs];
       mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_inline,pocall_internproc];
@@ -1082,7 +1071,7 @@ const
     ),(
       idtok:_SYSCALL;
       pd_flags : pd_interface;
-      handler  : {$ifndef TP}@{$endif}pd_syscall;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_syscall;
       pocall   : [pocall_palmossyscall];
       pooption : [];
       mutexclpocall : [pocall_cdecl,pocall_inline,pocall_internproc];
@@ -1091,7 +1080,7 @@ const
     ),(
       idtok:_SYSTEM;
       pd_flags : pd_implemen;
-      handler  : {$ifndef TP}@{$endif}pd_system;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_system;
       pocall   : [pocall_clearstack];
       pooption : [];
       mutexclpocall : [pocall_leftright,pocall_inline,pocall_internproc];
@@ -1100,7 +1089,7 @@ const
     ),(
       idtok:_VIRTUAL;
       pd_flags : pd_interface+pd_object;
-      handler  : {$ifndef TP}@{$endif}pd_virtual;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_virtual;
       pocall   : [];
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_inline,pocall_internproc];
@@ -1865,7 +1854,7 @@ begin
     Message(parser_e_self_in_non_message_handler);
 end;
 
-procedure checkvaluepara(p:pnamedindexobject);{$ifndef FPC}far;{$endif}
+procedure checkvaluepara(p:pnamedindexobject);
 var
   vs : pvarsym;
   s  : string;
@@ -2029,7 +2018,7 @@ begin
      the parameter and insert a copy in the localst. This is not done
      for assembler procedures }
    if (not parse_only) and (not aktprocsym^.definition^.forwarddef) then
-     aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}checkvaluepara);
+     aktprocsym^.definition^.parast^.foreach({$ifdef FPCPROCVAR}@{$endif}checkvaluepara);
 
 { restore file pos }
    aktfilepos:=oldfilepos;
@@ -2081,10 +2070,12 @@ begin
 end;
 
 end.
-
 {
   $Log$
-  Revision 1.12  2000-09-10 20:11:07  peter
+  Revision 1.13  2000-09-24 15:06:24  peter
+    * use defines.inc
+
+  Revision 1.12  2000/09/10 20:11:07  peter
     * overload checking in implementation removed (merged)
 
   Revision 1.11  2000/09/04 20:15:19  peter

@@ -26,20 +26,12 @@
 }
 unit cpubase;
 
+{$i defines.inc}
 
 interface
-{$ifdef TP}
-  {$L-,Y-}
-{$endif}
-
-{$ifdef FPC}
-  {$ifdef PACKENUMFIXED}
-    {$PACKENUM 1}
-  {$endif}
-{$endif}
 
 uses
-  globals,strings,cutils,cobjects,aasm;
+  globals,cutils,cobjects,aasm;
 
 const
 { Size of the instruction table converted by nasmconv.pas }
@@ -52,21 +44,14 @@ const
 {$define INTELOP}
 {$define ITTABLE}
 
-{ For TP we can't use asmdebug due the table sizes }
-{$ifndef TP}
-  {$define ASMDEBUG}
-{$endif}
-
 { We Don't need the intel style opcodes if we don't have a intel
   reader or generator }
-{$ifndef ASMDEBUG}
 {$ifdef NORA386INT}
   {$ifdef NOAG386NSM}
     {$ifdef NOAG386INT}
       {$undef INTELOP}
     {$endif}
   {$endif}
-{$endif}
 {$endif}
 
 { We Don't need the AT&T style opcodes if we don't have a AT&T
@@ -890,8 +875,8 @@ begin
 {$endif NOAG386BIN}
 end;
 
-procedure InitCpu;
 
+procedure InitCpu;
 begin
 {$ifndef NOAG386BIN}
   if not assigned(instabcache) then
@@ -902,7 +887,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:50  peter
+  Revision 1.6  2000-09-24 15:06:14  peter
+    * use defines.inc
+
+  Revision 1.5  2000/08/27 16:11:50  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

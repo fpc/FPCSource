@@ -20,6 +20,9 @@
     }
 
 unit opts68k;
+
+{$i defines.inc}
+
 interface
 
 uses
@@ -71,7 +74,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-27 16:11:51  peter
+  Revision 1.4  2000-09-24 15:06:20  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

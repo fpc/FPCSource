@@ -20,6 +20,9 @@
  ****************************************************************************
 }
 unit tokens;
+
+{$i defines.inc}
+
 interface
 
 uses
@@ -27,7 +30,6 @@ uses
 
 const
   tokenidlen=14;
-  tokheader=#8'Free Pascal Compiler -- Token data'#13#10#26;
 
 type
   ttoken=(NOTOKEN,
@@ -426,12 +428,8 @@ procedure inittokens;
 procedure donetokens;
 procedure create_tokenidx;
 
-implementation
 
-{$ifdef TP}
-uses
-  dos;
-{$endif}
+implementation
 
 procedure create_tokenidx;
 { create an index with the first and last token for every possible token
@@ -452,76 +450,26 @@ begin
 end;
 
 procedure inittokens;
-{$ifdef TP}
-var
-  f:file;
-  n : namestr;
-  d : dirstr;
-  e : extstr;
-  header:string;
-  a:longint;
-{$endif TP}
 begin
-{$ifdef TP}
-    fsplit(paramstr(0),d,n,e);
-    { when debugging d=''!!!! FK }
-    if d='' then
-      assign(f,'tokens.dat')
-    else
-      assign(f,d+'tokens.dat');
-    {$I-}
-    reset(f,1);
-    {We are not sure that the msg file is loaded!}
-    if ioresult<>0 then
-        begin
-            { Very nice indeed !!! PM }
-            writeln('Fatal: File tokens.dat not found.');
-            close(f);
-            halt(3);
-        end;
-    blockread(f,header,1);
-    blockread(f,header[1],length(header));
-    blockread(f,a,sizeof(a));
-    if (ioresult<>0) or
-       (header<>tokheader) or (a<>sizeof(ttokenarray)) then
-     begin
-       writeln('Fatal: File tokens.dat corrupt.');
-       close(f);
-       halt(3);
-     end;
-    new(tokeninfo);
-    blockread(f,tokeninfo^,sizeof(ttokenarray));
-    new(tokenidx);
-    blockread(f,tokenidx^,sizeof(tokenidx^));
-    close(f);
-{$I+}
-    if (ioresult<>0) then
-     begin
-       writeln('Fatal: File tokens.dat corrupt.');
-       halt(3);
-     end;
-{$else not TP}
   tokeninfo:=@arraytokeninfo;
   new(tokenidx);
   create_tokenidx;
-{$endif not TP}
 end;
 
 
 procedure donetokens;
 begin
-{$ifdef TP}
-    dispose(tokeninfo);
-{$else TP}
-    tokeninfo:=nil;
-{$endif TP}
-    dispose(tokenidx);
+  tokeninfo:=nil;
+  dispose(tokenidx);
 end;
 
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:28  michael
+  Revision 1.4  2000-09-24 15:06:32  peter
+    * use defines.inc
+
+  Revision 1.3  2000/07/13 12:08:28  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:52  michael

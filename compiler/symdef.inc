@@ -2084,7 +2084,7 @@
          { procedure of needs_rtti !                         }
          oldb:=binittable;
          binittable:=false;
-         symtable^.foreach({$ifndef TP}@{$endif}check_rec_inittable);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}check_rec_inittable);
          needs_inittable:=binittable;
          binittable:=oldb;
       end;
@@ -2213,7 +2213,7 @@
         stabrecsize:=memsizeinc;
         strpcopy(stabRecString,'s'+tostr(size));
         RecOffset := 0;
-        symtable^.foreach({$ifndef TP}@{$endif}addname);
+        symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
         { FPC doesn't want to convert a char to a pchar}
         { is this a bug ? }
         strpcopy(strend(StabRecString),';');
@@ -2236,7 +2236,7 @@
     var
        count : longint;
 
-    procedure count_inittable_fields(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
+    procedure count_inittable_fields(sym : pnamedindexobject);
       begin
          if ((psym(sym)^.typ=varsym) and
             pvarsym(sym)^.vartype.def^.needs_inittable)
@@ -2246,13 +2246,13 @@
       end;
 
 
-    procedure count_fields(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
+    procedure count_fields(sym : pnamedindexobject);
       begin
             inc(count);
       end;
 
 
-    procedure write_field_inittable(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
+    procedure write_field_inittable(sym : pnamedindexobject);
       begin
          if ((psym(sym)^.typ=varsym) and
             pvarsym(sym)^.vartype.def^.needs_inittable) and
@@ -2265,14 +2265,14 @@
       end;
 
 
-    procedure write_field_rtti(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
+    procedure write_field_rtti(sym : pnamedindexobject);
       begin
          rttilist^.concat(new(pai_const_symbol,initname(pvarsym(sym)^.vartype.def^.get_rtti_label)));
          rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
       end;
 
 
-    procedure generate_child_inittable(sym:pnamedindexobject);{$ifndef fpc}far;{$endif}
+    procedure generate_child_inittable(sym:pnamedindexobject);
       begin
          if (psym(sym)^.typ=varsym) and
             pvarsym(sym)^.vartype.def^.needs_inittable then
@@ -2281,7 +2281,7 @@
       end;
 
 
-    procedure generate_child_rtti(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
+    procedure generate_child_rtti(sym : pnamedindexobject);
       begin
          pvarsym(sym)^.vartype.def^.get_rtti_label;
       end;
@@ -2289,13 +2289,13 @@
 
     procedure trecorddef.write_child_rtti_data;
       begin
-         symtable^.foreach({$ifndef TP}@{$endif}generate_child_rtti);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}generate_child_rtti);
       end;
 
 
     procedure trecorddef.write_child_init_data;
       begin
-         symtable^.foreach({$ifndef TP}@{$endif}generate_child_inittable);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}generate_child_inittable);
       end;
 
 
@@ -2305,9 +2305,9 @@
          write_rtti_name;
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
-         symtable^.foreach({$ifndef TP}@{$endif}count_fields);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_fields);
          rttilist^.concat(new(pai_const,init_32bit(count)));
-         symtable^.foreach({$ifndef TP}@{$endif}write_field_rtti);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_rtti);
       end;
 
 
@@ -2317,9 +2317,9 @@
          write_rtti_name;
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
-         symtable^.foreach({$ifndef TP}@{$endif}count_inittable_fields);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_inittable_fields);
          rttilist^.concat(new(pai_const,init_32bit(count)));
-         symtable^.foreach({$ifndef TP}@{$endif}write_field_inittable);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_inittable);
       end;
 
     function trecorddef.gettypename : string;
@@ -2654,8 +2654,6 @@
 
 
     constructor tprocdef.load;
-      var
-         s : string;
       begin
          inherited load;
          deftype:=procdef;
@@ -2670,8 +2668,7 @@
          usedregisters:=readword;
 {$endif}
 {$endif newcg}
-         s:=readstring;
-         setstring(_mangledname,s);
+         _mangledname:=stringdup(readstring);
 
          extnumber:=readlong;
          nextoverloaded:=pprocdef(readdefref);
@@ -2878,12 +2875,8 @@ Const local_symtable_index : longint = $8001;
            dispose(pregvarinfo(regvarinfo));
          if (po_msgstr in procoptions) then
            strdispose(messageinf.str);
-         if
-{$ifdef tp}
-         not(use_big) and
-{$endif}
-           assigned(_mangledname) then
-           strdispose(_mangledname);
+         if assigned(_mangledname) then
+           stringdispose(_mangledname);
          inherited done;
       end;
 
@@ -2998,7 +2991,7 @@ Const local_symtable_index : longint = $8001;
         strpcopy(strend(StabRecString),','+tostr(i)+';');
         (* confuse gdb !! PM
         if assigned(parast) then
-          parast^.foreach({$ifndef TP}@{$endif}addparaname)
+          parast^.foreach({$ifdef FPCPROCVAR}@{$endif}addparaname)
           else
           begin
           param := para1;
@@ -3050,27 +3043,11 @@ Const local_symtable_index : longint = $8001;
 
 
     function tprocdef.mangledname : string;
-{$ifdef tp}
-      var
-         oldpos : longint;
-         s : string;
-         b : byte;
-{$endif tp}
       begin
-{$ifndef Delphi}
-{$ifdef tp}
-         if use_big then
-           begin
-              symbolstream.seek(longint(_mangledname));
-              symbolstream.read(b,1);
-              symbolstream.read(s[1],b);
-              s[0]:=chr(b);
-              mangledname:=s;
-           end
+         if assigned(_mangledname) then
+           mangledname:=_mangledname^
          else
-{$endif}
-{$endif Delphi}
-          mangledname:=strpas(_mangledname);
+           mangledname:='';
          if count then
            is_used:=true;
       end;
@@ -3173,14 +3150,14 @@ Const local_symtable_index : longint = $8001;
 
     procedure tprocdef.setmangledname(const s : string);
       begin
-         if {$ifdef tp}not(use_big) and{$endif} (assigned(_mangledname)) then
+         if assigned(_mangledname) then
            begin
 {$ifdef MEMDEBUG}
               dec(manglenamesize,length(_mangledname^));
 {$endif}
-              strdispose(_mangledname);
+              stringdispose(_mangledname);
            end;
-         setstring(_mangledname,s);
+         _mangledname:=stringdup(s);
 {$ifdef MEMDEBUG}
          inc(manglenamesize,length(s));
 {$endif}
@@ -3562,7 +3539,7 @@ Const local_symtable_index : longint = $8001;
    var
       sd : pprocdef;
 
-   procedure _searchdestructor(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
+   procedure _searchdestructor(sym : pnamedindexobject);
 
      var
         p : pprocdef;
@@ -3597,7 +3574,7 @@ Const local_symtable_index : longint = $8001;
         sd:=nil;
         while assigned(o) do
           begin
-             symtable^.foreach({$ifndef TP}@{$endif}_searchdestructor);
+             symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}_searchdestructor);
              if assigned(sd) then
                begin
                   searchdestructor:=sd;
@@ -3807,7 +3784,7 @@ Const local_symtable_index : longint = $8001;
             {virtual table to implement yet}
             RecOffset := 0;
             inc(globalnb);
-            symtable^.foreach({$ifndef TP}@{$endif}addname);
+            symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
             dec(globalnb);
             if (oo_has_vmt in objectoptions) then
               if not assigned(childof) or not(oo_has_vmt in childof^.objectoptions) then
@@ -3815,7 +3792,7 @@ Const local_symtable_index : longint = $8001;
                     strpcopy(strend(stabrecstring),'$vf'+numberstring+':'+typeglobalnumber('vtblarray')
                       +','+tostr(vmt_offset*8)+';');
                  end;
-            symtable^.foreach({$ifndef TP}@{$endif}addprocname);
+            symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}addprocname);
             if (oo_has_vmt in objectoptions) then
               begin
                  anc := @self;
@@ -3906,7 +3883,7 @@ Const local_symtable_index : longint = $8001;
 
     procedure tobjectdef.write_child_init_data;
       begin
-         symtable^.foreach({$ifndef TP}@{$endif}generate_child_inittable);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}generate_child_inittable);
       end;
 
 
@@ -3923,9 +3900,9 @@ Const local_symtable_index : longint = $8001;
 
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
-         symtable^.foreach({$ifndef TP}@{$endif}count_inittable_fields);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_inittable_fields);
          rttilist^.concat(new(pai_const,init_32bit(count)));
-         symtable^.foreach({$ifndef TP}@{$endif}write_field_inittable);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_inittable);
       end;
 
 
@@ -3943,7 +3920,7 @@ Const local_symtable_index : longint = $8001;
               { procedure of needs_rtti !                              }
               oldb:=binittable;
               binittable:=false;
-              symtable^.foreach({$ifndef TP}@{$endif}check_rec_inittable);
+              symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}check_rec_inittable);
               needs_inittable:=binittable;
               binittable:=oldb;
            end;
@@ -3951,7 +3928,6 @@ Const local_symtable_index : longint = $8001;
 
 
     procedure count_published_properties(sym:pnamedindexobject);
-      {$ifndef fpc}far;{$endif}
       begin
          if needs_prop_entry(psym(sym)) and
           (psym(sym)^.typ<>varsym) then
@@ -3959,7 +3935,7 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
-    procedure write_property_info(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
+    procedure write_property_info(sym : pnamedindexobject);
       var
          proctypesinfo : byte;
 
@@ -4063,7 +4039,7 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
-    procedure generate_published_child_rtti(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
+    procedure generate_published_child_rtti(sym : pnamedindexobject);
       begin
          if needs_prop_entry(psym(sym)) then
            case psym(sym)^.typ of
@@ -4082,7 +4058,7 @@ Const local_symtable_index : longint = $8001;
 
     procedure tobjectdef.write_child_rtti_data;
       begin
-         symtable^.foreach({$ifndef TP}@{$endif}generate_published_child_rtti);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}generate_published_child_rtti);
       end;
 
 
@@ -4130,11 +4106,8 @@ Const local_symtable_index : longint = $8001;
       end;
 
     procedure count_published_fields(sym:pnamedindexobject);
-      {$ifndef fpc}far;{$endif}
-
       var
          hp : pclasslistitem;
-
       begin
          if needs_prop_entry(psym(sym)) and
           (psym(sym)^.typ=varsym) then
@@ -4155,11 +4128,8 @@ Const local_symtable_index : longint = $8001;
       end;
 
     procedure writefields(sym:pnamedindexobject);
-      {$ifndef fpc}far;{$endif}
-
       var
          hp : pclasslistitem;
-
       begin
          if needs_prop_entry(psym(sym)) and
           (psym(sym)^.typ=varsym) then
@@ -4216,7 +4186,7 @@ Const local_symtable_index : longint = $8001;
          else
            i:=0;
          count:=0;
-         symtable^.foreach({$ifndef TP}@{$endif}count_published_properties);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
          next_free_name_index:=i+count;
       end;
 
@@ -4248,7 +4218,7 @@ Const local_symtable_index : longint = $8001;
            count:=0;
 
          { write it }
-         symtable^.foreach({$ifndef TP}@{$endif}count_published_properties);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
          rttilist^.concat(new(pai_const,init_16bit(count)));
 
          { write unit name }
@@ -4262,7 +4232,7 @@ Const local_symtable_index : longint = $8001;
 
          { write published properties count }
          count:=0;
-         symtable^.foreach({$ifndef TP}@{$endif}count_published_properties);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
          rttilist^.concat(new(pai_const,init_16bit(count)));
 
          { count is used to write nameindex   }
@@ -4273,7 +4243,7 @@ Const local_symtable_index : longint = $8001;
          else
            count:=0;
 
-         symtable^.foreach({$ifndef TP}@{$endif}write_property_info);
+         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}write_property_info);
       end;
 
 
@@ -4341,7 +4311,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.17  2000-09-19 23:08:02  pierre
+  Revision 1.18  2000-09-24 15:06:28  peter
+    * use defines.inc
+
+  Revision 1.17  2000/09/19 23:08:02  pierre
    * fixes for local class debuggging problem (merged)
 
   Revision 1.16  2000/09/10 20:13:37  peter

@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit version;
+
+{$i defines.inc}
+
 interface
 
     const
@@ -89,12 +92,13 @@ begin
    full_version_string := version_nr+'.'+release_nr+'.'+patch_nr+minorpatch;
 end;
 
-
-begin
 end.
 {
   $Log$
-  Revision 1.5  2000-07-14 05:14:10  michael
+  Revision 1.6  2000-09-24 15:06:33  peter
+    * use defines.inc
+
+  Revision 1.5  2000/07/14 05:14:10  michael
   + Adapted wordversion
 
   Revision 1.4  2000/07/14 05:11:49  michael

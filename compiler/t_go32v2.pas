@@ -23,7 +23,10 @@
 }
 unit t_go32v2;
 
-  interface
+{$i defines.inc}
+
+interface
+
   uses
     link;
 
@@ -43,7 +46,7 @@ unit t_go32v2;
   implementation
 
     uses
-       cutils,strings,globtype,globals,cobjects,systems,verbose,script,fmodule;
+       cutils,globtype,globals,cobjects,systems,verbose,script,fmodule;
 
 
 {****************************************************************************
@@ -79,11 +82,7 @@ Function TLinkerGo32v2.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
-{$IFDEF NEWST}
-  HPath    : PStringItem;
-{$ELSE}
   HPath    : PStringQueueItem;
-{$ENDIF NEWST}
   s        : string;
   linklibc : boolean;
 begin
@@ -164,11 +163,6 @@ Function TLinkerGo32v2.WriteScript(isdll:boolean) : Boolean;
 Var
   scriptres  : TLinkRes;
   i        : longint;
-{$IFDEF NEWST}
-  HPath    : PStringItem;
-{$ELSE}
-  HPath    : PStringQueueItem;
-{$ENDIF NEWST}
   s        : string;
   linklibc : boolean;
 begin
@@ -435,7 +429,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-27 16:11:54  peter
+  Revision 1.5  2000-09-24 15:06:31  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 16:11:54  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

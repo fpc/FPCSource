@@ -23,7 +23,9 @@
 }
 unit systems;
 
-  interface
+{$i defines.inc}
+
+interface
 
    type
        tendian = (endian_little,endian_big);
@@ -242,6 +244,9 @@ unit systems;
 
 
 implementation
+
+    uses
+      cutils;
 
     const
 
@@ -1445,47 +1450,6 @@ implementation
                                 Helpers
 ****************************************************************************}
 
-function upper(const s : string) : string;
-var
-  i  : longint;
-begin
-  for i:=1 to length(s) do
-   if s[i] in ['a'..'z'] then
-    upper[i]:=char(byte(s[i])-32)
-   else
-    upper[i]:=s[i];
-{$ifndef TP}
-  {$ifopt H+}
-    SetLength(upper,length(s));
-  {$else}
-    upper[0]:=s[0];
-  {$endif}
-{$else}
-  upper[0]:=s[0];
-{$endif}
-end;
-
-function lower(const s : string) : string;
-var
-  i : longint;
-begin
-  for i:=1 to length(s) do
-   if s[i] in ['A'..'Z'] then
-    lower[i]:=char(byte(s[i])+32)
-   else
-    lower[i]:=s[i];
-  {$ifndef TP}
-    {$ifopt H+}
-      setlength(lower,length(s));
-    {$else}
-      lower[0]:=s[0];
-    {$endif}
-  {$else}
-    lower[0]:=s[0];
-  {$endif}
-end;
-
-
 function set_target_os(t:tos):boolean;
 var
   i : longint;
@@ -1761,7 +1725,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-09-20 10:49:39  marco
+  Revision 1.9  2000-09-24 15:06:30  peter
+    * use defines.inc
+
+  Revision 1.8  2000/09/20 10:49:39  marco
    * Set writer to elf. (Only a prob for smart with -OG3p3r)
 
   Revision 1.7  2000/09/16 12:22:52  peter

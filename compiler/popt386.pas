@@ -22,6 +22,7 @@
 }
 Unit POpt386;
 
+{$i defines.inc}
 
 Interface
 
@@ -1945,7 +1946,10 @@ End.
 
 {
   $Log$
-  Revision 1.11  2000-09-18 11:28:36  jonas
+  Revision 1.12  2000-09-24 15:06:23  peter
+    * use defines.inc
+
+  Revision 1.11  2000/09/18 11:28:36  jonas
     * fixed web bug 1133 (merged from fixes branch)
 
   Revision 1.10  2000/08/18 10:09:13  jonas

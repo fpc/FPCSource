@@ -21,8 +21,12 @@
  ****************************************************************************
 }
 unit gendef;
+
+{$i defines.inc}
+
 interface
-uses cobjects;
+uses
+  cobjects;
 
 type
   pdeffile=^tdeffile;
@@ -164,7 +168,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-27 16:11:50  peter
+  Revision 1.4  2000-09-24 15:06:16  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/27 16:11:50  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

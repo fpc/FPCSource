@@ -645,7 +645,7 @@ const msgtxt : array[0..000126,1..240] of char=(
   '**1S<x>_syntax options:'#010+
   '**2S2_switch some Delphi 2 extensions on'#010+
   '**2Sc_supports operators like C (*=,+=,/= and -=)'#010+
-  '**2sa_include assertion code.'#010+
+  '**2Sa_include assertion code.'#010+
   '**2Sd_tries to be Delphi compatible'#010+
   '**2Se<x>_compiler stops after the <x> errors (defa','ult is 1)'#010+
   '**2Sg_allow LABEL and GOTO'#010+

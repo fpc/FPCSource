@@ -21,16 +21,18 @@
 
  ****************************************************************************
 }
-Unit link;
+unit link;
 
-Interface
+{$i defines.inc}
 
 { Needed for LFN support in path to the executable }
 {$ifdef GO32V2}
   {$define ALWAYSSHELL}
 {$endif}
 
-uses cobjects,fmodule;
+interface
+uses
+  cobjects,fmodule;
 
 Type
     TLinkerInfo=record
@@ -88,7 +90,7 @@ uses
     ,t_linux
   {$endif}
   {$ifndef NOTARGETFREEBSD}
-    ,t_FreeBSD
+    ,t_fbsd
   {$endif}
   {$ifndef NOTARGETOS2}
     ,t_os2
@@ -539,7 +541,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-09-16 12:22:52  peter
+  Revision 1.8  2000-09-24 15:06:18  peter
+    * use defines.inc
+
+  Revision 1.7  2000/09/16 12:22:52  peter
     * freebsd support merged
 
   Revision 1.6  2000/09/11 17:00:23  florian
@@ -556,8 +561,7 @@ end.
   Revision 1.3  2000/07/26 13:08:19  jonas
     * merged from fixes branch (v_hint to v_tried changed when attempting
       to smart/static/shared link)
-  Revision 1.1.2.1  2000/07/26 12:54:24  jonas
-    * changed V_Hint's to V_Tried's (for attempts to smart/shared/static link)
+
   Revision 1.2  2000/07/13 11:32:43  michael
   + removed logs
 }

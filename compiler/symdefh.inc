@@ -406,7 +406,7 @@
 
        tprocdef = object(tabstractprocdef)
        private
-          _mangledname : pchar;
+          _mangledname : pstring;
        public
           extnumber  : longint;
           messageinf : tmessageinf;
@@ -554,7 +554,10 @@
 
 {
   $Log$
-  Revision 1.9  2000-09-19 23:08:03  pierre
+  Revision 1.10  2000-09-24 15:06:29  peter
+    * use defines.inc
+
+  Revision 1.9  2000/09/19 23:08:03  pierre
    * fixes for local class debuggging problem (merged)
 
   Revision 1.8  2000/08/21 11:27:44  pierre

@@ -22,30 +22,19 @@
 }
 unit finput;
 
-{$ifdef TP}
-  {$V+}
-{$endif}
+{$i defines.inc}
 
-  interface
+interface
 
     uses
       cutils;
 
     const
-{$ifdef FPC}
        InputFileBufSize=32*1024;
        linebufincrease=512;
-{$else}
-       InputFileBufSize=1024;
-       linebufincrease=64;
-{$endif}
 
     type
-{$ifdef TP}
-       tlongintarr = array[0..16000] of longint;
-{$else}
        tlongintarr = array[0..1000000] of longint;
-{$endif}
        plongintarr = ^tlongintarr;
 
        pinputfile = ^tinputfile;
@@ -374,15 +363,7 @@ uses
              getlinestr[i]:=c;
              inc(longint(p));
            until (i=255);
-           {$ifndef TP}
-             {$ifopt H+}
-               setlength(getlinestr,i);
-             {$else}
-               getlinestr[0]:=chr(i);
-             {$endif}
-           {$else}
-             getlinestr[0]:=chr(i);
-           {$endif}
+           getlinestr[0]:=chr(i);
          end;
       end;
 
@@ -451,7 +432,8 @@ uses
 
 
     function tdosinputfile.fileread(var databuf; maxsize: longint): longint;
-      var w: {$ifdef TP}word{$else}longint{$endif};
+      var
+        w : longint;
       begin
         blockread(f,databuf,maxsize,w);
         fileread:=w;
@@ -513,11 +495,9 @@ uses
          { update cache }
          cacheindex:=last_ref_index;
          cacheinputfile:=f;
-{$ifdef FPC}
-  {$ifdef heaptrc}
+{$ifdef heaptrc}
          writeln(stderr,f^.name^,' index ',current_module^.unit_index*100000+f^.ref_index);
-  {$endif heaptrc}
-{$endif FPC}
+{$endif heaptrc}
       end;
 
 
@@ -584,7 +564,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.1  2000-08-27 16:11:50  peter
+  Revision 1.2  2000-09-24 15:06:16  peter
+    * use defines.inc
+
+  Revision 1.1  2000/08/27 16:11:50  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

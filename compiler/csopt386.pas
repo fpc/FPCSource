@@ -23,6 +23,7 @@
 }
 Unit CSOpt386;
 
+{$i defines.inc}
 
 Interface
 
@@ -155,7 +156,7 @@ begin
       if modifiesMemLocation(hp) or
         { do not load the self pointer or a regvar before a (conditional)  }
         { jump with a new value, since if the jump is taken, the old value }
-        { is (probably) still necessary                                    } 
+        { is (probably) still necessary                                    }
         (passedJump and not(reg in (usableregs+[R_EDI]))) or
          not getLastInstruction(hp,hp) then
         break;
@@ -846,7 +847,7 @@ begin
            (rState = newRState) then
           begin
             incState(newRState,1);
-            prevRState := rState; 
+            prevRState := rState;
             doRState := true;
           end;
         { ditto for the write state }
@@ -856,7 +857,7 @@ begin
            (wState = newWState) then
           begin
             incState(newWState,1);
-            prevWState := wState; 
+            prevWState := wState;
             doWState := true;
           end;
       end;
@@ -956,7 +957,7 @@ begin
                          not(newRegModified and orgRegRead)) (* and
     { since newReg will be replaced by orgReg, we can't allow that newReg }
     { gets modified if orgRegCanBeModified = false                        }
-    
+
     { this now gets checked after the loop (JM) }
                          (orgRegCanBeModified or not(newRegModified)) *);
           tmpResult :=
@@ -1010,7 +1011,7 @@ begin
         begin
           if {not(PPaiProp(hp^.optInfo)^.canBeRemoved) and }
              (hp^.typ = ait_instruction) then
-            stateChanged := 
+            stateChanged :=
               doReplaceReg(orgReg,newReg,paicpu(hp)) or stateChanged;
             if stateChanged then
               updateStates(orgReg,newReg,hp,true);
@@ -1497,7 +1498,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  2000-09-22 15:01:59  jonas
+  Revision 1.10  2000-09-24 15:06:14  peter
+    * use defines.inc
+
+  Revision 1.9  2000/09/22 15:01:59  jonas
     * fixed some bugs in the previous improvements: in some cases, esi was
       still being replaced before a conditional jump (the code that
       detected conditional jumps sometimes skipped over them)

@@ -25,21 +25,24 @@
  ****************************************************************************
 }
 unit cpuasm;
+
+{$i defines.inc}
+
+{ Optimize addressing and skip already passed nodes }
+{$ifndef NASMDEBUG}
+  {$define OPTEA}
+  {$define PASS2FLAG}
+{$endif ndef NASMDEBUG}
+
+{ Give warnings when an immediate is found in the reference struct }
+{.$define REF_IMMEDIATE_WARN}
+
 interface
 
 uses
   cobjects,
   aasm,globals,verbose,
   cpubase;
-
-{$ifndef NASMDEBUG}
-  {$define OPTEA}
-  {$define PASS2FLAG}
-{$endif ndef NASMDEBUG}
-
-{$ifndef TP}
-  {$define ASMDEBUG}
-{$endif}
 
 const
   MaxPrefixes=4;
@@ -262,7 +265,7 @@ uses
             disposereference(ref);
            if p^.is_immediate then
              begin
-{$ifdef ASMDEBUG1}
+{$ifdef REF_IMMEDIATE_WARN}
                Comment(V_Warning,'Reference immediate');
 {$endif}
                val:=p^.offset;
@@ -553,11 +556,9 @@ uses
       var
         i : longint;
       begin
-{$ifndef nojmpfix}
         if is_jmp then
           dec(PasmLabel(oper[0].sym)^.refs)
         else
-{$endif nojmpfix}
           for i:=1 to ops do
             if (oper[i-1].typ=top_ref) then
               dispose(oper[i-1].ref);
@@ -589,14 +590,11 @@ uses
 
 
     function taicpu.GetString:string;
-{$ifdef ASMDEBUG}
       var
         i : longint;
         s : string;
         addsize : boolean;
-{$endif}
       begin
-{$ifdef ASMDEBUG}
         s:='['+int_op2str[opcode];
         for i:=1to ops do
          begin
@@ -653,9 +651,6 @@ uses
             end;
          end;
         GetString:=s+']';
-{$else}
-        GetString:='';
-{$endif ASMDEBUG}
       end;
 
 
@@ -972,11 +967,7 @@ begin
   i:=instabcache^[opcode];
   if i=-1 then
    begin
-{$ifdef TP}
-     Message1(asmw_e_opcode_not_in_table,'');
-{$else}
      Message1(asmw_e_opcode_not_in_table,att_op2str[opcode]);
-{$endif}
      exit;
    end;
   insentry:=@instab[i];
@@ -1674,7 +1665,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-27 16:11:50  peter
+  Revision 1.5  2000-09-24 15:06:14  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 16:11:50  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

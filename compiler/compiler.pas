@@ -21,23 +21,9 @@
 
  ****************************************************************************}
 
-{
-  possible compiler switches:
-  -----------------------------------------------------------------
-  TP                  to compile the compiler with Turbo or Borland Pascal
-  I386                generate a compiler for the Intel i386+
-  M68K                generate a compiler for the M68000
-  GDB                 support of the GNU Debugger
-  EXTDEBUG            some extra debug code is executed
-  SUPPORT_MMX         only i386: releases the compiler switch
-                      MMX which allows the compiler to generate
-                      MMX instructions
-  EXTERN_MSG          Don't compile the msgfiles in the compiler, always
-                      use external messagefiles
-  NOAG386INT          no Intel Assembler output
-  NOAG386NSM          no NASM output
-  -----------------------------------------------------------------
-}
+unit compiler;
+
+{$i defines.inc}
 
 {$ifdef FPC}
    { One of Alpha, I386 or M68K must be defined }
@@ -82,27 +68,12 @@
    {$endif support_mmx}
 {$endif}
 
-unit compiler;
 interface
-
-{ Use exception catching so the compiler goes futher after a Stop }
-{$ifndef NOUSEEXCEPT}
-{$ifdef i386}
-  {$define USEEXCEPT}
-{$endif}
-
-{$ifdef TP}
-  {$ifdef DPMI}
-    {$undef USEEXCEPT}
-  {$endif}
-{$endif}
-{$endif ndef NOUSEEXCEPT}
 
 uses
 {$ifdef fpc}
   {$ifdef GO32V2}
     emu387,
-{    dpmiexcp, }
   {$endif GO32V2}
 {$endif}
 {$ifdef USEEXCEPT}
@@ -121,9 +92,6 @@ uses
 
 function Compile(const cmd:string):longint;
 
-Const
-       { do we need to link }
-       IsExe : boolean = false;
 
 implementation
 
@@ -136,8 +104,7 @@ var
   olddo_stop : tstopprocedure;
 
 {$ifdef USEEXCEPT}
-
-procedure RecoverStop;{$ifndef FPC}far;{$endif}
+procedure RecoverStop;
 begin
   if recoverpospointer<>nil then
     LongJmp(recoverpospointer^,1)
@@ -265,13 +232,8 @@ var
   recoverpos : jmp_buf;
 {$endif}
 begin
-
   olddo_stop:=do_stop;
-{$ifdef TP}
-  do_stop:=minimal_stop;
-{$else TP}
-  do_stop:=@minimal_stop;
-{$endif TP}
+  do_stop:={$ifdef FPCPROCVAR}@{$endif}minimal_stop;
 { Initialize the compiler }
   InitCompiler(cmd);
 
@@ -284,21 +246,12 @@ begin
   WritePathList(general_t_includepath,includesearchpath);
   WritePathList(general_t_librarypath,librarysearchpath);
   WritePathList(general_t_objectpath,objectsearchpath);
-{$ifdef TP}
-{$ifndef Delphi}
-  Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
-{$endif Delphi}
-{$endif}
 
 {$ifdef USEEXCEPT}
   if setjmp(recoverpos)=0 then
    begin
      recoverpospointer:=@recoverpos;
-{$ifdef TP}
-     do_stop:=recoverstop;
-{$else TP}
-     do_stop:=@recoverstop;
-{$endif TP}
+     do_stop:={$ifdef FPCPROCVAR}@{$endif}recoverstop;
 {$endif USEEXCEPT}
      starttime:=getrealtime;
      if parapreprocess then
@@ -331,31 +284,29 @@ begin
 
   DoneVerbose;
 {$ifdef EXTDEBUG}
-{$ifdef FPC}
-  LostMemory:=system.HeapSize-MemAvail-EntryMemUsed;
-  CheckMemory(LostMemory);
-{$endif FPC}
-{$ifndef newcg}
-  Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
-{$endif newcg}
+  {$ifdef FPC}
+    LostMemory:=system.HeapSize-MemAvail-EntryMemUsed;
+    CheckMemory(LostMemory);
+  {$endif FPC}
+  {$ifndef newcg}
+    Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
+  {$endif newcg}
 {$endif EXTDEBUG}
 {$ifdef MEMDEBUG}
   Writeln('Memory used: ',system.Heapsize);
 {$endif}
 {$ifdef fixLeaksOnError}
- {$ifdef tp}
-  do_stop;
- {$else tp}
-  do_stop();
- {$endif tp}
+  do_stop{$ifdef FPCPROCVAR}(){$endif};
 {$endif fixLeaksOnError}
 end;
-
 
 end.
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:50  peter
+  Revision 1.6  2000-09-24 15:06:14  peter
+    * use defines.inc
+
+  Revision 1.5  2000/08/27 16:11:50  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

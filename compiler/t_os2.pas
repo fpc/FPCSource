@@ -30,6 +30,8 @@
 }
 unit t_os2;
 
+{$i defines.inc}
+
 interface
 uses
   import,link,comprsrc;
@@ -61,11 +63,13 @@ implementation
 
   uses
 {$ifdef Delphi}
+     sysutils,
      dmisc,
 {$else Delphi}
+     strings,
      dos,
 {$endif Delphi}
-     cutils,globtype,strings,cobjects,comphook,systems,
+     cutils,globtype,cobjects,comphook,systems,
      globals,verbose,fmodule,script;
 
 const   profile_flag:boolean=false;
@@ -371,11 +375,7 @@ Function TLinkeros2.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
-{$IFDEF NEWST}
-  HPath    : PStringItem;
-{$ELSE}
   HPath    : PStringQueueItem;
-{$ENDIF NEWST}
   s        : string;
 begin
   WriteResponseFile:=False;
@@ -503,7 +503,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-09-20 19:38:34  peter
+  Revision 1.5  2000-09-24 15:06:31  peter
+    * use defines.inc
+
+  Revision 1.4  2000/09/20 19:38:34  peter
     * fixed staticlib filename and unitlink instead of otherlinky
 
   Revision 1.3  2000/08/27 16:11:54  peter

@@ -22,9 +22,11 @@
 }
 unit pdecl;
 
+{$i defines.inc}
+
 {$define UseUnionSymtable}
 
-  interface
+interface
 
     uses
       globtype,tokens,globals,symtable;
@@ -1022,7 +1024,7 @@ unit pdecl;
                   end;
                end;
              recorddef :
-               precorddef(pd)^.symtable^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
+               precorddef(pd)^.symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward);
              objectdef :
                begin
                  if not(m_fpc in aktmodeswitches) and
@@ -1038,7 +1040,7 @@ unit pdecl;
                       check objectdefs in objects/records, because these
                       can't exist (anonymous objects aren't allowed) }
                     if not(psym(p)^.owner^.symtabletype in [objectsymtable,recordsymtable]) then
-                     pobjectdef(pd)^.symtable^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
+                     pobjectdef(pd)^.symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward);
                   end;
                end;
           end;
@@ -1123,7 +1125,7 @@ unit pdecl;
             consume(_SEMICOLON);
          until token<>_ID;
          typecanbeforward:=false;
-         symtablestack^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
+         symtablestack^.foreach({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward);
          block_type:=old_block_type;
       end;
 
@@ -1297,7 +1299,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.14  2000-09-11 17:00:23  florian
+  Revision 1.15  2000-09-24 15:06:21  peter
+    * use defines.inc
+
+  Revision 1.14  2000/09/11 17:00:23  florian
     + first implementation of Netware Module support, thanks to
       Armin Diehl (diehl@nordrhein.de) for providing the patches
 

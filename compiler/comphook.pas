@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit comphook;
+
+{$i defines.inc}
+
 interface
 
 uses
@@ -127,13 +130,15 @@ const
 implementation
 
   uses
-{$ifdef USEEXCEPT}
-   tpexcept,
-{$endif USEEXCEPT}
 {$ifdef Linux}
    linux,
 {$endif}
-   dos;
+{$ifdef delphi}
+   dmisc
+{$else}
+   dos
+{$endif}
+   ;
 
 {****************************************************************************
                           Helper Routines
@@ -152,15 +157,7 @@ begin
       gccfilename[i]:=s[i];
      end;
    end;
-  {$ifndef TP}
-    {$ifopt H+}
-      setlength(gccfilename,length(s));
-    {$else}
-      gccfilename[0]:=s[0];
-    {$endif}
-  {$else}
-    gccfilename[0]:=s[0];
-  {$endif}
+  gccfilename[0]:=s[0];
 end;
 
 
@@ -180,11 +177,7 @@ end;
 { predefined handler when then compiler stops }
 procedure def_stop;
 begin
-{$ifndef USEEXCEPT}
   Halt(1);
-{$else USEEXCEPT}
-  Halt(1);
-{$endif USEEXCEPT}
 end;
 
 {$ifdef DEBUG}
@@ -217,9 +210,9 @@ begin
 {$ifdef FPC}
        WriteLn(status.currentline,' ',memavail shr 10,'/',system.heapsize shr 10,' Kb Free');
 {$else}
-{$ifndef Delphi}
+  {$ifndef Delphi}
        WriteLn(status.currentline,' ',memavail shr 10,' Kb Free');
-{$endif Delphi}
+  {$endif Delphi}
 {$endif}
    end
 end;
@@ -336,42 +329,40 @@ begin
   def_openinputfile:=new(pdosinputfile, init(filename));
 end;
 
-Function def_GetNamedFileTime (Const F : String) : Longint;
-   var
-     L : Longint;
-   {$ifndef linux}
-     info : SearchRec;
-   {$else}
-     info : stat;
-   {$endif}
-   begin
-     l:=-1;
-   {$ifdef linux}
-     if FStat (F,Info) then
-      L:=info.mtime;
-   {$else}
-{$ifdef delphi}
-     dmisc.FindFirst (F,archive+readonly+hidden,info);
-{$else delphi}
-     FindFirst (F,archive+readonly+hidden,info);
-{$endif delphi}
-     if DosError=0 then
-      l:=info.time;
-     {$ifdef Linux}
-       FindClose(info);
-     {$endif}
-     {$ifdef Win32}
-       FindClose(info);
-     {$endif}
-   {$endif}
-     def_GetNamedFileTime:=l;
-   end;
 
+Function def_GetNamedFileTime (Const F : String) : Longint;
+var
+  L : Longint;
+{$ifndef linux}
+  info : SearchRec;
+{$else}
+  info : stat;
+{$endif}
+begin
+  l:=-1;
+{$ifdef linux}
+  if FStat (F,Info) then
+   L:=info.mtime;
+{$else}
+  {$ifdef delphi}
+    dmisc.FindFirst (F,archive+readonly+hidden,info);
+  {$else delphi}
+    FindFirst (F,archive+readonly+hidden,info);
+  {$endif delphi}
+  if DosError=0 then
+   l:=info.time;
+  FindClose(info);
+{$endif linux}
+  def_GetNamedFileTime:=l;
+end;
 
 end.
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:50  peter
+  Revision 1.6  2000-09-24 15:06:13  peter
+    * use defines.inc
+
+  Revision 1.5  2000/08/27 16:11:50  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

@@ -22,7 +22,9 @@
 }
 unit node;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses
        globtype,globals,cobjects,aasm,cpubase,symtable,
@@ -30,7 +32,7 @@ unit node;
 
     {$I nodeh.inc}
 
-  implementation
+implementation
 
     uses
        htypechk,ncal,hcodegen,verbose,nmat,pass_1;
@@ -40,7 +42,10 @@ unit node;
 end.
 {
   $Log$
-  Revision 1.3  2000-09-22 21:45:35  florian
+  Revision 1.4  2000-09-24 15:06:19  peter
+    * use defines.inc
+
+  Revision 1.3  2000/09/22 21:45:35  florian
     * some updates e.g. getcopy added
 
   Revision 1.2  2000/09/20 21:52:38  florian

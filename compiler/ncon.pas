@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit ncon;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -172,7 +175,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-09-22 21:44:48  florian
+  Revision 1.2  2000-09-24 15:06:19  peter
+    * use defines.inc
+
+  Revision 1.1  2000/09/22 21:44:48  florian
     + initial revision
 
 }

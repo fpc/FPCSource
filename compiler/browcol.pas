@@ -21,10 +21,10 @@
 
  ****************************************************************************
 }
-{$ifdef TP}
-  {$N+,E+}
-{$endif}
 unit browcol;
+
+{$i defines.inc}
+
 interface
 uses
   cobjects,cutils,objects,symconst,symtable,cpuinfo;
@@ -35,7 +35,7 @@ uses
 {$endif FPC}
 
 const
-  SymbolTypLen : integer = 6;
+  SymbolTypLen : sw_integer = 6;
 
   RecordTypes : set of tsymtyp =
     ([typesym,unitsym,programsym]);
@@ -460,9 +460,9 @@ begin
 end;
 
 function TSortedSymbolCollection.LookUp(const S: string; var Idx: sw_integer): string;
-var OLI,ORI,Left,Right,Mid: integer;
+var OLI,ORI,Left,Right,Mid: sw_integer;
     LeftP,RightP,MidP: PSymbol;
-    RL: integer;
+    RL: sw_integer;
     LeftS,MidS,RightS: string;
     FoundS: string;
     UpS : string;
@@ -587,9 +587,9 @@ begin
 end;
 
 function TObjectSymbolCollection.LookUp(const S: string; var Idx: sw_integer): string;
-var OLI,ORI,Left,Right,Mid: integer;
+var OLI,ORI,Left,Right,Mid: sw_integer;
     LeftP,RightP,MidP: PObjectSymbol;
-    RL: integer;
+    RL: sw_integer;
     LeftS,MidS,RightS: string;
     FoundS: string;
     UpS : string;
@@ -1171,7 +1171,7 @@ end;
   function GetEnumDefStr(def: penumdef): string;
   var Name: string;
       esym: penumsym;
-      Count: integer;
+      Count: sw_integer;
   begin
     Name:='(';
     esym:=def^.Firstenum; Count:=0;
@@ -1237,7 +1237,7 @@ end;
   function GetAbsProcParmDefStr(def: pabstractprocdef): string;
   var Name: string;
       dc: pparaitem;
-      Count: integer;
+      Count: sw_integer;
       CurName: string;
   begin
     Name:='';
@@ -1275,7 +1275,7 @@ end;
   end;
   function GetProcDefStr(def: pprocdef): string;
   var DName: string;
-      J: integer;
+      J: sw_integer;
   begin
 {    DName:='';
     if assigned(def) then
@@ -1729,7 +1729,7 @@ begin
         Inc(I);
     end;
 end;
-var Pass: integer;
+var Pass: sw_integer;
     I: sw_integer;
     P: PSymbol;
 begin
@@ -1870,7 +1870,7 @@ end;
 var
   oldexit : pointer;
 
-procedure browcol_exit;{$ifndef FPC}far;{$endif}
+procedure browcol_exit;
 begin
   exitproc:=oldexit;
   DisposeBrowserCol;
@@ -1927,7 +1927,7 @@ end;
 function TPointerDictionary.Compare(Key1, Key2: Pointer): sw_Integer;
 var K1: PPointerXRef absolute Key1;
     K2: PPointerXRef absolute Key2;
-    R: integer;
+    R: sw_integer;
 begin
   if longint(K1^.PtrValue)<longint(K2^.PtrValue) then R:=-1 else
   if longint(K1^.PtrValue)>longint(K2^.PtrValue) then R:= 1 else
@@ -1984,40 +1984,40 @@ end;
 
 function LoadBrowserCol(S: PStream): boolean;
 var PD: PPointerDictionary;
-procedure FixupPointers;
-procedure FixupReference(P: PReference); {$ifndef FPC}far;{$endif}
-begin
-  PD^.Resolve(P^.FileName);
-end;
-procedure FixupSymbol(P: PSymbol); {$ifndef FPC}far;{$endif}
-var I: sw_integer;
-begin
-  PD^.Resolve(P^.DType);
-  PD^.Resolve(P^.VType);
-  {PD^.Resolve(P^.Ancestor);}
-  if Assigned(P^.References) then
-    with P^.References^ do
-     for I:=0 to Count-1 do
-       FixupReference(At(I));
-  if Assigned(P^.Items) then
-    with P^.Items^ do
-     for I:=0 to Count-1 do
-       FixupSymbol(At(I));
-end;
-begin
-  Modules^.ForEach(@FixupSymbol);
-end;
-procedure ReadSymbolPointers(P: PSymbol); {$ifndef FPC}far;{$endif}
-var I: sw_integer;
-    PV: pointer;
-begin
-  S^.Read(PV, SizeOf(PV));
-  PD^.AddPtr(PV,P);
-  if Assigned(P^.Items) then
-    with P^.Items^ do
-     for I:=0 to Count-1 do
-       ReadSymbolPointers(At(I));
-end;
+  procedure FixupPointers;
+    procedure FixupReference(P: PReference);
+    begin
+      PD^.Resolve(P^.FileName);
+    end;
+    procedure FixupSymbol(P: PSymbol);
+    var I: sw_integer;
+    begin
+      PD^.Resolve(P^.DType);
+      PD^.Resolve(P^.VType);
+      {PD^.Resolve(P^.Ancestor);}
+      if Assigned(P^.References) then
+        with P^.References^ do
+         for I:=0 to Count-1 do
+           FixupReference(At(I));
+      if Assigned(P^.Items) then
+        with P^.Items^ do
+         for I:=0 to Count-1 do
+           FixupSymbol(At(I));
+    end;
+  begin
+    Modules^.ForEach(@FixupSymbol);
+  end;
+  procedure ReadSymbolPointers(P: PSymbol);
+  var I: sw_integer;
+      PV: pointer;
+  begin
+    S^.Read(PV, SizeOf(PV));
+    PD^.AddPtr(PV,P);
+    if Assigned(P^.Items) then
+      with P^.Items^ do
+       for I:=0 to Count-1 do
+         ReadSymbolPointers(At(I));
+  end;
 begin
   DisposeBrowserCol;
 
@@ -2051,7 +2051,7 @@ begin
 end;
 
 function StoreBrowserCol(S: PStream) : boolean;
-procedure WriteSymbolPointers(P: PSymbol); {$ifndef FPC}far;{$endif}
+procedure WriteSymbolPointers(P: PSymbol);
 var I: sw_integer;
 begin
   S^.Write(P, SizeOf(P));
@@ -2094,7 +2094,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-09-11 17:00:22  florian
+  Revision 1.9  2000-09-24 15:06:11  peter
+    * use defines.inc
+
+  Revision 1.8  2000/09/11 17:00:22  florian
     + first implementation of Netware Module support, thanks to
       Armin Diehl (diehl@nordrhein.de) for providing the patches
 

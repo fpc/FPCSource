@@ -26,11 +26,16 @@
 }
 unit og386;
 
-  interface
+{$i defines.inc}
+
+interface
+
     uses
 {$ifdef Delphi}
+       sysutils,
        dmisc,
 {$else Delphi}
+       strings,
        dos,
 {$endif Delphi}
        owbase,owar,
@@ -90,7 +95,7 @@ unit og386;
   implementation
 
     uses
-      strings,comphook,
+      comphook,
       cutils,globtype,globals,verbose,fmodule,
       assemble;
 
@@ -279,7 +284,10 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:51  peter
+  Revision 1.6  2000-09-24 15:06:19  peter
+    * use defines.inc
+
+  Revision 1.5  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

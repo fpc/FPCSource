@@ -22,18 +22,18 @@
 }
 Unit CPUInfo;
 
+{$i defines.inc}
+
 Interface
 
 Type
-{$ifdef FPC}
-   AWord = dword;
-{$else FPC}
-   AWord = Longint;
-{$endif FPC}
+   AWord = Cardinal;
+
    { the ordinal type used when evaluating constant integer expressions }
    TConstExprInt = int64;
    { ... the same unsigned }
-   TConstExprUInt = qword;
+   TConstExprUInt = {$ifdef fpc}qword{$else}int64{$endif};
+
    { this must be an ordinal type with the same size as a pointer }
    { to allow some dirty type casts for example when using        }
    { tconstsym.value                                              }
@@ -48,7 +48,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-16 13:06:06  florian
+  Revision 1.5  2000-09-24 15:06:14  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/16 13:06:06  florian
     + support of 64 bit integer constants
 
   Revision 1.3  2000/08/12 06:45:08  florian

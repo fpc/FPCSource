@@ -20,25 +20,20 @@
 
  ****************************************************************************
 }
-
-{$ifdef tp}
-  {$E+,N+}
-{$endif}
-
 unit cutils;
+
+{$i defines.inc}
 
 interface
 
+{$ifdef delphi}
+    type
+       dword = cardinal;
+       qword = int64;
+{$endif}
+
     type
        pstring = ^string;
-
-{$ifdef TP}
-       { redeclare dword only in case of emergency, some small things
-         of the compiler won't work then correctly (FK)
-       }
-       dword = longint;
-{$endif TP}
-
 
     function min(a,b : longint) : longint;
     function max(a,b : longint) : longint;
@@ -51,11 +46,7 @@ interface
     function trimspace(const s:string):string;
     procedure uppervar(var s : string);
     function hexstr(val : longint;cnt : byte) : string;
-    {$ifdef FPC}
     function tostru(i:cardinal) : string;
-    {$else}
-    function tostru(i:longint) : string;
-    {$endif}
     function tostr(i : longint) : string;
     function tostr_with_plus(i : longint) : string;
     procedure valint(S : string;var V : longint;var code : integer);
@@ -98,7 +89,12 @@ function concatansistrings(p1,p2 : pchar;length1,length2 : longint) : pchar;
 implementation
 
 uses
-  strings;
+{$ifdef delphi}
+  sysutils
+{$else}
+  strings
+{$endif}
+  ;
 
     function min(a,b : longint) : longint;
     {
@@ -261,7 +257,7 @@ uses
          end;
       end;
 
-{$ifdef FPC}
+
    function tostru(i:cardinal):string;
    {
      return string of value i, but for cardinals
@@ -272,12 +268,6 @@ uses
         str(i,hs);
         tostru:=hs;
       end;
-{$else FPC}
-    function tostru(i:longint):string;
-      begin
-        tostru:=tostr(i);
-      end;
-{$endif FPC}
 
 
    function trimspace(const s:string):string;
@@ -518,7 +508,7 @@ var
 begin
   if Crc32Tbl[1]=0 then
    MakeCrc32Tbl;
-  InitCrc:=$ffffffff;
+  InitCrc:=-1;
   for i:=1 to Length(s) do
    InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(s[i])] xor (InitCrc shr 8);
   GetSpeedValue:=InitCrc;
@@ -592,7 +582,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-08-27 16:11:50  peter
+  Revision 1.2  2000-09-24 15:06:14  peter
+    * use defines.inc
+
+  Revision 1.1  2000/08/27 16:11:50  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

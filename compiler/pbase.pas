@@ -22,7 +22,9 @@
 }
 unit pbase;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses
        cobjects,tokens,globals,symtable
@@ -167,7 +169,7 @@ unit pbase;
       end;
 
 {$ifdef fixLeaksOnError}
-procedure pbase_do_stop; {$ifdef tp} far; {$endif tp}
+procedure pbase_do_stop;
 var names: PStringContainer;
 begin
   names := PStringContainer(strContStack.pop);
@@ -178,23 +180,22 @@ begin
     end;
   strContStack.done;
   do_stop := pbase_old_do_stop;
-{$ifdef tp}
-  do_stop;
-{$else tp}
-  do_stop();
-{$endif tp}
+  do_stop{$ifdef FPCPROCVAR}(){$endif};
 end;
 
 begin
   strContStack.init;
   pbase_old_do_stop := do_stop;
-  do_stop := {$ifndef tp}@{$endif}pbase_do_stop;
+  do_stop := {$ifdef FPCPROCVAR}(){$endif}pbase_do_stop;
 {$endif fixLeaksOnError}
 end.
 
 {
   $Log$
-  Revision 1.4  2000-08-27 20:19:39  peter
+  Revision 1.5  2000-09-24 15:06:21  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 20:19:39  peter
     * store strings with case in ppu, when an internal symbol is created
       a '$' is prefixed so it's not automatic uppercased
 

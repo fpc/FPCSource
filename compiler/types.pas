@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit types;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -188,15 +191,13 @@ interface
 implementation
 
     uses
-       strings,globtype,globals,htypechk,
+       globtype,globals,htypechk,
        tree,verbose,symconst;
 
     var
        b_needs_init_final : boolean;
 
-    procedure _needs_init_final(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
-
-
+    procedure _needs_init_final(p : pnamedindexobject);
       begin
          if (psym(p)^.typ=varsym) and
            assigned(pvarsym(p)^.vartype.def) and
@@ -208,10 +209,9 @@ implementation
 
     { returns true, if p contains data which needs init/final code }
     function needs_init_final(p : psymtable) : boolean;
-
       begin
          b_needs_init_final:=false;
-         p^.foreach({$ifndef TP}@{$endif}_needs_init_final);
+         p^.foreach({$ifdef FPCPROCVAR}@{$endif}_needs_init_final);
          needs_init_final:=b_needs_init_final;
       end;
 
@@ -1143,7 +1143,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-09-18 12:31:15  jonas
+  Revision 1.11  2000-09-24 15:06:32  peter
+    * use defines.inc
+
+  Revision 1.10  2000/09/18 12:31:15  jonas
     * fixed bug in push_addr_param for arrays (merged from fixes branch)
 
   Revision 1.9  2000/09/10 20:16:21  peter

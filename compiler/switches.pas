@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit switches;
+
+{$i defines.inc}
+
 interface
 
 procedure HandleSwitch(switch,state:char);
@@ -174,7 +177,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-09-21 11:30:49  jonas
+  Revision 1.5  2000-09-24 15:06:28  peter
+    * use defines.inc
+
+  Revision 1.4  2000/09/21 11:30:49  jonas
     + support for full boolean evaluation (b+/b-), default remains short
       circuit boolean evaluation
 

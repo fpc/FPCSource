@@ -22,6 +22,9 @@
  ****************************************************************************
 }
 unit t_linux;
+
+{$i defines.inc}
+
 interface
 
   uses
@@ -61,7 +64,7 @@ interface
 implementation
 
   uses
-    cutils,verbose,strings,cobjects,systems,globtype,globals,
+    cutils,verbose,cobjects,systems,globtype,globals,
     symconst,script,
     fmodule,aasm,cpuasm,cpubase,symtable{$IFDEF NEWST},symbols{$ENDIF NEWST};
 
@@ -77,43 +80,22 @@ end;
 procedure timportliblinux.importprocedure(const func,module : string;index : longint;const name : string);
 begin
   { insert sharedlibrary }
-{$IFDEF NEWST}
-  current_module^.linkothersharedlibs.
-   insert(new(Plinkitem,init(SplitName(module),link_allways)));
-  { do nothing with the procedure, only set the mangledname }
-  if name<>'' then
-    aktprocdef^.setmangledname(name)
-  else
-    message(parser_e_empty_import_name);
-{$ELSE}
-  current_module^.linkothersharedlibs.
-   insert(SplitName(module),link_allways);
+  current_module^.linkothersharedlibs.insert(SplitName(module),link_allways);
   { do nothing with the procedure, only set the mangledname }
   if name<>'' then
     aktprocsym^.definition^.setmangledname(name)
   else
     message(parser_e_empty_import_name);
-{$ENDIF NEWST}
 end;
 
 
 procedure timportliblinux.importvariable(const varname,module:string;const name:string);
 begin
   { insert sharedlibrary }
-{$IFDEF NEWST}
-  current_module^.linkothersharedlibs.
-   insert(new(Plinkitem,init(SplitName(module),link_allways)));
-{$ELSE}
-  current_module^.linkothersharedlibs.
-   insert(SplitName(module),link_allways);
-{$ENDIF NEWST}
+  current_module^.linkothersharedlibs.insert(SplitName(module),link_allways);
   { reset the mangledname and turn off the dll_var option }
   aktvarsym^.setmangledname(name);
-{$IFDEF NEWST}
-  exclude(aktvarsym^.properties,vo_is_dll_var);
-{$ELSE}
   exclude(aktvarsym^.varoptions,vo_is_dll_var);
-{$ENDIF NEWST}
 end;
 
 
@@ -256,11 +238,7 @@ Var
   cprtobj,
   gprtobj,
   prtobj       : string[80];
-{$IFDEF NEWST}
-  HPath        : PStringItem;
-{$ELSE}
   HPath        : PStringQueueItem;
-{$ENDIF NEWST}
   s            : string;
   found,
   linkdynamic,
@@ -477,7 +455,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-10 20:26:55  peter
+  Revision 1.6  2000-09-24 15:06:31  peter
+    * use defines.inc
+
+  Revision 1.5  2000/09/10 20:26:55  peter
     * bsd patches from marco
 
   Revision 1.4  2000/08/27 16:11:54  peter

@@ -22,6 +22,8 @@
 }
 unit comprsrc;
 
+{$i defines.inc}
+
 interface
 
 type
@@ -140,7 +142,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-27 16:11:50  peter
+  Revision 1.5  2000-09-24 15:06:14  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 16:11:50  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

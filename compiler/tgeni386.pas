@@ -22,7 +22,9 @@
 }
 unit tgeni386;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses
        cobjects,globals,tree,hcodegen,verbose,aasm,
@@ -376,14 +378,12 @@ implementation
     procedure ungetregister32(r : tregister);
 
       begin
-{$ifndef noAllocEdi}
          if (r = R_EDI) or
             ((not assigned(procinfo^._class)) and (r = R_ESI)) then
            begin
              exprasmlist^.concat(new(pairegalloc,dealloc(r)));
              exit;
            end;
-{$endif noAllocEdi}
          if cs_regalloc in aktglobalswitches then
            begin
               { takes much time }
@@ -571,14 +571,12 @@ implementation
     function getexplicitregister32(r : tregister) : tregister;
 
       begin
-{$ifndef noAllocEdi}
          if r in [R_ESI,R_EDI] then
            begin
              exprasmlist^.concat(new(pairegalloc,alloc(r)));
              getexplicitregister32 := r;
              exit;
            end;
-{$endif noAllocEdi}
          if r in unused then
            begin
               dec(usablereg32);
@@ -653,7 +651,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:55  peter
+  Revision 1.6  2000-09-24 15:06:32  peter
+    * use defines.inc
+
+  Revision 1.5  2000/08/27 16:11:55  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

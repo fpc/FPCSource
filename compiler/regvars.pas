@@ -20,11 +20,9 @@
 
  ****************************************************************************
 }
-{$ifdef TP}
-  {$E+,F+,N+}
-{$endif}
-
 unit regvars;
+
+{$i defines.inc}
 
 interface
 
@@ -42,7 +40,9 @@ implementation
      symconst,symtable,types,
      hcodegen,temp_gen,cpubase,cpuasm
 {$ifndef newcg}
+   {$ifndef CG11}
      ,tcflw
+   {$endif}
 {$endif newcg}
 {$ifdef GDB}
      ,gdb
@@ -183,10 +183,10 @@ implementation
           if (p^.registers32<4) then
             begin
               parasym:=false;
-              symtablestack^.foreach({$ifndef TP}@{$endif}searchregvars);
+              symtablestack^.foreach({$ifdef FPCPROCVAR}@{$endif}searchregvars);
               { copy parameter into a register ? }
               parasym:=true;
-              symtablestack^.next^.foreach({$ifndef TP}@{$endif}searchregvars);
+              symtablestack^.next^.foreach({$ifdef FPCPROCVAR}@{$endif}searchregvars);
               { hold needed registers free }
               for i:=maxvarregs downto maxvarregs-p^.registers32+1 do
                 begin
@@ -255,11 +255,11 @@ implementation
             if ((p^.registersfpu+1)<maxfpuvarregs) then
               begin
                 parasym:=false;
-                symtablestack^.foreach({$ifndef TP}@{$endif}searchfpuregvars);
+                symtablestack^.foreach({$ifdef FPCPROCVAR}@{$endif}searchfpuregvars);
 {$ifdef dummy}
                 { copy parameter into a register ? }
                 parasym:=true;
-                symtablestack^.next^.foreach({$ifndef TP}@{$endif}searchregvars);
+                symtablestack^.next^.foreach({$ifdef FPCPROCVAR}@{$endif}searchregvars);
 {$endif dummy}
                 { hold needed registers free }
 
@@ -441,7 +441,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:52  peter
+  Revision 1.6  2000-09-24 15:06:27  peter
+    * use defines.inc
+
+  Revision 1.5  2000/08/27 16:11:52  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

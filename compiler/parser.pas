@@ -20,32 +20,18 @@
 
  ****************************************************************************
 }
-{$ifdef tp}
-  {$E+,N+,D+,F+}
-{$endif}
 unit parser;
 
-{ Use exception catching so the compiler goes futher after a Stop }
-{$ifndef NOUSEEXCEPT}
-{$ifdef i386}
-  {$define USEEXCEPT}
-{$endif}
+{$i defines.inc}
 
-{$ifdef TP}
-  {$ifdef DPMI}
-    {$undef USEEXCEPT}
-  {$endif}
-{$endif}
-{$endif ndef NOUSEEXCEPT}
-
-  interface
+interface
 
     procedure preprocess(const filename:string);
     procedure compile(const filename:string;compile_system:boolean);
     procedure initparser;
     procedure doneparser;
 
-  implementation
+implementation
 
     uses
       globtype,version,tokens,systems,
@@ -607,7 +593,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-27 16:11:51  peter
+  Revision 1.5  2000-09-24 15:06:20  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

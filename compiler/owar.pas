@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit owar;
+
+{$i defines.inc}
+
 interface
 
 uses
@@ -44,7 +47,7 @@ type
     procedure create(const fn:string);virtual;
     procedure close;virtual;
     procedure writesym(const sym:string);virtual;
-    procedure write(var b;len:longint);virtual;
+    procedure write(const b;len:longint);virtual;
   private
     arfn        : string;
     arhdr       : tarhdr;
@@ -71,19 +74,11 @@ uses
 {$endif Delphi}
 
 const
-{$ifdef TP}
-  symrelocbufsize = 256;
-  symstrbufsize = 256;
-  lfnstrbufsize = 256;
-  arbufsize  = 256;
-  objbufsize = 256;
-{$else}
   symrelocbufsize = 4096;
   symstrbufsize = 8192;
   lfnstrbufsize = 4096;
   arbufsize  = 65536;
   objbufsize = 16384;
-{$endif}
 
 {*****************************************************************************
                                    Helpers
@@ -207,7 +202,7 @@ begin
 end;
 
 
-procedure tarobjectwriter.write(var b;len:longint);
+procedure tarobjectwriter.write(const b;len:longint);
 begin
   ardata^.write(b,len);
 end;
@@ -287,7 +282,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-19 18:44:27  peter
+  Revision 1.5  2000-09-24 15:06:20  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/19 18:44:27  peter
     * new tdynamicarray implementation using blocks instead of
       reallocmem (merged)
 

@@ -20,13 +20,10 @@
  ****************************************************************************
 }
 unit globtype;
-interface
 
-{$ifdef FPC}
-  {$ifdef PACKENUMFIXED}
-    {$PACKENUM 1}
-  {$endif}
-{$endif}
+{$i defines.inc}
+
+interface
 
     const
        maxidlen = 64;
@@ -174,15 +171,6 @@ interface
        pword      = ^word;
        plongint   = ^longint;
 
-    {$IFDEF TP}
-       Tconstant=record
-            case signed:boolean of
-                false:
-                    (valueu:longint);
-                true:
-                    (values:longint);
-       end;
-    {$ELSE}
        Tconstant=record
             case signed:boolean of
                 false:
@@ -190,7 +178,6 @@ interface
                 true:
                     (values:longint);
        end;
-    {$ENDIF}
 
     const
        { link options }
@@ -200,15 +187,15 @@ interface
        link_smart   = $4;
        link_shared  = $8;
 
-
 implementation
 
-
-begin
 end.
 {
   $Log$
-  Revision 1.6  2000-09-21 11:30:49  jonas
+  Revision 1.7  2000-09-24 15:06:16  peter
+    * use defines.inc
+
+  Revision 1.6  2000/09/21 11:30:49  jonas
     + support for full boolean evaluation (b+/b-), default remains short
       circuit boolean evaluation
 

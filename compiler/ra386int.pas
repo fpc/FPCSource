@@ -20,17 +20,16 @@
 
  ****************************************************************************
 }
-{$ifdef TP}
-  {$E+,N+}
-{$endif}
 Unit Ra386int;
+
+{$i defines.inc}
+
 Interface
 
 uses
   tree;
 
-   function assemble: ptree;
-
+function assemble: ptree;
 
 
 Implementation
@@ -1890,13 +1889,13 @@ end;
 var
   old_exit : pointer;
 
-procedure ra386int_exit;{$ifndef FPC}far;{$endif}
+procedure ra386int_exit;
 begin
+  exitproc:=old_exit;
   if assigned(iasmops) then
     dispose(iasmops,done);
   if assigned(iasmregs) then
     dispose(iasmregs);
-  exitproc:=old_exit;
 end;
 
 
@@ -1906,7 +1905,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:52  peter
+  Revision 1.6  2000-09-24 15:06:26  peter
+    * use defines.inc
+
+  Revision 1.5  2000/08/27 16:11:52  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

@@ -22,13 +22,9 @@
 }
 unit aasm;
 
-{$ifdef FPC}
-  {$ifdef PACKENUMFIXED}
-    {$PACKENUM 1}
-  {$endif}
-{$endif}
+{$i defines.inc}
 
-  interface
+interface
 
     uses
        cutils,cobjects,
@@ -425,7 +421,11 @@ type
 implementation
 
 uses
+{$ifdef delphi}
+  sysutils,
+{$else}
   strings,
+{$endif}
   fmodule,verbose;
 
 {****************************************************************************
@@ -1180,7 +1180,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.12  2000-08-27 20:19:38  peter
+  Revision 1.13  2000-09-24 15:06:10  peter
+    * use defines.inc
+
+  Revision 1.12  2000/08/27 20:19:38  peter
     * store strings with case in ppu, when an internal symbol is created
       a '$' is prefixed so it's not automatic uppercased
 

@@ -22,6 +22,9 @@
  ****************************************************************************
 }
 unit hcgdata;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -111,7 +114,7 @@ implementation
          dispose(p);
       end;
 
-    procedure insertmsgstr(p : pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
+    procedure insertmsgstr(p : pnamedindexobject);
 
       var
          hp : pprocdef;
@@ -155,7 +158,7 @@ implementation
            end;
       end;
 
-    procedure insertmsgint(p : pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
+    procedure insertmsgint(p : pnamedindexobject);
 
       var
          hp : pprocdef;
@@ -205,7 +208,7 @@ implementation
 
          if assigned(p^.r) then
            writestrentry(p^.r);
-      end;
+     end;
 
     function genstrmsgtab(_class : pobjectdef) : pasmlabel;
 
@@ -217,7 +220,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class^.symtable^.foreach({$ifndef TP}@{$endif}insertmsgstr);
+         _class^.symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}insertmsgstr);
 
          { write all names }
          if assigned(root) then
@@ -259,7 +262,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class^.symtable^.foreach({$ifndef TP}@{$endif}insertmsgint);
+         _class^.symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}insertmsgint);
 
          { now start writing of the message string table }
          getdatalabel(r);
@@ -275,7 +278,7 @@ implementation
 
 {$ifdef WITHDMT}
 
-    procedure insertdmtentry(p : pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
+    procedure insertdmtentry(p : pnamedindexobject);
 
       var
          hp : pprocdef;
@@ -330,7 +333,7 @@ implementation
          count:=0;
          gendmt:=nil;
          { insert all message handlers into a tree, sorted by number }
-         _class^.symtable^.foreach({$ifndef TP}@{$endif}insertdmtentry);
+         _class^.symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}insertdmtentry);
 
          if count>0 then
            begin
@@ -353,14 +356,14 @@ implementation
 
 {$endif WITHDMT}
 
-    procedure do_count(p : pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
+    procedure do_count(p : pnamedindexobject);
 
       begin
          if (psym(p)^.typ=procsym) and (sp_published in psym(p)^.symoptions) then
            inc(count);
       end;
 
-    procedure genpubmethodtableentry(p : pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
+    procedure genpubmethodtableentry(p : pnamedindexobject);
 
       var
          hp : pprocdef;
@@ -390,13 +393,13 @@ implementation
 
       begin
          count:=0;
-         _class^.symtable^.foreach({$ifndef TP}@{$endif}do_count);
+         _class^.symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}do_count);
          if count>0 then
            begin
               getdatalabel(l);
               datasegment^.concat(new(pai_label,init(l)));
               datasegment^.concat(new(pai_const,init_32bit(count)));
-              _class^.symtable^.foreach({$ifndef TP}@{$endif}genpubmethodtableentry);
+              _class^.symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}genpubmethodtableentry);
               genpublishedmethodstable:=l;
            end
          else
@@ -429,7 +432,7 @@ implementation
        _c : pobjectdef;
        has_constructor,has_virtual_method : boolean;
 
-    procedure eachsym(sym : pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
+    procedure eachsym(sym : pnamedindexobject);
 
       var
          procdefcoll : pprocdefcoll;
@@ -657,7 +660,7 @@ implementation
            { no it wasn't correct, but I fixed it at  }
            { another place: your fix hides only a bug }
            { _c is only used to give correct warnings }
-           p^.symtable^.foreach({$ifndef TP}@{$endif}eachsym);
+           p^.symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}eachsym);
         end;
 
       var
@@ -739,11 +742,13 @@ implementation
            end;
       end;
 
-
 end.
 {
   $Log$
-  Revision 1.4  2000-08-27 16:11:51  peter
+  Revision 1.5  2000-09-24 15:06:17  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

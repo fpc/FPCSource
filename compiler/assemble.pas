@@ -18,26 +18,26 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- ****************************************************************************}
-
+ ****************************************************************************
+}
 unit assemble;
+
+{$i defines.inc}
 
 interface
 
 uses
 {$ifdef Delphi}
+  sysutils,
   dmisc,
 {$else Delphi}
+  strings,
   dos,
 {$endif Delphi}
   cobjects,globtype,globals,aasm;
 
 const
-{$ifdef tp}
-  AsmOutSize=1024;
-{$else}
   AsmOutSize=32768;
-{$endif}
 
 type
   PAsmList=^TAsmList;
@@ -94,7 +94,6 @@ uses
 {$ifdef linux}
   ,linux
 {$endif}
-  ,strings
 {$ifdef i386}
   {$ifndef NoAg386Bin}
     ,ag386bin
@@ -444,9 +443,7 @@ begin
         RemoveFile(s+dirsep+dir.name);
         findnext(dir);
       end;
-{$ifdef fpc}
      findclose(dir);
-{$endif}
      { .s files }
      findfirst(s+dirsep+'*'+target_info.asmext,anyfile,dir);
      while (doserror=0) do
@@ -454,9 +451,7 @@ begin
         RemoveFile(s+dirsep+dir.name);
         findnext(dir);
       end;
-{$ifdef fpc}
      findclose(dir);
-{$endif}
    end
   else
    begin
@@ -579,11 +574,7 @@ begin
   {$endif NoAg68kMpw}
 {$endif}
   else
-{$ifdef TP}
-    exit;
-{$else}
     Message(asmw_f_assembler_output_not_supported);
-{$endif}
   end;
   a^.AsmCreate(cut_normal);
   a^.WriteAsmList;
@@ -606,7 +597,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-27 16:11:49  peter
+  Revision 1.5  2000-09-24 15:06:11  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 16:11:49  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

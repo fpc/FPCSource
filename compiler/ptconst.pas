@@ -22,7 +22,9 @@
 }
 unit ptconst;
 
-  interface
+{$i defines.inc}
+
+interface
 
    uses symtable;
 
@@ -31,7 +33,7 @@ unit ptconst;
     { the assembler label is in the middle (PM) }
     procedure readtypedconst(def : pdef;sym : ptypedconstsym;no_change_allowed : boolean);
 
-  implementation
+implementation
 
     uses
 {$ifdef Delphi}
@@ -57,7 +59,7 @@ unit ptconst;
 
 
 {$ifdef fpc}
-{$maxfpuregisters 0}
+  {$maxfpuregisters 0}
 {$endif fpc}
     { this procedure reads typed constants }
     procedure readtypedconst(def : pdef;sym : ptypedconstsym;no_change_allowed : boolean);
@@ -541,15 +543,7 @@ unit ptconst;
                        len:=255
                       else
                        len:=p^.length;
-                      {$ifndef TP}
-                        {$ifopt H+}
-                          setlength(s,len);
-                        {$else}
-                          s[0]:=chr(len);
-                        {$endif}
-                      {$else}
-                        s[0]:=chr(len);
-                      {$endif}
+                      s[0]:=chr(len);
                       move(p^.value_str^,s[1],len);
                     end
                    else
@@ -803,13 +797,16 @@ unit ptconst;
          end;
       end;
 {$ifdef fpc}
-{$maxfpuregisters default}
+  {$maxfpuregisters default}
 {$endif fpc}
 
 end.
 {
   $Log$
-  Revision 1.6  2000-08-27 16:11:52  peter
+  Revision 1.7  2000-09-24 15:06:25  peter
+    * use defines.inc
+
+  Revision 1.6  2000/08/27 16:11:52  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

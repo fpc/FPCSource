@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit ptype;
+
+{$i defines.inc}
+
 interface
 
 uses
@@ -49,15 +52,9 @@ uses
 
     { reads a string, file type or a type id and returns a name and }
     { pdef }
-{$IFDEF NEWST}
-    procedure single_type(var tt:Tdef;var s : string;isforwarddef:boolean);
-
-    procedure read_type(var tt:Tdef;const name : stringid);
-{$ELSE}
     procedure single_type(var tt:ttype;var s : string;isforwarddef:boolean);
 
     procedure read_type(var tt:ttype;const name : stringid);
-{$ENDIF NEWST}
 
 
 implementation
@@ -1602,7 +1599,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.8  2000-08-27 20:19:39  peter
+  Revision 1.9  2000-09-24 15:06:25  peter
+    * use defines.inc
+
+  Revision 1.8  2000/08/27 20:19:39  peter
     * store strings with case in ppu, when an internal symbol is created
       a '$' is prefixed so it's not automatic uppercased
 

@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit Script;
+
+{$i defines.inc}
+
 interface
 
 uses
@@ -142,12 +145,12 @@ end;
 
 Procedure TAsmScript.AddAsmCommand (Const Command, Options,FileName : String);
 begin
-  {$ifdef linux}
+{$ifdef linux}
   if FileName<>'' then
    Add('echo Assembling '+FileName);
   Add (Command+' '+Options);
   Add('if [ $? != 0 ]; then DoExitAsm '+FileName+'; fi');
-  {$else}
+{$else}
   if FileName<>'' then
    begin
      Add('SET THEFILE='+FileName);
@@ -155,18 +158,18 @@ begin
    end;
   Add(command+' '+Options);
   Add('if errorlevel 1 goto asmend');
-  {$endif}
+{$endif}
 end;
 
 
 Procedure TasmScript.AddLinkCommand (Const Command, Options, FileName : String);
 begin
-  {$ifdef linux}
+{$ifdef linux}
   if FileName<>'' then
    Add('echo Linking '+FileName);
   Add (Command+' '+Options);
   Add('if [ $? != 0 ]; then DoExitLink '+FileName+'; fi');
-  {$else}
+{$else}
   if FileName<>'' then
    begin
      Add('SET THEFILE='+FileName);
@@ -174,17 +177,17 @@ begin
    end;
   Add (Command+' '+Options);
   Add('if errorlevel 1 goto linkend');
-  {$endif}
+{$endif}
 end;
 
 
 Procedure TAsmScript.AddDeleteCommand (Const FileName : String);
 begin
- {$ifdef linux}
- Add('rm '+FileName);
- {$else}
- Add('Del '+FileName);
- {$endif}
+{$ifdef linux}
+  Add('rm '+FileName);
+{$else}
+  Add('Del '+FileName);
+{$endif}
 end;
 
 
@@ -234,7 +237,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:49  michael
+  Revision 1.3  2000-09-24 15:06:28  peter
+    * use defines.inc
+
+  Revision 1.2  2000/07/13 11:32:49  michael
   + removed logs
 
 }

@@ -22,6 +22,8 @@
 }
 unit options;
 
+{$i defines.inc}
+
 interface
 
 uses
@@ -244,9 +246,6 @@ begin
      if show then
       begin
         case s[2] of
-{$ifdef TP}
-         't',
-{$endif}
 {$ifdef GDB}
          'g',
 {$endif}
@@ -1491,7 +1490,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-09-18 12:28:41  marco
+  Revision 1.9  2000-09-24 15:06:20  peter
+    * use defines.inc
+
+  Revision 1.8  2000/09/18 12:28:41  marco
    * Definition of multiple FreeBSD target defines moved to after error check
       commandline parsing
 

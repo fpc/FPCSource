@@ -26,6 +26,8 @@
 }
 unit og386cff;
 
+{$i defines.inc}
+
 {
   Notes on COFF:
 
@@ -65,7 +67,8 @@ unit og386cff;
   we must fix up common variable references. Win32 seems to be
   sensible on this one.
 }
-  interface
+
+interface
 
     uses
        cobjects,
@@ -166,25 +169,24 @@ unit og386cff;
          function edata_flags : longint;virtual;
        end;
 
-  implementation
 
-      uses
-        cutils,strings,verbose,
+implementation
+
+    uses
+{$ifdef delphi}
+        sysutils,
+{$else}
+        strings,
+{$endif}
+        cutils,verbose,
         globtype,globals,fmodule;
 
     const
-{$ifdef TP}
-      symbolresize = 20*18;
-      strsresize   = 256;
-      DataResize   = 1024;
-{$else}
       symbolresize = 200*18;
       strsresize   = 8192;
       DataResize   = 8192;
-{$endif}
 
-
-      type
+    type
       { Structures which are written directly to the output file }
         coffheader=packed record
           mach   : word;
@@ -221,8 +223,8 @@ unit og386cff;
           name    : array[0..3] of char; { real is [0..7], which overlaps the strpos ! }
           strpos  : longint;
           value   : longint;
-          section : integer;
-          empty   : integer;
+          section : smallint;
+          empty   : smallint;
           typ     : byte;
           aux     : byte;
         end;
@@ -1038,7 +1040,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.6  2000-09-19 23:09:07  pierre
+  Revision 1.7  2000-09-24 15:06:19  peter
+    * use defines.inc
+
+  Revision 1.6  2000/09/19 23:09:07  pierre
    * problems wih extdebug cond. solved
 
   Revision 1.5  2000/08/27 16:11:51  peter

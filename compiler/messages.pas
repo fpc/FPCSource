@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit Messages;
+
+{$i defines.inc}
+
 interface
 
 const
@@ -143,7 +146,7 @@ const
 var
   f       : text;
   error,multiline : boolean;
-  code : word;
+  code    : integer;
   numpart,numidx,
   line,i,j,num : longint;
   ptxt    : pchar;
@@ -305,7 +308,7 @@ procedure TMessage.CreateIdx;
 var
   hp1,
   hp,hpend : pchar;
-  code : word;
+  code : integer;
   num  : longint;
   number : string[5];
   i   : longint;
@@ -429,7 +432,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:43  michael
+  Revision 1.3  2000-09-24 15:06:18  peter
+    * use defines.inc
+
+  Revision 1.2  2000/07/13 11:32:43  michael
   + removed logs
 
 }

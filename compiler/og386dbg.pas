@@ -26,7 +26,10 @@
 }
 unit og386dbg;
 
-  interface
+{$i defines.inc}
+
+interface
+
     uses
        systems,aasm,cpubase,og386;
 
@@ -46,7 +49,8 @@ unit og386dbg;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;
        end;
 
-  implementation
+
+implementation
 
 {****************************************************************************
                                 Tdbgoutput
@@ -180,7 +184,10 @@ unit og386dbg;
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:26  michael
+  Revision 1.4  2000-09-24 15:06:20  peter
+    * use defines.inc
+
+  Revision 1.3  2000/07/13 12:08:26  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:43  michael

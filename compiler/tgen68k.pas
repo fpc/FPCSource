@@ -22,7 +22,9 @@
 }
 unit tgen68k;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses
        cobjects,globals,tree,hcodegen,verbose,files,aasm,cpubase;
@@ -328,7 +330,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:52  michael
+  Revision 1.3  2000-09-24 15:06:31  peter
+    * use defines.inc
+
+  Revision 1.2  2000/07/13 11:32:52  michael
   + removed logs
 
 }

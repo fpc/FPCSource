@@ -20,13 +20,11 @@
 
  ****************************************************************************
 }
-{$ifdef FPC}
-  {$goto on}
-{$endif FPC}
-
 unit pstatmnt;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses tree;
 
@@ -381,9 +379,7 @@ unit pstatmnt;
          i,levelcount : longint;
          withsymtable,symtab : psymtable;
          obj : pobjectdef;
-{$ifdef tp}
          hp : ptree;
-{$endif}
       begin
          p:=comp_expr(true);
          do_firstpass(p);
@@ -441,7 +437,7 @@ unit pstatmnt;
             if token=_COMMA then
              begin
                consume(_COMMA);
-               right:=_with_statement{$ifndef tp}(){$endif};
+               right:=_with_statement{$ifdef FPCPROCVAR}(){$endif};
              end
             else
              begin
@@ -462,11 +458,8 @@ unit pstatmnt;
             if token=_COMMA then
              begin
                consume(_COMMA);
-{$ifdef tp}
-               hp:=_with_statement;
-{$else}
-               _with_statement();
-{$endif}
+               hp:=_with_statement{$ifdef FPCPROCVAR}(){$endif};
+               if (hp=nil) then; { remove warning about unused }
              end
             else
              begin
@@ -1160,7 +1153,7 @@ unit pstatmnt;
                         lastsymknown:=false;
                         { the pointer to the following instruction }
                         { isn't a very clean way                   }
-                        code:=gensinglenode(labeln,statement{$ifndef tp}(){$endif});
+                        code:=gensinglenode(labeln,statement{$ifdef FPCPROCVAR}(){$endif});
                         code^.labelnr:=labelnr;
                         sr^.code:=code;
                         { sorry, but there is a jump the easiest way }
@@ -1382,7 +1375,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.6  2000-08-27 16:11:52  peter
+  Revision 1.7  2000-09-24 15:06:24  peter
+    * use defines.inc
+
+  Revision 1.6  2000/08/27 16:11:52  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

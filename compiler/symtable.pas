@@ -19,27 +19,26 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
-{$ifdef TP}
-  {$N+,E+,F+,L-}
-{$endif}
 unit symtable;
 
-  interface
+{$i defines.inc}
 
-    uses
-{$ifdef TP}
-{$ifndef Delphi}
-       objects,
-{$endif Delphi}
+interface
+
+uses
+{$ifdef delphi}
+   sysutils,
+{$else}
+   strings,
 {$endif}
-       strings,cutils,cobjects,
-       globtype,globals,tokens,systems,
-       symconst,
-       aasm,cpubase,cpuinfo
+   cutils,cobjects,
+   globtype,globals,tokens,systems,
+   symconst,
+   aasm,cpubase,cpuinfo
 {$ifdef GDB}
-       ,gdb
+   ,gdb
 {$endif}
-       ;
+   ;
 
 {************************************************
            Some internal constants
@@ -47,12 +46,7 @@ unit symtable;
 
    const
        hasharraysize    = 256;
-  {$ifdef TP}
-       indexgrowsize    = 16;
-  {$else}
        indexgrowsize    = 64;
-  {$endif}
-
 
 {************************************************
             Needed forward pointers
@@ -500,15 +494,6 @@ implementation
 {$ifdef GDB}
      asmoutput : paasmoutput;
 {$endif GDB}
-{$ifdef TP}
-{$ifndef Delphi}
-   {$ifndef dpmi}
-       symbolstream : temsstream;  { stream which is used to store some info }
-   {$else}
-       symbolstream : tmemorystream;
-   {$endif}
-{$endif Delphi}
-{$endif}
 
    {to dispose the global symtable of a unit }
   const
@@ -527,47 +512,6 @@ implementation
 {*****************************************************************************
                              Helper Routines
 *****************************************************************************}
-
-{$ifdef unused}
-    function demangledparas(s : string) : string;
-      var
-         r : string;
-         l : longint;
-      begin
-         demangledparas:='';
-         r:=',';
-         { delete leading $$'s }
-         l:=pos('$$',s);
-         while l<>0 do
-           begin
-              delete(s,1,l+1);
-              l:=pos('$$',s);
-           end;
-         { delete leading _$'s }
-         l:=pos('_$',s);
-         while l<>0 do
-           begin
-              delete(s,1,l+1);
-              l:=pos('_$',s);
-           end;
-         l:=pos('$',s);
-         if l=0 then
-           exit;
-         delete(s,1,l);
-         while s<>'' do
-          begin
-            l:=pos('$',s);
-            if l=0 then
-             l:=length(s)+1;
-            r:=r+copy(s,1,l-1)+',';
-            delete(s,1,l);
-          end;
-         delete(r,1,1);
-         delete(r,length(r),1);
-         demangledparas:=r;
-      end;
-{$endif}
-
 
     procedure numberunits;
       var
@@ -624,24 +568,6 @@ implementation
           end;
         until false;
       end;
-
-
-   procedure setstring(var p : pchar;const s : string);
-     begin
-{$ifndef Delphi}
-{$ifdef TP}
-
-       if use_big then
-        begin
-          p:=pchar(symbolstream.getsize);
-          symbolstream.seek(longint(p));
-          symbolstream.writestr(@s);
-        end
-       else
-{$endif TP}
-{$endif Delphi}
-        p:=strpnew(s);
-     end;
 
 
      procedure duplicatesym(sym:psym);
@@ -1196,7 +1122,7 @@ implementation
             (ptypesym(p)^.restype.def^.deftype=objectdef) and
             (ptypesym(p)^.restype.def^.typesym=ptypesym(p)) then
            pobjectdef(ptypesym(p)^.restype.def)^.symtable^.foreach(
-             {$ifndef TP}@{$endif}TestPrivate);
+             {$ifdef FPCPROCVAR}@{$endif}TestPrivate);
       end;
 
 {$ifdef GDB}
@@ -1818,7 +1744,7 @@ implementation
              end;
          end;
        { order procsym overloads }
-         foreach({$ifndef TP}@{$endif}Order_overloads);
+         foreach({$ifdef FPCPROCVAR}@{$endif}Order_overloads);
          { write definitions }
          writedefs;
          { write symbols }
@@ -2192,7 +2118,7 @@ implementation
               aktlocalsymtable:=@self;
            end;
          current_ppu^.writeentry(ibbeginsymtablebrowser);
-         foreach({$ifndef TP}@{$endif}write_refs);
+         foreach({$ifdef FPCPROCVAR}@{$endif}write_refs);
          current_ppu^.writeentry(ibendsymtablebrowser);
         if symtabletype in [recordsymtable,objectsymtable] then
           aktrecordsymtable:=oldrecsyms;
@@ -2217,7 +2143,7 @@ implementation
                   Browserlog.AddLog('---Symtable with no name');
              end;
            Browserlog.Ident;
-           foreach({$ifndef TP}@{$endif}add_to_browserlog);
+           foreach({$ifdef FPCPROCVAR}@{$endif}add_to_browserlog);
            browserlog.Unident;
          end;
       end;
@@ -2231,12 +2157,12 @@ implementation
     { checks, if all procsyms and methods are defined }
     procedure tsymtable.check_forwards;
       begin
-         foreach({$ifndef TP}@{$endif}check_forward);
+         foreach({$ifdef FPCPROCVAR}@{$endif}check_forward);
       end;
 
     procedure tsymtable.checklabels;
       begin
-         foreach({$ifndef TP}@{$endif}labeldefined);
+         foreach({$ifdef FPCPROCVAR}@{$endif}labeldefined);
       end;
 
     procedure tsymtable.set_alignment(_alignment : longint);
@@ -2282,23 +2208,23 @@ implementation
 
     procedure tsymtable.allunitsused;
       begin
-         foreach({$ifndef TP}@{$endif}unitsymbolused);
+         foreach({$ifdef FPCPROCVAR}@{$endif}unitsymbolused);
       end;
 
     procedure tsymtable.allsymbolsused;
       begin
-         foreach({$ifndef TP}@{$endif}varsymbolused);
+         foreach({$ifdef FPCPROCVAR}@{$endif}varsymbolused);
       end;
 
     procedure tsymtable.allprivatesused;
       begin
-         foreach({$ifndef TP}@{$endif}objectprivatesymbolused);
+         foreach({$ifdef FPCPROCVAR}@{$endif}objectprivatesymbolused);
       end;
 
 {$ifdef CHAINPROCSYMS}
     procedure tsymtable.chainprocsyms;
       begin
-         foreach({$ifndef TP}@{$endif}chainprocsym);
+         foreach({$ifdef FPCPROCVAR}@{$endif}chainprocsym);
       end;
 {$endif CHAINPROCSYMS}
 
@@ -2307,9 +2233,9 @@ implementation
       begin
         asmoutput:=asmlist;
         if symtabletype in [inlineparasymtable,inlinelocalsymtable] then
-          foreach({$ifndef TP}@{$endif}resetstab);
+          foreach({$ifdef FPCPROCVAR}@{$endif}resetstab);
 
-        foreach({$ifndef TP}@{$endif}concatstab);
+        foreach({$ifdef FPCPROCVAR}@{$endif}concatstab);
       end;
 {$endif}
 
@@ -2582,7 +2508,7 @@ implementation
                   end;
              end;
            asmoutput:=asmlist;
-           foreach({$ifndef TP}@{$endif}concattypestab);
+           foreach({$ifdef FPCPROCVAR}@{$endif}concattypestab);
            if cs_gdb_dbx in aktglobalswitches then
              begin
                 if (current_module^.globalsymtable<>@Self) then
@@ -2742,7 +2668,7 @@ implementation
         _defaultprop:=nil;
         while assigned(pd) do
           begin
-             pd^.symtable^.foreach({$ifndef TP}@{$endif}testfordefaultproperty);
+             pd^.symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}testfordefaultproperty);
              if assigned(_defaultprop) then
                break;
              pd:=pd^.childof;
@@ -2910,42 +2836,10 @@ implementation
                            Init/Done Symtable
 ****************************************************************************}
 
-{$ifndef Delphi}
-{$ifdef tp}
-   procedure do_streamerror;
-     begin
-       if symbolstream.status=-2 then
-        WriteLn('Error: Not enough EMS memory')
-       else
-        WriteLn('Error: EMS Error ',symbolstream.status);
-       halt(1);
-     end;
-{$endif TP}
-{$endif Delphi}
-
    procedure InitSymtable;
      var
        token : ttoken;
      begin
-{$ifndef Delphi}
-{$ifdef TP}
-     { Allocate stream }
-        if use_big then
-         begin
-           streamerror:=@do_streamerror;
-         { symbolstream.init('TMPFILE',stcreate,16000); }
-         {$ifndef dpmi}
-           symbolstream.init(10000,4000000); {using ems streams}
-         {$else}
-           symbolstream.init(1000000,16000); {using memory streams}
-         {$endif}
-           if symbolstream.errorinfo=stiniterror then
-            do_streamerror;
-         { write something, because pos 0 means nil pointer }
-           symbolstream.writestr(@inputfile);
-         end;
-{$endif tp}
-{$endif Delphi}
       { Reset symbolstack }
         registerdef:=false;
         read_member:=false;
@@ -2976,13 +2870,6 @@ implementation
 {$ifdef UNITALIASES}
         dispose(unitaliases,done);
 {$endif}
-{$ifndef Delphi}
-{$ifdef TP}
-      { close the stream }
-        if use_big then
-         symbolstream.done;
-{$endif}
-{$endif Delphi}
 {$ifdef MEMDEBUG}
        writeln('Manglednames: ',manglenamesize,' bytes');
 {$endif}
@@ -2991,7 +2878,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-08-27 16:11:54  peter
+  Revision 1.8  2000-09-24 15:06:29  peter
+    * use defines.inc
+
+  Revision 1.7  2000/08/27 16:11:54  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

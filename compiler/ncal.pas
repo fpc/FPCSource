@@ -21,7 +21,9 @@
 }
 unit ncal;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses
        node,symtable;
@@ -110,7 +112,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-09-20 21:52:38  florian
+  Revision 1.3  2000-09-24 15:06:19  peter
+    * use defines.inc
+
+  Revision 1.2  2000/09/20 21:52:38  florian
     * removed a lot of errors
 
   Revision 1.1  2000/09/20 20:52:16  florian

@@ -22,7 +22,9 @@
 }
 unit pexpr;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses symtable,tree;
 
@@ -43,7 +45,7 @@ unit pexpr;
 
     function get_stringconst:string;
 
-  implementation
+implementation
 
     uses
        globtype,systems,tokens,
@@ -56,7 +58,9 @@ unit pexpr;
 {$endif}
        types,verbose,strings,
 {$ifndef newcg}
+   {$ifndef CG11}
        tccal,
+   {$endif}
 {$endif newcg}
        pass_1,
        { parser specific stuff }
@@ -910,8 +914,9 @@ unit pexpr;
                                Factor
 ****************************************************************************}
 {$ifdef fpc}
-{$maxfpuregisters 0}
+  {$maxfpuregisters 0}
 {$endif fpc}
+
     function factor(getaddr : boolean) : ptree;
       var
          l      : longint;
@@ -2019,7 +2024,7 @@ _LECKKLAMMER : begin
         check_tokenpos;
       end;
 {$ifdef fpc}
-{$maxfpuregisters default}
+  {$maxfpuregisters default}
 {$endif fpc}
 
 {****************************************************************************
@@ -2214,7 +2219,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.7  2000-08-27 16:11:51  peter
+  Revision 1.8  2000-09-24 15:06:22  peter
+    * use defines.inc
+
+  Revision 1.7  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

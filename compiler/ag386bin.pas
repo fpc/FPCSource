@@ -20,15 +20,14 @@
 
  ****************************************************************************
 }
-{$ifdef TP}
-  {$N+,E+}
-{$endif}
 unit ag386bin;
+
+{$i defines.inc}
 
 {$define MULTIPASS}
 {$define EXTERNALBSS}
 
-  interface
+interface
 
     uses
        cpubase,cobjects,aasm,fmodule,finput,assemble;
@@ -57,9 +56,6 @@ unit ag386bin;
         funcname     : pasmsymbol;
         stabslastfileinfo : tfileposinfo;
         procedure convertstabs(p:pchar);
-{$ifdef unused}
-        procedure emitsymbolstabs(s : string;nidx,nother,line : longint;firstasm,secondasm : pasmsymbol);
-{$endif}
         procedure emitlineinfostabs(nidx,line : longint);
         procedure emitstabs(s:string);
         procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
@@ -77,7 +73,11 @@ unit ag386bin;
   implementation
 
     uses
+{$ifdef delphi}
+       sysutils,
+{$else}
        strings,
+{$endif}
        cutils,globtype,globals,systems,verbose,
        cpuasm,
 {$ifdef GDB}
@@ -227,36 +227,6 @@ unit ag386bin;
       end;
 
 
-{$ifdef unused}
-    procedure ti386binasmlist.emitsymbolstabs(s : string;nidx,nother,line : longint;
-                firstasm,secondasm : pasmsymbol);
-      var
-         hp : pchar;
-      begin
-        if s='' then
-          hp:=nil
-        else
-          begin
-            s:=s+#0;
-            hp:=@s[1];
-          end;
-        if not assigned(secondasm) then
-          begin
-            if not assigned(firstasm) then
-              internalerror(33009);
-            objectoutput^.WriteStabs(firstasm^.section,firstasm^.address,hp,nidx,nother,line,true);
-          end
-        else
-          begin
-            if firstasm^.section<>secondasm^.section then
-              internalerror(33010);
-            objectoutput^.WriteStabs(firstasm^.section,firstasm^.address-secondasm^.address,
-              hp,nidx,nother,line,false);
-          end;
-      end;
-{$endif}
-
-
     procedure ti386binasmlist.emitlineinfostabs(nidx,line : longint);
       var
          sec : tsection;
@@ -283,6 +253,7 @@ unit ag386bin;
               nil,nidx,0,line,true);
           end;
       end;
+
 
     procedure ti386binasmlist.emitstabs(s:string);
       begin
@@ -346,6 +317,7 @@ unit ag386bin;
         fileinfo.line:=1;
         WriteFileLineInfo(fileinfo);
       end;
+
 
     procedure ti386binasmlist.EndFileLineInfo;
       var
@@ -1039,7 +1011,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.7  2000-08-27 16:11:49  peter
+  Revision 1.8  2000-09-24 15:06:10  peter
+    * use defines.inc
+
+  Revision 1.7  2000/08/27 16:11:49  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

@@ -22,10 +22,12 @@
 }
 unit dmisc;
 
+{$i defines.inc}
+
 interface
 
 uses
-   windows,sysutils;
+  windows,sysutils;
 
 Const
   Max_Path = 255;
@@ -158,7 +160,21 @@ Procedure SetIntVec(intno: byte; vector: pointer);
 Procedure Keep(exitcode: word);
 
 implementation
-uses globals;
+
+    function upper(const s : string) : string;
+    {
+      return uppercased string of s
+    }
+      var
+         i  : longint;
+      begin
+         for i:=1 to length(s) do
+          if s[i] in ['a'..'z'] then
+           upper[i]:=char(byte(s[i])-32)
+          else
+           upper[i]:=s[i];
+        upper[0]:=s[0];
+      end;
 
 {******************************************************************************
                            --- Conversion ---
@@ -856,7 +872,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:40  michael
+  Revision 1.3  2000-09-24 15:06:15  peter
+    * use defines.inc
+
+  Revision 1.2  2000/07/13 11:32:40  michael
   + removed logs
 
 }

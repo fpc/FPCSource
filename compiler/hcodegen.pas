@@ -22,6 +22,8 @@
 }
 unit hcodegen;
 
+{$i defines.inc}
+
 {$ifdef newcg}
 interface
 
@@ -172,7 +174,7 @@ implementation
 implementation
 
      uses
-        systems,globals,strings,cresstr
+        systems,globals,cresstr
 {$ifdef fixLeaksOnError}
         ,comphook
 {$endif fixLeaksOnError}
@@ -435,7 +437,7 @@ implementation
 {$endif newcg}
 
 {$ifdef fixLeaksOnError}
-procedure hcodegen_do_stop; {$ifdef tp} far; {$endif tp}
+procedure hcodegen_do_stop;
 var p: pprocinfo;
 begin
   p := pprocinfo(procinfoStack.pop);
@@ -446,23 +448,21 @@ begin
     end;
   procinfoStack.done;
   do_stop := hcodegen_old_do_stop;
-{$ifdef tp}
-  do_stop;
-{$else tp}
-  do_stop();
-{$endif tp}
+  do_stop{$ifdef FPCPROCVAR}(){$endif};
 end;
 
 begin
   hcodegen_old_do_stop := do_stop;
-  do_stop := {$ifdef tp}@{$endif}hcodegen_do_stop;
+  do_stop := {$ifdef FPCPROCVAR}@{$endif}hcodegen_do_stop;
   procinfoStack.init;
 {$endif fixLeaksOnError}
 end.
-
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:51  peter
+  Revision 1.6  2000-09-24 15:06:17  peter
+    * use defines.inc
+
+  Revision 1.5  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

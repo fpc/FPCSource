@@ -20,35 +20,18 @@
 
  ****************************************************************************
 }
-
-{$ifdef tp}
-  {$E+,N+,D+,F+}
-{$endif}
-{$I-}
-{$R-}{ necessary for crc calculation and dynamicblock acessing }
-
-{$ifdef fpc}
-{$define USEREALLOCMEM}
-{$endif fpc}
-
-{$ifdef delphi}
-{$define USEREALLOCMEM}
-{$endif delphi}
-
 unit cobjects;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses
       cutils;
 
     const
        { the real size will be [-hasharray..hasharray] ! }
-{$ifdef TP}
-       hasharraysize = 127;
-{$else}
        hasharraysize = 2047;
-{$endif}
 
     type
        pfileposinfo = ^tfileposinfo;
@@ -276,7 +259,7 @@ unit cobjects;
          function  size:longint;
          procedure align(i:longint);
          procedure seek(i:longint);
-         procedure write(var d;len:longint);
+         procedure write(const d;len:longint);
          function  read(var d;len:longint):longint;
          procedure blockwrite(var f:file);
        private
@@ -586,7 +569,6 @@ destructor TStringContainerItem.Done;
 begin
   stringdispose(data);
 end;
-
 
 
 {****************************************************************************
@@ -1608,7 +1590,7 @@ end;
       end;
 
 
-    procedure tdynamicarray.write(var d;len:longint);
+    procedure tdynamicarray.write(const d;len:longint);
       var
         p : pchar;
         i,j : longint;
@@ -1771,23 +1753,10 @@ end;
     procedure tindexarray.grow(gsize:longint);
       var
         osize : longint;
-{$ifndef USEREALLOCMEM}
-        odata : Pnamedindexobjectarray;
-{$endif USEREALLOCMEM}
       begin
         osize:=size;
         inc(size,gsize);
-{$ifndef USEREALLOCMEM}
-        odata:=data;
-        getmem(data,size*4);
-        if assigned(odata) then
-         begin
-           move(odata^,data^,osize*4);
-           freemem(odata,osize*4);
-         end;
-{$else USEREALLOCMEM}
         reallocmem(data,size*4);
-{$endif USEREALLOCMEM}
         fillchar(data^[osize+1],gsize*4,0);
       end;
 
@@ -1872,7 +1841,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2000-08-27 20:19:38  peter
+  Revision 1.13  2000-09-24 15:06:12  peter
+    * use defines.inc
+
+  Revision 1.12  2000/08/27 20:19:38  peter
     * store strings with case in ppu, when an internal symbol is created
       a '$' is prefixed so it's not automatic uppercased
 

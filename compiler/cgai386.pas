@@ -18,11 +18,14 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- ****************************************************************************}
+ ****************************************************************************
+}
 
 unit cgai386;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses
        cobjects,tree,
@@ -164,7 +167,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
   implementation
 
     uses
-       strings,cutils,globtype,systems,globals,verbose,fmodule,types,pbase,
+{$ifdef delphi}
+       sysutils,
+{$else}
+       strings,
+{$endif}
+       cutils,globtype,systems,globals,verbose,fmodule,types,pbase,
        tgeni386,temp_gen,hcodegen,ppu,regvars
 {$ifdef GDB}
        ,gdb
@@ -4075,7 +4083,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.14  2000-09-16 12:22:52  peter
+  Revision 1.15  2000-09-24 15:06:12  peter
+    * use defines.inc
+
+  Revision 1.14  2000/09/16 12:22:52  peter
     * freebsd support merged
 
   Revision 1.13  2000/08/27 16:11:49  peter

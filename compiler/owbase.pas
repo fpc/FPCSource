@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit owbase;
+
+{$i defines.inc}
+
 interface
 
 type
@@ -31,7 +34,7 @@ type
     procedure create(const fn:string);virtual;
     procedure close;virtual;
     procedure writesym(const sym:string);virtual;
-    procedure write(var b;len:longint);virtual;
+    procedure write(const b;len:longint);virtual;
   private
     f      : file;
     opened : boolean;
@@ -48,12 +51,7 @@ uses
    verbose;
 
 const
-{$ifdef TP}
-  bufsize = 256;
-{$else}
   bufsize = 32768;
-{$endif}
-
 
 constructor tobjectwriter.init;
 begin
@@ -119,7 +117,7 @@ begin
 end;
 
 
-procedure tobjectwriter.write(var b;len:longint);
+procedure tobjectwriter.write(const b;len:longint);
 var
   p   : pchar;
   left,
@@ -152,7 +150,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-19 18:44:27  peter
+  Revision 1.4  2000-09-24 15:06:20  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/19 18:44:27  peter
     * new tdynamicarray implementation using blocks instead of
       reallocmem (merged)
 

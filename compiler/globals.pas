@@ -20,14 +20,11 @@
 
  ****************************************************************************
 }
-
-{$ifdef tp}
-  {$E+,N+}
-{$endif}
-
 unit globals;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses
 {$ifdef win32}
@@ -40,10 +37,8 @@ unit globals;
       sysutils,
       dmisc,
 {$else}
-      strings,dos,
-{$endif}
-{$ifdef TP}
-      objects,
+      strings,
+      dos,
 {$endif}
       globtype,version,tokens,systems,cutils,cobjects;
 
@@ -141,10 +136,6 @@ unit globals;
        use_esp_stackframe : boolean;     { to test for call with ESP as stack frame }
        inlining_procedure : boolean;     { are we inlining a procedure }
 
-{$ifdef TP}
-       use_big      : boolean;
-{$endif}
-
      { commandline values }
        initdefines        : tlinkedlist;
        initglobalswitches : tglobalswitches;
@@ -220,10 +211,6 @@ unit globals;
        parser_current_file : string = '';
 
     procedure abstract;
-{$ifdef debug}
-    { if the pointer don't point to the heap then write an error }
-    function assigned(p : pointer) : boolean;
-{$endif}
 
     function bstoslash(const s : string) : string;
 
@@ -314,56 +301,8 @@ implementation
           bstoslash[i]:='/'
          else
           bstoslash[i]:=s[i];
-         {$ifndef TP}
-           {$ifopt H+}
-             setlength(bstoslash,length(s));
-           {$else}
-             bstoslash[0]:=s[0];
-           {$endif}
-         {$else}
-           bstoslash[0]:=s[0];
-         {$endif}
+         bstoslash[0]:=s[0];
       end;
-
-{$ifdef debug}
-
-    function assigned(p : pointer) : boolean;
-{$ifndef FPC}
-    {$ifndef DPMI}
-      type
-         ptrrec = record
-            ofs,seg : word;
-         end;
-      var
-         lp : longint;
-    {$endif DPMI}
-{$endif FPC}
-      begin
-{$ifdef FPC}
-          { Assigned is used for procvar and
-            stack stored temp records !! PM }
-         (* if (p<>nil) {and
-            ((p<heaporg) or
-            (p>heapptr))} then
-           do_internalerror(230); *)
-{$else}
-    {$ifdef DPMI}
-         assigned:=(p<>nil);
-         exit;
-    {$else DPMI}
-         if p=nil then
-           lp:=0
-         else
-           lp:=longint(ptrrec(p).seg)*16+longint(ptrrec(p).ofs);
-         if (lp<>0) and
-            ((lp<longint(seg(heaporg^))*16+longint(ofs(heaporg^))) or
-            (lp>longint(seg(heapptr^))*16+longint(ofs(heapptr^)))) then
-           do_internalerror(230);
-    {$endif DPMI}
-{$endif FPC}
-         assigned:=(p<>nil);
-      end;
-{$endif}
 
 
 {****************************************************************************
@@ -509,7 +448,7 @@ implementation
 {$endif}
       begin
 {$ifdef delphi}
-         FileExists:=sysutils.FileExists(f);
+        FileExists:=sysutils.FileExists(f);
 {$else}
         findfirst(F,readonly+archive+hidden,info);
         FileExists:=(doserror=0);
@@ -685,15 +624,7 @@ implementation
            FixFileName[i]:=s[i];
           end;
         end;
-       {$ifndef TP}
-         {$ifopt H+}
-           SetLength(FixFileName,length(s));
-         {$else}
-           FixFileName[0]:=s[0];
-         {$endif}
-       {$else}
-         FixFileName[0]:=s[0];
-       {$endif}
+       FixFileName[0]:=s[0];
      end;
 
 
@@ -723,11 +654,7 @@ implementation
        CurrentDir,
        CurrPath : string;
        dir      : searchrec;
-   {$IFDEF NEWST}
-       hp       : PStringItem;
-   {$ELSE}
        hp       : PStringQueueItem;
-   {$ENDIF}
 
        procedure addcurrpath;
        begin
@@ -819,11 +746,7 @@ implementation
      var
        s : string;
        hl : TSearchPathList;
-     {$IFDEF NEWST}
-       hp,hp2 : PStringItem;
-     {$ELSE}
        hp,hp2 : PStringQueueItem;
-     {$ENDIF}
      begin
        if list.empty then
         exit;
@@ -862,11 +785,7 @@ implementation
 
    function TSearchPathList.FindFile(const f : string;var b : boolean) : string;
      Var
-     {$IFDEF NEWST}
-       p : PStringItem;
-     {$ELSE}
        p : PStringQueueItem;
-     {$ENDIF}
      begin
        FindFile:='';
        b:=false;
@@ -1056,6 +975,7 @@ implementation
       {$endif}
       end;
 
+
     Procedure Shell(const command:string);
       { This is already defined in the linux.ppu for linux, need for the *
         expansion under linux }
@@ -1088,7 +1008,6 @@ implementation
      var
        hs1 : namestr;
        hs2 : extstr;
-       b: boolean;
      begin
 {$ifdef delphi}
        exepath:=dmisc.getenv('PPC_EXEC_PATH');
@@ -1097,8 +1016,7 @@ implementation
 {$endif delphi}
        if exepath='' then
         fsplit(FixFileName(paramstr(0)),exepath,hs1,hs2);
-{$ifndef VER0_99_15}
-   {$ifdef need_path_search}
+{$ifdef need_path_search}
        if exepath='' then
         begin
           if pos(source_os.exeext,hs1) <>
@@ -1110,8 +1028,7 @@ implementation
           exepath := findfile(hs1,dos.getenv('PATH'),b);
       {$endif delphi}
         end;
-   {$endif need_path_search}
-{$endif}
+{$endif need_path_search}
        exepath:=FixPath(exepath,false);
      end;
 
@@ -1137,10 +1054,7 @@ implementation
       { set global switches }
         do_build:=false;
         do_make:=true;
-{$ifdef tp}
-        use_big:=false;
-{$endif tp}
-       compile_level:=0;
+        compile_level:=0;
 
       { Output }
         OutputFile:='';
@@ -1208,14 +1122,17 @@ implementation
 begin
   get_exepath;
 {$ifdef EXTDEBUG}
-{$ifdef FPC}
-  EntryMemUsed:=system.HeapSize-MemAvail;
-{$endif FPC}
+  {$ifdef FPC}
+    EntryMemUsed:=system.HeapSize-MemAvail;
+  {$endif FPC}
 {$endif}
 end.
 {
   $Log$
-  Revision 1.9  2000-09-24 10:33:07  peter
+  Revision 1.10  2000-09-24 15:06:16  peter
+    * use defines.inc
+
+  Revision 1.9  2000/09/24 10:33:07  peter
     * searching of exe in path also for OS/2
     * fixed searching of exe in path.
 

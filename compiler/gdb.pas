@@ -22,13 +22,20 @@
 }
 unit gdb;
 
-  interface
+{$i defines.inc}
 
-    uses
-      globtype,cpubase,
-      strings,cobjects,globals,aasm;
+interface
 
-    {stab constants }
+uses
+{$ifdef delphi}
+  sysutils,
+{$else}
+  strings,
+{$endif}
+  globtype,cpubase,
+  cobjects,globals,aasm;
+
+{stab constants }
 Const
     N_GSYM = $20;
     N_STSYM = 38; {initialized const }
@@ -251,7 +258,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:41  michael
+  Revision 1.3  2000-09-24 15:06:16  peter
+    * use defines.inc
+
+  Revision 1.2  2000/07/13 11:32:41  michael
   + removed logs
 
 }

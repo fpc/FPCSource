@@ -22,7 +22,9 @@
 }
 unit temp_gen;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses
       cpubase,cpuinfo,cobjects,globals,tree,hcodegen,verbose,fmodule,aasm;
@@ -539,7 +541,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-08-27 16:11:55  peter
+  Revision 1.4  2000-09-24 15:06:31  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/27 16:11:55  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

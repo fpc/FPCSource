@@ -205,15 +205,7 @@ const
                                end
                              else
                                len:=mac^.buflen;
-                             {$ifndef TP}
-                               {$ifopt H+}
-                                 setlength(hs,len);
-                               {$else}
-                                 hs[0]:=char(len);
-                               {$endif}
-                             {$else}
-                               hs[0]:=char(len);
-                             {$endif}
+                             hs[0]:=char(len);
                              move(mac^.buftext^,hs[1],len);
                           end
                         else
@@ -765,13 +757,13 @@ const
                      dllminor:=minor;
                      dllrevision:=revision;
                      dllversion:=tostr(major)+','+tostr(minor)+','+tostr(revision);
-                  end 
+                  end
                 else
-                  begin                
+                  begin
                      dllmajor:=major;
                      dllminor:=minor;
                      dllversion:=tostr(major)+'.'+tostr(minor);
-                  end; 
+                  end;
               end
             else
               dllversion:=tostr(major);
@@ -1442,11 +1434,7 @@ const
             if t<>_DIR_NONE then
              begin
                p:=directiveproc[t];
-             {$ifndef TP}
-               if assigned(p) then
-             {$else}
-               if @p<>nil then
-             {$endif}
+               if {$ifndef FPCPROCVAR}@{$endif}p<>nil then
                 p(t);
              end
             else
@@ -1464,7 +1452,10 @@ const
 
 {
   $Log$
-  Revision 1.6  2000-09-11 17:00:23  florian
+  Revision 1.7  2000-09-24 15:06:27  peter
+    * use defines.inc
+
+  Revision 1.6  2000/09/11 17:00:23  florian
     + first implementation of Netware Module support, thanks to
       Armin Diehl (diehl@nordrhein.de) for providing the patches
 

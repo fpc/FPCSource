@@ -20,12 +20,11 @@
 
  ****************************************************************************
 }
-{$ifdef TP}
-  {$N+,E+}
-{$endif}
 unit ag386att;
 
-    interface
+{$i defines.inc}
+
+interface
 
     uses cobjects,aasm,assemble;
 
@@ -44,11 +43,12 @@ unit ag386att;
 
     uses
 {$ifdef Delphi}
+      sysutils,
       dmisc,
 {$else Delphi}
+      strings,
       dos,
 {$endif Delphi}
-      strings,
       cutils,globtype,globals,systems,
       fmodule,finput,verbose,cpubase,cpuasm
 {$ifdef GDB}
@@ -440,19 +440,6 @@ unit ag386att;
                          infile^.linebuf^[hp^.fileinfo.line]:=-infile^.linebuf^[hp^.fileinfo.line]-1;
                      end;
                  end;
-{$ifdef LINEINFO}
-              { lineinfo }
-                if (cs_lineinfo in aktmoduleswitches) then
-                 begin
-                   if (infile<>lastinfile) then
-                    begin
-                      lineinfolist^.concat(new(pai_const(init_8bit
-                    end
-                   else
-                    begin
-                    end;
-                 end;
-{$endif LINEINFO}
                 lastfileinfo:=hp^.fileinfo;
                 lastinfile:=infile;
               end;
@@ -902,7 +889,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:49  peter
+  Revision 1.6  2000-09-24 15:06:10  peter
+    * use defines.inc
+
+  Revision 1.5  2000/08/27 16:11:49  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

@@ -22,7 +22,9 @@
  ****************************************************************************}
 unit ppheap;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses heaptrc;
 
@@ -31,7 +33,7 @@ unit ppheap;
 
     procedure pp_heap_init;
 
-  implementation
+implementation
 
     uses
        globtype,globals,files;
@@ -57,22 +59,21 @@ unit ppheap;
        if not pp_heap_inited then
          begin
             setheaptraceoutput('heap.log');
-{$ifndef TP}
-            SetExtraInfo(12,@ppextra_info);
-{$else TP}
-            SetExtraInfo(12,ppextra_info);
-{$endif TP}
+            SetExtraInfo(12,{$ifdef FPCPROCVAR}@{$endif}ppextra_info);
          end;
        pp_heap_inited:=true;
     end;
 
-  begin
-     pp_heap_init;
-  end.
 
+begin
+  pp_heap_init;
+end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:45  michael
+  Revision 1.3  2000-09-24 15:06:24  peter
+    * use defines.inc
+
+  Revision 1.2  2000/07/13 11:32:45  michael
   + removed logs
 
 }

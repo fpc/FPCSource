@@ -1,18 +1,45 @@
-unit impdef;
 {
-C source code of DEWIN Windows disassembler (written by A. Milukov) was
-partially used
+    $Id$
+    Copyright (c) 1998-2000 by Florian Klaempfl
+
+    This unit finds the export defs from PE files
+
+    C source code of DEWIN Windows disassembler (written by A. Milukov) was
+    partially used
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+ ****************************************************************************
 }
+unit impdef;
+
+{$i defines.inc}
+
 interface
+
 function makedef(const binname,textname:string):longbool;
+
 implementation
 var
-f:file;
-t:text;
-TheWord:array[0..1]of char;
-PEoffset:cardinal;
-loaded:{$ifdef fpc}longint{$else}integer{$endif};
-FileCreated:longbool;
+  f:file;
+  t:text;
+  TheWord:array[0..1]of char;
+  PEoffset:cardinal;
+  loaded:longint;
+  FileCreated:longbool;
+
 function DOSstubOK(var x:cardinal):longbool;
 begin
   blockread(f,TheWord,2,loaded);
@@ -27,14 +54,16 @@ begin
      DOSstubOK:=false;
    end;
 end;
+
 function isPE(x:cardinal):longbool;
 begin
   seek(f,x);
   blockread(f,TheWord,2,loaded);
   isPE:=(loaded=2)and(TheWord='PE');
 end;
+
 var
-cstring:array[0..127]of char;
+  cstring:array[0..127]of char;
 
 function GetEdata(PE:cardinal):longbool;
 type
@@ -57,6 +86,7 @@ var
   APE_obj,APE_Optsize:word;
   ExportRVA:cardinal;
   delta:cardinal;
+
 procedure ProcessEdata;
   var
    j:cardinal;
@@ -122,6 +152,8 @@ begin
       end;
    end;
 end;
+
+
 function makedef(const binname,textname:string):longbool;
 var
   OldFileMode:longint;
@@ -143,8 +175,11 @@ begin
   if FileCreated then
    close(t);
 end;
-end.  $Log$
-end.  Revision 1.2  2000-07-13 11:32:43  michael
-end.  + removed logs
-end.
+{
+  $Log$
+  Revision 1.3  2000-09-24 15:06:17  peter
+    * use defines.inc
+
+  Revision 1.2  2000/07/13 11:32:43  michael
+  + removed logs
 }

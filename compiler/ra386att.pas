@@ -20,10 +20,10 @@
 
  ****************************************************************************
 }
-{$ifdef TP}
-  {$N+,E+}
-{$endif TP}
 Unit Ra386att;
+
+{$i defines.inc}
+
 Interface
 
 uses
@@ -2086,13 +2086,13 @@ end;
 var
   old_exit : pointer;
 
-procedure ra386att_exit;{$ifndef FPC}far;{$endif}
+procedure ra386att_exit;
 begin
+  exitproc:=old_exit;
   if assigned(iasmops) then
     dispose(iasmops,done);
   if assigned(iasmregs) then
     dispose(iasmregs);
-  exitproc:=old_exit;
 end;
 
 
@@ -2102,7 +2102,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-08-27 16:11:52  peter
+  Revision 1.4  2000-09-24 15:06:26  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/27 16:11:52  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

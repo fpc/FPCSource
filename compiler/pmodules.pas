@@ -21,24 +21,27 @@
  ****************************************************************************
 }
 unit pmodules;
-            { close old_current_ppu on system that are
-              short on file handles like DOS system PM }
+
+{$i defines.inc}
+
+{ close old_current_ppu on system that are
+  short on file handles like DOS system PM }
 {$ifdef GO32V1}
-{$define SHORT_ON_FILE_HANDLES}
+  {$define SHORT_ON_FILE_HANDLES}
 {$endif GO32V1}
 {$ifdef GO32V2}
-{$define SHORT_ON_FILE_HANDLES}
+  {$define SHORT_ON_FILE_HANDLES}
 {$endif GO32V2}
 
 {$define New_GDB}
 
-  interface
+interface
 
     procedure proc_unit;
     procedure proc_program(islibrary : boolean);
 
 
-  implementation
+implementation
 
     uses
        globtype,version,systems,tokens,
@@ -990,8 +993,6 @@ unit pmodules;
 
       begin
          consume(_UNIT);
-         if Compile_Level=1 then
-           IsExe:=false;
 
          if token=_ID then
           begin
@@ -1444,7 +1445,6 @@ unit pmodules;
 {$endif fixLeaksOnError}
       begin
          DLLsource:=islibrary;
-         IsExe:=true;
          parse_only:=false;
          { relocation works only without stabs under win32 !! PM }
          { internal assembler uses rva for stabs info
@@ -1714,7 +1714,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.9  2000-08-31 07:53:02  michael
+  Revision 1.10  2000-09-24 15:06:22  peter
+    * use defines.inc
+
+  Revision 1.9  2000/08/31 07:53:02  michael
   + Applied patch from Peter
 
   Revision 1.8  2000/08/29 19:00:01  peter

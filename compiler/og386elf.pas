@@ -26,7 +26,9 @@
 }
 unit og386elf;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses
        cobjects,
@@ -130,19 +132,18 @@ unit og386elf;
   implementation
 
       uses
-        strings,verbose,
+{$ifdef delphi}
+        sysutils,
+{$else}
+        strings,
+{$endif}
+        verbose,
         globtype,cutils,globals,fmodule;
 
     const
-{$ifdef TP}
-      symbolresize = 20*18;
-      strsresize   = 256;
-      DataResize   = 1024;
-{$else}
       symbolresize = 200*18;
       strsresize   = 8192;
       DataResize   = 8192;
-{$endif}
 
     const
       R_386_32 = 1;                    { ordinary absolute relocation }
@@ -1049,7 +1050,10 @@ unit og386elf;
 end.
 {
   $Log$
-  Revision 1.6  2000-08-27 16:11:51  peter
+  Revision 1.7  2000-09-24 15:06:20  peter
+    * use defines.inc
+
+  Revision 1.6  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

@@ -21,41 +21,29 @@
 
  ****************************************************************************}
 unit tpexcept;
+
+{$i defines.inc}
+
 interface
 
 {$ifndef LINUX}
   {$S-}
 {$endif}
-{$ifdef Delphi}
-{$undef TP}
-{$endif Delphi}
 
 type
    jmp_buf = record
-{$ifdef TP}
-      _ax,_bx,_cx,_dx,_si,_di,_bp,_sp,_ip,flags : word;
-      _cs,_ds,_es,_ss : word;
-{$else}
-  {$ifdef Delphi} { must preserve: ebx, esi, edi, ebp, esp, eip only }
+{$ifdef Delphi} { must preserve: ebx, esi, edi, ebp, esp, eip only }
      _ebx,_esi,_edi,_ebp,_esp,_eip : longint;
-  {$else}
+{$else}
       eax,ebx,ecx,edx,esi,edi,ebp,esp,eip,flags : longint;
       cs,ds,es,fs,gs,ss : word;
-  {$endif Delphi}
-{$endif TP}
+{$endif Delphi}
    end;
 
    pjmp_buf = ^jmp_buf;
 
-{$ifdef TP}
-  function setjmp(var rec : jmp_buf) : integer;
-  procedure longjmp(const rec : jmp_buf;return_value : integer);
-{$else}
-  function setjmp(var rec : jmp_buf) : longint;
-    {$ifdef Delphi}stdcall;{$endif}
-  procedure longjmp(const rec : jmp_buf;return_value : longint);
-    {$ifdef Delphi}stdcall;{$endif}
-{$endif TP}
+  function setjmp(var rec : jmp_buf) : longint;{$ifdef Delphi}stdcall;{$endif}
+  procedure longjmp(const rec : jmp_buf;return_value : longint);{$ifdef Delphi}stdcall;{$endif}
 
   const
      recoverpospointer : pjmp_buf = nil;
@@ -68,137 +56,7 @@ implementation
                              Exception Helpers
 *****************************************************************************}
 
-{$ifdef TP}
-
-    function setjmp(var rec : jmp_buf) : integer;
-      begin
-         asm
-            push di
-            push es
-            les di,rec
-            mov es:[di].jmp_buf._ax,ax
-            mov es:[di].jmp_buf._bx,bx
-            mov es:[di].jmp_buf._cx,cx
-            mov es:[di].jmp_buf._dx,dx
-            mov es:[di].jmp_buf._si,si
-
-            { load di }
-            mov ax,[bp-4]
-
-            { ... and store it }
-            mov es:[di].jmp_buf._di,ax
-
-            { load es }
-            mov ax,[bp-6]
-
-            { ... and store it }
-            mov es:[di].jmp_buf._es,ax
-
-            { bp ... }
-            mov ax,[bp]
-            mov es:[di].jmp_buf._bp,ax
-
-            { sp ... }
-            mov ax,bp
-            add ax,10
-            mov es:[di].jmp_buf._sp,ax
-
-            { the return address }
-            mov ax,[bp+2]
-            mov es:[di].jmp_buf._ip,ax
-            mov ax,[bp+4]
-            mov es:[di].jmp_buf._cs,ax
-
-            { flags ... }
-            pushf
-            pop word ptr es:[di].jmp_buf.flags
-
-            mov es:[di].jmp_buf._ds,ds
-            mov es:[di].jmp_buf._ss,ss
-
-            { restore es:di }
-            pop es
-            pop di
-
-            { we come from the initial call }
-            xor ax,ax
-            leave
-            retf 4
-         end;
-      end;
-
-    procedure longjmp(const rec : jmp_buf;return_value : integer);
-      begin
-         asm
-
-            { this is the address of rec }
-            lds di,rec
-
-            { save return value }
-            mov ax,return_value
-            mov ds:[di].jmp_buf._ax,ax
-
-            { restore compiler shit }
-            pop bp
-
-            { restore some registers }
-            mov bx,ds:[di].jmp_buf._bx
-            mov cx,ds:[di].jmp_buf._cx
-            mov dx,ds:[di].jmp_buf._dx
-            mov bp,ds:[di].jmp_buf._bp
-
-            { create a stack frame for the return }
-            mov es,ds:[di].jmp_buf._ss
-            mov si,ds:[di].jmp_buf._sp
-
-            sub si,12
-
-            { store ds }
-            mov ax,ds:[di].jmp_buf._ds
-            mov es:[si],ax
-
-            { store di }
-            mov ax,ds:[di].jmp_buf._di
-            mov es:[si+2],ax
-
-            { store si }
-            mov ax,ds:[di].jmp_buf._si
-            mov es:[si+4],ax
-
-            { store flags }
-            mov ax,ds:[di].jmp_buf.flags
-            mov es:[si+6],ax
-
-            { store ip }
-            mov ax,ds:[di].jmp_buf._ip
-            mov es:[si+8],ax
-
-            { store cs }
-            mov ax,ds:[di].jmp_buf._cs
-            mov es:[si+10],ax
-
-            { load stack }
-            mov ax,es
-            mov ss,ax
-            mov sp,si
-
-            { load return value }
-            mov ax,ds:[di].jmp_buf._ax
-
-            { load old ES }
-            mov es,ds:[di].jmp_buf._es
-
-            pop ds
-            pop di
-            pop si
-
-            popf
-            retf
-         end;
-      end;
-
-{$else}
-{$ifdef Delphi}
+{$ifdef DELPHI}
 
     {$STACKFRAMES ON}
     function setjmp(var rec : jmp_buf) : longint; assembler;
@@ -237,7 +95,9 @@ implementation
       ret  0
     end;
 
-{$else Delphi}
+{$endif}
+
+{$Ifdef FPC}
 
 {$asmmode ATT}
 
@@ -379,13 +239,16 @@ implementation
             ret
          end;
       end;
-{$endif Delphi}
-{$endif TP}
+
+{$endif FPC}
 
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:52  michael
+  Revision 1.3  2000-09-24 15:06:32  peter
+    * use defines.inc
+
+  Revision 1.2  2000/07/13 11:32:52  michael
   + removed logs
 
 }

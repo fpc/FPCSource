@@ -22,7 +22,10 @@
 }
 Unit CRC;
 
+{$i defines.inc}
+
 Interface
+
 Function Crc32(Const HStr:String):longint;
 Function UpdateCrc32(InitCrc:longint;var InBuf;InLen:Longint):longint;
 Function UpdCrc32(InitCrc:longint;b:byte):longint;
@@ -108,7 +111,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-13 13:04:38  peter
+  Revision 1.4  2000-09-24 15:06:14  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/13 13:04:38  peter
     * new ppu version
 
   Revision 1.2  2000/07/13 11:32:39  michael

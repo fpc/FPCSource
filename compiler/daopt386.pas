@@ -22,12 +22,9 @@
 
  ****************************************************************************
 }
-
-{$ifDef TP}
-  {$UnDef JumpAnal}
-{$Endif TP}
-
 Unit DAOpt386;
+
+{$i defines.inc}
 
 Interface
 
@@ -1559,7 +1556,7 @@ Begin
   RefInSequence := TmpResult
 End;
 
-Function ArrayRefsEq(const r1, r2: TReference): Boolean;{$ifdef tp}far;{$endif}
+Function ArrayRefsEq(const r1, r2: TReference): Boolean;
 Begin
   ArrayRefsEq := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
                  (R1.Segment = R2.Segment) And
@@ -2341,7 +2338,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  2000-09-22 15:00:20  jonas
+  Revision 1.11  2000-09-24 15:06:15  peter
+    * use defines.inc
+
+  Revision 1.10  2000/09/22 15:00:20  jonas
     * fixed bug in regsEquivalent (in some rare cases, registers with
       completely unrelated content were considered equivalent) (merged
       from fixes branch)

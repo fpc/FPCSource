@@ -20,10 +20,10 @@
 
  ****************************************************************************
 }
-{$ifdef TP}
-  {$N+,E+}
-{$endif}
 unit ppu;
+
+{$i defines.inc}
+
 interface
 
 { Also write the ppu if only crc if done, this can be used with ppudump to
@@ -58,11 +58,7 @@ const
 
 { buffer sizes }
   maxentrysize = 1024;
-{$ifdef TP}
-  ppubufsize   = 1024;
-{$else}
   ppubufsize   = 16384;
-{$endif}
 
 {ppu entries}
   mainentryid         = 1;
@@ -351,11 +347,7 @@ end;
 function tppufile.open:boolean;
 var
   ofmode : byte;
-{$ifdef delphi}
-  i      : integer;
-{$else delphi}
-  i      : word;
-{$endif delphi}
+  i      : longint;
 begin
   open:=false;
   assign(f,fname);
@@ -388,18 +380,9 @@ end;
 
 
 procedure tppufile.reloadbuf;
-{$ifdef TP}
-var
-  i : word;
-{$endif}
 begin
   inc(bufstart,bufsize);
-{$ifdef TP}
-  blockread(f,buf^,ppubufsize,i);
-  bufsize:=i;
-{$else}
   blockread(f,buf^,ppubufsize,bufsize);
-{$endif}
   bufidx:=0;
 end;
 
@@ -585,15 +568,7 @@ function tppufile.getstring:string;
 var
   s : string;
 begin
-  {$ifndef TP}
-    {$ifopt H+}
-      setlength(s,getbyte);
-    {$else}
-      s[0]:=chr(getbyte);
-    {$endif}
-  {$else}
-    s[0]:=chr(getbyte);
-  {$endif}
+  s[0]:=chr(getbyte);
   if entryidx+length(s)>entry.size then
    begin
      error:=true;
@@ -923,7 +898,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-13 13:04:38  peter
+  Revision 1.4  2000-09-24 15:06:24  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/13 13:04:38  peter
     * new ppu version
 
   Revision 1.2  2000/07/13 11:32:45  michael

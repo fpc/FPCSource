@@ -23,29 +23,28 @@
 }
 Unit catch;
 
+{$i defines.inc}
+
 {$ifdef go32v2}
   { go32v2 stack check goes nuts if ss is not the data selector (PM) }
   {$S-}
 {$endif}
 
-
 {$ifdef DEBUG}
   {$define NOCATCH}
 {$endif DEBUG}
 
-
 interface
 uses
 {$ifdef linux}
-{$define has_signal}
+  {$define has_signal}
   linux,
 {$endif}
 {$ifdef go32v2}
-{$define has_signal}
+  {$define has_signal}
   dpmiexcp,
 {$endif}
   verbose;
-
 
 {$ifdef has_signal}
 Var
@@ -59,7 +58,7 @@ Implementation
 
 {$ifdef has_signal}
 {$ifdef linux}
-Procedure CatchSignal(Sig : Integer);cdecl;
+Procedure CatchSignal(Sig : SmallInt);cdecl;
 {$else}
 Function CatchSignal(Sig : longint):longint;
 {$endif}
@@ -91,22 +90,21 @@ end;
 
 begin
 {$ifndef nocatch}
-{$ifdef has_signal}
-{$ifndef TP}
-  NewSignal:=SignalHandler(@CatchSignal);
-{$else TP}
-  NewSignal:=SignalHandler(CatchSignal);
-{$endif TP}
-  OldSigSegm:=Signal (SIGSEGV,NewSignal);
-  OldSigInt:=Signal (SIGINT,NewSignal);
-  OldSigFPE:=Signal (SIGFPE,NewSignal);
-{$endif}
+  {$ifdef has_signal}
+    NewSignal:=SignalHandler({$ifdef fpcprocvar}@{$endif}CatchSignal);
+    OldSigSegm:=Signal (SIGSEGV,NewSignal);
+    OldSigInt:=Signal (SIGINT,NewSignal);
+    OldSigFPE:=Signal (SIGFPE,NewSignal);
+  {$endif}
 {$endif nocatch}
 end.
 
 {
   $Log$
-  Revision 1.3  2000-09-10 20:26:55  peter
+  Revision 1.4  2000-09-24 15:06:11  peter
+    * use defines.inc
+
+  Revision 1.3  2000/09/10 20:26:55  peter
     * bsd patches from marco
 
   Revision 1.2  2000/07/13 11:32:32  michael

@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit cg386mat;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -997,7 +1000,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-09-22 22:24:37  florian
+  Revision 1.2  2000-09-24 15:06:18  peter
+    * use defines.inc
+
+  Revision 1.1  2000/09/22 22:24:37  florian
     * initial revision
 
 }

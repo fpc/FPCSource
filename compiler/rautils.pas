@@ -21,6 +21,9 @@
 
  **********************************************************************}
 Unit RAUtils;
+
+{$i defines.inc}
+
 Interface
 
 Uses
@@ -144,12 +147,12 @@ type
      Constructor Init;
      Destructor Done;
      Function Evaluate(Expr:  String): longint;
-     Function Priority(_Operator: Char): Integer; virtual;
+     Function Priority(_Operator: Char): longint; virtual;
     private
      RPNStack   : Array[1..RPNMax] of longint;        { Stack For RPN calculator }
-     RPNTop     : Integer;
+     RPNTop     : longint;
      OpStack    : Array[1..OpMax] of TExprOperator;    { Operator stack For conversion }
-     OpTop      : Integer;
+     OpTop      : longint;
      Procedure RPNPush(Num: Longint);
      Function RPNPop: Longint;
      Procedure RPNCalc(token: String15; prefix: boolean);
@@ -373,7 +376,7 @@ begin
 end;
 
 
-Function TExprParse.Priority(_Operator : Char) : Integer;
+Function TExprParse.Priority(_Operator : Char) : longint;
 { Return priority of operator }
 { The greater the priority, the higher the precedence }
 begin
@@ -394,7 +397,7 @@ end;
 
 Function TExprParse.Evaluate(Expr : String):longint;
 Var
-  I     : Integer;
+  I     : LongInt;
   Token : String15;
   opr   : TExprOperator;
 begin
@@ -981,7 +984,6 @@ end;
 
 { looks for internal names of variables and routines }
 Function TOperand.SetupDirectVar(const hs:string): Boolean;
-{$ifndef OLDDIRECTVAR}
 var
   p : pasmsymbol;
 begin
@@ -994,37 +996,7 @@ begin
      SetupDirectVar:=true;
    end;
 end;
-{$else}
-var
-  p : pai_external;
-Begin
-   SearchDirectVar:=false;
-   { search in the list of internals }
-   p:=search_assembler_symbol(internals,hs,EXT_ANY);
-     if p=nil then
-       p:=search_assembler_symbol(externals,hs,EXT_ANY);
-   if p<>nil then
-     begin
-       instr.operands[operandnum].opr.ref.symbol:=p^.sym;
-        case p^.exttyp of
-           EXT_BYTE   : instr.operands[operandnum].size:=S_B;
-           EXT_WORD   : instr.operands[operandnum].size:=S_W;
-           EXT_NEAR,EXT_FAR,EXT_PROC,EXT_DWORD,EXT_CODEPTR,EXT_DATAPTR:
-           instr.operands[operandnum].size:=S_L;
-           EXT_QWORD  : instr.operands[operandnum].size:=S_FL;
-           EXT_TBYTE  : instr.operands[operandnum].size:=S_FX;
-         else
-           { this is in the case where the instruction is LEA }
-           { or something like that, in that case size is not }
-           { important.                                       }
-             instr.operands[operandnum].size:=S_NO;
-         end;
-       instr.operands[operandnum].hasvar:=true;
-       SearchDirectVar:=TRUE;
-       Exit;
-     end;
-end;
-{$endif}
+
 
 procedure TOperand.InitRef;
 {*********************************************************************}
@@ -1146,7 +1118,7 @@ end;
                              TLocalLabelList
 ***************************************************************************}
 
-procedure LocalLabelEmitted(p:PNamedIndexObject);{$ifndef FPC}far;{$endif}
+procedure LocalLabelEmitted(p:PNamedIndexObject);
 begin
   if not PLocalLabel(p)^.emitted  then
    Message1(asmr_e_unknown_label_identifier,p^.name);
@@ -1154,7 +1126,7 @@ end;
 
 procedure TLocalLabelList.CheckEmitted;
 begin
-  ForEach({$ifndef TP}@{$endif}LocalLabelEmitted)
+  ForEach({$ifdef FPCPROCVAR}@{$endif}LocalLabelEmitted)
 end;
 
 
@@ -1566,7 +1538,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-27 16:11:52  peter
+  Revision 1.5  2000-09-24 15:06:26  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 16:11:52  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

@@ -23,7 +23,10 @@
 }
 unit t_go32v1;
 
-  interface
+{$i defines.inc}
+
+interface
+
   uses
     link;
 
@@ -72,11 +75,7 @@ Function TLinkergo32v1.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
-{$IFDEF NEWST}
-  HPath    : PStringItem;
-{$ELSE}
   HPath    : PStringQueueItem;
-{$ENDIF}
   s        : string;
   linklibc : boolean;
 begin
@@ -190,7 +189,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-27 16:11:54  peter
+  Revision 1.4  2000-09-24 15:06:30  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/27 16:11:54  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

@@ -20,10 +20,11 @@
 
  ****************************************************************************
 }
-
 unit n386add;
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses
        nadd;
@@ -2325,7 +2326,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-09-22 22:42:52  florian
+  Revision 1.4  2000-09-24 15:06:18  peter
+    * use defines.inc
+
+  Revision 1.3  2000/09/22 22:42:52  florian
     * more fixes
 
   Revision 1.2  2000/09/21 12:24:22  jonas

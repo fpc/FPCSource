@@ -20,15 +20,11 @@
 
  ****************************************************************************
 }
-{$ifdef tp}
-  {$F+,N+,E+,R-}
-{$endif}
 unit scanner;
-{$ifdef FPC}
-  {$goto on}
-{$endif FPC}
 
-  interface
+{$i defines.inc}
+
+interface
 
     uses
 {$ifdef Delphi}
@@ -38,13 +34,8 @@ unit scanner;
        cobjects,globals,verbose,comphook,finput;
 
     const
-{$ifdef TP}
-       maxmacrolen=1024;
-       preprocbufsize=1024;
-{$else}
        maxmacrolen=16*1024;
        preprocbufsize=32*1024;
-{$endif}
        Newline = #10;
 
 
@@ -723,18 +714,8 @@ implementation
            break;
           end;
         until false;
-        {$ifndef TP}
-          {$ifopt H+}
-            setlength(orgpattern,i);
-            setlength(pattern,i);
-          {$else}
-            orgpattern[0]:=chr(i);
-            pattern[0]:=chr(i);
-          {$endif}
-        {$else}
-          orgpattern[0]:=chr(i);
-          pattern[0]:=chr(i);
-        {$endif}
+        orgpattern[0]:=chr(i);
+        pattern[0]:=chr(i);
       end;
 
 
@@ -784,15 +765,7 @@ implementation
          #10,
          #13 : linebreak;
         end;
-        {$ifndef TP}
-          {$ifopt H+}
-            setlength(pattern,i);
-          {$else}
-            pattern[0]:=chr(i);
-          {$endif}
-        {$else}
-          pattern[0]:=chr(i);
-        {$endif}
+        pattern[0]:=chr(i);
       end;
 
 
@@ -885,15 +858,7 @@ implementation
           if c in [#10,#13] then
            linebreak;
         until false;
-        {$ifndef TP}
-          {$ifopt H+}
-            setlength(readcomment,i);
-          {$else}
-            readcomment[0]:=chr(i);
-          {$endif}
-        {$else}
-          readcomment[0]:=chr(i);
-        {$endif}
+        readcomment[0]:=chr(i);
       end;
 
 
@@ -1835,7 +1800,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:53  peter
+  Revision 1.6  2000-09-24 15:06:28  peter
+    * use defines.inc
+
+  Revision 1.5  2000/08/27 16:11:53  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

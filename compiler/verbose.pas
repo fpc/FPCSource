@@ -21,15 +21,17 @@
  ****************************************************************************
 }
 unit verbose;
+
+{$i defines.inc}
+
+{ Don't include messages in the executable }
+{.$define EXTERN_MSG}
+
 interface
 
 uses
   cutils,cobjects,
   messages;
-
-{$ifdef TP}
-  {$define EXTERN_MSG}
-{$endif}
 
 {$ifndef EXTERN_MSG}
   {$i msgtxt.inc}
@@ -102,7 +104,7 @@ var
                        Extra Handlers for default compiler
 ****************************************************************************}
 
-procedure DoneRedirectFile;{$ifndef FPC}far;{$ENDIF}
+procedure DoneRedirectFile;
 begin
   exitproc:=redirexitsave;
   if status.use_redir then
@@ -246,12 +248,12 @@ procedure LoadMsgFile(const fn:string);
 begin
   if not msg^.LoadExtern(fn) then
    begin
-{$IFDEF TP}
+{$ifdef EXTERN_MSG}
      writeln('Fatal: Cannot find error message file.');
      halt(3);
-{$ELSE}
+{$else}
      msg^.LoadIntern(@msgtxt,msgtxtsize);
-{$ENDIF TP}
+{$endif}
    end;
 end;
 
@@ -284,14 +286,14 @@ end;
 
 procedure stop;
 begin
-  do_stop{$ifdef FPC}(){$endif};
+  do_stop{$ifdef FPCPROCVAR}(){$endif};
 end;
 
 
 procedure ShowStatus;
 begin
   UpdateStatus;
-  if do_status{$ifdef FPC}(){$endif} then
+  if do_status{$ifdef FPCPROCVAR}(){$endif} then
    stop;
 end;
 
@@ -579,10 +581,12 @@ begin
 end;
 
 end.
-
 {
   $Log$
-  Revision 1.4  2000-08-27 16:11:55  peter
+  Revision 1.5  2000-09-24 15:06:33  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 16:11:55  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 
