@@ -262,3 +262,5 @@ bug0193.pp   overflow checking for 8 and 16 bit operations wrong
 bug0194.pp   @procedure var returns value in it instead of address !!
 bug0195.pp   Problem with Getimage, crash of DOS box, even with dpmiexcp!!
 bug0196.pp   "function a;" is accepted (should require result type)
+bug0197.pp   should produce an error: problem with c1:=c2<c3 where c? is
+             a comp type
