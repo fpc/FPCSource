@@ -1,0 +1,54 @@
+This list contains tasks which should be done til version 1.0.
+Don't hesitate to insert jobs :)
+Don't insert bugs there, for this purpose is the bugs directory.
+
+Please indent task which are done 8 spaces and add the
+compiler version and your short cut.
+
+* OPOM (Object Pascal Object Modell)
+  - virtual constructors
+  * properties
+    - save the def and not the sym which
+      does read/write access
+    - indexed properties
+    - default properties
+    - stored qualifier
+    - read/write from/to unit file
+  - call of destructor helper routine
+  - message qualifier
+  - correct handling of constructor result type
+  - rtti
+  - dynamic methods
+  - correct handling of access specifiers
+* MMX support by the compiler
+          - unary minus .......................................... 0.99.1 (FK)
+          - proper handling of fixed type ........................ 0.99.1 (FK)
+  - array access
+          - binary operators ..................................... 0.99.1 (FK)
+          - mul operator ......................................... 0.99.1 (FK)
+  * special functions
+    - lo function
+    - pack/unpack function
+  - div by 2^n
+  - function results
+  - shift operators
+  - andn optimization
+  - muladdn optimization
+  - comparisations
+- open strings
+- $P
+- range checking for open arrays
+- array of const as subroutine parameter
+- code generation for exceptions
+- initialisation/finalization for units
+- fixed data type
+        - add abstract virtual method runtime
+          error checking (210) ................................... 0.99.1 (FK)
+- add alignment $A switch
+        - add debug info $D switch ............................... 0.99.1 (FK)
+        - add strict var strings check $V switch ................. 0.99.1 (FK)
+- $B
+- fix all bugs of the bug directory
+- include/exclude
+- make dec/inc internal
+- make length internal

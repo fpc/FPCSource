@@ -1,0 +1,9 @@
+;
+; emx.imp
+;
+_emx_init                       emx        1 R
+_emx_syscall                    emx        2 R
+_emx_16to32                     emx        3 1
+_emx_32to16                     emx        4 1
+_emx_thunk1                     emx        5 2
+_emx_exception                  emx        6 4

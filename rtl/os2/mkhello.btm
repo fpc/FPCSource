@@ -1,0 +1,1 @@
+ld -o helloos2 prt0.o prt1.o helloos2.o sysos2.o emx.a dosinit.o doscalls.a

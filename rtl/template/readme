@@ -1,0 +1,7 @@
+This directory contains 
+template files i.e. 
+files written entirely in pascal 
+and thus usable as a guideline for
+processor or operating system specific implementations.
+
+  strings.pp ( pchar handling written entirely in pascal by Carl-Eric Codere)

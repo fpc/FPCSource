@@ -1,0 +1,14 @@
+#!/bin/sh
+# Generate a configuration file for ppc386, write to ppc386.cfg
+# Needs 2 argument : 
+# 1) The directory where the libraries are. (without linuxunits appended)
+# 2) The directory where libgcc.a is.
+#
+# Michael Van Canneyt, 1996
+#
+cat <<EOF >ppc386.cfg
+-TLINUX
+-Fr$1/errorE.msg
+-Fg$2
+-Up$1/linuxunits
+EOF

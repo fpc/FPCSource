@@ -1,0 +1,1 @@
+ld -o crtdemo prt0.o prt1.o crtdemo.o sysos2.o crt.o emx.a dosinit.o doscalls.a wrap.a

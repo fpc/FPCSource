@@ -1,0 +1,1 @@
+ld -o dumppars prt0.o prt1.o dumppars.o sysos2.o emx.a dosinit.o dos.o strings.o doscalls.a

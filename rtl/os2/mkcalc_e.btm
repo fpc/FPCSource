@@ -1,0 +1,1 @@
+ld -o calc_e prt0.o prt1.o calc_e.o sysos2.o emx.a dosinit.o

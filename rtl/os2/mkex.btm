@@ -1,0 +1,1 @@
+ld -o extest prt0.o prt1.o extest.o dos.o strings.o sysos2.o emx.a dosinit.o doscalls.a wrap.a

@@ -1,0 +1,11 @@
+Compiler Writer's Guide
+-----------------------
+Here are a few tips for changing things in the compiler:
+(by FK mostly)
+
+  - Assigned should be used instead of checking for nil directly, as 
+it can help solving pointer problems when in real mode.
+  - All compiler files should be saved in UNIX format
+ 
+
+

@@ -1,0 +1,204 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993,97 by the Free Pascal development team
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+function DetectVESA:Boolean;
+var Result:longint;
+begin
+  Result:=Global_dos_alloc($0200);
+     Sel:=word(Result);
+     Seg:=word(Result shr 16);
+     dregs.RealSP:=0;      dregs.RealSS:=0;
+     dregs.RealES:=Seg;    dregs.RealEDI:=0;
+     dregs.RealEAX:=$4F00; RealIntr($10,dregs);  
+     if isDPMI 
+       then MoveLong(sel,@VGAInfo,256)
+       else Move(pointer((seg shl 4)+core)^,VGAInfo,256);
+  global_dos_free(sel); 
+  DetectVesa:=(dregs.RealEAX and $FF=$4F);
+  isVESA2:=VGAInfo.VESAHiVersion=2;
+end;
+
+function GetVESAInfo( Mode : WORD ):Boolean;
+var Result:longint;
+begin
+  Result:=Global_dos_alloc($0200);
+     Sel:=word(Result);
+     Seg:=word(Result shr 16);
+     dregs.RealECX:=mode;
+     dregs.RealSP:=0;      dregs.RealSS:=0;
+     dregs.RealES:=Seg;    dregs.RealEDI:=0;
+     dregs.RealEAX:=$4F01; RealIntr($10,dregs);
+     if isDPMI 
+       then MoveLong(sel,@VESAInfo,256)
+       else Move(Pointer((seg shl 4)+core)^,VESAINFO,256);
+  global_dos_free(sel);
+
+  { this is wrong because AH is set to one if mode not detected !!!
+  if (dregs.RealEAX and $ff) =$4F then  must be replaced by }
+  if (dregs.RealEAX and $1ff) =$4F then
+    begin
+      GetVESAInfo:=true;
+      BytesPerLine:=VESAInfo.BPL;
+      case VESAInfo.BitsPerPixel of
+       8     : BytesPerPixel:=1;
+       15,16 : BytesPerPixel:=2;
+       24    : begin
+               Oh_Kacke('24-Bit Modis nicht implementiert !');
+               exit;
+               end;
+      end;
+     _maxx:=VESAInfo.XResolution;
+     _maxy:=VESAInfo.YResolution;
+     
+     WinSize:=VESAInfo.Winsize*1024;
+     WinLoMask:=WinSize-1;
+     case VESAInfo.WinSize of
+        64 : WinShift:=16;      { x div 65536 = x shr 16 }
+        32 : WinShift:=15;      { x div 32768 = x shr 15 }
+        16 : WinShift:=14;      { ... }
+         8 : WinShift:=13;
+         4 : WinShift:=12;
+         2 : WinShift:=11;
+         1 : WinShift:=10;
+     end;
+     Granularity:=VESAInfo.WinGranularity;
+     Granular:=VESAInfo.WinSize div Granularity;
+     case Granular of
+        32 : GranShift:=5;
+        16 : GranShift:=4; 
+         8 : GranShift:=3;
+         4 : GranShift:=2;
+         2 : GranShift:=1;
+         1 : GranShift:=0;
+     end;
+     { set selector for writing }
+     if isDPMI then begin
+       set_segment_base_address(seg_write,$A000 shl 4);
+       set_segment_limit(seg_write,$FFFF);
+       seg_read:=seg_write;
+     end;
+     SwitchCS:=hi(VESAInfo.RealWinFuncPtr);
+     SwitchIP:=lo(VESAInfo.RealWinFuncPtr);
+   end else GetVESAInfo:=false;
+end;
+
+function SetVESAMode(Mode:WORD):Boolean;
+begin
+  dregs.RealEBX:=Mode;
+  dregs.RealSP:=0;      dregs.RealSS:=0;
+  dregs.RealEAX:=$4F02; RealIntr($10,dregs);
+  { idem as above !!! }
+  if (dregs.RealEAX and $1FF) <> $4F then begin
+    writeln('Couldn''t initialize VESAMode ',HexStr(mode,4));
+    SetVESAMode:=false;
+  end
+  else SetVESAMode:=true;
+end;
+
+function GetVESAMode:Integer;
+begin
+  dregs.RealSP:=0;      dregs.RealSS:=0;
+  dregs.RealEAX:=$4F03; RealIntr($10,dregs);
+  GetVESAMode:=lo(dregs.RealEBX);
+end;
+
+procedure InitVESA;
+var RM:Word;
+begin
+  isDPMI:=false;
+  rm:=get_run_mode;
+  case rm of
+    0 : writeln('unknown mode');
+    1 : writeln('RAW mode');
+    2 : writeln('XMS detected');
+    3 : writeln('VCPI detected');
+    4 : begin writeln('DPMI detected'); 
+              isDPMI:=true; 
+              end;
+  end; { case }
+  if isDPMI then begin
+    seg_write:=allocate_ldt_descriptors(1);
+    seg_read:=allocate_ldt_descriptors(1);
+  end else begin
+    seg_write:=get_DS;
+    seg_read:=get_DS;
+  end;
+end;
+
+procedure DoneVESA;
+begin
+  if isDPMI then begin
+    free_ldt_descriptor(seg_read);
+    free_ldt_descriptor(seg_write);
+  end;
+end;
+
+procedure Switchbank(bank:longint);
+begin
+  asm
+    leal   _DREGS,%edi
+    movl   bank,%eax
+    movzbl _GRANSHIFT,%ecx
+    shll   %cl,%eax
+    movl   %eax,20(%edi)    // RealEDX
+    movw   _SWITCHCS,%ax
+    movw   %ax,44(%edi)     // RealCS
+    movw   _SWITCHIP,%ax    // RealIP
+    movw   %ax,42(%edi)    
+    xorl   %ecx,%ecx
+    movl   %ecx,46(%edi)    // RealSS,RealSP
+    movl   %ecx,16(%edi)    // RealEBX 
+    movw   $0x0301,%ax
+    int    $0x31
+  end;
+end;
+
+{
+  $Log$
+  Revision 1.1  1998-03-25 11:18:42  root
+  Initial revision
+
+  Revision 1.6  1998/01/26 11:58:09  michael
+  + Added log at the end
+
+
+  
+  Working file: rtl/dos/ppi/ibm.ppi
+  description:
+  ----------------------------
+  revision 1.5
+  date: 1997/12/11 11:26:54;  author: pierre;  state: Exp;  lines: +165 -165
+     *  forgot dtou !!
+  ----------------------------
+  revision 1.4
+  date: 1997/12/11 11:24:19;  author: pierre;  state: Exp;  lines: +165 -165
+      * bug in string at line 103 corrected
+  ----------------------------
+  revision 1.3
+  date: 1997/12/04 08:52:35;  author: florian;  state: Exp;  lines: +4 -4
+  + vesa mode 1280x1024x256 added
+  ----------------------------
+  revision 1.2
+  date: 1997/12/01 12:21:30;  author: michael;  state: Exp;  lines: +13 -1
+  + added copyright reference in header.
+  ----------------------------
+  revision 1.1
+  date: 1997/11/27 08:33:51;  author: michael;  state: Exp;
+  Initial revision
+  ----------------------------
+  revision 1.1.1.1
+  date: 1997/11/27 08:33:51;  author: michael;  state: Exp;  lines: +0 -0
+  FPC RTL CVS start
+  =============================================================================
+}

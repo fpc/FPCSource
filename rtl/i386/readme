@@ -1,0 +1,15 @@
+This directory contains only RTL parts specific
+to the processor I386 family.
+
+(They are specific because they contain assembler instructions)
+
+Include files for system are :
+  heap.inc (heap handling)
+  set.inc  (sets operations)
+  math.inc (mathematic operations using the coprocessor)
+  i386.inc (several functions/procedures containing assembler parts)
+
+Units are :
+  strings.pp (written in assembler for speed)
+  getopts.pp (depends on the way the command line 
+              is transmitted to the program)

@@ -1,0 +1,128 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993,97 by the Free Pascal development team.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+{ GetRGBPalette,SetRGBPalette,SetAllPalette,GetPalette }
+
+{ Bei saemtlichen Palettefunktionen nicht auf Grafikmodus testen }
+{ funktionieren auch im TextModus }
+
+procedure SetAllPalette(var Palette:PaletteType);
+begin     
+  asm
+    movl  Palette,%esi
+    movb  $767,%ecx
+    xorl  %eax,%eax
+    movl  $2,%ebx
+    movw  $0x03c8,%dx
+    outb  %al,%dx
+    incw  %dx
+sp_loop:
+    movb  (%esi,%ebx,1),%al
+    shrb  $2,%al
+    outb  %al,%dx
+    incl  %ebx
+    decl  %ecx
+    jnz   sp_loop
+  end;
+end;
+        
+procedure SetRGBPalette(ColorNum,RedValue,GreenValue,BlueValue:byte);
+begin 
+  asm
+    movw  $0x3c8,%DX
+    movb  ColorNum,%al
+    outb  %AL,%DX
+    incw  %DX        
+    movb  RedValue,%al
+    shrb  $2,%al
+    outb  %AL,%DX
+    movb  GreenValue,%al
+    shrb  $2,%al
+    outb  %AL,%DX
+    movb  BlueValue,%al
+    shrb  $2,%al
+    outb  %AL,%DX
+  end;
+end;
+    
+procedure GetRGBPalette(ColorNum:byte; var RedValue,GreenValue,BlueValue:byte);
+begin 
+  asm
+    movw  $0x3c7,%DX
+    movb  ColorNum,%ax
+    outb  %AL,%DX
+    addw  $2,%DX         
+    xorl  %eax,%eax
+    inb   %DX,%AL
+    shlb  $2,%al
+    movb  %al,RedValue
+    inb   %DX,%AL
+    shlb  $2,%al
+    movb  %al,GreenValue
+    inb   %DX,%AL
+    shlb  $2,%al
+    movb  %al,BlueValue
+  end;
+end;
+
+procedure Getpalette(var Palette:PaletteType);
+begin
+  asm
+    movl   palette,%edi
+    movw   $0,(%edi)
+    testw  $2,_BYTESPERPIXEL
+    jnz    gp_end
+    movw   $0x100,(%edi)
+    movl   $767,%ecx
+    xorl   %eax,%eax
+    movl   $2,%ebx
+    movl   $0x03c7,%dx
+    outb   %al,%dx
+    addw   $2,%dx
+gp_loop:
+    inb    %dx,%al
+    shlb   $2,%al
+    movb   %al,(%edi,%ebx,1)
+    incl   %ebx
+    decl   %ecx
+    jnz    gp_loop
+gp_end:
+  end;
+end;
+{
+  $Log$
+  Revision 1.1  1998-03-25 11:18:42  root
+  Initial revision
+
+  Revision 1.3  1998/01/26 11:58:29  michael
+  + Added log at the end
+
+
+  
+  Working file: rtl/dos/ppi/palette.ppi
+  description:
+  ----------------------------
+  revision 1.2
+  date: 1997/12/01 12:21:32;  author: michael;  state: Exp;  lines: +13 -1
+  + added copyright reference in header.
+  ----------------------------
+  revision 1.1
+  date: 1997/11/27 08:33:51;  author: michael;  state: Exp;
+  Initial revision
+  ----------------------------
+  revision 1.1.1.1
+  date: 1997/11/27 08:33:51;  author: michael;  state: Exp;  lines: +0 -0
+  FPC RTL CVS start
+  =============================================================================
+}

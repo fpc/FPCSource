@@ -1,0 +1,14 @@
+This directory contains only RTL parts independent 
+of the processor and of the operating system.
+
+The files contain the following:
+
+system.inc	OS and Processor independent implementation part of system unit.
+systemh.inc	Interface part of the system unit.
+textrec.inc	Definition of Textrec record.
+filerec.inc	Definition of Filerec record.
+astrings.pp	AnsiStrings implementation.
+lstrings.pp	LongStrings implementation.
+sstrings.inc	ShortStrings implementation.
+heaph.inc	Declarations of Heap functions.
+mathh.inc	Declarations of mathematical functions.	

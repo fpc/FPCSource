@@ -1,0 +1,73 @@
+{
+    $Id$
+    Copyright (c) 1997-98 by Daniel Mantione
+
+    Handles the overlay initialisation for a TP7 compiled version
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+ ****************************************************************************
+}
+unit ppovin;
+
+interface
+
+var ovrminsize:longint;
+
+implementation
+
+uses    overlay;
+
+var s:string;
+
+begin
+    s:=paramstr(0);
+    ovrinit(copy(s,1,length(s)-3)+'ovr');
+    if ovrresult=ovrok then
+        begin
+            {May fail if no EMS memory is available. No need for error
+             checking, though, as the overlay manager happily runs without
+             EMS.}
+            ovrinitEMS;
+            ovrminsize:=ovrgetbuf;
+            ovrsetbuf(ovrminsize+$20000);
+        end
+    else
+        runerror($da);
+end.
+{
+  $Log$
+  Revision 1.1  1998-03-25 11:18:15  root
+  Initial revision
+
+  Revision 1.5  1998/03/10 01:17:24  peter
+    * all files have the same header
+    * messages are fully implemented, EXTDEBUG uses Comment()
+    + AG... files for the Assembler generation
+
+
+  Pre CVS Log:
+
+  FK     Florian Klaempfl
+  DM     Dani‰l Mantione
+  +      feature added
+  -      removed
+  *      bug fixed or changed
+
+  12th October 1997:
+        Rewritten (DM).
+}
+
+
