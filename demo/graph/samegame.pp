@@ -354,8 +354,6 @@ END;
 PROCEDURE BuildScreen;
 {Some procedures that build the screen}
 
-var s : String;
-
 BEGIN
   {$IFDEF UseGraphics}
    setbkcolor(black);
@@ -594,7 +592,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:06:35  peter
+  Revision 1.6  2003-09-06 14:14:12  marco
+   * removed unused var reported in bug 2170
+
+  Revision 1.5  2002/09/07 15:06:35  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/06/02 09:49:17  marco
