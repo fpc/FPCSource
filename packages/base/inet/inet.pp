@@ -36,7 +36,7 @@ Unit inet;
 
 interface
 
-{$LINKLIB c}
+Uses Initc;	// link to libc.
 
 Const
   { Net type }
@@ -168,14 +168,17 @@ function getservbyport (port : longint; protocol : pchar) : PServEnt; cdecl; ext
 procedure setservent (StayOpen : longint); cdecl; external;
 procedure endservent; cdecl; external;
 
-var
-  GetDNSError : longint;external name 'h_errno';
-
+Function GetDNSError : libcint;
 
 implementation
 
 Uses strings;
 
+Function GetDNSError:libcint;
+
+begin
+  GetDNSError:=fpGetCErrno;
+end;
 
 function HostAddrToStr (Entry : THostAddr) : String;
 
@@ -528,7 +531,10 @@ end.
 
 
    $Log$
-   Revision 1.2  2002-09-07 15:42:52  peter
+   Revision 1.3  2003-12-10 12:16:14  marco
+    * now uses initc
+
+   Revision 1.2  2002/09/07 15:42:52  peter
      * old logs removed and tabs fixed
 
    Revision 1.1  2002/01/29 17:54:53  peter
