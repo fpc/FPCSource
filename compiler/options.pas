@@ -1372,7 +1372,7 @@ begin
   if fpcdir='' then
    begin
      if PathExists('/usr/local/lib/fpc/'+version_string) then
-      fpcidr:='/usr/local/lib/fpc/'+version_string
+      fpcdir:='/usr/local/lib/fpc/'+version_string
      else
       fpcdir:='/usr/lib/fpc/'+version_string;
    end;
@@ -1427,7 +1427,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.54  2000-01-23 16:36:37  peter
+  Revision 1.55  2000-01-23 18:20:50  sg
+  * Fixed typo in line 1375 ("fpidr" instead of "fpcdir")
+
+  Revision 1.54  2000/01/23 16:36:37  peter
     * better auto RTL dir detection
 
   Revision 1.53  2000/01/20 10:36:44  daniel
