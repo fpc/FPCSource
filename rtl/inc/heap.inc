@@ -24,7 +24,7 @@
 { define SMALLATHEAPPTR}
 
 { Try to find the best matching block in general freelist }
-{$define BESTMATCH}
+{ define BESTMATCH}
 
 { Concat free blocks when placing big blocks in the mainlist }
 {$define CONCATFREE}
@@ -529,6 +529,71 @@ end;
 {$endif TestFreeLists}
 
 
+{$ifdef CONCATFREE}
+{*****************************************************************************
+                         Try concat freerecords
+*****************************************************************************}
+
+procedure TryConcatFreeRecord(pcurr:pfreerecord);
+var
+  hp : pfreerecord;
+  pcurrsize,s1 : longint;
+begin
+  pcurrsize:=pcurr^.size and sizemask;
+  hp:=pcurr;
+  repeat
+    { block used or before a heapend ? }
+    if (hp^.size and beforeheapendmask)<>0 then
+     begin
+       { Peter, why can't we add this one if free ?? }
+       { It's already added in the previous iteration, we only go to the }
+       { next heap record after this check (JM)                          }
+       pcurr^.size:=pcurrsize or beforeheapendmask; 
+       break;
+     end;
+    { get next block }
+    hp:=pfreerecord(pointer(hp)+(hp^.size and sizemask));
+    { when we're at heapptr then we can stop and set heapptr to pcurr }
+    if (hp=heapptr) then
+     begin
+       heapptr:=pcurr;
+       { remove the block }
+       if assigned(pcurr^.next) then
+         pcurr^.next^.prev := pcurr^.prev;
+       if assigned(pcurr^.prev) then
+         pcurr^.prev^.next := pcurr^.next
+       else
+         freelists[0] := pcurr^.next;
+{$ifdef SYSTEMDEBUG}
+       dec(freecount[0]);
+{$endif SYSTEMDEBUG}
+       break;
+     end;
+    { block is used? then we stop and add the block to the freelist }
+    if (hp^.size and usedmask)<>0 then
+     begin
+       pcurr^.size:=pcurrsize;
+       break;
+     end;
+    { remove block from freelist and increase the size }
+    s1:=hp^.size and sizemask;
+    inc(pcurrsize,s1);
+    s1:=s1 shr blockshr;
+    if s1>maxblock then
+     s1:=0;
+    if assigned(hp^.next) then
+     hp^.next^.prev:=hp^.prev;
+    if assigned(hp^.prev) then
+     hp^.prev^.next:=hp^.next
+    else
+     freelists[s1]:=hp^.next;
+{$ifdef SYSTEMDEBUG}
+    dec(freecount[s1]);
+{$endif SYSTEMDEBUG}
+  until false;
+end;
+{$endif CONCATFREE}
+
 {*****************************************************************************
                                  SysGetMem
 *****************************************************************************}
@@ -642,12 +707,26 @@ begin
               if (not assigned(pbest)) or
                  (pcurr^.size<pbest^.size) then
                pbest:=pcurr;
-            end;
+            end
          end;
-{$else}
+{$else BESTMATCH}
+{$ifdef CONCATFREE}
+        TryConcatFreeRecord(pcurr);
+        if (pcurr <> heapptr) then
+          begin
+            if pcurr^.size>=size then
+              break;
+          end
+        else
+          begin
+            pcurr := nil;
+            break;
+          end;
+{$else CONCATFREE}
         if pcurr^.size>=size then
-         break;
-{$endif}
+          break;
+{$endif CONCATFREE}
+{$endif BESTMATCH}
         pcurr:=pcurr^.next;
       end;
 {$ifdef BESTMATCH}
@@ -745,73 +824,6 @@ begin
 end;
 
 
-{$ifdef CONCATFREE}
-{*****************************************************************************
-                         Try concat freerecords
-*****************************************************************************}
-
-procedure TryConcatFreeRecord(pcurr:pfreerecord);
-var
-  hp : pfreerecord;
-  pcurrsize,s1 : longint;
-begin
-  pcurrsize:=pcurr^.size and sizemask;
-  hp:=pcurr;
-  repeat
-    { block used or before a heapend ? }
-    if (hp^.size and beforeheapendmask)<>0 then
-     begin
-       { Peter, why can't we add this one if free ?? }
-       pcurr^.size:=pcurrsize or beforeheapendmask;
-       pcurr^.next:=freelists[0];
-       if assigned(pcurr^.next) then
-        pcurr^.next^.prev:=pcurr;
-       freelists[0]:=pcurr;
-{$ifdef SYSTEMDEBUG}
-       inc(freecount[0]);
-{$endif SYSTEMDEBUG}
-       break;
-     end;
-    { get next block }
-    hp:=pfreerecord(pointer(hp)+(hp^.size and sizemask));
-    { when we're at heapptr then we can stop and set heapptr to pcurr }
-    if (hp=heapptr) then
-     begin
-       heapptr:=pcurr;
-       break;
-     end;
-    { block is used? then we stop and add the block to the freelist }
-    if (hp^.size and usedmask)<>0 then
-     begin
-       pcurr^.size:=pcurrsize;
-       pcurr^.next:=freelists[0];
-       if assigned(pcurr^.next) then
-        pcurr^.next^.prev:=pcurr;
-       freelists[0]:=pcurr;
-{$ifdef SYSTEMDEBUG}
-       inc(freecount[0]);
-{$endif SYSTEMDEBUG}
-       break;
-     end;
-    { remove block from freelist and increase the size }
-    s1:=hp^.size and sizemask;
-    inc(pcurrsize,s1);
-    s1:=s1 shr blockshr;
-    if s1>maxblock then
-     s1:=0;
-    if assigned(hp^.next) then
-     hp^.next^.prev:=hp^.prev;
-    if assigned(hp^.prev) then
-     hp^.prev^.next:=hp^.next
-    else
-     freelists[s1]:=hp^.next;
-{$ifdef SYSTEMDEBUG}
-    dec(freecount[s1]);
-{$endif SYSTEMDEBUG}
-  until false;
-end;
-{$endif CONCATFREE}
-
 {*****************************************************************************
                                SysFreeMem
 *****************************************************************************}
@@ -832,21 +844,14 @@ begin
   pcurr^.prev:=nil;
   s:=pcurrsize shr blockshr;
   if s>maxblock then
-{$ifdef CONCATFREE}
-   TryConcatFreeRecord(pcurr)
-  else
-{$else}
    s:=0;
-{$endif}
-   begin
-     pcurr^.next:=freelists[s];
-     if assigned(pcurr^.next) then
-     pcurr^.next^.prev:=pcurr;
-     freelists[s]:=pcurr;
+  pcurr^.next:=freelists[s];
+  if assigned(pcurr^.next) then
+   pcurr^.next^.prev:=pcurr;
+  freelists[s]:=pcurr;
 {$ifdef SYSTEMDEBUG}
-     inc(freecount[s]);
+  inc(freecount[s]);
 {$endif SYSTEMDEBUG}
-   end;
   SysFreeMem:=pcurrsize;
 {$ifdef TestFreeLists}
   if test_each then
@@ -887,21 +892,14 @@ begin
 { set the return values }
   s:=pcurrsize shr blockshr;
   if s>maxblock then
-{$ifdef CONCATFREE}
-   TryConcatFreeRecord(pcurr)
-  else
-{$else}
    s:=0;
-{$endif}
-   begin
-     pcurr^.next:=freelists[s];
-     if assigned(pcurr^.next) then
-     pcurr^.next^.prev:=pcurr;
-     freelists[s]:=pcurr;
+  pcurr^.next:=freelists[s];
+  if assigned(pcurr^.next) then
+   pcurr^.next^.prev:=pcurr;
+  freelists[s]:=pcurr;
 {$ifdef SYSTEMDEBUG}
-     inc(freecount[s]);
+  inc(freecount[s]);
 {$endif SYSTEMDEBUG}
-   end;
   SysFreeMemSize:=pcurrsize;
 {$ifdef TestFreeLists}
   if test_each then
@@ -1259,7 +1257,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2002-04-21 18:56:59  peter
+  Revision 1.14  2002-06-17 08:33:04  jonas
+    * heap manager now fragments the heap much less
+
+  Revision 1.13  2002/04/21 18:56:59  peter
     * fpc_freemem and fpc_getmem compilerproc
 
   Revision 1.12  2002/02/10 15:33:45  carl
