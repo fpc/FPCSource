@@ -235,6 +235,7 @@ unit tree;
     function gennode(t : ttreetyp;l,r : ptree) : ptree;
     function genlabelnode(t : ttreetyp;nr : plabel) : ptree;
     function genloadnode(v : pvarsym;st : psymtable) : ptree;
+    function genloadcallnode(v: pprocsym;st: psymtable): ptree;
     function gensinglenode(t : ttreetyp;l : ptree) : ptree;
     function gensubscriptnode(varsym : pvarsym;l : ptree) : ptree;
     function genordinalconstnode(v : longint;def : pdef) : ptree;
@@ -882,6 +883,29 @@ unit tree;
          p^.disposetyp:=dt_nothing;
          genloadnode:=p;
       end;
+
+    function genloadcallnode(v: pprocsym;st: psymtable): ptree;
+      var
+         p : ptree;
+
+      begin
+         p:=getnode;
+         p^.registers32:=0;
+{         p^.registers16:=0;
+         p^.registers8:=0; }
+         p^.registersfpu:=0;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=0;
+{$endif SUPPORT_MMX}
+         p^.treetype:=loadn;
+         p^.resulttype:=v^.definition;
+         p^.symtableentry:=v;
+         p^.symtable:=st;
+         p^.is_first := False;
+         p^.disposetyp:=dt_nothing;
+         genloadcallnode:=p;
+      end;
+
 
     function gentypedconstloadnode(sym : ptypedconstsym;st : psymtable) : ptree;
 
@@ -1545,7 +1569,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.37  1998-09-08 10:38:04  pierre
+  Revision 1.38  1998-09-16 01:06:47  carl
+    * crash bugfix in firstaddr
+
+  Revision 1.37  1998/09/08 10:38:04  pierre
     * some variable fields inside conditionnal were not updated
 
   Revision 1.36  1998/09/07 18:46:17  peter
