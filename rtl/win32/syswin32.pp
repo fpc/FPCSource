@@ -940,6 +940,7 @@ begin
   StdErrorHandle:=longint(GetStdHandle(STD_ERROR_HANDLE));
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 { Arguments }
   setup_arguments;
@@ -951,7 +952,11 @@ end.
 
 {
   $Log$
-  Revision 1.30  1998-12-21 14:28:23  pierre
+  Revision 1.31  1998-12-28 15:50:51  peter
+    + stdout, which is needed when you write something in the system unit
+      to the screen. Like the runtime error
+
+  Revision 1.30  1998/12/21 14:28:23  pierre
     * HandleError -> HandleErrorFrame to avoid problem in
       assembler code in i386.inc
       (call to overloaded function in assembler block !)

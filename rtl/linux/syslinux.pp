@@ -723,6 +723,7 @@ Begin
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 { Reset IO Error }
   InOutRes:=0;
@@ -730,7 +731,11 @@ End.
 
 {
   $Log$
-  Revision 1.20  1998-12-18 17:21:34  peter
+  Revision 1.21  1998-12-28 15:50:49  peter
+    + stdout, which is needed when you write something in the system unit
+      to the screen. Like the runtime error
+
+  Revision 1.20  1998/12/18 17:21:34  peter
     * fixed io-error handling
 
   Revision 1.19  1998/12/15 22:43:08  peter

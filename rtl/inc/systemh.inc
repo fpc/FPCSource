@@ -114,6 +114,7 @@ var
 { Standard In- and Output }
   Output,
   Input,
+  StdOut,
   StdErr      : Text;
   ExitCode,
   InOutRes    : Word;
@@ -429,7 +430,11 @@ const
 
 {
   $Log$
-  Revision 1.45  1998-12-15 22:43:04  peter
+  Revision 1.46  1998-12-28 15:50:48  peter
+    + stdout, which is needed when you write something in the system unit
+      to the screen. Like the runtime error
+
+  Revision 1.45  1998/12/15 22:43:04  peter
     * removed temp symbols
 
   Revision 1.44  1998/11/27 14:50:57  peter

@@ -381,7 +381,7 @@ Begin
    End;
   If erroraddr<>nil Then
    Begin
-     Writeln('Run time error  ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
+     Writeln(stdout,'Run time error  ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
      dump_stack(ErrorBase);
    End;
 End;
@@ -468,7 +468,11 @@ end;
 
 {
   $Log$
-  Revision 1.49  1998-12-21 14:28:21  pierre
+  Revision 1.50  1998-12-28 15:50:46  peter
+    + stdout, which is needed when you write something in the system unit
+      to the screen. Like the runtime error
+
+  Revision 1.49  1998/12/21 14:28:21  pierre
     * HandleError -> HandleErrorFrame to avoid problem in
       assembler code in i386.inc
       (call to overloaded function in assembler block !)

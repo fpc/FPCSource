@@ -721,6 +721,7 @@ begin
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 { Reset IO Error }
   InOutRes:=0;
@@ -731,7 +732,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-09-14 10:48:02  peter
+  Revision 1.10  1998-12-28 15:50:43  peter
+    + stdout, which is needed when you write something in the system unit
+      to the screen. Like the runtime error
+
+  Revision 1.9  1998/09/14 10:48:02  peter
     * FPC_ names
     * Heap manager is now system independent
 

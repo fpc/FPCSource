@@ -1785,6 +1785,7 @@ begin
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   { The Amiga does not seem to have a StdError }
   { handle, therefore make the StdError handle }
   { equal to the StdOutputHandle.              }
@@ -1812,7 +1813,11 @@ end.
 
 {
   $Log$
-  Revision 1.10  1998-09-14 10:48:00  peter
+  Revision 1.11  1998-12-28 15:50:42  peter
+    + stdout, which is needed when you write something in the system unit
+      to the screen. Like the runtime error
+
+  Revision 1.10  1998/09/14 10:48:00  peter
     * FPC_ names
     * Heap manager is now system independent
 

@@ -1216,6 +1216,7 @@ Begin
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 { Setup environment and arguments }
   Setup_Environment;
@@ -1227,7 +1228,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.2  1998-12-21 14:22:02  pierre
+  Revision 1.3  1998-12-28 15:50:45  peter
+    + stdout, which is needed when you write something in the system unit
+      to the screen. Like the runtime error
+
+  Revision 1.2  1998/12/21 14:22:02  pierre
    * old_int?? transformed to cvar to be readable by dpmiexcp
 
   Revision 1.1  1998/12/21 13:07:03  peter

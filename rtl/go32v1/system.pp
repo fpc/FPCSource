@@ -606,13 +606,18 @@ Begin
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 { Reset IO Error }
   InOutRes:=0;
 End.
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:02  peter
+  Revision 1.2  1998-12-28 15:50:44  peter
+    + stdout, which is needed when you write something in the system unit
+      to the screen. Like the runtime error
+
+  Revision 1.1  1998/12/21 13:07:02  peter
     * use -FE
 
   Revision 1.12  1998/12/15 22:42:51  peter
