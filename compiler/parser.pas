@@ -67,6 +67,9 @@ unit parser;
       { cgbase must be after hcodegen to use the correct procinfo !!! }
       cgbase,
 {$endif newcg}
+{$ifdef GDB}
+       gdb,
+{$endif GDB}
       comphook,tree,scanner,pbase,ptype,psystem,pmodules,cresstr;
 
 
@@ -197,6 +200,9 @@ unit parser;
 {$ifdef newcg}
          oldcg         : pcg;
 {$endif newcg}
+{$ifdef GDB}
+         store_dbx : plongint;
+{$endif GDB}
 
       begin
          inc(compile_level);
@@ -246,6 +252,10 @@ unit parser;
 {$ifdef newcg}
          oldcg:=cg;
 {$endif newcg}
+{$ifdef GDB}
+         store_dbx:=dbx_counter;
+         dbx_counter:=nil;
+{$endif GDB}
        { show info }
          Message1(parser_i_compiling,filename);
 
@@ -376,6 +386,9 @@ unit parser;
 {$ifdef newcg}
               cg:=oldcg;
 {$endif newcg}
+{$ifdef GDB}
+              dbx_counter:=store_dbx;
+{$endif GDB}
               { restore scanner }
               c:=oldc;
               pattern:=oldpattern;
@@ -487,7 +500,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.90  1999-11-06 14:34:21  peter
+  Revision 1.91  1999-11-09 23:48:47  pierre
+   * some DBX work, still does not work
+
+  Revision 1.90  1999/11/06 14:34:21  peter
     * truncated log to 20 revs
 
   Revision 1.89  1999/10/22 10:39:34  peter
@@ -567,4 +583,3 @@ end.
     * fixed bugs 212,222,225,227,229,231,233
 
 }
-
