@@ -1581,12 +1581,15 @@ implementation
               retsize:=current_procinfo.para_stack_size;
             cg.g_return_from_proc(list,retsize);
           end;
+{$ifndef cpu64bit}
         if usesacchi then
           begin
             cg.a_reg_dealloc(list,NR_FUNCTION_RETURN64_LOW_REG);
             cg.a_reg_dealloc(list,NR_FUNCTION_RETURN64_HIGH_REG);
           end
-        else if usesacc then
+        else
+{$endif cpu64bit}
+        if usesacc then
           cg.a_reg_dealloc(list,NR_FUNCTION_RETURN_REG);
       end;
 
@@ -2057,7 +2060,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.181  2004-01-12 22:11:38  peter
+  Revision 1.182  2004-01-13 18:08:58  florian
+    * x86-64 compilation fixed
+
+  Revision 1.181  2004/01/12 22:11:38  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic

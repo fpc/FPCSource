@@ -50,7 +50,7 @@ unit cgcpu;
 
     class function tcgx86_64.reg_cgsize(const reg: tregister): tcgsize;
     const subreg2cgsize:array[Tsubregister] of Tcgsize =
-          (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO);
+          (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO);
 
     begin
       case getregtype(reg) of
@@ -206,7 +206,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-12-24 01:47:23  florian
+  Revision 1.8  2004-01-13 18:08:58  florian
+    * x86-64 compilation fixed
+
+  Revision 1.7  2003/12/24 01:47:23  florian
     * first fixes to compile the x86-64 system unit
 
   Revision 1.6  2003/12/22 19:00:17  florian

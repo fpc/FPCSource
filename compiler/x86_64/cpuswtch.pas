@@ -85,9 +85,6 @@ begin
             if More='INTEL' then
              initasmmode:=asmmode_i386_intel
            else
-            if More='DIRECT' then
-             initasmmode:=asmmode_direct
-           else
             IllegalPara(opt);
          end;
   else
@@ -101,7 +98,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-09-25 13:13:32  florian
+  Revision 1.4  2004-01-13 18:08:58  florian
+    * x86-64 compilation fixed
+
+  Revision 1.3  2003/09/25 13:13:32  florian
     * more x86-64 fixes
 
   Revision 1.2  2002/08/10 14:53:38  carl

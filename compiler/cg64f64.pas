@@ -181,7 +181,7 @@ unit cg64f64;
       begin
       end;
 
-    procedure tcg64f64.a_param64_reg(list : taasmoutput;reg64 : tregister;const locpara : tparalocation);
+    procedure tcg64f64.a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);
       begin
       end;
 
@@ -223,7 +223,10 @@ unit cg64f64;
 end.
 {
   $Log$
-  Revision 1.10  2003-12-24 00:10:02  florian
+  Revision 1.11  2004-01-13 18:08:58  florian
+    * x86-64 compilation fixed
+
+  Revision 1.10  2003/12/24 00:10:02  florian
     - delete parameter in cg64 methods removed
 
   Revision 1.9  2003/12/22 19:00:17  florian
