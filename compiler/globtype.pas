@@ -29,6 +29,19 @@ interface
        maxidlen = 64;
 
     type
+{TCmdStr is used to pass command line parameters to an external program to be
+executed from the FPC application. In some circomstances, this can be more
+than 255 characters. That's why using Ansi Strings}
+{$IFDEF USE_SYSUTILS}
+       TCmdStr = AnsiString;
+       PathStr = String;
+       DirStr = String;
+       NameStr = String;
+       ExtStr = String;
+{$ELSE USE_SYSUTILS}
+       TCmdStr = String;
+{$ENDIF USE_SYSUTILS}
+
 {$ifndef fpc}
        qword = int64;
 {$endif fpc}
@@ -295,7 +308,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2004-09-26 17:45:30  peter
+  Revision 1.61  2004-10-14 14:42:57  mazen
+  + Needed types aliases to merge USE_SYSUTILS branch
+
+  Revision 1.60  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.59  2004/07/14 23:19:22  olle
