@@ -1100,35 +1100,43 @@ End;
       mov    es:[di], al
     end;
   {$else fpc}
-  assembler;stdcall;
+  assembler;
   asm
       push edi
       push ebx
-    movsx  edi, x
-    movsx  ebx, y
-    cmp    clippixels, 0
-    je     @putpix320noclip
-    test   edi, edi
-    jl     @putpix320done
-    test   ebx, ebx
-    jl     @putpix320done
-    cmp    di, ViewWidth
-    jg     @putpix320done
-    cmp    bx, ViewHeight
-    jg     @putpix320done
-  @putpix320noclip:
-    movsx  ecx, StartYViewPort
-    movsx  edx, StartXViewPort
-    add    ebx, ecx
-    add    edi, edx
+{$IFDEF REGCALL}
+      movsx  edi, ax
+      movsx  ebx, dx
+      mov    al, cl
+{$ELSE REGCALL}
+      movsx  edi, x
+      movsx  ebx, y
+{$ENDIF REGCALL}
+      cmp    clippixels, 0
+      je     @putpix320noclip
+      test   edi, edi
+      jl     @putpix320done
+      test   ebx, ebx
+      jl     @putpix320done
+      cmp    di, ViewWidth
+      jg     @putpix320done
+      cmp    bx, ViewHeight
+      jg     @putpix320done
+@putpix320noclip:
+      movsx  ecx, StartYViewPort
+      movsx  edx, StartXViewPort
+      add    ebx, ecx
+      add    edi, edx
 {    add    edi, [VideoOfs]      no multiple pages in 320*200*256 }
-    mov    ax, [pixel]
-    shl    ebx, 6
-    add    edi, ebx
-    mov    fs:[edi+ebx*4+$a0000], al
-  @putpix320done:
-    pop ebx
-    pop edi
+{$IFNDEF REGCALL}
+      mov    ax, [pixel]
+{$ENDIF REGCALL}
+      shl    ebx, 6
+      add    edi, ebx
+      mov    fs:[edi+ebx*4+$a0000], al
+@putpix320done:
+      pop ebx
+      pop edi
 {$endif fpc}
  end;
 
@@ -1152,12 +1160,17 @@ End;
       mov    @Result,ax
     end;
   {$else fpc}
-  assembler;stdcall;
+  assembler;
   asm
     push edi
     push ebx
+{$IFDEF REGCALL}
+    movsx  edi, ax
+    movsx  ebx, dx
+{$ELSE REGCALL}
     movsx  edi, x
     movsx  ebx, y
+{$ENDIF REGCALL}
     movsx  ecx, StartYViewPort
     movsx  edx, StartXViewPort
     add    ebx, ecx
@@ -1190,7 +1203,7 @@ End;
  end;
 {$else asmgraph}
 { note: still needs or/and/notput support !!!!! (JM) }
-  assembler;stdcall;
+  assembler;
     asm
   {$ifndef fpc}
       mov    es, [SegA000]
@@ -1211,8 +1224,13 @@ End;
   {$else fpc}
       push edi
       push ebx
+{$IFDEF REGCALL}
+      movzx  edi, ax
+      movzx  ebx, dx
+{$ELSE REGCALL}
       movzx  edi, x
       movzx  ebx, y
+{$ENDIF REGCALL}
    {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
       shl    ebx, 6
       add    edi, ebx
@@ -1394,10 +1412,13 @@ const CrtAddress: word = 0;
  procedure SetVisualX(page: word); {$ifndef fpc}far;{$endif fpc}
   { 4 page supPort... }
 
-   Procedure SetVisibleStart(AOffset: word); Assembler;stdcall;
+   Procedure SetVisibleStart(AOffset: word); Assembler;
    (* Select where the left corner of the screen will be *)
    { By Matt Pritchard }
     asm
+{$IFDEF REGCALL}
+     mov cx, ax
+{$ENDIF REGCALL}
       { Wait if we are currently in a Vertical Retrace        }
      MOV     DX, INPUT_1         { Input Status #1 Register       }
    @DP_WAIT0:
@@ -1415,10 +1436,18 @@ const CrtAddress: word = 0;
      MOV     AL, START_DISP_HI   { Display Start High Register    }
      MOV     AH, BYTE PTR [AOffset+1] { High 8 Bits of Start Addr }
 {$else fpc}
+{$IFDEF REGCALL}
+    mov ah, cl
+{$ELSE REGCALL}
     mov ah, byte [AOffset]
+{$ENDIF REGCALL}
     out dx, ax
     mov AL, START_DISP_HI
+{$IFDEF REGCALL}
+    mov ah, ch
+{$ELSE REGCALL}
     mov ah, byte [AOffset+1]
+{$ENDIF REGCALL}
 {$endif fpc}
      OUT     DX, AX              { Set Display Addr High          }
      { Wait for a Vertical Retrace to smooth out things      }
@@ -1545,17 +1574,22 @@ const CrtAddress: word = 0;
  end;
 {$else asmgraph}
 { note: still needs or/and/notput support !!!!! (JM) }
- Assembler;stdcall;
+ Assembler;
  asm
-   mov di,[Y]                   ; (* DI = Y coordinate                 *)
+{$IFDEF REGCALL}
+   mov cl, al
+   mov di, dx
+{$ELSE REGCALL}
+   mov cx, [X]
+   mov ax, cx
+   mov di, [Y]                   ; (* DI = Y coordinate                 *)
+{$ENDIF REGCALL}
  (* Multiply by 80 start *)
    mov bx, di
    shl di, 6                    ; (* Faster on 286/386/486 machines    *)
    shl bx, 4
    add di, bx                   ;  (* Multiply Value by 80             *)
  (* End multiply by 80  *)
-   mov cx, [X]
-   mov ax, cx
   {DI = Y * LINESIZE, BX = X, coordinates admissible}
    shr ax, 2
    add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
@@ -2746,7 +2780,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-12-04 21:42:07  peter
+  Revision 1.12  2004-03-06 23:18:02  hajny
+    * proper regcall fixes
+
+  Revision 1.11  2003/12/04 21:42:07  peter
     * register calling updates
 
   Revision 1.10  2003/10/03 21:46:25  peter
