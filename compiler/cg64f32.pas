@@ -72,6 +72,13 @@ unit cg64f32;
         procedure a_param64_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
         procedure a_param64_loc(list : taasmoutput;const l : tlocation;const locpara : tparalocation);override;
 
+        {# This routine tries to optimize the a_op64_const_reg operation, by
+           removing superfluous opcodes. Returns TRUE if normal processing
+           must continue in op64_const_reg, otherwise, everything is processed
+           entirely in this routine, by emitting the appropriate 32-bit opcodes.
+        }   
+        function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : qword; var reg: tregister64): boolean;override;
+
         procedure g_rangecheck64(list: taasmoutput; const p: tnode;
           const todef: tdef); override;
       end;
@@ -620,6 +627,98 @@ unit cg64f32;
              end;
       end;
 
+    function tcg64f32.optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : qword; var reg: tregister64): boolean;
+      var
+        lowvalue, highvalue : cardinal;
+        hreg: tregister;
+      begin
+        lowvalue := cardinal(a);
+        highvalue:= a shr 32;
+        { assume it will be optimized out }
+        optimize64_op_const_reg := true;
+        case op of
+        OP_ADD:
+           begin
+             if a = 0 then 
+                exit;
+           end;
+        OP_AND:
+           begin
+              if lowvalue <> high(cardinal) then
+                cg.a_op_const_reg(list,op,lowvalue,reg.reglo);
+              if highvalue <> high(cardinal) then
+                cg.a_op_const_reg(list,op,highvalue,reg.reghi);
+              { already emitted correctly }  
+              exit;
+           end;
+        OP_OR:
+           begin
+              if lowvalue <> 0 then
+                cg.a_op_const_reg(list,op,lowvalue,reg.reglo);
+              if highvalue <> 0 then
+                cg.a_op_const_reg(list,op,highvalue,reg.reghi);
+              { already emitted correctly }  
+              exit;
+           end;
+        OP_SUB:
+           begin
+             if a = 0 then 
+                exit;
+           end;
+        OP_XOR:
+           begin
+           end;
+        OP_SHL:
+           begin
+             if a = 0 then 
+                 exit;
+             { simply clear low-register 
+               and shift the rest and swap
+               registers.
+             }
+             if (a > 31) then
+               begin
+                 cg.a_load_const_reg(list,OS_32,0,reg.reglo);
+                 cg.a_op_const_reg(list,OP_SHL,a mod 32,reg.reghi);
+                 { swap the registers }
+                 hreg := reg.reghi;
+                 reg.reghi := reg.reglo;
+                 reg.reglo := hreg; 
+                 exit;
+               end;
+           end;
+        OP_SHR:   
+           begin
+             if a = 0 then exit;
+             { simply clear high-register 
+               and shift the rest and swap
+               registers.
+             }
+             if (a > 31) then
+               begin
+                 cg.a_load_const_reg(list,OS_32,0,reg.reghi);
+                 cg.a_op_const_reg(list,OP_SHL,a mod 32,reg.reglo);
+                 { swap the registers }
+                 hreg := reg.reghi;
+                 reg.reghi := reg.reglo;
+                 reg.reglo := hreg; 
+                 exit;
+               end;
+           end;
+        OP_IMUL,OP_MUL:
+           begin
+             if a = 1 then exit;
+           end;
+        OP_IDIV,OP_DIV:
+            begin
+             if a = 1 then exit;
+            end;
+        else
+           internalerror(20020817);
+        end;   
+        optimize64_op_const_reg := false;
+      end;
+
 (*
     procedure int64f32_assignment_int64_reg(p : passignmentnode);
 
@@ -633,7 +732,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-08-17 22:09:43  florian
+  Revision 1.27  2002-08-19 18:17:47  carl
+    + optimize64_op_const_reg implemented (optimizes 64-bit constant opcodes)
+    * more fixes to m68k for 64-bit operations
+
+  Revision 1.26  2002/08/17 22:09:43  florian
     * result type handling in tcgcal.pass_2 overhauled
     * better tnode.dowrite
     * some ppc stuff fixed

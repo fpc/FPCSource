@@ -173,6 +173,12 @@ unit cg64f64;
       const todef: tdef);
       begin
       end;
+      
+    function tcg64f64.optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : qword; var reg: tregister64): boolean;
+     begin
+       { this should be the same routine as optimize_const_reg!!!!!!!! } 
+     end;
+      
 
     procedure tcg.a_reg_alloc(list : taasmoutput;r : tregister64);
 
@@ -190,7 +196,11 @@ unit cg64f64;
 end.
 {
   $Log$
-  Revision 1.3  2002-08-17 22:09:43  florian
+  Revision 1.4  2002-08-19 18:17:48  carl
+    + optimize64_op_const_reg implemented (optimizes 64-bit constant opcodes)
+    * more fixes to m68k for 64-bit operations
+
+  Revision 1.3  2002/08/17 22:09:43  florian
     * result type handling in tcgcal.pass_2 overhauled
     * better tnode.dowrite
     * some ppc stuff fixed

@@ -38,7 +38,11 @@
 
 {
   $Log$
-  Revision 1.5  2002-08-15 15:11:53  carl
+  Revision 1.6  2002-08-19 18:17:48  carl
+    + optimize64_op_const_reg implemented (optimizes 64-bit constant opcodes)
+    * more fixes to m68k for 64-bit operations
+
+  Revision 1.5  2002/08/15 15:11:53  carl
     * oldset define is now correct for all cpu's except i386
     * correct compilation problems because of the above
 
@@ -49,4 +53,7 @@
   Revision 1.3  2002/07/04 18:56:50  florian
     + log added
 
+}
+
+{ 
 }

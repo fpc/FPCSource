@@ -248,13 +248,15 @@ unit cgobj;
              This routine tries to optimize the const_reg opcode, and should be
              called at the start of a_op_const_reg. It returns the actual opcode
              to emit, and the constant value to emit. If this routine returns
-             FALSE, no instruction should be emitted (.eg : imul reg by 1 )
+             TRUE, @var(no) instruction should be emitted (.eg : imul reg by 1 )
 
              @param(op The opcode to emit, returns the opcode which must be emitted)
              @param(a  The constant which should be emitted, returns the constant which must
-                    be amitted)
-          }
-          function optimize_const_reg(var op: topcg; var a : aword): boolean;virtual;
+                    be emitted)
+             @param(reg The register to emit the opcode with, returns the register with
+                   which the opcode will be emitted)
+          }   
+          function optimize_op_const_reg(list: taasmoutput; var op: topcg; var a : aword; var reg: tregister): boolean;virtual;
 
          {#
              This routine is used in exception management nodes. It should
@@ -447,6 +449,19 @@ unit cgobj;
         procedure a_param64_ref(list : taasmoutput;const r : treference;const loc : tparalocation);virtual;abstract;
         procedure a_param64_loc(list : taasmoutput;const l : tlocation;const loc : tparalocation);virtual;abstract;
 
+        { 
+             This routine tries to optimize the const_reg opcode, and should be
+             called at the start of a_op64_const_reg. It returns the actual opcode
+             to emit, and the constant value to emit. If this routine returns
+             TRUE, @var(no) instruction should be emitted (.eg : imul reg by 1 )
+             
+             @param(op The opcode to emit, returns the opcode which must be emitted)
+             @param(a  The constant which should be emitted, returns the constant which must
+                    be emitted)
+             @param(reg The register to emit the opcode with, returns the register with
+                   which the opcode will be emitted)
+        }   
+        function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : qword; var reg: tregister64): boolean;virtual;abstract;
 
 
         { override to catch 64bit rangechecks }
@@ -756,21 +771,21 @@ unit cgobj;
       end;
 
 
-    function tcg.optimize_const_reg(var op: topcg; var a : aword): boolean;
+    function tcg.optimize_op_const_reg(list: taasmoutput; var op: topcg; var a : aword; var reg:tregister): boolean;
       var
         powerval : longint;
       begin
-        optimize_const_reg := true;
+        optimize_op_const_reg := false;
         case op of
           { or with zero returns same result }
-          OP_OR : if a = 0 then optimize_const_reg := false;
+          OP_OR : if a = 0 then optimize_op_const_reg := true;
           { and with max returns same result }
-          OP_AND : if (a = high(a)) then optimize_const_reg := false;
+          OP_AND : if (a = high(a)) then optimize_op_const_reg := true;
           { division by 1 returns result }
           OP_DIV :
             begin
               if a = 1 then
-                optimize_const_reg := false
+                optimize_op_const_reg := true
               else if ispowerof2(int64(a), powerval) then
                 begin
                   a := powerval;
@@ -781,7 +796,7 @@ unit cgobj;
           OP_IDIV:
             begin
               if a = 1 then
-                optimize_const_reg := false
+                optimize_op_const_reg := true
               else if ispowerof2(int64(a), powerval) then
                 begin
                   a := powerval;
@@ -792,7 +807,7 @@ unit cgobj;
         OP_MUL,OP_IMUL:
             begin
                if a = 1 then
-                  optimize_const_reg := false
+                  optimize_op_const_reg := true
                else if ispowerof2(int64(a), powerval) then
                  begin
                    a := powerval;
@@ -802,8 +817,8 @@ unit cgobj;
             end;
         OP_SAR,OP_SHL,OP_SHR:
            begin
-              if a = 1 then
-                 optimize_const_reg := false;
+              if a = 0 then 
+                 optimize_op_const_reg := true;
               exit;
            end;
         end;
@@ -1553,7 +1568,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.52  2002-08-17 22:09:43  florian
+  Revision 1.53  2002-08-19 18:17:48  carl
+    + optimize64_op_const_reg implemented (optimizes 64-bit constant opcodes)
+    * more fixes to m68k for 64-bit operations
+
+  Revision 1.52  2002/08/17 22:09:43  florian
     * result type handling in tcgcal.pass_2 overhauled
     * better tnode.dowrite
     * some ppc stuff fixed

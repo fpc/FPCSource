@@ -30,7 +30,7 @@ unit cgcpu;
        cginfo,cgbase,cgobj,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,cpupara,
-       node,symconst;
+       node,symconst,cg64f32;
 
     type
       tcg68k = class(tcg)
@@ -61,13 +61,7 @@ unit cgcpu;
           { generates overflow checking code for a node }
           procedure g_overflowcheck(list: taasmoutput; const p: tnode); override;
           procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer); override;
-          { 
-            This routine should setup the stack frame and allocate @var(localsize) bytes on
-            the local stack (for local variables). It should also setup the frame pointer,
-            so that all variables are now accessed via the frame pointer register.
-          }  
           procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
-          { restores the previous frame pointer at procedure exit }
           procedure g_restore_frame_pointer(list : taasmoutput);override;
           procedure g_return_from_proc(list : taasmoutput;parasize : aword);override;
           procedure g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
@@ -85,6 +79,10 @@ unit cgcpu;
      
      end;
 
+     tcg64f68k = class(tcg64f32)
+       procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
+       procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);override;
+     end;
 
      { This function returns true if the reference+offset is valid.
        Otherwise extra code must be generated to solve the reference.
@@ -110,7 +108,7 @@ Implementation
     uses
        globtype,globals,verbose,systems,cutils,
        symdef,symsym,defbase,paramgr,
-       rgobj,tgobj,rgcpu,cg64f32;
+       rgobj,tgobj,rgcpu;
 
          
     const     
@@ -168,7 +166,9 @@ Implementation
            end;
       end;
       
-      
+{****************************************************************************}
+{                               TCG68K                                       }
+{****************************************************************************}
     function tcg68k.fixref(list: taasmoutput; var ref: treference): boolean;
 
        var
@@ -285,7 +285,11 @@ Implementation
       
     procedure tcg68k.a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); 
       begin
-        list.concat(taicpu.op_reg_reg(A_FMOVE,S_FD,reg1,reg2));
+        { in emulation mode, only 32-bit single is supported }
+        if cs_fp_emulation in aktmoduleswitches then
+          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1,reg2))
+        else
+          list.concat(taicpu.op_reg_reg(A_FMOVE,S_FD,reg1,reg2));
       end;
       
 
@@ -299,7 +303,11 @@ Implementation
         if opsize = S_FX then
           internalerror(20020729);
         fixref(list,href);    
-        list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
+        { in emulation mode, only 32-bit single is supported }
+        if cs_fp_emulation in aktmoduleswitches then
+           list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,reg))
+        else
+           list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
       end;
       
     procedure tcg68k.a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); 
@@ -310,7 +318,11 @@ Implementation
         { extended is not supported, since it is not available on Coldfire }
         if opsize = S_FX then
           internalerror(20020729);
-        list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg, ref));
+        { in emulation mode, only 32-bit single is supported }
+        if cs_fp_emulation in aktmoduleswitches then
+          list.concat(taicpu.op_reg_ref(A_MOVE,S_L,reg, ref))
+        else
+          list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg, ref));
       end;
       
     procedure tcg68k.a_loadmm_reg_reg(list: taasmoutput; reg1, reg2: tregister); 
@@ -341,7 +353,7 @@ Implementation
        opcode : tasmop;
       begin
         { need to emit opcode? }
-        if not optimize_const_reg(op, a) then
+        if optimize_op_const_reg(list, op, a, reg) then
            exit;
         opcode := topcg2tasmop[op];
         case op of
@@ -1100,15 +1112,133 @@ Implementation
          list.concat(ai);
        end;
 
-
+{****************************************************************************}
+{                               TCG64F68K                                    }
+{****************************************************************************}
+ procedure tcg64f68k.a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
+  var
+   hreg1, hreg2 : tregister;
+   opcode : tasmop;
+  begin
+    opcode := topcg2tasmop[op];
+    case op of
+      OP_ADD :  
+         begin
+            { if one of these three registers is an address
+              register, we'll really get into problems!
+            }
+            if rg.isaddressregister(regdst.reglo) or
+               rg.isaddressregister(regdst.reghi) or
+               rg.isaddressregister(regsrc.reghi) then
+                 internalerror(20020817);
+            list.concat(taicpu.op_reg_reg(A_ADD,S_L,regsrc.reglo,regdst.reglo));
+            list.concat(taicpu.op_reg_reg(A_ADDX,S_L,regsrc.reghi,regdst.reghi));
+         end;
+      OP_AND,OP_OR :
+          begin
+            { at least one of the registers must be a data register }
+            if (rg.isaddressregister(regdst.reglo) and
+                rg.isaddressregister(regsrc.reglo)) or
+               (rg.isaddressregister(regsrc.reghi) and
+                rg.isaddressregister(regdst.reghi))
+               then
+                 internalerror(20020817);
+            cg.a_op_reg_reg(list,op,OS_32,regsrc.reglo,regdst.reglo);
+            cg.a_op_reg_reg(list,op,OS_32,regsrc.reghi,regdst.reghi);
+          end;
+      { this is handled in 1st pass for 32-bit cpu's (helper call) }
+      OP_IDIV,OP_DIV, 
+      OP_IMUL,OP_MUL: internalerror(2002081701); 
+      { this is also handled in 1st pass for 32-bit cpu's (helper call) }
+      OP_SAR,OP_SHL,OP_SHR: internalerror(2002081702);
+      OP_SUB:
+         begin
+            { if one of these three registers is an address
+              register, we'll really get into problems!
+            }
+            if rg.isaddressregister(regdst.reglo) or
+               rg.isaddressregister(regdst.reghi) or
+               rg.isaddressregister(regsrc.reghi) then
+                 internalerror(20020817);
+            list.concat(taicpu.op_reg_reg(A_SUB,S_L,regsrc.reglo,regdst.reglo));
+            list.concat(taicpu.op_reg_reg(A_SUBX,S_L,regsrc.reghi,regdst.reghi));
+         end;
+      OP_XOR:
+        begin
+            if rg.isaddressregister(regdst.reglo) or
+               rg.isaddressregister(regsrc.reglo) or
+               rg.isaddressregister(regsrc.reghi) or
+               rg.isaddressregister(regdst.reghi) then
+                 internalerror(20020817);
+            list.concat(taicpu.op_reg_reg(A_EOR,S_L,regsrc.reglo,regdst.reglo));
+            list.concat(taicpu.op_reg_reg(A_EOR,S_L,regsrc.reghi,regdst.reghi));
+        end;
+    end; { end case }
+  end;
+  
+  
+ procedure tcg64f68k.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);
+  var
+   lowvalue : cardinal;
+   highvalue : cardinal;
+  begin
+    { is it optimized out ? }
+    if optimize64_op_const_reg(list,op,value,reg) then
+       exit;
+    
+    lowvalue := cardinal(value);
+    highvalue:= value shr 32;
+    
+   { the destination registers must be data registers }
+   if  rg.isaddressregister(reg.reglo) or
+       rg.isaddressregister(reg.reghi) then
+         internalerror(20020817);
+   case op of      
+      OP_ADD :  
+         begin
+            list.concat(taicpu.op_const_reg(A_ADD,S_L,lowvalue,reg.reglo));
+            list.concat(taicpu.op_const_reg(A_ADDX,S_L,highvalue,reg.reglo));
+         end;
+      OP_AND :
+          begin
+            { should already be optimized out }
+            internalerror(2002081801);
+          end;
+      OP_OR :
+          begin
+            { should already be optimized out }
+            internalerror(2002081802);
+          end;
+      { this is handled in 1st pass for 32-bit cpu's (helper call) }
+      OP_IDIV,OP_DIV, 
+      OP_IMUL,OP_MUL: internalerror(2002081701); 
+      { this is also handled in 1st pass for 32-bit cpu's (helper call) }
+      OP_SAR,OP_SHL,OP_SHR: internalerror(2002081702);
+      OP_SUB:
+         begin
+            list.concat(taicpu.op_const_reg(A_SUB,S_L,lowvalue,reg.reglo));
+            list.concat(taicpu.op_const_reg(A_SUBX,S_L,highvalue,reg.reglo));
+         end;
+      OP_XOR:
+        begin
+            list.concat(taicpu.op_const_reg(A_EOR,S_L,lowvalue,reg.reglo));
+            list.concat(taicpu.op_const_reg(A_EOR,S_L,highvalue,reg.reglo));
+        end;
+    end; { end case }    
+  end;
+  
 begin
   cg := tcg68k.create;
-  cg64 :=tcg64f32.create;
+  cg64 :=tcg64f68k.create;
 end.
 
 { 
   $Log$
-  Revision 1.4  2002-08-16 14:24:59  carl
+  Revision 1.5  2002-08-19 18:17:48  carl
+    + optimize64_op_const_reg implemented (optimizes 64-bit constant opcodes)
+    * more fixes to m68k for 64-bit operations
+
+  Revision 1.4  2002/08/16 14:24:59  carl
     * issameref() to test if two references are the same (then emit no opcodes)
     + ret_in_reg to replace ret_in_acc
       (fix some register allocation bugs at the same time)
