@@ -455,8 +455,10 @@ var
 begin
   ResultAddress:=Nil;
   dec(index);
-  { Check Size. Accounts for Zero-length S }
-  if Length(S)<Index+Size then
+  { Check Size. Accounts for Zero-length S, the double check is needed because
+    Size can be maxint and will get <0 when adding index }
+  if (Size>Length(S)) or
+     (Index+Size>Length(S)) then
    Size:=Length(S)-Index;
   If Size>0 then
    begin
@@ -502,7 +504,6 @@ begin
          end;
       end;
    end;
-
   pos := j;
 end;
 
@@ -623,16 +624,19 @@ begin
   S:=Temp;
 end;
 
-Function StringOfChar(c : char;l : longint) : AnsiString;
 
-  begin
-     SetLength(StringOfChar,l);
-     FillChar(Pointer(StringOfChar)^,Length(StringOfChar),c);
-  end;
+Function StringOfChar(c : char;l : longint) : AnsiString;
+begin
+  SetLength(StringOfChar,l);
+  FillChar(Pointer(StringOfChar)^,Length(StringOfChar),c);
+end;
 
 {
   $Log$
-  Revision 1.33  1999-10-27 14:27:49  florian
+  Revision 1.34  1999-11-02 23:57:54  peter
+    * fixed copy where size+index could be < 0
+
+  Revision 1.33  1999/10/27 14:27:49  florian
     * StringOfChar fixed, how can be a bug in two lines of code ?????
 
   Revision 1.32  1999/10/27 14:17:20  florian
