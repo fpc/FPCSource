@@ -4,6 +4,7 @@
 program dotest;
 uses
   dos,
+  teststr,
   redir;
 
 const
@@ -41,7 +42,6 @@ var
   Note : string;
 
 const
-  ResLogfile  : string[32] = 'log';
   LongLogfile : string[32] = 'longlog';
   FailLogfile : string[32] = 'faillist';
   DoVerbose : boolean = false;
@@ -455,9 +455,9 @@ begin
      AddLog(FailLogFile,TestName);
      if Note<>'' then
       AddLog(FailLogFile,Note);
-     AddLog(ResLogFile,'Failed to compile '+PPFileInfo);
-     AddLog(LongLogFile,'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-     AddLog(LongLogFile,'Failed to compile '+PPFileInfo);
+     AddLog(ResLogFile,failed_to_compile+PPFileInfo);
+     AddLog(LongLogFile,line_separation);
+     AddLog(LongLogFile,failed_to_compile+PPFileInfo);
      if Note<>'' then
       AddLog(LongLogFile,Note);
      CopyFile(OutName,LongLogFile,true);
@@ -472,9 +472,9 @@ begin
    begin
      if ExecuteResult<>0 then
       begin
-        AddLog(ResLogFile,'Success, compilation failed '+PPFileInfo);
+        AddLog(ResLogFile,success_compilation_failed+PPFileInfo);
         { avoid to try again }
-        AddLog(ForceExtension(PPFile,'elg'),'Success, compilation failed '+PPFileInfo);
+        AddLog(ForceExtension(PPFile,'elg'),success_compilation_failed+PPFileInfo);
         RunCompiler:=true;
       end
      else
@@ -482,11 +482,11 @@ begin
         AddLog(FailLogFile,TestName);
         if Note<>'' then
           AddLog(FailLogFile,Note);
-        AddLog(ResLogFile,'Failed, compilation successful '+PPFileInfo);
-        AddLog(LongLogFile,'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-        AddLog(LongLogFile,'Failed, compilation successful '+PPFileInfo);
+        AddLog(ResLogFile,failed_compilation_successful+PPFileInfo);
+        AddLog(LongLogFile,line_separation);
+        AddLog(LongLogFile,failed_compilation_successful+PPFileInfo);
         { avoid to try again }
-        AddLog(ForceExtension(PPFile,'elg'),'Failed, compilation successful '+PPFileInfo);
+        AddLog(ForceExtension(PPFile,'elg'),failed_compilation_successful+PPFileInfo);
         if Note<>'' then
           AddLog(LongLogFile,Note);
         CopyFile(OutName,LongLogFile,true);
@@ -499,19 +499,19 @@ begin
         AddLog(FailLogFile,TestName);
         if Note<>'' then
           AddLog(FailLogFile,Note);
-        AddLog(ResLogFile,'Failed to compile '+PPFileInfo);
-        AddLog(LongLogFile,'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-        AddLog(LongLogFile,'Failed to compile '+PPFileInfo);
+        AddLog(ResLogFile,failed_to_compile+PPFileInfo);
+        AddLog(LongLogFile,line_separation);
+        AddLog(LongLogFile,failed_to_compile+PPFileInfo);
         if Note<>'' then
           AddLog(LongLogFile,Note);
         CopyFile(OutName,LongLogFile,true);
         { avoid to try again }
-        AddLog(ForceExtension(PPFile,'elg'),'Failed to compile '++PPFileInfo);
+        AddLog(ForceExtension(PPFile,'elg'),failed_to_compile+PPFileInfo);
         Verbose(V_Abort,'Exitcode: '+ToStr(ExecuteResult)+' (expected 0)');
       end
      else
       begin
-        AddLog(ResLogFile,'Successfully compiled '+PPFileInfo);
+        AddLog(ResLogFile,successfully_compiled+PPFileInfo);
         RunCompiler:=true;
       end;
    end;
@@ -532,15 +532,15 @@ begin
   if ExecuteResult<>Config.ResultCode then
    begin
      AddLog(FailLogFile,TestName);
-     AddLog(ResLogFile,'Failed to run '+PPFileInfo);
-     AddLog(LongLogFile,'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-     AddLog(LongLogFile,'Failed to run '+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
+     AddLog(ResLogFile,failed_to_run+PPFileInfo);
+     AddLog(LongLogFile,line_separation);
+     AddLog(LongLogFile,failed_to_run+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
      Copyfile(OutName,LongLogFile,true);
      Verbose(V_Abort,'Exitcode: '+ToStr(ExecuteResult)+' (expected '+ToStr(Config.ResultCode)+')');
    end
   else
    begin
-     AddLog(ResLogFile,'Successfully run '+PPFileInfo);
+     AddLog(ResLogFile,successfully_run+PPFileInfo);
      RunExecutable:=true;
    end;
 end;
@@ -622,10 +622,10 @@ begin
    begin
      if Config.UsesGraph and (not DoGraph) then
       begin
-        AddLog(ResLogFile,'Skipping test because it uses graph '+PPFileInfo);
+        AddLog(ResLogFile,skipping_graph_test+PPFileInfo);
         { avoid a second attempt by writing to elg file }
-        AddLog(OutName,'Skipping test because it uses graph '+PPFileInfo);
-        Verbose(V_Abort,'Skipping test because it uses graph ');
+        AddLog(OutName,skipping_graph_test+PPFileInfo);
+        Verbose(V_Abort,skipping_graph_test);
         Res:=false;
       end;
    end;
@@ -635,9 +635,9 @@ begin
      if Config.IsInteractive and (not DoInteractive) then
       begin
         { avoid a second attempt by writing to elg file }
-        AddLog(OutName,'Skipping test because it is interactive '+PPFileInfo);
-        AddLog(ResLogFile,'Skipping test because it is interactive '+PPFileInfo);
-        Verbose(V_Abort,'Skipping test because it is interactive ');
+        AddLog(OutName,skipping_interactive_test+PPFileInfo);
+        AddLog(ResLogFile,skipping_interactive_test+PPFileInfo);
+        Verbose(V_Abort,skipping_interactive_test);
         Res:=false;
       end;
    end;
@@ -647,9 +647,9 @@ begin
      if Config.IsKnown and (not DoKnown) then
       begin
         { avoid a second attempt by writing to elg file }
-        AddLog(OutName,'Skipping test because it is a known bug '+PPFileInfo);
-        AddLog(ResLogFile,'Skipping test because it is a known bug '+PPFileInfo);
-        Verbose(V_Abort,'Skipping test because it is a known bug ');
+        AddLog(OutName,skipping_known_bug+PPFileInfo);
+        AddLog(ResLogFile,skipping_known_bug+PPFileInfo);
+        Verbose(V_Abort,skipping_known_bug);
         Res:=false;
       end;
    end;
@@ -663,8 +663,8 @@ begin
         if CompilerVersion<Config.NeedVersion then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(OutName,'Skipping test because compiler version too low '+PPFileInfo);
-           AddLog(ResLogFile,'Skipping test because compiler version too low '+PPFileInfo);
+           AddLog(OutName,skipping_compiler_version_too_low+PPFileInfo);
+           AddLog(ResLogFile,skipping_compiler_version_too_low+PPFileInfo);
            Verbose(V_Abort,'Compiler version too low '+CompilerVersion+' < '+Config.NeedVersion);
            Res:=false;
          end;
@@ -680,8 +680,8 @@ begin
         if Upper(Config.NeedCPU)<>Upper(CompilerCPU) then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(OutName,'Skipping test because for other cpu '+PPFileInfo);
-           AddLog(ResLogFile,'Skipping test because for other cpu '+PPFileInfo);
+           AddLog(OutName,skipping_other_cpu+PPFileInfo);
+           AddLog(ResLogFile,skipping_other_cpu+PPFileInfo);
            Verbose(V_Abort,'Compiler cpu wrong '+CompilerCPU+' <> '+Config.NeedCPU);
            Res:=false;
          end;
@@ -700,9 +700,9 @@ begin
      if (Config.NoRun) then
       begin
         { avoid a second attempt by writing to elg file }
-        AddLog(OutName,'Skipping run test '+PPFileInfo);
-        AddLog(ResLogFile,'Skipping run test '+PPFileInfo);
-        Verbose(V_Debug,'Skipping run test ');
+        AddLog(OutName,skipping_run_test+PPFileInfo);
+        AddLog(ResLogFile,skipping_run_test+PPFileInfo);
+        Verbose(V_Debug,skipping_run_test);
       end
      else
       begin
@@ -712,8 +712,8 @@ begin
               FileExists(ForceExtension(PPFile,'ppo')) or
               FileExists(ForceExtension(PPFile,'ppw')) then
              begin
-               AddLog(ForceExtension(PPFile,'elg'),'Skipping test run because it is a unit '+PPFileInfo);
-               AddLog(ResLogFile,'Skipping test run because it is a unit '+PPFileInfo);
+               AddLog(ForceExtension(PPFile,'elg'),skipping_run_unit+PPFileInfo);
+               AddLog(ResLogFile,skipping_run_unit+PPFileInfo);
                Verbose(V_Debug,'Unit found, skipping run test')
              end
            else
@@ -730,7 +730,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-09-07 15:40:56  peter
+  Revision 1.16  2002-11-13 15:19:44  pierre
+   log strings moved to teststr unit
+
+  Revision 1.15  2002/09/07 15:40:56  peter
     * old logs removed and tabs fixed
 
   Revision 1.14  2002/04/21 18:15:32  peter
