@@ -1,7 +1,7 @@
 PROGRAM Dhrystone( input, output );
 
   uses
-      stopuhr;
+    timer;
 
 {
  *   "DHRYSTONE" Benchmark Program
