@@ -258,7 +258,7 @@ end;
      begin
        Writeln('Marked memory at ',HexStr(longint(p),8),' released');
        call_stack(p+sizeof(heap_mem_info));
-       dump_stack(get_caller_frame(get_frame));
+       dump_stack(output,get_caller_frame(get_frame));
      end;
 
 
@@ -1086,7 +1086,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-12-16 00:22:24  peter
+  Revision 1.5  1999-01-22 12:39:21  pierre
+   + added text arg for dump_stack
+
+  Revision 1.4  1998/12/16 00:22:24  peter
     * more temp symbols removed
 
   Revision 1.3  1998/10/22 23:50:45  peter

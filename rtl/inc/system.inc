@@ -350,7 +350,7 @@ Begin
 End;
 
 
-Procedure dump_stack(bp : Longint);
+Procedure dump_stack(var f : text;bp : Longint);
 var
   i, prevbp : Longint;
 Begin
@@ -384,7 +384,7 @@ Begin
   If erroraddr<>nil Then
    Begin
      Writeln(stdout,'Run time error  ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
-     dump_stack(ErrorBase);
+     dump_stack(stdout,ErrorBase);
    End;
   { call system dependent exit code }
   System_exit;
@@ -472,7 +472,10 @@ end;
 
 {
   $Log$
-  Revision 1.51  1999-01-18 10:05:52  pierre
+  Revision 1.52  1999-01-22 12:39:23  pierre
+   + added text arg for dump_stack
+
+  Revision 1.51  1999/01/18 10:05:52  pierre
    + system_exit procedure added
 
   Revision 1.50  1998/12/28 15:50:46  peter

@@ -439,7 +439,7 @@ procedure show_call_frame(djgpp_exception_state : pexception_state);
 begin
   errln('Call frame traceback EIPs:');
   errln('  0x'+hexstr(djgpp_exception_state^.__eip, 8));
-  dump_stack(djgpp_exception_state^.__ebp);
+  dump_stack(stderr,djgpp_exception_state^.__ebp);
 end;
 
 
@@ -907,7 +907,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-01-18 09:14:20  pierre
+  Revision 1.4  1999-01-22 12:39:19  pierre
+   + added text arg for dump_stack
+
+  Revision 1.3  1999/01/18 09:14:20  pierre
    * exception_level counting was wrong if dpmi_jmp_buf was copied
 
   Revision 1.2  1998/12/21 14:23:12  pierre

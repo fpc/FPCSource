@@ -401,7 +401,7 @@ Function Sptr:Longint;
 Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
 {$ifndef RTLLITE}
-Procedure Dump_Stack(bp:Longint);
+Procedure Dump_Stack(var f : text;bp:Longint);
 {$endif RTLLITE}
 Procedure RunError(w:Word);
 Procedure RunError;
@@ -431,7 +431,10 @@ const
 
 {
   $Log$
-  Revision 1.47  1999-01-11 19:26:53  jonas
+  Revision 1.48  1999-01-22 12:39:24  pierre
+   + added text arg for dump_stack
+
+  Revision 1.47  1999/01/11 19:26:53  jonas
     * made inster(string,string,index) a bit faster
     + overloaded insert(char,string,index)
 

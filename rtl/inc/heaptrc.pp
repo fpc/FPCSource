@@ -117,14 +117,14 @@ begin
   Writeln(stderr,'Marked memory at ',HexStr(longint(p+sizeof(theap_mem_info)),8),' released');
   call_free_stack(p);
   Writeln(stderr,'freed again at');
-  dump_stack(get_caller_frame(get_frame));
+  dump_stack(stderr,get_caller_frame(get_frame));
 end;
 
 procedure dump_error(p : pheap_mem_info);
 begin
   Writeln(stderr,'Marked memory at ',HexStr(longint(p+sizeof(theap_mem_info)),8),' invalid');
   Writeln(stderr,'Wrong signature $',hexstr(p^.sig,8));
-  dump_stack(get_caller_frame(get_frame));
+  dump_stack(stderr,get_caller_frame(get_frame));
 end;
 
 procedure dump_wrong_size(p : pheap_mem_info;size : longint);
@@ -133,7 +133,7 @@ var
 begin
   Writeln(stderr,'Marked memory at ',HexStr(longint(p+sizeof(theap_mem_info)),8),' invalid');
   Writeln(stderr,'Wrong size : ',p^.size,' allocated ',size,' freed');
-  dump_stack(get_caller_frame(get_frame));
+  dump_stack(stderr,get_caller_frame(get_frame));
   for i:=0 to (exact_info_size div 4)-1 do
     writeln(stderr,'info ',i,'=',plongint(@p^.extra_info+4*i)^);
 end;
@@ -360,7 +360,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1998-12-15 23:49:51  michael
+  Revision 1.9  1999-01-22 12:39:22  pierre
+   + added text arg for dump_stack
+
+  Revision 1.8  1998/12/15 23:49:51  michael
   + Removed underscores in heaptrc unit
 
   Revision 1.7  1998/11/16 12:20:13  peter
