@@ -394,8 +394,11 @@ End.
 
 {
  $Log$
- Revision 1.3  1998-08-05 16:00:12  florian
+ Revision 1.4  1998-08-06 19:40:27  jonas
+   * removed $ before and after Log in comment
+
+ Revision 1.3  1998/08/05 16:00:12  florian
    * some fixes for ansi strings
-   * $log$ to $Log$ changed
+   * log to Log changed
 
 }

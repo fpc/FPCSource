@@ -1365,14 +1365,14 @@ End.
 
 {
  $Log$
- Revision 1.4  1998-08-05 16:27:17  jonas
+ Revision 1.5  1998-08-06 19:40:28  jonas
+   * removed $ before and after Log in comment
+
+ Revision 1.4  1998/08/05 16:27:17  jonas
    * fstp/fld bugfix (fstt does not exist)
 
  Revision 1.3  1998/08/05 16:00:15  florian
    * some fixes for ansi strings
-   * $log$ to $Log$
-   * $log$ to Revision 1.4  1998-08-05 16:27:17  jonas
-   * $log$ to   * fstp/fld bugfix (fstt does not exist)
-   * $log$ to changed
+   * log to Log changed
 
 }
