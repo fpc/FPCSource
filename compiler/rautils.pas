@@ -1344,6 +1344,7 @@ end;
                     { we always assume in asm statements that     }
                     { that the variable is valid.                 }
                     pvarsym(sym)^.is_valid:=1;
+                    inc(pvarsym(sym)^.refs);
                     if pvarsym(sym)^.owner^.symtabletype=staticsymtable then
                      begin
                        instr.operands[operandnum].ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname);
@@ -1448,6 +1449,7 @@ end;
                        inc(l,aktprocsym^.definition^.parast^.call_offset);
                      end;
                     pvarsym(sym)^.is_valid:=1;
+                    inc(pvarsym(sym)^.refs);
                     instr.operands[operandnum].ref.base := procinfo.framepointer;
                     instr.operands[operandnum].ref.offset := l;
                     { the current size is NOT overriden if it already }
@@ -1487,6 +1489,8 @@ end;
        case sym^.typ of
           varsym,
    typedconstsym : Begin
+                     if sym^.typ=varsym then
+                       inc(pvarsym(sym)^.refs);
                      instr.operands[operandnum].ref.symbol:=newasmsymbol(sym^.mangledname);
                    { the current size is NOT overriden if it already }
                    { exists, such as in the case of a byte ptr, in   }
@@ -1786,7 +1790,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-02-25 21:02:51  peter
+  Revision 1.6  1999-03-01 13:22:25  pierre
+   * varsym refs incremented
+
+  Revision 1.5  1999/02/25 21:02:51  peter
     * ag386bin updates
     + coff writer
 

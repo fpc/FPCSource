@@ -214,6 +214,8 @@ unit Ra386dir;
                                                   begin
                                                      Do_comment(V_Warning,hs+' translated to '+sym^.mangledname);
                                                      hs:=sym^.mangledname;
+                                                     if sym^.typ=varsym then
+                                                       inc(pvarsym(sym)^.refs);
                                                   end;
                                                 { procs can be called or the address can be loaded }
                                                 if (sym^.typ=procsym) and ((pos('CALL',upper(s))>0) or
@@ -294,7 +296,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.14  1999-02-22 02:15:36  peter
+  Revision 1.15  1999-03-01 13:22:26  pierre
+   * varsym refs incremented
+
+  Revision 1.14  1999/02/22 02:15:36  peter
     * updates for ag386bin
 
   Revision 1.13  1999/01/27 13:04:12  pierre
