@@ -184,14 +184,14 @@ implementation
                            end;
                          { in case call by reference, then calculate: }
                          if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
-{$ifndef VALUEPARA}
                             ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
+{$ifndef VALUEPARA}
                              dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)) or
+{$else}
+                             push_addr_param(pvarsym(p^.symtableentry)^.definition)) or
+{$endif}
                              { call by value open arrays are also indirect addressed }
                              is_open_array(pvarsym(p^.symtableentry)^.definition) then
-{$else}
-                             push_addr_param(pvarsym(p^.symtableentry)^.definition) then
-{$endif}
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
@@ -689,7 +689,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1998-11-18 15:44:11  peter
+  Revision 1.30  1998-11-18 17:45:24  peter
+    * fixes for VALUEPARA
+
+  Revision 1.29  1998/11/18 15:44:11  peter
     * VALUEPARA for tp7 compatible value parameters
 
   Revision 1.28  1998/11/17 11:32:44  peter

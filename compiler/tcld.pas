@@ -85,33 +85,31 @@ implementation
                 begin
                    if not(p^.is_absolute) and (p^.resulttype=nil) then
                      p^.resulttype:=pvarsym(p^.symtableentry)^.definition;
-                   if ((p^.symtable^.symtabletype=parasymtable) or
-                       (p^.symtable^.symtabletype=localsymtable)) and
+                   if (p^.symtable^.symtabletype in [parasymtable,localsymtable]) and
                       (lexlevel>p^.symtable^.symtablelevel) then
                      begin
-                        { sollte sich die Variable in einem anderen Stackframe       }
-                        { befinden, so brauchen wir ein Register zum Dereferenceieren }
-                        if (p^.symtable^.symtablelevel)>0 then
-                          begin
-                             p^.registers32:=1;
-                             { further, the variable can't be put into a register }
-                             pvarsym(p^.symtableentry)^.var_options:=
-                               pvarsym(p^.symtableentry)^.var_options and not vo_regable;
-                          end;
+                       { if the variable is in an other stackframe then we need
+                         a register to dereference }
+                       if (p^.symtable^.symtablelevel)>0 then
+                        begin
+                          p^.registers32:=1;
+                          { further, the variable can't be put into a register }
+                          pvarsym(p^.symtableentry)^.var_options:=
+                            pvarsym(p^.symtableentry)^.var_options and not vo_regable;
+                        end;
                      end;
                    if (pvarsym(p^.symtableentry)^.varspez=vs_const) then
                      p^.location.loc:=LOC_MEM;
                    { we need a register for call by reference parameters }
                    if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
-{$ifndef VALUEPARA}
                       ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
-                      dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)
-                      ) or
+{$ifndef VALUEPARA}
+                      dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)) or
+{$else}
+                      push_addr_param(pvarsym(p^.symtableentry)^.definition)) or
+{$endif}
                       { call by value open arrays are also indirect addressed }
                       is_open_array(pvarsym(p^.symtableentry)^.definition) then
-{$else}
-                      push_addr_param(pvarsym(p^.symtableentry)^.definition) then
-{$endif}
                      p^.registers32:=1;
                    if p^.symtable^.symtabletype=withsymtable then
                      inc(p^.registers32);
@@ -427,7 +425,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-11-18 15:44:23  peter
+  Revision 1.11  1998-11-18 17:45:28  peter
+    * fixes for VALUEPARA
+
+  Revision 1.10  1998/11/18 15:44:23  peter
     * VALUEPARA for tp7 compatible value parameters
 
   Revision 1.9  1998/11/17 00:36:49  peter
