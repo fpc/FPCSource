@@ -193,7 +193,7 @@ implementation
                block:=statement_block(_BEGIN);
                if symtablestack.symtabletype=localsymtable then
                  symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}initializevars,block);
-            end;   
+            end;
       end;
 
 
@@ -623,6 +623,7 @@ implementation
                 { Give a better error if there is a forward def in the interface and only
                   a single implementation }
                 if (not aktprocdef.forwarddef) and
+                   (not aktprocdef.interfacedef) and
                    (aktprocsym.procdef_count>1) and
                    aktprocsym.first_procdef.forwarddef and
                    aktprocsym.first_procdef.interfacedef and
@@ -843,7 +844,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2003-01-02 11:14:02  michael
+  Revision 1.87  2003-01-03 20:35:08  peter
+    * check also interfacedef when checking for matching forwarddef
+
+  Revision 1.86  2003/01/02 11:14:02  michael
   + Patch from peter to support initial values for local variables
 
   Revision 1.85  2002/12/29 18:59:34  peter
