@@ -744,7 +744,7 @@ Begin
       begin
         dec(WinMaxX,3);
         dec(WinMaxY,2);
-      end;  
+      end;
      ttyGotoXY(0,0);
    end;
 End;
@@ -1507,13 +1507,13 @@ Begin
      inputRaw :=
        ((c_iflag and (IGNBRK or BRKINT or PARMRK or ISTRIP or
                                 INLCR or IGNCR or ICRNL or IXON)) = 0) and
-       ((c_lflag and (ECHO or ECHONL or ICANON or ISIG or IEXTEN)) = 0);  
+       ((c_lflag and (ECHO or ECHONL or ICANON or ISIG or IEXTEN)) = 0);
      outPutRaw :=
        ((c_oflag and OPOST) = 0) and
        ((c_cflag and (CSIZE or PARENB)) = 0) and
        ((c_cflag and CS8) <> 0);
    end;
-end;   
+end;
 
 procedure restoreRawSettings(tio: Unix.termios);
 begin
@@ -1632,6 +1632,8 @@ Initialization
     (TTYName(TextRec(Input).Handle) <> TTYName(TextRec(Output).Handle)));
 { Get Size of terminal and set WindMax to the window }
   GetConsoleBuf;
+  WinMinX:=1;
+  WinMinY:=1;
   WinMaxX:=ScreenWidth;
   WinMaxY:=ScreenHeight;
   WindMax:=((ScreenHeight-1) Shl 8)+(ScreenWidth-1);
@@ -1667,7 +1669,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.6  2001-06-27 20:21:46  peter
+  Revision 1.7  2001-07-30 21:53:53  peter
+    * reset winminx,winminy to 1
+
+  Revision 1.6  2001/06/27 20:21:46  peter
     * support large screens
 
   Revision 1.5  2001/03/21 16:07:03  jonas
@@ -1684,5 +1689,5 @@ End.
 
   Revision 1.2  2000/07/13 11:33:47  michael
   + removed logs
- 
+
 }
