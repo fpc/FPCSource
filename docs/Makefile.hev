@@ -1,0 +1,17 @@
+#
+# Create HTML using hevea tex 2 html conversion
+#
+
+htmlincludes: includes
+
+%.html: %.tex fpc-hevea.tex
+	$(HEVEA) $(HEVEAOPTS) $<
+
+user: htmlincludes user.html
+units: htmlincludes units.html
+prog: htmlincludes prog.html
+onechap: htmlincludes onechap.html
+ref: htmlincludes ref.html
+
+html: htmlincludes $(addsuffix .html,$(HTML))
+

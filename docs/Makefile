@@ -24,11 +24,15 @@
 # Which docs are made when 'html' is specified
 HTML = user units ref prog
 
-# Can be 'report','book', 'html', 'hevea'
+# Can be 'report','book', 'html', 'hevea', 'ts3' 'ts4'
 ifdef USEHEVEA
 PREAMBLETYPE = hevea
 else
+ifdef USEL2H 
+PREAMBLETYPE = html
+else
 PREAMBLETYPE = report
+endif
 endif
 
 # Where do you want the html files to be put ?
@@ -42,61 +46,63 @@ endif
 
 FPDOC=/home/michael/projects/fpdoc/fpdoc
 
-#
-# Program definitions
-#
+# Use Ascii mode ? (i.e. no pics in produced HTML ?)
+ifndef ASCIIMODE
+ASCIIMODE=NO
+endif
 
-# Latex
+
+#######################################################################
+# LaTeX Program definitions
+#######################################################################
+# Latex itself
 ifndef LATEX
 LATEX = latex
 endif
-
-# Latex2html conversion.
-ifndef LATEX2HTML
-LATEX2HTML = /usr/bin/latex2html
-endif
-
-# Options for converter
-ifndef LATEX2HTMLOPTS
-LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
-                 -up_title "Free Pascal manuals"\
-                 -html_version 4.0 -split 3
-endif
-
-# Hevea conversion.
-ifndef HEVEA
-HEVEA = /usr/bin/hevea
-endif
-
-# Ascii mode ? (i.e. no pics)
-ifndef ASCIIMODE
-ASCIIMODE=NO
-#ASCIIMODE=YES
-endif
-
 # DVI to PS converter
 ifndef DVIPS
 DVIPS=dvips
 endif
-
 # DVI to TXT converter
 ifndef DVITXT
 DVITXT=dvi2tty -w132
 endif
-
 # PDF converter
 ifndef PDFLATEX
 PDFLATEX=pdflatex
 endif
-
 # Makeindex programma
 ifndef MAKEINDEX
 MAKEINDEX=makeindex
 endif
 
+#######################################################################
+# Latex2html conversion.
+#######################################################################
+ifdef USEL2H
+# Command to use.
+ifndef LATEX2HTML
+LATEX2HTML = /usr/bin/latex2html
+endif
+# Default options for converter
+ifndef LATEX2HTMLOPTS
+LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
+                 -up_title "Free Pascal manuals"\
+                 -html_version 4.0 -split 3
+endif
+endif # USEL2H
+#######################################################################
+# HEVEA conversion.
+#######################################################################
+ifdef USEHEVEA
+# Hevea conversion.
+ifndef HEVEA
+HEVEA = /usr/bin/hevea
+endif
+endif # USEHEVEA
+
 # tmpdir
 export TMP=/tmp
-
 #
 
 #######################################################################
@@ -124,8 +130,12 @@ GTKPDF=$(addsuffix .pdf,$(addprefix gtk, 1 2 3 4 5))
 
 # Check if ascii-mode requested
 ifeq ($(ASCIIMODE),YES)
+ifdef USEL2H
 LATEX2HTMLOPTS+=-ascii_mode
+endif
+ifdef USEHEVEA
 HEVEAOPTS+=-text
+endif
 endif
 
 
@@ -170,7 +180,10 @@ help:
 	@echo 'Possible targets :'
 	@echo ' dvi           : Make documentation using latex.'
 	@echo ' ps            : Make documentation using latex and dvips.'
-	@echo ' html          : Make documentation using latex2html.'
+	@echo ' html          : Make HTML documentation using default converter.'
+	@echo ' hevea         : Make HTML documentation using hevea'
+	@echo ' l2h           : Make HTML documentation using latex2html'
+	@echo ' 4ht           : Make HTML documentation using tex4ht'
 	@echo ' pdf           : Make documentation using pdflatex'
 	@echo ' txt           : dvi, convert to text using dvi2tty'
 	@echo ' htm           : Convert .html to .htm files, zip result'
@@ -185,14 +198,13 @@ help:
 
 clean:
 	-rm -f preamble.inc date.inc htex.sed
-	-rm -f *.htex *.hind *.haux *.htoc $(addsuffix .html,$(HTML))
+	-rm -f *.htex *.hind *.haux *.htoc $(addsuffix *.html,$(HTML))
+	-rm -f *.4tc *.4ct *.css *.lg *.tmp *.xref
 	-rm -rf $(HTML) onechap
 	-rm -f $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(OUT) $(PS) *.i* $(LOT) $(TXT) $(CHK)
 	-rm -f onechap.dvi onechap.pdf onechap.ps onechap.out onechap.log onechap.aux
-
 # Styles
 	-rm -f $(notdir $(wildcard styles/*))
-
 # Units
 	-$(MAKE) -C crtex clean
 	-$(MAKE) -C dosex clean
@@ -289,7 +301,7 @@ endif
 
 # Local copy of the required styles
 syntax.sty: styles/syntax.sty
-	cp $(wildcard styles/*) .
+	cp $(wildcard styles/*.*) .
 
 ifndef inWinNT
 includes: date.inc preamble.inc syntax.sty scripts.chk
@@ -344,138 +356,40 @@ pdf : $(PDF)
 all : dvi ps pdf txt html
 
 
-#####################################################################
-# Html creation
-#####################################################################
+#######################################################################
+# HTML creation
+#######################################################################
 
 .PHONY: htex user prog units onechap ref internal html hevea
 
 ifdef INSTALLDEBUG
-#
+#######################################################################
 # Installation debugging
-#
 $(HTML):
 	mkdir $@
 	cp $@.tex $@/index.html
-
 html: $(HTML)
-
 else
-
+#######################################################################
+# Automatic selection. Default tex4ht
 ifdef USEHEVEA
-#
-# Hevea tex 2 html conversion
-#
-
-htmlincludes: includes
-
-%.html: %.tex fpc-hevea.tex
-	$(HEVEA) $(HEVEAOPTS) $<
-
-user: htmlincludes user.html
-units: htmlincludes units.html
-prog: htmlincludes prog.html
-onechap: htmlincludes onechap.html
-ref: htmlincludes ref.html
-
-html: htmlincludes $(addsuffix .html,$(HTML))
-
+include Makefile.hev
 else
-#
-# Latex2HTML
-#
-
-htex: htex.chk
-htex.chk: $(wildcard *.tex) includes
-	./tex2htex
-	touch htex.chk
-
-user: user.chk
-user.chk: htex.chk includes
-	cp -f preamble.html preamble.inc
-	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
-	-t "User's guide for Free Pascal" user.htex
-	-sed -f foot.sed <user/footnode.html >user/footnote.html
-	-mv user/footnote.html user/footnode.html
-ifndef DEBUG
-	-rm -f user/labels.pl user/internals.pl user/.*.pag user/.*.dir
-	-rm -f user/images.* user/*.log user/WARNINGS
-endif
-	touch user.chk
-
-units: units.chk
-units.chk: unitex.chk htex.chk includes
-	cp -f preamble.html preamble.inc
-	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
-	-t "Unit reference for Free Pascal" units.htex
-	-sed -f foot.sed <units/footnode.html >units/footnote.html
-	-mv units/footnote.html units/footnode.html
-ifndef DEBUG
-	-rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
-	-rm -f units/images.* units/*.log units/WARNINGS
-endif
-	touch units.chk
-
-ref: ref.chk
-ref.chk: refex.chk htex.chk includes
-	cp -f preamble.html preamble.inc
-	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
-	-t "Free Pascal reference guide" ref.htex
-	-sed -f foot.sed <ref/footnode.html >ref/footnote.html
-	-mv ref/footnote.html ref/footnode.html
-ifndef DEBUG
-	-rm -f ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
-	-rm -f ref/images.* ref/*.log ref/WARNINGS
-endif
-	touch ref.chk	
-
-prog: prog.chk
-prog.chk: progex.chk htex.chk includes
-	cp -f preamble.html preamble.inc
-	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
-	-t "Free Pascal programmers guide" prog.htex
-	-sed -f foot.sed <prog/footnode.html >prog/footnote.html
-	-mv prog/footnote.html prog/footnode.html
-ifndef DEBUG
-	-rm -f prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
-	-rm -f prog/images.* prog/*.log prog/WARNINGS
-endif
-	touch prog.chk
-
-internal: internal.chk
-internal.chk: htex.chk
-	cp -f preamble.html preamble.inc
-	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
-	-t "Free Pascal Compiler Documentation" internal.htex
-	-sed -f foot.sed <internal/footnode.html >internal/footnote.html
-	-mv internal/footnote.html internal/footnode.html
-ifndef DEBUG
-	-rm -f internal/labels.pl internal/internals.pl internal/.*.pag internal/.*.dir
-	-rm -f internal/images.* internal/*.log internal/WARNINGS
-endif
-	touch internal.chk	
-
-onechap: onechap.chk
-onechap.chk: unitex.chk htex.chk includes
-	cp -f preamble.html preamble.inc
-	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
-	-t "Free Pascal reference guide" onechap.htex
-	-sed -f foot.sed <onechap/footnode.html >onechap/footnote.html
-	-mv onechap/footnote.html onechap/footnode.html
-ifndef DEBUG
-	-rm -f onechap/labels.pl onechap/internals.pl onechap/.*.pag onechap/.*.dir
-	-rm -f onechap/images.* onechap/*.log onechap/WARNINGS
-endif
-	touch onechap.chk	
-
-html: $(HTML)
-
+ifdef USEL2H
+include Makefile.l2h
+else
+include Makefile.4ht
+endif  # USEL2H
 endif  # USEHEVEA
-
 endif  # INSTALLDEBUG
-
+#######################################################################
+# Targets to force using a specific tool. 
 hevea:
 	$(MAKE) html USEHEVEA=1
+l2h:
+	$(MAKE) html USEL2H=1
+4ht:
+	$(MAKE) html USETEX4HT=1
 
 classes: classes/index.html
 
@@ -623,7 +537,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.18  2003-03-16 15:24:58  peter
+# Revision 1.19  2003-03-17 08:27:27  michael
+# + Split out html generation
+#
+# Revision 1.18  2003/03/16 15:24:58  peter
 #   * also remove htex.sed
 #
 # Revision 1.17  2003/03/16 15:22:18  peter

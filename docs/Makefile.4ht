@@ -1,0 +1,30 @@
+#
+# Make latex using tex4ht
+#
+HTFONTS=/usr/share/texmf/tex/generic/tex4ht/ht-fonts/
+.PHONY: preamble3 preamble4 $(HTML)
+
+htmlincludes: includes
+
+preamble3:
+	cp preamble.ts3 preamble.inc		
+
+preamble4:
+	cp preamble.ts4 preamble.inc		
+
+%.html: %.tex 
+	$(LATEX) $<
+	$(LATEX) $<
+	$(LATEX) $<
+	tex4ht $< -i$(HTFONTS)
+	install -d $(basename $<) -m755
+	t4ht $< -d$(basename $<)/ -m644
+
+
+user: htmlincludes preamble3 user.html 
+units: htmlincludes preamble3 units.html
+prog: htmlincludes preamble3 prog.html
+onechap: htmlincludes preamble3 onechap.html
+ref: htmlincludes preamble4 ref.html
+
+html: htmlincludes $(HTML)

@@ -1,0 +1,90 @@
+#
+#
+# Create HTML using Latex2HTML
+#
+#
+htex: htex.chk
+htex.chk: $(wildcard *.tex) includes
+	./tex2htex
+	touch htex.chk
+
+user: user.chk
+user.chk: htex.chk includes
+	cp -f preamble.html preamble.inc
+	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
+	-t "User's guide for Free Pascal" user.htex
+	-sed -f foot.sed <user/footnode.html >user/footnote.html
+	-mv user/footnote.html user/footnode.html
+ifndef DEBUG
+	-rm -f user/labels.pl user/internals.pl user/.*.pag user/.*.dir
+	-rm -f user/images.* user/*.log user/WARNINGS
+endif
+	touch user.chk
+
+units: units.chk
+units.chk: unitex.chk htex.chk includes
+	cp -f preamble.html preamble.inc
+	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
+	-t "Unit reference for Free Pascal" units.htex
+	-sed -f foot.sed <units/footnode.html >units/footnote.html
+	-mv units/footnote.html units/footnode.html
+ifndef DEBUG
+	-rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
+	-rm -f units/images.* units/*.log units/WARNINGS
+endif
+	touch units.chk
+
+ref: ref.chk
+ref.chk: refex.chk htex.chk includes
+	cp -f preamble.html preamble.inc
+	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
+	-t "Free Pascal reference guide" ref.htex
+	-sed -f foot.sed <ref/footnode.html >ref/footnote.html
+	-mv ref/footnote.html ref/footnode.html
+ifndef DEBUG
+	-rm -f ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
+	-rm -f ref/images.* ref/*.log ref/WARNINGS
+endif
+	touch ref.chk	
+
+prog: prog.chk
+prog.chk: progex.chk htex.chk includes
+	cp -f preamble.html preamble.inc
+	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
+	-t "Free Pascal programmers guide" prog.htex
+	-sed -f foot.sed <prog/footnode.html >prog/footnote.html
+	-mv prog/footnote.html prog/footnode.html
+ifndef DEBUG
+	-rm -f prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
+	-rm -f prog/images.* prog/*.log prog/WARNINGS
+endif
+	touch prog.chk
+
+internal: internal.chk
+internal.chk: htex.chk
+	cp -f preamble.html preamble.inc
+	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
+	-t "Free Pascal Compiler Documentation" internal.htex
+	-sed -f foot.sed <internal/footnode.html >internal/footnote.html
+	-mv internal/footnote.html internal/footnode.html
+ifndef DEBUG
+	-rm -f internal/labels.pl internal/internals.pl internal/.*.pag internal/.*.dir
+	-rm -f internal/images.* internal/*.log internal/WARNINGS
+endif
+	touch internal.chk	
+
+onechap: onechap.chk
+onechap.chk: unitex.chk htex.chk includes
+	cp -f preamble.html preamble.inc
+	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
+	-t "Free Pascal reference guide" onechap.htex
+	-sed -f foot.sed <onechap/footnode.html >onechap/footnote.html
+	-mv onechap/footnote.html onechap/footnode.html
+ifndef DEBUG
+	-rm -f onechap/labels.pl onechap/internals.pl onechap/.*.pag onechap/.*.dir
+	-rm -f onechap/images.* onechap/*.log onechap/WARNINGS
+endif
+	touch onechap.chk	
+
+html: $(HTML)
+
