@@ -985,9 +985,10 @@ implementation
         {   (both are represented by vs_used), so that this not yet possible to do    }
         while assigned(paraitem) do
           begin
-            { we can't handle formaldefs, nor valuepara's which get a new value }
+            { we can't handle formaldefs, valuepara's which get a new value and special arrays }
             if ((paraitem.paratyp in [vs_out,vs_var]) and
-                (paraitem.paratype.def.deftype=formaldef)) then
+                (paraitem.paratype.def.deftype=formaldef)) or
+               is_special_array(paraitem.paratype.def)  then
               exit;
             paraitem := tparaitem(paraitem.next);
           end;
@@ -1427,7 +1428,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.201  2004-07-15 19:55:40  jonas
+  Revision 1.202  2004-07-16 21:11:31  jonas
+    - disable node-based inlining of routines with special array parameters
+      for now (de indexes of open arrays have to be changed, because on the
+      caller-side these routines are not necessarily 0-based)
+
+  Revision 1.201  2004/07/15 19:55:40  jonas
     + (incomplete) node_complexity function to assess the complexity of a
       tree
     + support for inlining value and const parameters at the node level
