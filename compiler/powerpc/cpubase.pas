@@ -533,9 +533,9 @@ uses
       lastsavemmreg   = R_NO;
 
       maxvarregs = 17;
-      varregs : Array [1..maxvarregs] of Toldregister =
-                (R_14,R_15,R_16,R_17,R_18,R_19,R_20,R_21,R_22,R_23,R_24,R_25,
-                 R_26,R_27,R_28,R_29,R_30);
+      varregs : Array [1..maxvarregs] of Tnewregister =
+                (RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,RS_R20,RS_R21,
+                 RS_R22,RS_R23,RS_R24,RS_R25,RS_R26,RS_R27,RS_R28,RS_R29,RS_R30);
 
       maxfpuvarregs = 31-14+1;
       fpuvarregs : Array [1..maxfpuvarregs] of Toldregister =
@@ -852,7 +852,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2003-05-15 22:14:43  florian
+  Revision 1.51  2003-05-16 16:26:05  jonas
+    * adapted for Peter's regvar fixes
+
+  Revision 1.50  2003/05/15 22:14:43  florian
     * fixed last commit, changing lastsaveintreg to r31 caused some strange problems
 
   Revision 1.49  2003/05/15 21:37:00  florian
