@@ -745,6 +745,22 @@ end;
 
 
 {****************************************************************************
+                              OS Utils
+****************************************************************************}
+
+Function GetEnvironmentVariable(Const EnvVar : String) : String;
+
+var P: PChar;
+
+begin
+    if DosScanEnv (PChar (EnvVar), P) = 0
+                  then GetEnvironmentVariable := StrPas (P)
+                                             else GetEnvironmentVariable := '';
+end;
+
+
+
+{****************************************************************************
                               Initialization code
 ****************************************************************************}
 
@@ -755,9 +771,13 @@ Finalization
   OutOfMemory.Free;
   InValidPointer.Free;
 end.
+
 {
   $Log$
-  Revision 1.8  2001-02-20 22:14:19  peter
+  Revision 1.9  2001-02-21 21:23:38  hajny
+    * GetEnvironmentVariable now really merged
+
+  Revision 1.8  2001/02/20 22:14:19  peter
     * merged getenvironmentvariable
 
   Revision 1.7  2001/01/13 11:10:59  hajny
@@ -788,17 +808,3 @@ end.
     * forgot the add command :(
 
 }
-{****************************************************************************
-                              OS Utils
-****************************************************************************}
-
-Function GetEnvironmentVariable(Const EnvVar : String) : String;
-
-begin
-  Resumt:=Getenv(EnvVar);
-end;
-
-
-    Revision 1.1.2.6  2001/02/20 21:19:28  michael
-    + Added GetEnvironmentVariable function
-
