@@ -357,7 +357,11 @@ const
   use_gdb_file : boolean = false;
 var
   gdb_file : text;
+{$ifdef GDB_V501}
+  inferior_ptid : longint;cvar;external;
+{$else}
   inferior_pid : longint;cvar;external;
+{$endif}
 
 {$ifdef go32v2}
   { needed to be sure %fs contains the DOS memory selector
@@ -988,6 +992,8 @@ var
   create_breakpoint_hook : pointer;cvar;external;
   current_target : target_ops;cvar;external;
   stop_pc      : CORE_ADDR;cvar;external;
+  { Only used from GDB 5.01 but doesn't hurst otherwise }
+  interpreter_p : pchar;cvar;
 
 { we need also to declare some vars }
   watchdog      : longint;cvar;public;
@@ -1335,7 +1341,11 @@ begin
 {$endif go32v2}
      DebuggerScreen;
      current_pc:=stop_pc;
+{$ifdef GDB_V501}
+     Debuggee_started:=inferior_ptid<>0;
+{$else}
      Debuggee_started:=inferior_pid<>0;
+{$endif}
      if not Debuggee_started then exit;
      if reset_command then exit;
       sym:=find_pc_line(stop_pc,0);
@@ -2432,7 +2442,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-04-20 18:43:00  marco
+  Revision 1.7  2001-07-31 15:42:11  pierre
+   + first lines to support coming 5.1 release
+
+  Revision 1.6  2001/04/20 18:43:00  marco
    * Freebsd fix
 
   Revision 1.5  2001/04/08 11:43:39  peter
