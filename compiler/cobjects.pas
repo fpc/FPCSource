@@ -1443,6 +1443,7 @@ end;
             data^[i]:=nil;
           end;
         count:=0;
+        first:=nil;
       end;
 
 
@@ -1478,8 +1479,11 @@ end;
       var
         i : longint;
       begin
-        { update linked list }
         i:=p^.indexnr;
+        { update counter }
+        if i=count then
+         dec(count);
+        { update linked list }
         while (i>0) do
          begin
            dec(i);
@@ -1490,10 +1494,11 @@ end;
             end;
          end;
         if i=0 then
-         first:=p;
-        { remove entry }
-        p^.next:=nil;
+         first:=p^.next;
         data^[p^.indexnr]:=nil;
+        { clear entry }
+        p^.indexnr:=-1;
+        p^.next:=nil;
       end;
 
 
@@ -1936,7 +1941,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  1999-05-08 19:47:27  peter
+  Revision 1.30  1999-05-21 10:38:59  peter
+    * fixed deleteindex which didn't reset indexnr and set first wrong
+
+  Revision 1.29  1999/05/08 19:47:27  peter
     * indexarray.delete resets pointer after dispose
 
   Revision 1.28  1999/05/05 10:05:48  florian
