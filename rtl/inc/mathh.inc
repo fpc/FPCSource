@@ -23,7 +23,7 @@
     function int(d : extended) : extended;
     function ln(d : extended) : extended;
     function pi : extended;
-    function round(d : extended) : longint;
+    function round(d : extended) : int64;
     function sin(d : extended) : extended;
     function sqr(d : extended) : extended;
     function sqrt(d : extended) : extended;
@@ -44,7 +44,10 @@
 
 {
   $Log$
-  Revision 1.8  2002-09-07 15:07:45  peter
+  Revision 1.9  2002-10-06 21:26:18  peter
+    * round returns int64
+
+  Revision 1.8  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
   Revision 1.7  2002/07/26 22:46:06  florian

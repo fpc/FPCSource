@@ -112,36 +112,43 @@
 
     {$define FPC_SYSTEM_HAS_TRUNC}
     function trunc(d : extended) : int64;assembler;[internconst:in_const_trunc];
+      var
+        oldcw,
+        newcw : word;
+        res   : int64;
       asm
-            subl $16,%esp
-            fnstcw -4(%ebp)
+            fnstcw oldcw
             fwait
-            movw -4(%ebp),%cx
+            movw oldcw,%cx
             orw $0x0c3f,%cx
-            movw %cx,-8(%ebp)
-            fldcw -8(%ebp)
+            movw %cx,newcw
+            fldcw newcw
             fwait
             fldt d
-            fistpq -12(%ebp)
-            movl -12(%ebp),%eax
-            movl -8(%ebp),%edx
-            fldcw -4(%ebp)
+            fistpq res
+            movl res,%eax
+            movl res+4,%edx
+            fldcw oldcw
       end ['EAX','ECX','EDX'];
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
-    function round(d : extended) : longint;assembler;[internconst:in_const_round];
+    function round(d : extended) : int64;assembler;[internconst:in_const_round];
+      var
+        oldcw,
+        newcw : word;
+        res   : int64;
       asm
-            subl $8,%esp
-            fnstcw -4(%ebp)
+            fnstcw oldcw
             fwait
-            movw $0x1372,-8(%ebp)
-            fldcw -8(%ebp)
+            movw $0x1372,newcw
+            fldcw newcw
             fwait
             fldt d
-            fistpl -8(%ebp)
-            movl -8(%ebp),%eax
-            fldcw -4(%ebp)
+            fistpq res
+            movl res,%eax
+            movl res+4,%edx
+            fldcw oldcw
       end ['EAX','ECX'];
 
 
@@ -197,7 +204,10 @@
 
 {
   $Log$
-  Revision 1.8  2002-09-07 16:01:19  peter
+  Revision 1.9  2002-10-06 21:26:17  peter
+    * round returns int64
+
+  Revision 1.8  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
 }
