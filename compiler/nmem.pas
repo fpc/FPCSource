@@ -721,16 +721,8 @@ implementation
          if codegenerror then
           exit;
 
-         { range check only for arrays }
-         if (left.resulttype.def.deftype=arraydef) then
-           begin
-              if (isconvertable(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def,
-                    ct,ordconstn,false)=0) and
-                 not(is_equal(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def)) then
-                CGMessage(type_e_mismatch);
-           end;
-         { Never convert a boolean or a char !}
-         { maybe type conversion }
+         { maybe type conversion for the index value, but
+           do not convert enums,booleans,char }
          if (right.resulttype.def.deftype<>enumdef) and
             not(is_char(right.resulttype.def)) and
             not(is_boolean(right.resulttype.def)) then
@@ -738,29 +730,42 @@ implementation
              inserttypeconv(right,s32bittype);
            end;
 
-         { are we accessing a pointer[], then convert the pointer to
-           an array first, in FPC this is allowed for all pointers in
-           delphi/tp7 it's only allowed for pchars }
-         if (left.resulttype.def.deftype=pointerdef) and
-            ((m_fpc in aktmodeswitches) or
-             is_pchar(left.resulttype.def) or
-             is_pwidechar(left.resulttype.def)) then
-          begin
-            { convert pointer to array }
-            htype.setdef(tarraydef.create(0,$7fffffff,s32bittype));
-            tarraydef(htype.def).elementtype:=tpointerdef(left.resulttype.def).pointertype;
-            inserttypeconv(left,htype);
-
-            resulttype:=tarraydef(htype.def).elementtype;
-          end;
-
-         { determine return type }
-         if not assigned(resulttype.def) then
-           if left.resulttype.def.deftype=arraydef then
-             resulttype:=tarraydef(left.resulttype.def).elementtype
-           else if left.resulttype.def.deftype=stringdef then
+         case left.resulttype.def.deftype of
+           arraydef :
              begin
-                { indexed access to strings }
+               { check type of the index value }
+               if (isconvertable(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def,
+                      ct,ordconstn,false)=0) and
+                  not(is_equal(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def)) then
+                 CGMessage(type_e_mismatch);
+               resulttype:=tarraydef(left.resulttype.def).elementtype;
+             end;
+           pointerdef :
+             begin
+               { are we accessing a pointer[], then convert the pointer to
+                 an array first, in FPC this is allowed for all pointers in
+                 delphi/tp7 it's only allowed for pchars }
+               if (m_fpc in aktmodeswitches) or
+                  is_pchar(left.resulttype.def) or
+                  is_pwidechar(left.resulttype.def) then
+                begin
+                  { convert pointer to array }
+                  htype.setdef(tarraydef.create(0,$7fffffff,s32bittype));
+                  tarraydef(htype.def).elementtype:=tpointerdef(left.resulttype.def).pointertype;
+                  inserttypeconv(left,htype);
+
+                  resulttype:=tarraydef(htype.def).elementtype;
+                end
+               else
+                CGMessage(type_e_array_required);
+             end;
+           stringdef :
+             begin
+                { indexed access to 0 element is only allowed for shortstrings }
+                if (right.nodetype=ordconstn) and
+                   (tordconstnode(right).value=0) and
+                   not(is_shortstring(left.resulttype.def)) then
+                  CGMessage(cg_e_can_access_element_zero);
                 case tstringdef(left.resulttype.def).string_typ of
                    st_widestring :
                      resulttype:=cwidechartype;
@@ -774,6 +779,7 @@ implementation
              end
            else
              CGMessage(type_e_array_required);
+        end;
       end;
 
 {$ifdef var_notification}
@@ -1051,7 +1057,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-09-01 13:28:38  daniel
+  Revision 1.39  2002-09-01 18:44:17  peter
+    * cleanup of tvecnode.det_resulttype
+    * move 0 element of string access check to resulttype
+
+  Revision 1.38  2002/09/01 13:28:38  daniel
    - write_access fields removed in favor of a flag
 
   Revision 1.37  2002/09/01 08:01:16  daniel
