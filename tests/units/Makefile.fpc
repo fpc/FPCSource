@@ -18,6 +18,8 @@ fpcdir=../..
 
 INSTALLOPT=INSTALL_UNITDIR=$(BASEDIR)
 
+ifndef USEUNITDIR
+
 rtl:
         $(MAKE) -C ../../rtl all
         $(MAKE) -C ../../rtl install $(INSTALLOPT)
@@ -27,6 +29,22 @@ fcl:
         $(MAKE) -C ../../fcl install $(INSTALLOPT)
 
 clean : cleanall
+        $(MAKE) -C ../../rtl clean
+        $(MAKE) -C ../../fcl clean
+
+else
+
+rtl:
+        $(COPY) $(USEUNITDIR)/* .
+        $(ECHO) Copied > $(FPCMADE)
+
+fcl: rtl
+
+clean : cleanall
+
+endif
+
+
 
 erroru$(PPUEXT): erroru.pp rtl fcl
 
