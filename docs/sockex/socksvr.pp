@@ -35,7 +35,7 @@ begin
    PError ('Server : Listen : '); 
   Writeln('Waiting for Connect from Client, run now sock_cli in an other tty'); 
   if not Accept (S,FromName,Sin,Sout) then
-   PError ('Server : Accept : ');
+   PError ('Server : Accept : '+fromname);
   Reset(Sin);
   ReWrite(Sout);
   Writeln(Sout,'Message From Server');
