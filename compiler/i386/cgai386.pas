@@ -2407,8 +2407,6 @@ implementation
        op : Tasmop;
        s : Topsize;
   begin
-      uses_eax:=false;
-      uses_edx:=false;
       if not is_void(procinfo^.returntype.def) then
           begin
               {if ((procinfo^.flags and pi_operator)<>0) and
@@ -2462,6 +2460,52 @@ implementation
   end;
 
 
+  procedure handle_fast_exit_return_value;
+    var
+       hr : preference;
+       op : Tasmop;
+       s : Topsize;
+    begin
+      if not is_void(procinfo^.returntype.def) then
+          begin
+              hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset);
+              if (procinfo^.returntype.def^.deftype in [orddef,enumdef]) then
+                begin
+                  case procinfo^.returntype.def^.size of
+                   8:
+                     begin
+                        emit_reg_ref(A_MOV,S_L,R_EAX,hr);
+                        hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset+4);
+                        emit_reg_ref(A_MOV,S_L,R_EDX,hr);
+                     end;
+
+                   4:
+                     emit_reg_ref(A_MOV,S_L,R_EAX,hr);
+
+                   2:
+                     emit_reg_ref(A_MOV,S_W,R_AX,hr);
+
+                   1:
+                     emit_reg_ref(A_MOV,S_B,R_AL,hr);
+                  end;
+                end
+              else
+                if ret_in_acc(procinfo^.returntype.def) then
+                  begin
+                    emit_reg_ref(A_MOV,S_L,R_EAX,hr);
+                  end
+              else
+                 if (procinfo^.returntype.def^.deftype=floatdef) then
+                   begin
+                      floatstoreops(pfloatdef(procinfo^.returntype.def)^.typ,op,s);
+                      exprasmlist.concat(taicpu.op_ref(op,s,hr));
+                   end
+              else
+                dispose(hr);
+          end
+     end;
+
+
   procedure genexitcode(alist : TAAsmoutput;parasize:longint;nostackframe,inlined:boolean);
 
     var
@@ -2470,7 +2514,8 @@ implementation
        p : pchar;
        st : string[2];
 {$endif GDB}
-       nofinal,okexitlabel,noreraiselabel,nodestroycall : pasmlabel;
+       stabsendlabel,nofinal,okexitlabel,
+       noreraiselabel,nodestroycall : pasmlabel;
        hr : treference;
        uses_eax,uses_edx,uses_esi : boolean;
        oldexprasmlist : TAAsmoutput;
@@ -2481,8 +2526,16 @@ implementation
       oldexprasmlist:=exprasmlist;
       exprasmlist:=alist;
 
+      if aktexit2label^.is_used and
+         ((procinfo^.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0) then
+        begin
+          exprasmlist.concat(taicpu.op_sym(A_JMP,S_NO,aktexitlabel));
+          exprasmlist.concat(tai_label.create(aktexit2label));
+          handle_fast_exit_return_value;
+        end;
+
       if aktexitlabel^.is_used then
-        exprasmList.insert(Tai_label.Create(aktexitlabel));
+        exprasmList.concat(Tai_label.Create(aktexitlabel));
 
       { call the destructor help procedure }
       if (aktprocsym^.definition^.proctypeoption=potype_destructor) and
@@ -2668,10 +2721,14 @@ implementation
                   uses_esi:=true;
               end;
 
-      { stabs uses the label also ! }
-      if aktexit2label^.is_used or
-         ((cs_debuginfo in aktmoduleswitches) and not inlined) then
+      if aktexit2label^.is_used and not aktexit2label^.is_set then
         emitlab(aktexit2label);
+
+      if ((cs_debuginfo in aktmoduleswitches) and not inlined) then
+        begin
+          getlabel(stabsendlabel);
+          emitlab(stabsendlabel);
+        end;
       { gives problems for long mangled names }
       {List.concat(Tai_symbol.Create(aktprocsym^.definition^.mangledname+'_end'));}
 
@@ -2842,7 +2899,7 @@ implementation
                +aktprocsym^.definition^.mangledname))));
               p[0]:='2';p[1]:='2';p[2]:='4';
               strpcopy(strend(p),'_end');}
-              strpcopy(p,'224,0,0,'+aktexit2label^.name);
+              strpcopy(p,'224,0,0,'+stabsendlabel^.name);
               if (target_os.use_function_relative_addresses) then
                 begin
                   strpcopy(strend(p),'-');
@@ -2922,7 +2979,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2001-04-02 21:20:35  peter
+  Revision 1.19  2001-04-05 21:33:07  peter
+    * fast exit fix merged
+
+  Revision 1.18  2001/04/02 21:20:35  peter
     * resulttype rewrite
 
   Revision 1.17  2001/01/05 17:36:58  florian
