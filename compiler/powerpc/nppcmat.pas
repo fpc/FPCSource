@@ -260,6 +260,9 @@ implementation
                    begin
                      asmop1 := A_SRW;
                      asmop2 := A_SLW;
+                     resultreg := hregisterhigh;
+                     hregisterhigh := hregisterlow;
+                     hregisterlow := resultreg;
                      resultreg := location.registerhigh;
                      location.registerhigh := location.registerlow;
                      location.registerlow := resultreg;
@@ -285,6 +288,13 @@ implementation
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
                    location.registerlow,hregisterlow,hregister1));
                  rg.ungetregisterint(exprasmlist,r);
+
+                 if nodetype = shrn then
+                   begin
+                     resultreg := location.registerhigh;
+                     location.registerhigh := location.registerlow;
+                     location.registerlow := resultreg;
+                   end;
 
                  if right.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                    cg.free_scratch_reg(exprasmlist,hregister1)
@@ -510,7 +520,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2003-05-11 11:45:08  jonas
+  Revision 1.27  2003-05-24 19:15:29  jonas
+    * fixed shr of 64 bit values by non-immediate value
+
+  Revision 1.26  2003/05/11 11:45:08  jonas
     * fixed shifts
 
   Revision 1.25  2003/04/24 12:57:32  florian
