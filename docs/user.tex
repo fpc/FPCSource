@@ -338,7 +338,8 @@ line to your \file{.login} file in your home directory.
 (see also the next section)
 
 \section{Optional configuration steps}
-You may wish to set some environment variables. The \fpc compiler
+On any platform, after installing the compiler you may wish to set 
+some environment variables. The \fpc compiler
 recognizes the following variables :
 \begin{itemize}
 \item \verb|PPC_EXEC_PATH| contains the directory where '\file{as}' and
@@ -924,19 +925,19 @@ differently, so they are understood by RHIDE.
 \subsection{Options concerning files and directories}
 \begin{description}
 \item [-exxx] \file{xxx} specifies the directory where the
-compiler can find the executables \file{as} (the assembler) and \file{ld} (the
-compiler).
+compiler can find the executables \file{as} (the assembler) and \file{ld} 
+(the linker).
 \olabel{e}
 \item [-FD] same as \var{-e}.
 \item [-Fexxx] This option tells the compiler to write errors, etc. to
-the file in \file{xxx}.
+the file named \file{xxx}.
 \olabel{Fe}
 \item [-Flxxx] Adds \var{xxx} to the library searching path, and is passed
 to the linker.
 \olabel{Fl}
 \item[-FLxxx] (\linux only) Tells the compiler to use \file{xxx} as the
 dynamic linker. Default this is \file{/lib/ld-linux.so.2}, or
-\file{lib/ld-linux.so.1}, depending on which one is found first.
+\file{/Hlib/ld-linux.so.1}, depending on which one is found first.
 \olabel{FL}
 \item[-Foxxx] Adds \file{xxx} to the object file path. This path is used
 when looking for files that need to be linked in.
@@ -945,8 +946,9 @@ when looking for files that need to be linked in.
 messages. Default the compiler ahs built-in messages. Specifying this option
 will override the default messages.
 \olabel{Fr}
-\item [-Fuxxx] Add \file{xxx} to the unit path. Units are loaded from the
-current directory if they exist, and then in the unit path. You must {\em
+\item [-Fuxxx] Add \file{xxx} to the unit path. Units are first searched
+in the current directory. If they are not found there then the compiler searches 
+them in the unit path. You must {\em
 always} supply the unit path to the system unit.
 \olabel{Fu}
 \item [-FUxxx] Tells the compiler to write units in directory \var{xxx}
@@ -1578,7 +1580,14 @@ end;
 \end{verbatim}
 \item Any text after the final \var{End.} statement is ignored. Normally,
 this text is processed too.
-\item You cannot assign procedural variables to void pointers.
+\item You cannot assign procedural variables to untyped pointers; so the
+following is invalid:
+\begin{verbatim}
+ a: Procedure;
+ b: Pointer;
+begin
+ b := a; // Error will be generated.
+\end{verbatim}
 \item The @ operator is typed when applied on procedures.
 \item You cannot nest comments.
 \end{itemize}
