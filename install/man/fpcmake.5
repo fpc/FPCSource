@@ -1,0 +1,91 @@
+.TH fpcmake 5 "12 Dec 1999" FreePascal "Free Pascal Makefile.fpc format"
+.SH NAME
+Makefile.fpc \- Configuration file for fpcmake.
+
+.SH SYNOPSIS
+.SH DESCRIPTION
+
+.B Makefile.fpc
+is a plain ASCII file that contains a number of sections as in a Windows
+.I ini
+file. The following sections are recognized (in alphabetical order):
+.TP
+.B clean
+Specifies rules for cleaning the directory of units and programs. 
+The following entries are recognized:
+.RS
+.TP
+.I units
+names of all units that should be removed when cleaning. Don't specify
+extensions, the makefile will append these by itself.
+.TP
+.I files
+names of files that should be removed. Specify full filenames.
+.RE
+.TP
+.B defaults
+The defaults section contains some default settings. The following keywords
+are recognized:
+.RS
+.TP
+
+.RE
+.TP
+.B dirs
+.TP
+.B info
+.TP
+.B install
+Contains instructions for installation of your units and programs. The
+following keywods are recognized:
+.RS
+.TP
+.I dirprefix
+the directory below wchich all installs are done. This corresponds to the
+.I \-\-prefix
+argument to GNU 
+.I configure
+It is used for the installation of programs and units. By default, this is 
+. /usr
+on linux, and 
+. /pp
+on all other platforms.
+.TP
+.I dirbase 
+The directory that is used as the base directory for the installation of
+units. Default this is 
+.I dirprefix 
+appended with
+.I /lib/fpc/FPC\_VERSION
+for linux or simply the dirprefix on other platforms.
+.RE
+Units will be installed in the subdirectory 
+.I units/$(OS\_TARGET)
+of the 
+.I dirbase
+entry.
+.TP
+.B libs
+
+.TP
+.B packages
+.TP
+.B postsettings
+.TP
+.B presettings
+.TP
+.B rules
+.TP
+.B sections
+.TP
+.B targets
+.TP
+.B tools
+.TP
+.B zip
+
+.SH SEE ALSO
+.IP 
+.BR  fpcmake (1)
+.BR  ppc386 (1)
+.BR  make (1)
