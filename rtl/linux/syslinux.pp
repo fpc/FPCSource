@@ -701,26 +701,32 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
-Procedure SegFaultHandler (Sig : longint);
+Procedure SignalToRunError(Sig:longint);
 begin
-  if sig=11 then
-   HandleError (216);
+  case sig of
+    8 : HandleError(200);
+   11 : HandleError(216);
+  end;
 end;
 
 
-Procedure InstallSegFaultHandler;
+Procedure InstallSignals;
 var
   sr : syscallregs;
 begin
+  sr.reg3:=longint(@SignalToRunError);
+  { sigsegv }
   sr.reg2:=11;
-  sr.reg3:=longint(@SegFaultHandler);
+  syscall(syscall_nr_signal,sr);
+  { sigfpe }
+  sr.reg2:=8;
   syscall(syscall_nr_signal,sr);
 end;
 
 
 Begin
-{ Set up segfault Handler }
-  InstallSegFaultHandler;
+{ Set up signals handlers }
+  InstallSignals;
 { Setup heap }
   InitHeap;
 { Setup stdin, stdout and stderr }
@@ -733,7 +739,10 @@ End.
 
 {
   $Log$
-  Revision 1.16  1998-09-14 10:48:27  peter
+  Revision 1.17  1998-10-15 08:30:00  peter
+    + sigfpe -> runerror 200
+
+  Revision 1.16  1998/09/14 10:48:27  peter
     * FPC_ names
     * Heap manager is now system independent
 
