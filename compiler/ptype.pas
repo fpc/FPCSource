@@ -472,10 +472,15 @@ implementation
                   defpos:=akttokenpos;
                   consume(_ID);
                   { only allow assigning of specific numbers under fpc mode }
-                  if (m_fpc in aktmodeswitches) and
-                     (token=_ASSIGNMENT) then
+                  if not(m_tp7 in aktmodeswitches) and
+                     (
+                      { in fpc mode also allow := to be compatible
+                        with previous 1.0.x versions }
+                      ((m_fpc in aktmodeswitches) and
+                       try_to_consume(_ASSIGNMENT)) or
+                      try_to_consume(_EQUAL)
+                     ) then
                     begin
-                       consume(_ASSIGNMENT);
                        p:=comp_expr(true);
                        if (p.nodetype=ordconstn) then
                         begin
@@ -499,25 +504,6 @@ implementation
                           enumdupmsg:=true;
                         end;
                        l:=v;
-                    end
-                  else if (m_delphi in aktmodeswitches) and
-                     (token=_EQUAL) then
-                    begin
-                       consume(_EQUAL);
-                       p:=comp_expr(true);
-                       if (p.nodetype=ordconstn) then
-                        begin
-                          { we expect an integer or an enum of the
-                            same type }
-                          if is_integer(p.resulttype.def) or
-                             equal_defs(p.resulttype.def,aktenumdef) then
-                           l:=tordconstnode(p).value
-                          else
-                           Message2(type_e_incompatible_types,p.resulttype.def.typename,s32bittype.def.typename);
-                        end
-                       else
-                        Message(cg_e_illegal_expression);
-                       p.free;
                     end
                   else
                     inc(l);
@@ -643,7 +629,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2003-01-02 19:49:00  peter
+  Revision 1.49  2003-01-03 23:50:41  peter
+    * also allow = in fpc mode to assign enums
+
+  Revision 1.48  2003/01/02 19:49:00  peter
     * update self parameter only for methodpointer and methods
 
   Revision 1.47  2002/12/21 13:07:34  peter
