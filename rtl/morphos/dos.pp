@@ -29,9 +29,9 @@ unit Dos;
 {--------------------------------------------------------------------}
 
 
-Interface
+interface
 
-Const
+const
   {Bitmasks for CPU Flags}
   fcarry     = $0001;
   fparity    = $0004;
@@ -64,7 +64,6 @@ Type
   ExtStr  = String[255];  { size increased to be more compatible with Unix}
 
 
-
 {
   filerec.inc contains the definition of the filerec.
   textrec.inc contains the definition of the textrec.
@@ -75,8 +74,7 @@ Type
 {$i textrec.inc}
 
 
-Type
-
+type
   SearchRec = Packed Record
     { watch out this is correctly aligned for all processors }
     { don't modify.                                          }
@@ -92,12 +90,12 @@ Type
 
 
   DateTime = packed record
-    Year: Word;
+    Year : Word;
     Month: Word;
-    Day: Word;
-    Hour: Word;
-    Min: Word;
-    Sec: word;
+    Day  : Word;
+    Hour : Word;
+    Min  : Word;
+    Sec  : Word;
   End;
 
   { Some ugly x86 registers... }
@@ -109,7 +107,7 @@ Type
     end;
 
 
-Var
+var
   DosError : integer;
 
 {Interrupt}
@@ -162,20 +160,24 @@ Procedure GetIntVec(intno: byte; var vector: pointer);
 Procedure SetIntVec(intno: byte; vector: pointer);
 Procedure Keep(exitcode: word);
 
+
 implementation
 
 { * include MorphOS specific functions & definitions * }
 
 {$include execd.inc}
 {$include execf.inc}
+{$include timerd.inc}
+{$include doslibd.inc}
+{$include doslibf.inc}
 
 const
   DaysPerMonth :  Array[1..12] of ShortInt =
-(031,028,031,030,031,030,031,031,030,031,030,031);
+         (031,028,031,030,031,030,031,031,030,031,030,031);
   DaysPerYear  :  Array[1..12] of Integer  =
-(031,059,090,120,151,181,212,243,273,304,334,365);
+         (031,059,090,120,151,181,212,243,273,304,334,365);
   DaysPerLeapYear :    Array[1..12] of Integer  =
-(031,060,091,121,152,182,213,244,274,305,335,366);
+         (031,060,091,121,152,182,213,244,274,305,335,366);
   SecsPerYear      : LongInt  = 31536000;
   SecsPerLeapYear  : LongInt  = 31622400;
   SecsPerDay       : LongInt  = 86400;
@@ -183,40 +185,22 @@ const
   SecsPerMinute    : ShortInt = 60;
   TICKSPERSECOND    = 50;
 
-type
-    BPTR     = Longint;
-    BSTR     = Longint;
-
-const
-    LDF_READ   = 1;
-    LDF_DEVICES = 4;
-
-    ERROR_NO_MORE_ENTRIES            = 232;
-    FIBF_SCRIPT         = 64;  { program is a script              }
-    FIBF_PURE           = 32;  { program is reentrant             }
-    FIBF_ARCHIVE        = 16;  { cleared whenever file is changed }
-    FIBF_READ           = 8;   { ignoed by old filesystem         }
-    FIBF_WRITE          = 4;   { ignored by old filesystem        }
-    FIBF_EXECUTE        = 2;   { ignored by system, used by shell }
-    FIBF_DELETE         = 1;   { prevent file from being deleted  }
-
-    SHARED_LOCK         = -2;
 
 {******************************************************************************
                            --- Internal routines ---
 ******************************************************************************}
 
-function Lock(const name : string;
-              accessmode : Longint) : BPTR;
+function dosLock(const name : string;
+              accessmode : Longint) : LongInt;
 var
  buffer: Array[0..255] of char;
 Begin
   move(name[1],buffer,length(name));
   buffer[length(name)]:=#0;
-  lock:=dos_Lock(buffer,accessmode);
+  dosLock:=Lock(buffer,accessmode);
 end;
 
-FUNCTION BADDR(bval : BPTR): POINTER;
+FUNCTION BADDR(bval : LongInt): POINTER;
 BEGIN
     BADDR := POINTER( bval shl 2);
 END;
@@ -317,21 +301,21 @@ Begin
 End;
 
 
-function SetProtection(const name: string; mask:longint): Boolean;
+function dosSetProtection(const name: string; mask:longint): Boolean;
 var
   buffer : array[0..255] of Char;
 begin
   move(name[1],buffer,length(name));
   buffer[length(name)]:=#0;
-  SetProtection:=dos_SetProtection(buffer,mask);
+  dosSetProtection:=SetProtection(buffer,mask);
 end;
 
-function SetFileDate(name: string; p : PDateStamp): Boolean;
+function dosSetFileDate(name: string; p : PDateStamp): Boolean;
 var buffer : array[0..255] of Char;
 begin
   move(name[1],buffer,length(name));
   buffer[length(name)]:=#0;
-  SetFileDate:=dos_SetFileDate(buffer,p);
+  dosSetFileDate:=SetFileDate(buffer,p);
 end;
 
 
@@ -339,34 +323,31 @@ end;
                            --- Dos Interrupt ---
 ******************************************************************************}
 
-Procedure Intr (intno: byte; var regs: registers);
-  Begin
+procedure Intr(intno: byte; var regs: registers);
+begin
   { Does not apply to MorphOS - not implemented }
-  End;
+end;
 
-
-Procedure SwapVectors;
-  Begin
+procedure SwapVectors;
+begin
   { Does not apply to MorphOS - Do Nothing }
-  End;
+end;
 
-
-Procedure msdos(var regs : registers);
-  Begin
+procedure msdos(var regs : registers);
+begin
   { ! Not implemented in MorphOS ! }
-  End;
+end;
 
-
-Procedure getintvec(intno : byte;var vector : pointer);
-  Begin
+procedure getintvec(intno : byte;var vector : pointer);
+begin
   { ! Not implemented in MorphOS ! }
-  End;
+end;
 
-
-Procedure setintvec(intno : byte;vector : pointer);
-  Begin
+procedure setintvec(intno : byte;vector : pointer);
+begin
   { ! Not implemented in MorphOS ! }
-  End;
+end;
+
 
 {******************************************************************************
                         --- Info / Date / Time ---
@@ -380,45 +361,6 @@ begin
 end;
 
 { Here are a lot of stuff just for setdate and settime }
-
-Const
-
-{ unit defintions }
-    UNIT_MICROHZ        = 0;
-    UNIT_VBLANK         = 1;
-
-    TIMERNAME : PChar   = 'timer.device';
-
-Type
-
-
-    ptimeval = ^ttimeval;
-    ttimeval = packed record
-        tv_secs         : longint;
-        tv_micro        : longint;
-    end;
-
-    ptimerequest = ^ttimerequest;
-    ttimerequest = packed record
-        tr_node         : tIORequest;
-        tr_time         : ttimeval;
-    end;
-
-Const
-
-{ IO_COMMAND to use for adding a timer }
-    TR_ADDREQUEST       = CMD_NONSTD;
-    TR_GETSYSTIME       = CMD_NONSTD + 1;
-    TR_SETSYSTIME       = CMD_NONSTD + 2;
-
-{  To use any of the routines below, TimerBase must be set to point
-   to the timer.device, either by calling CreateTimer or by pulling
-   the device pointer from a valid TimeRequest, i.e.
-
-        TimerBase := TimeRequest.io_Device;
-
-    _after_ you have called OpenDevice on the timer.
-}
 
 var
     TimerBase   : Pointer;
@@ -684,12 +626,12 @@ Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
    { _SystemTagList call (program will abort!!)                 }
 
    { Try to open with shared lock                               }
-   MyLock:=Lock(Path,SHARED_LOCK);
+   MyLock:=dosLock(Path,SHARED_LOCK);
    if MyLock <> 0 then
      Begin
         { File exists - therefore unlock it }
-        dos_Unlock(MyLock);
-        result:=dos_SystemTagList(buf,nil);
+        Unlock(MyLock);
+        result:=SystemTagList(buf,nil);
         { on return of -1 the shell could not be executed }
         { probably because there was not enough memory    }
         if result = -1 then
@@ -763,7 +705,7 @@ var
 
 Function DiskFree(Drive: Byte): Longint;
 Var
-  MyLock      : BPTR;
+  MyLock      : LongInt;
   Inf         : pInfoData;
   Free        : Longint;
   myproc      : pProcess;
@@ -776,13 +718,13 @@ Begin
   myproc^.pr_WindowPtr := Pointer(-1);
   { End of systemrequesterstop }
   New(Inf);
-  MyLock := Lock(devicenames[deviceids[Drive]],SHARED_LOCK);
+  MyLock := dosLock(devicenames[deviceids[Drive]],SHARED_LOCK);
   If MyLock <> 0 then begin
-     if dos_Info(MyLock,Inf) then begin
+     if Info(MyLock,Inf) then begin
         Free := (Inf^.id_NumBlocks * Inf^.id_BytesPerBlock) -
                 (Inf^.id_NumBlocksUsed * Inf^.id_BytesPerBlock);
      end;
-     dos_Unlock(MyLock);
+     Unlock(MyLock);
   end;
   Dispose(Inf);
   { Restore systemrequesters }
@@ -794,7 +736,7 @@ end;
 
 Function DiskSize(Drive: Byte): Longint;
 Var
-  MyLock      : BPTR;
+  MyLock      : LongInt;
   Inf         : pInfoData;
   Size        : Longint;
   myproc      : pProcess;
@@ -807,12 +749,12 @@ Begin
   myproc^.pr_WindowPtr := Pointer(-1);
   { End of systemrequesterstop }
   New(Inf);
-  MyLock := Lock(devicenames[deviceids[Drive]],SHARED_LOCK);
+  MyLock := dosLock(devicenames[deviceids[Drive]],SHARED_LOCK);
   If MyLock <> 0 then begin
-     if dos_Info(MyLock,Inf) then begin
+     if Info(MyLock,Inf) then begin
         Size := (Inf^.id_NumBlocks * Inf^.id_BytesPerBlock);
      end;
-     dos_Unlock(MyLock);
+     Unlock(MyLock);
   end;
   Dispose(Inf);
   { Restore systemrequesters }
@@ -880,7 +822,7 @@ Begin
  move(path[1],buf,length(path));
  buf[length(path)]:=#0;
 
- Result:=dos_MatchFirst(@buf,Anchor);
+ Result:=MatchFirst(@buf,Anchor);
  f.AnchorPtr:=Anchor;
  if Result = ERROR_NO_MORE_ENTRIES then
    DosError:=18
@@ -891,7 +833,7 @@ Begin
  { the anchorpath structure         }
  if DosError <> 0 then
    Begin
-     dos_MatchEnd(Anchor);
+     MatchEnd(Anchor);
      if assigned(Anchor) then
        Dispose(Anchor);
    end
@@ -937,7 +879,7 @@ var
  Anchor : pAnchorPath;
 Begin
  DosError:=0;
- Result:=dos_MatchNext(f.AnchorPtr);
+ Result:=MatchNext(f.AnchorPtr);
  if Result = ERROR_NO_MORE_ENTRIES then
    DosError:=18
  else
@@ -947,7 +889,7 @@ Begin
  { the anchorpath structure         }
  if DosError <> 0 then
    Begin
-     dos_MatchEnd(f.AnchorPtr);
+     MatchEnd(f.AnchorPtr);
      if assigned(f.AnchorPtr) then
        {Dispose}FreeMem(f.AnchorPtr);
    end
@@ -1088,10 +1030,10 @@ begin
     Str := StrPas(filerec(f).name);
     for i:=1 to length(Str) do
      if str[i]='\' then str[i]:='/';
-    FLock := Lock(Str, SHARED_LOCK);
+    FLock := dosLock(Str, SHARED_LOCK);
     IF FLock <> 0 then begin
         New(FInfo);
-        if dos_Examine(FLock, FInfo) then begin
+        if Examine(FLock, FInfo) then begin
              with FInfo^.fib_Date do
              FTime := ds_Days * (24 * 60 * 60) +
              ds_Minute * 60 +
@@ -1099,7 +1041,7 @@ begin
         end else begin
              FTime := 0;
         end;
-        dos_Unlock(FLock);
+        Unlock(FLock);
         Dispose(FInfo);
     end
     else
@@ -1121,15 +1063,15 @@ end;
     for i:=1 to length(Str) do
      if str[i]='\' then str[i]:='/';
     { Check first of all, if file exists }
-    FLock := Lock(Str, SHARED_LOCK);
+    FLock := dosLock(Str, SHARED_LOCK);
     IF FLock <> 0 then
       begin
-        dos_Unlock(FLock);
+        Unlock(FLock);
         Amiga2DateStamp(time,Days,Minutes,ticks);
         DateStamp^.ds_Days:=Days;
         DateStamp^.ds_Minute:=Minutes;
         DateStamp^.ds_Tick:=Ticks;
-        if SetFileDate(Str,DateStamp) then
+        if dosSetFileDate(Str,DateStamp) then
             DosError:=0
         else
             DosError:=6;
@@ -1154,10 +1096,10 @@ end;
     for i:=1 to length(Str) do
      if str[i]='\' then str[i]:='/';
     { open with shared lock to check if file exists }
-    MyLock:=Lock(Str,SHARED_LOCK);
+    MyLock:=dosLock(Str,SHARED_LOCK);
     if MyLock <> 0 then
       Begin
-        dos_Examine(MyLock,info);
+        Examine(MyLock,info);
         {*------------------------------------*}
         {* Determine if is a file or a folder *}
         {*------------------------------------*}
@@ -1175,7 +1117,7 @@ end;
          AND ((info^.fib_Protection and FIBF_WRITE) = 0)
          then
           flags:=flags OR ReadOnly;
-        dos_Unlock(mylock);
+        Unlock(mylock);
       end
     else
       DosError:=3;
@@ -1198,7 +1140,7 @@ Procedure setfattr (var f;attr : word);
     for i:=1 to length(Str) do
      if str[i]='\' then str[i]:='/';
 
-    MyLock:=Lock(Str,SHARED_LOCK);
+    MyLock:=dosLock(Str,SHARED_LOCK);
 
     { By default files are read-write }
     if attr AND ReadOnly <> 0 then
@@ -1208,8 +1150,8 @@ Procedure setfattr (var f;attr : word);
 
     if MyLock <> 0 then
      Begin
-       dos_Unlock(MyLock);
-       if Not SetProtection(Str,flags) then
+       Unlock(MyLock);
+       if Not dosSetProtection(Str,flags) then
          DosError:=5;
      end
     else
@@ -1290,7 +1232,7 @@ begin
    end else begin
       move(envvar,strbuffer,length(envvar));
       strbuffer[length(envvar)] := #0;
-      temp := dos_GetVar(strbuffer,bufarr,255,$100);
+      temp := GetVar(strbuffer,bufarr,255,$100);
       if temp = -1 then
         GetEnv := ''
       else GetEnv := StrPas(bufarr);
@@ -1340,7 +1282,7 @@ begin
 end;
 
 
-function BSTR2STRING(s : BSTR): pchar;
+function BSTR2STRING(s : LongInt): pchar;
 begin
     BSTR2STRING := Pointer(Longint(BADDR(s))+1);
 end;
@@ -1351,9 +1293,9 @@ var
    temp : pchar;
    str  : string[20];
 begin
-   dl := dos_LockDosList(LDF_DEVICES or LDF_READ );
+   dl := LockDosList(LDF_DEVICES or LDF_READ );
    repeat
-      dl := dos_NextDosEntry(dl,LDF_DEVICES );
+      dl := NextDosEntry(dl,LDF_DEVICES );
       if dl <> nil then begin
          temp := BSTR2STRING(dl^.dol_Name);
          str := MakeDeviceName(temp);
@@ -1361,7 +1303,7 @@ begin
               AddDevice(str);
       end;
    until dl = nil;
-   dos_UnLockDosList(LDF_DEVICES or LDF_READ );
+   UnLockDosList(LDF_DEVICES or LDF_READ );
 end;
 
 Begin
@@ -1374,7 +1316,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  2004-06-13 22:51:08  karoly
+  Revision 1.6  2004-06-26 20:48:24  karoly
+    * more cleanup + changes to use new includes
+
+  Revision 1.5  2004/06/13 22:51:08  karoly
     * cleanup and changes to use new includes
 
   Revision 1.4  2004/05/16 00:24:19  karoly

@@ -59,6 +59,8 @@ const
 *****************************************************************************}
 
 {$include execd.inc}
+{$include timerd.inc}
+{$include doslibd.inc}
 
 type
   PClockData = ^TClockData;
@@ -70,108 +72,6 @@ type
     month: Word;
     year : Word;
     wday : Word;
-  end;
-
-  TDateStamp = packed record
-    ds_Days   : LongInt;      { Number of days since Jan. 1, 1978 }
-    ds_Minute : LongInt;      { Number of minutes past midnight }
-    ds_Tick   : LongInt;      { Number of ticks past minute }
-  end;
-  PDateStamp = ^TDateStamp;
-
-  PFileInfoBlock = ^TFileInfoBlock;
-  TFileInfoBlock = packed record
-    fib_DiskKey      : LongInt;
-    fib_DirEntryType : LongInt;
-    { Type of Directory. If < 0, then a plain file. If > 0 a directory }
-    fib_FileName     : Array [0..107] of Char;
-    { Null terminated. Max 30 chars used for now }
-    fib_Protection   : LongInt;
-    { bit mask of protection, rwxd are 3-0. }
-    fib_EntryType    : LongInt;
-    fib_Size         : LongInt;      { Number of bytes in file }
-    fib_NumBlocks    : LongInt;      { Number of blocks in file }
-    fib_Date         : TDateStamp; { Date file last changed }
-    fib_Comment      : Array [0..79] of Char;
-    { Null terminated comment associated with file }
-    fib_Reserved     : Array [0..35] of Char;
-  end;
-
-  PProcess = ^TProcess;
-  TProcess = packed record
-    pr_Task          : TTask;
-    pr_MsgPort       : TMsgPort;  { This is BPTR address from DOS functions    }
-    pr_Pad           : Word;      { Remaining variables on 4 byte boundaries   }
-    pr_SegList       : Pointer;   { Array of seg lists used by this process    }
-    pr_StackSize     : Longint;   { Size of process stack in bytes             }
-    pr_GlobVec       : Pointer;   { Global vector for this process (BCPL)      }
-    pr_TaskNum       : Longint;   { CLI task number of zero if not a CLI       }
-    pr_StackBase     : DWord;     { Ptr to high memory end of process stack    }
-    pr_Result2       : Longint;   { Value of secondary result from last call   }
-    pr_CurrentDir    : DWord;     { Lock associated with current directory     }
-    pr_CIS           : DWord;     { Current CLI Input Stream                   }
-    pr_COS           : DWord;     { Current CLI Output Stream                  }
-    pr_ConsoleTask   : Pointer;   { Console handler process for current window } 
-    pr_FileSystemTask: Pointer;   { File handler process for current drive     }
-    pr_CLI           : DWord;     { pointer to ConsoleLineInterpreter          }
-    pr_ReturnAddr    : Pointer;   { pointer to previous stack frame            }
-    pr_PktWait       : Pointer;   { Function to be called when awaiting msg    }
-    pr_WindowPtr     : Pointer;   { Window for error printing }
-    { following definitions are new with 2.0 }
-    pr_HomeDir       : DWord;     { Home directory of executing program      }
-    pr_Flags         : Longint;   { flags telling dos about process          }
-    pr_ExitCode      : Pointer;   { code to call on exit of program OR NULL  }
-    pr_ExitData      : Longint;   { Passed as an argument to pr_ExitCode.    }
-    pr_Arguments     : PChar;     { Arguments passed to the process at start }
-    pr_LocalVars     : TMinList;  { Local environment variables              }
-    pr_ShellPrivate  : Longint;   { for the use of the current shell         }
-    pr_CES           : DWord;     { Error stream - IF NULL, use pr_COS       }
-  end;
-
-  PInfoData = ^TInfoData;
-  TInfoData = packed record
-    id_NumSoftErrors: LongInt;      { number of soft errors on disk }
-    id_UnitNumber   : LongInt;      { Which unit disk is (was) mounted on }
-    id_DiskState    : LongInt;      { See defines below }
-    id_NumBlocks    : LongInt;      { Number of blocks on disk }
-    id_NumBlocksUsed: LongInt;      { Number of block in use }
-    id_BytesPerBlock: LongInt;
-    id_DiskType     : LongInt;      { Disk Type code }
-    id_VolumeNode   : LongInt;      { BCPL pointer to volume node }
-    id_InUse        : LongInt;      { Flag, zero if not in use }
-  end;
-
-  PChain = ^TChain;
-  TChain = packed record
-    an_Child : PChain;
-    an_Parent: PChain;
-    an_Lock  : LongInt;
-    an_info  : TFileInfoBlock;
-    an_Flags : ShortInt;
-    an_string: Array[0..0] of char;
-  end;
-
-  PAnchorPath = ^TAnchorPath;
-  TAnchorPath = packed record
-    ap_Base     : PChain;     { pointer to first anchor  }
-    ap_First    : PChain;     { pointer to last anchor   }
-    ap_BreakBits: LongInt;    { Bits we want to break on }
-    ap_FondBreak: LongInt;    { Bits we broke on. Also returns ERROR_BREAK }
-    ap_Flags    : ShortInt;   { New use for extra word.  }
-    ap_reserved : Byte;
-    ap_StrLen   : Word;
-    ap_Info     : TFileInfoBlock;
-    ap_Buf      : array[0..0] of Char; { Buffer for path name, allocated by user }
-  end;
-
-  PDOSList = ^TDOSList;
-  TDOSList = packed record
-    dol_Next: LongInt;  { bptr to next device on list }
-    dol_Type: LongInt;  { see DLT below }
-    dol_Task: Pointer;  { ptr to handler task }
-    dol_Lock: LongInt;
-    dol_Misc: array[0..23] of ShortInt;
-    dol_Name: LongInt;  { bptr to bcpl name }
   end;
 
 
@@ -195,81 +95,6 @@ var
                            MorphOS functions
 *****************************************************************************}
 
-{ dos.library functions }
-
-function dos_Output: LongInt; SysCall MOS_DOSBase 60;
-function dos_Input: LongInt; SysCall MOS_DOSBase 54;
-function dos_IoErr: LongInt; SysCall MOS_DOSBase 132;
-function dos_GetArgStr: PChar; SysCall MOS_DOSBase 534;
-
-function dos_Open(fname: PChar location 'd1';
-                  accessMode: LongInt location 'd2'): LongInt; SysCall MOS_DOSBase 30;
-function dos_Close(fileh: LongInt location 'd1'): Boolean; SysCall MOS_DOSBase 36;
-
-function dos_Seek(fileh: LongInt location 'd1';
-                  position: LongInt location 'd2';
-                  posmode: LongInt location 'd3'): LongInt; SysCall MOS_DOSBase 66;
-function dos_SetFileSize(fileh: LongInt location 'd1';
-                         position: LongInt location 'd2';
-                         posmode: LongInt location 'd3'): LongInt; SysCall MOS_DOSBase 456;
-
-function dos_Read(fileh: LongInt location 'd1'; 
-                  buffer: Pointer location 'd2'; 
-                  length: LongInt location 'd3'): LongInt; SysCall MOS_DOSBase 42;
-function dos_Write(fileh: LongInt location 'd1'; 
-                   buffer: Pointer location 'd2'; 
-                   length: LongInt location 'd3'): LongInt; SysCall MOS_DOSBase 48;
-function dos_WriteChars(buf: PChar location 'd1'; 
-                        buflen: LongInt location 'd2'): LongInt; SysCall MOS_DOSBase 942;
-
-function dos_Rename(oldName: PChar location 'd1';
-                    newName: PChar location 'd2'): Boolean; SysCall MOS_DOSBase 78;
-function dos_DeleteFile(fname: PChar location 'd1'): Boolean; SysCall MOS_DOSBase 72;
-
-function dos_GetCurrentDirName(buf: PChar location 'd1';
-                               len: LongInt location 'd2'): Boolean; SysCall MOS_DOSBase 564;
-
-function dos_Lock(lname: PChar location 'd1';
-                  accessMode: LongInt location 'd2'): LongInt; SysCall MOS_DOSBase 84;
-procedure dos_Unlock(lock: LongInt location 'd1'); SysCall MOS_DOSBase 90;
-function dos_CurrentDir(lock: LongInt location 'd1'): LongInt; SysCall MOS_DOSBase 126;
-function dos_Examine(lock: LongInt location 'd1';
-                     FileInfoBlock: Pointer location 'd2'): Boolean; SysCall MOS_DOSBase 102;
-function dos_NameFromLock(lock: LongInt location 'd1';
-                          buffer: PChar location 'd2';
-                          len: LongInt location 'd3'): Boolean; SysCall MOS_DOSBase 402;
-function dos_Info(lock: LongInt location 'd1';
-                  parameterBlock: PInfoData location 'd2'): Boolean; SysCall MOS_DOSBase 114;
-
-function dos_CreateDir(dname: PChar location 'd1'): LongInt; SysCall MOS_DOSBase 120;
-function dos_DateStamp(var ds: TDateStamp location 'd1'): LongInt; SysCall MOS_DOSBase 192;
-
-function dos_SystemTagList(command: PChar location 'd1';
-                           tags: Pointer location 'd2'): LongInt; SysCall MOS_DOSBase 606;
-function dos_GetVar(vname: PChar location 'd1';
-                    buffer: PChar location 'd2';
-                    size: LongInt location 'd3';
-                    flags: LongInt location 'd4'): LongInt; SysCall MOS_DOSBase 906;
-function dos_MatchFirst(pat: PChar location 'd1';
-                        anchor: PAnchorPath location 'd2'): LongInt; SysCall MOS_DOSBase 822;
-function dos_MatchNext(anchor: PAnchorPath location 'd1'): LongInt; SysCall MOS_DOSBase 828;
-procedure dos_MatchEnd(anchor: PAnchorPath location 'd1') SysCall MOS_DOSBase 834;
-
-function dos_LockDosList(flags: LongInt location 'd1'): PDOSList; SysCall MOS_DOSBase 654;
-procedure dos_UnLockDosList(flags: LongInt location 'd1'); SysCall MOS_DOSBase 660;
-function dos_NextDosEntry(dlist: PDOSList location 'd1';
-                          flags: LongInt location 'd2'): PDOSList; SysCall MOS_DOSBase 690;
-
-function dos_SetProtection(name: PChar location 'd1';
-                           mask: LongInt location 'd2'): Boolean; SysCall MOS_DOSBase 186;
-function dos_SetFileDate(name: PChar location 'd1';
-                         date: PDateStamp location 'd2'): Boolean; SysCall MOS_DOSBase 396;
-
-function dos_GetProgramDir: LongInt; SysCall MOS_DOSBase 600;
-function dos_GetProgramName(buf: PChar location 'd1';
-                            len: LongInt location 'd2'): Boolean; SysCall MOS_DOSBase 576;
-
-
 { utility.library functions }
 
 function util_Date2Amiga(date: PClockData location 'a0'): LongInt; SysCall MOS_UtilityBase 126;
@@ -289,78 +114,15 @@ implementation
 { exec.library functions }
 
 {$include execf.inc}
+{$include doslibf.inc}
 
 
 {*****************************************************************************
                     System Dependent Structures/Consts
 *****************************************************************************}
 
-
-{ Errors from dos_IoErr(), etc. }
-const
-  ERROR_NO_FREE_STORE              = 103;
-  ERROR_TASK_TABLE_FULL            = 105;
-  ERROR_BAD_TEMPLATE               = 114;
-  ERROR_BAD_NUMBER                 = 115;
-  ERROR_REQUIRED_ARG_MISSING       = 116;
-  ERROR_KEY_NEEDS_ARG              = 117;
-  ERROR_TOO_MANY_ARGS              = 118;
-  ERROR_UNMATCHED_QUOTES           = 119;
-  ERROR_LINE_TOO_LONG              = 120;
-  ERROR_FILE_NOT_OBJECT            = 121;
-  ERROR_INVALID_RESIDENT_LIBRARY   = 122;
-  ERROR_NO_DEFAULT_DIR             = 201;
-  ERROR_OBJECT_IN_USE              = 202;
-  ERROR_OBJECT_EXISTS              = 203;
-  ERROR_DIR_NOT_FOUND              = 204;
-  ERROR_OBJECT_NOT_FOUND           = 205;
-  ERROR_BAD_STREAM_NAME            = 206;
-  ERROR_OBJECT_TOO_LARGE           = 207;
-  ERROR_ACTION_NOT_KNOWN           = 209;
-  ERROR_INVALID_COMPONENT_NAME     = 210;
-  ERROR_INVALID_LOCK               = 211;
-  ERROR_OBJECT_WRONG_TYPE          = 212;
-  ERROR_DISK_NOT_VALIDATED         = 213;
-  ERROR_DISK_WRITE_PROTECTED       = 214;
-  ERROR_RENAME_ACROSS_DEVICES      = 215;
-  ERROR_DIRECTORY_NOT_EMPTY        = 216;
-  ERROR_TOO_MANY_LEVELS            = 217;
-  ERROR_DEVICE_NOT_MOUNTED         = 218;
-  ERROR_SEEK_ERROR                 = 219;
-  ERROR_COMMENT_TOO_BIG            = 220;
-  ERROR_DISK_FULL                  = 221;
-  ERROR_DELETE_PROTECTED           = 222;
-  ERROR_WRITE_PROTECTED            = 223;
-  ERROR_READ_PROTECTED             = 224;
-  ERROR_NOT_A_DOS_DISK             = 225;
-  ERROR_NO_DISK                    = 226;
-  ERROR_NO_MORE_ENTRIES            = 232;
-  { added for AOS 1.4 }
-  ERROR_IS_SOFT_LINK               = 233;
-  ERROR_OBJECT_LINKED              = 234;
-  ERROR_BAD_HUNK                   = 235;
-  ERROR_NOT_IMPLEMENTED            = 236;
-  ERROR_RECORD_NOT_LOCKED          = 240;
-  ERROR_LOCK_COLLISION             = 241;
-  ERROR_LOCK_TIMEOUT               = 242;
-  ERROR_UNLOCK_ERROR               = 243;
-
-{ DOS file offset modes }
-const
-  OFFSET_BEGINNING = -1;
-  OFFSET_CURRENT   = 0;
-  OFFSET_END       = 1;
-
-{ Lock AccessMode }
-const
-  SHARED_LOCK      = -2;
-  ACCESS_READ      = SHARED_LOCK;
-  EXCLUSIVE_LOCK   = -1;
-  ACCESS_WRITE     = EXCLUSIVE_LOCK;
-
 const
   CTRL_C           = 20;      { Error code on CTRL-C press }
-  SIGBREAKF_CTRL_C = $1000;   { CTRL-C signal flags }
 
 
 {*****************************************************************************
@@ -393,7 +155,7 @@ begin
     tmpHandle:=tmpNext^.handle;
     if (tmpHandle<>StdInputHandle) and (tmpHandle<>StdOutputHandle) 
        and (tmpHandle<>StdErrorHandle) then begin
-      dos_Close(tmpHandle);
+      Close2(tmpHandle);
     end;
     tmpNext:=tmpNext^.next;
   end;
@@ -568,7 +330,7 @@ var
   temp : string;
 
 begin
-  p:=dos_GetArgStr;
+  p:=GetArgStr;
   argvlen:=0;
 
   { Set argv[0] }
@@ -604,22 +366,22 @@ begin
   argc:=localindex;
 end;
 
-function GetProgramDir: String;
+function GetProgDir: String;
 var
   s1     : String;
   alock  : LongInt;
   counter: Byte;
 begin
-  GetProgramDir:='';
+  GetProgDir:='';
   FillChar(s1,255,#0);
   { GetLock of program directory }
-  alock:=dos_GetProgramDir;
+  alock:=GetProgramDir;
   if alock<>0 then begin
-    if dos_NameFromLock(alock,@s1[1],255) then begin
+    if NameFromLock(alock,@s1[1],255) then begin
       counter:=1;
       while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
       s1[0]:=Char(counter-1);
-      GetProgramDir:=s1;
+      GetProgDir:=s1;
     end;
   end;
 end;
@@ -632,7 +394,7 @@ var
 begin
   GetProgramName:='';
   FillChar(s1,255,#0);
-  if dos_GetProgramName(@s1[1],255) then begin
+  if GetProgramName(@s1[1],255) then begin
 
       { now check out and assign the length of the string }
       counter := 1;
@@ -672,7 +434,7 @@ begin
   if MOS_ambMsg<>nil then exit;
 
   if l=0 then begin
-    s1:=GetProgramDir;
+    s1:=GetProgDir;
     if s1[length(s1)]=':' then paramstr:=s1+GetProgramName
                           else paramstr:=s1+'/'+GetProgramName;
   end else begin
@@ -684,7 +446,7 @@ end;
 procedure randomize;
 var tmpTime: TDateStamp;
 begin
-  dos_DateStamp(tmpTime);
+  DateStamp(tmpTime);
   randseed:=tmpTime.ds_tick;
 end;
 
@@ -754,12 +516,12 @@ begin
   move(tmpStr[1],buffer,length(tmpStr));
   buffer[length(tmpStr)]:=#0;
 
-  tmpLock:=dos_CreateDir(buffer);
+  tmpLock:=CreateDir(buffer);
   if tmpLock=0 then begin
-    dosError2InOut(dos_IoErr);
+    dosError2InOut(IoErr);
     exit;
   end;
-  dos_UnLock(tmpLock);
+  UnLock(tmpLock);
 end;
 
 procedure rmdir(const s : string);[IOCheck];
@@ -776,8 +538,8 @@ begin
     if tmpStr[j] = '\' then tmpStr[j] := '/';
   move(tmpStr[1],buffer,length(tmpStr));
   buffer[length(tmpStr)]:=#0;
-  if not dos_DeleteFile(buffer) then
-    dosError2InOut(dos_IoErr);
+  if not DeleteFile(buffer) then
+    dosError2InOut(IoErr);
 end;
 
 procedure chdir(const s : string);[IOCheck];
@@ -812,24 +574,24 @@ begin
   { Changing the directory is a pretty complicated affair }
   {   1) Obtain a lock on the directory                   }
   {   2) CurrentDir the lock                              }
-  alock:=dos_Lock(buffer,SHARED_LOCK);
+  alock:=Lock(buffer,SHARED_LOCK);
   if alock=0 then begin
-    dosError2InOut(dos_IoErr);
+    dosError2InOut(IoErr);
     exit;
   end;
 
   FIB:=nil;
   new(FIB);
  
-  if (dos_Examine(alock,FIB)=True) and (FIB^.fib_DirEntryType>0) then begin
-    alock := dos_CurrentDir(alock);
+  if (Examine(alock,FIB)=True) and (FIB^.fib_DirEntryType>0) then begin
+    alock := CurrentDir(alock);
     if MOS_OrigDir=0 then begin
       MOS_OrigDir:=alock;
       alock:=0;
     end;
   end;
 
-  if alock<>0 then dos_Unlock(alock);
+  if alock<>0 then Unlock(alock);
   if assigned(FIB) then dispose(FIB)
 end;
 
@@ -838,8 +600,8 @@ var tmpbuf: array[0..255] of char;
 begin
   checkCTRLC;
   Dir:='';
-  if not dos_GetCurrentDirName(tmpbuf,256) then
-    dosError2InOut(dos_IoErr)
+  if not GetCurrentDirName(tmpbuf,256) then
+    dosError2InOut(IoErr)
   else
     Dir:=strpas(tmpbuf);
 end;
@@ -856,22 +618,22 @@ begin
   RemoveFromList(MOS_fileList,handle);
   { Do _NOT_ check CTRL_C on Close, because it will conflict 
     with System_Exit! }
-  if not dos_Close(handle) then
-    dosError2InOut(dos_IoErr);
+  if not Close2(handle) then
+    dosError2InOut(IoErr);
 end;
 
 procedure do_erase(p : pchar);
 begin
   checkCTRLC;
-  if not dos_DeleteFile(p) then
-    dosError2InOut(dos_IoErr);
+  if not DeleteFile(p) then
+    dosError2InOut(IoErr);
 end;
 
 procedure do_rename(p1,p2 : pchar);
 begin
   checkCTRLC;
-  if not dos_Rename(p1,p2) then
-    dosError2InOut(dos_IoErr);
+  if not Rename2(p1,p2) then
+    dosError2InOut(IoErr);
 end;
 
 function do_write(h:longint; addr: pointer; len: longint) : longint;
@@ -881,9 +643,9 @@ begin
   do_write:=0; 
   if len<=0 then exit; 
   
-  dosResult:=dos_Write(h,addr,len);
+  dosResult:=Write2(h,addr,len);
   if dosResult<0 then begin
-    dosError2InOut(dos_IoErr);
+    dosError2InOut(IoErr);
   end else begin
     do_write:=dosResult;
   end;
@@ -896,9 +658,9 @@ begin
   do_read:=0; 
   if len<=0 then exit; 
   
-  dosResult:=dos_Read(h,addr,len);
+  dosResult:=Read2(h,addr,len);
   if dosResult<0 then begin
-    dosError2InOut(dos_IoErr);
+    dosError2InOut(IoErr);
   end else begin
     do_read:=dosResult;
   end
@@ -911,9 +673,9 @@ begin
   do_filepos:=0;
   
   { Seeking zero from OFFSET_CURRENT to find out where we are }
-  dosResult:=dos_Seek(handle,0,OFFSET_CURRENT);
+  dosResult:=Seek2(handle,0,OFFSET_CURRENT);
   if dosResult<0 then begin
-    dosError2InOut(dos_IoErr);
+    dosError2InOut(IoErr);
   end else begin
     do_filepos:=dosResult;
   end;
@@ -923,8 +685,8 @@ procedure do_seek(handle,pos : longint);
 begin
   checkCTRLC;
   { Seeking from OFFSET_BEGINNING }
-  if dos_Seek(handle,pos,OFFSET_BEGINNING)<0 then
-    dosError2InOut(dos_IoErr);
+  if Seek2(handle,pos,OFFSET_BEGINNING)<0 then
+    dosError2InOut(IoErr);
 end;
 
 function do_seekend(handle:longint):longint;
@@ -934,9 +696,9 @@ begin
   do_seekend:=0;
   
   { Seeking to OFFSET_END }
-  dosResult:=dos_Seek(handle,0,OFFSET_END);
+  dosResult:=Seek2(handle,0,OFFSET_END);
   if dosResult<0 then begin
-    dosError2InOut(dos_IoErr);
+    dosError2InOut(IoErr);
   end else begin
     do_seekend:=dosResult;
   end
@@ -958,8 +720,8 @@ procedure do_truncate (handle,pos:longint);
 begin
   checkCTRLC;
   { Seeking from OFFSET_BEGINNING }
-  if dos_SetFileSize(handle,pos,OFFSET_BEGINNING)<0 then
-    dosError2InOut(dos_IoErr);
+  if SetFileSize(handle,pos,OFFSET_BEGINNING)<0 then
+    dosError2InOut(IoErr);
 end;
 
 procedure do_open(var f;p:pchar;flags:longint);
@@ -1055,10 +817,10 @@ begin
       exit;
     end;
   
-  i:=dos_Open(buffer,openflags);
+  i:=Open(buffer,openflags);
   if i=0 then 
     begin
-      dosError2InOut(dos_IoErr);
+      dosError2InOut(IoErr);
     end else begin
       AddToList(MOS_fileList,i);
       filerec(f).handle:=i;
@@ -1121,10 +883,10 @@ begin
  if MOS_heapPool=nil then Halt(1);
 
  if MOS_ambMsg=nil then begin
-   StdInputHandle:=dos_Input;
-   StdOutputHandle:=dos_Output;
+   StdInputHandle:=Input2;
+   StdOutputHandle:=Output2;
  end else begin
-   MOS_ConHandle:=dos_Open(MOS_ConName,1005);
+   MOS_ConHandle:=Open(MOS_ConName,1005);
    if MOS_ConHandle<>0 then begin
      StdInputHandle:=MOS_ConHandle;
      StdOutputHandle:=MOS_ConHandle;
@@ -1178,7 +940,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2004-06-23 13:27:32  karoly
+  Revision 1.16  2004-06-26 20:48:24  karoly
+    * more cleanup + changes to use new includes
+
+  Revision 1.15  2004/06/23 13:27:32  karoly
     * fixed system unit for the new heap manager
 
   Revision 1.14  2004/06/17 16:16:14  peter
