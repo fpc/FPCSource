@@ -27,8 +27,8 @@ interface
 {$i base.inc}
 {$i errors.inc}
 {$i defines.inc}
-{$i messages.inc}
 {$i struct.inc}
+{$i messages.inc}
 {$i ascfun.inc}
 {$i unifun.inc}
 {$ifdef UNICODE}
@@ -47,8 +47,8 @@ implementation
 {$i base.inc}
 {$i errors.inc}
 {$i defines.inc}
-{$i messages.inc}
 {$i struct.inc}
+{$i messages.inc}
 {$i ascfun.inc}
 {$i unifun.inc}
 {$ifdef UNICODE}
@@ -62,7 +62,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-10-10 14:58:16  florian
+  Revision 1.5  2002-11-04 12:19:01  marco
+   * Move tmsg and family to messages.inc. windows.pp needed include sequence patch
+
+  Revision 1.4  2002/10/10 14:58:16  florian
     - removed conditionals for 0.99.14
 
   Revision 1.3  2002/09/07 16:01:29  peter

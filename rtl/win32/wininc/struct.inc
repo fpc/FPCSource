@@ -4161,19 +4161,6 @@
      TMOUSEKEYS = MOUSEKEYS;
      PMOUSEKEYS = ^MOUSEKEYS;
 
-     MSG = record
-          hwnd : HWND;
-          message : UINT;
-          wParam : WPARAM;
-          lParam : LPARAM;
-          time : DWORD;
-          pt : POINT;
-       end;
-     LPMSG = ^MSG;
-     tagMSG = MSG;
-     TMSG = MSG;
-     PMSG = ^MSG;
-
      MSGBOXCALLBACK = procedure (lpHelpInfo:LPHELPINFO);stdcall;
      TMSGBOXCALLBACK = MSGBOXCALLBACK;
 
@@ -7027,7 +7014,10 @@ type
 
 {
   $Log$
-  Revision 1.16  2002-10-02 21:03:04  peter
+  Revision 1.17  2002-11-04 12:19:01  marco
+   * Move tmsg and family to messages.inc. windows.pp needed include sequence patch
+
+  Revision 1.16  2002/10/02 21:03:04  peter
     * TSystemTime fpc compatibility parameters added as variant record
 
   Revision 1.15  2002/09/15 17:53:45  peter
