@@ -91,6 +91,7 @@ unit ag386bin;
       begin
         ofs:=0;
         reloc:=true;
+        ps:=nil;
         sec:=sec_none;
         if p[0]='"' then
          begin
@@ -186,7 +187,11 @@ unit ag386bin;
                   end;
               end;
           end;
-        objectoutput^.WriteStabs(sec,ofs,hp,nidx,nother,line,reloc);
+        { external bss need speical handling (PM) }
+        if assigned(ps) and (ps^.section=sec_none) then
+          objectoutput^.WriteSymStabs(sec,ofs,hp,ps,nidx,nother,line,reloc)
+        else
+          objectoutput^.WriteStabs(sec,ofs,hp,nidx,nother,line,reloc);
         if assigned(hp) then
          p[i]:='"';
       end;
@@ -820,7 +825,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.9  1999-05-12 00:19:37  peter
+  Revision 1.10  1999-05-19 11:54:17  pierre
+   + experimental code for externalbss and stabs problem
+
+  Revision 1.9  1999/05/12 00:19:37  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 

@@ -74,6 +74,7 @@ unit og386;
          procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);virtual;
          procedure writesymbol(p:pasmsymbol);virtual;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;
+         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);virtual;
          procedure defaultsection(sec:tsection);
        end;
 
@@ -264,10 +265,18 @@ unit og386;
         RunError(211);
       end;
 
+   procedure tobjectoutput.writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);
+      begin
+        RunError(211);
+      end;
+
 end.
 {
   $Log$
-  Revision 1.6  1999-05-07 00:36:56  pierre
+  Revision 1.7  1999-05-19 11:54:18  pierre
+   + experimental code for externalbss and stabs problem
+
+  Revision 1.6  1999/05/07 00:36:56  pierre
     * added alignment code for .bss
     * stabs correct but externalbss disabled
       would need a special treatment in writestabs

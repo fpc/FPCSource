@@ -132,7 +132,7 @@ unit og386cff;
          procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);virtual;
          procedure writesymbol(p:pasmsymbol);virtual;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;
-
+         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);virtual;
          function  text_flags : longint;virtual;
          function  data_flags : longint;virtual;
          function  bss_flags : longint;virtual;
@@ -588,6 +588,48 @@ unit og386cff;
       end;
 
 
+    procedure tgenericcoffoutput.writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);
+      var
+        stab : coffstab;
+        s : tsection;
+      begin
+        { This is wrong because
+          sec_none is used only for external bss
+        if section=sec_none then
+         s:=currsec
+        else }
+         s:=section;
+        { local var can be at offset -1 !! PM }
+        if reloc then
+         begin
+           if (offset=-1) then
+            begin
+              if s=sec_none then
+               offset:=0
+              else
+               offset:=sects[s]^.len;
+            end;
+           if (s<>sec_none) then
+            inc(offset,sects[s]^.mempos);
+         end;
+        fillchar(stab,sizeof(coffstab),0);
+        if assigned(p) and (p[0]<>#0) then
+         begin
+           stab.strpos:=sects[sec_stabstr]^.len;
+           sects[sec_stabstr]^.write(p^,strlen(p)+1);
+         end;
+        stab.ntype:=nidx;
+        stab.ndesc:=line;
+        stab.nother:=nother;
+        stab.nvalue:=offset;
+        sects[sec_stab]^.write(stab,sizeof(stab));
+        { when the offset is not 0 then write a relocation, take also the
+          hdrstab into account with the offset }
+        if reloc then
+          sects[sec_stab]^.addsymreloc(0,ps,relative_false);
+      end;
+
+
     procedure tgenericcoffoutput.write_relocs(s:pcoffsection);
       var
         rel  : coffreloc;
@@ -902,7 +944,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.5  1999-05-09 11:38:05  peter
+  Revision 1.6  1999-05-19 11:54:19  pierre
+   + experimental code for externalbss and stabs problem
+
+  Revision 1.5  1999/05/09 11:38:05  peter
     * don't write .o and link if errors occure during assembling
 
   Revision 1.4  1999/05/07 00:36:57  pierre
