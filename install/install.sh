@@ -108,25 +108,18 @@ ln -sf $LIBDIR/ppc386 $EXECDIR/ppc386
 echo Installing utilities...
 unztar utillinux.tar.gz $PREFIX
 if yesno "Install FCL"; then
-    unztar ufcllinux.tar.gz $PREFIX
+    unztar unitsfcllinux.tar.gz $PREFIX
 fi
-if yesno "Install API"; then
-    unztar uapilinux.tar.gz $PREFIX
-fi
-if yesno "Install Base (zlib,ncurses,x11) Packages"; then
-    unztar ubaselinux.tar.gz $PREFIX
-fi
-if yesno "Install Net (inet,uncgi) Packages"; then
-    unztar unetlinux.tar.gz $PREFIX
-fi
-if yesno "Install Database (mysql,interbase,postgres) Packages"; then
-    unztar udblinux.tar.gz $PREFIX
-fi
-if yesno "Install Graphics (svgalib,opengl,ggi,forms) Packages"; then
-    unztar ugfxlinux.tar.gz $PREFIX
-fi
-if yesno "Install Misc (utmp,paszlib) Packages"; then
-    unztar umisclinux.tar.gz $PREFIX
+if yesno "Install packages"; then
+  for f in units*.tar.gz 
+  do
+    if [ $f != unitsfcllinux.tar.gz ]; then
+      basename $f .tar.gz |\
+      sed -e s/units// -e s/linux// |\
+      xargs echo Installing 
+      unztar $f $PREFIX
+    fi
+  done
 fi
 rm -f *linux.tar.gz
 echo Done.
@@ -147,14 +140,20 @@ if yesno "Install sources"; then
   if yesno "Install FCL source"; then
     unztar fclsrc.tar.gz $PREFIX
   fi    
-  if yesno "Install API source"; then
-    unztar apisrc.tar.gz $PREFIX
+  if yesno "Install IDE source"; then
+    unztar idesrc.tar.gz $PREFIX
+  fi    
+  if yesno "Install installer source"; then
+    unztar installersrc.tar.gz $PREFIX
   fi    
   if yesno "Install Packages source"; then
-    unztar packagessrc.tar.gz $PREFIX
-  fi    
-  if yesno "Install Utils source"; then
-    unztar utilsrc.tar.gz $PREFIX
+    for f in units*src.tar.gz 
+    do
+      basename $f .tar.gz |\
+      sed -e s/units// -e s/src// |\
+      xargs echo Installing sources for 
+      unztar $f $PREFIX
+    done
   fi    
   rm -f *src.tar.gz
   echo Done.
