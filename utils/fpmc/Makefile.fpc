@@ -1,0 +1,28 @@
+#
+#   Makefile.fpc for debugserver
+#
+
+[target]
+programs=fpmc
+programs_linux=fpmcgtk
+programs_win32=fpmcgtk
+rsts=frmabout frmmain frmoptions msgcomp
+
+[clean]
+units=frmmain msgcomp frmabout frmoptions
+
+[require]
+packages=fcl
+
+[compiler]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+fpmc$(EXEEXT): msgcomp.pp fpmc.pp
+
+fpmcgtk$(EXEEXT): msgcomp.pp fpmcgtk.pp $(wildcard frm*.pp)
