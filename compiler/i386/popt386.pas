@@ -1623,7 +1623,9 @@ begin
   case hp1.opcode of
     A_ADD,A_SUB,A_OR,A_XOR,A_AND,A_SHL,A_SHR,A_SAR:
       isFoldableArithOp :=
-        (Taicpu(hp1).oper[0].typ in [top_reg,top_const]) and
+        ((Taicpu(hp1).oper[0].typ = top_const) or
+         ((Taicpu(hp1).oper[0].typ = top_reg) and
+          (Taicpu(hp1).oper[0].reg <> reg))) and
         (Taicpu(hp1).oper[1].typ = top_reg) and
         (Taicpu(hp1).oper[1].reg = reg);
     A_INC,A_DEC:
@@ -2001,7 +2003,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  2001-01-27 21:29:35  florian
+  Revision 1.10  2001-02-08 12:13:40  jonas
+    * fixed web bug 1391
+
+  Revision 1.9  2001/01/27 21:29:35  florian
      * behavior -Oa optimized
 
   Revision 1.8  2001/01/10 10:29:36  jonas
