@@ -54,7 +54,7 @@ end;
 
 function GetExceptionMask: TFPUExceptionMask;
 begin
-  Result := TFPUExceptionMask(Get8087CW and $3F);
+  Result := TFPUExceptionMask(Longint(Get8087CW and $3F));
 end;
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
@@ -63,7 +63,7 @@ var
 begin
   CtlWord := Get8087CW;
   Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
-  Result := TFPUExceptionMask(CtlWord and $3F);
+  Result := TFPUExceptionMask(Longint(CtlWord and $3F));
 end;
 
 procedure ClearExceptions(RaisePending: Boolean);assembler;
@@ -77,7 +77,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-10-31 09:20:11  mazen
+  Revision 1.4  2004-05-09 15:47:56  peter
+    * fixed wrong typecasts
+
+  Revision 1.3  2003/10/31 09:20:11  mazen
   + assembler mode forced to ATT style for x86 cpu
 
   Revision 1.2  2003/10/26 15:58:05  florian
