@@ -57,15 +57,21 @@ var
   CheckEOF: Boolean;      { Enable Ctrl-Z }
   DirectVideo: Boolean;   { Enable direct video addressing }
   CheckSnow: Boolean;     { Enable snow filtering }
+{$ifdef ver1_0}
+const
+{$endif}
   LastMode: Word = 3;         { Current text mode }
   TextAttr: Byte = $07;         { Current text attribute }
   WindMin: Word  = $0;          { Window upper left coordinates }
   WindMax: Word  = $184f;          { Window lower right coordinates }
+{$ifdef ver1_0}
+var
+{$endif}
   { FPC Specific for large screen support }
   WindMinX : DWord;
   WindMaxX : DWord;
   WindMinY : DWord;
-  WindMaxY : DWord	;
+  WindMaxY : DWord      ;
 
 { Interface procedures }
 procedure AssignCrt(var F: Text);
@@ -96,7 +102,10 @@ procedure cursorbig;
 
 {
   $Log$
-  Revision 1.2  2004-06-12 14:18:06  michael
+  Revision 1.3  2004-06-17 14:51:38  peter
+  fix compile for 1.0.x
+
+  Revision 1.2  2004/06/12 14:18:06  michael
   + Initialized some constants
 
   Revision 1.1  2004/02/08 16:23:10  michael
