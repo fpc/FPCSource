@@ -51,7 +51,8 @@ unit agarmgas;
        systems,
        assemble,
        aasmcpu,
-       itarmgas;
+       itarmgas,
+       cgbase;
 
     const
        as_arm_gas_info : tasminfo =
@@ -140,7 +141,7 @@ unit agarmgas;
       var
         hs : string;
         first : boolean;
-        r : tregister;
+        r : tsuperregister;
       begin
         case o.typ of
           top_reg:
@@ -206,12 +207,12 @@ unit agarmgas;
                { LDM and STM use references as first operand but they are written like a register }
                if (i=0) and (op in [A_LDM,A_STM]) then
                  begin
-                   s:=s+sep+gas_regname(taicpu(hp).oper[0].ref^.index);
-                   if taicpu(hp).oper[0].ref^.addressmode=AM_PREINDEXED then
+                   s:=s+sep+gas_regname(taicpu(hp).oper[0]^.ref^.index);
+                   if taicpu(hp).oper[0]^.ref^.addressmode=AM_PREINDEXED then
                      s:=s+'!';
                  end
                else
-                  s:=s+sep+getopstr(taicpu(hp).oper[i]);
+                  s:=s+sep+getopstr(taicpu(hp).oper[i]^);
 
                sep:=',';
             end;
@@ -225,7 +226,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2003-11-02 14:30:03  florian
+  Revision 1.13  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.12  2003/11/02 14:30:03  florian
     * fixed ARM for new reg. allocation scheme
 
   Revision 1.11  2003/09/06 11:21:49  florian

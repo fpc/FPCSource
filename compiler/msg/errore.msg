@@ -909,6 +909,9 @@ parser_e_msg_only_for_classes=03193_E_Message directive is only allowed in Class
 % The message directive is only supported for Class types.
 parser_e_procedure_or_function_expected=03194_E_Procedure or Function expected
 % A class method can only be specified for procedures and functions.
+parser_e_illegal_calling_convention=03195_E_This calling convention isn't supported by the current CPU target: "$1"
+% Some calling conventions are supported only by certain CPUs. I.e. most non-i386 ports support
+% only the standard ABI calling convention of the CPU.
 % \end{description}
 #
 # Type Checking

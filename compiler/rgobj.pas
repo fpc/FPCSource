@@ -1781,7 +1781,7 @@ implementation
                       begin
                         so:=Taicpu_abstract(p).oper[i]^.shifterop;
                         if so^.rs<>NR_NO then
-                          setsupreg(so^.rs,table[getsupreg(so^.rs)]);
+                          setsupreg(so^.rs,reginfo[getsupreg(so^.rs)].colour);
                       end;
 {$endif arm}
                   end;
@@ -1820,7 +1820,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2003-10-30 16:22:40  peter
+  Revision 1.94  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.93  2003/10/30 16:22:40  peter
     * call firstpass before allocation and codegeneration is started
     * move leftover code from pass_2.generatecode() to psub
 

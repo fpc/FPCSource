@@ -307,6 +307,8 @@ interface
 
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
     function SetAktProcCall(const s:string; changeInit: boolean):boolean;
+    function SetProcessor(const s:string; changeInit: boolean):boolean;
+    function SetFpuType(const s:string; changeInit: boolean):boolean;
 
     procedure InitGlobals;
     procedure DoneGlobals;
@@ -1376,7 +1378,8 @@ implementation
          'PASCAL',
          'REGISTER',
          'SAFECALL',
-         'STDCALL'
+         'STDCALL',
+         'SOFTFLOAT'
         );
       var
         t : tproccalloption;
@@ -1393,6 +1396,39 @@ implementation
          InitDefProcCall:=AktDefProcCall;
       end;
 
+
+    function SetProcessor(const s:string; changeInit: boolean):boolean;
+      var
+        t : tprocessors;
+      begin
+        SetProcessor:=false;
+        for t:=low(tprocessors) to high(tprocessors) do
+          if processorsstr[t]=s then
+            begin
+              aktspecificoptprocessor:=t;
+              SetProcessor:=true;
+              break;
+            end;
+        if changeinit then
+          initspecificoptprocessor:=aktspecificoptprocessor;
+      end;
+
+
+    function SetFpuType(const s:string; changeInit: boolean):boolean;
+      var
+        t : tfputype;
+      begin
+        SetFpuType:=false;
+        for t:=low(tfputype) to high(tfputype) do
+          if fputypestr[t]=s then
+            begin
+              aktfputype:=t;
+              SetFpuType:=true;
+              break;
+            end;
+        if changeinit then
+          initfputype:=aktfputype;
+      end;
 
 
     { '('D1:'00000000-'D2:'0000-'D3:'0000-'D4:'0000-000000000000)' }
@@ -1713,7 +1749,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.112  2003-10-23 17:18:56  peter
+  Revision 1.113  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.112  2003/10/23 17:18:56  peter
     * delphi mode uses packenum 1
 
   Revision 1.111  2003/10/22 15:40:44  marco

@@ -903,8 +903,12 @@ implementation
     procedure tcgprocinfo.parse_body;
       var
          oldprocinfo : tprocinfo;
+         oldblock_type : tblock_type;
       begin
          oldprocinfo:=current_procinfo;
+         oldblock_type:=block_type;
+         { reset break and continue labels }
+         block_type:=bt_body;
 
          current_procinfo:=self;
 
@@ -918,8 +922,6 @@ implementation
          else if (procdef.parast.symtablelevel=normal_function_level) then
            allow_only_static:=false;
 
-         { reset break and continue labels }
-         block_type:=bt_general;
     {$ifdef state_tracking}
 {    aktstate:=Tstate_storage.create;}
     {$endif state_tracking}
@@ -1002,6 +1004,8 @@ implementation
          if (current_procinfo.procdef.parast.symtablelevel=normal_function_level) then
            allow_only_static:=false;
          current_procinfo:=oldprocinfo;
+
+         block_type:=oldblock_type;
       end;
 
 
@@ -1308,7 +1312,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.169  2003-10-31 15:52:18  peter
+  Revision 1.170  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.169  2003/10/31 15:52:18  peter
     * fix crash with fail in constructor
 
   Revision 1.168  2003/10/30 16:22:40  peter

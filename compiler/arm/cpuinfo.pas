@@ -17,6 +17,9 @@ Unit CPUInfo;
 
 Interface
 
+  uses
+    globtype;
+
 Type
    { Architecture word - Native unsigned type }
    AWord  = Longword;
@@ -42,12 +45,15 @@ Type
    { possible supported processors for this target }
    tprocessors =
       (no_processor,
-       armv4
+       armv3,
+       armv4,
+       armv5
       );
 
    tfputype =
      (no_fpuprocessor,
       fpu_soft,
+      fpu_libgcc,
       fpu_fpa,
       fpu_fpa10,
       fpu_fpa11,
@@ -70,12 +76,50 @@ Const
    { for linux: }
    jmp_buf_size = 220; { according to sizeof(jmp_buf) on my Zaurus (FK) }
 
+   { calling conventions supported by the code generator }
+   supported_calling_conventions = [
+     pocall_internproc,
+     pocall_compilerproc,
+     pocall_inline,
+     pocall_stdcall,
+     { same as stdcall only different name mangling }
+     pocall_cdecl,
+     { same as stdcall only different name mangling }
+     pocall_cppdecl,
+     { same as stdcall but floating point numbers are handled like equal sized integers }
+     pocall_softfloat
+   ];
+
+   processorsstr : array[tprocessors] of string[5] = ('',
+     'ARMV3',
+     'ARMV4',
+     'ARMV5'
+   );
+
+   fputypestr : array[tfputype] of string[6] = ('',
+     'SOFT',
+     'LIBGCC',
+     'FPA',
+     'FPA10',
+     'FPA11',
+     'VFP'
+   );
+
+
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.2  2003-08-25 23:20:38  florian
+  Revision 1.3  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.2  2003/08/25 23:20:38  florian
     + started to implement FPU support for the ARM
     * fixed a lot of other things
 

@@ -508,10 +508,12 @@ implementation
         { a jump table crashes the pipeline! }
         if aktoptprocessor=Class386 then
           inc(max_linear_list,3)
-        else if aktoptprocessor=ClassP5 then
+        else if aktoptprocessor=ClassPentium then
           inc(max_linear_list,6)
-        else if aktoptprocessor>=ClassP6 then
-          inc(max_linear_list,9);
+        else if aktoptprocessor in [ClassPentium2,ClassPentium3] then
+          inc(max_linear_list,9)
+        else if aktoptprocessor=ClassPentium4 then
+          inc(max_linear_list,14);
       end;
 
 
@@ -672,7 +674,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2003-10-10 17:48:14  peter
+  Revision 1.70  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.69  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

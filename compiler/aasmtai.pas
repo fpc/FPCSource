@@ -144,7 +144,11 @@ interface
 
     type
       { Types of operand }
-      toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_bool,top_local);
+      toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_bool,top_local,
+       { ARM only }
+       top_regset,
+       { ARM only }
+       top_shifterop);
 
       toper=record
         ot : longint;
@@ -158,6 +162,10 @@ interface
          { local varsym that will be inserted in pass_2 }
          top_local  : (localsym:pointer;localsymderef:tderef;localsymofs:longint;localindexreg:tregister;
                        localscale:byte;localgetoffset:boolean);
+      {$ifdef arm}
+         top_regset : (regset:^tcpuregisterset);
+         top_shifterop : (shifterop : pshifterop);
+      {$endif arm}
       end;
       poper=^toper;
 
@@ -1678,13 +1686,18 @@ implementation
     procedure taicpu_abstract.clearop(opidx:longint);
       begin
         with oper[opidx]^ do
-          case typ of
-            top_ref:
-              dispose(ref);
+          begin
+            case typ of
+              top_ref:
+                dispose(ref);
 {$ifdef ARM}
-            top_shifterop:
-              dispose(shifterop);
+              top_shifterop:
+                dispose(shifterop);
+              top_regset:
+                dispose(regset);
 {$endif ARM}
+            end;
+            typ:=top_none;
           end;
       end;
 
@@ -2140,7 +2153,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2003-10-30 19:59:00  peter
+  Revision 1.54  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.53  2003/10/30 19:59:00  peter
     * support scalefactor for opr_local
     * support reference with opr_local set, fixes tw2631
 

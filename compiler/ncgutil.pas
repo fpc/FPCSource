@@ -719,6 +719,10 @@ implementation
                   case hsym.localloc.loc of
                     LOC_REFERENCE :
                       begin
+                        { this code is only executed before the code for the body and the entry/exit code is generated
+                          so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
+                        }
+                        include(current_procinfo.flags,pi_do_call);
                         reference_reset_base(href2,hsym.localloc.reference.index,hsym.localloc.reference.offset);
                         cg.g_copyvaluepara_openarray(list,href1,href2,tarraydef(tvarsym(p).vartype.def).elesize)
                       end
@@ -890,7 +894,19 @@ implementation
               reference_reset_base(href,tvarsym(p).localloc.reference.index,tvarsym(p).localloc.reference.offset);
               cg.g_decrrefcount(list,tvarsym(p).vartype.def,href,is_open_array(tvarsym(p).vartype.def));
             end;
-         end;
+         end
+        else if (tsym(p).typ=varsym) and
+          (is_open_array(tvarsym(p).vartype.def) or
+           is_array_of_const(tvarsym(p).vartype.def)) then
+          begin
+            { cdecl functions don't have a high pointer so it is not possible to generate
+              a local copy }
+            if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+              begin
+                reference_reset_base(href,tvarsym(p).localloc.reference.index,tvarsym(p).localloc.reference.offset);
+                cg.g_releasevaluepara_openarray(list,href);
+              end;
+          end;
       end;
 
 
@@ -1945,7 +1961,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.164  2003-11-04 19:03:50  peter
+  Revision 1.165  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.164  2003/11/04 19:03:50  peter
     * fixes for temp type patch
 
   Revision 1.163  2003/11/04 15:35:13  peter

@@ -343,7 +343,7 @@ const
    savestdregs_pocalls = [
      pocall_cdecl,pocall_cppdecl,pocall_palmossyscall,
      pocall_stdcall,pocall_safecall,pocall_compilerproc,
-     pocall_register
+     pocall_register,pocall_softfloat
    ];
 
    clearstack_pocalls = [
@@ -377,7 +377,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2003-10-28 15:36:01  peter
+  Revision 1.70  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.69  2003/10/28 15:36:01  peter
     * absolute to object field supported, fixes tb0458
 
   Revision 1.68  2003/10/08 19:19:45  peter

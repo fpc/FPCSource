@@ -200,7 +200,7 @@ implementation
                cg.a_paramfpu_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc);
              LOC_REFERENCE,
              LOC_CREFERENCE :
-               cg.a_paramfpu_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,tempparaloc)
+               cg.a_paramfpu_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,tempparaloc);
              else
                internalerror(200204243);
            end;
@@ -1133,7 +1133,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.137  2003-11-04 19:03:54  peter
+  Revision 1.138  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.137  2003/11/04 19:03:54  peter
     * fixes for temp type patch
 
   Revision 1.136  2003/11/04 15:35:13  peter

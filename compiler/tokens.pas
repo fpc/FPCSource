@@ -201,6 +201,7 @@ type
     _PROCEDURE,
     _PROTECTED,
     _PUBLISHED,
+    _SOFTFLOAT,
     _THREADVAR,
     _DEPRECATED,
     _DESTRUCTOR,
@@ -423,6 +424,7 @@ const
       (str:'PROCEDURE'     ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'PROTECTED'     ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'PUBLISHED'     ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'SOFTFLOAT'     ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'THREADVAR'     ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'DEPRECATED'    ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'DESTRUCTOR'    ;special:false;keyword:m_all;op:NOTOKEN),
@@ -502,7 +504,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2003-09-07 22:09:35  peter
+  Revision 1.25  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.24  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

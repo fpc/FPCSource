@@ -26,6 +26,9 @@ Unit cpuinfo;
 
 Interface
 
+  uses
+    globtype;
+
 Type
    { Natural integer register type and size for the target machine }
    AWord = longword;
@@ -50,8 +53,10 @@ Type
    tprocessors =
       (no_processor,
        Class386,
-       ClassP5,
-       ClassP6
+       ClassPentium,
+       ClassPentium2,
+       ClassPentium3,
+       ClassPentium4
       );
 
    tfputype =
@@ -79,13 +84,50 @@ Const
    }
    jmp_buf_size = 24;
 
+   { calling conventions supported by the code generator }
+   supported_calling_conventions = [
+     pocall_internproc,
+     pocall_compilerproc,
+     pocall_inline,
+     pocall_register,
+     pocall_safecall,
+     pocall_stdcall,
+     pocall_cdecl,
+     pocall_cppdecl,
+     pocall_far16,
+     pocall_pascal,
+     pocall_oldfpccall
+   ];
+
+   processorsstr : array[tprocessors] of string[10] = ('',
+     '386',
+     'PENTIUM',
+     'PENTIUM2',
+     'PENTIUM3',
+     'PENTIUM4'
+   );
+
+   fputypestr : array[tfputype] of string[6] = ('',
+     'SOFT',
+     'X87',
+     'SSE',
+     'SSE2'
+   );
 
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.17  2003-09-03 11:18:37  florian
+  Revision 1.18  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.17  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around

@@ -133,7 +133,9 @@ interface
       procedure ResolveRef(var op:toper);
         var
           sym : tvarsym;
+{$ifdef x86}
           scale : byte;
+{$endif x86}
           getoffset : boolean;
           indexreg : tregister;
           sofs : longint;
@@ -142,7 +144,9 @@ interface
             begin
               sofs:=op.localsymofs;
               indexreg:=op.localindexreg;
+{$ifdef x86}
               scale:=op.localscale;
+{$endif x86}
               getoffset:=op.localgetoffset;
               sym:=tvarsym(pointer(op.localsym));
               case sym.localloc.loc of
@@ -170,9 +174,9 @@ interface
                         reference_reset_base(op.ref^,sym.localloc.reference.index,
                             sym.localloc.reference.offset+sofs);
                         op.ref^.index:=indexreg;
-{$ifdef i386}
+{$ifdef x86}
                         op.ref^.scalefactor:=scale;
-{$endif i386}
+{$endif x86}
                       end;
                   end;
                 LOC_REGISTER :
@@ -407,7 +411,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-11-04 15:35:13  peter
+  Revision 1.51  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.50  2003/11/04 15:35:13  peter
     * fix for referencecounted temps
 
   Revision 1.49  2003/11/02 13:30:05  jonas

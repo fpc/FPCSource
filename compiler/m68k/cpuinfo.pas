@@ -62,12 +62,34 @@ Const
    { target cpu string (used by compiler options) }
    target_cpu_string = 'm68k';
 
+   { calling conventions supported by the code generator }
+   supported_calling_conventions = [
+     pocall_internproc,
+     pocall_compilerproc,
+     pocall_inline,
+     pocall_stdcall,
+     { the difference to stdcall is only the name mangling }
+     pocall_cdecl,
+     { the difference to stdcall is only the name mangling }
+     pocall_cppdecl,
+     { this used by the PalmOS port only }
+     pocall_syscall
+   ];
+
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.6  2002-12-14 15:02:03  carl
+  Revision 1.7  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.6  2002/12/14 15:02:03  carl
     * maxoperands -> max_operands (for portability in rautils.pas)
     * fix some range-check errors with loadconst
     + add ncgadd unit to m68k

@@ -1672,9 +1672,7 @@ end;
 
 Procedure PeepHoleOptPass2(AsmL: TAAsmOutput; BlockStart, BlockEnd: Tai);
 
-{$ifdef USECMOV}
   function CanBeCMOV(p : Tai) : boolean;
-
     begin
        CanBeCMOV:=assigned(p) and (p.typ=ait_instruction) and
          (Taicpu(p).opcode=A_MOV) and
@@ -1682,7 +1680,6 @@ Procedure PeepHoleOptPass2(AsmL: TAAsmOutput; BlockStart, BlockEnd: Tai);
          (Taicpu(p).oper[0].typ in [top_reg,top_ref]) and
          (Taicpu(p).oper[1].typ in [top_reg]);
     end;
-{$endif USECMOV}
 
 var
   p,hp1,hp2: Tai;
@@ -1705,7 +1702,7 @@ Begin
             Case Taicpu(p).opcode Of
 {$ifdef USECMOV}
               A_Jcc:
-                if (aktspecificoptprocessor=ClassP6) then
+                if (aktspecificoptprocessor>=ClassPentium2) then
                   begin
                      { check for
                             jCC   xxx
@@ -2058,7 +2055,15 @@ End.
 
 {
   $Log$
-  Revision 1.48  2003-08-09 18:56:54  daniel
+  Revision 1.49  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.48  2003/08/09 18:56:54  daniel
     * cs_regalloc renamed to cs_regvars to avoid confusion with register
       allocator
     * Some preventive changes to i386 spillinh code

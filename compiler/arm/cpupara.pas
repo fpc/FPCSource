@@ -86,7 +86,7 @@ unit cpupara;
       end;
 }
 
-    function getparaloc(p : tdef) : tcgloc;
+    function getparaloc(calloption : tproccalloption; p : tdef) : tcgloc;
       begin
          { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
            if push_addr_param for the def is true
@@ -95,7 +95,10 @@ unit cpupara;
             orddef:
               getparaloc:=LOC_REGISTER;
             floatdef:
-              getparaloc:=LOC_FPUREGISTER;
+              if calloption=pocall_softfloat then
+                getparaloc:=LOC_REGISTER
+              else
+                getparaloc:=LOC_FPUREGISTER;
             enumdef:
               getparaloc:=LOC_REGISTER;
             pointerdef:
@@ -207,10 +210,6 @@ unit cpupara;
         nextmmreg:=RS_D0;
         stack_offset:=0;
 
-        { frame pointer for nested procedures? }
-        { inc(nextintreg);                     }
-        { constructor? }
-        { destructor? }
         hp:=tparaitem(p.para.first);
         while assigned(hp) do
           begin
@@ -222,7 +221,7 @@ unit cpupara;
              else
                begin
                  paradef := hp.paratype.def;
-                 loc:=getparaloc(paradef);
+                 loc:=getparaloc(p.proccalloption,paradef);
                end;
              { make sure all alignment bytes are 0 as well }
              fillchar(paraloc,sizeof(paraloc),0);
@@ -233,16 +232,17 @@ unit cpupara;
                      { for things like formaldef }
                      if paraloc.size = OS_NO then
                        paraloc.size := OS_ADDR;
-                     is_64bit := paraloc.size in [OS_64,OS_S64];
+                     is_64bit := paraloc.size in [OS_64,OS_S64,OS_F64];
                      if nextintreg<=(RS_R3-ord(is_64bit)) then
                        begin
                           paraloc.loc:=LOC_REGISTER;
-		           if is_64bit then
+                          { big endian }
+		          if is_64bit then
                             begin
-                              paraloc.registerhigh:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);;
+                              paraloc.registerhigh:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                               inc(nextintreg);
                             end;
-                          paraloc.registerlow:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);;
+                          paraloc.registerlow:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                           inc(nextintreg);
                        end
                      else
@@ -336,7 +336,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-11-02 14:30:03  florian
+  Revision 1.9  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.8  2003/11/02 14:30:03  florian
     * fixed ARM for new reg. allocation scheme
 
   Revision 1.7  2003/09/11 11:55:00  florian

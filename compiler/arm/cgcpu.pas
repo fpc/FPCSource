@@ -89,7 +89,7 @@ unit cgcpu;
 
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);override;
         procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
         procedure g_return_from_proc(list : taasmoutput;parasize : aword); override;
         procedure g_restore_frame_pointer(list : taasmoutput);override;
@@ -141,7 +141,7 @@ unit cgcpu;
         rgfpu:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
         rgmm:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
-            [RS_S0..RS_S31],first_mm_imreg,[]);
+            [RS_S0,RS_S1,RS_R2,RS_R3,RS_R4,RS_S31],first_mm_imreg,[]);
       end;
 
 
@@ -866,7 +866,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);
+    procedure tcgarm.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);
       begin
       end;
 
@@ -1282,7 +1282,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-11-02 14:30:03  florian
+  Revision 1.22  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.21  2003/11/02 14:30:03  florian
     * fixed ARM for new reg. allocation scheme
 
   Revision 1.20  2003/10/11 16:06:42  florian

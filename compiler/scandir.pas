@@ -288,6 +288,10 @@ implementation
         do_message(scan_f_user_defined);
       end;
 
+    procedure dir_fputype;
+      begin
+      end;
+
     procedure dir_goto;
       begin
         do_moduleswitch(cs_support_goto);
@@ -983,7 +987,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2003-09-17 22:30:19  olle
+  Revision 1.27  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.26  2003/09/17 22:30:19  olle
     + support for a different set of compiler directives under $MODE MAC
     + added mac directives $SETC $IFC $ELSEC $ENDC
 

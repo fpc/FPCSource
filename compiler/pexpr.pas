@@ -301,7 +301,7 @@ implementation
          if (m_tp_procvar in aktmodeswitches) and
             (token<>_ASSIGNMENT) and
             (not got_addrn) and
-            (block_type=bt_general) then
+            (block_type=bt_body) then
           begin
             { ignore vecn,subscriptn }
             hp:=p;
@@ -2478,7 +2478,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.138  2003-11-06 15:54:32  peter
+  Revision 1.139  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.138  2003/11/06 15:54:32  peter
     * fixed calling classmethod for other object from classmethod
 
   Revision 1.137  2003/11/04 16:42:13  peter

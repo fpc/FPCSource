@@ -74,6 +74,7 @@ implementation
        { global }
        globtype,globals,verbose,
        systems,
+       cpuinfo,
        { aasm }
        aasmbase,
        { symtable }
@@ -1190,7 +1191,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=34;
+  num_proc_directives=35;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1438,6 +1439,17 @@ const
       mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_external]
     ),(
+      idtok:_SOFTFLOAT;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
+      handler  : nil;
+      pocall   : pocall_softfloat;
+      pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
+      { it's available with po_external because the libgcc floating point routines on the arm
+        uses this calling convention }
+      mutexclpo     : []
+    ),(
       idtok:_STATIC;
       pd_flags : [pd_interface,pd_object,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_static;
@@ -1586,6 +1598,13 @@ const
                 proccalloptionStr[pd.proccalloption],
                 proccalloptionStr[proc_direcdata[p].pocall]);
             end;
+           { check if the target processor supports this calling convention }
+           if not(proc_direcdata[p].pocall in supported_calling_conventions) then
+             begin
+               Message1(parser_e_illegal_calling_convention,proccalloptionStr[proc_direcdata[p].pocall]);
+               { recover }
+               proc_direcdata[p].pocall:=pocall_stdcall;
+             end;
            pd.proccalloption:=proc_direcdata[p].pocall;
            include(pd.procoptions,po_hascallingconvention);
          end;
@@ -2132,7 +2151,15 @@ const
 end.
 {
   $Log$
-  Revision 1.151  2003-11-03 17:47:30  peter
+  Revision 1.152  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.151  2003/11/03 17:47:30  peter
     * insert framepointer as voidpointer instead of returntype
 
   Revision 1.150  2003/10/30 16:23:13  peter

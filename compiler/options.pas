@@ -370,9 +370,7 @@ var
   j,l  : longint;
   d    : DirStr;
   e    : ExtStr;
-{$ifdef arm}
   s    : string;
-{$endif arm}
   forceasm : tasm;
 begin
   if opt='' then
@@ -495,26 +493,13 @@ begin
                            include(initmoduleswitches,cs_fp_emulation);
                        end;
 {$endif cpufpemu}
-{$ifdef arm}
                    'f' :
                      begin
                        s:=upper(copy(more,j+1,length(more)-j));
-                       if s='SOFT' then
-                         initfputype:=fpu_soft
-                       else if s='FPA' then
-                         initfputype:=fpu_fpa
-                       else if s='FPA10' then
-                         initfputype:=fpu_fpa10
-                       else if s='FPA11' then
-                         initfputype:=fpu_fpa11
-                       else if s='VFP' then
-                         initfputype:=fpu_vfp
-                       else
+                       if not(SetFpuType(s,true)) then
                          IllegalPara(opt);
                        break;
                      end;
-{$endif arm}
-
                     'h' :
                        begin
                          val(copy(more,j+1,length(more)-j),heapsize,code);
@@ -540,6 +525,13 @@ begin
                         exclude(initlocalswitches,cs_check_overflow)
                       Else
                         include(initlocalswitches,cs_check_overflow);
+                    'p' :
+                      begin
+                        s:=upper(copy(more,j+1,length(more)-j));
+                        if not(SetProcessor(s,true)) then
+                          IllegalPara(opt);
+                        break;
+                      end;
                     'r' :
                       If UnsetBool(More, j) then
                         exclude(initlocalswitches,cs_check_range)
@@ -1991,7 +1983,15 @@ finalization
 end.
 {
   $Log$
-  Revision 1.113  2003-10-22 15:40:44  marco
+  Revision 1.114  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.113  2003/10/22 15:40:44  marco
    * -Xc -Xr support
 
   Revision 1.112  2003/10/18 09:14:18  hajny

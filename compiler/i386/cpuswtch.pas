@@ -79,28 +79,15 @@ begin
                        Begin
                          Case opt[j+1] Of
                            '1': initoptprocessor := Class386;
-                           '2': initoptprocessor := ClassP5;
-                           '3': initoptprocessor := ClassP6
+                           '2': initoptprocessor := ClassPentium;
+                           '3': initoptprocessor := ClassPentium2;
+                           '4': initoptprocessor := ClassPentium4;
                            Else IllegalPara(Opt)
                          End;
                          Inc(j);
                        End
                      Else IllegalPara(opt)
                    End;
-{$ifdef USECMOV}
-                 's' :
-                   Begin
-                     If j < Length(Opt) Then
-                       Begin
-                         Case opt[j+1] Of
-                           '3': initspecificoptprocessor:=ClassP6
-                           Else IllegalPara(Opt)
-                         End;
-                         Inc(j);
-                       End
-                     Else IllegalPara(opt)
-                   End
-{$endif USECMOV}
                  else IllegalPara(opt);
                End;
                Inc(j)
@@ -129,7 +116,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2003-08-09 18:56:54  daniel
+  Revision 1.11  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.10  2003/08/09 18:56:54  daniel
     * cs_regalloc renamed to cs_regvars to avoid confusion with register
       allocator
     * Some preventive changes to i386 spillinh code

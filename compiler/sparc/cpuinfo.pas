@@ -61,12 +61,30 @@ const
 {$warning jmp_buf_size not set!}
   JMP_BUF_SIZE = 4; // 4 is used temporary to remove AllocTemp warning
 
+  { calling conventions supported by the code generator }
+  supported_calling_conventions = [
+    pocall_internproc,
+    pocall_compilerproc,
+    pocall_inline,
+    pocall_stdcall,
+    pocall_cdecl,
+    pocall_cppdecl
+  ];
+
 implementation
 
 end.
 {
   $Log$
-  Revision 1.9  2003-09-03 15:55:01  peter
+  Revision 1.10  2003-11-07 15:58:33  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.9  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.8  2003/06/17 16:35:42  peter

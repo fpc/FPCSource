@@ -139,7 +139,7 @@ implementation
         else
           if (pop_size=8) and
              not(cs_littlesize in aktglobalswitches) and
-             (aktoptprocessor=ClassP5) then
+             (aktoptprocessor=ClassPentium) then
             begin
                hreg:=cg.getintregister(exprasmlist,OS_INT);
                exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
@@ -164,7 +164,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2003-10-10 17:48:14  peter
+  Revision 1.99  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.98  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

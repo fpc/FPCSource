@@ -123,23 +123,42 @@ interface
 
        { currently parsed block type }
        tblock_type = (bt_none,
-         bt_general,bt_type,bt_const,bt_except
+         bt_general,bt_type,bt_const,bt_except,bt_body
        );
 
        { calling convention for tprocdef and tprocvardef }
        tproccalloption=(pocall_none,
-         pocall_cdecl,         { procedure uses C styled calling }
-         pocall_cppdecl,       { C++ calling conventions }
-         pocall_compilerproc,  { Procedure is used for internal compiler calls }
-         pocall_far16,         { Far16 for OS/2 }
-         pocall_oldfpccall,    { Old style FPC default calling }
-         pocall_inline,        { Procedure is an assembler macro }
-         pocall_internproc,    { Procedure has compiler magic}
-         pocall_palmossyscall, { procedure is a PalmOS system call }
-         pocall_pascal,        { pascal standard left to right }
-         pocall_register,      { procedure uses register (fastcall) calling }
-         pocall_safecall,      { safe call calling conventions }
-         pocall_stdcall        { procedure uses stdcall call }
+         { procedure uses C styled calling }
+         pocall_cdecl,
+         { C++ calling conventions }
+         pocall_cppdecl,
+         { Procedure is used for internal compiler calls }
+         pocall_compilerproc,
+         { Far16 for OS/2 }
+         pocall_far16,
+         { Old style FPC default calling }
+         pocall_oldfpccall,
+         { Procedure is an assembler macro }
+         pocall_inline,
+         { Procedure has compiler magic}
+         pocall_internproc,
+         { procedure is a PalmOS system call }
+         pocall_palmossyscall,
+         { pascal standard left to right }
+         pocall_pascal,
+         { procedure uses register (fastcall) calling }
+         pocall_register,
+         { safe call calling conventions }
+         pocall_safecall,
+         { procedure uses stdcall call }
+         pocall_stdcall,
+         { Special calling convention for cpus without a floating point
+           unit. Floating point numbers are passed in integer registers
+           instead of floating point registers. Depending on the other
+           available calling conventions available for the cpu
+           this replaces either pocall_fastcall or pocall_stdcall.
+         }
+         pocall_softfloat
        );
        tproccalloptions = set of tproccalloption;
 
@@ -157,7 +176,8 @@ interface
            'Pascal',
            'Register',
            'SafeCall',
-           'StdCall'
+           'StdCall',
+           'SoftFloat'
          );
 
        { Default calling convention }
@@ -210,7 +230,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2003-09-28 13:39:58  peter
+  Revision 1.44  2003-11-07 15:58:32  florian
+    * Florian's culmutative nr. 1; contains:
+      - invalid calling conventions for a certain cpu are rejected
+      - arm softfloat calling conventions
+      - -Sp for cpu dependend code generation
+      - several arm fixes
+      - remaining code for value open array paras on heap
+
+  Revision 1.43  2003/09/28 13:39:58  peter
     * default calling convention changed to stdcall
 
   Revision 1.42  2003/09/07 22:09:35  peter
