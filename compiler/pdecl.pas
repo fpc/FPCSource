@@ -1058,6 +1058,7 @@ unit pdecl;
          hs         : string;
          pcrd       : pclassrefdef;
          hp1        : pdef;
+         hfp        : pforwardpointer;
          oldprocsym : pprocsym;
          oldparse_only : boolean;
          classnamelabel : plabel;
@@ -1124,9 +1125,13 @@ unit pdecl;
                         {Anyhow forwards should only be allowed
                         inside a type statement ??
                         don't you think so }
-                        if (lasttypesym<>nil)
-                          and ((lasttypesym^.properties and sp_forwarddef)<>0) then
-                            lasttypesym^.forwardpointer:=ppointerdef(pcrd);
+                        if (lasttypesym<>nil) and ((lasttypesym^.properties and sp_forwarddef)<>0) then
+                         begin
+                           new(hfp);
+                           hfp^.next:=lasttypesym^.forwardpointer;
+                           hfp^.def:=ppointerdef(pcrd);
+                           lasttypesym^.forwardpointer:=hfp;
+                         end;
                         forwardsallowed:=false;
                      end
                    else
@@ -1800,6 +1805,8 @@ unit pdecl;
              ap^.definition:=hp1;
         end;
 
+      var
+        hfp : pforwardpointer;
       begin
          p:=nil;
          case token of
@@ -1891,9 +1898,13 @@ unit pdecl;
                  {Anyhow forwards should only be allowed
                  inside a type statement ??
                  don't you think so }
-                 if (lasttypesym<>nil)
-                   and ((lasttypesym^.properties and sp_forwarddef)<>0) then
-                     lasttypesym^.forwardpointer:=ppointerdef(p);
+                 if (lasttypesym<>nil) and ((lasttypesym^.properties and sp_forwarddef)<>0) then
+                  begin
+                    new(hfp);
+                    hfp^.next:=lasttypesym^.forwardpointer;
+                    hfp^.def:=ppointerdef(p);
+                    lasttypesym^.forwardpointer:=hfp;
+                  end;
                  forwardsallowed:=false;
               end;
             _RECORD:
@@ -2007,7 +2018,6 @@ unit pdecl;
                   begin
                      newtype:=new(ptypesym,init(typename,read_type(typename)));
                      { load newtype with the new pointer to the inserted type
-
                        because it can be an already defined forwarded type !! }
                      newtype:=ptypesym(symtablestack^.insert(newtype));
                   end;
@@ -2119,7 +2129,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.91  1998-12-30 22:15:46  peter
+  Revision 1.92  1999-01-14 21:49:58  peter
+    * fixed forwardpointer problem with multiple forwards for the same
+      typesym. It now uses a linkedlist instead of a single pointer
+
+  Revision 1.91  1998/12/30 22:15:46  peter
     + farpointer type
     * absolutesym now also stores if its far
 

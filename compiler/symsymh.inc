@@ -145,9 +145,15 @@
 {$endif GDB}
        end;
 
+       pforwardpointer=^tforwardpointer;
+       tforwardpointer=record
+         next : pforwardpointer;
+         def  : ppointerdef;
+       end;
+
        ttypesym = object(tsym)
           definition : pdef;
-          forwardpointer : ppointerdef;
+          forwardpointer : pforwardpointer;
 {$ifdef GDB}
           isusedinstab : boolean;
 {$endif GDB}
@@ -321,7 +327,11 @@
 
 {
   $Log$
-  Revision 1.12  1999-01-12 14:25:37  peter
+  Revision 1.13  1999-01-14 21:49:59  peter
+    * fixed forwardpointer problem with multiple forwards for the same
+      typesym. It now uses a linkedlist instead of a single pointer
+
+  Revision 1.12  1999/01/12 14:25:37  peter
     + BrowserLog for browser.log generation
     + BrowserCol for browser info in TCollections
     * released all other UseBrowser
