@@ -908,7 +908,7 @@ begin
       GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
         @ConsoleScreenBufferInfo);
       SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
-      IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT) and not ENABLE_PROCESSED_INPUT;
+      IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_WINDOW_INPUT) and not ENABLE_PROCESSED_INPUT;
       SetConsoleMode(GetStdHandle(Std_Input_Handle), IdeMode);
       WindowPos.left:=0;
       WindowPos.right:=ConsoleScreenBufferInfo.srWindow.right
@@ -969,7 +969,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2002-06-06 06:46:28  pierre
+  Revision 1.11  2002-06-06 14:10:34  pierre
+   * allow window input for fvsion system messages
+
+  Revision 1.10  2002/06/06 06:46:28  pierre
    * No videobuffer switch necessary for fvision win32 graphic version
 
   Revision 1.9  2002/04/25 13:34:17  pierre
