@@ -1,0 +1,37 @@
+#
+#   $Id$
+#
+#   Example Makefile.fpc which shows the defaults
+#
+
+[targets]
+;defaultunits=0
+units=<your units>
+programs=<your programs>
+
+[dirs]
+;unitdir=
+;libdir=
+;objdir=
+;incdir=
+;procincdir=
+;osincdir=
+;targetdir=
+;unittargetdir=
+
+[libs]
+;libgcc=0
+;libother=0
+
+[info]
+;infocfg=1
+;infodir=0
+;infotools=0
+;infoinstall=1
+;infoobjects=1
+;infofiles=0
+
+[rules]
+; here you can add your own rules, the general rules will automaticly
+; remove the defaults which call fpc_<rule>.
+
