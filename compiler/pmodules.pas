@@ -1461,7 +1461,8 @@ unit pmodules;
          { test static symtable }
          if (Errorcount=0) then
            begin
-             st^.allsymbolsused;
+             { st^.allsymbolsused;
+               already done in compile_proc_body ! }
              st^.allprivatesused;
            end;
 
@@ -1525,7 +1526,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.167  1999-11-18 15:34:47  pierre
+  Revision 1.168  1999-11-18 23:35:40  pierre
+   * avoid double warnings
+
+  Revision 1.167  1999/11/18 15:34:47  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 
