@@ -874,6 +874,7 @@ unit cgcpu;
     procedure tcgarm.g_stackframe_entry(list : taasmoutput;localsize : longint);
       var
          ref : treference;
+         shift : byte;
       begin
         LocalSize:=align(LocalSize,4);
 
@@ -889,10 +890,21 @@ unit cgcpu;
         list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,rgint.used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R15]),PF_FD));
 
         list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
-        a_reg_dealloc(list,NR_R12);
 
         { allocate necessary stack size }
-        list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
+        { don't use  a_op_const_reg_reg here because we don't allow register allocations
+          in the entry/exit code }
+        if not(is_shifter_const(localsize,shift)) then
+          begin
+            a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
+            list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
+            a_reg_dealloc(list,NR_R12);
+          end
+        else
+          begin
+            a_reg_dealloc(list,NR_R12);
+            list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
+          end;
       end;
 
 
@@ -1282,7 +1294,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2003-11-24 15:17:37  florian
+  Revision 1.25  2003-11-30 19:35:29  florian
+    * fixed several arm related problems
+
+  Revision 1.24  2003/11/24 15:17:37  florian
     * changed some types to prevend range check errors
 
   Revision 1.23  2003/11/21 16:29:26  florian

@@ -1715,7 +1715,6 @@ implementation
         {$IFDEF testvarsets}
         initsetalloc:=0;
         {$ENDIF}
-        initasmmode:=asmmode_direct;
         initfputype:=fpu_fpa;
 {$endif arm}
 {$ifdef x86_64}
@@ -1745,7 +1744,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.115  2003-11-12 16:05:39  florian
+  Revision 1.116  2003-11-30 19:35:29  florian
+    * fixed several arm related problems
+
+  Revision 1.115  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

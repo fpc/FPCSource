@@ -225,7 +225,10 @@ implementation
                        end;
 {$endif cpuflags}
                      else
-                       internalerror(200308241);
+                       begin
+                         printnode(output,p);
+                         internalerror(200308241);
+                       end;
                    end;
                 end;
            end
@@ -1979,7 +1982,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.170  2003-11-29 20:13:25  florian
+  Revision 1.171  2003-11-30 19:35:29  florian
+    * fixed several arm related problems
+
+  Revision 1.170  2003/11/29 20:13:25  florian
     * fixed several pi_do_call problems
 
   Revision 1.169  2003/11/23 17:05:15  peter

@@ -285,14 +285,16 @@ implementation
 
     function taicpu.is_nop: boolean;
       begin
-        { we don't insert any more nops than necessary }
-        is_nop := false;
+        { allow the register allocator to remove unnecessary moves }
+        result:=is_move and (oper[0]^.reg=oper[1]^.reg);
       end;
 
 
     function taicpu.is_move:boolean;
       begin
         result:=(opcode=A_MOV) and
+                (condition=C_None) and
+                (ops=2) and
                 (oper[0]^.typ=top_reg) and
                 (oper[1]^.typ=top_reg);
       end;
@@ -367,7 +369,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2003-11-29 17:36:56  peter
+  Revision 1.16  2003-11-30 19:35:29  florian
+    * fixed several arm related problems
+
+  Revision 1.15  2003/11/29 17:36:56  peter
     * fixed is_move
 
   Revision 1.14  2003/11/24 15:17:37  florian

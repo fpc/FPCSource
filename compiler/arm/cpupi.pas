@@ -119,11 +119,8 @@ unit cpupi;
 
     function tarmprocinfo.calc_stackframe_size:longint;
       begin
-        { more or less copied from cgcpu.pas/g_stackframe_entry }
-        if not (po_assembler in procdef.procoptions) then
-          result := align(align((31-13+1)*4+(31-14+1)*8,16)+tg.lasttemp*tg.direction,16)
-        else
-          result := align(tg.lasttemp*tg.direction,16);
+        { align to 4 bytes at least }
+        result:=Align(tg.direction*tg.lasttemp,max(aktalignment.localalignmin,4));
       end;
 
 
@@ -132,7 +129,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-11-24 15:17:37  florian
+  Revision 1.4  2003-11-30 19:35:29  florian
+    * fixed several arm related problems
+
+  Revision 1.3  2003/11/24 15:17:37  florian
     * changed some types to prevend range check errors
 
   Revision 1.2  2003/11/02 14:30:03  florian
