@@ -9,7 +9,7 @@ var i:Integer;
 begin
  Writeln(High(A));
 
- if High(A)<>1 then
+ if High(A)<>0 then
    begin
      writeln('Error!');
      halt(1);
