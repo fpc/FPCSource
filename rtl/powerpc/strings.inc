@@ -390,7 +390,7 @@ asm
         subfic   r3,r0,64
         subfe    r8,r8,r8
         subfic   r3,r10,64
-        subfe    r5,r5
+        subfe    r5,r5,r5
 
         subic    r3,r0,91
         andi.    r8,r8,0x020
@@ -512,7 +512,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  2004-08-09 16:43:33  jonas
+  Revision 1.26  2004-08-17 13:34:15  olle
+    * bugfix
+
+  Revision 1.25  2004/08/09 16:43:33  jonas
     * fixed stricomp() and strlicomp()
 
   Revision 1.24  2004/05/01 17:02:37  jonas
