@@ -41,7 +41,7 @@ function dxe_load(filename : string) : pointer;
 }
 type
   { to avoid range check problems }
-  pointer_array = array[0..maxlongint] of pointer;
+  pointer_array = array[0..maxlongint div sizeof(pointer)] of pointer;
   tpa = ^pointer_array;
   plongint = ^longint;
   pcardinal = ^cardinal;
@@ -98,7 +98,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2001-07-23 09:52:38  marco
+  Revision 1.5  2002-04-27 07:58:23  peter
+    * fixed 2gb limit
+
+  Revision 1.4  2001/07/23 09:52:38  marco
    * Fixed an unnecessary memleak.
 
   Revision 1.3  2000/12/16 15:57:52  jonas
