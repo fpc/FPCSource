@@ -21,12 +21,13 @@ systemh.inc     Interface part of the system unit.
 text.inc        Text file support routines.
 textrec.inc     Definition of Textrec record.
 typefile.inc    Text file record definition.
-
+generic.inc     Processor independant implementation of assembler procs on i386
+                (to allow easy porting to new processors).
 
 The unit files are:
 
 ucomplex.pp     Complex functions using operator overloading
 getopts.pp      Pascal implementation of the GNU Getops
 objects.pp      Turbo Pascal like implementation of objects unit
-heaptrc.pp      Runtime memory leak tracer.
+heaptrc.pp      Runtime memory leak tracer and tests for memory integrity.
 
