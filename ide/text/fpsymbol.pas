@@ -1077,9 +1077,9 @@ begin
                l:=Length(PS^);
                If PS^[l]='*' then
                  begin
-                   PB:=BreakpointCollection^.GetType(bt_function,copy(GetStr(PS),1,l-1));
+                   PB:=BreakpointsCollection^.GetType(bt_function,copy(GetStr(PS),1,l-1));
                    If Assigned(PB) then
-                     BreakpointCollection^.Delete(PB);
+                     BreakpointsCollection^.Delete(PB);
                    Sym^.Name:=NewStr(copy(GetStr(PS),1,l-1));
                    DrawView;
                    DisposeStr(PS);
@@ -1090,8 +1090,8 @@ begin
                    DrawView;
                    New(PB,init_function(GetStr(PS)));
                    DisposeStr(PS);
-                   BreakpointCollection^.Insert(PB);
-                   BreakpointCollection^.Update;
+                   BreakpointsCollection^.Insert(PB);
+                   BreakpointsCollection^.Update;
                  end;
             end
           else if pos('var',Sym^.GetText)>0 then
@@ -1102,9 +1102,9 @@ begin
                l:=Length(PS^);
                If PS^[l]='*' then
                  begin
-                   PB:=BreakpointCollection^.GetType(bt_awatch,copy(PS^,1,l-1));
+                   PB:=BreakpointsCollection^.GetType(bt_awatch,copy(PS^,1,l-1));
                    If Assigned(PB) then
-                     BreakpointCollection^.Delete(PB);
+                     BreakpointsCollection^.Delete(PB);
                    Sym^.Name:=NewStr(copy(PS^,1,l-1));
                    DrawView;
                    DisposeStr(PS);
@@ -1115,8 +1115,8 @@ begin
                    DrawView;
                    New(PB,init_type(bt_awatch,GetStr(PS)));
                    DisposeStr(PS);
-                   BreakpointCollection^.Insert(PB);
-                   BreakpointCollection^.Update;
+                   BreakpointsCollection^.Insert(PB);
+                   BreakpointsCollection^.Update;
                  end;
             end;
         end;
@@ -1160,7 +1160,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.18  1999-07-28 23:11:22  peter
+  Revision 1.19  1999-09-16 14:34:59  pierre
+    + TBreakpoint and TWatch registering
+    + WatchesCollection and BreakpointsCollection stored in desk file
+    * Syntax highlighting was broken
+
+  Revision 1.18  1999/07/28 23:11:22  peter
     * fixes from gabor
 
   Revision 1.17  1999/06/28 12:35:05  pierre

@@ -74,6 +74,8 @@ type
      constructor Init_Empty;
      constructor Init_file_line(AFile : String; ALine : longint);
      constructor Init_type(atyp : BreakpointType;Const AnExpr : String);
+     constructor Load(var S: TStream);
+     procedure   Store(var S: TStream);
      procedure  Insert;
      procedure  Remove;
      procedure  Enable;
@@ -156,6 +158,8 @@ type
     PWatch = ^TWatch;
     TWatch =  Object(TObject)
       constructor Init(s : string);
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
       procedure rename(s : string);
       procedure Get_new_value;
       destructor done;virtual;
@@ -252,7 +256,7 @@ const
 
 var
   Debugger             : PDebugController;
-  BreakpointCollection : PBreakpointCollection;
+  BreakpointsCollection : PBreakpointCollection;
   WatchesCollection    : PwatchesCollection;
 
 procedure InitDebugger;
@@ -318,6 +322,34 @@ const
      Store:   @TFramesListBox.Store
   );
 
+  RBreakpoint: TStreamRec = (
+     ObjType: 1707;
+     VmtLink: Ofs(TypeOf(TBreakpoint)^);
+     Load:    @TBreakpoint.Load;
+     Store:   @TBreakpoint.Store
+  );
+
+  RWatch: TStreamRec = (
+     ObjType: 1708;
+     VmtLink: Ofs(TypeOf(TWatch)^);
+     Load:    @TWatch.Load;
+     Store:   @TWatch.Store
+  );
+
+  RBreakpointCollection: TStreamRec = (
+     ObjType: 1709;
+     VmtLink: Ofs(TypeOf(TBreakpointCollection)^);
+     Load:    @TBreakpointCollection.Load;
+     Store:   @TBreakpointCollection.Store
+  );
+
+  RWatchesCollection: TStreamRec = (
+     ObjType: 1710;
+     VmtLink: Ofs(TypeOf(TWatchesCollection)^);
+     Load:    @TWatchesCollection.Load;
+     Store:   @TWatchesCollection.Store
+  );
+
 {****************************************************************************
                             TDebugController
 ****************************************************************************}
@@ -344,7 +376,7 @@ procedure TDebugController.InsertBreakpoints;
   end;
 
 begin
-  BreakpointCollection^.ForEach(@DoInsert);
+  BreakpointsCollection^.ForEach(@DoInsert);
 end;
 
 procedure TDebugController.ReadWatches;
@@ -366,7 +398,7 @@ procedure TDebugController.RemoveBreakpoints;
       PB^.Remove;
     end;
 begin
-   BreakpointCollection^.ForEach(@DoDelete);
+   BreakpointsCollection^.ForEach(@DoDelete);
 end;
 
 procedure TDebugController.ResetBreakpointsValues;
@@ -375,7 +407,7 @@ procedure TDebugController.ResetBreakpointsValues;
       PB^.ResetValues;
     end;
 begin
-   BreakpointCollection^.ForEach(@DoResetVal);
+   BreakpointsCollection^.ForEach(@DoResetVal);
 end;
 
 destructor TDebugController.Done;
@@ -565,7 +597,7 @@ begin
   Desktop^.UnLock;
   if BreakIndex>0 then
     begin
-      PB:=BreakpointCollection^.GetGDB(BreakIndex);
+      PB:=BreakpointsCollection^.GetGDB(BreakIndex);
       { For watch we should get old and new value !! }
       if (Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive)) and
          (PB^.typ<>bt_file_line) and (PB^.typ<>bt_function) then
@@ -694,6 +726,52 @@ begin
   Conditions:=nil;
   OldValue:=nil;
   CurrentValue:=nil;
+end;
+
+constructor TBreakpoint.Load(var S: TStream);
+begin
+  S.Read(typ,SizeOf(BreakpointType));
+  S.Read(state,SizeOf(BreakpointState));
+  GDBState:=bs_deleted;
+  case typ of
+    bt_file_line :
+      begin
+        FileName:=S.ReadStr;
+        S.Read(Line,SizeOf(Line));
+        Name:=nil;
+      end;
+  else
+    begin
+        Name:=S.ReadStr;
+        Line:=0;
+        FileName:=nil;
+    end;
+  end;
+  S.Read(IgnoreCount,SizeOf(IgnoreCount));
+  Commands:=S.StrRead;
+  Conditions:=S.ReadStr;
+  OldValue:=nil;
+  CurrentValue:=nil;
+end;
+
+procedure TBreakpoint.Store(var S: TStream);
+begin
+  S.Write(typ,SizeOf(BreakpointType));
+  S.Write(state,SizeOf(BreakpointState));
+  case typ of
+    bt_file_line :
+      begin
+        S.WriteStr(FileName);
+        S.Write(Line,SizeOf(Line));
+      end;
+  else
+    begin
+        S.WriteStr(Name);
+    end;
+  end;
+  S.Write(IgnoreCount,SizeOf(IgnoreCount));
+  S.StrWrite(Commands);
+  S.WriteStr(Conditions);
 end;
 
 procedure TBreakpoint.Insert;
@@ -1105,7 +1183,7 @@ begin
     P^.Breakpoint^.state:=bs_disabled
   else if P^.Breakpoint^.state=bs_disabled then
     P^.Breakpoint^.state:=bs_enabled;
-  BreakpointCollection^.Update;
+  BreakpointsCollection^.Update;
   if P^.Breakpoint^.typ=bt_file_line then
     begin
       W:=TryToOpenFile(nil,GetStr(P^.Breakpoint^.FileName),1,P^.Breakpoint^.Line,false);
@@ -1128,7 +1206,7 @@ begin
   P:=List^.At(Focused);
   if P=nil then Exit;
   Application^.ExecuteDialog(New(PBreakpointItemDialog,Init(P^.Breakpoint)),nil);
-  BreakpointCollection^.Update;
+  BreakpointsCollection^.Update;
 end;
 
 procedure TBreakpointsListBox.DeleteCurrent;
@@ -1138,9 +1216,9 @@ begin
   if Range=0 then Exit;
   P:=List^.At(Focused);
   if P=nil then Exit;
-  BreakpointCollection^.free(P^.Breakpoint);
+  BreakpointsCollection^.free(P^.Breakpoint);
   List^.free(P);
-  BreakpointCollection^.Update;
+  BreakpointsCollection^.Update;
 end;
 
 procedure TBreakpointsListBox.EditNew;
@@ -1150,8 +1228,8 @@ begin
   P:=New(PBreakpoint,Init_Empty);
   if Application^.ExecuteDialog(New(PBreakpointItemDialog,Init(P)),nil)<>cmCancel then
     begin
-      BreakpointCollection^.Insert(P);
-      BreakpointCollection^.Update;
+      BreakpointsCollection^.Insert(P);
+      BreakpointsCollection^.Update;
     end
   else
     dispose(P,Done);
@@ -1344,9 +1422,9 @@ procedure TBreakpointsWindow.ReloadBreakpoints;
     BreakLB^.AddBreakpoint(New(PBreakpointItem, Init(P)));
   end;
 begin
-  If not assigned(BreakpointCollection) then
+  If not assigned(BreakpointsCollection) then
     exit;
-  BreakpointCollection^.ForEach(@InsertInBreakLB);
+  BreakpointsCollection^.ForEach(@InsertInBreakLB);
   ReDraw;
 end;
 
@@ -1524,84 +1602,97 @@ end;
                          TWatch
 ****************************************************************************}
 
-      constructor TWatch.Init(s : string);
-        begin
-          expr:=NewStr(s);
-          last_value:=nil;
-          current_value:=nil;
-          Get_new_value;
-        end;
+constructor TWatch.Init(s : string);
+  begin
+    expr:=NewStr(s);
+    last_value:=nil;
+    current_value:=nil;
+    Get_new_value;
+  end;
 
-      procedure TWatch.rename(s : string);
-        begin
-          if assigned(expr) then
-            begin
-              if GetStr(expr)=S then
-                exit;
-              DisposeStr(expr);
-            end;
-          expr:=NewStr(s);
-          if assigned(last_value) then
-            StrDispose(last_value);
-          last_value:=nil;
-          if assigned(current_value) then
-            StrDispose(current_value);
-          current_value:=nil;
-          Get_new_value;
-        end;
+constructor TWatch.Load(var S: TStream);
+  begin
+    expr:=S.ReadStr;
+    last_value:=nil;
+    current_value:=nil;
+    Get_new_value;
+  end;
 
-      procedure TWatch.Get_new_value;
-        var p,q : pchar;
-            i : longint;
-            last_removed : boolean;
-        begin
-          If not assigned(Debugger) then
-            exit;
-          if assigned(last_value) then
-            strdispose(last_value);
-          last_value:=current_value;
-          Debugger^.Command('p '+GetStr(expr));
-          if Debugger^.Error then
-            p:=StrNew(Debugger^.GetError)
-          else
-            p:=StrNew(Debugger^.GetOutput);
-          { do not open a messagebox for such errors }
-          Debugger^.got_error:=false;
-          q:=nil;
-          if assigned(p) and (p[0]='$') then
-            q:=StrPos(p,'=');
-          if not assigned(q) then
-            q:=p;
-          if assigned(q) then
-            i:=strlen(q)
-          else
-            i:=0;
-          if (i>0) and (q[i-1]=#10) then
-            begin
-              q[i-1]:=#0;
-              last_removed:=true;
-            end
-          else
-            last_removed:=false;
-          if assigned(q) then
-            current_value:=strnew(q)
-          else
-            current_value:=strnew('');
-          if last_removed then
-            q[i-1]:=#10;
-          strdispose(p);
-        end;
+procedure TWatch.Store(var S: TStream);
+  begin
+    S.WriteStr(expr);
+  end;
 
-      destructor TWatch.Done;
-        begin
-          if assigned(expr) then
-            disposestr(expr);
-          if assigned(last_value) then
-            strdispose(last_value);
-          if assigned(current_value) then
-            strdispose(current_value);
-          inherited done;
-        end;
+procedure TWatch.rename(s : string);
+  begin
+    if assigned(expr) then
+      begin
+        if GetStr(expr)=S then
+          exit;
+        DisposeStr(expr);
+      end;
+    expr:=NewStr(s);
+    if assigned(last_value) then
+      StrDispose(last_value);
+    last_value:=nil;
+    if assigned(current_value) then
+      StrDispose(current_value);
+    current_value:=nil;
+    Get_new_value;
+  end;
+
+procedure TWatch.Get_new_value;
+  var p,q : pchar;
+      i : longint;
+      last_removed : boolean;
+  begin
+    If not assigned(Debugger) then
+      exit;
+    if assigned(last_value) then
+      strdispose(last_value);
+    last_value:=current_value;
+    Debugger^.Command('p '+GetStr(expr));
+    if Debugger^.Error then
+      p:=StrNew(Debugger^.GetError)
+    else
+      p:=StrNew(Debugger^.GetOutput);
+    { do not open a messagebox for such errors }
+    Debugger^.got_error:=false;
+    q:=nil;
+    if assigned(p) and (p[0]='$') then
+      q:=StrPos(p,'=');
+    if not assigned(q) then
+      q:=p;
+    if assigned(q) then
+      i:=strlen(q)
+    else
+      i:=0;
+    if (i>0) and (q[i-1]=#10) then
+      begin
+        q[i-1]:=#0;
+        last_removed:=true;
+      end
+    else
+      last_removed:=false;
+    if assigned(q) then
+      current_value:=strnew(q)
+    else
+      current_value:=strnew('');
+    if last_removed then
+      q[i-1]:=#10;
+    strdispose(p);
+  end;
+
+destructor TWatch.Done;
+  begin
+    if assigned(expr) then
+      disposestr(expr);
+    if assigned(last_value) then
+      strdispose(last_value);
+    if assigned(current_value) then
+      strdispose(current_value);
+    inherited done;
+  end;
 
 {****************************************************************************
                          TWatchesCollection
@@ -1648,9 +1739,6 @@ end;
                          TWatchesListBox
 ****************************************************************************}
 
-    (* PWatchesListBox = ^TWatchesListBox;
-    TWatchesListBox = object(THSListBox)
-      MaxWidth    : Sw_integer; *)
 constructor TWatchesListBox.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
   begin
     inherited Init(Bounds,1,AHScrollBar,AVScrollBar);
@@ -1710,14 +1798,6 @@ begin
       GetIndentedText:=Copy(S,1,MaxLen);
    end;
 end;
-
-      (* function    TWatchesListBox.GetLocalMenu: PMenu;virtual;
-      procedure   TWatchesListBox.Clear; virtual;
-      procedure   TWatchesListBox.TrackSource; virtual;
-      procedure   TWatchesListBox.EditNew; virtual;
-      procedure   TWatchesListBox.EditCurrent; virtual;
-      procedure   TWatchesListBox.DeleteCurrent; virtual;
-      procedure   TWatchesListBox.ToggleCurrent; *)
 
 procedure TWatchesListBox.EditCurrent;
 var
@@ -1984,16 +2064,6 @@ end;
 {****************************************************************************
                          TWatchItemDialog
 ****************************************************************************}
-    (* TWatchItemDialog = object(TCenterDialog)
-      constructor Init(AWatch: PWatch);
-      function    Execute: Word; virtual;
-    private
-      Watch : PWatch;
-      NameIL  : PInputLine;
-      TextST : PAdvancedStaticText;
-      CurrentIL: PLabel;
-      LastIL    : PLabel;
-    end;  *)
 
 constructor TWatchItemDialog.Init(AWatch: PWatch);
 var R,R2: TRect;
@@ -2265,13 +2335,13 @@ end;
 
 procedure InitBreakpoints;
 begin
-  New(BreakpointCollection,init(10,10));
+  New(BreakpointsCollection,init(10,10));
 end;
 
 procedure DoneBreakpoints;
 begin
-  Dispose(BreakpointCollection,Done);
-  BreakpointCollection:=nil;
+  Dispose(BreakpointsCollection,Done);
+  BreakpointsCollection:=nil;
 end;
 
 procedure InitWatches;
@@ -2293,13 +2363,22 @@ begin
   RegisterType(RBreakpointsListBox);
   RegisterType(RStackWindow);
   RegisterType(RFramesListBox);
+  RegisterType(RBreakpoint);
+  RegisterType(RWatch);
+  RegisterType(RBreakpointCollection);
+  RegisterType(RWatchesCollection);
 end;
 
 end.
 
 {
   $Log$
-  Revision 1.31  1999-09-13 16:24:43  peter
+  Revision 1.32  1999-09-16 14:34:57  pierre
+    + TBreakpoint and TWatch registering
+    + WatchesCollection and BreakpointsCollection stored in desk file
+    * Syntax highlighting was broken
+
+  Revision 1.31  1999/09/13 16:24:43  peter
     + clock
     * backspace unident like tp7
 

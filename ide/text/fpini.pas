@@ -165,7 +165,7 @@ var PB : PBreakpoint;
     S : String;
 begin
   Str(I,S);
-  PB:=BreakpointCollection^.At(I);
+  PB:=BreakpointsCollection^.At(I);
   If assigned(PB) then
    With PB^ do
     Begin
@@ -234,7 +234,7 @@ begin
        PB^.state:=state;
        If SC<>'' then
          PB^.conditions:=NewStr(SC);
-       BreakpointCollection^.Insert(PB);
+       BreakpointsCollection^.Insert(PB);
      end;
 end;
 {$endif NODEBUG}
@@ -478,7 +478,7 @@ begin
   INIFile^.SetIntEntry(secSearch,ieFindFlags,FindFlags);
   { Breakpoints }
 {$ifndef NODEBUG}
-  BreakPointCount:=BreakpointCollection^.Count;
+  BreakPointCount:=BreakpointsCollection^.Count;
   INIFile^.SetIntEntry(secBreakpoint,ieBreakpointCount,BreakpointCount);
   for i:=1 to BreakpointCount do
     WriteOneBreakPointEntry(I-1,INIFile);
@@ -529,7 +529,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  1999-09-13 16:24:43  peter
+  Revision 1.24  1999-09-16 14:34:59  pierre
+    + TBreakpoint and TWatch registering
+    + WatchesCollection and BreakpointsCollection stored in desk file
+    * Syntax highlighting was broken
+
+  Revision 1.23  1999/09/13 16:24:43  peter
     + clock
     * backspace unident like tp7
 

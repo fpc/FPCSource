@@ -18,7 +18,7 @@ unit FPDesk;
 interface
 
 const
-     DesktopVersion     = $0002; { <- if you change any Load&Store methods,
+     DesktopVersion     = $0003; { <- if you change any Load&Store methods,
                                       then you should also change this }
 
      ResDesktopFlags    = 'FLAGS';
@@ -39,6 +39,9 @@ implementation
 uses Dos,
      Objects,Drivers,Views,App,HistList,BrowCol,
      WResource,WViews,WEditor,
+{$ifndef NODEBUG}
+     fpdebug,
+{$endif ndef NODEBUG}
      FPConst,FPVars,FPUtils,FPViews,FPCompile,FPTools,FPHelp;
 
 procedure InitDesktopFile;
@@ -106,14 +109,102 @@ begin
   WriteClipboard:=true;
 end;*)
 
-function WriteWatches(F: PResourceFile): boolean;
+function ReadWatches(F: PResourceFile): boolean;
+var S: PMemoryStream;
+    OK: boolean;
+    OWC : PWatchesCollection;
 begin
-  WriteWatches:=true;
+{$ifndef NODEBUG}
+  PushStatus('Reading watches...');
+  New(S, Init(32*1024,4096));
+  OK:=F^.ReadResourceEntryToStream(resWatches,langDefault,S^);
+  S^.Seek(0);
+  if OK then
+    begin
+      OWC:=WatchesCollection;
+      New(WatchesCollection,Load(S^));
+      OK:=(S^.Status=stOK);
+      if OK and assigned(OWC) then
+        Dispose(OWC,Done);
+    end;
+  ReadWatches:=OK;
+  Dispose(S, Done);
+  PopStatus;
+{$else NODEBUG}
+  ReadWatches:=true;
+{$endif NODEBUG}
+end;
+
+function WriteWatches(F: PResourceFile): boolean;
+var
+  S : PMemoryStream;
+begin
+{$ifndef NODEBUG}
+  if not assigned(WatchesCollection) then
+{$endif NODEBUG}
+    WriteWatches:=true
+{$ifndef NODEBUG}
+  else
+    begin
+      PushStatus('Storing watches...');
+      New(S, Init(30*1024,4096));
+      S^.Put(WatchesCollection);
+      S^.Seek(0);
+      F^.CreateResource(resWatches,rcBinary,0);
+      WriteWatches:=F^.AddResourceEntryFromStream(resWatches,langDefault,0,S^,S^.GetSize);
+      Dispose(S, Done);
+      PopStatus;
+    end;
+{$endif NODEBUG}
+end;
+
+function ReadBreakpoints(F: PResourceFile): boolean;
+var S: PMemoryStream;
+    OK: boolean;
+    OBC : PBreakpointCollection;
+begin
+{$ifndef NODEBUG}
+  PushStatus('Reading breakpoints...');
+  New(S, Init(32*1024,4096));
+  OK:=F^.ReadResourceEntryToStream(resBreakpoints,langDefault,S^);
+  S^.Seek(0);
+  if OK then
+    begin
+      OBC:=BreakpointsCollection;
+      New(BreakpointsCollection,Load(S^));
+      OK:=(S^.Status=stOK);
+      If OK and assigned(OBC) then
+        Dispose(OBC,Done);
+    end;
+  ReadBreakpoints:=OK;
+  Dispose(S, Done);
+  PopStatus;
+{$else NODEBUG}
+  ReadBreakpoints:=true;
+{$endif NODEBUG}
 end;
 
 function WriteBreakpoints(F: PResourceFile): boolean;
+var
+  S : PMemoryStream;
 begin
-  WriteBreakPoints:=true;
+{$ifndef NODEBUG}
+  if not assigned(BreakpointsCollection) then
+{$endif NODEBUG}
+    WriteBreakPoints:=true
+{$ifndef NODEBUG}
+  else
+    begin
+      PushStatus('Storing breakpoints...');
+      New(S, Init(30*1024,4096));
+      BreakpointsCollection^.Store(S^);
+      S^.Seek(0);
+      F^.CreateResource(resWatches,rcBinary,0);
+      WriteBreakPoints:=F^.AddResourceEntryFromStream(resWatches,langDefault,0,S^,S^.GetSize);
+      Dispose(S, Done);
+      PopStatus;
+    end;
+{$endif NODEBUG}
 end;
 
 function ReadOpenWindows(F: PResourceFile): boolean;
@@ -204,12 +295,17 @@ end;
 
 function WriteFlags(F: PResourceFile): boolean;
 begin
-  WriteFlags:=true;
-  {$ifndef DEV}Exit;{$endif}
-
   F^.CreateResource(resDesktopFlags,rcBinary,0);
-  F^.AddResourceEntry(resDesktopFlags,langDefault,0,DesktopFileFlags,
+  WriteFlags:=F^.AddResourceEntry(resDesktopFlags,langDefault,0,DesktopFileFlags,
     SizeOf(DesktopFileFlags));
+end;
+
+function ReadFlags(F: PResourceFile): boolean;
+var
+  size : sw_word;
+begin
+  ReadFlags:=F^.ReadResourceEntry(resDesktopFlags,langDefault,DesktopFileFlags,
+    size);
 end;
 
 function ReadSymbols(F: PResourceFile): boolean;
@@ -241,7 +337,7 @@ begin
     StoreBrowserCol(S);
     S^.Seek(0);
     F^.CreateResource(resSymbols,rcBinary,0);
-    F^.AddResourceEntryFromStream(resSymbols,langDefault,0,S^,S^.GetSize);
+    OK:=F^.AddResourceEntryFromStream(resSymbols,langDefault,0,S^,S^.GetSize);
     Dispose(S, Done);
     PopStatus;
   end;
@@ -259,13 +355,17 @@ begin
 
   if OK then
   begin
-    ReadHistory(F);
-    ReadOpenWindows(F);
-    ReadSymbols(F);
+    OK:=ReadFlags(F);
+    if OK and ((DesktopFileFlags and dfHistoryLists)<>0) then
+      OK:=ReadHistory(F);
+    if OK and ((DesktopFileFlags and dfWatches)<>0) then
+      OK:=ReadWatches(F);
+    if OK and ((DesktopFileFlags and dfBreakpoints)<>0) then
+      OK:=ReadBreakpoints(F);
   end;
 
   PopStatus;
-  LoadDesktop:=true;
+  LoadDesktop:=OK;
 end;
 
 function SaveDesktop: boolean;
@@ -282,6 +382,8 @@ begin
       Clipboard^.Flags:=Clipboard^.Flags and not efStoreContent;
 
   OK:=Assigned(F);
+  if OK then
+    OK:=WriteFlags(F);
   if OK and ((DesktopFileFlags and dfHistoryLists)<>0) then
     OK:=WriteHistory(F);
   if OK and ((DesktopFileFlags and dfWatches)<>0) then
@@ -290,7 +392,7 @@ begin
     OK:=WriteBreakpoints(F);
   if OK and ((DesktopFileFlags and dfOpenWindows)<>0) then
     OK:=WriteOpenWindows(F);
-  { no errors if no browser info available PM }  
+  { no errors if no browser info available PM }
   if OK and ((DesktopFileFlags and dfSymbolInformation)<>0) then
     OK:=WriteSymbols(F) or not Assigned(Modules);
   Dispose(F, Done);
@@ -301,7 +403,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  1999-09-07 09:23:00  pierre
+  Revision 1.10  1999-09-16 14:34:58  pierre
+    + TBreakpoint and TWatch registering
+    + WatchesCollection and BreakpointsCollection stored in desk file
+    * Syntax highlighting was broken
+
+  Revision 1.9  1999/09/07 09:23:00  pierre
    * no errors if no browser info available
 
   Revision 1.8  1999/08/16 18:25:16  peter

@@ -458,7 +458,6 @@ begin
 {$ifdef redircompiler}
       RedirEnableAll;
 {$endif}
-
      { update memory usage }
      { HeapView^.Update; }
    end;
@@ -739,7 +738,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  1999-09-13 16:24:43  peter
+  Revision 1.39  1999-09-16 14:34:57  pierre
+    + TBreakpoint and TWatch registering
+    + WatchesCollection and BreakpointsCollection stored in desk file
+    * Syntax highlighting was broken
+
+  Revision 1.38  1999/09/13 16:24:43  peter
     + clock
     * backspace unident like tp7
 

@@ -219,7 +219,7 @@ begin
     begin
       FileName:=W^.Editor^.FileName;
       LineNr:=W^.Editor^.CurPos.Y+1;
-      b:=BreakpointCollection^.ToggleFileLine(FileName,LineNr);
+      b:=BreakpointsCollection^.ToggleFileLine(FileName,LineNr);
       W^.Editor^.SetLineBreakState(LineNr,b);
     end;
 {$else NODEBUG}
@@ -229,7 +229,12 @@ end;
 
 {
   $Log$
-  Revision 1.20  1999-09-09 14:11:56  pierre
+  Revision 1.21  1999-09-16 14:34:59  pierre
+    + TBreakpoint and TWatch registering
+    + WatchesCollection and BreakpointsCollection stored in desk file
+    * Syntax highlighting was broken
+
+  Revision 1.20  1999/09/09 14:11:56  pierre
    * GDB needs lowercase filenames for tbreak
 
   Revision 1.19  1999/08/31 16:20:37  pierre

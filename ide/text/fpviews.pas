@@ -629,6 +629,7 @@ procedure InitReservedWords;
 var WordS: string;
     Idx,I: integer;
 begin
+  InitTokens;
   for I:=Low(ReservedWords) to High(ReservedWords) do
     New(ReservedWords[I], Init(50,10));
   for I:=1 to GetReservedWordCount do
@@ -647,6 +648,7 @@ begin
         dispose(ReservedWords[I],done);
         ReservedWords[I]:=nil;
       end;
+  DoneTokens;
 end;
 
 function IsFPReservedWord(S: string): boolean;
@@ -2324,8 +2326,8 @@ begin
        end;
     W^.HelpCtx:=hcSourceWindow;
     Desktop^.Insert(W);
-    If assigned(BreakpointCollection) then
-      BreakPointCollection^.ShowBreakpoints(W);
+    If assigned(BreakpointsCollection) then
+      BreakpointsCollection^.ShowBreakpoints(W);
     Message(Application,evBroadcast,cmUpdate,nil);
   end;
   PopStatus;
@@ -2777,7 +2779,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.41  1999-09-13 16:24:43  peter
+  Revision 1.42  1999-09-16 14:34:59  pierre
+    + TBreakpoint and TWatch registering
+    + WatchesCollection and BreakpointsCollection stored in desk file
+    * Syntax highlighting was broken
+
+  Revision 1.41  1999/09/13 16:24:43  peter
     + clock
     * backspace unident like tp7
 

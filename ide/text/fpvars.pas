@@ -19,7 +19,9 @@ interface
 
 uses Objects,Views,App,
      WUtils,
-     FPConst,FPDebug,FPUtils,FPViews,FPCalc;
+     FPConst,
+     FPDebug,
+     FPUtils,FPViews,FPCalc;
 
 type
     TRecentFileEntry = record
@@ -87,7 +89,12 @@ implementation
 END.
 {
   $Log$
-  Revision 1.24  1999-09-13 16:24:43  peter
+  Revision 1.25  1999-09-16 14:34:59  pierre
+    + TBreakpoint and TWatch registering
+    + WatchesCollection and BreakpointsCollection stored in desk file
+    * Syntax highlighting was broken
+
+  Revision 1.24  1999/09/13 16:24:43  peter
     + clock
     * backspace unident like tp7
 

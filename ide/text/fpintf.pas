@@ -29,7 +29,10 @@ implementation
 
 uses
   Compiler,
-  FPDebug,FPVars,FPUtils,FPSwitch;
+{$ifndef NODEBUG}
+  FPDebug,
+{$endif NODEBUG}
+  FPVars,FPUtils,FPSwitch;
 
 {****************************************************************************
                                    Run
@@ -108,7 +111,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-06-30 23:58:15  pierre
+  Revision 1.7  1999-09-16 14:34:59  pierre
+    + TBreakpoint and TWatch registering
+    + WatchesCollection and BreakpointsCollection stored in desk file
+    * Syntax highlighting was broken
+
+  Revision 1.6  1999/06/30 23:58:15  pierre
     + BreakpointsList Window implemented
       with Edit/New/Delete functions
     + Individual breakpoint dialog with support for all types
