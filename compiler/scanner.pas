@@ -319,6 +319,46 @@ implementation
         current_scanner.addpreprocstack(pp_ifopt,found,hs,scan_c_ifopt_found);
       end;
 
+    procedure dir_libprefix;
+      var
+        s : string;
+      begin
+        current_scanner.skipspace;
+        if c <> '''' then
+          Message2(scan_f_syn_expected, '''', c);
+        s := current_scanner.readquotedstring;
+        stringdispose(outputprefix);
+        outputprefix := stringdup(s);
+        with current_module do
+         setfilename(paramfn^, paramallowoutput);
+      end;
+     
+    procedure dir_libsuffix;
+      var
+        s : string;
+      begin
+        current_scanner.skipspace;
+        if c <> '''' then
+          Message2(scan_f_syn_expected, '''', c);
+        s := current_scanner.readquotedstring;
+        stringdispose(outputsuffix);
+        outputsuffix := stringdup(s);
+        with current_module do
+          setfilename(paramfn^, paramallowoutput);
+      end;
+      
+    procedure dir_extension;
+      var
+        s : string;
+      begin
+        current_scanner.skipspace;
+        if c <> '''' then
+          Message2(scan_f_syn_expected, '''', c);
+        s := current_scanner.readquotedstring;
+        outputextension := '.'+s;
+        with current_module do
+          setfilename(paramfn^, paramallowoutput);
+      end;
 
     function parse_compiler_expr:string;
 
@@ -3163,10 +3203,13 @@ exit_label:
         { Default directives and conditionals for all modes }
         AddDirective('I',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_include);
 
-        { Default Turbo directives and conditionals }
+        { Common directives and conditionals }
         AddDirective('DEFINE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_define);
         AddDirective('UNDEF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_undef);
         AddDirective('INCLUDE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_include);
+        AddDirective('LIBPREFIX',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_libprefix);
+        AddDirective('LIBSUFFIX',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_libsuffix);
+        AddDirective('EXTENSION',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_extension);
 
         AddConditional('ELSE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_else);
         AddConditional('ELSEIF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_elseif);
@@ -3176,7 +3219,7 @@ exit_label:
         AddConditional('IFDEF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_ifdef);
         AddConditional('IFNDEF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_ifndef);
         AddConditional('IFOPT',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_ifopt);
-
+        
         { Default Mac directives and conditionals: }
         AddDirective('SETC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_setc);
         AddConditional('IFC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_if);
@@ -3196,7 +3239,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.83  2004-07-23 00:25:05  olle
+  Revision 1.84  2004-08-02 07:15:54  michael
+  + Patch from Christian Iversen to implement LIBPREFIX/SUFFIX/EXTENSION directives
+
+  Revision 1.83  2004/07/23 00:25:05  olle
     + Added compile time function OPTION(x) for MacPas
     * Saved file as text and not binary (I hope)
 
