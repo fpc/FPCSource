@@ -26,9 +26,19 @@ uses
 
 {$i video.inc}
 
-var
-  ConsoleInfo : TConsoleScreenBufferInfo;
-  ConsoleCursorInfo : TConsoleCursorInfo;
+const
+    LastCursorType: word = crUnderline;
+    OrigScreen: PVideoBuf = nil;
+    OrigScreenSize: cardinal = 0;
+
+
+var ConsoleInfo : TConsoleScreenBufferInfo;
+    ConsoleCursorInfo : TConsoleCursorInfo;
+
+    OrigCurType: TConsoleCursorInfo;
+    OrigVioMode: TConsoleScreenBufferInfo;
+    OrigCP: cardinal;
+
 
 procedure SysInitVideo;
 
@@ -125,6 +135,97 @@ begin
         end
      end;
    SetConsoleCursorInfo(TextRec(Output).Handle,ConsoleCursorInfo);
+end;
+
+function SysVideoModeSelector (const VideoMode: TVideoMode): boolean;
+
+var MI: Console_Screen_Buffer_Info;
+    C: Coord;
+    SR: Small_Rect;
+
+begin
+  if GetConsoleScreenBufferInfo (TextRec (Output).Handle, MI) then
+    SysVideoModeSelector := false
+  else
+    begin
+      with MI do
+        begin
+          C.X := VideoMode.Col;
+          C.Y := VideoMode.Row;
+        end;
+      with SR do
+        begin
+          Top := 0;
+          Left := 0;
+          Right := Pred (VideoMode.Col);
+          Bottom := Pred (VideoMode.Row);
+        end;
+      if SetConsoleScreenBufferSize (TextRec (Output).Handle, C) then
+        if SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), false, SR) then
+          begin
+            SysVideoModeSelector := true;
+            SetCursorType (LastCursorType);
+            ClearScreen;
+          end
+        else
+          begin
+            SysVideoModeSelector := false;
+            SetConsoleScreenBufferSize (TextRec (Output).Handle, MI.dwSize);
+            SetCursorType (LastCursorType);
+          end
+      else
+        SysVideoModeSelector := false;
+    end;
+end;
+
+Const
+  SysVideoModeCount = 6;
+  SysVMD : Array[0..SysVideoModeCount-1] of TVideoMode = (
+   (Col: 40; Row: 25; Color: True),
+   (Col: 80; Row: 25; Color: True),
+   (Col: 80; Row: 30; Color: True),
+   (Col: 80; Row: 43; Color: True),
+   (Col: 80; Row: 50; Color: True),
+   (Col: 80; Row: 25; Color: True) // Reserved for TargetEntry
+  );
+
+
+Function SysSetVideoMode (Const Mode : TVideoMode) : Boolean;
+
+Var
+  I : Integer;
+
+begin
+  I:=SysVideoModeCount-1;
+  SysSetVideoMode:=False;
+  While (I>=0) and Not SysSetVideoMode do
+    If (Mode.col=SysVMD[i].col) and
+       (Mode.Row=SysVMD[i].Row) and
+       (Mode.Color=SysVMD[i].Color) then
+      SysSetVideoMode:=True
+    else
+      Dec(I);
+  If SysSetVideoMode then
+    begin
+    SysVideoModeSelector(Mode);
+    ScreenWidth:=SysVMD[I].Col;
+    ScreenHeight:=SysVMD[I].Row;
+    ScreenColor:=SysVMD[I].Color;
+    end;
+end;
+
+Function SysGetVideoModeData (Index : Word; Var Data : TVideoMode) : boolean;
+
+begin
+  SysGetVideoModeData:=(Index<=SysVideoModeCount);
+  If SysGetVideoModeData then
+    Data:=SysVMD[Index];
+end;
+
+Function SysGetVideoModeCount : Word;
+
+begin
+  SysGetVideoModeCount:=SysVideoModeCount;
 end;
 
 procedure SysClearScreen;
@@ -261,9 +362,9 @@ Const
     DoneDriver : @SysDoneVideo;
     UpdateScreen : @SysUpdateScreen;
     ClearScreen : @SysClearScreen;
-    SetVideoMode : Nil;
-    GetVideoModeCount : Nil;
-    GetVideoModeData : Nil;
+    SetVideoMode : @SysSetVideoMode;
+    GetVideoModeCount : @SysGetVideoModeCount;
+    GetVideoModeData : @SysGetVideoModeData;
     SetCursorPos : @SysSetCursorPos;
     GetCursorType : @SysGetCursorType;
     SetCursorType : @SysSetCursorType;
@@ -271,12 +372,57 @@ Const
 
   );
 
+procedure TargetEntry;
+
+var
+  C: Coord;
+  SR: Small_Rect;
+
+begin
+  GetConsoleScreenBufferInfo (TextRec (Output).Handle, OrigVioMode);
+  GetConsoleCursorInfo (TextRec (Output).Handle, OrigCurType);
+  OrigCP := GetConsoleCP;
+  { Register the curent video mode in reserved slot in System Modes}
+  with OrigVioMode do
+    begin
+      {Assume we have at least 16 colours available in "colour" modes}
+      SysVMD[SysVideoModeCount-1].Col:=dwMaximumWindowSize.X;
+      SysVMD[SysVideoModeCount-1].Row:=dwMaximumWindowSize.Y;
+      SysVMD[SysVideoModeCount-1].Color:=true;
+      OrigScreenSize := dwMaximumWindowSize.X * dwMaximumWindowSize.Y * SizeOf (Char_Info);
+    end;
+  GetMem (OrigScreen, OrigScreenSize);
+  with C do
+    begin  
+      X := 0;
+      Y := 0;
+    end;
+  with SR do
+    begin
+      Top := 0;
+      Left := 0;
+      Right := Pred (OrigVioMode.dwSize.X);
+      Bottom := Pred (OrigVioMode.dwSize.Y);
+    end;
+  if not (ReadConsoleOutput (TextRec (Output).Handle, OrigScreen, OrigVioMode.dwSize, C, SR)) then
+    begin
+      FreeMem (OrigScreen, OrigScreenSize);
+      OrigScreen := nil;
+      OrigScreenSize := 0;
+    end;
+end;
+
+
 initialization
   SetVideoDriver(SysVideoDriver);
+  TargetEntry;
 end.
 {
   $Log$
-  Revision 1.11  2003-09-17 15:06:36  peter
+  Revision 1.12  2004-09-11 21:45:13  hajny
+    + experimental patch to support more resolutions in text-mode IDE under Win32
+
+  Revision 1.11  2003/09/17 15:06:36  peter
     * stdcall patch
 
   Revision 1.10  2002/12/15 20:22:56  peter
