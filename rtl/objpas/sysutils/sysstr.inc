@@ -145,13 +145,14 @@ var
 begin
   Result:=True;
   I:=0;
-  While Result and (i<Length) do
-    begin 
-    Result:=Byte(P1^)=Byte(P2^);
-    Inc(I);
-    Inc(pchar(P1));
-    Inc(pchar(P2));
-    end;
+  If (P1)<>(P2) then
+    While Result and (i<Length) do
+      begin 
+      Result:=PByte(P1)^=PByte(P2)^;
+      Inc(I);
+      Inc(pchar(P1));
+      Inc(pchar(P2));
+      end;
 end;
 
 
@@ -2008,7 +2009,10 @@ const
 
 {
   $Log$
-  Revision 1.5  2003-11-22 15:46:48  michael
+  Revision 1.6  2003-11-22 16:17:26  michael
+  + Small optimization in comparemem
+
+  Revision 1.5  2003/11/22 15:46:48  michael
   + Patched CompareMem for case when length is 0
 
   Revision 1.4  2003/11/09 13:37:42  michael
