@@ -60,7 +60,7 @@ unit pexpr;
        ;
 
     const allow_type : boolean = true;
-    
+
     function parse_paras(_colon,in_prop_paras : boolean) : ptree;
 
       var
@@ -630,7 +630,6 @@ unit pexpr;
       var
          static_name : string;
          isclassref : boolean;
-         pobj : pobjectdef;
 
       begin
          if sym=nil then
@@ -662,7 +661,7 @@ unit pexpr;
                   else
                     Message(parser_e_cant_access_private_member);
                 end;
-                
+
               { this is wrong protected should not be overwritten but
               can be called !! PM
               if ((sym^.properties and sp_protected)<>0) and
@@ -1419,7 +1418,7 @@ unit pexpr;
                  else
                   pd:=p1^.typenodetype;
                  pd2:=pd;
-                 
+
                  if (pd^.deftype<>pointerdef) or
                     (ppointerdef(pd)^.definition^.deftype<>objectdef) then
                   begin
@@ -1591,25 +1590,22 @@ unit pexpr;
                  postfixoperators;
                end;
        _FILE : begin
-               { FILE can be also a type cast }
                  pd:=cfiledef;
                  consume(_FILE);
+                 { FILE can be also a type cast }
                  if token=LKLAMMER then
                   begin
                     consume(LKLAMMER);
                     p1:=comp_expr(true);
                     consume(RKLAMMER);
                     p1:=gentypeconvnode(p1,pd);
+                    p1^.explizit:=true;
+                    { handle postfix operators here e.g. string(a)[10] }
+                    again:=true;
+                    postfixoperators;
                   end
                  else
-                  begin
-                    p1:=genzeronode(typen);
-                    p1^.resulttype:=pd;
-                  end;
-                 p1^.explizit:=true;
-                 { handle postfix operators here e.g. string(a)[10] }
-                 again:=true;
-                 postfixoperators;
+                  p1:=gentypenode(pd);
                end;
      CSTRING : begin
                  p1:=genstringconstnode(pattern);
@@ -1913,7 +1909,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.70  1998-10-21 15:12:54  pierre
+  Revision 1.71  1998-10-22 23:57:29  peter
+    * fixed filedef for typenodetype
+
+  Revision 1.70  1998/10/21 15:12:54  pierre
     * bug fix for IOCHECK inside a procedure with iocheck modifier
     * removed the GPF for unexistant overloading
       (firstcall was called with procedinition=nil !)
