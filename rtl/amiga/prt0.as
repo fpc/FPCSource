@@ -10,7 +10,8 @@ start:
 |	Save stack pointer for exit() routine
 
 	movel	   sp,STKPTR	| save stack pointer
-	addl	   #4,STKPTR	| account for this jsr to get to original
+| This was wrong compared to PCQ
+|	addl	   #4,STKPTR	| account for this jsr to get to original
 
 |	Save the command line pointer to CommandLine
 
