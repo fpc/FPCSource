@@ -52,7 +52,8 @@ unit cpupi;
        cpubase,
        aasmtai,
        tgobj,
-       symconst,symsym,paramgr,symutil;
+       symconst,symsym,paramgr,symutil,
+       verbose;
 
     constructor tppcprocinfo.create(aparent:tprocinfo);
 
@@ -119,10 +120,21 @@ unit cpupi;
 
 
     function tppcprocinfo.calc_stackframe_size:longint;
+      var
+        first_save_fpu_register: longint;
       begin
         { more or less copied from cgcpu.pas/g_stackframe_entry }
+        { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
+        case target_info.abi of
+          abi_powerpc_aix:
+            first_save_fpu_register := 14;
+          abi_powerpc_sysv:
+            first_save_fpu_register := 9;
+          else
+            internalerror(2003122903);
+        end;
         if not (po_assembler in procdef.procoptions) then
-          result := align(align((31-13+1)*4+(31-14+1)*8,16)+tg.lasttemp,16)
+          result := align(align((31-13+1)*4+(31-first_save_fpu_register+1)*8,16)+tg.lasttemp,16)
         else
           result := align(tg.lasttemp,16);
       end;
@@ -133,7 +145,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2003-12-07 16:40:45  jonas
+  Revision 1.33  2003-12-29 14:17:50  jonas
+    * fixed saving/restoring of volatile fpu registers under sysv
+    + better provisions for abi differences regarding fpu registers that have
+      to be saved
+
+  Revision 1.32  2003/12/07 16:40:45  jonas
     * moved count_locals from pstatmnt to symutils
     * use count_locals in powerpc/cpupi to check whether we should set the
       first temp offset (and as such generate a stackframe)

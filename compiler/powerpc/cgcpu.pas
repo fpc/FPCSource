@@ -173,6 +173,22 @@ const
              RS_R28,RS_R27,RS_R26,RS_R25,RS_R24,RS_R23,RS_R22,
              RS_R21,RS_R20,RS_R19,RS_R18,RS_R17,RS_R16,RS_R15,
              RS_R14,RS_R13],first_int_imreg,[]);
+        case target_info.abi of
+          abi_powerpc_aix:
+            rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
+                [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,
+                 RS_F10,RS_F11,RS_F12,RS_F13,RS_F31,RS_F30,RS_F29,RS_F28,RS_F27,
+                 RS_F26,RS_F25,RS_F24,RS_F23,RS_F22,RS_F21,RS_F20,RS_F19,RS_F18,
+                 RS_F17,RS_F16,RS_F15,RS_F14],first_fpu_imreg,[]);
+          abi_powerpc_sysv:
+            rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
+                [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,
+                 RS_F31,RS_F30,RS_F29,RS_F28,RS_F27,RS_F26,RS_F25,RS_F24,RS_F23,
+                 RS_F22,RS_F21,RS_F20,RS_F19,RS_F18,RS_F17,RS_F16,RS_F15,RS_F14,
+                 RS_F13,RS_F12,RS_F11,RS_F10],first_fpu_imreg,[]);
+          else
+            internalerror(2003122903);
+        end;
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,
              RS_F10,RS_F11,RS_F12,RS_F13,RS_F31,RS_F30,RS_F29,RS_F28,RS_F27,
@@ -942,9 +958,8 @@ const
          href,href2 : treference;
          usesfpr,usesgpr,gotgot : boolean;
          parastart : aword;
-         offset : aword;
 //         r,r2,rsp:Tregister;
-         regcounter2: Tsuperregister;
+         regcounter2, firstfpureg: Tsuperregister;
          hp: tparaitem;
 
       begin
@@ -960,9 +975,16 @@ const
 
         usesfpr:=false;
         if not (po_assembler in current_procinfo.procdef.procoptions) then
-{$warning FIXME!!}
-          { FIXME: has to be R_F8 instad of R_F14 for SYSV abi }
-          for regcounter:=RS_F14 to RS_F31 do
+          { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
+          case target_info.abi of
+            abi_powerpc_aix:
+              firstfpureg := RS_F14;
+            abi_powerpc_sysv:
+              firstfpureg := RS_F9;
+            else
+              internalerror(2003122903);
+          end;
+          for regcounter:=firstfpureg to RS_F31 do
            begin
              if regcounter in rg[R_FPUREGISTER].used_in_proc then
               begin
@@ -1173,22 +1195,33 @@ const
          regcounter,firstregfpu,firstreggpr: TsuperRegister;
          href : treference;
          usesfpr,usesgpr,genret : boolean;
-         regcounter2:Tsuperregister;
+         regcounter2, firstfpureg:Tsuperregister;
          localsize: aword;
       begin
         { AltiVec context restore, not yet implemented !!! }
 
         usesfpr:=false;
         if not (po_assembler in current_procinfo.procdef.procoptions) then
-          for regcounter:=RS_F14 to RS_F31 do
-           begin
-             if regcounter in rg[R_FPUREGISTER].used_in_proc then
-              begin
-                 usesfpr:=true;
-                 firstregfpu:=regcounter;
-                 break;
-              end;
-           end;
+          begin
+            { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
+            case target_info.abi of
+              abi_powerpc_aix:
+                firstfpureg := RS_F14;
+              abi_powerpc_sysv:
+                firstfpureg := RS_F9;
+              else
+                internalerror(2003122903);
+            end;
+            for regcounter:=firstfpureg to RS_F31 do
+             begin
+               if regcounter in rg[R_FPUREGISTER].used_in_proc then
+                begin
+                   usesfpr:=true;
+                   firstregfpu:=regcounter;
+                   break;
+                end;
+             end;
+          end;
 
         usesgpr:=false;
         if not (po_assembler in current_procinfo.procdef.procoptions) then
@@ -1307,19 +1340,30 @@ const
          usesfpr,usesgpr: boolean;
          href : treference;
          offset: integer;
-         regcounter2: Tsuperregister;
+         regcounter2, firstfpureg: Tsuperregister;
     begin
       usesfpr:=false;
       if not (po_assembler in current_procinfo.procdef.procoptions) then
-        for regcounter:=RS_F14 to RS_F31 do
-         begin
-           if regcounter in rg[R_FPUREGISTER].used_in_proc then
-            begin
-               usesfpr:=true;
-               firstregfpu:=regcounter;
-               break;
+        begin
+            { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
+            case target_info.abi of
+              abi_powerpc_aix:
+                firstfpureg := RS_F14;
+              abi_powerpc_sysv:
+                firstfpureg := RS_F9;
+              else
+                internalerror(2003122903);
             end;
-         end;
+          for regcounter:=firstfpureg to RS_F31 do
+           begin
+             if regcounter in rg[R_FPUREGISTER].used_in_proc then
+              begin
+                 usesfpr:=true;
+                 firstregfpu:=regcounter;
+                 break;
+              end;
+           end;
+        end;
       usesgpr:=false;
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         for regcounter2:=RS_R13 to RS_R31 do
@@ -1375,20 +1419,31 @@ const
          usesfpr,usesgpr: boolean;
          href : treference;
          offset: integer;
-         regcounter2: Tsuperregister;
+         regcounter2, firstfpureg: Tsuperregister;
 
     begin
       usesfpr:=false;
       if not (po_assembler in current_procinfo.procdef.procoptions) then
-        for regcounter:=RS_F14 to RS_F31 do
-         begin
-           if regcounter in rg[R_FPUREGISTER].used_in_proc then
-            begin
-               usesfpr:=true;
-               firstregfpu:=regcounter;
-               break;
-            end;
-         end;
+        begin
+          { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
+          case target_info.abi of
+            abi_powerpc_aix:
+              firstfpureg := RS_F14;
+            abi_powerpc_sysv:
+              firstfpureg := RS_F9;
+            else
+              internalerror(2003122903);
+          end;
+          for regcounter:=firstfpureg to RS_F31 do
+           begin
+             if regcounter in rg[R_FPUREGISTER].used_in_proc then
+              begin
+                 usesfpr:=true;
+                 firstregfpu:=regcounter;
+                 break;
+              end;
+           end;
+        end;
 
       usesgpr:=false;
       if not (po_assembler in current_procinfo.procdef.procoptions) then
@@ -2326,7 +2381,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.153  2003-12-29 11:13:53  jonas
+  Revision 1.154  2003-12-29 14:17:50  jonas
+    * fixed saving/restoring of volatile fpu registers under sysv
+    + better provisions for abi differences regarding fpu registers that have
+      to be saved
+
+  Revision 1.153  2003/12/29 11:13:53  jonas
     * fixed tb0350 (support loading address of reference containing the
       address 0)
 
