@@ -542,6 +542,7 @@ function GetStringTypeW(dwInfoType: DWORD; const lpSrcStr: WCHAR; cchSrc: BOOL; 
 function GetSystemPaletteEntries(DC: HDC; StartIndex, NumEntries: UINT; var PaletteEntries): UINT; external 'gdi32' name 'GetSystemPaletteEntries';
 function GetSystemPowerStatus(var lpSystemPowerStatus: TSystemPowerStatus): BOOL;external 'kernel32' name 'GetSystemPowerStatus';
 function GetSystemTimeAdjustment(var lpTimeAdjustment, lpTimeIncrement: DWORD; var lpTimeAdjustmentDisabled: BOOL): BOOL; external 'kernel32' name 'GetSystemTimeAdjustment';
+procedure GetSystemTimeAsFileTime(var lpSystemTimeAsFileTime:TFILETIME); external 'kernel32' name 'GetSystemTimeAsFileTime';
 function GetTabbedTextExtent(hDC: HDC; lpString: PChar; nCount, nTabPositions: Integer; var lpnTabStopPositions): DWORD;external 'user32' name 'GetTabbedTextExtentA';
 function GetTabbedTextExtentA(hDC: HDC; lpString: LPCSTR; nCount, nTabPositions: Integer; var lpnTabStopPositions): DWORD; external 'user32' name 'GetTabbedTextExtentA';
 function GetTabbedTextExtentW(hDC: HDC; lpString: LPWSTR; nCount, nTabPositions: Integer; var lpnTabStopPositions): DWORD; external 'user32' name 'GetTabbedTextExtentW';
@@ -1051,7 +1052,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2004-02-07 00:21:10  marco
+  Revision 1.19  2004-02-08 17:13:11  marco
+   * getsystemtimeasfiletime
+
+  Revision 1.18  2004/02/07 00:21:10  marco
    * small fix
 
   Revision 1.17  2004/01/19 19:29:11  michael

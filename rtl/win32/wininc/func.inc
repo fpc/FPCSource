@@ -235,6 +235,7 @@ function SetVoiceThreshold(nVoice:DWORD; nNotes:DWORD):DWORD; external External_
 {$endif Unknown_functions}
 function MulDiv(nNumber:longint; nNumerator:longint; nDenominator:longint):longint; external 'kernel32' name 'MulDiv';
 procedure GetSystemTime(lpSystemTime:LPSYSTEMTIME); external 'kernel32' name 'GetSystemTime';
+procedure GetSystemTimeAsFileTime(lpSystemTimeAsFileTime:LPFILETIME); external 'kernel32' name 'GetSystemTimeAsFileTime';
 function SetSystemTime(lpSystemTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' name 'SetSystemTime';
 procedure GetLocalTime(lpSystemTime:LPSYSTEMTIME); external 'kernel32' name 'GetLocalTime';
 function SetLocalTime(lpSystemTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' name 'SetLocalTime';
@@ -2331,7 +2332,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2003-01-02 22:07:00  peter
+  Revision 1.19  2004-02-08 17:11:34  marco
+   * getsystemtimeasfiletime
+
+  Revision 1.18  2003/01/02 22:07:00  peter
     * missing items
 
   Revision 1.17  2002/12/27 18:13:38  peter
