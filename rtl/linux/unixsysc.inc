@@ -59,11 +59,10 @@ Function AssignPipe(var pipe_in,pipe_out:longint):boolean; [public, alias : 'FPC
 var
   pip  : tpipe;
 begin
-  do_SysCall(SysCall_nr_pipe,longint(@pip));
+  assignPipe:=do_SysCall(SysCall_nr_pipe,longint(@pip))=0;
   pipe_in:=pip[1];
   pipe_out:=pip[2];
   linuxerror:=fpgeterrno;
-  AssignPipe:=(LinuxError=0);
 end;
 
 Function PClose(Var F:text) :longint;
@@ -118,7 +117,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2003-10-30 16:42:25  marco
+  Revision 1.16  2003-11-09 13:48:55  marco
+   * small fix
+
+  Revision 1.15  2003/10/30 16:42:25  marco
    * Killing off old syscall convention anywhere except for oldlinux
 
   Revision 1.14  2003/10/17 22:11:28  olle
