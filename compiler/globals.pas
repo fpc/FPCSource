@@ -1336,11 +1336,19 @@ implementation
             end;
            { enum packing }
            if (m_tp7 in aktmodeswitches) then
-            aktpackenum:=1
+             aktpackenum:=1
            else
-            aktpackenum:=4;
+             aktpackenum:=4;
            if changeinit then
-            initpackenum:=aktpackenum;
+             initpackenum:=aktpackenum;
+{$ifdef i386}
+           { Default to intel assembler for delphi/tp7 on i386 }
+           if (m_delphi in aktmodeswitches) or
+              (m_tp7 in aktmodeswitches) then
+             aktasmmode:=asmmode_i386_intel;
+           if changeinit then
+             initasmmode:=aktasmmode;
+{$endif i386}
          end;
 
         SetCompileMode:=b;
@@ -1696,7 +1704,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  2003-10-01 20:34:48  peter
+  Revision 1.105  2003-10-02 21:16:18  peter
+    * delphi and tp7 mode use intel asm by default
+
+  Revision 1.104  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
