@@ -218,7 +218,7 @@ uses
   defutil,systems,verbose,globals,
   symsym,symtable,paramgr,
   aasmcpu,
-  cgbase;
+  cgbase,tgobj;
 
 {*************************************************************************
                               TExprParse
@@ -877,7 +877,7 @@ Begin
                       else
                         message1(asmr_e_local_para_unreachable,s);
                     end;
-                  opr.ref.offset:=-(tvarsym(sym).address);
+                  opr.ref.offset:=tg.direction*(tvarsym(sym).address);
                   if (current_procdef.localst.symtablelevel=tvarsym(sym).owner.symtablelevel) then
                     begin
                       opr.ref.offsetfixup:=current_procdef.localst.address_fixup;
@@ -1574,7 +1574,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.58  2003-04-27 11:21:34  peter
+  Revision 1.59  2003-05-12 17:22:00  jonas
+    * fixed (last?) remaining -tvarsym(X).address to
+      tg.direction*tvarsym(X).address...
+
+  Revision 1.58  2003/04/27 11:21:34  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

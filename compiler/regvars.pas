@@ -305,7 +305,7 @@ implementation
                   begin
                     reference_reset(hr);
                     if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
-                      hr.offset:=-vsym.address+vsym.owner.address_fixup
+                      hr.offset:=tg.direction*vsym.address+vsym.owner.address_fixup
                     else
                       hr.offset:=vsym.address+vsym.owner.address_fixup;
                     hr.base:=current_procinfo.framepointer;
@@ -332,7 +332,7 @@ implementation
           asml.concat(tai_regalloc.alloc(reg));
           reference_reset(hr);
           if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
-            hr.offset:=-vsym.address+vsym.owner.address_fixup
+            hr.offset:=tg.direction*vsym.address+vsym.owner.address_fixup
           else
             hr.offset:=vsym.address+vsym.owner.address_fixup;
           hr.base:=current_procinfo.framepointer;
@@ -500,7 +500,11 @@ end.
 
 {
   $Log$
-  Revision 1.47  2003-04-27 11:21:34  peter
+  Revision 1.48  2003-05-12 17:22:00  jonas
+    * fixed (last?) remaining -tvarsym(X).address to
+      tg.direction*tvarsym(X).address...
+
+  Revision 1.47  2003/04/27 11:21:34  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

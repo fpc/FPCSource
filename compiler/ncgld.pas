@@ -194,13 +194,9 @@ implementation
                                   location.reference.base:=current_procinfo.framepointer;
                                   if (symtabletype in [inlinelocalsymtable,
                                                        localsymtable])
-{$ifdef powerpc}
-                                    { the ifdef is only for speed reasons }
-                                    and not(target_info.system in [system_powerpc_linux,system_powerpc_macos])
-{$endif powerpc}
                                     then
                                     location.reference.offset:=
-                                      tvarsym(symtableentry).address-symtable.address_fixup
+                                      tvarsym(symtableentry).address+tg.direction*symtable.address_fixup
                                   else
                                     location.reference.offset:=
                                       tvarsym(symtableentry).address+symtable.address_fixup;
@@ -936,7 +932,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-05-11 21:37:03  peter
+  Revision 1.58  2003-05-12 17:22:00  jonas
+    * fixed (last?) remaining -tvarsym(X).address to
+      tg.direction*tvarsym(X).address...
+
+  Revision 1.57  2003/05/11 21:37:03  peter
     * moved implicit exception frame from ncgutil to psub
     * constructor/destructor helpers moved from cobj/ncgutil to psub
 
