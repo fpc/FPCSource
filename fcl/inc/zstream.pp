@@ -133,8 +133,6 @@ procedure TCompressionStream.CompressBuf(const InBuf: Pointer; InBytes: Integer;
 var
   strm: TZStream;
   P: Pointer;
-Type
-  PByte = ^Byte;
 begin
   FillChar(strm, sizeof(strm), 0);
   strm.zalloc := @zlibAllocMem;
@@ -153,7 +151,7 @@ begin
         P := OutBuf;
         Inc(OutBytes, 256);
         ReallocMem(OutBuf,OutBytes);
-        strm.next_out := PChar(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
+        strm.next_out := PByte(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
         strm.avail_out := 256;
       end;
     finally
@@ -198,7 +196,7 @@ begin
         P := OutBuf;
         Inc(OutBytes, BufInc);
         ReallocMem(OutBuf, OutBytes);
-        strm.next_out := Pchar(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
+        strm.next_out := PByte(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
         strm.avail_out := BufInc;
       end;
     finally
@@ -449,7 +447,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2000-01-12 23:29:49  peter
+  Revision 1.15  2000-01-12 23:43:40  peter
+    * fixed zstream, it works now correct with zlib/paszlib
+
+  Revision 1.14  2000/01/12 23:29:49  peter
     * log added
 
 }
