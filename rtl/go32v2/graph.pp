@@ -527,6 +527,7 @@ begin
   if not isgraphmode then
     begin
       _graphresult:=grNoInitGraph;
+      GetGraphMode:=grNoInitGraph;
       Exit;
     end;
   GetGraphMode:=GetVesaMode;
@@ -1009,7 +1010,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:03  peter
+  Revision 1.2  1999-02-01 13:19:01  pierre
+   * getgraphmode returns -1 if not in graphic mode
+
+  Revision 1.1  1998/12/21 13:07:03  peter
     * use -FE
 
   Revision 1.15  1998/12/15 22:42:50  peter
