@@ -112,10 +112,13 @@ Begin
        FileFunc(TextRec(t).InOutFunc)(TextRec(t));
      TextRec(t).mode:=fmClosed;
    { Only close functions not connected to stdout.}
-     If ((TextRec(t).Handle<>StdInputHandle) or
-         (TextRec(t).Handle<>StdOutputHandle) or
+     If ((TextRec(t).Handle<>StdInputHandle) and
+         (TextRec(t).Handle<>StdOutputHandle) and
          (TextRec(t).Handle<>StdErrorHandle)) Then
       FileFunc(TextRec(t).CloseFunc)(TextRec(t));
+      { this was missing !!! PM }
+      TextRec(t).BufPos:=0;
+      TextRec(t).BufEnd:=0;
    End;
 End;
 
@@ -1197,7 +1200,11 @@ end;
 
 {
   $Log$
-  Revision 1.21  1998-08-17 22:42:17  michael
+  Revision 1.22  1998-08-26 11:23:25  pierre
+    * close did not reset the bufpos and bufend fields
+      led to problems when using the same file several times
+
+  Revision 1.21  1998/08/17 22:42:17  michael
   + Flush on close only for output files cd ../inc
 
   Revision 1.20  1998/08/11 00:05:28  peter
