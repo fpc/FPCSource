@@ -148,6 +148,13 @@ implementation
              compares,maxcompares:word;
              i:byte;
            begin
+	     if Aset=[] then
+		{The expression...
+		    if expr in []
+		 ...is allways false. It should be optimized away in the
+		 resulttype pass, and thus never occur here. Since we
+		 do generate wrong code for it, do internalerror.}
+		internalerror(2002072301);
              analizeset:=false;
              ranges:=false;
              numparts:=0;
@@ -584,7 +591,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-07-23 12:34:30  daniel
+  Revision 1.10  2002-07-23 14:31:00  daniel
+  * Added internal error when asked to generate code for 'if expr in []'
+
+  Revision 1.9  2002/07/23 12:34:30  daniel
   * Readded old set code. To use it define 'oldset'. Activated by default
     for ppc.
 

@@ -118,6 +118,13 @@ implementation
              compares,maxcompares:word;
              i:byte;
            begin
+             if byteset(Aset^)=[] then
+                {The expression...
+                    if expr in []
+                 ...is allways false. It should be optimized away in the
+                 resulttype pass, and thus never occur here. Since we
+                 do generate wrong code for it, do internalerror.}
+                internalerror(2002072301);
              analizeset:=false;
              ranges:=false;
              numparts:=0;
@@ -1016,7 +1023,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-07-20 11:58:04  florian
+  Revision 1.36  2002-07-23 14:31:00  daniel
+  * Added internal error when asked to generate code for 'if expr in []'
+
+  Revision 1.35  2002/07/20 11:58:04  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
