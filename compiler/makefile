@@ -212,6 +212,7 @@ all : $(EXENAME)
 
 clean :
 	-rm -f *.o *.ppu *.s $(EXENAME)
+	-rm -f $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3)
 
 #####################################################################
 # Info
@@ -412,7 +413,10 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.12  1998-05-31 14:09:45  peter
+# Revision 1.13  1998-06-02 11:29:36  peter
+#   + make clean removes also ppc1 - ppc3
+#
+# Revision 1.12  1998/05/31 14:09:45  peter
 #   * use mv -f instead of move /y whch is not dos6.2 compatible
 #
 # Revision 1.11  1998/05/06 14:03:27  michael
