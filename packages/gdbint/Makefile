@@ -882,8 +882,20 @@ info: fpc_info
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
+.PHONY: localgdbverexe
+localgdbverexe : ./getver$(EXEEXT)
+./getver$(EXEEXT) : ./gdbver.pp
+	$(COMPILER) -o./getver$(EXEEXT) gdbver.pp
+ifdef GDBVER
 gdbint$(PPUEXT): gdbint.pp
+	$(ECHO) Using GDB $(GDBVER)
+	$(COMPILER) -d$(GDBVER) gdbint.pp
+else
+gdbint$(PPUEXT): localgdbverexe gdbver$(EXEEXT)
+	$(MAKE) gdbint$(PPUEXT) GDBVER=GDB_V$(strip $(shell ./gdbver$(EXEEXT) -n))
+endif
 gdbcon$(PPUEXT): gdbcon.pp gdbint$(PPUEXT)
+gdbver$(EXEEXT): gdbver.pp
 ifeq ($(OS_TARGET),go32v2)
 DBGCOM=dbgcom$(OEXT)
 else

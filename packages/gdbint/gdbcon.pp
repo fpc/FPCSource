@@ -36,6 +36,8 @@ type
     procedure Run;virtual;
     procedure TraceStep;virtual;
     procedure TraceNext;virtual;
+    procedure TraceStepI;virtual;
+    procedure TraceNextI;virtual;
     procedure Continue;virtual;
     { needed for dos because newlines are only #10 (PM) }
     procedure WriteErrorBuf;
@@ -122,7 +124,8 @@ begin
     strdispose(progname);
   getmem(progname,length(fn)+1);
   strpcopy(progname,fn);
-  Command('file '+fn);
+  if fn<>'' then
+    Command('file '+fn);
   LoadFile:=true;
 end;
 
@@ -171,6 +174,18 @@ end;
 procedure TGDBController.TraceNext;
 begin
   Command('next');
+end;
+
+
+procedure TGDBController.TraceStepI;
+begin
+  Command('stepi');
+end;
+
+
+procedure TGDBController.TraceNextI;
+begin
+  Command('nexti');
 end;
 
 
@@ -243,7 +258,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:15  michael
+  Revision 1.3  2001-04-08 11:43:39  peter
+    * merged changes from fixes branch
+
+  Revision 1.2  2000/07/13 11:33:15  michael
   + removed logs
- 
+
 }
