@@ -1387,7 +1387,11 @@ implementation
           that can be used to access protected members in other
           units. At least kylix supports it this way (PFV) }
         if assigned(st) and
-           (st.symtabletype=objectsymtable) and
+           (
+            (st.symtabletype=objectsymtable) or
+            ((st.symtabletype=withsymtable) and
+             (st.defowner.deftype=objectdef))
+           ) and
            (st.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
            st.defowner.owner.iscurrentunit then
           topclassh:=tobjectdef(st.defowner)
@@ -2049,7 +2053,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.121  2005-03-28 15:04:40  peter
+  Revision 1.122  2005-04-01 07:12:29  marco
+   * from peter for bug 3862
+
+  Revision 1.121  2005/03/28 15:04:40  peter
   valid_property is only used for calln. Fields are always allowed
 
   Revision 1.120  2005/03/25 22:20:18  peter
