@@ -227,7 +227,8 @@ type
     special : boolean;
     keyword : tmodeswitch;
     op      : ttoken;
-    encoded : longint;
+{ unused currently? (JM)
+    encoded : longint; }
   end;
 
   ttokenarray=array[ttoken] of tokenrec;
@@ -478,10 +479,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-05-04 15:52:04  florian
+  Revision 1.10  2001-05-06 17:12:43  jonas
+    - commented out an unused field in tokenrec
+
+  Revision 1.9  2001/05/04 15:52:04  florian
     * some Delphi incompatibilities fixed:
+
        - out, dispose and new can be used as idenfiers now
+
        - const p = apointerype(nil); is supported now
+
     + support for const p = apointertype(pointer(1234)); added
 
   Revision 1.8  2001/03/22 22:35:43  florian
