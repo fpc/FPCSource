@@ -99,12 +99,15 @@ var
 Procedure Move(Var source,dest;count:Longint);
 Procedure FillChar(Var x;count:Longint;Value:Char);
 Procedure FillChar(Var x;count:Longint;Value:byte);
+{$ifndef RTLLITE}
 Procedure FillWord(Var x;count:Longint;Value:Word);
+{$endif RTLLITE}
 
 {****************************************************************************
-                               Math Routines
+							   Math Routines
 ****************************************************************************}
 
+{$ifndef RTLLITE}
 Function  lo(w:Word):byte;
 Function  lo(l:Longint):Word;
 Function  lo(i:Integer):byte;
@@ -113,6 +116,8 @@ Function  hi(w:Word):byte;
 Function  hi(i:Integer):byte;
 Function  hi(l:Longint):Word;
 Function  Hi(B : Byte): byte;
+
+{$endif RTLLITE}
 
 Procedure Inc(Var i:cardinal);
 Procedure Inc(Var i:Longint);
@@ -132,6 +137,8 @@ Procedure Dec(Var c:Char);
 Procedure Dec(Var p:PChar);
 Function Chr(b:byte):Char;
 Function Length(s:string):byte;
+
+{$ifndef RTLLITE}
 
 Procedure Dec(Var i:cardinal;a:Longint);
 Procedure Inc(Var i:cardinal;a:Longint);
@@ -154,6 +161,8 @@ Function  Swap (X:Integer):Integer;
 Function  Swap (X:Cardinal):Cardinal;
 Function  Swap (X:Longint):Longint;
 
+{$endif RTLLITE}
+
 Function  Random(l:Longint):Longint;
 Function  Random:real;
 Procedure Randomize;
@@ -166,21 +175,24 @@ Function odd(l:Longint):Boolean;
 
 
 {****************************************************************************
-                             Memory management
+							 Memory management
 ****************************************************************************}
 
 Procedure getmem(Var p:pointer;Size:Longint);
 Procedure freemem(Var p:pointer;Size:Longint);
 Function  memavail:Longint;
 Function  maxavail:Longint;
+
+{$ifndef RTLLITE}
 Function  ptr(sel,off:Longint):pointer;
 Function  Addr (Var X):pointer;
 Function  Cseg:Word;
 Function  Dseg:Word;
 Function  Sseg:Word;
+{$endif RTLLITE}
 
 {****************************************************************************
-                              PChar Handling
+							  PChar Handling
 ****************************************************************************}
 
 function strpas(p:pchar):string;
@@ -253,8 +265,8 @@ Procedure Val (Const S : AnsiString; var D : Double; Var Code : Integer);
 }
 Procedure Val (Const S : AnsiString; var E : Extended; Code : Integer); 
 Procedure Val (Const S : AnsiString; var C : Cardinal; Code : Integer); 
-Procedure Val (Const S : AnsiString; var L : Longint; Var Code : Integer); 
-Procedure Val (Const S : AnsiString; var W : Word; Var Code : Integer); 
+Procedure Val (Const S : AnsiString; var L : Longint; Var Code : Integer);
+Procedure Val (Const S : AnsiString; var W : Word; Var Code : Integer);
 Procedure Val (Const S : AnsiString; var I : Integer; Var Code : Integer); 
 Procedure Val (Const S : AnsiString; var B : Byte; Var Code : Integer); 
 Procedure Val (Const S : AnsiString; var SI : ShortInt; Var  Code : Integer); 
@@ -371,7 +383,11 @@ Procedure AddExitProc(Proc:TProcedure);
 
 {
   $Log$
-  Revision 1.11  1998-06-08 12:38:23  michael
+  Revision 1.12  1998-06-15 15:16:27  daniel
+
+  * RTLLITE conditional added to produce smaller RTL
+
+  Revision 1.11  1998/06/08 12:38:23  michael
   Implemented rtti, inserted ansistrings again
 
   Revision 1.10  1998/06/04 23:46:02  peter

@@ -120,7 +120,7 @@ Procedure incr_ansi_ref (P : pointer);[Alias : 'INCR_ANSI_REF'];
 
 
 {****************************************************************************
-                         Run-Time Type Information (RTTI)
+						 Run-Time Type Information (RTTI)
 ****************************************************************************}
 
 
@@ -129,6 +129,8 @@ Procedure incr_ansi_ref (P : pointer);[Alias : 'INCR_ANSI_REF'];
 {****************************************************************************
                                Math Routines
 ****************************************************************************}
+
+{$ifndef RTLLITE}
 
 function Hi(b : byte): byte;
 begin
@@ -241,6 +243,8 @@ Begin
 End;
 
 
+{$endif RTLLITE}
+
 {$R-}
 
 Function Random : real;
@@ -258,8 +262,10 @@ End;
 {$I math.inc}
 
 {****************************************************************************
-                             Memory Management
+							 Memory Management
 ****************************************************************************}
+
+{$ifndef RTLLITE}
 
 Function Ptr(sel,off : Longint) : pointer;
 Begin
@@ -287,8 +293,10 @@ Begin
   Sseg:=0;
 End;
 
+{$endif RTLLITE}
+
 {*****************************************************************************
-                             Miscellaneous
+							 Miscellaneous
 *****************************************************************************}
 
 
@@ -416,7 +424,11 @@ End;
 
 {
   $Log$
-  Revision 1.9  1998-06-10 07:46:45  michael
+  Revision 1.10  1998-06-15 15:16:26  daniel
+
+  * RTLLITE conditional added to produce smaller RTL
+
+  Revision 1.9  1998/06/10 07:46:45  michael
   + Forgot to commit some changes
 
   Revision 1.8  1998/06/08 12:38:24  michael
