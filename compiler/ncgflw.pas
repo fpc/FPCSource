@@ -278,7 +278,7 @@ implementation
     procedure tcgfornode.pass_2;
       var
          l3,oldclabel,oldblabel : tasmlabel;
-         {omitfirstcomp,}temptovalue : boolean;
+         temptovalue : boolean;
          hs : byte;
          temp1 : treference;
          hop : topcg;
@@ -292,15 +292,6 @@ implementation
          getlabel(aktcontinuelabel);
          getlabel(aktbreaklabel);
          getlabel(l3);
-
-         { could we spare the first comparison ? }
-{         omitfirstcomp:=false;
-         if right.nodetype=ordconstn then
-           if tassignmentnode(left).right.nodetype=ordconstn then
-             omitfirstcomp:=((nf_backward in flags) and
-               (tordconstnode(tassignmentnode(left).right).value>=tordconstnode(right).value))
-               or (not(nf_backward in flags) and
-                  (tordconstnode(tassignmentnode(left).right).value<=tordconstnode(right).value));}
 
          { only calculate reference }
          rg.cleartempgen;
@@ -366,10 +357,23 @@ implementation
                end;
            end;
 
+         if nf_backward in flags then
+           hop:=OP_ADD
+         else
+           hop:=OP_SUB;
+         cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
+
 	 if not(cs_littlesize in aktglobalswitches) then
             { align loop target }
             exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
          cg.a_label(exprasmlist,l3);
+
+         { according to count direction DEC or INC... }
+         if nf_backward in flags then
+           hop:=OP_SUB
+         else
+           hop:=OP_ADD;
+         cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
 
          { help register must not be in instruction block }
          rg.cleartempgen;
@@ -386,14 +390,14 @@ implementation
 
          if nf_backward in flags then
            if count_var_is_signed then
-             hcond:=OC_LTE
+             hcond:=OC_GT
            else
-             hcond:=OC_BE
+             hcond:=OC_A
           else
             if count_var_is_signed then
-              hcond:=OC_GTE
+              hcond:=OC_LT
             else
-              hcond:=OC_AE;
+              hcond:=OC_B;
          load_all_regvars(exprasmlist);
 
          { produce comparison and the corresponding }
@@ -401,21 +405,13 @@ implementation
          if temptovalue then
            begin
              cg.a_cmp_ref_loc_label(exprasmlist,opsize,hcond,temp1,
-               t2.location,aktbreaklabel);
+               t2.location,l3);
            end
          else
            begin
              cg.a_cmp_const_loc_label(exprasmlist,opsize,hcond,
-               aword(tordconstnode(right).value),t2.location,aktbreaklabel);
+               aword(tordconstnode(right).value),t2.location,l3);
            end;
-         { according to count direction DEC or INC... }
-         { must be after the test because of 0 to 255 for bytes !! }
-         if nf_backward in flags then
-           hop:=OP_SUB
-         else
-           hop:=OP_ADD;
-         cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
-         cg.a_jmp_always(exprasmlist,l3);
 
          if temptovalue then
            tg.ungetiftemp(exprasmlist,temp1);
@@ -631,7 +627,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-07-20 11:57:54  florian
+  Revision 1.27  2002-07-20 12:54:53  daniel
+  * Optimized the code generated for for nodes. The shootout/nestloop benchmark
+    now runs 5% faster on my computer.
+
+  Revision 1.26  2002/07/20 11:57:54  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
