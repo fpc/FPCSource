@@ -6,8 +6,8 @@ asm
   stwu    r1,-16(r1)
   mflr    r0
   stw     r0,20(r1) 
-  mr      r11,r5   
-  mr      r12,r4   
+  mr      r11,r4   
+  mr      r12,r5   
   mr      r5,r3
   mr      r9,r6 
   li      r3,0  
@@ -19,6 +19,9 @@ asm
   li      r0,198
   sc
   bso     cerrorlseek
+//  mr	  r0,r3
+//  mr      r3,r4
+//  mr	  r4,r0
   lwz     r0,20(r1)
   mtlr    r0
   addi    r1,r1,16
