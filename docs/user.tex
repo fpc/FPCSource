@@ -1904,18 +1904,22 @@ You can compile your programs with profiling support. for this, you just
 have to use the compiler switch \var{-pg}. The compiler wil insert the
 necessary stuff for profiling. 
 
-When you have done this, you can run your program uder the gnu profiler,
-\var{gprof}, as follows :
+When you have done this, you can run your program as you normally would run
+it.
 \begin{verbatim}
-gprog yourexe
+yourexe
 \end{verbatim}
 Where \file{yourexe} is the name of your executable.
 
-You may want to capture the outpus of the profiler in a file, since it can
-be quite a lot, as follows:
+When your program finishes a file called gmon.out is generated. Then you can start
+the profiler to see the output. You can better redirect the output to a file, becuase
+it could be quite a lot:
 \begin{verbatim}
-gprog yourexe >gprof.out
+gprof yourexe > profile.log
 \end{verbatim}
+
+Hint: you can use the --flat option to reduce the amount of output of gprof. It will
+then only output the information about the timings
 
 For more information on the \gnu profiler \var{gprof}, see its manual.
 
