@@ -76,6 +76,7 @@ unit cpupara;
           internalerror(2002070801);
         cgpara.reset;
         cgpara.size:=OS_INT;
+        cgpara.intsize:=tcgsize2size[OS_INT];
         cgpara.alignment:=std_param_align;
         paraloc:=cgpara.add_location;
         with paraloc^ do
@@ -272,6 +273,7 @@ unit cpupara;
                end;
 
              paralen:=tcgsize2size[paracgsize];
+            hp.paraloc[side].intsize:=paralen;
 {$ifdef EXTDEBUG}
              if paralen=0 then
                internalerror(200410311);
@@ -444,7 +446,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2005-01-01 19:30:17  florian
+  Revision 1.29  2005-01-15 21:45:35  florian
+    * arm compiler fixed
+
+  Revision 1.28  2005/01/01 19:30:17  florian
     * ie with array of const;cdecl; fixed
 
   Revision 1.27  2004/11/24 22:03:26  florian
