@@ -957,30 +957,14 @@
          varoptions:=[];
          { can we load the value into a register ? }
          if tt.def^.is_intregable then
-{$ifdef INCLUDEOK}
            include(varoptions,vo_regable)
-{$else}
-           varoptions:=varoptions+[vo_regable]
-{$endif}
          else
-{$ifdef INCLUDEOK}
            exclude(varoptions,vo_regable);
-{$else}
-           varoptions:=varoptions-[vo_regable];
-{$endif}
 
          if tt.def^.is_fpuregable then
-{$ifdef INCLUDEOK}
            include(varoptions,vo_fpuregable)
-{$else}
-           varoptions:=varoptions+[vo_fpuregable]
-{$endif}
          else
-{$ifdef INCLUDEOK}
-           exclude(varoptions,vo_regable);
-{$else}
-           varoptions:=varoptions-[vo_fpuregable];
-{$endif}
+           exclude(varoptions,vo_fpuregable);
          reg:=R_NO;
       end;
 
@@ -2138,7 +2122,10 @@
 
 {
   $Log$
-  Revision 1.136  2000-01-07 01:14:40  peter
+  Revision 1.137  2000-02-04 08:47:10  florian
+    * better register variable allocation in -Or mode
+
+  Revision 1.136  2000/01/07 01:14:40  peter
     * updated copyright to 2000
 
   Revision 1.135  2000/01/03 19:26:04  peter

@@ -857,7 +857,7 @@ implementation
                   p^.left:=gentypeconvnode(p^.left,bestrealdef^);
                   firstpass(p^.left);
                   firstpass(p^.right);
-                  calcregisters(p,1,1,0);
+                  calcregisters(p,0,1,0);
                   p^.location.loc:=LOC_FPU;
                 end;
               convdone:=true;
@@ -1254,7 +1254,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2000-01-07 01:14:43  peter
+  Revision 1.64  2000-02-04 08:47:10  florian
+    * better register variable allocation in -Or mode
+
+  Revision 1.63  2000/01/07 01:14:43  peter
     * updated copyright to 2000
 
   Revision 1.62  2000/01/04 20:10:20  florian
