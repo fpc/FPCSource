@@ -22,16 +22,13 @@
 { If you use an aout system, set the conditional AOUT}
 { $Define AOUT}
 
-{$ifdef BSD}
-Unit {$ifdef VER1_0}SysBSD{$else}System{$endif};
-{$else}
 Unit {$ifdef VER1_0}Syslinux{$else}System{$endif};
-{$endif}
 
 Interface
 {$define oldreaddir}
 {$define usedomain}
 {$define posixworkaround}
+{$define FPC_IS_SYSTEM}
 
 {$I sysunixh.inc}
 
@@ -136,7 +133,10 @@ End.
 
 {
   $Log$
-  Revision 1.8  2003-09-14 20:15:01  marco
+  Revision 1.9  2003-12-30 12:36:56  marco
+   * FPC_USE_LIBC
+
+  Revision 1.8  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.7  2003/04/30 22:11:06  florian

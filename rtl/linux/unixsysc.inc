@@ -24,6 +24,7 @@ begin
   flock:=do_Syscall(Syscall_nr_flock,fd,mode);
 end;
 
+{
 Function StatFS(Path:Pathstr;Var Info:tstatfs):cint;
 {
   Get all information on a fileSystem, and return it in Info.
@@ -34,7 +35,7 @@ begin
   path:=path+#0;
   StatFS:=(do_SysCall(SysCall_nr_statfs,longint(@path[1]),longint(@Info)));
 end;
-
+}
 Function fStatFS(Fd:cint;Var Info:tstatfs):cint;
 {
   Get all information on a fileSystem, and return it in Info.
@@ -110,7 +111,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  2003-11-19 11:46:55  marco
+  Revision 1.22  2003-12-30 12:36:56  marco
+   * FPC_USE_LIBC
+
+  Revision 1.21  2003/11/19 11:46:55  marco
    * changes due to the previous *BSD changes. Mainly moving constants from
      unix to systypes.inc (which acts as unxtypes.inc)
 
