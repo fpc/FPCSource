@@ -222,6 +222,73 @@ unit i_bsd;
             use_function_relative_addresses : true
           );
 
+       system_powerpc_netbsd_info : tsysteminfo =
+          (
+            system       : system_powerpc_netbsd;
+            name         : 'NetBSD for PowerPC';
+            shortname    : 'NetBSD';
+            flags        : [];
+            cpu          : cpu_powerpc;
+            unit_env     : '';
+            extradefines : 'UNIX;BSD;HASUNIX';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.s';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                paraalign       : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            heapsize     : 256*1024;
+            stacksize    : 32*1024*1024;
+            DllScanSupported:false;
+            use_function_relative_addresses : true;
+            { abi_powerpc_sysv doesn't work yet }
+            abi : abi_powerpc_aix;
+          );
+
+
        system_powerpc_darwin_info  : tsysteminfo =
           (
             system       : system_powerpc_darwin;
@@ -307,11 +374,18 @@ initialization
   {$ifdef Darwin}
      set_source_info(system_powerpc_darwin_info);
   {$endif Darwin}
+  {$ifdef NetBSD}
+     set_source_info(system_powerpc_netbsd_info);
+  {$endif}
+  
 {$endif cpu68}
 end.
 {
   $Log$
-  Revision 1.1  2003-05-20 23:54:00  florian
+  Revision 1.2  2003-05-25 23:15:04  marco
+   * NetBSD target support. OpenBSD reserved in the enum, for future use.
+
+  Revision 1.1  2003/05/20 23:54:00  florian
     + basic darwin support added
 
   Revision 1.2  2003/01/11 16:35:15  marco

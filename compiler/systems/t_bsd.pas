@@ -521,11 +521,18 @@ initialization
   RegisterImport(system_powerpc_darwin,timportlibbsd);
   RegisterExport(system_powerpc_darwin,texportlibbsd);
   RegisterTarget(system_powerpc_darwin_info);
+  RegisterExternalLinker(system_powerpc_netbsd_info,TLinkerBSD);
+  RegisterImport(system_powerpc_netbsd,timportlibbsd);
+  RegisterExport(system_powerpc_netbsd,texportlibbsd);
+  RegisterTarget(system_powerpc_netbsd_info);
 {$endif powerpc}
 end.
 {
   $Log$
-  Revision 1.1  2003-05-20 23:54:00  florian
+  Revision 1.2  2003-05-25 23:15:04  marco
+   * NetBSD target support. OpenBSD reserved in the enum, for future use.
+
+  Revision 1.1  2003/05/20 23:54:00  florian
     + basic darwin support added
 
   Revision 1.5  2003/04/27 07:29:52  peter

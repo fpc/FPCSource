@@ -110,7 +110,9 @@ interface
              target_m68k_openbsd,       { 25 }
              system_x86_64_linux,       { 26 }
              system_powerpc_darwin,     { 27 }
-             system_i386_EMX            { 28 }
+             system_i386_EMX,           { 28 }
+	     system_powerpc_netbsd,	{ 29 } 
+	     system_powerpc_openbsd	{ 30 } 
        );
 
        tasm = (as_none
@@ -683,7 +685,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.62  2003-05-20 23:54:00  florian
+  Revision 1.63  2003-05-25 23:15:04  marco
+   * NetBSD target support. OpenBSD reserved in the enum, for future use.
+
+  Revision 1.62  2003/05/20 23:54:00  florian
     + basic darwin support added
 
   Revision 1.61  2003/05/18 15:15:59  florian
