@@ -32,7 +32,7 @@ begin
     end;
   Writeln ('Done.');
   Writeln ('Connection data:');
-{$ifdef linux}  
+{$ifdef Unix}  
   writeln ('Mysql_port      : ',mysql_port);
   writeln ('Mysql_unix_port : ',mysql_unix_port);
 {$endif}  
@@ -81,8 +81,3 @@ begin
   mysql_close(sock);
   halt(0);
 end.
-  $Log$
-  Revision 1.2  2000-07-13 11:33:26  michael
-  + removed logs
- 
-}

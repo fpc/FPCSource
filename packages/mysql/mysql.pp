@@ -30,7 +30,7 @@ type
    Socket = Longint;
    PCardinal = ^Cardinal;    
 
-{$ifdef linux}    
+{$ifdef Unix}    
 Var
   mysql_port : cardinal; external name 'mysql_port';
   mysql_unix_port : pchar; external name 'mysql_unix_port';
