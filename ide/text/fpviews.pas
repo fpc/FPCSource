@@ -2525,9 +2525,9 @@ begin
   if ClassS<>'' then
    ClassS:=RExpand(ClassS,0)+': ';
   S:=ClassS;
-  if (Module<>nil) {and (ID<>0)} then
-     S:=S+Module^+' ('+IntToStr(ID)+'): ';
-  if Text<>nil then S:=ClassS+Text^;
+  if (Module<>nil) and (ID<>0) then
+     S:=NameAndExtOf(Module^)+'('+IntToStr(ID)+') '+S;
+  if Text<>nil then S:=S+Text^;
   if length(S)>MaxLen then S:=copy(S,1,MaxLen-2)+'..';
   GetText:=S;
 end;
@@ -3270,7 +3270,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  1999-02-16 12:45:18  pierre
+  Revision 1.15  1999-02-17 15:04:02  pierre
+   + file(line) added in TProgramInfo message list
+
+  Revision 1.14  1999/02/16 12:45:18  pierre
    * GDBWindow size and grow corrected
 
   Revision 1.13  1999/02/15 09:36:06  pierre
