@@ -204,18 +204,7 @@ unit parser;
 
        { reset the unit or create a new program }
          if assigned(current_module) then
-          begin
-            current_module^.sourcefiles^.done;
-            current_module^.sourcefiles^.init;
-            current_module^.used_units.done;
-            current_module^.used_units.init;
-            current_module^.linkofiles.done;
-            current_module^.linkofiles.init;
-            current_module^.linkstaticlibs.done;
-            current_module^.linkstaticlibs.init;
-            current_module^.linksharedlibs.done;
-            current_module^.linksharedlibs.init;
-          end
+          current_module^.reset
          else
           begin
             current_module:=new(pmodule,init(filename,false));
@@ -235,9 +224,10 @@ unit parser;
          if compile_system then
           aktmoduleswitches:=aktmoduleswitches+[cs_compilesystem];
 
-       { startup scanner }
+       { startup scanner, and save in current_module }
          current_scanner:=new(pscannerfile,Init(filename));
          current_scanner^.readtoken;
+         current_module^.scanner:=current_scanner;
 
        { init code generator for a new module }
          codegen_newmodule;
@@ -374,7 +364,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.52  1998-09-28 16:57:22  pierre
+  Revision 1.53  1998-09-30 16:43:36  peter
+    * fixed unit interdependency with circular uses
+
+  Revision 1.52  1998/09/28 16:57:22  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer

@@ -226,9 +226,12 @@ implementation
     destructor tscannerfile.done;
       begin
         checkpreprocstack;
-      { close file }
-        if not inputfile^.closed then
-         closeinputfile;
+      { close file, but only if we are the first compile }
+        if not current_module^.in_second_compile then
+         begin
+           if not inputfile^.closed then
+            closeinputfile;
+         end;
        end;
 
 
@@ -1424,7 +1427,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  1998-09-28 16:57:26  pierre
+  Revision 1.56  1998-09-30 16:43:38  peter
+    * fixed unit interdependency with circular uses
+
+  Revision 1.55  1998/09/28 16:57:26  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer

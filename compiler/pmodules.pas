@@ -35,7 +35,7 @@ unit pmodules;
     uses
        cobjects,comphook,systems,globals,
        symtable,aasm,files,
-       hcodegen,verbose, { don't use hcodegen.message !! }
+       hcodegen,verbose,
        link,assemble,import,gendef,ppu
 {$ifdef i386}
        ,i386
@@ -184,6 +184,7 @@ unit pmodules;
         fillchar(current_module^.map^,sizeof(tunitmap),#0);
         nextmapentry:=1;
       { load the used units from interface }
+        current_module^.in_implementation:=false;
         pu:=pused_unit(current_module^.used_units.first);
         while assigned(pu) do
          begin
@@ -270,10 +271,12 @@ unit pmodules;
 
 
     function loadunit(const s : string;compile_system:boolean) : pmodule;
+      const
+        ImplIntf : array[boolean] of string[15]=('interface','implementation');
       var
         st : punitsymtable;
         old_current_ppu : pppufile;
-        old_current_module,hp : pmodule;
+        old_current_module,hp,hp2 : pmodule;
 
         procedure loadppufile;
         begin
@@ -286,7 +289,7 @@ unit pmodules;
         { recompile if set }
           if current_module^.do_compile then
            begin
-           { we needn't the ppufile }
+           { we don't need the ppufile anymore }
              if assigned(current_module^.ppufile) then
               begin
                 dispose(current_module^.ppufile,done);
@@ -321,8 +324,8 @@ unit pmodules;
       begin
          old_current_module:=current_module;
          old_current_ppu:=current_ppu;
-         { be sure not to mix lines from different files }
-         { update_line; }
+         { Info }
+         Message3(unit_t_load_unit,current_module^.modulename^,ImplIntf[current_module^.in_implementation],s);
          { unit not found }
          st:=nil;
          { search all loaded units }
@@ -339,9 +342,21 @@ unit pmodules;
                      st:=punitsymtable(hp^.symtable)
                    else
                     begin
-                    { recompile the unit ? }
+                    { both units in interface ? }
                       if (not current_module^.in_implementation) and (not hp^.in_implementation) then
-                       Message(unit_f_circular_unit_reference);
+                       begin
+                       { check for a cycle }
+                         hp2:=current_module^.loaded_from;
+                         while assigned(hp2) and (hp2<>hp) do
+                          begin
+                            if hp2^.in_implementation then
+                             hp2:=nil
+                            else
+                             hp2:=hp2^.loaded_from;
+                          end;
+                         if assigned(hp2) then
+                          Message2(unit_f_circular_unit_reference,current_module^.modulename^,hp^.modulename^);
+                       end;
                     end;
                    break;
                 end;
@@ -360,12 +375,14 @@ unit pmodules;
                hp^.done;
                hp^.init(s,true);
                current_module:=hp;
+               current_module^.in_second_compile:=true;
              end
             else
           { generates a new unit info record }
              current_module:=new(pmodule,init(s,true));
             current_ppu:=current_module^.ppufile;
           { now we can register the unit }
+            current_module^.loaded_from:=old_current_module;
             loaded_units.insert(current_module);
           { now realy load the ppu }
             loadppufile;
@@ -982,7 +999,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.57  1998-09-30 12:11:52  peter
+  Revision 1.58  1998-09-30 16:43:37  peter
+    * fixed unit interdependency with circular uses
+
+  Revision 1.57  1998/09/30 12:11:52  peter
     * fixed circular uses which looped forever
 
   Revision 1.56  1998/09/28 11:22:15  pierre

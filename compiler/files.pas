@@ -116,6 +116,7 @@ unit files;
           do_compile,               { need to compile the sources }
           sources_avail,            { if all sources are reachable }
           is_unit,
+          in_second_compile,        { is this unit being compiled for the 2nd time? }
           in_implementation,        { processing the implementation part? }
           in_global     : boolean;  { allow global settings }
 
@@ -126,6 +127,8 @@ unit files;
 {$ifdef UseBrowser}
           implsymtable  : pointer;
 {$endif UseBrowser}
+          scanner       : pointer;  { scanner object used }
+          loaded_from   : pmodule;
           uses_imports  : boolean;  { Set if the module imports from DLL's.}
           imports       : plinkedlist;
 
@@ -135,8 +138,6 @@ unit files;
           linkofiles    : tstringcontainer;
           used_units    : tlinkedlist;
 
-          { used in firstpass for faster settings }
-          scanner       : pointer;
 
           path,                     { path where the module is find/created }
           modulename,               { name of the module in uppercase }
@@ -151,6 +152,7 @@ unit files;
 
           constructor init(const s:string;_is_unit:boolean);
           destructor done;virtual;
+          procedure reset;
           procedure setfilename(const fn:string;allowoutput:boolean);
           function  openppu:boolean;
           function  search_unit(const n : string):boolean;
@@ -770,6 +772,20 @@ unit files;
          search_unit:=Found;
       end;
 
+    procedure tmodule.reset;
+      begin
+        sourcefiles^.done;
+        sourcefiles^.init;
+        used_units.done;
+        used_units.init;
+        linkofiles.done;
+        linkofiles.init;
+        linkstaticlibs.done;
+        linkstaticlibs.init;
+        linksharedlibs.done;
+        linksharedlibs.init;
+      end;
+
 
     constructor tmodule.init(const s:string;_is_unit:boolean);
       var
@@ -814,6 +830,7 @@ unit files;
 {$ifdef UseBrowser}
          implsymtable:=nil;
 {$endif UseBrowser}
+         loaded_from:=nil;
          flags:=0;
          crc:=0;
          unitcount:=1;
@@ -823,6 +840,7 @@ unit files;
          do_compile:=false;
          sources_avail:=true;
          compiled:=false;
+         in_second_compile:=false;
          in_implementation:=false;
          in_global:=true;
          is_unit:=_is_unit;
@@ -907,7 +925,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.49  1998-09-28 16:57:20  pierre
+  Revision 1.50  1998-09-30 16:43:34  peter
+    * fixed unit interdependency with circular uses
+
+  Revision 1.49  1998/09/28 16:57:20  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer
