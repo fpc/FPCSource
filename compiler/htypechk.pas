@@ -786,8 +786,8 @@ implementation
                begin
                  { only allow writing if it returns a pointer and we've
                    found a deref }
-                 if (hp^.resulttype^.deftype=pointerdef) and
-                    gotderef then
+                 if ((hp^.resulttype^.deftype=pointerdef) and gotderef) or
+                    (hp^.isproperty and allowprop) then
                   valid_for_assign:=true
                  else
                   CGMessagePos(hp^.fileinfo,type_e_argument_cant_be_assigned);
@@ -840,7 +840,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1999-11-08 22:45:33  peter
+  Revision 1.47  1999-11-09 13:29:33  peter
+    * valid_for_assign allow properties with calln
+
+  Revision 1.46  1999/11/08 22:45:33  peter
     * allow typecasting to integer within pointer typecast+deref
 
   Revision 1.45  1999/11/06 14:34:21  peter
