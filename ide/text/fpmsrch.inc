@@ -59,7 +59,13 @@ begin
   if BrowCol.Modules=nil then
      begin ErrorBox('No debug info available.',nil); Exit; end;
   Overflow:=false;
+  if assigned(GlobalsCollection) then
+    begin
+      GlobalsCollection^.deleteAll;
+      Dispose(GlobalsCollection,done);
+    end;
   New(S, Init(500,500));
+  GlobalsCollection:=S;
   BrowCol.Modules^.ForEach(@InsertInS);
   if Overflow then
     WarningBox('Too many symbols. Can''t display all of them.',nil);
@@ -78,7 +84,13 @@ end;
 begin
   if BrowCol.Modules=nil then
      begin ErrorBox('No debug info available.',nil); Exit; end;
+  if assigned(ModulesCollection) then
+    begin
+      ModulesCollection^.deleteAll;
+      Dispose(ModulesCollection,done);
+    end;
   New(S, Init(500,500));
+  ModulesCollection:=S;
   BrowCol.Modules^.ForEach(@InsertInS);
   OpenSymbolBrowser(0,0,'Units','Global scope',nil,S,nil,nil,nil);
 end;
@@ -113,14 +125,19 @@ Var S : String;
 begin
   EditorWindow:=FirstEditorWindow;
   If assigned(EditorWindow) then
-    S:=LowerCaseStr(GetEditorCurWord(EditorWindow));
+    S:=LowerCaseStr(GetEditorCurWord(EditorWindow))
+  else
+    S:='';
   if ExecuteDialog(SymbolDialog,@S)<>cmCancel then
     OpenOneSymbolBrowser(S);
 end;
                                                                                                                                                                                                                                                                
 {
   $Log$
-  Revision 1.7  1999-06-25 00:34:50  pierre
+  Revision 1.8  1999-06-28 12:38:19  pierre
+   * Globals(Modules)Collection tracing
+
+  Revision 1.7  1999/06/25 00:34:50  pierre
    + SearchSymbol function
 
   Revision 1.6  1999/04/07 21:55:51  peter
