@@ -87,7 +87,7 @@ var
   Input,
   StdErr      : Text;
   ExitCode,
-  InOutRes    : Longint;
+  InOutRes    : Word;
   StackBottom,
   LowestStack,
   RandSeed    : Longint;
@@ -332,7 +332,10 @@ Procedure AddExitProc(Proc:TProcedure);
 
 {
   $Log$
-  Revision 1.6  1998-05-21 19:31:00  peter
+  Revision 1.7  1998-05-22 12:34:11  peter
+    * fixed the optimizes of daniel
+
+  Revision 1.6  1998/05/21 19:31:00  peter
     * objects compiles for linux
     + assign(pchar), assign(char), rename(pchar), rename(char)
     * fixed read_text_as_array

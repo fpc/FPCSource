@@ -97,7 +97,10 @@ asm
     cmpl    $7,%ecx
     jl      .LFill1
     movl    %ecx,%edx
-    imul    $0x01010101,%eax
+    movb    %al,%ah
+    movl    %eax,%ebx
+    shll    $16,%eax
+    movw    %bx,%ax
     movl    %edi,%ecx
     negl    %ecx
     andl    $3,%ecx
@@ -105,12 +108,11 @@ asm
     rep
     stosb
     movl    %edx,%ecx
-    andb    $3,%dl      {Saves some bytes, no speed penalties.}
+    andl    $3,%edx
     shrl    $2,%ecx
     rep
     stosl
-    {Ecx is zero.}
-    movb    %dl,%cl
+    movl    %edx,%ecx
 .LFill1:
     rep
     stosb
@@ -118,21 +120,21 @@ end;
 
 {$ifndef RTLLITE}
 procedure fillword(var x;count : longint;value : word);assembler;
-
 asm
-    movl x,%edi
-    movl count,%ecx
-    movl value,%eax
-    {fill EAX with 4 bytes:}
-    imul $0x00010001,%eax
-    movl %ecx,%edx
-    shrl $1,%ecx
+    movl    x,%edi
+    movl    count,%ecx
+    movl    value,%eax
+    movl    %eax,%ebx
+    shll    $16,%eax
+    movw    %bx,%ax
+    movl    %ecx,%edx
+    shrl    $1,%ecx
     cld
     rep
     stosl
     {Ecx is zero.}
-    movb %dl,%cl
-    andb $1,%cl         {Saves some bytes, no speed penalties.}
+    movb    %dl,%cl
+    andb    $1,%cl         {Saves some bytes, no speed penalties.}
     rep
     stosw
 end ['EAX','ECX','EDX','EDI'];
@@ -247,7 +249,7 @@ end;
 
 
 { checks for a correct vmt pointer }
-procedure int_check_obhject;assembler;[public,alias:'CHECK_OBJECT'];
+procedure int_check_object;assembler;[public,alias:'CHECK_OBJECT'];
 asm
      pushl %edi
      movl 8(%esp),%edi
@@ -308,8 +310,9 @@ end;
 
 {****************************************************************************
                                  String
-
 ****************************************************************************}
+
+{$I386_ATT}
 
 procedure int_strcopy(len:longint;sstr,dstr:pointer);[public,alias:'STRCOPY'];
 {
@@ -456,7 +459,7 @@ begin
         scasb
         movl    %ecx,%eax
 
-        movl    8(%ebp),%edi
+        movl    __RESULT,%edi
         notb    %al
         decl    %eax
         stosb
@@ -501,12 +504,8 @@ end ['EDI','ECX','EAX'];
 
 Function Sptr : Longint;assembler;
 asm
-    {Size optimized instead of speed optimized...}
-    movl %esp,%eax
-    incl %eax
-    incl %eax
-    incl %eax
-    incl %eax
+        movl    %esp,%eax
+        addl    $4,%eax
 end ['EAX'];
 
 
@@ -707,8 +706,6 @@ begin
   end;
 end;
 
-{$I386_ATT}
-
 Function Random(L: LongInt): LongInt;assembler;
 asm
           movl  $134775813,%eax
@@ -723,7 +720,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1998-05-20 11:01:52  peter
+  Revision 1.9  1998-05-22 12:34:07  peter
+    * fixed the optimizes of daniel
+
+  Revision 1.8  1998/05/20 11:01:52  peter
     * .FILL_OBJECT and FILL_OBJECT are not the same names ;)
 
   Revision 1.7  1998/05/20 08:09:24  daniel

@@ -3,6 +3,8 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993,97 by the Free Pascal development team.
 
+    Heap management functions
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -12,18 +14,46 @@
 
  **********************************************************************}
 
+{
+   There are three conditionals:
+
+   TEMPHEAP   to allow to split the heap in two parts for easier release
+              started for the compiler
+   USEBLOCKS  if you want special allocation for small blocks
+   CHECKHEAP  if you want to test the heap integrity
+}
+
+{****************************************************************************
+                              Assembler calls
+ ****************************************************************************}
+
+{$I386_DIRECT}
+
+{$ifndef OS2}
+{ OS2 function getheapstart is in sysos2.pas }
+    function getheapstart : pointer;assembler;
+    asm
+        leal HEAP,%eax
+    end ['EAX'];
+{$endif}
+
+    function getheapsize : longint;assembler;
+    asm
+        movl HEAPSIZE,%eax
+    end ['EAX'];
+
+    function call_heaperror(addr : pointer; size : longint) : integer;assembler;
+    asm
+        pushl size
+        movl  addr,%eax
+        call  %eax
+    end;
+
+{$I386_ATT}
+
 {****************************************************************************
                functions for heap management in the data segment
  ****************************************************************************}
-{**** 10/06/97 added checkings and corrected some bugs in getmem/freemem ****}
-{**** Pierre Muller *********************************************************}
-
-{ three conditionnals here }
-
-{ TEMPHEAP to  allow to split the heap in two parts for easier release}
-{ started for the compiler }
-{ USEBLOCKS if you want special allocation for small blocks }
-{ CHECKHEAP if you want to test the heap integrity }
 
 {$IfDef CHECKHEAP}
     { 4 levels of tracing }
@@ -102,29 +132,6 @@
     var blocks : pblocks;
         nblocks : pnblocks;
 
-
-{$ifndef OS2}
-{ OS2 function getheapstart is in sysos2.pas }
-    function getheapstart : pointer;
-
-      begin
-         asm
-            leal HEAP,%eax
-            leave
-            ret
-         end ['EAX'];
-      end;
-{$endif}
-
-    function getheapsize : longint;
-
-      begin
-         asm
-            movl HEAPSIZE,%eax
-            leave
-            ret
-         end ['EAX'];
-      end;
 
     function heapsize : longint;
 
@@ -499,18 +506,6 @@
       var i,bp,orsize : longint;
       label check_new;
 {$endif CHECKHEAP}
-
-      { changed to removed the OS conditionnals }
-      function call_heaperror(addr : pointer; size : longint) : integer;
-        begin
-           asm
-              pushl size
-              movl  addr,%eax
-              { movl HEAPERROR,%eax doesn't work !!}
-              call %eax
-              movw %ax,__RESULT
-           end;
-        end;
 
       var
          last,hp : pfreerecord;
@@ -1053,7 +1048,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-04-21 10:22:48  peter
+  Revision 1.5  1998-05-22 12:34:06  peter
+    * fixed the optimizes of daniel
+
+  Revision 1.4  1998/04/21 10:22:48  peter
     + heapblocks
 
   Revision 1.3  1998/04/09 08:32:14  daniel
