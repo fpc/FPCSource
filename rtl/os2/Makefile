@@ -159,7 +159,7 @@ $(SYSTEMPPU) : sysos2.pas $(SYSDEPS)
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-                   $($(SYSTEMPPU)
+                   $(SYSTEMPPU)
 	$(COMPILER) $(INC)/strings.pp $(REDIR)
 
 #
@@ -230,7 +230,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.5  1999-02-25 07:39:22  michael
+# Revision 1.6  1999-02-25 10:01:25  michael
+# + Fixed type in strings target
+#
+# Revision 1.5  1999/02/25 07:39:22  michael
 # * Joined strings and sysutils
 #
 # Revision 1.4  1998/11/24 19:51:21  jonas

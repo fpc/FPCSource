@@ -146,7 +146,7 @@ $(SYSTEMPPU) : system.pp $(SYSDEPS)
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-                   $($(SYSTEMPPU)
+                   $(SYSTEMPPU)
 	$(COMPILER) $(INC)/strings.pp $(REDIR)
 
 go32$(PPUEXT) : go32.pp $(SYSTEMPPU)
@@ -234,7 +234,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.4  1999-02-25 07:39:21  michael
+# Revision 1.5  1999-02-25 10:00:43  michael
+# + Fixed type in strings target
+#
+# Revision 1.4  1999/02/25 07:39:21  michael
 # * Joined strings and sysutils
 #
 # Revision 1.3  1999/01/15 11:47:12  peter
