@@ -234,6 +234,9 @@ endif
 ifeq ($(OS_TARGET),openbsd)
 override TARGET_DIRS+=unzip  x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
 endif
+ifeq ($(OS_TARGET),palmos)
+override TARGET_DIRS+=palmunits
+endif
 ifeq ($(OS_TARGET),darwin)
 override TARGET_DIRS+=unzip x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
 endif
@@ -1501,6 +1504,9 @@ TARGET_DIRS_TCL=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 endif
+ifeq ($(OS_TARGET),palmos)
+TARGET_DIRS_PALMUNITS=1
+endif
 ifeq ($(OS_TARGET),darwin)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_X11=1
@@ -2651,6 +2657,49 @@ amunits_makefiles:
 amunits:
 	$(MAKE) -C amunits all
 .PHONY: amunits_all amunits_debug amunits_smart amunits_release amunits_examples amunits_shared amunits_install amunits_sourceinstall amunits_exampleinstall amunits_distinstall amunits_zipinstall amunits_zipsourceinstall amunits_zipexampleinstall amunits_zipdistinstall amunits_clean amunits_distclean amunits_cleanall amunits_info amunits_makefiles amunits
+endif
+ifdef TARGET_DIRS_PALMUNITS
+palmunits_all:
+	$(MAKE) -C palmunits all
+palmunits_debug:
+	$(MAKE) -C palmunits debug
+palmunits_smart:
+	$(MAKE) -C palmunits smart
+palmunits_release:
+	$(MAKE) -C palmunits release
+palmunits_examples:
+	$(MAKE) -C palmunits examples
+palmunits_shared:
+	$(MAKE) -C palmunits shared
+palmunits_install:
+	$(MAKE) -C palmunits install
+palmunits_sourceinstall:
+	$(MAKE) -C palmunits sourceinstall
+palmunits_exampleinstall:
+	$(MAKE) -C palmunits exampleinstall
+palmunits_distinstall:
+	$(MAKE) -C palmunits distinstall
+palmunits_zipinstall:
+	$(MAKE) -C palmunits zipinstall
+palmunits_zipsourceinstall:
+	$(MAKE) -C palmunits zipsourceinstall
+palmunits_zipexampleinstall:
+	$(MAKE) -C palmunits zipexampleinstall
+palmunits_zipdistinstall:
+	$(MAKE) -C palmunits zipdistinstall
+palmunits_clean:
+	$(MAKE) -C palmunits clean
+palmunits_distclean:
+	$(MAKE) -C palmunits distclean
+palmunits_cleanall:
+	$(MAKE) -C palmunits cleanall
+palmunits_info:
+	$(MAKE) -C palmunits info
+palmunits_makefiles:
+	$(MAKE) -C palmunits makefiles
+palmunits:
+	$(MAKE) -C palmunits all
+.PHONY: palmunits_all palmunits_debug palmunits_smart palmunits_release palmunits_examples palmunits_shared palmunits_install palmunits_sourceinstall palmunits_exampleinstall palmunits_distinstall palmunits_zipinstall palmunits_zipsourceinstall palmunits_zipexampleinstall palmunits_zipdistinstall palmunits_clean palmunits_distclean palmunits_cleanall palmunits_info palmunits_makefiles palmunits
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))

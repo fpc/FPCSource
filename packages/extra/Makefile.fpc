@@ -36,6 +36,7 @@ dirs_emx=os2units \
          imlib fpgtk
 dirs_go32v2=unzip
 dirs_amiga=amunits
+dirs_palmos=palmunits
 dirs_netware=zlib
 dirs_darwin= unzip \
              x11 opengl gtk syslog \
