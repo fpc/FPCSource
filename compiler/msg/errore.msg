@@ -813,9 +813,9 @@ parser_e_ill_msg_param=03144_E_Message handlers can take only one call by ref. p
 % Parameters are declared as call by reference using the \var{var}-directive
 parser_e_duplicate_message_label=03145_E_Duplicate message label: "$1"
 % A label for a message is used twice in one object/class
-parser_e_self_in_non_message_handler=03146_E_Self can only be an explicit parameter in message handlers or class methods
+parser_e_self_in_non_message_handler=03146_E_Self can only be an explicit parameter in methods which are message handlers
 % The self parameter can only be passed explicitly to a method which
-% is declared as message method handler or which is a class method.
+% is declared as message handler.
 parser_e_threadvars_only_sg=03147_E_Threadvars can be only static or global
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
