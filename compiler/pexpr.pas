@@ -64,6 +64,14 @@ unit pexpr;
        { processor specific stuff }
        cpubase,cpuinfo;
 
+    { sub_expr(opmultiply) is need to get -1 ** 4 to be
+      read as - (1**4) and not (-1)**4 PM }
+
+    type
+      Toperator_precedence=(opcompare,opaddition,opmultiply);
+
+    function sub_expr(pred_level:Toperator_precedence;accept_equal : boolean):Ptree;forward;
+
     const
       allow_type : boolean = true;
       got_addrn  : boolean = false;
@@ -1861,7 +1869,7 @@ _LECKKLAMMER : begin
                end;
       _MINUS : begin
                  consume(_MINUS);
-                 p1:=factor(false);
+                 p1:=sub_expr(opmultiply,false);
                  p1:=gensinglenode(unaryminusn,p1);
                end;
         _NOT : begin
@@ -1908,7 +1916,6 @@ _LECKKLAMMER : begin
 ****************************************************************************}
 
     type
-      Toperator_precedence=(opcompare,opaddition,opmultiply);
       Ttok2nodeRec=record
         tok : ttoken;
         nod : ttreetyp;
@@ -2128,7 +2135,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.169  2000-02-13 14:21:50  jonas
+  Revision 1.170  2000-03-14 15:50:19  pierre
+   * - 1**4 = -1 fix
+
+  Revision 1.169  2000/02/13 14:21:50  jonas
     * modifications to make the compiler functional when compiled with
       -Or
 
