@@ -709,6 +709,30 @@ implementation
          if not(inlined) and
             assigned(right) then
            secondpass(right);
+
+         if inlined or
+            (right = nil) then
+          begin
+             if (po_virtualmethod in procdefinition.procoptions) and
+                 assigned(methodpointer) then
+                begin
+                   secondpass(methodpointer);
+                   location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
+                   vmtreg:=methodpointer.location.register;
+
+                   { virtual methods require an index }
+                   if tprocdef(procdefinition).extnumber=-1 then
+                     internalerror(200304021);
+                   { VMT should already be loaded in a register }
+                   if vmtreg.number=NR_NO then
+                     internalerror(200304022);
+
+                   { test validity of VMT }
+                   if not(is_interface(tprocdef(procdefinition)._class)) and
+                      not(is_cppclass(tprocdef(procdefinition)._class)) then
+                     cg.g_maybe_testvmt(exprasmlist,vmtreg,tprocdef(procdefinition)._class);
+                end;
+           end;
 {$endif powerpc}
 
          if assigned(left) then
@@ -759,6 +783,7 @@ implementation
               if (po_virtualmethod in procdefinition.procoptions) and
                  assigned(methodpointer) then
                 begin
+{$ifndef powerpc}
                    secondpass(methodpointer);
                    location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
                    vmtreg:=methodpointer.location.register;
@@ -774,6 +799,7 @@ implementation
                    if not(is_interface(tprocdef(procdefinition)._class)) and
                       not(is_cppclass(tprocdef(procdefinition)._class)) then
                      cg.g_maybe_testvmt(exprasmlist,vmtreg,tprocdef(procdefinition)._class);
+{$endif powerpc}
 
                    { call method }
                    reference_reset_base(href,vmtreg,
@@ -1158,7 +1184,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2003-05-11 21:48:38  jonas
+  Revision 1.61  2003-05-12 18:17:55  jonas
+    * moved fpc_check_object call earlier for the ppc, so it can't destroy
+      already-loaded parameter registers
+
+  Revision 1.60  2003/05/11 21:48:38  jonas
     * fixed procvar bug on the ppc (load procvar before loading para's,
       because the procvar may otherwise destroy the already loaded paras)
 
