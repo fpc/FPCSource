@@ -186,6 +186,13 @@ Procedure fpc_Read_Text_Float(var f : Text; var v :ValReal); compilerproc;
 Procedure fpc_Read_Text_QWord(var f : text; var q : qword); compilerproc;
 Procedure fpc_Read_Text_Int64(var f : text; var i : int64); compilerproc;
 
+{$ifdef FPC_INCLUDE_SOFTWARE_MOD_DIV}
+function fpc_div_dword(n,z : dword) : dword; compilerproc;
+function fpc_mod_dword(n,z : dword) : dword; compilerproc;
+function fpc_div_longint(n,z : longint) : longint; compilerproc;
+function fpc_mod_longint(n,z : longint) : longint; compilerproc;
+{$endif FPC_INCLUDE_SOFTWARE_MOD_DIV}
+
 { from int64.inc }
 procedure fpc_shortstr_qword(v : qword;len : longint;var s : shortstring); compilerproc;
 procedure fpc_shortstr_int64(v : int64;len : longint;var s : shortstring); compilerproc;
@@ -202,6 +209,13 @@ function fpc_div_int64(n,z : int64) : int64; compilerproc;
 function fpc_mod_int64(n,z : int64) : int64; compilerproc;
 function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword; compilerproc;
 function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64; compilerproc;
+
+{$ifdef FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+function fpc_shl_qword(value,shift : qword) : qword; compilerproc;
+function fpc_shr_qword(value,shift : qword) : qword; compilerproc;
+function fpc_shl_int64(value,shift : int64) : int64; compilerproc;
+function fpc_shr_int64(value,shift : int64) : int64; compilerproc;
+{$endif  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
 function fpc_round(d : Extended) : int64;compilerproc;
 
@@ -286,14 +300,19 @@ Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf); compilerproc;
 Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compilerproc;
 
+{$ifdef FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 function fpc_int64_to_double(i: int64): double; compilerproc;
 function fpc_qword_to_double(q: qword): double; compilerproc;
+{$endif FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 
 {$endif hascompilerproc}
 
 {
   $Log$
-  Revision 1.47  2003-09-01 20:47:23  peter
+  Revision 1.48  2003-09-02 13:04:08  florian
+    * ifdef'd some helpers
+
+  Revision 1.47  2003/09/01 20:47:23  peter
     * pcomp added for sparc
 
   Revision 1.46  2003/08/21 22:07:43  olle
