@@ -118,7 +118,7 @@ begin
 end;
 
 { function to allocate size bytes more for the program }
-{ must return the first address of new data space or zero if fail }
+{ must return the first address of new data space or -1 if fail }
 function Sbrk(size : longint):longint;{assembler;
 asm
         movl    size,%eax
@@ -127,7 +127,7 @@ asm
         addl    $4,%esp
 end;}
 begin
-  Sbrk:=0;
+  Sbrk:=-1;
 end;
 
 
@@ -274,7 +274,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  1999-01-18 10:07:41  pierre
+  Revision 1.2  1999-01-18 10:11:10  pierre
+   * sbrk must return -1 on fail
+
+  Revision 1.1  1999/01/18 10:07:41  pierre
    Skeleton for new system unit
 
 }
