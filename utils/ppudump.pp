@@ -226,8 +226,9 @@ end;
 
 function readderef(const s:string;skipnil:boolean):boolean;
 type
-  tdereftype = (derefnil,derefaktrecordindex,derefaktstaticindex,derefunit,
-               derefrecord,derefindex,dereflocal,derefpara);
+  tdereftype = (derefnil,derefaktrecordindex,derefaktstaticindex,
+                derefunit,derefrecord,derefindex,
+                dereflocal,derefpara,derefaktlocalindex);
 var
   b : tdereftype;
 begin
@@ -252,6 +253,11 @@ begin
           writeln('AktStatic ',s,' ',ppufile^.getword);
           break;
         end;
+      derefaktlocalindex :
+        begin
+          writeln('AktLocal ',s,' ',ppufile^.getword);
+          break;
+        end;
       derefunit :
         begin
           writeln('Unit ',ppufile^.getword);
@@ -272,6 +278,11 @@ begin
       derefindex :
         begin
           write(s,' ',ppufile^.getword,', ');
+        end;
+      else
+        begin
+          writeln('!! unsupported dereftyp: ',ord(derefindex));
+          break;
         end;
     end;
   until false;
@@ -1442,7 +1453,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-01-07 16:46:03  daniel
+  Revision 1.13  2000-01-23 16:34:36  peter
+    * updated for new aktlocalindex
+
+  Revision 1.12  2000/01/07 16:46:03  daniel
     * copyright 2000
 
   Revision 1.11  1999/11/30 10:35:37  peter
