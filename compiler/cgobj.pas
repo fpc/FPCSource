@@ -249,25 +249,6 @@ unit cgobj;
           procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); virtual; abstract;
           procedure g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference); virtual;
 
-          {#
-              Allocate the buffers for exception management and setjmp environment.
-              Return a pointer to these buffers, send them to the utility routine
-              so they are registered, and then call setjmp.
-  
-              Then compare the result of setjmp with 0, and if not equal
-              to zero, then jump to exceptlabel.
-       
-              Also store the result of setjmp to a temporary space by calling g_save_exception_reason
-              
-              It is to note that this routine may be called *after* the stackframe of a
-              routine has been called, therefore on machines where the stack cannot
-              be modified, all temps should be allocated on the heap instead of the
-              stack.
-          }
-          procedure g_new_exception(list : taasmoutput;var jmpbuf,envbuf, href : treference;
-              a : aword; exceptlabel : tasmlabel);virtual;
-          procedure g_free_exception(list : taasmoutput;var jmpbuf, envbuf, href : treference;
-           a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);virtual;
           
          {#
              This routine is used in exception management nodes. It should
@@ -1464,39 +1445,6 @@ unit cgobj;
      end;
      
     
-    procedure tcg.g_new_exception(list : taasmoutput;var jmpbuf,envbuf, href : treference;
-      a : aword; exceptlabel : tasmlabel);
-     begin
-       tg.gettempofsizereferencepersistant(exprasmlist,24,jmpbuf);
-       tg.gettempofsizereferencepersistant(exprasmlist,12,envbuf);
-       a_paramaddr_ref(exprasmlist,envbuf,paramanager.getintparaloc(3));
-       a_paramaddr_ref(exprasmlist,jmpbuf,paramanager.getintparaloc(2));
-       { push type of exceptionframe }
-       a_param_const(exprasmlist,OS_S32,1,paramanager.getintparaloc(1));
-       a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
-
-       a_param_reg(exprasmlist,OS_ADDR,accumulator,paramanager.getintparaloc(1));
-       a_call_name(exprasmlist,'FPC_SETJMP');
-         
-       tg.gettempofsizereferencepersistant(exprasmlist,sizeof(aword),href);
-       g_exception_reason_save(list, href);
-       a_cmp_const_reg_label(exprasmlist,OS_S32,OC_NE,0,accumulator,exceptlabel);
-     end;
-     
-     
-    procedure tcg.g_free_exception(list : taasmoutput;var jmpbuf, envbuf, href : treference;
-     a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
-     begin
-         cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-         tg.ungetpersistanttempreference(exprasmlist,jmpbuf);
-         tg.ungetpersistanttempreference(exprasmlist,envbuf);
-         
-         if not onlyfree then
-          begin
-            g_exception_reason_load(list, href);
-            cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,a,accumulator,endexceptlabel);
-          end;
-     end;
       
 
 
@@ -1522,7 +1470,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.43  2002-08-05 18:27:48  carl
+  Revision 1.44  2002-08-09 19:10:05  carl
+    - moved new_exception and free_exception to ncgutils
+
+  Revision 1.43  2002/08/05 18:27:48  carl
     + more more more documentation
     + first version include/exclude (can't test though, not enough scratch for i386 :()...
 
