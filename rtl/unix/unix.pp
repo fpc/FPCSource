@@ -1632,7 +1632,7 @@ Begin
      i:=length(dirlist);
      j:=1;
      Repeat
-       NewDir:=strpas(p)+'/'+Path;
+       NewDir:=ansistring(p)+'/'+Path;
        if (FpStat(NewDir,Info)>=0) and
           (not fpS_ISDIR(Info.st_Mode)) then
         Begin
@@ -1754,7 +1754,10 @@ End.
 
 {
   $Log$
-  Revision 1.71  2004-07-03 13:15:51  daniel
+  Revision 1.72  2004-07-03 13:18:06  daniel
+    * Better fix.
+
+  Revision 1.71  2004/07/03 13:15:51  daniel
     * Compilation fix in fsearch
 
   Revision 1.70  2004/04/23 19:16:25  marco
