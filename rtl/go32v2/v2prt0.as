@@ -744,9 +744,16 @@ ___prt1_startup:
         incl ___environ_changed
 
         fninit             /* initialize fpu */
+        push    %eax       /* Dummy for status store check */
+        movl    %esp,%esi
+        movw	$0x5a5a,(%esi)
         /* fwait  maybe this one is responsible of exceptions */
+        fnstsw  (%esi)
+        cmpb    $0,(%esi)
+        jne     .Lno_387
         fldcw   ___fpucw
-
+.Lno_387:
+        popl %eax
         pushl   U_SYSTEM_ENVP
         pushl   ___crt0_argv
         pushl   ___crt0_argc
@@ -906,7 +913,10 @@ ___PROXY_LEN:
 
 /*
   $Log$
-  Revision 1.12  2000-02-28 11:17:48  pierre
+  Revision 1.13  2000-04-06 13:05:15  pierre
+   * bug fix for 915, hopefully
+
+  Revision 1.12  2000/02/28 11:17:48  pierre
    * remove Jonas unnecessary (but correct) code
 
   Revision 1.11  2000/02/27 11:21:17  pierre
