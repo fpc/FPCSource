@@ -157,9 +157,6 @@ unit cgx86;
   implementation
 
     uses
-{$ifdef MEMDEBUG}
-       cclasses,
-{$endif MEMDEBUG}
        globtype,globals,verbose,systems,cutils,
        symdef,paramgr,tgobj,procinfo;
 
@@ -188,20 +185,10 @@ unit cgx86;
 
 
     procedure Tcgx86.done_register_allocators;
-{$ifdef MEMDEBUG}
-      var
-        d : tmemdebug;
-{$endif}
       begin
-{$ifdef MEMDEBUG}
-         d:=tmemdebug.create(current_procinfo.procdef.procsym.name+'-rgobj');
-{$endif}
         rgint.free;
         rgmm.free;
         rgfpu.free;
-{$ifdef MEMDEBUG}
-         d.free;
-{$endif}
       end;
 
 
@@ -1746,7 +1733,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.82  2003-10-18 15:41:26  peter
+  Revision 1.83  2003-10-20 19:30:08  peter
+    * remove memdebug code for rg
+
+  Revision 1.82  2003/10/18 15:41:26  peter
     * made worklists dynamic in size
 
   Revision 1.81  2003/10/17 15:25:18  florian
