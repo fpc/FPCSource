@@ -103,10 +103,13 @@ begin
   P1:=P+1;
   While P1^<>#0 do
     begin
-    If (P1^='"') and (P1[1]<>'"') then
-      break;
-    P1:=P1+1;
-    If P1^='"' then P1:=P1+1;
+      If (P1^='"') then
+       begin
+         if (P1[1]<>'"') then
+          break;
+         inc(p1);
+       end;
+      inc(p1);
     end;
   // P1 points to last quote, or to #0;
   P:=P+1;
@@ -120,25 +123,33 @@ begin
 end;
 
 
-Function GetNextQuotedChar (P : PChar; Var S : String): Boolean;
+Function GetNextQuotedChar (var P : PChar; Var S : String): Boolean;
 
 Var PS,L : PChar;
 
 begin
   Result:=False;
-  If P^=#0 then exit;
   S:='';
-  While (p^<>#0) and (byte(p^)<=byte(' ')) do P:=P+1;
+  While (p^<>#0) and (byte(p^)<=byte(' ')) do
+   inc(p);
+  If P^=#0 then exit;
   PS:=P;
   If P^='"' then
-    S:=GetQuotedString(P)
+   begin
+     S:=GetQuotedString(P);
+     While (p^<>#0) and (byte(p^)<=byte(' ')) do
+      inc(p);
+   end
   else
-    begin
-    While (p^>' ') and (P^<>',') do P:=P+1;
-    Setlength (S,P-PS);
-    L:=Pointer(S);
-    Move (PS^,L,P-PS);
-    end;
+   begin
+     While (p^>' ') and (P^<>',') do
+      inc(p);
+     Setlength (S,P-PS);
+     L:=Pointer(S);
+     Move (PS^,L,P-PS);
+   end;
+  if p^=',' then
+   inc(p);
   Result:=True;
 end;
 
@@ -151,7 +162,8 @@ Var P : Pointer;
 begin
   Self.Clear;
   P:=Pointer(Value);
-  While GetNextQuotedChar (P,S) do Add (S);
+  While GetNextQuotedChar (P,S) do
+   Add (S);
 end;
 
 
@@ -341,7 +353,7 @@ begin
       self.AddObject (Thestrings[Runner],TheStrings.Objects[Runner]);
   finally
     EndUpdate;
-  end;    
+  end;
 end;
 
 
@@ -360,7 +372,7 @@ begin
     Inherited Assign(Source);
   finally
     EndUpdate;
-  end;  
+  end;
 end;
 
 
@@ -415,9 +427,9 @@ begin
     Strings[Index1]:=Strings[Index2];
     Objects[Index2]:=Obj;
     Strings[Index2]:=Str;
-  finally  
+  finally
     EndUpdate;
-  end;  
+  end;
 end;
 
 
@@ -585,10 +597,10 @@ begin
     beginUpdate;
     Clear;
     While GetNextLine (TheText,S) do
-    Add(S); 
+    Add(S);
   finally
     EndUpdate;
-  end;   
+  end;
 end;
 
 
@@ -956,7 +968,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-11-17 13:39:49  sg
+  Revision 1.5  2000-11-22 22:44:39  peter
+    * fixed commatext (merged)
+
+  Revision 1.4  2000/11/17 13:39:49  sg
   * Extended Error methods so that exceptions are raised from the caller's
     address instead of the Error method
 
@@ -965,5 +980,5 @@ end;
 
   Revision 1.2  2000/07/13 11:33:01  michael
   + removed logs
- 
+
 }
