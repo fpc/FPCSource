@@ -35,6 +35,7 @@ unit rgcpu;
     type
       trgcpu=class(trgobj)
         procedure add_constraints(reg:tregister);override;
+        function get_spill_subreg(r : tregister) : tsubregister;override;
         procedure do_spill_read(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
          const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
         procedure do_spill_written(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
@@ -67,6 +68,15 @@ implementation
                 inc(i,2);
               end;
           end;
+      end;
+
+
+    function trgcpu.get_spill_subreg(r : tregister) : tsubregister;
+      begin
+        if getregtype(r)=R_FPUREGISTER then
+          result:=getsubreg(r)
+        else
+          result:=defaultsub;
       end;
 
 
@@ -225,7 +235,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2004-06-16 20:07:11  florian
+  Revision 1.22  2004-06-20 08:47:33  florian
+    * spilling of doubles on sparc fixed
+
+  Revision 1.21  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.20.2.4  2004/06/13 20:38:38  florian

@@ -166,6 +166,7 @@ unit rgobj;
       Preginfo=^TReginfo;
 
       tspillreginfo = record
+        spillreg : tregister;
         orgreg : tsuperregister;
         tempreg : tregister;
         regread,regwritten, mustbespilled: boolean;
@@ -227,6 +228,7 @@ unit rgobj;
         procedure ungetregisterinline(list:Taasmoutput;position:Tai;r:Tregister);
         procedure add_constraints(reg:Tregister);virtual;
 
+        function get_spill_subreg(r : tregister) : tsubregister;virtual;
         procedure do_spill_read(list:Taasmoutput;instr:Taicpu;
                                 pos:Tai;regidx:word;
                                 const spilltemplist:Tspill_temp_list;
@@ -1879,6 +1881,12 @@ unit rgobj;
     end;
 
 
+    function trgobj.get_spill_subreg(r : tregister) : tsubregister;
+      begin
+        result:=defaultsub;
+      end;
+
+
     function trgobj.instr_spill_register(list:Taasmoutput;
                                          instr:taicpu;
                                          const r:Tsuperregisterset;
@@ -1889,22 +1897,25 @@ unit rgobj;
         regs: tspillregsinfo;
         spilled: boolean;
 
-      procedure addreginfo(reg: tsuperregister; operation: topertype);
+      procedure addreginfo(reg: tregister; operation: topertype);
         var
           i, tmpindex: longint;
+          supreg : tsuperregister;
         begin
           tmpindex := regindex;
+          supreg:=getsupreg(reg);
           // did we already encounter this register?
           for i := 0 to pred(regindex) do
-            if (regs[i].orgreg = reg) then
+            if (regs[i].orgreg = supreg) then
               begin
                 tmpindex := i;
                 break;
               end;
           if tmpindex > high(regs) then
             internalerror(2003120301);
-          regs[tmpindex].orgreg := reg;
-          if supregset_in(r,reg) then
+          regs[tmpindex].orgreg := supreg;
+          regs[tmpindex].spillreg:=reg;
+          if supregset_in(r,supreg) then
             begin
               // add/update info on this register
               regs[tmpindex].mustbespilled := true;
@@ -1958,7 +1969,7 @@ unit rgobj;
               top_reg:
                 begin
                   if (getregtype(reg) = regtype) then
-                    addreginfo(getsupreg(reg),instr.spilling_get_operation_type(counter));
+                    addreginfo(reg,instr.spilling_get_operation_type(counter));
                 end;
               top_ref:
                 begin
@@ -1966,9 +1977,9 @@ unit rgobj;
                     with ref^ do
                       begin
                         if (base <> NR_NO) then
-                          addreginfo(getsupreg(base),operand_read);
+                          addreginfo(base,operand_read);
                         if (index <> NR_NO) then
-                          addreginfo(getsupreg(index),operand_read);
+                          addreginfo(index,operand_read);
                       end;
                 end;
 {$ifdef ARM}
@@ -1993,7 +2004,7 @@ unit rgobj;
               if mustbespilled then
                 begin
                   pos:=get_insert_pos(Tai(instr.previous),regs[0].orgreg,regs[1].orgreg,regs[2].orgreg);
-                  getregisterinline(list,pos,defaultsub,tempreg);
+                  getregisterinline(list,pos,get_spill_subreg(regs[counter].spillreg),tempreg);
                   if regread then
                     if regwritten then
                       do_spill_readwritten(list,instr,pos,counter,spilltemplist,regs)
@@ -2034,7 +2045,10 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.127  2004-06-16 20:07:09  florian
+  Revision 1.128  2004-06-20 08:47:33  florian
+    * spilling of doubles on sparc fixed
+
+  Revision 1.127  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.126  2004/05/22 23:34:28  peter

@@ -39,7 +39,7 @@ const
   O_MOV_DEST = 1;
 type
 
-  taicpu = class(taicpu_abstract)
+  taicpu = class(tai_cpu_abstract)
      opsize : topsize;
      constructor op_none(op : tasmop;_size : topsize);
 
@@ -96,7 +96,10 @@ type
   procedure DoneAsm;
 
 
-implementation
+  implementation
+
+    uses
+      globtype;
 
 
 {*****************************************************************************
@@ -426,7 +429,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2004-05-06 22:01:54  florian
+  Revision 1.12  2004-06-20 08:47:33  florian
+    * spilling of doubles on sparc fixed
+
+  Revision 1.11  2004/05/06 22:01:54  florian
     * register numbers for address registers fixed
 
   Revision 1.10  2004/01/30 12:17:18  florian

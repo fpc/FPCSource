@@ -234,7 +234,7 @@ implementation
       begin
         result:=(
                  ((opcode=A_MOV) and (regtype = R_INTREGISTER)) or
-                 ((opcode=A_FMOVS) and (regtype = R_FPUREGISTER))
+                 ((regtype = R_FPUREGISTER) and (opcode in [A_FMOVS,A_FMOVD]))
                 ) and
                 (ops=2) and
                 (oper[0]^.typ=top_reg) and
@@ -311,7 +311,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2004-06-16 20:07:10  florian
+  Revision 1.49  2004-06-20 08:47:33  florian
+    * spilling of doubles on sparc fixed
+
+  Revision 1.48  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.47.2.5  2004/06/03 19:23:41  florian

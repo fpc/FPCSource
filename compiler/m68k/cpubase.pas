@@ -32,9 +32,6 @@ unit cpubase;
     globtype,
     strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
 
-    uses
-      strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
-
 {*****************************************************************************
                                 Assembler Opcodes
 *****************************************************************************}
@@ -518,7 +515,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2004-06-16 20:07:10  florian
+  Revision 1.30  2004-06-20 08:47:33  florian
+    * spilling of doubles on sparc fixed
+
+  Revision 1.29  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.28  2004/05/06 22:01:54  florian
