@@ -126,6 +126,7 @@ unit cpupara;
 
       var
          nextintreg,nextfloatreg,nextmmreg : tregister;
+         paradef : tdef;
          stack_offset : aword;
          hp : tparaitem;
          loc : tloc;
@@ -170,12 +171,16 @@ unit cpupara;
          hp:=tparaitem(p.para.last);
          while assigned(hp) do
            begin
-              loc:=getparaloc(hp.paratype.def);
+              if (hp.paratyp in [vs_var,vs_out]) then
+                paradef := voidpointertype.def
+              else
+                paradef := hp.paratype.def;
+              loc:=getparaloc(paradef);
               hp.paraloc.sp_fixup:=0;
               case loc of
                  LOC_REGISTER:
                    begin
-                      hp.paraloc.size := def_cgsize(hp.paratype.def);
+                      hp.paraloc.size := def_cgsize(paradef);
                       { for things like formaldef }
                       if hp.paraloc.size = OS_NO then
                         hp.paraloc.size := OS_ADDR;
@@ -206,25 +211,9 @@ unit cpupara;
                    end;
                  LOC_FPUREGISTER:
                    begin
-                      if hp.paratyp in [vs_var,vs_out] then
+                      if nextfloatreg.enum<=R_F10 then
                         begin
-                            if nextintreg.number<=NR_R10 then
-                             begin
-                                hp.paraloc.size:=OS_ADDR;
-                                hp.paraloc.loc:=LOC_REGISTER;
-                                hp.paraloc.register:=nextintreg;
-                                inc(nextintreg.number,NR_R1-NR_R0);
-                             end
-                           else
-                              begin
-                                 {!!!!!!!}
-                                 hp.paraloc.size:=def_cgsize(hp.paratype.def);
-                                 internalerror(2002071006);
-                             end;
-                        end
-                      else if nextfloatreg.enum<=R_F10 then
-                        begin
-                           hp.paraloc.size:=def_cgsize(hp.paratype.def);
+                           hp.paraloc.size:=def_cgsize(paradef);
                            hp.paraloc.loc:=LOC_FPUREGISTER;
                            hp.paraloc.register:=nextfloatreg;
                            inc(nextfloatreg.enum);
@@ -232,17 +221,16 @@ unit cpupara;
                       else
                          begin
                             {!!!!!!!}
-                            hp.paraloc.size:=def_cgsize(hp.paratype.def);
+                            hp.paraloc.size:=def_cgsize(paradef);
                             internalerror(2002071004);
                         end;
                    end;
                  LOC_REFERENCE:
                    begin
                       hp.paraloc.size:=OS_ADDR;
-                      if push_addr_param(hp.paratype.def,p.proccalloption) or
-                        is_open_array(hp.paratype.def) or
-                        is_array_of_const(hp.paratype.def) or
-                        (hp.paratyp in [vs_var,vs_out]) then
+                      if push_addr_param(paradef,p.proccalloption) or
+                        is_open_array(paradef) or
+                        is_array_of_const(paradef) then
                         assignintreg
                       else
                         begin
@@ -313,7 +301,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2003-03-11 21:46:24  jonas
+  Revision 1.24  2003-04-16 07:55:07  jonas
+    * fixed paralocation for integer var/out parameters
+
+  Revision 1.23  2003/03/11 21:46:24  jonas
     * lots of new regallocator fixes, both in generic and ppc-specific code
       (ppc compiler still can't compile the linux system unit though)
 
