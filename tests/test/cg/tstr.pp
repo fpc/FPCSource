@@ -66,9 +66,9 @@ begin
   f := -1.12345;
 {$IFOPT E-}  
   str(f,s);
-  if sizeof(f) = 10 then
+  if sizeof(extended) = 10 then
     check('-1.123450000000000E+000')
-  else if sizeof(f) = 8 then
+  else if sizeof(extended) = 8 then
     check('-1.12345000000000E+000')
   else
     check('error, not yet implemented!!!!');
@@ -249,9 +249,9 @@ begin
   f := -1.12345;
 {$IFOPT E-}  
   str(f,s);
-  if sizeof(f) = 10 then
+  if sizeof(extended) = 10 then
     check('-1.123450000000000E+000')
-  else if sizeof(f) = 8 then
+  else if sizeof(extended) = 8 then
     check('-1.12345000000000E+000')
   else
     check('error, not yet implemented!!!!');
@@ -433,9 +433,9 @@ begin
   f := -1.12345;
 {$IFOPT E-}  
   str(f,s);
-  if sizeof(f) = 10 then
+  if sizeof(extended) = 10 then
     check('-1.123450000000000E+000')
-  else if sizeof(f) = 8 then
+  else if sizeof(extended) = 8 then
     check('-1.12345000000000E+000')
   else
     check('error, not yet implemented!!!!');
