@@ -92,6 +92,8 @@ procedure OpenSymbolBrowser(X,Y: Sw_integer;const Name,Line: string;
 
 function IsSymbolInfoAvailable: boolean;
 
+procedure OpenOneSymbolBrowser(Name : String);
+
 implementation
 
 uses Commands,App,
@@ -101,6 +103,36 @@ uses Commands,App,
 function IsSymbolInfoAvailable: boolean;
 begin
   IsSymbolInfoAvailable:=BrowCol.Modules<>nil;
+end;
+
+procedure OpenOneSymbolBrowser(Name : String);
+
+var Index : sw_integer;
+    PS : PSymbol;
+    P : Pstring;
+
+  function Search(P : PSymbol) : boolean;
+  begin
+    Search:=UpcaseStr(P^.Items^.LookUp(Name,Index))=Name;
+  end;
+  
+begin
+   Name:=UpcaseStr(Name);
+   If BrowCol.Modules<>nil then
+     begin
+       PS:=BrowCol.Modules^.FirstThat(@Search);
+       If assigned(PS) then
+         OpenSymbolBrowser(0,20,
+                PS^.Items^.At(Index)^.GetName,'',
+                PS^.Items^.At(Index)^.Items,PS^.Items^.At(Index)^.References)
+       else
+         begin
+           P:=@Name;
+           ErrorBox(#3'Symbol %s not found',@P);
+         end;
+     end
+   else
+     ErrorBox('No Browser info available',nil);
 end;
 
 (*procedure ReadBrowseLog(FileName: string);
@@ -638,7 +670,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  1999-02-04 13:16:14  pierre
+  Revision 1.5  1999-02-04 17:53:47  pierre
+   + OpenOneSymbolBrowser
+
+  Revision 1.4  1999/02/04 13:16:14  pierre
    + column info added
 
   Revision 1.3  1999/01/21 11:54:23  peter
