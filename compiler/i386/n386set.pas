@@ -277,7 +277,7 @@ implementation
                       { so in case of a LOC_CREGISTER first move the value }
                       { to edi (not done before because now we can do the  }
                       { move and substract in one instruction with LEA)    }
-                      if (pleftreg.enum <> R_EDI) and
+                      if (pleftreg.number <> NR_EDI) and
                          (left.location.loc = LOC_CREGISTER) then
                         begin
                           r.enum:=R_INTREGISTER;
@@ -720,7 +720,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-02-26 23:06:13  daniel
+  Revision 1.51  2003-03-13 19:52:23  jonas
+    * and more new register allocator fixes (in the i386 code generator this
+      time). At least now the ppc cross compiler can compile the linux
+      system unit again, but I haven't tested it.
+
+  Revision 1.50  2003/02/26 23:06:13  daniel
     * Fixed an illegal use of makeregsize
 
   Revision 1.49  2003/02/19 22:39:56  daniel

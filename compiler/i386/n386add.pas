@@ -675,17 +675,22 @@ interface
            if not(RS_EAX in rg.unusedregsint) then
              begin
                rg.getexplicitregisterint(exprasmlist,NR_EDI);
-               r.enum:=R_EAX;
-               r2.enum:=R_EDI;
+               r.enum:=R_INTREGISTER;
+               r.number:=NR_EAX;
+               r2.enum:=R_INTREGISTER;;
+               r2.number:=NR_EDI;
                emit_reg_reg(A_MOV,S_L,r,r2);
              end;
-           r.enum:=R_AX;
+           r.enum:=R_INTREGISTER;
+           r.number:=NR_AX;
            emit_reg(A_FNSTSW,S_NO,r);
            emit_none(A_SAHF,S_NO);
            if not(RS_EAX in rg.unusedregsint) then
              begin
-               r.enum:=R_EAX;
-               r2.enum:=R_EDI;
+               r.enum:=R_INTREGISTER;
+               r.number:=NR_EAX;
+               r2.enum:=R_INTREGISTER;;
+               r2.number:=NR_EDI;
                emit_reg_reg(A_MOV,S_L,r2,r);
                rg.ungetregisterint(exprasmlist,r2);
              end;
@@ -1640,7 +1645,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-03-08 20:36:41  daniel
+  Revision 1.59  2003-03-13 19:52:23  jonas
+    * and more new register allocator fixes (in the i386 code generator this
+      time). At least now the ppc cross compiler can compile the linux
+      system unit again, but I haven't tested it.
+
+  Revision 1.58  2003/03/08 20:36:41  daniel
     + Added newra version of Ti386shlshrnode
     + Added interference graph construction code
 

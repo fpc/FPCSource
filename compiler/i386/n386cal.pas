@@ -340,7 +340,8 @@ implementation
          dont_call;
 
       begin
-         rsp.enum:=R_ESP;
+         rsp.enum:=R_INTREGISTER;
+         rsp.number:=NR_ESP;
          extended_new:=false;
          iolabel:=nil;
          inlinecode:=nil;
@@ -505,7 +506,8 @@ implementation
                    emit_const_reg(A_AND,S_L,$fffffff8,rsp);
                    emit_const_reg(A_SUB,S_L,push_size,rsp);
                 end;
-              r.enum:=R_EDI;
+              r.enum:=R_INTREGISTER;
+              r.number:=R_EDI;
               emit_reg(A_PUSH,S_L,r);
            end
          else
@@ -1315,7 +1317,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2003-03-06 11:35:50  daniel
+  Revision 1.84  2003-03-13 19:52:23  jonas
+    * and more new register allocator fixes (in the i386 code generator this
+      time). At least now the ppc cross compiler can compile the linux
+      system unit again, but I haven't tested it.
+
+  Revision 1.83  2003/03/06 11:35:50  daniel
     * Fixed internalerror 7843 issue
 
   Revision 1.82  2003/02/19 22:00:15  daniel

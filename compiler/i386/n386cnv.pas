@@ -149,18 +149,17 @@ implementation
          exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,hregister));
          if freereg then
            cg.free_scratch_reg(exprasmlist,hregister);
-         r.enum:=R_ESP;
+         r.enum:=R_INTREGISTER;
+         r.number:=NR_ESP;
          reference_reset_base(href,r,0);
          case torddef(left.resulttype.def).typ of
            u32bit:
              begin
-                r.enum:=R_ESP;
                 emit_ref(A_FILD,S_IQ,href);
                 emit_const_reg(A_ADD,S_L,8,r);
              end;
            s64bit:
              begin
-                r.enum:=R_ESP;
                 emit_ref(A_FILD,S_IQ,href);
                 emit_const_reg(A_ADD,S_L,8,r);
              end;
@@ -175,14 +174,16 @@ implementation
                 inc(href.offset,4);
                 rg.getexplicitregisterint(exprasmlist,NR_EDI);
                 emit_ref_reg(A_MOV,S_L,href,r);
-                r.enum:=R_ESP;
+                r.enum:=R_INTREGISTER;
+                r.number:=NR_ESP;
                 reference_reset_base(href,r,4);
                 emit_const_ref(A_AND,S_L,$7fffffff,href);
                 r.enum:=R_INTREGISTER;
                 r.number:=NR_EDI;
                 emit_const_reg(A_TEST,S_L,longint($80000000),r);
                 rg.ungetregisterint(exprasmlist,r);
-                r.enum:=R_ESP;
+                r.enum:=R_INTREGISTER;
+                r.number:=NR_ESP;
                 reference_reset_base(href,r,0);
                 emit_ref(A_FILD,S_IQ,href);
                 objectlibrary.getdatalabel(l1);
@@ -431,7 +432,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-02-19 22:00:15  daniel
+  Revision 1.57  2003-03-13 19:52:23  jonas
+    * and more new register allocator fixes (in the i386 code generator this
+      time). At least now the ppc cross compiler can compile the linux
+      system unit again, but I haven't tested it.
+
+  Revision 1.56  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

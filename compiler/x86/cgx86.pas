@@ -302,7 +302,8 @@ unit cgx86;
       begin
         if reg.enum>lastreg then
           internalerror(200301081);
-        result := regsize_2_cgsize[reg2opsize[reg.enum]];
+        if (reg.enum = R_INTREGISTER) then
+          result := regsize_2_cgsize[subreg2opsize[reg.number and $ff]];
       end;
 
 
@@ -610,7 +611,8 @@ unit cgx86;
          href : treference;
          r : Tregister;
        begin
-         r.enum:=R_ESP;
+         r.enum:=R_INTREGISTER;
+         r.number:=NR_ESP;
          list.concat(taicpu.op_const_reg(A_SUB,S_L,8,r));
          reference_reset_base(href,r,0);
          list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,href));
@@ -1002,9 +1004,9 @@ unit cgx86;
           internalerror(200201081);
         if dst.enum>lastreg then
           internalerror(200201081);
-        opsize := reg2opsize[src1.enum];
+        opsize := subreg2opsize[src1.number and $ff];
         if (opsize <> S_L) or
-           (reg2opsize[src2.enum] <> S_L) or
+           (subreg2opsize[src2.number and $ff] <> S_L) or
            not (size in [OS_32,OS_S32]) then
           begin
             inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
@@ -1044,12 +1046,7 @@ unit cgx86;
                 list.concat(taicpu.op_const_reg(A_CMP,subreg2opsize[reg.number and $ff],a,reg));
             end
           else
-            begin
-              if (a = 0) then
-                list.concat(taicpu.op_reg_reg(A_TEST,reg2opsize[reg.enum],reg,reg))
-              else
-                list.concat(taicpu.op_const_reg(A_CMP,reg2opsize[reg.enum],a,reg));
-            end;
+            internalerror(200303131);
           a_jmp_cond(list,cmp_op,l);
         end;
 
@@ -1066,13 +1063,13 @@ unit cgx86;
         reg1,reg2 : tregister;l : tasmlabel);
 
         begin
-          if reg1.enum>lastreg then
+          if reg1.enum<>R_INTREGISTER then
             internalerror(200101081);
-          if reg2.enum>lastreg then
+          if reg2.enum<>R_INTREGISTER then
             internalerror(200101081);
-          if reg2opsize[reg1.enum] <> reg2opsize[reg2.enum] then
+          if subreg2opsize[reg1.number and $ff] <> subreg2opsize[reg2.number and $ff] then
             internalerror(200109226);
-          list.concat(taicpu.op_reg_reg(A_CMP,reg2opsize[reg1.enum],reg1,reg2));
+          list.concat(taicpu.op_reg_reg(A_CMP,subreg2opsize[reg1.number and $ff],reg1,reg2));
           a_jmp_cond(list,cmp_op,l);
         end;
 
@@ -1129,7 +1126,7 @@ unit cgx86;
           ai:=Taicpu.op_reg(A_SETcc,S_B,hreg);
           ai.setcondition(flags_to_cond(f));
           list.concat(ai);
-          if (reg.enum <> hreg.enum) then
+          if (reg.number <> hreg.number) then
             a_load_reg_reg(list,OS_8,size,hreg,reg);
        end;
 
@@ -1225,17 +1222,17 @@ unit cgx86;
                          swap:=true;
                          { we need only to check 3 registers, because }
                          { one is always not index or base          }
-                         if (dest.base.enum<>R_EAX) and (dest.index.enum<>R_EAX) then
+                         if (dest.base.number<>NR_EAX) and (dest.index.number<>NR_EAX) then
                            begin
                               reg8.number:=NR_AL;
                               reg32.number:=NR_EAX;
                            end
-                         else if (dest.base.enum<>R_EBX) and (dest.index.enum<>R_EBX) then
+                         else if (dest.base.number<>NR_EBX) and (dest.index.number<>NR_EBX) then
                            begin
                               reg8.number:=NR_BL;
                               reg32.number:=NR_EBX;
                            end
-                         else if (dest.base.enum<>R_ECX) and (dest.index.enum<>R_ECX) then
+                         else if (dest.base.number<>NR_ECX) and (dest.index.number<>NR_ECX) then
                            begin
                               reg8.number:=NR_CL;
                               reg32.number:=NR_ECX;
@@ -1924,7 +1921,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.34  2003-02-27 16:40:32  daniel
+  Revision 1.35  2003-03-13 19:52:23  jonas
+    * and more new register allocator fixes (in the i386 code generator this
+      time). At least now the ppc cross compiler can compile the linux
+      system unit again, but I haven't tested it.
+
+  Revision 1.34  2003/02/27 16:40:32  daniel
     * Fixed ie 200301234 problem on Win32 target
 
   Revision 1.33  2003/02/26 21:15:43  daniel
