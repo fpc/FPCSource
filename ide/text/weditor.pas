@@ -36,6 +36,7 @@ const
       cmWriteBlock           = 51245;
       cmReadBlock            = 51246;
       cmPrintBlock           = 51247;
+      cmResetDebuggerRow     = 51248;
 
       EditorTextBufSize = {$ifdef FPC}32768{$else} 4096{$endif};
       MaxLineLength     = {$ifdef FPC}  255{$else}  255{$endif};
@@ -1400,6 +1401,8 @@ begin
           Update;
         cmClearLineHighlights :
           SetHighlightRow(-1);
+        cmResetDebuggerRow :
+          SetDebuggerRow(-1);
         cmScrollBarChanged:
           if (Event.InfoPtr = HScrollBar) or
              (Event.InfoPtr = VScrollBar) then
@@ -1600,10 +1603,10 @@ begin
         FreeFormat[X]:=false;
       end;
     if DebuggerRow=AY then
-      begin                                                                                                                                                                                                                                                    
+      begin
         Color:=CombineColors(Color,HighlightRowColor);
-        FreeFormat[X]:=false;                                                                                                                                                                                                                                  
-      end;                                                                                                                                                                                                                                                     
+        FreeFormat[X]:=false;
+      end;
     if isbreak then
       begin
         Color:=ColorTab[coBreakColor];
@@ -3512,8 +3515,8 @@ procedure TCodeEditor.SetDebuggerRow(Row: sw_integer);
 begin
   DebuggerRow:=Row;
   DrawView;
-end;                                                                                                                                                                                                                                                           
-                                                                                                                                                                                                                                                               
+end;
+
 procedure TCodeEditor.SelectAll(Enable: boolean);
 var A,B: TPoint;
 begin
@@ -3609,6 +3612,7 @@ begin
   S.Read(IsReadOnly,SizeOf(IsReadOnly));
   S.Read(NoSelect,SizeOf(NoSelect));
   S.Read(HighlightRow,SizeOf(HighlightRow));
+  SetDebuggerRow(-1);
 
   LimitsChanged;
   SelectionChanged; HighlightChanged;
@@ -4244,7 +4248,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.43  1999-08-24 22:04:35  pierre
+  Revision 1.44  1999-08-27 15:07:44  pierre
+   + cmResetDebuggerRow
+
+  Revision 1.43  1999/08/24 22:04:35  pierre
     + TCodeEditor.SetDebuggerRow
       works like SetHighlightRow but is only disposed by a SetDebuggerRow(-1)
       so the current stop point in debugging is not lost if
