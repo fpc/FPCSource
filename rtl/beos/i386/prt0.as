@@ -172,3 +172,10 @@ sys_rmdir:
 movl $0x60,%eax
 int $0x25
 ret
+
+/* actual syscall */
+.globl sys_call
+.type sys_call,@function
+sys_call:
+int $0x25
+ret
