@@ -82,11 +82,19 @@ type
   gdFontPtr = PgdFont;
 
 var
+{$ifndef darwin}
   gdFontLarge      : gdFontPtr; cvar; external;
   gdFontSmall      : gdFontPtr; cvar; external;
   gdFontGiant      : gdFontPtr; cvar; external;
   gdFontMediumBold : gdFontPtr; cvar; external;
   gdFontTiny       : gdFontPtr; cvar; external;
+{$else darwin}
+  gdFontLarge      : gdFontPtr; external libgd name 'gdFontLarge';
+  gdFontSmall      : gdFontPtr; external libgd name 'gdFontSmall';
+  gdFontGiant      : gdFontPtr; external libgd name 'gdFontGiant';
+  gdFontMediumBold : gdFontPtr; external libgd name 'gdFontMediumBold';
+  gdFontTiny       : gdFontPtr; external libgd name 'gdFontTiny';
+{$endif darwin}
 
 const
   gdDashSize = 4;
