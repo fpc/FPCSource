@@ -159,6 +159,10 @@ allts : $(patsubst %.pp,%.res,$(wildcard ts*.pp))
 
 alltbs : $(patsubst %.pp,%.res,$(wildcard tbs*.pp))
 
+tbs0to99 : $(patsubst %.pp,%.res,$(wildcard tbs00*.pp))
+tbs100to199 : $(patsubst %.pp,%.res,$(wildcard tbs01*.pp))
+tbs200to299 : $(patsubst %.pp,%.res,$(wildcard tbs02*.pp))
+
 alltest : $(patsubst %.pp,%.res,$(wildcard test*.pp))
 
 alltesi : $(patsubst %.pp,%.res,$(wildcard tesi*.pp))
@@ -209,6 +213,10 @@ alltsexec: $(patsubst %.pp,%.elg,$(wildcard ts*.pp))
 
 alltbsexec: $(patsubst %.pp,%.elg,$(wildcard tbs*.pp)) 
 
+tbsexec0to99 : $(patsubst %.pp,%.elg,$(wildcard tbs00*.pp)) 
+tbsexec100to199 : $(patsubst %.pp,%.elg,$(wildcard tbs01*.pp)) 
+tbsexec200to299 : $(patsubst %.pp,%.elg,$(wildcard tbs02*.pp)) 
+
 alltisexec: $(patsubst %.pp,%.eli,$(wildcard tis*.pp)) 
 
 clean :
@@ -232,7 +240,10 @@ info :
 
 #
 # $Log$
-# Revision 1.6  1999-10-13 12:42:09  pierre
+# Revision 1.7  1999-12-02 00:12:31  pierre
+#  + splitted targets for Win95 selector bug
+#
+# Revision 1.6  1999/10/13 12:42:09  pierre
 #  * small fixes for win32
 #
 # Revision 1.5  1999/09/19 11:48:18  peter
