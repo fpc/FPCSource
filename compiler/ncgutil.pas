@@ -355,6 +355,7 @@ implementation
         hreg64 : tregister64;
         hl : tasmlabel;
         oldloc : tlocation;
+        const_location: boolean;
      begin
         oldloc:=l;
         if dst_size=OS_NO then
@@ -448,15 +449,19 @@ implementation
             
             Not if it's about LOC_CREGISTER's (JM)
             }
-           if (l.loc <> LOC_CREGISTER) or
-              (l.size <> dst_size) or
-              not(maybeconst) then
+           const_location :=
+              (maybeconst) and
+              (l.loc = LOC_CREGISTER) and
+              (TCGSize2Size[l.size] = TCGSize2Size[dst_size]) and
+              ((l.size = dst_size) or
+               (TCGSize2Size[l.size] = TCGSize2Size[OS_INT]));
+           if not const_location then
              begin
                location_release(list,l);
                hregister:=cg.getintregister(list,dst_size)
              end
            else
-             hregister :=l.register;
+             hregister := l.register;
            { load value in new register }
            case l.loc of
              LOC_FLAGS :
@@ -498,9 +503,7 @@ implementation
 {$endif not x86}
                end;
            end;
-           if (l.loc <> LOC_CREGISTER) or
-              (l.size <> dst_size) or
-              not maybeconst then
+           if not const_location then
              location_reset(l,LOC_REGISTER,dst_size)
            else
              location_reset(l,LOC_CREGISTER,dst_size);
@@ -2145,7 +2148,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.204  2004-05-30 21:18:22  jonas
+  Revision 1.205  2004-05-30 21:41:15  jonas
+    * more regvar optimizations in location_force_reg
+
+  Revision 1.204  2004/05/30 21:18:22  jonas
     * some optimizations and associated fixes for better regvar code
 
   Revision 1.203  2004/05/28 21:14:13  peter
