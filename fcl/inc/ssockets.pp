@@ -546,8 +546,8 @@ Var
   addr: TInetSockAddr;
 
 begin
-  A := StrToHostAddr(FHost);
-  if A[1] = 0 then
+  A := StrToNetAddr(FHost);
+  if A.s_bytes[4] = 0 then
     With THostResolver.Create(Nil) do
       try
         If Not NameLookup(FHost) then
@@ -558,7 +558,8 @@ begin
       end;
   addr.family := AF_INET;
   addr.port := ShortHostToNet(FPort);
-  addr.addr := Cardinal(A);
+  addr.addr := a.s_addr; // hosttonet(A).s_addr;
+//Cardinal(A);
 
   If not Sockets.Connect(ASocket, addr, sizeof(addr)) then
     raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort])]);
@@ -600,7 +601,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  2005-02-14 17:13:15  peter
+  Revision 1.26  2005-03-18 10:58:16  marco
+   * lots of endian fixes
+
+  Revision 1.25  2005/02/14 17:13:15  peter
     * truncate log
 
 }

@@ -482,8 +482,8 @@ procedure TCustomTCPClient.DoResolve;
 var
   HostResolver: THostResolver;
 begin
-  HostAddr := StrToHostAddr(Host);
-  if HostAddr[1] = 0 then
+  HostAddr := StrToNetAddr(Host);
+  if HostAddr.s_bytes[4] = 0 then
   begin
     HostResolver := THostResolver.Create(nil);
     try
@@ -588,7 +588,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2005-02-14 17:13:15  peter
+  Revision 1.7  2005-03-18 10:58:16  marco
+   * lots of endian fixes
+
+  Revision 1.6  2005/02/14 17:13:15  peter
     * truncate log
 
 }

@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Implement networking routines.
-
+    
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -28,20 +28,27 @@ unit netdb;
 
 Interface
 
-{$i hsh.inc} // disappears if part of resolve.pp !!
+{ i hsh.inc} // disappears if part of resolve.pp !!
+
+Uses Sockets;
+
+Type
+  THostAddr = in_addr;		// historical aliases for these.
+  THostAddr6= Tin6_addr;
+  TNetAddr  = THostAddr;	// but in net order.
 
 Const
   DNSPort        = 53;
   MaxServers     = 4;
   MaxResolveAddr = 10;
   SResolveFile   = '/etc/resolv.conf';
-  SServicesFile  = '/etc/services';
+  SServicesFile  = '/etc/services'; 
   SHostsFile     = '/etc/hosts';
   SNetworksFile  = '/etc/networks';
 
   MaxRecursion = 10;
   MaxIP4Mapped = 10;
-
+  
 Type
   TDNSServerArray = Array[1..MaxServers] of THostAddr;
   TServiceEntry = record
@@ -50,27 +57,27 @@ Type
     Port     : Word;
     Aliases  : String;
   end;
-
+     
   THostEntry = record
     Name : String;
     Addr : THostAddr;
     Aliases : String;
-  end;
-
+  end;  
+  
   TNetworkEntry = Record
     Name : String;
     Addr : TNetAddr;
     Aliases : String;
-  end;
-
-Var
+  end;  
+  
+Var  
   DNSServers            : TDNSServerArray;
   DNSServerCount        : Integer;
   DefaultDomainList     : String;
-  CheckResolveFileAge   : Boolean;
+  CheckResolveFileAge   : Boolean; 
   TimeOutS,TimeOutMS    : Longint;
-
-
+  
+  
 Function GetDNSServers(FN : String) : Integer;
 
 Function ResolveName(HostName : String; Var Addresses : Array of THostAddr) : Integer;
@@ -96,23 +103,22 @@ Function GetServiceByPort(Port : Word;Const Proto : String; Var E : TServiceEntr
 
 Implementation
 
-uses
+uses 
 {$ifdef VER1_0}
    Linux,
 {$else}
    BaseUnix,
 {$endif}
-   sockets,sysutils;
+   sysutils;
 
-{$i hs.inc}
 
 const
   { from http://www.iana.org/assignments/dns-parameters }
-  DNSQRY_A     = 1;                     // name to IP address
+  DNSQRY_A     = 1;                     // name to IP address 
   DNSQRY_AAAA  = 28;                    // name to IP6 address
   DNSQRY_A6    = 38;                    // name to IP6 (new)
-  DNSQRY_PTR   = 12;                    // IP address to name
-  DNSQRY_MX    = 15;                    // name to MX
+  DNSQRY_PTR   = 12;                    // IP address to name 
+  DNSQRY_MX    = 15;                    // name to MX 
   DNSQRY_TXT   = 16;                    // name to TXT
   DNSQRY_CNAME = 5;
 
@@ -129,20 +135,20 @@ const
   QF_RCODE  = $0F;
 
 
-
-Type
+   
+Type 
   TPayLoad  = Array[0..511] of char;
   TQueryData = packed Record
     id      : Array[0..1] of Byte;
     flags1  : Byte;
-    flags2  : Byte;
+    flags2  : Byte; 
     qdcount : word;
     ancount : word;
     nscount : word;
     arcount : word;
     Payload : TPayLoad;
   end;
-
+  
   TRRData = Packed record       // RR record
     Atype    : Word;            // Answer type
     AClass   : Word;
@@ -155,51 +161,9 @@ Var
   ResolveFileName : String;
 
 { ---------------------------------------------------------------------
-    Auxiliary functions.
-  ---------------------------------------------------------------------}
-
-function htonl(const i:integer):integer;
-begin
-  {$ifdef ENDIAN_LITTLE}
-  result := (i shr 24) or (i shr 8 and $ff00) or (i shl 8 and $ff0000) or (i shl 24 and $ff000000);
-  {$else}
-  result := i;
-  {$endif}
-end;
-
-Function htons(const W : Word) : word;
-
-begin
-  {$ifdef ENDIAN_LITTLE}
-  result := ((w and $ff00) shr 8) or ((w and $ff) shl 8);
-  {$else}
-  result := w;
-  {$endif}
-end;
-
-Function ntohs(const W : Word) : Word;
-
-begin
-  {$ifdef ENDIAN_LITTLE}
-  result := ((w and $ff00) shr 8) or ((w and $ff) shl 8);
-  {$else}
-  result := w;
-  {$endif}
-end;
-
-function ntohl(const i:integer):integer;
-begin
-  {$ifdef ENDIAN_LITTLE}
-  result := (i shr 24) or (i shr 8 and $ff00) or (i shl 8 and $ff0000) or (i shl 24 and $ff000000);
-  {$else}
-  result := i;
-  {$endif}
-end;
-
-{ ---------------------------------------------------------------------
    Resolve.conf handling
   ---------------------------------------------------------------------}
-
+  
 Function GetDNSServers(Fn : String) : Integer;
 
 Var
@@ -209,10 +173,10 @@ Var
   H : THostAddr;
 
   Function CheckDirective(Dir : String) : Boolean;
-
+  
   Var
     P : Integer;
-
+  
   begin
     P:=Pos(Dir,L);
     Result:=(P<>0);
@@ -222,7 +186,7 @@ Var
       L:=Trim(L);
       end;
   end;
-
+   
 begin
   Result:=0;
   ResolveFileName:=Fn;
@@ -231,9 +195,9 @@ begin
   Assign(R,FN);
   Reset(R);
   {$i+}
-  If (IOResult<>0) then
+  If (IOResult<>0) then 
     exit;
-  Try
+  Try  
     While not EOF(R) do
       begin
       Readln(R,L);
@@ -243,7 +207,7 @@ begin
       If CheckDirective('nameserver') then
         begin
         H:=HostToNet(StrToHostAddr(L));
-        If (H[1]<>0) then
+        If H.s_bytes[1]<>0 then
           begin
           Inc(Result);
           DNSServers[Result]:=H;
@@ -256,7 +220,7 @@ begin
       end;
   Finally
     Close(R);
-  end;
+  end;    
   DNSServerCount:=Result;
 end;
 
@@ -271,37 +235,37 @@ begin
     F:=FileAge(ResolveFileName);
     If ResolveFileAge<F then
       GetDnsServers(ResolveFileName);
-    end;
+    end;  
 end;
 
 { ---------------------------------------------------------------------
     Payload handling functions.
   ---------------------------------------------------------------------}
-
+  
 
 Procedure DumpPayLoad(Q : TQueryData; L : Integer);
 
-Var
+Var 
   i : Integer;
 
 begin
   Writeln('Payload : ',l);
   For I:=0 to L-1 do
     Write(Byte(Q.Payload[i]),' ');
-  Writeln;
+  Writeln;  
 end;
-
+  
 Function BuildPayLoad(Var Q : TQueryData; Name : String; RR : Word; QClass : Word) : Integer;
 
 Var
   P : PByte;
   l,S : Integer;
-
+  
 begin
   Result:=-1;
   If length(Name)>506 then
     Exit;
-  Result:=0;
+  Result:=0;  
   P:=@Q.Payload;
   Repeat
     L:=Pos('.',Name);
@@ -332,8 +296,7 @@ Var
   I : Integer;
   HaveName : Boolean;
   PA : ^TRRData;
-  RClass,RType : Word;
-
+  
 begin
   Result:=False;
   I:=Start;
@@ -344,7 +307,7 @@ begin
       Inc(I,2)
     else If Payload[i]=#0 then // Null termination of label, skip.
       Inc(i)
-    else
+    else  
       begin
       Inc(I,Ord(Payload[i])+1); // Label, continue scan.
       HaveName:=False;
@@ -362,11 +325,11 @@ Function BuildName (Const PayLoad : TPayLoad; Start,len : Integer) : String;
 
 Const
   FIREDNS_POINTER_VALUE = $C000;
-
+  
 Var
   I,O : Integer;
   P : Word;
-
+  
 begin
   SetLength(Result,512);
   I:=Start;
@@ -385,19 +348,19 @@ begin
         Result[O]:='.';
         Inc(O);
         end;
-      P:=Ord(Payload[i]);
+      P:=Ord(Payload[i]);  
       Move(Payload[i+1],Result[o],P);
       Inc(I,P+1);
       Inc(O,P);
       end;
-   Until (Payload[I]=#0);
+   Until (Payload[I]=#0);    
 end;
 
 
 { ---------------------------------------------------------------------
     QueryData handling functions
   ---------------------------------------------------------------------}
-
+  
 Function CheckAnswer(Const Qry : TQueryData; Var Ans : TQueryData) : Boolean;
 
 begin
@@ -406,15 +369,15 @@ begin
     begin
     // Check ID.
     If (ID[1]<>QRY.ID[1]) or (ID[0]<>Qry.ID[0]) then
-      exit;
+      exit;  
     // Flags ?
     If (Flags1 and QF_QR)=0 then
       exit;
-    if (Flags1 and QF_OPCODE)<>0 then
-      exit;
+    if (Flags1 and QF_OPCODE)<>0 then 
+      exit;  
     if (Flags2 and QF_RCODE)<>0 then
-      exit;
-    // Number of answers ?
+      exit;  
+    // Number of answers ?  
     AnCount := htons(Ancount);
     If Ancount<1 then
       Exit;
@@ -434,7 +397,7 @@ begin
     qdcount := htons(qdcount);
     i:=0;
     q:=0;
-    While (Q<qdcount) and (i<l) do
+    While (Q<qdcount) and (i<l) do  
       begin
       If Ord(Payload[i])>63 then
         begin
@@ -449,26 +412,26 @@ begin
           Inc(I,5);
           end
         else
-          Inc(I,Ord(Payload[i])+1);
-        end;
+          Inc(I,Ord(Payload[i])+1);  
+        end;  
       end;
-    Result:=I;
-    end;
+    Result:=I;  
+    end;  
 end;
 
 { ---------------------------------------------------------------------
     DNS Query functions.
   ---------------------------------------------------------------------}
-
+  
 
 Function Query(Resolver : Integer; Var Qry,Ans : TQueryData; QryLen : Integer; Var AnsLen : Integer) : Boolean;
 
 Var
-  BA,SA : TInetSockAddr;
-  Sock,L,I : Longint;
+  SA : TInetSockAddr;
+  Sock,L : Longint;
   Al,RTO : Longint;
   ReadFDS : {$ifdef VER1_0}FDSet{$ELSE}TFDSet{$ENDIF};
-
+  
 begin
   Result:=False;
   With Qry do
@@ -483,13 +446,13 @@ begin
     arcount:=0;
     end;
   Sock:=Socket(PF_INET,SOCK_DGRAM,0);
-  If Sock=-1 then
+  If Sock=-1 then 
     exit;
   With SA do
     begin
     family:=AF_INET;
     port:=htons(DNSport);
-    addr:=cardinal(HostToNet(DNSServers[Resolver]));
+    addr:=cardinal(DNSServers[Resolver]); // dnsservers already in net order
     end;
   sendto(sock,qry,qrylen+12,0,SA,SizeOf(SA));
   // Wait for answer.
@@ -511,9 +474,9 @@ begin
   // Check lenght answer and fields in header data.
   If (L<12) or not CheckAnswer(Qry,Ans) Then
     exit;
-  // Return Payload length.
-  Anslen:=L-12;
-  Result:=True;
+  // Return Payload length.  
+  Anslen:=L-12;  
+  Result:=True;  
 end;
 
 function stringfromlabel(pl: TPayLoad; start: integer): string;
@@ -549,7 +512,7 @@ begin
   QryLen:=BuildPayLoad(Qry,HostName,DNSQRY_A,1);
   If Not Query(Resolver,Qry,Ans,QryLen,AnsLen) then
     Result:=-1
-  else
+  else  
     begin
     AnsStart:=SkipAnsQueries(Ans,AnsLen);
     MaxAnswer:=Ans.AnCount-1;
@@ -578,7 +541,7 @@ begin
           end;
         end;
         Inc(I);
-      end;
+      end;  
     end;
 end;
 
@@ -598,8 +561,10 @@ begin
     end;
 end;
 
-Function ResolveNameAt6(Resolver : Integer; HostName : String; Var Addresses : Array of THostAddr6; Recurse: Integer) : Integer;
+//const NoAddress6 : array[0..7] of word = (0,0,0,0,0,0,0,0);
 
+Function ResolveNameAt6(Resolver : Integer; HostName : String; Var Addresses : Array of THostAddr6; Recurse: Integer) : Integer;
+                                                                                                                                        
 Var
   Qry, Ans            : TQueryData;
   MaxAnswer,I,QryLen,
@@ -608,7 +573,7 @@ Var
   cname               : string;
   LIP4mapped: array[0..MaxIP4Mapped-1] of THostAddr;
   LIP4count: Longint;
-
+                                                                                                                                        
 begin
   Result:=0;
   QryLen:=BuildPayLoad(Qry,HostName,DNSQRY_AAAA,1);
@@ -618,15 +583,15 @@ begin
     if LIP4Count > 0 then begin
       inc(LIP4Count); // we loop to LIP4Count-1 later
       if LIP4Count > MaxIP4Mapped then LIP4Count := MaxIP4Mapped;
-{$ifdef VER1_0}
+{$ifdef VER1_0}      
       if LIP4Count > High(Addresses)+1 then LIP4Count := High(Addresses)+1;
-{$else}
+{$else}      
       if LIP4Count > Length(Addresses) then LIP4Count := Length(Addresses);
-{$endif}
+{$endif}      
       for i := 0 to LIP4Count-2 do begin
         Addresses[i] := NoAddress6;
-        Addresses[i][5] := $FFFF;
-        Move(LIP4Mapped[i], Addresses[i][6], 4);
+        Addresses[i].u6_addr16[5] := $FFFF;
+        Move(LIP4Mapped[i], Addresses[i].u6_addr16[6], 4);
       end;
       Result := LIP4Count;
     end else begin
@@ -665,7 +630,7 @@ begin
       end;
     end;
 end;
-
+                                                                                                                                        
 
 
 Function ResolveName6(HostName: String; Var Addresses: Array of THostAddr6) : Integer;
@@ -689,13 +654,13 @@ Var
   MaxAnswer,I,QryLen,
   AnsLen,AnsStart     : Longint;
   RR                  : TRRData;
-  S                   : String;
+
 begin
   Result:=0;
   QryLen:=BuildPayLoad(Qry,Address,DNSQRY_PTR,1);
   If Not Query(Resolver,Qry,Ans,QryLen,AnsLen) then
     Result:=-1
-  else
+  else  
     begin
     AnsStart:=SkipAnsQueries(Ans,AnsLen);
     MaxAnswer:=Ans.AnCount-1;
@@ -712,7 +677,7 @@ begin
         Inc(AnsStart,RR.RDLength);
         end;
       Inc(I);
-      end;
+      end;  
     end;
 end;
 
@@ -722,12 +687,14 @@ Function ResolveAddress(HostAddr : THostAddr; Var Addresses : Array of String) :
 Var
   I : Integer;
   S : String;
-
+  nt : tnetaddr;
+  
 begin
   CheckResolveFile;
   I:=1;
   Result:=0;
-  S:=Format('%d.%d.%d.%d.in-addr.arpa',[HostAddr[4],HostAddr[3],HostAddr[2],HostAddr[1]]);
+  nt:=hosttonet(hostaddr);
+  S:=Format('%d.%d.%d.%d.in-addr.arpa',[nt.s_bytes[4],nt.s_bytes[3],nt.s_bytes[2],nt.s_bytes[1]]);
   While (Result=0) and (I<=DNSServerCount) do
     begin
     Result:=ResolveAddressAt(I,S,Addresses);
@@ -739,20 +706,20 @@ Function ResolveAddress6(HostAddr : THostAddr6; Var Addresses : Array of String)
 
 const
   hexdig: string[16] = '0123456789abcdef';
-
+                                                                                
 Var
   I : Integer;
   S : ShortString;
-
+                                                                                
 begin
   CheckResolveFile;
   Result:=0;
   S := '0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.int';
   for i := 7 downto 0 do begin
-    S[5+(7-i)*8] := hexdig[1+(HostAddr[i] and $000F) shr 00];
-    S[7+(7-i)*8] := hexdig[1+(HostAddr[i] and $00F0) shr 04];
-    S[1+(7-i)*8] := hexdig[1+(HostAddr[i] and $0F00) shr 08];
-    S[3+(7-i)*8] := hexdig[1+(HostAddr[i] and $F000) shr 12];
+    S[5+(7-i)*8] := hexdig[1+(HostAddr.u6_addr16[i] and $000F) shr 00];
+    S[7+(7-i)*8] := hexdig[1+(HostAddr.u6_addr16[i] and $00F0) shr 04];
+    S[1+(7-i)*8] := hexdig[1+(HostAddr.u6_addr16[i] and $0F00) shr 08];
+    S[3+(7-i)*8] := hexdig[1+(HostAddr.u6_addr16[i] and $F000) shr 12];
   end;
   I := 1;
   While (Result=0) and (I<=DNSServerCount) do
@@ -764,13 +731,13 @@ end;
 
 function IN6_IS_ADDR_V4MAPPED(HostAddr: THostAddr6): boolean;
 begin
-  Result :=
-   (HostAddr[0] = 0) and
-   (HostAddr[1] = 0) and
-   (HostAddr[2] = 0) and
-   (HostAddr[3] = 0) and
-   (HostAddr[4] = 0) and
-   (HostAddr[5] = $FFFF);
+  Result := 
+   (HostAddr.u6_addr16[0] = 0) and
+   (HostAddr.u6_addr16[1] = 0) and
+   (HostAddr.u6_addr16[2] = 0) and
+   (HostAddr.u6_addr16[3] = 0) and
+   (HostAddr.u6_addr16[4] = 0) and
+   (HostAddr.u6_addr16[5] = $FFFF);
 end;
 
 
@@ -779,7 +746,7 @@ Function ResolveHostByName(HostName : String; Var H : THostEntry) : Boolean;
 Var
   Address : Array[1..MaxResolveAddr] of THostAddr;
   L : Integer;
-
+  
 begin
   L:=ResolveName(HostName,Address);
   Result:=(L>0);
@@ -797,7 +764,7 @@ Function ResolveHostByAddr(HostAddr : THostAddr; Var H : THostEntry) : Boolean;
 Var
   Names : Array[1..MaxResolveAddr] of String;
   I,L : Integer;
-
+  
 begin
   L:=ResolveAddress(HostAddr,Names);
   Result:=(L>0);
@@ -810,7 +777,7 @@ begin
       For I:=2 to L do
         If (I=2) then
           H.Aliases:=Names[i]
-        else
+        else  
           H.Aliases:=H.Aliases+','+Names[i];
     end;
 end;
@@ -819,12 +786,12 @@ end;
     Some Parsing routines
   ---------------------------------------------------------------------}
 
-Const
+Const 
   Whitespace = [' ',#9];
 
 Function NextWord(Var Line : String) : String;
 
-Var
+Var 
   I,J : Integer;
 
 begin
@@ -834,10 +801,10 @@ begin
   J:=I;
   While (J<=Length(Line)) and Not (Line[J] in WhiteSpace) do
     inc(j);
-  Result:=Copy(Line,I,J-1);
-  Delete(Line,1,J);
+  Result:=Copy(Line,I,J-1);  
+  Delete(Line,1,J);  
 end;
-
+  
 Procedure StripComment(Var line : String);
 
 Var
@@ -877,8 +844,7 @@ Function GetNextHostEntry(var F : Text; Var H : THostEntry): boolean;
 
 Var
   Line,S : String;
-  P : Integer;
-
+  
 begin
   Result:=False;
   Repeat
@@ -887,8 +853,8 @@ begin
     S:=NextWord(Line);
     If (S<>'') then
       begin
-      H.Addr:=StrToHostAddr(S);
-      if (H.Addr[1]<>0) then
+      H.Addr:=StrTonetAddr(S);		// endianness problem here. (fixed)
+      if (H.Addr.s_bytes[4]<>0) then
         begin
         S:=NextWord(Line);
         If (S<>'') then
@@ -902,20 +868,20 @@ begin
               If (H.Aliases='') then
                 H.Aliases:=S
               else
-                H.Aliases:=H.Aliases+','+S;
+                H.Aliases:=H.Aliases+','+S;  
           until (S='');
           end;
-        end;
+        end;      
       end;
   until Result or EOF(F);
-end;
+end;  
 
 Function FindHostEntryInHostsFile(N: String; Addr: THostAddr; Var H : THostEntry) : boolean;
 
 Var
   F : Text;
   HE : THostEntry;
-
+  
 begin
   Result:=False;
   If FileExists(SHostsFile) then
@@ -932,7 +898,7 @@ begin
           Result:=MatchNameOrAlias(N,HE.Name,HE.Aliases)
         else
           Result:=Cardinal(Addr)=Cardinal(HE.Addr);
-        end;
+        end; 
       Close(f);
       If Result then
         begin
@@ -940,9 +906,11 @@ begin
         H.Addr:=HE.Addr;
         H.Aliases:=HE.Aliases;
         end;
-      end;
+      end;  
     end;
 end;
+
+//const NoAddress : in_addr = (s_addr: 0);
 
 Function GetHostByName(HostName: String;  Var H : THostEntry) : boolean;
 
@@ -965,9 +933,8 @@ Function GetNextNetworkEntry(var F : Text; Var N : TNetworkEntry): boolean;
 
 Var
   NN,Line,S : String;
-  P : Integer;
   A : TNetAddr;
-
+  
 begin
   Result:=False;
   Repeat
@@ -977,24 +944,24 @@ begin
     If (S<>'') then
       begin
       NN:=S;
-      A:=StrToHostAddr(NextWord(Line));
-      Result:=(NN<>'') and (A[1]<>0); // Valid addr.
+      A:=StrToHostAddr(NextWord(Line));	// endianness?
+      Result:=(NN<>'') and (A.s_bytes[1]<>0); // Valid addr.
       If result then
         begin
         N.Addr:=A;
         N.Name:=NN;
         N.Aliases:='';
-        end;
+        end;      
       end;
   until Result or EOF(F);
-end;
+end;  
 
 Function FindNetworkEntryInNetworksFile(Net: String; Addr: TNetAddr; Var N : TNetworkEntry) : boolean;
 
 Var
   F : Text;
   NE : TNetworkEntry;
-
+  
 begin
   Result:=False;
   If FileExists(SNetworksFile) then
@@ -1011,7 +978,7 @@ begin
           Result:=MatchNameOrAlias(Net,NE.Name,NE.Aliases)
         else
           Result:=Cardinal(Addr)=Cardinal(NE.Addr);
-        end;
+        end; 
       Close(f);
       If Result then
         begin
@@ -1019,10 +986,12 @@ begin
         N.Addr:=NE.Addr;
         N.Aliases:=NE.Aliases;
         end;
-      end;
+      end;  
     end;
 end;
 
+Const NoNet : in_addr = (s_addr:0);
+  
 Function GetNetworkByName(NetName: String; Var N : TNetworkEntry) : boolean;
 
 begin
@@ -1045,7 +1014,7 @@ Function GetNextServiceEntry(Var F : Text; Var E : TServiceEntry) : Boolean;
 Var
   Line,S : String;
   P : INteger;
-
+  
 begin
   Result:=False;
   Repeat
@@ -1070,7 +1039,7 @@ begin
             If (S<>'') then
               If (Length(E.Aliases)=0) then
                 E.aliases:=S
-              else
+              else  
                 E.Aliases:=E.Aliases+','+S;
           until (S='');
           end;
@@ -1085,7 +1054,7 @@ Function FindServiceEntryInFile(Const Name,Proto : String; Port : Integer; Var E
 Var
   F : Text;
   TE : TServiceEntry;
-
+  
 begin
   Result:=False;
   If FileExists(SServicesFile) then
@@ -1100,11 +1069,11 @@ begin
         begin
         If (Port=-1) then
           Result:=MatchNameOrAlias(Name,TE.Name,TE.Aliases)
-        else
+        else 
           Result:=(Port=TE.Port);
         If Result and (Proto<>'') then
           Result:=(Proto=TE.Protocol);
-        end;
+        end; 
       Close(f);
       If Result then
         begin
@@ -1113,20 +1082,20 @@ begin
         E.Protocol:=TE.Protocol;
         E.Aliases:=TE.Aliases;
         end;
-      end;
+      end;  
     end;
 end;
 
 Function GetServiceByName(Const Name,Proto : String; Var E : TServiceEntry) : Boolean;
 
 begin
-  Result:=FindServiceEntryInFile(Name,Proto,-1,E);
+  Result:=FindServiceEntryInFile(Name,Proto,-1,E);  
 end;
 
 Function GetServiceByPort(Port : Word;Const Proto : String; Var E : TServiceEntry) : Boolean;
 
 begin
-  Result:=FindServiceEntryInFile('',Proto,Port,E);
+  Result:=FindServiceEntryInFile('',Proto,Port,E);  
 end;
 
 { ---------------------------------------------------------------------
@@ -1153,10 +1122,37 @@ end.
 
 {
   $Log$
-  Revision 1.13  2005-02-14 17:13:19  peter
-    * truncate log
+  Revision 1.14  2005-03-18 10:58:16  marco
+   * lots of endian fixes
 
   Revision 1.12  2005/02/07 14:12:31  marco
    * fixed endianess ugliness (3636)
+
+  Revision 1.11  2004/02/20 21:35:00  peter
+    * 1.0.x fix
+
+  Revision 1.10  2004/01/24 12:23:10  michael
+  + Patch from Johannes Berg
+
+  Revision 1.9  2003/12/12 20:50:18  michael
+  + Fixed trimming of nameserver entries
+
+  Revision 1.8  2003/11/22 23:17:50  michael
+  Patch for ipv6 and CNAME record support from Johannes Berg
+
+  Revision 1.7  2003/09/29 19:21:19  marco
+   * ; added to line 150
+
+  Revision 1.6  2003/09/29 07:44:11  michael
+  + Endian patch from bas steendijk@xs4all.nl
+
+  Revision 1.5  2003/09/28 09:34:02  peter
+    * unix fix for 1.0.x
+
+  Revision 1.4  2003/09/18 16:30:23  marco
+   * unixreform fix
+
+  Revision 1.3  2003/05/17 20:54:03  michael
+  + uriparser unit added. Header/Footer blocks added
 
 }
