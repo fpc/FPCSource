@@ -546,9 +546,7 @@ ait_stab_function_name : ;
                           AsmWriteLn(#9'END');
                           AsmClose;
                           DoAssemble;
-                          if pai_cut(hp)^.EndName then
-                           IsEndFile:=true;
-                          AsmCreate;
+                          AsmCreate(pai_cut(hp)^.place);
                         end;
                      { avoid empty files }
                        while assigned(hp^.next) and (pai(hp^.next)^.typ in [ait_cut,ait_section,ait_comment]) do
@@ -631,7 +629,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.54  1999-09-10 15:41:18  peter
+  Revision 1.55  1999-11-02 15:06:56  peter
+    * import library fixes for win32
+    * alignment works again
+
+  Revision 1.54  1999/09/10 15:41:18  peter
     * added symbol_end
 
   Revision 1.53  1999/09/02 18:47:42  daniel

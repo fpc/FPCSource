@@ -579,9 +579,7 @@ unit ag386nsm;
                 begin
                   AsmClose;
                   DoAssemble;
-                  if pai_cut(hp)^.EndName then
-                   IsEndFile:=true;
-                  AsmCreate;
+                  AsmCreate(pai_cut(hp)^.place);
                 end;
              { avoid empty files }
                while assigned(hp^.next) and (pai(hp^.next)^.typ in [ait_cut,ait_section,ait_comment]) do
@@ -656,7 +654,11 @@ unit ag386nsm;
 end.
 {
   $Log$
-  Revision 1.52  1999-09-13 16:27:24  peter
+  Revision 1.53  1999-11-02 15:06:56  peter
+    * import library fixes for win32
+    * alignment works again
+
+  Revision 1.52  1999/09/13 16:27:24  peter
     * fix for jmps to be always near
     * string writing fixed
 

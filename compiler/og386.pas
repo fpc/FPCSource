@@ -61,13 +61,13 @@ unit og386;
          writer    : pobjectwriter;
          path      : pathstr;
          ObjFile   : string;
-         IsEndFile : boolean;  { special 'end' file for import dir ? }
+         place     : tcutplace;
          currsec   : tsection;
          constructor init(smart:boolean);
          destructor  done;virtual;
          { Writing }
          procedure NextSmartName;
-         procedure initwriting;virtual;
+         procedure initwriting(Aplace:tcutplace);virtual;
          procedure donewriting;virtual;
          procedure setsectionsizes(var s:tsecsize);virtual;
          procedure writebytes(var data;len:longint);virtual;
@@ -193,32 +193,24 @@ unit og386;
         if SmartLinkFilesCnt>999999 then
          Message(asmw_f_too_many_asm_files);
         if (cs_asm_leave in aktglobalswitches) then
-          begin
-            if IsEndFile then
-             begin
-               s:=current_module^.asmprefix^+'e';
-               IsEndFile:=false;
-             end
-            else
-             s:=current_module^.asmprefix^;
-            ObjFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.objext)
-          end
+         s:=current_module^.asmprefix^
         else
-          begin
-            if IsEndFile then
-             begin
-               s:=current_module^.modulename^+'_e';
-               IsEndFile:=false;
-             end
-            else
-             s:=current_module^.modulename^+'_';
-            ObjFile:=FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.objext);
-          end;
+         s:=current_module^.modulename^;
+        case place of
+          cut_begin :
+            s:=s+'h';
+          cut_normal :
+            s:=s+'s';
+          cut_end :
+            s:=s+'t';
+        end;
+        ObjFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.objext)
       end;
 
 
-    procedure tobjectoutput.initwriting;
+    procedure tobjectoutput.initwriting(Aplace:tcutplace);
       begin
+        place:=Aplace;
         if objsmart then
          NextSmartName;
         writer^.create(objfile);
@@ -278,7 +270,11 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.12  1999-09-07 15:22:20  pierre
+  Revision 1.13  1999-11-02 15:06:57  peter
+    * import library fixes for win32
+    * alignment works again
+
+  Revision 1.12  1999/09/07 15:22:20  pierre
    * runerror => do_halt
 
   Revision 1.11  1999/08/04 00:23:04  florian

@@ -764,9 +764,7 @@ unit ag386att;
                    begin
                      AsmClose;
                      DoAssemble;
-                     if pai_cut(hp)^.EndName then
-                      IsEndFile:=true;
-                     AsmCreate;
+                     AsmCreate(pai_cut(hp)^.place);
                    end;
                 { avoid empty files }
                   while assigned(hp^.next) and (pai(hp^.next)^.typ in [ait_cut,ait_section,ait_comment]) do
@@ -873,7 +871,11 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.18  1999-10-27 16:11:28  peter
+  Revision 1.19  1999-11-02 15:06:56  peter
+    * import library fixes for win32
+    * alignment works again
+
+  Revision 1.18  1999/10/27 16:11:28  peter
     * insns.dat is used to generate all i386*.inc files
 
   Revision 1.17  1999/09/27 23:36:33  peter

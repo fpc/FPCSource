@@ -102,6 +102,7 @@ unit og386cff;
           datapos,
           relocpos,
           nrelocs,
+          align,
           flags     : longint;
           relochead : PReloc;
           reloctail : ^PReloc;
@@ -122,7 +123,7 @@ unit og386cff;
          initsym : longint;
          constructor init(smart:boolean);
          destructor  done;virtual;
-         procedure initwriting;virtual;
+         procedure initwriting(Aplace:tcutplace);virtual;
          procedure donewriting;virtual;
          procedure setsectionsizes(var s:tsecsize);virtual;
          procedure writebytes(var data;len:longint);virtual;
@@ -231,6 +232,15 @@ unit og386cff;
         index:=sec;
         secidx:=0;
         flags:=AFlags;
+        { alignment after section }
+        case sec of
+          sec_code,
+          sec_data,
+          sec_bss :
+            align:=4;
+          else
+            align:=1;
+        end;
         { filled after pass 1 }
         size:=0;
         fillsize:=0;
@@ -328,11 +338,11 @@ unit og386cff;
       end;
 
 
-    procedure tgenericcoffoutput.initwriting;
+    procedure tgenericcoffoutput.initwriting(Aplace:tcutplace);
       var
         s : string;
       begin
-        inherited initwriting;
+        inherited initwriting(Aplace);
         { reset }
         initsym:=0;
         new(syms,init(sizeof(TSymbol),symbolresize));
@@ -768,10 +778,7 @@ unit og386cff;
             sects[sec]^.size:=s[sec];
             sects[sec]^.mempos:=mempos;
             { calculate the alignment }
-            if sects[sec]^.flags=0 then
-             align:=1
-            else
-             align:=4;
+            align:=sects[sec]^.align;
             sects[sec]^.fillsize:=align-(sects[sec]^.size and (align-1));
             if sects[sec]^.fillsize=align then
              sects[sec]^.fillsize:=0;
@@ -787,6 +794,7 @@ unit og386cff;
       var
         datapos,secidx,
         nsects,sympos,i : longint;
+        gotreloc : boolean;
         sec    : tsection;
         header : coffheader;
         sechdr : coffsechdr;
@@ -830,11 +838,14 @@ unit og386cff;
             inc(initsym,2); { 2 for each section }
           end;
         { relocs }
+        gotreloc:=false;
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) then
           begin
             sects[sec]^.relocpos:=datapos;
             inc(datapos,10*sects[sec]^.nrelocs);
+            if (not gotreloc) and (sects[sec]^.nrelocs>0) then
+             gotreloc:=true;
           end;
         { symbols }
         sympos:=datapos;
@@ -844,7 +855,10 @@ unit og386cff;
         header.nsects:=nsects;
         header.sympos:=sympos;
         header.syms:=syms^.count+initsym;
-        header.flag:=$104;
+        if gotreloc then
+         header.flag:=$104
+        else
+         header.flag:=$105;
         writer^.write(header,sizeof(header));
       { Section headers }
         for sec:=low(tsection) to high(tsection) do
@@ -964,7 +978,11 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.12  1999-08-16 15:35:25  pierre
+  Revision 1.13  1999-11-02 15:06:57  peter
+    * import library fixes for win32
+    * alignment works again
+
+  Revision 1.12  1999/08/16 15:35:25  pierre
     * fix for DLL relocation problems
     * external bss vars had wrong stabs for pecoff
     + -WB11000000 to specify default image base, allows to

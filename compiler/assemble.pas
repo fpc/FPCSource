@@ -49,7 +49,7 @@ type
     objfile,
     as_bin   : string;
     SmartAsm : boolean;
-    IsEndFile : boolean;  { special 'end' file for import dir ? }
+    place    : TCutPlace; { special 'end' file for import dir ? }
   {outfile}
     AsmSize,
     AsmStartSize,
@@ -69,7 +69,7 @@ type
     Procedure AsmWritePChar(p:pchar);
     Procedure AsmWriteLn(const s:string);
     Procedure AsmLn;
-    procedure AsmCreate;
+    procedure AsmCreate(Aplace:tcutplace);
     procedure AsmClose;
     procedure Synchronize;
     procedure WriteTree(p:paasmoutput);virtual;
@@ -253,13 +253,14 @@ begin
   inc(SmartLinkFilesCnt);
   if SmartLinkFilesCnt>999999 then
    Message(asmw_f_too_many_asm_files);
-  if IsEndFile then
-   begin
-     s:=current_module^.asmprefix^+'e';
-     IsEndFile:=false;
-   end
-  else
-   s:=current_module^.asmprefix^;
+  case place of
+    cut_begin :
+      s:=current_module^.asmprefix^+'h';
+    cut_normal :
+      s:=current_module^.asmprefix^+'s';
+    cut_end :
+      s:=current_module^.asmprefix^+'t';
+  end;
   AsmFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.asmext);
   ObjFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.objext);
 end;
@@ -338,8 +339,9 @@ begin
 end;
 
 
-procedure TAsmList.AsmCreate;
+procedure TAsmList.AsmCreate(Aplace:tcutplace);
 begin
+  place:=Aplace;
   if SmartAsm then
    NextSmartName;
 {$ifdef linux}
@@ -429,7 +431,7 @@ begin
   name:=FixFileName(current_module^.modulename^);
   OutCnt:=0;
   SmartLinkFilesCnt:=0;
-  IsEndFile:=false;
+  place:=cut_normal;
   SmartAsm:=smart;
 { Which path will be used ? }
   if SmartAsm then
@@ -535,7 +537,7 @@ begin
     Message(asmw_f_assembler_output_not_supported);
 {$endif}
   end;
-  a^.AsmCreate;
+  a^.AsmCreate(cut_normal);
   a^.WriteAsmList;
   a^.AsmClose;
   a^.DoAssemble;
@@ -557,7 +559,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.54  1999-09-16 11:34:44  pierre
+  Revision 1.55  1999-11-02 15:06:57  peter
+    * import library fixes for win32
+    * alignment works again
+
+  Revision 1.54  1999/09/16 11:34:44  pierre
    * typo correction
 
   Revision 1.53  1999/09/02 18:47:44  daniel

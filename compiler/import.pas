@@ -54,6 +54,7 @@ type
       procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
       procedure importvariable(const varname,module:string;const name:string);virtual;
       procedure generatelib;virtual;
+      procedure generatesmartlib;virtual;
    end;
 
 var
@@ -188,6 +189,12 @@ begin
 end;
 
 
+procedure timportlib.generatesmartlib;
+begin
+  Message(exec_e_dll_not_supported);
+end;
+
+
 procedure DoneImport;
 begin
   if assigned(importlib) then
@@ -227,7 +234,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1999-10-21 14:29:34  peter
+  Revision 1.14  1999-11-02 15:06:57  peter
+    * import library fixes for win32
+    * alignment works again
+
+  Revision 1.13  1999/10/21 14:29:34  peter
     * redesigned linker object
     + library support for linux (only procedures can be exported)
 

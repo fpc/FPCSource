@@ -465,9 +465,9 @@ unit ag386bin;
            case hp^.typ of
              ait_align :
                begin
-                 { always use the maximum fillsize in this pass to avoid possible
-                   short jumps to become out of range }
-                 pai_align(hp)^.fillsize:=pai_align(hp)^.aligntype;
+                 { here we must determine the fillsize which is used in pass2 }
+                 pai_align(hp)^.fillsize:=align(objectalloc^.sectionsize,pai_align(hp)^.aligntype)-
+                   objectalloc^.sectionsize;
                  objectalloc^.sectionalloc(pai_align(hp)^.fillsize);
                end;
              ait_datablock :
@@ -599,6 +599,7 @@ unit ag386bin;
         );
       var
         l,j : longint;
+        alignoparray:array[0..63] of byte;
 {$ifdef I386}
         co : comp;
 {$endif I386}
@@ -622,14 +623,22 @@ unit ag386bin;
            case hp^.typ of
              ait_align :
                begin
-                 l:=pai_align(hp)^.fillsize;
-                 while (l>0) do
+                 if not pai_align(hp)^.use_op then
                   begin
-                    for j:=0to 5 do
-                     if (l>=length(alignarray[j])) then
-                      break;
-                    objectoutput^.writebytes(alignarray[j][1],length(alignarray[j]));
-                    dec(l,length(alignarray[j]));
+                    l:=pai_align(hp)^.fillsize;
+                    while (l>0) do
+                     begin
+                       for j:=0to 5 do
+                        if (l>=length(alignarray[j])) then
+                         break;
+                       objectoutput^.writebytes(alignarray[j][1],length(alignarray[j]));
+                       dec(l,length(alignarray[j]));
+                     end;
+                  end
+                 else
+                  begin
+                    fillchar(alignoparray,pai_align(hp)^.fillsize,pai_align(hp)^.fillop);
+                    objectoutput^.writebytes(alignoparray,pai_align(hp)^.fillsize);
                   end;
                end;
              ait_section :
@@ -797,7 +806,10 @@ unit ag386bin;
            objectoutput^.donewriting;
 
            { we will start a new objectfile so reset everything }
-           objectoutput^.initwriting;
+           if (hp^.typ=ait_cut) then
+            objectoutput^.initwriting(pai_cut(hp)^.place)
+           else
+            objectoutput^.initwriting(cut_normal);
            objectalloc^.resetsections;
            ResetAsmsymbolList;
 
@@ -840,7 +852,7 @@ unit ag386bin;
         objectalloc^.resetsections;
         objectalloc^.setsection(sec_code);
 
-        objectoutput^.initwriting;
+        objectoutput^.initwriting(cut_normal);
         objectoutput^.defaultsection(sec_code);
 
         if cs_debuginfo in aktmoduleswitches then
@@ -895,7 +907,11 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.25  1999-09-26 21:13:40  peter
+  Revision 1.26  1999-11-02 15:06:56  peter
+    * import library fixes for win32
+    * alignment works again
+
+  Revision 1.25  1999/09/26 21:13:40  peter
     * short jmp with alignment problems fixed
 
   Revision 1.24  1999/08/25 11:59:33  jonas

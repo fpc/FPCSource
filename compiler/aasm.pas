@@ -264,10 +264,14 @@ unit aasm;
        end;
 
        { insert a cut to split into several smaller files }
+
+       tcutplace=(cut_normal,cut_begin,cut_end);
+
        pai_cut = ^tai_cut;
        tai_cut = object(tai)
-          endname : boolean;
+          place : tcutplace;
           constructor init;
+          constructor init_begin;
           constructor init_end;
        end;
 
@@ -729,7 +733,15 @@ uses
        begin
           inherited init;
           typ:=ait_cut;
-          endname:=false;
+          place:=cut_normal;
+       end;
+
+
+     constructor tai_cut.init_begin;
+       begin
+          inherited init;
+          typ:=ait_cut;
+          place:=cut_begin;
        end;
 
 
@@ -737,7 +749,7 @@ uses
        begin
           inherited init;
           typ:=ait_cut;
-          endname:=true;
+          place:=cut_end;
        end;
 
 
@@ -987,7 +999,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.65  1999-10-27 16:11:27  peter
+  Revision 1.66  1999-11-02 15:06:56  peter
+    * import library fixes for win32
+    * alignment works again
+
+  Revision 1.65  1999/10/27 16:11:27  peter
     * insns.dat is used to generate all i386*.inc files
 
   Revision 1.64  1999/09/20 16:38:51  peter

@@ -37,7 +37,7 @@ unit og386dbg;
          rawidx  : longint;
          constructor init(smart:boolean);
          destructor  done;virtual;
-         procedure initwriting;virtual;
+         procedure initwriting(Aplace:tcutplace);virtual;
          procedure donewriting;virtual;
          procedure writebytes(var data;len:longint);virtual;
          procedure writealloc(len:longint);virtual;
@@ -65,9 +65,9 @@ unit og386dbg;
       end;
 
 
-    procedure tdbgoutput.initwriting;
+    procedure tdbgoutput.initwriting(Aplace:tcutplace);
       begin
-        inherited initwriting;
+        inherited initwriting(Aplace);
         writeln('initwriting '+Objfile);
       end;
 
@@ -180,7 +180,11 @@ unit og386dbg;
 end.
 {
   $Log$
-  Revision 1.5  1999-08-04 00:23:06  florian
+  Revision 1.6  1999-11-02 15:06:57  peter
+    * import library fixes for win32
+    * alignment works again
+
+  Revision 1.5  1999/08/04 00:23:06  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.4  1999/07/03 00:29:53  peter

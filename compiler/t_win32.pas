@@ -37,7 +37,7 @@ unit t_win32;
       procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
       procedure importvariable(const varname,module:string;const name:string);virtual;
       procedure generatelib;virtual;
-      procedure generatesmartlib;
+      procedure generatesmartlib;virtual;
     end;
 
     pexportlibwin32=^texportlibwin32;
@@ -170,33 +170,82 @@ unit t_win32;
          hp1:=pimportlist(current_module^.imports^.first);
          while assigned(hp1) do
            begin
-              importssection^.concat(new(pai_cut,init));
-              codesegment^.concat(new(pai_cut,init));
-            { create header for this importmodule }
-              { Get labels for the sections }
-              getdatalabel(lhead);
-              getdatalabel(lname);
-              getlabel(lidata4);
-              getlabel(lidata5);
-              importssection^.concat(new(pai_section,init(sec_idata2)));
-              importssection^.concat(new(pai_label,init(lhead)));
-              { pointer to procedure names }
-              importssection^.concat(new(pai_const_symbol,init_rva(lidata4)));
-              { two empty entries follow }
-              importssection^.concat(new(pai_const,init_32bit(0)));
-              importssection^.concat(new(pai_const,init_32bit(0)));
-              { pointer to dll name }
-              importssection^.concat(new(pai_const_symbol,init_rva(lname)));
-              { pointer to fixups }
-              importssection^.concat(new(pai_const_symbol,init_rva(lidata5)));
-              { first write the name references }
-              importssection^.concat(new(pai_section,init(sec_idata4)));
-              importssection^.concat(new(pai_const,init_32bit(0)));
-              importssection^.concat(new(pai_label,init(lidata4)));
-              { then the addresses and create also the indirect jump }
-              importssection^.concat(new(pai_section,init(sec_idata5)));
-              importssection^.concat(new(pai_const,init_32bit(0)));
-              importssection^.concat(new(pai_label,init(lidata5)));
+           { Get labels for the sections }
+             getdatalabel(lhead);
+             getdatalabel(lname);
+             getlabel(lidata4);
+             getlabel(lidata5);
+           { create header for this importmodule }
+             importssection^.concat(new(pai_cut,init_begin));
+             importssection^.concat(new(pai_section,init(sec_idata2)));
+             importssection^.concat(new(pai_label,init(lhead)));
+             { pointer to procedure names }
+             importssection^.concat(new(pai_const_symbol,init_rva(lidata4)));
+             { two empty entries follow }
+             importssection^.concat(new(pai_const,init_32bit(0)));
+             importssection^.concat(new(pai_const,init_32bit(0)));
+             { pointer to dll name }
+             importssection^.concat(new(pai_const_symbol,init_rva(lname)));
+             { pointer to fixups }
+             importssection^.concat(new(pai_const_symbol,init_rva(lidata5)));
+             { first write the name references }
+             importssection^.concat(new(pai_section,init(sec_idata4)));
+             importssection^.concat(new(pai_const,init_32bit(0)));
+             importssection^.concat(new(pai_label,init(lidata4)));
+             { then the addresses and create also the indirect jump }
+             importssection^.concat(new(pai_section,init(sec_idata5)));
+             importssection^.concat(new(pai_const,init_32bit(0)));
+             importssection^.concat(new(pai_label,init(lidata5)));
+
+             { create procedures }
+             hp2:=pimported_item(hp1^.imported_items^.first);
+             while assigned(hp2) do
+               begin
+                 { insert cuts }
+                 importssection^.concat(new(pai_cut,init));
+                 { create indirect jump }
+                 if not hp2^.is_var then
+                  begin
+                    getlabel(lcode);
+                    new(r);
+                    reset_reference(r^);
+                    r^.symbol:=lcode;
+                    { place jump in codesegment, insert a code section in the
+                      importsection to reduce the amount of .s files (PFV) }
+                    importssection^.concat(new(pai_section,init(sec_code)));
+{$IfDef GDB}
+                    if (cs_debuginfo in aktmoduleswitches) then
+                     importssection^.concat(new(pai_stab_function_name,init(nil)));
+{$EndIf GDB}
+                    importssection^.concat(new(pai_symbol,initname_global(hp2^.func^,0)));
+                    importssection^.concat(new(paicpu,op_ref(A_JMP,S_NO,r)));
+                    importssection^.concat(new(pai_align,init_op(4,$90)));
+                  end;
+                 { create head link }
+                 importssection^.concat(new(pai_section,init(sec_idata7)));
+                 importssection^.concat(new(pai_const_symbol,init_rva(lhead)));
+                 { fixup }
+                 getlabel(pasmlabel(hp2^.lab));
+                 importssection^.concat(new(pai_section,init(sec_idata4)));
+                 importssection^.concat(new(pai_const_symbol,init_rva(hp2^.lab)));
+                 { add jump field to importsection }
+                 importssection^.concat(new(pai_section,init(sec_idata5)));
+                 if hp2^.is_var then
+                  importssection^.concat(new(pai_symbol,initname_global(hp2^.func^,0)))
+                 else
+                  importssection^.concat(new(pai_label,init(lcode)));
+                  if hp2^.name^<>'' then
+                    importssection^.concat(new(pai_const_symbol,init_rva(hp2^.lab)))
+                  else
+                    importssection^.concat(new(pai_const,init_32bit($80000000 or hp2^.ordnr)));
+                 { finally the import information }
+                 importssection^.concat(new(pai_section,init(sec_idata6)));
+                 importssection^.concat(new(pai_label,init(hp2^.lab)));
+                 importssection^.concat(new(pai_const,init_16bit(hp2^.ordnr)));
+                 importssection^.concat(new(pai_string,init(hp2^.name^+#0)));
+                 importssection^.concat(new(pai_align,init_op(2,0)));
+                 hp2:=pimported_item(hp2^.next);
+               end;
 
               { write final section }
               importssection^.concat(new(pai_cut,init_end));
@@ -209,57 +258,8 @@ unit t_win32;
               { dllname }
               importssection^.concat(new(pai_section,init(sec_idata7)));
               importssection^.concat(new(pai_label,init(lname)));
-              importssection^.concat(new(pai_string,init(hp1^.dllname^+{target_os.sharedlibext+}#0)));
+              importssection^.concat(new(pai_string,init(hp1^.dllname^+#0)));
 
-              { create procedures }
-              hp2:=pimported_item(hp1^.imported_items^.first);
-              while assigned(hp2) do
-                begin
-                  { insert cuts }
-                  importssection^.concat(new(pai_cut,init));
-                  { create indirect jump }
-                  if not hp2^.is_var then
-                   begin
-                     getlabel(lcode);
-                     new(r);
-                     reset_reference(r^);
-                     r^.symbol:=lcode;
-                     { place jump in codesegment, insert a code section in the
-                       importsection to reduce the amount of .s files (PFV) }
-                     importssection^.concat(new(pai_section,init(sec_code)));
-{$IfDef GDB}
-                     if (cs_debuginfo in aktmoduleswitches) then
-                      importssection^.concat(new(pai_stab_function_name,init(nil)));
-{$EndIf GDB}
-                     importssection^.concat(new(pai_align,init_op(4,$90)));
-                     importssection^.concat(new(pai_symbol,initname_global(hp2^.func^,0)));
-                     importssection^.concat(new(paicpu,op_ref(A_JMP,S_NO,r)));
-                   end;
-                  { create head link }
-                  importssection^.concat(new(pai_section,init(sec_idata7)));
-                  importssection^.concat(new(pai_const_symbol,init_rva(lhead)));
-                  { fixup }
-                  getlabel(pasmlabel(hp2^.lab));
-                  importssection^.concat(new(pai_section,init(sec_idata4)));
-                  importssection^.concat(new(pai_const_symbol,init_rva(hp2^.lab)));
-                  { add jump field to importsection }
-                  importssection^.concat(new(pai_section,init(sec_idata5)));
-                  if hp2^.is_var then
-                   importssection^.concat(new(pai_symbol,initname_global(hp2^.func^,0)))
-                  else
-                   importssection^.concat(new(pai_label,init(lcode)));
-                   if hp2^.name^<>'' then
-                     importssection^.concat(new(pai_const_symbol,init_rva(hp2^.lab)))
-                   else
-                     importssection^.concat(new(pai_const,init_32bit($80000000 or hp2^.ordnr)));
-                  { finally the import information }
-                  importssection^.concat(new(pai_section,init(sec_idata6)));
-                  importssection^.concat(new(pai_label,init(hp2^.lab)));
-                  importssection^.concat(new(pai_const,init_16bit(hp2^.ordnr)));
-                  importssection^.concat(new(pai_string,init(hp2^.name^+#0)));
-                  importssection^.concat(new(pai_align,init_op(2,0)));
-                  hp2:=pimported_item(hp2^.next);
-                end;
               hp1:=pimportlist(hp1^.next);
            end;
        end;
@@ -272,26 +272,12 @@ unit t_win32;
          l1,l2,l3,l4 : pasmlabel;
          r : preference;
       begin
-         if (cs_create_smart in aktmoduleswitches) then
-          begin
-            generatesmartlib;
-            exit;
-          end;
-
          hp1:=pimportlist(current_module^.imports^.first);
          while assigned(hp1) do
            begin
-              { Insert cuts for smartlinking }
-              if (cs_create_smart in aktmoduleswitches) then
-                begin
-                  importssection^.concat(new(pai_cut,init));
-                  codesegment^.concat(new(pai_cut,init));
-                end;
-{$IfDef GDB}
-              if (cs_debuginfo in aktmoduleswitches) then
-                codesegment^.concat(new(pai_stab_function_name,init(nil)));
-{$EndIf GDB}
-
+              { align codesegment for the jumps }
+              importssection^.concat(new(pai_section,init(sec_code)));
+              importssection^.concat(new(pai_align,init_op(4,$90)));
               { Get labels for the sections }
               getlabel(l1);
               getlabel(l2);
@@ -335,16 +321,18 @@ unit t_win32;
                 begin
                    if not hp2^.is_var then
                     begin
-                      getdatalabel(l4);
+                      getlabel(l4);
                       { create indirect jump }
                       new(r);
                       reset_reference(r^);
                       r^.symbol:=l4;
                       { place jump in codesegment }
-                      codesegment^.concat(new(pai_align,init_op(4,$90)));
-                      codesegment^.concat(new(pai_symbol,initname_global(hp2^.func^,0)));
-                      codesegment^.concat(new(paicpu,op_ref(A_JMP,S_NO,r)));
+                      importssection^.concat(new(pai_section,init(sec_code)));
+                      importssection^.concat(new(pai_symbol,initname_global(hp2^.func^,0)));
+                      importssection^.concat(new(paicpu,op_ref(A_JMP,S_NO,r)));
+                      importssection^.concat(new(pai_align,init_op(4,$90)));
                       { add jump field to importsection }
+                      importssection^.concat(new(pai_section,init(sec_idata5)));
                       importssection^.concat(new(pai_label,init(l4)));
                     end
                    else
@@ -372,7 +360,7 @@ unit t_win32;
               { create import dll name }
               importssection^.concat(new(pai_section,init(sec_idata7)));
               importssection^.concat(new(pai_label,init(l1)));
-              importssection^.concat(new(pai_string,init(hp1^.dllname^+{target_os.sharedlibext+}#0)));
+              importssection^.concat(new(pai_string,init(hp1^.dllname^+#0)));
 
               hp1:=pimportlist(hp1^.next);
            end;
@@ -1058,7 +1046,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-10-28 10:33:06  pierre
+  Revision 1.4  1999-11-02 15:06:58  peter
+    * import library fixes for win32
+    * alignment works again
+
+  Revision 1.3  1999/10/28 10:33:06  pierre
    * Libs can be link serveral times
 
   Revision 1.2  1999/10/22 14:42:40  peter

@@ -62,6 +62,14 @@ unit pmodules;
         { Also create a smartlinked version ? }
         if (cs_create_smart in aktmoduleswitches) then
          begin
+           { regenerate the importssection for win32 }
+           if assigned(importssection) and
+              (target_info.target=target_i386_win32) then
+            begin
+              importssection^.clear;
+              importlib^.generatesmartlib;
+            end;
+
            GenerateAsm(true);
            if target_asm.needar then
              Linker^.MakeStaticLibrary(SmartLinkFilesCnt);
@@ -1438,7 +1446,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.160  1999-10-21 14:29:37  peter
+  Revision 1.161  1999-11-02 15:06:57  peter
+    * import library fixes for win32
+    * alignment works again
+
+  Revision 1.160  1999/10/21 14:29:37  peter
     * redesigned linker object
     + library support for linux (only procedures can be exported)
 
