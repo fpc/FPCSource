@@ -55,6 +55,10 @@ interface
           procedure pass_2;override;
        end;
 
+       tcgguidconstnode = class(tguidconstnode)
+          procedure pass_2;override;
+       end;
+
 
 implementation
 
@@ -477,6 +481,30 @@ implementation
          location.reference.offset:=0;
       end;
 
+
+{*****************************************************************************
+                          TCGPOINTERCONSTNODE
+*****************************************************************************}
+
+    procedure tcgguidconstnode.pass_2;
+      var
+        tmplabel : TAsmLabel;
+        i : integer;
+      begin
+        location.loc:=LOC_MEM;
+        { label for GUID }
+        getdatalabel(tmplabel);
+        consts.concat(Tai_label.Create(tmplabel));
+        consts.concat(Tai_const.Create_32bit(value.D1));
+        consts.concat(Tai_const.Create_16bit(value.D2));
+        consts.concat(Tai_const.Create_16bit(value.D3));
+        for i:=Low(value.D4) to High(value.D4) do
+          consts.concat(Tai_const.Create_8bit(value.D4[i]));
+        reset_reference(location.reference);
+        location.reference.symbol:=tmplabel;
+      end;
+
+
 begin
    crealconstnode:=tcgrealconstnode;
    cordconstnode:=tcgordconstnode;
@@ -484,10 +512,15 @@ begin
    cstringconstnode:=tcgstringconstnode;
    csetconstnode:=tcgsetconstnode;
    cnilnode:=tcgnilnode;
+   cguidconstnode:=tcgguidconstnode;
 end.
 {
   $Log$
-  Revision 1.1  2001-09-30 16:17:17  jonas
+  Revision 1.2  2001-10-20 19:28:37  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.1  2001/09/30 16:17:17  jonas
     * made most constant and mem handling processor independent
 
 }

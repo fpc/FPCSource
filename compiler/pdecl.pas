@@ -68,6 +68,7 @@ implementation
         p : tnode;
         ps : pconstset;
         pd : pbestreal;
+        pg : pguid;
         sp : pchar;
         storetokenpos : tfileposinfo;
       begin
@@ -120,6 +121,22 @@ implementation
            niln :
              begin
                hp:=tconstsym.create_ord_typed(orgname,constnil,0,p.resulttype);
+             end;
+           typen :
+             begin
+               if is_interface(p.resulttype.def) then
+                begin
+                  if tobjectdef(p.resulttype.def).isiidguidvalid then
+                   begin
+                     new(pg);
+                     pg^:=tobjectdef(p.resulttype.def).iidguid;
+                     hp:=tconstsym.create_ptr(orgname,constguid,pg);
+                   end
+                  else
+                   Message1(parser_e_interface_has_no_guid,tobjectdef(p.resulttype.def).objname^);
+                end
+               else
+                Message(cg_e_illegal_expression);
              end;
            else
              Message(cg_e_illegal_expression);
@@ -593,7 +610,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2001-10-20 17:20:13  peter
+  Revision 1.36  2001-10-20 19:28:39  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.35  2001/10/20 17:20:13  peter
     * fixed generation of rtti for virtualmethods
 
   Revision 1.34  2001/09/19 11:06:03  michael

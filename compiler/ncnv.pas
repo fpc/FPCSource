@@ -53,6 +53,7 @@ interface
           function resulttype_char_to_char : tnode;
           function resulttype_arrayconstructor_to_set : tnode;
           function resulttype_pchar_to_string : tnode;
+          function resulttype_interface_to_guid : tnode;
           function resulttype_call_helper(c : tconverttype) : tnode;
        protected
           function first_int_to_int : tnode;virtual;
@@ -703,6 +704,14 @@ implementation
       end;
 
 
+    function ttypeconvnode.resulttype_interface_to_guid : tnode;
+
+      begin
+        if tobjectdef(left.resulttype.def).isiidguidvalid then
+          result:=cguidconstnode.create(tobjectdef(left.resulttype.def).iidguid);
+      end;
+
+
     function ttypeconvnode.resulttype_call_helper(c : tconverttype) : tnode;
 
       const
@@ -730,7 +739,7 @@ implementation
           { load_smallset } nil,
           { cord_2_pointer } @ttypeconvnode.resulttype_cord_to_pointer,
           { intf_2_string } nil,
-          { intf_2_guid } nil,
+          { intf_2_guid } @ttypeconvnode.resulttype_interface_to_guid,
           { class_2_intf } nil,
           { char_2_char } @ttypeconvnode.resulttype_char_to_char,
           { nomal_2_smallset} nil
@@ -1586,7 +1595,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2001-10-20 17:21:54  peter
+  Revision 1.41  2001-10-20 19:28:37  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.40  2001/10/20 17:21:54  peter
     * fixed size of constset when change from small to normalset
 
   Revision 1.39  2001/09/30 16:12:46  jonas

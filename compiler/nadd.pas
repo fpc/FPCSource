@@ -445,8 +445,14 @@ implementation
             (left.nodetype=setconstn) and
             not assigned(tsetconstnode(left).left) then
            begin
-              { check types }
+              { check if size adjusting is needed, only for left
+                to right as the other way is checked in the typeconv }
+              if (tsetdef(right.resulttype.def).settype=smallset) and
+                 (tsetdef(left.resulttype.def).settype<>smallset) then
+                tsetdef(right.resulttype.def).changesettype(normset);
+              { check base types }
               inserttypeconv(left,right.resulttype);
+
               if codegenerror then
                begin
                  { recover by only returning the left part }
@@ -1120,7 +1126,6 @@ implementation
         tempn: tnode;
         paras: tcallparanode;
         srsym: ttypesym;
-        createset: boolean;
       begin
         { get the sym that represents the fpc_normal_set type }
         if not searchsystype('FPC_NORMAL_SET',srsym) then
@@ -1278,7 +1283,7 @@ implementation
         { create helper calls mul }
         if nodetype <> muln then
           exit;
-        
+
         { make sure that if there is a constant, that it's on the right }
         if left.nodetype = ordconstn then
           begin
@@ -1585,7 +1590,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2001-10-12 13:51:51  jonas
+  Revision 1.41  2001-10-20 19:28:37  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.40  2001/10/12 13:51:51  jonas
     * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
     * fixed bug in n386add (introduced after compilerproc changes for string
       operations) where calcregisters wasn't called for shortstring addnodes

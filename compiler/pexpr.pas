@@ -1202,6 +1202,8 @@ implementation
                           do_resulttypepass(p1);
                           p1.resulttype:=cansistringtype;
                         end;
+                      constguid :
+                        p1:=cguidconstnode.create(pguid(tconstsym(srsym).valueptr)^);
                     end;
                   end;
 
@@ -2327,7 +2329,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2001-10-18 16:30:38  jonas
+  Revision 1.44  2001-10-20 19:28:39  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.43  2001/10/18 16:30:38  jonas
     * property parameters are now fully parsed by the firstcall code to
       check for the correct amount and types (merged)
 

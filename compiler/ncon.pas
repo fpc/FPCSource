@@ -104,12 +104,23 @@ interface
        end;
        tnilnodeclass = class of tnilnode;
 
+       tguidconstnode = class(tnode)
+          value : tguid;
+          constructor create(const g:tguid);virtual;
+          function getcopy : tnode;override;
+          function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
+          function docompare(p: tnode) : boolean; override;
+       end;
+       tguidconstnodeclass = class of tguidconstnode;
+
     var
        crealconstnode : trealconstnodeclass;
        cordconstnode : tordconstnodeclass;
        cpointerconstnode : tpointerconstnodeclass;
        cstringconstnode : tstringconstnodeclass;
        csetconstnode : tsetconstnodeclass;
+       cguidconstnode : tguidconstnodeclass;
        cnilnode : tnilnodeclass;
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
@@ -136,7 +147,7 @@ implementation
 
     uses
       cutils,verbose,globals,systems,
-      types,cpubase,nld;
+      types,cpubase,nld,symtable;
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
 
@@ -184,7 +195,7 @@ implementation
 
     function is_constnode(p : tnode) : boolean;
       begin
-        is_constnode:=(p.nodetype in [ordconstn,realconstn,stringconstn,setconstn]);
+        is_constnode:=(p.nodetype in [ordconstn,realconstn,stringconstn,setconstn,guidconstn]);
       end;
 
 
@@ -654,6 +665,50 @@ implementation
         location.loc:=LOC_MEM;
       end;
 
+{*****************************************************************************
+                            TGUIDCONSTNODE
+*****************************************************************************}
+
+    constructor tguidconstnode.create(const g:tguid);
+
+      begin
+         inherited create(guidconstn);
+         value:=g;
+      end;
+
+    function tguidconstnode.getcopy : tnode;
+
+      var
+         n : tguidconstnode;
+
+      begin
+         n:=tguidconstnode(inherited getcopy);
+         n.value:=value;
+         getcopy:=n;
+      end;
+
+    function tguidconstnode.det_resulttype:tnode;
+      var
+        srsym : ttypesym;
+      begin
+        result:=nil;
+        resulttype.setdef(rec_tguid);
+      end;
+
+    function tguidconstnode.pass_1 : tnode;
+      begin
+         result:=nil;
+         location.loc:=LOC_MEM;
+      end;
+
+    function tguidconstnode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (guid2string(value) = guid2string(tguidconstnode(p).value));
+      end;
+
+
 begin
    crealconstnode:=trealconstnode;
    cordconstnode:=tordconstnode;
@@ -661,10 +716,15 @@ begin
    cstringconstnode:=tstringconstnode;
    csetconstnode:=tsetconstnode;
    cnilnode:=tnilnode;
+   cguidconstnode:=tguidconstnode;
 end.
 {
   $Log$
-  Revision 1.23  2001-09-17 21:29:12  peter
+  Revision 1.24  2001-10-20 19:28:38  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.23  2001/09/17 21:29:12  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.22  2001/09/02 21:12:06  peter

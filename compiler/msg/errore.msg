@@ -930,6 +930,7 @@ parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive without CDecl
 parser_e_self_call_by_value=03179_E_Self must be a normal (call-by-value) parameter
 % You can't declare self as a const or var parameter, it must always be
 % a call-by-value parameter
+parser_e_interface_has_no_guid=03180_E_Interface "$1" has no interface identification
 % \end{description}
 #
 # Type Checking

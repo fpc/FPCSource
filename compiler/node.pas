@@ -123,7 +123,8 @@ interface
           { added for optimizations where we cannot suppress }
           addoptn,
           nothingn,
-          loadvmtn
+          loadvmtn,
+          guidconstn
        );
 
       const
@@ -209,7 +210,8 @@ interface
           'temprefn',
           'addoptn',
           'nothingn',
-          'loadvmtn');
+          'loadvmtn',
+          'guidconstn');
 
     type
        { all boolean field of ttree are now collected in flags }
@@ -801,7 +803,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2001-08-23 14:28:36  jonas
+  Revision 1.20  2001-10-20 19:28:38  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.19  2001/08/23 14:28:36  jonas
     + tempcreate/ref/delete nodes (allows the use of temps in the
       resulttype and first pass)
     * made handling of read(ln)/write(ln) processor independent

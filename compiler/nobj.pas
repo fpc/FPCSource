@@ -760,8 +760,10 @@ implementation
          { generates a tree of all used methods }
          do_genvmt(_class);
 
-         if has_virtual_method and not(has_constructor) then
-            Message1(parser_w_virtual_without_constructor,_class.objname^);
+         if not(is_interface(_class)) and
+            has_virtual_method and
+            not(has_constructor) then
+           Message1(parser_w_virtual_without_constructor,_class.objname^);
       end;
 
 
@@ -1273,7 +1275,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2001-10-20 17:20:14  peter
+  Revision 1.6  2001-10-20 19:28:38  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.5  2001/10/20 17:20:14  peter
     * fixed generation of rtti for virtualmethods
 
   Revision 1.4  2001/09/19 11:04:42  michael

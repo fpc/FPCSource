@@ -1741,6 +1741,22 @@ implementation
                  end
              end;
 
+           recorddef :
+             begin
+               { interface -> guid }
+               if is_interface(def_from) and
+                  (def_to=rec_tguid) then
+                begin
+                  doconv:=tc_intf_2_guid;
+                  b:=1;
+                end
+               else
+                begin
+                  { assignment overwritten ?? }
+                  if assignment_overloaded(def_from,def_to)<>nil then
+                    b:=2;
+                end;
+             end;
            else
              begin
                { assignment overwritten ?? }
@@ -1781,7 +1797,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2001-10-17 22:41:05  florian
+  Revision 1.50  2001-10-20 19:28:39  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.49  2001/10/17 22:41:05  florian
     * several widechar fixes, case works now
 
   Revision 1.48  2001/10/16 17:15:44  jonas
