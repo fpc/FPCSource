@@ -1110,7 +1110,10 @@ implementation
                      not assigned(tcallnode(left).left) then
                    begin
                      if assigned(tcallnode(left).right) then
-                      hp:=tcallnode(left).right.getcopy
+                      begin
+                        hp:=tcallnode(left).right.getcopy;
+                        currprocdef:=tprocdef(hp.resulttype.def);
+                      end
                      else
                       begin
                         currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
@@ -1123,14 +1126,14 @@ implementation
                            else
                              tloadnode(hp).set_mp(cselfnode.create(tobjectdef(tcallnode(left).symtableprocentry.owner.defowner)));
                          end;
+                        resulttypepass(hp);
                       end;
-                     resulttypepass(hp);
                      left.free;
                      left:=hp;
                      convtype:=tc_proc_2_procvar;
                      { Now check if the procedure we are going to assign to
                        the procvar, is compatible with the procvar's type }
-                     if proc_to_procvar_equal(tprocdef(left.resulttype.def),
+                     if proc_to_procvar_equal(currprocdef,
                                               tprocvardef(resulttype.def),true)=te_incompatible then
                        CGMessage2(type_e_incompatible_types,tprocdef(left.resulttype.def).typename,resulttype.def.typename);
                      exit;
@@ -2034,7 +2037,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.106  2003-04-23 10:10:07  peter
+  Revision 1.107  2003-04-23 13:13:08  peter
+    * fix checking of procdef type which was broken since loadn returned
+      pointertype for tp procvar
+
+  Revision 1.106  2003/04/23 10:10:07  peter
     * expectloc fixes
 
   Revision 1.105  2003/04/22 23:50:23  peter
