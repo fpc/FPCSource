@@ -1251,7 +1251,7 @@ implementation
         if reginfo[i].movelist<>nil then
           begin
             dispose(reginfo[i].movelist);
-            reginfo[i].movelist:=0;
+            reginfo[i].movelist:=nil;
           end;
     end;
 
@@ -1672,7 +1672,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.103  2003-12-15 21:25:49  peter
+  Revision 1.104  2003-12-16 09:41:44  daniel
+    * Automatic conversion from integer constants to pointer constants is no
+      longer done except in Delphi mode
+
+  Revision 1.103  2003/12/15 21:25:49  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check

@@ -677,14 +677,13 @@ implementation
                            eq:=te_convert_l1;
                          end
                         else
-                         if is_integer(def_from) then
+                         if (m_delphi in aktmodeswitches) and is_integer(def_from) then
                           begin
                             doconv:=tc_cord_2_pointer;
                             eq:=te_convert_l1;
                           end;
                       end;
-                     if (eq=te_incompatible) and
-                        explicit then
+                     if (eq=te_incompatible) and explicit then
                       begin
                         doconv:=tc_int_2_int;
                         eq:=te_convert_l1;
@@ -1250,7 +1249,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2003-11-26 15:11:42  michael
+  Revision 1.39  2003-12-16 09:41:44  daniel
+    * Automatic conversion from integer constants to pointer constants is no
+      longer done except in Delphi mode
+
+  Revision 1.38  2003/11/26 15:11:42  michael
   + Patch to prefer getpropinfo(ptypeinfo,name) over getpropinfo(tobject,name) when called with getpropinfo(aclass.classinfo) from Peter
 
   Revision 1.37  2003/11/10 19:09:29  peter
