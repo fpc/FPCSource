@@ -70,8 +70,8 @@ unit parser;
          { memory sizes }
          if heapsize=0 then
           heapsize:=target_info.heapsize;
-	 if maxheapsize=0 then
-	  maxheapsize:=target_info.maxheapsize;
+         if maxheapsize=0 then
+          maxheapsize:=target_info.maxheapsize;
          if stacksize=0 then
           stacksize:=target_info.stacksize;
       end;
@@ -230,7 +230,8 @@ unit parser;
        { init code generator for a new module }
          codegen_newmodule;
 {$ifdef GDB}
-         reset_gdb_info;
+         if cs_debuginfo in aktmoduleswitches then
+           reset_gdb_info;
 {$endif GDB}
 
        { Handle things which need to be once }
@@ -288,7 +289,8 @@ unit parser;
 {$endif}
 
 {$ifdef GDB}
-         reset_gdb_info;
+         if cs_debuginfo in aktmoduleswitches then
+           reset_gdb_info;
 {$endif GDB}
 
        { free ppu }
@@ -371,7 +373,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.46  1998-09-21 08:45:12  pierre
+  Revision 1.47  1998-09-21 09:00:18  peter
+    * reset_gdb_info only when debuginfo is set
+
+  Revision 1.46  1998/09/21 08:45:12  pierre
     + added vmt_offset in tobjectdef.write for fututre use
       (first steps to have objects without vmt if no virtual !!)
     + added fpu_used field for tabstractprocdef  :
