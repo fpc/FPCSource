@@ -537,7 +537,8 @@ unit pexpr;
     procedure handle_procvar(procvar : pprocvardef;var t : ptree);
 
       begin
-         if ((procvar^.options and pomethodpointer)<>0) then
+         if (t^.treetype=calln) and
+            ((procvar^.options and pomethodpointer)<>0) then
            begin
               if (t^.methodpointer^.resulttype^.deftype=objectdef) and
                  (pobjectdef(t^.methodpointer^.resulttype)^.isclass) and
@@ -1979,7 +1980,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.101  1999-05-06 09:05:21  peter
+  Revision 1.102  1999-05-06 10:13:20  peter
+    * check for calln in handle_procvar
+
+  Revision 1.101  1999/05/06 09:05:21  peter
     * generic write_float and str_float
     * fixed constant float conversions
 
