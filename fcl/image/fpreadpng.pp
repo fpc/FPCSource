@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     PNG reader implementation
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -19,7 +19,7 @@ unit FPReadPNG;
 interface
 
 uses
-  Classes, FPImage, FPImgCmn, PNGComn, ZStream;
+  SysUtils,Classes, FPImage, FPImgCmn, PNGComn, ZStream;
 
 Type
 
@@ -86,7 +86,7 @@ Type
 
 implementation
 
-uses sysutils;
+
 
 const StartPoints : array[0..7, 0..1] of word =
          ((0,0),(0,0),(4,0),(0,4),(2,0),(0,2),(1,0),(0,1));
