@@ -584,6 +584,12 @@ echo *End of basic options used for compilation >> %FPCERRLOG%
 if not .%OTHEROPTS% == . echo *User specified options: %OTHEROPTS% >> %FPCERRLOG%
 :CompS2
 echo *Compiling the compiler ... >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %COMPSPATH%\FPC.PAS
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPBIN%\%PPASNAME% >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo * Deleting the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 del %FPCSNAPBIN%\%PPASNAME% >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 del %FPCSNAPBIN%\link.res >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %COMPSPATH%\PP.PAS
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPBIN%\%PPASNAME% >> %FPCERRLOG%
@@ -689,7 +695,10 @@ goto End
 
 
   $Log$
-  Revision 1.4  2000-10-14 19:46:58  hajny
+  Revision 1.5  2000-12-03 18:40:56  hajny
+    * fpc.pas added
+
+  Revision 1.4  2000/10/14 19:46:58  hajny
     * fix for continue parameter
 
   Revision 1.3  2000/10/08 18:44:36  hajny
