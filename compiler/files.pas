@@ -659,7 +659,7 @@ uses
           p:=OutputExeDir
          else
           p:=path^;
-         exefilename:=stringdup(p+n+target_os.exeext);
+         exefilename:=stringdup(p+n+target_info.exeext);
       end;
 
 
@@ -1077,7 +1077,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.83  1999-01-13 15:02:00  daniel
+  Revision 1.84  1999-01-14 11:38:39  daniel
+  * Exe name derived from target_info instead of target_os
+
+  Revision 1.83  1999/01/13 15:02:00  daniel
   * Tinputfile.readbuf eof bugfix
 
   Revision 1.82  1999/01/12 14:25:26  peter
