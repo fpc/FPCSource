@@ -84,7 +84,26 @@ Const
   TIOCPKT_START     = $8;
   TIOCPKT_NOSTOP    = $10;
   TIOCPKT_DOSTOP    = $20;
-{$endif}
+  
+{c_cc characters}
+  VINTR = 0;
+  VQUIT = 1;
+  VERASE = 2;
+  VKILL = 3;
+  VEOF = 4;
+  VMIN = 5;
+  VEOL = 6;
+  VTIME = 7;
+  VEOL2 = 8;
+  VSWTC = 9;
+  VWERASE = 10;
+  VREPRINT = 11;
+  VSUSP = 12;
+  VSTART = 13;
+  VSTOP = 14;
+  VLNEXT = 15;
+  VDISCARD = 16;
+{$endif cpupowerpc}
 
 {$ifdef cpui386}
   { For Terminal handling }
@@ -154,6 +173,25 @@ Const
   TIOCPKT_START      = 8;
   TIOCPKT_NOSTOP     = 16;
   TIOCPKT_DOSTOP     = 32;
+  
+{c_cc characters}
+  VINTR    = 0;
+  VQUIT    = 1;
+  VERASE   = 2;
+  VKILL    = 3;
+  VEOF     = 4;
+  VTIME    = 5;
+  VMIN     = 6;
+  VSWTC    = 7;
+  VSTART   = 8;
+  VSTOP    = 9;
+  VSUSP    = 10;
+  VEOL     = 11;
+  VREPRINT = 12;
+  VDISCARD = 13;
+  VWERASE  = 14;
+  VLNEXT   = 15;
+  VEOL2    = 16;
 {$endif cpui386}
 
 {$ifdef cpusparc}
@@ -224,6 +262,26 @@ Const
   TIOCPKT_START = $8;
   TIOCPKT_NOSTOP = $10;
   TIOCPKT_DOSTOP = $20;
+  
+{c_cc characters}
+  VINTR = 0;
+  VQUIT = 1;
+  VERASE = 2;
+  VKILL = 3;
+  VEOF = 4;
+  VEOL = 5;
+  VEOL2 = 6;
+  VSWTC = 7;
+  VSTART = 8;
+  VSTOP = 9;
+  VSUSP = 10;
+  VDSUSP = 11;
+  VREPRINT = 12;
+  VDISCARD = 13;
+  VWERASE = 14;
+  VLNEXT = 15;
+  VMIN = 4;
+  VTIME = 5;
 {$endif cpusparc}
 
 {$ifdef cpux86_64}
@@ -293,6 +351,25 @@ Const
   TIOCPKT_NOSTOP =              16;
   TIOCPKT_DOSTOP =              32;
   TIOCSER_TEMT =    $01;
+  
+{c_cc characters}
+  VINTR    = 0;
+  VQUIT    = 1;
+  VERASE   = 2;
+  VKILL    = 3;
+  VEOF     = 4;
+  VTIME    = 5;
+  VMIN     = 6;
+  VSWTC    = 7;
+  VSTART   = 8;
+  VSTOP    = 9;
+  VSUSP    = 10;
+  VEOL     = 11;
+  VREPRINT = 12;
+  VDISCARD = 13;
+  VWERASE  = 14;
+  VLNEXT   = 15;
+  VEOL2    = 16;
 {$endif cpux86_64}
 
 {$ifdef cpuarm}
@@ -360,6 +437,25 @@ Const
   TIOCPKT_START      = 8;
   TIOCPKT_NOSTOP     = 16;
   TIOCPKT_DOSTOP     = 32;
+  
+{c_cc characters}
+  VINTR    = 0;
+  VQUIT    = 1;
+  VERASE   = 2;
+  VKILL    = 3;
+  VEOF     = 4;
+  VTIME    = 5;
+  VMIN     = 6;
+  VSWTC    = 7;
+  VSTART   = 8;
+  VSTOP    = 9;
+  VSUSP    = 10;
+  VEOL     = 11;
+  VREPRINT = 12;
+  VDISCARD = 13;
+  VWERASE  = 14;
+  VLNEXT   = 15;
+  VEOL2    = 16;
 {$endif cpuarm}
 
 Type
@@ -385,29 +481,7 @@ Type
   TTermios=Termios;
 {$PACKRECORDS Default}
 
-{const
-  InitCC:array[0..NCCS-1] of byte=(3,34,177,25,4,0,1,0,21,23,32,0,22,17,27,26,0,0,0);}
-
 const
-{c_cc characters}
-   VINTR    = 0;
-   VQUIT    = 1;
-   VERASE   = 2;
-   VKILL    = 3;
-   VEOF     = 4;
-   VTIME    = 5;
-   VMIN     = 6;
-   VSWTC    = 7;
-   VSTART   = 8;
-   VSTOP    = 9;
-   VSUSP    = 10;
-   VEOL     = 11;
-   VREPRINT = 12;
-   VDISCARD = 13;
-   VWERASE  = 14;
-   VLNEXT   = 15;
-   VEOL2    = 16;
-
 {c_iflag bits}
    IGNBRK  = $0000001;
    BRKINT  = $0000002;
@@ -547,7 +621,11 @@ const
 
 {
   $Log$
-  Revision 1.11  2004-11-03 12:24:56  peter
+  Revision 1.12  2004-12-28 15:30:04  florian
+    * fixed raw mode for non i386 targets
+    * fixed some alignment issues
+
+  Revision 1.11  2004/11/03 12:24:56  peter
     * remove comment level 2 warning
 
   Revision 1.10  2004/10/31 16:05:23  florian

@@ -75,8 +75,13 @@ unit typinfo;
       PTypeInfo = ^TTypeInfo;
       PPTypeInfo = ^PTypeInfo;
 
+{$PACKRECORDS C}
       PTypeData = ^TTypeData;
-      TTypeData = packed record
+      TTypeData = 
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
          case TTypeKind of
             tkUnKnown,tkLString,tkWString,tkAString,tkVariant:
               ();
@@ -132,7 +137,6 @@ unit typinfo;
               );
       end;
 
-{$PACKRECORDS C}
       // unsed, just for completeness
       TPropData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -1492,7 +1496,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  2004-12-27 16:16:24  florian
+  Revision 1.33  2004-12-28 15:30:04  florian
+    * fixed raw mode for non i386 targets
+    * fixed some alignment issues
+
+  Revision 1.32  2004/12/27 16:16:24  florian
     * another alignment fix
 
   Revision 1.31  2004/11/24 22:27:24  florian

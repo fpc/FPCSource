@@ -566,7 +566,9 @@ begin
             INLCR or IGNCR or ICRNL or IXON));
           c_lflag := c_lflag and
             (not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
-       end;
+          c_cc[VMIN]:=1;
+          c_cc[VTIME]:=0;
+        end;
      if outPutRaw then
        begin
          c_oflag := c_oflag and not(OPOST);
@@ -900,7 +902,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.26  2004-12-26 12:22:05  peter
+  Revision 1.27  2004-12-28 15:30:04  florian
+    * fixed raw mode for non i386 targets
+    * fixed some alignment issues
+
+  Revision 1.26  2004/12/26 12:22:05  peter
     * cursorx,cursory 0 based, fixes 3468
 
   Revision 1.25  2004/10/05 17:16:24  armin
