@@ -2150,7 +2150,7 @@ implementation
                  { allocinfo for EDI added, because it doesn't seem to be }
                  { used anyway                                            }
 {$endif noAllocEdi}
-                                  emit_reg_reg(op,S_NO,p^.location.register,R_EDI);
+                                  emit_reg_reg(op,S_NO,p^.location.register,R_MM0);
                                   emit_reg_reg(A_MOVQ,S_NO,R_MM7,p^.location.register);
                                end
                              else
@@ -2210,7 +2210,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2000-01-09 16:35:39  jonas
+  Revision 1.88  2000-01-09 19:44:53  florian
+    * bug in secondadd(subn) with swaped mmx operands fixed
+
+  Revision 1.87  2000/01/09 16:35:39  jonas
     + comment about badly placed release_loc calls for a_mul which
       causes wrong regdeallocations. Don't know how to fix :(
 
