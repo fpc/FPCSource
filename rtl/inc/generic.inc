@@ -556,27 +556,36 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
-{ note: this routine is *DIFFERENT* from the routine in i386.inc and as such you }
-{ cannot use it with the i386 compiler, unless you remove the                    }
-{ ti386addnode.first_string method (JM)                                          }
 function fpc_shortstr_concat(const s1,s2:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_CONCAT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   s1l, s2l : byte;
 begin
-{ these are shortstrings, they can't be nil! (JM)
-  if (s1=nil) or (s2=nil) then
-    exit;
-}
   s1l:=length(s1);
   s2l:=length(s2);
   if s1l+s2l>255 then
     s2l:=255-s1l;
-  fpc_shortstr_concat := s1;
+  move(s1[1],fpc_shortstr_concat[1],s1l);
   move(s2[1],fpc_shortstr_concat[s1l+1],s2l);
   fpc_shortstr_concat[0]:=chr(s1l+s2l);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
+
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
+
+procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring);{$ifdef hascompilerproc} compilerproc; {$endif}
+var
+  s1l, s2l : byte;
+begin
+  s1l:=length(s1);
+  s2l:=length(s2);
+  if s1l+s2l>255 then
+    s2l:=255-s1l;
+  move(s2[1],s1[s1l+1],s2l);
+  s1[0]:=chr(s1l+s2l);
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
@@ -965,7 +974,11 @@ end;
 
 {
   $Log$
-  Revision 1.57  2003-05-16 22:40:11  florian
+  Revision 1.58  2003-05-26 19:36:46  peter
+    * fpc_shortstr_concat is now the same for all targets
+    * fpc_shortstr_append_shortstr added for optimized code generation
+
+  Revision 1.57  2003/05/16 22:40:11  florian
     * fixed generic shortstr_compare
 
   Revision 1.56  2003/05/13 20:52:50  peter

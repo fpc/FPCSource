@@ -827,25 +827,71 @@ end;
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
-{$ifdef hascompilerproc}
-{ define a dummy fpc_shortstr_concat for i386. Only the next one }
-{ is really used by the compiler, but the compilerproc forward   }
-{ definition must still be fulfilled (JM)                        }
-function fpc_shortstr_concat(const s1,s2: shortstring): shortstring; compilerproc;
-begin
-  { avoid warning }
-  fpc_shortstr_concat := '';
-  runerror(216);
-end;
-{$endif hascompilerproc}
-
-
-procedure fpc_shortstr_concat_intern(const s1, s2:shortstring);
-  [public,alias:'FPC_SHORTSTR_CONCAT'];
+function fpc_shortstr_concat(const s1,s2:shortstring):shortstring;{$ifdef hascompilerproc}compilerproc;{$endif}
 begin
   asm
-        movl    s2,%edi
-        movl    s1,%esi
+        movl    __RESULT,%edi
+        movl    %edi,%ebx
+        movl    s1,%esi         { first string }
+        lodsb
+        andl    $0x0ff,%eax
+        stosb
+        cmpl    $7,%eax
+        jl      .LStrConcat1
+        movl    %edi,%ecx       { Align on 32bits }
+        negl    %ecx
+        andl    $3,%ecx
+        subl    %ecx,%eax
+        rep
+        movsb
+        movl    %eax,%ecx
+        andl    $3,%eax
+        shrl    $2,%ecx
+        rep
+        movsl
+.LStrConcat1:
+        movl    %eax,%ecx
+        rep
+        movsb
+        movl    s2,%esi       { second string }
+        movzbl  (%ebx),%ecx
+        negl    %ecx
+        addl    $0x0ff,%ecx
+        lodsb
+        cmpl    %ecx,%eax
+        jbe     .LStrConcat2
+        movl    %ecx,%eax
+.LStrConcat2:
+        addb    %al,(%ebx)
+        cmpl    $7,%eax
+        jl      .LStrConcat3
+        movl    %edi,%ecx       { Align on 32bits }
+        negl    %ecx
+        andl    $3,%ecx
+        subl    %ecx,%eax
+        rep
+        movsb
+        movl    %eax,%ecx
+        andl    $3,%eax
+        shrl    $2,%ecx
+        rep
+        movsl
+.LStrConcat3:
+        movl    %eax,%ecx
+        rep
+        movsb
+  end ['EBX','ECX','EAX','ESI','EDI'];
+end;
+
+
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
+
+{$ifdef hascompilerproc}
+procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring);compilerproc;
+begin
+  asm
+        movl    s1,%edi
+        movl    s2,%esi
         movl    %edi,%ebx
         movzbl  (%edi),%ecx
         xor     %eax,%eax
@@ -877,6 +923,44 @@ begin
         movsb
   end ['EBX','ECX','EAX','ESI','EDI'];
 end;
+{$else hascompilerproc}
+procedure fpc_shortstr_concat_int(const s1,s2:shortstring);[public,alias:'FPC_SHORTSTR_CONCAT'];
+begin
+  asm
+        movl    s1,%esi
+        movl    s2,%edi
+        movl    %edi,%ebx
+        movzbl  (%edi),%ecx
+        xor     %eax,%eax
+        lea     1(%edi,%ecx),%edi
+        negl    %ecx
+        addl    $0x0ff,%ecx
+        lodsb
+        cmpl    %ecx,%eax
+        jbe     .LStrConcat1
+        movl    %ecx,%eax
+.LStrConcat1:
+        addb    %al,(%ebx)
+        cmpl    $7,%eax
+        jl      .LStrConcat2
+        movl    %edi,%ecx       { Align on 32bits }
+        negl    %ecx
+        andl    $3,%ecx
+        subl    %ecx,%eax
+        rep
+        movsb
+        movl    %eax,%ecx
+        andl    $3,%eax
+        shrl    $2,%ecx
+        rep
+        movsl
+.LStrConcat2:
+        movl    %eax,%ecx
+        rep
+        movsb
+  end ['EBX','ECX','EAX','ESI','EDI'];
+end;
+{$endif hascompilerproc}
 
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
@@ -1171,7 +1255,11 @@ end;
 
 {
   $Log$
-  Revision 1.42  2003-05-16 22:40:11  florian
+  Revision 1.43  2003-05-26 19:36:46  peter
+    * fpc_shortstr_concat is now the same for all targets
+    * fpc_shortstr_append_shortstr added for optimized code generation
+
+  Revision 1.42  2003/05/16 22:40:11  florian
     * fixed generic shortstr_compare
 
   Revision 1.41  2003/03/26 00:19:10  peter

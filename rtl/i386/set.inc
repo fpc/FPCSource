@@ -230,29 +230,16 @@ end;
 
 {$define FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
 
-
-{$ifdef hascompilerproc}
-{ it's inlined in the code generator }
-function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; compilerproc;
-begin
-  { make sure we won't accidentally call it }
-  runerror(216);
-end;
-{$endif hascompilerproc}
-
-function fpc_set_in_byte_i386(p: pointer; b : byte): boolean;assembler;[public,alias:'FPC_SET_IN_BYTE'];
+function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; assembler; [public,alias:'FPC_SET_IN_BYTE']; {$ifdef hascompilerproc} compilerproc; {$else} saveregisters; {$endif}
 {
   tests if the element b is in the set p the carryflag is set if it present
 }
 asm
-{ it's inlined in the code generator }
-{$ifndef hascompilerproc}
        pushl %eax
        movl   p,%edi
        movzbl b,%eax
        btl %eax,(%edi)
        popl %eax
-{$endif not hascompilerproc}
 end;
 
 
@@ -595,7 +582,11 @@ end;
 
 {
   $Log$
-  Revision 1.9  2002-09-07 16:01:19  peter
+  Revision 1.10  2003-05-26 19:36:46  peter
+    * fpc_shortstr_concat is now the same for all targets
+    * fpc_shortstr_append_shortstr added for optimized code generation
+
+  Revision 1.9  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
   Revision 1.8  2002/03/29 20:15:44  peter
