@@ -581,7 +581,7 @@ Procedure fpc_WideStr_SetLength (Var S : WideString; l : SizeInt);[Public,Alias 
 }
 Var
   Temp : Pointer;
-  movelen, NewLen: SizeInt;
+  movelen: SizeInt;
 begin
    if (l>0) then
     begin
@@ -1129,7 +1129,7 @@ function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source: PChar; S
             b:=byte(Source[i]);
             inc(i);
             // 2 or 3 bytes?
-            if w>=$80 then
+            if b>=$80 then
               begin
                 w:=b and $3c;
                 if i>=SourceBytes then
@@ -1237,7 +1237,11 @@ function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inli
 
 {
   $Log$
-  Revision 1.42  2004-07-18 20:21:44  florian
+  Revision 1.43  2004-09-18 10:23:08  jonas
+    - removed unused local variable
+    * fixed bug in Utf8ToUnicode (use of uninitialised variable)
+
+  Revision 1.42  2004/07/18 20:21:44  florian
     + several unicode (to/from utf-8 conversion) stuff added
     * some longint -> SizeInt changes
 
