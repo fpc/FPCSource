@@ -489,10 +489,7 @@ interface
 
         { but use the new size, but we don't know the size of all arrays }
         newsize:=def_cgsize(resulttype.def);
-        if location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          location_force_reg(exprasmlist,location,newsize,true)
-        else
-          location.size:=newsize;
+        location.size:=newsize;
       end;
 
 
@@ -544,7 +541,10 @@ end.
 
 {
   $Log$
-  Revision 1.67  2004-12-10 23:38:54  jonas
+  Revision 1.68  2004-12-11 15:25:40  jonas
+    - removed superfluous location_force_reg() in second_nothing
+
+  Revision 1.67  2004/12/10 23:38:54  jonas
     * fixed type conversion between same-size ints with different signs in
       case the value is already in a register
 
