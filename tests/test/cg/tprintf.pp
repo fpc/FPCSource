@@ -2,15 +2,20 @@
 
 {$mode objfpc}
 
+uses
+  strings;
 
 {$ifdef win32}
 {$linklib msvcrt}
+procedure printf(const formatstr : pchar; const args : array of const);cdecl; external name 'printf';
+procedure sprintf(p : pchar;const formatstr : pchar; const args : array of const);cdecl; external name 'sprintf';
 {$else}
 {$linklib c}
+procedure printf(const formatstr : pchar; const args : array of const);cdecl; external;
+procedure sprintf(p : pchar;const formatstr : pchar; const args : array of const);cdecl; external;
 {$endif}
 
-uses
-  strings;
+
 
 type
  THandle = longint;
@@ -24,9 +29,6 @@ const
   e : extended = 74.74;
   p : pchar = nil;
   has_errors : boolean = false;
-
-procedure printf(const formatstr : pchar; const args : array of const);cdecl; external;
-procedure sprintf(p : pchar;const formatstr : pchar; const args : array of const);cdecl; external;
 
 begin
   getmem(p,500);
