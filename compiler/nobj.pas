@@ -858,7 +858,7 @@ implementation
             objectlibrary.getdatalabel(tmplabel);
             rawdata.concat(tai_align.create(const_align(pointer_size)));
             rawdata.concat(Tai_label.Create(tmplabel));
-            rawdata.concat(Tai_const.Create_32bit(curintf.iidguid^.D1));
+            rawdata.concat(Tai_const.Create_32bit(longint(curintf.iidguid^.D1)));
             rawdata.concat(Tai_const.Create_16bit(curintf.iidguid^.D2));
             rawdata.concat(Tai_const.Create_16bit(curintf.iidguid^.D3));
             for i:=Low(curintf.iidguid^.D4) to High(curintf.iidguid^.D4) do
@@ -1333,7 +1333,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.40  2003-01-13 14:54:34  daniel
+  Revision 1.41  2003-04-23 10:11:22  peter
+    * range check error for GUID fixed
+
+  Revision 1.40  2003/01/13 14:54:34  daniel
     * Further work to convert codegenerator register convention;
       internalerror bug fixed.
 
