@@ -27,9 +27,11 @@ PNGOBJECTS=$(addsuffix .png, $(SOURCEOBJECTS))
 EPSOBJECTS=$(addsuffix .eps, $(SOURCEOBJECTS))
 
 
-all : pdfdoc dvidoc psdoc
+all : pdfdoc
+#dvidoc psdoc
 
-dist: pdfdist dvidist psdist
+dist: pdfdist 
+#dvidist psdist
 
 # 4 times latex because of longtable. Theoretically it can even be higher, but we
 # don't use multicol.
@@ -77,7 +79,7 @@ clean :
 	rm -f $(PDFOBJECTS) $(PNGOBJECTS) $(EPSOBJECTS) *.aux *.idx *.toc *.lof *.log *.out comparch.pdf comparch.ps comparch.dvi
 	
 distclean: clean
-	rm -f arch-dvi.zip arch-pdf.zip arch-ps.zip	
+	rm -f arch-dvi.zip arch-pdf.zip arch-ps.zip     
  
 $(PDFOBJECTS): %.pdf: %.fig
 	$(FIG2DEV) pdf $*.fig $*.pdf 
