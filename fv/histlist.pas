@@ -156,7 +156,7 @@ PROCEDURE StoreHistory (Var S: TStream);
 {                 INITIALIZED DOS/DPMI/WIN/NT/OS2 VARIABLES                 }
 {---------------------------------------------------------------------------}
 CONST
-   HistorySize: Word = 1024;                          { Maximum history size }
+   HistorySize: Word = 64*1024;                       { Maximum history size }
    HistoryUsed: LongInt = 0;                          { History used }
    HistoryBlock: Pointer = Nil;                       { Storage block }
 
@@ -172,7 +172,11 @@ CONST
 {                       THistRec RECORD DEFINITION                          }
 {---------------------------------------------------------------------------}
 TYPE
-   THistRec = PACKED RECORD
+   THistRec =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+   PACKED
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+   RECORD
      Zero: byte;                                      { Start marker }
      Id  : byte;                                      { History id }
      Str : String;                                    { History string }
@@ -420,7 +424,10 @@ END.
 
 {
  $Log$
- Revision 1.10  2002-10-17 11:24:16  pierre
+ Revision 1.11  2004-11-03 20:51:36  florian
+   * fixed problems on targets requiring proper alignment
+
+ Revision 1.10  2002/10/17 11:24:16  pierre
   * Clean up the Load/Store routines so they are endian independent
 
  Revision 1.9  2002/09/07 15:06:37  peter

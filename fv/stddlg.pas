@@ -87,7 +87,11 @@ type
   {  Record used to store directory information by TFileDialog
      This is a part of Dos.Searchrec for Bp !! }
 
-  TSearchRec = packed record
+  TSearchRec =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
     Attr: Longint;
     Time: Longint;
     Size: Longint;

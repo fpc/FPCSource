@@ -217,7 +217,11 @@ CONST
 {---------------------------------------------------------------------------}
 TYPE
    PBuffer = ^TBuffer;                                { Buffer pointer }
-   TBuffer = PACKED RECORD
+   TBuffer =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+   PACKED
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+   RECORD
      {$IFDEF PROC_REAL}                               { REAL MODE DOS CODE }
      Size  : Word;                                    { Buffer size }
      Master: ^Word;                                   { Master buffer }
@@ -232,7 +236,11 @@ TYPE
 {                     POINTER TYPE CONVERSION RECORDS                       }
 {---------------------------------------------------------------------------}
 TYPE
-   PtrRec = PACKED RECORD
+   PtrRec =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+   PACKED
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+   RECORD
      Ofs, Seg: Word;                                  { Pointer to words }
    END;
 
@@ -242,13 +250,21 @@ TYPE
 TYPE
    PCache = ^TCache;                                  { Cache pointer }
 {$IFDEF PROC_REAL}                                    { REAL MODE DOS CODE }
-   TCache = PACKED RECORD
+   TCache =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+   PACKED
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+   RECORD
       Size  : Word;                                   { Cache size }
       Master: ^Pointer;                               { Master cache }
       Data  : RECORD END;                             { Cache data }
    END;
 {$ELSE}                                               { DPMI/WIN/NT/OS2 CODE }
-   TCache = PACKED RECORD
+   TCache =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+   PACKED
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+   RECORD
      Next  : PCache;                                  { Next cache }
      Master: ^Pointer;                                { Master cache }
      Size  : Word;                                    { Size of cache }
@@ -832,7 +848,10 @@ END.
 
 {
  $Log$
- Revision 1.7  2002-09-22 19:42:22  hajny
+ Revision 1.8  2004-11-03 20:51:36  florian
+   * fixed problems on targets requiring proper alignment
+
+ Revision 1.7  2002/09/22 19:42:22  hajny
    + FPC/2 support added
 
  Revision 1.6  2002/09/09 08:04:06  pierre

@@ -328,7 +328,11 @@ TYPE
 {---------------------------------------------------------------------------}
 TYPE
    PComplexArea = ^TComplexArea;                      { Complex area }
-   TComplexArea = PACKED RECORD
+   TComplexArea =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+   PACKED
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+   RECORD
       X1, Y1  : Sw_Integer;                              { Top left corner }
       X2, Y2  : Sw_Integer;                              { Lower right corner }
       NextArea: PComplexArea;                         { Next area pointer }
@@ -5212,7 +5216,10 @@ END.
 
 {
  $Log$
- Revision 1.44  2004-11-03 20:33:05  peter
+ Revision 1.45  2004-11-03 20:51:36  florian
+   * fixed problems on targets requiring proper alignment
+
+ Revision 1.44  2004/11/03 20:33:05  peter
    * removed unnecesasry graphfv stuff
 
  Revision 1.43  2004/11/03 12:09:08  peter

@@ -239,7 +239,11 @@ CONST
 {                          EVENT RECORD DEFINITION                          }
 {---------------------------------------------------------------------------}
 TYPE
-   TEvent = PACKED RECORD
+   TEvent =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+   PACKED
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+   RECORD
       What: Sw_Word;                                     { Event type }
       Case Sw_Word Of
         evNothing: ();                                { ** NO EVENT ** }
@@ -1451,7 +1455,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.40  2004-11-03 20:33:05  peter
+ Revision 1.41  2004-11-03 20:51:36  florian
+   * fixed problems on targets requiring proper alignment
+
+ Revision 1.40  2004/11/03 20:33:05  peter
    * removed unnecesasry graphfv stuff
 
  Revision 1.39  2004/11/02 23:53:19  peter

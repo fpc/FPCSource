@@ -119,7 +119,11 @@ TYPE
 {                              TMenuItem RECORD                             }
 {---------------------------------------------------------------------------}
    PMenuItem = ^TMenuItem;
-   TMenuItem = PACKED RECORD
+   TMenuItem =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+   PACKED
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+   RECORD
      Next: PMenuItem;                                 { Next menu item }
      Name: PString;                                   { Menu item name }
      Command: Word;                                   { Menu item command }
@@ -134,7 +138,11 @@ TYPE
 {---------------------------------------------------------------------------}
 {                                TMenu RECORD                               }
 {---------------------------------------------------------------------------}
-   TMenu = PACKED RECORD
+   TMenu =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+   PACKED
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+   RECORD
      Items: PMenuItem;                                { Menu item list }
      Default: PMenuItem;                              { Default menu }
    END;
@@ -144,7 +152,11 @@ TYPE
 {---------------------------------------------------------------------------}
 TYPE
    PStatusItem = ^TStatusItem;
-   TStatusItem = PACKED RECORD
+   TStatusItem =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+   PACKED
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+   RECORD
      Next: PStatusItem;                               { Next status item }
      Text: PString;                                   { Text of status item }
      KeyCode: Word;                                   { Keycode of item }
@@ -156,7 +168,11 @@ TYPE
 {---------------------------------------------------------------------------}
 TYPE
    PStatusDef = ^TStatusDef;
-   TStatusDef = PACKED RECORD
+   TStatusDef =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+   PACKED
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+   RECORD
      Next: PStatusDef;                                { Next status defined }
      Min, Max: Word;                                  { Range of item }
      Items: PStatusItem;                              { Item list }
@@ -1687,7 +1703,10 @@ END;
 END.
 {
  $Log$
- Revision 1.19  2004-11-03 20:33:05  peter
+ Revision 1.20  2004-11-03 20:51:36  florian
+   * fixed problems on targets requiring proper alignment
+
+ Revision 1.19  2004/11/03 20:33:05  peter
    * removed unnecesasry graphfv stuff
 
  Revision 1.18  2004/11/03 12:09:08  peter

@@ -331,22 +331,38 @@ const
   UndoCmds       : TCommandSet = ([cmUndo,cmRedo]);
 
 TYPE
-  TFindDialogRec = packed record
+  TFindDialogRec =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
     Find    : String[80];
     Options : Word;
   end;
 
-  TReplaceDialogRec = packed record
+  TReplaceDialogRec =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
        Find : String[80];
     Replace : String[80];
     Options : Word;
   end;
 
-  TRightMarginRec = packed record
+  TRightMarginRec =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
     Margin_Position : String[3];
   end;
 
-  TTabStopRec = packed record
+  TTabStopRec =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
     Tab_String : String [Tab_Stop_Length];
   end;
 
