@@ -113,8 +113,10 @@ interface
 
       psymlistitem = ^tsymlistitem;
       tsymlistitem = record
-        sym  : tsym;
-        next : psymlistitem;
+        sltype : tsltype;
+        sym    : tsym;
+        value  : longint;
+        next   : psymlistitem;
       end;
 
       tsymlist = class
@@ -125,7 +127,8 @@ interface
         destructor  destroy;override;
         function  empty:boolean;
         procedure setdef(p:tdef);
-        procedure addsym(p:tsym);
+        procedure addsym(slt:tsltype;p:tsym);
+        procedure addconst(slt:tsltype;v:longint);
         procedure clear;
         function  getcopy:tsymlist;
         procedure resolve;
@@ -339,14 +342,33 @@ implementation
       end;
 
 
-    procedure tsymlist.addsym(p:tsym);
+    procedure tsymlist.addsym(slt:tsltype;p:tsym);
       var
         hp : psymlistitem;
       begin
         if not assigned(p) then
-         exit;
+         internalerror(200110203);
         new(hp);
+        hp^.sltype:=slt;
         hp^.sym:=p;
+        hp^.value:=0;
+        hp^.next:=nil;
+        if assigned(lastsym) then
+         lastsym^.next:=hp
+        else
+         firstsym:=hp;
+        lastsym:=hp;
+      end;
+
+
+    procedure tsymlist.addconst(slt:tsltype;v:longint);
+      var
+        hp : psymlistitem;
+      begin
+        new(hp);
+        hp^.sltype:=slt;
+        hp^.sym:=nil;
+        hp^.value:=v;
         hp^.next:=nil;
         if assigned(lastsym) then
          lastsym^.next:=hp
@@ -360,13 +382,21 @@ implementation
       var
         hp  : tsymlist;
         hp2 : psymlistitem;
+        hpn : psymlistitem;
       begin
         hp:=tsymlist.create;
         hp.def:=def;
         hp2:=firstsym;
         while assigned(hp2) do
          begin
-           hp.addsym(hp2^.sym);
+           new(hpn);
+           hpn^:=hp2^;
+           hpn^.next:=nil;
+           if assigned(hp.lastsym) then
+            hp.lastsym^.next:=hpn
+           else
+            hp.firstsym:=hpn;
+           hp.lastsym:=hpn;
            hp2:=hp2^.next;
          end;
         getcopy:=hp;
@@ -381,7 +411,8 @@ implementation
         hp:=firstsym;
         while assigned(hp) do
          begin
-           resolvesym(hp^.sym);
+           if assigned(hp^.sym) then
+            resolvesym(hp^.sym);
            hp:=hp^.next;
          end;
       end;
@@ -487,7 +518,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2001-08-30 20:13:57  peter
+  Revision 1.10  2001-10-21 12:33:07  peter
+    * array access for properties added
+
+  Revision 1.9  2001/08/30 20:13:57  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces

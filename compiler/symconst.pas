@@ -159,6 +159,14 @@ type
   );
   tdefoptions=set of tdefoption;
 
+  { tsymlist entry types }
+  tsltype = (sl_none,
+    sl_load,
+    sl_call,
+    sl_subscript,
+    sl_vec
+  );
+
   { base types for orddef }
   tbasetype = (
     uauto,uvoid,uchar,
@@ -453,7 +461,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2001-10-20 20:30:21  peter
+  Revision 1.25  2001-10-21 12:33:07  peter
+    * array access for properties added
+
+  Revision 1.24  2001/10/20 20:30:21  peter
     * read only typed const support, switch $J-
 
   Revision 1.23  2001/08/30 20:13:54  peter

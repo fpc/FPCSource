@@ -607,13 +607,12 @@ implementation
               end
              else
               begin
-                 if token=_LKLAMMER then
-                  begin
-                    consume(_LKLAMMER);
-                    para:=parse_paras(false,false);
-                    consume(_RKLAMMER);
-                  end
-                 else
+                if token=_LKLAMMER then
+                 begin
+                   consume(_LKLAMMER);
+                   para:=parse_paras(false,false);
+                   consume(_RKLAMMER);
+                 end;
               end;
              p1:=ccallnode.create(para,tprocsym(sym),st,p1);
            end
@@ -684,10 +683,40 @@ implementation
     { the following procedure handles the access to a property symbol }
     procedure handle_propertysym(sym : tsym;st : tsymtable;var p1 : tnode; getaddr: boolean);
 
+        procedure symlist_to_node(var p1:tnode;pl:tsymlist);
+        var
+          plist : psymlistitem;
+        begin
+          plist:=pl.firstsym;
+          while assigned(plist) do
+           begin
+             case plist^.sltype of
+               sl_load :
+                 begin
+                   { p1 can already contain the loadnode of
+                     the class variable. Then we need to use a
+                     subscriptn. If no tree is found (with block), then
+                     generate a loadn }
+                   if assigned(p1) then
+                    p1:=csubscriptnode.create(tvarsym(plist^.sym),p1)
+                   else
+                    p1:=cloadnode.create(tvarsym(plist^.sym),st);
+                 end;
+               sl_subscript :
+                 p1:=csubscriptnode.create(tvarsym(plist^.sym),p1);
+               sl_vec :
+                 p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,s32bittype));
+               else
+                 internalerror(200110205);
+             end;
+             plist:=plist^.next;
+           end;
+          include(p1.flags,nf_isproperty);
+        end;
+
       var
          paras : tnode;
          p2    : tnode;
-         plist : psymlistitem;
       begin
          paras:=nil;
          { property parameters? read them only if the property really }
@@ -720,9 +749,6 @@ implementation
                          { generate the method call }
                          p1:=ccallnode.create(paras,
                                               tprocsym(tpropertysym(sym).writeaccess.firstsym^.sym),st,p1);
-                         { we know the procedure to call, so
-                           force the usage of that procedure }
-                         tcallnode(p1).procdefinition:=tprocdef(tpropertysym(sym).writeaccess.def);
                          consume(_ASSIGNMENT);
                          { read the expression }
                          getprocvar:=(tpropertysym(sym).proptype.def.deftype=procvardef);
@@ -738,16 +764,7 @@ implementation
                          if assigned(paras) then
                            message(parser_e_no_paras_allowed);
                          { subscribed access? }
-                         plist:=tpropertysym(sym).writeaccess.firstsym;
-                         while assigned(plist) do
-                          begin
-                            if p1=nil then
-                              p1:=cloadnode.create(tvarsym(plist^.sym),st)
-                            else
-                              p1:=csubscriptnode.create(tvarsym(plist^.sym),p1);
-                            plist:=plist^.next;
-                          end;
-                         include(tcallnode(p1).flags,nf_isproperty);
+                         symlist_to_node(p1,tpropertysym(sym).writeaccess);
                          consume(_ASSIGNMENT);
                          { read the expression }
                          p2:=comp_expr(true);
@@ -777,26 +794,12 @@ implementation
                           if assigned(paras) then
                             message(parser_e_no_paras_allowed);
                           { subscribed access? }
-                          plist:=tpropertysym(sym).readaccess.firstsym;
-                          while assigned(plist) do
-                           begin
-                             if p1=nil then
-                               p1:=cloadnode.create(tvarsym(plist^.sym),st)
-                             else
-                               p1:=csubscriptnode.create(tvarsym(plist^.sym),p1);
-                             plist:=plist^.next;
-                           end;
-                          include(p1.flags,nf_isproperty);
+                          symlist_to_node(p1,tpropertysym(sym).readaccess);
                        end;
                      procsym :
                        begin
                           { generate the method call }
                           p1:=ccallnode.create(paras,tprocsym(tpropertysym(sym).readaccess.firstsym^.sym),st,p1);
-                          { we know the procedure to call, so
-                            force the usage of that procedure }
-{                           no, because then the amount and the validity of the paras
-                            is not checked (JM)
-                          tcallnode(p1).procdefinition:=tprocdef(tpropertysym(sym).readaccess.def); }
                           include(p1.flags,nf_isproperty);
                        end
                      else
@@ -2329,7 +2332,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2001-10-20 19:28:39  peter
+  Revision 1.45  2001-10-21 12:33:07  peter
+    * array access for properties added
+
+  Revision 1.44  2001/10/20 19:28:39  peter
     * interface 2 guid support
     * guid constants support
 

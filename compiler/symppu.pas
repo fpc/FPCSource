@@ -115,15 +115,32 @@ implementation
     function tcompilerppufile.getsymlist:tsymlist;
       var
         sym : tsym;
+        slt : tsltype;
+        idx : longint;
         p   : tsymlist;
       begin
         p:=tsymlist.create;
         p.def:=tdef(getderef);
         repeat
-          sym:=tsym(getderef);
-          if sym=nil then
-           break;
-          p.addsym(sym);
+          slt:=tsltype(getbyte);
+          case slt of
+            sl_none :
+              break;
+            sl_call,
+            sl_load,
+            sl_subscript :
+              begin
+                sym:=tsym(getderef);
+                p.addsym(slt,sym);
+              end;
+            sl_vec :
+              begin
+                idx:=getlongint;
+                p.addconst(slt,idx);
+              end;
+            else
+             internalerror(200110204);
+          end;
         until false;
         getsymlist:=tsymlist(p);
       end;
@@ -244,10 +261,20 @@ implementation
         hp:=p.firstsym;
         while assigned(hp) do
          begin
-           putderef(hp^.sym);
+           putbyte(byte(hp^.sltype));
+           case hp^.sltype of
+             sl_call,
+             sl_load,
+             sl_subscript :
+               putderef(hp^.sym);
+             sl_vec :
+               putlongint(hp^.value);
+             else
+              internalerror(200110205);
+           end;
            hp:=hp^.next;
          end;
-        putderef(nil);
+        putbyte(byte(sl_none));
       end;
 
 
@@ -272,7 +299,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2001-05-06 14:49:17  peter
+  Revision 1.7  2001-10-21 12:33:07  peter
+    * array access for properties added
+
+  Revision 1.6  2001/05/06 14:49:17  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 

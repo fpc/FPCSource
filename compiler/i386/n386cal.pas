@@ -279,6 +279,7 @@ implementation
          params : tnode;
          inlined : boolean;
          inlinecode : tprocinlinenode;
+         store_parast_fixup,
          para_alignment,
          para_offset : longint;
          { instruction for alignement correction }
@@ -286,10 +287,10 @@ implementation
          { we must pop this size also after !! }
 {        must_pop : boolean; }
          pop_size : longint;
-{$ifdef dummy}
-         push_size : longint;
-{$endif}
+{$ifdef OPTALIGN}
          pop_esp : boolean;
+         push_size : longint;
+{$endif OPTALIGN}
          pop_allowed : boolean;
          regs_to_push : byte;
          constructorfailed : tasmlabel;
@@ -325,11 +326,13 @@ implementation
            begin
               inlined:=true;
               inlinecode:=tprocinlinenode(right);
+              right:=nil;
               { set it to the same lexical level as the local symtable, becuase
                 the para's are stored there }
               tprocdef(procdefinition).parast.symtablelevel:=aktprocsym.definition.localst.symtablelevel;
               if assigned(params) then
                 inlinecode.para_offset:=gettempofsizepersistant(inlinecode.para_size);
+              store_parast_fixup:=tprocdef(procdefinition).parast.address_fixup;
               tprocdef(procdefinition).parast.address_fixup:=inlinecode.para_offset;
 {$ifdef extdebug}
              Comment(V_debug,
@@ -339,9 +342,6 @@ implementation
                strpnew('inlined parasymtable is at offset '
                +tostr(tprocdef(procdefinition).parast.address_fixup))));
 {$endif extdebug}
-              { disable further inlining of the same proc
-                in the args }
-              exclude(procdefinition.proccalloptions,pocall_inline);
            end;
          { only if no proc var }
          if inlined or
@@ -385,11 +385,10 @@ implementation
          pop_size:=0;
          { no inc esp for inlined procedure
            and for objects constructors PM }
-         if (inlined or
-            (right=nil)) and
-            (procdefinition.proctypeoption=potype_constructor) and
+         if inlined or
+            ((procdefinition.proctypeoption=potype_constructor) and
             { quick'n'dirty check if it is a class or an object }
-            (resulttype.def.deftype=orddef) then
+             (resulttype.def.deftype=orddef)) then
            pop_allowed:=false
          else
            pop_allowed:=true;
@@ -417,7 +416,7 @@ implementation
 {$endif GDB}
              end;
           end;
-{$ifdef dummy}
+{$ifdef OPTALIGN}
          if pop_allowed and (cs_align in aktglobalswitches) then
            begin
               pop_esp:=true;
@@ -428,18 +427,18 @@ implementation
               inc(push_size,12);
               emit_reg_reg(A_MOV,S_L,R_ESP,R_EDI);
               if (push_size mod 8)=0 then
-                emit_const_reg(A_AND,S_L,longint($fffffff8),R_ESP)
+                emit_const_reg(A_AND,S_L,$fffffff8,R_ESP)
               else
                 begin
                    emit_const_reg(A_SUB,S_L,push_size,R_ESP);
-                   emit_const_reg(A_AND,S_L,longint($fffffff8),R_ESP);
+                   emit_const_reg(A_AND,S_L,$fffffff8,R_ESP);
                    emit_const_reg(A_SUB,S_L,push_size,R_ESP);
                 end;
               emit_reg(A_PUSH,S_L,R_EDI);
            end
          else
-{$endif dummy}
            pop_esp:=false;
+{$endif OPTALIGN}
          if (not is_void(resulttype.def)) and
             ret_in_param(resulttype.def) then
            begin
@@ -460,6 +459,13 @@ implementation
                      reset_reference(funcretref);
                      funcretref.offset:=gettempofsizepersistant(resulttype.def.size);
                      funcretref.base:=procinfo^.framepointer;
+{$ifdef extdebug}
+                     Comment(V_debug,'function return value is at offset '
+                                     +tostr(funcretref.offset));
+                     exprasmlist.concat(tai_asm_comment.create(
+                                         strpnew('function return value is at offset '
+                                                 +tostr(funcretref.offset))));
+{$endif extdebug}
                   end
                 else
                   gettempofsizereference(resulttype.def.size,funcretref);
@@ -987,8 +993,6 @@ implementation
               else { inlined proc }
                 { inlined code is in inlinecode }
                 begin
-                   { set poinline again }
-                   include(procdefinition.proccalloptions,pocall_inline);
                    { process the inlinecode }
                    secondpass(inlinecode);
                    { free the args }
@@ -1097,8 +1101,10 @@ implementation
                 else if pushedparasize<>0 then
                   emit_const_reg(A_ADD,S_L,pushedparasize,R_ESP);
              end;
+{$ifdef OPTALIGN}
          if pop_esp then
            emit_reg(A_POP,S_L,R_ESP);
+{$endif OPTALIGN}
       dont_call:
          pushedparasize:=oldpushedparasize;
          unused:=unusedregisters;
@@ -1348,10 +1354,13 @@ implementation
               pp:=tbinarynode(pp.right);
            end;
          if inlined then
-           ungetpersistanttemp(inlinecode.retoffset);
+           begin
+             ungetpersistanttemp(inlinecode.retoffset);
+             tprocdef(procdefinition).parast.address_fixup:=store_parast_fixup;
+             right:=inlinecode;
+           end;
          if assigned(params) then
            params.free;
-
 
          { from now on the result can be freed normally }
          if inlined and ret_in_param(resulttype.def) then
@@ -1588,7 +1597,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2001-09-09 08:50:15  jonas
+  Revision 1.34  2001-10-21 12:33:07  peter
+    * array access for properties added
+
+  Revision 1.33  2001/09/09 08:50:15  jonas
     * when calling an inline procedure inside a nested procedure, the
       framepointer was being pushed on the stack, but this pushed framepointer
       was never used nor removed from the stack again after the inlining was

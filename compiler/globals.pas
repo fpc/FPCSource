@@ -129,10 +129,7 @@ interface
        nwthreadname : string;
        nwcopyright  : string;
 
-
-       { type of currently parsed block }
-       { isn't full implemented (FK)    }
-       block_type : tblock_type;
+       block_type : tblock_type;         { type of currently parsed block }
 
        in_args : boolean;                { arguments must be checked especially }
        parsing_para_level : integer;     { parameter level, used to convert
@@ -1330,12 +1327,16 @@ implementation
      begin
         get_exepath;
 
-      { set global switches }
+      { reset globals }
         do_build:=false;
         do_release:=false;
         do_make:=true;
         compile_level:=0;
         DLLsource:=false;
+        inlining_procedure:=false;
+        resolving_forward:=false;
+        in_args:=false;
+        make_ref:=false;
 
       { Output }
         OutputFile:='';
@@ -1411,7 +1412,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2001-10-20 20:30:20  peter
+  Revision 1.47  2001-10-21 12:33:05  peter
+    * array access for properties added
+
+  Revision 1.46  2001/10/20 20:30:20  peter
     * read only typed const support, switch $J-
 
   Revision 1.45  2001/10/16 15:10:34  jonas

@@ -39,7 +39,7 @@ implementation
       globals,verbose,systems,tokens,
       aasm,symconst,symbase,symsym,symtable,types,
       cgbase,
-      node,nld,ncon,ncnv,pass_1,
+      node,nld,nmem,ncon,ncnv,ncal,pass_1,
       scanner,
       pbase,pexpr,pdecsub,pdecvar,ptype;
 
@@ -83,22 +83,133 @@ implementation
 
       procedure property_dec;
 
+        { convert a node tree to symlist and return the last
+          symbol }
+        function parse_symlist(pl:tsymlist):boolean;
+          var
+            idx : longint;
+            sym : tsym;
+            def : tdef;
+            st  : tsymtable;
+          begin
+            parse_symlist:=true;
+            def:=nil;
+            if token=_ID then
+             begin
+               sym:=search_class_member(aktclass,pattern);
+               if assigned(sym) then
+                begin
+                  case sym.typ of
+                    varsym :
+                      begin
+                        pl.addsym(sl_load,sym);
+                        def:=tvarsym(sym).vartype.def;
+                      end;
+                    procsym :
+                      begin
+                        pl.addsym(sl_call,sym);
+                      end;
+                  end;
+                end
+               else
+                begin
+                  Message1(parser_e_illegal_field_or_method,pattern);
+                  parse_symlist:=false;
+                end;
+               consume(_ID);
+               repeat
+                 case token of
+                   _ID,
+                   _SEMICOLON :
+                     begin
+                       break;
+                     end;
+                   _POINT :
+                     begin
+                       consume(_POINT);
+                       if assigned(def) then
+                        begin
+                          st:=def.getsymtable(gs_record);
+                          if assigned(st) then
+                           begin
+                             sym:=searchsymonlyin(st,pattern);
+                             if assigned(sym) then
+                              begin
+                                pl.addsym(sl_subscript,sym);
+                                case sym.typ of
+                                  varsym :
+                                    def:=tvarsym(sym).vartype.def;
+                                  else
+                                    begin
+                                      Message1(sym_e_illegal_field,pattern);
+                                      parse_symlist:=false;
+                                    end;
+                                end;
+                              end
+                             else
+                              begin
+                                Message1(sym_e_illegal_field,pattern);
+                                parse_symlist:=false;
+                              end;
+                           end
+                          else
+                           begin
+                             Message(cg_e_invalid_qualifier);
+                             parse_symlist:=false;
+                           end;
+                        end;
+                       consume(_ID);
+                     end;
+                   _LECKKLAMMER :
+                     begin
+                       consume(_LECKKLAMMER);
+                       repeat
+                         if def.deftype=arraydef then
+                          begin
+                            idx:=get_intconst;
+                            pl.addconst(sl_vec,idx);
+                            def:=tarraydef(def).elementtype.def;
+                          end
+                         else
+                          begin
+                            Message(cg_e_invalid_qualifier);
+                            parse_symlist:=false;
+                          end;
+                       until not try_to_consume(_COMMA);
+                       consume(_RECKKLAMMER);
+                     end;
+                   else
+                     begin
+                       Message(parser_e_ill_property_access_sym);
+                       parse_symlist:=false;
+                       break;
+                     end;
+                 end;
+               until false;
+             end
+            else
+             begin
+               Message(parser_e_ill_property_access_sym);
+               parse_symlist:=false;
+             end;
+            pl.def:=def;
+          end;
+
         var
            sym : tsym;
            propertyparas : tlinkedlist;
 
         { returns the matching procedure to access a property }
         function get_procdef : tprocdef;
-
           var
              p : tprocdef;
-
           begin
              p:=tprocsym(sym).definition;
              get_procdef:=nil;
              while assigned(p) do
                begin
-                  if equal_paras(p.para,propertyparas,cp_value_equal_const) or convertable_paras(p.para,propertyparas,cp_value_equal_const) then {MvdV: Ozerski 14.03.01}
+                  if equal_paras(p.para,propertyparas,cp_value_equal_const) or
+                     convertable_paras(p.para,propertyparas,cp_value_equal_const) then
                     break;
                   p:=p.nextoverloaded;
                end;
@@ -118,9 +229,9 @@ implementation
            pp : tprocdef;
            pt : tnode;
            propname : stringid;
-
         begin
            { check for a class }
+           aktprocsym:=nil;
            if not((is_class_or_interface(aktclass)) or
               ((m_delphi in aktmodeswitches) and (is_object(aktclass)))) then
              Message(parser_e_syntax_error);
@@ -260,188 +371,117 @@ implementation
                 datacoll.paratyp:=vs_value;
                 datacoll.paratype:=p.proptype;
 
-                if (idtoken=_READ) then
-                  begin
-                     p.readaccess.clear;
-                     consume(_READ);
-                     sym:=search_class_member(aktclass,pattern);
-                     if not(assigned(sym)) then
-                       begin
-                         Message1(sym_e_unknown_id,pattern);
-                         consume(_ID);
-                       end
-                     else
-                       begin
-                          consume(_ID);
-                          while (token=_POINT) and
-                                ((sym.typ=varsym) and
-                                 (tvarsym(sym).vartype.def.deftype=recorddef)) do
-                           begin
-                             p.readaccess.addsym(sym);
-                             consume(_POINT);
-                             sym:=searchsymonlyin(trecorddef(tvarsym(sym).vartype.def).symtable,pattern);
-                             if not assigned(sym) then
-                               Message1(sym_e_illegal_field,pattern);
-                             consume(_ID);
-                           end;
-                       end;
-
-                     if assigned(sym) then
-                       begin
-                          { search the matching definition }
-                          case sym.typ of
-                            procsym :
-                              begin
-                                 pp:=get_procdef;
-                                 if not(assigned(pp)) or
-                                    not(is_equal(pp.rettype.def,p.proptype.def)) then
-                                   Message(parser_e_ill_property_access_sym);
-                                 p.readaccess.setdef(pp);
-                              end;
-                            varsym :
-                              begin
-                                if not(propertyparas.empty) or
-                                   not(is_equal(tvarsym(sym).vartype.def,p.proptype.def)) then
-                                  Message(parser_e_ill_property_access_sym);
-                              end;
-                            else
-                              Message(parser_e_ill_property_access_sym);
-                          end;
-                          p.readaccess.addsym(sym);
-                       end;
-                  end;
-                if (idtoken=_WRITE) then
-                  begin
-                     p.writeaccess.clear;
-                     consume(_WRITE);
-                     sym:=search_class_member(aktclass,pattern);
-                     if not(assigned(sym)) then
-                       begin
-                         Message1(sym_e_unknown_id,pattern);
-                         consume(_ID);
-                       end
-                     else
-                       begin
-                          consume(_ID);
-                          while (token=_POINT) and
-                                ((sym.typ=varsym) and
-                                 (tvarsym(sym).vartype.def.deftype=recorddef)) do
-                           begin
-                             p.writeaccess.addsym(sym);
-                             consume(_POINT);
-                             sym:=searchsymonlyin(trecorddef(tvarsym(sym).vartype.def).symtable,pattern);
-                             if not assigned(sym) then
-                               Message1(sym_e_illegal_field,pattern);
-                             consume(_ID);
-                           end;
-                       end;
-
-                     if assigned(sym) then
-                       begin
-                          { search the matching definition }
-                          case sym.typ of
-                            procsym :
-                              begin
-                                 { insert data entry to check access method }
-                                 propertyparas.insert(datacoll);
-                                 pp:=get_procdef;
-                                 { ... and remove it }
-                                 propertyparas.remove(datacoll);
-                                 if not(assigned(pp)) then
-                                   Message(parser_e_ill_property_access_sym);
-                                 p.writeaccess.setdef(pp);
-                              end;
-                            varsym :
-                              begin
-                                 if not(propertyparas.empty) or
-                                    not(is_equal(tvarsym(sym).vartype.def,p.proptype.def)) then
-                                   Message(parser_e_ill_property_access_sym);
-                              end
-                            else
-                              Message(parser_e_ill_property_access_sym);
-                          end;
-                          p.writeaccess.addsym(sym);
-                       end;
-                  end;
-                include(p.propoptions,ppo_stored);
-                if (idtoken=_STORED) then
-                  begin
-                     consume(_STORED);
-                     p.storedaccess.clear;
-                     case token of
-                        _ID:
-                           { in the case that idtoken=_DEFAULT }
-                           { we have to do nothing except      }
-                           { setting ppo_stored, it's the same }
-                           { as stored true                    }
-                           if idtoken<>_DEFAULT then
-                             begin
-                                sym:=search_class_member(aktclass,pattern);
-                                if not(assigned(sym)) then
-                                  begin
-                                    Message1(sym_e_unknown_id,pattern);
-                                    consume(_ID);
-                                  end
-                                else
-                                  begin
-                                     consume(_ID);
-                                     while (token=_POINT) and
-                                           ((sym.typ=varsym) and
-                                            (tvarsym(sym).vartype.def.deftype=recorddef)) do
-                                      begin
-                                        p.storedaccess.addsym(sym);
-                                        consume(_POINT);
-                                        sym:=searchsymonlyin(trecorddef(tvarsym(sym).vartype.def).symtable,pattern);
-                                        if not assigned(sym) then
-                                          Message1(sym_e_illegal_field,pattern);
-                                        consume(_ID);
-                                      end;
-                                  end;
-
-                                if assigned(sym) then
-                                  begin
-                                     { only non array properties can be stored }
-                                     case sym.typ of
-                                       procsym :
-                                         begin
-                                           pp:=tprocsym(sym).definition;
-                                           while assigned(pp) do
-                                             begin
-                                                { the stored function shouldn't have any parameters }
-                                                if pp.Para.empty then
-                                                  break;
-                                                 pp:=pp.nextoverloaded;
-                                             end;
-                                           { found we a procedure and does it really return a bool? }
-                                           if not(assigned(pp)) or
-                                              not(is_boolean(pp.rettype.def)) then
-                                             Message(parser_e_ill_property_storage_sym);
-                                           p.storedaccess.setdef(pp);
-                                         end;
-                                       varsym :
-                                         begin
-                                           if not(propertyparas.empty) or
-                                              not(is_boolean(tvarsym(sym).vartype.def)) then
-                                             Message(parser_e_stored_property_must_be_boolean);
-                                         end;
-                                       else
-                                         Message(parser_e_ill_property_storage_sym);
-                                     end;
-                                     p.storedaccess.addsym(sym);
-                                  end;
-                             end;
-                        _FALSE:
+                if try_to_consume(_READ) then
+                 begin
+                   p.readaccess.clear;
+                   if parse_symlist(p.readaccess) then
+                    begin
+                      sym:=p.readaccess.firstsym^.sym;
+                      case sym.typ of
+                        procsym :
                           begin
-                             consume(_FALSE);
-                             exclude(p.propoptions,ppo_stored);
+                            pp:=get_procdef;
+                            if not(assigned(pp)) or
+                               not(is_equal(pp.rettype.def,p.proptype.def)) then
+                              Message(parser_e_ill_property_access_sym);
+                            p.readaccess.setdef(pp);
                           end;
-                        _TRUE:
-                          consume(_TRUE);
-                     end;
-                  end;
-                if (idtoken=_DEFAULT) then
+                        varsym :
+                          begin
+                            if not(propertyparas.empty) or
+                               not(is_equal(p.readaccess.def,p.proptype.def)) then
+                              Message(parser_e_ill_property_access_sym);
+                          end;
+                        else
+                          Message(parser_e_ill_property_access_sym);
+                      end;
+                    end;
+                 end;
+                if try_to_consume(_WRITE) then
+                 begin
+                   p.writeaccess.clear;
+                   if parse_symlist(p.writeaccess) then
+                    begin
+                      sym:=p.writeaccess.firstsym^.sym;
+                      case sym.typ of
+                        procsym :
+                          begin
+                            { insert data entry to check access method }
+                            propertyparas.insert(datacoll);
+                            pp:=get_procdef;
+                            { ... and remove it }
+                            propertyparas.remove(datacoll);
+                            if not(assigned(pp)) then
+                              Message(parser_e_ill_property_access_sym);
+                            p.writeaccess.setdef(pp);
+                          end;
+                        varsym :
+                          begin
+                            if not(propertyparas.empty) or
+                               not(is_equal(p.writeaccess.def,p.proptype.def)) then
+                              Message(parser_e_ill_property_access_sym);
+                          end;
+                        else
+                          Message(parser_e_ill_property_access_sym);
+                      end;
+                    end;
+                 end;
+                include(p.propoptions,ppo_stored);
+                if try_to_consume(_STORED) then
+                 begin
+                   p.storedaccess.clear;
+                   case token of
+                     _ID:
+                       begin
+                         { in the case that idtoken=_DEFAULT }
+                         { we have to do nothing except      }
+                         { setting ppo_stored, it's the same }
+                         { as stored true                    }
+                         if idtoken<>_DEFAULT then
+                          begin
+                            if parse_symlist(p.storedaccess) then
+                             begin
+                               sym:=p.storedaccess.firstsym^.sym;
+                               case sym.typ of
+                                 procsym :
+                                   begin
+                                     pp:=tprocsym(sym).definition;
+                                     while assigned(pp) do
+                                      begin
+                                        { the stored function shouldn't have any parameters }
+                                        if pp.Para.empty then
+                                         break;
+                                        pp:=pp.nextoverloaded;
+                                      end;
+                                     { found we a procedure and does it really return a bool? }
+                                     if not(assigned(pp)) or
+                                        not(is_boolean(pp.rettype.def)) then
+                                       Message(parser_e_ill_property_storage_sym);
+                                     p.storedaccess.setdef(pp);
+                                   end;
+                                 varsym :
+                                   begin
+                                     if not(propertyparas.empty) or
+                                        not(is_boolean(p.storedaccess.def)) then
+                                      Message(parser_e_stored_property_must_be_boolean);
+                                   end;
+                                 else
+                                   Message(parser_e_ill_property_access_sym);
+                               end;
+                             end;
+                          end;
+                       end;
+                     _FALSE:
+                       begin
+                         consume(_FALSE);
+                         exclude(p.propoptions,ppo_stored);
+                       end;
+                     _TRUE:
+                       consume(_TRUE);
+                   end;
+                 end;
+                if try_to_consume(_DEFAULT) then
                   begin
-                     consume(_DEFAULT);
                      if not(is_ordinal(p.proptype.def) or
                             is_64bitint(p.proptype.def) or
                             ((p.proptype.def.deftype=setdef) and
@@ -467,9 +507,8 @@ implementation
                        p.default:=tordconstnode(pt).value;
                      pt.free;
                   end
-                else if (idtoken=_NODEFAULT) then
+                else if try_to_consume(_NODEFAULT) then
                   begin
-                     consume(_NODEFAULT);
                      p.default:=0;
                   end;
                 symtablestack.insert(p);
@@ -927,7 +966,9 @@ implementation
                         read_var_decs(false,true,false);
                       end;
                     end;
-        _PROPERTY : property_dec;
+        _PROPERTY : begin
+                      property_dec;
+                    end;
        _PROCEDURE,
         _FUNCTION,
            _CLASS : begin
@@ -1037,7 +1078,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2001-08-30 20:13:53  peter
+  Revision 1.30  2001-10-21 12:33:06  peter
+    * array access for properties added
+
+  Revision 1.29  2001/08/30 20:13:53  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces

@@ -305,7 +305,7 @@ scan_w_appname_not_support=02060_W_APPNAME is only supported for PalmOS
 #
 # Parser
 #
-# 03179 is the last used one
+# 03181 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -931,6 +931,10 @@ parser_e_self_call_by_value=03179_E_Self must be a normal (call-by-value) parame
 % You can't declare self as a const or var parameter, it must always be
 % a call-by-value parameter
 parser_e_interface_has_no_guid=03180_E_Interface "$1" has no interface identification
+% When you want to assign an interface to a constant, then the interface
+% must have a GUID value set.
+parser_e_illegal_field_or_method=03181_E_Unknown class field or method identifier "$1"
+% Properties must refer to a field or method in the same class.
 % \end{description}
 #
 # Type Checking
@@ -1194,7 +1198,7 @@ sym_w_wrong_C_pack=05034_W_Type "$1" is not aligned correctly in current record 
 % Arrays with sizes not multiples of 4 will be wrongly aligned
 % for C structures.
 sym_e_illegal_field=05035_E_Unknown record field identifier "$1"
-% The field doesn't exist in the record definition.
+% The field doesn't exist in the record/object definition.
 sym_n_uninitialized_local_variable=05036_W_Local variable "$1" does not seem to be initialized
 sym_n_uninitialized_variable=05037_W_Variable "$1" does not seem to be initialized
 % These messages are displayed if the compiler thinks that a variable will
