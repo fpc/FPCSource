@@ -37,6 +37,15 @@ unit temp_gen;
 {$endif m68k}
        cobjects,globals,tree,hcodegen,verbose,files,aasm;
 
+      type
+{ this saves some memory }
+{$ifdef FPC}
+{$minenumsize 1}
+{$endif FPC}
+       ttemptype = (tt_normal,tt_ansistring,tt_widestring);
+{$ifdef FPC}
+{$minenumsize default}
+{$endif FPC}
     { generates temporary variables }
     procedure resettempgen;
     procedure setfirsttemp(l : longint);
@@ -49,9 +58,10 @@ unit temp_gen;
     procedure ungettemp(pos : longint;size : longint);
     procedure ungetpersistanttemp(pos : longint;size : longint);
     procedure gettempofsizereference(l : longint;var ref : treference);
-    procedure gettempansistringreference(var ref : treference);
+    procedure gettempslotreference(slottype : ttemptype;var ref : treference);
     function istemp(const ref : treference) : boolean;
     procedure ungetiftemp(const ref : treference);
+    procedure gettempansistringreference(var ref : treference);
 
 
   implementation
@@ -74,14 +84,19 @@ unit temp_gen;
           pos : longint;
           size : longint;
           persistant : boolean; { used for inlined procedures }
+          temptype : ttemptype;
 {$ifdef EXTDEBUG}
           posinfo,releaseposinfo : tfileposinfo;
 {$endif}
        end;
 
     var
+       { contains all free temps }
        tmpfreelist : pfreerecord;
+       { contains all used temps }
        templist : pfreerecord;
+       { contains the slots for ansi/wide string temps }
+       reftempslots : pfreerecord;
 {$ifdef EXTDEBUG}
        tempfreedlist : pfreerecord;
 {$endif}
@@ -252,11 +267,21 @@ unit temp_gen;
       end;
 
     procedure gettempansistringreference(var ref : treference);
+
       begin
          { do a reset, because the reference isn't used }
          reset_reference(ref);
          ref.offset:=gettempofsize(4);
          ref.base:=procinfo.framepointer;
+      end;
+
+    procedure gettempslotreference(slottype : ttemptype;var ref : treference);
+      begin
+         { do a reset, because the reference isn't used }
+         reset_reference(ref);
+         ref.offset:=gettempofsize(4);
+         ref.base:=procinfo.framepointer;
+         templist^.temptype:=slottype;
       end;
 
 
@@ -439,13 +464,13 @@ unit temp_gen;
               while assigned(tl) do
                 begin
                    { no release of persistant blocks this way!! }
-                   if tl^.persistant then
+                   if (tl^.persistant) or (tl^.temptype<>tt_normal) then
                      if (ref.offset>=tl^.pos) and
                         (ref.offset<tl^.pos+tl^.size) then
                        begin
 {$ifdef EXTDEBUG}
                           Comment(V_Debug,'temp '+
-                            ' at pos '+tostr(ref.offset)+ ' not released because persistant !');
+                            ' at pos '+tostr(ref.offset)+ ' not released because persistant or slot!');
 {$endif}
                           exit;
                        end;
@@ -453,8 +478,8 @@ unit temp_gen;
                      begin
                         ungettemp(ref.offset,tl^.size);
 {$ifdef TEMPDEBUG}
-                   Comment(V_Debug,'temp managment  : ungettemp()'+
-                     ' at pos '+tostr(tl^.pos)+ ' found !');
+                        Comment(V_Debug,'temp managment  : ungettemp()'+
+                          ' at pos '+tostr(tl^.pos)+ ' found !');
 {$endif}
                         if assigned(prev) then
                           prev^.next:=tl^.next
@@ -500,13 +525,26 @@ unit temp_gen;
            end;
       end;
 
+   procedure inittemps;
+
+     begin
+        { hp:=temp }
+     end;
+
 begin
    tmpfreelist:=nil;
    templist:=nil;
+   reftempslots:=nil;
 end.
 {
   $Log$
-  Revision 1.10  1999-04-06 11:19:49  peter
+  Revision 1.11  1999-04-08 20:59:44  florian
+    * fixed problem with default properties which are a class
+    * case bug (from the mailing list with -O2) fixed, the
+      distance of the case labels can be greater than the positive
+      range of a longint => it is now a dword for fpc
+
+  Revision 1.10  1999/04/06 11:19:49  peter
     * fixed temp reuse
 
   Revision 1.9  1999/02/22 02:15:56  peter

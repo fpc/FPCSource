@@ -100,7 +100,10 @@ unit pbase;
     procedure consume(i : ttoken);
       begin
         if (token<>i) and (idtoken<>i) then
-          Message2(scan_f_syn_expected,tokeninfo[i].str,tokeninfo[token].str)
+          if token=ID then
+            Message2(scan_f_syn_expected,tokeninfo[i].str,'identifier '+pattern)
+          else
+            Message2(scan_f_syn_expected,tokeninfo[i].str,tokeninfo[token].str)
         else
           begin
             if token=_END then
@@ -180,7 +183,13 @@ end.
 
 {
   $Log$
-  Revision 1.18  1998-12-11 00:03:29  peter
+  Revision 1.19  1999-04-08 20:59:42  florian
+    * fixed problem with default properties which are a class
+    * case bug (from the mailing list with -O2) fixed, the
+      distance of the case labels can be greater than the positive
+      range of a longint => it is now a dword for fpc
+
+  Revision 1.18  1998/12/11 00:03:29  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.17  1998/09/26 17:45:31  peter

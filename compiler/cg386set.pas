@@ -659,6 +659,7 @@ implementation
       var
          lv,hv,min_label,max_label,labels : longint;
          max_linear_list : longint;
+         dist : dword;
 
       begin
          getlabel(endlabel);
@@ -732,14 +733,26 @@ implementation
               min_label:=case_get_min(p^.nodes);
               max_label:=case_get_max(p^.nodes);
               labels:=case_count_labels(p^.nodes);
-              { can we omit the range check of the jump table }
+              { can we omit the range check of the jump table ? }
               getrange(p^.left^.resulttype,lv,hv);
               jumptable_no_range:=(lv=min_label) and (hv=max_label);
+              { hack a little bit, because the range can be greater }
+              { than the positive range of a longint                }
+
+              if (min_label<0) and (max_label>0) then
+                begin
+                   if min_label=$80000000 then
+                     dist:=dword(max_label)+dword($80000000)
+                   else
+                     dist:=dword(max_label)+dword(-min_label)
+                end
+              else
+                dist:=max_label-min_label;
 
               { optimize for size ? }
               if cs_littlesize in aktglobalswitches  then
                 begin
-                   if (labels<=2) or ((max_label-min_label)>3*labels) then
+                   if (labels<=2) or (dist>3*labels) then
                   { a linear list is always smaller than a jump tree }
                      genlinearlist(p^.nodes)
                    else
@@ -764,7 +777,7 @@ implementation
                      genlinearlist(p^.nodes)
                    else
                      begin
-                        if ((max_label-min_label)>4*labels) then
+                        if (dist>4*labels) then
                           begin
                              if labels>16 then
                                gentreejmp(p^.nodes)
@@ -805,7 +818,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1999-03-02 18:21:35  peter
+  Revision 1.25  1999-04-08 20:59:37  florian
+    * fixed problem with default properties which are a class
+    * case bug (from the mailing list with -O2) fixed, the
+      distance of the case labels can be greater than the positive
+      range of a longint => it is now a dword for fpc
+
+  Revision 1.24  1999/03/02 18:21:35  peter
     + flags support for add and case
 
   Revision 1.23  1999/02/25 21:02:31  peter

@@ -47,6 +47,13 @@ unit cobjects;
     type
        pstring = ^string;
 
+{$ifdef TP}
+       { redeclare dword only in case of emergency, some small things
+         of the compiler won't work then correctly (FK)
+       }
+       dword = longint;
+{$endif TP}
+
        pfileposinfo = ^tfileposinfo;
        tfileposinfo = record
          line      : longint;
@@ -1612,7 +1619,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  1999-03-31 13:55:10  peter
+  Revision 1.23  1999-04-08 20:59:39  florian
+    * fixed problem with default properties which are a class
+    * case bug (from the mailing list with -O2) fixed, the
+      distance of the case labels can be greater than the positive
+      range of a longint => it is now a dword for fpc
+
+  Revision 1.22  1999/03/31 13:55:10  peter
     * assembler inlining working for ag386bin
 
   Revision 1.21  1999/03/19 16:35:29  pierre

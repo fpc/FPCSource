@@ -1231,10 +1231,7 @@ unit pexpr;
                              message(parser_e_no_default_property_available);
                           end
                         else
-                          begin
-                             p1:=nil;
-                             handle_propertysym(propsym,propsym^.owner,p1,pd);
-                          end;
+                          handle_propertysym(propsym,propsym^.owner,p1,pd);
                       end
                     else
                       begin
@@ -1976,7 +1973,13 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.91  1999-04-06 11:21:56  peter
+  Revision 1.92  1999-04-08 20:59:43  florian
+    * fixed problem with default properties which are a class
+    * case bug (from the mailing list with -O2) fixed, the
+      distance of the case labels can be greater than the positive
+      range of a longint => it is now a dword for fpc
+
+  Revision 1.91  1999/04/06 11:21:56  peter
     * more use of ttoken
 
   Revision 1.90  1999/03/31 13:55:12  peter
