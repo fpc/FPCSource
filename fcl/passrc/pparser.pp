@@ -538,7 +538,14 @@ begin
       AppendSpace := NextAppendSpace;
     end else
       MayAppendSpace := True;
-    Result := Result + CurTokenText;
+    if CurToken=tkString then
+      begin
+      If (Length(CurTokenText)>0) and (CurTokenText[1]=#0) then
+        Writeln('First char is null : "',CurTokenText,'"');
+      Result := Result + ''''+StringReplace(CurTokenText,'''','''''',[rfReplaceAll])+''''
+      end
+    else
+      Result := Result + CurTokenText;
   end;
   UngetToken;
 end;
@@ -1815,7 +1822,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-05-16 13:24:59  peter
+  Revision 1.7  2004-07-23 23:40:35  michael
+  + Fixed value of constant strings (added quotes)
+
+  Revision 1.6  2004/05/16 13:24:59  peter
     * remove not implemented method
 
   Revision 1.5  2004/04/15 22:15:57  michael
