@@ -157,6 +157,7 @@ var
   Params : Array[0..4] of longint;
 begin
   showmsg:=false;
+  ToFocus:=-1;
 { Find grep.exe }
   GrepExe:=GrepExeName;
   If not LocateExeFile(GrepExe) then
@@ -282,7 +283,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2000-02-02 22:49:44  pierre
+  Revision 1.17  2000-02-10 00:48:02  pierre
+   * avoid crash for empty string
+
+  Revision 1.16  2000/02/02 22:49:44  pierre
     * use desktop^.current for current word in grep
 
   Revision 1.15  1999/10/08 15:25:25  pierre
