@@ -1,4 +1,4 @@
-unit tbf0203a;
+unit tbs0203a;
 
 interface
    procedure a;
@@ -15,7 +15,7 @@ implementation
 
    procedure b;[public, alias : '_assembler_a'];
      begin
-        Writeln('b called'); 
+        Writeln('b called');
         Is_called:=true;
      end;
 

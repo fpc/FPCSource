@@ -1,10 +1,10 @@
-program tbf0203;
+program tbs0203;
 
-uses 
+uses
 {$ifdef go32v2}
   dpmiexcp,
 {$endif def go32v2}
-  tbf0203a;
+  tbs0203a;
 
 begin
    c;
