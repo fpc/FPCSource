@@ -1438,11 +1438,17 @@ unit pexpr;
                           case pd^.deftype of
                             pointerdef:
                                 begin
+                                   pd:=ppointerdef(pd)^.pointertype.def;
+                                   { support delphi autoderef }
+                                   if (pd^.deftype=arraydef) and
+                                      (m_autoderef in aktmodeswitches) then
+                                    begin
+                                      p1:=gensinglenode(derefn,p1);
+                                      pd:=parraydef(pd)^.elementtype.def;
+                                    end;
                                    p2:=comp_expr(true);
                                    p1:=gennode(vecn,p1,p2);
-                                   pd:=ppointerdef(pd)^.pointertype.def;
                                  end;
-
                      stringdef : begin
                                    p2:=comp_expr(true);
                                    p1:=gennode(vecn,p1,p2);
@@ -2208,7 +2214,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.5  2000-08-16 18:33:53  peter
+  Revision 1.6  2000-08-20 15:12:49  peter
+    * auto derefence mode for array pointer (merged)
+
+  Revision 1.5  2000/08/16 18:33:53  peter
     * splitted namedobjectitem.next into indexnext and listnext so it
       can be used in both lists
     * don't allow "word = word" type definitions (merged)
