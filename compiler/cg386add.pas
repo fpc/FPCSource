@@ -839,21 +839,20 @@ implementation
          { calculate the operator which is more difficult }
          firstcomplex(p);
 
-         { set the opsize for booleans already (JM) }
-         if (porddef(p^.left^.resulttype)^.typ=bool8bit) or
-            (porddef(p^.right^.resulttype)^.typ=bool8bit) then
-           opsize:=S_B
-         else
-           if (porddef(p^.left^.resulttype)^.typ=bool16bit) or
-              (porddef(p^.right^.resulttype)^.typ=bool16bit) then
-             opsize:=S_W
-         else
-           opsize:=S_L;
          
          { handling boolean expressions extra: }
          if is_boolean(p^.left^.resulttype) and
             is_boolean(p^.right^.resulttype) then
            begin
+             if (porddef(p^.left^.resulttype)^.typ=bool8bit) or
+               (porddef(p^.right^.resulttype)^.typ=bool8bit) then
+               opsize:=S_B
+             else
+               if (porddef(p^.left^.resulttype)^.typ=bool16bit) or
+                 (porddef(p^.right^.resulttype)^.typ=bool16bit) then
+                 opsize:=S_W
+             else
+               opsize:=S_L;
              if (cs_full_boolean_eval in aktlocalswitches) or
                 (p^.treetype in
                   [unequaln,ltn,lten,gtn,gten,equaln,xorn]) then
@@ -2375,7 +2374,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-09-21 11:30:49  jonas
+  Revision 1.7  2000-09-21 12:23:49  jonas
+    * small fix to my changes for full boolean evaluation support (moved
+      opsize determination for boolean operations back in boolean
+      processing block)
+
+  Revision 1.6  2000/09/21 11:30:49  jonas
     + support for full boolean evaluation (b+/b-), default remains short
       circuit boolean evaluation
 
