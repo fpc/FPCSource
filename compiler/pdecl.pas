@@ -56,7 +56,7 @@ unit pdecl;
 
     uses
        cobjects,scanner,aasm,tree,pass_1,strings,
-       files,types,verbose,systems,import
+       files,types,verbose,systems,import,tccnv
 {$ifdef GDB}
        ,gdb
 {$endif GDB}
@@ -1052,6 +1052,7 @@ unit pdecl;
                        ) then
                        Message(parser_e_property_cant_have_a_default_value);
                      pt:=comp_expr(true);
+                     arrayconstructor_to_set(pt);
                      pt:=gentypeconvnode(pt,p^.proptype);
                      do_firstpass(pt);
                      if not(is_constnode(pt)) then
@@ -2228,7 +2229,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.118  1999-05-18 14:15:51  peter
+  Revision 1.119  1999-05-19 12:41:56  florian
+    * made source compilable with TP (too long line)
+    * default values for set properties fixed
+
+  Revision 1.118  1999/05/18 14:15:51  peter
     * containsself fixes
     * checktypes()
 
