@@ -245,9 +245,9 @@ endif
 ifndef ECHO
 ECHO=$(strip $(wildcard $(addsuffix /echo$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(ECHO),)
-ECHO=@echo
+export ECHO:=echo
 else
-export ECHO:=@$(firstword $(ECHO))
+export ECHO:=$(firstword $(ECHO))
 endif
 endif
 
@@ -625,7 +625,7 @@ endif
 
 ifdef DATE
 DATESTR=$(shell $(DATE) +%Y%m%d)
-else	
+else
 DATESTR=
 endif
 
@@ -749,10 +749,10 @@ ifdef LOADEROBJECTS
 endif
 ifdef UNITOBJECTS
 	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES)))
-endif	
+endif
 ifdef EXTRAINSTALLUNITS
 	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS))))
-endif	
+endif
 
 fpc_install : all
 # Create UnitInstallFiles
@@ -776,7 +776,7 @@ endif
 ifdef UNITOBJECTS
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) $(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES)) $(UNITINSTALLDIR)
-endif	
+endif
 ifdef EXTRAINSTALLUNITS
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) $(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS))) $(UNITINSTALLDIR)
@@ -883,10 +883,10 @@ ifdef LOADEROBJECTS
 endif
 ifdef UNITOBJECTS
 	-$(DEL) $(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES))
-endif	
+endif
 ifdef EXTRACLEANUNITS
 	-$(DEL) $(wildcard $(addsuffix $(OEXT),$(EXTRACLEANUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRACLEANUNITS)) $(addsuffix $(PPUEXT),$(EXTRACLEANUNITS)))
-endif	
+endif
 	-$(DEL) $(PPAS) link.res log
 
 fpc_libsclean: clean
@@ -1009,7 +1009,7 @@ fpc_installinfo:
 	@$(ECHO)  MsgInstallDir........ $(MSGINSTALLDIR)
 	@$(ECHO)  DocInstallDir........ $(DOCINSTALLDIR)
 	@$(ECHO)
-	
+
 # try to get the files in the currentdir
 PASFILES:=$(wildcard *.pas)
 PPFILES:=$(wildcard *.pp)
@@ -1039,7 +1039,10 @@ endif
 
 #
 # $Log$
-# Revision 1.39  1999-07-17 11:30:23  peter
+# Revision 1.40  1999-07-17 14:22:54  peter
+#   * ECHO is now again without @
+#
+# Revision 1.39  1999/07/17 11:30:23  peter
 #   * merged
 #
 # Revision 1.38  1999/07/16 13:45:24  peter
