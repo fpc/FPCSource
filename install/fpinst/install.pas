@@ -32,32 +32,23 @@ program install;
  {$DEFINE TP}
 {$ENDIF}
 
-{$IFDEF OS2}
- {$UNDEF FV}
- {$IFDEF DOSSTUB}
+{$IFNDEF TP}
+ {$UNDEF DOSSTUB}
+{$ELSE}
+ {$IFDEF OS2}
   {$UNDEF DOSSTUB}
  {$ENDIF}
+{$ENDIF}
+
+{$IFDEF OS2}
+ {$UNDEF FV}
  {$IFDEF VIRTUALPASCAL}
   {$DEFINE DLL}
  {$ENDIF}
 {$ENDIF}
 
-{$IFDEF WIN32}
- {$IFDEF DOSSTUB}
-  {$UNDEF DOSSTUB}
- {$ENDIF}
-{$ENDIF}
-
-{$IFDEF FPC}
- {$IFDEF DOSSTUB}
-  {$UNDEF DOSSTUB}
- {$ENDIF}
-{$ENDIF}
-
 {$IFDEF DPMI}
- {$IFDEF DOSSTUB}
-  {$UNDEF DOSSTUB}
- {$ENDIF}
+ {$UNDEF DOSSTUB}
 {$ENDIF}
 
   uses
@@ -90,7 +81,7 @@ program install;
      maxpackages=20;
      maxdefcfgs=1024;
 
-     cfgfile='install.dat';
+     CfgExt = '.dat';
 
 {$ifdef linux}
      DirSep='/';
@@ -145,6 +136,7 @@ program install;
          procedure do_installdialog;
          procedure readcfg(const fn:string);
      end;
+
 {$IFDEF DOSSTUB}
  PByte = ^byte;
  PRunBlock = ^TRunBlock;
@@ -176,6 +168,9 @@ program install;
      successfull : boolean;
      cfg         : cfgrec;
      data        : datarec;
+     CfgName: NameStr;
+     DStr: DirStr;
+     EStr: ExtStr;
 
 
 {*****************************************************************************
@@ -206,21 +201,6 @@ program install;
        upper[0]:=s[0];
     end;
 
-
-(* TH - not needed any more
-  function lower(const s : string):string;
-    var
-       i : integer;
-    begin
-       for i:=1 to length(s) do
-         if s[i] in ['A'..'Z'] then
-          lower[i]:=chr(ord(s[i])+32)
-         else
-          lower[i]:=s[i];
-       lower[0]:=s[0];
-    end;
-
-*)
 
   procedure Replace(var s:string;const s1,s2:string);
     var
@@ -923,14 +903,20 @@ begin
    fillchar(data, SizeOf(data), 0);
 
    installapp.init;
-   installapp.readcfg(cfgfile);
+
+   FSplit (FExpand (ParamStr (0)), DStr, CfgName, EStr);
+
+   installapp.readcfg(CfgName + CfgExt);
 {   installapp.readcfg(startpath+dirsep+cfgfile);}
    installapp.do_installdialog;
    installapp.done;
 end.
 {
   $Log$
-  Revision 1.4  1999-06-10 20:01:23  peter
+  Revision 1.5  1999-06-25 07:06:30  hajny
+    + searching for installation script updated
+
+  Revision 1.4  1999/06/10 20:01:23  peter
     + fcl,fv,gtk support
 
   Revision 1.3  1999/06/10 15:00:14  peter
