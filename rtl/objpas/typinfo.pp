@@ -40,6 +40,11 @@ unit typinfo;
 {$MINENUMSIZE DEFAULT}
 
    const
+      ptField = 0;
+      ptStatic = 1;
+      ptVirtual = 2;
+
+   const
       tkString        = tkSString;
 
    type
@@ -82,6 +87,13 @@ unit typinfo;
         Index : Integer;
         Default : Longint;
         NameIndex : SmallInt;
+
+        // contains the type of the Get/Set/Storedproc, see also ptxxx
+        // bit 0..1 GetProc
+        //     2..3 SetProc
+        //     4..5 StoredProc
+        ProcProcs : Byte;
+
         Name : ShortString;
       end;
 
@@ -101,10 +113,13 @@ unit typinfo;
     // searches in the property PropName
     function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
 
+    // returns true, if PropInfo is a stored property
+    function IsStoredProp(Instance: TObject; PropInfo: PPropInfo): Boolean;
+    {
     procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
     function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds;
       PropList : PPropList) : Integer;
-
+    }
   implementation
 
     function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
@@ -141,11 +156,45 @@ unit typinfo;
               hp:=hp^.ParentInfo;
            end;
       end;
+
+    function IsStoredProp(Instance: TObject; PropInfo: PPropInfo): Boolean;
+
+      type
+         tbfunction = function : boolean of object;
+
+      var
+         caller : packed record
+            Instance : Pointer;
+            Address : Pointer;
+         end;
+
+      begin
+         caller.Instance:=Instance;
+         case (PropInfo^.PropProcs shr 4) and 3 of
+            0:
+              IsStoredProp:=
+                PBoolean(Pointer(Instance)+Longint(PropInfo^.StoredProc))^;
+            1:
+              begin
+                 caller.Address:=PropInfo^.StoredProc;
+                 IsStoredProc:=tbfunction(caller);
+              end;
+            2:
+              begin
+                 caller.Address:=PPointer(PPointer(Instance.ClassType)+Longint(PropInfo^.StoredProc))^;
+                 IsStoredProc:=tbfunction(caller);
+              end;
+         end;
+      end;
+
 end.
 
 {
   $Log$
-  Revision 1.2  1998-09-06 21:27:05  florian
+  Revision 1.3  1998-09-07 08:32:59  florian
+    + procedure IsStoredProc added
+
+  Revision 1.2  1998/09/06 21:27:05  florian
     + some methods and declarations added
 
   Revision 1.1  1998/08/25 22:30:00  florian
