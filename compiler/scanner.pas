@@ -1021,7 +1021,7 @@ implementation
     destructor tscannerfile.destroy;
       begin
         if assigned(current_module) and
-           (current_module.state<>ms_second_load) and
+           (current_module.state=ms_compiled) and
            (status.errorcount=0) then
           checkpreprocstack
         else
@@ -2906,7 +2906,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.62  2003-09-17 22:30:19  olle
+  Revision 1.63  2003-10-29 21:02:51  peter
+    * set ms_compiled after the program/unit is parsed
+    * check for ms_compiled before checking preproc matches
+
+  Revision 1.62  2003/09/17 22:30:19  olle
     + support for a different set of compiler directives under $MODE MAC
     + added mac directives $SETC $IFC $ELSEC $ENDC
 

@@ -38,10 +38,10 @@ implementation
     uses
       cutils,cclasses,
       globtype,version,tokens,systems,globals,verbose,
-      symbase,symtable,symdef,symsym,
+      symbase,symtable,symsym,
       finput,fmodule,fppu,
       aasmbase,aasmtai,
-      cpubase,cgbase,
+      cgbase,
       script,gendef,
 {$ifdef BrowserLog}
       browlog,
@@ -539,6 +539,9 @@ implementation
 
          if assigned(current_module) then
           begin
+            { module is now compiled }
+            tppumodule(current_module).state:=ms_compiled;
+
             { free ppu }
             if assigned(tppumodule(current_module).ppufile) then
              begin
@@ -688,7 +691,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2003-10-01 20:34:49  peter
+  Revision 1.58  2003-10-29 21:02:51  peter
+    * set ms_compiled after the program/unit is parsed
+    * check for ms_compiled before checking preproc matches
+
+  Revision 1.57  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

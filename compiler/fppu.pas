@@ -1353,8 +1353,6 @@ uses
            if not do_compile then
             begin
               Message1(unit_u_loading_unit,modulename^);
-if modulename^='SYMSYM' then
- modulename:=modulename;
               search_unit(false,false);
               if not do_compile then
                begin
@@ -1400,12 +1398,12 @@ if modulename^='SYMSYM' then
               if not(state in [ms_compile,ms_second_compile]) then
                 state:=ms_compile;
               compile(mainsource^);
-            end;
+            end
+           else
+            state:=ms_compiled;
 
-           { set compiled flag }
            if current_module<>self then
              internalerror(200212282);
-           state:=ms_compiled;
 
            if in_interface then
              internalerror(200212283);
@@ -1510,7 +1508,11 @@ if modulename^='SYMSYM' then
 end.
 {
   $Log$
-  Revision 1.43  2003-10-23 14:44:07  peter
+  Revision 1.44  2003-10-29 21:02:51  peter
+    * set ms_compiled after the program/unit is parsed
+    * check for ms_compiled before checking preproc matches
+
+  Revision 1.43  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 
