@@ -74,14 +74,16 @@ begin
 end;
 
 
-function FindClass(const ClassName: string): TPersistentClass;
+function FindClass(const AClassName: string): TPersistentClass;
 
 begin
-  FindClass:=nil;
+  Result := GetClass(AClassName);
+  if not Assigned(Result) then
+    raise EClassNotFound.CreateFmt(SClassNotFound, [AClassName]);
 end;
 
 
-function GetClass(const ClassName: string): TPersistentClass;
+function GetClass(const AClassName: string): TPersistentClass;
 var
 I : Integer;
 begin
@@ -90,9 +92,9 @@ begin
     for I := 0 to Count-1 do
        begin
         Result := TPersistentClass(Items[I]);
-        if Result.ClassNameIs(ClassName) then Exit;
+        if Result.ClassNameIs(AClassName) then Exit;
        end;
-       I := ClassAliasList.Indexof(ClassName);
+       I := ClassAliasList.Indexof(AClassName);
        if I >= 0 then  //found
           Begin
           Result := TPersistentClass(ClassAliasList.Objects[i]);
@@ -185,7 +187,27 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2001-02-09 20:39:38  sg
+  * Fixed GetClass function
+
+  Revision 1.1  2000/07/13 06:31:30  michael
+  + Initial import
+
+  Revision 1.5  2000/06/27 17:17:34  lazarus
+  Added code for registerclass, GetClass and RegisterClasses
+  Shane
+
+  Revision 1.4  2000/01/07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.3  2000/01/06 01:20:33  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  2000/01/03 19:33:07  peter
+    * moved to packages dir
+
+  Revision 1.1  1999/09/11 22:02:35  fcl
+  * Imported function skeletons from old classes.inc
+  * Implementation of RegisterComponents and RegisterNoIcon  (sg)
+
 }
