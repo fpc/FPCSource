@@ -1506,7 +1506,7 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
       if Mouse.X <= 0 then
         MouseDelta := -1
       else if Mouse.X >= Size.X - 1 then
-        MouseDelta := 1 
+        MouseDelta := 1
       else
         MouseDelta := 0;
    END;
@@ -2157,15 +2157,13 @@ END;
 {  DrawMultiBox -> Platforms DOS/DPMI/WIN/NT - Updated 05Jun98 LdB          }
 {---------------------------------------------------------------------------}
 PROCEDURE TCluster.DrawMultiBox (Const Icon, Marker: String);
-VAR I, J, K, Cur, Col: Sw_Integer; CNorm, CSel, CDis, Color: Word; B: TDrawBuffer;
+VAR I, J, Cur, Col: Sw_Integer; CNorm, CSel, CDis, Color: Word; B: TDrawBuffer;
 BEGIN
    CNorm := GetColor($0301);                          { Normal colour }
    CSel := GetColor($0402);                           { Selected colour }
    CDis := GetColor($0505);                           { Disabled colour }
-   If (Options AND ofFramed <>0) Then              { Thick frame }
-     K := 1 Else  K := 0;                             { Select offset }
-   For I := 0 To Size.Y-K-K-1 Do Begin                { For each line }
-     MoveChar(B, ' ', Byte(CNorm), Size.X-K-K);       { Fill buffer }
+   For I := 0 To Size.Y-1 Do Begin                { For each line }
+     MoveChar(B, ' ', Byte(CNorm), Size.X);       { Fill buffer }
      For J := 0 To (Strings.Count - 1) DIV Size.Y + 1
      Do Begin
        Cur := J*Size.Y + I;                           { Current line }
@@ -2173,14 +2171,14 @@ BEGIN
          Col := Column(Cur);                          { Calc column }
          If (Col + CStrLen(PString(Strings.At(Cur))^)+
          5 < Sizeof(TDrawBuffer) DIV SizeOf(Word))
-         AND (Col < Size.X-K-K) Then Begin            { Text fits in column }
+         AND (Col < Size.X) Then Begin            { Text fits in column }
            If NOT ButtonState(Cur) Then
              Color := CDis Else If (Cur = Sel) AND    { Disabled colour }
              (State and sfFocused <> 0) Then
                Color := CSel Else                     { Selected colour }
                Color := CNorm;                        { Normal colour }
            MoveChar(B[Col], ' ', Byte(Color),
-             Size.X-K-K-Col);                         { Set this colour }
+             Size.X-Col);                         { Set this colour }
            MoveStr(B[Col], Icon, Byte(Color));        { Transfer icon string }
            WordRec(B[Col+2]).Lo := Byte(Marker[
              MultiMark(Cur) + 1]);                    { Transfer marker }
@@ -2195,7 +2193,7 @@ BEGIN
          End;
        End;
      End;
-     WriteBuf(K, K+I, Size.X-K-K, 1, B);              { Write buffer }
+     WriteBuf(0, I, Size.X, 1, B);              { Write buffer }
    End;
   SetCursor(Column(Sel)+2,Row(Sel));
 END;
@@ -2271,7 +2269,7 @@ END;
 {  HandleEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Jun98 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TCluster.HandleEvent (Var Event: TEvent);
-VAR C: Char; I, J, S, Vh: Sw_Integer; Key: Word; Mouse: TPoint; Ts: PString;
+VAR C: Char; I, S, Vh: Sw_Integer; Key: Word; Mouse: TPoint; Ts: PString;
 
    PROCEDURE MoveSel;
    BEGIN
@@ -2302,9 +2300,7 @@ BEGIN
      End;
      ClearEvent(Event);                               { Event was handled }
    End Else If (Event.What = evKeyDown) Then Begin    { KEY EVENT }
-     If (Options AND ofFramed <> 0) Then           { Thick frame }
-       J := 1 Else J := 0;                            { Adjust value }
-     Vh := Size.Y - J - J;                            { View height }
+     Vh := Size.Y;                            { View height }
      S := Sel;                                        { Hold current item }
      Key := CtrlToArrow(Event.KeyCode);               { Convert keystroke }
      Case Key Of
@@ -2379,9 +2375,7 @@ VAR I, J, S, Vh: Sw_Integer; R: TRect;
 BEGIN
    GetExtent(R);                                      { Get view extents }
    If R.Contains(P) Then Begin                        { Point in view }
-     If (Options AND ofFramed <> 0) Then           { Thick frame }
-       J := 1 Else J := 0;                            { Adjust value }
-     Vh := Size.Y - J - J;                            { View height }
+     Vh := Size.Y;                            { View height }
      I := 0;                                          { Preset zero value }
      While (P.X >= Column(I+Vh)) Do Inc(I, Vh);       { Inc view size }
      S := I + P.Y - J;                                { Line to select }
@@ -2395,8 +2389,6 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TCluster.Row (Item: Sw_Integer): Sw_Integer;
 BEGIN
-   If (Options AND ofFramed <> 0) Then              { Thick frame }
-    Row := Item MOD (Size.Y - 2) Else                 { Allow for frames }
     Row := Item MOD Size.Y;                           { Normal mod value }
 END;
 
@@ -2404,11 +2396,9 @@ END;
 {  Column -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 03Jun98 LdB            }
 {---------------------------------------------------------------------------}
 FUNCTION TCluster.Column (Item: Sw_Integer): Sw_Integer;
-VAR I, J, Col, Width, L, Vh: Sw_Integer; Ts: PString;
+VAR I, Col, Width, L, Vh: Sw_Integer; Ts: PString;
 BEGIN
-   If (Options AND ofFramed <> 0) Then             { Thick frame }
-     J := 1 Else J := 0;                              { Adjust value }
-   Vh := Size.Y - J - J;                              { Vertical size }
+   Vh := Size.Y;                              { Vertical size }
    If (Item >= Vh) Then Begin                         { Valid selection }
      Width := 0;                                      { Zero width }
      Col := -6;                                       { Start column at -6 }
@@ -4151,7 +4141,10 @@ END;
 END.
 {
  $Log$
- Revision 1.30  2004-12-19 20:20:48  hajny
+ Revision 1.31  2004-12-21 18:53:41  peter
+ cmCursorChange event
+
+ Revision 1.30  2004/12/19 20:20:48  hajny
    * ObjType references constants from fvconsts
 
  Revision 1.29  2004/12/15 19:14:11  peter

@@ -413,6 +413,7 @@ TYPE
       PROCEDURE DragView (Event: TEvent; Mode: Byte; Var Limits: TRect;
         MinSize, MaxSize: TPoint);
    private
+      procedure CursorChanged;
       procedure DrawHide(LastView: PView);
       procedure DrawShow(LastView: PView);
       procedure DrawUnderRect(var R: TRect; LastView: PView);
@@ -1512,10 +1513,21 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.SetCursor (X, Y: Sw_Integer);
 BEGIN
-   Cursor.X := X;                                     { New x position }
-   Cursor.Y := Y;                                     { New y position }
-   TView.DrawCursor
+  if (Cursor.X<>X) or (Cursor.Y<>Y) then
+  begin
+    Cursor.X := X;
+    Cursor.Y := Y;
+    CursorChanged;
+  end;
+  TView.DrawCursor;
 END;
+
+
+procedure TView.CursorChanged;
+begin
+  Message(Owner,evBroadcast,cmCursorChanged,@Self);
+end;
+
 
 {--TView--------------------------------------------------------------------}
 {  PutInFrontOf -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 29Sep99 LdB      }
@@ -1591,7 +1603,9 @@ END;
 PROCEDURE TView.SetState (AState: Word; Enable: Boolean);
 var
   Command: Word;
+  OState : Word;
 begin
+  OState:=State;
   if Enable then
     State := State or AState
   else
@@ -1624,6 +1638,8 @@ begin
           Message(Owner, evBroadcast, Command, @Self);
         end;
     end;
+  if ((OState xor State) and (sfCursorVis+sfCursorIns+sfFocused))<>0 then
+    CursorChanged;
 end;
 
 
@@ -4620,7 +4636,10 @@ END.
 
 {
  $Log$
- Revision 1.52  2004-12-19 20:20:48  hajny
+ Revision 1.53  2004-12-21 18:53:41  peter
+ cmCursorChange event
+
+ Revision 1.52  2004/12/19 20:20:48  hajny
    * ObjType references constants from fvconsts
 
  Revision 1.51  2004/12/15 19:14:11  peter
