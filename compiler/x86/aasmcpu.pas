@@ -771,6 +771,7 @@ implementation
               ppufile.getderef(o.localsymderef);
               o.localsymofs:=ppufile.getlongint;
               o.localindexreg:=tregister(ppufile.getlongint);
+              o.localscale:=ppufile.getbyte;
               o.localgetoffset:=(ppufile.getbyte<>0);
             end;
         end;
@@ -805,6 +806,7 @@ implementation
               ppufile.putderef(o.localsymderef);
               ppufile.putlongint(longint(o.localsymofs));
               ppufile.putlongint(longint(o.localindexreg));
+              ppufile.putbyte(o.localscale);
               ppufile.putbyte(byte(o.localgetoffset));
             end;
         end;
@@ -2332,7 +2334,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2003-10-29 15:40:20  peter
+  Revision 1.37  2003-10-30 19:59:00  peter
+    * support scalefactor for opr_local
+    * support reference with opr_local set, fixes tw2631
+
+  Revision 1.36  2003/10/29 15:40:20  peter
     * support indexing and offset retrieval for locals
 
   Revision 1.35  2003/10/23 14:44:07  peter

@@ -76,7 +76,7 @@ type
       OPR_CONSTANT  : (val:longint);
       OPR_SYMBOL    : (symbol:tasmsymbol;symofs:longint);
       OPR_REFERENCE : (ref:treference);
-      OPR_LOCAL     : (localsym:tvarsym;localsymofs:longint;localindexreg:tregister;localgetoffset:boolean);
+      OPR_LOCAL     : (localsym:tvarsym;localsymofs:longint;localindexreg:tregister;localscale:byte;localgetoffset:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
       OPR_REGLIST   : (reglist:Tsupregset);
@@ -899,6 +899,7 @@ Begin
                   opr.localsym:=tvarsym(sym);
                   opr.localsymofs:=0;
                   opr.localindexreg:=indexreg;
+                  opr.localscale:=0;
                   opr.localgetoffset:=GetOffset;
                 end;
               if paramanager.push_addr_param(tvarsym(sym).varspez,tvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption) then
@@ -1602,7 +1603,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.75  2003-10-29 16:47:18  peter
+  Revision 1.76  2003-10-30 19:59:00  peter
+    * support scalefactor for opr_local
+    * support reference with opr_local set, fixes tw2631
+
+  Revision 1.75  2003/10/29 16:47:18  peter
     * fix field offset in reference
 
   Revision 1.74  2003/10/29 15:40:20  peter

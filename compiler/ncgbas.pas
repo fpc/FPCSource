@@ -133,6 +133,7 @@ interface
       procedure ResolveRef(var op:toper);
         var
           sym : tvarsym;
+          scale : byte;
           getoffset : boolean;
           indexreg : tregister;
           sofs : longint;
@@ -141,6 +142,7 @@ interface
             begin
               sofs:=op.localsymofs;
               indexreg:=op.localindexreg;
+              scale:=op.localscale;
               getoffset:=op.localgetoffset;
               sym:=tvarsym(pointer(op.localsym));
               case sym.localloc.loc of
@@ -168,6 +170,7 @@ interface
                         reference_reset_base(op.ref^,sym.localloc.reference.index,
                             sym.localloc.reference.offset+sofs);
                         op.ref^.index:=indexreg;
+                        op.ref^.scalefactor:=scale;
                       end;
                   end;
                 LOC_REGISTER :
@@ -399,7 +402,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-10-29 15:40:20  peter
+  Revision 1.48  2003-10-30 19:59:00  peter
+    * support scalefactor for opr_local
+    * support reference with opr_local set, fixes tw2631
+
+  Revision 1.47  2003/10/29 15:40:20  peter
     * support indexing and offset retrieval for locals
 
   Revision 1.46  2003/10/24 17:39:41  peter

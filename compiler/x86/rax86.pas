@@ -674,7 +674,8 @@ begin
        OPR_SYMBOL:
          ai.loadsymbol(i-1,operands[i].opr.symbol,operands[i].opr.symofs);
        OPR_LOCAL :
-         ai.loadlocal(i-1,operands[i].opr.localsym,operands[i].opr.localsymofs,operands[i].opr.localindexreg,operands[i].opr.localgetoffset);
+         ai.loadlocal(i-1,operands[i].opr.localsym,operands[i].opr.localsymofs,operands[i].opr.localindexreg,
+                      operands[i].opr.localscale,operands[i].opr.localgetoffset);
        OPR_REFERENCE:
          begin
            ai.loadref(i-1,operands[i].opr.ref);
@@ -735,7 +736,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2003-10-29 15:40:20  peter
+  Revision 1.13  2003-10-30 19:59:00  peter
+    * support scalefactor for opr_local
+    * support reference with opr_local set, fixes tw2631
+
+  Revision 1.12  2003/10/29 15:40:20  peter
     * support indexing and offset retrieval for locals
 
   Revision 1.11  2003/10/21 15:15:36  peter

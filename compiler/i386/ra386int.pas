@@ -1021,13 +1021,13 @@ var
   tempstr,hs : string;
   typesize : longint;
   code : integer;
-  hreg,
-  oldbase : tregister;
+  hreg : tregister;
   GotStar,GotOffset,HadVar,
   GotPlus,Negative : boolean;
 Begin
   Consume(AS_LBRACKET);
-  InitRef;
+  if not(opr.typ in [OPR_LOCAL,OPR_REFERENCE]) then
+    InitRef;
   GotStar:=false;
   GotPlus:=true;
   GotOffset:=false;
@@ -1053,15 +1053,29 @@ Begin
              l:=BuildRefConstExpression;
              GotPlus:=(prevasmtoken=AS_PLUS);
              GotStar:=(prevasmtoken=AS_STAR);
-             if GotStar then
-              opr.ref.scalefactor:=l
-             else
-              begin
-                if negative then
-                  Dec(opr.ref.offset,l)
-                else
-                  Inc(opr.ref.offset,l);
-              end;
+             case opr.typ of
+               OPR_LOCAL :
+                 begin
+                   if GotStar then
+                     Message(asmr_e_invalid_reference_syntax);
+                   if negative then
+                     Dec(opr.localsymofs,l)
+                   else
+                     Inc(opr.localsymofs,l);
+                 end;
+               OPR_REFERENCE :
+                 begin
+                   if GotStar then
+                    opr.ref.scalefactor:=l
+                   else
+                    begin
+                      if negative then
+                        Dec(opr.ref.offset,l)
+                      else
+                        Inc(opr.ref.offset,l);
+                    end;
+                  end;
+             end;
            end
           else
            Begin
@@ -1112,29 +1126,6 @@ Begin
                    { should we allow ?? }
                  end;
               end;
-(*
-             if (opr.typ=OPR_REFERENCE) then
-               begin
-                 { is the base register loaded by the var ? }
-                 if (opr.ref.base<>NR_NO) then
-                  begin
-                    { check if we can move the old base to the index register }
-                    if (opr.ref.index<>NR_NO) then
-                     Message(asmr_e_wrong_base_index)
-                    else
-                     opr.ref.index:=oldbase;
-                  end
-                 else
-                  opr.ref.base:=oldbase;
-                 { we can't have a Constant here so add the constant value to the
-                   offset }
-                 if opr.typ=OPR_CONSTANT then
-                  begin
-                    opr.typ:=OPR_REFERENCE;
-                    inc(opr.ref.offset,opr.val);
-                  end;
-               end;
-*)
            end;
           GotOffset:=false;
         end;
@@ -1172,26 +1163,55 @@ Begin
               end;
             AS_REGISTER :
               begin
-                if opr.ref.scalefactor=0 then
-                if scale<>0 then
-                  begin
-                    opr.ref.scalefactor:=scale;
-                    scale:=0;
-                  end
-                else
-                 Message(asmr_e_wrong_scale_factor);
+                case opr.typ of
+                  OPR_REFERENCE :
+                    begin
+                      if opr.ref.scalefactor=0 then
+                        begin
+                          if scale<>0 then
+                            begin
+                              opr.ref.scalefactor:=scale;
+                              scale:=0;
+                            end
+                          else
+                           Message(asmr_e_wrong_scale_factor);
+                        end
+                      else
+                        Message(asmr_e_invalid_reference_syntax);
+                    end;
+                  OPR_LOCAL :
+                    begin
+                      if opr.localscale=0 then
+                        begin
+                          if scale<>0 then
+                            begin
+                              opr.localscale:=scale;
+                              scale:=0;
+                            end
+                          else
+                           Message(asmr_e_wrong_scale_factor);
+                        end
+                      else
+                        Message(asmr_e_invalid_reference_syntax);
+                    end;
+                end;
               end;
             else
               Message(asmr_e_invalid_reference_syntax);
           end;
           if actasmtoken<>AS_REGISTER then
-           begin
-             if hs<>'' then
-              val(hs,l,code);
-             opr.ref.scalefactor:=l;
-             if l>9 then
-              Message(asmr_e_wrong_scale_factor);
-           end;
+            begin
+              if hs<>'' then
+                val(hs,l,code);
+              case opr.typ of
+                OPR_REFERENCE :
+                  opr.ref.scalefactor:=l;
+                OPR_LOCAL :
+                  opr.localscale:=l;
+              end;
+              if l>9 then
+                Message(asmr_e_wrong_scale_factor);
+            end;
           GotPlus:=false;
           GotStar:=false;
         end;
@@ -1203,34 +1223,41 @@ Begin
             Message(asmr_e_invalid_reference_syntax);
           hreg:=actasmregister;
           Consume(AS_REGISTER);
-          if opr.typ=OPR_LOCAL then
-            begin
-              if (opr.localindexreg<>NR_NO) then
-                Message(asmr_e_multiple_index);
-              opr.localindexreg:=hreg;
-            end
-          else
-            begin
-              { this register will be the index:
-                 1. just read a *
-                 2. next token is a *
-                 3. base register is already used }
-              if (GotStar) or
-                 (actasmtoken=AS_STAR) or
-                 (opr.ref.base<>NR_NO) then
-               begin
-                 if (opr.ref.index<>NR_NO) then
+          { this register will be the index:
+             1. just read a *
+             2. next token is a *
+             3. base register is already used }
+          case opr.typ of
+            OPR_LOCAL :
+              begin
+                if (opr.localindexreg<>NR_NO) then
                   Message(asmr_e_multiple_index);
-                 opr.ref.index:=hreg;
-                 if scale<>0 then
-                   begin
-                     opr.ref.scalefactor:=scale;
-                     scale:=0;
-                   end;
-               end
-              else
-               opr.ref.base:=hreg;
-            end;
+                opr.localindexreg:=hreg;
+                if scale<>0 then
+                  begin
+                    opr.localscale:=scale;
+                    scale:=0;
+                  end;
+              end;
+            OPR_REFERENCE :
+              begin
+                if (GotStar) or
+                   (actasmtoken=AS_STAR) or
+                   (opr.ref.base<>NR_NO) then
+                 begin
+                   if (opr.ref.index<>NR_NO) then
+                    Message(asmr_e_multiple_index);
+                   opr.ref.index:=hreg;
+                   if scale<>0 then
+                     begin
+                       opr.ref.scalefactor:=scale;
+                       scale:=0;
+                     end;
+                 end
+                else
+                 opr.ref.base:=hreg;
+              end;
+          end;
           GotPlus:=false;
           GotStar:=false;
         end;
@@ -1260,22 +1287,46 @@ Begin
              else
               Message(asmr_e_cant_have_multiple_relocatable_symbols);
            end;
-          if GotStar then
-           opr.ref.scalefactor:=l
-          else if (prevasmtoken = AS_STAR) then
-           begin
-             if scale<>0 then
-               scale:=l*scale
-             else
-               scale:=l;
-           end
-          else
-           begin
-             if negative then
-               Dec(opr.ref.offset,l)
-             else
-               Inc(opr.ref.offset,l);
-           end;
+          case opr.typ of
+            OPR_REFERENCE :
+              begin
+                if GotStar then
+                 opr.ref.scalefactor:=l
+                else if (prevasmtoken = AS_STAR) then
+                 begin
+                   if scale<>0 then
+                     scale:=l*scale
+                   else
+                     scale:=l;
+                 end
+                else
+                 begin
+                   if negative then
+                     Dec(opr.ref.offset,l)
+                   else
+                     Inc(opr.ref.offset,l);
+                 end;
+              end;
+            OPR_LOCAL :
+              begin
+                if GotStar then
+                 opr.localscale:=l
+                else if (prevasmtoken = AS_STAR) then
+                 begin
+                   if scale<>0 then
+                     scale:=l*scale
+                   else
+                     scale:=l;
+                 end
+                else
+                 begin
+                   if negative then
+                     Dec(opr.localsymofs,l)
+                   else
+                     Inc(opr.localsymofs,l);
+                 end;
+              end;
+          end;
           GotPlus:=(prevasmtoken=AS_PLUS) or
                    (prevasmtoken=AS_MINUS);
           if GotPlus then
@@ -1543,7 +1594,6 @@ Begin
 
       AS_LBRACKET: { a variable reference, register ref. or a constant reference }
         Begin
-          InitRef;
           BuildReference;
         end;
 
@@ -1921,7 +1971,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.62  2003-10-29 16:47:18  peter
+  Revision 1.63  2003-10-30 19:59:00  peter
+    * support scalefactor for opr_local
+    * support reference with opr_local set, fixes tw2631
+
+  Revision 1.62  2003/10/29 16:47:18  peter
     * fix field offset in reference
 
   Revision 1.61  2003/10/29 15:40:20  peter

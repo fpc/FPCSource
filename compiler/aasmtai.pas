@@ -156,7 +156,8 @@ interface
          top_symbol : (sym:tasmsymbol;symofs:longint);
          top_bool   : (b:boolean);
          { local varsym that will be inserted in pass_2 }
-         top_local  : (localsym:pointer;localsymderef:tderef;localsymofs:longint;localindexreg:tregister;localgetoffset:boolean);
+         top_local  : (localsym:pointer;localsymderef:tderef;localsymofs:longint;localindexreg:tregister;
+                       localscale:byte;localgetoffset:boolean);
       end;
       poper=^toper;
 
@@ -465,7 +466,7 @@ interface
           procedure allocate_oper(opers:longint);
           procedure loadconst(opidx:longint;l:aword);
           procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
-          procedure loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;getoffset:boolean);
+          procedure loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;scale:byte;getoffset:boolean);
           procedure loadref(opidx:longint;const r:treference);
           procedure loadreg(opidx:longint;r:tregister);
           procedure loadoper(opidx:longint;o:toper);
@@ -1590,7 +1591,7 @@ implementation
       end;
 
 
-    procedure taicpu_abstract.loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;getoffset:boolean);
+    procedure taicpu_abstract.loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;scale:byte;getoffset:boolean);
       begin
         if not assigned(s) then
          internalerror(200204251);
@@ -1602,6 +1603,7 @@ implementation
            localsym:=s;
            localsymofs:=sofs;
            localindexreg:=indexreg;
+           localscale:=scale;
            localgetoffset:=getoffset;
            typ:=top_local;
          end;
@@ -1870,7 +1872,7 @@ implementation
             reg3 := getsupreg(oper[2]^.reg)
           else
             reg3 := 0;
-  
+
           supreg:=reg1;
           if supregset_in(r,supreg) then
             begin
@@ -1882,7 +1884,7 @@ implementation
               //   lwz r23d, -60(r1)
               //   add r23d, r21d, r22d
               //   stw r23d, -60(r1)
-  
+
               pos := get_insert_pos(Tai(previous),reg1,reg2,reg3,unusedregsint);
               rgget(list,pos,R_SUBWHOLE,helpreg);
               spill_registers := true;
@@ -1898,7 +1900,7 @@ implementation
               forward_allocation(tai(helpins.next),unusedregsint);
 {             list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);}
             end;
-  
+
           for i := 1 to 2 do
             if (oper[i]^.typ = top_reg) then
               begin
@@ -1913,7 +1915,7 @@ implementation
                     //   lwz r23d, -60(r1)
                     //   add r23d, r21d, r22d
                     //   stw r23d, -60(r1)
-  
+
                     pos := get_insert_pos(Tai(previous),reg1,reg2,reg3,unusedregsint);
                     rgget(list,pos,R_SUBWHOLE,helpreg);
                     spill_registers := true;
@@ -2138,7 +2140,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2003-10-29 21:06:39  jonas
+  Revision 1.53  2003-10-30 19:59:00  peter
+    * support scalefactor for opr_local
+    * support reference with opr_local set, fixes tw2631
+
+  Revision 1.52  2003/10/29 21:06:39  jonas
     * allow more than 3 args in the spilling routine
 
   Revision 1.51  2003/10/29 15:40:20  peter
