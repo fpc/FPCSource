@@ -205,9 +205,7 @@ implementation
               unused:=unused+[r];
               inc(usablereg32);
            end;
-{$ifdef REGALLOC}
          exprasmlist^.concat(new(pairegdealloc,init(r)));
-{$endif REGALLOC}
       end;
 
 {$ifdef SUPPORT_MMX}
@@ -279,36 +277,28 @@ implementation
               unused:=unused-[R_EAX];
               usedinproc:=usedinproc or ($80 shr byte(R_EAX));
               getregister32:=R_EAX;
-{$IfDef RegAlloc}
               exprasmlist^.concat(new(pairegalloc,init(R_EAX)));
-{$EndIf RegAlloc}
            end
          else if R_EDX in unused then
            begin
               unused:=unused-[R_EDX];
               usedinproc:=usedinproc or ($80 shr byte(R_EDX));
               getregister32:=R_EDX;
-{$IfDef RegAlloc}
               exprasmlist^.concat(new(pairegalloc,init(R_EDX)));
-{$EndIf RegAlloc}
            end
          else if R_EBX in unused then
            begin
               unused:=unused-[R_EBX];
               usedinproc:=usedinproc or ($80 shr byte(R_EBX));
               getregister32:=R_EBX;
-{$IfDef RegAlloc}
               exprasmlist^.concat(new(pairegalloc,init(R_EBX)));
-{$EndIf RegAlloc}
            end
          else if R_ECX in unused then
            begin
               unused:=unused-[R_ECX];
               usedinproc:=usedinproc or ($80 shr byte(R_ECX));
               getregister32:=R_ECX;
-{$IfDef RegAlloc}
               exprasmlist^.concat(new(pairegalloc,init(R_ECX)));
-{$EndIf RegAlloc}
            end
          else internalerror(10);
       end;
@@ -359,7 +349,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  1998-09-16 17:58:33  jonas
+  Revision 1.12  1998-09-20 17:11:24  jonas
+    * released REGALLOC
+
+  Revision 1.11  1998/09/16 17:58:33  jonas
     * fixed -dRegAlloc and -dDRegalloc problems
 
   Revision 1.10  1998/09/01 09:03:47  peter

@@ -221,8 +221,6 @@ unit i386;
           destructor done;virtual;
        end;
 
-{$ifdef REGALLOC}
-
        pairegalloc = ^tairegalloc;
 
        tairegalloc = object(tai)
@@ -236,8 +234,6 @@ unit i386;
           reg : tregister;
           constructor init(r : tregister);
        end;
-
-{$endif REGALLOC}
 
        pai386 = ^tai386;
 
@@ -1186,8 +1182,6 @@ unit i386;
                        objects for register de/allocation
  ****************************************************************************}
 
-{$ifdef REGALLOC}
-
     constructor tairegalloc.init(r : tregister);
 
       begin
@@ -1203,8 +1197,6 @@ unit i386;
          typ:=ait_regdealloc;
          reg:=r;
       end;
-
-{$endif REGALLOC}
 
 {****************************************************************************
                              TAI386
@@ -1715,7 +1707,10 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.10  1998-09-14 21:30:45  peter
+  Revision 1.11  1998-09-20 17:11:23  jonas
+    * released REGALLOC
+
+  Revision 1.10  1998/09/14 21:30:45  peter
     * added inherited done
 
   Revision 1.9  1998/06/04 23:51:41  peter

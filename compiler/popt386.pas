@@ -37,6 +37,33 @@ Uses globals, systems, verbose, hcodegen
    {$endif i386}
      ;
 
+Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
+{updates RegsAllocated with the RegAlloc Information coming after P}
+Begin
+  p := Pai(p^.next);
+  Repeat
+    While Assigned(p) And
+          (p^.typ in (SkipInstr - [ait_RegAlloc, ait_RegDealloc])) Do
+      p := Pai(p^.next);
+    While Assigned(p) And
+          (p^.typ in [ait_RegAlloc, ait_RegDealloc]) Do
+      Begin
+        Case p^.typ Of
+          ait_RegAlloc: UsedRegs := UsedRegs + [PaiRegAlloc(p)^.Reg];
+          ait_regdealloc: UsedRegs := UsedRegs - [PaiRegAlloc(p)^.Reg];
+        End;
+        p := pai(p^.next);
+      End;
+  Until Not(Assigned(p)) Or
+        Not(p^.typ in SkipInstr);
+End;
+
+Function RegUsedAfterInstruction(Reg: TRegister; p: Pai; Var UsedRegs: TRegSet): Boolean;
+Begin
+  UpdateUsedRegs(UsedRegs, p);
+  RegUsedAfterInstruction := Reg in UsedRegs
+End;
+
 Procedure PeepHoleOptPass1(Asml: PAasmOutput);
 {First pass of peepholeoptimizations}
 
@@ -46,9 +73,7 @@ Var
 
   TmpRef: PReference;
 
-{ $Ifdef RegAlloc
-  RegsUsed: Set of TRegister;
- $EndIf RegAlloc}
+  UsedRegs, TmpUsedRegs: TRegSet;
 
   Procedure GetFinalDestination(hp: pai_labeled);
   {traces sucessive jumps to their final destination and sets it, e.g.
@@ -98,11 +123,10 @@ Var
 
 Begin
   P := Pai(AsmL^.First);
-{ $IfDef RegAlloc
-  RegsUsed := [];
- $EndIf RegAlloc}
+  UsedRegs := [];
   While Assigned(P) Do
     Begin
+      UpDateUsedRegs(UsedRegs, p);
       Case P^.Typ Of
         Ait_Labeled_Instruction:
           Begin
@@ -225,15 +249,15 @@ Begin
                         Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) And Longint(Pai386(hp1)^.op1));
                         AsmL^.Remove(hp1);
                         Dispose(hp1, Done)
-                      End;
-                  {
-                  Else
-                    If (Pai386(p)^.op2t = top_reg) And
-                       Assigned(p^.next) And
-                       (Pai(p^.next)^.typ = ait_labeled_instruction)
-                      Then Pai386(p)^._operator := A_TEST;
-                  change "and x, reg; jxx" to "test x, reg
-                  }
+                      End
+                    Else
+{change "and x, reg; jxx" to "test x, reg", if reg is deallocated before the
+ jump}
+                      If (Pai386(p)^.op2t = top_reg) And
+                         GetNextInstruction(p, hp1) And
+                         (hp1^.typ = ait_labeled_instruction) And
+                         Not(TRegister(Pai386(p)^.op2) in UsedRegs)
+                        Then Pai386(p)^._operator := A_TEST;
                 End;
               A_CMP:
                 Begin
@@ -510,8 +534,7 @@ Begin
               A_LEA:
                 Begin
                 {changes "lea (%reg1), %reg2" into "mov %reg1, %reg2"}
-                  If (PReference(Pai386(p)^.op1)^.Base >= R_EAX) And
-                     (PReference(Pai386(p)^.op1)^.Base <= R_EDI) And
+                  If (PReference(Pai386(p)^.op1)^.Base In [R_EAX..R_EDI]) And
                      (PReference(Pai386(p)^.op1)^.Index = R_NO) And
                      (PReference(Pai386(p)^.op1)^.Offset = 0) And
                      (Not(Assigned(PReference(Pai386(p)^.op1)^.Symbol))) Then
@@ -527,8 +550,9 @@ Begin
                 End;
               A_MOV:
                 Begin
+                  TmpUsedRegs := UsedRegs;
                   If (Pai386(p)^.op2t = top_reg) And
-                     (TRegister(Pai386(p)^.op2) In [{R_EAX, R_EBX, R_EDX, }R_EDI]) And
+                     (TRegister(Pai386(p)^.op2) In [R_EAX, R_EBX, R_EDX, R_EDI]) And
                      GetNextInstruction(p, hp1) And
                      (Pai(hp1)^.typ = ait_instruction) And
                      (Pai386(hp1)^._operator = A_MOV) And
@@ -538,7 +562,10 @@ Begin
                 {we have "mov x, %treg; mov %treg, y}
                       If (Pai386(hp1)^.op2t <> top_reg) Or
                          (GetNextInstruction(hp1, hp2) And
-                         RegInInstruction(TRegister(Pai386(hp1)^.op2), hp2))
+                          (RegUsedAfterInstruction(TRegister(Pai386(hp1)^.op2), hp1, TmpUsedRegs) or
+                {now TmpUsedRegs contains the regalloc data after hp1}
+                          (RegInInstruction(TRegister(Pai386(hp1)^.op2), hp2))) And
+                         Not(TRegister(Pai386(hp1)^.op1) in TmpUsedRegs))
                         Then
                {we've got "mov x, %treg; mov %treg, y; XXX y" (ie. y is used in
                 the third instruction)}
@@ -600,10 +627,10 @@ Begin
                               Then
                    {we have "mov %reg1, %reg2; test/or %reg2, %reg2"}
                                 Begin
-                                (*
+                                  TmpUsedRegs := UsedRegs;
                                   If GetNextInstruction(hp1, hp2) And
-                                     (Pai(hp2)^.typ = ait_labeled_instruction) And
-                                     (TRegister(Pai386(p)^.op2) <> R_ESI)
+                                     (hp2^.typ = ait_labeled_instruction) And
+                                     Not(RegUsedAfterInstruction(TRegister(Pai386(hp1)^.op1), hp1, TmpUsedRegs))
                                     Then
                    {change "mov %reg1, %reg2; test/or %reg2, %reg2; jxx" to
                     "test %reg1, %reg1; jxx"}
@@ -616,7 +643,6 @@ Begin
                                         continue
                                       End
                                     Else
-                                  *)
                    {change "mov %reg1, %reg2; test/or %reg2, %reg2" to
                     "mov %reg1, %reg2; test/or %reg1, %reg1"}
                                       Begin
@@ -1277,10 +1303,6 @@ Begin
                   Continue
                 End;
           End;}
-{ $ifdef regalloc
-        ait_regalloc: UsedRegs := UsedRegs + [PaiAlloc(p)^.Reg];
-        ait_regdealloc: UsedRegs := UsedRegs - [PaiAlloc(p)^.Reg];
- $endif regalloc}
       End;
       p:=pai(p^.next);
     end;
@@ -1360,7 +1382,10 @@ End.
 
 {
  $Log$
- Revision 1.13  1998-09-16 18:00:00  jonas
+ Revision 1.14  1998-09-20 17:11:51  jonas
+   * released REGALLOC
+
+ Revision 1.13  1998/09/16 18:00:00  jonas
    * optimizer now completely dependant on GetNext/GetLast instruction, works again with -dRegAlloc
 
  Revision 1.12  1998/09/15 14:05:22  jonas

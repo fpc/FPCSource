@@ -67,10 +67,8 @@ unit aasm;
           ait_stabs,
           ait_stab_function_name,
           ait_cut, { used to split into tiny assembler files }
-{$ifdef REGALLOC}
           ait_regalloc,
           ait_regdealloc,
-{$endif REGALLOC}
           { never used, makes insertation of new ait_ easier to type }
           ait_dummy);
 
@@ -852,7 +850,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.17  1998-09-07 18:33:31  peter
+  Revision 1.18  1998-09-20 17:11:25  jonas
+    * released REGALLOC
+
+  Revision 1.17  1998/09/07 18:33:31  peter
     + smartlinking for win95 imports
 
   Revision 1.16  1998/09/03 17:08:37  pierre

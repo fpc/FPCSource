@@ -78,9 +78,9 @@ unit ag386nsm;
       begin
 {$ifdef VER0_99_5}
          str(double(e),hs);
-{$else}	 
+{$else}
          str(e,hs);
-{$endif}	 
+{$endif}
       { nasm expects a lowercase e }
          p:=pos('E',hs);
          if p>0 then
@@ -302,6 +302,8 @@ unit ag386nsm;
                        AsmWritePChar(pai_asm_comment(hp)^.str);
                        AsmLn;
                      End;
+      ait_regalloc,
+    ait_regdealloc :;
        ait_section : begin
                        if pai_section(hp)^.sec<>sec_none then
                         begin
@@ -520,9 +522,9 @@ ait_labeled_instruction :
                            end;
                           s:='';
                         end;
-		       if pai386(hp)^._operator=A_FWAIT then
-		        AsmWriteln(#9#9'DB'#9'09bh')
-		       else	
+                       if pai386(hp)^._operator=A_FWAIT then
+                        AsmWriteln(#9#9'DB'#9'09bh')
+                       else
                         AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^._operator]+suffix+s);
                      end;
 {$ifdef GDB}
@@ -568,7 +570,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.7  1998-08-11 14:01:43  peter
+  Revision 1.8  1998-09-20 17:11:22  jonas
+    * released REGALLOC
+
+  Revision 1.7  1998/08/11 14:01:43  peter
     * fixed fwait bug using direct opcode
 
   Revision 1.6  1998/08/10 15:49:39  peter
