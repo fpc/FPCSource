@@ -663,10 +663,12 @@ implementation
          resulttypepass(left);
          resulttypepass(right);
          { In p[1] p is always valid, it is not possible to
-           declared a normal array that has undefined number
-           of elements. Dynamic array needs to be valid }
-         valid:=not(left.resulttype.def.deftype=arraydef) or
-                is_dynamic_array(left.resulttype.def);
+           declared a shortstring or normal array that has
+           undefined number of elements. Dynamic array and
+           ansi/widestring needs to be valid }
+         valid:=is_dynamic_array(left.resulttype.def) or
+                is_ansistring(left.resulttype.def) or
+                is_widestring(left.resulttype.def);
          set_varstate(left,vs_used,valid);
          set_varstate(right,vs_used,true);
          if codegenerror then
@@ -965,7 +967,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2003-12-08 22:35:06  peter
+  Revision 1.76  2003-12-12 15:42:53  peter
+    * don't give warnings for shortstring vecnodes
+
+  Revision 1.75  2003/12/08 22:35:06  peter
     * don't check varstate for left of vecnode for normal arrays
 
   Revision 1.74  2003/12/01 18:44:15  peter
