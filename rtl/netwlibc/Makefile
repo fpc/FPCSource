@@ -228,7 +228,7 @@ override FPCOPT+=-Ur
 override FPCOPT+=-dMT -dDEBUG_MT
 CREATESMART=0
 OBJPASDIR=$(RTL)/objpas
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings lineinfo winsock heaptrc matrix nwsnut libc dos crt objects sysconst dynlibs initc sysutils types typinfo systhrds classes cpu mmx getopts dateutils strutils convutils charset ucomplex variants rtlconst math varutils utf8bidi mouse
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings lineinfo winsock heaptrc matrix nwsnut libc dos crt objects sysconst dynlibs initc sysutils types typinfo systhrds classes cpu mmx getopts dateutils strutils convutils charset ucomplex variants rtlconst math varutils freebidi utf8bidi mouse video keyboard
 override TARGET_LOADERS+=nwplibc
 override TARGET_RSTS+=math varutils variants convutils typinfo systhrds classes dateutils sysconst rtlconst
 override INSTALL_FPCPACKAGE=y
@@ -1434,8 +1434,9 @@ gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
 		    objpas$(PPUEXT) $(OBJPASDIR)/varutilh.inc
 	$(COMPILER) -I$(OBJPASDIR) varutils.pp
+freebidi$(PPUEXT) : $(OBJPASDIR)/freebidi.pp
 utf8bidi$(PPUEXT) : $(OBJPASDIR)/utf8bidi.pp
-	$(COMPILER) -Sc $(OBJPASDIR)/utf8bidi.pp
+	$(COMPILER) -Sc $(OBJPASDIR)/utf8bidi.pp freebidi.ppu
 variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT)
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
@@ -1459,6 +1460,9 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+mouse$(PPUEXT) : $(INC)/mouseh.inc $(SYSTEMUNIT)$(PPUEXT)
+video$(PPUEXT) : $(INC)/video.inc $(SYSTEMUNIT)$(PPUEXT)
+keyboard$(PPUEXT) : $(INC)/keyboard.inc $(INC)/keybrdh.inc $(SYSTEMUNIT)$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
 override INSTALLPPUFILES+=nwsnut.imp ws2_32.imp ws2nlm.imp libc.imp netware.imp \

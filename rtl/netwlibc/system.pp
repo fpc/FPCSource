@@ -92,6 +92,8 @@ procedure NWSysSetThreadFunctions (crs:TSysCloseAllRemainingSemaphores;
 				   stdata:TSysSetThreadDataAreaPtr);
 }
 
+procedure __ConsolePrintf (s :string);
+
 implementation
 { Indicate that stack checking is taken care by OS}
 {$DEFINE NO_GENERIC_STACK_CHECK}
@@ -126,8 +128,6 @@ begin
 end;}
 
 
-
-
 procedure PASCALMAIN;external name 'PASCALMAIN';
 procedure fpc_do_exit;external name 'FPC_DO_EXIT';
 
@@ -144,12 +144,14 @@ var SigTermHandlerActive : boolean;
 
 Procedure system_exit;
 begin
+  __ConsolePrintf ('system_exit');
   //if assigned (CloseAllRemainingSemaphores) then CloseAllRemainingSemaphores;
   //if assigned (ReleaseThreadVars) then ReleaseThreadVars;
 
   {$ifdef autoHeapRelease}
   FreeSbrkMem;            { free memory allocated by heapmanager }
   {$endif}
+  __ConsolePrintf ('Heap mem released');
 
   if not SigTermHandlerActive then
   begin
@@ -216,22 +218,20 @@ end;
 *****************************************************************************}
 
 var
-  heap : longint;external name 'HEAP';
-  intern_heapsize : longint;external name 'HEAPSIZE';
+  int_heap : pointer;external name 'HEAP';
+  int_heapsize : longint;external name 'HEAPSIZE';
 
 { first address of heap }
 function getheapstart:pointer;
-assembler;
-asm
-        leal    HEAP,%eax
-end ['EAX'];
+begin
+  getheapstart := int_heap;
+end;
 
 { current length of heap }
 function getheapsize:longint;
-assembler;
-asm
-        movl    intern_HEAPSIZE,%eax
-end ['EAX'];
+begin
+  getheapsize := int_heapsize;
+end;
 
 {$ifdef autoHeapRelease}
 
@@ -240,6 +240,7 @@ type THeapSbrkBlockList = array [1.. HeapInitialMaxBlocks] of pointer;
 var  HeapSbrkBlockList : ^THeapSbrkBlockList = nil;
      HeapSbrkLastUsed  : dword = 0;
      HeapSbrkAllocated : dword = 0;
+     HeapSbrkReleased : boolean = false;
 
 { function to allocate size bytes more for the program }
 { must return the first address of new data space or nil if fail }
@@ -250,6 +251,11 @@ var P2 : POINTER;
     i  : longint;
     Slept : longint;
 begin
+  if HeapSbrkReleased then
+  begin
+    __ConsolePrintf ('Error: SysOSFree called after all heap memory was released');
+    exit(nil);
+  end;
   SysOSAlloc := _Alloc (size,HeapAllocResourceTag);
   if SysOSAlloc <> nil then begin
     if HeapSbrkBlockList = nil then
@@ -303,6 +309,9 @@ begin
     HeapSbrkLastUsed := 0;
     HeapSbrkBlockList := nil;
   end;
+  HeapSbrkReleased := true;
+  {ReturnResourceTag(HeapAllocResourceTag,1);
+  ReturnResourceTag(HeapListAllocResourceTag,1);  not in netware.imp, seems to be not needed}
 end;
 
 {*****************************************************************************
@@ -314,7 +323,10 @@ end;
 procedure SysOSFree(p: pointer; size: ptrint);
 var i : longint;
 begin
-//fpmunmap(p, size);
+  if HeapSbrkReleased then
+  begin
+    __ConsolePrintf ('Error: SysOSFree called after all heap memory was released');
+  end else
   if (HeapSbrkLastUsed > 0) then
     for i := 1 to HeapSbrkLastUsed do
       if (HeapSbrkBlockList^[i] = p) then
@@ -380,28 +392,27 @@ BEGIN
   end;
 END;
 
-FUNCTION errno : LONGINT;
+{FUNCTION errno : LONGINT;
 BEGIN
   errno := ___errno^;
-END;
+END;}
 
-PROCEDURE Errno2Inoutres;
-BEGIN
-  NW2PASErr (errno);
-END;
+procedure Errno2Inoutres;
+begin
+  NW2PASErr (___errno^);
+end;
 
-PROCEDURE SetFileError (VAR Err : LONGINT);
-BEGIN
-  IF Err >= 0 THEN
+procedure SetFileError (VAR Err : LONGINT);
+begin
+  if Err >= 0 then
     InOutRes := 0
-  ELSE
-  BEGIN
-    libc_perror ('SetFileError');
-    Err := errno;
+  else begin
+    // libc_perror ('SetFileError');
+    Err := ___errno^;
     NW2PASErr (Err);
     Err := 0;
-  END;
-END;
+  end;
+end;
 
 { close a file from the handle value }
 procedure do_close(handle : thandle);
@@ -442,7 +453,7 @@ function do_write(h:thandle;addr:pointer;len : longint) : longint;
 var res : LONGINT;
 begin
   {$ifdef IOpossix}
-  res := libc_write  (h,addr,len);
+  res := Fpwrite (h,addr,len);
   {$else}
   res := _fwrite (addr,1,len,_TFILE(h));
   {$endif}
@@ -457,7 +468,7 @@ function do_read(h:thandle;addr:pointer;len : longint) : longint;
 VAR res : LONGINT;
 begin
   {$ifdef IOpossix}
-  res := libc_write  (h,addr,len);
+  res := Fpread (h,addr,len);
   {$else}
   res := _fread (addr,1,len,_TFILE(h));
   {$endif}
@@ -474,7 +485,7 @@ var res : LONGINT;
 begin
   InOutRes:=1;
   {$ifdef IOpossix}
-  res := tell (handle);
+  res := Fptell (handle);
   {$else}
   res := _ftell (_TFILE(handle));
   {$endif}
@@ -490,7 +501,7 @@ procedure do_seek(handle:thandle;pos : longint);
 VAR res : LONGINT;
 begin
   {$ifdef IOpossix}
-  res := lseek (handle,pos, SEEK_SET);
+  res := Fplseek (handle,pos, SEEK_SET);
   {$else}
   res := _fseek (_TFILE(handle),pos, SEEK_SET);
   {$endif}
@@ -504,7 +515,7 @@ function do_seekend(handle:thandle):longint;
 VAR res : LONGINT;
 begin
   {$ifdef IOpossix}
-  res := lseek (handle,0, SEEK_END);
+  res := Fplseek (handle,0, SEEK_END);
   {$else}
   res := _fseek (_TFILE(handle),0, SEEK_END);
   {$endif}
@@ -619,19 +630,17 @@ Begin
    end;
 { real open call }
   FileRec(f).Handle := open(p,oflags,438);
-  //WriteLn ('_open (',p,') returned ',ErrNo, 'Handle: ',FileRec(f).Handle);
-  // errno does not seem to be set on succsess ??
-  IF FileRec(f).Handle < 0 THEN
-    if (ErrNo=Sys_EROFS) and ((OFlags and O_RDWR)<>0) then
+  if FileRec(f).Handle < 0 then
+    if (___errno^=Sys_EROFS) and ((OFlags and O_RDWR)<>0) then
     begin  // i.e. for cd-rom
       Oflags:=Oflags and not(O_RDWR);
       FileRec(f).Handle := open(p,oflags,438);
     end;
-  IF FileRec(f).Handle < 0 THEN
+  if FileRec(f).Handle < 0 then
     Errno2Inoutres
-  ELSE
+  else
     InOutRes := 0;
-End;
+end;
 
 
 {$else}
@@ -723,7 +732,7 @@ End;
 function do_isdevice(handle:THandle):boolean;
 begin
   {$ifdef IOpossix}
-  do_isdevice := (isatty (handle) > 0);
+  do_isdevice := (Fpisatty (handle) > 0);
   {$else}
   do_isdevice := (isatty (_fileno(_TFILE(handle))) > 0);
   {$endif}
@@ -755,18 +764,18 @@ end;
                            Directory Handling
 *****************************************************************************}
 procedure mkdir(const s : string);[IOCheck];
-VAR S2 : STRING;
+var S2 : STRING;
     Res: LONGINT;
 BEGIN
   S2 := S;
   IF Length (S2) = 255 THEN DEC (BYTE(S2[0]));
   S2 := S2 + #0;
-  Res := FpMkdir (@S2[1],0);
-  IF Res = 0 THEN
+  Res := FpMkdir (@S2[1],S_IRWXU);
+  if Res = 0 then
     InOutRes:=0
-  ELSE
+  else
     SetFileError (Res);
-END;
+end;
 
 procedure rmdir(const s : string);[IOCheck];
 VAR S2 : STRING;
@@ -801,7 +810,8 @@ VAR P : ARRAY [0..255] OF CHAR;
     i : LONGINT;
 begin
   P[0] := #0;
-  getcwd (@P, SIZEOF (P));
+  //getcwd (@P, SIZEOF (P));
+  getcwdpath(@P,nil,0);
   i := libc_strlen (P);
   if i > 0 then
   begin
@@ -837,11 +847,10 @@ procedure InitFPU;assembler;
   Unload Anyway ?
   To Disable unload at all, SetNLMDontUnloadFlag can be used on
   Netware >= 4.0 }
-(*
-function CheckFunction : longint; CDECL; [public,alias: 'FPC_NW_CHECKFUNCTION'];
-var oldTG:longint;
-    oldPtr: pointer;
+
+function CheckFunction : longint; CDECL; [public,alias: '_NonAppCheckUnload'];
 begin
+  __ConsolePrintf ('CheckFunction');
   if assigned (NetwareCheckFunction) then
   begin
     { this function is called without clib context, to allow clib
@@ -854,14 +863,22 @@ begin
     //  oldPtr := SetThreadDataAreaPtr (NIL);  { nil means main threadvars }
     result := 0;
     NetwareCheckFunction (result);
-    if assigned (SetThreadDataAreaPtr) then
-      SetThreadDataAreaPtr (oldPtr);
+//    if assigned (SetThreadDataAreaPtr) then
+//      SetThreadDataAreaPtr (oldPtr);
 
-    _SetThreadGroupID (oldTG);
+//    _SetThreadGroupID (oldTG);
   end else
     result := 0;
 end;
-*)
+
+
+procedure __ConsolePrintf (s : string);
+begin
+  if length(s) > 252 then
+    byte(s[0]) := 252;
+  s := s + #13#10#0;
+  screenprintf (NWLoggerScreen,@s[1]);
+end;
 
 
 {$ifdef StdErrToConsole}
@@ -915,14 +932,8 @@ end;
   Halt (or _exit) can not be called from this callback procedure }
 procedure TermSigHandler (Sig:longint); CDecl;
 begin
-  writeln ('TermSigHandler start ');
-  { _GetThreadDataAreaPtr will not be valid because the signal
-    handler is called by netware with a differnt thread. To avoid
-    problems in the exit routines, we set the data of the main thread
-    here }
   SigTermHandlerActive := true;  { to avoid that system_exit calls _exit }
   do_exit;                       { calls finalize units }
-  writeln ('TermSigHandler end ');
 end;
 
 
@@ -969,8 +980,9 @@ Begin
   {$ifdef StdErrToConsole}
   NWLoggerScreen := getnetwarelogger;
   {$endif}
+  CheckFunction;  // avoid check function to be removed by the linker
 
-  envp := nxGetEnviron;
+  envp := ____environ^;  // nxGetEnviron;
   NLMHandle := getnlmhandle;
   HeapAllocResourceTag :=
     AllocateResourceTag(NLMHandle,'Heap Memory',AllocSignature);
@@ -1001,7 +1013,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  2004-09-05 20:58:47  armin
+  Revision 1.2  2004-09-12 20:51:22  armin
+  * added keyboard and video
+  * a lot of fixes
+
+  Revision 1.1  2004/09/05 20:58:47  armin
   * first rtl version for netwlibc
 
 }

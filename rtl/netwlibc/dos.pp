@@ -35,6 +35,7 @@ Type
      { Internals used by netware port only: }
      _mask : string[255];
      _dir  : string[255];
+     _attr : word;
    end;
 
   registers = packed record
@@ -45,6 +46,9 @@ Type
     end;
 
 {$i dosh.inc}
+{Extra Utils}
+function weekday(y,m,d : longint) : longint;
+
 
 implementation
 
@@ -63,8 +67,32 @@ function dosversion : word;
 var i : Tutsname;
 begin
   if uname (i) >= 0 then
-    dosversion := WORD (i.netware_major) SHL 8 + i.netware_minor
+    dosversion := WORD (i.netware_minor) SHL 8 + i.netware_major
   else dosversion := $0005;
+end;
+
+function WeekDay (y,m,d:longint):longint;
+{
+  Calculates th day of the week. returns -1 on error
+}
+var
+  u,v : longint;
+begin
+  if (m<1) or (m>12) or (y<1600) or (y>4000) or
+     (d<1) or (d>30+((m+ord(m>7)) and 1)-ord(m=2)) or
+     ((m*d=58) and (((y mod 4>0) or (y mod 100=0)) and (y mod 400>0))) then
+    WeekDay:=-1
+  else
+  begin
+    u:=m;
+    v:=y;
+    if m<3 then
+    begin
+      inc(u,12);
+      dec(v);
+    end;
+    WeekDay:=(d+2*u+((3*(u+1)) div 5)+v+(v div 4)-(v div 100)+(v div 400)+1) mod 7;
+  end;
 end;
 
 
@@ -148,9 +176,12 @@ var c : comstr;
     args : array[0..maxargs] of pchar;
     arg0 : pathstr;
     numargs,wstat : integer;
+    Wiring : TWiring;
 begin
-  //writeln ('dos.exec (',path,',',comline,')');
-  arg0 := fexpand (path)+#0;
+  if pos ('.',path) = 0 then
+   arg0 := fexpand(path+'.nlm'#0) else
+    arg0 := fexpand (path)+#0;
+  //writeln (stderr,'dos.exec (',path,',',comline,') arg0:"',copy(arg0,1,length(arg0)-1),'"');
   args[0] := @arg0[1];
   numargs := 0;
   c:=comline;
@@ -170,7 +201,20 @@ begin
   end;
   args[numargs+1] := nil;
   // i := spawnvp (P_WAIT,args[0],@args);
-  i := procve(args[0], PROC_CURRENT_SPACE+PROC_INHERIT_CWD,nil,nil,nil,nil,0,nil,args);
+  Wiring.infd := StdInputHandle;  //textrec(Stdin).Handle;
+  Wiring.outfd:= textrec(stdout).Handle;
+  Wiring.errfd:= textrec(stderr).Handle;
+  //writeln (stderr,'calling procve');
+  i := procve(args[0],
+              PROC_CURRENT_SPACE+PROC_INHERIT_CWD,
+              envP,         // const char * env[] If passed as NULL, the child process inherits the parent.s environment at the time of the call.
+              @Wiring,      // wiring_t *wiring, Pass NULL to inherit system defaults for wiring.
+              nil,          // struct fd_set *fds, Not currently implemented. Pass in NULL.
+              nil,          // void *appdata, Not currently implemented. Pass in NULL.
+              0,            // size_t appdata_size, Not currently implemented. Pass in 0
+              nil,          // void *reserved, Reserved. Pass NULL.
+              @args);       // const char *argv[]
+  //writeln (stderr,'Ok');
   if i <> -1 then
   begin
     waitpid(i,@wstat,0);
@@ -330,12 +374,13 @@ end;
                      --- Findfirst FindNext ---
 ******************************************************************************}
 
-
-procedure find_setfields (var f : searchRec);
+{returns true if attributes match}
+function find_setfields (var f : searchRec) : boolean;
 var
   StatBuf : TStat;
   fname   : string[255];
 begin
+  find_setfields := false;
   with F do
   begin
     if Magic = $AD01 then
@@ -351,6 +396,13 @@ begin
         timet2dostime (StatBuf.st_mtim.tv_sec, time)
       else
         time := 0;
+      if (f._attr and hidden) = 0 then
+        if attr and hidden > 0 then exit;
+      if (f._attr and Directory) = 0 then
+        if attr and Directory > 0 then exit;
+      if (f._attr and SysFile) = 0 then
+        if attr and SysFile > 0 then exit;
+      find_setfields := true;
     end else
     begin
       FillChar (f,sizeof(f),0);
@@ -370,25 +422,26 @@ begin
     doserror := 18;
     exit;
   end;
-  if (pos ('?',path) > 0) or (pos ('*',path) > 0) then
+  f._attr := attr;
+  p := length (path);
+  while (p > 0) and (not (path[p] in ['\','/'])) do
+    dec (p);
+  if p > 0 then
   begin
-    p := length (path);
-    while (p > 0) and (not (path[p] in ['\','/'])) do
-      dec (p);
-    if p > 0 then
-    begin
-      f._mask := copy (path,p+1,255);
-      f._dir := copy (path,1,p);
-      strpcopy(path0,f._dir);
-    end else
-    begin
-      f._mask := path;
-      getdir (0,f._dir);
-      if (f._dir[length(f._dir)] <> '/') and
-         (f._dir[length(f._dir)] <> '\') then
-        f._dir := f._dir + '/';
-    end;
+    f._mask := copy (path,p+1,255);
+    f._dir := copy (path,1,p);
+    strpcopy(path0,f._dir);
+  end else
+  begin
+    f._mask := path;
+    getdir (0,f._dir);
+    if (f._dir[length(f._dir)] <> '/') and
+       (f._dir[length(f._dir)] <> '\') then
+      f._dir := f._dir + '/';
+    strpcopy(path0,f._dir);
   end;
+  if f._mask = '*' then f._mask := '';
+  if f._mask = '*.*' then f._mask := '';
   //writeln (stderr,'mask: "',f._mask,'" dir:"',path0,'"');
   f._mask := f._mask + #0;
   Pdirent(f.DirP) := opendir (path0);
@@ -414,15 +467,11 @@ begin
     if F.EntryP = nil then
       doserror := 18
     else
-    if f._mask = #0 then
+    if find_setfields (f) then
     begin
-      find_setfields (f);
-      exit;
-    end else
-    if fnmatch(@f._mask[1],Pdirent(f.EntryP)^.d_name,FNM_CASEFOLD) = 0 then
-    begin
-      find_setfields (f);
-      exit;
+      if f._mask = #0 then exit;
+      if fnmatch(@f._mask[1],Pdirent(f.EntryP)^.d_name,FNM_CASEFOLD) = 0 then
+        exit;
     end;
   until doserror <> 0;
 end;
@@ -574,7 +623,7 @@ var
   StatBuf : TStat;
 begin
   doserror := 0;
-  if fstat (FileRec (f).Handle, StatBuf) = 0 then
+  if fstat (filerec (f).handle, StatBuf) = 0 then
     timet2dostime (StatBuf.st_mtim.tv_sec,time)
   else begin
     time := 0;
@@ -584,9 +633,36 @@ end;
 
 
 procedure setftime(var f;time : longint);
-begin
-  {is there a netware function to do that ?????}
-  ConsolePrintf ('warning: fpc dos.setftime not implemented'#13#10);
+Var
+  utim: utimbuf;
+  DT: DateTime;
+  path: pathstr;
+  tm : TTm;
+Begin
+  doserror:=0;
+  with utim do
+  begin
+    actime:=libc.time(nil);  // getepochtime;
+    UnPackTime(Time,DT);
+    with tm do
+    begin
+      tm_sec   := DT.Sec;        // seconds after the minute [0..59]
+      tm_min   := DT.Min;        // minutes after the hour [0..59]
+      tm_hour  := DT.hour;       // hours since midnight [0..23]
+      tm_mday  := DT.Day;        // days of the month [1..31]
+      tm_mon   := DT.month-1;    // months since January [0..11]
+      tm_year  := DT.year-1900;
+      tm_wday  := -1;
+      tm_yday  := -1;
+      tm_isdst := -1;
+    end;
+    modtime:=mktime(tm);
+  end;
+  if utime(@filerec(f).name,utim)<0 then
+  begin
+    Time:=0;
+    doserror:=3;
+  end;
 end;
 
 
@@ -594,7 +670,7 @@ procedure getfattr(var f;var attr : word);
 VAR StatBuf : TStat;
 begin
   doserror := 0;
-  if fstat (FileRec (f).Handle, StatBuf) = 0 then
+  if stat (@textrec(f).name, StatBuf) = 0 then
     attr := nwattr2dosattr (StatBuf.st_mode)
   else
   begin
@@ -609,10 +685,10 @@ var
   StatBuf : TStat;
   newMode : longint;
 begin
-  if fstat (FileRec(f).Handle,StatBuf) = 0 then
+  if stat (@textrec(f).name,StatBuf) = 0 then
   begin
-    newmode := StatBuf.st_mode and ($FFFFFFFF - M_A_RDONLY-M_A_HIDDEN-M_A_SYSTEM-M_A_ARCH); {only this can be set by dos unit}
-    newmode := newmode and M_A_BITS_SIGNIFICANT;  {set netware attributes}
+    newmode := StatBuf.st_mode and ($FFFF0000 - M_A_RDONLY-M_A_HIDDEN-M_A_SYSTEM-M_A_ARCH); {only this can be set by dos unit}
+    newmode := newmode or M_A_BITS_SIGNIFICANT;  {set netware attributes}
     if attr and readonly > 0 then
       newmode := newmode or M_A_RDONLY;
     if attr and hidden > 0 then
@@ -621,7 +697,7 @@ begin
       newmode := newmode or M_A_SYSTEM;
     if attr and archive > 0 then
       newmode := newmode or M_A_ARCH;
-    if fchmod (FileRec(f).Handle,newMode) < 0 then
+    if chmod (@textrec(f).name,newMode) < 0 then
       doserror := ___errno^ else
       doserror := 0;
   end else
@@ -677,6 +753,7 @@ end;
 Function  GetEnv(envvar: string): string;
 var envvar0 : array[0..512] of char;
     p       : pchar;
+    SearchElement : string[255];
     i,isDosPath,res : longint;
 begin
   if upcase(envvar) = 'PATH' then
@@ -684,13 +761,16 @@ begin
          // return it here (needed for the compiler)
     GetEnv := '';
     i := 1;
-    res := GetSearchPathElement (i, isdosPath, @envvar0[0]);
+    res := GetSearchPathElement (i, isdosPath, @SearchElement[0]);
     while res = 0 do
     begin
-      if GetEnv <> '' then GetEnv := GetEnv + ';';
-      GetEnv := GetEnv + envvar0;
+      if isDosPath = 0 then
+      begin
+        if GetEnv <> '' then GetEnv := GetEnv + ';';
+        GetEnv := GetEnv + SearchElement;
+      end;
       inc (i);
-      res := GetSearchPathElement (i, isdosPath, @envvar0[0]);
+      res := GetSearchPathElement (i, isdosPath, @SearchElement[0]);
     end;
     for i := 1 to length(GetEnv) do
       if GetEnv[i] = '\' then
@@ -741,7 +821,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2004-09-05 20:58:47  armin
+  Revision 1.2  2004-09-12 20:51:22  armin
+  * added keyboard and video
+  * a lot of fixes
+
+  Revision 1.1  2004/09/05 20:58:47  armin
   * first rtl version for netwlibc
 
 }

@@ -807,8 +807,8 @@ function getopt(argc:longint; argv:array of Pchar; optstr:Pchar):longint;cdecl;e
 function Fpioctl(_para1:longint; _para2:longint; args:array of const):longint;cdecl;external libc_nlm name 'ioctl';
 {$endif}
 function Fpioctl(_para1:longint; _para2:longint):longint;cdecl;external libc_nlm name 'ioctl';
-function isatty(fildes:longint):longint;cdecl;external libc_nlm name 'isatty';
-function lseek(fildes:longint; offset:off_t; whence:longint):off_t;cdecl;external libc_nlm name 'lseek';
+function Fpisatty(fildes:longint):longint;cdecl;external libc_nlm name 'isatty';
+//function lseek(fildes:longint; offset:off_t; whence:longint):off_t;cdecl;external libc_nlm name 'lseek';
 function fplseek(fildes:longint; offset:off_t; whence:longint):off_t;cdecl;external libc_nlm name 'lseek';
 
 function pathconf(path:Pchar; name:longint):longint;cdecl;external libc_nlm name 'pathconf';
@@ -827,7 +827,6 @@ function sysconf(name:longint):longint;cdecl;external libc_nlm name 'sysconf';
 function unlink(path:Pchar):longint;cdecl;external libc_nlm name 'unlink';
 function FpUnlink(path:Pchar):longint;cdecl;external libc_nlm name 'unlink';
 
-function {$ifdef INCLUDED_FROM_SYSTEM}libc_write{$else}_write{$endif}(fildes:longint; buf:pointer; nbytes:size_t):ssize_t;cdecl;external libc_nlm name 'write';
 function FpWrite(fildes:longint; buf:pointer; nbytes:size_t):ssize_t;cdecl;external libc_nlm name 'write';
 function FpWrite(fildes:longint; var buf; nbytes:size_t):ssize_t;cdecl;external libc_nlm name 'write';
 { appeared in BSD...  }
@@ -850,12 +849,17 @@ function FpSleep(seconds:dword):dword;cdecl;external libc_nlm name 'sleep';
 function usleep(useconds:useconds_t):longint;cdecl;external libc_nlm name 'usleep';
 { nonstandard (transitional) addtions for 64-bit file I/O...  }
 function chsize64(fildes:longint; size:size64_t):longint;cdecl;external libc_nlm name 'chsize64';
+function Fpchsize64(fildes:longint; size:size64_t):longint;cdecl;external libc_nlm name 'chsize64';
 function ftruncate64(fildes:longint; len:off64_t):longint;cdecl;external libc_nlm name 'ftruncate64';
+function Fpftruncate64(fildes:longint; len:off64_t):longint;cdecl;external libc_nlm name 'ftruncate64';
 function lseek64(fildes:longint; offset:off64_t; whence:longint):off64_t;cdecl;external libc_nlm name 'lseek64';
+function Fplseek64(fildes:longint; offset:off64_t; whence:longint):off64_t;cdecl;external libc_nlm name 'lseek64';
+
 function pread64(fildes:longint; buf:pointer; nbytes:size_t; off:off64_t):ssize_t;cdecl;external libc_nlm name 'pread64';
 
 function pwrite64(fildes:longint; buf:pointer; nbytes:size_t; off:off64_t):ssize_t;cdecl;external libc_nlm name 'pwrite64';
 function tell64(fildes:longint):off64_t;cdecl;external libc_nlm name 'tell64';
+function Fptell64(fildes:longint):off64_t;cdecl;external libc_nlm name 'tell64';
 function ____environ:PPPchar;cdecl;external libc_nlm name '____environ';
 function ___optarg:PPchar;cdecl;external libc_nlm name '___optarg';
 function ___optind:Plongint;cdecl;external libc_nlm name '___optind';
@@ -1179,7 +1183,7 @@ type
         tm_year  : longint;    // years since 1900 [0..ì]
         tm_wday  : longint;    // days since Sunday [0..6]
         tm_yday  : longint;    // days since first of January [0..365]
-        tm_isdst : longint;    // on summer time (-1 unknown, 0 no, !0 yes)
+        tm_isdst: longint;    // on summer time (-1 unknown, 0 no, !0 yes)
      end;
 
    Ptimespec = ^Ttimespec;
@@ -1384,10 +1388,14 @@ type
 { operations on struct timeval; note timercmp() does not work for >= or <=  }
 
 function gettimeofday(tp:Ptimeval; tpz:Ptimezone):longint;cdecl;external libc_nlm name 'gettimeofday';
+function Fpgettimeofday(tp:Ptimeval; tpz:Ptimezone):longint;cdecl;external libc_nlm name 'gettimeofday';
+
 function settimeofday(tp:Ptimeval; tpz:Ptimezone):longint;cdecl;external libc_nlm name 'settimeofday';
 
 function gettimeofday(var tp:Ttimeval; var tpz:Ttimezone):longint;cdecl;external libc_nlm name 'gettimeofday';
 function settimeofday(var tp:Ttimeval; var tpz:Ttimezone):longint;cdecl;external libc_nlm name 'settimeofday';
+function Fpgettimeofday(var tp:Ttimeval; var tpz:Ttimezone):longint;cdecl;external libc_nlm name 'gettimeofday';
+function Fpsettimeofday(var tp:Ttimeval; var tpz:Ttimezone):longint;cdecl;external libc_nlm name 'settimeofday';
 
 
 { turn on 1-byte packing...  }
@@ -1875,7 +1883,8 @@ type
 (** unsupported pragma#pragma pack()*)
 
 
-//!! function statfs(path:Pchar; buf:Pstatfs):longint;cdecl;external libc_nlm name 'statfs';
+function statfs(path:Pchar; buf:Pstatfs):longint;cdecl;external libc_nlm name 'statfs';
+function statfs(path:Pchar; var buf:Tstatfs):longint;cdecl;external libc_nlm name 'statfs';
 function fstatfs(fildes:longint; buf:Pstatfs):longint;cdecl;external libc_nlm name 'fstatfs';
 function fstatfs(fildes:longint; var buf:Tstatfs):longint;cdecl;external libc_nlm name 'fstatfs';
 
@@ -3432,11 +3441,11 @@ type
      BACKSPACE = $08;
   { modifier code constituents...  }
      SHIFT_KEY_HELD    = $01;
-     CTRL_KEY_HELD     = $02;
-     ALT_KEY_HELD      = $04;
-     CAPS_LOCK_IS_ON   = $10;
+     CTRL_KEY_HELD     = $04;
+     ALT_KEY_HELD      = $08;
+     CAPS_LOCK_IS_ON   = $40;
      NUM_LOCK_IS_ON    = $20;
-     SCROLL_LOCK_IS_ON = $40;
+     SCROLL_LOCK_IS_ON = $10;
   { suggested 'maxlen' argument for getpassword()...  }
      _PASSWORD_LEN = 128;
   { string-embeddable color representations...  }
@@ -3611,6 +3620,7 @@ function GetActiveScreen:scr_t;cdecl;external system_nlm name 'GetActiveScreen';
 function GetActualScreenSize(scrID:scr_t; height:Pdword; width:Pdword; bufferSize:Psize_t):longint;cdecl;external system_nlm name 'GetActualScreenSize';
 function GetConsoleSecuredFlag:longint;cdecl;external libc_nlm name 'GetConsoleSecuredFlag';
 procedure GetCursorStyle(scrID:scr_t; cursorStyle:Pword);cdecl;external system_nlm name 'GetCursorStyle';
+procedure GetCursorStyle(scrID:scr_t; var cursorStyle:word);cdecl;external system_nlm name 'GetCursorStyle';
 procedure GetInputCursorPosition(scrID:scr_t; row:Pword; col:Pword);cdecl;external system_nlm name 'GetInputCursorPosition';
 procedure GetKey(scrID:scr_t; _type,value,status,scancode:Pbyte;linesToProtect:size_t);cdecl;external system_nlm name 'GetKey';
 procedure GetKey(scrID:scr_t; var _type,value,status,scancode:byte;linesToProtect:size_t);cdecl;external system_nlm name 'GetKey';
@@ -3680,13 +3690,12 @@ function ReadScreenCharacter(scrID:scr_t; line,col:dword; character:Pchar):longi
 
 function RenameScreen(scrID:scr_t; name:Pchar):longint;cdecl;external system_nlm name 'RenameScreen';
 function RestoreFullScreen(scrID:scr_t; buffer:pointer):longint;cdecl;external system_nlm name 'RestoreFullScreen';
-function RestoreScreenArea(scrID:scr_t; line:dword; col:dword; height:dword; width:dword;
-           buffer:pointer):longint;cdecl;external system_nlm name 'RestoreScreenArea';
-procedure ReturnScreenType(_type:Pdword; colorFlag:Pdword);cdecl;external system_nlm name 'ReturnScreenType';
+function RestoreScreenArea(scrID:scr_t; line,col,height,width:dword; buffer:pointer):longint;cdecl;external system_nlm name 'RestoreScreenArea';
+procedure ReturnScreenType(_type,colorFlag:Pdword);cdecl;external system_nlm name 'ReturnScreenType';
+procedure ReturnScreenType(var _type,colorFlag:dword);cdecl;external system_nlm name 'ReturnScreenType';
 procedure RingTheBell;cdecl;external system_nlm name 'RingTheBell';
 function SaveFullScreen(scrID:scr_t; buffer:pointer):longint;cdecl;external system_nlm name 'SaveFullScreen';
-function SaveScreenArea(scrID:scr_t; line:dword; col:dword; height:dword; width:dword;
-           buffer:pointer):longint;cdecl;external system_nlm name 'SaveScreenArea';
+function SaveScreenArea(scrID:scr_t; line,col,height,width:dword; buffer:pointer):longint;cdecl;external system_nlm name 'SaveScreenArea';
 procedure SetConsoleSecuredFlag(value:byte);cdecl;external system_nlm name 'SetConsoleSecuredFlag';
 procedure SetCursorStyle(scrID:scr_t; newStyle:word);cdecl;external system_nlm name 'SetCursorStyle';
 procedure SetInputToOutputCursorPosition(scrID:scr_t);cdecl;external system_nlm name 'SetInputToOutputCursorPosition';
@@ -5023,8 +5032,9 @@ function chdir2(path:Pchar):longint;cdecl;external libc_nlm name 'chdir2';
 function setcwd(pathCtx:NXPathCtx_t):longint;cdecl;external libc_nlm name 'setcwd';
 function setcwd2(pathCtx:NXPathCtx_t):longint;cdecl;external libc_nlm name 'setcwd2';
 { extensions of unistd.h file I/O functions...  }
-function eof(fildes:longint):longint;cdecl;external libc_nlm name 'eof';
+function Fpeof(fildes:longint):longint;cdecl;external libc_nlm name 'eof';
 function tell(fildes:longint):off_t;cdecl;external libc_nlm name 'tell';
+function Fptell(fildes:longint):off_t;cdecl;external libc_nlm name 'tell';
 { extensions of sys/stat.h functions...  }
 function fgetstat(fildes:longint; buf:Pstat; requestmap:dword):longint;cdecl;external libc_nlm name 'fgetstat';
 
@@ -8275,18 +8285,21 @@ type
         outfd : longint;
         errfd : longint;
      end;
+   TWiring = wiring_t;
+   PWiring = Pwiring_t;
 
 {$ifndef DisableArrayOfConst}
-function procle(path:Pchar; flags:dword; env:array of Pchar; wiring:Pwiring_t; fds:Pfd_set;
-           appdata:pointer; appdata_size:size_t; reserved:pointer; arg0:Pchar; args:array of const):pid_t;cdecl;external libc_nlm name 'procle';
+//function procle(path:Pchar; flags:dword; env:array of Pchar; wiring:Pwiring_t; fds:Pfd_set;
+//           appdata:pointer; appdata_size:size_t; reserved:pointer; arg0:Pchar; args:array of const):pid_t;cdecl;external libc_nlm name 'procle';
 {$endif}
-function procle(path:Pchar; flags:dword; env:array of Pchar; wiring:Pwiring_t; fds:Pfd_set;
+{function procle(path:Pchar; flags:dword; env:array of Pchar; wiring:Pwiring_t; fds:Pfd_set;
            appdata:pointer; appdata_size:size_t; reserved:pointer; arg0:Pchar):pid_t;cdecl;external libc_nlm name 'procle';
 function procve(path:Pchar; flags:dword; env:array of Pchar; wiring:Pwiring_t; fds:Pfd_set;
-           appdata:pointer; appdata_size:size_t; reserved:pointer; argv:array of Pchar):pid_t;cdecl;external libc_nlm name 'procve';
+           appdata:pointer; appdata_size:size_t; reserved:pointer; argv:array of Pchar):pid_t;cdecl;external libc_nlm name 'procve';}
 function procve(path:Pchar; flags:dword; env:pointer; wiring:Pwiring_t; fds:Pfd_set;
-           appdata:pointer; appdata_size:size_t; reserved:pointer; argv:array of Pchar):pid_t;cdecl;external libc_nlm name 'procve';
-
+           appdata:pointer; appdata_size:size_t; reserved:pointer; argv:ppchar):pid_t;cdecl;external libc_nlm name 'procve';
+function procle(path:Pchar; flags:dword; env:pointer; wiring:Pwiring_t; fds:Pfd_set;
+           appdata:pointer; appdata_size:size_t; reserved:pointer; arg0:Pchar; args:ppchar):pid_t;cdecl;external libc_nlm name 'procle';
 
 // pthread.h
 // sched.h
@@ -9096,6 +9109,7 @@ type
         actime  : time_t;
         modtime : time_t;
      end;
+   utimbuf = Tutimbuf;
 
 (** unsupported pragma#pragma pack()*)
 

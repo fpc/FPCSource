@@ -27,9 +27,13 @@ uses Libc,DOS;
 TYPE
   TNetwareLibcFindData =
   RECORD
-    DirP  : Pdirent;               { used for opendir }
-    EntryP: Pdirent;               { and readdir }
-    Magic : WORD;                  { to avoid abends with uninitialized TSearchRec }
+    DirP  : Pdirent;          { used for opendir }
+    EntryP: Pdirent;          { and readdir }
+    Magic : longint;          { to avoid abends with uninitialized TSearchRec }
+    _mask : string;           { search mask i.e. *.* }
+    _dir  : string;           { directory where to search }
+    _attr : longint;          { specified attribute }
+    fname : string;           { full pathname of found file }
   END;
 
 { Include platform independent interface part }
@@ -39,27 +43,28 @@ TYPE
 
 { additional NetWare file flags}
 CONST
-  faSHARE              = $00000080;  { Sharable file                   }
+  faSHARE              = M_A_SHARE shr 16;              // Sharable file
 
-  faNO_SUBALLOC        = $00000800;  { Don't sub alloc. this file      }
-  faTRANS              = $00001000;  { Transactional file (TTS usable) }
-  faREADAUD            = $00004000;  { Read audit                      }
-  faWRITAUD            = $00008000;  { Write audit                     }
+  //faNO_SUBALLOC        = $00000800;                   // Don't sub alloc. this file
+  faTRANS              = M_A_TRANS shr 16;              // Transactional file (TTS usable)
+  //faREADAUD            = $00004000;                   // clib only: Read audit
+  //faWRITAUD            = $00008000;                   // clib only: Write audit
 
-  faIMMPURG            = $00010000;  { Immediate purge                 }
-  faNORENAM            = $00020000;  { Rename inhibit                  }
-  faNODELET            = $00040000;  { Delete inhibit                  }
-  faNOCOPY             = $00080000;  { Copy inhibit                    }
+  faIMMPURG            = M_A_IMMPURG shr 16;            // Immediate purge
+  faNORENAM            = M_A_NORENAM shr 16;            // Rename inhibit
+  faNODELET            = M_A_NODELET shr 16;            // Delete inhibit
+  faNOCOPY             = M_A_NOCOPY shr 16;             // Copy inhibit
 
-  faFILE_MIGRATED      = $00400000;  { File has been migrated          }
-  faDONT_MIGRATE       = $00800000;  { Don't migrate this file         }
-  faIMMEDIATE_COMPRESS = $02000000;  { Compress this file immediately  }
-  faFILE_COMPRESSED    = $04000000;  { File is compressed              }
-  faDONT_COMPRESS      = $08000000;  { Don't compress this file        }
-  faCANT_COMPRESS      = $20000000;  { Can't compress this file        }
-  faATTR_ARCHIVE       = $40000000;  { Entry has had an EA modified,   }
-                                     { an ownerID changed, or trustee  }
-                                     { info changed, etc.              }
+  //faFILE_MIGRATED      = $00400000;                   // clib only: File has been migrated
+  //faDONT_MIGRATE       = $00800000;                   // clib only: Don't migrate this file
+  faIMMEDIATE_COMPRESS = M_A_IMMCOMPRESS shr 16;        // Compress this file immediately
+  faFILE_COMPRESSED    = M_A_FILE_COMPRESSED shr 16;    // File is compressed
+  faDONT_COMPRESS      = M_A_DONT_COMPRESS shr 16;      // Don't compress this file
+  faCANT_COMPRESS      = M_A_CANT_COMPRESS shr 16;      // Can't compress this file
+  //faATTR_ARCHIVE       = $40000000;                   // clib only: Entry has had an EA modified,
+                                                        // an ownerID changed, or trustee
+                                                        // info changed, etc.
+  faSetNetwareAttrs    = M_A_BITS_SIGNIFICANT;          // if this is set, netware flags are changed also
 
 
 
@@ -85,41 +90,38 @@ BEGIN
     1 : NWOpenFlags:=NWOpenFlags or O_WRONLY;
     2 : NWOpenFlags:=NWOpenFlags or O_RDWR;
   end;
-  FileOpen := open (pchar(FileName),NWOpenFlags);
+  FileOpen := Fpopen (pchar(FileName),NWOpenFlags);
 
   //!! We need to set locking based on Mode !!
 end;
 
 
 Function FileCreate (Const FileName : String) : Longint;
-
 begin
-  FileCreate:=open(Pchar(FileName),O_RdWr or O_Creat or O_Trunc);
+  FileCreate:=Fpopen(Pchar(FileName),O_RdWr or O_Creat or O_Trunc or O_Binary);
+  if FileCreate >= 0 then
+    FileSetAttr (Filename, 0);  // dont know why but open always sets ReadOnly flag
 end;
 
 Function FileCreate (Const FileName : String; mode:longint) : Longint;
-
 begin
   FileCreate:=FileCreate (FileName);
 end;
 
 
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
-
 begin
   FileRead:=libc.fpread (Handle,@Buffer,Count);
 end;
 
 
 Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
-
 begin
   FileWrite:=libc.fpwrite (Handle,@Buffer,Count);
 end;
 
 
 Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
-
 begin
   FileSeek:=libc.fplseek (Handle,FOffset,Origin);
 end;
@@ -127,18 +129,16 @@ end;
 
 Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
 begin
-  FileSeek:=libc.fplseek (Handle,FOffset,Origin);
+  FileSeek:=libc.fplseek64 (Handle,FOffset,Origin);
 end;
 
 
 Procedure FileClose (Handle : Longint);
-
 begin
   libc.fpclose(Handle);
 end;
 
 Function FileTruncate (Handle,Size: Longint) : boolean;
-
 begin
   FileTruncate:=(libc.fpchsize(Handle,Size) = 0);
 end;
@@ -168,20 +168,16 @@ begin
 end;
 
 Function FileAge (Const FileName : String): Longint;
-
-VAR Info : TStat;
-    _PTM  : PTM;
+var Info : TStat;
+    TM  : TTM;
 begin
   If stat (pchar(FileName),Info) <> 0 then
     exit(-1)
   else
     begin
-      _PTM := localtime (Info.st_mtim.tv_sec);
-      IF _PTM = NIL THEN
-        exit(-1)
-      else
-        WITH _PTM^ DO
-          Result:=DateTimeToFileDate(EncodeDate(tm_year+1900,tm_mon+1,tm_mday)+EncodeTime(tm_hour,tm_min,tm_sec,0));
+      localtime_r (Info.st_mtim.tv_sec,tm);
+      with TM do
+        result:=DateTimeToFileDate(EncodeDate(tm_year+1900,tm_mon+1,tm_mday)+EncodeTime(tm_hour,tm_min,tm_sec,0));
     end;
 end;
 
@@ -193,7 +189,7 @@ begin
 end;
 
 
-
+(*
 PROCEDURE find_setfields (VAR f : TsearchRec);
 VAR T : Dos.DateTime;
 BEGIN
@@ -212,10 +208,56 @@ BEGIN
       FillChar (f,SIZEOF(f),0);
     END;
   END;
-END;
+END;*)
+
+
+Function UnixToWinAge(UnixAge : time_t): Longint;
+Var tm : TTm;
+begin
+  libc.localtime_r (UnixAge, tm);
+  with tm do
+    Result:=DateTimeToFileDate(EncodeDate(tm_year+1900,tm_mon+1,tm_mday)+EncodeTime(tm_hour,tm_min,tm_sec,0));
+end;
+
+
+{returns true if attributes match}
+function find_setfields (var f : TsearchRec; var AttrsOk : boolean) : longint;
+var
+  StatBuf : TStat;
+  fname   : string;
+begin
+  result := 0;
+  with F do
+  begin
+    if FindData.Magic = $AD02 then
+    begin
+      attr := (Pdirent(FindData.EntryP)^.d_mode shr 16) and $ffff;
+      size := Pdirent(FindData.EntryP)^.d_size;
+      name := strpas (Pdirent(FindData.EntryP)^.d_name);
+      fname := FindData._dir + name;
+      if stat (pchar(fname),StatBuf) = 0 then
+        time := UnixToWinAge (StatBuf.st_mtim.tv_sec)
+      else
+        time := 0;
+      AttrsOk := false;
+      if (f.FindData._attr and faHidden) = 0 then
+        if attr and faHidden > 0 then exit;
+      if (f.FindData._attr and faDirectory) = 0 then
+        if attr and faDirectory > 0 then exit;
+      if (f.FindData._attr and faSysFile) = 0 then
+        if attr and faSysFile > 0 then exit;
+      AttrsOk := true;
+    end else
+    begin
+      FillChar (f,sizeof(f),0);
+      result := 18;
+    end;
+  end;
+end;
 
 
 
+(*
 Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
 begin
   IF path = '' then
@@ -263,7 +305,79 @@ begin
     F.FindData.DirP := NIL;
     F.FindData.EntryP := NIL;
   end;
+end;*)
+function findfirst(const path : string;attr : longint;var Rslt : TsearchRec) : longint;
+var
+  path0 : string;
+  p     : longint;
+begin
+  IF path = '' then
+  begin
+    result := 18;
+    exit;
+  end;
+  Rslt.FindData._attr := attr;
+  p := length (path);
+  while (p > 0) and (not (path[p] in ['\','/'])) do
+    dec (p);
+  if p > 0 then
+  begin
+    Rslt.FindData._mask := copy (path,p+1,255);
+    Rslt.FindData._dir := copy (path,1,p);
+  end else
+  begin
+    Rslt.FindData._mask := path;
+    Rslt.FindData._dir := GetCurrentDir;
+    if (Rslt.FindData._dir[length(Rslt.FindData._dir)] <> '/') and
+       (Rslt.FindData._dir[length(Rslt.FindData._dir)] <> '\') then
+      Rslt.FindData._dir := Rslt.FindData._dir + '/';
+  end;
+  if Rslt.FindData._mask = '*' then Rslt.FindData._mask := '';
+  if Rslt.FindData._mask = '*.*' then Rslt.FindData._mask := '';
+  //writeln (stderr,'mask: "',Rslt._mask,'" dir:"',path0,'"');
+  Pdirent(Rslt.FindData.DirP) := opendir (pchar(Rslt.FindData._dir));
+  if Rslt.FindData.DirP = nil then
+    result := 18
+  else begin
+    Rslt.FindData.Magic := $AD02;
+    result := findnext (Rslt);
+  end;
 end;
+
+
+function findnext(var Rslt : TsearchRec) : longint;
+var attrsOk : boolean;
+begin
+  if Rslt.FindData.Magic <> $AD02 then
+  begin
+    result := 18;
+    exit;
+  end;
+  result:=0;
+  repeat
+    Pdirent(Rslt.FindData.EntryP) := readdir (Pdirent(Rslt.FindData.DirP));
+    if Rslt.FindData.EntryP = nil then
+      result := 18
+    else
+    result := find_setfields (Rslt,attrsOk);
+    if (result = 0) and (attrsOk) then
+    begin
+      if Rslt.FindData._mask = #0 then exit;
+      if fnmatch(@Rslt.FindData._mask[1],Pdirent(Rslt.FindData.EntryP)^.d_name,FNM_CASEFOLD) = 0 then
+        exit;
+    end;
+  until result <> 0;
+end;
+
+
+Procedure FindClose(Var f: TSearchRec);
+begin
+  if F.FindData.Magic <> $AD02 then exit;
+  doserror:=0;
+  closedir (Pdirent(f.FindData.DirP));
+  FillChar (f,sizeof(f),0);
+end;
+
 
 
 Function FileGetDate (Handle : Longint) : Longint;
@@ -285,12 +399,9 @@ end;
 
 
 Function FileSetDate (Handle,Age : Longint) : Longint;
-begin
-  { i think its impossible under netware from FileHandle. I dident found a way to get the
-    complete pathname of a filehandle, that would be needed for ChangeDirectoryEntry }
-  FileSetDate:=-1;
-  ConsolePrintf ('warning: fpc sysutils.FileSetDate not implemented'#13#10);
-  {$warning FileSetDate not implemented (i think is impossible) }
+Begin
+  {dont know how to do that, utime needs filename}
+  result := -1;
 end;
 
 
@@ -300,19 +411,36 @@ begin
   If stat (pchar(FileName),Info) <> 0 then
     Result:=-1
   Else
-    Result := Info.st_flags AND $FFFF;
+    Result := (Info.st_mode shr 16) and $ffff;
 end;
 
 
 Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
-//VAR MS : NWModifyStructure;
+var
+  StatBuf : TStat;
+  newMode : longint;
 begin
-  {FillChar (MS, SIZEOF (MS), 0);
-  if _ChangeDirectoryEntry (PChar (Filename), MS, MFileAtrributesBit, 0) <> 0 then
-    result := -1
-  else
-    result := 0;}
-{$warning FileSetAttr needs implementation}
+  if stat (pchar(Filename),StatBuf) = 0 then
+  begin
+    {what should i do here ?
+     only support sysutils-standard attributes or also support the extensions defined
+     only for netware libc ?
+     For now i allow the complete attributes if the bit faSetNetwareAttrs is set. Otherwise
+     only the standard attributes can be modified}
+    if attr and faSetNetwareAttrs > 0 then
+    begin
+      newmode := ((attr shl 16) and $ffff0000) or M_A_BITS_SIGNIFICANT;
+    end else
+    begin
+      attr := (attr and $2f) shl 16;
+      newmode := StatBuf.st_mode and ($ffff0000-M_A_RDONLY-M_A_HIDDEN- M_A_SYSTEM-M_A_SUBDIR-M_A_ARCH);
+      newmode := newmode or (attr shl 16) or M_A_BITS_SIGNIFICANT;
+    end;
+    if chmod (pchar(Filename),newMode) < 0 then
+      result := ___errno^ else
+      result := 0;
+  end else
+    result := ___errno^;
 end;
 
 
@@ -370,7 +498,7 @@ end;
 
 
 Function DiskFree(Drive: Byte): int64;
-//var fs : statfs;
+//var fs : Tstatfs;
 Begin
 {  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
      ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
@@ -557,7 +685,11 @@ end.
 {
 
   $Log$
-  Revision 1.1  2004-09-05 20:58:47  armin
+  Revision 1.2  2004-09-12 20:51:22  armin
+  * added keyboard and video
+  * a lot of fixes
+
+  Revision 1.1  2004/09/05 20:58:47  armin
   * first rtl version for netwlibc
 
 }
