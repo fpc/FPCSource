@@ -427,23 +427,28 @@ begin
       jumpalign:=s.jumpalign;
      if s.constalignmin>constalignmin then
       constalignmin:=s.constalignmin;
-     if (constalignmax=0) or (s.constalignmax<constalignmax) then
+     if (constalignmax=0) or
+        ((s.constalignmax>0) and (s.constalignmax<constalignmax)) then
       constalignmax:=s.constalignmax;
      if s.varalignmin>varalignmin then
       varalignmin:=s.varalignmin;
-     if (varalignmax=0) or (s.varalignmax<varalignmax) then
+     if (varalignmax=0) or
+        ((s.varalignmax>0) and (s.varalignmax<varalignmax)) then
       varalignmax:=s.varalignmax;
      if s.localalignmin>localalignmin then
       localalignmin:=s.localalignmin;
-     if (localalignmax=0) or (s.localalignmax<localalignmax) then
+     if (localalignmax=0) or
+        ((s.localalignmax>0) and (s.localalignmax<localalignmax)) then
       localalignmax:=s.localalignmax;
      if s.paraalign>paraalign then
       paraalign:=s.paraalign;
      if s.recordalignmin>recordalignmin then
       recordalignmin:=s.recordalignmin;
-     if (recordalignmax=0) or (s.recordalignmax<recordalignmax) then
+     if (recordalignmax=0) or
+        ((s.recordalignmax>0) and (s.recordalignmax<recordalignmax)) then
       recordalignmax:=s.recordalignmax;
-     if (maxCrecordalign=0) or (s.maxCrecordalign<maxCrecordalign) then
+     if (maxCrecordalign=0) or
+        ((s.maxCrecordalign>0) and (s.maxCrecordalign<maxCrecordalign)) then
       maxCrecordalign:=s.maxCrecordalign;
    end;
 end;
@@ -677,7 +682,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.33  2002-01-06 20:34:34  hajny
+  Revision 1.34  2002-01-29 19:44:50  peter
+    * fixed updatealignment to not override settings with undefined
+      values
+
+  Revision 1.33  2002/01/06 20:34:34  hajny
     * source_os changed to source_info in OS/2 define
 
   Revision 1.32  2001/12/15 05:43:20  carl
