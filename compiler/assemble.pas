@@ -151,16 +151,17 @@ var
 Function TAsmList.FindAssembler:string;
 var
   asfound : boolean;
+  UtilExe  : string;
 begin
+  UtilExe:=AddExtension(target_asm.asmbin,source_os.exeext);
   if lastas<>ord(target_asm.id) then
    begin
      lastas:=ord(target_asm.id);
      { is an assembler passed ? }
      if utilsdirectory<>'' then
-       LastASBin:=FindFile(target_asm.asmbin+source_os.exeext,utilsdirectory,asfound)+
-         target_asm.asmbin+source_os.exeext;
-     if LastASBin='' then
-       LastASBin:=FindExe(target_asm.asmbin,asfound);
+       LastASBin:=FindFile(UtilExe,utilsdirectory,asfound)+UtilExe;
+     if not AsFound then
+       LastASBin:=FindExe(UtilExe,asfound);
      if (not asfound) and not(cs_asm_extern in aktglobalswitches) then
       begin
         Message1(exec_w_assembler_not_found,LastASBin);
@@ -596,7 +597,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-12-25 00:07:25  peter
+  Revision 1.9  2001-01-12 19:19:44  peter
+    * fixed searching for utils
+
+  Revision 1.8  2000/12/25 00:07:25  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

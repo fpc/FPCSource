@@ -247,22 +247,25 @@ end;
 
 Function TLinker.FindUtil(const s:string):string;
 var
-  ldfound : boolean;
-  LastBin : string;
+  Found    : boolean;
+  FoundBin : string;
+  UtilExe  : string;
 begin
-  LastBin:='';
+  UtilExe:=AddExtension(s,source_os.exeext);
+  FoundBin:='';
+  Found:=false;
   if utilsdirectory<>'' then
-   LastBin:=FindFile(s+source_os.exeext,utilsdirectory,ldfound)+s+source_os.exeext;
-  if LastBin='' then
-   LastBin:=FindExe(s,ldfound);
-  if (not ldfound) and not(cs_link_extern in aktglobalswitches) then
+   FoundBin:=FindFile(utilexe,utilsdirectory,Found)+utilexe;
+  if (not Found) then
+   FoundBin:=FindExe(utilexe,Found);
+  if (not Found) and not(cs_link_extern in aktglobalswitches) then
    begin
-     Message1(exec_w_util_not_found,s);
+     Message1(exec_w_util_not_found,utilexe);
      aktglobalswitches:=aktglobalswitches+[cs_link_extern];
    end;
-  if ldfound then
-   Message1(exec_t_using_util,LastBin);
-  FindUtil:=LastBin;
+  if (FoundBin<>'') then
+   Message1(exec_t_using_util,FoundBin);
+  FindUtil:=FoundBin;
 end;
 
 
@@ -540,7 +543,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2000-12-25 00:07:26  peter
+  Revision 1.12  2001-01-12 19:19:44  peter
+    * fixed searching for utils
+
+  Revision 1.11  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
