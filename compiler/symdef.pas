@@ -3265,7 +3265,7 @@ implementation
           end;
          lastref:=defref;
        { first, we assume that all registers are used }
-         usedregisters:=[firstreg..lastreg];
+         usedregisters:=ALL_REGISTERS;
          forwarddef:=true;
          interfacedef:=false;
          hasforward:=false;
@@ -3368,7 +3368,7 @@ implementation
          { set all registers to used for simplified compilation PM }
          if simplify_ppu then
            begin
-             usedregisters:=[firstreg..lastreg];
+             usedregisters:=ALL_REGISTERS;
            end;
 
          ppufile.putnormalset(usedregisters);
@@ -5419,7 +5419,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2002-04-02 17:11:29  peter
+  Revision 1.69  2002-04-14 16:55:43  carl
+  + replace some stuff by ALL_REGISTERS
+
+  Revision 1.68  2002/04/02 17:11:29  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines
