@@ -754,9 +754,9 @@ procedure RegisterWEditor;
 implementation
 
 uses
-  Video,MsgBox,Dialogs,App,StdDlg,Validate,
+  Strings,Video,MsgBox,Dialogs,App,StdDlg,Validate,
 {$ifdef WinClipSupported}
-  Strings,WinClip,
+  WinClip,
 {$endif WinClipSupported}
 {$ifdef TEST_REGEXP}
   regexpr,
@@ -7093,7 +7093,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.15  2001-10-02 22:43:22  pierre
+  Revision 1.16  2001-11-07 00:18:00  pierre
+   * avoid problem to compile ide with debug for linux
+
+  Revision 1.15  2001/10/02 22:43:22  pierre
    * correct last commit, FVISION conditional means the new fvision dir instead of fvnew
 
   Revision 1.14  2001/10/02 16:35:04  pierre
