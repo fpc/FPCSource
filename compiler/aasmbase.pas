@@ -190,9 +190,7 @@ interface
          procedure Freeasmsymbolidx;
          procedure DerefAsmsymbol(var s:tasmsymbol);
          { asmsymbol }
-         function  newasmsymbol(const s : string) : tasmsymbol;
-         function  newasmsymboldata(const s : string) : tasmsymbol;
-         function  newasmsymboltype(const s : string;_bind:TAsmSymBind;_typ:TAsmsymtype) : tasmsymbol;
+         function  newasmsymbol(const s : string;_bind:TAsmSymBind;_typ:TAsmsymtype) : tasmsymbol;
          function  getasmsymbol(const s : string) : tasmsymbol;
          function  renameasmsymbol(const sold, snew : string):tasmsymbol;
          function  newasmlabel(nr:longint;is_addr,is_data:boolean) : tasmlabel;
@@ -702,37 +700,7 @@ implementation
       end;
 
 
-    function TAsmLibraryData.newasmsymbol(const s : string) : tasmsymbol;
-      var
-        hp : tasmsymbol;
-      begin
-        hp:=tasmsymbol(symbolsearch.search(s));
-        if not assigned(hp) then
-         begin
-           { Not found, insert it as an External }
-           hp:=tasmsymbol.create(s,AB_EXTERNAL,AT_FUNCTION);
-           symbolsearch.insert(hp);
-         end;
-        newasmsymbol:=hp;
-      end;
-
-
-    function TAsmLibraryData.newasmsymboldata(const s : string) : tasmsymbol;
-      var
-        hp : tasmsymbol;
-      begin
-        hp:=tasmsymbol(symbolsearch.search(s));
-        if not assigned(hp) then
-         begin
-           { Not found, insert it as an External }
-           hp:=tasmsymbol.create(s,AB_EXTERNAL,AT_DATA);
-           symbolsearch.insert(hp);
-         end;
-        newasmsymboldata:=hp;
-      end;
-
-
-    function TAsmLibraryData.newasmsymboltype(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : tasmsymbol;
+    function TAsmLibraryData.newasmsymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : tasmsymbol;
       var
         hp : tasmsymbol;
       begin
@@ -744,11 +712,11 @@ implementation
          end
         else
          begin
-           { Not found, insert it as an External }
+           { Not found, insert it. }
            hp:=tasmsymbol.create(s,_bind,_typ);
            symbolsearch.insert(hp);
          end;
-        newasmsymboltype:=hp;
+        newasmsymbol:=hp;
       end;
 
 
@@ -905,7 +873,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2003-05-23 14:27:35  peter
+  Revision 1.16  2004-03-02 00:36:32  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.15  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 

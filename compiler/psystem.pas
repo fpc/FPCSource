@@ -53,6 +53,7 @@ implementation
       ,dmisc
       ,sysutils
 {$endif}
+	  ,verbose
       ;
 
 
@@ -80,7 +81,11 @@ implementation
         p.insert(tsyssym.create('Include',in_include_x_y));
         p.insert(tsyssym.create('Break',in_break));
         p.insert(tsyssym.create('Exit',in_exit));
-        p.insert(tsyssym.create('Continue',in_continue));
+        //if not (m_mac in aktmodeswitches) then
+          p.insert(tsyssym.create('Continue',in_continue));
+        //else
+          p.insert(tsyssym.create('Cycle',in_continue));
+        //comment(v_info,'Hubba Bubba');
         p.insert(tsyssym.create('Dec',in_dec_x));
         p.insert(tsyssym.create('Inc',in_inc_x));
         p.insert(tsyssym.create('Str',in_str_x_string));
@@ -489,7 +494,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2004-02-26 16:16:38  peter
+  Revision 1.64  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.63  2004/02/26 16:16:38  peter
     * tai_const.create_ptr added
 
   Revision 1.62  2004/02/04 22:15:15  daniel

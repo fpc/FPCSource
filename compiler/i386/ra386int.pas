@@ -1378,7 +1378,7 @@ Unit Ra386int;
          begin
            oper.opr.typ:=OPR_SYMBOL;
            oper.opr.symofs:=l;
-           oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr);
+           oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION);
          end
         else
          begin
@@ -1977,7 +1977,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2004-01-14 23:39:05  florian
+  Revision 1.70  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.69  2004/01/14 23:39:05  florian
     * another bunch of x86-64 fixes mainly calling convention and
       assembler reader related
 

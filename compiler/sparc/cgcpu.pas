@@ -407,7 +407,7 @@ implementation
 
     procedure TCgSparc.a_call_name(list:TAasmOutput;const s:string);
       begin
-        list.concat(taicpu.op_sym(A_CALL,objectlibrary.newasmsymbol(s)));
+        list.concat(taicpu.op_sym(A_CALL,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
         { Delay slot }
         list.concat(taicpu.op_none(A_NOP));
       end;
@@ -728,7 +728,7 @@ implementation
 
     procedure TCgSparc.a_jmp_always(List:TAasmOutput;l:TAsmLabel);
       begin
-        List.Concat(TAiCpu.op_sym(A_BA,objectlibrary.newasmsymbol(l.name)));
+        List.Concat(TAiCpu.op_sym(A_BA,objectlibrary.newasmsymbol(l.name,AB_EXTERNAL,AT_FUNCTION)));
         { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
@@ -1107,7 +1107,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2004-02-27 13:28:28  mazen
+  Revision 1.80  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.79  2004/02/27 13:28:28  mazen
   * symaddr ==> refaddr to follow the rest of compiler changes
 
   Revision 1.78  2004/02/04 22:01:13  peter

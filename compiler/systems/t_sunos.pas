@@ -189,8 +189,8 @@ begin
 {$ifdef i386}
            { place jump in codesegment }
            codesegment.concat(Tai_align.Create_op(4,$90));
-           codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
-           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname)));
+           codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
+           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
            codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
          end;
@@ -489,7 +489,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2003-10-11 19:32:04  marco
+  Revision 1.7  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.6  2003/10/11 19:32:04  marco
    * -Xd
 
   Revision 1.5  2003/10/03 14:16:48  marco

@@ -5348,7 +5348,7 @@ implementation
                   exit;
                 if not(po_virtualmethod in tprocdef(proc.procdef).procoptions) then
                   begin
-                     rttiList.concat(Tai_const_symbol.Createname(tprocdef(proc.procdef).mangledname));
+                     rttiList.concat(Tai_const_symbol.Createname(tprocdef(proc.procdef).mangledname,AT_FUNCTION,0));
                      typvalue:=1;
                   end
                 else
@@ -5373,7 +5373,7 @@ implementation
                      internalerror(1509992);
                    { access to implicit class property as field }
                    proctypesinfo:=(0 shl 0) or (0 shl 2) or (0 shl 4);
-                   rttiList.concat(Tai_const_symbol.Createname(tvarsym(sym.vartype.def.get_rtti_label)));
+                   rttiList.concat(Tai_const_symbol.Createname(tvarsym(sym.vartype.def.get_rtti_label),AT_FUNCTION,0));
                    rttiList.concat(Tai_const.Create_32bit(tvarsym(sym.address)));
                    rttiList.concat(Tai_const.Create_32bit(tvarsym(sym.address)));
                    { per default stored }
@@ -5547,7 +5547,7 @@ implementation
          hp:=tclasslistitem(classtablelist.first);
          while assigned(hp) do
            begin
-              rttiList.concat(Tai_const_symbol.Createname(tobjectdef(hp.p).vmt_mangledname));
+              rttiList.concat(Tai_const_symbol.Createname(tobjectdef(hp.p).vmt_mangledname,AT_FUNCTION,0));
               hp:=tclasslistitem(hp.next);
            end;
 
@@ -5606,7 +5606,7 @@ implementation
              begin
                if (oo_has_vmt in objectoptions) and
                   not(objecttype in [odt_interfacecom,odt_interfacecorba]) then
-                 rttiList.concat(Tai_const_symbol.Createname(vmt_mangledname))
+                 rttiList.concat(Tai_const_symbol.Createname(vmt_mangledname,AT_FUNCTION,0))
                else
                  rttiList.concat(Tai_const.Create_ptr(0));
 
@@ -6119,7 +6119,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.223  2004-02-26 16:16:38  peter
+  Revision 1.224  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.223  2004/02/26 16:16:38  peter
     * tai_const.create_ptr added
 
   Revision 1.222  2004/02/22 19:55:25  daniel

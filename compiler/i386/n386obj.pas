@@ -168,9 +168,9 @@ begin
     make_global:=true;
 
   if make_global then
-   exprasmList.concat(Tai_symbol.Createname_global(labelname,0))
+   exprasmList.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
   else
-   exprasmList.concat(Tai_symbol.Createname(labelname,0));
+   exprasmList.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
 
   { set param1 interface to self  }
   adjustselfvalue(procdef,ioffset);
@@ -223,7 +223,7 @@ begin
   { case 0 }
   else
     begin
-      lab:=objectlibrary.newasmsymbol(procdef.mangledname);
+      lab:=objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
       emit_sym(A_JMP,S_NO,lab);
     end;
 
@@ -238,7 +238,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.31  2004-02-27 13:42:52  olle
+  Revision 1.32  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.31  2004/02/27 13:42:52  olle
     + added Tai_symbol_end
 
   Revision 1.30  2004/02/27 10:21:05  florian

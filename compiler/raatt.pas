@@ -1481,7 +1481,7 @@ unit raatt;
          begin
            oper.opr.typ:=OPR_SYMBOL;
            oper.opr.symofs:=l;
-           oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr);
+           oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION);
          end
         else
          begin
@@ -1494,7 +1494,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-02-07 23:28:34  daniel
+  Revision 1.10  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.9  2004/02/07 23:28:34  daniel
     * Take advantage of our new with statement optimization
 
   Revision 1.8  2003/12/25 01:25:43  peter

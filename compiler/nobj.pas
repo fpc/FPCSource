@@ -304,7 +304,7 @@ implementation
 
          { write name label }
          dataSegment.concat(Tai_const_symbol.Create(p^.nl));
-         dataSegment.concat(Tai_const_symbol.Createname(p^.data.mangledname));
+         dataSegment.concat(Tai_const_symbol.Createname(p^.data.mangledname,AT_FUNCTION,0));
 
          if assigned(p^.r) then
            writestrentry(p^.r);
@@ -345,7 +345,7 @@ implementation
 
          { write name label }
          dataSegment.concat(Tai_const.Create_32bit(p^.data.messageinf.i));
-         dataSegment.concat(Tai_const_symbol.Createname(p^.data.mangledname));
+         dataSegment.concat(Tai_const_symbol.Createname(p^.data.mangledname,AT_FUNCTION,0));
 
          if assigned(p^.r) then
            writeintentry(p^.r);
@@ -420,7 +420,7 @@ implementation
       begin
          if assigned(p^.l) then
            writedmtaddressentry(p^.l);
-         dataSegment.concat(Tai_const_symbol.Createname(p^.data.mangledname));
+         dataSegment.concat(Tai_const_symbol.Createname(p^.data.mangledname,AT_FUNCTION,0));
          if assigned(p^.r) then
            writedmtaddressentry(p^.r);
       end;
@@ -490,7 +490,7 @@ implementation
               Consts.concat(Tai_string.Create(p.name));
 
               dataSegment.concat(Tai_const_symbol.Create(l));
-              dataSegment.concat(Tai_const_symbol.Createname(hp.mangledname));
+              dataSegment.concat(Tai_const_symbol.Createname(hp.mangledname,AT_FUNCTION,0));
            end;
       end;
 
@@ -854,9 +854,9 @@ implementation
         implintf:=_class.implementedinterfaces;
         curintf:=implintf.interfaces(intfindex);
         if (cs_create_smart in aktmoduleswitches) then
-         rawdata.concat(Tai_symbol.Createname_global(gintfgetvtbllabelname(intfindex),0))
+         rawdata.concat(Tai_symbol.Createname_global(gintfgetvtbllabelname(intfindex),AT_FUNCTION,0))
         else
-         rawdata.concat(Tai_symbol.Createname(gintfgetvtbllabelname(intfindex),0));
+         rawdata.concat(Tai_symbol.Createname(gintfgetvtbllabelname(intfindex),AT_FUNCTION,0));
         proccount:=implintf.implproccount(intfindex);
         for i:=1 to proccount do
           begin
@@ -866,7 +866,7 @@ implementation
             { create wrapper code }
             cgintfwrapper(rawcode,implintf.implprocs(intfindex,i),tmps,implintf.ioffsets(intfindex)^);
             { create reference }
-            rawdata.concat(Tai_const_symbol.Createname(tmps));
+            rawdata.concat(Tai_const_symbol.Createname(tmps,AT_FUNCTION,0));
           end;
       end;
 
@@ -900,7 +900,7 @@ implementation
             dataSegment.concat(Tai_const.Create_ptr(0)); { nil }
           end;
         { VTable }
-        dataSegment.concat(Tai_const_symbol.Createname(gintfgetvtbllabelname(contintfindex)));
+        dataSegment.concat(Tai_const_symbol.Createname(gintfgetvtbllabelname(contintfindex),AT_FUNCTION,0));
         { IOffset field }
         dataSegment.concat(Tai_const.Create_32bit(implintf.ioffsets(contintfindex)^));
         { IIDStr }
@@ -1155,7 +1155,7 @@ implementation
         begin
           if (cs_create_smart in aktmoduleswitches) then
             dataSegment.concat(Tai_cut.Create);
-          dataSegment.concat(Tai_symbol.Createname_global(make_mangledname('IID',_class.owner,_class.objname^),0));
+          dataSegment.concat(Tai_symbol.Createname_global(make_mangledname('IID',_class.owner,_class.objname^),AT_FUNCTION,0));
           dataSegment.concat(Tai_const.Create_32bit(_class.iidguid^.D1));
           dataSegment.concat(Tai_const.Create_16bit(_class.iidguid^.D2));
           dataSegment.concat(Tai_const.Create_16bit(_class.iidguid^.D3));
@@ -1164,7 +1164,7 @@ implementation
         end;
       if (cs_create_smart in aktmoduleswitches) then
         dataSegment.concat(Tai_cut.Create);
-      dataSegment.concat(Tai_symbol.Createname_global(make_mangledname('IIDSTR',_class.owner,_class.objname^),0));
+      dataSegment.concat(Tai_symbol.Createname_global(make_mangledname('IIDSTR',_class.owner,_class.objname^),AT_FUNCTION,0));
       dataSegment.concat(Tai_const.Create_8bit(length(_class.iidstr^)));
       dataSegment.concat(Tai_string.Create(_class.iidstr^));
     end;
@@ -1200,9 +1200,9 @@ implementation
                                   { class abstract and it's not allow to      }
                                   { generates an instance                     }
                                   if (po_abstractmethod in procdefcoll^.data.procoptions) then
-                                    List.concat(Tai_const_symbol.Createname('FPC_ABSTRACTERROR'))
+                                    List.concat(Tai_const_symbol.Createname('FPC_ABSTRACTERROR',AT_FUNCTION,0))
                                   else
-                                    List.concat(Tai_const_symbol.createname(procdefcoll^.data.mangledname));
+                                    List.concat(Tai_const_symbol.createname(procdefcoll^.data.mangledname,AT_FUNCTION,0));
                                end;
                           end;
                         procdefcoll:=procdefcoll^.next;
@@ -1269,7 +1269,7 @@ implementation
          end;
 {$endif GDB}
          dataSegment.concat(tai_align.create(const_align(POINTER_SIZE)));
-         dataSegment.concat(Tai_symbol.Createdataname_global(_class.vmt_mangledname,0));
+         dataSegment.concat(Tai_symbol.Createname_global(_class.vmt_mangledname,AT_DATA,0));
 
          { determine the size with symtable.datasize, because }
          { size gives back 4 for classes                    }
@@ -1290,7 +1290,7 @@ implementation
          { it is not written for parents that don't have any vmt !! }
          if assigned(_class.childof) and
             (oo_has_vmt in _class.childof.objectoptions) then
-           dataSegment.concat(Tai_const_symbol.Createname(_class.childof.vmt_mangledname))
+           dataSegment.concat(Tai_const_symbol.Createname(_class.childof.vmt_mangledname,AT_FUNCTION,0))
          else
            dataSegment.concat(Tai_const.Create_ptr(0));
 
@@ -1380,7 +1380,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.64  2004-02-27 10:21:05  florian
+  Revision 1.65  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.64  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

@@ -216,9 +216,9 @@ implementation
                       if (po_public in hp2.procdef.procoptions) then
                         begin
                           importsSection.concat(Tai_section.Create(sec_code));
-                          importsSection.concat(Tai_symbol.createname_global(mangledstring,0));
+                          importsSection.concat(Tai_symbol.createname_global(mangledstring,AT_FUNCTION,0));
                           mangledstring := '_$'+mangledstring;
-                          importsSection.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(mangledstring)));
+                          importsSection.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(mangledstring,AB_EXTERNAL,AT_FUNCTION)));
                         end;
 {$else powerpc}
                       internalerror(2004010501);
@@ -227,9 +227,9 @@ implementation
                       importsSection.concat(Tai_section.Create(sec_data));
                       importsSection.concat(Tai_direct.create(strpnew('.section __TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16')));
                       importsSection.concat(Tai_align.Create(4));
-                      importsSection.concat(Tai_symbol.Createname(mangledstring,0));
+                      importsSection.concat(Tai_symbol.Createname(mangledstring,AT_FUNCTION,0));
                       importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+symname)));
-                      l1 := objectlibrary.newasmsymbol(mangledstring+'$lazy_ptr');
+                      l1 := objectlibrary.newasmsymbol(mangledstring+'$lazy_ptr',AB_EXTERNAL,AT_FUNCTION);
                       reference_reset_symbol(href,l1,0);
 {$IfDef GDB}
                       if (cs_debuginfo in aktmoduleswitches) and assigned(hp2.procdef) then
@@ -255,14 +255,14 @@ implementation
                       importsSection.concat(Tai_direct.create(strpnew('.lazy_symbol_pointer')));
                       importsSection.concat(Tai_symbol.Create(l1,0));
                       importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+symname)));
-                      importsSection.concat(tai_const_symbol.createname(strpnew('dyld_stub_binding_helper')));
+                      importsSection.concat(tai_const_symbol.createname(strpnew('dyld_stub_binding_helper'),AT_FUNCTION,0));
 
                     end
                    else
                     begin
                       importsSection.concat(Tai_section.Create(sec_data));
                       importsSection.concat(Tai_direct.create(strpnew('.non_lazy_symbol_pointer')));
-                      importsSection.concat(Tai_symbol.Createname(hp2.func^,0));
+                      importsSection.concat(Tai_symbol.Createname(hp2.func^,AT_FUNCTION,0));
                       importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+hp2.name^)));
                       importsSection.concat(Tai_const.create_32bit(0));
                     end;
@@ -381,8 +381,8 @@ begin
 {$ifdef i386}
            { place jump in codesegment }
            codesegment.concat(Tai_align.Create_op(4,$90));
-           codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
-           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname)));
+           codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
+           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
            codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
          end;
@@ -760,7 +760,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2004-02-27 10:21:05  florian
+  Revision 1.11  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.10  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

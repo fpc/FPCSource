@@ -1,7 +1,7 @@
 {$ifdef Delphi}
-const msgtxt : array[0..000150] of string[240]=(
+const msgtxt : array[0..000149] of string[240]=(
 {$else Delphi}
-const msgtxt : array[0..000150,1..240] of char=(
+const msgtxt : array[0..000149,1..240] of char=(
 {$endif Delphi}
   '01000_T_Compiler: $1'#000+
   '01001_D_Compiler OS: $1'#000+
@@ -773,100 +773,100 @@ const msgtxt : array[0..000150,1..240] of char=(
   '**','2Sp_same as -Mgpc'#010+
   '**2Ss_constructor name must be init (destructor must be done)'#010+
   '**2St_allow static keyword in objects'#010+
-  '**1s_don'#039't call assembler and linker (only with -a)'#010+
+  '**1s_don'#039't call assembler and linker'#010+
   '**2sh_Generate script to link on host'#010+
-  '**2sr_Skip register allocation p','hase (optimizations will be disabled'+
-  ')'#010+
   '**2st_Generate script to link on target'#010+
+  '**2sr_S','kip register allocation phase (optimizations will be disabled'+
+  ')'#010+
   '**1u<x>_undefines the symbol <x>'#010+
   '**1U_unit options:'#010+
   '**2Un_don'#039't check the unit name'#010+
   '**2Ur_generate release unit files'#010+
   '**2Us_compile a system unit'#010+
-  '**1v<x>_Be verbo','se. <x> is a combination of the following letters:'#010+
+  '**1v<x>_Be verbose. <x> is a co','mbination of the following letters:'#010+
   '**2*_e : Show errors (default)       d : Show debug info'#010+
   '**2*_w : Show warnings               u : Show unit info'#010+
   '**2*_n : Show notes                  t : Show tried/used files'#010+
-  '**2*_h : Show',' hints                  m : Show defined macros'#010+
+  '**2*_h : Show hints         ','         m : Show defined macros'#010+
   '**2*_i : Show general info           p : Show compiled procedures'#010+
   '**2*_l : Show linenumbers            c : Show conditionals'#010+
-  '**2*_a : Show everything             0 : Show nothing (except error','s'+
-  ')'#010+
-  '**2*_b : Show all procedure          r : Rhide/GCC compatibility mode'#010+
+  '**2*_a : Show everything             0 : Show nothing (except errors)'#010+
+  '**2*_b : Sho','w all procedure          r : Rhide/GCC compatibility mod'+
+  'e'#010+
   '**2*_    declarations if an error    x : Executable info (Win32 only)'#010+
   '**2*_    occurs'#010+
   '**1V_write fpcdebug.txt file with lots of debugging info'#010+
-  '**1X_executable options:',#010+
-  '*L2Xc_link with the c library'#010+
+  '**1X_executable options:'#010+
+  '*L2Xc_link wit','h the c library'#010+
   '**2Xs_strip all symbols from executable'#010+
   '**2XD_try to link dynamic          (defines FPC_LINK_DYNAMIC)'#010+
   '**2XS_try to link static (default) (defines FPC_LINK_STATIC)'#010+
-  '**2XX_try to link smart            (defines FP','C_LINK_SMART)'#010+
-  '**0*_Processor specific options:'#010+
+  '**2XX_try to link smart            (defines FPC_LINK_SMART)'#010+
+  '*','*0*_Processor specific options:'#010+
   '3*1A<x>_output format:'#010+
   '3*2Aas_assemble using GNU AS'#010+
   '3*2Anasmcoff_coff (Go32v2) file using Nasm'#010+
   '3*2Anasmelf_elf32 (Linux) file using Nasm'#010+
   '3*2Awasm_obj file using Wasm (Watcom)'#010+
-  '3*2Anasmobj_obj fi','le using Nasm'#010+
-  '3*2Amasm_obj file using Masm (Microsoft)'#010+
+  '3*2Anasmobj_obj file using Nasm'#010+
+  '3','*2Amasm_obj file using Masm (Microsoft)'#010+
   '3*2Atasm_obj file using Tasm (Borland)'#010+
   '3*2Acoff_coff (Go32v2) using internal writer'#010+
   '3*2Apecoff_pecoff (Win32) using internal writer'#010+
   '3*1R<x>_assembler reading style:'#010+
-  '3*2Ratt_read AT&T st','yle assembler'#010+
-  '3*2Rintel_read Intel style assembler'#010+
+  '3*2Ratt_read AT&T style assembler'#010+
+  '3','*2Rintel_read Intel style assembler'#010+
   '3*2Rdirect_copy assembler text directly to assembler file'#010+
   '3*1O<x>_optimizations:'#010+
   '3*2Og_generate smaller code'#010+
   '3*2OG_generate faster code (default)'#010+
   '3*2Or_keep certain variables in registers'#010+
-  '3','*2Ou_enable uncertain optimizations (see docs)'#010+
+  '3*2Ou_enable unc','ertain optimizations (see docs)'#010+
   '3*2O1_level 1 optimizations (quick optimizations)'#010+
   '3*2O2_level 2 optimizations (-O1 + slower optimizations)'#010+
   '3*2O3_level 3 optimizations (-O2 repeatedly, max 5 times)'#010+
   '3*2Op<x>_target processor:'#010+
-  '3','*3Op1_set target processor to 386/486'#010+
+  '3*3Op1_set targe','t processor to 386/486'#010+
   '3*3Op2_set target processor to Pentium/PentiumMMX (tm)'#010+
   '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#010+
   '3*1T<x>_Target operating system:'#010+
   '3*2Temx_OS/2 via EMX (including EMX/RSX extender)'#010+
-  '3*2Tgo32v2','_Version 2 of DJ Delorie DOS extender'#010+
+  '3*2Tgo32v2_Version 2 of D','J Delorie DOS extender'#010+
   '3*2Tlinux_Linux'#010+
   '3*2Tnetware_Novell Netware Module (clib)'#010+
   '3*2Tos2_OS/2 / eComStation'#010+
   '3*2Tsunos_SunOS/Solaris'#010+
   '3*2Twatcom_Watcom compatible DOS extender'#010+
   '3*2Twdosx_WDOSX DOS extender'#010+
-  '3*2Twin32_Windows 32 Bi','t'#010+
-  '3*1W<x>_Win32-like target options'#010+
+  '3*2Twin32_Windows 32 Bit'#010+
+  '3*1W<x>_Win32','-like target options'#010+
   '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
   '3*2WC_Specify console type application'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE'#010+
   '3*2WF_Specify full-screen type application (OS/2 only)'#010+
-  '3*2WG_Spe','cify graphic type application'#010+
+  '3*2WG_Specify graphic ty','pe application'#010+
   '3*2WN_Do not generate relocation code (necessary for debugging)'#010+
   '3*2WR_Generate relocation code'#010+
   '6*1A<x>_output format'#010+
   '6*2Aas_Unix o-file using GNU AS'#010+
   '6*2Agas_GNU Motorola assembler'#010+
   '6*2Amit_MIT Syntax (old GAS)'#010+
-  '6','*2Amot_Standard Motorola assembler'#010+
+  '6*2Amot_Standard',' Motorola assembler'#010+
   '6*1O_optimizations:'#010+
   '6*2Oa_turn on the optimizer'#010+
   '6*2Og_generate smaller code'#010+
   '6*2OG_generate faster code (default)'#010+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#010+
   '6*2O0_set target processor to a MC68000'#010+
-  '6*2O2_set ta','rget processor to a MC68020+ (default)'#010+
+  '6*2O2_set target processor ','to a MC68020+ (default)'#010+
   '6*1R<x>_assembler reading style:'#010+
   '6*2RMOT_read motorola style assembler'#010+
   '6*1T<x>_Target operating system:'#010+
   '6*2Tamiga_Commodore Amiga'#010+
   '6*2Tatari_Atari ST/STe/TT'#010+
   '6*2Tlinux_Linux-68k'#010+
-  '6*2Tmacos_Macintosh m68k'#010,
-  '6*2Tpalmos_PalmOS'#010+
+  '6*2Tmacos_Macintosh m68k'#010+
+  '6*2Tpalmos_Palm','OS'#010+
   'P*1T<x>_Target operating system:'#010+
   'P*2Tdarwin_Darwin and MacOS X on PowerPC'#010+
   'P*2Tlinux_Linux on PowerPC'#010+
@@ -874,5 +874,5 @@ const msgtxt : array[0..000150,1..240] of char=(
   'P*2Tmorphos_MorphOS '#010+
   '**1*_'#010+
   '**1?_shows this help'#010+
-  '**1h_shows this help without waiting',#000
+  '**1h_shows this help without waiting'#000
 );

@@ -85,7 +85,7 @@ end;
 procedure tcgalpha.a_call_name(list : taasmoutput;const s : string);
 
   begin
-     { list^.concat(taicpu,op_sym(A_CALL,S_NO,newasmsymbol(s)))); }
+     { list^.concat(taicpu,op_sym(A_CALL,S_NO,newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)))); }
      {!!!!!!!!!1 offset is ignored }
      abstract;
   end;
@@ -161,7 +161,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2002-09-29 23:42:45  florian
+  Revision 1.4  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.3  2002/09/29 23:42:45  florian
     * several fixes to get forward with alpha compilation
 
   Revision 1.2  2002/09/07 15:25:10  peter

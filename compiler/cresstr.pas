@@ -196,7 +196,7 @@ begin
   if not(assigned(resourcestringlist)) then
     resourcestringlist:=taasmoutput.create;
   resourcestringlist.insert(tai_const.create_32bit(resstrcount));
-  resourcestringlist.insert(tai_symbol.createdataname_global(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),0));
+  resourcestringlist.insert(tai_symbol.createname_global(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),AT_DATA,0));
   resourcestringlist.insert(tai_align.Create(const_align(pointer_size)));
   R:=TResourceStringItem(List.First);
   While assigned(R) do
@@ -300,7 +300,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2004-02-26 16:16:38  peter
+  Revision 1.22  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.21  2004/02/26 16:16:38  peter
     * tai_const.create_ptr added
 
   Revision 1.20  2003/12/29 19:31:20  florian

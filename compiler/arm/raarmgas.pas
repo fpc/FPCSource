@@ -438,7 +438,7 @@ Unit raarmgas;
                                   { not found, finally ... add it anyways ... }
                                   Message1(asmr_w_id_supposed_external,expr);
                                   oper.InitRef;
-                                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(expr);
+                                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(expr,AB_EXTERNAL,AT_FUNCTION);
                                 end;
                              end
                           else
@@ -748,7 +748,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2004-01-20 21:02:56  florian
+  Revision 1.8  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.7  2004/01/20 21:02:56  florian
     * fixed symbol type writing for arm-linux
     * fixed assembler generation for abs
 

@@ -269,10 +269,8 @@ interface
           size      : longint;
           constructor Create(_sym:tasmsymbol;siz:longint);
           constructor Create_Global(_sym:tasmsymbol;siz:longint);
-          constructor Createname(const _name : string;siz:longint);
-          constructor Createname_global(const _name : string;siz:longint);
-          constructor Createdataname(const _name : string;siz:longint);
-          constructor Createdataname_global(const _name : string;siz:longint);
+          constructor Createname(const _name : string;_symtyp:Tasmsymtype;siz:longint);
+          constructor Createname_global(const _name : string;_symtyp:Tasmsymtype;siz:longint);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -358,10 +356,8 @@ interface
           constructor Create(_sym:tasmsymbol);
           constructor Create_offset(_sym:tasmsymbol;ofs:longint);
           constructor Create_rva(_sym:tasmsymbol);
-          constructor Createname(const name:string);
-          constructor Createname_offset(const name:string;ofs:longint);
+          constructor Createname(const name:string;_symtyp:Tasmsymtype;ofs:longint);
           constructor Createname_rva(const name:string);
-          constructor Createdataname(const name:string);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -718,7 +714,7 @@ implementation
       begin
          inherited Create;
          typ:=ait_datablock;
-         sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
+         sym:=objectlibrary.newasmsymbol(_name,AB_LOCAL,AT_DATA);
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -731,7 +727,7 @@ implementation
       begin
          inherited Create;
          typ:=ait_datablock;
-         sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
+         sym:=objectlibrary.newasmsymbol(_name,AB_GLOBAL,AT_DATA);
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -788,42 +784,23 @@ implementation
          is_global:=true;
       end;
 
-    constructor tai_symbol.Createname(const _name : string;siz:longint);
+    constructor tai_symbol.Createname(const _name : string;_symtyp:Tasmsymtype;siz:longint);
       begin
          inherited Create;
          typ:=ait_symbol;
-         sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_FUNCTION);
+         sym:=objectlibrary.newasmsymbol(_name,AB_LOCAL,_symtyp);
          size:=siz;
          is_global:=false;
       end;
 
-    constructor tai_symbol.Createname_global(const _name : string;siz:longint);
+    constructor tai_symbol.Createname_global(const _name : string;_symtyp:Tasmsymtype;siz:longint);
       begin
          inherited Create;
          typ:=ait_symbol;
-         sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_FUNCTION);
+         sym:=objectlibrary.newasmsymbol(_name,AB_GLOBAL,_symtyp);
          size:=siz;
          is_global:=true;
       end;
-
-    constructor tai_symbol.Createdataname(const _name : string;siz:longint);
-      begin
-         inherited Create;
-         typ:=ait_symbol;
-         sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
-         size:=siz;
-         is_global:=false;
-      end;
-
-    constructor tai_symbol.Createdataname_global(const _name : string;siz:longint);
-      begin
-         inherited Create;
-         typ:=ait_symbol;
-         sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
-         size:=siz;
-         is_global:=true;
-      end;
-
 
     constructor tai_symbol.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
@@ -850,7 +827,7 @@ implementation
 
 
 {****************************************************************************
-                               TAI_SYMBOL
+                               TAI_SYMBOL_END
  ****************************************************************************}
 
     constructor tai_symbol_end.Create(_sym:tasmsymbol);
@@ -864,7 +841,7 @@ implementation
       begin
          inherited Create;
          typ:=ait_symbol_end;
-         sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_NONE);
+         sym:=objectlibrary.newasmsymbol(_name,AB_GLOBAL,AT_NONE);
       end;
 
     constructor tai_symbol_end.ppuload(t:taitype;ppufile:tcompilerppufile);
@@ -981,21 +958,11 @@ implementation
          sym.increfs;
       end;
 
-    constructor tai_const_symbol.Createname(const name:string);
+    constructor tai_const_symbol.Createname(const name:string;_symtyp:Tasmsymtype;ofs:longint);
       begin
          inherited Create;
          typ:=ait_const_symbol;
-         sym:=objectlibrary.newasmsymbol(name);
-         offset:=0;
-         { update sym info }
-         sym.increfs;
-      end;
-
-    constructor tai_const_symbol.Createname_offset(const name:string;ofs:longint);
-      begin
-         inherited Create;
-         typ:=ait_const_symbol;
-         sym:=objectlibrary.newasmsymbol(name);
+         sym:=objectlibrary.newasmsymbol(name,AB_EXTERNAL,_symtyp);
          offset:=ofs;
          { update sym info }
          sym.increfs;
@@ -1005,23 +972,11 @@ implementation
       begin
          inherited Create;
          typ:=ait_const_rva;
-         sym:=objectlibrary.newasmsymbol(name);
+         sym:=objectlibrary.newasmsymbol(name,AB_EXTERNAL,AT_FUNCTION);
          offset:=0;
          { update sym info }
          sym.increfs;
       end;
-
-
-    constructor tai_const_symbol.Createdataname(const name:string);
-      begin
-         inherited Create;
-         typ:=ait_const_symbol;
-         sym:=objectlibrary.newasmsymboltype(name,AB_EXTERNAL,AT_DATA);
-         offset:=0;
-         { update sym info }
-         sym.increfs;
-      end;
-
 
     constructor tai_const_symbol.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
@@ -2005,7 +1960,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2004-02-27 12:13:15  daniel
+  Revision 1.75  2004-03-02 00:36:32  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.74  2004/02/27 12:13:15  daniel
     - Removed troublesome writeln statement
 
   Revision 1.73  2004/02/27 10:21:04  florian

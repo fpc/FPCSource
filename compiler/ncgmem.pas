@@ -163,7 +163,7 @@ implementation
          else
           begin
             reference_reset_symbol(href,
-              objectlibrary.newasmsymboldata(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),0);
+              objectlibrary.newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
             location.register:=cg.getaddressregister(exprasmlist);
             cg.a_loadaddr_ref_reg(exprasmlist,href,location.register);
           end;
@@ -882,7 +882,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2004-02-27 10:21:05  florian
+  Revision 1.89  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.88  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

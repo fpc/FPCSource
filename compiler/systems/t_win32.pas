@@ -328,7 +328,7 @@ const
                     if (cs_debuginfo in aktmoduleswitches) then
                      importsSection.concat(Tai_stab_function_name.Create(nil));
 {$EndIf GDB}
-                    importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0));
+                    importsSection.concat(Tai_symbol.Createname_global(hp2.func^,AT_FUNCTION,0));
                     importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                     importsSection.concat(Tai_align.Create_op(4,$90));
 {$IfDef GDB}
@@ -351,7 +351,7 @@ const
                  { add jump field to imporTSection }
                  importsSection.concat(Tai_section.Create(sec_idata5));
                  if hp2.is_var then
-                  importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0))
+                  importsSection.concat(Tai_symbol.Createname_global(hp2.func^,AT_FUNCTION,0))
                  else
                   importsSection.concat(Tai_label.Create(lcode));
 {$ifdef GDB}
@@ -366,7 +366,7 @@ const
                            inc(suffix);
                            importname:='__imp_'+hp2.name^+'_'+tostr(suffix);
                          end;
-                        importssection.concat(tai_symbol.createname(importname,4));
+                        importssection.concat(tai_symbol.createname(importname,AT_FUNCTION,4));
                       end
                     else
                       begin
@@ -377,7 +377,7 @@ const
                            inc(suffix);
                            importname:='__imp_by_ordinal'+tostr(hp2.ordnr)+'_'+tostr(suffix);
                          end;
-                        importssection.concat(tai_symbol.createname(importname,4));
+                        importssection.concat(tai_symbol.createname(importname,AT_FUNCTION,4));
                       end;
                   end;
 {$endif GDB}
@@ -487,7 +487,7 @@ const
                       if (cs_debuginfo in aktmoduleswitches) then
                         importssection.concat(tai_stab_function_name.create(nil));
 {$EndIf GDB}
-                      importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0));
+                      importsSection.concat(Tai_symbol.Createname_global(hp2.func^,AT_FUNCTION,0));
                       importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                       importsSection.concat(Tai_align.Create_op(4,$90));
 {$IfDef GDB}
@@ -513,7 +513,7 @@ const
                                inc(suffix);
                                importname:='__imp_'+hp2.name^+'_'+tostr(suffix);
                              end;
-                            importssection.concat(tai_symbol.createname(importname,4));
+                            importssection.concat(tai_symbol.createname(importname,AT_FUNCTION,4));
                           end
                          else
                           begin
@@ -524,7 +524,7 @@ const
                                inc(suffix);
                                importname:='__imp_by_ordinal'+tostr(hp2.ordnr)+'_'+tostr(suffix);
                              end;
-                            importssection.concat(tai_symbol.createname(importname,4));
+                            importssection.concat(tai_symbol.createname(importname,AT_FUNCTION,4));
                           end;
                        end;
 {$endif GDB}
@@ -532,7 +532,7 @@ const
                     end
                    else
                     begin
-                      importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0));
+                      importsSection.concat(Tai_symbol.Createname_global(hp2.func^,AT_FUNCTION,0));
                     end;
                    importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab));
                    hp2:=twin32imported_item(hp2.next);
@@ -1606,7 +1606,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2004-02-27 10:21:05  florian
+  Revision 1.29  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.28  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

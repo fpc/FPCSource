@@ -452,7 +452,7 @@ Unit rappcgas;
                                   { not found, finally ... add it anyways ... }
                                   Message1(asmr_w_id_supposed_external,expr);
                                   oper.InitRef;
-                                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(expr);
+                                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(expr,AB_EXTERNAL,AT_FUNCTION);
                                 end;
                              end
                           else
@@ -753,7 +753,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2004-02-28 16:00:45  florian
+  Revision 1.14  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.13  2004/02/28 16:00:45  florian
     * fixed make cycle
 
   Revision 1.12  2004/02/28 14:14:44  florian

@@ -249,7 +249,7 @@ unit cgcpu;
 
     procedure tcgarm.a_call_name(list : taasmoutput;const s : string);
       begin
-         list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s)));
+         list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
          if not(pi_do_call in current_procinfo.flags) then
            internalerror(2003060703);
       end;
@@ -800,7 +800,7 @@ unit cgcpu;
 
     procedure tcgarm.a_jmp_always(list : taasmoutput;l: tasmlabel);
       begin
-        list.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(l.name)));
+        list.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(l.name,AB_EXTERNAL,AT_FUNCTION)));
       end;
 
 
@@ -1273,7 +1273,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2004-02-04 22:01:13  peter
+  Revision 1.45  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.44  2004/02/04 22:01:13  peter
     * first try to get cpupara working for x86_64
 
   Revision 1.43  2004/01/29 17:09:32  florian

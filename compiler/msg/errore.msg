@@ -2140,10 +2140,10 @@ option_help_pages=11025_[
 **2Sp_same as -Mgpc
 **2Ss_constructor name must be init (destructor must be done)
 **2St_allow static keyword in objects
-**1s_don't call assembler and linker (only with -a)
+**1s_don't call assembler and linker
 **2sh_Generate script to link on host
-**2sr_Skip register allocation phase (optimizations will be disabled)
 **2st_Generate script to link on target
+**2sr_Skip register allocation phase (optimizations will be disabled)
 **1u<x>_undefines the symbol <x>
 **1U_unit options:
 **2Un_don't check the unit name

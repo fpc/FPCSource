@@ -211,7 +211,7 @@ unit cgcpu;
     procedure tcg68k.a_call_name(list : taasmoutput;const s : string);
 
       begin
-        list.concat(taicpu.op_sym(A_JSR,S_NO,objectlibrary.newasmsymbol(s)));
+        list.concat(taicpu.op_sym(A_JSR,S_NO,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
       end;
 
 
@@ -1271,7 +1271,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  2004-01-30 12:17:18  florian
+  Revision 1.22  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.21  2004/01/30 12:17:18  florian
     * fixed some m68k compilation problems
 
   Revision 1.20  2003/04/27 11:21:36  peter

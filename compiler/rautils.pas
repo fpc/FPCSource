@@ -871,7 +871,7 @@ Begin
           staticsymtable :
             begin
               initref;
-              opr.ref.symbol:=objectlibrary.newasmsymboldata(tvarsym(sym).mangledname);
+              opr.ref.symbol:=objectlibrary.newasmsymbol(tvarsym(sym).mangledname,AB_EXTERNAL,AT_DATA);
             end;
           parasymtable,
           localsymtable :
@@ -879,7 +879,7 @@ Begin
               if (vo_is_external in tvarsym(sym).varoptions) then
                 begin
                   initref;
-                  opr.ref.symbol:=objectlibrary.newasmsymboldata(tvarsym(sym).mangledname)
+                  opr.ref.symbol:=objectlibrary.newasmsymbol(tvarsym(sym).mangledname,AB_EXTERNAL,AT_DATA)
                 end
               else
                 begin
@@ -938,7 +938,7 @@ Begin
     typedconstsym :
       begin
         initref;
-        opr.ref.symbol:=objectlibrary.newasmsymboldata(ttypedconstsym(sym).mangledname);
+        opr.ref.symbol:=objectlibrary.newasmsymbol(ttypedconstsym(sym).mangledname,AB_EXTERNAL,AT_DATA);
         case ttypedconstsym(sym).typedconsttype.def.deftype of
           orddef,
           enumdef,
@@ -986,7 +986,7 @@ Begin
           Message(asmr_w_calling_overload_func);
         l:=opr.ref.offset;
         opr.typ:=OPR_SYMBOL;
-        opr.symbol:=objectlibrary.newasmsymbol(tprocsym(sym).first_procdef.mangledname);
+        opr.symbol:=objectlibrary.newasmsymbol(tprocsym(sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
         opr.symofs:=l;
         hasvar:=true;
         SetupVar:=TRUE;
@@ -1538,7 +1538,7 @@ end;
 
   Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;l:longint);
   begin
-    p.concat(Tai_const_symbol.Createname_offset(sym,l));
+    p.concat(Tai_const_symbol.Createname(sym,AT_FUNCTION,l));
   end;
 
 
@@ -1590,7 +1590,7 @@ end;
   {  linked list of instructions.(used by AT&T styled asm)              }
   {*********************************************************************}
    begin
-       p.concat(Tai_symbol.Createname_global(s,0));
+       p.concat(Tai_symbol.Createname_global(s,AT_FUNCTION,0));
    end;
 
    procedure ConcatLocal(p:TAAsmoutput;const s : string);
@@ -1600,7 +1600,7 @@ end;
   {  linked list of instructions.                                       }
   {*********************************************************************}
    begin
-       p.concat(Tai_symbol.Createname(s,0));
+       p.concat(Tai_symbol.Createname(s,AT_FUNCTION,0));
    end;
 
   Procedure ConcatGlobalBss(const s : string;size : longint);
@@ -1626,7 +1626,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.81  2004-02-21 21:04:09  daniel
+  Revision 1.82  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.81  2004/02/21 21:04:09  daniel
     * Micro-optimizations
 
   Revision 1.80  2003/11/30 10:15:42  jonas

@@ -262,8 +262,8 @@ implementation
                      begin
                         if not Tobjectdef(pointertype.def).is_related(Tobjectdef(pointertype.def)) then
                           message(cg_e_illegal_expression);
-                        curconstSegment.concat(Tai_const_symbol.Create(objectlibrary.newasmsymboldata(
-                          Tobjectdef(pointertype.def).vmt_mangledname)));
+                        curconstSegment.concat(Tai_const_symbol.Create(objectlibrary.newasmsymbol(
+                          Tobjectdef(pointertype.def).vmt_mangledname,AB_EXTERNAL,AT_DATA)));
                      end;
                  niln:
                    curconstSegment.concat(Tai_const.Create_ptr(0));
@@ -426,12 +426,12 @@ implementation
                               if po_abstractmethod in tprocsym(srsym).first_procdef.procoptions then
                                 Message(type_e_cant_take_address_of_abstract_method)
                               else
-                                curconstSegment.concat(Tai_const_symbol.Createname_offset(tprocsym(srsym).first_procdef.mangledname,offset));
+                                curconstSegment.concat(Tai_const_symbol.Createname(tprocsym(srsym).first_procdef.mangledname,AT_FUNCTION,offset));
                             end;
                           varsym :
-                            curconstSegment.concat(Tai_const_symbol.Createname_offset(tvarsym(srsym).mangledname,offset));
+                            curconstSegment.concat(Tai_const_symbol.Createname(tvarsym(srsym).mangledname,AT_FUNCTION,offset));
                           typedconstsym :
-                            curconstSegment.concat(Tai_const_symbol.Createname_offset(ttypedconstsym(srsym).mangledname,offset));
+                            curconstSegment.concat(Tai_const_symbol.Createname(ttypedconstsym(srsym).mangledname,AT_FUNCTION,offset));
                           else
                             Message(type_e_variable_id_expected);
                         end;
@@ -447,7 +447,7 @@ implementation
                     if (tinlinenode(p).left.nodetype=typen) then
                       begin
                         curconstSegment.concat(Tai_const_symbol.createname(
-                          tobjectdef(tinlinenode(p).left.resulttype.def).vmt_mangledname));
+                          tobjectdef(tinlinenode(p).left.resulttype.def).vmt_mangledname,AT_FUNCTION,0));
                       end
                     else
                       Message(cg_e_illegal_expression);
@@ -764,7 +764,7 @@ implementation
                  (tloadnode(p).symtableentry.typ=procsym) then
                begin
                  curconstSegment.concat(Tai_const_symbol.createname(
-                   tprocsym(tloadnode(p).symtableentry).first_procdef.mangledname));
+                   tprocsym(tloadnode(p).symtableentry).first_procdef.mangledname,AT_FUNCTION,0));
                end
               else
                Message(cg_e_illegal_expression);
@@ -966,7 +966,7 @@ implementation
                                    begin
                                      for i:=1 to vmt_offset-aktpos do
                                        curconstsegment.concat(tai_const.create_8bit(0));
-                                     curconstsegment.concat(tai_const_symbol.createname(vmt_mangledname));
+                                     curconstsegment.concat(tai_const_symbol.createname(vmt_mangledname,AT_FUNCTION,0));
                                      { this is more general }
                                      aktpos:=vmt_offset + pointer_size;
                                    end;
@@ -993,7 +993,7 @@ implementation
                      begin
                        for i:=1 to tobjectdef(t.def).vmt_offset-aktpos do
                          curconstsegment.concat(tai_const.create_8bit(0));
-                       curconstsegment.concat(tai_const_symbol.createname(tobjectdef(t.def).vmt_mangledname));
+                       curconstsegment.concat(tai_const_symbol.createname(tobjectdef(t.def).vmt_mangledname,AT_FUNCTION,0));
                        { this is more general }
                        aktpos:=tobjectdef(t.def).vmt_offset + pointer_size;
                      end;
@@ -1020,7 +1020,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2004-02-26 16:15:23  peter
+  Revision 1.80  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.79  2004/02/26 16:15:23  peter
     * support @@procvar in typed consts
 
   Revision 1.78  2004/02/07 23:28:34  daniel

@@ -132,7 +132,7 @@ interface
                   (str_length(left)=0) then
                 begin
                   reference_reset(hr);
-                  hr.symbol:=objectlibrary.newasmsymboldata('FPC_EMPTYCHAR');
+                  hr.symbol:=objectlibrary.newasmsymbol('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
                   location.register:=cg.getaddressregister(exprasmlist);
                   cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
                 end
@@ -153,7 +153,7 @@ interface
                   (str_length(left)=0) then
                 begin
                   reference_reset(hr);
-                  hr.symbol:=objectlibrary.newasmsymboldata('FPC_EMPTYCHAR');
+                  hr.symbol:=objectlibrary.newasmsymbol('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
                   location.register:=cg.getaddressregister(exprasmlist);
                   cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
                 end
@@ -410,7 +410,7 @@ interface
          end;
          cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_NE,0,location.register,l1);
          reference_reset(hr);
-         hr.symbol:=objectlibrary.newasmsymboldata('FPC_EMPTYCHAR');
+         hr.symbol:=objectlibrary.newasmsymbol('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
          cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
          cg.a_label(exprasmlist,l1);
       end;
@@ -535,7 +535,10 @@ end.
 
 {
   $Log$
-  Revision 1.55  2004-02-27 10:21:05  florian
+  Revision 1.56  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.55  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

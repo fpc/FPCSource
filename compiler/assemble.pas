@@ -750,7 +750,7 @@ Implementation
                 { the symbol can be external
                   so we must use newasmsymbol and
                   not getasmsymbol !! PM }
-                ps:=objectlibrary.newasmsymbol(copy(s,1,j-1));
+                ps:=objectlibrary.newasmsymbol(copy(s,1,j-1),AB_EXTERNAL,AT_FUNCTION);
                 if not assigned(ps) then
                   internalerror(33006)
                 else
@@ -860,7 +860,7 @@ Implementation
               else
                curr_n:=n_includefile;
               { get symbol for this includefile }
-              hp:=objectlibrary.newasmsymboltype('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
+              hp:=objectlibrary.newasmsymbol('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
               if currpass=1 then
                 begin
                   hp.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
@@ -912,7 +912,7 @@ Implementation
            exit;
         store_sec:=objectalloc.currsec;
         objectalloc.seTSection(sec_code);
-        hp:=objectlibrary.newasmsymboltype('Letext',AB_LOCAL,AT_FUNCTION);
+        hp:=objectlibrary.newasmsymbol('Letext',AB_LOCAL,AT_FUNCTION);
         if currpass=1 then
           begin
             hp.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
@@ -1659,7 +1659,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.62  2004-02-27 10:21:05  florian
+  Revision 1.63  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.62  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

@@ -305,7 +305,7 @@ const
          { MacOS: The linker on MacOS (PPCLink) inserts a call to glue code,
            if it is a cross-TOC call. If so, it also replaces the NOP
            with some restore code.}
-         list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s)));
+         list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
          if target_info.system=system_powerpc_macos then
            list.concat(taicpu.op_none(A_NOP));
          if not(pi_do_call in current_procinfo.flags) then
@@ -1074,11 +1074,11 @@ const
              { save floating-point registers
              if (cs_create_pic in aktmoduleswitches) and not(usesgpr) then
                begin
-                  a_call_name(objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_g');
+                  a_call_name(objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_g',AB_EXTERNAL,AT_FUNCTION));
                   gotgot:=true;
                end
              else
-               a_call_name(objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14));
+               a_call_name(objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14),AB_EXTERNAL,AT_FUNCTION));
              }
              reference_reset_base(href,NR_R12,-8);
              for regcounter:=firstregfpu to RS_F31 do
@@ -1100,11 +1100,11 @@ const
              {
              if cs_create_pic in aktmoduleswitches then
                begin
-                  a_call_name(objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)+'_g');
+                  a_call_name(objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)+'_g',AB_EXTERNAL,AT_FUNCTION));
                   gotgot:=true;
                end
              else
-               a_call_name(objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14))
+               a_call_name(objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14),AB_EXTERNAL,AT_FUNCTION))
              }
             reference_reset_base(href,NR_R12,-4);
             for regcounter2:=RS_R13 to RS_R31 do
@@ -1299,7 +1299,7 @@ const
              {
              if (pi_do_call in current_procinfo.flags) then
                a_call_name(objectlibrary.newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
-                 '_x')
+                 '_x',AB_EXTERNAL,AT_FUNCTION))
              else
                { leaf node => lr haven't to be restored }
                a_call_name('_restfpr_'+tostr(ord(firstregfpu.enum)-ord(R_F14)+14)+
@@ -2200,7 +2200,7 @@ const
         p: taicpu;
 
       begin
-        p := taicpu.op_sym(op,objectlibrary.newasmsymbol(l.name));
+        p := taicpu.op_sym(op,objectlibrary.newasmsymbol(l.name,AB_EXTERNAL,AT_FUNCTION));
         if op <> A_B then
           create_cond_norm(c,crval,p.condition);
         p.is_jmp := true;
@@ -2321,7 +2321,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.164  2004-02-27 10:21:05  florian
+  Revision 1.165  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.164  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

@@ -1165,7 +1165,7 @@ implementation
          objectlibrary.getlabel(nextonlabel);
 
          { send the vmt parameter }
-         reference_reset_symbol(href2,objectlibrary.newasmsymboldata(excepttype.vmt_mangledname),0);
+         reference_reset_symbol(href2,objectlibrary.newasmsymbol(excepttype.vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
          paraloc1:=paramanager.getintparaloc(pocall_default,1);
          paramanager.allocparaloc(exprasmlist,paraloc1);
          cg.a_paramaddr_ref(exprasmlist,href2,paraloc1);
@@ -1462,7 +1462,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2004-02-27 10:21:05  florian
+  Revision 1.94  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.93  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

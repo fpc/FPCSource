@@ -91,7 +91,7 @@ implementation
                         location.reference.offset:=tabsolutesym(symtableentry).fieldoffset;
                       end;
                     toasm :
-                      location.reference.symbol:=objectlibrary.newasmsymboldata(tabsolutesym(symtableentry).mangledname);
+                      location.reference.symbol:=objectlibrary.newasmsymbol(tabsolutesym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
                     else
                       internalerror(200310283);
                   end;
@@ -101,7 +101,7 @@ implementation
                  if tconstsym(symtableentry).consttyp=constresourcestring then
                    begin
                       location_reset(location,LOC_CREFERENCE,OS_ADDR);
-                      location.reference.symbol:=objectlibrary.newasmsymboldata(make_mangledname('RESOURCESTRINGLIST',tconstsym(symtableentry).owner,''));
+                      location.reference.symbol:=objectlibrary.newasmsymbol(make_mangledname('RESOURCESTRINGLIST',tconstsym(symtableentry).owner,''),AB_EXTERNAL,AT_DATA);
                       location.reference.offset:=tconstsym(symtableentry).resstrindex*16+8;
                    end
                  else
@@ -116,20 +116,20 @@ implementation
                   { C variable }
                   if (vo_is_C_var in tvarsym(symtableentry).varoptions) then
                     begin
-                       location.reference.symbol:=objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname);
+                       location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
                     end
                   { DLL variable }
                   else if (vo_is_dll_var in tvarsym(symtableentry).varoptions) then
                     begin
                        hregister:=cg.getaddressregister(exprasmlist);
-                       location.reference.symbol:=objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname);
+                       location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,location.reference,hregister);
                        reference_reset_base(location.reference,hregister,0);
                     end
                   { external variable }
                   else if (vo_is_external in tvarsym(symtableentry).varoptions) then
                     begin
-                       location.reference.symbol:=objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname);
+                       location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
                     end
                   { thread variable }
                   else if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
@@ -149,12 +149,12 @@ implementation
                        { make sure hregister can't allocate the register necessary for the parameter }
                        paraloc1:=paramanager.getintparaloc(pocall_default,1);
                        hregister:=cg.getaddressregister(exprasmlist);
-                       reference_reset_symbol(href,objectlibrary.newasmsymboldata('FPC_THREADVAR_RELOCATE'),0);
+                       reference_reset_symbol(href,objectlibrary.newasmsymbol('FPC_THREADVAR_RELOCATE',AB_EXTERNAL,AT_DATA),0);
                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
                        cg.ungetregister(exprasmlist,hregister);
                        cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
                        { don't save the allocated register else the result will be destroyed later }
-                       reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
+                       reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),0);
                        paramanager.allocparaloc(exprasmlist,paraloc1);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
@@ -171,7 +171,7 @@ implementation
                          layout of a threadvar is (4 bytes pointer):
                            0 - Threadvar index
                            4 - Threadvar value in single threading }
-                       reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),POINTER_SIZE);
+                       reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),POINTER_SIZE);
                        cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
                        cg.a_label(exprasmlist,endrelocatelab);
                        location.reference.base:=hregister;
@@ -227,10 +227,10 @@ implementation
                                   if cs_create_pic in aktmoduleswitches then
                                     begin
                                       location.reference.base:=current_procinfo.got;
-                                      location.reference.symbol:=objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname+'@GOT');
+                                      location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname+'@GOT',AB_EXTERNAL,AT_DATA);
                                     end
                                   else
-                                    location.reference.symbol:=objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname);
+                                    location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
                                 end;
                               stt_exceptsymtable:
                                 begin
@@ -343,7 +343,7 @@ implementation
                           { we don't use the hregister }
                           cg.ungetregister(exprasmlist,hregister);
                           { load address of the function }
-                          reference_reset_symbol(href,objectlibrary.newasmsymbol(procdef.mangledname),0);
+                          reference_reset_symbol(href,objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION),0);
                           hregister:=cg.getaddressregister(exprasmlist);
                           cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
                           cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
@@ -353,12 +353,12 @@ implementation
                   else
                     begin
                        {!!!!! Be aware, work on virtual methods too }
-                       location.reference.symbol:=objectlibrary.newasmsymbol(procdef.mangledname);
+                       location.reference.symbol:=objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
                     end;
                end;
             typedconstsym :
                begin
-                  location.reference.symbol:=objectlibrary.newasmsymboldata(ttypedconstsym(symtableentry).mangledname);
+                  location.reference.symbol:=objectlibrary.newasmsymbol(ttypedconstsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
                end;
             else internalerror(4);
          end;
@@ -908,7 +908,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.112  2004-02-27 10:21:05  florian
+  Revision 1.113  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.112  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

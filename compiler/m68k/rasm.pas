@@ -1448,7 +1448,7 @@ type
                           l:=opr.val;
                           opr.typ := OPR_SYMBOL;
                           opr.symofs := l;
-                          opr.symbol := objectlibrary.newasmsymbol(tempstr);
+                          opr.symbol := objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION);
                         end;
                  end;
    { // Constant memory offset .              // }
@@ -1523,7 +1523,7 @@ type
                             Begin
                               { not found, finally ... add it anyways ... }
                               Message1(asmr_w_id_supposed_external,expr);
-                              opr.ref.symbol:=objectlibrary.newasmsymbol(expr);
+                              opr.ref.symbol:=objectlibrary.newasmsymbol(expr,AB_EXTERNAL,AT_FUNCTION);
                             end;
                         end
                        else
@@ -2269,7 +2269,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.13  2003-02-19 22:00:16  daniel
+  Revision 1.14  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.13  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -178,22 +178,22 @@ begin
 {$ifdef i386}
            { place jump in codesegment }
            codesegment.concat(Tai_align.Create_op(4,$90));
-           codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
-           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname)));
+           codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
+           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
            codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
 {$else i386}
 {$ifdef m68k}
            { place jump in codesegment }
            codesegment.concat(tai_align.create(4));
-           codesegment.concat(tai_symbol.createname_global(hp2.name^,0));
-           codesegment.concat(taicpu.op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname)));
+           codesegment.concat(tai_symbol.createname_global(hp2.name^,AT_FUNCTION,0));
+           codesegment.concat(taicpu.op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
            codesegment.concat(tai_symbol_end.createname(hp2.name^));
 {$else m68k}
 {$ifdef powerpc}
            { place jump in codesegment }
            codesegment.concat(tai_align.create(4));
-           codesegment.concat(tai_symbol.createname_global(hp2.name^,0));
-           codesegment.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname)));
+           codesegment.concat(tai_symbol.createname_global(hp2.name^,AT_FUNCTION,0));
+           codesegment.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
            codesegment.concat(tai_symbol_end.createname(hp2.name^));
 {$endif powerpc}
 {$else powerpc}
@@ -578,7 +578,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-01-03 13:51:05  jonas
+  Revision 1.15  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.14  2004/01/03 13:51:05  jonas
     + support exported procedures for linuxppc
     * refuse to compile systems/t_linux.pas if processor-specific  support
       for exported procedures is absent

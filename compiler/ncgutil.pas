@@ -786,7 +786,7 @@ implementation
                end;
              end
            else
-             reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(p).mangledname),0);
+             reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(p).mangledname,AB_EXTERNAL,AT_DATA),0);
            cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
          end;
       end;
@@ -818,7 +818,7 @@ implementation
                      end;
                    end
                  else
-                   reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(p).mangledname),0);
+                   reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(p).mangledname,AB_EXTERNAL,AT_DATA),0);
                  cg.g_finalize(list,tvarsym(p).vartype.def,href,false);
                end;
             end;
@@ -827,7 +827,7 @@ implementation
               if ttypedconstsym(p).is_writable and
                  ttypedconstsym(p).typedconsttype.def.needs_inittable then
                begin
-                 reference_reset_symbol(href,objectlibrary.newasmsymboldata(ttypedconstsym(p).mangledname),0);
+                 reference_reset_symbol(href,objectlibrary.newasmsymbol(ttypedconstsym(p).mangledname,AB_EXTERNAL,AT_DATA),0);
                  cg.g_finalize(list,ttypedconstsym(p).typedconsttype.def,href,false);
                end;
             end;
@@ -1280,12 +1280,12 @@ implementation
            if (target_info.system in [system_i386_win32,system_i386_wdosx]) and
               (cs_profile in aktmoduleswitches) then
             begin
-              reference_reset_symbol(href,objectlibrary.newasmsymboldata('etext'),0);
+              reference_reset_symbol(href,objectlibrary.newasmsymbol('etext',AB_EXTERNAL,AT_DATA),0);
               paraloc1:=paramanager.getintparaloc(pocall_default,1);
               paraloc2:=paramanager.getintparaloc(pocall_default,2);
               paramanager.allocparaloc(list,paraloc2);
               cg.a_paramaddr_ref(list,href,paraloc2);
-              reference_reset_symbol(href,objectlibrary.newasmsymboldata('__image_base__'),0);
+              reference_reset_symbol(href,objectlibrary.newasmsymbol('__image_base__',AB_EXTERNAL,AT_DATA),0);
               paramanager.allocparaloc(list,paraloc1);
               cg.a_paramaddr_ref(list,href,paraloc1);
               paramanager.freeparaloc(list,paraloc2);
@@ -1359,9 +1359,9 @@ implementation
 {$endif GDB}
           if (cs_profile in aktmoduleswitches) or
              (po_public in current_procinfo.procdef.procoptions) then
-            list.concat(Tai_symbol.createname_global(hs,0))
+            list.concat(Tai_symbol.createname_global(hs,AT_FUNCTION,0))
           else
-            list.concat(Tai_symbol.createname(hs,0));
+            list.concat(Tai_symbol.createname(hs,AT_FUNCTION,0));
         until false;
       end;
 
@@ -1797,9 +1797,9 @@ implementation
            (assigned(current_procinfo) and
             (current_procinfo.procdef.proccalloption=pocall_inline)) or
            DLLSource then
-          curconstSegment.concat(Tai_symbol.Createdataname_global(sym.mangledname,l))
+          curconstSegment.concat(Tai_symbol.Createname_global(sym.mangledname,AT_DATA,l))
         else
-          curconstSegment.concat(Tai_symbol.Createdataname(sym.mangledname,l));
+          curconstSegment.concat(Tai_symbol.Createname(sym.mangledname,AT_DATA,l));
         aktfilepos:=storefilepos;
       end;
 
@@ -2141,7 +2141,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.194  2004-02-27 10:21:05  florian
+  Revision 1.195  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.194  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

@@ -248,7 +248,7 @@ implementation
         if left.nodetype=typen then
           begin
             hregister:=cg.getaddressregister(exprasmlist);
-            reference_reset_symbol(href,objectlibrary.newasmsymboldata(tobjectdef(left.resulttype.def).vmt_mangledname),0);
+            reference_reset_symbol(href,objectlibrary.newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
             cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
           end
         else
@@ -678,7 +678,10 @@ end.
 
 {
   $Log$
-  Revision 1.55  2004-02-27 10:21:05  florian
+  Revision 1.56  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.55  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

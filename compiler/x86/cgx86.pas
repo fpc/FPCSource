@@ -536,7 +536,7 @@ unit cgx86;
 
     procedure tcgx86.a_call_name(list : taasmoutput;const s : string);
       begin
-        list.concat(taicpu.op_sym(A_CALL,S_NO,objectlibrary.newasmsymbol(s)));
+        list.concat(taicpu.op_sym(A_CALL,S_NO,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
       end;
 
 
@@ -1659,7 +1659,7 @@ unit cgx86;
       if cs_create_pic in aktmoduleswitches then
         begin
           a_call_name(list,'FPC_GETEIPINEBX');
-          list.concat(taicpu.op_sym_ofs_reg(A_ADD,tcgsize2opsize[OS_ADDR],objectlibrary.newasmsymboldata('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
+          list.concat(taicpu.op_sym_ofs_reg(A_ADD,tcgsize2opsize[OS_ADDR],objectlibrary.newasmsymbol('_GLOBAL_OFFSET_TABLE_',AB_EXTERNAL,AT_DATA),0,NR_PIC_OFFSET_REG));
           list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG));
         end;
     end;
@@ -1781,7 +1781,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.115  2004-02-27 10:21:06  florian
+  Revision 1.116  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.115  2004/02/27 10:21:06  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

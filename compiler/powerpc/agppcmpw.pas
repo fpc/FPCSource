@@ -45,8 +45,9 @@ interface
         procedure WriteFileEndInfo;
 {$endif}
         procedure WriteAsmFileHeader;
-        private
-        procedure GenProcedureHeader(var hp:tai);
+      private
+        procedure WriteInstruction(hp : tai);
+        procedure WriteProcedureHeader(var hp:tai);
         procedure WriteDataExportHeader(var s:string; isGlobal, isConst:boolean);
       end;
 
@@ -108,7 +109,6 @@ var
 
 
     function getreferencestring(var ref : treference) : string;
-
     var
       s : string;
     begin
@@ -156,7 +156,7 @@ var
               if (offset=0) then
                 s:=s+gas_regname(base)+','+gas_regname(index)
               else
-                internalerror(19992); //  *** ???
+                internalerror(19992);
             end
           else if (base=NR_NO) and (offset=0) then
             begin
@@ -321,7 +321,7 @@ var
       end;
     end;
 
-    Function GetInstruction(hp : tai):string; {CHANGED from method to proc}
+    procedure TPPCMPWAssembler.WriteInstruction(hp : tai);
     var op: TAsmOp;
         s: string;
         i: byte;
@@ -346,44 +346,17 @@ var
                    s := s + ',';
                end;
           end;
-          if (taicpu(hp).oper[0]^.typ <> top_none) then
-            s:=s+getopstr_jmp(taicpu(hp).oper[0]^);
+          if (taicpu(hp).ops>0) and (taicpu(hp).oper[0]^.typ<>top_none) then
+            begin
+              { first write the current contents of s, because the symbol }
+              { may be 255 characters                                     }
+              asmwrite(s);
+              s:=getopstr_jmp(taicpu(hp).oper[0]^);
+            end;
         end
       else
         { process operands }
         begin
-          case op of
-             A_MFSPR:
-               case taicpu(hp).oper[1]^.reg of
-                  NR_CR:
-                    begin
-                       op:=A_MFCR;
-                       taicpu(hp).ops:=1;
-                    end;
-                  NR_LR:
-                    begin
-                       op:=A_MFLR;
-                       taicpu(hp).ops:=1;
-                    end;
-                  else
-                    internalerror(2002100701);
-               end;
-             A_MTSPR:
-               case taicpu(hp).oper[1]^.reg of
-                  NR_CR:
-                    begin
-                       op:=A_MTCR;
-                       taicpu(hp).ops:=1;
-                    end;
-                  NR_LR:
-                    begin
-                       op:=A_MTLR;
-                       taicpu(hp).ops:=1;
-                    end;
-                  else
-                    internalerror(2002100701);
-               end;
-          end;
           s:=#9+gas_op2str[op];
           if taicpu(hp).ops<>0 then
             begin
@@ -395,7 +368,7 @@ var
                  end;
             end;
         end;
-      GetInstruction:=s;
+      AsmWriteLn(s);
     end;
 
     {*** Until here is copyed from agppcgas.pp. ***}
@@ -456,7 +429,7 @@ var
 {****************************************************************************
                                PowerPC MPW Assembler
  ****************************************************************************}
-    procedure TPPCMPWAssembler.GenProcedureHeader(var hp:tai);
+    procedure TPPCMPWAssembler.WriteProcedureHeader(var hp:tai);
       {Returns the current hp where the caller should continue from}
       {For multiple entry procedures, only the last is exported as xxx[PR]
        (if use_PR is set) }
@@ -1079,7 +1052,7 @@ var
              ait_symbol:
                begin
                   if tai_symbol(hp).sym.typ=AT_FUNCTION then
-                    GenProcedureHeader(hp)
+                    WriteProcedureHeader(hp)
                   else if tai_symbol(hp).sym.typ=AT_DATA then
                     begin
                        s:= tai_symbol(hp).sym.name;
@@ -1108,7 +1081,7 @@ var
 {$endif GDB}
                 ;
               ait_instruction:
-                AsmWriteLn(GetInstruction(hp));
+                WriteInstruction(hp);
 {$ifdef GDB}
               ait_stabn: ;
               ait_stabs: ;
@@ -1386,7 +1359,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.31  2004-02-27 10:21:05  florian
+  Revision 1.32  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.31  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

@@ -2246,7 +2246,7 @@ implementation
       begin
         { the label is always a global label }
         if not assigned(lab) then
-         lab:=objectlibrary.newasmsymboldata(mangledname);
+         lab:=objectlibrary.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA);
         get_label:=lab;
       end;
 
@@ -2254,7 +2254,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.161  2004-02-24 16:12:39  peter
+  Revision 1.162  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.161  2004/02/24 16:12:39  peter
     * operator overload chooses rewrite
     * overload choosing is now generic and moved to htypechk
 

@@ -809,7 +809,7 @@ uses
               typ:=tasmsymtype(ppufile.getbyte);
               case asmsymtype of
                 1 :
-                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmsymboltype(name,bind,typ);
+                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmsymbol(name,bind,typ);
                 2 :
                  librarydata.asmsymbolidx^[i-1]:=librarydata.newasmlabel(labelnr,false,false);
                 3 :
@@ -1514,7 +1514,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.52  2004-02-03 16:14:13  peter
+  Revision 1.53  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.52  2004/02/03 16:14:13  peter
     * fix remembering path of main source file
 
   Revision 1.51  2004/01/26 16:12:27  daniel

@@ -39,7 +39,7 @@ implementation
        cutils,cclasses,comphook,
        globals,verbose,fmodule,finput,fppu,
        symconst,symbase,symtype,symdef,symsym,symtable,
-       aasmtai,aasmcpu,
+       aasmtai,aasmcpu,aasmbase,
        cgbase,cpuinfo,cgobj,
        nbas,
        link,assemble,import,export,gendef,ppu,comprsrc,
@@ -167,8 +167,8 @@ implementation
 {$ifdef GDB}
         if assigned(debuglist) then
           begin
-            debugList.insert(Tai_symbol.Createname('gcc2_compiled',0));
-            debugList.insert(Tai_symbol.Createname('fpc_compiled',0));
+            debugList.insert(Tai_symbol.Createname('gcc2_compiled',AT_FUNCTION,0));
+            debugList.insert(Tai_symbol.Createname('fpc_compiled',AT_FUNCTION,0));
             fixseg(debuglist,sec_code);
           end;
 {$endif GDB}
@@ -188,7 +188,7 @@ implementation
          begin
            If (hp.u.flags and uf_threadvars)=uf_threadvars then
             begin
-              ltvTables.concat(Tai_const_symbol.Createdataname(make_mangledname('THREADVARLIST',hp.u.globalsymtable,'')));
+              ltvTables.concat(Tai_const_symbol.Createname(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),AT_DATA,0));
               inc(count);
             end;
            hp:=tused_unit(hp.next);
@@ -196,12 +196,12 @@ implementation
         { Add program threadvars, if any }
         If (current_module.flags and uf_threadvars)=uf_threadvars then
          begin
-           ltvTables.concat(Tai_const_symbol.Createdataname(make_mangledname('THREADVARLIST',current_module.localsymtable,'')));
+           ltvTables.concat(Tai_const_symbol.Createname(make_mangledname('THREADVARLIST',current_module.localsymtable,''),AT_DATA,0));
            inc(count);
          end;
         { TableCount }
         ltvTables.insert(Tai_const.Create_32bit(count));
-        ltvTables.insert(Tai_symbol.Createdataname_global('FPC_THREADVARTABLES',0));
+        ltvTables.insert(Tai_symbol.Createname_global('FPC_THREADVARTABLES',AT_DATA,0));
         ltvTables.insert(Tai_align.Create(const_align(pointer_size)));
         ltvTables.concat(Tai_symbol_end.Createname('FPC_THREADVARTABLES'));
         { insert in data segment }
@@ -221,7 +221,7 @@ implementation
            (vo_is_thread_var in tvarsym(p).varoptions) then
          begin
            { address of threadvar }
-           ltvTable.concat(tai_const_symbol.createdataname(tvarsym(p).mangledname));
+           ltvTable.concat(tai_const_symbol.Createname(tvarsym(p).mangledname,AT_DATA,0));
            { size of threadvar }
            ltvTable.concat(tai_const.create_32bit(tvarsym(p).getsize));
          end;
@@ -241,7 +241,7 @@ implementation
           begin
             s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
             { add begin and end of the list }
-            ltvTable.insert(tai_symbol.createdataname_global(s,0));
+            ltvTable.insert(tai_symbol.Createname_global(s,AT_DATA,0));
             ltvTable.concat(tai_const.create_ptr(0));  { end of list marker }
             ltvTable.concat(tai_symbol_end.createname(s));
             if (cs_create_smart in aktmoduleswitches) then
@@ -266,7 +266,7 @@ implementation
          begin
            If (hp.u.flags and uf_has_resources)=uf_has_resources then
             begin
-              ResourceStringTables.concat(Tai_const_symbol.Createdataname(make_mangledname('RESOURCESTRINGLIST',hp.u.globalsymtable,'')));
+              ResourceStringTables.concat(Tai_const_symbol.Createname(make_mangledname('RESOURCESTRINGLIST',hp.u.globalsymtable,''),AT_DATA,0));
               inc(count);
             end;
            hp:=tused_unit(hp.next);
@@ -274,12 +274,12 @@ implementation
         { Add program resources, if any }
         If ResourceStringList<>Nil then
          begin
-           ResourceStringTables.concat(Tai_const_symbol.Createdataname(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,'')));
+           ResourceStringTables.concat(Tai_const_symbol.Createname(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),AT_DATA,0));
            Inc(Count);
          end;
         { TableCount }
         ResourceStringTables.insert(Tai_const.Create_32bit(count));
-        ResourceStringTables.insert(Tai_symbol.Createdataname_global('FPC_RESOURCESTRINGTABLES',0));
+        ResourceStringTables.insert(Tai_symbol.Createname_global('FPC_RESOURCESTRINGTABLES',AT_DATA,0));
         ResourceStringTables.insert(Tai_align.Create(const_align(4)));
         ResourceStringTables.concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
         { insert in data segment }
@@ -305,11 +305,11 @@ implementation
            if (hp.u.flags and (uf_init or uf_finalize))<>0 then
             begin
               if (hp.u.flags and uf_init)<>0 then
-               unitinits.concat(Tai_const_symbol.Createname(make_mangledname('INIT$',hp.u.globalsymtable,'')))
+               unitinits.concat(Tai_const_symbol.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_FUNCTION,0))
               else
                unitinits.concat(Tai_const.Create_ptr(0));
               if (hp.u.flags and uf_finalize)<>0 then
-               unitinits.concat(Tai_const_symbol.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,'')))
+               unitinits.concat(Tai_const_symbol.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),AT_FUNCTION,0))
               else
                unitinits.concat(Tai_const.Create_ptr(0));
               inc(count);
@@ -320,11 +320,11 @@ implementation
         if (current_module.flags and (uf_init or uf_finalize))<>0 then
          begin
            if (current_module.flags and uf_init)<>0 then
-            unitinits.concat(Tai_const_symbol.Createname(make_mangledname('INIT$',current_module.localsymtable,'')))
+            unitinits.concat(Tai_const_symbol.Createname(make_mangledname('INIT$',current_module.localsymtable,''),AT_FUNCTION,0))
            else
             unitinits.concat(Tai_const.Create_ptr(0));
            if (current_module.flags and uf_finalize)<>0 then
-            unitinits.concat(Tai_const_symbol.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,'')))
+            unitinits.concat(Tai_const_symbol.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),AT_FUNCTION,0))
            else
             unitinits.concat(Tai_const.Create_ptr(0));
            inc(count);
@@ -332,7 +332,7 @@ implementation
         { TableCount,InitCount }
         unitinits.insert(Tai_const.Create_32bit(0));
         unitinits.insert(Tai_const.Create_32bit(count));
-        unitinits.insert(Tai_symbol.Createdataname_global('INITFINAL',0));
+        unitinits.insert(Tai_symbol.Createname_global('INITFINAL',AT_DATA,0));
         unitinits.insert(Tai_align.Create(const_align(4)));
         unitinits.concat(Tai_symbol_end.Createname('INITFINAL'));
         { insert in data segment }
@@ -379,12 +379,12 @@ implementation
          if target_info.system<>system_m68k_PalmOS then
            begin
               dataSegment.concat(Tai_align.Create(const_align(4)));
-              dataSegment.concat(Tai_symbol.Createdataname_global('HEAPSIZE',4));
+              dataSegment.concat(Tai_symbol.Createname_global('HEAPSIZE',AT_DATA,4));
               dataSegment.concat(Tai_const.Create_32bit(heapsize));
            end;
 {$else m68k}
          dataSegment.concat(Tai_align.Create(const_align(4)));
-         dataSegment.concat(Tai_symbol.Createdataname_global('HEAPSIZE',4));
+         dataSegment.concat(Tai_symbol.Createname_global('HEAPSIZE',AT_DATA,4));
          dataSegment.concat(Tai_const.Create_32bit(heapsize));
 {$endif m68k}
       end;
@@ -394,7 +394,7 @@ implementation
       begin
         { stacksize can be specified and is now simulated }
         dataSegment.concat(Tai_align.Create(const_align(4)));
-        dataSegment.concat(Tai_symbol.Createdataname_global('__stklen',4));
+        dataSegment.concat(Tai_symbol.Createname_global('__stklen',AT_DATA,4));
         dataSegment.concat(Tai_const.Create_32bit(stacksize));
       end;
 
@@ -1438,7 +1438,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.140  2004-02-26 16:16:38  peter
+  Revision 1.141  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.140  2004/02/26 16:16:38  peter
     * tai_const.create_ptr added
 
   Revision 1.139  2004/02/06 22:37:00  daniel

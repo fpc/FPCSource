@@ -317,7 +317,7 @@ Interface
               Consume(AS_LPAREN);
               BuildConstSymbolExpression(false, true,false,l,tempstr);
               if not assigned(oper.opr.ref.symbol) then
-                oper.opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr)
+                oper.opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION)
               else
                 Message(asmr_e_cant_have_multiple_relocatable_symbols);
               case oper.opr.typ of
@@ -409,7 +409,7 @@ Interface
                                   { not found, finally ... add it anyways ... }
                                   Message1(asmr_w_id_supposed_external,expr);
                                   oper.InitRef;
-                                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(expr);
+                                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(expr,AB_EXTERNAL,AT_FUNCTION);
                                 end;
                              end
                           else
@@ -626,7 +626,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2004-02-27 13:27:28  mazen
+  Revision 1.8  2004-03-02 00:36:33  olle
+    * big transformation of Tai_[const_]Symbol.Create[data]name*
+
+  Revision 1.7  2004/02/27 13:27:28  mazen
   * symaddr ==> refaddr to follow the rest of compiler changes
 
   Revision 1.6  2004/01/12 22:11:39  peter
