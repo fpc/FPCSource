@@ -822,8 +822,11 @@ begin
   for i:=0 to UndoList^.count-1 do
     with UndoList^.At(i)^ do
       begin
-       AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.X)+':'+IntToStr(StartPos.Y)+
-         ' '+IntToStr(EndPos.X)+':'+IntToStr(EndPos.Y)+' "'+GetStr(Text)+'"',0,0);
+       if is_grouped_action then
+         AddToolMessage('','Group '+ActionString[action]+' '+IntToStr(ActionCount)+' elementary actions',0,0)
+       else
+         AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.X)+':'+IntToStr(StartPos.Y)+
+           ' '+IntToStr(EndPos.X)+':'+IntToStr(EndPos.Y)+' "'+GetStr(Text)+'"',0,0);
       end;
   if RedoList^.count>0 then
     AddToolCommand('RedoList Dump');
@@ -2835,7 +2838,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.46  1999-11-10 00:44:12  pierre
+  Revision 1.47  1999-11-18 13:39:24  pierre
+   * Better info for Undo debugging
+
+  Revision 1.46  1999/11/10 00:44:12  pierre
    * Grouped Undo action signaled in 'Dump Undo'
 
   Revision 1.45  1999/10/29 14:50:07  pierre
