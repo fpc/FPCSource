@@ -115,6 +115,7 @@ TYPE
      Ofs, Seg: Word;
    END;
 \end{verbatim}
+
 The following record is used when streaming objects:
 
 \begin{verbatim}
@@ -138,6 +139,122 @@ TYPE
       X, Y: Sw_Integer;
    END;
 \end{verbatim}
+
+\section{Procedures and Functions}
+
+\begin{function}{NewStr}
+\Declaration
+Function NewStr (Const S: String): PString;
+\Description
+\var{NewStr} makes a copy of the string \var{S} on the heap,
+and returns a pointer to this copy.
+
+The allocated memory is not based on the declared size of the string passed
+to \var{NewStr}, but is baed on the actual length of the string.
+\Errors
+If not enough memory is available, an 'out of memory' error will occur.
+\SeeAlso
+\seep{DisposeStr}
+\end{function}
+
+\begin{procedure}{DisposeStr}
+\Declaration
+Procedure DisposeStr (P: PString);
+\Description
+\var{DisposeStr} removes a dynamically allocated string from the heap.
+\Errors
+None.
+\SeeAlso
+\seef{NewStr}
+\end{procedure}
+
+
+\begin{procedure}{Abstract}
+\Declaration
+Procedure Abstract;
+\Description
+When implementing abstract methods, do not declare them as \var{abstract}.
+Instead, define them simply as \var{virtual}. In the implementation of such
+abstract methods, call the \var{Abstract} procedure. This allows explicit
+control of what happens when an abstract method is called.
+
+The current implementation of \var{Abstract} terminates the program with 
+a run-time error 211.
+\Errors
+None.
+\SeeAlso Most abstract types.
+\end{procedure}
+
+\begin{procedure}{RegisterObjects}
+\Declaration
+Procedure RegisterObjects;
+\Description
+\var{RegisterObjects} registers the following objects for streaming:
+\begin{enumerate}
+\item \var{TCollection}, see \sees{TCollection}.
+\item \var{TStringCollection}, see \sees{TStringCollection}.
+\item \var{TStrCollection}, see \sees{TStrCollection}.
+\end{enumerate}
+\Errors
+None.
+\SeeAlso
+\seep{RegisterType}
+\end{procedure}
+
+\begin{procedure}{RegisterType}
+\Declaration
+Procedure RegisterType (Var S: TStreamRec);
+\Description
+\var{RegisterType} registers a new type for streaming. An object cannot
+be streamed unless it has been registered first. 
+The stream record \var{S} needs to have the following fields set:
+
+\begin{description}
+\item[ObjType: Sw\_Word] This should be a unique identifier. Each possible
+type should have it's own identifier. 
+\item[VmtLink: pointer] This should contain a pointer to the VMT (Virtual
+Method Table) of the object you try to register. You can get it with the
+following expression:
+\begin{verbatim}
+     VmtLink: Ofs(TypeOf(MyType)^);
+\end{verbatim}
+\item[Load : Pointer] is a pointer to a method that initializes an instance
+of that object, and reads the initial values from a stream. This method
+should accept as it's sole argument a \var{PStream} type variable.
+\item[Store: Pointer]is a pointer to a method that stores an instance of the
+object to a stream. This method should accept as it's sole argument
+ a \var{PStream} type variable.
+\end{description}
+\Errors
+In case of error (if a object with the same \var{ObjType}) is already
+registered), run-time error 212 occurs.
+\end{procedure}
+
+\begin{function}{LongMul}
+\Declaration
+Function LongMul (X, Y: Integer): LongInt;
+\Description
+\var{LongMul} multiplies \var{X} with \var{Y}. The result is of
+type \var{Longint}. This avoids possible overflow errors you would normally
+get when multiplying \var{X} and \var{Y} that are too big.
+\Errors
+None.
+\SeeAlso
+\seef{LongDiv}
+\end{function}
+
+\begin{function}{LongDiv}
+\Declaration
+Function LongDiv (X: Longint; Y: Integer): Integer;
+\Description
+\var{LongDiv} divides \var{X} by \var{Y}. The result is of
+type \var{Integer} instead of type \var{Longint}, as you would get 
+normally. 
+\Errors
+If Y is zero, a run-time error will be generated.
+\SeeAlso
+\seef{LongMul}
+\end{function}
 
 \section{TRect}
 \label{se:TRect}
@@ -1824,12 +1941,12 @@ Errors are those of \seep{TStream.StrWrite}.
 \label{se:TUnSortedStrCollection}
 
 The \var{TUnSortedStrCollection} object manages an unsorted list of objects.
-To this end, it overrides the \seepl{TStringCollection.Insert} method to add
+To this end, it overrides the \seep{TSortedCollection.Insert} method to add
 strings at the end of the collection, rather than in the alphabetically
 correct position.
 
-Take care, the \seefl{Search}{TStringCollection.Search} and
-\seepl{IndexOf}{TCollection.IndexOf} methods will not work on an unsorted
+Take care, the \seefl{Search}{TSortedCollection.Search} and
+\seefl{IndexOf}{TCollection.IndexOf} methods will not work on an unsorted
 string collection.
 
 Here is the full declaration of the {TUnsortedStrCollection} object:
@@ -1871,6 +1988,10 @@ TYPE
 It overrides some methods of \var{TStringCollection} in order to accomplish
 this. 
 
+Remark that the \var{TResourceCollection} manages the names of the
+resources and their assiciated positions and sizes, it doesn't manage
+the resources themselves.
+
 Here is the full declaration of the \var{TResourceCollection} object:
 \begin{verbatim}
 TYPE
@@ -1883,36 +2004,61 @@ TYPE
    PResourceCollection = ^TResourceCollection;
 \end{verbatim}
 
-\begin{function}{}
+\begin{function}{TResourceCollection.KeyOf}
 \Declaration
 Function TResourceCollection.KeyOf (Item: Pointer): Pointer; Virtual;
 \Description
+\var{KeyOf} returns the key of an item in the collection. For resources, the
+key is a pointer to the string with the resource name.
 \Errors
+None.
 \SeeAlso
+\seef{TStringCollection.Compare}
 \end{function}
 
-\begin{function}{}
+\begin{function}{TResourceCollection.GetItem}
 \Declaration
 Function TResourceCollection.GetItem (Var S: TStream): Pointer; Virtual;
 \Description
+\var{GetItem} reads a resource item from the stream \var{S}. It reads the
+position, size and name from the stream, in that order. It DOES NOT read the
+resource itself from the stream.
+
+The resulting item is not inserted in the collection. This call is manly for
+internal use by the \seep{TCollection.Load} method.
 \Errors
+Errors returned are those by \seep{TStream.Read}
 \SeeAlso
+\seep{TCollection.Load}, \seep{TStream.Read}
 \end{function}
 
-\begin{procedure}{}
+\begin{procedure}{TResourceCollection.FreeItem}
 \Declaration
 Procedure TResourceCollection.FreeItem (Item: Pointer); Virtual;
 \Description
+\var{FreeItem} releases the memory occupied by \var{Item}. It de-allocates
+the name, and then the resourceitem record.
+
+It does NOT remove the item from the collection.
 \Errors
+None.
 \SeeAlso
+\seep{TCollection.FreeItem}
 \end{procedure}
 
-\begin{procedure}{}
+\begin{procedure}{TResourceCollection.PutItem}
 \Declaration
 Procedure TResourceCollection.PutItem (Var S: TStream; Item: Pointer); Virtual;
 \Description
+\var{PutItem} writes \var{Item} to the stream \var{S}. It does this by
+writing the position and size and name of the resource item to the stream.
+
+This method is used primarily by the \seepl{Store}{TCollection.Store}
+method.
 \Errors
+Errors returned are those by \seep{TStream.Write}.
 \SeeAlso
+\seepl{Store}{TCollection.Store}
 \end{procedure}
 
 
@@ -1936,6 +2082,144 @@ TYPE
    END;
    PResourceFile = ^TResourceFile;
 \end{verbatim}
+
+\subsection{TResourceFile Fields}
+
+\var{TResourceFile} has the following fields:
+\begin{description}
+\item[Stream] contains the (file) stream that has the executable image and
+the resources. It can be initialized by the \seepl{Init}{TResourceFile.Init}
+constructor call.
+\item[Modified] is set to \var{True} if one of the resources has been changed.
+It is set by the \seepl{SwitchTo}{TResourceFile.Init},
+\seepl{Delete}{TResourceFile.Delete} and \seepl{Put}{TResourceFile.Put}
+methods. Calling \seepl{Flush}{TResourceFile.Flush} will clear the
+\var{Modified} flag.
+\end{description}
+
+\begin{procedure}{TResourceFile.Init}
+\Declaration
+Constructor TResourceFile.Init (AStream: PStream);
+\Description
+\var{Init} instantiates a new instance of a \var{TResourceFile} object.
+If \var{AStream} is not nil then it is considered as a stream describing an
+executable image on disk. 
+
+\var{Init} will try to position the stream on the start of the resources section,
+and read all resources from the stream.
+\Errors
+None.
+\SeeAlso
+\seepl{Done}{TResourceFile.Done}
+\end{procedure}
+
+\begin{procedure}{TResourceFile.Done}
+\Declaration
+Destructor TResourceFile.Done; Virtual;
+\Description
+\var{Done} cleans up the instance of the \var{TResourceFile} Object. 
+If \var{Stream} was specified at initialization, then \var{Stream} is 
+disposed of too.
+\Errors
+None.
+\SeeAlso
+\seepl{Init}{TResourceFile.Init}
+\end{procedure}
+
+\begin{function}{TResourceFile.Count}
+\Declaration
+Function TResourceFile.Count: Sw\_Integer;
+\Description
+\var{Count} returns the number of resources. If no resources were
+read, zero is returned.
+\Errors
+None.
+\SeeAlso
+\seepl{Init}{TResourceFile.Init}
+\end{function}
+
+\begin{function}{TResourceFile.KeyAt}
+\Declaration
+Function TResourceFile.KeyAt (I: Sw\_Integer): String;
+\Description
+\var{KeyAt} returns the key (the name) of the \var{I}-th resource.
+\Errors
+In case \var{I} is invalid, \var{TCollection.Error} will be executed.
+\SeeAlso
+\seefl{Get}{TResourceFile.Get}
+\end{function}
+
+\begin{function}{TResourceFile.Get}
+\Declaration
+Function TResourceFile.Get (Key: String): PObject;
+\Description
+\var{Get} returns a pointer to a instance of a resource identified by
+\var{Key}. If \var{Key} cannot be found in the list of resources, then
+\var{Nil} is returned.
+\Errors
+Errors returned may be those by \var{TStream.Get}
+\SeeAlso
+\end{function}
+
+\begin{function}{TResourceFile.SwitchTo}
+\Declaration
+Function TResourceFile.SwitchTo (AStream: PStream; Pack: Boolean): PStream;
+\Description
+\var{SwitchTo} switches to a new stream to hold the resources in.
+\var{AStream} will be the new stream after the call to \var{SwitchTo}.
+
+If \var{Pack} is true, then all the known resources will be copied from 
+the current stream to the new stream (\var{AStream}). If \var{Pack} is 
+\var{False}, then only the current resource is copied.
+
+The return value is the value of the original stream: \var{Stream}.
+
+The \var{Modified} flag is set as a consequence of this call.
+\Errors
+Errors returned can be those of \seep{TStream.Read} and
+\seep{TStream.Write}.
+\SeeAlso
+\seepl{Flush}{TResourceFile.Flush}
+\end{function}
+
+\begin{procedure}{TResourceFile.Flush}
+\Declaration
+Procedure TResourceFile.Flush;
+\Description
+If the \var{Modified} flag is set to \var{True}, then \var{Flush} 
+writes the resources to the stream \var{Stream}. It sets the \var{Modified}
+flag to true after that.
+\Errors
+Errors can be those by \seep{TStream.Seek} and \seep{TStream.Write}.
+\SeeAlso
+\seefl{SwitchTo}{TResourceFile.SwitchTo}
+\end{procedure}
+
+\begin{procedure}{TResourceFile.Delete}
+\Declaration
+Procedure TResourceFile.Delete (Key: String);
+\Description
+\var{Delete} deletes the resource identified by \var{Key} from the
+collection. It sets the \var{Modified} flag to true.
+\Errors
+None.
+\SeeAlso
+\seepl{Flush}{TResourceFile.Flush}
+\end{procedure}
+
+\begin{procedure}{TResourceFile.Put}
+\Declaration
+Procedure TResourceFile.Put (Item: PObject; Key: String);
+\Description
+\var{Put} sets the resource identified by \var{Key} to \var{Item}.
+If no such resource exists, a new one is created. The item is written
+to the stream.
+\Errors
+Errors returned may be those by \seep{TStream.Put} and \var{TStream.Seek}
+\SeeAlso
+\seefl{Get}{TResourceFile.Get}
+\end{procedure}
+
 
 \section{TStringList}
 \label{se:TStringList}
@@ -1971,52 +2255,3 @@ TYPE
    PStrListMaker = ^TStrListMaker;
 \end{verbatim}
 
-\begin{verbatim}
-Function NewStr (Const S: String): PString;
-Procedure DisposeStr (P: PString);
-Procedure Abstract;
-Procedure RegisterObjects;
-\end{verbatim}
-\begin{procedure}{RegisterType}
-\Declaration
-Procedure RegisterType (Var S: TStreamRec);
-\end{procedure}
-\begin{verbatim}
-Function LongMul (X, Y: Integer): LongInt;
-Function LongDiv (X: Longint; Y: Integer): Integer;
-
-CONST
-   StreamError: Pointer = Nil;                        { Stream error ptr }
-   DosStreamError: Word = $0;                      { Dos stream error }
-
-CONST
-   RCollection: TStreamRec = (
-     ObjType: 50;
-     VmtLink: Ofs(TypeOf(TCollection)^);
-     Load: @TCollection.Load;
-     Store: @TCollection.Store);
-
-   RStringCollection: TStreamRec = (
-     ObjType: 51;
-     VmtLink: Ofs(TypeOf(TStringCollection)^);
-     Load: @TStringCollection.Load;
-     Store: @TStringCollection.Store);
-
-   RStrCollection: TStreamRec = (
-     ObjType: 69;
-     VmtLink: Ofs(TypeOf(TStrCollection)^);
-     Load:    @TStrCollection.Load;
-     Store:   @TStrCollection.Store);
-
-   RStringList: TStreamRec = (
-     ObjType: 52;
-     VmtLink: Ofs(TypeOf(TStringList)^);
-     Load: @TStringList.Load;
-     Store: Nil);
-
-   RStrListMaker: TStreamRec = (
-     ObjType: 52;
-     VmtLink: Ofs(TypeOf(TStrListMaker)^);
-     Load: Nil;
-     Store: @TStrListMaker.Store);
-\end{verbatim}
