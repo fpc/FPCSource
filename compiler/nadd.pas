@@ -1,4 +1,4 @@
-{
+ {
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
@@ -777,9 +777,11 @@ implementation
                     if not(is_constcharnode(left) and is_constcharnode(right)) then
                      begin
                        inserttypeconv(left,cshortstringtype);
+{$ifndef powerpc}
                        hp := genaddsstringcharoptnode(self);
                        result := hp;
                        exit;
+{$endif powerpc}
                      end;
                   end;
                end
@@ -1779,6 +1781,8 @@ implementation
                 end
               else
                 begin
+{$ifndef powerpc}
+                   { can create a call which isn't handled by callparatemp }
                    if canbeaddsstringcharoptnode(self) then
                      begin
                        hp := genaddsstringcharoptnode(self);
@@ -1786,6 +1790,7 @@ implementation
                        exit;
                      end
                    else
+{$endif powerpc}
                      begin
                        { Fix right to be shortstring }
                        if is_char(right.resulttype.def) then
@@ -1794,12 +1799,15 @@ implementation
                           firstpass(right);
                         end;
                      end;
+{$ifndef powerpc}
+                   { can create a call which isn't handled by callparatemp }
                    if canbeaddsstringcsstringoptnode(self) then
                      begin
                        hp := genaddsstringcsstringoptnode(self);
                        pass_1 := hp;
                        exit;
                      end;
+{$endif powerpc}
                 end;
              { otherwise, let addstring convert everything }
               result := first_addstring;
@@ -1950,7 +1958,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2003-04-27 11:21:32  peter
+  Revision 1.88  2003-05-23 22:57:38  jonas
+    - disable addoptnodes for powerpc, because they can generate calls in
+      pass_2, so -dcallparatemp can't detect them as nested calls
+
+  Revision 1.87  2003/04/27 11:21:32  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
