@@ -199,6 +199,8 @@ begin
     hcBrowser,
     hcBrowserOptions: S:=hint_browser;
     hcTools         : S:=hint_tools;
+    hcRemoteDialog  : S:=hint_remotedialog;
+    hcTransferRemote: S:=hint_transferremote;
 
     hcEnvironmentMenu:S:=hint_environmentmenu;
     hcPreferences   : S:=hint_preferences;
@@ -506,7 +508,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  2002-09-07 15:40:43  peter
+  Revision 1.7  2002-11-28 12:57:42  pierre
+   * new hints for remote addition
+
+  Revision 1.6  2002/09/07 15:40:43  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/01/24 09:21:41  pierre
