@@ -30,13 +30,14 @@
 \ifx\pdfoutput\undefined
   \usepackage{html}
   \usepackage{htmllist}
-  \latex{\usepackage{fpc}}
+%  \latex{\usepackage{fpc}}
+  \latex{\usepackage{fpcbook}}
   \html{\input{fpc-html.tex}}
 \else
 % Uncomment the fpc or fpcbook version, depending on the output format
 % you want.
-  \usepackage{fpc}
-%  \usepackage{fpcbook}
+%  \usepackage{fpc}
+  \usepackage{fpcbook}
 \fi
 \latex{%
   \ifpdf

@@ -201,4 +201,5 @@ begin
   TestNegativeExponential;
   TestSmallExponential;  
   TestSmallNegExponential;  
+  teststring;
 end.

@@ -30,11 +30,12 @@
 \ifx\pdfoutput\undefined
   \usepackage{html}
   \usepackage{htmllist}
-  \latex{\usepackage{fpc}}
+%  \latex{\usepackage{fpc}}
+  \latex{\usepackage{fpcbook}}
   \html{\input{fpc-html.tex}}
 \else
-  \usepackage{fpc}
-%  \usepackage{fpcbook}
+%  \usepackage{fpc}
+  \usepackage{fpcbook}
 \fi
 \latex{%
   \usepackage{times}

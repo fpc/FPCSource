@@ -51,7 +51,7 @@ endif
 ifndef LATEX2HTMLOPTS
 LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
                  -up_title "Free Pascal manuals" -contents_in_navigation\
-                 -html_version 4.0 -split 3 -image_type gif
+                 -html_version 4.0 -split 3 
 endif
 
 # Icons for latex2html
@@ -108,17 +108,20 @@ CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer\
              strings objects heaptrc sysutils ipc mouse gpm dxeload \
              emu387 ports math)
 
+GTKPDF=$(addsuffix .pdf,$(addprefix gtk, 1 2 3 4 5))
+
 # Check if ascii-mode requested
 ifeq ($(ASCIIMODE),YES)
 LATEX2HTMLOPTS:=$(LATEX2HTMLOPTS) -ascii_mode
 endif
+
 
 #####################################################################
 # Conversion from types
 #####################################################################
 
 .PHONY: clean dvi help html ps psdist htmldist pdfdist txtdist \
-        htm txt pdf refex alldist messages onechap
+        htm txt pdf refex alldist messages onechap gtk
 
 .SUFFIXES: .dvi .tex .ps .txt .pdf
 
@@ -373,6 +376,18 @@ endif
 
 html: $(HTML)
 
+gtk: $(GTKPDF)
+
+gtk1.pdf: gtk1.tex
+
+gtk2.pdf: gtk2.tex
+
+gtk3.pdf: gtk3.tex
+
+gtk4.pdf: gtk4.tex
+
+gtk5.pdf: gtk5.tex
+
 
 #####################################################################
 # Installation
@@ -484,9 +499,13 @@ linuxexamples: examples
 	$(MAKE) -C sockex
 	$(MAKE) -C ipcex
 
+
 #
 # $Log$
-# Revision 1.4  2000-10-12 10:41:58  peter
+# Revision 1.5  2001-07-10 22:01:15  michael
+# + Some cleaning up
+#
+# Revision 1.4  2000/10/12 10:41:58  peter
 #   * more examples
 #
 # Revision 1.3  2000/09/02 21:51:36  peter
