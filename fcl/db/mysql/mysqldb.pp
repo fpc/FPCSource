@@ -129,6 +129,7 @@ type
     property LastInsertID: Integer read FLastInsertID;
   published
     property Active;
+    property Database;  
     property SQL: TStrings read FSQL write SetSQL;
     property BeforeOpen;
     property AfterOpen;
@@ -915,7 +916,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-08-16 16:42:21  michael
+  Revision 1.5  2004-09-20 07:13:38  michael
+  + Database property published
+
+  Revision 1.4  2003/08/16 16:42:21  michael
   + Fixes in TDBDataset etc. Changed MySQLDb to use database as well
 
   Revision 1.3  2002/11/07 14:27:59  sg
