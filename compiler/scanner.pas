@@ -1742,36 +1742,46 @@ implementation
                 end;
              '(' :
                begin
-                 readchar;
-                 if c='*' then
-                   begin
-                     readchar;
-                     if c='$' then
-                      begin
-                        found:=2;
-                        inc_comment_level;
-                        aktcommentstyle:=comment_oldtp;
-                      end
-                     else
-                      begin
-                        skipoldtpcomment;
-                        aktcommentstyle:=oldcommentstyle;
-                      end;
-                   end
+                 if not incomment then
+                  begin
+                    readchar;
+                    if c='*' then
+                     begin
+                       readchar;
+                       if c='$' then
+                        begin
+                          found:=2;
+                          inc_comment_level;
+                          aktcommentstyle:=comment_oldtp;
+                        end
+                       else
+                        begin
+                          skipoldtpcomment;
+                          aktcommentstyle:=oldcommentstyle;
+                        end;
+                     end
+                    else
+                     next_char_loaded:=true;
+                  end
                  else
-                   next_char_loaded:=true;
+                  found:=0;
                end;
              '/' :
                begin
-                 readchar;
-                 if c='/' then
-                   begin
-                     readchar;
-                     skipdelphicomment;
-                     aktcommentstyle:=oldcommentstyle;
-                   end
+                 if not incomment then
+                  begin
+                    readchar;
+                    if c='/' then
+                     begin
+                       readchar;
+                       skipdelphicomment;
+                       aktcommentstyle:=oldcommentstyle;
+                     end
+                    else
+                     next_char_loaded:=true;
+                  end
                  else
-                   next_char_loaded:=true;
+                  found:=0;
                end;
              else
                found:=0;
@@ -2725,7 +2735,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.30  2002-03-01 12:39:26  peter
+  Revision 1.31  2002-03-01 14:39:44  peter
+    * fixed // and (* parsing to not be done when already parsing a
+      tp comment in skipuntildirective
+
+  Revision 1.30  2002/03/01 12:39:26  peter
     * support // parsing in skipuntildirective
 
   Revision 1.29  2002/01/27 21:44:26  peter
