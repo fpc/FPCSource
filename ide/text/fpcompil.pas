@@ -80,7 +80,7 @@ const
     CompilerStatusDialog  : PCompilerStatusDialog = nil;
 
 procedure DoCompile(Mode: TCompileMode);
-function  NeedRecompile: boolean;
+function  NeedRecompile(verbose : boolean): boolean;
 procedure ParseUserScreen;
 
 procedure RegisterFPCompile;
@@ -122,6 +122,38 @@ var
   Text,Attr : String;
   DisplayCompilerWindow : boolean;
 
+    procedure SearchBackTrace;
+      var AText,ModuleName,st : String;
+          p2,row : longint;
+      begin
+        if pos('  0x',Text)=1 then
+          begin
+            AText:=Text;
+            Delete(Text,1,10);
+            While pos(' ',Text)=1 do
+              Delete(Text,1,1);
+            if pos('of ',Text)>0 then
+              begin
+                ModuleName:=Copy(Text,pos('of ',Text)+3,255);
+                While ModuleName[Length(ModuleName)]=' ' do
+                  Delete(ModuleName,Length(ModuleName),1);
+              end
+            else
+              ModuleName:='';
+            if pos('line ',Text)>0 then
+              begin
+                Text:=Copy(Text,Pos('line ',Text)+5,255);
+                st:=Copy(Text,1,Pos(' ',Text)-1);
+                Val(st,row);
+              end
+            else
+              row:=0;
+            CompilerMessageWindow^.AddMessage(V_Fatal,AText
+                  ,ModuleName,row,1);
+            DisplayCompilerWindow:=true;
+          end;
+      end;
+
     procedure InsertInMessages(Const TypeStr : String;_Type : longint;EnableDisplay : boolean);
       var p,p2,col,row : longint;
           St,ModuleName : string;
@@ -136,10 +168,10 @@ var
             Val(Copy(st,1,pos(',',st)-1),row);
             st:=Copy(st,Pos(',',st)+1,255);
             Val(Copy(st,1,pos(')',st)-1),col);
-            If EnableDisplay then
-              DisplayCompilerWindow:=true;
             CompilerMessageWindow^.AddMessage(_type,Copy(Text,pos(':',Text)+1,255)
               ,ModuleName,row,col);
+            If EnableDisplay then
+              DisplayCompilerWindow:=true;
           end;
       end;
 
@@ -150,9 +182,10 @@ begin
   for Y:=0 to UserScreen^.GetHeight do
     begin
       UserScreen^.GetLine(Y,Text,Attr);
+      SearchBackTrace;
       InsertInMessages(' Fatal:',v_Fatal,true);
       InsertInMessages(' Error:',v_Error,true);
-      InsertInMessages(' Warning:',v_Warning,true);
+      InsertInMessages(' Warning:',v_Warning,false);
       InsertInMessages(' Note:',v_Note,false);
       InsertInMessages(' Info:',v_Info,false);
       InsertInMessages(' Hint:',v_Hint,false);
@@ -162,6 +195,7 @@ begin
       if not CompilerMessageWindow^.GetState(sfVisible) then
         CompilerMessageWindow^.Show;
       CompilerMessageWindow^.MakeFirst;
+      CompilerMessageWindow^.MsgLB^.SelectFirstError;
     end;
 end;
 
@@ -610,7 +644,14 @@ begin
       ErrorBox('Can''t compile unsaved file.',nil);
       Exit;
     end;
-  PrevMainFile:=MainFile;
+{ Show Compiler Messages Window }
+  if not CompilerMessageWindow^.GetState(sfVisible) then
+   CompilerMessageWindow^.Show;
+  CompilerMessageWindow^.MakeFirst;
+  CompilerMessageWindow^.ClearMessages;
+  { Tell why we compile }
+  NeedRecompile(true);
+
   MainFile:=FileName;
   WriteSwitches(SwitchesPath);
   { leaving open browsers leads to crashes !! (PM) }
@@ -624,11 +665,6 @@ begin
     EXEFile:=DirOf(MainFile)+NameOf(MainFile)+ExeExt;
 { Reset }
   CtrlBreakHit:=false;
-{ Show Compiler Messages Window }
-  if not CompilerMessageWindow^.GetState(sfVisible) then
-   CompilerMessageWindow^.Show;
-  CompilerMessageWindow^.MakeFirst;
-  CompilerMessageWindow^.ClearMessages;
 { Create Compiler Status Dialog }
   CompilationPhase:=cpCompiling;
   New(CompilerStatusDialog, Init);
@@ -735,9 +771,14 @@ begin
   Application^.Delete(CompilerStatusDialog);
   Dispose(CompilerStatusDialog, Done);
   CompilerStatusDialog:=nil;
-{ endcompilation returns true if the messagewindow should be removed }
+{ end compilation returns true if the messagewindow should be removed }
   if CompilationPhase=cpDone then
-   CompilerMessageWindow^.Hide;
+   begin
+     CompilerMessageWindow^.Hide;
+     { This is the last compiled main file }
+     PrevMainFile:=MainFile;
+     MainHasDebugInfo:=DebugInfoSwitches^.GetCurrSelParam<>'-';
+   end;
 { Update the app }
   Message(Application,evCommand,cmUpdate,nil);
 {$ifdef TEMPHEAP}
@@ -758,12 +799,12 @@ begin
   { ^^^ we need this trick to reactivate the desktop }
   EditorModified:=false;
   { Try to read Browser info in again if compilation failure !! }
-  if Not Assigned(Modules) and
+  if Not Assigned(Modules) and (CompilationPhase<>cpDone) and
      ((DesktopFileFlags and dfSymbolInformation)<>0) then
     ReadSymbolsFile(BrowserName);
 end;
 
-function NeedRecompile: boolean;
+function NeedRecompile(verbose : boolean): boolean;
 var Need: boolean;
     I: sw_integer;
     SF: PSourceFile;
@@ -774,7 +815,14 @@ begin
   else
     begin
       Need:=(PrevMainFile<>GetMainFile) and (PrevMainFile<>'');
-      if Need=false then
+      if Need then
+        begin
+          if verbose then
+            CompilerMessageWindow^.AddMessage(V_info,
+              'First compilation of '+GetMainFile,
+              '',0,0);
+        end
+      else
         for I:=0 to SourceFiles^.Count-1 do
           begin
             SF:=SourceFiles^.At(I);
@@ -792,6 +840,10 @@ begin
                  (ObjTime<>-1)) then
                 begin
                   Need:=true;
+                  if verbose then
+                    CompilerMessageWindow^.AddMessage(V_info,
+                      'Recompiling because of '+SF^.GetSourceFileName,
+                      SF^.GetSourceFileName,1,1);
                   Break;
                 end;
           end;
@@ -813,7 +865,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.51  2000-03-07 21:54:26  pierre
+  Revision 1.52  2000-03-08 16:48:07  pierre
+   + Read BackTrace from UseScreen
+
+  Revision 1.51  2000/03/07 21:54:26  pierre
    + ParseUserScreen
 
   Revision 1.50  2000/02/06 23:41:42  pierre
