@@ -811,7 +811,7 @@ end;
                          System Dependent Exit code
 *****************************************************************************}
 
-procedure ___exit(exitcode:longint);cdecl;external name '___exit';
+procedure ___exit(exitcode:longint);cdecl;external name '__exit';
 
 procedure do_close(handle : longint);forward;
 
@@ -898,7 +898,7 @@ end;
                               Heap Management
 *****************************************************************************}
 
-function ___sbrk(size:longint):longint;cdecl;external name '___sbrk';
+function ___sbrk(size:longint):longint;cdecl;external name '__sbrk';
 
 function SysOSAlloc (size: PtrInt): pointer; assembler;
 asm
@@ -1603,7 +1603,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.43  2004-11-04 09:32:31  peter
+  Revision 1.44  2004-11-25 17:37:59  jonas
+    * fixed some C-linking problems (the C-prefix is now always added to
+      cdecl external functions, also if you define the name explicitly)
+
+  Revision 1.43  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.42  2004/11/02 13:35:35  peter
