@@ -711,11 +711,17 @@ type    TgEA=record
 {*******************End of extented attribute datastructures.***************}
 
 {Usefull constanst for Action parameter.}
+   { DosOpen() actions }
 const       doOpened        =  1;
             doCreated       =  2;
             doOverwritten   =  3;
+            
+            FILE_EXISTED    =  doOpened;
+            FILE_CREATED    =  doCreated;
+            FILE_TRUNCATED  =  doOverwritten;
 
 {Usefull constants for OpenFlags parameter.}
+   { DosOpen() open flags }
 const       doFail          =  0;
             doOpen          =  1;
             doOverwrite     =  2;
@@ -724,6 +730,19 @@ const       doFail          =  0;
                 contents : Creation flags is 10 hex not 10 dec.
             *)
             doCreate        = 16;
+            
+            FILE_OPEN       = doOpen;
+            FILE_TRUNCATE   = doOverwrite;
+            FILE_CREATE     = doCreate;
+            
+{    this nibble applies if file already exists                      xxxx }
+      OPEN_ACTION_FAIL_IF_EXISTS     =doFail;       { ---- ---- ---- 0000 }
+      OPEN_ACTION_OPEN_IF_EXISTS     =doOpen;       { ---- ---- ---- 0001 }
+      OPEN_ACTION_REPLACE_IF_EXISTS  =doOverwrite;  { ---- ---- ---- 0010 }
+
+{    this nibble applies if file does not exist              xxxx      }
+      OPEN_ACTION_FAIL_IF_NEW        =doFail;    { ---- ---- 0000 ---- }
+      OPEN_ACTION_CREATE_IF_NEW      =DoCreate;  { ---- ---- 0001 ---- }
 
 {Usefull constants for openmode parameter.}
 
@@ -741,6 +760,30 @@ const       doRead          =     0;
             doFailOnErr     =  8192;
             doWriteThru     = 16384;
             doDASD          = 32768;
+
+
+   { DosOpen/DosSetFHandState flags }
+      OPEN_ACCESS_READONLY           =doRead;       { ---- ---- ---- -000 }
+      OPEN_ACCESS_WRITEONLY          =doWrite;      { ---- ---- ---- -001 }
+      OPEN_ACCESS_READWRITE          =doReadWrite;  { ---- ---- ---- -010 }
+      OPEN_SHARE_DENYREADWRITE       =doDenyRW;     { ---- ---- -001 ---- }
+      OPEN_SHARE_DENYWRITE           =doDenyWrite;  { ---- ---- -010 ---- }
+      OPEN_SHARE_DENYREAD            =doDenyRead;   { ---- ---- -011 ---- }
+      OPEN_SHARE_DENYNONE            =doDenyNone;   { ---- ---- -100 ---- }
+      OPEN_FLAGS_NOINHERIT           =doNoInherit;  { ---- ---- 1--- ---- }
+      OPEN_FLAGS_NO_LOCALITY         =$0000;        { ---- -000 ---- ---- }
+      OPEN_FLAGS_SEQUENTIAL          =doSequential; { ---- -001 ---- ---- }
+      OPEN_FLAGS_RANDOM              =doRandom;     { ---- -010 ---- ---- }
+      OPEN_FLAGS_RANDOMSEQUENTIAL    =doSequential 
+                                   or doRandom;     { ---- -011 ---- ---- }
+      OPEN_FLAGS_NO_CACHE            =doNoCache;    { ---1 ---- ---- ---- }
+      OPEN_FLAGS_FAIL_ON_ERROR       =doFailOnErr;  { --1- ---- ---- ---- }
+      OPEN_FLAGS_WRITE_THROUGH       =doWriteThru;  { -1-- ---- ---- ---- }
+      OPEN_FLAGS_DASD                =doDASD;       { 1--- ---- ---- ---- }
+      
+      OPEN_FLAGS_NONSPOOLED          =$00040000;
+      OPEN_FLAGS_PROTECTED_HANDLE    =$40000000;
+            
 
 { Open a file.
 
@@ -799,6 +842,9 @@ The filename must consist of the driveletter followed by a semicolon.}
 function DosOpen(FileName:PChar;var Handle,Action:longint;
                  InitSize:longint;Attrib,OpenFlags,FileMode:longint;
                  EA:PEAOp2):longint; cdecl;
+function DosOpen(FileName:PChar;var Handle:longint;var Action:cardinal;
+                 InitSize,Attrib,OpenFlags,FileMode:cardinal;
+                 EA:PEAOp2):longint; cdecl;
 {This variant of DosOpen always creates or overwrites a file.}
 function DosCreate(FileName:PChar;var Handle:longint;
                    Attrib,OpenMode:longint):longint;
@@ -808,6 +854,9 @@ function DosOpen(FileName:PChar;var Handle:longint;
 {There are also string variants.}
 function DosOpen(const FileName:string;var Handle,Action:longint;
                  InitSize,Attrib,OpenFlags,OpenMode:longint;
+                 ea:PEAOp2):longint;
+function DosOpen(const FileName:string;var Handle:longint;var Action:cardinal;
+                 InitSize,Attrib,OpenFlags,OpenMode:cardinal;
                  ea:PEAOp2):longint;
 function DosCreate(const FileName:string;var Handle:longint;
                    Attrib,OpenMode:longint):longint;
@@ -828,6 +877,9 @@ function DosClose(Handle:longint):longint; cdecl;
 function DosRead(Handle:longint;var Buffer;Count:longint;
                  var ActCount:longint):longint; cdecl;
 
+function DosRead(Handle:longint;var Buffer;Count:cardinal;
+                 var ActCount:cardinal):longint; cdecl;
+
 {Write to a file or other type of handle.
 
     Handle      = File handle.
@@ -836,6 +888,9 @@ function DosRead(Handle:longint;var Buffer;Count:longint;
     ActCount    = Number of bytes actually written.}
 function DosWrite(Handle:longint;var Buffer;Count:longint;
                   var ActCount:longint):longint; cdecl;
+
+function DosWrite(Handle:longint;var Buffer;Count:cardinal;
+                  var ActCount:cardinal):longint; cdecl;
 
 const   dsZeroBased=0;      {Set filepointer from begin of file.}
         dsRelative=1;       {Set filepointer relative to the current one.}
@@ -2858,10 +2913,16 @@ function DosOpen(FileName:PChar;var Handle,Action:longint;
 
 external 'DOSCALLS' index 273;
 
+function DosOpen(FileName:PChar;var Handle:longint;var Action:cardinal;
+                 InitSize,Attrib,OpenFlags,FileMode:cardinal;
+                 EA:PEAOp2):longint; cdecl;
+
+external 'DOSCALLS' index 273;
+
 function DosCreate(FileName:PChar;var Handle:longint;
                    Attrib,OpenMode:longint):longint;
 
-var Action:longint;
+var Action:cardinal;
 
 begin
     DosCreate:=DosOpen(FileName,Handle,Action,0,Attrib,18,OpenMode,nil);
@@ -2878,6 +2939,17 @@ end;
 
 function DosOpen(const FileName:string;var Handle,Action:longint;
                  InitSize,Attrib,OpenFlags,OpenMode:longint;
+                 EA:PEAOp2):longint;
+
+var T:array[0..255] of char;
+
+begin
+    StrPCopy(@T,FileName);
+    DosOpen:=DosOpen(@T,Handle,Action,InitSize,Attrib,OpenFlags,OpenMode,EA);
+end;
+
+function DosOpen(const FileName:string;var Handle:longint;var Action:cardinal;
+                 InitSize,Attrib,OpenFlags,OpenMode:cardinal;
                  EA:PEAOp2):longint;
 
 var T:array[0..255] of char;
@@ -2918,8 +2990,18 @@ function DosRead(Handle:longint;var Buffer;Count:longint;
 
 external 'DOSCALLS' index 281;
 
+function DosRead(Handle:longint;var Buffer;Count:cardinal;
+                 var ActCount:cardinal):longint; cdecl;
+
+external 'DOSCALLS' index 281;
+
 function DosWrite(Handle:longint;var Buffer;Count:longint;
                   var ActCount:longint):longint; cdecl;
+
+external 'DOSCALLS' index 282;
+
+function DosWrite(Handle:longint;var Buffer;Count:cardinal;
+                  var ActCount:cardinal):longint; cdecl;
 
 external 'DOSCALLS' index 282;
 
@@ -4236,7 +4318,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.14  2002-10-05 19:09:57  hajny
+  Revision 1.15  2002-10-12 19:36:08  hajny
+    * compatibility updates and corrections
+
+  Revision 1.14  2002/10/05 19:09:57  hajny
     * code2.as + code3.as not needed any more
 
   Revision 1.13  2002/09/22 18:44:13  hajny
