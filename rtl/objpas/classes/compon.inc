@@ -374,16 +374,24 @@ end;
 
 Destructor TComponent.Destroy;
 
-Var Runner : Longint;
+Var
+  I : Integer;
 
 begin
   Destroying;
   If Assigned(FFreeNotifies) then
     begin
-    For Runner:=0 To FFreeNotifies.Count-1 do
-      TComponent(FFreeNotifies.Items[Runner]).Notification (self,opRemove);
-    FFreeNotifies.Free;
-    FFreeNotifies:=Nil;
+    I:=FFreeNotifies.Count-1;
+    While (I>=0) do
+      begin
+      TComponent(FFreeNotifies.Items[I]).Notification (self,opRemove);
+      If (FFreeNotifies=Nil) then
+        I:=0
+      else if (I>FFreeNotifies.Count) then
+        I:=FFreeNotifies.Count;
+      dec(i); 
+      end;
+    FreeAndNil(FFreeNotifies);
     end;
   DestroyComponents;
   If FOwner<>Nil Then FOwner.RemoveComponent(Self);
@@ -540,7 +548,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-08-07 16:44:35  florian
+  Revision 1.4  2004-09-22 18:48:31  michael
+  +  Fix in TComponent destroy FreeNotifications.
+
+  Revision 1.3  2004/08/07 16:44:35  florian
     * tcomponent.destroying is now called in tcomponent.beforedestruction
 
   Revision 1.2  2004/01/12 17:44:22  peter
