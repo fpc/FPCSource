@@ -40,9 +40,9 @@ interface
         function GetExplicitRegisterInt(list:taasmoutput;Reg:Tnewregister):tregister;override;
         procedure UngetregisterInt(list:taasmoutput;Reg:tregister);override;
         procedure UngetRegisterFpu(list:taasmoutput;reg:tregister;size:TCGsize);override;
-        procedure cleartempgen; override;
+        procedure ClearTempGen;override;
       private
-        usedpararegs: Tsupregset;
+        UsedParaRegs: TSupRegSet;
       end;
 
 
@@ -53,19 +53,16 @@ implementation
 
 
     function TRgCpu.GetExplicitRegisterInt(list:TAasmOutput;reg:TNewRegister):TRegister;
-      var
-        r : TRegister;
       begin
         if ((reg shr 8) in [RS_O0..RS_O7,RS_I7]) and
            not((reg shr 8) in is_reg_var_int) then
           begin
-            if (reg shr 8) in usedpararegs then
-              internalerror(2003060701);
-            include(usedpararegs,reg shr 8);
-            r.enum:=R_INTREGISTER;
-            r.number:=reg;
-            cg.a_reg_alloc(list,r);
-            result:=r;
+            if (reg shr 8) in UsedParaRegs then
+              InternalError(2003060701);
+            include(UsedParaRegs,reg shr 8);
+            result.enum:=R_INTREGISTER;
+            result.number:=reg;
+            cg.a_reg_alloc(list,result);
           end
         else
           result:=inherited GetExplicitRegisterInt(list,reg);
@@ -147,16 +144,19 @@ implementation
     procedure trgcpu.cleartempgen;
       begin
         inherited cleartempgen;
-        usedpararegs := [];
+        usedpararegs:=[];
       end;
-
 
 begin
   rg := trgcpu.create(24); {24 registers.}
 end.
 {
   $Log$
-  Revision 1.12  2003-06-12 21:11:44  peter
+  Revision 1.13  2003-06-12 22:47:52  mazen
+  - unused temp var r removed in GetExplicitRegisterInt function
+  * some case added for var and fauncions naming
+
+  Revision 1.12  2003/06/12 21:11:44  peter
     * updates like the powerpc
 
   Revision 1.11  2003/06/01 21:38:07  peter
