@@ -1,3 +1,5 @@
+{$mode objfpc}
+
 { tests forward class types }
 
 type

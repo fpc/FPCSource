@@ -1,4 +1,4 @@
-{$OPT= -Twin32}
+{ $OPT= -Twin32}
 
 program test_win32_drv;
 

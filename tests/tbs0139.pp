@@ -1,17 +1,19 @@
 unit tbs0139;
- 
+
+{$mode objfpc}
+
  interface
  uses
-    objpas, tbs0139a;
- 
+    tbs0139a;
+
  type
     AnotherClass=class(SomeClass)
     protected
     procedure doSomething; override;
     end ;
- 
+
  implementation
- 
+
  procedure AnotherClass.doSomething;
  begin
  inherited doSomething;  // this causes the error: " can not call protected

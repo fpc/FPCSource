@@ -1,5 +1,6 @@
 program TestEvent;
 
+{$mode objfpc}
 {$M+}
 
 type
@@ -33,7 +34,7 @@ end;
 
 procedure THost.SetOnEvent( Value: TNotifyEvent );
 begin
-  FOnEvent := Value             
+  FOnEvent := Value
 end;
 
 procedure THost.SayHello;

@@ -1,3 +1,4 @@
+{$mode objfpc}
 type
    tobject1 = class
       readl : longint;

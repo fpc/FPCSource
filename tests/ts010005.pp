@@ -1,3 +1,5 @@
+{$mode objfpc}
+
 type
    tclass1 = class
       procedure a;virtual;

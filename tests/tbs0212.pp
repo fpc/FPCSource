@@ -1,5 +1,7 @@
 program proptest;
 
+{$mode objfpc}
+
 type
   TMyRec = record
     Int: Integer;
