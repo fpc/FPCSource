@@ -204,7 +204,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl
-override TARGET_UNITS+=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas
+override TARGET_UNITS+=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp
 override TARGET_EXAMPLES+=imgconv
 override INSTALL_FPCPACKAGE=y
 override COMPILER_TARGETDIR+=../$(OS_TARGET)
