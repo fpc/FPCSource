@@ -1837,6 +1837,7 @@ Begin
           Inc(NrOfMods, NrOfInstrSinceLastMod[Reg]);
           PPaiProp(Pai(StartMod)^.OptInfo)^.Regs[Reg].NrOfMods := NrOfMods;
           NrOfInstrSinceLastMod[Reg] := 0;
+          invalidateDependingRegs(p^.optinfo,reg);
 {$ifdef StateDebug}
           hp := new(pai_asm_comment,init(strpnew(att_reg2str[reg]+': '+tostr(PPaiProp(p^.optinfo)^.Regs[reg].WState)
                 + ' -- ' + tostr(PPaiProp(p^.optinfo)^.Regs[reg].nrofmods))));
@@ -2447,7 +2448,10 @@ End.
 
 {
   $Log$
-  Revision 1.11  2000-11-29 00:30:44  florian
+  Revision 1.12  2000-12-04 17:00:09  jonas
+    * invalidate regs that depend on a modified register
+
+  Revision 1.11  2000/11/29 00:30:44  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
