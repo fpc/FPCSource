@@ -155,6 +155,8 @@ type
       procedure   WriteOutputText(Buf : pchar);
       procedure   WriteErrorText(Buf : pchar);
       function    GetPalette: PPalette;virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);                                                                                                                                                                                                                       
       destructor  Done; virtual;
     end;
 
@@ -413,7 +415,18 @@ const
      Store:   @TFPDesktop.Store
   );
 
-
+  RGDBSourceEditor: TStreamRec = (
+     ObjType: 1507;
+     VmtLink: Ofs(TypeOf(TGDBSourceEditor)^);
+     Load:    @TGDBSourceEditor.Load;
+     Store:   @TGDBSourceEditor.Store
+  );
+  RGDBWindow: TStreamRec = (
+     ObjType: 1508;
+     VmtLink: Ofs(TypeOf(TGDBWindow)^);
+     Load:    @TGDBWindow.Load;
+     Store:   @TGDBWindow.Store
+  );
 const
   NoNameCount    : integer = 0;
 var
@@ -1194,6 +1207,20 @@ begin
   if @Self=GDBWindow then
     GDBWindow:=nil;
   inherited Done;
+end;
+
+constructor TGDBWindow.Load(var S: TStream);
+begin
+  inherited Load(S);
+  GetSubViewPtr(S,Indicator);
+  GetSubViewPtr(S,Editor);
+end;
+
+procedure TGDBWindow.Store(var S: TStream);
+begin
+  inherited Store(S);
+  PutSubViewPtr(S,Indicator);
+  PutSubViewPtr(S,Editor);
 end;
 
 function TGDBWindow.GetPalette: PPalette;
@@ -2704,13 +2731,18 @@ begin
   RegisterType(RClipboardWindow);
   RegisterType(RMessageListBox);
   RegisterType(RFPDesktop);
+  RegisterType(RGDBSourceEditor);
+  RegisterType(RGDBWindow);                                                                                                                                                                                                                                 
 end;
 
 
 END.
 {
   $Log$
-  Revision 1.37  1999-08-16 18:25:26  peter
+  Revision 1.38  1999-08-31 16:18:33  pierre
+   + TGDBWindow.Load and Store + Registration
+
+  Revision 1.37  1999/08/16 18:25:26  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).
