@@ -14,7 +14,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 {*****************************************************************************}
-{$mode objfpc}{$h+}
+
+{$mode objfpc}
+{$h+}
+
 unit FPReadBMP;
 
 interface
@@ -24,15 +27,17 @@ uses FPImage, classes, sysutils, BMPcomn;
 type
   TFPReaderBMP = class (TFPCustomImageReader)
     Private
-      Procedure FreeBufs;
+      Procedure FreeBufs;       // Free (and nil) buffers.
     protected
-      ReadSize:Integer;
-      BFI:TBitMapInfoHeader;
-      FPalette : PFPcolor;
-      LineBuf : PByte; // Byte , TColorRGB or TColorRGBA
+      ReadSize : Integer;       // Size (in bytes) of 1 scanline.
+      BFI : TBitMapInfoHeader;  // The header as read from the stream.
+      FPalette : PFPcolor;      // Buffer with Palette entries. 
+      LineBuf : PByte;          // Buffer for 1 scanline. Can be Byte, TColorRGB or TColorRGBA
+      
+      // SetupRead will allocate the needed buffers, and read the colormap if needed.
+      procedure SetupRead(nPalette, nRowBits: Integer; Stream : TStream); virtual;
       procedure ReadScanLine(Row : Integer; Stream : TStream);
       procedure WriteScanLine(Row : Integer; Img : TFPCustomImage);
-      procedure SetupRead(nPalette, nRowBits: Integer; Stream : TStream); virtual;
       procedure InternalRead  (Stream:TStream; Img:TFPCustomImage); override;
       function  InternalCheck (Stream:TStream) : boolean; override;
     public
@@ -43,7 +48,7 @@ type
 implementation
 
 
-function MakeFpColor(RGBA: TColorRGBA):TFPcolor;
+function RGBAToFPColor(Const RGBA: TColorRGBA) : TFPcolor;
 
 begin
   with Result, RGBA do 
@@ -51,7 +56,19 @@ begin
     Red   :=(R shl 8) or R;
     Green :=(G shl 8) or G;
     Blue  :=(B shl 8) or B;
-    alpha :=AlphaOpaque;
+    alpha :=A; //!! MVC: Used to be AlphaOpaque ???
+    end;
+end;
+
+Function RGBToFPColor(Const RGB : TColorRGB) : TFPColor;
+
+begin
+  with Result,RGB do
+    begin  {Use only the high byte to convert the color}
+    Red   := (R shl 8) + R;
+    Green := (G shl 8) + G;
+    Blue  := (B shl 8) + B;
+    Alpha := AlphaOpaque;
     end;
 end;
 
@@ -99,7 +116,7 @@ begin
     else // Seems to me that this is dangerous. 
       Stream.Read(ColInfo[0],nPalette*SizeOf(TColorRGBA));
     for i := 0 to High(ColInfo) do
-      FPalette[i] := MakeFpColor(ColInfo[i]);
+      FPalette[i] := RGBAToFPColor(ColInfo[i]);
     end 
   else if BFI.ClrUsed>0 then { Skip palette }
     Stream.Position := Stream.Position + BFI.ClrUsed*SizeOf(TColorRGBA);
@@ -118,6 +135,8 @@ begin
   Stream.Position:=Stream.Position-SizeOf(BFI)+BFI.Size;
   with BFI do
     begin
+    if (Compression<>0) then
+      Raise FPImageException.Create('Compressed bitmaps not supported');
     Img.Width:=Width;
     Img.Height:=Height;
     end;
@@ -129,23 +148,29 @@ begin
     8 : 
       SetupRead(256,Img.Width*8,Stream);
     16 :
-      Raise Exception.Create('16 bpp bitmaps not supported');
+      Raise FPImageException.Create('16 bpp bitmaps not supported');
     24:
       SetupRead(0,Img.Width*8*3,Stream);
     32:
       SetupRead(0,Img.Width*8*4,Stream);
   end;
-  for Row:=Img.Height-1 downto 0 do 
-    begin
-    ReadScanLine(Row,Stream);
-    WriteScanLine(Row,Img);
-    end;
+  Try
+    for Row:=Img.Height-1 downto 0 do 
+      begin
+      ReadScanLine(Row,Stream); // Scanline in LineBuf with Size ReadSize.
+      WriteScanLine(Row,Img);
+      end;
+  finally
+    FreeBufs;
+  end;     
 end;
     
 procedure TFPReaderBMP.ReadScanLine(Row : Integer; Stream : TStream);
 
 begin
-  // Add here support for compressed lines. The 'readsize' is the same
+  {
+    Add here support for compressed lines. The 'readsize' is the same in the end.
+  }   
   Stream.Read(LineBuf[0],ReadSize);
 end;
 
@@ -170,20 +195,13 @@ begin
       for Column:=0 to img.Width-1 do
         img.colors[Column,Row]:=FPalette[LineBuf[Column]];
    16 :
-      Raise Exception.Create('16 bpp bitmaps not supported');
+      Raise FPImageException.Create('16 bpp bitmaps not supported');
    24 :
       for Column:=0 to img.Width-1 do
-         with PColorRGB(LineBuf)[Column],aColor do
-           begin  {Use only the high byte to convert the color}
-           Red := (R shl 8) + R;
-           Green := (G shl 8) + G;
-           Blue := (B shl 8) + B;
-           alpha := AlphaOpaque;
-           img.colors[Column,Row]:=aColor;
-           end;
+        img.colors[Column,Row]:=RGBToFPColor(PColorRGB(LineBuf)[Column]);
    32 :
       for Column:=0 to img.Width-1 do
-        img.colors[Column,Row]:=MakeFpColor(PColorRGBA(LineBuf)[Column]);
+        img.colors[Column,Row]:=RGBAToFPColor(PColorRGBA(LineBuf)[Column]);
     end;
 end;
 
@@ -202,7 +220,10 @@ initialization
 end.
 {
 $Log$
-Revision 1.7  2004-02-20 22:42:44  michael
+Revision 1.8  2004-02-20 23:00:35  michael
++ Small improvements. More cosmetic in nature
+
+Revision 1.7  2004/02/20 22:42:44  michael
 + More modular reading of BMP for easier overriding in descendents
 
 Revision 1.6  2004/02/15 20:59:06  michael
