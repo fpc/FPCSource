@@ -1700,7 +1700,8 @@ unit cgx86;
           end;
 
         { allocate PIC register }
-        if cs_create_pic in aktmoduleswitches then
+        if (cs_create_pic in aktmoduleswitches) and
+           (tf_pic_uses_got in target_info.flags) then
           begin
             a_call_name(list,'FPC_GETEIPINEBX');
             list.concat(taicpu.op_sym_ofs_reg(A_ADD,tcgsize2opsize[OS_ADDR],objectlibrary.newasmsymbol('_GLOBAL_OFFSET_TABLE_',AB_EXTERNAL,AT_DATA),0,NR_PIC_OFFSET_REG));
@@ -1739,7 +1740,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.141  2005-01-08 16:00:55  florian
+  Revision 1.142  2005-01-25 18:48:15  peter
+    * tf_pic_uses_got added
+
+  Revision 1.141  2005/01/08 16:00:55  florian
     * fixed loadaddr; I wonder how it ever worked
 
   Revision 1.140  2004/12/12 10:50:35  florian

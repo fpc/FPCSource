@@ -36,7 +36,7 @@ unit i_bsd;
             system       : system_i386_FreeBSD;
             name         : 'FreeBSD/ELF for i386';
             shortname    : 'FreeBSD';
-            flags        : [];
+            flags        : [tf_pic_uses_got];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -99,7 +99,7 @@ unit i_bsd;
             system       : system_x86_64_freebsd;
             name         : 'FreeBSD for x86-64';
             shortname    : 'FreeBSD';
-            flags        : [tf_needs_symbol_size,tf_smartlink_sections];
+            flags        : [tf_needs_symbol_size,tf_pic_uses_got{,tf_smartlink_sections}];
             cpu          : cpu_x86_64;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -506,7 +506,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2004-10-25 15:38:41  peter
+  Revision 1.15  2005-01-25 18:48:15  peter
+    * tf_pic_uses_got added
+
+  Revision 1.14  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

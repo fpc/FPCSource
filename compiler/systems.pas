@@ -229,7 +229,8 @@ interface
             tf_needs_symbol_size,
             tf_smartlink_sections,
             tf_needs_dwarf_cfi,
-            tf_use_8_3
+            tf_use_8_3,
+            tf_pic_uses_got
        );
 
        psysteminfo = ^tsysteminfo;
@@ -716,7 +717,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.99  2004-12-28 20:43:00  hajny
+  Revision 1.100  2005-01-25 18:48:15  peter
+    * tf_pic_uses_got added
+
+  Revision 1.99  2004/12/28 20:43:00  hajny
     * 8.3 fixes (short target name in paths)
 
   Revision 1.98  2004/12/12 00:35:19  florian

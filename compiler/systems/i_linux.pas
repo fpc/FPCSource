@@ -33,7 +33,7 @@ unit i_linux;
             system       : system_i386_LINUX;
             name         : 'Linux for i386';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size{,tf_smartlink_sections}];
+            flags        : [tf_needs_symbol_size,tf_pic_uses_got{,tf_smartlink_sections}];
             cpu          : cpu_i386;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -513,7 +513,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.32  2004-12-11 14:39:03  florian
+  Revision 1.33  2005-01-25 18:48:15  peter
+    * tf_pic_uses_got added
+
+  Revision 1.32  2004/12/11 14:39:03  florian
     * made some target short names look more nicer
 
   Revision 1.31  2004/10/25 15:38:41  peter
