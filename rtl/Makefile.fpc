@@ -19,6 +19,7 @@ dirs_beos=beos
 dirs_amiga=amiga
 dirs_netbsd=netbsd
 dirs_macos=macos
+dirs_morphos=morphos
 
 [install]
 fpcpackage=y
