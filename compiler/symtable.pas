@@ -1351,10 +1351,16 @@ implementation
              while assigned(p) do
                begin
                  { also insert local types for the current unit }
-                 if (unitid=0) and
-                    (p.deftype=procdef) and
-                    assigned(tprocdef(p).localst) then
-                   dowritestabs(asmlist,tprocdef(p).localst);
+                 if (unitid=0) then
+                   begin
+                     case p.deftype of
+                       procdef :
+                         if assigned(tprocdef(p).localst) then
+                           dowritestabs(asmlist,tprocdef(p).localst);
+                       objectdef :
+                         dowritestabs(asmlist,tobjectdef(p).symtable);
+                     end;
+                   end;
                  if (p.stab_state=stab_state_used) then
                    p.concatstabto(asmlist);
                  p:=tstoreddef(p.indexnext);
@@ -2306,7 +2312,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.165  2004-12-15 15:59:54  peter
+  Revision 1.166  2004-12-21 08:38:16  michael
+  + Enable local debug info in methods
+
+  Revision 1.165  2004/12/15 15:59:54  peter
     * fix visibility of protected/private
 
   Revision 1.164  2004/11/15 23:35:31  peter
