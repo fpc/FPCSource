@@ -199,12 +199,14 @@ Fixed bugs:
   bug0176.pp   unit.symbol not allowed for implementation vars         OK 0.99.9 (PM)
   bug0177.pp   program.symbol not allowed (almost the same as bug 176) OK 0.99.9 (PM)
   bug0178.pp   problems with undefined labels and fail outside constructor OK 0.99.9 (PM)
-  bug0179.pp   show a problem for -So mode  OK v0.99.9 (PM)
+  bug0179.pp   show a problem for -So mode                           OK 0.99.9 (PM)
   bug0180.pp   problem for units with names different from file name
                  should be accepted with -Un !!
                Solved, but you still need to use the file name from other
-               units  OK 0.99.9 (PM) 
-  bug0181.pp   shows a problem with name mangling OK v0.99.9 (PM)
+               units                                                 OK 0.99.9 (PM) 
+  bug0181.pp   shows a problem with name mangling                    OK 0.99.9 (PM)
+  bug0182.pp   @record.field doesn't work in constant expr           OK 0.99.0 (PM)
+  bug0184.pp   multiple copies of the same constant set are stored in executable OK 0.99.9 (PFV)
 
 Unproducable bugs:
 ------------------
@@ -233,6 +235,4 @@ bug0152.pp   End value of loop variable must be calculated before loop
 bug0163.pp   missing <= and >= operators for sets.
 bug0169.pp   missing new(type) support for not object/class
 bug0171.pp   missing typecasting in constant expressions
-bug0182.pp   @record.field doesn't work in constant expr
 bug0183.pp   internal error 10
-bug0184.pp   multiple copies of the same constant set are stored in executable
