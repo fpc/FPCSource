@@ -155,7 +155,7 @@ uses
     Unix,
   {$endif}
  {$endif}
-  inet
+  resolve
   ;
 
 Const
@@ -463,18 +463,22 @@ end;
 Procedure TInetSocket.DoConnect(ASocket : Longint);
 
 Var
-  TheHost: THost;
+  TheHost: THostResolver;
+  A : THostAddr;
   addr: TInetSockAddr;
 
 begin
-
-  TheHost.NameLookup(FHost);
-  if TheHost.LastError <> 0 then
-    raise ESocketError.Create(seHostNotFound, [FHost]);
-
+  With THostResolver.Create(Nil) do
+    try
+      If Not NameLookup(FHost) then
+        raise ESocketError.Create(seHostNotFound, [FHost]);
+      A:=HostAddress;  
+    finally
+      free;
+    end;    
   addr.family := AF_INET;
   addr.port := ShortHostToNet(FPort);
-  addr.addr := HostToNet(LongInt(TheHost.IPAddress));
+  addr.addr := Longint(A);
 
   If not Sockets.Connect(ASocket, addr, sizeof(addr)) then
     raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort])]);
@@ -516,7 +520,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2002-12-18 18:39:14  peter
+  Revision 1.15  2003-03-07 20:57:09  michael
+  + Use resolve unit instead of inet unit.
+
+  Revision 1.14  2002/12/18 18:39:14  peter
     * renamed error constants for 1.1
 
   Revision 1.13  2002/12/12 17:53:49  peter
