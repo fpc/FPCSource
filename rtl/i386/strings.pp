@@ -233,6 +233,7 @@ implementation
          end ['EDI','ESI','EBX','EAX','ECX'];
       end;
 
+{$ASMMODE DIRECT}
     function strpas(p : pchar) : string;
     begin
       asm
@@ -268,6 +269,7 @@ implementation
         movsb
       end ['ECX','EAX','ESI','EDI'];
     end;
+{$ASMMODE ATT}
 
     function strcat(dest,source : pchar) : pchar;
 
@@ -587,7 +589,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-05-30 14:30:22  peter
+  Revision 1.4  1998-05-31 14:15:52  peter
+    * force to use ATT or direct parsing
+
+  Revision 1.3  1998/05/30 14:30:22  peter
     * force att reading
 
   Revision 1.2  1998/05/23 01:14:06  peter

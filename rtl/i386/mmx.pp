@@ -52,6 +52,8 @@ unit mmx;
     uses
        cpu;
 
+{$ASMMODE DIRECT}
+
     { returns true, if the processor supports the mmx instructions }
     function mmx_support : boolean;
 
@@ -64,7 +66,7 @@ unit mmx;
               asm
                  movl $1,%eax
                  cpuid
-                 movl %edx,-4(%ebp)   // _edx is ebp-4
+                 movl %edx,_edx
               end;
               mmx_support:=(_edx and $800000)<>0;
            end
@@ -84,7 +86,7 @@ unit mmx;
               asm
                  movl $0x80000001,%eax
                  cpuid
-                 movl %edx,-4(%ebp)   // _edx is ebp-4
+                 movl %edx,_edx
               end;
               amd_3d_support:=(_edx and $80000000)<>0;
            end
@@ -92,6 +94,7 @@ unit mmx;
            { a cpu with without cpuid instruction supports never mmx }
            amd_3d_support:=false;
       end;
+
     procedure emms;assembler;
 
       asm
@@ -120,34 +123,8 @@ begin
 end.
 {
     $Log$
-    Revision 1.1  1998-03-25 11:18:43  root
-    Initial revision
-
-    Revision 1.7  1998/03/24 09:32:57  peter
-      * fixed comments
-
-    Revision 1.6  1998/03/22 12:41:51  florian
-      * fix of amd_3d_support procedure
-
-    Revision 1.5  1998/03/20 23:27:48  florian
-      + some AMD 3D support:
-        single type and detection of AMD 3D
-
-    Revision 1.4  1998/03/03 22:47:01  florian
-      * small problems fixed
-
-    Revision 1.3  1998/02/09 23:48:18  florian
-      + exit handler added (executes emms)
-      + is_mmx_cpu variable added
-
-    Revision 1.2  1998/02/05 22:30:48  florian
-      + types for fixed mmx type
-
-    Revision 1.1  1998/02/04 23:00:30  florian
-      + Initial revision
-      + basic data types
-      + emms procedure
-      + mmx detection from unit cpu inserted
+    Revision 1.2  1998-05-31 14:15:50  peter
+      * force to use ATT or direct parsing
 
 }
 

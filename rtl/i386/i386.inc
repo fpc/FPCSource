@@ -5,7 +5,7 @@
 
     Processor dependent implementation for the system unit for
     intel i386+
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -161,47 +161,47 @@ asm
      0 %ebp
 }
       { eax isn't touched anywhere, so it doesn't have to reloaded }
-	movl	8(%ebp),%eax
+        movl    8(%ebp),%eax
       { initialise self ? }
-	orl	%esi,%esi
-	jne	.LHC_4
+        orl     %esi,%esi
+        jne     .LHC_4
       { get memory, but save register first temporary variable }
-        subl	$4,%esp
-        movl	%esp,%esi
+        subl    $4,%esp
+        movl    %esp,%esi
       { Save Register}
         pushal
       { Memory size }
-        pushl	(%eax)
-        pushl	%esi
-        call	GETMEM
+        pushl   (%eax)
+        pushl   %esi
+        call    GETMEM
         popal
       { Memory size to %esi }
-        movl	(%esi),%esi
-        addl	$4,%esp
+        movl    (%esi),%esi
+        addl    $4,%esp
       { If no memory available : fail() }
-        orl	%esi,%esi
-        jz	.LHC_5
+        orl     %esi,%esi
+        jz      .LHC_5
       { init self for the constructor }
-        movl	%esi,12(%ebp)
+        movl    %esi,12(%ebp)
 .LHC_4:
       { is there a VMT address ? }
-        orl	%eax,%eax
-        jnz	.LHC_7
+        orl     %eax,%eax
+        jnz     .LHC_7
       { In case the constructor doesn't do anything, the Zero-Flag }
       { can't be put, because this calls Fail() }
-        incl	%eax
+        incl    %eax
         ret
 .LHC_7:
       { set zero inside the object }
         pushal
-        pushw	$0
-        pushl	(%eax)
-        pushl	%esi
-        call	FILL_OBJECT
+        pushw   $0
+        pushl   (%eax)
+        pushl   %esi
+        call    FILL_OBJECT
         popal
       { set the VMT address for the new created object }
-        movl	%eax,(%esi)
-        orl	%eax,%eax
+        movl    %eax,(%esi)
+        orl     %eax,%eax
 .LHC_5:
 end;
 
@@ -286,36 +286,36 @@ asm
      0 %ebp
 }
       { temporary Variable }
-	subl 	$4,%esp
-        movl 	%esp,%edi
+        subl    $4,%esp
+        movl    %esp,%edi
         pushal
       { Should the object be resolved ? }
-        movl 	8(%ebp),%eax
-        orl 	%eax,%eax
-        jz 	.LHD_3
+        movl    8(%ebp),%eax
+        orl     %eax,%eax
+        jz      .LHD_3
       { Yes, get size from SELF! }
-        movl 	12(%ebp),%eax
+        movl    12(%ebp),%eax
       { get VMT-pointer (from Self) to %ebx }
-        movl 	(%eax),%ebx
+        movl    (%eax),%ebx
       { And put size on the Stack }
-        pushl 	(%ebx)
+        pushl   (%ebx)
       { SELF }
       { I think for precaution }
       { that we should clear the VMT here }
-        movl 	$0,(%eax)
-        movl 	%eax,(%edi)
-        pushl 	%edi
-        call 	FREEMEM
+        movl    $0,(%eax)
+        movl    %eax,(%edi)
+        pushl   %edi
+        call    FREEMEM
 .LHD_3:
         popal
-        addl	$4,%esp
+        addl    $4,%esp
 end;
 
 {$ASMMODE ATT}
 
 
 {****************************************************************************
-                                 String 
+                                 String
 ****************************************************************************}
 
 procedure strcopy(dstr,sstr:pointer;len:longint);[public,alias:'STRCOPY'];
@@ -448,6 +448,7 @@ begin
 end;
 
 
+{$ASMMODE DIRECT}
 function strpas(p:pchar):string;
 begin
   asm
@@ -483,6 +484,8 @@ begin
         movsb
   end ['ECX','EAX','ESI','EDI'];
 end;
+{$ASMMODE ATT}
+
 
 function strlen(p:pchar):longint;assembler;
 asm
@@ -497,25 +500,25 @@ asm
 end ['EDI','ECX','EAX'];
 
 {****************************************************************************
-                                 Other 
+                                 Other
 ****************************************************************************}
 
 function get_addr(addrbp:longint):longint;assembler;
 asm
-	movl	addrbp,%eax
-	orl	%eax,%eax
-	jz	.Lg_a_null
-        movl	4(%eax),%eax
+        movl    addrbp,%eax
+        orl     %eax,%eax
+        jz      .Lg_a_null
+        movl    4(%eax),%eax
 .Lg_a_null:
 end ['EAX'];
 
 
 function get_next_frame(framebp:longint):longint;assembler;
 asm
-	movl	framebp,%eax
-	orl	%eax,%eax
-	jz	.Lgnf_null
-        movl	(%eax),%eax
+        movl    framebp,%eax
+        orl     %eax,%eax
+        jz      .Lgnf_null
+        movl    (%eax),%eax
 .Lgnf_null:
 end ['EAX'];
 
@@ -557,7 +560,7 @@ begin
 { Since IOCHECK is called directly and only later the optimiser }
 { Maybe also save global registers  }
   asm
-	pushal
+        pushal
   end;
   l:=ioresult;
   if l<>0 then
@@ -566,7 +569,7 @@ begin
      halt(l);
    end;
   asm
-	popal
+        popal
    end;
 end;
 
@@ -577,8 +580,8 @@ var
 begin
 { Overflow was shortly before the return address }
    asm
-	movl	4(%ebp),%edi
-        movl	%edi,addr
+        movl    4(%ebp),%edi
+        movl    %edi,addr
    end;
    writeln('Overflow at ',addr);
    RunError(215);
@@ -587,26 +590,26 @@ end;
 
 function abs(l:longint):longint;assembler;
 asm
-	movl	l,%eax
-        orl	%eax,%eax
-        jns	.LMABS1
-        negl	%eax
+        movl    l,%eax
+        orl     %eax,%eax
+        jns     .LMABS1
+        negl    %eax
 .LMABS1:
 end ['EAX'];
 
 
 function odd(l:longint):boolean;assembler;
 asm
-       movl	l,%eax
-       andl	$1,%eax
-       setnz	%al
+       movl     l,%eax
+       andl     $1,%eax
+       setnz    %al
 end ['EAX'];
 
 
 function sqr(l:longint):longint;assembler;
 asm
-        mov	l,%eax
-        imull	%eax,%eax
+        mov     l,%eax
+        imull   %eax,%eax
 end ['EAX'];
 
 
@@ -697,7 +700,7 @@ end ['EAX'];
          end;
       end;
 
-      
+
 Function Sptr : Longint;
 begin
   asm
@@ -708,22 +711,28 @@ begin
 end;
 
 
+{$I386_ATT} {can be removed}
 
 Function Random(L: LongInt): LongInt;assembler;
 asm
-	  movl	$134775813,%eax
-          mull	RandSeed
-          incl	%eax
-          movl	%eax,RandSeed
-          mull	4(%esp)
-          movl	%edx,%eax
+          movl  $134775813,%eax
+          mull  RandSeed
+          incl  %eax
+          movl  %eax,RandSeed
+          mull  4(%esp)
+          movl  %edx,%eax
 end;
 
-{$I386_DIRECT}
+{$I386_DIRECT} {can be removed}
+
+{$ASMMODE ATT}
 
 {
   $Log$
-  Revision 1.11  1998-05-30 14:30:21  peter
+  Revision 1.12  1998-05-31 14:15:47  peter
+    * force to use ATT or direct parsing
+
+  Revision 1.11  1998/05/30 14:30:21  peter
     * force att reading
 
   Revision 1.10  1998/05/25 10:40:49  peter
@@ -740,118 +749,4 @@ end;
 
   Revision 1.2  1998/04/08 07:53:31  michael
   + Changed Random() function. Moved from system to processor dependent files (from Pedro Gimeno)
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
-
-  Revision 1.30  1998/03/20 05:11:17  carl
-    * bugfix of register usage list for strcmp and strconcat
-
-  Revision 1.29  1998/03/15 19:38:41  peter
-    * fixed a bug in Move()
-
-  Revision 1.28  1998/03/10 23:50:39  florian
-    * strcopy saves now the used registers except ESI and EDI, solves
-      a problem with the optimizer
-
-  Revision 1.27  1998/03/10 16:25:52  jonas
-    * removed reloading of eax with 8(ebp), in int_help_constructor, as eax is nowhere modified
-
-  Revision 1.25  1998/03/02 11:44:43  florian
-    * writing of large cardinals fixed
-
-  Revision 1.24  1998/03/02 04:14:02  carl
-    * page fault bug fix with CHECK_OBJECT
-       warning: Will only work with GAS as VMT pointer field is an
-       .lcomm and will be ZEROED by linker (might not be true for TASM)
-
-  Revision 1.23  1998/02/24 17:50:46  peter
-    * upto 100% (255's char is different ;) faster STRCMP
-    * faster StrPas from i386.inc also strings.pp
-
-  Revision 1.22  1998/02/22 22:01:26  carl
-  + IOCHECK halts with the correct errorcode now
-
-  Revision 1.21  1998/02/11 16:55:14  michael
-  fixed cardinal printing. Large cardinals (>0fffffff) not yet working
-
-  Revision 1.20  1998/02/06 09:12:39  florian
-    * bug in CHECK_OBJECT fixed
-
-  Revision 1.19  1998/02/05 22:30:25  florian
-    + CHECK_OBJECT to check for an valid VMT (before calling a virtual method)
-
-  Revision 1.18  1998/02/04 14:46:36  daniel
-  * Some small tweaks
-
-  Revision 1.17  1998/01/27 22:05:07  florian
-    * again small fixes to DOM (Delphi Object Model)
-
-  Revision 1.16  1998/01/26 11:59:01  michael
-  + Added log at the end
-
-  revision 1.15
-  date: 1998/01/25 22:52:52;  author: peter;  state: Exp;  lines: +140 -122
-    * Faster string functions by using aligning
-  ----------------------------
-  revision 1.14
-  date: 1998/01/25 22:30:48;  author: florian;  state: Exp;  lines: +14 -2
-    * DOM: some fixes to tobject and the con-/destructor help routines
-  ----------------------------
-  revision 1.13
-  date: 1998/01/23 18:08:29;  author: florian;  state: Exp;  lines: +10 -4
-    * more bugs in FCL object model removed
-  ----------------------------
-  revision 1.12
-  date: 1998/01/23 15:54:47;  author: florian;  state: Exp;  lines: +5 -5
-    + small extensions to FCL object model
-  ----------------------------
-  revision 1.11
-  date: 1998/01/20 00:14:24;  author: peter;  state: Exp;  lines: +18 -5
-    * .type is linux only, go32v2 doesn't like it
-  ----------------------------
-  revision 1.10
-  date: 1998/01/19 16:19:53;  author: peter;  state: Exp;  lines: +7 -1
-  * Works now correct with shared libs, .globl always needs a .type
-  ----------------------------
-  revision 1.9
-  date: 1998/01/19 10:21:35;  author: michael;  state: Exp;  lines: +1 -6
-  * moved Fillchar t(..,char) to system.inc
-  ----------------------------
-  revision 1.8
-  date: 1998/01/19 09:15:05;  author: michael;  state: Exp;  lines: +40 -132
-  * Bugfixes in Move and FillChar
-  ----------------------------
-  revision 1.7
-  date: 1998/01/16 23:10:52;  author: florian;  state: Exp;  lines: +23 -1
-    + some tobject stuff
-  ----------------------------
-  revision 1.6
-  date: 1998/01/16 22:21:35;  author: michael;  state: Exp;  lines: +601 -493
-  + Installed pentium-optimized move (optional)
-  ----------------------------
-  revision 1.5
-  date: 1998/01/12 03:39:17;  author: carl;  state: Exp;  lines: +2 -2
-    * bugfix of RE_OVERFLOW, gives out now a Runerror(215)
-  ----------------------------
-  revision 1.4
-  date: 1998/01/01 16:57:36;  author: michael;  state: Exp;  lines: +1 -21
-  Moved DO_EXIT to system.inc. Now processor independent
-  ----------------------------
-  revision 1.3
-  date: 1997/12/10 12:12:31;  author: michael;  state: Exp;  lines: +2 -2
-  * changed dateifunc to FileFunc
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:34:36;  author: michael;  state: Exp;  lines: +13 -0
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:48;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:48;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }
