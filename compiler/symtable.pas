@@ -1072,7 +1072,11 @@ implementation
          { check for duplicate field id in inherited classes }
          if (sym^.typ=varsym) and
             (symtabletype=objectsymtable) and
-            assigned(defowner) then
+            assigned(defowner) and
+            (
+             not(m_delphi in aktmodeswitches) or
+             is_object(defowner)
+            ) then
            begin
               hsym:=search_class_member(pobjectdef(defowner),sym^.name);
               { but private ids can be reused }
@@ -2364,7 +2368,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2000-11-30 22:16:49  florian
+  Revision 1.20  2000-12-10 14:14:51  florian
+    * fixed web bug 1203: class fields can be now redefined
+      in Delphi mode though I don't like this :/
+
+  Revision 1.19  2000/11/30 22:16:49  florian
     * moved to i386
 
   Revision 1.18  2000/11/29 00:30:42  florian
