@@ -54,16 +54,16 @@ interface
        TOpCmp =
        (
           OC_NONE,
-          OC_EQ,           { equality comparison }
-          OC_GT,
-          OC_LT,
-          OC_GTE,
-          OC_LTE,
-          OC_NE,
-          OC_BE,
-          OC_B,
-          OC_AE,
-          OC_A
+          OC_EQ,           { equality comparison              }
+          OC_GT,           { greater than (signed)            } 
+          OC_LT,           { less than (signed)               }
+          OC_GTE,          { greater or equal than (signed)   } 
+          OC_LTE,          { less or equal than (signed)      }
+          OC_NE,           { not equal                        } 
+          OC_BE,           { less or equal than (unsigned)    }
+          OC_B,            { less than (unsigned)             }
+          OC_AE,           { greater or equal than (unsigned) } 
+          OC_A             { greater than (unsigned)          }
         );
 
        { OS_NO is also used memory references with large data that can
@@ -101,7 +101,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2002-05-18 13:34:05  peter
+  Revision 1.11  2002-05-27 19:16:08  carl
+  + added comments to virtual comparison flags
+
+  Revision 1.10  2002/05/18 13:34:05  peter
     * readded missing revisions
 
   Revision 1.9  2002/05/16 19:46:35  carl
