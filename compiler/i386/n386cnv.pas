@@ -40,6 +40,7 @@ interface
          { procedure second_pointer_to_array;override; }
          { procedure second_chararray_to_string;override; }
          { procedure second_char_to_string;override; }
+          function first_int_to_real: tnode; override;
           procedure second_int_to_real;override;
          { procedure second_real_to_real;override; }
          { procedure second_cord_to_pointer;override; }
@@ -72,6 +73,16 @@ implementation
 {*****************************************************************************
                              SecondTypeConv
 *****************************************************************************}
+
+    function ti386typeconvnode.first_int_to_real : tnode;
+
+      begin
+        first_int_to_real:=nil;
+         if registersfpu<1 then
+          registersfpu:=1;
+        location.loc:=LOC_FPUREGISTER;
+      end;
+
 
     procedure ti386typeconvnode.second_int_to_real;
 
@@ -365,7 +376,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2002-08-11 14:32:30  peter
+  Revision 1.48  2002-08-14 19:19:14  carl
+    * first_int_to_real moved to i386 (other one is generic)
+
+  Revision 1.47  2002/08/11 14:32:30  peter
     * renamed current_library to objectlibrary
 
   Revision 1.46  2002/08/11 13:24:16  peter
