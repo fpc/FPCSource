@@ -891,9 +891,12 @@ unit pmodules;
             exit;
           end;
 
-         { insert own objectfile }
+         { insert own objectfile, or say that it's in a library
+           (no check for an .o when loading) }
          if is_assembler_generated then
-           insertobjectfile;
+           insertobjectfile
+         else
+           current_module^.flags:=current_module^.flags or uf_in_library;
 
          { Write out the ppufile }
          writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack));
@@ -1070,8 +1073,8 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.69  1998-10-19 18:05:08  peter
-    + empty .o files are not written anymore
+  Revision 1.70  1998-10-20 09:30:05  peter
+    * set also in_library flag when no .o is generated
 
   Revision 1.68  1998/10/19 08:54:59  pierre
     * wrong stabs info corrected once again !!
