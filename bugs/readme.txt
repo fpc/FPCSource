@@ -355,4 +355,7 @@ bug0262.pp   problems with virtual and overloaded methods
 bug0263.pp   export directive is not necessary in delphi anymore
 bug0264.pp   methodpointer bugs
 bug0265.pp   nested proc with for-counter in other lex level
- 
+bug0266.pp   write cuts 256 char
+bug0267.pp   parameters after methodpointer are wrong
+bug0268.pp   crash with exceptions
+bug0269.pp   wrong linenumber for repeat until when type mismatch
