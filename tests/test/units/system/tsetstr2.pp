@@ -34,6 +34,7 @@ const
   
 
 var
+   arr: array[0..255] of byte;
    str1 : shortstring;
    str2 : ansistring;
 {$ifdef haswidestring}   
@@ -48,6 +49,7 @@ procedure fail;
 
 procedure test_shortstring;
 var
+ i: longint;
  _failed : boolean;
 begin
   _failed := false;
@@ -72,9 +74,13 @@ begin
   if str1 <> '' then
     _failed := true;
   str1:='';
-  setstring(str1,PCHAR_NORMAL,512);
-  if str1 <> '' then
+  fillchar(arr,sizeof(arr),'a');
+  setstring(str1,@arr[0],512);
+  if length(str1) <> 255 then
     _failed := true;
+  for i := 1 to length(str1) do
+    if str1[i] <> 'a' then
+      _failed := true;
   str1:='';  
   setstring(str1,PCHAR_NORMAL,strlen(PCHAR_NORMAL));
   if str1 <> HELLO_STRING then
@@ -166,7 +172,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-10-21 09:02:25  pierre
+  Revision 1.2  2003-03-04 18:19:48  jonas
+    * adapted tests to fixed implementation
+
+  Revision 1.1  2002/10/21 09:02:25  pierre
    * tsetstr.pp duplicated with $H+
 
   Revision 1.1  2002/10/20 11:44:15  carl
