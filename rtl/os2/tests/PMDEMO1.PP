@@ -1,11 +1,13 @@
 {****************************************************************************
 
+    $Id$
+
                    Copyright (c) 1993,94 by Florian Kl„mpfl
 
  ****************************************************************************}
 
-{ Demonstrationsprogramm zu FPKPascal unter OS/2  }
-{ traditionelles Hello world-Porgamm (PM-Version) }
+{ Sample program for FPC under OS/2 }
+{ Classic Hello world in PM version }
 
 program pmdemo1;
 
@@ -23,11 +25,11 @@ program pmdemo1;
                             FCF_MINBUTTON+FCF_MAXBUTTON+FCF_SHELLPOSITION+
                             FCF_TASKLIST+FCF_MENU;
 
-  function clientwndproc(window : cardinal;msg : longint;mp1,mp2 : cardinal) :
-    cardinal;export;
+  function clientwndproc(window : cardinal;msg : longint;mp1,mp2 : pointer) :
+    pointer;export;
   
     const
-       text = 'Hello world by OS/2 and FPKPascal';
+       text = 'Hello world by OS/2 and FPC';
        
     var
        ps : cardinal;
@@ -36,7 +38,7 @@ program pmdemo1;
     begin
        {clientwndproc:=nil;      }
        case msg of
-         {WM_CREATE : DosBeep(200,500);}
+{         WM_CREATE : DosBeep(200,500);}
           WM_PAINT : begin
                         ps:=WinBeginPaint(window,0,nil);
                         WinQueryWindowRect(window,@rcl);
@@ -47,21 +49,21 @@ program pmdemo1;
                           {101 : DosBeep(4500,1000);}
                           109 : WinPostMsg(0,WM_QUIT,nil,nil);
                           201 : WinMessageBox(cardinal(1),cardinal(1),
-                             'HelloPM von FPKPascal',
+                             'HelloPM from FPC',
                              'šber',0,MB_ICONEXCLAMATION+MB_MOVEABLE);
                        end;
        else
-          clientwndproc:=WinDefWindowProc(window,msg,mp1,mp2);    
+          clientwndproc:=WinDefWindowProc(window,msg,mp1,mp2);
        end;                                                        
     end;
 
  begin
     ab:=WinInitialize(0);
     mq:=WinCreateMsgQueue(ab,0);
-    WinRegisterClass(ab,'HELLOPM',@clientwndproc,4,0);    
+    WinRegisterClass(ab,'HELLOPM',proc(@clientwndproc),4,0);    
     frame:=WinCreateStdWindow(cardinal(1),WS_VISIBLE,@frameflags,'HELLOPM',
       'PMDemo 1',WS_VISIBLE,0,1,@client);
-    while (WinGetMsg(ab,@msg,0,0,0)<>0) do
+    while WinGetMsg(ab,@msg,0,0,0) do
       WinDispatchMsg(ab,@msg);
     WinDestroyWindow(frame);
     WinDestroyMsgQueue(mq);
@@ -69,7 +71,10 @@ program pmdemo1;
  end.
 {
   $Log$
-  Revision 1.1  1999-06-02 16:01:35  hajny
+  Revision 1.2  1999-08-10 14:33:51  hajny
+    * PM samples
+
+  Revision 1.1  1999/06/02 16:01:35  hajny
     * changes by Ramon Bosque
 
 }
