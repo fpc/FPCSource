@@ -1,3 +1,5 @@
+{$mode delphi}
+
 const
   err : boolean = true;
   
