@@ -50,6 +50,8 @@ package=uregexprgo32.zip[ureggo32.zip],Regular expression units
 # Dos 11
 package=uunzipgo32.zip[uzipgo32.zip],Unzip units
 # Dos 12
+package=unetdbgo32.zip[undbgo32.zip],~N~etDB units
+# Dos 13
 #package=ufvgo32.zip,Free ~V~ision (FV)
 
 
@@ -108,6 +110,8 @@ package=uregexprw32.zip,Regular expression units
 package=uunzipw32.zip,Unzip units
 # Win32-2 11
 package=uzlibw32.zip,ZLib interface units
+# Win32-2 12
+package=unetdbw32.zip,NetDB units
 # Win32-2 12
 #package=ufvw32.zip,Free ~V~ision (FV)
 
@@ -176,6 +180,8 @@ package=ulibpngemx.zip[ulpngemx.zip],LibPNG interface units
 package=utclemx.zip,TCL interface units
 # OS/2-2 15
 package=uzlibemx.zip,ZLib interface units
+# OS/2-2 16
+package=unetdbemx.zip[undbemx.zip],NetDB units
 
 
 #
@@ -245,6 +251,8 @@ package=uftpapisrc.zip[uftpsrc.zip],FTP API interface units
 package=uhwvideosrc.zip[uhwvsrc.zip],HW Video interface units
 # Source-2 15
 package=ummtksrc.zip,MMOS/2 interface units
+# Source-2 16
+package=unetdbsrc.zip[undbsrc.zip],NetDB units
 
 
 defaultcfg=
