@@ -198,6 +198,7 @@ var
 {$ifdef win32}
   h : HGlobal;
   pp : pchar;
+  res : boolean;
 {$endif win32}
 begin
   SetTextWinClipBoardData:=False;
@@ -217,6 +218,13 @@ begin
   r.cx:=l and $ffff;
   RealIntr($2F,r);
   SetTextWinClipBoardData:=(r.ax<>0);
+  r.ax:=$1703;
+  r.dx:=1{ Empty  Text };
+  r.es:=M.DosSeg;
+  r.bx:=M.DosOfs;
+  r.si:=0;
+  r.cx:=0;
+  RealIntr($2F,r);
   FreeDosMem(M);
 {$endif DOS}
 {$ifdef win32}
@@ -224,7 +232,13 @@ begin
   pp:=pchar(GlobalLock(h));
   move(p^,pp^,l+1);
   GlobalUnlock(h);
-  SetTextWinClipBoardData:=(SetClipboardData(CF_OEMTEXT,h)=h);
+  res:=(SetClipboardData(CF_OEMTEXT,h)=h);
+  h:=GlobalAlloc(GMEM_MOVEABLE or GMEM_DDESHARE,l+1);
+  pp:=pchar(GlobalLock(h));
+  OemToCharBuff(p,pp,l+1);
+  SetClipboardData(CF_TEXT,h);
+  GlobalUnlock(h);
+  SetTextWinClipBoardData:=res;
 {$endif win32}
   CloseWinClipBoard;
 end;
@@ -234,7 +248,12 @@ end.
 
 {
  $Log$
- Revision 1.1  2001-08-04 11:30:26  peter
+ Revision 1.2  2001-10-05 11:59:06  pierre
+  * Empty CF_TEXT clipboard data for go32v2 to force data conversion
+    if CF_TEXT is requested
+  * Use OemToCharBuff to also set the CF_TEXT clipboard format on win32
+
+ Revision 1.1  2001/08/04 11:30:26  peter
    * ide works now with both compiler versions
 
  Revision 1.1.2.1  2000/12/01 11:35:01  pierre
