@@ -370,11 +370,11 @@ unit i_bsd;
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
-            sharedlibext : '.so';
+            sharedlibext : '.dylib';
             staticlibext : '.a';
             staticlibprefix : 'libp';
             sharedlibprefix : 'lib';
-            sharedClibext : '.so';
+            sharedClibext : '.dylib';
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
@@ -443,7 +443,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2004-02-08 20:03:05  jonas
+  Revision 1.10  2004-03-29 21:17:39  florian
+    * fixed dyn. lib extension on darwin
+
+  Revision 1.9  2004/02/08 20:03:05  jonas
     * corrected first_param_offset for darwin
 
   Revision 1.8  2004/01/29 15:48:10  marco
