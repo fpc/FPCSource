@@ -190,14 +190,25 @@ procedure InitExport;
 begin
   case target_info.target of
 {$ifdef i386}
+  {$ifndef NOTARGETLINUX}
     target_i386_Linux :
       exportlib:=Texportliblinux.Create;
+  {$endif NOTARGETLINUX}
+  {$ifndef NOTARGETFREEBSD}
     target_i386_freebsd:
       exportlib:=Texportlibfreebsd.Create;
+  {$endif NOTARGETFREEBSD}
+//  {$ifndef NOTARGETSOLARIS}
+//    target_i386_solaris:
+//      exportlib:=new(pexportlibsolaris,Init);
+//  {$endif NOTARGETSOLARIS}
+  {$ifndef NOTARGETWIN32}
     target_i386_Win32 :
       exportlib:=Texportlibwin32.Create;
-    target_i386_Netware :
+  {$endif NOTARGETWIN32}
+  {$ifndef NOTARGETNETWARE}
       exportlib:=Texportlibnetware.Create;
+  {$endif NOTARGETNETWARE}
 {
     target_i386_OS2 :
       exportlib:=Texportlibos2.Create;
@@ -224,7 +235,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-12-25 00:07:25  peter
+  Revision 1.10  2001-02-02 22:43:39  peter
+    * add notarget defines
+
+  Revision 1.9  2000/12/25 00:07:25  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

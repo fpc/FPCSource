@@ -228,16 +228,30 @@ procedure InitImport;
 begin
   case target_info.target of
 {$ifdef i386}
+  {$ifndef NOTARGETLINUX}
     target_i386_Linux :
       importlib:=Timportliblinux.Create;
+  {$endif}
+  {$ifndef NOTARGETFREEBSD}
     target_i386_freebsd:
       importlib:=Timportlibfreebsd.Create;
-         target_i386_Win32 :
+  {$endif}
+//  {$ifndef NOTARGETSOLARIS}
+//    target_i386_solaris:
+//      importlib:=new(pimportlibsolaris,Init);
+//  {$endif}
+  {$ifndef NOTARGETWIN32}
+    target_i386_Win32 :
       importlib:=Timportlibwin32.Create;
+  {$endif}
+  {$ifndef NOTARGETOS2}
     target_i386_OS2 :
       importlib:=Timportlibos2.Create;
-    target_i386_Netware :
+  {$endif}
+  {$ifndef NOTARGETNETWARE}
+    target_i386_OS2 :
       importlib:=Timportlibnetware.Create;
+  {$endif}
 {$endif i386}
 {$ifdef m68k}
     target_m68k_Linux :
@@ -260,7 +274,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-12-25 00:07:26  peter
+  Revision 1.8  2001-02-02 22:43:39  peter
+    * add notarget defines
+
+  Revision 1.7  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
