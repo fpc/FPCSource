@@ -1,12 +1,21 @@
 unit xinerama;
 interface
-uses xlib,BaseUnix;
+uses
+{$IFDEF UNIX}
+ baseunix,
+{$ENDIF UNIX}
+ xlib;
 { Converted from X11/Xinerama.h }
 
 {$PACKRECORDS C}
 
 
 type
+{$IFNDEF UNIX}
+   cint = longint;
+   pcint = plongint;
+   cshort = smallint;
+{$ENDIF UNIX}
 
    PXineramaScreenInfo = ^TXineramaScreenInfo;
    TXineramaScreenInfo = record
