@@ -414,7 +414,7 @@ sourcebase:
         $(COPY) rtl/Makefile* $(SOURCEINSTALLDIR)/rtl
         $(COPY) packages/Makefile* $(SOURCEINSTALLDIR)/packages
 
-sourcezip:
+sourcezip: distclean
         $(MAKE) fpc_zipinstall ZIPTARGET=sourcebase ZIPNAME=basesrc
         $(MAKE) compiler_zipsourceinstall
         $(MAKE) rtl_zipsourceinstall
@@ -525,4 +525,3 @@ rpmcopy: distclean
 rpm: checkfpcdir rpmcopy
         cd $(RPMSPECDIR) ; rpm -ba fpc-$(FPC_VERSION).spec
         cd $(RPMSPECDIR) ; rpm -ba fpc-docs-$(FPC_VERSION).spec
-
