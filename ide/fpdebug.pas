@@ -3628,6 +3628,7 @@ end;
            OldReg:=NewReg;
            OK:=GetFPURegs(rs);
            NewReg:=rs;
+           GDBCount:=Debugger^.RunCount;
          end
        else
          begin
@@ -4212,7 +4213,10 @@ end.
 
 {
   $Log$
-  Revision 1.31  2002-09-17 21:48:41  pierre
+  Revision 1.32  2002-09-17 21:58:45  pierre
+   * correct last fpu patch so 'info all' is called only once
+
+  Revision 1.31  2002/09/17 21:48:41  pierre
    * allow fpu window to be resized
 
   Revision 1.30  2002/09/17 21:20:07  pierre
