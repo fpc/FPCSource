@@ -169,7 +169,7 @@
 \newcommand{\dos}  {\textsc{dos}\xspace}
 \newcommand{\msdos}{\textsc{ms-dos}\xspace}
 \newcommand{\ostwo}{\textsc{os/2}\xspace}
-\newcommand{\windows}{\textsc{Windows}\xspace}
+\newcommand{\windows}{\textsc{Windows 32-bit}\xspace}
 \newcommand{\windowsnt}{\textsc{Windows NT}\xspace}
 \newcommand{\fpc}{Free Pascal\xspace}
 \newcommand{\gnu}{\textsc{gnu}\xspace}
@@ -207,7 +207,7 @@
 \lstset{language=Delphi}%
 \lstset{pre=\sffamily\small}%
 \lstset{keywordstyle=\bfseries}%
-\lstset{blankstring=true}%
+%\lstset{blankstring=true}%
 %
 % Page settings
 \setlength{\oddsidemargin}{20pt}
@@ -224,7 +224,7 @@
 % PDF stuff
 %
 \ifpdf
-% \usepackage[pdftex,bookmarks=true]{hyperref}
+\usepackage[pdftex,bookmarks=true]{hyperref}
 \usepackage{times}
 \usepackage[T1]{fontenc}
 \pdfcompresslevel=9
