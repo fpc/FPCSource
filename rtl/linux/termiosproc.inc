@@ -90,7 +90,7 @@ end;
 Function TCSendBreak(fd,duration:cint):cint;
 begin
   {$ifndef BSD}
-  TCSendBreak:=fpIOCtl(fd,TCSBRK,pointer(duration));
+  TCSendBreak:=fpIOCtl(fd,TCSBRK,pointer(ptrint(duration)));
   {$else}
   TCSendBreak:=fpIOCtl(fd,TIOCSBRK,0);
   {$endif}
@@ -99,7 +99,7 @@ end;
 
 Function TCSetPGrp(fd,id:cint):cint;
 begin
-  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(id));
+  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(ptrint(id)));
 end;
 
 
@@ -121,7 +121,7 @@ end;
 Function TCFlow(fd,act:cint):cint;
 begin
   {$ifndef BSD}
-   TCFlow:=fpIOCtl(fd,TCXONC,pointer(act));
+   TCFlow:=fpIOCtl(fd,TCXONC,pointer(ptrint(act)));
   {$else}
     case act OF
      TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,0);
@@ -134,9 +134,9 @@ end;
 Function TCFlush(fd,qsel:cint):cint;
 begin
  {$ifndef BSD}
-  TCFlush:=fpIOCtl(fd,TCFLSH,pointer(qsel));
+  TCFlush:=fpIOCtl(fd,TCFLSH,pointer(ptrint(qsel)));
  {$else}
-  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel));
+  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(ptrint(qsel)));
  {$endif}
 end;
 
