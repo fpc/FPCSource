@@ -1279,13 +1279,15 @@ begin
    begin
      p:=@Self;
      cur:=cursor;
+     { in FVISION origin is always relative to screen corner
+       for inserted views PM }
+     inc(cur.X,p^.origin.X);
+     inc(cur.Y,p^.origin.Y);
      while true do
       begin
-        if (cur.x<0) or (cur.x>=p^.size.x) or
-           (cur.y<0) or (cur.y>=p^.size.y) then
+        if (cur.x<p^.origin.x) or (cur.x>=p^.origin.x+p^.size.x) or
+           (cur.y<p^.origin.y) or (cur.y>=p^.origin.y+p^.size.y) then
           break;
-        inc(cur.X,p^.origin.X);
-        inc(cur.Y,p^.origin.Y);
         p2:=p;
         G:=p^.owner;
         if G=Nil then { top view }
@@ -2565,6 +2567,12 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.Insert (P: PView);
 BEGIN
+   If (P <> Nil) and assigned(P^.Owner) Then          { View is valid and already inserted }
+     If (Options AND ofGFVModeView <> 0) Then         { GFV mode view check }
+       P^.DisplaceBy(-P^.Owner^.RawOrigin.X,
+       -P^.Owner^.RawOrigin.Y) Else                    { We are in GFV mode }
+       P^.DisplaceBy(-P^.Owner^.Origin.X*FontWidth,
+        -P^.Owner^.Origin.Y*FontHeight);               { Displace old view }
    If (P <> Nil) Then                                 { View is valid }
      If (Options AND ofGFVModeView <> 0) Then         { GFV mode view check }
        P^.DisplaceBy(RawOrigin.X, RawOrigin.Y) Else   { We are in GFV mode }
@@ -3732,7 +3740,7 @@ BEGIN
        MoveChar(B[CurCol+ColWidth-1], #179,
          GetColor(5), 1);                             { Put centre line marker }
      End;
-     WriteLine(0, I, Size.X, 1, B);                   { Write line to screen }
+     WriteLine(0, I, Size.X-1, 1, B);                 { Write line to screen }
    End;
 END;
 
@@ -3771,7 +3779,7 @@ BEGIN
          SCOff := 2;                                  { Colour offset=2 }
        End;
        If DrawIt Then Begin                           { We are drawing item }
-         ClearArea(0, I*FontHeight, ColWidth*FontWidth,
+         ClearArea(CurCol*FontWidth, I*FontHeight, (CurCol+ColWidth-1)*FontWidth,
            (I+1)*FontHeight-1, Color AND $F0 SHR 4);  { Draw the bar }
          MoveChar(B[CurCol], ' ', Color, ColWidth);
          if Item < Range then begin
@@ -3784,7 +3792,7 @@ BEGIN
            end;
          end;
          MoveChar(B[CurCol+ColWidth-1], #179, GetColor(5), 1);
-         WriteLine(0, I, Size.X, 1, B);
+         WriteLine(CurCol, I, Min(Size.X-1,CurCol+ColWidth-1), 1, B[CurCol]);
        End;
      End;
    End;
@@ -5428,7 +5436,10 @@ END.
 
 {
  $Log$
- Revision 1.16  2001-08-05 02:03:14  peter
+ Revision 1.17  2001-08-05 23:54:33  pierre
+  * some improovements for TListViewer
+
+ Revision 1.16  2001/08/05 02:03:14  peter
    * view redrawing and small cursor updates
    * merged some more FV extensions
 
