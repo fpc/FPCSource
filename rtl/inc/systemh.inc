@@ -45,7 +45,6 @@ Type
   LongWord = Cardinal;
   Integer  = SmallInt;
 
-{ at least declare Turbo Pascal real types }
 {$ifdef i386}
   StrLenInt = LongInt;
 
@@ -60,6 +59,21 @@ Type
   ValUInt = Cardinal;
   ValReal = Extended;
 {$endif}
+
+{$ifdef x86_64}
+  StrLenInt = LongInt;
+
+  {$define DEFAULT_EXTENDED}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+  {$define SUPPORT_EXTENDED}
+  {$define SUPPORT_COMP}
+
+  ValSInt = Longint;
+  ValUInt = Cardinal;
+  ValReal = Extended;
+{$endif x86_64}
 
 {$ifdef m68k}
   StrLenInt = Longint;
@@ -556,7 +570,10 @@ const
 
 {
   $Log$
-  Revision 1.47  2002-07-01 16:29:05  peter
+  Revision 1.48  2002-07-04 20:40:09  florian
+    + some x86-64 support added
+
+  Revision 1.47  2002/07/01 16:29:05  peter
     * sLineBreak changed to normal constant like Kylix
 
   Revision 1.46  2002/06/02 10:49:30  marco
@@ -606,7 +623,7 @@ const
   * bugfix #1639 (IsMultiThread varialbe setting)
 
   Revision 1.35  2001/08/19 21:02:01  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
+    * fixed and added a lot of stuff to get the Jedi DX8 headers
       compiled
 
   Revision 1.34  2001/08/01 18:01:20  peter
@@ -730,5 +747,4 @@ const
 
   Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
-
 }

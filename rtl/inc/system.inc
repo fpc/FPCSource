@@ -84,24 +84,58 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
                     Include processor specific routines
 ****************************************************************************}
 
-{$IFDEF I386}
-  {$IFNDEF ENDIAN_LITTLE}
-    {$DEFINE ENDIAN_LITTLE}
-  {$ENDIF}
-  {$IFDEF M68K}
+{$ifdef i386}
+  {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
-  {$ENDIF}
-  {$I i386.inc}  { Case dependent, don't change }
-{$ELSE}
-  {$IFDEF M68K}
-  {$IFNDEF ENDIAN_BIG}
-    {$DEFINE ENDIAN_BIG}
-  {$ENDIF}
-    {$I m68k.inc}  { Case dependent, don't change }
-  {$ELSE}
+  {$endif}
+  {$define ENDIAN_LITTLE}
+  {$i i386.inc}  { Case dependent, don't change }
+{$endif i386}
+
+{$ifdef m68k}
+  {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
-  {$ENDIF}
-{$ENDIF}
+  {$endif}
+  {$define ENDIAN_BIG}
+  {$i m68k.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif m68k}
+
+{$ifdef x86_64}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$define ENDIAN_LITTLE}
+  {$i x86_64.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif x86_64}
+
+{$ifdef powerpc}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$fatal !!!! Fix endian directive} 
+  {$i powerpc.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif powerpc}
+
+{$ifdef alpha}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$define ENDIAN_BIG}
+  {$i alpha.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif alpha}
+
+{$ifdef iA64}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$define ENDIAN_BIG}
+  {$i ia64.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif iA64}
 
 { Include generic pascal only routines which are not defined in the processor
   specific include file }
@@ -113,10 +147,10 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 ****************************************************************************}
 
 { Include set support which is processor specific}
-{$I set.inc}
+{$i set.inc}
 { Include generic pascal routines for sets if the processor }
 { specific routines are not available.                      }
-{$I genset.inc}
+{$i genset.inc}
 
 
 {****************************************************************************
@@ -721,7 +755,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  2002-04-21 15:51:50  carl
+  Revision 1.29  2002-07-04 20:40:09  florian
+    + some x86-64 support added
+
+  Revision 1.28  2002/04/21 15:51:50  carl
   * StackError is now a typed constant
   + $S can be used under unix
 
