@@ -66,6 +66,7 @@ unit ag386bin;
         procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
         procedure StartFileLineInfo;
 {$endif}
+        function  MaybeNextList(var hp:pai):boolean;
         function  TreePass0(hp:pai):pai;
         function  TreePass1(hp:pai):pai;
         function  TreePass2(hp:pai):pai;
@@ -338,6 +339,27 @@ unit ag386bin;
 {$endif GDB}
 
 
+    function ti386binasmlist.MaybeNextList(var hp:pai):boolean;
+      begin
+        { maybe end of list }
+        while not assigned(hp) do
+         begin
+           if currlistidx<lists then
+            begin
+              inc(currlistidx);
+              currlist:=list[currlistidx];
+              hp:=pai(currlist^.first);
+            end
+           else
+            begin
+              MaybeNextList:=false;
+              exit;
+            end;
+         end;
+        MaybeNextList:=true;
+      end;
+
+
     function ti386binasmlist.TreePass0(hp:pai):pai;
       var
         lastsec : tsection;
@@ -360,23 +382,28 @@ unit ag386bin;
              ait_datablock :
                begin
 {$ifdef EXTERNALBSS}
-                 if not pai_datablock(hp)^.is_global then
+                 if not SmartAsm then
                   begin
-                     l:=pai_datablock(hp)^.size;
-                     if l>2 then
-                       objectalloc^.sectionalign(4)
-                     else if l>1 then
-                       objectalloc^.sectionalign(2);
-                     objectalloc^.sectionalloc(pai_datablock(hp)^.size);
-                  end;
-{$else}
-                 l:=pai_datablock(hp)^.size;
-                 if l>2 then
-                   objectalloc^.sectionalign(4)
-                 else if l>1 then
-                   objectalloc^.sectionalign(2);
-                 objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+                    if not pai_datablock(hp)^.is_global then
+                     begin
+                        l:=pai_datablock(hp)^.size;
+                        if l>2 then
+                          objectalloc^.sectionalign(4)
+                        else if l>1 then
+                          objectalloc^.sectionalign(2);
+                        objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+                     end;
+                  end
+                 else
+                  begin
 {$endif}
+                    l:=pai_datablock(hp)^.size;
+                    if l>2 then
+                      objectalloc^.sectionalign(4)
+                    else if l>1 then
+                      objectalloc^.sectionalign(2);
+                    objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+                  end;
                end;
              ait_const_32bit :
                objectalloc^.sectionalloc(4);
@@ -417,16 +444,6 @@ unit ag386bin;
            end;
            hp:=pai(hp^.next);
 
-         { maybe end of list }
-           if not assigned(hp) then
-            begin
-              if currlistidx<lists then
-               begin
-                 inc(currlistidx);
-                 currlist:=list[currlistidx];
-                 hp:=pai(currlist^.first);
-               end;
-            end;
 
          end;
         TreePass0:=hp;
@@ -469,35 +486,40 @@ unit ag386bin;
                  if objectalloc^.currsec<>sec_bss then
                   Message(asmw_e_alloc_data_only_in_bss);
 {$ifdef EXTERNALBSS}
-                 if pai_datablock(hp)^.is_global then
+                 if not SmartAsm then
                   begin
-                    pai_datablock(hp)^.sym^.typ:=AS_EXTERNAL;
-                    pai_datablock(hp)^.sym^.setaddress(sec_none,pai_datablock(hp)^.size,pai_datablock(hp)^.size);
-                  end
-                 else
-                  begin
-                    l:=pai_datablock(hp)^.size;
-                    if l>2 then
-                      objectalloc^.sectionalign(4)
-                    else if l>1 then
-                      objectalloc^.sectionalign(2);
-                    pai_datablock(hp)^.sym^.typ:=AS_LOCAL;
-                    pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,pai_datablock(hp)^.size);
-                    objectalloc^.sectionalloc(pai_datablock(hp)^.size);
-                  end;
-{$else}
-                 if pai_datablock(hp)^.is_global then
-                  pai_datablock(hp)^.sym^.typ:=AS_GLOBAL
-                 else
-                  pai_datablock(hp)^.sym^.typ:=AS_LOCAL;
-                 l:=pai_datablock(hp)^.size;
-                 if l>2 then
-                   objectalloc^.sectionalign(4)
-                 else if l>1 then
-                   objectalloc^.sectionalign(2);
-                 pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,pai_datablock(hp)^.size);
-                 objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+                    if pai_datablock(hp)^.is_global then
+                     begin
+                       pai_datablock(hp)^.sym^.typ:=AS_EXTERNAL;
+                       pai_datablock(hp)^.sym^.setaddress(sec_none,pai_datablock(hp)^.size,pai_datablock(hp)^.size);
+                     end
+                    else
+                     begin
+                       l:=pai_datablock(hp)^.size;
+                       if l>2 then
+                         objectalloc^.sectionalign(4)
+                       else if l>1 then
+                         objectalloc^.sectionalign(2);
+                       pai_datablock(hp)^.sym^.typ:=AS_LOCAL;
+                       pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,pai_datablock(hp)^.size);
+                       objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+                     end;
+                   end
+                  else
 {$endif}
+                   begin
+                     if pai_datablock(hp)^.is_global then
+                      pai_datablock(hp)^.sym^.typ:=AS_GLOBAL
+                     else
+                      pai_datablock(hp)^.sym^.typ:=AS_LOCAL;
+                     l:=pai_datablock(hp)^.size;
+                     if l>2 then
+                       objectalloc^.sectionalign(4)
+                     else if l>1 then
+                       objectalloc^.sectionalign(2);
+                     pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,pai_datablock(hp)^.size);
+                     objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+                   end;
                end;
              ait_const_32bit :
                objectalloc^.sectionalloc(4);
@@ -639,9 +661,11 @@ unit ag386bin;
              ait_datablock :
                begin
                  objectoutput^.writesymbol(pai_datablock(hp)^.sym);
+                 if SmartAsm
 {$ifdef EXTERNALBSS}
-                 if not pai_datablock(hp)^.is_global then
+                    or (not pai_datablock(hp)^.is_global)
 {$endif}
+                    then
                    begin
                      l:=pai_datablock(hp)^.size;
                      if l>2 then
@@ -726,19 +750,8 @@ unit ag386bin;
         while assigned(hp) do
          begin
            hp:=TreePass1(hp);
-         { maybe end of list }
-           if not assigned(hp) then
-            begin
-              if currlistidx<lists then
-               begin
-                 inc(currlistidx);
-                 currlist:=list[currlistidx];
-                 hp:=pai(currlist^.first);
-               end
-              else
-               break;
-            end;
-          end;
+           MaybeNextList(hp);
+         end;
         { set section sizes }
         objectoutput^.setsectionsizes(objectalloc^.secsize);
 
@@ -754,19 +767,8 @@ unit ag386bin;
         while assigned(hp) do
          begin
            hp:=TreePass2(hp);
-         { maybe end of list }
-           if not assigned(hp) then
-            begin
-              if currlistidx<lists then
-               begin
-                 inc(currlistidx);
-                 currlist:=list[currlistidx];
-                 hp:=pai(currlist^.first);
-               end
-              else
-               break;
-            end;
-          end;
+           MaybeNextList(hp);
+         end;
       end;
 
 
@@ -798,26 +800,17 @@ unit ag386bin;
 {$endif GDB}
            hp:=TreePass2(hp);
 
-         { maybe end of list }
-           if not assigned(hp) then
-            begin
-              if currlistidx<lists then
-               begin
-                 inc(currlistidx);
-                 currlist:=list[currlistidx];
-                 hp:=pai(currlist^.first);
-               end
-              else
-               break;
-            end;
+           if not MaybeNextList(hp) then
+            break;
 
            { write the current objectfile }
            objectoutput^.donewriting;
-           { start the writing again }
-           objectoutput^.initwriting;
+
            { we will start a new objectfile so reset everything }
-           ResetAsmsymbolList;
+           objectoutput^.initwriting;
            objectalloc^.resetsections;
+           ResetAsmsymbolList;
+
            { avoid empty files }
            while assigned(hp^.next) and
                  (pai(hp^.next)^.typ in [ait_marker,ait_comment,ait_section,ait_cut]) do
@@ -829,7 +822,11 @@ unit ag386bin;
                 end;
               hp:=pai(hp^.next);
             end;
+
            hp:=pai(hp^.next);
+
+           if not MaybeNextList(hp) then
+            break;
          end;
       end;
 
@@ -908,7 +905,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.19  1999-07-22 09:37:30  florian
+  Revision 1.20  1999-07-31 12:33:11  peter
+    * fixed smartlinking
+
+  Revision 1.19  1999/07/22 09:37:30  florian
     + resourcestring implemented
     + start of longstring support
 
