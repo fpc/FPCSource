@@ -15,7 +15,7 @@
 // Generic text document class
 
 {$MODE objfpc}
-{$M+,H+}
+{$H+}
 
 unit doc_text;
 
@@ -28,8 +28,7 @@ type
   TLine = packed record
     info: Pointer;
     flags: LongWord;
-    len: LongInt;                       // Length of string in characters
-    s: PChar;
+    s: AnsiString;
   end;
 
   PLineArray = ^TLineArray;
@@ -150,7 +149,7 @@ var
   i: Integer;
 begin
   for i := 0 to FLineCount - 1 do
-    StrDispose(FLines^[i].s);
+    SetLength(FLines^[i].s, 0);
   if Assigned(FLines) then
     FreeMem(FLines);
 
@@ -168,17 +167,16 @@ var
   i: Integer;
 begin
   if BeforeLine > FLineCount then
-   exit;  // *** throw an intelligent exception
+    exit;  // *** throw an intelligent exception
   ReAllocMem(FLines, (FLineCount + 1) * SizeOf(TLine));
-  Move(FLines^[BeforeLine], FLines^[BeforeLine + 1],(FLineCount - BeforeLine) * SizeOf(TLine));
-  l := @(FLines^[BeforeLine]);
+  Move(FLines^[BeforeLine], FLines^[BeforeLine + 1], (FLineCount - BeforeLine) * SizeOf(TLine));
+  l := @FLines^[BeforeLine];
   FillChar(l^, SizeOf(TLine), 0);
-  l^.len := Length(s);
-  l^.s := StrNew(PChar(s));
+  l^.s := s;
 
   Inc(FLineCount);
-  if l^.Len>FLineWidth then
-   FLineWidth:=l^.len;
+  if Length(s) > FLineWidth then
+    FLineWidth := Length(s);
 
   for i := 0 to FViewInfos.Count - 1 do
     if Assigned(TViewInfo(FViewInfos.Items[i]).OnLineInsert) then
@@ -194,7 +192,7 @@ procedure TTextDoc.RemoveLine(LineNumber: Integer);
 var
   i: Integer;
 begin
-  StrDispose(FLines^[LineNumber].s);
+  SetLength(FLines^[LineNumber].s, 0);	// Free the string for this line
   ReAllocMem(FLines, (FLineCount - 1) * SizeOf(TLine));
   if LineNumber < FLineCount - 1 then
     Move(FLines^[LineNumber + 1], FLines^[LineNumber],(FLineCount - LineNumber - 1) * SizeOf(TLine));
@@ -239,8 +237,7 @@ begin
     end else
       s := s + buf;
   end;
-  if Length(s) > 0 then
-    ProcessLine(s);
+  ProcessLine(s);
 end;
 
 procedure TTextDoc.LoadFromFile(const filename: String);
@@ -257,11 +254,11 @@ var
   i: Integer;
 begin
   for i := 0 to FLineCount - 2 do begin
-    AStream.Write(FLines^[i].s, FLines^[i].len);
+    AStream.Write(FLines^[i].s, Length(FLines^[i].s));
     AStream.Write(FLineEnding, Length(FLineEnding));
   end;
   if FLineCount > 0 then
-    AStream.Write(FLines^[FLineCount - 1].s, FLines^[FLineCount - 1].len);
+    AStream.Write(FLines^[FLineCount - 1].s, Length(FLines^[FLineCount - 1].s));
 end;
 
 procedure TTextDoc.SaveToFile(const filename: String);
@@ -295,13 +292,10 @@ end;
 
 procedure TTextDoc.SetLineText(LineNumber: Integer; const NewText: String);
 begin
-  if (FLines^[LineNumber].s = nil) or
-    (StrComp(FLines^[LineNumber].s, PChar(NewText)) <> 0) then begin
-    StrDispose(FLines^[LineNumber].s);
-    FLines^[LineNumber].len := Length(NewText);
-    FLines^[LineNumber].s := StrNew(PChar(NewText));
-    if Length(NewText)>FLineWidth then
-     FLineWidth:=Length(NewText);
+  if FLines^[LineNumber].s <> NewText then begin
+    FLines^[LineNumber].s := NewText;
+    if Length(NewText) > FLineWidth then
+      FLineWidth := Length(NewText);
     Modified := True;
   end;
 end;
@@ -311,7 +305,7 @@ begin
   if (LineNumber < 0) or (LineNumber >= FLineCount) then
     Result := 0
   else
-    Result := FLines^[LineNumber].len;
+    Result := Length(FLines^[LineNumber].s);
 end;
 
 function TTextDoc.GetLineFlags(LineNumber: Integer): Byte;
@@ -333,7 +327,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2000-01-31 19:22:16  sg
+  Revision 1.10  2000-02-19 19:05:16  sg
+  * Lines are now stored as AnsiStrings instead of PChars
+
+  Revision 1.9  2000/01/31 19:22:16  sg
   * Added support for loading from streams
     (NOTE: The new loading code is very slow at the moment)
   * Added saving support
