@@ -691,7 +691,11 @@ implementation
                          is_void(tpointerdef(def_from).pointertype.def) then
                        begin
                          doconv:=tc_equal;
-                         eq:=te_convert_l1;
+                         { give pwidechar a small penalty }
+                         if is_pwidechar(def_to) then
+                          eq:=te_convert_l2
+                         else
+                          eq:=te_convert_l1;
                        end;
                    end;
                  procvardef :
@@ -1188,7 +1192,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2002-12-11 22:40:12  peter
+  Revision 1.8  2002-12-15 22:37:53  peter
+    * give conversions from pointer to pwidechar a penalty (=prefer pchar)
+
+  Revision 1.7  2002/12/11 22:40:12  peter
     * proc->procvar is never an exact match, convert exact parameters
       to equal for the whole proc to procvar conversion level
 
