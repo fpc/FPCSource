@@ -54,7 +54,7 @@ end;
 
 Procedure CloseSock(var F:text);
 begin
-  Close(f);
+  { Nothing special has to be done here }
 end;
 
 
@@ -165,7 +165,13 @@ begin
 end;
 {
   $Log$
-  Revision 1.5  2000-02-09 16:59:31  peter
+  Revision 1.6  2000-05-22 12:38:51  jonas
+    * CloseSock is now a dummy (it called system.close, but this doesn't
+      make any sense since itself can only be called by system.close) This
+      caused an endless loop with my last changes where the mode of a
+      textrec is set to fmClosed only after the closeFunc() has been called.
+
+  Revision 1.5  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.4  2000/01/07 16:41:36  daniel
