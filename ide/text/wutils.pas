@@ -360,8 +360,11 @@ begin
       Assign(f,FileName);
       {$I-}
       Reset(f);
-      GetFTime(f,T);
-      Close(f);
+      if InOutRes=0 then
+        begin
+          GetFTime(f,T);
+          Close(f);
+        end;
       {$I+}
       if (EatIO<>0) or (DosError<>0) then T:=-1;
       FileMode:=FM;
@@ -625,7 +628,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.15  2000-02-07 11:45:11  pierre
+  Revision 1.16  2000-03-14 13:36:12  pierre
+   * error for unexistant file in GetFileTime fixed
+
+  Revision 1.15  2000/02/07 11:45:11  pierre
    + TUnsortedStringCollection CreateFrom/Assign/GetItem/PutItem from Gabor
 
   Revision 1.14  2000/01/20 00:30:32  pierre
