@@ -1584,10 +1584,7 @@ Begin
             Message(asmr_e_invalid_operand_type);
            opr.typ:=OPR_REGISTER;
            opr.reg:=tempreg;
-           if opr.reg.enum=R_INTREGISTER then
-              size:=subreg2opsize[opr.reg.number and $ff]
-           else
-              size:=reg2opsize[opr.reg.enum];
+           size:=reg2opsize(opr.reg)
          end;
       end;
 
@@ -1983,7 +1980,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.42  2003-03-17 21:32:52  peter
+  Revision 1.43  2003-03-18 18:15:53  peter
+    * changed reg2opsize to function
+
+  Revision 1.42  2003/03/17 21:32:52  peter
     * allow character constants in reference declaration
 
   Revision 1.41  2003/02/26 22:57:44  daniel

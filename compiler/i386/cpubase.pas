@@ -123,14 +123,14 @@ uses
                   {Number of first and last imaginary register.}
                   first_imreg     = $12;
                   last_imreg      = $ff;
-                  
+
      {Sub register numbers:}
                   R_SUBL        = $00;      {Like AL}
                   R_SUBH        = $01;      {Like AH}
                   R_SUBW        = $02;      {Like AX}
                   R_SUBD        = $03;      {Like EAX}
                   R_SUBQ        = $04;      {Like RAX}
-                  
+
      {The subregister that specifies the entire register.}
                   R_SUBWHOLE    = R_SUBD;  {i386}
                   {R_SUBWHOLE    = R_SUBQ;} {Hammer}
@@ -244,7 +244,7 @@ uses
         R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7,
         R_INTREGISTER,R_FLOATREGISTER,R_MMXREGISTER,R_KNIREGISTER
       );
-      
+
       type  Tnewregister=word;
 
             Tregister = packed record
@@ -252,7 +252,7 @@ uses
               number:Tnewregister;  {This is a word for now, change to cardinal
                                      when the old register coding is away.}
             end;
-            
+
             Tsuperregister=byte;
             Tsubregister=byte;
       {$packenum normal}
@@ -286,25 +286,6 @@ uses
       regset16bit : tregisterset = [R_AX..R_DI,R_CS..R_SS];
       regset32bit : tregisterset = [R_EAX..R_EDI];
 
-      { Convert reg to opsize }
-      reg2opsize : array[firstreg..lastreg] of topsize = (S_NO,
-        S_L,S_L,S_L,S_L,S_L,S_L,S_L,S_L,
-        S_W,S_W,S_W,S_W,S_W,S_W,S_W,S_W,
-        S_B,S_B,S_B,S_B,S_B,S_B,S_B,S_B,
-        S_W,S_W,S_W,S_W,S_W,S_W,
-        S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,
-        S_L,S_L,S_L,S_L,S_L,S_L,
-        S_L,S_L,S_L,S_L,
-        S_L,S_L,S_L,S_L,S_L,
-        S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D,
-        S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D
-      );
-      
-      {Converts subregister number to opsize}
-      subreg2opsize:array[0..4] of Topsize = (S_B,S_B,S_W,S_L,S_D);
-      {Converts subregister number to cgsize}
-{      subreg2cgsize:array[0..4] of Tcgsize = (OS_8,OS_8,OS_16,OS_32);}
-
       {# Standard opcode string table (for each tasmop enumeration). The
          opcode strings should conform to the names as defined by the
          processor manufacturer.
@@ -336,7 +317,7 @@ uses
         'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7',
         'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
       );
-      
+
 {*****************************************************************************
                                 Conditions
 *****************************************************************************}
@@ -548,12 +529,12 @@ uses
       mmregs = [R_MM0..R_MM7];
       usableregsmm = [R_MM0..R_MM7];
       c_countusableregsmm  = 8;
-      
+
       maxaddrregs = 0;
       addrregs    = [];
       usableregsaddr = [];
       c_countusableregsaddr = 0;
-      
+
 
       firstsaveintreg = RS_EAX;
       lastsaveintreg  = RS_EDX;
@@ -645,13 +626,13 @@ uses
       {the return_result_reg, is used inside the called function to store its return
       value when that is a scalar value otherwise a pointer to the address of the
       result is placed inside it}
-    	return_result_reg		=	accumulator;
+        return_result_reg               =       accumulator;
       RS_RETURN_RESULT_REG = RS_ACCUMULATOR;
       NR_RETURN_RESULT_REG = NR_ACCUMULATOR;
 
       {the function_result_reg contains the function result after a call to a scalar
       function othewise it contains a pointer to the returned result}
-    	function_result_reg	=	accumulator;
+        function_result_reg     =       accumulator;
       {# Hi-Results are returned in this register (64-bit value high register) }
       accumulatorhigh = R_EDX;
       RS_ACCUMULATORHIGH  = RS_EDX;
@@ -693,6 +674,7 @@ uses
 
     procedure convert_register_to_enum(var r:Tregister);
     function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function reg2opsize(r:Tregister):topsize;
     function is_calljmp(o:tasmop):boolean;
     function flags_to_cond(const f: TResFlags) : TAsmCond;
 
@@ -706,7 +688,7 @@ implementation
 *****************************************************************************}
 
     procedure convert_register_to_enum(var r:Tregister);
-    
+
     begin
       if r.enum=R_INTREGISTER then
         case r.number of
@@ -730,9 +712,9 @@ implementation
           internalerror(200301082);
         end;
     end;
-    
+
     function cgsize2subreg(s:Tcgsize):Tsubregister;
-    
+
     begin
       case s of
         OS_8,OS_S8:
@@ -747,16 +729,59 @@ implementation
           internalerror(200301231);
       end;
     end;
-    
+
+
+    function reg2opsize(r:Tregister):topsize;
+      const
+        subreg2opsize : array[0..4] of Topsize = (S_B,S_B,S_W,S_L,S_D);
+
+        enum2opsize : array[firstreg..lastreg] of topsize = (S_NO,
+          S_L,S_L,S_L,S_L,S_L,S_L,S_L,S_L,
+          S_W,S_W,S_W,S_W,S_W,S_W,S_W,S_W,
+          S_B,S_B,S_B,S_B,S_B,S_B,S_B,S_B,
+          S_W,S_W,S_W,S_W,S_W,S_W,
+          S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,
+          S_L,S_L,S_L,S_L,S_L,S_L,
+          S_L,S_L,S_L,S_L,
+          S_L,S_L,S_L,S_L,S_L,
+          S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D,
+          S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D
+        );
+      begin
+        reg2opsize:=S_L;
+        if (r.enum=R_INTREGISTER) then
+         begin
+           if (r.number shr 8)=0 then
+            begin
+              case r.number of
+                NR_CS,NR_DS,NR_ES,
+                NR_SS,NR_FS,NR_GS :
+                  reg2opsize:=S_W;
+              end;
+            end
+           else
+            begin
+              if (r.number and $ff)>4 then
+                internalerror(200303181);
+              reg2opsize:=subreg2opsize[r.number and $ff];
+            end;
+         end
+        else
+         begin
+           reg2opsize:=enum2opsize[r.enum];
+         end;
+      end;
+
+
     function supreg_name(r:Tsuperregister):string;
-    
+
     var s:string[4];
-    
+
     const supreg_names:array[0..last_supreg] of string[4]=
           ('INV',
            'eax','ebx','ecx','edx','esi','edi','ebp','esp',
            'r8' ,'r9', 'r10','r11','r12','r13','r14','r15');
-    
+
     begin
       if r in [0..last_supreg] then
         supreg_name:=supreg_names[r]
@@ -799,7 +824,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2003-03-08 08:59:07  daniel
+  Revision 1.44  2003-03-18 18:15:53  peter
+    * changed reg2opsize to function
+
+  Revision 1.43  2003/03/08 08:59:07  daniel
     + $define newra will enable new register allocator
     + getregisterint will return imaginary registers with $newra
     + -sr switch added, will skip register allocation so you can see

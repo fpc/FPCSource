@@ -1442,7 +1442,7 @@ Begin
            opr.reg:=actasmregister;
            if opr.reg.enum<>R_INTREGISTER then
              internalerror(200302023);
-           size:=subreg2opsize[actasmregister.number and $ff];
+           size:=reg2opsize(actasmregister);
            Consume(AS_REGISTER);
          end
         else
@@ -1595,10 +1595,7 @@ Begin
              Message(asmr_e_invalid_operand_type);
            opr.typ:=OPR_REGISTER;
            opr.reg:=tempreg;
-           if opr.reg.enum=R_INTREGISTER then
-              size:=subreg2opsize[opr.reg.number and $ff]
-           else
-              size:=reg2opsize[opr.reg.enum];
+           size:=reg2opsize(opr.reg);
          end
         else
          Message(asmr_e_syn_operand);
@@ -2138,7 +2135,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.39  2003-02-20 15:52:58  pierre
+  Revision 1.40  2003-03-18 18:15:53  peter
+    * changed reg2opsize to function
+
+  Revision 1.39  2003/02/20 15:52:58  pierre
    * fix a range check error
 
   Revision 1.38  2003/02/19 22:00:16  daniel
