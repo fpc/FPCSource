@@ -253,8 +253,8 @@ unit winsock;
        WSADATA = record
           wVersion : WORD;
           wHighVersion : WORD;
-          szDescription : array[0..WSADESCRIPTION_LEN] of char;
-          szSystemStatus : array[0..WSASYS_STATUS_LEN] of char;
+          szDescription : array[0..WSADESCRIPTION_LEN-1] of char;
+          szSystemStatus : array[0..WSASYS_STATUS_LEN-1] of char;
           iMaxSockets : word;
           iMaxUdpDg : word;
           lpVendorInfo : pchar;
@@ -927,7 +927,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.6  2000-02-20 20:34:02  florian
+  Revision 1.7  2000-02-23 15:00:55  jonas
+    * fixed WSADATA record structure bug
+
+  Revision 1.6  2000/02/20 20:34:02  florian
     * dub id fixed
 
   Revision 1.5  2000/02/09 16:59:35  peter
