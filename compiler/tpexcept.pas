@@ -36,8 +36,12 @@ type
       _ax,_bx,_cx,_dx,_si,_di,_bp,_sp,_ip,flags : word;
       _cs,_ds,_es,_ss : word;
 {$else}
+  {$ifdef Delphi} { must preserve: ebx, esi, edi, ebp, esp, eip only }
+     _ebx,_esi,_edi,_ebp,_esp,_eip : longint;
+  {$else}
       eax,ebx,ecx,edx,esi,edi,ebp,esp,eip,flags : longint;
       cs,ds,es,fs,gs,ss : word;
+  {$endif Delphi}
 {$endif TP}
    end;
 
@@ -48,7 +52,9 @@ type
   procedure longjmp(const rec : jmp_buf;return_value : integer);
 {$else}
   function setjmp(var rec : jmp_buf) : longint;
+    {$ifdef Delphi}stdcall;{$endif}
   procedure longjmp(const rec : jmp_buf;return_value : longint);
+    {$ifdef Delphi}stdcall;{$endif}
 {$endif TP}
 
   const
@@ -194,16 +200,42 @@ implementation
 {$else}
 {$ifdef Delphi}
 
-    function setjmp(var rec : jmp_buf) : longint;
+    {$STACKFRAMES ON}
+    function setjmp(var rec : jmp_buf) : longint; assembler;
+    { [ebp+12]: [ebp+8]:@rec, [ebp+4]:eip', [ebp+0]:ebp' }
+    asm // free: eax, ecx, edx
+      { push ebp; mov ebp,esp }
+      mov  edx,rec
+      mov  [edx].jmp_buf._ebx,ebx  { ebx }
+      mov  [edx].jmp_buf._esi,esi  { esi }
+      mov  [edx].jmp_buf._edi,edi  { edi }
+      mov  eax,[ebp]               { ebp (caller stack frame) }
+      mov  [edx].jmp_buf._ebp,eax
+      lea  eax,[ebp+12] { esp [12]: [8]:@rec, [4]:eip, [0]:ebp }
+      mov  [edx].jmp_buf._esp,eax
+      mov  eax,[ebp+4]
+      mov  [edx].jmp_buf._eip,eax
+      xor  eax,eax
+      { leave }
+      { ret  4 }
+    end;
 
-      begin
-         result:=0;
-      end;
-
-    procedure longjmp(const rec : jmp_buf;return_value : longint);
-
-      begin
-      end;
+    procedure longjmp(const rec : jmp_buf; return_value : longint);assembler;
+    { [ebp+12]: return_value [ebp+8]:@rec, [ebp+4]:eip', [ebp+0]:ebp' }
+    asm
+      { push ebp, mov ebp,esp }
+      mov  edx,rec
+      mov  ecx,return_value
+      mov  ebx,[edx].jmp_buf._ebx  { ebx }
+      mov  esi,[edx].jmp_buf._esi  { esi }
+      mov  edi,[edx].jmp_buf._edi  { edi }
+      mov  ebp,[edx].jmp_buf._ebp  { ebp }
+      mov  esp,[edx].jmp_buf._esp  { esp }
+      mov  eax,[edx].jmp_buf._eip  { eip }
+      push eax
+      mov  eax,ecx
+      ret  0
+    end;
 
 {$else Delphi}
 
@@ -353,7 +385,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-02-24 18:41:39  peter
+  Revision 1.13  2000-05-11 09:36:22  pierre
+   * Delphi implementation by Kovacs Attila Zoltan
+
+  Revision 1.12  2000/02/24 18:41:39  peter
     * removed warnings/notes
 
   Revision 1.11  2000/02/11 23:59:35  jonas
@@ -369,4 +404,3 @@ end.
    * esp loading corrected
 
 }
-
