@@ -429,6 +429,13 @@ implementation
            { all types can be passed to a formaldef }
            is_equal:=(def^.deftype=formaldef) or
              (types.is_equal(p^.resulttype,def))
+           { integer constants are compatible with all integer parameters }
+             or
+             (
+              (p^.left^.treetype=ordconstn) and
+              is_integer(p^.resulttype) and
+              is_integer(def)
+             )
            { to support ansi/long/wide strings in a proper way }
            { string and string[10] are assumed as equal }
            { when searching the correct overloaded procedure   }
@@ -1253,7 +1260,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-08-13 12:54:56  peter
+  Revision 1.7  2000-08-13 14:53:32  peter
+    * integer constant is equal with all integer type arguments (merged)
+
+  Revision 1.6  2000/08/13 12:54:56  peter
     * class member decl wrong then no other error after it
     * -vb has now also line numbering
     * -vb is also used for interface/implementation different decls and
