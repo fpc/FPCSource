@@ -221,12 +221,13 @@ implementation
                            else
                             begin
                               { also length and terminating zero }
-                              getmem(pc,p^.length+2);
+                              getmem(pc,p^.length+3);
                               move(p^.value_str^,pc[1],p^.length+1);
                               pc[0]:=chr(p^.length);
+                              pc[p^.length+1]:=#0;
                               { to overcome this problem we set the length explicitly }
                               { with the ending null char }
-                              consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
+                              consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+2)));
                             end;
                         end;
                    end;
@@ -305,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-11-05 12:02:37  peter
+  Revision 1.4  1998-11-06 09:47:29  pierre
+   * problem of const with ansi fixed
+
+  Revision 1.3  1998/11/05 12:02:37  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 
