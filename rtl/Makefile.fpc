@@ -8,6 +8,10 @@ dirs=go32v2 linux win32 os2 go32v1
 [defaults]
 defaultdir=$(OS_TARGET)
 
+[install]
+packagename=rtl
+sourcesubs=0
+
 [sections]
 none=1
-
+zipsourceinstall=1

@@ -7,6 +7,7 @@ defaultrule=help
 
 [sections]
 info=0
+zipinstall=1
 
 [tools]
 toolzip=1
@@ -29,15 +30,22 @@ endif
 
 # All target
 ifndef ALLTARGET
-ifdef ($(OS_TARGET),win32)
+ifeq ($(OS_TARGET),win32)
 ALLTARGET=smart
 else
-ifdef ($(OS_TARGET),go32v2)
+ifeq ($(OS_TARGET),go32v2)
 ALLTARGET=smart
 else
 ALLTARGET=all
 endif
 endif
+endif
+
+# Prefix for units
+ifeq ($(OS_TARGET),linux)
+PKGPRE=units
+else
+PKGPRE=u
 endif
 
 # Test dir if none specified
@@ -70,7 +78,7 @@ help:
         @echo
         @echo Possible targets are:
         @echo
-        @echo go32v2,win32,linux
+        @echo go32v2,win32,linux,source
         @echo
         @exit
 
@@ -81,9 +89,16 @@ help:
 
 .PHONY: installer
 
-installer:
-        $(MAKE) -C fpinst all RELEASE=1
+INSTALLERBUILDDIR=../installer
 
+installer:
+        $(COPYTREE) fpinst $(INSTALLERBUILDDIR)
+        $(MAKE) -C $(INSTALLERBUILDDIR) all RELEASE=1
+        $(MOVE) $(INSTALLERBUILDDIR)/install.exe .
+ifdef UPXPROG
+        -$(UPXPROG) install.exe
+endif
+        $(DELTREE) $(INSTALLERBUILDDIR)
 
 ##########################################################################
 # Basego32.zip
@@ -114,22 +129,23 @@ build-stamp: $(FPCDIRSET)
         $(MAKE) -C $(CVSBASE) packages_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) -C $(CVSBASE) utils_all $(BUILDOPTS)
 
-        touch build-stamp
+        $(ECHO) Build > build-stamp
 
 installbase: build-stamp
 # create dirs
         $(MKDIR) $(BASEINSTALLDIR)
         $(MKDIR) $(DOCINSTALLDIR)
         $(MKDIR) $(BININSTALLDIR)
-        $(MKDIR) $(SOURCEINSTALLDIR)
 # readme & whatsnew and docs
         $(COPY) doc/*.txt doc/copying* $(DOCINSTALLDIR)
 # bingo32 (cwsdpmi,wmemu387.dxe)
 ifeq ($(OS_TARGET),go32v2)
         $(COPY) bingo32/* $(BININSTALLDIR)
 endif
-# source (base)
-        $(COPY) $(CVSBASE)/Makefile $(CVSBASE)/Makefile.fpc $(SOURCEINSTALLDIR)
+# manpages for linux
+ifeq ($(OS_TARGET),linux)
+        $(MAKE) -C man installman
+endif
 # install generated things
         $(MAKE) -C $(CVSBASE) compiler_install $(INSTALLOPTS)
         $(MAKE) -C $(CVSBASE) rtl_install $(INSTALLOPTS)
@@ -137,13 +153,57 @@ endif
 
 install: build-stamp
         $(MAKE) zipinstall ZIPTARGET=installbase PACKAGENAME=base
-        $(MAKE) -C $(CVSBASE) api_zipinstall $(INSTALLOPTS)
-        $(MAKE) -C $(CVSBASE) fcl_zipinstall $(INSTALLOPTS)
-        $(MAKE) -C $(CVSBASE) packages_zipinstall $(INSTALLOPTS)
+        $(MAKE) -C $(CVSBASE) api_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
+        $(MAKE) -C $(CVSBASE) fcl_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
+        $(MAKE) -C $(CVSBASE) packages_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
+
+##########################################################################
+# Source targets
+##########################################################################
+
+sourcebase:
+# base Makefiles needed for sources
+        $(MKDIR) $(SOURCEINSTALLDIR)
+        $(MKDIR) $(SOURCEINSTALLDIR)/rtl
+        $(MKDIR) $(SOURCEINSTALLDIR)/packages
+        $(COPY) $(CVSBASE)/Makefile*  $(SOURCEINSTALLDIR)
+        $(COPY) $(CVSBASE)/rtl/Makefile* $(SOURCEINSTALLDIR)/rtl
+        $(COPY) $(CVSBASE)/packages/Makefile* $(SOURCEINSTALLDIR)/packages
+
+source:
+        $(MAKE) zipinstall ZIPTARGET=sourcebase ZIPNAME=basesrc
+        $(MAKE) -C $(CVSBASE) compiler_zipsourceinstall
+        $(MAKE) -C $(CVSBASE) rtl_zipsourceinstall
+        $(MAKE) -C $(CVSBASE) api_zipsourceinstall
+        $(MAKE) -C $(CVSBASE) fcl_zipsourceinstall
+        $(MAKE) -C $(CVSBASE) packages_zipsourceinstall
+        $(MAKE) -C $(CVSBASE) utils_zipsourceinstall
+
+##########################################################################
+# Docs
+##########################################################################
+
+docspdf:
+	$(MAKE) -C $(CVSBASE)/docs pdfinstall
+
+docs:
+        $(MAKE) zipinstall ZIPTARGET=docspdf ZIPNAME=docs
+
+##########################################################################
+# Demos
+##########################################################################
+
+.PHONY: demo demoinstall
+
+demoinstall:
+	$(COPYTREE) demo $(PREFIXINSTALLDIR)
+
+demo:
+        $(MAKE) zipinstall ZIPTARGET=demoinstall ZIPNAME=demo
 
 
 ##########################################################################
-# go32v2,win32 specific targets
+# OS targets
 ##########################################################################
 
 .PHONY: go32v2 win32 linux
@@ -156,4 +216,6 @@ win32:
 
 linux:
         $(MAKE) install OS_TARGET=linux
+
+
 

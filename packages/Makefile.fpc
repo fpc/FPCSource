@@ -8,8 +8,8 @@ dirs_linux=zlib ncurses x11 gtk \
            mysql ibase postgres \
            opengl forms svgalib ggi \
            utmp paszlib gdbint
-dirs_win32=uncgi gtk opengl gdbint ibase mysql zlib
-dirs_go32v2=uncgi gdbint
+dirs_win32=uncgi gtk opengl gdbint ibase mysql zlib paszlib
+dirs_go32v2=uncgi gdbint paszlib
 
 pkgs_linux=base{zlib,ncurses,x11} \
            gtk{gtk} \
@@ -28,11 +28,10 @@ pkgs_go32v2=base{paszlib} \
             misc{gdbint}
 
 [install]
-packagename=pkgs
+packagename=packages
+sourcesubdirs=0
 
 [sections]
 none=1
-tools=1
-exts=1
-zipinstall=1
+zipsourceinstall=1
 

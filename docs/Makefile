@@ -335,11 +335,11 @@ html: $(HTML)
 # Installation
 #####################################################################
 
-pdfinstall:
+pdfinstall: pdf
 	install -d -m 755 $(DOCINSTALLDIR)
 	cp $(PDF) $(DOCINSTALLDIR)
 
-htmlinstall:
+htmlinstall: html
 	install -d -m 755 $(DOCINSTALLDIR)
 	cp fpctoc.html $(DOCINSTALLDIR)
 	cp -R buttons $(DOCINSTALLDIR)
@@ -349,7 +349,7 @@ htmlinstall:
 	rm -f $(DOCINSTALLDIR)/search/*.linux
 	cp -R $(HTML) $(DOCINSTALLDIR)
 
-doshtmlinstall:
+doshtmlinstall: html
 	install -d -m 755 $(DOCINSTALLDIR)
 	cp fpctoc.html $(DOCINSTALLDIR)
 	cp -R buttons $(DOCINSTALLDIR)
@@ -441,7 +441,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.31  2000-01-11 09:55:36  peter
+# Revision 1.32  2000-01-14 12:16:40  peter
+#   * package generation fixes
+#
+# Revision 1.31  2000/01/11 09:55:36  peter
 #   * docinstalldir is now calculated by asking ppc386 -iV
 #
 # Revision 1.30  1999/07/29 21:03:41  peter

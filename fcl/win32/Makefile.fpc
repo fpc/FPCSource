@@ -15,8 +15,6 @@ packages=paszlib
 [install]
 unitsubdir=fcl
 packagename=fcl
-sourcesubdir=fcl
-sourcetopdir=..
 
 [libs]
 libname=fpfcl

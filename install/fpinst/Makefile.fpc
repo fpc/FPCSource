@@ -5,6 +5,9 @@
 [targets]
 programs=install
 
+[install]
+sourcesubdir=installer
+
 [clean]
 units=ziptypes unzip
 units_os2=unzipdll
@@ -13,5 +16,5 @@ units_os2=unzipdll
 packages=api fv
 
 [dirs]
-fpcdir=../../..
+fpcdir=..
 targetdir=.

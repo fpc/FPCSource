@@ -13,6 +13,9 @@ programs_go32v2=mandel samegame quad maze gravwars voxel
 # Not always necessary, but saves a lot of trouble
 packages=api
 
+[install]
+packagename=demo
+
 [defaults]
 defaultrule=both
 

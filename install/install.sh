@@ -1,14 +1,14 @@
 #!/bin/sh
 #
 # Free Pascal installation script for Linux.
-# Michael Van Canneyt, 1996-1999
+# Copyright 1996-2000 Michael Van Canneyt and Peter Vreman
 #
 # Don't edit this file. 
 # Everything can be set when the script is run.
 #
 
 # Release Version
-VERSION=0.99.12
+VERSION=0.99.14
 
 # some useful functions
 # ask displays 1st parameter, and ask new value for variable, whose name is
@@ -25,11 +25,11 @@ eval test -z \"\$$askvar\" && eval $askvar=\'$old\'
 yesno ()
 {
   while true; do
-  echo -n "$1 (Y/N) ? "
+  echo -n "$1 (Y/n) ? "
   read ans
-  case $ans in
-   y|Y) return 0;;
-   n|N) return 1;;
+  case X$ans in
+   X|Xy|XY) return 0;;
+   Xn|XN) return 1;;
   esac
   done
 }
@@ -70,72 +70,98 @@ checkpath ()
  return 1
 }
 
-# Here we start the thing.
-
-# Set some defaults.
-LIBDIR=/usr/lib/fpc/$VERSION
-SRCDIR=/usr/src/fpc-$VERSION
-DOCDIR=/usr/doc/fpc-$VERSION
-DEMODIR=$DOCDIR/demo
-UTILDIR=/usr/local/bin
-
-HERE=`pwd`
-if checkpath /usr/local/bin; then
-   EXECDIR=/usr/local/bin
-else
-   EXECDIR=/usr/bin
-fi
-
+# --------------------------------------------------------------------------
 # welcome message.
+#
+
 clear
 echo "This shell script will attempt to install the Free Pascal Compiler"
-echo "version $VERSION" in the directories of your choice.
+echo "version $VERSION with the items you select"
 echo 
 
-# Install libraries. Mandatory.
+# Here we start the thing.
+HERE=`pwd`
 
-ask "Install libraries in" LIBDIR 
-echo Installing libraries in $LIBDIR ...
-makedirhierarch $LIBDIR
-unztar libs.tar.gz $LIBDIR
-echo Done.
-echo
-
-# Install the program. Mandatory.
-
-ask "Install program in" EXECDIR
-echo Installing program in $EXECDIR ...
-makedirhierarch $EXECDIR
-ln -sf $LIBDIR/ppc386 $EXECDIR/ppc386
-echo Done.
-echo
-
-# Install the utilities. Optional.
-if yesno "Install utility binaries"; then
-  ask "Install utility binaries in" UTILDIR
-  echo Installing utility binaries in $UTILDIR ...
-  makedirhierarch $UTILDIR
-  unztar bins.tar.gz $UTILDIR
-  echo Done.
+# Install in /usr/local or /usr ?
+if checkpath /usr/local/bin; then
+    PREFIX=/usr/local
+else
+    PREFIX=/usr
 fi
+ask "Install prefix (/usr or /usr/local) " PREFIX
+makedirhierarch $PREFIX
+
+# Set some defaults.
+LIBDIR=$PREFIX/lib/fpc/$VERSION
+SRCDIR=$PREFIX/src/fpc-$VERSION
+DOCDIR=$PREFIX/doc/fpc-$VERSION
+DEMODIR=$DOCDIR/examples
+UTILDIR=$PREFIX/bin
+
+# Install compiler/RTL. Mandatory.
+echo Unpacking ...
+tar xf binary.tar
+echo Installing compiler and RTL ...
+unztar baselinux.tar.gz $PREFIX
+ln -sf $LIBDIR/ppc386 $EXECDIR/ppc386
+if yesno "Install FCL"; then
+    unztar unitsfcllinux.tar.gz $PREFIX
+fi
+if yesno "Install API"; then
+    unztar unitsapilinux.tar.gz $PREFIX
+fi
+if yesno "Install Base (zlib,ncurses,x11) Packages"; then
+    unztar unitsbaselinux.tar.gz $PREFIX
+fi
+if yesno "Install Net (inet,uncgi) Packages"; then
+    unztar unitsnetlinux.tar.gz $PREFIX
+fi
+if yesno "Install Database (mysql,interbase,postgres) Packages"; then
+    unztar unitsdblinux.tar.gz $PREFIX
+fi
+if yesno "Install Graphics (svgalib,opengl,ggi,forms) Packages"; then
+    unztar unitsgfxlinux.tar.gz $PREFIX
+fi
+if yesno "Install Misc (utmp,paszlib) Packages"; then
+    unztar unitsmisclinux.tar.gz $PREFIX
+fi
+rm -f *linux.tar.gz
+echo Done.
 echo
 
 # Install the sources. Optional.
 if yesno "Install sources"; then
-  ask "Install sources in" SRCDIR
+  echo Unpacking ...
+  tar xf source.tar
   echo Installing sources in $SRCDIR ...
-  makedirhierarch $SRCDIR
-  unztar sources.tar.gz $SRCDIR
+  unztar basesrc.tar.gz $PREFIX
+  if yesno "Install compiler source"; then
+    unztar compilersrc.tar.gz $PREFIX
+  fi    
+  if yesno "Install RTL source"; then
+    unztar rtlsrc.tar.gz $PREFIX
+  fi    
+  if yesno "Install FCL source"; then
+    unztar fclsrc.tar.gz $PREFIX
+  fi    
+  if yesno "Install API source"; then
+    unztar apisrc.tar.gz $PREFIX
+  fi    
+  if yesno "Install Packages source"; then
+    unztar packagessrc.tar.gz $PREFIX
+  fi    
+  if yesno "Install Utils source"; then
+    unztar utilssrc.tar.gz $PREFIX
+  fi    
+  rm -f *src.tar.gz
   echo Done.
 fi
 echo
 
 # Install the documentation. Optional.
 if yesno "Install documentation"; then
-  ask "Install documentation in" DOCDIR
   echo Installing documentation in $DOCDIR ...
-  makedirhierarch $DOCDIR
-  unztar docs.tar.gz $DOCDIR
+  unztar docs.tar.gz $PREFIX
   echo Done.
 fi
 echo
@@ -152,6 +178,10 @@ echo
 
 # Install /etc/ppc386.cfg, this is done using the samplecfg script
 $LIBDIR/samplecfg $LIBDIR
+
+# Cleanup
+SOURCES=`/bin/ls *src.tar.gz`
+FILES=`/bin/ls *linux.tar.gz`
 
 # The End
 echo

@@ -6,6 +6,10 @@
 fpcdir=..
 targetdir=.
 
+[install]
+packagename=compiler
+sourcesubdirs=0
+
 [require]
 rtl=1
 options=-Sg

@@ -9,6 +9,10 @@ programs=ppufiles ppudump ppumove ppdep ptop rstconv data2inc fpcmake delp bin2o
 [clean]
 units=ppu ptopu
 
+[install]
+packagename=utils
+sourcesubdirs=0
+
 [require]
 packages=fcl
 packages_linux=zlib

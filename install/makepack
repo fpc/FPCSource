@@ -1,78 +1,26 @@
 #!/bin/sh
 #
-# Shell script to make a FPK package for Linux
-# Michael Van Canneyt, 1996-1999
+# Shell script to make a FPC .tar package for Linux
+# Copyright 1996-2000 Michael Van Canneyt and Peter Vreman
 #
 
-# Set some environment vars to suit the setup
-
-VERSION=0.99.12
-
-FPCDIR=fpc-$VERSION
-LIBS=/usr/lib/fpc/$VERSION
-#LIBS=/usr/lib/fpc/aout/$VERSION
-SRC=/usr/src/fpc-$VERSION
-DOCS=/usr/doc/fpc-$VERSION
-DEMO=$SRC/demo
-PPUMOVE=/usr/bin/ppumove
-PPUDUMP=/usr/bin/ppumove
-H2PAS=/usr/bin/h2pas
-PTOP=/usr/bin/ptop
-PPDEP=/usr/bin/ppdep
-# the following should be ELF or aout
+# Version
+VERSION=0.99.14
 RELEASE=ELF
-#RELEASE=aout
-echo Using the following params :
-echo
-echo Version is : $VERSION , system : $RELEASE
-echo Libs are in $LIBS
-echo Sources are in $SRC
-echo Documentation is in $DOCS
-echo Demos are in $DEMO 
-echo ppudump is $PPUDUMP
-echo ppumove is $PPUMOVE
-echo ptop is $PTOP
-echo h2pas is $H2PAS
-echo ppdep is $PPDEP
-echo
-echo making in directory $FPCDIR
-echo
-# do what is necessary...
-# first, make all needed things
-echo Creating directory $FPCDIR
-mkdir $FPCDIR
-echo Making sources package. 
-rm -f `find $SRC -name '.#*'` 
-rm -rf `find $SRC -name CVS -type d` 
-tar -cvzf $FPCDIR/sources.tar.gz --exclude CVS -C $SRC base rtl docs compiler utils >sources.list
-echo Making libs package.
-# No gzip, because then we cannot add libgcc.
-tar -cvf $FPCDIR/libs.tar -C $LIBS . >libs.list
-# Add libfpc.so !!
-#tar -rvf $FPCDIR/libs.tar -C /usr/lib libfpc.so >libs.list
-# We have to add libgcc.a to this package. (not everyone has GCC installed !)
-#tar -rvf $FPCDIR/libs.tar -C $LIBGCCPATH libgcc.a >>libs.list
-# only now we gzip the libs.tar
-gzip $FPCDIR/libs.tar
-echo Making bins package.
-tar -cvf $FPCDIR/bins.tar -C `dirname $PPUMOVE` ppumove >bins.list
-tar -rvf $FPCDIR/bins.tar -C `dirname $PPUDUMP` ppudump >>bins.list
-tar -rvf $FPCDIR/bins.tar -C `dirname $H2PAS` h2pas >>bins.list
-tar -rvf $FPCDIR/bins.tar -C `dirname $PTOP` ptop >>bins.list
-tar -rvf $FPCDIR/bins.tar -C `dirname $PPDEP` ppdep >>bins.list
-gzip $FPCDIR/bins.tar
-echo Making docs package.
-rm -f `find $DOCS -name '.#*'` 
-tar -cvzf $FPCDIR/docs.tar.gz --exclude CVS -C $DOCS . >docs.list
-echo Making demo package.
-tar -cvzf $FPCDIR/demo.tar.gz --exclude CVS -C $DEMO . >demo.list
-echo Copying install files.
-cp install.sh $FPCDIR
-# then, pack everything together.
-echo Putting everything together.
-tar -cf fpc-$VERSION.$RELEASE.tar $FPCDIR
-#cp $FPCDIR/* /home/ftp/pub/fpc/dist/separate 
-echo Removing directory $FPCDIR.
-rm -rf $FPCDIR
-# that's it.
-echo Done.
+
+make linux
+make source
+make docs
+make demo
+
+SOURCES=`/bin/ls *src.tar.gz`
+FILES=`/bin/ls *linux.tar.gz`
+RELFILES="binary.tar sources.tar demo.tar.gz docs.tar.gz install.sh"
+
+echo Creating binary.tar
+tar cf binary.tar $FILES
+echo Creating sources.tar
+tar cf sources.tar $SOURCES
+
+echo Creating fpc-$VERSION.$RELEASE.tar
+tar cf fpc-$VERSION.$RELEASE.tar $RELFILES 
