@@ -48,6 +48,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       HelpFiles        : WUtils.PUnsortedStringCollection = nil;
       ShowStatusOnError: boolean = true;
       StartupDir       : string = '.'+DirSep;
+      IDEDir           : string = '.'+DirSep;
       INIPath          : string = ININame;
       SwitchesPath     : string = SwitchesName;
       CtrlMouseAction  : integer = acTopicSearch;
@@ -69,11 +70,15 @@ implementation
 END.
 {
   $Log$
-  Revision 1.10  1999-03-01 15:42:07  peter
+  Revision 1.11  1999-03-08 14:58:15  peter
+    + prompt with dialogs for tools
+
+  Revision 1.10  1999/03/01 15:42:07  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

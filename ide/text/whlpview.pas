@@ -1039,7 +1039,8 @@ end;
 destructor THelpViewer.Done;
 begin
   inherited Done;
-  Dispose(WordList, Done);
+  if assigned(WordList) then
+    Dispose(WordList, Done);
 end;
 
 function THelpFrame.GetPalette: PPalette;
@@ -1049,7 +1050,6 @@ begin
 end;
 
 constructor THelpWindow.Init(var Bounds: TRect; ATitle: TTitleStr; ASourceFileID: word; AContext: THelpCtx; ANumber: Integer);
-var R: TRect;
 begin
   inherited Init(Bounds, ATitle, ANumber);
   InitScrollBars;
@@ -1125,11 +1125,14 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  1999-03-01 15:42:13  peter
+  Revision 1.7  1999-03-08 14:58:20  peter
+    + prompt with dialogs for tools
+
+  Revision 1.6  1999/03/01 15:42:13  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

@@ -927,8 +927,11 @@ begin
 end;
 
 procedure TAdvancedListBox.FocusItem(Item: sw_integer);
+var OFocused: sw_integer;
 begin
+  OFocused:=Focused;
   inherited FocusItem(Item);
+  if Focused<>OFocused then
   Message(Owner,evBroadcast,cmListFocusChanged,@Self);
 end;
 
@@ -1374,7 +1377,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  1999-03-01 15:51:43  peter
+  Revision 1.2  1999-03-08 14:58:23  peter
+    + prompt with dialogs for tools
+
+  Revision 1.1  1999/03/01 15:51:43  peter
     + Log
 
 }

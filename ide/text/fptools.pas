@@ -140,6 +140,7 @@ implementation
 
 uses Dos,
      Commands,App,MsgBox,
+     WINI,WEditor,
      FPConst,FPVars,FPUtils;
 
 type
@@ -149,9 +150,9 @@ type
     end;
 
 const
-     HotKeys : array[0..8] of THotKeyDef =
+     HotKeys : array[0..9] of THotKeyDef =
       ( (Name : '~U~nassigned' ; KeyCode : kbNoKey   ),
-{        (Name : 'Shift+F~2~'   ; KeyCode : kbShiftF2 ), }
+        (Name : 'Shift+F~2~'   ; KeyCode : kbShiftF2 ),
         (Name : 'Shift+F~3~'   ; KeyCode : kbShiftF3 ),
         (Name : 'Shift+F~4~'   ; KeyCode : kbShiftF4 ),
         (Name : 'Shift+F~5~'   ; KeyCode : kbShiftF5 ),
@@ -162,6 +163,7 @@ const
         (Name : 'Shift+F~1~0'  ; KeyCode : kbShiftF10));
 
      Tools     : PToolCollection = nil;
+     AbortTool : boolean         = false;
 
 function GetHotKeyCount: integer;
 begin
@@ -547,6 +549,354 @@ begin
   until I=0;
 end;
 
+function GetCoordEntry(F: PINIFile; Section, Entry: string; var P: TPoint): boolean;
+var OK: boolean;
+    S: string;
+    Px: integer;
+begin
+  S:=F^.GetEntry(Section,Entry,'');
+  S:=Trim(S);
+  OK:=(S<>'') and (S[1]='(') and (S[length(S)]=')');
+  if OK then S:=copy(S,2,length(S)-2);
+  Px:=Pos(',',S);
+  OK:=OK and (Px>0);
+  if OK then P.X:=StrToInt(copy(S,1,Px-1));
+  OK:=OK and (LastStrToIntResult=0);
+  if OK then P.Y:=StrToInt(copy(S,Px+1,255));
+  OK:=OK and (LastStrToIntResult=0);
+  GetCoordEntry:=OK;
+end;
+
+function ExecutePromptDialog(const FileName: string; var Params: string): boolean;
+const
+      MaxViews         = 20;
+      MaxViewNameLen   = 40;
+      MaxValueLen      = 80;
+
+      secMain          = 'MAIN';
+      { Main section entries }
+      tmeTitle         = 'TITLE';
+      tmeCommandLine   = 'COMMANDLINE';
+      tmeSize          = 'SIZE';
+      tmeDefaultView   = 'DEFAULT';
+      { View section entries }
+      tieType          = 'TYPE';
+      tieOrigin        = 'ORIGIN';
+      tieSize          = 'SIZE';
+  {*} tieDefault       = 'DEFAULT';
+      tieValue         = 'VALUE';
+      { Additional CheckBox view section entries }
+      tieName          = 'NAME';
+      tieOnParm        = 'ON';
+      tieOffParm       = 'OFF';
+      { Additional CheckBox view section entries }
+      tieItem          = 'ITEM';
+      tieParam         = 'PARAM';
+      { Additional InputLine view section entries }
+      tieMaxLen        = 'MAXLEN';
+      { Additional Label view section entries }
+      tieLink          = 'LINK';
+      tieText          = 'TEXT';
+
+      { View types }
+      vtCheckBox       = 1;
+      vtRadioButton    = 2;
+      vtInputLine      = 3;
+      vtLabel          = 127;
+
+      vtsCheckBox      = 'CHECKBOX';
+      vtsRadioButton   = 'RADIOBUTTON';
+      vtsInputLine     = 'INPUTLINE';
+      vtsLabel         = 'LABEL';
+
+var Title        : string;
+    DSize        : TPoint;
+    CmdLine      : string;
+    ViewCount    : Sw_integer;
+    ViewNames    : array[0..MaxViews-1] of string[MaxViewNameLen];
+    ViewTypes    : array[0..MaxViews-1] of byte;
+    ViewBounds   : array[0..MaxViews-1] of TRect;
+    ViewPtrs     : array[0..MaxViews-1] of PView;
+    ViewValues   : array[0..MaxViews-1] of string[MaxValueLen];
+    ViewItemCount: array[0..MaxViews-1] of sw_integer;
+
+function BuildPromptDialogInfo(F: PINIFile): boolean;
+var
+  OK: boolean;
+  _IS: PINISection;
+
+  procedure ProcessSection(Sec: PINISection);{$ifndef FPC}far;{$endif}
+  var P1,P2: TPoint;
+      Typ: string;
+      Count: sw_integer;
+  begin
+    if (OK=false) or
+       ( (UpcaseStr(Sec^.GetName)=secMain) or
+         (UpcaseStr(Sec^.GetName)=UpcaseStr(MainSectionName)) ) then
+      Exit;
+
+    ViewItemCount[ViewCount]:=0;
+
+    OK:=(Sec^.SearchEntry(tieType)<>nil) and
+        (Sec^.SearchEntry(tieOrigin)<>nil) and
+        (Sec^.SearchEntry(tieSize)<>nil);
+    if OK=false then
+      begin ErrorBox('Required property missing in ['+Sec^.GetName+']',nil); Exit; end;
+
+    Typ:=UpcaseStr(Trim(F^.GetEntry(Sec^.GetName,tieType,'')));
+    if Typ=vtsCheckBox    then ViewTypes[ViewCount]:=vtCheckBox    else
+    if Typ=vtsRadioButton then ViewTypes[ViewCount]:=vtRadioButton else
+    if Typ=vtsInputLine   then ViewTypes[ViewCount]:=vtInputLine   else
+    if Typ=vtsLabel       then ViewTypes[ViewCount]:=vtLabel       else
+     begin OK:=false; ErrorBox('Unknown type in ['+Sec^.GetName+']',nil); Exit; end;
+
+    ViewNames[ViewCount]:=Sec^.GetName;
+    GetCoordEntry(F,Sec^.GetName,tieOrigin,P1);
+    GetCoordEntry(F,Sec^.GetName,tieSize,P2);
+    ViewBounds[ViewCount].Assign(P1.X,P1.Y,P1.X+P2.X,P1.Y+P2.Y);
+    ViewValues[ViewCount]:=F^.GetEntry(Sec^.GetName,tieValue,'');
+
+    case ViewTypes[ViewCount] of
+      vtLabel      :
+        begin
+          OK:=OK and (Sec^.SearchEntry(tieLink)<>nil) and
+                     (Sec^.SearchEntry(tieText)<>nil);
+          if OK=false then
+            begin ErrorBox('Required property missing in ['+Sec^.GetName+']',nil); Exit; end;
+        end;
+      vtInputLine  : ;
+      vtCheckBox   :
+        begin
+          OK:=OK and (Sec^.SearchEntry(tieName)<>nil);
+          if OK=false then
+            begin ErrorBox(tieName+' property missing in ['+Sec^.GetName+']',nil); Exit; end;
+        end;
+      vtRadioButton:
+        begin
+          Count:=0;
+          while Sec^.SearchEntry(tieItem+IntToStr(Count+1))<>nil do
+            Inc(Count);
+          ViewItemCount[ViewCount]:=Count;
+          OK:=Count>0;
+          if OK=false then
+            begin ErrorBox('Invalid number of items in ['+Sec^.GetName+']',nil); Exit; end;
+        end;
+    end;
+
+    if OK then Inc(ViewCount);
+  end;
+
+begin
+  BuildPromptDialogInfo:=false;
+  _IS:=F^.SearchSection(secMain);
+  OK:=_IS<>nil;
+  if OK then OK:=(_IS^.SearchEntry(tmeTitle)<>nil) and
+                 (_IS^.SearchEntry(tmeSize)<>nil) and
+                 (_IS^.SearchEntry(tmeCommandLine)<>nil);
+  if OK then
+  begin
+    Title:=F^.GetEntry(secMain,tmeTitle,'');
+    OK:=OK and GetCoordEntry(F,secMain,tmeSize,DSize);
+    CmdLine:=F^.GetEntry(secMain,tmeCommandLine,'');
+    OK:=OK and (CmdLine<>'');
+  end;
+  if OK=false then
+    begin ErrorBox('Required property missing in ['+_IS^.GetName+']',nil); Exit; end;
+
+  if OK then
+    begin
+      ViewCount:=0;
+      F^.ForEachSection(@ProcessSection);
+    end;
+  BuildPromptDialogInfo:=OK;
+end;
+function SearchViewByName(Name: string): integer;
+var I,Idx: Sw_integer;
+begin
+  Idx:=-1; Name:=UpcaseStr(Name);
+  for I:=0 to ViewCount-1 do
+    if UpcaseStr(ViewNames[I])=Name then
+      begin
+        Idx:=I;
+        Break;
+      end;
+  SearchViewByName:=Idx;
+end;
+function GetParamValueStr(F: PINIFile; Idx: integer): string;
+var S: string;
+    Entry: string[20];
+begin
+  S:='???';
+  case ViewTypes[Idx] of
+    vtLabel     :
+      S:='';
+    vtInputLine :
+      S:=PInputLine(ViewPtrs[Idx])^.Data^;
+    vtCheckBox  :
+      with PCheckBoxes(ViewPtrs[Idx])^ do
+      begin
+        if Mark(0) then Entry:=tieOnParm else Entry:=tieOffParm;
+        S:=F^.GetEntry(ViewNames[Idx],Entry,'');
+      end;
+    vtRadioButton :
+      with PRadioButtons(ViewPtrs[Idx])^ do
+      begin
+        Entry:=tieParam+IntToStr(Value+1);
+        S:=F^.GetEntry(ViewNames[Idx],Entry,'');
+      end;
+  end;
+  GetParamValueStr:=S;
+end;
+function ExtractPromptDialogParams(F: PINIFile; var Params: string): boolean;
+function ReplacePart(StartP,EndP: integer; const S: string): integer;
+begin
+  Params:=copy(Params,1,StartP-1)+S+copy(Params,EndP+1,255);
+  ReplacePart:=length(S)-(EndP-StartP+1);
+end;
+var OptName: string;
+    OK: boolean;
+    C: char;
+    OptStart: integer;
+    InOpt: boolean;
+    I,Idx: integer;
+    S: string;
+begin
+  Params:=CmdLine;
+  I:=1; InOpt:=false; OK:=true;
+  while OK and (I<=length(Params)) do
+    begin
+      C:=Params[I];
+      if C='%' then
+        begin
+          InOpt:=not InOpt;
+          if InOpt then
+            begin
+              OptName:='';
+              OptStart:=I;
+            end
+          else
+            begin
+              OptName:=UpcaseStr(OptName);
+              Idx:=SearchViewByName(OptName);
+              OK:=Idx<>-1;
+              if OK then
+                begin
+                  S:=GetParamValueStr(F,Idx);
+                  if (S='') and (Params[I+1]=' ') then Inc(I);
+                  I:=I+ReplacePart(OptStart,I,S);
+                end;
+            end;
+        end
+      else
+        if InOpt then
+          OptName:=OptName+C;
+      Inc(I);
+    end;
+  ExtractPromptDialogParams:=OK;
+end;
+function ExecPromptDialog(F: PINIFile): boolean;
+var R: TRect;
+    PromptDialog: PCenterDialog;
+    Re: integer;
+    OK: boolean;
+    I,J,MaxLen: integer;
+    IL: PInputLine;
+    CB: PCheckBoxes;
+    RB: PRadioButtons;
+    LV: PLabel;
+    SI: PSItem;
+    S: string;
+    P: PView;
+begin
+  R.Assign(0,0,DSize.X,DSize.Y);
+  New(PromptDialog, Init(R, Title));
+  with PromptDialog^ do
+  begin
+    for I:=0 to ViewCount-1 do
+      begin
+        case ViewTypes[I] of
+          vtLabel :
+            begin
+              S:=F^.GetEntry(ViewNames[I],tieLink,'');
+              J:=SearchViewByName(S);
+              if J=-1 then P:=nil else
+                P:=ViewPtrs[J];
+              S:=F^.GetEntry(ViewNames[I],tieText,'');
+              New(LV, Init(ViewBounds[I], S, P));
+              ViewPtrs[I]:=LV;
+            end;
+          vtInputLine :
+            begin
+              MaxLen:=F^.GetIntEntry(ViewNames[I],tieMaxLen,80);
+              New(IL, Init(ViewBounds[I], MaxLen));
+              IL^.Data^:=ViewValues[I];
+              ViewPtrs[I]:=IL;
+            end;
+          vtCheckBox :
+            begin
+              New(CB, Init(ViewBounds[I],
+               NewSItem(
+                F^.GetEntry(ViewNames[I],tieName,''),
+                nil)));
+              if StrToInt(ViewValues[I])=1 then
+                CB^.Press(0);
+              ViewPtrs[I]:=CB;
+            end;
+          vtRadioButton :
+            begin
+              SI:=nil;
+              for J:=ViewItemCount[I] downto 1 do
+                SI:=NewSItem(F^.GetEntry(ViewNames[I],tieItem+IntToStr(J),''),SI);
+              New(RB, Init(ViewBounds[I], SI));
+              RB^.Press(StrToInt(ViewValues[I]));
+              ViewPtrs[I]:=RB;
+            end;
+        end;
+        Insert(ViewPtrs[I]);
+      end;
+  end;
+  InsertButtons(PromptDialog);
+  S:=F^.GetEntry(secMain,tmeDefaultView,'');
+  if S<>'' then
+    begin
+      S:=UpcaseStr(S);
+      I:=0;
+      while (I<ViewCount) and (UpcaseStr(ViewNames[I])<>S) do
+        Inc(I);
+      if UpcaseStr(ViewNames[I])=S then
+        ViewPtrs[I]^.Select;
+    end;
+  Re:=Desktop^.ExecView(PromptDialog);
+  OK:=OK and (Re=cmOK);
+  AbortTool:=(Re<>cmOK);
+  if OK then OK:=ExtractPromptDialogParams(F,Params);
+  if PromptDialog<>nil then Dispose(PromptDialog, Done);
+  ExecPromptDialog:=OK;
+end;
+var OK: boolean;
+    F: PINIFile;
+    Fn : string;
+begin
+  Fn:=LocateFile(FileName);
+  if Fn='' then
+   Fn:=FileName;
+  if not ExistsFile(Fn) then
+    ErrorBox('Can''t read '+Fn,nil)
+  else
+    begin
+      New(F, Init(Fn));
+      OK:=F<>nil;
+      if OK then
+        begin
+          OK:=BuildPromptDialogInfo(F);
+          if OK then
+            OK:=ExecPromptDialog(F);
+        end;
+      if F<>nil then Dispose(F, Done);
+    end;
+  ExecutePromptDialog:=OK;
+end;
+
 function ParseToolParams(var Params: string; CheckOnly: boolean): integer;
 var Err: integer;
     W: PSourceWindow;
@@ -753,7 +1103,12 @@ begin
                   if ReadTill(S,')')=false then Err:=I else
                   begin
                     Consume(')');
-
+                    if S='' then Err:=I-1 else
+                      if CheckOnly=false then
+                        if ExecutePromptDialog(S,S)=false then
+                          Err:=I
+                        else
+                          I:=I+ReplacePart(LastWordStart,I-1,S);
                   end;
                 end
               else { just prompt for parms }
@@ -814,6 +1169,7 @@ begin
 end;
 var Pass: sw_integer;
 begin
+  AbortTool:=false;
   CaptureToolTo:=capNone;
   ToolFilter:='';
   W:=FirstEditorWindow;
@@ -823,6 +1179,7 @@ begin
       ParseParams(Pass);
       if Err<>0 then Break;
     end;
+  if AbortTool then Err:=-1;
   ParseToolParams:=Err;
 end;
 
@@ -958,6 +1315,7 @@ procedure TToolMessageListBox.Clear;
 begin
   ClearToolMessages;
   Update;
+  Message(Application,evBroadcast,cmClearLineHighlights,@Self);
 end;
 
 function TToolMessageListBox.GetPalette: PPalette;
@@ -1006,7 +1364,10 @@ begin
       case Event.Command of
         cmListFocusChanged :
           if Event.InfoPtr=MsgLB then
-            LastToolMessageFocused:=MsgLB^.List^.At(MsgLB^.Focused);
+            begin
+              LastToolMessageFocused:=MsgLB^.List^.At(MsgLB^.Focused);
+              Message(Application,evBroadcast,cmClearLineHighlights,@Self);
+            end;
       end;
   end;
   inherited HandleEvent(Event);
@@ -1027,11 +1388,14 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  1999-03-01 15:42:04  peter
+  Revision 1.5  1999-03-08 14:58:12  peter
+    + prompt with dialogs for tools
+
+  Revision 1.4  1999/03/01 15:42:04  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

@@ -157,7 +157,6 @@ end;
 {............................................................................}
 
 function ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
-  var temp : byte;
   begin
     ChangeRedirOut:=False;
     If Redir = '' then Exit;
@@ -185,7 +184,6 @@ function ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
   end;
 
 function ChangeRedirIn(Const Redir : String) : Boolean;
-  var temp : byte;
   begin
     ChangeRedirIn:=False;
     If Redir = '' then Exit;
@@ -209,7 +207,6 @@ function ChangeRedirIn(Const Redir : String) : Boolean;
   end;
 
 function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolean;
-  var temp : byte;
   begin
     ChangeRedirError:=False;
     If Redir = '' then Exit;
@@ -413,11 +410,14 @@ end;
 End.
 {
   $Log$
-  Revision 1.11  1999-03-01 15:42:01  peter
+  Revision 1.12  1999-03-08 14:58:10  peter
+    + prompt with dialogs for tools
+
+  Revision 1.11  1999/03/01 15:42:01  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

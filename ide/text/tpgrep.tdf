@@ -1,0 +1,88 @@
+[Main]
+Title="Turbo Grep"
+Size=(56,10)
+CommandLine="%r% %l% %v% %i% %d% %w% %o% %searchstr% %filemask%"
+Default="searchstr"
+
+[searchstr]
+Type=InputLine
+Origin=(2,2)
+Size=(52,1)
+
+[label1]
+Type=Label
+Origin=(2,1)
+Size=(52,1)
+Text="~T~ext to find"
+Link="searchstr"
+
+[filemask]
+Type=InputLine
+Origin=(2,4)
+Size=(22,1)
+Value="*.pas"
+
+[label2]
+Type=Label
+Origin=(2,3)
+Size=(22,1)
+Text="File ~m~ask"
+Link="filemask"
+
+[d]
+Type=CheckBox
+Origin=(26,4)
+Size=(28,1)
+Name="Search ~s~ubdirectories"
+On="-d+"
+;Off="-d-"
+
+[r]
+Type=CheckBox
+Name="~R~egular expression"
+Origin=(2,6)
+Size=(25,1)
+On="-r+"
+;Off="-r-"
+Value=1
+
+[v]
+Type=CheckBox
+Name="~N~on-matching lines"
+Origin=(2,7)
+Size=(25,1)
+On="-v+"
+;Off="-v-"
+
+[o]
+Type=CheckBox
+Name="~U~NIX output format"
+Origin=(2,8)
+Size=(25,1)
+On="-o+"
+;Off="-o-"
+
+[l]
+Type=CheckBox
+Name="~F~ile names only"
+Origin=(29,6)
+Size=(25,1)
+On="-l+"
+;Off="-l-"
+
+[i]
+Type=CheckBox
+Name="~C~ase sensitive"
+Origin=(29,7)
+Size=(25,1)
+On="-i-"
+Off="-i+"
+
+[w]
+Type=CheckBox
+Name="Whole ~w~ords only"
+Origin=(29,8)
+Size=(25,1)
+On="-w+"
+;Off="-w-"
+

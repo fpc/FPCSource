@@ -35,7 +35,7 @@ uses
 {$else}
   WEditor,
 {$endif}
-  FPUtils;
+  FPVars,FPUtils;
 
 type
     PTemplate = ^TTemplate;
@@ -148,7 +148,7 @@ procedure InitTemplates;
 begin
   New(Templates, Init(10,10));
   ScanDir('.');
-  ScanDir(DirOf(ParamStr(0)));
+  ScanDir(IDEDir);
 end;
 
 
@@ -164,11 +164,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  1999-03-01 15:42:03  peter
+  Revision 1.7  1999-03-08 14:58:11  peter
+    + prompt with dialogs for tools
+
+  Revision 1.6  1999/03/01 15:42:03  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

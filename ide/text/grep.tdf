@@ -1,0 +1,59 @@
+[Main]
+Title="GNU Grep"
+Size=(56,9)
+CommandLine="-n %l% %v% %i% %w% %searchstr% %filemask%"
+Default="searchstr"
+
+[searchstr]
+Type=InputLine
+Origin=(2,2)
+Size=(52,1)
+
+[label1]
+Type=Label
+Origin=(2,1)
+Size=(52,1)
+Text="~T~ext to find"
+Link="searchstr"
+
+[filemask]
+Type=InputLine
+Origin=(2,4)
+Size=(22,1)
+Value="*.pas *.pp *.inc"
+
+[label2]
+Type=Label
+Origin=(2,3)
+Size=(22,1)
+Text="File ~m~ask"
+Link="filemask"
+
+[i]
+Type=CheckBox
+Name="~C~ase sensitive"
+Origin=(2,6)
+Size=(25,1)
+Default=On
+On="-i"
+
+[v]
+Type=CheckBox
+Name="~N~on-matching lines"
+Origin=(2,7)
+Size=(25,1)
+On="-v"
+
+[l]
+Type=CheckBox
+Name="~F~ile names only"
+Origin=(29,6)
+Size=(25,1)
+On="-l"
+
+[w]
+Type=CheckBox
+Name="Whole ~w~ords only"
+Origin=(29,7)
+Size=(25,1)
+On="-w"

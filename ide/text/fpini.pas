@@ -332,7 +332,7 @@ begin
         TryToOpenFile(@R,S1,X,Y)
       else
         TryToOpenFile(nil,S1,X,Y);
-      { remove it because otherwise we allways keep old files }  
+      { remove it because otherwise we allways keep old files }
       INIFile^.DeleteEntry(secFiles,ieOpenFile+IntToStr(I));
     end;
   Dispose(INIFile, Done);
@@ -385,11 +385,11 @@ begin
             Inc(I);
             OpenFileCount:=I-1;
           end;
-          
+
         PW:=PSourceWindow(PW^.next);
         While assigned(PW) and (PW<>PPW) and (PW^.HelpCtx<>hcSourceWindow) do
           PW:=PSourceWindow(PW^.next);
-        If PW=PPW then                                                                                                                                                                                                                                         
+        If PW=PPW then
           break;
       end;
   INIFile^.SetIntEntry(secFiles,ieOpenFileCount,OpenFileCount);
@@ -461,7 +461,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1999-03-05 17:53:02  pierre
+  Revision 1.16  1999-03-08 14:58:09  peter
+    + prompt with dialogs for tools
+
+  Revision 1.15  1999/03/05 17:53:02  pierre
    + saving and opening of open files on exit
 
   Revision 1.14  1999/03/01 15:41:55  peter

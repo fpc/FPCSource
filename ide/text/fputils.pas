@@ -46,15 +46,15 @@ function SmartPath(Path: string): string;
 Function FixPath(s:string;allowdot:boolean):string;
 function FixFileName(const s:string):string;
 function MakeExeName(const fn:string):string;
-function LExpand(S: string; MinLen: byte): string;
-function RExpand(S: string; MinLen: byte): string;
+function LExpand(const S: string; MinLen: byte): string;
+function RExpand(const S: string; MinLen: byte): string;
 function FitStr(const S: string; Len: byte): string;
-function LTrim(S: string): string;
-function RTrim(S: string): string;
-function Trim(S: string): string;
+function LTrim(const S: string): string;
+function RTrim(const S: string): string;
+function Trim(const S: string): string;
 function KillTilde(S: string): string;
-function UpcaseStr(S: string): string;
-function LowerCaseStr(S: string): string;
+function UpcaseStr(const S: string): string;
+function LowercaseStr(const S: string): string;
 function Max(A,B: longint): longint;
 function Min(A,B: longint): longint;
 function DirOf(const S: string): string;
@@ -195,17 +195,21 @@ begin
 end;
 
 
-function LExpand(S: string; MinLen: byte): string;
+function LExpand(const S: string; MinLen: byte): string;
 begin
-  if length(S)<MinLen then S:=CharStr(' ',MinLen-length(S))+S;
-  LExpand:=S;
+  if length(S)<MinLen then
+    LExpand:=CharStr(' ',MinLen-length(S))+S
+  else
+    LExpand:=S;
 end;
 
 
-function RExpand(S: string; MinLen: byte): string;
+function RExpand(const S: string; MinLen: byte): string;
 begin
-  if length(S)<MinLen then S:=S+CharStr(' ',MinLen-length(S));
-  RExpand:=S;
+  if length(S)<MinLen then
+    RExpand:=S+CharStr(' ',MinLen-length(S))
+  else
+    RExpand:=S;
 end;
 
 
@@ -226,20 +230,28 @@ begin
   KillTilde:=S;
 end;
 
-function UpcaseStr(S: string): string;
-var I: Longint;
+function UpcaseStr(const S: string): string;
+var
+  I: Longint;
 begin
   for I:=1 to length(S) do
-      S[I]:=Upcase(S[I]);
-  UpcaseStr:=S;
+    if S[I] in ['a'..'z'] then
+      UpCaseStr[I]:=chr(ord(S[I])-32)
+    else
+      UpCaseStr[I]:=S[I];
+  UpcaseStr[0]:=S[0];
 end;
 
-function LowerCaseStr(S: string): string;
-var I: byte;
+function LowerCaseStr(const S: string): string;
+var
+  I: Longint;
 begin
   for I:=1 to length(S) do
-    if S[I] in ['A'..'Z'] then S[I]:=chr(ord(S[I])+32);
-  LowerCaseStr:=S;
+    if S[I] in ['A'..'Z'] then
+      LowerCaseStr[I]:=chr(ord(S[I])+32)
+    else
+      LowerCaseStr[I]:=S[I];
+  LowercaseStr[0]:=S[0];
 end;
 
 function Max(A,B: longint): longint;
@@ -355,19 +367,27 @@ begin
   IntToHexL:=S;
 end;
 
-function LTrim(S: string): string;
+function LTrim(const S: string): string;
+var
+  i : longint;
 begin
-  while copy(S,1,1)=' ' do Delete(S,1,1);
-  LTrim:=S;
+  i:=1;
+  while (i<length(s)) and (s[i]=' ') do
+   inc(i);
+  LTrim:=Copy(s,i,255);
 end;
 
-function RTrim(S: string): string;
+function RTrim(const S: string): string;
+var
+  i : longint;
 begin
-  while copy(S,length(S),1)=' ' do Delete(S,length(S),1);
-  RTrim:=S;
+  i:=length(s);
+  while (i>0) and (s[i]=' ') do
+   dec(i);
+  RTrim:=Copy(s,1,i);
 end;
 
-function Trim(S: string): string;
+function Trim(const S: string): string;
 begin
   Trim:=RTrim(LTrim(S));
 end;
@@ -469,7 +489,7 @@ var OK: boolean;
 begin
   OK:=CheckFile(FExpand('.'),FileName);
   if OK=false then OK:=CheckFile(StartupDir,FileName);
-  if OK=false then OK:=CheckFile(DirOf(FExpand(ParamStr(0))),FileName);
+  if OK=false then OK:=CheckFile(IDEDir,FileName);
   LocateSingleFile:=OK;
 end;
 var P: integer;
@@ -585,11 +605,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  1999-03-01 15:42:06  peter
+  Revision 1.10  1999-03-08 14:58:14  peter
+    + prompt with dialogs for tools
+
+  Revision 1.9  1999/03/01 15:42:06  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

@@ -17,10 +17,6 @@ unit WEditor;
 
 interface
 
-{$ifndef FPC}
-  {$define TPUNIXLF}
-{$endif}
-
 uses
   Objects,Drivers,Views,Menus,Commands;
 
@@ -114,6 +110,7 @@ const
       eaInsertText        = 3;
       eaDeleteLine        = 4;
       eaDeleteText        = 5;
+      eaSelectionChanged  = 6;
 
       CIndicator    = #2#3#1;
       CEditor       = #33#34#35#36#37#38#39#40#41#42#43#44#45#46#47#48#49;
@@ -179,6 +176,7 @@ type
       Highlight  : TRect;
       CurPos     : TPoint;
       CanUndo    : Boolean;
+      StoreUndo  : boolean;
       Modified   : Boolean;
       IsReadOnly : Boolean;
       NoSelect   : Boolean;
@@ -341,8 +339,10 @@ const
 
 implementation
 
-uses Dos,MsgBox,Dialogs,App,StdDlg,HistList,Validate,
-     WViews;
+uses
+  Dos,
+  MsgBox,Dialogs,App,StdDlg,HistList,Validate,
+  WUtils,WViews;
 
 type
      TFindDialogRec = packed record
@@ -867,6 +867,7 @@ begin
   if Item<>nil then DisposeLine(Item);
 end;
 
+
 constructor TIndicator.Init(var Bounds: TRect);
 begin
   inherited Init(Bounds);
@@ -942,6 +943,7 @@ constructor TCodeEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
 begin
   inherited Init(Bounds,AHScrollBar,AVScrollBar);
+  StoreUndo:=false;
   New(Actions, Init(500,1000));
   New(Lines, Init(500,1000));
   { we have always need at least 1 line }
@@ -952,6 +954,7 @@ begin
   SetState(sfCursorVis,true);
   SetFlags(DefaultCodeEditorFlags); TabSize:=DefaultTabSize;
   SetHighlightRow(-1);
+  SetCurPtr(0,0);
   Indicator:=AIndicator;
   UpdateIndicator; LimitsChanged;
 end;
@@ -2911,7 +2914,7 @@ end;
 
 procedure TCodeEditor.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string);
 begin
-  if (Actions=nil) then Exit;
+  if (Actions=nil) or (not StoreUndo) then Exit;
   Actions^.Insert(NewEditorAction(AAction,AStartPos,AEndPos,AText));
 end;
 
@@ -2977,7 +2980,8 @@ end;
 destructor TCodeEditor.Done;
 begin
   inherited Done;
-  Dispose(Lines, Done);
+  if assigned(Lines) then
+    Dispose(Lines, Done);
   If assigned(Actions) then
     Dispose(Actions, Done);
 end;
@@ -2998,37 +3002,6 @@ begin
 end;
 
 function TFileEditor.LoadFile: boolean;
-{$ifdef TPUNIXLF}
-  var
-    OnlyLF: boolean;
-  procedure readln(var t:text;var s:string);
-  var
-    c : char;
-    i : longint;
-  begin
-    if OnlyLF=false then system.readln(t,s) else
-   begin
-    c:=#0;
-    i:=0;
-    while (not eof(t)) and (c<>#10) do
-     begin
-       read(t,c);
-       if c<>#10 then
-   begin
-     inc(i);
-     s[i]:=c;
-   end;
-     end;
-    if (i>0) and (s[i]=#13) then
-     begin
-       dec(i);
-       OnlyLF:=false;
-     end;
-    s[0]:=chr(i);
-   end;
-  end;
-{$endif}
-
 var S: string;
     OK: boolean;
     f: text;
@@ -3042,7 +3015,6 @@ begin
   Assign(f,FileName);
   SetTextBuf(f,Buf^,EditorTextBufSize);
   Reset(f);
-  {$ifdef TPUNIXLF}OnlyLF:=true;{$endif}
   OK:=(IOResult=0);
   if Eof(f) then
    AddLine('')
@@ -3433,7 +3405,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.26  1999-03-07 22:58:57  pierre
+  Revision 1.27  1999-03-08 14:58:17  peter
+    + prompt with dialogs for tools
+
+  Revision 1.26  1999/03/07 22:58:57  pierre
    * FindRec needs longint for CheckBoxes
 
   Revision 1.25  1999/03/05 17:39:39  pierre
@@ -3446,8 +3421,7 @@ END.
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
- set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

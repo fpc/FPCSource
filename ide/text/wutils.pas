@@ -15,29 +15,40 @@ unit WUtils;
 
 interface
 
-uses Objects;
+{$ifndef FPC}
+  {$define TPUNIXLF}
+{$endif}
+
+
+uses
+  Objects;
 
 type
-     PByteArray = ^TByteArray;
-     TByteArray = array[0..65520] of byte;
+  PByteArray = ^TByteArray;
+  TByteArray = array[0..65520] of byte;
 
-    PUnsortedStringCollection = ^TUnsortedStringCollection;
-    TUnsortedStringCollection = object(TCollection)
-      function  At(Index: Integer): PString;
-      procedure FreeItem(Item: Pointer); virtual;
-    end;
+  PUnsortedStringCollection = ^TUnsortedStringCollection;
+  TUnsortedStringCollection = object(TCollection)
+    function  At(Index: Integer): PString;
+    procedure FreeItem(Item: Pointer); virtual;
+  end;
+
+{$ifdef TPUNIXLF}
+  procedure readln(var t:text;var s:string);
+{$endif}
+
 
 function Min(A,B: longint): longint;
 function Max(A,B: longint): longint;
 
 function CharStr(C: char; Count: byte): string;
-function Trim(S: string): string;
-function UpcaseStr(S: string): string;
-function RExpand(S: string; MinLen: byte): string;
-function LTrim(S: string): string;
-function RTrim(S: string): string;
+function UpcaseStr(const S: string): string;
+function RExpand(const S: string; MinLen: byte): string;
+function LTrim(const S: string): string;
+function RTrim(const S: string): string;
+function Trim(const S: string): string;
 function IntToStr(L: longint): string;
-function StrToInt(S: string): longint;
+function StrToInt(const S: string): longint;
 function GetStr(P: PString): string;
 
 function EatIO: integer;
@@ -46,46 +57,115 @@ const LastStrToIntResult : integer = 0;
 
 implementation
 
-function Min(A,B: longint): longint; begin if A<B then Min:=A else Min:=B; end;
-function Max(A,B: longint): longint; begin if A>B then Max:=A else Max:=B; end;
+uses
+  Dos;
+
+{$ifdef TPUNIXLF}
+  procedure readln(var t:text;var s:string);
+  var
+    c : char;
+    i : longint;
+  begin
+    if TextRec(t).UserData[1]=2 then
+      system.readln(t,s)
+    else
+     begin
+      c:=#0;
+      i:=0;
+      while (not eof(t)) and (c<>#10) do
+       begin
+         read(t,c);
+         if c<>#10 then
+          begin
+            inc(i);
+            s[i]:=c;
+          end;
+       end;
+      if (i>0) and (s[i]=#13) then
+       begin
+         dec(i);
+         TextRec(t).UserData[1]:=2;
+       end;
+      s[0]:=chr(i);
+     end;
+  end;
+{$endif}
+
+
+function Max(A,B: longint): longint;
+begin
+  if A>B then Max:=A else Max:=B;
+end;
+
+function Min(A,B: longint): longint;
+begin
+  if A<B then Min:=A else Min:=B;
+end;
+
 function CharStr(C: char; Count: byte): string;
 var S: string;
-begin S[0]:=chr(Count); if Count>0 then FillChar(S[1],Count,C); CharStr:=S; end;
+begin
+  S[0]:=chr(Count);
+  FillChar(S[1],Count,C);
+  CharStr:=S;
+end;
 
-function UpcaseStr(S: string): string;
-var I: integer;
+function UpcaseStr(const S: string): string;
+var
+  I: Longint;
 begin
   for I:=1 to length(S) do
-      S[I]:=Upcase(S[I]);
-  UpcaseStr:=S;
+    if S[I] in ['a'..'z'] then
+      UpCaseStr[I]:=chr(ord(S[I])-32)
+    else
+      UpCaseStr[I]:=S[I];
+  UpcaseStr[0]:=S[0];
 end;
 
-function RExpand(S: string; MinLen: byte): string;
+function LowerCaseStr(S: string): string;
+var
+  I: Longint;
+begin
+  for I:=1 to length(S) do
+    if S[I] in ['A'..'Z'] then
+      LowerCaseStr[I]:=chr(ord(S[I])+32)
+    else
+      LowerCaseStr[I]:=S[I];
+  LowercaseStr[0]:=S[0];
+end;
+
+function RExpand(const S: string; MinLen: byte): string;
 begin
   if length(S)<MinLen then
-     S:=S+CharStr(' ',MinLen-length(S));
-  RExpand:=S;
+    RExpand:=S+CharStr(' ',MinLen-length(S))
+  else
+    RExpand:=S;
 end;
 
-
-function LTrim(S: string): string;
+function LTrim(const S: string): string;
+var
+  i : longint;
 begin
-  while copy(S,1,1)=' ' do Delete(S,1,1);
-  LTrim:=S;
+  i:=1;
+  while (i<length(s)) and (s[i]=' ') do
+   inc(i);
+  LTrim:=Copy(s,i,255);
 end;
 
-function RTrim(S: string): string;
+function RTrim(const S: string): string;
+var
+  i : longint;
 begin
-  while copy(S,length(S),1)=' ' do Delete(S,length(S),1);
-  RTrim:=S;
+  i:=length(s);
+  while (i>0) and (s[i]=' ') do
+   dec(i);
+  RTrim:=Copy(s,1,i);
 end;
 
-
-function Trim(S: string): string;
+function Trim(const S: string): string;
 begin
   Trim:=RTrim(LTrim(S));
 end;
-
 
 function IntToStr(L: longint): string;
 var S: string;
@@ -95,7 +175,7 @@ begin
 end;
 
 
-function StrToInt(S: string): longint;
+function StrToInt(const S: string): longint;
 var L: longint;
     C: integer;
 begin
@@ -130,7 +210,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  1999-03-01 15:51:43  peter
+  Revision 1.2  1999-03-08 14:58:22  peter
+    + prompt with dialogs for tools
+
+  Revision 1.1  1999/03/01 15:51:43  peter
     + Log
 
 }

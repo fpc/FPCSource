@@ -72,6 +72,7 @@ BEGIN
   {$ifdef DEV}HeapLimit:=4096;{$endif}
   writeln('þ Free Pascal IDE  Version '+VersionStr);
   StartupDir:=CompleteDir(FExpand('.'));
+  IDEDir:=CompleteDir(DirOf(Paramstr(0)));
 
   ProcessParams(true);
 
@@ -114,7 +115,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.14  1999-03-05 17:53:00  pierre
+  Revision 1.15  1999-03-08 14:58:08  peter
+    + prompt with dialogs for tools
+
+  Revision 1.14  1999/03/05 17:53:00  pierre
    + saving and opening of open files on exit
 
   Revision 1.13  1999/03/01 15:41:48  peter

@@ -62,6 +62,7 @@ type
       function    IsModified: boolean; virtual;
       function    SearchSection(Section: string): PINISection; virtual;
       function    SearchEntry(const Section, Tag: string): PINIEntry; virtual;
+      procedure   ForEachSection(EnumProc: pointer); virtual;
       procedure   ForEachEntry(const Section: string; EnumProc: pointer); virtual;
       function    GetEntry(const Section, Tag, Default: string): string; virtual;
       procedure   SetEntry(const Section, Tag, Value: string); virtual;
@@ -81,9 +82,9 @@ const MainSectionName : string[40] = 'MainSection';
 
 implementation
 
-uses WUtils
-{$ifdef FPC},callspec{$endif}
-     ;
+uses
+  CallSpec,
+  WUtils;
 
 constructor TINIEntry.Init(const ALine: string);
 begin
@@ -201,6 +202,17 @@ begin
   AddEntry:=E;
 end;
 
+procedure TINIFile.ForEachSection(EnumProc: pointer);
+var I: Sw_integer;
+   S: PINISection;
+begin
+  for I:=0 to Sections^.Count-1 do
+    begin
+      S:=Sections^.At(I);
+      CallPointerLocal(EnumProc,PreviousFramePointer,S);
+    end;
+end;
+
 procedure TINISection.ForEachEntry(EnumProc: pointer);
 var I: integer;
     E: PINIEntry;
@@ -208,16 +220,7 @@ begin
   for I:=0 to Entries^.Count-1 do
     begin
       E:=Entries^.At(I);
-      {$ifdef FPC}
-        CallPointerMethodLocal(EnumProc,CurrentFramePointer,@Self,E);
-      {$else}
-      asm
-        push E.word[2]
-        push E.word[0]
-        push word ptr [bp]
-        call EnumProc
-      end;
-      {$endif}
+      CallPointerLocal(EnumProc,PreviousFramePointer,E);
     end;
 end;
 
@@ -233,7 +236,7 @@ end;
 
 procedure TINISection.DeleteEntry(Tag: string);
 var
-  P : PIniEntry; 
+  P : PIniEntry;
 begin
   P:=SearchEntry(Tag);
   if assigned(P) then
@@ -460,7 +463,7 @@ begin
   if P<>nil then
     P^.DeleteEntry(Tag);
 end;
-                                                                                                                                                                                                                                                               
+
 destructor TINIFile.Done;
 begin
   if IsModified then
@@ -475,14 +478,18 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  1999-03-05 17:53:03  pierre
+  Revision 1.8  1999-03-08 14:58:21  peter
+    + prompt with dialogs for tools
+
+  Revision 1.7  1999/03/05 17:53:03  pierre
    + saving and opening of open files on exit
 
   Revision 1.6  1999/03/01 15:42:15  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

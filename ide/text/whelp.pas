@@ -389,6 +389,7 @@ end;
 function THelpFile.LoadIndex: boolean;
 begin
   Abstract;
+  LoadIndex:=false; { remove warning }
 end;
 
 function THelpFile.SearchTopic(HelpCtx: THelpCtx): PTopic;
@@ -401,6 +402,7 @@ end;
 function THelpFile.ReadTopic(T: PTopic): boolean;
 begin
   Abstract;
+  ReadTopic:=false; { remove warning }
 end;
 
 procedure THelpFile.MaintainTopicCache;
@@ -620,7 +622,11 @@ begin
   case N of
     $00       : C:=#0;
     $01..$0D  : C:=chr(Compression.CharTable[N]);
+{$ifdef FPC}
+    ncRawChar : C:=chr(GetNextNibble shl 4+GetNextNibble);
+{$else}
     ncRawChar : C:=chr(GetNextNibble+GetNextNibble shl 4);
+{$endif}
     ncRepChar : begin
                   Cnt:=2+GetNextNibble;
                   C:=GetNextChar{$ifdef FPC}(){$endif};
@@ -913,7 +919,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  1999-03-03 16:44:05  pierre
+  Revision 1.10  1999-03-08 14:58:19  peter
+    + prompt with dialogs for tools
+
+  Revision 1.9  1999/03/03 16:44:05  pierre
    * TPH reader fix from Peter
 
   Revision 1.8  1999/03/01 15:42:11  peter

@@ -91,6 +91,8 @@ type
 
     PSourceEditor = ^TSourceEditor;
     TSourceEditor = object(TFileEditor)
+      constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
+          PScrollBar; AIndicator: PIndicator;const AFileName: string);
 {$ifndef EDITORS}
       function  IsReservedWord(const S: string): boolean; virtual;
       function  GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
@@ -639,6 +641,13 @@ begin
       S:='}';
   end;
   GetSpecSymbol:=S;
+end;
+
+constructor TSourceEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
+          PScrollBar; AIndicator: PIndicator;const AFileName: string);
+begin
+  inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,AFileName);
+  StoreUndo:=true;
 end;
 
 function TSourceEditor.IsReservedWord(const S: string): boolean;
@@ -1248,6 +1257,7 @@ begin
   if List<>nil then Dispose(List, Done); List:=nil; MaxWidth:=0;
   if ModuleNames<>nil then ModuleNames^.FreeAll;
   SetRange(0); DrawView;
+  Message(Application,evBroadcast,cmClearLineHighlights,@Self);
 end;
 
 procedure TMessageListBox.TrackSource;
@@ -1256,6 +1266,7 @@ var W: PSourceWindow;
     R: TRect;
     Row,Col: sw_integer;
 begin
+  Message(Application,evBroadcast,cmClearLineHighlights,@Self);
   if Range=0 then Exit;
   P:=List^.At(Focused);
   if P^.Row=0 then Exit;
@@ -1292,6 +1303,7 @@ var W: PSourceWindow;
     P: PMessageItem;
     Row,Col: sw_integer;
 begin
+  Message(Application,evBroadcast,cmClearLineHighlights,@Self);
   if Range=0 then Exit;
   P:=List^.At(Focused);
   if P^.Row=0 then Exit;
@@ -2394,11 +2406,14 @@ end;
 END.
 {
   $Log$
-  Revision 1.20  1999-03-01 15:42:08  peter
+  Revision 1.21  1999-03-08 14:58:16  peter
+    + prompt with dialogs for tools
+
+  Revision 1.20  1999/03/01 15:42:08  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
