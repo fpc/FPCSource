@@ -799,7 +799,7 @@ const msgtxt : array[0..000143,1..240] of char=(
   '3*2TEMX_OS/2 via EMX (including EMX/RSX extender)'#010+
   '3*2TGO32V2_Version 2 of DJ Delorie DOS extender'#010+
   '3*2TLINUX_Linux'#010+
-  '3*2TNETWARE_Novell Netware Module (experimental)'#010+
+  '3*2TNETWARE_Novell Netware Module (clib)'#010+
   '3*2TOS2_OS/2 / eComStation'#010+
   '3*2TSUNOS_SunOS/Solaris'#010+
   '3*2TWDOS','X_WDOSX DOS extender'#010+

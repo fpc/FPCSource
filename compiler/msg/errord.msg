@@ -1818,7 +1818,7 @@ option_help_pages=11025_[
 3*2TEMX_OS/2 via EMX (EMX/RSX extender inclusive)
 3*2TGO32V2_Version 2 von DJ Delorie's DOS extender
 3*2TLINUX_Linux
-3*2TNETWARE_Novell Netware Module (experimental)
+3*2TNETWARE_Novell Netware Module (clib)
 3*2TOS2_OS/2 / eComStation
 3*2TSUNOS_SunOS/Solaris
 3*2TWDOSX_WDOSX DOS extender
