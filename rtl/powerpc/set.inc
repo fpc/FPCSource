@@ -343,7 +343,7 @@ asm
        lwzu     r6,4(r3)
        lwzu     r7,4(r4)
        cmplw    cr0,r6,r7
-       bdnzeq   cr0,.LMCOMPSETS1
+       bdnzt    cr0*4+eq,.LMCOMPSETS1
        mtctr    r5
        lwz      r5,saveR5
        lwz      r6,saveR6
@@ -371,7 +371,7 @@ asm
        lwzu     r7,4(r4)
        lwzu     r6,4(r3)
        andc.    r7,r6,r7
-       bdnzeq   cr0,.LMCOMPSETS1
+       bdnzt    cr0*4+eq,.LMCOMPSETS1
        mtctr    r5
        lwz      r5,saveR5
        lwz      r6,saveR6
@@ -544,7 +544,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2000-10-07 14:42:16  jonas
+  Revision 1.7  2001-03-03 13:54:26  jonas
+    * changed 'bdnzeq  cr0' to 'bdnzt  cr0*4+eq'
+
+  Revision 1.6  2000/10/07 14:42:16  jonas
     * Fixed small error and did a small optimization
 
   Revision 1.5  2000/09/26 14:22:13  jonas
