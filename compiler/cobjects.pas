@@ -27,6 +27,14 @@
 {$I-}
 {$R-}{ necessary for crc calculation }
 
+{$ifdef fpc}
+{$define USEREALLOCMEM}
+{$endif fpc}
+
+{$ifdef delphi}
+{$define USEREALLOCMEM}
+{$endif delphi}
+
 unit cobjects;
 
 { define OLDSPEEDVALUE}
@@ -1782,15 +1790,13 @@ end;
     procedure tdynamicarray.grow;
       var
         osize : longint;
-{ Can also be done with Delphi, but I don't feel like playing with all the }
-{ conditianals (JM)                                                        }
-{$ifndef fpc}
+{$ifndef REALLOCMEM}
         odata : pchar;
-{$endif fpc}
+{$endif REALLOCMEM}
       begin
         osize:=size;
         inc(limit,growcount);
-{$ifndef fpc}
+{$ifndef REALLOCMEM}
         odata:=data;
         getmem(data,size);
         if assigned(odata) then
@@ -1798,9 +1804,9 @@ end;
            move(odata^,data^,osize);
            freemem(odata,osize);
          end;
-{$else fpc}
+{$else REALLOCMEM}
         reallocmem(data,size);
-{$endif fpc}
+{$endif REALLOCMEM}
         fillchar(data[osize],growcount*elemlen,0);
       end;
 
@@ -1935,15 +1941,13 @@ end;
     procedure tindexarray.grow(gsize:longint);
       var
         osize : longint;
-{ Can also be done with Delphi, but I don't feel like playing with all the }
-{ conditianals (JM)                                                        }
-{$ifndef fpc}
+{$ifndef REALLOCMEM}
         odata : Pnamedindexobjectarray;
 {$endif fpc}
       begin
         osize:=size;
         inc(size,gsize);
-{$ifndef fpc}
+{$ifndef REALLOCMEM}
         odata:=data;
         getmem(data,size*4);
         if assigned(odata) then
@@ -1951,9 +1955,9 @@ end;
            move(odata^,data^,osize*4);
            freemem(odata,osize*4);
          end;
-{$else fpc}
+{$else REALLOCMEM}
         reallocmem(data,size*4);
-{$endif fpc}
+{$endif REALLOCMEM}
         fillchar(data^[osize+1],gsize*4,0);
       end;
 
@@ -2420,7 +2424,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-08-09 12:09:45  jonas
+  Revision 1.6  2000-08-10 12:20:44  jonas
+    * reallocmem is now also used under Delphi (merged from fixes branch)
+
+  Revision 1.5  2000/08/09 12:09:45  jonas
     * tidexarray and tdynamicarray now use reallocmem() under FPC for
       growing (merged from fixes branch)
 
