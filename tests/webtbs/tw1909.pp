@@ -1,3 +1,4 @@
+{$inline on }
 {$mode objfpc}
 
 
