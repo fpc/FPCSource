@@ -2864,9 +2864,18 @@ Begin
      else
       if i=1 then               {i=1, so we have temp='/../something', just delete '/../'}
        delete(temp,1,3);
-
   until i=0;
-{Remove ending . and / which may exist}
+  { Remove ending /.. }
+  i:=pos('/..',pa);
+  if i<>0 and (i =length(pa)-2) then
+    begin
+    j:=i-1;
+    while (j>1) and (pa[j]<>'/') do
+      dec (j);
+    delete (pa,j,i-j+3);
+    end;
+    end;
+  { if last character is / then remove it - dir is also a file :-) }
   if (length(temp)>0) and (temp[length(temp)]='/') then
    dec(byte(temp[0]));
   fexpand:=temp;
@@ -3521,7 +3530,10 @@ End.
 
 {
   $Log$
-  Revision 1.14  1998-08-14 12:01:04  carl
+  Revision 1.15  1998-08-16 09:12:14  michael
+  Corrected fexpand behaviour.
+
+  Revision 1.14  1998/08/14 12:01:04  carl
     * ifdef i386 for ports access
 
   Revision 1.13  1998/08/12 11:10:25  michael

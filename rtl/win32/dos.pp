@@ -610,9 +610,10 @@ end;
 
 
 function fexpand(const path : pathstr) : pathstr;
+
 var
-  s,pa : string[79];
-  i,j  : longint;
+   s,pa : string[79];
+   i,j  : longint;
 begin
    getdir(0,s);
    pa:=upcase(path);
@@ -620,15 +621,16 @@ begin
    for i:=1 to length(pa) do
     if pa[i]='/' then
      pa[i]:='\';
+
    if (length(pa)>1) and (pa[1] in ['A'..'Z']) and (pa[2]=':') then
      begin
-       { we must get the right directory }
-       getdir(ord(pa[1])-ord('A')+1,s);
-       if (ord(pa[0])>2) and (pa[3]<>'\') then
-         if pa[1]=s[1] then
-           pa:=s+'\'+copy (pa,3,length(pa))
-         else
-           pa:=pa[1]+':\'+copy (pa,3,length(pa))
+        { we must get the right directory }
+        getdir(ord(pa[1])-ord('A')+1,s);
+        if (ord(pa[0])>2) and (pa[3]<>'\') then
+          if pa[1]=s[1] then
+            pa:=s+'\'+copy (pa,3,length(pa))
+          else
+            pa:=pa[1]+':\'+copy (pa,3,length(pa))
      end
    else
      if pa[1]='\' then
@@ -637,6 +639,14 @@ begin
        pa:=s+pa
      else
        pa:=s+'\'+pa;
+
+ { Turbo Pascal gives current dir on drive if only drive given as parameter! }
+ if length(pa) = 2 then
+  begin
+    getdir(byte(pa[1])-64,s);
+    pa := s;
+  end;
+
  {First remove all references to '\.\'}
    while pos ('\.\',pa)<>0 do
     delete (pa,pos('\.\',pa),2);
@@ -648,17 +658,39 @@ begin
         j:=i-1;
         while (j>1) and (pa[j]<>'\') do
          dec (j);
+        if pa[j+1] = ':' then j := 3;
         delete (pa,j,i-j+3);
       end;
    until i=0;
- {Remove End . and \}
+
+   { Turbo Pascal gets rid of a \.. at the end of the path }
+   { Now remove also any reference to '\..'  at end of line 
+     + of course previous dir.. }
+   i:=pos('\..',pa);
+   if i<>0 then
+    begin
+      if i = length(pa) - 2 then
+       begin
+         j:=i-1;
+         while (j>1) and (pa[j]<>'\') do
+          dec (j);
+         delete (pa,j,i-j+3);
+       end;
+       pa := pa + '\';
+     end;
+   { Remove End . and \}
    if (length(pa)>0) and (pa[length(pa)]='.') then
     dec(byte(pa[0]));
-   if (length(pa)>0) and (pa[length(pa)]='\') then
+   { if only the drive + a '\' is left then the '\' should be left to prevtn the program 
+     accessing the current directory on the drive rather than the root!}
+   { if the last char of path = '\' then leave it in as this is what TP does! }
+   if ((length(pa)>3) and (pa[length(pa)]='\')) and (path[length(path)] <> '\') then
     dec(byte(pa[0]));
+   { if only a drive is given in path then there should be a '\' at the
+     end of the string given back }
+   if length(path) = 2 then pa := pa + '\';
    fexpand:=pa;
 end;
-
 
 Function FSearch(path: pathstr; dirlist: string): pathstr;
 var
@@ -843,7 +875,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.7  1998-06-10 10:39:13  peter
+  Revision 1.8  1998-08-16 09:12:11  michael
+  Corrected fexpand behaviour.
+
+  Revision 1.7  1998/06/10 10:39:13  peter
     * working w32 rtl
 
   Revision 1.6  1998/06/08 23:07:45  peter
