@@ -184,7 +184,7 @@ end;
 function switchRegs(asml: TAAsmoutput; reg1, reg2: tregister; start: Tai): Boolean;
 { change movl  %reg1,%reg2 ... bla ... to ... bla with reg1 and reg2 switched }
 var
-  endP, hp: Tai;
+  endP, hp, lastreg1,lastreg2: Tai;
   switchDone, switchLast, tmpResult, sequenceEnd, reg1Modified, reg2Modified: boolean;
   reg1StillUsed, reg2StillUsed, isInstruction: boolean;
 begin
@@ -263,6 +263,8 @@ begin
       switchRegs := true;
       reg1Modified := false;
       reg2Modified := false;
+      lastreg1 := start;
+      lastreg2 := start;
       getNextInstruction(start,hp);
       while hp <> endP do
         begin
@@ -285,13 +287,17 @@ begin
                 else
                   doReplaceReg(Taicpu(hp),reg2,reg1);
             end;
+          if regininstruction(reg1,hp) then
+             lastreg1 := hp;
+          if regininstruction(reg2,hp) then
+             lastreg2 := hp;
           getNextInstruction(hp,hp);
         end;
       if switchLast then
         doSwitchReg(Taicpu(hp),reg1,reg2)
       else getLastInstruction(hp,hp);
-      allocRegBetween(asmL,reg1,start,hp);
-      allocRegBetween(asmL,reg2,start,hp);
+      allocRegBetween(asmL,reg1,start,lastreg1);
+      allocRegBetween(asmL,reg2,start,lastreg2);
     end;
 end;
 
@@ -338,7 +344,10 @@ End.
 
 {
   $Log$
-  Revision 1.7  2001-08-29 14:07:43  jonas
+  Revision 1.8  2001-10-12 13:55:03  jonas
+    * finer granularity for allocation of reused/replaced registers
+
+  Revision 1.7  2001/08/29 14:07:43  jonas
     * the optimizer now keeps track of flags register usage. This fixes some
       optimizer bugs with int64 calculations (because of the carry flag usage)
     * fixed another bug which caused wrong optimizations with complex
