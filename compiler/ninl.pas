@@ -1646,31 +1646,18 @@ implementation
               in_exclude_x_y:
                 begin
                   resulttype:=voidtype;
-                  if assigned(left) then
+                  { the parser already checks whether we have two (and exectly two) }
+                  { parameters (JM)                                                 }
+                  set_varstate(left,true);
+                  { first param must be var }
+                  valid_for_var(tcallparanode(left).left);
+                  { check type }
+                  if (left.resulttype.def.deftype=setdef) then
                     begin
-                       set_varstate(left,true);
-                       { remove warning when result is passed }
-                       set_funcret_is_valid(tcallparanode(left).left);
-                       { first param must be var }
-                       valid_for_var(tcallparanode(left).left);
-                       { check type }
-                       if assigned(left.resulttype.def) and
-                          (left.resulttype.def.deftype=setdef) then
-                         begin
-                            { two paras ? }
-                            if assigned(tcallparanode(left).right) then
-                              begin
-                                 { insert a type conversion       }
-                                 { to the type of the set elements  }
-                                 inserttypeconv(tcallparanode(tcallparanode(left).right).left,
-                                   tsetdef(left.resulttype.def).elementtype);
-                                 { only three parameters are allowed }
-                                 if assigned(tcallparanode(tcallparanode(left).right).right) then
-                                   CGMessage(cg_e_illegal_expression);
-                              end;
-                         end
-                       else
-                         CGMessage(type_e_mismatch);
+                      { insert a type conversion       }
+                      { to the type of the set elements  }
+                      inserttypeconv(tcallparanode(tcallparanode(left).right).left,
+                        tsetdef(left.resulttype.def).elementtype);
                     end
                   else
                     CGMessage(type_e_mismatch);
@@ -2269,7 +2256,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2001-09-04 11:38:55  jonas
+  Revision 1.57  2001-09-04 14:32:45  jonas
+    * simplified det_resulttype code for include/exclude
+    * include/exclude doesn't use any helpers anymore in the i386 secondpass
+
+  Revision 1.56  2001/09/04 11:38:55  jonas
     + searchsystype() and searchsystype() functions in symtable
     * changed ninl and nadd to use these functions
     * i386 set comparison functions now return their results in al instead

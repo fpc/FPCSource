@@ -733,48 +733,39 @@ implementation
                         asmop:=A_BTS
                       else
                         asmop:=A_BTR;
-                      if tsetdef(left.resulttype.def).settype=smallset then
-                        begin
-                           if tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
-                             { we don't need a mod 32 because this is done automatically  }
-                             { by the bts instruction. For proper checking we would       }
-                             { need a cmp and jmp, but this should be done by the         }
-                             { type cast code which does range checking if necessary (FK) }
-                             hregister:=makereg32(tcallparanode(tcallparanode(left).right).left.location.register)
-                           else
-                             begin
-                                getexplicitregister32(R_EDI);
-                                hregister:=R_EDI;
-                                opsize:=def2def_opsize(
-                                  tcallparanode(tcallparanode(left).right).left.resulttype.def,u32bittype.def);
-                                if opsize in [S_B,S_W,S_L] then
-                                 op:=A_MOV
-                                else
-                                 op:=A_MOVZX;
-                                emit_ref_reg(op,opsize,
-                                  newreference(
-                                    tcallparanode(tcallparanode(left).right).left.location.reference),R_EDI);
-                             end;
-                          if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
-                            emit_reg_ref(asmop,S_L,hregister,
-                              newreference(tcallparanode(left).left.location.reference))
-                          else
-                            emit_reg_reg(asmop,S_L,hregister,
-                              tcallparanode(left).left.location.register);
-                        if hregister = R_EDI then
-                          ungetregister32(R_EDI);
-                        end
+
+                      if tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
+                        { we don't need a mod 32 because this is done automatically  }
+                        { by the bts instruction. For proper checking we would       }
+                        
+                        { note: bts doesn't do any mod'ing, that's why we can also use }
+                        { it for normalsets! (JM)                                      }
+                        
+                        { need a cmp and jmp, but this should be done by the         }
+                        { type cast code which does range checking if necessary (FK) }
+                        hregister:=makereg32(tcallparanode(tcallparanode(left).right).left.location.register)
                       else
                         begin
-                           pushsetelement(tcallparanode(tcallparanode(left).right).left);
-                           { normset is allways a ref }
-                           emitpushreferenceaddr(tcallparanode(left).left.location.reference);
-                           if inlinenumber=in_include_x_y then
-                             emitcall('FPC_SET_SET_BYTE')
+                           getexplicitregister32(R_EDI);
+                           hregister:=R_EDI;
+                           opsize:=def2def_opsize(
+                             tcallparanode(tcallparanode(left).right).left.resulttype.def,u32bittype.def);
+                           if opsize = S_L then
+                            op:=A_MOV
                            else
-                             emitcall('FPC_SET_UNSET_BYTE');
-                           {CGMessage(cg_e_include_not_implemented);}
+                            op:=A_MOVZX;
+                           emit_ref_reg(op,opsize,
+                             newreference(
+                               tcallparanode(tcallparanode(left).right).left.location.reference),R_EDI);
                         end;
+                      if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
+                        emit_reg_ref(asmop,S_L,hregister,
+                          newreference(tcallparanode(left).left.location.reference))
+                      else
+                        emit_reg_reg(asmop,S_L,hregister,
+                          tcallparanode(left).left.location.register);
+                      if hregister = R_EDI then
+                        ungetregister32(R_EDI);
                    end;
               end;
             in_pi:
@@ -879,7 +870,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-08-30 20:13:57  peter
+  Revision 1.24  2001-09-04 14:32:45  jonas
+    * simplified det_resulttype code for include/exclude
+    * include/exclude doesn't use any helpers anymore in the i386 secondpass
+
+  Revision 1.23  2001/08/30 20:13:57  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces
