@@ -79,13 +79,23 @@ Unit SysPalm;
          _PilotMain:=ExitCode;
       end;
 
+{*****************************************************************************
+                         System Dependent Exit code
+*****************************************************************************}
+Procedure system_exit;
+begin
+end;
+
 begin
    ExitCode:=0;
 end.
 
 {
   $Log$
-  Revision 1.3  1998-08-31 12:18:37  peter
+  Revision 1.4  1999-01-18 10:05:56  pierre
+   + system_exit procedure added
+
+  Revision 1.3  1998/08/31 12:18:37  peter
     * export changed to public which is allowed in implementation
 
   Revision 1.2  1998/08/22 10:23:59  florian

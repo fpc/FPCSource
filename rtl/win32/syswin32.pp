@@ -690,6 +690,13 @@ begin
 end;
 
 
+{*****************************************************************************
+                         System Dependent Exit code
+*****************************************************************************}
+Procedure system_exit;
+begin
+end;
+
 {$ifdef dummy}
 Function SetUpStack : longint;
 { This routine does the following :                            }
@@ -966,7 +973,10 @@ end.
 
 {
   $Log$
-  Revision 1.32  1998-12-28 23:30:11  peter
+  Revision 1.33  1999-01-18 10:05:57  pierre
+   + system_exit procedure added
+
+  Revision 1.32  1998/12/28 23:30:11  peter
     * fixes for smartlinking
 
   Revision 1.31  1998/12/28 15:50:51  peter

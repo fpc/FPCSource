@@ -543,17 +543,15 @@ end;
 {$endif SYSTEMDEBUG}
 
 {*****************************************************************************
-                              ParamStr/Randomize
+                         System Dependent Exit code
 *****************************************************************************}
-
+Procedure system_exit;
 {$ASMMODE DIRECT}
-procedure halt(errnum : byte);
 {$ifdef SYSTEMDEBUG}
   var h : byte;
 {$endif SYSTEMDEBUG}
 
 begin
-  do_exit;
 {$ifdef SYSTEMDEBUG}
   for h:=0 to max_files do
     if openfiles[h] then
@@ -564,18 +562,25 @@ begin
   set_pm_interrupt($00,old_int00);
   set_pm_interrupt($75,old_int75);
   asm
-        movzbw  errnum,%ax
+        movzbw  exitcode,%ax
         pushw   %ax
         call    ___exit         {frees all dpmi memory !!}
   end;
 end;
 
+procedure halt(errnum : byte);
+
+begin
+  exitcode:=errnum;
+  do_exit;
+  { do_exit should call system_exit but this does not hurt }
+  System_exit;
+end;
 
 procedure new_int00;
 begin
   HandleError(200);
 end;
-
 
 procedure new_int75;
 begin
@@ -631,6 +636,10 @@ end;
 {$ASMMODE ATT}
 
 
+
+{*****************************************************************************
+                              ParamStr/Randomize
+*****************************************************************************}
 
 function paramcount : longint;
 begin
@@ -1142,7 +1151,7 @@ begin
    end
   else
    syscopyfromdos(longint(@temp),251);
-{ conversation to Pascal string including slash conversion }
+{ conversion to Pascal string including slash conversion }
   i:=0;
   while (temp[i]<>#0) do
    begin
@@ -1228,7 +1237,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.4  1998-12-30 22:17:59  peter
+  Revision 1.5  1999-01-18 10:05:50  pierre
+   + system_exit procedure added
+
+  Revision 1.4  1998/12/30 22:17:59  peter
     * fixed mem decls to use $0:$0
 
   Revision 1.3  1998/12/28 15:50:45  peter

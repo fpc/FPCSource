@@ -243,7 +243,7 @@ const
       Initial: boolean;           { Have successfully opened Std I/O   }
       errno : word;               { AmigaOS IO Error number            }
       FileList : pFileList;       { Linked list of opened files        }
-      old_exit: Pointer;
+      {old_exit: Pointer; not needed anymore }
       FromHalt : boolean;
       OrigDir : Longint;   { Current lock on original startup directory }
 
@@ -608,7 +608,10 @@ const
   end;*)
 
 
-    Procedure ExitCall;
+{*****************************************************************************
+                         System Dependent Exit code
+*****************************************************************************}
+  Procedure system_exit;
     var
      i: byte;
     Begin
@@ -643,7 +646,7 @@ const
            Begin
              if pointerlist[i] <> 0 then FreeVec(pointerlist[i]);
            end;
-         exitproc:=old_exit;
+         { exitproc:=old_exit;obsolete }
     end;
 
 
@@ -1806,14 +1809,15 @@ begin
    argc:=GetParamCount(args);
    OrigDir := 0;
    FileList := nil;
-   old_Exit:=exitproc;
-   Exitproc:=@ExitCall;
 end.
 
 
 {
   $Log$
-  Revision 1.11  1998-12-28 15:50:42  peter
+  Revision 1.12  1999-01-18 10:05:47  pierre
+   + system_exit procedure added
+
+  Revision 1.11  1998/12/28 15:50:42  peter
     + stdout, which is needed when you write something in the system unit
       to the screen. Like the runtime error
 

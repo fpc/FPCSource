@@ -593,6 +593,12 @@ begin
    end;
 end;
 
+{*****************************************************************************
+                         System Dependent Exit code
+*****************************************************************************}
+Procedure system_exit;
+begin
+end;
 
 {*****************************************************************************
                          SystemUnit Initialization
@@ -613,7 +619,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:50:44  peter
+  Revision 1.3  1999-01-18 10:05:49  pierre
+   + system_exit procedure added
+
+  Revision 1.2  1998/12/28 15:50:44  peter
     + stdout, which is needed when you write something in the system unit
       to the screen. Like the runtime error
 

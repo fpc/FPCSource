@@ -368,6 +368,8 @@ Begin
 End;
 
 
+Procedure system_exit;forward;
+
 Procedure do_exit;[Public,Alias:'FPC_DO_EXIT'];
 var
   current_exit : Procedure;
@@ -384,6 +386,8 @@ Begin
      Writeln(stdout,'Run time error  ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
      dump_stack(ErrorBase);
    End;
+  { call system dependent exit code }
+  System_exit;
 End;
 
 
@@ -468,7 +472,10 @@ end;
 
 {
   $Log$
-  Revision 1.50  1998-12-28 15:50:46  peter
+  Revision 1.51  1999-01-18 10:05:52  pierre
+   + system_exit procedure added
+
+  Revision 1.50  1998/12/28 15:50:46  peter
     + stdout, which is needed when you write something in the system unit
       to the screen. Like the runtime error
 
