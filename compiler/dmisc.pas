@@ -500,7 +500,7 @@ begin
   StringToPchar(f.name);
 { FindFirstFile is a Win32 Call. }
   F.FindHandle:=FindFirstFile (pchar(@f.Name),F.W32FindData);
-  If longint(F.FindHandle)=Invalid_Handle_value then
+  If longint(F.FindHandle)=longint(Invalid_Handle_value) then
    begin
      DosError:=Last2DosError(GetLastError);
      exit;
@@ -531,7 +531,7 @@ end;
 
 Procedure FindClose(Var f: SearchRec);
 begin
-  If longint(F.FindHandle)<>Invalid_Handle_value then
+  If longint(F.FindHandle)<>longint(Invalid_Handle_value) then
    FindCloseFile(F.FindHandle);
 end;
 
@@ -736,7 +736,7 @@ var
    l : longint;
 begin
   l:=GetFileAttributes(filerec(f).name);
-  if l=$ffffffff then
+  if l=longint($ffffffff) then
    doserror:=getlasterror;
   attr:=l;
 end;
@@ -854,7 +854,12 @@ End;
 end.
 {
   $Log$
-  Revision 1.7  2000-02-09 13:22:52  peter
+  Revision 1.8  2000-05-11 09:56:20  pierre
+    * fixed several compare problems between longints and
+      const > $80000000 that are treated as int64 constanst
+      by Delphi reported by Kovacs Attila Zoltan
+
+  Revision 1.7  2000/02/09 13:22:52  peter
     * log truncated
 
   Revision 1.6  2000/01/07 01:14:23  peter

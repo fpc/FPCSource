@@ -124,11 +124,11 @@ implementation
                  If (cs_check_range in aktlocalswitches) and
                     {no need to rangecheck longints or cardinals on 32bit processors}
                     not((porddef(dest^.resulttype)^.typ = s32bit) and
-                        (porddef(dest^.resulttype)^.low = $80000000) and
+                        (porddef(dest^.resulttype)^.low = longint($80000000)) and
                         (porddef(dest^.resulttype)^.high = $7fffffff)) and
                     not((porddef(dest^.resulttype)^.typ = u32bit) and
                         (porddef(dest^.resulttype)^.low = 0) and
-                        (porddef(dest^.resulttype)^.high = $ffffffff)) then
+                        (porddef(dest^.resulttype)^.high = longint($ffffffff))) then
                   Begin
                     {do not register this temporary def}
                     OldRegisterDef := RegisterDef;
@@ -864,11 +864,11 @@ implementation
              for that)}
             {no need to rangecheck longints or cardinals on 32bit processors}
                not((porddef(dest_para^.left^.resulttype)^.typ = s32bit) and
-                   (porddef(dest_para^.left^.resulttype)^.low = $80000000) and
+                   (porddef(dest_para^.left^.resulttype)^.low = longint($80000000)) and
                    (porddef(dest_para^.left^.resulttype)^.high = $7fffffff)) and
                not((porddef(dest_para^.left^.resulttype)^.typ = u32bit) and
                    (porddef(dest_para^.left^.resulttype)^.low = 0) and
-                   (porddef(dest_para^.left^.resulttype)^.high = $ffffffff)) then
+                   (porddef(dest_para^.left^.resulttype)^.high = longint($ffffffff))) then
              Begin
                hp := getcopy(dest_para^.left);
                hp^.location.loc := LOC_REGISTER;
@@ -1528,7 +1528,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2000-04-14 12:33:40  pierre
+  Revision 1.101  2000-05-11 09:56:20  pierre
+    * fixed several compare problems between longints and
+      const > $80000000 that are treated as int64 constanst
+      by Delphi reported by Kovacs Attila Zoltan
+
+  Revision 1.100  2000/04/14 12:33:40  pierre
    * better inlined real sqr function
 
   Revision 1.99  2000/04/04 21:41:56  pierre

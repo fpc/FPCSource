@@ -1604,7 +1604,7 @@ Begin
           BuildConstSymbolExpression(false,false,false,value,asmsym);
           if asmsym<>'' then
            begin
-             if maxvalue<>$ffffffff then
+             if maxvalue<>longint($ffffffff) then
               Message(asmr_w_32bit_const_for_address);
              ConcatConstSymbol(curlist,asmsym,value)
            end
@@ -1995,7 +1995,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2000-05-09 11:56:25  pierre
+  Revision 1.77  2000-05-11 09:56:21  pierre
+    * fixed several compare problems between longints and
+      const > $80000000 that are treated as int64 constanst
+      by Delphi reported by Kovacs Attila Zoltan
+
+  Revision 1.76  2000/05/09 11:56:25  pierre
    * Issue an error if opcode is not found
 
   Revision 1.75  2000/05/08 13:23:03  peter

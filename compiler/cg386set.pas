@@ -817,7 +817,7 @@ implementation
               if (min_label<0) and (max_label>0) then
                 begin
 {$ifdef Delphi}
-                   if min_label=$80000000 then
+                   if min_label=longint($80000000) then
                      dist:=Cardinal(max_label)+Cardinal($80000000)
                    else
                      dist:=Cardinal(max_label)+Cardinal(-min_label)
@@ -904,7 +904,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2000-03-26 11:33:49  jonas
+  Revision 1.50  2000-05-11 09:56:20  pierre
+    * fixed several compare problems between longints and
+      const > $80000000 that are treated as int64 constanst
+      by Delphi reported by Kovacs Attila Zoltan
+
+  Revision 1.49  2000/03/26 11:33:49  jonas
     * release the register used to hold the value of the case variable
       at the end of the case
 
@@ -958,4 +963,3 @@ end.
     * some other type/const renamings
 
 }
-

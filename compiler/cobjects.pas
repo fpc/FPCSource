@@ -539,19 +539,11 @@ end;
 *****************************************************************************}
 
 var
-{$ifdef Delphi}
-  Crc32Tbl : array[0..255] of longword;
-{$else Delphi}
   Crc32Tbl : array[0..255] of longint;
-{$endif Delphi}
 
 procedure MakeCRC32Tbl;
 var
-{$ifdef Delphi}
-  crc : longword;
-{$else Delphi}
   crc : longint;
-{$endif Delphi}
   i,n : byte;
 begin
   for i:=0 to 255 do
@@ -559,7 +551,7 @@ begin
      crc:=i;
      for n:=1 to 8 do
       if odd(crc) then
-       crc:=(crc shr 1) xor $edb88320
+       crc:=(crc shr 1) xor longint($edb88320)
       else
        crc:=crc shr 1;
      Crc32Tbl[i]:=crc;
@@ -580,7 +572,7 @@ begin
   if Crc32Tbl[1]=0 then
    MakeCrc32Tbl;
   InitCrc:=$ffffffff;
-  for i:=1to Length(s) do
+  for i:=1 to Length(s) do
    InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(s[i])] xor (InitCrc shr 8);
   GetSpeedValue:=InitCrc;
 end;
@@ -2401,7 +2393,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.53  2000-05-11 09:29:01  pierre
+  Revision 1.54  2000-05-11 09:56:20  pierre
+    * fixed several compare problems between longints and
+      const > $80000000 that are treated as int64 constanst
+      by Delphi reported by Kovacs Attila Zoltan
+
+  Revision 1.53  2000/05/11 09:29:01  pierre
    * disbal all code using MemAvail for Delphi reported by Kovacs Attila Zoltan
 
   Revision 1.52  2000/02/09 13:22:50  peter

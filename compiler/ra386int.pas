@@ -1647,7 +1647,7 @@ Begin
           if maxvalue = $ffff then
             strlength:=2
           else
-            if maxvalue = $ffffffff then
+            if maxvalue = longint($ffffffff) then
               strlength:=4;
           { DD and DW cases }
           if strlength <> 0 then
@@ -1677,7 +1677,7 @@ Begin
           BuildConstSymbolExpression(false,false,value,asmsym);
           if asmsym<>'' then
            begin
-             if maxvalue<>$ffffffff then
+             if maxvalue<>longint($ffffffff) then
                Message(asmr_w_const32bit_for_address);
              ConcatConstSymbol(curlist,asmsym,value)
            end
@@ -1826,7 +1826,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2000-05-09 11:56:26  pierre
+  Revision 1.67  2000-05-11 09:56:21  pierre
+    * fixed several compare problems between longints and
+      const > $80000000 that are treated as int64 constanst
+      by Delphi reported by Kovacs Attila Zoltan
+
+  Revision 1.66  2000/05/09 11:56:26  pierre
    * Issue an error if opcode is not found
 
   Revision 1.65  2000/05/08 13:23:04  peter

@@ -1404,7 +1404,7 @@ Procedure ConcatConstant(p: paasmoutput; value: longint; maxvalue: longint);
 {                  $ffffffff -> create a dword node.                  }
 {*********************************************************************}
 Begin
-  if (maxvalue <> $ffffffff) and (value > maxvalue) then
+  if (maxvalue <> longint($ffffffff)) and (value > maxvalue) then
    Begin
      Message(asmr_e_constant_out_of_bounds);
      { assuming a value of maxvalue }
@@ -1416,7 +1416,7 @@ Begin
    if maxvalue = $ffff then
     p^.concat(new(pai_const,init_16bit(word(value))))
   else
-   if maxvalue = $ffffffff then
+   if maxvalue = longint($ffffffff) then
     p^.concat(new(pai_const,init_32bit(longint(value))));
 end;
 
@@ -1512,7 +1512,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.41  2000-05-08 13:23:05  peter
+  Revision 1.42  2000-05-11 09:56:22  pierre
+    * fixed several compare problems between longints and
+      const > $80000000 that are treated as int64 constanst
+      by Delphi reported by Kovacs Attila Zoltan
+
+  Revision 1.41  2000/05/08 13:23:05  peter
     * fixed reference parsing
 
   Revision 1.40  2000/04/06 07:56:04  pierre
