@@ -295,7 +295,7 @@ TYPE
 {---------------------------------------------------------------------------}
 TYPE
    PStreamRec = ^TStreamRec;                          { Stream record ptr }
-   TStreamRec = RECORD
+   TStreamRec = Packed RECORD
       ObjType: Sw_Word;                               { Object type id }
       VmtLink: pointer;                               { VMT link }
       Load : Pointer;                                 { Object load code }
@@ -599,7 +599,9 @@ TYPE
    PResourceFile = ^TResourceFile;
 
 TYPE
-   TStrIndexRec = RECORD Key, Count, Offset: Word; END;
+   TStrIndexRec = Packed RECORD
+      Key, Count, Offset: Word;
+   END;
 
    TStrIndex = Array [0..9999] Of TStrIndexRec;
    PStrIndex = ^TStrIndex;
@@ -721,15 +723,10 @@ CONST
    StreamError: Pointer = Nil;                        { Stream error ptr }
    DosStreamError: Word = $0;                      { Dos stream error }
 
-{ ******************************* REMARK ****************************** }
-{    FPK 0.92 compiler wont handle this section OFS seems not to be a   }
-{  defined function which we need -> Function Ofs(X): LongInt; So for   }
-{  now we must exclude these and in the RegisterObjects code.           }
-{ ****************************** END REMARK *** Leon de Boer, 04Sep97 * }
 {---------------------------------------------------------------------------}
 {                        STREAM REGISTRATION RECORDS                        }
 {---------------------------------------------------------------------------}
-(*
+
 CONST
    RCollection: TStreamRec = (
      ObjType: 50;
@@ -737,34 +734,30 @@ CONST
      Load: @TCollection.Load;
      Store: @TCollection.Store);
 
-CONST
    RStringCollection: TStreamRec = (
      ObjType: 51;
      VmtLink: Ofs(TypeOf(TStringCollection)^);
      Load: @TStringCollection.Load;
      Store: @TStringCollection.Store);
 
-CONST
    RStrCollection: TStreamRec = (
      ObjType: 69;
      VmtLink: Ofs(TypeOf(TStrCollection)^);
      Load:    @TStrCollection.Load;
      Store:   @TStrCollection.Store);
 
-CONST
    RStringList: TStreamRec = (
      ObjType: 52;
      VmtLink: Ofs(TypeOf(TStringList)^);
      Load: @TStringList.Load;
      Store: Nil);
 
-CONST
    RStrListMaker: TStreamRec = (
      ObjType: 52;
      VmtLink: Ofs(TypeOf(TStrListMaker)^);
      Load: Nil;
      Store: @TStrListMaker.Store);
-*)
+
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
@@ -796,7 +789,7 @@ CONST
 {$I objinc.inc}
 
 {$IFDEF CPU86}
-{$I386_ATT}
+  {$ASMMODE ATT}
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
@@ -2091,7 +2084,7 @@ END;
 {  Compare -> Platforms DOS/DPMI/WIN/OS2 - Checked 21Aug97 LdB              }
 {---------------------------------------------------------------------------}
 FUNCTION TStringCollection.Compare (Key1, Key2: Pointer): Sw_Integer;
-VAR I, J: Integer; P1, P2: PString;
+VAR I, J: Sw_Integer; P1, P2: PString;
 BEGIN
    P1 := PString(Key1);                               { String 1 pointer }
    P2 := PString(Key2);                               { String 2 pointer }
@@ -2197,7 +2190,7 @@ END;
 {                           TResourceItem RECORD                            }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 TYPE
-   TResourceItem = RECORD
+   TResourceItem = packed RECORD
       Posn: LongInt;                                  { Resource position }
       Size: LongInt;                                  { Resource size }
       Key : String;                                   { Resource key }
@@ -2270,7 +2263,7 @@ CONST
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 TYPE
 {$IFDEF NewExeFormat}                                 { New EXE format }
-   TExeHeader = RECORD
+   TExeHeader = packed RECORD
      eHdrSize:   Word;
      eMinAbove:  Word;
      eMaxAbove:  Word;
@@ -2287,7 +2280,7 @@ TYPE
    END;
 {$ENDIF}
 
-   THeader = RECORD
+   THeader = packed RECORD
      Signature: Word;
      Case Integer Of
        0: (
@@ -2686,14 +2679,9 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE RegisterObjects;
 BEGIN
-{ ******************************* REMARK ****************************** }
-{    FPK 0.92 compiler wont handle this section OFS seems not to be a   }
-{  defined function which we need -> Function Ofs(X): LongInt; So for   }
-{  now we must exclude these and in the RegisterObjects code.           }
-{ ****************************** END REMARK *** Leon de Boer, 04Sep97 * }
-{   RegisterType(RCollection);       }                  { Register object }
-{   RegisterType(RStringCollection); }                  { Register object }
-{   RegisterType(RStrCollection);    }                  { Register object }
+   RegisterType(RCollection);                         { Register object }
+   RegisterType(RStringCollection);                   { Register object }
+   RegisterType(RStrCollection);                      { Register object }
 END;
 
 {---------------------------------------------------------------------------}
@@ -2734,7 +2722,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.10  1998-10-23 16:51:18  pierre
+  Revision 1.11  1998-11-12 11:45:09  peter
+    + released object registration
+
+  Revision 1.10  1998/10/23 16:51:18  pierre
    * vmtlink type changed to pointer
 
   Revision 1.9  1998/10/22 18:23:55  peter
