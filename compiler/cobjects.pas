@@ -1501,6 +1501,7 @@ end;
       begin
         deleteindex(p);
         dispose(p,done);
+        p:=nil;
       end;
 
 
@@ -1935,7 +1936,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  1999-05-05 10:05:48  florian
+  Revision 1.29  1999-05-08 19:47:27  peter
+    * indexarray.delete resets pointer after dispose
+
+  Revision 1.28  1999/05/05 10:05:48  florian
     * a delphi compiled compiler recompiles ppc
 
   Revision 1.27  1999/05/05 09:19:03  florian
