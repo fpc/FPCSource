@@ -128,13 +128,13 @@ endif
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 
 gdb:
-	make all GDB=1
+	$(MAKE) all GDB=1
 
 full:
-	make all FULL=1
+	$(MAKE) all FULL=1
 
 fullgdb:
-	make all FULL=1 GDB=1
+	$(MAKE) all FULL=1 GDB=1
 
 # This is necessary because we don't have all units separate in the
 # units targets
@@ -150,11 +150,14 @@ install: fpc_install
 # Misc
 #
 clean_compiler:
-	make -C ../../compiler clean
+	$(MAKE) -C ../../compiler clean
 
 #
 # $Log$
-# Revision 1.17  1999-10-29 14:33:03  pierre
+# Revision 1.18  1999-10-29 14:46:36  pierre
+#  * Use $(MAKE)
+#
+# Revision 1.17  1999/10/29 14:33:03  pierre
 #  + added readme.txt file
 #
 # Revision 1.16  1999/10/08 15:34:11  pierre
