@@ -551,7 +551,7 @@ uses
 implementation
 
     uses
-      verbose;
+      rgHelper,verbose;
 
     const
       std_regname_table : array[tregisterindex] of string[7] = (
@@ -644,47 +644,15 @@ implementation
       end;
 
 
-    function findreg_by_stdname(const s:string):byte;
-      var
-        i,p : tregisterindex;
-      begin
-        {Binary search.}
-        p:=0;
-        i:=regnumber_count_bsstart;
-        repeat
-          if (p+i<=high(tregisterindex)) and (std_regname_table[std_regname_index[p+i]]<=s) then
-            p:=p+i;
-          i:=i shr 1;
-        until i=0;
-        if std_regname_table[std_regname_index[p]]=s then
-          result:=std_regname_index[p]
-        else
-          result:=0;
-      end;
-
-
     function findreg_by_number(r:Tregister):tregisterindex;
-      var
-        i,p : tregisterindex;
       begin
-        {Binary search.}
-        p:=0;
-        i:=regnumber_count_bsstart;
-        repeat
-          if (p+i<=high(tregisterindex)) and (regnumber_table[regnumber_index[p+i]]<=r) then
-            p:=p+i;
-          i:=i shr 1;
-        until i=0;
-        if regnumber_table[regnumber_index[p]]=r then
-          result:=regnumber_index[p]
-        else
-          result:=0;
+        rgHelper.findreg_by_number(r,regnumber_index);
       end;
 
 
     function std_regnum_search(const s:string):Tregister;
       begin
-        result:=regnumber_table[findreg_by_stdname(s)];
+        result:=regnumber_table[findreg_by_name(s,std_regname_table,std_regname_index)];
       end;
 
 
@@ -714,7 +682,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2003-10-19 01:34:31  florian
+  Revision 1.74  2003-10-30 15:03:18  mazen
+  * now uses standard routines in rgHelper unit to search registers by number and by name
+
+  Revision 1.73  2003/10/19 01:34:31  florian
     * some ppc stuff fixed
     * memory leak fixed
 

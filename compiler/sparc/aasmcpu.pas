@@ -261,6 +261,44 @@ implementation
                counterpart := A_STD;
                wasload := false;
              end;
+           A_STB:
+             begin
+               counterpart := A_LDUB;
+             end;
+           A_STH:
+             begin
+               counterpart := A_LDUH;
+             end;
+           A_ST :
+             begin
+               counterpart := A_LD;
+               wasload := false;
+             end;
+           A_STD:
+             begin
+               counterpart := A_LDD;
+               wasload := false;
+             end;
+           A_LDF:
+             begin
+               counterpart := A_STF;
+               wasload := false;
+             end;
+           A_LDDF:
+             begin
+               counterpart := A_STDF;
+               wasload := false;
+             end;
+           A_STF:
+             begin
+               counterpart := A_LDF;
+               wasload := false;
+             end;
+           A_STDF:
+             begin
+               counterpart := A_LDDF;
+               wasload := false;
+             end;
            else
              result := false;
          end;
@@ -297,7 +335,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2003-10-24 07:00:17  mazen
+  Revision 1.36  2003-10-30 15:03:18  mazen
+  * now uses standard routines in rgHelper unit to search registers by number and by name
+
+  Revision 1.35  2003/10/24 07:00:17  mazen
   * fixed compil problem when using ObjFpc mode (^ required).
 
   Revision 1.34  2003/10/01 20:34:49  peter
