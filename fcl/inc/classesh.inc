@@ -103,7 +103,8 @@ type
   TShiftState = set of (ssShift, ssAlt, ssCtrl,
     ssLeft, ssRight, ssMiddle, ssDouble,
     // Extra additions
-    ssMeta, ssSuper, ssHyper, ssAltGr, ssCaps, ssNum, ssScroll);
+    ssMeta, ssSuper, ssHyper, ssAltGr, ssCaps, ssNum, 
+    ssScroll,ssTriple,ssQuad);
 
   THelpContext = -MaxLongint..MaxLongint;
   THelpType = (htKeyword, htContext);
@@ -1389,7 +1390,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.18  2002-01-06 21:54:49  peter
+  Revision 1.19  2002-03-28 12:08:47  michael
+  + Added sstriple and ssquad in shiftstate
+
+  Revision 1.18  2002/01/06 21:54:49  peter
     * action classes added
 
   Revision 1.17  2001/12/03 21:39:58  peter
