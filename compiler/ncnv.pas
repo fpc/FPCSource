@@ -105,11 +105,7 @@ implementation
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,
       ncon,ncal,nset,nadd,
-{$ifdef newcg}
       cgbase,
-{$else newcg}
-      hcodegen,
-{$endif newcg}
       htypechk,pass_1,cpubase,cpuinfo;
 
 
@@ -1437,7 +1433,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2001-08-05 13:19:51  peter
+  Revision 1.32  2001-08-26 13:36:40  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.31  2001/08/05 13:19:51  peter
     * partly fix for proc of obj=nil
 
   Revision 1.30  2001/07/30 20:59:27  peter

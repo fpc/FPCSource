@@ -78,11 +78,7 @@ implementation
        { linking }
        import,gendef,
        { codegen }
-{$ifdef newcg}
        cgbase
-{$else}
-       hcodegen
-{$endif}
        ;
 
 
@@ -1926,7 +1922,11 @@ const
 end.
 {
   $Log$
-  Revision 1.35  2001-08-23 14:28:36  jonas
+  Revision 1.36  2001-08-26 13:36:45  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.35  2001/08/23 14:28:36  jonas
     + tempcreate/ref/delete nodes (allows the use of temps in the
       resulttype and first pass)
     * made handling of read(ln)/write(ln) processor independent

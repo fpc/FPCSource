@@ -343,7 +343,7 @@ implementation
        { module }
        fmodule,
        { codegen }
-       hcodegen,cresstr
+       cgbase,cresstr
        ;
 
 {****************************************************************************
@@ -2240,7 +2240,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2001-08-19 09:39:28  peter
+  Revision 1.19  2001-08-26 13:36:50  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.18  2001/08/19 09:39:28  peter
     * local browser support fixed
 
   Revision 1.16  2001/08/12 20:00:26  peter

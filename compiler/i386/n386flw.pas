@@ -87,10 +87,10 @@ implementation
     uses
       verbose,globtype,globals,systems,
       symconst,symdef,symsym,aasm,types,
-      hcodegen,temp_gen,pass_2,
+      cgbase,temp_gen,pass_2,
       cpubase,cpuasm,
       pass_1,nld,ncon,
-      cgai386,tgcpu,n386util,regvars;
+      cga,tgcpu,n386util,regvars;
 
 {*****************************************************************************
                          Second_While_RepeatN
@@ -1340,7 +1340,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-08-06 21:40:50  peter
+  Revision 1.15  2001-08-26 13:36:58  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.14  2001/08/06 21:40:50  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.13  2001/07/01 20:16:20  peter

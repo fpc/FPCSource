@@ -64,8 +64,8 @@ implementation
        types,
        ncon,nld,
        pass_1,pass_2,
-       hcodegen,tgcpu,temp_gen,
-       cgai386,regvars;
+       cgbase,tgcpu,temp_gen,
+       cga,regvars;
 
 
 {*****************************************************************************
@@ -1510,7 +1510,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2001-08-24 12:22:14  jonas
+  Revision 1.20  2001-08-26 13:37:01  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.19  2001/08/24 12:22:14  jonas
     * fixed memory leak with coping of array-of-consts as valuepara
 
   Revision 1.18  2001/07/08 21:00:18  peter

@@ -903,9 +903,13 @@ Implementation
                objectalloc.sectionalloc(Tai_string(hp).len);
              ait_instruction :
                begin
+{$ifdef i386}
+{$ifndef NOAG386BIN}
                  { reset instructions which could change in pass 2 }
                  Taicpu(hp).resetpass2;
                  objectalloc.sectionalloc(Taicpu(hp).Pass1(objectalloc.sectionsize));
+{$endif NOAG386BIN}
+{$endif i386}
                end;
              ait_cut :
                if SmartAsm then
@@ -1056,6 +1060,8 @@ Implementation
                objectalloc.sectionalloc(Tai_string(hp).len);
              ait_instruction :
                begin
+{$ifdef i386}
+{$ifndef NOAG386BIN}
                  objectalloc.sectionalloc(Taicpu(hp).Pass1(objectalloc.sectionsize));
                  { fixup the references }
                  for i:=1 to Taicpu(hp).ops do
@@ -1077,6 +1083,8 @@ Implementation
                        end;
                      end;
                   end;
+{$endif NOAG386BIN}
+{$endif i386}
                end;
              ait_direct :
                Message(asmw_f_direct_not_supported);
@@ -1093,9 +1101,9 @@ Implementation
     function TInternalAssembler.TreePass2(hp:Tai):Tai;
       var
         l  : longint;
-{$ifdef I386}
+{$ifdef i386}
         co : comp;
-{$endif I386}
+{$endif i386}
       begin
         { main loop }
         while assigned(hp) do
@@ -1169,12 +1177,14 @@ Implementation
                objectdata.writebytes(Tai_real_32bit(hp).value,4);
              ait_comp_64bit :
                begin
+{$ifdef i386}
 {$ifdef FPC}
                  co:=comp(Tai_comp_64bit(hp).value);
 {$else}
                  co:=Tai_comp_64bit(hp).value;
 {$endif}
                  objectdata.writebytes(co,8);
+{$endif i386}
                end;
              ait_string :
                objectdata.writebytes(Tai_string(hp).str^,Tai_string(hp).len);
@@ -1191,8 +1201,12 @@ Implementation
                    but it's better to be on the safe side (PFV) }
                  objectoutput.exportsymbol(Tai_label(hp).l);
                end;
+{$ifdef i386}
+{$ifndef NOAG386BIN}
              ait_instruction :
                Taicpu(hp).Pass2;
+{$endif NOAG386BIN}
+{$endif i386}
 {$ifdef GDB}
              ait_stabn :
                convertstabs(Tai_stabn(hp).str);
@@ -1520,7 +1534,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.23  2001-08-07 18:47:12  peter
+  Revision 1.24  2001-08-26 13:36:35  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.23  2001/08/07 18:47:12  peter
     * merged netbsd start
     * profile for win32
 

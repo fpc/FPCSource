@@ -39,7 +39,7 @@ implementation
       cutils,cclasses,
       globtype,version,tokens,systems,globals,verbose,
       symbase,symtable,symsym,fmodule,fppu,aasm,
-      hcodegen,
+      cgbase,
       script,gendef,
 {$ifdef BrowserLog}
       browlog,
@@ -617,7 +617,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-07-30 20:59:27  peter
+  Revision 1.22  2001-08-26 13:36:43  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.21  2001/07/30 20:59:27  peter
     * m68k updates from v10 merged
 
   Revision 1.20  2001/07/01 20:16:16  peter

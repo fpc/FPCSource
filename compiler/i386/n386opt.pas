@@ -41,7 +41,7 @@ type
 
 implementation
 
-uses pass_1, types, htypechk, hcodegen, temp_gen, cpubase, cgai386,
+uses pass_1, types, htypechk, cgbase, temp_gen, cpubase, cga,
      tgcpu, aasm, ncnv, ncon, pass_2, symdef;
 
 
@@ -248,7 +248,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  2001-04-13 01:22:19  peter
+  Revision 1.5  2001-08-26 13:37:00  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.4  2001/04/13 01:22:19  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

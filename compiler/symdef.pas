@@ -520,15 +520,13 @@ interface
           count      : boolean;
           is_used    : boolean;
           { small set which contains the modified registers }
-{$ifdef newcg}
-          usedregisters : tregisterset;
-{$else newcg}
 {$ifdef i386}
           usedregisters : longint;
-{$else}
-          usedregisters : tregisterset;
 {$endif}
-{$endif newcg}
+{$ifdef POWERPC}
+          { not used, only a fake }
+          usedregisters : longint;
+{$endif}
           constructor create;
           constructor load(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -3327,9 +3325,12 @@ implementation
 {$else newcg}
 {$ifdef i386}
          usedregisters:=$ff;
-{$else}
-         usedregisters:=ALL_REGISTERS;
 {$endif i386}
+{$ifdef POWERPC}
+         { on the PPC, we use the OS specific standard calling conventions }
+         { so the information about the used register isn't necessary yet  }
+         usedregisters:=0;
+{$endif POWERPC}
 {$endif newcg}
          forwarddef:=true;
          interfacedef:=false;
@@ -3353,7 +3354,13 @@ implementation
 {$ifdef i386}
          usedregisters:=ppufile.getbyte;
 {$else}
+{$ifdef POWERPC}
+         { on the PPC, we use the OS specific standard calling conventions }
+         { so the information about the used register isn't necessary yet  }
+         usedregisters:=0;
+{$else POWERPC}
          readnormalset(usedregisters);
+{$endif POWERPC}
 {$endif}
 {$endif newcg}
          _mangledname:=stringdup(ppufile.getstring);
@@ -3439,7 +3446,13 @@ implementation
 {$ifdef i386}
              usedregisters:=$ff;
 {$else}
-             usedregisters:=[firstreg..lastreg];
+{$ifdef POWERPC}
+         { on the PPC, we use the OS specific standard calling conventions }
+         { so the information about the used register isn't necessary yet  }
+            usedregisters:=0;
+{$else POWERPC}
+            usedregisters:=[firstreg..lastreg];
+{$endif POWERPC}
 {$endif i386}
 {$endif newcg}
            end;
@@ -3450,7 +3463,12 @@ implementation
 {$ifdef i386}
          ppufile.putbyte(usedregisters);
 {$else}
-         writenormalset(usedregisters);
+{$ifdef POWERPC}
+         { on the PPC, we use the OS specific standard calling conventions }
+         { so the information about the used register isn't necessary yet  }
+{$else POWERPC}
+           writenormalset(usedregisters);
+{$endif POWERPC}
 {$endif i386}
 {$endif newcg}
          ppufile.do_interface_crc:=oldintfcrc;
@@ -5489,7 +5507,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2001-08-22 21:16:22  florian
+  Revision 1.45  2001-08-26 13:36:49  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.44  2001/08/22 21:16:22  florian
     * some interfaces related problems regarding
       mapping of interface implementions fixed
 

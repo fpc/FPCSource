@@ -44,10 +44,10 @@ interface
       globtype,systems,
       cutils,verbose,globals,widestr,
       symconst,symdef,aasm,types,
-      hcodegen,temp_gen,pass_2,
+      cgbase,temp_gen,pass_2,
       cpuasm,
       node,ncon,nset,
-      cgai386,n386util,tgcpu;
+      cga,n386util,tgcpu;
 
     function ti386addnode.getresflags(unsigned : boolean) : tresflags;
 
@@ -2293,7 +2293,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-07-08 21:00:16  peter
+  Revision 1.17  2001-08-26 13:36:55  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.16  2001/07/08 21:00:16  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

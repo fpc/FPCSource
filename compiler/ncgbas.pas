@@ -45,7 +45,7 @@ interface
        tcgblocknode = class(tblocknode)
           procedure pass_2;override;
        end;
-       
+
        tcgtempcreatenode = class(ttempcreatenode)
           procedure pass_2;override;
        end;
@@ -66,16 +66,10 @@ interface
       aasm,symconst,symsym,symtable,types,
       htypechk,
       cpubase,cpuasm,
-      nflw,pass_2
-{$ifdef newcg}
-      ,cgbase
-{$else newcg}
-      ,hcodegen
-{$endif}
-{$ifdef i386}
-      ,cgai386
-{$endif}
-      ,tgcpu,temp_gen
+      nflw,pass_2,
+      cgbase,
+      cga,
+      tgcpu,temp_gen
       ;
 {*****************************************************************************
                                  TNOTHING
@@ -285,7 +279,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-08-24 13:47:27  jonas
+  Revision 1.7  2001-08-26 13:36:39  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.6  2001/08/24 13:47:27  jonas
     * moved "reverseparameters" from ninl.pas to ncal.pas
     + support for non-persistent temps in ttempcreatenode.create, for use
       with typeconversion nodes

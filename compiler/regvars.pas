@@ -48,7 +48,7 @@ implementation
       globtype,systems,comphook,
       cutils,cclasses,verbose,globals,
       symconst,symbase,symtype,symdef,types,
-      hcodegen,cpuasm,tgcpu;
+      cgbase,cpuasm,tgcpu;
 
     var
       parasym : boolean;
@@ -153,6 +153,7 @@ implementation
       regvarinfo: pregvarinfo;
       i: longint;
     begin
+{$ifdef i386}
       { max. optimizations     }
       { only if no asm is used }
       { and no try statement   }
@@ -245,7 +246,7 @@ implementation
                 { hold needed registers free }
 
                 { in non leaf procedures we must be very careful }
-                { with assigning registers             }
+                { with assigning registers                       }
                 if aktmaxfpuregisters=-1 then
                   begin
                    if (procinfo^.flags and pi_do_call)<>0 then
@@ -280,7 +281,8 @@ implementation
                   end;
               end;
         end;
-    end;
+{$endif i386}
+     end;
 
 
 {$ifdef i386}
@@ -518,7 +520,11 @@ end.
 
 {
   $Log$
-  Revision 1.17  2001-04-21 12:03:12  peter
+  Revision 1.18  2001-08-26 13:36:49  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.17  2001/04/21 12:03:12  peter
     * m68k updates merged from fixes branch
 
   Revision 1.16  2001/04/13 01:22:13  peter

@@ -45,15 +45,12 @@ implementation
     uses
       globtype,systems,
       cutils,globals,
-      hcodegen,symdef,
+      cgbase,symdef,
 {$ifdef extdebug}
       verbose,
       htypechk,
 {$endif extdebug}
       tgcpu
-{$ifdef newcg}
-      ,cgbase
-{$endif}
       ;
 
 {*****************************************************************************
@@ -173,7 +170,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2001-07-06 15:29:39  peter
+  Revision 1.16  2001-08-26 13:36:44  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.15  2001/07/06 15:29:39  peter
     * fixed EXTDEBUG
 
   Revision 1.14  2001/04/15 09:48:30  peter

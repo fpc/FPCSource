@@ -134,12 +134,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symbase,types,
-      htypechk,pass_1,ncal,nld,ncon,ncnv
-{$ifdef newcg}
-      ,cgbase
-{$else newcg}
-      ,hcodegen
-{$endif newcg}
+      htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase
       ;
 
 {*****************************************************************************
@@ -975,7 +970,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-04-13 22:15:21  peter
+  Revision 1.19  2001-08-26 13:36:42  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.18  2001/04/13 22:15:21  peter
     * removed wrongly placed set_varstate in subscriptnode
 
   Revision 1.17  2001/04/13 01:22:10  peter

@@ -102,11 +102,7 @@ implementation
       cutils,verbose,globtype,globals,systems,
       symconst,symdef,symtable,types,
       htypechk,pass_1,
-      ncnv,nmem,cpubase,tgcpu,hcodegen
-{$ifdef newcg}
-      ,cgbase
-      ,tgobj
-{$endif newcg}
+      ncnv,nmem,cpubase,tgcpu,cgbase
       ;
 
 
@@ -785,7 +781,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-08-12 22:11:52  peter
+  Revision 1.23  2001-08-26 13:36:41  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.22  2001/08/12 22:11:52  peter
     * errordef.typesym is not updated anymore
 
   Revision 1.21  2001/08/06 21:40:47  peter

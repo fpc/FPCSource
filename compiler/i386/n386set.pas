@@ -47,10 +47,10 @@ implementation
       globtype,systems,cpuinfo,
       verbose,globals,
       symconst,symdef,aasm,types,
-      hcodegen,temp_gen,pass_2,
+      cgbase,temp_gen,pass_2,
       ncon,
       cpubase,
-      cgai386,tgcpu,n386util,regvars;
+      cga,tgcpu,n386util,regvars;
 
      const
        bytes2Sxx:array[1..8] of Topsize=(S_B,S_W,S_NO,S_L,S_NO,S_NO,S_NO,S_Q);
@@ -1072,7 +1072,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-05-06 17:12:14  jonas
+  Revision 1.16  2001-08-26 13:37:00  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.15  2001/05/06 17:12:14  jonas
     * fixed an IE10 and another bug with [var1..var2] construct
 
   Revision 1.14  2001/04/13 01:22:19  peter

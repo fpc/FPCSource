@@ -141,10 +141,7 @@ implementation
       verbose,globals,globtype,systems,
       symconst,symdef,symsym,types,
       pass_1,
-      ncal,nflw,tgcpu,hcodegen
-{$ifdef newcg}
-      ,cgbase
-{$endif}
+      ncal,nflw,tgcpu,cgbase
       ;
 
 {*****************************************************************************
@@ -467,7 +464,7 @@ implementation
       begin
         n := ttempcreatenode(inherited getcopy);
         n.size := size;
-        
+
         new(n.tempinfo);
         fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
         n.tempinfo^.restype := tempinfo^.restype;
@@ -581,7 +578,7 @@ implementation
           { if the temp we refer to hasn't been copied, we have a }
           { problem since that means we now have two delete nodes }
           { for one temp                                          }
-          internalerror(200108234);        
+          internalerror(200108234);
         result := n;
       end;
 
@@ -602,7 +599,7 @@ implementation
           inherited docompare(p) and
           (ttemprefnode(p).tempinfo = tempinfo);
       end;
-      
+
     destructor ttempdeletenode.destroy;
       begin
         dispose(tempinfo);
@@ -620,7 +617,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-08-24 13:47:26  jonas
+  Revision 1.16  2001-08-26 13:36:38  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.15  2001/08/24 13:47:26  jonas
     * moved "reverseparameters" from ninl.pas to ncal.pas
     + support for non-persistent temps in ttempcreatenode.create, for use
       with typeconversion nodes

@@ -21,7 +21,7 @@
  ****************************************************************************
 }
 
-unit cgai386;
+unit cga;
 
 {$i defines.inc}
 
@@ -162,7 +162,7 @@ implementation
        globtype,systems,globals,verbose,
        fmodule,
        symbase,symsym,symtable,types,
-       tgcpu,temp_gen,hcodegen,regvars
+       tgcpu,temp_gen,cgbase,regvars
 {$ifdef GDB}
        ,gdb
 {$endif}
@@ -2980,7 +2980,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2001-08-12 20:23:02  peter
+  Revision 1.2  2001-08-26 13:36:52  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.29  2001/08/12 20:23:02  peter
     * netbsd doesn't use stackchecking
 
   Revision 1.28  2001/08/07 18:47:13  peter

@@ -69,10 +69,7 @@ implementation
 {$endif}
       symconst,symtype,symtable,symdef,types,
       htypechk,pass_1,cpubase,cpuinfo,
-{$ifdef newcg}
       cgbase,
-{$endif newcg}
-      hcodegen,
       ncon,ncnv,ncal;
 
 {****************************************************************************
@@ -375,7 +372,9 @@ implementation
            end;
       end;
 
-
+    { generic code     }
+    { overridden by:   }
+    {   i386           }
     function tunaryminusnode.pass_1 : tnode;
       begin
          result:=nil;
@@ -391,7 +390,10 @@ implementation
 
          if (left.resulttype.def.deftype=floatdef) then
            begin
-             location.loc:=LOC_FPU;
+              if (left.location.loc<>LOC_REGISTER) and
+                 (registers32<1) then
+                registers32:=1;
+              location.loc:=LOC_REGISTER;
            end
 {$ifdef SUPPORT_MMX}
          else if (cs_mmx in aktlocalswitches) and
@@ -588,7 +590,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2001-04-13 01:22:10  peter
+  Revision 1.21  2001-08-26 13:36:41  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.20  2001/04/13 01:22:10  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

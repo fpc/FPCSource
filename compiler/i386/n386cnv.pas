@@ -68,10 +68,10 @@ implementation
    uses
       verbose,globals,systems,
       symconst,symdef,aasm,
-      hcodegen,temp_gen,pass_2,
+      cgbase,temp_gen,pass_2,
       ncon,ncal,
       cpubase,cpuasm,
-      cgai386,tgcpu,n386util;
+      cga,tgcpu,n386util;
 
 
 {*****************************************************************************
@@ -1425,7 +1425,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-08-01 21:44:59  peter
+  Revision 1.20  2001-08-26 13:36:57  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.19  2001/08/01 21:44:59  peter
     * fixed empty pwidechar register allocation
 
   Revision 1.18  2001/07/30 20:59:29  peter

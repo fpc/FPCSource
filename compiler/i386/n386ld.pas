@@ -52,10 +52,10 @@ implementation
       systems,
       verbose,globals,
       symconst,symtype,symdef,symsym,symtable,aasm,types,
-      hcodegen,temp_gen,pass_2,
+      cgbase,temp_gen,pass_2,
       nmem,ncon,ncnv,
       cpubase,cpuasm,
-      cgai386,tgcpu,n386cnv,n386util,regvars;
+      cga,tgcpu,n386cnv,n386util,regvars;
 
 {*****************************************************************************
                              SecondLoad
@@ -1088,7 +1088,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-08-06 21:40:50  peter
+  Revision 1.19  2001-08-26 13:36:59  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.18  2001/08/06 21:40:50  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.17  2001/08/05 13:19:51  peter

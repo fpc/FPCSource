@@ -41,7 +41,7 @@ Implementation
 
 Uses
   {$ifdef replaceregdebug}cutils,{$endif}
-  globtype, verbose, hcodegen, globals, daopt386, tgcpu, rropt386;
+  globtype, verbose, cgbase, globals, daopt386, tgcpu, rropt386;
 
 {
 Function TaiInSequence(P: Tai; Const Seq: TContent): Boolean;
@@ -1718,7 +1718,11 @@ End.
 
 {
   $Log$
-  Revision 1.15  2001-04-06 16:24:38  jonas
+  Revision 1.16  2001-08-26 13:36:55  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.15  2001/04/06 16:24:38  jonas
     * fixed bug due to short boolean evaluation
 
   Revision 1.14  2001/04/02 21:20:36  peter

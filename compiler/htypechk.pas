@@ -131,11 +131,7 @@ implementation
        types,cpubase,
        ncnv,nld,
        nmem,ncal,nmat,
-{$ifdef newcg}
        cgbase
-{$else}
-       hcodegen
-{$endif}
        ;
 
     type
@@ -942,7 +938,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2001-08-23 14:28:35  jonas
+  Revision 1.32  2001-08-26 13:36:37  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.31  2001/08/23 14:28:35  jonas
     + tempcreate/ref/delete nodes (allows the use of temps in the
       resulttype and first pass)
     * made handling of read(ln)/write(ln) processor independent

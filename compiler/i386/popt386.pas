@@ -37,7 +37,7 @@ Implementation
 
 Uses
   globtype,systems,
-  globals,hcodegen,
+  globals,cgbase,
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
@@ -2021,7 +2021,11 @@ End.
 
 {
   $Log$
-  Revision 1.14  2001-08-01 09:46:55  jonas
+  Revision 1.15  2001-08-26 13:37:01  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.14  2001/08/01 09:46:55  jonas
     * fixed endless loop with web bug 1571 (merged)
 
   Revision 1.13  2001/04/13 01:22:19  peter

@@ -111,11 +111,8 @@ implementation
       verbose,globals,
       symconst,symtype,types,
       htypechk,pass_1,cpubase,
-      ncnv,nld,ninl,nadd,ncon,hcodegen,
-      tgcpu
-{$ifdef newcg}
-      ,cgbase
-{$endif newcg}
+      ncnv,nld,ninl,nadd,ncon,
+      tgcpu,cgbase
       ;
 
 
@@ -1487,7 +1484,10 @@ implementation
                 end;
 
 {$ifndef newcg}
+{$ifndef POWERPC}
+             { for the PowerPC standard calling conventions this information isn't necassary (FK) }
              incrementregisterpushed(tprocdef(procdefinition).usedregisters);
+{$endif POWERPC}
 {$endif newcg}
            end;
 
@@ -1717,7 +1717,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2001-08-24 13:47:27  jonas
+  Revision 1.45  2001-08-26 13:36:39  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.44  2001/08/24 13:47:27  jonas
     * moved "reverseparameters" from ninl.pas to ncal.pas
     + support for non-persistent temps in ttempcreatenode.create, for use
       with typeconversion nodes

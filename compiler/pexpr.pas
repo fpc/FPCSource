@@ -70,11 +70,7 @@ implementation
        scanner,
        pbase,
        { codegen }
-{$ifdef newcg}
        cgbase
-{$else}
-       hcodegen
-{$endif}
        ;
 
     { sub_expr(opmultiply) is need to get -1 ** 4 to be
@@ -2324,7 +2320,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2001-08-22 21:16:21  florian
+  Revision 1.41  2001-08-26 13:36:45  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.40  2001/08/22 21:16:21  florian
     * some interfaces related problems regarding
       mapping of interface implementions fixed
 

@@ -50,10 +50,7 @@ implementation
        { parser specific stuff }
        pbase,pexpr,
        { codegen }
-       hcodegen
-{$ifdef newcg}
-       ,cgbase
-{$endif}
+       cgbase
        ;
 
 {$ifdef fpc}
@@ -919,7 +916,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2001-08-01 21:46:41  peter
+  Revision 1.31  2001-08-26 13:36:47  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.30  2001/08/01 21:46:41  peter
     * support pwidechar in typed const
 
   Revision 1.29  2001/07/30 21:39:26  peter

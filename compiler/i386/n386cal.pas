@@ -60,10 +60,10 @@ implementation
 {$ifdef GDB}
       gdb,
 {$endif GDB}
-      hcodegen,temp_gen,pass_2,
+      cgbase,temp_gen,pass_2,
       cpubase,cpuasm,
       nmem,nld,
-      cgai386,tgcpu,n386ld,n386util,regvars;
+      cga,tgcpu,n386ld,n386util,regvars;
 
 {*****************************************************************************
                              TI386CALLPARANODE
@@ -1584,7 +1584,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2001-08-19 21:11:21  florian
+  Revision 1.30  2001-08-26 13:36:56  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.29  2001/08/19 21:11:21  florian
     * some bugs fix:
       - overload; with external procedures fixed
       - better selection of routine to do an overloaded

@@ -40,10 +40,10 @@ implementation
       globtype,systems,
       cutils,verbose,globals,fmodule,
       symconst,symbase,symtype,symdef,symsym,aasm,types,
-      hcodegen,temp_gen,pass_1,pass_2,
+      cgbase,temp_gen,pass_1,pass_2,
       cpubase,
       nbas,ncon,ncal,ncnv,nld,
-      cgai386,tgcpu,n386util;
+      cga,tgcpu,n386util;
 
 
 {*****************************************************************************
@@ -1719,7 +1719,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2001-08-24 12:33:54  jonas
+  Revision 1.21  2001-08-26 13:36:58  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.20  2001/08/24 12:33:54  jonas
     * fixed big bug in handle_str that caused it to (almost) always call
       fpc_<stringtype>_longint
     * fixed small bug in handle_read_write that caused wrong warnigns about

@@ -49,11 +49,7 @@ interface
        scanner,
        ra386,
        { codegen }
-{$ifdef newcg}
        cgbase
-{$else}
-       hcodegen
-{$endif}
        ;
 
     function assemble : tnode;
@@ -299,7 +295,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2001-08-06 21:40:51  peter
+  Revision 1.11  2001-08-26 13:37:02  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.10  2001/08/06 21:40:51  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.9  2001/04/18 22:02:03  peter

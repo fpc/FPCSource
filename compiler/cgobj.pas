@@ -26,8 +26,10 @@ unit cgobj;
   interface
 
     uses
-       cobjects,aasm,symtable,cpuasm,cpubase,cgbase,cpuinfo,tainst
-       symconst;
+       cclasses,aasm,cpuasm,cpubase,cpuinfo,
+       cgconst,cgbase,
+       tainst,
+       symtable,symconst,symbase,symtype,symsym;
 
     type
        talignment = (AM_NATURAL,AM_NONE,AM_2BYTE,AM_4BYTE,AM_8BYTE);
@@ -43,17 +45,17 @@ unit cgobj;
           constructor init;
           destructor done;virtual;
 
-          procedure a_label(list : paasmoutput;l : pasmlabel);virtual;
+          procedure a_label(list : taasmoutput;l : tasmlabel);virtual;
 
           { allocates register r by inserting a pai_realloc record }
-          procedure a_reg_alloc(list : paasmoutput;r : tregister);
+          procedure a_reg_alloc(list : taasmoutput;r : tregister);
           { deallocates register r by inserting a pa_regdealloc record}
-          procedure a_reg_dealloc(list : paasmoutput;r : tregister);
+          procedure a_reg_dealloc(list : taasmoutput;r : tregister);
 
           { returns a register for use as scratch register }
-          function get_scratch_reg(list : paasmoutput) : tregister;
+          function get_scratch_reg(list : taasmoutput) : tregister;
           { releases a scratch register }
-          procedure free_scratch_reg(list : paasmoutput;r : tregister);
+          procedure free_scratch_reg(list : taasmoutput;r : tregister);
 
           {************************************************}
           { code generation for subroutine entry/exit code }
@@ -61,42 +63,42 @@ unit cgobj;
           { initilizes data of type t                           }
           { if is_already_ref is true then the routines assumes }
           { that r points to the data to initialize             }
-          procedure g_initialize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+          procedure g_initialize(list : taasmoutput;t : tdef;const ref : treference;is_already_ref : boolean);
 
           { finalizes data of type t                            }
           { if is_already_ref is true then the routines assumes }
           { that r points to the data to finalizes              }
-          procedure g_finalize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+          procedure g_finalize(list : taasmoutput;t : tdef;const ref : treference;is_already_ref : boolean);
 
           { helper routines }
-          procedure g_initialize_data(list : paasmoutput;p : psym);
-          procedure g_incr_data(list : paasmoutput;p : psym);
-          procedure g_finalize_data(list : paasmoutput;p : pnamedindexobject);
-          procedure g_copyvalueparas(list : paasmoutput;p : pnamedindexobject);
-          procedure g_finalizetempansistrings(list : paasmoutput);
+          procedure g_initialize_data(list : taasmoutput;p : tsym);
+          procedure g_incr_data(list : taasmoutput;p : tsym);
+          procedure g_finalize_data(list : taasmoutput;p : tindexarray);
+          procedure g_copyvalueparas(list : taasmoutput;p : tindexarray);
+          procedure g_finalizetempansistrings(list : taasmoutput);
 
-          procedure g_entrycode(list : paasmoutput;
-            const proc_names : tstringcontainer;make_global : boolean;
+          procedure g_entrycode(list : taasmoutput;
+            const proc_names : tstringlist;make_global : boolean;
             stackframe : longint;var parasize : longint;
             var nostackframe : boolean;inlined : boolean);
 
-          procedure g_exitcode(list : paasmoutput;parasize : longint;
+          procedure g_exitcode(list : taasmoutput;parasize : longint;
             nostackframe,inlined : boolean);
 
           { string helper routines }
-          procedure g_decrstrref(list : paasmoutput;const ref : treference;t : pdef);
+          procedure g_decrstrref(list : taasmoutput;const ref : treference;t : tdef);
 
-          procedure g_removetemps(list : paasmoutput;p : plinkedlist);
+          procedure g_removetemps(list : taasmoutput;p : tlinkedlist);
 
           { passing parameters, per default the parameter is pushed }
           { nr gives the number of the parameter (enumerated from   }
           { left to right), this allows to move the parameter to    }
           { register, if the cpu supports register calling          }
           { conventions                                             }
-          procedure a_param_reg(list : paasmoutput;size : tcgsize;r : tregister;nr : longint);virtual;
-          procedure a_param_const(list : paasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
-          procedure a_param_ref(list : paasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
-          procedure a_paramaddr_ref(list : paasmoutput;const r : treference;nr : longint);virtual;
+          procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);virtual;
+          procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
+          procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
+          procedure a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);virtual;
 
           {**********************************}
           { these methods must be overriden: }
@@ -118,61 +120,61 @@ unit cgobj;
               second the destination
           }
 
-          procedure a_call_name(list : paasmoutput;const s : string;
+          procedure a_call_name(list : taasmoutput;const s : string;
             offset : longint);virtual;
 
           { move instructions }
-          procedure a_load_const_reg(list : paasmoutput;size : tcgsize;a : aword;register : tregister);virtual;
-          procedure a_load_const_ref(list : paasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
-          procedure a_load_reg_ref(list : paasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual;
-          procedure a_load_ref_reg(list : paasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual;
-          procedure a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
+          procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);virtual;
+          procedure a_load_const_ref(list : taasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
+          procedure a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual;
+          procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual;
+          procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
 
           {  comparison operations }
-          procedure a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-            l : pasmlabel);virtual;
-          procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
-          procedure a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : pasmlabel);
-          procedure a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-            l : pasmlabel);
+          procedure a_cmp_reg_const_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+            l : tasmlabel);virtual;
+          procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
+          procedure a_cmp_reg_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : tasmlabel);
+          procedure a_cmp_ref_const_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+            l : tasmlabel);
 
-          procedure a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
+          procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
-          procedure a_loadaddress_ref_reg(list : paasmoutput;const ref : treference;r : tregister);virtual;
-          procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
+          procedure a_loadaddress_ref_reg(list : taasmoutput;const ref : treference;r : tregister);virtual;
+          procedure g_stackframe_entry(list : taasmoutput;localsize : longint);virtual;
           { restores the frame pointer at procedure exit, for the }
           { i386 it generates a simple leave                      }
-          procedure g_restore_frame_pointer(list : paasmoutput);virtual;
+          procedure g_restore_frame_pointer(list : taasmoutput);virtual;
 
           { some processors like the PPC doesn't allow to change the stack in }
           { a procedure, so we need to maintain an extra stack for the        }
           { result values of setjmp in exception code                         }
           { this two procedures are for pushing an exception value,           }
           { they can use the scratch registers                                }
-          procedure g_push_exception_value_reg(list : paasmoutput;reg : tregister);virtual;
-          procedure g_push_exception_value_const(list : paasmoutput;reg : tregister);virtual;
+          procedure g_push_exception_value_reg(list : taasmoutput;reg : tregister);virtual;
+          procedure g_push_exception_value_const(list : taasmoutput;reg : tregister);virtual;
           { that procedure pops a exception value                             }
-          procedure g_pop_exception_value_reg(list : paasmoutput;reg : tregister);virtual;
-          procedure g_return_from_proc(list : paasmoutput;parasize : aword);virtual;
+          procedure g_pop_exception_value_reg(list : taasmoutput;reg : tregister);virtual;
+          procedure g_return_from_proc(list : taasmoutput;parasize : aword);virtual;
           {********************************************************}
           { these methods can be overriden for extra functionality }
 
           { the following methods do nothing: }
-          procedure g_interrupt_stackframe_entry(list : paasmoutput);virtual;
-          procedure g_interrupt_stackframe_exit(list : paasmoutput);virtual;
+          procedure g_interrupt_stackframe_entry(list : taasmoutput);virtual;
+          procedure g_interrupt_stackframe_exit(list : taasmoutput);virtual;
 
-          procedure g_profilecode(list : paasmoutput);virtual;
-          procedure g_stackcheck(list : paasmoutput;stackframesize : longint);virtual;
+          procedure g_profilecode(list : taasmoutput);virtual;
+          procedure g_stackcheck(list : taasmoutput;stackframesize : longint);virtual;
 
-          procedure g_maybe_loadself(list : paasmoutput);virtual;
+          procedure g_maybe_loadself(list : taasmoutput);virtual;
           { copies len bytes from the source to destination, if }
           { loadref is true, it assumes that it first must load }
           { the source address from the memory location where   }
           { source points to                                    }
-          procedure g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);virtual;
+          procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword;loadref : boolean);virtual;
 
           { uses the addr of ref as param, was emitpushreferenceaddr }
-          procedure a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);virtual;
+          procedure a_param_ref_addr(list : taasmoutput;r : treference;nr : longint);virtual;
        end;
 
     var
@@ -181,11 +183,8 @@ unit cgobj;
   implementation
 
     uses
-       strings,globals,globtype,options,files,gdb,systems,
-       ppu,verbose,types,tgobj,tgcpu
-       {$IFDEF NEWST}
-       ,symbols,defs,symtablt
-       {$ENDIF NEWST};
+       strings,globals,globtype,options,gdb,systems,
+       ppu,verbose,types,temp_gen,tgcpu;
 
 {*****************************************************************************
                             basic functionallity
@@ -207,25 +206,25 @@ unit cgobj;
       begin
       end;
 
-    procedure tcg.a_reg_alloc(list : paasmoutput;r : tregister);
+    procedure tcg.a_reg_alloc(list : taasmoutput;r : tregister);
 
       begin
-         list^.concat(new(pairegalloc,alloc(r)));
+         list.concat(tairegalloc.alloc(r));
       end;
 
-    procedure tcg.a_reg_dealloc(list : paasmoutput;r : tregister);
+    procedure tcg.a_reg_dealloc(list : taasmoutput;r : tregister);
 
       begin
-         list^.concat(new(pairegalloc,dealloc(r)));
+         list.concat(tairegalloc.dealloc(r));
       end;
 
-    procedure tcg.a_label(list : paasmoutput;l : pasmlabel);
+    procedure tcg.a_label(list : taasmoutput;l : tasmlabel);
 
       begin
-         list^.concat(new(pai_label,init(l)));
+         list.concat(tai_label.create(l));
       end;
 
-    function tcg.get_scratch_reg(list : paasmoutput) : tregister;
+    function tcg.get_scratch_reg(list : taasmoutput) : tregister;
 
       var
          r : tregister;
@@ -250,7 +249,7 @@ unit cgobj;
          get_scratch_reg:=r;
       end;
 
-    procedure tcg.free_scratch_reg(list : paasmoutput;r : tregister);
+    procedure tcg.free_scratch_reg(list : taasmoutput;r : tregister);
 
       begin
          include(unusedscratchregisters,r);
@@ -261,17 +260,17 @@ unit cgobj;
             this methods must be overridden for extra functionality
 ******************************************************************************}
 
-    procedure tcg.g_interrupt_stackframe_entry(list : paasmoutput);
+    procedure tcg.g_interrupt_stackframe_entry(list : taasmoutput);
 
       begin
       end;
 
-    procedure tcg.g_interrupt_stackframe_exit(list : paasmoutput);
+    procedure tcg.g_interrupt_stackframe_exit(list : taasmoutput);
 
       begin
       end;
 
-    procedure tcg.g_profilecode(list : paasmoutput);
+    procedure tcg.g_profilecode(list : taasmoutput);
 
       begin
       end;
@@ -280,7 +279,7 @@ unit cgobj;
           for better code generation these methods should be overridden
 ******************************************************************************}
 
-    procedure tcg.a_param_const(list : paasmoutput;size : tcgsize;a : aword;nr : longint);
+    procedure tcg.a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);
 
       var
          hr : tregister;
@@ -292,7 +291,7 @@ unit cgobj;
          free_scratch_reg(list,hr);
       end;
 
-    procedure tcg.a_param_ref(list : paasmoutput;size : tcgsize;const r : treference;nr : longint);
+    procedure tcg.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);
 
       var
          hr : tregister;
@@ -304,7 +303,7 @@ unit cgobj;
          free_scratch_reg(list,hr);
       end;
 
-    procedure tcg.a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);
+    procedure tcg.a_param_ref_addr(list : taasmoutput;r : treference;nr : longint);
 
       var
          hr : tregister;
@@ -316,14 +315,14 @@ unit cgobj;
          free_scratch_reg(list,hr);
       end;
 
-    procedure tcg.g_stackcheck(list : paasmoutput;stackframesize : longint);
+    procedure tcg.g_stackcheck(list : taasmoutput;stackframesize : longint);
 
       begin
          a_param_const(list,OS_32,stackframesize,1);
          a_call_name(list,'FPC_STACKCHECK',0);
       end;
 
-    procedure tcg.a_load_const_ref(list : paasmoutput;size : tcgsize;a : aword;const ref : treference);
+    procedure tcg.a_load_const_ref(list : taasmoutput;size : tcgsize;a : aword;const ref : treference);
 
       var
          hr : tregister;
@@ -336,7 +335,7 @@ unit cgobj;
       end;
 
 
-    procedure tcg.g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);
+    procedure tcg.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword;loadref : boolean);
 
       begin
          abstract;
@@ -347,43 +346,43 @@ unit cgobj;
                          String helper routines
 *****************************************************************************}
 
-    procedure tcg.g_removetemps(list : paasmoutput;p : plinkedlist);
+    procedure tcg.g_removetemps(list : taasmoutput;p : tlinkedlist);
 
       var
          hp : ptemptodestroy;
          pushedregs : tpushed;
 
       begin
-         hp:=ptemptodestroy(p^.first);
+         hp:=ttemptodestroy(p.first);
          if not(assigned(hp)) then
            exit;
-         tg.pushusedregisters(pushedregs,$ff);
+         pushusedregisters(pushedregs,$ff);
          while assigned(hp) do
            begin
               if is_ansistring(hp^.typ) then
                 begin
-                   g_decrstrref(list,hp^.address,hp^.typ);
-                   tg.ungetiftemp(hp^.address);
+                   g_decrstrref(list,hp.address,hp^.typ);
+                   ungetiftemp(hp^.address);
                 end;
               hp:=ptemptodestroy(hp^.next);
            end;
-         tg.popusedregisters(pushedregs);
+         popusedregisters(pushedregs);
       end;
 
-    procedure tcg.g_decrstrref(list : paasmoutput;const ref : treference;t : pdef);
+    procedure tcg.g_decrstrref(list : taasmoutput;const ref : treference;t : tdef);
 
       var
          pushedregs : tpushed;
 
       begin
-         tg.pushusedregisters(pushedregs,$ff);
+         pushusedregisters(pushedregs,$ff);
          a_param_ref_addr(list,ref,1);
          if is_ansistring(t) then
            a_call_name(list,'FPC_ANSISTR_DECR_REF',0)
          else if is_widestring(t) then
            a_call_name(list,'FPC_WIDESTR_DECR_REF',0)
          else internalerror(58993);
-         tg.popusedregisters(pushedregs);
+         popusedregisters(pushedregs);
       end;
 
 {*****************************************************************************
@@ -393,7 +392,7 @@ unit cgobj;
     { initilizes data of type t                           }
     { if is_already_ref is true then the routines assumes }
     { that r points to the data to initialize             }
-    procedure tcg.g_initialize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+    procedure tcg.g_initialize(list : taasmoutput;t : tdef;const ref : treference;is_already_ref : boolean);
 
       var
          hr : treference;
@@ -415,7 +414,7 @@ unit cgobj;
            end;
       end;
 
-    procedure tcg.g_finalize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+    procedure tcg.g_finalize(list : taasmoutput;t : tdef;const ref : treference;is_already_ref : boolean);
 
       var
          r : treference;
@@ -440,182 +439,109 @@ unit cgobj;
       end;
 
     { generates the code for initialisation of local data }
-    procedure tcg.g_initialize_data(list : paasmoutput;p : psym);
+    procedure tcg.g_initialize_data(list : taasmoutput;p : tsym);
 
       var
          hr : treference;
 
       begin
-      {$IFDEF NEWST}
-         if (typeof(p^)=typeof(Tvarsym)) and
-            assigned(pvarsym(p)^.definition) and
-            not((typeof((pvarsym(p)^.definition^))=typeof(Tobjectdef)) and
-              (oo_is_class in pobjectdef(pvarsym(p)^.definition)^.options)) and
-            pvarsym(p)^.definition^.needs_inittable then
+         if (tsym(p).typ=varsym) and
+            assigned(tvarsym(p).vartype.def) and
+            not((tvarsym(p).vartype.def^.deftype=objectdef) and
+              tobjectdef(tvarsym(p).vartype.def)^.is_class) and
+            tvarsym(p).vartype.def.needs_inittable then
            begin
               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
               reset_reference(hr);
-              if typeof((psym(p)^.owner^))=typeof(Tprocsymtable) then
+              if tsym(p)^.owner^.symtabletype=localsymtable then
                 begin
                    hr.base:=procinfo^.framepointer;
-                   hr.offset:=-pvarsym(p)^.address;
+                   hr.offset:=-tvarsym(p)^.address;
                 end
               else
                 begin
-                   hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
+                   hr.symbol:=newasmsymbol(tvarsym(p)^.mangledname);
                 end;
-              g_initialize(list,pvarsym(p)^.definition,hr,false);
+              g_initialize(list,tvarsym(p)^.vartype.def,hr,false);
            end;
-      {$ELSE}
-         if (psym(p)^.typ=varsym) and
-            assigned(pvarsym(p)^.vartype.def) and
-            not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
-              pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
-            pvarsym(p)^.vartype.def^.needs_inittable then
-           begin
-              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
-              reset_reference(hr);
-              if psym(p)^.owner^.symtabletype=localsymtable then
-                begin
-                   hr.base:=procinfo^.framepointer;
-                   hr.offset:=-pvarsym(p)^.address;
-                end
-              else
-                begin
-                   hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
-                end;
-              g_initialize(list,pvarsym(p)^.vartype.def,hr,false);
-           end;
-      {$ENDIF NEWST}
       end;
 
 
     { generates the code for incrementing the reference count of parameters }
-    procedure tcg.g_incr_data(list : paasmoutput;p : psym);
+    procedure tcg.g_incr_data(list : taasmoutput;p : tsym);
 
       var
          hr : treference;
 
       begin
-      {$IFDEF NEWST}
-         if (typeof((psym(p)^))=typeof(Tparamsym)) and
-            not((typeof((Pparamsym(p)^.definition^))=typeof(Tobjectdef)) and
-              (oo_is_class in pobjectdef(pvarsym(p)^.definition)^.options)) and
-            Pparamsym(p)^.definition^.needs_inittable and
-            ((Pparamsym(p)^.varspez=vs_value)) then
+         if (tsym(p).typ=varsym) and
+            not((tvarsym(p).vartype.def.deftype=objectdef) and
+              tobjectdef(tvarsym(p).vartype.def).is_class) and
+            tvarsym(p).vartype.def.needs_inittable and
+            ((tvarsym(p).varspez=vs_value)) then
            begin
               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
               reset_reference(hr);
-              hr.symbol:=pvarsym(p)^.definition^.get_inittable_label;
+              hr.symbol:=tvarsym(p)^.vartype.def^.get_inittable_label;
               a_param_ref_addr(list,hr,2);
               reset_reference(hr);
               hr.base:=procinfo^.framepointer;
-              hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
+              hr.offset:=tvarsym(p)^.address+procinfo^.para_offset;
               a_param_ref_addr(list,hr,1);
               reset_reference(hr);
               a_call_name(list,'FPC_ADDREF',0);
            end;
-      {$ELSE}
-         if (psym(p)^.typ=varsym) and
-            not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
-              pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
-            pvarsym(p)^.vartype.def^.needs_inittable and
-            ((pvarsym(p)^.varspez=vs_value)) then
-           begin
-              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
-              reset_reference(hr);
-              hr.symbol:=pvarsym(p)^.vartype.def^.get_inittable_label;
-              a_param_ref_addr(list,hr,2);
-              reset_reference(hr);
-              hr.base:=procinfo^.framepointer;
-              hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
-              a_param_ref_addr(list,hr,1);
-              reset_reference(hr);
-              a_call_name(list,'FPC_ADDREF',0);
-           end;
-      {$ENDIF NEWST}
       end;
 
 
     { generates the code for finalisation of local data }
-    procedure tcg.g_finalize_data(list : paasmoutput;p : pnamedindexobject);
+    procedure tcg.g_finalize_data(list : taasmoutput;p : tnamedindex);
 
       var
          hr : treference;
 
       begin
-      {$IFDEF NEWST}
-         if (typeof((psym(p)^))=typeof(Tvarsym)) and
-            assigned(pvarsym(p)^.definition) and
-            not((typeof((pvarsym(p)^.definition^))=typeof(Tobjectdef)) and
-            (oo_is_class in pobjectdef(pvarsym(p)^.definition)^.options)) and
-            pvarsym(p)^.definition^.needs_inittable then
+         if (tsym(p).typ=varsym) and
+            assigned(tvarsym(p).vartype.def) and
+            not((tvarsym(p).vartype.def.deftype=objectdef) and
+            tobjectdef(tvarsym(p).vartype.def).is_class) and
+            tvarsym(p).vartype.def.needs_inittable then
            begin
               { not all kind of parameters need to be finalized  }
-              if (typeof((psym(p)^.owner^))=typeof(Tprocsymtable)) and
-                ((pparamsym(p)^.varspez=vs_var)  or
-                 (Pparamsym(p)^.varspez=vs_const) { and
-                 (dont_copy_const_param(pvarsym(p)^.definition)) } ) then
+              if (tsym(p).owner.symtabletype=parasymtable) and
+                ((tvarsym(p).varspez=vs_var)  or
+                 (tvarsym(p).varspez=vs_const) { and
+                 (dont_copy_const_param(tvarsym(p)^.definition)) } ) then
                 exit;
               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
               reset_reference(hr);
-              if typeof((Psym(p)^.owner^))=typeof(Tprocsymtable) then
-                 begin
-                    hr.base:=procinfo^.framepointer;
-                    hr.offset:=-pvarsym(p)^.address;
-                 end
-              else if typeof((Psym(p)^.owner^))=typeof(Tprocsymtable) then
-                 begin
-                    hr.base:=procinfo^.framepointer;
-                    hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
-                 end
-               else
-                 hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
-              g_finalize(list,pvarsym(p)^.definition,hr,false);
-           end;
-      {$ELSE}
-         if (psym(p)^.typ=varsym) and
-            assigned(pvarsym(p)^.vartype.def) and
-            not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
-            pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
-            pvarsym(p)^.vartype.def^.needs_inittable then
-           begin
-              { not all kind of parameters need to be finalized  }
-              if (psym(p)^.owner^.symtabletype=parasymtable) and
-                ((pvarsym(p)^.varspez=vs_var)  or
-                 (pvarsym(p)^.varspez=vs_const) { and
-                 (dont_copy_const_param(pvarsym(p)^.definition)) } ) then
-                exit;
-              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
-              reset_reference(hr);
-              case psym(p)^.owner^.symtabletype of
+              case tsym(p).owner^.symtabletype of
                  localsymtable:
                    begin
                       hr.base:=procinfo^.framepointer;
-                      hr.offset:=-pvarsym(p)^.address;
+                      hr.offset:=-tvarsym(p).address;
                    end;
                  parasymtable:
                    begin
                       hr.base:=procinfo^.framepointer;
-                      hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
+                      hr.offset:=tvarsym(p).address+procinfo^.para_offset;
                    end;
                  else
-                   hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
+                   hr.symbol:=newasmsymbol(tvarsym(p).mangledname);
               end;
-              g_finalize(list,pvarsym(p)^.vartype.def,hr,false);
+              g_finalize(list,tvarsym(p).vartype.def,hr,false);
            end;
-      {$ENDIF NEWST}
       end;
 
 
     { generates the code to make local copies of the value parameters }
-    procedure tcg.g_copyvalueparas(list : paasmoutput;p : pnamedindexobject);
+    procedure tcg.g_copyvalueparas(list : taasmoutput;p : pnamedindexobject);
       begin
          runerror(255);
       end;
 
     var
-       _list : paasmoutput;
+       _list : taasmoutput;
 
     { wrappers for the methods, because TP doesn't know procedures }
     { of objects                                                   }
@@ -628,14 +554,14 @@ unit cgobj;
       end;
     {$ENDIF NEWST}
 
-    procedure tcg.g_finalizetempansistrings(list : paasmoutput);
+    procedure tcg.g_finalizetempansistrings(list : taasmoutput);
 
       var
          hp : ptemprecord;
          hr : treference;
 
       begin
-         hp:=tg.templist;
+         hp:=templist;
          while assigned(hp) do
            begin
               if hp^.temptype in [tt_ansistring,tt_freeansistring] then
@@ -651,24 +577,6 @@ unit cgobj;
            end;
      end;
 
- {$IFDEF NEWST}
-    procedure _initialize_local(s:Pnamedindexobject);{$IFNDEF FPC}far;{$ENDIF}
-
-    begin
-        if typeof(s^)=typeof(Tparamsym) then
-            cg^.g_incr_data(_list,Psym(s))
-        else
-            cg^.g_initialize_data(_list,Psym(s));
-    end;
-
-    procedure _finalize_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
-
-    begin
-        if typeof(s^)=typeof(Tvarsym) then
-            cg^.g_finalize_data(_list,s);
-    end;
-
- {$ELSE}
     procedure _finalize_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
@@ -678,29 +586,19 @@ unit cgobj;
     procedure _incr_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
-         cg^.g_incr_data(_list,psym(s));
+         cg^.g_incr_data(_list,tsym(s));
       end;
 
     procedure _initialize_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
-         cg^.g_initialize_data(_list,psym(s));
+         cg^.g_initialize_data(_list,tsym(s));
       end;
- {$ENDIF NEWST}
 
     { generates the entry code for a procedure }
-    procedure tcg.g_entrycode(list : paasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
+    procedure tcg.g_entrycode(list : taasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
        stackframe:longint;var parasize:longint;var nostackframe:boolean;
        inlined : boolean);
-
-
-    {$IFDEF NEWST}
-        procedure _copyvalueparas(s:Pparamsym);{$ifndef FPC}far;{$endif}
-
-        begin
-            cg^.g_copyvalueparas(_list,s);
-        end;
-    {$ENDIF NEWST}
 
       var
          hs : string;
@@ -948,14 +846,14 @@ unit cgobj;
   {$endif GDB}
     end;
 
-    procedure tcg.g_exitcode(list : paasmoutput;parasize:longint;nostackframe,inlined:boolean);
+    procedure tcg.g_exitcode(list : taasmoutput;parasize:longint;nostackframe,inlined:boolean);
 
       var
   {$ifdef GDB}
          mangled_length : longint;
          p : pchar;
   {$endif GDB}
-         nofinal,noreraiselabel : pasmlabel;
+         nofinal,noreraiselabel : tasmlabel;
          hr : treference;
          r : tregister;
 
@@ -1034,7 +932,7 @@ unit cgobj;
 
            {$IFDEF NEWST}
               { must be the return value finalized before reraising the exception? }
-              if (procinfo^.retdef<>pdef(voiddef)) and
+              if (procinfo^.retdef<>tdef(voiddef)) and
                 (procinfo^.retdef^.needs_inittable) and
                 ((typeof(procinfo^.retdef^)<>typeof(Tobjectdef)) or
                 not(oo_is_class in pobjectdef(procinfo^.retdef)^.options)) then
@@ -1046,7 +944,7 @@ unit cgobj;
                 end;
            {$ELSE}
               { must be the return value finalized before reraising the exception? }
-              if (procinfo^.returntype.def<>pdef(voiddef)) and
+              if (procinfo^.returntype.def<>tdef(voiddef)) and
                 (procinfo^.returntype.def^.needs_inittable) and
                 ((procinfo^.returntype.def^.deftype<>objectdef) or
                 not(pobjectdef(procinfo^.returntype.def)^.is_class)) then
@@ -1152,7 +1050,7 @@ unit cgobj;
                      '"$t:r'+procinfo^._class^.numberstring+'",'+
                      tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI])))));
                   }
-                if (pdef(aktprocsym^.definition^.rettype.def) <> pdef(voiddef)) then
+                if (tdef(aktprocsym^.definition^.rettype.def) <> tdef(voiddef)) then
                   begin
                     if ret_in_param(aktprocsym^.definition^.rettype.def) then
                       list^.concat(new(pai_stabs,init(strpnew(
@@ -1194,130 +1092,130 @@ unit cgobj;
                        some abstract definitions
  ****************************************************************************}
 
-    procedure tcg.a_call_name(list : paasmoutput;const s : string;
+    procedure tcg.a_call_name(list : taasmoutput;const s : string;
       offset : longint);
 
       begin
          abstract;
       end;
 
-    procedure tcg.g_stackframe_entry(list : paasmoutput;localsize : longint);
+    procedure tcg.g_stackframe_entry(list : taasmoutput;localsize : longint);
 
       begin
          abstract;
       end;
 
-    procedure tcg.g_maybe_loadself(list : paasmoutput);
+    procedure tcg.g_maybe_loadself(list : taasmoutput);
 
       begin
          abstract;
       end;
 
-    procedure tcg.g_restore_frame_pointer(list : paasmoutput);
+    procedure tcg.g_restore_frame_pointer(list : taasmoutput);
 
       begin
          abstract;
       end;
 
-    procedure g_return_from_proc(list : paasmoutput;parasize : aword);
+    procedure g_return_from_proc(list : taasmoutput;parasize : aword);
 
       begin
          abstract;
       end;
 
-    procedure tcg.a_loadaddress_ref_reg(list : paasmoutput;const ref : treference;r : tregister);
+    procedure tcg.a_loadaddress_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
 
       begin
          abstract;
       end;
 
-    procedure tcg.g_push_exception_value_reg(list : paasmoutput;reg : tregister);
+    procedure tcg.g_push_exception_value_reg(list : taasmoutput;reg : tregister);
 
       begin
          abstract;
       end;
 
-    procedure tcg.g_push_exception_value_const(list : paasmoutput;reg : tregister);
+    procedure tcg.g_push_exception_value_const(list : taasmoutput;reg : tregister);
 
       begin
          abstract;
       end;
 
-    procedure tcg.g_pop_exception_value_reg(list : paasmoutput;reg : tregister);
+    procedure tcg.g_pop_exception_value_reg(list : taasmoutput;reg : tregister);
 
       begin
          abstract;
       end;
 
-    procedure tcg.a_load_const_reg(list : paasmoutput;size : tcgsize;a : aword;register : tregister);
+    procedure tcg.a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);
 
       begin
          abstract;
       end;
 
-    procedure tcg.a_load_reg_ref(list : paasmoutput;size : tcgsize;register : tregister;const ref : treference);
+    procedure tcg.a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);
 
       begin
          abstract;
       end;
 
-    procedure tcg.a_load_ref_reg(list : paasmoutput;size : tcgsize;const ref : treference;register : tregister);
+    procedure tcg.a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);
 
       begin
          abstract;
       end;
 
-    procedure tcg.a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);
+    procedure tcg.a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);
 
       begin
          abstract;
       end;
 
-    procedure tcg.a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-      l : pasmlabel);
+    procedure tcg.a_cmp_reg_const_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+      l : tasmlabel);
 
       begin
          abstract;
       end;
 
-    procedure tcg.a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
+    procedure tcg.a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
 
       begin
          abstract;
       end;
 
-    procedure tcg.a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : pasmlabel);
+    procedure tcg.a_cmp_reg_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : tasmlabel);
 
       begin
          abstract;
       end;
 
-    procedure tcg.a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-     l : pasmlabel);
+    procedure tcg.a_cmp_ref_const_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+     l : tasmlabel);
 
       begin
          abstract;
       end;
 
-    procedure tcg.a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
+    procedure tcg.a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
       begin
         abstract;
       end;
 
-    procedure tcg.g_return_from_proc(list : paasmoutput;parasize : aword);
+    procedure tcg.g_return_from_proc(list : taasmoutput;parasize : aword);
 
       begin
          abstract;
       end;
 
-    procedure tcg.a_param_reg(list : paasmoutput;size : tcgsize;r : tregister;nr : longint);
+    procedure tcg.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);
 
       begin
          abstract;
       end;
 
-    procedure tcg.a_paramaddr_ref(list : paasmoutput;const r : treference;nr : longint);
+    procedure tcg.a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);
 
       begin
          abstract;
@@ -1326,7 +1224,7 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.2  2001-08-26 13:37:04  florian
+  Revision 1.1  2001-08-26 13:36:37  florian
     * some cg reorganisation
     * some PPC updates
 

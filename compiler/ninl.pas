@@ -61,10 +61,7 @@ implementation
       symbase,symconst,symtype,symdef,symsym,symtable,types,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,
-      cpubase,hcodegen,tgcpu
-{$ifdef newcg}
-      ,cgbase
-{$endif newcg}
+      cpubase,tgcpu,cgbase
       ;
 
    function geninlinenode(number : byte;is_const:boolean;l : tnode) : tinlinenode;
@@ -114,7 +111,7 @@ implementation
 
       begin
         result := cerrornode.create;
-        
+
         { make sure we got at least two parameters (if we got only one, }
         { this parameter may not be encapsulated in a callparan)        }
         if not assigned(left) or
@@ -131,7 +128,7 @@ implementation
         while assigned(source.right) do
           source := tcallparanode(source.right);
         is_real := source.resulttype.def.deftype = floatdef;
-        
+
         if not assigned(dest) or
            (dest.left.resulttype.def.deftype<>stringdef) or
            not(is_real or
@@ -149,7 +146,7 @@ implementation
         if (cpf_is_colon_para in tcallparanode(dest.right).callparaflags) then
           begin
             lenpara := tcallparanode(dest.right);
-            
+
             { we can let the callnode do the type checking of these parameters too, }
             { but then the error messages aren't as nice                            }
             if not is_integer(lenpara.resulttype.def) then
@@ -203,7 +200,7 @@ implementation
           if not assigned(lenpara) then
             newparas.right := ccallparanode.create(cordconstnode.create(-1,s32bittype),
               newparas.right);
-        
+
         { remove the parameters from the original node so they won't get disposed, }
         { since they're reused                                                     }
         left := nil;
@@ -233,8 +230,8 @@ implementation
         result.free;
         result := newnode;
       end;
-      
-      
+
+
     function tinlinenode.handle_reset_rewrite_typed: tnode;
       begin
         { since this is a "in_xxxx_typedfile" node, we can be sure we have  }
@@ -263,7 +260,7 @@ implementation
       const
         procnames: array[boolean,boolean] of string[11] =
           (('write_text_','read_text_'),('typed_write','typed_read'));
-      
+
       var
         filepara,
         lenpara,
@@ -313,7 +310,7 @@ implementation
                     CGMessagePos(fileinfo,type_e_no_read_write_for_untyped_file);
                     exit;
                   end
-                else 
+                else
                   begin
                     if (tfiledef(filepara.resulttype.def).filetyp=ft_typed) then
                       begin
@@ -792,8 +789,8 @@ implementation
               result := newblock
             end;
       end;
-      
-      
+
+
     function tinlinenode.handle_val: tnode;
       var
         procname,
@@ -2712,7 +2709,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2001-08-24 13:47:27  jonas
+  Revision 1.52  2001-08-26 13:36:40  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.51  2001/08/24 13:47:27  jonas
     * moved "reverseparameters" from ninl.pas to ncal.pas
     + support for non-persistent temps in ttempcreatenode.create, for use
       with typeconversion nodes

@@ -217,12 +217,8 @@ uses
   strings,
 {$endif}
   types,systems,verbose,globals,
-  symsym,symtable,cpuasm
-{$ifdef NEWCG}
-  ,cgbase;
-{$else}
-  ,hcodegen;
-{$endif}
+  symsym,symtable,cpuasm,
+  cgbase;
 
 {*************************************************************************
                               TExprParse
@@ -1585,7 +1581,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2001-08-12 17:57:07  peter
+  Revision 1.23  2001-08-26 13:36:48  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.22  2001/08/12 17:57:07  peter
     * under development flag for targets
 
   Revision 1.21  2001/08/06 21:40:48  peter

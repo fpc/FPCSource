@@ -278,7 +278,7 @@ implementation
       gdb,
 {$endif GDB}
       { codegen }
-      hcodegen
+      cgbase
       ;
 
 
@@ -2071,7 +2071,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2001-08-19 09:39:29  peter
+  Revision 1.42  2001-08-26 13:36:51  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.41  2001/08/19 09:39:29  peter
     * local browser support fixed
 
   Revision 1.40  2001/08/06 21:40:49  peter

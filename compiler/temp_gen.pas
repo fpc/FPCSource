@@ -28,7 +28,7 @@ interface
 
     uses
       cpubase,cpuinfo,globals,
-      hcodegen,verbose,fmodule,aasm;
+      cgbase,verbose,fmodule,aasm;
 
 {$ifdef newcg}
     const
@@ -622,7 +622,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-07-08 21:00:16  peter
+  Revision 1.18  2001-08-26 13:36:52  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.17  2001/07/08 21:00:16  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

@@ -25,7 +25,6 @@ program pp;
 {
   possible compiler switches (* marks a currently required switch):
   -----------------------------------------------------------------
-  TP                  to compile the compiler with Turbo or Borland Pascal
   GDB*                support of the GNU Debugger
   I386                generate a compiler for the Intel i386+
   M68K                generate a compiler for the M68000
@@ -47,12 +46,6 @@ program pp;
 
   Required switches for a i386 compiler be compiled by Free Pascal Compiler:
   GDB;I386
-
-  Required switches for a i386 compiler be compiled by Turbo Pascal:
-  GDB;I386;TP
-
-  Required switches for a 68000 compiler be compiled by Turbo Pascal:
-  GDB;M68k;TP
 }
 
 {$i defines.inc}
@@ -62,8 +55,7 @@ program pp;
       { people can try to compile without GDB }
       { $error The compiler switch GDB must be defined}
    {$endif GDB}
-   { but I386 or M68K must be defined }
-   { and only one of the two }
+   { exactly one target CPU must be defined }
    {$ifdef I386}
      {$ifdef CPUDEFINED}
         {$fatal ONLY one of the switches for the CPU type must be defined}
@@ -82,6 +74,12 @@ program pp;
      {$endif CPUDEFINED}
      {$define CPUDEFINED}
    {$endif iA64}
+   {$ifdef POWERPC}
+     {$ifdef CPUDEFINED}
+        {$fatal ONLY one of the switches for the CPU type must be defined}
+     {$endif CPUDEFINED}
+     {$define CPUDEFINED}
+   {$endif POWERPC}
    {$ifndef CPUDEFINED}
      {$fatal A CPU type switch must be defined}
    {$endif CPUDEFINED}
@@ -158,7 +156,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2001-02-26 19:44:53  peter
+  Revision 1.8  2001-08-26 13:36:46  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.7  2001/02/26 19:44:53  peter
     * merged generic m68k updates from fixes branch
 
   Revision 1.6  2000/11/29 00:30:37  florian
@@ -176,5 +178,4 @@ end.
 
   Revision 1.2  2000/07/13 11:32:45  michael
   + removed logs
-
 }

@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit hcodegen;
+unit cgbase;
 
 {$i defines.inc}
 
@@ -425,7 +425,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2001-08-06 21:40:46  peter
+  Revision 1.1  2001-08-26 13:36:36  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.11  2001/08/06 21:40:46  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.10  2001/04/13 01:22:07  peter

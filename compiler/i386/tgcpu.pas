@@ -28,7 +28,7 @@ interface
 
     uses
        globals,
-       hcodegen,verbose,aasm,
+       cgbase,verbose,aasm,
        node,
        cpubase,cpuasm
        ;
@@ -674,7 +674,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2001-04-13 01:22:21  peter
+  Revision 1.5  2001-08-26 13:37:03  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.4  2001/04/13 01:22:21  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

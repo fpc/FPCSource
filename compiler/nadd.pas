@@ -50,11 +50,7 @@ implementation
       cutils,verbose,globals,widestr,
       symconst,symtype,symdef,symsym,types,
       cpuinfo,
-{$ifdef newcg}
       cgbase,
-{$else newcg}
-      hcodegen,
-{$endif newcg}
       htypechk,pass_1,
       nmat,ncnv,nld,ncon,nset,nopt,
       cpubase;
@@ -1287,7 +1283,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2001-08-06 21:40:46  peter
+  Revision 1.33  2001-08-26 13:36:38  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.32  2001/08/06 21:40:46  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.31  2001/07/08 21:00:14  peter

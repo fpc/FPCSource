@@ -38,7 +38,7 @@ implementation
       cutils,cclasses,
       globals,verbose,systems,tokens,
       aasm,symconst,symbase,symsym,symtable,types,
-      hcodegen,
+      cgbase,
       node,nld,ncon,ncnv,nobj,pass_1,
       scanner,
       pbase,pexpr,pdecsub,pdecvar,ptype;
@@ -1045,7 +1045,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2001-08-22 21:16:20  florian
+  Revision 1.28  2001-08-26 13:36:44  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.27  2001/08/22 21:16:20  florian
     * some interfaces related problems regarding
       mapping of interface implementions fixed
 

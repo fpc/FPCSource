@@ -220,7 +220,7 @@ Var
 Implementation
 
 Uses
-  globals, systems, verbose, hcodegen, symconst, symsym, tgcpu;
+  globals, systems, verbose, cgbase, symconst, symsym, tgcpu;
 
 Type
   TRefCompare = function(const r1, r2: TReference): Boolean;
@@ -2452,7 +2452,11 @@ End.
 
 {
   $Log$
-  Revision 1.18  2001-08-06 21:40:50  peter
+  Revision 1.19  2001-08-26 13:36:55  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.18  2001/08/06 21:40:50  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.17  2001/04/13 01:22:18  peter

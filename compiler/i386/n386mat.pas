@@ -39,6 +39,7 @@ interface
       end;
 
       ti386unaryminusnode = class(tunaryminusnode)
+         function pass_1 : tnode;override;
          procedure pass_2;override;
       end;
 
@@ -52,10 +53,10 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symdef,aasm,types,
-      hcodegen,temp_gen,pass_2,
+      cgbase,temp_gen,pass_1,pass_2,
       ncon,
       cpubase,
-      cgai386,tgcpu,n386util;
+      cga,tgcpu,n386util;
 
 {*****************************************************************************
                              TI386MODDIVNODE
@@ -652,8 +653,51 @@ implementation
 
 
 {*****************************************************************************
-                          Ti386UNARYMINUSNODE
+                          TI386UNARYMINUSNODE
 *****************************************************************************}
+
+    function ti386unaryminusnode.pass_1 : tnode;
+      begin
+         result:=nil;
+         firstpass(left);
+         if codegenerror then
+           exit;
+
+         registers32:=left.registers32;
+         registersfpu:=left.registersfpu;
+{$ifdef SUPPORT_MMX}
+         registersmmx:=left.registersmmx;
+{$endif SUPPORT_MMX}
+
+         if (left.resulttype.def.deftype=floatdef) then
+           begin
+             location.loc:=LOC_FPU;
+           end
+{$ifdef SUPPORT_MMX}
+         else if (cs_mmx in aktlocalswitches) and
+           is_mmx_able_array(left.resulttype.def) then
+             begin
+               if (left.location.loc<>LOC_MMXREGISTER) and
+                  (registersmmx<1) then
+                 registersmmx:=1;
+             end
+{$endif SUPPORT_MMX}
+         else if is_64bitint(left.resulttype.def) then
+           begin
+              if (left.location.loc<>LOC_REGISTER) and
+                 (registers32<2) then
+                registers32:=2;
+              location.loc:=LOC_REGISTER;
+           end
+         else if (left.resulttype.def.deftype=orddef) then
+           begin
+              if (left.location.loc<>LOC_REGISTER) and
+                 (registers32<1) then
+                registers32:=1;
+              location.loc:=LOC_REGISTER;
+           end;
+      end;
+
 
     procedure ti386unaryminusnode.pass_2;
 {$ifdef SUPPORT_MMX}
@@ -998,7 +1042,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-04-13 01:22:19  peter
+  Revision 1.14  2001-08-26 13:37:00  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.13  2001/04/13 01:22:19  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

@@ -53,7 +53,7 @@ implementation
      globtype,systems,verbose,
      cclasses,globals,
      symconst,symbase,symtype,symsym,aasm,
-     pass_1,hcodegen,temp_gen,regvars,nflw,tgcpu;
+     pass_1,cgbase,temp_gen,regvars,nflw,tgcpu;
 
 {*****************************************************************************
                               SecondPass
@@ -306,7 +306,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-08-06 21:40:47  peter
+  Revision 1.18  2001-08-26 13:36:44  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.17  2001/08/06 21:40:47  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.16  2001/05/09 19:57:07  peter

@@ -27,10 +27,11 @@ unit n386con;
 interface
 
     uses
-       ncon;
+       node,ncon;
 
     type
        ti386realconstnode = class(trealconstnode)
+          function pass_1 : tnode;override;
           procedure pass_2;override;
        end;
 
@@ -63,11 +64,23 @@ implementation
       symconst,symdef,aasm,types,
       temp_gen,
       cpubase,
-      cgai386,tgcpu;
+      cga,tgcpu;
 
 {*****************************************************************************
                            TI386REALCONSTNODE
 *****************************************************************************}
+
+    function ti386realconstnode.pass_1 : tnode;
+      begin
+         result:=nil;
+         if (value_real=1.0) or (value_real=0.0) then
+           begin
+              location.loc:=LOC_FPU;
+              registersfpu:=1;
+           end
+         else
+           location.loc:=LOC_MEM;
+      end;
 
     procedure ti386realconstnode.pass_2;
       const
@@ -499,7 +512,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-07-08 21:00:18  peter
+  Revision 1.10  2001-08-26 13:36:57  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.9  2001/07/08 21:00:18  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

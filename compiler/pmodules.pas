@@ -39,14 +39,8 @@ implementation
        cutils,comphook,
        globals,verbose,fmodule,finput,fppu,
        symconst,symbase,symppu,symdef,symsym,symtable,aasm,
-{$ifdef newcg}
        cgbase,
-{$else newcg}
-       hcodegen,
-{$ifdef i386}
-       cgai386,
-{$endif i386}
-{$endif newcg}
+       cga,
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr,cpubase,cpuasm,
 {$ifdef GDB}
@@ -1335,7 +1329,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2001-08-19 11:22:23  peter
+  Revision 1.45  2001-08-26 13:36:46  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.44  2001/08/19 11:22:23  peter
     * palmos support from v10 merged
 
   Revision 1.43  2001/08/12 19:59:49  peter

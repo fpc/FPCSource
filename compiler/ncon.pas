@@ -293,8 +293,10 @@ implementation
                              TREALCONSTNODE
 *****************************************************************************}
 
+    { generic code     }
+    { overridden by:   }
+    {   i386           }
     constructor trealconstnode.create(v : bestreal;const t:ttype);
-
       begin
          inherited create(realconstn);
          restype:=t;
@@ -323,13 +325,7 @@ implementation
     function trealconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         if (value_real=1.0) or (value_real=0.0) then
-           begin
-              location.loc:=LOC_FPU;
-              registersfpu:=1;
-           end
-         else
-           location.loc:=LOC_MEM;
+         location.loc:=LOC_MEM;
       end;
 
     function trealconstnode.docompare(p: tnode): boolean;
@@ -660,7 +656,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2001-08-06 10:18:39  jonas
+  Revision 1.21  2001-08-26 13:36:40  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.20  2001/08/06 10:18:39  jonas
     * restype wasn't copied for some constant nodetypes in getcopy
 
   Revision 1.19  2001/07/08 21:00:15  peter

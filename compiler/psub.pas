@@ -23,6 +23,9 @@
 unit psub;
 
 {$i defines.inc}
+{$ifdef powerpc}
+  {$define newcg}
+{$endif powerpc}
 
 interface
 
@@ -59,22 +62,19 @@ implementation
        scanner,
        pbase,pstatmnt,pdecl,pdecsub,pexports,
        { codegen }
-       tgcpu,hcodegen
-{$ifdef newcg}
-       ,cgbase
-       ,cgobj
+       tgcpu,cgbase,
+       temp_gen,
+       cga
        {$ifndef NOOPT}
-        ,aopt
-       {$endif}
-{$else}
-       ,temp_gen
-       {$ifdef i386}
-         ,cgai386
-         {$ifndef NOOPT}
+         {$ifdef i386}
            ,aopt386
-         {$endif}
+         {$else i386}
+           ,aoptcpu
+         {$endif i386}
        {$endif}
-{$endif}
+{$ifdef newcg}
+       ,cgobj
+{$endif newcg}
        ;
 
 
@@ -296,7 +296,11 @@ implementation
          cleartempgen;
 
 {$ifdef newcg}
+{$ifdef POWERPC}
+         tgcpu.usedinproc:=0;
+{$else POWERPC}
          tg.usedinproc:=[];
+{$endif POWERPC}
 {$else newcg}
 {$ifdef i386}
         { no registers are used }
@@ -329,7 +333,7 @@ implementation
          { but only if the are no local variables           }
          { already done in assembler_block }
 {$ifdef newcg}
-         tg.setfirsttemp(procinfo^.firsttemp_offset);
+         setfirsttemp(procinfo^.firsttemp_offset);
 {$else newcg}
          setfirsttemp(procinfo^.firsttemp_offset);
 {$endif newcg}
@@ -352,7 +356,7 @@ implementation
                 generatecode(code);
                 aktprocsym.definition.code:=code;
 {$ifdef newcg}
-                stackframe:=tg.gettempsize;
+                stackframe:=gettempsize;
 {$else newcg}
                 stackframe:=gettempsize;
 {$endif newcg}
@@ -837,7 +841,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2001-08-06 21:40:47  peter
+  Revision 1.36  2001-08-26 13:36:46  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.35  2001/08/06 21:40:47  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.34  2001/06/04 11:53:13  peter

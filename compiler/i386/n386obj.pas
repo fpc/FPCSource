@@ -37,14 +37,14 @@ uses
   nobj,
   temp_gen,
   cpubase,
-  cgai386, tgcpu;
+  cga, tgcpu;
 
    type
      ti386classheader=class(tclassheader)
      protected
        procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);override;
      end;
-     
+
 {
 possible calling conventions:
               default stdcall cdecl pascal popstack register saveregisters
@@ -211,7 +211,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2001-04-21 13:37:17  peter
+  Revision 1.2  2001-08-26 13:37:00  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.1  2001/04/21 13:37:17  peter
     * made tclassheader using class of to implement cpu dependent code
 
   Revision 1.5  2001/04/13 01:22:19  peter

@@ -54,7 +54,7 @@ implementation
        scanner,
        pbase,pexpr,
        { codegen }
-       tgcpu,hcodegen
+       tgcpu,cgbase
 {$ifdef i386}
   {$ifndef NoRa386Int}
        ,ra386int
@@ -801,6 +801,10 @@ implementation
                   else if pattern='A1' then
                     usedinproc:=usedinproc + [R_A1]
 {$endif m68k}
+{$ifdef powerpc}
+                  if pattern<>'' then
+                    internalerror(200108251)
+{$endif powerpc}
                   else consume(_RECKKLAMMER);
                   consume(_CSTRING);
                   if not try_to_consume(_COMMA) then
@@ -811,7 +815,11 @@ implementation
 {$ifdef i386}
          else usedinproc:=$ff;
 {$else}
+{$ifdef powerpc}
+         else usedinproc := 0;
+{$else powerpc}
          else usedinproc := ALL_REGISTERS;
+{$endif powerpc}
 {$endif i386}
 {$endif newcg}
 
@@ -1184,7 +1192,11 @@ implementation
 {$ifdef i386}
                    usedinproc:=usedinproc or ($80 shr byte(R_EAX))
 {$else}
+{$ifdef POWERPC}
+                   usedinproc:=0;
+{$else POWERPC}
                    usedinproc:=usedinproc + [accumulator];
+{$endif POWERPC}
 {$endif i386}
 {$endif newcg}
                 end
@@ -1225,7 +1237,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2001-08-23 14:28:36  jonas
+  Revision 1.34  2001-08-26 13:36:46  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.33  2001/08/23 14:28:36  jonas
     + tempcreate/ref/delete nodes (allows the use of temps in the
       resulttype and first pass)
     * made handling of read(ln)/write(ln) processor independent

@@ -50,11 +50,7 @@ Implementation
        scanner,
        ra386,rautils,
        { codegen }
-{$ifdef newcg}
        cgbase
-{$else}
-       hcodegen
-{$endif}
        ;
 
 type
@@ -2139,7 +2135,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.13  2001-08-06 21:40:50  peter
+  Revision 1.14  2001-08-26 13:37:02  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.13  2001/08/06 21:40:50  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.12  2001/04/18 22:02:03  peter

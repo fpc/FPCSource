@@ -92,10 +92,10 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symbase,symtype,symdef,symsym,symtable,aasm,types,
-      hcodegen,temp_gen,pass_2,
+      cgbase,temp_gen,pass_2,
       pass_1,nld,ncon,nadd,
       cpubase,cpuasm,
-      cgai386,tgcpu,n386util;
+      cga,tgcpu,n386util;
 
 {*****************************************************************************
                             TI386LOADNODE
@@ -1055,7 +1055,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-07-08 21:00:18  peter
+  Revision 1.15  2001-08-26 13:37:00  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.14  2001/07/08 21:00:18  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

@@ -58,11 +58,7 @@ implementation
 uses
   globtype,globals,systems,verbose,
   symconst,symdef,symsym,
-{$ifdef NEWCG}
   cgbase,
-{$else}
-  hcodegen,
-{$endif}
   types,cpuasm;
 
 {$define ATTOP}
@@ -687,7 +683,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2001-08-07 18:47:14  peter
+  Revision 1.12  2001-08-26 13:37:01  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.11  2001/08/07 18:47:14  peter
     * merged netbsd start
     * profile for win32
 

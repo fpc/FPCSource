@@ -166,13 +166,8 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symtable,types,htypechk,pass_1,
-      ncon,nmem,nld,ncnv,nbas,tgcpu,hcodegen
-{$ifdef newcg}
-      ,tgobj
-      ,cgbase
-{$else newcg}
-      ,temp_gen
-{$endif newcg}
+      ncon,nmem,nld,ncnv,nbas,tgcpu,
+      cgbase,temp_gen
       ;
 
     function genloopnode(t : tnodetype;l,r,n1 : tnode;back : boolean) : tnode;
@@ -1171,7 +1166,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2001-08-06 21:40:47  peter
+  Revision 1.22  2001-08-26 13:36:40  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.21  2001/08/06 21:40:47  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.20  2001/04/26 21:56:08  peter
