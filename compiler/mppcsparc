@@ -1,10 +1,15 @@
 #!/bin/bash
-if [[ "$#" != "0" ]]
+cd "`dirname "$0"`/.."
+FPC_SRC_DIR="$PWD"
+COMP_DIR="$FPC_SRC_DIR/compiler"
+RTL_DIR="$FPC_SRC_DIR/rtl"
+if [[ "$1" == "-B" ]] || [[ "$#" == 0 ]]
 then
-  cd "`dirname "$0"`/.."
-  FPCSRC="$PWD"
-  cd $FPCSRC/tests/sparc
-  $FPCSRC/compiler/ppcsparc -s -al -Fi$FPCSRC/rtl/{unix,linux,sparc,inc} -dSPARC "$@"
-else
-  fpc pp -gl -oppcsparc -dExtDebug -Fusparc -Fusystems -dSPARC -dNoOpt -dGDB
+  cd "$COMP_DIR"
+  fpc pp -gl -oppcsparc -dExtDebug -Fu"sparc;systems" -dSPARC -dNoOpt -dGDB "$1"
+fi
+if [[ "$1" != "-B" ]] || [[ "$#" -gt "1" ]]
+then
+  cd "$FPC_SRC_DIR/tests/sparc"
+  "$COMP_DIR"/ppcsparc -s -al -Fi"$RTL_DIR"/{unix,linux,sparc,inc} -dSPARC "$@"
 fi
