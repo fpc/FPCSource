@@ -93,7 +93,7 @@ type
 
     PDlgWindow = ^TDlgWindow;
     TDlgWindow = object(TDialog)
-      constructor Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Integer);
+      constructor Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer);
     end;
 
     PAdvancedStatusLine = ^TAdvancedStatusLine;
@@ -112,8 +112,8 @@ type
       constructor Init(ALink: PDropDownListBox; var Bounds: TRect; ANumCols: Word; AScrollBar: PScrollBar);
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   SetState(AState: Word; Enable: Boolean); virtual;
-      procedure   SelectItem(Item: Integer); virtual;
-      function    GetText(Item: sw_Integer; MaxLen: Integer): String; virtual;
+      procedure   SelectItem(Item: Sw_Integer); virtual;
+      function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
       function    GetLocalMenu: PMenu; virtual;
       function    GetCommandTarget: PView; virtual;
     private
@@ -126,7 +126,7 @@ type
       Text: string;
       Focused: sw_integer;
       List: PCollection;
-      constructor Init(var Bounds: TRect; ADropLineCount: integer; AList: PCollection);
+      constructor Init(var Bounds: TRect; ADropLineCount: Sw_integer; AList: PCollection);
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetText(Item: pointer; MaxLen: sw_integer): string; virtual;
       procedure   NewList(AList: PCollection); virtual;
@@ -141,7 +141,7 @@ type
       function    GetPalette: PPalette; virtual;
       destructor  Done; virtual;
     private
-      DropLineCount: integer;
+      DropLineCount: Sw_integer;
       ListDropped : boolean;
       ListBox     : PDDHelperLB;
       SB          : PScrollBar;
@@ -179,7 +179,7 @@ procedure SetMenuItemParam(Menu: PMenuItem; Param: string);
 function  IsSubMenu(P: PMenuItem): boolean;
 function  IsSeparator(P: PMenuItem): boolean;
 function  UpdateMenu(M: PMenu): boolean;
-function  SearchSubMenu(M: PMenu; Index: integer): PMenuItem;
+function  SearchSubMenu(M: PMenu; Index: Sw_integer): PMenuItem;
 procedure AppendMenuItem(M: PMenu; I: PMenuItem);
 procedure RemoveMenuItem(Menu: PMenu; I: PMenuItem);
 function  GetMenuItemBefore(Menu:PMenu; BeforeOf: PMenuItem): PMenuItem;
@@ -1071,12 +1071,12 @@ procedure TColorStaticText.Draw;
 var
   C: word;
   Center: Boolean;
-  I, J, L, P, Y: Integer;
+  I, J, L, P, Y: Sw_Integer;
   B: TDrawBuffer;
   S: String;
   T: string;
   CurS: string;
-  TildeCount,Po: integer;
+  TildeCount,Po: Sw_integer;
   TempS: string;
 begin
   if Size.X=0 then Exit;
@@ -1156,7 +1156,7 @@ begin
   HScrollBar:=AHScrollBar;
 end;
 
-constructor TDlgWindow.Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Integer);
+constructor TDlgWindow.Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer);
 begin
   inherited Init(Bounds,ATitle);
   Number:=ANumber;
@@ -1338,9 +1338,9 @@ begin
   UpdateMenu:=IsEnabled;
 end;
 
-function SearchSubMenu(M: PMenu; Index: integer): PMenuItem;
+function SearchSubMenu(M: PMenu; Index: Sw_integer): PMenuItem;
 var P,C: PMenuItem;
-    Count: integer;
+    Count: Sw_integer;
 begin
   P:=nil; Count:=-1;
   if M<>nil then C:=M^.Items else C:=nil;
@@ -1419,8 +1419,8 @@ end;
 
 procedure InsertButtons(ADialog: PDialog);
 var R   : TRect;
-    W,H : integer;
-    X   : integer;
+    W,H : Sw_integer;
+    X   : Sw_integer;
     X1,X2: Sw_integer;
 begin
   with ADialog^ do
@@ -1455,7 +1455,7 @@ end;
 
 procedure ShowMessage(Msg: string);
 var R: TRect;
-    Width: integer;
+    Width: Sw_integer;
 begin
   Width:=length(Msg)+4*2;
   if Width<(Desktop^.Size.X div 2) then Width:=(Desktop^.Size.X div 2);
@@ -1499,7 +1499,7 @@ begin
     Link^.DropList(false);}
 end;
 
-function TDDHelperLB.GetText(Item: sw_Integer; MaxLen: Integer): String;
+function TDDHelperLB.GetText(Item,MaxLen: Sw_Integer): String;
 var P: pointer;
     S: string;
 begin
@@ -1681,14 +1681,14 @@ begin
    end;
 end;
 
-procedure TDDHelperLB.SelectItem(Item: Integer);
+procedure TDDHelperLB.SelectItem(Item: Sw_Integer);
 begin
   inherited SelectItem(Item);
   Link^.FocusItem(Focused);
   Link^.DropList(false);
 end;
 
-constructor TDropDownListBox.Init(var Bounds: TRect; ADropLineCount: integer; AList: PCollection);
+constructor TDropDownListBox.Init(var Bounds: TRect; ADropLineCount: Sw_integer; AList: PCollection);
 begin
   inherited Init(Bounds);
   Options:=Options or (ofSelectable);
@@ -1749,7 +1749,7 @@ begin
   inherited HandleEvent(Event);
 end;
 
-function TDropDownListBox.GetText(Item: pointer; MaxLen: integer): string;
+function TDropDownListBox.GetText(Item: pointer; MaxLen: Sw_integer): string;
 var S: string;
 begin
   S:=GetStr(Item);
@@ -1935,7 +1935,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  1999-03-23 15:11:42  peter
+  Revision 1.5  1999-03-23 16:16:44  peter
+    * linux fixes
+
+  Revision 1.4  1999/03/23 15:11:42  peter
     * desktop saving things
     * vesa mode
     * preferences dialog

@@ -42,30 +42,37 @@ end;
 
 function WriteHistory(F: PResourceFile): boolean;
 begin
+  WriteHistory:=true;
 end;
 
 function WriteClipboard(F: PResourceFile): boolean;
 begin
+  WriteClipboard:=true;
 end;
 
 function WriteWatches(F: PResourceFile): boolean;
 begin
+  WriteWatches:=true;
 end;
 
 function WriteBreakpoints(F: PResourceFile): boolean;
 begin
+  WriteBreakPoints:=true;
 end;
 
 function WriteOpenWindows(F: PResourceFile): boolean;
 begin
+  WriteOpenWindows:=true;
 end;
 
 function WriteSymbols(F: PResourceFile): boolean;
 begin
+  WriteSymbols:=true;
 end;
 
 function LoadDesktop: boolean;
 begin
+  LoadDesktop:=true;
 end;
 
 function SaveDesktop: boolean;
@@ -93,7 +100,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  1999-03-23 15:11:28  peter
+  Revision 1.2  1999-03-23 16:16:39  peter
+    * linux fixes
+
+  Revision 1.1  1999/03/23 15:11:28  peter
     * desktop saving things
     * vesa mode
     * preferences dialog

@@ -17,6 +17,12 @@ unit FPViews;
 
 interface
 
+{$ifndef LINUX}
+  {$ifndef FV20}
+    {$define VESA}
+  {$endif}
+{$endif}
+
 uses
   Dos,Objects,Drivers,Commands,HelpCtx,Views,Menus,Dialogs,App,Gadgets,
   ASCIITAB,
@@ -307,7 +313,7 @@ function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tr
 
 function StartEditor(Editor: PCodeEditor; FileName: string): boolean;
 
-{$ifndef FV20}
+{$ifdef VESA}
 procedure InitVESAScreenModes;
 {$endif}
 
@@ -337,7 +343,7 @@ implementation
 uses
   Video,Strings,Keyboard,Memory,MsgBox,Validate,
   Tokens,Version,
-  {$ifndef FV20}Vesa,{$endif}
+  {$ifdef VESA}Vesa,{$endif}
   FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompile,FPHelp;
 
 const
@@ -2461,7 +2467,7 @@ begin
   GetText:=copy(S,1,MaxLen);
 end;
 
-{$ifndef FV20}
+{$ifdef VESA}
 function VESASetVideoModeProc(const VideoMode: TVideoMode; Params: Longint): Boolean; {$ifndef FPC}far;{$endif}
 begin
   VESASetMode(Params);
@@ -2488,7 +2494,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.25  1999-03-23 15:11:37  peter
+  Revision 1.26  1999-03-23 16:16:41  peter
+    * linux fixes
+
+  Revision 1.25  1999/03/23 15:11:37  peter
     * desktop saving things
     * vesa mode
     * preferences dialog

@@ -15,11 +15,17 @@
  **********************************************************************}
 program FP;
 
+{$ifndef LINUX}
+  {$ifndef FV20}
+    {$define VESA}
+  {$endif}
+{$endif}
+
 uses
 {$ifdef IDEHeapTrc}
   HeapTrc,
 {$endif IDEHeapTrc}
-  Dos,
+  Dos,Objects,
   BrowCol,
   WViews,
   FPIDE,
@@ -39,7 +45,7 @@ procedure ProcessParams(BeforeINI: boolean);
           and (Param[1] in ['-','/']);           { <- but still accept dos switch char, eg. '/' }
   end;
 
-var I: integer;
+var I: Sw_integer;
     Param: string;
 begin
   for I:=1 to ParamCount do
@@ -80,7 +86,7 @@ BEGIN
 
   ProcessParams(true);
 
-{$ifndef FV20}
+{$ifdef VESA}
   InitVESAScreenModes;
 {$endif}
   InitRedir;
@@ -139,7 +145,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.19  1999-03-23 15:11:26  peter
+  Revision 1.20  1999-03-23 16:16:36  peter
+    * linux fixes
+
+  Revision 1.19  1999/03/23 15:11:26  peter
     * desktop saving things
     * vesa mode
     * preferences dialog

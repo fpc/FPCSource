@@ -51,8 +51,6 @@ type
        TableOfs   : longint;
      end;
 
-     PResourceFile = ^TResourceFile;
-
      PResourceEntry = ^TResourceEntry;
      TResourceEntry = object(TObject)
        constructor Init(AID, ALangID, AFlags, ADataLen: longint);
@@ -93,12 +91,12 @@ type
        procedure   BuildHeader(var Header : TResourceHeader);
      end;
 
-     PResourceCollection = ^TResourceCollection;
      TResourceCollection = object(TSortedCollection)
        function  At(Index: Sw_Integer): PResource;
        function  Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
        function  SearchResourceByName(const AName: string): PResource;
      end;
+     PResourceCollection = ^TResourceCollection;
 
      TResourceFile = object(TObject)
        constructor Init(var RS: TStream; ALoad: boolean);
@@ -137,6 +135,7 @@ type
        procedure  WriteHeader;
        procedure  WriteResourceTable;
      end;
+     PResourceFile = ^TResourceFile;
 
      PSimpleResourceFile = ^TSimpleResourceFile;
      TSimpleResourceFile = object(TResourceFile)
@@ -702,7 +701,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  1999-03-23 15:11:40  peter
+  Revision 1.3  1999-03-23 16:16:43  peter
+    * linux fixes
+
+  Revision 1.2  1999/03/23 15:11:40  peter
     * desktop saving things
     * vesa mode
     * preferences dialog

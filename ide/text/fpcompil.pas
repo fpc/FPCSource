@@ -17,6 +17,14 @@ unit FPCompile;
 
 interface
 
+{ don't redir under linux, because all stdout (also from the ide!) will
+  then be redired (PFV) }
+{$ifndef debug}
+  {$ifndef linux}
+    {$define redircompiler}
+  {$endif}
+{$endif}
+
 { $define VERBOSETXT}
 
 uses
@@ -94,7 +102,9 @@ uses
   App,Commands,
   CompHook,
   WEditor,
+{$ifdef redircompiler}
   FPRedir,
+{$endif}
   FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
 const
@@ -524,13 +534,10 @@ begin
   do_stop:=CompilerStop;
   do_comment:=CompilerComment;
 
-{$ifndef debug}
-  { this avoids all flickers
-    and allows to get assembler and linker messages
-    but also forbids to use GDB inside !! }
+{$ifdef redircompiler}
   ChangeRedirOut('fp$$$.out',false);
   ChangeRedirError('fp$$$.err',false);
-{$endif ndef debug}
+{$endif}
 {$ifdef TEMPHEAP}
   split_heap;
   switch_to_temp_heap;
@@ -539,10 +546,10 @@ begin
 {$ifdef TEMPHEAP}
   switch_to_base_heap;
 {$endif TEMPHEAP}
-{$ifdef go32v2}
+{$ifdef redircompiler}
   RestoreRedirOut;
   RestoreRedirError;
-{$endif def go32v2}
+{$endif}
 
 { endcompilation returns true if the messagewindow should be removed }
   if CompilerMessageWindow^.EndCompilation then
@@ -749,13 +756,10 @@ begin
   do_stop:=CompilerStop;
   do_comment:=CompilerComment;
 
-{$ifndef debug}
-  { this avoids all flickers
-    and allows to get assembler and linker messages
-    but also forbids to use GDB inside !! }
+{$ifdef redircompiler}
   ChangeRedirOut('fp$$$.out',false);
   ChangeRedirError('fp$$$.err',false);
-{$endif ndef debug}
+{$endif}
 {$ifdef TEMPHEAP}
   split_heap;
   switch_to_temp_heap;
@@ -764,10 +768,10 @@ begin
 {$ifdef TEMPHEAP}
   switch_to_base_heap;
 {$endif TEMPHEAP}
-{$ifdef go32v2}
+{$ifdef redircompiler}
   RestoreRedirOut;
   RestoreRedirError;
-{$endif def go32v2}
+{$endif}
 
   if status.errorCount=0
      then CompilationPhase:=cpDone
@@ -800,7 +804,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  1999-03-19 16:04:27  peter
+  Revision 1.20  1999-03-23 16:16:38  peter
+    * linux fixes
+
+  Revision 1.19  1999/03/19 16:04:27  peter
     * new compiler dialog
 
   Revision 1.18  1999/03/16 12:38:07  peter

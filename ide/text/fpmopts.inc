@@ -554,12 +554,12 @@ end;*)
 type
      PVideoModeCollection = ^TVideoModeCollection;
      TVideoModeCollection = object(TSortedCollection)
-       function  Compare(Key1, Key2: Pointer): Integer; virtual;
+       function  Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
        procedure FreeItem(Item: Pointer); virtual;
      end;
 
-function TVideoModeCollection.Compare(Key1, Key2: Pointer): Integer;
-var R: integer;
+function TVideoModeCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
+var R: Sw_integer;
     K1: PVideoModeList absolute Key1;
     K2: PVideoModeList absolute Key2;
 begin
@@ -592,13 +592,13 @@ begin
     end;
   SearchVideoMode:=I;
 end;
-var R,R2,R3: TRect;
+var R,R2: TRect;
     D: PCenterDialog;
     C: PVideoModeCollection;
     VMLB: PVideoModeListBox;
     VP: PVideoModeList;
     VM: TVideoMode;
-    RB1,RB2: PPlainRadioButtons;
+    RB1: PPlainRadioButtons;
     CB1,CB2: PPlainCheckBoxes;
     CurM: PVideoModeList;
     CurIdx: integer;
@@ -1065,7 +1065,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  1999-03-23 15:11:33  peter
+  Revision 1.24  1999-03-23 16:16:40  peter
+    * linux fixes
+
+  Revision 1.23  1999/03/23 15:11:33  peter
     * desktop saving things
     * vesa mode
     * preferences dialog
