@@ -55,6 +55,53 @@ Begin
      not(regLoadedWithNewValue(reg,false,p)));
 End;
 
+function doFpuLoadStoreOpt(asmL: paasmoutput; var p: pai): boolean;
+{ returns true if a "continue" should be done after this optimization }
+var hp1, hp2: pai;
+begin
+  doFpuLoadStoreOpt := false;
+  if (paicpu(p)^.oper[0].typ = top_ref) and
+     getNextInstruction(p, hp1) and
+     (hp1^.typ = ait_instruction) and
+     (((paicpu(hp1)^.opcode = A_FLD) and
+       (paicpu(p)^.opcode = A_FSTP)) or
+      ((paicpu(p)^.opcode = A_FISTP) and
+       (paicpu(hp1)^.opcode = A_FILD))) and
+     (paicpu(hp1)^.oper[0].typ = top_ref) and
+     (paicpu(hp1)^.opsize = Paicpu(p)^.opsize) and
+     refsEqual(paicpu(p)^.oper[0].ref^, paicpu(hp1)^.oper[0].ref^) then
+    begin
+      if getNextInstruction(hp1, hp2) and
+         (hp2^.typ = ait_instruction) and
+         ((paicpu(hp2)^.opcode = A_LEAVE) or
+          (paicpu(hp2)^.opcode = A_RET)) and
+         (paicpu(p)^.oper[0].ref^.Base = procinfo^.FramePointer) and
+         (paicpu(p)^.oper[0].ref^.Offset >= procinfo^.Return_Offset) and
+         (paicpu(p)^.oper[0].ref^.Index = R_NO) then
+        begin
+          asmL^.remove(p);
+          asmL^.remove(hp1);
+          dispose(p, done);
+          dispose(hp1, done);
+          p := hp2;
+          removeLastDeallocForFuncRes(asmL, p);
+          doFPULoadStoreOpt := true;
+        end
+      else
+        { fst can't store an extended value! }
+        if (paicpu(p)^.opsize <> S_FX) and
+           (paicpu(p)^.opsize <> S_IQ) then
+          begin
+            if (paicpu(p)^.opcode = A_FSTP) then
+              paicpu(p)^.opcode := A_FST
+            else Paicpu(p)^.opcode := A_FIST;
+            asmL^.remove(hp1);
+            dispose(hp1, done)
+          end
+    end;
+end;
+
+
 Procedure PeepHoleOptPass1(Asml: PAasmOutput; BlockStart, BlockEnd: Pai);
 {First pass of peepholeoptimizations}
 
@@ -485,49 +532,8 @@ Begin
                       End
                 End;
               A_FSTP,A_FISTP:
-                Begin
-                  If (Paicpu(p)^.oper[0].typ = top_ref) And
-                     GetNextInstruction(p, hp1) And
-                     (Pai(hp1)^.typ = ait_instruction) And
-                     (((Paicpu(hp1)^.opcode = A_FLD) And
-                       (Paicpu(p)^.opcode = A_FSTP)) Or
-                      ((Paicpu(p)^.opcode = A_FISTP) And
-                       (Paicpu(hp1)^.opcode = A_FILD))) And
-                     (Paicpu(hp1)^.oper[0].typ = top_ref) And
-                     (Paicpu(hp1)^.opsize = Paicpu(p)^.opsize) And
-                     RefsEqual(Paicpu(p)^.oper[0].ref^, Paicpu(hp1)^.oper[0].ref^)
-                    Then
-                      Begin
-                        If GetNextInstruction(hp1, hp2) And
-                           (hp2^.typ = ait_instruction) And
-                           ((Paicpu(hp2)^.opcode = A_LEAVE) Or
-                            (Paicpu(hp2)^.opcode = A_RET)) And
-                           (Paicpu(p)^.oper[0].ref^.Base = procinfo^.FramePointer) And
-                           (Paicpu(p)^.oper[0].ref^.Offset >= procinfo^.Return_Offset) And
-                           (Paicpu(p)^.oper[0].ref^.Index = R_NO)
-                          Then
-                            Begin
-                              AsmL^.Remove(p);
-                              AsmL^.Remove(hp1);
-                              Dispose(p, Done);
-                              Dispose(hp1, Done);
-                              p := hp2;
-                              RemoveLastDeallocForFuncRes(asmL, p);
-                              Continue
-                            End
-                          Else
-                   {fst can't store an extended value!}
-                           If (Paicpu(p)^.opsize <> S_FX) And
-                              (Paicpu(p)^.opsize <> S_IQ) Then
-                             Begin
-                               If (Paicpu(p)^.opcode = A_FSTP) Then
-                                 Paicpu(p)^.opcode := A_FST
-                               Else Paicpu(p)^.opcode := A_FIST;
-                               AsmL^.Remove(hp1);
-                               Dispose(hp1, done)
-                             End
-                      End;
-                End;
+                if doFpuLoadStoreOpt(asmL,p) then
+                  continue;
               A_IMUL:
                 {changes certain "imul const, %reg"'s to lea sequences}
                 Begin
@@ -1729,6 +1735,9 @@ Begin
                        end;
                   end;
 {$endif USECMOV}
+              A_FSTP,A_FISTP:
+                if doFpuLoadStoreOpt(asmL,p) then
+                  continue;
               A_MOV:
                 Begin
                   If (Paicpu(p)^.oper[0].typ = top_reg) And
@@ -1856,7 +1865,10 @@ End.
 
 {
  $Log$
- Revision 1.82  2000-01-24 12:17:24  florian
+ Revision 1.83  2000-02-04 13:53:04  jonas
+   * fpuloadstore optimizations are now done before and after the CSE
+
+ Revision 1.82  2000/01/24 12:17:24  florian
    * some improvemenst to cmov support
    * disabled excpetion frame generation in cosntructors temporarily
 
