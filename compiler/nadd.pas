@@ -805,8 +805,9 @@ implementation
                         (tordconstnode(right).value >= 0) then
                        inserttypeconv(right,u32inttype);
                      { when one of the operand is signed perform
-                       the operation in 64bit }
-                     if is_signed(ld) or is_signed(rd) then
+                       the operation in 64bit, can't use rd/ld here because there
+                       could be already typeconvs inserted }
+                     if is_signed(left.resulttype.def) or is_signed(right.resulttype.def) then
                        begin
                          CGMessage(type_w_mixed_signed_unsigned);
                          inserttypeconv(left,s64inttype);
@@ -814,9 +815,9 @@ implementation
                        end
                      else
                        begin
-                         if (torddef(ld).typ<>u32bit) then
+                         if (torddef(left.resulttype.def).typ<>u32bit) then
                            inserttypeconv(left,u32inttype);
-                         if (torddef(rd).typ<>u32bit) then
+                         if (torddef(right.resulttype.def).typ<>u32bit) then
                            inserttypeconv(right,u32inttype);
                        end;
                    end;
@@ -1977,7 +1978,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.122  2004-05-23 14:14:18  florian
+  Revision 1.123  2004-05-28 21:13:44  peter
+    * fix cardinal+constint
+
+  Revision 1.122  2004/05/23 14:14:18  florian
     + added set of widechar support (limited to 256 chars, is delphi compatible)
 
   Revision 1.121  2004/05/23 14:08:39  peter
