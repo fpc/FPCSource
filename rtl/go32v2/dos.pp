@@ -403,7 +403,6 @@ end;
 
 procedure getcbreak(var breakvalue : boolean);
 begin
-  DosError:=0;
   dosregs.ax:=$3300;
   msdos(dosregs);
   breakvalue:=dosregs.dl<>0;
@@ -412,7 +411,6 @@ end;
 
 procedure setcbreak(breakvalue : boolean);
 begin
-  DosError:=0;
   dosregs.ax:=$3301;
   dosregs.dl:=ord(breakvalue);
   msdos(dosregs);
@@ -421,7 +419,6 @@ end;
 
 procedure getverify(var verify : boolean);
 begin
-  DosError:=0;
   dosregs.ah:=$54;
   msdos(dosregs);
   verify:=dosregs.al<>0;
@@ -430,7 +427,6 @@ end;
 
 procedure setverify(verify : boolean);
 begin
-  DosError:=0;
   dosregs.ah:=$2e;
   dosregs.al:=ord(verify);
   msdos(dosregs);
@@ -464,54 +460,52 @@ VAR
 BEGIN
  if (swap(dosversion)>=$070A) AND LFNSupport then
   begin
-    S:='C:\'#0;
-    if Drive=0 then
-     begin
-      GetDir(Drive,S);
-      Setlength(S,4);
-      S[4]:=#0;
-     end
-    else
-     S[1]:=chr(Drive+64);
-    Rec.Strucversion:=0;
-    dosmemput(tb_segment,tb_offset,Rec,SIZEOF(ExtendedFat32FreeSpaceRec));
-    dosmemput(tb_segment,tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1,S[1],4);
-    dosregs.dx:=tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1;
-    dosregs.ds:=tb_segment;
-    dosregs.di:=tb_offset;
-    dosregs.es:=tb_segment;
-    dosregs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
-    dosregs.ax:=$7303;
-    msdos(dosregs);
-    copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
-    if (dosregs.flags and fcarry) = 0 then {No error clausule in int except cf}
-     begin
-       copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
-       if Free then
-        Do_DiskData:=int64(rec.AvailAllocUnits)*rec.SecPerClus*rec.BytePerSec
-       else
-        Do_DiskData:=int64(rec.TotalAllocUnits)*rec.SecPerClus*rec.BytePerSec;
-     end
-    else
-     Do_DiskData:=-1;
+   S:='C:\'#0;
+   if Drive=0 then
+    begin
+     GetDir(Drive,S);
+     Setlength(S,4);
+     S[4]:=#0;
+    end
+   else
+    S[1]:=chr(Drive+64);
+   Rec.Strucversion:=0;
+   dosmemput(tb_segment,tb_offset,Rec,SIZEOF(ExtendedFat32FreeSpaceRec));
+   dosmemput(tb_segment,tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1,S[1],4);
+   dosregs.dx:=tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1;
+   dosregs.ds:=tb_segment;
+   dosregs.di:=tb_offset;
+   dosregs.es:=tb_segment;
+   dosregs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
+   dosregs.ax:=$7303;
+   msdos(dosregs);
+   if (dosregs.flags and fcarry) = 0 then {No error clausule in int except cf}
+    begin
+      copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
+      if Free then
+       Do_DiskData:=int64(rec.AvailAllocUnits)*rec.SecPerClus*rec.BytePerSec
+      else
+       Do_DiskData:=int64(rec.TotalAllocUnits)*rec.SecPerClus*rec.BytePerSec;
+    end
+   else
+    Do_DiskData:=-1;
   end
  else
   begin
-    dosregs.dl:=drive;
-    dosregs.ah:=$36;
-    msdos(dosregs);
-    if dosregs.ax<>$FFFF then
-     begin
-      if Free then
-       Do_DiskData:=int64(dosregs.ax)*dosregs.bx*dosregs.cx
-      else
-       Do_DiskData:=int64(dosregs.ax)*dosregs.cx*dosregs.dx;
-     end
-    else
-     do_diskdata:=-1;
+   dosregs.dl:=drive;
+   dosregs.ah:=$36;
+   msdos(dosregs);
+   if dosregs.ax<>$FFFF then
+    begin
+     if Free then
+      Do_DiskData:=int64(dosregs.ax)*dosregs.bx*dosregs.cx
+     else
+      Do_DiskData:=int64(dosregs.ax)*dosregs.cx*dosregs.dx;
+    end
+   else
+    do_diskdata:=-1;
   end;
 end;
-
 
 function diskfree(drive : byte) : int64;
 begin
@@ -545,7 +539,7 @@ type
     shortname : array[0..13] of byte;
   end;
 
-procedure LFNSearchRec2Dos(const w:LFNSearchRec;hdl:longint;var d:Searchrec);
+procedure LFNSearchRec2Dos(const w:LFNSearchRec;hdl:longint;var d:Searchrec;from_findfirst : boolean);
 var
   Len : longint;
 begin
@@ -561,6 +555,8 @@ begin
      d.Time:=lmTime;
      d.Size:=Size;
      d.Attr:=Attr and $FF;
+     if (DosError<>0) and from_findfirst then
+       hdl:=-1;
      Move(hdl,d.Fill,4);
    end;
 end;
@@ -589,7 +585,7 @@ begin
   msdos(dosregs);
   LoadDosError;
   copyfromdos(w,sizeof(LFNSearchRec));
-  LFNSearchRec2Dos(w,dosregs.ax,s);
+  LFNSearchRec2Dos(w,dosregs.ax,s,true);
 end;
 
 
@@ -607,7 +603,7 @@ begin
   msdos(dosregs);
   LoadDosError;
   copyfromdos(w,sizeof(LFNSearchRec));
-  LFNSearchRec2Dos(w,hdl,s);
+  LFNSearchRec2Dos(w,hdl,s,false);
 end;
 
 
@@ -616,6 +612,12 @@ var
   hdl : longint;
 begin
   Move(s.Fill,hdl,4);
+  { Do not call MsDos if FindFirst returned with an error }
+  if hdl=-1 then
+    begin
+      DosError:=0;
+      exit;
+    end;
   dosregs.ebx:=hdl;
   dosregs.ax:=$71a1;
   msdos(dosregs);
@@ -727,9 +729,9 @@ procedure swapvectors;
 begin
   if _exception_exit<>nil then
     if _v2prt0_exceptions_on then
-      _swap_in()
+      _swap_out()
     else
-      _swap_out();
+      _swap_in();
 end;
 
 
@@ -1047,37 +1049,108 @@ End;
 end.
 {
   $Log$
-  Revision 1.13  2001-10-12 16:04:15  peter
-    * fix error return in disksize (merged)
+  Revision 1.14  2001-11-23 00:18:54  carl
+  * completely merged from fixes branch
 
-  Revision 1.12  2001/03/16 20:09:58  hajny
-    * universal FExpand
+  Revision 1.1.2.15  2001/10/04 11:23:22  pierre
+   * fix failure check for do_diskdata with LFN support
 
-  Revision 1.11  2000/12/16 15:27:15  peter
-    * fixed disksize to return -1 on error
+  Revision 1.1.2.14  2001/06/13 22:13:15  hajny
+    * universal FExpand merged
 
-  Revision 1.10  2000/10/11 15:38:03  peter
-    * diskfree doserror fix (merged)
+  Revision 1.1.2.13  2001/06/06 11:05:27  pierre
+   * correct SwapVectors behavior
 
-  Revision 1.9  2000/09/06 20:47:34  peter
+  Revision 1.1.2.12  2000/12/16 15:34:28  peter
+    * fixed disksize return -1 for error
+
+  Revision 1.1.2.11  2000/10/11 15:38:17  peter
+    * diskfree doserror fix
+
+  Revision 1.1.2.10  2000/09/22 10:09:42  pierre
+   * fix LFN handle problem if FindFirst fails
+
+  Revision 1.1.2.9  2000/09/22 08:42:51  pierre
+   * fix wrong DiskSize report
+
+  Revision 1.1.2.8  2000/09/06 20:46:18  peter
     * removed previous fsplit() patch as it's not the correct behaviour for
-      LFNs. The code showing the bug could easily be adapted (merged)
+      LFNs. The code showing the bug could easily be adapted
 
-  Revision 1.8  2000/09/04 20:17:53  peter
-    * fixed previous commit (merged)
+  Revision 1.1.2.7  2000/09/04 20:15:22  peter
+    * fixed previous commit
 
-  Revision 1.7  2000/09/04 19:38:12  peter
-    * fsplit with .. fix from Thomas (merged)
+  Revision 1.1.2.6  2000/09/04 19:36:24  peter
+    * fsplit with .. fix from Thomas
 
-  Revision 1.6  2000/08/04 21:45:39  peter
-    * getenv case insensitive (merged)
+  Revision 1.1.2.5  2000/08/04 21:40:25  peter
+    * getenv is case insentive, needed for windir and winbootdir envs
 
-  Revision 1.4  2000/07/22 12:24:55  jonas
-    * merged dossearchrec2searchrec() fix from fixes branch
+  Revision 1.1.2.4  2000/08/02 19:34:14  peter
+    * more doserror fixes
 
-  Revision 1.3  2000/07/14 10:33:09  michael
-  + Conditionals fixed
+  Revision 1.1.2.3  2000/07/30 17:06:23  peter
+    * removed dos lf
 
-  Revision 1.2  2000/07/13 11:33:39  michael
-  + removed logs
+  Revision 1.1.2.2  2000/07/30 16:35:44  peter
+    * don't set doserror in gettime/settime/getdate/setdate, tp compatible
+
+  Revision 1.1.2.1  2000/07/22 12:21:30  jonas
+    * fixed buffer overrun error in dossearchrec2searchrec when a file
+      is not found (at least it happened in OS/2's VDM)
+
+  Revision 1.1  2000/07/13 06:30:35  michael
+  + Initial import
+
+  Revision 1.24  2000/05/30 04:41:05  jonas
+    * fixed compiling problem with formal expression passed as var
+      parameter
+
+  Revision 1.23  2000/03/22 08:00:42  pierre
+   + allow double backslash for network drives
+
+  Revision 1.22  2000/02/09 16:59:28  peter
+    * truncated log
+
+  Revision 1.21  2000/02/09 13:00:32  peter
+    + getlongname
+
+  Revision 1.20  2000/02/02 17:34:49  pierre
+   * use int64 typecast to avoid overflows in diskfree and disksize
+
+  Revision 1.19  2000/01/23 16:31:23  peter
+    * hasint64diskspace define changed to int64 so it's default now
+
+  Revision 1.18  2000/01/23 12:28:38  marco
+   * Added diskfree and disksize with AH=71 dos functions (LFN/Fat32)
+
+  Revision 1.17  2000/01/07 16:41:30  daniel
+    * copyright 2000
+
+  Revision 1.16  2000/01/07 16:32:23  daniel
+    * copyright 2000 added
+
+  Revision 1.15  1999/12/06 18:26:49  peter
+    * fpcmake updated for win32 commandline
+
+  Revision 1.14  1999/11/09 11:07:50  pierre
+    * SwapVectors does not reset DosError anymore
+    + DosError is set to ax regsiter value if extended doserror function
+      retruns zero.
+    + Support for LFN in EXEC function using
+      function 7160 to get short filename counterpart
+
+  Revision 1.13  1999/11/06 14:38:23  peter
+    * truncated log
+
+  Revision 1.12  1999/09/10 17:14:09  peter
+    * better errorcode returning using int21h,5900
+
+  Revision 1.11  1999/09/08 18:55:49  peter
+    * pointer fixes
+
+  Revision 1.10  1999/08/13 21:23:15  peter
+    * fsearch checks first if the specified file exists and returns that
+      if it was found
+
 }
