@@ -7,7 +7,7 @@ var
  L:longint;
  S:string;
 begin
- assign(F,'TEST.PAS');                 { Assign F to itself }
+ assign(F,'tbs0098.pp');               { Assign F to itself }
  reset(F);                             { Open it (as a textfile) }
  ReadLn(F);                            { Just read some lines }
  ReadLn(F);
