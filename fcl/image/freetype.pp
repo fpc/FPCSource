@@ -367,7 +367,7 @@ end;
 function TFontManager.CreateFont (afilename:string; anindex:integer) : integer;
 var f : TMgrFont;
 begin
-  writeln ('creating font ',afilename,' (',anindex,')');
+//  writeln ('creating font ',afilename,' (',anindex,')');
   f := TMgrFont.Create (self, afilename, anindex);
   result := FList.Count;
   Flist.Add (f);

@@ -27,7 +27,7 @@ const
   {$packrecords c}
 {$else}
   // I don't know what it will be ??
-  freetypedll = 'freetype-6.dll';
+  freetypedll = 'freetype';
 {$endif}
 
 type

@@ -58,14 +58,19 @@ type
     property Angle : real read FAngle write FAngle;
   end;
 
-implementation
-
-uses sysutils, fpimage;
-
 var
   FontMgr : TFontManager;
 
 procedure InitEngine;
+procedure DoneEngine;
+
+
+implementation
+
+uses sysutils, fpimage;
+
+procedure InitEngine;
+
 begin
   if not assigned (FontMgr) then
     FontMgr := TFontManager.create;
