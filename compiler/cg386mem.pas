@@ -827,19 +827,20 @@ implementation
                  end
                else
                 { call can have happend with a property }
-{$ifndef noAllocEdi}
-                getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
-                if { (p^.left^.treetype=calln) and  Don't think that
-                      this is necessary (FK) }
-                   (p^.left^.resulttype^.deftype=objectdef) and
+                if (p^.left^.resulttype^.deftype=objectdef) and
                    pobjectdef(p^.left^.resulttype)^.is_class then
                  begin
+{$ifndef noAllocEdi}
+                    getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                     emit_mov_loc_reg(p^.left^.location,R_EDI);
                     usetemp:=true;
                  end
                else
                  begin
+{$ifndef noAllocEdi}
+                   getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                    emit_lea_loc_reg(p^.left^.location,R_EDI,false);
                    usetemp:=true;
                  end;
@@ -864,8 +865,7 @@ implementation
                   gettempofsizereference(4,p^.withreference^);
                   normaltemptopersistant(p^.withreference^.offset);
                   { move to temp reference }
-                  emit_reg_ref(A_MOV,S_L,
-                    R_EDI,newreference(p^.withreference^));
+                  emit_reg_ref(A_MOV,S_L,R_EDI,newreference(p^.withreference^));
 {$ifndef noAllocEdi}
                   ungetregister32(R_EDI);
 {$endif noAllocEdi}
@@ -891,7 +891,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2000-01-09 12:35:02  jonas
+  Revision 1.69  2000-01-09 15:19:23  peter
+    * fixed misplaced getexplicitreg(r_edi) which broke make cycle
+
+  Revision 1.68  2000/01/09 12:35:02  jonas
     * changed edi allocation to use getexplicitregister32/ungetregister
       (adapted tgeni386 a bit for this) and enabled it by default
     * fixed very big and stupid bug of mine in cg386mat that broke the
