@@ -21,7 +21,7 @@ unit xmlread;
 
 interface
 
-uses DOM, debug;
+uses DOM;
 
 function ReadXMLFile(var f: File): TXMLDocument;
 function ReadDTDFile(var f: File): TXMLDocument;
@@ -91,13 +91,11 @@ end;
 
 function TXMLReader.SkipWhitespace: Boolean;
 begin
-  dbg_push('SkipWhitespace');
   Result := False;
   while buf[0] in [#9, #10, #13, ' '] do begin
     Inc(buf);
     Result := True;
   end;
-  dbg_pop;
 end;
 
 procedure TXMLReader.ExpectWhitespace;
@@ -112,7 +110,6 @@ var
   s2: PChar;
   s3: String;
 begin
-  dbg_push('ExpectString');
   for i := 1 to Length(s) do
     if buf[i - 1] <> s[i] then begin
       GetMem(s2, Length(s) + 1);
@@ -122,37 +119,31 @@ begin
       RaiseExc('Expected "' + s + '", found "' + s3 + '"');
     end;
   Inc(buf, Length(s));
-  dbg_pop;
 end;
 
 function TXMLReader.CheckFor(s: PChar): Boolean;
 begin
-  dbg_push('CheckFor');
   if buf[0] = #0 then exit(False);
   if StrLComp(buf, s, StrLen(s)) = 0 then begin
     Inc(buf, StrLen(s));
     Result := True;
   end else
     Result := False;
-  dbg_pop;
 end;
 
 function TXMLReader.GetString(ValidChars: TSetOfChar): String;
 begin
-  dbg_push('GetString');
   Result := '';
   while buf[0] in ValidChars do begin
     Result := Result + buf[0];
     Inc(buf);
   end;
-  dbg_pop;
 end;
 
 function TXMLReader.ProcessXML(ABuf: PChar): TXMLDocument;    // [1]
 var
   LastNodeBeforeDoc: TDOMNode;
 begin
-  dbg_push('ProcessXML');
   buf := ABuf;
 
   doc := TXMLDocument.Create;
@@ -168,13 +159,11 @@ begin
   end;
 
   Result := doc;
-  dbg_pop;
 end;
 
 
 function TXMLReader.GetName(var s: String): Boolean;    // [5]
 begin
-  dbg_push('GetName. buf[0]=' + buf[0]);
   s := '';
   if not (buf[0] in (Letter + ['_', ':'])) then
     exit(False);
@@ -183,19 +172,16 @@ begin
   Inc(buf);
   s := s + GetString(Letter + ['0'..'9', '.', '-', '_', ':']);
   Result := True;
-  dbg_pop;
 end;
 
 function TXMLReader.ExpectName: String;    // [5]
 begin
-  dbg_push('ExpectName. buf[0]=' + buf[0]);
   if not (buf[0] in (Letter + ['_', ':'])) then
     RaiseExc('Expected letter, "_" or ":" for name, found "' + buf[0] + '"');
 
   Result := buf[0];
   Inc(buf);
   Result := Result + GetString(Letter + ['0'..'9', '.', '-', '_', ':']);
-  dbg_pop;
 end;
 
 procedure TXMLReader.ExpectAttValue(attr: TDOMAttr);    // [10]
@@ -203,7 +189,6 @@ var
   strdel: array[0..1] of Char;
   s: String;
 begin
-  dbg_push('ExpectAttValue');
   if (buf[0] <> '''') and (buf[0] <> '"') then
     RaiseExc('Expected quotation marks');
   strdel[0] := buf[0];
@@ -224,12 +209,10 @@ begin
   if s <> '' then
     attr.AppendChild(doc.CreateTextNode(s));
 
-  dbg_pop;
 end;
 
 function TXMLReader.ExpectPubidLiteral: String;
 begin
-  dbg_push('ExpectPubidLiteral');
   Result := '';
   if CheckFor('''') then begin
     GetString(PubidChars - ['''']);
@@ -239,12 +222,10 @@ begin
     ExpectString('"');
   end else
     RaiseExc('Expected quotation marks');
-  dbg_pop;
 end;
 
 function TXMLReader.ParseComment: Boolean;    // [15]
 begin
-  dbg_push('ParseComment');
   if CheckFor('<!--') then begin
     while (buf[0] <> #0) and (buf[1] <> #0) and
       ((buf[0] <> '-') or (buf[1] <> '-')) do Inc(buf);
@@ -252,14 +233,12 @@ begin
     Result := True;
   end else
     Result := False;
-  dbg_pop;
 end;
 
 function TXMLReader.ParsePI: Boolean;    // [16]
 var
   checkbuf: array[0..3] of char;
 begin
-  dbg_push('ParsePI');
   if CheckFor('<?') then begin
     StrLCopy(checkbuf, buf, 3);
     if UpCase(StrPas(checkbuf)) = 'XML' then
@@ -271,7 +250,6 @@ begin
     ExpectString('?>');
   end else
     Result := False;
-  dbg_pop;
 end;
 
 procedure TXMLReader.ExpectProlog;    // [22]
@@ -283,7 +261,6 @@ procedure TXMLReader.ExpectProlog;    // [22]
   end;
 
 begin
-  dbg_push('ExpectProlog');
   if CheckFor('<?xml') then begin
     // '<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
 
@@ -344,14 +321,12 @@ begin
     ParseMisc;
   end;
 
-  dbg_pop;
 end;
 
 function TXMLReader.ParseEq: Boolean;    // [25]
 var
   savedbuf: PChar;
 begin
-  dbg_push('ParseEq');
   savedbuf := buf;
   SkipWhitespace;
   if buf[0] = '=' then begin
@@ -362,7 +337,6 @@ begin
     buf := savedbuf;
     Result := False;
   end;
-  dbg_pop;
 end;
 
 procedure TXMLReader.ExpectEq;
@@ -377,11 +351,9 @@ end;
 
 procedure TXMLReader.ParseMisc;    // [27]
 begin
-  dbg_push('ParseMisc');
   repeat
     SkipWhitespace;
   until not (ParseComment or ParsePI);
-  dbg_pop;
 end;
 
 function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
@@ -392,7 +364,6 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
 
       procedure ExpectCP;    // [48]
       begin
-        dbg_push('ExpectCP');
         if CheckFor('(') then
 	  ExpectChoiceOrSeq
 	else
@@ -400,13 +371,11 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
 	if CheckFor('?') then
 	else if CheckFor('*') then
 	else if CheckFor('+') then;
-	dbg_pop;
       end;
 
     var
       delimiter: Char;
     begin
-      dbg_push('ExpectChoiceOrSeq');
       SkipWhitespace;
       ExpectCP;
       SkipWhitespace;
@@ -423,11 +392,9 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
 	SkipWhitespace;
 	ExpectCP;
       end;
-      dbg_pop;
     end;
 
   begin
-    dbg_push('ParseElementDecl');
     if CheckFor('<!ELEMENT') then begin
       ExpectWhitespace;
       WriteLn('Element decl: ', ExpectName);
@@ -465,14 +432,12 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       Result := True;
     end else
       Result := False;
-    dbg_pop;
   end;
 
   function ParseAttlistDecl: Boolean;    // [52]
   var
     attr: TDOMAttr;
   begin
-    dbg_push('ParseAttlistDecl');
     if CheckFor('<!ATTLIST') then begin
       ExpectWhitespace;
       ExpectName;
@@ -532,7 +497,6 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       Result := True;
     end else
       Result := False;
-    dbg_pop;
   end;
 
   function ParseEntityDecl: Boolean;    // [70]
@@ -542,7 +506,6 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       strdel: array[0..1] of Char;
     begin
       if (buf[0] <> '''') and (buf[0] <> '"') then exit(False);
-      dbg_push('ParseEntityValue');
       strdel[0] := buf[0];
       strdel[1] := #0;
       Inc(buf);
@@ -552,11 +515,9 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
 	else
 	  RaiseExc('Expected reference or PE reference');
       Result := True;
-      dbg_pop;
     end;
 
   begin
-    dbg_push('ParseEntityDecl');
     if CheckFor('<!ENTITY') then begin
       ExpectWhitespace;
       if CheckFor('%') then begin    // [72]
@@ -587,12 +548,10 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       Result := True;
     end else
       Result := False;
-    dbg_pop;
   end;
 
   function ParseNotationDecl: Boolean;    // [82]
   begin
-    dbg_push('ParseNotationDecl');
     if CheckFor('<!NOTATION') then begin
       ExpectWhitespace;
       ExpectName;
@@ -608,20 +567,16 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       Result := True;
     end else
       Result := False;
-    dbg_pop;
   end;
 
 begin
-  dbg_push('ParseMarkupDecl');
   Result := False;
   while ParseElementDecl or ParseAttlistDecl or ParseEntityDecl or
     ParseNotationDecl or ParsePI or ParseComment or SkipWhitespace do Result := True;
-  dbg_pop;
 end;
 
 function TXMLReader.ProcessDTD(ABuf: PChar): TXMLDocument;    // [1]
 begin
-  dbg_push('ProcessDTD');
   buf := ABuf;
 
   doc := TXMLDocument.Create;
@@ -634,7 +589,6 @@ begin
   end;
 
   Result := doc;
-  dbg_pop;
 end;
 
 function TXMLReader.ParseElement(owner: TDOMNode): Boolean;    // [39] [40] [44]
@@ -646,7 +600,6 @@ var
     s: String;
     i: Integer;
   begin
-    dbg_push('ParseCharData');
     s := '';
     while not (buf[0] in [#0, '<', '&']) do begin
       s := s + buf[0];
@@ -660,18 +613,15 @@ var
       Result := True;
     end else
       Result := False;
-    dbg_pop;
   end;
 
   function ParseCDSect: Boolean;    // [18]
   begin
-    dbg_push('ParseCDSect');
     if CheckFor('<![CDATA[') then begin
       while not CheckFor(']]>') do Inc(buf);
       Result := True;
     end else
       Result := False;
-    dbg_pop;
   end;
 
 var
@@ -681,22 +631,18 @@ var
 
   attr: TDOMAttr;
 begin
-  dbg_push('ParseElement');
   oldpos := buf;
   if CheckFor('<') then begin
     if not GetName(name) then begin
       buf := oldpos;
-      dbg_pop;
       exit(False);
     end;
 
     NewElem := doc.CreateElement(name);
     owner.AppendChild(NewElem);
 
-    dbg_push('Processing element ' + name);
     SkipWhitespace;
     IsEmpty := False;
-    dbg_push('Reading until end of tag');
     while True do begin
       if CheckFor('/>') then begin
         IsEmpty := True;
@@ -712,28 +658,22 @@ begin
 
       SkipWhitespace;
     end;
-    dbg_pop;
 
     if not IsEmpty then begin
       // Get content
-      dbg_push('Reading content');
       while SkipWhitespace or ParseCharData or ParseCDSect or ParsePI or
         ParseComment or ParseElement(NewElem) or ParseReference do;
 
       // Get ETag [42]
-      dbg_pop_push('Reading end tag');
       ExpectString('</');
       ExpectName;
       SkipWhitespace;
       ExpectString('>');
-      dbg_pop;
     end;
 
-    dbg_pop;
     Result := True;
   end else
     Result := False;
-  dbg_pop;
 end;
 
 procedure TXMLReader.ExpectElement(owner: TDOMNode);
@@ -744,25 +684,21 @@ end;
 
 function TXMLReader.ParsePEReference: Boolean;
 begin
-  dbg_push('ParsePEReference');
   if CheckFor('%') then begin
     ExpectName;
     ExpectString(';');
     Result := True;
   end else
     Result := False;
-  dbg_pop;
 end;
 
 function TXMLReader.ParseReference: Boolean;    // [67] [68] [69]
 begin
   if (buf[0] <> '&') and (buf[0] <> '%') then exit(False);
-  dbg_push('ParseReference ' + buf);
   Inc(buf);
   ExpectName;
   ExpectString(';');
   Result := True;
-  dbg_pop;
 end;
 
 procedure TXMLReader.ExpectReference;
@@ -776,7 +712,6 @@ function TXMLReader.ParseExternalID: Boolean;    // [75]
 
   function GetSystemLiteral: String;
   begin
-    dbg_push('GetSystemLiteral');
     if buf[0] = '''' then begin
       Inc(buf);
       Result := '';
@@ -794,11 +729,9 @@ function TXMLReader.ParseExternalID: Boolean;    // [75]
       end;
       ExpectString('"');
     end;
-    dbg_pop;
   end;
 
 begin
-  dbg_push('ParseExternalID');
   if CheckFor('SYSTEM') then begin
     ExpectWhitespace;
     GetSystemLiteral;
@@ -811,7 +744,6 @@ begin
     Result := True;
   end else
     Result := False;
-  dbg_pop;
 end;
 
 procedure TXMLReader.ExpectExternalID;
@@ -824,17 +756,14 @@ function TXMLReader.ParseEncodingDecl: String;    // [80]
 
   function ParseEncName: String;
   begin
-    dbg_push('ParseEncName');
     if not (buf[0] in ['A'..'Z', 'a'..'z']) then
       RaiseExc('Expected character (A-Z, a-z)');
     Result := buf[0];
     Inc(buf);
     Result := Result + GetString(['A'..'Z', 'a'..'z', '0'..'9', '.', '_', '-']);
-    dbg_pop;
   end;
 
 begin
-  dbg_push('ParseEncodingDecl');
   Result := '';
   SkipWhitespace;
   if CheckFor('encoding') then begin
@@ -849,7 +778,6 @@ begin
       ExpectString('"');
     end;
   end;
-  dbg_pop;
 end;
 
 
@@ -895,7 +823,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-07-09 08:35:09  michael
+  Revision 1.2  1999-07-09 10:42:50  michael
+  * Removed debug statements
+
+  Revision 1.1  1999/07/09 08:35:09  michael
   + Initial implementation by Sebastian Guenther
 
 }
