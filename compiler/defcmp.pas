@@ -1138,11 +1138,10 @@ implementation
 
 
     function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef):tequaltype;
-      const
-        po_comp = po_compatibility_options-[po_methodpointer];
       var
         ismethod : boolean;
         eq : tequaltype;
+        po_comp : tprocoptions;
       begin
          proc_to_procvar_equal:=te_incompatible;
          if not(assigned(def1)) or not(assigned(def2)) then
@@ -1164,6 +1163,9 @@ implementation
             exit;
           end;
          { check return value and options, methodpointer is already checked }
+         po_comp:=po_compatibility_options-[po_methodpointer];
+         if (m_delphi in aktmodeswitches) then
+           exclude(po_comp,po_varargs);
          if ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) and
             equal_defs(def1.rettype.def,def2.rettype.def) and
             (def1.para_size(target_info.alignment.paraalign)=def2.para_size(target_info.alignment.paraalign)) then
@@ -1196,7 +1198,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2002-12-29 14:57:50  peter
+  Revision 1.13  2002-12-29 18:15:19  peter
+    * varargs is not checked in proc->procvar for delphi
+
+  Revision 1.12  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed
