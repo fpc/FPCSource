@@ -1669,6 +1669,10 @@ begin
   def_symbol('HASINTF');
   def_symbol('HASVARIANT');
 {$endif i386}
+{$ifdef powerpc}
+  def_symbol('HASINTF');
+  def_symbol('HASVARIANT');
+{$endif powerpc}
   def_symbol('INTERNSETLENGTH');
   def_symbol('INTERNLENGTH');
   def_symbol('INTERNCOPY');
@@ -1985,7 +1989,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.115  2003-11-11 21:10:34  peter
+  Revision 1.116  2003-12-10 01:54:44  florian
+    * variants and interfaces on powerpc released
+
+  Revision 1.115  2003/11/11 21:10:34  peter
     * define REGCALL when pocall_default=pocall_register
 
   Revision 1.114  2003/11/07 15:58:32  florian
