@@ -475,7 +475,6 @@ interface
        taasmoutput = class(tlinkedlist)
           constructor create;
           function getlasttaifilepos : pfileposinfo;
-          procedure convert_registers;
           procedure translate_registers(const table:Ttranstable);
        end;
 
@@ -1815,46 +1814,6 @@ implementation
            end;
       end;
 
-    procedure Taasmoutput.convert_registers;
-
-    var p:Tai;
-        i:shortint;
-        r:Preference;
-
-    begin
-      p:=Tai(first);
-      while assigned(p) do
-        begin
-          case p.typ of
-            ait_regalloc:
-              convert_register_to_enum(Tai_regalloc(p).reg);
-            ait_instruction:
-              begin
-                for i:=0 to Taicpu_abstract(p).ops-1 do
-                  if Taicpu_abstract(p).oper[i].typ=Top_reg then
-                    begin
-                      if Taicpu_abstract(p).oper[i].reg.enum=R_NO then
-                        internalerror(200302052);
-                      convert_register_to_enum(Taicpu_abstract(p).oper[i].reg)
-                    end
-                  else if Taicpu_abstract(p).oper[i].typ=Top_ref then
-                    begin
-                      r:=Taicpu_abstract(p).oper[i].ref;
-                   {$ifdef i386}
-                      convert_register_to_enum(r^.segment);
-                   {$endif i386}
-                      convert_register_to_enum(r^.base);
-                      convert_register_to_enum(r^.index);
-                    end;
-              {$ifdef i386}
-                convert_register_to_enum(Taicpu_abstract(p).segprefix);
-              {$endif}
-              end;
-          end;
-          p:=Tai(p.next);
-        end;
-    end;
-
     procedure Taasmoutput.translate_registers(const table:Ttranstable);
 
     var p,q:Tai;
@@ -1901,7 +1860,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2003-08-20 20:29:06  daniel
+  Revision 1.35  2003-08-21 14:47:41  peter
+    * remove convert_registers
+
+  Revision 1.34  2003/08/20 20:29:06  daniel
     * Some more R_NO changes
     * Preventive code to loadref added
 

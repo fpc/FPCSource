@@ -791,7 +791,6 @@ implementation
         list.insertlistafter(headertai,templist);
         { Add exit code at the end }
         gen_exit_code(list,false,usesacc,usesacchi,usesfpu);
-{        list.convert_registers;}
         release_main_proc(pd);
         templist.free;
       end;
@@ -1465,7 +1464,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.118  2003-08-20 17:48:49  peter
+  Revision 1.119  2003-08-21 14:47:41  peter
+    * remove convert_registers
+
+  Revision 1.118  2003/08/20 17:48:49  peter
     * fixed stackalloc to not allocate localst.datasize twice
     * order of stackalloc code fixed for implicit init/final
 

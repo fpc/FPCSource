@@ -1011,7 +1011,6 @@ implementation
           end;
         dataSegment.concatlist(rawdata);
         rawdata.free;
-{        rawcode.convert_registers;}
         codeSegment.concatlist(rawcode);
         rawcode.free;
         freemem(impintfindexes,(max+1)*sizeof(longint));
@@ -1328,7 +1327,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.46  2003-08-20 09:07:00  daniel
+  Revision 1.47  2003-08-21 14:47:41  peter
+    * remove convert_registers
+
+  Revision 1.46  2003/08/20 09:07:00  daniel
     * New register coding now mandatory, some more convert_registers calls
       removed.
 

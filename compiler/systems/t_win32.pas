@@ -560,7 +560,6 @@ const
 
               hp1:=timportlist(hp1.next);
            end;
-         importsSection.convert_registers;
       end;
 
 
@@ -1628,7 +1627,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2003-08-20 20:50:18  daniel
+  Revision 1.18  2003-08-21 14:47:41  peter
+    * remove convert_registers
+
+  Revision 1.17  2003/08/20 20:50:18  daniel
     * convert_registers call removed from t_win32.pas
 
   Revision 1.16  2003/05/13 15:15:25  peter
