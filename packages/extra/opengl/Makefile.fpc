@@ -21,6 +21,9 @@ units_openbsd=dllfuncs glx
 
 exampledirs=examples
 
+[compiler]
+targetdir=$(OS_TARGET)
+
 [install]
 fpcpackage=y
 
