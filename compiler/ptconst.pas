@@ -60,6 +60,9 @@ implementation
     { this procedure reads typed constants }
     procedure readtypedconst(const t:ttype;sym : ttypedconstsym;writable : boolean);
 
+      type
+         setbytes = array[0..31] of byte;
+         Psetbytes = ^setbytes;
       var
          len,base  : longint;
          p,hp,hpstart : tnode;
@@ -82,25 +85,24 @@ implementation
          strval    : pchar;
          pw        : pcompilerwidestring;
          error     : boolean;
+         old_block_type : tblock_type;
 
-      type
-         setbytes = array[0..31] of byte;
-         Psetbytes = ^setbytes;
-
-      procedure check_range(def:torddef);
-        begin
-           if ((tordconstnode(p).value>def.high) or
-               (tordconstnode(p).value<def.low)) then
-             begin
-                if (cs_check_range in aktlocalswitches) then
-                  Message(parser_e_range_check_error)
-                else
-                  Message(parser_w_range_check_error);
-             end;
-        end;
+         procedure check_range(def:torddef);
+         begin
+            if ((tordconstnode(p).value>def.high) or
+                (tordconstnode(p).value<def.low)) then
+              begin
+                 if (cs_check_range in aktlocalswitches) then
+                   Message(parser_e_range_check_error)
+                 else
+                   Message(parser_w_range_check_error);
+              end;
+         end;
 
 {$R-}  {Range check creates problem with init_8bit(-1) !!}
       begin
+         old_block_type:=block_type;
+         block_type:=bt_const;
          if writable then
            curconstsegment:=datasegment
          else
@@ -1017,6 +1019,7 @@ implementation
            end;
          else Message(parser_e_type_const_not_possible);
          end;
+         block_type:=old_block_type;
       end;
 {$ifdef fpc}
   {$maxfpuregisters default}
@@ -1025,7 +1028,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2004-03-18 11:43:57  olle
+  Revision 1.83  2004-04-11 10:44:23  peter
+    * block_type is bt_const when parsing typed consts
+
+  Revision 1.82  2004/03/18 11:43:57  olle
     * change AT_FUNCTION to AT_DATA where appropriate
 
   Revision 1.81  2004/03/17 22:27:41  florian
