@@ -288,8 +288,8 @@ Begin
                             End
                           Else
                       { change              to
-                          fldl/fstl mem1         fldl/fstl mem1
-                          fldl      mem1         fldl      st}
+                          fld/fst mem1         fld/fst mem1
+                          fld      mem1         fld      st}
                             Begin
                               Pai386(p)^.Size := S_FL;
                               Clear_Reference(TReference(Pai386(p)^.Op1^));
@@ -300,7 +300,7 @@ Begin
                           Begin
                             If (Pai386(hp2)^._operator in [A_FMULP, A_FADDP]) Then
                          { change                        to
-                             fld        mem1  (hp1)      fld        mem1
+                             fld/fst    mem1  (hp1)      fld/fst    mem1
                              fld        mem2  (p)
                              faddp            (hp2)      faddp
                                /fmulp   st, st1            /fmulp   mem2 }
@@ -320,16 +320,19 @@ Begin
                       fsub(r)p/                 fsub(r)p/
                        fdiv(r)p st, st1          fdiv(r)p mem1 }
                         Begin
-                          AsmL^.Remove(hp1);
-                          InsertLLItem(AsmL, p, p^.Next, hp1);
-                          Case Pai386(hp2)^._operator of
-                            A_FSUBP: Pai386(hp1)^._operator := A_FSUB;
-                            A_FDIVP: Pai386(hp1)^._operator := A_FDIV;
-                            A_FSUBRP: Pai386(hp1)^._operator := A_FSUBR;
-                            A_FDIVRP: Pai386(hp1)^._operator := A_FDIVR;
-                          End;
-                          AsmL^.Remove(hp2);
-                          Dispose(hp2, Done);
+                          If (Pai386(hp1)^._operator = A_FLD) Then
+                            Begin
+                              AsmL^.Remove(hp1);
+                              InsertLLItem(AsmL, p, p^.Next, hp1);
+                              Case Pai386(hp2)^._operator of
+                                A_FSUBP: Pai386(hp1)^._operator := A_FSUB;
+                                A_FDIVP: Pai386(hp1)^._operator := A_FDIV;
+                                A_FSUBRP: Pai386(hp1)^._operator := A_FSUBR;
+                                A_FDIVRP: Pai386(hp1)^._operator := A_FDIVR;
+                              End;
+                              AsmL^.Remove(hp2);
+                             Dispose(hp2, Done);
+                            End
                         End
                     Else
                  { change                        to
@@ -1527,9 +1530,8 @@ End.
 
 {
  $Log$
- Revision 1.20  1998-10-28 12:32:46  jonas
-   + no loading of values on the fpu stack if the memory expression can be used
-     inside the next mathematical operation
+ Revision 1.21  1998-10-28 19:51:15  jonas
+   * bugfix in fpu optimizations for single division/substraction
 
  Revision 1.19  1998/10/23 15:38:23  jonas
    + some small FPU peephole optimizations (use value in FP regs instead of loading it
