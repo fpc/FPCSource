@@ -14,7 +14,7 @@
           'cbccc',
           'flush',
           'ldsb','ldsh','ldstub',
-          'ldub','lduh','ld','ldd','ldf','ldfsr','lddf','ldc','ldcsr','lddc',
+          'ldub','lduh','ld','ldd','ld','ldfsr','lddf','ldc','ldcsr','lddc',
           'ldsba','ldsha','lduba','lduha','lda','ldda',
           'ldstuba',
           'mulscc',
@@ -66,9 +66,12 @@
           'tst'
 {
 	$Log$
-	Revision 1.5  2003-05-06 20:23:44  mazen
-	* A_BI ==> A_BL (bi ==> bl) instructions renamed
+	Revision 1.6  2003-05-26 21:31:27  mazen
+	* mnemonic of A_LDF is ld, ldf does not exist!
 
+	Revision 1.5  2003/05/06 20:23:44  mazen
+	* A_BI ==> A_BL (bi ==> bl) instructions renamed
+	
 	Revision 1.4  2003/04/29 10:00:31  mazen
 	* instruction are moved lowercase to allow using old assmeblers
 	
