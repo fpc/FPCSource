@@ -2165,7 +2165,11 @@ const
             if largeOffset then
               begin {Add hi part of offset}
                 reference_reset(tmpref);
-                tmpref.offset := Hi(ref.offset);
+
+                if Smallint(Lo(ref.offset)) < 0 then
+                  tmpref.offset := Hi(ref.offset) + 1 {Compensate when lo part is negative}
+                else 
+                  tmpref.offset := Hi(ref.offset);
 
                 if (tmpreg <> NR_NO) then
                   list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg, tmpreg,tmpref))
@@ -2187,7 +2191,8 @@ const
                 ref.symbol:= nil;
                 ref.base:= tmpreg;
                 if largeOffset then
-                  ref.offset := Lo(ref.offset);
+                  ref.offset := Smallint(Lo(ref.offset));
+
                 list.concat(taicpu.op_reg_ref(op,reg,ref));
                 //list.concat(tai_comment.create(strpnew('*** a_load_store indirect global')));
               end
@@ -2351,7 +2356,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.168  2004-03-06 21:37:45  florian
+  Revision 1.169  2004-04-04 17:50:36  olle
+    * macos: fixed large offsets in references
+
+  Revision 1.168  2004/03/06 21:37:45  florian
     * fixed ppc compilation
 
   Revision 1.167  2004/03/02 17:48:32  florian
