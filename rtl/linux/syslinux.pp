@@ -31,6 +31,10 @@ const
   BIAS4 = $7f-1;
 {$endif}
 
+{$ifdef BSD}
+ {$define newsignal}
+{$endif}
+
 {$I systemh.inc}
 {$I heaph.inc}
 
@@ -172,6 +176,19 @@ end ['D0'];
 {$endif}
 
 
+{$ifdef bsd}
+Function sbrk(size : longint) : Longint;
+
+CONST MAP_PRIVATE   =2;
+      MAP_ANONYMOUS =$1000;             {$20 under linux}
+
+begin
+  Sbrk:=do_syscall(syscall_nr_mmap,0,size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0,0);
+  if ErrNo<>0 then
+   Sbrk:=0;
+end;
+
+{$else}
 Function sbrk(size : longint) : Longint;
 type
   tmmapargs=packed record
@@ -197,7 +214,7 @@ begin
   if ErrNo<>0 then
    Sbrk:=0;
 end;
-
+{$endif}
 
 { include standard heap management }
 {$I heap.inc}
@@ -333,7 +350,24 @@ begin
 {$endif}
 end;
 
-
+{$ifdef BSD}
+Function Do_FileSize(Handle:Longint): Longint;
+{$ifndef crtlib}
+var
+  Info : Stat;
+{$endif}
+Begin
+{$ifdef crtlib}
+  Do_FileSize:=_rtl_filesize(Handle);
+{$else}
+  if do_SysCall(syscall_nr_fstat,handle,longint(@info))=0 then
+   Do_FileSize:=Info.Size
+  else
+   Do_FileSize:=0;
+  Errno2Inoutres;
+{$endif}
+End;
+{$ELSE}
 Function Do_FileSize(Handle:Longint): Longint;
 {$ifndef crtlib}
 var
@@ -353,18 +387,24 @@ Begin
   Errno2Inoutres;
 {$endif}
 End;
-
+{$endif}
 
 Procedure Do_Truncate(Handle,Pos:longint);
 {$ifndef crtlib}
+{$ifndef bsd}
 var
   sr : syscallregs;
 {$endif}
+{$endif}
 begin
 {$ifndef crtlib}
+ {$ifdef bsd}
+  do_syscall(syscall_nr_ftruncate,handle,pos,0);
+ {$else}
   sr.reg2:=Handle;
   sr.reg3:=Pos;
   syscall(syscall_nr_ftruncate,sr);
+ {$endif}
   Errno2Inoutres;
 {$endif}
 end;
@@ -463,13 +503,19 @@ Function Do_IsDevice(Handle:Longint):boolean;
   data is function-dependent.
 }
 var
+{$ifndef BSD}
   sr: SysCallRegs;
+{$endif}
   Data : array[0..255] of byte; {Large enough for termios info}
 begin
+ {$ifdef BSD}
+   Do_IsDevice:=(do_SysCall(syscall_nr_ioctl,handle,$5401,longint(@data))=0);
+ {$else}
   sr.reg2:=Handle;
   sr.reg3:=$5401; {=TCGETS}
   sr.reg4:=Longint(@Data);
   Do_IsDevice:=(SysCall(Syscall_nr_ioctl,sr)=0);
+ {$endif}
 end;
 
 
@@ -596,9 +642,9 @@ begin
        d:=sys_readdir (dirstream);
        validdir:=false;
        if (d<>nil) and
-          (not ((d^.name[0]='.') and ((d^.name[1]=#0) or ((d^.name[1]='.') and (
-d^.name[2]=#0))))) and
-          (mountpoint or (d^.ino=thisino)) then
+          (not ((d^.name[0]='.') and ((d^.name[1]=#0) or ((d^.name[1]='.')
+                                 and (d^.name[2]=#0))))) and
+                                 (mountpoint or (d^.ino=thisino)) then
         begin
           dummy:=predot+'../'+strpas(@(d^.name[0]))+#0;
           validdir:=not (sys_stat (@(dummy[1]),thisdir)<0);
@@ -624,6 +670,7 @@ end;
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
+
 
 {$ifdef I386}
 { this should be defined in i386 directory !! PM }
@@ -654,6 +701,8 @@ begin
 {$endif}
 {$endif I386}
 end;
+
+{$ifndef BSD}
 
 {$ifndef newSignal}
 Procedure SignalToRunError(Sig:longint);
@@ -736,7 +785,7 @@ begin
 end;
 {$endif newSignal}
 
-
+{$endif bsd}
 
 procedure SetupCmdLine;
 var
@@ -797,7 +846,9 @@ end;
 
 Begin
 { Set up signals handlers }
-  InstallSignals;
+  {$ifndef bsd}
+   InstallSignals;
+  {$endif}
 { Setup heap }
   InitHeap;
   InitExceptions;
@@ -814,7 +865,10 @@ End.
 
 {
   $Log$
-  Revision 1.43  2000-04-07 14:56:36  peter
+  Revision 1.44  2000-04-14 13:04:53  marco
+   * Merged bsd/syslinux.pp and 1.43 linux/syslinux.pp to this file with ifdefs
+
+  Revision 1.43  2000/04/07 14:56:36  peter
     * switch to direct asm if not correctfldcw defined
 
   Revision 1.42  2000/03/31 23:26:32  pierre
