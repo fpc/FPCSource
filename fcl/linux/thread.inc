@@ -71,7 +71,7 @@ begin
   GetMem(Act, SizeOf(SigActionRec));
   GetMem(OldAct, SizeOf(SigActionRec));
 
-  Act^.sa_handler := @SIGCHLDHandler;
+  Act^.handler.sh := @SIGCHLDHandler;
   Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
   Act^.sa_mask := 0; //Do not block all signals ??. Don't need if SA_NOMASK in flags
 
@@ -283,7 +283,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-01-07 01:24:34  peter
+  Revision 1.9  2000-05-17 18:31:18  peter
+    * fixed for new sigactionrec
+
+  Revision 1.8  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.7  2000/01/06 01:20:33  peter
