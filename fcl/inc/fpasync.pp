@@ -2,10 +2,8 @@
     $Id$
 
     fpAsync: Asynchronous event management for Free Pascal
-    Copyright (C) 2001-2002 by
+    Copyright (C) 2001-2003 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
-
-    Unix implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -102,6 +100,7 @@ type
     RealBuffer, FBuffer: PChar;
     FBytesInBuffer: Integer;
     FOnLine: TLineNotify;
+    DoStopAndFree: Boolean;
 
     function  Read(var ABuffer; count: Integer): Integer; virtual; abstract;
     procedure NoData; virtual; abstract;
@@ -122,7 +121,6 @@ type
     FBlockingStream: THandleStream;
     FOnEOF: TNotifyEvent;
     NotifyHandle: Pointer;
-    DoStopAndFree: Boolean;
 
     function  Read(var ABuffer; count: Integer): Integer; override;
     procedure NoData; override;
@@ -176,6 +174,7 @@ type
     FDataStream: TStream;
     FBlockingStream: THandleStream;
     NotifyHandle: Pointer;
+    DoStopAndFree: Boolean;
 
     function  DoRealWrite(const ABuffer; Count: Integer): Integer; override;
     procedure WritingFailed; override;
@@ -187,11 +186,18 @@ type
     constructor Create(AEventLoop: TEventLoop;
       ADataStream: TStream; ABlockingStream: THandleStream);
     destructor Destroy; override;
+    procedure StopAndFree;	// Destroy instance after run
 
     property EventLoop: TEventLoop read FEventLoop;
     property DataStream: TStream read FDataStream;
     property BlockingStream: THandleStream read FBlockingStream;
   end;
+
+
+var
+  { All data written to a TWriteBuffer or descendant class will be written to
+    this stream as well: }
+  fpAsyncWriteBufferDebugStream: TStream;
 
 
 implementation
@@ -541,7 +547,8 @@ begin
           FBytesInBuffer := CurBytesInBuffer - LastEndOfLine;
           FOnLine(line);
           // Check if <this> has been destroyed by FOnLine:
-          if not Assigned(FBuffer) then exit;
+          if DoStopAndFree then
+	    exit;
         end;
       end;
       Inc(i);
@@ -589,13 +596,16 @@ end;
 
 destructor TAsyncStreamLineReader.Destroy;
 begin
-  if Assigned(NotifyHandle) then
-    EventLoop.ClearDataAvailableNotify(NotifyHandle);
   inherited Destroy;
 end;
 
 procedure TAsyncStreamLineReader.StopAndFree;
 begin
+  if Assigned(NotifyHandle) then
+  begin
+    EventLoop.ClearDataAvailableNotify(NotifyHandle);
+    NotifyHandle := nil;
+  end;
   DoStopAndFree := True;
 end;
 
@@ -608,9 +618,11 @@ procedure TAsyncStreamLineReader.NoData;
 var
   s: String;
 begin
-  if (FDataStream = FBlockingStream) or (FDataStream.Position = FDataStream.Size) then begin
+  if (FDataStream = FBlockingStream) or (FDataStream.Position = FDataStream.Size) then
+  begin
 
-    if (FBytesInBuffer > 0) and Assigned(FOnLine) then begin
+    if (FBytesInBuffer > 0) and Assigned(FOnLine) then
+    begin
       if FBuffer[FBytesInBuffer - 1] in [#13, #10] then
         Dec(FBytesInBuffer);
       SetLength(s, FBytesInBuffer);
@@ -674,6 +686,8 @@ begin
   ReallocMem(FBuffer, FBytesInBuffer + Count);
   Move(ABuffer, FBuffer[FBytesInBuffer], Count);
   Inc(FBytesInBuffer, Count);
+  if Assigned(fpAsyncWriteBufferDebugStream) then
+    fpAsyncWriteBufferDebugStream.Write(ABuffer, Count);
   WantWrite;
   Result := Count;
 end;
@@ -757,6 +771,8 @@ end;
 procedure TAsyncWriteStream.CanWrite(UserData: TObject);
 begin
   Run;
+  if DoStopAndFree then
+    Free;
 end;
 
 constructor TAsyncWriteStream.Create(AEventLoop: TEventLoop;
@@ -783,13 +799,33 @@ begin
   inherited Destroy;
 end;
 
+procedure TAsyncWriteStream.StopAndFree;
+begin
+  if Assigned(NotifyHandle) then
+  begin
+    EventLoop.ClearCanWriteNotify(NotifyHandle);
+    NotifyHandle := nil;
+  end;
+  DoStopAndFree := True;
+end;
+
 
 end.
 
 
 {
   $Log$
-  Revision 1.1  2003-03-17 22:25:32  michael
+  Revision 1.3  2003-06-25 08:41:01  sg
+  * Fixed serious bug in TGenericLineReader: When the reader gets killed
+    via StopAndFree during an OnLine callback, the reader now will
+    immediately stop reading, so that the owner of the reader can process
+    the remaining buffer
+
+  Revision 1.2  2002/04/25 19:12:27  sg
+  * Added ability to write all write buffer data to an debug stream
+  * Added TAsyncWriteStream.StopAndFree
+
+  Revision 1.1  2003/03/17 22:25:32  michael
   + Async moved from package to FCL
 
   Revision 1.3  2002/09/15 15:45:38  sg
