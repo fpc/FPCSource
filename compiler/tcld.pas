@@ -82,11 +82,17 @@ implementation
          { handle first absolute as it will replace the p^.symtableentry }
          if p^.symtableentry^.typ=absolutesym then
            begin
-              p^.resulttype:=pabsolutesym(p^.symtableentry)^.vartype.def;
-              if pabsolutesym(p^.symtableentry)^.abstyp=tovar then
+             p^.resulttype:=pabsolutesym(p^.symtableentry)^.vartype.def;
+             { replace the symtableentry when it points to a var, else
+               we are finished }
+             if pabsolutesym(p^.symtableentry)^.abstyp=tovar then
+              begin
                 p^.symtableentry:=pabsolutesym(p^.symtableentry)^.ref;
-              p^.symtable:=p^.symtableentry^.owner;
-              p^.is_absolute:=true;
+                p^.symtable:=p^.symtableentry^.owner;
+                p^.is_absolute:=true;
+              end
+             else
+              exit;
            end;
          case p^.symtableentry^.typ of
             funcretsym :
@@ -509,7 +515,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-13 19:21:13  peter
+  Revision 1.6  2000-08-15 03:41:27  peter
+    * previous commit was wrong file :(
+
+  Revision 1.5  2000/08/13 19:21:13  peter
     * fix for absolute to mem address (merged)
 
   Revision 1.4  2000/08/13 08:42:59  peter
