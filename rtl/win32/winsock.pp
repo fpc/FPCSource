@@ -681,6 +681,16 @@ unit winsock;
     const
        winsockdll = 'wsock32.dll';
 
+{ 
+Winsock types all buffers as pchar (char *), modern POSIX does it the ANSI
+C way with pointer (void *). If the pointer overloaded version doesn't exist,
+a "pointer" will be passed to the "var" version. (bug 3142). 
+So if there are var/const versions:
+- To keep ported unix code working, there must be "pointer" variants (ANSI)
+- To keep Delphi/ported C Winsock code working there must be pchar variants
+	(K&R)
+IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
+
     function accept(s:TSocket; addr: PSockAddr; addrlen : ptOS_INT) : TSocket;stdcall;external winsockdll name 'accept';
     function accept(s:TSocket; addr: PSockAddr; var addrlen : tOS_INT) : TSocket;stdcall;external winsockdll name 'accept';
     function bind(s:TSocket; addr: PSockaddr;namelen:tOS_INT):tOS_INT;stdcall;external winsockdll name 'bind';
@@ -695,7 +705,9 @@ unit winsock;
       external winsockdll name 'getpeername';
     function getsockname(s:TSocket; var name:TSockAddr;var namelen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'getsockname';
-    function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pchar;var optlen:tOS_INT):tOS_INT;stdcall;
+    function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT;optval:pchar;var optlen:tOS_INT):tOS_INT;stdcall;
+      external winsockdll name 'getsockopt';
+    function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT;optval:pointer;var optlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'getsockopt';
     function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT;var optval;var optlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'getsockopt';
@@ -707,8 +719,11 @@ unit winsock;
     function ntohl(netlong:u_long):u_long;stdcall;external winsockdll name 'ntohl';
     function ntohs(netshort:u_short):u_short;stdcall;external winsockdll name 'ntohs';
     function recv(s:TSocket;buf:pchar; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;external winsockdll name 'recv';
+    function recv(s:TSocket;buf:pointer; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;external winsockdll name 'recv';
     function recv(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;external winsockdll name 'recv';
     function recvfrom(s:TSocket;buf:pchar; len:tOS_INT; flags:tOS_INT;from:PSockAddr; fromlen:ptOS_INT):tOS_INT;stdcall;
+      external winsockdll name 'recvfrom';
+    function recvfrom(s:TSocket;buf:pointer; len:tOS_INT; flags:tOS_INT;from:PSockAddr; fromlen:ptOS_INT):tOS_INT;stdcall;
       external winsockdll name 'recvfrom';
     function recvfrom(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT;Const from:TSockAddr; var fromlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'recvfrom';
@@ -716,11 +731,19 @@ unit winsock;
       external winsockdll name 'select';
     function send(s:TSocket;Const buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'send';
+    function send(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
+      external winsockdll name 'send';
+    function send(s:TSocket;buf:pointer; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
+      external winsockdll name 'send';
     function sendto(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT;toaddr:PSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
+      external winsockdll name 'sendto';
+    function sendto(s:TSocket; buf:pointer; len:tOS_INT; flags:tOS_INT;toaddr:PSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'sendto';
     function sendto(s:TSocket; Const buf; len:tOS_INT; flags:tOS_INT;Const toaddr:TSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'sendto';
     function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pchar; optlen:tOS_INT):tOS_INT;stdcall;
+      external winsockdll name 'setsockopt';
+    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT;optval:pointer; optlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'setsockopt';
     function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; Const optval; optlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'setsockopt';
@@ -888,7 +911,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.12  2003-01-01 14:34:22  peter
+  Revision 1.13  2004-06-06 04:01:45  marco
+   * fix for 3142 (I hope).
+
+  Revision 1.12  2003/01/01 14:34:22  peter
     * sendto overload
 
   Revision 1.11  2002/12/25 01:04:03  peter
