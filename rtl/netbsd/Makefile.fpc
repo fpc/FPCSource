@@ -1,0 +1,222 @@
+#
+#   Makefile.fpc for Free Pascal NetBSD RTL
+#
+
+[package]
+main=rtl
+
+[install]
+fpcpackage=y
+
+[target]
+loaders=prt0 cprt0
+units=$(SYSTEMUNIT) objpas strings baseunix \
+      $(LINUXUNIT) unix initc \
+      dos crt objects printer \
+      sysutils typinfo math varutils \
+      cpu mmx charset ucomplex getopts heaptrc lineinfo \
+      errors sockets gpm ipc terminfo \
+      video mouse keyboard console serial variants types systhrds sysctl
+rsts=math varutils typinfo
+
+[require]
+nortl=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+target=netbsd
+
+[compiler]
+includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC)
+sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) 
+targetdir=.
+
+[lib]
+libname=libfprtl.so
+libversion=1.0
+libunits=$(SYSTEMUNIT) objpas strings \
+      unix  \
+      dos crt objects printer \
+      sysutils typinfo math \
+      cpu mmx getopts heaptrc \
+      errors sockets ipc
+
+[prerules]
+RTL=..
+INC=$(RTL)/inc
+PROCINC=$(RTL)/$(CPU_TARGET)
+BSDINC=$(RTL)/bsd
+BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
+UNIXINC=$(RTL)/unix
+UNITPREFIX=rtl
+
+ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
+SYSTEMUNIT=system
+LINUXUNIT=
+PRT0=prt0
+else
+SYSTEMUNIT=sysbsd
+LINUXUNIT=linux
+override FPCOPT+=-dUNIX
+PRT0=prt0_10
+endif
+
+# Use new feature from 1.0.5 version
+# that generates release PPU files
+# which will not be recompiled
+ifdef RELEASE
+override FPCOPT+=-Ur
+endif
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+GRAPHDIR=$(INC)/graph
+
+# Use new graph unit ?
+# NEWGRAPH=YES
+# Use LibGGI ?
+# Use
+#
+ifndef USELIBGGI
+USELIBGGI=NO
+endif
+
+
+[rules]
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+
+
+#
+# Loaders
+#
+
+prt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
+        $(AS) -o prt0$(OEXT) $(CPU_TARGET)/$(PRT0).as
+
+cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
+        $(AS) -o cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
+
+#
+# System Units (System, Objpas, Strings)
+#
+
+$(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
+        $(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
+
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
+                   $(SYSTEMUNIT)$(PPUEXT)
+
+#
+# System Dependent Units
+#
+
+baseunix$(PPUEXT) : $(UNIXINC)/errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
+	signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/bunxmain.inc $(BSDINC)/ostypes.inc \
+	$(BSDINC)/bunxfunc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
+	$(BSDINC)/ostypes.inc $(BSDINC)/ossysch.inc $(BSDINC)/bunxmacr.inc $(UNIXINC)/gensigset.inc \
+	$(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
+
+
+unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+                 syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc \
+                 unixsysc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+linux$(PPUEXT) : baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+#
+# TP7 Compatible RTL Units
+#
+
+dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
+               unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+crt$(PPUEXT) : $(UNIXINC)/crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
+
+printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+#
+# Graph
+#
+
+#
+# Delphi Compatible Units
+#
+
+sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT)
+        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/sysutils.pp
+
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
+
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/math.pp
+
+gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/gettext.pp
+
+varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
+                    $(OBJPASDIR)/varutilh.inc varutils.pp
+        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
+
+types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/types.pp
+
+#
+# Other system-independent RTL Units
+#
+
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
+
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
+
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) -Sg $(INC)/heaptrc.pp
+
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+
+charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+
+ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+#
+# Other system-dependent RTL Units
+#
+
+sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
+                   unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
+
+callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
+
+sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT)
+
