@@ -1,0 +1,17 @@
+#
+#   Makefile.fpc for Winver unit
+#
+
+[package]
+name=winver
+version=1.0.8
+
+[target]
+units=winver
+examples=testver
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
