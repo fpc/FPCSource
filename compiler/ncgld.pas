@@ -829,6 +829,8 @@ implementation
                      begin
                        if is_pchar(lt) then
                          vtype:=vtPChar
+                       else if is_pwidechar(lt) then
+                         vtype:=vtPWideChar
                        else
                          vtype:=vtPointer;
                      end;
@@ -959,7 +961,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.122  2004-08-15 13:30:18  florian
+  Revision 1.123  2004-09-13 20:33:41  peter
+    * pwidechar support in array of const
+
+  Revision 1.122  2004/08/15 13:30:18  florian
     * fixed alignment of variant records
     * more alignment problems fixed
 
