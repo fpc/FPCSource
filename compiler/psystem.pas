@@ -110,6 +110,7 @@ begin
   p^.insert(new(ptypesym,initdef('$void_farpointer',voidfarpointerdef)));
   p^.insert(new(ptypesym,initdef('$openchararray',openchararraydef)));
   p^.insert(new(ptypesym,initdef('$file',cfiledef)));
+  p^.insert(new(ptypesym,initdef('$variant',cvariantdef)));
   p^.insert(new(ptypesym,initdef('$s32real',s32floatdef)));
   p^.insert(new(ptypesym,initdef('$s64real',s64floatdef)));
   p^.insert(new(ptypesym,initdef('$s80real',s80floatdef)));
@@ -162,6 +163,7 @@ begin
   p^.insert(new(ptypesym,initdef('QWord',cu64bitdef)));
   p^.insert(new(ptypesym,initdef('Int64',cs64bitdef)));
   p^.insert(new(ptypesym,initdef('TypedFile',new(pfiledef,inittypeddef(voiddef)))));
+  p^.insert(new(ptypesym,initdef('Variant',cvariantdef)));
 end;
 
 
@@ -198,6 +200,7 @@ begin
   voidfarpointerdef:=ppointerdef(globaldef('void_farpointer'));
   cfiledef:=pfiledef(globaldef('file'));
   pvmtdef:=ppointerdef(globaldef('pvmt'));
+  cvariantdef:=pvariantdef(globaldef('variant'));
 end;
 
 
@@ -252,6 +255,7 @@ begin
   charpointerdef:=new(ppointerdef,initdef(cchardef));
   voidfarpointerdef:=new(ppointerdef,initfardef(voiddef));
   cfiledef:=new(pfiledef,inituntyped);
+  cvariantdef:=new(pvariantdef,init);
   registerdef:=oldregisterdef;
 end;
 
@@ -259,7 +263,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2000-12-07 17:19:43  jonas
+  Revision 1.12  2001-03-22 00:10:58  florian
+    + basic variant type support in the compiler
+
+  Revision 1.11  2000/12/07 17:19:43  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range

@@ -113,6 +113,7 @@ const
   iblongstringdef  = 54;
   ibansistringdef  = 55;
   ibwidestringdef  = 56;
+  ibvariantdef     = 57;
 
 { unit flags }
   uf_init          = $1;
@@ -889,7 +890,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-12-07 17:19:43  jonas
+  Revision 1.7  2001-03-22 00:10:58  florian
+    + basic variant type support in the compiler
+
+  Revision 1.6  2000/12/07 17:19:43  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range

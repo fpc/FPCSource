@@ -138,6 +138,16 @@ interface
 {$endif GDB}
        end;
 
+       pvariantdef = ^tvariantdef;
+       tvariantdef = object(tstoreddef)
+          constructor init;
+          constructor load;
+          procedure write;virtual;
+          procedure setsize;
+          function needs_inittable : boolean;virtual;
+          procedure write_rtti_data;virtual;
+       end;
+
        pformaldef = ^tformaldef;
        tformaldef = object(tstoreddef)
           constructor init;
@@ -648,6 +658,8 @@ interface
 
        cfiledef : pfiledef;       { get the same definition for all file }
                                   { used for stabs }
+
+       cvariantdef : pvariantdef; { we use only one variant def }
 
        class_tobject : pobjectdef;   { pointer to the anchestor of all classes }
        interface_iunknown : pobjectdef; { KAZ: pointer to the ancestor }
@@ -2111,6 +2123,49 @@ implementation
       end;
 
 
+{****************************************************************************
+                               TVARIANTDEF
+****************************************************************************}
+
+    constructor tvariantdef.init;
+      begin
+         inherited init;
+         deftype:=variantdef;
+         setsize;
+      end;
+
+
+    constructor tvariantdef.load;
+      begin
+         inherited load;
+         deftype:=variantdef;
+         setsize;
+      end;
+
+
+    procedure tvariantdef.write;
+      begin
+         inherited write;
+         current_ppu^.writeentry(ibvariantdef);
+      end;
+
+
+    procedure tvariantdef.setsize;
+      begin
+         savesize:=16;
+      end;
+
+
+    procedure tvariantdef.write_rtti_data;
+      begin
+         rttiList.concat(Tai_const.Create_8bit(tkVariant));
+      end;
+
+
+    function tvariantdef.needs_inittable : boolean;
+      begin
+         needs_inittable:=true;
+      end;
 
 {****************************************************************************
                                TPOINTERDEF
@@ -5565,7 +5620,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.21  2001-03-11 22:58:50  peter
+  Revision 1.22  2001-03-22 00:10:58  florian
+    + basic variant type support in the compiler
+
+  Revision 1.21  2001/03/11 22:58:50  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.20  2001/01/06 20:11:29  peter

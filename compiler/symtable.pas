@@ -540,6 +540,7 @@ implementation
                  ibfiledef : hp:=new(pfiledef,load);
              ibclassrefdef : hp:=new(pclassrefdef,load);
                ibformaldef : hp:=new(pformaldef,load);
+              ibvariantdef : hp:=new(pvariantdef,load);
                  ibenddefs : break;
                      ibend : Message(unit_f_ppu_read_error);
            else
@@ -2375,7 +2376,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2001-03-13 18:45:07  peter
+  Revision 1.29  2001-03-22 00:10:58  florian
+    + basic variant type support in the compiler
+
+  Revision 1.28  2001/03/13 18:45:07  peter
     * fixed some memory leaks
 
   Revision 1.27  2001/03/11 22:58:51  peter

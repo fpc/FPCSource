@@ -390,7 +390,7 @@ type
   tdeftype = (abstractdef,arraydef,recorddef,pointerdef,orddef,
               stringdef,enumdef,procdef,objectdef,errordef,
               filedef,formaldef,setdef,procvardef,floatdef,
-              classrefdef,forwarddef);
+              classrefdef,forwarddef,variantdef);
 
   { possible types for symtable entries }
   tsymtyp = (abstractsym,varsym,typesym,procsym,unitsym,
@@ -455,7 +455,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2001-02-26 19:44:55  peter
+  Revision 1.14  2001-03-22 00:10:58  florian
+    + basic variant type support in the compiler
+
+  Revision 1.13  2001/02/26 19:44:55  peter
     * merged generic m68k updates from fixes branch
 
   Revision 1.12  2000/11/04 14:25:21  florian
