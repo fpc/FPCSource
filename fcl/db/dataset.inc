@@ -1607,8 +1607,11 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.6  2001-04-08 10:53:22  sg
-  *** empty log message ***
+  Revision 1.1.2.7  2001-04-08 11:05:04  sg
+  (forgot changelog at previous commit:)
+  * TDataSet.Destroy now frees buffers
+  * Wrapped _all_ debug output with {$ifdef DSDebug} blocks
+  * TDataset.SetName calls the inherited method
 
   Revision 1.1.2.5  2001/01/16 22:59:59  michael
   + Fixes to get dbf to work
