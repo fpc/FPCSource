@@ -412,7 +412,7 @@ end;
 function set_target_asm(t:tasm):boolean;
 begin
   set_target_asm:=false;
-  if assigned(asminfos[t]) then
+  if assigned(asminfos[t]) and (asminfos[t]^.supported_target=target_info.system) then
    begin
      target_asm:=asminfos[t]^;
      set_target_asm:=true;
@@ -431,8 +431,6 @@ begin
      exit;
    end;
 end;
-
-
 
 
 function set_target_res(t:tres):boolean;
@@ -715,7 +713,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.96  2004-11-08 22:09:59  peter
+  Revision 1.97  2004-12-12 00:31:52  florian
+    * check if the selected assembler supports current target
+
+  Revision 1.96  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.95  2004/11/01 15:42:00  florian
