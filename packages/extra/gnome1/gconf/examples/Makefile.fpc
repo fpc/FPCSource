@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for Free Pascal GConf 1.0.x Examples
+#
+
+[target]
+programs=gconfcallback1 gconfcallback2 gconfexample
+
+[require]
+packages=gtk gconf
+
+[clean]
+units=gconfcallback1 gconfcallback2 gconfexample
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
