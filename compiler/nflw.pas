@@ -48,36 +48,42 @@ interface
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
+       twhilerepeatnodeclass = class of twhilerepeatnode;
 
        tifnode = class(tloopnode)
           constructor create(l,r,_t1 : tnode);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
+       tifnodeclass = class of tifnode;
 
        tfornode = class(tloopnode)
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
+       tfornodeclass = class of tfornode;
 
        texitnode = class(tunarynode)
           constructor create(l:tnode);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
+       texitnodeclass = class of texitnode;
 
        tbreaknode = class(tnode)
           constructor create;virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
+       tbreaknodeclass = class of tbreaknode;
 
        tcontinuenode = class(tnode)
           constructor create;virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
+       tcontinuenodeclass = class of tcontinuenode;
 
        tgotonode = class(tnode)
           labelnr : tasmlabel;
@@ -89,6 +95,7 @@ interface
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
+       tgotonodeclass = class of tgotonode;
 
        tlabelnode = class(tunarynode)
           labelnr : tasmlabel;
@@ -101,6 +108,7 @@ interface
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
+       tlabelnodeclass = class of tlabelnode;
 
        traisenode = class(tbinarynode)
           frametree : tnode;
@@ -111,18 +119,21 @@ interface
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
+       traisenodeclass = class of traisenode;
 
        ttryexceptnode = class(tloopnode)
           constructor create(l,r,_t1 : tnode);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
+       ttryexceptnodeclass = class of ttryexceptnode;
 
        ttryfinallynode = class(tbinarynode)
           constructor create(l,r:tnode);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
+       ttryfinallynodeclass = class of ttryfinallynode;
 
        tonnode = class(tbinarynode)
           exceptsymtable : tsymtable;
@@ -134,6 +145,7 @@ interface
           function getcopy : tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
+       tonnodeclass = class of tonnode;
 
        tfailnode = class(tnode)
           constructor create;virtual;
@@ -141,24 +153,25 @@ interface
           function pass_1: tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
+       tfailnodeclass = class of tfailnode;
 
     { for compatibilty }
     function genloopnode(t : tnodetype;l,r,n1 : tnode;back : boolean) : tnode;
 
     var
-       cwhilerepeatnode : class of twhilerepeatnode;
-       cifnode : class of tifnode;
-       cfornode : class of tfornode;
-       cexitnode : class of texitnode;
-       cbreaknode : class of tbreaknode;
-       ccontinuenode : class of tcontinuenode;
-       cgotonode : class of tgotonode;
-       clabelnode : class of tlabelnode;
-       craisenode : class of traisenode;
-       ctryexceptnode : class of ttryexceptnode;
-       ctryfinallynode : class of ttryfinallynode;
-       connode : class of tonnode;
-       cfailnode : class of tfailnode;
+       cwhilerepeatnode : twhilerepeatnodeclass;
+       cifnode : tifnodeclass;
+       cfornode : tfornodeclass;
+       cexitnode : texitnodeclass;
+       cbreaknode : tbreaknodeclass;
+       ccontinuenode : tcontinuenodeclass;
+       cgotonode : tgotonodeclass;
+       clabelnode : tlabelnodeclass;
+       craisenode : traisenodeclass;
+       ctryexceptnode : ttryexceptnodeclass;
+       ctryfinallynode : ttryfinallynodeclass;
+       connode : tonnodeclass;
+       cfailnode : tfailnodeclass;
 
 implementation
 
@@ -1167,7 +1180,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-08-30 20:56:38  peter
+  Revision 1.24  2001-09-02 21:12:07  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.23  2001/08/30 20:56:38  peter
     * exit() with exceptions fix
 
   Revision 1.22  2001/08/26 13:36:40  florian

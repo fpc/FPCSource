@@ -35,12 +35,14 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tnothingnodeclass = class of tnothingnode;
 
        terrornode = class(tnode)
           constructor create;virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       terrornodeclass = class of terrornode;
 
        tasmnode = class(tnode)
           p_asm : taasmoutput;
@@ -51,6 +53,7 @@ interface
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
+       tasmnodeclass = class of tasmnode;
 
        tstatementnode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
@@ -60,12 +63,14 @@ interface
           procedure dowrite;override;
 {$endif extdebug}
        end;
+       tstatementnodeclass = class of tstatementnode;
 
        tblocknode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tblocknodeclass = class of tblocknode;
 
        { to allow access to the location by temp references even after the temp has }
        { already been disposed and to make sure the coherency between temps and     }
@@ -100,6 +105,7 @@ interface
          protected
           persistent: boolean;
         end;
+       ttempcreatenodeclass = class of ttempcreatenode;
 
         { a node which is a reference to a certain temp }
         ttemprefnode = class(tnode)
@@ -111,6 +117,7 @@ interface
          protected
           tempinfo: ptempinfo;
         end;
+       ttemprefnodeclass = class of ttemprefnode;
 
         { a node which removes a temp }
         ttempdeletenode = class(tnode)
@@ -123,16 +130,17 @@ interface
          protected
           tempinfo: ptempinfo;
         end;
+       ttempdeletenodeclass = class of ttempdeletenode;
 
     var
-       cnothingnode : class of tnothingnode;
-       cerrornode : class of terrornode;
-       casmnode : class of tasmnode;
-       cstatementnode : class of tstatementnode;
-       cblocknode : class of tblocknode;
-       ctempcreatenode : class of ttempcreatenode;
-       ctemprefnode : class of ttemprefnode;
-       ctempdeletenode : class of ttempdeletenode;
+       cnothingnode : tnothingnodeclass;
+       cerrornode : terrornodeclass;
+       casmnode : tasmnodeclass;
+       cstatementnode : tstatementnodeclass;
+       cblocknode : tblocknodeclass;
+       ctempcreatenode : ttempcreatenodeclass;
+       ctemprefnode : ttemprefnodeclass;
+       ctempdeletenode : ttempdeletenodeclass;
 
 implementation
 
@@ -617,7 +625,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-08-26 13:36:38  florian
+  Revision 1.17  2001-09-02 21:12:06  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.16  2001/08/26 13:36:38  florian
     * some cg reorganisation
     * some PPC updates
 

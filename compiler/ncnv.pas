@@ -77,23 +77,26 @@ interface
           function first_char_to_char : tnode;virtual;
           function first_call_helper(c : tconverttype) : tnode;
        end;
+       ttypeconvnodeclass = class of ttypeconvnode;
 
        tasnode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tasnodeclass = class of tasnode;
 
        tisnode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tisnodeclass = class of tisnode;
 
     var
-       ctypeconvnode : class of ttypeconvnode;
-       casnode : class of tasnode;
-       cisnode : class of tisnode;
+       ctypeconvnode : ttypeconvnodeclass;
+       casnode : tasnodeclass;
+       cisnode : tisnodeclass;
 
     procedure inserttypeconv(var p:tnode;const t:ttype);
     procedure arrayconstructor_to_set(var p : tarrayconstructornode);
@@ -398,14 +401,14 @@ implementation
         if left.nodetype=ordconstn then
           begin
             { check if we have a valid pointer constant (JM) }
-            if (sizeof(tordconstnode) > sizeof(tpointerord)) then
-              if (sizeof(tpointerord) = 4) then
+            if (sizeof(pointer) > sizeof(TConstPtrUInt)) then
+              if (sizeof(TConstPtrUInt) = 4) then
                 begin
                   if (tordconstnode(left).value < low(longint)) or
                      (tordconstnode(left).value > high(cardinal)) then
                   CGMessage(parser_e_range_check_error);
                 end
-              else if (sizeof(tpointerord) = 8) then
+              else if (sizeof(TConstPtrUInt) = 8) then
                 begin
                   if (tordconstnode(left).value < low(int64)) or
                      (tordconstnode(left).value > high(qword)) then
@@ -413,8 +416,7 @@ implementation
                 end
               else
                 internalerror(2001020801);
-            t:=cpointerconstnode.create(tpointerord(tordconstnode(left).value),resulttype);
-            resulttypepass(t);
+            t:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value),resulttype);
             result:=t;
           end
          else
@@ -427,9 +429,8 @@ implementation
           'fpc_chararray_to_'+lower(tstringdef(resulttype.def).stringtypname),
           ccallparanode.create(left,nil),resulttype);
         left := nil;
-        resulttypepass(result);
       end;
-    
+
     function ttypeconvnode.resulttype_string_to_chararray : tnode;
       var
         arrsize: longint;
@@ -454,9 +455,8 @@ implementation
           '_to_chararray',ccallparanode.create(left,ccallparanode.create(
           cordconstnode.create(arrsize,s32bittype),nil)),resulttype);
         left := nil;
-        resulttypepass(result);
       end;
-    
+
     function ttypeconvnode.resulttype_string_to_string : tnode;
       var
         procname: string[31];
@@ -509,10 +509,9 @@ implementation
                   st_shortstring) then
                stringpara.right := ccallparanode.create(cinlinenode.create(
                  in_high_x,false,self.getcopy),nil);
-                 
+
              { and create the callnode }
              result := ccallnode.createinternres(procname,stringpara,resulttype);
-             resulttypepass(result);
            end;
       end;
 
@@ -536,7 +535,6 @@ implementation
                end
               else
                hp:=cstringconstnode.createstr(chr(tordconstnode(left).value),tstringdef(resulttype.def).string_typ);
-              resulttypepass(hp);
               result:=hp;
            end
          else
@@ -553,7 +551,6 @@ implementation
 
                { and finally the call }
                result := ccallnode.createinternres(procname,para,resulttype);
-               resulttypepass(result);
              end;
       end;
 
@@ -570,7 +567,6 @@ implementation
               begin
                 hp:=cordconstnode.create(
                       ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value))),cchartype);
-                resulttypepass(hp);
                 result:=hp;
               end
              else if (torddef(resulttype.def).typ=uwidechar) and
@@ -578,7 +574,6 @@ implementation
               begin
                 hp:=cordconstnode.create(
                       asciichar2unicode(chr(tordconstnode(left).value)),cwidechartype);
-                resulttypepass(hp);
                 result:=hp;
               end
              else
@@ -596,7 +591,6 @@ implementation
         if left.nodetype=ordconstn then
          begin
            t:=crealconstnode.create(tordconstnode(left).value,resulttype);
-           resulttypepass(t);
            result:=t;
            exit;
          end;
@@ -611,7 +605,6 @@ implementation
          if left.nodetype=realconstn then
            begin
              t:=crealconstnode.create(trealconstnode(left).value_real,resulttype);
-             resulttypepass(t);
              result:=t;
            end;
       end;
@@ -651,8 +644,6 @@ implementation
         left:=nil;
       { create a set constructor tree }
         arrayconstructor_to_set(tarrayconstructornode(hp));
-      { now resulttypepass the set }
-        resulttypepass(hp);
         result:=hp;
       end;
 
@@ -663,7 +654,6 @@ implementation
           'fpc_pchar_to_'+lower(tstringdef(resulttype.def).stringtypname),
           ccallparanode.create(left,nil),resulttype);
         left := nil;
-        resulttypepass(result);
       end;
 
 
@@ -765,7 +755,6 @@ implementation
              { tell explicitly which def we must use !! (PM) }
              tcallnode(hp).procdefinition:=aprocdef;
              left:=nil;
-             resulttypepass(hp);
              result:=hp;
              exit;
           end;
@@ -843,7 +832,6 @@ implementation
                  if left.nodetype=ordconstn then
                   begin
                     hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
-                    resulttypepass(hp);
                     result:=hp;
                     exit;
                   end
@@ -862,7 +850,6 @@ implementation
                   if left.nodetype=ordconstn then
                    begin
                      hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
-                     resulttypepass(hp);
                      result:=hp;
                      exit;
                    end
@@ -877,7 +864,6 @@ implementation
                else if (left.nodetype=niln) and is_ordinal(resulttype.def) then
                   begin
                      hp:=cordconstnode.create(0,resulttype);
-                     resulttypepass(hp);
                      result:=hp;
                      exit;
                   end
@@ -887,7 +873,6 @@ implementation
                 (left.nodetype=pointerconstn) then
                 begin
                    hp:=cordconstnode.create(tpointerconstnode(left).value,resulttype);
-                   resulttypepass(hp);
                    result:=hp;
                    exit;
                 end
@@ -900,7 +885,6 @@ implementation
                    if left.nodetype=ordconstn then
                     begin
                       hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
-                      resulttypepass(hp);
                       result:=hp;
                       exit;
                     end
@@ -919,7 +903,6 @@ implementation
                    if left.nodetype=ordconstn then
                     begin
                       hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
-                      resulttypepass(hp);
                       result:=hp;
                       exit;
                     end
@@ -938,7 +921,6 @@ implementation
                    if left.nodetype=ordconstn then
                     begin
                       hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
-                      resulttypepass(hp);
                       result:=hp;
                       exit;
                     end
@@ -956,7 +938,6 @@ implementation
                    if left.nodetype=ordconstn then
                     begin
                       hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
-                      resulttypepass(hp);
                       result:=hp;
                       exit;
                     end
@@ -1039,7 +1020,6 @@ implementation
           begin
              hp:=cnilnode.create;
              hp.resulttype:=resulttype;
-             resulttypepass(hp);
              result:=hp;
              exit;
           end;
@@ -1486,7 +1466,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2001-08-29 19:49:03  jonas
+  Revision 1.36  2001-09-02 21:12:06  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.35  2001/08/29 19:49:03  jonas
     * some fixes in compilerprocs for chararray to string conversions
     * conversion from string to chararray is now also done via compilerprocs
 

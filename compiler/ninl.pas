@@ -45,9 +45,10 @@ interface
           function handle_read_write: tnode;
           function handle_val: tnode;
        end;
+       tinlinenodeclass = class of tinlinenode;
 
     var
-       cinlinenode : class of tinlinenode;
+       cinlinenode : tinlinenodeclass;
 
    function geninlinenode(number : byte;is_const:boolean;l : tnode) : tinlinenode;
 
@@ -380,7 +381,7 @@ implementation
                 { temprefs will be part of the filepara, of which we need  }
                 { the resulttype later on and temprefs can only be         }
                 { resulttypepassed if the resulttype of the temp is known) }
-                resulttypepass(filetemp);
+                resulttypepass(tnode(filetemp));
 
                 { assign the address of the file to the temp }
                 newstatement.left := cstatementnode.create(nil,
@@ -781,7 +782,6 @@ implementation
               { otherwise return the newly generated block of instructions, }
               { but first free the errornode we generated at the beginning }
               result.free;
-              resulttypepass(newblock);
               result := newblock
             end;
       end;
@@ -859,7 +859,7 @@ implementation
             newstatement := tstatementnode(newstatement.left);
             { set the resulttype of the temp (needed to be able to get }
             { the resulttype of the tempref used in the new code para) }
-            resulttypepass(tempcode);
+            resulttypepass(tnode(tempcode));
             { create a temp codepara, but save the original code para to }
             { assign the result to later on                              }
             if assigned(codepara) then
@@ -959,8 +959,6 @@ implementation
 
         { free the errornode }
         result.free;
-        { resulttypepass our new code }
-        resulttypepass(newblock);
         { and return it }
         result := newblock;
       end;
@@ -1041,12 +1039,8 @@ implementation
         end;
 
         procedure setconstrealvalue(r : bestreal);
-        var
-           hp : tnode;
         begin
-           hp:=crealconstnode.create(r,pbestrealtype^);
-           resulttypepass(hp);
-           result:=hp;
+           result:=crealconstnode.create(r,pbestrealtype^);
         end;
 
       var
@@ -1268,7 +1262,6 @@ implementation
              end;
             if hp=nil then
              hp:=tnode.create(errorn);
-            resulttypepass(hp);
             result:=hp;
             goto myexit;
           end
@@ -1304,7 +1297,6 @@ implementation
                        in_hi_qword :
                          hp:=cordconstnode.create(tordconstnode(left).value shr 32,left.resulttype);
                      end;
-                     resulttypepass(hp);
                      result:=hp;
                      goto myexit;
                    end;
@@ -1342,7 +1334,6 @@ implementation
                    if (left.nodetype=ordconstn) then
                     begin
                       hp:=cordconstnode.create(tordconstnode(left).value,s32bittype);
-                      resulttypepass(hp);
                       result:=hp;
                       goto myexit;
                     end;
@@ -1358,7 +1349,6 @@ implementation
                                hp:=ctypeconvnode.create(left,u8bittype);
                                left:=nil;
                                include(hp.flags,nf_explizit);
-                               resulttypepass(hp);
                                result:=hp;
                              end;
                            bool16bit,
@@ -1368,7 +1358,6 @@ implementation
                                hp:=ctypeconvnode.create(left,u16bittype);
                                left:=nil;
                                include(hp.flags,nf_explizit);
-                               resulttypepass(hp);
                                result:=hp;
                              end;
                            bool32bit :
@@ -1377,7 +1366,6 @@ implementation
                                hp:=ctypeconvnode.create(left,u32bittype);
                                left:=nil;
                                include(hp.flags,nf_explizit);
-                               resulttypepass(hp);
                                result:=hp;
                              end;
                            uvoid :
@@ -1396,7 +1384,6 @@ implementation
                          hp:=ctypeconvnode.create(left,s32bittype);
                          left:=nil;
                          include(hp.flags,nf_explizit);
-                         resulttypepass(hp);
                          result:=hp;
                        end;
                      else
@@ -1411,7 +1398,6 @@ implementation
                    hp:=ctypeconvnode.create(left,cchartype);
                    include(hp.flags,nf_explizit);
                    left:=nil;
-                   resulttypepass(hp);
                    result:=hp;
                 end;
 
@@ -1436,7 +1422,6 @@ implementation
                         if (left.nodetype=stringconstn) then
                          begin
                            hp:=cordconstnode.create(tstringconstnode(left).len,s32bittype);
-                           resulttypepass(hp);
                            result:=hp;
                            goto myexit;
                          end;
@@ -1448,7 +1433,6 @@ implementation
                            is_widechar(left.resulttype.def) then
                          begin
                            hp:=cordconstnode.create(1,s32bittype);
-                           resulttypepass(hp);
                            result:=hp;
                            goto myexit;
                          end
@@ -1463,7 +1447,6 @@ implementation
                            srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
                            hp:=caddnode.create(addn,cloadnode.create(tvarsym(srsym),tloadnode(left).symtable),
                                                     cordconstnode.create(1,s32bittype));
-                           resulttypepass(hp);
                            result:=hp;
                            goto myexit;
                          end
@@ -1473,7 +1456,6 @@ implementation
                             hp:=cordconstnode.create(tarraydef(left.resulttype.def).highrange-
                                                       tarraydef(left.resulttype.def).lowrange+1,
                                                      s32bittype);
-                            resulttypepass(hp);
                             result:=hp;
                             goto myexit;
                           end;
@@ -1509,7 +1491,6 @@ implementation
                 begin
                   set_varstate(left,false);
                   hp:=cordconstnode.create(0,s32bittype);
-                  resulttypepass(hp);
                   result:=hp;
                   goto myexit;
                 end;
@@ -1535,7 +1516,6 @@ implementation
                        hp:=cordconstnode.create(tordconstnode(left).value+1,left.resulttype)
                       else
                        hp:=cordconstnode.create(tordconstnode(left).value-1,left.resulttype);
-                      resulttypepass(hp);
                       result:=hp;
                     end;
                 end;
@@ -1650,7 +1630,6 @@ implementation
                   hp:=ccallparanode.create(cordconstnode.create(tcallparanode(left).left.resulttype.def.size,s32bittype),left);
                   hp:=ccallnode.create(hp,tprocsym(srsym),systemunit,nil);
                   left:=nil;
-                  resulttypepass(hp);
                   result:=hp;
                 end;
 
@@ -1714,13 +1693,11 @@ implementation
                     enumdef:
                       begin
                         hp:=do_lowhigh(left.resulttype);
-                        resulttypepass(hp);
                         result:=hp;
                       end;
                     setdef:
                       begin
                         hp:=do_lowhigh(tsetdef(left.resulttype.def).elementtype);
-                        resulttypepass(hp);
                         result:=hp;
                       end;
                     arraydef:
@@ -1728,7 +1705,6 @@ implementation
                         if inlinenumber=in_low_x then
                          begin
                            hp:=cordconstnode.create(tarraydef(left.resulttype.def).lowrange,tarraydef(left.resulttype.def).rangetype);
-                           resulttypepass(hp);
                            result:=hp;
                          end
                         else
@@ -1738,7 +1714,6 @@ implementation
                             begin
                               srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
                               hp:=cloadnode.create(tvarsym(srsym),tloadnode(left).symtable);
-                              resulttypepass(hp);
                               result:=hp;
                             end
                            else
@@ -1753,7 +1728,6 @@ implementation
                                 { make sure the left node doesn't get disposed, since it's }
                                 { reused in the new node (JM)                              }
                                 left:=nil;
-                                resulttypepass(hp);
                                 result:=hp;
                               end
                            else
@@ -2303,7 +2277,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2001-08-28 13:24:46  jonas
+  Revision 1.55  2001-09-02 21:12:07  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.54  2001/08/28 13:24:46  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
       compilerproc implementations (using {$ifdef hascompilerproc} is not

@@ -41,6 +41,7 @@ interface
           function  det_resulttype:tnode;override;
           function  docompare(p: tnode): boolean; override;
        end;
+       tloadnodeclass = class of tloadnode;
 
        { different assignment types }
        tassigntype = (at_normal,at_plus,at_minus,at_star,at_slash);
@@ -53,6 +54,7 @@ interface
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
+       tassignmentnodeclass = class of tassignmentnode;
 
        tfuncretnode = class(tnode)
           funcretsym : tfuncretsym;
@@ -62,12 +64,14 @@ interface
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
+       tfuncretnodeclass = class of tfuncretnode;
 
        tarrayconstructorrangenode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tarrayconstructorrangenodeclass = class of tarrayconstructorrangenode;
 
        tarrayconstructornode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
@@ -77,6 +81,7 @@ interface
           function docompare(p: tnode): boolean; override;
           procedure force_type(tt:ttype);
        end;
+       tarrayconstructornodeclass = class of tarrayconstructornode;
 
        ttypenode = class(tnode)
           allowed : boolean;
@@ -86,14 +91,15 @@ interface
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
+       ttypenodeclass = class of ttypenode;
 
     var
-       cloadnode : class of tloadnode;
-       cassignmentnode : class of tassignmentnode;
-       cfuncretnode : class of tfuncretnode;
-       carrayconstructorrangenode : class of tarrayconstructorrangenode;
-       carrayconstructornode : class of tarrayconstructornode;
-       ctypenode : class of ttypenode;
+       cloadnode : tloadnodeclass;
+       cassignmentnode : tassignmentnodeclass;
+       cfuncretnode : tfuncretnodeclass;
+       carrayconstructorrangenode : tarrayconstructorrangenodeclass;
+       carrayconstructornode : tarrayconstructornodeclass;
+       ctypenode : ttypenodeclass;
 
 
 implementation
@@ -153,7 +159,6 @@ implementation
               p1:=tnode(twithsymtable(symtable).withrefnode).getcopy;
               p1:=csubscriptnode.create(tvarsym(symtableentry),p1);
               left:=nil;
-              resulttypepass(p1);
               result:=p1;
               exit;
            end;
@@ -184,7 +189,7 @@ implementation
                       ((tfuncretsym(symtableentry)=p^.procdef.resultfuncretsym) or
                        (tfuncretsym(symtableentry)=p^.procdef.funcretsym)) then
                      begin
-                       symtableentry:=p^.procdef.funcretsym; 
+                       symtableentry:=p^.procdef.funcretsym;
                        break;
                      end;
                     p:=p^.parent;
@@ -592,7 +597,6 @@ implementation
          begin
            hp:=tarrayconstructornode(getcopy);
            arrayconstructor_to_set(hp);
-           resulttypepass(hp);
            result:=hp;
            exit;
          end;
@@ -796,7 +800,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2001-08-30 15:48:34  jonas
+  Revision 1.25  2001-09-02 21:12:07  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.24  2001/08/30 15:48:34  jonas
     * fix from Peter for getting correct symtableentry for funcret loads
 
   Revision 1.23  2001/08/26 13:36:41  florian

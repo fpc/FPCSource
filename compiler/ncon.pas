@@ -43,6 +43,7 @@ interface
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
        end;
+       trealconstnodeclass = class of trealconstnode;
 
        tordconstnode = class(tnode)
           restype : ttype;
@@ -53,16 +54,18 @@ interface
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
        end;
+       tordconstnodeclass = class of tordconstnode;
 
        tpointerconstnode = class(tnode)
           restype : ttype;
-          value : TPointerOrd;
-          constructor create(v : tpointerord;const t:ttype);virtual;
+          value   : TConstPtrUInt;
+          constructor create(v : TConstPtrUInt;const t:ttype);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
        end;
+       tpointerconstnodeclass = class of tpointerconstnode;
 
        tstringconstnode = class(tnode)
           value_str : pchar;
@@ -79,6 +82,7 @@ interface
           function getpcharcopy : pchar;
           function docompare(p: tnode) : boolean; override;
        end;
+       tstringconstnodeclass = class of tstringconstnode;
 
        tsetconstnode = class(tunarynode)
           restype : ttype;
@@ -91,20 +95,22 @@ interface
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
        end;
+       tsetconstnodeclass = class of tsetconstnode;
 
        tnilnode = class(tnode)
           constructor create;virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tnilnodeclass = class of tnilnode;
 
     var
-       crealconstnode : class of trealconstnode;
-       cordconstnode : class of tordconstnode;
-       cpointerconstnode : class of tpointerconstnode;
-       cstringconstnode : class of tstringconstnode;
-       csetconstnode : class of tsetconstnode;
-       cnilnode : class of tnilnode;
+       crealconstnode : trealconstnodeclass;
+       cordconstnode : tordconstnodeclass;
+       cpointerconstnode : tpointerconstnodeclass;
+       cstringconstnode : tstringconstnodeclass;
+       csetconstnode : tsetconstnodeclass;
+       cnilnode : tnilnodeclass;
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
     function genenumnode(v : tenumsym) : tordconstnode;
@@ -255,29 +261,29 @@ implementation
         p1:=nil;
         case p.consttyp of
           constint :
-            p1:=genintconstnode(p.value);
+            p1:=genintconstnode(p.valueord);
           conststring :
             begin
               len:=p.len;
               if not(cs_ansistrings in aktlocalswitches) and (len>255) then
                len:=255;
               getmem(pc,len+1);
-              move(pchar(tpointerord(p.value))^,pc^,len);
+              move(pchar(p.valueptr)^,pc^,len);
               pc[len]:=#0;
               p1:=cstringconstnode.createpchar(pc,len);
             end;
           constchar :
-            p1:=cordconstnode.create(p.value,cchartype);
+            p1:=cordconstnode.create(p.valueord,cchartype);
           constreal :
-            p1:=crealconstnode.create(pbestreal(tpointerord(p.value))^,pbestrealtype^);
+            p1:=crealconstnode.create(pbestreal(p.valueptr)^,pbestrealtype^);
           constbool :
-            p1:=cordconstnode.create(p.value,booltype);
+            p1:=cordconstnode.create(p.valueord,booltype);
           constset :
-            p1:=csetconstnode.create(pconstset(tpointerord(p.value)),p.consttype);
+            p1:=csetconstnode.create(pconstset(p.valueptr),p.consttype);
           constord :
-            p1:=cordconstnode.create(p.value,p.consttype);
+            p1:=cordconstnode.create(p.valueord,p.consttype);
           constpointer :
-            p1:=cpointerconstnode.create(p.value,p.consttype);
+            p1:=cpointerconstnode.create(p.valueordptr,p.consttype);
           constnil :
             p1:=cnilnode.create;
           constresourcestring:
@@ -383,7 +389,7 @@ implementation
                             TPOINTERCONSTNODE
 *****************************************************************************}
 
-    constructor tpointerconstnode.create(v : tpointerord;const t:ttype);
+    constructor tpointerconstnode.create(v : TConstPtrUInt;const t:ttype);
 
       begin
          inherited create(pointerconstn);
@@ -656,7 +662,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2001-08-26 13:36:40  florian
+  Revision 1.22  2001-09-02 21:12:06  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.21  2001/08/26 13:36:40  florian
     * some cg reorganisation
     * some PPC updates
 

@@ -34,29 +34,33 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tmoddivnodeclass = class of tmoddivnode;
 
        tshlshrnode = class(tbinopnode)
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tshlshrnodeclass = class of tshlshrnode;
 
        tunaryminusnode = class(tunarynode)
           constructor create(expr : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tunaryminusnodeclass = class of tunaryminusnode;
 
        tnotnode = class(tunarynode)
           constructor create(expr : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tnotnodeclass = class of tnotnode;
 
     var
-       cmoddivnode : class of tmoddivnode;
-       cshlshrnode : class of tshlshrnode;
-       cunaryminusnode : class of tunaryminusnode;
-       cnotnode : class of tnotnode;
+       cmoddivnode : tmoddivnodeclass;
+       cshlshrnode : tshlshrnodeclass;
+       cunaryminusnode : tunaryminusnodeclass;
+       cnotnode : tnotnodeclass;
 
 
 implementation
@@ -110,7 +114,6 @@ implementation
                 divn:
                   t:=genintconstnode(lv div rv);
               end;
-              resulttypepass(t);
               result:=t;
               exit;
            end;
@@ -119,7 +122,6 @@ implementation
          t:=self;
          if isbinaryoverloaded(t) then
            begin
-              resulttypepass(t);
               result:=t;
               exit;
            end;
@@ -236,7 +238,6 @@ implementation
                  shln:
                    t:=genintconstnode(tordconstnode(left).value shl tordconstnode(right).value);
               end;
-              resulttypepass(t);
               result:=t;
               exit;
            end;
@@ -245,7 +246,6 @@ implementation
          t:=self;
          if isbinaryoverloaded(t) then
            begin
-              resulttypepass(t);
               result:=t;
               exit;
            end;
@@ -362,7 +362,6 @@ implementation
                         t:=ccallnode.create(ccallparanode.create(left,nil),
                                             overloaded_operators[_minus],nil,nil);
                         left:=nil;
-                        resulttypepass(t);
                         result:=t;
                         exit;
                      end;
@@ -478,7 +477,6 @@ implementation
                   CGMessage(type_e_mismatch);
               end;
               t:=cordconstnode.create(v,left.resulttype);
-              resulttypepass(t);
               result:=t;
               exit;
            end;
@@ -515,7 +513,6 @@ implementation
                         t:=ccallnode.create(ccallparanode.create(left,nil),
                                             overloaded_operators[_op_not],nil,nil);
                         left:=nil;
-                        resulttypepass(t);
                         result:=t;
                         exit;
                      end;
@@ -590,7 +587,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2001-08-26 13:36:41  florian
+  Revision 1.22  2001-09-02 21:12:07  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.21  2001/08/26 13:36:41  florian
     * some cg reorganisation
     * some PPC updates
 

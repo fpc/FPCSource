@@ -54,18 +54,21 @@ interface
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
+       tsetelementnodeclass = class of tsetelementnode;
 
        tinnode = class(tbinopnode)
           constructor create(l,r : tnode);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
+       tinnodeclass = class of tinnode;
 
        trangenode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
+       trangenodeclass = class of trangenode;
 
        tcasenode = class(tbinarynode)
           nodes : pcaserecord;
@@ -78,12 +81,13 @@ interface
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
+       tcasenodeclass = class of tcasenode;
 
     var
-       csetelementnode : class of tsetelementnode;
-       cinnode : class of tinnode;
-       crangenode : class of trangenode;
-       ccasenode : class of tcasenode;
+       csetelementnode : tsetelementnodeclass;
+       cinnode : tinnodeclass;
+       crangenode : trangenodeclass;
+       ccasenode : tcasenodeclass;
 
     { counts the labels }
     function case_count_labels(root : pcaserecord) : longint;
@@ -584,7 +588,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-08-26 13:36:43  florian
+  Revision 1.15  2001-09-02 21:12:07  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.14  2001/08/26 13:36:43  florian
     * some cg reorganisation
     * some PPC updates
 

@@ -37,48 +37,56 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tloadvmtnodeclass = class of tloadvmtnode;
 
        thnewnode = class(tnode)
           constructor create;virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       thnewnodeclass = class of thnewnode;
 
        tnewnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tnewnodeclass = class of tnewnode;
 
        thdisposenode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       thdisposenodeclass = class of thdisposenode;
 
        tsimplenewdisposenode = class(tunarynode)
           constructor create(n : tnodetype;l : tnode);
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tsimplenewdisposenodeclass = class of tsimplenewdisposenode;
 
        taddrnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       taddrnodeclass = class of taddrnode;
 
        tdoubleaddrnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tdoubleaddrnodeclass = class of tdoubleaddrnode;
 
        tderefnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tderefnodeclass = class of tderefnode;
 
        tsubscriptnode = class(tunarynode)
           vs : tvarsym;
@@ -88,12 +96,14 @@ interface
           function docompare(p: tnode): boolean; override;
           function det_resulttype:tnode;override;
        end;
+       tsubscriptnodeclass = class of tsubscriptnode;
 
        tvecnode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tvecnodeclass = class of tvecnode;
 
        tselfnode = class(tnode)
           classdef : tobjectdef;
@@ -101,6 +111,7 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
+       tselfnodeclass = class of tselfnode;
 
        twithnode = class(tbinarynode)
           withsymtable : twithsymtable;
@@ -113,20 +124,21 @@ interface
           function docompare(p: tnode): boolean; override;
           function det_resulttype:tnode;override;
        end;
+       twithnodeclass = class of twithnode;
 
     var
-       cloadvmtnode : class of tloadvmtnode;
-       chnewnode : class of thnewnode;
-       cnewnode : class of tnewnode;
-       chdisposenode : class of thdisposenode;
-       csimplenewdisposenode : class of tsimplenewdisposenode;
-       caddrnode : class of taddrnode;
-       cdoubleaddrnode : class of tdoubleaddrnode;
-       cderefnode : class of tderefnode;
-       csubscriptnode : class of tsubscriptnode;
-       cvecnode : class of tvecnode;
-       cselfnode : class of tselfnode;
-       cwithnode : class of twithnode;
+       cloadvmtnode : tloadvmtnodeclass;
+       chnewnode : thnewnodeclass;
+       cnewnode : tnewnodeclass;
+       chdisposenode : thdisposenodeclass;
+       csimplenewdisposenode : tsimplenewdisposenodeclass;
+       caddrnode : taddrnodeclass;
+       cdoubleaddrnode : tdoubleaddrnodeclass;
+       cderefnode : tderefnodeclass;
+       csubscriptnode : tsubscriptnodeclass;
+       cvecnode : tvecnodeclass;
+       cselfnode : tselfnodeclass;
+       cwithnode : twithnodeclass;
 
 implementation
 
@@ -970,7 +982,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-08-26 13:36:42  florian
+  Revision 1.20  2001-09-02 21:12:07  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.19  2001/08/26 13:36:42  florian
     * some cg reorganisation
     * some PPC updates
 

@@ -62,11 +62,13 @@ type
   taddsstringcharoptnode = class(taddsstringoptnode)
     constructor create(l,r : tnode); virtual;
   end;
+  taddsstringcharoptnodeclass = class of taddsstringcharoptnode;
 
   { add a constant string to a short string }
   taddsstringcsstringoptnode = class(taddsstringoptnode)
     constructor create(l,r : tnode); virtual;
   end;
+  taddsstringcsstringoptnodeclass = class of taddsstringcsstringoptnode;
 
 function canbeaddsstringcharoptnode(p: taddnode): boolean;
 function genaddsstringcharoptnode(p: taddnode): tnode;
@@ -77,10 +79,8 @@ function genaddsstringcsstringoptnode(p: taddnode): tnode;
 function is_addsstringoptnode(p: tnode): boolean;
 
 var
-{  these are never used directly
-   caddoptnode: class of taddoptnode; }
-   caddsstringcharoptnode: class of taddsstringcharoptnode;
-   caddsstringcsstringoptnode: class of taddsstringcsstringoptnode;
+   caddsstringcharoptnode: taddsstringcharoptnodeclass;
+   caddsstringcsstringoptnode: taddsstringcsstringoptnodeclass;
 
 implementation
 
@@ -278,7 +278,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2001-08-26 13:36:43  florian
+  Revision 1.5  2001-09-02 21:12:07  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.4  2001/08/26 13:36:43  florian
     * some cg reorganisation
     * some PPC updates
 

@@ -47,7 +47,7 @@ interface
           { the RTL) (JM)                                                }
           restype: ttype;
           restypeset: boolean;
-          
+
           { only the processor specific nodes need to override this }
           { constructor                                             }
           constructor create(l:tnode; v : tprocsym;st : tsymtable; mp : tnode);virtual;
@@ -61,6 +61,7 @@ interface
           function  docompare(p: tnode): boolean; override;
           procedure set_procvar(procvar:tnode);
        end;
+       tcallnodeclass = class of tcallnode;
 
        tcallparaflags = (
           { flags used by tcallparanode }
@@ -89,6 +90,7 @@ interface
                    para_alignment,para_offset : longint);virtual;abstract;
           function docompare(p: tnode): boolean; override;
        end;
+       tcallparanodeclass = class of tcallparanode;
 
        tprocinlinenode = class(tnode)
           inlinetree : tnode;
@@ -101,14 +103,15 @@ interface
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
+       tprocinlinenodeclass = class of tprocinlinenode;
 
     function reverseparameters(p: tcallparanode): tcallparanode;
 
 
     var
-       ccallnode : class of tcallnode;
-       ccallparanode : class of tcallparanode;
-       cprocinlinenode : class of tprocinlinenode;
+       ccallnode : tcallnodeclass;
+       ccallparanode : tcallparanodeclass;
+       cprocinlinenode : tprocinlinenodeclass;
 
 implementation
 
@@ -1357,7 +1360,6 @@ implementation
               end
              else
               hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,nil);
-             resulttypepass(hpt);
              result:=hpt;
              goto errorexit;
            end;
@@ -1744,7 +1746,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2001-08-30 15:39:59  jonas
+  Revision 1.49  2001-09-02 21:12:06  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.48  2001/08/30 15:39:59  jonas
     * fixed docompare for the fields I added to tcallnode in my previous
       commit
     * removed nested comment warning

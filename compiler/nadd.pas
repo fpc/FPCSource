@@ -39,13 +39,14 @@ interface
           { parts explicitely in the code generator (JM)    }
           function first_addstring: tnode; virtual;
        end;
+       taddnodeclass = class of taddnode;
 
     var
        { caddnode is used to create nodes of the add type }
        { the virtual constructor allows to assign         }
        { another class type to caddnode => processor      }
        { specific node types can be created               }
-       caddnode : class of taddnode;
+       caddnode : taddnodeclass;
 
 implementation
 
@@ -120,7 +121,6 @@ implementation
          hp:=self;
          if isbinaryoverloaded(hp) then
            begin
-              resulttypepass(hp);
               result:=hp;
               exit;
            end;
@@ -261,18 +261,19 @@ implementation
                 slashn :
                   begin
                     { int/int becomes a real }
-                    if int(rv)=0 then
+                    rvd:=rv;
+                    lvd:=lv;
+                    if int(rvd)=0 then
                      begin
                        Message(parser_e_invalid_float_operation);
                        t:=crealconstnode.create(0,pbestrealtype^);
                      end
                     else
-                     t:=crealconstnode.create(int(lv)/int(rv),pbestrealtype^);
+                     t:=crealconstnode.create(int(lvd)/int(rvd),pbestrealtype^);
                   end;
                 else
                   CGMessage(type_e_mismatch);
               end;
-              resulttypepass(t);
               result:=t;
               exit;
            end;
@@ -327,7 +328,6 @@ implementation
                  else
                    CGMessage(type_e_mismatch);
               end;
-              resulttypepass(t);
               result:=t;
               exit;
            end;
@@ -367,7 +367,6 @@ implementation
               end;
               donewidestring(ws1);
               donewidestring(ws2);
-              resulttypepass(t);
               result:=t;
               exit;
            end;
@@ -432,7 +431,6 @@ implementation
               end;
               ansistringdispose(s1,l1);
               ansistringdispose(s2,l2);
-              resulttypepass(t);
               result:=t;
               exit;
            end;
@@ -526,7 +524,6 @@ implementation
                    End;
               end;
               dispose(resultset);
-              resulttypepass(t);
               result:=t;
               exit;
            end;
@@ -585,7 +582,6 @@ implementation
                                (b and (ot=unequaln)) then
                              begin
                                hp:=cnotnode.create(hp);
-                               resulttypepass(hp);
                              end;
                             result:=hp;
                             exit;
@@ -602,7 +598,6 @@ implementation
                                (b and (ot=unequaln)) then
                              begin
                                hp:=cnotnode.create(hp);
-                               resulttypepass(hp);
                              end;
                             result:=hp;
                             exit;
@@ -623,7 +618,6 @@ implementation
                      begin
                        inserttypeconv(left,cshortstringtype);
                        hp := genaddsstringcharoptnode(self);
-                       resulttypepass(hp);
                        result := hp;
                        exit;
                      end;
@@ -811,7 +805,7 @@ implementation
                  if not(is_shortstring(rd) or is_char(rd)) then
                    inserttypeconv(right,cshortstringtype);
               end;
-              
+
           end
 
          { pointer comparision and subtraction }
@@ -1375,7 +1369,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2001-08-31 15:42:15  jonas
+  Revision 1.36  2001-09-02 21:12:06  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.35  2001/08/31 15:42:15  jonas
     * added missing type conversion from small to normal sets
 
   Revision 1.34  2001/08/30 15:43:14  jonas
