@@ -221,6 +221,12 @@ var
                                status.use_stderr:=true;
                             end;
                        end;
+                 'Z' : begin
+                          if inverse then
+                            status.use_stderr:=false
+                          else
+                            status.use_stderr:=true;
+                       end;
                 { Normal cases - do an or }
                  'E' : if inverse then
                          status.verbosity:=status.verbosity and (not V_Error)
@@ -870,7 +876,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.36  2005-01-20 17:29:07  peter
+  Revision 1.37  2005-02-07 17:25:28  peter
+  -vz for output to stderr
+
+  Revision 1.36  2005/01/20 17:29:07  peter
     * fixed -vv
 
   Revision 1.35  2004/11/15 23:35:31  peter
