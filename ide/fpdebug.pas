@@ -691,7 +691,10 @@ begin
   if DebuggeeTTY <> '' then
     begin
       Command('tty '+DebuggeeTTY);
-      NoSwitch:= true;
+      if DebuggeeTTY<>TTYName(inout) then
+        NoSwitch:= true
+      else
+        NoSwitch:=false;
     end
   else
     begin
@@ -1138,6 +1141,7 @@ end;
 
 
 procedure TDebugController.DoUserScreen;
+
 begin
   Inc(RunCount);
   if NoSwitch then
@@ -3896,7 +3900,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2001-09-12 09:48:38  pierre
+  Revision 1.5  2001-10-11 11:39:35  pierre
+   * better NoSwitch check for unix
+
+  Revision 1.4  2001/09/12 09:48:38  pierre
    + SetDirectories method added to help for disassembly window
 
   Revision 1.3  2001/08/07 22:58:10  pierre
