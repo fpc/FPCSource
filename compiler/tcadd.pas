@@ -91,14 +91,22 @@ implementation
          { first do the two subtrees }
          firstpass(p^.left);
          firstpass(p^.right);
+         if codegenerror then
+           exit;
+
+         { convert array constructors to sets, because there is no other operator
+           possible for array constructors }
+         if is_array_constructor(p^.left^.resulttype) then
+           arrayconstructor_to_set(p^.left);
+         if is_array_constructor(p^.right^.resulttype) then
+           arrayconstructor_to_set(p^.right);
+
+         { load easier access variables }
          lt:=p^.left^.treetype;
          rt:=p^.right^.treetype;
          rd:=p^.right^.resulttype;
          ld:=p^.left^.resulttype;
          convdone:=false;
-
-         if codegenerror then
-           exit;
 
          { overloaded operator ? }
          if (p^.treetype=starstarn) or
@@ -106,7 +114,7 @@ implementation
             ((ld^.deftype=arraydef) and
               not((cs_mmx in aktlocalswitches) and
               is_mmx_able_array(ld)) and
-             (not (rd^.deftype in [setdef,orddef])) and
+             (not (rd^.deftype in [orddef])) and
              (not is_chararray(ld))
             ) or
             { <> and = are defined for classes }
@@ -119,7 +127,7 @@ implementation
             ((rd^.deftype=arraydef) and
               not((cs_mmx in aktlocalswitches) and
               is_mmx_able_array(rd)) and
-             (not (ld^.deftype in [setdef,orddef])) and
+             (not (ld^.deftype in [orddef])) and
              (not is_chararray(rd))
             ) or
             { <> and = are defined for classes }
@@ -515,19 +523,8 @@ implementation
 
          { left side a setdef, must be before string processing,
            else array constructor can be seen as array of char (PFV) }
-           if (ld^.deftype=setdef) or is_array_constructor(ld) then
+           if (ld^.deftype=setdef) {or is_array_constructor(ld)} then
              begin
-             { convert array constructors to sets }
-                if is_array_constructor(ld) then
-                 begin
-                   arrayconstructor_to_set(p^.left);
-                   ld:=p^.left^.resulttype;
-                 end;
-                if is_array_constructor(rd) then
-                 begin
-                   arrayconstructor_to_set(p^.right);
-                   rd:=p^.right^.resulttype;
-                 end;
              { trying to add a set element? }
                 if (p^.treetype=addn) and (rd^.deftype<>setdef) then
                  begin
@@ -1139,7 +1136,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  1999-09-15 20:35:45  florian
+  Revision 1.49  1999-09-16 13:39:14  peter
+    * arrayconstructor 2 set conversion is now called always in the
+      beginning of firstadd
+
+  Revision 1.48  1999/09/15 20:35:45  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers
