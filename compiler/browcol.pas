@@ -42,6 +42,7 @@ const
     sfRecord        = $00000001;
     sfObject        = $00000002;
     sfClass         = $00000004;
+    sfPointer       = $00000008;
     sfHasMemInfo    = $80000000;
 
 type
@@ -89,8 +90,8 @@ type
       Items      : PSymbolCollection;
       DType      : PString;
       VType      : PString;
-      ObjectID   : longint;
-      AncestorID : longint;
+      TypeID     : longint;
+      RelatedTypeID : longint;
       Ancestor   : PSymbol;
       Flags      : longint;
       MemInfo    : PSymbolMemInfo;
@@ -426,8 +427,8 @@ var K1: PSymbol absolute Key1;
     K2: PSymbol absolute Key2;
     R: Sw_integer;
 begin
-  if K1^.ObjectID<K2^.ObjectID then R:=-1 else
-  if K1^.ObjectID>K2^.ObjectID then R:=1 else
+  if K1^.TypeID<K2^.TypeID then R:=-1 else
+  if K1^.TypeID>K2^.TypeID then R:=1 else
   R:=0;
   Compare:=R;
 end;
@@ -442,7 +443,7 @@ var S: TSymbol;
     Index: sw_integer;
     P: PSymbol;
 begin
-  S.ObjectID:=AID;
+  S.TypeID:=AID;
   if Search(@S,Index)=false then P:=nil else
     P:=At(Index);
   SearchSymbolByID:=P;
@@ -695,8 +696,8 @@ begin
   TObject.Init;
 
   S.Read(Typ,SizeOf(Typ));
-  S.Read(ObjectID, SizeOf(ObjectID));
-  S.Read(AncestorID, SizeOf(AncestorID));
+  S.Read(TypeID, SizeOf(TypeID));
+  S.Read(RelatedTypeID, SizeOf(RelatedTypeID));
   S.Read(Flags, SizeOf(Flags));
   Name:=S.ReadStr;
   Params:=S.ReadStr;
@@ -716,15 +717,15 @@ begin
   { --- items needing fixup --- }
   S.Read(DType, SizeOf(DType));
   S.Read(VType, SizeOf(VType));
-  S.Read(Ancestor, SizeOf(Ancestor));
+  {S.Read(Ancestor, SizeOf(Ancestor));}
 end;
 
 procedure TSymbol.Store(var S: TStream);
 var W: word;
 begin
   S.Write(Typ,SizeOf(Typ));
-  S.Write(ObjectID, SizeOf(ObjectID));
-  S.Write(AncestorID, SizeOf(AncestorID));
+  S.Write(TypeID, SizeOf(TypeID));
+  S.Write(RelatedTypeID, SizeOf(RelatedTypeID));
   S.Write(Flags, SizeOf(Flags));
   S.WriteStr(Name);
   S.WriteStr(Params);
@@ -742,7 +743,7 @@ begin
   { --- items needing fixup --- }
   S.Write(DType, SizeOf(DType));
   S.Write(VType, SizeOf(VType));
-  S.Write(Ancestor, SizeOf(Ancestor));
+  {S.Write(Ancestor, SizeOf(Ancestor));}
 end;
 
 
@@ -1166,6 +1167,13 @@ end;
                  else
                    SetVType(Symbol,GetDefinitionStr(vartype.def));
                ProcessDefIfStruct(vartype.def);
+               if assigned(vartype.def) then
+                 if (vartype.def^.deftype=pointerdef) and
+                    assigned(ppointerdef(vartype.def)^.pointertype.def) then
+                 begin
+                   Symbol^.Flags:=(Symbol^.Flags or sfPointer);
+                   Symbol^.RelatedTypeID:=longint(ppointerdef(vartype.def)^.pointertype.def);
+                 end;
                MemInfo.Addr:=address;
                if assigned(localvarsym) then
                  MemInfo.LocalAddr:=localvarsym^.address
@@ -1225,6 +1233,8 @@ end;
             begin
             with ptypesym(sym)^ do
               if assigned(restype.def) then
+               begin
+                Symbol^.TypeID:=longint(restype.def);
                 case restype.def^.deftype of
                   arraydef :
                     SetDType(Symbol,GetArrayDefStr(parraydef(restype.def)));
@@ -1238,9 +1248,8 @@ end;
                     with pobjectdef(restype.def)^ do
                     begin
                       ObjDef:=childof;
-                      Symbol^.ObjectID:=longint(restype.def);
                       if ObjDef<>nil then
-                        Symbol^.AncestorID:=longint(ObjDef);{TypeNames^.Add(S);}
+                        Symbol^.RelatedTypeID:=longint(ObjDef);{TypeNames^.Add(S);}
                       Symbol^.Flags:=(Symbol^.Flags or sfObject);
                       if is_class then
                         Symbol^.Flags:=(Symbol^.Flags or sfClass);
@@ -1251,11 +1260,18 @@ end;
                       Symbol^.Flags:=(Symbol^.Flags or sfRecord);
                       ProcessSymTable(Symbol,Symbol^.Items,precorddef(restype.def)^.symtable);
                     end;
+                  pointerdef :
+                    begin
+                      Symbol^.Flags:=(Symbol^.Flags or sfPointer);
+                      Symbol^.RelatedTypeID:=longint(ppointerdef(restype.def)^.pointertype.def);{TypeNames^.Add(S);}
+                    end;
+
                   filedef :
                     SetDType(Symbol,GetFileDefStr(pfiledef(restype.def)));
                   setdef :
                     SetDType(Symbol,GetSetDefStr(psetdef(restype.def)));
                 end;
+               end;
             end;
         end;
         Ref:=Sym^.defref;
@@ -1312,7 +1328,8 @@ begin
 end;
 
 procedure BuildObjectInfo;
-var C: PIDSortedSymbolCollection;
+var C,D: PIDSortedSymbolCollection;
+    E : PCollection;
     ObjectC: PObjectSymbolCollection;
     ObjectsSymbol: PObjectSymbol;
 procedure InsertSymbolCollection(Symbols: PSymbolCollection);
@@ -1324,6 +1341,10 @@ begin
       P:=Symbols^.At(I);
       if (P^.Flags and sfObject)<>0 then
         C^.Insert(P);
+      if (P^.typ=typesym) then
+        D^.Insert(P);
+      if (P^.typ=varsym) and ((P^.flags and sfPointer)<>0) then
+        E^.Insert(P);
       if P^.Items<>nil then
         InsertSymbolCollection(P^.Items);
     end;
@@ -1370,15 +1391,41 @@ var Pass: integer;
     P: PSymbol;
 begin
   New(C, Init(1000,5000));
+  New(D, Init(1000,5000));
+  New(E, Init(1000,5000));
   InsertSymbolCollection(Modules);
 
   { --- Resolve ancestor<->descendant references --- }
   for I:=0 to C^.Count-1 do
     begin
       P:=C^.At(I);
-      if P^.AncestorID<>0 then
-        P^.Ancestor:=C^.SearchSymbolByID(P^.AncestorID);
+      if P^.RelatedTypeID<>0 then
+        P^.Ancestor:=C^.SearchSymbolByID(P^.RelatedTypeID);
     end;
+
+  { --- Resolve pointer definition references --- }
+  for I:=0 to D^.Count-1 do
+    begin
+      P:=D^.At(I);
+      if P^.RelatedTypeID<>0 then
+        P^.Ancestor:=D^.SearchSymbolByID(P^.RelatedTypeID);
+    end;
+
+  { --- Resolve  pointer var definition references --- }
+  for I:=0 to E^.Count-1 do
+    begin
+      P:=PSymbol(E^.At(I));
+      if P^.RelatedTypeID<>0 then
+        P^.Ancestor:=D^.SearchSymbolByID(P^.RelatedTypeID);
+    end;
+
+  { E is not needed anymore }
+  E^.DeleteAll;
+  Dispose(E,Done);
+
+  { D is not needed anymore }
+  D^.DeleteAll;
+  Dispose(D,Done);
 
   { --- Build object tree --- }
   if assigned(ObjectTree) then Dispose(ObjectTree, Done);
@@ -1448,9 +1495,7 @@ begin
         ppu:=fexpand(m^.ppufilename^);
       if (m^.is_unit=false) and (m^.islibrary=false) then
         ppu:=fexpand(m^.exefilename^);
-      if assigned(p) then
-      begin
-        if assigned(m^.sourcefiles) then
+      if assigned(m^.sourcefiles) then
         begin
           s:=m^.sourcefiles^.files;
           while assigned(s) do
@@ -1468,8 +1513,6 @@ begin
             s:=s^.next;
           end;
         end;
-      end;
-
       m:=pmodule(m^.next);
     end;
   end;
@@ -1608,7 +1651,7 @@ var I: sw_integer;
 begin
   PD^.Resolve(P^.DType);
   PD^.Resolve(P^.VType);
-  PD^.Resolve(P^.Ancestor);
+  {PD^.Resolve(P^.Ancestor);}
   if Assigned(P^.References) then
     with P^.References^ do
      for I:=0 to Count-1 do
@@ -1707,7 +1750,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2000-02-09 13:22:45  peter
+  Revision 1.34  2000-03-07 21:55:59  pierre
+    * Tsymbol and Ancestor fixes
+
+  Revision 1.33  2000/02/09 13:22:45  peter
     * log truncated
 
   Revision 1.32  2000/01/20 00:24:06  pierre
