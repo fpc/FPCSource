@@ -7,7 +7,6 @@ units=dom htmldoc xmlcfg xmlread xmlstreaming xmlwrite
 
 [require]
 options=-S2
-packages=fcl
 
 [install]
 unitsubdir=fcl
