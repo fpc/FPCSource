@@ -109,7 +109,6 @@ type
 
 var
   gpm_flag           : longint;cvar;external;
-  gpm_ctlfd          : longint;cvar;external;
   gpm_fd             : longint;cvar;external;
   gpm_hflag          : longint;cvar;external;
   gpm_morekeys       : Longbool;cvar;external;
@@ -209,7 +208,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-01-07 16:41:40  daniel
+  Revision 1.3  2000-01-26 21:51:34  peter
+    * removed gpm_ctlfd
+
+  Revision 1.2  2000/01/07 16:41:40  daniel
     * copyright 2000
 
   Revision 1.1  1999/07/01 19:39:43  peter
