@@ -3157,8 +3157,13 @@
          else
            rttilist^.concat(new(pai_const,init_32bit(0)));
 
-         { write published properties count }
-         count:=0;
+         { count total number of properties }
+         if assigned(childof) and ((childof^.options and oo_can_have_published)<>0) then
+           count:=childof^.next_free_name_index
+         else
+           count:=0;
+
+         { write it }
          publicsyms^.foreach(count_published_properties);
          rttilist^.concat(new(pai_const,init_16bit(count)));
 
@@ -3171,6 +3176,11 @@
          else
            rttilist^.concat(new(pai_const,init_8bit(0)));
 
+         { write published properties count }
+         count:=0;
+         publicsyms^.foreach(count_published_properties);
+         rttilist^.concat(new(pai_const,init_16bit(count)));
+
          { count is used to write nameindex   }
          { but we need an offset of the owner }
          { to give each property an own slot  }
@@ -3178,6 +3188,7 @@
            count:=childof^.next_free_name_index
          else
            count:=0;
+
          publicsyms^.foreach(write_property_info);
       end;
 
@@ -3213,7 +3224,10 @@
 
 {
   $Log$
-  Revision 1.71  1998-11-20 15:35:59  florian
+  Revision 1.72  1998-11-25 14:35:28  florian
+    * writting of rtti for properties fixed
+
+  Revision 1.71  1998/11/20 15:35:59  florian
     * problems with rtti fixed, hope it works
 
   Revision 1.70  1998/11/18 15:44:16  peter
