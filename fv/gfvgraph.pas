@@ -223,7 +223,24 @@ PROCEDURE OutTextXY(X,Y: Integer; TextString: String);
 {$IFDEF GRAPH_API}
 procedure GraphUpdateScreen(Force: Boolean);
 procedure SetExtraInfo(x,y,xi,yi : longint; shouldskip : boolean);
+procedure SetupExtraInfo;
 procedure FreeExtraInfo;
+
+Const
+  { Possible cursor types  for video interface }
+  crHidden        = 0;
+  crUnderLine     = 1;
+  crBlock         = 2;
+  crHalfBlock     = 3;
+  EmptyVideoBufCell : pextrainfo = nil;
+
+{ from video unit }
+procedure SetCursorPos(NewCursorX, NewCursorY: Word);
+{ Position the cursor to the given position }
+function GetCursorType: Word;
+{ Return the cursor type: Hidden, UnderLine or Block }
+procedure SetCursorType(NewType: Word);
+{ Set the cursor to the given type }
 {$ENDIF GRAPH_API}
 
 {***************************************************************************}
@@ -476,6 +493,93 @@ END;
 
 {$IFDEF GRAPH_API}
 
+{ from video unit }
+Const
+  CursorX : longint = -1;
+  CursorY : longint = -1;
+  CursorType : byte = crHidden;
+  CursorIsVisible : boolean = false;
+  LineReversed = true;
+  LineNormal = false;
+TYPE
+  TCursorInfo = array[0..7] of boolean;
+
+CONST
+   DefaultCursors: Array[crUnderline..crHalfBlock] of TCursorInfo =
+(
+ (LineNormal, LineNormal, LineNormal, LineNormal, LineNormal, LineNormal, LineNormal, LineReversed),
+ (LineReversed, LineReversed, LineReversed, LineReversed, LineReversed, LineReversed, LineReversed, LineReversed),
+ (LineNormal, LineNormal, LineNormal, LineNormal, LineReversed, LineReversed, LineReversed, LineReversed)
+);
+
+Procedure XorPutCursor;
+var
+  j,YSCale : longint;
+  Ts: Graph.ViewPortType;
+  StoreColor : longint;
+begin
+  if CursorType=crHidden then
+    exit;
+  Yscale:=(SysFontHeight+1) div 8;
+  Graph.GetViewSettings(Ts);
+  graph.SetWriteMode(graph.XORPut);
+  StoreColor:=Graph.GetColor;
+  Graph.SetColor(White);
+  if (CursorX*SysFontWidth>=Ts.X1) and (CursorX*SysFontWidth<Ts.X2) and
+     (CursorY*SysFontHeight>=Ts.Y1) and (CursorY*SysFontHeight<Ts.Y2) then
+    for j:=0 to SysFontHeight-1 do
+      begin
+        if DefaultCursors[CursorType][(j*8) div SysFontHeight] then
+            begin
+              Graph.MoveTo(CursorX*SysFontWidth-Ts.X1,CursorY*SysFontHeight+j-Ts.Y1);
+              Graph.LineRel(SysFontWidth-1,0);
+            end;
+        end;
+  Graph.SetColor(StoreColor);
+  graph.SetWriteMode(graph.CopyPut);
+end;
+
+Procedure HideCursor;
+begin
+  If CursorIsVisible then
+    begin
+      XorPutCursor;
+      CursorIsVisible:=false;
+    end;
+end;
+
+Procedure ShowCursor;
+begin
+  If not CursorIsVisible then
+    begin
+      XorPutCursor;
+      CursorIsVisible:=true;
+    end;
+end;
+
+{ Position the cursor to the given position }
+procedure SetCursorPos(NewCursorX, NewCursorY: Word);
+begin
+  HideCursor;
+  CursorX:=NewCursorX;
+  CursorY:=NewCursorY;
+  ShowCursor;
+end;
+
+{ Return the cursor type: Hidden, UnderLine or Block }
+function GetCursorType: Word;
+begin
+  GetCursorType:=CursorType;
+end;
+
+{ Set the cursor to the given type }
+procedure SetCursorType(NewType: Word);
+begin
+  HideCursor;
+  CursorType:=NewType;
+  ShowCursor;
+end;
+
 const
   SetExtraInfoCalled : boolean = false;
 
@@ -503,15 +607,27 @@ begin
   SetExtraInfoCalled:=true;
 end;
 
+procedure SetupExtraInfo;
+begin
+  if not assigned(EmptyVideoBufCell) then
+    begin
+      GetMem(EmptyVideoBufCell,SysFontHeight*((SysFontWidth +7) div 8));
+      FillChar(EmptyVideoBufCell^,SysFontHeight*((SysFontWidth +7) div 8),#0);
+    end;
+end;
+
 procedure FreeExtraInfo;
 var
   i : longint;
 begin
+  HideCursor;
   if assigned(SpVideoBuf) then
     begin
       for i:=0 to (TextScreenWidth+1)*(TextScreenHeight+1) - 1 do
-        if assigned(SpVideoBuf^[i]) then
+        if assigned(SpVideoBuf^[i]) and (SpVideoBuf^[i]<>EmptyVideoBufCell) then
           FreeMem(SpVideoBuf^[i],SysFontHeight*((SysFontWidth +7) div 8));
+      if assigned(EmptyVideoBufCell) then
+        FreeMem(EmptyVideoBufCell,SysFontHeight*((SysFontWidth +7) div 8));
       FreeMem(SpVideoBuf,sizeof(pextrainfo)*(TextScreenWidth+1)*(TextScreenHeight+1));
       SpVideoBuf:=nil;
     end;
@@ -559,16 +675,20 @@ begin
       Graph.SetViewPort(0,0,Graph.GetMaxX,Graph.GetMaxY,false);
       Graph.GetFillSettings(StoreFillSettings);
       Graph.SetFillStyle(EmptyFill,0);
+      Graph.SetWriteMode(CopyPut);
       for y := 0 to TextScreenHeight - 1 do
         begin
            for x := 0  to TextScreenWidth - 1 do
              begin
                i:=y*TextScreenWidth+x;
-               if (OldVideoBuf^[i]<>VideoBuf^[i]) or assigned(SpVideoBuf^[i]) then
+               if (OldVideoBuf^[i]<>VideoBuf^[i]) or
+                  (assigned(SpVideoBuf^[i]) and (SpVideoBuf^[i]<>EmptyVideoBufCell)) then
                  begin
                    ch:=chr(VideoBuf^[i] and $ff);
                    if ch<>#0 then
                      begin
+                       if (SpVideoBuf^[i]=EmptyVideoBufCell) then
+                         SpVideoBuf^[i]:=nil;
                        Attr:=VideoBuf^[i] shr 8;
                        NextColor:=Attr and $f;
                        NextBkColor:=(Attr and $70) shr 4;
@@ -577,7 +697,8 @@ begin
                            Graph.SetBkColor(NextBkColor);
                            CurBkColor:=NextBkColor;
                          end;
-
+                       if (x=CursorX) and (y=CursorY) then
+                         HideCursor;
                        if not assigned(SpVideoBuf^[i]) then
                          Graph.Bar(x*SysFontWidth,y*SysFontHeight,(x+1)*SysFontWidth-1,(y+1)*SysFontHeight-1)
                        else
@@ -603,13 +724,20 @@ begin
                            Graph.SetBkColor(0);
                            CurBkColor:=0;
                          end;
-                       Graph.OutTextXY(x*SysFontWidth,y*SysFontHeight,ch);
+                       Graph.OutTextXY(x*SysFontWidth,y*SysFontHeight+2,ch);
+                       if (x=CursorX) and (y=CursorY) then
+                         ShowCursor;
                      end;
                    OldVideoBuf^[i]:=VideoBuf^[i];
                    if assigned(SpVideoBuf^[i]) then
                      begin
-                       FreeMem(SpVideoBuf^[i],SysFontHeight*((SysFontWidth +7) div 8));
-                       SpVideoBuf^[i]:=nil;
+                       if (SpVideoBuf^[i]=EmptyVideoBufCell) then
+                         SpVideoBuf^[i]:=nil
+                       else
+                         begin
+                           FreeMem(SpVideoBuf^[i],SysFontHeight*((SysFontWidth +7) div 8));
+                           SpVideoBuf^[i]:=EmptyVideoBufCell;
+                         end;
                      end;
                  end;
              end;
@@ -629,7 +757,10 @@ end;
 END.
 {
  $Log$
- Revision 1.15  2002-05-31 12:37:47  pierre
+ Revision 1.16  2002-06-06 06:41:14  pierre
+  + Cursor functions for UseFixedFont case
+
+ Revision 1.15  2002/05/31 12:37:47  pierre
   * try to enhance graph mode
 
  Revision 1.14  2002/05/29 22:15:57  pierre
