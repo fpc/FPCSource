@@ -94,7 +94,6 @@ export PP OPT REDIR REDIRFILE ERRORFILE
 	go32v1libs go32v2libs linuxlibs os2libs win32libs \
 	clean install native diffs diffclean \
 	libs libinstall \
-	utils utils_install
 
 all: rtls
 
@@ -105,7 +104,6 @@ clean:
 	make -C linux clean
 	make -C win32 clean
 	make -C os2 clean
-	make -C utils clean
 	-$(DEL) *.dif
 
 
@@ -201,16 +199,6 @@ libinstall_win32:
 
 
 ############################################################################
-# Utils
-############################################################################
-
-utils:
-	make -C utils all
-utils_install:
-	make -C utils install
-
-
-############################################################################
 # Diffs
 ############################################################################
 
@@ -256,7 +244,10 @@ diffclean:
 
 #
 # $Log$
-# Revision 1.5  1999-02-24 15:59:04  michael
+# Revision 1.6  1999-05-19 10:59:48  peter
+#   * remove utils
+#
+# Revision 1.5  1999/02/24 15:59:04  michael
 # * fixed clean target
 #
 # Revision 1.4  1998/12/21 14:26:52  pierre
