@@ -511,11 +511,13 @@ unit cg64f32;
                inc(tmploclo.reference.offset,4)
              else
                inc(tmplochi.reference.offset,4);
+           { !!! i386 doesn't pass proper locations here
            else
              internalerror(2003042702);
+           }
         end;
-        cg.a_param_const(list,OS_32,lo(value),tmploclo);
         cg.a_param_const(list,OS_32,hi(value),tmplochi);
+        cg.a_param_const(list,OS_32,lo(value),tmploclo);
       end;
 
 
@@ -547,11 +549,13 @@ unit cg64f32;
                 inc(tmprefhi.offset,4);
                 inc(tmplochi.reference.offset,4);
              end
+           { !!! i386 doesn't pass proper locations here
            else
              internalerror(2003042701);
+           }
         end;
-        cg.a_param_ref(list,OS_32,tmpreflo,tmploclo);
         cg.a_param_ref(list,OS_32,tmprefhi,tmplochi);
+        cg.a_param_ref(list,OS_32,tmpreflo,tmploclo);
       end;
 
 
@@ -861,7 +865,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2003-04-27 08:23:51  florian
+  Revision 1.42  2003-04-27 09:10:49  florian
+    * quick fix for param64 for intel
+
+  Revision 1.41  2003/04/27 08:23:51  florian
     * fixed parameter passing for 64 bit ints
 
   Revision 1.40  2003/04/23 20:16:03  peter
