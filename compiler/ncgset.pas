@@ -332,7 +332,8 @@ implementation
             { how much have we already substracted from the x in the }
             { "x in [y..z]" expression                               }
             adjustment := 0;
-            hr.enum := R_NO;
+            hr.enum:=R_INTREGISTER;
+            hr.number:=NR_NO;
 
             for i:=1 to numparts do
              if setparts[i].range then
@@ -1080,7 +1081,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-07-23 11:02:53  jonas
+  Revision 1.47  2003-08-20 20:29:06  daniel
+    * Some more R_NO changes
+    * Preventive code to loadref added
+
+  Revision 1.46  2003/07/23 11:02:53  jonas
     * final (?) fix to in-code
 
   Revision 1.45  2003/07/20 18:03:27  jonas

@@ -1535,6 +1535,8 @@ implementation
 
     procedure taicpu_abstract.loadref(opidx:longint;const r:treference);
       begin
+        if (r.base.enum=R_NO) or (r.index.enum=R_NO) then
+          internalerror(200308192);
         if opidx>=ops then
          ops:=opidx+1;
         with oper[opidx] do
@@ -1899,7 +1901,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2003-08-17 20:47:47  daniel
+  Revision 1.34  2003-08-20 20:29:06  daniel
+    * Some more R_NO changes
+    * Preventive code to loadref added
+
+  Revision 1.33  2003/08/17 20:47:47  daniel
     * Notranslation changed into -sr functionality
 
   Revision 1.32  2003/08/17 16:59:20  jonas

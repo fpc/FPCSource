@@ -426,7 +426,8 @@ implementation
              { if the previous was 64bit release the high register }
              begin
                rg.ungetregisterint(list,l.registerhigh);
-               l.registerhigh.enum:=R_NO;
+               l.registerhigh.enum:=R_INTREGISTER;
+               l.registerhigh.number:=NR_NO;
              end;
             if l.loc=LOC_REGISTER then
               rg.ungetregisterint(list,l.register);
@@ -443,7 +444,8 @@ implementation
               if l.size in [OS_64,OS_S64] then
                begin
                  rg.ungetregisterint(list,l.registerhigh);
-                 l.registerhigh.enum:=R_NO;
+                 l.registerhigh.enum:=R_INTREGISTER;
+                 l.registerhigh.number:=NR_NO;
                end;
               hregister:=l.register;
             end
@@ -1054,7 +1056,7 @@ implementation
            (tvarsym(p).varspez=vs_value) and
            (paramanager.push_addr_param(tvarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
          begin
-           loadref := tvarsym(p).reg.enum = R_NO;
+           loadref := (tvarsym(p).reg.enum=R_NO) or ((Tvarsym(p).reg.enum=R_INTREGISTER) and (Tvarsym(p).reg.number=NR_NO));
            if (loadref) then
              reference_reset_base(href1,current_procinfo.framepointer,tvarsym(p).adjusted_address)
            else
@@ -2077,7 +2079,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.136  2003-08-20 17:48:49  peter
+  Revision 1.137  2003-08-20 20:29:06  daniel
+    * Some more R_NO changes
+    * Preventive code to loadref added
+
+  Revision 1.136  2003/08/20 17:48:49  peter
     * fixed stackalloc to not allocate localst.datasize twice
     * order of stackalloc code fixed for implicit init/final
 

@@ -1666,7 +1666,8 @@ implementation
       begin
          inherited loadsym(ppufile);
          typ:=varsym;
-         reg.enum:=R_NO;
+         reg.enum:=R_INTREGISTER;
+         reg.number:=NR_NO;
          refs := 0;
          varstate:=vs_used;
          varspez:=tvarspez(ppufile.getbyte);
@@ -2668,7 +2669,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.112  2003-07-05 22:41:59  peter
+  Revision 1.113  2003-08-20 20:29:06  daniel
+    * Some more R_NO changes
+    * Preventive code to loadref added
+
+  Revision 1.112  2003/07/05 22:41:59  peter
     * check if owner.defowner is valid when checking private/protected
 
   Revision 1.111  2003/07/04 22:41:41  pierre
