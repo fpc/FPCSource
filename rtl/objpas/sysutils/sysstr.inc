@@ -788,6 +788,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
     Index,Width,Prec : Longint;
     Left : Boolean;
     Fchar : char;
+    vl : int64;
 
   {
     ReadFormat reads the format string. It returns the type character in
@@ -1061,18 +1062,33 @@ begin
               // Insert(':',ToAdd,5);
               end;
         'X' : begin
-              Checkarg(vtinteger,true);
-              If Prec>15 then
-                ToAdd:=HexStr(Args[Doarg].VInteger,15)
+              if Checkarg(vtinteger,false) then
+	         begin
+	           vl:=Args[Doarg].VInteger;
+		   index:=16;
+	         end
+	      else
+	         begin
+                   CheckArg(vtInt64,true);
+		   vl:=Args[DoArg].VInt64^;
+		   index:=31;
+	         end;
+              If Prec>index then
+                ToAdd:=HexStr(vl,index)
               else
                 begin
                 // determine minimum needed number of hex digits.
                 Index:=1;
-                While (DWord(1 shl (Index*4))<=DWord(Args[DoArg].VInteger)) and (index<8) do
+		{$Ifdef ver1_0}
+                 While (DWord(1 shl (Index*4))<=DWord(Args[DoArg].VInteger)) and (index<8) do
+                  inc(Index);
+		{$else}
+                While (qWord(1 shl (Index*4))<=qWord(vl)) and (index<16) do
                  inc(Index);
+		{$endif}
                 If Index>Prec then
                   Prec:=Index;
-                ToAdd:=HexStr(Args[DoArg].VInteger,Prec);
+                ToAdd:=HexStr(qword(vl),Prec);
                 end;
               end;
         '%': ToAdd:='%';
@@ -2214,7 +2230,10 @@ const
 
 {
   $Log$
-  Revision 1.18  2004-11-21 16:44:01  marco
+  Revision 1.19  2004-11-21 19:33:20  marco
+   * %x 64-bit support
+
+  Revision 1.18  2004/11/21 16:44:01  marco
    * %u
 
   Revision 1.17  2004/11/16 18:30:35  marco
