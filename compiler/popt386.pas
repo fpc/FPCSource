@@ -1537,15 +1537,18 @@ End.
 
 {
  $Log$
- Revision 1.28  1998-12-14 22:01:45  jonas
-   - removed {$ifdef ver0_99_11}'s
+ Revision 1.29  1998-12-15 11:53:54  peter
+   * removed commentlevel
+
+ Revision 1.28  1998/12/14 22:01:45  jonas
+   - removed $ifdef ver0_99_11's
 
  Revision 1.27  1998/12/11 00:03:35  peter
    + globtype,tokens,version unit splitted from globals
 
  Revision 1.26  1998/12/09 18:16:13  jonas
-   * corrected small syntax error in part between {ifdef ver0_99_11}
-   + added fistp/fild optimization between {ifdef ver0_99_11}
+   * corrected small syntax error in part between ifdef ver0_99_11
+   + added fistp/fild optimization between ifdef ver0_99_11
 
  Revision 1.25  1998/12/02 16:23:29  jonas
    * changed "if longintvar in set" to case or "if () or () .." statements
