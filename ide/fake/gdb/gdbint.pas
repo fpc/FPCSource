@@ -49,7 +49,7 @@ type
     got_error,
     reset_command,
     call_reset,
-    Debugger_started : boolean;
+    Debuggee_started : boolean;
     { frames and frame info while recording a frame }
     frames        : ppframeentry;
     frame_size,
@@ -89,7 +89,11 @@ type
     procedure DoEndSession(code:longint);virtual;
     procedure DoDebuggerScreen;virtual;
     procedure DoUserScreen;virtual;
+    function  AllowQuit : boolean;virtual;
+
   end;
+
+function  GDBVersion : string;
 
 var
   curr_gdb : pgdbinterface;
@@ -153,6 +157,16 @@ end;
 
 procedure TGDBInterface.DoUserScreen;
 begin
+end;
+
+function  tgdbinterface.AllowQuit : boolean;                                                                                                                                                                                                                   
+begin                                                                                                                                                                                                                                                          
+  AllowQuit:=true;                                                                                                                                                                                                                                             
+end;                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                               
+function  GDBVersion : string;
+begin
+  Version:='Fake GDB';
 end;
 
 {*****************************************************************************
@@ -252,7 +266,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-02-16 10:44:15  peter
+  Revision 1.2  1999-07-12 13:08:20  pierre
+    + added GDBVersion function
+    * tries to intercept quit command from GDB Window
+    + AllowQuit method
+
+  Revision 1.1  1999/02/16 10:44:15  peter
     * updated
 
 }
