@@ -315,6 +315,12 @@ endif
 ifeq ($(OS_TARGET),freebsd)
 IDE=1
 endif
+ifeq ($(OS_TARGET),os2)
+IDE=1
+endif
+ifeq ($(OS_TARGET),emx)
+IDE=1
+endif
 endif
 endif
 override TARGET_DIRS+=compiler rtl utils fcl fv packages ide installer
