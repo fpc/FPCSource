@@ -228,11 +228,9 @@ endif
 ifndef PPC_TARGET
 PPC_TARGET=$(CPU_TARGET)
 endif
-export PPC_TARGET
 ifndef PPC_OS
 PPC_OS=$(OS_TARGET)
 endif
-export PPC_OS
 CPU_UNITDIR=.
 UTILSDIR=../utils
 COMPILERSOURCEDIR=$(PPC_TARGET) systems

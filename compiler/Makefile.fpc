@@ -57,14 +57,12 @@ endif
 ifndef PPC_TARGET
 PPC_TARGET=$(CPU_TARGET)
 endif
-export PPC_TARGET
 
 # Default is to generate a compiler for the same
 # target as OS_TARGET (a native compiler)
 ifndef PPC_OS
 PPC_OS=$(OS_TARGET)
 endif
-export PPC_OS
 
 # Where to place the unit files.
 CPU_UNITDIR=.
