@@ -1358,7 +1358,7 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
 		    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) $(OBJPASDIR)/sysconst$(PPUEXT) 
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT)
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
