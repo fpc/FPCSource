@@ -804,7 +804,11 @@ implementation
                      begin
                        if (pvarsym(hp^.symtableentry)^.varspez=vs_const) then
                         begin
-                          CGMessagePos(hp^.fileinfo,type_e_no_assign_to_const);
+                          { allow p^:= constructions with p is const parameter }
+                          if gotderef then
+                           valid_for_assign:=true
+                          else
+                           CGMessagePos(hp^.fileinfo,type_e_no_assign_to_const);
                           exit;
                         end;
                        { Are we at a with symtable, then we need to process the
@@ -843,7 +847,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  1999-12-09 09:35:54  peter
+  Revision 1.52  1999-12-16 19:12:04  peter
+    * allow constant pointer^ also for assignment
+
+  Revision 1.51  1999/12/09 09:35:54  peter
     * allow assigning to self
 
   Revision 1.50  1999/11/30 10:40:43  peter
