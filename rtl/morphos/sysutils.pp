@@ -42,6 +42,22 @@ uses dos,sysconst;
 {$i sysutils.inc}
 
 
+{ * Include MorphOS specific includes * }
+{$include execd.inc}
+{$include execf.inc}
+{$include timerd.inc}
+{$include doslibd.inc}
+{$include doslibf.inc}
+{$include utilf.inc}
+
+{ * Followings are implemented in the system unit! * }
+function PathConv(path: shortstring): shortstring; external name 'PATHCONV';
+procedure AddToList(var l: Pointer; h: LongInt); external name 'ADDTOLIST';
+procedure RemoveFromList(var l: Pointer; h: longint); external name 'REMOVEFROMLIST';
+
+var
+  MOS_fileList: Pointer; external name 'MOS_FILELIST';
+
 
 {****************************************************************************
                               File Functions
@@ -51,51 +67,96 @@ uses dos,sysconst;
 
 
 (* non portable routines *)
-Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
-Begin
+function FileOpen(const FileName: string; Mode: Integer): LongInt;
+var
+  dosResult: LongInt;
+  tmpStr   : array[0..255] of char;
+begin
+  {$WARNING FIX ME! To do: FileOpen Access Modes}
+  tmpStr:=PathConv(FileName)+#0;
+  dosResult:=Open(@tmpStr,MODE_OLDFILE);
+  if dosResult=0 then 
+    dosResult:=-1
+  else
+    AddToList(MOS_fileList,dosResult);
+  
+
+  FileOpen:=dosResult;
 end;
 
-Function FileGetDate (Handle : Longint) : Longint;
+
+function FileGetDate(Handle: LongInt) : LongInt;
 begin
 end;
 
 
-Function FileSetDate (Handle,Age : Longint) : Longint;
+function FileSetDate(Handle, Age: LongInt) : LongInt;
 begin
   // Impossible under unix from FileHandle !!
   FileSetDate:=-1;
 end;
 
 
-
-Function FileCreate (Const FileName : String) : Longint;
+function FileCreate(const FileName: string) : LongInt;
+var
+  dosResult: LongInt;
+  tmpStr   : array[0..255] of char;
 begin
-end;
+ tmpStr:=PathConv(FileName)+#0;
+ dosResult:=Open(@tmpStr,MODE_NEWFILE);
+ if dosResult=0 then 
+   dosResult:=-1
+ else 
+   AddToList(MOS_fileList,dosResult);
 
-function FileCreate (const FileName: string; Mode: integer): longint;
-begin
-end;
-
-Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
-begin
-end;
-
-
-Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
-begin
+ FileCreate:=dosResult;
 end;
 
 
-Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
+function FileCreate(const FileName: string; Mode: integer): LongInt;
 begin
+  {$WARNING FIX ME! To do: FileCreate Access Modes}
+  FileCreate:=FileCreate(FileName);
+end;
+
+
+function FileRead(Handle: LongInt; var Buffer; Count: LongInt): LongInt;
+var
+  dosResult: LongInt;
+begin
+  FileRead:=-1;
+  if (Count<=0) or (Handle<=0) then exit;
+
+  FileRead:=dosRead(Handle,@Buffer,Count);
+end;
+
+
+function FileWrite(Handle: LongInt; const Buffer; Count: LongInt): LongInt;
+var
+  dosResult: LongInt;
+begin
+  FileWrite:=-1;
+  if (Count<=0) or (Handle<=0) then exit;
+  
+  FileWrite:=dosWrite(Handle,@Buffer,Count);
+end;
+
+
+function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
+begin
+  FileSeek:=-1;
 end;
 
 function FileSeek (Handle: longint; FOffset, Origin: Int64): Int64;
 begin
 end;
 
-Procedure FileClose (Handle : Longint);
+procedure FileClose(Handle: LongInt);
 begin
+  if Handle<=0 then exit;
+
+  dosClose(Handle);
+  RemoveFromList(MOS_fileList,Handle);
 end;
 
 
@@ -103,6 +164,7 @@ Function FileTruncate (Handle,Size: Longint) : boolean;
 begin
 end;
 (* end of non portable routines *)
+
 
 Function FileAge (Const FileName : String): Longint;
 
@@ -244,13 +306,13 @@ begin
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
+function DeleteFile(const FileName: string) : Boolean;
 var
- F: File;
+  tmpStr: array[0..255] of char;
 begin
- Assign(F,FileName);
- Erase(F);
- DeleteFile := (IOResult = 0);
+ tmpStr:=PathConv(FileName)+#0;
+
+ DeleteFile:=dosDeleteFile(@tmpStr);
 end;
 
 Function RenameFile (Const OldName, NewName : String) : Boolean;
@@ -488,7 +550,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.2  2004-12-11 11:32:44  michael
+    Revision 1.3  2005-01-11 17:44:06  karoly
+      * basic file I/O implemented
+
+    Revision 1.2  2004/12/11 11:32:44  michael
     + Added GetEnvironmentVariableCount and GetEnvironmentString calls
 
     Revision 1.1  2004/06/06 00:58:02  karoly
