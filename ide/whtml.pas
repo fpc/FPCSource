@@ -514,9 +514,9 @@ begin
   if (UTagName='DD') then DocDefExp else
   { Table }
   if (ETagName='TABLE') then DocTable(NotEndTag) else
-  if (UTagName='TR') then DocTableRow(NotEndTag) else
-  if (UTagName='TH') then DocTableHeaderItem(NotEndTag) else
-  if (UTagName='TD') then DocTableItem(NotEndTag) else
+  if (ETagName='TR') then DocTableRow(NotEndTag) else
+  if (ETagName='TH') then DocTableHeaderItem(NotEndTag) else
+  if (ETagName='TD') then DocTableItem(NotEndTag) else
   { Misc. tags }
   if (UTagName='META') then DocMETA else
   if (UTagName='IMG') then DocImage else
@@ -717,7 +717,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-09-06 23:19:47  pierre
+  Revision 1.3  2002-03-25 14:42:23  pierre
+   * also call DocTableXXX at end tag
+
+  Revision 1.2  2001/09/06 23:19:47  pierre
    * fix the title, up, next and previous links
 
   Revision 1.1  2001/08/04 11:30:25  peter
