@@ -335,7 +335,7 @@ unit typinfo;
 
               // the class info rtti the property rtti follows
               // immediatly
-              Result:=PPropInfo(@hp^.UnitName)+byte(hp^.UnitName[0])+1;
+              Result:=PPropInfo(@hp^.UnitName)+Length(hp^.UnitName)+1+SizeOF(Word);
               for i:=1 to hp^.PropCount do
                 begin
                    // found a property of that name ?
@@ -763,7 +763,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  1999-05-19 12:03:23  florian
+  Revision 1.23  1999-06-04 12:48:37  michael
+  * Fix by Sebastian Guenther.
+
+  Revision 1.22  1999/05/19 12:03:23  florian
     * the set/get procedures must be called with call %edi instead call (%edi)
     * handling of extended and string properties fixed
 
