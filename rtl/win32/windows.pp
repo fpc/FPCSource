@@ -15,15 +15,7 @@
  **********************************************************************}
 unit windows;
 
-
-{$ifndef VER0_99_14}
 {$ifndef NO_SMART_LINK}
-{$define support_smartlink}
-{$endif}
-{$endif}
-
-
-{$ifdef support_smartlink}
 {$smartlink on}
 {$endif}
 
@@ -70,7 +62,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:29  peter
+  Revision 1.4  2002-10-10 14:58:16  florian
+    - removed conditionals for 0.99.14
+
+  Revision 1.3  2002/09/07 16:01:29  peter
     * old logs removed and tabs fixed
 
 }
