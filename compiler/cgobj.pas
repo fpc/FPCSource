@@ -160,12 +160,13 @@ unit cgobj;
 
           {# Emits instruction to call the method specified by symbol name.
              This routine must be overriden for each new target cpu.
+
+             There is no a_call_ref because loading the reference will use
+             a temp register on most cpu's resulting in conflicts with the
+             registers used for the parameters (PFV)
           }
           procedure a_call_name(list : taasmoutput;const s : string);virtual; abstract;
-          procedure a_call_ref(list : taasmoutput;const ref : treference);virtual;
           procedure a_call_reg(list : taasmoutput;reg : tregister);virtual;abstract;
-          procedure a_call_loc(list : taasmoutput;const loc:tlocation);
-
 
           { move instructions }
           procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);virtual; abstract;
@@ -748,30 +749,6 @@ unit cgobj;
             a_load_const_ref(list,tosize,loc.value,ref);
           else
             internalerror(200109302);
-        end;
-      end;
-
-
-    procedure tcg.a_call_ref(list : taasmoutput;const ref:treference);
-      var
-        tmpreg: tregister;
-      begin
-        tmpreg:=rg.getaddressregister(list);
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tmpreg);
-        a_call_reg(list,tmpreg);
-        rg.ungetaddressregister(list,tmpreg);
-      end;
-
-
-    procedure tcg.a_call_loc(list : taasmoutput;const loc:tlocation);
-      begin
-        case loc.loc of
-           LOC_REGISTER,LOC_CREGISTER:
-             cg.a_call_reg(list,loc.register);
-           LOC_REFERENCE,LOC_CREFERENCE :
-             cg.a_call_ref(list,loc.reference);
-           else
-             internalerror(200203311);
         end;
       end;
 
@@ -1575,7 +1552,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.123  2003-09-25 21:26:24  peter
+  Revision 1.124  2003-09-28 13:40:13  peter
+    * a_call_ref removed
+
+  Revision 1.123  2003/09/25 21:26:24  peter
     * remove obsolete tparalocation.sp_fixup
 
   Revision 1.122  2003/09/23 20:37:16  peter

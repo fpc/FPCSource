@@ -50,9 +50,7 @@ unit cgx86;
         procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
 
         procedure a_call_name(list : taasmoutput;const s : string);override;
-        procedure a_call_ref(list : taasmoutput;const ref : treference);override;
         procedure a_call_reg(list : taasmoutput;reg : tregister);override;
-
 
         procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); override;
         procedure a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const ref: TReference); override;
@@ -500,14 +498,7 @@ unit cgx86;
       end;
 
 
-    procedure tcgx86.a_call_ref(list : taasmoutput;const ref : treference);
-      begin
-        list.concat(taicpu.op_ref(A_CALL,S_NO,ref));
-      end;
-
-
     procedure tcgx86.a_call_reg(list : taasmoutput;reg : tregister);
-
       begin
         list.concat(taicpu.op_reg(A_CALL,S_NO,reg));
       end;
@@ -1607,7 +1598,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.66  2003-09-25 21:29:16  peter
+  Revision 1.67  2003-09-28 13:37:19  peter
+    * a_call_ref removed
+
+  Revision 1.66  2003/09/25 21:29:16  peter
     * change push/pop in getreg/ungetreg
 
   Revision 1.65  2003/09/25 13:13:32  florian
