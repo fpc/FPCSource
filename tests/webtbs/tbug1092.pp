@@ -6,8 +6,14 @@ const
 {$else}
   path='c:\';
 {$endif}
+var
+  t : text;
 BEGIN
-  if FSearch('tbug1092.pp',path)<>'tbug1092.pp' then
+  { create a file }
+  assign(t,'tbug1092.txt');
+  rewrite(t);
+  close(t);
+  if FSearch('tbug1092.txt',path)<>'tbug1092.txt' then
    begin
      writeln('FSearch didn''t find file in the current dir!');
      halt(1);

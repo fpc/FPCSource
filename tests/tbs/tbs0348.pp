@@ -5,7 +5,8 @@ type fluparr=array[0..1000] of longint;
 
 var flup : Flupptr;
     Flupresult : longint;
-
+    flupa : fluparr;
 begin
- flupresult:=flup[5];
+  flup:=@flupa;
+  flupresult:=flup[5];
 end.
