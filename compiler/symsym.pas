@@ -1152,13 +1152,13 @@ implementation
         pd:=pdlistfirst;
         while assigned(pd) do
           begin
-            { Compare def1 with the last para (right to left order) }
-            eq1:=compare_defs_ext(def1,Tparaitem(pd^.def.para.last).paratype.def,
+            { Compare def1 with the first para }
+            eq1:=compare_defs_ext(def1,Tparaitem(pd^.def.para.first).paratype.def,
                                  nothingn,false,false,convtyp,hpd);
             if eq1<>te_incompatible then
              begin
-               { Compare def2 with the first para (right to left order) }
-               eq2:=compare_defs_ext(def2,Tparaitem(pd^.def.para.first).paratype.def,
+               { Compare def2 with the last para }
+               eq2:=compare_defs_ext(def2,Tparaitem(pd^.def.para.last).paratype.def,
                                     nothingn,false,false,convtyp,hpd);
                if eq2<>te_incompatible then
                 begin
@@ -2563,7 +2563,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2003-04-10 17:57:53  peter
+  Revision 1.96  2003-04-23 13:13:58  peter
+    * fix operator overload search parameter order
+
+  Revision 1.95  2003/04/10 17:57:53  peter
     * vs_hidden released
 
   Revision 1.94  2003/03/17 15:54:22  peter
