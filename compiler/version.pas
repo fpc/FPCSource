@@ -31,7 +31,8 @@ interface
        version_nr = '0';
        release_nr = '99';
        patch_nr   = '12';
-       version_string = version_nr+'.'+release_nr+'.'+patch_nr;
+       minorpatch = 'a';
+       version_string = version_nr+'.'+release_nr+'.'+patch_nr+minorpatch;
 
        { date string }
 {$ifdef FPC}
@@ -66,7 +67,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-06-08 12:52:38  peter
+  Revision 1.6.2.1  1999-06-18 09:54:48  peter
+    + minorpatch which is 'a' for 0.99.12a
+
+  Revision 1.6  1999/06/08 12:52:38  peter
     * 0.99.12
 
   Revision 1.5  1998/12/23 14:02:01  peter
