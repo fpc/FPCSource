@@ -750,12 +750,16 @@ implementation
                 end;
               deref_sym :
                 begin
+                  if not assigned(st) then
+                    internalerror(200309141);
                   idx:=(data[i] shl 8) or data[i+1];
                   inc(i,2);
                   result:=st.getsymnr(idx);
                 end;
               deref_def :
                 begin
+                  if not assigned(st) then
+                    internalerror(200309142);
                   idx:=(data[i] shl 8) or data[i+1];
                   inc(i,2);
                   result:=st.getdefnr(idx);
@@ -861,7 +865,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.26  2003-06-25 18:31:23  peter
+  Revision 1.27  2003-09-14 12:58:29  peter
+    * give IE when st is not assigned in deref
+
+  Revision 1.26  2003/06/25 18:31:23  peter
     * sym,def resolving partly rewritten to support also parent objects
       not directly available through the uses clause
 
