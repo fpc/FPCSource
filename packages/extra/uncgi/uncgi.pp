@@ -93,11 +93,10 @@ function get_value(id: pchar): pchar;
 
   Use like in this example:
 
-  cnt:=0;
-  v[cnt]:=get_value('some_id');
-  while v[cnt]<>'' do begin
-   inc(cnt);
-   v[cnt]:=get_next_value('some_id');
+  v:=get_value('some_id');
+  while v<>'' do begin
+    Do_something_with(v);
+    v:=get_next_value('some_id');
   end;
 }
 function get_next_value(id: pchar): pchar;
@@ -461,7 +460,10 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.2  2002-03-01 10:57:03  peter
+  Revision 1.3  2002-03-04 17:57:17  peter
+    * updated example in comment
+
+  Revision 1.2  2002/03/01 10:57:03  peter
 
     * get_next_value patch from Skelet
 
