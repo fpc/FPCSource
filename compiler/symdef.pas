@@ -5021,7 +5021,10 @@ implementation
 
     function tobjectdef.alignment:longint;
       begin
-        alignment:=tobjectsymtable(symtable).recordalignment;
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
+          alignment:=POINTER_SIZE
+        else
+          alignment:=tobjectsymtable(symtable).recordalignment;
       end;
 
 
@@ -6161,7 +6164,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.211  2004-01-28 20:30:18  peter
+  Revision 1.212  2004-01-28 21:05:56  florian
+    * fixed alignment of classes
+
+  Revision 1.211  2004/01/28 20:30:18  peter
     * record alignment splitted in fieldalignment and recordalignment,
       the latter is used when this record is inserted in another record.
 

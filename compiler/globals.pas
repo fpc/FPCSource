@@ -435,7 +435,7 @@ implementation
 
      procedure DefaultReplacements(var s:string);
        begin
-         { Replace some macro's }
+         { Replace some macros }
          Replace(s,'$FPCVER',version_string);
          Replace(s,'$VERSION',version_string);
          Replace(s,'$FULLVERSION',full_version_string);
@@ -1796,7 +1796,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.121  2004-01-14 23:39:05  florian
+  Revision 1.122  2004-01-28 21:05:56  florian
+    * fixed alignment of classes
+
+  Revision 1.121  2004/01/14 23:39:05  florian
     * another bunch of x86-64 fixes mainly calling convention and
       assembler reader related
 
