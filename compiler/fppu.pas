@@ -1329,7 +1329,7 @@ uses
               flagdependent(old_current_module);
               { Reset the module }
               reset;
-              if state=ms_compile then
+              if state in [ms_compile,ms_second_compile] then
                 begin
                   Message1(unit_u_second_compile_unit,modulename^);
                   state:=ms_second_compile;
@@ -1508,7 +1508,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.44  2003-10-29 21:02:51  peter
+  Revision 1.45  2003-10-29 21:55:10  peter
+    * don't set second_load when second_compile was already set
+
+  Revision 1.44  2003/10/29 21:02:51  peter
     * set ms_compiled after the program/unit is parsed
     * check for ms_compiled before checking preproc matches
 
