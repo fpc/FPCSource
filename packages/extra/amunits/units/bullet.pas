@@ -402,9 +402,8 @@ IMPLEMENTATION
 }
 uses
 {$ifndef dont_use_openlib}
-msgbox,
+msgbox;
 {$endif dont_use_openlib}
-tagsarray;
 
 PROCEDURE CloseEngine(glyphEngine : pGlyphEngine);
 BEGIN
