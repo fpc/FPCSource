@@ -256,11 +256,11 @@ end;
 
 destructor TSqliteDataset.Destroy;
 begin
+  inherited Destroy;
   FUpdatedItems.Destroy;
   FAddedItems.Destroy;
   FDeletedItems.Destroy;
   FOrphanItems.Destroy;
-  inherited Destroy;
 end;
 
 procedure TSqliteDataset.DisposeLinkedList;
@@ -560,6 +560,7 @@ var
   TempStr:String;
   ActiveItem:PDataRecord;
 begin
+  if FRecordCount = 0 then exit; //avoid exception in win32 + lcl + TDbEdit
   ActiveItem:=PPDataRecord(ActiveBuffer)^;
   if (ActiveItem <> FCacheItem) and (FUpdatedItems.IndexOf(ActiveItem) = -1) and (FAddedItems.IndexOf(ActiveItem) = -1) then
     FUpdatedItems.Add(ActiveItem);
