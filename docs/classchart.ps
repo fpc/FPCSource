@@ -379,6 +379,29 @@ setfont
   nextx nexty lineto stroke
 } def
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/Helvetica-BoldOblique findfont
+% first draw outline, only then fill it up. 
+% Needed because after stroke no rmoveto ??
+72 scalefont
+setfont
+0 0 0 setrgbcolor
+10 10 moveto
+2 setlinewidth
+(Free Pascal) true charpath stroke 
+0 0 1 setrgbcolor
+10 10 moveto
+(Free Pascal) show 
+10 0 rmoveto
+/Helvetica-Bold findfont
+36 scalefont 
+setfont
+0 0 0 setrgbcolor
+(Object Chart) show
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the class tree follows
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -466,7 +489,10 @@ showpage
 
 %
 %   $Log$
-%   Revision 1.7  1998-10-02 15:45:00  michael
+%   Revision 1.8  1998-10-02 22:42:10  michael
+%   + Added title
+%
+%   Revision 1.7  1998/10/02 15:45:00  michael
 %   + Updated exception classes
 %
 %   Revision 1.6  1998/10/01 20:40:20  florian
