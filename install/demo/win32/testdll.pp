@@ -39,7 +39,7 @@ end;
 
 procedure P4(x1:pointer);export;
 begin
-  x1:=Nil;
+  Inc(x1);
 end;
 
 procedure NewExit;
@@ -62,7 +62,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-01-21 00:44:51  peter
+  Revision 1.5  2000-02-22 03:46:55  alex
+  fixed the warning
+
+  Revision 1.4  2000/01/21 00:44:51  peter
     * remove unused vars
     * renamed to .pp
 

@@ -27,8 +27,10 @@ uses
 {$endif go32v2}
   dos,Graph;
 
+{
 const
   shift:byte=12;
+}
 
 var
   SearchPoint,ActualPoint,NextPoint       : PointType;
@@ -325,7 +327,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-01-04 15:29:42  marco
+  Revision 1.9  2000-02-22 03:43:55  alex
+  fixed the warning
+
+  Revision 1.8  2000/01/04 15:29:42  marco
    * fixed constants for graphmodes
 
   Revision 1.7  1999/12/22 14:36:07  jonas

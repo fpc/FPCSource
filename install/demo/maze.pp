@@ -50,7 +50,7 @@ const
 
   unused   = $00;    { cell types used as flag bits }
   frontier = $10;
-  reserved = $20;
+{  reserved = $20; }
   tree     = $30;
 
 
