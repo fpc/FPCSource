@@ -1392,6 +1392,16 @@ And the following pointer types:
   ppchar = ^pchar;
 \end{verbatim}
 
+For the \seef{SetJmp} and \seep{LongJmp} calls, the following jump bufer
+type is defined (for the I386 processor): 
+\begin{verbatim}
+  jmp_buf = record
+    ebx,esi,edi : Longint;
+    bp,sp,pc : Pointer;
+    end;
+  PJmp_buf = ^jmp_buf;
+\end{verbatim}
+
 \subsection{Constants}
 The following constants for file-handling are defined in the system unit:
 \begin{verbatim}
@@ -1904,6 +1914,22 @@ which is limited to 255. If the strings \var{S} is empty, 0 is returned.
 
 \input{refex/ex38.tex}
 
+\procedure{LongJmp}{(Var env : Jmp\_Buf; Value : longint)}
+{
+\var{LongJmp} jumps to the adress in the \var{env} \var{jmp\_buf},
+and resores the registers that were stored in it at the corresponding
+\seef{SetJmp} call.
+
+In effect, program flow will continue at the \var{SetJmp} call, which will
+return \var{value} instead of 0. If you pas a \var{value} equal to zero, it will be
+converted to 1 before passing it on. The call will not return, so it must be 
+used with extreme care.
+
+This can be used for error recovery, for instance when a segmentation fault
+occurred.}{None.}{\seef{SetJmp}}
+
+For an example, see \seef{SetJmp}
+
 \function{Lowercase}{(C : Char or String)}{Char or String}
 {\var{Lowercase} returns the lowercase version of its argument \var{C}.
 If its argument is a string, then the complete string is converted to
@@ -2256,6 +2282,17 @@ returns always 0, since \fpc is a 32 bit compiler, segments have no meaning.
 {\seef{DSeg}, \seef{CSeg}, \seef{Ofs}, \seef{Ptr}}
 
 \input{refex/ex60.tex}
+
+\function{SetJmp}{(Var Env : Jmp\_Buf)}{longint}
+{
+\var{SetJmp} fills \var{env} with the necessary data for a jump back to the
+point where it was called. It returns zero if called in this way.
+
+If the function returns nonzero, then it means that a call to \seep{LongJmp}
+with \var{env} as an argument was made somewhere in the program.
+}{None.}{\seep{LongJmp}}
+
+\input{refex/ex79.tex}
 
 
 \procedure{SetTextBuf}{(Var f : Text; Var Buf[; Size : Word])}
