@@ -216,6 +216,13 @@ TimeVal = Record
 end;
 PTimeVal = ^TimeVal;
 \end{verbatim}
+The \var{timespec} record is needed in the \seef{NanoSleep} function:
+\begin{verbatim}
+timespec = packed record
+  tv_sec,tv_nsec:longint;
+end;
+\end{verbatim}
+
 The \seep{Uname} function uses the \var{utsname} to return information about
 the current kernel :
 \begin{verbatim}
@@ -562,6 +569,7 @@ Functions for managing and responding to signals.
 \procref{SigProcMask}{Set signal processing mask}
 \procref{SigRaise}{Send signal to self}
 \procref{SigSuspend}{Sets signal mask and waits for signal}
+\funcref{NanoSleep}{Waits for a specific amount of time}
 \end{funclist}
 
 \subsection{System information}
@@ -2502,11 +2510,33 @@ is set to an error value. See \seef{MMap} for possible error values.
 
 For an example, see \seef{MMap}.
 
+\begin{function}{NanoSleep}
+\Declaration
+Function NanoSleep(const req : timespec;var rem : timespec) : longint;
+\Description
+\var{NanoSleep} suspends the process till a time period as specified
+in \var{req} has passed. Then the function returns. If the
+call was interrupted (e.g. by some signal) then the function may
+return earlier, and \var{rem} will contain the remaining time till the
+end of the intended period. In this case the return value will be 
+-1, and \var{LinuxError} will be set to \var{EINTR}
+
+If the function returns without error, the return value is zero.
+\Errors
+If the call was interrupted, -1 is returned, and \var{LinuxError} is set
+to \var{EINTR}. If invalid time values were specified, then -1 is returned
+and \var{LinuxError} is set to \var{EINVAL}.
+\SeeAlso
+\seep{Pause}, \seef{Alarm}
+\end{function}
+
+\FPCexample{ex70}
+
 \begin{procedure}{Nice}
 \Declaration
 Procedure Nice ( N : Integer);
 \Description
-Nice adds \var{-N} to the priority of the running process. The lower the
+\var{Nice} adds \var{-N} to the priority of the running process. The lower the
 priority numerically, the less the process is favored.
 Only the superuser can specify a negative \var{N}, i.e. increase the rate at
 which the process is run.
@@ -3419,7 +3449,7 @@ behaves:
 exited.
 \item [WUNTRACED] Causes \var{WaitPid} to return also for children which are
 stopped, but whose status has not yet been reported.
-\item[__WCLONE] Causes \var{WaitPid} also to wait for threads created by
+\item[\_\_WCLONE] Causes \var{WaitPid} also to wait for threads created by
 the \seef{Clone} call.
 \end{description} 
 Upon return, it returns the exit status of the process, or -1 in case of
