@@ -55,6 +55,7 @@ const
       efHighlightRow        = $00000400;
       efAutoBrackets        = $00000800;
       efExpandAllTabs       = $00001000;
+      efKeepTrailingSpaces  = $00002000;
       efStoreContent        = $80000000;
 
       attrAsm       = 1;
@@ -331,6 +332,10 @@ type
       procedure ReadBlock; virtual;
       procedure PrintBlock; virtual;
       procedure AddChar(C: char); virtual;
+{$ifdef go32v2}
+      function  ClipCopyWin: Boolean; virtual;
+      function  ClipPasteWin: Boolean; virtual;
+{$endif go32v2}
       function  ClipCopy: Boolean; virtual;
       procedure ClipCut; virtual;
       procedure ClipPaste; virtual;
@@ -371,14 +376,18 @@ const
        {efUseTabCharacters+}efBackSpaceUnindents+efSyntaxHighlight+
        efExpandAllTabs;
      DefaultTabSize     : integer = 8;
+     EOL : String[2] = {$ifdef Linux}#10;{$else}#13#10;{$endif}
 
      { used for ShiftDel and ShiftIns to avoid
        GetShiftState to be considered for extending
        selection (PM) }
 
+     cmCopyWin = 240;
+     cmPasteWin = 241;
+
      DontConsiderShiftState: boolean  = false;
-     ToClipCmds         : TCommandSet = ([cmCut,cmCopy]);
-     FromClipCmds       : TCommandSet = ([cmPaste]);
+     ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin]);
+     FromClipCmds       : TCommandSet = ([cmPaste,cmPasteWin]);
      NulClipCmds        : TCommandSet = ([cmClear]);
      UndoCmds           : TCommandSet = ([cmUndo,cmRedo]);
 
@@ -408,6 +417,9 @@ implementation
 
 uses
   MsgBox,Dialogs,App,StdDlg,HistList,Validate,
+{$ifdef go32v2}
+  Strings,WinClip,
+{$endif go32v2}
   WUtils,WViews;
 
 {$ifndef NOOBJREG}
@@ -1383,6 +1395,10 @@ begin
           cmCut         : ClipCut;
           cmCopy        : ClipCopy;
           cmPaste       : ClipPaste;
+{$ifdef go32v2}
+          cmCopyWin     : ClipCopyWin;
+          cmPasteWin    : ClipPasteWin;
+{$endif go32v2}
           cmUndo        : Undo;
           cmRedo        : Redo;
           cmClear       : DelSelect;
@@ -2666,6 +2682,126 @@ begin
   DontConsiderShiftState:=false;
 end;
 
+{$ifdef go32v2}
+function TCodeEditor.ClipPasteWin: Boolean;
+var OK: boolean;
+    l,i : longint;
+    p,p10,p2,p13 : pchar;
+    s : string;
+    StorePos : TPoint;
+    first : boolean;
+begin
+  Lock;
+  OK:=WinClipboardSupported;
+  if OK then
+    begin
+      first:=true;
+      StorePos:=CurPos;
+      i:=CurPos.Y;
+      l:=GetTextWinClipboardSize;
+      if l=0 then
+        OK:=false
+      else
+        OK:=GetTextWinClipBoardData(p,l);
+      if OK then
+        begin
+          p2:=p;
+          p13:=strpos(p,#13);
+          p10:=strpos(p,#10);
+          while assigned(p10) do
+            begin
+              if p13+1=p10 then
+                p13[0]:=#0
+              else
+                p10[0]:=#0;
+              s:=strpas(p2);
+              if first then
+                begin
+                  InsertText(s);
+                  first:=false;
+                end
+              else
+                begin
+                  Inc(i);
+                  Lines^.AtInsert(i,NewLine(s));
+                end;
+              if p13+1=p10 then
+                p13[0]:=#13
+              else
+                p10[0]:=#10;
+              p2:=@p10[1];
+              p13:=strpos(p2,#13);
+              p10:=strpos(p2,#10);
+            end;
+          if strlen(p2)>0 then
+            begin
+              s:=strpas(p2);
+              if not first then
+                SetCurPtr(0,i);
+              InsertText(s);
+            end;
+          SetCurPtr(StorePos.X,StorePos.Y);
+          { we must free the allocated memory }
+          freemem(p,l);
+        end;
+    end;
+  ClipPasteWin:=OK;
+  UnLock;
+end;
+
+function TCodeEditor.ClipCopyWin: Boolean;
+var OK: boolean;
+    p,p2 : pchar;
+    s : string;
+    i,str_begin,str_end,NumLines,PcLength : longint;
+begin
+  NumLines:=SelEnd.Y-SelStart.Y;
+  if (NumLines>0) or (SelEnd.X>SelStart.X) then
+    Inc(NumLines);
+  if NumLines=0 then
+    exit;
+  Lock;
+  { First calculate needed size }
+  { for newlines first + 1 for terminal #0 }
+  PcLength:=Length(EOL)*(NumLines-1)+1;
+
+  { overestimated but can not be that big PM }
+  for i:=SelStart.Y to SelEnd.Y do
+    PCLength:=PCLength+Length(GetLineText(i));
+  getmem(p,PCLength);
+  i:=SelStart.Y;
+  s:=GetLineText(i);
+  str_begin:=LinePosToCharIdx(i,SelStart.X+1);
+  if SelEnd.Y>SelStart.Y then
+    str_end:=255
+  else
+    str_end:=LinePosToCharIdx(i,SelEnd.X);
+  s:=copy(s,str_begin,str_end-str_begin+1);
+  strpcopy(p,s);
+  p2:=strend(p);
+  inc(i);
+  while i<SelEnd.Y do
+    begin
+      strpcopy(p2,EOL+GetLineText(i));
+      p2:=strend(p2);
+      Inc(i);
+    end;
+  if SelEnd.Y>SelStart.Y then
+    begin
+      s:=copy(GetLineText(i),1,LinePosToCharIdx(i,SelEnd.X));
+      strpcopy(p2,EOL+s);
+    end;
+  OK:=WinClipboardSupported;
+  if OK then
+    begin
+      OK:=SetTextWinClipBoardData(p,strlen(p));
+    end;
+  ClipCopyWin:=OK;
+  Freemem(p,PCLength);
+  UnLock;
+end;
+{$endif go32v2}
+
 procedure TCodeEditor.Undo;
 begin
   NotImplemented; Exit;
@@ -3404,6 +3540,7 @@ begin
     VerticalBlock:=(Editor^.Flags and efVerticalBlocks)<>0;
     LineDelta:=0; LineCount:=(Editor^.SelEnd.Y-Editor^.SelStart.Y)+1;
     OK:=GetLineCount<MaxLineCount;
+    { BUG:: this is wrong if we do not insert at begin of line !!! PM }
     while OK and (LineDelta<LineCount) do
     begin
       if (LineDelta<LineCount-1) and (VerticalBlock=false) then
@@ -3689,7 +3826,6 @@ var S: string;
     OK: boolean;
     Line: Sw_integer;
     P: PLine;
-    EOL: string[2];
 begin
   if EndP.X=0 then
     begin
@@ -3703,7 +3839,6 @@ begin
     end
   else
     Dec(EndP.X);
-  {$ifdef Linux}EOL:=#10;{$else}EOL:=#13#10;{$endif}
   OK:=(Stream^.Status=stOK); Line:=StartP.Y;
   while OK and (Line<=EndP.Y) and (Line<GetLineCount) do
   begin
@@ -3714,6 +3849,10 @@ begin
         if Line=EndP.Y then S:=copy(S,1,EndP.Y+1);
         if Line=StartP.Y then S:=copy(S,StartP.Y+1,255);
       end;
+    { Remove all traling spaces PM }
+    if (Flags and efKeepTrailingSpaces)=0 then
+      While (Length(S)>0) and (S[Length(S)]=' ') do
+       Dec(S[0]);
     if (Flags and efUseTabCharacters)<>0 then
       S:=CompressUsingTabs(S,TabSize);
     Stream^.Write(S[1],length(S));
@@ -4248,7 +4387,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.44  1999-08-27 15:07:44  pierre
+  Revision 1.45  1999-09-09 12:05:33  pierre
+    + Copy/Paste to Windows Clipboard
+    + efLeaveTrailingSpaces added to editor flags
+      (if not set then spaces at the end of a line are
+      removed on writing the file)
+
+  Revision 1.44  1999/08/27 15:07:44  pierre
    + cmResetDebuggerRow
 
   Revision 1.43  1999/08/24 22:04:35  pierre
