@@ -61,6 +61,7 @@ unit aasm;
           ait_tempalloc,
           ait_marker,
           ait_frame, 
+          ait_ent,
           { never used, makes insertation of new ait_ easier to type }
           ait_dummy);
 
@@ -967,7 +968,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.58  1999-08-04 00:39:56  michael
+  Revision 1.59  1999-08-05 15:51:01  michael
+  * Added ait_frame, ait_ent
+
+  Revision 1.58  1999/08/04 00:39:56  michael
   + Added ait_frame
 
   Revision 1.57  1999/08/02 21:01:41  michael
