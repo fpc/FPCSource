@@ -620,7 +620,7 @@ var
   proc  : heaperrorproc;
   pcurr : pfreerecord;
   again : boolean;
-  s,s1,i,
+  s,s1,maxs1,
   sizeleft : longint;
 {$ifdef BESTMATCH}
   pbest : pfreerecord;
@@ -686,18 +686,20 @@ begin
 {$ifdef REUSEBIGGER}
      { try a bigger block }
      s1:=s+s;
-     i:=0;
-     while (s1<=maxblock) and (i<maxreusebigger) do
-      begin
-        pcurr:=freelists[s1];
-        if assigned(pcurr) then
-         begin
-           s:=s1;
-           break;
-         end;
-        inc(s1);
-        inc(i);
-      end;
+     maxs1:=s1+maxreusebigger;
+     if maxblock<maxs1 then
+       maxs1:=maxblock;
+     while s1<=maxs1 do
+       begin
+         if freelists[s1]<>nil then
+           begin
+             s:=s1;
+             pcurr:=freelists[s1];
+             break;
+           end;
+         inc(s1);
+       end;
+     pcurr:=nil;
 {$endif}
    end
   else
@@ -1289,7 +1291,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  2003-10-02 14:03:24  marco
+  Revision 1.25  2003-12-15 21:39:16  daniel
+    * Small microoptimization
+
+  Revision 1.24  2003/10/02 14:03:24  marco
    * *memORY overloads
 
   Revision 1.23  2003/09/28 12:43:48  peter
