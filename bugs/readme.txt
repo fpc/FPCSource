@@ -173,3 +173,6 @@ bug0123.pp   problem with intel assembler (shrd)
 bug0124.pp   problem with -Rintel switch and indexing (whatever the order)
 bug0125.pp   wrong colors with DOS CRT unit
 bug0127.pp   problem with cdecl in implementation part
+bug0128.pp   problem with ^[
+bug0129.pp   endless loop with while/continue
+
