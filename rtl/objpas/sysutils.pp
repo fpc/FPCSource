@@ -13,11 +13,8 @@
 
  **********************************************************************}
 unit sysutils;
-interface
 
-{$ifndef VER0_99_5}
-  {$define USE_EXCEPTIONS}
-{$endif}
+interface
 
     uses
     {$ifdef linux}
@@ -28,7 +25,7 @@ interface
        go32,
     {$endif go32v2}
     {$endif linux}
-       objpas; { should become platform independent }
+       objpas;
 
 
     type
@@ -48,7 +45,7 @@ interface
 
 {$ifdef USE_EXCEPTIONS}
        { exceptions }
-       exception = class(tobject)
+       exception = class(TObject)
         private
           fmessage : string;
           fhelpcontext : longint;
@@ -69,8 +66,8 @@ interface
        edivbyzero = class(einterror);
        erangeerror = class(einterror);
        eintoverflow = class(einterror);
-
        ematherror = class(exception);
+
 {$endif USE_EXCEPTIONS}
 
   { Read date & Time function declarations }
@@ -111,7 +108,7 @@ interface
 
       begin
          inherited create;
-         message:=msg;
+         fmessage:=msg;
          {!!!!!}
       end;
 
@@ -129,13 +126,51 @@ interface
          inherited create;
          {!!!!!}
       end;
+       
+Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer);    
+
+Var Message : String;
+
+begin
+{$ifndef USE_WINDOWS}
+Writeln ('An unhandled exception occurred at ',HexStr(Longint(Addr),8),' : ');
+if Obj is exception then
+  begin
+  Message:=Exception(Obj).Message;
+  Writeln (Message);
+  end
+else
+  Writeln ('Exception object ',Obj.ClassName,' is not of class Exception.');
+Halt(217);
+{$else}
+{$endif}  
+end;
+
 {$endif USE_EXCEPTIONS}
 
+Procedure InitExceptions;
+{
+ Must install uncaught exception handler (ExceptProc)
+ and install exceptions for system exceptions or signals.
+ (e.g: SIGSEGV -> ESegFault or so.)
+}
+begin
+{$ifdef USE_EXCEPTIONS}
+  ExceptProc:=@CatchUnhandledException;   
+{$endif}
+end;
+
+{Initialization code.}
+begin
+  InitExceptions;
 end.
 
 {
     $Log$
-    Revision 1.8  1998-09-18 23:57:26  michael
+    Revision 1.9  1998-09-24 16:13:49  michael
+    Changes in exception and open array handling
+
+    Revision 1.8  1998/09/18 23:57:26  michael
     * Changed use_excepions to useexceptions
 
     Revision 1.7  1998/09/16 14:34:38  pierre
@@ -170,4 +205,3 @@ end.
       + initial revision
 
 }
-

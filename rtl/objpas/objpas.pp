@@ -155,7 +155,7 @@ interface
     Type
        PVarRec = ^TVarRec;
        TVarRec = record
-         case vtType: Longint of
+         case VType : Longint of
            vtInteger    : (VInteger: Integer);
            vtBoolean    : (VBoolean: Boolean);
            vtChar       : (VChar: Char);
@@ -398,7 +398,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  1998-09-23 12:40:43  michael
+  Revision 1.15  1998-09-24 16:13:48  michael
+  Changes in exception and open array handling
+
+  Revision 1.14  1998/09/23 12:40:43  michael
   Fixed TVarRec again. Should be OK now
 
   Revision 1.13  1998/09/23 12:18:32  michael
