@@ -235,7 +235,7 @@ implementation
           sec_data :
             begin
               if win32 then
-               Flags:=$c0300040
+               Flags:=longint($c0300040)
               else
                Flags:=$40;
               Aalign:=4;
@@ -243,7 +243,7 @@ implementation
           sec_bss :
             begin
               if win32 then
-               Flags:=$c0300080
+               Flags:=longint($c0300080)
               else
                Flags:=$80;
               Aalign:=4;
@@ -260,7 +260,7 @@ implementation
           sec_edata :
             begin
               if win32 then
-               Flags:=$c0300040;
+               Flags:=longint($c0300040);
             end;
         end;
         sects[sec]:=new(PcoffSection,InitSec(Sec,AAlign,Flags));
@@ -748,7 +748,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-12-18 21:56:35  peter
+  Revision 1.4  2000-12-20 15:59:04  jonas
+    * fixed range check errors
+
+  Revision 1.3  2000/12/18 21:56:35  peter
     * fixed stab reloc writing
 
   Revision 1.2  2000/12/07 17:19:42  jonas
