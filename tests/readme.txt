@@ -1,12 +1,12 @@
 The different directories are organized as follows:
 
-webtbs...........Tests which succeed compilation
+webtbs...........Tests which should succeed compilation
   Digits in filename refer to bug database entry
 webtbf...........Tests which should fail compilation
   Digits in filename refer to bug database entry
 test.............Some manual tests / testsuites
-tbs..............Old database tests (success in compilation)
-tbf..............Old database tests (fail compile)
+tbs..............Manual database tests (success in compilation)
+tbf..............Manual database tests (fail compile)
 units............Unit helper for doing the tests
 utils............Utilities for processing tests
 
