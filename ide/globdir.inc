@@ -32,6 +32,7 @@
   {$define WinClipSupported}
   {$define HasSignal}
   {$define FSCaseInsensitive}
+  {$define HasSysMsgUnit}
 {$endif}
 
 {$ifdef Linux}
@@ -39,6 +40,7 @@
   {$define SUPPORTREDIR}
   {$undef WinClipSupported}
   {$define HasSignal}
+  {$define HasSysMsgUnit}
 {$endif}
 
 
@@ -47,6 +49,7 @@
   {$define SUPPORTREDIR}
   {$undef WinClipSupported}
   {$define HasSignal}
+  {$define HasSysMsgUnit}
 {$endif}
 
 {$ifdef NetBSD}
@@ -54,6 +57,7 @@
   {$define SUPPORTREDIR}
   {$undef WinClipSupported}
   {$define HasSignal}
+  {$define HasSysMsgUnit}
 {$endif}
 
 {$ifdef Win32}
@@ -62,6 +66,7 @@
   {$define WinClipSupported}
   {$define HasSignal}
   {$define FSCaseInsensitive}
+  {$define HasSysMsgUnit}
 {$endif}
 
 {$ifdef OS2}

@@ -547,6 +547,17 @@ begin
   { first of all dispatch queued targeted events }
   while GetTargetedEvent(P,Event) do
     P^.HandleEvent(Event);
+{$ifdef FVISION}
+{$ifdef HasSysMsgUnit}
+  { Handle System events directly }
+  Drivers.GetSystemEvent(Event);         { Load system event }
+  If (Event.What <> evNothing) Then
+    Begin
+      HandleEvent(Event);
+    End;
+{$endif HasSysMsgUnit}
+{$endif FVISION}
+
   inherited GetEvent(Event);
 {$ifdef DEBUG}
   if (Event.What=evKeyDown) and (Event.KeyCode=kbAltF11) then
@@ -1196,7 +1207,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  2002-05-30 15:03:23  pierre
+  Revision 1.14  2002-06-10 08:12:17  pierre
+   * System messages must be handled by the application directly
+
+  Revision 1.13  2002/05/30 15:03:23  pierre
    + ResizeApplication pethod for fvision
 
   Revision 1.12  2002/05/29 22:38:13  pierre
