@@ -32,7 +32,7 @@ procedure l2(s:string);
 begin
 end;
 
-procedure l3(i:integer);
+procedure l3(i:integer);overload;
 begin
 end;
 
