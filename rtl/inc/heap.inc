@@ -782,6 +782,8 @@ begin
 { end of the heap ? }
   if p+size>=heapptr then
    begin
+     if p+size>heapptr then
+       HandleError(204);
      heapptr:=p;
      {internal_memavail:=internal_heapsize;
       THIS IS WRONG !!!!!! PM
@@ -1089,7 +1091,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1999-04-19 11:11:39  pierre
+  Revision 1.9  1999-04-19 11:53:13  pierre
+   * error 204 if trying to free too much memory of heap top !
+
+  Revision 1.8  1999/04/19 11:11:39  pierre
    * wrong statement in freemem removed : corrupted memavail result
 
   Revision 1.7  1999/03/18 11:21:16  peter
