@@ -1,5 +1,6 @@
 {
     $Id$
+
     This file is part of the Free Pascal Run time library.
     Copyright (c) 1993,97 by the Free Pascal development team
 
@@ -286,7 +287,13 @@ begin
 end;
 
 
-function IOResult:Word;
+procedure abstracterror;[public,alias : 'ABSTRACTERROR'];
+
+begin
+  Runerror(211);
+end;
+  
+Function IOResult:Word;
 Begin
   IOResult:=InOutRes;
   InOutRes:=0;
@@ -462,9 +469,16 @@ end;
 
 {
   $Log$
-  Revision 1.30  1998-09-14 10:48:20  peter
+  Revision 1.31  1998-09-15 17:12:32  michael
+  + Merged changes from fixes branch
+
+
+  Revision 1.30  1998/09/14 10:48:20  peter
     * FPC_ names
     * Heap manager is now system independent
+
+  Revision 1.29.2.1  1998/09/15 17:08:43  michael
+  + Added abstracterror call
 
   Revision 1.29  1998/09/01 17:36:21  peter
     + internconst
