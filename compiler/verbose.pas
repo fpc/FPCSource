@@ -67,7 +67,6 @@ procedure SetRedirectFile(const fn:string);
 function  SetVerbosity(const s:string):boolean;
 
 procedure LoadMsgFile(const fn:string);
-procedure UpdateReplacement(var s:string);
 
 procedure Stop;
 procedure ShowStatus;
@@ -247,14 +246,6 @@ begin
 end;
 
 
-procedure UpdateReplacement(var s:string);
-begin
-  Replace(s,'$FPCVER',full_version_string);
-  Replace(s,'$FPCDATE',date_string);
-  Replace(s,'$FPCTARGET',target_cpu_string);
-end;
-
-
 var
   lastfileidx,
   lastmoduleidx : longint;
@@ -341,7 +332,7 @@ begin
 { Create status info }
   UpdateStatus;
 { Fix replacements }
-  UpdateReplacement(s);
+  DefaultReplacements(s);
 { show comment }
   if do_comment(l,s) or dostop then
    stop;
@@ -408,7 +399,7 @@ begin
 { fix status }
   UpdateStatus;
 { Fix replacements }
-  UpdateReplacement(s);
+  DefaultReplacements(s);
 { show comment }
   if do_comment(v,s) or dostop then
    stop;
@@ -515,8 +506,15 @@ end.
 
 {
   $Log$
-  Revision 1.40  1999-06-18 11:03:09  peter
+  Revision 1.41  1999-07-10 10:26:22  peter
     * merged
+
+  Revision 1.40  1999/06/18 11:03:09  peter
+    * merged
+
+  Revision 1.39.2.2  1999/07/10 10:03:19  peter
+    * fixed initialization/finalization in fpc mode
+    * allow $TARGET also in search paths
 
   Revision 1.39.2.1  1999/06/18 10:55:32  peter
     * version fixes

@@ -98,11 +98,18 @@ interface
          { generic }
          m_fpc,m_delphi,m_tp,m_gpc,
          { more specific }
-         m_class,m_objpas,m_result,m_string_pchar,m_cvar_support,
-         m_nested_comment,m_tp_procvar,m_repeat_forward,
+         m_class,               { delphi class model }
+         m_objpas,              { load objpas unit }
+         m_result,              { result in functions }
+         m_string_pchar,        { pchar 2 string conversion }
+         m_cvar_support,        { cvar variable directive }
+         m_nested_comment,      { nested comments }
+         m_tp_procvar,          { tp style procvars (no @ needed) }
+         m_repeat_forward,      { repeating forward declarations is needed }
          m_pointer_2_procedure, { allows the assignement of pointers to
                                   procedure variables                     }
-         m_autoderef            { does auto dereferencing of struct. vars }
+         m_autoderef,           { does auto dereferencing of struct. vars }
+         m_initfinal            { initialization/finalization for units }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -142,9 +149,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  1999-07-03 00:29:49  peter
+  Revision 1.12  1999-07-10 10:26:19  peter
+    * merged
+
+  Revision 1.11  1999/07/03 00:29:49  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
+
+  Revision 1.10.2.1  1999/07/10 10:03:06  peter
+    * fixed initialization/finalization in fpc mode
+    * allow $TARGET also in search paths
 
   Revision 1.10  1999/05/17 14:30:39  pierre
    + cs_checkpointer

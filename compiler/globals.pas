@@ -60,13 +60,13 @@ unit globals;
 
        delphimodeswitches : tmodeswitches=
          [m_delphi,m_tp,m_all,m_class,m_objpas,m_result,m_string_pchar,
-          m_pointer_2_procedure,m_autoderef,m_tp_procvar];
+          m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal];
        fpcmodeswitches    : tmodeswitches=
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
-          m_cvar_support];
+          m_cvar_support,m_initfinal];
        objfpcmodeswitches : tmodeswitches=
-         [m_fpc,m_all,m_objpas,m_class,m_result,m_string_pchar,m_nested_comment,
-          m_repeat_forward,m_cvar_support];
+         [m_fpc,m_all,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
+          m_repeat_forward,m_cvar_support,m_initfinal];
        tpmodeswitches     : tmodeswitches=
          [m_tp,m_all,m_tp_procvar];
        gpcmodeswitches    : tmodeswitches=
@@ -184,7 +184,8 @@ unit globals;
     function min(a,b : longint) : longint;
     function max(a,b : longint) : longint;
     function align(i,a:longint):longint;
-    procedure Replace(var s:string;const s1,s2:string);
+    procedure Replace(var s:string;s1:string;const s2:string);
+    procedure ReplaceCase(var s:string;const s1,s2:string);
     function upper(const s : string) : string;
     function lower(const s : string) : string;
     function trimspace(const s:string):string;
@@ -203,6 +204,8 @@ unit globals;
     function getdatestr:string;
     function gettimestr:string;
     function filetimestring( t : longint) : string;
+
+    procedure DefaultReplacements(var s:string);
 
     function path_absolute(const s : string) : boolean;
     Function FileExists ( Const F : String) : Boolean;
@@ -363,21 +366,44 @@ unit globals;
       end;
 
 
-    procedure Replace(var s:string;const s1,s2:string);
-    {
-      replace all s1 with s2 in string s
-    }
+    procedure Replace(var s:string;s1:string;const s2:string);
       var
+         last,
          i  : longint;
       begin
+        s1:=upper(s1);
+        last:=0;
         repeat
-          i:=pos(s1,s);
-          if i>0 then
+          i:=pos(s1,upper(s));
+          if i=last then
+           i:=0;
+          if (i>0) then
            begin
              Delete(s,i,length(s1));
              Insert(s2,s,i);
+             last:=i;
            end;
-        until i=0;
+        until (i=0);
+      end;
+
+
+    procedure ReplaceCase(var s:string;const s1,s2:string);
+      var
+         last,
+         i  : longint;
+      begin
+        last:=0;
+        repeat
+          i:=pos(s1,s);
+          if i=last then
+           i:=0;
+          if (i>0) then
+           begin
+             Delete(s,i,length(s1));
+             Insert(s2,s,i);
+             last:=i;
+           end;
+        until (i=0);
       end;
 
 
@@ -680,6 +706,19 @@ unit globals;
        filetimestring:=L0(Year)+'/'+L0(Month)+'/'+L0(Day)+' '+L0(Hour)+':'+L0(min)+':'+L0(sec);
      end;
 
+{****************************************************************************
+                          Default Macro Handling
+****************************************************************************}
+
+     procedure DefaultReplacements(var s:string);
+       begin
+         { Replace some macro's }
+         Replace(s,'$FPCVER',full_version_string);
+         Replace(s,'$FPCDATE',date_string);
+         Replace(s,'$FPCTARGET',target_cpu_string);
+         Replace(s,'$TARGET',target_path);
+       end;
+
 
 {****************************************************************************
                                File Handling
@@ -832,14 +871,18 @@ unit globals;
       var
         i : longint;
       begin
+        { Fix separator }
         for i:=1 to length(s) do
          if s[i] in ['/','\'] then
           s[i]:=DirSep;
+        { Fix ending / }
         if (length(s)>0) and (s[length(s)]<>DirSep) and
            (s[length(s)]<>':') then
          s:=s+DirSep;
+        { Remove ./ }
         if (not allowdot) and (s='.'+DirSep) then
          s:='';
+        { return }
         FixPath:=s;
       end;
 
@@ -893,7 +936,9 @@ unit globals;
      begin
        if s='' then
         exit;
-     {Fix List}
+     { Support default macro's }
+       DefaultReplacements(s);
+     { Fix List }
        if (length(list)>0) and (list[length(list)]<>';') then
         list:=list+';';
        GetDir(0,CurrentDir);
@@ -1162,7 +1207,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1999-07-06 21:48:16  florian
+  Revision 1.11  1999-07-10 10:26:18  peter
+    * merged
+
+  Revision 1.8.2.2  1999/07/10 10:03:04  peter
+    * fixed initialization/finalization in fpc mode
+    * allow $TARGET also in search paths
+
+  Revision 1.8.2.1  1999/07/07 07:53:21  michael
+  + Merged patches from florian
+
+  Revision 1.10  1999/07/06 21:48:16  florian
     * a lot bug fixes:
        - po_external isn't any longer necessary for procedure compatibility
        - m_tp_procvar is in -Sd now available

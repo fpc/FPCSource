@@ -234,6 +234,7 @@ unit systems;
        target_link : tlinkinfo;
        target_ar   : tarinfo;
        target_res  : tresinfo;
+       target_path : string[12]; { for rtl/<X>/,fcl/<X>/, etc. }
        source_os   : tosinfo;
 
     function set_target_os(t:tos):boolean;
@@ -1217,6 +1218,26 @@ begin
 {$endif}
 end;
 
+function lower(const s : string) : string;
+var
+  i : longint;
+begin
+  for i:=1 to length(s) do
+   if s[i] in ['A'..'Z'] then
+    lower[i]:=char(byte(s[i])+32)
+   else
+    lower[i]:=s[i];
+  {$ifndef TP}
+    {$ifopt H+}
+      setlength(lower,length(s));
+    {$else}
+      lower[0]:=s[0];
+    {$endif}
+  {$else}
+    lower[0]:=s[0];
+  {$endif}
+end;
+
 
 function set_target_os(t:tos):boolean;
 var
@@ -1308,6 +1329,7 @@ begin
       set_target_link(target_info.link);
       set_target_ar(target_info.ar);
       set_target_res(target_info.res);
+      target_path:=lower(target_info.short_name);
       target_cpu:=target_info.cpu;
       set_target_info:=true;
       exit;
@@ -1329,13 +1351,7 @@ begin
   for i:=1 to targetcnt do
    if target_infos[i].short_name=s then
     begin
-      target_info:=target_infos[i];
-      set_target_os(target_info.os);
-      set_target_asm(target_info.assem);
-      set_target_link(target_info.link);
-      set_target_ar(target_info.ar);
-      set_target_res(target_info.res);
-      target_cpu:=target_info.cpu;
+      set_target_info(target_infos[i].target);
       set_string_target:=true;
       exit;
     end;
@@ -1500,7 +1516,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  1999-06-08 11:50:28  peter
+  Revision 1.83  1999-07-10 10:26:20  peter
+    * merged
+
+  Revision 1.82.2.2  1999/07/10 10:03:16  peter
+    * fixed initialization/finalization in fpc mode
+    * allow $TARGET also in search paths
+
+  Revision 1.82.2.1  1999/07/02 12:52:58  pierre
+   * pecoff still buggy, as_I386_asw again default
+
+  Revision 1.82  1999/06/08 11:50:28  peter
     * 2mb again for go32v2/v1
 
   Revision 1.81  1999/06/02 20:46:39  peter
