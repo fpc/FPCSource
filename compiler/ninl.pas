@@ -461,8 +461,9 @@ implementation
         if is_typed then
           begin
             { add the typesize to the filepara }
-            filepara.right := ccallparanode.create(cordconstnode.create(
-              tfiledef(filepara.resulttype.def).typedfiletype.def.size,s32inttype,true),nil);
+            if filepara.resulttype.def.deftype=filedef then
+              filepara.right := ccallparanode.create(cordconstnode.create(
+                tfiledef(filepara.resulttype.def).typedfiletype.def.size,s32inttype,true),nil);
 
             { check for "no parameters" (you need at least one extra para for typed files) }
             if not assigned(para) then
@@ -489,7 +490,8 @@ implementation
                     para.left:=p1;
                   end;
 
-                inserttypeconv(para.left,tfiledef(filepara.resulttype.def).typedfiletype);
+                if filepara.resulttype.def.deftype=filedef then
+                  inserttypeconv(para.left,tfiledef(filepara.resulttype.def).typedfiletype);
 
                 if assigned(para.right) and
                    (cpf_is_colon_para in tcallparanode(para.right).callparaflags) then
@@ -2463,7 +2465,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.153  2004-11-21 17:54:59  peter
+  Revision 1.154  2004-11-21 21:27:31  peter
+    * add checks for filedef type to prevent crashes
+
+  Revision 1.153  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc
