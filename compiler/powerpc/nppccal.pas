@@ -63,7 +63,7 @@ implementation
        if procdefinition is tprocdef then
          begin
             if tprocdef(procdefinition).parast.datasize>tppcprocinfo(current_procinfo).maxpushedparasize then
-              tppcprocinfo(current_procinfo).maxpushedparasize:=tprocdef(procdefinition).parast.datasize
+              tppcprocinfo(current_procinfo).maxpushedparasize:=tprocdef(procdefinition).parast.datasize;
          end
        else
          begin
@@ -128,7 +128,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2003-05-16 23:15:51  jonas
+  Revision 1.13  2003-05-18 15:15:59  florian
+    + added abi field to tsysteminfo
+
+  Revision 1.12  2003/05/16 23:15:51  jonas
     * workaround for nested procedures until Peter fixes it properly :)
 
   Revision 1.11  2003/05/16 20:00:39  jonas

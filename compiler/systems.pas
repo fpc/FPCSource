@@ -147,6 +147,7 @@ interface
             ,script_dos,script_unix,script_amiga
        );
 
+       tabi = (abi_default,abi_powerpc_sysv,abi_powerpc_aix);
 
 {*****************************************************************************
                                Structures
@@ -274,6 +275,7 @@ interface
           stacksize       : longint;
           DllScanSupported : boolean;
           use_function_relative_addresses : boolean;
+          abi : tabi;
        end;
 
        pasmmodeinfo = ^tasmmodeinfo;
@@ -679,7 +681,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.60  2003-03-23 23:21:42  hajny
+  Revision 1.61  2003-05-18 15:15:59  florian
+    + added abi field to tsysteminfo
+
+  Revision 1.60  2003/03/23 23:21:42  hajny
     + emx target added
 
   Revision 1.59  2003/01/12 15:42:23  peter

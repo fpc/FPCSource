@@ -217,7 +217,8 @@ unit i_linux;
             heapsize     : 256*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
-            use_function_relative_addresses : true
+            use_function_relative_addresses : true;
+            abi : abi_powerpc_sysv;
           );
 
        system_alpha_linux_info : tsysteminfo =
@@ -446,7 +447,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-04-30 15:45:35  florian
+  Revision 1.6  2003-05-18 15:15:59  florian
+    + added abi field to tsysteminfo
+
+  Revision 1.5  2003/04/30 15:45:35  florian
     * merged more x86-64/i386 code
 
   Revision 1.4  2003/02/06 22:36:55  mazen
