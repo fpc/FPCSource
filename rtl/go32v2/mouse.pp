@@ -630,9 +630,10 @@ asm
         movzwl  %cx,%eax
         shrl    $3,%eax
         incl    %eax
-        ret
+        jmp .Lexit
 .LGetMouseXError:
         xorl    %eax,%eax
+.Lexit:
 end;
 
 
@@ -647,9 +648,10 @@ asm
         movzwl  %dx,%eax
         shrl    $3,%eax
         incl    %eax
-        ret
+        jmp .Lexit
 .LGetMouseYError:
         xorl    %eax,%eax
+.Lexit:
 end;
 
 
@@ -788,7 +790,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.8  2003-10-03 21:46:25  peter
+  Revision 1.9  2004-12-23 17:27:37  peter
+  never use ret direct in assembler
+
+  Revision 1.8  2003/10/03 21:46:25  peter
     * stdcall fixes
 
   Revision 1.7  2002/09/07 16:01:18  peter
