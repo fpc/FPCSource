@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1999 by Peter Vreman and Florian Klaempfl
 
-    Convert insns.dat from Nasm to a .inc file for usage with
+    Convert i386ins.dat from Nasm to a .inc file for usage with
     the Free pascal compiler
 
     See the file COPYING.FPC, included in this distribution,
@@ -176,6 +176,24 @@ procedure skipspace;
        inc(i);
   end;
 
+procedure openinc(var f:text;const fn:string);
+begin
+  writeln('creating ',fn);
+  assign(f,fn);
+  rewrite(f);
+  writeln(f,'{ don''t edit, this file is generated from i386ins.dat }');
+  writeln(f,'(');
+end;
+
+
+procedure closeinc(var f:text);
+begin
+  writeln(f);
+  writeln(f,');');
+  close(f);
+end;
+
+
 var
    hs : string;
    j : longint;
@@ -199,32 +217,16 @@ begin
    writeln('Nasm Instruction Table Converter Version ',Version);
    insns:=0;
    maxinfolen:=0;
-   assign(infile,'insns.dat');
+   { open dat file }
+   assign(infile,'i386ins.dat');
    reset(infile);
-   assign(insfile,'i386tab.inc');
-   rewrite(insfile);
-   writeln(insfile,'{ don''t edit, this file is generated from insns.dat }');
-   writeln(insfile,'(');
-   assign(opfile,'i386op.inc');
-   rewrite(opfile);
-   writeln(opfile,'{ don''t edit, this file is generated from insns.dat }');
-   writeln(opfile,'(');
-   assign(attfile,'i386att.inc');
-   rewrite(attfile);
-   writeln(attfile,'{ don''t edit, this file is generated from insns.dat }');
-   writeln(attfile,'(');
-   assign(attsuffile,'i386atts.inc');
-   rewrite(attsuffile);
-   writeln(attsuffile,'{ don''t edit, this file is generated from insns.dat }');
-   writeln(attsuffile,'(');
-   assign(intfile,'i386int.inc');
-   rewrite(intfile);
-   writeln(intfile,'{ don''t edit, this file is generated from insns.dat }');
-   writeln(intfile,'(');
-   assign(propfile,'i386prop.inc');
-   rewrite(propfile);
-   writeln(propfile,'{ don''t edit, this file is generated from insns.dat }');
-   writeln(propfile,'(');
+   { create inc files }
+   openinc(insfile,'i386tab.inc');
+   openinc(opfile,'i386op.inc');
+   openinc(attfile,'i386att.inc');
+   openinc(attsuffile,'i386atts.inc');
+   openinc(intfile,'i386int.inc');
+   openinc(propfile,'i386prop.inc');
    first:=true;
    opcode:='';
    firstopcode:=true;
@@ -400,30 +402,21 @@ begin
         write(insfile,'  )');
         inc(insns);
      end;
-   writeln(insfile);
-   writeln(insfile,');');
-   writeln(attfile);
-   writeln(attfile,');');
-   writeln(attsuffile);
-   writeln(attsuffile,');');
-   writeln(intfile);
-   writeln(intfile,');');
-   writeln(opfile);
-   writeln(opfile,');');
-   writeln(propfile);
-   writeln(propfile,');');
    close(infile);
-   close(insfile);
-   close(intfile);
-   close(attfile);
-   close(attsuffile);
-   close(opfile);
-   close(propfile);
+   closeinc(insfile);
+   closeinc(intfile);
+   closeinc(attfile);
+   closeinc(attsuffile);
+   closeinc(opfile);
+   closeinc(propfile);
    writeln(insns,' nodes procesed (maxinfolen=',maxinfolen,')');
 end.
 {
   $Log$
-  Revision 1.4  1999-10-27 16:06:52  peter
+  Revision 1.5  1999-10-28 09:47:45  peter
+    * update to use i386ins.dat
+
+  Revision 1.4  1999/10/27 16:06:52  peter
     * updated for new layout
 
   Revision 1.3  1999/08/12 14:36:09  peter

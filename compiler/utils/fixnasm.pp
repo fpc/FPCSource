@@ -1,3 +1,18 @@
+{
+    $Id$
+    Copyright (c) 1999 by Peter Vreman
+
+    Convert insns.dat from Nasm to an i386ins.dat for usage with
+    the Free pascal compiler
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 program fixnasm;
 
 {$ifndef FPC}
@@ -32,7 +47,7 @@ var
   s : string;
   i,j : longint;
 begin
-  writeln('Fixing insns.dat -> insns.new');
+  writeln('Fixing insns.dat -> i386ins.dat');
   assign(t,'insns.dat');
   reset(t);
   assign(f,'insns.new');
@@ -53,6 +68,7 @@ begin
          begin
            writeln(f,'');
            writeln(f,'[',Copy(s,1,i-1),']');
+           writeln(f,'(Ch_All, Ch_None, Ch_None)');
            lastop:=opcode;
          end;
         while (i<length(s)) and (s[i+1]=' ') do
@@ -82,3 +98,9 @@ begin
   close(f);
   close(t);
 end.
+{
+  $Log$
+  Revision 1.2  1999-10-28 09:47:45  peter
+    * update to use i386ins.dat
+
+}
