@@ -159,6 +159,13 @@ unit rgobj;
       end;
       Preginfo=^TReginfo;
 
+      tspillreginfo = record
+        orgreg : tsuperregister;
+        tempreg : tregister;
+        regread,regwritten, mustbespilled: boolean;
+      end;
+      tspillregsinfo = array[0..2] of tspillreginfo;
+
       {#------------------------------------------------------------------
 
       This class implements the default register allocator. It is used by the
@@ -206,11 +213,21 @@ unit rgobj;
         { default subregister used }
         defaultsub        : tsubregister;
         live_registers:Tsuperregisterworklist;
+        { can be overriden to add cpu specific interferences }
+        procedure add_cpu_interferences(p : tai);virtual;
         function  get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister):Tai;
         procedure forward_allocation(pfrom,pto:Tai);
         procedure getregisterinline(list:Taasmoutput;position:Tai;subreg:Tsubregister;var result:Tregister);
         procedure ungetregisterinline(list:Taasmoutput;position:Tai;r:Tregister);
         procedure add_constraints(reg:Tregister);virtual;
+
+        procedure DoSpillRead(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+         const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);virtual;
+        procedure DoSpillWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+         const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);virtual;
+        procedure DoSpillReadWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+         const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);virtual;
+
         function instr_spill_register(list:Taasmoutput;
                                       instr:taicpu_abstract;
                                       const r:Tsuperregisterset;
@@ -761,7 +778,7 @@ implementation
             freezeworklist.add(n)
           else
             simplifyworklist.add(n);
-	end;    
+	end;
       sort_simplify_worklist;
     end;
 
@@ -1366,6 +1383,11 @@ implementation
       end;
 
 
+    procedure trgobj.add_cpu_interferences(p : tai);
+      begin
+      end;
+
+
     procedure trgobj.generate_interference_graph(list:Taasmoutput;headertai:tai);
       var
         p : tai;
@@ -1393,6 +1415,7 @@ implementation
                     add_constraints(Tai_regalloc(p).reg);
                   end;
               end;
+            add_cpu_interferences(p);
             p:=Tai(p.next);
           end;
 
@@ -1640,62 +1663,58 @@ implementation
       end;
 
 
+    procedure trgobj.DoSpillRead(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+      var
+        helpins: tai;
+      begin
+        helpins:=instr.spilling_create_load(spilltemplist[regs[regidx].orgreg],regs[regidx].tempreg);
+        if pos=nil then
+          list.insertafter(helpins,list.first)
+        else
+          list.insertafter(helpins,pos.next);
+        ungetregisterinline(list,instr,regs[regidx].tempreg);
+        forward_allocation(tai(helpins.next),instr);
+      end;
+
+
+    procedure trgobj.DoSpillWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+      var
+        helpins: tai;
+      begin
+        helpins:=instr.spilling_create_store(regs[regidx].tempreg,spilltemplist[regs[regidx].orgreg]);
+        list.insertafter(helpins,instr);
+        ungetregisterinline(list,helpins,regs[regidx].tempreg);
+      end;
+
+
+    procedure trgobj.DoSpillReadWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+      var
+        helpins1, helpins2: tai;
+      begin
+        helpins1:=instr.spilling_create_load(spilltemplist[regs[regidx].orgreg],regs[regidx].tempreg);
+        if pos=nil then
+          list.insertafter(helpins1,list.first)
+        else
+          list.insertafter(helpins1,pos.next);
+        helpins2:=instr.spilling_create_store(regs[regidx].tempreg,spilltemplist[regs[regidx].orgreg]);
+        list.insertafter(helpins2,instr);
+        ungetregisterinline(list,helpins2,regs[regidx].tempreg);
+        forward_allocation(tai(helpins1.next),instr);
+      end;
+
+
     function trgobj.instr_spill_register(list:Taasmoutput;
                                          instr:taicpu_abstract;
                                          const r:Tsuperregisterset;
                                          const spilltemplist:Tspill_temp_list): boolean;
-      type
-        tspillreginfo = record
-          orgreg : tsuperregister;
-          tempreg : tregister;
-          regread,regwritten, mustbespilled: boolean;
-        end;
       var
         counter, regindex: longint;
         pos: tai;
-        regs: array[0..2] of tspillreginfo;
+        regs: tspillregsinfo;
         spilled: boolean;
-
-
-      procedure DoSpillRead(pos: tai; regidx: longint);
-        var
-          helpins: tai;
-        begin
-          helpins:=instr.spilling_create_load(spilltemplist[regs[regidx].orgreg],regs[regidx].tempreg);
-          if pos=nil then
-            list.insertafter(helpins,list.first)
-          else
-            list.insertafter(helpins,pos.next);
-          ungetregisterinline(list,instr,regs[regidx].tempreg);
-          forward_allocation(tai(helpins.next),instr);
-        end;
-
-
-      procedure DoSpillWritten(pos: tai; regidx: longint);
-        var
-          helpins: tai;
-        begin
-          helpins:=instr.spilling_create_store(regs[regidx].tempreg,spilltemplist[regs[regidx].orgreg]);
-          list.insertafter(helpins,instr);
-          ungetregisterinline(list,helpins,regs[regidx].tempreg);
-        end;
-
-
-      procedure DoSpillReadWritten(pos: tai; regidx: longint);
-        var
-          helpins1, helpins2: tai;
-        begin
-          helpins1:=instr.spilling_create_load(spilltemplist[regs[regidx].orgreg],regs[regidx].tempreg);
-          if pos=nil then
-            list.insertafter(helpins1,list.first)
-          else
-            list.insertafter(helpins1,pos.next);
-          helpins2:=instr.spilling_create_store(regs[regidx].tempreg,spilltemplist[regs[regidx].orgreg]);
-          list.insertafter(helpins2,instr);
-          ungetregisterinline(list,helpins2,regs[regidx].tempreg);
-          forward_allocation(tai(helpins1.next),instr);
-        end;
-
 
       procedure addreginfo(reg: tsuperregister; operation: topertype);
         var
@@ -1781,6 +1800,13 @@ implementation
                         addreginfo(getsupreg(ref^.index),operand_read);
                     end;
                 end;
+{$ifdef ARM}
+              top_shifterop:
+                begin
+                  if shifterop^.rs<>NR_NO then
+                    addreginfo(getsupreg(shifterop^.rs),operand_read);
+                end;
+{$endif ARM}
             end;
           end;
 
@@ -1798,11 +1824,11 @@ implementation
                 getregisterinline(list,pos,defaultsub,regs[counter].tempreg);
                 if regs[counter].regread then
                   if regs[counter].regwritten then
-                    DoSpillReadWritten(pos,counter)
+                    DoSpillReadWritten(list,instr,pos,counter,spilltemplist,regs)
                   else
-                    DoSpillRead(pos,counter)
+                    DoSpillRead(list,instr,pos,counter,spilltemplist,regs)
                 else
-                  DoSpillWritten(pos,counter)
+                  DoSpillWritten(list,instr,pos,counter,spilltemplist,regs)
               end;
           end;
 
@@ -1820,6 +1846,12 @@ implementation
                   tryreplacereg(ref^.base);
                   tryreplacereg(ref^.index);
                 end;
+{$ifdef ARM}
+              top_shifterop:
+                begin
+                  tryreplacereg(shifterop^.rs);
+                end;
+{$endif ARM}
             end;
           end;
       end;
@@ -1830,7 +1862,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.114  2004-01-26 16:12:28  daniel
+  Revision 1.115  2004-01-26 17:40:11  florian
+    * made DoSpill* overrideable
+    + add_cpu_interferences added
+
+  Revision 1.114  2004/01/26 16:12:28  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 
