@@ -685,7 +685,10 @@ function CompilerOpenInputFile(const filename: string): pinputfile; {$ifndef FPC
 var f: pinputfile;
     W: PSourceWindow;
 begin
-  W:=EditorWindowFile(FExpand(filename));
+  if assigned(CompilingHiddenFile) then
+    W:=CompilingHiddenFile
+  else
+    W:=EditorWindowFile(FExpand(filename));
   if Assigned(W) and (W^.Editor^.GetModified) then
     f:=new(PFPInputFile, Init(W^.Editor))
   else
@@ -1287,7 +1290,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2002-09-07 15:40:42  peter
+  Revision 1.13  2002-09-09 06:53:54  pierre
+   * avoid to save file used by codecomplete
+
+  Revision 1.12  2002/09/07 15:40:42  peter
     * old logs removed and tabs fixed
 
   Revision 1.11  2002/09/05 08:45:40  pierre

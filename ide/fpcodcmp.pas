@@ -271,7 +271,8 @@ begin
         end;
       Addline('begin');
       Addline('end.');
-      SaveFile;
+      SetModified(true);
+      // SaveFile;
     end;
   StoreBrowserSwitchesConfig:=BrowserSwitches^.GetCurrSelParam;
   BrowserSwitches^.ReadItemsCfg('+');
@@ -632,7 +633,10 @@ END.
 
 {
  $Log$
- Revision 1.8  2002-09-09 06:22:45  pierre
+ Revision 1.9  2002-09-09 06:53:54  pierre
+  * avoid to save file used by codecomplete
+
+ Revision 1.8  2002/09/09 06:22:45  pierre
   * get it to load old and new desktops
 
 
