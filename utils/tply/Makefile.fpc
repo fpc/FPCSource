@@ -1,0 +1,41 @@
+#
+#   Makefile.fpc for Pascal lex/yacc
+#
+
+[targets]
+programs=plex pyacc
+units=lexlib yacclib
+
+[clean]
+units=lexbase lexopt lexdfa lexpos lexlist lexrules lexmsgs lextable \
+      yaccbase yaccmsgs yaccclos yaccpars yacclook yaccsem yacclr0 yacctabl
+
+[install]
+files=yylex.cod yyparse.cod
+
+[dirs]
+fpcdir=../..
+extrainstalldir=$(CODPATH)
+
+[defaults]
+defaultoptions=-Sg
+
+
+[presettings]
+ifdef inlinux
+CODPATH=/usr/lib/fpc/lexyacc
+else
+CODPATH=$(BININSTALLDIR)
+endif
+
+
+[rules]
+pyacc$(EXEEXT): pyacc$(PASEXT) $(wildcard yacc*$(PASEXT))
+        $(COMPILER) pyacc$(PASEXT) $(REDIR)
+
+plex$(EXEEXT): plex$(PASEXT) $(wildcard lex*$(PASEXT))
+        $(COMPILER) plex$(PASEXT) $(REDIR)
+
+lexlib$(PPUEXT): lexlib$(PASEXT)
+
+yacclib$(PPUEXT): yacclib$(PASEXT)

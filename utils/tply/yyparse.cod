@@ -1,0 +1,184 @@
+
+(* Yacc parser template (TP Yacc V3.0), V1.2 6-17-91 AG *)
+
+(* global definitions: *)
+%%
+
+var yylval : YYSType;
+
+function yylex : Integer; forward;
+
+function yyparse : Integer;
+
+var yystate, yysp, yyn : Integer;
+    yys : array [1..yymaxdepth] of Integer;
+    yyv : array [1..yymaxdepth] of YYSType;
+    yyval : YYSType;
+
+procedure yyaction ( yyruleno : Integer );
+  (* local definitions: *)
+%%
+begin
+  (* actions: *)
+  case yyruleno of
+%%
+  end;
+end(*yyaction*);
+
+(* parse table: *)
+%%
+
+const _error = 256; (* error token *)
+
+function yyact(state, sym : Integer; var act : Integer) : Boolean;
+  (* search action table *)
+  var k : Integer;
+  begin
+    k := yyal[state];
+    while (k<=yyah[state]) and (yya[k].sym<>sym) do inc(k);
+    if k>yyah[state] then
+      yyact := false
+    else
+      begin
+        act := yya[k].act;
+        yyact := true;
+      end;
+  end(*yyact*);
+
+function yygoto(state, sym : Integer; var nstate : Integer) : Boolean;
+  (* search goto table *)
+  var k : Integer;
+  begin
+    k := yygl[state];
+    while (k<=yygh[state]) and (yyg[k].sym<>sym) do inc(k);
+    if k>yygh[state] then
+      yygoto := false
+    else
+      begin
+        nstate := yyg[k].act;
+        yygoto := true;
+      end;
+  end(*yygoto*);
+
+label parse, next, error, errlab, shift, reduce, accept, abort;
+
+begin(*yyparse*)
+
+  (* initialize: *)
+
+  yystate := 0; yychar := -1; yynerrs := 0; yyerrflag := 0; yysp := 0;
+
+{$ifdef yydebug}
+  yydebug := true;
+{$else}
+  yydebug := false;
+{$endif}
+
+parse:
+
+  (* push state and value: *)
+
+  inc(yysp);
+  if yysp>yymaxdepth then
+    begin
+      yyerror('yyparse stack overflow');
+      goto abort;
+    end;
+  yys[yysp] := yystate; yyv[yysp] := yyval;
+
+next:
+
+  if (yyd[yystate]=0) and (yychar=-1) then
+    (* get next symbol *)
+    begin
+      yychar := yylex; if yychar<0 then yychar := 0;
+    end;
+
+  if yydebug then writeln('state ', yystate, ', char ', yychar);
+
+  (* determine parse action: *)
+
+  yyn := yyd[yystate];
+  if yyn<>0 then goto reduce; (* simple state *)
+
+  (* no default action; search parse table *)
+
+  if not yyact(yystate, yychar, yyn) then goto error
+  else if yyn>0 then                      goto shift
+  else if yyn<0 then                      goto reduce
+  else                                    goto accept;
+
+error:
+
+  (* error; start error recovery: *)
+
+  if yyerrflag=0 then yyerror('syntax error');
+
+errlab:
+
+  if yyerrflag=0 then inc(yynerrs);     (* new error *)
+
+  if yyerrflag<=2 then                  (* incomplete recovery; try again *)
+    begin
+      yyerrflag := 3;
+      (* uncover a state with shift action on error token *)
+      while (yysp>0) and not ( yyact(yys[yysp], _error, yyn) and
+                               (yyn>0) ) do
+        begin
+          if yydebug then
+            if yysp>1 then
+              writeln('error recovery pops state ', yys[yysp], ', uncovers ',
+                      yys[yysp-1])
+            else
+              writeln('error recovery fails ... abort');
+          dec(yysp);
+        end;
+      if yysp=0 then goto abort; (* parser has fallen from stack; abort *)
+      yystate := yyn;            (* simulate shift on error *)
+      goto parse;
+    end
+  else                                  (* no shift yet; discard symbol *)
+    begin
+      if yydebug then writeln('error recovery discards char ', yychar);
+      if yychar=0 then goto abort; (* end of input; abort *)
+      yychar := -1; goto next;     (* clear lookahead char and try again *)
+    end;
+
+shift:
+
+  (* go to new state, clear lookahead character: *)
+
+  yystate := yyn; yychar := -1; yyval := yylval;
+  if yyerrflag>0 then dec(yyerrflag);
+
+  goto parse;
+
+reduce:
+
+  (* execute action, pop rule from stack, and go to next state: *)
+
+  if yydebug then writeln('reduce ', -yyn);
+
+  yyflag := yyfnone; yyaction(-yyn);
+  dec(yysp, yyr[-yyn].len);
+  if yygoto(yys[yysp], yyr[-yyn].sym, yyn) then yystate := yyn;
+
+  (* handle action calls to yyaccept, yyabort and yyerror: *)
+
+  case yyflag of
+    yyfaccept : goto accept;
+    yyfabort  : goto abort;
+    yyferror  : goto errlab;
+  end;
+
+  goto parse;
+
+accept:
+
+  yyparse := 0; exit;
+
+abort:
+
+  yyparse := 1; exit;
+
+end(*yyparse*);

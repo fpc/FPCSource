@@ -1,0 +1,80 @@
+
+(* lexical analyzer template (TP Lex V3.0), V1.0 3-2-91 AG *)
+
+(* global definitions: *)
+%%
+
+function yylex : Integer;
+
+procedure yyaction ( yyruleno : Integer );
+  (* local definitions: *)
+%%
+begin
+  (* actions: *)
+  case yyruleno of
+%%
+  end;
+end(*yyaction*);
+
+(* DFA table: *)
+%%
+
+var yyn : Integer;
+
+label start, scan, action;
+
+begin
+
+start:
+
+  (* initialize: *)
+
+  yynew;
+
+scan:
+
+  (* mark positions and matches: *)
+
+  for yyn := yykl[yystate] to     yykh[yystate] do yymark(yyk[yyn]);
+  for yyn := yymh[yystate] downto yyml[yystate] do yymatch(yym[yyn]);
+
+  if yytl[yystate]>yyth[yystate] then goto action; (* dead state *)
+
+  (* get next character: *)
+
+  yyscan;
+
+  (* determine action: *)
+
+  yyn := yytl[yystate];
+  while (yyn<=yyth[yystate]) and not (yyactchar in yyt[yyn].cc) do inc(yyn);
+  if yyn>yyth[yystate] then goto action;
+    (* no transition on yyactchar in this state *)
+
+  (* switch to new state: *)
+
+  yystate := yyt[yyn].s;
+
+  goto scan;
+
+action:
+
+  (* execute action: *)
+
+  if yyfind(yyrule) then
+    begin
+      yyaction(yyrule);
+      if yyreject then goto action;
+    end
+  else if not yydefault and yywrap then
+    begin
+      yyclear;
+      return(0);
+    end;
+
+  if not yydone then goto start;
+
+  yylex := yyretval;
+
+end(*yylex*);
+

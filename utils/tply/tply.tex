@@ -1,0 +1,1642 @@
+
+\documentstyle[11pt]{article}
+
+\title{TP Lex and Yacc -- The Compiler Writer's Tools for Turbo Pascal\\
+       Version 4.1 User Manual}
+
+\author{Albert Gr\"af\\
+        Department of Musicinformatics\\
+        Johannes Gutenberg-University Mainz\\
+        \\
+        ag@muwiinfa.geschichte.uni-mainz.de}
+
+\date{April 1998}
+
+\setlength{\topmargin}{0cm}
+\setlength{\oddsidemargin}{0cm}
+\setlength{\evensidemargin}{0cm}
+\setlength{\textwidth}{16cm}
+\setlength{\textheight}{21cm}
+%\setlength{\parindent}{0pt}
+\parskip=4pt plus 1pt minus 1pt
+\itemsep=0pt
+\renewcommand{\baselinestretch}{1.1}
+\unitlength=1mm
+%\tolerance=500
+%\parskip=0.1cm
+\leftmargini 1.5em
+\leftmarginii 1.5em \leftmarginiii 1.5em \leftmarginiv 1.5em \leftmarginv 1.5em
+\leftmarginvi 1.5em
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+
+This document describes the TP Lex and Yacc compiler generator toolset.
+These tools are designed especially to help you prepare compilers and
+similar programs like text processing utilities and command language
+interpreters with the Turbo Pascal (TM) programming language.
+
+TP Lex and Yacc are Turbo Pascal adaptions of the well-known UNIX (TM)
+utilities Lex and Yacc, which were written by M.E. Lesk and S.C. Johnson
+at Bell Laboratories, and are used with the C programming language. TP Lex
+and Yacc are intended to be approximately ``compatible'' with these programs.
+However, they are an independent development of the author, based on the
+techniques described in the famous ``dragon book'' of Aho, Sethi and Ullman
+(Aho, Sethi, Ullman: {\em Compilers : principles, techniques and tools,\/}
+Reading (Mass.), Addison-Wesley, 1986).
+
+Version 4.1 of TP Lex and Yacc works with all recent flavours of Turbo/Borland
+Pascal, including Delphi, and with the Free Pascal Compiler, a free Turbo
+Pascal-compatible compiler which currently runs on DOS and Linux (other ports
+are under development). Recent information about TP Lex/Yacc, and the sources
+are available from the TPLY homepage:
+\begin{quote}\begin{verbatim}
+   http://www.musikwissenschaft.uni-mainz.de/~ag/tply
+\end{verbatim}\end{quote}
+For information about the Free Pascal Compiler, please refer to:
+\begin{quote}\begin{verbatim}
+   http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/fpc.html
+\end{verbatim}\end{quote}
+
+TP Lex and Yacc, like any other tools of this kind, are not intended for
+novices or casual programmers; they require extensive programming experience
+as well as a thorough understanding of the principles of parser design and
+implementation to be put to work successfully. But if you are a seasoned
+Turbo Pascal programmer with some background in compiler design and formal
+language theory, you will almost certainly find TP Lex and Yacc to be a
+powerful extension of your Turbo Pascal toolset.
+
+This manual tells you how to get started with the TP Lex and Yacc programs
+and provides a short description of these programs. Some knowledge about
+the C versions of Lex and Yacc will be useful, although not strictly
+necessary. For further reading, you may also refer to:
+
+\begin{itemize}
+   \item
+      Aho, Sethi and Ullman: {\em Compilers : principles, techniques and
+      tools.\/} Reading (Mass.), Addison-Wesley, 1986.
+   \item
+      Johnson, S.C.: {\em Yacc -- yet another compiler-compiler.\/} CSTR-32,
+      Bell Telephone Laboratories, 1974.
+   \item
+      Lesk, M.E.: {\em Lex -- a lexical analyser generator.\/} CSTR-39, Bell
+      Telephone Laboratories, 1975.
+   \item
+      Schreiner, Friedman: {\em Introduction to compiler construction with
+      UNIX.\/} Prentice-Hall, 1985.
+   \item
+      The Unix Programmer's Manual, Sections `Lex' and `Yacc'.
+\end{itemize}
+
+
+\subsection*{Credits}
+
+I would like to thank Berend de Boer (berend@pobox.com), who adapted TP Lex
+and Yacc to take advantage of the large memory models in Borland Pascal 7.0
+and Delphi, and Michael Van Canneyt (Michael.VanCanneyt@fys.kuleuven.ac.be),
+the maintainer of the Linux version of the Free Pascal compiler, who is
+responsible for the Free Pascal port. And of course thanks are due to the many
+TP Lex/Yacc users all over the world for their support and comments which
+helped to improve these programs.
+
+
+\subsection*{Getting Started}
+
+Instructions on how to compile and install TP Lex and Yacc on all supported
+platforms can be found in the \verb"README" file contained in the
+distribution.
+
+Once you have installed TP Lex and Yacc on your system, you can compile your
+first TP Lex and Yacc program \verb"expr". \verb"Expr" is a simple desktop
+calculator program contained in the distribution, which consists of a lexical
+analyzer in the TP Lex source file \verb"exprlex.l" and the parser and main
+program in the TP Yacc source file \verb"expr.y". To compile these programs,
+issue the commands
+\begin{quote}\begin{verbatim}
+   lex exprlex
+   yacc expr
+\end{verbatim}\end{quote}
+That's it! You now have the Turbo Pascal sources (\verb"exprlex.pas" and
+\verb"expr.pas") for the \verb"expr" program. Use the Turbo Pascal
+compiler to compile these programs as follows:
+\begin{quote}\begin{verbatim}
+   tpc expr
+\end{verbatim}\end{quote}
+
+(Of course, the precise compilation command depends on the type of compiler
+you are using. Thus you may have to replace \verb"tpc" with \verb"bpc",
+\verb"dcc" or \verb"dcc32", depending on the version of the
+Turbo/Borland/Delphi compiler you have, and with \verb"ppc386" for the Free
+Pascal compiler. If you are using TP Lex and Yacc with Free Pascal under
+Linux, the corresponding commands are:
+\begin{quote}\begin{verbatim}
+   plex exprlex
+   pyacc expr
+   ppc386 expr
+\end{verbatim}\end{quote}
+Note that in the Linux version, the programs are named \verb"plex" and
+\verb"pyacc" to avoid name clashes with the corresponding UNIX utilities.)
+
+Having compiled \verb"expr.pas", you can execute the \verb"expr" program and
+type some expressions to see it work (terminate the program with an empty
+line).  There is a number of other sample TP Lex and Yacc programs (\verb".l"
+and \verb".y" files) in the distribution, including a TP Yacc cross reference
+utility and a complete parser for Standard Pascal.
+
+The TP Lex and Yacc programs recognize some options which may be specified
+anywhere on the command line. E.g.,
+\begin{quote}\begin{verbatim}
+   lex -o exprlex
+\end{verbatim}\end{quote}
+runs TP Lex with ``DFA optimization'' and
+\begin{quote}\begin{verbatim}
+   yacc -v expr
+\end{verbatim}\end{quote}
+runs TP Yacc in ``verbose'' mode (TP Yacc generates a readable description
+of the generated parser).
+
+The TP Lex and Yacc programs use the following default filename extensions:
+\begin{itemize}
+   \item \verb".l": TP Lex input files
+   \item \verb".y": TP Yacc input files
+   \item \verb".pas": TP Lex and Yacc output files
+\end{itemize}
+As usual, you may overwrite default filename extensions by explicitly
+specifying suffixes.
+
+If you ever forget how to run TP Lex and Yacc, you can issue the command
+\verb"lex" or \verb"yacc" (resp.\ \verb"plex" or \verb"pyacc")
+without arguments to get a short summary of the command line syntax.
+
+\section{TP Lex}
+
+This section describes the TP Lex lexical analyzer generator.
+
+\subsection{Usage}
+
+\begin{quote}\begin{verbatim}
+lex [options] lex-file[.l] [output-file[.pas]]
+\end{verbatim}\end{quote}
+
+\subsection{Options}
+
+\begin{description}
+   \item[\verb"-v"]
+      ``Verbose:'' Lex generates a readable description of the generated
+      lexical analyzer, written to lex-file with new extension \verb".lst".
+   \item[\verb"-o"]
+      ``Optimize:'' Lex optimizes DFA tables to produce a minimal DFA.
+\end{description}
+
+\subsection{Description}
+
+TP Lex is a program generator that is used to generate the Turbo Pascal
+source code for a lexical analyzer subroutine from the specification
+of an input language by a regular expression grammar.
+
+TP Lex parses the source grammar contained in \verb"lex-file" (with default
+suffix \verb".l") and writes the constructed lexical analyzer subroutine
+to the specified \verb"output-file" (with default suffix \verb".pas"); if no
+output file is specified, output goes to \verb"lex-file" with new suffix
+\verb".pas." If any errors are found during compilation, error messages are
+written to the list file (\verb"lex-file" with new suffix \verb".lst").
+
+The generated output file contains a lexical analyzer routine, \verb"yylex",
+implemented as:
+\begin{quote}\begin{verbatim}
+   function yylex : Integer;
+\end{verbatim}\end{quote}
+
+This routine has to be called by your main program to execute the lexical
+analyzer. The return value of the \verb"yylex" routine usually denotes the
+number of a token recognized by the lexical analyzer (see the \verb"return"
+routine in the \verb"LexLib" unit). At end-of-file the \verb"yylex" routine
+normally returns \verb"0".
+
+The code template for the \verb"yylex" routine may be found in the
+\verb"yylex.cod" file. This file is needed by TP Lex when it constructs the
+output file. It must be present either in the current directory or in the
+directory from which TP Lex was executed (TP Lex searches these directories in
+the indicated order). (NB: For the Linux/Free Pascal version, the code
+template is searched in some directory defined at compile-time instead of the
+execution path, usually /usr/lib/fpc/lexyacc.)
+
+The TP Lex library (\verb"LexLib") unit is required by programs using
+Lex-generated lexical analyzers; you will therefore have to put an appropriate
+\verb"uses" clause into your program or unit that contains the lexical
+analyzer routine. The \verb"LexLib" unit also provides various useful utility
+routines; see the file \verb"lexlib.pas" for further information.
+
+\subsection{Lex Source}
+
+A TP Lex program consists of three sections separated with the \verb"%%"
+delimiter:
+
+\begin{quote}\begin{verbatim}
+definitions
+%%
+rules
+%%
+auxiliary procedures
+\end{verbatim}\end{quote}
+
+All sections may be empty. The TP Lex language is line-oriented; definitions
+and rules are separated by line breaks. There is no special notation for
+comments, but (Turbo Pascal style) comments may be included as Turbo Pascal
+fragments (see below).
+
+The definitions section may contain the following elements:
+\begin{itemize}
+   \item
+      regular definitions in the format:
+      \begin{quote}\begin{verbatim}
+   name   substitution
+      \end{verbatim}\end{quote}
+      which serve to abbreviate common subexpressions. The \verb"{name}"
+      notation causes the corresponding substitution from the definitions
+      section to be inserted into a regular expression. The name must be
+      a legal identifier (letter followed by a sequence of letters and digits;
+      the underscore counts as a letter; upper- and lowercase are distinct).
+      Regular definitions must be non-recursive.
+   \item
+      start state definitions in the format:
+      \begin{quote}\begin{verbatim}
+   %start name ...
+      \end{verbatim}\end{quote}
+      which are used in specifying start conditions on rules (described
+      below). The \verb"%start" keyword may also be abbreviated as \verb"%s"
+      or \verb"%S".
+   \item
+      Turbo Pascal declarations enclosed between \verb"%{" and \verb"%}".
+      These will be inserted into the output file (at global scope). Also,
+      any line that does not look like a Lex definition (e.g., starts with
+      blank or tab) will be treated as Turbo Pascal code. (In particular,
+      this also allows you to include Turbo Pascal comments in your Lex
+      program.)
+\end{itemize}
+
+The rules section of a TP Lex program contains the actual specification of
+the lexical analyzer routine. It may be thought of as a big \verb"CASE"
+statement discriminating over the different patterns to be matched and listing the
+corresponding statements (actions) to be executed. Each rule consists of a
+regular expression describing the strings to be matched in the input, and a
+corresponding action, a Turbo Pascal statement to be executed when the
+expression matches. Expression and statement are delimited with whitespace
+(blanks and/or tabs). Thus the format of a Lex grammar rule is:
+
+\begin{quote}\begin{verbatim}
+   expression      statement;
+\end{verbatim}\end{quote}
+
+Note that the action must be a single Turbo Pascal statement terminated
+with a semicolon (use \verb"begin ... end" for compound statements). The
+statement may span multiple lines if the successor lines are indented with
+at least one blank or tab. The action may also be replaced by the \verb"|"
+character, indicating that the action for this rule is the same as that for
+the next one.
+
+The TP Lex library unit provides various variables and routines which are
+useful in the programming of actions. In particular, the \verb"yytext" string
+variable holds the text of the matched string, and the \verb"yyleng" Byte
+variable its length.
+
+Regular expressions are used to describe the strings to be matched in a
+grammar rule. They are built from the usual constructs describing character
+classes and sequences, and operators specifying repetitions and alternatives.
+The precise format of regular expressions is described in the next section.
+
+The rules section may also start with some Turbo Pascal declarations
+(enclosed in \verb"%{ %}") which are treated as local declarations of the
+actions routine.
+
+Finally, the auxiliary procedures section may contain arbitrary Turbo
+Pascal code (such as supporting routines or a main program) which is
+simply tacked on to the end of the output file. The auxiliary procedures
+section is optional.
+
+\subsection{Regular Expressions}
+
+Table \ref{tab1} summarizes the format of the regular expressions
+recognized by TP Lex (also compare Aho, Sethi, Ullman 1986, fig.\ 3.48).
+$c$ stands for a single character, $s$ for a string, $r$ for a regular
+expression, and $n,m$ for nonnegative integers.
+
+\begin{table*}\centering
+   \begin{tabular}{c|c|c}
+      \hline\hline
+      {\sc Expression}& {\sc Matches}& {\sc Example}\\
+      \hline
+      $c$& any non-operator character $c$& \verb"a"\\
+      \verb"\"$c$& character $c$ literally& \verb"\*"\\
+      \verb'"'$s$\verb'"'& string $s$ literally& \verb'"**"'\\
+      \verb"."& any character but newline& \verb"a.*b"\\
+      \verb"^"& beginning of line& \verb"^abc"\\
+      \verb"$"& end of line& \verb"abc$"\\
+      \verb"["$s$\verb"]"& any character in $s$& \verb"[abc]"\\
+      \verb"[^"$s$\verb"]"& any character not in $s$& \verb"[^abc]"\\
+      $r$\verb"*"& zero or more $r$'s& \verb"a*"\\
+      $r$\verb"+"& one or more $r$'s& \verb"a+"\\
+      $r$\verb"?"& zero or one $r$& \verb"a?"\\
+      $r$\verb"{"$m$\verb","$n$\verb"}"& $m$ to $n$ occurrences of $r$& \verb"a{1,5}"\\
+      $r$\verb"{"$m$\verb"}"& $m$ occurrences of $r$& \verb"a{5}"\\
+      $r_1r_2$& $r_1$ then $r_2$& \verb"ab"\\
+      $r_1$\verb"|"$r_2$& $r_1$ or $r_2$& \verb"a|b"\\
+      \verb"("$r$\verb")"& $r$& \verb"(a|b)"\\
+      $r_1$\verb"/"$r_2$& $r_1$ when followed by $r_2$& \verb"a/b"\\
+      \verb"<"$x$\verb">"$r$& $r$ when in start condition $x$& \verb"<x>abc"\\
+      \hline
+   \end{tabular}
+   \caption{Regular expressions.}
+   \label{tab1}
+\end{table*}
+
+The operators \verb"*", \verb"+", \verb"?" and \verb"{}" have highest
+precedence, followed by concatenation. The \verb"|" operator has lowest
+precedence. Parentheses \verb"()" may be used to group expressions and
+overwrite default precedences. The \verb"<>" and \verb"/" operators may only
+occur once in an expression.
+
+The usual C-like escapes are recognized:
+\begin{itemize}
+   \item \verb"\n"     denotes newline
+   \item \verb"\r"     denotes carriage return
+   \item \verb"\t"     denotes tab
+   \item \verb"\b"     denotes backspace
+   \item \verb"\f"     denotes form feed
+   \item \verb"\"$nnn$ denotes character no.\ $nnn$ in octal base
+\end{itemize}
+
+You can also use the \verb"\" character to quote characters which would
+otherwise be interpreted as operator symbols. In character classes, you may
+use the \verb"-" character to denote ranges of characters. For instance,
+\verb"[a-z]" denotes the class of all lowercase letters.
+
+The expressions in a TP Lex program may be ambigious, i.e. there may be inputs
+which match more than one rule. In such a case, the lexical analyzer prefers
+the longest match and, if it still has the choice between different rules,
+it picks the first of these. If no rule matches, the lexical analyzer
+executes a default action which consists of copying the input character
+to the output unchanged. Thus, if the purpose of a lexical analyzer is
+to translate some parts of the input, and leave the rest unchanged, you
+only have to specify the patterns which have to be treated specially. If,
+however, the lexical analyzer has to absorb its whole input, you will have
+to provide rules that match everything. E.g., you might use the rules
+\begin{quote}\begin{verbatim}
+   .   |
+   \n  ;
+\end{verbatim}\end{quote}
+which match ``any other character'' (and ignore it).
+
+Sometimes certain patterns have to be analyzed differently depending on some
+amount of context in which the pattern appears. In such a case the \verb"/"
+operator is useful. For instance, the expression \verb"a/b" matches \verb"a",
+but only if followed by \verb"b". Note that the \verb"b" does not belong to
+the match; rather, the lexical analyzer, when matching an \verb"a", will look
+ahead in the input to see whether it is followed by a \verb"b", before it
+declares that it has matched an \verb"a". Such lookahead may be arbitrarily
+complex (up to the size of the \verb"LexLib" input buffer). E.g., the pattern
+\verb"a/.*b" matches an \verb"a" which is followed by a \verb"b" somewhere on
+the same input line. TP Lex also has a means to specify left context which is
+described in the next section.
+
+\subsection{Start Conditions}
+
+TP Lex provides some features which make it possible to handle left context.
+The \verb"^" character at the beginning of a regular expression may be used
+to denote the beginning of the line. More distant left context can be described
+conveniently by using start conditions on rules.
+
+Any rule which is prefixed with the \verb"<>" construct is only valid if the
+lexical analyzer is in the denoted start state. For instance, the expression
+\verb"<x>a" can only be matched if the lexical analyzer is in start state
+\verb"x". You can have multiple start states in a rule; e.g., \verb"<x,y>a"
+can be matched in start states \verb"x" or \verb"y".
+
+Start states have to be declared in the definitions section by means of
+one or more start state definitions (see above). The lexical analyzer enters
+a start state through a call to the \verb"LexLib" routine \verb"start". E.g.,
+you may write:
+
+\begin{quote}\begin{verbatim}
+%start x y
+%%
+<x>a    start(y);
+<y>b    start(x);
+%%
+begin
+  start(x); if yylex=0 then ;
+end.
+\end{verbatim}\end{quote}
+
+Upon initialization, the lexical analyzer is put into state \verb"x". It then
+proceeds in state \verb"x" until it matches an \verb"a" which puts it into
+state \verb"y". In state \verb"y" it may match a \verb"b" which puts it into
+state \verb"x" again, etc.
+
+Start conditions are useful when certain constructs have to be analyzed
+differently depending on some left context (such as a special character
+at the beginning of the line), and if multiple lexical analyzers have to
+work in concert. If a rule is not prefixed with a start condition, it is
+valid in all user-defined start states, as well as in the lexical analyzer's
+default start state.
+
+\subsection{Lex Library}
+
+The TP Lex library (\verb"LexLib") unit provides various variables and
+routines which are used by Lex-generated lexical analyzers and application
+programs. It provides the input and output streams and other internal data
+structures used by the lexical analyzer routine, and supplies some variables
+and utility routines which may be used by actions and application programs.
+Refer to the file \verb"lexlib.pas" for a closer description.
+
+You can also modify the Lex library unit (and/or the code template in the
+\verb"yylex.cod" file) to customize TP Lex to your target applications. E.g.,
+you might wish to optimize the code of the lexical analyzer for some
+special application, make the analyzer read from/write to memory instead
+of files, etc.
+
+\subsection{Implementation Restrictions}
+
+Internal table sizes and the main memory available limit the complexity of
+source grammars that TP Lex can handle. There is currently no possibility to
+change internal table sizes (apart from modifying the sources of TP Lex
+itself), but the maximum table sizes provided by TP Lex seem to be large
+enough to handle most realistic applications. The actual table sizes depend on
+the particular implementation (they are much larger than the defaults if TP
+Lex has been compiled with one of the 32 bit compilers such as Delphi 2 or
+Free Pascal), and are shown in the statistics printed by TP Lex when a
+compilation is finished. The units given there are ``p'' (positions, i.e.
+items in the position table used to construct the DFA), ``s'' (DFA states) and
+``t'' (transitions of the generated DFA).
+
+As implemented, the generated DFA table is stored as a typed array constant
+which is inserted into the \verb"yylex.cod" code template. The transitions in
+each state are stored in order. Of course it would have been more efficient to
+generate a big \verb"CASE" statement instead, but I found that this may cause
+problems with the encoding of large DFA tables because Turbo Pascal has
+a quite rigid limit on the code size of individual procedures. I decided to
+use a scheme in which transitions on different symbols to the same state are
+merged into one single transition (specifying a character set and the
+corresponding next state). This keeps the number of transitions in each state
+quite small and still allows a fairly efficient access to the transition
+table.
+
+The TP Lex program has an option (\verb"-o") to optimize DFA tables. This
+causes a minimal DFA to be generated, using the algorithm described in Aho,
+Sethi, Ullman (1986). Although the absolute limit on the number of DFA states
+that TP Lex can handle is at least 300, TP Lex poses an additional restriction
+(100) on the number of states in the initial partition of the DFA optimization
+algorithm. Thus, you may get a fatal \verb"integer set overflow" message when
+using the \verb"-o" option even when TP Lex is able to generate an unoptimized
+DFA. In such cases you will just have to be content with the unoptimized DFA.
+(Hopefully, this will be fixed in a future version. Anyhow, using the merged
+transitions scheme described above, TP Lex usually constructs unoptimized
+DFA's which are not far from being optimal, and thus in most cases DFA
+optimization won't have a great impact on DFA table sizes.)
+
+\subsection{Differences from UNIX Lex}
+
+Major differences between TP Lex and UNIX Lex are listed below.
+
+\begin{itemize}
+   \item
+      TP Lex produces output code for Turbo Pascal, rather than for C.
+   \item
+      Character tables (\verb"%T") are not supported; neither are any
+      directives to determine internal table sizes (\verb"%p", \verb"%n",
+      etc.).
+   \item
+      Library routines are named differently from the UNIX version (e.g.,
+      the \verb"start" routine takes the place of the \verb"BEGIN" macro of
+      UNIX Lex), and, of course, all macros of UNIX Lex (\verb"ECHO",
+      \verb"REJECT", etc.) had to be implemented as procedures.
+    \item
+      The TP Lex library unit starts counting line numbers at 0, incrementing
+      the count {\em before\/} a line is read (in contrast, UNIX Lex
+      initializes \verb"yylineno" to 1 and increments it {\em after\/} the
+      line end has been read). This is motivated by the way in which TP Lex
+      maintains the current line, and will not affect your programs unless you
+      explicitly reset the \verb"yylineno" value (e.g., when opening a new
+      input file). In such a case you should set \verb"yylineno" to 0 rather
+      than 1.
+\end{itemize}
+
+\section{TP Yacc}
+
+This section describes the TP Yacc compiler compiler.
+
+\subsection{Usage}
+
+\begin{quote}\begin{verbatim}
+yacc [options] yacc-file[.y] [output-file[.pas]]
+\end{verbatim}\end{quote}
+
+\subsection{Options}
+
+\begin{description}
+   \item[\verb"-v"]
+      ``Verbose:'' TP Yacc generates a readable description of the generated
+      parser, written to \verb"yacc-file" with new extension \verb".lst".
+   \item[\verb"-d"]
+      ``Debug:'' TP Yacc generates parser with debugging output.
+\end{description}
+
+\subsection{Description}
+
+TP Yacc is a program that lets you prepare parsers from the description
+of input languages by BNF-like grammars. You simply specify the grammar
+for your target language, augmented with the Turbo Pascal code necessary
+to process the syntactic constructs, and TP Yacc translates your grammar
+into the Turbo Pascal code for a corresponding parser subroutine named
+\verb"yyparse".
+
+TP Yacc parses the source grammar contained in \verb"yacc-file" (with default
+suffix \verb".y") and writes the constructed parser subroutine to the
+specified \verb"output-file" (with default suffix \verb".pas"); if no output
+file is specified, output goes to \verb"yacc-file" with new suffix
+\verb".pas". If any errors are found during compilation, error messages are
+written to the list file (\verb"yacc-file" with new suffix \verb".lst").
+
+The generated parser routine, \verb"yyparse", is declared as:
+
+\begin{quote}\begin{verbatim}
+   function yyparse : Integer;
+\end{verbatim}\end{quote}
+
+This routine may be called by your main program to execute the parser.
+The return value of the \verb"yyparse" routine denotes success or failure of
+the parser (possible return values: 0 = success, 1 = unrecoverable syntax
+error or parse stack overflow).
+
+Similar to TP Lex, the code template for the \verb"yyparse" routine may be
+found in the \verb"yyparse.cod" file. The rules for locating this file are
+analogous to those of TP Lex (see Section {\em TP Lex\/}).
+
+The TP Yacc library (\verb"YaccLib") unit is required by programs using Yacc-
+generated parsers; you will therefore have to put an appropriate \verb"uses"
+clause into your program or unit that contains the parser routine. The
+\verb"YaccLib" unit also provides some routines which may be used to control
+the actions of the parser. See the file \verb"yacclib.pas" for further
+information.
+
+\subsection{Yacc Source}
+
+A TP Yacc program consists of three sections separated with the \verb"%%"
+delimiter:
+
+\begin{quote}\begin{verbatim}
+definitions
+%%
+rules
+%%
+auxiliary procedures
+\end{verbatim}\end{quote}
+
+The TP Yacc language is free-format: whitespace (blanks, tabs and newlines)
+is ignored, except if it serves as a delimiter. Comments have the C-like
+format \verb"/* ... */". They are treated as whitespace. Grammar symbols are
+denoted by identifiers which have the usual form (letter, including
+underscore, followed by a sequence of letters and digits; upper- and
+lowercase is distinct). The TP Yacc language also has some keywords which
+always start with the \verb"%" character. Literals are denoted by characters
+enclosed in single quotes. The usual C-like escapes are recognized:
+
+\begin{itemize}
+   \item \verb"\n"     denotes newline
+   \item \verb"\r"     denotes carriage return
+   \item \verb"\t"     denotes tab
+   \item \verb"\b"     denotes backspace
+   \item \verb"\f"     denotes form feed
+   \item \verb"\"$nnn$ denotes character no.\ $nnn$ in octal base
+\end{itemize}
+
+\subsection{Definitions}
+
+The first section of a TP Yacc grammar serves to define the symbols used in
+the grammar. It may contain the following types of definitions:
+
+\begin{itemize}
+   \item
+      start symbol definition: A definition of the form
+      \begin{quote}\begin{verbatim}
+   %start symbol
+      \end{verbatim}\end{quote}
+      declares the start nonterminal of the grammar (if this definition is
+      omitted, TP Yacc assumes the left-hand side nonterminal of the first
+      grammar rule as the start symbol of the grammar).
+   \item
+      terminal definitions: Definitions of the form
+      \begin{quote}\begin{verbatim}
+   %token symbol ...
+      \end{verbatim}\end{quote}
+      are used to declare the terminal symbols (``tokens'') of the target
+      language. Any identifier not introduced in a \verb"%token" definition
+      will be treated as a nonterminal symbol.
+    
+      As far as TP Yacc is concerned, tokens are atomic symbols which do not
+      have an innert structure. A lexical analyzer must be provided which
+      takes on the task of tokenizing the input stream and return the
+      individual tokens and literals to the parser (see Section {\em Lexical
+      Analysis\/}).
+   \item
+      precedence definitions: Operator symbols (terminals) may be associated
+      with a precedence by means of a precedence definition which may have
+      one of the following forms
+      \begin{quote}\begin{verbatim}
+   %left symbol ...
+   %right symbol ...
+   %nonassoc symbol ...
+      \end{verbatim}\end{quote}
+      which are used to declare left-, right- and nonassociative operators,
+      respectively. Each precedence definition introduces a new precedence
+      level, lowest precedence first. E.g., you may write:
+      \begin{quote}\begin{verbatim}
+   %nonassoc '<' '>' '=' GEQ LEQ NEQ
+      /* relational operators */
+   %left     '+' '-'  OR
+      /* addition operators */
+   %left     '*' '/' AND
+     /* multiplication operators */
+   %right    NOT UMINUS
+     /* unary operators */
+      \end{verbatim}\end{quote}
+
+      A terminal identifier introduced in a precedence definition may, but
+      need not, appear in a \verb"%token" definition as well.
+   \item
+      type definitions: Any (terminal or nonterminal) grammar symbol may be
+      associated with a type identifier which is used in the processing of
+      semantic values. Type tags of the form \verb"<name>" may be used in
+      token and precedence definitions to declare the type of a terminal
+      symbol, e.g.:
+      \begin{quote}\begin{verbatim}
+   %token <Real>  NUM
+   %left  <AddOp> '+' '-'
+      \end{verbatim}\end{quote}
+
+      To declare the type of a nonterminal symbol, use a type definition of
+      the form:
+      \begin{quote}\begin{verbatim}
+   %type <name> symbol ...
+      \end{verbatim}\end{quote}
+      e.g.:
+      \begin{quote}\begin{verbatim}
+   %type <Real> expr
+      \end{verbatim}\end{quote}
+
+      In a \verb"%type" definition, you may also omit the nonterminals, i.e.
+      you may write:
+      \begin{quote}\begin{verbatim}
+   %type <name>
+      \end{verbatim}\end{quote}
+
+      This is useful when a given type is only used with type casts (see
+      Section {\em Grammar Rules and Actions\/}), and is not associated with
+      a specific nonterminal.
+   \item
+      Turbo Pascal declarations: You may also include arbitrary Turbo Pascal
+      code in the definitions section, enclosed in \verb"%{ %}". This code
+      will be inserted as global declarations into the output file, unchanged.
+\end{itemize}
+
+\subsection{Grammar Rules and Actions}
+
+The second part of a TP Yacc grammar contains the grammar rules for the
+target language. Grammar rules have the format
+
+\begin{quote}\begin{verbatim}
+   name : symbol ... ;
+\end{verbatim}\end{quote}
+
+The left-hand side of a rule must be an identifier (which denotes a
+nonterminal symbol). The right-hand side may be an arbitrary (possibly
+empty) sequence of nonterminal and terminal symbols (including literals
+enclosed in single quotes). The terminating semicolon may also be omitted.
+Different rules for the same left-hand side symbols may be written using
+the \verb"|" character to separate the different alternatives:
+
+\begin{quote}\begin{verbatim}
+   name : symbol ...
+        | symbol ...
+        ...
+        ;
+\end{verbatim}\end{quote}
+
+For instance, to specify a simple grammar for arithmetic expressions, you
+may write:
+
+\begin{quote}\begin{verbatim}
+%left '+' '-'
+%left '*' '/'
+%token NUM
+%%
+expr : expr '+' expr
+     | expr '-' expr
+     | expr '*' expr
+     | expr '/' expr
+     | '(' expr ')'
+     | NUM
+     ;
+\end{verbatim}\end{quote}
+
+(The \verb"%left" definitions at the beginning of the grammar are needed to
+specify the precedence and associativity of the operator symbols. This will be
+discussed in more detail in Section {\em Ambigious Grammars\/}.)
+
+Grammar rules may contain actions -- Turbo Pascal statements enclosed in
+\verb"{ }" -- to be executed as the corresponding rules are recognized.
+Furthermore, rules may return values, and access values returned by other
+rules. These ``semantic'' values are written as \verb"$$" (value of the
+left-hand side nonterminal) and \verb"$i" (value of the $i$th right-hand
+side symbol). They are kept on a special value stack which is maintained
+automatically by the parser.
+
+Values associated with terminal symbols must be set by the lexical analyzer
+(more about this in Section {\em Lexical Analysis\/}). Actions of the form
+\verb"$$ := $1" can frequently be omitted, since it is the default action
+assumed by TP Yacc for any rule that does not have an explicit action.
+
+By default, the semantic value type provided by Yacc is \verb"Integer". You
+can also put a declaration like
+\begin{quote}\begin{verbatim}
+   %{
+   type YYSType = Real;
+   %}
+\end{verbatim}\end{quote}
+into the definitions section of your Yacc grammar to change the default value
+type. However, if you have different value types, the preferred method is to
+use type definitions as discussed in Section {\em Definitions\/}. When such
+type definitions are given, TP Yacc handles all the necessary details of the
+\verb"YYSType" definition and also provides a fair amount of type checking
+which makes it easier to find type errors in the grammar.
+
+For instance, we may declare the symbols \verb"NUM" and \verb"expr" in the
+example above to be of type \verb"Real", and then use these values to
+evaluate an expression as it is parsed.
+
+\begin{quote}\begin{verbatim}
+%left '+' '-'
+%left '*' '/'
+%token <Real> NUM
+%type  <Real> expr
+%%
+expr : expr '+' expr   { $$ := $1+$3; }
+     | expr '-' expr   { $$ := $1-$3; }
+     | expr '*' expr   { $$ := $1*$3; }
+     | expr '/' expr   { $$ := $1/$3; }
+     | '(' expr ')'    { $$ := $2;    }
+     | NUM
+     ;
+\end{verbatim}\end{quote}
+
+(Note that we omitted the action of the last rule. The ``copy action''
+\verb"$$ := $1" required by this rule is automatically added by TP Yacc.)
+
+Actions may not only appear at the end, but also in the middle of a rule
+which is useful to perform some processing before a rule is fully parsed.
+Such actions inside a rule are treated as special nonterminals which are
+associated with an empty right-hand side. Thus, a rule like
+\begin{quote}\begin{verbatim}
+   x : y { action; } z
+\end{verbatim}\end{quote}
+will be treated as:
+\begin{quote}\begin{verbatim}
+  x : y $act z
+  $act : { action; }
+\end{verbatim}\end{quote}
+
+Actions inside a rule may also access values to the left of the action,
+and may return values by assigning to the \verb"$$" value. The value returned
+by such an action can then be accessed by other actions using the usual
+\verb"$i" notation. E.g., we may write:
+\begin{quote}\begin{verbatim}
+   x : y { $$ := 2*$1; } z { $$ := $2+$3; }
+\end{verbatim}\end{quote}
+which has the effect of setting the value of \verb"x" to
+\begin{quote}\begin{verbatim}
+   2*(the value of y)+(the value of z).
+\end{verbatim}\end{quote}
+
+Sometimes it is desirable to access values in enclosing rules. This can be
+done using the notation \verb"$i" with $i\leq 0$. \verb"$0" refers to the
+first value ``to the left'' of the current rule, \verb"$-1" to the second,
+and so on. Note that in this case the referenced value depends on the actual
+contents of the parse stack, so you have to make sure that the requested
+values are always where you expect them.
+
+There are some situations in which TP Yacc cannot easily determine the
+type of values (when a typed parser is used). This is true, in particular,
+for values in enclosing rules and for the \verb"$$" value in an action inside
+a rule. In such cases you may use a type cast to explicitly specify the type
+of a value. The format for such type casts is \verb"$<name>$" (for left-hand
+side values) and \verb"$<name>i" (for right-hand side values) where
+\verb"name" is a type identifier (which must occur in a \verb"%token",
+precedence or \verb"%type" definition).
+
+\subsection{Auxiliary Procedures}
+
+The third section of a TP Yacc program is optional. If it is present, it
+may contain any Turbo Pascal code (such as supporting routines or a main
+program) which is tacked on to the end of the output file.
+
+\subsection{Lexical Analysis}
+
+For any TP Yacc-generated parser, the programmer must supply a lexical
+analyzer routine named \verb"yylex" which performs the lexical analysis for
+the parser. This routine must be declared as
+
+\begin{quote}\begin{verbatim}
+   function yylex : Integer;
+\end{verbatim}\end{quote}
+
+The \verb"yylex" routine may either be prepared by hand, or by using the
+lexical analyzer generator TP Lex (see Section {\em TP Lex\/}).
+
+The lexical analyzer must be included in your main program behind the
+parser subroutine (the \verb"yyparse" code template includes a forward
+definition of the \verb"yylex" routine such that the parser can access the
+lexical analyzer). For instance, you may put the lexical analyzer
+routine into the auxiliary procedures section of your TP Yacc grammar,
+either directly, or by using the the Turbo Pascal include directive
+(\verb"$I").
+
+The parser repeatedly calls the \verb"yylex" routine to tokenize the input
+stream and obtain the individual lexical items in the input. For any
+literal character, the \verb"yylex" routine has to return the corresponding
+character code. For the other, symbolic, terminals of the input language,
+the lexical analyzer must return corresponding integer codes. These are
+assigned automatically by TP Yacc in the order in which token definitions
+appear in the definitions section of the source grammar. The lexical
+analyzer can access these values through corresponding integer constants
+which are declared by TP Yacc in the output file.
+
+For instance, if
+\begin{quote}\begin{verbatim}
+   %token NUM
+\end{verbatim}\end{quote}
+is the first definition in the Yacc grammar, then TP Yacc will create
+a corresponding constant declaration
+\begin{quote}\begin{verbatim}
+   const NUM = 257;
+\end{verbatim}\end{quote}
+in the output file (TP Yacc automatically assigns symbolic token numbers
+starting at 257; 1 thru 255 are reserved for character literals, 0 denotes
+end-of-file, and 256 is reserved for the special error token which will be
+discussed in Section {\em Error Handling\/}). This definition may then be
+used, e.g., in a corresponding TP Lex program as follows:
+\begin{quote}\begin{verbatim}
+   [0-9]+   return(NUM);
+\end{verbatim}\end{quote}
+
+You can also explicitly assign token numbers in the grammar. For this
+purpose, the first occurrence of a token identifier in the definitions
+section may be followed by an unsigned integer. E.g. you may write:
+\begin{quote}\begin{verbatim}
+   %token NUM 299
+\end{verbatim}\end{quote}
+
+Besides the return value of \verb"yylex", the lexical analyzer routine may
+also return an additional semantic value for the recognized token. This value
+is assigned to a variable named \verb"yylval" and may then be accessed in
+actions through the \verb"$i" notation (see above, Section {\em Grammar
+Rules and Actions\/}). The \verb"yylval" variable is of type \verb"YYSType"
+(the semantic value type, \verb"Integer" by default); its declaration may be
+found in the \verb"yyparse.cod" file.
+
+For instance, to assign an \verb"Integer" value to a \verb"NUM" token in the
+above example, we may write:
+
+\begin{quote}\begin{verbatim}
+   [0-9]+   begin
+              val(yytext, yylval, code);
+              return(NUM);
+            end;
+\end{verbatim}\end{quote}
+
+This assigns \verb"yylval" the value of the \verb"NUM" token (using the Turbo
+Pascal standard procedure \verb"val").
+
+If a parser uses tokens of different types (via a \verb"%token <name>"
+definition), then the \verb"yylval" variable will not be of type
+\verb"Integer", but instead of a corresponding variant record type which is
+capable of holding all the different value types declared in the TP Yacc
+grammar. In this case, the lexical analyzer must assign a semantic value to
+the corresponding record component which is named \verb"yy"{\em name\/}
+(where {\em name\/} stands for the corresponding type identifier).
+
+E.g., if token \verb"NUM" is declared \verb"Real":
+\begin{quote}\begin{verbatim}
+   %token <Real> NUM
+\end{verbatim}\end{quote}
+then the value for token \verb"NUM" must be assigned to \verb"yylval.yyReal".
+
+\subsection{How The Parser Works}
+
+TP Yacc uses the LALR(1) technique developed by Donald E.\ Knuth and F.\
+DeRemer to construct a simple, efficient, non-backtracking bottom-up
+parser for the source grammar. The LALR parsing technique is described
+in detail in Aho/Sethi/Ullman (1986). It is quite instructive to take a
+look at the parser description TP Yacc generates from a small sample
+grammar, to get an idea of how the LALR parsing algorithm works. We
+consider the following simplified version of the arithmetic expression
+grammar:
+
+\begin{quote}\begin{verbatim}
+%token NUM
+%left '+'
+%left '*'
+%%
+expr : expr '+' expr
+     | expr '*' expr
+     | '(' expr ')'
+     | NUM
+     ;
+\end{verbatim}\end{quote}
+
+When run with the \verb"-v" option on the above grammar, TP Yacc generates
+the parser description listed below.
+
+\begin{quote}\begin{verbatim}
+state 0:
+
+        $accept : _ expr $end
+
+        '('     shift 2
+        NUM     shift 3
+        .       error
+
+        expr    goto 1
+
+state 1:
+
+        $accept : expr _ $end
+        expr : expr _ '+' expr
+        expr : expr _ '*' expr
+
+        $end    accept
+        '*'     shift 4
+        '+'     shift 5
+        .       error
+
+state 2:
+
+        expr : '(' _ expr ')'
+
+        '('     shift 2
+        NUM     shift 3
+        .       error
+
+        expr    goto 6
+
+state 3:
+
+        expr : NUM _    (4)
+
+        .       reduce 4
+
+state 4:
+
+        expr : expr '*' _ expr
+
+        '('     shift 2
+        NUM     shift 3
+        .       error
+
+        expr    goto 7
+
+state 5:
+
+        expr : expr '+' _ expr
+
+        '('     shift 2
+        NUM     shift 3
+        .       error
+
+        expr    goto 8
+
+state 6:
+
+        expr : '(' expr _ ')'
+        expr : expr _ '+' expr
+        expr : expr _ '*' expr
+
+        ')'     shift 9
+        '*'     shift 4
+        '+'     shift 5
+        .       error
+
+state 7:
+
+        expr : expr '*' expr _  (2)
+        expr : expr _ '+' expr
+        expr : expr _ '*' expr
+
+        .       reduce 2
+
+state 8:
+
+        expr : expr '+' expr _  (1)
+        expr : expr _ '+' expr
+        expr : expr _ '*' expr
+
+        '*'     shift 4
+        $end    reduce 1
+        ')'     reduce 1
+        '+'     reduce 1
+        .       error
+
+state 9:
+
+        expr : '(' expr ')' _   (3)
+
+        .       reduce 3
+\end{verbatim}\end{quote}
+
+Each state of the parser corresponds to a certain prefix of the input
+which has already been seen. The parser description lists the grammar
+rules wich are parsed in each state, and indicates the portion of each
+rule which has already been parsed by an underscore. In state 0, the
+start state of the parser, the parsed rule is
+\begin{quote}\begin{verbatim}
+        $accept : expr $end
+\end{verbatim}\end{quote}
+
+This is not an actual grammar rule, but a starting rule automatically
+added by TP Yacc. In general, it has the format
+\begin{quote}\begin{verbatim}
+        $accept : X $end
+\end{verbatim}\end{quote}
+where \verb"X" is the start nonterminal of the grammar, and \verb"$end" is
+a pseudo token denoting end-of-input (the \verb"$end" symbol is used by the
+parser to determine when it has successfully parsed the input).
+
+The description of the start rule in state 0,
+\begin{quote}\begin{verbatim}
+        $accept : _ expr $end
+\end{verbatim}\end{quote}
+with the underscore positioned before the \verb"expr" symbol, indicates that
+we are at the beginning of the parse and are ready to parse an expression
+(nonterminal \verb"expr").
+
+The parser maintains a stack to keep track of states visited during the
+parse. There are two basic kinds of actions in each state: {\em shift\/},
+which reads an input symbol and pushes the corresponding next state on top of
+the stack, and {\em reduce\/} which pops a number of states from the stack
+(corresponding to the number of right-hand side symbols of the rule used
+in the reduction) and consults the {\em goto\/} entries of the uncovered
+state to find the transition corresponding to the left-hand side symbol of the
+reduced rule.
+
+In each step of the parse, the parser is in a given state (the state on
+top of its stack) and may consult the current {\em lookahead symbol\/}, the
+next symbol in the input, to determine the parse action -- shift or reduce --
+to perform. The parser terminates as soon as it reaches state 1 and reads
+in the endmarker, indicated by the {\em accept\/} action on \verb"$end" in
+state 1.
+
+Sometimes the parser may also carry out an action without inspecting the
+current lookahead token. This is the case, e.g., in state 3 where the
+only action is reduction by rule 4:
+\begin{quote}\begin{verbatim}
+        .       reduce 4
+\end{verbatim}\end{quote}
+
+The default action in a state can also be {\em error\/} indicating that any
+other input represents a syntax error. (In case of such an error the
+parser will start syntactic error recovery, as described in Section
+{\em Error Handling\/}.)
+
+Now let us see how the parser responds to a given input. We consider the
+input string \verb"2+5*3" which is presented to the parser as the token
+sequence:
+\begin{quote}\begin{verbatim}
+   NUM + NUM * NUM
+\end{verbatim}\end{quote}
+
+Table \ref{tab2} traces the corresponding actions of the parser. We also
+show the current state in each move, and the remaining states on the stack.
+
+\begin{table*}\centering
+   \begin{tabular}{l|l|l|p{8cm}}
+      \hline\hline
+      {\sc State}& {\sc Stack}& {\sc Lookahead}& {\sc Action}\\
+      \hline
+0 &               &    \verb"NUM"    &    shift state 3\\
+3 &     0         &                  &    reduce rule 4 (pop 1 state, uncovering state
+                                          0, then goto state 1 on symbol \verb"expr")\\
+1 &     0         &    \verb"+"      &    shift state 5\\
+5 &     1 0       &    \verb"NUM"    &    shift state 3\\
+3 &     5 1 0     &                  &    reduce rule 4 (pop 1 state, uncovering state
+                                          5, then goto state 8 on symbol \verb"expr")\\
+8 &     5 1 0     &    \verb"*"      &    shift 4\\
+4 &     8 5 1 0   &    \verb"NUM"    &    shift 3\\
+3 &     4 8 5 1 0 &                  &    reduce rule 4 (pop 1 state, uncovering state
+                                          4, then goto state 7 on symbol \verb"expr")\\
+7 &     4 8 5 1 0 &                  &    reduce rule 2 (pop 3 states, uncovering state
+                                          5, then goto state 8 on symbol \verb"expr")\\
+8 &     5 1 0     &    \verb"$end"   &    reduce rule 1 (pop 3 states, uncovering state
+                                          0, then goto state 1 on symbol \verb"expr")\\
+1 &     0         &    \verb"$end"   &    accept\\
+      \hline
+   \end{tabular}
+   \caption{Parse of \protect\verb"NUM + NUM * NUM".}
+   \label{tab2}
+\end{table*}
+
+It is also instructive to see how the parser responds to illegal inputs.
+E.g., you may try to figure out what the parser does when confronted with:
+\begin{quote}\begin{verbatim}
+   NUM + )
+\end{verbatim}\end{quote}
+or:
+\begin{quote}\begin{verbatim}
+   ( NUM * NUM
+\end{verbatim}\end{quote}
+
+You will find that the parser, sooner or later, will always run into an
+error action when confronted with errorneous inputs. An LALR parser will
+never shift an invalid symbol and thus will always find syntax errors as
+soon as it is possible during a left-to-right scan of the input.
+
+TP Yacc provides a debugging option (\verb"-d") that may be used to trace
+the actions performed by the parser. When a grammar is compiled with the
+\verb"-d" option, the generated parser will print out the actions as it
+parses its input.
+
+\subsection{Ambigious Grammars}
+
+There are situations in which TP Yacc will not produce a valid parser for
+a given input language. LALR(1) parsers are restricted to one-symbol
+lookahead on which they have to base their parsing decisions. If a
+grammar is ambigious, or cannot be parsed unambigiously using one-symbol
+lookahead, TP Yacc will generate parsing conflicts when constructing the
+parse table. There are two types of such conflicts: {\em shift/reduce
+conflicts\/} (when there is both a shift and a reduce action for a given
+input symbol in a given state), and {\em reduce/reduce\/} conflicts (if
+there is more than one reduce action for a given input symbol in a given
+state). Note that there never will be a shift/shift conflict.
+
+When a grammar generates parsing conflicts, TP Yacc prints out the number
+of shift/reduce and reduce/reduce conflicts it encountered when constructing
+the parse table. However, TP Yacc will still generate the output code for the
+parser. To resolve parsing conflicts, TP Yacc uses the following built-in
+disambiguating rules:
+
+\begin{itemize}
+   \item
+      in a shift/reduce conflict, TP Yacc chooses the shift action.
+   \item
+      in a reduce/reduce conflict, TP Yacc chooses reduction of the first
+      grammar rule.
+\end{itemize}
+
+The shift/reduce disambiguating rule correctly resolves a type of
+ambiguity known as the ``dangling-else ambiguity'' which arises in the
+syntax of conditional statements of many programming languages (as in
+Pascal):
+
+\begin{quote}\begin{verbatim}
+%token IF THEN ELSE
+%%
+stmt : IF expr THEN stmt
+     | IF expr THEN stmt ELSE stmt
+     ;
+\end{verbatim}\end{quote}
+
+This grammar is ambigious, because a nested construct like
+\begin{quote}\begin{verbatim}
+   IF expr-1 THEN IF expr-2 THEN stmt-1
+     ELSE stmt-2
+\end{verbatim}\end{quote}
+can be parsed two ways, either as:
+\begin{quote}\begin{verbatim}
+   IF expr-1 THEN ( IF expr-2 THEN stmt-1
+     ELSE stmt-2 )
+\end{verbatim}\end{quote}
+or as:
+\begin{quote}\begin{verbatim}
+   IF expr-1 THEN ( IF expr-2 THEN stmt-1 )
+     ELSE stmt-2
+\end{verbatim}\end{quote}
+
+The first interpretation makes an \verb"ELSE" belong to the last unmatched
+\verb"IF" which also is the interpretation chosen in most programming
+languages. This is also the way that a TP Yacc-generated parser will parse
+the construct since the shift/reduce disambiguating rule has the effect of
+neglecting the reduction of \verb"IF expr-2 THEN stmt-1"; instead, the parser
+will shift the \verb"ELSE" symbol which eventually leads to the reduction of
+\verb"IF expr-2 THEN stmt-1 ELSE stmt-2".
+
+The reduce/reduce disambiguating rule is used to resolve conflicts that
+arise when there is more than one grammar rule matching a given construct.
+Such ambiguities are often caused by ``special case constructs'' which may be
+given priority by simply listing the more specific rules ahead of the more
+general ones.
+
+For instance, the following is an excerpt from the grammar describing the
+input language of the UNIX equation formatter EQN:
+
+\begin{quote}\begin{verbatim}
+%right SUB SUP
+%%
+expr : expr SUB expr SUP expr
+     | expr SUB expr
+     | expr SUP expr
+     ;
+\end{verbatim}\end{quote}
+
+Here, the \verb"SUB" and \verb"SUP" operator symbols denote sub- and
+superscript, respectively. The rationale behind this example is that
+an expression involving both sub- and superscript is often set differently
+from a superscripted subscripted expression (compare $x_i^n$ to ${x_i}^n$).
+This special case is therefore caught by the first rule in the above example
+which causes a reduce/reduce conflict with rule 3 in expressions like
+\verb"expr-1 SUB expr-2 SUP expr-3". The conflict is resolved in favour of
+the first rule.
+
+In both cases discussed above, the ambiguities could also be eliminated
+by rewriting the grammar accordingly (although this yields more complicated
+and less readable grammars). This may not always be the case. Often
+ambiguities are also caused by design errors in the grammar. Hence, if
+TP Yacc reports any parsing conflicts when constructing the parser, you
+should use the \verb"-v" option to generate the parser description
+(\verb".lst" file) and check whether TP Yacc resolved the conflicts correctly.
+
+There is one type of syntactic constructs for which one often deliberately
+uses an ambigious grammar as a more concise representation for a language
+that could also be specified unambigiously: the syntax of expressions.
+For instance, the following is an unambigious grammar for simple arithmetic
+expressions:
+
+\begin{quote}\begin{verbatim}
+%token NUM
+
+%%
+
+expr    : term
+        | expr '+' term
+        ;
+
+term    : factor
+        | term '*' factor
+        ;
+
+factor  : '(' expr ')'
+        | NUM
+        ;
+\end{verbatim}\end{quote}
+
+You may check yourself that this grammar gives \verb"*" a higher precedence
+than \verb"+" and makes both operators left-associative. The same effect can
+be achieved with the following ambigious grammar using precedence definitions:
+
+\begin{quote}\begin{verbatim}
+%token NUM
+%left '+'
+%left '*'
+%%
+expr : expr '+' expr
+     | expr '*' expr
+     | '(' expr ')'
+     | NUM
+     ;
+\end{verbatim}\end{quote}
+
+Without the precedence definitions, this is an ambigious grammar causing
+a number of shift/reduce conflicts. The precedence definitions are used
+to correctly resolve these conflicts (conflicts resolved using precedence
+will not be reported by TP Yacc).
+
+Each precedence definition introduces a new precedence level (lowest
+precedence first) and specifies whether the corresponding operators
+should be left-, right- or nonassociative (nonassociative operators
+cannot be combined at all; example: relational operators in Pascal).
+
+TP Yacc uses precedence information to resolve shift/reduce conflicts as
+follows. Precedences are associated with each terminal occuring in a
+precedence definition. Furthermore, each grammar rule is given the
+precedence of its rightmost terminal (this default choice can be
+overwritten using a \verb"%prec" tag; see below). To resolve a shift/reduce
+conflict using precedence, both the symbol and the rule involved must
+have been assigned precedences. TP Yacc then chooses the parse action
+as follows:
+
+\begin{itemize}
+   \item
+      If the symbol has higher precedence than the rule: shift.
+   \item
+      If the rule has higher precedence than the symbol: reduce.
+   \item
+      If symbol and rule have the same precedence, the associativity of the
+      symbol determines the parse action: if the symbol is left-associative:
+      reduce; if the symbol is right-associative: shift; if the symbol is
+      non-associative: error.
+\end{itemize}
+
+To give you an idea of how this works, let us consider our ambigious
+arithmetic expression grammar (without precedences):
+
+\begin{quote}\begin{verbatim}
+%token NUM
+%%
+expr : expr '+' expr
+     | expr '*' expr
+     | '(' expr ')'
+     | NUM
+     ;
+\end{verbatim}\end{quote}
+
+This grammar generates four shift/reduce conflicts. The description
+of state 8 reads as follows:
+
+\begin{quote}\begin{verbatim}
+state 8:
+
+        *** conflicts:
+
+        shift 4, reduce 1 on '*'
+        shift 5, reduce 1 on '+'
+
+        expr : expr '+' expr _  (1)
+        expr : expr _ '+' expr
+        expr : expr _ '*' expr
+
+        '*'     shift 4
+        '+'     shift 5
+        $end    reduce 1
+        ')'     reduce 1
+        .       error
+\end{verbatim}\end{quote}
+
+In this state, we have successfully parsed a \verb"+" expression (rule 1).
+When the next symbol is \verb"+" or \verb"*", we have the choice between the
+reduction and shifting the symbol. Using the default shift/reduce
+disambiguating rule, TP Yacc has resolved these conflicts in favour of shift.
+
+Now let us assume the above precedence definition:
+\begin{quote}\begin{verbatim}
+   %left '+'
+   %left '*'
+\end{verbatim}\end{quote}
+which gives \verb"*" higher precedence than \verb"+" and makes both operators
+left-associative. The rightmost terminal in rule 1 is \verb"+". Hence, given
+these precedence definitions, the first conflict will be resolved in favour
+of shift (\verb"*" has higher precedence than \verb"+"), while the second one
+is resolved in favour of reduce (\verb"+" is left-associative).
+
+Similar conflicts arise in state 7:
+
+\begin{quote}\begin{verbatim}
+state 7:
+
+        *** conflicts:
+
+        shift 4, reduce 2 on '*'
+        shift 5, reduce 2 on '+'
+
+        expr : expr '*' expr _  (2)
+        expr : expr _ '+' expr
+        expr : expr _ '*' expr
+
+        '*'     shift 4
+        '+'     shift 5
+        $end    reduce 2
+        ')'     reduce 2
+        .       error
+\end{verbatim}\end{quote}
+
+Here, we have successfully parsed a \verb"*" expression which may be followed
+by another \verb"+" or \verb"*" operator. Since \verb"*" is left-associative
+and has higher precedence than \verb"+", both conflicts will be resolved in
+favour of reduce.
+
+Of course, you can also have different operators on the same precedence
+level. For instance, consider the following extended version of the
+arithmetic expression grammar:
+
+\begin{quote}\begin{verbatim}
+%token NUM
+%left '+' '-'
+%left '*' '/'
+%%
+expr    : expr '+' expr
+        | expr '-' expr
+        | expr '*' expr
+        | expr '/' expr
+        | '(' expr ')'
+        | NUM
+        ;
+\end{verbatim}\end{quote}
+
+This puts all ``addition'' operators on the first and all ``multiplication''
+operators on the second precedence level. All operators are left-associative;
+for instance, \verb"5+3-2" will be parsed as \verb"(5+3)-2".
+
+By default, TP Yacc assigns each rule the precedence of its rightmost
+terminal. This is a sensible decision in most cases. Occasionally, it
+may be necessary to overwrite this default choice and explicitly assign
+a precedence to a rule. This can be done by putting a precedence tag
+of the form
+\begin{quote}\begin{verbatim}
+   %prec symbol
+\end{verbatim}\end{quote}
+at the end of the corresponding rule which gives the rule the precedence
+of the specified symbol. For instance, to extend the expression grammar
+with a unary minus operator, giving it highest precedence, you may write:
+
+\begin{quote}\begin{verbatim}
+%token NUM
+%left '+' '-'
+%left '*' '/'
+%right UMINUS
+%%
+expr    : expr '+' expr
+        | expr '-' expr
+        | expr '*' expr
+        | expr '/' expr
+        | '-' expr      %prec UMINUS
+        | '(' expr ')'
+        | NUM
+        ;
+\end{verbatim}\end{quote}
+
+Note the use of the \verb"UMINUS" token which is not an actual input symbol
+but whose sole purpose it is to give unary minus its proper precedence. If
+we omitted the precedence tag, both unary and binary minus would have the
+same precedence because they are represented by the same input symbol.
+
+\subsection{Error Handling}
+
+Syntactic error handling is a difficult area in the design of user-friendly
+parsers. Usually, you will not like to have the parser give up upon the
+first occurrence of an errorneous input symbol. Instead, the parser should
+recover from a syntax error, that is, it should try to find a place in the
+input where it can resume the parse.
+
+TP Yacc provides a general mechanism to implement parsers with error
+recovery. A special predefined \verb"error" token may be used in grammar rules
+to indicate positions where syntax errors might occur. When the parser runs
+into an error action (i.e., reads an errorneous input symbol) it prints out
+an error message and starts error recovery by popping its stack until it
+uncovers a state in which there is a shift action on the \verb"error" token.
+If there is no such state, the parser terminates with return value 1,
+indicating an unrecoverable syntax error. If there is such a state, the
+parser takes the shift on the \verb"error" token (pretending it has seen
+an imaginary \verb"error" token in the input), and resumes parsing in a
+special ``error mode.''
+
+While in error mode, the parser quietly skips symbols until it can again
+perform a legal shift action. To prevent a cascade of error messages, the
+parser returns to its normal mode of operation only after it has seen
+and shifted three legal input symbols. Any additional error found after
+the first shifted symbol restarts error recovery, but no error message
+is printed. The TP Yacc library routine \verb"yyerrok" may be used to reset
+the parser to its normal mode of operation explicitly.
+
+For a simple example, consider the rule
+\begin{quote}\begin{verbatim}
+   stmt : error ';' { yyerrok; }
+\end{verbatim}\end{quote}
+and assume a syntax error occurs while a statement (nonterminal \verb"stmt")
+is parsed. The parser prints an error message, then pops its stack until it
+can shift the token \verb"error" of the error rule. Proceeding in error mode,
+it will skip symbols until it finds a semicolon, then reduces by the error
+rule. The call to \verb"yyerrok" tells the parser that we have recovered from
+the error and that it should proceed with the normal parse. This kind of
+``panic mode'' error recovery scheme works well when statements are always
+terminated with a semicolon. The parser simply skips the ``bad'' statement
+and then resumes the parse.
+
+Implementing a good error recovery scheme can be a difficult task; see
+Aho/Sethi/Ullman (1986) for a more comprehensive treatment of this topic.
+Schreiner and Friedman have developed a systematic technique to implement
+error recovery with Yacc which I found quite useful (I used it myself
+to implement error recovery in the TP Yacc parser); see Schreiner/Friedman
+(1985).
+
+\subsection{Yacc Library}
+
+The TP Yacc library (\verb"YaccLib") unit provides some global declarations
+used by the parser routine \verb"yyparse", and some variables and utility
+routines which may be used to control the actions of the parser and to
+implement error recovery. See the file \verb"yacclib.pas" for a description
+of these variables and routines.
+
+You can also modify the Yacc library unit (and/or the code template in the
+\verb"yyparse.cod" file) to customize TP Yacc to your target applications.
+
+\subsection{Other Features}
+
+TP Yacc supports all additional language elements entitled as ``Old Features
+Supported But not Encouraged'' in the UNIX manual, which are provided for
+backward compatibility with older versions of (UNIX) Yacc:
+
+\begin{itemize}
+   \item
+      literals delimited by double quotes.
+   \item
+      multiple-character literals. Note that these are not treated as
+      character sequences but represent single tokens which are given a
+      symbolic integer code just like any other token identifier. However,
+      they will not be declared in the output file, so you have to make sure
+      yourself that the lexical analyzer returns the correct codes for these
+      symbols. E.g., you might explicitly assign token numbers by using a
+      definition like
+      \begin{quote}\begin{verbatim}
+   %token ':=' 257
+      \end{verbatim}\end{quote}
+      at the beginning of the Yacc grammar.
+   \item
+      \verb"\" may be used instead of \verb"%", i.e. \verb"\\" means
+      \verb"%%", \verb"\left" is the same as \verb"%left", etc.
+   \item
+      other synonyms:
+      \begin{itemize}
+         \item \verb"%<"                    for \verb"%left"
+         \item \verb"%>"                    for \verb"%right"
+         \item \verb"%binary" or \verb"%2"  for \verb"%nonassoc"
+         \item \verb"%term" or \verb"%0"    for \verb"%token"
+         \item \verb"%="                    for \verb"%prec"
+      \end{itemize}
+   \item
+      actions may also be written as \verb"= { ... }" or
+      \verb"= single-statement;"
+   \item
+      Turbo Pascal declarations (\verb"%{ ... %}") may be put at the
+      beginning of the rules section. They will be treated as local
+      declarations of the actions routine.
+\end{itemize}
+
+\subsection{Implementation Restrictions}
+
+As with TP Lex, internal table sizes and the main memory available limit the
+complexity of source grammars that TP Yacc can handle. However, the maximum
+table sizes provided by TP Yacc are large enough to handle quite complex
+grammars (such as the Pascal grammar in the TP Yacc distribution). The actual
+table sizes are shown in the statistics printed by TP Yacc when a compilation
+is finished. The given figures are "s" (states), "i" (LR0 kernel items), "t"
+(shift and goto transitions) and "r" (reductions).
+
+The default stack size of the generated parsers is \verb"yymaxdepth = 1024",
+as declared in the TP Yacc library unit. This should be sufficient for any
+average application, but you can change the stack size by including a
+corresponding declaration in the definitions part of the Yacc grammar
+(or change the value in the \verb"YaccLib" unit). Note that right-recursive
+grammar rules may increase stack space requirements, so it is a good
+idea to use left-recursive rules wherever possible.
+
+\subsection{Differences from UNIX Yacc}
+
+Major differences between TP Yacc and UNIX Yacc are listed below.
+
+\begin{itemize}
+   \item
+      TP Yacc produces output code for Turbo Pascal, rather than for C.
+   \item
+      TP Yacc does not support \verb"%union" definitions. Instead, a value
+      type is declared by specifying the type identifier itself as the tag of
+      a \verb"%token" or \verb"%type" definition. TP Yacc will automatically
+      generate an appropriate variant record type (\verb"YYSType") which is
+      capable of holding values of any of the types used in \verb"%token" and
+      \verb"%type".
+    
+      Type checking is very strict. If you use type definitions, then
+      any symbol referred to in an action must have a type introduced
+      in a type definition. Either the symbol must have been assigned a
+      type in the definitions section, or the \verb"$<type-identifier>"
+      notation must be used. The syntax of the \verb"%type" definition has
+      been changed slightly to allow definitions of the form
+      \begin{quote}\begin{verbatim}
+   %type <type-identifier>
+      \end{verbatim}\end{quote}
+      (omitting the nonterminals) which may be used to declare types which
+      are not assigned to any grammar symbol, but are used with the
+      \verb"$<...>" construct.
+   \item
+      The parse tables constructed by this Yacc version are slightly greater
+      than those constructed by UNIX Yacc, since a reduce action will only be
+      chosen as the default action if it is the only action in the state.
+      In difference, UNIX Yacc chooses a reduce action as the default action
+      whenever it is the only reduce action of the state (even if there are
+      other shift actions).
+    
+      This solves a bug in UNIX Yacc that makes the generated parser start
+      error recovery too late with certain types of error productions (see
+      also Schreiner/Friedman, {\em Introduction to compiler construction with
+      UNIX,\/} 1985). Also, errors will be caught sooner in most cases where
+      UNIX Yacc would carry out an additional (default) reduction before
+      detecting the error.
+   \item
+      Library routines are named differently from the UNIX version (e.g.,
+      the \verb"yyerrlab" routine takes the place of the \verb"YYERROR"
+      macro of UNIX Yacc), and, of course, all macros of UNIX Yacc
+      (\verb"YYERROR", \verb"YYACCEPT", etc.) had to be implemented as
+      procedures.
+\end{itemize}
+
+\end{document}
