@@ -43,6 +43,7 @@
 \synt{object\ visibility\ specifier}
 \( 
 \lit*{private} \\
+\lit*{protected} \\
 \lit*{public}
 \)
 \end{mysyntdiag}

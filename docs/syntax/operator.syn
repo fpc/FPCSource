@@ -7,7 +7,9 @@
 \synt{arithmetic\ operator\ definition} \\
 \synt{comparision\ operator\ definition}
 \)
-\synt{result\ identifier}
+\(
+\synt{result\ identifier} \\
+\)
 \lit*{:}
 \synt{result\ type}
 \lit*{;}
