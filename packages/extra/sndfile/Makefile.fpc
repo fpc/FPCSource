@@ -1,0 +1,21 @@
+#
+#   Makefile.fpc for MySql bindings
+#
+
+[package]
+name=sndfile
+version=1.0.6
+
+[target]
+units=sndfile
+examples=sfplay
+rsts=sfplay
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
