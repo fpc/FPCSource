@@ -424,9 +424,12 @@ implementation
                 end
             else
               begin
+                (*
+                // To make this work, there must be some kind of type checking here...
                 if m_mac in aktmodeswitches then
                   Message1(scan_e_error_macro_undefined, result)
                 else
+                *)
                   break;
               end;
 
@@ -3348,7 +3351,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.103  2005-03-20 22:36:45  olle
+  Revision 1.104  2005-03-28 21:34:36  olle
+    * Disabled warning for undefined compile time var in mode macpas, since it did not work.
+
+  Revision 1.103  2005/03/20 22:36:45  olle
     * Cleaned up handling of source file extension.
     + Added support for .p extension for macos and darwin
 
