@@ -1537,7 +1537,7 @@ implementation
 
                         { only dynamic arrays accept more dimensions }
                         if (counter>1) and
-                          (not(is_dynamic_array(left.resulttype.def))) then
+                          (not(is_dynamic_array(ppn.left.resulttype.def))) then
                           CGMessage(type_e_mismatch);
 
                        { convert shortstrings to openstring parameters }
@@ -2251,7 +2251,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2001-09-17 21:29:12  peter
+  Revision 1.60  2001-09-24 11:35:55  jonas
+    * fix from Pavel V. Ozersk to accept multiple dimensions for setlength
+      and dynamical arrays
+
+  Revision 1.59  2001/09/17 21:29:12  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.58  2001/09/05 15:19:43  jonas
