@@ -58,61 +58,100 @@ Begin
 End;
 }
 
-function modifiesMemLocation(p1: pai): boolean;
-var p: paicpu;
-    opCount: byte;
+function modifiesConflictingMemLocation(p1: pai; reg: tregister; c: tregContent;
+   var regsStillValid: tregset): boolean;
+var
+  p: paicpu;
+  tmpRef: treference;
+  regCounter: tregister;
+  opCount: byte;
 begin
-  modifiesMemLocation := false;
+  modifiesConflictingMemLocation := false;
   if p1^.typ <> ait_instruction then
     exit;
   p := paicpu(p1);
-  for opCount := 1 to MaxCh do
-    case InsProp[p^.opcode].Ch[opCount] of
-      Ch_MOp1,CH_WOp1,CH_RWOp1:
-        if (p^.oper[0].typ = top_ref) or
-           ((p^.oper[0].typ = top_reg) and
-            not(reg32(p^.oper[0].reg) in (usableregs+[R_EDI]))) then
+  case p^.opcode of
+    A_MOV,A_MOVSX,A_MOVZX:
+      if p^.oper[1].typ = top_ref then
+        for regCounter := R_EAX to R_EDI do
           begin
-            modifiesMemLocation := true;
-            exit
-          end;
-      Ch_MOp2,CH_WOp2,CH_RWOp2:
-        if (p^.oper[1].typ = top_ref) or
-           ((p^.oper[1].typ = top_reg) and
-            not(reg32(p^.oper[1].reg) in (usableregs+[R_EDI]))) then
+            if writeToMemDestroysContents(reg32(p^.oper[0].reg),p^.oper[1].ref^,
+                 regCounter,c[regCounter]) then
+              begin
+                exclude(regsStillValid,regCounter);
+                modifiesConflictingMemLocation := not(reg in regsStillValid);
+              end;
+          end
+ {      else
+        for regCounter := R_EAX to R_EDI do
           begin
-            modifiesMemLocation := true;
-            exit
-          end;
-      Ch_MOp3,CH_WOp3,CH_RWOp3:
-        if (p^.oper[2].typ = top_ref) or
-           ((p^.oper[2].typ = top_reg) and
-            not(reg32(p^.oper[2].reg) in (usableregs+[R_EDI]))) then
-          begin
-            modifiesMemLocation := true;
-            exit
-          end;
-      Ch_WMemEDI:
-        begin
-          modifiesMemLocation := true;
-          exit;
+            if writeDestroysContents(p^.oper[1],regCounter,c[regCounter]) then
+              begin
+                exclude(regsStillValid,regCounter);
+                modifiesConflictingMemLocation := not(reg in regsStillValid);
+              end
+          end};
+    A_IMUL,A_DIV, A_IDIV, A_MUL:; { they never write to memory }
+    else
+	    for opCount := 1 to MaxCh do
+        case InsProp[p^.opcode].Ch[opCount] of
+          Ch_MOp1,CH_WOp1,CH_RWOp1:
+            if paicpu(p)^.oper[0].typ = top_ref then
+              for regCounter := R_EAX to R_EDI do
+                if writeDestroysContents(p^.oper[0],regCounter,c[regCounter]) then
+                  begin
+                    exclude(regsStillValid,regCounter);
+                    modifiesConflictingMemLocation := not(reg in regsStillValid);
+                  end;
+          Ch_MOp2,CH_WOp2,CH_RWOp2:
+            if paicpu(p)^.oper[1].typ = top_ref then
+              for regCounter := R_EAX to R_EDI do
+                if writeDestroysContents(p^.oper[1],regCounter,c[regCounter]) then
+                  begin
+                    exclude(regsStillValid,regCounter);
+                    modifiesConflictingMemLocation := not(reg in regsStillValid);
+                  end;
+          Ch_MOp3,CH_WOp3,CH_RWOp3:
+            if paicpu(p)^.oper[2].typ = top_ref then
+              for regCounter := R_EAX to R_EDI do
+                if writeDestroysContents(p^.oper[2],regCounter,c[regCounter]) then
+                  begin
+                    exclude(regsStillValid,regCounter);
+                    modifiesConflictingMemLocation := not(reg in regsStillValid);
+                  end;
+          Ch_WMemEDI:
+            begin
+              fillchar(tmpref,sizeof(tmpref),0);
+              tmpRef.base := R_EDI;
+              tmpRef.index := R_EDI;
+              for regCounter := R_EAX to R_EDI do
+                if writeToMemDestroysContents(R_NO,tmpRef,regCounter,c[regCounter]) then
+                  begin
+                    exclude(regsStillValid,regCounter);
+                    modifiesConflictingMemLocation := not(reg in regsStillValid);
+                 end;
+            end;
         end;
-    end;
+  end;
 end;
 
-function getPrevSequence(reg: tregister; current: pai; var prev: pai; var passedJump: boolean):
-  tregister;
+function getPrevSequence(p: pai; reg: tregister; currentPrev: pai; var newPrev: pai;
+  var passedJump: boolean; var regsNotRead, regsStillValid: tregset): tregister;
+
+const
+  current_reg: tregister = R_NO;
 
   function stillValid(p: pai): boolean;
   begin
     stillValid :=
       (p^.typ = ait_instruction) and
       (paicpu(p)^.opcode <> a_jmp) and
-      (ppaiprop(p^.optinfo)^.regs[reg].state =
-         ppaiprop(current^.optinfo)^.regs[reg].state) and
-      { in case destroyreg is called with doIncState = false }
+      (ppaiprop(p^.optinfo)^.regs[reg].wstate =
+         ppaiprop(currentPrev^.optinfo)^.regs[reg].wstate) and
+     { in case destroyreg is called with doIncState = false }
       (ppaiprop(p^.optinfo)^.regs[reg].typ =
-        ppaiprop(current^.optinfo)^.regs[reg].typ);
+         ppaiprop(currentPrev^.optinfo)^.regs[reg].typ) and
+      (reg in (regsNotRead * regsStillValid));
     passedJump :=
       (p^.typ = ait_instruction) and
       (paicpu(p)^.is_jmp);
@@ -122,54 +161,86 @@ function getPrevSequence(reg: tregister; current: pai; var prev: pai; var passed
   var
     regCounter: tregister;
   begin
-    for regCounter := R_EAX to R_EDI do
+    for regCounter := succ(current_reg) to R_EDI do
       with ppaiprop(p^.optinfo)^.regs[regCounter] do
       if ((startmod <>
-            ppaiprop(current^.optinfo)^.regs[regCounter].startmod)  or
+            ppaiprop(currentPrev^.optinfo)^.regs[regCounter].startmod)  or
           (nrOfMods <>
-            ppaiprop(current^.optinfo)^.regs[regCounter].nrOfMods)) and
-           (not ppaiprop(p^.optinfo)^.canBeRemoved) and
+            ppaiprop(currentPrev^.optinfo)^.regs[regCounter].nrOfMods)) and
          (ppaiprop(p^.optinfo)^.regs[regCounter].typ in
            [con_ref,con_noRemoveRef]) then
         begin
           findChangedRegister := regCounter;
+          current_reg := regCounter;
           exit;
         end;
+    current_reg := R_NO;
     findChangedRegister := R_NO;
   end;
 
 var
   hp, prevFound: pai;
-  tmpResult: tregister;
+  tmpResult, regCounter: tregister;
 begin
-  getPrevSequence := R_NO;
-  { no memory writes (could be refined further) }
-    passedJump := passedJump or
-      ((current^.typ = ait_instruction) and
-       (paicpu(current)^.is_jmp));
-  if modifiesMemLocation(current) or
-     (passedJump and not(reg in (usableregs+[R_EDI]))) or
-     not getLastInstruction(current,hp) then
-    exit;
-  tmpResult := R_NO;
-  while (tmpResult = R_NO) and
-        stillValid(hp) do
+  if not(current_reg in [R_NO,R_EDI]) then
     begin
+      tmpResult := findChangedRegister(currentPrev);
+      if tmpResult <> R_NO then
+        begin
+          getPrevSequence := tmpResult;
+          exit;
+        end;
+    end;
+
+  getPrevSequence := R_NO;
+  passedJump := passedJump or
+    ((currentPrev^.typ = ait_instruction) and
+     (paicpu(currentPrev)^.is_jmp));
+
+  if (passedJump and not(reg in (usableregs+[R_EDI]))) or
+     not getLastInstruction(currentPrev,hp) then
+    exit;
+
+  prevFound := currentPrev;
+  tmpResult := R_NO;
+
+  while (tmpResult = R_NO) and
+        stillValid(hp) and
+        not(modifiesConflictingMemLocation(prevFound,reg,
+           ppaiprop(p^.optinfo)^.regs,regsStillValid)) do
+    begin
+      { only update the regsread for the instructions we already passed }
+      if not(ppaiprop(prevFound^.optinfo)^.canBeRemoved) then
+        for regCounter := R_EAX to R_EDI do
+          if regReadByInstruction(regCounter,prevFound) then
+            exclude(regsNotRead,regCounter);
+
       { in case getPreviousInstruction fails and sets hp to nil in the }
       { next iteration                                                 }
       prevFound := hp;
-      tmpResult := findChangedRegister(hp);
-      if modifiesMemLocation(hp) or
-        { do not load the self pointer or a regvar before a (conditional)  }
-        { jump with a new value, since if the jump is taken, the old value }
-        { is (probably) still necessary                                    }
-        (passedJump and not(reg in (usableregs+[R_EDI]))) or
+      if not(ppaiprop(hp^.optinfo)^.canBeRemoved) then
+        tmpResult := findChangedRegister(hp);
+      if { do not load the self pointer or a regvar before a (conditional)  }
+         { jump with a new value, since if the jump is taken, the old value }
+         { is (probably) still necessary                                    }
+         (passedJump and not(reg in (usableregs+[R_EDI]))) or
          not getLastInstruction(hp,hp) then
         break;
     end;
   getPrevSequence := tmpResult;
   if tmpResult <> R_NO then
-    prev := prevFound;
+    newPrev := prevFound;
+end;
+
+
+function isSimpleMemLoc(const ref: treference): boolean;
+begin
+  isSimpleMemLoc :=
+    (ref.index = R_NO) and
+    (not(ref.base in (usableregs+[R_EDI])) or
+     (assigned(ref.symbol) and
+      (ref.base = R_NO) and
+      (ref.index = R_NO)));
 end;
 
 
@@ -181,26 +252,25 @@ end;
 Function CheckSequence(p: Pai; var prev: pai; Reg: TRegister; Var Found: Longint;
            Var RegInfo: TRegInfo): Boolean;
 
+const
+  checkingPrevSequences: boolean = false;
+var
+  regsNotRead, regsStillValid: tregset;
 
-  function getNextRegToTest(var orgP: pai; currentReg: tregister): tregister;
+  function getNextRegToTest(var prev: pai; currentReg: tregister): tregister;
   const
-    checkingPrevSequences: boolean = false;
     passedJump: boolean = false;
   begin
-    if currentReg = R_NO then
-      checkingPrevSequences := false;
     if not checkingPrevSequences then
       begin
         Repeat
           Inc(currentReg);
         Until (currentReg > R_EDI) or
-              (ppaiprop(orgP^.optInfo)^.regs[currentReg].typ
+              (ppaiprop(prev^.optInfo)^.regs[currentReg].typ
                  in [con_ref,con_noRemoveRef]);
         if currentReg > R_EDI then
           begin
-            if not modifiesMemLocation(orgP) and
-               (ppaiprop(orgP^.optinfo)^.regs[reg].rstate =
-                  ppaiprop(p^.optinfo)^.regs[reg].rstate) then
+            if isSimpleMemLoc(paicpu(p)^.oper[0].ref^) then
               begin
                 checkingPrevSequences := true;
                 passedJump := false;
@@ -211,7 +281,8 @@ Function CheckSequence(p: Pai; var prev: pai; Reg: TRegister; Var Found: Longint
         else getNextRegToTest := currentReg;
       end;
     if checkingPrevSequences then
-      getNextRegToTest := getPrevSequence(reg,orgP,orgP, passedJump);
+      getNextRegToTest :=
+        getPrevSequence(p,reg,prev,prev,passedJump,regsNotRead,RegsStillValid);
   end;
 
 Var hp2, hp3{, EndMod},highPrev, orgPrev: Pai;
@@ -238,6 +309,9 @@ Begin {CheckSequence}
       oldRegsEncountered := newRegsEncountered;
     end;
 
+  checkingPrevSequences := false;
+  regsNotRead := [R_EAX,R_EBX,R_ECX,R_EDX,R_ESP,R_EBP,R_EDI,R_ESI];
+  regsStillValid := regsNotRead;
   GetLastInstruction(p, prev);
   regCounter := getNextRegToTest(prev,R_NO);
   While (RegCounter <> R_NO) Do
@@ -268,11 +342,23 @@ Begin {CheckSequence}
           GetNextInstruction(hp3, hp3);
           Inc(Found)
         End;
-      for regCounter2 := R_EAX to R_EDX do
+
+      for regCounter2 := R_EAX to R_EDI do
         if (regInfo.new2OldReg[regCounter2] <> R_NO) and
            (regCounter2 in PPaiProp(hp3^.optInfo)^.usedRegs) and
            not regLoadedWithNewValue(regCounter2,false,hp3) then
           include(regInfo.regsStillUsedAfterSeq,regCounter2);
+
+      if checkingPrevSequences then
+        for regCounter2 := R_EAX to R_EDI do
+          if not(regInfo.new2OldReg[regCounter2] in [R_NO,regCounter2]) and
+             (not(regCounter2 in (regsNotRead * regsStillValid)) or
+              not(regInfo.new2OldReg[regCounter2] in regsStillValid)) then
+            begin
+              found := 0;
+              break;
+            end;
+
       If (Found <> OldNrOfMods) or
  { the following is to avoid problems with rangecheck code (see testcse2) }
          (assigned(hp3) and
@@ -1144,6 +1230,7 @@ begin
         ppaiprop(startMod^.optInfo)^.canBeRemoved := true;
 end;
 
+
 Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
@@ -1407,7 +1494,11 @@ Begin
                                     allocRegBetween(asmL,paicpu(p)^.oper[0].reg,
                                     PPaiProp(p^.optInfo)^.regs[paicpu(p)^.oper[0].reg].startMod,
                                     hp1);
-                                end;
+                                end
+                              else
+                                if reg32(paicpu(p)^.oper[0].reg) <> reg32(paicpu(p)^.oper[1].reg) then
+                                  removePrevNotUsedLoad(p,reg32(paicpu(p)^.oper[1].reg),false);
+
                           end
                         end;
                     top_symbol,Top_Const:
@@ -1424,7 +1515,10 @@ Begin
                                     begin
                                       PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
                                       allocRegBetween(asmL,regCounter,startMod,p);
-                                    end;
+                                    end
+                                  else
+                                    removePrevNotUsedLoad(p,reg32(paicpu(p)^.oper[1].reg),false);
+
                             End;
                           Top_Ref:
                             if (paicpu(p)^.oper[0].typ = top_const) and
@@ -1438,6 +1532,7 @@ Begin
                         End;
                       End;
                   End;
+                  
                 End;
               A_STD: If GetLastInstruction(p, hp1) And
                         (PPaiProp(hp1^.OptInfo)^.DirFlag = F_Set) Then
@@ -1495,7 +1590,12 @@ End.
 
 {
   $Log$
-  Revision 1.12  2000-09-26 11:49:41  jonas
+  Revision 1.13  2000-09-29 23:14:45  jonas
+    * search much further back for CSE sequences (non-conflicting stores are
+      now passed)
+    * remove more unnecessary loads of registers (especially the self pointer)
+
+  Revision 1.12  2000/09/26 11:49:41  jonas
     * writes to register variables and to the self pointer now also count as
       memore writes
 
