@@ -84,6 +84,13 @@ interface
     function backspace_quote(const s:string;const qchars:Tcharset):string;
     function octal_quote(const s:string;const qchars:Tcharset):string;
     function maybequoted(const s:string):string;
+
+    {# If the string is quoted, in accordance with pascal, it is
+       dequoted and returned in s, and the function returns true.
+       If it is not quoted, or if the quoting is bad, s is not touched,
+       and false is returned.
+    }
+    function DePascalQuote(var s: string): Boolean;
     function CompareText(S1, S2: string): longint;
 
     { releases the string p and assignes nil to p }
@@ -729,6 +736,40 @@ uses
           maybequoted:=s;
       end;
 
+    
+    function DePascalQuote(var s: string): Boolean;
+      var
+        destPos, sourcePos, len: Integer;
+        t: string;
+        ch: Char;
+    begin
+      DePascalQuote:= false;
+      len:= length(s);
+      if (len >= 1) and (s[1] = '''') then
+        begin
+          {Remove quotes, exchange '' against ' }
+          destPos := 0;
+          for sourcePos := 2 to len do
+            begin
+              ch := s[sourcePos];
+              if ch = '''' then
+                begin
+                  inc(sourcePos);
+                  if (sourcePos <= len) and (s[sourcePos] = '''') then
+                    {Add the quote as part of string}
+                  else
+                    begin
+                      SetLength(t, destPos);
+                      s:= t;
+                      Exit(true);
+                    end;
+                end;
+              inc(destPos);
+              t[destPos] := ch;
+            end;
+        end; 
+    end;
+    
 
     function pchar2pstring(p : pchar) : pstring;
       var
@@ -1191,7 +1232,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.41  2004-06-20 08:55:29  florian
+  Revision 1.42  2004-08-31 21:44:18  olle
+    + added proc DePascalQuote
+
+  Revision 1.41  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.40  2004/06/16 20:07:07  florian
