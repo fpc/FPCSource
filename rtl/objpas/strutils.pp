@@ -477,11 +477,11 @@ Function PosEx(const SubStr, S: string; Offset: Cardinal): Integer;
 var i : pchar;
 begin
   if (offset<1) or (offset>length(s)) then exit(0);
-  i:=strpos(@s[1],@substr[offset]);
+  i:=strpos(@s[offset],@substr[1]);
   if i=nil then
     PosEx:=0   
   else
-    PosEx:=(i-pchar(s))+offset;
+    PosEx:=succ(i-pchar(s));
 end;
 
 
@@ -658,7 +658,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-03-19 12:54:22  marco
+  Revision 1.5  2004-05-17 07:33:01  marco
+   * fixes from Luiz Am?rico
+
+  Revision 1.4  2004/03/19 12:54:22  marco
    * more strutils small things
 
   Revision 1.3  2004/03/18 16:55:47  marco
