@@ -671,15 +671,28 @@ end;
 
 
 Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
+var
+  BufLen: Longint;
 begin
+  S[0]:=chr(Len);
+  If Len > High(S) then
+    Len := High(S);
   If Buf<>Nil then
-    Move (Buf[0],S[1],Len);
-  S[0]:=chr(len);
+    begin
+      BufLen := StrLen(Buf);
+      if BufLen < Len then
+        Len := BufLen;
+      Move (Buf[0],S[1],Len);
+    end;
 end;
 
 {
   $Log$
-  Revision 1.25  2002-10-19 17:06:50  michael
+  Revision 1.26  2002-10-21 19:52:47  jonas
+    * fixed some buffer overflow errors in SetString (both short and
+      ansistring versions) (merged)
+
+  Revision 1.25  2002/10/19 17:06:50  michael
   + Added check for nil buffer to setstring
 
   Revision 1.24  2002/10/02 18:21:51  peter

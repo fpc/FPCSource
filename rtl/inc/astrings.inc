@@ -805,11 +805,17 @@ begin
 end;
 
 Procedure SetString (Var S : AnsiString; Buf : PChar; Len : Longint);
-
+var
+  BufLen: longint;
 begin
   SetLength(S,Len);
-  If Buf<>Nil then
-    Move (Buf[0],S[1],Len);
+  If (Buf<>Nil) then
+    begin
+      BufLen := StrLen(Buf);
+      If (BufLen < Len) then
+        Len := BufLen;
+      Move (Buf[0],S[1],Len);
+    end;
 end;
 
 
@@ -835,7 +841,11 @@ end;
 
 {
   $Log$
-  Revision 1.32  2002-10-20 12:59:21  jonas
+  Revision 1.33  2002-10-21 19:52:47  jonas
+    * fixed some buffer overflow errors in SetString (both short and
+      ansistring versions) (merged)
+
+  Revision 1.32  2002/10/20 12:59:21  jonas
     * fixed ansistring append helpers so they preserve the terminating #0
     * optimized SetLength() so that it uses reallocmem in case the refcount
       of the target string is 1
