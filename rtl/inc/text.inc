@@ -353,7 +353,7 @@ End;
 Procedure SetTextBuf(Var F : Text; Var Buf);[INTERNPROC: In_settextbuf_file_x];
 
 
-Procedure SetTextBuf(Var F : Text; Var Buf; Size : Word);
+Procedure SetTextBuf(Var F : Text; Var Buf; Size : Longint);
 Begin
   TextRec(f).BufPtr:=@Buf;
   TextRec(f).BufSize:=Size;
@@ -945,7 +945,10 @@ end;
 
 {
   $Log$
-  Revision 1.52  1999-08-03 21:58:45  peter
+  Revision 1.53  1999-08-19 11:16:14  peter
+    * settextbuf size is now longint
+
+  Revision 1.52  1999/08/03 21:58:45  peter
     * small speed improvements
 
   Revision 1.51  1999/07/26 09:43:24  florian

@@ -323,7 +323,7 @@ Function  SeekEOF (Var t:Text):Boolean;
 Function  SeekEOLn:Boolean;
 Function  SeekEOF:Boolean;
 Procedure SetTextBuf(Var f:Text; Var Buf);
-Procedure SetTextBuf(Var f:Text; Var Buf; Size:Word);
+Procedure SetTextBuf(Var f:Text; Var Buf; Size:Longint);
 
 
 {****************************************************************************
@@ -395,7 +395,10 @@ const
 
 {
   $Log$
-  Revision 1.61  1999-07-05 20:04:28  peter
+  Revision 1.62  1999-08-19 11:16:13  peter
+    * settextbuf size is now longint
+
+  Revision 1.61  1999/07/05 20:04:28  peter
     * removed temp defines
 
   Revision 1.60  1999/07/03 01:24:21  peter
