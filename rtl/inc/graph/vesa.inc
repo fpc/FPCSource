@@ -1020,7 +1020,7 @@ end;
   procedure PutPixVESA16(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
     var
      offs : longint;
-     dummy_read : byte;
+     dummy : byte;
   begin
      X:= X + StartXViewPort;
      Y:= Y + StartYViewPort;
@@ -1032,44 +1032,93 @@ end;
        if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
          exit;
      end;
-     { this can be done only once at InitGraph }
-     PortW[$3C4] := $0f02;
-     PortW[$3CE] := $0003;
-     PortW[$3CE] := $0205;
      { }
      offs := longint(y) * BytesPerLine + (x div 8);
      SetWriteBank(integer(offs shr 16));
-     port[$3CE] := $08;
-     port[$3CF] := ($80 shr (x and 7));
-     dummy_read := mem[WinWriteSeg : word(offs)];
-     mem[winWriteSeg : offs] := byte(color);
-     { this can be done only once at DoneGraph..}
-     PortW[$3CE] := $FF08;
-     PortW[$3CE] := $0005;
+
+     PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
+     PortW[$3ce] := color shl 8; { Index 00 : Enable correct plane and write color }
+
+     Port[$3ce] := 8;           { Index 08 : Bitmask register.          }
+     Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
+
+     dummy := Mem[WinWriteSeg: offs];  { Latch the data into host space.  }
+     Mem[WinWriteSeg: offs] := dummy;  { Write the data into video memory }
+     PortW[$3ce] := $ff08;         { Enable all bit planes.           }
+     PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
      { }
   end;
+
+
+ Function GetPixVESA16(X,Y: Integer):word; {$ifndef fpc}far;{$endif fpc}
+ Var dummy, offset: Word;
+     shift: byte;
+  Begin
+    X:= X + StartXViewPort;
+    Y:= Y + StartYViewPort;
+    offset := longint(Y) * BytesPerLine + (x div 8);
+    SetReadBank(integer(offset shr 16));
+    Port[$3ce] := 4;
+    shift := 7 - (X and 7);
+    Port[$3cf] := 0;
+    dummy := (Mem[$a000:offset] shr shift) and 1;
+    Port[$3cf] := 1;
+    dummy := dummy or (((Mem[WinReadSeg:offset] shr shift) and 1) shl 1);
+    Port[$3cf] := 2;
+    dummy := dummy or (((Mem[WinReadSeg:offset] shr shift) and 1) shl 2);
+    Port[$3cf] := 3;
+    dummy := dummy or (((Mem[WinReadSeg:offset] shr shift) and 1) shl 3);
+    GetPixVESA16 := dummy;
+  end;
+
 
   procedure DirectPutPixVESA16(x, y : integer); {$ifndef fpc}far;{$endif fpc}
     var
      offs : longint;
-     dummy_read : byte;
+     dummy : byte;
+     Color : word;
   begin
-     { this can be done only once at InitGraph }
-     PortW[$3C4] := $0f02;
-     PortW[$3CE] := $0003;
-     PortW[$3CE] := $0205;
-     { }
+    case CurrentWriteMode of
+      XORPut:
+        begin
+      { getpixel wants local/relative coordinates }
+          Color := GetPixVESA16(x-StartXViewPort,y-StartYViewPort);
+          Color := CurrentColor Xor Color;
+        end;
+      OrPut:
+        begin
+      { getpixel wants local/relative coordinates }
+          Color := GetPixVESA16(x-StartXViewPort,y-StartYViewPort);
+          Color := CurrentColor Or Color;
+        end;
+      AndPut:
+        begin
+      { getpixel wants local/relative coordinates }
+          Color := GetPixVESA16(x-StartXViewPort,y-StartYViewPort);
+          Color := CurrentColor And Color;
+        end;
+      NotPut:
+        begin
+          Color := Not Color;
+        end
+      else
+        Color := CurrentColor;
+    end;
      offs := longint(y) * BytesPerLine + (x div 8);
      SetWriteBank(integer(offs shr 16));
-     port[$3CE] := $08;
-     port[$3CF] := ($80 shr (x and 7));
-     dummy_read := mem[WinWriteSeg : word(offs)];
-     mem[winWriteSeg : offs] := byte(CurrentColor);
-     { this can be done only once at DoneGraph..}
-     PortW[$3CE] := $FF08;
-     PortW[$3CE] := $0005;
-     { }
+     PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
+     PortW[$3ce] := color shl 8; { Index 00 : Enable correct plane and write color }
+
+     Port[$3ce] := 8;           { Index 08 : Bitmask register.          }
+     Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
+
+     dummy := Mem[WinWriteSeg: offs];  { Latch the data into host space.  }
+     Mem[WinWriteSeg: offs] := dummy;  { Write the data into video memory }
+     PortW[$3ce] := $ff08;         { Enable all bit planes.           }
+     PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
   end;
+
+
 
 
  {************************************************************************}
@@ -1873,7 +1922,10 @@ end;
 
 {
 $Log$
-Revision 1.18  1999-09-28 13:56:31  jonas
+Revision 1.19  1999-10-24 03:37:15  carl
+  + GetPixVESA16 (not tested yet...)
+
+Revision 1.18  1999/09/28 13:56:31  jonas
   * reordered some local variables (first 4 byte vars, then 2 byte vars
     etc)
   * font data is now disposed in exitproc, exitproc is now called
