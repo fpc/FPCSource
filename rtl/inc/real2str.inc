@@ -47,7 +47,7 @@ var correct : longint;  { Power correction }
     sign : boolean;
     i : integer;
     dot : byte;
-
+    currp : pchar;
 begin
   case real_type of
     rt_s32real :
@@ -90,7 +90,8 @@ begin
     end;
   { check parameters }
   { default value for length is -32767 }
-  if len=-32767 then len:=maxlen;
+  if len=-32767 then
+    len:=maxlen;
   { determine sign. before precision, needs 2 less calls to abs() }
   sign:=d<0;
   { the creates a cannot determine which overloaded function to call
@@ -100,32 +101,35 @@ begin
 
   {  d:=abs(d); this converts d to double so we loose precision }
   { for the same reason I converted d:=frac(d) to d:=d-int(d); (PM) }
-  if sign then d:=-d;
+  if sign then
+    d:=-d;
   { determine precision : maximal precision is : }
   currprec:=maxlen-explen-3;
   { this is also the maximal number of decimals !!}
-  if f>currprec then f:=currprec;
+  if f>currprec then
+    f:=currprec;
   { when doing a fixed-point, we need less characters.}
   if (f<0) or ( (d<>0) and ((d>maxexp) or (d<minexp))) then
     begin
     { determine maximal number of decimals }
-    if (len>=0) and (len<minlen) then len:=minlen;
-    if (len>0) and (len<maxlen) then
-      currprec:=len-explen-3;
+      if (len>=0) and (len<minlen) then
+        len:=minlen;
+      if (len>0) and (len<maxlen) then
+        currprec:=len-explen-3;
     end;
   { convert to standard form. }
   correct:=0;
   if d>=i10 then
     while d>=i10 do
       begin
-      d:=d/i10;
-      inc(correct);
+        d:=d/i10;
+        inc(correct);
       end
   else if (d<1) and (d<>0) then
     while d<1 do
       begin
-      d:=d*i10;
-      dec(correct);
+        d:=d*i10;
+        dec(correct);
       end;
   { RoundOff }
   roundcorr:=extended(i1)/extended(i2);
@@ -154,53 +158,61 @@ begin
   { Now we have a standard expression : sign d *10^correct
     where  1<d<10 or d=0 ... }
   { get first character }
+  currp:=pchar(@temp[1]);
   if sign then
-    temp:='-'
+    currp^:='-'
   else
-    temp:=' ';
-  temp:=temp+chr(ord('0')+trunc(d));
+    currp^:=' ';
+  inc(currp);
+  currp^:=chr(ord('0')+trunc(d));
+  inc(currp);
   d:=d-int(d);
   { Start making the string }
   for i:=1 to currprec do
-    begin
-    d:=d*i10;
-    temp:=temp+chr(ord('0')+trunc(d));
-    d:=d-int(d);
-    end;
+   begin
+     d:=d*i10;
+     currp^:=chr(ord('0')+trunc(d));
+     inc(currp);
+     d:=d-int(d);
+   end;
+  temp[0]:=chr(currp-pchar(@temp[1]));
   { Now we need two different schemes for the different
     representations. }
   if (f<0) or (correct>maxexp) then
     begin
-    insert ('.',temp,3);
-    str(abs(correct),power);
-    if length(power)<explen-2 then
-      power:=copy(zero,1,explen-2-length(power))+power;
-    if correct<0 then power:='-'+power else power:='+'+power;
-    temp:=temp+'E'+power;
+      insert ('.',temp,3);
+      str(abs(correct),power);
+      if length(power)<explen-2 then
+       power:=copy(zero,1,explen-2-length(power))+power;
+      if correct<0 then
+        power:='-'+power
+      else
+        power:='+'+power;
+      temp:=temp+'E'+power;
     end
   else
     begin
-    if not sign then
-      begin
-      delete (temp,1,1);
-      dot:=2;
-      end
-    else
-      dot:=3;
-    { set zeroes and dot }
-    if correct>=0 then
+      if not sign then
        begin
-       if length(temp)<correct+dot+f then
-         temp:=temp+copy(zero,1,correct+dot+f-length(temp));
-       insert ('.',temp,correct+dot);
+         delete (temp,1,1);
+         dot:=2;
        end
-    else
-      begin
-      correct:=abs(correct);
-       insert(copy(zero,1,correct),temp,dot-1);
-       insert ('.',temp,dot);
+      else
+       dot:=3;
+      { set zeroes and dot }
+      if correct>=0 then
+       begin
+         if length(temp)<correct+dot+f then
+          temp:=temp+copy(zero,1,correct+dot+f-length(temp));
+         insert ('.',temp,correct+dot);
+       end
+      else
+       begin
+         correct:=abs(correct);
+         insert(copy(zero,1,correct),temp,dot-1);
+         insert ('.',temp,dot);
        end;
-    {correct length to fit precision.}
+      { correct length to fit precision }
       if f>0 then
        temp[0]:=chr(pos('.',temp)+f)
       else
@@ -214,7 +226,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  1999-05-06 09:05:12  peter
+  Revision 1.14  1999-08-03 21:58:44  peter
+    * small speed improvements
+
+  Revision 1.13  1999/05/06 09:05:12  peter
     * generic write_float str_float
 
   Revision 1.12  1999/03/10 21:49:02  florian

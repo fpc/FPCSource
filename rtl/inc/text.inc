@@ -593,7 +593,11 @@ Function NextChar(var f:TextRec;var s:string):Boolean;
 begin
   if f.BufPos<f.BufEnd then
    begin
-     s:=s+f.BufPtr^[f.BufPos];
+     if length(s)<high(s) then
+      begin
+        inc(s[0]);
+        s[length(s)]:=f.BufPtr^[f.BufPos];
+      end;
      Inc(f.BufPos);
      If f.BufPos>=f.BufEnd Then
       FileFunc(f.InOutFunc)(f);
@@ -776,11 +780,11 @@ var
 Begin
 { Delete the string }
   Setlength(S,0);
-  Repeat 
+  Repeat
     // SetLength will reallocate the length.
     SetLength(S,Length(S)+255);
     len:=ReadPCharLen(f,pchar(Pointer(S)+Length(S)-255),255);
-    If Len<255 then 
+    If Len<255 then
       // Set actual length
       SetLength(S,Length(S)-255+Len);
   Until len<255;
@@ -941,7 +945,10 @@ end;
 
 {
   $Log$
-  Revision 1.51  1999-07-26 09:43:24  florian
+  Revision 1.52  1999-08-03 21:58:45  peter
+    * small speed improvements
+
+  Revision 1.51  1999/07/26 09:43:24  florian
     + write helper routine for in64 implemented
 
   Revision 1.50  1999/07/08 15:18:14  michael
