@@ -15,13 +15,6 @@
 Unit Dos;
 Interface
 
-{
-  If you want to link to the C library, define crtlib.
-  You can set it here, but it should be set through the makefile
-}
-{.$DEFINE CRTLIB}
-
-
 Const
   {Max FileName Length for files}
   FileNameLen=255;
@@ -57,9 +50,7 @@ Type
   NameStr = String[FileNameLen];
   ExtStr  = String[FileNameLen];
 
-
-{$PACKRECORDS 1}
-  SearchRec = Record
+  SearchRec = packed Record
   {Fill : array[1..21] of byte;  Fill replaced with below}
     SearchNum  : LongInt;     {to track which search this is}
     SearchPos  : LongInt;     {directory position}
@@ -86,14 +77,14 @@ Type
 {$i filerec.inc}
 {$i textrec.inc}
 
-  Registers = record
+  Registers = packed record
     case i : integer of
      0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
      1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
      2 : (eax, ebx, ecx, edx, ebp, esi, edi : longint);
     End;
 
-  DateTime = record
+  DateTime = packed record
     Year,
     Month,
     Day,
@@ -125,8 +116,13 @@ Function  DosExitCode: word;
 
 {Disk}
 Procedure AddDisk(const path:string);
-Function  DiskFree(drive: byte) : longint;
-Function  DiskSize(drive: byte) : longint;
+{$ifdef Int64}
+ Function  DiskFree(drive: byte) : int64;
+ Function  DiskSize(drive: byte) : int64;
+{$else}
+ Function  DiskFree(drive: byte) : longint;
+ Function  DiskSize(drive: byte) : longint;
+{$endif} 
 Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
 Procedure FindNext(var f: searchRec);
 Procedure FindClose(Var f: SearchRec);
@@ -161,11 +157,7 @@ Procedure SetVerify(verify: boolean);
 Implementation
 
 Uses
-  Strings
-{$ifndef crtlib}
-  ,linux
-{$endif}
-  ;
+  Strings,linux;
 
 {******************************************************************************
                            --- Link C Lib if set ---
@@ -181,25 +173,6 @@ type
     FMTime : LongInt;
   End;
 
-{$IFDEF CRTLIB}
-
-  {Links to C library}
-  Procedure _rtl_getenv(target: pchar; st: pchar); [ C ];
-  Procedure _rtl_envstr(i: longint; st: pchar); [ C ];
-  Function  _rtl_envcnt: longint; [ C ];
-  Procedure _rtl_gettime(gt: longint); [ C ];
-  Procedure _rtl_getversion(rel: pchar); [ C ];
-  Function  _rtl_exec(cmdline: pchar; var exitst: integer): integer; [ C ];
-  Procedure _rtl_closedir(dirptr: longint); [ C ];
-  Procedure _rtl_seekdir(dirptr: longint; seekpos: longint); [ C ];
-  Function  _rtl_telldir(dirptr: longint): longint; [ C ];
-  Function  _rtl_opendir(path: pchar): longint; [ C ];
-  Procedure _rtl_readdir(dirptr: longint; dname: pchar); [ C ];
-  Procedure _rtl_stat(path: pchar; infoptr: longint); [ C ];
-  Procedure _rtl_fstat(fd: longint; infoptr: longint); [ C ];
-
-{$ENDIF CRTLIB}
-
 
 {******************************************************************************
                         --- Info / Date / Time ---
@@ -212,8 +185,7 @@ Const
   D1    = 146097;
   D2    = 1721119;
 type
-{$PACKRECORDS 1}
-  GTRec = Record
+  GTRec = packed Record
     Year,
     Month,
     MDay,
@@ -233,12 +205,8 @@ Var
   Rel    : LongInt;
   info   : utsname;
 Begin
-{$IFDEF CRTLIB}
-  _rtl_getversion(buffer);
-{$ELSE}
   UName(info);
   Move(info.release,buffer[0],40);
-{$ENDIF}
   TmpStr:=StrPas(Buffer);
   SubRel:=0;
   TmpPos:=Pos('.',TmpStr);
@@ -284,21 +252,9 @@ end;
 
 
 Procedure GetDate(Var Year, Month, MDay, WDay: Word);
-{$IFDEF CRTLIB}
-Var
-  gt : GTRec;
-{$ENDIF}
 Begin
-{$IFDEF CRTLIB}
-  _rtl_gettime(longint(@gt));
-  Year:=gt.year+1900;
-  Month:=gt.month+1;
-  MDay:=gt.mday;
-  WDay:=gt.wday;
-{$ELSE}
   Linux.GetDate(Year,Month,MDay);
   Wday:=weekday(Year,Month,MDay);
-{$ENDIF}
 end;
 
 
@@ -311,20 +267,8 @@ End;
 
 
 Procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
-{$IFDEF CRTLIB}
-Var
-  gt : GTRec;
-{$ENDIF}
 Begin
-{$IFDEF CRTLIB}
-  _rtl_gettime(longint(@gt));
-  Hour := GT.Hour;
-  Minute := GT.Minute;
-  Second := GT.Second;
-{$ELSE}
-  Linux.GetTime(Hour,Minute,Second);
-{$ENDIF}
-  Sec100 := 0;
+  Linux.GetTime(Hour,Minute,Second,Sec100);
 end;
 
 
@@ -377,24 +321,9 @@ var
 
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
 var
-{$IFDEF CRTLIB}
-  Buf : Array[0..512] of Char;
-  i   : Integer;
-{$ELSE}
   pid    : longint;
   status : integer;
-{$ENDIF}
 Begin
-{$IFDEF CRTLIB}
-  i:=Length(Path);
-  Move(Path[1],Buf[0],i);
-  Buf[i]:=' ';
-  Move(ComLine[1],Buf[i+1],Length(ComLine));
-  Buf[i+Length(ComLine)+1]:=#0;
-  i:=0;
-  LastDosExitCode := _rtl_exec(pchar(@buf), i);
-  Doserror:=i;
-{$ELSE}
   pid:=Fork;
   if pid=0 then
    begin
@@ -418,7 +347,6 @@ Begin
      LastDosExitCode:=status shr 8;
      DosError:=0
    end;
-{$ENDIF}
 End;
 
 
@@ -469,37 +397,59 @@ end;
 
 
 
-Function DiskFree(Drive: Byte): Longint;
-{$IFNDEF CRTLIB}
+{$ifdef INT64}
+
+Function DiskFree(Drive: Byte): int64;
 var
   fs : statfs;
-{$ENDIF}
 Begin
-{$IFNDEF CRTLIB}
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
+     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
+   Diskfree:=int64(fs.bavail)*int64(fs.bsize)
+  else
+   Diskfree:=-1;
+End;
+  
+
+
+Function DiskSize(Drive: Byte): int64;
+var
+  fs : statfs;
+Begin   
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
+     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
+   DiskSize:=int64(fs.blocks)*int64(fs.bsize)
+  else
+   DiskSize:=-1;
+End;
+
+{$else}
+
+Function DiskFree(Drive: Byte): Longint;
+var
+  fs : statfs;
+Begin
   if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
      ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
    Diskfree:=fs.bavail*fs.bsize
   else
    Diskfree:=-1;
-{$ENDIF}
 End;
 
 
 
 Function DiskSize(Drive: Byte): Longint;
-{$IFNDEF CRTLIB}
 var
   fs : statfs;
-{$ENDIF}
 Begin
-{$IFNDEF CRTLIB}
   if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
      ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
    DiskSize:=fs.blocks*fs.bsize
   else
    DiskSize:=-1;
-{$ENDIF}
 End;
+
+{$endif INT64}
 
 
 {******************************************************************************
@@ -538,15 +488,7 @@ Begin
       Begin
         RtlFindRecs[i].SearchNum:=0;
         if f.dirptr>0 then
-         begin
-         {$IFDEF CRTLIB}
-           _rtl_closeDir(f.dirptr);
-           Dispose(pdir(f.dirptr)^.buf);
-           Dispose(pdir(f.dirptr));
-         {$ELSE}
-           closedir(pdir(f.dirptr));
-         {$ENDIF}
-         end;
+         closedir(pdir(f.dirptr));
       End;
    end;
   f.dirptr:=0;
@@ -557,18 +499,9 @@ Function FindGetFileInfo(const s:string;var f:SearchRec):boolean;
 var
   DT   : DateTime;
   Info : RtlInfoType;
-{$IFDEF CRTLIB}
-  buf  : array[0..255] of char;
-{$ELSE}
   st   : stat;
-{$ENDIF}
 begin
   FindGetFileInfo:=false;
-{$IFDEF CRTLIB}
-  move(s[1],buf,length(s));
-  buf[length(s)]:=#0;
-  _rtl_stat(@buf, LongInt(@Info));
-{$ELSE}
   if not Fstat(s,st) then
    exit;
   info.FSize:=st.Size;
@@ -579,7 +512,6 @@ begin
    info.fmode:=$20;
   if (st.mode and STAT_IWUSR)=0 then
    info.fmode:=info.fmode or 1;
-{$ENDIF}
   If ((Info.FMode and Not(f.searchattr))=0) Then
    Begin
      f.Name:=Copy(s,f.NamePos+1,255);
@@ -634,9 +566,7 @@ Var
   SName    : string;
   Found,
   Finished : boolean;
-{$IFNDEF CRTLIB}
   p        : PDirEnt;
-{$ENDIF}
 Begin
   If f.SearchType=0 Then
    Begin
@@ -660,32 +590,16 @@ Begin
            Move(f.SearchSpec[1], DirName[0], f.NamePos);
            DirName[f.NamePos] := #0;
          End;
-      {$IFDEF CRTLIB}
-        f.DirPtr := _rtl_opendir(DirName);
-      {$ELSE}
         f.DirPtr := longint(opendir(@(DirName)));
-      {$ENDIF}
         If f.DirPtr > 0 Then
          begin
            ArrayPos:=FindLastUsed;
            If RtlFindRecs[ArrayPos].SearchNum > 0 Then
-            Begin
-            {$IFDEF CRTLIB}
-              _rtl_closeDir(rtlfindrecs[arraypos].dirptr);
-            {$ELSE}
-              CloseDir(pdir(rtlfindrecs[arraypos].dirptr));
-            {$ENDIF}
-            End;
+            CloseDir(pdir(rtlfindrecs[arraypos].dirptr));
            RtlFindRecs[ArrayPos].SearchNum := f.SearchNum;
            RtlFindRecs[ArrayPos].DirPtr := f.DirPtr;
            if f.searchpos>0 then
-            begin
-            {$IFDEF CRTLIB}
-              _rtl_seekdir(f.dirptr, f.searchpos);
-            {$ELSE}
-              seekdir(pdir(f.dirptr), f.searchpos);
-            {$ENDIF}
-            end;
+            seekdir(pdir(f.dirptr), f.searchpos);
          end;
       End;
      if ArrayPos>0 then
@@ -697,16 +611,11 @@ Begin
   Finished:=(f.dirptr=0);
   While Not Finished Do
    Begin
-   {$IFDEF CRTLIB}
-     _rtl_readdir(f.dirptr, @FBuf);
-     FName:=StrPas(FBuf[0]);
-   {$ELSE}
      p:=readdir(pdir(f.dirptr));
      if p=nil then
       FName:=''
      else
       FName:=Strpas(@p^.name);
-   {$ENDIF}
      If FName='' Then
       Finished:=True
      Else
@@ -722,11 +631,7 @@ Begin
 {Shutdown}
   If Found Then
    Begin
-   {$IFDEF CRTLIB}
-     f.searchpos:=_rtl_telldir(f.dirptr);
-   {$ELSE}
      f.searchpos:=telldir(pdir(f.dirptr));
-   {$ENDIF}
      DosError:=0;
    End
   Else
@@ -808,18 +713,10 @@ End;
 
 Procedure GetFAttr(var f; var attr : word);
 Var
-{$IFDEF CRTLIB}
-  Info: RtlInfoType;
-{$ELSE}
   info : stat;
-{$ENDIF}
   LinAttr : longint;
 Begin
   DosError:=0;
-{$IFDEF CRTLIB}
-  _rtl_fstat(word(f), longint(@Info));
-  attr := info.fmode;
-{$ELSE}
   if not FStat(strpas(@textrec(f).name),info) then
    begin
      Attr:=0;
@@ -836,25 +733,16 @@ Begin
    Attr:=Attr or $1;
   if (not S_ISDIR(LinAttr)) and (filerec(f).name[0]='.')  then
    Attr:=Attr or $2;
-{$Endif}
 end;
 
 
 
 Procedure getftime (var f; var time : longint);
 Var
-{$IFDEF CRTLIB}
-  Info: RtlInfoType;
-{$ELSE}
-  info : stat;
-{$ENDIF}
+  Info: stat;
   DT: DateTime;
 Begin
   doserror:=0;
-{$IFDEF CRTLIB}
-  _rtl_fstat(word(f), longint(@Info));
-  UnixDateToDT(Info.FMTime, DT);
-{$ELSE}
   if not fstat(filerec(f).handle,info) then
    begin
      Time:=0;
@@ -863,7 +751,6 @@ Begin
    end
   else
    UnixDateToDT(Info.mTime,DT);
-{$ENDIF}
   PackTime(DT,Time);
 End;
 
@@ -878,9 +765,6 @@ var
   envcnt : longint;
   p      : ppchar;
 Begin
-{$IFDEF CRTLIB}
-  EnvCount := _rtl_envcnt;
-{$ELSE}
   envcnt:=0;
   p:=envp;      {defined in syslinux}
   while (p^<>nil) do
@@ -889,25 +773,15 @@ Begin
      inc(p);
    end;
   EnvCount := envcnt
-{$ENDIF}
 End;
 
 
 
 Function EnvStr(Index: Integer): String;
 Var
-{$IFDEF CRTLIB}
-  Buffer: Array[0..255] of Char;
-{$ELSE}
   i : longint;
   p : ppchar;
-{$ENDIF}
 Begin
-{$IFDEF CRTLIB}
-  Buffer[0]:=#0;        {Be sure there is at least nothing}
-  _rtl_envstr(index, buffer);
-  EnvStr:=StrPas(Buffer);
-{$ELSE}
   p:=envp;      {defined in syslinux}
   i:=1;
   while (i<Index) and (p^<>nil) do
@@ -919,33 +793,19 @@ Begin
    envstr:=''
   else
    envstr:=strpas(p^)
-{$ENDIF}
 End;
 
 
 
 Function GetEnv(EnvVar: String): String;
 var
-{$IFDEF CRTLIB}
-  Buffer,
-  OutStr : Array[0..255] of Char;
-{$ELSE}
   p     : pchar;
-{$ENDIF}
 Begin
-{$IFDEF CRTLIB}
-  Move(EnvVar[1],Buffer,Length(EnvVar));
-  Buffer[Length(EnvVar)]:=#0;
-  OutStr[0]:=#0;
-  _rtl_getenv(buffer,outstr);
-  GetEnv:=StrPas(Buffer);
-{$ELSE}
   p:=Linux.GetEnv(EnvVar);
   if p=nil then
    GetEnv:=''
   else
    GetEnv:=StrPas(p);
-{$ENDIF}
 End;
 
 
@@ -1046,7 +906,12 @@ End.
 
 {
   $Log$
-  Revision 1.15  2000-01-07 16:41:40  daniel
+  Revision 1.16  2000-02-02 15:07:05  peter
+    * gettime supports now also sec100
+    * removed crtlib code as it was broken (still available in old releases)
+    * int64 disksize/diskfree
+
+  Revision 1.15  2000/01/07 16:41:40  daniel
     * copyright 2000
 
   Revision 1.14  2000/01/07 16:32:26  daniel
