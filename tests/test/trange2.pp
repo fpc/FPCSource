@@ -15,7 +15,7 @@ begin
     writeln('caught 1!');
     inc(n);
   end;
-  longint(c) := $ffffffff;
+  c := cardinal($ffffffff);
   try
     l := c;
   except
