@@ -562,7 +562,9 @@
                    inc(Temp);
                    I:=Temp^;
                    inc(temp,I+1);                // skip name string;
+{$ifdef FPC_ALIGNSRTTI}
                    temp:=aligntoptr(temp);
+{$endif FPC_ALIGNSRTTI}
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
                    move(PRecRec(Temp)^.Count,Count,sizeof(Count));
 {$else FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -756,7 +758,10 @@
 
 {
   $Log$
-  Revision 1.39  2004-10-04 21:26:16  florian
+  Revision 1.40  2004-10-05 20:21:23  florian
+    * bootstrapping with rtti alignment fixed
+
+  Revision 1.39  2004/10/04 21:26:16  florian
     * rtti alignment fixed
 
   Revision 1.38  2004/04/29 21:33:22  florian

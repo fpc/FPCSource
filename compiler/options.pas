@@ -1699,6 +1699,7 @@ begin
   def_symbol('HASGLOBALPROPERTY');
   def_symbol('FPC_HASPREFETCH');
   def_symbol('FPC_LINEEND_IN_TEXTREC');
+  def_symbol('FPC_ALIGNSRTTI');
 {$ifdef i386}
   def_symbol('HASINTF');
   def_symbol('HASVARIANT');
@@ -2090,7 +2091,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.144  2004-09-21 23:33:43  hajny
+  Revision 1.145  2004-10-05 20:21:02  florian
+    * bootstrapping with rtti alignment fixed
+
+  Revision 1.144  2004/09/21 23:33:43  hajny
     * better PathExists, fix for too long command line, correction of message
 
   Revision 1.143  2004/09/21 17:25:12  peter
