@@ -717,98 +717,6 @@ implementation
       end;
 
 
-   {Translates a unix or dos path to a mac path for use in MPW.
-   If already a mac path, it does nothing. The origin of this
-   algorithm will be put in macos/dos.pp, please update this
-   from that, because there is some flaws in the algo below.}
-    procedure TranslatePathToMac (var path: string);
-
-      var
-        slashPos, oldpos, newpos, oldlen: Integer;
-        inname: Boolean;
-
-    begin
-      slashPos := Pos('/', path);
-      if (slashPos <> 0) then   {its a unix path}
-        begin
-          if slashPos = 1 then  {its a full path}
-            begin
-              Delete(path,1,1);
-              Insert('{Boot}', path, 1);
-            end
-          else {its a partial path}
-            Insert('/', path, 1);
-        end
-      else
-        begin
-          slashPos := Pos('\', path);
-          if (slashPos <> 0) then   {its a dos path}
-            begin
-              if slashPos = 1 then {its a full path, without drive letter}
-                begin
-                  Delete(path,1,1);
-                  Insert('{Boot}', path, 1);
-                end
-              else if (Length(path) >= 2) and (path[2] = ':') then {its a full path, with drive letter}
-                begin
-                  Delete(path, 1, 2);
-                  Insert('{Boot}', path, 1)
-                end
-              else {its a partial path}
-                Insert('/', path, 1);
-            end;
-        end;
-
-      if (slashPos <> 0) then   {its a unix or dos path}
-        begin
-          {Translate "/../" to "::" , "/./" to ":" and "/" to ":" ) in place. }
-          oldlen := Length(path);
-          newpos := 0;
-          oldpos := 0;
-          inname := false;
-          while oldpos < oldlen do
-            begin
-              oldpos := oldpos + 1;
-              case path[oldpos] of
-                '.':
-                  if (((oldpos < oldlen) and (path[oldpos + 1] in ['.', '/', '\'])) or (oldpos = oldlen)) and not inname then
-                    begin {its really a lonely ".." or "."}
-                        {Skip two chars in any case. }
-                         {For ".." then ".." is skiped and for "." then "./" is skiped, this}
-                        {reqires the next char is a "/". Thats why a "/" was }
-                        {appended on the end above.}
-                      oldpos := oldpos + 1;
-                    end
-                  else  {its part of a filename (hidden unix file, e g ".nisse")}
-                    begin
-                      inname := true;
-                      newpos := newpos + 1;
-                      path[newpos] := path[oldpos];
-                    end;
-                '/', '\':
-                  begin
-                    inname := false;
-                    newpos := newpos + 1;
-                    path[newpos] := ':';  {Exchange to mac dir separator.}
-                  end;
-                'A'..'Z' :
-                  begin
-                    inname := true;
-                    newpos := newpos + 1;
-                    path[newpos] :=char(byte(path[oldpos])+32);
-                  end;
-                else
-                  begin
-                    inname := true;
-                    newpos := newpos + 1;
-                    path[newpos] := path[oldpos];
-                  end;
-              end;
-            end;
-          SetLength(path,newpos);
-        end;
-    end;
-
     Function FixPath(s:string;allowdot:boolean):string;
       var
         i : longint;
@@ -831,16 +739,138 @@ implementation
          FixPath:=Lower(s);
       end;
 
+  {Actually the version in macutils.pp could be used,
+   but that would not work for crosscompiling, so this is a slightly modified
+   version of it.}
+  function TranslatePathToMac (const path: string; mpw: Boolean): string;
+
+    function GetVolumeIdentifier: string;
+
+    begin
+      GetVolumeIdentifier := '{Boot}'
+      (*
+      if mpw then
+        GetVolumeIdentifier := '{Boot}'
+      else
+        GetVolumeIdentifier := macosBootVolumeName;
+      *)
+    end;
+
+    var
+      slashPos, oldpos, newpos, oldlen, maxpos: Longint;
+
+  begin
+    oldpos := 1;
+    slashPos := Pos('/', path);
+    if (slashPos <> 0) then   {its a unix path}
+      begin
+        if slashPos = 1 then
+          begin      {its a full path}
+            oldpos := 2;
+            TranslatePathToMac := GetVolumeIdentifier;
+          end
+        else     {its a partial path}
+          TranslatePathToMac := ':';
+      end
+    else
+      begin
+        slashPos := Pos('\', path);
+        if (slashPos <> 0) then   {its a dos path}
+          begin
+            if slashPos = 1 then
+              begin      {its a full path, without drive letter}
+                oldpos := 2;
+                TranslatePathToMac := GetVolumeIdentifier;
+              end
+            else if (Length(path) >= 2) and (path[2] = ':') then {its a full path, with drive letter}
+              begin
+                oldpos := 4;
+                TranslatePathToMac := GetVolumeIdentifier;
+              end
+            else     {its a partial path}
+              TranslatePathToMac := ':';
+          end;
+      end;
+
+    if (slashPos <> 0) then   {its a unix or dos path}
+      begin
+        {Translate "/../" to "::" , "/./" to ":" and "/" to ":" }
+        newpos := Length(TranslatePathToMac);
+        oldlen := Length(path);
+        SetLength(TranslatePathToMac, newpos + oldlen);  {It will be no longer than what is already}
+                                                                        {prepended plus length of path.}
+        maxpos := Length(TranslatePathToMac);          {Get real maxpos, can be short if String is ShortString}
+
+        {There is never a slash in the beginning, because either it was an absolute path, and then the}
+        {drive and slash was removed, or it was a relative path without a preceding slash.}
+        while oldpos <= oldlen do
+          begin
+            {Check if special dirs, ./ or ../ }
+            if path[oldPos] = '.' then
+              if (oldpos + 1 <= oldlen) and (path[oldPos + 1] = '.') then
+                begin
+                  if (oldpos + 2 > oldlen) or (path[oldPos + 2] in ['/', '\']) then
+                    begin
+                      {It is "../" or ".."  translates to ":" }
+                      if newPos = maxPos then
+                        begin {Shouldn't actually happen, but..}
+                          Exit('');
+                        end;
+                      newPos := newPos + 1;
+                      TranslatePathToMac[newPos] := ':';
+                      oldPos := oldPos + 3;
+                      continue;  {Start over again}
+                    end;
+                end
+              else if (oldpos + 1 > oldlen) or (path[oldPos + 1] in ['/', '\']) then
+                begin
+                  {It is "./" or "."  ignor it }
+                  oldPos := oldPos + 2;
+                  continue;  {Start over again}
+                end;
+
+            {Collect file or dir name}
+            while (oldpos <= oldlen) and not (path[oldPos] in ['/', '\']) do
+              begin
+                if newPos = maxPos then
+                  begin {Shouldn't actually happen, but..}
+                    Exit('');
+                  end;
+                newPos := newPos + 1;
+                TranslatePathToMac[newPos] := path[oldPos];
+                oldPos := oldPos + 1;
+              end;
+
+            {When we come here there is either a slash or we are at the end.}
+            if (oldpos <= oldlen) then
+              begin
+                if newPos = maxPos then
+                  begin {Shouldn't actually happen, but..}
+                    Exit('');
+                  end;
+                newPos := newPos + 1;
+                TranslatePathToMac[newPos] := ':';
+                oldPos := oldPos + 1;
+              end;
+          end;
+
+        SetLength(TranslatePathToMac, newpos);
+      end
+    else if (path = '.') then
+      TranslatePathToMac := ':'
+    else if (path = '..') then
+      TranslatePathToMac := '::'
+    else
+      TranslatePathToMac := path;  {its a mac path}
+  end;
+
 
    function FixFileName(const s:string):string;
      var
        i      : longint;
      begin
        if source_info.system = system_powerpc_MACOS then
-         begin
-           FixFileName:= s;
-           TranslatePathToMac(FixFileName);
-         end
+         FixFileName:= TranslatePathToMac(s, true)
        else if source_info.files_case_relevent then
         begin
           for i:=1 to length(s) do
@@ -900,10 +930,7 @@ implementation
        i : longint;
      begin
        if target_info.system = system_powerpc_MACOS then
-         begin
-           TargetFixFileName:= s;
-           TranslatePathToMac(TargetFixFileName);
-         end
+         TargetFixFileName:= TranslatePathToMac(s, true)
        else if target_info.files_case_relevent then
          begin
            for i:=1 to length(s) do
@@ -962,12 +989,12 @@ implementation
        j        : longint;
        hs,hsd,
        CurrentDir,
-       CurrPath : string;
+       currPath : string;
        subdirfound : boolean;
        dir      : searchrec;
        hp       : TStringListItem;
 
-       procedure addcurrpath;
+       procedure AddCurrPath;
        begin
          if addfirst then
           begin
@@ -997,7 +1024,9 @@ implementation
             j:=length(s);
             while (j>0) and (s[j]<>';') do
              dec(j);
-            CurrPath:=FixPath(Copy(s,j+1,length(s)-j),false);
+            currPath:= TrimSpace(Copy(s,j+1,length(s)-j));
+            DePascalQuote(currPath);
+            currPath:=FixPath(currPath,false);
             if j=0 then
              s:=''
             else
@@ -1008,21 +1037,24 @@ implementation
             j:=Pos(';',s);
             if j=0 then
              j:=255;
-            CurrPath:=SrcPath+FixPath(Copy(s,1,j-1),false);
+            currPath:= TrimSpace(Copy(s,1,j-1));
+            DePascalQuote(currPath);
+            currPath:=SrcPath+FixPath(currPath,false);
             System.Delete(s,1,j);
           end;
+
          { fix pathname }
-         if CurrPath='' then
-          CurrPath:='.'+source_info.DirSep
+         if currPath='' then
+          currPath:='.'+source_info.DirSep
          else
           begin
-            CurrPath:=FixPath(FExpand(CurrPath),false);
-            if (CurrentDir<>'') and (Copy(CurrPath,1,length(CurrentDir))=CurrentDir) then
+            currPath:=FixPath(FExpand(currPath),false);
+            if (CurrentDir<>'') and (Copy(currPath,1,length(CurrentDir))=CurrentDir) then
              begin
 {$ifdef AMIGA}
-               CurrPath:=CurrentDir+Copy(CurrPath,length(CurrentDir)+1,255);
+               currPath:=CurrentDir+Copy(currPath,length(CurrentDir)+1,255);
 {$else}
-               CurrPath:='.'+source_info.DirSep+Copy(CurrPath,length(CurrentDir)+1,255);
+               currPath:='.'+source_info.DirSep+Copy(currPath,length(CurrentDir)+1,255);
 {$endif}
              end;
           end;
@@ -1030,7 +1062,7 @@ implementation
          if pos('*',currpath)>0 then
           begin
             if currpath[length(currpath)]=source_info.dirsep then
-             hs:=Copy(currpath,1,length(CurrPath)-1)
+             hs:=Copy(currpath,1,length(currPath)-1)
             else
              hs:=currpath;
             hsd:=SplitPath(hs);
@@ -1057,7 +1089,7 @@ implementation
          else
           begin
             if PathExists(currpath) then
-             addcurrpath
+             AddCurrPath
             else
              WarnNonExistingPath(currpath);
           end;
@@ -1922,7 +1954,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.136  2004-08-28 20:25:25  peter
+  Revision 1.137  2004-08-31 22:02:30  olle
+    + support for quoting of paths in TSearchPathList.AddPath so that
+      compiler directives which take paths, will support quotes.
+    * uppdated TranslateMacPath
+
+  Revision 1.136  2004/08/28 20:25:25  peter
     * optimized search for noncasesensitive names. It now searches
       first for NormalCase and skips double tests
 
