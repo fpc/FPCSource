@@ -39,6 +39,7 @@ interface
         t_linux,t_go32v2,t_win32,t_os2,t_freebsd,t_beos,
         t_amiga,t_atari
       );
+      TTargetSet=set of TTarget;
 
     const
       TargetStr : array[TTarget] of string=(
@@ -109,6 +110,7 @@ interface
         FPackageVersion : string;
         FRequireList    : TTargetRequireList;
         FVariables      : TKeyValue;
+        FIncludeTargets : TTargetSet;
         procedure Init;
         procedure ParseSec(p:TDictionaryItem);
         procedure PrintSec(p:TDictionaryItem);
@@ -147,6 +149,7 @@ interface
         property ExportSec:TFPCMakeSection read FExportSec;
         property CommentChars:TSysCharSet read FCommentChars write FCommentChars;
         property EmptyLines:Boolean read FEmptyLines write FEmptyLines;
+        property IncludeTargets:TTargetSet read FIncludeTargets write FIncludeTargets;
       end;
 
     function posidx(const substr,s : string;idx:integer):integer;
@@ -383,13 +386,14 @@ implementation
             Raise Exception.Create(Format(s_err_not_key_value,[s]));
            While (j<len) and (s[j+1] in [' ',#9]) do
             inc(j);
-           if j=len then
-            Raise Exception.Create(Format(s_err_not_key_value,[s]));
            Value:=Copy(s,j+1,len-j);
            p:=TKeyValueItem(FDictionary.Search(NewKey));
            { Concat values if key already exists }
            if assigned(p) then
-            p.Value:=p.Value+' '+Value
+            begin
+              if Value<>'' then
+               p.Value:=p.Value+' '+Value
+            end
            else
             FDictionary.Add(NewKey,Value);
            inc(i);
@@ -473,6 +477,7 @@ implementation
         FPackageVersion:='';
         FPackageSec:=nil;
         FExportSec:=nil;
+        FIncludeTargets:=[low(TTarget)..high(TTarget)];
         VerboseIdent:='';
       end;
 
@@ -669,7 +674,14 @@ implementation
       var
         s : string;
       begin
+        { Force the current target }
+        SetVariable('TARGET',TargetStr[t],false);
+        { Check for Makefile.fpc }
         s:=SubstVariables('$(wildcard $(addsuffix /'+ReqName+'/Makefile.fpc,$(FPCDIR)) $(addsuffix /'+ReqName+'/Makefile.fpc,$(PACKAGESDIR)) $(addsuffix /'+ReqName+'/Makefile.fpc,$(REQUIRE_PACKAGESDIR)))');
+        if TryFile(s) then
+         exit;
+        { Check for Package.fpc }
+        s:=SubstVariables('$(wildcard $(addsuffix /'+ReqName+'/Package.fpc,$(FPCDIR)) $(addsuffix /'+ReqName+'/Package.fpc,$(UNITSDIR)) $(addsuffix /'+ReqName+'/Package.fpc,$(REQUIRE_UNITSDIR)))');
         if TryFile(s) then
          exit;
         Raise Exception.Create('s_package_not_found '+Reqname);
@@ -769,13 +781,14 @@ implementation
              exit;
            end;
           for t:=low(ttarget) to high(ttarget) do
-           begin
-             if GetVariable(s+targetsuffix[t],false)<>'' then
-              begin
-                result:=true;
-                exit;
-              end;
-           end;
+           if t in FIncludeTargets then
+            begin
+              if GetVariable(s+targetsuffix[t],false)<>'' then
+               begin
+                 result:=true;
+                 exit;
+               end;
+            end;
         end;
 
       var
@@ -796,7 +809,8 @@ implementation
          end;
         { Load recursively all required packages starting with this Makefile.fpc }
         for t:=low(TTarget) to high(TTarget) do
-         LoadRequires(t,self);
+         if t in FIncludeTargets then
+          LoadRequires(t,self);
       end;
 
 
@@ -856,20 +870,21 @@ implementation
            exit;
          end;
         for t:=low(ttarget) to high(ttarget) do
-         begin
-           for i:=0 to RequireList[t].Count-1 do
-            begin
-              RSec:=TFPCMakeSection(FSections[RequireList[t][i]+'_require']);
-              if assigned(RSec) then
-               begin
-                 if RSec['libc']<>'' then
-                  begin
-                    Result:=true;
-                    exit;
-                  end;
-               end;
-            end;
-         end;
+         if t in FIncludeTargets then
+          begin
+            for i:=0 to RequireList[t].Count-1 do
+             begin
+               RSec:=TFPCMakeSection(FSections[RequireList[t][i]+'_require']);
+               if assigned(RSec) then
+                begin
+                  if RSec['libc']<>'' then
+                   begin
+                     Result:=true;
+                     exit;
+                   end;
+                end;
+             end;
+          end;
       end;
 
 
@@ -945,7 +960,7 @@ implementation
          SetVariable('PACKAGESDIR','$(FPCDIR)/packages',false);
         { UNITSDIR }
         if GetVariable('UNITSDIR',false)='' then
-         SetVariable('UNITSDIR','$(FPCDIR)/units',false);
+         SetVariable('UNITSDIR','$(FPCDIR)/units/$(TARGET)',false);
 
         Verbose(FPCMakeDebug,'Globals:');
         Variables.Foreach(@PrintDic);
@@ -1219,7 +1234,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2001-07-24 09:06:40  pierre
+  Revision 1.10  2001-07-31 22:02:32  peter
+    * install Package.fpc
+
+  Revision 1.9  2001/07/24 09:06:40  pierre
    + added amiga and atari targets
 
   Revision 1.8  2001/07/13 21:01:59  peter

@@ -713,7 +713,8 @@ implementation
          begin
            FHasSection[sec_compile]:=false;
            if (not CheckTargetVariable('install_units')) and
-              (not CheckTargetVariable('install_files')) then
+              (not CheckTargetVariable('install_files')) and
+              (not CheckTargetVariable('install_createpackagefpc')) then
             FHasSection[sec_install]:=false;
            if (not CheckTargetVariable('clean_units')) and
               (not CheckTargetVariable('clean_files')) then
@@ -788,6 +789,7 @@ implementation
            AddVariable('install_basedir');
            AddVariable('install_datadir');
            AddVariable('install_fpcpackage');
+	   AddVariable('install_createpackagefpc');
            { Dist }
            AddVariable('dist_zipname');
            AddVariable('dist_ziptarget');
@@ -863,7 +865,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2001-07-13 21:01:59  peter
+  Revision 1.14  2001-07-31 22:02:32  peter
+    * install Package.fpc
+
+  Revision 1.13  2001/07/13 21:01:59  peter
     * cygdrive support
     * fixed cygwin detection
     * fixed some duplicate and extraeous spaces

@@ -7,7 +7,6 @@ name=dxegen
 version=1.05
 
 [target]
-dirs=fpcm tply h2pas fprcp
 programs_go32v2=dxegen
 
 [clean]
@@ -20,9 +19,6 @@ fpcpackage=y
 fpcdir=../..
 
 [rules]
-
 dxegen$(EXEEXT): dxegen.pp coff$(PPUEXT)
 
 coff$(PPUEXT)  : coff.pp
-
-
