@@ -862,7 +862,8 @@ unit pdecl;
     procedure resolve_type_forward(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
       var
         hpd,pd : pdef;
-        stpos : tfileposinfo;
+        stpos  : tfileposinfo;
+        again  : boolean;
       begin
          { Check only typesyms or record/object fields }
          case psym(p)^.typ of
@@ -876,60 +877,69 @@ unit pdecl;
            else
              exit;
          end;
-         case pd^.deftype of
-           pointerdef,
-           classrefdef :
-             begin
-               { classrefdef inherits from pointerdef }
-               hpd:=ppointerdef(pd)^.pointertype.def;
-               { still a forward def ? }
-               if hpd^.deftype=forwarddef then
-                begin
-                  { try to resolve the forward }
-                  { get the correct position for it }
-                  stpos:=tokenpos;
-                  tokenpos:=pforwarddef(hpd)^.forwardpos;
-                  resolving_forward:=true;
-                  getsym(pforwarddef(hpd)^.tosymname,false);
-                  resolving_forward:=false;
-                  tokenpos:=stpos;
-                  { we don't need the forwarddef anymore, dispose it }
-                  dispose(hpd,done);
-                  { was a type sym found ? }
-                  if assigned(srsym) and
-                     (srsym^.typ=typesym) then
-                   begin
-                     ppointerdef(pd)^.pointertype.def:=ptypesym(srsym)^.restype.def;
+         repeat
+           again:=false;
+           case pd^.deftype of
+             arraydef :
+               begin
+                 { elementtype could also be defined using a forwarddef }
+                 pd:=parraydef(pd)^.elementtype.def;
+                 again:=true;
+               end;
+             pointerdef,
+             classrefdef :
+               begin
+                 { classrefdef inherits from pointerdef }
+                 hpd:=ppointerdef(pd)^.pointertype.def;
+                 { still a forward def ? }
+                 if hpd^.deftype=forwarddef then
+                  begin
+                    { try to resolve the forward }
+                    { get the correct position for it }
+                    stpos:=tokenpos;
+                    tokenpos:=pforwarddef(hpd)^.forwardpos;
+                    resolving_forward:=true;
+                    getsym(pforwarddef(hpd)^.tosymname,false);
+                    resolving_forward:=false;
+                    tokenpos:=stpos;
+                    { we don't need the forwarddef anymore, dispose it }
+                    dispose(hpd,done);
+                    { was a type sym found ? }
+                    if assigned(srsym) and
+                       (srsym^.typ=typesym) then
+                     begin
+                       ppointerdef(pd)^.pointertype:=ptypesym(srsym)^.restype;
 {$ifdef GDB}
-                     if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
-                        (psym(p)^.owner^.symtabletype in [globalsymtable,staticsymtable]) then
-                      begin
-                        ptypesym(p)^.isusedinstab := true;
-                        psym(p)^.concatstabto(debuglist);
-                      end;
+                       if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
+                          (psym(p)^.owner^.symtabletype in [globalsymtable,staticsymtable]) then
+                        begin
+                          ptypesym(p)^.isusedinstab := true;
+                          psym(p)^.concatstabto(debuglist);
+                        end;
 {$endif GDB}
-                     { we need a class type for classrefdef }
-                     if (pd^.deftype=classrefdef) and
-                        not((ptypesym(srsym)^.restype.def^.deftype=objectdef) and
-                            pobjectdef(ptypesym(srsym)^.restype.def)^.is_class) then
-                       Message1(type_e_class_type_expected,ptypesym(srsym)^.restype.def^.typename);
-                   end
-                  else
-                   begin
-                     MessagePos1(psym(p)^.fileinfo,sym_e_forward_type_not_resolved,p^.name);
-                     { try to recover }
-                     ppointerdef(pd)^.pointertype.def:=generrordef;
-                   end;
-                end;
-             end;
-           recorddef :
-             precorddef(pd)^.symtable^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
-           objectdef :
-             { Don't check objectdefs in objects/records, because these can't
-               exist (anonymous objects aren't allowed) }
-             if not(psym(p)^.owner^.symtabletype in [objectsymtable,recordsymtable]) then
-              pobjectdef(pd)^.symtable^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
-        end;
+                       { we need a class type for classrefdef }
+                       if (pd^.deftype=classrefdef) and
+                          not((ptypesym(srsym)^.restype.def^.deftype=objectdef) and
+                              pobjectdef(ptypesym(srsym)^.restype.def)^.is_class) then
+                         Message1(type_e_class_type_expected,ptypesym(srsym)^.restype.def^.typename);
+                     end
+                    else
+                     begin
+                       MessagePos1(psym(p)^.fileinfo,sym_e_forward_type_not_resolved,p^.name);
+                       { try to recover }
+                       ppointerdef(pd)^.pointertype.def:=generrordef;
+                     end;
+                  end;
+               end;
+             recorddef :
+               precorddef(pd)^.symtable^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
+             objectdef :
+               { Don't check objectdefs in objects/records, because these can't
+                 exist (anonymous objects aren't allowed) }
+               if not(psym(p)^.owner^.symtabletype in [objectsymtable,recordsymtable]) then
+                pobjectdef(pd)^.symtable^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
+          end;
+        until not again;
       end;
 
     { reads a type declaration to the symbol table }
@@ -1170,7 +1180,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.174  1999-12-01 12:42:32  peter
+  Revision 1.175  1999-12-10 10:04:21  peter
+    * also check elementtype of arraydef for forwarddef
+
+  Revision 1.174  1999/12/01 12:42:32  peter
     * fixed bug 698
     * removed some notes about unused vars
 
