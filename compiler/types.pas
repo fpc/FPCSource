@@ -108,6 +108,9 @@ interface
     { to use on other types                              }
     function is_subequal(def1, def2: pdef): boolean;
 
+    { same as is_equal, but with error message if failed }
+    function CheckTypes(def1,def2 : pdef) : boolean;
+
     { true, if two parameter lists are equal        }
     { if value_equal_const is true, call by value   }
     { and call by const parameter are assumed as    }
@@ -612,8 +615,8 @@ implementation
 
     function is_equal(def1,def2 : pdef) : boolean;
       const
-         procvarmask = not(poassembler or pomethodpointer or povirtualmethod or pooverridingmethod or
-                           pocontainsself or pomsgstr or pomsgint);
+         procvarmask = not(poassembler or pomethodpointer or povirtualmethod or
+                           pooverridingmethod or pomsgint or pomsgstr);
       var
          b : boolean;
          hd : pdef;
@@ -789,11 +792,29 @@ implementation
         end; { endif assigned ... }
       end;
 
+    function CheckTypes(def1,def2 : pdef) : boolean;
+      begin
+        if not is_equal(def1,def2) then
+         begin
+           { Crash prevention }
+           if (not assigned(def1)) or (not assigned(def2)) then
+             Message(type_e_mismatch)
+           else
+             Message2(type_e_not_equal_types,def1^.typename,def2^.typename);
+           CheckTypes:=false;
+         end
+        else
+         CheckTypes:=true;
+      end;
 
 end.
 {
   $Log$
-  Revision 1.59  1999-05-18 09:52:24  peter
+  Revision 1.60  1999-05-18 14:16:01  peter
+    * containsself fixes
+    * checktypes()
+
+  Revision 1.59  1999/05/18 09:52:24  peter
     * procedure of object and addrn fixes
 
   Revision 1.58  1999/04/19 09:29:51  pierre

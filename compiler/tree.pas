@@ -220,7 +220,7 @@ unit tree;
              loadn : (symtableentry : psym;symtable : psymtable;
                       is_absolute,is_first : boolean);
              calln : (symtableprocentry : pprocsym;
-                      symtableproc : psymtable;procdefinition : pprocdef;
+                      symtableproc : psymtable;procdefinition : pabstractprocdef;
                       methodpointer : ptree;
                       no_check,unit_specific,
                       return_value_used,static_call : boolean);
@@ -1733,7 +1733,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.81  1999-05-18 09:52:22  peter
+  Revision 1.82  1999-05-18 14:15:59  peter
+    * containsself fixes
+    * checktypes()
+
+  Revision 1.81  1999/05/18 09:52:22  peter
     * procedure of object and addrn fixes
 
   Revision 1.80  1999/05/17 23:51:48  peter

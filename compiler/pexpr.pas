@@ -540,30 +540,29 @@ unit pexpr;
       end;
 
     procedure handle_procvar(procvar : pprocvardef;var t : ptree);
-
+      var
+        hp : ptree;
       begin
+         hp:=nil;
          if ((procvar^.options and pomethodpointer)<>0) then
            begin
               if assigned(t^.methodpointer) and
                  (t^.methodpointer^.resulttype^.deftype=objectdef) and
                  (pobjectdef(t^.methodpointer^.resulttype)^.isclass) and
                  (proc_to_procvar_equal(procvar,pprocsym(t^.symtableentry)^.definition)) then
-                begin
-                   t^.treetype:=loadn;
-                   t^.disposetyp:=dt_left;
-                   t^.left:=t^.methodpointer;
-                   t^.resulttype:=pprocsym(t^.symtableprocentry)^.definition;
-                   t^.symtableentry:=pvarsym(t^.symtableprocentry);
-                end
+                hp:=genloadmethodcallnode(pprocsym(t^.symtableprocentry),t^.symtable,getcopy(t^.methodpointer))
               else
                 Message(type_e_mismatch);
            end
          else if (proc_to_procvar_equal(getprocvardef,pprocsym(t^.symtableentry)^.definition)) then
            begin
-              t^.treetype:=loadn;
-              t^.resulttype:=pprocsym(t^.symtableprocentry)^.definition;
-              t^.symtableentry:=t^.symtableprocentry;
+              hp:=genloadcallnode(pprocsym(t^.symtableprocentry),t^.symtable);
            end;
+        if assigned(hp) then
+         begin
+           disposetree(t);
+           t:=hp;
+         end;
       end;
 
     { the following procedure handles the access to a property symbol }
@@ -1990,7 +1989,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.107  1999-05-18 09:52:18  peter
+  Revision 1.108  1999-05-18 14:15:54  peter
+    * containsself fixes
+    * checktypes()
+
+  Revision 1.107  1999/05/18 09:52:18  peter
     * procedure of object and addrn fixes
 
   Revision 1.106  1999/05/16 17:06:31  peter

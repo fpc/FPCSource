@@ -202,6 +202,7 @@ type tmsgconst=(
   parser_e_no_object_override,
   type_e_mismatch,
   type_e_incompatible_types,
+  type_e_not_equal_types,
   type_e_integer_expr_expected,
   type_e_ordinal_expr_expected,
   type_e_type_id_expected,

@@ -824,9 +824,6 @@ implementation
 
     procedure secondwith(var p : ptree);
       var
-        ref : treference;
-        symtable : psymtable;
-        i : longint;
         usetemp : boolean;
       begin
          if assigned(p^.left) then
@@ -871,14 +868,6 @@ implementation
                   del_reference(p^.left^.location.reference);
                 end;
 
-               { the offset relative to (%ebp) is only needed here! }
-{               symtable:=p^.withsymtable;
-               for i:=1 to p^.tablecount do
-                 begin
-                    symtable^.datasize:=ref.offset;
-                    symtable:=symtable^.next;
-                 end; }
-
                { p^.right can be optimize out !!! }
                if assigned(p^.right) then
                  secondpass(p^.right);
@@ -895,7 +884,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1999-05-17 23:51:39  peter
+  Revision 1.40  1999-05-18 14:15:26  peter
+    * containsself fixes
+    * checktypes()
+
+  Revision 1.39  1999/05/17 23:51:39  peter
     * with temp vars now use a reference with a persistant temp instead
       of setting datasize
 

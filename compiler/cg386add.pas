@@ -146,8 +146,6 @@ implementation
         href       : treference;
         pushed,
         cmpop      : boolean;
-        hr : treference;
-
       begin
         { string operations are not commutative }
         if p^.swaped then
@@ -2030,7 +2028,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  1999-05-17 21:56:58  florian
+  Revision 1.57  1999-05-18 14:15:18  peter
+    * containsself fixes
+    * checktypes()
+
+  Revision 1.56  1999/05/17 21:56:58  florian
     * new temporary ansistring handling
 
   Revision 1.55  1999/05/10 14:37:49  pierre

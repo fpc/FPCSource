@@ -1661,7 +1661,7 @@ unit pdecl;
 
     var
        sc : pstringcontainer;
-       s : string;
+       hs1,s : string;
        p : pdef;
        varspez : tvarspez;
        procvardef : pprocvardef;
@@ -1673,65 +1673,65 @@ unit pdecl;
             consume(LKLAMMER);
             inc(testcurobject);
             repeat
-              case token of
-                _VAR :
-                  begin
-                    consume(_VAR);
-                    varspez:=vs_var;
-                  end;
-                _CONST :
-                  begin
-                    consume(_CONST);
-                    varspez:=vs_const;
-                  end;
+              if try_to_consume(_VAR) then
+               varspez:=vs_var
               else
-                varspez:=vs_value;
-              end;
-
-              sc:=idlist;
-              if (token=COLON) or (varspez=vs_value) then
-                begin
-                   consume(COLON);
-                   if token=_ARRAY then
-                     begin
-                       consume(_ARRAY);
-                       consume(_OF);
-                     { define range and type of range }
-                       p:=new(Parraydef,init(0,-1,s32bitdef));
-                     { array of const ? }
-                       if (token=_CONST) and (m_objpas in aktmodeswitches) then
+               if try_to_consume(_CONST) then
+                 varspez:=vs_const
+               else
+                 varspez:=vs_value;
+              { self method ? }
+              if idtoken=_SELF then
+               begin
+                 procvardef^.options:=procvardef^.options or pocontainsself;
+                 consume(idtoken);
+                 consume(COLON);
+                 p:=single_type(hs1);
+                 procvardef^.concatdef(p,vs_value);
+               end
+              else
+               begin
+                 sc:=idlist;
+                 if (token=COLON) or (varspez=vs_value) then
+                   begin
+                      consume(COLON);
+                      if token=_ARRAY then
                         begin
-                          consume(_CONST);
-                          srsym:=nil;
-                          if assigned(objpasunit) then
-                           getsymonlyin(objpasunit,'TVARREC');
-                          if not assigned(srsym) then
-                           InternalError(1234124);
-                          Parraydef(p)^.definition:=ptypesym(srsym)^.definition;
-                          Parraydef(p)^.IsArrayOfConst:=true;
+                          consume(_ARRAY);
+                          consume(_OF);
+                        { define range and type of range }
+                          p:=new(Parraydef,init(0,-1,s32bitdef));
+                        { array of const ? }
+                          if (token=_CONST) and (m_objpas in aktmodeswitches) then
+                           begin
+                             consume(_CONST);
+                             srsym:=nil;
+                             if assigned(objpasunit) then
+                              getsymonlyin(objpasunit,'TVARREC');
+                             if not assigned(srsym) then
+                              InternalError(1234124);
+                             Parraydef(p)^.definition:=ptypesym(srsym)^.definition;
+                             Parraydef(p)^.IsArrayOfConst:=true;
+                           end
+                          else
+                           begin
+                           { define field type }
+                             Parraydef(p)^.definition:=single_type(s);
+                           end;
                         end
-                       else
-                        begin
-                        { define field type }
-                          Parraydef(p)^.definition:=single_type(s);
-                        end;
-                     end
-                   else
-                     p:=single_type(s);
-                end
-              else
-                p:=cformaldef;
-              while not sc^.empty do
-                begin
-                   s:=sc^.get;
-                   procvardef^.concatdef(p,varspez);
-                end;
-              dispose(sc,done);
-              if token=SEMICOLON then
-                consume(SEMICOLON)
-              else
-                break;
-            until false;
+                      else
+                        p:=single_type(s);
+                   end
+                 else
+                   p:=cformaldef;
+                 while not sc^.empty do
+                   begin
+                      s:=sc^.get;
+                      procvardef^.concatdef(p,varspez);
+                   end;
+                 dispose(sc,done);
+               end;
+            until not try_to_consume(SEMICOLON);
             dec(testcurobject);
             consume(RKLAMMER);
          end;
@@ -1775,9 +1775,7 @@ unit pdecl;
                else
                  begin
                  { check types }
-                   if not is_equal(pt1^.resulttype,pt2^.resulttype) then
-                     Message(type_e_mismatch)
-                   else
+                   if CheckTypes(pt1^.resulttype,pt2^.resulttype) then
                      begin
                      { Check bounds }
                        if pt2^.value<pt1^.value then
@@ -2230,7 +2228,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.117  1999-05-17 21:57:12  florian
+  Revision 1.118  1999-05-18 14:15:51  peter
+    * containsself fixes
+    * checktypes()
+
+  Revision 1.117  1999/05/17 21:57:12  florian
     * new temporary ansistring handling
 
   Revision 1.116  1999/05/13 21:59:34  peter

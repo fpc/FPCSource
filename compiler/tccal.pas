@@ -480,7 +480,7 @@ implementation
               p^.resulttype:=pprocvardef(p^.right^.resulttype)^.retdef;
               { this was missing, leads to a bug below if
                 the procvar is a function }
-              p^.procdefinition:=pprocdef(p^.right^.resulttype);
+              p^.procdefinition:=pabstractprocdef(p^.right^.resulttype);
            end
          else
          { not a procedure variable }
@@ -974,8 +974,8 @@ implementation
                    { p^.treetype:=procinlinen; }
                    if not assigned(p^.right) then
                      begin
-                        if assigned(p^.procdefinition^.code) then
-                          inlinecode:=genprocinlinenode(p,ptree(p^.procdefinition^.code))
+                        if assigned(pprocdef(p^.procdefinition)^.code) then
+                          inlinecode:=genprocinlinenode(p,ptree(pprocdef(p^.procdefinition)^.code))
                         else
                           CGMessage(cg_e_no_code_for_inline_stored);
                         if assigned(inlinecode) then
@@ -1003,14 +1003,14 @@ implementation
 {$ifdef i386}
               for regi:=R_EAX to R_EDI do
                 begin
-                   if (p^.procdefinition^.usedregisters and ($80 shr word(regi)))<>0 then
+                   if (pprocdef(p^.procdefinition)^.usedregisters and ($80 shr word(regi)))<>0 then
                      inc(reg_pushes[regi],t_times*2);
                 end;
 {$endif}
 {$ifdef m68k}
              for regi:=R_D0 to R_A6 do
                begin
-                  if (p^.procdefinition^.usedregisters and ($800 shr word(regi)))<>0 then
+                  if (pprocdef(p^.procdefinition)^.usedregisters and ($800 shr word(regi)))<>0 then
                     inc(reg_pushes[regi],t_times*2);
                end;
 {$endif}
@@ -1147,7 +1147,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1999-05-17 23:51:43  peter
+  Revision 1.43  1999-05-18 14:15:58  peter
+    * containsself fixes
+    * checktypes()
+
+  Revision 1.42  1999/05/17 23:51:43  peter
     * with temp vars now use a reference with a persistant temp instead
       of setting datasize
 

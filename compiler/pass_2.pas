@@ -89,8 +89,6 @@ implementation
 
       var
          hp : ptree;
-         oldrl : plinkedlist;
-
       begin
          hp:=p;
          while assigned(hp) do
@@ -557,7 +555,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1999-05-17 21:57:11  florian
+  Revision 1.22  1999-05-18 14:15:50  peter
+    * containsself fixes
+    * checktypes()
+
+  Revision 1.21  1999/05/17 21:57:11  florian
     * new temporary ansistring handling
 
   Revision 1.20  1999/05/02 21:33:54  florian

@@ -250,17 +250,17 @@ implementation
               inlinecode:=p^.right;
               { set it to the same lexical level as the local symtable, becuase
                 the para's are stored there }
-              p^.procdefinition^.parast^.symtablelevel:=aktprocsym^.definition^.localst^.symtablelevel;
+              pprocdef(p^.procdefinition)^.parast^.symtablelevel:=aktprocsym^.definition^.localst^.symtablelevel;
               if assigned(p^.left) then
                 inlinecode^.para_offset:=gettempofsizepersistant(inlinecode^.para_size);
-              p^.procdefinition^.parast^.address_fixup:=inlinecode^.para_offset;
+              pprocdef(p^.procdefinition)^.parast^.address_fixup:=inlinecode^.para_offset;
 {$ifdef extdebug}
              Comment(V_debug,
                'inlined parasymtable is at offset '
-               +tostr(p^.procdefinition^.parast^.address_fixup));
+               +tostr(pprocdef(p^.procdefinition)^.parast^.address_fixup));
              exprasmlist^.concat(new(pai_asm_comment,init(
                strpnew('inlined parasymtable is at offset '
-               +tostr(p^.procdefinition^.parast^.address_fixup)))));
+               +tostr(pprocdef(p^.procdefinition^.parast)^.address_fixup)))));
 {$endif extdebug}
               p^.right:=nil;
               { disable further inlining of the same proc
@@ -287,10 +287,10 @@ implementation
                 iolabel:=nil;
 
               { save all used registers }
-              pushusedregisters(pushed,p^.procdefinition^.usedregisters);
+              pushusedregisters(pushed,pprocdef(p^.procdefinition)^.usedregisters);
 
               { give used registers through }
-              usedinproc:=usedinproc or p^.procdefinition^.usedregisters;
+              usedinproc:=usedinproc or pprocdef(p^.procdefinition)^.usedregisters;
            end
          else
            begin
@@ -355,12 +355,12 @@ implementation
            begin
               { be found elsewhere }
               if inlined then
-                para_offset:=p^.procdefinition^.parast^.address_fixup+
-                  p^.procdefinition^.parast^.datasize
+                para_offset:=pprocdef(p^.procdefinition)^.parast^.address_fixup+
+                  pprocdef(p^.procdefinition)^.parast^.datasize
               else
                 para_offset:=0;
               if assigned(p^.right) then
-                secondcallparan(p^.left,pprocvardef(p^.right^.resulttype)^.para1,
+                secondcallparan(p^.left,pabstractprocdef(p^.right^.resulttype)^.para1,
                   (p^.procdefinition^.options and poleftright)<>0,
                   inlined,(p^.procdefinition^.options and (pocdecl or postdcall))<>0,para_offset)
               else
@@ -571,34 +571,36 @@ implementation
                                               end;
                                          end;
                                       end;
-                                    { when calling a class method, we have
-                                      to load ESI with the VMT !
-                                      But that's wrong, if we call a class method via self
-                                    }
-                                    if ((p^.procdefinition^.options and poclassmethod)<>0)
-                                       and not(p^.methodpointer^.resulttype^.deftype=classrefdef) then
+                                    { when calling a class method, we have to load ESI with the VMT !
+                                      But, not for a class method via self }
+                                    if ((p^.procdefinition^.options and pocontainsself)=0) then
                                       begin
-                                         { class method needs current VMT }
-                                         new(r);
-                                         reset_reference(r^);
-                                         r^.base:=R_ESI;
-                                         r^.offset:= p^.procdefinition^._class^.vmt_offset;
-                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)));
+                                        if ((p^.procdefinition^.options and poclassmethod)<>0)
+                                           and not(p^.methodpointer^.resulttype^.deftype=classrefdef) then
+                                          begin
+                                             { class method needs current VMT }
+                                             new(r);
+                                             reset_reference(r^);
+                                             r^.base:=R_ESI;
+                                             r^.offset:= pprocdef(p^.procdefinition)^._class^.vmt_offset;
+                                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)));
+                                          end;
+
+                                        { direct call to destructor: don't remove data! }
+                                        if ((p^.procdefinition^.options and podestructor)<>0) and
+                                          (p^.methodpointer^.resulttype^.deftype=objectdef) and
+                                          (pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
+                                          exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,1)));
+
+                                        { direct call to class constructor, don't allocate memory }
+                                        if ((p^.procdefinition^.options and poconstructor)<>0) and
+                                          (p^.methodpointer^.resulttype^.deftype=objectdef) and
+                                          (pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
+                                          exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,0)))
+                                        else
+                                          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                       end;
 
-                                    { direct call to destructor: don't remove data! }
-                                    if ((p^.procdefinition^.options and podestructor)<>0) and
-                                      (p^.methodpointer^.resulttype^.deftype=objectdef) and
-                                      (pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
-                                      exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,1)));
-
-                                    { direct call to class constructor, don't allocate memory }
-                                    if ((p^.procdefinition^.options and poconstructor)<>0) and
-                                      (p^.methodpointer^.resulttype^.deftype=objectdef) and
-                                      (pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
-                                      exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,0)))
-                                    else
-                                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                     if is_con_or_destructor then
                                       begin
                                          { classes don't get a VMT pointer pushed }
@@ -635,7 +637,7 @@ implementation
                              new(r);
                              reset_reference(r^);
                              r^.base:=R_ESI;
-                             r^.offset:= p^.procdefinition^._class^.vmt_offset;
+                             r^.offset:= pprocdef(p^.procdefinition)^._class^.vmt_offset;
                              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)));
                           end
                         else
@@ -656,7 +658,7 @@ implementation
 
               { push base pointer ?}
               if (lexlevel>=normal_function_level) and assigned(pprocdef(p^.procdefinition)^.parast) and
-                ((p^.procdefinition^.parast^.symtablelevel)>normal_function_level) then
+                ((pprocdef(p^.procdefinition)^.parast^.symtablelevel)>normal_function_level) then
                 begin
                    { if we call a nested function in a method, we must      }
                    { push also SELF!                                        }
@@ -668,7 +670,7 @@ implementation
                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                      end;
                    }
-                   if lexlevel=(p^.procdefinition^.parast^.symtablelevel) then
+                   if lexlevel=(pprocdef(p^.procdefinition)^.parast^.symtablelevel) then
                      begin
                         new(r);
                         reset_reference(r^);
@@ -678,11 +680,11 @@ implementation
                      end
                      { this is only true if the difference is one !!
                        but it cannot be more !! }
-                   else if (lexlevel=p^.procdefinition^.parast^.symtablelevel-1) then
+                   else if (lexlevel=pprocdef(p^.procdefinition)^.parast^.symtablelevel-1) then
                      begin
                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,procinfo.framepointer)))
                      end
-                   else if (lexlevel>p^.procdefinition^.parast^.symtablelevel) then
+                   else if (lexlevel>pprocdef(p^.procdefinition)^.parast^.symtablelevel) then
                      begin
                         hregister:=getregister32;
                         new(r);
@@ -690,7 +692,7 @@ implementation
                         r^.offset:=procinfo.framepointer_offset;
                         r^.base:=procinfo.framepointer;
                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,hregister)));
-                        for i:=(p^.procdefinition^.parast^.symtablelevel) to lexlevel-1 do
+                        for i:=(pprocdef(p^.procdefinition)^.parast^.symtablelevel) to lexlevel-1 do
                           begin
                              new(r);
                              reset_reference(r^);
@@ -735,7 +737,7 @@ implementation
                             reset_reference(r^);
                             r^.base:=R_ESI;
                             { this is one point where we need vmt_offset (PM) }
-                            r^.offset:= p^.procdefinition^._class^.vmt_offset;
+                            r^.offset:= pprocdef(p^.procdefinition)^._class^.vmt_offset;
                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
                             new(r);
                             reset_reference(r^);
@@ -756,9 +758,9 @@ implementation
                        r^.base:=R_EDI;
                      end;
                    }
-                   if p^.procdefinition^.extnumber=-1 then
+                   if pprocdef(p^.procdefinition)^.extnumber=-1 then
                         internalerror($Da);
-                   r^.offset:=p^.procdefinition^.extnumber*4+12;
+                   r^.offset:=pprocdef(p^.procdefinition)^.extnumber*4+12;
 {$ifndef TESTOBJEXT}
                    if (cs_check_range in aktlocalswitches) then
                      begin
@@ -769,7 +771,7 @@ implementation
                    if (cs_check_range in aktlocalswitches) then
                      begin
                         exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
-                          newasmsymbol(p^.procdefinition^._class^.vmt_mangledname))));
+                          newasmsymbol(pprocdef(p^.procdefinition)^._class^.vmt_mangledname))));
                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,r^.base)));
                         emitcall('FPC_CHECK_OBJECT_EXT',true);
                      end;
@@ -777,7 +779,7 @@ implementation
                    exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,r)));
                 end
               else if not inlined then
-                emitcall(p^.procdefinition^.mangledname,
+                emitcall(pprocdef(p^.procdefinition)^.mangledname,
                   (p^.symtableproc^.symtabletype=unitsymtable) or
                   ((p^.symtableproc^.symtabletype=objectsymtable) and
                   (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable))or
@@ -791,7 +793,7 @@ implementation
                    { process the inlinecode }
                    secondpass(inlinecode);
                    { free the args }
-                   ungetpersistanttemp(p^.procdefinition^.parast^.address_fixup);
+                   ungetpersistanttemp(pprocdef(p^.procdefinition)^.parast^.address_fixup);
                 end;
            end
          else
@@ -816,15 +818,17 @@ implementation
                         hregister:=R_EDI;
                      end;
 
-                   inc(p^.right^.location.reference.offset,4);
 
-                   { load ESI }
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                     newreference(p^.right^.location.reference),R_ESI)));
-                   { push self pointer }
-                   exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
-
-                   dec(p^.right^.location.reference.offset,4);
+                   if ((p^.procdefinition^.options and pocontainsself)=0) then
+                     begin
+                       { load ESI }
+                       inc(p^.right^.location.reference.offset,4);
+                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                         newreference(p^.right^.location.reference),R_ESI)));
+                       dec(p^.right^.location.reference.offset,4);
+                       { push self pointer }
+                       exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                     end;
 
                    if hregister=R_NO then
                      exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,newreference(p^.right^.location.reference))))
@@ -1188,7 +1192,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  1999-05-18 09:52:17  peter
+  Revision 1.82  1999-05-18 14:15:23  peter
+    * containsself fixes
+    * checktypes()
+
+  Revision 1.81  1999/05/18 09:52:17  peter
     * procedure of object and addrn fixes
 
   Revision 1.80  1999/05/17 23:51:37  peter
