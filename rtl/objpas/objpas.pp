@@ -16,6 +16,14 @@
 
 unit objpas;
 
+{$ifdef VER0_99_5}
+  {$warning objpas can't be compiled with FPC 0.99.5}
+  interface
+  implementation
+  end.
+{$else}
+
+
   interface
 
     const
@@ -308,9 +316,13 @@ unit objpas;
 begin
   InitExceptions
 end.
+{$endif VER0_99_5}
 {
   $Log$
-  Revision 1.6  1998-08-23 20:58:52  florian
+  Revision 1.7  1998-09-04 08:49:06  peter
+    * 0.99.5 doesn't compile a whole objpas anymore to overcome crashes
+
+  Revision 1.6  1998/08/23 20:58:52  florian
     + rtti for objects and classes
     + TObject.GetClassName implemented
 

@@ -13,10 +13,15 @@
 
  **********************************************************************}
 unit sysutils;
+interface
 
-  interface
+{$ifndef VER0_99_5}
+  {$define USE_EXCEPTIONS}
+{$endif}
 
-  uses dos,objpas; { should become platform independent }
+    uses
+       dos,objpas; { should become platform independent }
+
 
     type
        { some helpful data types }
@@ -33,8 +38,8 @@ unit sysutils;
           lo,hi : byte;
        end;
 
+{$ifdef USE_EXCEPIONS}
        { exceptions }
-{$ifndef VER0_99_5}
        exception = class(tobject)
         private
           fmessage : string;
@@ -58,36 +63,42 @@ unit sysutils;
        eintoverflow = class(einterror);
 
        ematherror = class(exception);
-{$endif}
+{$endif USE_EXCEPIONS}
 
   { Read date & Time function declarations }
   {$i datih.inc}
-  
+
+
   { Read String Handling functions declaration }
   {$i sysstrh.inc}
-  
+
+
   { Read pchar handling functions declration }
   {$i syspchh.inc}
 
-  { Read filename handling functions declaration } 
+  { Read filename handling functions declaration }
+
   {$i finah.inc}
 
 
   implementation
 
-  { Read filename handling functions implementation } 
+  { Read filename handling functions implementation }
+
   {$i fina.inc}
 
   { Read date & Time function implementations }
   {$i dati.inc}
-  
+
+
   { Read String Handling functions implementation }
   {$i sysstr.inc}
-  
+
+
   { Read pchar handling functions implementation }
   {$i syspch.inc}
 
-{$ifndef VER0_99_5}
+{$ifdef USE_EXCEPIONS}
     constructor exception.create(const msg : string);
 
       begin
@@ -110,13 +121,16 @@ unit sysutils;
          inherited create;
          {!!!!!}
       end;
-{$endif}
+{$endif USE_EXCEPIONS}
 
 end.
 
 {
     $Log$
-    Revision 1.4  1998-08-10 15:52:27  peter
+    Revision 1.5  1998-09-04 08:49:07  peter
+      * 0.99.5 doesn't compile a whole objpas anymore to overcome crashes
+
+    Revision 1.4  1998/08/10 15:52:27  peter
       * fixed so 0.99.5 compiles it, but no exception class
 
     Revision 1.3  1998/07/29 15:44:32  michael
