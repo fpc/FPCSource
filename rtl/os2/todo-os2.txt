@@ -13,6 +13,9 @@ finish PM support                             high
           - PMGPI...................................................RB
           - PMBitmap................................................RB
           - PMStdDlg................................................YP
+          - PMHelp..................................................YP
+          - PMDev...................................................YP
+          - PMSpl...................................................TH
 
 RTL
     - sockets
@@ -28,6 +31,7 @@ OS/2 only rtl                                 medium
   - system
   - DOS
   - sysutils.pp
+  - ports.pas
   - loaders (prt*) for EXEs and DLLs
   - autothunking for 16-bit calls
   - ? linker (ALINK)
