@@ -283,7 +283,7 @@ implementation
           swapleftright;
 
          { location is always LOC_JUMP }
-         location_reset(location,LOC_REGISTER,OS_INT);
+         location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
          { allocate a register for the result }
          location.register := rg.getregisterint(exprasmlist,OS_INT);
 
@@ -1124,7 +1124,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2003-05-01 12:26:50  jonas
+  Revision 1.33  2003-05-17 19:17:35  jonas
+    * fixed size setting of result location of innodes
+
+  Revision 1.32  2003/05/01 12:26:50  jonas
     * fixed endian issue in inlined in-test for smallsets
     * pass the address of normalsets to fpc_set_in_set_byte instead of the
       contents of the first 4 bytes
