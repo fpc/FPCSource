@@ -283,11 +283,19 @@ begin
   {$error sign/NaN/Inf not yet supported for big endian CPU's in str_real}
 {$else SUPPORT_EXTENDED}
 {$ifdef SUPPORT_DOUBLE}
+{$ifdef CPUARM}
+  { double, format (MSB): 1 Sign bit, 11 bit exponent, 52 bit mantissa }
+  sign := ((TSplitDouble(d).cards[1] shr 20) and $800) <> 0;
+  expMaximal := ((TSplitDouble(d).cards[1] shr 20) and $7ff) = 2047;
+  fraczero := (TSplitDouble(d).cards[1] and $fffff = 0) and
+              (TSplitDouble(d).cards[0] = 0);
+{$else CPUARM}
+  { double, format (MSB): 1 Sign bit, 11 bit exponent, 52 bit mantissa }
   sign := ((TSplitDouble(d).cards[0] shr 20) and $800) <> 0;
   expMaximal := ((TSplitDouble(d).cards[0] shr 20) and $7ff) = 2047;
   fraczero:= (TSplitDouble(d).cards[0] and $fffff = 0) and
               (TSplitDouble(d).cards[1] = 0);
-  { double, format (MSB): 1 Sign bit, 11 bit exponent, 52 bit mantissa }
+{$endif CPUARM}
 {$else SUPPORT_DOUBLE}
 {$ifdef SUPPORT_SINGLE}
   { single, format (MSB): 1 Sign bit, 8 bit exponent, 23 bit mantissa }
@@ -452,7 +460,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2003-12-29 19:19:21  jonas
+  Revision 1.14  2004-03-13 18:33:52  florian
+    * fixed some arm related real stuff
+
+  Revision 1.13  2003/12/29 19:19:21  jonas
     * fixed NaN/Inf detection for single/double
 
   Revision 1.12  2003/12/08 17:45:00  peter

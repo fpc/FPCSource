@@ -235,12 +235,12 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
      if sizeof(D)=8 then
        begin
          move(d,f64,sizeof(f64));
-{$ifdef arm}
+{$ifdef cpuarm}
          { the arm fpu has a strange opinion how a double has to be stored }
          l:=f64.low;
          f64.low:=f64.high;
          f64.high:=l;
-{$endif arm}
+{$endif cpuarm}
          trunc:=float64_to_int32_round_to_zero(f64);
        end
      else
@@ -267,13 +267,13 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
         sx: longint;
         f64 : float64;
       begin
-         f64:=float64(d);
-{$ifdef arm}
-         { the arm fpu has a strange opinion how a double has to be stored }
-         i0:=f64.low;
-         f64.low:=f64.high;
-         f64.high:=i0;
-{$endif arm}
+        f64:=float64(d);
+{$ifdef cpuarm}
+        { the arm fpu has a strange opinion how a double has to be stored }
+        i0:=f64.low;
+        f64.low:=f64.high;
+        f64.high:=i0;
+{$endif cpuarm}
         i0 := f64.high;
         i1 := cardinal(f64.low);
         sx := i0 and $80000000;
@@ -303,6 +303,12 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
             f64.high := i0;
             f64.low := longint(i1 and not(cardinal($ffffffff) shr (j0 - 20)));
           end;
+{$ifdef cpuarm}
+        { the arm fpu has a strange opinion how a double has to be stored }
+        i0:=f64.low;
+        f64.low:=f64.high;
+        f64.high:=i0;
+{$endif cpuarm}
         result:=double(f64);
       end;
 
@@ -1180,7 +1186,10 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.22  2004-03-11 22:39:53  florian
+  Revision 1.23  2004-03-13 18:33:52  florian
+    * fixed some arm related real stuff
+
+  Revision 1.22  2004/03/11 22:39:53  florian
     * arm startup code fixed
     * made some generic math code more readable
 
