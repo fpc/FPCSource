@@ -114,6 +114,22 @@ var
 (* 4 .. detached (background) OS/2 process *)
   ApplicationType: cardinal;
 
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
+var
+{$endif HASTHREADVAR}
+(* Thread ID of current thread - stored here    *)
+(* to avoid repeated calls to DosGetInfoBlocks. *)
+  ThreadID: cardinal;
+
+
+procedure SetDefaultOS2FileType (FType: ShortString);
+
+procedure SetDefaultOS2Creator (Creator: ShortString);
+
+
+
 implementation
 
 {$I system.inc}
@@ -127,6 +143,16 @@ var
 {$IFDEF CONTHEAP}
     BrkLimit: cardinal;
 {$ENDIF CONTHEAP}
+
+
+var
+  ProcessID: SizeUInt;
+
+function GetProcessID:SizeUInt;
+begin
+ GetProcessID := ProcessID;
+end;
+
 
 procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             PAPIB: PPProcessInfoBlock); cdecl;
@@ -285,6 +311,7 @@ end {['eax', 'ecx', 'edx']};
 syscall $7f00 resizes the brk area}
 
 function sbrk(size:longint):pointer;
+xxx
 {$IFDEF DUMPGROW}
 var
   L: longword;
@@ -1176,6 +1203,29 @@ begin
 end;
 
 
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
+var
+{$endif HASTHREADVAR}
+  DefaultCreator: ShortString = '';
+  DefaultFileType: ShortString = '';
+
+
+procedure SetDefaultOS2FileType (FType: ShortString);
+begin
+{$WARNING Not implemented yet!}
+  DefaultFileType := FType;
+end;
+
+
+procedure SetDefaultOS2Creator (Creator: ShortString);
+begin
+{$WARNING Not implemented yet!}
+  DefaultCreator := Creator;
+end;
+
+
 function GetFileHandleCount: longint;
 var L1: longint;
     L2: cardinal;
@@ -1322,7 +1372,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2004-11-04 09:32:31  peter
+  Revision 1.31  2004-12-05 14:36:37  hajny
+    + GetProcessID added
+
+  Revision 1.30  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.29  2004/10/25 15:38:59  peter

@@ -1112,6 +1112,13 @@ begin
   {$endif }
 end;
 
+function GetProcessID: SizeUInt;
+begin
+ GetProcessID := 1;
+{$WARNING To be implemented - using GetProcessInformation???}
+end;
+
+
 var
   resHdl: Mac_Handle;
   isFolder, hadAlias, leafIsAlias: Boolean;
@@ -1200,7 +1207,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  2004-11-04 09:32:31  peter
+  Revision 1.26  2004-12-05 14:36:37  hajny
+    + GetProcessID added
+
+  Revision 1.25  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.24  2004/10/25 15:38:59  peter

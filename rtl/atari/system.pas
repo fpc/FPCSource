@@ -63,6 +63,12 @@ const
     {$I lowmath.inc}
 
 
+function GetProcessID:SizeUInt;
+begin
+{$WARNING To be checked by platform maintainer}
+ GetProcessID := 1;
+end;
+
     const
       argc : longint = 0;
 
@@ -766,7 +772,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-09-03 19:25:21  olle
+  Revision 1.12  2004-12-05 14:36:37  hajny
+    + GetProcessID added
+
+  Revision 1.11  2004/09/03 19:25:21  olle
     + added maxExitCode to all System.pp
     * constrained error code to be below maxExitCode in RunError et. al.
 

@@ -1009,6 +1009,13 @@ end;
 {$endif}
 
 
+function GetProcessID: SizeUInt;
+begin
+{$WARNING GetProcessID implementation missing}
+ GetProcessID := 1;
+end;
+
+
 { this will be called if the nlm is unloaded. It will NOT be
   called if the program exits i.e. with halt.
   Halt (or _exit) can not be called from this callback procedure }
@@ -1184,7 +1191,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.8  2004-11-25 12:38:17  armin
+  Revision 1.9  2004-12-05 14:36:38  hajny
+    + GetProcessID added
+
+  Revision 1.8  2004/11/25 12:38:17  armin
   * adapted to new compiler check for externals
 
   Revision 1.7  2004/11/04 09:32:31  peter

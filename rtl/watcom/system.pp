@@ -1277,7 +1277,7 @@ begin
    end;
 end;
 
-function do_isdevice(handle:longint):boolean;
+function do_isdevice(handle:THandle):boolean;
 var
   regs : trealregs;
 begin
@@ -1486,6 +1486,12 @@ begin
 end;
 
 
+function GetProcessID: SizeUInt;
+begin
+ GetProcessID := 1;
+end;
+
+
 var
   temp_int : tseginfo;
 Begin
@@ -1532,7 +1538,10 @@ End.
 
 {
   $Log$
-  Revision 1.17  2004-11-04 09:32:31  peter
+  Revision 1.18  2004-12-05 14:36:38  hajny
+    + GetProcessID added
+
+  Revision 1.17  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.16  2004/10/25 15:38:59  peter

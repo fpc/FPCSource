@@ -74,6 +74,10 @@ procedure setup_environment;
 begin
 end;
 
+function GetProcessID: SizeUInt;
+begin
+end;
+
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
@@ -287,7 +291,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.14  2004-11-04 09:32:31  peter
+  Revision 1.15  2004-12-05 14:36:38  hajny
+    + GetProcessID added
+
+  Revision 1.14  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.13  2004/10/25 15:38:59  peter

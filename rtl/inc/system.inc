@@ -567,6 +567,12 @@ Begin
   InOutRes:=0;
 End;
 
+Function GetThreadID:SizeUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+(* ThreadID is stored in a threadvar and made available in interface *)
+(* to allow setup of this value during thread initialization.        *)
+  GetThreadID := ThreadID;
+end;
 
 {*****************************************************************************
                          Stack check code
@@ -999,7 +1005,10 @@ end;
 
 {
   $Log$
-  Revision 1.70  2004-11-21 16:14:59  jonas
+  Revision 1.71  2004-12-05 14:36:37  hajny
+    + GetProcessID added
+
+  Revision 1.70  2004/11/21 16:14:59  jonas
     * fixed remaining compilation problems
 
   Revision 1.69  2004/11/20 15:49:21  jonas

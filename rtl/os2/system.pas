@@ -122,6 +122,7 @@ var
 (* Pointer to the block of environment variables - used e.g. in unit Dos. *)
   Environment: PChar;
 
+
 var
 (* Type / run mode of the current process: *)
 (* 0 .. full screen OS/2 session           *)
@@ -131,10 +132,32 @@ var
 (* 4 .. detached (background) OS/2 process *)
   ApplicationType: cardinal;
 
+(* Is allocation of memory above 512 MB address limit allowed? Initialized *)
+(* during initialization of system unit according to capabilities of the   *)
+(* underlying OS/2 version, can be overridden by user - heap is allocated  *)
+(* for all threads, so the setting isn't declared as a threadvar and       *)
+(* should be only changed at the beginning of the main thread if needed.   *)
+  UseHighMem: boolean;
+
+
+
+procedure SetDefaultOS2FileType (FType: ShortString);
+
+procedure SetDefaultOS2Creator (Creator: ShortString);
+
+
+
 implementation
 
 {$I system.inc}
 
+var
+  ProcessID: SizeUInt;
+
+function GetProcessID:SizeUInt;
+begin
+ GetProcessID := ProcessID;
+end;
 
 procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             PAPIB: PPProcessInfoBlock); cdecl;
@@ -486,14 +509,21 @@ external 'DOSCALLS' index 305;
 function DosFreeMem (P: pointer): cardinal; cdecl;
 external 'DOSCALLS' index 304;
 
-var
-  HighMemSupported: boolean;
-  Int_Heap : Pointer;
-  Int_heapSize : longint;
-
 {$IFDEF DUMPGROW}
  {$DEFINE EXTDUMPGROW}
 {$ENDIF DUMPGROW}
+
+{$IFDEF EXTDUMPGROW}
+var
+  Int_HeapSize: cardinal;
+{$ENDIF EXTDUMPGROW}
+
+{function GetHeapSize: longint; assembler;
+asm
+  movl Int_HeapSize, %eax
+end ['EAX'];
+}
+
 
 function SysOSAlloc (Size: PtrInt): pointer;
 var
@@ -501,32 +531,52 @@ var
   RC: cardinal;
 begin
 {$IFDEF EXTDUMPGROW}
-  WriteLn ('Trying to grow heap by ', Size);
+  if Int_HeapSize <> high (cardinal) then
+{
+  if Int_HeapSize = high (cardinal) then
+   WriteLn ('Trying to allocate first heap of size ', Size)
+  else
+}
+   WriteLn ('Trying to grow heap by ', Size, ' to ', Int_HeapSize);
 {$ENDIF}
 
-  if HighMemSupported then
+  if UseHighMem then
    RC := DosAllocMem (P, Size, $403)
   else
    RC := DosAllocMem (P, Size, 3);
   if RC = 0 then
    begin
 {$IFDEF EXTDUMPGROW}
+  if Int_HeapSize <> high (cardinal) then
     WriteLn ('DosAllocMem returned memory at ', cardinal (P));
 {$ENDIF}
     RC := DosSetMem (P, Size, $410);
     if RC = 0 then
      begin
 {$IFDEF EXTDUMPGROW}
-      WriteLn ('New heap at ', cardinal (P));
+      if Int_HeapSize <> high (cardinal) then
+       WriteLn ('New heap at ', cardinal (P));
 {$ENDIF EXTDUMPGROW}
       SysOSAlloc := P;
-      Inc (Int_HeapSize, Size);
+{$IFDEF EXTDUMPGROW}
+      if Int_HeapSize = high (cardinal) then
+       Int_HeapSize := Size
+      else
+       Inc (Int_HeapSize, Size);
+{$ENDIF EXTDUMPGROW}
      end
     else
      begin
 {$IFDEF EXTDUMPGROW}
-      WriteLn ('Error ', RC, ' in DosSetMem while trying to commit memory!');
-      WriteLn ('Total allocated memory is ', Int_HeapSize);
+      if Int_HeapSize <> high (cardinal) then
+       begin
+        WriteLn ('Error ', RC, ' in DosSetMem while trying to commit memory!');
+{      if Int_HeapSize = high (cardinal) then
+        WriteLn ('No allocated memory comitted yet!')
+       else
+}
+        WriteLn ('Total allocated memory is ', Int_HeapSize);
+       end;
 {$ENDIF EXTDUMPGROW}
       RC := DosFreeMem (P);
       SysOSAlloc := nil;
@@ -536,8 +586,15 @@ begin
    begin
     SysOSAlloc := nil;
 {$IFDEF EXTDUMPGROW}
-    WriteLn ('Error ', RC, ' during additional memory allocation (DosAllocMem)!');
-    WriteLn ('Total allocated memory is ', Int_HeapSize);
+    if Int_HeapSize <> high (cardinal) then
+     begin
+      WriteLn ('Error ', RC, ' during additional memory allocation (DosAllocMem)!');
+{     if Int_HeapSize = high (cardinal) then
+       WriteLn ('No memory allocated yet!')
+      else
+}
+      WriteLn ('Total allocated memory is ', Int_HeapSize);
+     end;
 {$ENDIF EXTDUMPGROW}
    end;
 end;
@@ -551,8 +608,8 @@ begin
 {$IFDEF EXTDUMPGROW}
   WriteLn ('Trying to free memory!');
   WriteLn ('Total allocated memory is ', Int_HeapSize);
-{$ENDIF EXTDUMPGROW}
   Dec (Int_HeapSize, Size);
+{$ENDIF EXTDUMPGROW}
   RC := DosSetMem (P, Size, $20);
   if RC = 0 then
    begin
@@ -1195,6 +1252,29 @@ asm
 end;
 
 
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
+var
+{$endif HASTHREADVAR}
+  DefaultCreator: ShortString;
+  DefaultFileType: ShortString;
+
+
+procedure SetDefaultOS2FileType (FType: ShortString);
+begin
+{$WARNING Not implemented yet!}
+  DefaultFileType := FType;
+end;
+
+
+procedure SetDefaultOS2Creator (Creator: ShortString);
+begin
+{$WARNING Not implemented yet!}
+  DefaultCreator := Creator;
+end;
+
+
 procedure InitEnvironment;
 var env_count : longint;
     dos_env,cp : pchar;
@@ -1438,6 +1518,7 @@ var TIB: PThreadInfoBlock;
     PIB: PProcessInfoBlock;
     RC: cardinal;
     ErrStr: string;
+    P: pointer;
 
 begin
     IsLibrary := FALSE;
@@ -1453,52 +1534,26 @@ begin
     ThreadID := TIB^.TIB2^.TID;
     IsConsole := ApplicationType <> 3;
 
-    exitproc:=nil;
+    ExitProc := nil;
 
     {Initialize the heap.}
-    // Logic is following:
-    //   Application allocates the amount of memory specified by the compiler
-    //   switch -Ch but without commiting. On heap growing required amount of
-    //   memory commited. More memory is allocated as needed within sbrk.
-(* Being changed now - new behaviour will be documented after  *)
-(* things settle down a bit and everything is tested properly. *)
-
-    RC := DosAllocMem (Int_Heap, Int_HeapSize, $403);
-    if RC = 87 then
-     begin
-(* Using of high memory address space (> 512 MB) *)
-(* is not supported on this system.              *)
-      RC := DosAllocMem (Int_Heap, Int_HeapSize, 3);
-      HighMemSupported := false;
-     end
-    else
-     HighMemSupported := true;
-    if RC <> 0 then
-     begin
-      Str (RC, ErrStr);
-      ErrStr := 'Error during heap initialization (DosAllocMem - ' + ErrStr + ')!!'#13#10;
-      DosWrite (2, @ErrStr [1], Length (ErrStr), RC);
-      HandleError (204);
-     end
-    else
-     begin
-      RC := DosSetMem (Int_Heap, Int_HeapSize, $410);
-      if RC <> 0 then
-       begin
-        Str (RC, ErrStr);
-        ErrStr := 'Error during heap initialization (DosSetMem - ' + ErrStr + ')!!'#13#10;
-        DosWrite (2, @ErrStr [1], Length (ErrStr), RC);
-        HandleError (204);
-       end
-{$IFDEF EXTDUMPGROW}
-      else
-       begin
-        Str (Int_HeapSize, ErrStr);
-        ErrStr := 'Initially allocated ' + ErrStr + ' bytes of memory.'#13#10;
-        DosWrite (1, @ErrStr [1], Length (ErrStr), RC);
-       end
-{$ENDIF}
-     end;
+    (* Logic is following:
+       The heap is initially restricted to low address space (< 512 MB).
+       If underlying OS/2 version allows using more than 512 MB per process
+       (OS/2 WarpServer for e-Business, eComStation, possibly OS/2 Warp 4.0
+       with FP13 and above as well), use of this high memory is allowed for
+       future memory allocations at the end of System unit initialization.
+       The consequences are that the compiled application can allocate more
+       memory, but it must make sure to use direct DosAllocMem calls if it
+       needs a memory block for some system API not supporting high memory.
+       This is probably no problem for direct calls to these APIs, but
+       there might be situations when a memory block needs to be passed
+       to a 3rd party DLL which in turn calls such an API call. In case
+       of problems usage of high memory can be turned off by setting
+       UseHighMem to false - the program should change the setting at its
+       very beginning (e.g. in initialization section of the first unit
+       listed in the "uses" section) to avoid having preallocated memory
+       from the high memory region before changing value of this variable. *)
     InitHeap;
 
     { ... and exceptions }
@@ -1516,18 +1571,42 @@ begin
 
     CmdLine := pointer (PIB^.Cmd);
     InitArguments;
+    DefaultCreator := '';
+    DefaultFileType := '';
 
 {$ifdef HASVARIANT}
     initvariantmanager;
 {$endif HASVARIANT}
 
-{$IFDEF DUMPGROW}
-    WriteLn ('Initial brk size is ', GetHeapSize);
-{$ENDIF DUMPGROW}
+{$IFDEF EXTDUMPGROW}
+{    Int_HeapSize := high (cardinal);}
+{$ENDIF EXTDUMPGROW}
+    RC := DosAllocMem (P, 4096, $403);
+    if RC = 87 then
+(* Using of high memory address space (> 512 MB) *)
+(* is not supported on this system.              *)
+     UseHighMem := false
+    else
+     begin
+      UseHighMem := true;
+      if RC <> 0 then
+       begin
+        Str (RC, ErrStr);
+        ErrStr := 'Error during heap initialization (DosAllocMem - ' + ErrStr + ')!!'#13#10;
+        DosWrite (2, @ErrStr [1], Length (ErrStr), RC);
+        HandleError (204);
+       end
+      else
+       DosFreeMem (P);
+     end;
+
 end.
 {
   $Log$
-  Revision 1.76  2004-11-04 09:32:31  peter
+  Revision 1.77  2004-12-05 14:36:38  hajny
+    + GetProcessID added
+
+  Revision 1.76  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.75  2004/10/25 15:38:59  peter

@@ -157,6 +157,11 @@ begin
      execpathstr[0]:=char(i);
 end;
 
+function GetProcessID: SizeUInt;
+begin
+ GetProcessID := SizeUInt (fpGetPID);
+end;
+
 
 Begin
   IsConsole := TRUE;
@@ -185,7 +190,10 @@ End.
 
 {
   $Log$
-  Revision 1.19  2004-11-04 09:32:31  peter
+  Revision 1.20  2004-12-05 14:36:37  hajny
+    + GetProcessID added
+
+  Revision 1.19  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.18  2004/07/09 22:31:22  peter

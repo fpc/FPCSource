@@ -31,6 +31,11 @@ begin
 end;
 }
 
+function GetProcessID: SizeUInt;
+begin
+ GetProcessID := 1;
+end;
+
 begin
    b:=4;
    a:=b;
@@ -41,7 +46,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:17  peter
+  Revision 1.5  2004-12-05 14:36:37  hajny
+    + GetProcessID added
+
+  Revision 1.4  2002/09/07 16:01:17  peter
     * old logs removed and tabs fixed
 
   Revision 1.3  2002/07/28 20:43:47  florian

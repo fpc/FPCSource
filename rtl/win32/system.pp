@@ -692,8 +692,11 @@ end;
    function GetCommandLine : pchar;
      stdcall;external 'kernel32' name 'GetCommandLineA';
 
-   function GetCurrentThread : dword;
-     stdcall; external 'kernel32' name 'GetCurrentThread';
+  function GetCurrentProcessId:DWORD;
+    stdcall; external 'kernel32' name 'GetCurrentProcessId';
+ 
+  function GetCurrentThreadId:DWORD;
+    stdcall; external 'kernel32' name 'GetCurrentThreadId';
 
 
 var
@@ -1573,6 +1576,16 @@ begin
    end;
 end;
 
+(* ProcessID cached to avoid repeated calls to GetCurrentProcess. *)
+
+var
+  ProcessID: SizeUInt;
+
+function GetProcessID: SizeUInt;
+begin
+ GetProcessID := ProcessID;
+end;
+
 
 const
    Exe_entry_code : pointer = @Exe_entry;
@@ -1597,8 +1610,8 @@ begin
   setup_arguments;
   { Reset IO Error }
   InOutRes:=0;
-  ProcessID := GetCurrentProcess;
-  ThreadID := GetCurrentThread;
+  ProcessID := GetCurrentProcessID;
+  ThreadID := GetCurrentThreadID;
   { Reset internal error variable }
   errno:=0;
 {$ifdef HASVARIANT}
@@ -1608,7 +1621,10 @@ end.
 
 {
   $Log$
-  Revision 1.63  2004-11-04 09:32:31  peter
+  Revision 1.64  2004-12-05 14:36:38  hajny
+    + GetProcessID added
+
+  Revision 1.63  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.62  2004/10/25 15:38:59  peter

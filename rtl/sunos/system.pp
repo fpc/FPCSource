@@ -91,6 +91,12 @@ begin
 end;
 
 
+function GetProcessID: SizeUInt;
+begin
+ GetProcessID := SizeUInt (fpGetPID);
+end;
+
+
 procedure pascalmain; external name 'PASCALMAIN';
 
 { Main entry point in C style, needed to capture program parameters. }
@@ -130,6 +136,9 @@ End.
 
 {
  $Log$
- Revision 1.2  2004-11-06 22:22:28  florian
+ Revision 1.3  2004-12-05 14:36:38  hajny
+   + GetProcessID added
+
+ Revision 1.2  2004/11/06 22:22:28  florian
    * some sunos stuff from 1.0.x merged
 }

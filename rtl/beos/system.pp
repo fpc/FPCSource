@@ -495,6 +495,13 @@ begin
 end;
 
 
+function GetProcessID:SizeUInt;
+begin
+{$WARNING To be corrected by platform maintainer}
+ GetProcessID := 1;
+end;
+
+
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
@@ -539,7 +546,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2004-11-04 09:32:31  peter
+  Revision 1.19  2004-12-05 14:36:37  hajny
+    + GetProcessID added
+
+  Revision 1.18  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.17  2004/10/25 15:38:59  peter

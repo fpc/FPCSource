@@ -929,6 +929,12 @@ begin
   {$endif}
 end;
 
+function GetProcessID: SizeUInt;
+begin
+ GetProcessID := SizeUInt (CurrentProcess);
+{$WARNING GetProcessID implementation should be checked!}
+end;
+
 
 {*****************************************************************************
                          SystemUnit Initialization
@@ -979,7 +985,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.31  2004-11-25 12:32:08  armin
+  Revision 1.32  2004-12-05 14:36:37  hajny
+    + GetProcessID added
+
+  Revision 1.31  2004/11/25 12:32:08  armin
   * adapted to new compiler check for externals
 
   Revision 1.30  2004/11/04 09:32:31  peter

@@ -186,6 +186,10 @@ end;
 {$endif Darwin}
 {$endif FPC_USE_LIBC}
 
+function GetProcessID: SizeUInt;
+begin
+ GetProcessID := SizeUInt (fpGetPID);
+end;
 
 
 Begin
@@ -214,7 +218,10 @@ End.
 
 {
   $Log$
-  Revision 1.20  2004-11-04 09:32:31  peter
+  Revision 1.21  2004-12-05 14:36:37  hajny
+    + GetProcessID added
+
+  Revision 1.20  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.19  2004/07/17 15:31:03  jonas

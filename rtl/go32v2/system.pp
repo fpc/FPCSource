@@ -48,7 +48,6 @@ const
  DirectorySeparator = '\';
  DriveSeparator = ':';
  PathSeparator = ';';
- ExtensionSeparator = '.';
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 255;
 
@@ -1603,7 +1602,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.44  2004-11-25 17:37:59  jonas
+  Revision 1.45  2004-12-05 14:36:37  hajny
+    + GetProcessID added
+
+  Revision 1.44  2004/11/25 17:37:59  jonas
     * fixed some C-linking problems (the C-prefix is now always added to
       cdecl external functions, also if you define the name explicitly)
 

@@ -334,7 +334,6 @@ const
   fmOutput = $D7B2;
   fmInOut  = $D7B3;
   fmAppend = $D7B4;
-  ProcessID: SizeUInt = 1;
   Filemode : byte = 2;
   CmdLine : PChar = nil;
 (* Value should be changed during system initialization as appropriate. *)
@@ -707,6 +706,8 @@ function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{
 
 Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Sptr:Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_ptr];{$endif}
+Function GetProcessID:SizeUInt;
+Function GetThreadID:SizeUInt;
 
 
 {*****************************************************************************
@@ -795,7 +796,10 @@ const
 
 {
   $Log$
-  Revision 1.110  2004-11-26 22:26:30  peter
+  Revision 1.111  2004-12-05 14:36:37  hajny
+    + GetProcessID added
+
+  Revision 1.110  2004/11/26 22:26:30  peter
     * internconst for ptr()
 
   Revision 1.109  2004/11/22 22:48:10  michael

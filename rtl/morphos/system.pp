@@ -823,6 +823,12 @@ begin
   // OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
 end;
 
+function GetProcessID: SizeUInt;
+begin
+ GetProcessID := 1;
+{$WARNING Implementation of GetProcessID missing!}
+end;
+
 
 begin
   IsConsole := TRUE;
@@ -856,7 +862,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  2004-11-15 23:18:16  karoly
+  Revision 1.23  2004-12-05 14:36:37  hajny
+    + GetProcessID added
+
+  Revision 1.22  2004/11/15 23:18:16  karoly
    * Reworked path handling to be less messy
 
   Revision 1.21  2004/11/04 09:32:31  peter
