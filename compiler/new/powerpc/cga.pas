@@ -1,9 +1,8 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
-    Development Team
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
-    This unit implements the PowerPC optimizer object
+    Helper routines for the i386 code generator
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,34 +21,23 @@
  ****************************************************************************
 }
 
+unit cga;
 
-Unit aoptcpu;
+{$i defines.inc}
 
-Interface
+interface
 
-uses cpubase, aoptobj, aoptcpub;
+    uses
+       cpubase,cpuasm,
+       symconst,symtype,symdef,aasm;
 
-Type
-  TAOptCpu = Object(TAoptObj)
-    { uses the same constructor as TAopObj }
-  End;
+implementation
 
-Implementation
-
-End.
+end.
 {
- $Log$
- Revision 1.2  2001-08-26 13:29:33  florian
-   * some cg reorganisation
-   * some PPC updates
-
- Revision 1.1  2000/07/13 06:30:12  michael
-   + Initial import
-
- Revision 1.2  2000/01/07 01:14:57  peter
-   * updated copyright to 2000
-
- Revision 1.1  1999/12/24 22:49:23  jonas
-   + dummy to allow compiling
+  $Log$
+  Revision 1.1  2001-08-26 13:29:33  florian
+    * some cg reorganisation
+    * some PPC updates
 
 }

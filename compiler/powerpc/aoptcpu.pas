@@ -39,7 +39,11 @@ Implementation
 End.
 {
  $Log$
- Revision 1.2  2001-08-26 13:29:33  florian
+ Revision 1.1  2001-08-26 13:31:04  florian
+   * some cg reorganisation
+   * some PPC updates
+
+ Revision 1.2  2001/08/26 13:29:33  florian
    * some cg reorganisation
    * some PPC updates
 

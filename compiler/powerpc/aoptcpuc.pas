@@ -1,9 +1,10 @@
-{
+ {
     $Id$
     Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
     Development Team
 
-    This unit implements the PowerPC optimizer object
+    This unit contains the processor specific implementation of the
+    assembler optimizer common subexpression elimination object.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,35 +22,34 @@
 
  ****************************************************************************
 }
-
-
-Unit aoptcpu;
+unit aoptcpuc;
 
 Interface
 
-uses cpubase, aoptobj, aoptcpub;
+Uses
+  AOptCs;
 
 Type
-  TAOptCpu = Object(TAoptObj)
-    { uses the same constructor as TAopObj }
+  TRegInfoCpu = Object(TRegInfo)
   End;
+
 
 Implementation
 
 End.
 {
- $Log$
- Revision 1.2  2001-08-26 13:29:33  florian
-   * some cg reorganisation
-   * some PPC updates
+  $Log$
+  Revision 1.1  2001-08-26 13:31:04  florian
+    * some cg reorganisation
+    * some PPC updates
 
- Revision 1.1  2000/07/13 06:30:12  michael
-   + Initial import
+  Revision 1.1  2000/07/13 06:30:12  michael
+  + Initial import
 
- Revision 1.2  2000/01/07 01:14:57  peter
-   * updated copyright to 2000
+  Revision 1.2  2000/01/07 01:14:57  peter
+    * updated copyright to 2000
 
- Revision 1.1  1999/12/24 22:49:23  jonas
-   + dummy to allow compiling
+  Revision 1.1  1999/11/09 22:57:09  peter
+    * compiles again both i386,alpha both with optimizer
 
 }
