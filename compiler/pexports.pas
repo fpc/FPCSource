@@ -56,18 +56,45 @@ implementation
 
 
     procedure read_exports;
+      type
+        pItems=^tItems;
+        tItems=record
+          next : pItems;
+          item : texported_item;
+        end;
       var
-         hp        : texported_item;
-         orgs,
-         DefString : string;
-         InternalProcName : string;
-         pt               : tnode;
-         srsym            : tsym;
-         srsymtable : tsymtable;
+        Items, TempItems, TempItems2 : pItems;
+        with_indexes : boolean;
+        hp        : texported_item;
+        orgs,
+        DefString : string;
+        InternalProcName : string;
+        pt               : tnode;
+        srsym            : tsym;
+        srsymtable : tsymtable;
+         
+        function IsGreater(hp1,hp2:texported_item):boolean;
+        var
+          i2 : boolean;
+        begin
+          i2:=(hp2.options and eo_index)<>0;
+          if (hp1.options and eo_index)<>0 then
+           begin
+             if i2 then
+               IsGreater:=hp1.index>hp2.index
+             else
+               IsGreater:=false;
+           end
+          else
+            IsGreater:=i2;
+        end;
+       
       begin
          DefString:='';
          InternalProcName:='';
          consume(_EXPORTS);
+         Items:=nil;
+         with_indexes:=false;
          repeat
            hp:=texported_item.create;
            if token=_ID then
@@ -119,6 +146,7 @@ implementation
                       consume(_INTCONST);
                     end;
                    hp.options:=hp.options or eo_index;
+                   with_indexes:=true;
                    pt.free;
                    if target_info.system in [system_i386_win32,system_i386_wdosx] then
                     DefString:=srsym.realname+'='+InternalProcName+' @ '+tostr(hp.index)
@@ -152,15 +180,52 @@ implementation
                    hp.name:=stringdup(orgs);
                    hp.options:=hp.options or eo_name;
                  end;
-                if hp.sym.typ=procsym then
-                 exportlib.exportprocedure(hp)
+                if with_indexes then
+                 begin
+                  new(TempItems);
+                  TempItems^.Item:=hp;
+                  TempItems^.next:=Items;
+                  Items:=TempItems;
+                 end
                 else
-                 exportlib.exportvar(hp);
+                 begin
+                  if hp.sym.typ=procsym then
+                   exportlib.exportprocedure(hp)
+                  else
+                   exportlib.exportvar(hp);
+                 end;
              end
            else
              consume(_ID);
          until not try_to_consume(_COMMA);
          consume(_SEMICOLON);
+         TempItems:=Items;
+         while TempItems<>nil do
+          begin
+           TempItems2:=TempItems^.next;
+           while TempItems2<>nil do
+            begin
+             if IsGreater(TempItems^.Item,TempItems2^.Item)then
+              begin
+               hp:=TempItems^.Item;
+               TempItems^.Item:=TempItems2^.Item;
+               TempItems2^.Item:=hp;
+              end;
+             TempItems2:=TempItems2^.next;
+            end;
+           TempItems:=TempItems^.next;
+          end;
+         while Items<>nil do
+          begin
+           if hp.sym.typ=procsym then
+            exportlib.exportprocedure(Items^.item)
+           else
+            exportlib.exportvar(Items^.item);
+           TempItems:=Items;
+           Items:=Items^.next;
+           Dispose(TempItems);
+          end;
+
         if not DefFile.empty then
          DefFile.writefile;
       end;
@@ -169,7 +234,10 @@ end.
 
 {
   $Log$
-  Revision 1.24  2002-10-05 12:43:26  carl
+  Revision 1.25  2004-04-08 11:07:05  michael
+  indexed exports needs to be sorted (patch from Pavel)
+
+  Revision 1.24  2002/10/05 12:43:26  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
