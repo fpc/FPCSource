@@ -68,7 +68,7 @@ asm
  xorl %ecx, %ecx
  movw P, %cx
  movl %ecx, %edx
- movb $12, %al
+ movw $0x7F12, %ax
  call syscall
  movw P, %dx
  movb Data, %al
@@ -80,7 +80,7 @@ asm
  xorl %ecx, %ecx
  movw P, %cx
  movl %ecx, %edx
- movb $12, %al
+ movw $0x7F12, %ax
  call syscall
  movw P, %dx
  inb %dx, %al
@@ -91,7 +91,7 @@ asm
  xorl %ecx, %ecx
  movw P, %cx
  movl %ecx, %edx
- movb $12, %al
+ movw $0x7F12, %ax
  call syscall
  movw P, %dx
  movw Data, %ax
@@ -103,7 +103,7 @@ asm
  xorl %ecx, %ecx
  movw P, %cx
  movl %ecx, %edx
- movb $12, %al
+ movw $0x7F12, %ax
  call syscall
  movw P, %dx
  inw %dx, %ax
@@ -114,7 +114,7 @@ asm
  xorl %ecx, %ecx
  movw P, %cx
  movl %ecx, %edx
- movb $12, %al
+ movw $0x7F12, %ax
  call syscall
  movw P, %dx
  movl Data, %eax
@@ -126,7 +126,7 @@ asm
  xorl %ecx, %ecx
  movw P, %cx
  movl %ecx, %edx
- movb $12, %al
+ movw $0x7F12, %ax
  call syscall
  movw P, %dx
  inl %dx, %eax
@@ -136,7 +136,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-01-02 16:05:36  hajny
+  Revision 1.2  2000-01-02 17:13:12  hajny
+    * it might even work now ;-)
+
+  Revision 1.1  2000/01/02 16:05:36  hajny
     + initial OS/2 release
 
 }
