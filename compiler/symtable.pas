@@ -203,7 +203,9 @@ interface
     function  searchsym_in_class_by_msgint(classh:tobjectdef;i:longint):tsym;
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string):tsym;
     function  searchsystype(const s: stringid; var srsym: ttypesym): boolean;
+{$ifdef notused}
     function  searchsysvar(const s: stringid; var srsym: tsym; var symowner: tsymtable): boolean;
+{$endif notused}
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
 
@@ -2036,6 +2038,7 @@ implementation
       end;
 
 
+{$ifdef notused}
     function searchsysvar(const s: stringid; var srsym: tsym; var symowner: tsymtable): boolean;
       begin
         if not(cs_compilesystem in aktmoduleswitches) then
@@ -2049,6 +2052,7 @@ implementation
           assigned(srsym) and
           (srsym.typ = globalvarsym);
       end;
+{$endif notused}
 
 
     function search_class_member(pd : tobjectdef;const s : string):tsym;
@@ -2303,7 +2307,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.162  2004-11-08 22:09:59  peter
+  Revision 1.163  2004-11-09 23:10:22  peter
+    * use helper call to retrieve address of input/output to reduce
+      code that is generated in the main program for loading the
+      threadvar
+
+  Revision 1.162  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.161  2004/11/05 21:16:55  peter

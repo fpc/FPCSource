@@ -173,6 +173,8 @@ Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerpr
 {$endif HASWIDECHAR}
 
 { from text.inc }
+Function fpc_get_input:PText;{$ifdef hascompilerproc}compilerproc;{$endif}
+Function fpc_get_output:PText;{$ifdef hascompilerproc}compilerproc;{$endif}
 Procedure fpc_Write_End(var f:Text); compilerproc;
 Procedure fpc_Writeln_End(var f:Text); compilerproc;
 Procedure fpc_Write_Text_ShortStr(Len : Longint;var f : Text;const s : String); compilerproc;
@@ -330,7 +332,12 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.58  2004-09-29 14:55:49  mazen
+  Revision 1.59  2004-11-09 23:10:22  peter
+    * use helper call to retrieve address of input/output to reduce
+      code that is generated in the main program for loading the
+      threadvar
+
+  Revision 1.58  2004/09/29 14:55:49  mazen
   * widestring conversion routines takes a widechar so no
   information is lost
 

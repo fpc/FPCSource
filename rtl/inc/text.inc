@@ -442,6 +442,18 @@ Begin
 End;
 
 
+Function fpc_get_input:PText;{$ifdef hascompilerproc}compilerproc;{$endif}
+begin
+  fpc_get_input:=@Input;
+end;
+
+
+Function fpc_get_output:PText;{$ifdef hascompilerproc}compilerproc;{$endif}
+begin
+  fpc_get_output:=@Output;
+end;
+
+
 {*****************************************************************************
                                Write(Ln)
 *****************************************************************************}
@@ -1277,7 +1289,12 @@ end;
 
 {
   $Log$
-  Revision 1.26  2004-09-21 23:36:51  hajny
+  Revision 1.27  2004-11-09 23:10:22  peter
+    * use helper call to retrieve address of input/output to reduce
+      code that is generated in the main program for loading the
+      threadvar
+
+  Revision 1.26  2004/09/21 23:36:51  hajny
     * SetTextLineEnding implemented, FileRec.Name position alignment for CPU64
 
   Revision 1.25  2004/08/20 10:04:39  olle

@@ -72,8 +72,8 @@ implementation
     uses
       verbose,globals,systems,
       globtype, cutils,
-      symbase,symconst,symdef,symsym,symtable,paramgr,defutil,defcmp,
-      pass_1,tgobj,
+      symbase,symconst,symdef,symsym,symtable,paramgr,defutil,
+      pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
       cgbase,procinfo
       ;
@@ -305,7 +305,7 @@ implementation
         temp          : ttempcreatenode;
         procprefix,
         name          : string[31];
-        srsym         : tglobalvarsym;
+        textsym       : ttypesym;
         tempowner     : tsymtable;
         readfunctype  : ttype;
         is_typed,
@@ -364,14 +364,6 @@ implementation
         { if we don't have a filepara, create one containing the default }
         if not assigned(filepara) then
           begin
-            { retrieve the symbols for standard input/output handle }
-            if do_read then
-              name := 'INPUT'
-            else
-              name := 'OUTPUT';
-            if not searchsysvar(name,srsym,tempowner) then
-              internalerror(200108141);
-
             { since the input/output variables are threadvars loading them into
               a temp once is faster. Create a temp which will hold a pointer to the file }
             filetemp := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent);
@@ -385,15 +377,21 @@ implementation
             resulttypepass(tnode(filetemp));
 
             { assign the address of the file to the temp }
+            if do_read then
+              name := 'input'
+            else
+              name := 'output';
             addstatement(newstatement,
               cassignmentnode.create(ctemprefnode.create(filetemp),
-                caddrnode.create(cloadnode.create(srsym,tempowner))));
+                ccallnode.createintern('fpc_get_'+name,nil)));
 
             { create a new fileparameter as follows: file_type(temp^)    }
             { (so that we pass the value and not the address of the temp }
             { to the read/write routine)                                 }
+            if not searchsystype('TEXT',textsym) then
+              internalerror(200108313);
             filepara := ccallparanode.create(ctypeconvnode.create_internal(
-              cderefnode.create(ctemprefnode.create(filetemp)),srsym.vartype),nil);
+              cderefnode.create(ctemprefnode.create(filetemp)),textsym.restype),nil);
           end
         else
           { remove filepara from the parameter chain }
@@ -1387,7 +1385,7 @@ implementation
                end;
              end;
             if hp=nil then
-             hp:=tnode.create(errorn);
+             hp:=terrornode.create;
             result:=hp;
             goto myexit;
           end
@@ -2442,7 +2440,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.150  2004-11-08 22:09:59  peter
+  Revision 1.151  2004-11-09 23:10:22  peter
+    * use helper call to retrieve address of input/output to reduce
+      code that is generated in the main program for loading the
+      threadvar
+
+  Revision 1.150  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.149  2004/11/02 12:55:16  peter

@@ -278,6 +278,9 @@ Type
   PWideString         = ^WideString;
 {$endif HASWIDESTRING}
 
+  { Needed for fpc_get_output }
+  PText               = ^Text;
+  
   TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
 
 { procedure type }
@@ -770,7 +773,12 @@ const
 
 {
   $Log$
-  Revision 1.106  2004-11-04 09:32:31  peter
+  Revision 1.107  2004-11-09 23:10:22  peter
+    * use helper call to retrieve address of input/output to reduce
+      code that is generated in the main program for loading the
+      threadvar
+
+  Revision 1.106  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.105  2004/10/30 20:49:10  marco
