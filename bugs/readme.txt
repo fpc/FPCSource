@@ -216,7 +216,9 @@ bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
 bug0153.pp   Asm, indexing a local/para var should produce an error like tp7
              because it's doomed to crash
 bug0155.pp   Asm, Missing string return for asm functions
+bug0170.pp   Asm, {$ifdef} is seen as a separator
 
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
 bug0163.pp   missing <= and >= operators for sets.
+bug0169.pp   missing new(type) support for not object/class
