@@ -427,7 +427,7 @@ begin
 end;
 
 procedure clreol;
-ð{Clear from current position to end of line.
+{Clear from current position to end of line.
 Contributed by Michail A. Baikov}
 
 var i:byte;
