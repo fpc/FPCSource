@@ -26,6 +26,9 @@ unit aoptcpuc;
 
 Interface
 
+Uses
+  CpuBase,AOptCs;
+
 Type
   TRegInfoCpu = Object(TRegInfo)
     Procedure AddReg(OldReg, NewReg: TRegister); Virtual;
@@ -82,7 +85,10 @@ End;
 End.
 {
   $Log$
-  Revision 1.1  1999-08-18 14:32:26  jonas
+  Revision 1.2  1999-11-09 22:57:09  peter
+    * compiles again both i386,alpha both with optimizer
+
+  Revision 1.1  1999/08/18 14:32:26  jonas
     + compilable!
     + dataflow analyzer finished
     + start of CSE units

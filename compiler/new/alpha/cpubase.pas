@@ -70,7 +70,7 @@ Const
   lastop  = high(tasmop);
 
 type
-  TAsmCond = 
+  TAsmCond =
    (
     C_None,C_A,C_AE,C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_NA,C_NAE,
     C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_NO,C_NP,C_NS,C_NZ,C_O,C_P,
@@ -111,17 +111,29 @@ Const
   max_scratch_regs = 2;
   scratch_regs : array[1..max_scratch_regs] of tregister = (R_1,R_2);
 
+{ low and high of the available maximum width integer general purpose }
+{ registers                                                           }
+  LoGPReg = R_0;
+  HiGPReg = R_31;
+
+{ low and high of every possible width general purpose register (same as }
+{ above on most architctures apart from the 80x86)                       }
+  LoReg = R_0;
+  HiReg = R_31;
+
   cpuflags = [cf_64bitaddr];
 
   { sizes }
   pointersize   = 8;
   extended_size = 16;
-  
+
+  general_registers = [R_0..R_31];
+
   intregs = [R_0..R_31];
   fpuregs = [R_F0..R_F31];
   mmregs = [];
- 
-  availabletempregsint = [R_0..R_14,R_16..R_25,R_28];     
+
+  availabletempregsint = [R_0..R_14,R_16..R_25,R_28];
   availabletempregsfpu = [R_F0..R_F30];
   availabletempregsmm  = [];
 
@@ -134,15 +146,16 @@ Const
   registers_saved_on_cdecl = [R_9..R_14,R_F2..R_F9];
   maxvarregs = 6;
 
-  varregs : Array [1..maxvarregs] of Tregister = 
+  varregs : Array [1..maxvarregs] of Tregister =
             (R_9,R_10,R_11,R_12,R_13,R_14);
-  
-Type 
+
+Type
  TReference = record
    offset : aword;
    symbol : pasmsymbol;
    base : tregister;
    is_immediate : boolean;
+   offsetfixup : word; {needed for inline}
    { the boundary to which the reference is surely aligned }
    alignment : byte;
    end;
@@ -194,6 +207,18 @@ Const
   OQ_FLOATING_UNDERFLOW_ENABLE   = $20;  { /U }
   OQ_INTEGER_OVERFLOW_ENABLE     = $40;  { /V }
 
+
+{*****************************************************************************
+                   Opcode propeties (needed for optimizer)
+*****************************************************************************}
+
+{$ifndef NOOPT}
+Type
+{What an instruction can change}
+  TInsChange = (Ch_None);
+{$endif}
+
+
 { resets all values of ref to defaults }
 procedure reset_reference(var ref : treference);
 { set mostly used values of a new reference }
@@ -209,7 +234,7 @@ function reg2str(r : tregister) : string;
 
   procedure InitCpu;
   procedure DoneCpu;
-  
+
 implementation
 
 uses
@@ -266,15 +291,18 @@ end;
   procedure InitCpu;
     begin
     end;
-    
+
   procedure DoneCpu;
     begin
     end;
-  
+
 end.
 {
   $Log$
-  Revision 1.14  1999-08-23 23:27:55  pierre
+  Revision 1.15  1999-11-09 22:57:09  peter
+    * compiles again both i386,alpha both with optimizer
+
+  Revision 1.14  1999/08/23 23:27:55  pierre
    + dummy InitCpu/DoneCpu
 
   Revision 1.13  1999/08/06 16:41:10  jonas

@@ -195,9 +195,9 @@ Type
 
    { returns whether two references with at least one pointing to an array }
    { may point to the same memory location                                 }
-   Function ArrayRefsEq(const r1, r2: TReference): Boolean;
 
   End;
+
 
 { ************************************************************************* }
 { ************************ Label information ****************************** }
@@ -273,12 +273,13 @@ Type
 
   End;
 
+   Function ArrayRefsEq(const r1, r2: TReference): Boolean;
 
 { ***************************** Implementation **************************** }
 
 Implementation
 
-uses hcodegen, globtype, globals, tainst;
+uses globtype, globals, cgbase, tainst;
 
 { ************************************************************************* }
 { ******************************** TUsedRegs ****************************** }
@@ -360,7 +361,7 @@ Begin
     Begin
       If IsLoadMemReg(p) Then
         With PInstr(p)^.oper[LoadSrc].ref^ Do
-          If (Base = ProcInfo.FramePointer)
+          If (Base = ProcInfo^.FramePointer)
 {$ifdef RefsHaveIndexReg}
              And (Index = R_NO)
 {$endif RefsHaveIndexReg} Then
@@ -398,8 +399,8 @@ Var TmpWState, TmpRState: Byte;
     Counter: TRegister;
 Begin
   Reg := RegMaxSize(Reg);
-  If (Reg in [R_EAX..R_EDI]) Then
-    For Counter := R_EAX to R_EDI Do
+  If (Reg in [LoGPReg..HiGPReg]) Then
+    For Counter := LoGPReg to HiGPReg Do
       With Regs[Counter] Do
         If (Counter = reg) Or
            ((Typ = Con_Ref) And
@@ -415,10 +416,13 @@ Begin
           End
 End;
 
-Function TPaiProp.ArrayRefsEq(const r1, r2: TReference): Boolean;
+Function ArrayRefsEq(const r1, r2: TReference): Boolean;
 Begin
   ArrayRefsEq := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
-                 (R1.Segment = R2.Segment) And (R1.Base = R2.Base) And
+{$ifdef refsHaveSegmentReg}
+                 (R1.Segment = R2.Segment) And
+{$endif}
+                 (R1.Base = R2.Base) And
                  (R1.Symbol=R2.Symbol);
 End;
 
@@ -474,7 +478,8 @@ Begin
               Then
                 DestroyReg(Counter, InstrSinceLastMod)
           End
-    Else
+    End
+  Else
 {write something to a pointer location, so
    * with uncertain optimzations on:
       - do not destroy registers which contain a local/global variable or a
@@ -493,7 +498,7 @@ Begin
         {don't destroy if reg contains a parameter, local or global variable}
               Not((NrOfMods = 1) And
                   (PInstr(StartMod)^.oper[0].typ = top_ref) And
-                  ((PInstr(StartMod)^.oper[0].ref^.base = ProcInfo.FramePointer) Or
+                  ((PInstr(StartMod)^.oper[0].ref^.base = ProcInfo^.FramePointer) Or
                     Assigned(PInstr(StartMod)^.oper[0].ref^.Symbol)
                   )
                  )
@@ -504,7 +509,7 @@ End;
 Procedure TPaiProp.DestroyAllRegs(var InstrSinceLastMod: TInstrSinceLastMod);
 Var Counter: TRegister;
 Begin {initializes/desrtoys all registers}
-  For Counter := R_EAX To R_EDI Do
+  For Counter := LoGPReg To HiGPReg Do
     Begin
       ReadReg(Counter);
       DestroyReg(Counter, InstrSinceLastMod);
@@ -520,7 +525,7 @@ Begin
     top_reg: DestroyReg(o.reg, InstrSinceLastMod);
     top_ref:
       Begin
-        ReadRef(o.ref^);
+        ReadRef(o.ref);
         DestroyRefs(o.ref^, R_NO, InstrSinceLastMod);
       End;
     top_symbol:;
@@ -538,8 +543,10 @@ Procedure TPaiProp.ReadRef(Ref: PReference);
 Begin
   If Ref^.Base <> R_NO Then
     ReadReg(Ref^.Base);
+{$ifdef refsHaveIndexReg}
   If Ref^.Index <> R_NO Then
     ReadReg(Ref^.Index);
+{$endif}
 End;
 
 Procedure TPaiProp.ReadOp(const o:toper);
@@ -654,7 +661,7 @@ Begin
         (Counter <= Content.NrOfMods) Do
     Begin
       If (p^.typ = ait_instruction) And
-         RefInInstruction(Ref, p)
+         RefInInstruction(Ref, p, {$ifdef fpc}@{$endif}RefsEqual)
         Then TmpResult := True;
       Inc(Counter);
       GetNextInstruction(p,p)
@@ -784,7 +791,10 @@ End.
 
 {
  $Log$
- Revision 1.6  1999-09-29 13:50:34  jonas
+ Revision 1.7  1999-11-09 22:57:08  peter
+   * compiles again both i386,alpha both with optimizer
+
+ Revision 1.6  1999/09/29 13:50:34  jonas
    * fixes from daopt386.pas integrated
 
  Revision 1.5  1999/08/26 14:50:52  jonas

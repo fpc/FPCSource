@@ -47,7 +47,7 @@ Type
     Function RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
 
     { returns true if the references are completely equal }
-    Function RefsEqual(Const R1, R2: TReference): Boolean;
+    {Function RefsEqual(Const R1, R2: TReference): Boolean;}
 
     { gets the next Pai object after current that contains info relevant }
     { to the optimizer in p1. If there is none, it returns false and     }
@@ -82,9 +82,32 @@ Type
 
 end;
 
+Function RefsEqual(Const R1, R2: TReference): Boolean;
+
+
 Implementation
 
 uses globals, aoptcpub, cpuinfo;
+
+Function RefsEqual(Const R1, R2: TReference): Boolean;
+Begin
+  If R1.is_immediate Then
+    RefsEqual := R2.is_immediate and (R1.Offset = R2.Offset)
+  Else
+    RefsEqual := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup)
+                 And (R1.Base = R2.Base)
+{$ifdef RefsHaveindex}
+                 And (R1.Index = R2.Index)
+{$endif RefsHaveindex}
+{$ifdef RefsHaveScale}
+                 And (R1.ScaleFactor = R2.ScaleFactor)
+{$endif RefsHaveScale}
+                 And (R1.Symbol = R2.Symbol)
+{$ifdef RefsHaveSegment}
+                 And (R1.Segment = R2.Segment)
+{$endif RefsHaveSegment}
+End;
+
 
 constructor taoptbase.init;
 begin
@@ -126,25 +149,6 @@ Begin
 {$ifdef RefsHaveIndexReg}
   Or (Ref.Index = Reg)
 {$endif RefsHaveIndexReg}
-End;
-
-Function TAOptBase.RefsEqual(Const R1, R2: TReference): Boolean;
-Begin
-  If R1.is_immediate Then
-    RefsEqual := R2.is_immediate and (R1.Offset = R2.Offset)
-  Else
-    RefsEqual := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup)
-                 And (R1.Base = R2.Base)
-{$ifdef RefsHaveindex}
-                 And (R1.Index = R2.Index)
-{$endif RefsHaveindex}
-{$ifdef RefsHaveScale}
-                 And (R1.ScaleFactor = R2.ScaleFactor)
-{$endif RefsHaveScale}
-                 And (R1.Symbol = R2.Symbol)
-{$ifdef RefsHaveSegment}
-                 And (R1.Segment = R2.Segment)
-{$endif RefsHaveSegment}
 End;
 
 Function TAOptBase.GetNextInstruction(Current: Pai; Var Next: Pai): Boolean;
@@ -259,7 +263,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  1999-09-08 15:01:31  jonas
+  Revision 1.4  1999-11-09 22:57:08  peter
+    * compiles again both i386,alpha both with optimizer
+
+  Revision 1.3  1999/09/08 15:01:31  jonas
     * some small changes so the noew optimizer is again compilable
 
   Revision 1.2  1999/08/23 14:41:12  jonas

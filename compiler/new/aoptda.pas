@@ -43,8 +43,8 @@ Type
     { last one that modified the register                               }
     InstrSinceLastMod: TInstrSinceLastMod;
 
-    { convert a TChange value into the corresponding register }
-    Function TCh2Reg(Ch: TChange): TRegister; Virtual;
+    { convert a TInsChange value into the corresponding register }
+    Function TCh2Reg(Ch: TInsChange): TRegister; Virtual;
     { returns whether the instruction P reads from register Reg }
     Function RegReadByInstr(Reg: TRegister; p: Pai): Boolean; Virtual;
   End;
@@ -76,13 +76,16 @@ Begin
         Begin
           GetLastInstruction(p, hp);
           CurProp^.Regs := PPaiProp(hp^.OptInfo)^.Regs;
+{ !!!!!!!!!!!! }
+{$ifdef i386}
           CurProp^.CondRegs.Flags :=
             PPaiProp(hp^.OptInfo)^.CondRegs.Flags;
+{$endif}
         End;
       CurProp^.UsedRegs.InitWithValue(UsedRegs.GetUsedRegs);
       UsedRegs.Update(Pai(p^.Next));
       PPaiProp(p^.OptInfo) := CurProp;
-      For TmpReg := R_EAX To R_EDI Do
+      For TmpReg := LoGPReg To HiGPReg Do
         Inc(InstrSinceLastMod[TmpReg]);
       Case p^.typ Of
         ait_label:
@@ -154,17 +157,19 @@ End;
 
 Procedure TAoptDFA.CpuDFA(p: PInstr);
 Begin
-  Abstract
+  Abstract;
 End;
 
-Function TAOptDFA.TCh2Reg(Ch: TChange): TRegister;
+Function TAOptDFA.TCh2Reg(Ch: TInsChange): TRegister;
 Begin
-  Abstract
+  TCh2Reg:=R_NO;
+  Abstract;
 End;
 
 Function TAOptDFA.RegReadByInstr(Reg: TRegister; p: Pai): Boolean;
 Begin
-  Abstract
+  RegReadByInstr:=false;
+  Abstract;
 End;
 
 
@@ -172,7 +177,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  1999-08-18 14:32:21  jonas
+  Revision 1.5  1999-11-09 22:57:08  peter
+    * compiles again both i386,alpha both with optimizer
+
+  Revision 1.4  1999/08/18 14:32:21  jonas
     + compilable!
     + dataflow analyzer finished
     + start of CSE units

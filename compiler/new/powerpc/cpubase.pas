@@ -377,7 +377,7 @@ const
   param_regs_fpu: Array[1..max_param_regs_fpu] of tregister =
     (R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,R_F8,R_F9,R_F10,R_F11,R_F12,R_F13);
 
-
+  general_registers = [R_0..R_31];
 
   intregs = [R_0..R_31];
   fpuregs = [R_F0..R_F31];
@@ -396,6 +396,16 @@ const
   vmt_offset_reg = R_0;
   max_scratch_regs = 3;
   scratch_regs: Array[1..max_scratch_regs] of TRegister = (R_11,R_12,R_30);
+
+{ low and high of the available maximum width integer general purpose }
+{ registers                                                           }
+  LoGPReg = R_0;
+  HiGPReg = R_31;
+
+{ low and high of every possible width general purpose register (same as }
+{ above on most architctures apart from the 80x86)                       }
+  LoReg = R_0;
+  HiReg = R_31;
 
 (*  cpuflags : set of tcpuflags = []; *)
 
@@ -549,7 +559,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1999-10-20 12:21:34  jonas
+  Revision 1.10  1999-11-09 22:57:09  peter
+    * compiles again both i386,alpha both with optimizer
+
+  Revision 1.9  1999/10/20 12:21:34  jonas
     * changed scratch_registers to (R_11,_R12,R_30) because R_0 is a special
       case and R_31 is used as some kind of frame pointer under LinuxPPC
 

@@ -29,7 +29,7 @@ Interface
 Uses Aasm, cobjects, aoptobj, aoptcpud, aoptcpub {aoptcs, aoptpeep} ;
 
 Type
-
+  PAsmOptimizer = ^TAsmOptimizer;
   TAsmOptimizer = Object(TAoptObj)
 
     { _AsmL is the PAasmOutpout list that has to be optimized }
@@ -45,6 +45,9 @@ Type
     Procedure BuildLabelTableAndFixRegAlloc;
 
   End;
+
+procedure Optimize(AsmL:Paasmoutput);
+
 
 Implementation
 
@@ -221,13 +224,27 @@ Begin
   Dispose(LabelInfo)
 End;
 
+
+procedure Optimize(AsmL:Paasmoutput);
+var
+  p : PAsmOptimizer;
+begin
+  new(p,Init(AsmL));
+  p^.Optimize;
+  dispose(p,Done);
+end;
+
+
 End.
 
 {Virtual methods, most have to be overridden by processor dependent methods}
 
 {
  $Log$
- Revision 1.3  1999-08-18 14:32:20  jonas
+ Revision 1.4  1999-11-09 22:57:08  peter
+   * compiles again both i386,alpha both with optimizer
+
+ Revision 1.3  1999/08/18 14:32:20  jonas
    + compilable!
    + dataflow analyzer finished
    + start of CSE units

@@ -49,12 +49,7 @@ unit cgcpu;
   implementation
 
     uses
-<<<<<<< cgcpu.pas
-       globtype,globals,cpuasm,symconst,symtable,cgbase,
-       verbose;
-=======
        globtype,globals,cpuasm,symconst,symtable,cgbase,verbose;
->>>>>>> 1.6
 
     constructor tcg386.init;
 
@@ -145,7 +140,10 @@ unit cgcpu;
 end.
 {
   $Log$
-  Revision 1.7  1999-09-15 20:35:47  florian
+  Revision 1.8  1999-11-09 22:57:09  peter
+    * compiles again both i386,alpha both with optimizer
+
+  Revision 1.7  1999/09/15 20:35:47  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers

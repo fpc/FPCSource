@@ -1,5 +1,5 @@
 {
-    $Id $
+    $Id$
     Copyright (c) 1999 by Jonas Maebe, member of the Free Pascal
     Development Team
 
@@ -35,7 +35,7 @@ Type
 
     { handles the processor dependent dataflow analizing               }
     Procedure CpuDFA(p: PInstr); Virtual;
-    Function TCh2Reg(Ch: TChange): TRegister; Virtual;
+    Function TCh2Reg(Ch: TInsChange): TRegister; Virtual;
     Function RegReadByInstr(Reg: TRegister; p: Pai): Boolean; Virtual;
   End;
 
@@ -48,7 +48,7 @@ Procedure TAOptDFACpu.CpuDFA(p: PInstr);
 { for the instructions between blockstart and blockend. Returns the last pai }
 { which has been processed                                                   }
 Var CurProp: PPaiProp;
-    InstrProp: TAsmInstrucProp;
+    InstrProp: TInsProp;
     TmpRef: TReference;
     Cnt: Byte;
 Begin
@@ -108,67 +108,67 @@ Begin
         End
     Else
       Begin
-        InstrProp := AsmInstr[p^.OpCode];
+        InstrProp := InsProp[p^.OpCode];
         Cnt := 1;
         While (Cnt <= MaxCh) And
-              (InstrProp.Ch[Cnt] <> C_None) Do
+              (InstrProp.Ch[Cnt] <> Ch_None) Do
           Begin
             Case InstrProp.Ch[Cnt] Of
-              C_REAX..C_REDI:
+              Ch_REAX..Ch_REDI:
                 CurProp^.ReadReg(TCh2Reg(InstrProp.Ch[Cnt]));
-              C_WEAX..C_RWEDI:
+              Ch_WEAX..Ch_RWEDI:
                 Begin
-                  If (InstrProp.Ch[Cnt] >= C_RWEAX) Then
+                  If (InstrProp.Ch[Cnt] >= Ch_RWEAX) Then
                     CurProp^.ReadReg(TCh2Reg(InstrProp.Ch[Cnt]));
                   CurProp^.DestroyReg(TCh2Reg(InstrProp.Ch[Cnt]),InstrSinceLastMod);
                 End;
           {$ifdef arithopt}
-              C_MEAX..C_MEDI:
+              Ch_MEAX..Ch_MEDI:
                 CurProp^.ModifyReg(TCh2Reg(InstrProp.Ch[Cnt]), InstrSinceLastMod);
           {$endif arithopt}
-              C_CDirFlag: CurProp^.CondRegs.ClearFlag(DirFlag);
-              C_SDirFlag: CurProp^.CondRegs.SetFlag(DirFlag);
-              C_Rop1: CurProp^.ReadOp(p^.oper[0]);
-              C_Rop2: CurProp^.ReadOp(p^.oper[1]);
-              C_Rop3: CurProp^.ReadOp(p^.oper[2]);
-              C_Wop1..C_RWop1:
+              Ch_CDirFlag: CurProp^.CondRegs.ClearFlag(DirFlag);
+              Ch_SDirFlag: CurProp^.CondRegs.SetFlag(DirFlag);
+              Ch_Rop1: CurProp^.ReadOp(p^.oper[0]);
+              Ch_Rop2: CurProp^.ReadOp(p^.oper[1]);
+              Ch_Rop3: CurProp^.ReadOp(p^.oper[2]);
+              Ch_Wop1..Ch_RWop1:
                 Begin
-                  If (InstrProp.Ch[Cnt] = C_RWop1) Then
+                  If (InstrProp.Ch[Cnt] = Ch_RWop1) Then
                     CurProp^.ReadOp(p^.oper[0]);
                   CurProp^.DestroyOp(p^.oper[0], InstrSinceLastMod);
                 End;
         {$ifdef arithopt}
-              C_Mop1:
+              Ch_Mop1:
                 CurProp^.ModifyOp(p^.oper[0], InstrSinceLastMod);
         {$endif arithopt}
-              C_Wop2..C_RWop2:
+              Ch_Wop2..Ch_RWop2:
                 Begin
-                  If (InstrProp.Ch[Cnt] = C_RWop2) Then
+                  If (InstrProp.Ch[Cnt] = Ch_RWop2) Then
                     CurProp^.ReadOp(p^.oper[1]);
                   CurProp^.DestroyOp(p^.oper[1], InstrSinceLastMod);
                 End;
         {$ifdef arithopt}
-              C_Mop2:
+              Ch_Mop2:
                 CurProp^.ModifyOp(p^.oper[1], InstrSinceLastMod);
         {$endif arithopt}
-              C_Wop3..C_RWop3:
+              Ch_Wop3..Ch_RWop3:
                 Begin
-                  If (InstrProp.Ch[Cnt] = C_RWop3) Then
+                  If (InstrProp.Ch[Cnt] = Ch_RWop3) Then
                     CurProp^.ReadOp(p^.oper[2]);
                   CurProp^.DestroyOp(p^.oper[2], InstrSinceLastMod);
                 End;
         {$ifdef arithopt}
-              C_Mop3:
+              Ch_Mop3:
                 CurProp^.ModifyOp(p^.oper[2], InstrSinceLastMod);
         {$endif arithopt}
-              C_WMemEDI:
+              Ch_WMemEDI:
                 Begin
                   CurProp^.ReadReg(R_EDI);
                   FillChar(TmpRef, SizeOf(TmpRef), 0);
                   TmpRef.Base := R_EDI;
                   CurProp^.DestroyRefs(TmpRef, R_NO, InstrSinceLastMod)
                 End;
-              C_RFlags, C_WFlags, C_RWFlags, C_FPU:;
+              Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU:;
               Else CurProp^.DestroyAllRegs(InstrSinceLastMod)
             End;
             Inc(Cnt)
@@ -179,7 +179,7 @@ End;
 
 Function TAOptDFACpu.RegReadByInstr(Reg: TRegister; p: Pai): Boolean;
 Var Cnt: AWord;
-    InstrProp: TAsmInstrucProp;
+    InstrProp: TInsProp;
     TmpResult: Boolean;
 Begin
   TmpResult := False;
@@ -204,31 +204,31 @@ Begin
       Else
         Begin
           Cnt := 1;
-          InstrProp := AsmInstr[PInstr(p)^.OpCode];
+          InstrProp := InsProp[PInstr(p)^.OpCode];
           While (Cnt <= MaxCh) And
-                (InstrProp.Ch[Cnt] <> C_None) And
+                (InstrProp.Ch[Cnt] <> Ch_None) And
                 Not(TmpResult) Do
             Begin
               Case InstrProp.Ch[Cnt] Of
-                C_REAX..C_REDI,C_RWEAX..C_RWEDI
+                Ch_REAX..Ch_REDI,Ch_RWEAX..Ch_RWEDI
   {$ifdef arithopt}
-                ,C_MEAX..C_MEDI
+                ,Ch_MEAX..Ch_MEDI
   {$endif arithopt}:
                   TmpResult := Reg = TCh2Reg(InstrProp.Ch[Cnt]);
-                C_ROp1,C_RWOp1{$ifdef arithopt},C_Mop1{$endif arithopt}:
+                Ch_ROp1,Ch_RWOp1{$ifdef arithopt},Ch_Mop1{$endif arithopt}:
                   TmpResult := RegInOp(Reg,PInstr(p)^.oper[0]);
-                C_ROp2,C_RWOp2{$ifdef arithopt},C_Mop2{$endif arithopt}:
+                Ch_ROp2,Ch_RWOp2{$ifdef arithopt},Ch_Mop2{$endif arithopt}:
                   TmpResult := RegInOp(Reg,PInstr(p)^.oper[1]);
-                C_ROp3,C_RWOp3{$ifdef arithopt},C_Mop3{$endif arithopt}:
+                Ch_ROp3,Ch_RWOp3{$ifdef arithopt},Ch_Mop3{$endif arithopt}:
                   TmpResult := RegInOp(Reg,PInstr(p)^.oper[2]);
-                C_WOp1: TmpResult := (PInstr(p)^.oper[0].typ = top_ref) And
+                Ch_WOp1: TmpResult := (PInstr(p)^.oper[0].typ = top_ref) And
                                      RegInRef(Reg,PInstr(p)^.oper[0].ref^);
-                C_WOp2: TmpResult := (PInstr(p)^.oper[1].typ = top_ref) And
+                Ch_WOp2: TmpResult := (PInstr(p)^.oper[1].typ = top_ref) And
                                      RegInRef(Reg,PInstr(p)^.oper[1].ref^);
-                C_WOp3: TmpResult := (PInstr(p)^.oper[2].typ = top_ref) And
+                Ch_WOp3: TmpResult := (PInstr(p)^.oper[2].typ = top_ref) And
                                      RegInRef(Reg,PInstr(p)^.oper[2].ref^);
-                C_WMemEDI: TmpResult := (Reg = R_EDI);
-                C_FPU: TmpResult := Reg in [R_ST..R_ST7,R_MM0..R_MM7]
+                Ch_WMemEDI: TmpResult := (Reg = R_EDI);
+                Ch_FPU: TmpResult := Reg in [R_ST..R_ST7,R_MM0..R_MM7]
               End;
               Inc(Cnt)
             End
@@ -237,19 +237,19 @@ Begin
   RegReadByInstr := TmpResult
 End;
 
-Function TAOptDFACpu.TCh2Reg(Ch: TChange): TRegister;
+Function TAOptDFACpu.TCh2Reg(Ch: TInsChange): TRegister;
 Begin
-  If (Ch <= C_REDI) Then
+  If (Ch <= Ch_REDI) Then
     TCh2Reg := TRegister(Byte(Ch))
   Else
-    If (Ch <= C_WEDI) Then
-      TCh2Reg := TRegister(Byte(Ch) - Byte(C_REDI))
+    If (Ch <= Ch_WEDI) Then
+      TCh2Reg := TRegister(Byte(Ch) - Byte(Ch_REDI))
     Else
-      If (Ch <= C_RWEDI) Then
-        TCh2Reg := TRegister(Byte(Ch) - Byte(C_WEDI))
+      If (Ch <= Ch_RWEDI) Then
+        TCh2Reg := TRegister(Byte(Ch) - Byte(Ch_WEDI))
       Else
-        If (Ch <= C_MEDI) Then
-          TCh2Reg := TRegister(Byte(Ch) - Byte(C_RWEDI))
+        If (Ch <= Ch_MEDI) Then
+          TCh2Reg := TRegister(Byte(Ch) - Byte(Ch_RWEDI))
 End;
 
 
@@ -257,7 +257,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  1999-09-08 15:01:31  jonas
+  Revision 1.4  1999-11-09 22:57:09  peter
+    * compiles again both i386,alpha both with optimizer
+
+  Revision 1.3  1999/09/08 15:01:31  jonas
     * some small changes so the noew optimizer is again compilable
 
   Revision 1.2  1999/08/18 14:32:26  jonas
