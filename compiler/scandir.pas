@@ -230,7 +230,7 @@ implementation
 
     procedure dir_description;
       begin
-        if not (target_info.target in [target_i386_os2,target_i386_win32,target_i386_netware]) then
+        if not (target_info.target in [target_i386_os2,target_i386_win32,target_i386_netware,target_i386_wdosx]) then
           Message(scan_w_description_not_support);
         { change description global var in all cases }
         { it not used but in win32, os2 and netware }
@@ -736,7 +736,7 @@ implementation
         major, minor, revision : longint;
         error : integer;
       begin
-        if not (target_info.target in [target_i386_os2,target_i386_win32,target_i386_netware]) then
+        if not (target_info.target in [target_i386_os2,target_i386_win32,target_i386_netware,target_i386_wdosx]) then
           begin
             Message(scan_n_version_not_support);
             exit;
@@ -925,7 +925,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2002-04-04 19:06:05  peter
+  Revision 1.12  2002-04-07 13:34:20  carl
+  + wdosx target
+
+  Revision 1.11  2002/04/04 19:06:05  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
