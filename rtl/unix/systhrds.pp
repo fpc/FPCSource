@@ -209,11 +209,7 @@ CONST
 	{$ifdef ver1_0}
         Fpmunmap(longint(pthread_getspecific(tlskey)),threadvarblocksize);
 	{$else}
-	{$ifdef BSD} // don't ask :-) 
-        Fpmunmap(longint(pthread_getspecific(tlskey)),threadvarblocksize);
-	{$else}
         Fpmunmap(pointer(pthread_getspecific(tlskey)),threadvarblocksize);
-	{$endif}
 	{$endif}
       end;
 
@@ -436,7 +432,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2003-09-15 20:08:49  marco
+  Revision 1.11  2003-09-16 13:00:02  marco
+   * small BSD gotcha removed (typing mmap params)
+
+  Revision 1.10  2003/09/15 20:08:49  marco
    * small fixes. FreeBSD now cycles
 
   Revision 1.9  2003/09/14 20:15:01  marco
