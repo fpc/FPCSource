@@ -1,4 +1,4 @@
-{ %cpu=i386 }
+{ %cpu=i386 %OPT=-OaVARMIN=8 }
 
 { Source provided for Free Pascal Bug Report 2998 }
 { Submitted by "bartek" on  2004-03-02 }
@@ -10,6 +10,8 @@ uses
   mmx;
 type
         vector4 = array[0..3] of single;
+        
+{$maxalignment 8}
 var
         a,b,c :vector4;
 begin

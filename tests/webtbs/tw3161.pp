@@ -1,5 +1,4 @@
 { %target=linux }
-{ %cpu=i386 }
 
 { Source provided for Free Pascal Bug Report 3161 }
 { Submitted by "Michalis Kamburelis" on  2004-06-12 }
@@ -8,12 +7,14 @@
 {$mode delphi}
 
 uses 
-  Libc,
-  SysUtils;
+  initc,
+  SysUtils,
+  math;
 
 var A:Extended;
 err : boolean;
 begin
+  SetExceptionMask([]);
   err:=true;
   try
  { When I don't do "uses Libc",
@@ -24,6 +25,9 @@ begin
    err:=false;
  end;
  if err then
-    halt(1);
+   begin
+     writeln('error');
+     halt(1);
+   end;
 end.
 
