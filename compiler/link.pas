@@ -244,7 +244,7 @@ var
 begin
   LastBin:='';
   if utilsdirectory<>'' then
-   LastBin:=Search(s+source_os.exeext,utilsdirectory,ldfound)+s+source_os.exeext;
+   LastBin:=FindFile(s+source_os.exeext,utilsdirectory,ldfound)+s+source_os.exeext;
   if LastBin='' then
    LastBin:=FindExe(s,ldfound);
   if (not ldfound) and not(cs_link_extern in aktglobalswitches) then
@@ -281,15 +281,15 @@ begin
      4. global object path
      5. exepath }
   found:=false;
-  findobjectfile:=search(s,'.',found)+s;
+  findobjectfile:=FindFile(s,'.',found)+s;
   if (not found) then
-   findobjectfile:=search(s,unitsearchpath,found)+s;
-  if (not found) and assigned(current_module^.localobjectsearchpath) then
-   findobjectfile:=search(s,current_module^.localobjectsearchpath^,found)+s;
+   findobjectfile:=UnitSearchPath.FindFile(s,found)+s;
   if (not found) then
-   findobjectfile:=search(s,objectsearchpath,found)+s;
+   findobjectfile:=current_module^.localobjectsearchpath.FindFile(s,found)+s;
   if (not found) then
-   findobjectfile:=search(s,exepath,found)+s;
+   findobjectfile:=objectsearchpath.FindFile(s,found)+s;
+  if (not found) then
+   findobjectfile:=FindFile(s,exepath,found)+s;
   if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_objfile_not_found,s);
 end;
@@ -316,13 +316,13 @@ begin
      3. global libary dir
      4. exe path of the compiler }
   found:=false;
-  findlibraryfile:=search(s,'.',found)+s;
-  if (not found) and assigned(current_module^.locallibrarysearchpath) then
-   findlibraryfile:=search(s,current_module^.locallibrarysearchpath^,found)+s;
+  findlibraryfile:=FindFile(s,'.',found)+s;
   if (not found) then
-   findlibraryfile:=search(s,librarysearchpath,found)+s;
+   findlibraryfile:=current_module^.locallibrarysearchpath.FindFile(s,found)+s;
   if (not found) then
-   findlibraryfile:=search(s,exepath,found)+s;
+   findlibraryfile:=librarysearchpath.FindFile(s,found)+s;
+  if (not found) then
+   findlibraryfile:=FindFile(s,exepath,found)+s;
   if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_libfile_not_found,s);
 end;
@@ -525,7 +525,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.76  1999-11-06 14:34:21  peter
+  Revision 1.77  1999-11-12 11:03:50  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.76  1999/11/06 14:34:21  peter
     * truncated log to 20 revs
 
   Revision 1.75  1999/10/26 12:25:04  peter

@@ -195,7 +195,7 @@ end;
 Constructor TLinkerLinux.Init;
 begin
   Inherited Init;
-  AddPathToList(LibrarySearchPath,'/lib;/usr/lib;/usr/X11R6/lib',true);
+  LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true);
 end;
 
 
@@ -235,8 +235,8 @@ Var
   cprtobj,
   gprtobj,
   prtobj       : string[80];
-  HPath        : TSearchPathString;
-  s,s2         : string;
+  HPath        : PStringQueueItem;
+  s            : string;
   found,
   linkdynamic,
   linklibc     : boolean;
@@ -271,20 +271,17 @@ begin
   LinkRes.Init(Info.ResName);
 
   { Write path to search libraries }
-  if assigned(current_module^.locallibrarysearchpath) then
+  HPath:=current_module^.locallibrarysearchpath.First;
+  while assigned(HPath) do
    begin
-     HPath:=current_module^.locallibrarysearchpath^;
-     while HPath<>'' do
-      begin
-        s2:=GetPathFromList(HPath);
-        LinkRes.Add('SEARCH_DIR('+s2+')');
-      end;
+     LinkRes.Add('SEARCH_DIR('+HPath^.Data^+')');
+     HPath:=HPath^.Next;
    end;
-  HPath:=LibrarySearchPath;
-  while HPath<>'' do
+  HPath:=LibrarySearchPath.First;
+  while assigned(HPath) do
    begin
-     s2:=GetPathFromList(HPath);
-     LinkRes.Add('SEARCH_DIR('+s2+')');
+     LinkRes.Add('SEARCH_DIR('+HPath^.Data^+')');
+     HPath:=HPath^.Next;
    end;
 
   LinkRes.Add('INPUT(');
@@ -293,10 +290,10 @@ begin
    LinkRes.AddFileName(FindObjectFile(prtobj));
   { try to add crti and crtbegin, they are normally not required, but
     adding can sometimes be usefull }
-  s:=search('crtbegin.o',librarysearchpath,found)+'crtbegin.o';
+  s:=librarysearchpath.FindFile('crtbegin.o',found)+'crtbegin.o';
   if found then
    LinkRes.AddFileName(s);
-  s:=search('crti.o',librarysearchpath,found)+'crti.o';
+  s:=librarysearchpath.FindFile('crti.o',found)+'crti.o';
   if found then
    LinkRes.AddFileName(s);
   { main objectfiles }
@@ -307,10 +304,10 @@ begin
       LinkRes.AddFileName(s);
    end;
   { objects which must be at the end }
-  s:=search('crtend.o',librarysearchpath,found)+'crtend.o';
+  s:=librarysearchpath.FindFile('crtend.o',found)+'crtend.o';
   if found then
    LinkRes.AddFileName(s);
-  s:=search('crtn.o',librarysearchpath,found)+'crtn.o';
+  s:=librarysearchpath.FindFile('crtn.o',found)+'crtn.o';
   if found then
    LinkRes.AddFileName(s);
 
@@ -375,7 +372,8 @@ begin
   DynLinkStr:='';
   if (cs_link_strip in aktglobalswitches) then
    StripStr:='-s';
-  If (Info.DynamicLinker<>'') and (not SharedLibFiles.Empty) then
+  If (cs_profile in aktmoduleswitches) or
+     ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 
 { Write used files and libraries }
@@ -437,7 +435,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-11-05 13:15:00  florian
+  Revision 1.4  1999-11-12 11:03:50  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.3  1999/11/05 13:15:00  florian
     * some fixes to get the new cg compiling again
 
   Revision 1.2  1999/11/04 10:55:31  peter

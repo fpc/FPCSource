@@ -65,7 +65,7 @@ implementation
 {$else Delphi}
      dos,
 {$endif Delphi}
-     globtype,strings,comphook,systems,
+     globtype,strings,cobjects,comphook,systems,
      globals,verbose,files,script;
 
 const   profile_flag:boolean=false;
@@ -370,8 +370,8 @@ Function TLinkeros2.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
-  HPath    : TSearchPathString;
-  s,s2     : string;
+  HPath    : PStringQueueItem;
+  s        : string;
 begin
   WriteResponseFile:=False;
 
@@ -379,20 +379,17 @@ begin
   LinkRes.Init(Info.ResName);
 
   { Write path to search libraries }
-  if assigned(current_module^.locallibrarysearchpath) then
+  HPath:=current_module^.locallibrarysearchpath.First;
+  while assigned(HPath) do
    begin
-     HPath:=current_module^.locallibrarysearchpath^;
-     while HPath<>'' do
-      begin
-        s2:=GetPathFromList(HPath);
-        LinkRes.Add('-L'+s2);
-      end;
+     LinkRes.Add('-L'+HPath^.Data^);
+     HPath:=HPath^.Next;
    end;
-  HPath:=LibrarySearchPath;
-  while HPath<>'' do
+  HPath:=LibrarySearchPath.First;
+  while assigned(HPath) do
    begin
-     s2:=GetPathFromList(HPath);
-     LinkRes.Add('-L'+s2);
+     LinkRes.Add('-L'+HPath^.Data^);
+     HPath:=HPath^.Next;
    end;
 
   { add objectfiles, start with prt0 always }
@@ -416,13 +413,10 @@ begin
    end;
 
   { Write staticlibraries }
-  if not StaticLibFiles.Empty then
+  While not StaticLibFiles.Empty do
    begin
-     While not StaticLibFiles.Empty do
-      begin
-        S:=StaticLibFiles.Get;
-        LinkRes.AddFileName(s)
-      end;
+     S:=StaticLibFiles.Get;
+     LinkRes.AddFileName(s)
    end;
 
 { Write and Close response }
@@ -491,7 +485,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-11-04 10:55:31  peter
+  Revision 1.3  1999-11-12 11:03:50  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.2  1999/11/04 10:55:31  peter
     * TSearchPathString for the string type of the searchpaths, which is
       ansistring under FPC/Delphi
 

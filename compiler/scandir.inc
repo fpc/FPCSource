@@ -650,11 +650,11 @@ const
             2. local includepath
             3. global includepath }
            found:=false;
-           path:=search(name+ext,path+';'+current_scanner^.inputfile^.path^+';.',found);
-           if (not found) and assigned(current_module^.localincludesearchpath) then
-            path:=search(name+ext,current_module^.localincludesearchpath^,found);
+           path:=FindFile(name+ext,path+';'+current_scanner^.inputfile^.path^+';.',found);
            if (not found) then
-            path:=search(name+ext,includesearchpath,found);
+            path:=current_module^.localincludesearchpath.FindFile(name+ext,found);
+           if (not found) then
+            path:=includesearchpath.FindFile(name+ext,found);
          { shutdown current file }
            current_scanner^.tempcloseinputfile;
          { load new file }
@@ -734,9 +734,7 @@ const
         else
           begin
             current_scanner^.skipspace;
-            if assigned(current_module^.localunitsearchpath) then
-             stringdispose(current_module^.localunitsearchpath);
-            current_module^.localunitsearchpath:=stringdup(current_scanner^.readcomment);
+            current_module^.localunitsearchpath.AddPath(current_scanner^.readcomment,false);
           end;
       end;
 
@@ -748,9 +746,7 @@ const
         else
           begin
             current_scanner^.skipspace;
-            if assigned(current_module^.localincludesearchpath) then
-             stringdispose(current_module^.localincludesearchpath);
-            current_module^.localincludesearchpath:=stringdup(current_scanner^.readcomment);
+            current_module^.localincludesearchpath.AddPath(current_scanner^.readcomment,false);
           end;
       end;
 
@@ -762,9 +758,7 @@ const
         else
           begin
             current_scanner^.skipspace;
-            if assigned(current_module^.locallibrarysearchpath) then
-             stringdispose(current_module^.locallibrarysearchpath);
-            current_module^.locallibrarysearchpath:=stringdup(current_scanner^.readcomment);
+            current_module^.locallibrarysearchpath.AddPath(current_scanner^.readcomment,false);
           end;
       end;
 
@@ -776,9 +770,7 @@ const
         else
           begin
             current_scanner^.skipspace;
-            if assigned(current_module^.localobjectsearchpath) then
-             stringdispose(current_module^.localobjectsearchpath);
-            current_module^.localobjectsearchpath:=stringdup(current_scanner^.readcomment);
+            current_module^.localobjectsearchpath.AddPath(current_scanner^.readcomment,false);
           end;
       end;
 
@@ -1163,7 +1155,10 @@ const
 
 {
   $Log$
-  Revision 1.66  1999-11-06 14:34:26  peter
+  Revision 1.67  1999-11-12 11:03:50  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.66  1999/11/06 14:34:26  peter
     * truncated log to 20 revs
 
   Revision 1.65  1999/10/30 12:32:30  peter

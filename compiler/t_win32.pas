@@ -642,8 +642,8 @@ Function TLinkerWin32.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
-  HPath    : TSearchPathString;
-  s,s2     : string;
+  HPath    : PStringQueueItem;
+  s        : string;
   linklibc : boolean;
 begin
   WriteResponseFile:=False;
@@ -652,20 +652,17 @@ begin
   LinkRes.Init(Info.ResName);
 
   { Write path to search libraries }
-  if assigned(current_module^.locallibrarysearchpath) then
+  HPath:=current_module^.locallibrarysearchpath.First;
+  while assigned(HPath) do
    begin
-     HPath:=current_module^.locallibrarysearchpath^;
-     while HPath<>'' do
-      begin
-        s2:=GetPathFromList(HPath);
-        LinkRes.Add('SEARCH_DIR('+s2+')');
-      end;
+     LinkRes.Add('SEARCH_DIR('+HPath^.Data^+')');
+     HPath:=HPath^.Next;
    end;
-  HPath:=LibrarySearchPath;
-  while HPath<>'' do
+  HPath:=LibrarySearchPath.First;
+  while assigned(HPath) do
    begin
-     s2:=GetPathFromList(HPath);
-     LinkRes.Add('SEARCH_DIR('+s2+')');
+     LinkRes.Add('SEARCH_DIR('+HPath^.Data^+')');
+     HPath:=HPath^.Next;
    end;
 
   { add objectfiles, start with prt0 always }
@@ -1047,7 +1044,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-11-04 10:55:31  peter
+  Revision 1.6  1999-11-12 11:03:50  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.5  1999/11/04 10:55:31  peter
     * TSearchPathString for the string type of the searchpaths, which is
       ansistring under FPC/Delphi
 

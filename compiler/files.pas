@@ -203,7 +203,7 @@ unit files;
           localunitsearchpath,           { local searchpaths }
           localobjectsearchpath,
           localincludesearchpath,
-          locallibrarysearchpath : pstring;
+          locallibrarysearchpath : TSearchPathList;
 
           path,                     { path where the module is find/created }
           outpath,
@@ -971,74 +971,82 @@ end;
            UnitExists:=FileExists(Singlepathstring+FileName+ext);
          end;
 
-         Function SearchPath(unitpath:string):boolean;
+         Function SearchPath(const s:string):boolean;
          var
            found   : boolean;
-           start,i : longint;
            ext     : string[8];
          begin
-           start:=1;
            Found:=false;
-           repeat
-           { Create current path to check }
-             i:=pos(';',unitpath);
-             if i=0 then
-              i:=length(unitpath)+1;
-             singlepathstring:=FixPath(copy(unitpath,start,i-start),false);
-             delete(unitpath,start,i-start+1);
-             if not onlysource then
-              begin
-              { Check for PPL file }
-                if not Found then
-                 begin
-                   Found:=UnitExists(target_info.unitlibext);
-                   if Found then
-                    Begin
-                      SetFileName(SinglePathString+FileName,false);
-                      Found:=OpenPPU;
-                    End;
-                  end;
-              { Check for PPU file }
-                if not Found then
-                 begin
-                   Found:=UnitExists(target_info.unitext);
-                   if Found then
-                    Begin
-                      SetFileName(SinglePathString+FileName,false);
-                      Found:=OpenPPU;
-                    End;
-                 end;
-              end;
-           { Check for Sources }
-             if not Found then
-              begin
-                ppufile:=nil;
-                do_compile:=true;
-                recompile_reason:=rr_noppu;
-              {Check for .pp file}
-                Found:=UnitExists(target_os.sourceext);
-                if Found then
-                 Ext:=target_os.sourceext
-                else
-                 begin
-                 {Check for .pas}
-                   Found:=UnitExists(target_os.pasext);
-                   if Found then
-                    Ext:=target_os.pasext;
-                 end;
-                stringdispose(mainsource);
-                if Found then
-                 begin
-                   sources_avail:=true;
-                 {Load Filenames when found}
-                   mainsource:=StringDup(SinglePathString+FileName+Ext);
-                   SetFileName(SinglePathString+FileName,false);
-                 end
-                else
-                 sources_avail:=false;
-              end;
-           until Found or (unitpath='');
+           singlepathstring:=FixPath(s,false);
+           if not onlysource then
+            begin
+            { Check for PPL file }
+              if not Found then
+               begin
+                 Found:=UnitExists(target_info.unitlibext);
+                 if Found then
+                  Begin
+                    SetFileName(SinglePathString+FileName,false);
+                    Found:=OpenPPU;
+                  End;
+                end;
+            { Check for PPU file }
+              if not Found then
+               begin
+                 Found:=UnitExists(target_info.unitext);
+                 if Found then
+                  Begin
+                    SetFileName(SinglePathString+FileName,false);
+                    Found:=OpenPPU;
+                  End;
+               end;
+            end;
+         { Check for Sources }
+           if not Found then
+            begin
+              ppufile:=nil;
+              do_compile:=true;
+              recompile_reason:=rr_noppu;
+            {Check for .pp file}
+              Found:=UnitExists(target_os.sourceext);
+              if Found then
+               Ext:=target_os.sourceext
+              else
+               begin
+               {Check for .pas}
+                 Found:=UnitExists(target_os.pasext);
+                 if Found then
+                  Ext:=target_os.pasext;
+               end;
+              stringdispose(mainsource);
+              if Found then
+               begin
+                 sources_avail:=true;
+               {Load Filenames when found}
+                 mainsource:=StringDup(SinglePathString+FileName+Ext);
+                 SetFileName(SinglePathString+FileName,false);
+               end
+              else
+               sources_avail:=false;
+            end;
            SearchPath:=Found;
+         end;
+
+         Function SearchPathList(list:TSearchPathList):boolean;
+         var
+           hp : PStringQueueItem;
+           found : boolean;
+         begin
+           found:=false;
+           hp:=list.First;
+           while assigned(hp) do
+            begin
+              found:=SearchPath(hp^.data^);
+              if found then
+               break;
+              hp:=hp^.next;
+            end;
+           SearchPathList:=found;
          end;
 
        var
@@ -1050,10 +1058,10 @@ end;
             2. local unit path
             3. global unit path }
          fnd:=SearchPath('.');
-         if (not fnd) and assigned(current_module^.LocalUnitSearchPath) then
-          fnd:=SearchPath(current_module^.LocalUnitSearchPath^);
          if (not fnd) then
-          fnd:=SearchPath(UnitSearchPath);
+          fnd:=SearchPathList(current_module^.LocalUnitSearchPath);
+         if (not fnd) then
+          fnd:=SearchPathList(UnitSearchPath);
 
          { try to find a file with the first 8 chars of the modulename, like
            dos }
@@ -1061,10 +1069,10 @@ end;
           begin
             filename:=copy(filename,1,8);
             fnd:=SearchPath('.');
-            if (not fnd) and assigned(current_module^.LocalUnitSearchPath) then
-             fnd:=SearchPath(current_module^.LocalUnitSearchPath^);
+            if (not fnd) then
+             fnd:=SearchPathList(current_module^.LocalUnitSearchPath);
             if not fnd then
-             fnd:=SearchPath(UnitSearchPath);
+             fnd:=SearchPathList(UnitSearchPath);
           end;
          search_unit:=fnd;
       end;
@@ -1183,10 +1191,10 @@ end;
 {$endif}
         path:=nil;
         setfilename(p+n,true);
-        localunitsearchpath:=nil;
-        localobjectsearchpath:=nil;
-        localincludesearchpath:=nil;
-        locallibrarysearchpath:=nil;
+        localunitsearchpath.init;
+        localobjectsearchpath.init;
+        localincludesearchpath.init;
+        locallibrarysearchpath.init;
         used_units.init;
         dependent_units.init;
         new(sourcefiles,init);
@@ -1273,10 +1281,10 @@ end;
         stringdispose(modulename);
         stringdispose(mainsource);
         stringdispose(asmprefix);
-        stringdispose(localunitsearchpath);
-        stringdispose(localobjectsearchpath);
-        stringdispose(localincludesearchpath);
-        stringdispose(locallibrarysearchpath);
+        localunitsearchpath.done;
+        localobjectsearchpath.done;
+        localincludesearchpath.done;
+        locallibrarysearchpath.done;
 {$ifdef MEMDEBUG}
         d.init('symtable');
 {$endif}
@@ -1344,7 +1352,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.108  1999-11-06 14:34:20  peter
+  Revision 1.109  1999-11-12 11:03:50  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.108  1999/11/06 14:34:20  peter
     * truncated log to 20 revs
 
   Revision 1.107  1999/11/04 23:13:25  peter

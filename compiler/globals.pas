@@ -73,6 +73,13 @@ unit globals;
        gpcmodeswitches    : tmodeswitches=
          [m_gpc,m_all];
 
+    type
+       TSearchPathList = object(TStringQueue)
+         procedure AddPath(s:string;addfirst:boolean);
+         procedure AddList(list:TSearchPathList;addfirst:boolean);
+         function  FindFile(const f : string;var b : boolean) : string;
+       end;
+
     var
        { specified inputfile }
        inputdir       : dirstr;
@@ -100,7 +107,7 @@ unit globals;
        librarysearchpath,
        unitsearchpath,
        objectsearchpath,
-       includesearchpath  : TSearchPathString;
+       includesearchpath  : TSearchPathList;
 
        { deffile }
        usewindowapi  : boolean;
@@ -223,25 +230,23 @@ unit globals;
 
     procedure DefaultReplacements(var s:string);
 
-    function path_absolute(const s : string) : boolean;
-    Function FileExists ( Const F : String) : Boolean;
-    Function RemoveFile(const f:string):boolean;
-    Function RemoveDir(d:string):boolean;
-    Function GetFileTime ( Var F : File) : Longint;
-    Function GetNamedFileTime ( Const F : String) : Longint;
-    Function SplitFileName(const s:string):string;
-    Function SplitName(const s:string):string;
-    Function SplitExtension(Const HStr:String):String;
-    Function AddExtension(Const HStr,ext:String):String;
-    Function ForceExtension(Const HStr,ext:String):String;
-    Function FixPath(s:string;allowdot:boolean):string;
-    function FixFileName(const s:string):string;
+    function  path_absolute(const s : string) : boolean;
+    Function  FileExists ( Const F : String) : Boolean;
+    Function  RemoveFile(const f:string):boolean;
+    Function  RemoveDir(d:string):boolean;
+    Function  GetFileTime ( Var F : File) : Longint;
+    Function  GetNamedFileTime ( Const F : String) : Longint;
+    Function  SplitFileName(const s:string):string;
+    Function  SplitName(const s:string):string;
+    Function  SplitExtension(Const HStr:String):String;
+    Function  AddExtension(Const HStr,ext:String):String;
+    Function  ForceExtension(Const HStr,ext:String):String;
+    Function  FixPath(s:string;allowdot:boolean):string;
+    function  FixFileName(const s:string):string;
     procedure SplitBinCmd(const s:string;var bstr,cstr:string);
-    procedure AddPathToList(var list:TSearchPathString;s:string;first:boolean);
-    function  getpathfromlist(var list:TSearchPathString):string;
-    function search(const f : string;path : TSearchPathString;var b : boolean) : string;
     procedure SynchronizeFileTime(const fn1,fn2:string);
-    function FindExe(bin:string;var found:boolean):string;
+    function  FindFile(const f : string;path : string;var b : boolean) : string;
+    function  FindExe(bin:string;var found:boolean):string;
     Procedure Shell(const command:string);
 
     procedure InitGlobals;
@@ -995,26 +1000,20 @@ unit globals;
 
 
 
-   procedure AddPathToList(var list:TSearchPathString;s:string;first:boolean);
+   procedure TSearchPathList.AddPath(s:string;addfirst:boolean);
      var
-       LastAdd,
-       starti,i,j : longint;
-       Found    : boolean;
+       j        : longint;
        CurrentDir,
-       CurrPath,
-       AddList  : string;
+       CurrPath : string;
+       hp       : PStringQueueItem;
      begin
        if s='' then
         exit;
      { Support default macro's }
        DefaultReplacements(s);
-     { Fix List }
-       if (list<>'') and (list[length(list)]<>';') then
-        list:=list+';';
+     { get current dir }
        GetDir(0,CurrentDir);
        CurrentDir:=FixPath(CurrentDir,false);
-       AddList:='';
-       LastAdd:=1;
        repeat
          j:=Pos(';',s);
          if j=0 then
@@ -1022,90 +1021,88 @@ unit globals;
        {Get Pathname}
          CurrPath:=FixPath(Copy(s,1,j-1),false);
          if CurrPath='' then
-          CurrPath:='.'+DirSep+';'
+          CurrPath:='.'+DirSep
          else
           begin
-            CurrPath:=FixPath(FExpand(CurrPath),false)+';';
+            CurrPath:=FixPath(FExpand(CurrPath),false);
             if (Copy(CurrPath,1,length(CurrentDir))=CurrentDir) then
              CurrPath:='.'+DirSep+Copy(CurrPath,length(CurrentDir)+1,255);
           end;
-         Delete(s,1,j);
-       {Check if already in path}
-         found:=false;
-         i:=0;
-         starti:=1;
-         while (not found) and (i<length(list)) do
+         System.Delete(s,1,j);
+         if addfirst then
           begin
-            inc(i);
-            if (list[i]=';') then
-             begin
-               found:=(CurrPath=Copy(List,starti,i-starti+1));
-               if Found then
-                begin
-                  if First then
-                   Delete(List,Starti,i-starti+1); {The new entry is placed first}
-                end
-               else
-                starti:=i+1;
-             end;
-          end;
-         if First then
-          begin
-            Insert(CurrPath,List,LastAdd);
-            inc(LastAdd,Length(CurrPath));
+            Delete(currPath);
+            Insert(currPath);
           end
          else
-          if not Found then
-           List:=List+CurrPath
+          begin
+            { Check if already in path, then we don't add it }
+            hp:=Find(currPath);
+            if not assigned(hp) then
+             Concat(currPath);
+          end;
        until (s='');
      end;
 
 
-   function getpathfromlist(var list:TSearchPathString):string;
+   procedure TSearchPathList.AddList(list:TSearchPathList;addfirst:boolean);
      var
        s : string;
-       i : longint;
+       hl : TSearchPathList;
+       hp,hp2 : PStringQueueItem;
      begin
-       s:='';
-       while (list<>'') do
+       if list.empty then
+        exit;
+       { create temp and reverse the list }
+       if addfirst then
         begin
-          i:=Pos(';',list);
-          If i=0 then
-           i:=255;
-          S:=Copy(list,1,i-1);
-          Delete (list,1,i);
-          if (S<>'') then
-           break;
+          hl.Init;
+          hp:=list.first;
+          while assigned(hp) do
+           begin
+             hl.insert(hp^.data^);
+             hp:=hp^.next;
+           end;
+          while not hl.empty do
+           begin
+             s:=hl.Get;
+             Delete(s);
+             Insert(s);
+           end;
+          hl.done;
+        end
+       else
+        begin
+          hp:=list.first;
+          while assigned(hp) do
+           begin
+             hp2:=Find(hp^.data^);
+             { Check if already in path, then we don't add it }
+             if not assigned(hp2) then
+              Concat(hp^.data^);
+             hp:=hp^.next;
+           end;
         end;
-       GetPathFromList:=s;
      end;
 
 
-   function search(const f : string;path : TSearchPathString;var b : boolean) : string;
-      Var
-        singlepathstring : string;
-        i : longint;
+   function TSearchPathList.FindFile(const f : string;var b : boolean) : string;
+     Var
+       p : PStringQueueItem;
      begin
-     {$ifdef linux}
-       for i:=1 to length(path) do
-        if path[i]=':' then
-       path[i]:=';';
-     {$endif}
+       FindFile:='';
        b:=false;
-       search:='';
-       repeat
-         i:=pos(';',path);
-         if i=0 then
-           i:=255;
-         singlepathstring:=FixPath(copy(path,1,i-1),false);
-         delete(path,1,i);
-         If FileExists (singlepathstring+f) then
+       p:=first;
+       while assigned(p) do
+        begin
+          If FileExists(p^.data^+f) then
            begin
-             Search:=singlepathstring;
+             FindFile:=p^.data^;
              b:=true;
              exit;
            end;
-       until path='';
+          p:=p^.next;
+        end;
      end;
 
 
@@ -1184,13 +1181,40 @@ unit globals;
       end;
    end;
 
+   function FindFile(const f : string;path : string;var b : boolean) : string;
+      Var
+        singlepathstring : string;
+        i : longint;
+     begin
+     {$ifdef linux}
+       for i:=1 to length(path) do
+        if path[i]=':' then
+       path[i]:=';';
+     {$endif}
+       b:=false;
+       FindFile:='';
+       repeat
+         i:=pos(';',path);
+         if i=0 then
+           i:=255;
+         singlepathstring:=FixPath(copy(path,1,i-1),false);
+         delete(path,1,i);
+         If FileExists (singlepathstring+f) then
+           begin
+             FindFile:=singlepathstring;
+             b:=true;
+             exit;
+           end;
+       until path='';
+     end;
+
    function FindExe(bin:string;var found:boolean):string;
    begin
      bin:=FixFileName(bin)+source_os.exeext;
 {$ifdef delphi}
-     FindExe:=Search(bin,'.;'+exepath+';'+dmisc.getenv('PATH'),found)+bin;
+     FindExe:=FindFile(bin,'.;'+exepath+';'+dmisc.getenv('PATH'),found)+bin;
 {$else delphi}
-     FindExe:=Search(bin,'.;'+exepath+';'+dos.getenv('PATH'),found)+bin;
+     FindExe:=FindFile(bin,'.;'+exepath+';'+dos.getenv('PATH'),found)+bin;
 {$endif delphi}
    end;
 
@@ -1246,11 +1270,10 @@ end;
         initdefines.done;
         if assigned(DLLImageBase) then
           StringDispose(DLLImageBase);
-       { necessary to release AnsiString memory !! }
-       librarysearchpath:='';
-       unitsearchpath:='';
-       objectsearchpath:='';
-       includesearchpath:='';
+       librarysearchpath.Done;
+       unitsearchpath.Done;
+       objectsearchpath.Done;
+       includesearchpath.Done;
      end;
 
    procedure InitGlobals;
@@ -1267,8 +1290,14 @@ end;
         OutputExeDir:='';
         OutputUnitDir:='';
 
-        { Utils directory }
+      { Utils directory }
         utilsdirectory:='';
+
+      { Search Paths }
+        librarysearchpath.Init;
+        unitsearchpath.Init;
+        includesearchpath.Init;
+        objectsearchpath.Init;
 
       { Def file }
         usewindowapi:=false;
@@ -1321,7 +1350,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  1999-11-09 23:34:46  pierre
+  Revision 1.33  1999-11-12 11:03:50  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.32  1999/11/09 23:34:46  pierre
    + resolving_forward boolean used for references
 
   Revision 1.31  1999/11/09 13:00:38  peter
@@ -1335,7 +1367,7 @@ end.
     * truncated log to 20 revs
 
   Revision 1.28  1999/11/04 10:55:31  peter
-    * TSearchPathString for the string type of the searchpaths, which is
+    * TSearchPathList for the string type of the searchpaths, which is
       ansistring under FPC/Delphi
 
   Revision 1.27  1999/10/26 12:30:41  peter

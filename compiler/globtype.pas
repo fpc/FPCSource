@@ -26,18 +26,6 @@ interface
        maxidlen = 64;
 
     type
-       { Compiler dependent types }
-{$ifdef TP}
-       TSearchPathString = string;
-{$endif}
-{$ifdef FPC}
-       TSearchPathString = ansistring;
-{$endif}
-{$ifdef Delphi}
-       TSearchPathString = ansistring;
-{$endif}
-
-    type
        { System independent float names }
 {$ifdef i386}
        bestreal = extended;
@@ -192,7 +180,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  1999-11-09 13:00:38  peter
+  Revision 1.24  1999-11-12 11:03:50  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.23  1999/11/09 13:00:38  peter
     * define FPC_DELPHI,FPC_OBJFPC,FPC_TP,FPC_GPC
     * initial support for ansistring default with modes
 

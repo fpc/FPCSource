@@ -611,9 +611,9 @@
               if (Source_Time=-1) then
                 begin
                   if is_main then
-                    temp:=search(hs,unitsearchpath,main_found)
+                    temp:=unitsearchpath.FindFile(hs,main_found)
                   else
-                    temp:=search(hs,includesearchpath,incfile_found);
+                    temp:=includesearchpath.FindFile(hs,incfile_found);
 {$ifdef ORDERSOURCES}
                   if is_main then
                     begin
@@ -756,7 +756,10 @@
 
 {
   $Log$
-  Revision 1.53  1999-11-06 14:34:27  peter
+  Revision 1.54  1999-11-12 11:03:50  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.53  1999/11/06 14:34:27  peter
     * truncated log to 20 revs
 
   Revision 1.52  1999/11/05 17:18:03  pierre

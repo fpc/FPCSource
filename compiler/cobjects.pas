@@ -151,6 +151,8 @@ unit cobjects;
          destructor Done;
          function Empty:boolean;
          function Get:string;
+         function Find(const s:string):PStringqueueItem;
+         function Delete(const s:string):boolean;
          procedure Insert(const s:string);
          procedure Concat(const s:string);
          procedure Clear;
@@ -660,6 +662,44 @@ begin
   newnode:=first;
   first:=first^.next;
   dispose(newnode);
+end;
+
+
+function TStringQueue.Find(const s:string):PStringqueueItem;
+var
+  p : PStringqueueItem;
+begin
+  p:=first;
+  while assigned(p) do
+   begin
+     if p^.data^=s then
+      break;
+     p:=p^.next;
+   end;
+  Find:=p;
+end;
+
+
+function TStringQueue.Delete(const s:string):boolean;
+var
+  prev,p : PStringqueueItem;
+begin
+  Delete:=false;
+  prev:=nil;
+  p:=first;
+  while assigned(p) do
+   begin
+     if p^.data^=s then
+      begin
+        if assigned(prev) then
+         prev^.next:=p^.next;
+        dispose(p);
+        Delete:=true;
+        exit;
+      end;
+     prev:=p;
+     p:=p^.next;
+   end;
 end;
 
 
@@ -2277,7 +2317,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.44  1999-11-06 14:34:20  peter
+  Revision 1.45  1999-11-12 11:03:49  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.44  1999/11/06 14:34:20  peter
     * truncated log to 20 revs
 
   Revision 1.43  1999/10/26 12:30:41  peter

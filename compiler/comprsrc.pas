@@ -53,14 +53,14 @@ var
   begin
     if utilsdirectory<>'' then
       begin
-         respath:=Search(target_res.resbin+source_os.exeext,
+         respath:=FindFile(target_res.resbin+source_os.exeext,
            utilsdirectory,resfound);
       end
     else
 {$ifdef Delphi}
-      respath:=Search(target_res.resbin+source_os.exeext,'.;'+exepath+';'+dmisc.getenv('PATH'),resfound);
+      respath:=FindFile(target_res.resbin+source_os.exeext,'.;'+exepath+';'+dmisc.getenv('PATH'),resfound);
 {$else Delphi}
-      respath:=Search(target_res.resbin+source_os.exeext,'.;'+exepath+';'+dos.getenv('PATH'),resfound);
+      respath:=FindFile(target_res.resbin+source_os.exeext,'.;'+exepath+';'+dos.getenv('PATH'),resfound);
 {$endif Delphi}
     resbin:=respath+target_res.resbin+source_os.exeext;
     if (not resfound) and not(cs_link_extern in aktglobalswitches) then
@@ -111,7 +111,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-07-18 10:19:49  florian
+  Revision 1.7  1999-11-12 11:03:50  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.6  1999/07/18 10:19:49  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 

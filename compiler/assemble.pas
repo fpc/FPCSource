@@ -155,7 +155,7 @@ begin
      lastas:=ord(target_asm.id);
      { is an assembler passed ? }
      if utilsdirectory<>'' then
-       LastASBin:=Search(target_asm.asmbin+source_os.exeext,utilsdirectory,asfound)+
+       LastASBin:=FindFile(target_asm.asmbin+source_os.exeext,utilsdirectory,asfound)+
          target_asm.asmbin+source_os.exeext;
      if LastASBin='' then
        LastASBin:=FindExe(target_asm.asmbin,asfound);
@@ -564,7 +564,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.57  1999-11-08 10:37:12  peter
+  Revision 1.58  1999-11-12 11:03:49  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.57  1999/11/08 10:37:12  peter
     * filename fixes for win32 imports for units with multiple needed dll's
 
   Revision 1.56  1999/11/06 14:34:17  peter

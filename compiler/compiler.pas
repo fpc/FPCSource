@@ -121,7 +121,7 @@ uses
   dos,
 {$endif Delphi}
   verbose,comphook,systems,
-  globals,options,parser,symtable,link,import,export,tokens;
+  cobjects,globals,options,parser,symtable,link,import,export,tokens;
 
 function Compile(const cmd:string):longint;
 
@@ -210,7 +210,7 @@ begin
   CompilerInitedAfterArgs:=true;
 end;
 
-procedure minimal_stop;
+procedure minimal_stop;{$ifndef fpc}far;{$endif}
 begin
   DoneCompiler;
   olddo_stop;
@@ -218,6 +218,18 @@ end;
 
 
 function Compile(const cmd:string):longint;
+
+  procedure writepathlist(w:tmsgconst;l:TSearchPathList);
+  var
+    hp : pstringqueueitem;
+  begin
+    hp:=l.first;
+    while assigned(hp) do
+     begin
+       Message1(w,hp^.data^);
+       hp:=hp^.next;
+     end;
+  end;
 
   function getrealtime : real;
   var
@@ -248,10 +260,10 @@ begin
   Message1(general_d_sourceos,source_os.name);
   Message1(general_i_targetos,target_os.name);
   Message1(general_t_exepath,exepath);
-  Message1(general_t_unitpath,unitsearchpath);
-  Message1(general_t_includepath,includesearchpath);
-  Message1(general_t_librarypath,librarysearchpath);
-  Message1(general_t_objectpath,objectsearchpath);
+  WritePathList(general_t_unitpath,unitsearchpath);
+  WritePathList(general_t_includepath,includesearchpath);
+  WritePathList(general_t_librarypath,librarysearchpath);
+  WritePathList(general_t_objectpath,objectsearchpath);
 {$ifdef TP}
 {$ifndef Delphi}
   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
@@ -310,7 +322,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  1999-11-09 23:47:53  pierre
+  Revision 1.39  1999-11-12 11:03:50  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.38  1999/11/09 23:47:53  pierre
    + minimal_stop to avoid memory loss with -iTO switch
 
   Revision 1.37  1999/11/06 14:34:20  peter

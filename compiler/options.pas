@@ -25,7 +25,7 @@ unit options;
 interface
 
 uses
-  globtype,verbose;
+  globtype,globals,verbose;
 
 type
   POption=^TOption;
@@ -37,7 +37,7 @@ type
     ParaIncludePath,
     ParaUnitPath,
     ParaObjectPath,
-    ParaLibraryPath : TSearchPathString;
+    ParaLibraryPath : TSearchPathList;
     Constructor Init;
     Destructor Done;
     procedure WriteLogo;
@@ -65,7 +65,7 @@ uses
   dos,
 {$endif Delphi}
   version,systems,
-  cobjects,globals,
+  cobjects,
   symtable,scanner,link,messages
 {$ifdef BrowserLog}
   ,browlog
@@ -498,27 +498,27 @@ begin
                        'e' : SetRedirectFile(More);
                        'E' : OutputExeDir:=FixPath(More,true);
                        'i' : if firstpass then
-                              AddPathToList(includesearchpath,More,false)
+                              includesearchpath.AddPath(More,false)
                              else
-                              AddPathToList(ParaIncludePath,More,false);
+                              ParaIncludePath.AddPath(More,false);
                        'g' : Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
                        'l' : if firstpass then
-                              AddPathToList(LibrarySearchPath,More,false)
+                              LibrarySearchPath.AddPath(More,false)
                              else
-                              AddPathToList(ParaLibraryPath,More,false);
+                              ParaLibraryPath.AddPath(More,false);
                        'L' : if More<>'' then
                               ParaDynamicLinker:=More
                              else
                               IllegalPara(opt);
                        'o' : if firstpass then
-                              AddPathToList(objectsearchpath,More,false)
+                              ObjectSearchPath.AddPath(More,false)
                              else
-                              AddPathToList(ParaObjectPath,More,false);
+                              ParaObjectPath.AddPath(More,false);
                        'r' : Msgfilename:=More;
                        'u' : if firstpass then
-                              AddPathToList(unitsearchpath,More,false)
+                              unitsearchpath.AddPath(More,false)
                              else
-                              AddPathToList(ParaUnitPath,More,false);
+                              ParaUnitPath.AddPath(More,false);
                        'U' : OutputUnitDir:=FixPath(More,true);
                       else
                         IllegalPara(opt);
@@ -582,9 +582,9 @@ begin
                         end;
                      end;
               'I' : if firstpass then
-                     AddPathToList(includesearchpath,More,false)
+                     includesearchpath.AddPath(More,false)
                     else
-                     AddPathToList(ParaIncludePath,More,false);
+                     ParaIncludePath.AddPath(More,false);
               'k' : if more<>'' then
                      ParaLinkOptions:=ParaLinkOptions+' '+More
                     else
@@ -999,15 +999,19 @@ begin
   NoPressEnter:=false;
   FirstPass:=false;
   FileLevel:=0;
-  ParaIncludePath:='';
-  ParaObjectPath:='';
-  ParaUnitPath:='';
-  ParaLibraryPath:='';
+  ParaIncludePath.Init;
+  ParaObjectPath.Init;
+  ParaUnitPath.Init;
+  ParaLibraryPath.Init;
 end;
 
 
 destructor TOption.Done;
 begin
+  ParaIncludePath.Done;
+  ParaObjectPath.Done;
+  ParaUnitPath.Done;
+  ParaLibraryPath.Done;
 end;
 
 
@@ -1204,30 +1208,30 @@ begin
    end;
 
 { Add paths specified with parameters to the searchpaths }
-  AddPathToList(UnitSearchPath,Option^.ParaUnitPath,true);
-  AddPathToList(ObjectSearchPath,Option^.ParaObjectPath,true);
-  AddPathToList(IncludeSearchPath,Option^.ParaIncludePath,true);
-  AddPathToList(LibrarySearchPath,Option^.ParaLibraryPath,true);
+  UnitSearchPath.AddList(Option^.ParaUnitPath,true);
+  ObjectSearchPath.AddList(Option^.ParaObjectPath,true);
+  IncludeSearchPath.AddList(Option^.ParaIncludePath,true);
+  LibrarySearchPath.AddList(Option^.ParaLibraryPath,true);
 
 { add unit environment and exepath to the unit search path }
   if inputdir<>'' then
-   AddPathToList(Unitsearchpath,inputdir,true);
+   Unitsearchpath.AddPath(inputdir,true);
 {$ifdef Delphi}
-  AddPathToList(UnitSearchPath,dmisc.getenv(target_info.unit_env),false);
+  UnitSearchPath.AddPath(dmisc.getenv(target_info.unit_env),false);
 {$else}
-  AddPathToList(UnitSearchPath,dos.getenv(target_info.unit_env),false);
+  UnitSearchPath.AddPath(dos.getenv(target_info.unit_env),false);
 {$endif Delphi}
 {$ifdef linux}
-  AddPathToList(UnitSearchPath,'/usr/lib/fpc/'+version_string+'/units/'+lower(target_info.short_name),false);
-  AddPathToList(UnitSearchPath,'/usr/lib/fpc/'+version_string+'/rtl/'+lower(target_info.short_name),false);
+  UnitSearchPath.AddPath('/usr/lib/fpc/'+version_string+'/units/'+lower(target_info.short_name),false);
+  UnitSearchPath.AddPath('/usr/lib/fpc/'+version_string+'/rtl/'+lower(target_info.short_name),false);
 {$else}
-  AddPathToList(UnitSearchPath,ExePath+'../units/'+lower(target_info.short_name),false);
-  AddPathToList(UnitSearchPath,ExePath+'../rtl/'+lower(target_info.short_name),false);
+  UnitSearchPath.AddPath(ExePath+'../units/'+lower(target_info.short_name),false);
+  UnitSearchPath.AddPath(ExePath+'../rtl/'+lower(target_info.short_name),false);
 {$endif}
-  AddPathToList(UnitSearchPath,ExePath,false);
+  UnitSearchPath.AddPath(ExePath,false);
   { Add unit dir to the object and library path }
-  AddPathToList(objectsearchpath,unitsearchpath,false);
-  AddPathToList(librarysearchpath,unitsearchpath,false);
+  objectsearchpath.AddList(unitsearchpath,false);
+  librarysearchpath.AddList(unitsearchpath,false);
 
 { switch assembler if it's binary and we got -a on the cmdline }
   if (cs_asm_leave in initglobalswitches) and
@@ -1256,7 +1260,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  1999-11-09 23:06:45  peter
+  Revision 1.35  1999-11-12 11:03:50  peter
+    * searchpaths changed to stringqueue object
+
+  Revision 1.34  1999/11/09 23:06:45  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 
