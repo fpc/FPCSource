@@ -389,8 +389,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-02-11 11:41:26  pierre
-  gdbpas/gdbint/gdbint.pp
+  Revision 1.9  1999-02-11 13:03:28  pierre
+      Problem with last commit
+    + added virtuals CommandBegin and CommandEnd
+    + added command_level for TGDBInterface
+
 
   Revision 1.7  1999/02/10 09:00:43  pierre
      * duplicate call_reset removed
