@@ -68,9 +68,9 @@ for i:=1 to dim do
 writeln('Testing TAN');
 for i:=1 to dim do
   begin
-    if i=9 then Ref := MaxFloat
+{    if i=9 then Ref := MaxFloat
     else if i=27 then Ref := -Maxfloat
-    else Ref:=sin(i*10/180*pi)/cos(i*10/180*pi);
+    else } Ref:=sin(i*10/180*pi)/cos(i*10/180*pi);
     Value := tan(i*10/180*pi);
     Delta := Value - Ref;
     if Abs(Delta) > 1E-15 then
