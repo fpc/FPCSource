@@ -22,7 +22,7 @@ uses
   Dos,
   BrowCol,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPIde,FPHelp,FPSwitch,FPUsrScr,
-  FPTools,FPDebug
+  FPTools,FPDebug,FPTemplt
 {$ifdef TEMPHEAP}
   ,dpmiexcp
 {$endif TEMPHEAP}
@@ -83,6 +83,7 @@ BEGIN
   InitINIFile;
   InitUserScreen;
   InitTools;
+  InitTemplates;
 
 { load old options }
   ReadINIFile;
@@ -97,7 +98,8 @@ BEGIN
 
   WriteSwitches(SwitchesPath);
   WriteINIFile;
-  
+
+  DoneTemplates;
   DoneTools;
   DoneUserScreen;
   DoneSwitches;
@@ -109,7 +111,13 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.10  1999-02-15 09:07:10  pierre
+  Revision 1.11  1999-02-18 13:44:30  peter
+    * search fixed
+    + backward search
+    * help fixes
+    * browser updates
+
+  Revision 1.10  1999/02/15 09:07:10  pierre
    * HEAPTRC conditionnal renamed IDEHEAPTRC
 
   Revision 1.9  1999/02/10 09:55:43  pierre

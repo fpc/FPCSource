@@ -23,11 +23,11 @@ uses Objects,Drivers,Views,Dialogs,
 
 const
       { Browser tab constants }
-      btScope       = 1;
-      btReferences  = 2;
-      btInheritance = 4;
-      btBreakWatch  = 8;
-      
+      btScope       = 0;
+      btReferences  = 1;
+      btInheritance = 2;
+      btBreakWatch  = 3;
+
 type
     PSymbolView = ^TSymbolView;
     TSymbolView = object(TListBox)
@@ -62,13 +62,25 @@ type
       References: PReferenceCollection;
     end;
 
+    PBrowserTabItem = ^TBrowserTabItem;
+    TBrowserTabItem = record
+      Sign  : char;
+      Link  : PView;
+      Next  : PBrowserTabItem;
+    end;
+
     PBrowserTab = ^TBrowserTab;
     TBrowserTab = object(TView)
-      constructor Init(var Bounds: TRect);
+      Items: PBrowserTabItem;
+      constructor Init(var Bounds: TRect; AItems: PBrowserTabItem);
+      function    GetItemCount: sw_integer; virtual;
+      function    GetItem(Index: sw_integer): PBrowserTabItem; virtual;
       procedure   SetParams(AFlags: word; ACurrent: Sw_integer); virtual;
+      procedure   SelectItem(Index: Sw_integer); virtual;
       procedure   Draw; virtual;
-      procedure   HandleEvent(var Event: TEvent);virtual;
       function    GetPalette: PPalette; virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      destructor  Done; virtual;
     private
       Flags   : word;
       Current : Sw_integer;
@@ -103,6 +115,28 @@ uses Commands,App,
      WEditor,FPDebug,
      FPConst,FPUtils,FPVars;
 
+function NewBrowserTabItem(ASign: char; ALink: PView; ANext: PBrowserTabItem): PBrowserTabItem;
+var P: PBrowserTabItem;
+begin
+  New(P); FillChar(P^,SizeOf(P^),0);
+  with P^ do begin Sign:=ASign; Link:=ALink; Next:=ANext; end;
+  NewBrowserTabItem:=P;
+end;
+
+procedure DisposeBrowserTabItem(P: PBrowserTabItem);
+begin
+  if P<>nil then Dispose(P);
+end;
+
+procedure DisposeBrowserTabList(P: PBrowserTabItem);
+begin
+  if P<>nil then
+  begin
+    if P^.Next<>nil then DisposeBrowserTabList(P^.Next);
+    DisposeBrowserTabItem(P);
+  end;
+end;
+
 function IsSymbolInfoAvailable: boolean;
 begin
   IsSymbolInfoAvailable:=BrowCol.Modules<>nil;
@@ -118,7 +152,7 @@ var Index : sw_integer;
   begin
     Search:=UpcaseStr(P^.Items^.LookUp(Name,Index))=Name;
   end;
-  
+
 begin
    Name:=UpcaseStr(Name);
    If BrowCol.Modules<>nil then
@@ -413,7 +447,6 @@ begin
   Desktop^.UnLock;
 end;
 
-(* this does not work correctly
 function LastBrowserWindow: PBrowserWindow;
 var BW: PBrowserWindow;
 procedure IsBW(P: PView); {$ifndef FPC}far;{$endif}
@@ -425,26 +458,6 @@ begin
   BW:=nil;
   Desktop^.ForEach(@IsBW);
   LastBrowserWindow:=BW;
-end; *)
-
-function LastBrowserWindowBeforeAnyOtherWindow: PBrowserWindow;
-var BW: PBrowserWindow;
-    AnyOther : boolean;
-procedure IsBW(P: PView); {$ifndef FPC}far;{$endif}
-begin
-  if (P^.HelpCtx=hcBrowserWindow) then
-    begin
-      if not AnyOther then
-        BW:=pointer(P);
-    end
-  else
-    AnyOther:=true;
-end;
-begin
-  AnyOther:=false;
-  BW:=nil;
-  Desktop^.ForEach(@IsBW);
-  LastBrowserWindowBeforeAnyOtherWindow:=BW;
 end;
 
 procedure TSymbolReferenceView.TrackSource;
@@ -461,16 +474,12 @@ begin
   W:=TryToOpenFile(nil,R^.GetFileName,P.X,P.Y);
   if W<>nil then
   begin
-    { do not count W }
-    Desktop^.Delete(W);
-    BW:=LastBrowserWindowBeforeAnyOtherWindow;
+    BW:=LastBrowserWindow;
     if BW=nil then
-      begin
-        Desktop^.Insert(W);
-        W^.Select;
-      end
+      W^.Select
     else
       begin
+        Desktop^.Delete(W);
         Desktop^.InsertBefore(W,BW^.NextView);
       end;
     W^.Editor^.SetHighlightRow(P.Y);
@@ -493,42 +502,131 @@ end;
                                TBrowserTab
 ****************************************************************************}
 
-constructor TBrowserTab.Init(var Bounds: TRect);
+constructor TBrowserTab.Init(var Bounds: TRect; AItems: PBrowserTabItem);
 begin
   inherited Init(Bounds);
+  Options:=Options or ofPreProcess;
+  Items:=AItems;
   SetParams(0,0);
 end;
 
 procedure TBrowserTab.SetParams(AFlags: word; ACurrent: Sw_integer);
 begin
-  Flags:=AFlags; Current:=ACurrent;
+  Flags:=AFlags;
+  SelectItem(ACurrent);
+end;
+
+procedure TBrowserTab.SelectItem(Index: Sw_integer);
+var P: PBrowserTabItem;
+begin
+  Current:=Index;
+  P:=GetItem(Current);
+  if (P<>nil) and (P^.Link<>nil) then
+    P^.Link^.Focus;
   DrawView;
+end;
+
+function TBrowserTab.GetItemCount: sw_integer;
+var Count: integer;
+    P: PBrowserTabItem;
+begin
+  Count:=0; P:=Items;
+  while (P<>nil) do
+    begin
+      Inc(Count);
+      P:=P^.Next;
+    end;
+  GetItemCount:=Count;
+end;
+
+function TBrowserTab.GetItem(Index: sw_integer): PBrowserTabItem;
+var Counter: integer;
+    P: PBrowserTabItem;
+begin
+  P:=Items; Counter:=0;
+  while (P<>nil) and (Counter<Index) do
+    begin
+      P:=P^.Next;
+      Inc(Counter);
+    end;
+  GetItem:=P;
 end;
 
 procedure TBrowserTab.Draw;
 var B: TDrawBuffer;
     SelColor, NormColor, C: word;
     I,CurX,Count: Sw_integer;
-const
-    Names: string[4] = 'SRIB';
+function Names(Idx: integer): char;
+begin
+  Names:=GetItem(Idx)^.Sign;
+end;
 begin
   NormColor:=GetColor(1); SelColor:=GetColor(2);
   MoveChar(B,'Ä',SelColor,Size.X);
   CurX:=0; Count:=0;
-  for I:=0 to 3 do
+  for I:=0 to GetItemCount-1 do
     if (Flags and (1 shl I))<>0 then
     begin
       Inc(Count);
-      if Current=(1 shl I) then C:=SelColor
-                           else C:=NormColor;
+      if Current=I then C:=SelColor
+                   else C:=NormColor;
       if Count=1 then MoveChar(B[CurX],'´',SelColor,1)
                  else MoveChar(B[CurX],'³',SelColor,1);
-      MoveCStr(B[CurX+1],' '+Names[I+1]+' ',C);
+      MoveCStr(B[CurX+1],' '+Names(I)+' ',C);
       Inc(CurX,4);
     end;
   if Count>0 then
     MoveChar(B[CurX],'Ã',SelColor,1);
   WriteLine(0,0,Size.X,Size.Y,B);
+end;
+
+procedure TBrowserTab.HandleEvent(var Event: TEvent);
+var I,Idx: integer;
+    DontClear: boolean;
+    P: TPoint;
+function GetItemForCoord(X: integer): integer;
+var I,CurX,Idx: integer;
+begin
+  CurX:=0; Idx:=-1;
+  for I:=0 to GetItemCount-1 do
+    if (Flags and (1 shl I))<>0 then
+    begin
+      if (CurX+1<=X) and (X<=CurX+3) then
+        begin Idx:=I; Break; end;
+      Inc(CurX,4);
+    end;
+  GetItemForCoord:=Idx;
+end;
+begin
+  case Event.What of
+    evMouseDown :
+      if MouseInView(Event.Where) then
+        begin
+          repeat
+            MakeLocal(Event.Where,P);
+            Idx:=GetItemForCoord(P.X);
+            if Idx<>-1 then
+              SelectItem(Idx);
+          until not MouseEvent(Event, evMouseMove);
+          ClearEvent(Event);
+        end;
+    evKeyDown :
+      begin
+        DontClear:=false; Idx:=-1;
+        for I:=0 to GetItemCount-1 do
+          if Upcase(GetCtrlChar(Event.KeyCode))=Upcase(GetItem(I)^.Sign) then
+            begin
+              Idx:=I;
+              Break;
+            end;
+        if Idx=-1 then
+          DontClear:=true
+        else
+          SelectItem(Idx);
+        if DontClear=false then ClearEvent(Event);
+      end;
+  end;
+  inherited HandleEvent(Event);
 end;
 
 function TBrowserTab.GetPalette: PPalette;
@@ -537,40 +635,10 @@ begin
   GetPalette:=@P;
 end;
 
-procedure TBrowserTab.HandleEvent(var Event: TEvent);
-var
-  i,bt : byte;
-  index,X : Sw_integer;
-  P : Tpoint;
+destructor TBrowserTab.Done;
 begin
-  if (Event.What and evMouseDown)<>0 then
-     begin
-       MakeLocal(Event.Where,P);
-       if P.Y<3 then
-	  begin
-            bt:=1;
-            X:=1;
-            Index:=-1;
-	    for i:=0 to 3 do
-              begin
-                if bt=0 then
-                  bt:=1
-                else
-                  bt:=bt*2;
-                if (Flags and (1 shl I))<>0 then
-                  begin
-  		    if (P.X>X) and (P.X<=X+3) then Index:=bt;
-  		    X:=X+4;
-    		  end;
-              end;
-	    if Index<>-1 then
-	       Begin
-                 PBrowserWindow(Owner)^.SelectTab(Index);
-                 ClearEvent(Event);
-               End;
-	  end;
-     end;
-  Inherited HandleEvent(Event);
+  inherited Done;
+  if Items<>nil then DisposeBrowserTabList(Items);
 end;
 
 constructor TBrowserWindow.Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer;ASym : PSymbol;
@@ -603,11 +671,6 @@ begin
   New(ST, Init(R, ' '+AName)); ST^.GrowMode:=gfGrowHiX;
   Insert(ST);
 
-  GetExtent(R); R.Grow(-1,-1); R.Move(0,1); R.B.Y:=R.A.Y+1;
-  New(PageTab, Init(R));
-  PageTab^.GrowMode:=gfGrowHiX;
-  Insert(PageTab);
-
   GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,2);
   if assigned(ASymbols) and (ASymbols^.Count>0) then
     begin
@@ -625,6 +688,16 @@ begin
       ReferenceView^.GrowMode:=gfGrowHiX+gfGrowHiY;
       Insert(ReferenceView);
     end;
+
+  GetExtent(R); R.Grow(-1,-1); R.Move(0,1); R.B.Y:=R.A.Y+1;
+  New(PageTab, Init(R,
+    NewBrowserTabItem('S',ScopeView,
+    NewBrowserTabItem('R',ReferenceView,
+    nil))
+    ));
+  PageTab^.GrowMode:=gfGrowHiX;
+  Insert(PageTab);
+
   if assigned(ScopeView) then
    SelectTab(btScope)
   else
@@ -662,12 +735,6 @@ begin
         case Event.KeyCode of
           kbEsc :
             Close;
-          kbCtrlB :
-            SelectTab(btBreakWatch);
-          kbCtrlS :
-            SelectTab(btScope);
-          kbCtrlR :
-            SelectTab(btReferences);
         else DontClear:=true;
         end;
         if DontClear=false then ClearEvent(Event);
@@ -698,25 +765,13 @@ var Tabs: Sw_integer;
     PS :PString;
     l : longint;
 begin
-  case BrowserTab of
+(*  case BrowserTab of
     btScope :
       if assigned(ScopeView) then
-        begin
-          RemoveView(ScopeView^.HScrollBar);
-          InsertView(ScopeView^.HScrollBar,First);
-          RemoveView(ScopeView^.VScrollBar);
-          InsertView(ScopeView^.VScrollBar,First);
-          ScopeView^.Select;
-        end;
+        ScopeView^.Select;
     btReferences :
       if assigned(ReferenceView) then
-        begin
-          RemoveView(ReferenceView^.HScrollBar);
-          InsertView(ReferenceView^.HScrollBar,First);
-          RemoveView(ReferenceView^.VScrollBar);
-          InsertView(ReferenceView^.VScrollBar,First);
-          ReferenceView^.Select;
-        end;
+        ReferenceView^.Select;
     btBreakWatch :
       begin
         if Assigned(Sym) then
@@ -774,20 +829,15 @@ begin
         end;
       end;
 
-  end;
+  end;*)
   Tabs:=0;
   if assigned(ScopeView) then
-    Tabs:=Tabs or btScope;
+    Tabs:=Tabs or (1 shl btScope);
   if assigned(ReferenceView) then
-    Tabs:=Tabs or btReferences;
+    Tabs:=Tabs or (1 shl btReferences);
   if Assigned(Sym) then
     if (Pos('proc',Sym^.GetText)>0) or (Pos('var',Sym^.GetText)>0) then
-      Tabs:=Tabs or btBreakWatch;
-  if (Tabs and BrowserTab)=0 then
-    if (Tabs and btScope)<>0 then BrowserTab:=btScope else
-    if (Tabs and btReferences)<>0 then BrowserTab:=btReferences else
-    if (Tabs and btInheritance)<>0 then BrowserTab:=btInheritance else
-      BrowserTab:=btBreakWatch;
+      Tabs:=Tabs or (1 shl btBreakWatch);
   if PageTab<>nil then PageTab^.SetParams(Tabs,BrowserTab);
 end;
 
@@ -813,12 +863,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  1999-02-17 15:50:27  pierre
-    * ScrollBars in SymbolView where allways for ReferenceView
-    * TrackSource puts now the source in front of the first non
-      browser window !
-    +* Tried to get mouse clicks in TBrowserTab to issue correct
-      command, but still does not work !
+  Revision 1.9  1999-02-18 13:44:34  peter
+    * search fixed
+    + backward search
+    * help fixes
+    * browser updates
 
   Revision 1.7  1999/02/16 12:44:20  pierre
    * DoubleClick works now

@@ -22,7 +22,7 @@ type
 
     PHTMLTopicRenderer = ^THTMLTopicRenderer;
     THTMLTopicRenderer = object(THTMLParser)
-      function  BuildTopic(P: PTopic; HTMLFile: PTextFile; ATopicLinks: PTopicLinkCollection): boolean;
+      function  BuildTopic(P: PTopic; AURL: string; HTMLFile: PTextFile; ATopicLinks: PTopicLinkCollection): boolean;
     public
       procedure DocAddTextChar(C: char); virtual;
       procedure DocSoftBreak; virtual;
@@ -56,6 +56,7 @@ type
       procedure DocDefExp; virtual;
       procedure DocHorizontalRuler; virtual;
     private
+      URL: string;
       Topic: PTopic;
       TopicLinks: PTopicLinkCollection;
       TextPtr: word;
@@ -112,6 +113,24 @@ begin
     if P>0 then Path[P]:=DirSep;
   until P=0;
   FormatPath:=Path;
+end;
+
+function CompletePath(const Base, InComplete: string): string;
+var Drv,BDrv: string[40]; D,BD: DirStr; N,BN: NameStr; E,BE: ExtStr;
+    P: sw_integer;
+    Complete: string;
+begin
+  Complete:=FormatPath(InComplete);
+  FSplit(FormatPath(InComplete),D,N,E);
+  P:=Pos(':',D); if P=0 then Drv:='' else begin Drv:=copy(D,1,P); Delete(D,1,P); end;
+  FSplit(FormatPath(Base),BD,BN,BE);
+  P:=Pos(':',BD); if P=0 then BDrv:='' else begin BDrv:=copy(BD,1,P); Delete(BD,1,P); end;
+  if copy(D,1,1)<>'\' then
+    Complete:=BD+D+N+E;
+  if Drv='' then
+    Complete:=BDrv+Complete;
+  Complete:=FExpand(Complete);
+  CompletePath:=Complete;
 end;
 
 function UpcaseStr(S: string): string;
@@ -236,6 +255,7 @@ begin
         begin
           InAnchor:=true;
           AddChar(hscLink);
+          HRef:=CompletePath(URL,HRef);
           LinkIndexes[LinkPtr]:=TopicLinks^.AddItem(HRef);
           Inc(LinkPtr);
         end;
@@ -268,7 +288,6 @@ begin
     end
   else
     begin
-{      if LastChar<>hscLineBreak then AddText(hscLineBreak);}
       CurHeadLevel:=0;
       DocBreak;
     end;
@@ -277,7 +296,6 @@ end;
 procedure THTMLTopicRenderer.DocParagraph(Entered: boolean);
 var Align: string;
 begin
- { if Entered and InParagraph then}
   if Entered and InParagraph then DocParagraph(false);
   if Entered then
     begin
@@ -439,11 +457,13 @@ begin
     AddChar(S[I]);
 end;
 
-function THTMLTopicRenderer.BuildTopic(P: PTopic; HTMLFile: PTextFile; ATopicLinks: PTopicLinkCollection): boolean;
+function THTMLTopicRenderer.BuildTopic(P: PTopic; AURL: string; HTMLFile: PTextFile;
+           ATopicLinks: PTopicLinkCollection): boolean;
 var OK: boolean;
     TP: pointer;
     I: sw_integer;
 begin
+  URL:=AURL;
   Topic:=P; TopicLinks:=ATopicLinks;
   OK:=Assigned(Topic) and Assigned(HTMLFile) and Assigned(TopicLinks);
   if OK then
@@ -518,6 +538,7 @@ begin
 end;
 var FileID,LinkNo: word;
     P: PTopic;
+    FName: string;
 begin
   DecodeHTMLCtx(HelpCtx,FileID,LinkNo);
   if (HelpCtx<>0) and (FileID<>ID) then P:=nil else
@@ -526,27 +547,15 @@ begin
       P:=Topics^.FirstThat(@MatchCtx);
       if P=nil then
         begin
-          P:=NewTopic(ID,HelpCtx,0);
+          if LinkNo=0 then
+            FName:=FileName
+          else
+            FName:=TopicLinks^.At(LinkNo-1)^;
+          P:=NewTopic(ID,HelpCtx,0,FName);
           Topics^.Insert(P);
         end;
     end;
   SearchTopic:=P;
-end;
-
-function CompletePath(const Base: string; InComplete: string): string;
-var Drv,BDrv: string[40]; D,BD: DirStr; N,BN: NameStr; E,BE: ExtStr;
-    P: sw_integer;
-begin
-  FSplit(InComplete,D,N,E);
-  P:=Pos(':',D); if P=0 then Drv:='' else begin Drv:=copy(D,1,P); Delete(D,1,P); end;
-  FSplit(Base,BD,BN,BE);
-  P:=Pos(':',BD); if P=0 then BDrv:='' else begin BDrv:=copy(BD,1,P); Delete(BD,1,P); end;
-  if copy(D,1,1)<>'\' then
-    InComplete:=BD+D+N+E;
-  if Drv='' then
-    InComplete:=BDrv+InComplete;
-  InComplete:=FExpand(InComplete);
-  CompletePath:=InComplete;
 end;
 
 function THTMLHelpFile.ReadTopic(T: PTopic): boolean;
@@ -564,11 +573,12 @@ begin
           Link:=TopicLinks^.At(T^.HelpCtx-1)^;
           Link:=FormatPath(Link);
           P:=Pos('#',Link); if P>0 then Delete(Link,P,255);
-          if CurFileName='' then Name:=Link else
-          Name:=CompletePath(CurFileName,Link);
+{          if CurFileName='' then Name:=Link else
+          Name:=CompletePath(CurFileName,Link);}
+          Name:=Link;
         end;
       New(HTMLFile, Init(Name));
-      OK:=Renderer^.BuildTopic(T,HTMLFile,TopicLinks);
+      OK:=Renderer^.BuildTopic(T,Name,HTMLFile,TopicLinks);
       if OK then CurFileName:=Name;
       if HTMLFile<>nil then Dispose(HTMLFile, Done);
     end;

@@ -140,6 +140,7 @@ type
         Links         : PKeywordDescriptors;
         LastAccess    : longint;
         FileID        : word;
+        Param         : PString;
       end;
 
       PUnsortedStringCollection = ^TUnsortedStringCollection;
@@ -230,7 +231,7 @@ const TopicCacheSize    : integer = 10;
       HelpFacility      : PHelpFacility = nil;
       MaxHelpTopicSize  : word = 65520;
 
-function  NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint): PTopic;
+function  NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint; Param: string): PTopic;
 procedure DisposeTopic(P: PTopic);
 
 function  NewIndexEntry(Tag: string; FileID: word; HelpCtx: THelpCtx): PIndexEntry;
@@ -277,11 +278,12 @@ begin
   FillChar(R, SizeOf(R), 0);
 end;
 
-function NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint): PTopic;
+function NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint; Param: string): PTopic;
 var P: PTopic;
 begin
   New(P); FillChar(P^,SizeOf(P^), 0);
   P^.HelpCtx:=HelpCtx; P^.FileOfs:=Pos; P^.FileID:=FileID;
+  P^.Param:=NewStr(Param);
   NewTopic:=P;
 end;
 
@@ -295,6 +297,7 @@ begin
     if (P^.LinkCount>0) and (P^.Links<>nil) then
        FreeMem(P^.Links,P^.LinkSize);
     P^.Links:=nil;
+    if P^.Param<>nil then DisposeStr(P^.Param); P^.Param:=nil;
     Dispose(P);
   end;
 end;
@@ -307,6 +310,8 @@ begin
      begin GetMem(NT^.Text,NT^.TextSize); Move(T^.Text^,NT^.Text^,NT^.TextSize); end;
   if NT^.Links<>nil then
      begin GetMem(NT^.Links,NT^.LinkSize); Move(T^.Links^,NT^.Links^,NT^.LinkSize); end;
+  if NT^.Param<>nil then
+     NT^.Param:=NewStr(T^.Param^);
   CloneTopic:=NT;
 end;
 
@@ -527,7 +532,7 @@ begin
     if (L=-1) and (Header.MainIndexScreen>0) then
        L:=GetCtxPos(Contexts[Header.MainIndexScreen]);
     if (L>0) then
-      Topics^.Insert(NewTopic(ID,I,L));
+      Topics^.Insert(NewTopic(ID,I,L,''));
   end;
   DisposeRecord(R);
   TopicsRead:=OK;
@@ -876,7 +881,7 @@ begin
   New(Keywords, Init(5000,1000));
   HelpFiles^.ForEach(@InsertKeywordsOfFile);
   New(Lines, Init((Keywords^.Count div 2)+100,100));
-  T:=NewTopic(0,0,0);
+  T:=NewTopic(0,0,0,'');
   if HelpFiles^.Count=0 then
     begin
       AddLine('');
@@ -930,7 +935,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  1999-02-08 10:37:46  peter
+  Revision 1.4  1999-02-18 13:44:37  peter
+    * search fixed
+    + backward search
+    * help fixes
+    * browser updates
+
+  Revision 1.3  1999/02/08 10:37:46  peter
     + html helpviewer
 
   Revision 1.2  1998/12/28 15:47:56  peter

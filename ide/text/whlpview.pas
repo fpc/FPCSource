@@ -415,7 +415,6 @@ begin
        ZeroLevel:=0;
      end;
 end;
-var Diff: integer;
 begin
   Lines^.FreeAll; Links^.FreeAll;
   if Topic=nil then Lines^.Insert(NewStr('No help available for this topic.')) else
@@ -1117,7 +1116,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  1999-02-08 10:37:47  peter
+  Revision 1.5  1999-02-18 13:44:38  peter
+    * search fixed
+    + backward search
+    * help fixes
+    * browser updates
+
+  Revision 1.4  1999/02/08 10:37:47  peter
     + html helpviewer
 
   Revision 1.3  1999/01/21 11:54:32  peter

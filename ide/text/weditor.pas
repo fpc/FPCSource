@@ -19,7 +19,6 @@ interface
 
 {$ifndef FPC}
   {$define TPUNIXLF}
-  {.$define ASMSCAN}
 {$endif}
 
 uses
@@ -541,277 +540,10 @@ begin
   CompressUsingTabs:=S;
 end;
 
-{$ifdef ASMSCAN}
 
-function Scan_F(var Block; Size: Word; Str: String): Word; near; assembler;
-asm
-   PUSH    DS
-   LES     DI,Block
-   LDS     SI,Str
-   MOV     CX,Size
-   JCXZ    @@3
-   CLD
-   LODSB
-   CMP     AL,1
-   JB      @@5
-   JA      @@1
-   LODSB
-   REPNE   SCASB
-   JNE     @@3
-   JMP     @@5
-@@1:    XOR     AH,AH
-   MOV     BX,AX
-   DEC     BX
-   MOV     DX,CX
-   SUB     DX,AX
-   JB      @@3
-   LODSB
-   INC     DX
-   INC     DX
-@@2:    DEC     DX
-   MOV     CX,DX
-   REPNE   SCASB
-   JNE     @@3
-   MOV     DX,CX
-   MOV     CX,BX
-   REP     CMPSB
-   JE      @@4
-   SUB     CX,BX
-   ADD     SI,CX
-   ADD     DI,CX
-   INC     DI
-   OR      DX,DX
-   JNE     @@2
-@@3:    XOR     AX,AX
-   JMP     @@6
-@@4:    SUB     DI,BX
-@@5:    MOV     AX,DI
-   SUB     AX,WORD PTR Block
-@@6:    DEC     AX
-   POP     DS
-end;
-
-function IScan_F(var Block; Size: Word; Str: String): Word; near; assembler;
-var
-  S: String;
-asm
-   PUSH    DS
-   MOV     AX,SS
-   MOV     ES,AX
-   LEA     DI,S
-   LDS     SI,Str
-   XOR     AH,AH
-   LODSB
-   STOSB
-   MOV     CX,AX
-   MOV     BX,AX
-   JCXZ    @@9
-@@1:    LODSB
-   CMP     AL,'a'
-   JB      @@2
-   CMP     AL,'z'
-   JA      @@2
-   SUB     AL,20H
-@@2:    STOSB
-   LOOP    @@1
-   SUB     DI,BX
-   LDS     SI,Block
-   MOV     CX,Size
-   JCXZ    @@8
-   CLD
-   SUB     CX,BX
-   JB      @@8
-   INC     CX
-@@4:    MOV     AH,ES:[DI]
-   AND     AH,$DF
-@@5:    LODSB
-   AND     AL,$DF
-   CMP     AL,AH
-   LOOPNE  @@5
-   JNE     @@8
-   DEC     SI
-   MOV     DX,CX
-   MOV     CX,BX
-@@6:    REPE    CMPSB
-   JE      @@10
-   MOV     AL,DS:[SI-1]
-   CMP     AL,'a'
-   JB      @@7
-   CMP     AL,'z'
-   JA      @@7
-   SUB     AL,20H
-@@7:    CMP     AL,ES:[DI-1]
-   JE      @@6
-   SUB     CX,BX
-   ADD     SI,CX
-   ADD     DI,CX
-   INC     SI
-   MOV     CX,DX
-   OR      CX,CX
-   JNE     @@4
-@@8:    XOR     AX,AX
-   JMP     @@11
-@@9:    MOV     AX, 1
-   JMP     @@11
-@@10:   SUB     SI,BX
-   MOV     AX,SI
-   SUB     AX,WORD PTR Block
-   INC     AX
-@@11:   DEC     AX
-   POP     DS
-end;
-
-function Scan_B(var Block; Size: Word; Str: String): Word; near; assembler;
-asm
-   PUSH    DS
-   LES     DI,Block
-   LDS     SI,Str
-   MOV     CX,Size
-   JCXZ    @@3
-   CLD
-   LODSB
-   CMP     AL,1
-   JB      @@5
-   JA      @@1
-   LODSB
-   STD
-   REPNE   SCASB
-   JNE     @@3
-   JMP     @@5
-@@1:    XOR     AH,AH
-   ADD     SI, AX    { !! }
-   DEC     SI
-   ADD     DI, CX    { !! }
-   DEC     DI
-   SUB     DI, AX
-   STD
-   MOV     BX,AX
-   DEC     BX
-   MOV     DX,CX
-{  SUB     DX,AX}
-   JB      @@3
-   LODSB
-   INC     DX
-   INC     DX
-@@2:    DEC     DX
-   MOV     CX,DX
-   REPNE   SCASB
-   JNE     @@3
-   MOV     DX,CX
-   MOV     CX,BX
-   REP     CMPSB
-   JE      @@4
-   SUB     CX,BX
-   SUB     SI,CX { ADD }
-   SUB     DI,CX { ADD }
-   DEC     DI    { INC DI }
-   OR      DX,DX
-   JNE     @@2
-@@3:    XOR     AX,AX
-   JMP     @@6
-@@4:    ADD     DI,BX
-@@5:    MOV     AX,DI
-   SUB     AX,WORD PTR Block
-@@6:    DEC     AX
-   POP     DS
-end;
-
-function IScan_B(var Block; Size: Word; Str: String): Word; near; assembler;
-var
-  S: String;
-asm
-   PUSH    DS
-   MOV     AX,SS
-   MOV     ES,AX
-   LEA     DI,S
-   LDS     SI,Str
-   XOR     AH,AH
-   LODSB
-   STOSB
-   MOV     CX,AX
-   MOV     BX,AX
-   JCXZ    @@9
-@@1:    LODSB
-   CMP     AL,'a'
-   JB      @@2
-   CMP     AL,'z'
-   JA      @@2
-   SUB     AL,20H
-@@2:    STOSB
-   LOOP    @@1
-   SUB     DI,BX
-   LDS     SI,Block
-   ADD     SI,Size
-   SUB     SI, BX
-   MOV     CX,Size
-   JCXZ    @@8
-   CLD
-   SUB     CX,BX
-   JB      @@8
-   INC     CX
-   ADD     SI, 2
-@@4:    SUB     SI, 2
-   MOV     AH,ES:[DI]
-   AND     AH,$DF
-   ADD     SI,2
-@@5:    SUB     SI,2
-   LODSB
-   AND     AL,$DF
-   CMP     AL,AH
-   LOOPNE  @@5
-   JNE     @@8
-   DEC     SI
-   MOV     DX,CX
-   MOV     CX,BX
-@@6:    REPE    CMPSB
-   JE      @@10
-   MOV     AL,DS:[SI-1]
-   CMP     AL,'a'
-   JB      @@7
-   CMP     AL,'z'
-   JA      @@7
-   SUB     AL,20H
-@@7:    CMP     AL,ES:[DI-1]
-   JE      @@6
-   SUB     CX,BX
-   ADD     SI,CX
-   ADD     DI,CX
-   INC     SI
-   MOV     CX,DX
-   OR      CX,CX
-   JNE     @@4
-@@8:    XOR     AX,AX
-   JMP     @@11
-@@9:    MOV     AX, 1
-   JMP     @@11
-@@10:   SUB     SI,BX
-   MOV     AX,SI
-   SUB     AX,WORD PTR Block
-   INC     AX
-@@11:   DEC     AX
-   POP     DS
-end;
-
-
-function PosB(SubS, InS: string; CaseSensitive: boolean): byte;
-var W: word;
-begin
-  if CaseSensitive then W:=Scan_B(InS[1],length(Ins),SubS)
-         else W:=IScan_B(InS[1],length(Ins),SubS);
-  if W=$ffff then W:=0 else W:=W+1;
-  PosB:=W;
-end;
-
-function PosF(SubS, InS: string; CaseSensitive: boolean): byte;
-var W: word;
-begin
-  if CaseSensitive then W:=Scan_F(InS[1],length(Ins),SubS)
-         else W:=IScan_F(InS[1],length(Ins),SubS);
-  if W=$ffff then W:=0 else W:=W+1;
-  PosF:=W;
-end;
-
-{$else}
+{*****************************************************************************
+                           Forward/Backward Scanning
+*****************************************************************************}
 
 Const
 {$ifndef FPC}
@@ -852,22 +584,22 @@ begin
   s2[0]:=chr(len);       { sets the length to that of the search String }
   found:=False;
   numb:=pred(len);
-  While (not found) and (numb<(size-len)) do
+  While (not found) and (numb<size) do
    begin
      { partial match }
      if buffer[numb] = ord(str[len]) then
       begin
-   { less partial! }
-   if buffer[numb-pred(len)] = ord(str[1]) then
-    begin
-      move(buffer[numb-pred(len)],s2[1],len);
-      if (str=s2) then
-       begin
-         found:=true;
-         break;
-       end;
-    end;
-   inc(numb);
+        { less partial! }
+        if buffer[numb-pred(len)] = ord(str[1]) then
+         begin
+           move(buffer[numb-pred(len)],s2[1],len);
+           if (str=s2) then
+            begin
+              found:=true;
+              break;
+            end;
+         end;
+        inc(numb);
      end
     else
      inc(numb,Bt[buffer[numb]]);
@@ -890,14 +622,14 @@ Var
   c      : char;
 begin
   len:=length(str);
-  if len>size then
+  if (len=0) or (len>size) then
    begin
      BMFIScan := NotFoundValue;
      exit;
    end;
   found:=False;
   numb:=pred(len);
-  While (not found) and (numb<(size-len)) do
+  While (not found) and (numb<size) do
    begin
      { partial match }
      c:=buffer[numb];
@@ -905,35 +637,146 @@ begin
       c:=chr(ord(c)-32);
      if (c=str[len]) then
       begin
-   { less partial! }
-   p:=@buffer[numb-pred(len)];
-   x:=1;
-   while (x<=len) do
-    begin
-      if not(((p^ in ['a'..'z']) and (chr(ord(p^)-32)=str[x])) or
-        (p^=str[x])) then
-       break;
-      inc(p);
-      inc(x);
-    end;
-   if (x>len) then
-    begin
-      found:=true;
-      break;
-    end;
-   inc(numb);
-     end
-    else
-     inc(numb,Bt[ord(c)]);
-  end;
+        { less partial! }
+        p:=@buffer[numb-pred(len)];
+        x:=1;
+        while (x<=len) do
+         begin
+           if not(((p^ in ['a'..'z']) and (chr(ord(p^)-32)=str[x])) or
+             (p^=str[x])) then
+            break;
+           inc(p);
+           inc(x);
+         end;
+        if (x>len) then
+         begin
+           found:=true;
+           break;
+         end;
+        inc(numb);
+      end
+     else
+      inc(numb,Bt[ord(c)]);
+   end;
   if not found then
     BMFIScan := NotFoundValue
   else
     BMFIScan := numb - pred(len);
 end;
 
-{$endif}
 
+Procedure BMBMakeTable(const s:string; Var t : Btable);
+Var
+  x : sw_integer;
+begin
+  FillChar(t,sizeof(t),length(s));
+  For x := 1 to length(s)do
+   if (t[ord(s[x])] = length(s)) then
+    t[ord(s[x])] := x-1;
+end;
+
+
+function BMBScan(var Block; Size: Sw_Word;const Str: String;const bt:BTable): Sw_Integer;
+Var
+  buffer : Array[0..MaxBufLength-1] of Byte Absolute block;
+  s2     : String;
+  len,
+  numb   : Sw_integer;
+  found  : Boolean;
+begin
+  len:=length(str);
+  if len>size then
+   begin
+     BMBScan := NotFoundValue;
+     exit;
+   end;
+  s2[0]:=chr(len);       { sets the length to that of the search String }
+  found:=False;
+  numb:=size-pred(len);
+  While (not found) and (numb>0) do
+   begin
+     { partial match }
+     if buffer[numb] = ord(str[1]) then
+      begin
+        { less partial! }
+        if buffer[numb+pred(len)] = ord(str[len]) then
+         begin
+           move(buffer[numb],s2[1],len);
+           if (str=s2) then
+            begin
+              found:=true;
+              break;
+            end;
+         end;
+        dec(numb);
+     end
+    else
+     dec(numb,Bt[buffer[numb]]);
+  end;
+  if not found then
+    BMBScan := NotFoundValue
+  else
+    BMBScan := numb;
+end;
+
+
+function BMBIScan(var Block; Size: Sw_Word;const Str: String;const bt:BTable): Sw_Integer;
+Var
+  buffer : Array[0..MaxBufLength-1] of Char Absolute block;
+  len,
+  numb,
+  x      : Sw_integer;
+  found  : Boolean;
+  p      : pchar;
+  c      : char;
+begin
+  len:=length(str);
+  if (len=0) or (len>size) then
+   begin
+     BMBIScan := NotFoundValue;
+     exit;
+   end;
+  found:=False;
+  numb:=size-len;
+  While (not found) and (numb>0) do
+   begin
+     { partial match }
+     c:=buffer[numb];
+     if c in ['a'..'z'] then
+      c:=chr(ord(c)-32);
+     if (c=str[1]) then
+      begin
+        { less partial! }
+        p:=@buffer[numb];
+        x:=1;
+        while (x<=len) do
+         begin
+           if not(((p^ in ['a'..'z']) and (chr(ord(p^)-32)=str[x])) or
+             (p^=str[x])) then
+            break;
+           inc(p);
+           inc(x);
+         end;
+        if (x>len) then
+         begin
+           found:=true;
+           break;
+         end;
+        dec(numb);
+      end
+     else
+      dec(numb,Bt[ord(c)]);
+   end;
+  if not found then
+    BMBIScan := NotFoundValue
+  else
+    BMBIScan := numb;
+end;
+
+
+{*****************************************************************************
+                            PLine,TLineCollection
+*****************************************************************************}
 
 function NewLine(S: string): PLine;
 var P: PLine;
@@ -942,6 +785,7 @@ begin
   P^.Text:=NewStr(S);
   NewLine:=P;
 end;
+
 
 procedure DisposeLine(P: PLine);
 begin
@@ -2276,10 +2120,8 @@ var S: string;
     AreaStart,AreaEnd: TPoint;
     CanReplace,Confirm: boolean;
     Re: word;
-{$ifndef ASMSCAN}
     IFindStr : string;
     BT : BTable;
-{$endif}
 
   function ContainsText(const SubS:string;var S: string; Start: Sw_word): Sw_integer;
   var
@@ -2289,29 +2131,24 @@ var S: string;
      P:=0
     else
      begin
-{$ifdef ASMSCAN}
        if SForward then
-   begin
-     P:=PosF(SubS,copy(S,Start,255),(FindFlags and ffCaseSensitive)<>0);
-   end
+        begin
+          if FindFlags and ffCaseSensitive<>0 then
+           P:=BMFScan(S[Start],length(s)+1-Start,FindStr,Bt)+1
+          else
+           P:=BMFIScan(S[Start],length(s)+1-Start,IFindStr,Bt)+1;
+          if P>0 then
+           Inc(P,Start-1);
+        end
        else
-   begin
-     P:=PosB(SubS,copy(S,1,Start),(FindFlags and ffCaseSensitive)<>0);
-   end;
-{$else}
-       if SForward then
-   begin
-     if FindFlags and ffCaseSensitive<>0 then
-      P:=BMFScan(S[Start],length(s)+1-Start,FindStr,Bt)+1
-     else
-      P:=BMFIScan(S[Start],length(s)+1-Start,IFindStr,Bt)+1;
-   end
-       else
-   begin
-   end;
-{$endif}
-       if P>0 then
-   Inc(P,Start-1);
+        begin
+          if start>length(s) then
+           start:=length(s);
+          if FindFlags and ffCaseSensitive<>0 then
+           P:=BMBScan(S[1],Start,FindStr,Bt)+1
+          else
+           P:=BMBIScan(S[1],Start,IFindStr,Bt)+1;
+        end;
      end;
     ContainsText:=P;
   end;
@@ -2320,7 +2157,7 @@ var S: string;
   begin
     InArea:=((AreaStart.Y=Y) and (AreaStart.X<=X)) or
        ((AreaStart.Y<Y) and (Y<AreaEnd.Y)) or
-       ((AreaEnd.Y=Y) and (X<AreaEnd.X));
+       ((AreaEnd.Y=Y) and (X<=AreaEnd.X));
   end;
 
 begin
@@ -2332,38 +2169,72 @@ begin
   DoReplaceAll:=(FindFlags and ffReplaceAll)<>0;
   Count:=GetLineCount; FoundCount:=0;
 
-  if SForward then DY:=1 else DY:=-1; DX:=DY;
+  if SForward then
+    DY:=1
+  else
+    DY:=-1;
+  DX:=DY;
 
-  if (FindFlags and ffmScope)=ffGlobal
-     then begin AreaStart.X:=0; AreaStart.Y:=0; AreaEnd.X:=length(GetDisplayText(Count-1)); AreaEnd.Y:=Count-1; end
-     else begin AreaStart:=SelStart; AreaEnd:=SelEnd; end;
+  if (FindFlags and ffmScope)=ffGlobal then
+   begin
+     AreaStart.X:=0;
+     AreaStart.Y:=0;
+     AreaEnd.X:=length(GetDisplayText(Count-1));
+     AreaEnd.Y:=Count-1;
+   end
+  else
+   begin
+     AreaStart:=SelStart;
+     AreaEnd:=SelEnd;
+   end;
 
-  X:=CurPos.X-DX; Y:=CurPos.Y;;
+  X:=CurPos.X-DX;
+  Y:=CurPos.Y;;
   if SearchRunCount=1 then
     if (FindFlags and ffmOrigin)=ffEntireScope then
-       if SForward then begin X:=AreaStart.X-1; Y:=AreaStart.Y; end
-         else begin X:=AreaEnd.X+1; Y:=AreaEnd.Y; end;
+      if SForward then
+        begin
+          X:=AreaStart.X-1;
+          Y:=AreaStart.Y;
+        end
+       else
+        begin
+          X:=AreaEnd.X+1;
+          Y:=AreaEnd.Y;
+        end;
 
-{$ifndef ASMSCAN}
   if FindFlags and ffCaseSensitive<>0 then
-   BMFMakeTable(FindStr,bt)
+   begin
+     if SForward then
+      BMFMakeTable(FindStr,bt)
+     else
+      BMBMakeTable(FindStr,bt);
+   end
   else
    begin
      IFindStr:=Upper(FindStr);
-     BMFMakeTable(IFindStr,bt);
+     if SForward then
+      BMFMakeTable(IFindStr,bt)
+     else
+      BMBMakeTable(IFindStr,bt);
    end;
-{$endif}
 
-  X:=X+DX;
+  inc(X,DX);
   CanExit:=false;
-  if DoReplace and (Confirm=false) and (Owner<>nil) then Owner^.Lock;
+  if DoReplace and (Confirm=false) and (Owner<>nil) then
+    Owner^.Lock;
   if InArea(X,Y) then
   repeat
     S:=GetDisplayText(Y);
     P:=ContainsText(FindStr,S,X+1);
     Found:=P<>0;
     if Found then
-      begin A.X:=P-1; A.Y:=Y; B.Y:=Y; B.X:=A.X+length(FindStr); end;
+      begin
+        A.X:=P-1;
+        A.Y:=Y;
+        B.Y:=Y;
+        B.X:=A.X+length(FindStr);
+      end;
     Found:=Found and InArea(A.X,A.Y);
 
     if Found and ((FindFlags and ffWholeWordsOnly)<>0) then
@@ -2373,48 +2244,65 @@ begin
        Found:=LeftOK and RightOK;
      end;
 
-    if Found then Inc(FoundCount);
+    if Found then
+      Inc(FoundCount);
 
     if Found then
       begin
-   SetCurPtr(B.X,B.Y);
-   TrackCursor(true);
-   SetHighlight(A,B);
-   if (DoReplace=false) then CanExit:=true else
-     begin
-       if Confirm=false then CanReplace:=true else
-         begin
-      Re:=EditorDialog(edReplacePrompt,@CurPos);
-      case Re of
-        cmYes    : CanReplace:=true;
-        cmNo     : CanReplace:=false;
-      else {cmCancel} begin CanReplace:=false; CanExit:=true; end;
-      end;
-         end;
-       if CanReplace then
-         begin
-      if Owner<>nil then Owner^.Lock;
-      SetSelection(A,B);
-      DelSelect;
-      InsertText(ReplaceStr);
-      if Owner<>nil then Owner^.UnLock;
-         end;
-       if (DoReplaceAll=false) then CanExit:=true;
-     end;
+        if SForward then
+         SetCurPtr(B.X,B.Y)
+        else
+         SetCurPtr(A.X,A.Y);
+        TrackCursor(true);
+        SetHighlight(A,B);
+        if (DoReplace=false) then CanExit:=true else
+          begin
+            if Confirm=false then CanReplace:=true else
+              begin
+                Re:=EditorDialog(edReplacePrompt,@CurPos);
+                case Re of
+                  cmYes :
+                    CanReplace:=true;
+                  cmNo :
+                    CanReplace:=false;
+                  else {cmCancel}
+                    begin
+                      CanReplace:=false;
+                      CanExit:=true;
+                    end;
+                end;
+              end;
+            if CanReplace then
+              begin
+                if Owner<>nil then
+                  Owner^.Lock;
+                SetSelection(A,B);
+                DelSelect;
+                InsertText(ReplaceStr);
+                if Owner<>nil then
+                  Owner^.UnLock;
+              end;
+            if (DoReplaceAll=false) then
+              CanExit:=true;
+          end;
       end;
 
     if CanExit=false then
       begin
-   Y:=Y+DY;
-   if SForward then X:=0 else X:=255;
-   CanExit:=(Y>=Count) or (Y<0);
+        inc(Y,DY);
+        if SForward then
+          X:=0
+        else
+          X:=254;
+        CanExit:=(Y>=Count) or (Y<0);
       end;
-    if CanExit=false then
-       CanExit:=InArea(X,Y)=false;
+    if not CanExit then
+      CanExit:=not InArea(X,Y);
   until CanExit;
   if (FoundCount=0) or (DoReplace) then
     SetHighlight(CurPos,CurPos);
-  if DoReplace and (Confirm=false) and (Owner<>nil) then Owner^.UnLock;
+  if DoReplace and (Confirm=false) and (Owner<>nil) then
+    Owner^.UnLock;
   if (FoundCount=0) then
     EditorDialog(edSearchFailed,nil);
 end;
@@ -3329,7 +3217,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.18  1999-02-15 15:12:25  pierre
+  Revision 1.19  1999-02-18 13:44:36  peter
+    * search fixed
+    + backward search
+    * help fixes
+    * browser updates
+
+  Revision 1.18  1999/02/15 15:12:25  pierre
    + TLine remembers Comment type
 
   Revision 1.17  1999/02/15 09:32:58  pierre

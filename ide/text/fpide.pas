@@ -143,7 +143,6 @@ begin
   ProgramInfoWindow^.Hide;
   Desktop^.Insert(ProgramInfoWindow);
   Message(@Self,evBroadcast,cmUpdate,nil);
-  InitTemplates;
   CurDirChanged;
 end;
 
@@ -658,13 +657,18 @@ destructor TIDEApp.Done;
 begin
   inherited Done;
   DoneHelpSystem;
-  DoneTemplates;
 end;
 
 END.
 {
   $Log$
-  Revision 1.15  1999-02-16 10:43:55  peter
+  Revision 1.16  1999-02-18 13:44:31  peter
+    * search fixed
+    + backward search
+    * help fixes
+    * browser updates
+
+  Revision 1.15  1999/02/16 10:43:55  peter
     * use -dGDB for the compiler
     * only use gdb_file when -dDEBUG is used
     * profiler switch is now a toggle instead of radiobutton

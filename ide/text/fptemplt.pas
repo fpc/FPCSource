@@ -19,10 +19,11 @@ interface
 
 uses FPViews;
 
-procedure InitTemplates;
 function  GetTemplateCount: integer;
 function  GetTemplateName(Index: integer): string;
 function  StartTemplate(Index: integer; Editor: PSourceEditor): boolean;
+
+procedure InitTemplates;
 procedure DoneTemplates;
 
 implementation
@@ -52,22 +53,26 @@ type
 
 const Templates : PTemplateCollection = nil;
 
-function NewTemplate(Name, Path: string): PTemplate;
+function NewTemplate(const Name, Path: string): PTemplate;
 var P: PTemplate;
 begin
-  New(P); FillChar(P^,SizeOf(P^),0);
-  P^.Name:=NewStr(Name); P^.Path:=NewStr(Path);
+  New(P);
+  FillChar(P^,SizeOf(P^),0);
+  P^.Name:=NewStr(Name);
+  P^.Path:=NewStr(Path);
   NewTemplate:=P;
 end;
 
 procedure DisposeTemplate(P: PTemplate);
 begin
-  if P<>nil then
-  begin
-    if P^.Name<>nil then DisposeStr(P^.Name);
-    if P^.Path<>nil then DisposeStr(P^.Path);
-    Dispose(P);
-  end;
+  if assigned(P) then
+   begin
+     if assigned(P^.Name) then
+       DisposeStr(P^.Name);
+     if assigned(P^.Path) then
+       DisposeStr(P^.Path);
+     Dispose(P);
+   end;
 end;
 
 function TTemplateCollection.At(Index: Integer): PTemplate;
@@ -77,7 +82,8 @@ end;
 
 procedure TTemplateCollection.FreeItem(Item: Pointer);
 begin
-  if Item<>nil then DisposeTemplate(Item);
+  if assigned(Item) then
+    DisposeTemplate(Item);
 end;
 
 function TTemplateCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
@@ -89,31 +95,6 @@ begin
   if K1^.Name^>K2^.Name^ then R:= 1 else
   R:=0;
   Compare:=R;
-end;
-
-procedure InitTemplates;
-procedure ScanDir(Dir: PathStr);
-var SR: SearchRec;
-    S: string;
-begin
-  if copy(Dir,length(Dir),1)<>DirSep then Dir:=Dir+DirSep;
-  FindFirst(Dir+'*.pt',AnyFile,SR);
-  while (DosError=0) do
-  begin
-    S:=NameOf(SR.Name);
-    S:=LowerCaseStr(S);
-    S[1]:=Upcase(S[1]);
-    Templates^.Insert(NewTemplate(S,FExpand(Dir+SR.Name)));
-    FindNext(SR);
-  end;
-{$ifdef FPC}
-  FindClose(SR);
-{$endif def FPC}
-end;
-begin
-  New(Templates, Init(10,10));
-  ScanDir('.');
-  ScanDir(DirOf(ParamStr(0)));
 end;
 
 function GetTemplateCount: integer;
@@ -151,16 +132,58 @@ begin
   StartTemplate:=OK;
 end;
 
+
+{*****************************************************************************
+                                 InitTemplates
+*****************************************************************************}
+
+procedure InitTemplates;
+
+  procedure ScanDir(Dir: PathStr);
+  var SR: SearchRec;
+      S: string;
+  begin
+    if copy(Dir,length(Dir),1)<>DirSep then Dir:=Dir+DirSep;
+    FindFirst(Dir+'*.pt',AnyFile,SR);
+    while (DosError=0) do
+    begin
+      S:=NameOf(SR.Name);
+      S:=LowerCaseStr(S);
+      S[1]:=Upcase(S[1]);
+      Templates^.Insert(NewTemplate(S,FExpand(Dir+SR.Name)));
+      FindNext(SR);
+    end;
+  {$ifdef FPC}
+    FindClose(SR);
+  {$endif def FPC}
+  end;
+
+begin
+  New(Templates, Init(10,10));
+  ScanDir('.');
+  ScanDir(DirOf(ParamStr(0)));
+end;
+
+
 procedure DoneTemplates;
 begin
-  if Templates<>nil then
-    Dispose(Templates, Done);
+  if assigned(Templates) then
+    begin
+      Dispose(Templates, Done);
+      Templates:=nil;
+    end;
 end;
 
 END.
 {
   $Log$
-  Revision 1.4  1999-02-16 17:13:56  pierre
+  Revision 1.5  1999-02-18 13:44:35  peter
+    * search fixed
+    + backward search
+    * help fixes
+    * browser updates
+
+  Revision 1.4  1999/02/16 17:13:56  pierre
    + findclose added for FPC
 
   Revision 1.3  1999/01/21 11:54:24  peter

@@ -375,10 +375,8 @@ begin
       Items:=NewSItem(ProfileInfoSwitches^.ItemName(I), Items);
     New(CB, Init(R2, Items));
     L:=ProfileInfoSwitches^.GetCurrSel;
-    If L = 1 then
-      CB^.SetData(3)
-    else
-      CB^.SetData(1);
+    If L = 1 then L:=3;
+    CB^.SetData(L);
     Insert(CB);
     R2.Copy(R); Inc(R2.A.Y,6); R2.B.Y:=R2.A.Y+1;
     Insert(New(PLabel, Init(R2, 'Profiling Switches', CB)));
@@ -724,7 +722,13 @@ end;
 
 {
   $Log$
-  Revision 1.15  1999-02-16 17:15:28  pierre
+  Revision 1.16  1999-02-18 13:44:32  peter
+    * search fixed
+    + backward search
+    * help fixes
+    * browser updates
+
+  Revision 1.15  1999/02/16 17:15:28  pierre
    * Peter's debug code commented
 
   Revision 1.14  1999/02/16 10:43:56  peter

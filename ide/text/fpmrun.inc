@@ -130,13 +130,13 @@ var
   FileName : string;
   LineNr : longint;
 begin
-  if not assigned(DeskTop^.First) or
+  if (DeskTop^.First=nil) or
      (TypeOf(DeskTop^.First^)<>TypeOf(TSourceWindow)) then
     Begin
        ErrorBox('Impossible to reach current cursor',nil);
        Exit;
     End;
-    
+
   W:=PSourceWindow(DeskTop^.First);
   If assigned(W) then
     begin
@@ -163,13 +163,13 @@ var
   b : boolean;
   LineNr : longint;
 begin
-  if not assigned(DeskTop^.First) or
+  if (DeskTop^.First=nil) or
      (TypeOf(DeskTop^.First^)<>TypeOf(TSourceWindow)) then
     Begin
        ErrorBox('Impossible to set breakpoints here',nil);
        Exit;
     End;
-    
+
   W:=PSourceWindow(DeskTop^.First);
   If assigned(W) then
     begin
@@ -182,7 +182,13 @@ end;
 
 {
   $Log$
-  Revision 1.12  1999-02-11 19:07:24  pierre
+  Revision 1.13  1999-02-18 13:44:33  peter
+    * search fixed
+    + backward search
+    * help fixes
+    * browser updates
+
+  Revision 1.12  1999/02/11 19:07:24  pierre
     * GDBWindow redesigned :
       normal editor apart from
       that any kbEnter will send the line (for begin to cursor)
