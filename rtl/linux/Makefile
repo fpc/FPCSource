@@ -190,8 +190,9 @@ cprt0$(OEXT) : $(CPU)/cprt1.as
 cprt21$(OEXT) : $(CPU)/cprt21.as
 	$(AS) -o cprt21$(OEXT) $(CPU)/cprt21.as 
 
-gprt21$(OEXT) : $(CPU)/gprt21.as
-	$(AS) -o gprt21$(OEXT) $(CPU)/gprt21.as
+# still need to use gprt1, because gprt21 crashes
+gprt21$(OEXT) : $(CPU)/gprt1.as
+	$(AS) -o gprt21$(OEXT) $(CPU)/gprt1.as
 
 endif
 
@@ -273,7 +274,11 @@ ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.21  1999-05-03 21:29:35  peter
+# Revision 1.22  1999-05-03 23:30:28  peter
+#   * small update
+#   * uses gprt1 again for gprt21 becuase gprt21.as crashes
+#
+# Revision 1.21  1999/05/03 21:29:35  peter
 #   + glibc 2.1 support
 #
 # Revision 1.20  1999/04/22 10:56:32  peter

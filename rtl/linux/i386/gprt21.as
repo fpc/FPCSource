@@ -36,8 +36,9 @@ _start:
         movl    %esi,U_SYSLINUX_ARGC    /* Move the argument counter    */
         movl    %ebx,U_SYSLINUX_ARGV    /* Move the argument pointer    */
 
+        movl    %edi,%eax
         xorl    %ebp,%ebp
-        pushl   %edi
+        pushl   %eax
         pushl   %esp
         pushl   %edx
         pushl   $_fini
@@ -56,6 +57,8 @@ cmain:
         popl    %eax
         movl    %eax,___fpc_ret
         movl    %ebx,___fpc_ret_ebx
+        movl    %esi,___fpc_ret_esi
+        movl    %edi,___fpc_ret_edi
         pushl   %eax
 
         /* start the program */
@@ -69,12 +72,21 @@ _haltproc:
 
         movl    ___fpc_ret,%edx         /* return to libc */
         movl    ___fpc_ret_ebx,%ebx
+        movl    ___fpc_ret_esi,%esi
+        movl    ___fpc_ret_edi,%edi
         push    %edx
         ret
 
         .globl  __gmon_start__
         .type   __gmon_start__,@object
 __gmon_start__:
+        pushl   %ebp
+        movl    __monstarted,%eax
+        leal    0x1(%eax),%edx
+        movl    %esp,%ebp
+        movl    %edx,__monstarted
+        testl   %eax,%eax
+        jnz     .Lnomonstart
         pushl   $etext                  /* Initialize gmon */
         pushl   $_start
         call    monstartup
@@ -82,6 +94,9 @@ __gmon_start__:
         pushl   $_mcleanup
         call    atexit
         addl    $4,%esp
+.Lnomonstart:
+        movl   %ebp,%esp
+        popl   %ebp
         ret
 
 .data
@@ -97,11 +112,21 @@ ___fpc_ret:                             /* return address to libc */
         .long   0
 ___fpc_ret_ebx:
         .long   0
+___fpc_ret_esi:
+        .long   0
+___fpc_ret_edi:
+        .long   0
 
+.bss
+        .lcomm __monstarted,4
 
 #
 # $Log$
-# Revision 1.1  1999-05-03 21:29:36  peter
+# Revision 1.2  1999-05-03 23:30:29  peter
+#   * small update
+#   * uses gprt1 again for gprt21 becuase gprt21.as crashes
+#
+# Revision 1.1  1999/05/03 21:29:36  peter
 #   + glibc 2.1 support
 #
 # Revision 1.3  1998/11/04 10:16:25  peter
