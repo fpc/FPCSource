@@ -13,11 +13,14 @@ unit UnzipDLL;
 
 interface
 
+uses
+ ZipTypes;
+
 const
  UnzipErr: longint = 0;
 
 type
- TArgV = array [0..1024] of PChar;
+ TArgV = array [1..1024] of PChar;
  PArgV = ^TArgV;
  TCharArray = array [1..1024*1024] of char;
  PCharArray = ^TCharArray;
@@ -239,7 +242,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-09-07 15:43:06  peter
+  Revision 1.5  2003-08-03 22:25:55  hajny
+    * integer type inconsistency resolved
+
+  Revision 1.4  2002/09/07 15:43:06  peter
     * old logs removed and tabs fixed
 
   Revision 1.3  2002/07/07 17:58:09  hajny
