@@ -326,8 +326,9 @@ implementation
          { we need a simple loadn, but the load must be in a global symtable or
            in the same lexlevel }
          if (hp^.treetype<>funcretn) and
-            not((hp^.treetype=loadn) and
-                (hp^.symtable^.symtablelevel>1) and (hp^.symtable^.symtablelevel<>lexlevel)) then
+            (hp^.treetype<>loadn) and
+            (hp^.symtable^.symtablelevel>1) and
+            (hp^.symtable^.symtablelevel<>lexlevel) then
           CGMessagePos(hp^.fileinfo,cg_e_illegal_count_var)
          else
           begin
@@ -636,7 +637,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-09-03 11:08:42  peter
+  Revision 1.7  2000-09-03 11:44:00  peter
+    * error for not specified operand size, which is now required for
+      newer binutils (merged)
+    * previous commit fix for tcflw (merged)
+
+  Revision 1.6  2000/09/03 11:08:42  peter
     * fixed counter var checking with funcretn (merged)
 
   Revision 1.5  2000/08/27 16:11:55  peter

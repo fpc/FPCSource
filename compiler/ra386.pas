@@ -190,14 +190,29 @@ begin
              operand2:=1
             else
              operand2:=2;
-            { Only allow register as operand to take the size from }
-            if operands[operand2]^.opr.typ=OPR_REGISTER then
-             operands[i]^.size:=operands[operand2]^.size
+            if operand2<ops then
+             begin
+               { Only allow register as operand to take the size from }
+               if operands[operand2]^.opr.typ=OPR_REGISTER then
+                operands[i]^.size:=operands[operand2]^.size
+               else
+                begin
+                  { if no register then take the opsize (which is available with ATT),
+                    if not availble then give an error }
+                  if opsize<>S_NO then
+                    operands[i]^.size:=opsize
+                  else
+                   begin
+                     Comment(V_Error,'No size specified and unable to determine the size of the operands');
+                     { recovery }
+                     operands[i]^.size:=S_L;
+                   end;
+                end;
+             end
             else
              begin
-               { if no register then take the opsize (which is available with ATT) }
                if opsize<>S_NO then
-                 operands[i]^.size:=opsize;
+                 operands[i]^.size:=opsize
              end;
           end;
         OPR_SYMBOL :
@@ -437,7 +452,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:47  michael
+  Revision 1.3  2000-09-03 11:44:00  peter
+    * error for not specified operand size, which is now required for
+      newer binutils (merged)
+    * previous commit fix for tcflw (merged)
+
+  Revision 1.2  2000/07/13 11:32:47  michael
   + removed logs
 
 }
