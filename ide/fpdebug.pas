@@ -3579,8 +3579,11 @@ end;
 
     begin
        inherited init(Bounds);
+       GrowMode:=gfGrowHiY+gfGrowHiX;
        InDraw:=false;
        FillChar(OldReg,Sizeof(oldreg),#0);
+       FillChar(NewReg,Sizeof(newreg),#0);
+       GDBCount:=-1;
     end;
 
   procedure TFPUView.Draw;
@@ -3589,6 +3592,7 @@ end;
        rs : tfpuregs;
        top : byte;
        color :byte;
+       ok : boolean;
     const
       TypeStr : Array[0..3] of string[6] =
       ('Valid ','Zero  ','Spec  ','Empty ');
@@ -3619,7 +3623,18 @@ end;
        if InDraw then
          exit;
        InDraw:=true;
-       if GetFPURegs(rs) then
+       if GDBCount<>Debugger^.RunCount then
+         begin
+           OldReg:=NewReg;
+           OK:=GetFPURegs(rs);
+           NewReg:=rs;
+         end
+       else
+         begin
+           rs:=newreg;
+           OK:=true;
+         end;
+       if OK then
          begin
 {$ifdef i386}
             top:=(rs.fstat shr 11) and 7;
@@ -3659,7 +3674,6 @@ end;
             else
               color:=7;
             WriteStr(1,11,'FO    '+hexstr(rs.foseg,4)+':'+hexstr(rs.fooff,8),color);
-            OldReg:=rs;
 {$endif i386}
 {$ifdef m68k}
             SetColor(rs.fp0,OldReg.fp0);
@@ -3684,7 +3698,6 @@ end;
             WriteStr(1,9,'fpstatus    '+hexstr(rs.fpstatus,8),color);
             SetIColor(rs.fpiaddr,OldReg.fpiaddr);
             WriteStr(1,10,'fpiaddr    '+hexstr(rs.fpiaddr,8),color);
-            OldReg:=rs;
 {$endif m68k}
          end
        else
@@ -3712,7 +3725,7 @@ end;
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+14;
        inherited Init(R,dialog_fpu, wnNoNumber);
-       Flags:=wfClose or wfMove;
+       Flags:=wfClose or wfMove or wfgrow;
        Palette:=wpCyanWindow;
        HelpCtx:=hcFPURegisters;
        R.Assign(1,1,42,13);
@@ -4199,7 +4212,10 @@ end.
 
 {
   $Log$
-  Revision 1.30  2002-09-17 21:20:07  pierre
+  Revision 1.31  2002-09-17 21:48:41  pierre
+   * allow fpu window to be resized
+
+  Revision 1.30  2002/09/17 21:20:07  pierre
    * fix infinite recursion if GDB window and register window open
 
   Revision 1.29  2002/09/13 22:30:50  pierre
