@@ -115,17 +115,17 @@ unit objpas;
 
   implementation
 
-    procedure finalize(data,typeinfo : pointer);external name 'FINALIZE';
+    procedure finalize(data,typeinfo : pointer);external name 'FPC_FINALIZE';
 
     { the reverse order of the parameters make code generation easier }
-    function _is(aclass : tclass;aobject : tobject) : boolean;[public,alias: 'DO_IS'];
+    function _is(aclass : tclass;aobject : tobject) : boolean;[public,alias: 'FPC_DO_IS'];
 
       begin
          _is:=aobject.inheritsfrom(aclass);
       end;
 
     { the reverse order of the parameters make code generation easier }
-    procedure _as(aclass : tclass;aobject : tobject);[public,alias: 'DO_AS'];
+    procedure _as(aclass : tclass;aobject : tobject);[public,alias: 'FPC_DO_AS'];
 
       begin
          if assigned(aobject) and not(aobject.inheritsfrom(aclass)) then
@@ -321,7 +321,10 @@ end.
 {$endif VER0_99_5}
 {
   $Log$
-  Revision 1.9  1998-09-16 13:08:19  michael
+  Revision 1.10  1998-09-17 13:01:15  michael
+  Naming scheme changed, FPC_ prefix added.
+
+  Revision 1.9  1998/09/16 13:08:19  michael
   Added AbstractErrorHandler
 
   Revision 1.8  1998/09/06 21:27:31  florian
