@@ -32,8 +32,10 @@ function ColorToHex (c:TFPColor; size:integer) : string;
 var fmt : string;
     l : integer;
 begin
+{
   with c do
     write ('color=',red,',',green,',',blue,',',alpha);
+}
   l := size div 3;
   fmt := inttostr(l);
   fmt := '%'+fmt+'.'+fmt+'x';
@@ -88,7 +90,7 @@ begin
     for r := 0 to c-1 do
       begin
       if img.palette[r] <> colTransparent then
-        l.Add (format('"%s c #%s",',[p[r],ColorToHex(img.palette.color[r],12)]))
+        l.Add (format('"%s c #%s",',[p[r],ColorToHex(img.palette.color[r],6)]))
       else
         l.Add (format('"%s c None",',[p[r]]));
       end;

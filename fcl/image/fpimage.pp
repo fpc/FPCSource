@@ -72,7 +72,7 @@ type
       property Count : integer read GetCount write SetCount;
   end;
 
-  TFPCustomImage = class
+  TFPCustomImage = class(TPersistent)
     private
       FOnProgress : TFPImgProgressEvent;
       FExtra : TStringlist;
@@ -106,6 +106,7 @@ type
     public
       constructor create (AWidth,AHeight:integer); virtual;
       destructor destroy; override;
+      procedure Assign(Source: TPersistent); override;
       // Saving and loading
       procedure LoadFromStream (Str:TStream; Handler:TFPCustomImageReader);
       procedure LoadFromFile (const filename:String; Handler:TFPCustomImageReader);

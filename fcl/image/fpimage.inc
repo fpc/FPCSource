@@ -294,3 +294,38 @@ begin
 end;
 
 
+Procedure TFPCustomImage.Assign(Source: TPersistent);
+
+Var
+  Src : TFPCustomImage;
+  X,Y : Integer;
+
+begin
+  If Source is TFPCustomImage then
+    begin
+    Src:=TFPCustomImage(Source);
+    // Copy extra info
+    FExtra.Assign(Src.Fextra);
+    // Copy palette if needed.
+    UsePalette:=Src.UsePalette;
+    If UsePalette then
+      begin
+      Palette.Count:=0;
+      Palette.Build(Src);
+      end;
+    // Copy image.  
+    SetSize(Src.Width,Src.height);
+    If UsePalette then
+      For x:=0 to Src.Width-1 do
+        For y:=0 to src.Height-1 do
+          pixels[X,Y]:=src.pixels[X,Y]
+    else  
+      For x:=0 to Src.Width-1 do
+        For y:=0 to src.Height-1 do
+          self[X,Y]:=src[X,Y];
+    end
+  else  
+    Inherited Assign(Source);
+end;
+
+    
