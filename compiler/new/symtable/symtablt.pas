@@ -47,12 +47,12 @@ type    Pglobalsymtable=^Tglobalsymtable;
             function varsymtodata(sym:Psym;len:longint):longint;virtual;
         end;
 
-        Tinterfacesymtable=object(Tcontainingsymtable)
+        Tinterfacesymtable=object(Tglobalsymtable)
             unitid:word;
             function varsymprefix:string;virtual;
         end;
 
-        Timplsymtable=object(Tcontainingsymtable)
+        Timplsymtable=object(Tglobalsymtable)
             unitid:word;
             function varsymprefix:string;virtual;
         end;
@@ -63,10 +63,10 @@ type    Pglobalsymtable=^Tglobalsymtable;
         end;
 
         Precordsymtable=^Trecordsymtable;
-        Trecordsymtable=object(Tcontainingsymtable)
+        Trecordsymtable=object(Tabstractsymtable)
         end;
 
-        Tobjectsymtable=object(Tcontainingsymtable)
+        Tobjectsymtable=object(Tabstractrecordsymtable)
             defowner:Pobjectsymtable;
             function speedsearch(const s:stringid;
                                  speedvalue:longint):Psym;virtual;
