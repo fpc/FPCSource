@@ -33,6 +33,7 @@ implementation
 
     uses
       cobjects,verbose,globals,systems,
+      globtype,
       symtable,aasm,types,
       hcodegen,htypechk,pass_1,
       tccal,tcld
@@ -289,7 +290,12 @@ implementation
                   if p^.inlinenumber in [in_lo_word,in_hi_word] then
                     p^.resulttype:=u8bitdef
                   else
-                    p^.resulttype:=u16bitdef;
+                    begin
+                       p^.resulttype:=u16bitdef;
+                       if (m_tp in aktmodeswitches) or
+                         (m_delphi in aktmodeswitches) then
+                         CGMessage(type_w_maybe_wrong_hi_lo);
+                    end;
                   p^.location.loc:=LOC_REGISTER;
                   if not is_integer(p^.left^.resulttype) then
                     CGMessage(type_e_mismatch)
@@ -972,7 +978,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1999-02-22 02:15:49  peter
+  Revision 1.19  1999-02-22 12:36:34  florian
+    + warning for lo/hi(longint/dword) in -So and -Sd mode added
+
+  Revision 1.18  1999/02/22 02:15:49  peter
     * updates for ag386bin
 
   Revision 1.17  1999/02/01 00:00:50  florian

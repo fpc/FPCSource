@@ -205,6 +205,7 @@ type tmsgconst=(
   type_e_succ_and_pred_enums_with_assign_not_possible,
   type_e_cant_read_write_type,
   type_e_typeconflict_in_set,
+  type_w_maybe_wrong_hi_lo,
   type_e_integer_or_real_expr_expected,
   sym_e_id_not_found,
   sym_f_internal_error_in_symtablestack,
