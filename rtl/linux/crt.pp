@@ -103,6 +103,11 @@ Procedure Delay(DTime: Word);
 Procedure Sound(Hz: Word);
 Procedure NoSound;
 
+{ extra }
+procedure CursorBig;
+procedure CursorOn;
+procedure CursorOff;
+
 
 Implementation
 
@@ -927,7 +932,6 @@ Begin
 End;
 
 
-
 Function ReadKey:char;
 Var
   ch       : char;
@@ -945,8 +949,8 @@ Begin
   until keypressed;
   ch:=ttyRecvChar;
 {Esc Found ?}
-  If (ch=#27) then
-   begin
+  CASE ch OF
+  #27: begin
      State:=1;
      Delay(10);
      while (State<>0) and (KeyPressed) do
@@ -976,12 +980,62 @@ Begin
                'B' : PushExt(80);
                'C' : PushExt(77);
                'D' : PushExt(75);
-               'G' : PushKey('5');
+               {$IFDEF FREEBSD}
+               {'E' - Center key, not handled in DOS TP7}
+               'F' : PushExt(79); {End}
+               'G': PushExt(81); {PageDown}
+               {$ELSE}
+               'G' : PushKey('5'); {Center key, Linux}
+               {$ENDIF}
                'H' : PushExt(71);
+               {$IFDEF FREEBSD}
+               'I' : PushExt(73); {PageUp}
+               {$ENDIF}
                'K' : PushExt(79);
+               {$IFDEF FREEBSD}
+               'L' : StoExt(82);   {Insert - Deekoo}
+               'M' : StoExt(59);   {F1-F10 - Deekoo}
+               'N' : StoExt(60);   {F2}
+               'O' : StoExt(61);   {F3}
+               'P' : StoExt(62);   {F4}
+               'Q' : StoExt(63);   {F5}
+               'R' : StoExt(64);   {F6}
+               'S' : StoExt(65);   {F7}
+               'T' : StoExt(66);   {F8}
+               'U' : StoExt(67);   {F9}
+               'V' : StoExt(68);   {F10}
+               {Not sure if TP/BP handles F11 and F12 like this normally;
+                   In pcemu, a TP7 executable handles 'em this way, though.}
+               'W' : StoExt(133);   {F11}
+               'X' : StoExt(134);   {F12}
+               'Y' : StoExt(84);   {Shift-F1}
+               'Z' : StoExt(85);   {Shift-F2}
+               'a' : StoExt(86);   {Shift-F3}
+               'b' : StoExt(87);   {Shift-F4}
+               'c' : StoExt(88);   {Shift-F5}
+               'd' : StoExt(89);   {Shift-F6}
+               'e' : StoExt(90);   {Shift-F7}
+               'f' : StoExt(91);   {Shift-F8}
+               'g' : StoExt(92);   {Shift-F9}
+               'h' : StoExt(93);   {Shift-F10}
+               'i' : StoExt(135);   {Shift-F11}
+               'j' : StoExt(136);   {Shift-F12}
+               'k' : StoExt(94);        {Ctrl-F1}
+               'l' : StoExt(95);
+               'm' : StoExt(96);
+               'n' : StoExt(97);
+               'o' : StoExt(98);
+               'p' : StoExt(99);
+               'q' : StoExt(100);
+               'r' : StoExt(101);
+               's' : StoExt(102);
+               't' : StoExt(103);   {Ctrl-F10}
+               'u' : StoExt(137);   {Ctrl-F11}
+               'v' : StoExt(138);   {Ctrl-F12}
+               {$ENDIF}
                '1' : State:=4;
                '2' : State:=5;
-               '3' : PushExt(83);
+               '3' : State:=6;
                '4' : PushExt(79);
                '5' : PushExt(73);
                '6' : PushExt(81);
@@ -992,7 +1046,7 @@ Begin
                  PushKey(#27);
                end;
               end;
-              if ch in ['3'..'6'] then
+              if ch in ['4'..'6'] then
                State:=255;
             end;
         3 : begin {Esc[[}
@@ -1004,7 +1058,7 @@ Begin
                'E' : PushExt(63);
               end;
             end;
-        4 : begin
+        4 : begin {Esc[1}
               case ch of
                '~' : PushExt(71);
                '7' : PushExt(64);
@@ -1014,13 +1068,30 @@ Begin
               if (Ch<>'~') then
                State:=255;
             end;
-        5 : begin
+        5 : begin {Esc[2}
               case ch of
                '~' : PushExt(82);
                '0' : pushExt(67);
                '1' : PushExt(68);
-               '3' : PushExt(133);
-               '4' : PushExt(134);
+               '3' : PushExt(133); {F11}
+                {Esc[23~ is also shift-F1,shift-F11}
+               '4' : PushExt(134); {F12}
+                {Esc[24~ is also shift-F2,shift-F12}
+               '5' : PushExt(86); {Shift-F3}
+               '6' : PushExt(87); {Shift-F4}
+               '8' : PushExt(88); {Shift-F5}
+               '9' : PushExt(89); {Shift-F6}
+              end;
+              if (Ch<>'~') then
+               State:=255;
+            end;
+        6 : begin {Esc[3}
+              case ch of
+               '~' : PushExt(83); {Del}
+               '1' : PushExt(90); {Shift-F7}
+               '2' : PushExt(91); {Shift-F8}
+               '3' : PushExt(92); {Shift-F9}
+               '4' : PushExt(93); {Shift-F10}
               end;
               if (Ch<>'~') then
                State:=255;
@@ -1032,18 +1103,12 @@ Begin
       end;
      if State=1 then
       PushKey(ch);
-   end
-  else
-   Begin
-     case ch of
-     #127 : PushExt(83);
-     else
-      PushKey(ch);
-     end;
-   End;
+   end;
+  #127: PushKey(#8);
+  else PushKey(ch);
+  End;
   ReadKey:=PopKey;
 End;
-
 
 
 Procedure Delay(DTime: Word);
@@ -1357,6 +1422,28 @@ end;
 
 
 {******************************************************************************
+                                     Extra
+******************************************************************************}
+
+procedure CursorBig;
+begin
+  ttySendStr(#27'[?17;0;64c');
+end;
+
+
+procedure CursorOn;
+begin
+  ttySendStr(#27'[?2c');
+end;
+
+
+procedure CursorOff;
+begin
+  ttySendStr(#27'[?1c');
+end;
+
+
+{******************************************************************************
                                Initialization
 ******************************************************************************}
 
@@ -1493,7 +1580,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.14  1999-01-15 12:47:16  peter
+  Revision 1.15  1999-02-08 10:35:14  peter
+    * readkey fixes from the mailinglist
+    + cursoron/off/big from the mailinglist
+
+  Revision 1.14  1999/01/15 12:47:16  peter
     * init window size to the size of the console instead of 80,25
 
   Revision 1.13  1998/11/16 10:21:27  peter
