@@ -31,10 +31,16 @@
 const
    InternalDriverName = 'WIN32GUI';
 
+{ used to create a file containing all calls to WM_PAINT
+  WARNING this probably creates HUGE files PM }
+{ $define DEBUG_WM_PAINT}
 var
    savedscreen : hbitmap;
    graphrunning : boolean;
    graphdrawing : tcriticalsection;
+{$ifdef DEBUG_WM_PAINT}
+   graphdebug : text;
+{$endif DEBUG_WM_PAINT}
    bitmapdc : hdc;
    oldbitmap : hgdiobj;
    pal : ^rgbrec;
@@ -81,8 +87,8 @@ procedure PutPixel16Win32GUI(x,y : integer;pixel : word);
       end;
     if graphrunning then
       begin
-         EnterCriticalSection(graphdrawing);
          c:=RGB(pal[pixel].red,pal[pixel].green,pal[pixel].blue);
+         EnterCriticalSection(graphdrawing);
          SetPixel(bitmapdc,x,y,c);
          SetPixel(windc,x,y,c);
          LeaveCriticalSection(graphdrawing);
@@ -108,8 +114,8 @@ function GetPixel16Win32GUI(x,y : integer) : word;
       begin
          EnterCriticalSection(graphdrawing);
          c:=Windows.GetPixel(bitmapdc,x,y);
-         GetPixel16Win32GUI:=GetPaletteEntry(GetRValue(c),GetGValue(c),GetBValue(c));
          LeaveCriticalSection(graphdrawing);
+         GetPixel16Win32GUI:=GetPaletteEntry(GetRValue(c),GetGValue(c),GetBValue(c));
       end
     else
       begin
@@ -128,6 +134,7 @@ procedure DirectPutPixel16Win32GUI(x,y : integer);
     if graphrunning then
       begin
          EnterCriticalSection(graphdrawing);
+         col:=CurrentColor;
          case currentwritemode of
            XorPut:
              Begin
@@ -195,6 +202,7 @@ procedure HLine16Win32GUI(x,x2,y: integer);
              AndPut:
                Begin
                   EnterCriticalSection(graphdrawing);
+                  col:=CurrentColor;
                   for i:=x to x2 do
                     begin
                        c2:=Windows.GetPixel(bitmapdc,i,y);
@@ -314,7 +322,7 @@ begin
     wm_rbuttondblclk,
     wm_mbuttondblclk:
     {
-    This leads to problem, i.e. the menu etc doesn't work any longer 
+    This leads to problem, i.e. the menu etc doesn't work any longer
     wm_nclbuttondown,
     wm_ncrbuttondown,
     wm_ncmbuttondown,
@@ -334,13 +342,18 @@ begin
         WindowProc:=charmessagehandler(window,amessage,wparam,lparam);
     wm_paint:
       begin
+         if not GetUpdateRect(Window,@r,false) then
+           exit;
          EnterCriticalSection(graphdrawing);
          graphrunning:=true;
          dc:=BeginPaint(Window,@ps);
-         GetClientRect(Window,@r);
-
+{$ifdef DEBUG_WM_PAINT}
+         Writeln(graphdebug,'WM_PAINT in ((',r.left,',',r.top,
+           '),(',r.right,',',r.bottom,'))');
+{$endif def DEBUG_WM_PAINT}
          if graphrunning then
-           BitBlt(dc,0,0,maxx+1,maxy+1,bitmapdc,0,0,SRCCOPY);
+           {BitBlt(dc,0,0,maxx+1,maxy+1,bitmapdc,0,0,SRCCOPY);}
+           BitBlt(dc,r.left,r.top,r.right,r.bottom,bitmapdc,r.left,r.top,SRCCOPY);
 
          EndPaint(Window,ps);
          LeaveCriticalSection(graphdrawing);
@@ -348,6 +361,10 @@ begin
       end;
     wm_create:
       begin
+{$ifdef DEBUG_WM_PAINT}
+         assign(graphdebug,'wingraph.log');
+         rewrite(graphdebug);
+{$endif DEBUG_WM_PAINT}
          EnterCriticalSection(graphdrawing);
          dc:=GetDC(window);
          bitmapdc:=CreateCompatibleDC(dc);
@@ -366,6 +383,9 @@ begin
          DeleteObject(savedscreen);
          DeleteDC(bitmapdc);
          LeaveCriticalSection(graphdrawing);
+{$ifdef DEBUG_WM_PAINT}
+         close(graphdebug);
+{$endif DEBUG_WM_PAINT}
          PostQuitMessage(0);
          Exit;
       end
@@ -399,8 +419,8 @@ var
 begin
 
   hWindow := CreateWindow('MyWindow', 'Graph window application',
-              ws_OverlappedWindow, 100, 100,
-              maxx+20, maxy+40, 0, 0, system.MainInstance, nil);
+              ws_OverlappedWindow, 50, 50,
+              maxx+20, maxy+20, 0, 0, system.MainInstance, nil);
 
   if hWindow <> 0 then begin
     ShowWindow(hWindow, SW_SHOW);
@@ -418,14 +438,14 @@ function MessageHandleThread(p : pointer) : DWord;StdCall;
   begin
      if not WinRegister then begin
        MessageBox(0, 'Register failed', nil, mb_Ok);
-       Exit;
+       ExitThread(1);
      end;
      MainWindow := WinCreate;
      if longint(mainwindow) = 0 then begin
        MessageBox(0, 'WinCreate failed', nil, mb_Ok);
-       Exit;
+       ExitThread(1);
      end;
-     while GetMessage(@AMessage, 0, 0, 0) do
+     while longint(GetMessage(@AMessage, 0, 0, 0))=longint(true) do
        begin
           TranslateMessage(AMessage);
           DispatchMessage(AMessage);
@@ -433,8 +453,10 @@ function MessageHandleThread(p : pointer) : DWord;StdCall;
      MessageHandleThread:=0;
   end;
 
-procedure InitWin32GUI640x480x16;
+procedure InitWin32GUI16colors;
 
+  var
+     threadexitcode : longint;
   begin
      getmem(pal,sizeof(RGBrec)*maxcolor);
      move(DefaultColors,pal^,sizeof(RGBrec)*maxcolor);
@@ -443,7 +465,11 @@ procedure InitWin32GUI640x480x16;
      graphrunning:=false;
      MessageThreadHandle:=CreateThread(nil,0,@MessageHandleThread,
        nil,0,MessageThreadID);
-     repeat until graphrunning;
+     repeat
+       GetExitCodeThread(MessageThreadHandle,@threadexitcode);
+     until graphrunning or (threadexitcode<>STILL_ACTIVE);
+     if threadexitcode<>STILL_ACTIVE then
+       _graphresult := grerror;
   end;
 
 procedure CloseGraph;
@@ -454,6 +480,8 @@ procedure CloseGraph;
          _graphresult := grnoinitgraph;
          exit
        end;
+     PostMessage(MainWindow,wm_destroy,0,0);
+     PostThreadMessage(MessageThreadHandle,wm_quit,0,0);
      WaitForSingleObject(MessageThreadHandle,Infinite);
      CloseHandle(MessageThreadHandle);
      DeleteCriticalSection(graphdrawing);
@@ -520,7 +548,51 @@ function queryadapterinfo : pmodeinfo;
      { now add all standard VGA modes...       }
      mode.DriverNumber:= VGA;
      mode.HardwarePages:= 0;
-     mode.ModeNumber:=0;
+     mode.ModeNumber:=VGALo;
+     mode.ModeName:='640 x 200 Win32GUI';
+     mode.MaxColor := 16;
+     mode.PaletteSize := mode.MaxColor;
+     mode.DirectColor := FALSE;
+     mode.MaxX := 639;
+     mode.MaxY := 199;
+     mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+     mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+     mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+     mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+     mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+     mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+     mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+     mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+     mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+     mode.XAspect := 10000;
+     mode.YAspect := 10000;
+     AddMode(mode);
+     InitMode(mode);
+     mode.DriverNumber:= VGA;
+     mode.HardwarePages:= 0;
+     mode.ModeNumber:=VGAMed;
+     mode.ModeName:='640 x 350 Win32GUI';
+     mode.MaxColor := 16;
+     mode.PaletteSize := mode.MaxColor;
+     mode.DirectColor := FALSE;
+     mode.MaxX := 639;
+     mode.MaxY := 349;
+     mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+     mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+     mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+     mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+     mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+     mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+     mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+     mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+     mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+     mode.XAspect := 10000;
+     mode.YAspect := 10000;
+     AddMode(mode);
+     InitMode(mode);
+     mode.DriverNumber:= VGA;
+     mode.HardwarePages:= 0;
+     mode.ModeNumber:=VGAHi;
      mode.ModeName:='640 x 480 Win32GUI';
      mode.MaxColor := 16;
      mode.PaletteSize := mode.MaxColor;
@@ -535,7 +607,7 @@ function queryadapterinfo : pmodeinfo;
      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
      mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
      mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-     mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI640x480x16;
+     mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
      mode.XAspect := 10000;
      mode.YAspect := 10000;
      AddMode(mode);
@@ -543,7 +615,12 @@ function queryadapterinfo : pmodeinfo;
 
 {
   $Log$
-  Revision 1.3  1999-11-30 22:36:53  florian
+  Revision 1.4  1999-12-02 00:24:36  pierre
+    * local var col was undefined
+    + 640x200 and 640x350 modes added (VGALo and VGAMed)
+    * WM_PAINT better handled (only requested region written)
+
+  Revision 1.3  1999/11/30 22:36:53  florian
     * the wm_nc... messages aren't handled anymore it leads to too mch problems ...
 
   Revision 1.2  1999/11/29 22:03:39  florian
