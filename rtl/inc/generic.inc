@@ -423,67 +423,10 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 {$error No pascal version of Int_new_class}
-(* procedure int_new_class;assembler;saveregisters;[public,alias:'FPC_NEW_CLASS'];
-asm
-        { to be sure in the future, we save also edit }
-        pushl   %edi
-        { create class ? }
-        movl    8(%ebp),%edi
-        orl     %edi,%edi
-        jz      .LNEW_CLASS1
-        { save registers !! }
-        pushl   %ebx
-        pushl   %ecx
-        pushl   %edx
-        { esi contains the vmt }
-        pushl   %esi
-        { call newinstance (class method!) }
-        call    *16(%esi)
-        popl    %edx
-        popl    %ecx
-        popl    %ebx
-        { newinstance returns a pointer to the new created }
-        { instance in eax                                  }
-        { load esi and insert self                         }
-        movl    %eax,%esi
-.LNEW_CLASS1:
-        movl    %esi,8(%ebp)
-        orl     %eax,%eax
-        popl   %edi
-end; *)
-
 {$endif ndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-
 {$error No pascal version of Int_dispose_class}
-(* procedure int_dispose_class;assembler;saveregisters;[public,alias:'FPC_DISPOSE_CLASS'];
-asm
-        { to be sure in the future, we save also edit }
-        pushl   %edi
-        { destroy class ? }
-        movl    12(%ebp),%edi
-        orl     %edi,%edi
-        jz      .LDISPOSE_CLASS1
-        { no inherited call }
-        movl    (%esi),%edi
-        { save registers !! }
-        pushl   %eax
-        pushl   %ebx
-        pushl   %ecx
-        pushl   %edx
-        { push self }
-        pushl   %esi
-        { call freeinstance }
-        call    *20(%edi)
-        popl    %edx
-        popl    %ecx
-        popl    %ebx
-        popl    %eax
-.LDISPOSE_CLASS1:
-        popl   %edi
-end; *)
-
 {$endif ndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
@@ -883,7 +826,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2001-07-29 13:49:15  peter
+  Revision 1.16  2001-07-31 19:36:51  peter
+    * small cleanup of commented code (merged)
+
+  Revision 1.15  2001/07/29 13:49:15  peter
     * m68k updates merged
 
   Revision 1.14  2001/07/08 21:00:18  peter
