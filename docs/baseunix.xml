@@ -4111,7 +4111,7 @@ socket. If so it returns <var>True</var>.
 
 <!-- function Visibility: default -->
 <element name="WEXITSTATUS">
-<short>Extract the exit status from the <link id="FpWaitPID"/> result.</short>
+<short>Extract the exit status from the <link id="#rtl.baseunix.FpWaitPID">fpWaitPID</link> result.</short>
 <descr>
 <var>WEXITSTATUS</var> can be used to extract the exit status from
 <var>Status</var>, the result of the <link id="FpWaitPID"/> call.

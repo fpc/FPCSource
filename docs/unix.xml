@@ -2125,7 +2125,7 @@ Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno
 </dl>
 </errors>
 <seealso>
-<link id="FpStat"/>
+<link id="#rtl.baseunix.FpStat"/>
 <link id="FpLStat"/>
 </seealso>
 <example file="linuxex/ex91"/>
@@ -2255,8 +2255,8 @@ with <link id="PClose"/>. The result is the same, but <var>PClose</var> returns 
 exit status of the command <var>Prog</var>.
 </descr>
 <errors>
-Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link>
-function. Errors  are essentially those of the Execve, Dup and AssignPipe commands.
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function. 
+Errors  are essentially those of the Execve, Dup and AssignPipe commands.
 </errors>
 <seealso>
 <link id="AssignPipe"/>
@@ -2299,8 +2299,7 @@ error.
 </descr>
 <errors>
 <p>
-In case of error (return value -1) <var>LinuxError</var> is used to report 
-errors:
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function. 
 </p>
 <dl>
 <dt>sys_emfile</dt>
@@ -2354,234 +2353,506 @@ None.
 
 <!-- function Visibility: default -->
 <element name="FExpand">
-<short></short>
+<short>Expand filename to fully qualified path</short>
 <descr>
+<var>FExpand</var> expands <var>Path</var> to a full path, starting from root,
+eliminating directory references such as . and .. from the result.
 </descr>
 <errors>
+None
 </errors>
-<seealso>
-</seealso>
+<example file="linuxex/ex45"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="FSearch">
-<short></short>
+<short>Search for file in search path.</short>
 <descr>
+<p>
+<var>FSearch</var> searches in <var>DirList</var>, a colon separated list of directories,
+for a file named <var>Path</var>. It then returns a path to the found file.
+</p>
+<p>
+The <var>CurrentDirStrategy</var> determines how the current directory is treated
+when searching:
+</p>
+<dl>
+<dt>NoCurrentDirectory</dt><dd><printshort id="TFSearchOption.NoCurrentDirectory"/></dd>
+<dt>CurrentDirectoryFirst</dt><dd><printshort id="TFSearchOption.CurrentDirectoryFirst"/></dd>
+<dt>CurrentDirectoryLast</dt><dd><printshort id="TFSearchOption.CurrentDirectoryLast"/></dd>
+</dl>
+<p>
+It is mainly provided to mimic DOS search path behaviour. Default behaviour
+is to search the current directory first.
+</p>
 </descr>
 <errors>
+An empty string if no such file was found.
 </errors>
 <seealso>
+<link id="FExpand"/>
+<link id="#rtl.unixutil.FNMatch"/>
 </seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="FSearch">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="FSearch">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<example file="linuxex/ex46"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="Glob">
-<short></short>
+<short>Find filenames matching a wildcard pattern</short>
 <descr>
+<p
+>Glob returns a pointer to a glob structure which contains all filenames which
+exist and match the pattern in <var>Path</var>.
+The pattern can contain wildcard characters, which have their
+usual meaning.
+</p>
 </descr>
 <errors>
+<p>
+Returns nil on error, and extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function. 
+
+</p>
+<dl>
+<dt>sys_enomem</dt><dd> No memory on heap for glob structure.</dd>
+<dt>others</dt><dd> As returned by the opendir call, and sys_readdir.</dd>
+</dl>
 </errors>
 <seealso>
+<link id="GlobFree"/>
 </seealso>
+<example file="linuxex/ex49"/>
 </element>
 
 <!-- procedure Visibility: default -->
 <element name="Globfree">
-<short></short>
+<short>Free result of <link id="Glob"/> call</short>
 <descr>
+<p>
+Releases the memory, occupied by a pglob structure. <var>P</var> is set to nil.
+</p>
+<p>
+For an example, see <link id="Glob"/>.
+</p>
 </descr>
 <errors>
+None
 </errors>
 <seealso>
+<link id="Glob"/> 
 </seealso>
 </element>
 
 <!-- procedure Visibility: default -->
 <element name="SigRaise">
-<short></short>
+<short>Raise a signal (send to current process)</short>
 <descr>
+<var>SigRaise</var> sends a <var>Sig</var> signal to the current process.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="#rtl.baseunix.FpKill"/>
+<link id="#rtl.baseunix.FpGetPid"/>
 </seealso>
+<example file="linuxex/ex65"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="FpMMap">
-<short></short>
+<short>Create memory map of a file</short>
 <descr>
+<p>
+<var>FpMMap</var> maps or unmaps files or devices into memory. The different
+arguments determine what and how the file is mapped:
+</p>
+<dl>
+<dt>adr</dt>
+<dd> Address where to mmap the device. This address is a hint,
+and may not be followed.</dd>
+<dt>len</dt><dd> Size (in bytes) of area to be mapped.</dd>
+<dt>prot</dt>
+<dd>
+<p> Protection of mapped memory. This is a OR-ed combination of the
+following constants:</p>
+<dl>
+<dt>PROT_EXEC</dt><dd> The memory can be executed.</dd>
+<dt>PROT_READ</dt><dd> The memory can be read.</dd>
+<dt>PROT_WRITE</dt><dd> The memory can be written.</dd>
+<dt>PROT_NONE</dt><dd> The memory can not be accessed.</dd>
+</dl>
+</dd>
+<dt>flags</dt><dd><p>Contains some options for the mmap call. It is an OR-ed
+combination of the following constants:</p>
+<dl>
+<dt>MAP_FIXED</dt>
+<dd> Do not map at another address than the given address. If the
+address cannot be used, <var>MMap</var> will fail.</dd>
+<dt>MAP_SHARED</dt>
+<dd> Share this map with other processes that map this object.</dd>
+<dt>MAP_PRIVATE</dt>
+<dd> Create a private map with copy-on-write semantics.</dd>
+<dt>MAP_ANONYMOUS</dt>
+<dd> <var>fd</var> does not have to be a file descriptor.</dd>
+</dl>
+<p>
+One of the options <var>MAP_SHARED</var> and <var>MAP_PRIVATE</var> must be present,
+but not both at the same time.
+</p>
+</dd>
+<dt>fd</dt><dd> File descriptor from which to map.</dd>
+<dt>off</dt><dd> Offset to be used in file descriptor <var>fd</var>.</dd>
+</dl>
+<p>
+The function returns a pointer to the mapped memory, or a -1 in case of en
+error.
+</p>
 </descr>
 <errors>
+<p>
+On error, -1 is returned and extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function. 
+</p>
+<dl>
+<dt>Sys_EBADF</dt>
+<dd> <var>fd</var> is not a valid file descriptor and 
+<var>MAP_ANONYMOUS</var> was not specified.</dd>
+<dt>Sys_EACCES</dt>
+<dd><var>MAP_PRIVATE</var> was specified, but <var>fd</var> is not open for
+reading. Or <var>MAP_SHARED</var> was asked and <var>PROT_WRITE</var> is  set, fd
+is not open for writing</dd>
+<dt>Sys_EINVAL</dt>
+<dd> One of the record fields <var>Start</var>, <var>length</var> or
+<var>offset</var> is invalid.</dd>
+<dt>Sys_ETXTBUSY</dt>
+<dd><var>MAP_DENYWRITE</var> was set but the object specified
+by fd is open for writing.</dd>
+<dt>Sys_EAGAIN</dt>
+<dd><var>fd</var> is locked, or too much memory is locked.</dd>
+<dt>Sys_ENOMEM</dt>
+<dd> Not enough memory for this operation.</dd>
+</dl>
 </errors>
 <seealso>
+<link id="FpMUnMap"/>
 </seealso>
+<example file="linuxex/ex66"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="Fpmunmap">
-<short></short>
+<short>Unmap previously mapped memory block</short>
 <descr>
+<p>
+<var>FpMUnMap</var> unmaps the memory block of size <var>Len</var>, pointed to by 
+<var>Adr</var>, which was previously allocated with <link id="FpMMap"/>.
+</p>
+<p>
+The function returns <var>True</var> if successful, <var>False</var> otherwise.
+</p>
+<p>
+For an example, see <link id="FpMMap"/>.
+</p>
 </descr>
 <errors>
+In case of error the function returns a nonzero value, 
+extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function. 
+See <link id="FpMMap"/> for possible error values.
 </errors>
 <seealso>
+<link id="FpMMap"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="fpgettimeofday">
-<short></short>
+<short>Return kernel time of day in GMT</short>
 <descr>
+<p>
+<var>FpGetTimeOfDay</var> returns the number of seconds since 00:00, January 1 
+1970, GMT in a <var>timeval</var> record. This time NOT corrected any way,
+not taking into account timezones, daylight savings time and so on.
+</p>
+<p>
+It is simply a wrapper to the kernel system call. To get the local time,
+<link id="GetTime"/>.
+</p>
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="GetTime"/>
+<link id="GetDateTime"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="fpNice">
-<short></short>
+<short>Set process priority</short>
 <descr>
+<p>
+<var>Nice</var> adds <var>-N</var> to the priority of the running process. The lower the
+priority numerically, the less the process is favored.
+Only the superuser can specify a negative <var>N</var>, i.e. increase the rate at
+which the process is run.
+</p>
+<p>
+If the function is succesful, zero is returned. On error, a nonzero value is returned. 
+</p>
 </descr>
 <errors>
+<p>
+Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link> function. 
+</p>
+<dl>
+<dt>sys_eperm</dt><dd> A non-superuser tried to specify a negative <var>N</var>, i.e.
+do a priority increase.</dd>
+</dl>
 </errors>
 <seealso>
+<link id="FpGetPriority"/>
+<link id="FpSetPriority"/>
 </seealso>
+<example file="linuxex/ex15"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="fpGetPriority">
-<short></short>
+<short>Return process priority</short>
 <descr>
+<p>
+GetPriority returns the priority with which a process is running.
+Which process(es) is determined by the <var>Which</var> and <var>Who</var> variables.
+<var>Which</var> can be one of the pre-defined <var>Prio_Process</var>,
+<var>Prio_PGrp</var>, <var>Prio_User</var>, in which case <var>Who</var> is the process ID, Process group ID or
+User ID, respectively.
+</p>
+<p>
+For an example, see <link id="FpNice"/>.
+</p>
 </descr>
 <errors>
+<p>
+Error information is returned solely by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link>
+function:  a priority can be a positive or negative value.
+</p>
+<dl>
+<dt>sys_esrch</dt>
+<dd> No process found using <var>which</var> and <var>who</var>. </dd>
+<dt>sys_einval</dt>
+<dd> <var>Which</var> was not one of <var>Prio_Process</var>,
+<var>Prio_Grp</var> or <var>Prio_User</var>.</dd>
+</dl>
 </errors>
 <seealso>
+<link id="FpSetPriority"/>
+<link id="FpNice"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="fpSetPriority">
-<short></short>
+<short>Set process priority</short>
 <descr>
+<p>
+<var>fpSetPriority</var> sets the priority with which a process is running.
+Which process(es) is determined by the <var>Which</var> and <var>Who</var> variables.
+<var>Which</var> can be one of the pre-defined constants:
+</p>
+<dl>
+<dt>Prio_Process</dt><dd><var>Who</var> is interpreted as process ID</dd>
+<dt>Prio_PGrp</dt><dd><var>Who</var> is interpreted as process group ID</dd>
+<dt>Prio_User</dt><dd><var>Who</var> is interpreted as user ID</dd>
+</dl>
+<p>
+<var>Prio</var> is a value in the range -20 to 20.
+</p>
+<p>
+For an example, see <link id="FpNice"/>.
+</p>
+<p>
+The function returns zero on success, -1 on failure
+</p>
 </descr>
 <errors>
+<p>
+Extended error information is returned  by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link>
+function.
+</p>
+<dl>
+<dt>sys_esrch</dt>
+<dd>No process found using <var>which</var> and <var>who</var>.</dd>
+<dt>sys_einval</dt>
+<dd> <var>Which</var> was not one of <var>Prio_Process</var>,
+<var>Prio_Grp</var> or <var>Prio_User</var>.</dd>
+<dt>sys_eperm</dt>
+<dd>A process was found, but neither its effective or real
+user ID match the effective user ID of the caller.</dd>
+<dt>sys_eacces</dt>
+<dd>A non-superuser tried to a priority increase.</dd>
+</dl>
 </errors>
 <seealso>
+<link id="FpGetPriority"/>
+<link id="FpNice"/>
 </seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="fpLstat">
-<short></short>
+<short>Return information about symbolic link. Do not follow the link</short>
 <descr>
+<var>FpLstat</var> gets information about the link specified in <var>Path</var>
+(or <var>FileName</var>, and stores it in <var>Info</var>, which points to a
+record of  type <var>TStat</var>. Contrary to <link
+id="#rtl.baseunix.FpFStat">FpFstat</link>, it stores
+information about the link, not about the file the link points to.
+The function returns zero if the call was succesful, a nonzero return value
+indicates failure.
+failed.
 </descr>
 <errors>
+<p>
+Extended error information is returned  by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link>
+function.
+</p>
+<dl>
+<dt>sys_enoent</dt><dd> <var>Path</var> does not exist.</dd>
+</dl>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.FpFStat"/>
+<link id="StatFS"/>
 </seealso>
+<example file="linuxex/ex29"/>
 </element>
 
-<!-- function Visibility: default -->
-<element name="fpLstat">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
-</element>
 
 <!-- function Visibility: default -->
 <element name="fpSymlink">
-<short></short>
+<short>Create a symbolic link</short>
 <descr>
+<p>
+<var>SymLink</var> makes <var>NewName</var> point to the file in
+<var>OldName</var>, which doesn't necessarily exist. The two files 
+DO NOT have the same inode number. This is known as a 'soft' link.
+</p>
+<p>The permissions of the link are irrelevant, as they are not used when
+following the link. Ownership of the file is only checked in case of removal
+or renaming of the link.
+</p>
+<p>
+The function returns zero if the call was succesful, a nonzero value if the call
+failed.
+</p>
 </descr>
 <errors>
+<p>
+Extended error information is returned  by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link>
+function.
+</p>
+<dl>
+<dt>sys_eperm</dt>
+<dd>The filesystem containing oldpath and newpath does not
+support linking files.</dd>
+<dt>sys_eaccess</dt>
+<dd>Write access for the directory containing <var>Newpath</var>
+is disallowed, or one of the directories in <var>OldPath</var> or
+<var>NewPath</var> has no search (=execute) permission.</dd>
+<dt>sys_enoent</dt>
+<dd>A directory entry in <var>OldPath</var> or <var>NewPath</var> does
+not exist or is a symbolic link pointing to a non-existent directory.</dd>
+<dt>sys_enotdir</dt>
+<dd>A directory entry in <var>OldPath</var> or <var>NewPath</var> is
+nor a directory.</dd>
+<dt>sys_enomem</dt><dd>Insufficient kernel memory.</dd>
+<dt>sys_erofs</dt><dd>The files are on a read-only filesystem.</dd>
+<dt>sys_eexist</dt><dd><var>NewPath</var> already exists.</dd>
+<dt>sys_eloop</dt>
+<dd> <var>OldPath</var> or <var>NewPath</var> has a reference to a circular
+symbolic link, i.e. a symbolic link, whose expansion points to itself.
+</dd>
+<dt>sys_enospc</dt>
+<dd>The device containing <var>NewPath</var> has no room for another entry.</dd>
+</dl>
 </errors>
 <seealso>
+<link id="#rtl.baseunix.FpLink"/>
+<link id="#rtl.baseunix.FpUnLink"/>
+<link id="FpReadLink"/>
 </seealso>
+<example file="linuxex/ex22"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="fpReadLink">
-<short></short>
+<short>Read destination of symbolic link</short>
 <descr>
+<p>
+<var>FpReadLink</var> returns the file the symbolic link <var>name</var> is pointing
+to. The first form of this function accepts a buffer <var>linkname</var> of
+length <var>maxlen</var> where the filename will be stored. It returns the
+actual number of characters stored in the buffer.
+</p>
+<p>
+The second form of the function returns simply the name of the file.
+</p>
 </descr>
 <errors>
+<p>
+On error, the first form of the function returns -1; the second one returns
+an empty string.
+Extended error information is returned  by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link>
+function.
+</p>
+<dl>
+<dt>SYS_ENOTDIR</dt>
+<dd>A part of the path in <var>Name</var> is not a directory.</dd>
+<dt>SYS_EINVAL</dt>
+<dd>maxlen is not positive, or the  file is not a symbolic link.</dd>
+<dt>SYS_ENAMETOOLONG</dt>
+<dd>A pathname, or a component of a pathname, was too long.</dd>
+<dt>SYS_ENOENT</dt>
+<dd>the link <var>name</var> does not exist.</dd>
+<dt>SYS_EACCES</dt>
+<dd>No permission to search a directory in the path</dd>
+<dt>SYS_ELOOP</dt>
+<dd>Too many symbolic links were encountered in  translating the pathname.</dd>
+<dt>SYS_EIO</dt>
+<dd>An I/O error occurred while reading from the file system.</dd>
+<dt>SYS_EFAULT</dt>
+<dd>The buffer is not part of the the process's memory space.</dd>
+<dt>SYS_ENOMEM</dt>
+<dd>Not enough kernel memory was available.</dd>
+</dl>
 </errors>
 <seealso>
+<link id="FpSymLink"/>
 </seealso>
+<example file="linuxex/ex62"/>
 </element>
 
 <!-- function Visibility: default -->
 <element name="PClose">
-<short></short>
+<short>Close file opened with <link id="POpen"/></short>
 <descr>
+<p>
+<var>PClose</var> closes a file opened with <link id="POpen"/>. 
+It waits for the command to complete, and then returns the exit status of the command. 
+</p>
+<p>
+For an example, see <link id="POpen"/>
+</p>
 </descr>
 <errors>
+Extended error information is returned  by the <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link>
+function.
 </errors>
 <seealso>
+<link id="POpen"/>
 </seealso>
 </element>
 
-<!-- function Visibility: default -->
-<element name="PClose">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="StatFS">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="fpReadLink">
-<short></short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
-</element>
 
 </module> <!-- Unix -->
 </package>

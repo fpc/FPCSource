@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="x86">
+<short>Intel X86 specific routines for unix platforms.</short>
+<!-- \FPCexampledir{crtex} -->
+<descr>
+<p>
+The <file>x86</file> unit contains some of the routines that were present in
+the 1.0.X Linux unit, and which were Intel (PC) architecture specific.
+</p>
+<p>
+These calls have been preserved for compatibility, but should be considered
+deprecated: they are not portable and may not even work on future linux
+versions.
+</p>
+</descr>
+
+<element name="ReadPort">
+<short>Read data from a PC port</short>
+<descr>
+<p>
+<var>ReadPort</var> reads one Byte, Word or Longint from port <var>Port</var> into
+<var>Value</var>.
+</p>
+<p>
+Note that you need permission to read a port. This permission can be set by 
+the root user with the <link id="FpIOPerm"/> call.
+</p>
+</descr>
+<errors>
+In case of an error (not enough permissions read this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="FpIOPerm"/>
+<link id="ReadPortB"/>
+<link id="ReadPortW"/>
+<link id="ReadPortL"/>
+<link id="WritePort"/>,
+<link id="WritePortB"/>
+<link id="WritePortL"/>
+<link id="WritePortW"/>
+</seealso>
+</element>
+
+<element name="ReadPortB">
+<short>Read bytes from a PC port</short>
+<descr>
+<p>
+The procedural form of <var>ReadPortB</var> reads <var>Count</var> bytes from port
+<var>Port</var> and stores them in <var>Buf</var>. There must be enough memory
+allocated at <var>Buf</var> to store <var>Count</var> bytes.
+</p>
+<p>
+The functional form of <var>ReadPortB</var> reads 1 byte from port <var>B</var>
+and returns the byte that was read.
+</p>
+<p>
+Note that you need permission to read a port. This permission can be set by 
+the root user with the <link id="FpIOPerm"/> call.
+</p>
+</descr>
+<errors>
+In case of an error (not enough permissions read this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="FpIOPerm"/>
+<link id="ReadPort"/>
+<link id="ReadPortW"/>
+<link id="ReadPortL"/>
+<link id="WritePort"/>,
+<link id="WritePortB"/>
+<link id="WritePortL"/>
+<link id="WritePortW"/>
+</seealso>
+</element>
+
+<element name="ReadPortL">
+<short>Read longints from a PC port </short>
+<descr>
+<p>
+The procedural form of <var>ReadPortL</var> reads <var>Count</var> longints from port
+<var>Port</var> and stores them in <var>Buf</var>. There must be enough memory
+allocated at <var>Buf</var> to store <var>Count</var> Longints.
+</p>
+<p>
+The functional form of <var>ReadPortL</var> reads 1 longint from port <var>B</var>
+and returns the longint that was read.
+</p>
+<p>
+Note that you need permission to read a port. This permission can be set by 
+the root user with the <link id="FpIOPerm"/> call.
+</p>
+</descr>
+<errors>
+In case of an error (not enough permissions read this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="FpIOPerm"/>
+<link id="ReadPort"/>
+<link id="ReadPortW"/>
+<link id="ReadPortB"/>
+<link id="WritePort"/>,
+<link id="WritePortB"/>
+<link id="WritePortL"/>
+<link id="WritePortW"/>
+</seealso>
+</element>
+
+<element name="ReadPortW">
+<short>Read Words from a PC port</short>
+<descr>
+<p>
+The procedural form of <var>ReadPortW</var> reads <var>Count</var> words from port
+<var>Port</var> and stores them in <var>Buf</var>. There must be enough memory
+allocated at <var>Buf</var> to store <var>Count</var> words.
+</p>
+<p>
+The functional form of <var>ReadPortW</var> reads 1 word from port <var>B</var>
+and returns the word that was read.
+</p>
+<p>
+Note that you need permission to read a port. This permission can be set by 
+the root user with the <link id="FpIOPerm"/> call.
+</p>
+</descr>
+<errors>
+In case of an error (not enough permissions read this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="FpIOPerm"/>
+<link id="ReadPort"/>
+<link id="ReadPortB"/>
+<link id="ReadPortL"/>
+<link id="WritePort"/>,
+<link id="WritePortB"/>
+<link id="WritePortL"/>
+<link id="WritePortW"/>
+</seealso>
+</element>
+
+<element name="WritePort">
+<short>Write data to PC port</short>
+<descr>
+<p>
+<var>WritePort</var> writes <var>Value</var> -- 1 byte, Word or longint -- 
+to port <var>Port</var>.
+</p>
+<remark>
+You need permission to write to a port. This permission can be set with root
+permission with the <link id="FpIOPerm"/> call.
+</remark>
+</descr>
+<errors>
+In case of an error (not enough permissions to write to this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="FpIOPerm"/>
+<link id="WritePortB"/>
+<link id="WritePortL"/>
+<link id="WritePortW"/>
+<link id="ReadPortB"/>
+<link id="ReadPortL"/>
+<link id="ReadPortW"/>
+</seealso>
+</element>
+
+
+<element name="WritePortB">
+<short>Write byte to PC port</short>
+<descr>
+<p>
+The first form of <var>WritePortB</var> writes 1 byte to port <var>Port</var>.
+The second form writes <var>Count</var> bytes from <var>Buf</var> to port <var>Port</var>.
+</p>
+<remark>
+You need permission to write to a port. This permission can be set with root
+permission with the <link id="FpIOPerm"/> call.
+</remark>
+</descr>
+<errors>
+In case of an error (not enough permissions to write to this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="FpIOPerm"/>
+<link id="WritePort"/>
+<link id="WritePortL"/>
+<link id="WritePortW"/>
+<link id="ReadPortB"/>
+<link id="ReadPortL"/>
+<link id="ReadPortW"/>
+</seealso>
+</element>
+
+
+<element name="WritePortL">
+<short>Write longint to PC port.</short>
+<descr>
+<p>
+The first form of <var>WritePortB</var> writes 1 byte to port <var>Port</var>.
+The second form writes <var>Count</var> bytes from <var>Buf</var> to port <var>Port</var>.
+</p>
+<remark>
+You need permission to write to a port. This permission can be set with root
+permission with the <link id="FpIOPerm"/> call.
+</remark>
+</descr>
+<errors>
+In case of an error (not enough permissions to write to this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="FpIOPerm"/>
+<link id="WritePort"/>
+<link id="WritePortB"/>
+<link id="WritePortW"/>
+<link id="ReadPortB"/>
+<link id="ReadPortL"/>
+<link id="ReadPortW"/>
+</seealso>
+</element>
+
+
+<element name="WritePortW">
+<short>Write Word to PC port</short>
+<descr>
+<p>
+The first form of <var>WritePortB</var> writes 1 byte to port <var>Port</var>.
+The second form writes <var>Count</var> bytes from <var>Buf</var> to port <var>Port</var>.
+</p>
+<remark>
+You need permission to write to a port. This permission can be set with root
+permission with the <link id="FpIOPerm"/> call.
+</remark>
+</descr>
+<errors>
+In case of an error (not enough permissions to write to this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="FpIOPerm"/>
+<link id="WritePort"/>
+<link id="WritePortL"/>
+<link id="WritePortB"/>
+<link id="ReadPortB"/>
+<link id="ReadPortL"/>
+<link id="ReadPortW"/>
+</seealso>
+</element>
+
+<element name="FpIOperm">
+<short>Set permission on IO ports</short>
+<descr>
+<p>
+<var>FpIOperm</var>
+sets permissions on <var>Num</var> ports starting with port <var>From</var> to 
+<var>Value</var>. The function returns zero if the call was successfull,
+a nonzero value otherwise.
+</p>
+<p>
+Note:
+</p>
+<ul>
+<li> This works ONLY as root.</li>
+<li> Only the first <var>0x03ff</var> ports can be set.</li>
+<li> When doing a <link id="#rtl.baseunix.FpFork">FpFork</link>, the permissions are reset. 
+When doing a <link id="#rtl.baseunix.FpExecve">FpExecVE</link> they are kept.</li>
+</ul>
+</descr>
+<errors>
+Extended error information can be retrieved with <link id="#rtl.baseunix.fpGetErrno">FpGetErrno</link>
+</errors>
+</element>
+
+<element name="FpIoPL">
+<short>Set I/O privilege level</short>
+<descr>
+<var>FpIoPL</var> sets the I/O privilige level. It is intended for
+completeness only, one should normally not use it.
+</descr>
+</element>
+
+</module>
+</package>
+</fpdoc-descriptions>

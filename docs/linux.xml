@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<fpdoc-descriptions>
+<package name="rtl">
+<module name="Linux">
+<short>Linux-specific operating system calls.</short>
+<descr>
+<p>
+The <file>linux</file> unit contains linux specific operating system calls.
+</p>
+<p>
+The platform independent functionality of the FPC 1.0.X version of the 
+<file>linux</file> unit has been split out over the 
+<link id="#rtl.unix">unix</link>, <link id="#rtl.baseunix">baseunix</link> and
+<link id="#rtl.unixutil">unixutil</link> units.
+</p>
+<p>
+The X86-specific parts have been moved to the <link id="#rtl.x86">X86</link>
+unit.
+</p>
+<p>
+People wanting to use the old version (FPC 1.0.X and before) of the
+<file>linux</file> can use the <link id="#rtl.oldlinux">oldlinux</link> unit
+instead.
+</p>
+</descr>
+
+<!-- record type Visibility: default -->
+<element name="TSysinfo">
+<short>Record with system information, used by the <link id="SysInfo"/> call.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TSysinfo.uptime">
+<short>Number of seconds since boot.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TSysinfo.loads">
+<short>1, 5 and 15 minute load averages.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TSysinfo.totalram">
+<short>total amount of main memory.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TSysinfo.freeram">
+<short>amount of free memory.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TSysinfo.sharedram">
+<short>amount of shared memory.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TSysinfo.bufferram">
+<short>amount of memory used by buffers.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TSysinfo.totalswap">
+<short>total amount of swapspace.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TSysinfo.freeswap">
+<short>amount of free swapspace.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TSysinfo.procs">
+<short>number of current processes.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TSysinfo.s">
+<short>?</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PSysInfo">
+<short>Pointer to <link id="TSysInfo"/> record.</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Sysinfo">
+<short>Return kernel system information</short>
+<descr>
+<p>
+<var>SysInfo</var> returns system information in <var>Info</var>. Returned information
+in <var>Info</var> includes:
+</p>
+<dl>
+<dt>uptime</dt><dd>Number of seconds since boot.</dd>
+<dt>loads</dt><dd>1, 5 and 15 minute load averages.</dd>
+<dt>totalram</dt><dd>total amount of main memory.</dd>
+<dt>freeram</dt><dd>amount of free memory.</dd>
+<dt>sharedram</dt><dd>amount of shared memory.</dd>
+<dt>bufferram</dt><dd>amount of memory used by buffers.</dd>
+<dt>totalswap</dt><dd>total amount of swapspace.</dd>
+<dt>freeswap</dt><dd>amount of free swapspace.</dd>
+<dt>procs</dt><dd>number of current processes.</dd>
+</dl>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="#rtl.baseunix.fpUname"/>
+</seealso>
+<example file="linuxex/ex64"/>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="CSIGNAL">
+<short><link id="Clone"/> option: Signal mask to be sent at exit</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="CLONE_VM">
+<short><link id="Clone"/> option: VM shared between processes</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="CLONE_FS">
+<short><link id="Clone"/> option: fs info shared between processes</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="CLONE_FILES">
+<short><link id="Clone"/> option: open files shared between processes</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="CLONE_SIGHAND">
+<short><link id="Clone"/> option: signal handlers shared between processes</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="CLONE_PID">
+<short><link id="Clone"/> option: PID shared between processes</short>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="TCloneFunc">
+<short>Clone function prototype.</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Clone">
+<short>Clone current process (create new thread)</short>
+<descr>
+<p>
+<var>Clone</var>
+creates a child process which is a copy of the parent process, just
+like <link id="#rtl.baseunix.FpFork">FpFork</link> does. In difference with <var>Fork</var>, however, the child
+process shares some parts of it's execution context with its parent, so it
+is suitable for the implementation of threads: many instances of a program
+that share the same memory.
+</p>
+<p>
+When the child process is created, it starts executing the function
+<var>Func</var>, and passes it <var>Args</var>. The return value of <var>Func</var> is 
+either the explicit return value of the function, or the exit code of
+the child process.
+</p>
+<p>
+The <var>sp</var> pointer points to the memory reserved as stack space for the
+child process. This address should be the top of the memory block to be used
+as stack.
+</p>
+<p>
+The <var>Flags</var> determine the behaviour of the <var>Clone</var> call. The low
+byte of the Flags contains the number of the signal that will be  sent to 
+the parent when  the child dies. 
+This may be bitwise OR'ed with the following constants:
+</p>
+<dl>
+<dt>CLONE_VM</dt>
+<dd> Parent and child share the same memory space, including
+memory (un)mapped with subsequent <var>mmap</var> calls.</dd>
+<dt>CLONE_FS</dt>
+<dd> Parent and child have the same view of the filesystem;
+the <var>chroot</var>, <var>chdir</var> and <var>umask</var> calls affect both processes.</dd>
+<dt>CLONE_FILES</dt>
+<dd> the file descriptor table of parent and child is shared.</dd>
+<dt>CLONE_SIGHAND</dt>
+<dd> the parent and child share the same table of signal
+handlers. The signal masks are different, though.</dd>
+<dt>CLONE_PID</dt>
+<dd> PArent and child have the same process ID.</dd>
+</dl>
+<p>
+Clone returns the process ID in the parent process, and -1 if an error
+occurred.
+</p>
+</descr>
+<errors>
+<p>
+On error, -1 is returned to the parent, and no child is created.
+</p>
+<dl>
+<dt>sys_eagain</dt><dd>Too many processes are running.</dd>
+<dt>sys_enomem</dt><dd>Not enough memory to create child process.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="#rtl.baseunix.FpFork"/>
+</seealso>
+<example file="linuxex/ex71"/>
+</element>
+</module> <!-- Linux -->
+</package>
+</fpdoc-descriptions>

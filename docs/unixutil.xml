@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<package name="rtl">
+
+<!--
+  ====================================================================
+    unixutil
+  ====================================================================
+-->
+
+<module name="unixutil">
+<short>Unix utility routines.</short>
+<descr>
+<p>
+The <file>UnixUtil</file> unit contains some of the routines that were
+present in the old <file>Linux</file> unit, but which do not really belong
+in the <link id="#rtl.unix">unix</link> or <link id="#rtl.baseunix">baseunix</link> 
+units.
+</p>
+<p>
+Most of the functions described here have cross-platform counterparts in the 
+<link id="#rtl.sysutils">SysUtils</link> unit. It is therefore recommended
+to use that unit.
+</p>
+</descr>
+
+<!-- variable Visibility: default -->
+<element name="tzseconds">
+<short>Seconds west of GMT</short>
+</element>
+
+<element name="ComStr">
+<short>Command-line string type.</short>
+</element>
+
+<element name="PathStr">
+<short>Filename full path string type.</short>
+</element>
+
+<element name="DirStr">
+<short>Filename directory part string type.</short>
+</element>
+
+<element name="NameStr">
+<short>Filename name part string type.</short>
+</element>
+
+<element name="ExtStr">
+<short>Filename extension part string type.</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Dirname">
+<short>Extract directory part from filename</short>
+<descr>
+<p>
+Returns the directory part of <var>Path</var>.
+The directory is the part of <var>Path</var> before the last slash,
+or empty if there is no slash.
+The last character of the result is not a slash, unless the directory is the
+root directory.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="BaseName"/>
+<link id="#rtl.unix.FExpand"/>
+</seealso>
+<example file="linuxex/ex47"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="StringToPPChar">
+<short>Split string in list of null-terminated strings</short>
+<descr>
+<p>
+<var>StringToPPChar</var> splits the string <var>S</var> in words, replacing any
+whitespace with zero characters. It returns a pointer to an array of pchars
+that point to the first letters of the words in <var>S</var>. This array is terminated
+by a <var>Nil</var> pointer.
+</p>
+<p>
+The function does <em> not</em> add a zero character to the end of the string
+unless it ends on whitespace.
+</p>
+<p>
+The function reserves memory on the heap to store the array of <var>PChar</var>;
+The caller is responsible for freeing this memory. 
+</p>
+<p>
+This function can be called to create arguments for the various <var>Exec</var>
+calls.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="ArrayStringToPPchar"/>
+<link id="#rtl.unix.CreateShellArgV"/>
+<link id="#rtl.baseunix.FpExecve"/>
+<link id="#rtl.unix.Execv"/>
+</seealso>
+<example file="linuxex/ex70"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="ArrayStringToPPchar">
+<short>Concert an array of string to an array of null-terminated strings</short>
+<descr>
+<p>
+<var>ArrayStringToPPchar</var> creates an array of null-terminated strings
+that point to strings which are the same as the strings in the array
+<var>S</var>. The function returns a pointer to this array. The array and
+the strings it contains must be disposed of after being used, because it 
+they are allocated on the heap.
+</p>
+<p>
+The <var>ReserveEntries</var> parameter tells <var>ArrayStringToPPchar</var>
+to allocate room at the end of the array for another <var>ReserveEntries</var>
+entries.
+</p>
+</descr>
+<errors>
+If not enough memory is available, an error may occur.
+</errors>
+<seealso>
+<link id="StringToPPChar"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Basename">
+<short>Return basename of a file</short>
+<descr>
+<p>
+Returns the filename part of <var>Path</var>, stripping off <var>Suf</var> if it
+exists.
+The filename part is the whole name if <var>Path</var> contains no slash,
+or the part of <var>Path</var> after the last slash.
+The last character of the result is not a slash, unless the directory is the
+root directory.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="DirName"/>
+<link id="#rtl.unix.FExpand"/>
+</seealso>
+<example file="linuxex/ex48"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FNMatch">
+<short>Check whether filename matches wildcard specification</short>
+<descr>
+<p>
+<var>FNMatch</var> returns <var>True</var> if the filename in <var>Name</var>
+matches the wildcard pattern in <var>Pattern</var>, <var>False</var> otherwise.
+</p>
+<p>
+<var>Pattern</var> can contain the wildcards <var>*</var> (match zero or more 
+arbitrary characters) or <var>?</var> (match a single character).
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="#rtl.unix.FSearch"/>
+<link id="#rtl.unix.FExpand"/>
+</seealso>
+<example file="linuxex/ex69"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetFS">
+<short>Return file selector</short>
+<descr>
+<var>GetFS</var> returns the file selector that the kernel provided for your
+file. In principle you don' need this file selector. Only for some calls
+it is needed, such as the <link id="#rtl.baseunix.fpSelect"/> call or so.
+</descr>
+<errors>
+In case the file was not opened, then -1 is returned.
+</errors>
+<seealso>
+<link id="#rtl.baseunix.fpSelect"/>
+</seealso>
+<example file="linuxex/ex34"/>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="FSplit">
+<short>Split filename into path, name and extension</short>
+<descr>
+<var>FSplit</var> splits a full file name into 3 parts : A <var>Path</var>, a
+<var>Name</var> and an extension  (in <var>ext</var>).
+The extension is taken to be all letters after the last dot (.).
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="#rtl.unix.FSearch"/>
+</seealso>
+<example file="linuxex/ex67"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="LocalToEpoch">
+<short>Convert local time to epoch (unix) time</short>
+<descr>
+Converts the Local time to epoch time (=Number of seconds since 00:00:00 , January 1,
+1970 ).
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="#rtl.unix.GetEpochTime"/>
+<link id="EpochToLocal"/>
+<link id="#rtl.unix.GetTime"/>
+<link id="#rtl.unix.GetDate"/> 
+</seealso>
+<example file="linuxex/ex4"/>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="EpochToLocal">
+<short>Convert epoch time to local time</short>
+<descr>
+<p>
+Converts the epoch time (=Number of seconds since 00:00:00 , January 1,
+1970, corrected for your time zone ) to local date and time.
+</p>
+<p>
+This function takes into account the timzeone settings of your system.
+</p>
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="#rtl.unix.GetEpochTime"/>
+<link id="LocalToEpoch"/>
+<link id="#rtl.unix.GetTime"/>
+<link id="#rtl.unix.GetDate"/> 
+</seealso>
+<example file="linuxex/ex3"/>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="JulianToGregorian">
+<short>Converts a julian date to a gregorian date</short>
+<descr>
+<var>JulianToGregorian</var> takes a julian day and converts it to a
+gregorian date. (Start of the Julian Date count is from 0 at 12 noon 1 JAN -4712
+(4713 BC),)
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GregorianToJulian"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GregorianToJulian">
+<short>Converts a gregorian date to a julian date</short>
+<descr>
+<var>GregorianToJulian</var> takes a gregorian date and converts it to a
+Julian day.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="JulianToGregorian"/>
+</seealso>
+</element>
+
+</module> <!-- unixutil -->
+</package>
+</fpdoc-descriptions>

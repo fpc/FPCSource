@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<fpdoc-descriptions>
+<package name="rtl">
+<module name="dynlibs">
+<short>Cross-platform support for dynamically loadable libraries</short>
+<descr>
+<p>
+The <file>Dynlibs</file> unit provides support for dynamically loading
+shared libraries. It is available only on those platforms that support
+shared libraries. The functionality available here may only be a part of
+the functionality available on each separate platform, in the interest of
+portability.
+</p>
+<p>
+On unix platforms, using this unit will cause the program to be linked to
+the C library, as most shared libraries are implemented in C and the
+dynamical linker too.
+</p>
+</descr>
+
+<!-- alias type Visibility: default -->
+<element name="TLibHandle">
+<short>Library handle type</short>
+<descr>
+<var>TLibHandle</var> should be considered an opaque type. It is defined
+differently on various platforms. The definition shown here depends on the
+platform for which the documentation was generated.
+</descr>
+<seealso>
+<link id="LoadLibrary"/>
+<link id="UnloadLibrary"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="NilHandle">
+<short>Correctly typed Nil handle - returned on error by <link id="LoadLibrary"/></short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="LoadLibrary">
+<short>Load a dynamic library and return a handle to it.</short>
+<descr>
+<p>
+<var>LoadLibrary</var> loads a dynamic library in file <var>Name</var> 
+and returns a handle to it. If the library cannot be loaded, 
+<link id="NilHandle"/> is returned.
+</p>
+<p>
+No assumptions should be made about the location of the loaded library if a
+relative pathname is specified. The behaviour is dependent on the platform.
+Therefore it is best to specify an absolute pathname if possible.
+</p>
+</descr>
+<errors>
+On error, <link id="NilHandle"/> is returned.
+</errors>
+<seealso>
+<link id="UnloadLibrary"/>
+<link id="GetProcedureAddress"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetProcedureAddress">
+<short>Get the address of a procedure or symbol in a dynamic library.</short>
+<descr>
+<p>
+<var>GetProcedureAddress</var> returns a pointer to the location in memory
+of the symbol <var>ProcName</var> in the dynamically loaded library
+specified by it's handle <var>lib</var>.  If the symbol cannot be found or
+the handle is invalid, <var>Nil</var> is returned.
+</p>
+<p>
+On Windows, only an exported  procedure or
+function can be searched this way. On Unix platforms the location of any
+exported symbol can be retrieved this way.
+</p>
+</descr>
+<errors>
+If the symbol cannot be found, <var>Nil</var> is returned.
+</errors>
+<seealso>
+<link id="LoadLibrary"/> 
+<link id="UnLoadLibrary"/> 
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="UnloadLibrary">
+<short>Unload a previously loaded library</short>
+<descr>
+<var>UnloadLibrary</var> unloads a previously loaded library (specified by
+the handle <var>lib</var>). The call returns <var>True</var> if succesful,
+<var>False</var> otherwisa.
+</descr>
+<errors>
+On error, <var>False</var> is returned.
+</errors>
+<seealso>
+<link id="LoadLibrary"/> 
+<link id="GetProcedureAddress"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FreeLibrary">
+<short>For compatibility with Delphi/Windows: Unload a library</short>
+<descr>
+<var>FreeLibrary</var> provides the same functionality as <link
+id="UnloadLibrary"/>, and is provided for compatibility with Delphi.
+</descr>
+<seealso>
+<link id="UnloadLibrary"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetProcAddress">
+<short>For compatibility with Delphi/Windows: Get the address of a procedure</short>
+<descr>
+<var>GetProcAddress</var> provides the same functionality as <link
+id="GetProcedureAddress"/>, and is provided for compatibility with Delphi.
+</descr>
+<seealso>
+<link id="GetProcedureAddress"/>
+</seealso>
+</element>
+
+</module> <!-- dynlibs -->
+</package>
+</fpdoc-descriptions>
