@@ -95,9 +95,7 @@ uses
   App,Commands,
   CompHook, systems, browcol,
   WUtils,WEditor,
-{$ifdef redircompiler}
   FPRedir,
-{$endif}
   FPIde,FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
 {$ifndef NOOBJREG}
@@ -394,16 +392,21 @@ function CompilerStatus: boolean; {$ifndef FPC}far;{$endif}
   var
      event : tevent;
 begin
-{$ifdef redircompiler}
-  RedirDisableAll;
-{$endif}
   GetKeyEvent(Event);
   if (Event.What=evKeyDown) and (Event.KeyCode=kbEsc) then
     begin
        CompilationPhase:=cpAborted;
        { update info messages }
        if assigned(CompilerStatusDialog) then
-        CompilerStatusDialog^.Update;
+        begin
+{$ifdef redircompiler}
+          RedirDisableAll;
+{$endif}
+          CompilerStatusDialog^.Update;
+{$ifdef redircompiler}
+          RedirEnableAll;
+{$endif}
+        end;
        CompilerStatus:=true;
        exit;
     end;
@@ -412,15 +415,18 @@ begin
   if (status.currentline mod 100=0) then
    begin
      { update info messages }
+{$ifdef redircompiler}
+          RedirDisableAll;
+{$endif}
      if assigned(CompilerStatusDialog) then
       CompilerStatusDialog^.Update;
+{$ifdef redircompiler}
+          RedirEnableAll;
+{$endif}
      { update memory usage }
      { HeapView^.Update; }
    end;
   CompilerStatus:=false;
-{$ifdef redircompiler}
-  RedirEnableAll;
-{$endif}
 end;
 
 
@@ -434,25 +440,31 @@ begin
 {$ifdef TEMPHEAP}
   switch_to_base_heap;
 {$endif TEMPHEAP}
-{$ifdef redircompiler}
-  RedirDisableAll;
-{$endif}
   CompilerComment:=false;
 {$ifndef DEV}
   if (status.verbosity and Level)=Level then
 {$endif}
    begin
+{$ifdef redircompiler}
+     RedirDisableAll;
+{$endif}                                                                                                                                                                                                                                                       
+
+
+
      CompilerMessageWindow^.AddMessage(Level,S,status.currentsourcepath+status.currentsource,
        status.currentline,status.currentcolumn);
      { update info messages }
      if assigned(CompilerStatusDialog) then
       CompilerStatusDialog^.Update;
+{$ifdef redircompiler}
+      RedirEnableAll;
+{$endif}                                                                                                                                                                                                                                                       
+
+
+
      { update memory usage }
      { HeapView^.Update; }
    end;
-{$ifdef redircompiler}
-  RedirEnableAll;
-{$endif}
 {$ifdef TEMPHEAP}
   switch_to_temp_heap;
 {$endif TEMPHEAP}
@@ -511,7 +523,9 @@ procedure DoCompile(Mode: TCompileMode);
   end;
 
 var
-  FileName: string;
+  s,FileName: string;
+  ErrFile : Text;
+  Error : longint;
   E : TEvent;
 const
   PpasFile = 'ppas';
@@ -571,6 +585,8 @@ begin
   split_heap;
   switch_to_temp_heap;
 {$endif TEMPHEAP}
+  if mode=cBuild then
+    FileName:='-B '+FileName;
   Compile(FileName);
   if LinkAfter and
      (CompilationPhase<>cpAborted) and
@@ -578,14 +594,38 @@ begin
     begin
        CompilationPhase:=cpLinking;
        CompilerStatusDialog^.Update;
+{$ifndef redircompiler}
+       { At least here we want to catch output
+        of batch file PM }
+       ChangeRedirOut(FPOutFileName,false);
+       ChangeRedirError(FPErrFileName,false);
+{$endif}
 {$ifdef linux}
-       Shell(PpasFile+source_os.scriptext);
+       Shell('./'+PpasFile+source_os.scriptext);
+       Error:=LinuxError;
 {$else}
        Dos.Exec(GetEnv('COMSPEC'),'/C '+PpasFile+source_os.scriptext);
-       if DosError<>0 then
-         Inc(status.errorCount);
+       Error:=DosError;
 {$endif}
-
+{$ifndef redircompiler}
+       RestoreRedirOut;
+       RestoreRedirError;
+{$endif}
+       if Error<>0 then
+         Inc(status.errorCount);
+       if not ExistsFile(EXEFile) then
+         begin
+           Inc(status.errorCount);
+           CompilerMessageWindow^.AddMessage(V_error,'could not create '+ExeFile,'',0,0);
+           Assign(ErrFile,FPErrFileName);
+           Reset(ErrFile);
+           While not eof(ErrFile) do
+             begin
+               readln(ErrFile,s);
+               CompilerMessageWindow^.AddMessage(V_error,s,'',0,0);
+             end;
+           Close(ErrFile);
+         end;
     end;
 {$ifdef TEMPHEAP}
   switch_to_base_heap;
@@ -702,7 +742,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  1999-08-22 22:27:30  pierre
+  Revision 1.36  1999-09-07 11:32:13  pierre
+    * fix for Linux ./ prepended to ppas.sh
+    * Build add '-B' option
+    * if linkAfter is set, get errors from linker
+      by redirecting files
+
+  Revision 1.35  1999/08/22 22:27:30  pierre
    * not ppas call on compile failure
 
   Revision 1.34  1999/08/16 18:25:13  peter
