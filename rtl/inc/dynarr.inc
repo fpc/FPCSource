@@ -53,18 +53,27 @@ function fpc_dynarray_high(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNA
   end;
 
 { releases and finalizes the data of a dyn. array and sets p to nil }
-procedure dynarray_clear(var p : pdynarray;ti : pdynarraytypeinfo);
+procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_DYNARRAY_CLEAR']; {$ifdef hascompilerproc} compilerproc; {$endif}
   begin
+     if p=nil then
+       exit;
+
      { skip kind and name }
-     inc(pointer(ti),ord(ti^.namelen));
+     inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen));
 
      { finalize all data }
-     int_finalizearray(pointer(p)+sizeof(tdynarray),ti^.eletype,p^.high+1,ti^.elesize);
+     int_finalizearray(p+sizeof(tdynarray),pdynarraytypeinfo(ti)^.eletype,pdynarray(p)^.high+1,
+                       pdynarraytypeinfo(ti)^.elesize);
 
      { release the data }
-     freemem(p,sizeof(tdynarray)+(p^.high+1)*ti^.elesize);
+     freemem(p,sizeof(tdynarray)+(pdynarray(p)^.high+1)*pdynarraytypeinfo(ti)^.elesize);
      p:=nil;
   end;
+
+{$ifdef hascompilerproc}
+{ alias for internal use }
+Procedure fpc_dynarray_clear (var p : pointer;ti : pointer);[external name 'FPC_DYNARRAY_CLEAR'];
+{$endif hascompilerproc}
 
 
 procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);[Public,Alias:'FPC_DYNARRAY_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -81,7 +90,7 @@ procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);[Public,Alias:'FPC
      { decr. ref. count }
      { should we remove the array? }
      if declocked(realp^.refcount) then
-       dynarray_clear(realp,pdynarraytypeinfo(ti));
+       fpc_dynarray_clear(realp,pdynarraytypeinfo(ti));
      p := nil;
   end;
 
@@ -156,7 +165,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
           { if the new dimension is 0, we've to release all data }
           if dims[dimcount-1]=0 then
             begin
-               dynarray_clear(realp,pdynarraytypeinfo(pti));
+               fpc_dynarray_clear(realp,pdynarraytypeinfo(pti));
                p:=nil;
                exit;
             end;
@@ -186,7 +195,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                { if the array is now removed             }
                { fpc_dynarray_decr_ref(p,ti); }
                if declocked(realp^.refcount) then
-                 dynarray_clear(realp,pdynarraytypeinfo(ti));
+                 fpc_dynarray_clear(realp,pdynarraytypeinfo(ti));
             end
           else if dims[dimcount-1]<>realp^.high+1 then
             begin
@@ -252,7 +261,10 @@ function fpc_dynarray_copy(var p : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.14  2001-12-29 15:51:11  jonas
+  Revision 1.15  2002-01-21 20:16:08  peter
+    * updated for dynarr:=nil
+
+  Revision 1.14  2001/12/29 15:51:11  jonas
     * correctly check for 0-size dynarray in previous patch
 
   Revision 1.13  2001/12/28 14:19:07  jonas

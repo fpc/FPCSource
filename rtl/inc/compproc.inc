@@ -50,6 +50,7 @@ function fpc_shortstr_to_chararray(arraysize: longint; const src: ShortString): 
 
 function fpc_dynarray_length(p : pointer) : tdynarrayindex; compilerproc;
 function fpc_dynarray_high(p : pointer) : tdynarrayindex; compilerproc;
+procedure fpc_dynarray_clear(var p : pointer;ti : pointer); compilerproc;
 procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); compilerproc;
 procedure fpc_dynarray_incr_ref(var p : pointer); compilerproc;
 procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
@@ -255,7 +256,10 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.12  2001-12-03 21:39:20  peter
+  Revision 1.13  2002-01-21 20:16:08  peter
+    * updated for dynarr:=nil
+
+  Revision 1.12  2001/12/03 21:39:20  peter
     * freemem(var) -> freemem(value)
 
   Revision 1.11  2001/09/29 21:32:47  jonas
