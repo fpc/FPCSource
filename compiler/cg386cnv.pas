@@ -609,9 +609,7 @@ implementation
          { return a reference                                             }
          clear_location(p^.location);
          p^.location.loc:=LOC_MEM;
-
          { first get the memory for the string }
-         stringdispose(p^.location.reference.symbol);
          gettempofsizereference(256,p^.location.reference);
 
          { calc the length of the array }
@@ -639,7 +637,8 @@ implementation
     procedure second_char_to_string(p,hp : ptree;convtyp : tconverttype);
 
       begin
-         stringdispose(p^.location.reference.symbol);
+         clear_location(p^.location);
+         p^.location.loc:=LOC_MEM;
          gettempofsizereference(256,p^.location.reference);
          { call loadstring with correct left and right }
          p^.right:=p^.left;
@@ -1331,7 +1330,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1998-10-26 15:18:41  peter
+  Revision 1.30  1998-10-27 11:12:45  peter
+    * fixed char_to_string which did not set the .loc
+
+  Revision 1.29  1998/10/26 15:18:41  peter
     * fixed fldcw,fstcw for as 2.9.1
 
   Revision 1.28  1998/10/08 17:17:11  pierre
