@@ -11,7 +11,7 @@ uses
 procedure printf(const formatstr : pchar; const args : array of const);cdecl; external name 'printf';
 procedure sprintf(p : pchar;const formatstr : pchar; const args : array of const);cdecl; external name 'sprintf';
 const
-  int64prefix='q';
+  int64prefix='I64';
 {$else}
 {$linklib c}
 procedure printf(const formatstr : pchar; const args : array of const);cdecl; external;
