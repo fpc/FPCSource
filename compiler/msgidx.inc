@@ -359,6 +359,8 @@ type tmsgconst=(
   assem_w_modulo_not_supported,
   assem_e_invalid_float_const,
   assem_e_size_suffix_and_dest_reg_dont_match,
+  assem_e_size_suffix_and_dest_dont_match,
+  assem_w_size_suffix_and_dest_dont_match,
   assem_f_internal_error_in_concatlabeledinstr,
   assem_w_float_bin_ignored,
   assem_w_float_hex_ignored,
