@@ -32,6 +32,7 @@ uses
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
+Procedure AddDisk(const path:string);
 
 implementation
 
@@ -555,13 +556,11 @@ Begin
   { We're in the parent, let's wait. }
   result:=WaitProcess(pid); // WaitPid and result-convert
 
-  if (result>=0) and (result<>127) then
-    result:=0
-  else
+  if (result<0) or (result=127) then
     begin
-      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,result]);
-      e.ErrorCode:=result;
-      raise e;
+    E:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,result]);
+    E.ErrorCode:=result;
+    Raise E;
     end;
 End;
 
@@ -596,13 +595,11 @@ Begin
   { We're in the parent, let's wait. }
   result:=WaitProcess(pid); // WaitPid and result-convert
 
-  if (result>=0) and (result<>127) then
-    result:=0
-  else
+  if (result<0) or (result=127) then
     begin
-      e:=EOSError.CreateFmt(SExecuteProcessFailed,[Path,result]);
-      e.ErrorCode:=result;
-      raise e;
+    E:=EOSError.CreateFmt(SExecuteProcessFailed,[Path,result]);
+    E.ErrorCode:=result;
+    raise E;
     end;
 End;
 
@@ -694,7 +691,10 @@ end.
 {
 
   $Log$
-  Revision 1.44  2004-08-05 07:32:51  michael
+  Revision 1.45  2004-08-30 11:13:20  michael
+  + Fixed ExecuteProcess. Now returns the exit code or raises an exception on failure
+
+  Revision 1.44  2004/08/05 07:32:51  michael
   Added getappconfig calls
 
   Revision 1.43  2004/07/03 21:50:31  daniel
