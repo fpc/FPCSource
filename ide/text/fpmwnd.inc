@@ -133,7 +133,8 @@ begin
             ClearEvent(Event);
           end;
         cmOK :
-          PView(C^.At(LB^.Focused))^.MakeFirst;
+          if C^.Count>0 then
+            PView(C^.At(LB^.Focused))^.MakeFirst;
       end;
   end;
   inherited HandleEvent(Event);
@@ -155,7 +156,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1999-06-28 19:32:23  peter
+  Revision 1.9  1999-06-29 22:50:15  peter
+    * more fixes from gabor
+
+  Revision 1.8  1999/06/28 19:32:23  peter
     * fixes from gabor
 
   Revision 1.7  1999/03/01 15:42:00  peter

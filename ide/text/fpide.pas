@@ -502,10 +502,11 @@ procedure TIDEApp.GetTileRect(var R: TRect);
 begin
   Desktop^.GetExtent(R);
 { Leave the compiler messages window in the bottom }
-  if assigned(CompilerMessageWindow) then
-   R.B.Y:=CompilerMessageWindow^.Origin.Y;
+  if assigned(CompilerMessageWindow) and (CompilerMessageWindow^.GetState(sfVisible)) then
+   R.B.Y:=Min(CompilerMessageWindow^.Origin.Y,Desktop^.Size.Y);
 { Leave the messages window in the bottom }
-  if assigned(MessagesWindow) and (MessagesWindow^.Origin.Y<R.B.Y) then
+  if assigned(MessagesWindow) and (MessagesWindow^.GetState(sfVisible)) and
+     (MessagesWindow^.Origin.Y<R.B.Y) then
    R.B.Y:=MessagesWindow^.Origin.Y;
 end;
 
@@ -762,7 +763,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.30  1999-06-28 19:32:20  peter
+  Revision 1.31  1999-06-29 22:50:14  peter
+    * more fixes from gabor
+
+  Revision 1.30  1999/06/28 19:32:20  peter
     * fixes from gabor
 
   Revision 1.29  1999/06/28 12:40:19  pierre

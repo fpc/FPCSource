@@ -268,6 +268,7 @@ type
       function    GetLine(I: sw_integer): PLine;
       procedure   CheckSels;
       function    UpdateAttrs(FromLine: sw_integer; Attrs: byte): sw_integer;
+      function    UpdateAttrsRange(FromLine, ToLine: sw_integer; Attrs: byte): sw_integer;
       procedure   DrawLines(FirstLine: sw_integer);
       procedure   HideHighlight;
       procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string);
@@ -2422,7 +2423,7 @@ begin
      SetLineText(i,' '+S);
    end;
   SetCurPtr(CurPos.X,CurPos.Y);
-  UpdateAttrs(SelStart.Y,attrAll);
+  UpdateAttrsRange(SelStart.Y,SelEnd.Y,attrAll);
   DrawLines(CurPos.Y);
   Modified:=true;
   UpdateIndicator;
@@ -2448,7 +2449,7 @@ begin
      SetLineText(i,S);
    end;
   SetCurPtr(CurPos.X,CurPos.Y);
-  UpdateAttrs(SelStart.Y,attrAll);
+  UpdateAttrsRange(SelStart.Y,SelEnd.Y,attrAll);
   DrawLines(CurPos.Y);
   Modified:=true;
   UpdateIndicator;
@@ -3223,6 +3224,18 @@ begin
   UpdateAttrs:=CurLine;
 end;
 
+
+function TCodeEditor.UpdateAttrsRange(FromLine, ToLine: sw_integer; Attrs: byte): sw_integer;
+var Line: Sw_integer;
+begin
+  Line:=FromLine;
+  repeat
+    Line:=UpdateAttrs(Line,Attrs);
+  until (Line>GetLineCount) or (Line>ToLine);
+  UpdateAttrsRange:=Line;
+end;
+
+
 procedure TCodeEditor.DrawLines(FirstLine: sw_integer);
 begin
   DrawView;
@@ -3921,7 +3934,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.36  1999-06-29 08:51:34  pierre
+  Revision 1.37  1999-06-29 22:50:16  peter
+    * more fixes from gabor
+
+  Revision 1.36  1999/06/29 08:51:34  pierre
    * lockflag problems fixed
 
   Revision 1.35  1999/06/28 19:32:32  peter
