@@ -602,27 +602,9 @@ unit cgx86;
         { zero extensions to 64 bit on the x86_64 are simply done by writting to the lower 32 bit
           which clears the upper 64 bit too, so it could be that s is S_L while the reg is
           64 bit (FK) 
-          but we shouldn't allow the reg. allocator to remove the instruction in this case (FK)
         }
         if s in [S_BL,S_WL,S_L] then
-          begin          
-            reg2:=makeregsize(list,reg2,OS_32);
-            list.concat(taicpu.op_reg_reg(op,s,reg1,reg2));
-            if fromsize<tosize then
-              begin
-                case s of
-                  S_BL:
-                    list.concat(taicpu.op_const_reg(A_AND,S_L,$ff,reg2));
-                  S_WL:
-                    list.concat(taicpu.op_const_reg(A_AND,S_L,$ffff,reg2));
-                  S_L:
-                    list.concat(taicpu.op_const_reg(A_AND,S_L,$ffffffff,reg2));
-                  else
-                    internalerror(200502051);
-                end;                
-              end;
-          end
-        else
+          reg2:=makeregsize(list,reg2,OS_32);
 {$endif x86_64}
         if (reg1<>reg2) then
           begin
@@ -632,6 +614,11 @@ unit cgx86;
             add_move_instruction(instr);
             list.concat(instr);
           end;
+{$ifdef x86_64}
+        { avoid merging of registers and killing the zero extensions (FK) }
+        if (tosize in [OS_64,OS_S64]) and (s=S_L) then
+          list.concat(taicpu.op_const_reg(A_AND,S_L,$ffffffff,reg2));
+{$endif x86_64}          
       end;
 
 
@@ -1759,7 +1746,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.143  2005-02-05 18:08:48  florian
+  Revision 1.144  2005-02-05 18:32:17  florian
+    * fixed previous commit
+
+  Revision 1.143  2005/02/05 18:08:48  florian
     * fixed dword -> qword/int64 type cast on x86_64
 
   Revision 1.142  2005/01/25 18:48:15  peter
