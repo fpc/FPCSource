@@ -955,8 +955,7 @@ implementation
              it to work for procvars PM }
            if (not inlined) and (pocall_clearstack in p^.procdefinition^.proccalloptions) then
              begin
-                { consider the alignment with the rest (PM) }
-                inc(pushedparasize,pop_size);
+                { we also add the pop_size which is included in pushedparasize }
                 pop_size:=0;
                 { better than an add on all processors }
                 if pushedparasize=4 then
@@ -1333,7 +1332,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.122  2000-01-26 12:02:29  peter
+  Revision 1.123  2000-01-26 15:03:59  peter
+    * fixed pop_size included twice with clearstack
+
+  Revision 1.122  2000/01/26 12:02:29  peter
     * abstractprocdef.para_size needs alignment parameter
     * secondcallparan gets para_alignment size instead of dword_align
 
