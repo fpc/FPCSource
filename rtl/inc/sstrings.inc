@@ -18,7 +18,7 @@
 
 {$I real2str.inc}
 
-function copy(const s : string;index : integer;count : integer): string;
+function copy(const s : string;index : StrLenInt;count : StrLenInt): string;
 
 begin
   if count<0 then
@@ -36,7 +36,7 @@ begin
   Move(s[Index+1],Copy[1],Count);
 end;
 
-procedure delete(var s : string;index : integer;count : integer);
+procedure delete(var s : string;index : StrLenInt;count : StrLenInt);
 
 begin
   if index<=0 then
@@ -54,7 +54,7 @@ begin
    end;
 end;
 
-procedure insert(const source : string;var s : string;index : integer);
+procedure insert(const source : string;var s : string;index : StrLenInt);
 
 begin
   if index>1 then
@@ -717,7 +717,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1998-07-10 11:02:38  peter
+  Revision 1.9  1998-07-18 17:14:23  florian
+    * strlenint type implemented
+
+  Revision 1.8  1998/07/10 11:02:38  peter
     * support_fixed, becuase fixed is not 100% yet for the m68k
 
   Revision 1.7  1998/07/02 12:14:19  carl

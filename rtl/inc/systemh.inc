@@ -42,6 +42,16 @@ Type
   {$define SUPPORT_FIXED}
 {$endif}
 
+{$ifdef m68k}
+   StrLenInt = Integer;
+   {$ifdef USEANSISTRINGS}
+      {$error StrLenInt must be a longint if ansi strings are used}
+   {$endif}
+{$endif}
+
+{$ifdef i386}
+   StrLenInt = LongInt;
+{$endif}
 { some type aliases }
   dword    = cardinal;
   longword = cardinal;
@@ -198,9 +208,9 @@ function strpas(p:pchar):string;
 function strlen(p:pchar):longint;
 
 
-Function  copy(const s:string;index:Integer;count:Integer):string;
-Procedure Delete(Var s:string;index:Integer;count:Integer);
-Procedure Insert(const source:string;Var s:string;index:Integer);
+Function  Copy(const s:string;index:StrLenInt;count:StrLenInt):string;
+Procedure Delete(Var s:string;index:StrLenInt;count:StrLenInt);
+Procedure Insert(const source:string;Var s:string;index:StrLenInt);
 Function  Pos(const substr:string;const s:string):byte;
 Function  Pos(C:Char;const s:string):byte;
 Function  upCase(c:Char):Char;
@@ -390,7 +400,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.17  1998-07-10 11:02:39  peter
+  Revision 1.18  1998-07-18 17:14:24  florian
+    * strlenint type implemented
+
+  Revision 1.17  1998/07/10 11:02:39  peter
     * support_fixed, becuase fixed is not 100% yet for the m68k
 
   Revision 1.16  1998/07/02 12:13:18  carl
