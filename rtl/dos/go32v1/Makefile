@@ -13,6 +13,10 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 
+# Warning: this file contains TAB (#9) characters that are required for
+# make. Make sure you use an editor that does not replace TABs with
+# spaces, or the makefile won't work anymore after you save.
+
 #####################################################################
 # Configuration section
 #####################################################################
@@ -264,7 +268,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.8  1998-10-12 08:36:29  pierre
+# Revision 1.9  1998-11-24 19:49:44  jonas
+#   + added warning about TABs
+#
+# Revision 1.8  1998/10/12 08:36:29  pierre
 #  * wrong 'objpas' target in all removed
 #
 # Revision 1.7  1998/10/11 13:45:04  michael

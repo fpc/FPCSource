@@ -13,6 +13,10 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 
+# Warning: this file contains TAB (#9) characters that are required for
+# make. Make sure you use an editor that does not replace TABs with
+# spaces, or the makefile won't work anymore after you save.
+
 #####################################################################
 # Start of configurable section.
 # Please note that all these must be set in the main makefile, and
@@ -336,7 +340,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.8  1998-11-10 17:56:56  peter
+# Revision 1.9  1998-11-24 19:50:49  jonas
+#   + added warning about TABs
+#
+# Revision 1.8  1998/11/10 17:56:56  peter
 #   * fixes to build correct again
 #
 # Revision 1.7  1998/10/11 13:47:21  michael

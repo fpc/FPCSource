@@ -13,6 +13,10 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 
+# Warning: this file contains TAB (#9) characters that are required for
+# make. Make sure you use an editor that does not replace TABs with
+# spaces, or the makefile won't work anymore after you save.
+
 #####################################################################
 # Configuration section
 #####################################################################
@@ -286,7 +290,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.10  1998-10-21 16:51:07  pierre
+# Revision 1.11  1998-11-24 19:50:01  jonas
+#   + added warning about TABs
+#
+# Revision 1.10  1998/10/21 16:51:07  pierre
 #  * dxeload range check problem solved
 #
 # Revision 1.9  1998/10/14 07:56:02  pierre

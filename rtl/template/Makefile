@@ -13,6 +13,10 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 
+# Warning: this file contains TAB (#9) characters that are required for
+# make. Make sure you use an editor that does not replace TABs with
+# spaces, or the makefile won't work anymore after you save.
+
 #####################################################################
 # Defaults
 #####################################################################
@@ -118,7 +122,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.2  1998-09-16 16:47:30  peter
+# Revision 1.3  1998-11-24 19:52:44  jonas
+#   + added warning about TABs
+#
+# Revision 1.2  1998/09/16 16:47:30  peter
 #   * merged fixes
 #
 # Revision 1.1.2.1  1998/09/16 16:17:53  peter
