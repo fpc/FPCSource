@@ -21,6 +21,11 @@
 
  ****************************************************************************
 }
+
+{$ifDef TP}
+{$UnDef JumpAnal}
+{$Endif TP}
+
 Unit DAOpt386;
 
 Interface
@@ -1018,17 +1023,17 @@ Begin
         ;
       If (p <> First)
         Then
-{$ifndef TP}
+{$ifdef JumpAnal}
           Begin
             If (p^.Typ <> ait_label) Then
-{$endif TP}
+{$endif JumpAnal}
               Begin
                 CurProp^.Regs := PPaiProp(Pai(p^.previous)^.fileinfo.line)^.Regs;
                 CurProp^.DirFlag := PPaiProp(Pai(p^.previous)^.fileinfo.line)^.DirFlag
               End
-{$ifndef TP}
+{$ifdef JumpAnal}
           End
-{$endif TP}
+{$endif JumpAnal}
         Else
           Begin
             FillChar(CurProp^, SizeOf(CurProp^), 0);
@@ -1036,17 +1041,17 @@ Begin
               CurProp^.Regs[TmpReg].State := 1;}
           End;
       CurProp^.CanBeRemoved := False;
-{$IfDef TP}
+{$ifdef TP}
       CurProp^.linesave := p^.fileinfo.line;
       PPaiProp(p^.fileinfo.line) := CurProp;
-{$EndIf}
+{$Endif TP}
       For TmpReg := R_EAX To R_EDI Do
         Inc(NrOfInstrSinceLastMod[TmpReg]);
       Case p^.typ Of
         ait_label:
-{$Ifdef TP}
+{$Ifndef JumpAnal}
           DestroyAllRegs(CurProp);
-{$Else TP}
+{$Else JumpAnal}
           Begin
             With LTable^[Pai_Label(p)^.l^.nb-LoLab] Do
 {$IfDef AnalyzeLoops}
@@ -1059,7 +1064,7 @@ Begin
 {$IfDef AnalyzeLoops}
                   If (JmpsProcessed > 0)
                     Then
-{$EndIf}
+{$EndIf AnalyzeLoops}
  {we've processed at least one jump to this label}
                       Begin
                         If Not(GetLastInstruction(p, hp) And
@@ -1129,11 +1134,11 @@ Begin
                     DestroyAllRegs(CurProp)
                   End;
           End;
-{$EndIf TP}
+{$EndIf JumpAnal}
         ait_labeled_instruction:
-{$IfDef TP}
+{$IfNDef JumpAnal}
   ;
-{$Else TP}
+{$Else JumpAnal}
           With LTable^[Pai_Labeled(p)^.lab^.nb-LoLab] Do
             If (RefsFound = Pai_Labeled(p)^.lab^.RefCount) Then
               Begin
@@ -1215,7 +1220,7 @@ Begin
                         End}
 {$endif AnalyzeLoops}
           End;
-{$EndIf TP}
+{$EndIf JumpAnal}
 {$ifdef GDB}
         ait_stabs, ait_stabn, ait_stab_function_name:;
 {$endif GDB}
@@ -1448,7 +1453,11 @@ End.
 
 {
  $Log$
- Revision 1.8  1998-08-28 10:56:59  peter
+ Revision 1.9  1998-09-03 16:24:51  florian
+   * bug of type conversation from dword to real fixed
+   * bug fix of Jonas applied
+
+ Revision 1.8  1998/08/28 10:56:59  peter
    * removed warnings
 
  Revision 1.7  1998/08/19 16:07:44  jonas

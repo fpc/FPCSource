@@ -649,6 +649,10 @@ implementation
          r : preference;
 
       begin
+         { for u32bit a solution is to push $0 and to load a comp }
+         { does this first, it destroys maybe EDI }
+         if porddef(p^.left^.resulttype)^.typ=u32bit then
+            push_int(0);
          if (p^.left^.location.loc=LOC_REGISTER) or
             (p^.left^.location.loc=LOC_CREGISTER) then
            begin
@@ -658,7 +662,6 @@ implementation
                  s16bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVSX,S_WL,p^.left^.location.register,R_EDI)));
                  u16bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_WL,p^.left^.location.register,R_EDI)));
                  u32bit,s32bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,p^.left^.location.register,R_EDI)));
-                 {!!!! u32bit }
               end;
               ungetregister(p^.left^.location.register);
            end
@@ -671,17 +674,12 @@ implementation
                  s16bit : exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVSX,S_WL,r,R_EDI)));
                  u16bit : exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_WL,r,R_EDI)));
                  u32bit,s32bit : exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
-                 {!!!! u32bit }
               end;
               del_reference(p^.left^.location.reference);
               ungetiftemp(p^.left^.location.reference);
          end;
-          if porddef(p^.left^.resulttype)^.typ=u32bit then
-            push_int(0);
           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
           r:=new_reference(R_ESP,0);
-         { for u32bit a solution is to push $0 and to load a
-         comp }
           if porddef(p^.left^.resulttype)^.typ=u32bit then
             exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)))
           else
@@ -1251,7 +1249,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1998-08-28 12:51:39  florian
+  Revision 1.15  1998-09-03 16:24:50  florian
+    * bug of type conversation from dword to real fixed
+    * bug fix of Jonas applied
+
+  Revision 1.14  1998/08/28 12:51:39  florian
     + ansistring to pchar type cast fixed
 
   Revision 1.13  1998/08/28 10:56:56  peter
