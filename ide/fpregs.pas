@@ -66,6 +66,7 @@ uses
        i : array [0..7] of dword;
        l : array [0..7] of dword;
        g : array [0..7] of dword;
+       y,psr,wim,tbr,pc,npc,fsr,csr : dword;
 {$endif cpusparc}
 {$endif not test_generic_cpu}
 {$ifndef cpu_known}
@@ -78,6 +79,7 @@ uses
       NewReg,OldReg : TIntRegs;
       InDraw : boolean;
       GDBCount : longint;
+      first : boolean;
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
       destructor  Done; virtual;
@@ -124,6 +126,7 @@ uses
 {$ifndef cpu_known}
       UseInfoFloat : boolean;
 {$endif not cpu_known}
+      first : boolean;
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
       destructor  Done; virtual;
@@ -181,9 +184,7 @@ uses
       NewReg,OldReg : TVectorRegs;
       InDraw : boolean;
       GDBCount : longint;
-{$ifndef cpu_known}
-      UseInfoFloat : boolean;
-{$endif not cpu_known}
+      first : boolean;
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
       destructor  Done; virtual;
@@ -440,8 +441,25 @@ Const
                             if reg='g'+inttostr(i) then
                               rs.g[i]:=v;
                         end
+
                       else if reg='fp' then
-                        rs.i[6]:=v;
+                        rs.i[6]:=v
+                      else if reg='y' then
+                        rs.y:=v
+                      else if reg='psr' then
+                        rs.psr:=v
+                      else if reg='wim' then
+                        rs.wim:=v
+                      else if reg='tbs' then
+                        rs.tbr:=v
+                      else if reg='pc' then
+                        rs.pc:=v
+                      else if reg='npc' then
+                        rs.npc:=v
+                      else if reg='fsr' then
+                        rs.fsr:=v
+                      else if reg='csr' then
+                        rs.csr:=v;
 {$endif cpusparc}
 {$endif not cpu_known}
                       p:=strscan(p1,#10);
@@ -470,6 +488,7 @@ Const
     begin
        inherited init(Bounds);
        InDraw:=false;
+       first:=true;
        FillChar(OldReg,Sizeof(OldReg),#0);
        FillChar(NewReg,Sizeof(NewReg),#0);
        GrowMode:=gfGrowHiX or GfGrowHiY;
@@ -517,6 +536,12 @@ Const
            OldReg:=NewReg;
            OK:=GetIntRegs(rs);
            NewReg:=rs;
+           { get inital values }
+           if first then
+             begin
+               OldReg:=NewReg;
+               first:=false;
+             end;
            GDBCount:=Debugger^.RunCount;
          end
        else
@@ -649,20 +674,36 @@ Const
             for i:=0 to 7 do
               begin
                 SetColor(rs.g[i],OldReg.g[i]);
-                WriteStr(1,i,'g'+IntToStr(i)+' '+HexStr(longint(rs.g[i]),8),color);
+                WriteStr(1,i,'g'+IntToStr(i)+'  '+HexStr(longint(rs.g[i]),8),color);
                 SetColor(rs.l[i],OldReg.l[i]);
-                WriteStr(1,i+8,'l'+IntToStr(i)+' '+HexStr(longint(rs.l[i]),8),color);
+                WriteStr(1,i+8,'l'+IntToStr(i)+'  '+HexStr(longint(rs.l[i]),8),color);
               end;
             for i:=0 to 7 do
               begin
                 SetColor(rs.i[i],OldReg.i[i]);
                 if i=6 then
-                  WriteStr(15,i,'fp '+HexStr(longint(rs.i[i]),8),color)
+                  WriteStr(15,i,'fp  '+HexStr(longint(rs.i[i]),8),color)
                 else
-                  WriteStr(15,i,'i'+IntToStr(i)+' '+HexStr(longint(rs.i[i]),8),color);
+                  WriteStr(15,i,'i'+IntToStr(i)+'  '+HexStr(longint(rs.i[i]),8),color);
                 SetColor(rs.o[i],OldReg.o[i]);
-                WriteStr(15,i+8,'o'+IntToStr(i)+' '+HexStr(longint(rs.o[i]),8),color);
+                WriteStr(15,i+8,'o'+IntToStr(i)+'  '+HexStr(longint(rs.o[i]),8),color);
               end;
+            SetColor(rs.pc,OldReg.pc);
+            WriteStr(1,16,'pc  '+HexStr(longint(rs.pc),8),color);
+            SetColor(rs.y,OldReg.y);
+            WriteStr(1,17,'y   '+HexStr(longint(rs.y),8),color);
+            SetColor(rs.psr,OldReg.psr);
+            WriteStr(1,18,'psr '+HexStr(longint(rs.psr),8),color);
+            SetColor(rs.csr,OldReg.csr);
+            WriteStr(1,19,'csr '+HexStr(longint(rs.csr),8),color);
+            SetColor(rs.npc,OldReg.npc);
+            WriteStr(15,16,'npc '+HexStr(longint(rs.npc),8),color);
+            SetColor(rs.tbr,OldReg.tbr);
+            WriteStr(15,17,'tbr '+HexStr(longint(rs.tbr),8),color);
+            SetColor(rs.wim,OldReg.wim);
+            WriteStr(15,18,'wim '+HexStr(longint(rs.wim),8),color);
+            SetColor(rs.fsr,OldReg.fsr);
+            WriteStr(15,19,'fsr '+HexStr(longint(rs.fsr),8),color);
 {$endif cpusparc}
 {$else cpu_known}
             for i:=0 to MaxRegs-1 do
@@ -708,7 +749,7 @@ Const
        R.B.Y:=R.A.Y+22;
 {$endif cpupowerpc}
 {$ifdef cpusparc}
-       R.A.X:=R.B.X-29;
+       R.A.X:=R.B.X-30;
        R.B.Y:=R.A.Y+22;
 {$endif cpusparc}
 {$ifndef cpu_known}
@@ -722,7 +763,7 @@ Const
 {$endif cpu_known}
        Palette:=wpCyanWindow;
        HelpCtx:=hcRegistersWindow;
-       R.Assign(1,1,Size.X-2,Size.Y-2);
+       R.Assign(1,1,Size.X-2,Size.Y-1);
        RV:=new(PRegistersView,init(R));
        Insert(RV);
        If assigned(RegistersWindow) then
@@ -937,6 +978,7 @@ Const
        inherited init(Bounds);
        GrowMode:=gfGrowHiX or GfGrowHiY;
        InDraw:=false;
+       first:=true;
        FillChar(OldReg,Sizeof(oldreg),#0);
        FillChar(NewReg,Sizeof(newreg),#0);
        GDBCount:=-1;
@@ -995,6 +1037,12 @@ Const
 {$endif not cpu_known}
              );
            NewReg:=rs;
+           { get inital values }
+           if first then
+             begin
+               OldReg:=NewReg;
+               first:=false;
+             end;
            GDBCount:=Debugger^.RunCount;
          end
        else
@@ -1314,6 +1362,7 @@ Const
        inherited init(Bounds);
        GrowMode:=gfGrowHiX or GfGrowHiY;
        InDraw:=false;
+       first:=true;
        FillChar(OldReg,Sizeof(oldreg),#0);
        FillChar(NewReg,Sizeof(newreg),#0);
        GDBCount:=-1;
@@ -1372,6 +1421,12 @@ Const
 {$endif not cpu_known}
              );
            NewReg:=rs;
+           { get inital values }
+           if first then
+             begin
+               OldReg:=NewReg;
+               first:=false;
+             end;
            GDBCount:=Debugger^.RunCount;
          end
        else
@@ -1580,7 +1635,11 @@ end.
 
 {
   $Log$
-  Revision 1.8  2005-01-12 21:48:31  florian
+  Revision 1.9  2005-01-16 00:26:43  florian
+    + all sparc registers are displayed now
+    + more sophisticated coloring of changed registers
+
+  Revision 1.8  2005/01/12 21:48:31  florian
     + register view for sparc
 
   Revision 1.7  2005/01/10 20:52:11  florian
