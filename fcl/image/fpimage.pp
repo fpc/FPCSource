@@ -32,7 +32,15 @@ type
     Data : TColorData;
   end;
 
+{$ifdef CPU68K}
+  { 1.0 m68k cpu compiler does not allow
+    types larger than 32k....
+    if we remove range checking all should be fine PM }
+  TFPColorArray = array [0..0] of TFPColor;
+{$R-}
+{$else not CPU68K}
   TFPColorArray = array [0..maxint] of TFPColor;
+{$endif CPU68K}
   PFPColorArray = ^TFPColorArray;
 
   TFPImgProgressStage = (psStarting, psRunning, psEnding);
@@ -122,7 +130,15 @@ type
   end;
   TFPCustomImageClass = class of TFPCustomImage;
 
+{$ifdef CPU68K}
+  { 1.0 m68k cpu compiler does not allow
+    types larger than 32k....
+    if we remove range checking all should be fine PM }
+  TFPIntegerArray = array [0..0] of integer;
+{$R-}
+{$else not CPU68K}
   TFPIntegerArray = array [0..maxint] of integer;
+{$endif CPU68K}
   PFPIntegerArray = ^TFPIntegerArray;
 
   TFPMemoryImage = class (TFPCustomImage)
