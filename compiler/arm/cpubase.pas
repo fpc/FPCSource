@@ -28,18 +28,18 @@ unit cpubase;
 
 {$i fpcdefs.inc}
 
-interface
+  interface
 
-uses
-  cutils,cclasses,
-  globtype,globals,
-  cpuinfo,
-  aasmbase,
-  cginfo
-{$ifdef delphi}
-  ,dmisc
-{$endif}
-  ;
+    uses
+      cutils,cclasses,
+      globtype,globals,
+      cpuinfo,
+      aasmbase,
+      cginfo
+    {$ifdef delphi}
+      ,dmisc
+    {$endif}
+      ;
 
 
 {*****************************************************************************
@@ -69,7 +69,7 @@ uses
       { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
 
-    Const
+    const
       { First value of opcode enumeration }
       firstop = low(tasmop);
       { Last value of opcode enumeration  }
@@ -78,6 +78,10 @@ uses
 {*****************************************************************************
                                   Registers
 *****************************************************************************}
+
+    type
+      { Number of registers used for indexing in tables }
+      tregisterindex=0..{$i rarmnor.inc}-1;
 
     const
       { Super registers: }
@@ -112,11 +116,30 @@ uses
       { Available Registers }
       {$i rarmcon.inc}
 
-    type
-      { Number of registers used for indexing in tables }
-      tregisterindex=0..{$i rarmnor.inc}-1;
+      { Integer Super registers first and last }
+{$warning Supreg shall be $00-$1f}
+      first_int_supreg = RS_R3;
+      last_int_supreg = RS_R15;
 
-    const
+      first_int_imreg = $20;
+      last_int_imreg = $fe;
+
+      { Float Super register first and last }
+      first_fpu_supreg    = $00;
+      last_fpu_supreg     = $07;
+
+      first_fpu_imreg     = $20;
+      last_fpu_imreg      = $fe;
+
+      { MM Super register first and last }
+      first_mmx_supreg    = RS_INVALID;
+      last_mmx_supreg     = RS_INVALID;
+      first_mmx_imreg     = RS_INVALID;
+      last_mmx_imreg      = RS_INVALID;
+
+{$warning TODO Calculate bsstart}
+      regnumber_count_bsstart = 64;
+
       regnumber_table : array[tregisterindex] of tregister = (
         {$i rarmnum.inc}
       );
@@ -254,7 +277,7 @@ uses
          top_ref    : (ref:preference);
          top_const  : (val:aword);
          top_symbol : (sym:tasmsymbol;symofs:longint);
-         top_regset : (regset:set of RS_R0..RS_R15);
+         top_regset : (regset:tsuperregisterset);
          top_shifterop : (shifterop : pshifterop);
       end;
 
@@ -346,6 +369,8 @@ uses
       { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
 
       maxintregs = 15;
+      { to determine how many registers to use for regvars }
+      maxintscratchregs = 3;
       usableregsint = [RS_R4..RS_R10];
       c_countusableregsint = 7;
 
@@ -375,37 +400,10 @@ uses
       );
 
 {*****************************************************************************
-                                Registers
-*****************************************************************************}
-    const
-        { Standard opcode string table (for each tasmop enumeration). The
-          opcode strings should conform to the names as defined by the
-          processor manufacturer.
-        }
-        std_op2str : op2strtable = (
-                '','adc','add','and','n','bic','bkpt','b','bl','blx','bx',
-                'cdp','cdp2','clz','cmn','cmp','eor','ldc','ldc2',
-                'ldm','ldr','ldrb','ldrd','ldrbt','ldrh','ldrsb',
-                'ldrsh','ldrt','mcr','mcr2','mcrr','mla','mov',
-                'mrc','mrc2','mrrc','rs','msr','mul','mvn',
-                'orr','pld','qadd','qdadd','qdsub','qsub','rsb','rsc',
-                'sbc','smlal','smull','smul',
-                'smulw','stc','stc2','stm','str','strb','strbt','strd',
-                'strh','strt','sub','swi','swp','swpb','teq','tst',
-                'umlal','umull',
-                { FPA coprocessor codes }
-                'ldf','stf','lfm','sfm','flt','fix','wfs','rfs','rfc',
-                'adf','dvf','fdv','fml','frd','muf','pol','pw','rdf',
-                'rmf','rpw','rsf','suf','abs','acs','asn','atn','cos',
-                'exp','log','lgn','mvf','mnf','nrm','rnd','sin','sqt','tan','urd',
-                'cmf','cnf'
-                { VPA coprocessor codes }
-                );
-
-{*****************************************************************************
                                  Constants
 *****************************************************************************}
 
+    const
       firstsaveintreg = RS_R4;
       lastsaveintreg  = RS_R10;
       firstsavefpureg = RS_F4;
@@ -502,13 +500,14 @@ uses
                                   Helpers
 *****************************************************************************}
 
-    procedure convert_register_to_enum(var r:Tregister);
     function cgsize2subreg(s:Tcgsize):Tsubregister;
-    function reg2opsize(r:tregister):topsize;
     function is_calljmp(o:tasmop):boolean;
     procedure inverse_flags(var f: TResFlags);
     function flags_to_cond(const f: TResFlags) : TAsmCond;
-    function supreg_name(r:Tsuperregister):string;
+    function findreg_by_number(r:Tregister):tregisterindex;
+    function findreg_by_stdname(const s:string):byte;
+    function std_regnum_search(const s:string):Tregister;
+    function std_regname(r:Tregister):string;
 
     procedure shifterop_reset(var so : tshifterop);
     function is_pc(const r : tregister) : boolean;
@@ -518,21 +517,22 @@ uses
     uses
       verbose;
 
-    procedure convert_register_to_enum(var r:Tregister);
-      begin
-        if r.enum = R_INTREGISTER then
-          r.enum := toldregister(r.number shr 8)
-        else
-          internalerror(200308271);
-      end;
+
+    const
+      std_regname_table : array[tregisterindex] of string[7] = (
+        {$i rarmstd.inc}
+      );
+
+      regnumber_index : array[tregisterindex] of tregisterindex = (
+        {$i rarmrni.inc}
+      );
+
+      std_regname_index : array[tregisterindex] of tregisterindex = (
+        {$i rarmsri.inc}
+      );
 
 
     function cgsize2subreg(s:Tcgsize):Tsubregister;
-      begin
-      end;
-
-
-    function reg2opsize(r:tregister):topsize;
       begin
       end;
 
@@ -562,23 +562,59 @@ uses
       end;
 
 
-    function supreg_name(r:Tsuperregister):string;
-      const
-        supreg_names:array[0..last_supreg] of string[3]=
-          ('inv',
-           'r0' ,'r2', 'r3','r4','r5','r6','r7','r8',
-           'r8' ,'r9', 'r10','r11','r12','r13','r14','pc'
-           );
+    function findreg_by_stdname(const s:string):byte;
       var
-        s : string[4];
+        i,p : tregisterindex;
       begin
-        if r in [0..last_supreg] then
-          supreg_name:=supreg_names[r]
+        {Binary search.}
+        p:=0;
+        i:=regnumber_count_bsstart;
+        repeat
+          if (p+i<=high(tregisterindex)) and (std_regname_table[std_regname_index[p+i]]<=s) then
+            p:=p+i;
+          i:=i shr 1;
+        until i=0;
+        if std_regname_table[std_regname_index[p]]=s then
+          result:=std_regname_index[p]
         else
-          begin
-            str(r,s);
-            supreg_name:='reg'+s;
-          end;
+          result:=0;
+      end;
+
+
+    function findreg_by_number(r:Tregister):tregisterindex;
+      var
+        i,p : tregisterindex;
+      begin
+        {Binary search.}
+        p:=0;
+        i:=regnumber_count_bsstart;
+        repeat
+          if (p+i<=high(tregisterindex)) and (regnumber_table[regnumber_index[p+i]]<=r) then
+            p:=p+i;
+          i:=i shr 1;
+        until i=0;
+        if regnumber_table[regnumber_index[p]]=r then
+          result:=regnumber_index[p]
+        else
+          result:=0;
+      end;
+
+
+    function std_regnum_search(const s:string):Tregister;
+      begin
+        result:=regnumber_table[findreg_by_stdname(s)];
+      end;
+
+
+    function std_regname(r:Tregister):string;
+      var
+        p : tregisterindex;
+      begin
+        p:=findreg_by_number(r);
+        if p<>0 then
+          result:=std_regname_table[p]
+        else
+          result:=generic_regname(r);
       end;
 
 
@@ -590,14 +626,16 @@ uses
 
     function is_pc(const r : tregister) : boolean;
       begin
-        is_pc:=((r.enum=R_INTREGISTER) and (r.number=NR_R15))
-          or (r.enum=R_PC);
+        is_pc:=(r=NR_R15);
       end;
 
 end.
 {
   $Log$
-  Revision 1.11  2003-09-03 19:10:30  florian
+  Revision 1.12  2003-09-04 00:15:29  florian
+    * first bunch of adaptions of arm compiler for new register type
+
+  Revision 1.11  2003/09/03 19:10:30  florian
     * initial revision of new register naming
 
   Revision 1.10  2003/09/01 15:11:16  florian

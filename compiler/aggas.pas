@@ -87,7 +87,7 @@ implementation
       ,itppcgas
 {$endif}
 {$ifdef arm}
-      ,agarmgas
+      ,itarmgas
 {$endif}
       ;
 
@@ -828,7 +828,10 @@ var
 end.
 {
   $Log$
-  Revision 1.32  2003-09-03 19:35:24  peter
+  Revision 1.33  2003-09-04 00:15:29  florian
+    * first bunch of adaptions of arm compiler for new register type
+
+  Revision 1.32  2003/09/03 19:35:24  peter
     * powerpc compiles again
 
   Revision 1.31  2003/09/03 15:55:00  peter

@@ -688,8 +688,7 @@ unit cgcpu;
        var
          ai : taicpu;
        begin
-         ai := Taicpu.op_sym(A_B,l);
-         ai.SetCondition(flags_to_cond(f));
+         ai := Taicpu.op_sym_cond(A_B,l,flags_to_cond(f));
          ai.is_jmp := true;
          list.concat(ai);
        end;
@@ -699,12 +698,8 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-        ai:=Taicpu.op_reg_const(A_MOV,reg,1);
-        ai.setcondition(flags_to_cond(f));
-        list.concat(ai);
-        ai:=Taicpu.op_reg_const(A_MOV,reg,0);
-        ai.setcondition(inverse_cond[flags_to_cond(f)]);
-        list.concat(ai);
+        list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,1),flags_to_cond(f));
+        list.concat(setcondition(aicpu.op_reg_const(A_MOV,reg,0),inverse_cond[flags_to_cond(f)]));
       end;
 
 
@@ -719,50 +714,29 @@ unit cgcpu;
       begin
         LocalSize:=align(LocalSize,4);
 
-        rsp.enum:=R_INTREGISTER;
-        rsp.number:=NR_STACK_POINTER_REG;
-        a_reg_alloc(list,rsp);
+        a_reg_alloc(list,NR_STACK_POINTER_REG);
+        a_reg_alloc(list,NR_FRAME_POINTER_REG);
+        a_reg_alloc(list,NR_R12);
 
-        rfp.enum:=R_INTREGISTER;
-        rfp.number:=NR_FRAME_POINTER_REG;
-        a_reg_alloc(list,rfp);
-
-        rip.enum:=R_INTREGISTER;
-        rip.number:=NR_R12;
-        a_reg_alloc(list,rip);
-
-        list.concat(taicpu.op_reg_reg(A_MOV,rip,rsp));
+        list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_STACK_POINTER_REG));
         { restore int registers and return }
         list.concat(setoppostfix(taicpu.op_reg_regset(A_STM,rsp,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R15]),PF_FD));
 
-        list.concat(taicpu.op_reg_reg_const(A_SUB,rfp,rip,4));
-        a_reg_alloc(list,rip);
+        list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
+        a_reg_alloc(list,NR_R12);
 
         { allocate necessary stack size }
-        list.concat(taicpu.op_reg_reg_const(A_SUB,rsp,rsp,LocalSize));
+        list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
       end;
 
 
     procedure tcgarm.g_return_from_proc(list : taasmoutput;parasize : aword);
-      var
-        r1,r2 : tregister;
       begin
-        if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
-          begin
-            r1.enum:=R_INTREGISTER;
-            r1.number:=NR_R15;
-            r2.enum:=R_INTREGISTER;
-            r2.number:=NR_R14;
-
-            list.concat(taicpu.op_reg_reg(A_MOV,r1,r2));
-          end
+        if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+          list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14));
         else
-          begin
-            r1.enum:=R_INTREGISTER;
-            r1.number:=NR_R11;
-            { restore int registers and return }
-            list.concat(setoppostfix(taicpu.op_reg_regset(A_LDM,r1,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
-          end;
+          { restore int registers and return }
+          list.concat(setoppostfix(taicpu.op_reg_regset(A_LDM,NR_R11,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
       end;
 
 
@@ -1127,7 +1101,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2003-09-03 19:10:30  florian
+  Revision 1.13  2003-09-04 00:15:29  florian
+    * first bunch of adaptions of arm compiler for new register type
+
+  Revision 1.12  2003/09/03 19:10:30  florian
     * initial revision of new register naming
 
   Revision 1.11  2003/09/03 11:18:37  florian

@@ -36,12 +36,14 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
+       {
          function getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;override;
          procedure ungetregisterfpu(list: taasmoutput; r : tregister; size:TCGsize);override;
          procedure cleartempgen; override;
-        private
+       private
          usedpararegs: Tsupregset;
          usedparafpuregs: tregisterset;
+       }
        end;
 
   implementation
@@ -49,7 +51,7 @@ unit rgcpu;
     uses
       cgobj, verbose, cutils;
 
-
+    {
     function trgcpu.getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;
       begin
         if (r in [R_F0..R_F3]) and
@@ -89,14 +91,18 @@ unit rgcpu;
         usedparafpuregs := [];
       end;
 
+    }
 
 initialization
-  rg := trgcpu.create(last_supreg-first_supreg+1);
+  rg := trgcpu.create(last_int_supreg-first_int_supreg+1);
 end.
 
 {
   $Log$
-  Revision 1.2  2003-08-25 23:20:38  florian
+  Revision 1.3  2003-09-04 00:15:29  florian
+    * first bunch of adaptions of arm compiler for new register type
+
+  Revision 1.2  2003/08/25 23:20:38  florian
     + started to implement FPU support for the ARM
     * fixed a lot of other things
 

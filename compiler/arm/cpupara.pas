@@ -58,15 +58,13 @@ unit cpupara;
          else if nr<=4 then
            begin
               result.loc:=LOC_REGISTER;
-              result.register.enum:=R_INTREGISTER;
-              result.register.number:=NR_R0+(nr-1)*(NR_R1-NR_R0);
-              rg.getexplicitregisterint(list,result.register.number);
+              result.register:=newreg(R_INTREGISTER,RS_R0+nr,R_SUBWHOLE);
+              rg.getexplicitregisterint(list,result.register);
            end
          else
            begin
               result.loc:=LOC_REFERENCE;
-              result.reference.index.enum:=R_INTREGISTER;
-              result.reference.index.number:=NR_STACK_POINTER_REG;
+              result.reference.index:=NR_STACK_POINTER_REG;
               result.reference.offset:=(nr-4)*4;
            end;
          result.size := OS_INT;
@@ -83,8 +81,7 @@ unit cpupara;
            internalerror(2003060401)
          else if nr<=4 then
            begin
-             r.enum := R_INTREGISTER;
-             r.number := NR_R0+(nr-1)*(NR_R1-NR_R0);
+             r:=newreg(R_INTREGISTER,RS_R0+nr,R_SUBWHOLE);
              rg.ungetregisterint(list,r);
            end;
       end;
@@ -180,17 +177,16 @@ unit cpupara;
       procedure assignintreg;
 
         begin
-           if nextintreg.number<=NR_R3 then
+           if nextintreg<=NR_R3 then
              begin
                 paraloc.loc:=LOC_REGISTER;
                 paraloc.register:=nextintreg;
-                inc(nextintreg.number,NR_R1-NR_R0);
+                inc(nextintreg,NR_R1-NR_R0);
              end
            else
               begin
                  paraloc.loc:=LOC_REFERENCE;
-                 paraloc.reference.index.enum:=R_INTREGISTER;
-                 paraloc.reference.index.number:=NR_STACK_POINTER_REG;
+                 paraloc.reference.index:=NR_STACK_POINTER_REG;
                  paraloc.reference.offset:=stack_offset;
                  inc(stack_offset,4);
              end;
@@ -201,10 +197,9 @@ unit cpupara;
          fillchar(nextintreg,sizeof(nextintreg),0);
          fillchar(nextfloatreg,sizeof(nextfloatreg),0);
          fillchar(nextmmreg,sizeof(nextmmreg),0);
-         nextintreg.enum:=R_INTREGISTER;
-         nextintreg.number:=NR_R0;
-         nextfloatreg.enum:=R_F0;
-         // nextmmreg:=0;
+         nextintreg:=RS_R0;
+         nextfloatreg:=RS_F0;
+         nextmmreg:=RS_D0;
          stack_offset:=0;
 
          { frame pointer for nested procedures? }
@@ -234,23 +229,22 @@ unit cpupara;
                       if paraloc.size = OS_NO then
                         paraloc.size := OS_ADDR;
                       is_64bit := paraloc.size in [OS_64,OS_S64];
-                      if nextintreg.number<=(NR_R3-ord(is_64bit)*(NR_R1-NR_R0))  then
+                      if nextintreg<=(RS_R3-ord(is_64bit)) then
                         begin
                            paraloc.loc:=LOC_REGISTER;
 		           if is_64bit then
                              begin
                                paraloc.registerhigh:=nextintreg;
-                               inc(nextintreg.number,NR_R1-NR_R0);
+                               inc(nextintreg);
                              end;
                            paraloc.registerlow:=nextintreg;
-                           inc(nextintreg.number,NR_R1-NR_R0);
+                           inc(nextintreg);
                         end
                       else
                          begin
-                            nextintreg.number := NR_R4;
+                            nextintreg := RS_R4;
                             paraloc.loc:=LOC_REFERENCE;
-                            paraloc.reference.index.enum:=R_INTREGISTER;
-                            paraloc.reference.index.number:=NR_STACK_POINTER_REG;
+                            paraloc.reference.index:=NR_STACK_POINTER_REG;
                             paraloc.reference.offset:=stack_offset;
                             if not is_64bit then
                               inc(stack_offset,4)
@@ -261,11 +255,11 @@ unit cpupara;
                  LOC_FPUREGISTER:
                    begin
                       paraloc.size:=def_cgsize(paradef);
-                      if nextfloatreg.enum<=R_F3 then
+                      if nextfloatreg<=RS_F3 then
                         begin
                            paraloc.loc:=LOC_FPUREGISTER;
                            paraloc.register:=nextfloatreg;
-                           inc(nextfloatreg.enum);
+                           inc(nextfloatreg);
                         end
                       else
                          begin
@@ -284,8 +278,7 @@ unit cpupara;
                       else
                         begin
                            paraloc.loc:=LOC_REFERENCE;
-                           paraloc.reference.index.enum:=R_INTREGISTER;
-                           paraloc.reference.index.number:=NR_STACK_POINTER_REG;
+                           paraloc.reference.index:=NR_STACK_POINTER_REG;
                            paraloc.reference.offset:=stack_offset;
                            inc(stack_offset,hp.paratype.def.size);
                         end;
@@ -293,7 +286,7 @@ unit cpupara;
                  else
                    internalerror(2002071002);
               end;
-              if side = calleeside then
+              if side=calleeside then
                 begin
                   if (paraloc.loc = LOC_REFERENCE) then
                     paraloc.reference.offset := tvarsym(hp.parasym).adjusted_address;
@@ -308,7 +301,7 @@ unit cpupara;
         if p.rettype.def.deftype=floatdef then
           begin
             paraloc.loc:=LOC_FPUREGISTER;
-            paraloc.register.enum:=FPU_RESULT_REG;
+            paraloc.register:=NR_FPU_RESULT_REG;
           end
         else
          { Return in register? }
@@ -316,17 +309,12 @@ unit cpupara;
           begin
             paraloc.loc:=LOC_REGISTER;
             if paraloc.size in [OS_64,OS_S64] then
-             begin
-               paraloc.register64.reglo.enum:=R_INTREGISTER;
-               paraloc.register64.reglo.number:=NR_FUNCTION_RETURN64_LOW_REG;
-               paraloc.register64.reghi.enum:=R_INTREGISTER;
-               paraloc.register64.reghi.number:=NR_FUNCTION_RETURN64_HIGH_REG;
-             end
+              begin
+                paraloc.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
+                paraloc.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
+              end
             else
-             begin
-               paraloc.register.enum:=R_INTREGISTER;
-               paraloc.register.number:=NR_FUNCTION_RETURN_REG;
-             end;
+              paraloc.register:=NR_FUNCTION_RETURN_REG;
           end
         else
           begin
@@ -340,7 +328,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-08-27 00:27:56  florian
+  Revision 1.4  2003-09-04 00:15:29  florian
+    * first bunch of adaptions of arm compiler for new register type
+
+  Revision 1.3  2003/08/27 00:27:56  florian
     + same procedure as very day: today's work on arm
 
   Revision 1.2  2003/08/16 13:23:01  florian

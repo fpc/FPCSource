@@ -451,7 +451,7 @@ interface
           function spill_registers(list:Taasmoutput;
                                    rgget:Trggetproc;
                                    rgunget:Trgungetproc;
-                                   r:Tsuperregisterset;
+                                   r:tsuperregisterset;
                                    var unusedregsint:Tsuperregisterset;
                                    const spilltemplist:Tspill_temp_list):boolean;virtual;
           function spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;virtual;abstract;
@@ -2080,9 +2080,8 @@ implementation
                     Top_shifterop:
                       begin
                         so:=Taicpu_abstract(p).oper[i].shifterop;
-                        if so^.rs.number<>NR_NO then
-                          so^.rs.number:=(so^.rs.number and $ff) or
-                                          (table[so^.rs.number shr 8] shl 8);
+                        if so^.rs<>NR_NO then
+                          setsupreg(so^.rs,table[getsupreg(so^.rs)]);
                       end;
 {$endif arm}
                   end;
@@ -2105,7 +2104,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2003-09-03 15:55:00  peter
+  Revision 1.38  2003-09-04 00:15:28  florian
+    * first bunch of adaptions of arm compiler for new register type
+
+  Revision 1.37  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.36  2003/09/03 11:18:36  florian

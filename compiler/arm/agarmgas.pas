@@ -32,7 +32,8 @@ unit agarmgas;
     uses
        aasmtai,
        aggas,
-       cpubase;
+       cpubase,
+       cginfo;
 
     type
       PARMGNUAssembler=^TARMGNUAssembler;
@@ -40,16 +41,9 @@ unit agarmgas;
         procedure WriteInstruction(hp : tai);override;
       end;
 
-    var
-      gas_reg2str : reg2strtable;
-
     const
       gas_shiftmode2str : array[tshiftmode] of string[3] = (
         '','lsl','lsr','asr','ror','rrx');
-
-    function gas_regnum_search(const s:string):Tnewregister;
-    function gas_regname(const r:Tnewregister):string;
-
 
   implementation
 
@@ -57,7 +51,8 @@ unit agarmgas;
        cutils,globals,verbose,
        systems,
        assemble,
-       aasmcpu;
+       aasmcpu,
+       itarmgas;
 
     const
        as_arm_gas_info : tasminfo =
@@ -83,26 +78,23 @@ unit agarmgas;
     function getreferencestring(var ref : treference) : string;
       var
         s : string;
-        nobase,noindex : boolean;
       begin
          with ref do
           begin
             inc(offset,offsetfixup);
 
-            noindex:=(index.enum=R_NO) or ((index.enum=R_INTREGISTER) and (index.number=NR_NO));
 {$ifdef extdebug}
-            nobase:=(base.enum=R_NO) or ((base.enum=R_INTREGISTER) and (base.number=NR_NO));
-            //!!!! if nobase then
-            //!!!!   internalerror(200308292);
+            if base=NR_NO then
+              internalerror(200308292);
 
-            // !!! if (not(noindex) or (shiftmode<>SM_None)) and ((offset<>0) or (symbol<>nil)) then
-            // !!!   internalerror(200308293);
+            if ((index<>NR_NO) or (shiftmode<>SM_None)) and ((offset<>0) or (symbol<>nil)) then
+              internalerror(200308293);
 {$endif extdebug}
 
             if assigned(symbol) then
               begin
-                // if (base.enum<>R_NO) and not(is_pc(base)) then
-                //   internalerror(200309011);
+                if (base<>NR_NO) and not(is_pc(base)) then
+                  internalerror(200309011);
                 s:=symbol.name;
                 if offset<0 then
                   s:=s+tostr(offset)
@@ -111,23 +103,17 @@ unit agarmgas;
               end
             else
               begin
-                if base.enum=R_INTREGISTER then
-                  s:='['+gas_regname(base.number)
-                else
-                  s:='['+gas_reg2str[base.enum];
+                s:='['+gas_regname(base);
                 if addressmode=AM_POSTINDEXED then
                   s:=s+']';
-                if not(noindex) then
+                if index<>NR_NO then
                   begin
                      if signindex<0 then
                        s:=s+', -'
                      else
                        s:=s+', ';
 
-                     if index.enum=R_INTREGISTER then
-                       s:=s+gas_regname(index.number)
-                     else
-                       s:=s+gas_reg2str[index.enum];
+                     s:=s+gas_regname(index);
 
                      if shiftmode<>SM_None then
                        s:=s+' ,'+gas_shiftmode2str[shiftmode]+' #'+tostr(shiftimm);
@@ -145,116 +131,58 @@ unit agarmgas;
       end;
 
 
-    function getopstr_jmp(const o:toper) : string;
-    var
-      hs : string;
-    begin
-      case o.typ of
-        top_reg :
-          begin
-            if (o.reg.enum < R_R0) or (o.reg.enum > lastreg) then
-              internalerror(200303121);
-            getopstr_jmp:=std_reg2str[o.reg.enum];
-          end;
-        top_shifterop:
-          begin
-          end;
-        { no top_ref jumping for powerpc }
-        top_const :
-          getopstr_jmp:='#'+tostr(o.val);
-        top_symbol :
-          begin
-            hs:=o.sym.name;
-            if o.symofs>0 then
-             hs:=hs+'+'+tostr(o.symofs)
-            else
-             if o.symofs<0 then
-              hs:=hs+tostr(o.symofs);
-            getopstr_jmp:=hs;
-          end;
-        top_none:
-          getopstr_jmp:='';
-        else
-{$ifndef testing}
-          internalerror(2002070603);
-{$else testing}
-          begin
-            writeln('internalerror 10001');
-            halt(1);
-          end;
-{$endif testing}
-      end;
-    end;
-
     const
       shiftmode2str: array[tshiftmode] of string[3] = ('','lsl','lsr','asr','ror','rrx');
 
     function getopstr(const o:toper) : string;
-    var
-      hs : string;
-      first : boolean;
-      r : tnewregister;
-    begin
-      case o.typ of
-        top_reg:
-          begin
-            if o.reg.enum=R_INTREGISTER then
-              getopstr:=gas_regname(o.reg.number)
-            else
-              getopstr:=gas_reg2str[o.reg.enum];
-          end;
-        top_shifterop:
-          begin
-            if (o.shifterop^.rs.enum<>R_NO) and (o.shifterop^.shiftimm=0) then
-              begin
-                if o.shifterop^.rs.enum=R_INTREGISTER then
-                  getopstr:=shiftmode2str[o.shifterop^.shiftmode]+' '+gas_regname(o.shifterop^.rs.number)
-                else
-                  getopstr:=shiftmode2str[o.shifterop^.shiftmode]+' '+gas_reg2str[o.shifterop^.rs.enum];
-              end
-            else if (o.shifterop^.rs.enum=R_NO) then
-              getopstr:=shiftmode2str[o.shifterop^.shiftmode]+' #'+tostr(o.shifterop^.shiftimm)
-            else internalerror(200308282);
-          end;
-        top_const:
-          getopstr:='#'+tostr(longint(o.val));
-        top_regset:
-          begin
-            getopstr:='{';
-            first:=true;
-            for r:=RS_R0 to RS_R15 do
-              if r in o.regset then
-                begin
-                  if not(first) then
-                    getopstr:=getopstr+',';
-                  getopstr:=getopstr+'r'+tostr(r-RS_R0);
-                  first:=false;
-                end;
-            getopstr:=getopstr+'}';
-          end;
-        top_ref:
-          getopstr:=getreferencestring(o.ref^);
-        top_symbol:
-          begin
-            hs:=o.sym.name;
-            if o.symofs>0 then
-             hs:=hs+'+'+tostr(o.symofs)
-            else
-             if o.symofs<0 then
-              hs:=hs+tostr(o.symofs);
-            getopstr:=hs;
-          end;
-        else
-{$ifndef testing}
-          internalerror(2002070604);
-{$else testing}
-          begin
-            writeln('internalerror 10001');
-            halt(1);
-          end;
-{$endif testing}
+      var
+        hs : string;
+        first : boolean;
+        r : tregister;
+      begin
+        case o.typ of
+          top_reg:
+            getopstr:=gas_regname(o.reg);
+          top_shifterop:
+            begin
+              if (o.shifterop^.rs<>NR_NO) and (o.shifterop^.shiftimm=0) then
+                getopstr:=shiftmode2str[o.shifterop^.shiftmode]+' '+gas_regname(o.shifterop^.rs)
+              else if (o.shifterop^.rs=NR_NO) then
+                getopstr:=shiftmode2str[o.shifterop^.shiftmode]+' #'+tostr(o.shifterop^.shiftimm)
+              else internalerror(200308282);
+            end;
+          top_const:
+            getopstr:='#'+tostr(longint(o.val));
+          top_regset:
+            begin
+              getopstr:='{';
+              first:=true;
+              for r:=RS_R0 to RS_R15 do
+                if r in o.regset then
+                  begin
+                    if not(first) then
+                      getopstr:=getopstr+',';
+                    getopstr:=getopstr+gas_regname(newreg(R_INTREGISTER,r,R_SUBWHOLE));
+                    first:=false;
+                  end;
+              getopstr:=getopstr+'}';
+            end;
+          top_ref:
+            getopstr:=getreferencestring(o.ref^);
+          top_symbol:
+            begin
+              hs:=o.sym.name;
+              if o.symofs>0 then
+               hs:=hs+'+'+tostr(o.symofs)
+              else
+               if o.symofs<0 then
+                hs:=hs+tostr(o.symofs);
+              getopstr:=hs;
+            end;
+          else
+            internalerror(2002070604);
+        end;
       end;
-    end;
 
     Procedure TARMGNUAssembler.WriteInstruction(hp : tai);
     var op: TAsmOp;
@@ -263,74 +191,32 @@ unit agarmgas;
         sep: string[3];
     begin
       op:=taicpu(hp).opcode;
-{
-      if is_calljmp(op) then
+      s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix];
+      if taicpu(hp).ops<>0 then
         begin
-          { direct BO/BI in op[0] and op[1] not supported, put them in condition! }
-          case op of
-             A_B,A_BA,A_BL,A_BLA:
-               s:=#9+op2str[op]+#9;
-             A_BCTR,A_BCTRL,A_BLR,A_BLRL:
-               s:=#9+op2str[op]
-             else
-               s:=cond2str(op,taicpu(hp).condition)+',';
-          end;
-
-          if (taicpu(hp).oper[0].typ <> top_none) then
-            s:=s+getopstr_jmp(taicpu(hp).oper[0]);
-        end
-      else
-}
-        { process operands }
-        begin
-          s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix];
-          if taicpu(hp).ops<>0 then
+          sep:=#9;
+          for i:=0 to taicpu(hp).ops-1 do
             begin
-            {
-              if not is_calljmp(op) then
-                sep:=','
-              else
-            }
-                sep:=#9;
-              for i:=0 to taicpu(hp).ops-1 do
-                begin
-                   // debug code
-                   // writeln(s);
-                   // writeln(taicpu(hp).fileinfo.line);
-                   s:=s+sep+getopstr(taicpu(hp).oper[i]);
-                   sep:=',';
-                end;
+               // debug code
+               // writeln(s);
+               // writeln(taicpu(hp).fileinfo.line);
+               s:=s+sep+getopstr(taicpu(hp).oper[i]);
+               sep:=',';
             end;
         end;
       AsmWriteLn(s);
     end;
 
-  function gas_regnum_search(const s:string):Tnewregister;
-    begin
-    end;
-
-
-  function gas_regname(const r:Tnewregister):string;
-    var s:Tsuperregister;
-    begin
-      s:=r shr 8;
-      if s in [RS_R0..RS_R15] then
-        gas_regname:='r'+tostr(s-RS_R0)
-      else
-        begin
-          {Generate a systematic name.}
-          gas_regname:='reg'+tostr(s)+'d';
-        end;
-    end;
-
 
 begin
   RegisterAssembler(as_arm_gas_info,TARMGNUAssembler);
-  gas_reg2str:=std_reg2str;
 end.
 {
   $Log$
-  Revision 1.8  2003-09-03 19:10:30  florian
+  Revision 1.9  2003-09-04 00:15:29  florian
+    * first bunch of adaptions of arm compiler for new register type
+
+  Revision 1.8  2003/09/03 19:10:30  florian
     * initial revision of new register naming
 
   Revision 1.7  2003/09/01 15:11:16  florian

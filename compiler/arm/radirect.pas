@@ -51,31 +51,22 @@ interface
        { parser }
        scanner,
        { codegen }
+       cginfo,
        cgbase,
        { constants }
-       agarmgas,
+       itarmgas,
        cpubase
        ;
 
-    { checks if a string identifies a register }
-    { it should be optimized                   }
-    function is_register(const s : string) : boolean;
-      var
-         r : toldregister;
+    function is_register(const s:string):boolean;
       begin
-         is_register:=false;
-         if length(s)>5 then
-           exit;
-         for r:=low(std_reg2str) to high(std_reg2str) do
-           if std_reg2str[r]=s then
-              begin
-                 is_register:=true;
-                 exit;
-              end;
+        is_register:=false;
+        if gas_regnum_search(lower(s))<>NR_NO then
+          is_register:=true;
       end;
 
-    function assemble : tnode;
 
+    function assemble : tnode;
       var
          retstr,s,hs : string;
          c : char;
@@ -105,9 +96,7 @@ interface
 
      begin
        ende:=false;
-       framereg.enum:=R_INTREGISTER;
-       framereg.number:=NR_FRAME_POINTER_REG;
-       convert_register_to_enum(framereg);
+       framereg:=NR_FRAME_POINTER_REG;
        s:='';
        if assigned(current_procinfo.procdef.funcretsym) and
           is_fpu(current_procinfo.procdef.rettype.def) then
@@ -192,14 +181,11 @@ interface
                                                  hs:=tvarsym(sym).mangledname
                                                else
                                                  begin
-                                                    if (tvarsym(sym).reg.enum<>R_NO) then
-// until new regallocator stuff settles down
-//                                                      hs:=gas_reg2str[procinfo.framepointer.enum]
-                                                      hs:=std_reg2str[framereg.enum]
+                                                    if (tvarsym(sym).reg<>NR_NO) then
+                                                      hs:=std_regname(framereg)
                                                     else
                                                       hs:=tostr(tvarsym(sym).address)+
-//                                                        '('+gas_reg2str[procinfo.framepointer.enum]+')';
-                                                        '('+std_reg2str[framereg.enum]+')';
+                                                        '('+std_regname(framereg)+')';
                                                  end;
                                             end
                                           else
@@ -221,7 +207,7 @@ interface
                                                     { set offset }
                                                     inc(l,current_procinfo.procdef.parast.address_fixup);
 //                                                    hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer.enum]+')';
-                                                    hs:=tostr(l)+'('+std_reg2str[framereg.enum]+')';
+                                                    hs:=tostr(l)+'('+std_regname(framereg)+')';
                                                     if pos(',',s) > 0 then
                                                       tvarsym(sym).varstate:=vs_used;
                                                  end;
@@ -350,7 +336,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-09-01 15:11:17  florian
+  Revision 1.4  2003-09-04 00:15:29  florian
+    * first bunch of adaptions of arm compiler for new register type
+
+  Revision 1.3  2003/09/01 15:11:17  florian
     * fixed reference handling
     * fixed operand postfix for floating point instructions
     * fixed wrong shifter constant handling

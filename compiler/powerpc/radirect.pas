@@ -57,12 +57,12 @@ interface
        itppcgas
        ;
 
-function is_register(const s:string):boolean;
-begin
-  is_register:=false;
-  if gas_regnum_search(lower(s))<>NR_NO then
-    is_register:=true;
-end;
+    function is_register(const s:string):boolean;
+      begin
+        is_register:=false;
+        if gas_regnum_search(lower(s))<>NR_NO then
+          is_register:=true;
+      end;
 
 
     function assemble : tnode;
@@ -340,7 +340,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2003-09-03 19:35:24  peter
+  Revision 1.18  2003-09-04 00:15:29  florian
+    * first bunch of adaptions of arm compiler for new register type
+
+  Revision 1.17  2003/09/03 19:35:24  peter
     * powerpc compiles again
 
   Revision 1.16  2003/06/13 21:19:32  peter
