@@ -10,12 +10,12 @@ loaders=prt0 dllprt0 cprt0 gprt0 $(CRT21)
 units=$(SYSTEMUNIT) unixtype baseunix strings systhrds  objpas macpas syscall unixutil \
       heaptrc lineinfo \
       $(LINUXUNIT1) termio unix $(LINUXUNIT2) initc cmem $(CPU_UNITS) \
-      dos crt objects printer ggigraph \
+       crt  printer ggigraph \
       sysutils typinfo math matrix varutils \
       charset ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard variants types dateutils sysconst \
-      cthreads classes strutils rtlconst
+      cthreads classes strutils rtlconst dos objects
 
 rsts=math varutils typinfo variants systhrds sysconst rtlconst
 
