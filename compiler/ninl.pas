@@ -56,7 +56,7 @@ implementation
 
     uses
       verbose,globals,systems,
-      globtype, cutils, aasm,
+      globtype, cutils,
       symbase,symconst,symtype,symdef,symsym,symtable,types,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,
@@ -101,8 +101,6 @@ implementation
         dest,
         source  : tcallparanode;
         newnode : tnode;
-        len,
-        fraclen : longint;
         procname: string;
         is_real : boolean;
 
@@ -269,7 +267,6 @@ implementation
         p1            : tnode;
         filetemp,
         temp          : ttempcreatenode;
-        tempref       : ttemprefnode;
         procprefix,
         name          : string[31];
         srsym         : tvarsym;
@@ -1044,9 +1041,7 @@ implementation
          hp        : tnode;
          srsym     : tsym;
          def       : tdef;
-         p1,hpp    : tnode;
-         isreal,
-         oneisreal : boolean;
+         isreal    : boolean;
       label
          myexit;
       begin
@@ -1915,9 +1910,6 @@ implementation
       var
          srsym   : tsym;
          hp,hpp  : tnode;
-         extra_register,
-         iswrite,
-         file_is_typed : boolean;
 
       begin
          result:=nil;
@@ -2264,7 +2256,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2001-09-24 16:09:55  jonas
+  Revision 1.62  2001-09-30 16:16:28  jonas
+    - removed unused units form uses-clause and unused local vars
+
+  Revision 1.61  2001/09/24 16:09:55  jonas
     * check if amount of dimensions passed to setlength for dynamic arrays
       is correct
 

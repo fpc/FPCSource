@@ -39,40 +39,11 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,fmodule,
-      symconst,symbase,symtype,symdef,symsym,aasm,types,
+      symconst,symtype,symdef,aasm,types,
       cgbase,temp_gen,pass_1,pass_2,
       cpubase,
       nbas,ncon,ncal,ncnv,nld,
       cga,tgcpu,n386util;
-
-
-{*****************************************************************************
-                                Helpers
-*****************************************************************************}
-
-    { reverts the parameter list }
-    var nb_para : longint;
-
-    function reversparameter(p : tnode) : tnode;
-
-       var
-         hp1,hp2 : tnode;
-
-      begin
-         hp1:=nil;
-         nb_para := 0;
-         while assigned(p) do
-           begin
-              { pull out }
-              hp2:=p;
-              p:=tbinarynode(p).right;
-              inc(nb_para);
-              { pull in }
-              tbinarynode(hp2).right:=hp1;
-              hp1:=hp2;
-           end;
-         reversparameter:=hp1;
-       end;
 
 
 {*****************************************************************************
@@ -88,8 +59,6 @@ implementation
          incdecop:array[in_inc_x..in_dec_x] of tasmop=(A_INC,A_DEC);
          addsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADD,A_SUB);
        var
-         aktfile : treference;
-         ft : tfiletyp;
          opsize : topsize;
          op,
          asmop : tasmop;
@@ -874,7 +843,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2001-09-28 20:38:51  jonas
+  Revision 1.27  2001-09-30 16:16:28  jonas
+    - removed unused units form uses-clause and unused local vars
+
+  Revision 1.26  2001/09/28 20:38:51  jonas
     * fixed big bug in my previous changes (the arguent for bts/btr is always
       a 32 bit register, but it wasn't cleared properly if the value was only
       an 8 bit one)

@@ -54,12 +54,12 @@ interface
 implementation
 
     uses
-      verbose,globtype,globals,systems,
-      symconst,symdef,symsym,aasm,types,
+      verbose,systems,
+      symsym,aasm,
       cgbase,temp_gen,pass_2,
       cpubase,cpuasm,
-      pass_1,nld,ncon,
-      cga,tgcpu,n386util,regvars;
+      nld,ncon,
+      cga,tgcpu;
 
 {*****************************************************************************
                              SecondRaise
@@ -737,7 +737,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-09-29 21:34:04  jonas
+  Revision 1.18  2001-09-30 16:16:28  jonas
+    - removed unused units form uses-clause and unused local vars
+
+  Revision 1.17  2001/09/29 21:34:04  jonas
     - removed unused code (replaced by processor independent code)
 
   Revision 1.16  2001/09/28 20:39:33  jonas

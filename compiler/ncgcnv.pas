@@ -49,12 +49,10 @@ interface
   implementation
 
     uses
-      globtype,
-      cutils,cclasses,globals,verbose,
-      aasm,symconst,symsym,symtable,symdef,symtype,types,
+      cutils,verbose,
+      aasm,symconst,symdef,
       ncon,ncal,
-      htypechk,
-      cpubase,cpuasm,
+      cpubase,
       pass_2,
       cgbase,
       cga,cgobj,cgcpu,
@@ -424,7 +422,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-09-29 21:32:47  jonas
+  Revision 1.2  2001-09-30 16:16:28  jonas
+    - removed unused units form uses-clause and unused local vars
+
+  Revision 1.1  2001/09/29 21:32:47  jonas
     * almost all second pass typeconvnode helpers are now processor independent
     * fixed converting boolean to int64/qword
     * fixed register allocation bugs which could cause internalerror 10
