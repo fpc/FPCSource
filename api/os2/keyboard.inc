@@ -81,8 +81,12 @@ begin
   KbdGetFocus (IO_Wait, Handle);
   while (KbdCharIn (K, IO_Wait, Handle) <> No_Error)
                                    or (K.fbStatus and $40 = 0) do DosSleep (5);
-  with K do GetKeyEvent := cardinal ($0300 or fsState and $F) shl 16 or
+  with K do
+  begin
+   if (byte (chChar) = $E0) and (fbStatus and 2 <> 0) then chChar := #0;
+   GetKeyEvent := cardinal ($0300 or fsState and $F) shl 16 or
                                cardinal (byte (chScan)) shl 8 or byte (chChar);
+  end;
  end;
 end;
 
@@ -94,9 +98,13 @@ begin
  begin
   KbdGetFocus (IO_NoWait, Handle);
   if (KbdCharIn (K, IO_NoWait, Handle) <> No_Error) or
-   (K.fbStatus and $40 = 0) then FillChar (K, SizeOf (K), 0) else
-     with K do PendingKeyEvent := cardinal ($0300 or fsState and $F) shl 16 or
+                 (K.fbStatus and $40 = 0) then FillChar (K, SizeOf (K), 0) else
+  with K do
+  begin
+   if (byte (chChar) = $E0) and (fbStatus and 2 <> 0) then chChar := #0;
+   PendingKeyEvent := cardinal ($0300 or fsState and $F) shl 16 or
                                cardinal (byte (chScan)) shl 8 or byte (chChar);
+  end;
  end;
  PollKeyEvent := PendingKeyEvent;
  if PendingKeyEvent and $FFFF = 0 then PendingKeyEvent := 0;
@@ -169,7 +177,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:26  michael
+  Revision 1.3  2000-10-08 18:41:58  hajny
+    * $E0 for ext. keys correctly discarded now
+
+  Revision 1.2  2000/07/13 11:32:26  michael
   + removed logs
  
 }
