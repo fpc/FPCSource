@@ -347,3 +347,4 @@ bug0246.pp   const para can be changed without error
 bug0252.pp   typecasting not possible within typed const
 bug0254.pp   problem of endless loop if string at end of main file without new line.
 bug0255.pp   internal error 10 with in and function calls
+bug0256.pp   problem with conditionnals in TP mode
