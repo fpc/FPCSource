@@ -65,10 +65,10 @@ Unit Ra386int;
          procedure BuildConstSymbolExpression(needofs,isref:boolean;var value:longint;var asmsym:string);
          function BuildConstExpression:longint;
          function BuildRefConstExpression:longint;
-         procedure BuildReference(oper : t386operand);
-         procedure BuildOperand(oper: t386operand);
-         procedure BuildConstantOperand(oper: t386operand);
-         procedure BuildOpCode(instr : t386instruction);
+         procedure BuildReference(oper : tx86operand);
+         procedure BuildOperand(oper: tx86operand);
+         procedure BuildConstantOperand(oper: tx86operand);
+         procedure BuildOpCode(instr : tx86instruction);
          procedure BuildConstant(maxvalue: longint);
        end;
 
@@ -1028,7 +1028,7 @@ Unit Ra386int;
       end;
 
 
-    procedure ti386intreader.BuildReference(oper : t386operand);
+    procedure ti386intreader.BuildReference(oper : tx86operand);
       var
         k,l,scale : longint;
         tempstr,hs : string;
@@ -1366,7 +1366,7 @@ Unit Ra386int;
       end;
 
 
-    Procedure ti386intreader.BuildConstantOperand(oper: t386operand);
+    Procedure ti386intreader.BuildConstantOperand(oper: tx86operand);
       var
         l : longint;
         tempstr : string;
@@ -1393,7 +1393,7 @@ Unit Ra386int;
       end;
 
 
-    Procedure ti386intreader.BuildOperand(oper: t386operand);
+    Procedure ti386intreader.BuildOperand(oper: tx86operand);
 
         procedure AddLabelOperand(hl:tasmlabel);
         begin
@@ -1634,7 +1634,7 @@ Unit Ra386int;
       end;
 
 
-    Procedure ti386intreader.BuildOpCode(instr : t386instruction);
+    Procedure ti386intreader.BuildOpCode(instr : tx86instruction);
       var
         PrefixOp,OverrideOp: tasmop;
         size,
@@ -1751,7 +1751,7 @@ Unit Ra386int;
                    Consume(AS_PTR);
                    instr.Operands[operandnum].InitRef;
                  end;
-                BuildOperand(instr.Operands[operandnum] as t386operand);
+                BuildOperand(instr.Operands[operandnum] as tx86operand);
                 { now set the size which was specified by the override }
                 instr.Operands[operandnum].setsize(size,true);
               end;
@@ -1776,10 +1776,10 @@ Unit Ra386int;
                    Consume(AS_PTR);
                    instr.Operands[operandnum].InitRef;
                  end;
-                BuildOperand(instr.Operands[operandnum] as t386operand);
+                BuildOperand(instr.Operands[operandnum] as tx86operand);
               end;
             else
-              BuildOperand(instr.Operands[operandnum] as t386operand);
+              BuildOperand(instr.Operands[operandnum] as tx86operand);
           end; { end case }
         until false;
         instr.Ops:=operandnum;
@@ -1856,7 +1856,7 @@ Unit Ra386int;
   function ti386intreader.Assemble: tlinkedlist;
     Var
       hl : tasmlabel;
-      instr : T386Instruction;
+      instr : Tx86Instruction;
     Begin
       Message1(asmr_d_start_reading,'intel');
       inexpression:=FALSE;
@@ -1920,7 +1920,7 @@ Unit Ra386int;
 
           AS_OPCODE :
             Begin
-              instr:=T386Instruction.Create(T386Operand);
+              instr:=Tx86Instruction.Create(Tx86Operand);
               BuildOpcode(instr);
               with instr do
                 begin
@@ -1977,7 +1977,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-11-29 20:13:25  florian
+  Revision 1.69  2004-01-14 23:39:05  florian
+    * another bunch of x86-64 fixes mainly calling convention and
+      assembler reader related
+
+  Revision 1.68  2003/11/29 20:13:25  florian
     * fixed several pi_do_call problems
 
   Revision 1.67  2003/11/29 15:53:06  florian

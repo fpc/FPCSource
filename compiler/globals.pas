@@ -1779,7 +1779,7 @@ implementation
         {$IFDEF testvarsets}
         initsetalloc:=0;
         {$ENDIF}
-        initasmmode:=asmmode_x8664_gas;
+        initasmmode:=asmmode_x86_64_gas;
 {$endif x86_64}
         initinterfacetype:=it_interfacecom;
         initdefproccall:=pocall_default;
@@ -1796,7 +1796,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.120  2004-01-12 16:36:53  peter
+  Revision 1.121  2004-01-14 23:39:05  florian
+    * another bunch of x86-64 fixes mainly calling convention and
+      assembler reader related
+
+  Revision 1.120  2004/01/12 16:36:53  peter
     * removed asmmode_direct
 
   Revision 1.119  2004/01/02 16:50:24  jonas

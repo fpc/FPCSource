@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-Unit ra386att;
+Unit rax64att;
 
 {$i fpcdefs.inc}
 
@@ -30,29 +30,47 @@ Unit ra386att;
       rax86att;
 
     type
-      ti386attreader = class(tx86attreader)
+      tx8664attreader = class(tx86attreader)
+        procedure handleopcode;override;
       end;
 
 
   implementation
 
     uses
-      rabase,systems;
+      rabase,systems,rax86,aasmcpu;
+
+    procedure tx8664attreader.handleopcode;
+      var
+        instr : Tx86Instruction;
+      begin
+        instr:=Tx86Instruction.Create(Tx86Operand);
+        instr.OpOrder:=op_att;
+        BuildOpcode(instr);
+        instr.AddReferenceSizes;
+        instr.SetInstructionOpsize;
+        {
+        instr.CheckOperandSizes;
+        }
+        instr.ConcatInstruction(curlist);
+        instr.Free;
+      end;
+
 
 const
-  asmmode_i386_att_info : tasmmodeinfo =
+  asmmode_x86_64_gas_info : tasmmodeinfo =
           (
-            id    : asmmode_i386_att;
-            idtxt : 'ATT';
-            casmreader : ti386attreader;
+            id    : asmmode_x86_64_gas;
+            idtxt : 'GAS';
+            casmreader : tx8664attreader;
           );
 
 initialization
-  RegisterAsmMode(asmmode_i386_att_info);
+  RegisterAsmMode(asmmode_x86_64_gas_info);
 end.
 {
   $Log$
-  Revision 1.59  2004-01-14 23:39:05  florian
+  Revision 1.1  2004-01-14 23:39:05  florian
     * another bunch of x86-64 fixes mainly calling convention and
       assembler reader related
 }

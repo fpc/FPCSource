@@ -49,11 +49,12 @@ unit cpupara;
 
     uses
        verbose,
-       cpuinfo,cgbase,
+       cpuinfo,cgbase,systems,
        defutil;
 
     const
-      intreg_nr2reg : array[1..6] of tsuperregister = (RS_RDI,RS_RSI,RS_RDX,RS_RCX,RS_R8,RS_R9);
+      paraintsupregs : array[0..5] of tsuperregister = (RS_RDI,RS_RSI,RS_RDX,RS_RCX,RS_R8,RS_R9);
+      parammsupregs : array[0..7] of tsuperregister = (RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7);
 
     function getparaloc(p : tdef) : tcgloc;
 
@@ -120,15 +121,17 @@ unit cpupara;
          end;
       end;
 
+
     function tx86_64paramanager.getintparaloc(calloption : tproccalloption; nr : longint): tparalocation;
       begin
          fillchar(result,sizeof(tparalocation),0);
+         result.size:=OS_INT;
          if nr<1 then
            internalerror(200304303)
-         else if nr<=6 then
+         else if nr<=high(paraintsupregs)+1 then
            begin
               result.loc:=LOC_REGISTER;
-              result.register:=newreg(R_INTREGISTER,intreg_nr2reg[nr],R_SUBWHOLE);
+              result.register:=newreg(R_INTREGISTER,paraintsupregs[nr-1],R_SUBWHOLE);
            end
          else
            begin
@@ -140,11 +143,82 @@ unit cpupara;
 
 
     function tx86_64paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+      var
+        hp : tparaitem;
+        paraloc : tparalocation;
+        subreg : tsubregister;
+        pushaddr : boolean;
+        l,intparareg,mmparareg,
+        varalign,
+        paraalign,
+        parasize : longint;
       begin
-         { set default para_alignment to target_info.stackalignment }
-         { if para_alignment=0 then
-           para_alignment:=aktalignment.paraalign;
-         }
+        intparareg:=0;
+        mmparareg:=0;
+        parasize:=0;
+        paraalign:=get_para_align(p.proccalloption);
+        { Register parameters are assigned from left to right }
+        hp:=tparaitem(p.para.first);
+        while assigned(hp) do
+          begin
+            pushaddr:=push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption);
+            if pushaddr then
+              paraloc.size:=OS_ADDR
+            else
+              paraloc.size:=def_cgsize(hp.paratype.def);
+            paraloc.alignment:=paraalign;
+            if (intparareg<=high(paraintsupregs)) and
+               not(
+                   ((hp.paratype.def.deftype in [floatdef,recorddef,arraydef]) and
+                    (not pushaddr))
+                  ) then
+              begin
+                paraloc.loc:=LOC_REGISTER;
+                if paraloc.size=OS_NO then
+                  subreg:=R_SUBWHOLE
+                else
+                  subreg:=cgsize2subreg(paraloc.size);
+                paraloc.alignment:=paraalign;
+                paraloc.register:=newreg(R_INTREGISTER,paraintsupregs[intparareg],subreg);
+                inc(intparareg);
+              end
+            else if (mmparareg<=high(parammsupregs)) then
+              begin
+              end
+            else
+              begin
+                paraloc.loc:=LOC_REFERENCE;
+                if side=callerside then
+                  paraloc.reference.index:=NR_STACK_POINTER_REG
+                else
+                  paraloc.reference.index:=NR_FRAME_POINTER_REG;
+                l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                // varalign:=size_2_align(l);
+                paraloc.reference.offset:=parasize;
+                // varalign:=used_align(varalign,paraalign,paraalign);
+                // parasize:=align(parasize+l,varalign);
+              end;
+            hp.paraloc[side]:=paraloc;
+            hp:=tparaitem(hp.next);
+          end;
+        { Register parameters are assigned from left-to-right, adapt offset
+          for calleeside to be reversed }
+        hp:=tparaitem(p.para.first);
+        while assigned(hp) do
+          begin
+            if (hp.paraloc[side].loc=LOC_REFERENCE) then
+              begin
+                l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                // varalign:=used_align(size_2_align(l),paraalign,paraalign);
+                // l:=align(l,varalign);
+                hp.paraloc[side].reference.offset:=parasize-hp.paraloc[side].reference.offset-l;
+                if side=calleeside then
+                  inc(hp.paraloc[side].reference.offset,target_info.first_parm_offset);
+              end;
+            hp:=tparaitem(hp.next);
+          end;
+        { We need to return the size allocated }
+        result:=parasize;
       end;
 
 
@@ -153,7 +227,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-12-24 00:10:03  florian
+  Revision 1.6  2004-01-14 23:39:05  florian
+    * another bunch of x86-64 fixes mainly calling convention and
+      assembler reader related
+
+  Revision 1.5  2003/12/24 00:10:03  florian
     - delete parameter in cg64 methods removed
 
   Revision 1.4  2003/04/30 20:53:32  florian

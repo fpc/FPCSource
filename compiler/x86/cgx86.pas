@@ -37,7 +37,6 @@ unit cgx86;
     type
       tcgx86 = class(tcg)
         rgfpu   : Trgx86fpu;
-        procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
         function getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
@@ -185,19 +184,6 @@ unit cgx86;
       begin
         use_sse:=(is_single(def) and (aktfputype in sse_singlescalar)) or
           (is_double(def) and (aktfputype in sse_doublescalar));
-      end;
-
-
-    procedure Tcgx86.init_register_allocators;
-      begin
-        inherited init_register_allocators;
-        if cs_create_pic in aktmoduleswitches then
-          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP,RS_EBX])
-        else
-          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
-        rg[R_MMXREGISTER]:=trgcpu.create(R_MMXREGISTER,R_SUBNONE,[RS_MM0,RS_MM1,RS_MM2,RS_MM3,RS_MM4,RS_MM5,RS_MM6,RS_MM7],first_sse_imreg,[]);
-        rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,[RS_MM0,RS_MM1,RS_MM2,RS_MM3,RS_MM4,RS_MM5,RS_MM6,RS_MM7],first_sse_imreg,[]);
-        rgfpu:=Trgx86fpu.create;
       end;
 
 
@@ -1806,63 +1792,45 @@ unit cgx86;
       var
         href : treference;
         size : longint;
+        r : integer;
       begin
         { Get temp }
         size:=0;
-        if RS_EBX in rg[R_INTREGISTER].used_in_proc then
-          inc(size,POINTER_SIZE);
-        if RS_ESI in rg[R_INTREGISTER].used_in_proc then
-          inc(size,POINTER_SIZE);
-        if RS_EDI in rg[R_INTREGISTER].used_in_proc then
-          inc(size,POINTER_SIZE);
+        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
+          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+            inc(size,POINTER_SIZE);
         if size>0 then
           begin
             tg.GetTemp(list,size,tt_noreuse,current_procinfo.save_regs_ref);
             { Copy registers to temp }
             href:=current_procinfo.save_regs_ref;
-            if RS_EBX in rg[R_INTREGISTER].used_in_proc then
+
+            for r:=low(saved_standard_registers) to high(saved_standard_registers) do
               begin
-                a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_EBX,href);
-                inc(href.offset,POINTER_SIZE);
-              end;
-            if RS_ESI in rg[R_INTREGISTER].used_in_proc then
-              begin
-                a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_ESI,href);
-                inc(href.offset,POINTER_SIZE);
-              end;
-            if RS_EDI in rg[R_INTREGISTER].used_in_proc then
-              begin
-                a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_EDI,href);
-                inc(href.offset,POINTER_SIZE);
+                if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+                  begin
+                    a_load_reg_ref(list,OS_ADDR,OS_ADDR,newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE),href);
+                    inc(href.offset,POINTER_SIZE);
+                  end;
+                include(rg[R_INTREGISTER].preserved_by_proc,saved_standard_registers[r]);
               end;
           end;
-        include(rg[R_INTREGISTER].preserved_by_proc,RS_EBX);
-        include(rg[R_INTREGISTER].preserved_by_proc,RS_ESI);
-        include(rg[R_INTREGISTER].preserved_by_proc,RS_EDI);
       end;
 
 
     procedure tcgx86.g_restore_standard_registers(list:Taasmoutput);
       var
         href : treference;
+        r : integer;
       begin
         { Copy registers from temp }
         href:=current_procinfo.save_regs_ref;
-        if RS_EBX in rg[R_INTREGISTER].used_in_proc then
-          begin
-            a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EBX);
-            inc(href.offset,POINTER_SIZE);
-          end;
-        if RS_ESI in rg[R_INTREGISTER].used_in_proc then
-          begin
-            a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_ESI);
-            inc(href.offset,POINTER_SIZE);
-          end;
-        if RS_EDI in rg[R_INTREGISTER].used_in_proc then
-          begin
-            a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EDI);
-            inc(href.offset,POINTER_SIZE);
-          end;
+        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
+          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+            begin
+              a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE));
+              inc(href.offset,POINTER_SIZE);
+            end;
         tg.UnGetTemp(list,current_procinfo.save_regs_ref);
       end;
 
@@ -1927,7 +1895,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.101  2004-01-14 21:43:54  peter
+  Revision 1.102  2004-01-14 23:39:05  florian
+    * another bunch of x86-64 fixes mainly calling convention and
+      assembler reader related
+
+  Revision 1.101  2004/01/14 21:43:54  peter
     * add release_openarrayvalue
 
   Revision 1.100  2003/12/26 14:02:30  peter

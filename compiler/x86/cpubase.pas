@@ -118,22 +118,22 @@ uses
       first_fpu_imreg     = $08;
 
       { MM Super registers }
-      RS_MM0        = $00;
-      RS_MM1        = $01;
-      RS_MM2        = $02;
-      RS_MM3        = $03;
-      RS_MM4        = $04;
-      RS_MM5        = $05;
-      RS_MM6        = $06;
-      RS_MM7        = $07;
-      RS_MM8        = $08;
-      RS_MM9        = $09;
-      RS_MM10       = $0a;
-      RS_MM11       = $0b;
-      RS_MM12       = $0c;
-      RS_MM13       = $0d;
-      RS_MM14       = $0e;
-      RS_MM15       = $0f;
+      RS_XMM0        = $00;
+      RS_XMM1        = $01;
+      RS_XMM2        = $02;
+      RS_XMM3        = $03;
+      RS_XMM4        = $04;
+      RS_XMM5        = $05;
+      RS_XMM6        = $06;
+      RS_XMM7        = $07;
+      RS_XMM8        = $08;
+      RS_XMM9        = $09;
+      RS_XMM10       = $0a;
+      RS_XMM11       = $0b;
+      RS_XMM12       = $0c;
+      RS_XMM13       = $0d;
+      RS_XMM14       = $0e;
+      RS_XMM15       = $0f;
 
       { Number of first imaginary register }
 {$ifdef x86_64}
@@ -535,7 +535,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2004-01-12 16:37:59  peter
+  Revision 1.36  2004-01-14 23:39:05  florian
+    * another bunch of x86-64 fixes mainly calling convention and
+      assembler reader related
+
+  Revision 1.35  2004/01/12 16:37:59  peter
     * moved spilling code from taicpu to rg
 
   Revision 1.34  2003/12/26 13:19:16  florian

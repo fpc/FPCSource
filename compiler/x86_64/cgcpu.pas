@@ -32,10 +32,11 @@ unit cgcpu;
        cgbase,cgobj,cg64f64,cgx86,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,cpupara,
-       node,symconst;
+       node,symconst,rgx86;
 
     type
       tcgx86_64 = class(tcgx86)
+        procedure init_register_allocators;override;
         class function reg_cgsize(const reg: tregister): tcgsize; override;
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
       end;
@@ -46,6 +47,19 @@ unit cgcpu;
        globtype,globals,verbose,systems,cutils,
        symdef,symsym,defutil,paramgr,
        rgobj,tgobj,rgcpu;
+
+
+    procedure Tcgx86_64.init_register_allocators;
+      begin
+        inherited init_register_allocators;
+        if cs_create_pic in aktmoduleswitches then
+          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP,RS_EBX])
+        else
+          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
+        rg[R_MMXREGISTER]:=trgcpu.create(R_MMXREGISTER,R_SUBNONE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_sse_imreg,[]);
+        rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_sse_imreg,[]);
+        rgfpu:=Trgx86fpu.create;
+      end;
 
 
     class function tcgx86_64.reg_cgsize(const reg: tregister): tcgsize;
@@ -206,7 +220,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2004-01-13 18:08:58  florian
+  Revision 1.9  2004-01-14 23:39:05  florian
+    * another bunch of x86-64 fixes mainly calling convention and
+      assembler reader related
+
+  Revision 1.8  2004/01/13 18:08:58  florian
     * x86-64 compilation fixed
 
   Revision 1.7  2003/12/24 01:47:23  florian

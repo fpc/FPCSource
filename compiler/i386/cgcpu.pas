@@ -40,7 +40,8 @@ unit cgcpu;
 
     type
       tcg386 = class(tcgx86)
-         class function reg_cgsize(const reg: tregister): tcgsize; override;
+        procedure init_register_allocators;override;
+        class function reg_cgsize(const reg: tregister): tcgsize; override;
      end;
 
       tcg64f386 = class(tcg64f32)
@@ -57,7 +58,20 @@ unit cgcpu;
     uses
        globtype,globals,verbose,systems,cutils,
        symdef,symsym,defutil,paramgr,
-       tgobj;
+       rgcpu,rgx86,tgobj;
+
+
+    procedure Tcg386.init_register_allocators;
+      begin
+        inherited init_register_allocators;
+        if cs_create_pic in aktmoduleswitches then
+          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP,RS_EBX])
+        else
+          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
+        rg[R_MMXREGISTER]:=trgcpu.create(R_MMXREGISTER,R_SUBNONE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_sse_imreg,[]);
+        rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_sse_imreg,[]);
+        rgfpu:=Trgx86fpu.create;
+      end;
 
 
     class function tcg386.reg_cgsize(const reg: tregister): tcgsize;
@@ -232,7 +246,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2004-01-12 16:39:40  peter
+  Revision 1.44  2004-01-14 23:39:05  florian
+    * another bunch of x86-64 fixes mainly calling convention and
+      assembler reader related
+
+  Revision 1.43  2004/01/12 16:39:40  peter
     * sparc updates, mostly float related
 
   Revision 1.42  2003/12/24 00:10:02  florian

@@ -41,13 +41,13 @@ Function CheckOverride(overrideop,op:tasmop): Boolean;
 Procedure FWaitWarning;
 
 type
-  T386Operand=class(TOperand)
+  Tx86Operand=class(TOperand)
     opsize  : topsize;
     Procedure SetSize(_size:longint;force:boolean);override;
     Procedure SetCorrectSize(opcode:tasmop);override;
   end;
 
-  T386Instruction=class(TInstruction)
+  Tx86Instruction=class(TInstruction)
     OpOrder : TOperandOrder;
     opsize  : topsize;
     constructor Create(optype : tcoperand);override;
@@ -193,10 +193,10 @@ begin
 end;
 
 {*****************************************************************************
-                              T386Operand
+                              TX86Operand
 *****************************************************************************}
 
-Procedure T386Operand.SetSize(_size:longint;force:boolean);
+Procedure Tx86Operand.SetSize(_size:longint;force:boolean);
 begin
   inherited SetSize(_size,force);
   { OS_64 will be set to S_L and be fixed later
@@ -205,7 +205,7 @@ begin
 end;
 
 
-Procedure T386Operand.SetCorrectSize(opcode:tasmop);
+Procedure Tx86Operand.SetCorrectSize(opcode:tasmop);
 begin
   if gas_needsuffix[opcode]=attsufFPU then
     begin
@@ -229,14 +229,14 @@ end;
                               T386Instruction
 *****************************************************************************}
 
-constructor T386Instruction.Create(optype : tcoperand);
+constructor Tx86Instruction.Create(optype : tcoperand);
 begin
   inherited Create(optype);
   Opsize:=S_NO;
 end;
 
 
-procedure T386Instruction.SwapOperands;
+procedure Tx86Instruction.SwapOperands;
 begin
   Inherited SwapOperands;
   { mark the correct order }
@@ -247,7 +247,7 @@ begin
 end;
 
 
-procedure T386Instruction.AddReferenceSizes;
+procedure Tx86Instruction.AddReferenceSizes;
 { this will add the sizes for references like [esi] which do not
   have the size set yet, it will take only the size if the other
   operand is a register }
@@ -256,69 +256,73 @@ var
   s : tasmsymbol;
   so : longint;
 begin
-  for i:=1to ops do
-   begin
-   operands[i].SetCorrectSize(opcode);
-   if t386operand(operands[i]).opsize=S_NO then
+  for i:=1 to ops do
     begin
-      case operands[i].Opr.Typ of
-        OPR_LOCAL,
-        OPR_REFERENCE :
-          begin
-            if i=2 then
-             operand2:=1
-            else
-             operand2:=2;
-            if operand2<ops then
-             begin
-               { Only allow register as operand to take the size from }
-               if operands[operand2].opr.typ=OPR_REGISTER then
+      operands[i].SetCorrectSize(opcode);
+      if tx86operand(operands[i]).opsize=S_NO then
+        begin
+          case operands[i].Opr.Typ of
+            OPR_LOCAL,
+            OPR_REFERENCE :
+              begin
+                if i=2 then
+                 operand2:=1
+                else
+                 operand2:=2;
+                if operand2<ops then
                  begin
-                   if ((opcode<>A_MOVD) and
-                       (opcode<>A_CVTSI2SS)) then
-                     t386operand(operands[i]).opsize:=t386operand(operands[operand2]).opsize;
+                   { Only allow register as operand to take the size from }
+                   if operands[operand2].opr.typ=OPR_REGISTER then
+                     begin
+                       if ((opcode<>A_MOVD) and
+                           (opcode<>A_CVTSI2SS)) then
+                         tx86operand(operands[i]).opsize:=tx86operand(operands[operand2]).opsize;
+                     end
+                   else
+                    begin
+                      { if no register then take the opsize (which is available with ATT),
+                        if not availble then give an error }
+                      if opsize<>S_NO then
+                        tx86operand(operands[i]).opsize:=opsize
+                      else
+                       begin
+                         Message(asmr_e_unable_to_determine_reference_size);
+                         { recovery }
+                         tx86operand(operands[i]).opsize:=S_L;
+                       end;
+                    end;
                  end
-               else
-                begin
-                  { if no register then take the opsize (which is available with ATT),
-                    if not availble then give an error }
-                  if opsize<>S_NO then
-                    t386operand(operands[i]).opsize:=opsize
-                  else
-                   begin
-                     Message(asmr_e_unable_to_determine_reference_size);
-                     { recovery }
-                     t386operand(operands[i]).opsize:=S_L;
-                   end;
-                end;
-             end
-            else
-             begin
-               if opsize<>S_NO then
-                 t386operand(operands[i]).opsize:=opsize
-             end;
+                else
+                 begin
+                   if opsize<>S_NO then
+                     tx86operand(operands[i]).opsize:=opsize
+                 end;
+              end;
+            OPR_SYMBOL :
+              begin
+                { Fix lea which need a reference }
+                if opcode=A_LEA then
+                 begin
+                   s:=operands[i].opr.symbol;
+                   so:=operands[i].opr.symofs;
+                   operands[i].opr.typ:=OPR_REFERENCE;
+                   Fillchar(operands[i].opr.ref,sizeof(treference),0);
+                   operands[i].opr.ref.symbol:=s;
+                   operands[i].opr.ref.offset:=so;
+                 end;
+{$ifdef x86_64}
+                tx86operand(operands[i]).opsize:=S_Q;
+{$else x86_64}
+                tx86operand(operands[i]).opsize:=S_L;
+{$endif x86_64}
+              end;
           end;
-        OPR_SYMBOL :
-          begin
-            { Fix lea which need a reference }
-            if opcode=A_LEA then
-             begin
-               s:=operands[i].opr.symbol;
-               so:=operands[i].opr.symofs;
-               operands[i].opr.typ:=OPR_REFERENCE;
-               Fillchar(operands[i].opr.ref,sizeof(treference),0);
-               operands[i].opr.ref.symbol:=s;
-               operands[i].opr.ref.offset:=so;
-             end;
-            t386operand(operands[i]).opsize:=S_L;
-          end;
-      end;
+        end;
     end;
-   end;
 end;
 
 
-procedure T386Instruction.SetInstructionOpsize;
+procedure Tx86Instruction.SetInstructionOpsize;
 begin
   if opsize<>S_NO then
    exit;
@@ -335,21 +339,21 @@ begin
            is_segment_reg(operands[1].opr.reg) then
           opsize:=S_L
         else
-          opsize:=t386operand(operands[1]).opsize;
+          opsize:=tx86operand(operands[1]).opsize;
       end;
     2 :
       begin
         case opcode of
           A_MOVZX,A_MOVSX :
             begin
-              case t386operand(operands[1]).opsize of
+              case tx86operand(operands[1]).opsize of
                 S_W :
-                  case t386operand(operands[2]).opsize of
+                  case tx86operand(operands[2]).opsize of
                     S_L :
                       opsize:=S_WL;
                   end;
                 S_B :
-                  case t386operand(operands[2]).opsize of
+                  case tx86operand(operands[2]).opsize of
                     S_W :
                       opsize:=S_BW;
                     S_L :
@@ -361,18 +365,18 @@ begin
                      32 bit register or memory, so no opsize is correct here PM }
             exit;
           A_OUT :
-            opsize:=t386operand(operands[1]).opsize;
+            opsize:=tx86operand(operands[1]).opsize;
           else
-            opsize:=t386operand(operands[2]).opsize;
+            opsize:=tx86operand(operands[2]).opsize;
         end;
       end;
     3 :
-      opsize:=t386operand(operands[3]).opsize;
+      opsize:=tx86operand(operands[3]).opsize;
   end;
 end;
 
 
-procedure T386Instruction.CheckOperandSizes;
+procedure Tx86Instruction.CheckOperandSizes;
 var
   sizeerr : boolean;
   i : longint;
@@ -403,11 +407,11 @@ begin
       begin
         case opsize of
           S_BW :
-            sizeerr:=(t386operand(operands[1]).opsize<>S_B) or (t386operand(operands[2]).opsize<>S_W);
+            sizeerr:=(tx86operand(operands[1]).opsize<>S_B) or (tx86operand(operands[2]).opsize<>S_W);
           S_BL :
-            sizeerr:=(t386operand(operands[1]).opsize<>S_B) or (t386operand(operands[2]).opsize<>S_L);
+            sizeerr:=(tx86operand(operands[1]).opsize<>S_B) or (tx86operand(operands[2]).opsize<>S_L);
           S_WL :
-            sizeerr:=(t386operand(operands[1]).opsize<>S_W) or (t386operand(operands[2]).opsize<>S_L);
+            sizeerr:=(tx86operand(operands[1]).opsize<>S_W) or (tx86operand(operands[2]).opsize<>S_L);
         end;
       end;
    end
@@ -416,8 +420,8 @@ begin
      for i:=1 to ops do
       begin
         if (operands[i].opr.typ<>OPR_CONSTANT) and
-           (t386operand(operands[i]).opsize in [S_B,S_W,S_L]) and
-           (t386operand(operands[i]).opsize<>opsize) then
+           (tx86operand(operands[i]).opsize in [S_B,S_W,S_L]) and
+           (tx86operand(operands[i]).opsize<>opsize) then
          sizeerr:=true;
       end;
    end;
@@ -436,7 +440,7 @@ end;
 { This check must be done with the operand in ATT order
   i.e.after swapping in the intel reader
   but before swapping in the NASM and TASM writers PM }
-procedure T386Instruction.CheckNonCommutativeOpcodes;
+procedure Tx86Instruction.CheckNonCommutativeOpcodes;
 begin
   if (OpOrder=op_intel) then
     SwapOperands;
@@ -487,7 +491,7 @@ end;
                               opcode Adding
 *****************************************************************************}
 
-function T386Instruction.ConcatInstruction(p : taasmoutput) : tai;
+function Tx86Instruction.ConcatInstruction(p : taasmoutput) : tai;
 var
   siz  : topsize;
   i,asize : longint;
@@ -502,21 +506,21 @@ begin
   else
    begin
      if (Ops=2) and (operands[1].opr.typ=OPR_REGISTER) then
-      siz:=t386operand(operands[1]).opsize
+      siz:=tx86operand(operands[1]).opsize
      else
-      siz:=t386operand(operands[Ops]).opsize;
+      siz:=tx86operand(operands[Ops]).opsize;
      { MOVD should be of size S_LQ or S_QL, but these do not exist PM }
      if (ops=2) and
-        (t386operand(operands[1]).opsize<>S_NO) and
-        (t386operand(operands[2]).opsize<>S_NO) and
-        (t386operand(operands[1]).opsize<>t386operand(operands[2]).opsize) then
+        (tx86operand(operands[1]).opsize<>S_NO) and
+        (tx86operand(operands[2]).opsize<>S_NO) and
+        (tx86operand(operands[1]).opsize<>tx86operand(operands[2]).opsize) then
        siz:=S_NO;
    end;
 
    if ((opcode=A_MOVD)or
        (opcode=A_CVTSI2SS)) and
-      ((t386operand(operands[1]).opsize=S_NO) or
-       (t386operand(operands[2]).opsize=S_NO)) then
+      ((tx86operand(operands[1]).opsize=S_NO) or
+       (tx86operand(operands[2]).opsize=S_NO)) then
      siz:=S_NO;
    { NASM does not support FADD without args
      as alias of FADDP
@@ -721,7 +725,9 @@ begin
    begin
      { Check the instruction if it's valid }
 {$ifndef NOAG386BIN}
+{$ifndef x86_64}
      ai.CheckIfValid;
+{$endif x86_64}
 {$endif NOAG386BIN}
      p.concat(ai);
    end
@@ -733,7 +739,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2003-11-17 23:23:47  florian
+  Revision 1.16  2004-01-14 23:39:05  florian
+    * another bunch of x86-64 fixes mainly calling convention and
+      assembler reader related
+
+  Revision 1.15  2003/11/17 23:23:47  florian
     + first part of arm assembler reader
 
   Revision 1.14  2003/11/12 16:05:40  florian

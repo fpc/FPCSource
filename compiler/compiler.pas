@@ -209,6 +209,9 @@ uses
 {$ifdef powerpc}
   ,rappcgas
 {$endif powerpc}
+{$ifdef x86_64}
+  ,rax64att
+{$endif x86_64}
 {$ifdef arm}
   ,raarmgas
 {$endif arm}
@@ -423,7 +426,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.43  2003-12-04 10:46:19  mazen
+  Revision 1.44  2004-01-14 23:39:05  florian
+    * another bunch of x86-64 fixes mainly calling convention and
+      assembler reader related
+
+  Revision 1.43  2003/12/04 10:46:19  mazen
   + added support for spac assembler reader
 
   Revision 1.42  2003/11/17 23:23:47  florian

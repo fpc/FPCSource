@@ -70,7 +70,7 @@ interface
             ,asmmode_ppc_motorola
             ,asmmode_arm_gas
             ,asmmode_sparc_gas
-            ,asmmode_x8664_gas
+            ,asmmode_x86_64_gas
        );
 
      (* IMPORTANT NOTE:
@@ -649,7 +649,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.78  2004-01-12 16:39:40  peter
+  Revision 1.79  2004-01-14 23:39:05  florian
+    * another bunch of x86-64 fixes mainly calling convention and
+      assembler reader related
+
+  Revision 1.78  2004/01/12 16:39:40  peter
     * sparc updates, mostly float related
 
   Revision 1.77  2004/01/04 21:17:51  jonas

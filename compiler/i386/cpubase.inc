@@ -153,7 +153,7 @@
          This value can be deduced from the CALLED_USED_REGISTERS array in the
          GCC source.
       }
-      std_saved_registers = [RS_ESI,RS_EDI,RS_EBX];
+      saved_standard_registers : array[0..2] of tsuperregister = (RS_EBX,RS_ESI,RS_EDI);
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
          by GCC or the target ABI.
@@ -165,7 +165,11 @@
 
 {
   $Log$
-  Revision 1.10  2003-10-17 14:38:32  peter
+  Revision 1.11  2004-01-14 23:39:05  florian
+    * another bunch of x86-64 fixes mainly calling convention and
+      assembler reader related
+
+  Revision 1.10  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

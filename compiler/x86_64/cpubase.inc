@@ -123,7 +123,7 @@ const
         This value can be deduced from the CALLED_USED_REGISTERS array in the
         GCC source.
       }
-      std_saved_registers = [RS_ESI,RS_EDI,RS_EBX];
+      saved_standard_registers : array[0..4] of tsuperregister = (RS_EBX,RS_R12,RS_R13,RS_R14,RS_R15);
       { Required parameter alignment when calling a routine declared as
         stdcall and cdecl. The alignment value should be the one defined
         by GCC or the target ABI.
@@ -135,7 +135,11 @@ const
 
 {
   $Log$
-  Revision 1.9  2003-12-22 19:00:17  florian
+  Revision 1.10  2004-01-14 23:39:05  florian
+    * another bunch of x86-64 fixes mainly calling convention and
+      assembler reader related
+
+  Revision 1.9  2003/12/22 19:00:17  florian
     * fixed some x86-64 issues
 
   Revision 1.8  2003/09/25 13:13:32  florian
