@@ -33,12 +33,15 @@ RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU)
 
+# Unit dir
+UNITDIR=.
+
 # Needed options
 ifneq ("$(FPC_VERSION)","0.99.10")
 ifndef BROWSER
 NEEDOPT=-b-
 endif
-endif 
+endif
 
 # Where to place the result files
 TARGETDIR=.
@@ -62,7 +65,7 @@ LOADEROBJECTS=wprt0 wdllprt0
 
 # Unit Objects
 UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
-            windows ole2 opengl32 \
+	    windows ole2 opengl32 \
 	    dos crt objects \
 	    sysutils typinfo math \
 	    cpu mmx getopts heaptrc
@@ -220,7 +223,7 @@ objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 #
 
 sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
-                    filutil.inc disk.inc objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
+		    filutil.inc disk.inc objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/sysutils.pp $(REDIR)
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
@@ -379,7 +382,10 @@ endif
 
 #
 # $Log$
-# Revision 1.31  1999-05-13 22:38:03  peter
+# Revision 1.32  1999-06-10 15:02:15  peter
+#   * last fixes for 0.99.12 release
+#
+# Revision 1.31  1999/05/13 22:38:03  peter
 #   * -Sg for heaptrc
 #
 # Revision 1.30  1999/05/10 19:34:06  florian

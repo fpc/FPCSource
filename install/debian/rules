@@ -157,7 +157,7 @@ fp-utils: installbin
 	@echo "--- Building: $@"
 	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
 	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@
-	dh_undocumented		-p$@ -P$(BUILD_DIR)/$@ h2pas.1 ppumove.1 ppdep.1
+	dh_undocumented		-p$@ -P$(BUILD_DIR)/$@ h2pas.1
 	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
 	dh_compress		-p$@ -P$(BUILD_DIR)/$@
 	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@

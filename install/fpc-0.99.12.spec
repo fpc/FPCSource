@@ -10,7 +10,7 @@ Packager: Michael Van Canneyt (michael@tfdec1.fys.kuleuven.ac.be)
 URL: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/fpc.html
 
 %define fpcdir /usr/lib/fpc/%{PACKAGE_VERSION}
-%define docdir /usr/doc/fpc/%{PACKAGE_VERSION}
+%define docdir /usr/doc/fpc-%{PACKAGE_VERSION}
 
 %description	
 The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
@@ -39,7 +39,7 @@ NEWPP=`pwd`/compiler/ppc386
 	make utils_install PP=${NEWPP}
 
 	make base_install PP=${NEWPP}
-	make demo_install PP=${NEWPP}
+	make demo_install PP=${NEWPP} DOCINSTALLDIR=%{docdir}
 	make man_install PP=${NEWPP}
 	
 %clean

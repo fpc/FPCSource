@@ -14,6 +14,8 @@ Compiler:
   + new compiler directives (path and other cmdline switches)
   + val,readln support range checking
   + initialization/finalization support
+  + methodpointer support
+  + message support
   * better intel,at&t parsers with mmx,kni support
   * better unit dependency handling and recompiling
   * static var fixes

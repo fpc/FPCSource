@@ -146,7 +146,7 @@ w3209912.zip specific:
       GInstall 3.16
       Date 3.16
       Echo 3.16
-      UPX 0.72
+      UPX 0.71
   gdbw32.zip      contains the GNU Debugger 4.16.1 for Win32
 
 os209912.zip specific:
@@ -175,7 +175,7 @@ os209912.zip specific:
 common files in dos09912.zip, w3209912.zip and os209912.zip:
 ------------------------------------------------------------
   demo.zip        contains some demo files
-  docs-htm.zip    contains the documentation in HTML format
+  doc-html.zip    contains the documentation in HTML format
   docs-ps.zip     contains the documentation in PostScript
   install.exe     installation program
   install.dat     installation data

@@ -769,11 +769,9 @@ endif
 endif
 
 # Target for the sharedlib install which is not avail for all targets
+ifdef inlinux
 SHAREDINSTALL=sharedinstall
-ifeq ($(OS_TARGET),go32v1)
-SHAREDINSTALL=
-endif
-ifeq ($(OS_TARGET),go32v2)
+else
 SHAREDINSTALL=
 endif
 
@@ -1014,7 +1012,10 @@ endif
 
 #
 # $Log$
-# Revision 1.30  1999-06-03 09:36:31  peter
+# Revision 1.31  1999-06-10 15:02:08  peter
+#   * last fixes for 0.99.12 release
+#
+# Revision 1.30  1999/06/03 09:36:31  peter
 #   * first things for sharedlib to work again
 #
 # Revision 1.29  1999/06/01 13:27:24  peter

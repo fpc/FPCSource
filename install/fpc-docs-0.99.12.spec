@@ -34,3 +34,4 @@ the documentation in HTML format
 /usr/doc/fpc-0.99.12/user
 /usr/doc/fpc-0.99.12/ref
 /usr/doc/fpc-0.99.12/units
+/usr/doc/fpc-0.99.12/buttons
