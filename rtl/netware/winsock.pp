@@ -2417,15 +2417,33 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
       end;
     end;
 
+var
+  oldUnloadProc : pointer;
+
+    procedure exitProc;
+    begin
+      {$ifdef DEBUG_MT}
+      ConsolePrintf (#13'winsock.exitProc called'#13#10);
+      {$endif}
+      NetwareUnloadProc := oldUnloadProc;
+      WSACleanup;
+    end;
+
+
 
 initialization
   WSAstartupData.wVersion := $ffff;
+  oldUnloadProc := NetwareUnloadProc;
+  NetwareUnloadProc := @exitProc;
 finalization
   WSACleanUp;
 end.
 {
   $Log$
-  Revision 1.4  2004-09-18 23:45:43  armin
+  Revision 1.5  2004-09-26 19:25:49  armin
+  * exiting threads at nlm unload
+
+  Revision 1.4  2004/09/18 23:45:43  armin
   * make winsock more compatible to win32 version
 
   Revision 1.3  2003/10/25 23:42:35  hajny

@@ -1929,5 +1929,8 @@
  y1,
  YearsSince1970,
  yn,
- __ZBuf2F
+ __ZBuf2F,
+# GetKey,UnGetKey from server.nlm (or syscalls)
+ GetKey,
+ UngetKey
 

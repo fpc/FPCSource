@@ -1,8 +1,8 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
-    Copyright (c) 2001 Armin Diehl
+    Copyright (c) 1999-2004 by the Free Pascal development team
+    Copyright (c) 2001-2004 Armin Diehl
 
     Interface to netware clib
 
@@ -17,6 +17,7 @@
 
 
 CONST Clib       = 'clib';
+      ThreadsNlm = 'threads';
 
 TYPE
   dev_t         = LONGINT;
@@ -69,9 +70,16 @@ FUNCTION _BeginThread (func, stack : pointer; Stacksize : LONGINT; arg : pointer
 FUNCTION _GetThreadDataAreaPtr : POINTER; CDecl; EXTERNAL CLib NAME 'GetThreadDataAreaPtr';
 PROCEDURE _SaveThreadDataAreaPtr (P : POINTER); CDecl; EXTERNAL CLib NAME 'SaveThreadDataAreaPtr';
 PROCEDURE _exit (ExitCode : LONGINT); CDecl; EXTERNAL CLib;
+function _SuspendThread(threadID:longint):longint; cdecl;external ThreadsNlm name 'SuspendThread';
+function _GetThreadID:longint; cdecl;external ThreadsNlm name 'GetThreadID';
+procedure _ThreadSwitchWithDelay; cdecl;external ThreadsNlm name 'ThreadSwitchWithDelay';
+function _GetThreadName(threadID:longint; var tName):longint; cdecl;external ThreadsNlm name 'GetThreadName';
 
 PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
-PROCEDURE ConsolePrintf3 (FormatStr : PCHAR; P1,P2,P3 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : pchar); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+PROCEDURE ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+PROCEDURE ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+PROCEDURE ConsolePrintf (FormatStr : PCHAR; P1,P2,P3,P4 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
 PROCEDURE ConsolePrintf (FormatStr : PCHAR); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
 // this gives internal compiler error 1234124 ??
 //PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : array of const); CDecl; EXTERNAL CLib;
@@ -361,7 +369,10 @@ function spawnvp(mode:longint; path:Pchar; argv:PPchar):longint;cdecl;external C
 
 {
   $Log$
-  Revision 1.10  2004-08-01 20:02:48  armin
+  Revision 1.11  2004-09-26 19:25:49  armin
+  * exiting threads at nlm unload
+
+  Revision 1.10  2004/08/01 20:02:48  armin
   * changed dir separator from \ to /
   * long namespace by default
   * dos.exec implemented

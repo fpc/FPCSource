@@ -69,20 +69,24 @@ VAR
    NetwareCheckFunction    : TNWCheckFunction;
    NetwareMainThreadGroupID: longint;
    NetwareCodeStartAddress : dword;
+   NetwareUnloadProc       : pointer = nil;  {like exitProc but for nlm unload only}
 
 CONST
    envp   : ppchar = nil;   {dummy to make heaptrc happy}
 
 
-PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl;
-PROCEDURE ConsolePrintf3 (FormatStr : PCHAR; P1,P2,P3 : LONGINT);  CDecl;
-PROCEDURE ConsolePrintf (FormatStr : PCHAR);  CDecl;
+procedure ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl;
+procedure ConsolePrintf (FormatStr : PCHAR; Param : pchar); CDecl;
+procedure ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT);  CDecl;
+procedure ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT);  CDecl;
+procedure ConsolePrintf (FormatStr : PCHAR);  CDecl;
+procedure __EnterDebugger; cdecl;
 
-type 
+type
   TSysCloseAllRemainingSemaphores = procedure;
   TSysReleaseThreadVars = procedure;
   TSysSetThreadDataAreaPtr = function (newPtr:pointer):pointer;
-  
+
 procedure NWSysSetThreadFunctions (crs:TSysCloseAllRemainingSemaphores;
                                    rtv:TSysReleaseThreadVars;
 				   stdata:TSysSetThreadDataAreaPtr);
@@ -101,10 +105,13 @@ implementation
 {$I errno.inc}
 
 
-var 
+var
   CloseAllRemainingSemaphores : TSysCloseAllRemainingSemaphores = nil;
   ReleaseThreadVars : TSysReleaseThreadVars = nil;
   SetThreadDataAreaPtr : TSysSetThreadDataAreaPtr = nil;
+  TerminatingThreadID : longint = 0;  {used for unload, the signal handler will}
+                                      {be called from the console thread. avoid}
+                                      {calling _exit in another thread}
 
 procedure NWSysSetThreadFunctions (crs:TSysCloseAllRemainingSemaphores;
                                    rtv:TSysReleaseThreadVars;
@@ -113,9 +120,9 @@ begin
   CloseAllRemainingSemaphores := crs;
   ReleaseThreadVars := rtv;
   SetThreadDataAreaPtr := stdata;
-end;  
+end;
 
-
+procedure __EnterDebugger; cdecl; external 'clib' name 'EnterDebugger';
 
 
 procedure PASCALMAIN;external name 'PASCALMAIN';
@@ -161,6 +168,18 @@ var SigTermHandlerActive : boolean;
 
 Procedure system_exit;
 begin
+  if TerminatingThreadID <> 0 then
+    if TerminatingThreadID <> ThreadId then
+      if TerminatingThreadID <> _GetThreadID then
+      begin
+        {$ifdef DEBUG_MT}
+        ConsolePrintf ('Terminating Thread %x because halt was called while Thread %x terminates nlm'#13#10,_GetThreadId,TerminatingThreadId);
+        {$endif}
+        ExitThread (EXIT_THREAD,0);
+        // only for the case ExitThread fails
+        while true do
+          _ThreadSwitchWithDelay;
+      end;
   if assigned (CloseAllRemainingSemaphores) then CloseAllRemainingSemaphores;
   if assigned (ReleaseThreadVars) then ReleaseThreadVars;
 
@@ -746,13 +765,13 @@ begin
     oldTG := _SetThreadGroupID (NetwareMainThreadGroupID);
     { to allow use of threadvars, we simply set the threadvar-memory
       from the main thread }
-    if assigned (SetThreadDataAreaPtr) then 
+    if assigned (SetThreadDataAreaPtr) then
       oldPtr := SetThreadDataAreaPtr (NIL);  { nil means main threadvars }
     result := 0;
     NetwareCheckFunction (result);
     if assigned (SetThreadDataAreaPtr) then
       SetThreadDataAreaPtr (oldPtr);
-      
+
     _SetThreadGroupID (oldTG);
   end else
     result := 0;
@@ -812,7 +831,13 @@ end;
 procedure TermSigHandler (Sig:longint); CDecl;
 var oldTG : longint;
     oldPtr: pointer;
+    err   : longint;
+    current_exit : procedure;
+    ThreadName   : array [0..20] of char;
+    HadExitProc  : boolean;
+    Count        : longint;
 begin
+
   oldTG := _SetThreadGroupID (NetwareMainThreadGroupID); { this is only needed for nw 3.11 }
 
   { _GetThreadDataAreaPtr will not be valid because the signal
@@ -821,25 +846,88 @@ begin
     here }
   if assigned (SetThreadDataAreaPtr) then
     oldPtr := SetThreadDataAreaPtr (NIL);  { nil means main thread }
+
+  {this signal handler is called within the console command
+   thread, the main thread is still running. Via NetwareUnloadProc
+   running threads may terminate itself}
+  TerminatingThreadID := _GetThreadID;
+  {$ifdef DEBUG_MT}
+  ConsolePrintf (#13'TermSigHandler Called, MainThread:%x, OurThread: %x'#13#10,ThreadId,TerminatingThreadId);
+  if NetwareUnloadProc <> nil then
+    ConsolePrintf (#13'Calling NetwareUnloadProcs'#13#10);
+  {$endif}
+  HadExitProc := false;
+  {we need to finalize winock to release threads
+   waiting on a blocking socket call. If that thread
+   calls halt, we have to avoid that unit finalization
+   is called by that thread because we are doing it
+   here
+
+   like the old exitProc, mainly to allow winsock to release threads
+   blocking in a winsock calls }
+  while NetwareUnloadProc<>nil Do
+  Begin
+    InOutRes:=0;
+    current_exit:=tProcedure(NetwareUnloadProc);
+    NetwareUnloadProc:=nil;
+    current_exit();
+    _ThreadSwitchWithDelay;
+    hadExitProc := true;
+  End;
+
+  err := 0;
+  if hadExitProc then
+  begin  {give the main thread a little bit of time to terminate}
+    count := 0;
+    repeat
+      err := _GetThreadName(ThreadID,ThreadName);
+      if err = 0 then _Delay (200);
+      inc(count);
+    until (err <> 0) or (count > 100);  {about 20 seconds}
+    {$ifdef DEBUG_MT}
+    if err = 0 then
+      ConsolePrintf (#13,'Main Thread not terminated'#13#10)
+    else
+      ConsolePrintf (#13'Main Thread has ended'#13#10);
+    {$endif}
+  end;
+
+  if err = 0 then
+  {$ifdef DEBUG_MT}
+  begin
+    err := _SuspendThread(ThreadId);
+    ConsolePrintf (#13'SuspendThread(%x) returned %d'#13#10,ThreadId,err);
+  end;
+  {$else}
+  _SuspendThread(ThreadId);
+  {$endif}
+  _ThreadSwitchWithDelay;
+
+  {$ifdef DEBUG_MT}
+  ConsolePrintf (#13'Calling do_exit'#13#10);
+  {$endif}
   SigTermHandlerActive := true;  { to avoid that system_exit calls _exit }
   do_exit;                       { calls finalize units }
   if assigned (SetThreadDataAreaPtr) then
-    SetThreadDataAreaPtr (oldPtr);  
+    SetThreadDataAreaPtr (oldPtr);
   _SetThreadGroupID (oldTG);
+  {$ifdef DEBUG_MT}
+  ConsolePrintf (#13'TermSigHandler: all done'#13#10);
+  {$endif}
 end;
 
 
 procedure SysInitStdIO;
 begin
 { Setup stdin, stdout and stderr }
-  StdInputHandle := _fileno (LONGINT (_GetStdIn^));    // GetStd** returns **FILE !
+  StdInputHandle := _fileno (LONGINT (_GetStdIn^));    // GetStd** returns **FILE
   StdOutputHandle:= _fileno (LONGINT (_GetStdOut^));
   StdErrorHandle := _fileno (LONGINT (_GetStdErr^));
 
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  
+
   {$ifdef StdErrToConsole}
   AssignStdErrConsole(StdErr);
   {$else}
@@ -870,7 +958,7 @@ Begin
       else
         _SetCurrentNameSpace (NW_NS_DOS);
     end;
-  end;  
+  end;
   {$endif useLongNamespaceByDefault}
 
 { Setup heap }
@@ -880,11 +968,12 @@ Begin
 { Reset IO Error }
   InOutRes:=0;
 
-(* This should be changed to a real value during *)
-(* thread driver initialization if appropriate.  *)
-  ThreadID := 1;
-  
-  SysInitStdIO;  
+  ThreadID := _GetThreadID;
+  {$ifdef DEBUG_MT}
+  ConsolePrintf (#13'Start system, ThreadID: %x'#13#10,ThreadID);
+  {$endif}
+
+  SysInitStdIO;
 
 {Delphi Compatible}
   IsLibrary := FALSE;
@@ -896,7 +985,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.26  2004-09-17 18:29:07  armin
+  Revision 1.27  2004-09-26 19:25:49  armin
+  * exiting threads at nlm unload
+
+  Revision 1.26  2004/09/17 18:29:07  armin
   * added NWGetCodeStart, needed for lineinfo
 
   Revision 1.25  2004/09/03 19:26:27  olle

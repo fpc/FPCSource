@@ -1,9 +1,10 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1999-2003 by the Free Pascal development team
+    Copyright (c) 2003-2004 Armin Diehl, member of the Free Pascal
+    development team
 
-    Netware TThread implementation
+    Netware clib TThread implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -25,7 +26,7 @@ type
 var
   ThreadRoot : PThreadRec;
   ThreadsInited : boolean;
-//  MainThreadID: longint;
+  DisableRemoveThread : boolean;
 
 Const
   ThreadCount: longint = 0;
@@ -55,19 +56,24 @@ procedure InitThreads;
 begin
   ThreadRoot:=nil;
   ThreadsInited:=true;
+  DisableRemoveThread:=false;
 end;
 
-
+{DoneThreads will terminate all remaining threads}
 procedure DoneThreads;
 var
-  hp : PThreadRec;
+  hp,next : PThreadRec;
 begin
+  DisableRemoveThread := true;    {to avoid that Destroy calling RemoveThread modifies Thread List}
   while assigned(ThreadRoot) do
    begin
      ThreadRoot^.Thread.Destroy;
      hp:=ThreadRoot;
      ThreadRoot:=ThreadRoot^.Next;
      dispose(hp);
+     {$ifdef DEBUG_MT}
+     ConsolePrintf(#13'DoneThreads: called destroy, remaining threads: %d ThreadRoot: %x'#13#10,ThreadCount,longint(ThreadRoot));
+     {$endif}
    end;
   ThreadsInited:=false;
 end;
@@ -87,7 +93,7 @@ begin
   hp^.next:=ThreadRoot;
   ThreadRoot:=hp;
 
-  inc(ThreadCount, 1);
+  inc(ThreadCount);
 end;
 
 
@@ -95,25 +101,28 @@ procedure RemoveThread(t:TThread);
 var
   lasthp,hp : PThreadRec;
 begin
-  hp:=ThreadRoot;
-  lasthp:=nil;
-  while assigned(hp) do
-   begin
-     if hp^.Thread=t then
+  if not DisableRemoveThread then  {disabled while in DoneThreads}
+  begin
+    hp:=ThreadRoot;
+    lasthp:=nil;
+    while assigned(hp) do
+    begin
+      if hp^.Thread=t then
       begin
         if assigned(lasthp) then
          lasthp^.next:=hp^.next
         else
          ThreadRoot:=hp^.next;
         dispose(hp);
+        Dec(ThreadCount);
+        if ThreadCount = 0 then ThreadsInited := false;
         exit;
       end;
-     lasthp:=hp;
-     hp:=hp^.next;
-   end;
-
-  Dec(ThreadCount, 1);
-  if ThreadCount = 0 then DoneThreads;
+      lasthp:=hp;
+      hp:=hp^.next;
+    end;
+  end else
+    dec(ThreadCount);
 end;
 
 
@@ -133,7 +142,10 @@ begin
   Thread.FFinished := True;
   Thread.DoTerminate;
   if FreeThread then
+  begin
+    Thread.Destroy;
     Thread.Free;
+  end;
   EndThread(Result);
 end;
 
@@ -149,25 +161,24 @@ begin
   FHandle := BeginThread (@ThreadProc,pointer(self));
   if FSuspended then Suspend;
   FThreadID := FHandle;
-  //IsMultiThread := TRUE;  {already set by systhrds}
   FFatalException := nil;
 end;
 
 
 destructor TThread.Destroy;
 begin
-  if not FFinished {and not Suspended} then
-   begin
-     if Suspended then ResumeThread (FHandle);  {netware can not kill a thread}
-     Terminate;
-     WaitFor;
-   end;
-  {if FHandle <> -1 then
-    KillThread (FHandle);}  {something went wrong, kill the thread (not possible on netware)}
+  if not FFinished then
+  begin
+    Terminate;
+    if Suspended then
+      ResumeThread (FHandle);  {netware can not kill a thread, the thread has to}
+                               {leave it's execute routine if terminated is true}
+    WaitFor;                   {wait for the thread to terminate}
+  end;
   FFatalException.Free;
   FFatalException := nil;
   inherited Destroy;
-  RemoveThread(self);
+  RemoveThread(self);          {remove it from the list of active threads}
 end;
 
 
@@ -209,14 +220,14 @@ end;
 {does not make sense for netware}
 procedure TThread.Synchronize(Method: TThreadMethod);
 begin
-  {$ifndef netware}
+(*
   FSynchronizeException := nil;
   FMethod := Method;
 {  SendMessage(ThreadWindow, CM_EXECPROC, 0, Longint(Self)); }
   {$warning Synchronize needs implementation}
   if Assigned(FSynchronizeException) then
     raise FSynchronizeException;
-  {$endif}
+*)
 end;
 
 
@@ -260,7 +271,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-07-30 15:05:25  armin
+  Revision 1.3  2004-09-26 19:25:49  armin
+  * exiting threads at nlm unload
+
+  Revision 1.2  2004/07/30 15:05:25  armin
   make netware rtl compilable under 1.9.5
 
   Revision 1.1  2003/10/06 21:01:06  peter

@@ -11,8 +11,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
 {$mode objfpc}
-{$R-}
 unit Sockets;
 
 Interface
@@ -20,9 +20,10 @@ Interface
 {$macro on}
 {$define maybelibc:=}
 
+{$R-}
 
-  Uses
-     winsock;
+Uses
+  winsock;
 
 Type
   cushort=word;
@@ -52,6 +53,14 @@ Implementation
                           Basic Socket Functions
 ******************************************************************************}
 
+
+
+//function fprecvmsg     (s:cint; msg: pmsghdr; flags:cint):ssize_t;
+//function fpsendmsg 	(s:cint; hdr: pmsghdr; flags:cint):ssize;
+
+//function fpsocket 	(domain:cint; xtype:cint; protocol: cint):cint;
+
+
 function fpsocket 	(domain:cint; xtype:cint; protocol: cint):cint;
 begin
   fpSocket:=WinSock.Socket(Domain,xtype,ProtoCol);
@@ -80,7 +89,7 @@ begin
     SocketError:=0;
 end;
 
-function fprecv 	(s:cint; buf: pointer; len: size_t; flags: cint):ssize_t; 
+function fprecv 	(s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
 begin
   fpRecv:=WinSock.Recv(S,Buf,Len,Flags);
   if fpRecv<0 then
@@ -89,10 +98,10 @@ begin
     SocketError:=0;
 end;
 
-function fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; 
+function fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
 
 begin
-  fpRecvFrom:=WinSock.RecvFrom(S,Buf,Len,Flags,Winsock.TSockAddr(from^),FromLen^);
+fpRecvFrom:=WinSock.RecvFrom(S,Buf,Len,Flags,Winsock.TSockAddr(from^),FromLen^);
   if fpRecvFrom<0 then
     SocketError:=WSAGetLastError
   else
@@ -109,7 +118,7 @@ begin
     SocketError:=0;
 end;
 
-function fpshutdown 	(s:cint; how:cint):cint; 
+function fpshutdown 	(s:cint; how:cint):cint;
 begin
   fpShutDown:=WinSock.ShutDown(S,How);
   if fpShutDown<0 then
@@ -165,16 +174,16 @@ begin
        SocketError:=0;
 end;
 
-function fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; 
+function fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 begin
-  fpAccept:=WinSock.Accept(S,WinSock.PSockAddr(Addrx),plongint(@AddrLen));
+  fpAccept:=WinSock.Accept(S,WinSock.PSockAddr(Addrx),plongint(AddrLen));
   if fpAccept<0 then
     SocketError:=WSAGetLastError
   else
     SocketError:=0;
 end;
 
-function fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint; 
+function fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint;
 
 begin
   fpGetSockName:=WinSock.GetSockName(S,WinSock.TSockAddr(name^),nameLen^);
@@ -184,7 +193,7 @@ begin
     SocketError:=0;
 end;
 
-function fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; 
+function fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
   fpGetPeerName:=WinSock.GetPeerName(S,WinSock.TSockAddr(name^),NameLen^);
   if fpGetPeerName<0 then
@@ -193,7 +202,7 @@ begin
     SocketError:=0;
 end;
 
-function fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; 
+function fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint;
 begin
   fpGetSockOpt:=WinSock.GetSockOpt(S,Level,OptName,OptVal,OptLen^);
   if fpGetSockOpt<0 then
@@ -202,7 +211,7 @@ begin
     SocketError:=0;
 end;
 
-function fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint; 
+function fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint;
 
 begin
   fpSetSockOpt:=WinSock.SetSockOpt(S,Level,OptName,OptVal,OptLen);
@@ -212,9 +221,9 @@ begin
     SocketError:=0;
 end;
 
-function fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; 
+function fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 begin
-  fpsocketpair := -1;
+  fpSocketPair := -1;
 end;
 
 Function CloseSocket(Sock:Longint):Longint;
@@ -228,7 +237,7 @@ begin
   end else
   begin
     CloseSocket := 0;
-    SocketError := 0;
+    SocketError := 0;	
   end;
 end;
 
@@ -285,7 +294,7 @@ end;
 
 Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
 begin
-  // SocketPair:=SocketCall(Socket_Sys_SocketPair,Domain,SocketType,Protocol,longint(@Pair),0,0);a
+  // SocketPair:=SocketCall(Socket_Sys_SocketPair,Domain,SocketType,Protocol,longint(@Pair),0,0);
   SocketPair := -1;
 end;
 
@@ -385,7 +394,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2004-09-18 23:45:43  armin
+  Revision 1.7  2004-09-26 19:25:49  armin
+  * exiting threads at nlm unload
+
+  Revision 1.6  2004/09/18 23:45:43  armin
   * make winsock more compatible to win32 version
 
   Revision 1.5  2004/07/30 15:05:25  armin

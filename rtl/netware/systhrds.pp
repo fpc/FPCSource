@@ -81,7 +81,7 @@ begin
   offset:=threadvarblocksize;
   inc(threadvarblocksize,size);
   {$ifdef DEBUG_MT}
-  ConsolePrintf3(#13'init_threadvar, new offset: (%d), Size:%d'#13#10,offset,size,0);
+  ConsolePrintf(#13'init_threadvar, new offset: (%d), Size:%d'#13#10,offset,size,0);
   {$endif DEBUG_MT}
 end;
 
@@ -120,7 +120,7 @@ procedure SysAllocateThreadVars;
      fillchar (threadvars^, threadvarblocksize, 0);
      _SaveThreadDataAreaPtr (threadvars);
      {$ifdef DEBUG_MT}
-       ConsolePrintf3(#13'threadvars allocated at (%x), size: %d'#13#10,longint(threadvars),threadvarblocksize,0);
+       ConsolePrintf(#13'threadvars allocated at (%x), size: %d'#13#10,longint(threadvars),threadvarblocksize,0);
      {$endif DEBUG_MT}
      if thredvarsmainthread = nil then
        thredvarsmainthread := threadvars;
@@ -187,7 +187,7 @@ function ThreadMain(param : pointer) : dword; cdecl;
      SysAllocateThreadVars;
 {$endif HASTHREADVAR}
 {$ifdef DEBUG_MT}
-     ConsolePrintf(#13'New thread started, initialising ...'#13#10);
+     ConsolePrintf(#13'New thread %x started, initialising ...'#13#10,_GetThreadID);
 {$endif DEBUG_MT}
      ti:=pthreadinfo(param)^;
      InitThread(ti.stklen);
@@ -215,7 +215,7 @@ function SysBeginThread(sa : Pointer;stacksize : dword;
        InitThreadVars(@SysRelocateThreadvar);
        IsMultithread:=true;
      end;
-{$endif}     
+{$endif}
      { the only way to pass data to the newly created thread }
      { in a MT safe way, is to use the heap                  }
      new(ti);
@@ -232,6 +232,9 @@ function SysBeginThread(sa : Pointer;stacksize : dword;
 
 procedure SysEndThread(ExitCode : DWord);
 begin
+  {$ifdef DEBUG_MT}
+  ConsolePrintf (#13'SysEndThread %x'#13#10,_GetThreadID);
+  {$endif}
   DoneThread;
   ExitThread(ExitCode , TSR_THREAD);
 end;
@@ -270,6 +273,7 @@ begin
 end;
 
 function GetThreadName  (threadId : longint; var threadName) : longint; cdecl; external 'clib' name 'GetThreadName';
+function GetThreadID : dword; cdecl; external 'clib' name 'GetThreadID';
 //function __RenameThread (threadId : longint; threadName:pchar) : longint; cdecl; external 'clib' name 'RenameThread';
 
 function  SysWaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;
@@ -278,6 +282,9 @@ var
   buf : array [0..50] of char;
 begin
   {$warning timeout needs to be implemented}
+  {$ifdef DEBUG_MT}
+  ConsolePrintf (#13'SysWaitForThreadTerminate ThreadID:%x Handle:%x'#13#10,GetThreadID,threadHandle);
+  {$endif}
   repeat
     status := GetThreadName (ThreadHandle,Buf); {should return EBADHNDL if thread is terminated}
     ThreadSwitch;
@@ -295,7 +302,7 @@ begin
   SysThreadGetPriority := 0;
 end;
 
-function GetThreadID : dword; cdecl; external 'clib' name 'GetThreadID';
+
 
 function  SysGetCurrentThreadId : dword;
 begin
@@ -535,7 +542,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-07-30 15:05:25  armin
+  Revision 1.5  2004-09-26 19:25:49  armin
+  * exiting threads at nlm unload
+
+  Revision 1.4  2004/07/30 15:05:25  armin
   make netware rtl compilable under 1.9.5
 
   Revision 1.3  2003/10/01 21:00:09  peter

@@ -38,10 +38,20 @@ implementation
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
 
+initialization
+  CommonInit;
+
+finalization
+  DoneThreads;
+  CommonCleanup;
+
 end.
 {
   $Log$
-  Revision 1.4  2004-08-01 20:02:48  armin
+  Revision 1.5  2004-09-26 19:25:49  armin
+  * exiting threads at nlm unload
+
+  Revision 1.4  2004/08/01 20:02:48  armin
   * changed dir separator from \ to /
   * long namespace by default
   * dos.exec implemented

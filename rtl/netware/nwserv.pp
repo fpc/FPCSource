@@ -17,8 +17,8 @@
   The C-NDK and Documentation can be found here:
     http://developer.novell.com
 
-  This program is distributed in the hope that it will be useful,but WITHOUT 
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+  This program is distributed in the hope that it will be useful,but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
   FITNESS FOR A PARTICULAR PURPOSE.
 
   Do not blame Novell if there are errors in this file, instead
@@ -80,7 +80,7 @@ type
         tm_yday : longint;
         tm_isdst : longint;
      end;
-     
+
 { ISO/ANSI C functions...  }
 function asctime(para1:Ptm):Pchar;cdecl;external 'clib' name 'asctime';
 function clock:Tclock_t;cdecl;external 'clib' name 'clock';
@@ -961,6 +961,46 @@ const
    _SCREEN_HAS_TITLE_BAR        = $00400000;
    _NON_SWITCHABLE_SCREEN       = $01000000;
 
+   { key types...  }
+     NORMAL_KEY       = $00;
+     FUNCTION_KEY     = $01;
+     ENTER_KEY        = $02;
+     ESCAPE_KEY       = $03;
+     BACKSPACE_KEY    = $04;
+     DELETE_KEY       = $05;
+     INSERT_KEY       = $06;
+     CURSOR_UP_KEY    = $07;
+     CURSOR_DOWN_KEY  = $08;
+     CURSOR_RIGHT_KEY = $09;
+     CURSOR_LEFT_KEY  = $0A;
+     CURSOR_HOME_KEY  = $0B;
+     CURSOR_END_KEY   = $0C;
+     CURSOR_PUP_KEY   = $0D;
+     CURSOR_PDOWN_KEY = $0E;
+  { some name equivalents...  }
+     ENTER     = $0D;
+     ESCAPE    = $1B;
+     BACKSPACE = $08;
+  { modifier code constituents...  }
+     SHIFT_KEY_HELD    = $01;
+     CTRL_KEY_HELD     = $04;
+     ALT_KEY_HELD      = $08;
+     CAPS_LOCK_IS_ON   = $40;
+     NUM_LOCK_IS_ON    = $20;
+     SCROLL_LOCK_IS_ON = $10;
+
+  { cursor types...  }
+     CURSOR_NORMAL = $0C0B;
+     CURSOR_THICK  = $0C09;
+     CURSOR_BLOCK  = $0C00;
+     CURSOR_TOP    = $0400;
+
+type  // libc compatible
+   Pscr_t = ^scr_t;
+   scr_t = pointer;
+   TScr = scr_t;
+   PScr = Pscr_t;
+
 function getch:longint; cdecl; external 'clib' name 'getch';
 function getche:longint; cdecl; external 'clib' name 'getche';
 function kbhit:longint; cdecl; external 'clib' name 'kbhit';
@@ -968,6 +1008,7 @@ function putch(c:longint):longint; cdecl; external 'clib' name 'putch';
 function ungetch(c:longint):longint; cdecl; external 'clib' name 'ungetch';
 function cgets(buf:Pchar):Pchar; cdecl; external 'clib' name 'cgets';
 function CheckIfScreenDisplayed(screenHandle,waitFlag:longint):longint; cdecl; external 'clib' name 'CheckIfScreenDisplayed';
+function CheckIfScreenDisplayed(screenHandle:TScr;waitFlag:longint):longint; cdecl; external 'clib' name 'CheckIfScreenDisplayed';
 procedure clrscr; cdecl; external 'clib' name 'clrscr';
 procedure ConsolePrintf(format:Pchar; args:array of const); cdecl; external 'clib' name 'ConsolePrintf';
 procedure ConsolePrintf(format:Pchar); cdecl; external 'clib' name 'ConsolePrintf';
@@ -979,15 +1020,20 @@ function CoupleInputOutputCursors:longint; cdecl; external 'clib' name 'CoupleIn
 function cputs(buf:Pchar):longint; cdecl; external 'clib' name 'cputs';
 function cprintf(fmt:Pchar; args:array of const):longint; cdecl; external 'clib' name 'cprintf';
 function cprintf(fmt:Pchar):longint; cdecl; external 'clib' name 'cprintf';
-function CreateScreen(screenName:Pchar; attr:byte):longint; cdecl; external 'clib' name 'CreateScreen';
+//function CreateScreen(screenName:Pchar; attr:byte):longint; cdecl; external 'clib' name 'CreateScreen';
+function CreateScreen(screenName:Pchar; attr:byte):TScr; cdecl; external 'clib' name 'CreateScreen';
 function cscanf(fmt:Pchar; args:array of const):longint; cdecl; external 'clib' name 'cscanf';
 function cscanf(fmt:Pchar):longint; cdecl; external 'clib' name 'cscanf';
 function DecoupleInputOutputCursors:longint; cdecl; external 'clib' name 'DecoupleInputOutputCursors';
 function DestroyScreen(screenHandle:longint):longint; cdecl; external 'clib' name 'DestroyScreen';
+function DestroyScreen(screenHandle:TScr):longint; cdecl; external 'clib' name 'DestroyScreen';
 function DisplayInputCursor:longint; cdecl; external 'clib' name 'DisplayInputCursor';
 function DisplayScreen(screenHandle:longint):longint; cdecl; external 'clib' name 'DisplayScreen';
+function DisplayScreen(screenHandle:TScr):longint; cdecl; external 'clib' name 'DisplayScreen';
 function DropPopUpScreen(screenHandle:longint):longint; cdecl; external 'clib' name 'DropPopUpScreen';
-function GetCurrentScreen:longint; cdecl; external 'clib' name 'GetCurrentScreen';
+function DropPopUpScreen(screenHandle:TScr):longint; cdecl; external 'clib' name 'DropPopUpScreen';
+//function GetCurrentScreen:longint; cdecl; external 'clib' name 'GetCurrentScreen';
+function GetCurrentScreen:TScr; cdecl; external 'clib' name 'GetCurrentScreen';
 function GetCursorCouplingMode:byte; cdecl; external 'clib' name 'GetCursorCouplingMode';
 function GetCursorShape(startline,endline:PBYTE):word; cdecl; external 'clib' name 'GetCursorShape';
 function GetCursorShape(var startline,endline:byte):word; cdecl; external 'clib' name 'GetCursorShape';
@@ -996,6 +1042,7 @@ function GetCursorSize(var firstline,lastline:byte):word; cdecl; external 'clib'
 function GetPositionOfOutputCursor(rowP,columnP:PWORD):longint; cdecl; external 'clib' name 'GetPositionOfOutputCursor';
 function GetPositionOfOutputCursor(var row,col:word):longint; cdecl; external 'clib' name 'GetPositionOfOutputCursor';
 function __GetScreenID(screenHandle:longint):longint; cdecl; external 'clib' name '__GetScreenID';
+function __GetScreenID(screenHandle:TScr):longint; cdecl; external 'clib' name '__GetScreenID';
 function GetScreenInfo(handle:longint; name:Pchar; attr:plongint):longint; cdecl; external 'clib' name 'GetScreenInfo';
 function GetScreenInfo(handle:longint; name:Pchar; var attr:longint):longint; cdecl; external 'clib' name 'GetScreenInfo';
 function GetSizeOfScreen(heightP,widthP:PWORD):longint; cdecl; external 'clib' name 'GetSizeOfScreen';
@@ -1004,10 +1051,17 @@ procedure gotoxy(col,row:word); cdecl; external 'clib' name 'gotoxy';
 function HideInputCursor:longint; cdecl; external 'clib' name 'HideInputCursor';
 function IsColorMonitor:longint; cdecl; external 'clib' name 'IsColorMonitor';
 function PressAnyKeyToContinue:longint; cdecl; external 'clib' name 'PressAnyKeyToContinue';
+function PressAnyKey:longint; cdecl; external 'clib' name 'PressAnyKeyToContinue';
 function PressEscapeToQuit:longint; cdecl; external 'clib' name 'PressEscapeToQuit';
+function PressEscape:longint; cdecl; external 'clib' name 'PressEscapeToQuit';
 procedure RingTheBell; cdecl; external 'clib' name 'RingTheBell';
+procedure RingBell; cdecl; external 'clib' name 'RingTheBell';
+
 function ScanScreens(LastScreenID:longint; name:Pchar; attr:plongint):longint; cdecl; external 'clib' name 'ScanScreens';
 function ScanScreens(LastScreenID:longint; name:Pchar; var attr:longint):longint; cdecl; external 'clib' name 'ScanScreens';
+function ScanScreens(LastScreenID:TScr; name:Pchar; attr:plongint):TScr; cdecl; external 'clib' name 'ScanScreens';
+function ScanScreens(LastScreenID:TScr; name:Pchar; var attr:longint):TScr; cdecl; external 'clib' name 'ScanScreens';
+
 function ScrollScreenRegionDown(firstLine,numLines:longint):longint; cdecl; external 'clib' name 'ScrollScreenRegionDown';
 function ScrollScreenRegionUp(firstLine,numLines:longint):longint; cdecl; external 'clib' name 'ScrollScreenRegionUp';
 function SetAutoScreenDestructionMode(newMode:byte):byte; cdecl; external 'clib' name 'SetAutoScreenDestructionMode';
@@ -1015,6 +1069,7 @@ function SetCtrlCharCheckMode(newMode:byte):byte; cdecl; external 'clib' name 'S
 function SetCursorCouplingMode(newMode:byte):byte; cdecl; external 'clib' name 'SetCursorCouplingMode';
 function SetCursorShape(startline,endline:byte):word; cdecl; external 'clib' name 'SetCursorShape';
 function SetCurrentScreen(screenHandle:longint):longint; cdecl; external 'clib' name 'SetCurrentScreen';
+function SetCurrentScreen(screenHandle:TScr):longint; cdecl; external 'clib' name 'SetCurrentScreen';
 function SetInputAtOutputCursorPosition:longint; cdecl; external 'clib' name 'SetInputAtOutputCursorPosition';
 function SetOutputAtInputCursorPosition:longint; cdecl; external 'clib' name 'SetOutputAtInputCursorPosition';
 function SetPositionOfInputCursor(row,col:word):longint; cdecl; external 'clib' name 'SetPositionOfInputCursor';
@@ -1024,6 +1079,14 @@ function SetScreenCharacterAttribute(line,column,attr:longint):longint; cdecl; e
 function SetScreenRegionAttribute(firstLine,numLines:longint; attr:byte):longint; cdecl; external 'clib' name 'SetScreenRegionAttribute';
 function wherex:word; cdecl; external 'clib' name 'wherex';
 function wherey:word; cdecl; external 'clib' name 'wherey';
+
+procedure GetKey(scrID:TScr; _type,value,status,scancode:Pbyte;linesToProtect:Longint);cdecl;external 'clib' name 'GetKey';
+procedure GetKey(scrID:TScr; var _type,value,status,scancode:byte;linesToProtect:Longint);cdecl;external 'clib' name 'GetKey';
+procedure GetKey(scrID:Longint; _type,value,status,scancode:Pbyte;linesToProtect:Longint);cdecl;external 'clib' name 'GetKey';
+procedure GetKey(scrID:Longint; var _type,value,status,scancode:byte;linesToProtect:Longint);cdecl;external 'clib' name 'GetKey';
+
+function UngetKey(scrID:TScr; _type,value,status,scancode:byte):longint;cdecl;external 'clib' name 'UngetKey';
+function UngetKey(scrID:Longint; _type,value,status,scancode:byte):longint;cdecl;external 'clib' name 'UngetKey';
 {-nwconn.h---------------------------------------------------------------------}
 { Structures and typedefs for connection services  }
 
@@ -1403,7 +1466,7 @@ const
    _MAX_EXT    = 5;           // maximum length of extension component
    _MAX_NAME   = 13;          // maximum length of file name
    NAME_MAX    = 12;          // maximum length of file name (alternate view)
-   
+
 { Modify structure mask values  }
    MModifyNameBit = $0001;
    MFileAttributesBit = $0002;
@@ -1478,7 +1541,7 @@ type
 
 const
    EVENT_VOL_SYS_MOUNT = 0;
-{ parameter is undefined. Report Routine will be called immediately 
+{ parameter is undefined. Report Routine will be called immediately
       after vol SYS has been mounted.
      }
    EVENT_VOL_SYS_DISMOUNT = 1;
@@ -1563,9 +1626,9 @@ const
      }
    EVENT_MODIFY_DIR_ENTRY = 22;
 { Parameter is a pointer to a structure of type EventModifyDirEntryStruct
-      which contains the modify information. The report routine will be 
+      which contains the modify information. The report routine will be
       called right after the entry is changed but before the directory
-      entry is unlocked. The report routine must not go to sleep. 
+      entry is unlocked. The report routine must not go to sleep.
      }
    EVENT_NO_RELINQUISH_CONTROL = 23;
 { Parameter is the running process. This will be called when the
@@ -1638,7 +1701,7 @@ const
       This event is generated anytime the following alert calls are
       made:
               NetWareAlert        NW 4.X
-     
+
         The report routine may sleep.
      }
    EVENT_CREATE_OBJECT = 46;
@@ -1748,18 +1811,18 @@ const
       The parameter is a zero. This event is mainly for OS2 based NetWare
       so it can try to borrow memory back from OS2.
      }
-{----------------------------------------------------------- 
-     Flags for the trustee change event (EVENT_TRUSTEE_CHANGE)   
+{-----------------------------------------------------------
+     Flags for the trustee change event (EVENT_TRUSTEE_CHANGE)
      ----------------------------------------------------------- }
    EVENT_NEW_TRUSTEE = 1;
    EVENT_REMOVE_TRUSTEE = 2;
-{------------------------------------------------------------- 
-     Flags for the change security event (EVENT_CHANGE_SECURITY)   
+{-------------------------------------------------------------
+     Flags for the change security event (EVENT_CHANGE_SECURITY)
      ------------------------------------------------------------- }
    EVENT_ADD_EQUIVALENCE = 1;
    EVENT_REMOVE_EQUIVALENCE = 2;
-{---------------------------------------------- 
-     Structure returned for EVENT_TRUSTEE_CHANGE    
+{----------------------------------------------
+     Structure returned for EVENT_TRUSTEE_CHANGE
      ---------------------------------------------- }
 { flags are EVENT_NEW_TRUSTEE and EVENT_REMOVE_TRUSTEE  }
 type
@@ -1772,8 +1835,8 @@ type
         newRights : longint;
      end;
 
-{----------------------------------------------- 
-     Structure returned for EVENT_CHANGE_SECURITY    
+{-----------------------------------------------
+     Structure returned for EVENT_CHANGE_SECURITY
      ----------------------------------------------- }
 { EVENT_ADD_EQUIVALENCE and EVENT_REMOVE_EQUIVALENCE  }
    PEventSecurityChangeStruct = ^TEventSecurityChangeStruct;
@@ -1783,8 +1846,8 @@ type
         changeFlags : longint;
      end;
 
-{------------------------------------------------ 
-     Structure returned for EVENT_MODIFY_DIR_ENTRY    
+{------------------------------------------------
+     Structure returned for EVENT_MODIFY_DIR_ENTRY
      ------------------------------------------------ }
    PEventModifyDirEntryStruct = ^TEventModifyDirEntryStruct;
    TEventModifyDirEntryStruct = record
@@ -1796,8 +1859,8 @@ type
         directoryEntry : longint;
      end;
 
-{---------------------------------------------------- 
-     Structure returned for EVENT_PROTOCOL_BIND & UNBIND  
+{----------------------------------------------------
+     Structure returned for EVENT_PROTOCOL_BIND & UNBIND
      ---------------------------------------------------- }
    PEventProtocolBindStruct = ^TEventProtocolBindStruct;
    TEventProtocolBindStruct = record
@@ -1805,8 +1868,8 @@ type
         protocolNumber : longint;
      end;
 
-{---------------------------------------------------------- 
-     Structure returned for EVENT_DATA_MIGRATION & DEMIGRATION  
+{----------------------------------------------------------
+     Structure returned for EVENT_DATA_MIGRATION & DEMIGRATION
      ---------------------------------------------------------- }
 { 255 + 1 len byte  }
    PEventDateMigrationInfo = ^TEventDateMigrationInfo;
@@ -1819,8 +1882,8 @@ type
         OwnerFileName : array[0..255] of byte;
      end;
 
-{------------------------------------------------ 
-     Structure returned for EVENT_QUEUE_ACTION        
+{------------------------------------------------
+     Structure returned for EVENT_QUEUE_ACTION
      ------------------------------------------------ }
 { 0=created, 1=deleted, 2 = activated, 3 = deactivated  }
    PEventQueueNote = ^TEventQueueNote;
@@ -1830,8 +1893,8 @@ type
         QName : array[0..49] of byte;
      end;
 
-{------------------------------------------------ 
-     Structure returned for EVENT_NETWARE_ALERT       
+{------------------------------------------------
+     Structure returned for EVENT_NETWARE_ALERT
      ------------------------------------------------ }
    PEventNetwareAlertStruct = ^TEventNetwareAlertStruct;
    TEventNetwareAlertStruct = record
@@ -2602,27 +2665,27 @@ const
    be set to this value until the packet is actually sent to IPX/SPX.
  }
    PACKET_IN_QUEUE = $0001;
-{--------------------------------------------------------------------------- 
-                                                                              
-     IPX_ECB status field busy (in-process) codes:                            
+{---------------------------------------------------------------------------
 
-     0x11 - AES (asynchronous event service) waiting                          
+     IPX_ECB status field busy (in-process) codes:
+
+     0x11 - AES (asynchronous event service) waiting
      0x12 - Holding
-     0x13 - Session listen                                                    
-     0x14 - Processing                                                        
-     0x15 - Receiving                                                         
-     0x16 - Sending                                                           
-     0x17 - Waiting                                                           
-                                                                              
+     0x13 - Session listen
+     0x14 - Processing
+     0x15 - Receiving
+     0x16 - Sending
+     0x17 - Waiting
+
   -------------------------------------------------------------------------- }
-{--------------------------------------------------------------------------- 
-     The comment characters in the IPX_ECB structure have the                 
-     following meanings                                                       
-     s - this field must be filled in prior to a send                         
-     r - this field must be filled in prior to a receive                      
-     R - this field is reserved                                               
-     A - this field may be used when the ECB is not in use by IPX/SPX         
-     q - the application may read this field                                  
+{---------------------------------------------------------------------------
+     The comment characters in the IPX_ECB structure have the
+     following meanings
+     s - this field must be filled in prior to a send
+     r - this field must be filled in prior to a receive
+     R - this field is reserved
+     A - this field may be used when the ECB is not in use by IPX/SPX
+     q - the application may read this field
   -------------------------------------------------------------------------- }
 { Packet type codes  }
    UNKNOWN_PACKET_TYPE = 0;
@@ -2931,7 +2994,7 @@ type
                replyDataLen:Plongint):byte; cdecl;
    TConnectionEventHandlerProc =
      procedure (connection:longint; eventType:longint); cdecl;
-     
+
    TReplyBufferManagerProc =
      procedure (NCPExtensionClient:PNCPExtensionClient; replyBuffer:pointer); cdecl;
 
@@ -3356,9 +3419,9 @@ function __get_stdin:PPFILE;cdecl;external 'clib' name '__get_stdin';
 function __get_stdout:PPFILE;cdecl;external 'clib' name '__get_stdout';
 function __get_stderr:PPFILE;cdecl;external 'clib' name '__get_stderr';
 
-function stdin : PFILE;
-function stdout : PFILE;
-function stderr : PFILE;
+function __stdin : PFILE;
+function __stdout : PFILE;
+function __stderr : PFILE;
 {-stdlib.h---------------------------------------------------------------------}
 {$PACKRECORDS C}
 
@@ -3395,7 +3458,7 @@ function atol(para1:Pchar):longint;cdecl;external 'clib' name 'atol';
 function bsearch(para1,para2:pointer; para3,para4:Tsize_t; para5:TBsearchFunc):pointer;cdecl;external 'clib' name 'bsearch';
 function calloc(para1:Tsize_t; para2:Tsize_t):pointer;cdecl;external 'clib' name 'calloc';
 function _div(para1,para2:longint):Tdiv_t;cdecl;external 'clib' name 'div';
-procedure exit(para1:longint);cdecl;external 'clib' name 'exit';
+//procedure exit(para1:longint);cdecl;external 'clib' name 'exit';
 procedure _exit(para1:longint);cdecl;external 'clib' name '_exit';
 function getenv(para1:Pchar):Pchar;cdecl;external 'clib' name 'getenv';
 function labs(para1:longint):longint;cdecl;external 'clib' name 'labs';
@@ -3452,24 +3515,30 @@ const
 type TPipeFiledes = array [0..1] of longint;
 
 function access(path:Pchar; mode:longint):longint;cdecl;external 'clib' name 'access';
-function chdir(path:Pchar):longint;cdecl;external 'clib' name 'chdir';
+function _chdir(path:Pchar):longint;cdecl;external 'clib' name 'chdir';
+function Fpchdir(path:Pchar):longint;cdecl;external 'clib' name 'chdir';
 function chsize(fildes:longint; size:dword):longint;cdecl;external 'clib' name 'chsize';
-function close(fildes:longint):longint;cdecl;external 'clib' name 'close';
+function _close(fildes:longint):longint;cdecl;external 'clib' name 'close';
+function Fpclose(fildes:longint):longint;cdecl;external 'clib' name 'close';
 function dup(fildes:longint):longint;cdecl;external 'clib' name 'dup';
 function dup2(fildes1:longint; fildes2:longint):longint;cdecl;external 'clib' name 'dup2';
-function eof(fildes:longint):longint;cdecl;external 'clib' name 'eof';
+function _eof(fildes:longint):longint;cdecl;external 'clib' name 'eof';
+function Fpeof(fildes:longint):longint;cdecl;external 'clib' name 'eof';
 function getcwd(path:Pchar; len:Tsize_t):Pchar;cdecl;external 'clib' name 'getcwd';
 function isatty(fildes:longint):longint;cdecl;external 'clib' name 'isatty';
 function lseek(fildes:longint; offset:Toff_t; whence:longint):Toff_t;cdecl;external 'clib' name 'lseek';
 function pipe(fildes:TPipeFiledes):longint;cdecl;external 'clib' name 'pipe';
-function read(fildes:longint; buf:pointer; nbytes:Tsize_t):Tssize_t;cdecl;external 'clib' name 'read';
+function _read(fildes:longint; buf:pointer; nbytes:Tsize_t):Tssize_t;cdecl;external 'clib' name 'read';
+function Fpread(fildes:longint; buf:pointer; nbytes:Tsize_t):Tssize_t;cdecl;external 'clib' name 'read';
 function rmdir(path:Pchar):longint;cdecl;external 'clib' name 'rmdir';
 function unlink(path:Pchar):longint;cdecl;external 'clib' name 'unlink';
-function write(fildes:longint; buf:pointer; nbytes:Tsize_t):Tssize_t;cdecl;external 'clib' name 'write';
+function _write(fildes:longint; buf:pointer; nbytes:Tsize_t):Tssize_t;cdecl;external 'clib' name 'write';
+function Fpwrite(fildes:longint; buf:pointer; nbytes:Tsize_t):Tssize_t;cdecl;external 'clib' name 'write';
 function pread(fildes:longint; buf:pointer; nbytes:Tsize_t; offset:Toff_t):Tssize_t;cdecl;external 'clib' name 'pread';
 function pwrite(fildes:longint; buf:pointer; nbytes:Tsize_t; offset:Toff_t):Tssize_t;cdecl;external 'clib' name 'pwrite';
 
-function write(fildes:longint; var buf; nbytes:Tsize_t):Tssize_t;cdecl;external 'clib' name 'write';
+function _write(fildes:longint; var buf; nbytes:Tsize_t):Tssize_t;cdecl;external 'clib' name 'write';
+function Fpwrite(fildes:longint; var buf; nbytes:Tsize_t):Tssize_t;cdecl;external 'clib' name 'write';
 function pread(fildes:longint; var buf; nbytes:Tsize_t; offset:Toff_t):Tssize_t;cdecl;external 'clib' name 'pread';
 function pwrite(fildes:longint; var buf; nbytes:Tsize_t; offset:Toff_t):Tssize_t;cdecl;external 'clib' name 'pwrite';
 {-libcclib.h-------------------------------------------------------------------}
@@ -3621,15 +3690,15 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
      DEFAULT_STACKSIZE = 16384;
 
   type
-  
+
      PWorkToDo = ^TWorkToDo;
-    
+
      TProcedure    = procedure; cdecl;
      TThreadFunc   = procedure (param1:pointer); cdecl;
      TWorkToDoProc = procedure (data:pointer; workToDo:PWorkToDo); cdecl;
      TCleanup      = procedure (para1:longint); cdecl;
 
-  
+
      PAESProcessStructure = ^TAESProcessStructure;
      TAESProcessStructure = record
           ALink              : PAESProcessStructure;
@@ -3653,9 +3722,9 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
           destThreadGroup : longint;
        end;
      TWorkToDo = TWorkToDoStructure;
-     
 
-     
+
+
   { custom data area variables...  }
 {
     var
@@ -3663,16 +3732,16 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
        threadCustomDataSize : longint;cvar;external;
        threadGroupCustomDataPtr : pointer;cvar;external;
        threadGroupCustomDataSize : longint;cvar;external; }
-    
-    
+
+
   function AtUnload(func:Tprocedure):longint;                       cdecl;external ThreadsNlm name 'AtUnload';
-  function BeginThread(func:TThreadFunc; 
-                       stackP:pointer; 
-		       stackSize:dword; 
+  function BeginThread(func:TThreadFunc;
+                       stackP:pointer;
+		       stackSize:dword;
 		       arg:pointer):longint;                        cdecl;external ThreadsNlm name 'BeginThread';
-  function BeginThreadGroup(func:TThreadFunc; 
-                            stackP:pointer; 
-			    stackSize:dword; 
+  function BeginThreadGroup(func:TThreadFunc;
+                            stackP:pointer;
+			    stackSize:dword;
 			    arg:pointer):longint;                   cdecl;external ThreadsNlm name 'BeginThreadGroup';
   function Breakpoint(arg:longint):longint;                         cdecl;external Lib0Nlm name 'Breakpoint';
   procedure CancelNoSleepAESProcessEvent(EventNode:PAESProcessStructure);cdecl;external ThreadsNlm name 'CancelNoSleepAESProcessEvent';
@@ -3681,7 +3750,7 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
   procedure delay(milliseconds:dword);                                   cdecl;external ThreadsNlm name 'delay';
   function EnterCritSec:longint;                                         cdecl;external ThreadsNlm name 'EnterCritSec';
   function ExitCritSec:longint;                                          cdecl;external ThreadsNlm name 'ExitCritSec';
-  procedure ExitThread(action_code     :longint; 
+  procedure ExitThread(action_code     :longint;
                        termination_code:longint);                        cdecl;external ThreadsNlm name 'ExitThread';
 
   function FindNLMHandle(NLMFileName:Pchar):dword;                       cdecl;external ThreadsNlm name 'FindNLMHandle';
@@ -3690,11 +3759,11 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
   function GetNLMID:longint;                                             cdecl;external ThreadsNlm name 'GetNLMID';
   function GetNLMIDFromNLMHandle(NLMHandle:longint):longint;             cdecl;external ThreadsNlm name 'GetNLMIDFromNLMHandle';
   function GetNLMIDFromThreadID(threadID:longint;fileName:Pchar):longint;cdecl;external ThreadsNlm name 'GetNLMIDFromThreadID';
-  function GetNLMNameFromNLMID(NLMID:longint; 
-                               fileName:Pchar; 
+  function GetNLMNameFromNLMID(NLMID:longint;
+                               fileName:Pchar;
 			       description:Pchar):longint;               cdecl;external ThreadsNlm name 'GetNLMNameFromNLMID';
-  function GetNLMNameFromNLMHandle(NLMHandle:longint; 
-                                   LDFileName:Pchar; 
+  function GetNLMNameFromNLMHandle(NLMHandle:longint;
+                                   LDFileName:Pchar;
 				   LDName:Pchar):longint;                cdecl;external ThreadsNlm name 'GetNLMNameFromNLMHandle';
   function GetThreadContextSpecifier(threadID:longint):longint;          cdecl;external ThreadsNlm name 'GetThreadContextSpecifier';
   function GetThreadGroupID:longint;                                     cdecl;external ThreadsNlm name 'GetThreadGroupID';
@@ -3702,6 +3771,7 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
   function GetThreadHandicap(threadID:longint):longint;                  cdecl;external ThreadsNlm name 'GetThreadHandicap';
   function GetThreadID:longint;                                          cdecl;external ThreadsNlm name 'GetThreadID';
   function GetThreadName(threadID:longint; tName:Pchar):longint;         cdecl;external ThreadsNlm name 'GetThreadName';
+  function GetThreadName(threadID:longint; var tName):longint;           cdecl;external ThreadsNlm name 'GetThreadName';
   function MapNLMIDToHandle(NLMID:longint):longint;                      cdecl;external ThreadsNlm name 'MapNLMIDToHandle';
   function PopThreadCleanup(execute:longint):TCLEANUP;                   cdecl;external ThreadsNlm name 'PopThreadCleanup';
   function PopThreadGroupCleanup(execute:longint):TCLEANUP;              cdecl;external ThreadsNlm name 'PopThreadGroupCleanup';
@@ -3709,25 +3779,25 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
   function PushThreadGroupCleanup(func:TCLEANUP):longint;                cdecl;external ThreadsNlm name 'PushThreadGroupCleanup';
   function RenameThread(threadID:longint; newName:Pchar):longint;        cdecl;external ThreadsNlm name 'RenameThread';
   function ResumeThread(threadID:longint):longint;                       cdecl;external ThreadsNlm name 'ResumeThread';
-  function ReturnNLMVersionInfoFromFile(pathName:pchar; 
-                                        majorVersion:Plongint; 
-					minorVersion:Plongint; 
-					revision:Plongint; 
-					year:Plongint; 
-                                        month:Plongint; 
-					day:Plongint; 
-					copyrightString:pchar; 
+  function ReturnNLMVersionInfoFromFile(pathName:pchar;
+                                        majorVersion:Plongint;
+					minorVersion:Plongint;
+					revision:Plongint;
+					year:Plongint;
+                                        month:Plongint;
+					day:Plongint;
+					copyrightString:pchar;
 					description:pchar):longint;      cdecl;external NlmLibNlm name 'ReturnNLMVersionInfoFromFile';
-  function ReturnNLMVersionInfoFromFile(pathName:pchar; 
+  function ReturnNLMVersionInfoFromFile(pathName:pchar;
                                         var majorVersion,minorVersion,revision:longint;
-					var year,month,day:longint; 
-					copyrightString:pchar; 
+					var year,month,day:longint;
+					copyrightString:pchar;
 					description:pchar):longint;      cdecl;external NlmLibNlm name 'ReturnNLMVersionInfoFromFile';
 
-  function ReturnNLMVersionInformation(NLMHandle:longint; 
-                                       majorVersion,minorVersion,revision,year,month,day:Plongint; 
+  function ReturnNLMVersionInformation(NLMHandle:longint;
+                                       majorVersion,minorVersion,revision,year,month,day:Plongint;
                                        copyrightString:pchar; description:pchar):longint;cdecl;external NlmLibNlm name 'ReturnNLMVersionInformation';
-  function ReturnNLMVersionInformation(NLMHandle:longint; 
+  function ReturnNLMVersionInformation(NLMHandle:longint;
                                        var majorVersion,minorVersion,revision,year,month,day:longint;
                                        copyrightString:pchar; description:pchar):longint;cdecl;external NlmLibNlm name 'ReturnNLMVersionInformation';
 
@@ -3735,8 +3805,8 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
   procedure ScheduleSleepAESProcessEvent(EventNode:PAESProcessStructure);  cdecl;external ThreadsNlm name 'ScheduleSleepAESProcessEvent';
 
 
-  function ScheduleWorkToDo(ProcedureToCall:TWorkToDoProc; 
-                            workData       :pointer; 
+  function ScheduleWorkToDo(ProcedureToCall:TWorkToDoProc;
+                            workData       :pointer;
 			    workToDo       :PWorkToDo):longint;            cdecl;external ThreadsNlm name 'ScheduleWorkToDo';
   function SetNLMDontUnloadFlag(NLMID:longint):longint;                    cdecl;external ThreadsNlm name 'SetNLMDontUnloadFlag';
   function SetNLMID(newNLMID:longint):longint;                             cdecl;external ThreadsNlm name 'SetNLMID';
@@ -3744,12 +3814,12 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
                                      contextSpecifier:longint):longint;    cdecl;external ThreadsNlm name 'SetThreadContextSpecifier';
   function SetThreadGroupID(newThreadGroupID:longint):longint;             cdecl;external ThreadsNlm name 'SetThreadGroupID';
   procedure SetThreadHandicap(threadID, handicap:longint);                 cdecl;external ThreadsNlm name 'SetThreadHandicap';
-  function spawnlp(mode:longint; 
-                   path,arg0:Pchar; 
+  function spawnlp(mode:longint;
+                   path,arg0:Pchar;
 		   args:array of const):longint;                           cdecl;external ThreadsNlm name 'spawnlp';
-  function spawnlp(mode:longint; 
+  function spawnlp(mode:longint;
                    path,arg0:Pchar):longint;                               cdecl;external ThreadsNlm name 'spawnlp';
-  function spawnvp(mode:longint; 
+  function spawnvp(mode:longint;
                    path,argv:PPchar):longint;                              cdecl;external ThreadsNlm name 'spawnvp';
   function SuspendThread(threadID:longint):longint;                        cdecl;external ThreadsNlm name 'SuspendThread';
   procedure ThreadSwitch;                                                  cdecl;external ThreadsNlm name 'ThreadSwitch';
@@ -4587,7 +4657,7 @@ const
    S_ISUID = 0004000;
    S_ISGID = 0002000;
    S_ISVTX = 0001000;
-   
+
 type
    Pstat = ^Tstat;
    Tstat = record
@@ -4709,19 +4779,19 @@ begin
   NetWareErrno := __get_NWErrno_ptr()^;
 end;
 
-function stdin : PFILE;
+function __stdin : PFILE;
 begin
-  stdin := __get_stdin^;
+  __stdin := __get_stdin^;
 end;
 
-function stdout : PFILE;
+function __stdout : PFILE;
 begin
-  stdout := __get_stdout^;
+  __stdout := __get_stdout^;
 end;
 
-function stderr : PFILE;
+function __stderr : PFILE;
 begin
-  stderr := __get_stderr^;
+  __stderr := __get_stderr^;
 end;
 
 function bisecond(var a : TDOSTime) : word;
@@ -4819,7 +4889,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-03-25 18:09:25  armin
+  Revision 1.3  2004-09-26 19:25:49  armin
+  * exiting threads at nlm unload
+
+  Revision 1.2  2003/03/25 18:09:25  armin
   * removed cvars because of problems with nlmconv
 
   Revision 1.1  2003/02/22 18:23:26  armin

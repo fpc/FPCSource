@@ -60,11 +60,10 @@ override FPCOPT+=-Ur
 
 
 # for netware always use multithread
-override FPCOPT+=-dMT -dDEBUG_MT
+override FPCOPT+=-dMT
 
 # and alway use smartlinking
-#CREATESMART=1
-CREATESMART=0
+CREATESMART=1
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
