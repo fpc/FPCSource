@@ -147,11 +147,30 @@ unit pstatmnt;
              else
                 if (p^._low>hcaselabel^._low) and
                    (p^._low>hcaselabel^._high) then
-                  insertlabel(p^.less)
-                else if (p^._high<hcaselabel^._low) and
-                   (p^._high<hcaselabel^._high) then
-                  insertlabel(p^.greater)
-                else Message(parser_e_double_caselabel);
+{$IfDef CaseRange}
+                  if (hcaselabel^.statement = p^.statement) and
+                     (p^._low = hcaselabel^._high + 1) then
+                    begin
+                      p^._low := hcaselabel^._low;
+                      dispose(hcaselabel)
+                    end
+                  else
+{$EndIf CaseRange}
+                    insertlabel(p^.less)
+                else
+                  if (p^._high<hcaselabel^._low) and
+                     (p^._high<hcaselabel^._high) then
+{$IfDef CaseRange}
+                    if (hcaselabel^.statement = p^.statement) and
+                       (p^._high+1 = hcaselabel^._low) then
+                      begin
+                        p^._high := hcaselabel^._high;
+                        dispose(hcaselabel)
+                      end
+                    else
+{$EndIf CaseRange}
+                      insertlabel(p^.greater)
+                  else Message(parser_e_double_caselabel);
           end;
 
         begin
@@ -1227,7 +1246,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.53  1998-12-15 11:52:18  peter
+  Revision 1.54  1998-12-15 22:32:24  jonas
+    + convert consecutive case labels to a single range (-dCaseRange)
+
+  Revision 1.53  1998/12/15 11:52:18  peter
     * fixed dup release of statement label in case
 
   Revision 1.52  1998/12/11 00:03:37  peter
