@@ -231,7 +231,7 @@ unit typinfo;
 
 {$ASMMODE ATT}
 
-    function CallIntegerFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Integer;assembler;
+    function CallIntegerFunc(s: Pointer; Address: Pointer; Index, IValue: LongInt): Int64; assembler;
       asm
          movl S,%esi
          movl Address,%edi
@@ -244,7 +244,7 @@ unit typinfo;
       .LINoPush:
          push %esi
          call %edi
-         // now the result is in EAX
+         // now the result is in EDX:EAX
       end;
 
     function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; INdex,IValue : Longint) : Integer;assembler;
@@ -585,9 +585,9 @@ unit typinfo;
             ptfield:
               Value:=Pointer(PLongint(Pointer(Instance)+Longint(PropInfo^.GetProc))^);
             ptstatic:
-              Value:=Pointer(CallIntegerFunc(Instance,PropInfo^.GetProc,Index,IValue));
+              Value:=Pointer(LongInt(CallIntegerFunc(Instance,PropInfo^.GetProc,Index,IValue)));
             ptvirtual:
-              Value:=Pointer(CallIntegerFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue));
+              Value:=Pointer(LongInt(CallIntegerFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue)));
          end;
          GetAstrProp:=Value;
       end;
@@ -629,10 +629,15 @@ unit typinfo;
       Dirty trick based on fact that AnsiString is just a pointer,
       hence can be treated like an integer type.
       }
-
       var
+         s: AnsiString;
          Index,Ivalue : Longint;
       begin
+         { Another dirty trick which is necessary to increase the reference
+	   counter of Value... }
+         s := Value;
+	 Pointer(s) := nil;
+
          SetIndexValues(PropInfo,Index,IValue);
          case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
@@ -764,9 +769,9 @@ unit typinfo;
             ptfield:
               Value:=PMethod(Pointer(Instance)+Longint(PropInfo^.GetProc));
             ptstatic:
-              Value:=PMethod(CallIntegerFunc(Instance,PropInfo^.GetProc,Index,IValue));
+              Value:=PMethod(LongInt(CallIntegerFunc(Instance,PropInfo^.GetProc,Index,IValue)));
             ptvirtual:
-              Value:=PMethod(CallIntegerFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue));
+              Value:=PMethod(LongInt(CallIntegerFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue)));
          end;
          GetMethodProp:=Value^;
       end;
@@ -792,9 +797,20 @@ unit typinfo;
       end;
 
     function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
+    var
+      Index, IValue: LongInt;
     begin
-      // !!!: Implement me!
-      Result := 0;
+      SetIndexValues(PropInfo,Index,Ivalue);
+      case PropInfo^.PropProcs and 3 of
+        ptfield:
+	  Result := PInt64(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+        ptstatic:
+          Result := CallIntegerFunc(Instance, PropInfo^.GetProc, Index, IValue);
+        ptvirtual:
+          Result := CallIntegerFunc(Instance,
+	    PPointer(Pointer(Instance.ClassType) + LongInt(PropInfo^.GetProc))^,
+	    Index, IValue);
+      end;
     end;
 
     procedure SetInt64Prop(Instance: TObject; PropInfo: PPropInfo;
@@ -846,7 +862,11 @@ end.
 
 {
   $Log$
-  Revision 1.42  2000-06-22 20:02:51  peter
+  Revision 1.43  2000-06-29 08:47:13  sg
+  * Bugfix for SetAStrProp (reference counter hasn't been increased)
+  * Implemented GetInt64Prop
+
+  Revision 1.42  2000/06/22 20:02:51  peter
     * qword,int64 rtti support basics
 
   Revision 1.41  2000/06/22 15:31:09  sg
