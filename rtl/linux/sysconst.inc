@@ -19,18 +19,22 @@ Const
   Seek_Cur = 1;
   Seek_End = 2;
   { Things for OPEN call - after linux/fcntl.h }
-  Open_Accmode  = 3;
-  Open_RdOnly   = 0;
-  Open_WrOnly   = 1;
-  Open_RdWr     = 2;
-  Open_Creat    = 1 shl 6;
-  Open_Excl     = 2 shl 6;
-  Open_NoCtty   = 4 shl 6;
-  Open_Trunc    = 1 shl 9;
-  Open_Append   = 2 shl 9;
-  Open_NonBlock = 4 shl 9;
-  Open_NDelay   = Open_NonBlock;
-  Open_Sync     = 1 shl 12;
+  Open_Accmode   = 3;
+  Open_RdOnly    = 0;
+  Open_WrOnly    = 1;
+  Open_RdWr      = 2;
+  Open_Creat     = 1 shl 6;
+  Open_Excl      = 2 shl 6;
+  Open_NoCtty    = 4 shl 6;
+  Open_Trunc     = 1 shl 9;
+  Open_Append    = 2 shl 9;
+  Open_NonBlock  = 4 shl 9;
+  Open_NDelay    = Open_NonBlock;
+  Open_Sync      = 1 shl 12;
+  Open_Direct    = 4 shl 12;
+  Open_LargeFile = 1 shl 15; 
+  Open_Directory = 2 shl 15; 
+  Open_NoFollow  = 4 shl 15; 
   { The waitpid uses the following options:}
   Wait_NoHang   = 1;
   Wait_UnTraced = 2;
@@ -79,7 +83,10 @@ Const
 
 {
   $Log$
-  Revision 1.5  2000-02-09 16:59:32  peter
+  Revision 1.6  2000-05-18 20:06:31  michael
+  + Added more open constants from kernel sources
+
+  Revision 1.5  2000/02/09 16:59:32  peter
     * truncated log
 
   Revision 1.4  2000/01/07 16:41:41  daniel
