@@ -424,15 +424,21 @@ end;
 
 procedure DoneVerbose;
 begin
-  if not(msg=nil) then
-   dispose(msg,Done);
+  if assigned(msg) then
+   begin
+     dispose(msg,Done);
+     msg:=nil;
+   end;
 end;
 
 end.
 
 {
   $Log$
-  Revision 1.33  1999-01-14 21:47:10  peter
+  Revision 1.34  1999-01-15 16:08:21  peter
+    * doneverbose sets msg to nil
+
+  Revision 1.33  1999/01/14 21:47:10  peter
     * status.currentmodule is now also updated
     + status.currentsourcepath
 
