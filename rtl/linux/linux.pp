@@ -244,8 +244,9 @@ Type
     ws_xpixel,
     ws_ypixel : word;
   end;
+  TWinSize=winsize;
 
-  TermIO = packed record
+  Termio = packed record
     c_iflag,                             { input mode flags }
     c_oflag,                             { output mode flags }
     c_cflag,                             { control mode flags }
@@ -253,15 +254,17 @@ Type
     c_line   : Word;                    { line discipline - careful, only High byte in use}
     c_cc     : array [0..NCC-1] of char;{ control characters }
   end;
+  TTermio=Termio;
 
-  TermIOS = packed record
+  Termios = packed record
     c_iflag,
     c_oflag,
     c_cflag,
     c_lflag  : longint;
-    c_line  : char;
+    c_line   : char;
     c_cc     : array[0..NCCS-1] of byte;
   end;
+  TTermios=Termios;
 
 const
   InitCC:array[0..NCCS-1] of byte=(3,34,177,25,4,0,1,0,21,23,32,0,22,17,27,26,0,0,0);
@@ -429,9 +432,11 @@ const
 ********************}
 
 Type
-  utimbuf = packed record
+  UTimeBuf = packed record
     actime,modtime : Longint;
   end;
+  TUTimeBuf=UTimeBuf;
+  PUTimeBuf=^UTimeBuf;
 
   TSysinfo = packed record
     uptime    : longint;
@@ -445,7 +450,7 @@ Type
     procs     : integer;
     s         : string[18];
   end;
-
+  PSysInfo = ^TSysInfo;
 
 {******************************************************************************
                             Procedure/Functions
@@ -518,7 +523,7 @@ Function  ReName (OldName,NewName : Pchar) : Boolean;
 Function  ReName (OldName,NewName : String) : Boolean;
 Function  Chown(path:pathstr;NewUid,NewGid:longint):boolean;
 Function  Chmod(path:pathstr;Newmode:longint):boolean;
-Function  Utime(path:pathstr;utim:utimbuf):boolean;
+Function  Utime(path:pathstr;utim:utimebuf):boolean;
 Function  Access(Path:Pathstr ;mode:integer):boolean;
 Function  Umask(Mask:Integer):integer;
 Function  Flock (fd,mode : longint) : boolean;
@@ -1455,7 +1460,7 @@ end;
 
 
 
-Function Utime(path:pathstr;utim:utimbuf):boolean;
+Function Utime(path:pathstr;utim:utimebuf):boolean;
 var
   sr : Syscallregs;
 begin
@@ -3505,7 +3510,10 @@ End.
 
 {
   $Log$
-  Revision 1.20  1998-10-11 12:23:11  michael
+  Revision 1.21  1998-10-15 08:31:11  peter
+    * type aliases using delphi typenaming
+
+  Revision 1.20  1998/10/11 12:23:11  michael
   + Implemented Rename
 
   Revision 1.19  1998/09/18 09:56:33  peter

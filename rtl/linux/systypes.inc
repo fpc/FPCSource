@@ -16,7 +16,7 @@ type
 
 {
  Linux system calls take arguments as follows :
-  
+
    i386/m68k:
 
    %eax/%d0 : System call number
@@ -28,24 +28,25 @@ type
 
   That is why we define a special type, with only these arguments
   To make it processor independent, we don't give any system dependent
-  names, but the rather abstract reg1,reg2 etc;  
+  names, but the rather abstract reg1,reg2 etc;
 }
   SysCallRegs=record
     reg1,reg2,reg3,reg4,reg5,reg6 : longint;
   end;
+  PSysCallRegs=^SysCallRegs;
+  TSysCallRegs=SysCallRegs;
 
 { The following are records for system calls }
-{$PACKRECORDS 1}
-
-  dirent =record
+  dirent = packed record
     ino,
     off    : longint;
     reclen : word;
     name   : array [0..255] of char;
   end;
   pdirent =^dirent;
+  TDirEnt = dirent;
 
-  TDir = record
+  TDir = packed record
     fd     : integer;
     loc    : longint;
     size   : integer;
@@ -57,7 +58,7 @@ type
   end;
   PDir =^TDir;
 
-  stat =record
+  Stat = packed record
     dev,
     pad1    : word;
     ino     : longint;
@@ -79,8 +80,10 @@ type
     unused4,
     unused5 : longint;
   end;
+  PStat=^Stat;
+  TStat=Stat;
 
-  statfs =record
+  Statfs = packed record
     fstype,            { File system type }
     bsize,             { Optimal block trensfer size }
     blocks,            { Data blocks in system }
@@ -92,36 +95,39 @@ type
     namelen : longint; { Maximum name length in system }
     spare   : array [0..6] of longint; { For later use }
   end;
+  PStatFS=^StatFS;
+  TStatFS=StatFS;
 
   fdSet=array[0..7] of longint;{=256 bits}
   pfdset=^fdset;
-  
+  TFDSet=fdset;
 
-  timeval =record
+  timeval = packed record
     sec,usec:longint
   end;
   ptimeval=^timeval;
+  TTimeVal=timeval;
 
-  timezone =record
+  timezone = packed record
     minuteswest,dsttime:longint;
   end;
   ptimezone =^timezone;
+  TTimeZone = timezone;
 
-  utsname =record
+  utsname = packed record
     sysname,
     nodename,
     release,
     version,
     machine,
     domainname : Array[0..64] of char;
-  end; 
-
+  end;
+  PUTSName=^UTSName;
+  TUTSName=UTSName;
 
 {
   $Log$
-  Revision 1.2  1998-05-06 12:38:22  michael
-  + Removed log from before restored version.
+  Revision 1.3  1998-10-15 08:31:10  peter
+    * type aliases using delphi typenaming
 
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
 }
