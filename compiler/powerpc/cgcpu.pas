@@ -1563,21 +1563,33 @@ const
                    end
                  else
                    begin
-                     tmpreg := get_scratch_reg_address(list);
                      reference_reset(tmpref);
                      tmpref.symbol := ref2.symbol;
-                     tmpref.offset := ref2.offset;
+                     tmpref.offset := 0; //ref2.offset;
                      tmpref.symaddr := refs_full;
                      tmpref.base.enum := R_INTREGISTER;
                      tmpref.base.number := NR_RTOC;
-                     list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
-
-                     reference_reset(tmpref);
-                     tmpref.offset := 0;
-                     tmpref.symaddr := refs_full;
-                     tmpref.base:= tmpreg;
-                     list.concat(taicpu.op_reg_ref(A_LA,r,tmpref));
-                     free_scratch_reg(list,tmpreg);
+                     if ref2.offset = 0 then
+                       list.concat(taicpu.op_reg_ref(A_LWZ,r,tmpref))
+                     else
+                       begin
+                         list.concat(taicpu.op_reg_ref(A_LWZ,r,tmpref));
+                         reference_reset(tmpref);
+                         tmpref.offset := ref2.offset;
+                         tmpref.symaddr := refs_full;
+                         tmpref.base:= r;
+                         list.concat(taicpu.op_reg_ref(A_LA,r,tmpref));
+                         (*
+                         tmpreg := get_scratch_reg_address(list);
+                         list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
+                         reference_reset(tmpref);
+                         tmpref.offset := ref2.offset;
+                         tmpref.symaddr := refs_full;
+                         tmpref.base:= tmpreg;
+                         list.concat(taicpu.op_reg_ref(A_LA,r,tmpref));
+                         free_scratch_reg(list,tmpreg);
+                         *)
+                       end;
                    end;
                  //list.concat(tai_comment.create(strpnew('*** a_loadaddr_ref_reg')));
                  end
@@ -2187,7 +2199,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2003-03-12 22:43:38  jonas
+  Revision 1.74  2003-03-13 22:57:45  olle
+    * change in a_loadaddr_ref_reg
+
+  Revision 1.73  2003/03/12 22:43:38  jonas
     * more powerpc and generic fixes related to the new register allocator
 
   Revision 1.72  2003/03/11 21:46:24  jonas
