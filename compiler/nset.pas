@@ -118,7 +118,7 @@ implementation
       verbose,
       symconst,symdef,symsym,defutil,defcmp,
       htypechk,pass_1,
-      ncnv,ncon,cpubase,nld,rgobj,cgbase;
+      nbas,ncnv,ncon,cpubase,nld,rgobj,cgbase;
 
     function gencasenode(l,r : tnode;nodes : pcaserecord) : tnode;
 
@@ -265,17 +265,17 @@ implementation
            elements.with the in operator.
          }
          if  (
-               (left.resulttype.def.deftype = orddef) and not 
+               (left.resulttype.def.deftype = orddef) and not
                (torddef(left.resulttype.def).typ in [s8bit,u8bit,uchar,bool8bit])
-             ) 
+             )
             or
              (
-               (left.resulttype.def.deftype = enumdef) 
+               (left.resulttype.def.deftype = enumdef)
               and (tenumdef(left.resulttype.def).size <> 1)
              )
           then
              Message(type_h_in_range_check);
- 
+
          { type conversion/check }
          if assigned(tsetdef(right.resulttype.def).elementtype.def) then
            begin
@@ -587,7 +587,7 @@ implementation
     function tcasenode.pass_1 : tnode;
       var
          old_t_times : longint;
-         hp : tbinarynode;
+         hp : tstatementnode;
       begin
          result:=nil;
          { evalutes the case expression }
@@ -613,23 +613,23 @@ implementation
                 rg.t_times:=1;
            end;
          { first case }
-         hp:=tbinarynode(right);
+         hp:=tstatementnode(right);
          while assigned(hp) do
            begin
               rg.cleartempgen;
-              firstpass(hp.right);
+              firstpass(hp.left);
 
               { searchs max registers }
-              if hp.right.registers32>registers32 then
-                registers32:=hp.right.registers32;
-              if hp.right.registersfpu>registersfpu then
-                registersfpu:=hp.right.registersfpu;
+              if hp.left.registers32>registers32 then
+                registers32:=hp.left.registers32;
+              if hp.left.registersfpu>registersfpu then
+                registersfpu:=hp.left.registersfpu;
 {$ifdef SUPPORT_MMX}
-              if hp.right.registersmmx>registersmmx then
-                registersmmx:=hp.right.registersmmx;
+              if hp.left.registersmmx>registersmmx then
+                registersmmx:=hp.left.registersmmx;
 {$endif SUPPORT_MMX}
 
-              hp:=tbinarynode(hp.left);
+              hp:=tstatementnode(hp.right);
            end;
 
          { may be handle else tree }
@@ -709,7 +709,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2002-11-26 21:52:38  carl
+  Revision 1.37  2002-11-27 02:37:14  peter
+    * case statement inlining added
+    * fixed inlining of write()
+    * switched statementnode left and right parts so the statements are
+      processed in the correct order when getcopy is used. This is
+      required for tempnodes
+
+  Revision 1.36  2002/11/26 21:52:38  carl
     + hint for in operator with non byte sized operand
 
   Revision 1.35  2002/11/25 17:43:21  peter

@@ -424,7 +424,7 @@ implementation
                 addstatement(newstatement,
                   cassignmentnode.create(ctemprefnode.create(filetemp),
                     caddrnode.create(filepara.left)));
-                resulttypepass(newstatement.right);
+                resulttypepass(newstatement.left);
                 { create a new fileparameter as follows: file_type(temp^)    }
                 { (so that we pass the value and not the address of the temp }
                 { to the read/write routine)                                 }
@@ -899,8 +899,8 @@ implementation
 
         { create the blocknode which will hold the generated statements + }
         { an initial dummy statement                                      }
-        newstatement := cstatementnode.create(nil,cnothingnode.create);
-        newblock := cblocknode.create(newstatement);
+
+        newblock:=internalstatements(newstatement);
 
         { do we need a temp for code? Yes, if no code specified, or if  }
         { code is not a 32bit parameter (we already checked whether the }
@@ -909,8 +909,7 @@ implementation
            (torddef(codepara.resulttype.def).typ in [u8bit,u16bit,s8bit,s16bit]) then
           begin
             tempcode := ctempcreatenode.create(s32bittype,4,true);
-            newstatement.left := cstatementnode.create(nil,tempcode);
-            newstatement := tstatementnode(newstatement.left);
+            addstatement(newstatement,tempcode);
             { set the resulttype of the temp (needed to be able to get }
             { the resulttype of the tempref used in the new code para) }
             resulttypepass(tnode(tempcode));
@@ -970,7 +969,8 @@ implementation
         { the shortstring-longint val routine by default                   }
         if (sourcepara.resulttype.def.deftype = stringdef) then
           procname := procname + tstringdef(sourcepara.resulttype.def).stringtypname
-        else procname := procname + 'shortstr';
+        else
+          procname := procname + 'shortstr';
 
         { set up the correct parameters for the call: the code para... }
         newparas := codepara;
@@ -985,9 +985,8 @@ implementation
         { create the call and assign the result to dest  }
         { (val helpers are functions)                    }
         { the assignment will take care of rangechecking }
-        newstatement.left := cstatementnode.create(nil,cassignmentnode.create(
+        addstatement(newstatement,cassignmentnode.create(
           destpara.left,ccallnode.createintern(procname,newparas)));
-        newstatement := tstatementnode(newstatement.left);
 
         { dispose of the enclosing paranode of the destination }
         destpara.left := nil;
@@ -997,19 +996,13 @@ implementation
         { check if we used a temp for code and whether we have to store }
         { it to the real code parameter                                 }
         if assigned(orgcode) then
-          begin
-            newstatement.left := cstatementnode.create(nil,cassignmentnode.create(
-              orgcode,ctemprefnode.create(tempcode)));
-            newstatement := tstatementnode(newstatement.left);
-          end;
+          addstatement(newstatement,cassignmentnode.create(
+              orgcode,
+              ctemprefnode.create(tempcode)));
 
         { release the temp if we allocated one }
         if assigned(tempcode) then
-          begin
-            newstatement.left := cstatementnode.create(nil,
-              ctempdeletenode.create(tempcode));
-            newstatement := tstatementnode(newstatement.left);
-          end;
+          addstatement(newstatement,ctempdeletenode.create(tempcode));
 
         { free the errornode }
         result.free;
@@ -2408,7 +2401,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2002-11-25 17:43:19  peter
+  Revision 1.99  2002-11-27 02:37:13  peter
+    * case statement inlining added
+    * fixed inlining of write()
+    * switched statementnode left and right parts so the statements are
+      processed in the correct order when getcopy is used. This is
+      required for tempnodes
+
+  Revision 1.98  2002/11/25 17:43:19  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

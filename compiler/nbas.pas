@@ -186,17 +186,17 @@ implementation
     function internalstatements(var laststatement:tstatementnode):tblocknode;
       begin
         { create dummy initial statement }
-        laststatement := cstatementnode.create(nil,cnothingnode.create);
+        laststatement := cstatementnode.create(cnothingnode.create,nil);
         internalstatements := cblocknode.create(laststatement);
       end;
 
 
     procedure addstatement(var laststatement:tstatementnode;n:tnode);
       begin
-        if assigned(laststatement.left) then
+        if assigned(laststatement.right) then
          internalerror(200204201);
-        laststatement.left:=cstatementnode.create(nil,n);
-        laststatement:=tstatementnode(laststatement.left);
+        laststatement.right:=cstatementnode.create(n,nil);
+        laststatement:=tstatementnode(laststatement.right);
       end;
 
 
@@ -260,22 +260,22 @@ implementation
          result:=nil;
          resulttype:=voidtype;
 
-         { right is the statement itself calln assignn or a complex one }
-         resulttypepass(right);
+         { left is the statement itself calln assignn or a complex one }
+         resulttypepass(left);
          if (not (cs_extsyntax in aktmoduleswitches)) and
-            assigned(right.resulttype.def) and
-            not((right.nodetype=calln) and
+            assigned(left.resulttype.def) and
+            not((left.nodetype=calln) and
                 { don't complain when funcretrefnode is set, because then the
                   value is already used. And also not for constructors }
-                (assigned(tcallnode(right).funcretrefnode) or
-                 (tcallnode(right).procdefinition.proctypeoption=potype_constructor))) and
-            not(is_void(right.resulttype.def)) then
+                (assigned(tcallnode(left).funcretrefnode) or
+                 (tcallnode(left).procdefinition.proctypeoption=potype_constructor))) and
+            not(is_void(left.resulttype.def)) then
            CGMessage(cg_e_illegal_expression);
          if codegenerror then
            exit;
 
-         { left is the next in the list }
-         resulttypepass(left);
+         { right is the next statement in the list }
+         resulttypepass(right);
          if codegenerror then
            exit;
       end;
@@ -285,28 +285,20 @@ implementation
          result:=nil;
          { no temps over several statements }
          rg.cleartempgen;
-         { right is the statement itself calln assignn or a complex one }
-         firstpass(right);
-         if codegenerror then
-           exit;
-         location.loc:=right.location.loc;
-         registers32:=right.registers32;
-         registersfpu:=right.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=right.registersmmx;
-{$endif SUPPORT_MMX}
-         { left is the next in the list }
+         { left is the statement itself calln assignn or a complex one }
          firstpass(left);
          if codegenerror then
            exit;
-         if right.registers32>registers32 then
-           registers32:=right.registers32;
-         if right.registersfpu>registersfpu then
-           registersfpu:=right.registersfpu;
+         location.loc:=left.location.loc;
+         registers32:=left.registers32;
+         registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
-         if right.registersmmx>registersmmx then
-           registersmmx:=right.registersmmx;
-{$endif}
+         registersmmx:=left.registersmmx;
+{$endif SUPPORT_MMX}
+         { right is the next in the list }
+         firstpass(right);
+         if codegenerror then
+           exit;
       end;
 
 {$ifdef extdebug}
@@ -319,11 +311,11 @@ implementation
          writeln(',');
          { write the statement }
          writenodeindention:=writenodeindention+'    ';
-         writenode(right);
+         writenode(left);
          writeln(')');
          delete(writenodeindention,1,4);
          { go on with the next statement }
-         writenode(left);
+         writenode(right);
       end;
 {$endif}
 
@@ -347,26 +339,26 @@ implementation
          hp:=tstatementnode(left);
          while assigned(hp) do
            begin
-              if assigned(hp.right) then
+              if assigned(hp.left) then
                 begin
                    codegenerror:=false;
-                   resulttypepass(hp.right);
+                   resulttypepass(hp.left);
                    if (not (cs_extsyntax in aktmoduleswitches)) and
-                      assigned(hp.right.resulttype.def) and
-                      not((hp.right.nodetype=calln) and
+                      assigned(hp.left.resulttype.def) and
+                      not((hp.left.nodetype=calln) and
                           { don't complain when funcretrefnode is set, because then the
                             value is already used. And also not for constructors }
-                          (assigned(tcallnode(hp.right).funcretrefnode) or
-                           (tcallnode(hp.right).procdefinition.proctypeoption=potype_constructor))) and
-                      not(is_void(hp.right.resulttype.def)) then
-                     CGMessagePos(hp.right.fileinfo,cg_e_illegal_expression);
+                          (assigned(tcallnode(hp.left).funcretrefnode) or
+                           (tcallnode(hp.left).procdefinition.proctypeoption=potype_constructor))) and
+                      not(is_void(hp.left.resulttype.def)) then
+                     CGMessagePos(hp.left.fileinfo,cg_e_illegal_expression);
                    { the resulttype of the block is the last type that is
                      returned. Normally this is a voidtype. But when the
                      compiler inserts a block of multiple statements then the
                      last entry can return a value }
-                   resulttype:=hp.right.resulttype;
+                   resulttype:=hp.left.resulttype;
                 end;
-              hp:=tstatementnode(hp.left);
+              hp:=tstatementnode(hp.right);
            end;
       end;
 
@@ -390,51 +382,51 @@ implementation
                    if {ret_in_acc(aktprocdef.rettype.def) and }
                       (is_ordinal(aktprocdef.rettype.def) or
                        is_smallset(aktprocdef.rettype.def)) and
-                      assigned(hp.left) and
-                      assigned(tstatementnode(hp.left).right) and
-                      (tstatementnode(hp.left).right.nodetype=exitn) and
-                      (hp.right.nodetype=assignn) and
+                      assigned(hp.right) and
+                      assigned(tstatementnode(hp.right).left) and
+                      (tstatementnode(hp.right).left.nodetype=exitn) and
+                      (hp.left.nodetype=assignn) and
                       { !!!! this tbinarynode should be tassignmentnode }
-                      (tbinarynode(hp.right).left.nodetype=funcretn) then
+                      (tbinarynode(hp.left).left.nodetype=funcretn) then
                       begin
-                         if assigned(texitnode(tstatementnode(hp.left).right).left) then
+                         if assigned(texitnode(tstatementnode(hp.right).left).left) then
                            CGMessage(cg_n_inefficient_code)
                          else
                            begin
-                              texitnode(tstatementnode(hp.left).right).left:=tassignmentnode(hp.right).right;
-                              tassignmentnode(hp.right).right:=nil;
-                              hp.right.free;
-                              hp.right:=nil;
+                              texitnode(tstatementnode(hp.right).left).left:=tassignmentnode(hp.left).right;
+                              tassignmentnode(hp.left).right:=nil;
+                              hp.left.free;
+                              hp.left:=nil;
                            end;
                       end
                    { warning if unreachable code occurs and elimate this }
-                   else if (hp.right.nodetype in
+                   else if (hp.left.nodetype in
                      [exitn,breakn,continuen,goton]) and
                      { statement node (JM) }
-                     assigned(hp.left) and
+                     assigned(hp.right) and
                      { kind of statement! (JM) }
-                     assigned(tstatementnode(hp.left).right) and
-                     (tstatementnode(hp.left).right.nodetype<>labeln) then
+                     assigned(tstatementnode(hp.right).left) and
+                     (tstatementnode(hp.right).left.nodetype<>labeln) then
                      begin
                         { use correct line number }
-                        aktfilepos:=hp.left.fileinfo;
-                        hp.left.free;
-                        hp.left:=nil;
+                        aktfilepos:=hp.right.fileinfo;
+                        hp.right.free;
+                        hp.right:=nil;
                         CGMessage(cg_w_unreachable_code);
                         { old lines }
-                        aktfilepos:=hp.right.fileinfo;
+                        aktfilepos:=hp.left.fileinfo;
                      end;
                 end;
-              if assigned(hp.right) then
+              if assigned(hp.left) then
                 begin
                    rg.cleartempgen;
                    codegenerror:=false;
-                   firstpass(hp.right);
+                   firstpass(hp.left);
 
-                   hp.registers32:=hp.right.registers32;
-                   hp.registersfpu:=hp.right.registersfpu;
+                   hp.registers32:=hp.left.registers32;
+                   hp.registersfpu:=hp.left.registersfpu;
 {$ifdef SUPPORT_MMX}
-                   hp.registersmmx:=hp.right.registersmmx;
+                   hp.registersmmx:=hp.left.registersmmx;
 {$endif SUPPORT_MMX}
                 end
               else
@@ -450,7 +442,7 @@ implementation
 {$endif}
               location.loc:=hp.location.loc;
               inc(count);
-              hp:=tstatementnode(hp.left);
+              hp:=tstatementnode(hp.right);
            end;
       end;
 
@@ -464,9 +456,9 @@ implementation
         hp:=Tstatementnode(left);
         while assigned(hp) do
             begin
-                if hp.right.track_state_pass(exec_known) then
+                if hp.left.track_state_pass(exec_known) then
                     track_state_pass:=true;
-                hp:=Tstatementnode(hp.left);
+                hp:=Tstatementnode(hp.right);
             end;
       end;
 {$endif state_tracking}
@@ -591,6 +583,11 @@ implementation
         new(n.tempinfo);
         fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
         n.tempinfo^.restype := tempinfo^.restype;
+
+        { when the tempinfo has already a hookoncopy then it is not
+          reset by a tempdeletenode }
+        if assigned(tempinfo^.hookoncopy) then
+          internalerror(200211262);
 
         { signal the temprefs that the temp they point to has been copied, }
         { so that if the refs get copied as well, they can hook themselves }
@@ -723,6 +720,8 @@ implementation
           begin
             { hook the tempdeletenode to the copied temp }
             n.tempinfo := tempinfo^.hookoncopy;
+            { the temp shall not be used, reset hookoncopy }
+            tempinfo^.hookoncopy:=nil;
           end
         else
           { if the temp we refer to hasn't been copied, we have a }
@@ -767,7 +766,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-11-25 17:43:17  peter
+  Revision 1.38  2002-11-27 02:37:12  peter
+    * case statement inlining added
+    * fixed inlining of write()
+    * switched statementnode left and right parts so the statements are
+      processed in the correct order when getcopy is used. This is
+      required for tempnodes
+
+  Revision 1.37  2002/11/25 17:43:17  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -90,7 +90,7 @@ implementation
       symconst,symdef,defutil,
       paramgr,
       pass_2,
-      ncon,
+      nbas,ncon,nflw,
       tgobj,ncgutil,regvars,rgobj,cpuinfo;
 
 
@@ -837,6 +837,29 @@ implementation
       end;
 
 
+    procedure ReLabel(var p:tasmsymbol);
+      begin
+        if p.defbind = AB_LOCAL then
+         begin
+           if not assigned(p.altsymbol) then
+             objectlibrary.GenerateAltSymbol(p);
+           p:=p.altsymbol;
+           p.increfs;
+         end;
+      end;
+
+
+    procedure relabelcaserecord(p : pcaserecord);
+      begin
+         Relabel(p^.statement);
+         Relabel(p^._at);
+         if assigned(p^.greater) then
+           relabelcaserecord(p^.greater);
+         if assigned(p^.less) then
+           relabelcaserecord(p^.less);
+      end;
+
+
     procedure tcgcasenode.pass_2;
       var
          lv,hv,
@@ -847,8 +870,16 @@ implementation
          isjump : boolean;
          max_dist,
          dist : cardinal;
-         hp : tnode;
+         hp : tstatementnode;
       begin
+         { Relabel for inlining? }
+         if inlining_procedure and
+            assigned(nodes) then
+          begin
+            objectlibrary.CreateUsedAsmSymbolList;
+            relabelcaserecord(nodes);
+          end;
+
          objectlibrary.getlabel(endlabel);
          objectlibrary.getlabel(elselabel);
          with_sign:=is_signed(left.resulttype.def);
@@ -983,16 +1014,23 @@ implementation
          rg.ungetregister(exprasmlist,hregister);
 
          { now generate the instructions }
-         hp:=right;
+         hp:=tstatementnode(right);
          while assigned(hp) do
            begin
               rg.cleartempgen;
-              secondpass(tbinarynode(hp).right);
+              { relabel when inlining }
+              if inlining_procedure then
+                begin
+                  if hp.left.nodetype<>labeln then
+                    internalerror(200211261);
+                  Relabel(tlabelnode(hp.left).labelnr);
+                end;
+              secondpass(hp.left);
               { don't come back to case line }
               aktfilepos:=exprasmList.getlasttaifilepos^;
               load_all_regvars(exprasmlist);
               cg.a_jmp_always(exprasmlist,endlabel);
-              hp:=tbinarynode(hp).left;
+              hp:=tstatementnode(hp.right);
            end;
          cg.a_label(exprasmlist,elselabel);
          { ...and the else block }
@@ -1003,6 +1041,15 @@ implementation
               load_all_regvars(exprasmlist);
            end;
          cg.a_label(exprasmlist,endlabel);
+
+         { Remove relabels for inlining }
+         if inlining_procedure and
+            assigned(nodes) then
+          begin
+             { restore used symbols }
+             objectlibrary.UsedAsmSymbolListResetAltSym;
+             objectlibrary.DestroyUsedAsmSymbolList;
+          end;
       end;
 
 
@@ -1015,7 +1062,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-11-25 17:43:18  peter
+  Revision 1.24  2002-11-27 02:37:13  peter
+    * case statement inlining added
+    * fixed inlining of write()
+    * switched statementnode left and right parts so the statements are
+      processed in the correct order when getcopy is used. This is
+      required for tempnodes
+
+  Revision 1.23  2002/11/25 17:43:18  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

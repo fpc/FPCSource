@@ -90,14 +90,14 @@ interface
          hp:=self;
          while assigned(hp) do
           begin
-            if assigned(tstatementnode(hp).right) then
+            if assigned(tstatementnode(hp).left) then
              begin
                rg.cleartempgen;
-               secondpass(tstatementnode(hp).right);
+               secondpass(tstatementnode(hp).left);
                { Compiler inserted blocks can return values }
-               location_copy(location,tstatementnode(hp).right.location);
+               location_copy(location,tstatementnode(hp).left.location);
              end;
-            hp:=tstatementnode(hp).left;
+            hp:=tstatementnode(hp).right;
           end;
       end;
 
@@ -288,7 +288,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-11-17 16:31:56  carl
+  Revision 1.27  2002-11-27 02:37:13  peter
+    * case statement inlining added
+    * fixed inlining of write()
+    * switched statementnode left and right parts so the statements are
+      processed in the correct order when getcopy is used. This is
+      required for tempnodes
+
+  Revision 1.26  2002/11/17 16:31:56  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

@@ -105,13 +105,13 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(nil,statement);
+                   last:=cstatementnode.create(statement,nil);
                    first:=last;
                 end
               else
                 begin
-                   last.left:=cstatementnode.create(nil,statement);
-                   last:=tstatementnode(last.left);
+                   last.right:=cstatementnode.create(statement,nil);
+                   last:=tstatementnode(last.right);
                 end;
               if not try_to_consume(_SEMICOLON) then
                 break;
@@ -274,7 +274,7 @@ implementation
            p:=clabelnode.createcase(aktcaselabel,statement);
 
            { concats instruction }
-           instruc:=cstatementnode.create(instruc,p);
+           instruc:=cstatementnode.create(p,instruc);
 
            if not((token=_ELSE) or (token=_OTHERWISE) or (token=_END)) then
              consume(_SEMICOLON);
@@ -315,13 +315,13 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(nil,statement);
+                   last:=cstatementnode.create(statement,nil);
                    first:=last;
                 end
               else
                 begin
-                   tstatementnode(last).left:=cstatementnode.create(nil,statement);
-                   last:=tstatementnode(last).left;
+                   tstatementnode(last).right:=cstatementnode.create(statement,nil);
+                   last:=tstatementnode(last).right;
                 end;
               if not try_to_consume(_SEMICOLON) then
                 break;
@@ -541,13 +541,13 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(nil,statement);
+                   last:=cstatementnode.create(statement,nil);
                    first:=last;
                 end
               else
                 begin
-                   tstatementnode(last).left:=cstatementnode.create(nil,statement);
-                   last:=tstatementnode(last).left;
+                   tstatementnode(last).right:=cstatementnode.create(statement,nil);
+                   last:=tstatementnode(last).right;
                 end;
               if not try_to_consume(_SEMICOLON) then
                 break;
@@ -961,13 +961,13 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(nil,statement);
+                   last:=cstatementnode.create(statement,nil);
                    first:=last;
                 end
               else
                 begin
-                   tstatementnode(last).left:=cstatementnode.create(nil,statement);
-                   last:=tstatementnode(last).left;
+                   tstatementnode(last).right:=cstatementnode.create(statement,nil);
+                   last:=tstatementnode(last).right;
                 end;
               if (token in [_END,_FINALIZATION]) then
                 break
@@ -1147,7 +1147,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2002-11-25 17:43:22  peter
+  Revision 1.81  2002-11-27 02:37:14  peter
+    * case statement inlining added
+    * fixed inlining of write()
+    * switched statementnode left and right parts so the statements are
+      processed in the correct order when getcopy is used. This is
+      required for tempnodes
+
+  Revision 1.80  2002/11/25 17:43:22  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
