@@ -899,17 +899,54 @@ const sincof : TabCoef = (
 
     function power(bas,expo : real) : real;
      begin
-        power:=exp(ln(bas)*expo);
+        if bas=0.0 then
+          begin
+            if expo<>0.0 then
+              power:=0.0
+            else
+              HandleError(207);
+          end
+        else if expo=0.0 then
+         power:=1
+        else
+        { bas < 0 is not allowed }
+         if bas<0.0 then
+          handleerror(207)
+         else
+          power:=exp(ln(bas)*expo);
      end;
 
    function power(bas,expo : longint) : longint;
      begin
-        power:=round(exp(ln(bas)*expo));
+        if bas=0 then
+          begin
+            if expo<>0 then
+              power:=0
+            else
+              HandleError(207);
+          end
+        else if expo=0 then
+         power:=1
+        else
+         begin
+           if bas<0 then
+            begin
+              if odd(expo) then
+               power:=-round(exp(ln(-bas)*expo))
+              else
+               power:=round(exp(ln(-bas)*expo));
+            end
+           else
+            power:=round(exp(ln(bas)*expo));
+         end;
      end;
 
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:43  daniel
+  Revision 1.4  2000-05-02 10:37:50  pierre
+   * 0**n where n<>0 is 0; 0**0 generates RTE 207
+
+  Revision 1.3  2000/01/07 16:41:43  daniel
     * copyright 2000
 
   Revision 1.2  2000/01/07 16:32:29  daniel

@@ -217,7 +217,14 @@
 
    function power(bas,expo : extended) : extended;
      begin
-        if expo=0 then
+        if bas=0 then
+          begin
+            if expo<>0 then
+              power:=0.0
+            else
+              HandleError(207);
+          end
+        else if expo=0 then
          power:=1
         else
         { bas < 0 is not allowed }
@@ -234,7 +241,14 @@
 
    function power(bas,expo : longint) : longint;
      begin
-        if expo=0 then
+        if bas=0 then
+          begin
+            if expo<>0 then
+              power:=0
+            else
+              HandleError(207);
+          end
+        else if expo=0 then
          power:=1
         else
          begin
@@ -370,7 +384,10 @@
 
 {
   $Log$
-  Revision 1.22  2000-04-07 21:29:00  pierre
+  Revision 1.23  2000-05-02 10:37:50  pierre
+   * 0**n where n<>0 is 0; 0**0 generates RTE 207
+
+  Revision 1.22  2000/04/07 21:29:00  pierre
    changed to get nasm to compile system
 
   Revision 1.21  2000/02/15 14:37:36  florian
