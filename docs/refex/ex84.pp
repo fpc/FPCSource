@@ -1,6 +1,6 @@
 Library Greeting;
 
-{$Mode objpas}
+{$Mode objfpc}
 
 Procedure Hello;
 
