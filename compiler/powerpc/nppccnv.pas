@@ -98,7 +98,10 @@ implementation
               inserttypeconv(left,u32bittype);
             firstpass(left);
           end;
-        result := inherited first_int_to_real;
+        result := nil;
+        if registersfpu<1 then
+          registersfpu:=1;
+        location.loc:=LOC_FPUREGISTER;
       end;
 
 
@@ -418,7 +421,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-08-11 06:14:41  florian
+  Revision 1.22  2002-08-14 19:30:42  carl
+    + added fixing because first_in_to_real is now completely generic
+
+  Revision 1.21  2002/08/11 06:14:41  florian
     * fixed powerpc compilation problems
 
   Revision 1.20  2002/08/10 17:15:31  jonas
