@@ -208,7 +208,7 @@ begin
 Sr := PSearchRec(F.FindHandle);
 if Sr <> nil then
   //!! Dispose(Sr);
-  freemem(sr,sizeof(tsearchrec));
+  freemem(sr,sizeof(searchrec));
 F.FindHandle := 0;
 end;
 
@@ -454,7 +454,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1999-08-24 13:14:28  peter
+  Revision 1.8  1999-08-26 11:02:50  peter
+    * findclose freemem fixed
+
+  Revision 1.7  1999/08/24 13:14:28  peter
     * fixed DeleteFile()
 
   Revision 1.6  1999/08/19 14:00:08  pierre
