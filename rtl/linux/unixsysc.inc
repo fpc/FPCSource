@@ -15,21 +15,14 @@
 
 
 Function  fdFlush (fd : Longint) : Boolean;
-var
-  SR: SysCallRegs;
 begin
-  SR.reg2 := fd;
-  fdFlush := (SysCall(syscall_nr_fsync, SR)=0);
+  fdFlush := (do_SysCall(syscall_nr_fsync, fd)=0);
   LinuxError:=fpgetErrno;
 end;
 
 Function  Flock (fd,mode : longint) : boolean;
-var
-  sr : Syscallregs;
 begin
-  sr.reg2:=fd;
-  sr.reg3:=mode;
-  flock:=Syscall(Syscall_nr_flock,sr)=0;
+  flock:=do_Syscall(Syscall_nr_flock,fd,mode)=0;
   LinuxError:=fpgeterrno;
 end;
 
@@ -39,17 +32,11 @@ Function StatFS(Path:Pathstr;Var Info:tstatfs):Boolean;
   Path is the name of a file/directory on the fileSystem you wish to
   investigate.
 }
-var
-  regs : SysCallregs;
 begin
   path:=path+#0;
-  regs.reg2:=longint(@path[1]);
-  regs.reg3:=longint(@Info);
-  StatFS:=(SysCall(SysCall_nr_statfs,regs)=0);
+  StatFS:=(do_SysCall(SysCall_nr_statfs,longint(@path[1]),longint(@Info))=0);
   LinuxError:=fpgeterrno;
 end;
-
-
 
 Function StatFS(Fd:Longint;Var Info:tstatfs):Boolean;
 {
@@ -57,12 +44,8 @@ Function StatFS(Fd:Longint;Var Info:tstatfs):Boolean;
   Fd is the file descriptor of a file/directory on the fileSystem
   you wish to investigate.
 }
-var
-  regs : SysCallregs;
 begin
-  regs.reg2:=Fd;
-  regs.reg3:=longint(@Info);
-  StatFS:=(SysCall(SysCall_nr_fstatfs,regs)=0);
+  StatFS:=(do_SysCall(SysCall_nr_fstatfs,fd,longint(@info))=0);
   LinuxError:=fpgeterrno;
 end;
 
@@ -75,10 +58,8 @@ Function AssignPipe(var pipe_in,pipe_out:longint):boolean; [public, alias : 'FPC
 }
 var
   pip  : tpipe;
-  regs : SysCallregs;
 begin
-  regs.reg2:=longint(@pip);
-  SysCall(SysCall_nr_pipe,regs);
+  do_SysCall(SysCall_nr_pipe,longint(@pip));
   pipe_in:=pip[1];
   pipe_out:=pip[2];
   linuxerror:=fpgeterrno;
@@ -87,12 +68,10 @@ end;
 
 Function PClose(Var F:text) :longint;
 var
-  sr  : syscallregs;
   pl  : ^longint;
   res : longint;
 begin
-  sr.reg2:=Textrec(F).Handle;
-  SysCall (syscall_nr_close,sr);
+  do_SysCall (syscall_nr_close,Textrec(F).Handle);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(textrec(f).userdata[2]);
   fpwaitpid(pl^,@res,0);
@@ -101,12 +80,10 @@ end;
 
 Function PClose(Var F:file) : longint;
 var
-  sr : syscallregs;
   pl : ^longint;
   res : longint;
 begin
-  sr.reg2:=FileRec(F).Handle;
-  SysCall (Syscall_nr_close,sr);
+  do_SysCall (Syscall_nr_close,filerec(F).Handle);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(filerec(f).userdata[2]);
   fpwaitpid(pl^,@res,0);
@@ -125,23 +102,15 @@ Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
   this works ONLY as root.
 }
 
-Var
-  Sr : Syscallregs;
 begin
-  Sr.Reg2:=From;
-  Sr.Reg3:=Num;
-  Sr.Reg4:=Value;
-  IOPerm:=Syscall(Syscall_nr_ioperm,sr)=0;
+  IOPerm:=do_Syscall(Syscall_nr_ioperm,from,num,value)=0;
   LinuxError:=fpgetErrno;
 end;
 
 Function IoPL(Level : longint) : Boolean;
 
-Var
-  Sr : Syscallregs;
 begin
-  Sr.Reg2:=Level;
-  IOPL:=Syscall(Syscall_nr_iopl,sr)=0;
+  IOPL:=do_Syscall(Syscall_nr_iopl,level)=0;
   LinuxError:=fpgetErrno;
 end;
 
@@ -149,7 +118,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2003-10-17 22:11:28  olle
+  Revision 1.15  2003-10-30 16:42:25  marco
+   * Killing off old syscall convention anywhere except for oldlinux
+
+  Revision 1.14  2003/10/17 22:11:28  olle
     * changed i386 to cpui386
 
   Revision 1.13  2003/09/20 12:45:34  marco
