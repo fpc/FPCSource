@@ -1585,7 +1585,7 @@ end;
 
     procedure tdynamicarray.seek(i:integer);
       begin
-        if (i<FPosnblock^.pos) or (i>FPosnblock^.pos+blocksize) then
+        if (i<FPosnblock^.pos) or (i>=FPosnblock^.pos+blocksize) then
          begin
            { set FPosnblock correct if the size is bigger then
              the current block }
@@ -1738,7 +1738,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2001-04-13 01:22:06  peter
+  Revision 1.7  2001-05-04 19:50:04  peter
+    * fixed dynamicarray.seek() with pos equals multiple of $10000
+
+  Revision 1.6  2001/04/13 01:22:06  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
