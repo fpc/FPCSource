@@ -2133,6 +2133,67 @@ implementation
           end;
         2:
           begin
+            { First spill the registers from the references. This is
+              required because the reference can be moved from this instruction
+              to a MOV instruction when spilling of the register operand is done }
+            for i:=0 to 1 do
+              if oper[i].typ=top_ref then
+                begin
+                  supreg:=oper[i].ref^.base.number shr 8;
+                  if supreg in r then
+                    begin
+                      {Situation example:
+                       add r20d,[r21d+4*r22d]    ; r21d must be spilled into [ebp-12]
+
+                       Change into:
+
+                       mov r23d,[ebp-12]         ; Use a help register
+                       add r20d,[r23d+4*r22d]    ; Replace register by helpregister }
+                      subreg:=oper[i].ref^.base.number and $ff;
+                      if i=1 then
+                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.index.number shr 8,oper[0].reg.number shr 8,
+                                            0,unusedregsint)
+                      else
+                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.index.number shr 8,0,0,unusedregsint);
+                      rgget(list,pos,subreg,helpreg);
+                      spill_registers:=true;
+                      helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.base),spilltemplist[supreg],helpreg);
+                      if pos=nil then
+                        list.insertafter(helpins,list.first)
+                      else
+                        list.insertafter(helpins,pos.next);
+                      oper[i].ref^.base:=helpreg;
+                      rgunget(list,helpins,helpreg);
+                      forward_allocation(Tai(helpins.next),unusedregsint);
+                  end;
+                  supreg:=oper[i].ref^.index.number shr 8;
+                  if supreg in r then
+                    begin
+                      {Situation example:
+                       add r20d,[r21d+4*r22d]    ; r22d must be spilled into [ebp-12]
+
+                       Change into:
+
+                       mov r23d,[ebp-12]         ; Use a help register
+                       add r20d,[r21d+4*r23d]    ; Replace register by helpregister }
+                      subreg:=oper[i].ref^.index.number and $ff;
+                      if i=1 then
+                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.base.number shr 8,oper[0].reg.number shr 8,
+                                            0,unusedregsint)
+                      else
+                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.base.number shr 8,0,0,unusedregsint);
+                      rgget(list,pos,subreg,helpreg);
+                      spill_registers:=true;
+                      helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.index),spilltemplist[supreg],helpreg);
+                      if pos=nil then
+                        list.insertafter(helpins,list.first)
+                      else
+                        list.insertafter(helpins,pos.next);
+                      oper[i].ref^.index:=helpreg;
+                      rgunget(list,helpins,helpreg);
+                      forward_allocation(Tai(helpins.next),unusedregsint);
+                    end;
+                end;
             if (oper[0].typ=top_reg) and (oper[0].reg.enum=R_INTREGISTER) then
               begin
                 supreg:=oper[0].reg.number shr 8;
@@ -2278,64 +2339,6 @@ implementation
                       end;
                   end;
               end;
-            for i:=0 to 1 do
-              if oper[i].typ=top_ref then
-                begin
-                  supreg:=oper[i].ref^.base.number shr 8;
-                  if supreg in r then
-                    begin
-                      {Situation example:
-                       add r20d,[r21d+4*r22d]    ; r21d must be spilled into [ebp-12]
-
-                       Change into:
-
-                       mov r23d,[ebp-12]         ; Use a help register
-                       add r20d,[r23d+4*r22d]    ; Replace register by helpregister }
-                      subreg:=oper[i].ref^.base.number and $ff;
-                      if i=1 then
-                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.index.number shr 8,oper[0].reg.number shr 8,
-                                            0,unusedregsint)
-                      else
-                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.index.number shr 8,0,0,unusedregsint);
-                      rgget(list,pos,subreg,helpreg);
-                      spill_registers:=true;
-                      helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.base),spilltemplist[supreg],helpreg);
-                      if pos=nil then
-                        list.insertafter(helpins,list.first)
-                      else
-                        list.insertafter(helpins,pos.next);
-                      oper[i].ref^.base:=helpreg;
-                      rgunget(list,helpins,helpreg);
-                      forward_allocation(Tai(helpins.next),unusedregsint);
-                  end;
-                  supreg:=oper[i].ref^.index.number shr 8;
-                  if supreg in r then
-                    begin
-                      {Situation example:
-                       add r20d,[r21d+4*r22d]    ; r22d must be spilled into [ebp-12]
-
-                       Change into:
-
-                       mov r23d,[ebp-12]         ; Use a help register
-                       add r20d,[r21d+4*r23d]    ; Replace register by helpregister }
-                      subreg:=oper[i].ref^.index.number and $ff;
-                      if i=1 then
-                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.base.number shr 8,oper[0].reg.number shr 8,
-                                            0,unusedregsint)
-                      else
-                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.base.number shr 8,0,0,unusedregsint);
-                      rgget(list,pos,subreg,helpreg);
-                      spill_registers:=true;
-                      helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.index),spilltemplist[supreg],helpreg);
-                      if pos=nil then
-                        list.insertafter(helpins,list.first)
-                      else
-                        list.insertafter(helpins,pos.next);
-                      oper[i].ref^.index:=helpreg;
-                      rgunget(list,helpins,helpreg);
-                      forward_allocation(Tai(helpins.next),unusedregsint);
-                    end;
-                end;
           end;
         3:
           begin
@@ -2395,7 +2398,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2003-08-21 14:48:36  peter
+  Revision 1.16  2003-08-21 17:20:19  peter
+    * first spill the registers of top_ref before spilling top_reg
+
+  Revision 1.15  2003/08/21 14:48:36  peter
     * fix reg-supreg range check error
 
   Revision 1.14  2003/08/20 16:52:01  daniel
