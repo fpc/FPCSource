@@ -891,7 +891,7 @@ Begin
                 if (expr='') or (expr[length(expr)]='+') then
                  begin
                    delete(expr,length(expr),1);
-                   if not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,AS_END]) then
+                   if not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,AS_END,AS_RBRACKET]) then
                     Message(asmr_e_only_add_relocatable_symbol);
                  end
                 else
@@ -1110,6 +1110,11 @@ Begin
            opr.ref.base:=hreg;
           GotPlus:=false;
           GotStar:=false;
+        end;
+
+      AS_OFFSET :
+        begin
+          Consume(AS_OFFSET);
         end;
 
       AS_TYPE,
@@ -1735,7 +1740,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  1999-09-07 07:45:41  peter
+  Revision 1.45  1999-09-07 13:03:10  peter
+    * better OFFSET support for reference reading
+
+  Revision 1.44  1999/09/07 07:45:41  peter
     * TYPE support
 
   Revision 1.43  1999/08/13 21:28:36  peter
