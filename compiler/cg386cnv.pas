@@ -38,7 +38,7 @@ implementation
 
    uses
      cobjects,verbose,globals,
-     symtable,aasm,i386,
+     symtable,aasm,i386,types,
      cgi386,cgai386,temp_gen,tgeni386,hcodegen;
 
 {*****************************************************************************
@@ -1062,7 +1062,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-06-08 13:13:30  pierre
+  Revision 1.6  1998-06-12 10:43:12  michael
+  Fixed ansistrings : is_ansistring not found
+
+  Revision 1.5  1998/06/08 13:13:30  pierre
     + temporary variables now in temp_gen.pas unit
       because it is processor independent
     * mppc68k.bat modified to undefine i386 and support_mmx
