@@ -839,6 +839,13 @@ unit m68k;
        '%sfc','%vbr','%fpsr');
 
 
+{*****************************************************************************
+                                  Init/Done
+*****************************************************************************}
+
+  procedure InitCpu;
+  procedure DoneCpu;
+  
   implementation
 
     uses
@@ -1558,10 +1565,25 @@ unit m68k;
            End;
          inherited done;
       end;
+{*****************************************************************************
+                                  Init/Done
+*****************************************************************************}
+
+  procedure InitCpu;
+    begin
+    end;
+    
+  procedure DoneCpu;
+    begin
+    end;
+  
 end.
 {
   $Log$
-  Revision 1.11  1999-06-22 16:24:42  pierre
+  Revision 1.12  1999-08-19 13:02:08  pierre
+    + label faillabel added for _FAIL support
+
+  Revision 1.11  1999/06/22 16:24:42  pierre
    * local browser stuff corrected
 
   Revision 1.10  1998/10/29 11:35:45  florian

@@ -1486,7 +1486,8 @@ procedure compile_proc_body(const proc_names:Tstringcontainer;
   Compile the body of a procedure
 }
 var
-   oldexitlabel,oldexit2label,oldquickexitlabel:Pasmlabel;
+   oldexitlabel,oldexit2label : pasmlabel;
+   oldfaillabel,oldquickexitlabel:Pasmlabel;
    _class,hp:Pobjectdef;
    { switches can change inside the procedure }
    entryswitches, exitswitches : tlocalswitches;
@@ -1522,12 +1523,16 @@ begin
    oldexitlabel:=aktexitlabel;
    oldexit2label:=aktexit2label;
    oldquickexitlabel:=quickexitlabel;
+   oldfaillabel:=faillabel;
    { get new labels }
    getlabel(aktexitlabel);
    getlabel(aktexit2label);
    { exit for fail in constructors }
    if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
-     getlabel(quickexitlabel);
+     begin
+       getlabel(faillabel);
+       getlabel(quickexitlabel);
+     end;
    { reset break and continue labels }
    in_except_block:=false;
    aktbreaklabel:=nil;
@@ -1761,11 +1766,15 @@ begin
    freelabel(aktexitlabel);
    freelabel(aktexit2label);
    if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
-    freelabel(quickexitlabel);
+     begin
+       freelabel(faillabel);
+       freelabel(quickexitlabel);
+     end;
    { restore labels }
    aktexitlabel:=oldexitlabel;
    aktexit2label:=oldexit2label;
    quickexitlabel:=oldquickexitlabel;
+   faillabel:=oldfaillabel;
 
    { reset to normal non static function }
    if (lexlevel=normal_function_level) then
@@ -2025,7 +2034,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  1999-08-10 16:24:44  pierre
+  Revision 1.15  1999-08-19 13:02:11  pierre
+    + label faillabel added for _FAIL support
+
+  Revision 1.14  1999/08/10 16:24:44  pierre
    * linking to C code with cdecl;external; was broken
 
   Revision 1.13  1999/08/10 12:37:44  pierre

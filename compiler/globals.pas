@@ -158,9 +158,10 @@ unit globals;
 {$Ifdef EXTDEBUG}
        total_of_firstpass,
        firstpass_several : longint;
-{$EndIf EXTDEBUG}
+{$ifdef FPC}
+       EntryMemUsed : longint;
+{$endif FPC}
      { parameter switches }
-{$Ifdef EXTDEBUG}
        debugstop,
        only_one_pass : boolean;
 {$EndIf EXTDEBUG}
@@ -1233,10 +1234,18 @@ unit globals;
 
 begin
   get_exepath;
+{$ifdef EXTDEBUG}
+{$ifdef FPC}
+  EntryMemUsed:=system.HeapSize-MemAvail;
+{$endif FPC}
+{$endif}
 end.
 {
   $Log$
-  Revision 1.19  1999-08-16 15:35:21  pierre
+  Revision 1.20  1999-08-19 13:02:12  pierre
+    + label faillabel added for _FAIL support
+
+  Revision 1.19  1999/08/16 15:35:21  pierre
     * fix for DLL relocation problems
     * external bss vars had wrong stabs for pecoff
     + -WB11000000 to specify default image base, allows to

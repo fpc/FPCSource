@@ -819,6 +819,13 @@ var
 
 
 {*****************************************************************************
+                                  Init/Done
+*****************************************************************************}
+
+  procedure InitCpu;
+  procedure DoneCpu;
+  
+{*****************************************************************************
                                   Helpers
 *****************************************************************************}
 
@@ -1038,14 +1045,12 @@ end;
                               Instruction table
 *****************************************************************************}
 
-var
-  saveexit : pointer;
-
-procedure FreeInsTabCache;{$ifndef FPC}far;{$endif}
+procedure DoneCpu;{$ifndef FPC}far;{$endif}
 begin
-  exitproc:=saveexit;
+  {exitproc:=saveexit; }
 {$ifndef NOAG386BIN}
-  dispose(instabcache);
+  if assigned(instabcache) then
+    dispose(instabcache);
 {$endif NOAG386BIN}
 end;
 
@@ -1067,17 +1072,22 @@ begin
      inc(i);
    end;
 {$endif NOAG386BIN}
-  saveexit:=exitproc;
-  exitproc:=@FreeInsTabCache;
 end;
 
+procedure InitCpu;
 
 begin
-  BuildInsTabCache;
+  if not assigned(instabcache) then
+    BuildInsTabCache;
+end;
+
 end.
 {
   $Log$
-  Revision 1.7  1999-08-18 13:26:23  jonas
+  Revision 1.8  1999-08-19 13:02:10  pierre
+    + label faillabel added for _FAIL support
+
+  Revision 1.7  1999/08/18 13:26:23  jonas
     + some constants for the new optimizer
 
   Revision 1.6  1999/08/13 15:36:30  peter
