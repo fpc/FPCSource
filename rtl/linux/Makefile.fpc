@@ -33,7 +33,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
-      errors sockets gpm ipc
+      errors sockets ipc
 
 
 [presettings]
