@@ -159,6 +159,11 @@ Procedure GetIntVec(intno: byte; var vector: pointer);
 Procedure SetIntVec(intno: byte; vector: pointer);
 Procedure Keep(exitcode: word);
 
+Const
+  { allow EXEC to inherited handles from calling process,
+    needed for FPREDIR in ide/text PM }
+  ExecInheritsHandles : BOOL = false;
+
 implementation
 uses strings;
 
@@ -354,6 +359,7 @@ var
   l    : Longint;
   AppPath,
   AppParam : array[0..255] of char;
+  InheritedHandles : BOOL;
 begin
   FillChar(SI, SizeOf(SI), 0);
   SI.cb:=SizeOf(SI);
@@ -364,7 +370,9 @@ begin
   AppParam[1]:=' ';
   Move(ComLine[1],AppParam[2],length(Comline));
   AppParam[Length(ComLine)+2]:=#0;
-  if not CreateProcess(PChar(@AppPath), PChar(@AppParam), Nil, Nil, False,$20, Nil, Nil, SI, PI) then
+  InheritedHandles:=ExecInheritsHandles;
+  if not CreateProcess(PChar(@AppPath), PChar(@AppParam),
+           Nil, Nil, InheritedHandles,$20, Nil, Nil, SI, PI) then
    begin
      DosError:=Last2DosError(GetLastError);
      exit;
@@ -886,7 +894,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.19  1999-08-25 13:57:55  michael
+  Revision 1.20  1999-09-21 11:34:40  pierre
+   + ExecInheritedHandles boolean
+
+  Revision 1.19  1999/08/25 13:57:55  michael
   + Patched FSearch from Frank McCormick
 
   Revision 1.18  1999/08/12 09:24:14  michael
