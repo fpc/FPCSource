@@ -191,6 +191,7 @@ interface
        RelocSection : boolean = true;
        RelocSectionSetExplicitly : boolean = false;
        LinkTypeSetExplicitly : boolean = false;
+       IsExe : boolean = false;
        DLLsource : boolean = false;
        DLLImageBase : pstring = nil;
        UseDeffileForExport : boolean = true;
@@ -1095,7 +1096,6 @@ implementation
          StringDispose(DLLImageBase);
        RelocSection:=true;
        RelocSectionSetExplicitly:=false;
-       DLLsource:=false;
        UseDeffileForExport:=true;
        librarysearchpath.Done;
        unitsearchpath.Done;
@@ -1109,6 +1109,10 @@ implementation
         do_build:=false;
         do_make:=true;
         compile_level:=0;
+        { these two should not be cleared in
+          DoneGlobals as the IDE might need their value }
+        IsExe:=false;
+        DLLsource:=false;
 
       { Output }
         OutputFile:='';
@@ -1183,7 +1187,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2000-09-27 21:20:56  peter
+  Revision 1.16  2000-10-04 14:51:08  pierre
+   * IsExe restored
+
+  Revision 1.15  2000/09/27 21:20:56  peter
     * also set initlocalswitches in setcompilemode (merged)
 
   Revision 1.14  2000/09/26 10:50:41  jonas

@@ -1444,6 +1444,7 @@ implementation
 {$endif fixLeaksOnError}
       begin
          DLLsource:=islibrary;
+         IsExe:=true;
          parse_only:=false;
          { relocation works only without stabs under win32 !! PM }
          { internal assembler uses rva for stabs info
@@ -1713,7 +1714,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-09-30 16:07:40  peter
+  Revision 1.13  2000-10-04 14:51:08  pierre
+   * IsExe restored
+
+  Revision 1.12  2000/09/30 16:07:40  peter
     * filepos when unit not found (merged)
 
   Revision 1.11  2000/09/24 21:33:47  peter
