@@ -1,6 +1,6 @@
 { This is a fake system unit to allow testing of the new code generator }
 
-unit system
+unit system;
 
   interface
 
