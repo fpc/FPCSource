@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1993-99 by Florian Klaempfl, Pierre Muller
 
     Symbol table implementation for the definitions
 
@@ -3533,8 +3533,7 @@ Const local_symtable_index : longint = $8001;
     procedure count_published_properties(sym:pnamedindexobject);
       {$ifndef fpc}far;{$endif}
       begin
-         if (psym(sym)^.typ=propertysym) and
-            (sp_published in psym(sym)^.symoptions) then
+         if needs_prop_entry(psym(sym)) then
            inc(count);
       end;
 
@@ -3587,41 +3586,70 @@ Const local_symtable_index : longint = $8001;
         end;
 
       begin
-         if (psym(sym)^.typ=propertysym) and
-            (ppo_indexed in ppropertysym(sym)^.propoptions) then
-           proctypesinfo:=$40
-         else
-           proctypesinfo:=0;
-         if (psym(sym)^.typ=propertysym) and
-            (sp_published in psym(sym)^.symoptions) then
-           begin
-              rttilist^.concat(new(pai_const_symbol,initname(ppropertysym(sym)^.proptype^.get_rtti_label)));
-              writeproc(ppropertysym(sym)^.readaccesssym,ppropertysym(sym)^.readaccessdef,0);
-              writeproc(ppropertysym(sym)^.writeaccesssym,ppropertysym(sym)^.writeaccessdef,2);
-              { isn't it stored ? }
-              if not(ppo_stored in ppropertysym(sym)^.propoptions) then
+         if needs_prop_entry(psym(sym)) then
+           case psym(sym)^.typ of
+              varsym:
                 begin
+                   if not(pvarsym(sym)^.definition^.deftype=objectdef) or
+                     not(pobjectdef(pvarsym(sym)^.definition)^.is_class) then
+                     internalerror(1509992);
+                   { access to implicit class property as field }
+                   proctypesinfo:=(0 shl 0) or (0 shl 2) or (0 shl 4);
+                   rttilist^.concat(new(pai_const_symbol,initname(pvarsym(sym)^.definition^.get_rtti_label)));
+                   rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
+                   rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
+                   { per default stored }
+                   rttilist^.concat(new(pai_const,init_32bit(1)));
+                   { index as well as ... }
                    rttilist^.concat(new(pai_const,init_32bit(0)));
-                   proctypesinfo:=proctypesinfo or (3 shl 4);
-                end
-              else
-                writeproc(ppropertysym(sym)^.storedsym,ppropertysym(sym)^.storeddef,4);
-              rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.index)));
-              rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.default)));
-              rttilist^.concat(new(pai_const,init_16bit(count)));
-              inc(count);
-              rttilist^.concat(new(pai_const,init_8bit(proctypesinfo)));
-              rttilist^.concat(new(pai_const,init_8bit(length(ppropertysym(sym)^.name))));
-              rttilist^.concat(new(pai_string,init(ppropertysym(sym)^.name)));
+                   { default value are zero }
+                   rttilist^.concat(new(pai_const,init_32bit(0)));
+                   rttilist^.concat(new(pai_const,init_16bit(count)));
+                   inc(count);
+                   rttilist^.concat(new(pai_const,init_8bit(proctypesinfo)));
+                   rttilist^.concat(new(pai_const,init_8bit(length(pvarsym(sym)^.name))));
+                   rttilist^.concat(new(pai_string,init(pvarsym(sym)^.name)));
+                end;
+              propertysym:
+                begin
+                   if ppo_indexed in ppropertysym(sym)^.propoptions then
+                     proctypesinfo:=$40
+                   else
+                     proctypesinfo:=0;
+                   rttilist^.concat(new(pai_const_symbol,initname(ppropertysym(sym)^.proptype^.get_rtti_label)));
+                   writeproc(ppropertysym(sym)^.readaccesssym,ppropertysym(sym)^.readaccessdef,0);
+                   writeproc(ppropertysym(sym)^.writeaccesssym,ppropertysym(sym)^.writeaccessdef,2);
+                   { isn't it stored ? }
+                   if not(ppo_stored in ppropertysym(sym)^.propoptions) then
+                     begin
+                        rttilist^.concat(new(pai_const,init_32bit(0)));
+                        proctypesinfo:=proctypesinfo or (3 shl 4);
+                     end
+                   else
+                     writeproc(ppropertysym(sym)^.storedsym,ppropertysym(sym)^.storeddef,4);
+                   rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.index)));
+                   rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.default)));
+                   rttilist^.concat(new(pai_const,init_16bit(count)));
+                   inc(count);
+                   rttilist^.concat(new(pai_const,init_8bit(proctypesinfo)));
+                   rttilist^.concat(new(pai_const,init_8bit(length(ppropertysym(sym)^.name))));
+                   rttilist^.concat(new(pai_string,init(ppropertysym(sym)^.name)));
+                end;
+              else internalerror(1509992);
            end;
       end;
 
 
     procedure generate_published_child_rtti(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
       begin
-         if (psym(sym)^.typ=propertysym) and
-            (sp_published in psym(sym)^.symoptions) then
-           ppropertysym(sym)^.proptype^.get_rtti_label;
+         if needs_prop_entry(psym(sym)) then
+           case psym(sym)^.typ of
+              varsym:
+                pvarsym(sym)^.definition^.get_rtti_label;
+              propertysym:
+                ppropertysym(sym)^.proptype^.get_rtti_label;
+              else internalerror(1509991);
+           end;
       end;
 
 
@@ -3750,7 +3778,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.163  1999-09-15 20:35:44  florian
+  Revision 1.164  1999-09-15 22:09:26  florian
+    + rtti is now automatically generated for published classes, i.e.
+      they are handled like an implicit property
+
+  Revision 1.163  1999/09/15 20:35:44  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers

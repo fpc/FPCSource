@@ -210,6 +210,7 @@ type tmsgconst=(
   parser_e_exit_with_argument_not__possible,
   parser_e_stored_property_must_be_boolean,
   parser_e_ill_property_storage_sym,
+  parser_e_only_publishable_classes_can__be_published,
   type_e_mismatch,
   type_e_incompatible_types,
   type_e_not_equal_types,

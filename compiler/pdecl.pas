@@ -609,7 +609,11 @@ unit pdecl;
                begin
                   if (sp_published in current_object_option) and
                     (not((p^.deftype=objectdef) and (pobjectdef(p)^.is_class))) then
-                    Message(parser_e_cant_publish_that);
+                    Message(parser_e_cant_publish_that)
+                  else if (sp_published in current_object_option) and
+                    not(oo_can_have_published in pobjectdef(p)^.objectoptions) then
+                    Message(parser_e_only_publishable_classes_can__be_published);
+
                   if assigned(readtypesym) then
                    insert_syms(symtablestack,sc,nil,readtypesym,is_threadvar)
                   else
@@ -2532,7 +2536,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.153  1999-09-14 11:09:08  florian
+  Revision 1.154  1999-09-15 22:09:24  florian
+    + rtti is now automatically generated for published classes, i.e.
+      they are handled like an implicit property
+
+  Revision 1.153  1999/09/14 11:09:08  florian
     * per default a property is stored, fixed
 
   Revision 1.152  1999/09/12 14:50:50  florian

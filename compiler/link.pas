@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by the FPC development team
+    Copyright (c) 1998,99 by the FPC development team
 
     This unit handles the linker and binder calls for programs and
     libraries
@@ -785,7 +785,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.69  1999-09-15 20:24:56  daniel
+  Revision 1.70  1999-09-15 22:09:16  florian
+    + rtti is now automatically generated for published classes, i.e.
+      they are handled like an implicit property
+
+  Revision 1.69  1999/09/15 20:24:56  daniel
   + Dw switch now does something.
 
   Revision 1.68  1999/08/18 17:05:53  florian

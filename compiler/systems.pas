@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1995,97 by Florian Klaempfl
+    Copyright (C) 1995,99 by Florian Klaempfl
 
     This unit contains information about the target systems supported
     (these are not processor specific)
@@ -1734,7 +1734,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  1999-09-15 20:24:56  daniel
+  Revision 1.94  1999-09-15 22:09:27  florian
+    + rtti is now automatically generated for published classes, i.e.
+      they are handled like an implicit property
+
+  Revision 1.93  1999/09/15 20:24:56  daniel
   + Dw switch now does something.
 
   Revision 1.92  1999/09/07 15:02:41  pierre

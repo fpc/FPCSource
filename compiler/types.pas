@@ -163,12 +163,21 @@ interface
     { returns the mmx type }
     function mmx_type(p : pdef) : tmmxtype;
 
+    { returns true, if sym needs an entry in the proplist of a class rtti }
+    function needs_prop_entry(sym : psym) : boolean;
+
 implementation
 
     uses
        strings,globtype,globals,htypechk,
        tree,verbose,symconst;
 
+    function needs_prop_entry(sym : psym) : boolean;
+
+      begin
+         needs_prop_entry:=(sp_published in psym(sym)^.symoptions) and
+         (sym^.typ in [propertysym,varsym]);
+      end;
 
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
       begin
@@ -984,7 +993,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  1999-09-11 09:08:35  florian
+  Revision 1.87  1999-09-15 22:09:27  florian
+    + rtti is now automatically generated for published classes, i.e.
+      they are handled like an implicit property
+
+  Revision 1.86  1999/09/11 09:08:35  florian
     * fixed bug 596
     * fixed some problems with procedure variables and procedures of object,
       especially in TP mode. Procedure of object doesn't apply only to classes,

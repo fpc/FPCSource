@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1993-99 by Florian Klaempfl
 
     This unit does the parsing process
 
@@ -481,7 +481,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.83  1999-08-31 15:51:11  pierre
+  Revision 1.84  1999-09-15 22:09:23  florian
+    + rtti is now automatically generated for published classes, i.e.
+      they are handled like an implicit property
+
+  Revision 1.83  1999/08/31 15:51:11  pierre
    * in_second_compile cleaned up, in_compile and in_second_load added
 
   Revision 1.82  1999/08/26 20:24:41  michael
