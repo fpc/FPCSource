@@ -137,7 +137,7 @@ begin
      3. unit search path
      4. local object path
      5. global object path
-     6. exepath }
+     6. exepath (not when linking on target) }
   found:=false;
   if unitpath<>'' then
    found:=FindFile(s,unitpath,foundfile);
@@ -149,7 +149,7 @@ begin
    found:=current_module.localobjectsearchpath.FindFile(s,foundfile);
   if (not found) then
    found:=objectsearchpath.FindFile(s,foundfile);
-  if (not found) then
+  if not(cs_link_on_target in aktglobalswitches) and (not found) then
    found:=FindFile(s,exepath,foundfile);
   if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_objfile_not_found,s);
@@ -188,7 +188,7 @@ begin
      1. cwd
      2. local libary dir
      3. global libary dir
-     4. exe path of the compiler }
+     4. exe path of the compiler (not when linking on target) }
   found:=FindFile(s,'.'+source_info.DirSep,foundfile);
   if (not found) and (current_module.outputpath^<>'') then
    found:=FindFile(s,current_module.outputpath^,foundfile);
@@ -196,7 +196,7 @@ begin
    found:=current_module.locallibrarysearchpath.FindFile(s,foundfile);
   if (not found) then
    found:=librarysearchpath.FindFile(s,foundfile);
-  if (not found) then
+  if not(cs_link_on_target in aktglobalswitches) and (not found) then
    found:=FindFile(s,exepath,foundfile);
   foundfile:=ScriptFixFileName(foundfile);
   findlibraryfile:=found;
@@ -664,7 +664,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.37  2003-06-12 16:41:51  peter
+  Revision 1.38  2003-09-14 21:33:11  peter
+    * don't check exepath when linking on target
+
+  Revision 1.37  2003/06/12 16:41:51  peter
     * add inputfile prefix to ppas/link.res
 
   Revision 1.36  2003/05/09 17:47:02  peter

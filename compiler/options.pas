@@ -1907,8 +1907,11 @@ begin
          UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.shortname)+'/rtl',false);
        end;
     end;
-  { Add exepath if the exe is not in the current dir, because that is always searched already }
-  if ExePath<>GetCurrentDir then
+  { Add exepath if the exe is not in the current dir, because that is always searched already.
+    Do not add it when linking on the target because then we can maybe already find
+    .o files that are not for the target }
+  if (ExePath<>GetCurrentDir) and
+     not(cs_link_on_target in initglobalswitches) then
    UnitSearchPath.AddPath(ExePath,false);
   { Add unit dir to the object and library path }
   objectsearchpath.AddList(unitsearchpath,false);
@@ -1964,7 +1967,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.104  2003-09-06 10:41:54  olle
+  Revision 1.105  2003-09-14 21:33:11  peter
+    * don't check exepath when linking on target
+
+  Revision 1.104  2003/09/06 10:41:54  olle
     + compiler now define abi macros for powerpc FPC_ABI_AIX or FPC_ABI_SYSV
 
   Revision 1.103  2003/09/05 17:41:12  florian
