@@ -790,11 +790,13 @@ interface
             end;
           lten,gten:
             begin
-              If nodetype = lten then
+              If (not(nf_swaped in flags) and
+                  (nodetype = lten)) or
+                 ((nf_swaped in flags) and
+                  (nodetype = gten)) then
                 swapleftright;
               location_force_reg(left.location,opsize_2_cgsize[opsize],true);
-              If right.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] Then
-               emit_op_right_left(A_AND,opsize);
+              emit_op_right_left(A_AND,opsize);
               op:=A_CMP;
               cmpop:=true;
               { warning: ugly hack, we need a JE so change the node to equaln }
@@ -1582,7 +1584,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-04-04 19:06:10  peter
+  Revision 1.33  2002-04-05 15:09:13  jonas
+    * fixed web bug 1915
+
+  Revision 1.32  2002/04/04 19:06:10  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
