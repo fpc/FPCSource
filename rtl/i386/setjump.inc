@@ -51,5 +51,5 @@ asm
   jmp *20(%ecx)
 end;
 
-{$I386_ATT}
+{ I386_ATT removed for bugfix branch }
 
