@@ -6,7 +6,7 @@ Program Client;
   sock_cli to connect to that socket
 } 
 
-uses Sockets,Linux;
+uses Sockets,BaseUnix;
         
 procedure PError(const S : string);
 begin

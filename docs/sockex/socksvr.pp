@@ -6,7 +6,7 @@ Program server;
   sock_cli to connect to that socket
 } 
 
-uses Linux,Sockets;
+uses BaseUnix,Sockets;
 const
   SPath='ServerSoc';
   
@@ -28,7 +28,7 @@ begin
   S:=Socket (AF_UNIX,SOCK_STREAM,0);
   if SocketError<>0 then 
    Perror ('Server : Socket : ');
-  UnLink(SPath);
+  fpUnLink(SPath);
   if not Bind(S,SPath) then
    PError ('Server : Bind : ');
   if not Listen (S,1) then
@@ -45,5 +45,5 @@ begin
      Readln(Sin,Buffer);
      Writeln('Server : read : ',buffer);
    end;
-  Unlink(SPath);    
+  FPUnlink(SPath);    
 end.
