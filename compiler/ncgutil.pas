@@ -819,14 +819,25 @@ implementation
       end;
 
 
-    { generates the code for finalisation of local data }
-    procedure finalize_data(p : tnamedindexitem;arg:pointer);
+    procedure finalize_sym(asmlist:taasmoutput;sym:tsym);
       var
-        oldexprasmlist : TAAsmoutput;
         hp : tnode;
-        dofinalize : boolean;
+        oldexprasmlist : TAAsmoutput;
       begin
-        dofinalize:=false;
+        include(current_procinfo.flags,pi_needs_implicit_finally);
+        oldexprasmlist:=exprasmlist;
+        exprasmlist:=asmlist;
+        hp:=finalize_data_node(cloadnode.create(sym,sym.owner));
+        firstpass(hp);
+        secondpass(hp);
+        hp.free;
+        exprasmlist:=oldexprasmlist;
+      end;
+      
+        
+    { generates the code for finalisation of local variables }
+    procedure finalize_local_vars(p : tnamedindexitem;arg:pointer);
+      begin
         case tsym(p).typ of
           varsym :
             begin
@@ -834,28 +845,72 @@ implementation
                  not(vo_is_funcret in tvarsym(p).varoptions) and
                  not(is_class(tvarsym(p).vartype.def)) and
                  tvarsym(p).vartype.def.needs_inittable then
-                dofinalize:=true;
+                finalize_sym(taasmoutput(arg),tsym(p));
             end;
-{
+        end;
+      end;
+
+
+    { generates the code for finalisation of local typedconsts }
+    procedure finalize_local_typedconst(p : tnamedindexitem;arg:pointer);
+      var
+        i : longint;
+        pd : tprocdef;
+      begin
+        case tsym(p).typ of
           typedconstsym :
             begin
               if ttypedconstsym(p).is_writable and
                  ttypedconstsym(p).typedconsttype.def.needs_inittable then
-                dofinalize:=true;
+                finalize_sym(taasmoutput(arg),tsym(p));
             end;
-}
+          procsym :
+            begin
+              for i:=1 to tprocsym(p).procdef_count do
+                begin
+                  pd:=tprocsym(p).procdef[i];
+                  if assigned(pd.localst) and
+                     (pd.localst.symtabletype<>staticsymtable) then
+                    pd.localst.foreach_static(@finalize_local_typedconst,arg);
+                end;    
+            end;
         end;
-        if dofinalize then
-          begin
-            include(current_procinfo.flags,pi_needs_implicit_finally);
-            oldexprasmlist:=exprasmlist;
-            exprasmlist:=taasmoutput(arg);
-            hp:=finalize_data_node(cloadnode.create(tsym(p),tsym(p).owner));
-            firstpass(hp);
-            secondpass(hp);
-            hp.free;
-            exprasmlist:=oldexprasmlist;
-          end;
+      end;
+
+
+    { generates the code for finalization of static symtable and
+      all local (static) typedconsts }
+    procedure finalize_static_data(p : tnamedindexitem;arg:pointer);
+      var
+        i : longint;
+        pd : tprocdef;
+      begin
+        case tsym(p).typ of
+          varsym :
+            begin
+              if (tvarsym(p).refs>0) and
+                 not(vo_is_funcret in tvarsym(p).varoptions) and
+                 not(is_class(tvarsym(p).vartype.def)) and
+                 tvarsym(p).vartype.def.needs_inittable then
+                finalize_sym(taasmoutput(arg),tsym(p));
+            end;
+          typedconstsym :
+            begin
+              if ttypedconstsym(p).is_writable and
+                 ttypedconstsym(p).typedconsttype.def.needs_inittable then
+                finalize_sym(taasmoutput(arg),tsym(p));
+            end;
+          procsym :
+            begin
+              for i:=1 to tprocsym(p).procdef_count do
+                begin
+                  pd:=tprocsym(p).procdef[i];
+                  if assigned(pd.localst) and
+                     (pd.localst.symtabletype<>staticsymtable) then
+                    pd.localst.foreach_static(@finalize_local_typedconst,arg);
+                end;    
+            end;
+        end;
       end;
 
 
@@ -1210,15 +1265,15 @@ implementation
                 { this is also used for initialization of variables in a
                   program which does not have a globalsymtable }
                 if assigned(current_module.globalsymtable) then
-                  tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data,list);
-                tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data,list);
+                  tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}finalize_static_data,list);
+                tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}finalize_static_data,list);
              end;
            { units/progs have separate code for initialization and finalization }
            potype_unitinit: ;
            { program init/final is generated in separate procedure }
            potype_proginit: ;
            else
-             current_procinfo.procdef.localst.foreach_static({$ifndef TP}@{$endif}finalize_data,list);
+             current_procinfo.procdef.localst.foreach_static({$ifndef TP}@{$endif}finalize_local_vars,list);
         end;
 
         { finalize paras data }
@@ -2091,7 +2146,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.213  2004-08-23 11:00:06  michael
+  Revision 1.214  2004-09-13 20:30:05  peter
+    * finalize all (also procedure local) typedconst at unit finalization
+
+  Revision 1.213  2004/08/23 11:00:06  michael
   + Patch from Peter to fix debuginfo in constructor.
 
   Revision 1.212  2004/07/17 13:14:17  jonas
