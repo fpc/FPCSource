@@ -46,8 +46,6 @@ Coding style:
     you to try to make your changes not look all to different. In general,
     set your IDE to use tab characters, optimal fill on and a tabsize of 4.}
 
-{$I os.inc}
-
 interface
 
 {Link the startup code.}
@@ -165,7 +163,7 @@ end;
 
 {****************************************************************************
 
-                    Miscelleanious related routines.
+                    Miscellaneous related routines.
 
 ****************************************************************************}
 
@@ -752,7 +750,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2000-02-09 16:59:34  peter
+  Revision 1.27  2000-04-07 17:47:34  hajny
+    * got rid of os.inc
+
+  Revision 1.26  2000/02/09 16:59:34  peter
     * truncated log
 
   Revision 1.25  2000/02/09 12:39:11  peter
