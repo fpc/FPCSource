@@ -207,7 +207,7 @@
       class function TObject.ClassNameIs(const name : string) : boolean;
 
         begin
-           ClassNameIs:=ClassName=name;
+           ClassNameIs:=Upcase(ClassName)=Upcase(name);
         end;
 
       class function TObject.InheritsFrom(aclass : TClass) : Boolean;
@@ -405,7 +405,10 @@
 
 {
   $Log$
-  Revision 1.14  2000-02-09 16:59:31  peter
+  Revision 1.15  2000-05-16 08:06:14  michael
+  + Fixed ClassNameIs so it is case insensitive
+
+  Revision 1.14  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.13  2000/01/07 16:41:36  daniel
