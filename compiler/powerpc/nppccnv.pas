@@ -41,8 +41,8 @@ interface
          { procedure second_chararray_to_string;override; }
          { procedure second_char_to_string;override; }
           procedure second_int_to_real;override;
-          procedure second_real_to_real;override;
-          procedure second_cord_to_pointer;override;
+         { procedure second_real_to_real;override; }
+         { procedure second_cord_to_pointer;override; }
          { procedure second_proc_to_procvar;override; }
          { procedure second_bool_to_int;override; }
           procedure second_int_to_bool;override;
@@ -164,7 +164,8 @@ implementation
             if opsize in [OS_64,OS_S64] then
               begin
                 location.registerhigh := getregister32;
-                if (opsize = OS_64) then
+                if (opsize = OS_64) or
+                   not (is_signed(left.resulttype.def)) then
                   cg.a_load_const_reg(exprasmlist,OS_32,0,
                     location.registerhigh)
                 else
@@ -172,8 +173,85 @@ implementation
                   exprasmlist.concat(taicpu.op_reg_reg_const(A_SRAWI,
                     location.registerhigh,location.register,31));
               end;
-          end;
+          end
+        else
+          setlocation(location,left.location);
       end;
+
+
+    procedure tppctypeconvnode.second_int_to_real;
+    
+      type
+        dummyrec = record
+          i: int64;
+        end;
+      var
+        tempconst: trealconstnode;
+        ref: treference;
+        valuereg, tempreg, leftreg, tmpfpureg: tregister;
+      begin
+        { the code here comes from the PowerPC Compiler Writer's Guide }
+        
+        { addis R0,R0,0x4330  # R0 = 0x43300000             }
+        { stw R0,disp(R1)     # store upper half            }
+        { xoris R3,R3,0x8000  # flip sign bit               }
+        { stw R3,disp+4(R1)   # store lower half            }
+        { lfd FR1,disp(R1)    # float load double of value  }
+        { fsub FR1,FR1,FR2    # subtract 0x4330000080000000 }
+        gettempofsizereference(8,ref);
+        { we need a certain constant for the conversion, so create it here }
+        tempconst :=
+          { we need this strange typecast because we want the }
+          { double represented by $4330000080000000, not the  }
+          { double converted from the integer with that value }
+          crealconstnode.create(double(dummyrec($4330000080000000)),
+          pbestrealtype^);
+        resulttypepass(tempconst);
+        firstpass(tempconst);
+        secondpass(tempconst);
+        if tempconst.location.loc <> LOC_MEM then
+          internalerror(200110011);
+
+        case left.location.loc of
+          LOC_REGISTER:
+            begin
+              valuereg := left.location.register;
+              leftreg := valuereg;
+            end;
+          LOC_CREGISTER:
+            begin
+              valuereg := cg.get_scratch_reg(exprasmlist);
+              leftreg := valuereg;
+            end;
+          LOC_REFERENCE,LOC_MEM:
+            begin
+              valuereg := cg.get_scratch_reg(exprasmlist);
+              leftreg := valuereg;
+              cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),
+                left.location.reference,valuereg);
+            end
+          else
+            internalerror(200110012);
+         end;
+         tempreg := cg.get_scratch_reg(exprasmlist);
+         exprasmlist.concat(taicpu.op_reg_const(A_LIS,tempreg,$4330));
+         cg.a_load_reg_ref(exprasmlist,OS_32,tempreg,ref);
+         exprasmlist.concat(taicpu.op_reg_reg_const(A_XORIS,valuereg,
+           leftreg,$8000));
+         inc(ref.offset,4);
+         cg.a_load_reg_ref(exprasmlist,OS_32,valuereg,ref);
+         tmpfpureg := get_scratch_reg_fpu(exprasmlist);
+         exprasmlist.concat(taicpu.op_reg_ref(A_LFD,tmpfpureg,tempconst.location.reference));
+         tempconst.free;
+
+         location.register := getregisterfpu;
+         exprasmlist.concat(taicpu.op_reg_ref(A_LFD,location.register,ref));
+         ungetiftemp(ref);
+         
+         exprasmlist.concat(taicpu.op_reg_reg_reg(A_FSUB,location.register,
+           location.register,tmpfpureg));
+         ungetregister(tmpfpureg);
+       end;
 
 
     procedure tppctypeconvnode.second_int_to_bool;
@@ -231,8 +309,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2001-09-29 21:33:12  jonas
-    + implemented bool_to_int and int_to_int (+ helper in nppcutil)
+  Revision 1.2  2001-10-01 12:17:26  jonas
+    + implemented second_int_to_real
+    * fixed small bug in second_int_to_int
+
+  Revision 1.1  2001/09/29 21:33:12  jonas
+    + implemented in_to_bool and int_to_int (+ helper in nppcutil)
 
 
 }
