@@ -241,6 +241,15 @@ Begin
                            ForcedFull:=True;
                          End	
 		     end;
+          'd','D'  : Begin
+		       If D.Cursor>=D.DirCount Then
+                         Begin
+                           s:=ExpandFileName(D.Directory+D[D.Cursor]);
+		           DeleteFile(S);
+			   D.PopulateList(FileSpec);
+			   ForcedFull:=True;
+			 End;                	 
+		     End;
           #27,'q'  : exitnow:=True;
           ' '      : Begin
                        D.Toggle(D.Cursor);
@@ -291,7 +300,10 @@ End.
 
 {
    $Log$
-   Revision 1.2  2005-04-06 18:45:47  marco
+   Revision 1.3  2005-04-06 20:16:48  marco
+    * deletefile support
+
+   Revision 1.2  2005/04/06 18:45:47  marco
     * editing added
 
    Revision 1.1  2005/04/06 08:54:16  marco

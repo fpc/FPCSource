@@ -419,22 +419,26 @@ End;
   if Reg.OpenKey(ext, false) then
    begin
      Reg.CloseKey;
-     Reg.Free;
+//     Reg.Free;
      Exit('');
    end;
 
   Reg.OpenKey('\'+ext, True);
   S:=Reg.readString('');
-
+  Reg.closekey;
   Reg.OpenKey('\'+S+'\Shell\Open\Command', True);
   Result:=Reg.ReadString('');
+  reg.closekey;
  End;
 {$endif}
 end.
 
 {
   $Log$
-  Revision 1.1  2005-04-06 08:54:16  marco
+  Revision 1.2  2005-04-06 20:16:48  marco
+   * deletefile support
+
+  Revision 1.1  2005/04/06 08:54:16  marco
    * new Unix demo: lister
 
 }
