@@ -471,6 +471,7 @@ begin
      ftWord: Result := TWordField;
      ftBoolean: Result := TBooleanField;
      ftFloat: Result := TFloatField;
+     ftBCD: Result := TBCDField;
      ftDate: Result := TDateField;
      ftTime: Result := TTimeField;
      ftDateTime: Result := TDateTimeField;
@@ -946,6 +947,7 @@ begin
     else
       begin
       SetState(dsBrowse);
+      SetCurrentRecord(FActiverecord);
       resync([]);
       end;
     DoAfterCancel;
@@ -1023,6 +1025,7 @@ begin
 {$ifdef dsdebug}
     writeln ('Delete: Browse mode set');
 {$endif}
+    SetCurrentRecord(FActiverecord);
     Resync([]);
     DoAfterDelete;
     DoAfterScroll;
@@ -1060,7 +1063,8 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
   if FActiveRecord < FRecordCount-1 then
     begin
     TempBuf := FBuffers[FBuffercount];
-    move(FBuffers[FActiveRecord],FBuffers[FActiveRecord+1],(Fbuffercount-FActiveRecord)*sizeof(FBuffers[0]));      FBuffers[FActiveRecord]:=TempBuf;
+    move(FBuffers[FActiveRecord],FBuffers[FActiveRecord+1],(Fbuffercount-FActiveRecord)*sizeof(FBuffers[0]));
+    FBuffers[FActiveRecord]:=TempBuf;
     end
   else
     inc(FActiveRecord);
@@ -1078,7 +1082,7 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
   else
     begin
     fBOF := false;
-    if FRecordcount > 0 then SetBookMarkData(ActiveBuffer,@BookBeforeInsert);
+    if FRecordcount > 0 then SetBookMarkData(ActiveBuffer,pointer(BookBeforeInsert));
     end;
   // update buffer count.
   If FRecordCount<FBufferCount then
@@ -1115,6 +1119,7 @@ begin
   try
     DoOnNewRecord;
   except
+    SetCurrentRecord(FActiverecord);
     resync([]);
     raise;
   end;
@@ -1302,6 +1307,7 @@ begin
     CheckBrowseMode;
     DoBeforeScroll;
     InternalGotoBookMark(ABookMark);
+    SetCurrentRecord(FActiverecord);
     Resync([rmExact,rmCenter]);
     DoAfterScroll;
     end;
@@ -1498,6 +1504,7 @@ begin
     writeln ('Post: Internalpost succeeded');
 {$endif}
     FreeFieldBuffers;
+//    SetCurrentRecord(FActiverecord);
     Resync([]);
     SetState(dsBrowse);
 {$ifdef dsdebug}
@@ -1519,6 +1526,7 @@ begin
   CheckbrowseMode;
   UpdateCursorPos;
   InternalRefresh;
+  SetCurrentRecord(FActiverecord);
   Resync([]);
 end;
 
@@ -1541,7 +1549,7 @@ begin
 {$endif}
 
 // place the cursor of the underlying dataset to the active record
-  SetCurrentRecord(FActiverecord);
+//  SetCurrentRecord(FActiverecord);
 
 // Now look if the data on the current cursor of the underlying dataset is still available
   If GetRecord(Fbuffers[0],gmcurrent,True)<>grOk Then
@@ -1580,7 +1588,7 @@ begin
 // Fill the rest of the buffer
   getnextrecords;
 // If the buffer is not full yet, try to fetch some more prior records
-  if FRecordcount < FBuffercount then getpriorrecords;
+  if FRecordcount < FBuffercount then inc(FActiverecord,getpriorrecords);
 // That's all folks!
   DataEvent(deDatasetChange,0);
 end;
@@ -1713,7 +1721,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  2004-08-23 07:30:19  michael
+  Revision 1.22  2004-08-30 12:02:17  michael
+  + Patch from Joost van der Sluis for Insert/Resync
+
+  Revision 1.21  2004/08/23 07:30:19  michael
   + Fixes from joost van der sluis: tfieldsdefs.tdatafield and size, cancel of only record and dataset.fieldvalyes
 
   Revision 1.20  2004/08/21 21:10:00  michael
