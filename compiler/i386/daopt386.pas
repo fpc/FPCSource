@@ -654,7 +654,8 @@ begin
     RegsEquivalent(r1.base, r2.base, reginfo, opact) and
     RegsEquivalent(r1.index, r2.index, reginfo, opact) and
     (r1.segment = r2.segment) and (r1.scalefactor = r2.scalefactor) and
-    (r1.symbol = r2.symbol);
+    (r1.symbol = r2.symbol) and (r1.refaddr = r2.refaddr) and
+    (r1.relsymbol = r2.relsymbol);
 end;
 
 
@@ -664,7 +665,8 @@ begin
     (r1.offset = r2.offset) and
     (r1.segment = r2.segment) and (r1.base = r2.base) and
     (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
-    (r1.symbol=r2.symbol);
+    (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
+    (r1.relsymbol = r2.relsymbol);
 end;
 
 
@@ -2709,7 +2711,10 @@ end.
 
 {
   $Log$
-  Revision 1.65  2004-02-27 10:21:05  florian
+  Revision 1.66  2004-02-27 19:55:23  jonas
+    * fixed optimizer for new treference fields
+
+  Revision 1.65  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
