@@ -33,7 +33,8 @@ type
   TFarProc = FARPROC;
   TFNDlgProc = FARPROC;
   TFNThreadStartRoutine = FARPROC;
-  TFNTimerAPCRoutine = FARPROC;
+  TFNTimerAPCRoutine    = FARPROC;
+  TFNFiberStartRoutine  = FARPROC;
 
   PObjectTypeList = ^TObjectTypeList;
   _OBJECT_TYPE_LIST = record
@@ -1049,7 +1050,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2003-10-03 20:55:12  florian
+  Revision 1.16  2003-11-06 22:05:06  marco
+   * fixed
+
+  Revision 1.15  2003/10/03 20:55:12  florian
     + added some language related stuff
 
   Revision 1.14  2003/04/07 18:28:53  armin
