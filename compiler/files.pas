@@ -668,7 +668,7 @@ unit files;
            exit;
          end;
       { check for allowed PPU versions }
-        if not (ppufile^.GetPPUVersion in [15]) then
+        if not (ppufile^.GetPPUVersion = 15) then
          begin
            dispose(ppufile,done);
            Message1(unit_u_ppu_invalid_version,tostr(ppufile^.GetPPUVersion));
@@ -1053,7 +1053,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.76  1998-12-01 12:51:19  peter
+  Revision 1.77  1998-12-02 16:23:37  jonas
+    * changed "if longintvar in set" to case or "if () or () .." statements
+    * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
+
+  Revision 1.76  1998/12/01 12:51:19  peter
     * fixed placing of ppas.sh and link.res when using -FE
 
   Revision 1.75  1998/11/16 15:41:40  peter

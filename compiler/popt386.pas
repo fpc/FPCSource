@@ -263,13 +263,14 @@ Begin
                        (Pai386(hp1)^.size = Pai386(p)^.size) And
                        (Pai386(hp1)^.op1t = top_ref) And
                        RefsEqual(TReference(Pai386(p)^.Op1^), TReference(Pai386(hp1)^.Op1^)) Then
-                      If (Pai386(hp2)^._operator in [A_FMULP, A_FADDP]) Then
+                      If ((Pai386(hp2)^._operator = A_FMULP) Or
+                          (Pai386(hp2)^._operator = A_FADDP)) Then
 
                       { change                      to
-                          fld/fst   mem1              fld/fst   mem1
-                          fld       mem1              fadd/
+                          fld/fst   mem1  (hp1)       fld/fst   mem1
+                          fld       mem1  (p)         fadd/
                           faddp/                       fmul     st, st
-                           fmulp  st, st1 }
+                           fmulp  st, st1 (hp2) }
                         Begin
                           AsmL^.Remove(p);
                           Dispose(p, Done);
@@ -281,8 +282,8 @@ Begin
                         End
                       Else
                       { change              to
-                          fld/fst mem1         fld/fst mem1
-                          fld      mem1         fld      st}
+                          fld/fst mem1 (hp1)   fld/fst mem1
+                          fld     mem1 (p)     fld      st}
                         Begin
                           Pai386(p)^.Size := S_FL;
                           Clear_Reference(TReference(Pai386(p)^.Op1^));
@@ -291,24 +292,26 @@ Begin
                         End
                     Else
                       Begin
-                        If (Pai386(hp2)^._operator in [A_FMULP, A_FADDP, A_FSUBP, A_FDIVP, A_FSUBRP, A_FDIVRP]) Then
+                        Case Pai386(hp2)^._operator Of
+                          A_FMULP,A_FADDP,A_FSUBP,A_FDIVP,A_FSUBRP,A_FDIVRP:
                      { change                        to
                          fld/fst  mem1    (hp1)      fld/fst    mem1
                          fld      mem2    (p)        fxxx       mem2
                          fxxxp    st, st1 (hp2)                      }
 
-                          Begin
-                            Case Pai386(hp2)^._operator Of
-                              A_FADDP: Pai386(p)^._operator := A_FADD;
-                              A_FMULP: Pai386(p)^._operator := A_FMUL;
-                              A_FSUBP: Pai386(p)^._operator := A_FSUBR;
-                              A_FSUBRP: Pai386(p)^._operator := A_FSUB;
-                              A_FDIVP: Pai386(p)^._operator := A_FDIVR;
-                              A_FDIVRP: Pai386(p)^._operator := A_FDIV;
-                            End;
-                            AsmL^.Remove(hp2);
-                            Dispose(hp2, Done)
-                          End
+                            Begin
+                              Case Pai386(hp2)^._operator Of
+                                A_FADDP: Pai386(p)^._operator := A_FADD;
+                                A_FMULP: Pai386(p)^._operator := A_FMUL;
+                                A_FSUBP: Pai386(p)^._operator := A_FSUBR;
+                                A_FSUBRP: Pai386(p)^._operator := A_FSUB;
+                                A_FDIVP: Pai386(p)^._operator := A_FDIVR;
+                                A_FDIVRP: Pai386(p)^._operator := A_FDIV;
+                              End;
+                              AsmL^.Remove(hp2);
+                              Dispose(hp2, Done)
+                            End
+                        End
                       End
                 End;
               A_FSTP:
@@ -1296,7 +1299,8 @@ Begin
                      GetNextInstruction(p, hp1) And
                      GetNextInstruction(hp1, hp2) And
                      (hp2^.typ = ait_instruction) And
-                     (Pai386(hp2)^._operator in [A_LEAVE,A_RET]) And
+                     ((Pai386(hp2)^._operator = A_LEAVE) or
+                      (Pai386(hp2)^._operator = A_RET])) And
                      (TReference(Pai386(p)^.Op1^).Base = ProcInfo.FramePointer) And
                      (TReference(Pai386(p)^.Op1^).Index = R_NO) And
                      (TReference(Pai386(p)^.Op1^).Offset >= ProcInfo.RetOffset) And
@@ -1327,7 +1331,8 @@ Begin
                         While Assigned(hp1) And
                               (Pai(hp1)^.typ In [ait_instruction]+SkipInstr) And
                                Not((Pai(hp1)^.typ = ait_instruction) And
-                                   ((Pai386(hp1)^._operator in [A_CALL,A_PUSH]) or
+                                   ((Pai386(hp1)^._operator = A_CALL) or
+                                    (Pai386(hp1)^._operator = A_PUSH) or
                                     ((Pai386(hp1)^._operator = A_MOV) And
                                      (Pai386(hp1)^.op2t = top_ref) And
                                      (TReference(Pai386(hp1)^.op2^).base = R_ESP)))) do
@@ -1530,7 +1535,11 @@ End.
 
 {
  $Log$
- Revision 1.24  1998-11-26 15:41:45  jonas
+ Revision 1.25  1998-12-02 16:23:29  jonas
+   * changed "if longintvar in set" to case or "if () or () .." statements
+   * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
+
+ Revision 1.24  1998/11/26 15:41:45  jonas
    + change "setxx mem; movb mem, reg8" to "setxx reg8" if mem is a local
      variable/parameter or function result (between {$ifdef ver0_99_11})
 

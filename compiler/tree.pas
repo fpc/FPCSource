@@ -248,7 +248,7 @@ unit tree;
              stringconstn : (value_str : pchar;length : longint; lab_str : plabel;stringtype : tstringtype);
              typeconvn : (convtyp : tconverttype;explizit : boolean);
              typen : (typenodetype : pdef);
-             inlinen : (inlinenumber : longint;inlineconst:boolean);
+             inlinen : (inlinenumber : byte;inlineconst:boolean);
              procinlinen : (inlineprocdef : pprocdef;
                             retoffset,para_offset,para_size : longint);
              setconstn : (value_set : pconstset;lab_set:plabel);
@@ -284,7 +284,7 @@ unit tree;
     function getpcharcopy(p : ptree) : pchar;
 
     function genzeronode(t : ttreetyp) : ptree;
-    function geninlinenode(number : longint;is_const:boolean;l : ptree) : ptree;
+    function geninlinenode(number : byte;is_const:boolean;l : ptree) : ptree;
     function genprocinlinenode(callp,code : ptree) : ptree;
     function gentypedconstloadnode(sym : ptypedconstsym;st : psymtable) : ptree;
     function genenumnode(v : penumsym) : ptree;
@@ -1152,7 +1152,7 @@ unit tree;
          genselfnode:=p;
       end;
 
-   function geninlinenode(number : longint;is_const:boolean;l : ptree) : ptree;
+   function geninlinenode(number : byte;is_const:boolean;l : ptree) : ptree;
 
       var
          p : ptree;
@@ -1652,7 +1652,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.55  1998-11-29 12:40:20  peter
+  Revision 1.56  1998-12-02 16:23:32  jonas
+    * changed "if longintvar in set" to case or "if () or () .." statements
+    * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
+
+  Revision 1.55  1998/11/29 12:40:20  peter
     * newcnv -> not oldcnv
 
   Revision 1.54  1998/11/26 13:10:44  peter

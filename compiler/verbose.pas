@@ -332,7 +332,7 @@ begin
   if idx=0 then
    v:=V_Normal
   else
-   if (idx in [1..5]) then
+   if (idx >= 1) And (idx <= 5) then
     begin
       for i:=1 to idx do
        begin
@@ -429,7 +429,11 @@ end.
 
 {
   $Log$
-  Revision 1.29  1998-11-26 13:08:19  peter
+  Revision 1.30  1998-12-02 16:23:38  jonas
+    * changed "if longintvar in set" to case or "if () or () .." statements
+    * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
+
+  Revision 1.29  1998/11/26 13:08:19  peter
     * update status also for internalerrors
 
   Revision 1.28  1998/11/06 09:45:41  pierre

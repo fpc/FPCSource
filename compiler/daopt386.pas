@@ -1172,7 +1172,9 @@ Begin
         (Counter <= Content.NrOfMods) Do
     Begin
       If (p^.typ = ait_instruction) and
-         (Pai386(p)^._operator in [A_MOV, A_MOVZX, A_MOVSX])
+         ((Pai386(p)^._operator = A_MOV) or
+          (Pai386(p)^._operator = A_MOVZX) or
+          (Pai386(p)^._operator = A_MOVSX))
         Then
           If (Pai386(p)^.op1t = top_ref)
             Then
@@ -1299,7 +1301,9 @@ Begin {checks whether two Pai386 instructions are equal}
     Then
  {both instructions have the same structure:
   "<operator> <operand of type1>, <operand of type 2>"}
-      If (Pai386(p1)^._operator in [A_MOV, A_MOVZX, A_MOVSX]) And
+      If ((Pai386(p1)^._operator = A_MOV) or
+          (Pai386(p1)^._operator = A_MOVZX) or
+          (Pai386(p1)^._operator = A_MOVSX)) And
          (Pai386(p1)^.op1t = top_ref) {then op2t = top_reg} Then
         If Not(RegInRef(TRegister(Pai386(p1)^.op2), TReference(Pai386(p1)^.op1^))) Then
  {the "old" instruction is a load of a register with a new value, not with
@@ -2081,7 +2085,11 @@ End.
 
 {
  $Log$
- Revision 1.29  1998-11-26 21:45:31  jonas
+ Revision 1.30  1998-12-02 16:23:39  jonas
+   * changed "if longintvar in set" to case or "if () or () .." statements
+   * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
+
+ Revision 1.29  1998/11/26 21:45:31  jonas
    - removed A_CLTD opcode (use A_CDQ instead)
    * changed cbw, cwde and cwd to cbtw, cwtl and cwtd in att_op2str array
    * in daopt386: adapted AsmInstr array to reflect changes + fixed line too long

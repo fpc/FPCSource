@@ -109,12 +109,14 @@ Begin {CheckSequence}
 (*              If ((Found+1) = OldNrOfMods) And
               Assigned(hp2) And
               (Pai(hp2)^.typ = ait_instruction) And
-              (Pai386(hp2)^._operator In [A_MOV, A_MOVZX]) And
+              ((Pai386(hp2)^._operator = A_MOV) or
+               (Pai386(p1)^._operator = A_MOVZX)) And
               (Pai386(hp2)^.op1t = top_ref) And
               (Pai386(hp2)^.op2t = top_reg) And
               Assigned(hp3) And
               (Pai(hp3)^.typ = ait_instruction) And
-              (Pai386(hp3)^._operator In [A_MOV, A_MOVZX]) And
+              ((Pai386(hp3)^._operator = A_MOV) or
+               (Pai386(hp3)^._operator = A_MOVZX)) And
               (Pai386(hp3)^.op1t = top_ref) And
               (Pai386(hp3)^.op2t = top_reg) And
                (Pai386(hp2)^._operator <> Pai386(hp3)^._operator) And
@@ -552,7 +554,11 @@ End.
 
 {
  $Log$
- Revision 1.15  1998-11-24 19:47:24  jonas
+ Revision 1.16  1998-12-02 16:23:31  jonas
+   * changed "if longintvar in set" to case or "if () or () .." statements
+   * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
+
+ Revision 1.15  1998/11/24 19:47:24  jonas
    * fixed problems posiible with 3 operand instructions
 
  Revision 1.14  1998/11/09 19:40:48  jonas

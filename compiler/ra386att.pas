@@ -977,62 +977,56 @@ const
       { if we have A_MOVZX/A_MOVSX here, there is a big problem }
       { it should never happen, because it is already replaced  }
       { by ConcatOpcode!                                        }
-      if (instruc in [A_MOVZX,A_MOVSX]) then
-       Message(assem_f_internal_error_in_handleextend)
-      else
-      if (instruc = A_MOVSB) or (instruc = A_MOVSBL) then
-        Begin
-           instruc := A_MOVSX;
-           { Indirect memory reference with register        }
-           { no size determined, therefore we determine it  }
-           { with the suffix.                               }
-           if instr.operands[1].size = S_NO then
-              instr.operands[1].size := S_B;
-        end
-      else
-      if (instruc = A_MOVSBW) then
-        Begin
-           instruc := A_MOVSX;
-           { Indirect memory reference with register        }
-           { no size determined, therefore we determine it  }
-           { with the suffix.                               }
-           if instr.operands[1].size = S_NO then
-              instr.operands[1].size := S_B;
-        end
-      else
-      if (instruc = A_MOVSWL) then
-        Begin
-           instruc := A_MOVSX;
-           { Indirect memory reference with register        }
-           { no size determined, therefore we determine it  }
-           { with the suffix.                               }
-           if instr.operands[1].size = S_NO then
-              instr.operands[1].size := S_W;
-        end
-      else
-      if (instruc = A_MOVZB) then
-        Begin
-          instruc := A_MOVZX;
-           { Indirect memory reference with register        }
-           { no size determined, therefore we determine it  }
-           { with the suffix.                               }
-           if instr.operands[1].size = S_NO then
-              instr.operands[1].size := S_B;
-        end
-      else
-      if (instruc = A_MOVZWL) then
-        Begin
-          instruc := A_MOVZX;
-           { Indirect memory reference with register        }
-           { no size determined, therefore we determine it  }
-           { with the suffix.                               }
-           if instr.operands[1].size = S_NO then
-              instr.operands[1].size := S_W;
-        end;
+      Case instruc of
+        A_MOVZX,A_MOVSX: Message(assem_f_internal_error_in_handleextend);
+        A_MOVSB, A_MOVSBL:
+          Begin
+             instruc := A_MOVSX;
+             { Indirect memory reference with register        }
+             { no size determined, therefore we determine it  }
+             { with the suffix.                               }
+             if instr.operands[1].size = S_NO then
+                instr.operands[1].size := S_B;
+          end;
+        A_MOVSBW:
+          Begin
+             instruc := A_MOVSX;
+             { Indirect memory reference with register        }
+             { no size determined, therefore we determine it  }
+             { with the suffix.                               }
+             if instr.operands[1].size = S_NO then
+                instr.operands[1].size := S_B;
+          end;
+        A_MOVSWL:
+          Begin
+            instruc := A_MOVSX;
+            { Indirect memory reference with register        }
+            { no size determined, therefore we determine it  }
+            { with the suffix.                               }
+            if instr.operands[1].size = S_NO then
+               instr.operands[1].size := S_W;
+          end;
+        A_MOVZB:
+          Begin
+            instruc := A_MOVZX;
+             { Indirect memory reference with register        }
+             { no size determined, therefore we determine it  }
+             { with the suffix.                               }
+             if instr.operands[1].size = S_NO then
+                instr.operands[1].size := S_B;
+          end;
+        A_MOVZWL:
+          Begin
+            instruc := A_MOVZX;
+             { Indirect memory reference with register        }
+             { no size determined, therefore we determine it  }
+             { with the suffix.                               }
+             if instr.operands[1].size = S_NO then
+                instr.operands[1].size := S_W;
+          end;
+      End;
 
-
-
-     With instr do
+      With instr do
          Begin
            if operands[1].size = S_B then
            Begin
@@ -1110,14 +1104,16 @@ const
     { setup specific instructions for first pass }
     instruc := instr.getinstruction;
 
-    if (instruc in [A_LEA,A_LDS,A_LSS,A_LES,A_LFS,A_LGS]) then
-    Begin
-       if instr.operands[2].size <> S_L then
-       Begin
-         Message(assem_e_16bit_base_in_32bit_segment);
-         exit;
-       end; { endif }
-    end;
+    Case instruc Of
+      A_LEA,A_LDS,A_LSS,A_LES,A_LFS,A_LGS:
+        Begin
+          if instr.operands[2].size <> S_L then
+            Begin
+              Message(assem_e_16bit_base_in_32bit_segment);
+              exit;
+            end; { endif }
+        end;
+    End;
 
     With instr do
     Begin
@@ -1125,455 +1121,450 @@ const
 
       for i:=1 to numops do
       Begin
-         With operands[i] do
-         Begin
-         { check for 16-bit bases/indexes and emit an error.   }
-         { we cannot only emit a warning since gas does not    }
-         { accept 16-bit indexes and bases.                    }
-          if (operandtype = OPR_REFERENCE) and
-            ((ref.base <> R_NO) or
-            (ref.index <> R_NO)) then
-            Begin
-            { index or base defined. }
-              if (ref.base <> R_NO) then
+        With operands[i] do
+        Begin
+        { check for 16-bit bases/indexes and emit an error.   }
+        { we cannot only emit a warning since gas does not    }
+        { accept 16-bit indexes and bases.                    }
+         if (operandtype = OPR_REFERENCE) and
+           ((ref.base <> R_NO) or
+           (ref.index <> R_NO)) then
+           Begin
+           { index or base defined. }
+             if (ref.base <> R_NO) then
+             Begin
+               if not (ref.base in
+                 [R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESI,R_EDI,R_ESP]) then
+                   Message(assem_e_16bit_base_in_32bit_segment);
+             end;
+           { index or base defined. }
+             if (ref.index <> R_NO) then
+             Begin
+                 if not (ref.index in
+                   [R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESI,R_EDI,R_ESP]) then
+                  Message(assem_e_16bit_index_in_32bit_segment);
+             end;
+           end;
+           { Check for constants without bases/indexes in memory }
+           { references.                                         }
+           if (operandtype = OPR_REFERENCE) and
+              (ref.base = R_NO) and
+              (ref.index = R_NO) and
+              (ref.symbol = nil) and
+              (ref.offset <> 0) then
               Begin
-                if not (ref.base in
-                  [R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESI,R_EDI,R_ESP]) then
-                    Message(assem_e_16bit_base_in_32bit_segment);
+                ref.isintvalue := TRUE;
+                Message(assem_e_const_ref_not_allowed);
               end;
-            { index or base defined. }
-              if (ref.index <> R_NO) then
-              Begin
-                  if not (ref.index in
-                    [R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESI,R_EDI,R_ESP]) then
-                    Message(assem_e_16bit_index_in_32bit_segment);
-              end;
-            end;
-            { Check for constants without bases/indexes in memory }
-            { references.                                         }
-            if (operandtype = OPR_REFERENCE) and
-               (ref.base = R_NO) and
-               (ref.index = R_NO) and
-               (ref.symbol = nil) and
-               (ref.offset <> 0) then
-               Begin
-                 ref.isintvalue := TRUE;
-                 Message(assem_e_const_ref_not_allowed);
-               end;
-
               opinfo := findtype(operands[i]);
-
           end; { end with }
-      end; {endfor}
+     end; {endfor}
 
 
-
-
-       { TAKE CARE OF SPECIAL OPCODES, TAKE CARE OF THEM INDIVUALLY.    }
-       { ALL THE REST ARE TAKEN CARE BY OPCODE TABLE AND THIRD PASS.    }
-       { is this right for ratti386 ? (PM) }
-       { almost... here we check for the size of registers and references }
-       { to determine the correct gas opcode to use, because if the token }
-       { is A_MOVSX or A_MOVZX then that means that the person forgot to  }
-       { specify the size..                                               }
-       { if memory size is not specified, will of course give out an error}
-       if instruc = A_MOVSX then
-       Begin
-         if numops = 2 then
-         begin
-           if stropsize = S_BL then
-           begin
-               operands[1].size := S_B;
-               stropsize := S_NO;
-               operands[2].size := S_L;
-               addinstr(A_MOVSBL)
-           end
-           else
-           if stropsize = S_WL then
-           begin
-               operands[1].size := S_W;
-               stropsize := S_NO;
-               operands[2].size := S_L;
-               addinstr(A_MOVSWL)
-           end
-           else
-           if stropsize = S_BW then
-           begin
-               operands[1].size := S_B;
-               stropsize := S_NO;
-               operands[2].size := S_W;
-               addinstr(A_MOVSBW)
-           end
-           else
-           if (operands[1].size = S_B) and (operands[2].size = S_W) then
-               addinstr(A_MOVSBW)
-           else
-           if (operands[1].size = S_B) and (operands[2].size = S_L) then
-               addinstr(A_MOVSBL)
-           else
-           if (operands[1].size = S_W) and (operands[2].size = S_L) then
-               addinstr(A_MOVSWL)
-           else
-           begin
-             Message(assem_e_invalid_size_movzx);
-             exit;
-           end;
-           instruc := getinstruction; { reload instruction }
-         end
-         else
-         begin
-           Message(assem_e_too_many_operands);
-           exit;
-         end;
-       end
-       else
-       if instruc = A_MOVZX then
-       Begin
-         if numops = 2 then
-         Begin
-           if stropsize = S_BW then
-           begin
-               operands[1].size := S_B;
-               stropsize := S_NO;
-               operands[2].size := S_W;
-               addinstr(A_MOVZB)
-           end
-           else
-           if stropsize = S_BL then
-           begin
-               operands[1].size := S_B;
-               stropsize := S_NO;
-               operands[2].size := S_L;
-               addinstr(A_MOVZB)
-           end
-           else
-           if stropsize = S_WL then
-           begin
-               operands[1].size := S_W;
-               stropsize := S_NO;
-               operands[2].size := S_L;
-               addinstr(A_MOVZWL)
-           end
-           else
-           { change the instruction to conform to GAS }
-           if (operands[1].size = S_B) and (operands[2].size in [S_W,S_L]) then
-               addinstr(A_MOVZB)
-           else
-           if (operands[1].size = S_W) and (operands[2].size = S_L) then
-               addinstr(A_MOVZWL)
-           else
-           begin
-             Message(assem_e_invalid_size_movzx);
-             exit;
-           end;
-           instruc := getinstruction;  { reload instruction }
-         end
-         else
-         Begin
-           Message(assem_e_too_many_operands);
-           exit;
-         end;
-       end
-       else
-       if instruc = A_FWAIT then
-        FWaitWarning
-       else
-       if (instruc in [A_BT,A_BTC,A_BTR,A_BTS]) then
-       Begin
-          if numops = 2 then
-            Begin
-                if (operands[1].operandtype = OPR_CONSTANT)
-                and (operands[1].val <= $ff) then
-                  Begin
-                     operands[1].opinfo := ao_imm8;
-                     { no operand size if using constant. }
-                     operands[1].size := S_NO;
-                     fits := TRUE;
+      { TAKE CARE OF SPECIAL OPCODES, TAKE CARE OF THEM INDIVUALLY.    }
+      { ALL THE REST ARE TAKEN CARE BY OPCODE TABLE AND THIRD PASS.    }
+      { is this right for ratti386 ? (PM) }
+      { almost... here we check for the size of registers and references }
+      { to determine the correct gas opcode to use, because if the token }
+      { is A_MOVSX or A_MOVZX then that means that the person forgot to  }
+      { specify the size..                                               }
+      { if memory size is not specified, will of course give out an error}
+      Case instruc Of
+        A_MOVSX:
+          Begin
+            if numops = 2 then
+              begin
+                if stropsize = S_BL then
+                  begin
+                    operands[1].size := S_B;
+                    stropsize := S_NO;
+                    operands[2].size := S_L;
+                    addinstr(A_MOVSBL)
                   end
-            end
-          else
-            Begin
-                Message(assem_e_invalid_opcode_and_operand);
-                exit;
-            end;
-       end
-       else
-       if instruc = A_ENTER then
-       Begin
-          if numops =2 then
-            Begin
-               if (operands[1].operandtype = OPR_CONSTANT) and
-                  (operands[1].val <= $ffff) then
-                  Begin
-                     operands[1].opinfo := ao_imm16;
-                  end  { endif }
-            end { endif }
-          else
-            Begin
-                Message(assem_e_invalid_opcode_and_operand);
-                exit;
-            end
-       end { endif }
-       else
-     {  Handle special opcodes for the opcode   }
-     {  table. Set them up correctly.           }
-       if (instruc in [A_INS,A_IN]) then
-       Begin
-          if numops =2 then
-            Begin
-              if (operands[1].operandtype = OPR_REGISTER) and (operands[1].reg = R_DX)
-               then
-               Begin
-                  operands[1].opinfo := ao_inoutportreg;
-                  if (operands[2].operandtype = OPR_REGISTER) and
-                    (operands[2].reg in [R_EAX,R_AX,R_AL]) and
-                    (instruc = A_IN) then
-                    Begin
-                       operands[2].opinfo := ao_acc;
-                       case operands[2].reg of
-                         R_EAX: operands[2].size := S_L;
-                         R_AX:  operands[2].size := S_W;
-                         R_AL:  operands[2].size := S_B;
-                       end;
+                else
+                  if stropsize = S_WL then
+                    begin
+                      operands[1].size := S_W;
+                      stropsize := S_NO;
+                      operands[2].size := S_L;
+                      addinstr(A_MOVSWL)
                     end
-               end
-              else
-              if (operands[1].operandtype = OPR_CONSTANT) and (operands[1].val <= $ff)
-                and (instruc = A_IN) then
-                Begin
-                  operands[1].opinfo := ao_imm8;
-                  operands[1].size := S_B;
-                 if (operands[2].operandtype = OPR_REGISTER) and
-                    (operands[2].reg in [R_EAX,R_AX,R_AL]) and
-                    (instruc = A_IN) then
-                    Begin
-                       operands[2].opinfo := ao_acc;
-                    end
-                end;
-            end
-          else
-            Begin
-              Message(assem_e_invalid_opcode_and_operand);
-              exit;
-            end;
-       end
-       else
-       if (instruc in [A_OUTS,A_OUT]) then
-       Begin
-          if numops =2 then
-            Begin
-              if (operands[2].operandtype = OPR_REGISTER) and (operands[2].reg = R_DX)
-               then
-               Begin
-                  operands[2].opinfo := ao_inoutportreg;
-                  if (operands[1].operandtype = OPR_REGISTER) and
-                     (operands[1].reg in [R_EAX,R_AX,R_AL]) and
-                     (instruc = A_OUT) then
-                     Begin
-                       operands[1].opinfo := ao_acc;
-                       fits := TRUE;
-                     end
-               end
-              else
-              if (operands[2].operandtype = OPR_CONSTANT) and (operands[2].val <= $ff)
-                and (instruc = A_OUT) then
-                Begin
-                  operands[2].opinfo := ao_imm8;
-                  operands[2].size := S_B;
-                  if (operands[1].operandtype = OPR_REGISTER) and
-                     (operands[1].reg in [R_EAX,R_AX,R_AL]) and
-                     (instruc = A_OUT) then
-                     Begin
-                       operands[1].opinfo := ao_acc;
-                       fits := TRUE;
-                     end
-                end;
-            end
-          else
-            Begin
-              Message(assem_e_invalid_opcode_and_operand);
-              exit;
-            end;
-       end
-       else
-       if instruc in [A_RCL,A_RCR,A_ROL,A_ROR,A_SAL,A_SAR,A_SHL,A_SHR] then
-       { if RCL,ROL,... }
-       Begin
-          if numops =2 then
-            Begin
-              if (operands[1].operandtype = OPR_REGISTER) and (operands[1].reg = R_CL)
-              then
-              Begin
-                operands[1].opinfo := ao_shiftcount
+                  else
+                    if stropsize = S_BW then
+                      begin
+                        operands[1].size := S_B;
+                        stropsize := S_NO;
+                        operands[2].size := S_W;
+                        addinstr(A_MOVSBW)
+                      end
+                    else
+                      if (operands[1].size = S_B) and
+                         (operands[2].size = S_W) then
+                        addinstr(A_MOVSBW)
+                      else
+                        if (operands[1].size = S_B) and
+                           (operands[2].size = S_L) then
+                          addinstr(A_MOVSBL)
+                        else
+                          if (operands[1].size = S_W) and
+                             (operands[2].size = S_L) then
+                            addinstr(A_MOVSWL)
+                          else
+                            begin
+                              Message(assem_e_invalid_size_movzx);
+                              exit;
+                            end;
+                instruc := getinstruction; { reload instruction }
               end
-              else
-              if (operands[1].operandtype = OPR_CONSTANT) and
-                (operands[1].val <= $ff) then
-                Begin
-                   operands[1].opinfo := ao_imm8;
-                   operands[1].size := S_B;
-                end;
-            end
-          else { if numops = 2 }
-            Begin
+            else
+              begin
+                Message(assem_e_too_many_operands);
+                exit;
+              end;
+          end;
+        A_MOVZX:
+          Begin
+            if numops = 2 then
+              Begin
+                if stropsize = S_BW then
+                  begin
+                    operands[1].size := S_B;
+                    stropsize := S_NO;
+                    operands[2].size := S_W;
+                    addinstr(A_MOVZB)
+                  end
+                else
+                  if stropsize = S_BL then
+                    begin
+                      operands[1].size := S_B;
+                      stropsize := S_NO;
+                      operands[2].size := S_L;
+                      addinstr(A_MOVZB)
+                    end
+                  else
+                    if stropsize = S_WL then
+                      begin
+                        operands[1].size := S_W;
+                        stropsize := S_NO;
+                        operands[2].size := S_L;
+                        addinstr(A_MOVZWL)
+                      end
+                    else
+          { change the instruction to conform to GAS }
+                      if (operands[1].size = S_B) and
+                         (operands[2].size in [S_W,S_L]) then
+                        addinstr(A_MOVZB)
+                      else
+                        if (operands[1].size = S_W) and
+                           (operands[2].size = S_L) then
+                          addinstr(A_MOVZWL)
+                        else
+                          begin
+                            Message(assem_e_invalid_size_movzx);
+                            exit;
+                          end;
+                instruc := getinstruction;  { reload instruction }
+              end
+            else
+              Begin
+                Message(assem_e_too_many_operands);
+                exit;
+              end;
+          end;
+        A_FWAIT: FWaitWarning;
+        A_BT,A_BTC,A_BTR,A_BTS:
+          Begin
+            if numops = 2 then
+              Begin
+                if (operands[1].operandtype = OPR_CONSTANT)
+                   and (operands[1].val <= $ff) then
+                  Begin
+                    operands[1].opinfo := ao_imm8;
+                    { no operand size if using constant. }
+                    operands[1].size := S_NO;
+                    fits := TRUE;
+                  end
+              end
+            else
+              Begin
                 Message(assem_e_invalid_opcode_and_operand);
                 exit;
-            end;
-       end
-       { endif ROL,RCL ... }
-       else
-       { this did not work  (PM) }
-       if instruc in [A_DIV, A_IDIV] then
-       Begin
-          if (operands[2].operandtype = OPR_REGISTER) and
-            (operands[2].reg in [R_AL,R_AX,R_EAX]) then
-                operands[2].opinfo := ao_acc;
-       end
-       else
-       if (instruc = A_FNSTSW) or (instruc = A_FSTSW) then
-       Begin
-         { %ax can be omitted in ATT syntax }
-          if numops = 0 then
-            Begin
-               numops:=1;
-               operands[1].operandtype:=OPR_REGISTER;
-               operands[1].reg:=R_AX;
-               operands[1].opinfo := ao_acc;
-            end
-          else if numops = 1 then
-            Begin
-                if (operands[1].operandtype = OPR_REGISTER) and
-                  (operands[1].reg = R_AX) then
-                 operands[1].opinfo := ao_acc;
-            end
-          else
-            Begin
-              Message(assem_e_invalid_opcode_and_operand);
-              exit;
-            end;
-       end
-       else
-       if (instruc = A_SHLD) or (instruc = A_SHRD) then
-       { these instruction are fully parsed individually on pass three }
-       { so we just do a summary checking here.                        }
-       Begin
-          if numops = 3 then
-            Begin
-                if (operands[3].operandtype = OPR_CONSTANT)
-                and (operands[3].val <= $ff) then
-                Begin
-                   operands[3].opinfo := ao_imm8;
-                   operands[3].size := S_B;
-                end;
-            end
-          else
-            Begin
-                Message(assem_e_invalid_opcode_and_operand);
-                exit;
-            end;
-       end
-       else
-       if instruc = A_INT then
-       Begin
-          if numops = 1 then
-            Begin
-               if (operands[1].operandtype = OPR_CONSTANT) and
-                 (operands[1].val <= $ff) then
-                      operands[1].opinfo := ao_imm8;
-            end
-       end
-       else
-       if instruc = A_RET then
-       Begin
-          if numops =1 then
-            Begin
-               if (operands[1].operandtype = OPR_CONSTANT) and
-                  (operands[1].val <= $ffff) then
+              end;
+          end;
+        A_ENTER:
+          Begin
+            if numops =2 then
+              Begin
+                if (operands[1].operandtype = OPR_CONSTANT) and
+                   (operands[1].val <= $ffff) then
+                  Begin
                     operands[1].opinfo := ao_imm16;
-            end
-       end; { endif }
-
+                  end  { endif }
+              end { endif }
+            else
+              Begin
+                Message(assem_e_invalid_opcode_and_operand);
+                exit;
+              end
+          end;
+    {  Handle special opcodes for the opcode   }
+    {  table. Set them up correctly.           }
+        A_INS,A_IN:
+          Begin
+            if numops =2 then
+              Begin
+                if (operands[1].operandtype = OPR_REGISTER) and
+                   (operands[1].reg = R_DX) then
+                  Begin
+                    operands[1].opinfo := ao_inoutportreg;
+                    if (operands[2].operandtype = OPR_REGISTER) and
+                       (operands[2].reg in [R_EAX,R_AX,R_AL]) and
+                       (instruc = A_IN) then
+                      Begin
+                        operands[2].opinfo := ao_acc;
+                        case operands[2].reg of
+                          R_EAX: operands[2].size := S_L;
+                          R_AX:  operands[2].size := S_W;
+                          R_AL:  operands[2].size := S_B;
+                        end;
+                      end
+                  end
+                else
+                  if (operands[1].operandtype = OPR_CONSTANT) and
+                     (operands[1].val <= $ff) And
+                     (instruc = A_IN) then
+                    Begin
+                      operands[1].opinfo := ao_imm8;
+                      operands[1].size := S_B;
+                      if (operands[2].operandtype = OPR_REGISTER) and
+                         (operands[2].reg in [R_EAX,R_AX,R_AL]) and
+                         (instruc = A_IN) then
+                        Begin
+                          operands[2].opinfo := ao_acc;
+                        end
+                    end;
+              end
+            else
+              Begin
+                Message(assem_e_invalid_opcode_and_operand);
+                exit;
+              end;
+          end;
+        A_OUTS,A_OUT:
+          Begin
+            if numops =2 then
+              Begin
+                if (operands[2].operandtype = OPR_REGISTER) and
+                   (operands[2].reg = R_DX) then
+                  Begin
+                    operands[2].opinfo := ao_inoutportreg;
+                    if (operands[1].operandtype = OPR_REGISTER) and
+                       (operands[1].reg in [R_EAX,R_AX,R_AL]) and
+                       (instruc = A_OUT) then
+                      Begin
+                        operands[1].opinfo := ao_acc;
+                        fits := TRUE;
+                      end
+                  end
+                else
+                  if (operands[2].operandtype = OPR_CONSTANT) and
+                     (operands[2].val <= $ff) and
+                     (instruc = A_OUT) then
+                    Begin
+                      operands[2].opinfo := ao_imm8;
+                      operands[2].size := S_B;
+                      if (operands[1].operandtype = OPR_REGISTER) and
+                         (operands[1].reg in [R_EAX,R_AX,R_AL]) and
+                         (instruc = A_OUT) then
+                        Begin
+                          operands[1].opinfo := ao_acc;
+                          fits := TRUE;
+                        end
+                    end;
+              end
+            else
+              Begin
+                Message(assem_e_invalid_opcode_and_operand);
+                exit;
+              end;
+          end;
+        A_RCL,A_RCR,A_ROL,A_ROR,A_SAL,A_SAR,A_SHL,A_SHR:
+          Begin
+            if numops =2 then
+              Begin
+                if (operands[1].operandtype = OPR_REGISTER) and
+                   (operands[1].reg = R_CL) then
+                  Begin
+                    operands[1].opinfo := ao_shiftcount
+                  end
+                else
+                  if (operands[1].operandtype = OPR_CONSTANT) and
+                     (operands[1].val <= $ff) then
+                    Begin
+                      operands[1].opinfo := ao_imm8;
+                      operands[1].size := S_B;
+                    end;
+              end
+            else { if numops = 2 }
+              Begin
+                Message(assem_e_invalid_opcode_and_operand);
+                exit;
+              end;
+          end;
+      { this did not work  (PM) }
+        A_DIV, A_IDIV:
+          Begin
+            if (operands[2].operandtype = OPR_REGISTER) and
+               (operands[2].reg in [R_AL,R_AX,R_EAX]) then
+              operands[2].opinfo := ao_acc;
+          end;
+        A_FNSTSW, A_FSTSW:
+          Begin
+        { %ax can be omitted in ATT syntax }
+            if numops = 0 then
+              Begin
+                numops:=1;
+                operands[1].operandtype:=OPR_REGISTER;
+                operands[1].reg:=R_AX;
+                operands[1].opinfo := ao_acc;
+              end
+            else
+              if numops = 1 then
+                Begin
+                  if (operands[1].operandtype = OPR_REGISTER) and
+                     (operands[1].reg = R_AX) then
+                    operands[1].opinfo := ao_acc;
+                end
+              else
+                Begin
+                  Message(assem_e_invalid_opcode_and_operand);
+                  exit;
+                end;
+          end;
+        A_SHLD,A_SHRD:
+      { these instruction are fully parsed individually on pass three }
+      { so we just do a summary checking here.                        }
+          Begin
+            if numops = 3 then
+              Begin
+                if (operands[3].operandtype = OPR_CONSTANT) and
+                   (operands[3].val <= $ff) then
+                  Begin
+                    operands[3].opinfo := ao_imm8;
+                    operands[3].size := S_B;
+                  end;
+              end
+            else
+              Begin
+                Message(assem_e_invalid_opcode_and_operand);
+                exit;
+              end;
+          end;
+        A_INT:
+          Begin
+            if numops = 1 then
+              Begin
+                if (operands[1].operandtype = OPR_CONSTANT) and
+                   (operands[1].val <= $ff) then
+                    operands[1].opinfo := ao_imm8;
+              end
+          end;
+        A_RET:
+          Begin
+            if numops =1 then
+              Begin
+                if (operands[1].operandtype = OPR_CONSTANT) and
+                   (operands[1].val <= $ffff) then
+                  operands[1].opinfo := ao_imm16;
+              end
+          end;
        { all string instructions have default memory }
        { location which are ignored. Take care of    }
        { those.                                      }
        { Here could be added the code for segment    }
        { overrides.                                  }
-       if instruc in [A_SCAS,A_CMPS,A_STOS,A_LODS] then
-       Begin
-          if numops =1 then
-            Begin
-               if (operands[1].operandtype = OPR_REFERENCE) and
-                 (assigned(operands[1].ref.symbol)) then
-                 Freemem(operands[1].ref.symbol,length(operands[1].ref.symbol^)+1);
-               operands[1].operandtype := OPR_NONE;
-               numops := 0;
-            end;
-       end; { endif }
-       if instruc in [A_INS,A_MOVS,A_OUTS] then
-       Begin
-          if numops =2 then
-            Begin
-               if (operands[2].operandtype = OPR_REFERENCE) and
-                 (assigned(operands[2].ref.symbol)) then
-                 Freemem(operands[2].ref.symbol,length(operands[2].ref.symbol^)+1);
-               if (operands[1].operandtype = OPR_REFERENCE) and
-                 (assigned(operands[1].ref.symbol)) then
-                 Freemem(operands[1].ref.symbol,length(operands[2].ref.symbol^)+1);
-               operands[2].operandtype := OPR_NONE;
-               operands[1].operandtype := OPR_NONE;
-               numops := 0;
-            end;
-       end;
-     { handle parameter for segment overrides }
-     if instruc = A_XLAT then
-     Begin
-        { handle special TP syntax case for XLAT }
-        { here we accept XLAT, XLATB and XLAT m8 }
-        if (numops = 1) or (numops = 0) then
-         Begin
-               if (operands[1].operandtype = OPR_REFERENCE) and
-                 (assigned(operands[1].ref.symbol)) then
-                 Freemem(operands[1].ref.symbol,length(operands[1].ref.symbol^)+1);
-               operands[1].operandtype := OPR_NONE;
-               numops := 0;
-               { always a byte for XLAT }
-               instr.stropsize := S_B;
-         end;
-     end
-     else
+        A_SCAS,A_CMPS,A_STOS,A_LODS:
+          Begin
+            if numops =1 then
+              Begin
+                if (operands[1].operandtype = OPR_REFERENCE) and
+                   (assigned(operands[1].ref.symbol)) then
+                  Freemem(operands[1].ref.symbol,length(operands[1].ref.symbol^)+1);
+                operands[1].operandtype := OPR_NONE;
+                numops := 0;
+              end;
+          end;
+        A_XLAT:
+          Begin
+       { handle special TP syntax case for XLAT }
+       { here we accept XLAT, XLATB and XLAT m8 }
+            if (numops = 1) or (numops = 0) then
+              Begin
+                if (operands[1].operandtype = OPR_REFERENCE) and
+                   (assigned(operands[1].ref.symbol)) then
+                  Freemem(operands[1].ref.symbol,length(operands[1].ref.symbol^)+1);
+                operands[1].operandtype := OPR_NONE;
+                numops := 0;
+              { always a byte for XLAT }
+                instr.stropsize := S_B;
+              end;
+          end;
      { ------------------------------------------------------------------- }
      { ------------------------- SIZE CHECK ------------------------------ }
      { ------------- presently done only for most used opcodes  ---------- }
      {  Checks if the suffix concords with the destination size    , if    }
      {  not gives out an error. (This check is stricter then gas but is    }
      {  REQUIRED for intasmi3)                                             }
-     if instruc in [A_MOV,A_ADD,A_SUB,A_ADC,A_SBB,A_CMP,A_AND,A_OR,A_TEST,A_XOR] then
-     begin
-       if (instr.stropsize <> S_NO) and (instr.operands[2].size <> S_NO) then
-         if (instr.stropsize <> instr.operands[2].size) then
-         begin
-            Message(assem_e_size_suffix_and_dest_reg_dont_match);
-            exit;
-         end;
-     end
-     else
-     if instruc in [A_DEC,A_INC,A_NOT,A_NEG] then
-     begin
-       if (instr.stropsize <> S_NO) and (instr.operands[1].size <> S_NO) then
-         if (instr.stropsize <> instr.operands[1].size) then
-         begin
-            Message(assem_e_size_suffix_and_dest_reg_dont_match);
-            exit;
-         end;
-     end
-     else
-     if instruc = A_PUSH then
-       Begin
-          if (instr.operands[1].operandtype = OPR_CONSTANT) and
-             (instr.stropsize = S_NO) then
-            Message(assem_e_size_suffix_and_dest_reg_dont_match);
-       end;
-     { ------------------------------------------------------------------- }
+        A_MOV,A_ADD,A_SUB,A_ADC,A_SBB,A_CMP,A_AND,A_OR,A_TEST,A_XOR:
+          begin
+            if (instr.stropsize <> S_NO) and
+               (instr.operands[2].size <> S_NO) then
+              if (instr.stropsize <> instr.operands[2].size) then
+                begin
+                  Message(assem_e_size_suffix_and_dest_reg_dont_match);
+                  exit;
+                end;
+          end;
+        A_DEC,A_INC,A_NOT,A_NEG:
+          begin
+            if (instr.stropsize <> S_NO) and
+               (instr.operands[1].size <> S_NO) then
+              if (instr.stropsize <> instr.operands[1].size) then
+                begin
+                  Message(assem_e_size_suffix_and_dest_reg_dont_match);
+                  exit;
+                end;
+          end;
+        A_PUSH:
+          Begin
+            if (instr.operands[1].operandtype = OPR_CONSTANT) and
+               (instr.stropsize = S_NO) then
+              Message(assem_e_size_suffix_and_dest_reg_dont_match);
+          end;
+      End; { case }
+
+   {we have to start a new case because A_INS etc are already handled before
+    as well... (JM)}
+
+      Case instruc of
+        A_INS,A_MOVS,A_OUTS:
+          Begin
+            if numops =2 then
+              Begin
+                if (operands[2].operandtype = OPR_REFERENCE) and
+                   (assigned(operands[2].ref.symbol)) then
+                  Freemem(operands[2].ref.symbol,length(operands[2].ref.symbol^)+1);
+                if (operands[1].operandtype = OPR_REFERENCE) and
+                   (assigned(operands[1].ref.symbol)) then
+                  Freemem(operands[1].ref.symbol,length(operands[2].ref.symbol^)+1);
+                operands[2].operandtype := OPR_NONE;
+                operands[1].operandtype := OPR_NONE;
+                numops := 0;
+              end;
+          end;
+     { handle parameter for segment overrides }
+      end; { case }
+    { ------------------------------------------------------------------- }
 
     { copy them to local variables }
     { for faster access            }
@@ -1731,7 +1722,8 @@ const
                     instr.stropsize,newreference(instr.operands[1].ref))));
                end
                { no suffix... therefore resort using intel styled checking .. }
-             else if (instr.operands[1].size <> S_NO) and NOT (instruc in [A_CALL,A_JMP]) then
+             else if (instr.operands[1].size <> S_NO) and
+                  Not ((instruc = A_CALL) or (instruc = A_JMP)) then
                Begin
                   p^.concat(new(pai386,op_ref(instruc,
                     instr.operands[1].size,newreference(instr.operands[1].ref))));
@@ -1740,27 +1732,25 @@ const
                Begin
                   { special jmp and call case with }
                   { symbolic references.           }
-                  if (instruc in [A_CALL,A_JMP]) or
-                     (instruc = A_FNSTCW) or
-                     (instruc = A_FSTCW) or
-                     (instruc = A_FLDCW) or
-                     (instruc = A_FNSTSW) or
-                     (instruc = A_FSTSW) or
-                     (instruc = A_FLDENV) or
-                     (instruc = A_FSTENV) or
-                     (instruc = A_FNSAVE) or
-                     (instruc = A_FSAVE) then
-                    Begin
-                       p^.concat(new(pai386,op_ref(instruc,
-                         S_NO,newreference(instr.operands[1].ref))));
-                    end
-                  else
-                    Message(assem_e_invalid_opcode_and_operand);
+                  Case instruc of
+                    A_CALL,A_JMP,A_FNSTCW,A_FSTCW,A_FLDCW,A_FNSTSW,
+                    A_FSTSW,A_FLDENV,A_FSTENV,A_FNSAVE,A_FSAVE:
+                      Begin
+                        p^.concat(new(pai386,op_ref(instruc,
+                          S_NO,newreference(instr.operands[1].ref))));
+                      end
+                    else
+                      Message(assem_e_invalid_opcode_and_operand);
+                  End
                end;
 { This either crashed the compiler or the symbol would always be nil! }
 { The problem is here is I didn't see any way of adding the labeled   }
 { symbol in the internal list, since i think from what i see in aasm  }
 { that these will automatically be declared as external ??            }
+
+{ note: has to be changed to a case if ever activated again to avoid  }
+{       range problems (JM)                                           }
+
 {                              if (instruc in [A_JO,A_JNO,A_JB,A_JC,A_JNAE,
                                 A_JNB,A_JNC,A_JAE,A_JE,A_JZ,A_JNE,A_JNZ,A_JBE,A_JNA,A_JNBE,
                                 A_JA,A_JS,A_JNS,A_JP,A_JPE,A_JNP,A_JPO,A_JL,A_JNGE,A_JNL,A_JGE,
@@ -1788,233 +1778,245 @@ const
         end;
      2:
         Begin
-           if instruc in [A_MOVSX,A_MOVZX,A_MOVSB,A_MOVSBL,A_MOVSBW,
-             A_MOVSWL,A_MOVZB,A_MOVZWL] then
-              { movzx and movsx }
-              HandleExtend(instr)
-           else
+           Case instruc Of
+             A_MOVSX,A_MOVZX,A_MOVSB,A_MOVSBL,A_MOVSBW,A_MOVSWL,
+             A_MOVZB,A_MOVZWL:
+               { movzx and movsx }
+               HandleExtend(instr);
+             else
              { other instructions }
-             Begin
-                With instr do
-                Begin
+               Begin
+                 With instr do
+                   Begin
                 { source }
-                  opsize := operands[1].size;
-                  case operands[1].operandtype of
-                  { reg,reg     }
-                  { reg,ref     }
-                  { const,reg -- IN/OUT }
-                   OPR_REGISTER:
-                     Begin
-                       case operands[2].operandtype of
-                         OPR_REGISTER:
-                            { correction: according to the DJGPP FAQ, gas }
-                            { doesn't even check correctly the size of    }
-                            { operands, therefore let us specify a size!  }
-                            { as in the GAS docs... destination tells us  }
-                            { the size! This might give out invalid output }
-                            { in some very rare cases (because the size   }
-                            { checking is still not perfect).             }
-                            if (opsize = operands[2].size) then
-                            begin
-                               p^.concat(new(pai386,op_reg_reg(instruc,
-                               opsize,operands[1].reg,operands[2].reg)));
-                            end
-                            else
-                            if  instruc = A_IN then
-                               p^.concat(new(pai386,op_reg_reg(instruc,
-                               operands[2].size,operands[1].reg,operands[2].reg)))
-                            else
-                            if  instruc = A_OUT then
-                               p^.concat(new(pai386,op_reg_reg(instruc,
-                               operands[1].size,operands[1].reg,operands[2].reg)))
-                            else
+                     opsize := operands[1].size;
+                     case operands[1].operandtype of
+                     { reg,reg     }
+                     { reg,ref     }
+                     { const,reg -- IN/OUT }
+                       OPR_REGISTER:
+                         Begin
+                           case operands[2].operandtype of
+                             OPR_REGISTER:
+                              { correction: according to the DJGPP FAQ, gas }
+                              { doesn't even check correctly the size of    }
+                              { operands, therefore let us specify a size!  }
+                              { as in the GAS docs... destination tells us  }
+                              { the size! This might give out invalid output }
+                              { in some very rare cases (because the size   }
+                              { checking is still not perfect).             }
+                               if (opsize = operands[2].size) then
+                                 begin
+                                   p^.concat(new(pai386,op_reg_reg(instruc,
+                                   opsize,operands[1].reg,operands[2].reg)));
+                                 end
+                               else
+                               Case instruc of
+                                 A_IN:
+                                   p^.concat(new(pai386,op_reg_reg(instruc,
+                                     operands[2].size,operands[1].reg,operands[2].reg)));
+                                 A_OUT:
+                                   p^.concat(new(pai386,op_reg_reg(instruc,
+                                     operands[1].size,operands[1].reg,operands[2].reg)));
                             { these do not require any size specification. }
-                            if (instruc in [A_SAL,A_SAR,A_SHL,A_SHR,A_ROL,
-                               A_ROR,A_RCR,A_RCL])  then
+                                 A_SAL,A_SAR,A_SHL,A_SHR,A_ROL,A_ROR,A_RCR,
+                                 A_RCL:
                                { outs and ins are already taken care by }
                                { the first pass.                        }
-                               p^.concat(new(pai386,op_reg_reg(instruc,
-                               S_NO,operands[1].reg,operands[2].reg)))
-                            else
-                            if stropsize <> S_NO then
-                            Begin
-                               p^.concat(new(pai386,op_reg_reg(instruc,
-                               stropsize,operands[1].reg,operands[2].reg)))
-                            end
-                            else
-                            Begin
-                              Message(assem_e_invalid_opcode_and_operand);
-                            end;
-                         OPR_REFERENCE:
+                                   p^.concat(new(pai386,op_reg_reg(instruc,
+                                     S_NO,operands[1].reg,operands[2].reg)))
+                                 else
+                                   if stropsize <> S_NO then
+                                     Begin
+                                       p^.concat(new(pai386,op_reg_reg(instruc,
+                                         stropsize,operands[1].reg,operands[2].reg)))
+                                     end
+                                   else
+                                     Begin
+                                       Message(assem_e_invalid_opcode_and_operand);
+                                     end;
+                               end; {case instruc of}
+                             OPR_REFERENCE:
                            { variable name. }
                            { here we must check the instruction type }
                            { before deciding if to use and compare   }
                            { any sizes.                              }
-                           if assigned(operands[2].ref.symbol) then
-                           Begin
-                              if stropsize <> S_NO then
-                              Begin
-                               p^.concat(new(pai386,op_reg_ref(instruc,
-                               stropsize,operands[1].reg,newreference(operands[2].ref))))
-                              end
+                              if assigned(operands[2].ref.symbol) then
+                                Begin
+                                 if stropsize <> S_NO then
+                                   Begin
+                                     p^.concat(new(pai386,op_reg_ref(instruc,
+                                       stropsize,operands[1].reg,newreference(operands[2].ref))))
+                                   end
+                                 else
+                                   if (opsize = operands[2].size) Then
+                                     p^.concat(new(pai386,op_reg_ref(instruc,
+                                       opsize,operands[1].reg,newreference(operands[2].ref))))
+                                 else
+                                   Case instruc of
+                                     A_RCL,A_RCR,A_ROL,A_ROR,A_SAL,A_SAR,
+                                     A_SHR,A_SHL:
+                                       p^.concat(new(pai386,op_reg_ref(instruc,
+                                         opsize,operands[1].reg,newreference(operands[2].ref))))
+                                     else
+                                       Message(assem_e_invalid_size_in_ref);
+                                   end
+                                end
                               else
-                              if (opsize = operands[2].size) or (instruc in
-                               [A_RCL,A_RCR,A_ROL,A_ROR,A_SAL,A_SAR,A_SHR,A_SHL]) then
-                                  p^.concat(new(pai386,op_reg_ref(instruc,
-                                  opsize,operands[1].reg,newreference(operands[2].ref))))
-                              else
-                                  Message(assem_e_invalid_size_in_ref);
-                           end
-                           else
-                           Begin
-                              { register reference }
-                              if stropsize <> S_NO then
-                              Begin
-                               p^.concat(new(pai386,op_reg_ref(instruc,
-                               stropsize,operands[1].reg,newreference(operands[2].ref))))
-                              end
-                              else
-                              if (opsize = operands[2].size) or  (operands[2].size = S_NO) then
-                                  p^.concat(new(pai386,op_reg_ref(instruc,
-                                  opsize,operands[1].reg,newreference(operands[2].ref))))
-                              else
-                                  Message(assem_e_invalid_size_in_ref);
-                           end;
-                         OPR_CONSTANT:  { OUT }
-                           begin
-                              { determine first with suffix }
-                              if instruc = A_OUT then
-                              begin
-                               if instr.stropsize <> S_NO then
-                                  p^.concat(new(pai386,op_reg_const(instruc,stropsize,
-                                    instr.operands[1].reg, instr.operands[2].val)))
-                               else
-                                  p^.concat(new(pai386,op_reg_const(instruc,S_NO,
-                                    instr.operands[1].reg, instr.operands[2].val)));
-                              end
-                              else
-                                Message(assem_e_invalid_opcode);
-                           end;
-                       else { else case }
-                         Begin
-                           Message(assem_f_internal_error_in_concatopcode);
+                                Begin
+                                 { register reference }
+                                  if stropsize <> S_NO then
+                                    Begin
+                                      p^.concat(new(pai386,op_reg_ref(instruc,
+                                        stropsize,operands[1].reg,newreference(operands[2].ref))))
+                                    end
+                                  else
+                                  if (opsize = operands[2].size) or
+                                     (operands[2].size = S_NO) then
+                                    p^.concat(new(pai386,op_reg_ref(instruc,
+                                      opsize,operands[1].reg,newreference(operands[2].ref))))
+                                  else
+                                    Message(assem_e_invalid_size_in_ref);
+                                end;
+                             OPR_CONSTANT:  { OUT }
+                               begin
+                                 { determine first with suffix }
+                                if instruc = A_OUT then
+                                  begin
+                                    if instr.stropsize <> S_NO then
+                                      p^.concat(new(pai386,op_reg_const(instruc,stropsize,
+                                        instr.operands[1].reg, instr.operands[2].val)))
+                                   else
+                                      p^.concat(new(pai386,op_reg_const(instruc,S_NO,
+                                        instr.operands[1].reg, instr.operands[2].val)));
+                                  end
+                                else
+                                  Message(assem_e_invalid_opcode);
+                               end;
+                             else { else case }
+                               Begin
+                                 Message(assem_f_internal_error_in_concatopcode);
+                              end;
+                           end; { end inner case }
                          end;
-                       end; { end inner case }
-                     end;
                   { const,reg   }
                   { const,const }
                   { const,ref   }
-                   OPR_CONSTANT:
-                      case instr.operands[2].operandtype of
-                      { constant, constant does not have a specific size. }
-                        OPR_CONSTANT:
-                           p^.concat(new(pai386,op_const_const(instruc,
-                           S_NO,operands[1].val,operands[2].val)));
-                        OPR_REFERENCE:
-                           Begin
-                           { check for suffix first ... }
-                              if (instr.stropsize <> S_NO) then
-                              Begin
-                                 p^.concat(new(pai386,op_const_ref(instruc,
-                                 stropsize,operands[1].val,
-                                 newreference(operands[2].ref))))
-                              end
-                              else
+                       OPR_CONSTANT:
+                         case instr.operands[2].operandtype of
+                       { constant, constant does not have a specific size. }
+                           OPR_CONSTANT:
+                             p^.concat(new(pai386,op_const_const(instruc,
+                               S_NO,operands[1].val,operands[2].val)));
+                           OPR_REFERENCE:
+                             Begin
+                              { check for suffix first ... }
+                               if (instr.stropsize <> S_NO) then
+                                 Begin
+                                   p^.concat(new(pai386,op_const_ref(instruc,
+                                     stropsize,operands[1].val,
+                                   newreference(operands[2].ref))))
+                                 end
+                               else
                            { resort to intel styled checking ... }
-                              if (operands[1].val <= $ff) and
-                               (operands[2].size in [S_B,S_W,S_L]) then
-                                 p^.concat(new(pai386,op_const_ref(instruc,
-                                 operands[2].size,operands[1].val,
-                                 newreference(operands[2].ref))))
-                              else
-                              if (operands[1].val <= $ffff) and
-                               (operands[2].size in [S_W,S_L]) then
-                                 p^.concat(new(pai386,op_const_ref(instruc,
-                                 operands[2].size,operands[1].val,
-                                 newreference(operands[2].ref))))
-                              else
-                              if (operands[1].val <= $7fffffff) and
-                               (operands[2].size in [S_L]) then
-                                 p^.concat(new(pai386,op_const_ref(instruc,
-                                 operands[2].size,operands[1].val,
-                                 newreference(operands[2].ref))))
-                              else
+                                 if (operands[1].val <= $ff) and
+                                    (operands[2].size in [S_B,S_W,S_L]) then
+                                   p^.concat(new(pai386,op_const_ref(instruc,
+                                     operands[2].size,operands[1].val,
+                                     newreference(operands[2].ref))))
+                               else
+                                 if (operands[1].val <= $ffff) and
+                                    (operands[2].size in [S_W,S_L]) then
+                                   p^.concat(new(pai386,op_const_ref(instruc,
+                                     operands[2].size,operands[1].val,
+                                     newreference(operands[2].ref))))
+                               else
+                                 if (operands[1].val <= $7fffffff) and
+                                    (operands[2].size in [S_L]) then
+                                   p^.concat(new(pai386,op_const_ref(instruc,
+                                     operands[2].size,operands[1].val,
+                                     newreference(operands[2].ref))))
+                               else
                                  Message(assem_e_invalid_size_in_ref);
-                           end;
-                        OPR_REGISTER:
-                           Begin
+                             end;
+                           OPR_REGISTER:
+                             Begin
                               { size of opcode determined by register }
                               if (operands[1].val <= $ff) and
-                               (operands[2].size in [S_B,S_W,S_L]) then
-                                 p^.concat(new(pai386,op_const_reg(instruc,
-                                 operands[2].size,operands[1].val,
-                                 operands[2].reg)))
+                                 (operands[2].size in [S_B,S_W,S_L]) then
+                                p^.concat(new(pai386,op_const_reg(instruc,
+                                  operands[2].size,operands[1].val,
+                                  operands[2].reg)))
                               else
-                              if (operands[1].val <= $ffff) and
-                               (operands[2].size in [S_W,S_L]) then
+                               if (operands[1].val <= $ffff) and
+                                  (operands[2].size in [S_W,S_L]) then
                                  p^.concat(new(pai386,op_const_reg(instruc,
-                                 operands[2].size,operands[1].val,
-                                 operands[2].reg)))
+                                   operands[2].size,operands[1].val,
+                                   operands[2].reg)))
                               else
-                              if (operands[1].val <= $7fffffff) and
-                               (operands[2].size in [S_L]) then
+                               if (operands[1].val <= $7fffffff) and
+                                  (operands[2].size in [S_L]) then
                                  p^.concat(new(pai386,op_const_reg(instruc,
-                                 operands[2].size,operands[1].val,
-                                 operands[2].reg)))
+                                   operands[2].size,operands[1].val,
+                                   operands[2].reg)))
                               else
                                Message(assem_e_invalid_opcode_size);
-                           end;
-                      else
-                         Begin
-                           Message(assem_f_internal_error_in_concatopcode);
-                         end;
-                      end; { end case }
-                   { sym,reg     }
-                   OPR_SYMBOL:
-                      case instr.operands[2].operandtype of
-                         OPR_REGISTER:
-                            Begin
-                              if instruc in [A_LDS,A_LES,A_LFS,A_LGS,A_LSS] then
-                               opsize:=S_NO
-                              else
-                               if stropsize<>S_NO then
-                                opsize:=stropsize
-                              else
-                               if (opsize<>operands[2].size) then
-                                Message(assem_e_invalid_opcode_and_operand);
+                             end;
+                           else
+                             Begin
+                               Message(assem_f_internal_error_in_concatopcode);
+                             end;
+                         end; { end case }
+                    { sym,reg     }
+                       OPR_SYMBOL:
+                         case instr.operands[2].operandtype of
+                           OPR_REGISTER:
+                             Begin
+                               Case instruc of
+                                 A_LDS,A_LES,A_LFS,A_LGS,A_LSS:
+                                   opsize:=S_NO
+                                 else
+                                  if stropsize<>S_NO then
+                                    opsize:=stropsize
+                                 else
+                                   if (opsize<>operands[2].size) then
+                                     Message(assem_e_invalid_opcode_and_operand);
                               { create an temporary reference }
-                              reset_reference(href);
-                              href.symbol:=stringdup(instr.operands[1].symbol^);
-                              p^.concat(new(pai386,op_ref_reg(instruc,opsize,
+                               End; {case}
+                               reset_reference(href);
+                               href.symbol:=stringdup(instr.operands[1].symbol^);
+                               p^.concat(new(pai386,op_ref_reg(instruc,opsize,
                                  newreference(href),operands[2].reg)));
-                              clear_reference(href);
-                            end;
-                      else
-                         Begin
-                           Message(assem_f_internal_error_in_concatopcode);
-                         end;
-                      end; { end inner case }
+                               clear_reference(href);
+                             end;
+                           else
+                             Begin
+                               Message(assem_f_internal_error_in_concatopcode);
+                             end;
+                         end; { end inner case }
                    { ref,reg     }
                    { ref,ref     }
-                   OPR_REFERENCE:
-                      case instr.operands[2].operandtype of
-                         OPR_REGISTER:
-                            if assigned(operands[1].ref.symbol) then
+                       OPR_REFERENCE:
+                         case instr.operands[2].operandtype of
+                           OPR_REGISTER:
+                             if assigned(operands[1].ref.symbol) then
                             { global variable }
-                            Begin
-                              if instruc in [A_LDS,A_LES,A_LFS,A_LGS,A_LSS] then
-                               opsize:=S_NO
-                              else
-                               if stropsize<>S_NO then
-                                opsize:=stropsize
-                              else
-                               if (opsize<>operands[2].size) then
-                                Message(assem_e_invalid_opcode_and_operand);
-                              p^.concat(new(pai386,op_ref_reg(instruc,
-                                 opsize,newreference(operands[1].ref),operands[2].reg)));
-                            end
-                            else
-                            Begin
+                               Begin
+                                 Case instruc Of
+                                   A_LDS,A_LES,A_LFS,A_LGS,A_LSS:
+                                     opsize:=S_NO
+                                   else
+                                    if stropsize<>S_NO then
+                                      opsize:=stropsize
+                                    else
+                                    if (opsize<>operands[2].size) then
+                                      Message(assem_e_invalid_opcode_and_operand);
+                                 end; { case }
+                                 p^.concat(new(pai386,op_ref_reg(instruc,
+                                   opsize,newreference(operands[1].ref),operands[2].reg)));
+                               end
+                             else
+                               Begin
                               { register reference }
                               { possiblities:1) local variable which }
                               { has been replaced by bp and offset   }
@@ -2022,40 +2024,42 @@ const
                               {              2) Indirect register    }
                               { adressing, 2nd operand determines    }
                               { size.                                }
-                              if (stropsize <> S_NO) then
-                              Begin
-                                 p^.concat(new(pai386,op_ref_reg(instruc,
-                                 stropsize,newreference(operands[1].ref),
-                                 operands[2].reg)))
-                              end
-                              else
-                              if (opsize = operands[2].size) or (opsize = S_NO) then
-                              Begin
-                                 p^.concat(new(pai386,op_ref_reg(instruc,
-                                 operands[2].size,newreference(operands[1].ref),
-                                 operands[2].reg)));
-                              end
-                              else
-                                Message(assem_e_invalid_size_in_ref);
-                            end;
-                         OPR_REFERENCE: { special opcodes }
-                            p^.concat(new(pai386,op_ref_ref(instruc,
-                            opsize,newreference(operands[1].ref),
-                            newreference(operands[2].ref))));
-                      else
-                         Begin
-                           Message(assem_f_internal_error_in_concatopcode);
-                         end;
-                   end; { end inner case }
-                  end; { end case }
-                end; { end with }
-             end; {end if movsx... }
+                                if (stropsize <> S_NO) then
+                                  Begin
+                                    p^.concat(new(pai386,op_ref_reg(instruc,
+                                      stropsize,newreference(operands[1].ref),
+                                      operands[2].reg)))
+                                  end
+                                else
+                                 if (opsize = operands[2].size) or
+                                    (opsize = S_NO) then
+                                   Begin
+                                     p^.concat(new(pai386,op_ref_reg(instruc,
+                                       operands[2].size,newreference(operands[1].ref),
+                                       operands[2].reg)));
+                                   end
+                                else
+                                  Message(assem_e_invalid_size_in_ref);
+                               end;
+                           OPR_REFERENCE: { special opcodes }
+                             p^.concat(new(pai386,op_ref_ref(instruc,
+                               opsize,newreference(operands[1].ref),
+                               newreference(operands[2].ref))));
+                           else
+                             Begin
+                               Message(assem_f_internal_error_in_concatopcode);
+                             end;
+                         end; { end inner case }
+                     end; { end case }
+                   end; { end with }
+               end; {end else of case instruc of movsx ... }
+           end; { end case movsx ...}
         end;
      3: Begin
              { only imul, shld and shrd  }
              { middle must be a register }
-             if (instruc in [A_SHLD,A_SHRD]) and (instr.operands[2].operandtype =
-                OPR_REGISTER) then
+           if (instruc in [A_SHLD,A_SHRD]) and
+              (instr.operands[2].operandtype = OPR_REGISTER) then
              Begin
                case instr.operands[2].size of
                 S_W:  if instr.operands[1].operandtype = OPR_CONSTANT then
@@ -2159,8 +2163,8 @@ const
                   Message(assem_e_invalid_middle_sized_operand);
                end; { end case }
              end { endif }
-             else
-               Message(assem_e_invalid_three_operand_opcode);
+           else
+             Message(assem_e_invalid_three_operand_opcode);
         end;
   end; { end case }
  end;
@@ -2172,42 +2176,45 @@ const
           i : longint;
     Begin
        instruct:=instr.getinstruction;
-       if (instruct in [A_JO,A_JNO,A_JB,A_JC,A_JNAE,
-        A_JNB,A_JNC,A_JAE,A_JE,A_JZ,A_JNE,A_JNZ,A_JBE,A_JNA,A_JNBE,
-        A_JA,A_JS,A_JNS,A_JP,A_JPE,A_JNP,A_JPO,A_JL,A_JNGE,A_JNL,A_JGE,
-        A_JLE,A_JNG,A_JNLE,A_JG,A_JCXZ,A_JECXZ,A_LOOP,A_LOOPZ,A_LOOPE,
-        A_LOOPNZ,A_LOOPNE,A_MOV,A_JMP,A_CALL]) then
-       Begin
-        if (instr.numops <> 1) then
-          Message(assem_e_invalid_labeled_opcode)
-        else if instr.operands[1].operandtype <> OPR_LABINSTR then
-          Message(assem_e_invalid_labeled_opcode)
-        else if assigned(instr.operands[1].hl) then
-          ConcatLabel(p,instruct, instr.operands[1].hl)
-        else
-          Begin
-            Message(assem_f_internal_error_in_concatlabeledinstr);
-          end;
-       end
-       else
-       if (cs_compilesystem in aktmoduleswitches) then
-       begin
-        for i:=1 to instr.numops do
-          if instr.operands[i].operandtype=OPR_LABINSTR then
+       Case instruct Of
+         A_JO,A_JNO,A_JB,A_JC,A_JNAE,
+         A_JNB,A_JNC,A_JAE,A_JE,A_JZ,A_JNE,A_JNZ,A_JBE,A_JNA,A_JNBE,
+         A_JA,A_JS,A_JNS,A_JP,A_JPE,A_JNP,A_JPO,A_JL,A_JNGE,A_JNL,A_JGE,
+         A_JLE,A_JNG,A_JNLE,A_JG,A_JCXZ,A_JECXZ,A_LOOP,A_LOOPZ,A_LOOPE,
+         A_LOOPNZ,A_LOOPNE,A_JMP,A_CALL:
+           Begin
+             if (instr.numops <> 1) then
+               Message(assem_e_invalid_labeled_opcode)
+             else if instr.operands[1].operandtype <> OPR_LABINSTR then
+                    Message(assem_e_invalid_labeled_opcode)
+             else if assigned(instr.operands[1].hl) then
+                    ConcatLabel(p,instruct, instr.operands[1].hl)
+             else
+               Begin
+                 Message(assem_f_internal_error_in_concatlabeledinstr);
+               end;
+           end;
+         A_MOV: { move from/to rel8 };
+         else
+          if (cs_compilesystem in aktmoduleswitches) then
             begin
-              instr.operands[i].operandtype:=OPR_REFERENCE;
-              instr.operands[i].ref.symbol:=newpasstr(lab2str(instr.operands[i].hl) );
-              instr.operands[i].opinfo:=ao_mem;
-              instr.operands[i].ref.base:=R_NO;
-              instr.operands[i].ref.index:=R_NO;
-              instr.operands[i].ref.segment:=R_DEFAULT_SEG;
-              instr.operands[i].ref.offset:=0;
-            end;
+             for i:=1 to instr.numops do
+              if instr.operands[i].operandtype=OPR_LABINSTR then
+               begin
+                instr.operands[i].operandtype:=OPR_REFERENCE;
+                instr.operands[i].ref.symbol:=newpasstr(lab2str(instr.operands[i].hl) );
+                instr.operands[i].opinfo:=ao_mem;
+                instr.operands[i].ref.base:=R_NO;
+                instr.operands[i].ref.index:=R_NO;
+                instr.operands[i].ref.segment:=R_DEFAULT_SEG;
+                instr.operands[i].ref.offset:=0;
+               end;
         { handle now as an ordinary opcode }
-        concatopcode(instr);
-       end
-       else
-         Message1(assem_e_invalid_operand,'');
+             concatopcode(instr);
+            end
+          else
+            Message1(assem_e_invalid_operand,'');
+       end; { case }
     end;
 
 
@@ -2350,22 +2357,29 @@ const
    Begin
      CheckPrefix := TRUE;
      Case prefix of
-       A_REP,A_REPNE,A_REPE: if not (opcode in [A_SCAS,A_INS,A_OUTS,A_MOVS,
-                             A_CMPS,A_LODS,A_STOS]) then
-                             Begin
-                               CheckPrefix := FALSE;
-                               exit;
-                             end;
-       A_LOCK: if not (opcode in [A_BT,A_BTS,A_BTR,A_BTC,A_XCHG,A_ADD,A_OR,
-                        A_ADC,A_SBB,A_AND,A_SUB,A_XOR,A_NOT,A_NEG,A_INC,A_DEC]) then
-                  Begin
-                     CheckPrefix := FALSE;
-                     Exit;
-                  end;
+       A_REP,A_REPNE,A_REPE:
+         Case opcode Of
+           A_SCAS,A_INS,A_OUTS,A_MOVS,
+           A_CMPS,A_LODS,A_STOS:;
+           Else
+             Begin
+               CheckPrefix := FALSE;
+               exit;
+             end;
+         End;
+       A_LOCK:
+         Case opcode Of
+           A_BT,A_BTS,A_BTR,A_BTC,A_XCHG,A_ADD,A_OR,
+           A_ADC,A_SBB,A_AND,A_SUB,A_XOR,A_NOT,A_NEG,A_INC,A_DEC:;
+           Else
+             Begin
+               CheckPrefix := FALSE;
+               Exit;
+             end;
+         End;
        A_NONE: exit; { no prefix here }
-
-     else
-       CheckPrefix := FALSE;
+       else
+         CheckPrefix := FALSE;
      end; { end case }
    end;
 
@@ -2397,10 +2411,12 @@ const
    { update the instr variable accordingly.         }
    Begin
      CheckOverride := FALSE;
-     if instr.getinstruction in [A_MOVS,A_XLAT,A_CMPS] then
-     Begin
-       CheckOverride := TRUE;
-       Message(assem_e_segment_override_not_supported);
+     Case instr.getinstruction of
+       A_MOVS,A_XLAT,A_CMPS:
+         Begin
+           CheckOverride := TRUE;
+           Message(assem_e_segment_override_not_supported);
+         end
      end
    end;
 
@@ -3890,7 +3906,11 @@ end.
 
 {
   $Log$
-  Revision 1.22  1998-11-29 12:47:21  peter
+  Revision 1.23  1998-12-02 16:23:33  jonas
+    * changed "if longintvar in set" to case or "if () or () .." statements
+    * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
+
+  Revision 1.22  1998/11/29 12:47:21  peter
     * fixes for 'asm sti end;'
 
   Revision 1.21  1998/11/16 15:38:54  peter
