@@ -380,9 +380,11 @@ implementation
               if not codegenerror then
                begin
                  { With tp procvars we allways need to load a
-                   procvar when it is passed }
+                   procvar when it is passed, but not when the
+                   callnode is inserted due a property }
                  if (m_tp_procvar in aktmodeswitches) and
-                    (p1.nodetype=calln) then
+                    (p1.nodetype=calln) and
+                    not(nf_isproperty in tcallnode(p1).flags) then
                    load_procvar_from_calln(p1);
 
                  case p1.resulttype.def.deftype of
@@ -2423,7 +2425,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.131  2003-10-02 21:15:31  peter
+  Revision 1.132  2003-10-05 12:56:04  peter
+    * fix assigned(property)
+
+  Revision 1.131  2003/10/02 21:15:31  peter
     * protected visibility fixes
 
   Revision 1.130  2003/10/01 20:34:49  peter
