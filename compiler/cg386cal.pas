@@ -236,7 +236,10 @@ implementation
               tempdeftype:=p^.resulttype^.deftype;
               if tempdeftype=filedef then
                CGMessage(cg_e_file_must_call_by_reference);
-              if (defcoll^.paratyp=vs_const) and
+              if
+{$ifndef VALUEPARA}
+                 (defcoll^.paratyp=vs_const) and
+{$endif}
                  push_addr(p^.left) then
                 begin
                    maybe_push_open_array_high;
@@ -1572,7 +1575,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1998-11-26 14:39:10  peter
+  Revision 1.47  1998-11-26 21:30:03  peter
+    * fix for valuepara
+
+  Revision 1.46  1998/11/26 14:39:10  peter
     * ansistring -> pchar fixed
     * ansistring constants fixed
     * ansistring constants are now written once
