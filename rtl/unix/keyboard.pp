@@ -1098,12 +1098,12 @@ Begin
               if ch<>#0 then
                 begin
                   { Put that unused char back into InBuf }
-                  InBuf[InHead]:=ch;
+                  If InTail=0 then
+                    InTail:=InSize-1
+                  else
+                    Dec(InTail);
+                  InBuf[InTail]:=ch;
                   inc(InCnt);
-                  inc(InHead);
-                  {Wrap if End has Reached}
-                  if InHead>=InSize then
-                   InHead:=0;
                 end;
               break;
             end;
@@ -1724,7 +1724,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-08-04 11:05:21  peter
+  Revision 1.7  2001-08-30 20:55:08  peter
+    * v10 merges
+
+  Revision 1.6  2001/08/04 11:05:21  peter
     * unpush key fix
 
   Revision 1.4  2001/06/27 21:37:38  peter

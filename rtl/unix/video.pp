@@ -460,7 +460,9 @@ begin
      if (Spaces>0) then
       OutSpaces;
      if force then
-      inc(eol);
+      inc(eol)
+     else
+      skipped:=true;
    end;
   eol:=0;
   OutData(XY2Ansi(CursorX,CursorY,LastX,LastY));
@@ -845,7 +847,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2001-08-01 21:42:05  peter
+  Revision 1.7  2001-08-30 20:55:08  peter
+    * v10 merges
+
+  Revision 1.6  2001/08/01 21:42:05  peter
     * m68k warning fix (merged)
 
   Revision 1.5  2001/07/31 19:33:46  peter
