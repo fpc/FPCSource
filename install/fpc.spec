@@ -1,7 +1,7 @@
 Name: fpc
-Version: 1.9.2
+Version: 1.9.3
 Release: 0
-ExclusiveArch: i386 i586 i686
+ExclusiveArch: i386 i586 i686 ppc
 Copyright: GPL
 Group: Development/Languages
 Source: %{name}-%{version}-src.tar.gz
@@ -14,6 +14,12 @@ BuildRequires: fpc
 %define fpcdir %{_libdir}/fpc/%{version}
 %define docdir %{_docdir}/fpc-%{version}
 %define exampledir %{docdir}/examples
+
+%ifarch ppc
+%define ppcname ppcppc
+%else
+%define ppcname ppc386
+%endif
 
 %define builddocdir %{buildroot}%{docdir}
 %define buildmandir %{buildroot}%{_mandir}
@@ -43,7 +49,7 @@ utils. Provided units are the runtime library (RTL), free component library
 %setup -c
 
 %build
-NEWPP=`pwd`/compiler/ppc386
+NEWPP=`pwd`/compiler/%{ppcname}
 NEWFPDOC=`pwd`/utils/fpdoc/fpdoc
 	make compiler_cycle
 	make rtl_clean rtl_smart FPC=${NEWPP}
@@ -60,7 +66,7 @@ if [ %{buildroot} != "/" ]; then
 	rm -rf %{buildroot}
 fi
 
-NEWPP=`pwd`/compiler/ppc386
+NEWPP=`pwd`/compiler/%{ppcname}
 INSTALLOPTS="FPC=${NEWPP} INSTALL_PREFIX=%{buildroot}/usr INSTALL_LIBDIR=%{buildlibdir} \
 		INSTALL_DOCDIR=%{builddocdir} INSTALL_BINDIR=%{buildbindir} \
 		INSTALL_EXAMPLEDIR=%{buildexampledir}"
@@ -79,7 +85,7 @@ if [ -z ${NODOCS} ]; then
 fi
 
 	# create link
-	ln -sf %{fpcdir}/ppc386 %{buildroot}%{_bindir}/ppc386
+	ln -sf %{fpcdir}/%{ppcname} %{buildroot}%{_bindir}/%{ppcname}
 
         # Workaround:
         # newer rpm versions do not allow garbage
