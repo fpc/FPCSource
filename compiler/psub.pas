@@ -1082,6 +1082,9 @@ implementation
          while try_consume_hintdirective(pd.symoptions) do
           Consume(_SEMICOLON);
 
+         { Set calling convention }
+         handle_calling_convention(pd);
+
          { everything of the proc definition is known, we can now
            calculate the parameters }
          calc_parast(pd);
@@ -1304,7 +1307,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.155  2003-10-01 20:34:49  peter
+  Revision 1.156  2003-10-02 21:20:32  peter
+    * handle_calling_convention removed from parse_proc_directive to
+      separate call
+
+  Revision 1.155  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
