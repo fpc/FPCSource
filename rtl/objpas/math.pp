@@ -640,6 +640,8 @@ function intpower(base : float;const exponent : Integer) : float;
      i : longint;
 
   begin
+     if (base = 0.0) and (exponent = 0) then
+       InvalidArgument;
      i:=abs(exponent);
      intpower:=1.0;
      while i>0 do
@@ -1342,7 +1344,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2004-12-05 16:43:57  jonas
+  Revision 1.26  2004-12-05 16:52:34  jonas
+    * also invalid argument if trying to calculate 0^0 with intpower()
+
+  Revision 1.25  2004/12/05 16:43:57  jonas
     * fixed power() in genmath.inc (code duplication from math.pp for **
       support!)
     * fixed power() in math.pp to give an error from 0^0
