@@ -133,12 +133,16 @@ Function NewWideString(Len : Longint) : Pointer;
 }
 Var
   P : Pointer;
+  l : Longint;
 begin
-  { Also add +1 for a terminating zero }
-  GetMem(P,Len+Len+WideRecLen);
+  l := Len + Len + WideRecLen;
+  { request a multiple of 16 because the heap manager alloctes anyways chunks of 16 bytes }
+  if (l mod 16)<>0 then
+    inc(l,16-(l mod 16));
+  GetMem(P,l);
   If P<>Nil then
    begin
-     PWideRec(P)^.Maxlen:=Len;    { Maximal length }
+     PWideRec(P)^.Maxlen:=(l-WideRecLen) div 2;    { Maximal length }
      PWideRec(P)^.Len:=0;         { Initial length }
      PWideRec(P)^.Ref:=1;         { Set reference count }
      PWideRec(P)^.First:=#0;      { Terminating #0 }
@@ -535,6 +539,7 @@ Procedure fpc_WideStr_SetLength (Var S : WideString; l : Longint);[Public,Alias 
 }
 Var
   Temp : Pointer;
+  movelen, NewLen: longint;
 begin
    if (l>0) then
     begin
@@ -543,26 +548,43 @@ begin
          { Need a complete new string...}
          Pointer(s):=NewWideString(l);
        end
+      else if (PWideRec(Pointer(S)-WideFirstOff)^.Ref = 1) then
+        begin
+          if (PWideRec(Pointer(S)-WideFirstOff)^.Maxlen < L) then
+            begin
+              Dec(Pointer(S),WideFirstOff);
+              NewLen := (L+L+WideRecLen+15) and not 15;
+              reallocmem(pointer(S), NewLen);
+              PAnsiRec(S)^.MaxLen := (NewLen - WideRecLen) div 2;
+              Inc(Pointer(S), WideFirstOff);
+            end;
+          PWideRec(Pointer(S)-WideFirstOff)^.Len := L;
+          PWord(Pointer(S)+L+L)^:=0;
+        end
       else
-       If (PWideRec(Pointer(S)-WideFirstOff)^.Maxlen < L) or
-          (PWideRec(Pointer(S)-WideFirstOff)^.Ref <> 1) then
         begin
           { Reallocation is needed... }
           Temp:=Pointer(NewWideString(L));
           if Length(S)>0 then
-            Move(Pointer(S)^,Temp^,L*sizeof(WideChar));
-          fpc_WideStr_decr_ref(Pointer(S));
+            begin
+              if l < succ(length(s)) then
+                movelen := l
+              { also move terminating null }
+              else movelen := succ(length(s));
+              Move(Pointer(S)^,Temp^,movelen * Sizeof(WideChar));
+            end;
+          fpc_widestr_decr_ref(Pointer(S));
           Pointer(S):=Temp;
        end;
       { Force nil termination in case it gets shorter }
-      PWideChar(Pointer(S)+l*sizeof(WideChar))^:=#0;
-      PWideRec(Pointer(S)-WideFirstOff)^.Len:=l;
+      PWord(Pointer(S)+l+l)^:=0;
+      PWideRec(Pointer(S)-FirstOff)^.Len:=l;
     end
   else
     begin
       { Length=0 }
       if Pointer(S)<>nil then
-       fpc_WideStr_decr_ref (Pointer(S));
+       fpc_widestr_decr_ref (Pointer(S));
       Pointer(S):=Nil;
     end;
 end;
@@ -913,7 +935,11 @@ end;
 
 {
   $Log$
-  Revision 1.25  2002-12-07 14:35:34  carl
+  Revision 1.26  2002-12-14 19:16:45  sg
+  * Ported improvements from the AnsiString equivalents to NewWideString and
+    fpc_WideStr_SetLength
+
+  Revision 1.25  2002/12/07 14:35:34  carl
     - avoid warnings (add typecast)
 
   Revision 1.24  2002/10/10 16:08:50  florian
