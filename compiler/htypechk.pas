@@ -277,8 +277,7 @@ implementation
                             end
                            else
                             if isconvertable(parraydef(def_from)^.elementtype.def,
-                                             parraydef(def_to)^.elementtype.def,hct,nothingn,false)<>0 then
-                             begin
+                                             parraydef(def_to)^.elementtype.def,hct,arrayconstructn,false)<>0 then                             begin
                                doconv:=hct;
                                b:=2;
                              end;
@@ -312,8 +311,9 @@ implementation
                case def_from^.deftype of
                  stringdef :
                    begin
-                     { string constant to zero terminated string constant }
-                     if (fromtreetype=stringconstn) and
+                     { string constant (which can be part of array constructor)
+                       to zero terminated string constant }
+                     if (fromtreetype in [arrayconstructn,stringconstn]) and
                         is_pchar(def_to) then
                       begin
                         doconv:=tc_cstring_2_pchar;
@@ -913,7 +913,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2000-05-30 18:38:45  florian
+  Revision 1.63  2000-06-01 11:00:52  peter
+    * fixed string->pchar conversion for array constructors
+
+  Revision 1.62  2000/05/30 18:38:45  florian
     * fixed assignments of subrange enumeration types
 
   Revision 1.61  2000/05/26 18:21:41  peter
