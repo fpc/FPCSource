@@ -87,15 +87,15 @@ end;
 Const
  CMemoryManager : TMemoryManager =
     (
-      GetMem : CGetmem;
-      FreeMem : CFreeMem;
-      FreememSize : CFreememSize;
-      AllocMem : CAllocMem;
-      ReallocMem : CReAllocMem;
-      MemSize : CMemSize;
-      MemAvail : CMemAvail;
-      MaxAvail : MaxAvail;
-      HeapSize : CHeapSize;
+      GetMem : @CGetmem;
+      FreeMem : @CFreeMem;
+      FreememSize : @CFreememSize;
+      AllocMem : @CAllocMem;
+      ReallocMem : @CReAllocMem;
+      MemSize : @CMemSize;
+      MemAvail : @CMemAvail;
+      MaxAvail : @MaxAvail;
+      HeapSize : @CHeapSize;
     );
   
 Var 
@@ -107,8 +107,14 @@ Initialization
   
 Finalization
   SetMemoryManager (OldMemoryManager);
-end.  $Log$
-end.  Revision 1.2  2000-07-13 11:33:10  michael
-end.  + removed logs
-end. 
+end.
+
+{   
+ $Log$
+ Revision 1.3  2001-06-07 16:14:48  marco
+  * Fixed @ procvar
+
+    Revision 1.2  2000/07/13 11:33:10  michael
+     + removed logs
+ 
 }
