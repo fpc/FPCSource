@@ -1916,32 +1916,36 @@ type
         n.fileinfo := pfileposinfo(arg)^;
         if (n.nodetype = loadn) then
           begin
-            paras := tcallparanode(left);
-            while assigned(paras) and
-                  (paras.parasym <> tloadnode(n).symtableentry) do
-              paras := tcallparanode(paras.right);
-            if assigned(paras) then
-              begin
-                n.free;
-                n := paras.left.getcopy;
-                resulttypepass(n);
-                result := fen_true;
-              end
-            else
-              begin
-                { local? }
-                if (tloadnode(n).symtableentry.typ <> localvarsym) or
-                   (tloadnode(n).symtableentry.owner <> tprocdef(procdefinition).localst) then
-                  exit;
-                if (tloadnode(n).symtableentry.indexnr >= inlinelocals.capacity) or
-                   not assigned(inlinelocals[tloadnode(n).symtableentry.indexnr]) then
-                  internalerror(20040720);
-                temp := tnode(inlinelocals[tloadnode(n).symtableentry.indexnr]).getcopy;
-                n.free;
-                n := temp;
-                resulttypepass(n);
-                result := fen_true;
-              end;
+            case tloadnode(n).symtableentry.typ of
+              paravarsym :
+                begin
+                  paras := tcallparanode(left);
+                  while assigned(paras) and
+                        (paras.parasym <> tloadnode(n).symtableentry) do
+                    paras := tcallparanode(paras.right);
+                  if assigned(paras) then
+                    begin
+                      n.free;
+                      n := paras.left.getcopy;
+                      resulttypepass(n);
+                      result := fen_true;
+                    end;
+                end;
+              localvarsym :
+                begin
+                  { local? }
+                  if (tloadnode(n).symtableentry.owner <> tprocdef(procdefinition).localst) then
+                    exit;
+                  if (tloadnode(n).symtableentry.indexnr >= inlinelocals.count) or
+                     not assigned(inlinelocals[tloadnode(n).symtableentry.indexnr]) then
+                    internalerror(20040720);
+                  temp := tnode(inlinelocals[tloadnode(n).symtableentry.indexnr]).getcopy;
+                  n.free;
+                  n := temp;
+                  resulttypepass(n);
+                  result := fen_true;
+                end;
+            end;
           end;
       end;
 
@@ -1959,7 +1963,7 @@ type
       begin
         if (tsymentry(p).typ <> localvarsym) then
           exit;
-        if (p.indexnr >= inlinelocals.capacity) then
+        if (p.indexnr >= inlinelocals.count) then
           inlinelocals.count:=p.indexnr+10;
         if (vo_is_funcret in tabstractvarsym(p).varoptions) and
            assigned(funcretnode) then
@@ -2001,7 +2005,6 @@ type
       var
         para: tcallparanode;
         tempnode: ttempcreatenode;
-        hp: tnode;
         tempnodes: ttempnodes;
       begin
         { parameters }
@@ -2075,6 +2078,7 @@ type
       var
         createstatement,deletestatement: tstatementnode;
         createblock,deleteblock: tblocknode;
+        body : tnode;
         i: longint;
       begin
         if not assigned(tprocdef(procdefinition).inlininginfo^.code) then
@@ -2085,17 +2089,19 @@ type
         createblock:=internalstatements(createstatement);
         deleteblock:=internalstatements(deletestatement);
         inlinelocals:=tlist.create;
+        { get copy of the procedure body }
+        body:=tprocdef(procdefinition).inlininginfo^.code.getcopy;
         { replace complex parameters with temps }
         createinlineparas(createstatement,deletestatement);
         { replace the parameter loads with the parameter values }
-        foreachnode(result,@replaceparaload,@fileinfo);
+        foreachnode(body,@replaceparaload,@fileinfo);
         { free the temps for the locals }
         for i := 0 to inlinelocals.count-1 do
           if assigned(inlinelocals[i]) then
             tnode(inlinelocals[i]).free;
         inlinelocals.free;
         inlinelocals:=nil;
-        addstatement(createstatement,tprocdef(procdefinition).inlininginfo^.code.getcopy);
+        addstatement(createstatement,body);
         addstatement(createstatement,deleteblock);
         { set function result location if necessary }
         if assigned(funcretnode) and
@@ -2170,8 +2176,8 @@ type
          else
          { not a procedure variable }
            begin
-	      if procdefinition.deftype<>procdef then
-	        internalerror(200411071);
+              if procdefinition.deftype<>procdef then
+                internalerror(200411071);
 {$ifdef PASS2INLINE}
               { calc the correture value for the register }
               { handle predefined procedures }
@@ -2429,7 +2435,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.266  2004-12-02 19:26:14  peter
+  Revision 1.267  2004-12-03 16:07:04  peter
+    * fix crashes with nodeinlining
+
+  Revision 1.266  2004/12/02 19:26:14  peter
     * disable pass2inline
 
   Revision 1.265  2004/11/28 14:34:59  jonas
