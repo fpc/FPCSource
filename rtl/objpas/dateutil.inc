@@ -1668,10 +1668,25 @@ begin
     end;
 end;
 
-
 Function TryEncodeDateMonthWeek(const AYear, AMonth, AWeekOfMonth, ADayOfWeek: Word; var AValue: TDateTime): Boolean;
+
+var
+  S : Word;
+  DOM : Integer;
+  
 begin
-  NotYetImplemented('TryEncodeDateMonthWeek');
+  Result:=IsValidDateMonthWeek(AYear,AMonth,AWeekOfMonth,ADayOfWeek);
+  if Result then
+    begin
+    AValue:=EncodeDate(AYear,AMonth,1);
+    DOM:=(AWeekOfMonth-1)*7+ADayOfWeek-1;
+    { Correct for first week in last month.}
+    S:=DayOfTheWeek(AValue);
+    Dec(DOM,S-1);
+    if S in [DayFriday..DaySunday] then
+      Inc(DOM,7);
+    AValue:=AValue+DOM;
+    end;
 end;
 
 
@@ -1753,11 +1768,11 @@ end;
 
 Function TryRecodeDateTime(const AValue: TDateTime; const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word; var AResult: TDateTime): Boolean;
 
-  Procedure FV (Var FV : Word; Arg : Word);
+  Procedure FV (Var AV : Word; Arg : Word);
 
   begin
     If (Arg<>LFAI) then
-      FV:=Arg;
+      AV:=Arg;
   end;
 
 Var
@@ -1771,7 +1786,7 @@ begin
   FV(H,AHour);
   FV(N,AMinute);
   FV(S,ASecond);
-  FV(S,AMillisecond);
+  FV(MS,AMillisecond);
   Result:=TryEncodeDateTime(Y,M,D,H,N,S,MS,AResult);
 end;
 
@@ -1996,7 +2011,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-12-29 18:31:04  michael
+  Revision 1.9  2004-12-30 11:57:25  michael
+  + Fixed tryencodedatemonthweek, fixed recodedatetime milliseconds
+
+  Revision 1.8  2004/12/29 18:31:04  michael
   * Fixed EndOfADay
 
   Revision 1.7  2004/12/29 18:28:21  michael
