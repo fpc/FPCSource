@@ -41,7 +41,7 @@ implementation
 
 uses
   {$ifdef replaceregdebug}cutils,{$endif}
-  globtype, verbose, cgbase, procinfo, globals, daopt386, rgobj, rropt386;
+  globtype, verbose, procinfo, globals, daopt386, rgobj, rropt386;
 
 {
 function TaiInSequence(P: tai; Const Seq: TContent): Boolean;
@@ -2095,7 +2095,10 @@ end.
 
 {
   $Log$
-  Revision 1.50  2003-11-22 00:40:19  jonas
+  Revision 1.51  2003-11-22 13:10:32  jonas
+    * fixed double unit usage
+
+  Revision 1.50  2003/11/22 00:40:19  jonas
     * fixed optimiser so it compiles again
     * fixed several bugs which were in there already for a long time, but
       which only popped up now :) -O2/-O3 will now optimise less than in

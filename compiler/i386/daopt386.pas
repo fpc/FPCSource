@@ -247,7 +247,7 @@ var
 Implementation
 
 Uses
-  globals, systems, verbose, cgbase, symconst, symsym, cgobj,
+  globals, systems, verbose, symconst, symsym, cgobj,
    rgobj, procinfo;
 
 Type
@@ -2705,7 +2705,10 @@ end.
 
 {
   $Log$
-  Revision 1.54  2003-11-22 00:40:19  jonas
+  Revision 1.55  2003-11-22 13:10:32  jonas
+    * fixed double unit usage
+
+  Revision 1.54  2003/11/22 00:40:19  jonas
     * fixed optimiser so it compiles again
     * fixed several bugs which were in there already for a long time, but
       which only popped up now :) -O2/-O3 will now optimise less than in
