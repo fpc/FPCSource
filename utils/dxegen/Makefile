@@ -133,8 +133,6 @@ endif
 endif
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages)
-override PACKAGE_NAME=dxegen
-override PACKAGE_VERSION=1.05
 ifeq ($(OS_TARGET),go32v2)
 override TARGET_PROGRAMS+=dxegen
 endif
@@ -783,84 +781,6 @@ endif
 ifdef TARGET_EXAMPLEDIRS
 	$(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
 endif
-.PHONY: fpc_distinstall
-fpc_distinstall: install exampleinstall
-.PHONY: fpc_zipinstall fpc_zipsourceinstall fpc_zipexampleinstall
-ifndef PACKDIR
-ifndef inUnix
-PACKDIR=$(BASEDIR)/../fpc-pack
-else
-PACKDIR=/tmp/fpc-pack
-endif
-endif
-ifndef ZIPNAME
-ifdef DIST_ZIPNAME
-ZIPNAME=$(DIST_ZIPNAME)
-else
-ZIPNAME=$(ZIPPREFIX)$(PACKAGE_NAME)$(ZIPSUFFIX)
-endif
-endif
-ifndef ZIPTARGET
-ifdef DIST_ZIPTARGET
-ZIPTARGET=DIST_ZIPTARGET
-else
-ZIPTARGET=install
-endif
-endif
-ifndef USEZIP
-ifdef inUnix
-USETAR=1
-endif
-endif
-ifndef inUnix
-USEZIPWRAPPER=1
-endif
-ifdef USEZIPWRAPPER
-ZIPPATHSEP=$(PATHSEP)
-ZIPWRAPPER=$(subst /,$(PATHSEP),$(DIST_DESTDIR)/fpczip$(BATCHEXT))
-else
-ZIPPATHSEP=/
-endif
-ZIPCMD_CDPACK:=cd $(subst /,$(ZIPPATHSEP),$(PACKDIR))
-ZIPCMD_CDBASE:=cd $(subst /,$(ZIPPATHSEP),$(BASEDIR))
-ifdef USETAR
-ZIPDESTFILE:=$(DIST_DESTDIR)/$(ZIPNAME)$(TAREXT)
-ZIPCMD_ZIP:=$(TARPROG) cf$(TAROPT) $(ZIPDESTFILE) *
-else
-ZIPDESTFILE:=$(DIST_DESTDIR)/$(ZIPNAME)$(ZIPEXT)
-ZIPCMD_ZIP:=$(subst /,$(ZIPPATHSEP),$(ZIPPROG)) -Dr $(ZIPOPT) $(ZIPDESTFILE) *
-endif
-fpc_zipinstall:
-	$(MAKE) $(ZIPTARGET) INSTALL_PREFIX=$(PACKDIR) ZIPINSTALL=1
-	$(DEL) $(ZIPDESTFILE)
-ifdef USEZIPWRAPPER
-ifneq ($(ECHOREDIR),echo)
-	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDPACK))" > $(ZIPWRAPPER)
-	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_ZIP))" >> $(ZIPWRAPPER)
-	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDBASE))" >> $(ZIPWRAPPER)
-else
-	echo $(ZIPCMD_CDPACK) > $(ZIPWRAPPER)
-	echo $(ZIPCMD_ZIP) >> $(ZIPWRAPPER)
-	echo $(ZIPCMD_CDBASE) >> $(ZIPWRAPPER)
-endif
-ifdef inUnix
-	/bin/sh $(ZIPWRAPPER)
-else
-	$(ZIPWRAPPER)
-endif
-	$(DEL) $(ZIPWRAPPER)
-else
-	$(ZIPCMD_CDPACK) ; $(ZIPCMD_ZIP) ; $(ZIPCMD_CDBASE)
-endif
-	$(DELTREE) $(PACKDIR)
-fpc_zipsourceinstall:
-	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall ZIPSUFFIX=src
-fpc_zipexampleinstall:
-ifdef HASEXAMPLES
-	$(MAKE) fpc_zipinstall ZIPTARGET=exampleinstall ZIPSUFFIX=exm
-endif
-fpc_zipdistinstall:
-	$(MAKE) fpc_zipinstall ZIPTARGET=distinstall
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
 override CLEANEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEFILES))
@@ -989,11 +909,11 @@ shared:
 install: fpc_install
 sourceinstall: fpc_sourceinstall
 exampleinstall: fpc_exampleinstall
-distinstall: fpc_distinstall
-zipinstall: fpc_zipinstall
-zipsourceinstall: fpc_zipsourceinstall
-zipexampleinstall: fpc_zipexampleinstall
-zipdistinstall: fpc_zipdistinstall
+distinstall:
+zipinstall:
+zipsourceinstall:
+zipexampleinstall:
+zipdistinstall:
 clean: fpc_clean
 distclean: fpc_distclean
 cleanall: fpc_cleanall

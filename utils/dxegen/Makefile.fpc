@@ -2,10 +2,6 @@
 #   Makefile.fpc for Free Pascal Utils
 #
 
-[package]
-name=dxegen
-version=1.05
-
 [target]
 programs_go32v2=dxegen
 
