@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Win32 implementation part of event logging facility.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -80,7 +80,7 @@ Const
 Var
   ELKey : String;
   R : TRegistry;
-  
+
 begin
   CheckIdentification;
   If AFileName='' then
@@ -99,7 +99,7 @@ begin
       except
         Result:=False;
       end
-  Finally 
+  Finally
    R.Free;
   end;
 end;
@@ -108,7 +108,7 @@ function TEventLog.MapTypeToCategory(EventType: TEventType): Word;
 begin
   If (EventType=ETCustom) then
     DoGetCustomEventCategory(Result)
-  else  
+  else
     Result:=Ord(EventType);
   If Result=0 then
     Result:=1;
@@ -119,12 +119,12 @@ function TEventLog.MapTypeToEventID(EventType: TEventType): DWord;
 begin
   If (EventType=ETCustom) then
     DoGetCustomEventID(Result)
-  else  
+  else
     begin
     If (FEventIDOffset=0) then
       FEventIDOffset:=1000;
     Result:=FEventIDOffset+Ord(EventType);
-    end;  
+    end;
 end;
 
 function TEventLog.MapTypeToEvent(EventType: TEventType): DWord;
@@ -143,7 +143,7 @@ begin
     begin
     If CustomLogType=0 then
       CustomLogType:=EVENTLOG_SUCCESS;
-    Result:=CustomLogType
+    Result:=CustomLogType;
     DoGetCustomEvent(Result);
     end
   else

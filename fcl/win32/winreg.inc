@@ -31,7 +31,7 @@ end;
 function TRegistry.sysCreateKey(const Key: String): Boolean;
 Var
   P: PChar;
-  Disposition: Integer;
+  Disposition: Dword;
   Handle: HKEY;
   SecurityAttributes: Pointer; //LPSECURITY_ATTRIBUTES;
 
@@ -70,13 +70,13 @@ function TRegistry.SysGetData(const Name: String; Buffer: Pointer;
 Var
   P: PChar;
   RD : DWord;
-  
+
 begin
   P := @Name[1];
   If RegQueryValueEx(fCurrentKey,P,Nil,
                      @RD,Buffer,@BufSize)<>ERROR_SUCCESS Then
     Result:=-1
-  else                  
+  else
     begin
     If (RD=REG_SZ) then
       RegData:=rdString
@@ -87,7 +87,7 @@ begin
     else if (RD=REG_BINARY) then
       RegData:=rdBinary
     else
-      RegData:=rdUnknown;  
+      RegData:=rdUnknown;
     Result:=BufSize;
     end;
 end;
@@ -149,19 +149,19 @@ begin
   SecurityAttributes := Nil;
   P:=PrepKey(Key);
   If CanCreate then
-    begin 
+    begin
     Handle:=0;
     Result:=RegCreateKeyEx(GetBaseKey(RelativeKey(Key)),P,0,'',
-    
+
                            REG_OPTION_NON_VOLATILE,
                            fAccess,SecurityAttributes,Handle,
-                           @Disposition)=ERROR_SUCCESS 
-                           
+                           @Disposition)=ERROR_SUCCESS
+
     end
   else
     Result:=RegOpenKeyEx(GetBaseKey(RelativeKey(Key)),
                          P,0,fAccess,Handle)=ERROR_SUCCESS;
-  If Result then 
+  If Result then
     fCurrentKey:=Handle;
 end;
 
@@ -174,7 +174,7 @@ Var
 begin
   P:=PrepKey(Key);
   Result := RegOpenKeyEx(GetBaseKey(RelativeKey(Key)),P,0,KEY_READ,Handle) = 0;
-  If Result Then 
+  If Result Then
     fCurrentKey := Handle;
 end;
 
@@ -217,7 +217,7 @@ begin
   If (CurrentKey<>0) then
     begin
     if LazyWrite then
-      RegCloseKey(CurrentKey) 
+      RegCloseKey(CurrentKey)
     else
       RegFlushKey(CurrentKey);
     fCurrentKey:=0;
@@ -236,7 +236,7 @@ Var
   I: Integer;
   Info: TRegKeyInfo;
   P : PChar;
-  
+
 begin
    Strings.Clear;
    if GetKeyInfo(Info) then
@@ -251,7 +251,7 @@ begin
          Strings.Add(StrPas(P));
          end;
      Finally
-       FreeMem(P);    
+       FreeMem(P);
      end;
      end;
 end;
@@ -263,7 +263,7 @@ Var
   I: Integer;
   Info: TRegKeyInfo;
   P : PChar;
-  
+
 begin
    Strings.Clear;
    if GetKeyInfo(Info) then
@@ -278,7 +278,7 @@ begin
          Strings.Add(StrPas(P));
          end;
      Finally
-       FreeMem(P);    
+       FreeMem(P);
      end;
      end;
 
@@ -310,9 +310,9 @@ var
   InfoO,InfoN : TRegDataInfo;
   D : TRegDataType;
   P: PChar;
-  
+
 begin
-  If GetDataInfo(OldName,InfoO) and Not GetDataInfo(NewName,InfoN) then 
+  If GetDataInfo(OldName,InfoO) and Not GetDataInfo(NewName,InfoN) then
     begin
     L:=InfoO.DataSize;
     if L>0 then
@@ -326,7 +326,7 @@ begin
         FreeMem(P);
       end;
       end;
-    end;  
+    end;
 end;
 
 procedure TRegistry.SetCurrentKey(Value: HKEY);
