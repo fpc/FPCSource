@@ -21,6 +21,8 @@
 \lit*{cdecl}    \\
 \lit*{pascal}   \\
 \lit*{stdcall}  \\
+\lit*{safecall} \\
+\lit*{saveregisters} \\
 \lit*{popstack}
 \)
 \end{mysyntdiag}

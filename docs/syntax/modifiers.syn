@@ -19,7 +19,9 @@
 \lit*{cdecl}\\
 \lit*{stdcall}\\
 \lit*{popstack}\\
-\lit*{saveregisters}
+\lit*{saveregisters}\\
+\lit*{inline}\\
+\lit*{safecall}
 \)
 \end{mysyntdiag}
 \end{diagram}
