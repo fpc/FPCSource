@@ -95,7 +95,7 @@
 %
 \newenvironment{remark}{\par\makebox[0pt][r]{\bfseries{}Remark:\hspace{.25em}}}{\par}
 % For Tables.
-\newenvironment{FPCtable}[2]{\begin{table}[ht]\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+\newenvironment{FPCtable}[2]{\begin{table}[ht!]\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 % The same, but with label in third argument (tab:#3)
 \newenvironment{FPCltable}[3]{\begin{table}[ht]\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 %
@@ -217,6 +217,7 @@
   \usepackage{times}
   \usepackage[T1]{fontenc}
   \setcounter{secnumdepth}{1}
+  \setcounter{tocdepth}{3}
   \pdfcompresslevel=9
   \pdfpagewidth=210mm
   \pdfpageheight=297mm
