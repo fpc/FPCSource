@@ -434,7 +434,7 @@ Var
       End;
   End;
 
-  Procedure GetFinalDestination(AsmL: TAAsmOutput; hp: Taicpu);
+  function GetFinalDestination(AsmL: TAAsmOutput; hp: Taicpu; level: longint): boolean;
   {traces sucessive jumps to their final destination and sets it, e.g.
    je l1                je l3
    <code>               <code>
@@ -442,7 +442,10 @@ Var
    je l2                je l3
    <code>               <code>
    l2:                  l2:
-   jmp l3               jmp l3}
+   jmp l3               jmp l3
+
+   the level parameter denotes how deeep we have already followed the jump,
+   to avoid endless loops with constructs such as "l5: ; jmp l5"           }
 
   Var p1, p2: Tai;
       l: tasmlabel;
@@ -462,6 +465,9 @@ Var
     End;
 
   Begin
+    if level > 20 then
+      exit;
+    GetfinalDestination := false;
     If (tasmlabel(hp.oper[0].sym).labelnr >= LoLab) and
        (tasmlabel(hp.oper[0].sym).labelnr <= HiLab) and   {range check, a jump can go past an assembler block!}
        Assigned(LTable^[tasmlabel(hp.oper[0].sym).labelnr-LoLab].TaiObj) Then
@@ -485,7 +491,12 @@ Var
               (Taicpu(p2).condition in [C_None,hp.condition]) and
               SkipLabels(p1,p1)) Then
             Begin
-              GetFinalDestination(asml, Taicpu(p1));
+              { quick check for loops of the form "l5: ; jmp l5 }
+              if (tasmlabel(Taicpu(p1).oper[0].sym).labelnr =
+                   tasmlabel(hp.oper[0].sym).labelnr) then
+                exit;
+              if not GetFinalDestination(asml, Taicpu(p1),succ(level)) then
+                exit;
               Dec(tasmlabel(hp.oper[0].sym).refs);
               hp.oper[0].sym:=Taicpu(p1).oper[0].sym;
               inc(tasmlabel(hp.oper[0].sym).refs);
@@ -516,9 +527,11 @@ Var
   {$endif finaldestdebug}
                   inc(l.refs);
                   hp.oper[0].sym := l;
-                  GetFinalDestination(asml, hp);
+                  if not GetFinalDestination(asml, hp,succ(level)) then
+                    exit;
                 end;
       End;
+    GetFinalDestination := true;
   End;
 
   Function DoSubAddOpt(var p: Tai): Boolean;
@@ -617,7 +630,7 @@ Begin
                              else
                               begin
                                 If (LabDif <> 0) Then
-                                  GetFinalDestination(asml, Taicpu(p));
+                                  GetFinalDestination(asml, Taicpu(p),0);
                                 p:=Tai(p.next);
                                 continue;
                               end;
@@ -627,11 +640,11 @@ Begin
                              asml.remove(hp1);
                              hp1.free;
                              If (LabDif <> 0) Then
-                               GetFinalDestination(asml, Taicpu(p));
+                               GetFinalDestination(asml, Taicpu(p),0);
                            end
                          else
                            If (LabDif <> 0) Then
-                             GetFinalDestination(asml, Taicpu(p));
+                             GetFinalDestination(asml, Taicpu(p),0);
                      end;
                  end;
              end
@@ -2008,7 +2021,10 @@ End.
 
 {
   $Log$
-  Revision 1.13  2001-04-13 01:22:19  peter
+  Revision 1.14  2001-08-01 09:46:55  jonas
+    * fixed endless loop with web bug 1571 (merged)
+
+  Revision 1.13  2001/04/13 01:22:19  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
