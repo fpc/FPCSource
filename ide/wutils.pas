@@ -878,6 +878,9 @@ begin
       if copy(MidS,1,length(UpS))=UpS then
         begin
           Idx:=Mid; FoundS:=GetStr(MidP);
+          { exit immediately if exact match PM }
+          If Length(MidS)=Length(UpS) then
+            break;
         end;
       if UpS<MidS then
         Right:=Mid
@@ -1236,7 +1239,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.6  2002-03-20 13:48:31  pierre
+  Revision 1.7  2002-03-22 16:43:27  pierre
+   * avoid that constructor is proposed for code complete if const is given
+
+  Revision 1.6  2002/03/20 13:48:31  pierre
    * avoid stack corruption in CharStr if count > 255
 
   Revision 1.5  2001/11/18 20:18:54  peter
