@@ -352,6 +352,7 @@ Procedure Do_Open(var f;p:pchar;flags:longint);
 }
 var
   oflags : longint;
+  dirtest : stat;
 Begin
 { close first if opened }
   if ((flags and $10000)=0) then
@@ -411,6 +412,15 @@ Begin
    begin
      Oflags:=Oflags and not(Open_RDWR);
      FileRec(f).Handle:=sys_open(p,oflags,438);
+   end;
+{ Check if it's a directory, then we should return io error 2 }
+  if ErrNo=0 then
+   begin
+     if (Sys_fstat(filerec(f).handle,dirtest)<>0) then
+      inoutres:=2
+     else
+      if (dirtest.mode and STAT_IFMT)<>STAT_IFREG then
+       inoutres:=2;
    end;
   Errno2Inoutres;
 End;
@@ -783,7 +793,10 @@ End.
 
 {
   $Log$
-  Revision 1.48  2000-06-30 22:14:03  peter
+  Revision 1.49  2000-07-08 18:02:39  peter
+    * do_open checks for directory, if directory then ioerror 2
+
+  Revision 1.48  2000/06/30 22:14:03  peter
     * removed obsolete crtlib code
     * support EINTR for read/write to restart the syscall
 

@@ -16,7 +16,7 @@
 {No debugging for syslinux include !}
 {$IFDEF SYS_LINUX}
   {$UNDEF SYSCALL_DEBUG}
-{$ENDIF SYS_LINUX}  
+{$ENDIF SYS_LINUX}
 
 
 {*****************************************************************************
@@ -95,7 +95,7 @@ var
   LastEax,
   LastCall : longint;
   DebugTxt : string[20];
-{$ENDIF}  
+{$ENDIF}
 Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
 {
   This function serves as an interface to do_SysCall.
@@ -135,7 +135,7 @@ begin
       lastcnt:=0;
       writeln(sys_nr_txt[lastcall],debugtxt,lasteax);
       end;
-    end;     
+    end;
 {$endif}
 end;
 
@@ -219,6 +219,15 @@ begin
   Sys_Unlink:=SysCall(SysCall_nr_unlink,regs);
 end;
 
+
+Function Sys_fstat(fd : longint;var Info:stat):Longint;
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=fd;
+  regs.reg3:=longint(@Info);
+  Sys_fStat:=SysCall(SysCall_nr_fstat,regs);
+end;
 
 
 Function Sys_Rename(Oldname,Newname:pchar):longint;
@@ -317,7 +326,7 @@ begin
   if sys_stat(f,st)<0 then
    exit;
 { Is it a dir ? }
-  if not((st.mode and $f000)=$4000)then 
+  if not((st.mode and $f000)=$4000)then
    begin
      errno:=sys_enotdir;
      exit
@@ -360,9 +369,9 @@ begin
   regs.reg4:=1;
   dummy:=SysCall(SysCall_nr_readdir,regs);
 { the readdir system call returns the number of bytes written }
-  if dummy=0 then 
-   sys_readdir:=nil 
-  else 
+  if dummy=0 then
+   sys_readdir:=nil
+  else
    sys_readdir:=p^.buf
 end;
 
@@ -389,7 +398,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-02-09 16:59:32  peter
+  Revision 1.11  2000-07-08 18:02:39  peter
+    * do_open checks for directory, if directory then ioerror 2
+
+  Revision 1.10  2000/02/09 16:59:32  peter
     * truncated log
 
   Revision 1.9  2000/02/08 11:47:09  peter
