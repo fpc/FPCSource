@@ -5,7 +5,7 @@
 
     These files adds support for TP styled port accesses (port[],
     portw[] and portl[] constructs) using Delphi classes.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -15,6 +15,16 @@
 
  **********************************************************************}
 
+(*
+  Warning:
+  1) You have to enable port access in your CONFIG.SYS (IOPL directive),
+     either globally (IOPL=YES), or just for particular application/-s with
+     a need for port access (IOPL=app_name1, appname2, ...).
+  2) Once you access some port, access to this port is enabled all the time
+     for all EMX applications until EMX.DLL is unloaded from memory (i.e.
+     all applications using this library finish).
+*)
+    
 unit Ports;
 
 { This unit uses classes so ObjFpc mode is required. }
@@ -136,7 +146,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-01-02 17:13:12  hajny
+  Revision 1.3  2000-01-02 17:37:42  hajny
+    * warning notes added
+
+  Revision 1.2  2000/01/02 17:13:12  hajny
     * it might even work now ;-)
 
   Revision 1.1  2000/01/02 16:05:36  hajny
