@@ -6,7 +6,7 @@
 main=fcl
 
 [target]
-dirs=dbase
+dirs=dbase sdf
 dirs_linux=mysql interbase sqlite
 dirs_freebsd=mysql interbase sqlite
 dirs_darwin=mysql interbase sqlite
