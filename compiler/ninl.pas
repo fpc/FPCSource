@@ -1115,6 +1115,7 @@ implementation
          hp        : tnode;
          srsym     : tsym;
          isreal    : boolean;
+         checkrange : boolean;
       label
          myexit;
       begin
@@ -1595,14 +1596,20 @@ implementation
                           (tenumdef(resulttype.def).has_jumps) then
                          CGMessage(type_e_succ_and_pred_enums_with_assign_not_possible);
                      end;
+                   
+                   { only if the result is an enum do we do range checking }
+                   if (resulttype.def.deftype=enumdef) then
+                     checkrange := true
+                   else
+                     checkrange := false;
 
                    { do constant folding after check for jumps }
                    if left.nodetype=ordconstn then
                     begin
                       if inlinenumber=in_succ_x then
-                       hp:=cordconstnode.create(tordconstnode(left).value+1,left.resulttype,true)
+                       hp:=cordconstnode.create(tordconstnode(left).value+1,left.resulttype,checkrange)
                       else
-                       hp:=cordconstnode.create(tordconstnode(left).value-1,left.resulttype,true);
+                       hp:=cordconstnode.create(tordconstnode(left).value-1,left.resulttype,checkrange);
                       result:=hp;
                     end;
                 end;
@@ -2380,7 +2387,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2002-09-09 19:41:01  peter
+  Revision 1.90  2002-09-13 19:12:09  carl
+    * only enumerations have range checking for succ/pred in const section
+
+  Revision 1.89  2002/09/09 19:41:01  peter
     * check ranges for pred() and succ()
 
   Revision 1.88  2002/09/08 13:01:25  jonas
