@@ -1,8 +1,8 @@
-unit ;
+unit $PROMPT('unit');
 
 interface
 
-uses ;
+uses $PROMPT('uses');
 
 const
 
