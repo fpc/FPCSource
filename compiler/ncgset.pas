@@ -148,7 +148,7 @@ implementation
       { rotate value register "bitnumber" bits to the right }
       cg.a_op_reg_reg_reg(list,OP_SHR,OS_INT,bitnumber,value,__result);
       { extract the bit we want }
-      cg.a_op_const_reg(list,OP_AND,1,__result);
+      cg.a_op_const_reg(list,OP_AND,OS_INT,1,__result);
     end;
 
 
@@ -303,7 +303,7 @@ implementation
                    pleftreg:=rg.makeregsize(left.location.register,OS_INT);
                    cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,pleftreg);
                    if opsize <> OS_INT then
-                     cg.a_op_const_reg(exprasmlist,OP_AND,255,pleftreg);
+                     cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,255,pleftreg);
                    opsize := OS_INT;
                  end
                else
@@ -362,7 +362,7 @@ implementation
                         begin
                           { otherwise, the value is already in a register   }
                           { that can be modified                            }
-                          cg.a_op_const_reg(exprasmlist,OP_SUB,
+                          cg.a_op_const_reg(exprasmlist,OP_SUB,OS_INT,
                              setparts[i].start-adjustment,pleftreg)
                         end;
                     { new total value substracted from x:           }
@@ -458,10 +458,10 @@ implementation
                   end;
 
                  { then SHR the register }
-                 cg.a_op_const_reg(exprasmlist,OP_SHR,
+                 cg.a_op_const_reg(exprasmlist,OP_SHR,OS_INT,
                    tordconstnode(left).value and 31,hr);
                  { then extract the lowest bit }
-                 cg.a_op_const_reg(exprasmlist,OP_AND,1,hr);
+                 cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,1,hr);
                  location.register:=hr;
                 end
                else
@@ -598,11 +598,11 @@ implementation
                   else
                     { adjust for endianess differences }
                     inc(right.location.reference.offset,(tordconstnode(left).value shr 3) xor 3);
-                  cg.a_load_ref_reg(exprasmlist, OS_8, right.location.reference, location.register);
+                  cg.a_load_ref_reg(exprasmlist,OS_8,right.location.reference, location.register);
                   location_release(exprasmlist,right.location);
-                  cg.a_op_const_reg(exprasmlist,OP_SHR, tordconstnode(left).value and 7,
+                  cg.a_op_const_reg(exprasmlist,OP_SHR,location.size,tordconstnode(left).value and 7,
                     location.register);
-                  cg.a_op_const_reg(exprasmlist, OP_AND,1,location.register);
+                  cg.a_op_const_reg(exprasmlist,OP_AND,location.size,1,location.register);
                 end
                else
                 begin
@@ -669,7 +669,7 @@ implementation
               register.
             }
             cg.a_load_reg_reg(exprasmlist, opsize, opsize, hregister, scratch_reg);
-            cg.a_op_const_reg(exprasmlist, OP_SUB, value, hregister);
+            cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, value, hregister);
           end;
 
         begin
@@ -1121,7 +1121,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2003-05-30 23:57:08  peter
+  Revision 1.39  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.38  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

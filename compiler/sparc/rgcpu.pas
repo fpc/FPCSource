@@ -1,6 +1,9 @@
-{******************************************************************************
+{
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
+
+    This unit implements the SPARC specific class for the register
+    allocator
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,59 +21,97 @@
 
  ****************************************************************************}
 unit rgcpu;
-{ This unit implements the processor specific class for the register allocator}
-{$INCLUDE fpcdefs.inc}
+
+{$i fpcdefs.inc}
+
 interface
-uses
-  cpubase,
-  cpuinfo,
-  aasmcpu,
-  aasmtai,
-  cclasses,globtype,cgbase,aasmbase,rgobj;
-type
-{This class implements the cpu spaecific register allocator. It is used by the
-code generator to allocate and free registers which might be valid across
-nodes. It also contains utility routines related to registers. Some of the
-methods in this class overrides generic implementations in rgobj.pas.}
-  trgcpu=class(trgobj)
-    function GetExplicitRegisterInt(list:taasmoutput;Reg:Tnewregister):tregister;override;
-    procedure UngetregisterInt(list:taasmoutput;Reg:tregister);override;
-  end;
+
+    uses
+      cpubase,
+      cpuinfo,
+      aasmcpu,
+      aasmtai,
+      cclasses,globtype,
+      cginfo,cgbase,aasmbase,rgobj;
+
+    type
+      trgcpu=class(trgobj)
+        function GetRegisterFpu(list:TAasmOutput;size:Tcgsize):TRegister;override;
+        function GetExplicitRegisterInt(list:taasmoutput;Reg:Tnewregister):tregister;override;
+        procedure UngetregisterInt(list:taasmoutput;Reg:tregister);override;
+      end;
+
+
 implementation
-uses
-  cgobj,verbose;
-function TRgCpu.GetExplicitRegisterInt(list:TAasmOutput;reg:TNewRegister):TRegister;
-  var
-    r:TRegister;
-  begin
-    if(reg=NR_O7)or(reg=NR_I7)
-    then
+
+    uses
+      cgobj,verbose;
+
+    function TRgCpu.GetRegisterFpu(list:TAasmOutput;size:Tcgsize):TRegister;
+      var
+        i: Toldregister;
+        r: Tregister;
       begin
-        r.enum:=R_INTREGISTER;
-        r.number:=reg;
-        cg.a_reg_alloc(list,r);
-        result:=r;
-      end
-    else
-      result:=inherited GetExplicitRegisterInt(list,reg);
-  end;
-procedure trgcpu.UngetRegisterInt(list:taasmoutput;reg:tregister);
-  begin
-    if reg.enum<>R_INTREGISTER
-    then
-      internalerror(200302191);
-    if (reg.number=RS_O7) or (reg.number=NR_I7)
-    then
-      cg.a_reg_dealloc(list,reg)
-    else
-      inherited ungetregisterint(list,reg);
-  end;
+        for i:=firstsavefpureg to lastsavefpureg do
+         begin
+            if (i in unusedregsfpu) and
+               (
+                (size=OS_F32) or
+                (not odd(ord(i)-ord(R_F0)))
+               ) then
+              begin
+                 exclude(unusedregsfpu,i);
+                 include(usedinproc,i);
+                 include(usedbyproc,i);
+                 dec(countunusedregsfpu);
+                 r.enum:=i;
+                 list.concat(tai_regalloc.alloc(r));
+                 result := r;
+                 exit;
+              end;
+         end;
+        internalerror(10);
+      end;
+
+
+    function TRgCpu.GetExplicitRegisterInt(list:TAasmOutput;reg:TNewRegister):TRegister;
+      var
+        r:TRegister;
+      begin
+        if (reg=NR_O7) or (reg=NR_I7) then
+          begin
+            r.enum:=R_INTREGISTER;
+            r.number:=reg;
+            cg.a_reg_alloc(list,r);
+            result:=r;
+          end
+        else
+          result:=inherited GetExplicitRegisterInt(list,reg);
+      end;
+
+
+    procedure trgcpu.UngetRegisterInt(list:taasmoutput;reg:tregister);
+      begin
+        if reg.enum<>R_INTREGISTER then
+          internalerror(200302191);
+        if (reg.number=RS_O7) or (reg.number=NR_I7) then
+          cg.a_reg_dealloc(list,reg)
+        else
+          inherited ungetregisterint(list,reg);
+      end;
+
+
 begin
   rg := trgcpu.create(24); {24 registers.}
 end.
 {
   $Log$
-  Revision 1.10  2003-05-31 01:00:51  peter
+  Revision 1.11  2003-06-01 21:38:07  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.10  2003/05/31 01:00:51  peter
     * register fixes
 
   Revision 1.9  2003/04/22 10:09:35  daniel

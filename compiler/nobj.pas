@@ -1316,7 +1316,7 @@ implementation
       l:=paramanager.getselflocation(procdef);
       case l.loc of
         LOC_REGISTER:
-          cg.a_op_const_reg(exprasmlist,OP_SUB,ioffset,l.register);
+          cg.a_op_const_reg(exprasmlist,OP_SUB,l.size,ioffset,l.register);
         LOC_REFERENCE:
           begin
              reference_reset_base(href,l.reference.index,l.reference.offset);
@@ -1333,7 +1333,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.43  2003-05-23 14:27:35  peter
+  Revision 1.44  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.43  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 

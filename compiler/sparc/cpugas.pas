@@ -82,7 +82,7 @@ unit cpugas;
                   begin
                     if Offset<>0 then
                       internalerror(2003052603);
-                    GetReferenceString:=GetReferenceString+std_reg2str[index.enum]+'+';
+                    GetReferenceString:=GetReferenceString+'+'+std_reg2str[index.enum];
                   end;
                 GetReferenceString:=GetReferenceString+']';
               end;
@@ -207,7 +207,12 @@ begin
 end.
 {
     $Log$
-    Revision 1.18  2003-06-01 01:04:35  peter
+    Revision 1.19  2003-06-01 21:38:06  peter
+      * getregisterfpu size parameter added
+      * op_const_reg size parameter added
+      * sparc updates
+
+    Revision 1.18  2003/06/01 01:04:35  peter
       * reference fixes
 
     Revision 1.17  2003/05/31 01:00:51  peter

@@ -811,18 +811,18 @@ unit cg64f32;
         OP_AND:
            begin
               if lowvalue <> high(cardinal) then
-                cg.a_op_const_reg(list,op,lowvalue,reg.reglo);
+                cg.a_op_const_reg(list,op,OS_32,lowvalue,reg.reglo);
               if highvalue <> high(cardinal) then
-                cg.a_op_const_reg(list,op,highvalue,reg.reghi);
+                cg.a_op_const_reg(list,op,OS_32,highvalue,reg.reghi);
               { already emitted correctly }
               exit;
            end;
         OP_OR:
            begin
               if lowvalue <> 0 then
-                cg.a_op_const_reg(list,op,lowvalue,reg.reglo);
+                cg.a_op_const_reg(list,op,OS_32,lowvalue,reg.reglo);
               if highvalue <> 0 then
-                cg.a_op_const_reg(list,op,highvalue,reg.reghi);
+                cg.a_op_const_reg(list,op,OS_32,highvalue,reg.reghi);
               { already emitted correctly }
               exit;
            end;
@@ -845,7 +845,7 @@ unit cg64f32;
              if (a > 31) then
                begin
                  cg.a_load_const_reg(list,OS_32,0,reg.reglo);
-                 cg.a_op_const_reg(list,OP_SHL,a mod 32,reg.reghi);
+                 cg.a_op_const_reg(list,OP_SHL,OS_32,a mod 32,reg.reghi);
                  { swap the registers }
                  hreg := reg.reghi;
                  reg.reghi := reg.reglo;
@@ -863,7 +863,7 @@ unit cg64f32;
              if (a > 31) then
                begin
                  cg.a_load_const_reg(list,OS_32,0,reg.reghi);
-                 cg.a_op_const_reg(list,OP_SHL,a mod 32,reg.reglo);
+                 cg.a_op_const_reg(list,OP_SHL,OS_32,a mod 32,reg.reglo);
                  { swap the registers }
                  hreg := reg.reghi;
                  reg.reghi := reg.reglo;
@@ -898,7 +898,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-05-14 19:31:37  jonas
+  Revision 1.45  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.44  2003/05/14 19:31:37  jonas
     * fixed a_param64_reg
 
   Revision 1.43  2003/04/27 14:48:09  jonas

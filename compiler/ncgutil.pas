@@ -50,6 +50,7 @@ interface
     procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsupregset);
 
     procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
+    procedure location_force_fpureg(list: TAAsmoutput;var l: tlocation;maybeconst:boolean);
     procedure location_force_mem(list: TAAsmoutput;var l:tlocation);
 
 {$ifndef newra}
@@ -607,6 +608,23 @@ implementation
       end;
 
 
+    procedure location_force_fpureg(list: TAAsmoutput;var l: tlocation;maybeconst:boolean);
+      var
+        reg : tregister;
+      begin
+        if (l.loc<>LOC_FPUREGISTER)  and
+           ((l.loc<>LOC_CFPUREGISTER) or (not maybeconst)) then
+          begin
+            reg:=rg.getregisterfpu(list,l.size);
+            cg.a_loadfpu_loc_reg(list,l,reg);
+            location_freetemp(list,l);
+            location_release(list,l);
+            location_reset(l,LOC_FPUREGISTER,l.size);
+            l.register:=reg;
+          end;
+      end;
+
+
     procedure location_force_mem(list: TAAsmoutput;var l:tlocation);
       var
         r : treference;
@@ -778,7 +796,6 @@ implementation
         sizetopush,
         size : longint;
         cgsize : tcgsize;
-        r:Tregister;
       begin
         { we've nothing to push when the size of the parameter is 0 }
         if p.resulttype.def.size=0 then
@@ -808,12 +825,12 @@ implementation
 {$endif GDB}
 
                   { this is the easiest case for inlined !! }
-                  r.enum:=R_INTREGISTER;
-                  r.number:=NR_STACK_POINTER_REG;
+                  hreg.enum:=R_INTREGISTER;
+                  hreg.number:=NR_STACK_POINTER_REG;
                   if calloption=pocall_inline then
                    reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize)
                   else
-                   reference_reset_base(href,r,0);
+                   reference_reset_base(href,hreg,0);
 
                   cg.a_loadfpu_reg_ref(list,
                     def_cgsize(p.resulttype.def),p.location.register,href);
@@ -875,9 +892,9 @@ implementation
               size:=align(p.resulttype.def.size,alignment);
               inc(pushedparasize,size);
               cg.g_stackpointer_alloc(list,size);
-              r.enum:=R_INTREGISTER;
-              r.number:=NR_STACK_POINTER_REG;
-              reference_reset_base(href,r,0);
+              hreg.enum:=R_INTREGISTER;
+              hreg.number:=NR_STACK_POINTER_REG;
+              reference_reset_base(href,hreg,0);
               cg.g_concatcopy(list,p.location.reference,href,size,false,false);
 {$else i386}
               cg.a_param_copy_ref(list,p.resulttype.def.size,p.location.reference,locpara);
@@ -1701,7 +1718,7 @@ implementation
            if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
             begin
               if (tg.gettempsize<>0) then
-                cg.a_op_const_reg(list,OP_ADD,tg.gettempsize,current_procinfo.framepointer);
+                cg.a_op_const_reg(list,OP_ADD,OS_ADDR,tg.gettempsize,current_procinfo.framepointer);
             end
            else
             cg.g_restore_frame_pointer(list);
@@ -1929,7 +1946,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.115  2003-05-31 20:28:17  jonas
+  Revision 1.116  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.115  2003/05/31 20:28:17  jonas
     * changed copyvalueparas so it also supports register parameters
       (except for copy_value_openarray, but that one is seriously broken
        anyway, since it expects that the high parameter will always be in

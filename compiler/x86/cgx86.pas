@@ -55,7 +55,7 @@ unit cgx86;
         procedure a_call_reg(list : taasmoutput;reg : tregister);override;
 
 
-        procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister); override;
+        procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); override;
         procedure a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const ref: TReference); override;
         procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
         procedure a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); override;
@@ -644,7 +644,7 @@ unit cgx86;
        end;
 
 
-    procedure tcgx86.a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister);
+    procedure tcgx86.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister);
 
       var
         opcode: tasmop;
@@ -664,8 +664,7 @@ unit cgx86;
                     OP_IDIV:
                       opcode := A_SAR;
                   end;
-                  list.concat(taicpu.op_const_reg(opcode,reg2opsize(reg),
-                    power,reg));
+                  list.concat(taicpu.op_const_reg(opcode,TCgSize2OpSize[size],power,reg));
                   exit;
                 end;
               { the rest should be handled specifically in the code      }
@@ -677,13 +676,11 @@ unit cgx86;
               if not(cs_check_overflow in aktlocalswitches) and
                  ispowerof2(a,power) then
                 begin
-                  list.concat(taicpu.op_const_reg(A_SHL,reg2opsize(reg),
-                    power,reg));
+                  list.concat(taicpu.op_const_reg(A_SHL,TCgSize2OpSize[size],power,reg));
                   exit;
                 end;
               if op = OP_IMUL then
-                list.concat(taicpu.op_const_reg(A_IMUL,reg2opsize(reg),
-                  a,reg))
+                list.concat(taicpu.op_const_reg(A_IMUL,TCgSize2OpSize[size],a,reg))
               else
                 { OP_MUL should be handled specifically in the code        }
                 { generator because of the silly register usage restraints }
@@ -694,14 +691,14 @@ unit cgx86;
                (a = 1) and
                (op in [OP_ADD,OP_SUB]) then
               if op = OP_ADD then
-                list.concat(taicpu.op_reg(A_INC,reg2opsize(reg),reg))
+                list.concat(taicpu.op_reg(A_INC,TCgSize2OpSize[size],reg))
               else
-                list.concat(taicpu.op_reg(A_DEC,reg2opsize(reg),reg))
+                list.concat(taicpu.op_reg(A_DEC,TCgSize2OpSize[size],reg))
             else if (a = 0) then
               if (op <> OP_AND) then
                 exit
               else
-                list.concat(taicpu.op_const_reg(A_MOV,reg2opsize(reg),0,reg))
+                list.concat(taicpu.op_const_reg(A_MOV,TCgSize2OpSize[size],0,reg))
             else if (a = high(aword)) and
                     (op in [OP_AND,OP_OR,OP_XOR]) then
                    begin
@@ -709,19 +706,17 @@ unit cgx86;
                        OP_AND:
                          exit;
                        OP_OR:
-                         list.concat(taicpu.op_const_reg(A_MOV,reg2opsize(reg),high(aword),reg));
+                         list.concat(taicpu.op_const_reg(A_MOV,TCgSize2OpSize[size],high(aword),reg));
                        OP_XOR:
-                         list.concat(taicpu.op_reg(A_NOT,reg2opsize(reg),reg));
+                         list.concat(taicpu.op_reg(A_NOT,TCgSize2OpSize[size],reg));
                      end
                    end
             else
-              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],reg2opsize(reg),
-                a,reg));
+              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],a,reg));
           OP_SHL,OP_SHR,OP_SAR:
             begin
               if (a and 31) <> 0 Then
-                list.concat(taicpu.op_const_reg(
-                  TOpCG2AsmOp[op],reg2opsize(reg),a and 31,reg));
+                list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],a and 31,reg));
               if (a shr 5) <> 0 Then
                 internalerror(68991);
             end
@@ -943,10 +938,6 @@ unit cgx86;
 
 
      procedure tcgx86.a_op_reg_ref(list : taasmoutput; Op: TOpCG; size: TCGSize;reg: TRegister; const ref: TReference);
-
-       var
-         opsize: topsize;
-
        begin
          if reg.enum<>R_INTREGISTER then
           internalerror(200302036);
@@ -968,8 +959,7 @@ unit cgx86;
              internalerror(200109238);
            else
              begin
-               opsize := tcgsize2opsize[size];
-               list.concat(taicpu.op_reg_ref(TOpCG2AsmOp[op],opsize,reg,ref));
+               list.concat(taicpu.op_reg_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],reg,ref));
              end;
          end;
        end;
@@ -1075,9 +1065,9 @@ unit cgx86;
           if reg.enum=R_INTREGISTER then
             begin
               if (a = 0) then
-                list.concat(taicpu.op_reg_reg(A_TEST,reg2opsize(reg),reg,reg))
+                list.concat(taicpu.op_reg_reg(A_TEST,tcgsize2opsize[size],reg,reg))
               else
-                list.concat(taicpu.op_const_reg(A_CMP,reg2opsize(reg),a,reg));
+                list.concat(taicpu.op_const_reg(A_CMP,tcgsize2opsize[size],a,reg));
             end
           else
             internalerror(200303131);
@@ -1946,7 +1936,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.48  2003-05-30 23:57:08  peter
+  Revision 1.49  2003-06-01 21:38:07  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.48  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

@@ -448,7 +448,7 @@ implementation
 {$ifdef x86}
                 inc(trgcpu(rg).fpuvaroffset);
 {$else x86}
-                hregister := rg.getregisterfpu(exprasmlist);
+                hregister := rg.getregisterfpu(exprasmlist,location.size);
                 cg.a_loadfpu_reg_reg(exprasmlist,location.register,hregister);
                 location.register := hregister;
 {$endif x86}
@@ -1242,7 +1242,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2003-05-31 15:05:28  peter
+  Revision 1.81  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.80  2003/05/31 15:05:28  peter
     * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
 
   Revision 1.79  2003/05/31 00:59:44  peter

@@ -207,7 +207,7 @@ unit rgobj;
              An internalerror will be generated if there
              is no more free registers which can be allocated
           }
-          function getregisterfpu(list: taasmoutput) : tregister; virtual;
+          function getregisterfpu(list: taasmoutput;size:Tcgsize) : tregister; virtual;
           {# Free a floating point register
 
              @param(r register to free)
@@ -747,10 +747,11 @@ unit rgobj;
 {$endif TEMPREGDEBUG}
            end
          else
-           getexplicitregisterfpu:=getregisterfpu(list);
+{$warning Size for FPU reg is maybe not correct}
+           getexplicitregisterfpu:=getregisterfpu(list,OS_F32);
       end;
 
-    function trgobj.getregisterfpu(list: taasmoutput) : tregister;
+    function trgobj.getregisterfpu(list: taasmoutput;size:Tcgsize) : tregister;
 
       begin
         if countunusedregsfpu=0 then
@@ -2059,7 +2060,12 @@ end.
 
 {
   $Log$
-  Revision 1.47  2003-05-31 20:31:11  jonas
+  Revision 1.48  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.47  2003/05/31 20:31:11  jonas
     * set inital costs of assigning a variable to a register to 120 for
       non-i386, because the used register must be store to memory at the
       start and loaded again at the end

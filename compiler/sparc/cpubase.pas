@@ -574,7 +574,7 @@ uses
 
       { since we have no full 32 bit offsets, we need to be able to specify the high
         and low bits of the address of a symbol                                      }
-      trefsymaddr = (refs_full,refs_hi,refs_lo);
+      trefsymaddr = (refs_no,refs_full,refs_hi,refs_lo);
 
       { reference record }
       preference = ^treference;
@@ -608,7 +608,7 @@ uses
       end;
 
     const
-      symaddr2str: array[trefsymaddr] of string[3] = ('','%hi','%lo');
+      symaddr2str: array[trefsymaddr] of string[3] = ('','','%hi','%lo');
 
 
 {*****************************************************************************
@@ -813,8 +813,8 @@ type
       {# Registers which are defined as scratch and no need to save across
          routine calls or in assembler blocks.
       }
-      max_scratch_regs = 2;
-      scratch_regs: Array[1..max_scratch_regs] of Tsuperregister = (RS_O7,RS_G2);
+      max_scratch_regs = 3;
+      scratch_regs: Array[1..max_scratch_regs] of Tsuperregister = (RS_O7,RS_G2,RS_G3);
 
 {*****************************************************************************
                           Default generic sizes
@@ -965,6 +965,7 @@ type
 
     function  is_calljmp(o:tasmop):boolean;
 
+    procedure inverse_flags(var f: TResFlags);
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
     procedure convert_register_to_enum(var r:Tregister);
     function cgsize2subreg(s:Tcgsize):Tsubregister;
@@ -986,7 +987,16 @@ implementation
       end;
 
 
-    function flags_to_cond(const f:TResFlags):TAsmCond;
+    procedure inverse_flags(var f: TResFlags);
+      const
+        inv_flags: array[TResFlags] of TResFlags =
+          (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,F_BE,F_B,F_AE,F_A);
+      begin
+        f:=inv_flags[f];
+      end;
+
+
+   function flags_to_cond(const f:TResFlags):TAsmCond;
       const
         flags_2_cond:array[TResFlags] of TAsmCond=
           (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE);
@@ -1014,7 +1024,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2003-06-01 01:04:35  peter
+  Revision 1.39  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.38  2003/06/01 01:04:35  peter
     * reference fixes
 
   Revision 1.37  2003/05/31 15:05:28  peter

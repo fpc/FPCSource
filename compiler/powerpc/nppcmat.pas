@@ -388,13 +388,13 @@ implementation
                      if left.location.loc = LOC_CREGISTER then
                        location.register := rg.getregisterint(exprasmlist,OS_INT)
                      else
-                       location.register := rg.getregisterfpu(exprasmlist);
+                       location.register := rg.getregisterfpu(exprasmlist,location.size);
                   end;
                 LOC_REFERENCE,LOC_CREFERENCE:
                   begin
                      if (left.resulttype.def.deftype=floatdef) then
                        begin
-                          src1 := rg.getregisterfpu(exprasmlist);
+                          src1 := rg.getregisterfpu(exprasmlist,def_cgsize(left.resulttype.def));
                           location.register := src1;
                           cg.a_loadfpu_ref_reg(exprasmlist,
                             def_cgsize(left.resulttype.def),
@@ -520,7 +520,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2003-05-24 19:15:29  jonas
+  Revision 1.28  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.27  2003/05/24 19:15:29  jonas
     * fixed shr of 64 bit values by non-immediate value
 
   Revision 1.26  2003/05/11 11:45:08  jonas

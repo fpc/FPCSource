@@ -110,7 +110,7 @@ interface
         maybe_restore(exprasmlist,left.location,pushedregs);
         if pushedfpu then
           begin
-            tmpreg := rg.getregisterfpu(exprasmlist);
+            tmpreg := rg.getregisterfpu(exprasmlist,left.location.size);
             cg.a_loadfpu_loc_reg(exprasmlist,left.location,tmpreg);
             location_reset(left.location,LOC_FPUREGISTER,left.location.size);
             left.location.register := tmpreg;
@@ -467,20 +467,6 @@ interface
         op    : TAsmOp;
         cmpop : boolean;
         r     : Tregister;
-
-      procedure location_force_fpureg(var l: tlocation);
-        begin
-          if not(l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
-            begin
-              reg := rg.getregisterfpu(exprasmlist);
-              cg.a_loadfpu_loc_reg(exprasmlist,l,reg);
-              location_freetemp(exprasmlist,l);
-              location_release(exprasmlist,l);
-              location_reset(l,LOC_FPUREGISTER,l.size);
-              l.register := reg;
-            end;
-        end;
-
       begin
         pass_left_and_right;
 
@@ -510,8 +496,8 @@ interface
           swapleftright;
 
         // put both operands in a register
-        location_force_fpureg(right.location);
-        location_force_fpureg(left.location);
+        location_force_fpureg(exprasmlist,right.location,true);
+        location_force_fpureg(exprasmlist,left.location,true);
 
         // initialize de result
         if not cmpop then
@@ -522,7 +508,7 @@ interface
             else if right.location.loc = LOC_FPUREGISTER then
               location.register := right.location.register
             else
-              location.register := rg.getregisterfpu(exprasmlist);
+              location.register := rg.getregisterfpu(exprasmlist,location.size);
           end
         else
          begin
@@ -1028,7 +1014,7 @@ interface
                       else
                         begin
                           // const32 - reg64
-                          location_force_reg(exprasmlist,left.location, 
+                          location_force_reg(exprasmlist,left.location,
                             OS_32,true);
                           exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBC,
                             location.registerlow,left.location.registerlow,
@@ -1486,7 +1472,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2003-05-30 18:49:14  jonas
+  Revision 1.31  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.30  2003/05/30 18:49:14  jonas
     * fixed problem where sometimes no register was allocated for the result
       of an addnode when using regvars
 

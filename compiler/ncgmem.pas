@@ -419,12 +419,12 @@ implementation
        begin
          if location.reference.base.number=NR_NO then
           begin
-            cg.a_op_const_reg(exprasmlist,OP_IMUL,l,reg);
+            cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
             location.reference.base:=reg;
           end
          else if location.reference.index.number=NR_NO then
           begin
-            cg.a_op_const_reg(exprasmlist,OP_IMUL,l,reg);
+            cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
             location.reference.index:=reg;
           end
          else
@@ -433,7 +433,7 @@ implementation
             rg.ungetregisterint(exprasmlist,location.reference.base);
             reference_reset_base(location.reference,location.reference.index,0);
             { insert new index register }
-            cg.a_op_const_reg(exprasmlist,OP_IMUL,l,reg);
+            cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
             location.reference.index:=reg;
           end;
        end;
@@ -824,7 +824,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-05-30 23:49:18  jonas
+  Revision 1.56  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.55  2003/05/30 23:49:18  jonas
     * a_load_loc_reg now has an extra size parameter for the destination
       register (properly fixes what I worked around in revision 1.106 of
       ncgutil.pas)

@@ -107,9 +107,9 @@ implementation
          else if location.reference.base.number=NR_NO then
           begin
             case location.reference.scalefactor of
-             2 : cg.a_op_const_reg(exprasmlist,OP_SHL,1,location.reference.index);
-             4 : cg.a_op_const_reg(exprasmlist,OP_SHL,2,location.reference.index);
-             8 : cg.a_op_const_reg(exprasmlist,OP_SHL,3,location.reference.index);
+             2 : cg.a_op_const_reg(exprasmlist,OP_SHL,OS_ADDR,1,location.reference.index);
+             4 : cg.a_op_const_reg(exprasmlist,OP_SHL,OS_ADDR,2,location.reference.index);
+             8 : cg.a_op_const_reg(exprasmlist,OP_SHL,OS_ADDR,3,location.reference.index);
             end;
             location.reference.base:=location.reference.index;
           end
@@ -126,9 +126,9 @@ implementation
          else
            begin
               if ispowerof2(l,l2) then
-                cg.a_op_const_reg(exprasmlist,OP_SHL,l2,reg)
+                cg.a_op_const_reg(exprasmlist,OP_SHL,OS_ADDR,l2,reg)
               else
-                cg.a_op_const_reg(exprasmlist,OP_IMUL,l,reg);
+                cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
            end;
          end;
          location.reference.index:=reg;
@@ -154,7 +154,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2003-04-22 14:33:38  peter
+  Revision 1.53  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.52  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.51  2003/03/28 19:16:57  peter

@@ -108,126 +108,19 @@ implementation
                              SecondTypeConv
 *****************************************************************************}
 
-procedure TSparctypeconvnode.second_int_to_real;
-  type
-    tdummyarray = packed array[0..7] of byte;
-{$ifdef VER1_0}
-  var
-    dummy1, dummy2: int64;
-{$else VER1_0}
-  const
-    dummy1: int64 = $4330000080000000;
-    dummy2: int64 = $4330000000000000;
-{$endif VER1_0}
-  var
-    tempconst: trealconstnode;
-    ref: treference;
-    valuereg, tempreg, leftreg, tmpfpureg: tregister;
-    signed, valuereg_is_scratch: boolean;
-  begin
-{$ifdef VER1_0}
-    { the "and" is because 1.0.x will sign-extend the $80000000 to }
-    { $ffffffff80000000 when converting it to int64 (JM)           }
-    dummy1 := int64($80000000) and (int64($43300000) shl 32);
-    dummy2 := int64($43300000) shl 32;
-{$endif VER1_0}
-    valuereg_is_scratch := false;
-    location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-    { the code here comes from the PowerPC Compiler Writer's Guide }
-    { * longint to double                               }
-    { addis R0,R0,0x4330  # R0 = 0x43300000             }
-    { stw R0,disp(R1)     # store upper half            }
-    { xoris R3,R3,0x8000  # flip sign bit               }
-    { stw R3,disp+4(R1)   # store lower half            }
-    { lfd FR1,disp(R1)    # float load double of value  }
-    { fsub FR1,FR1,FR2    # subtract 0x4330000080000000 }
-    { * cardinal to double                              }
-    { addis R0,R0,0x4330  # R0 = 0x43300000             }
-    { stw R0,disp(R1)     # store upper half            }
-    { stw R3,disp+4(R1)   # store lower half            }
-    { lfd FR1,disp(R1)    # float load double of value  }
-    { fsub FR1,FR1,FR2    # subtract 0x4330000000000000 }
-    tg.Gettemp(exprasmlist,8,tt_normal,ref);
-    signed := is_signed(left.resulttype.def);
-    { we need a certain constant for the conversion, so create it here }
-    if signed
-    then
-      tempconst:=crealconstnode.create(double(dummy1),pbestrealtype^)
-    else
-      tempconst:=crealconstnode.create(double(dummy2),pbestrealtype^);
-    resulttypepass(tempconst);
-    firstpass(tempconst);
-    secondpass(tempconst);
-    if (tempconst.location.loc <> LOC_CREFERENCE)or
-    { has to be handled by a helper }
-       is_64bitint(left.resulttype.def)
-    then
-      internalerror(200110011);
-    case left.location.loc of
-      LOC_REGISTER:
-        begin
-          leftreg := left.location.register;
-          valuereg := leftreg;
-        end;
-      LOC_CREGISTER:
-        begin
-          leftreg := left.location.register;
-          if signed
-          then
-            begin
-              valuereg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-              valuereg_is_scratch := true;
-            end
-          else
-            valuereg := leftreg;
-        end;
-      LOC_REFERENCE,LOC_CREFERENCE:
-        begin
-          leftreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-          valuereg := leftreg;
-          valuereg_is_scratch := true;
-          cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),
-          left.location.reference,leftreg);
-        end
-      else
-        internalerror(200110012);
-    end;
-      tempreg := cg.get_scratch_reg_int(exprasmlist,OS_32);
-      {$WARNING FIXME what really should be done?}
-      exprasmlist.concat(taicpu.op_reg_const_reg(A_OR,tempreg,$4330,tempreg));
-      cg.a_load_reg_ref(exprasmlist,OS_32,tempreg,ref);
-      cg.free_scratch_reg(exprasmlist,tempreg);
-      if signed
-      then
-        {$WARNING FIXME what really should be done?}
-        exprasmlist.concat(taicpu.op_reg_const_reg(A_XOR,leftreg,$8000,valuereg));
-      inc(ref.offset,4);
-      cg.a_load_reg_ref(exprasmlist,OS_32,valuereg,ref);
-      dec(ref.offset,4);
-      if (valuereg_is_scratch)
-      then
-        cg.free_scratch_reg(exprasmlist,valuereg);
-      if(left.location.loc = LOC_REGISTER) or
-        ((left.location.loc = LOC_CREGISTER) and not signed)
-      then
-        rg.UnGetRegisterInt(exprasmlist,leftreg)
-      else
-        cg.free_scratch_reg(exprasmlist,valuereg);
-      tmpfpureg := rg.getregisterfpu(exprasmlist);
-      cg.a_loadfpu_ref_reg(exprasmlist,OS_F64,tempconst.location.reference,tmpfpureg);
-      tempconst.free;
-      location.register := rg.getregisterfpu(exprasmlist);
-      {$WARNING FIXME what really should be done?}
-      exprasmlist.concat(taicpu.op_Ref_Reg(A_LDF,Ref,location.register));
-      tg.ungetiftemp(exprasmlist,ref);
-      exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,location.register,tmpfpureg));
-      rg.ungetregisterfpu(exprasmlist,tmpfpureg);
-      { work around bug in some PowerPC processors }
-      if (tfloatdef(resulttype.def).typ = s32real)
-      then
-        {$WARNING FIXME what really should be done?}
-        exprasmlist.concat(taicpu.op_reg_reg(A_ADD,location.register,location.register));
-  end;
+    procedure TSparctypeconvnode.second_int_to_real;
+      begin
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        location_force_mem(exprasmlist,left.location);
+        location.register:=rg.getregisterfpu(exprasmlist,location.size);
+        { Load memory in fpu register }
+        cg.a_loadfpu_ref_reg(exprasmlist,location.size,left.location.reference,location.register);
+{$warning TODO Handle also double}
+        { Convert value in fpu register from integer to float }
+        exprasmlist.concat(taicpu.op_reg_reg(A_FiTOs,location.register,location.register));
+      end;
+
+
 procedure TSparctypeconvnode.second_real_to_real;
   begin
     inherited second_real_to_real;
@@ -237,8 +130,10 @@ procedure TSparctypeconvnode.second_real_to_real;
       (tfloatdef(resulttype.def).typ = s32real)
     then
       {$WARNING FIXME what really should be done?}
-      exprasmlist.concat(taicpu.op_reg_reg(A_ADD,location.register,location.register));
+      exprasmlist.concat(taicpu.op_reg_reg(A_FADDs,location.register,location.register));
   end;
+
+
 procedure TSparctypeconvnode.second_int_to_bool;
   var
     hreg1,hreg2:tregister;
@@ -285,6 +180,8 @@ procedure TSparctypeconvnode.second_int_to_bool;
     end;
     location.register := hreg1;
   end;
+
+
 procedure TSparctypeconvnode.second_call_helper(c : tconverttype);
   const
     secondconvert : array[tconverttype] of pointer = (
@@ -361,7 +258,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-04-23 21:10:54  peter
+  Revision 1.16  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.15  2003/04/23 21:10:54  peter
     * fix compile for ppc,sparc,m68k
 
   Revision 1.14  2003/04/23 13:35:39  peter

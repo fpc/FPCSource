@@ -87,27 +87,8 @@ implementation
          begin
            location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
            secondpass(left);
-           case left.location.loc of
-             LOC_FPUREGISTER:
-               location.register := left.location.register;
-             LOC_CFPUREGISTER:
-               begin
-                location.register := rg.getregisterfpu(exprasmlist);
-               end;
-             LOC_REFERENCE,LOC_CREFERENCE:
-               begin
-                location.register := rg.getregisterfpu(exprasmlist);
-                 cg.a_loadfpu_ref_reg(exprasmlist,
-                    def_cgsize(left.resulttype.def),
-                    left.location.reference,location.register);
-                 location_release(exprasmlist,left.location);
-                 location_reset(left.location,LOC_FPUREGISTER,
-                   left.location.size);
-                 left.location.register := location.register;
-               end
-           else
-              internalerror(309991);
-           end;
+           location_copy(location,left.location);
+           location_force_fpureg(exprasmlist,location,false);
          end;
 
      procedure tppcinlinenode.second_abs_real;
@@ -131,7 +112,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-05-24 13:39:32  jonas
+  Revision 1.7  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.6  2003/05/24 13:39:32  jonas
     * fsqrt is an optional instruction in the ppc architecture and isn't
       implemented by any current ppc afaik, so use the generic sqrt routine
       instead (adapted so it works with compilerproc)

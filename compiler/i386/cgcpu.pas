@@ -125,8 +125,8 @@ unit cgcpu;
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_reg(list,op,lo(value),reg.reglo);
-              cg.a_op_const_reg(list,op,hi(value),reg.reghi);
+              cg.a_op_const_reg(list,op,OS_32,lo(value),reg.reglo);
+              cg.a_op_const_reg(list,op,OS_32,hi(value),reg.reghi);
             end;
           OP_ADD, OP_SUB:
             begin
@@ -174,7 +174,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-05-22 21:32:28  peter
+  Revision 1.34  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.33  2003/05/22 21:32:28  peter
     * removed some unit dependencies
 
   Revision 1.32  2002/11/25 17:43:26  peter

@@ -280,7 +280,8 @@ implementation
               else
                 { LOC_CREGISTER }
                 begin
-                  cg.a_op_const_reg(exprasmlist,cgop,l,tcallparanode(left).left.location.register);
+                  cg.a_op_const_reg(exprasmlist,cgop,tcallparanode(left).left.location.size,
+                     l,tcallparanode(left).left.location.register);
                 end;
             end
           else
@@ -345,7 +346,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-05-30 23:49:18  jonas
+  Revision 1.62  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.61  2003/05/30 23:49:18  jonas
     * a_load_loc_reg now has an extra size parameter for the destination
       register (properly fixes what I worked around in revision 1.106 of
       ncgutil.pas)

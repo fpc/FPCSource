@@ -204,8 +204,15 @@ implementation
                     begin
                       hp.paraloc.size:=def_cgsize(hp.paratype.def);
                       hp.paraloc.loc:=LOC_FPUREGISTER;
+                      { Doubles use 2 FPU regs, align on even register }
+                      if (hp.paraloc.size<>OS_F32) and
+                         odd(ord(nextfloatreg)-ord(R_F0)) then
+                        inc(nextfloatreg);
                       hp.paraloc.register.enum:=nextfloatreg;
                       inc(nextfloatreg);
+                      { Doubles use 2 FPU regs }
+                      if hp.paraloc.size<>OS_F32 then
+                        inc(nextfloatreg);
                     end
                   else
                     begin
@@ -304,7 +311,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2003-05-31 01:00:51  peter
+  Revision 1.19  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.18  2003/05/31 01:00:51  peter
     * register fixes
 
   Revision 1.17  2003/05/30 23:57:08  peter

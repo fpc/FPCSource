@@ -188,7 +188,7 @@ begin
     cg.a_load_const_ref(exprasmlist,OS_8,tordconstnode(right).value,href2);
   lengthreg.number:=(lengthreg.number and not $ff) or R_SUBL;
   { increase the string length }
-  cg.a_op_const_reg(exprasmlist,OP_ADD,1,lengthreg);
+  cg.a_op_const_reg(exprasmlist,OP_ADD,OS_8,1,lengthreg);
   cg.a_load_reg_ref(exprasmlist,OS_8,lengthreg,left.location.reference);
   rg.ungetregisterint(exprasmlist,lengthreg);
   if checklength then
@@ -203,7 +203,12 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-05-26 21:15:18  peter
+  Revision 1.4  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.3  2003/05/26 21:15:18  peter
     * disable string node optimizations for the moment
 
   Revision 1.2  2003/04/26 09:12:55  peter

@@ -222,7 +222,7 @@ unit cgobj;
           { the op_reg_reg, op_reg_ref or op_reg_loc methods and keep in mind   }
           { that in this case the *second* operand is used as both source and   }
           { destination (JM)                                                    }
-          procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister); virtual; abstract;
+          procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); virtual; abstract;
           procedure a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const ref: TReference); virtual;
           procedure a_op_const_loc(list : taasmoutput; Op: TOpCG; a: AWord; const loc: tlocation);
           procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); virtual; abstract;
@@ -608,7 +608,7 @@ unit cgobj;
                    begin
                       t.enum:=R_INTREGISTER;;
                       t.number:=NR_STACK_POINTER_REG;
-                      a_op_const_reg(list,OP_ADD,locpara.sp_fixup,t);
+                      a_op_const_reg(list,OP_ADD,OS_ADDR,locpara.sp_fixup,t);
                    end;
                  reference_reset(ref);
                  ref.base:=locpara.reference.index;
@@ -993,7 +993,7 @@ unit cgobj;
                    begin
                       t.enum:=R_INTREGISTER;
                       t.number:=NR_STACK_POINTER_REG;
-                      a_op_const_reg(list,OP_ADD,locpara.sp_fixup,t);
+                      a_op_const_reg(list,OP_ADD,OS_ADDR,locpara.sp_fixup,t);
                    end;
                  reference_reset(ref);
                  ref.base:=locpara.reference.index;
@@ -1010,7 +1010,7 @@ unit cgobj;
       var
          hr : tregister;
       begin
-         hr:=rg.getregisterfpu(list);
+         hr:=rg.getregisterfpu(list,size);
          a_loadfpu_ref_reg(list,size,ref,hr);
          a_paramfpu_reg(list,size,hr,locpara);
          rg.ungetregisterfpu(list,hr);
@@ -1029,7 +1029,7 @@ unit cgobj;
         tmpreg := get_scratch_reg_int(list,size);
       {$endif}
         a_load_ref_reg(list,size,ref,tmpreg);
-        a_op_const_reg(list,op,a,tmpreg);
+        a_op_const_reg(list,op,OS_INT,a,tmpreg);
         a_load_reg_ref(list,size,tmpreg,ref);
       {$ifdef newra}
         rg.ungetregisterint(list,tmpreg);
@@ -1044,7 +1044,7 @@ unit cgobj;
       begin
         case loc.loc of
           LOC_REGISTER, LOC_CREGISTER:
-            a_op_const_reg(list,op,a,loc.register);
+            a_op_const_reg(list,op,loc.size,a,loc.register);
           LOC_REFERENCE, LOC_CREFERENCE:
             a_op_const_ref(list,op,loc.size,a,loc.reference);
           else
@@ -1154,7 +1154,7 @@ unit cgobj;
         size: tcgsize; a: aword; src, dst: tregister);
       begin
         a_load_reg_reg(list,size,size,src,dst);
-        a_op_const_reg(list,op,a,dst);
+        a_op_const_reg(list,op,size,a,dst);
       end;
 
     procedure tcg.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
@@ -1562,7 +1562,7 @@ unit cgobj;
           begin
             a_load_ref_reg(list,def_cgsize(p.resulttype.def),
               p.location.reference,hreg);
-            a_op_const_reg(list,OP_SUB,aword(lto),hreg);
+            a_op_const_reg(list,OP_SUB,OS_INT,aword(lto),hreg);
           end;
         objectlibrary.getlabel(neglabel);
         a_cmp_const_reg_label(list,OS_INT,OC_BE,aword(hto-lto),hreg,neglabel);
@@ -1712,7 +1712,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.104  2003-06-01 01:02:39  peter
+  Revision 1.105  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.104  2003/06/01 01:02:39  peter
     * generic a_call_ref
 
   Revision 1.103  2003/05/30 23:57:08  peter

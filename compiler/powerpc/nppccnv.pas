@@ -227,12 +227,12 @@ implementation
          else
            cg.free_scratch_reg(exprasmlist,valuereg);
 
-         tmpfpureg := rg.getregisterfpu(exprasmlist);
+         tmpfpureg := rg.getregisterfpu(exprasmlist,OS_F64);
          cg.a_loadfpu_ref_reg(exprasmlist,OS_F64,tempconst.location.reference,
            tmpfpureg);
          tempconst.free;
 
-         location.register := rg.getregisterfpu(exprasmlist);
+         location.register := rg.getregisterfpu(exprasmlist,OS_F64);
          exprasmlist.concat(taicpu.op_reg_ref(A_LFD,location.register,
            ref));
 
@@ -429,7 +429,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-05-11 20:42:08  jonas
+  Revision 1.37  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.36  2003/05/11 20:42:08  jonas
     * fixed bug in second_int_to_bool I introduced previous time
       (secondpass was being called twice!)
 

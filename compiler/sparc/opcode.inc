@@ -24,7 +24,7 @@ A_NOP,
 A_OR,A_ORcc,A_ORN,A_ORNcc,
 A_RDASR,A_RDY,A_RDPSR,A_RDWIM,A_RDTBR,
 A_RESTORE,
-A_RETT,
+A_RET,
 A_SAVE,
 A_SDIV,A_SDIVcc,
 A_SMUL,A_SMULcc,
@@ -62,13 +62,19 @@ A_clr,A_clrb,A_clrh,
 A_cmp,
 A_dec,A_deccc,
 A_inc,A_inccc,
+A_MOV,
 A_not,
 A_set,
 A_skipz,A_skipnz,
 A_tst
 {
         $Log$
-        Revision 1.7  2003-06-01 01:03:53  peter
+        Revision 1.8  2003-06-01 21:38:07  peter
+          * getregisterfpu size parameter added
+          * op_const_reg size parameter added
+          * sparc updates
+
+        Revision 1.7  2003/06/01 01:03:53  peter
           * FMOVs fixed
 
         Revision 1.6  2003/05/06 20:23:44  mazen

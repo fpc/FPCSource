@@ -27,7 +27,7 @@ unit ncpumat;
 interface
 
     uses
-      node,nmat;
+      node,nmat,ncgmat;
 
     type
       tSparcmoddivnode = class(tmoddivnode)
@@ -40,12 +40,8 @@ interface
          function first_shlshr64bitint: tnode; override;
       end;
 
-      tSparcunaryminusnode = class(tunaryminusnode)
-         procedure pass_2;override;
-      end;
-
-      tSparcnotnode = class(tnotnode)
-         procedure pass_2;override;
+      tSparcnotnode = class(tcgnotnode)
+         procedure second_boolean;override;
       end;
 
 implementation
@@ -74,6 +70,7 @@ implementation
          power,
          l1, l2     : longint;
          op         : tasmop;
+         tmpreg,
          numerator,
          divider,
          resultreg  : tregister;
@@ -107,19 +104,14 @@ implementation
             (right.nodetype = ordconstn) and
             ispowerof2(tordconstnode(right).value,power) then
            begin
-             { From "The PowerPC Compiler Writer's Guide":                   }
-             { This code uses the fact that, in the PowerPC architecture,    }
-             { the shift right algebraic instructions set the Carry bit if   }
-             { the source register contains a negative number and one or     }
-             { more 1-bits are shifted out. Otherwise, the carry bit is      }
-             { cleared. The addze instruction corrects the quotient, if      }
-             { necessary, when the dividend is negative. For example, if     }
-             { n = -13, (0xFFFF_FFF3), and k = 2, after executing the srawi  }
-             { instruction, q = -4 (0xFFFF_FFFC) and CA = 1. After executing }
-             { the addze instruction, q = -3, the correct quotient.          }
-             cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_32,aword(power),
-               numerator,resultreg);
-             exprasmlist.concat(taicpu.op_reg_reg(A_ADD,resultreg,resultreg));
+             tmpreg:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
+             cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,31,numerator,tmpreg);
+             { if signed, tmpreg=right value-1, otherwise 0 }
+             cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,tordconstnode(right).value-1,tmpreg);
+             { add to the left value }
+             cg.a_op_reg_reg(exprasmlist,OP_ADD,OS_INT,tmpreg,numerator);
+             cg.free_scratch_reg(exprasmlist,tmpreg);
+             cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,aword(power),numerator,resultreg);
            end
          else
            begin
@@ -162,10 +154,12 @@ implementation
 {*****************************************************************************
                              TSparcSHLRSHRNODE
 *****************************************************************************}
+
 function TSparcShlShrNode.first_shlshr64bitint:TNode;
   begin
     result := nil;
   end;
+
 procedure tSparcshlshrnode.pass_2;
   var
     resultreg, hregister1,hregister2,
@@ -194,33 +188,28 @@ procedure tSparcshlshrnode.pass_2;
             location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
             location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
           end;
-        if (right.nodetype = ordconstn)
-        then
+        if (right.nodetype = ordconstn) then
           begin
             shiftval := tordconstnode(right).value;
-            if tordconstnode(right).value > 31
-            then
+            if tordconstnode(right).value > 31 then
               begin
-                if nodetype = shln
-                then
+                if nodetype = shln then
                   begin
-                    if (shiftval and 31) <> 0
-                    then
+                    if (shiftval and 31) <> 0 then
                       cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval and 31,hregisterlow,location.registerhigh);
-                      cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerlow);
+                    cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerlow);
                   end
                 else
                   begin
-                    if (shiftval and 31) <> 0
-                    then
+                    if (shiftval and 31) <> 0 then
                       cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval and 31,hregisterhigh,location.registerlow);
-                      cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerhigh);
+                    cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerhigh);
                   end;
               end
             else
               begin
-                if nodetype = shln
-                then
+{$warning TODO shl 64bit const}
+                if nodetype = shln then
                   begin
                     {exprasmlist.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,location.registerhigh,hregisterhigh,shiftval,0,31-shiftval));
                     exprasmlist.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,location.registerhigh,hregisterlow,shiftval,32-shiftval,31));
@@ -256,6 +245,7 @@ procedure tSparcshlshrnode.pass_2;
             //rg.getexplicitregisterint(exprasmlist,NR_O0);
             r.enum:=R_INTREGISTER;
             r.number:=NR_O0;
+{$warning TODO shl 64bit no-const}
 {            exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,R_0,hregister1,32));
             exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,location.registerhigh,hregisterhigh,hregister1));
             exprasmlist.concat(taicpu.op_reg_reg_reg(asmop2,R_0,hregisterlow,R_0));
@@ -279,22 +269,19 @@ procedure tSparcshlshrnode.pass_2;
         location_copy(location,left.location);
         resultreg := location.register;
         hregister1 := location.register;
-        if (location.loc = LOC_CREGISTER)
-        then
+        if (location.loc = LOC_CREGISTER) then
           begin
             location.loc := LOC_REGISTER;
             resultreg := rg.getregisterint(exprasmlist,OS_INT);
             location.register := resultreg;
           end;
         { determine operator }
-        if nodetype=shln
-        then
+        if nodetype=shln then
           op:=OP_SHL
         else
           op:=OP_SHR;
         { shifting by a constant directly coded: }
-        if (right.nodetype=ordconstn)
-        then
+        if (right.nodetype=ordconstn) then
           cg.a_op_const_reg_reg(exprasmlist,op,OS_32,tordconstnode(right).value and 31,hregister1,resultreg)
         else
           begin
@@ -306,119 +293,21 @@ procedure tSparcshlshrnode.pass_2;
           end;
       end;
   end;
+
+
 {*****************************************************************************
-                          TSparcUNARYMINUSNODE
+                               TSPARCNOTNODE
 *****************************************************************************}
 
-    procedure tSparcunaryminusnode.pass_2;
-
+    procedure tsparcnotnode.second_boolean;
       var
-        src1, src2, tmp: tregister;
-        op: tasmop;
-
+        hl : tasmlabel;
+        zeroreg : tregister;
       begin
-         secondpass(left);
-         if is_64bitint(left.resulttype.def) then
-           begin
-             location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
-             location_copy(location,left.location);
-             if (location.loc = LOC_CREGISTER) then
-               begin
-                 location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
-                 location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
-                 location.loc := LOC_CREGISTER;
-               end;
-             exprasmlist.concat(taicpu.op_reg_const_reg(A_SUB,location.registerlow,0,left.location.registerlow));
-             if not(cs_check_overflow in aktlocalswitches) then
-               exprasmlist.concat(taicpu.op_reg_reg(A_SUB,location.registerhigh,left.location.registerhigh))
-             else
-               exprasmlist.concat(taicpu.op_reg_reg(A_SUB,location.registerhigh,left.location.registerhigh));
-           end
-         else
-           begin
-              location_copy(location,left.location);
-              location.loc:=LOC_REGISTER;
-              case left.location.loc of
-                LOC_FPUREGISTER, LOC_REGISTER:
-                  begin
-                    src1 := left.location.register;
-                    location.register := src1;
-                  end;
-                LOC_CFPUREGISTER, LOC_CREGISTER:
-                  begin
-                     src1 := left.location.register;
-                     if left.location.loc = LOC_CREGISTER then
-                       location.register := rg.getregisterint(exprasmlist,OS_INT)
-                     else
-                       location.register := rg.getregisterfpu(exprasmlist);
-                  end;
-                LOC_REFERENCE,LOC_CREFERENCE:
-                  begin
-                     if (left.resulttype.def.deftype=floatdef) then
-                       begin
-                          src1 := rg.getregisterfpu(exprasmlist);
-                          location.register := src1;
-                          cg.a_loadfpu_ref_reg(exprasmlist,
-                            def_cgsize(left.resulttype.def),
-                            left.location.reference,src1);
-                       end
-                     else
-                       begin
-                          src1 := rg.getregisterint(exprasmlist,OS_32);
-                          location.register:= src1;
-                          cg.a_load_ref_reg(exprasmlist,OS_32,
-                            left.location.reference,src1);
-                       end;
-                     reference_release(exprasmlist,left.location.reference);
-                  end;
-              end;
-              { choose appropriate operand }
-              if left.resulttype.def.deftype <> floatdef then
-                begin
-                  if not(cs_check_overflow in aktlocalswitches) then
-                    op := A_NEG
-                  else
-                    op := A_NEG;
-                  location.loc := LOC_REGISTER;
-                end
-              else
-                begin
-                  op := A_NEG;
-                  location.loc := LOC_FPUREGISTER;
-                end;
-              { emit operation }
-              exprasmlist.concat(taicpu.op_reg_reg(op,location.register,src1));
-           end;
-{ Here was a problem...     }
-{ Operand to be negated always     }
-{ seems to be converted to signed  }
-{ 32-bit before doing neg!!     }
-{ So this is useless...     }
-{ that's not true: -2^31 gives an overflow error if it is negated (FK) }
-        cg.g_overflowcheck(exprasmlist,self);
-      end;
-
-
-{*****************************************************************************
-                               TSparcNOTNODE
-*****************************************************************************}
-procedure tSparcnotnode.pass_2;
-var
-  hl : tasmlabel;
-  regl, regh: tregister;
-begin
-  if is_boolean(resulttype.def)
-  then
-    begin
-      { the second pass could change the location of left }
-      { if it is a register variable, so we've to do      }
-      { this before the case statement                    }
-      if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,
-         LOC_FLAGS,LOC_REGISTER,LOC_CREGISTER]
-      then
-        secondpass(left);
-      case left.location.loc of
-        LOC_JUMP :
+        { if the location is LOC_JUMP, we do the secondpass after the
+          labels are allocated
+        }
+        if left.expectloc=LOC_JUMP then
           begin
             hl:=truelabel;
             truelabel:=falselabel;
@@ -429,57 +318,46 @@ begin
             truelabel:=falselabel;
             falselabel:=hl;
             location.loc:=LOC_JUMP;
-          end;
-        LOC_FLAGS :
+          end
+        else
           begin
-            location_copy(location,left.location);
-            //inverse_flags(location.resflags);
+            secondpass(left);
+            case left.location.loc of
+              LOC_FLAGS :
+                begin
+                  location_copy(location,left.location);
+                  inverse_flags(location.resflags);
+                end;
+              LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
+                begin
+                  location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
+                  zeroreg.enum:=R_INTREGISTER;
+                  zeroreg.number:=NR_G0;
+                  exprasmlist.concat(taicpu.op_reg_const_reg(A_SUBcc,left.location.register,0,zeroreg));
+                  location_release(exprasmlist,left.location);
+                  location_reset(location,LOC_FLAGS,OS_NO);
+                  location.resflags:=F_E;
+               end;
+              else
+                internalerror(2003042401);
+            end;
           end;
-        LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
-          begin
-            location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
-            exprasmlist.concat(taicpu.op_reg_const(A_SUBcc,left.location.register,0));
-            location_release(exprasmlist,left.location);
-            location_reset(location,LOC_FLAGS,OS_NO);
-            //location.resflags.cr:=r_NONE;
-            //location.resflags.flag:=F_NONE;
-         end;
       end;
-    end
-  else if is_64bitint(left.resulttype.def)
-  then
-    begin
-      secondpass(left);
-      location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
-      location_copy(location,left.location);
-      { perform the NOT operation }
-      exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.registerhigh,
-      location.registerhigh));
-      exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.registerlow,
-      location.registerlow));
-    end
-  else
-    begin
-      secondpass(left);
-      location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
-      location_copy(location,left.location);
-      if location.loc=LOC_CREGISTER
-      then
-        location.register := rg.getregisterint(exprasmlist,OS_INT);
-        { perform the NOT operation }
-        exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.register,
-        left.location.register));
-      end;
-  end;
+
+
 begin
    cmoddivnode:=tSparcmoddivnode;
    cshlshrnode:=tSparcshlshrnode;
-   cunaryminusnode:=tSparcunaryminusnode;
    cnotnode:=tSparcnotnode;
 end.
 {
   $Log$
-  Revision 1.8  2003-05-30 23:57:08  peter
+  Revision 1.9  2003-06-01 21:38:07  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.8  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

@@ -46,7 +46,7 @@ unit rgcpu;
           function getexplicitregisterint(list:Taasmoutput;r:Tnewregister):Tregister;override;
 {$endif newra}
 
-          function getregisterfpu(list: taasmoutput) : tregister; override;
+          function getregisterfpu(list: taasmoutput;size:TCGSize) : tregister; override;
           procedure ungetregisterfpu(list: taasmoutput; r : tregister); override;
 
           procedure ungetreference(list: taasmoutput; const ref : treference); override;
@@ -324,7 +324,7 @@ unit rgcpu;
 {$endif newra}
 
 
-    function trgcpu.getregisterfpu(list: taasmoutput) : tregister;
+    function trgcpu.getregisterfpu(list: taasmoutput;size: TCGSize) : tregister;
 
       begin
         { note: don't return R_ST0, see comments above implementation of }
@@ -581,7 +581,12 @@ end.
 
 {
   $Log$
-  Revision 1.22  2003-05-16 14:33:31  peter
+  Revision 1.23  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.22  2003/05/16 14:33:31  peter
     * regvar fixes
 
   Revision 1.21  2003/04/25 08:25:26  daniel

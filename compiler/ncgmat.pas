@@ -93,6 +93,14 @@ type
          procedure pass_2;override;
       end;
 
+      tcgnotnode = class(tnotnode)
+      protected
+         procedure second_boolean;virtual;abstract;
+         procedure second_integer;virtual;
+      public
+         procedure pass_2;override;
+      end;
+
 
 implementation
 
@@ -137,10 +145,10 @@ implementation
         { bitwise complement copied value }
         cg.a_op_reg_reg(exprasmlist,OP_NOT,OS_32,hreg,hreg);
         { sign-bit is bit 31/63 of single/double }
-        cg.a_op_const_reg(exprasmlist,OP_AND,$80000000,hreg);
+        cg.a_op_const_reg(exprasmlist,OP_AND,OS_32,aword($80000000),hreg);
         { or with value in reference memory }
         cg.a_op_reg_ref(exprasmlist,OP_OR,OS_32,hreg,href);
-        rg.ungetregister(exprasmlist,hreg);
+        rg.ungetregisterint(exprasmlist,hreg);
         { store the floating point value in the temporary memory area }
         if _size = OS_F64 then
           begin
@@ -194,7 +202,7 @@ implementation
                       if (left.resulttype.def.deftype=floatdef) then
                         begin
                            location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-                           location.register:=rg.getregisterfpu(exprasmlist);
+                           location.register:=rg.getregisterfpu(exprasmlist,location.size);
                            cg.a_loadfpu_ref_reg(exprasmlist,
                               def_cgsize(left.resulttype.def),
                               left.location.reference,location.register);
@@ -221,7 +229,7 @@ implementation
                  LOC_CFPUREGISTER:
                    begin
                       location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-                      location.register:=rg.getregisterfpu(exprasmlist);
+                      location.register:=rg.getregisterfpu(exprasmlist,location.size);
                       cg.a_loadfpu_reg_reg(exprasmlist,left.location.register,location.register);
                       emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
                    end;
@@ -298,17 +306,14 @@ implementation
                       objectlibrary.getlabel(hl);
                       cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_GT,0,hreg1,hl);
                       if power=1 then
-                          cg.a_op_const_reg(exprasmlist,OP_ADD,1,hreg1)
+                        cg.a_op_const_reg(exprasmlist,OP_ADD,OS_INT,1,hreg1)
                       else
-                          cg.a_op_const_reg(exprasmlist,OP_ADD,
-                             tordconstnode(right).value-1,hreg1);
+                        cg.a_op_const_reg(exprasmlist,OP_ADD,OS_INT,tordconstnode(right).value-1,hreg1);
                       cg.a_label(exprasmlist,hl);
-                      cg.a_op_const_reg(exprasmlist,OP_SAR,power,hreg1);
-                      End
-                    Else { not signed }
-                     Begin
-                      cg.a_op_const_reg(exprasmlist,OP_SHR,power,hreg1);
-                     end;
+                      cg.a_op_const_reg(exprasmlist,OP_SAR,OS_INT,power,hreg1);
+                    End
+                  Else { not signed }
+                    cg.a_op_const_reg(exprasmlist,OP_SHR,OS_INT,power,hreg1);
                 End
               else
                 begin
@@ -418,8 +423,8 @@ implementation
                    { l shl 32 should 0 imho, but neither TP nor Delphi do it in this way (FK)
                    if right.value<=31 then
                    }
-                   cg.a_op_const_reg(exprasmlist,op,tordconstnode(right).value and 31,
-                     location.register);
+                   cg.a_op_const_reg(exprasmlist,op,location.size,
+                     tordconstnode(right).value and 31,location.register);
                    {
                    else
                      emit_reg_reg(A_XOR,S_L,hregister1,
@@ -459,15 +464,53 @@ implementation
       end;
 
 
+{*****************************************************************************
+                               TCGNOTNODE
+*****************************************************************************}
+
+    procedure tcgnotnode.second_integer;
+      begin
+        if is_64bit(left.resulttype.def) then
+          begin
+            secondpass(left);
+            location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
+            location_copy(location,left.location);
+            { perform the NOT operation }
+            cg64.a_op64_reg_reg(exprasmlist,OP_NOT,left.location.register64,location.register64);
+          end
+        else
+          begin
+            secondpass(left);
+            location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
+            location_copy(location,left.location);
+            { perform the NOT operation }
+            cg.a_op_reg_reg(exprasmlist,OP_NOT,location.size,location.register,location.register);
+         end;
+      end;
+
+
+    procedure tcgnotnode.pass_2;
+      begin
+        if is_boolean(resulttype.def) then
+          second_boolean
+        else
+          second_integer;
+      end;
 
 begin
    cmoddivnode:=tcgmoddivnode;
    cunaryminusnode:=tcgunaryminusnode;
    cshlshrnode:=tcgshlshrnode;
+   cnotnode:=tcgnotnode;
 end.
 {
   $Log$
-  Revision 1.11  2003-05-30 23:49:18  jonas
+  Revision 1.12  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.11  2003/05/30 23:49:18  jonas
     * a_load_loc_reg now has an extra size parameter for the destination
       register (properly fixes what I worked around in revision 1.106 of
       ncgutil.pas)

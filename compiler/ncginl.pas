@@ -347,7 +347,7 @@ implementation
           cg64.a_op64_const_reg(exprasmlist,cgop,1,
                       location.register64)
         else
-          cg.a_op_const_reg(exprasmlist,cgop,1,location.register);
+          cg.a_op_const_reg(exprasmlist,cgop,location.size,1,location.register);
 
         cg.g_rangecheck(exprasmlist,self,resulttype.def);
       end;
@@ -408,7 +408,7 @@ implementation
                   hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.registerhigh;
                   { insert multiply with addvalue if its >1 }
                   if addvalue>1 then
-                    cg.a_op_const_reg(exprasmlist,OP_IMUL,addvalue,hregister);
+                    cg.a_op_const_reg(exprasmlist,OP_IMUL,cgsize,addvalue,hregister);
                   addconstant:=false;
                 end;
             end;
@@ -492,7 +492,7 @@ implementation
               else
                 { LOC_CREGISTER }
                 begin
-                  cg.a_op_const_reg(exprasmlist,cgop,l,tcallparanode(left).left.location.register);
+                  cg.a_op_const_reg(exprasmlist,cgop,tcallparanode(left).left.location.size,l,tcallparanode(left).left.location.register);
                 end;
             end
           else
@@ -584,7 +584,7 @@ implementation
                   { hregister contains the bitnumber to add }
 
                   cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_32, 5, hregister,hregister2);
-                  cg.a_op_const_reg(exprasmlist, OP_SHL, 2, hregister2);
+                  cg.a_op_const_reg(exprasmlist, OP_SHL, OS_32, 2, hregister2);
               {$ifdef newra}
                   addrreg:=rg.getaddressregister(exprasmlist);
               {$else}
@@ -596,7 +596,7 @@ implementation
 
                   { hregister contains the bitnumber to add }
                   cg.a_load_const_reg(exprasmlist, OS_INT, 1, hregister2);
-                  cg.a_op_const_reg(exprasmlist, OP_AND, 31, hregister);
+                  cg.a_op_const_reg(exprasmlist, OP_AND, OS_INT, 31, hregister);
                   cg.a_op_reg_reg(exprasmlist, OP_SHL, OS_INT, hregister, hregister2);
 
 
@@ -681,7 +681,12 @@ end.
 
 {
   $Log$
-  Revision 1.33  2003-05-24 17:15:59  jonas
+  Revision 1.34  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.33  2003/05/24 17:15:59  jonas
     - removed bogus location_copy for include/exclude
 
   Revision 1.32  2003/05/23 21:10:38  jonas

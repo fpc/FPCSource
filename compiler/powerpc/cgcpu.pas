@@ -47,7 +47,7 @@ unit cgcpu;
         procedure a_call_reg(list : taasmoutput;reg: tregister); override;
         procedure a_call_ref(list : taasmoutput;const ref : treference);override;
 
-        procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister); override;
+        procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); override;
         procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
 
         procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
@@ -500,7 +500,7 @@ const
        end;
 
 
-     procedure tcgppc.a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister);
+     procedure tcgppc.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister);
 
        var
          scratch_register: TRegister;
@@ -1107,7 +1107,7 @@ const
                  end;
 
              { compute end of gpr save area }
-             a_op_const_reg(list,OP_ADD,href.offset+8,r);
+             a_op_const_reg(list,OP_ADD,OS_ADDR,href.offset+8,r);
           end;
 
         { save gprs and fetch GOT pointer }
@@ -1274,7 +1274,7 @@ const
                end
              else
                reference_reset_base(href,r2,-4);
-             
+
             for regcounter2:=firstsaveintreg to RS_R31 do
               begin
                 if regcounter2 in rg.usedintbyproc then
@@ -1320,7 +1320,7 @@ const
              { adjust r1 }
              r.enum:=R_INTREGISTER;
              r.number:=NR_R1;
-             a_op_const_reg(list,OP_ADD,tppcprocinfo(current_procinfo).localsize,r);
+             a_op_const_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(current_procinfo).localsize,r);
              { load link register? }
              if not (po_assembler in current_procdef.procoptions) then
                if (pi_do_call in current_procinfo.flags) then
@@ -2543,7 +2543,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2003-06-01 13:42:18  jonas
+  Revision 1.103  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.102  2003/06/01 13:42:18  jonas
     * fix for bug in fixref that Peter found during the Sparc conversion
 
   Revision 1.101  2003/05/30 18:52:10  jonas

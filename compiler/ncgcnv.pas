@@ -280,7 +280,7 @@ interface
             LOC_REFERENCE:
               begin
                  location_release(exprasmlist,left.location);
-                 location.register:=rg.getregisterfpu(exprasmlist);
+                 location.register:=rg.getregisterfpu(exprasmlist,left.location.size);
                  cg.a_loadfpu_loc_reg(exprasmlist,left.location,location.register);
                  location_freetemp(exprasmlist,left.location);
               end;
@@ -423,10 +423,9 @@ interface
            begin
               if hd.implementedinterfaces.searchintf(resulttype.def)<>-1 then
                 begin
-                   cg.a_op_const_reg(exprasmlist,OP_ADD,aword(
+                   cg.a_op_const_reg(exprasmlist,OP_ADD,OS_32,aword(
                      hd.implementedinterfaces.ioffsets(
-                     hd.implementedinterfaces.searchintf(
-                     resulttype.def))^),location.register);
+                       hd.implementedinterfaces.searchintf(resulttype.def))^),location.register);
                    break;
                 end;
               hd:=hd.childof;
@@ -511,7 +510,12 @@ end.
 
 {
   $Log$
-  Revision 1.42  2003-05-25 09:27:13  jonas
+  Revision 1.43  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.42  2003/05/25 09:27:13  jonas
     - undid previous patch, it was not necessary and on top of that, it
       contained a bug :/
 

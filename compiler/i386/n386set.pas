@@ -665,7 +665,7 @@ implementation
                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,0,hregister,t^.statement)
                   else
                     begin
-                      cg.a_op_const_reg(exprasmlist, OP_SUB, aword(t^._low-last), hregister);
+                      cg.a_op_const_reg(exprasmlist, OP_SUB, OS_INT, aword(t^._low-last), hregister);
                       emitjmp(C_Z,t^.statement);
                     end;
                   last:=t^._low;
@@ -680,7 +680,7 @@ implementation
                     begin
                        { have we to ajust the first value ? }
                        if (t^._low>get_min_value(left.resulttype.def)) then
-                         cg.a_op_const_reg(exprasmlist, OP_SUB, longint(t^._low), hregister);
+                         cg.a_op_const_reg(exprasmlist, OP_SUB, OS_INT, longint(t^._low), hregister);
                     end
                   else
                     begin
@@ -688,7 +688,7 @@ implementation
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
 
-                      cg.a_op_const_reg(exprasmlist, OP_SUB, longint(t^._low-last), hregister);
+                      cg.a_op_const_reg(exprasmlist, OP_SUB, OS_INT, longint(t^._low-last), hregister);
                       { no jump necessary here if the new range starts at }
                       { at the value following the previous one           }
                       if ((t^._low-last) <> 1) or
@@ -739,7 +739,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2003-05-31 15:04:31  peter
+  Revision 1.60  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.59  2003/05/31 15:04:31  peter
     * load_loc_reg update
 
   Revision 1.58  2003/05/22 21:32:29  peter

@@ -1345,11 +1345,11 @@ implementation
          else
            begin
              cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,endfinallylabel);
-             cg.a_op_const_reg(exprasmlist,OP_SUB,1,r);
+             cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,1,r);
              cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,reraiselabel);
              if fc_exit in tryflowcontrol then
                begin
-                  cg.a_op_const_reg(exprasmlist,OP_SUB,1,r);
+                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,1,r);
                   cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,oldaktexitlabel);
                   decconst:=1;
                end
@@ -1357,7 +1357,7 @@ implementation
                decconst:=2;
              if fc_break in tryflowcontrol then
                begin
-                  cg.a_op_const_reg(exprasmlist,OP_SUB,decconst,r);
+                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,decconst,r);
                   cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,oldaktbreaklabel);
                   decconst:=1;
                end
@@ -1365,7 +1365,7 @@ implementation
                inc(decconst);
              if fc_continue in tryflowcontrol then
                begin
-                  cg.a_op_const_reg(exprasmlist,OP_SUB,decconst,r);
+                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,decconst,r);
                   cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,oldaktcontinuelabel);
                end;
              cg.a_label(exprasmlist,reraiselabel);
@@ -1421,7 +1421,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-05-30 23:57:08  peter
+  Revision 1.67  2003-06-01 21:38:06  peter
+    * getregisterfpu size parameter added
+    * op_const_reg size parameter added
+    * sparc updates
+
+  Revision 1.66  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)
