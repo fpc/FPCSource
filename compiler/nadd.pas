@@ -234,20 +234,20 @@ implementation
          rt:=right.nodetype;
          lt:=left.nodetype;
 
-       if (nodetype = slashn) and
-          (((rt = ordconstn) and
-            (tordconstnode(right).value = 0)) or
-           ((rt = realconstn) and
-            (trealconstnode(right).value_real = 0.0))) then
-         begin
-           if (cs_check_range in aktlocalswitches) or
-              (cs_check_overflow in aktlocalswitches) then
-              begin
-                result:=crealconstnode.create(1,pbestrealtype^);
-                Message(parser_e_division_by_zero);
-                exit;
-              end;
-         end;
+         if (nodetype = slashn) and
+            (((rt = ordconstn) and
+              (tordconstnode(right).value = 0)) or
+             ((rt = realconstn) and
+              (trealconstnode(right).value_real = 0.0))) then
+           begin
+             if (cs_check_range in aktlocalswitches) or
+                (cs_check_overflow in aktlocalswitches) then
+                begin
+                  result:=crealconstnode.create(1,pbestrealtype^);
+                  Message(parser_e_division_by_zero);
+                  exit;
+                end;
+           end;
 
 
          { both are int constants }
@@ -1977,7 +1977,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.121  2004-05-23 14:08:39  peter
+  Revision 1.122  2004-05-23 14:14:18  florian
+    + added set of widechar support (limited to 256 chars, is delphi compatible)
+
+  Revision 1.121  2004/05/23 14:08:39  peter
     * only convert widechar to widestring when both operands are
       constant
     * support widechar-widechar operations in orddef part

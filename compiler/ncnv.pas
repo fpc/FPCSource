@@ -278,43 +278,52 @@ implementation
         constsethi  : TConstExprInt;
 
         procedure update_constsethi(t:ttype);
-        begin
-          if ((t.def.deftype=orddef) and
-              (torddef(t.def).high>=constsethi)) then
-            begin
-               constsethi:=torddef(t.def).high;
-               if htype.def=nil then
-                 begin
-                    if (constsethi>255) or
-                       (torddef(t.def).low<0) then
-                      htype:=u8inttype
-                    else
+          begin
+            if ((t.def.deftype=orddef) and
+                (torddef(t.def).high>=constsethi)) then
+              begin
+                if torddef(t.def).typ=uwidechar then
+                  begin
+                    constsethi:=255;
+                    if htype.def=nil then
                       htype:=t;
-                 end;
-               if constsethi>255 then
-                 constsethi:=255;
-            end
-          else if ((t.def.deftype=enumdef) and
-                  (tenumdef(t.def).max>=constsethi)) then
-            begin
-               if htype.def=nil then
-                 htype:=t;
-               constsethi:=tenumdef(t.def).max;
-            end;
-        end;
+                  end
+                else
+                  begin
+                    constsethi:=torddef(t.def).high;
+                    if htype.def=nil then
+                      begin
+                         if (constsethi>255) or
+                            (torddef(t.def).low<0) then
+                           htype:=u8inttype
+                         else
+                           htype:=t;
+                      end;
+                    if constsethi>255 then
+                      constsethi:=255;
+                  end;
+              end
+            else if ((t.def.deftype=enumdef) and
+                    (tenumdef(t.def).max>=constsethi)) then
+              begin
+                 if htype.def=nil then
+                   htype:=t;
+                 constsethi:=tenumdef(t.def).max;
+              end;
+          end;
 
         procedure do_set(pos : longint);
-        begin
-          if (pos and not $ff)<>0 then
-           Message(parser_e_illegal_set_expr);
-          if pos>constsethi then
-           constsethi:=pos;
-          if pos<constsetlo then
-           constsetlo:=pos;
-          if pos in constset^ then
-            Message(parser_e_illegal_set_expr);
-          include(constset^,pos);
-        end;
+          begin
+            if (pos and not $ff)<>0 then
+             Message(parser_e_illegal_set_expr);
+            if pos>constsethi then
+             constsethi:=pos;
+            if pos<constsetlo then
+             constsetlo:=pos;
+            if pos in constset^ then
+              Message(parser_e_illegal_set_expr);
+            include(constset^,pos);
+          end;
 
       var
         l : Longint;
@@ -2414,7 +2423,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.144  2004-04-29 19:56:37  daniel
+  Revision 1.145  2004-05-23 14:14:18  florian
+    + added set of widechar support (limited to 256 chars, is delphi compatible)
+
+  Revision 1.144  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.143  2004/03/23 22:34:49  peter
