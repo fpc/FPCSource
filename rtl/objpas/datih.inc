@@ -32,15 +32,15 @@ const
    TimeAMString: string = 'am';
    TimePMString: string = 'pm';
    ShortMonthNames: array[1..12] of string =
-     ('jan','feb','mar','apr','mai','jun',
-      'jul','aug','sep','oct','nov','dec');
+     ('Jan','Feb','Mar','Apr','May','Jun',
+      'Jul','Aug','Sep','Oct','Nov','Dec');
    LongMonthNames: array[1..12] of string =
-     ('january','february','march','april','mai','june',
-      'july','august','september','october','november','december');
+     ('January','February','March','April','May','June',
+      'July','August','September','October','November','December');
    ShortDayNames: array[1..7] of string =
-     ('sun','mon','tue','wen','thu','fri','sat');
+     ('Sun','Mon','Tue','Wen','Thu','Fri','Sat');
    LongDayNames: array[1..7] of string =
-     ('sunday','monday','tuesday','wednesday','thursday','friday','saturday');
+     ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
 
    {  date time formatting characters:
       c      : shortdateformat + ' ' + shorttimeformat
@@ -121,7 +121,10 @@ procedure DateTimeToString(var Result: string; const FormatStr: string; const Da
 {
 
   $Log$
-  Revision 1.2  1998-09-16 08:28:37  michael
+  Revision 1.3  1998-10-08 14:07:45  florian
+    * date and day names fixed
+
+  Revision 1.2  1998/09/16 08:28:37  michael
   Update from gertjan Schouten, plus small fix for linux
 
   Revision 1.1  1998/04/10 15:17:46  michael
