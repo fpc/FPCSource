@@ -94,7 +94,7 @@ Procedure TStrings.ReadData(Reader: TReader);
 begin
 end;
 
-Function GetQuotedString (Var P : Pchar) : String;
+Function GetQuotedString (Var P : Pchar) : AnsiString;
 
 Var P1,L : Pchar;
 
@@ -112,7 +112,7 @@ begin
   P:=P+1;
   If P1-P>0 then 
     begin
-    SetLength(Result,P1-P);
+    SetLength(Result,(P1-P));
     L:=Pointer(Result);
     Move (P^,L^,P1-P);
     P:=P1+1;
@@ -711,7 +711,8 @@ end;
 
 Procedure TStringList.SetCapacity(NewCapacity: Integer); 
 
-Var NewList,ToFree : Pointer;
+Var NewList : Pointer;
+    MSize : Longint;
     
 begin
   If (NewCapacity<0) then 
@@ -720,23 +721,21 @@ begin
     begin
     GetMem (NewList,NewCapacity*SizeOf(TStringItem));
     If NewList=Nil then
-      //!! Find another one here !!
       Error (SListCapacityError,NewCapacity);
     If Assigned(FList) then
       begin
-      System.Move (FList^,NewList^,FCapacity*Sizeof(Pointer));
-      FillWord (Pchar(NewList)[FCapacity],(NewCapacity-FCapacity)*WordRatio, 0);
-      FreeMem (Flist,FCapacity*SizeOf(Pointer));
+      MSize:=FCapacity*Sizeof(TStringItem);
+      System.Move (FList^,NewList^,MSize);
+      FillWord (Pchar(NewList)[MSize],(NewCapacity-FCapacity)*WordRatio, 0);
+      FreeMem (Flist,MSize);
       end;
     Flist:=NewList;
     FCapacity:=NewCapacity;
     end
   else if NewCapacity<FCapacity then
     begin
-    If NewCapacity<0 then
-      Error (SListCapacityError,NEwCapacity);
-    ToFree:=Flist+NewCapacity*SizeOf(Pointer);
-    FreeMem (ToFree, (FCapacity-NewCapacity)*SizeOf(Pointer));
+    NewList:=Flist+NewCapacity*SizeOf(TStringItem);
+    FreeMem (NewList, (FCapacity-NewCapacity)*SizeOf(TStringItem));
     FCapacity:=NewCapacity;
     end;
 end;
@@ -899,7 +898,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-10-30 14:52:52  michael
+  Revision 1.6  1998-11-09 10:07:24  michael
+  + Bugfix in setcapacity, sizes were wrong
+
+  Revision 1.5  1998/10/30 14:52:52  michael
   + Added format in interface
   + Some errors in parser fixed, it uses exceptions now
   + Strings now has no more syntax errors.
