@@ -30,11 +30,14 @@ interface
        cgbase,cgobj,cg64f32,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,
-       node,symconst,SymType;
+       node,symconst,SymType,
+       RgCpu;
 
     type
       TCgSparc=class(tcg)
       protected
+        rgint,
+        rgfpu : trgcpu;
         function IsSimpleRef(const ref:treference):boolean;
      public
         procedure init_register_allocators;override;
@@ -48,8 +51,6 @@ interface
         procedure a_paramaddr_ref(list:TAasmOutput;const r:TReference;const LocPara:TParaLocation);override;
         procedure a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const locpara : tparalocation);override;
         procedure a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const locpara : tparalocation);override;
-        procedure a_load_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference);override;
-        procedure a_load_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister);override;
         procedure a_call_name(list:TAasmOutput;const s:string);override;
         procedure a_call_reg(list:TAasmOutput;Reg:TRegister);override;
         { General purpose instructions }
@@ -79,10 +80,10 @@ interface
         procedure g_stackframe_entry(list:TAasmOutput;localsize:LongInt);override;
         procedure g_restore_all_registers(list:TAasmOutput;accused,acchiused:boolean);override;
         procedure g_restore_frame_pointer(list:TAasmOutput);override;
-        procedure g_restore_standard_registers(list:taasmoutput;usedinproc:Tsuperregisterset);override;
+        procedure g_restore_standard_registers(list:taasmoutput);override;
         procedure g_return_from_proc(list:TAasmOutput;parasize:aword);override;
         procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_save_standard_registers(list : taasmoutput; usedinproc : Tsuperregisterset);override;
+        procedure g_save_standard_registers(list : taasmoutput);override;
         procedure g_concatcopy(list:TAasmOutput;const source,dest:TReference;len:aword;delsource,loadref:boolean);override;
         class function reg_cgsize(const reg:tregister):tcgsize;override;
       end;
@@ -107,7 +108,7 @@ implementation
   uses
     globtype,globals,verbose,systems,cutils,
     symdef,symsym,defutil,paramgr,
-    rgobj,tgobj,rgcpu,cpupi;
+    rgobj,tgobj,cpupi;
 
 
 {****************************************************************************
@@ -144,7 +145,7 @@ implementation
            (ref.offset<simm13lo) or
            (ref.offset>simm13hi) then
           begin
-            tmpreg:=rg.getregisterint(list,OS_INT);
+            tmpreg:=GetIntRegister(list,OS_INT);
             reference_reset(tmpref);
             tmpref.symbol:=ref.symbol;
             tmpref.offset:=ref.offset;
@@ -180,7 +181,7 @@ implementation
                ((ref.offset<>0) or assigned(ref.symbol)) then
               begin
                 if tmpreg=NR_NO then
-                  tmpreg:=rg.getregisterint(list,OS_INT);
+                  tmpreg:=GetIntRegister(list,OS_INT);
                 if (ref.index<>NR_NO) then
                   begin
                     list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.index,tmpreg));
@@ -193,7 +194,7 @@ implementation
         else
           list.concat(taicpu.op_ref_reg(op,ref,reg));
         if (tmpreg<>NR_NO) then
-          rg.ungetregisterint(list,tmpreg);
+          UnGetRegister(list,tmpreg);
       end;
 
 
@@ -204,11 +205,11 @@ implementation
         if (longint(a)<simm13lo) or
            (longint(a)>simm13hi) then
           begin
-            tmpreg:=rg.getregisterint(list,OS_INT);
+            tmpreg:=GetIntRegister(list,OS_INT);
             list.concat(taicpu.op_const_reg(A_SETHI,a shr 10,tmpreg));
             list.concat(taicpu.op_reg_const_reg(A_OR,tmpreg,a and aword($3ff),tmpreg));
             list.concat(taicpu.op_reg_reg_reg(op,src,tmpreg,dst));
-            rg.ungetregisterint(list,tmpreg);
+            UnGetRegister(list,tmpreg);
           end
         else
           list.concat(taicpu.op_reg_const_reg(op,src,a,dst));
@@ -221,16 +222,20 @@ implementation
 
     procedure Tcgsparc.init_register_allocators;
       begin
-        rg:=Trgcpu.create(15,chr(RS_O0)+chr(RS_O1)+chr(RS_O2)+chr(RS_O3)+
+        {rg:=Trgcpu.create(15,chr(RS_O0)+chr(RS_O1)+chr(RS_O2)+chr(RS_O3)+
                              chr(RS_O4)+chr(RS_O5)+chr(RS_O7)+
                              chr(RS_L0)+chr(RS_L1)+chr(RS_L2)+chr(RS_L3)+
-                             chr(RS_L4)+chr(RS_L5)+chr(RS_L6)+chr(RS_L7));
+                             chr(RS_L4)+chr(RS_L5)+chr(RS_L6)+chr(RS_L7));}
+        rgint:=TrgCpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,RS_O7,RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7],first_int_imreg,[]);
+        {$warning FIX ME}
+        rgfpu:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
+            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15,RS_F16,RS_F17,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,RS_F24,RS_F25,RS_F26,RS_F27,RS_F28,RS_F29,RS_F30,RS_F31],first_fpu_imreg,[]);
       end;
 
 
     procedure Tcgsparc.done_register_allocators;
       begin
-        rg.free;
+        rgint.free;
       end;
 
 
@@ -276,10 +281,10 @@ implementation
                 if locpara.reference.offset<92 then
                   InternalError(2002081104);
                 reference_reset_base(ref,locpara.reference.index,locpara.reference.offset);
-                tmpreg:=rg.getregisterint(list,OS_INT);
+                tmpreg:=GetIntRegister(list,OS_INT);
                 a_load_ref_reg(list,sz,sz,r,tmpreg);
                 a_load_reg_ref(list,sz,sz,tmpreg,ref);
-                rg.ungetregisterint(list,tmpreg);
+                UnGetRegister(list,tmpreg);
               end;
             else
               internalerror(2002081103);
@@ -300,10 +305,10 @@ implementation
               reference_reset(ref);
               ref.base := locpara.reference.index;
               ref.offset := locpara.reference.offset;
-              tmpreg:=rg.getaddressregister(list);
+              tmpreg:=GetAddressRegister(list);
               a_loadaddr_ref_reg(list,r,tmpreg);
               a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-              rg.ungetregisterint(list,tmpreg);
+              UnGetRegister(list,tmpreg);
             end;
           else
             internalerror(2002080701);
@@ -342,55 +347,6 @@ implementation
           else
             internalerror(200307021);
         end;
-      end;
-
-
-    procedure tcgsparc.a_load_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference);
-      var
-        href,
-        tempref : treference;
-        templocpara : tparalocation;
-      begin
-        { Load floats like ints }
-        templocpara:=locpara;
-        case locpara.size of
-          OS_F32 :
-            templocpara.size:=OS_32;
-          OS_F64 :
-            templocpara.size:=OS_64;
-        end;
-        { Word 0 is in register, word 1 is in reference }
-        if (templocpara.loc=LOC_REFERENCE) and (templocpara.low_in_reg) then
-          begin
-            tempref:=ref;
-            cg.a_load_reg_ref(list,OS_INT,OS_INT,templocpara.register,tempref);
-            inc(tempref.offset,4);
-            reference_reset_base(href,templocpara.reference.index,templocpara.reference.offset);
-            cg.a_load_ref_ref(list,OS_INT,OS_INT,href,tempref);
-          end
-        else
-          inherited a_load_param_ref(list,templocpara,ref);
-      end;
-
-
-    procedure tcgsparc.a_load_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister);
-      var
-        href : treference;
-      begin
-        { Word 0 is in register, word 1 is in reference, not
-          possible to load it in 1 register }
-        if (locpara.loc=LOC_REFERENCE) and (locpara.low_in_reg) then
-          internalerror(200307011);
-        { Float load use a temp reference }
-        if locpara.size in [OS_F32,OS_F64] then
-          begin
-            tg.GetTemp(list,TCGSize2Size[locpara.size],tt_normal,href);
-            a_load_param_ref(list,locpara,href);
-            a_loadfpu_ref_reg(list,locpara.size,href,reg);
-            tg.Ungettemp(list,href);
-          end
-        else
-          inherited a_load_param_reg(list,locpara,reg);
       end;
 
 
@@ -527,7 +483,7 @@ implementation
             if (ref.base<>r) and (ref.index<>r) then
               hreg:=r
             else
-              hreg:=rg.getaddressregister(list);
+              hreg:=GetAddressRegister(list);
             reference_reset(tmpref);
             tmpref.symbol := ref.symbol;
             tmpref.offset := ref.offset;
@@ -552,7 +508,7 @@ implementation
                   list.Concat(taicpu.op_reg_reg(A_MOV,hreg,r));
               end;
             if hreg<>r then
-              rg.ungetaddressregister(list,hreg);
+              UnGetRegister(list,hreg);
           end
         else
         { At least small offset, maybe base and maybe index }
@@ -565,11 +521,11 @@ implementation
                       if (ref.base<>r) and (ref.index<>r) then
                         hreg:=r
                       else
-                        hreg:=rg.getaddressregister(list);
+                        hreg:=GetAddressRegister(list);
                       list.concat(taicpu.op_reg_const_reg(A_ADD,ref.base,aword(ref.offset),hreg));
                       list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,ref.index,r));
                       if hreg<>r then
-                        rg.ungetaddressregister(list,hreg);
+                        UnGetRegister(list,hreg);
                     end
                   else
                     list.concat(taicpu.op_reg_const_reg(A_ADD,ref.base,aword(ref.offset),r));
@@ -815,7 +771,7 @@ implementation
       end;
 
 
-    procedure TCgSparc.g_restore_standard_registers(list:taasmoutput;usedinproc:Tsuperregisterset);
+    procedure TCgSparc.g_restore_standard_registers(list:taasmoutput);
       begin
         { The sparc port uses the sparc standard calling convetions so this function has no used }
       end;
@@ -847,7 +803,7 @@ implementation
       end;
 
 
-    procedure TCgSparc.g_save_standard_registers(list : taasmoutput; usedinproc:Tsuperregisterset);
+    procedure TCgSparc.g_save_standard_registers(list : taasmoutput);
       begin
         { The sparc port uses the sparc standard calling convetions so this function has no used }
       end;
@@ -894,7 +850,7 @@ implementation
         { load the address of source into src.base }
         if loadref then
           begin
-            src.base:=rg.getaddressregister(list);
+            src.base:=GetAddressRegister(list);
             a_load_ref_reg(list,OS_32,OS_32,source,src.base);
             orgsrc := false;
           end
@@ -906,7 +862,7 @@ implementation
                ((source.offset+longint(len))<simm13lo))
             ) then
            begin
-             src.base:=rg.getaddressregister(list);
+             src.base:=GetAddressRegister(list);
              a_loadaddr_ref_reg(list,source,src.base);
              orgsrc := false;
            end
@@ -925,7 +881,7 @@ implementation
              ((dest.offset + longint(len)) < simm13lo))
            ) then
           begin
-            dst.base:=rg.getaddressregister(list);
+            dst.base:=GetAddressRegister(list);
             a_loadaddr_ref_reg(list,dest,dst.base);
             orgdst := false;
           end
@@ -946,7 +902,7 @@ implementation
             inc(src.offset,8);
             list.concat(taicpu.op_reg_const_reg(A_SUB,src.base,8,src.base));
             list.concat(taicpu.op_reg_const_reg(A_SUB,dst.base,8,dst.base));
-            countreg:=rg.getregisterint(list,OS_INT);
+            countreg:=GetIntRegister(list,OS_INT);
             a_load_const_reg(list,OS_INT,count,countreg);
             { explicitely allocate R_O0 since it can be used safely here }
             { (for holding date that's being copied)                    }
@@ -957,7 +913,7 @@ implementation
             list.concat(taicpu.op_ref_reg(A_LDF,src,NR_F0));
             list.concat(taicpu.op_reg_ref(A_STD,NR_F0,dst));
             //a_jmp(list,A_BC,C_NE,0,lab);
-            rg.ungetregisterint(list,countreg);
+            UnGetRegister(list,countreg);
             a_reg_dealloc(list,NR_F0);
             len := len mod 8;
           end;
@@ -978,29 +934,29 @@ implementation
           end;
         if (len and 4) <> 0 then
           begin
-            hreg:=rg.getregisterint(list,OS_INT);
+            hreg:=GetIntRegister(list,OS_INT);
             a_load_ref_reg(list,OS_32,OS_32,src,hreg);
             a_load_reg_ref(list,OS_32,OS_32,hreg,dst);
             inc(src.offset,4);
             inc(dst.offset,4);
-            rg.ungetregisterint(list,hreg);
+            UnGetRegister(list,hreg);
           end;
         { copy the leftovers }
         if (len and 2) <> 0 then
           begin
-            hreg:=rg.getregisterint(list,OS_INT);
+            hreg:=GetIntRegister(list,OS_INT);
             a_load_ref_reg(list,OS_16,OS_16,src,hreg);
             a_load_reg_ref(list,OS_16,OS_16,hreg,dst);
             inc(src.offset,2);
             inc(dst.offset,2);
-            rg.ungetregisterint(list,hreg);
+            UnGetRegister(list,hreg);
           end;
         if (len and 1) <> 0 then
           begin
-            hreg:=rg.getregisterint(list,OS_INT);
+            hreg:=GetIntRegister(list,OS_INT);
             a_load_ref_reg(list,OS_8,OS_8,src,hreg);
             a_load_reg_ref(list,OS_8,OS_8,hreg,dst);
-            rg.ungetregisterint(list,hreg);
+            UnGetRegister(list,hreg);
           end;
         if orgsrc then
           begin
@@ -1008,9 +964,9 @@ implementation
               reference_release(list,source);
           end
         else
-          rg.ungetregisterint(list,src.base);
+          UnGetRegister(list,src.base);
         if not orgdst then
-          rg.ungetregisterint(list,dst.base);
+          UnGetRegister(list,dst.base);
       end;
 
 {****************************************************************************
@@ -1096,7 +1052,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2003-10-01 20:34:49  peter
+  Revision 1.70  2003-10-24 11:14:46  mazen
+  * rg.[un]GetRegister* ==> [Un]Get[*]Register
+
+  Revision 1.69  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
