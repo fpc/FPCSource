@@ -56,10 +56,8 @@ begin
                 res:=206
               else if (FpuState and FPU_Denormal)<>0 then
                 res:=216
-              else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow))<>0 Then
+              else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
                 res:=207
-              else if (FpuState and FPU_Invalid)<>0 then
-                res:=216
               else
                 res:=207;  {'Coprocessor Error'}
             end;
@@ -77,7 +75,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-02-05 01:16:12  florian
+  Revision 1.4  2004-08-08 09:36:09  florian
+    * fixed runerror for invalid operation
+
+  Revision 1.3  2004/02/05 01:16:12  florian
     + completed x86-64/linux system unit
 
   Revision 1.2  2003/11/01 01:58:11  marco
@@ -86,4 +87,3 @@ end;
   Revision 1.1  2003/11/01 01:27:20  marco
    * initial version from 1.0.x branch
 }
-
