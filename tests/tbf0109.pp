@@ -4,6 +4,6 @@ Type T = (aa,bb,cc,dd,ee,ff,gg,hh);
 Var a: Tset;
 
 Begin
-  If (aa in a) Then begin end;
+  If (aa in a^) Then begin end;
   {it seems that correct code is generated, but the syntax is wrong}
 End.

@@ -1,3 +1,5 @@
+{ $OPT= -Fu../compiler }
+
 uses aasm;
 
 Begin
