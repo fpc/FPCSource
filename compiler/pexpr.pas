@@ -1856,16 +1856,40 @@ unit pexpr;
         sub_expr:=p1;
       end;
 
+    procedure check_tp_procvar(var p : ptree);
+      var
+         p1 : ptree;
+      begin
+         if (m_tp_procvar in aktmodeswitches) and
+            (not afterassignment) and
+            (not in_args) and (p^.treetype=loadn) then
+            begin
+               { support if procvar then for tp7 and many other expression like this }
+               firstpass(p);
+               if p^.resulttype^.deftype=procvardef then
+                 begin
+                    p1:=gencallnode(nil,nil);
+                    p1^.right:=p;
+                    p1^.resulttype:=pprocvardef(p^.resulttype)^.retdef;
+                    firstpass(p1);
+                    p:=p1;
+                 end;
+            end;
+      end;
+      
 
     function comp_expr(accept_equal : boolean):Ptree;
       var
          oldafterassignment : boolean;
-
+         p1 : ptree;
       begin
          oldafterassignment:=afterassignment;
          afterassignment:=true;
-         comp_expr:=sub_expr(opcompare,accept_equal);
+         p1:=sub_expr(opcompare,accept_equal);
          afterassignment:=oldafterassignment;
+         if (m_tp_procvar in aktmodeswitches) then
+           check_tp_procvar(p1);
+         comp_expr:=p1;
       end;
 
     function expr : ptree;
@@ -1879,9 +1903,12 @@ unit pexpr;
       begin
          oldafterassignment:=afterassignment;
          p1:=sub_expr(opcompare,true);
+         filepos:=tokenpos;
+         if (m_tp_procvar in aktmodeswitches) and
+            (token<>ASSIGNMENT) then
+           check_tp_procvar(p1);
          if token in [ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
            afterassignment:=true;
-         filepos:=tokenpos;
          oldp1:=p1;
          case token of
             POINTPOINT : begin
@@ -1902,6 +1929,10 @@ unit pexpr;
                             p2:=sub_expr(opcompare,true);
                             if getprocvar and (p2^.treetype=calln) then
                               handle_procvar(getprocvardef,p2);
+                            { also allow p:= proc(t); !! (PM) }
+                            if getprocvar and (p2^.treetype=typeconvn) and
+                               (p2^.left^.treetype=calln) then
+                              handle_procvar(getprocvardef,p2^.left);
                             getprocvar:=false;
                             p1:=gennode(assignn,p1,p2);
                          end;
@@ -1985,7 +2016,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.110  1999-06-01 19:27:55  peter
+  Revision 1.111  1999-06-02 22:25:43  pierre
+  types.pas
+
+  Revision 1.110  1999/06/01 19:27:55  peter
     * better checks for procvar and methodpointer
 
   Revision 1.109  1999/05/27 19:44:46  peter

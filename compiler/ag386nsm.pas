@@ -559,7 +559,7 @@ ait_stab_function_name : ;
     procedure ti386nasmasmlist.WriteExternals;
       begin
         currentasmlist:=@self;
-        AsmSymbolList^.foreach({$ifdef fpc}@{$endif}writeexternal);
+        AsmSymbolList^.foreach({$ifndef TP}@{$endif}writeexternal);
       end;
 
 
@@ -597,7 +597,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.41  1999-06-01 14:45:44  peter
+  Revision 1.42  1999-06-02 22:25:27  pierre
+  types.pas
+
+  Revision 1.41  1999/06/01 14:45:44  peter
     * @procvar is now always needed for FPC
 
   Revision 1.40  1999/05/27 19:44:02  peter

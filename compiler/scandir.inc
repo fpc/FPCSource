@@ -1070,7 +1070,7 @@ const
             if t<>_DIR_NONE then
              begin
                p:=directiveproc[t];
-             {$ifdef FPC}
+             {$ifndef TP}
                if assigned(p) then
              {$else}
                if @p<>nil then
@@ -1087,7 +1087,10 @@ const
 
 {
   $Log$
-  Revision 1.51  1999-04-07 14:36:45  pierre
+  Revision 1.52  1999-06-02 22:25:48  pierre
+  types.pas
+
+  Revision 1.51  1999/04/07 14:36:45  pierre
    + better preproc stack checking and report
 
   Revision 1.50  1999/03/31 13:55:20  peter

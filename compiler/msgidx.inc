@@ -266,6 +266,7 @@ type tmsgconst=(
   cg_e_cant_choose_overload_function,
   cg_e_parasize_too_big,
   cg_e_illegal_type_conversion,
+  cg_d_pointer_to_longint_conv_not_portable,
   cg_e_file_must_call_by_reference,
   cg_e_cant_use_far_pointer_there,
   cg_e_var_must_be_reference,

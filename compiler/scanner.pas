@@ -812,8 +812,10 @@ implementation
     procedure tscannerfile.skipuntildirective;
       var
         found : longint;
+        next_char_loaded : boolean;
       begin
          found:=0;
+         next_char_loaded:=false;
          repeat
            case c of
              #26 :
@@ -839,21 +841,28 @@ implementation
                 begin
                   readchar;
                   if c='*' then
-                  skipoldtpcomment;
+                    skipoldtpcomment
+                  else
+                    next_char_loaded:=true;
                 end;
              else
                 found:=0;
            end;
-           c:=inputpointer^;
-           if c=#0 then
-            reload
+           if next_char_loaded then
+             next_char_loaded:=false
            else
-            inc(longint(inputpointer));
-           case c of
-            #26 : reload;
-            #10,
-            #13 : linebreak;
-           end;
+             begin
+                c:=inputpointer^;
+                if c=#0 then
+                  reload
+                else
+                  inc(longint(inputpointer));
+                case c of
+                  #26 : reload;
+                  #10,
+                  #13 : linebreak;
+                end;
+             end;
          until (found=2);
       end;
 
@@ -1661,7 +1670,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  1999-05-31 23:28:42  pierre
+  Revision 1.85  1999-06-02 22:25:49  pierre
+  types.pas
+
+  Revision 1.84  1999/05/31 23:28:42  pierre
    * problem with main file end without newline
 
   Revision 1.83  1999/05/20 14:57:29  peter

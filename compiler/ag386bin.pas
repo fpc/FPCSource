@@ -515,7 +515,7 @@ unit ag386bin;
                convertstabs(pai_stabs(hp)^.str);
              ait_stab_function_name :
                if assigned(pai_stab_function_name(hp)^.str) then
-                 funcname:=getasmsymbol(pai_stab_function_name(hp)^.str)
+                 funcname:=getasmsymbol(strpas(pai_stab_function_name(hp)^.str))
                else
                  funcname:=nil;
              ait_force_line :
@@ -666,7 +666,7 @@ unit ag386bin;
                convertstabs(pai_stabs(hp)^.str);
              ait_stab_function_name :
                if assigned(pai_stab_function_name(hp)^.str) then
-                 funcname:=getasmsymbol(pai_stab_function_name(hp)^.str)
+                 funcname:=getasmsymbol(strpas(pai_stab_function_name(hp)^.str))
                else
                  funcname:=nil;
              ait_force_line :
@@ -812,7 +812,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.13  1999-06-01 10:24:09  pierre
+  Revision 1.14  1999-06-02 22:25:25  pierre
+  types.pas
+
+  Revision 1.13  1999/06/01 10:24:09  pierre
    * ts010021.pp problem solved for ag386bin !
 
   Revision 1.12  1999/05/27 19:43:59  peter

@@ -142,6 +142,11 @@ interface
     { equal                                         }
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
 
+
+    { true if a type can be allowed for another one
+      in a func var }
+    function convertable_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
+
     { true if a function can be assigned to a procvar }
     function proc_to_procvar_equal(def1:pprocdef;def2:pprocvardef) : boolean;
 
@@ -162,8 +167,8 @@ interface
 implementation
 
     uses
-       strings,
-       globtype,globals,verbose;
+       strings,globtype,globals,htypechk,
+       tree,verbose;
 
 
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
@@ -201,6 +206,42 @@ implementation
            equal_paras:=false;
       end;
 
+    function convertable_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
+      var doconv : tconverttype;
+      begin
+         while (assigned(def1)) and (assigned(def2)) do
+           begin
+              if value_equal_const then
+                begin
+                   if (isconvertable(def1^.data,def2^.data,doconv,callparan,false)=0) or
+                     ((def1^.paratyp<>def2^.paratyp) and
+                      ((def1^.paratyp=vs_var) or
+                       (def1^.paratyp=vs_var)
+                      )
+                     ) then
+                     begin
+                        convertable_paras:=false;
+                        exit;
+                     end;
+                end
+              else
+                begin
+                   if (isconvertable(def1^.data,def2^.data,doconv,callparan,false)=0) or
+                     (def1^.paratyp<>def2^.paratyp) then
+                     begin
+                        convertable_paras:=false;
+                        exit;
+                     end;
+                end;
+              def1:=def1^.next;
+              def2:=def2^.next;
+           end;
+         if (def1=nil) and (def2=nil) then
+           convertable_paras:=true
+         else
+           convertable_paras:=false;
+      end;
+
 
     { true if a function can be assigned to a procvar }
     function proc_to_procvar_equal(def1:pprocdef;def2:pprocvardef) : boolean;
@@ -219,7 +260,7 @@ implementation
           end;
          { check the other things }
          if is_equal(def1^.retdef,def2^.retdef) and
-            equal_paras(def1^.para1,def2^.para1,false) and
+            convertable_paras(def1^.para1,def2^.para1,false) and
             ((def1^.options and po_compatibility_options)=
              (def2^.options and po_compatibility_options)) then
            proc_to_procvar_equal:=true
@@ -887,7 +928,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  1999-06-02 10:11:55  florian
+  Revision 1.70  1999-06-02 22:25:55  pierre
+  types.pas
+
+  Revision 1.69  1999/06/02 10:11:55  florian
     * make cycle fixed i.e. compilation with 0.99.10
     * some fixes for qword
     * start of register calling conventions

@@ -115,6 +115,9 @@ uses
 {$ifdef linux}
   catch,
 {$endif}
+{$ifdef go32v2}
+  catch,
+{$endif}
 {$endif FPC}
   globals,compiler
   ;
@@ -268,7 +271,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  1999-05-12 22:36:11  florian
+  Revision 1.43  1999-06-02 22:25:44  pierre
+  types.pas
+
+  Revision 1.42  1999/05/12 22:36:11  florian
     * override isn't allowed in objects!
 
   Revision 1.41  1999/05/02 09:35:45  florian

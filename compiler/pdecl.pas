@@ -100,7 +100,7 @@ unit pdecl;
                reaktvarsymtable:=precdef(ptypesym(p)^.definition)^.symtable
              else
                reaktvarsymtable:=pobjectdef(ptypesym(p)^.definition)^.publicsyms;
-             reaktvarsymtable^.foreach({$ifdef fpc}@{$endif}testforward_type);
+             reaktvarsymtable^.foreach({$ifndef TP}@{$endif}testforward_type);
            end;
       end;
 
@@ -2108,7 +2108,7 @@ unit pdecl;
              parse_var_proc_directives(newtype);
          until token<>ID;
          typecanbeforward:=false;
-         symtablestack^.foreach({$ifdef fpc}@{$endif}testforward_type);
+         symtablestack^.foreach({$ifndef TP}@{$endif}testforward_type);
          resolve_forwards;
          block_type:=bt_general;
       end;
@@ -2219,7 +2219,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.125  1999-06-01 19:27:53  peter
+  Revision 1.126  1999-06-02 22:25:42  pierre
+  types.pas
+
+  Revision 1.125  1999/06/01 19:27:53  peter
     * better checks for procvar and methodpointer
 
   Revision 1.124  1999/06/01 14:45:51  peter

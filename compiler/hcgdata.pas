@@ -203,7 +203,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class^.publicsyms^.foreach({$ifdef fpc}@{$endif}insertmsgstr);
+         _class^.publicsyms^.foreach({$ifndef TP}@{$endif}insertmsgstr);
 
          { write all names }
          if assigned(root) then
@@ -245,7 +245,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class^.publicsyms^.foreach({$ifdef fpc}@{$endif}insertmsgint);
+         _class^.publicsyms^.foreach({$ifndef TP}@{$endif}insertmsgint);
 
          { now start writing of the message string table }
          getdatalabel(r);
@@ -471,7 +471,7 @@ implementation
 
            { walk through all public syms }
            _c:=_class;
-           p^.publicsyms^.foreach({$ifdef fpc}@{$endif}eachsym);
+           p^.publicsyms^.foreach({$ifndef TP}@{$endif}eachsym);
         end;
 
       var
@@ -558,7 +558,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1999-06-01 14:45:49  peter
+  Revision 1.9  1999-06-02 22:25:33  pierre
+  types.pas
+
+  Revision 1.8  1999/06/01 14:45:49  peter
     * @procvar is now always needed for FPC
 
   Revision 1.7  1999/05/27 19:44:30  peter

@@ -846,7 +846,7 @@ uses
 
     procedure ResetAsmsymbolList;
       begin
-        asmsymbollist^.foreach({$ifdef fpc}@{$endif}resetasmsym);
+        asmsymbollist^.foreach({$ifndef TP}@{$endif}resetasmsym);
       end;
 
 
@@ -896,7 +896,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.49  1999-06-01 14:45:41  peter
+  Revision 1.50  1999-06-02 22:25:24  pierre
+  types.pas
+
+  Revision 1.49  1999/06/01 14:45:41  peter
     * @procvar is now always needed for FPC
 
   Revision 1.48  1999/05/28 09:11:39  peter

@@ -36,9 +36,11 @@ uses
 
 {$ifdef has_signal}
 Var
-  NewSignal,OldSigSegm,OldSigInt : SignalHandler;
+  NewSignal,OldSigSegm,
+  OldSigInt,OldSigFPE : SignalHandler;
 {$endif}
 
+Const in_const_evaluation : boolean = false;
 
 Implementation
 
@@ -54,6 +56,13 @@ begin
              { Temporary message - until we get an error number... }
                writeln ('Panic : Internal compiler error, exiting.');
                internalerror(9999);
+             end;
+    SIGFPE : begin
+               If in_const_evaluation then
+                 Writeln('FPE error computing constant expression')
+               else
+                 Writeln('FPE error inside compiler');
+               Stop;
              end;
     SIGINT : begin
                WriteLn('Ctrl-C Signaled!');
@@ -76,12 +85,16 @@ begin
 {$endif TP}
   OldSigSegm:=Signal (SIGSEGV,NewSignal);
   OldSigInt:=Signal (SIGINT,NewSignal);
+  OldSigFPE:=Signal (SIGFPE,NewSignal);
 {$endif}
 end.
 
 {
   $Log$
-  Revision 1.4  1999-01-28 19:42:03  peter
+  Revision 1.5  1999-06-02 22:25:28  pierre
+  types.pas
+
+  Revision 1.4  1999/01/28 19:42:03  peter
     * mssing endif added
 
   Revision 1.3  1999/01/27 13:20:37  pierre

@@ -1009,7 +1009,7 @@ end;
 
 procedure TLocalLabelList.CheckEmitted;
 begin
-  ForEach({$ifdef FPC}@{$endif}LocalLabelEmitted)
+  ForEach({$ifndef TP}@{$endif}LocalLabelEmitted)
 end;
 
 
@@ -1383,7 +1383,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1999-05-27 19:45:01  peter
+  Revision 1.18  1999-06-02 22:25:47  pierre
+  types.pas
+
+  Revision 1.17  1999/05/27 19:45:01  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

@@ -51,7 +51,5 @@ Changes in the syntax or semantic of FPC:
              because the new temporary ansistring handling support
              exceptions and exceptions need the class OOP model
   18/05/99   The compiler will stop directly if there are errors in the
-             commandline parameters
-  01/06/99   You now need really always a @ to get the address of a procedure,
-             or you need to use the -So switch for tp7 style procvar
+             commandline parameters           
 

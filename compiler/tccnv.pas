@@ -813,13 +813,21 @@ implementation
                      { only if the same size or formal def }
                      { why do we allow typecasting of voiddef ?? (PM) }
                      else
-                       if not(
+                       begin
+                          if not(
                              (p^.left^.resulttype^.deftype=formaldef) or
                              (p^.left^.resulttype^.size=p^.resulttype^.size) or
                              (is_equal(p^.left^.resulttype,voiddef)  and
                              (p^.left^.treetype=derefn))
                              ) then
-                         CGMessage(cg_e_illegal_type_conversion);
+                             CGMessage(cg_e_illegal_type_conversion);
+                          if ((p^.left^.resulttype^.deftype=orddef) and
+                             (p^.resulttype^.deftype=pointerdef)) or
+                             ((p^.resulttype^.deftype=orddef) and
+                             (p^.left^.resulttype^.deftype=pointerdef))
+                             {$ifdef extdebug}and (p^.firstpasscount=0){$endif} then
+                               CGMessage(cg_d_pointer_to_longint_conv_not_portable);
+                       end;
                      { the conversion into a strutured type is only }
                      { possible, if the source is no register    }
                      if ((p^.resulttype^.deftype in [recorddef,stringdef,arraydef]) or
@@ -927,7 +935,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1999-05-27 19:45:15  peter
+  Revision 1.34  1999-06-02 22:25:54  pierre
+  types.pas
+
+  Revision 1.33  1999/05/27 19:45:15  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

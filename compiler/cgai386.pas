@@ -2575,7 +2575,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               p:=symtablestack;
               while assigned(p) do
                 begin
-                   p^.foreach({$ifdef fpc}@{$endif}initialize_threadvar);
+                   p^.foreach({$ifndef TP}@{$endif}initialize_threadvar);
                    p:=p^.next;
                 end;
               oldlist^.insertlist(exprasmlist);
@@ -2704,12 +2704,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
       { generate copies of call by value parameters }
       if (aktprocsym^.definition^.options and poassembler=0) then
-        aktprocsym^.definition^.parast^.foreach({$ifdef fpc}@{$endif}copyvalueparas);
+        aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}copyvalueparas);
 
       { initialisizes local data }
-      aktprocsym^.definition^.localst^.foreach({$ifdef fpc}@{$endif}initialize_data);
+      aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}initialize_data);
       { add a reference to all call by value/const parameters }
-      aktprocsym^.definition^.parast^.foreach({$ifdef fpc}@{$endif}incr_data);
+      aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}incr_data);
 
       { initilisizes temp. ansi/wide string data }
       inittempansistrings;
@@ -2879,11 +2879,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       finalizetempansistrings;
 
       { finalize local data }
-      aktprocsym^.definition^.localst^.foreach({$ifdef fpc}@{$endif}finalize_data);
+      aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}finalize_data);
 
       { finalize paras data }
       if assigned(aktprocsym^.definition^.parast) then
-        aktprocsym^.definition^.parast^.foreach({$ifdef fpc}@{$endif}finalize_data);
+        aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}finalize_data);
 
       { do we need to handle exceptions because of ansi/widestrings ? }
       if (procinfo.flags and pi_needs_implicit_finally)<>0 then
@@ -3086,7 +3086,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.2  1999-06-02 10:11:49  florian
+  Revision 1.3  1999-06-02 22:25:29  pierre
+  types.pas
+
+  Revision 1.2  1999/06/02 10:11:49  florian
     * make cycle fixed i.e. compilation with 0.99.10
     * some fixes for qword
     * start of register calling conventions
