@@ -551,7 +551,7 @@ var
 
    procedure StoreFormat(const FormatStr: string);
    var
-      Token: char;
+      Token,lastformattoken: char;
       FormatCurrent: pchar;
       FormatEnd: pchar;
       Count: integer;
@@ -581,7 +581,9 @@ var
          end ;
       P := P + 1;
       end ;
-   while FormatCurrent < FormatEnd do begin
+   token:=#255;
+   while FormatCurrent < FormatEnd do 
+     begin
       Token := UpCase(FormatCurrent^);
       Count := 1;
       P := FormatCurrent + 1;
@@ -614,76 +616,88 @@ var
                end ;
             '/': StoreStr(@DateSeparator, 1);
             ':': StoreStr(@TimeSeparator, 1);
-            ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y','Z' : begin
-               while (P < FormatEnd) and (UpCase(P^) = Token) do
+            ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y','Z' :
+              begin
+                while (P < FormatEnd) and (UpCase(P^) = Token) do
                   P := P + 1;
-               Count := P - FormatCurrent;
-                  case Token of
-                     ' ': StoreStr(FormatCurrent, Count);
-                     'Y': begin
-                           case Count of
-                              1: StoreInt(Year, 0);
-                              2: StoreInt(Year mod 100, 2);
-                              4: StoreInt(Year, 4);
-                           end ;
-                        end ;
-                     'M': begin
-                           case Count of
-                              1: StoreInt(Month, 0);
-                              2: StoreInt(Month, 2);
-                              3: StoreString(ShortMonthNames[Month]);
-                              4: StoreString(LongMonthNames[Month]);
-                           end ;
-                        end ;
-                     'D': begin
-                           case Count of
-                              1: StoreInt(Day, 0);
-                              2: StoreInt(Day, 2);
-                              3: StoreString(ShortDayNames[DayOfWeek]);
-                              4: StoreString(LongDayNames[DayOfWeek]);
-                              5: StoreFormat(ShortDateFormat);
-                              6: StoreFormat(LongDateFormat);
-                           end ;
-                        end ;
-                     'H': begin
-                        if Clock12 then begin
-                           tmp:=hour mod 12;
-                           if tmp=0 then tmp:=12;
-                           if Count = 1 then StoreInt(tmp, 0)
-                           else StoreInt(tmp, 2);
+                Count := P - FormatCurrent;
+                case Token of
+                   ' ': StoreStr(FormatCurrent, Count);
+                   'Y': begin
+                         if Count>2 then
+                           StoreInt(Year, 4)
+                         else
+                           StoreInt(Year mod 100, 2);
+                        end;
+                   'M': begin
+                         if lastformattoken='H' then
+                           begin
+                             if Count = 1 then
+                               StoreInt(Minute, 0)
+                             else
+                               StoreInt(Minute, 2);
+
                            end
-                        else begin
-                           if Count = 1 then StoreInt(Hour, 0)
-                           else StoreInt(Hour, 2);
-                           end ;
-                        end ;
-                     'N': begin
-                        if Count = 1 then StoreInt(Minute, 0)
-                        else StoreInt(Minute, 2);
-                        end ;
-                     'S': begin
-                        if Count = 1 then StoreInt(Second, 0)
-                        else StoreInt(Second, 2);
-                        end ;
-                     'Z': begin
-                        if Count = 1 then StoreInt(MilliSecond, 0)
-                        else StoreInt(MilliSecond, 3);
-                        end ;
-                     'T': begin
-                        if Count = 1 then StoreFormat(timereformat(ShortTimeFormat))
-                        else StoreFormat(TimeReformat(LongTimeFormat));
-                        end ;
-                     'C':
-                       begin
-                         StoreFormat(ShortDateFormat);
-                         if (Hour<>0) or (Minute<>0) or (Second<>0) then
-                          begin
-                            StoreString(' ');
-                            StoreFormat(TimeReformat(ShortTimeFormat));
-                          end;
-                       end;
-                  end ;
-               end ;
+                         else
+                           begin
+                             case Count of
+                                1: StoreInt(Month, 0);
+                                2: StoreInt(Month, 2);
+                                3: StoreString(ShortMonthNames[Month]);
+                                4: StoreString(LongMonthNames[Month]);
+                             end;
+                           end;
+                      end;
+                   'D': begin
+                         case Count of
+                            1: StoreInt(Day, 0);
+                            2: StoreInt(Day, 2);
+                            3: StoreString(ShortDayNames[DayOfWeek]);
+                            4: StoreString(LongDayNames[DayOfWeek]);
+                            5: StoreFormat(ShortDateFormat);
+                            6: StoreFormat(LongDateFormat);
+                         end ;
+                      end ;
+                   'H': begin
+                      if Clock12 then begin
+                         tmp:=hour mod 12;
+                         if tmp=0 then tmp:=12;
+                         if Count = 1 then StoreInt(tmp, 0)
+                         else StoreInt(tmp, 2);
+                         end
+                      else begin
+                         if Count = 1 then StoreInt(Hour, 0)
+                         else StoreInt(Hour, 2);
+                         end ;
+                      end ;
+                   'N': begin
+                      if Count = 1 then StoreInt(Minute, 0)
+                      else StoreInt(Minute, 2);
+                      end ;
+                   'S': begin
+                      if Count = 1 then StoreInt(Second, 0)
+                      else StoreInt(Second, 2);
+                      end ;
+                   'Z': begin
+                      if Count = 1 then StoreInt(MilliSecond, 0)
+                      else StoreInt(MilliSecond, 3);
+                      end ;
+                   'T': begin
+                      if Count = 1 then StoreFormat(timereformat(ShortTimeFormat))
+                      else StoreFormat(TimeReformat(LongTimeFormat));
+                      end ;
+                   'C':
+                     begin
+                       StoreFormat(ShortDateFormat);
+                       if (Hour<>0) or (Minute<>0) or (Second<>0) then
+                        begin
+                          StoreString(' ');
+                          StoreFormat(TimeReformat(ShortTimeFormat));
+                        end;
+                     end;
+                end;
+                lastformattoken:=token;
+              end;
             else
               StoreStr(@Token, 1);
          end ;
@@ -740,7 +754,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2005-02-14 17:13:31  peter
+  Revision 1.7  2005-03-10 19:48:27  florian
+    * fixed compatibility problem of DateTimeToString
+
+  Revision 1.6  2005/02/14 17:13:31  peter
     * truncate log
 
 }
