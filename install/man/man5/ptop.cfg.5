@@ -1,0 +1,185 @@
+.TH ptop.cfg 5 "31 may 1999" FreePascal "ptop source beautifier config file"
+.SH NAME
+ptop.cfg \- The ptop source\-beautifier configuration file.
+
+ptop is the source beautifier of the FreePascal project.
+
+Origin probably Pascal\-TO\-Pascal.cfg
+
+.SH DESCRIPTION
+This is the main configuration file of the
+.I ptop FPC source beautifier
+.PP
+The configuration file for
+.BR ptop (1)
+isn't necessarily called ptop.cfg, and is also
+not auto-loaded, so the name doesn't matter much. This man\-page describes
+the structure of such a configuration file for
+.BR ptop (1)
+
+.SH Structure
+
+The structure of a ptop configuration file is a simple buildingblock repeated several (20-30) times,
+for each pascal keyword known to the ptop program. (see the default configuration file or ptopu.pp source to
+find out which keywords are known)
+.PP
+The basic building block of the configuration file consists out of one or two lines,
+describing how ptop should react on a certain keyword.
+First a line without square brackets with the following format:
+.PP
+keyword=option1,option2,option3,...
+.PP
+If one of the options is "dindonkey" (see further below), a second line
+(with square brackets) is needed like this:
+.PP
+[keyword]=otherkeyword1,otherkeyword2,otherkeyword3,...
+.PP
+As you can see the block contains two types of identifiers, keywords(keyword and otherkeyword1..3 in above example)
+and options, (option1..3 above).
+.PP
+\fIKeywords\fP
+are the built-in valid Pascal structure-identifiers like BEGIN, END, CASE, IF,
+THEN, ELSE, IMPLEMENTATION. The default configuration file lists most of these.
+.PP
+Besides the real Pascal keywords, some other codewords are used for operators
+and comment expressions. These are listed in the following table:
+
+Name of codeword\	\	operator
+.br
+-------------\	\	\	-----
+.br
+casevar\	\	\	\	: in a case label (<>'colon')
+.br
+becomes\	\	\	\	:=
+.br
+delphicomment\	\	\	//
+.br
+opencomment\	\	\	{ or (*
+.br
+closecomment\	\	\	} or *)
+.br
+semicolon\	\	\	\	;
+.br
+colon\	\	\	\	:
+.br
+equals\	\	\	\	=
+.br
+openparen\	\	\	\	[
+.br
+closeparen\	\	\	]
+.br
+period\	\	\	\	.
+.PP
+
+The \fIOptions\fP codewords define actions to be taken when the keyword before
+the equal sign is found.
+.PP
+Option	\	\	does what
+.br
+-------\	\	\	---------
+.br
+crsupp\	\	\	suppress CR before the keyword.
+.br
+crbefore\	\	\	force CR before keyword
+\	\	\	\	(doesn't go with crsupp :) )
+.br
+blinbefore\	\	blank line before keyword.
+.br
+dindonkey\	\	\	de\-indent on assiociated keywords
+\	\	\	\	(see below)
+.br
+dindent\	\	\	deindent (always)
+.br
+spbef\	\	\	space before
+.br
+spaft\	\	\	space after
+.br
+gobsym\	\	\	Print symbols which follow a
+.br
+\	\	\	\	keyword but which do not
+.br
+\	\	\	\	affect layout. prints until
+.br
+\	\	\	\	terminators occur.
+.br
+\	\	\	\	(terminators are hard-coded in pptop,
+.br
+\	\	\	\	still needs changing)
+.br
+inbytab\	\	\	indent by tab.
+.br
+crafter\	\	\	force CR after keyword.
+.br
+upper\	\	\	prints keyword all uppercase
+.br
+lower\	\	\	prints keyword all lowercase
+.br
+capital\	\	\	capitalizes keyword: 1st letter
+.br
+\	\	\	\	uppercase, rest lowercase.
+.PP
+
+The option "dindonkey" requires some extra parameters, which are
+set by a second line for that keyword (the one with the square brackets), which is
+therefore only needed if the options contain "dinkdonkey" (contraction of
+de\-indent on assiociated keyword).
+.PP
+"dinkdonkey" deindents if any of the keywords specified by the extra options of the
+square-bracket line is found.
+.PP
+.SH Example
+
+The line
+
+else=crbefore,dindonkey,inbytab,upper
+.br
+[else]=if,then,else
+.PP
+
+Means:
+
+The keyword this is about is
+.I else
+, it's on the LEFT side of both equal signs.
+.PP
+
+When the ptop parser finds ELSE, the options tell it to do the following
+things:
+
+\- (crbefore) Don't allow other code on the line before
+.br
+\   the keyword. (ELSE alone on a line)
+.br
+\- (dindonkey) De\-indent on the keywords
+.br
+\	in square brackets line (if,then,else)
+.br
+\- (inbytab) indent by tab.
+.br
+\- (upper) uppercase the keyword (ELSE)
+.PP
+
+Try to play with the configfile until you find the effect you desire. The
+configurability and possibilities of ptop are quite large compared to shareware
+source beautifier found on e.g. SIMTEL.
+.PP
+
+.SH Acknowledgements
+
+The writer of the program, Michael van Canneyt, who also helped out explaining
+the format of ptop.cfg.
+.PP
+Questions/corrections can be mailed to fpc\-devel@vekoll.saturnus.vein.hu
+.PP
+Also thanks to the rest of the FPC development team.
+
+.SH SEE ALSO
+.IP "ptop binary"
+.BR ptop (1)
+.IP "Compiler"
+.BR  ppc386 (1)
+.IP "Other FPC utils"
+.BR  ppdep (1)
+.BR  ppudump (1)
+.BR  ppumove (1)
+.BR  h2pas (1)

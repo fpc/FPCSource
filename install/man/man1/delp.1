@@ -1,0 +1,60 @@
+.TH delp 1 "12 Dec 1999" FreePascal "Free Pascal file deletion tool"
+.SH NAME
+delp \- The Free Pascal file deletion tool.
+
+.SH SYNOPSIS
+
+.B delp
+
+.SH DESCRIPTION
+
+.B delp
+deletes files in the current directory that are left over from a Free Pascal 
+compilation process. It knows what files can be produced by the compile
+steps and deletes any such files it finds. At the end it gives a summary of
+the number of files that were deleted, together with the amount of bytes
+freed by this process.
+
+.SH USAGE
+
+.B delp
+takes no options at this time. It just attempts to delete all known files.
+
+.SH FILE TYPES:
+The following file types are recognized by the program and are deleted:
+.TP
+.I *.exe
+Executable files under dos and windows.
+.TP
+.I *.so *.dll
+Shared libraries under linux and Windows.
+.TP
+.I *.tpu *.tpp *.tpw *.tr
+Turbo Pascal compiled units.
+.TP
+.I *.log *.bak
+Backup files and log files.
+.TP
+.I *.ppu *.o *.a *.s
+Compiled units, object files, archives and assembler files created by the
+Free Pascal compiler on Linux or Dos
+.TP
+.I *.ppw *.ow *.aw *.sw
+Compiled units, object files, archives and assembler files created by the
+Free Pascal compiler on Windows.
+.TP
+.I *.pp1 *.o1 *.a1 *.s1
+Compiled units, object files, archives and assembler files created by the
+Free Pascal compiler on the go321v1 platform.
+.TP
+.I *.ppo *.oo *.ao *.so
+Compiled units, object files, archives and assembler files created by the
+Free Pascal compiler on the OS/2 platform.
+.TP
+.I ppas.bat ppas.sh link.res fpcmaked
+Batch files, link script and makefile utility files.
+.SH SEE ALSO
+.IP 
+.BR  fpcmake (1)
+.BR  ppc386 (1)
+.BR  make (1)
