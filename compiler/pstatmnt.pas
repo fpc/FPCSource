@@ -571,8 +571,8 @@ unit pstatmnt;
                      consume(_ON);
                      if token=_ID then
                        begin
-                          getsym(pattern,false);
                           objname:=pattern;
+                          getsym(objname,false);
                           consume(_ID);
                           { is a explicit name for the exception given ? }
                           if try_to_consume(_COLON) then
@@ -606,6 +606,13 @@ unit pstatmnt;
                             end
                           else
                             begin
+                               { check if type is valid, must be done here because
+                                 with "e: Exception" the e is not necessary }
+                               if srsym=nil then
+                                begin
+                                  Message1(sym_e_id_not_found,objname);
+                                  srsym:=generrorsym;
+                                end;
                                { only exception type }
                                if srsym^.typ=unitsym then
                                  begin
@@ -1359,7 +1366,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.125  2000-03-16 15:12:06  pierre
+  Revision 1.126  2000-03-19 11:16:44  peter
+    * check for unknown id in on exception
+
+  Revision 1.125  2000/03/16 15:12:06  pierre
    assembler method code does not need ebp framepointer
 
   Revision 1.124  2000/03/14 16:37:25  pierre
