@@ -226,6 +226,9 @@ begin
       lab:=objectlibrary.newasmsymbol(procdef.mangledname);
       emit_sym(A_JMP,S_NO,lab);
     end;
+
+  exprasmList.concat(Tai_symbol_end.Createname(labelname));
+
   exprasmlist:=oldexprasmlist;
 end;
 
@@ -235,7 +238,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.30  2004-02-27 10:21:05  florian
+  Revision 1.31  2004-02-27 13:42:52  olle
+    + added Tai_symbol_end
+
+  Revision 1.30  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

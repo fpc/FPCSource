@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Kovacs Attila Zoltan
 
-    Generate i386 assembly wrapper code interface implementor objects
+    Generate powerpc assembly wrapper code interface implementor objects
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -158,6 +158,9 @@ begin
   { case 0 }
   else
     asmlist.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(procdef.mangledname)));
+
+  exprasmList.concat(Tai_symbol_end.Createname(labelname));
+
   exprasmlist:=oldexprasmlist;
 end;
 
@@ -167,7 +170,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2004-02-27 10:21:05  florian
+  Revision 1.5  2004-02-27 13:42:56  olle
+    + added Tai_symbol_end
+
+  Revision 1.4  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
