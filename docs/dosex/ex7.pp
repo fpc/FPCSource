@@ -6,7 +6,7 @@ uses Dos;
 var
   Dir : SearchRec;
 begin
-  FindFirst('*.*',$20,Dir);
+  FindFirst('*.*',archive,Dir);
   WriteLn('FileName'+Space(32),'FileSize':9);
   while (DosError=0) do
    begin
@@ -15,3 +15,4 @@ begin
    end;     
   FindClose(Dir); 
 end.
+

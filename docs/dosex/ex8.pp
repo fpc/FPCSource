@@ -10,9 +10,9 @@ begin
   Assign(f,ParamStr(1));
   GetFAttr(f,Attr);
   WriteLn('File ',ParamStr(1),' has attribute ',Attr);
-  if (Attr and $20)<>0 then WriteLn('- Archive');
-  if (Attr and $10)<>0 then WriteLn('- Directory');
-  if (Attr and $4)<>0 then WriteLn('- Read-Only');
-  if (Attr and $2)<>0 then WriteLn('- System');
-  if (Attr and $1)<>0 then WriteLn('- Hidden');
+  if (Attr and archive)<>0 then WriteLn('- Archive');
+  if (Attr and directory)<>0 then WriteLn('- Directory');
+  if (Attr and readonly)<>0 then WriteLn('- Read-Only');
+  if (Attr and sysfile)<>0 then WriteLn('- System');
+  if (Attr and hidden)<>0 then WriteLn('- Hidden');
 end.

@@ -11,5 +11,5 @@ begin
   WriteLn('Executing Dir');
   Exec(GetEnv('COMSPEC'),'/C dir');
 {$ENDIF}
-  WriteLn('Program returned with ExitCode ',DosExitCode);
+  WriteLn('Program returned with ExitCode ',Lo(DosExitCode));
 end.
