@@ -408,7 +408,6 @@ var
     index : Integer;
 
   begin
-    For Index:=1 to Length(QueryItem) do
     Index:=Length(QueryItem);    
     While (Index>0) do
       begin
