@@ -43,6 +43,16 @@ interface
     uses
        sysutils;
 
+    const { Ranges of the IEEE floating point types, including denormals }
+      MinSingle    =  1.5e-45;
+      MaxSingle    =  3.4e+38;
+      MinDouble    =  5.0e-324;
+      MaxDouble    =  1.7e+308;
+      MinExtended  =  3.4e-4932;
+      MaxExtended  =  1.1e+4932;
+      MinComp      = -9.223372036854775807e+18;
+      MaxComp      =  9.223372036854775807e+18;
+
     type
        { the original delphi functions use extended as argument, }
        { but I would prefer double, because 8 bytes is a very    }
@@ -283,13 +293,13 @@ procedure sincos(theta : float;var sinus,cosinus : float);
   cosinus:=cos(theta);
   {$else}
   asm
-    fldl theta
+    fldt theta
     fsincos
     fwait
     movl cosinus,%eax
-    fstpl (%eax)
+    fstpt (%eax)
     movl sinus,%eax
-    fstpl (%eax)
+    fstpt (%eax)
   end;
   {$endif}
   end;
@@ -863,7 +873,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
+  Revision 1.3  2000-07-29 18:07:45  sg
+  * Applied patches by Markus Kaemmerer:
+    - Added ranges of the IEEE floating point types, including denormals
+    - in sincos function: The arguments are of type Extended, so they
+      need 't' as size suffix in FPU instructions, and not 'l'!
+
+  Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
  
 }
