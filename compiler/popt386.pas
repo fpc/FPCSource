@@ -939,9 +939,11 @@ Begin
                                 Begin
                                   If OpsEqual(Paicpu(hp1)^.oper[0],Paicpu(p)^.oper[1]) Then
                         { Removes the second statement from
-                            mov reg1, mem1
-                            mov mem1, reg1 }
+                            mov reg1, mem1/reg2
+                            mov mem1/reg2, reg1 }
                                     Begin
+                                      if (paicpu(p)^.oper[0].typ = top_reg) then
+                                        AllocRegBetween(asmL,paicpu(p)^.oper[0].reg,p,hp1);
                                       AsmL^.remove(hp1);
                                       Dispose(hp1,done);
                                     End
@@ -1890,7 +1892,12 @@ End.
 
 {
  $Log$
- Revision 1.87  2000-02-13 14:21:50  jonas
+ Revision 1.88  2000-03-25 18:57:02  jonas
+   * remove dealloc/alloc of reg1 between "movl %reg1,%reg2;
+     movl %reg2,%reg1" when removing the second instruction (it
+     confused the CSE and caused errors with -Or)
+
+ Revision 1.87  2000/02/13 14:21:50  jonas
    * modifications to make the compiler functional when compiled with
      -Or
 
