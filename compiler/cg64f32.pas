@@ -562,10 +562,14 @@ unit cg64f32;
              { simple cardinal                                          }
              cg.a_label(list,poslabel);
              hdef:=torddef.create(u32bit,0,cardinal($ffffffff));
-             { no use in calling just "g_rangecheck" since that one will }
-             { simply call the inherited method too (JM)                 }
+
              location_copy(temploc,l);
              temploc.size:=OS_32;
+
+             if (temploc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
+                (target_info.endian = endian_big) then
+               inc(temploc.reference.offset,4);
+            
              cg.g_rangecheck(list,temploc,hdef,todef);
              hdef.free;
 
@@ -761,7 +765,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-12-06 01:15:22  florian
+  Revision 1.55  2003-12-07 15:00:45  jonas
+    * fixed g_rangecheck64 so it works again for big endian
+
+  Revision 1.54  2003/12/06 01:15:22  florian
     * reverted Peter's alloctemp patch; hopefully properly
 
   Revision 1.53  2003/12/03 23:13:19  peter
