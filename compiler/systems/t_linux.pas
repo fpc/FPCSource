@@ -157,6 +157,7 @@ procedure texportliblinux.generatelib;
 var
   hp2 : texported_item;
 begin
+  new_section(codesegment,sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do
    begin
@@ -578,7 +579,10 @@ end.
 
 {
   $Log$
-  Revision 1.32  2004-12-22 16:32:46  peter
+  Revision 1.33  2005-01-10 15:56:13  peter
+    * generate export jmps in .text section
+
+  Revision 1.32  2004/12/22 16:32:46  peter
     * maybequoted() added
 
   Revision 1.31  2004/12/19 14:03:16  florian
