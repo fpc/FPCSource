@@ -69,6 +69,7 @@ implementation
     uses
       globtype,globals,verbose,
       symconst,symbase,symtype,symdef,symtable,
+      defutil,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,
       cgbase,procinfo,
       pass_1;
@@ -394,14 +395,27 @@ implementation
       begin
         if not assigned(p.resulttype.def) then
           resulttypepass(p);
-        result:=ccallnode.createintern('fpc_initialize',
-              ccallparanode.create(
-                  caddrnode.create(
-                      crttinode.create(
-                          tstoreddef(p.resulttype.def),initrtti)),
-              ccallparanode.create(
-                  caddrnode.create(p),
-              nil)));
+        if is_ansistring(p.resulttype.def) or
+           is_widestring(p.resulttype.def) or
+           is_interfacecom(p.resulttype.def) or
+           is_dynamic_array(p.resulttype.def) then
+          begin
+            result:=cassignmentnode.create(
+               ctypeconvnode.create_explicit(p,voidpointertype),
+               cnilnode.create
+               );
+          end
+        else
+          begin
+            result:=ccallnode.createintern('fpc_initialize',
+                  ccallparanode.create(
+                      caddrnode.create(
+                          crttinode.create(
+                              tstoreddef(p.resulttype.def),initrtti)),
+                  ccallparanode.create(
+                      caddrnode.create(p),
+                  nil)));
+          end;
       end;
 
 
@@ -424,7 +438,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-02-20 21:55:59  peter
+  Revision 1.11  2004-05-23 15:04:49  peter
+    * generate better code for ansistring initialization
+
+  Revision 1.10  2004/02/20 21:55:59  peter
     * procvar cleanup
 
   Revision 1.9  2004/02/03 22:32:54  peter
