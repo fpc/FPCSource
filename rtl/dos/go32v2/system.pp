@@ -126,61 +126,23 @@ implementation
 const
   carryflag = 1;
 
+type
+  tseginfo=packed record
+    offset  : pointer;
+    segment : word;
+  end;
+
 var
-  doscmd : string[128];  { Dos commandline copied from PSP, max is 128 chars }
+  doscmd    : string[128];  { Dos commandline copied from PSP, max is 128 chars }
+  old_int00,
+  old_int75 : tseginfo;
+
 
 {$ASMMODE DIRECT}
 
-procedure halt(errnum : byte);
-begin
-  do_exit;
-  asm
-        movzbw  errnum,%ax
-        pushw   %ax
-        call    ___exit         {frees all dpmi memory !!}
-  end;
-end;
-
-
-procedure int_stackcheck(stack_size:longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'STACKCHECK'];
-{
-  called when trying to get local stack if the compiler directive $S
-  is set this function must preserve esi !!!! because esi is set by
-  the calling proc for methods it must preserve all registers !!
-
-  With a 2048 byte safe area used to write to StdIo without crossing
-  the stack boundary
-}
-begin
-  asm
-        pushl   %eax
-        pushl   %ebx
-        movl    stack_size,%ebx
-        addl    $2048,%ebx
-        movl    %esp,%eax
-        subl    %ebx,%eax
-{$ifdef SYSTEMDEBUG}
-        movl    U_SYSTEM_LOWESTSTACK,%ebx
-        cmpl    %eax,%ebx
-        jb      .L_is_not_lowest
-        movl    %eax,U_SYSTEM_LOWESTSTACK
-.L_is_not_lowest:
-{$endif SYSTEMDEBUG}
-        movl    __stkbottom,%ebx
-        cmpl    %eax,%ebx
-        jae     .L__short_on_stack
-        popl    %ebx
-        popl    %eax
-        leave
-        ret     $4
-.L__short_on_stack:
-        { can be usefull for error recovery !! }
-        popl    %ebx
-        popl    %eax
-  end['EAX','EBX'];
-  HandleError(202);
-end;
-
+{*****************************************************************************
+                              Go32 Helpers
+*****************************************************************************}
 
 function far_strlen(selector : word;linear_address : longint) : longint;
 begin
@@ -240,90 +202,98 @@ asm
 end;
 
 
-    procedure sysseg_move(sseg : word;source : longint;dseg : word;dest : longint;count : longint);
+function get_cs : word;assembler;
+asm
+        movw    %cs,%ax
+end;
 
-      begin
-         if count=0 then
-           exit;
-         if (sseg<>dseg) or ((sseg=dseg) and (source>dest)) then
-           asm
-              pushw %es
-              pushw %ds
-              cld
-              movl count,%ecx
-              movl source,%esi
-              movl dest,%edi
-              movw dseg,%ax
-              movw %ax,%es
-              movw sseg,%ax
-              movw %ax,%ds
-              movl %ecx,%eax
-              shrl $2,%ecx
-              rep
-              movsl
-              movl %eax,%ecx
-              andl $3,%ecx
-              rep
-              movsb
-              popw %ds
-              popw %es
-           end ['ESI','EDI','ECX','EAX']
-         else if (source<dest) then
-           { copy backward for overlapping }
-           asm
-              pushw %es
-              pushw %ds
-              std
-              movl count,%ecx
-              movl source,%esi
-              movl dest,%edi
-              movw dseg,%ax
-              movw %ax,%es
-              movw sseg,%ax
-              movw %ax,%ds
-              addl %ecx,%esi
-              addl %ecx,%edi
-              movl %ecx,%eax
-              andl $3,%ecx
-              orl %ecx,%ecx
-              jz .LSEG_MOVE1
 
-              { calculate esi and edi}
-              decl %esi
-              decl %edi
-              rep
-              movsb
-              incl %esi
-              incl %edi
-           .LSEG_MOVE1:
-              subl $4,%esi
-              subl $4,%edi
-              movl %eax,%ecx
-              shrl $2,%ecx
-              rep
-              movsl
-              cld
-              popw %ds
-              popw %es
-           end ['ESI','EDI','ECX'];
-      end;
+procedure sysseg_move(sseg : word;source : longint;dseg : word;dest : longint;count : longint);
+begin
+   if count=0 then
+     exit;
+   if (sseg<>dseg) or ((sseg=dseg) and (source>dest)) then
+     asm
+        pushw %es
+        pushw %ds
+        cld
+        movl count,%ecx
+        movl source,%esi
+        movl dest,%edi
+        movw dseg,%ax
+        movw %ax,%es
+        movw sseg,%ax
+        movw %ax,%ds
+        movl %ecx,%eax
+        shrl $2,%ecx
+        rep
+        movsl
+        movl %eax,%ecx
+        andl $3,%ecx
+        rep
+        movsb
+        popw %ds
+        popw %es
+     end ['ESI','EDI','ECX','EAX']
+   else if (source<dest) then
+     { copy backward for overlapping }
+     asm
+        pushw %es
+        pushw %ds
+        std
+        movl count,%ecx
+        movl source,%esi
+        movl dest,%edi
+        movw dseg,%ax
+        movw %ax,%es
+        movw sseg,%ax
+        movw %ax,%ds
+        addl %ecx,%esi
+        addl %ecx,%edi
+        movl %ecx,%eax
+        andl $3,%ecx
+        orl %ecx,%ecx
+        jz .LSEG_MOVE1
+
+        { calculate esi and edi}
+        decl %esi
+        decl %edi
+        rep
+        movsb
+        incl %esi
+        incl %edi
+     .LSEG_MOVE1:
+        subl $4,%esi
+        subl $4,%edi
+        movl %eax,%ecx
+        shrl $2,%ecx
+        rep
+        movsl
+        cld
+        popw %ds
+        popw %es
+     end ['ESI','EDI','ECX'];
+end;
 
 
 function atohex(s : pchar) : longint;
-var rv : longint;
-    v : byte;
+var
+  rv : longint;
+  v  : byte;
 begin
-rv := 0;
-while (s^ <>#0) do
-  begin
-  v := byte(s^) - byte('0');
-  if (v > 9) then v := v - 7;
-  v := v and 15; { in case it's lower case }
-  rv := rv*16 + v;
-  inc(longint(s));
-  end;
-atohex := rv;
+  rv:=0;
+  while (s^ <>#0) do
+   begin
+     v:=byte(s^)-byte('0');
+     if (v > 9) then
+       dec(v,7);
+     v:=v and 15; { in case it's lower case }
+     rv:=(rv shl 4) or v;
+     inc(longint(s));
+   end;
+  atohex:=rv;
 end;
+
 
 procedure setup_arguments;
 type  arrayword = array [0..0] of word;
@@ -423,31 +393,30 @@ end;
 
 
 function strcopy(dest,source : pchar) : pchar;
-
-      begin
-         asm
-            cld
-            movl 12(%ebp),%edi
-            movl $0xffffffff,%ecx
-            xorb %al,%al
-            repne
-            scasb
-            not %ecx
-            movl 8(%ebp),%edi
-            movl 12(%ebp),%esi
-            movl %ecx,%eax
-            shrl $2,%ecx
-            rep
-            movsl
-            movl %eax,%ecx
-            andl $3,%ecx
-            rep
-            movsb
-            movl 8(%ebp),%eax
-            leave
-            ret $8
-         end;
-      end;
+begin
+  asm
+        cld
+        movl 12(%ebp),%edi
+        movl $0xffffffff,%ecx
+        xorb %al,%al
+        repne
+        scasb
+        not %ecx
+        movl 8(%ebp),%edi
+        movl 12(%ebp),%esi
+        movl %ecx,%eax
+        shrl $2,%ecx
+        rep
+        movsl
+        movl %eax,%ecx
+        andl $3,%ecx
+        rep
+        movsb
+        movl 8(%ebp),%eax
+        leave
+        ret $8
+  end;
+end;
 
 
 procedure setup_environment;
@@ -479,16 +448,17 @@ begin
   cp:=dos_env;
   env_count:=0;
   while cp^ <> #0 do
-    begin
-    getmem(envp[env_count],strlen(cp)+1);
-    strcopy(envp[env_count], cp);
+   begin
+     getmem(envp[env_count],strlen(cp)+1);
+     strcopy(envp[env_count], cp);
 {$IfDef SYSTEMDEBUG}
-      Writeln('env ',env_count,' = "',envp[env_count],'"');
+     Writeln('env ',env_count,' = "',envp[env_count],'"');
 {$EndIf SYSTEMDEBUG}
-    inc(env_count);
-    while (cp^ <> #0) do inc(longint(cp)); { skip to NUL }
-    inc(longint(cp)); { skip to next character }
-    end;
+     inc(env_count);
+     while (cp^ <> #0) do
+      inc(longint(cp)); { skip to NUL }
+     inc(longint(cp)); { skip to next character }
+   end;
   envp[env_count]:=nil;
   longint(cp):=longint(cp)+3;
   getmem(dos_argv0,strlen(cp)+1);
@@ -503,31 +473,140 @@ begin
 {$ASMMODE ATT}
 end;
 
-     procedure syscopytodos(addr : longint; len : longint);
-     begin
-        if len > tb_size then HandleError(217);
-        sysseg_move(get_ds,addr,dos_selector,tb,len);
-     end;
 
-     procedure syscopyfromdos(addr : longint; len : longint);
-     begin
-        if len > tb_size then HandleError(217);
-        sysseg_move(dos_selector,tb,get_ds,addr,len);
-     end;
+procedure syscopytodos(addr : longint; len : longint);
+begin
+   if len > tb_size then
+     HandleError(217);
+   sysseg_move(get_ds,addr,dos_selector,tb,len);
+end;
 
-    procedure sysrealintr(intnr : word;var regs : trealregs);
 
-      begin
-         regs.realsp:=0;
-         regs.realss:=0;
-         asm
-            movw  intnr,%bx
-            xorl  %ecx,%ecx
-            movl  regs,%edi
-            movw  $0x300,%ax
-            int   $0x31
-         end;
-      end;
+procedure syscopyfromdos(addr : longint; len : longint);
+begin
+   if len > tb_size then
+     HandleError(217);
+   sysseg_move(dos_selector,tb,get_ds,addr,len);
+end;
+
+
+procedure sysrealintr(intnr : word;var regs : trealregs);
+begin
+   regs.realsp:=0;
+   regs.realss:=0;
+   asm
+      movw  intnr,%bx
+      xorl  %ecx,%ecx
+      movl  regs,%edi
+      movw  $0x300,%ax
+      int   $0x31
+   end;
+end;
+
+
+procedure set_pm_interrupt(vector : byte;const intaddr : tseginfo);
+begin
+  asm
+        movl intaddr,%eax
+        movl (%eax),%edx
+        movw 4(%eax),%cx
+        movl $0x205,%eax
+        movb vector,%bl
+        int $0x31
+  end;
+end;
+
+
+procedure get_pm_interrupt(vector : byte;var intaddr : tseginfo);
+begin
+  asm
+        movb    vector,%bl
+        movl    $0x204,%eax
+        int     $0x31
+        movl    intaddr,%eax
+        movl    %edx,(%eax)
+        movw    %cx,4(%eax)
+  end;
+end;
+
+
+{*****************************************************************************
+                              ParamStr/Randomize
+*****************************************************************************}
+
+{$ASMMODE DIRECT}
+procedure halt(errnum : byte);
+begin
+  do_exit;
+  set_pm_interrupt($00,old_int00);
+  set_pm_interrupt($75,old_int75);
+  asm
+        movzbw  errnum,%ax
+        pushw   %ax
+        call    ___exit         {frees all dpmi memory !!}
+  end;
+end;
+
+
+procedure new_int00;
+begin
+  HandleError(200);
+end;
+
+
+procedure new_int75;
+begin
+  asm
+        xorl    %eax,%eax
+        outb    %al,$0x0f0
+        movb    $0x20,%al
+        outb    %al,$0x0a0
+        outb    %al,$0x020
+  end;
+  HandleError(200);
+end;
+
+
+procedure int_stackcheck(stack_size:longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'STACKCHECK'];
+{
+  called when trying to get local stack if the compiler directive $S
+  is set this function must preserve esi !!!! because esi is set by
+  the calling proc for methods it must preserve all registers !!
+
+  With a 2048 byte safe area used to write to StdIo without crossing
+  the stack boundary
+}
+begin
+  asm
+        pushl   %eax
+        pushl   %ebx
+        movl    stack_size,%ebx
+        addl    $2048,%ebx
+        movl    %esp,%eax
+        subl    %ebx,%eax
+{$ifdef SYSTEMDEBUG}
+        movl    U_SYSTEM_LOWESTSTACK,%ebx
+        cmpl    %eax,%ebx
+        jb      .L_is_not_lowest
+        movl    %eax,U_SYSTEM_LOWESTSTACK
+.L_is_not_lowest:
+{$endif SYSTEMDEBUG}
+        movl    __stkbottom,%ebx
+        cmpl    %eax,%ebx
+        jae     .L__short_on_stack
+        popl    %ebx
+        popl    %eax
+        leave
+        ret     $4
+.L__short_on_stack:
+        { can be usefull for error recovery !! }
+        popl    %ebx
+        popl    %eax
+  end['EAX','EBX'];
+  HandleError(202);
+end;
+{$ASMMODE ATT}
+
 
 
 function paramcount : longint;
@@ -1098,7 +1177,17 @@ end;
 {$endif RTLLITE}
 
 
+var
+  temp_int : tseginfo;
 Begin
+{ save old int 0 and 75 }
+  get_pm_interrupt($00,old_int00);
+  get_pm_interrupt($75,old_int75);
+  temp_int.segment:=get_cs;
+  temp_int.offset:=@new_int00;
+  set_pm_interrupt($00,temp_int);
+{  temp_int.offset:=@new_int75;
+  set_pm_interrupt($75,temp_int); }
 { to test stack depth }
   loweststack:=maxlongint;
 { Setup heap }
@@ -1117,7 +1206,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.19  1998-09-14 10:48:05  peter
+  Revision 1.20  1998-10-13 21:41:06  peter
+    + int 0 for divide by zero
+
+  Revision 1.19  1998/09/14 10:48:05  peter
     * FPC_ names
     * Heap manager is now system independent
 
