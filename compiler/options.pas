@@ -69,6 +69,7 @@ procedure read_arguments(cmd:string);
 implementation
 
 uses
+  widestr,
 {$ifdef Delphi}
   dmisc,
 {$else Delphi}
@@ -558,6 +559,12 @@ begin
                       Delete(more,1,1);
                       DefaultReplacements(More);
                       case c of
+                       'c' : begin
+                                if not(cpavailable(more)) then
+                                  Message1(option_code_page_not_available,more)
+                                else
+                                  initsourcecodepage:=more;
+                             end;
                        'D' : utilsdirectory:=FixPath(More,true);
                        'e' : SetRedirectFile(More);
                        'E' : OutputExeDir:=FixPath(More,true);
@@ -1670,7 +1677,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.76  2002-07-04 20:43:01  florian
+  Revision 1.77  2002-07-20 17:16:03  florian
+    + source code page support
+
+  Revision 1.76  2002/07/04 20:43:01  florian
     * first x86-64 patches
 
   Revision 1.75  2002/07/01 18:46:24  peter

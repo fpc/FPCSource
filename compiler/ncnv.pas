@@ -1191,7 +1191,10 @@ implementation
           end;
 
         { ordinal contants can be directly converted }
-        if (left.nodetype=ordconstn) and is_ordinal(resulttype.def)  then
+        if (left.nodetype=ordconstn) and is_ordinal(resulttype.def) and
+        { but not char to char because it is a widechar to char or via versa }
+        { which needs extra code to do the code page transistion             }
+          not(convtype=tc_char_2_char) then
           begin
              { replace the resulttype and recheck the range }
              left.resulttype:=resulttype;
@@ -1755,7 +1758,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2002-07-20 11:57:54  florian
+  Revision 1.61  2002-07-20 17:16:02  florian
+    + source code page support
+
+  Revision 1.60  2002/07/20 11:57:54  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

@@ -1849,6 +1849,7 @@ option_using_env=11027_T_Reading options from environment $1
 option_handling_option=11028_D_Handling option "$1"
 % Debug info that an option is found and will be handled
 option_help_press_enter=11029__*** press enter ***
+option_code_page_not_available=11030_E_Unknown code page
 %\end{description}
 # EndOfTeX
 

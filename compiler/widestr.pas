@@ -26,9 +26,9 @@ unit widestr;
 
   interface
 
-{    uses
+    uses
        charset;
-}
+
 
     type
        tcompilerwidechar = word;
@@ -44,31 +44,30 @@ unit widestr;
        pcompilerwidestring = ^_tcompilerwidestring;
        _tcompilerwidestring = record
           data : pcompilerwidechar;
-          maxlen,len : longint;
+          maxlen,len : StrLenInt;
        end;
 
     procedure initwidestring(var r : pcompilerwidestring);
     procedure donewidestring(var r : pcompilerwidestring);
-    procedure setlengthwidestring(r : pcompilerwidestring;l : longint);
-    function getlengthwidestring(r : pcompilerwidestring) : longint;
+    procedure setlengthwidestring(r : pcompilerwidestring;l : StrLenInt);
+    function getlengthwidestring(r : pcompilerwidestring) : StrLenInt;
     procedure concatwidestringchar(r : pcompilerwidestring;c : tcompilerwidechar);
     procedure concatwidestrings(s1,s2 : pcompilerwidestring);
-    function comparewidestrings(s1,s2 : pcompilerwidestring) : longint;
+    function comparewidestrings(s1,s2 : pcompilerwidestring) : StrLenInt;
     procedure copywidestring(s,d : pcompilerwidestring);
     function asciichar2unicode(c : char) : tcompilerwidechar;
     function unicode2asciichar(c : tcompilerwidechar) : char;
-    procedure ascii2unicode(p:pchar; l:longint;r : pcompilerwidestring);
-    procedure unicode2ascii(r : pcompilerwidestring;p:pchar);
-    function getcharwidestring(r : pcompilerwidestring;l : longint) : tcompilerwidechar;
+    procedure ascii2unicode(p : pchar;l : StrLenInt;r : pcompilerwidestring);
+    procedure unicode2ascii(r : pcompilerwidestring;p : pchar);
+    function getcharwidestring(r : pcompilerwidestring;l : StrLenInt) : tcompilerwidechar;
     function cpavailable(const s : string) : boolean;
 
   implementation
 
-{    uses
-       i8869_1,cp850,cp437; }
-
     uses
+       cp8859_1,cp850,cp437,
        globals;
+
 
     procedure initwidestring(var r : pcompilerwidestring);
 
@@ -88,19 +87,19 @@ unit widestr;
          r:=nil;
       end;
 
-    function getcharwidestring(r : pcompilerwidestring;l : longint) : tcompilerwidechar;
+    function getcharwidestring(r : pcompilerwidestring;l : StrLenInt) : tcompilerwidechar;
 
       begin
          getcharwidestring:=r^.data[l];
       end;
 
-    function getlengthwidestring(r : pcompilerwidestring) : longint;
+    function getlengthwidestring(r : pcompilerwidestring) : StrLenInt;
 
       begin
          getlengthwidestring:=r^.len;
       end;
 
-    procedure setlengthwidestring(r : pcompilerwidestring;l : longint);
+    procedure setlengthwidestring(r : pcompilerwidestring;l : StrLenInt);
 
       begin
          if r^.maxlen>=l then
@@ -127,13 +126,6 @@ unit widestr;
          move(s2^.data^,s1^.data[s1^.len],s2^.len*sizeof(tcompilerwidechar));
       end;
 
-    function comparewidestringwidestring(s1,s2 : pcompilerwidestring) : longint;
-
-      begin
-        {$ifdef fpc}{$warning todo}{$endif}
-        comparewidestringwidestring:=0;
-      end;
-
     procedure copywidestring(s,d : pcompilerwidestring);
 
       begin
@@ -142,26 +134,31 @@ unit widestr;
          move(s^.data^,d^.data^,s^.len*sizeof(tcompilerwidechar));
       end;
 
-    function comparewidestrings(s1,s2 : pcompilerwidestring) : longint;
-
+    function comparewidestrings(s1,s2 : pcompilerwidestring) : StrLenInt;
+      var
+         maxi,temp : StrLenInt;
       begin
-         {!!!!!! FIXME }
-         comparewidestrings:=0;
+         if pointer(s1)=pointer(s2) then
+           begin
+              comparewidestrings:=0;
+              exit;
+           end;
+         maxi:=s1^.len;
+         temp:=s2^.len;
+         if maxi>temp then
+           maxi:=Temp;
+         temp:=compareword(s1^.data^,s2^.data^,maxi);
+         if temp=0 then
+           temp:=s1^.len-s2^.len;
+         comparewidestrings:=temp;
       end;
 
     function asciichar2unicode(c : char) : tcompilerwidechar;
-{!!!!!!!!
       var
          m : punicodemap;
-
       begin
          m:=getmap(aktsourcecodepage);
          asciichar2unicode:=getunicode(c,m);
-      end;
-}
-      begin
-        {$ifdef fpc}{$warning todo}{$endif}
-        asciichar2unicode:=0;
       end;
 
     function unicode2asciichar(c : tcompilerwidechar) : char;
@@ -171,42 +168,25 @@ unit widestr;
         unicode2asciichar:=#0;
       end;
 
-    procedure ascii2unicode(p:pchar; l:longint;r : pcompilerwidestring);
-(*
+    procedure ascii2unicode(p : pchar;l : StrLenInt;r : pcompilerwidestring);
       var
-         m : punicodemap;
-         i : longint;
-
+         source : pchar;
+         dest   : tcompilerwidecharptr;
+         i      : StrLenInt;
+         m      : punicodemap;
       begin
          m:=getmap(aktsourcecodepage);
-         { should be a very good estimation :) }
-         setlengthwidestring(r,length(s));
-         // !!!! MBCS
-         for i:=1 to length(s) do
+         setlengthwidestring(r,l);
+         source:=p;
+         r^.len:=l;
+         dest:=tcompilerwidecharptr(r^.data);
+         for i:=1 to l do
            begin
+              dest^:=getunicode(source^,m);
+              inc(dest);
+              inc(source);
            end;
       end;
-*)
-      var
-        source : pchar;
-        dest   : tcompilerwidecharptr;
-        i      : longint;
-      begin
-        setlengthwidestring(r,l);
-        source:=p;
-        r^.len:=l;
-        dest:=tcompilerwidecharptr(r^.data);
-        for i:=1 to l do
-         begin
-           if byte(source^)<128 then
-            dest^:=tcompilerwidechar(byte(source^))
-           else
-            dest^:=32;
-           inc(dest);
-           inc(source);
-         end;
-      end;
-
 
     procedure unicode2ascii(r : pcompilerwidestring;p:pchar);
 (*
@@ -244,20 +224,17 @@ unit widestr;
 
 
     function cpavailable(const s : string) : boolean;
-{!!!!!!
       begin
           cpavailable:=mappingavailable(s);
-      end;
-}
-
-      begin
-        cpavailable:=false;
       end;
 
 end.
 {
   $Log$
-  Revision 1.10  2002-05-18 13:34:21  peter
+  Revision 1.11  2002-07-20 17:16:03  florian
+    + source code page support
+
+  Revision 1.10  2002/05/18 13:34:21  peter
     * readded missing revisions
 
   Revision 1.9  2002/05/16 19:46:47  carl
@@ -265,5 +242,4 @@ end.
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
   + start of tassembler / tmodulebase class cleanup
-
 }

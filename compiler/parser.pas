@@ -82,6 +82,8 @@ implementation
          { global switches }
          aktglobalswitches:=initglobalswitches;
 
+         aktsourcecodepage:=initsourcecodepage;
+
          { initialize scanner }
          InitScanner;
          InitScannerDirectives;
@@ -277,6 +279,7 @@ implementation
          oldaktmodeswitches : tmodeswitches;
          old_compiled_module : tmodule;
          oldaktdefproccall : tproccalloption;
+         oldsourcecodepage : tcodepagestring;
 {        will only be increased once we start parsing blocks in the }
 {         implementation, so doesn't need to be saved/restored (JM) }
 {          oldexceptblockcounter  : integer;                        }
@@ -315,6 +318,7 @@ implementation
          old_block_type:=block_type;
          oldtokenpos:=akttokenpos;
          oldcurrent_scanner:=current_scanner;
+         oldsourcecodepage:=aktsourcecodepage;
        { save cg }
          oldnextlabelnr:=nextlabelnr;
          oldparse_only:=parse_only;
@@ -542,6 +546,7 @@ implementation
               aktprocsym:=oldaktprocsym;
               aktprocdef:=oldaktprocdef;
               move(oldoverloaded_operators,overloaded_operators,sizeof(toverloaded_operators));
+              aktsourcecodepage:=oldsourcecodepage;
               aktlocalswitches:=oldaktlocalswitches;
               aktmoduleswitches:=oldaktmoduleswitches;
               aktalignment:=oldaktalignment;
@@ -630,7 +635,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2002-07-01 18:46:24  peter
+  Revision 1.35  2002-07-20 17:16:03  florian
+    + source code page support
+
+  Revision 1.34  2002/07/01 18:46:24  peter
     * internal linker
     * reorganized aasm layer
 

@@ -33,7 +33,7 @@ implementation
 
     uses
       cutils,
-      globtype,globals,systems,
+      globtype,globals,systems,widestr,
       verbose,comphook,
       scanner,switches,
       fmodule;
@@ -839,6 +839,24 @@ implementation
       begin
       end;
 
+    procedure dir_codepage;
+      var
+         s : string;
+      begin
+        if not current_module.in_global then
+          Message(scan_w_switch_is_global)
+        else
+          begin
+             current_scanner.skipspace;
+             s:=current_scanner.readcomment;
+             if not(cpavailable(s)) then
+               Message1(option_code_page_not_available,s)
+             else
+               aktsourcecodepage:=s;
+          end;
+      end;
+
+
 {****************************************************************************
                          Initialize Directives
 ****************************************************************************}
@@ -855,6 +873,7 @@ implementation
         AddDirective('ASSERTIONS',{$ifdef FPCPROCVAR}@{$endif}dir_assertions);
         AddDirective('BOOLEVAL',{$ifdef FPCPROCVAR}@{$endif}dir_booleval);
         AddDirective('CALLING',{$ifdef FPCPROCVAR}@{$endif}dir_calling);
+        AddDirective('CODEPAGE',{$ifdef FPCPROCVAR}@{$endif}dir_codepage);
         AddDirective('COPYRIGHT',{$ifdef FPCPROCVAR}@{$endif}dir_copyright);
         AddDirective('D',{$ifdef FPCPROCVAR}@{$endif}dir_description);
         AddDirective('DEBUGINFO',{$ifdef FPCPROCVAR}@{$endif}dir_debuginfo);
@@ -929,7 +948,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2002-07-16 15:37:58  florian
+  Revision 1.17  2002-07-20 17:16:03  florian
+    + source code page support
+
+  Revision 1.16  2002/07/16 15:37:58  florian
     + Directive $EXTERNALSYM added, it is ignored for now
 
   Revision 1.15  2002/05/18 13:34:17  peter

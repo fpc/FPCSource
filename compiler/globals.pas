@@ -88,11 +88,12 @@ interface
          function  FindFile(const f : string;var foundfile:string):boolean;
        end;
 
+       tcodepagestring = string[20];
 
-   {# the ordinal type used when evaluating constant integer expressions }
-   TConstExprInt = int64;
-   { ... the same unsigned }
-   TConstExprUInt = {$ifdef fpc}qword{$else}int64{$endif};
+       { the ordinal type used when evaluating constant integer expressions }
+       TConstExprInt = int64;
+       { ... the same unsigned }
+       TConstExprUInt = {$ifdef fpc}qword{$else}int64{$endif};
 
     var
        { specified inputfile }
@@ -171,6 +172,7 @@ interface
        initinterfacetype  : tinterfacetypes;
        initoutputformat   : tasm;
        initdefproccall    : tproccalloption;
+       initsourcecodepage : tcodepagestring;
 
      { current state values }
        aktglobalswitches  : tglobalswitches;
@@ -191,6 +193,7 @@ interface
        aktinterfacetype   : tinterfacetypes;
        aktoutputformat    : tasm;
        aktdefproccall     : tproccalloption;
+       aktsourcecodepage : tcodepagestring;
 
      { Memory sizes }
        heapsize,
@@ -1419,6 +1422,7 @@ implementation
         initmodeswitches:=fpcmodeswitches;
         initlocalswitches:=[cs_check_io,cs_typed_const_writable];
         initmoduleswitches:=[cs_extsyntax,cs_browser];
+        initsourcecodepage:='8859-1';
         initglobalswitches:=[cs_check_unit_name,cs_link_static{$ifdef INTERNALLINKER},cs_link_internal,cs_link_map{$endif}];
         initoutputformat:=target_asm.id;
         fillchar(initalignment,sizeof(talignmentinfo),0);
@@ -1469,7 +1473,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2002-07-01 18:46:22  peter
+  Revision 1.61  2002-07-20 17:12:42  florian
+    + source code page support
+
+  Revision 1.60  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 

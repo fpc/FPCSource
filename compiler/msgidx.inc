@@ -603,13 +603,14 @@ const
   option_using_env=11027;
   option_handling_option=11028;
   option_help_press_enter=11029;
+  option_code_page_not_available=11030;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 34091;
+  MsgTxtSize = 34117;
 
   MsgIdxMax : array[1..20] of longint=(
     17,62,184,42,41,41,98,17,35,42,
-    30,1,1,1,1,1,1,1,1,1
+    31,1,1,1,1,1,1,1,1,1
   );
