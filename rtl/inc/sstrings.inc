@@ -18,7 +18,7 @@
 
 {$I real2str.inc}
 
-function copy(const s : string;index : StrLenInt;count : StrLenInt): string;
+function copy(const s : shortstring;index : StrLenInt;count : StrLenInt): shortstring;
 begin
   if count<0 then
    count:=0;
@@ -36,7 +36,7 @@ begin
 end;
 
 
-procedure delete(var s : string;index : StrLenInt;count : StrLenInt);
+procedure delete(var s : shortstring;index : StrLenInt;count : StrLenInt);
 begin
   if index<=0 then
    begin
@@ -54,7 +54,7 @@ begin
 end;
 
 
-procedure insert(const source : string;var s : string;index : StrLenInt);
+procedure insert(const source : shortstring;var s : shortstring;index : StrLenInt);
 begin
   if index>1 then
    dec(index)
@@ -64,9 +64,9 @@ begin
 end;
 
 
-function pos(const substr : string;const s : string): byte;
+function pos(const substr : shortstring;const s : shortstring):StrLenInt;
 var
-  i,j : longint;
+  i,j : StrLenInt;
   e   : boolean;
 begin
   i := 0;
@@ -86,9 +86,9 @@ end;
 
 
 {Faster when looking for a single char...}
-function pos(c:char;const s:string):byte;
+function pos(c:char;const s:shortstring):StrLenInt;
 var
-  i : longint;
+  i : StrLenInt;
 begin
   for i:=1 to length(s) do
    if s[i]=c then
@@ -100,10 +100,42 @@ begin
 end;
 
 
+procedure SetLength(var s:shortstring;len:StrLenInt);
+begin
+  if Len>255 then
+   Len:=255;
+  s[0]:=chr(len);
+end;
+
+
+function copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;
+begin
+  if (index=1) and (Count>0) then
+   Copy:=c
+  else
+   Copy:='';
+end;
+
+
+function pos(const substr : shortstring;c:char): StrLenInt;
+begin
+  if (length(substr)=1) and (substr[1]=c) then
+   Pos:=1
+  else
+   Pos:=0;
+end;
+
+
+function length(c:char):StrLenInt;
+begin
+  Length:=1;
+end;
+
+
 {$ifdef IBM_CHAR_SET}
 const
-  UpCaseTbl : string[7]=#154#142#153#144#128#143#165;
-  LoCaseTbl : string[7]=#129#132#148#130#135#134#164;
+  UpCaseTbl : shortstring[7]=#154#142#153#144#128#143#165;
+  LoCaseTbl : shortstring[7]=#129#132#148#130#135#134#164;
 {$endif}
 
 function upcase(c : char) : char;
@@ -129,7 +161,7 @@ begin
 end;
 
 
-function upcase(const s : string) : string;
+function upcase(const s : shortstring) : shortstring;
 var
   i : longint;
 begin
@@ -164,7 +196,7 @@ begin
 end;
 
 
-function lowercase(const s : string) : string;
+function lowercase(const s : shortstring) : shortstring;
 var
   i : longint;
 begin
@@ -174,7 +206,7 @@ begin
 end;
 
 
-function hexstr(val : longint;cnt : byte) : string;
+function hexstr(val : longint;cnt : byte) : shortstring;
 const
   HexTbl : array[0..15] of char='0123456789ABCDEF';
 var
@@ -189,7 +221,7 @@ begin
 end;
 
 
-function binstr(val : longint;cnt : byte) : string;
+function binstr(val : longint;cnt : byte) : shortstring;
 var
   i : longint;
 begin
@@ -204,7 +236,7 @@ end;
 {$endif RTLLITE}
 
 
-function space (b : byte): string;
+function space (b : byte): shortstring;
 begin
   space[0] := chr(b);
   FillChar (Space[1],b,' ');
@@ -215,7 +247,7 @@ end;
                               Str() Helpers
 *****************************************************************************}
 
-procedure int_str_real(d : real;len,fr : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_REAL'{$else}'STR_REAL'{$endif}];
+procedure int_str_real(d : real;len,fr : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_REAL'{$else}'STR_REAL'{$endif}];
 begin
 {$ifdef i386}
    str_real(len,fr,d,rt_s64real,s);
@@ -226,7 +258,7 @@ end;
 
 
 {$ifdef SUPPORT_SINGLE}
-procedure int_str_single(d : single;len,fr : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_SINGLE'{$else}'STR_SINGLE'{$endif}];
+procedure int_str_single(d : single;len,fr : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_SINGLE'{$else}'STR_SINGLE'{$endif}];
 begin
    str_real(len,fr,d,rt_s32real,s);
 end;
@@ -234,7 +266,7 @@ end;
 
 
 {$ifdef SUPPORT_EXTENDED}
-procedure int_str_extended(d : extended;len,fr : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_EXTENDED'{$else}'STR_EXTENDED'{$endif}];
+procedure int_str_extended(d : extended;len,fr : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_EXTENDED'{$else}'STR_EXTENDED'{$endif}];
 begin
    str_real(len,fr,d,rt_s80real,s);
 end;
@@ -242,7 +274,7 @@ end;
 
 
 {$ifdef SUPPORT_COMP}
-procedure int_str_comp(d : comp;len,fr : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_COMP'{$else}'STR_COMP'{$endif}];
+procedure int_str_comp(d : comp;len,fr : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_COMP'{$else}'STR_COMP'{$endif}];
 begin
    str_real(len,fr,d,rt_s64bit,s);
 end;
@@ -250,14 +282,14 @@ end;
 
 
 {$ifdef SUPPORT_FIXED}
-procedure int_str_fixed(d : fixed;len,fr : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_FIXED'{$else}'STR_FIXED'{$endif}];
+procedure int_str_fixed(d : fixed;len,fr : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_FIXED'{$else}'STR_FIXED'{$endif}];
 begin
    str_real(len,fr,d,rt_f32bit,s);
 end;
 {$endif SUPPORT_FIXED}
 
 
-procedure int_str_longint(v : longint;len : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_LONGINT'{$else}'STR_LONGINT'{$endif}];
+procedure int_str_longint(v : longint;len : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_LONGINT'{$else}'STR_LONGINT'{$endif}];
 begin
    int_str(v,s);
    if length(s)<len then
@@ -265,7 +297,7 @@ begin
 end;
 
 
-procedure int_str_cardinal(v : cardinal;len : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_CARDINAL'{$else}'STR_CARDINAL'{$endif}];
+procedure int_str_cardinal(v : cardinal;len : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_CARDINAL'{$else}'STR_CARDINAL'{$endif}];
 begin
   int_str(v,s);
   if length(s)<len then
@@ -277,7 +309,7 @@ end;
                            Val() Functions
 *****************************************************************************}
 
-Function InitVal(const s:string;var negativ:boolean;var base:byte):Word;
+Function InitVal(const s:shortstring;var negativ:boolean;var base:byte):Word;
 var
   Code : Longint;
 begin
@@ -317,7 +349,7 @@ begin
 end;
 
 
-procedure val(const s : string;var l : longint;var code : word);
+procedure val(const s : shortstring;var l : longint;var code : word);
 var
   base,u  : byte;
   negativ : boolean;
@@ -357,13 +389,13 @@ begin
 end;
 
 
-procedure val(const s : string;var l : longint;var code : integer);
+procedure val(const s : shortstring;var l : longint;var code : integer);
 begin
   val(s,l,word(code));
 end;
 
 
-procedure val(const s : string;var l : longint;var code : longint);
+procedure val(const s : shortstring;var l : longint;var code : longint);
 var
   cw : word;
 begin
@@ -372,7 +404,7 @@ begin
 end;
 
 
-procedure val(const s : string;var l : longint);
+procedure val(const s : shortstring;var l : longint);
 var
   code : word;
 begin
@@ -380,7 +412,7 @@ begin
 end;
 
 
-procedure val(const s : string;var b : byte);
+procedure val(const s : shortstring;var b : byte);
 var
   l : longint;
 begin
@@ -389,7 +421,7 @@ begin
 end;
 
 
-procedure val(const s : string;var b : byte;var code : word);
+procedure val(const s : shortstring;var b : byte;var code : word);
 var
   l : longint;
 begin
@@ -398,13 +430,13 @@ begin
 end;
 
 
-procedure val(const s : string;var b : byte;var code : Integer);
+procedure val(const s : shortstring;var b : byte;var code : Integer);
 begin
   val(s,b,word(code));
 end;
 
 
-procedure val(const s : string;var b : byte;var code : longint);
+procedure val(const s : shortstring;var b : byte;var code : longint);
 var
   l : longint;
 begin
@@ -413,7 +445,7 @@ begin
 end;
 
 
-procedure val(const s : string;var b : shortint);
+procedure val(const s : shortstring;var b : shortint);
 var
   l : longint;
 begin
@@ -422,7 +454,7 @@ begin
 end;
 
 
-procedure val(const s : string;var b : shortint;var code : word);
+procedure val(const s : shortstring;var b : shortint;var code : word);
 var
   l : longint;
 begin
@@ -431,13 +463,13 @@ begin
 end;
 
 
-procedure val(const s : string;var b : shortint;var code : Integer);
+procedure val(const s : shortstring;var b : shortint;var code : Integer);
 begin
   val(s,b,word(code));
 end;
 
 
-procedure val(const s : string;var b : shortint;var code : longint);
+procedure val(const s : shortstring;var b : shortint;var code : longint);
 var
   l : longint;
 begin
@@ -446,7 +478,7 @@ begin
 end;
 
 
-procedure val(const s : string;var b : word);
+procedure val(const s : shortstring;var b : word);
 var
   l : longint;
 begin
@@ -455,7 +487,7 @@ begin
 end;
 
 
-procedure val(const s : string;var b : word;var code : word);
+procedure val(const s : shortstring;var b : word;var code : word);
 var
   l : longint;
 begin
@@ -464,13 +496,13 @@ begin
 end;
 
 
-procedure val(const s : string;var b : word;var code : Integer);
+procedure val(const s : shortstring;var b : word;var code : Integer);
 begin
   val(s,b,word(code));
 end;
 
 
-procedure val(const s : string;var b : word;var code : longint);
+procedure val(const s : shortstring;var b : word;var code : longint);
 var
   l : longint;
 begin
@@ -479,7 +511,7 @@ begin
 end;
 
 
-procedure val(const s : string;var b : integer);
+procedure val(const s : shortstring;var b : integer);
 var
   l : longint;
 begin
@@ -488,7 +520,7 @@ begin
 end;
 
 
-procedure val(const s : string;var b : integer;var code : word);
+procedure val(const s : shortstring;var b : integer;var code : word);
 var
   l : longint;
 begin
@@ -497,13 +529,13 @@ begin
 end;
 
 
-procedure val(const s : string;var b : integer;var code : Integer);
+procedure val(const s : shortstring;var b : integer;var code : Integer);
 begin
   val(s,b,word(code));
 end;
 
 
-procedure val(const s : string;var b : integer;var code : longint);
+procedure val(const s : shortstring;var b : integer;var code : longint);
 var
   l : longint;
 begin
@@ -512,7 +544,7 @@ begin
 end;
 
 
-procedure val(const s : string;var v : cardinal;var code : word);
+procedure val(const s : shortstring;var v : cardinal;var code : word);
 var
   negativ : boolean;
   base,u  : byte;
@@ -544,7 +576,7 @@ begin
 end;
 
 
-procedure val(const s : string;var v : cardinal);
+procedure val(const s : shortstring;var v : cardinal);
 var
   code : word;
 begin
@@ -552,13 +584,13 @@ begin
 end;
 
 
-procedure val(const s : string;var v : cardinal;var code : integer);
+procedure val(const s : shortstring;var v : cardinal;var code : integer);
 begin
   val(s,v,word(code));
 end;
 
 
-procedure val(const s : string;var v : cardinal;var code : longint);
+procedure val(const s : shortstring;var v : cardinal;var code : longint);
 var
   cw : word;
 begin
@@ -567,7 +599,7 @@ begin
 end;
 
 
-procedure val(const s : string;var d : valreal;var code : word);
+procedure val(const s : shortstring;var d : valreal;var code : word);
 var
   hd,
   esign,sign : valreal;
@@ -667,13 +699,13 @@ begin
 end;
 
 
-procedure val(const s : string;var d : valreal;var code : integer);
+procedure val(const s : shortstring;var d : valreal;var code : integer);
 begin
   val(s,d,word(code));
 end;
 
 
-procedure val(const s : string;var d : valreal;var code : longint);
+procedure val(const s : shortstring;var d : valreal;var code : longint);
 var
   cw : word;
 begin
@@ -682,7 +714,7 @@ begin
 end;
 
 
-procedure val(const s : string;var d : valreal);
+procedure val(const s : shortstring;var d : valreal);
 var
   code : word;
 begin
@@ -691,7 +723,7 @@ end;
 
 
 {$ifdef SUPPORT_SINGLE}
-procedure val(const s : string;var d : single;var code : word);
+procedure val(const s : shortstring;var d : single;var code : word);
 var
   e : valreal;
 begin
@@ -700,7 +732,7 @@ begin
 end;
 
 
-procedure val(const s : string;var d : single;var code : integer);
+procedure val(const s : shortstring;var d : single;var code : integer);
 var
   e : valreal;
 begin
@@ -709,7 +741,7 @@ begin
 end;
 
 
-procedure val(const s : string;var d : single;var code : longint);
+procedure val(const s : shortstring;var d : single;var code : longint);
 var
   cw : word;
   e  : valreal;
@@ -720,7 +752,7 @@ begin
 end;
 
 
-procedure val(const s : string;var d : single);
+procedure val(const s : shortstring;var d : single);
 var
   code : word;
   e    : valreal;
@@ -736,7 +768,7 @@ end;
   { with extended as default the valreal is extended so for real there need
     to be a new val }
 
-  procedure val(const s : string;var d : real;var code : word);
+  procedure val(const s : shortstring;var d : real;var code : word);
   var
     e : valreal;
   begin
@@ -745,7 +777,7 @@ end;
   end;
 
 
-  procedure val(const s : string;var d : real;var code : integer);
+  procedure val(const s : shortstring;var d : real;var code : integer);
   var
     e : valreal;
   begin
@@ -754,7 +786,7 @@ end;
   end;
 
 
-  procedure val(const s : string;var d : real;var code : longint);
+  procedure val(const s : shortstring;var d : real;var code : longint);
   var
     cw : word;
     e  : valreal;
@@ -765,7 +797,7 @@ end;
   end;
 
 
-  procedure val(const s : string;var d : real);
+  procedure val(const s : shortstring;var d : real);
   var
     code : word;
     e    : valreal;
@@ -780,7 +812,7 @@ end;
 
   {$ifdef SUPPORT_EXTENDED}
 
-  procedure val(const s : string;var d : extended;var code : word);
+  procedure val(const s : shortstring;var d : extended;var code : word);
   var
     e : valreal;
   begin
@@ -788,7 +820,7 @@ end;
     d:=e;
   end;
 
-  procedure val(const s : string;var d : extended;var code : integer);
+  procedure val(const s : shortstring;var d : extended;var code : integer);
   var
     e : valreal;
   begin
@@ -796,7 +828,7 @@ end;
     d:=e;
   end;
 
-  procedure val(const s : string;var d : extended;var code : longint);
+  procedure val(const s : shortstring;var d : extended;var code : longint);
   var
     cw : word;
     e  : valreal;
@@ -806,7 +838,7 @@ end;
     code:=cw;
   end;
 
-  procedure val(const s : string;var d : extended);
+  procedure val(const s : shortstring;var d : extended);
   var
     code : word;
     e    : valreal;
@@ -821,7 +853,7 @@ end;
 
 
 {$ifdef SUPPORT_COMP}
-procedure val(const s : string;var d : comp;var code : word);
+procedure val(const s : shortstring;var d : comp;var code : word);
 var
   e : valreal;
 begin
@@ -830,7 +862,7 @@ begin
 end;
 
 
-procedure val(const s : string;var d : comp;var code : integer);
+procedure val(const s : shortstring;var d : comp;var code : integer);
 var
   e : valreal;
 begin
@@ -839,7 +871,7 @@ begin
 end;
 
 
-procedure val(const s : string;var d : comp;var code : longint);
+procedure val(const s : shortstring;var d : comp;var code : longint);
 var
   cw : word;
   e  : valreal;
@@ -850,7 +882,7 @@ begin
 end;
 
 
-procedure val(const s : string;var d : comp);
+procedure val(const s : shortstring;var d : comp);
 var
   code : word;
   e    : valreal;
@@ -862,7 +894,7 @@ end;
 
 
 {$ifdef SUPPORT_FIXED}
-procedure val(const s : string;var d : fixed;var code : word);
+procedure val(const s : shortstring;var d : fixed;var code : word);
 var
   e : valreal;
 begin
@@ -871,7 +903,7 @@ begin
 end;
 
 
-procedure val(const s : string;var d : fixed;var code : integer);
+procedure val(const s : shortstring;var d : fixed;var code : integer);
 var
   e : valreal;
 begin
@@ -880,7 +912,7 @@ begin
 end;
 
 
-procedure val(const s : string;var d : fixed;var code : longint);
+procedure val(const s : shortstring;var d : fixed;var code : longint);
 var
   cw : word;
   e  : valreal;
@@ -891,7 +923,7 @@ begin
 end;
 
 
-procedure val(const s : string;var d : fixed);
+procedure val(const s : shortstring;var d : fixed);
 var
   code : word;
   e    : valreal;
@@ -904,7 +936,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  1998-10-11 14:30:19  peter
+  Revision 1.15  1998-11-04 10:20:50  peter
+    * ansistring fixes
+
+  Revision 1.14  1998/10/11 14:30:19  peter
     * small typo :(
 
   Revision 1.13  1998/10/10 15:28:46  peter

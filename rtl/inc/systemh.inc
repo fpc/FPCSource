@@ -67,7 +67,9 @@ Type
 { some type aliases }
   dword       = cardinal;
   longword    = cardinal;
-  ShortString = String[255];
+{$ifndef useansistrings}
+  shortstring = string;
+{$endif}
 
 { Zero - terminated strings }
   PChar       = ^Char;
@@ -182,80 +184,88 @@ Function  Sseg:Word;
                       PChar and String Handling
 ****************************************************************************}
 
-function strpas(p:pchar):string;
+function strpas(p:pchar):shortstring;
 function strlen(p:pchar):longint;
 
-Function  Copy(const s:string;index:StrLenInt;count:StrLenInt):string;
-Procedure Delete(Var s:string;index:StrLenInt;count:StrLenInt);
-Procedure Insert(const source:string;Var s:string;index:StrLenInt);
-Function  Pos(const substr:string;const s:string):byte;
-Function  Pos(C:Char;const s:string):byte;
+{ Shortstring functions }
+Function  Copy(const s:shortstring;index:StrLenInt;count:StrLenInt):shortstring;
+Procedure Delete(Var s:shortstring;index:StrLenInt;count:StrLenInt);
+Procedure Insert(const source:shortstring;Var s:shortstring;index:StrLenInt);
+Function  Pos(const substr:shortstring;const s:shortstring):StrLenInt;
+Function  Pos(C:Char;const s:shortstring):StrLenInt;
+Procedure SetLength(var s:shortstring;len:StrLenInt);
+
+{ Char functions to overcome overloading problem with ansistrings }
+function  copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;
+function  pos(const substr : shortstring;c:char): StrLenInt;
+function  length(c:char):StrLenInt;
+
+Function  upCase(const s:shortstring):shortstring;
 Function  upCase(c:Char):Char;
-Function  upCase(const s:string):string;
 {$ifndef RTLLITE}
 Function  lowerCase(c:Char):Char;
-Function  lowerCase(const s:string):string;
-Function  hexStr(Val:Longint;cnt:byte):string;
-Function  binStr(Val:Longint;cnt:byte):string;
+Function  lowerCase(const s:shortstring):shortstring;
+Function  hexStr(Val:Longint;cnt:byte):shortstring;
+Function  binStr(Val:Longint;cnt:byte):shortstring;
 {$endif RTLLITE}
-Function  Space(b:byte):string;
-Procedure Val(const s:string;Var l:Longint;Var code:Word);
-Procedure Val(const s:string;Var l:Longint;Var code:Integer);
-Procedure Val(const s:string;Var l:Longint;Var code:Longint);
-Procedure Val(const s:string;Var l:Longint);
-Procedure Val(const s:string;Var b:byte;Var code:Word);
-Procedure Val(const s:string;Var b:byte;Var code:Integer);
-Procedure Val(const s:string;Var b:byte;Var code:Longint);
-Procedure Val(const s:string;Var b:byte);
-Procedure Val(const s:string;Var b:shortint;Var code:Word);
-Procedure Val(const s:string;Var b:shortint;Var code:Integer);
-Procedure Val(const s:string;Var b:shortint;Var code:Longint);
-Procedure Val(const s:string;Var b:shortint);
-Procedure Val(const s:string;Var b:Word;Var code:Word);
-Procedure Val(const s:string;Var b:Word;Var code:Integer);
-Procedure Val(const s:string;Var b:Word;Var code:Longint);
-Procedure Val(const s:string;Var b:Word);
-Procedure Val(const s:string;Var b:Integer;Var code:Word);
-Procedure Val(const s:string;Var b:Integer;Var code:Integer);
-Procedure Val(const s:string;Var b:Integer;Var code:Longint);
-Procedure Val(const s:string;Var b:Integer);
-Procedure Val(const s:string;Var v:cardinal;Var code:Word);
-Procedure Val(const s:string;Var v:cardinal;Var code:Integer);
-Procedure Val(const s:string;Var v:cardinal;Var code:Longint);
-Procedure Val(const s:string;Var v:cardinal);
-Procedure Val(const s:string;Var d:ValReal;Var code:Word);
-Procedure Val(const s:string;Var d:ValReal;Var code:Integer);
-Procedure Val(const s:string;Var d:ValReal;Var code:Longint);
-Procedure Val(const s:string;Var d:ValReal);
+Function  Space(b:byte):shortstring;
+Procedure Val(const s:shortstring;Var l:Longint;Var code:Word);
+Procedure Val(const s:shortstring;Var l:Longint;Var code:Integer);
+Procedure Val(const s:shortstring;Var l:Longint;Var code:Longint);
+Procedure Val(const s:shortstring;Var l:Longint);
+Procedure Val(const s:shortstring;Var b:byte;Var code:Word);
+Procedure Val(const s:shortstring;Var b:byte;Var code:Integer);
+Procedure Val(const s:shortstring;Var b:byte;Var code:Longint);
+Procedure Val(const s:shortstring;Var b:byte);
+Procedure Val(const s:shortstring;Var b:shortint;Var code:Word);
+Procedure Val(const s:shortstring;Var b:shortint;Var code:Integer);
+Procedure Val(const s:shortstring;Var b:shortint;Var code:Longint);
+Procedure Val(const s:shortstring;Var b:shortint);
+Procedure Val(const s:shortstring;Var b:Word;Var code:Word);
+Procedure Val(const s:shortstring;Var b:Word;Var code:Integer);
+Procedure Val(const s:shortstring;Var b:Word;Var code:Longint);
+Procedure Val(const s:shortstring;Var b:Word);
+Procedure Val(const s:shortstring;Var b:Integer;Var code:Word);
+Procedure Val(const s:shortstring;Var b:Integer;Var code:Integer);
+Procedure Val(const s:shortstring;Var b:Integer;Var code:Longint);
+Procedure Val(const s:shortstring;Var b:Integer);
+Procedure Val(const s:shortstring;Var v:cardinal;Var code:Word);
+Procedure Val(const s:shortstring;Var v:cardinal;Var code:Integer);
+Procedure Val(const s:shortstring;Var v:cardinal;Var code:Longint);
+Procedure Val(const s:shortstring;Var v:cardinal);
+Procedure Val(const s:shortstring;Var d:ValReal;Var code:Word);
+Procedure Val(const s:shortstring;Var d:ValReal;Var code:Integer);
+Procedure Val(const s:shortstring;Var d:ValReal;Var code:Longint);
+Procedure Val(const s:shortstring;Var d:ValReal);
 {$ifdef SUPPORT_SINGLE}
-  Procedure Val(const s:string;Var d:single;Var code:Word);
-  Procedure Val(const s:string;Var d:single;Var code:Integer);
-  Procedure Val(const s:string;Var d:single;Var code:Longint);
-  Procedure Val(const s:string;Var d:single);
+  Procedure Val(const s:shortstring;Var d:single;Var code:Word);
+  Procedure Val(const s:shortstring;Var d:single;Var code:Integer);
+  Procedure Val(const s:shortstring;Var d:single;Var code:Longint);
+  Procedure Val(const s:shortstring;Var d:single);
 {$endif SUPPORT_SINGLE}
 {$ifdef SUPPORT_COMP}
-  Procedure Val(const s:string;Var d:comp;Var code:Word);
-  Procedure Val(const s:string;Var d:comp;Var code:Integer);
-  Procedure Val(const s:string;Var d:comp;Var code:Longint);
-  Procedure Val(const s:string;Var d:comp);
+  Procedure Val(const s:shortstring;Var d:comp;Var code:Word);
+  Procedure Val(const s:shortstring;Var d:comp;Var code:Integer);
+  Procedure Val(const s:shortstring;Var d:comp;Var code:Longint);
+  Procedure Val(const s:shortstring;Var d:comp);
 {$endif SUPPORT_COMP}
 {$ifdef SUPPORT_FIXED}
-  Procedure Val(const s:string;Var d:fixed;Var code:Word);
-  Procedure Val(const s:string;Var d:fixed;Var code:Integer);
-  Procedure Val(const s:string;Var d:fixed;Var code:Longint);
-  Procedure Val(const s:string;Var d:fixed);
+  Procedure Val(const s:shortstring;Var d:fixed;Var code:Word);
+  Procedure Val(const s:shortstring;Var d:fixed;Var code:Integer);
+  Procedure Val(const s:shortstring;Var d:fixed;Var code:Longint);
+  Procedure Val(const s:shortstring;Var d:fixed);
 {$endif SUPPORT_FIXED}
 {$ifdef DEFAULT_EXTENDED}
-  Procedure Val(const s:string;Var d:Real;Var code:Word);
-  Procedure Val(const s:string;Var d:Real;Var code:Integer);
-  Procedure Val(const s:string;Var d:Real;Var code:Longint);
-  Procedure Val(const s:string;Var d:Real);
+  Procedure Val(const s:shortstring;Var d:Real;Var code:Word);
+  Procedure Val(const s:shortstring;Var d:Real;Var code:Integer);
+  Procedure Val(const s:shortstring;Var d:Real;Var code:Longint);
+  Procedure Val(const s:shortstring;Var d:Real);
 {$else DEFAULT_EXTENDED}
   {$ifdef SUPPORT_EXTENDED}
-    Procedure Val(const s:string;Var d:Extended;Var code:Word);
-    Procedure Val(const s:string;Var d:Extended;Var code:Integer);
-    Procedure Val(const s:string;Var d:Extended;Var code:Longint);
-    Procedure Val(const s:string;Var d:Extended);
+    Procedure Val(const s:shortstring;Var d:Extended;Var code:Word);
+    Procedure Val(const s:shortstring;Var d:Extended;Var code:Integer);
+    Procedure Val(const s:shortstring;Var d:Extended;Var code:Longint);
+    Procedure Val(const s:shortstring;Var d:Extended);
   {$endif}
 {$endif DEFAULT_EXTENDED}
 
@@ -422,7 +432,10 @@ const
 
 {
   $Log$
-  Revision 1.37  1998-10-10 15:28:47  peter
+  Revision 1.38  1998-11-04 10:20:51  peter
+    * ansistring fixes
+
+  Revision 1.37  1998/10/10 15:28:47  peter
     + read single,fixed
     + val with code:longint
     + val for fixed

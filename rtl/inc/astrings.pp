@@ -172,16 +172,15 @@ Procedure AssignAnsiString (Var S1 : Pointer;S2 : Pointer);
 {
  Assigns S2 to S1 (S1:=S2), taking in account reference counts.
 }
-
 begin
   If S2<>nil then
     If PAnsiRec(S2-FirstOff)^.Ref>0 then
       Inc(PAnsiRec(S2-FirstOff)^.ref);
-      Temp:=S2;
+{      Temp:=S2;
       end;
     end
   else
-    temp:=S2;
+    temp:=S2; }
   { Decrease the reference count on the old S1 }
   Decr_Ansi_Ref (S1);
   { And finally, have S1 pointing to S2 (or its copy) }
@@ -391,7 +390,7 @@ Procedure SetLength (Var S : AnsiString; l : Longint);
  Makes sure S is unique, and contains enough room.
 }
 Var Temp : Pointer;
-     
+
 begin
    If (Pointer(S)=Nil) and (l>0) then
     begin
@@ -406,7 +405,7 @@ begin
     If (PAnsiRec(Pointer(S)-FirstOff)^.Maxlen < L) or
        (PAnsiRec(Pointer(S)-FirstOff)^.Ref <> 1) then
       begin
-      { Reallocation is needed... }   
+      { Reallocation is needed... }
       Temp:=Pointer(NewAnsiString(L));
       if Length(S)>0 then
         Move (Pointer(S)^,Temp^,Length(S)+1);
@@ -681,7 +680,7 @@ end;
 Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
 
 var s3,s4,s5 : Pointer;
-    
+
 begin
   If Length(Source)=0 then exit;
   if index <= 0 then index := 1;
@@ -702,7 +701,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  1998-11-02 09:46:12  michael
+  Revision 1.27  1998-11-04 10:20:48  peter
+    * ansistring fixes
+
+  Revision 1.26  1998/11/02 09:46:12  michael
   + Fix for assign of null string
 
   Revision 1.25  1998/10/30 21:42:48  michael

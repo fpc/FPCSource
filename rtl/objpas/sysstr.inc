@@ -453,7 +453,7 @@ begin
  Writeln (S);
  {$endif}
 end;
-   
+
 Procedure DoFormatError (ErrCode : Longint);
 
 Var S : String;
@@ -484,28 +484,28 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
 
   {
     ReadFormat reads the format string. It returns the type character in
-    uppercase, and sets index, Width, Prec to their correct values, 
-    or -1 if not set. It sets Left to true if left alignment was requested. 
+    uppercase, and sets index, Width, Prec to their correct values,
+    or -1 if not set. It sets Left to true if left alignment was requested.
     In case of an error, DoFormatError is called.
   }
-      
+
   Function ReadFormat : Char;
 
   Var Value : longint;
 
-    Procedure ReadInteger;	
+    Procedure ReadInteger;
 
     Var Code : Word;
 
     begin
       If Value<>-1 then exit; // Was already read.
       OldPos:=chPos;
-      While (Chpos<Len) and 
+      While (Chpos<Len) and
             (Pos(Fmt[chpos],'1234567890')<>0) do inc(chpos);
       If Chpos=len then DoFormatError(feInvalidFormat);
-      If Fmt[Chpos]='*' then 
+      If Fmt[Chpos]='*' then
         begin
-        If (Chpos>OldPos) or (ArgPos>High(Args)) 
+        If (Chpos>OldPos) or (ArgPos>High(Args))
            or (Args[ArgPos].Vtype<>vtInteger) then
           DoFormatError(feInvalidFormat);
         Value:=Args[ArgPos].VInteger;
@@ -542,7 +542,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
     Procedure ReadLeft;
 
     begin
-      If Fmt[chpos]='-' then 
+      If Fmt[chpos]='-' then
         begin
         left:=True;
         Inc(chpos);
@@ -559,7 +559,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
       If Value<>-1 then
         begin
         Width:=Value;
-        Value:=-1;	
+        Value:=-1;
         end;
       Log ('Read width');
     end;
@@ -611,7 +611,7 @@ Procedure Checkarg (AT : Longint);
   DoArg is set to the argument that must be used.
 }
 begin
-  If Index=-1 then 
+  If Index=-1 then
     begin
     DoArg:=Argpos;
     inc(ArgPos);
@@ -623,7 +623,7 @@ begin
 end;
 
 Const Zero = '000000000000000000000000000000000000000000000000000000000000000';
-    
+
 begin
   Result:='';
   Len:=Length(Fmt)+1;
@@ -634,7 +634,7 @@ begin
     begin
     // uses shortcut evaluation !!
     While (ChPos<=Len) and (Fmt[chpos]<>'%') do inc(chpos);
-    If ChPos>OldPos Then 
+    If ChPos>OldPos Then
       Result:=Result+Copy(Fmt,OldPos,Chpos-Oldpos);
     If ChPos<Len then
       begin
@@ -661,7 +661,7 @@ begin
               Prec:=Prec+5;   // correct dot, eXXX
               If ExtVal<0 then Inc(Prec); // Corect for minus sign
               If Abs(Extval)<1 then Inc(Prec); // correct for - in E
-              Writeln('STRING ',prec); 
+              Writeln('STRING ',prec);
               Str(Args[doarg].VExtended^:prec,ToAdd);
               WRITELN('DID');
               end;
@@ -682,15 +682,15 @@ begin
               end;
         'X' : begin
               Checkarg(vtinteger);
-              If Prec>32 then 
+              If Prec>32 then
                 ToAdd:=HexStr(Args[Doarg].VInteger,Prec)
               else
                 begin
                 // determine minimum needed number of hex digits.
                 Index:=1;
-                While (1 shl (Index*4))<Args[DoArg].VInteger do 
+                While (1 shl (Index*4))<Args[DoArg].VInteger do
                   inc(Index);
-                If Index>Prec then 
+                If Index>Prec then
                   Prec:=Index;
                 ToAdd:=HexStr(Args[DoArg].VInteger,Prec);
                 end;
@@ -700,11 +700,11 @@ begin
       end;
       If Width<>-1 then
         If Length(ToAdd)<Width then
-          If not Left then 
+          If not Left then
             ToAdd:=Space(Width-Length(ToAdd))+ToAdd
           else
             ToAdd:=ToAdd+space(Width-Length(ToAdd));
-      Result:=Result+ToAdd; 
+      Result:=Result+ToAdd;
       end;
     inc(chpos);
     Oldpos:=chpos;
@@ -715,18 +715,6 @@ end;
 {==============================================================================}
 {   extra functions                                                            }
 {==============================================================================}
-
-{   SetLength sets the length of S to NewLength   }
-//  SetLength should be in the system unit
-//  which lacks the ShortString version of SetLength
-
-function SetLength(var S: string; NewLength: integer): integer;
-begin
-if (NewLength > 255) then
-   NewLength := 255;
-S[0] := char(NewLength);
-Result := Ord(S[0]);
-end ;
 
 {   LeftStr returns Count left-most characters from S   }
 
@@ -906,7 +894,10 @@ end ;
 
 {
   $Log$
-  Revision 1.8  1998-10-02 13:57:38  michael
+  Revision 1.9  1998-11-04 10:20:52  peter
+    * ansistring fixes
+
+  Revision 1.8  1998/10/02 13:57:38  michael
   Format error now causes exception
 
   Revision 1.7  1998/10/02 12:17:17  michael
@@ -929,7 +920,10 @@ end ;
   Update from gertjan Schouten, plus small fix for linux
 
   $Log$
-  Revision 1.8  1998-10-02 13:57:38  michael
+  Revision 1.9  1998-11-04 10:20:52  peter
+    * ansistring fixes
+
+  Revision 1.8  1998/10/02 13:57:38  michael
   Format error now causes exception
 
   Revision 1.7  1998/10/02 12:17:17  michael

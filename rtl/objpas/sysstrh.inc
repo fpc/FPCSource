@@ -77,14 +77,16 @@ Function Format (Const Fmt : String; const Args : Array of const) : String;
 {   extra functions                                                            }
 {==============================================================================}
 
-function SetLength(var S: string; NewLength: integer): integer; // should be in the system unit
 function LeftStr(const S: string; Count: integer): string;
 function RightStr(const S: string; Count: integer): string;
 function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.3  1998-11-02 12:53:53  michael
+  Revision 1.4  1998-11-04 10:20:53  peter
+    * ansistring fixes
+
+  Revision 1.3  1998/11/02 12:53:53  michael
   + Added format function
 
   Revision 1.2  1998/09/16 08:28:43  michael
