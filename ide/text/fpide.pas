@@ -559,7 +559,8 @@ begin
              cmNewFromTemplate: NewFromTemplate;
              cmOpen          : begin
                                  ForceDlg:=false;
-                                 if (DirOf(OpenFileName)='') or (Pos(ListSeparator,OpenFileName)<>0) then
+                                 if (OpenFileName<>'') and
+                                    ((DirOf(OpenFileName)='') or (Pos(ListSeparator,OpenFileName)<>0)) then
                                    begin
                                      TempS:=LocateFile(OpenFileName);
                                      if TempS='' then
@@ -1060,7 +1061,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.63  2000-06-16 08:50:40  pierre
+  Revision 1.64  2000-06-16 21:19:41  pierre
+   * Use Open instead of OpenSearch if OpenFileName is empty
+
+  Revision 1.63  2000/06/16 08:50:40  pierre
    + new bunch of Gabor's changes
 
   Revision 1.62  2000/06/11 07:01:33  peter
