@@ -60,6 +60,9 @@ unit tgeni386;
     procedure pushusedregisters(var pushed : tpushed;b : byte);
     procedure popusedregisters(const pushed : tpushed);
 
+    procedure clearregistercount;
+    procedure resetusableregisters;
+
     var
        unused,usableregs : tregisterset;
        c_usableregs : longint;
@@ -76,7 +79,9 @@ unit tgeni386;
        reg_pushes : array[R_EAX..R_EDI] of longint;
        is_reg_var : array[R_EAX..R_EDI] of boolean;
 {$endif SUPPORT_MMX}
-  implementation
+
+
+implementation
 
     procedure pushusedregisters(var pushed : tpushed;b : byte);
 
@@ -304,16 +309,48 @@ unit tgeni386;
       end;
 
 
-begin
-   usableregs:=[R_EAX,R_EBX,R_ECX,R_EDX];
+   procedure clearregistercount;
+      var
+        regi : tregister;
+      begin
 {$ifdef SUPPORT_MMX}
-   usableregs:=usableregs+[R_MM0..R_MM6];
+         for regi:=R_EAX to R_MM6 do
+           begin
+              reg_pushes[regi]:=0;
+              is_reg_var[regi]:=false;
+           end;
+{$else SUPPORT_MMX}
+         for regi:=R_EAX to R_EDI do
+           begin
+              reg_pushes[regi]:=0;
+              is_reg_var[regi]:=false;
+           end;
 {$endif SUPPORT_MMX}
-   c_usableregs:=4;
+      end;
+
+
+
+   procedure resetusableregisters;
+      begin
+{$ifdef SUPPORT_MMX}
+        usableregs:=[R_EAX,R_EBX,R_ECX,R_EDX,R_MM0..R_MM6];
+        c_usableregs:=4;
+        usableregmmx:=8;
+{$else} 
+        usableregs:=[R_EAX,R_EBX,R_ECX,R_EDX];
+        c_usableregs:=4;
+{$endif SUPPORT_MMX}
+      end;
+
+begin
+  resetusableregisters;
 end.
 {
   $Log$
-  Revision 1.9  1998-08-19 16:07:56  jonas
+  Revision 1.10  1998-09-01 09:03:47  peter
+    + resetregistercount, resetusableregisters
+
+  Revision 1.9  1998/08/19 16:07:56  jonas
     * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
 
   Revision 1.8  1998/08/10 14:50:34  peter

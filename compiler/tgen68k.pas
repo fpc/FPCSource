@@ -65,6 +65,9 @@ unit tgen68k;
     procedure pushusedregisters(var pushed : tpushed;b : word);
     procedure popusedregisters(const pushed : tpushed);
 
+    procedure clearregistercount;
+    procedure resetusableregisters;
+
     var
        unused,usableregs : tregisterset;
        c_usableregs : longint;
@@ -298,16 +301,41 @@ unit tgen68k;
          usableaddress:=getusableaddr;
       end;
 
+
+   procedure clearregistercount;
+     var
+       regi : tregister;
+     begin
+       for regi:=R_D0 to R_A6 do
+         begin
+           reg_pushes[regi]:=0;
+           is_reg_var[regi]:=false;
+         end;
+     end;
+
+
+
+   procedure resetusableregisters;
+     begin
+       usableregs:=[R_D0,R_D1,R_D2,R_D3,R_D4,R_D5,R_D6,R_D7,R_A0,R_A1,R_A2,R_A3,R_A4,
+             R_FP0,R_FP1,R_FP2,R_FP3,R_FP4,R_FP5,R_FP6,R_FP7];
+       c_usableregs:=4;
+       usableaddress:=3;
+       usablefloatreg:=6;
+     end;
+
+
+
+
 begin
-   { contains both information on Address registers and data registers }
-   { even if they are allocated separately.                            }
-   usableregs:=[R_D0,R_D1,R_D2,R_D3,R_D4,R_D5,R_D6,R_D7,R_A0,R_A1,R_A2,R_A3,R_A4,
-               R_FP0,R_FP1,R_FP2,R_FP3,R_FP4,R_FP5,R_FP6,R_FP7];
-   c_usableregs:=4;
+  resetusableregisters;
 end.
 {
   $Log$
-  Revision 1.3  1998-08-31 12:26:35  peter
+  Revision 1.4  1998-09-01 09:03:48  peter
+    + resetregistercount, resetusableregisters
+
+  Revision 1.3  1998/08/31 12:26:35  peter
     * m68k and palmos updates from surebugfixes
 
   Revision 1.2  1998/06/08 13:13:46  pierre
