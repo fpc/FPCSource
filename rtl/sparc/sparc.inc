@@ -18,17 +18,38 @@
 
 
 {****************************************************************************
-                           PowerPC specific stuff
+                           SPARC specific stuff
 ****************************************************************************}
+function get_fsr : dword;assembler;
+  var
+    fsr : dword;
+  asm
+    st %fsr,fsr
+    ld fsr,%i0
+  end;
+
+
+procedure set_fsr(fsr : dword);assembler;
+  var
+    _fsr : dword;
+  asm
+    // force memory location
+    st fsr,_fsr
+    ld _fsr,%fsr
+  end;
+
+
 procedure fpc_cpuinit;
   begin
+    { enable div by 0 and invalid operation fpu exceptions }
+    set_fsr(get_fsr or $09000000);
   end;
 
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;
   asm
-	mov %sp,%o0
+     mov %sp,%o0
   end;
 
 
@@ -63,7 +84,10 @@ function Sptr:Pointer;assembler;nostackframe;
 
 {
   $Log$
-  Revision 1.7  2004-05-30 20:03:05  florian
+  Revision 1.8  2004-08-04 19:27:10  florian
+    * fixed floating point and integer exception handling on sparc/linux
+
+  Revision 1.7  2004/05/30 20:03:05  florian
     * ?
 
   Revision 1.6  2004/05/27 23:34:37  peter

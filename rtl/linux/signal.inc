@@ -21,6 +21,14 @@
 
 Const
   { For sending a signal }
+{$ifdef SPARC}
+  SA_SIGINFO   = $200;
+  SA_NOMASK    = $20;
+
+  SIG_BLOCK   = 1;
+  SIG_UNBLOCK = 2;
+  SIG_SETMASK = 4;
+{$else SPARC}
   SA_NOCLDSTOP = 1;
   SA_NOCLDWAIT = 2;
   SA_SIGINFO   = 4;
@@ -34,6 +42,7 @@ Const
   SIG_BLOCK   = 0;
   SIG_UNBLOCK = 1;
   SIG_SETMASK = 2;
+{$endif SPARC}
 
   SIG_DFL = 0 ;
   SIG_IGN = 1 ;
@@ -278,10 +287,47 @@ type
   SigContextRec = record
     { dummy for now PM }
   end;
+
+  psiginfo = ^tsiginfo;
+  tsiginfo = record
+       si_signo : longint;
+       si_errno : longint;
+       si_code : longint;
+       _sifields : record
+           case longint of
+              0 : ( _pad : array[0..(SI_PAD_SIZE)-1] of longint );
+              1 : ( _kill : record
+                   _pid : pid_t;
+                   _uid : uid_t;
+                end );
+              2 : ( _timer : record
+                   _timer1 : dword;
+                   _timer2 : dword;
+                end );
+              3 : ( _rt : record
+                   _pid : pid_t;
+                   _uid : uid_t;
+                   _sigval : pointer;
+                end );
+              4 : ( _sigchld : record
+                   _pid : pid_t;
+                   _uid : uid_t;
+                   _status : longint;
+                   _utime : clock_t;
+                   _stime : clock_t;
+                end );
+              5 : ( _sigfault : record
+                   _addr : pointer;
+                end );
+              6 : ( _sigpoll : record
+                   _band : longint;
+                   _fd : longint;
+                end );
+           end;
+    end;
 {$endif cpusparc}
 
 {$ifdef cpux86_64}
-
   p_fpstate = ^_fpstate;
   _fpstate = packed record
     cwd,
@@ -459,7 +505,10 @@ type
 
 {
   $Log$
-  Revision 1.21  2004-05-31 09:08:14  peter
+  Revision 1.22  2004-08-04 19:27:10  florian
+    * fixed floating point and integer exception handling on sparc/linux
+
+  Revision 1.21  2004/05/31 09:08:14  peter
     * added siginfo const
 
   Revision 1.20  2004/05/27 23:15:43  peter

@@ -517,7 +517,7 @@ begin
   { initialize handler                    }
   act.sa_handler := signalhandler(@SignalToRunError);
 {$ifdef RTSIGACTION}
-  act.sa_flags:=4
+  act.sa_flags:=SA_SIGINFO
 {$ifdef x86_64}
     or $4000000
 {$endif x86_64}
@@ -589,7 +589,10 @@ end;
 
 {
  $Log$
- Revision 1.19  2004-05-31 20:25:04  peter
+ Revision 1.20  2004-08-04 19:27:09  florian
+   * fixed floating point and integer exception handling on sparc/linux
+
+ Revision 1.19  2004/05/31 20:25:04  peter
    * removed warnings
 
  Revision 1.18  2004/05/16 18:51:20  peter

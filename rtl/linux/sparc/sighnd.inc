@@ -16,8 +16,18 @@
 
  **********************************************************************}
 
+const
+  FPE_INTDIV = 1;
+  FPE_INTOVF = 2;
+  FPE_FLTDIV = 3;
+  FPE_FLTOVF = 4;
+  FPE_FLTUND = 5;
+  FPE_FLTRES = 6;
+  FPE_FLTINV = 7;
+  FPE_FLTSUB = 8;
 
-procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec); cdecl;
+
+procedure SignalToRunerror(Sig: longint; siginfo : psiginfo); cdecl;
 
 var
   res : word;
@@ -28,6 +38,24 @@ begin
         begin
           { don't know how to find the different causes, maybe via xer? }
           res := 207;
+          case  siginfo^.si_code of
+            FPE_INTDIV:
+              res:=200;
+            FPE_INTOVF:
+              res:=205;
+            FPE_FLTDIV:
+              res:=200;
+            FPE_FLTOVF:
+              res:=205;
+            FPE_FLTUND:
+              res:=206;
+            FPE_FLTRES,
+            FPE_FLTINV,
+            FPE_FLTSUB:
+              res:=216;
+            else
+              res:=207;
+          end;
         end;
     SIGILL,
     SIGBUS,
@@ -42,7 +70,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-05-31 20:25:04  peter
+  Revision 1.4  2004-08-04 19:27:10  florian
+    * fixed floating point and integer exception handling on sparc/linux
+
+  Revision 1.3  2004/05/31 20:25:04  peter
     * removed warnings
 
   Revision 1.2  2003/11/06 16:28:52  peter
