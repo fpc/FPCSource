@@ -32,7 +32,7 @@ asm
   movl  %eax,Errno
 {$else}
   movl  %eax,%edx
-  movl  FPC_THREADVAR_RELOCATE,%eax
+  movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
   jne   .LThread
   movl  %edx,Errno+4
@@ -63,7 +63,7 @@ asm
   movl  %eax,Errno
 {$else}
   movl  %eax,%edx
-  movl  FPC_THREADVAR_RELOCATE,%eax
+  movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
   jne   .LThread
   movl  %edx,Errno+4
@@ -95,7 +95,7 @@ asm
   movl  %eax,Errno
 {$else}
   movl  %eax,%edx
-  movl  FPC_THREADVAR_RELOCATE,%eax
+  movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
   jne   .LThread
   movl  %edx,Errno+4
@@ -128,7 +128,7 @@ asm
   movl  %eax,Errno
 {$else}
   movl  %eax,%edx
-  movl  FPC_THREADVAR_RELOCATE,%eax
+  movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
   jne   .LThread
   movl  %edx,Errno+4
@@ -162,7 +162,7 @@ asm
   movl  %eax,Errno
 {$else}
   movl  %eax,%edx
-  movl  FPC_THREADVAR_RELOCATE,%eax
+  movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
   jne   .LThread
   movl  %edx,Errno+4
@@ -197,7 +197,7 @@ asm
   movl  %eax,Errno
 {$else}
   movl  %eax,%edx
-  movl  FPC_THREADVAR_RELOCATE,%eax
+  movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
   jne   .LThread
   movl  %edx,Errno+4
@@ -234,7 +234,7 @@ asm
   movl  %eax,Errno
 {$else}
   movl  %eax,%edx
-  movl  FPC_THREADVAR_RELOCATE,%eax
+  movl  fpc_threadvar_relocate_proc,%eax
   testl %eax,%eax
   jne   .LThread
   movl  %edx,Errno+4
@@ -341,7 +341,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2003-09-14 20:15:01  marco
+  Revision 1.10  2004-01-06 21:32:53  peter
+    * use relocate_proc
+
+  Revision 1.9  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.7  2002/12/24 19:45:59  peter
