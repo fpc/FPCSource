@@ -57,6 +57,11 @@ type
 
   TUpdateStatus = (usUnmodified, usModified, usInserted, usDeleted);
 
+  TUpdateMode = (upWhereAll, upWhereChanged, upWhereKeyOnly);
+
+  TProviderFlag = (pfInUpdate, pfInWhere, pfInKey, pfHidden);
+  TProviderFlags = set of TProviderFlag;
+
 { Forward declarations }
 
   TFieldDef = class;
@@ -213,9 +218,10 @@ type
     FValueBuffer : Pointer;
     FValidating : Boolean;
     FVisible : Boolean;
+    FProviderFlags : TProviderFlags;
     Function GetIndex : longint;
     procedure SetAlignment(const AValue: TAlignMent);
-    Procedure SetDataset(VAlue : TDataset);
+    Procedure SetDataset(Value : TDataset);
     function GetDisplayText: String;
     procedure SetDisplayLabel(const AValue: string);
     procedure SetDisplayWidth(const AValue: Longint);
@@ -295,6 +301,7 @@ type
     property ValidChars : TFieldChars Read FValidChars;
     property Value: variant read GetAsVariant write SetAsVariant;
     property OldValue: variant read GetOldValue;
+    property ProviderFlags : TProviderFlags read FProviderFlags write FProviderFlags;
   published
     property AlignMent : TAlignMent Read FAlignMent write SetAlignment;
     property CustomConstraint: string read FCustomConstraint write FCustomConstraint;
@@ -676,7 +683,7 @@ type
   TIndexOptions = set of (ixPrimary, ixUnique, ixDescending,
     ixCaseInsensitive, ixExpression);
 
-  TIndexDef = class
+  TIndexDef = class(TCollectionItem)
   Private
     FExpression : String;
     FFields : String;
@@ -688,32 +695,34 @@ type
       TheOptions: TIndexOptions);
     destructor Destroy; override;
     property Expression: string read FExpression;
-    property Fields: string read FFields;
-    property Name: string read FName;
-    property Options: TIndexOptions read FOptions;
+    property Fields: string read FFields write FFields;
+    property Name: string read FName write FName;
+    property Options: TIndexOptions read FOptions write FOptions;
     property Source: string read FSource write FSource;
   end;
 
 { TIndexDefs }
 
-  TIndexDefs = class
+  TIndexDefs = class(TOwnedCollection)
   Private
-    FCount : Longint;
     FUpDated : Boolean;
-    Function GetItem (Index : longint) : TindexDef;
+    FDataset : Tdataset;
+    Function  GetItem(Index: Integer): TIndexDef;
+    Procedure SetItem(Index: Integer; Value: TIndexDef);
   public
-    constructor Create(DataSet: TDataSet);
+    constructor Create(DataSet: TDataSet); overload;
     destructor Destroy; override;
     procedure Add(const Name, Fields: string; Options: TIndexOptions);
+    Function AddIndexDef: TIndexDef;
     procedure Assign(IndexDefs: TIndexDefs);
-    procedure Clear;
+//    procedure Clear;
     function FindIndexForFields(const Fields: string): TIndexDef;
     function GetIndexForFields(const Fields: string;
       CaseInsensitive: Boolean): TIndexDef;
-    function IndexOf(const Name: string): Longint;
+//    function IndexOf(const Name: string): Longint;
     procedure Update;
-    property Count: Longint read FCount;
-    property Items[Index: Longint]: TIndexDef read GetItem; default;
+//    property Count: Longint read FCount;
+    Property Items[Index: Integer] : TIndexDef read GetItem write SetItem; default;
     property Updated: Boolean read FUpdated write FUpdated;
   end;
 
@@ -1673,9 +1682,11 @@ constructor TIndexDef.Create(Owner: TIndexDefs; const AName, TheFields: string;
       TheOptions: TIndexOptions);
 
 begin
-  //!! To be implemented
+  inherited create(Owner);
+  FName := aname;
+  FFields := TheFields;
+  FOptions := TheOptions;
 end;
-
 
 
 destructor TIndexDef.Destroy;
@@ -1687,17 +1698,22 @@ end;
 
 { TIndexDefs }
 
-Function TIndexDefs.GetItem (Index : longint) : TindexDef;
+Function TIndexDefs.GetItem (Index : integer) : TIndexDef;
 
 begin
-  //!! To be implemented
+  Result:=(Inherited GetItem(Index)) as TIndexDef;
 end;
 
+Procedure TIndexDefs.SetItem(Index: Integer; Value: TIndexDef);
+begin
+  Inherited SetItem(Index,Value);
+end;
 
 constructor TIndexDefs.Create(DataSet: TDataSet);
 
 begin
-  //!! To be implemented
+  FDataset := Dataset;
+  inherited create(Dataset, TIndexDef);
 end;
 
 
@@ -1707,11 +1723,17 @@ begin
   //!! To be implemented
 end;
 
+Function TIndexDefs.AddIndexDef: TIndexDef;
+
+begin
+//  Result := inherited add as TIndexDef;
+  Result:=TIndexDef.Create(Self,'','',[]);
+end;
 
 procedure TIndexDefs.Add(const Name, Fields: string; Options: TIndexOptions);
 
 begin
-  //!! To be implemented
+  TIndexDef.Create(Self,Name,Fields,Options);
 end;
 
 
@@ -1721,13 +1743,11 @@ begin
   //!! To be implemented
 end;
 
-
-procedure TIndexDefs.Clear;
+{procedure TIndexDefs.Clear;
 
 begin
   //!! To be implemented
-end;
-
+end;}
 
 function TIndexDefs.FindIndexForFields(const Fields: string): TIndexDef;
 
@@ -1744,20 +1764,19 @@ begin
 end;
 
 
-function TIndexDefs.IndexOf(const Name: string): Longint;
+{function TIndexDefs.IndexOf(const Name: string): Longint;
 
 begin
   //!! To be implemented
-end;
+end;}
 
 
 procedure TIndexDefs.Update;
 
 begin
-  //!! To be implemented
+  if assigned(Fdataset) then
+    Fdataset.UpdateIndexDefs;
 end;
-
-
 
 { TCheckConstraint }
 
@@ -1818,7 +1837,12 @@ end.
 
 {
   $Log$
-  Revision 1.33  2004-12-29 14:30:53  michael
+  Revision 1.34  2005-01-12 10:28:44  michael
+    * Patch from Joost Van der Sluis:
+     - implemented TUpdateMode, TProviderFlags
+     - implemented TIndexDef, TIndexDefs
+
+  Revision 1.33  2004/12/29 14:30:53  michael
     + Patch from Joost van der Sluis
     - implemented CachedUpdates (only modifications, no inserts/deletes)
     - implemented GetAsVariant/SetAsVariant for all fields
