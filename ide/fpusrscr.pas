@@ -730,6 +730,7 @@ var
 begin
   inherited Init;
   IdeScreen := nil;
+  TTYFd:=-1;
   IsXterm:=getenv('TERM')='xterm';
   ThisTTY:=TTYName(stdinputhandle);
   if Not IsXterm and IsATTY(stdinputhandle) then
@@ -1309,7 +1310,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2002-09-25 22:02:13  pierre
+  Revision 1.24  2002-10-07 15:43:15  pierre
+   * set TTYFd to -1 in TLinuxScreen constructor
+
+  Revision 1.23  2002/09/25 22:02:13  pierre
    * fix compilation error
 
   Revision 1.22  2002/09/21 22:22:10  pierre
