@@ -24,6 +24,9 @@ interface
   from inside the RTE 202 error PM }
 {$S-}
 
+procedure GetLineInfo(addr:longint;var func,source:string;var line:longint);
+
+
 implementation
 
 uses
@@ -626,7 +629,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.9  2000-04-20 13:03:41  pierre
+  Revision 1.10  2000-05-08 13:23:46  peter
+    * export function so ppl can use it in their own programs
+
+  Revision 1.9  2000/04/20 13:03:41  pierre
    * disable stack check in lineinfo
 
   Revision 1.8  2000/04/12 11:15:06  pierre
