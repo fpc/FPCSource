@@ -589,9 +589,9 @@ begin
             exit;
         end;
     Action := Action or (Flags and $FF);
-(* DenyAll if sharing not specified. *)
+(* DenyNone if sharing not specified. *)
     if Flags and 112 = 0 then
-        Action := Action or 16;
+        Action := Action or 64;
     asm
         movl $0x7f2b, %eax
         movl Action, %ecx
@@ -1237,7 +1237,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-12-15 22:41:41  hajny
+  Revision 1.31  2003-01-15 22:16:12  hajny
+    * default sharing mode changed to DenyNone
+
+  Revision 1.30  2002/12/15 22:41:41  hajny
     * First_Meg fixed + Environment initialization under Dos
 
   Revision 1.29  2002/12/08 16:39:58  hajny
