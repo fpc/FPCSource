@@ -16,10 +16,15 @@
 unit FPDebug;
 interface
 
+{$i globdir.inc}
+
 uses
+{$ifdef win32}
+  Windows,
+{$endif win32}
   Objects,Dialogs,Drivers,Views,
   GDBCon,GDBInt,Menus,
-  WViews,
+  WViews,WEditor,
   FPViews;
 
 type
@@ -30,6 +35,7 @@ type
      { if true the current debugger raw will stay in middle of
        editor window when debugging PM }
      CenterDebuggerRow : boolean;
+     Disableallinvalidbreakpoints : boolean;
      LastFileName : string;
      LastSource   : PView; {PsourceWindow !! }
      HiddenStepsCount : longint;
@@ -37,9 +43,11 @@ type
      NoSwitch : boolean;
      HasExe   : boolean;
      RunCount : longint;
+     WindowWidth : longint;
      FPCBreakErrorNumber : longint;
     constructor Init;
     procedure SetExe(const exefn:string);
+    procedure SetWidth(AWidth : longint);
     procedure SetDirectories;
     destructor  Done;
     procedure DoSelectSourceline(const fn:string;line:longint);virtual;
@@ -51,6 +59,7 @@ type
     procedure InsertBreakpoints;
     procedure RemoveBreakpoints;
     procedure ReadWatches;
+    procedure RereadWatches;
     procedure ResetBreakpointsValues;
     procedure DoDebuggerScreen;virtual;
     procedure DoUserScreen;virtual;
@@ -71,7 +80,7 @@ type
 
   BreakpointType = (bt_function,bt_file_line,bt_watch,
                     bt_awatch,bt_rwatch,bt_address,bt_invalid);
-  BreakpointState = (bs_enabled,bs_disabled,bs_deleted);
+  BreakpointState = (bs_enabled,bs_disabled,bs_deleted,bs_delete_after);
 
   PBreakpointCollection=^TBreakpointCollection;
 
@@ -112,6 +121,7 @@ type
       function  ToggleFileLine(FileName: String;LineNr : Longint) : boolean;
       procedure Update;
       procedure ShowBreakpoints(W : PFPWindow);
+      procedure AdaptBreakpoints(Editor : PSourceEditor; Pos, Change : longint);
       procedure ShowAllBreakpoints;
     end;
 
@@ -171,7 +181,7 @@ type
     private
       Breakpoint : PBreakpoint;
       TypeRB   : PRadioButtons;
-      NameIL  : PInputLine;
+      NameIL  : PEditorInputLine;
       ConditionsIL: PInputLine;
       LineIL    : PInputLine;
       IgnoreIL  : PInputLine;
@@ -184,6 +194,7 @@ type
       procedure   Store(var S: TStream);
       procedure rename(s : string);
       procedure Get_new_value;
+      procedure Force_new_value;
       destructor done;virtual;
       expr : pstring;
     private
@@ -208,6 +219,7 @@ type
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
       (* procedure   AddWatch(P: PWatch); virtual; *)
       procedure   Update(AMaxWidth : integer);
+      function    GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String; Virtual;
       function    GetIndentedText(Item,Indent,MaxLen: Sw_Integer;var Modified : boolean): String; virtual;
       function    GetLocalMenu: PMenu;virtual;
       (* procedure   Clear; virtual;
@@ -230,7 +242,7 @@ type
       function    Execute: Word; virtual;
     private
       Watch : PWatch;
-      NameIL  : PInputLine;
+      NameIL  : PEditorInputLine;
       TextST : PAdvancedStaticText;
     end;
 
@@ -265,87 +277,20 @@ type
       destructor  Done; virtual;
     end;
 
-    {$ifdef TP} dword = longint; {$endif}
-
-    TIntRegs = record
-{$ifdef I386}
-       eax,ebx,ecx,edx,eip,esi,edi,esp,ebp : dword;
-       cs,ds,es,ss,fs,gs : word;
-       eflags : dword;
-{$endif I386}
-{$ifdef m68k}
-       d0,d1,d2,d3,d4,d5,d6,d7 : dword;
-       a0,a1,a2,a3,a4,a5,fp,sp : dword;
-       ps,pc : dword;
-{$endif m68k}
-    end;
-
-    PRegistersView = ^TRegistersView;
-    TRegistersView = object(TView)
-      OldReg : TIntRegs;
-      constructor Init(var Bounds: TRect);
-      procedure   Draw;virtual;
-      destructor  Done; virtual;
-    end;
-
-    PRegistersWindow = ^TRegistersWindow;
-    TRegistersWindow = Object(TFPDlgWindow)
-      RV : PRegistersView;
-      Constructor Init;
-      constructor Load(var S: TStream);
-      procedure   Store(var S: TStream);
-      procedure   Update; virtual;
-      destructor  Done; virtual;
-    end;
-
-    TFPURegs = record
-{$ifdef I386}
-      st0,st1,st2,st3,st4,st5,st6,st7 :string;
-      ftag,fop,fctrl,fstat,fiseg,foseg : word;
-      fioff,fooff : cardinal;
-{$endif I386}
-{$ifdef m68k}
-      fp0,fp1,fp2,fp3,fp4,fp5,fp6,fp7 : string;
-      fpcontrol,fpstatus,fpiaddr : dword;
-{$endif m68k}
-    end;
-
-    PFPUView = ^TFPUView;
-    TFPUView = object(TView)
-      OldReg : TFPURegs;
-      constructor Init(var Bounds: TRect);
-      procedure   Draw;virtual;
-      destructor  Done; virtual;
-    end;
-
-    PFPUWindow = ^TFPUWindow;
-    TFPUWindow = Object(TFPDlgWindow)
-      RV : PFPUView;
-      Constructor Init;
-      constructor Load(var S: TStream);
-      procedure   Store(var S: TStream);
-      procedure   Update; virtual;
-      destructor  Done; virtual;
-    end;
-
   procedure InitStackWindow;
   procedure DoneStackWindow;
 
-  procedure InitRegistersWindow;
-  procedure DoneRegistersWindow;
-  procedure InitFPUWindow;
-  procedure DoneFPUWindow;
   function  ActiveBreakpoints : boolean;
   function  GDBFileName(st : string) : string;
+  function  OSFileName(st : string) : string;
 
 
 const
      BreakpointTypeStr : Array[BreakpointType] of String[9]
        = ( 'function','file-line','watch','awatch','rwatch','address','invalid');
      BreakpointStateStr : Array[BreakpointState] of String[8]
-       = ( 'enabled','disabled','invalid' );
+       = ( 'enabled','disabled','invalid',''{'to be deleted' should never be used});
 
-     DebuggeeTTY : string = '';
 var
   Debugger             : PDebugController;
   BreakpointsCollection : PBreakpointCollection;
@@ -369,7 +314,13 @@ procedure UpdateDebugViews;
 implementation
 
 uses
-  Dos,Video,
+  Dos,
+{$ifdef fpc}
+  Video,
+{$endif fpc}
+{$ifdef DOS}
+  fpusrscr,
+{$endif DOS}
   App,Strings,
 {$ifdef FVISION}
   FVConsts,
@@ -386,10 +337,11 @@ uses
     Unix,
   {$endif}
 {$endif Unix}
-  Systems,
+  Systems,Globals,
+  FPRegs,
   FPString,FPVars,FPUtils,FPConst,FPSwitch,
   FPIntf,FPCompil,FPIde,FPHelp,
-  Validate,WEditor,WUtils;
+  Validate,WUtils,Wconsts;
 
 const
   RBreakpointsWindow: TStreamRec = (
@@ -462,34 +414,6 @@ const
      Store:   @TWatchesCollection.Store
   );
 
-  RRegistersWindow: TStreamRec = (
-     ObjType: 1711;
-     VmtLink: Ofs(TypeOf(TRegistersWindow)^);
-     Load:    @TRegistersWindow.Load;
-     Store:   @TRegistersWindow.Store
-  );
-
-  RRegistersView: TStreamRec = (
-     ObjType: 1712;
-     VmtLink: Ofs(TypeOf(TRegistersView)^);
-     Load:    @TRegistersView.Load;
-     Store:   @TRegistersView.Store
-  );
-
-  RFPUWindow: TStreamRec = (
-     ObjType: 1713;
-     VmtLink: Ofs(TypeOf(TFPUWindow)^);
-     Load:    @TFPUWindow.Load;
-     Store:   @TFPUWindow.Store
-  );
-
-  RFPUView: TStreamRec = (
-     ObjType: 1714;
-     VmtLink: Ofs(TypeOf(TFPUView)^);
-     Load:    @TFPUView.Load;
-     Store:   @TFPUView.Store
-  );
-
 {$ifdef I386}
 const
   FrameName = '$ebp';
@@ -500,6 +424,13 @@ const
   FrameName = '$fp';
 {$define FrameNameKnown}
 {$endif m68k}
+{$ifdef powerpc}
+  { stack and frame registers are the same on powerpc,
+    so I am not sure that this will work PM }
+const
+  FrameName = '$r1';
+{$define FrameNameKnown}
+{$endif powerpc}
 
 {$ifdef TP}
 function HexStr(Value: longint; Len: byte): string;
@@ -520,11 +451,19 @@ begin
 { should we also use / chars ? }
   for i:=1 to Length(st) do
     if st[i]='\' then
+{$ifdef win32}
+  { Don't touch at '\ ' used to escapes spaces in windows file names PM }
+     if (i=length(st)) or (st[i+1]<>' ') then
+{$endif win32}
       st[i]:='/';
 {$ifdef win32}
 { for win32 we should convert e:\ into //e/ PM }
   if (length(st)>2) and (st[2]=':') and (st[3]='/') then
     st:=CygDrivePrefix+'/'+st[1]+copy(st,3,length(st));
+{ support spaces in the name by escaping them but without changing '\ ' into '\\ ' }
+  for i:=Length(st) downto 1 do
+    if (st[i]=' ') and ((i=1) or (st[i-1]<>'\')) then
+      st:=copy(st,1,i-1)+'\'+copy(st,i,length(st));
 {$endif win32}
 {$ifdef go32v2}
 { for go32v2 we should convert //e/ back into e:/  PM }
@@ -535,6 +474,36 @@ begin
 {$endif}
 end;
 
+function  OSFileName(st : string) : string;
+{$ifndef Unix}
+var i : longint;
+{$endif Unix}
+begin
+{$ifdef Unix}
+  OSFileName:=st;
+{$else}
+{$ifdef win32}
+{ for win32 we should convert /cygdrive/e/ into e:\ PM }
+  if pos(CygDrivePrefix+'/',st)=1 then
+    st:=st[Length(CygdrivePrefix)+2]+':\'+copy(st,length(CygdrivePrefix)+4,length(st));
+{$endif win32}
+{ support spaces in the name by escaping them but without changing '\ ' into '\\ ' }
+  for i:=Length(st) downto 2 do
+    if (st[i]=' ') and (st[i-1]='\') then
+      st:=copy(st,1,i-2)+copy(st,i,length(st));
+{$ifdef go32v2}
+{ for go32v2 we should convert //e/ back into e:/  PM }
+  if (length(st)>3) and (st[1]='/') and (st[2]='/') and (st[4]='/') then
+    st:=st[3]+':\'+copy(st,5,length(st));
+{$endif go32v2}
+{ should we also use / chars ? }
+  for i:=1 to Length(st) do
+    if st[i]='/' then
+      st[i]:='\';
+  OSFileName:=LowerCaseStr(st);
+{$endif}
+end;
+
 {****************************************************************************
                             TDebugController
 ****************************************************************************}
@@ -542,6 +511,9 @@ end;
 procedure UpdateDebugViews;
 
   begin
+{$ifdef SUPPORT_REMOTE}
+     PushStatus(msg_getting_info_on+RemoteMachine);
+{$endif SUPPORT_REMOTE}
      DeskTop^.Lock;
      If assigned(StackWindow) then
        StackWindow^.Update;
@@ -552,24 +524,30 @@ procedure UpdateDebugViews;
      If assigned(FPUWindow) then
        FPUWindow^.Update;
      DeskTop^.UnLock;
+{$ifdef SUPPORT_REMOTE}
+     PopStatus;
+{$endif SUPPORT_REMOTE}
   end;
 
 constructor TDebugController.Init;
 begin
   inherited Init;
   CenterDebuggerRow:=IniCenterDebuggerRow;
+  Disableallinvalidbreakpoints:=false;
   NoSwitch:=False;
   HasExe:=false;
   Debugger:=@self;
+  WindowWidth:=-1;
 {$ifndef GABOR}
   switch_to_user:=true;
 {$endif}
+  Command('set print object off');
 end;
 
 procedure TDebugController.SetExe(const exefn:string);
   var f : string;
 begin
-  f := GetShortName(GDBFileName(exefn));
+  f := GDBFileName(GetShortName(exefn));
   if (f<>'') and ExistsFile(exefn) then
     begin
       LoadFile(f);
@@ -577,9 +555,13 @@ begin
       Command('b FPC_BREAK_ERROR');
       FPCBreakErrorNumber:=last_breakpoint_number;
 {$ifdef FrameNameKnown}
+      { this fails in GDB 5.1 because
+        GDB replies that there is an attempt to dereference
+        a generic pointer...
+        test delayed in DoSourceLine... PM
       Command('cond '+IntToStr(FPCBreakErrorNumber)+
         ' (('+FrameName+' + 8)^ <> 0) or'+
-        ' (('+FrameName+' + 12)^ <> 0)');
+        ' (('+FrameName+' + 12)^ <> 0)');  }
 {$endif FrameNameKnown}
       SetArgs(GetRunParameters);
       SetDirectories;
@@ -593,9 +575,16 @@ begin
     end;
 end;
 
+procedure TDebugController.SetWidth(AWidth : longint);
+begin
+  WindowWidth:=AWidth;
+  Command('set width '+inttostr(WindowWidth));
+end;
+
 procedure TDebugController.SetDirectories;
   var f,s: string;
       i : longint;
+      Dir : SearchRec;
 begin
   f:=GetSourceDirectories;
   repeat
@@ -607,7 +596,25 @@ begin
         s:=copy(f,1,i-1);
         system.delete(f,1,i);
       end;
-    Command('dir '+s);
+    DefaultReplacements(s);
+    if (pos('*',s)=0) and ExistsDir(s) then
+      Command('dir '+GDBFileName(GetShortName(s)))
+    { we should also handle the /* cases of -Fu option }
+    else if pos('*',s)>0 then
+      begin
+        Dos.FindFirst(s,Directory,Dir);
+        { the '*' can only be in the last dir level }
+        s:=DirOf(s);
+        while Dos.DosError=0 do
+          begin
+            if ((Dir.attr and Directory) <> 0) and ExistsDir(s+Dir.Name) then
+              Command('dir '+GDBFileName(GetShortName(s+Dir.Name)));
+            Dos.FindNext(Dir);
+          end;
+{$ifdef FPC}
+        Dos.FindClose(Dir);
+{$endif def FPC}
+      end;
   until i=0;
 end;
 
@@ -619,6 +626,7 @@ procedure TDebugController.InsertBreakpoints;
 
 begin
   BreakpointsCollection^.ForEach(@DoInsert);
+  Disableallinvalidbreakpoints:=false;
 end;
 
 procedure TDebugController.ReadWatches;
@@ -626,6 +634,19 @@ procedure TDebugController.ReadWatches;
   procedure DoRead(PB : PWatch);
   begin
     PB^.Get_new_value;
+  end;
+
+begin
+  WatchesCollection^.ForEach(@DoRead);
+  If Assigned(WatchesWindow) then
+    WatchesWindow^.Update;
+end;
+
+procedure TDebugController.RereadWatches;
+
+  procedure DoRead(PB : PWatch);
+  begin
+    PB^.Force_new_value;
   end;
 
 begin
@@ -678,9 +699,41 @@ begin
   inherited Done;
 end;
 
+
 procedure TDebugController.Run;
+{$ifdef Unix}
+var
+  Debuggeefile : text;
+  ResetOK, TTYUsed  : boolean;
+{$endif Unix}
+{$ifdef SUPPORT_REMOTE}
+var
+  S,ErrorStr : string;
+{$endif SUPPORT_REMOTE}
 begin
   ResetBreakpointsValues;
+{$ifdef SUPPORT_REMOTE}
+  NoSwitch:=true;
+{$ifndef CROSSGDB}
+  If (RemoteMachine<>'') and (RemotePort<>'') then
+{$else CROSSGDB}
+  if true then
+{$endif CROSSGDB}
+    begin
+      S:=RemoteMachine;
+      If pos('@',S)>0 then
+        S:=copy(S,pos('@',S)+1,High(S));
+      Command('target remote '+S+':'+RemotePort);
+      if Error then
+        begin
+           ErrorStr:=strpas(GetError);
+           ErrorBox(#3'Error in "target remote"'#13#3+ErrorStr,nil);
+           exit;
+        end;
+    end
+  else
+    begin
+{$endif SUPPORT_REMOTE}
 {$ifdef win32}
   { Run the debugge in another console }
   if DebuggeeTTY<>'' then
@@ -693,8 +746,23 @@ begin
   { Run the debuggee in another tty }
   if DebuggeeTTY <> '' then
     begin
-      Command('tty '+DebuggeeTTY);
-      if DebuggeeTTY<>TTYName(stdout) then
+{$I-}
+      Assign(Debuggeefile,DebuggeeTTY);
+      system.Reset(Debuggeefile);
+      ResetOK:=IOResult=0;
+      If ResetOK and IsATTY(textrec(Debuggeefile).handle) then
+        begin
+          Command('tty '+DebuggeeTTY);
+          TTYUsed:=true;
+        end
+      else
+        begin
+          Command('tty ');
+          TTYUsed:=false;
+        end;
+      if ResetOK then
+        close(Debuggeefile);
+      if TTYUsed and (DebuggeeTTY<>TTYName(stdout)) then
         NoSwitch:= true
       else
         NoSwitch:=false;
@@ -706,16 +774,26 @@ begin
       NoSwitch := false;
     end;
 {$endif Unix}
+{$ifdef SUPPORT_REMOTE}
+    end;
+{$endif SUPPORT_REMOTE}
   { Switch to user screen to get correct handles }
   UserScreen;
   { Don't try to print GDB messages while in User Screen mode }
   If assigned(GDBWindow) then
     GDBWindow^.Editor^.Lock;
+{$ifndef SUPPORT_REMOTE}
   inherited Run;
+{$else SUPPORT_REMOTE}
+  inc(init_count);
+  { pass the stop in start code }
+  Command('continue');
+{$endif SUPPORT_REMOTE}
   DebuggerScreen;
   If assigned(GDBWindow) then
     GDBWindow^.Editor^.UnLock;
   IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],true);
+  IDEApp.UpdateRunMenu(true);
   UpdateDebugViews;
 end;
 
@@ -762,7 +840,7 @@ end;
 
 procedure TDebugController.CommandEnd(const s:string);
 begin
-  if assigned(GDBWindow) and (in_command=0) then
+  if assigned(GDBWindow) and (in_command<=1) then
     begin
       { We should do something special for errors !! }
       If StrLen(GetError)>0 then
@@ -816,10 +894,14 @@ begin
     if we want to recompile it }
   SetExe('');
   NoSwitch:=false;
-  IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],false);
   { In case we have something that the compiler touched }
-  AskToReloadAllModifiedFiles;
-  ResetDebuggerRows;
+  If IDEApp.IsRunning then
+    begin
+      IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],false);
+      IDEApp.UpdateRunMenu(false);
+      AskToReloadAllModifiedFiles;
+      ResetDebuggerRows;
+    end;
 end;
 
 procedure TDebugController.AnnotateError;
@@ -837,6 +919,8 @@ function TDebugController.GetValue(Const expr : string) : pchar;
 var
   p,p2,p3 : pchar;
 begin
+  if WindowWidth<>-1 then
+    Command('set width 0xffffffff');
   Command('p '+expr);
   p:=GetOutput;
   p3:=nil;
@@ -865,6 +949,8 @@ begin
   if assigned(p3) then
     p3^:=#10;
   got_error:=false;
+  if WindowWidth<>-1 then
+    Command('set width '+IntToStr(WindowWidth));
 end;
 
 function TDebugController.GetFramePointer : CORE_ADDR;
@@ -883,7 +969,7 @@ begin
   while (st[p] in ['0'..'9']) do
     inc(p);
   Delete(st,p,High(st));
-  GetFramePointer:=StrToInt(st);
+  GetFramePointer:=StrToCard(st);
 {$else not FrameNameKnown}
   GetFramePointer:=0;
 {$endif not FrameNameKnown}
@@ -894,7 +980,7 @@ var
   st : string;
   p : longint;
 begin
-  Command('x /wd 0x'+hexstr(addr,8));
+  Command('x /wd 0x'+hexstr(longint(addr),8));
   st:=strpas(GetOutput);
   p:=pos(':',st);
   while (p<length(st)) and (st[p+1] in [' ',#9]) do
@@ -913,7 +999,7 @@ var
   st : string;
   p : longint;
 begin
-  Command('x /wx 0x'+hexstr(addr,8));
+  Command('x /wx 0x'+hexstr(longint(addr),8));
   st:=strpas(GetOutput);
   p:=pos(':',st);
   while (p<length(st)) and (st[p+1] in [' ',#9]) do
@@ -925,7 +1011,7 @@ begin
   while (st[p] in ['0'..'9','A'..'F','a'..'f']) do
     inc(p);
   Delete(st,p,High(st));
-  GetPointerAt:=HexToInt(st);
+  GetPointerAt:=HexToCard(st);
 end;
 
 procedure TDebugController.DoSelectSourceLine(const fn:string;line:longint);
@@ -962,6 +1048,12 @@ begin
       ExitCode:=GetLongintAt(GetFramePointer+FirstArgOffset);
       ExitAddr:=GetPointerAt(GetFramePointer+SecondArgOffset);
       ExitFrame:=GetPointerAt(GetFramePointer+ThirdArgOffset);
+      if (ExitCode=0) and (ExitAddr=0) then
+        begin
+          Desktop^.Unlock;
+          Command('continue');
+          exit;
+        end;
       { forget all old frames }
       clear_frames;
       { record new frames }
@@ -1121,7 +1213,8 @@ end;
 procedure TDebugController.DoEndSession(code:longint);
 var P :Array[1..2] of longint;
 begin
-   IDEApp.SetCmdState([cmResetDebugger],false);
+   IDEApp.SetCmdState([cmUntilReturn,cmResetDebugger],false);
+   IDEApp.UpdateRunMenu(false);
    ResetDebuggerRows;
    LastExitCode:=Code;
    If HiddenStepsCount=0 then
@@ -1134,10 +1227,17 @@ begin
      end;
   { In case we have something that the compiler touched }
   AskToReloadAllModifiedFiles;
+{$ifdef win32}
+  main_pid_valid:=false;
+{$endif win32}
 end;
 
 
 procedure TDebugController.DoDebuggerScreen;
+{$ifdef win32}
+  var
+   IdeMode : DWord;
+{$endif win32}
 begin
   if NoSwitch then
     begin
@@ -1150,6 +1250,13 @@ begin
       PopStatus;
     end;
 {$ifdef win32}
+   if NoSwitch then
+     begin
+       { Ctrl-C as normal char }
+       GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @IdeMode);
+       IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_WINDOW_INPUT) and not ENABLE_PROCESSED_INPUT;
+       SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), IdeMode);
+     end;
    ChangeDebuggeeWindowTitleTo(Stopped_State);
 {$endif win32}
 end;
@@ -1157,15 +1264,23 @@ end;
 
 procedure TDebugController.DoUserScreen;
 
+{$ifdef win32}
+  var
+   IdeMode : DWord;
+{$endif win32}
 begin
   Inc(RunCount);
   if NoSwitch then
     begin
+{$ifdef SUPPORT_REMOTE}
+      PushStatus(msg_runningremotely+RemoteMachine);
+{$else not SUPPORT_REMOTE}
 {$ifdef Unix}
       PushStatus(msg_runninginanotherwindow+DebuggeeTTY);
 {$else not Unix}
       PushStatus(msg_runninginanotherwindow);
 {$endif Unix}
+{$endif not SUPPORT_REMOTE}
     end
   else
     begin
@@ -1173,6 +1288,13 @@ begin
       IDEApp.ShowUserScreen;
     end;
 {$ifdef win32}
+   if NoSwitch then
+     begin
+       { Ctrl-C as interrupt }
+       GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @IdeMode);
+       IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_PROCESSED_INPUT or ENABLE_WINDOW_INPUT);
+       SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), IdeMode);
+     end;
    ChangeDebuggeeWindowTitleTo(Running_State);
 {$endif win32}
 end;
@@ -1240,6 +1362,8 @@ begin
 end;
 
 constructor TBreakpoint.Init_file_line(AFile : String; ALine : longint);
+var
+  CurDir : String;
 begin
   typ:=bt_file_line;
   state:=bs_enabled;
@@ -1248,7 +1372,15 @@ begin
   { I do not know how to solve this if
   if (Length(AFile)>1) and (AFile[2]=':') then
     AFile:=Copy(AFile,3,255);        }
-  FileName:=NewStr(GDBFileName(AFile));
+{$ifdef Unix}
+  CurDir:=GetCurDir;
+{$else}
+  CurDir:=LowerCaseStr(GetCurDir);
+{$endif Unix}
+  if Pos(CurDir,OSFileName(FEXpand(AFile)))=1 then
+    FileName:=NewStr(Copy(OSFileName(FExpand(AFile)),length(CurDir)+1,255))
+  else
+    FileName:=NewStr(OSFileName(FExpand(AFile)));
   Name:=nil;
   Line:=ALine;
   IgnoreCount:=0;
@@ -1270,7 +1402,7 @@ begin
       begin
         { convert to current target }
         FName:=S.ReadStr;
-        FileName:=NewStr(GDBFileName(GetStr(FName)));
+        FileName:=NewStr(OSFileName(GetStr(FName)));
         If Assigned(FName) then
           DisposeStr(FName);
         S.Read(Line,SizeOf(Line));
@@ -1291,13 +1423,16 @@ begin
 end;
 
 procedure TBreakpoint.Store(var S: TStream);
+var
+  St : String;
 begin
   S.Write(typ,SizeOf(BreakpointType));
   S.Write(state,SizeOf(BreakpointState));
   case typ of
     bt_file_line :
       begin
-        S.WriteStr(FileName);
+        st:=OSFileName(GetStr(FileName));
+        S.WriteStr(@St);
         S.Write(Line,SizeOf(Line));
       end;
   else
@@ -1321,7 +1456,7 @@ begin
   if (GDBState=bs_deleted) and (state=bs_enabled) then
     begin
       if (typ=bt_file_line) and assigned(FileName) then
-        Debugger^.Command('break '+NameAndExtOf(FileName^)+':'+IntToStr(Line))
+        Debugger^.Command('break '+GDBFileName(NameAndExtOf(GetStr(FileName)))+':'+IntToStr(Line))
       else if (typ=bt_function) and assigned(name) then
         Debugger^.Command('break '+name^)
       else if (typ=bt_address) and assigned(name) then
@@ -1364,21 +1499,27 @@ begin
       { Here there was a problem !! }
         begin
           GDBIndex:=0;
-          if (typ=bt_file_line) and assigned(FileName) then
+          if not Debugger^.Disableallinvalidbreakpoints then
             begin
-              ClearFormatParams;
-              AddFormatParamStr(NameAndExtOf(FileName^));
-              AddFormatParamInt(Line);
-              ErrorBox(msg_couldnotsetbreakpointat,@FormatParams);
-            end
-          else
-            begin
-              ClearFormatParams;
-              AddFormatParamStr(BreakpointTypeStr[typ]);
-              AddFormatParamStr(GetStr(Name));
-              ErrorBox(msg_couldnotsetbreakpointtype,@FormatParams);
+              if (typ=bt_file_line) and assigned(FileName) then
+                begin
+                  ClearFormatParams;
+                  AddFormatParamStr(NameAndExtOf(FileName^));
+                  AddFormatParamInt(Line);
+                  if ChoiceBox(msg_couldnotsetbreakpointat,@FormatParams,[btn_ok,button_DisableAllBreakpoints],false)=cmUserBtn2 then
+                    Debugger^.Disableallinvalidbreakpoints:=true;
+                end
+              else
+                begin
+                  ClearFormatParams;
+                  AddFormatParamStr(BreakpointTypeStr[typ]);
+                  AddFormatParamStr(GetStr(Name));
+                  if ChoiceBox(msg_couldnotsetbreakpointtype,@FormatParams,[btn_ok,button_DisableAllBreakpoints],false)=cmUserBtn2 then
+                    Debugger^.Disableallinvalidbreakpoints:=true;
+                end;
             end;
           state:=bs_disabled;
+          UpdateSource;
         end;
     end
   else if (GDBState=bs_disabled) and (state=bs_enabled) then
@@ -1430,7 +1571,7 @@ var W: PSourceWindow;
 begin
   if typ=bt_file_line then
     begin
-      W:=SearchOnDesktop(GetStr(FileName),false);
+      W:=SearchOnDesktop(FExpand(OSFileName(GetStr(FileName))),false);
       If assigned(W) then
         begin
           if state=bs_enabled then
@@ -1496,7 +1637,7 @@ procedure TBreakpointCollection.ShowBreakpoints(W : PFPWindow);
   procedure SetInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
   begin
     If assigned(P^.FileName) and
-      (GDBFileName(FExpand(P^.FileName^))=GDBFileName(FExpand(PSourceWindow(W)^.Editor^.FileName))) then
+      (OSFileName(FExpand(P^.FileName^))=OSFileName(FExpand(PSourceWindow(W)^.Editor^.FileName))) then
       PSourceWindow(W)^.Editor^.SetLineFlagState(P^.Line-1,lfBreakpoint,P^.state=bs_enabled);
   end;
 
@@ -1523,7 +1664,7 @@ procedure TBreakpointCollection.ShowBreakpoints(W : PFPWindow);
           end
         else
           begin
-            If (P^.typ=bt_address) and (PDL^.Address=HexToInt(P^.Name^)) then
+            If (P^.typ=bt_address) and (PDL^.Address=HexToCard(P^.Name^)) then
               PDisassemblyWindow(W)^.Editor^.SetLineFlagState(i,lfBreakpoint,P^.state=bs_enabled);
           end;
       end;
@@ -1534,6 +1675,45 @@ begin
     ForEach(@SetInDisassembly)
   else
     ForEach(@SetInSource);
+end;
+
+
+procedure TBreakpointCollection.AdaptBreakpoints(Editor : PSourceEditor; Pos, Change : longint);
+
+  procedure AdaptInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
+  begin
+    If assigned(P^.FileName) and
+      (OSFileName(FExpand(P^.FileName^))=OSFileName(FExpand(Editor^.FileName))) then
+        begin
+          if P^.state=bs_enabled then
+            Editor^.SetLineFlagState(P^.Line-1,lfBreakpoint,false);
+          if P^.Line-1>=Pos then
+            begin
+              if (Change>0) or (P^.Line-1>=Pos-Change) then
+                P^.line:=P^.Line+Change
+              else
+                begin
+                  { removing inside a ForEach call leads to problems }
+                  { so we do that after PM }
+                  P^.state:=bs_delete_after;
+                end;
+            end;
+          if P^.state=bs_enabled then
+            Editor^.SetLineFlagState(P^.Line-1,lfBreakpoint,true);
+        end;
+  end;
+
+  var
+    I : longint;
+begin
+  ForEach(@AdaptInSource);
+  I:=Count-1;
+  While (I>=0) do
+    begin
+      if At(I)^.state=bs_delete_after then
+        AtFree(I);
+      Dec(I);
+    end;
 end;
 
 procedure TBreakpointCollection.ShowAllBreakpoints;
@@ -1571,10 +1751,10 @@ var PB : PBreakpoint;
 
   function IsThere(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
-    IsThere:=(P^.typ=bt_file_line) and (P^.FileName^=FileName) and (P^.Line=LineNr);
+    IsThere:=(P^.typ=bt_file_line) and (OSFileName(FExpand(P^.FileName^))=FileName) and (P^.Line=LineNr);
   end;
 begin
-    FileName:=GDBFileName(FileName);
+    FileName:=OSFileName(FileName);
     PB:=FirstThat(@IsThere);
     ToggleFileLine:=false;
     If Assigned(PB) then
@@ -1987,6 +2167,8 @@ var R,R2: TRect;
     S: String;
     X,X1 : Sw_integer;
     Btn: PButton;
+const
+  NumButtons = 5;
 begin
   Desktop^.GetExtent(R); R.A.Y:=R.B.Y-18;
   inherited Init(R, dialog_breakpointlist, wnNoNumber);
@@ -2016,7 +2198,7 @@ begin
   GetExtent(R);R.Grow(-1,-1);
   Dec(R.B.Y);
   R.A.Y:=R.B.Y-2;
-  X:=(R.B.X-R.A.X) div 4;
+  X:=(R.B.X-R.A.X) div NumButtons;
   X1:=R.A.X+(X div 2);
   R.A.X:=X1-3;R.B.X:=X1+7;
   New(Btn, Init(R, button_Close, cmClose, bfDefault));
@@ -2030,6 +2212,11 @@ begin
   X1:=X1+X;
   R.A.X:=X1-3;R.B.X:=X1+7;
   New(Btn, Init(R, button_Edit, cmEditBreakpoint, bfNormal));
+  Btn^.GrowMode:=gfGrowLoY+gfGrowHiY;
+  Insert(Btn);
+  X1:=X1+X;
+  R.A.X:=X1-3;R.B.X:=X1+7;
+  New(Btn, Init(R, button_ToggleButton, cmToggleBreakInList, bfNormal));
   Btn^.GrowMode:=gfGrowLoY+gfGrowHiY;
   Insert(Btn);
   X1:=X1+X;
@@ -2110,6 +2297,8 @@ begin
            BreakLB^.EditCurrent;
          cmDeleteBreakpoint :
            BreakLB^.DeleteCurrent;
+         cmToggleBreakInList :
+           BreakLB^.ToggleCurrent;
          cmClose :
            Hide;
           else
@@ -2128,9 +2317,14 @@ begin
 end;
 
 procedure TBreakpointsWindow.Update;
+var
+  StoreFocus : longint;
 begin
+  StoreFocus:=BreakLB^.Focused;
   ClearBreakpoints;
   ReloadBreakpoints;
+  If StoreFocus<BreakLB^.Range then
+    BreakLB^.FocusItem(StoreFocus);
 end;
 
 destructor TBreakpointsWindow.Done;
@@ -2151,31 +2345,40 @@ var R,R2,R3: TRect;
 begin
   KeyCount:=longint(high(BreakpointType));
 
-  R.Assign(0,0,60,Max(3+KeyCount,18));
+  R.Assign(0,0,60,Max(9+KeyCount,18));
   inherited Init(R,dialog_modifynewbreakpoint);
   Breakpoint:=ABreakpoint;
 
   GetExtent(R); R.Grow(-3,-2); R3.Copy(R);
-  Inc(R.A.Y); R.B.Y:=R.A.Y+1; R.B.X:=R.A.X+36;
-  New(NameIL, Init(R, 128)); Insert(NameIL);
-  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_breakpoint_name, NameIL)));
+  Inc(R.A.Y); R.B.Y:=R.A.Y+1; R.B.X:=R.B.X-3;
+  New(NameIL, Init(R, 255)); Insert(NameIL);
+  R2.Copy(R); R2.A.X:=R2.B.X; R2.B.X:=R2.A.X+3;
+  Insert(New(PHistory, Init(R2, NameIL, hidWatchDialog)));
+  R.Copy(R3); Inc(R.A.Y); R.B.Y:=R.A.Y+1;
+  R2.Copy(R); R2.Move(-1,-1);
+  Insert(New(PLabel, Init(R2, label_breakpoint_name, NameIL)));
   R.Move(0,3);
+  New(ConditionsIL, Init(R, 255)); Insert(ConditionsIL);
+  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_breakpoint_conditions, ConditionsIL)));
+  R.Move(0,3); R.B.X:=R.A.X+36;
   New(LineIL, Init(R, 128)); Insert(LineIL);
   LineIL^.SetValidator(New(PRangeValidator, Init(0,MaxInt)));
   R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_breakpoint_line, LineIL)));
-  R.Move(0,3);
-  New(ConditionsIL, Init(R, 128)); Insert(ConditionsIL);
-  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_breakpoint_conditions, ConditionsIL)));
   R.Move(0,3);
   New(IgnoreIL, Init(R, 128)); Insert(IgnoreIL);
   IgnoreIL^.SetValidator(New(PRangeValidator, Init(0,MaxInt)));
   R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_breakpoint_ignorecount, IgnoreIL)));
 
-  R.Copy(R3); Inc(R.A.X,38); R.B.Y:=R.A.Y+KeyCount;
+  R.Copy(R3); Inc(R.A.X,38); Inc(R.A.Y,7); R.B.Y:=R.A.Y+KeyCount;
   Items:=nil;
-  for I:=high(BreakpointType) downto low(BreakpointType) do
+  { don't use invalid type }
+  for I:=pred(high(BreakpointType)) downto low(BreakpointType) do
     Items:=NewSItem(BreakpointTypeStr[I], Items);
   New(TypeRB, Init(R, Items));
+
+  R2.Copy(R); R2.Move(-1,-1); R2.B.Y:=R2.A.Y+1;
+  Insert(New(PLabel, Init(R2, label_breakpoint_type, TypeRB)));
+
   Insert(TypeRB);
 
   InsertButtons(@Self);
@@ -2209,7 +2412,12 @@ begin
   S1:=GetStr(Breakpoint^.Conditions);
   ConditionsIL^.SetData(S1);
 
+  if assigned(FirstEditorWindow) then
+    FindReplaceEditor:=FirstEditorWindow^.Editor;
+
   R:=inherited Execute;
+
+  FindReplaceEditor:=nil;
   if R=cmOK then
   begin
     TypeRB^.GetData(R);
@@ -2348,7 +2556,11 @@ procedure TWatch.Get_new_value;
                inc(curframe);
                if not Debugger^.set_current_frame(curframe) then
                  loop_higher:=false;
+{$ifdef FrameNameKnown}
+               s2:='/x '+FrameName;
+{$else not  FrameNameKnown}
                s2:='/x $ebp';
+{$endif FrameNameKnown}
                getValue(s2);
                j:=pos('=',s2);
                if j>0 then
@@ -2412,6 +2624,12 @@ procedure TWatch.Get_new_value;
       q[i-1]:=last_removed;
     strdispose(p);
     GDBRunCount:=Debugger^.RunCount;
+  end;
+
+procedure TWatch.Force_new_value;
+  begin
+    GDBRunCount:=-1;
+    Get_new_value;
   end;
 
 destructor TWatch.Done;
@@ -2561,6 +2779,13 @@ begin
     P:=New(PWatch,Init(''));
   Application^.ExecuteDialog(New(PWatchItemDialog,Init(P)),nil);
   WatchesCollection^.Update;
+end;
+
+function    TWatchesListBox.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String;
+var
+  Dummy_Modified : boolean;
+begin
+  GetText:=GetIndentedText(Item, 0, MaxLen, Dummy_Modified);
 end;
 
 procedure TWatchesListBox.DeleteCurrent;
@@ -2854,12 +3079,13 @@ begin
   GetExtent(R); R.Grow(-3,-2);
   Inc(R.A.Y); R.B.Y:=R.A.Y+1; R.B.X:=R.A.X+36;
   New(NameIL, Init(R, 255)); Insert(NameIL);
+  R2.Copy(R); R2.A.X:=R2.B.X; R2.B.X:=R2.A.X+3;
+  Insert(New(PHistory, Init(R2, NameIL, hidWatchDialog)));
   R2.Copy(R); R2.Move(-1,-1);
   Insert(New(PLabel, Init(R2, label_watch_expressiontowatch, NameIL)));
   GetExtent(R);
-  R.Grow(-1,-1);
+  R.Grow(-3,-1);
   R.A.Y:=R.A.Y+3;
-  R.B.X:=R.A.X+36;
   TextST:=New(PAdvancedStaticText, Init(R, label_watch_values));
   Insert(TextST);
 
@@ -2875,15 +3101,8 @@ begin
   S1:=GetStr(Watch^.expr);
   NameIL^.SetData(S1);
 
-  if assigned(Watch^.Current_value) then
-    S1:=GetPChar(Watch^.Current_value)
-  else
-    S1:='';
-
-  if assigned(Watch^.Last_value) then
-    S2:=GetPChar(Watch^.Last_value)
-  else
-    S2:='';
+  S1:=GetPChar(Watch^.Current_value);
+  S2:=GetPChar(Watch^.Last_value);
 
   ClearFormatParams;
   AddFormatParamStr(S1);
@@ -2897,7 +3116,13 @@ begin
 
   TextST^.SetText(S1);
 
+  if assigned(FirstEditorWindow) then
+    FindReplaceEditor:=FirstEditorWindow^.Editor;
+
   R:=inherited Execute;
+
+  FindReplaceEditor:=nil;
+
   if R=cmOK then
   begin
     NameIL^.GetData(S1);
@@ -2907,627 +3132,6 @@ begin
   end;
   Execute:=R;
 end;
-
-{****************************************************************************
-                         TRegistersView
-****************************************************************************}
-
-  function GetIntRegs(var rs : TIntRegs) : boolean;
-
-    var
-       p,po : pchar;
-       p1 : pchar;
-       reg,value : string;
-       buffer : array[0..255] of char;
-       v : dword;
-       code : word;
-
-    begin
-       GetIntRegs:=false;
-{$ifndef NODEBUG}
-       Debugger^.Command('info registers');
-       if Debugger^.Error then
-         exit
-       else
-         begin
-            po:=StrNew(Debugger^.GetOutput);
-            p:=po;
-            if assigned(p) then
-              begin
-                 fillchar(rs,sizeof(rs),0);
-                 p1:=strscan(p,' ');
-                 while assigned(p1) do
-                   begin
-                      strlcopy(buffer,p,p1-p);
-                      reg:=strpas(buffer);
-                      p:=strscan(p,'$');
-                      p1:=strscan(p,#9);
-                      strlcopy(buffer,p,p1-p);
-                      value:=strpas(buffer);
-                      val(value,v,code);
-{$ifdef i386}
-                      if reg='eax' then
-                        rs.eax:=v
-                      else if reg='ebx' then
-                        rs.ebx:=v
-                      else if reg='ecx' then
-                        rs.ecx:=v
-                      else if reg='edx' then
-                        rs.edx:=v
-                      else if reg='eip' then
-                        rs.eip:=v
-                      else if reg='esi' then
-                        rs.esi:=v
-                      else if reg='edi' then
-                        rs.edi:=v
-                      else if reg='esp' then
-                        rs.esp:=v
-                      else if reg='ebp' then
-                        rs.ebp:=v
-                      { under win32 flags are on a register named ps !! PM }
-                      else if (reg='eflags') or (reg='ps') then
-                        rs.eflags:=v
-                      else if reg='cs' then
-                        rs.cs:=v
-                      else if reg='ds' then
-                        rs.ds:=v
-                      else if reg='es' then
-                        rs.es:=v
-                      else if reg='fs' then
-                        rs.fs:=v
-                      else if reg='gs' then
-                        rs.gs:=v
-                      else if reg='ss' then
-                        rs.ss:=v;
-{$endif i386}
-{$ifdef m68k}
-                      if reg='d0' then
-                        rs.d0:=v
-                      else if reg='d1' then
-                        rs.d1:=v
-                      else if reg='d2' then
-                        rs.d2:=v
-                      else if reg='d3' then
-                        rs.d3:=v
-                      else if reg='d4' then
-                        rs.d4:=v
-                      else if reg='d5' then
-                        rs.d5:=v
-                      else if reg='d6' then
-                        rs.d6:=v
-                      else if reg='d7' then
-                        rs.d7:=v
-                      else if reg='a0' then
-                        rs.a0:=v
-                      else if reg='a1' then
-                        rs.a1:=v
-                      else if reg='a2' then
-                        rs.a2:=v
-                      else if reg='a3' then
-                        rs.a3:=v
-                      else if reg='a4' then
-                        rs.a4:=v
-                      else if reg='a5' then
-                        rs.a5:=v
-                      else if reg='fp' then
-                        rs.fp:=v
-                      else if reg='sp' then
-                        rs.sp:=v
-                      else if (reg='ps') then
-                        rs.ps:=v
-                      else if reg='pc' then
-                        rs.pc:=v;
-{$endif m68k}
-                      p:=strscan(p1,#10);
-                      if assigned(p) then
-                        begin
-                           p1:=strscan(p,' ');
-                           inc(p);
-                        end
-                      else
-                        break;
-                   end;
-                 { free allocated memory }
-                 strdispose(po);
-              end
-            else
-              exit;
-         end;
-       { do not open a messagebox for such errors }
-       Debugger^.got_error:=false;
-       GetIntRegs:=true;
-{$endif}
-    end;
-
-  constructor TRegistersView.Init(var Bounds: TRect);
-
-    begin
-       inherited init(Bounds);
-    end;
-
-  procedure TRegistersView.Draw;
-
-    var
-       rs : tintregs;
-       color :byte;
-
-    procedure SetColor(x,y : longint);
-    begin
-      if x=y then
-        color:=7
-      else
-        color:=8;
-    end;
-
-    begin
-       inherited draw;
-       If not assigned(Debugger) then
-         begin
-            WriteStr(1,0,'<no values available>',7);
-            exit;
-         end;
-       if GetIntRegs(rs) then
-         begin
-{$ifdef i386}
-            SetColor(rs.eax,OldReg.eax);
-            WriteStr(1,0,'EAX '+HexStr(rs.eax,8),color);
-            SetColor(rs.ebx,OldReg.ebx);
-            WriteStr(1,1,'EBX '+HexStr(rs.ebx,8),color);
-            SetColor(rs.ecx,OldReg.ecx);
-            WriteStr(1,2,'ECX '+HexStr(rs.ecx,8),color);
-            SetColor(rs.edx,OldReg.edx);
-            WriteStr(1,3,'EDX '+HexStr(rs.edx,8),color);
-            SetColor(rs.eip,OldReg.eip);
-            WriteStr(1,4,'EIP '+HexStr(rs.eip,8),color);
-            SetColor(rs.esi,OldReg.esi);
-            WriteStr(1,5,'ESI '+HexStr(rs.esi,8),color);
-            SetColor(rs.edi,OldReg.edi);
-            WriteStr(1,6,'EDI '+HexStr(rs.edi,8),color);
-            SetColor(rs.esp,OldReg.esp);
-            WriteStr(1,7,'ESP '+HexStr(rs.esp,8),color);
-            SetColor(rs.ebp,OldReg.ebp);
-            WriteStr(1,8,'EBP '+HexStr(rs.ebp,8),color);
-            SetColor(rs.cs,OldReg.cs);
-            WriteStr(14,0,'CS '+HexStr(rs.cs,4),color);
-            SetColor(rs.ds,OldReg.ds);
-            WriteStr(14,1,'DS '+HexStr(rs.ds,4),color);
-            SetColor(rs.es,OldReg.es);
-            WriteStr(14,2,'ES '+HexStr(rs.es,4),color);
-            SetColor(rs.fs,OldReg.fs);
-            WriteStr(14,3,'FS '+HexStr(rs.fs,4),color);
-            SetColor(rs.gs,OldReg.gs);
-            WriteStr(14,4,'GS '+HexStr(rs.gs,4),color);
-            SetColor(rs.ss,OldReg.ss);
-            WriteStr(14,5,'SS '+HexStr(rs.ss,4),color);
-            SetColor(rs.eflags and $1,OldReg.eflags and $1);
-            WriteStr(22,0,'c='+chr(byte((rs.eflags and $1)<>0)+48),color);
-            SetColor(rs.eflags and $20,OldReg.eflags and $20);
-            WriteStr(22,1,'z='+chr(byte((rs.eflags and $20)<>0)+48),color);
-            SetColor(rs.eflags and $80,OldReg.eflags and $80);
-            WriteStr(22,2,'s='+chr(byte((rs.eflags and $80)<>0)+48),color);
-            SetColor(rs.eflags and $800,OldReg.eflags and $800);
-            WriteStr(22,3,'o='+chr(byte((rs.eflags and $800)<>0)+48),color);
-            SetColor(rs.eflags and $4,OldReg.eflags and $4);
-            WriteStr(22,4,'p='+chr(byte((rs.eflags and $4)<>0)+48),color);
-            SetColor(rs.eflags and $200,OldReg.eflags and $200);
-            WriteStr(22,5,'i='+chr(byte((rs.eflags and $200)<>0)+48),color);
-            SetColor(rs.eflags and $10,OldReg.eflags and $10);
-            WriteStr(22,6,'a='+chr(byte((rs.eflags and $10)<>0)+48),color);
-            SetColor(rs.eflags and $400,OldReg.eflags and $400);
-            WriteStr(22,7,'d='+chr(byte((rs.eflags and $400)<>0)+48),color);
-{$endif i386}
-{$ifdef m68k}
-            SetColor(rs.d0,OldReg.d0);
-            WriteStr(1,0,'d0 '+HexStr(rs.d0,8),color);
-            SetColor(rs.d1,OldReg.d1);
-            WriteStr(1,1,'d1 '+HexStr(rs.d1,8),color);
-            SetColor(rs.d2,OldReg.d2);
-            WriteStr(1,2,'d2 '+HexStr(rs.d2,8),color);
-            SetColor(rs.d3,OldReg.d3);
-            WriteStr(1,3,'d3 '+HexStr(rs.d3,8),color);
-            SetColor(rs.d4,OldReg.d4);
-            WriteStr(1,4,'d4 '+HexStr(rs.d4,8),color);
-            SetColor(rs.d5,OldReg.d5);
-            WriteStr(1,5,'d5 '+HexStr(rs.d5,8),color);
-            SetColor(rs.d6,OldReg.d6);
-            WriteStr(1,6,'d6 '+HexStr(rs.d6,8),color);
-            SetColor(rs.d7,OldReg.d7);
-            WriteStr(1,7,'d7 '+HexStr(rs.d7,8),color);
-            SetColor(rs.a0,OldReg.a0);
-            WriteStr(14,0,'a0 '+HexStr(rs.a0,8),color);
-            SetColor(rs.a1,OldReg.a1);
-            WriteStr(14,1,'a1 '+HexStr(rs.a1,8),color);
-            SetColor(rs.a2,OldReg.a2);
-            WriteStr(14,2,'a2 '+HexStr(rs.a2,8),color);
-            SetColor(rs.a3,OldReg.a3);
-            WriteStr(14,3,'a3 '+HexStr(rs.a3,8),color);
-            SetColor(rs.a4,OldReg.a4);
-            WriteStr(14,4,'a4 '+HexStr(rs.a4,8),color);
-            SetColor(rs.a5,OldReg.a5);
-            WriteStr(14,5,'a5 '+HexStr(rs.a5,8),color);
-            SetColor(rs.fp,OldReg.fp);
-            WriteStr(14,6,'fp '+HexStr(rs.fp,8),color);
-            SetColor(rs.sp,OldReg.sp);
-            WriteStr(14,7,'sp '+HexStr(rs.sp,8),color);
-            SetColor(rs.pc,OldReg.pc);
-            WriteStr(1,8,'pc '+HexStr(rs.pc,8),color);
-            SetColor(rs.ps and $1,OldReg.ps and $1);
-            WriteStr(20,8,'c'+chr(byte((rs.ps and $1)<>0)+48),color);
-            SetColor(rs.ps and $2,OldReg.ps and $2);
-            WriteStr(18,8,'v'+chr(byte((rs.ps and $2)<>0)+48),color);
-            SetColor(rs.ps and $4,OldReg.ps and $4);
-            WriteStr(16,8,'z'+chr(byte((rs.ps and $4)<>0)+48),color);
-            SetColor(rs.ps and $8,OldReg.ps and $8);
-            WriteStr(14,8,'x'+chr(byte((rs.ps and $8)<>0)+48),color);
-{$endif i386}
-            OldReg:=rs;
-         end
-       else
-         WriteStr(0,0,'<debugger error>',7);
-    end;
-
-  destructor TRegistersView.Done;
-
-    begin
-       inherited done;
-    end;
-
-{****************************************************************************
-                         TRegistersWindow
-****************************************************************************}
-
-  constructor TRegistersWindow.Init;
-
-    var
-       R : TRect;
-
-    begin
-       Desktop^.GetExtent(R);
-       R.A.X:=R.B.X-28;
-       R.B.Y:=R.A.Y+11;
-       inherited Init(R,dialog_registers, wnNoNumber);
-       Flags:=wfClose or wfMove;
-       Palette:=wpCyanWindow;
-       HelpCtx:=hcRegistersWindow;
-       R.Assign(1,1,26,10);
-       RV:=new(PRegistersView,init(R));
-       Insert(RV);
-       If assigned(RegistersWindow) then
-         dispose(RegistersWindow,done);
-       RegistersWindow:=@Self;
-       Update;
-    end;
-
-  constructor TRegistersWindow.Load(var S: TStream);
-
-    begin
-       inherited load(S);
-       GetSubViewPtr(S,RV);
-       If assigned(RegistersWindow) then
-         dispose(RegistersWindow,done);
-       RegistersWindow:=@Self;
-    end;
-
-  procedure TRegistersWindow.Store(var S: TStream);
-
-    begin
-       inherited Store(s);
-       PutSubViewPtr(S,RV);
-    end;
-
-  procedure TRegistersWindow.Update;
-
-    begin
-       ReDraw;
-    end;
-
-  destructor TRegistersWindow.Done;
-
-    begin
-       RegistersWindow:=nil;
-       inherited done;
-    end;
-
-{****************************************************************************
-                         TFPUView
-****************************************************************************}
-
-  function GetFPURegs(var rs : TFPURegs) : boolean;
-
-    var
-       p,po : pchar;
-       p1 : pchar;
-    {$ifndef NODEBUG}
-       reg,value : string;
-       buffer : array[0..255] of char;
-       v : string;
-       res : cardinal;
-       i : longint;
-       err : word;
-    {$endif}
-
-    begin
-       GetFPURegs:=false;
-{$ifndef NODEBUG}
-       Debugger^.Command('info all');
-       if Debugger^.Error then
-         exit
-       else
-         begin
-            po:=StrNew(Debugger^.GetOutput);
-            p:=po;
-            if assigned(p) then
-              begin
-                 fillchar(rs,sizeof(rs),0);
-                 p1:=strscan(p,' ');
-                 while assigned(p1) do
-                   begin
-                      strlcopy(buffer,p,p1-p);
-                      reg:=strpas(buffer);
-                      p:=p1;
-                      while p^=' ' do
-                        inc(p);
-                      if p^='$' then
-                        p1:=strscan(p,#9)
-                      else
-                        p1:=strscan(p,#10);
-                      strlcopy(buffer,p,p1-p);
-                      v:=strpas(buffer);
-                      for i:=1 to length(v) do
-                        if v[i]=#9 then
-                          v[i]:=' ';
-                      val(v,res,err);
-{$ifdef i386}
-                      if reg='st0' then
-                        rs.st0:=v
-                      else if reg='st1' then
-                        rs.st1:=v
-                      else if reg='st2' then
-                        rs.st2:=v
-                      else if reg='st3' then
-                        rs.st3:=v
-                      else if reg='st4' then
-                        rs.st4:=v
-                      else if reg='st5' then
-                        rs.st5:=v
-                      else if reg='st6' then
-                        rs.st6:=v
-                      else if reg='st7' then
-                        rs.st7:=v
-                      else if reg='ftag' then
-                        rs.ftag:=res
-                      else if reg='fctrl' then
-                        rs.fctrl:=res
-                      else if reg='fstat' then
-                        rs.fstat:=res
-                      else if reg='fiseg' then
-                        rs.fiseg:=res
-                      else if reg='fioff' then
-                        rs.fioff:=res
-                      else if reg='foseg' then
-                        rs.foseg:=res
-                      else if reg='fooff' then
-                        rs.fooff:=res
-                      else if reg='fop' then
-                        rs.fop:=res;
-{$endif i386}
-{$ifdef m68k}
-                      if reg='fp0' then
-                        rs.fp0:=v
-                      else if reg='fp1' then
-                        rs.fp1:=v
-                      else if reg='fp2' then
-                        rs.fp2:=v
-                      else if reg='fp3' then
-                        rs.fp3:=v
-                      else if reg='fp4' then
-                        rs.fp4:=v
-                      else if reg='fp5' then
-                        rs.fp5:=v
-                      else if reg='fp6' then
-                        rs.fp6:=v
-                      else if reg='fp7' then
-                        rs.fp7:=v
-                      else if reg='fpcontrol' then
-                        rs.fpcontrol:=res
-                      else if reg='fpstatus' then
-                        rs.fpstatus:=res
-                      else if reg='fpiaddr' then
-                        rs.fpiaddr:=res;
-{$endif m68k}
-                      p:=strscan(p1,#10);
-                      if assigned(p) then
-                        begin
-                           p1:=strscan(p,' ');
-                           inc(p);
-                        end
-                      else
-                        break;
-                   end;
-                 { free allocated memory }
-                 strdispose(po);
-              end
-            else
-              exit;
-         end;
-       { do not open a messagebox for such errors }
-       Debugger^.got_error:=false;
-       GetFPURegs:=true;
-{$endif}
-    end;
-
-  constructor TFPUView.Init(var Bounds: TRect);
-
-    begin
-       inherited init(Bounds);
-    end;
-
-  procedure TFPUView.Draw;
-
-    var
-       rs : tfpuregs;
-       top : byte;
-       color :byte;
-    const
-      TypeStr : Array[0..3] of string[6] =
-      ('Valid ','Zero  ','Spec  ','Empty ');
-
-    procedure SetColor(Const x,y : string);
-    begin
-      if x=y then
-        color:=7
-      else
-        color:=8;
-    end;
-
-    procedure SetIColor(Const x,y : cardinal);
-    begin
-      if x=y then
-        color:=7
-      else
-        color:=8;
-    end;
-
-    begin
-       inherited draw;
-       If not assigned(Debugger) then
-         begin
-            WriteStr(1,0,'<no values available>',7);
-            exit;
-         end;
-       if GetFPURegs(rs) then
-         begin
-{$ifdef i386}
-            top:=(rs.fstat shr 11) and 7;
-            SetColor(rs.st0,OldReg.st0);
-            WriteStr(1,0,'ST0 '+TypeStr[(rs.ftag shr (2*((0+top) and 7))) and 3]+rs.st0,color);
-            SetColor(rs.st1,OldReg.st1);
-            WriteStr(1,1,'ST1 '+TypeStr[(rs.ftag shr (2*((1+top) and 7))) and 3]+rs.st1,color);
-            SetColor(rs.st2,OldReg.st2);
-            WriteStr(1,2,'ST2 '+TypeStr[(rs.ftag shr (2*((2+top) and 7))) and 3]+rs.st2,color);
-            SetColor(rs.st3,OldReg.st3);
-            WriteStr(1,3,'ST3 '+TypeStr[(rs.ftag shr (2*((3+top) and 7))) and 3]+rs.st3,color);
-            SetColor(rs.st4,OldReg.st4);
-            WriteStr(1,4,'ST4 '+TypeStr[(rs.ftag shr (2*((4+top) and 7))) and 3]+rs.st4,color);
-            SetColor(rs.st5,OldReg.st5);
-            WriteStr(1,5,'ST5 '+TypeStr[(rs.ftag shr (2*((5+top) and 7))) and 3]+rs.st5,color);
-            SetColor(rs.st6,OldReg.st6);
-            WriteStr(1,6,'ST6 '+TypeStr[(rs.ftag shr (2*((6+top) and 7))) and 3]+rs.st6,color);
-            SetColor(rs.st7,OldReg.st7);
-            WriteStr(1,7,'ST7 '+TypeStr[(rs.ftag shr (2*((7+top) and 7))) and 3]+rs.st7,color);
-            SetIColor(rs.ftag,OldReg.ftag);
-            WriteStr(1,8,'FTAG   '+hexstr(rs.ftag,4),color);
-            SetIColor(rs.fctrl,OldReg.fctrl);
-            WriteStr(13,8,'FCTRL  '+hexstr(rs.fctrl,4),color);
-            SetIColor(rs.fstat,OldReg.fstat);
-            WriteStr(1,9,'FSTAT  '+hexstr(rs.fstat,4),color);
-            SetIColor(rs.fop,OldReg.fop);
-            WriteStr(13,9,'FOP    '+hexstr(rs.fop,4),color);
-            if (rs.fiseg<>OldReg.fiseg) or
-               (rs.fioff<>OldReg.fioff) then
-              color:=8
-            else
-              color:=7;
-            WriteStr(1,10,'FI    '+hexstr(rs.fiseg,4)+':'+hexstr(rs.fioff,8),color);
-            if (rs.foseg<>OldReg.foseg) or
-               (rs.fooff<>OldReg.fooff) then
-              color:=8
-            else
-              color:=7;
-            WriteStr(1,11,'FO    '+hexstr(rs.foseg,4)+':'+hexstr(rs.fooff,8),color);
-            OldReg:=rs;
-{$endif i386}
-{$ifdef m68k}
-            SetColor(rs.fp0,OldReg.fp0);
-            WriteStr(1,0,'fp0 '+rs.fp0,color);
-            SetColor(rs.fp1,OldReg.fp1);
-            WriteStr(1,1,'fp1 '+rs.fp1,color);
-            SetColor(rs.fp2,OldReg.fp2);
-            WriteStr(1,2,'fp2 '+rs.fp2,color);
-            SetColor(rs.fp3,OldReg.fp3);
-            WriteStr(1,3,'fp3 '+rs.fp3,color);
-            SetColor(rs.fp4,OldReg.fp4);
-            WriteStr(1,4,'fp4 '+rs.fp4,color);
-            SetColor(rs.fp5,OldReg.fp5);
-            WriteStr(1,5,'fp5 '+rs.fp5,color);
-            SetColor(rs.fp6,OldReg.fp6);
-            WriteStr(1,6,'fp6 '+rs.fp6,color);
-            SetColor(rs.fp7,OldReg.fp7);
-            WriteStr(1,7,'fp7 '+rs.fp7,color);
-            SetIColor(rs.fpcontrol,OldReg.fpcontrol);
-            WriteStr(1,8,'fpcontrol   '+hexstr(rs.fpcontrol,8),color);
-            SetIColor(rs.fpstatus,OldReg.fpstatus);
-            WriteStr(1,9,'fpstatus    '+hexstr(rs.fpstatus,8),color);
-            SetIColor(rs.fpiaddr,OldReg.fpiaddr);
-            WriteStr(1,10,'fpiaddr    '+hexstr(rs.fpiaddr,8),color);
-            OldReg:=rs;
-{$endif m68k}
-         end
-       else
-         WriteStr(0,0,'<debugger error>',7);
-    end;
-
-  destructor TFPUView.Done;
-
-    begin
-       inherited done;
-    end;
-
-{****************************************************************************
-                         TFPUWindow
-****************************************************************************}
-
-  constructor TFPUWindow.Init;
-
-    var
-       R : TRect;
-
-    begin
-       Desktop^.GetExtent(R);
-       R.A.X:=R.B.X-44;
-       R.B.Y:=R.A.Y+14;
-       inherited Init(R,dialog_fpu, wnNoNumber);
-       Flags:=wfClose or wfMove;
-       Palette:=wpCyanWindow;
-       HelpCtx:=hcFPURegisters;
-       R.Assign(1,1,42,13);
-       RV:=new(PFPUView,init(R));
-       Insert(RV);
-       If assigned(FPUWindow) then
-         dispose(FPUWindow,done);
-       FPUWindow:=@Self;
-       Update;
-    end;
-
-  constructor TFPUWindow.Load(var S: TStream);
-
-    begin
-       inherited load(S);
-       GetSubViewPtr(S,RV);
-       If assigned(FPUWindow) then
-         dispose(FPUWindow,done);
-       FPUWindow:=@Self;
-    end;
-
-  procedure TFPUWindow.Store(var S: TStream);
-
-    begin
-       inherited Store(s);
-       PutSubViewPtr(S,RV);
-    end;
-
-  procedure TFPUWindow.Update;
-
-    begin
-       ReDraw;
-    end;
-
-  destructor TFPUWindow.Done;
-
-    begin
-       FPUWindow:=nil;
-       inherited done;
-    end;
 
 {****************************************************************************
                          TStackWindow
@@ -3553,6 +3157,8 @@ end;
       { forget all old frames }
       Debugger^.clear_frames;
 
+      if Debugger^.WindowWidth<>-1 then
+        Debugger^.Command('set width 0xffffffff');
       Debugger^.Command('backtrace');
       { generate list }
       { all is in tframeentry }
@@ -3593,6 +3199,8 @@ end;
         end;
       if Assigned(list) and (List^.Count > 0) then
         FocusItem(0);
+      if Debugger^.WindowWidth<>-1 then
+        Debugger^.Command('set width '+IntToStr(Debugger^.WindowWidth));
       DeskTop^.Unlock;
      {$endif}
     end;
@@ -3610,7 +3218,7 @@ end;
     {$ifndef NODEBUG}
       Debugger^.Command('f '+IntToStr(Focused));
       { for local vars }
-      Debugger^.ReadWatches;
+      Debugger^.RereadWatches;
    {$endif}
       { goto source }
       inherited GotoSource;
@@ -3624,7 +3232,7 @@ end;
     {$ifndef NODEBUG}
       Debugger^.Command('f '+IntToStr(Focused));
       { for local vars }
-      Debugger^.ReadWatches;
+      Debugger^.RereadWatches;
    {$endif}
       { goto source/assembly mixture }
       InitDisassemblyWindow;
@@ -3712,6 +3320,20 @@ end;
                          Init/Final
 ****************************************************************************}
 
+
+function GetGDBTargetShortName : string;
+begin
+{$ifdef SUPPORT_REMOTE}
+GetGDBTargetShortName:='linux';
+{$else not SUPPORT_REMOTE}
+{$ifdef COMPILER_1_0}
+GetGDBTargetShortName:=source_os.shortname
+{$else}
+GetGDBTargetShortName:=source_info.shortname
+{$endif}
+{$endif not SUPPORT_REMOTE}
+end;
+
 procedure InitDebugger;
 {$ifdef DEBUG}
 var s : string;
@@ -3749,11 +3371,11 @@ begin
 {$endif}
 
   NeedRecompileExe:=false;
-  if TargetSwitches^.GetCurrSelParam<>{$ifdef COMPILER_1_0}source_os{$else}source_info{$endif}.shortname then
+  if TargetSwitches^.GetCurrSelParam<>GetGDBTargetShortName then
     begin
      ClearFormatParams;
      AddFormatParamStr(TargetSwitches^.GetCurrSelParam);
-     AddFormatParamStr({$ifdef COMPILER_1_0}source_os{$else}source_info{$endif}.shortname);
+     AddFormatParamStr(GetGDBTargetShortName);
      cm:=ConfirmBox(msg_cantdebugchangetargetto,@FormatParams,true);
      if cm=cmCancel then
        Exit;
@@ -3762,7 +3384,7 @@ begin
          { force recompilation }
          PrevMainFile:='';
          NeedRecompileExe:=true;
-         TargetSwitches^.SetCurrSelParam({$ifdef COMPILER_1_0}source_os{$else}source_info{$endif}.shortname);
+         TargetSwitches^.SetCurrSelParam(GetGDBTargetShortName);
          If DebugInfoSwitches^.GetCurrSelParam='-' then
            DebugInfoSwitches^.SetCurrSelParam('l');
          IDEApp.UpdateTarget;
@@ -3811,19 +3433,25 @@ end;
 procedure DoneDebugger;
 begin
 {$ifdef DEBUG}
-  { PushStatus('Closing debugger');
-    No its called after App.Done !! }
+  If IDEApp.IsRunning then
+    PushStatus('Closing debugger');
 {$endif}
   if assigned(Debugger) then
    dispose(Debugger,Done);
   Debugger:=nil;
+{$ifdef DOS}
+  If assigned(UserScreen) then
+    PDosScreen(UserScreen)^.FreeGraphBuffer;
+{$endif DOS}
 {$ifdef DEBUG}
   If Use_gdb_file then
-    Close(GDB_file);
-  Use_gdb_file:=false;
-  {PopStatus;}
+    begin
+      Use_gdb_file:=false;
+      Close(GDB_file);
+    end;
+  If IDEApp.IsRunning then
+    PopStatus;
 {$endif DEBUG}
-  {DoneGDBWindow;}
 end;
 
 procedure InitGDBWindow;
@@ -3840,11 +3468,12 @@ end;
 
 procedure DoneGDBWindow;
 begin
-  if assigned(GDBWindow) then
+  If IDEApp.IsRunning and
+     assigned(GDBWindow) then
     begin
       DeskTop^.Delete(GDBWindow);
-      GDBWindow:=nil;
     end;
+  GDBWindow:=nil;
 end;
 
 procedure InitDisassemblyWindow;
@@ -3887,42 +3516,6 @@ begin
     end;
 end;
 
-procedure InitRegistersWindow;
-begin
-  if RegistersWindow=nil then
-    begin
-      new(RegistersWindow,init);
-      DeskTop^.Insert(RegistersWindow);
-    end;
-end;
-
-procedure DoneRegistersWindow;
-begin
-  if assigned(RegistersWindow) then
-    begin
-      DeskTop^.Delete(RegistersWindow);
-      RegistersWindow:=nil;
-    end;
-end;
-
-procedure InitFPUWindow;
-begin
-  if FPUWindow=nil then
-    begin
-      new(FPUWindow,init);
-      DeskTop^.Insert(FPUWindow);
-    end;
-end;
-
-procedure DoneFPUWindow;
-begin
-  if assigned(FPUWindow) then
-    begin
-      DeskTop^.Delete(FPUWindow);
-      FPUWindow:=nil;
-    end;
-end;
-
 procedure InitBreakpoints;
 begin
   New(BreakpointsCollection,init(10,10));
@@ -3957,449 +3550,106 @@ begin
   RegisterType(RWatch);
   RegisterType(RBreakpointCollection);
   RegisterType(RWatchesCollection);
-  RegisterType(RRegistersWindow);
-  RegisterType(RRegistersView);
-  RegisterType(RFPUWindow);
-  RegisterType(RFPUView);
 end;
 
 end.
 
 {
   $Log$
-  Revision 1.9  2002-02-06 14:45:00  pierre
+  Revision 1.40  2002-02-09 02:04:46  pierre
+   * fix problem with disable all invalid breakpoints
+
+  Revision 1.39  2002/12/12 00:05:57  pierre
+   * add code for breakpoint moves + registers in fprags.pas unit
+
+  Revision 1.38  2002/11/30 01:56:52  pierre
+   + powerpc cpu support started
+
+  Revision 1.37  2002/11/28 13:00:25  pierre
+   + remote support
+
+  Revision 1.36  2002/11/21 17:52:28  pierre
+   * some crossgdb infos added
+
+  Revision 1.35  2002/11/21 15:48:39  pierre
+   * fix several problems related to remote cross debugging
+
+  Revision 1.34  2002/11/21 00:37:56  pierre
+   + some cross gdb enhancements
+
+  Revision 1.33  2002/09/21 22:23:49  pierre
+   * restore text mode on reset for Dos apps
+
+  Revision 1.32  2002/09/17 21:58:45  pierre
+   * correct last fpu patch so 'info all' is called only once
+
+  Revision 1.31  2002/09/17 21:48:41  pierre
+   * allow fpu window to be resized
+
+  Revision 1.30  2002/09/17 21:20:07  pierre
+   * fix infinite recursion if GDB window and register window open
+
+  Revision 1.29  2002/09/13 22:30:50  pierre
+   * only fpc uses video unit
+
+  Revision 1.28  2002/09/13 08:13:07  pierre
+   * avoid RTE 201 in hexstr calls
+
+  Revision 1.27  2002/09/07 21:04:41  carl
+    * fix range check errors for version 1.1 compilation
+
+  Revision 1.26  2002/09/07 15:40:42  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.25  2002/09/03 13:59:47  pierre
+   + added history for watches and breakpoints
+
+  Revision 1.24  2002/09/02 10:18:09  pierre
+   * fix problems with breakpoint lists
+
+  Revision 1.23  2002/08/13 08:59:12  pierre
+   + Run menu changes depending on wether the debuggee is running or not
+
+  Revision 1.22  2002/08/13 07:15:02  pierre
+   + Disable all invalid breakpoints feature added
+
+  Revision 1.21  2002/06/10 19:26:48  pierre
+   * check if DebuggeTTY is a valid terminal
+
+  Revision 1.20  2002/06/06 14:11:25  pierre
+   * handle win32 Ctrl-C change for graphic version
+
+  Revision 1.19  2002/06/06 08:16:18  pierre
+   * avoid crashes if quitting while debuggee is running
+
+  Revision 1.18  2002/04/25 13:33:31  pierre
+   * fix the problem with dirs containing asterisks
+
+  Revision 1.17  2002/04/17 11:11:54  pierre
+    * avoid problems for ClassVariable in Watches window
+
+  Revision 1.16  2002/04/11 06:41:13  pierre
+   * fix problem of TWatchesListBox with fvision
+
+  Revision 1.15  2002/04/03 06:18:30  pierre
+   * fix some win32 GDB filename problems
+
+  Revision 1.14  2002/04/02 15:09:38  pierre
+   * fixed wrong exit without unlock
+
+  Revision 1.13  2002/04/02 13:23:54  pierre
+   * Use StrToCard and HexToCard functions to avoid signed/unsigned overflows
+
+  Revision 1.12  2002/04/02 12:20:58  pierre
+   * fix problem with breakpoints in subdirs
+
+  Revision 1.11  2002/04/02 11:10:29  pierre
+   * fix FPC_BREAK_ERROR problem and avoid blinking J
+
+  Revision 1.10  2002/03/27 11:24:09  pierre
+   * fix several problems related to long file nmze support for win32 exes
+
+  Revision 1.9  2002/02/06 14:45:00  pierre
    + handle signals
-
-  Revision 1.8  2001/11/10 00:11:45  pierre
-   * change target menu name if target changed to become debug-able
-
-  Revision 1.7  2001/11/07 00:28:52  pierre
-   + Disassembly window made public
-
-  Revision 1.6  2001/10/14 14:16:06  peter
-    * fixed typo for linux
-
-  Revision 1.5  2001/10/11 11:39:35  pierre
-   * better NoSwitch check for unix
-
-  Revision 1.4  2001/09/12 09:48:38  pierre
-   + SetDirectories method added to help for disassembly window
-
-  Revision 1.3  2001/08/07 22:58:10  pierre
-   * watches display enhanced and crashes removed
-
-  Revision 1.2  2001/08/05 02:01:47  peter
-    * FVISION define to compile with fvision units
-
-  Revision 1.1  2001/08/04 11:30:23  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.35  2001/08/03 13:33:51  pierre
-   * better looking m68k flags
-
-  Revision 1.1.2.34  2001/07/31 21:40:42  pierre
-   * fix typo erros in last commit
-
-  Revision 1.1.2.33  2001/07/31 15:12:45  pierre
-  + some m68k register support
-
-  Revision 1.1.2.32  2001/07/29 22:12:23  peter
-    * fixed private symbol that needs to be public
-
-  Revision 1.1.2.31  2001/06/13 16:22:02  pierre
-   * use CygdrivePrefix function for win32
-
-  Revision 1.1.2.30  2001/04/10 11:50:09  pierre
-    * only stop if erroraddress or exitcode non zero
-    + reset the file in DoneDebugger to avoid problem
-      if the executable file remains opened by GDB when recompiling
-
-  Revision 1.1.2.29  2001/03/22 17:28:57  pierre
-   * more stuff for stop at exit if error
-
-  Revision 1.1.2.28  2001/03/22 01:14:08  pierre
-   * work on Exit breakpoint if error
-
-  Revision 1.1.2.27  2001/03/20 00:20:42  pierre
-   * fix some memory leaks + several small enhancements
-
-  Revision 1.1.2.26  2001/03/15 17:45:19  pierre
-   * avoid to get the values of expressions twice
-
-  Revision 1.1.2.25  2001/03/15 17:08:52  pierre
-   * avoid extra info past watches values
-
-  Revision 1.1.2.24  2001/03/13 00:36:44  pierre
-   * small DisassemblyWindow fixes
-
-  Revision 1.1.2.23  2001/03/12 17:34:54  pierre
-   + Disassembly window started
-
-  Revision 1.1.2.22  2001/03/09 15:08:12  pierre
-    * Watches list reorganised so that the behavior
-      is more near to BP one.
-    + First version of FPU window for i386.
-
-  Revision 1.1.2.21  2001/03/08 16:41:03  pierre
-   * correct watch horizontal scrolling
-
-  Revision 1.1.2.20  2001/03/06 22:42:22  pierre
-   * check for modifed open files at stop of beguggee
-
-  Revision 1.1.2.19  2001/03/06 21:44:13  pierre
-   * avoid problems if recompiling in debug session
-
-  Revision 1.1.2.18  2001/01/09 11:49:30  pierre
-   * fix DebugRow highlighting problem if Call Stack Window is open
-
-  Revision 1.1.2.17  2001/01/07 22:37:41  peter
-    * quiting gdbwindow works now
-
-  Revision 1.1.2.16  2000/12/13 16:58:11  pierre
-   * AllowQuit changed, still does not work correctly :(
-
-  Revision 1.1.2.15  2000/11/29 18:28:51  pierre
-   + add save to file capability for list boxes
-
-  Revision 1.1.2.14  2000/11/29 11:25:59  pierre
-   + TFPDlgWindow that handles cmSearchWindow
-
-  Revision 1.1.2.13  2000/11/29 00:54:44  pierre
-   + preserve window number and save special windows
-
-  Revision 1.1.2.12  2000/11/27 17:41:45  pierre
-   * better GDB window opening if nothing compiled yet
-
-  Revision 1.1.2.11  2000/11/16 23:06:30  pierre
-  * correct handling of Compile/Make if primary file is set
-
-  Revision 1.1.2.10  2000/11/14 17:40:42  pierre
-   + External linking now optional
-
-  Revision 1.1.2.9  2000/11/14 09:23:55  marco
-   * Second batch
-
-  Revision 1.1.2.8  2000/11/13 16:59:08  pierre
-   * some function in double removed from fputils unit
-
-  Revision 1.1.2.7  2000/10/31 07:47:54  pierre
-   * start to support FPC_BREAK_ERROR
-
-  Revision 1.1.2.6  2000/10/26 00:04:35  pierre
-   + gdb prompt and FPC_BREAK_ERROR stop
-
-  Revision 1.1.2.5  2000/10/09 19:48:15  pierre
-   * wrong commit corrected
-
-  Revision 1.1.2.4  2000/10/09 16:28:24  pierre
-   * several linux enhancements
-
-  Revision 1.1.2.3  2000/10/06 22:52:34  pierre
-   * fixes for linux GDB tty command
-
-  Revision 1.1.2.2  2000/09/22 12:02:34  jonas
-    * corrected command for running user program in other tty under linux
-      (doesn't work yet though)
-
-  Revision 1.1.2.1  2000/07/18 05:50:22  michael
-  + Merged Gabors fixes
-
-  Revision 1.1  2000/07/13 09:48:34  michael
-  + Initial import
-
-  Revision 1.63  2000/06/22 09:07:11  pierre
-   * Gabor changes: see fixes.txt
-
-  Revision 1.62  2000/06/11 07:01:32  peter
-    * give watches window also a number
-    * leave watches window in the bottom when cascading windows
-
-  Revision 1.61  2000/05/02 08:42:27  pierre
-   * new set of Gabor changes: see fixes.txt
-
-  Revision 1.60  2000/04/18 21:45:35  pierre
-   * Red line for breakpoint was off by one line
-
-  Revision 1.59  2000/04/18 11:42:36  pierre
-   lot of Gabor changes : see fixes.txt
-
-  Revision 1.58  2000/03/21 23:32:38  pierre
-   adapted to wcedit addition by Gabor
-
-  Revision 1.57  2000/03/14 14:22:30  pierre
-   + generate cmDebuggerStopped broadcast
-
-  Revision 1.56  2000/03/08 16:57:01  pierre
-    * Wrong highlighted line while debugging fixed
-    + Check if exe has debugging info
-
-  Revision 1.55  2000/03/07 21:52:54  pierre
-   + TDebugController.GetValue
-
-  Revision 1.54  2000/03/06 11:34:25  pierre
-   + windebug unit for Window Title change when debugging
-
-  Revision 1.53  2000/02/07 12:51:32  pierre
-   * typo fix
-
-  Revision 1.52  2000/02/07 11:50:30  pierre
-   Gabor changes for TP
-
-  Revision 1.51  2000/02/06 23:43:57  pierre
-   * breakpoint path problems fixes
-
-  Revision 1.50  2000/02/05 01:27:58  pierre
-    * bug with Toggle Break fixed, hopefully
-    + search for local vars in parent procs avoiding
-      wrong results (see test.pas source)
-
-  Revision 1.49  2000/02/04 23:18:05  pierre
-   * no pushstatus in DoneDebugger because its called after App.done
-
-  Revision 1.48  2000/02/04 14:34:46  pierre
-  readme.txt
-
-  Revision 1.47  2000/02/04 00:10:58  pierre
-   * Breakpoint line in Source Window better handled
-
-  Revision 1.46  2000/02/01 10:59:58  pierre
-   * allow FP to debug itself
-
-  Revision 1.45  2000/01/28 22:38:21  pierre
-   * CrtlF9 starts debugger if there are active breakpoints
-
-  Revision 1.44  2000/01/27 22:30:38  florian
-    * start of FPU window
-    * current executed line color has a higher priority then a breakpoint now
-
-  Revision 1.43  2000/01/20 00:31:53  pierre
-   * uses ShortName of exe to start GDB
-
-  Revision 1.42  2000/01/10 17:49:40  pierre
-   * Get RegisterView to Update correctly
-   * Write in white changed regs (keeping a copy of previous values)
-
-  Revision 1.41  2000/01/10 16:20:50  florian
-    * working register window
-
-  Revision 1.40  2000/01/10 13:20:57  pierre
-   + debug only possible on source target
-
-  Revision 1.39  2000/01/10 00:25:06  pierre
-   * RegisterWindow problem fixed
-
-  Revision 1.38  2000/01/09 21:05:51  florian
-    * some fixes for register view
-
-  Revision 1.37  2000/01/08 18:26:20  florian
-    + added a register window, doesn't work yet
-
-  Revision 1.36  1999/12/20 14:23:16  pierre
-    * MyApp renamed IDEApp
-    * TDebugController.ResetDebuggerRows added to
-      get resetting of debugger rows
-
-  Revision 1.35  1999/11/24 14:03:16  pierre
-   + Executing... in status line if in another window
-
-  Revision 1.34  1999/11/10 17:19:58  pierre
-   + Other window for Debuggee code
-
-  Revision 1.33  1999/10/25 16:39:03  pierre
-   + GetPChar to avoid nil pointer problems
-
-  Revision 1.32  1999/09/16 14:34:57  pierre
-    + TBreakpoint and TWatch registering
-    + WatchesCollection and BreakpointsCollection stored in desk file
-    * Syntax highlighting was broken
-
-  Revision 1.31  1999/09/13 16:24:43  peter
-    + clock
-    * backspace unident like tp7
-
-  Revision 1.30  1999/09/09 16:36:30  pierre
-   * Breakpoint storage problem corrected
-
-  Revision 1.29  1999/09/09 16:31:45  pierre
-   * some breakpoint related fixes and Help contexts
-
-  Revision 1.28  1999/09/09 14:20:05  pierre
-   + Stack Window
-
-  Revision 1.27  1999/08/24 22:04:33  pierre
-    + TCodeEditor.SetDebuggerRow
-      works like SetHighlightRow but is only disposed by a SetDebuggerRow(-1)
-      so the current stop point in debugging is not lost if
-      we move the cursor
-
-  Revision 1.26  1999/08/22 22:26:48  pierre
-   + Registration of Breakpoint/Watches windows
-
-  Revision 1.25  1999/08/16 18:25:15  peter
-    * Adjusting the selection when the editor didn't contain any line.
-    * Reserved word recognition redesigned, but this didn't affect the overall
-      syntax highlight speed remarkably (at least not on my Amd-K6/350).
-      The syntax scanner loop is a bit slow but the main problem is the
-      recognition of special symbols. Switching off symbol processing boosts
-      the performance up to ca. 200%...
-    * The editor didn't allow copying (for ex to clipboard) of a single character
-    * 'File|Save as' caused permanently run-time error 3. Not any more now...
-    * Compiler Messages window (actually the whole desktop) did not act on any
-      keypress when compilation failed and thus the window remained visible
-    + Message windows are now closed upon pressing Esc
-    + At 'Run' the IDE checks whether any sources are modified, and recompiles
-      only when neccessary
-    + BlockRead and BlockWrite (Ctrl+K+R/W) implemented in TCodeEditor
-    + LineSelect (Ctrl+K+L) implemented
-    * The IDE had problems closing help windows before saving the desktop
-
-  Revision 1.24  1999/08/03 20:22:28  peter
-    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
-    + Desktop saving should work now
-       - History saved
-       - Clipboard content saved
-       - Desktop saved
-       - Symbol info saved
-    * syntax-highlight bug fixed, which compared special keywords case sensitive
-      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
-    * with 'whole words only' set, the editor didn't found occourences of the
-      searched text, if the text appeared previously in the same line, but didn't
-      satisfied the 'whole-word' condition
-    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
-      (ie. the beginning of the selection)
-    * when started typing in a new line, but not at the start (X=0) of it,
-      the editor inserted the text one character more to left as it should...
-    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
-    * Shift shouldn't cause so much trouble in TCodeEditor now...
-    * Syntax highlight had problems recognizing a special symbol if it was
-      prefixed by another symbol character in the source text
-    * Auto-save also occours at Dos shell, Tool execution, etc. now...
-
-  Revision 1.23  1999/07/28 23:11:17  peter
-    * fixes from gabor
-
-  Revision 1.22  1999/07/12 13:14:15  pierre
-    * LineEnd bug corrected, now goes end of text even if selected
-    + Until Return for debugger
-    + Code for Quit inside GDB Window
-
-  Revision 1.21  1999/07/11 00:35:14  pierre
-   * fix problems for wrong watches
-
-  Revision 1.20  1999/07/10 01:24:14  pierre
-   + First implementation of watches window
-
-  Revision 1.19  1999/06/30 23:58:12  pierre
-    + BreakpointsList Window implemented
-      with Edit/New/Delete functions
-    + Individual breakpoint dialog with support for all types
-      ignorecount and conditions
-      (commands are not yet implemented, don't know if this wolud be useful)
-      awatch and rwatch have problems because GDB does not annotate them
-      I fixed v4.16 for this
-
-  Revision 1.18  1999/03/16 00:44:42  peter
-    * forgotten in last commit :(
-
-  Revision 1.17  1999/03/02 13:48:28  peter
-    * fixed far problem is fpdebug
-    * tile/cascading with message window
-    * grep fixes
-
-  Revision 1.16  1999/03/01 15:41:52  peter
-    + Added dummy entries for functions not yet implemented
-    * MenuBar didn't update itself automatically on command-set changes
-    * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
- set
-    * efBackSpaceUnindents works correctly
-    + 'Messages' window implemented
-    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
-    + Added TP message-filter support (for ex. you can call GREP thru
-      GREP2MSG and view the result in the messages window - just like in TP)
-    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
-      so topic search didn't work...
-    * In FPHELP.PAS there were still context-variables defined as word instead
-      of THelpCtx
-    * StdStatusKeys() was missing from the statusdef for help windows
-    + Topic-title for index-table can be specified when adding a HTML-files
-
-  Revision 1.15  1999/02/20 15:18:29  peter
-    + ctrl-c capture with confirm dialog
-    + ascii table in the tools menu
-    + heapviewer
-    * empty file fixed
-    * fixed callback routines in fpdebug to have far for tp7
-
-  Revision 1.14  1999/02/16 12:47:36  pierre
-   * GDBWindow does not popup on F7 or F8 anymore
-
-  Revision 1.13  1999/02/16 10:43:54  peter
-    * use -dGDB for the compiler
-    * only use gdb_file when -dDEBUG is used
-    * profiler switch is now a toggle instead of radiobutton
-
-  Revision 1.12  1999/02/11 19:07:20  pierre
-    * GDBWindow redesigned :
-      normal editor apart from
-      that any kbEnter will send the line (for begin to cursor)
-      to GDB command !
-      GDBWindow opened in Debugger Menu
-       still buggy :
-       -echo should not be present if at end of text
-       -GDBWindow becomes First after each step (I don't know why !)
-
-  Revision 1.11  1999/02/11 13:10:03  pierre
-   + GDBWindow only with -dGDBWindow for now : still buggy !!
-
-  Revision 1.10  1999/02/10 09:55:07  pierre
-    + added OldValue and CurrentValue field for watchpoints
-    + InitBreakpoints and DoneBreakpoints
-    + MessageBox if GDB stops bacause of a watchpoint !
-
-  Revision 1.9  1999/02/08 17:43:43  pierre
-    * RestDebugger or multiple running of debugged program now works
-    + added DoContToCursor(F4)
-    * Breakpoints are now inserted correctly (was mainlyy a problem
-      of directories)
-
-  Revision 1.8  1999/02/05 17:21:52  pierre
-    Invalid_line renamed InvalidSourceLine
-
-  Revision 1.7  1999/02/05 13:08:41  pierre
-   + new breakpoint types added
-
-  Revision 1.6  1999/02/05 12:11:53  pierre
-    + SourceDir that stores directories for sources that the
-      compiler should not know about
-      Automatically asked for addition when a new file that
-      needed filedialog to be found is in an unknown directory
-      Stored and retrieved from INIFile
-    + Breakpoints conditions added to INIFile
-    * Breakpoints insterted and removed at debin and end of debug session
-
-  Revision 1.5  1999/02/04 17:54:22  pierre
-   + several commands added
-
-  Revision 1.4  1999/02/04 13:32:02  pierre
-    * Several things added (I cannot commit them independently !)
-    + added TBreakpoint and TBreakpointCollection
-    + added cmResetDebugger,cmGrep,CmToggleBreakpoint
-    + Breakpoint list in INIFile
-    * Select items now also depend of SwitchMode
-    * Reading of option '-g' was not possible !
-    + added search for -Fu args pathes in TryToOpen
-    + added code for automatic opening of FileDialog
-      if source not found
-
-  Revision 1.3  1999/02/02 16:41:38  peter
-    + automatic .pas/.pp adding by opening of file
-    * better debuggerscreen changes
-
-  Revision 1.2  1999/01/22 18:14:09  pierre
-   * adaptd to changes in gdbint and gdbcon for  to /
-
-  Revision 1.1  1999/01/22 10:24:03  peter
-    * first debugger things
 
 }
