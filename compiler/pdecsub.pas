@@ -736,7 +736,6 @@ implementation
       var
         pd : tprocdef;
         hs : string;
-        oldst : tsymtable;
         isclassmethod : boolean;
       begin
         pd:=nil;
@@ -761,12 +760,7 @@ implementation
                   if try_to_consume(_COLON) then
                    begin
                      inc(testcurobject);
-                     { Don't look in the objectsymtable for types }
-                     oldst:=symtablestack;
-                     if symtablestack.symtabletype=objectsymtable then
-                      symtablestack:=symtablestack.next;
                      single_type(pd.rettype,hs,false);
-                     symtablestack:=oldst;
                      pd.test_if_fpu_result;
                      dec(testcurobject);
                    end
@@ -2155,7 +2149,11 @@ const
 end.
 {
   $Log$
-  Revision 1.141  2003-10-01 18:28:55  peter
+  Revision 1.142  2003-10-01 19:05:33  peter
+    * searchsym_type to search for type definitions. It ignores
+      records,objects and parameters
+
+  Revision 1.141  2003/10/01 18:28:55  peter
     * don't look in objectsymtable when parsing the function return type
 
   Revision 1.140  2003/10/01 16:49:05  florian

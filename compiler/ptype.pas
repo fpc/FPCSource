@@ -100,9 +100,11 @@ implementation
               consume(_ID);
               exit;
            end;
-         { try to load the symbol to see if it's a unitsym }
+         { try to load the symbol to see if it's a unitsym. Use the
+           special searchsym_type that ignores records,objects and
+           parameters }
          is_unit_specific:=false;
-         searchsym(s,srsym,srsymtable);
+         searchsym_type(s,srsym,srsymtable);
          consume(_ID);
          if assigned(srsym) and
             (srsym.typ=unitsym) then
@@ -627,7 +629,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2003-09-23 17:56:06  peter
+  Revision 1.57  2003-10-01 19:05:33  peter
+    * searchsym_type to search for type definitions. It ignores
+      records,objects and parameters
+
+  Revision 1.56  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

@@ -112,7 +112,6 @@ implementation
       var
          sc : tsinglelist;
          old_block_type : tblock_type;
-         oldsymtablestack : tsymtable;
          symdone : boolean;
          { to handle absolute }
          abssym : tabsolutesym;
@@ -180,17 +179,7 @@ implementation
              { this is needed for Delphi mode at least
                but should be OK for all modes !! (PM) }
              ignore_equal:=true;
-             if is_record then
-              begin
-                { for records, don't search the recordsymtable for
-                  the symbols of the types }
-                oldsymtablestack:=symtablestack;
-                symtablestack:=symtablestack.next;
-                read_type(tt,'');
-                symtablestack:=oldsymtablestack;
-              end
-             else
-              read_type(tt,'');
+             read_type(tt,'');
              { types that use init/final are not allowed in variant parts, but
                classes are allowed }
              if (variantrecordlevel>0) and
@@ -506,12 +495,7 @@ implementation
               { may be only a type: }
               if assigned(srsym) and (srsym.typ in [typesym,unitsym]) then
                begin
-                 { for records, don't search the recordsymtable for
-                   the symbols of the types }
-                 oldsymtablestack:=symtablestack;
-                 symtablestack:=symtablestack.next;
                  read_type(casetype,'');
-                 symtablestack:=oldsymtablestack;
                end
               else
                 begin
@@ -519,10 +503,7 @@ implementation
                   consume(_COLON);
                   { for records, don't search the recordsymtable for
                     the symbols of the types }
-                  oldsymtablestack:=symtablestack;
-                  symtablestack:=symtablestack.next;
                   read_type(casetype,'');
-                  symtablestack:=oldsymtablestack;
                   vs:=tvarsym.create(sorg,vs_value,casetype);
                   tabstractrecordsymtable(symtablestack).insertfield(vs,true);
                 end;
@@ -617,7 +598,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2003-09-23 17:56:05  peter
+  Revision 1.52  2003-10-01 19:05:33  peter
+    * searchsym_type to search for type definitions. It ignores
+      records,objects and parameters
+
+  Revision 1.51  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

@@ -35,7 +35,7 @@ interface
        { ppu }
        ppu,symppu,
        { assembler }
-       aasmbase,aasmtai,aasmcpu
+       aasmtai
        ;
 
 
@@ -199,6 +199,7 @@ interface
 
 {*** Search ***}
     function  searchsym(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
+    function  searchsym_type(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
     function  searchsymonlyin(p : tsymtable;const s : stringid):tsym;
     function  searchsym_in_class(classh:tobjectdef;const s : stringid):tsym;
     function  searchsym_in_class_by_msgint(classh:tobjectdef;i:longint):tsym;
@@ -269,7 +270,7 @@ implementation
       gdb,
 {$endif GDB}
       { codegen }
-      cgbase,tgobj
+      procinfo
       ;
 
 
@@ -1794,6 +1795,37 @@ implementation
       end;
 
 
+    function  searchsym_type(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
+      var
+        speedvalue : cardinal;
+      begin
+         speedvalue:=getspeedvalue(s);
+         srsymtable:=symtablestack;
+         while assigned(srsymtable) do
+           begin
+              {
+                It is not possible to have type defintions in:
+                  records
+                  objects
+                  parameters
+              }
+              if not(srsymtable.symtabletype in [recordsymtable,objectsymtable,parasymtable]) then
+                begin
+                  srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
+                  if assigned(srsym) and
+                     (not assigned(current_procinfo) or
+                      tstoredsym(srsym).is_visible_for_proc(current_procinfo.procdef)) then
+                    begin
+                      result:=true;
+                      exit;
+                    end
+                end;
+              srsymtable:=srsymtable.next;
+           end;
+         result:=false;
+      end;
+
+
     function  searchsymonlyin(p : tsymtable;const s : stringid):tsym;
       var
         srsym      : tsym;
@@ -2227,7 +2259,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.110  2003-09-23 17:56:06  peter
+  Revision 1.111  2003-10-01 19:05:33  peter
+    * searchsym_type to search for type definitions. It ignores
+      records,objects and parameters
+
+  Revision 1.110  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
