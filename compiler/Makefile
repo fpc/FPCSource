@@ -64,6 +64,8 @@ override LOCALOPT+=$(LOCALDEF)
 	staticlib sharedlib \
 	staticinstall sharedinstall libinstall \
 
+all: testfpcmake myall
+
 info: testfpcmake fpc_info
 
 staticlib: testfpcmake fpc_staticlib
@@ -178,7 +180,7 @@ MSG2INC=msg2inc$(EXEEXT)
 # Default makefile
 #####################################################################
 
-all: testfpcmake $(EXENAME)
+myall: $(EXENAME)
 	$(MAKE) echotime
 
 ifeq ($(MAKELEVEL),0)
@@ -370,7 +372,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.23  1999-03-24 23:12:54  peter
+# Revision 1.24  1999-04-01 22:05:16  peter
+#   * only 'make' now does a make all instead of make info
+#
+# Revision 1.23  1999/03/24 23:12:54  peter
 #   * use ./ before tempnames
 #
 # Revision 1.22  1999/03/16 00:46:56  peter
