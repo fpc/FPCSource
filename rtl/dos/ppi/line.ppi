@@ -325,11 +325,11 @@ end else
      movl   i2,%eax
      movl   %eax,i2long
      movl   _WBUFFER,%eax
-     movl   %eax,wbuffer
+     movl   %eax,.Lwbuffer
      movl   _WINSHIFT,%eax
-     movb   %al,winshift
+     movb   %al,.Lwinshift
      movl   _WINLOMASK,%eax
-     movl   %eax,winlomask
+     movl   %eax,.Lwinlomask
      movb   $0x90,operandprefix       // Opcade nop  
      testw  $1,_AKTWRITEMODE
      jnz    line1XOR
@@ -359,10 +359,10 @@ line1_loop:
       addl   _X_ARRAY(,%ebx,4),%edi
       movl   %edi,%eax
       .byte 0x81,0xe7                 // andl ..,%edi
-    winlomask:                        //
+    .Lwinlomask:                        //
       .long 0x88888888                // _WINLOMASK
       .byte 0xc1,0xe8                 // shrl ..,%eax
-    winshift:                         //
+    .Lwinshift:                         //
       .byte 0x88                      // _WINSHIFT
       
       pushl  %edi
@@ -385,7 +385,7 @@ line1_dontswitch:
       popl   %eax
       popl   %ecx
      .byte   0x81,0xc7                 // addl ..,%edi
-    wbuffer:                           //
+    .Lwbuffer:                           //
      .long   0x88888888                // _WBUFFER
     operandprefix:
      .byte   0x90                      // Operandprefix (nop for Byte,$66 for Word)
@@ -544,8 +544,11 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.2  1998-09-02 08:16:00  pierre
+    * local asm labels with global variable names removed !!
+
+  Revision 1.1.1.1  1998/03/25 11:18:42  root
+  * Restored version
 
   Revision 1.4  1998/03/03 22:48:43  florian
     + graph.drawpoly procedure
