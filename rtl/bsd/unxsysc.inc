@@ -30,7 +30,7 @@ begin
    begin
      { We can save an interrupt here }
      fpgetpriority:=0;
-     linuxerror:=ESysEinval;
+     fpseterrno(ESysEinval);
    end
   else
    begin
