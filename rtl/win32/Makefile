@@ -206,6 +206,7 @@ UNITPREFIX=rtl
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
 PRT0=wprt0
+override FPCOPT+=-dMT
 else
 SYSTEMUNIT=syswin32
 PRT0=wprt0_10
