@@ -810,9 +810,10 @@ entry.
 
 \input{linuxex/ex22.tex}
 
-\function{UnLink}{(Path : pathstr)}{Boolean}
+\function{UnLink}{(Var Path)}{Boolean}
 {
-\var{UnLink} decreases the link count on file \var{Path}. If the link count is zero, the
+\var{UnLink} decreases the link count on file \var{Path}. \var{Path} can be
+of type \var{PathStr} or \var{PChar}. If the link count is zero, the
 file is removed from the disk.
 
 The function returns \var{True} if the call was succesfull, \var{False} if the call
@@ -1585,11 +1586,12 @@ is set.}
 
 For an example, see \seef{Select}.
 
-\function{fdOpen}{(pathname:string;flags:longint[; Mode: longint])}{longint}
+\function{fdOpen}{(Var PathName;flags:longint[; Mode: longint])}{longint}
 { \var{fdOpen} opens a file in \var{pathname} with flags \var{flags} a ORed combination of
   \var{Open\_Accmode, Open\_RdOnly, Open\_WrOnly, Open\_RdWr, Open\_Creat,
   Open\_Excl, Open\_NoCtty, Open\_Trunc, Open\_Append, Open\_NonBlock,
-  Open\_NDelay, Open\_Sync}
+  Open\_NDelay, Open\_Sync} \var{PathName} can be of type \var{PChar} or
+\var{String}
 
   The optional \var{mode} argument specifies the permissions to set when opening
   the file. This is modified by the umask setting. The real permissions are
@@ -1599,7 +1601,8 @@ For an example, see \seef{Select}.
   value if there was an error.
 }
 {Errors are returned in LinuxError}
-{\seef{fdClose}, \seef{fdRead}, \seef{fdWrite},\seef{fdTruncate}}
+{\seef{fdClose}, \seef{fdRead}, \seef{fdWrite},\seef{fdTruncate},
+\seef{fdFlush}, \seef{fdSeek}}
 
 \input{linuxex/ex19.tex}
 
@@ -1610,7 +1613,8 @@ returns \var{True} if the file was closed successfully, \var{False}
 otherwise. 
 }
 {Errors are returned in LinuxError}
-{\seef{fdOpen}, \seef{fdRead}, \seef{fdWrite},\seef{fdTruncate}}
+{\seef{fdOpen}, \seef{fdRead}, \seef{fdWrite},\seef{fdTruncate},
+\seef{fdFlush}, seef{FdSeek}}
 
 For an example, see \seef{fdOpen}.
 
@@ -1624,7 +1628,8 @@ an error occurred.
 No checking on the length of \var{buf} is done.
 }
 {Errors are returned in LinuxError.}
-{\seef{fdOpen}, \seef{fdClose}, \seef{fdWrite},\seef{fdTruncate}}
+{\seef{fdOpen}, \seef{fdClose}, \seef{fdWrite},\seef{fdTruncate},
+\seef{fdFlush}, \seef{fdSeek}}
 
 \input{linuxex/ex20.tex}
 
@@ -1636,11 +1641,28 @@ The function returns the number of bytes actually written, or -1 if an error
 occurred.
 }
 {Errors are returned in LinuxError.}
-{\seef{fdOpen}, \seef{fdClose}, \seef{fdRead},\seef{fdTruncate}}
+{\seef{fdOpen}, \seef{fdClose}, \seef{fdRead},\seef{fdTruncate},
+\seef{fdSeek}, \seef{fdFlush}}
+
+\function{fdSeek}{(fd,Pos,SeekType:longint}{longint}  
+{\var{fdSeek} sets the current fileposition of file \var{fd} to
+\var{Pos}, starting from \var{SeekType}, which can be one of the following:
+\begin{description}
+\item [Seek\_Set] \ \var{Pos} is the absolute position in the file.
+\item [Seek\_Cur] \ \var{Pos} is relative to the current position.
+\item [Seek\_end] \ \var{Pos} is relative to the end of the file.
+\end{description}
+
+The function returns the new fileposition, or -1 of an error occurred.
+}
+{Errors are returned in LinuxError.}
+{\seef{fdOpen}, \seef{fdWrite}, \seef{fdClose},
+\seef{fdRead},\seef{fdTruncate},
+ \seef{fdFlush}}
 
 For an example, see \seef{fdOpen}.
 
-\function{fdTruncate}{(fd,size:longint}{boolean}
+\function{fdTruncate}{(fd,size:longint)}{boolean}
 {\var{fdTruncate} sets the length of a file in \var{fd} on \var{size}
 bytes, where \var{size} must be less than or equal to the current length of
 the file in \var{fd}.
@@ -1648,7 +1670,19 @@ the file in \var{fd}.
 The function returns \var{True} if the call was successful, \var{false} if
 an error occurred.}
 {Errors are returned in LinuxError.}
-{\seef{fdOpen}, \seef{fdClose}, \seef{fdRead},\seef{fdWrite}}
+{\seef{fdOpen}, \seef{fdClose}, \seef{fdRead},\seef{fdWrite},\seef{fdFlush},
+\seef{fdSeek}}
+
+\function{fdFlush}{(fd:Longint)}{boolean}
+{\var{fdflush} flushes the Linux kernel file buffer, so the file is actually
+written to disk. This is NOT the same as the internal buffer, maintained by
+Free Pascal. 
+
+The function returns \var{True} if the call was successful, \var{false} if
+an error occurred.}
+{Errors are returned in LinuxError.}
+{\seef{fdOpen}, \seef{fdClose}, \seef{fdRead},\seef{fdWrite},
+\seef{fdTruncate}, \seef{fdSeek}}
 
 For an example, see \seef{fdRead}.
 
