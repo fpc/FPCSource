@@ -99,7 +99,8 @@ Future versions
   - full MT support in rtl
   - synchronized keyword
   - interfaces 
-
+  - lineinfo in the executable which can be showed instead
+    of addresses
 2.0
   - new code generator
   - complete inline support
