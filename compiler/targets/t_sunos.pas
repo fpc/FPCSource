@@ -273,12 +273,6 @@ begin
   prtobj:='prt0';
   cprtobj:='cprt0';
   gprtobj:='gprt0';
-(*  if glibc21 then
-   begin
-     cprtobj:='cprt21';
-     gprtobj:='gprt21';
-   end;
-*)
   if cs_profile in aktmoduleswitches then
    begin
      prtobj:=gprtobj;
@@ -319,8 +313,8 @@ begin
   { try to add crti and crtbegin if linking to C }
   if linklibc then { Needed in sunos? }
    begin
-     if librarysearchpath.FindFile('crtbegin.o',s) then
-      LinkRes.AddFileName(s);
+{     if librarysearchpath.FindFile('crtbegin.o',s) then
+      LinkRes.AddFileName(s);}
      if librarysearchpath.FindFile('crti.o',s) then
       LinkRes.AddFileName(s);
    end;
@@ -380,11 +374,11 @@ begin
   { objects which must be at the end }
   if linklibc then {needed in sunos ? }
    begin
-     if librarysearchpath.FindFile('crtend.o',s1) or
+     if {librarysearchpath.FindFile('crtend.o',s1) or}
         librarysearchpath.FindFile('crtn.o',s2) then
       begin
         LinkRes.Add('INPUT(');
-        LinkRes.AddFileName(s1);
+{        LinkRes.AddFileName(s1);}
         LinkRes.AddFileName(s2);
         LinkRes.Add(')');
       end;
@@ -561,7 +555,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2001-12-09 03:37:38  carl
+  Revision 1.15  2001-12-15 05:29:36  carl
+  + crtbegin.o and crtend.o now not linked anymore since they can cause conflicts with
+     GCC and the native C library...
+
+  Revision 1.14  2001/12/09 03:37:38  carl
   * Updated SunOS stack size
 
   Revision 1.13  2001/11/02 22:58:12  peter
