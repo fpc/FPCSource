@@ -743,7 +743,7 @@ end;
 
 
 var
-  __stkbottom : longint;//###########external name '__stkbottom';
+  __stkbottom : pointer;//###########external name '__stkbottom';
 
 
 
@@ -1376,7 +1376,7 @@ begin
   regs.realds:=tb_segment;
   regs.realedx:=tb_offset;
   regs.realflags:=carryflag;
-//!!  sysrealintr($21,regs); //!!wik
+  sysrealintr($21,regs);
 { If carryflag=0 and LFN API bit in ebx is set then use Long file names }
   CheckLFN:=(regs.realflags and carryflag=0) and (regs.realebx and $4000=$4000);
 end;
@@ -1442,7 +1442,10 @@ END.
 
 {
   $Log$
-  Revision 1.7  2003-10-18 09:31:59  hajny
+  Revision 1.8  2003-11-17 19:55:13  hajny
+    * Wiktor Sywula: LFN detection uncommented in system, new units added
+
+  Revision 1.7  2003/10/18 09:31:59  hajny
     * Wiktor Sywula: environment and arguments support added
 
   Revision 1.6  2003/10/16 15:43:13  peter

@@ -1,0 +1,200 @@
+#
+#   Makefile.fpc for Watcom RTL
+#
+
+[package]
+main=rtl
+
+[target]
+loaders=prt0
+#exceptn fpu
+units=system objpas strings watcom dos crt objects \
+      cpu charset types getopts heaptrc lineinfo
+#      math typinfo mmx ucomplex \
+#      varutils variants sysutils
+
+# dpmiexcp initc ports profile dxeload emu387 \
+# printer graph classes \
+# msmouse video mouse keyboard vesamode
+
+rsts=math varutils typinfo classes variants
+
+[require]
+nortl=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+target=watcom
+cpu=i386
+
+[compiler]
+includedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC)
+targetdir=.
+
+
+[prerules]
+RTL=..
+INC=../inc
+PROCINC=../$(CPU_TARGET)
+
+UNITPREFIX=rtl
+
+# Use new feature from 1.0.5 version
+# that generates release PPU files
+# which will not be recompiled
+ifdef RELEASE
+override FPCOPT+=-Ur
+endif
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+GRAPHDIR=$(INC)/graph
+
+# Insert exception handler in system unit
+ifdef EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
+endif
+
+# Insert exception handler in system unit
+# ifdef NO_EXCEPTIONS_IN_SYSTEM !!!!!!!!!!!!!!!!!!!!1
+override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
+# endif     !!!!!!!!!!!!!!!!!!!!
+
+
+[rules]
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+
+
+#
+# Loaders
+#
+
+prt0$(OEXT) : prt0.asm
+        wasm prt0.asm -bt=dos -5s -fp5 -ms -zq
+
+#
+# System Units (System, Objpas, Strings)
+#
+
+system$(PPUEXT) : system.pp $(SYSDEPS)
+        $(COMPILER) -Us -Sg system.pp
+
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
+                   system$(PPUEXT)
+
+#
+# System Dependent Units
+#
+
+watcom$(PPUEXT) : watcom.pp system$(PPUEXT)
+
+dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
+        $(COMPILER) -Sg dpmiexcp.pp
+
+initc$(PPUEXT) : initc.pp system$(PPUEXT)
+
+profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) watcom$(PPUEXT)
+
+dxeload$(PPUEXT) : dxeload.pp system$(PPUEXT)
+
+emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
+                  dpmiexcp$(PPUEXT)
+
+ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
+
+#
+# TP7 Compatible RTL Units
+#
+
+dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
+               watcom$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
+
+crt$(PPUEXT) : crt.pp $(INC)/textrec.inc watcom$(PPUEXT) system$(PPUEXT)
+
+objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
+
+printer$(PPUEXT) : printer.pp system$(PPUEXT)
+
+#
+# Graph
+#
+
+include $(GRAPHDIR)/makefile.inc
+GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
+
+graph$(PPUEXT) : graph.pp watcom$(PPUEXT) ports$(PPUEXT) system$(PPUEXT) \
+                 $(GRAPHINCDEPS) vesa.inc vesah.inc dpmi.inc
+        $(COMPILER) -I$(GRAPHDIR) graph.pp
+
+#
+# Delphi Compatible Units
+#
+
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
+                    objpas$(PPUEXT) dos$(PPUEXT) watcom$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
+
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/math.pp
+
+varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
+                    $(OBJPASDIR)/varutilh.inc varutils.pp
+        $(COMPILER) -I$(OBJPASDIR) varutils.pp
+
+types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/types.pp
+
+#
+# Other system-independent RTL Units
+#
+
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
+
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
+
+getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
+
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
+        $(COMPILER) -Sg $(INC)/heaptrc.pp
+
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
+
+charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
+
+ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
+
+#
+# Other system-dependent RTL Units
+#
+
+msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
+
+callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
