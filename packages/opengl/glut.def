@@ -1,0 +1,107 @@
+# This is the definition file for all GLUT stuff
+
+%COPY_INTERFACE
+%END
+
+
+#=====================================================================
+# Procedures and functions
+#=====================================================================
+
+%PROCS
+// GLUT initialization sub-API
+  glutInit: procedure(var argcp: Integer; var argv: PChar);
+  glutInitDisplayMode: procedure(mode: LongWord);
+  glutInitDisplayString: procedure(AString: PChar);
+  glutInitWindowPosition: procedure(x, y: Integer);
+  glutInitWindowSize: procedure(width, height: Integer);
+  glutMainLoop: procedure;
+
+// GLUT window sub-API
+  glutCreateWindow: function(title: PChar): Integer;
+  glutCreateSubWindow: function(win, x, y, width, height: Integer): Integer;
+  glutDestroyWindow: procedure(win: Integer);
+  glutPostRedisplay: procedure;
+  glutPostWindowRedisplay: procedure(win: Integer);
+  glutSwapBuffers: procedure;
+  glutGetWindow: function: Integer;
+  glutSetWindow: procedure(win: Integer);
+  glutSetWindowTitle: procedure(title: PChar);
+  glutSetIconTitle: procedure(title: PChar);
+  glutPositionWindow: procedure(x, y: Integer);
+  glutReshapeWindow: procedure(width, height: Integer);
+  glutPopWindow: procedure;
+  glutPushWindow: procedure;
+  glutIconifyWindow: procedure;
+  glutShowWindow: procedure;
+  glutHideWindow: procedure;
+  glutFullScreen: procedure;
+  glutSetCursor: procedure(cursor: Integer);
+  glutWarpPointer: procedure(x, y: Integer);
+
+//overlays ###
+
+//menus ###
+
+// GLUT window callback sub-API
+  glutDisplayFunc: procedure(func: TGlutDisplayFunc);
+  glutReshapeFunc: procedure(func: TGlutReshapeFunc);
+
+  glutTimerFunc: procedure(millis: LongWord; func: TGlutTimerFunc; value: Integer);
+
+
+// GLUTAPI void APIENTRY glutDisplayFunc(void (GLUTCALLBACK * func)(void));
+// GLUTAPI void APIENTRY glutReshapeFunc(void (GLUTCALLBACK * func)(int width, int height));
+// GLUTAPI void APIENTRY glutKeyboardFunc(void (GLUTCALLBACK * func)(unsigned char key, int x, int y));
+// GLUTAPI void APIENTRY glutMouseFunc(void (GLUTCALLBACK * func)(int button, int state, int x, int y));
+// GLUTAPI void APIENTRY glutMotionFunc(void (GLUTCALLBACK * func)(int x, int y));
+// GLUTAPI void APIENTRY glutPassiveMotionFunc(void (GLUTCALLBACK * func)(int x, int y));
+// GLUTAPI void APIENTRY glutEntryFunc(void (GLUTCALLBACK * func)(int state));
+// GLUTAPI void APIENTRY glutVisibilityFunc(void (GLUTCALLBACK * func)(int state));
+// GLUTAPI void APIENTRY glutIdleFunc(void (GLUTCALLBACK * func)(void));
+// GLUTAPI void APIENTRY glutTimerFunc(unsigned int millis, void (GLUTCALLBACK * func)(int value), int value);
+// GLUTAPI void APIENTRY glutMenuStateFunc(void (GLUTCALLBACK * func)(int state));
+// GLUTAPI void APIENTRY glutSpecialFunc(void (GLUTCALLBACK * func)(int key, int x, int y));
+// GLUTAPI void APIENTRY glutSpaceballMotionFunc(void (GLUTCALLBACK * func)(int x, int y, int z));
+// GLUTAPI void APIENTRY glutSpaceballRotateFunc(void (GLUTCALLBACK * func)(int x, int y, int z));
+// GLUTAPI void APIENTRY glutSpaceballButtonFunc(void (GLUTCALLBACK * func)(int button, int state));
+// GLUTAPI void APIENTRY glutButtonBoxFunc(void (GLUTCALLBACK * func)(int button, int state));
+// GLUTAPI void APIENTRY glutDialsFunc(void (GLUTCALLBACK * func)(int dial, int value));
+// GLUTAPI void APIENTRY glutTabletMotionFunc(void (GLUTCALLBACK * func)(int x, int y));
+// GLUTAPI void APIENTRY glutTabletButtonFunc(void (GLUTCALLBACK * func)(int button, int state, int x, int y));
+// GLUTAPI void APIENTRY glutMenuStatusFunc(void (GLUTCALLBACK * func)(int status, int x, int y));
+// GLUTAPI void APIENTRY glutOverlayDisplayFunc(void (GLUTCALLBACK * func)(void));
+// GLUTAPI void APIENTRY glutWindowStatusFunc(void (GLUTCALLBACK * func)(int state));
+// GLUTAPI void APIENTRY glutKeyboardUpFunc(void (GLUTCALLBACK * func)(unsigned char key, int x, int y));
+// GLUTAPI void APIENTRY glutSpecialUpFunc(void (GLUTCALLBACK * func)(int key, int x, int y));
+// GLUTAPI void APIENTRY glutJoystickFunc(void (GLUTCALLBACK * func)(unsigned int buttonMask, int x, int y, int z), int pollInterval)
+
+// GLUT color index sub-API
+  glutSetColor: procedure(index: Integer; red, green, blue: Single);
+  glutGetColor: function(ndx, component: Integer): Single;
+  glutCopyColormap: procedure(win: Integer);
+
+// GLUT state retrieval sub-API
+  glutGet: function(AType: GLEnum): Integer;
+  glutDeviceGet: function(AType: GLEnum): Integer;
+  glutExtensionSupported: function(name: PChar): Integer;
+  glutGetModifiers: function: Integer;
+  glutLayerGet: function(AType: GLEnum): Integer;
+
+// fonts ###
+
+// pre-built models ###
+
+// video resize ###
+
+// debugging ###
+
+// device control ###
+
+
+// GLUT game mode sub-API
+  glutGameModeString: procedure(AString: PChar);
+  glutEnterGameMode: function: Integer;
+  glutLeaveGameMode: procedure;
+  glutGameModeGet: function(mode: GLEnum): Integer;
+%END
