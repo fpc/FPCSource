@@ -873,37 +873,11 @@ end;
       end;
 
     destructor Tdictionary.destroy;
-{$ifdef hashdebug}
-      var
-        i, unused, slots_with_col, collissions, treecount, maxcol: longint;
-{$endif hashdebug}
       begin
         if not noclear then
          clear;
         if assigned(FHashArray) then
          begin
-{$ifdef hashdebug}
-           unused := 0;
-           collissions := 0;
-           maxcol := 0;
-           slots_with_col := 0;
-           for i := low(fhasharray^) to high(fhasharray^) do
-             if assigned(fhasharray^[i]) then
-               begin
-                 treecount := counttree(fhasharray^[i]);
-                 inc(collissions,sqr(treecount-1));
-                 if treecount > maxcol then
-                   maxcol := treecount;
-                 inc(slots_with_col,ord(treecount>1));
-               end
-             else
-               inc(unused);
-           writeln('Slots unused: ',unused,' out of ',hasharraysize,
-             ' (',slots_with_col,' with >1 items)');
-           writeln('Mean number of collissions: ',
-             (sqrt(collissions / extended(hasharraysize-1))):0:3,' (max: ',maxcol,')');
-           writeln;
-{$endif hashdebug}
            dispose(FHashArray);
          end;
       end;
@@ -1847,7 +1821,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2002-10-05 12:43:23  carl
+  Revision 1.21  2002-11-24 18:18:39  carl
+    - remove some unused defines
+
+  Revision 1.20  2002/10/05 12:43:23  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

@@ -31,9 +31,6 @@ unit assemble;
 
 interface
 
-{ Use multiple passes in the internal assembler to optimize jumps }
-{$define MULTIPASS}
-
 
     uses
 {$ifdef Delphi}
@@ -1320,7 +1317,6 @@ Implementation
         { reset the asmsymbol list }
         objectlibrary.CreateUsedAsmsymbolList;
 
-{$ifdef MULTIPASS}
       { Pass 0 }
         currpass:=0;
         objectalloc.seTSection(sec_code);
@@ -1336,7 +1332,6 @@ Implementation
         { leave if errors have occured }
         if errorcount>0 then
          goto doexit;
-{$endif}
 
       { Pass 1 }
         currpass:=1;
@@ -1425,7 +1420,6 @@ Implementation
          { reset the asmsymbol list }
            objectlibrary.CreateUsedAsmSymbolList;
 
-{$ifdef MULTIPASS}
          { Pass 0 }
            currpass:=0;
            objectalloc.reseTSections;
@@ -1434,7 +1428,6 @@ Implementation
            { leave if errors have occured }
            if errorcount>0 then
             exit;
-{$endif MULTIPASS}
 
          { Pass 1 }
            currpass:=1;
@@ -1614,7 +1607,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.47  2002-11-17 16:31:55  carl
+  Revision 1.48  2002-11-24 18:21:49  carl
+    - remove some unused defines
+
+  Revision 1.47  2002/11/17 16:31:55  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k
