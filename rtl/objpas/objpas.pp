@@ -20,6 +20,9 @@ unit objpas;
 
   interface
 
+    const
+       MaxInt = MaxLongint;
+
     type
        { first, in object pascal, the types must be redefined }
        smallint = system.integer;
@@ -354,7 +357,10 @@ end.
 
 {
   $Log$
-  Revision 1.40  1999-09-17 17:14:12  peter
+  Revision 1.41  1999-09-28 21:13:33  florian
+    * fixed bug 626, objpas must redefine maxint!
+
+  Revision 1.40  1999/09/17 17:14:12  peter
     + new heap manager supporting delphi freemem(pointer)
 
   Revision 1.39  1999/08/28 13:03:23  michael
