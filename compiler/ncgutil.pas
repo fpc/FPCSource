@@ -1275,9 +1275,9 @@ implementation
               not(aktprocdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
             begin
               include(rg.usedinproc,accumulator);
-              tg.GetTemp(list,JMP_BUF_SIZE,tt_persistant,procinfo.exception_jmp_ref);
-              tg.GetTemp(list,12,tt_persistant,procinfo.exception_env_ref);
-              tg.GetTemp(list,sizeof(aword),tt_persistant,procinfo.exception_result_ref);
+              tg.GetTemp(list,JMP_BUF_SIZE,tt_noreuse,procinfo.exception_jmp_ref);
+              tg.GetTemp(list,12,tt_noreuse,procinfo.exception_env_ref);
+              tg.GetTemp(list,sizeof(aword),tt_noreuse,procinfo.exception_result_ref);
               new_exception(list,procinfo.exception_jmp_ref,
                   procinfo.exception_env_ref,
                   procinfo.exception_result_ref,1,aktexitlabel);
@@ -1732,7 +1732,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2002-08-23 16:14:49  peter
+  Revision 1.42  2002-08-24 18:38:26  peter
+    * really use tt_noreuse for exception frame buffers
+
+  Revision 1.41  2002/08/23 16:14:49  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 
