@@ -738,6 +738,7 @@ end;
          i,j  : longint;
        begin
           getdir(0,s);
+          i:=ioresult;
           if LFNSupport then
            begin
              pa:=path;
@@ -759,6 +760,7 @@ end;
             begin
                { we must get the right directory }
                getdir(ord(pa[1])-ord('A')+1,s);
+               i:=ioresult;
                if (ord(pa[0])>2) and (pa[3]<>'\') then
                  if pa[1]=s[1] then
                    begin
@@ -1003,7 +1005,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.7  1999-05-04 23:55:50  pierre
+  Revision 1.8  1999-05-08 19:47:22  peter
+    * check ioresult after getdir calls
+
+  Revision 1.7  1999/05/04 23:55:50  pierre
    * unneeded assembler code converted to pascal
 
   Revision 1.6  1999/04/28 11:42:44  peter

@@ -617,6 +617,7 @@ var
    i,j  : longint;
 begin
    getdir(0,s);
+   i:=ioresult;
    if FileNameCaseSensitive then
     pa:=path
    else
@@ -648,6 +649,7 @@ begin
  if length(pa) = 2 then
   begin
     getdir(byte(pa[1])-64,s);
+    i:=ioresult;
     pa := s;
   end;
 
@@ -879,7 +881,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.15  1999-04-28 11:42:52  peter
+  Revision 1.16  1999-05-08 19:47:27  peter
+    * check ioresult after getdir calls
+
+  Revision 1.15  1999/04/28 11:42:52  peter
     + FileNameCaseSensetive boolean
 
   Revision 1.14  1999/04/08 12:23:07  peter

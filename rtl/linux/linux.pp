@@ -2830,9 +2830,9 @@ end;
 
 Function FExpand(Const Path:PathStr):PathStr;
 var
-  temp : pathstr;
-  i,j  : longint;
-  p    : pchar;
+  temp  : pathstr;
+  i,j,k : longint;
+  p     : pchar;
 Begin
 {Remove eventual drive - doesn't exist in Linux}
   if path[2]=':' then
@@ -2853,7 +2853,10 @@ Begin
   if temp='' then
    begin
      if path[i]<>'/' then
-      getdir(0,temp)
+      begin
+        getdir(0,temp)
+        k:=ioresult;
+      end
      else
       inc(i);
      temp:=temp+'/'+copy(path,i,length(path)-i+1)+'/';
@@ -3543,7 +3546,10 @@ End.
 
 {
   $Log$
-  Revision 1.35  1999-04-22 14:48:55  peter
+  Revision 1.36  1999-05-08 19:47:24  peter
+    * check ioresult after getdir calls
+
+  Revision 1.35  1999/04/22 14:48:55  peter
     * fixed direct asm
 
   Revision 1.34  1999/03/29 16:03:10  peter
