@@ -219,7 +219,11 @@ function GetErrorInfo: Pointer;
 {$IFDEF PPC_BP}
 function SetErrorHandler(AErrorHandler: TErrorHandler): Pointer;
 {$ELSE}
+ {$IFDEF PPC_VIRTUAL}
+function SetErrorHandler(AErrorHandler: TErrorHandler): Pointer;
+ {$ELSE}
 function SetErrorHandler(AErrorHandler: TErrorHandler): TErrorHandler;
+ {$ENDIF}
 {$ENDIF}
 { Sets ErrorHandler to AErrorHandler, and returns the old one }
 function DefaultErrorHandler(AErrorCode: Longint; AErrorInfo: Pointer): TErrorHandlerReturnValue;
@@ -250,11 +254,19 @@ begin
   ErrorHandler := AErrorHandler;
 end;
 {$ELSE}
+ {$IFDEF PPC_VIRTUAL}
+function SetErrorHandler(AErrorHandler: TErrorHandler): Pointer;
+begin
+  SetErrorHandler := @ErrorHandler;
+  ErrorHandler := AErrorHandler;
+end;
+ {$ELSE}
 function SetErrorHandler(AErrorHandler: TErrorHandler): TErrorHandler;
 begin
   SetErrorHandler := ErrorHandler;
   ErrorHandler := AErrorHandler;
 end;
+ {$ENDIF}
 {$ENDIF}
 
 function DefaultErrorHandler(AErrorCode: Longint; AErrorInfo: Pointer): TErrorHandlerReturnValue;
@@ -267,7 +279,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-02-29 11:43:16  pierre
+  Revision 1.2  2000-07-09 07:41:47  hajny
+    * changes needed for VP/2 to compile it
+
+  Revision 1.1  2000/02/29 11:43:16  pierre
     Common renamed APIComm to avoid problems with free vision
 
   Revision 1.1  2000/01/06 01:20:31  peter
