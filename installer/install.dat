@@ -3,6 +3,8 @@
 #
 # Install file for Go32v2/Win32/OS2
 #
+# Warning: no package should contain more than 16 files
+
 title=Free Pascal Compiler 1.0.6
 version=1.0.6
 
@@ -24,18 +26,31 @@ cfgfile=fpc.cfg
 idecfgfile=fp.cfg
 ideinifile=fp.ini
 filecheck=*go32.zip
+# Dos 1
 package=basego32.zip,~B~asic system for Go32v2 (required)
+# Dos 2
 package=asldgo32.zip,GNU ~L~inker and GNU Assembler for Go32v2 (required)
+# Dos 3
 package=idego32.zip,~I~DE with integrated debugger/compiler (BETA)
+# Dos 4
 package=utilgo32.zip,~E~xtra Utilities
+# Dos 5
 package=makego32.zip,GNU ~U~tilities (needed for Makefile usage)
+# Dos 6
 package=gdbgo32.zip,GNU ~D~ebugger for Go32v2
+# Dos 7
 package=ufclgo32.zip,~F~ree Component Libary (FCL)
+# Dos 8
 package=ugdbintgo32.zip[ugdbgo32.zip],GDB Interfacing units
+# Dos 9
 package=upaszlibgo32.zip[upzlgo32.zip],PasZLib units
+# Dos 10
 package=uregexprgo32.zip[ureggo32.zip],Regular expression units
+# Dos 11
 package=uunzipgo32.zip[uzipgo32.zip],Unzip units
+# Dos 12
 package=uuncgigo32.zip[ucgigo32.zip],Uncgi units
+# Dos 13
 #package=ufvgo32.zip,Free ~V~ision (FV)
 
 
@@ -50,25 +65,52 @@ cfgfile=fpc.cfg
 idecfgfile=fp.cfg
 ideinifile=fp.ini
 filecheck=*w32.zip
+# Win32 1
 package=basew32.zip,~B~asic system for Win32 (required)
+# Win32 2
 package=asldw32.zip,GNU ~L~inker and GNU Assembler for Win32 (required)
+# Win32 3
 package=idew32.zip,~I~DE with integrated debugger/compiler (BETA)
+# Win32 4
 package=utilsw32.zip,~E~xtra Utilities
+# Win32 5
 package=makew32.zip,GNU ~U~tilities (needed for Makefile usage)
+# Win32 6
 package=gdbw32.zip,GNU ~D~ebugger for Win32
+# Win32 7
 package=ufclw32.zip,~F~ree Component Libary (FCL)
+
+
+#
+# Win32 packages 2nd part
+#
+pack=Win32-~2~
+filecheck=*w32.zip
+# Win32-2 1
 package=uopenglw32.zip,OpenGL units
+# Win32-2 2
 package=ugtkw32.zip,GTK units
+# Win32-2 3
 package=uinetw32.zip,Internet helper routines units
+# Win32-2 4
 package=uibasew32.zip,Interbase interface units
+# Win32-2 5
 package=umysqlw32.zip,MySQL interface units
+# Win32-2 6
 package=ummsystemw32.zip,MMSystem interface units
+# Win32-2 7
 package=ugdbintw32.zip,GDB Interfacing units
+# Win32-2 8
 package=upaszlibw32.zip,PasZLib units
+# Win32-2 9
 package=uregexprw32.zip,Regular expression units
+# Win32-2 10
 package=uunzipgo32.zip,Unzip units
+# Win32-2 11
 package=uuncgigo32.zip,Uncgi units
+# Win32-2 12
 package=uzlibw32.zip,ZLib interface units
+# Win32-2 13
 #package=ufvw32.zip,Free ~V~ision (FV)
 
 
@@ -83,18 +125,31 @@ cfgfile=fpc.cfg
 idecfgfile=fp.cfg
 ideinifile=fp.ini
 filecheck=*emx.zip
+# OS-2 1
 package=baseemx.zip,~B~asic system for EMX (required)
+# OS-2 2
 package=asldemx.zip,GNU ~L~inker and GNU assembler for EMX (required)
+# OS-2 3
 #package=ideemx.zip,~I~DE with integrated debugger/compiler (BETA)
+# OS-2 4
 package=utilemx.zip,~E~xtra Utilities
+# OS-2 5
 package=makeemx.zip,GNU ~U~tilities (needed for Makefile usage)
+# OS-2 6
 package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
+# OS-2 7
 package=ufclemx.zip,~F~ree Component Libary (FCL)
+# OS-2 8
 #package=ugdbintemx.zip[ugdbemx.zip],GDB Interfacing units
+# OS-2 9
 package=upaszlibemx.zip[upzlemx.zip],PasZLib units
+# OS-2 10
 package=uregexpremx.zip[uregemx.zip],Regular expression units
+# OS-2 11
 package=uunzipemx.zip[uzipemx.zip],Unzip units
+# OS-2 12
 package=uuncgiemx.zip[ucgiemx.zip],Uncgi units
+# OS-2 13
 #package=ufvemx.zip,Free ~V~ision (FV)
 
 
@@ -102,8 +157,11 @@ package=uuncgiemx.zip[ucgiemx.zip],Uncgi units
 # Common packages
 #
 pack=C~o~mmon
+# Common 1
 package=docs-pdf.zip,Documentation (~P~DF)
-package=doc-htm.zip,Documentation (~H~MTL)
+# Common 2
+package=doc-htm.zip[doc-html.zip],Documentation (~H~MTL)
+# Common 3
 package=demo.zip,D~e~mos
 
 
@@ -112,24 +170,49 @@ package=demo.zip,D~e~mos
 #
 pack=~S~ources
 filecheck=*src.zip
+# Source 1
 package=basesrc.zip,~B~asic Makefiles for the sources
+# Source 2
 package=compilersrc.zip[compsrc.zip],~C~ompiler sources
+# Source 3
 package=rtlsrc.zip,~R~un time library sources
+# Source 4
 package=fclsrc.zip,~F~ree component library (FCL) sources
+# Source 5
 package=utilssrc.zip[utilsrc.zip],~U~tils sources
+# Source 6
 package=installersrc.zip[instsrc.zip],~I~nstaller sources
+# Source 7
 package=docsrc.zip,~D~ocumentation sources (LaTeX)
+
+#
+# Source packages 2nd part
+#
+pack=S~o~urces 2
+filecheck=*src.zip
+# Source-2 1
 package=ugdbintsrc.zip[ugdbsrc.zip],GDB Interfacing units
+# Source-2 2
 package=upaszlibsrc.zip[upzlsrc.zip],PasZLib units
+# Source-2 3
 package=uregexprsrc.zip[uregsrc.zip],Regular expression units
+# Source-2 4
 package=uunzipsrc.zip[uzipsrc.zip],Unzip units
+# Source-2 5
 package=uuncgisrc.zip[ucgisrc.zip],Uncgi units
+# Source-2 6
 package=uopenglsrc.zip,OpenGL units
+# Source-2 7
 package=ugtksrc.zip,GTK units
+# Source-2 8
 package=uinetsrc.zip,Internet helper routines units
+# Source-2 9
 package=uibasesrc.zip,Interbase interface units
+# Source-2 10
 package=umysqlsrc.zip,MySQL interface units
+# Source-2 11
 package=ummsystemsrc.zip,MMSystem interface units
+# Source-2 12
 package=uzlibsrc.zip,ZLib interface units
 
 
