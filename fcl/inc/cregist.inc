@@ -74,14 +74,16 @@ begin
 end;
 
 
-function FindClass(const ClassName: string): TPersistentClass;
+function FindClass(const AClassName: string): TPersistentClass;
 
 begin
-  FindClass:=nil;
+  Result := GetClass(AClassName);
+  if not Assigned(Result) then
+    raise EClassNotFound.CreateFmt(SClassNotFound, [AClassName]);
 end;
 
 
-function GetClass(const ClassName: string): TPersistentClass;
+function GetClass(const AClassName: string): TPersistentClass;
 var
 I : Integer;
 begin
@@ -90,9 +92,9 @@ begin
     for I := 0 to Count-1 do
        begin
         Result := TPersistentClass(Items[I]);
-        if Result.ClassNameIs(ClassName) then Exit;
+        if Result.ClassNameIs(AClassName) then Exit;
        end;
-       I := ClassAliasList.Indexof(ClassName);
+       I := ClassAliasList.Indexof(AClassName);
        if I >= 0 then  //found
           Begin
           Result := TPersistentClass(ClassAliasList.Objects[i]);
@@ -185,7 +187,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
+  Revision 1.3  2001-02-09 20:40:12  sg
+  * Fixed GetClass function  (merged from Fixbranch)
+
+  Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
  
 }
