@@ -1251,15 +1251,15 @@ uses
             if assigned(hp) then
              begin
                current_module:=hp;
-               { remove the old unit }
-               loaded_units.remove(hp);
-               hp.reset;
-               { try to reopen ppu }
-               hp.search_unit(s,fn,false);
                { try to load the unit a second time first }
-               current_module.in_second_load:=true;
                Message1(unit_u_second_load_unit,current_module.modulename^);
                second_time:=true;
+               current_module.in_second_load:=true;
+               { remove the old unit }
+               loaded_units.remove(current_module);
+               current_module.reset;
+               { try to reopen ppu }
+               tppumodule(current_module).search_unit(s,fn,false);
              end
             else
           { generates a new unit info record }
@@ -1317,7 +1317,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.23  2002-08-19 19:36:42  peter
+  Revision 1.24  2002-10-04 20:13:10  peter
+    * set in_second_load flag before resetting the module, this is
+      required to skip some checkings
+
+  Revision 1.23  2002/08/19 19:36:42  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small
