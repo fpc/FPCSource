@@ -859,6 +859,9 @@ implementation
         ssupreg,dsupreg:Tsuperregister;
 
     begin
+      if (instr.oper[O_MOV_SOURCE]^.typ<>top_reg) or
+         (instr.oper[O_MOV_DEST]^.typ<>top_reg) then
+        internalerror(200311291);
       i:=Tmoveins.create;
       i.moveset:=ms_worklist_moves;
       i.instruction:=instr;
@@ -1819,7 +1822,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2003-11-24 15:17:37  florian
+  Revision 1.97  2003-11-29 17:36:41  peter
+    * check for add_move_instruction
+
+  Revision 1.96  2003/11/24 15:17:37  florian
     * changed some types to prevend range check errors
 
   Revision 1.95  2003/11/10 19:05:50  peter
