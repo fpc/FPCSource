@@ -199,3 +199,4 @@ bug0147.pp   function b; is not allowed in implementation
 bug0148.pp   triple fault exception when setting function result of a declared
              but not yet implemented function in another function
 bug0149.pp  (a, b) compile bug0149b twice and you'll get a triple exc. fault
+bug0150.pp  Shows that the assert() macro is missing under Delphi.
