@@ -270,9 +270,9 @@ begin
   with Info do
    begin
      ExeCmd[1]:= 'ld -Ur -T $RES $STRIP -o $TMPOBJ';
-     if source_info.system<>target_info.system Then
+     {if source_info.system<>target_info.system Then
       ExeCmd[2]:='nlmconv -m i386nw -T$RES'
-     else
+     else}
       ExeCmd[2]:='nlmconv -T$RES';
    end;
 end;
@@ -547,7 +547,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2004-06-20 08:55:32  florian
+  Revision 1.12  2004-07-30 16:00:19  armin
+  * removed -m for nlmconv, it is only valid for ld
+
+  Revision 1.11  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.10  2004/03/02 00:36:33  olle
