@@ -888,15 +888,15 @@ begin
       end;
     tkObject:
       begin
-      Result := ParseClassDecl(Parent, TypeName, okObject);
-      { could be TPasClassOfType }
-      if result is TPasClassType then
+        Result := ParseClassDecl(Parent, TypeName, okObject);
         TPasClassType(Result).IsPacked := HadPackedModifier;
       end;
     tkClass:
       begin
-      Result := ParseClassDecl(Parent, TypeName, okClass);
-      TPasClassType(Result).IsPacked := HadPackedModifier;
+        Result := ParseClassDecl(Parent, TypeName, okClass);
+        { could be TPasClassOfType }
+        if result is TPasClassType then
+          TPasClassType(Result).IsPacked := HadPackedModifier;
       end;
     tkInterface:
       Result := ParseClassDecl(Parent, TypeName, okInterface);
@@ -1843,7 +1843,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2004-12-21 22:19:16  florian
+  Revision 1.13  2004-12-21 22:29:34  florian
+    * fixed previous patch
+
+  Revision 1.12  2004/12/21 22:19:16  florian
     * fixed memory corruption
 
   Revision 1.11  2004/12/06 19:16:38  michael
