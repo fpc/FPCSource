@@ -367,7 +367,7 @@ End;
      external 'kernel32' name 'CloseHandle';
 
 var
-  lastdosexitcode : word;
+  lastdosexitcode : longint;
 
 procedure exec(const path : pathstr;const comline : comstr);
 var
@@ -406,7 +406,7 @@ end;
 
 function dosexitcode : word;
 begin
-  dosexitcode:=lastdosexitcode;
+  dosexitcode:=lastdosexitcode and $ffff;
 end;
 
 
@@ -799,8 +799,12 @@ begin
   doserror:=0;
   l:=GetFileAttributes(filerec(f).name);
   if l=$ffffffff then
-   doserror:=getlasterror;
-  attr:=l;
+   begin
+     doserror:=getlasterror;
+     attr:=0;
+   end
+  else
+   attr:=l and $ffff;
 end;
 
 
@@ -950,7 +954,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2000-04-17 20:43:27  pierre
+  Revision 1.36  2000-05-19 13:20:37  pierre
+   * avoid some Range Check errors
+
+  Revision 1.35  2000/04/17 20:43:27  pierre
    fix bug 902 for win32 and linux
 
   Revision 1.34  2000/02/26 13:24:26  peter
