@@ -184,14 +184,17 @@ implementation
                    allowed:=false;
                    exit;
                  end;
-                { not chararray+[char,string,chararray] }
+                { not chararray+[(wide)char,(wide)string,(wide)chararray] }
                 if is_chararray(ld) and
                    (treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) and
                    (is_char(rd) or
+                    is_widechar(rd) or
                     is_pchar(rd) or
+                    is_pwidechar(rd) or
                     is_integer(rd) or
                     (rd.deftype=stringdef) or
                     is_chararray(rd) or
+                    is_widechararray(rd) or
                     (rt=niln)) then
                  begin
                    allowed:=false;
@@ -222,8 +225,11 @@ implementation
               begin
                 if ((rd.deftype=stringdef) or
                     is_char(rd) or
+                    is_widechar(rd) or
                     is_pchar(rd) or
-                    is_chararray(rd)) and
+                    is_pwidechar(rd) or
+                    is_chararray(rd) or
+                    is_widechararray(rd)) and
                    (treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) then
                  begin
                    allowed:=false;
@@ -938,7 +944,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2004-02-13 15:42:21  peter
+  Revision 1.80  2004-02-20 21:55:19  peter
+    * widestring conversions added to allowed operator check
+
+  Revision 1.79  2004/02/13 15:42:21  peter
     * compare_defs_ext has now a options argument
     * fixes for variants
 
