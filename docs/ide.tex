@@ -466,6 +466,8 @@ Not yet implemented.
 %
 \subsection{The Run menu}
 \label{se:menurun}
+The \menu{Run} menu contains all entries related to running a program,
+
 \begin{description}
 \item[Run] (\key{Ctrl-F9})
 If the sources were modified, compile the program. If the compile is
@@ -494,9 +496,11 @@ debugged, the debug session is aborted, and the running program is killed.
 %
 \subsection{The Compile menu}
 \label{se:menucompile}
+The Compile menu contains all entries related to compiling a program or
+unit.
 \begin{description}
-\item[Compile] (\key{Alt-F9}) Compiles the contents of the active window.  
-If the primary file was set, the primary file is compiled instead.
+\item[Compile] (\key{Alt-F9}) Compiles the contents of the active window,
+irrespective of the primary file setting.
 \item[Make] (\key{F9}) Compiles the contents of the active window, and
 any files that the unit or program depends on and that were modified since
 the last compile.
@@ -808,6 +812,139 @@ Currently, the bookmarks are not stored if the IDE is left. This may
 change in future implementations of the IDE.
 \end{remark}
 
+%
+% Syntax highlighting and code completion
+%
+\subsection{Syntax highlighting}
+\label{se:syntaxhighlighting}
+The IDE is capable of syntax highlighting, i.e. the color of certain 
+pascal elements can be set. As text is entered in an editor window, 
+the IDE will try to recognize the elements, and set the color of the
+text accordingly.
+
+
+The syntax highlighting can be customized in the colors preferences dialog,
+using menu \menu{Options|Environment|Colors}. In the colors dialog, the
+group "Syntax" must be selected. The item list will then display the 
+various syntactical elements that can be colored:
+\begin{description}
+\item[Whitespace] the empty text between words. Remark that for whitespace,
+only the background color will be used.
+\item[Comments] All styles of comments in Free Pascal.
+\item[Reserved words] All reserved words of Free Pascal. \refref.
+\item[Strings] constant string expressions.
+\item[Numbers] Numbers in decimal notation.
+\item[Hex numbers] Numbers in hexadecimal notation.
+\item[Assembler] any assembler blocks.
+\item[Symbols] recognized symbols (variables, types)
+\item[Directives] compiler directives.
+\item[Tabs] can be given a different color than other whitespace.
+\end{description}
+The editor uses some default settings, but experimentation is the best way
+to find a fitting color scheme. A good color scheme helps detecting errors
+in sources, since errors will result in wrong syntax highlighting. 
+
+% Code completion
+\subsection{Code Completion}
+\label{se:codecompletion}
+Code completion means the editor will try to guess the text as it
+is being typed. It does this by checking what text is typed, and as soon
+as the typed text can be used to identify a keyword in a list of keywords,
+the keyword will be presented in a small colored box under the typed text. 
+Pressing the \key{Enter} key will complete the word in the text.
+
+There is no code completion yet for filling in function arguments, choosing
+object methods as in e.g. \delphi.
+
+Code completion can be customized in the Code completion dialog, reachable 
+through the \menu{Options|Preferences|Codecompletion} menu.
+The list of keywords that can be completed can be maintained here. 
+
+\begin{htmlonly}
+The code completion dialog.
+\htmladdimg{../pics/ide/codecomp.png}
+\end{htmlonly}
+\begin{latexonly}
+The code completion dialog is shown in \seefig{codecomp}.
+\begin{figure}[ht]
+\caption{The code completion dialog.}\label{fig:codecomp}
+\ifpdf
+\epsfig{file=pics/ide/codecomp.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/codecomp.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+The dialog shows the currently defined keywords that will be completed in
+alphabetical order.
+The following buttons are available:
+\begin{description}
+\item[Ok] Saves all changes and closes the dialog.
+\item[Edit] Pops up a dialog that allows to edit the currently 
+highlighted keyword.
+\item[New] Pops up a dialog that allows to enter a new keyword which will be
+added to the list.
+\item[Delete] Deletes the currently highlighted keyword from the list
+\item[Cancel] Discards all changes and closes the dialog.
+\end{description}
+All keywords are saved and are available the next time the IDE is started.
+Duplicates are not allowed. If an attempt is made to add a duplicate entry 
+to the list, an error will follow.
+
+% Code templates
+\subsection{Code Templates}
+Code templates are a way to insert large pieces of code at once. Each 
+code templates is identified by a unique name. This name can be used to
+insert the associated piece of code in the text.
+
+For example, the name \var{ifthen} could be associated to the following
+piece of code:
+\begin{verbatim}
+If Then
+  begin
+  end
+\end{verbatim}
+A code template can be inserted by typing its name, and pressing \key{Ctrl-J}
+when the cursor is positioned right after the template name.
+
+Code templates can be defined in the code templates dialog, reachable via
+the menu \menu{Options|Preferences|Codetemplates}. 
+
+\begin{htmlonly}
+The code templates dialog.
+\htmladdimg{../pics/ide/codetemp.png}
+\end{htmlonly}
+\begin{latexonly}
+The code templates dialog is shown in \seefig{codetemp}.
+\begin{figure}[ht]
+\caption{The code completion dialog.}\label{fig:codetemp}
+\ifpdf
+\epsfig{file=pics/ide/codetemp.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/codetemp.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+The top listbox in the code templates dialog shows the names of all 
+known templates. The bottom half of the dialog shows the text associated
+with the currently highlighted code template.
+The following buttons are available:
+\begin{description}
+\item[Ok] Saves all changes and closes the dialog.
+\item[Edit] Pops up a dialog that allows to edit the currently 
+highlighted code template. Both the name and text can be edited.
+\item[New] Pops up a dialog that allows to enter a new code template
+which will be added to the list. A name must be entered for the new
+template.
+\item[Delete] Deletes the currently highlighted code template from the list
+\item[Cancel] Discards all changes and closes the dialog.
+\end{description}
+All templates are saved and are available the next time the IDE is started.
+\begin{remark}
+Duplicates are not allowed. If an attempt is made to add a duplicate entry 
+to the list, an error will follow.
+\end{remark}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Searching in the text
 \section{Searching and replacing}
@@ -907,7 +1044,7 @@ The Parameters dialog.
 \htmladdimg{../pics/ide/params.png}
 \end{htmlonly}
 \begin{latexonly}
-\begin{figure}[h]
+\begin{figure}[ht]
 \caption{The program parameters dialog.}\label{fig:params}
 \ifpdf
 \epsfig{file=pics/ide/params.png,width=\textwidth}
@@ -1032,23 +1169,34 @@ with the given name is reached.
 source file with given name and line is reached;
 \item[watch] Expression breakpoint. An expression may be entered, and the
 program will stop as soon as the expression changes.
-\item[awatch] Expression breakpoint. An expression may be entered, and the
-program will stop as soon as the expression changes.
-\item[rwatch] Expression breakpoint. An expression may be entered, and the
-program will stop as soon as the expression changes.
+\item[awatch] (access watch) Expression breakpoint. An expression that references a 
+memory location may be entered, and the program will stop as soon as 
+the memory indicated by the expression is accessed.
+\item[rwatch] (read watch) Expression breakpoint. An expression that references a
+memory location may be entered, and the program will stop as soon as 
+the memory indicated by the expression is read.
 \end{description}
 \item[name] Name of the function or file where to stop.
 \item[line] Line number in the file where too stop. Only for breakpoints of
 type file-line.
 \item[Conditions] Here an expression can be entered which must evaluate 
-\var{True} for the program to stop at the breakpoint.
+\var{True} for the program to stop at the breakpoint. The expressions that
+can be entered must be valid GDB expressions.
 \item[Ignore count] The number of times the breakpoint will be ignored
-before the program stops.
+before the program stops; 
 \end{description}
 \begin{remark}
-Because the IDE uses GDB to do its debugging, it is necessary to enter all
+\begin{enumerate}
+\item Because the IDE uses GDB to do its debugging, it is necessary to enter all
 expressions in {\em uppercase}. 
+\item Expressions that reference memory locations should be no longer than 16 
+bytes on linux or go32v2 on an Intel processor, since the Intel processor's 
+debug registers are used to monitor these locations.
+\item Memory location watches will not function on Win32 unless a special 
+patch is applied. 
+\end{enumerate}
 \end{remark}
+
 %
 % Using watches
 %
@@ -1136,11 +1284,38 @@ The call stack is shown in \seefig{callstack}.
 By pressing the space bar in the call stack window, the line curresponding
 to the call will be highlighted in the edit window.
 
+% The GDB Window
+\subsection{The GDB window}
+\label{se:gdbwindow}
+The GDB window provides direct interaction with the GDB debugger.
+In it, GDB commands can be typed as they would be typed in GDB.
+The response of GDB will be shown in the window.
+
+Some more information on using GDB can be found in \sees{usinggdb}, but
+the final reference is of course the GDB manual itself.
+
+\begin{htmlonly}
+The GDB window looks as follows:
+\htmladdimg{../pics/ide/watch.png}
+\end{htmlonly}
+\begin{latexonly}
+The GDB window is shown in \seefig{gdbwin}.
+\begin{figure}[ht]
+\caption{The call stack window.}\label{fig:gdbwin}
+\ifpdf
+\epsfig{file=pics/ide/gdbwin.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/gdbwin.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The tools menu
 \section{The tools menu}
 \label{se:toolsmenu}
-The tools menu allows you an easy access to external tools. Further,
+The tools menu provideseasy access to external tools. Further,
 it contains two other probaly helpful tools for programmers: an
 ascii table and a calculator.
 
@@ -1530,7 +1705,13 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.5  2000-11-15 23:43:32  michael
+%  Revision 1.1.2.6  2000-11-18 00:06:11  michael
+%  + Added code templates
+%  + Added syntax highlighting
+%  + Added codecompletion
+%  + Added gdb window
+%
+%  Revision 1.1.2.5  2000/11/15 23:43:32  michael
 %  + Debugging finished
 %
 %  Revision 1.1.2.4  2000/11/15 18:58:35  michael
