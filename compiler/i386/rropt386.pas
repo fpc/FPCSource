@@ -167,7 +167,7 @@ begin
     A_SHL:
       begin
         reset_reference(tmpref);
-        tmpref.base := reg1;
+        tmpref.index := reg1;
         tmpref.scalefactor := 1 shl p^.oper[0].val;
         p^.opcode := A_LEA;
         p^.loadref(0,newreference(tmpref));
@@ -334,7 +334,11 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-11-29 00:30:51  florian
+  Revision 1.4  2000-12-05 09:32:47  jonas
+    * fixed bug where "shl $1,%reg" was changed to "leal (%reg),%reg2"
+      instread of to "leal (,%reg,2),%reg2"
+
+  Revision 1.3  2000/11/29 00:30:51  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
