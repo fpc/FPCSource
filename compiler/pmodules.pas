@@ -444,6 +444,10 @@ implementation
         make_ref:=false;
         readconstdefs;
         make_ref:=true;
+        { Set the owner of errorsym and errortype to symtable to
+          prevent crashes when accessing .owner }
+        generrorsym.owner:=systemunit;
+        generrortype.def.owner:=systemunit;
 {$ifdef cpufpemu}
         { Floating point emulation unit? }
         if (cs_fp_emulation in aktmoduleswitches) then
@@ -1488,7 +1492,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.154  2004-05-23 15:06:21  peter
+  Revision 1.155  2004-05-23 20:56:42  peter
+    * initialize errorsym/errortype.def.owner to prevent crashes
+
+  Revision 1.154  2004/05/23 15:06:21  peter
     * implicit_finally flag must be set in pass1
     * add check whether the implicit frame is generated when expected
 
