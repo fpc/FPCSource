@@ -815,7 +815,7 @@ unit pstatmnt;
       end;
 
 
-    function statement_block : ptree;
+    function statement_block(starttoken : ttoken) : ptree;
 
       var
          first,last : ptree;
@@ -824,10 +824,13 @@ unit pstatmnt;
       begin
          first:=nil;
          filepos:=tokenpos;
-         consume(_BEGIN);
+         consume(starttoken);
          inc(statement_level);
 
-         while token<>_END do
+         while not(
+             (token=_END) or
+             ((starttoken=_INITIALIZATION) and (token=_FINALIZATION))
+           ) do
            begin
               if first=nil then
                 begin
@@ -839,7 +842,8 @@ unit pstatmnt;
                    last^.left:=gennode(statementn,nil,statement);
                    last:=last^.left;
                 end;
-              if token=_END then
+              if (token=_END) or
+                ((starttoken=_INITIALIZATION) and (token=_FINALIZATION)) then
                 break
               else
                 begin
@@ -855,7 +859,13 @@ unit pstatmnt;
                 end;
               emptystats;
            end;
-         consume(_END);
+
+         { don't consume the finalization token, it is consumed when
+           reading the finalization block !
+         }
+         if token=_END then
+           consume(_END);
+
          dec(statement_level);
 
          last:=gensinglenode(blockn,first);
@@ -901,7 +911,7 @@ unit pstatmnt;
                                 plabelsym(srsym)^.number);
                          end;
                     end;
-            _BEGIN : code:=statement_block;
+            _BEGIN : code:=statement_block(_BEGIN);
             _IF    : code:=if_statement;
             _CASE  : code:=case_statement;
             _REPEAT : code:=repeat_statement;
@@ -916,11 +926,13 @@ unit pstatmnt;
             SEMICOLON,
             _ELSE,
             _UNTIL,
-            _END : code:=genzeronode(niln);
-            _CONTINUE : begin
-                           consume(_CONTINUE);
-                           code:=genzeronode(continuen);
-                        end;
+            _END:
+              code:=genzeronode(niln);
+            _CONTINUE:
+              begin
+                 consume(_CONTINUE);
+                 code:=genzeronode(continuen);
+              end;
             _FAIL : begin
                        { internalerror(100); }
                        if (aktprocsym^.definition^.options and poconstructor)=0 then
@@ -1065,19 +1077,37 @@ unit pstatmnt;
            end;
 
          {Unit initialization?.}
-         if (lexlevel=1) then
-            if (token=_END) then
-                begin
-                    consume(_END);
-                    block:=nil;
-                end
-            else
-                begin
-                    current_module^.flags:=current_module^.flags or uf_init;
-                    block:=statement_block;
-                end
+         if (lexlevel=1) and (current_module^.is_unit) then
+           if (token=_END) then
+             begin
+                consume(_END);
+                block:=nil;
+             end
+           else
+             begin
+                if token=_INITIALIZATION then
+                  begin
+                     current_module^.flags:=current_module^.flags or uf_init;
+                     block:=statement_block(_INITIALIZATION);
+                  end
+                else if (token=_FINALIZATION) then
+                  begin
+                     if (current_module^.flags and uf_finalize)<>0 then
+                       block:=statement_block(_FINALIZATION)
+                     else
+                       begin
+                          block:=nil;
+                          exit;
+                       end;
+                  end
+                else
+                  begin
+                     current_module^.flags:=current_module^.flags or uf_init;
+                     block:=statement_block(_BEGIN);
+                  end;
+             end
          else
-            block:=statement_block;
+            block:=statement_block(_BEGIN);
       end;
 
     function assembler_block : ptree;
@@ -1136,7 +1166,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.22  1998-06-24 14:48:36  peter
+  Revision 1.23  1998-06-25 08:48:18  florian
+    * first version of rtti support
+
+  Revision 1.22  1998/06/24 14:48:36  peter
     * ifdef newppu -> ifndef oldppu
 
   Revision 1.21  1998/06/24 14:06:34  peter

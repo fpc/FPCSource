@@ -147,7 +147,7 @@ implementation
                             R_EDI,r)));
                        end
                      else
-                        emitpushreferenceaddr(p^.left^.location.reference);
+                        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                         del_reference(p^.left^.location.reference);
                      end;
                 end;
@@ -168,7 +168,7 @@ implementation
                             R_EDI,r)));
                        end
                      else
-              emitpushreferenceaddr(p^.left^.location.reference);
+              emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
               del_reference(p^.left^.location.reference);
            end
          else
@@ -190,7 +190,7 @@ implementation
                             R_EDI,r)));
                        end
                      else
-                     emitpushreferenceaddr(p^.left^.location.reference);
+                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                    del_reference(p^.left^.location.reference);
                 end
               else
@@ -431,7 +431,7 @@ implementation
                             R_EDI,r)));
                        end
                      else
-                                     emitpushreferenceaddr(p^.left^.location.reference);
+                                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                                   end
                                 else
                                   begin
@@ -729,7 +729,7 @@ implementation
                      R_EDI,r)));
                 end
               else
-                emitpushreferenceaddr(funcretref);
+                emitpushreferenceaddr(exprasmlist,funcretref);
            end;
          { procedure variable ? }
          if (p^.right=nil) then
@@ -1996,7 +1996,7 @@ implementation
                   pushusedregisters(pushed,$ff);
                   exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,pfiledef(p^.left^.resulttype)^.typed_as^.size)));
                   secondload(p^.left);
-                  emitpushreferenceaddr(p^.left^.location.reference);
+                  emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                   if p^.inlinenumber=in_reset_typedfile then
                     emitcall('RESET_TYPED',true)
                   else
@@ -2193,7 +2193,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-06-09 16:01:33  pierre
+  Revision 1.4  1998-06-25 08:48:06  florian
+    * first version of rtti support
+
+  Revision 1.3  1998/06/09 16:01:33  pierre
     + added procedure directive parsing for procvars
       (accepted are popstack cdecl and pascal)
     + added C vars with the following syntax

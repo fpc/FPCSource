@@ -300,7 +300,7 @@ implementation
                        if codegenerror then
                          exit;
                        pushsetelement(hp^.left);
-                       emitpushreferenceaddr(sref);
+                       emitpushreferenceaddr(exprasmlist,sref);
                        { register is save in subroutine }
                        emitcall('SET_SET_BYTE',true);
                        hp:=hp^.right;
@@ -328,7 +328,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-06-08 13:13:31  pierre
+  Revision 1.5  1998-06-25 08:48:07  florian
+    * first version of rtti support
+
+  Revision 1.4  1998/06/08 13:13:31  pierre
     + temporary variables now in temp_gen.pas unit
       because it is processor independent
     * mppc68k.bat modified to undefine i386 and support_mmx

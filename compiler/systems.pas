@@ -583,21 +583,12 @@ implementation
             short_name  : 'GO32V2';
             unit_env    : 'GO32V2UNITS';
             system_unit : 'SYSTEM';
-{$ifndef UseAnsiString}
             smartext    : '.SL';
             unitext     : '.PPU';
             unitlibext  : '.PPL';
             asmext      : '.S';
             objext      : '.O';
             exeext      : '.EXE';
-{$else UseAnsiString}
-            smartext    : '.SL';
-            unitext     : '.PAU';
-            unitlibext  : '.PPL';
-            asmext      : '.SA';
-            objext      : '.OA';
-            exeext      : '.EXE';
-{$endif UseAnsiString}
             os          : os_GO32V2;
             link        : link_ldgo32v2;
             assem       : as_o;
@@ -875,7 +866,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  1998-06-17 14:10:21  peter
+  Revision 1.23  1998-06-25 08:48:20  florian
+    * first version of rtti support
+
+  Revision 1.22  1998/06/17 14:10:21  peter
     * small os2 fixes
     * fixed interdependent units with newppu (remake3 under linux works now)
 

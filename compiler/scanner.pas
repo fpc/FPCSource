@@ -44,7 +44,7 @@ unit scanner;
        ident = string[id_len];
 
     const
-      max_keywords = 69;
+      max_keywords = 70;
       anz_keywords : longint = max_keywords;
 
       { the following keywords are no keywords in TP, they
@@ -70,7 +70,7 @@ unit scanner;
 {        'EXTERNAL',}
          'FAIL','FALSE',
 {        'FAR',}
-         'FILE','FINALLY','FOR',
+         'FILE','FINALIZATION','FINALLY','FOR',
 {        'FORWARD',}
          'FUNCTION','GOTO','IF','IMPLEMENTATION','IN',
          'INHERITED','INITIALIZATION',
@@ -106,7 +106,7 @@ unit scanner;
 {        _EXTERNAL,}
          _FAIL,_FALSE,
 {        _FAR,}
-         _FILE,_FINALLY,_FOR,
+         _FILE,_FINALIZATION,_FINALLY,_FOR,
 {        _FORWARD,}
          _FUNCTION,_GOTO,_IF,_IMPLEMENTATION,_IN,
          _INHERITED,_INITIALIZATION,
@@ -1231,10 +1231,10 @@ unit scanner;
    procedure change_to_tp_keywords;
 
      const
-        non_tp : array[0..13] of string[id_len] = (
+        non_tp : array[0..14] of string[id_len] = (
           'AS','CLASS','EXCEPT','FINALLY','INITIALIZATION','IS',
           'ON','OPERATOR','OTHERWISE','PROPERTY','RAISE','TRY',
-          'EXPORTS','LIBRARY');
+          'EXPORTS','LIBRARY','FINALIZATION');
 
      var
         i : longint;
@@ -1267,7 +1267,10 @@ unit scanner;
 end.
 {
   $Log$
-  Revision 1.26  1998-06-16 08:56:30  peter
+  Revision 1.27  1998-06-25 08:48:19  florian
+    * first version of rtti support
+
+  Revision 1.26  1998/06/16 08:56:30  peter
     + targetcpu
     * cleaner pmodules for newppu
 

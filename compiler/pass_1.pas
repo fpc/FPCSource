@@ -466,6 +466,25 @@ unit pass_1;
                 doconv:=tc_equal;
                 b:=true;
              end
+         else
+           { nil is compatible with ansi- and wide strings }
+           if (fromtreetype=niln) and (def_to^.deftype=stringdef)
+             and (pstringdef(def_to)^.string_typ in [ansistring,widestring]) then
+             begin
+                doconv:=tc_equal;
+                b:=true;
+             end
+         else
+           { ansi- and wide strings can be assigned to void pointers }
+           if (def_from^.deftype=stringdef) and
+             (pstringdef(def_from)^.string_typ in [ansistring,widestring]) and
+             (def_to^.deftype=pointerdef) and
+             (ppointerdef(def_to)^.definition^.deftype=orddef) and
+             (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
+             begin
+                doconv:=tc_equal;
+                b:=true;
+             end
          { procedure variable can be assigned to an void pointer }
          { Not anymore. Use the @ operator now.}
          else
@@ -2797,9 +2816,19 @@ unit pass_1;
       function is_equal(def1,def2 : pdef) : boolean;
 
         begin
-           { all types can be passed to a  formaldef  }
+           { all types can be passed to a formaldef }
            is_equal:=(def1^.deftype=formaldef) or
-             (assigned(def2) and types.is_equal(def1,def2));
+             (assigned(def2) and types.is_equal(def1,def2))
+{$ifdef USEANSISTRING}
+           { to support ansi/long/wide strings in a proper way }
+           { string and string[10] are assumed as equal        }
+             or
+             (assigned(def1) and assigned(def2) and
+              (def1^.deftype=stringdef) and (def2^.deftype=stringdef) and
+              (pstringdef(def1)^.string_typ=pstringdef(def2)^.string_typ)
+             )
+{$endif USEANSISTRING}
+             ;
         end;
 
       function is_in_limit(def_from,def_to : pdef) : boolean;
@@ -3101,14 +3130,14 @@ unit pass_1;
                                   if not is_equal(hp^.nextpara^.data,pt^.resulttype) then
                                     begin
                                        def_to:=hp^.nextpara^.data;
-                                       if (def_from^.deftype=orddef) and (def_to^.deftype=orddef) then
-                                         if is_in_limit(def_from,def_to) or
-                                           ((hp^.nextpara^.paratyp=vs_var) and
-                                           (def_from^.size=def_to^.size)) then
-                                           begin
-                                              exactmatch:=true;
-                                              conv_to:=def_to;
-                                           end;
+                                       if ((def_from^.deftype=orddef) and (def_to^.deftype=orddef)) and
+                                         (is_in_limit(def_from,def_to) or
+                                         ((hp^.nextpara^.paratyp=vs_var) and
+                                         (def_from^.size=def_to^.size))) then
+                                         begin
+                                            exactmatch:=true;
+                                            conv_to:=def_to;
+                                         end;
                                     end;
                                   hp:=hp^.next;
                                end;
@@ -5018,7 +5047,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.33  1998-06-16 08:56:24  peter
+  Revision 1.34  1998-06-25 08:48:14  florian
+    * first version of rtti support
+
+  Revision 1.33  1998/06/16 08:56:24  peter
     + targetcpu
     * cleaner pmodules for newppu
 

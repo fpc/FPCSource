@@ -142,10 +142,10 @@ implementation
                        pushusedregisters(pushedregs,$ff);
                        secondpass(p^.left);
                        del_reference(p^.left^.location.reference);
-                       emitpushreferenceaddr(p^.left^.location.reference);
+                       emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                        secondpass(p^.right);
                        del_reference(p^.right^.location.reference);
-                       emitpushreferenceaddr(p^.right^.location.reference);
+                       emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
                        emitcall('ANSISTRCMP',true);
                        maybe_loadesi;
                        popusedregisters(pushedregs);
@@ -224,8 +224,8 @@ implementation
                     pushusedregisters(pushedregs,pstringdef(p^.left^.resulttype)^.len)
                   else
                     pushusedregisters(pushedregs,$ff);
-                  emitpushreferenceaddr(p^.left^.location.reference);
-                  emitpushreferenceaddr(p^.right^.location.reference);
+                  emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                  emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
                   emitcall('STRCONCAT',true);
                   maybe_loadesi;
                   popusedregisters(pushedregs);
@@ -265,10 +265,10 @@ implementation
                     pushusedregisters(pushedregs,$ff);
                     secondpass(p^.left);
                     del_reference(p^.left^.location.reference);
-                    emitpushreferenceaddr(p^.left^.location.reference);
+                    emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                     secondpass(p^.right);
                     del_reference(p^.right^.location.reference);
-                    emitpushreferenceaddr(p^.right^.location.reference);
+                    emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
                     emitcall('STRCMP',true);
                     maybe_loadesi;
                     popusedregisters(pushedregs);
@@ -420,8 +420,8 @@ implementation
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
                      pushusedregisters(pushedregs,$ff);
-                     emitpushreferenceaddr(p^.right^.location.reference);
-                     emitpushreferenceaddr(p^.left^.location.reference);
+                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      emitcall('SET_COMP_SETS',true);
                      maybe_loadesi;
                      popusedregisters(pushedregs);
@@ -436,11 +436,11 @@ implementation
                      href.symbol:=nil;
                      pushusedregisters(pushedregs,$ff);
                      gettempofsizereference(32,href);
-                     emitpushreferenceaddr(href);
+                     emitpushreferenceaddr(exprasmlist,href);
                      { wrong place !! was hard to find out
                      pushusedregisters(pushedregs,$ff);}
-                     emitpushreferenceaddr(p^.right^.location.reference);
-                     emitpushreferenceaddr(p^.left^.location.reference);
+                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      case p^.treetype of
                        subn:
                          emitcall('SET_SUB_SETS',true);
@@ -1198,7 +1198,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-06-08 13:13:28  pierre
+  Revision 1.3  1998-06-25 08:48:04  florian
+    * first version of rtti support
+
+  Revision 1.2  1998/06/08 13:13:28  pierre
     + temporary variables now in temp_gen.pas unit
       because it is processor independent
     * mppc68k.bat modified to undefine i386 and support_mmx

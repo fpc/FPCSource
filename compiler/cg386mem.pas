@@ -132,7 +132,8 @@ implementation
          case p^.left^.location.loc of
             LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
               p^.left^.location.register)));
-            LOC_REFERENCE : emitpushreferenceaddr(p^.left^.location.reference);
+            LOC_REFERENCE:
+              emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
 
          end;
 
@@ -578,7 +579,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-06-08 13:13:35  pierre
+  Revision 1.3  1998-06-25 08:48:09  florian
+    * first version of rtti support
+
+  Revision 1.2  1998/06/08 13:13:35  pierre
     + temporary variables now in temp_gen.pas unit
       because it is processor independent
     * mppc68k.bat modified to undefine i386 and support_mmx

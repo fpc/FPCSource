@@ -234,6 +234,7 @@ unit files;
        uf_shared_library = $10;
        uf_big_endian     = $20;
        uf_smartlink      = $40;
+       uf_finalize       = $80;
 {$endif}
 
     var
@@ -967,7 +968,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.27  1998-06-24 14:48:34  peter
+  Revision 1.28  1998-06-25 08:48:12  florian
+    * first version of rtti support
+
+  Revision 1.27  1998/06/24 14:48:34  peter
     * ifdef newppu -> ifndef oldppu
 
   Revision 1.26  1998/06/17 14:36:19  peter

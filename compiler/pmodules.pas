@@ -122,6 +122,7 @@ unit pmodules;
 
 
     procedure inserttargetspecific;
+
       begin
 {$ifdef i386}
         case target_info.target of
@@ -943,7 +944,25 @@ unit pmodules;
 
          { Shutdown the codegen for this procedure }
          codegen_doneprocedure;
+{$ifdef dummy}
+         if token=_FINALIZATION then
+           begin
+              current_module^.flags:=current_module^.flags or uf_finalize;
+              { clear flags }
+              procinfo.flags:=0;
 
+              {Reset the codegenerator.}
+              codegen_newprocedure;
+
+              names.init;
+              names.insert(current_module^.modulename^+'_finalize');
+              names.insert('FINALIZE$$'+current_module^.modulename^);
+              compile_proc_body(names,true,false);
+              names.done;
+
+              codegen_doneprocedure;
+           end;
+{$endif dummy}
          consume(POINT);
 
          { size of the static data }
@@ -1131,7 +1150,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.31  1998-06-24 14:48:35  peter
+  Revision 1.32  1998-06-25 08:48:16  florian
+    * first version of rtti support
+
+  Revision 1.31  1998/06/24 14:48:35  peter
     * ifdef newppu -> ifndef oldppu
 
   Revision 1.30  1998/06/17 14:10:16  peter

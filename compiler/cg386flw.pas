@@ -530,7 +530,8 @@ do_jmp:
                 exit;
 
               case p^.left^.location.loc of
-                 LOC_MEM,LOC_REFERENCE : emitpushreferenceaddr(p^.left^.location.reference);
+                 LOC_MEM,LOC_REFERENCE:
+                   emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                  LOC_CREGISTER,LOC_REGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
                        p^.left^.location.register)));
                  else Message(sym_e_type_mismatch);
@@ -589,7 +590,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.2  1998-06-08 13:13:33  pierre
+  Revision 1.3  1998-06-25 08:48:08  florian
+    * first version of rtti support
+
+  Revision 1.2  1998/06/08 13:13:33  pierre
     + temporary variables now in temp_gen.pas unit
       because it is processor independent
     * mppc68k.bat modified to undefine i386 and support_mmx

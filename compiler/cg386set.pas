@@ -395,7 +395,7 @@ implementation
                             if p^.swaped then
                               swaptree(p);
                             pushsetelement(p^.left);
-                            emitpushreferenceaddr(p^.right^.location.reference);
+                            emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
                             del_reference(p^.right^.location.reference);
                             { registers need not be save. that happens in SET_IN_BYTE }
                             { (EDI is changed) }
@@ -661,9 +661,7 @@ implementation
          cleartempgen;
          secondpass(p^.left);
          { determines the size of the operand }
-         { determines the size of the operand }
          opsize:=bytes2Sxx[p^.left^.resulttype^.size];
-         { copy the case expression to a register }
          { copy the case expression to a register }
          case p^.left^.location.loc of
             LOC_REGISTER,
@@ -765,7 +763,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-06-16 08:56:18  peter
+  Revision 1.3  1998-06-25 08:48:10  florian
+    * first version of rtti support
+
+  Revision 1.2  1998/06/16 08:56:18  peter
     + targetcpu
     * cleaner pmodules for newppu
 
