@@ -35,7 +35,7 @@ unit Graph;
                               declarations here so it can be used independently
                               of the svgalib unit. Removed things that are NOT
                               part of Borland's Graph from the unit interface.
-
+  
 
   License Conditions:
 
@@ -139,7 +139,25 @@ const
   BaseLine      = 3;
   LeadLine      = 4;
 
-
+const
+  { Error codes }
+  grOK             = 0;
+  grNoInitGraph    = -1;
+  grNotDetected    = -2;
+  grFileNotFound   = -3;
+  grInvalidDriver  = -4;
+  grNoLOadMem      = -5;
+  grNoScanMem      = -6;
+  grNoFloodMem     = -7;
+  grFontNotFound   = -8;
+  grNoFontMem      = -9;
+  grInvalidmode    = -10;
+  grError          = -11;
+  grIOerror        = -12;
+  grInvalidFont    = -13;
+  grInvalidFontNum = -14;
+  
+  
 
 { ---------------------------------------------------------------------
    Types
@@ -263,6 +281,7 @@ procedure Sector(X, Y: Integer; StAngle, EndAngle, XRadius, YRadius: Word);
 { Color routines }
 procedure SetBkColor(ColorNum: Word);
 procedure SetColor(Color: Word);
+function  GetMaxColor : Word;
 
 { Bitmap utilities }
 procedure GetImage(x1, y1, x2, y2: Integer; var BitMap);
@@ -278,6 +297,7 @@ procedure SetUserCharSize(MultX, DivX, MultY, DivY: Word);
 
 { Graph clipping method }
 procedure SetViewPort(x1, y1, x2, y2: Integer; Clip: Boolean);
+Procedure ClearViewPort;
 
 { Init/Done }
 procedure InitVideo;
@@ -294,6 +314,9 @@ function GetMAxY : Integer;
 Procedure DetectGraph (Var Driver,Mode : Integer);
 Procedure InitGraph (Var Driver,Mode : Integer;DriverPath : String);
 Procedure CloseGraph;
+Function GraphResult : Integer;
+Procedure GraphDefaults ;
+Function GraphErrorMsg (Errcode : Integer) : String;
 
 const
   NoGraphics: Boolean = false;
@@ -624,6 +647,8 @@ begin
                                  BgiColors[i] and 255)
 end;
 
+
+
 procedure InitVideo;
 var
   VgaMode: Integer;
@@ -889,11 +914,26 @@ begin
   GetAspect := 1.0
 end; { GetAspect }
 
+Var LastViewPort : ViewPortType;
+
 procedure SetViewPort(x1, y1, x2, y2: Integer; Clip: Boolean);
 begin
+  LastViewPort.X1:=X1;
+  LastViewPort.Y1:=Y1;
+  LastViewPort.X2:=X2;
+  LastViewPort.Y2:=Y2;
+  LastViewPort.Clip:=Clip;
   SetDrawOrigin(x1, y1);
   if Clip then SetClipRect(x1, y1, x2+1, y2+1)
   else SetClipRect(0, 0, SizeX, SizeY)
+end;
+
+
+Procedure ClearViewPort;
+
+begin
+  With LastViewPort do
+  gl_fillbox(X1,Y1,X2-X1,Y2-Y1,BackColor);
 end;
 
 { VGAMEM }
@@ -1392,6 +1432,11 @@ begin
   TheColor := ColorTable[Color];
 end;
 
+function getmaxcolor : Word;
+
+begin
+  getmaxcolor:=16;
+end;
 
 procedure GetImage(x1, y1, x2, y2: Integer; var BitMap);        
 var
@@ -1511,6 +1556,24 @@ begin
   DoneVideo;
 end;
 
+Function GraphResult : Integer;
+
+begin
+  GraphResult:=0;
+end;
+
+Procedure GraphDefaults ;
+
+begin
+end;
+
+Function GraphErrorMsg (Errcode : Integer) : String;
+
+begin
+  GraphErrorMsg:='';
+end;
+
+
 begin
 
   { Give up root permissions if we are root.  }
@@ -1519,7 +1582,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  1998-08-24 08:23:47  michael
+  Revision 1.8  1998-09-11 09:24:55  michael
+  Added missing functions so mandel compiles and runs
+
+  Revision 1.7  1998/08/24 08:23:47  michael
   Better initgraph handling.
 
   Revision 1.6  1998/08/14 09:20:36  michael
