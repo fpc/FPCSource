@@ -2982,6 +2982,21 @@
      VER_PLATFORM_WIN32s = 0;
      VER_PLATFORM_WIN32_WINDOWS = 1;
      VER_PLATFORM_WIN32_NT = 2;
+  { More versions }
+     VER_SERVER_NT                      = $80000000;
+     VER_WORKSTATION_NT                 = $40000000;
+     VER_SUITE_SMALLBUSINESS            = $00000001;
+     VER_SUITE_ENTERPRISE               = $00000002;
+     VER_SUITE_BACKOFFICE               = $00000004;
+     VER_SUITE_COMMUNICATIONS           = $00000008;
+     VER_SUITE_TERMINAL                 = $00000010;
+     VER_SUITE_SMALLBUSINESS_RESTRICTED = $00000020;
+     VER_SUITE_EMBEDDEDNT               = $00000040;
+     VER_SUITE_DATACENTER               = $00000080;
+     VER_SUITE_SINGLEUSERTS             = $00000100;
+     VER_SUITE_PERSONAL                 = $00000200;
+     VER_SUITE_BLADE                    = $00000400;
+     VER_SUITE_EMBEDDED_RESTRICTED      = $00000800;
   { PROPSHEETPAGE structure  }
      MAXPROPPAGES = 100;
      PSP_DEFAULT = 0;
@@ -5731,7 +5746,10 @@ const
 
 {
   $Log$
-  Revision 1.8  2002-10-08 17:13:31  jonas
+  Revision 1.9  2002-10-11 09:20:31  michael
+  + Added missing version strings
+
+  Revision 1.8  2002/10/08 17:13:31  jonas
     * changed value of FILE_FLAG_WRITE_THROUGH to hex notation because it
       was equal to MAX_LONGINT + 1 -> parsed as a float
 
