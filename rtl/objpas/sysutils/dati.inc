@@ -96,23 +96,25 @@ end ;
 Function TryEncodeDate(Year,Month,Day : Word; Var Date : TDateTime) : Boolean;
 
 var
-  c, ya: cardinal;
+  lm,ly, c, ya: cardinal;
 begin
   Result:=(Year>0) and (Year<10000) and
           (Month in [1..12]) and
           (Day>0) and (Day<=MonthDays[IsleapYear(Year),Month]);
  If Result then
    begin
-     if month > 2 then
-      Dec(Month,3)
+     lm:=month;
+     ly:=year; 
+     if lm > 2 then
+      Dec(lm,3)
      else
       begin
-        Inc(Month,9);
-        Dec(Year);
+        Inc(lm,9);
+        Dec(ly);
       end;
-     c:= Year DIV 100;
-     ya:= Year - 100*c;
-     Date := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*cardinal(Month)+2) DIV 5 + cardinal(Day) - 693900;
+     c:= ly DIV 100;
+     ya:= ly - 100*c;
+     Date := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*cardinal(lm)+2) DIV 5 + cardinal(Day) - 693900;
    end
 end;
 
@@ -737,7 +739,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-05-02 13:40:55  marco
+  Revision 1.4  2004-11-05 12:10:04  marco
+   * fix for 3357, introducing some local vars.
+
+  Revision 1.3  2004/05/02 13:40:55  marco
    * fix to AM/PM behaviour of formatdatetime around noon
 
   Revision 1.2  2003/11/24 23:00:56  michael
