@@ -1,8 +1,6 @@
 #
 # Makefile.fpc for Free Pascal Tests directory
 #
-# $Id$
-#
 
 [install]
 fpcpackage=y
@@ -11,36 +9,56 @@ fpcpackage=y
 fpcdir=..
 rule=allexectests
 
-[require]
-packages_win32=mysql
-packages_linux=mysql
-
 [rules]
-# Subdirs available in the test subdir
-TESTSUBDIRS=cg cg/cdecl units/system units/dos units/crt units/objects units/strings units/sysutils units/math
 
-# All full dirnames in the test/ dir including the subdir self
-TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
-
-# Unix like OS ?
-ifeq ($(OS_TARGET),linux)
-INUNIX=1
-endif
-ifeq ($(OS_TARGET),freebsd)
-INUNIX=1
-endif
-ifeq ($(OS_TARGET),darwin)
-INUNIX=1
-endif
-
-# For linux by default no graph tests
-ifdef INUNIX
-NOGRAPH=1
-endif
-
-
+################################
+# Test environment setup
 #
-# Tools
+
+ifndef TEST_FPC
+#Use development version of the compiler
+TEST_FPC=$(wildcard $(dir $(CURDIR))compiler/$(notdir $(FPC)))
+ifeq ($(TEST_FPC), )
+$(error "*** ERROR: TEST_FPC is missing ***")
+endif
+endif
+
+#Defaults *not* to OPT
+ifndef TEST_OPT
+TEST_OPT=
+endif
+
+ifndef TEST_CPU_TARGET
+TEST_CPU_TARGET=$(CPU_TARGET)
+endif
+
+ifndef TEST_OS_TARGET
+TEST_OS_TARGET=$(OS_TARGET)
+endif
+
+
+ifndef TEST_CCOMPILER
+ifeq ($(CPU_TARGET),$(TEST_CPU_TARGET))
+ifeq ($(OS_TARGET),$(TEST_OS_TARGET))
+TEST_CCOMPILER:=$(strip $(wildcard $(addsuffix /gcc$(SRCEXEEXT),$(SEARCHPATH))))
+ifneq ($(TEST_CCOMPILER),)
+TEST_CCOMPILER:=$(firstword $(TEST_CCOMPILER))
+endif
+endif
+endif
+endif
+
+
+# FPC version (code copied from fpcmake.ini)
+ifndef TEST_FPC_VERSION
+# For 1.1 and up we can use a single compiler call to retrieve
+# all needed information
+TEST_FPC_COMPILERINFO:=$(shell $(TEST_FPC) -iVSPTPSOTO)
+TEST_FPC_VERSION:=$(word 1,$(TEST_FPC_COMPILERINFO))
+endif
+
+################################
+# Misc
 #
 
 ifndef FAILLIST
@@ -55,72 +73,100 @@ ifndef LOG
 export LOG:=log
 endif
 
-ifndef CCOMPILER
-CCOMPILER:=$(strip $(wildcard $(addsuffix /gcc$(SRCEXEEXT),$(SEARCHPATH))))
-ifneq ($(CCOMPILER),)
-CCOMPILER:=$(firstword $(CCOMPILER))
+
+# Subdirs available in the test subdir
+TESTSUBDIRS=cg cg/cdecl units/system units/dos units/crt units/objects units/strings units/sysutils units/math
+
+# All full dirnames in the test/ dir including the subdir self
+TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
+
+# Unix like OS ?
+ifneq ($(findstring $(TEST_OS_TARGET),$(UNIXs)),)
+INUNIX=1
+endif
+
+# For unixes by default no graph tests
+ifdef INUNIX
+NOGRAPH=1
+endif
+
+.PHONY: utils units copyfiles testprep
+
+################################
+# Utilities
+#
+
+utils:
+        $(MAKE) -C utils 
+
+
+ifeq ($(USESQL),YES)
+ifndef DBDIGEST
+DBDIGEST=utils/dbdigest
 endif
 endif
 
-units : units/$(FPCMADE)
-units/$(FPCMADE):
-        $(MAKE) -C units
-ifeq ($(OS_TARGET),win32)
-        $(FPC) -n -Fuunits -FEunits utils/win32err.pp
+ifndef DIGEST
+DIGEST=utils/digest
 endif
 
 ifndef DOTEST
-DOTEST=./dotest$(EXEEXT)
-DOTESTDEP+=$(DOTEST)
-$(DOTEST) : units utils/dotest.pp utils/redir.pp utils/teststr.pp
-        $(FPC) -n -Fuunits -FE. utils/dotest.pp
-        $(FPC) -n -Fuunits -FE. utils/fail.pp
-        $(FPC) -n -Fuunits -FE. utils/testfail.pp
+DOTEST=utils/dotest
 endif
 
-ifneq ($(wildcard ./testfail$(SRCEXEEXT)),)
-TESTCOMSPECRES:=$(shell ./testfail$(SRCEXEEXT))
+ifneq ($(wildcard utils/testfail$(SRCEXEEXT)),)
+#BUG: This will not run first time for a fresh tests dir:
+TESTCOMSPECRES:=$(shell utils/testfail$(SRCEXEEXT))
+else
+$(warning "*** WARNING testfail did not run ***")
 endif
 
 ifneq ($(TESTCOMSPECRES),)
 NOCOMSPEC=1
 endif
 
+################################
+# Units
 #
-# Digest program
+
+units:
+        $(MAKE) -C units FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) \
+                         OPT="$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER)
+
+################################
+# Copy test environment dependent files ctest.o to test/cg etc
 #
-ifeq ($(USESQL),YES)
-ifndef DBDIGEST
-DBDIGEST=./dbdigest$(EXEEXT)
-DIGESTDEP+=$(DBDIGEST)
 
-$(DBDIGEST) : units utils/dbdigest.pp utils/teststr.pp utils/testu.pp utils/dbtests.pp
-        $(FPC) -n $(OPT) -Fuunits -Fu../packages/base/mysql -FE. utils/dbdigest.pp
-endif
-endif
+copyfiles:
+        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/ctest.o test/cg
+        $(COPY) test/units/system/test*.txt .
 
-ifndef DIGEST
-DIGEST=./digest$(EXEEXT)
-DIGESTDEP+=$(DIGEST)
-
-$(DIGEST) : units utils/digest.pp utils/teststr.pp utils/testu.pp
-        $(FPC) -n -Fuunits -FE. utils/digest.pp
-endif
-
-ifndef DIGESTVER
-DIGESTVER=$(FPC_VERSION)
-endif
-
-testcheck: units allpreps $(DOTESTDEP)
-
+################################
+# Preparation for tests
 #
+
+testprep: testprep-stamp.$(TEST_OS_TARGET)
+testprep-stamp.$(TEST_OS_TARGET): utils units copyfiles FORCE
+        $(ECHO) $(DATE) > testprep-stamp.$(TEST_OS_TARGET)
+
+
+################################
 # Dotest options
 #
 
-ifneq ($(FPC),ppc386$(EXEEXT))
-ifeq ($(findstring -c$(FPC),$(DOTESTOPT)),)
-override DOTESTOPT+=-c$(FPC)
+ifneq ($(TEST_FPC),ppc386$(EXEEXT))
+ifeq ($(findstring -c$(TEST_FPC),$(DOTESTOPT)),)
+override DOTESTOPT+=-c$(TEST_FPC)
 endif
+endif
+
+ifneq ($(OS_TARGET),$(TEST_OS_TARGET)) 
+override DOTESTOPT+=-Y-T$(TEST_OS_TARGET)
+endif
+
+ifdef TEST_OPT
+#  handles several options as well
+override DOTESTOPT+=$(addprefix -Y, $(TEST_OPT))
 endif
 
 ifdef GRAPH
@@ -140,112 +186,101 @@ override DOTESTOPT+=-x
 endif
 
 
-#
-# Test run targets
+################################
+# Run tests
 #
 
 DIRS=webtbs webtbf tbs tbf $(TESTDIRS)
 
-%.log : %.pp $(DOTESTDEP)
+%.log : %.pp
         $(DOTEST) $(DOTESTOPT) $<
 
-%.elg : %.pp $(DOTESTDEP)
+%.elg : %.pp
         $(DOTEST) $(DOTESTOPT) -e $<
 
-#
-# Preparations for tests:
-#
-# 1. Copy target dependent ctest.o to test/cg
-#
 
-.PHONY: allpreps
-
-
-ifdef CCOMPILER
-test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o : test/cg/obj/ctest.c
-        -$(CCOMPILER) -c -o test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o test/cg/obj/ctest.c
-endif
-
-allpreps: allpreps-stamp.$(OS_TARGET)
-allpreps-stamp.$(OS_TARGET):
-        $(FPC) -FE. -Fuunits test/cg/ptest.pp
-        $(COPY) test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o test/cg
-        $(COPY) test/units/system/test*.txt .
-        $(ECHO) $(DATE) > allpreps-stamp.$(OS_TARGET)
-
-#
+################################
 # Compile tests
 #
 
 .PHONY: alltbs alltbf allwebtbs allwebtbf alltest alltests
 
-alltbs : testcheck $(patsubst %.pp,%.log,$(wildcard tbs/t*.pp))
-alltbf : testcheck $(patsubst %.pp,%.log,$(wildcard tbf/t*.pp))
+alltbs : testprep $(patsubst %.pp,%.log,$(wildcard tbs/t*.pp))
+alltbf : testprep $(patsubst %.pp,%.log,$(wildcard tbf/t*.pp))
 
-allwebtbs : testcheck $(patsubst %.pp,%.log,$(wildcard webtbs/t*.pp))
-allwebtbf : testcheck $(patsubst %.pp,%.log,$(wildcard webtbf/t*.pp))
+allwebtbs : testprep $(patsubst %.pp,%.log,$(wildcard webtbs/t*.pp))
+allwebtbf : testprep $(patsubst %.pp,%.log,$(wildcard webtbf/t*.pp))
 
-alltest : testcheck $(patsubst %.pp,%.log,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+alltest : testprep $(patsubst %.pp,%.log,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
 
 alltests: alltest alltbs alltbf allwebtbs allwebtbf
 
-#
+################################
 # Compile and Run tests
 #
 
 .PHONY: allexectbs allexectbf allexecwebtbs allexecwebtbf allexectest allexectests
 
-allexectbs : testcheck $(patsubst %.pp,%.elg,$(wildcard tbs/t*.pp))
-allexectbf : testcheck $(patsubst %.pp,%.elg,$(wildcard tbf/t*.pp))
+allexectbs : testprep $(patsubst %.pp,%.elg,$(wildcard tbs/t*.pp))
+allexectbf : testprep $(patsubst %.pp,%.elg,$(wildcard tbf/t*.pp))
 
-allexecwebtbs : testcheck $(patsubst %.pp,%.elg,$(wildcard webtbs/t*.pp))
-allexecwebtbf : testcheck $(patsubst %.pp,%.elg,$(wildcard webtbf/t*.pp))
+allexecwebtbs : testprep $(patsubst %.pp,%.elg,$(wildcard webtbs/t*.pp))
+allexecwebtbf : testprep $(patsubst %.pp,%.elg,$(wildcard webtbf/t*.pp))
 
-allexectest : testcheck $(patsubst %.pp,%.elg,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+allexectest : testprep $(patsubst %.pp,%.elg,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
 
 allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
 
-#
+################################
 # Clean
 #
 
-.PHONY: clean distclean
+.PHONY: clean distclean clean_test
 
-clean:
-        -rm -f $(addsuffix /*$(PPUEXT),$(DIRS))
-        -rm -f $(addsuffix /*$(OEXT),$(DIRS))
-        -rm -f $(addsuffix /*.rst,$(DIRS))
-        -rm -f $(addsuffix /*$(SHAREDLIBEXT),$(DIRS))
-        -rm -f $(addsuffix /*.log,$(DIRS))
-        -rm -f $(addsuffix /*.elg,$(DIRS))
-        -rm -f $(addsuffix /*$(ASMEXT),$(DIRS))
+clean_test:
+        -$(DEL) $(addsuffix /*$(PPUEXT),$(DIRS))
+        -$(DEL) $(addsuffix /*$(OEXT),$(DIRS))
+        -$(DEL) $(addsuffix /*.rst,$(DIRS))
+        -$(DEL) $(addsuffix /*$(SHAREDLIBEXT),$(DIRS))
+        -$(DEL) $(addsuffix /*.log,$(DIRS))
+        -$(DEL) $(addsuffix /*.elg,$(DIRS))
+        -$(DEL) $(addsuffix /*$(ASMEXT),$(DIRS))
+        -$(DEL) $(addsuffix /*_ppas$(BATCHEXT),$(DIRS))
 ifeq ($(EXEEXT),)
-        -rm -f $(wildcard $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS)))))
+        -$(DEL) $(wildcard $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS)))))
 else
-        -rm -f $(addsuffix /*$(EXEEXT),$(DIRS))
+        -$(DEL) $(addsuffix /*$(EXEEXT),$(DIRS))
 endif
 ifdef DEBUGSYMEXT
-        -rm -f $(addsuffix /*$(DEBUGSYMEXT),$(DIRS))
+        -$(DEL) $(addsuffix /*$(DEBUGSYMEXT),$(DIRS))
 endif
-        -rm -f test*.txt *.tmp *$(SHAREDLIBEXT) *$(OEXT) *$(PPUEXT) core
-        -rm -f $(LOG) $(LONGLOG) $(FAILLIST)
-        -rm -f ptest.* ppas.sh ppas.bat gmon.out allpreps-stamp.$(OS_TARGET)
-        -rm -f $(addsuffix /*_ppas,$(DIRS))
-        $(MAKE) -C units clean
+        -$(DEL) test*.txt *.tmp *$(SHAREDLIBEXT) *$(OEXT) *$(PPUEXT) core
+        -$(DEL) $(LOG) $(LONGLOG) $(FAILLIST)
+        -$(DEL) ppas$(SRCBATCHEXT) gmon.out testprep-stamp.*
+#          Needed when link on target:
+        -$(DEL) *_ppas$(BATCHEXT) 
+
+
+clean:
+        $(MAKE) clean_test CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
+        $(MAKE) -C units clean CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
 
 distclean: clean
-        -rm -f dotest$(EXEEXT) digest$(EXEEXT) dbdigest$(EXEEXT)
+        $(MAKE) -C utils clean
 
-#
+cleanall: clean
+        $(MAKE) -C utils cleanall
+
+################################
 # Main rules
 #
 
 .PHONY: all full rundigest dailytest onlyknown onlygraph onlyinteractive
 
-rundigest : $(DIGESTDEP)
+rundigest : utils
         -$(DIGEST)
 ifeq ($(USESQL),YES)
-        -$(DBDIGEST) -v $(DIGESTVER) -o $(OS_TARGET) -c $(CPU_TARGET) $(DBDIGESTOPT)
+        -$(DBDIGEST) -v $(TEST_FPC_VERSION) -o $(TEST_OS_TARGET) -c $(TEST_CPU_TARGET) $(DBDIGESTOPT)
 endif
 
 all : allexectests
@@ -262,20 +297,28 @@ onlyinteractive :
         $(MAKE) "DOTESTOPT= $(DOTESTOPT) -i-"
 
 info :
-        @echo This Makefile allows to test the compiler
-        @echo
-        @echo Targets:
-        @echo "  all   - continue all tests"
-        @echo "  full  - clean and run all tests"
-        @echo "  dailytest - run full and save results"
-        @echo "              in files having the date as extension"
-        @echo "  onlyknown - run only known bugs"
-        @echo "  onlygraph - run only graph tests"
-        @echo "  onlyinteractive - run only interactive tests"
-        @echo Done using FPC=$(FPC)
+        @$(ECHO) This Makefile allows to test the compiler
+        @$(ECHO)
+        @$(ECHO) Targets:
+        @$(ECHO) "  all   - continue all tests"
+        @$(ECHO) "  full  - clean and run all tests"
+        @$(ECHO) "  dailytest - run full and save results"
+        @$(ECHO) "              in files having the date as extension"
+        @$(ECHO) "  onlyknown - run only known bugs"
+        @$(ECHO) "  onlygraph - run only graph tests"
+        @$(ECHO) "  onlyinteractive - run only interactive tests"
+        @$(ECHO) "  rundigest - compute and print test statistics"
+        @$(ECHO)
+        @$(ECHO) Driver environment:
+        @$(ECHO) "  $(OS_TARGET)-$(CPU_TARGET)"
+        @$(ECHO) "  compiler: $(FPC) ver: $(FPC_VERSION)"
 ifdef COMSPEC
-        @echo And using COMSPEC=$(COMSPEC)
+        @$(ECHO) "  and using COMSPEC=$(COMSPEC)"
 endif
+        @$(ECHO)
+        @$(ECHO) Test environment:
+        @$(ECHO) "  $(TEST_OS_TARGET)-$(TEST_CPU_TARGET)"
+        @$(ECHO) "  compiler: $(TEST_FPC) ver: $(TEST_FPC_VERSION)"
 
 override DATESUFFIX:=$(shell $(DATE) +%Y.%m.%d)
 
@@ -287,6 +330,7 @@ ifneq ($(wildcard lastdate.txt),)
 LASTDATESUFFIX:=$(shell cat lastdate.txt)
 endif
 
+
 dailytest : full
         $(COPY) faillist faillist.$(DATESUFFIX)
         $(COPY) log log.$(DATESUFFIX)
@@ -297,11 +341,4 @@ ifdef LASTDATESUFFIX
         -diff -u digest.$(LASTDATESUFFIX) digest.$(DATESUFFIX) > diffdigest.$(DATESUFFIX)
         -diff -u faillist.$(LASTDATESUFFIX) faillist.$(DATESUFFIX) > difflist.$(DATESUFFIX)
 endif
-        @echo $(DATESUFFIX) > lastdate.txt
-
-#
-# $Log$
-# Revision 1.55  2004-04-25 07:18:49  florian
-#   * mmap for x86-64 fixed
-#
-#
+        @$(ECHO) $(DATESUFFIX) > lastdate.txt

@@ -1,0 +1,29 @@
+#
+# Makefile.fpc for Free Pascal testing utilities
+#
+
+[prerules]
+ifeq ($(USESQL),YES)
+DBDIGEST=dbdigest
+endif
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[require]
+packages = mysql
+
+[target]
+programs = dotest fail testfail digest $(DBDIGEST)
+
+[rules]
+
+# To always clean dbdigest regardless of USESQL
+clean: fpc_clean
+        -$(DEL) dbdigest$(EXEEXT)
+
+cleanall: fpc_cleanall
+        -$(DEL) dbdigest$(EXEEXT)
