@@ -210,14 +210,14 @@ asm
        // get the index of the correct *dword* in the set
        // r0 := (r4 rotl(32-3)) and (0x0fffffff8)
        rlwinm   r0,r4,31-3+1,3,31-2
+
        // load dword in which the bit has to be tested
        lwzx     r3,r3,r0
 
-       li       r0,1
-       // generate bit which has to be tested
-       rlwnm    r4,r0,r4,0,31
-       // test it
-       and.     r3,r3,r4
+       // r4 := 32 - r4 (no problem if r4 > 32, the rlwnm next does a mod 32)
+       subfic   r4,r4,32
+       // r3 := (r3 shr (r4 mod 32)) and 1  
+       rlwnm    r3,r3,r4,31,31
 end ['R0','R3','R4','CR0'];
 
 
@@ -523,7 +523,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2003-04-26 12:40:33  florian
+  Revision 1.18  2003-04-26 15:29:34  jonas
+    * fixed fpc_set_in_byte
+
+  Revision 1.17  2003/04/26 12:40:33  florian
     + set_in_byte needed FPC_SET_IN_BYTE alias
 
   Revision 1.16  2002/10/17 10:14:46  jonas
