@@ -2232,12 +2232,12 @@ The accumulator register is at least a 32-bit integer
 hardware register, and is used to return results of
 function calls which return integral values.
 
-\subsection{accumulator-high register}
+\subsection{accumulator 64-bit register}
 
-The accumulator-high register is used in 32-bit environments
-as the high-register when returning 64-bit integral results in function
-calls. The low 32-bit of the result is stored in the accumulator
-register. This register is not used on 64-bit platforms.
+The accumulator 64-bit register is used in 32-bit environments
+and is defined as the group of registers which will be used when
+returning 64-bit integral results in function calls. This is a
+register pair.
 
 \subsection{float result register}
 
@@ -2279,7 +2279,7 @@ which registers can be used as scratch registers.
 \begin{FPCltable}{ll}{Intel 80x86 Register table}{80x86Regs} \hline
 Generic register name & CPU Register name \\ \hline
 accumulator & EAX \\
-accumulator-high & EDX \\
+accumulator (64-bit) high / low & EDX:EAX \\
 float result & FP(0) \\
 self & ESI \\
 frame pointer & EBP \\
@@ -2293,7 +2293,7 @@ scratch regs. & N/A \\
 \begin{FPCltable}{ll}{Motorola 680x0 Register table}{680x0Regs} \hline
 Generic register name & CPU Register name \\ \hline
 accumulator & D0 \\
-accumulator-high & D1 \\
+accumulator (64-bit) high / low & D0:D1 \\
 float result & FP0\footnotemark\\
 self & A5 \\
 frame pointer & A6 \\
@@ -3743,44 +3743,42 @@ the address of the routine.
 
 \subsection{Typed constants and variable alignment}
 
-All static data (variables and typed constants) are usually aligned
-on a power of two boundary. The exact alignment depends on the target processor 
-and the optimization flags. This applies only to the start address of the
-variables, and not the alignment of fields within structures or objects
-for example. For more information on structured alignment, \sees{StructuredAlignment}.
+All static data (variables and typed constants) which are greater than
+a byte are usually aligned on a power of two boundary. This alignment
+applies only to the start address of the variables, and not the alignment
+of fields within structures or objects for example. For more information
+on structured alignment, \sees{StructuredAlignment}. The alignment
+is similar across the different target processors. \footnote{The Intel
+80x86 version does not align data in the case of constant strings,
+constant sets, constant floating point values amd global variables.
+This will be fixed in the version 1.1 release.}
 
-\subsubsection{Intel 80x86 data alignment}
 
-\begin{FPCltable}{llll}{80x86 Data alignment}{DataAlignmentx86}
+\begin{FPCltable}{lccc}{Data alignment}{DataAlignment}
 \hline
-Size of the data (in bytes) & Alignment (small size) & Alignment (fast)\\
-1\\
-2\\
-3\\
-4\\
-5-8\\
-8+\\
-\hline
-\end{FPCltable}
-
-\subsubsection{Motorola 680x0 alignment}
-
-
-\begin{FPCltable}{llll}{680x0 Data alignment}{DataAlignment68k}
-\hline
-Size of the data (in bytes) & Alignment (small size) & Alignment (fast)\\
-1\\
-2\\
-3\\
-4\\
-5-8\\
-8+\\
+Data size (bytes) & Alignment (small size) & Alignment (fast)\\
+1 & 1 & 1\\
+2-3 & 2 & 2\\
+4-7 & 2 & 4\\
+8+ & 2 & 4\\
 \hline
 \end{FPCltable}
 
+
+The alignment columns indicates the address alignment of the variable,
+i.e the start address of the variable will be aligned on that boundary.
+The small size alignment is valid when the code generated should be
+optimized for size and not speed, otherwise and by default, the
+fast alignment is used to align the data.
 
 \subsection{Structured types alignment}
 \label{se:StructuredAlignment}
+
+By default all elements in a structure are aligned to a 2 byte boundary,
+unless the {\var{\$PACKRECORDS} directive or \var{packed} modifier is used
+to align the data in another way. For example a \var{record} or \var{object}
+having a 1 byte element, will have its size rounded up to 2, so the size of
+the structure will actually be 2 bytes.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The heap
@@ -4675,7 +4673,7 @@ faster, but code-wise larger, instruction sequences (such as
 \item[-Og:\ ] This one is exactly the reverse of -OG, and as such these
 switches are mutually exclusive: enabling one will disable the other.
 
-\item[-Or:\ ] This setting (once it's fixed) causes the code generator to
+\item[-Or:\ ] This setting causes the code generator to
 check which variables are used most, so it can keep those in a register.
 
 \item[-Opn:\ ] with n = 1..3: Setting the target processor does NOT
@@ -4767,7 +4765,6 @@ operating systems support the creation of shared libraries.
 Operating systems & Library extension & Library prefix \\ \hline
 linux   & .so & lib \\
 windows & .dll & <none> \\
-os/2    & .dll & <none>\\
 BeOS    & .so  & lib \\
 FreeBSD & .so & lib \\
 NetBSD  & .so & lib \\
@@ -6683,29 +6680,28 @@ on stack checking when compiling for this target platform.
 
 This appendix describes some special behaviors which vary
 from operating system to operating system. This is described
-in \seet{OSBehave}. The GCC version column indicates the GCC compiler
-version used to get the values for both the GCC stack alignment and
-GCC saved registers of the previous columns. This means that this GCC
-compiler version should be used (or compilers with the same register and
-stack alignment conventions)
+in \seet{OSBehave}. The GCC saved registers indicates what
+registers are saved when certain declaration modifiers are used.
 
-\begin{FPCltable}{lllll}{Operating system specific behavior}{OSBehave}
-Operating systems & Min. param. stack align  &  GCC stack alignment &  GCC saved registers & GCC version\\
+
+\begin{FPCltable}{lcr}{Operating system specific behavior}{OSBehave}
+Operating systems & Min. param. stack align  & GCC saved registers\\
 \hline
-Amiga & & & &\\
-Atari & & & &\\
-BeOS-x86 & & & &\\
-DOS & & & &\\
-FreeBSD & & & &\\
-linux-m68k & & & &\\
-linux-x86 & & & &\\
-MacOS-68k & & & &\\
-NetBSD & & & &\\
-OS/2 & & & &\\
-PalmOS & & & &\\
-QNX-x86 & & & &\\
-Solaris-x86 & & && \\
-Win32 & & & & \\
+Amiga & 2 & D2..D7,A2..A5\\
+Atari & 2 & D2..D7,A2..A5\\
+BeOS-x86 & 4 & ESI, EDI, EBX\\
+DOS & 2 & ESI, EDI, EBX\\
+FreeBSD & 4 & ESI, EDI, EBX\\
+linux-m68k & & D2..D7,A2..A5\\
+linux-x86 & 4 & ESI, EDI, EBX\\
+MacOS-68k & & D2..D7,A2..A5\\
+NetBSD-x86 & & ESI, EDI, EBX\\
+NetBSD-m68k & & D2..D7,A2..A5\\
+OS/2 & 4 & ESI, EDI, EBX\\
+PalmOS & 2 & D2..D7,A2..A5\\
+QNX-x86 & & ESI, EDI, EBX\\
+Solaris-x86 & 4 & ESI, EDI, EBX\\
+Win32 & 4 & ESI, EDI, EBX\\
 \hline
 \end{FPCltable}
 
