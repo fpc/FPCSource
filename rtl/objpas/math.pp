@@ -53,6 +53,16 @@ interface
 
        einvalidargument = class(ematherror);
 
+{ Min/max determination }
+function MinIntValue(const Data: array of Integer): Integer;
+function MaxIntValue(const Data: array of Integer): Integer;
+
+{ Extra, not present in Delphi, but used frequently  }
+function Min(Int1,Int2:Integer):Integer;
+function Min(Int1,Int2:Cardinal):Cardinal;
+function Max(Int1,Int2:Integer):Integer;
+function Max(Int1,Int2:Cardinal):Cardinal;
+
 { angle conversion }
 
 function degtorad(deg : float) : float;
@@ -609,9 +619,55 @@ function norm(const data : array of float) : float;
 
 end.
 
+function MinIntValue(const Data: array of Integer): Integer;
+var
+  I: Integer;
+begin
+  Result := Data[Low(Data)];
+  For I := Succ(Low(Data)) To High(Data) Do
+    If Data[I] < Result Then Result := Data[I];
+end;
+
+function MaxIntValue(const Data: array of Integer): Integer;
+var
+  I: Integer;
+begin
+  Result := Data[Low(Data)];
+  For I := Succ(Low(Data)) To High(Data) Do
+    If Data[I] > Result Then Result := Data[I];
+end;
+
+function Min(Int1,Int2:Integer):Integer;
+begin
+  If Int1 < Int2 Then Result := Int1
+                 Else Result := Int2;
+end;
+
+function Min(Int1,Int2:Cardinal):Cardinal;
+begin
+  If Int1 < Int2 Then Result := Int1
+                 Else Result := Int2;
+end;
+
+function Max(Int1,Int2:Integer):Integer;
+begin
+  If Int1 > Int2 Then Result := Int1
+                 Else Result := Int2;
+end;
+
+function Max(Int1,Int2:Cardinal):Cardinal;
+begin
+  If Int1 > Int2 Then Result := Int1
+                 Else Result := Int2;
+end;
+
+
 {
     $Log$
-    Revision 1.5  1998-09-24 23:45:26  peter
+    Revision 1.6  1998-11-02 12:52:46  michael
+    Minimum/maximum functions
+
+    Revision 1.5  1998/09/24 23:45:26  peter
       * updated for auto objpas loading
 
     Revision 1.4  1998/09/18 23:57:27  michael
