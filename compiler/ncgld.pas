@@ -335,7 +335,7 @@ implementation
                               begin
                                 if left.nodetype <> typen then
                                   internalerror(200205161);
-                                reference_reset_symbol(href,newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),
+                                reference_reset_symbol(href,objectlibrary.newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),
                                   tprocdef(resulttype.def)._class.vmtmethodoffset(tprocdef(resulttype.def).extnumber));
                               end
                             else
@@ -942,7 +942,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-08-14 18:00:42  jonas
+  Revision 1.23  2002-08-14 18:13:28  jonas
+    * adapted previous fix to Peter's asmsymbol patch
+
+  Revision 1.22  2002/08/14 18:00:42  jonas
     * fixed tb0403
 
   Revision 1.21  2002/08/13 21:40:56  florian
