@@ -67,8 +67,6 @@ type
         uid,				{ user ID of the file's owner }
         gid,				{ group ID of the file's group }
         dev_t	   :  cardinal;		{ device type }
-        atime,
-        atime_nsec,
 	atime,                          { time of last access }
 	atime_nsec,         		{ nsec of last access }
 	mtime,	           		{ time of last data modification }
@@ -131,7 +129,10 @@ type
 
 {
   $Log$
-  Revision 1.1  2000-02-02 16:36:09  marco
+  Revision 1.2  2000-02-02 16:45:38  marco
+   * Typo in STAT record
+
+  Revision 1.1  2000/02/02 16:36:09  marco
    * Initial version. Copy of linux version, with BSD stat.
 
   Revision 1.5  2000/01/07 16:41:42  daniel
