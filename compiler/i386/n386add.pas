@@ -330,7 +330,10 @@ interface
 
     procedure ti386addnode.second_addstring;
       var
-        paraloc1,paraloc2 : tparalocation;
+        paraloc1,
+        paraloc2   : tparalocation;
+        hregister1,
+        hregister2 : tregister;
       begin
         { string operations are not commutative }
         if nf_swaped in flags then
@@ -341,21 +344,52 @@ interface
                 case nodetype of
                    ltn,lten,gtn,gten,equaln,unequaln :
                      begin
-                       paraloc1:=paramanager.getintparaloc(pocall_default,1);
-                       paraloc2:=paramanager.getintparaloc(pocall_default,2);
+{$warning forced stdcall calling}
+                       paraloc1:=paramanager.getintparaloc(pocall_stdcall,1);
+                       paraloc2:=paramanager.getintparaloc(pocall_stdcall,2);
+                       { process parameters }
                        secondpass(left);
                        location_release(exprasmlist,left.location);
-                       paramanager.allocparaloc(exprasmlist,paraloc2);
-                       cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraloc2);
+                       if paraloc2.loc=LOC_REGISTER then
+                         begin
+                           hregister2:=rg.getaddressregister(exprasmlist);
+                           cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,hregister2);
+                         end
+                       else
+                         begin
+                           paramanager.allocparaloc(exprasmlist,paraloc2);
+                           cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraloc2);
+                         end;
                        secondpass(right);
                        location_release(exprasmlist,right.location);
-                       paramanager.allocparaloc(exprasmlist,paraloc1);
-                       cg.a_paramaddr_ref(exprasmlist,right.location.reference,paraloc1);
+                       if paraloc1.loc=LOC_REGISTER then
+                         begin
+                           hregister1:=rg.getaddressregister(exprasmlist);
+                           cg.a_loadaddr_ref_reg(exprasmlist,right.location.reference,hregister1);
+                         end
+                       else
+                         begin
+                           paramanager.allocparaloc(exprasmlist,paraloc1);
+                           cg.a_paramaddr_ref(exprasmlist,right.location.reference,paraloc1);
+                         end;
+                       { push parameters }
+                       if paraloc1.loc=LOC_REGISTER then
+                         begin
+                           rg.ungetregisterint(exprasmlist,hregister2);
+                           paramanager.allocparaloc(exprasmlist,paraloc2);
+                           cg.a_param_reg(exprasmlist,OS_ADDR,hregister2,paraloc2);
+                         end;
+                       if paraloc2.loc=LOC_REGISTER then
+                         begin
+                           rg.ungetregisterint(exprasmlist,hregister1);
+                           paramanager.allocparaloc(exprasmlist,paraloc1);
+                           cg.a_param_reg(exprasmlist,OS_ADDR,hregister1,paraloc1);
+                         end;
                        paramanager.freeparaloc(exprasmlist,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc2);
-                       rg.allocexplicitregistersint(exprasmlist,[first_int_supreg..last_int_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
+                       rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                        cg.a_call_name(exprasmlist,'FPC_SHORTSTR_COMPARE');
-                       rg.deallocexplicitregistersint(exprasmlist,[first_int_supreg..last_int_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
+                       rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                        location_freetemp(exprasmlist,left.location);
                        location_freetemp(exprasmlist,right.location);
                      end;
@@ -1451,7 +1485,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2003-09-10 08:31:48  marco
+  Revision 1.78  2003-09-28 13:35:40  peter
+    * shortstr compare updated for different calling conventions
+
+  Revision 1.77  2003/09/10 08:31:48  marco
    * Patch from Peter for paraloc
 
   Revision 1.76  2003/09/03 15:55:01  peter
