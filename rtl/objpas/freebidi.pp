@@ -292,7 +292,9 @@ begin
     begin
       lp := lp + Length(c);
       Result += 1;
-    end;
+    end
+  else
+    Result := vp;
   if DirectionOf(Src) = drRTL
   then
     begin
