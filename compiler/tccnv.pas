@@ -67,7 +67,7 @@ implementation
         procedure update_constsethi(p:pdef);
         begin
           if ((p^.deftype=orddef) and
-             (porddef(p)^.high>constsethi)) then
+             (porddef(p)^.high>=constsethi)) then
             begin
                constsethi:=porddef(p)^.high;
                if pd=nil then
@@ -82,7 +82,7 @@ implementation
                  constsethi:=255;
             end
           else if ((p^.deftype=enumdef) and
-            (penumdef(p)^.max>constsethi)) then
+            (penumdef(p)^.max>=constsethi)) then
             begin
                if pd=nil then
                  pd:=p;
@@ -1024,7 +1024,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2000-02-14 18:12:50  florian
+  Revision 1.62  2000-03-14 15:05:18  pierre
+   * fix for bug 866
+
+  Revision 1.61  2000/02/14 18:12:50  florian
     * fixed set problem s:=[<word>];
 
   Revision 1.60  2000/02/13 22:46:28  florian
