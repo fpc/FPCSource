@@ -122,12 +122,15 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 
 UNITPREFIX=rtl
 
+ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
+SYSTEMUNIT=system
+else
+SYSTEMUNIT=syslinux
+endif
+
 # Paths
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-
-# Define Go32v2 Units
-SYSTEMUNIT=sysos2
 #####################################################################
 # FPCDIR Setting
 #####################################################################
@@ -219,8 +222,6 @@ INFOTARGET=fpc_infocfg fpc_infoobjects fpc_infoinstall
 #####################################################################
 # Post Settings
 #####################################################################
-
-SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
 
 # Get the system independent include file names.
 # This will set the following variables :
@@ -1273,54 +1274,54 @@ vpath %.pp $(INC) $(PROCINC)
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-$(SYSTEMPPU) : sysos2.pas $(SYSDEPS)
-	$(COMPILER) -Us -Sg sysos2.pas $(REDIR)
+$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pas $(SYSDEPS)
+	$(COMPILER) -Us -Sg $(SYSTEMUNIT).pas $(REDIR)
 
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMPPU)
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
-		   $(SYSTEMPPU)
+		   $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # System Dependent Units
 #
 
-ports$(PPUEXT) : ports.pas objpas$(PPUEXT) $(SYSTEMPPU)
+ports$(PPUEXT) : ports.pas objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-doscalls$(PPUEXT) : doscalls.pas strings$(PPUEXT) objects$(PPUEXT) $(SYSTEMPPU)
+doscalls$(PPUEXT) : doscalls.pas strings$(PPUEXT) objects$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-kbdcalls$(PPUEXT) : kbdcalls.pas $(SYSTEMPPU)
+kbdcalls$(PPUEXT) : kbdcalls.pas $(SYSTEMUNIT)$(PPUEXT)
 
-moucalls$(PPUEXT) : moucalls.pas $(SYSTEMPPU)
+moucalls$(PPUEXT) : moucalls.pas $(SYSTEMUNIT)$(PPUEXT)
 
-moncalls$(PPUEXT) : moncalls.pas strings$(PPUEXT) $(SYSTEMPPU)
+moncalls$(PPUEXT) : moncalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-os2def$(PPUEXT) : os2def.pas $(SYSTEMPPU)
+os2def$(PPUEXT) : os2def.pas $(SYSTEMUNIT)$(PPUEXT)
 
-pmwin$(PPUEXT) : pmwin.pas os2def$(PPUEXT) $(SYSTEMPPU)
+pmwin$(PPUEXT) : pmwin.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-pmbitmap$(PPUEXT) : pmbitmap.pas $(SYSTEMPPU)
+pmbitmap$(PPUEXT) : pmbitmap.pas $(SYSTEMUNIT)$(PPUEXT)
 
-pmgpi$(PPUEXT) : pmgpi.pas pmbitmap$(PPUEXT) $(SYSTEMPPU)
+pmgpi$(PPUEXT) : pmgpi.pas pmbitmap$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-dive$(PPUEXT) : dive.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMPPU)
+dive$(PPUEXT) : dive.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pp doscalls$(PPUEXT) $(SYSTEMPPU)
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pp doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # TP7 Compatible RTL Units
 #
 
 dos$(PPUEXT) : dos.pas $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-	       doscalls$(PPUEXT) $(SYSTEMPPU)
+	       doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMPPU)
+crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
-objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
+objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMUNIT)$(PPUEXT)
 
-printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMPPU)
+printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
 #graph$(PPUEXT) : graph.pp
 
@@ -1346,18 +1347,18 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 # Other system-independent RTL Units
 #
 
-ucomplex$(PPUEXT): $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMPPU)
+ucomplex$(PPUEXT): $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
+getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMPPU)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

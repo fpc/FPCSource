@@ -36,11 +36,15 @@ WININC=wininc
 
 UNITPREFIX=rtl
 
+ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
+SYSTEMUNIT=system
+else
+SYSTEMUNIT=syswin32
+endif
+
 # Paths
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-
-SYSTEMUNIT=syswin32
 
 # Files used by windows.pp
 include $(WININC)/makefile.inc
@@ -87,39 +91,39 @@ wdllprt0$(OEXT) : wdllprt0.as
 # System Units (System, Objpas, Strings)
 #
 
-$(SYSTEMPPU) : syswin32.pp win32.inc $(SYSDEPS)
-        $(COMPILER) -Us -Sg syswin32.pp $(REDIR)
+$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp win32.inc $(SYSDEPS)
+        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMPPU)
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-                   $(SYSTEMPPU)
+                   $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # System Dependent Units
 #
 
-windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMPPU)
+windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(WININC) windows.pp $(REDIR)
 
-ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMPPU)
+ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMPPU)
+opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 os_types$(PPUEXT) : $(INC)/os_types.pp
 
-winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMPPU) os_types$(PPUEXT)
+winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) os_types$(PPUEXT)
 
-sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMPPU) \
+sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                    $(INC)/sockets.inc $(INC)/socketsh.inc
 
-initc$(PPUEXT) : initc.pp $(SYSTEMPPU)
+initc$(PPUEXT) : initc.pp $(SYSTEMUNIT)$(PPUEXT)
 
-wincrt$(PPUEXT) : wincrt.pp $(SYSTEMPPU) windows$(PPUEXT) graph$(PPUEXT)
+wincrt$(PPUEXT) : wincrt.pp $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT) graph$(PPUEXT)
 
-winmouse$(PPUEXT) : winmouse.pp $(SYSTEMPPU) windows$(PPUEXT) graph$(PPUEXT)
+winmouse$(PPUEXT) : winmouse.pp $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT) graph$(PPUEXT)
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp windows$(PPUEXT)
 
@@ -127,11 +131,11 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pp windows$(PPUEXT)
 # TP7 Compatible RTL Units
 #
 
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMPPU)
+dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMPPU) objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
+crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
 
-objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
+objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Graph
@@ -140,7 +144,7 @@ objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 include $(GRAPHDIR)/makefile.inc
 GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
 
-graph$(PPUEXT) : graph.pp strings$(PPUEXT) windows$(PPUEXT) $(SYSTEMPPU) \
+graph$(PPUEXT) : graph.pp strings$(PPUEXT) windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                  $(GRAPHINCDEPS)
         $(COMPILER) -I$(GRAPHDIR) graph.pp $(REDIR)
 
@@ -167,16 +171,16 @@ varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
 # Other system-independent RTL Units
 #
 
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
+getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMPPU)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

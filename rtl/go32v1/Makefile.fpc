@@ -75,34 +75,34 @@ prt0$(OEXT) : prt0.as
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-$(SYSTEMPPU) : system.pp $(SYSDEPS)
+system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) -Us -Sg system.pp $(REDIR)
 
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMPPU)
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
-                   $(SYSTEMPPU)
+                   system$(PPUEXT)
 
 #
 # System Dependent Units
 #
 
-go32$(PPUEXT) : go32.pp objpas$(PPUEXT) $(SYSTEMPPU)
+go32$(PPUEXT) : go32.pp objpas$(PPUEXT) system$(PPUEXT)
 
 #
 # TP7 Compatible RTL Units
 #
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
-               go32$(PPUEXT) strings$(PPUEXT) $(SYSTEMPPU)
+               go32$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc go32$(PPUEXT) $(SYSTEMPPU)
+crt$(PPUEXT) : crt.pp $(INC)/textrec.inc go32$(PPUEXT) system$(PPUEXT)
 
-objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
+objects$(PPUEXT) : $(INC)/objects.pp objinc.inc system$(PPUEXT)
 
-printer$(PPUEXT) : printer.pp $(SYSTEMPPU)
+printer$(PPUEXT) : printer.pp system$(PPUEXT)
 
 #
 # Delphi Compatible Units
@@ -122,17 +122,17 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 # Other system-independent RTL Units
 #
 
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
 
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
 
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
+getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
 #
 # Other system-dependent RTL Units
 #
 
-msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
+msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)

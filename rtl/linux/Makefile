@@ -123,12 +123,15 @@ UNIXINC=$(RTL)/unix
 
 UNITPREFIX=rtl
 
+ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
+SYSTEMUNIT=system
+else
+SYSTEMUNIT=syslinux
+endif
+
 # Paths
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-
-# Define Go32v2 Units
-SYSTEMUNIT=syslinux
 
 # Use new graph unit ?
 # NEWGRAPH=YES
@@ -233,9 +236,7 @@ INFOTARGET=fpc_infocfg fpc_infoobjects fpc_infoinstall
 # Post Settings
 #####################################################################
 
-SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
-
-# Get the system independent include file names.
+# Get the $(SYSTEMUNIT) independent include file names.
 # This will set the following variables :
 # SYSINCNAMES
 include $(INC)/makefile.inc
@@ -247,7 +248,7 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
-# Put system unit dependencies together.
+# Put $(SYSTEMUNIT) unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 #####################################################################
@@ -1295,25 +1296,25 @@ gprt21$(OEXT) : $(CPU_TARGET)/gprt0.as
 
 
 #
-# System Units (System, Objpas, Strings)
+# $(SYSTEMUNIT) Units ($(SYSTEMUNIT), Objpas, Strings)
 #
 
-$(SYSTEMPPU) : syslinux.pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
-	$(COMPILER) -Us -Sg syslinux.pp $(REDIR)
+$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
+	$(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMPPU)
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-		   $(SYSTEMPPU)
+		   $(SYSTEMUNIT)$(PPUEXT)
 
 #
-# System Dependent Units
+# $(SYSTEMUNIT) Dependent Units
 #
 
 linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-		 syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMPPU) \
+		 syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
 		 $(UNIXINC)/linsysca.inc
 
 ports$(PPUEXT) : ports.pp linux$(PPUEXT) objpas$(PPUEXT)
@@ -1328,13 +1329,13 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pp $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(
 #
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-	       linux$(PPUEXT) $(SYSTEMPPU)
+	       linux$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
+crt$(PPUEXT) : crt.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-objects$(PPUEXT) : $(INC)/objects.pp $(UNIXINC)/objinc.inc $(SYSTEMPPU)
+objects$(PPUEXT) : $(INC)/objects.pp $(UNIXINC)/objinc.inc $(SYSTEMUNIT)$(PPUEXT)
 
-printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
+printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Graph
@@ -1342,11 +1343,11 @@ printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
 include $(GRAPHDIR)/makefile.inc
 GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
 
-graph$(PPUEXT) : graph.pp linux$(PPUEXT) $(SYSTEMPPU) \
+graph$(PPUEXT) : graph.pp linux$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 		 $(GRAPHINCDEPS) $(UNIXINC)/graph16.inc
 	$(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/graph.pp $(REDIR)
 
-ggigraph$(PPUEXT) : $(UNIXINC)/ggigraph.pp linux$(PPUEXT) $(SYSTEMPPU) \
+ggigraph$(PPUEXT) : $(UNIXINC)/ggigraph.pp linux$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 		 $(GRAPHINCDEPS)
 	$(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/ggigraph.pp $(REDIR)
 
@@ -1372,27 +1373,27 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 	$(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp $(REDIR)
 
 #
-# Other system-independent RTL Units
+# Other $(SYSTEMUNIT)-independent RTL Units
 #
 
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
+getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMPPU)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 #
-# Other system-dependent RTL Units
+# Other $(SYSTEMUNIT)-dependent RTL Units
 #
 
 sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-		   linux$(PPUEXT) $(SYSTEMPPU)
+		   linux$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMPPU)
+errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
+ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

@@ -126,9 +126,6 @@ UNITPREFIX=rtl
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 
-# Define Go32v2 Units
-SYSTEMUNIT=system
-
 # Insert exception handler in system unit
 ifdef EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
@@ -195,7 +192,7 @@ endif
 # Targets
 
 override LOADEROBJECTS+=prt0 exceptn fpu
-override UNITOBJECTS+=$(SYSTEMUNIT) objpas strings go32 dpmiexcp initc ports profile dxeload emu387 dos crt objects printer graph sysutils math typinfo cpu mmx getopts heaptrc lineinfo msmouse charset varutils
+override UNITOBJECTS+=system objpas strings go32 dpmiexcp initc ports profile dxeload emu387 dos crt objects printer graph sysutils math typinfo cpu mmx getopts heaptrc lineinfo msmouse charset varutils
 override RSTOBJECTS+=math varutils
 
 # Clean
@@ -229,8 +226,6 @@ INFOTARGET=fpc_infocfg fpc_infoobjects fpc_infoinstall
 #####################################################################
 # Post Settings
 #####################################################################
-
-SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
 
 # Get the system independent include file names.
 # This will set the following variables :
@@ -1281,48 +1276,48 @@ prt0$(OEXT) : v2prt0.as
 # System Units (System, Objpas, Strings)
 #
 
-$(SYSTEMPPU) : system.pp $(SYSDEPS)
+system$(PPUEXT) : system.pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg system.pp $(REDIR)
 
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMPPU)
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
-		   $(SYSTEMPPU)
+		   system$(PPUEXT)
 
 #
 # System Dependent Units
 #
 
-go32$(PPUEXT) : go32.pp $(SYSTEMPPU)
+go32$(PPUEXT) : go32.pp system$(PPUEXT)
 
-dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) $(SYSTEMPPU)
+dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
 	$(COMPILER) -Sg dpmiexcp.pp $(REDIR)
 
-initc$(PPUEXT) : initc.pp $(SYSTEMPPU)
+initc$(PPUEXT) : initc.pp system$(PPUEXT)
 
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
 
-dxeload$(PPUEXT) : dxeload.pp $(SYSTEMPPU)
+dxeload$(PPUEXT) : dxeload.pp system$(PPUEXT)
 
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 		  dpmiexcp$(PPUEXT)
 
-ports$(PPUEXT) : ports.pp objpas$(PPUEXT) $(SYSTEMPPU)
+ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
 
 #
 # TP7 Compatible RTL Units
 #
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
-	       go32$(PPUEXT) strings$(PPUEXT) $(SYSTEMPPU)
+	       go32$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc go32$(PPUEXT) $(SYSTEMPPU)
+crt$(PPUEXT) : crt.pp $(INC)/textrec.inc go32$(PPUEXT) system$(PPUEXT)
 
-objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
+objects$(PPUEXT) : $(INC)/objects.pp objinc.inc system$(PPUEXT)
 
-printer$(PPUEXT) : printer.pp $(SYSTEMPPU)
+printer$(PPUEXT) : printer.pp system$(PPUEXT)
 
 #
 # Graph
@@ -1331,7 +1326,7 @@ printer$(PPUEXT) : printer.pp $(SYSTEMPPU)
 include $(GRAPHDIR)/makefile.inc
 GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
 
-graph$(PPUEXT) : graph.pp go32$(PPUEXT) ports$(PPUEXT) $(SYSTEMPPU) \
+graph$(PPUEXT) : graph.pp go32$(PPUEXT) ports$(PPUEXT) system$(PPUEXT) \
 		 $(GRAPHINCDEPS) vesa.inc vesah.inc dpmi.inc
 	$(COMPILER) -I$(GRAPHDIR) graph.pp $(REDIR)
 
@@ -1357,21 +1352,21 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 # Other system-independent RTL Units
 #
 
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
 
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
 
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
+getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMPPU)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 
-charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMPPU)
+charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 
 #
 # Other system-dependent RTL Units
 #
 
-msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
+msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
