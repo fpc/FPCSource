@@ -105,9 +105,9 @@ package=upaszlibw32.zip,PasZLib units
 # Win32-2 9
 package=uregexprw32.zip,Regular expression units
 # Win32-2 10
-package=uunzipgo32.zip,Unzip units
+package=uunzipw32.zip,Unzip units
 # Win32-2 11
-package=uuncgigo32.zip,Uncgi units
+package=uuncgiw32.zip,Uncgi units
 # Win32-2 12
 package=uzlibw32.zip,ZLib interface units
 # Win32-2 13
