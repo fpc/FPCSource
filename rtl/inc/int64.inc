@@ -62,6 +62,7 @@
          shift,lzz,lzn : longint;          
 
       begin
+         {!!!!!!!!
          divqword:=0;
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
@@ -81,6 +82,7 @@
            dec(shift);
            n:=n shr 1;
          until shift<=0;
+         }
       end;
 
     function modqword(z,n : qword) : qword;[public,alias: 'FPC_MOD_QWORD'];
@@ -131,40 +133,52 @@
            q2:=n;
 
          { the div is coded by the compiler as call to divqword }
+         {!!!!!!!
          if sign then
            divint64:=-q1 div q2
          else
            divint64:=q1 div q2;
+         }
       end;
 
     { multiplies two qwords }
     function mulqword(f1,f2 : qword;checkoverflow : boolean) : qword;[public,alias: 'FPC_MUL_QWORD'];
 
       var
-         bitpos64 : qword;
+         zero,bitpos64,bitpos : qword;
          l : longint;
 
+
       begin
-         mulqword:=0;
          { we can't write currently qword constants directly :( }
+         zero:=zero xor zero;
+         mulqword:=zero;
          tqwordrec(bitpos64).high:=$80000000;
          tqwordrec(bitpos64).low:=0;
+         tqwordrec(bitpos).high:=0;
+         tqwordrec(bitpos).low:=1;
 
          for l:=0 to 63 do
            begin
-              if (f2 and bitpos64)<>0 then
-              if checkoverflow then
-{$Q+}                
-                mulqword:=mulqword+f1
-{$Q-}
-              else
-                mulqword:=mulqword+f1;
-
-              if ((f1 and bitpos64)<>0) and checkoverflow then
+              { if the highest bit of f1 is set and it isn't the
+                last run, then an overflow occcurs!
+              }
+              if checkoverflow and (l<>63) and
+                ((tqwordrec(f1).high and $80000000)<>0)  then
                 int_overflow;
 
+              if (f2 and bitpos)<>zero then
+                begin
+                   if checkoverflow then
+{$Q+}                
+                     mulqword:=mulqword+f1
+{$Q-}
+                   else
+                     mulqword:=mulqword+f1;
+                end;
+
               f1:=f1 shl 1;
-              bitpos64:=bitpos64 shl 1;
+              bitpos:=bitpos shl 1;
            end;
       end;
 
@@ -216,12 +230,14 @@
          hs : string;
 
       begin
+         {!!!!!!!!!!!
          hs:='';
          repeat
            hs:=chr(longint(value mod 10)+48)+hs;
            value:=value div 10;
          until value=0;
          s:=hs;
+         }
       end;
 
     procedure int_str(value : int64;var s : string);
@@ -243,7 +259,10 @@
 
 {
   $Log$
-  Revision 1.4  1999-05-24 08:43:46  florian
+  Revision 1.5  1999-05-25 20:36:41  florian
+    * some bugs removed
+
+  Revision 1.4  1999/05/24 08:43:46  florian
     * fixed a couple of syntax errors
 
   Revision 1.3  1999/05/23 20:27:27  florian
