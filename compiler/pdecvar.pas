@@ -569,12 +569,17 @@ implementation
            end;
          block_type:=old_block_type;
          current_object_option:=old_current_object_option;
+         { free the list }
+         sc.free;
       end;
 
 end.
 {
   $Log$
-  Revision 1.36  2002-10-05 12:43:26  carl
+  Revision 1.37  2002-10-05 15:18:43  carl
+    * fix heap leaks
+
+  Revision 1.36  2002/10/05 12:43:26  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

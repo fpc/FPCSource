@@ -1209,7 +1209,8 @@ implementation
         paraloc : tparalocation;
 
       begin
-        stackalloclist:=taasmoutput.Create;
+        if not inlined then
+           stackalloclist:=taasmoutput.Create;
 
         { the actual stack allocation code, symbol entry point and
           gdb stabs information is generated AFTER the rest of this
@@ -1483,7 +1484,7 @@ implementation
                 cg.g_stackcheck(stackalloclist,stackframe);
             end;
             list.insertlist(stackalloclist);
-{            stackalloclist.free;}
+            stackalloclist.free;
          end;
         {************************* End Stack allocation **************************}
       end;
@@ -1853,7 +1854,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2002-09-30 07:00:46  florian
+  Revision 1.53  2002-10-05 15:18:42  carl
+    * fix heap leaks
+
+  Revision 1.52  2002/09/30 07:00:46  florian
     * fixes to common code to get the alpha compiler compiled applied
 
   Revision 1.51  2002/09/22 14:02:35  carl
