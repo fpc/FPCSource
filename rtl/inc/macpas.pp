@@ -37,7 +37,7 @@ function FOUR_CHAR_CODE(literal: string): LongWord; {$ifdef systeminline}inline;
 
 {This makes casts from ShortString to FourCharCode automatically,
  to emulate the behaviour of mac pascal compilers}
-operator := (s: ShortString) result: LongWord; {$ifdef systeminline}inline;{$endif}
+operator := (s: ShortString) res: LongWord; {$ifdef systeminline}inline;{$endif}
 
 
 implementation
@@ -53,9 +53,9 @@ begin
   FOUR_CHAR_CODE := PLongWord(@literal[1])^;
 end;
 
-operator := (s: ShortString) result: LongWord; {$ifdef systeminline}inline;{$endif}
+operator := (s: ShortString) res: LongWord; {$ifdef systeminline}inline;{$endif}
 begin
-  result := PLongWord(@s[1])^;
+  res := PLongWord(@s[1])^;
 end;
 
 end.

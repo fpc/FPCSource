@@ -323,12 +323,12 @@ var
     end;
 
 
-    function API_signals_exception_handler(except : PEXCEPTION_POINTERS) : longint; stdcall;
+    function API_signals_exception_handler(exceptptrs : PEXCEPTION_POINTERS) : longint; stdcall;
     begin
       API_signals_exception_handler:=Signals_exception_handler(
-        @except^.ExceptionRecord,
+        @exceptptrs^.ExceptionRecord,
         nil,
-        @except^.ContextRecord,
+        @exceptptrs^.ContextRecord,
         nil);
     end;
 
