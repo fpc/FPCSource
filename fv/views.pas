@@ -2538,7 +2538,7 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TGroup.Valid (Command: Word): Boolean;
 
-   FUNCTION IsInvalid (P: PView): Boolean; FAR;
+   FUNCTION IsInvalid (P: PView): Boolean; {$IFNDEF PPC_FPC}FAR;{$ENDIF}
    BEGIN
      IsInvalid := NOT P^.Valid(Command);              { Check if valid }
    END;
@@ -2670,7 +2670,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.Awaken;
 
-   PROCEDURE DoAwaken (P: PView); FAR;
+   PROCEDURE DoAwaken (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
    BEGIN
      If (P <> Nil) Then P^.Awaken;                    { Awaken view }
    END;
@@ -2881,12 +2881,12 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.SetState (AState: Word; Enable: Boolean);
 
-    PROCEDURE DoSetState (P: PView); FAR;
+    PROCEDURE DoSetState (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
     BEGIN
       If (P <> Nil) Then P^.SetState(AState, Enable); { Set subview state }
     END;
 
-    PROCEDURE DoExpose (P: PView); FAR;
+    PROCEDURE DoExpose (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
     BEGIN
       If (P <> Nil) Then Begin
         If (P^.State AND sfVisible <> 0) Then         { Check view visible }
@@ -2950,7 +2950,7 @@ END;
 PROCEDURE TGroup.Store (Var S: TStream);
 VAR Count: Sw_Integer; OwnerSave: PGroup;
 
-   PROCEDURE DoPut (P: PView); FAR;
+   PROCEDURE DoPut (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
    BEGIN
      S.Put(P);                                        { Put view on stream }
    END;
@@ -2979,13 +2979,13 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.HandleEvent (Var Event: TEvent);
 
-   FUNCTION ContainsMouse (P: PView): Boolean; FAR;
+   FUNCTION ContainsMouse (P: PView): Boolean; {$IFNDEF PPC_FPC}FAR;{$ENDIF}
    BEGIN
      ContainsMouse := (P^.State AND sfVisible <> 0)   { Is view visible }
        AND P^.MouseInView(Event.Where);               { Is point in view }
    END;
 
-   PROCEDURE DoHandleEvent (P: PView); FAR;
+   PROCEDURE DoHandleEvent (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
    BEGIN
      If (P = Nil) OR ((P^.State AND sfDisabled <> 0) AND
        (Event.What AND(PositionalEvents OR FocusedEvents) <>0 ))
@@ -3024,7 +3024,7 @@ END;
 PROCEDURE TGroup.ChangeBounds (Var Bounds: TRect);
 VAR D: TPoint;
 
-   PROCEDURE DoCalcChange (P: PView); FAR;
+   PROCEDURE DoCalcChange (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
    VAR R: TRect;
    BEGIN
      P^.CalcBounds(R, D);                             { Calc view bounds }
@@ -3119,7 +3119,7 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TGroup.FirstMatch (AState: Word; AOptions: Word): PView;
 
-   FUNCTION Matches (P: PView): Boolean; FAR;
+   FUNCTION Matches (P: PView): Boolean; {$IFNDEF PPC_FPC}FAR;{$ENDIF}
    BEGIN
      Matches := (P^.State AND AState = AState) AND
        (P^.Options AND AOptions = AOptions);          { Return match state }
@@ -5782,7 +5782,10 @@ END.
 
 {
  $Log$
- Revision 1.35  2002-09-07 15:06:38  peter
+ Revision 1.36  2002-09-09 08:04:06  pierre
+  * remove all warnings about far
+
+ Revision 1.35  2002/09/07 15:06:38  peter
    * old logs removed and tabs fixed
 
  Revision 1.34  2002/08/22 13:40:49  pierre

@@ -280,7 +280,7 @@ CONST
 {---------------------------------------------------------------------------}
 {  GetBufSize -> Platforms DOS REAL MODE - Updated 01Oct99 LdB              }
 {---------------------------------------------------------------------------}
-FUNCTION GetBufSize (P: PBuffer): Word; FAR;
+FUNCTION GetBufSize (P: PBuffer): Word; {$IFNDEF PPC_FPC}FAR;{$ENDIF}
 BEGIN
    GetBufSize := (P^.Size + 15) SHR 4 + 1;            { Buffer paragraphs }
 END;
@@ -288,7 +288,7 @@ END;
 {---------------------------------------------------------------------------}
 {  FreeCacheMem -> Platforms DOS REAL MODE - Updated 01Oct99 LdB            }
 {---------------------------------------------------------------------------}
-PROCEDURE FreeCacheMem; FAR;
+PROCEDURE FreeCacheMem; {$IFNDEF PPC_FPC}FAR;{$ENDIF}
 BEGIN
    While (CachePtr <> HeapEnd) Do
      DisposeCache(CachePtr);                          { Release blocks }
@@ -371,7 +371,7 @@ END;
 {---------------------------------------------------------------------------}
 {  SetBufSize -> Platforms DOS REAL MODE - Updated 01Oct99 LdB              }
 {---------------------------------------------------------------------------}
-PROCEDURE SetBufSize (P: PBuffer; NewSize: Word); FAR;
+PROCEDURE SetBufSize (P: PBuffer; NewSize: Word); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
 VAR CurSize: Word;
 BEGIN
    CurSize := GetBufSize(P);                          { Current size }
@@ -394,7 +394,7 @@ END;
 {---------------------------------------------------------------------------}
 {  FreeCache -> Platforms DPMI/WIN/NT/OS2 - Updated 01Oct99 LdB             }
 {---------------------------------------------------------------------------}
-FUNCTION FreeCache: Boolean; FAR;
+FUNCTION FreeCache: Boolean; {$IFNDEF PPC_FPC}FAR;{$ENDIF}
 BEGIN
    FreeCache := False;                                { Preset fail }
    If (CacheList <> Nil) Then Begin
@@ -406,7 +406,7 @@ END;
 {---------------------------------------------------------------------------}
 {  FreeCache -> Platforms DPMI/WIN/NT/OS2 - Updated 01Oct99 LdB             }
 {---------------------------------------------------------------------------}
-FUNCTION FreeSafetyPool: Boolean; FAR;
+FUNCTION FreeSafetyPool: Boolean; {$IFNDEF PPC_FPC}FAR;{$ENDIF}
 BEGIN
    FreeSafetyPool := False;                           { Preset fail }
    If (SafetyPool <> Nil) Then Begin                  { Pool exists }
@@ -424,7 +424,7 @@ END;
 {---------------------------------------------------------------------------}
 {  HeapNotify -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 01Oct99 LdB        }
 {---------------------------------------------------------------------------}
-FUNCTION HeapNotify (Size: Word): Integer; FAR;
+FUNCTION HeapNotify (Size: Word): Integer; {$IFNDEF PPC_FPC}FAR;{$ENDIF}
 {$IFDEF PROC_REAL}                                    { REAL MODE DOS CODE }
 ASSEMBLER;
 ASM
@@ -828,7 +828,10 @@ END.
 
 {
  $Log$
- Revision 1.5  2002-09-07 15:06:37  peter
+ Revision 1.6  2002-09-09 08:04:06  pierre
+  * remove all warnings about far
+
+ Revision 1.5  2002/09/07 15:06:37  peter
    * old logs removed and tabs fixed
 
 }

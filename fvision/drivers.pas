@@ -757,7 +757,7 @@ END;
 {---------------------------------------------------------------------------}
 {  ExitDrivers -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08Jun98 LdB       }
 {---------------------------------------------------------------------------}
-PROCEDURE ExitDrivers; {$IFNDEF OS_UNIX} FAR; {$ENDIF}
+PROCEDURE ExitDrivers; {$IFNDEF PPC_FPC}{$IFNDEF OS_UNIX} FAR; {$ENDIF}{$ENDIF}
 BEGIN
    DoneSysError;                                      { Relase error trap }
    DoneEvents;                                        { Close event driver }
@@ -1673,7 +1673,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.31  2002-09-07 15:06:36  peter
+ Revision 1.32  2002-09-09 08:04:05  pierre
+  * remove all warnings about far
+
+ Revision 1.31  2002/09/07 15:06:36  peter
    * old logs removed and tabs fixed
 
  Revision 1.30  2002/06/10 19:40:14  pierre

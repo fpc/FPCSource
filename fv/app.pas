@@ -515,7 +515,7 @@ VAR NumCols, NumRows, NumTileable, LeftOver, TileNum: Integer;
        DIV Num + Lo;                                  { Calc position }
    END;
 
-   PROCEDURE DoCountTileable (P: PView); FAR;
+   PROCEDURE DoCountTileable (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
    BEGIN
      If Tileable(P) Then Inc(NumTileable);            { Count tileable views }
    END;
@@ -544,7 +544,7 @@ VAR NumCols, NumRows, NumTileable, LeftOver, TileNum: Integer;
      End;
    END;
 
-   PROCEDURE DoTile(P: PView); FAR;
+   PROCEDURE DoTile(P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
    VAR PState: Word; R: TRect;
    BEGIN
      If Tileable(P) Then Begin
@@ -590,14 +590,14 @@ END;
 PROCEDURE TDeskTop.Cascade (Var R: TRect);
 VAR CascadeNum: Integer; LastView: PView; Min, Max: TPoint;
 
-   PROCEDURE DoCount (P: PView); FAR;
+   PROCEDURE DoCount (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
    BEGIN
      If Tileable(P) Then Begin
        Inc(CascadeNum); LastView := P;                { Count cascadable }
      End;
    END;
 
-   PROCEDURE DoCascade (P: PView); FAR;
+   PROCEDURE DoCascade (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
    VAR PState: Word; NR: TRect;
    BEGIN
      If Tileable(P) AND (CascadeNum >= 0) Then Begin  { View cascadable }
@@ -1193,7 +1193,10 @@ END;
 END.
 {
  $Log$
- Revision 1.20  2002-09-07 15:06:35  peter
+ Revision 1.21  2002-09-09 08:04:05  pierre
+  * remove all warnings about far
+
+ Revision 1.20  2002/09/07 15:06:35  peter
    * old logs removed and tabs fixed
 
  Revision 1.19  2002/08/22 13:39:29  pierre
