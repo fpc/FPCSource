@@ -44,7 +44,7 @@ unit cpupara;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
          
-//          function copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean; override;
+          function copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean; override;
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
@@ -216,14 +216,14 @@ unit cpupara;
         curmmreg:=RS_M1;
       end;
 
-{
+
     function tppcparamanager.copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         result := false;
         if (target_info.abi <> abi_powerpc_aix) then
           result := inherited copy_value_on_stack(varspez,def,calloption);
       end;
-}
+
 
     procedure tppcparamanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
       var
@@ -450,6 +450,14 @@ unit cpupara;
                  odd(nextintreg-RS_R3) then
                 inc(nextintreg);
 {$endif not cpu64bit}
+              if (paralen = 0) then
+                if (paradef.deftype = recorddef) then
+                  begin
+                    paraloc:=hp.paraloc[side].add_location;
+                    paraloc^.loc := LOC_VOID;
+                  end
+                else
+                  internalerror(2005011310);
               { can become < 0 for e.g. 3-byte records }
               while (paralen > 0) do
                 begin
@@ -649,7 +657,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2005-01-10 21:50:05  jonas
+  Revision 1.82  2005-01-13 19:32:08  jonas
+    * fixed copy_value_on_stack() for AIX abi
+    + added support for passing empty record parameters
+
+  Revision 1.81  2005/01/10 21:50:05  jonas
     + support for passing records in registers under darwin
     * tcgpara now also has an intsize field, which contains the size in
       bytes of the whole parameter
