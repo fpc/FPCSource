@@ -385,7 +385,7 @@
               current_module^.sourcefiles^.register_file(hp);
 {$endif UseBrowser}
             end;
-           Message1(unit_t_ppu_source,hs+temp);
+           Message1(unit_u_ppu_source,hs+temp);
          end;
       { main source is always the last }
         stringdispose(current_module^.mainsource);
@@ -443,7 +443,10 @@
 
 {
   $Log$
-  Revision 1.18  1998-09-28 16:57:27  pierre
+  Revision 1.19  1998-10-08 23:29:07  peter
+    * -vu shows unit info, -vt shows tried/used files
+
+  Revision 1.18  1998/09/28 16:57:27  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer

@@ -195,9 +195,9 @@ unit files;
   implementation
 
   uses
-    dos,verbose,systems,scanner
+    dos,verbose,systems
 {$ifndef VER0_99_8}
-    ,symtable
+    ,symtable,scanner
 {$endif}
     ;
 
@@ -623,55 +623,55 @@ unit files;
          asmfiletime : longint;
       begin
         openppu:=false;
+        Message1(unit_t_ppu_loading,ppufilename^);
       { Get ppufile time (also check if the file exists) }
         ppufiletime:=getnamedfiletime(ppufilename^);
         if ppufiletime=-1 then
          exit;
       { Open the ppufile }
-        Message1(unit_u_ppu_loading,ppufilename^);
+        Message1(unit_u_ppu_name,ppufilename^);
         ppufile:=new(pppufile,init(ppufilename^));
         if not ppufile^.open then
          begin
            dispose(ppufile,done);
-           Message(unit_d_ppu_file_too_short);
+           Message(unit_u_ppu_file_too_short);
            exit;
          end;
       { check for a valid PPU file }
         if not ppufile^.CheckPPUId then
          begin
            dispose(ppufile,done);
-           Message(unit_d_ppu_invalid_header);
+           Message(unit_u_ppu_invalid_header);
            exit;
          end;
       { check for allowed PPU versions }
         if not (ppufile^.GetPPUVersion in [15]) then
          begin
            dispose(ppufile,done);
-           Message1(unit_d_ppu_invalid_version,tostr(ppufile^.GetPPUVersion));
+           Message1(unit_u_ppu_invalid_version,tostr(ppufile^.GetPPUVersion));
            exit;
          end;
       { check the target processor }
         if ttargetcpu(ppufile^.header.cpu)<>target_cpu then
          begin
            dispose(ppufile,done);
-           Comment(V_Debug,'unit is compiled for an other processor');
+           Message(unit_u_ppu_invalid_processor);
            exit;
          end;
       { check target }
         if ttarget(ppufile^.header.target)<>target_info.target then
          begin
            dispose(ppufile,done);
-           Comment(V_Debug,'unit is compiled for an other target');
+           Message(unit_u_ppu_invalid_target);
            exit;
          end;
-  {!!!!!!!!!!!!!!!!!!! }
       { Load values to be access easier }
         flags:=ppufile^.header.flags;
         crc:=ppufile^.header.checksum;
       { Show Debug info }
-        Message1(unit_d_ppu_time,filetimestring(ppufiletime));
-        Message1(unit_d_ppu_flags,tostr(flags));
-        Message1(unit_d_ppu_crc,tostr(ppufile^.header.checksum));
+        Message1(unit_u_ppu_time,filetimestring(ppufiletime));
+        Message1(unit_u_ppu_flags,tostr(flags));
+        Message1(unit_u_ppu_crc,tostr(ppufile^.header.checksum));
       { check the object and assembler file to see if we need only to
         assemble, only if it's not in a library }
         do_compile:=false;
@@ -682,14 +682,22 @@ unit files;
             begin
               objfiletime:=getnamedfiletime(staticlibfilename^);
               if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
-                do_compile:=true;
+                begin
+                  Message(unit_u_recompile_staticlib_is_older);
+                  do_compile:=true;
+                  exit;
+                end;
             end
            else
             if (flags and uf_shared_linked)<>0 then
              begin
                objfiletime:=getnamedfiletime(sharedlibfilename^);
                if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
-                do_compile:=true;
+                begin
+                  Message(unit_u_recompile_sharedlib_is_older);
+                  do_compile:=true;
+                  exit;
+                end;
              end
            else
             begin
@@ -701,16 +709,18 @@ unit files;
                  asmfileTime:=GetNamedFileTime(asmfilename^);
                  if (asmfiletime<0) or (ppufiletime>asmfiletime) then
                   begin
-                    Message(unit_d_obj_and_asm_are_older_than_ppu);
+                    Message(unit_u_recompile_obj_and_asm_older);
                     do_compile:=true;
-                    { we should try to get the source file }
                     exit;
                   end
                  else
                   begin
-                    Message(unit_d_obj_is_older_than_asm);
+                    Message(unit_u_recompile_obj_older_than_asm);
                     if not(cs_asm_extern in aktglobalswitches) then
-                     exit;
+                     begin
+                       do_compile:=true;
+                       exit;
+                     end;
                   end;
                end;
             end;
@@ -799,9 +809,9 @@ unit files;
 
     procedure tmodule.reset;
       begin
+{$ifndef VER0_99_8}
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
-{$ifndef VER0_99_8}
         if assigned(globalsymtable) then
           begin
             dispose(punitsymtable(globalsymtable),done);
@@ -927,8 +937,10 @@ unit files;
          dispose(ppufile,done);
         if assigned(imports) then
          dispose(imports,done);
+{$ifndef VER0_99_8}
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
+{$endif}
         if assigned(sourcefiles) then
          dispose(sourcefiles,done);
         used_units.done;
@@ -994,7 +1006,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.54  1998-10-08 17:17:19  pierre
+  Revision 1.55  1998-10-08 23:28:54  peter
+    * -vu shows unit info, -vt shows tried/used files
+
+  Revision 1.54  1998/10/08 17:17:19  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)

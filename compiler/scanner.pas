@@ -138,7 +138,7 @@ implementation
     const
       { use any special name that is an invalid file name to avoid problems }
       macro_special_name = '__##&&Macro&&##__';
-      
+
     procedure create_tokenidx;
     { create an index with the first and last token for every possible token
       length, so a search only will be done in that small part }
@@ -382,7 +382,7 @@ implementation
                 nextfile;
                 tempopeninputfile;
               { status }
-                Message1(scan_d_back_in,name^);
+                Message1(scan_t_back_in,name^);
               end;
            { load next char }
              c:=inputpointer^;
@@ -1449,7 +1449,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  1998-10-08 17:17:30  pierre
+  Revision 1.59  1998-10-08 23:29:05  peter
+    * -vu shows unit info, -vt shows tried/used files
+
+  Revision 1.58  1998/10/08 17:17:30  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)

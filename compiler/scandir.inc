@@ -562,7 +562,7 @@ const
            current_scanner^.addfile(hp);
            if not current_scanner^.openinputfile then
             Message1(scan_f_cannot_open_includefile,hs);
-           Message1(scan_u_start_include_file,current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^);
+           Message1(scan_t_start_include_file,current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^);
            current_scanner^.reload;
          { register for refs }
            current_module^.sourcefiles^.register_file(hp);
@@ -944,7 +944,10 @@ const
 
 {
   $Log$
-  Revision 1.36  1998-10-08 17:17:29  pierre
+  Revision 1.37  1998-10-08 23:29:04  peter
+    * -vu shows unit info, -vt shows tried/used files
+
+  Revision 1.36  1998/10/08 17:17:29  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)

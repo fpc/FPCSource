@@ -203,10 +203,10 @@ unit pmodules;
             { need to recompile the current unit ? }
               if loaded_unit^.crc<>pu^.checksum then
                begin
+                 Message2(unit_u_recompile_crc_change,current_module^.modulename^,pu^.name^);
                  current_module^.do_compile:=true;
                  dispose(current_module^.map);
                  current_module^.map:=nil;
-                 Comment(V_Warning,'recompiling, interface of '+pu^.name^+' (intfc) is changed');
                  exit;
                end;
             { setup the map entry for deref }
@@ -248,8 +248,8 @@ unit pmodules;
             { need to recompile the current unit ? }
               if loaded_unit^.crc<>pu^.checksum then
                begin
+                 Message2(unit_u_recompile_crc_change,current_module^.modulename^,pu^.name^);
                  current_module^.do_compile:=true;
-                 Comment(V_Warning,'recompiling, interface of '+pu^.name^+' (impl) is changed');
                  dispose(current_module^.map);
                  current_module^.map:=nil;
                  exit;
@@ -370,7 +370,7 @@ unit pmodules;
          old_current_module:=current_module;
          old_current_ppu:=current_ppu;
          { Info }
-         Message3(unit_t_load_unit,current_module^.modulename^,ImplIntf[current_module^.in_implementation],s);
+         Message3(unit_u_load_unit,current_module^.modulename^,ImplIntf[current_module^.in_implementation],s);
          { unit not found }
          st:=nil;
          { search all loaded units }
@@ -424,6 +424,7 @@ unit pmodules;
                current_module:=hp;
                current_module^.in_second_compile:=true;
                current_module^.do_compile:=true;
+               Message1(unit_u_second_compile,current_module^.modulename^);
              end
             else
           { generates a new unit info record }
@@ -667,6 +668,7 @@ unit pmodules;
          consume(_INTERFACE);
          { global switches are read, so further changes aren't allowed }
          current_module^.in_global:=false;
+         Message1(unit_u_start_parse_interface,current_module^.modulename^);
 
          { update status }
          status.currentmodule:=current_module^.modulename^;
@@ -760,6 +762,7 @@ unit pmodules;
          { Parse the implementation section }
          consume(_IMPLEMENTATION);
          current_module^.in_implementation:=true;
+         Message1(unit_u_start_parse_implementation,current_module^.modulename^);
 
          parse_only:=false;
 
@@ -781,7 +784,6 @@ unit pmodules;
          { Read the implementation units }
          parse_implementation_uses(unitst);
 
-         
          if current_module^.compiled then
            begin
               { this unit symtable is obsolete }
@@ -793,7 +795,7 @@ unit pmodules;
               dispose(st,done);
               exit;
            end;
-           
+
          { All units are read, now give them a number }
          numberunits;
 
@@ -881,21 +883,6 @@ unit pmodules;
           end;
 {$endif GDB}
 
-         { deletes all symtables generated in the implementation part
-           This could not ever happen, the static symtable is never
-           inserted in the symtablestack (PFV)
-          while symtablestack^.symtabletype<>globalsymtable do
-           if cs_local_browser in aktmoduleswitches then
-             symtablestack:=symtablestack^.next
-           else
-             dellexlevel; }
-
-         { remove static symtable here to save some mem ;) }
-{$ifndef UseBrowser}
-         dispose(st,done);
-{$endif UseBrowser}
-         current_module^.localsymtable:=nil;
-
          { tests, if all (interface) forwards are resolved }
          symtablestack^.check_forwards;
 
@@ -938,13 +925,16 @@ unit pmodules;
            end;
 {$endif GDB}
 
+         { remove static symtable (=refsymtable) here to save some mem }
+{$ifndef UseBrowser}
+         dispose(st,done);
+{$endif UseBrowser}
+         current_module^.localsymtable:=nil;
+
          { generate imports }
          if current_module^.uses_imports then
           importlib^.generatelib;
 
-{$ifndef UseBrowser}
-         dispose(refsymtable,done);
-{$endif UseBrowser}
          { finish asmlist by adding segment starts }
          insertsegment;
 
@@ -1086,7 +1076,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.62  1998-10-08 17:17:25  pierre
+  Revision 1.63  1998-10-08 23:29:01  peter
+    * -vu shows unit info, -vt shows tried/used files
+
+  Revision 1.62  1998/10/08 17:17:25  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)

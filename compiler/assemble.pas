@@ -139,7 +139,7 @@ begin
         aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
       end;
      if asfound then
-      Message1(exec_u_using_assembler,LastASBin);
+      Message1(exec_t_using_assembler,LastASBin);
    end;
   FindAssembler:=LastASBin;
 end;
@@ -458,7 +458,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  1998-10-07 04:27:37  carl
+  Revision 1.24  1998-10-08 23:28:50  peter
+    * -vu shows unit info, -vt shows tried/used files
+
+  Revision 1.23  1998/10/07 04:27:37  carl
     + MPW support
 
   Revision 1.22  1998/09/16 16:41:39  peter

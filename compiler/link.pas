@@ -106,7 +106,6 @@ begin
   if FileExists(DynamicLinker) then
    Glibc2:=true
   else
-
    DynamicLinker:='/lib/ld-linux.so.1';
   LibrarySearchPath:='/lib;/usr/lib';
 {$else}
@@ -154,7 +153,7 @@ begin
         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
       end;
      if ldfound then
-      Message1(exec_u_using_linker,LastLDBin);
+      Message1(exec_t_using_linker,LastLDBin);
    end;
   FindLinker:=LastLDBin;
 end;
@@ -209,11 +208,9 @@ begin
   if Copy(s,1,length(target_os.libprefix))=target_os.libprefix then
    Delete(s,1,length(target_os.libprefix));
 { remove extension if any }
-
   if Copy(s,length(s)-length(target_os.sharedlibext)+1,length(target_os.sharedlibext))=target_os.sharedlibext then
    Delete(s,length(s)-length(target_os.sharedlibext)+1,length(target_os.sharedlibext)+1);
 { ready to be inserted }
-
   SharedLibFiles.Insert (S);
 end;
 
@@ -505,7 +502,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  1998-10-06 17:16:52  pierre
+  Revision 1.28  1998-10-08 23:28:56  peter
+    * -vu shows unit info, -vt shows tried/used files
+
+  Revision 1.27  1998/10/06 17:16:52  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.26  1998/09/29 15:23:05  peter

@@ -177,14 +177,14 @@ begin
   InitCompiler(cmd);
 
 { show some info }
-  Message1(general_u_compilername,FixFileName(paramstr(0)));
+  Message1(general_t_compilername,FixFileName(paramstr(0)));
   Message1(general_d_sourceos,source_os.name);
   Message1(general_i_targetos,target_os.name);
-  Message1(general_u_exepath,exepath);
-  Message1(general_u_unitpath,unitsearchpath);
-  Message1(general_u_includepath,includesearchpath);
-  Message1(general_u_librarypath,Linker.librarysearchpath);
-  Message1(general_u_objectpath,objectsearchpath);
+  Message1(general_t_exepath,exepath);
+  Message1(general_t_unitpath,unitsearchpath);
+  Message1(general_t_includepath,includesearchpath);
+  Message1(general_t_librarypath,Linker.librarysearchpath);
+  Message1(general_t_objectpath,objectsearchpath);
 {$ifdef TP}
   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
 {$endif}
@@ -230,7 +230,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1998-10-08 17:17:18  pierre
+  Revision 1.11  1998-10-08 23:28:51  peter
+    * -vu shows unit info, -vt shows tried/used files
+
+  Revision 1.10  1998/10/08 17:17:18  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)
