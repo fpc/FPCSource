@@ -905,7 +905,8 @@ procedure TFastBufStream.Readline(var s:string;var linecomplete,hasCR : boolean)
     else
       CharsInS:=false;
 
-    while (not (getpos>=getsize)) and (c<>#10) and (i<High(S)) do
+    while (CharsInS or not (getpos>=getsize)) and
+          (c<>#10) and (i<High(S)) do
      begin
        if CharsInS then
          c:=s[i+1]
@@ -1362,7 +1363,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.14  2002-09-10 12:19:14  pierre
+  Revision 1.15  2002-09-11 08:30:38  pierre
+   * avoid a lot of useless calls in readline method
+
+  Revision 1.14  2002/09/10 12:19:14  pierre
    * use faster method for loading files by default
 
   Revision 1.13  2002/09/09 06:58:27  pierre
