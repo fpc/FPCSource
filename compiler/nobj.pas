@@ -579,8 +579,7 @@ implementation
                        pd:=hp^.def;
                        if pd.procsym=sym then
                         begin
-                          pdoverload:=(po_overload in pd.procoptions) or
-                                      (m_fpc in aktmodeswitches);
+                          pdoverload:=(po_overload in pd.procoptions);
 
                           { compare with all stored definitions }
                           procdefcoll:=symcoll^.data;
@@ -1276,7 +1275,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2001-11-18 20:18:54  peter
+  Revision 1.11  2001-11-20 18:49:43  peter
+    * require overload for cross object overloading
+
+  Revision 1.10  2001/11/18 20:18:54  peter
     * use cp_value_equal_const instead of cp_all
 
   Revision 1.9  2001/11/18 18:43:14  peter

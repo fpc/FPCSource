@@ -864,11 +864,7 @@ implementation
                    { when the definition has overload directive set, we search for
                       overloaded definitions }
                    if (not symtableprocentry.overloadchecked) and
-                      (
-                       (m_fpc in aktmodeswitches) or
-                       ((po_overload in symtableprocentry.defs^.def.procoptions) and
-                        (m_delphi in aktmodeswitches))
-                      ) then
+                      (po_overload in symtableprocentry.defs^.def.procoptions) then
                     begin
                       { for methods search in the class tree }
                       if (symtableprocentry.owner.symtabletype=objectsymtable) then
@@ -1767,7 +1763,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2001-11-18 20:18:54  peter
+  Revision 1.58  2001-11-20 18:49:43  peter
+    * require overload for cross object overloading
+
+  Revision 1.57  2001/11/18 20:18:54  peter
     * use cp_value_equal_const instead of cp_all
 
   Revision 1.56  2001/11/18 18:43:13  peter
