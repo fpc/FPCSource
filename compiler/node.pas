@@ -225,8 +225,10 @@ interface
          nf_varargs_para,  { belongs this para to varargs }
 
          { flags used by loop nodes }
-         nf_backward,  { set if it is a for ... downto ... do loop }
-         nf_varstate,  { do we need to parse childs to set var state }
+         nf_backward,	{ set if it is a for ... downto ... do loop }
+         nf_varstate,   { do we need to parse childs to set var state }
+	 nf_testatbegin,{ Do a test at the begin of the loop?}
+	 nf_checknegate,{ Negate the loop test?}
 
          { taddrnode }
          nf_procvarload,
@@ -821,7 +823,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2002-07-19 11:41:36  daniel
+  Revision 1.31  2002-07-21 06:58:49  daniel
+  * Changed booleans into flags
+
+  Revision 1.30  2002/07/19 11:41:36  daniel
   * State tracker work
   * The whilen and repeatn are now completely unified into whilerepeatn. This
     allows the state tracker to change while nodes automatically into

@@ -101,7 +101,7 @@ implementation
          load_all_regvars(exprasmlist);
          { handling code at the end as it is much more efficient, and makes
            while equal to repeat loop, only the end true/false is swapped (PFV) }
-         if testatbegin then
+         if nf_testatbegin in flags then
            cg.a_jmp_always(exprasmlist,lcont);
 
 	 if not(cs_littlesize in aktglobalswitches) then
@@ -121,7 +121,7 @@ implementation
          cg.a_label(exprasmlist,lcont);
          otlabel:=truelabel;
          oflabel:=falselabel;
-         if checknegate then
+         if nf_checknegate in flags then
           begin
             truelabel:=lbreak;
             falselabel:=lloop;
@@ -349,7 +349,7 @@ implementation
            end
          else
            begin
-             if testatbegin then
+             if nf_testatbegin in flags then
                begin
                  cg.a_cmp_const_loc_label(exprasmlist,opsize,hcond,
                    aword(tordconstnode(right).value),
@@ -627,7 +627,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-07-20 12:54:53  daniel
+  Revision 1.28  2002-07-21 06:58:49  daniel
+  * Changed booleans into flags
+
+  Revision 1.27  2002/07/20 12:54:53  daniel
   * Optimized the code generated for for nodes. The shootout/nestloop benchmark
     now runs 5% faster on my computer.
 

@@ -45,7 +45,6 @@ interface
        end;
 
        twhilerepeatnode = class(tloopnode)
-	  testatbegin,checknegate:boolean;
           constructor create(l,r,_t1:Tnode;tab,cn:boolean);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
@@ -63,7 +62,6 @@ interface
        tifnodeclass = class of tifnode;
 
        tfornode = class(tloopnode)
-	  testatbegin:boolean;
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
@@ -284,8 +282,10 @@ implementation
 
     begin
 	inherited create(whilerepeatn,l,r,_t1,nil);
-	testatbegin:=tab;
-	checknegate:=cn;
+	if tab then
+	    include(flags,nf_testatbegin);
+	if cn then
+	    include(flags,nf_checknegate);
     end;
 
     function twhilerepeatnode.det_resulttype:tnode;
@@ -303,7 +303,8 @@ implementation
 		left:=Tunarynode(left).left;
 		t.left:=nil;
 		t.destroy;
-		checknegate:=not checknegate;
+		{Symdif operator, in case you are wondering:}
+		flags:=flags >< [nf_checknegate];
 	    end;
          { loop instruction }
          if assigned(right) then
@@ -377,7 +378,7 @@ implementation
 	done:=false;
 	firsttest:=true;
 	{For repeat until statements, first do a pass through the code.}
-	if not testatbegin then
+	if not(nf_testatbegin in flags) then
 	    begin
 		code:=right.getcopy;
 		if code.track_state_pass(exec_known) then
@@ -406,10 +407,7 @@ implementation
 		begin
 		    {Try to turn a while loop into a repeat loop.}
 		    if firsttest then
-			begin
-			testatbegin:=false;
-			    writeln('while->repeat');
-			end;
+			exclude(flags,testatbegin);
 		    value:=(Tordconstnode(condition).value<>0) xor checknegate;
 		    if value then
 			begin
@@ -581,7 +579,7 @@ implementation
          inherited create(forn,l,r,_t1,_t2);
          if back then
            include(flags,nf_backward);
-	 testatbegin:=true;
+	 include(flags,nf_testatbegin);
       end;
 
 
@@ -600,12 +598,12 @@ implementation
            end;
 
 	 {Can we spare the first comparision?}
-         if right.nodetype=ordconstn then
-            if Tassignmentnode(left).right.nodetype=ordconstn then
-        	testatbegin:=not(((nf_backward in flags) and
-                 (Tordconstnode(Tassignmentnode(left).right).value>=Tordconstnode(right).value))
-                 or (not(nf_backward in flags) and
-                 (Tordconstnode(Tassignmentnode(left).right).value<=Tordconstnode(right).value)));
+         if (right.nodetype=ordconstn) and (Tassignmentnode(left).right.nodetype=ordconstn) then
+    	    if not(((nf_backward in flags) and
+             (Tordconstnode(Tassignmentnode(left).right).value>=Tordconstnode(right).value))
+             or (not(nf_backward in flags) and
+             (Tordconstnode(Tassignmentnode(left).right).value<=Tordconstnode(right).value))) then
+	        exclude(flags,nf_testatbegin);
 
          { save counter var }
          t2:=tassignmentnode(left).left.getcopy;
@@ -1246,7 +1244,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2002-07-20 11:57:54  florian
+  Revision 1.44  2002-07-21 06:58:49  daniel
+  * Changed booleans into flags
+
+  Revision 1.43  2002/07/20 11:57:54  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
