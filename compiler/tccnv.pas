@@ -460,6 +460,14 @@ implementation
 
     procedure first_bool_to_int(var p : ptree);
       begin
+{$ifndef OLDBOOL}
+         { byte(boolean) or word(wordbool) or longint(longbool) must
+         be accepted for var parameters }
+         if (p^.explizit) and
+            (p^.left^.resulttype^.size=p^.resulttype^.size) and
+            (p^.left^.location.loc in [LOC_REGISTER,LOC_MEM,LOC_CREGISTER]) then
+           exit;
+{$endif ndef OLDBOOL}
          p^.location.loc:=LOC_REGISTER;
          { Florian I think this is overestimated
            but I still do not really understand how to get this right (PM) }
@@ -474,6 +482,14 @@ implementation
 
     procedure first_int_to_bool(var p : ptree);
       begin
+{$ifndef OLDBOOL}
+         { byte(boolean) or word(wordbool) or longint(longbool) must
+         be accepted for var parameters }
+         if (p^.explizit) and
+            (p^.left^.resulttype^.size=p^.resulttype^.size) and
+            (p^.left^.location.loc in [LOC_REGISTER,LOC_MEM,LOC_CREGISTER]) then
+           exit;
+{$endif ndef OLDBOOL}
          p^.location.loc:=LOC_REGISTER;
          { Florian I think this is overestimated
            but I still do not really understand how to get this right (PM) }
@@ -768,6 +784,7 @@ implementation
                   begin
                      { boolean to byte are special because the
                        location can be different }
+
                      if is_integer(p^.resulttype) and
                         is_boolean(p^.left^.resulttype) then
                        begin
@@ -955,7 +972,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1999-01-27 00:13:57  florian
+  Revision 1.16  1999-01-27 13:02:21  pierre
+   boolean to int conversion problems bug0205 bug0208
+
+  Revision 1.15  1999/01/27 00:13:57  florian
     * "procedure of object"-stuff fixed
 
   Revision 1.14  1999/01/19 12:17:45  peter

@@ -1592,8 +1592,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1999-01-27 12:59:32  pierre
-  tccnv.pas
+  Revision 1.48  1999-01-27 13:03:27  pierre
+   boolean to int conversion problems bug0205 bug0208
+
+  Revision 1.47  1999/01/27 12:59:32  pierre
+  wrong commit info : tccnv.pas
 
   Revision 1.46  1999/01/27 00:13:53  florian
     * "procedure of object"-stuff fixed
