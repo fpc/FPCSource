@@ -1247,7 +1247,7 @@ const fpcmakeini : array[0..205,1..240] of char=(
   #010+
   '# Tar options'#010+
   'ifeq ($(USETAR),bz2)'#010+
-  'TAROP','T=vI'#010+
+  'TAROP','T=vj'#010+
   'TAREXT=.tar.bz2'#010+
   'else'#010+
   'TAROPT=vz'#010+
