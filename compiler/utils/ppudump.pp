@@ -105,7 +105,8 @@ type
              target_i386_openbsd,       { 24 }
              target_m68k_openbsd,       { 25 }
              system_x86_64_linux,       { 26 }
-             system_powerpc_macosx      { 27 }
+             system_powerpc_macosx,     { 27 }
+             target_i386_emx            { 28 }
        );
 const
   Targets : array[ttarget] of string[16]=(
@@ -136,7 +137,8 @@ const
   { 24 }  'OpenBSD-i386',
   { 25 }  'OpenBSD-m68k',
   { 26 }  'Linux-x86-64',
-  { 27 }  'MacOSX-ppc'
+  { 27 }  'MacOSX-ppc',
+  { 28 }  'OS/2 via EMX'
   );
 begin
   if w<=ord(high(ttarget)) then
@@ -1927,7 +1929,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-03-17 15:54:22  peter
+  Revision 1.37  2003-03-24 19:57:54  hajny
+    + emx target added
+
+  Revision 1.36  2003/03/17 15:54:22  peter
     * store symoptions also for procdef
     * check symoptions (private,public) when calculating possible
       overload candidates
