@@ -209,8 +209,15 @@
            vmt:=ClassType;
            while assigned(vmt) do
              begin
-                msgtable:=pmsgtable((pdword(vmt)+vmtDynamicTable)^+4);
-                count:=pdword((pdword(vmt)+vmtDynamicTable)^)^;
+                // See if we have messages at all in this class.
+                p:=pdword(vmt)+vmtDynamicTable;
+                If Assigned(p) and (Pdword(p)^<>0) then
+                  begin
+                  msgtable:=pmsgtable(pdword(P)^+4);
+                  count:=pdword(pdword(P)^)^;
+                  end
+                else
+                  Count:=0;
                 { later, we can implement a binary search here }
                 for i:=0 to count-1 do
                   begin
@@ -317,7 +324,10 @@
 
 {
   $Log$
-  Revision 1.5  1999-07-05 20:04:24  peter
+  Revision 1.6  1999-07-11 14:05:50  michael
+  + Added
+
+  Revision 1.5  1999/07/05 20:04:24  peter
     * removed temp defines
 
   Revision 1.4  1999/05/19 13:20:09  peter
