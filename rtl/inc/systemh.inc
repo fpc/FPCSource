@@ -26,15 +26,23 @@
 
 {$i version.inc}
 
+{****************************************************************************
+                             Needed switches
+****************************************************************************}
+
+{$I-,Q-,H-,R-}
+
+{ Stack check gives a note under linux }
+{$ifndef linux}
+  {$S-}
+{$endif}
 
 {****************************************************************************
                          Global Types and Constants
 ****************************************************************************}
 
 Type
-{$Q-}
-{ $8000000 creates a longint overfow !! }
-  Longint  = $80000000..$7fffffff;
+  Longint  = $80000000..$7fffffff; { $8000000 creates a longint overfow !! }
   Integer  = -32768..32767;
   shortint = -128..127;
   byte     = 0..255;
@@ -379,7 +387,8 @@ Procedure SetTextBuf(Var f:Text; Var Buf; Size:Word);
 Procedure chdir(const s:string);
 Procedure mkdir(const s:string);
 Procedure rmdir(const s:string);
-Procedure getdir(drivenr:byte;Var dir:string);
+Procedure getdir(drivenr:byte;Var dir:shortstring);
+Procedure getdir(drivenr:byte;Var dir:ansistring);
 
 {*****************************************************************************
                              Miscelleaous
@@ -430,7 +439,10 @@ const
 
 {
   $Log$
-  Revision 1.40  1998-11-05 10:29:37  pierre
+  Revision 1.41  1998-11-16 10:21:26  peter
+    * fixes for H+
+
+  Revision 1.40  1998/11/05 10:29:37  pierre
    * fix for length(char) in const expressions
 
   Revision 1.39  1998/11/04 20:34:01  michael

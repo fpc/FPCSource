@@ -257,6 +257,21 @@ End;
 
 
 {*****************************************************************************
+                             Directory support.
+*****************************************************************************}
+
+Procedure getdir(drivenr:byte;Var dir:ansistring);
+{ this is needed to also allow ansistrings, the shortstring version is
+  OS dependent }
+var
+  s : shortstring;
+begin
+  getdir(drivenr,s);
+  dir:=s;
+end;
+
+
+{*****************************************************************************
                              Miscellaneous
 *****************************************************************************}
 
@@ -462,7 +477,10 @@ end;
 
 {
   $Log$
-  Revision 1.41  1998-11-05 10:29:36  pierre
+  Revision 1.42  1998-11-16 10:21:25  peter
+    * fixes for H+
+
+  Revision 1.41  1998/11/05 10:29:36  pierre
    * fix for length(char) in const expressions
 
   Revision 1.40  1998/11/04 20:34:02  michael

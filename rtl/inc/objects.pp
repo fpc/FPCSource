@@ -88,7 +88,9 @@ UNIT Objects;
 
 
 {==== Compiler directives ===========================================}
-{$IFNDEF FPC}
+{$IFDEF FPC}
+  {$H-} { No ansistrings }
+{$ELSE}
 { FPC doesn't support these switches in 0.99.5 }
   {$F+} { Force far calls }
   {$A+} { Word Align Data }
@@ -2726,7 +2728,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.12  1998-11-12 11:54:50  peter
+  Revision 1.13  1998-11-16 10:21:24  peter
+    * fixes for H+
+
+  Revision 1.12  1998/11/12 11:54:50  peter
     * fixed for 0.99.8
 
   Revision 1.11  1998/11/12 11:45:09  peter

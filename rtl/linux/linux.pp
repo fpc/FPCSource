@@ -2946,7 +2946,9 @@ Function Dirname(Const path:pathstr):pathstr;
   a slash.
 }
 var
-  Dir,Name,Ext : string;
+  Dir  : PathStr;
+  Name : NameStr;
+  Ext  : ExtStr;
 begin
   FSplit(Path,Dir,Name,Ext);
   if length(Dir)>1 then
@@ -2962,7 +2964,9 @@ Function Basename(Const path:pathstr;Const suf:pathstr):pathstr;
   supplied, it is cut off the filename.
 }
 var
-  Dir,Name,Ext : string;
+  Dir  : PathStr;
+  Name : NameStr;
+  Ext  : ExtStr;
 begin
   FSplit(Path,Dir,Name,Ext);
   if Suf<>Ext then
@@ -3515,7 +3519,10 @@ End.
 
 {
   $Log$
-  Revision 1.24  1998-11-10 14:57:53  peter
+  Revision 1.25  1998-11-16 10:21:28  peter
+    * fixes for H+
+
+  Revision 1.24  1998/11/10 14:57:53  peter
     * renamed rename -> FRename
 
   Revision 1.23  1998/10/30 15:47:11  peter

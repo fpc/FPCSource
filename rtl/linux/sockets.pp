@@ -36,9 +36,9 @@ Const
   AF_X25          = 9;       { Reserved for X.25 project    }
   AF_INET6        = 10;      { IP version 6                 }
   AF_MAX          = 12;
- 
+
  {  Protocol Families }
-  
+
   PF_UNSPEC       = AF_UNSPEC;
   PF_UNIX         = AF_UNIX;
   PF_INET         = AF_INET;
@@ -51,13 +51,13 @@ Const
   PF_X25          = AF_X25;
   PF_INET6        = AF_INET6;
 
-  PF_MAX          = AF_MAX;   
+  PF_MAX          = AF_MAX;
 
 const
   { Two constants to determine whether part of soket is for in or output }
   S_IN = 0;
   S_OUT = 1;
-  
+
 Type
   TSockAddr = packed Record
     family:word;  { was byte, fixed }
@@ -68,7 +68,7 @@ Type
     family:word; { was byte, fixed }
     path:array[0..108] of char;
     end;
-  
+
   TInetSockAddr = packed Record
     family:Word;
     port  :Word;
@@ -77,7 +77,7 @@ Type
     end;
 
   TSockArray = Array[1..2] of Longint;
-  
+
 Var
   SocketError:Longint;
 
@@ -149,7 +149,7 @@ Const
   Socket_Sys_GETSOCKOPT  = 15;
   Socket_Sys_SENDMSG     = 16;
   Socket_Sys_RECVMSG     = 17;
-  
+
 
 Function SocketCall(SockCallNr,a1,a2,a3,a4,a5,a6:longint):longint;
 var
@@ -167,7 +167,7 @@ begin
   SocketCall:=Syscall(syscall_nr_socketcall,regs);
   If SocketCall<0 then
    SocketError:=Errno
-  else 
+  else
    SocketError:=0;
 end;
 
@@ -178,11 +178,11 @@ begin
   SocketCall:=SocketCall(SockCallNr,a1,a2,a3,0,0,0);
 end;
 
-  
+
 {******************************************************************************
                           Basic Socket Functions
 ******************************************************************************}
-    
+
 Function socket(Domain,SocketType,Protocol:Longint):Longint;
 begin
   Socket:=SocketCall(Socket_Sys_Socket,Domain,SocketType,ProtoCol);
@@ -282,23 +282,23 @@ Procedure OpenSock(var F:Text);
 begin
   if textrec(f).handle=UnusedHandle then
    textrec(f).mode:=fmclosed
-  else   
+  else
    case textrec(f).userdata[1] of
     S_OUT : textrec(f).mode:=fmoutput;
      S_IN : textrec(f).mode:=fminput;
    else
     textrec(f).mode:=fmclosed;
-   end;	       
+   end;
 end;
 
 
 
 Procedure IOSock(var F:text);
 begin
-  case textrec(f).mode of 
+  case textrec(f).mode of
    fmoutput : fdWrite(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufpos);
     fminput : textrec(f).BufEnd:=fdRead(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufsize);
-  end;    
+  end;
   textrec(f).bufpos:=0;
 end;
 
@@ -310,9 +310,9 @@ begin
    IOSock(f);
   textrec(f).bufpos:=0;
 end;
-      
 
-      
+
+
 Procedure CloseSock(var F:text);
 begin
   Close(f);
@@ -355,7 +355,7 @@ begin
   FileRec(SockIn).Handle:=Sock;
   FileRec(SockIn).RecSize:=1;
   FileRec(Sockin).userdata[1]:=S_IN;
-{Output}  
+{Output}
   Assign(SockOut,'.');
   FileRec(SockOut).Handle:=Sock;
   FileRec(SockOut).RecSize:=1;
@@ -396,7 +396,7 @@ begin
   AddrLen:=length(addr)+3;
   DoAccept:=Accept(Sock,UnixAddr,AddrLen);
   Move(UnixAddr.Path,Addr[1],AddrLen);
-  Addr[0]:=Chr(AddrLen);
+  SetLength(Addr,AddrLen);
 end;
 
 
@@ -420,7 +420,7 @@ begin
      Sock2Text(S,SockIn,SockOut);
      Accept:=true;
    end
-  else     
+  else
    Accept:=false;
 end;
 
@@ -436,7 +436,7 @@ begin
      Sock2File(S,SockIn,SockOut);
      Accept:=true;
    end
-  else     
+  else
    Accept:=false;
 end;
 
@@ -516,7 +516,7 @@ begin
 end;
 
 
-          
+
 Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
 var
   s : longint;
@@ -527,7 +527,7 @@ begin
      Sock2Text(S,SockIn,SockOut);
      Accept:=true;
    end
-  else     
+  else
    Accept:=false;
 end;
 
@@ -543,7 +543,7 @@ begin
      Sock2File(S,SockIn,SockOut);
      Accept:=true;
    end
-  else     
+  else
    Accept:=false;
 end;
 
@@ -554,7 +554,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-07-16 10:36:45  michael
+  Revision 1.3  1998-11-16 10:21:30  peter
+    * fixes for H+
+
+  Revision 1.2  1998/07/16 10:36:45  michael
   + added connect call for inet sockets
 
   Revision 1.1.1.1  1998/03/25 11:18:43  root

@@ -1082,7 +1082,7 @@ end;
 
 var
   Lastansi  : boolean;
-  AnsiCode  : string[32];
+  AnsiCode  : string;
 Procedure DoWrite(const s:String);
 {
   Write string to screen, parse most common AnsiCodes
@@ -1231,7 +1231,7 @@ Var
   Temp : String;
 Begin
   Move(F.BufPTR^[0],Temp[1],F.BufPos);
-  temp[0]:=chr(F.BufPos);
+  setlength(temp,F.BufPos);
   DoWrite(Temp);
   F.BufPos:=0;
   CrtWrite:=0;
@@ -1492,7 +1492,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.12  1998-11-10 15:01:01  peter
+  Revision 1.13  1998-11-16 10:21:27  peter
+    * fixes for H+
+
+  Revision 1.12  1998/11/10 15:01:01  peter
     * fixed GetXY at startup
 
   Revision 1.11  1998/10/30 12:11:51  peter

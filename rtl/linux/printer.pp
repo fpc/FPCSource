@@ -15,19 +15,19 @@
 
 {   Change Log
    ----------
-  
+
    Started by Michael Van Canneyt, 1996
    (michael@tfdec1.fys.kuleuven.ac.be)
-  
+
    Current version is 0.9
-  
+
    Date          Version          Who         Comments
    1996          0.8              Michael     Initial implementation
    11/97         0.9              Peter Vreman <pfv@worldonline.nl>
-                                              Unit now depends on the 
+                                              Unit now depends on the
                                               linux unit only.
                                               Cleaned up code.
-                                                     
+
   ---------------------------------------------------------------------}
 
 Unit printer;
@@ -42,7 +42,7 @@ Const
 Var
   Lst : Text;
 
-Procedure AssignLst ( Var F : text; ToFile : string[255]);
+Procedure AssignLst ( Var F : text; ToFile : string);
 {
  Assigns to F a printing device. ToFile is a string with the following form:
  '|filename options'  : This sets up a pipe with the program filename,
@@ -51,12 +51,12 @@ Procedure AssignLst ( Var F : text; ToFile : string[255]);
               (No Quotes), which will be replaced by the PID of your program.
               When closing lst, the file will be sent to lpr and deleted.
               (lpr should be in PATH)
-                
+
  'filename|' Idem as previous, only the file is NOT sent to lpr, nor is it
              deleted.
              (useful for opening /dev/printer or for later printing)
- 
- Lst is set up using '/tmp/PID.lst'. You can change this behaviour at 
+
+ Lst is set up using '/tmp/PID.lst'. You can change this behaviour at
  compile time, setting the DefFile constant.
 }
 
@@ -65,11 +65,11 @@ Uses Linux,Strings;
 
 {
   include definition of textrec
-}    
+}
 {$i textrec.inc}
-                                                                                 
 
-Const 
+
+Const
   P_TOF   = 1; { Print to file }
   P_TOFNP = 2; { Print to File, don't spool }
   P_TOP   = 3; { Print to Pipe }
@@ -77,8 +77,8 @@ Const
 Var
   Lpr      : String[255]; { Contains path to lpr binary, including null char }
   SaveExit : pointer;
-  
-  
+
+
 Procedure PrintAndDelete (f:string);
 var
   i,j  : longint;
@@ -88,20 +88,20 @@ begin
   if lpr='' then
    exit;
   i:=Fork;
-  if i<0 then 
+  if i<0 then
    exit; { No printing was done. We leave the file where it is.}
   if i=0 then
    begin
    { We're in the child }
      getmem(p,12);
-     if p=nil then 
+     if p=nil then
       halt(127);
      pp:=p;
      pp^:=@lpr[1];
      pp:=pp+4;
      pp^:=@f[1];
      pp:=pp+4;
-     pp^:=nil;  
+     pp^:=nil;
      Execve(lpr,p,envp);
      { In trouble here ! }
      halt(128)
@@ -110,7 +110,7 @@ begin
    begin
    { We're in the parent. }
      waitpid (i,@j,0);
-     if j<>0 then 
+     if j<>0 then
       exit;
    { Erase the file }
      Unlink(f);
@@ -140,7 +140,7 @@ begin
  if i<0 then
   textrec(f).mode:=fmclosed
  else
-  textrec(f).handle:=i; 
+  textrec(f).handle:=i;
 end;
 
 
@@ -157,8 +157,8 @@ begin
      Unlink(StrPas(textrec(f).name));
      exit
    end;
-{ Non empty : needs printing ? } 
-  if (textrec(f).userdata[16]=P_TOF) then 
+{ Non empty : needs printing ? }
+  if (textrec(f).userdata[16]=P_TOF) then
    PrintAndDelete (strpas(textrec(f).name));
   textrec(f).mode:=fmclosed
 end;
@@ -203,7 +203,7 @@ begin
 {$IFDEF PRINTERDEBUG}
   writeln ('Printer : In AssignLst');
 {$ENDIF}
-  If ToFile='' then 
+  If ToFile='' then
    exit;
   textrec(f).bufptr:=@textrec(f).buffer;
   textrec(f).bufsize:=128;
@@ -250,11 +250,14 @@ begin
   rewrite(Lst);
   lpr:='/usr/bin/lpr';
 end.
-                        
+
 
 {
   $Log$
-  Revision 1.2  1998-05-06 12:35:26  michael
+  Revision 1.3  1998-11-16 10:21:29  peter
+    * fixes for H+
+
+  Revision 1.2  1998/05/06 12:35:26  michael
   + Removed log from before restored version.
 
   Revision 1.1.1.1  1998/03/25 11:18:43  root

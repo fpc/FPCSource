@@ -615,7 +615,7 @@ Begin
 End;
 
 
-procedure getdir(drivenr : byte;var dir : string);
+procedure getdir(drivenr : byte;var dir : shortstring);
 {$ifndef crtlib}
 var
   thisdir      : stat;
@@ -739,7 +739,10 @@ End.
 
 {
   $Log$
-  Revision 1.17  1998-10-15 08:30:00  peter
+  Revision 1.18  1998-11-16 10:21:32  peter
+    * fixes for H+
+
+  Revision 1.17  1998/10/15 08:30:00  peter
     + sigfpe -> runerror 200
 
   Revision 1.16  1998/09/14 10:48:27  peter
