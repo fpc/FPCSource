@@ -1216,6 +1216,7 @@ implementation
                   begin
                     { are we in a class method ? }
                     possible_error:=(srsym.owner.symtabletype=objectsymtable) and
+                                    not(is_interface(tdef(srsym.owner.defowner))) and
                                     assigned(aktprocsym) and
                                     (po_classmethod in aktprocdef.procoptions);
                     do_proc_call(srsym,srsymtable,
@@ -2245,7 +2246,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2002-10-02 18:20:52  peter
+  Revision 1.84  2002-10-02 20:51:22  peter
+    * don't check interfaces for class methods
+
+  Revision 1.83  2002/10/02 18:20:52  peter
     * Copy() is now internal syssym that calls compilerprocs
 
   Revision 1.82  2002/09/30 07:00:48  florian
