@@ -110,7 +110,7 @@ implementation
           top_ref:
             dispose(oper[i].ref);
           top_symbol:
-            dec(tasmsymbol(oper[0].sym).refs);
+            dec(tasmsymbol(oper[i].sym).refs);
         end;
         inherited destroy;
       end;
@@ -251,7 +251,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-12-29 15:28:57  jonas
+  Revision 1.3  2001-12-29 16:29:08  jonas
+    * fixed stupid copy-paste bug
+
+  Revision 1.2  2001/12/29 15:28:57  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit
