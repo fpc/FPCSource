@@ -62,11 +62,11 @@ implementation
          if (p^.symtable^.symtabletype=withsymtable) and
             (pwithsymtable(p^.symtable)^.direct_with) then
            begin
-              p1:=getcopy(ptree(pwithsymtable(p^.symtable)^.withnode)^.left);
+              p1:=getcopy(ptree(pwithsymtable(p^.symtable)^.withrefnode));
               p1:=gensubscriptnode(pvarsym(p^.symtableentry),p1);
               putnode(p);
               p:=p1;
-              firstpass(p1);
+              firstpass(p);
               exit;
            end;
 {$endif ndef NODIRECTWITH}
@@ -447,7 +447,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1999-01-27 00:13:58  florian
+  Revision 1.15  1999-02-15 13:13:19  pierre
+   * fix for bug0216
+
+  Revision 1.14  1999/01/27 00:13:58  florian
     * "procedure of object"-stuff fixed
 
   Revision 1.13  1999/01/21 16:41:07  pierre

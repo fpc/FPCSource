@@ -387,6 +387,13 @@ unit pstatmnt;
                               symtab^.next:=new(pwithsymtable,init);
                               symtab:=symtab^.next;
                               symtab^.root:=obj^.publicsyms^.root;
+{$ifndef NODIRECTWITH}
+                              if (p^.treetype=loadn) and
+                                 (p^.symtable=aktprocsym^.definition^.localst) then
+                                pwithsymtable(symtab)^.direct_with:=true;
+                              {symtab^.withnode:=p; not yet allocated !! }
+                              pwithsymtable(symtab)^.withrefnode:=p;
+{$endif ndef NODIRECTWITH}
                               symtab^.defowner:=obj;
                               obj:=obj^.childof;
                               inc(levelcount);
@@ -400,6 +407,13 @@ unit pstatmnt;
                            withsymtable:=new(pwithsymtable,init);
                            withsymtable^.root:=symtab^.root;
                            withsymtable^.next:=symtablestack;
+{$ifndef NODIRECTWITH}
+                              if (p^.treetype=loadn) and
+                                 (p^.symtable=aktprocsym^.definition^.localst) then
+                                pwithsymtable(withsymtable)^.direct_with:=true;
+                              {symtab^.withnode:=p; not yet allocated !! }
+                              pwithsymtable(withsymtable)^.withrefnode:=p;
+{$endif ndef NODIRECTWITH}
                            withsymtable^.defowner:=obj;
                            symtablestack:=withsymtable;
                         end;
@@ -1263,7 +1277,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.64  1999-02-11 09:46:26  pierre
+  Revision 1.65  1999-02-15 13:13:15  pierre
+   * fix for bug0216
+
+  Revision 1.64  1999/02/11 09:46:26  pierre
     * fix for normal method calls inside static methods :
       WARNING there were both parser and codegen errors !!
       added static_call boolean to calln tree
