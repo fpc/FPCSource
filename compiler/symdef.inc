@@ -2422,6 +2422,23 @@
         vmt_mangledname:='VMT_'+s1+'$_'+s2;
     end;
 
+    function tobjectdef.rtti_name : string;
+
+      var
+         s1,s2:string;
+
+    begin
+       if owner^.name=nil then
+         s1:=''
+       else
+         s1:=owner^.name^;
+       if name=nil then
+         s2:=''
+       else
+         s2:=name^;
+       rtti_name:='RTTI_'+s1+'$_'+s2;
+    end;
+
     function tobjectdef.isclass : boolean;
       begin
          isclass:=(options and oois_class)<>0;
@@ -2636,7 +2653,12 @@
            typvalue : byte;
 
         begin
-           if sym^.typ=varsym then
+           if not(assigned(sym)) then
+             begin
+                rttilist^.concat(new(pai_const,init_32bit(1)));
+                typvalue:=3;
+             end
+           else if sym^.typ=varsym then
              begin
                 rttilist^.concat(new(pai_const,init_32bit(
                   pvarsym(sym)^.address)));
@@ -2666,7 +2688,14 @@
               rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(ppropertysym(sym)^.proptype^.get_rtti_label)))));
               writeproc(ppropertysym(sym)^.readaccesssym,ppropertysym(sym)^.readaccessdef,0);
               writeproc(ppropertysym(sym)^.writeaccesssym,ppropertysym(sym)^.writeaccessdef,2);
-              writeproc(ppropertysym(sym)^.storedsym,ppropertysym(sym)^.storeddef,4);
+              { isn't it stored ? }
+              if (ppropertysym(sym)^.options and ppo_stored)=0 then
+                begin
+                   rttilist^.concat(new(pai_const,init_32bit(1)));
+                   proctypesinfo:=proctypesinfo or (3 shl 4);
+                end
+              else
+                writeproc(ppropertysym(sym)^.storedsym,ppropertysym(sym)^.storeddef,4);
               rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.index)));
               rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.default)));
               rttilist^.concat(new(pai_const,init_16bit(count)));
@@ -2680,14 +2709,25 @@
     procedure generate_published_child_rtti(sym : psym);{$ifndef fpc}far;{$endif}
 
       begin
+         if (sym^.typ=propertysym) and ((sym^.properties and sp_published)<>0) then
+           ppropertysym(sym)^.proptype^.get_rtti_label;
       end;
 
     procedure tobjectdef.write_child_rtti_data;
 
       begin
-         if assigned(childof) then
-           childof^.get_rtti_label;
          publicsyms^.foreach(generate_published_child_rtti);
+      end;
+
+    procedure tobjectdef.generate_rtti;
+
+      begin
+         has_rtti:=true;
+         getlabel(rtti_label);
+         write_child_rtti_data;
+         rttilist^.concat(new(pai_symbol,init_global(rtti_name)));
+         rttilist^.concat(new(pai_label,init(rtti_label)));
+         write_rtti_data;
       end;
 
     procedure tobjectdef.write_rtti_data;
@@ -2706,7 +2746,7 @@
          rttilist^.concat(new(pai_const,init_symbol(strpnew(vmt_mangledname))));
 
          { write owner typeinfo }
-         if assigned(childof) then
+         if assigned(childof) and ((childof^.options and oo_can_have_published)<>0) then
            rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(childof^.get_rtti_label)))))
          else
            rttilist^.concat(new(pai_const,init_32bit(0)));
@@ -2751,7 +2791,10 @@
 
 {
   $Log$
-  Revision 1.35  1998-09-06 22:42:02  florian
+  Revision 1.36  1998-09-07 17:37:01  florian
+    * first fixes for published properties
+
+  Revision 1.35  1998/09/06 22:42:02  florian
     + rtti genreation for properties added
 
   Revision 1.34  1998/09/04 18:15:02  peter

@@ -1129,7 +1129,7 @@ unit pdecl;
            begin
               aktclass^.options:=aktclass^.options or oois_class;
 
-              if (cs_generate_rtti in aktmoduleswitches) or
+              if (cs_generate_rtti in aktlocalswitches) or
                   (assigned(aktclass^.childof) and
                    ((aktclass^.childof^.options and oo_can_have_published)<>0)
                   ) then
@@ -1312,6 +1312,7 @@ unit pdecl;
          testcurobject:=0;
          curobjectname:='';
 
+         aktclass^.generate_rtti;
          if (cs_smartlink in aktmoduleswitches) then
            datasegment^.concat(new(pai_cut,init));
          { write extended info for classes }
@@ -1335,7 +1336,7 @@ unit pdecl;
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
               { pointer to type info of published section }
-              datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(aktclass^.get_rtti_label)))));
+              datasegment^.concat(new(pai_const,init_symbol(strpnew(aktclass^.rtti_name))));
 
               { pointer to field table }
               datasegment^.concat(new(pai_const,init_32bit(0)));
@@ -1969,7 +1970,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.48  1998-09-04 08:42:02  peter
+  Revision 1.49  1998-09-07 17:37:00  florian
+    * first fixes for published properties
+
+  Revision 1.48  1998/09/04 08:42:02  peter
     * updated some error messages
 
   Revision 1.47  1998/09/03 16:03:18  florian

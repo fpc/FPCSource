@@ -523,7 +523,11 @@
          writeaccessdef:=nil;
          readaccesssym:=nil;
          writeaccesssym:=nil;
-         index:=$0;
+         storedsym:=nil;
+         storeddef:=nil;
+
+         index:=0;
+         default:=0;
       end;
 
     destructor tpropertysym.done;
@@ -1620,7 +1624,10 @@
 
 {
   $Log$
-  Revision 1.39  1998-09-05 22:11:02  florian
+  Revision 1.40  1998-09-07 17:37:04  florian
+    * first fixes for published properties
+
+  Revision 1.39  1998/09/05 22:11:02  florian
     + switch -vb
     * while/repeat loops accept now also word/longbool conditions
     * makebooltojump did an invalid ungetregister32, fixed

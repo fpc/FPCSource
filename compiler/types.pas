@@ -147,8 +147,8 @@ unit types;
       begin
          if is_equal(def1^.retdef,def2^.retdef) and
             equal_paras(def1^.para1,def2^.para1,false) and
-            ((def1^.options and po_comptatibility_options)=
-             (def2^.options and po_comptatibility_options)) then
+            ((def1^.options and po_compatibility_options)=
+             (def2^.options and po_compatibility_options)) then
            proc_to_procvar_equal:=true
          else
            proc_to_procvar_equal:=false;
@@ -902,7 +902,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.26  1998-09-04 12:24:31  florian
+  Revision 1.27  1998-09-07 17:37:07  florian
+    * first fixes for published properties
+
+  Revision 1.26  1998/09/04 12:24:31  florian
     * bug0159 fixed
 
   Revision 1.25  1998/09/04 09:06:36  florian
