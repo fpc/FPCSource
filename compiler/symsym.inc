@@ -513,6 +513,8 @@
     function tprocsym.stabstring : pchar;
      Var RetType : Char;
          Obj,Info : String;
+         stabsstr : string;
+         p : pchar;
     begin
       obj := name;
       info := '';
@@ -527,11 +529,16 @@
         if (owner^.symtabletype=localsymtable) and assigned(owner^.name) then
          info := ','+name+','+owner^.name^;
       end;
-     stabstring :=strpnew('"'+obj+':'+RetType
+     stabsstr:=definition^.mangledname;
+     getmem(p,length(stabsstr)+255);
+     strpcopy(p,'"'+obj+':'+RetType
            +definition^.retdef^.numberstring+info+'",'+tostr(n_function)
            +',0,'+
            tostr(aktfilepos.line)
-           +','+definition^.mangledname);
+           +',');
+     strpcopy(strend(p),stabsstr);
+     stabstring:=strnew(p);
+     freemem(p,length(stabsstr)+255);
     end;
 
     procedure tprocsym.concatstabto(asmlist : paasmoutput);
@@ -1728,7 +1735,10 @@
 
 {
   $Log$
-  Revision 1.57  1998-11-05 23:39:31  peter
+  Revision 1.58  1998-11-10 10:50:57  pierre
+   * temporary fix for long mangled procsym names
+
+  Revision 1.57  1998/11/05 23:39:31  peter
     + typedconst.getsize
 
   Revision 1.56  1998/10/28 18:26:18  pierre
