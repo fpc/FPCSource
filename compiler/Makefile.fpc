@@ -334,7 +334,6 @@ override PPEXEFILE:=$(wildcard $(EXENAME))
 
 # This will only install the ppc386.exe, not the message files etc.
 quickinstall:
-        $(MKDIR) $(BININSTALLDIR)
 # Install fpc.exe
 ifneq ($(FPCEXEFILE),)
 ifdef UPXPROG

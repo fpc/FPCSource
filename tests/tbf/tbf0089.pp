@@ -1,3 +1,0 @@
-Begin
- sizeof(x);
-end.
