@@ -375,7 +375,7 @@ function arcosh(x : float) : float;
 function arsinh(x : float) : float;
 
   begin
-     arsinh:=Ln(x-Sqrt(1+x*x));
+     arsinh:=Ln(x+Sqrt(1+x*x));
   end;
 
 function artanh(x : float) : float;
@@ -683,7 +683,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.19  2000-07-04 20:53:22  michael
+    Revision 1.20  2000-07-05 13:19:59  michael
+    + Corrected arsinh function
+
+    Revision 1.19  2000/07/04 20:53:22  michael
     + Exceptions now used for errors
 
     Revision 1.18  2000/04/29 10:10:51  jonas
