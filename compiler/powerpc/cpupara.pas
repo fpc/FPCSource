@@ -81,6 +81,7 @@ unit cpupara;
 
       begin
          fillchar(result,sizeof(tparalocation),0);
+         result.lochigh:=LOC_INVALID;
          if nr<1 then
            internalerror(2002070801)
          else if nr<=8 then
@@ -212,6 +213,7 @@ unit cpupara;
         fillchar(paraloc,sizeof(tparalocation),0);
         paraloc.alignment:= std_param_align;
         paraloc.size:=def_cgsize(p.rettype.def);
+        paraloc.lochigh:=LOC_INVALID;
         { Return in FPU register? }
         if p.rettype.def.deftype=floatdef then
           begin
@@ -228,6 +230,7 @@ unit cpupara;
              begin
                paraloc.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
                paraloc.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
+               paraloc.lochigh:=LOC_REGISTER;
              end
             else
 {$endif cpu64bit}
@@ -289,6 +292,7 @@ unit cpupara;
                 begin
                   { hack: the paraloc must be valid, but is not actually used }
                   hp.paraloc[side].loc := LOC_REGISTER;
+                  hp.paraloc[side].lochigh := LOC_INVALID;
                   hp.paraloc[side].register := NR_R0;
                   hp.paraloc[side].size := OS_ADDR;
                   break;
@@ -307,6 +311,7 @@ unit cpupara;
               { make sure all alignment bytes are 0 as well }
               fillchar(paraloc,sizeof(paraloc),0);
               paraloc.alignment:= std_param_align;
+              paraloc.lochigh:=LOC_INVALID;
               case loc of
                  LOC_REGISTER:
                    begin
@@ -323,6 +328,7 @@ unit cpupara;
                                if odd(nextintreg-RS_R3) and (target_info.abi=abi_powerpc_sysv) Then
                                  inc(nextintreg);
                                paraloc.registerhigh:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
+                               paraloc.lochigh:=LOC_REGISTER;
                                inc(nextintreg);
                                if target_info.abi=abi_powerpc_aix then
                                  inc(stack_offset,4);
@@ -425,6 +431,7 @@ unit cpupara;
             while assigned(hp) do
               begin
                 paraloc.size:=def_cgsize(hp.paratype.def);
+                paraloc.lochigh:=LOC_INVALID;
                 paraloc.loc:=LOC_REFERENCE;
                 paraloc.alignment:=4;
                 paraloc.reference.index:=NR_STACK_POINTER_REG;
@@ -446,7 +453,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2004-01-17 15:55:11  jonas
+  Revision 1.58  2004-02-11 23:18:59  florian
+    * fixed to compile the rtl again
+
+  Revision 1.57  2004/01/17 15:55:11  jonas
     * fixed allocation of parameters passed by reference for powerpc in
       callee
 
