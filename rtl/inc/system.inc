@@ -47,6 +47,7 @@ const
 { Used by the ansistrings and maybe also other things in the future }
 var
   emptychar : char;public name 'FPC_EMPTYCHAR';
+  stacklength : longint;external name '__stklen';
 
 
 {****************************************************************************
@@ -305,6 +306,9 @@ begin
     Seed3 := (internRandom(65000) * internRandom(65000)) mod 765241;
 end;
 
+
+
+
 {****************************************************************************
                             Memory Management
 ****************************************************************************}
@@ -404,6 +408,26 @@ procedure fillchar(var x;count : longint;value : char);
 begin
   fillchar(x,count,byte(value));
 end;
+
+{*****************************************************************************
+                         Stack check code
+*****************************************************************************}
+{$IFOPT S+}
+{$DEFINE STACKCHECK}
+{$ENDIF}
+{$S-}
+procedure fpc_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
+var
+ c: cardinal;
+begin
+ c := cardinal(Sptr) - cardinal(stack_size) - STACK_MARGIN;
+ if (c <= cardinal(StackBottom)) then
+     HandleError(202);
+end;
+{$IFDEF STACKCHECK}
+{$S+}
+{$ENDIF}
+{$UNDEF STACKCHECK}
 
 
 {*****************************************************************************
@@ -687,7 +711,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  2001-12-13 20:23:19  michael
+  Revision 1.25  2002-04-12 17:37:36  carl
+  + generic stack checking
+
+  Revision 1.24  2001/12/13 20:23:19  michael
   + Added double2real function from main branch
 
   Revision 1.23  2001/11/19 02:40:24  carl

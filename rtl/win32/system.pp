@@ -952,25 +952,6 @@ begin
   ExitProcess(ExitCode);
 end;
 
-{$ifdef dummy}
-Function SetUpStack : longint;
-{ This routine does the following :                            }
-{  returns the value of the initial SP - __stklen              }
-begin
-  asm
-    pushl %ebx
-    pushl %eax
-    movl  __stklen,%ebx
-    movl  %esp,%eax
-    subl  %ebx,%eax
-    movl  %eax,__RESULT
-    popl  %eax
-    popl  %ebx
-  end;
-end;
-{$endif}
-
-
 var
   { value of the stack segment
     to check if the call stack can be written on exceptions }
@@ -1531,6 +1512,7 @@ const
    Dll_entry_code : pointer = @Dll_entry;
 
 begin
+  StackBottom := Sptr - StackLength;
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }
@@ -1539,8 +1521,6 @@ begin
     HInstance:=getmodulehandle(GetCommandFile);
   MainInstance:=HInstance;
   cmdshow:=startupinfo.wshowwindow;
-  { to test stack depth }
-  loweststack:=maxlongint;
   { real test stack depth        }
   {   stacklimit := setupstack;  }
 {$ifdef MT}
@@ -1585,7 +1565,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  2002-03-11 19:10:33  peter
+  Revision 1.26  2002-04-12 17:45:13  carl
+  + generic stack checking
+
+  Revision 1.25  2002/03/11 19:10:33  peter
     * Regenerated with updated fpcmake
 
   Revision 1.24  2002/01/30 14:57:11  pierre

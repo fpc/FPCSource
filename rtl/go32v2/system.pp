@@ -805,44 +805,6 @@ end;
 var
   __stkbottom : longint;external name '__stkbottom';
 
-procedure int_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
-{
-  called when trying to get local stack if the compiler directive $S
-  is set this function must preserve esi !!!! because esi is set by
-  the calling proc for methods it must preserve all registers !!
-
-  With a 2048 byte safe area used to write to StdIo without crossing
-  the stack boundary
-}
-begin
-  asm
-        pushl   %eax
-        pushl   %ebx
-        movl    stack_size,%ebx
-        addl    $2048,%ebx
-        movl    %esp,%eax
-        subl    %ebx,%eax
-{$ifdef SYSTEMDEBUG}
-        movl    loweststack,%ebx
-        cmpl    %eax,%ebx
-        jb      .L_is_not_lowest
-        movl    %eax,loweststack
-.L_is_not_lowest:
-{$endif SYSTEMDEBUG}
-        movl    __stkbottom,%ebx
-        cmpl    %eax,%ebx
-        jae     .L__short_on_stack
-        popl    %ebx
-        popl    %eax
-        leave
-        ret     $4
-.L__short_on_stack:
-        { can be usefull for error recovery !! }
-        popl    %ebx
-        popl    %eax
-  end['EAX','EBX'];
-  HandleError(202);
-end;
 
 
 {*****************************************************************************
@@ -1520,6 +1482,7 @@ end;
 var
   temp_int : tseginfo;
 Begin
+  StackBottom := __stkbottom; 
 { save old int 0 and 75 }
   get_pm_interrupt($00,old_int00);
   get_pm_interrupt($75,old_int75);
@@ -1530,8 +1493,6 @@ Begin
   temp_int.offset:=@new_int75;
   set_pm_interrupt($75,temp_int);
 {$endif EXCEPTIONS_IN_SYSTEM}
-{ to test stack depth }
-  loweststack:=maxlongint;
 { Setup heap }
   InitHeap;
 {$ifdef MT}
@@ -1564,7 +1525,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.15  2002-03-11 19:10:33  peter
+  Revision 1.16  2002-04-12 17:34:05  carl
+  + generic stack checking
+
+  Revision 1.15  2002/03/11 19:10:33  peter
     * Regenerated with updated fpcmake
 
   Revision 1.14  2001/10/28 17:43:51  peter

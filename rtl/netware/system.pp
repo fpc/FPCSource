@@ -154,22 +154,7 @@ begin
   end;
 end;
 
-{*****************************************************************************
-                         Stack check code
-*****************************************************************************}
-procedure int_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
-{
-  called when trying to get local stack if the compiler directive $S
-  is set this function must preserve esi !!!! because esi is set by
-  the calling proc for methods it must preserve all registers !!
 
-  With a 2048 byte safe area used to write to StdIo without crossing
-  the stack boundary
-}
-begin
-  IF _stackavail > stack_size + 2048 THEN EXIT;
-  HandleError (202);
-end;
 
 {*****************************************************************************
                               ParamStr/Randomize
@@ -238,8 +223,8 @@ begin
       if HeapSbrkBlockList = nil then
       begin
         _free (P);
-	Sbrk := -1;
-	exit;
+    Sbrk := -1;
+    exit;
       end;
       fillchar (HeapSbrkBlockList^,sizeof(HeapSbrkBlockList^),0);
       HeapSbrkAllocated := HeapInitialMaxBlocks;
@@ -250,8 +235,8 @@ begin
       if p2 = nil then
       begin
         _free (P);
-	Sbrk := -1;
-	exit;
+    Sbrk := -1;
+    exit;
       end;
       inc (HeapSbrkAllocated, HeapInitialMaxBlocks);
     end;
@@ -400,9 +385,9 @@ begin
   do_filepos := res;
 end;
 
-CONST SEEK_SET = 0;	// Seek from beginning of file.
-      SEEK_CUR = 1;	// Seek from current position.
-      SEEK_END = 2;	// Seek from end of file.
+CONST SEEK_SET = 0; // Seek from beginning of file.
+      SEEK_CUR = 1; // Seek from current position.
+      SEEK_END = 2; // Seek from end of file.
 
 
 procedure do_seek(handle,pos : longint);
@@ -740,7 +725,7 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
-Begin
+Begin   StackBottom := SPtr - StackLength;
 {$ifdef MT}
   { the exceptions use threadvars so do this _before_ initexceptions }
   AllocateThreadVars;
@@ -782,7 +767,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.10  2002-04-01 15:20:08  armin
+  Revision 1.11  2002-04-12 17:40:11  carl
+  + generic stack checking
+
+  Revision 1.10  2002/04/01 15:20:08  armin
   + unload module no longer shows: Module did not release...
   + check-function will no longer be removed when smartlink is on
 

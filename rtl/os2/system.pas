@@ -213,60 +213,6 @@ procedure emx_init; external 'EMX' index 1;
      { all other cases ... we keep the same error code }
    end;
 
-{***************************************************************************
-
-                Runtime error checking related routines.
-
-***************************************************************************}
-
-{$S-}
-procedure st1(stack_size : longint); [public,alias : 'FPC_STACKCHECK'];
-var
- c: cardinal;
-begin
- c := cardinal(Sptr) - cardinal(stack_size) - 16384;
- if os_mode = osos2 then
-   begin
-     if (c <= cardinal(StackBottom)) then
-        HandleError(202);
-   end
- else
-   begin
-     if (c <= cardinal(heap_brk)) then
-        HandleError(202);
-   end;
-end;
-(*
-procedure st1(stack_size:longint); assembler; [public,alias: 'FPC_STACKCHECK'];
-{ called when trying to get local stack }
-{ if the compiler directive $S is set   }
-
-asm
-    movl stack_size,%ebx
-    movl %esp,%eax
-    subl %ebx,%eax
-{$ifdef SYSTEMDEBUG}
-    movl loweststack,%ebx
-    cmpl %eax,%ebx
-    jb   .Lis_not_lowest
-    movl %eax,loweststack
-.Lis_not_lowest:
-{$endif SYSTEMDEBUG}
-    cmpb osOS2,os_mode
-    jne .Lrunning_in_dos
-    movl stackbottom,%ebx
-    jmp .Lrunning_in_os2
-.Lrunning_in_dos:
-    movl heap_brk,%ebx
-.Lrunning_in_os2:
-    cmpl %eax,%ebx
-    jae  .Lshort_on_stack
-.Lshort_on_stack:
-    pushl $202
-    call HandleError
-end ['EAX','EBX'];
-{no stack check in system }
-*)
 
 {****************************************************************************
 
@@ -1032,7 +978,7 @@ begin
     {At 0.9.2, case for enumeration does not work.}
     case os_mode of
         osDOS:
-            stackbottom:=0;     {In DOS mode, heap_brk is also the
+            stackbottom:=cardinal(heap_brk);     {In DOS mode, heap_brk is also the
                                  stack bottom.}
         osOS2:
             begin
@@ -1062,8 +1008,6 @@ begin
     { ... and exceptions }
     InitExceptions;
 
-    { to test stack depth }
-    loweststack:=maxlongint;
 
     OpenStdIO(Input,fmInput,StdInputHandle);
     OpenStdIO(Output,fmOutput,StdOutputHandle);
@@ -1075,7 +1019,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-03-11 19:10:33  peter
+  Revision 1.20  2002-04-12 17:42:16  carl
+  + generic stack checking
+
+  Revision 1.19  2002/03/11 19:10:33  peter
     * Regenerated with updated fpcmake
 
   Revision 1.18  2002/02/10 13:46:20  hajny

@@ -746,6 +746,7 @@ end;
 
 
 Begin
+  StackBottom := Sptr - StackLength;
 { Set up signals handlers }
    InstallSignals;
 { Setup heap }
@@ -764,7 +765,10 @@ End.
 
 {
   $Log$
-  Revision 1.19  2002-03-11 19:10:33  peter
+  Revision 1.20  2002-04-12 17:43:28  carl
+  + generic stack checking
+
+  Revision 1.19  2002/03/11 19:10:33  peter
     * Regenerated with updated fpcmake
 
   Revision 1.18  2001/10/14 13:33:21  peter
