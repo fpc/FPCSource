@@ -54,10 +54,18 @@ type
                  4 : ( FocusEvent : FOCUS_EVENT_RECORD );
        end;
 
+const
+{$ifdef cpu68k}
+  { GNU C only aligns at word boundaries 
+    for m68k cpu PM }
+  correct_size = 18;
+{$else }
+  correct_size = 20;
+{$endif }  
 begin
-  if sizeof(INPUT_RECORD)<>20 then
+  if sizeof(INPUT_RECORD)<>correct_size then
    begin
-     writeln('Wrong packing for Packrecords C and union ',sizeof(INPUT_RECORD),' instead of ',20);
+     writeln('Wrong packing for Packrecords C and union ',sizeof(INPUT_RECORD),' instead of ',correct_size);
      halt(1);
    end;
 end.
