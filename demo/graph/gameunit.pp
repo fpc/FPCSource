@@ -26,7 +26,11 @@ INTERFACE
                     Linux }
 
 
-{$ifdef linux}
+{$ifdef Linux
+ {$define Unix}
+{$endif}
+
+{$ifdef Unix}
   {$define MouseAPI}
 {$endif}
 {$ifdef win32}
@@ -906,7 +910,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.2  2001-11-11 21:09:49  marco
+  Revision 1.3  2001-12-11 11:10:27  marco
+   * Small renamefest fix
+
+  Revision 1.2  2001/11/11 21:09:49  marco
    * Gameunit, Fpctris and samegame  fixed for win32 GUI
 
   Revision 1.1  2001/05/03 21:39:33  peter
