@@ -89,7 +89,7 @@ ifdef LONGLOG
         @echo "Test for exec $(FILE) fails exec error $(EXERETVAL)" >> $(LONGLOG)
         @echo "" >> $(LONGLOG)
         cat $(FILE).elg >> $(LONGLOG)
-        cat $(FILE) >> ex_fail
+        @echo $(FILE) >> ex_fail
 endif
 endif
 
