@@ -3,8 +3,8 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by Yuri Prokushev (prokushev@freemail.ru).
 
-    OS/2 Presentation Manager Device Context constants, types and
-    function declarations
+    OS/2 Presentation Manager Window Manager - Bidirectional
+    support include file.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -17,7 +17,7 @@
 
 {Warning: This code is alfa. Future versions
  of this unit might not be compatible.}
- 
+
 unit pmbidi;
 
 interface
@@ -27,11 +27,6 @@ uses os2def, pmwin;
 
 {$PACKRECORDS C}
 
-  {                              Module Header                               \
-
-    OS/2 Presentation Manager Window Manager - Bidirectional support include file.
-
-  \                                                                           }
   {                                                                       }
   { Bidirectional languages support window messages                       }
   {                                                                       }
@@ -600,7 +595,10 @@ end.
 
 {
 $Log$
-Revision 1.1  2003-06-26 17:11:23  yuri
+Revision 1.2  2003-06-26 17:20:04  yuri
+* Misstyping fixed
+
+Revision 1.1  2003/06/26 17:11:23  yuri
 * Initial import
 
 }
