@@ -37,6 +37,7 @@ uses
 {$ifdef has_signal}
 Var
   NewSignal,OldSigSegm,OldSigInt : SignalHandler;
+{$endif}
 
 
 Implementation
@@ -80,7 +81,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-01-27 13:20:37  pierre
+  Revision 1.4  1999-01-28 19:42:03  peter
+    * mssing endif added
+
+  Revision 1.3  1999/01/27 13:20:37  pierre
    * slightly rewritten code
 
   Revision 1.2  1998/09/08 13:01:09  michael
