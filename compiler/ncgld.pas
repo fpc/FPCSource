@@ -74,6 +74,8 @@ implementation
         href : treference;
         newsize : tcgsize;
         pushed : tpushedsaved;
+        dorelocatelab,
+        norelocatelab : tasmlabel;
       begin
          { we don't know the size of all arrays }
          newsize:=def_cgsize(resulttype.def);
@@ -129,17 +131,32 @@ implementation
                   { thread variable }
                   else if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
                     begin
+                       objectlibrary.getlabel(dorelocatelab);
+                       objectlibrary.getlabel(norelocatelab);
                        { we've to allocate the register before we save the used registers }
-                       location.reference.base:=rg.getaddressregister(exprasmlist);
+                       hregister:=rg.getaddressregister(exprasmlist);
+                       reference_reset_symbol(href,objectlibrary.newasmsymbol('FPC_THREADVAR_RELOCATE'),0);
+                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+                       cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_NE,0,hregister,dorelocatelab);
+                       { no relocation needed, load the address of the variable only, the
+                         layout of a threadvar is (4 bytes pointer):
+                           0 - Threadvar index
+                           4 - Threadvar value in single threading }
+                       reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname),POINTER_SIZE);
+                       cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
+                       cg.a_jmp_always(exprasmlist,norelocatelab);
+                       cg.a_label(exprasmlist,dorelocatelab);
                        { don't save the allocated register else the result will be destroyed later }
-                       rg.saveusedregisters(exprasmlist,pushed,[accumulator]-[location.reference.base]);
+                       rg.saveusedregisters(exprasmlist,pushed,[accumulator]-[hregister]);
                        reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname),0);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
-                       cg.a_call_name(exprasmlist,'FPC_RELOCATE_THREADVAR');
-                       cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,accumulator,location.reference.base);
+                       cg.a_call_reg(exprasmlist,hregister);
+                       cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,accumulator,hregister);
                        rg.restoreusedregisters(exprasmlist,pushed);
+                       cg.a_label(exprasmlist,norelocatelab);
+                       location.reference.base:=hregister;
                     end
                   { normal variable }
                   else
@@ -960,7 +977,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-10-13 11:22:06  florian
+  Revision 1.35  2002-10-14 19:44:13  peter
+    * (hacked) new threadvar relocate code
+
+  Revision 1.34  2002/10/13 11:22:06  florian
     * fixed threadvars
 
   Revision 1.33  2002/10/03 21:32:02  carl
