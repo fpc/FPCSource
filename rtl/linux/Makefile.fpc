@@ -48,8 +48,10 @@ GRAPHDIR=$(INC)/graph
 # Define Go32v2 Units
 SYSTEMUNIT=syslinux
 
-#
+# Use new graph unit ? 
+# NEWGRAPH=YES
 # Use LibGGI ?
+# Use 
 #
 ifndef USELIBGGI
 USELIBGGI=NO

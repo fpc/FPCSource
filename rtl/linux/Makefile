@@ -1,5 +1,5 @@
 #
-# Makefile generated from Makefile.fpc on 1999-11-08 19:21
+# Makefile generated from Makefile.fpc on 1999-11-10 14:06
 #
 
 defaultrule: Makefile all
@@ -142,8 +142,10 @@ GRAPHDIR=$(INC)/graph
 # Define Go32v2 Units
 SYSTEMUNIT=syslinux
 
-#
+# Use new graph unit ? 
+# NEWGRAPH=YES
 # Use LibGGI ?
+# Use 
 #
 ifndef USELIBGGI
 USELIBGGI=NO
