@@ -180,7 +180,6 @@ type
     po_staticmethod,      { static method }
     po_overridingmethod,  { method with override directive }
     po_methodpointer,     { method pointer, only in procvardef, also used for 'with object do' }
-    po_containsself,      { self is passed explicit to the compiler }
     po_interrupt,         { Procedure is an interrupt handler }
     po_iocheck,           { IO checking should be done after a call to the procedure }
     po_assembler,         { Procedure is written in assembler }
@@ -352,7 +351,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2003-05-09 17:47:03  peter
+  Revision 1.55  2003-05-15 21:10:32  peter
+    * remove po_containsself
+
+  Revision 1.54  2003/05/09 17:47:03  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 
