@@ -20,8 +20,6 @@
   This include contains cpu-specific Low-level calling of methods.
   ---------------------------------------------------------------------}
 
-{$ASMMODE ATT}
-
 Function CallIntegerFunc(s: Pointer; Address: Pointer; Index, IValue: LongInt): Int64; assembler;
   { input:             }
   {     r3: s          }
@@ -127,16 +125,17 @@ Function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) 
      mtlr      r30
   end;
 
-Function CallSStringFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint)
-                        : Shortstring; assembler;
+Procedure CallSStringFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint;
+                        Var Res: Shortstring);assembler;
   { input:                                       }
   {     r3: address of shortstring result (temp) }
   {     r4: s                                    }
   {     r5: address                              }
   {     r6: index                                }
   {     r7: ivalue                               }
+  {     r8: res                                  }
   { output:                                      }
-  {     r3: result                               }
+  {     none                                     }
   asm
      { save current return address }
      mflr      r30
@@ -172,7 +171,10 @@ Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortStrin
 
 {
   $Log$
-  Revision 1.2  2002-09-07 16:01:26  peter
+  Revision 1.3  2003-04-23 22:19:21  peter
+    * sstringfunc para updated
+
+  Revision 1.2  2002/09/07 16:01:26  peter
     * old logs removed and tabs fixed
 
 }
