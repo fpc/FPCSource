@@ -904,12 +904,14 @@ The code completion dialog.
 \begin{latexonly}
 The code completion dialog is shown in \seefig{codecomp}.
 \begin{figure}[ht]
+\begin{center}
 \caption{The code completion dialog.}\label{fig:codecomp}
 \ifpdf
-\epsfig{file=pics/ide/codecomp.png,width=\textwidth}
+\epsfig{file=pics/ide/codecomp.png}
 \else
-\epsfig{file=pics/ide/codecomp.eps,width=\textwidth}
+\epsfig{file=pics/ide/codecomp.eps}
 \fi
+\end{center}
 \end{figure}
 \end{latexonly}
 The dialog shows the currently defined keywords that will be completed in
@@ -937,12 +939,19 @@ insert the associated piece of code in the text.
 For example, the name \var{ifthen} could be associated to the following
 piece of code:
 \begin{verbatim}
-If Then
+If | Then
   begin
   end
 \end{verbatim}
 A code template can be inserted by typing its name, and pressing \key{Ctrl-J}
 when the cursor is positioned right after the template name.
+
+If there is no template name before the cursor, a dialog will pop up to
+allow selection of a template.
+
+If a vertical bar (|) is present in the code template, the cursor is positioned
+on it, and it is deleted. In the above example, the cursor would be
+positioned between the \var{if} and \var{then}, ready to type an expression.
 
 Code templates can be added and edited in the code templates dialog, reachable via
 the menu option \menu{Options|\-Preferences|\-Codetemplates}. 
@@ -954,12 +963,14 @@ The code templates dialog.
 \begin{latexonly}
 The code templates dialog is shown in \seefig{codetemp}.
 \begin{figure}[ht]
-\caption{The code completion dialog.}\label{fig:codetemp}
+\begin{center}
+\caption{The code templates dialog.}\label{fig:codetemp}
 \ifpdf
-\epsfig{file=pics/ide/codetemp.png,width=\textwidth}
+\epsfig{file=pics/ide/codetemp.png}
 \else
-\epsfig{file=pics/ide/codetemp.eps,width=\textwidth}
+\epsfig{file=pics/ide/codetemp.eps}
 \fi
+\end{center}
 \end{figure}
 \end{latexonly}
 The top listbox in the code templates dialog shows the names of all 
@@ -994,7 +1005,7 @@ To search for text, one  of the following can be done:
 \end{enumerate}
 \begin{htmlonly}
 After that, the following dialog will pop up:
-\fpcaddimg{../pics/ide/codetemp.png}
+\fpcaddimg{../pics/ide/search.png}
 In this dialog, the following options can be entered:
 \end{htmlonly}
 \begin{latexonly}
@@ -1040,7 +1051,7 @@ This can be done in a similar manner to searching for a text:
 A dialog, similar to the search dialog will pop up:
 \begin{htmlonly}
 A dialog, similar to the search dialog will pop up:
-\fpcaddimg{../pics/ide/codetemp.png}
+\fpcaddimg{../pics/ide/replace.png}
 In this dialog, the following options can be entered:
 \end{htmlonly}
 \begin{latexonly}
@@ -1287,14 +1298,16 @@ The watch property dialog looks as follows:
 \fpcaddimg{../pics/ide/watch.png}
 \end{htmlonly}
 \begin{latexonly}
-The watch property dialog is shown in \seefig{brklist}
+The watch property dialog is shown in \seefig{watch}
 \begin{figure}[ht]
+\begin{center}
 \caption{The watch property dialog.}\label{fig:watch}
 \ifpdf
-\epsfig{file=pics/ide/watch.png,width=\textwidth}
+\epsfig{file=pics/ide/watch.png}
 \else
-\epsfig{file=pics/ide/watch.eps,width=\textwidth}
+\epsfig{file=pics/ide/watch.eps}
 \fi
+\end{center}
 \end{figure}
 \end{latexonly}
 In the dialog, the expression can be entered, any possible previous value
@@ -1312,12 +1325,14 @@ The watch list window looks as follows:
 \begin{latexonly}
 The watch list window is shown in \seefig{brklist}
 \begin{figure}[ht]
+\begin{center}
 \caption{The watch list window.}\label{fig:watchlst}
 \ifpdf
-\epsfig{file=pics/ide/watchlst.png,width=\textwidth}
+\epsfig{file=pics/ide/watchlst.png}
 \else
-\epsfig{file=pics/ide/watchlst.eps,width=\textwidth}
+\epsfig{file=pics/ide/watchlst.eps}
 \fi
+\end{center}
 \end{figure}
 \end{latexonly}
 
@@ -1340,17 +1355,19 @@ they will be shown as well.
 \begin{htmlonly}
 
 The call stack window looks as follows:
-\fpcaddimg{../pics/ide/watch.png}
+\fpcaddimg{../pics/ide/callstck.png}
 \end{htmlonly}
 \begin{latexonly}
 The call stack is shown in \seefig{callstack}.
 \begin{figure}[ht]
+\begin{center}
 \caption{The call stack window.}\label{fig:callstack}
 \ifpdf
 \epsfig{file=pics/ide/callstck.png}
 \else
 \epsfig{file=pics/ide/callstck.eps}
 \fi
+\end{center}
 \end{figure}
 \end{latexonly}
 
@@ -1375,12 +1392,14 @@ The GDB window looks as follows:
 \begin{latexonly}
 The GDB window is shown in \seefig{gdbwin}.
 \begin{figure}[ht]
+\begin{center}
 \caption{The GDB window.}\label{fig:gdbwin}
 \ifpdf
-\epsfig{file=pics/ide/gdbwin.png,width=\textwidth}
+\epsfig{file=pics/ide/gdbwin.png}
 \else
-\epsfig{file=pics/ide/gdbwin.eps,width=\textwidth}
+\epsfig{file=pics/ide/gdbwin.eps},
 \fi
+\end{center}
 \end{figure}
 \end{latexonly}
 
@@ -1493,12 +1512,14 @@ The ASCII table looks as follows:
 \begin{latexonly}
 The ASCII table is shown in \seefig{asciitable}.
 \begin{figure}[ht]
+\begin{center}
 \caption{The ASCII table.}\label{fig:asciitable}
 \ifpdf
 \epsfig{file=pics/ide/ascii.png}
 \else
 \epsfig{file=pics/ide/ascii.eps}
 \fi
+\end{center}
 \end{figure}
 \end{latexonly}
 
@@ -1511,9 +1532,8 @@ The calculator allows to do some quick calculations. It is a simple
 calculator, since it does not take care of operator precedence, and
 bracketing of operations is not (yet) supported.
 
-The result of the calculations can not yet be
-pasted into the text, hopefully some future version of the IDE will support
-pasting the result into the text.
+The result of the calculations can be pasted into the text using the
+\key{Ctrl-Enter} keystroke.
 
 \begin{htmlonly}
 The calculator dialog looks as follows:
@@ -1522,12 +1542,14 @@ The calculator dialog looks as follows:
 \begin{latexonly}
 The calculator dialog is shown in \seefig{calculator}.
 \begin{figure}[ht]
+\begin{center}
 \caption{The calculator dialog.}\label{fig:calculator}
 \ifpdf
 \epsfig{file=pics/ide/calc.png}
 \else
 \epsfig{file=pics/ide/calc.eps}
 \fi
+\end{center}
 \end{figure}
 \end{latexonly}
 The calculator supports all basic mathematical operations such as
@@ -1587,12 +1609,14 @@ The tools dialog looks as follows:
 \begin{latexonly}
 The tools dialog is shown in \seefig{otools}.
 \begin{figure}[ht]
-\caption{The ASCII table.}\label{fig:otools}
+\begin{center}
+\caption{The tools configuration dialog.}\label{fig:otools}
 \ifpdf
-\epsfig{file=pics/ide/otools.png,width=\textwidth}
+\epsfig{file=pics/ide/otools.png}
 \else
-\epsfig{file=pics/ide/otools.eps,width=\textwidth}
+\epsfig{file=pics/ide/otools.eps}
 \fi
+\end{center}
 \end{figure}
 \end{latexonly}
 In the tools dialog, the following actions are available:
@@ -1748,6 +1772,24 @@ output files should be stored etc. You can specify multiple
 directories (except for the output directory) seperated by
 semicolon.
 
+\begin{htmlonly}
+The directories dialog looks as follows:
+\fpcaddimg{../pics/ide/odirs.png}
+\end{htmlonly}
+\begin{latexonly}
+The directories dialog is shown in \seefig{odirs}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The directories configuration dialog.}\label{fig:odirs}
+\ifpdf
+\epsfig{file=pics/ide/odirs.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/odirs.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+
 \begin{description}
 \item Nothing yet !!!!!!!!!!!!!!
 \end{description}
@@ -1762,30 +1804,43 @@ switches or directories.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Customize the IDE
-\section{Customize the IDE}
-The IDE is configurable in a wide range, you can change colors, screen
-resolution etc. The configuration setting can reached via the
+\section{Customizing the IDE}
+The IDE is configurable in a wide range: Colors can be changed, screen
+resolution. The configuration setting can reached via the
 submenu \var{Environment} in the \var{Options} menu.
-
+%
+% general preferences
+%
 \subsection{Preferences}
-The \emph{preferences dialog} is called by the menu item
-\var{Options|Environment|Preferences}.
-
-%%%!!!!!!!!!!!!!!
-
-\subsubsection{Video modes}
-The \emph{drop down list} at the top of the dialog allows you
-to select a video mode.
-
+The {\em preferences dialog} is called by the menu item
+\menu{Options|Environment|Preferences}.
+\begin{htmlonly}
+The preferences dialog looks as follows:
+\fpcaddimg{../pics/ide/oeprefs.png}
+\end{htmlonly}
+\begin{latexonly}
+The preferences dialog is shown in \seefig{oprefs}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The preferences dialog.}\label{fig:oprefs}
+\ifpdf
+\epsfig{file=pics/ide/oeprefs.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/oeprefs.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+\begin{description}
+\item[Video modes]
+The drop down list at the top of the dialog allows to select a video mode.
 \begin{remark}
-You have to select the video mode by pressing space or clicking
+The video mode must be selected by pressing space or clicking
 on it. If the drop down list is opened while leaving the dialog,
 the new video mode will not be applied.
 \end{remark}
-
 The available video modes depend on the system on which the IDE
 is running. 
-
 \begin{remark}
 If you're using VESA modes under DOS, the display refresh rate may be
 annoying low. On older graphics card (1998 and before),
@@ -1797,21 +1852,132 @@ of the TSR programs
 available at the net to customize the refresh rate.
 %%%%!!!!!!!! footnote with URL
 \end{remark}
+\item[Desktop File]
+\item[Auto save]
+\item[Options]
+\end{description}
+%
+% Desktop customization
+%
+\subsection{The desktop}
+\label{se:prefdesktop}
+The desktop preferences dialog allows you to specify what elements of the
+desktop are saved across sessions, i.e. they are saved when the IDE is left,
+and they are again restored when the IDE is started the next time. 
+They are saved in a file \file{fp.dsk}.
 
+\begin{htmlonly}
+The desktop preferences dialog looks as follows:
+\fpcaddimg{../pics/ide/oeprefs.png}
+\end{htmlonly}
+\begin{latexonly}
+The desktop preferences dialog is shown in \seefig{odesktop}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The desktop preferences dialog.}\label{fig:odesktop}
+\ifpdf
+\epsfig{file=pics/ide/oedesk.png}%,width=\textwidth}
+\else
+\epsfig{file=pics/ide/oedesk.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+The following elements can be saved accros sessions:
+\begin{description}
+\item[History lists]
+\item[Clipboard content]
+\item[Watch expressions]
+\item[Breakpoints]
+\item[Open windows]
+\item[Symbol information]
+\item[CodeComplete wordlist]
+\item[CodeTemplates]
+\end{description}
+
+%
+% Editor customization
+%
+\subsection{The Editor}
+Several aspects of the editor window behaviour can be set in this dialog.
+
+\begin{htmlonly}
+The editor preferences dialog looks as follows:
+\fpcaddimg{../pics/ide/oeprefs.png}
+\end{htmlonly}
+\begin{latexonly}
+The editor preferences dialog is shown in \seefig{oeeditor}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The editor preferences dialog.}\label{fig:oeeditor}
+\ifpdf
+\epsfig{file=pics/ide/oeeditor.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/oeeditor.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+The following elements can be set in the editor preferences dialog:
+\begin{description}
+\item[Create backup files]
+\item[Auto indent mode]
+\item[Use tab characters]
+\item[Backspace unindents]
+\item[Persistent blocks]
+\item[Syntax highlight]
+\item[Block insert cursor]
+\item[Vertical blocks]
+\item[Highlight column]
+\item[Highlight row]
+\item[Auto closing brackets]
+\item[Keep trailing spaces]
+\item[Codecomplete enabled]
+\item[enable folds]
+\item[Tab size]
+\item[Highlight extensions]
+\item[File patterns needing tabs]
+\end{description}
+
+%
+% Mouse customization
+%
 \subsection{Mouse}
 \label{se:prefmouse}
-The \emph{mouse options dialog} is called by the menu item
-\var{Options|Environment|Mouse}. You can use the slider to adjust the
-double clock speed. If you're left handed you can exchange the
-behavior of the left and right mouse button by checking the checkbox
-item \var{Reverse mouse buttons}.
-
+The mouse options dialog is called by the menu item
+\var{Options|Environment|Mouse}. It allows to ajust the behaviour of the
+mouse as well as the sensitivity of the mouse.
+\begin{htmlonly}
+The mouse options dialog looks as follows:
+\fpcaddimg{../pics/ide/oemouse.png}
+\end{htmlonly}
+\begin{latexonly}
+The mouse options dialog is shown in \seefig{omouse}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The mouse options dialog.}\label{fig:omouse}
+\ifpdf
+\epsfig{file=pics/ide/oemouse.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/oemouse.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+\begin{description}
+\item[Mouse double click]
+The slider can be used to adjust the double click speed. 
+\item[Reverse mouse buttons]
+the behavior of the left and right mouse buttons can be changed by
+by checking the checkbox; this is especially useful for left-handed people.
+\item[Ctrl+Right mouse button]
+\item[Ctrl+Left mouse button]
 The two lists with the radio buttons allows you
 to configure the behavior of the
 right mouse button, if it is clicked together while
 pressing the \key{Ctrl} or
 \key{Alt} key in an edit window.
-
+\end{description}
 The following actions can be assigned to \key{Ctrl}-right mouse button or
 \key{Alt}-right mouse button:
 
@@ -1828,7 +1994,52 @@ watch window
 \item [Browse symbol] The symbol at the mouse cursor is displayed
 by the browser
 \end{description}
+%
+% Color customization
+%
+\subsection{Colors}
+\label{se:prefcolors}
+Allmost all elements of the IDE such as borders input fields, buttons and so
+on can have their color set in this dialog. The dialog sets the colors for
+all elements at once, i.e. it is not so that the color of one particular
+button can be set.
 
+The syntax highlighting colors of the IDE can also be set in this dialog.
+\begin{htmlonly}
+The colors dialog looks as follows:
+\fpcaddimg{../pics/ide/oecolors.png}
+\end{htmlonly}
+\begin{latexonly}
+The colors dialog is shown in \seefig{ocolors}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The colors dialog.}\label{fig:ocolors}
+\ifpdf
+\epsfig{file=pics/ide/oecolors.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/oemouse.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+The following elements are visible in the color dialog:
+\begin{description}
+\item[group]
+\begin{description}
+\item[Browser]
+\item[Clock]
+\item[Desktop]
+\item[Dialogs]
+\item[Editor]
+\item[Help]
+\item[Menus]
+\item[Syntax]
+\end{description}
+\item[item]
+\item[Foreground]
+\item[background]
+\item[Sample text]
+\end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The help system
@@ -1879,12 +2090,14 @@ The Help files dialog looks as follows:
 \begin{latexonly}
 The help files dialog is displayed in \seefig{helpfiles}.
 \begin{figure}[ht]
+\begin{center}
 \caption{The help files dialog.}\label{fig:helpfiles}
 \ifpdf
-\epsfig{file=pics/ide/helpfils.png,width=\textwidth}
+\epsfig{file=pics/ide/helpfils.png}
 \else
-\epsfig{file=pics/ide/helpfils.eps,width=\textwidth}
+\epsfig{file=pics/ide/helpfils.eps}
 \fi
+\end{center}
 \end{figure}
 \end{latexonly}
 The dialogs lists the files that will be presented in thetable of contents
@@ -2074,7 +2287,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.11  2000-11-21 22:02:25  peter
+%  Revision 1.1.2.12  2000-11-28 22:53:06  michael
+%  + Better sized pictures, start of options
+%
+%  Revision 1.1.2.11  2000/11/21 22:02:25  peter
 %    * html image including fixed
 %
 %  Revision 1.1.2.10  2000/11/21 18:44:38  peter
