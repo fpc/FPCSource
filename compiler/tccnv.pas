@@ -643,182 +643,181 @@ implementation
            own resulttype. They will therefore always be incompatible with
            a procvar. Because isconvertable cannot check for procedures we
            use an extra check for them.}
-           if (p^.resulttype^.deftype=procvardef) and
-              ((m_tp_procvar in aktmodeswitches) or
-              { method pointer use always the TP syntax }
-               ((pprocvardef(p^.resulttype)^.options and pomethodpointer)<>0)
-              ) and
-             ((is_procsym_load(p^.left) or is_procsym_call(p^.left))) then
-             begin
-                if is_procsym_call(p^.left) then
+           if (m_tp_procvar in aktmodeswitches) then
+            begin
+              if (p^.resulttype^.deftype=procvardef) and
+                 (is_procsym_load(p^.left) or is_procsym_call(p^.left)) then
+               begin
+                 if is_procsym_call(p^.left) then
                   begin
-                     if p^.left^.right=nil then
-                       begin
-                          p^.left^.treetype:=loadn;
-                          { are at same offset so this could be spared, but
-                          it more secure to do it anyway }
-                          p^.left^.symtableentry:=p^.left^.symtableprocentry;
-                          p^.left^.resulttype:=pprocsym(p^.left^.symtableentry)^.definition;
-                          aprocdef:=pprocdef(p^.left^.resulttype);
-                       end
-                     else
-                       begin
-                          p^.left^.right^.treetype:=loadn;
-                          p^.left^.right^.symtableentry:=p^.left^.right^.symtableentry;
-                          P^.left^.right^.resulttype:=pvarsym(p^.left^.symtableentry)^.definition;
-                          hp:=p^.left^.right;
-                          putnode(p^.left);
-                          p^.left:=hp;
-                          { should we do that ? }
-                          firstpass(p^.left);
-                          if not is_equal(p^.left^.resulttype,p^.resulttype) then
-                            begin
-                               CGMessage(type_e_mismatch);
-                               exit;
-                            end
-                          else
-                            begin
-                               hp:=p;
-                               p:=p^.left;
-                               p^.resulttype:=hp^.resulttype;
-                               putnode(hp);
-                               exit;
-                            end;
-                       end;
+                    if p^.left^.right=nil then
+                     begin
+                       p^.left^.treetype:=loadn;
+                       { are at same offset so this could be spared, but
+                       it more secure to do it anyway }
+                       p^.left^.symtableentry:=p^.left^.symtableprocentry;
+                       p^.left^.resulttype:=pprocsym(p^.left^.symtableentry)^.definition;
+                       aprocdef:=pprocdef(p^.left^.resulttype);
+                     end
+                    else
+                     begin
+                       p^.left^.right^.treetype:=loadn;
+                       p^.left^.right^.symtableentry:=p^.left^.right^.symtableentry;
+                       P^.left^.right^.resulttype:=pvarsym(p^.left^.symtableentry)^.definition;
+                       hp:=p^.left^.right;
+                       putnode(p^.left);
+                       p^.left:=hp;
+                       { should we do that ? }
+                       firstpass(p^.left);
+                       if not is_equal(p^.left^.resulttype,p^.resulttype) then
+                        begin
+                          CGMessage(type_e_mismatch);
+                          exit;
+                        end
+                       else
+                        begin
+                          hp:=p;
+                          p:=p^.left;
+                          p^.resulttype:=hp^.resulttype;
+                          putnode(hp);
+                          exit;
+                        end;
+                     end;
                   end
-                else
+                 else
                   begin
                     if (p^.left^.treetype<>addrn) then
                       aprocdef:=pprocsym(p^.left^.symtableentry)^.definition;
                   end;
-
-                p^.convtyp:=tc_proc_2_procvar;
-                { Now check if the procedure we are going to assign to
-                  the procvar,  is compatible with the procvar's type }
-                if assigned(aprocdef) then
+                 p^.convtyp:=tc_proc_2_procvar;
+                 { Now check if the procedure we are going to assign to
+                   the procvar,  is compatible with the procvar's type }
+                 if assigned(aprocdef) then
                   begin
-                    if proc_to_procvar_equal(aprocdef,pprocvardef(p^.resulttype)) then
+                    if not proc_to_procvar_equal(aprocdef,pprocvardef(p^.resulttype)) then
                      CGMessage2(type_e_incompatible_types,aprocdef^.typename,p^.resulttype^.typename);
                     firstconvert[p^.convtyp](p);
                   end
-                else
+                 else
                   CGMessage2(type_e_incompatible_types,p^.left^.resulttype^.typename,p^.resulttype^.typename);
-                exit;
-             end
-           else
-             begin
-                if p^.explizit then
+                 exit;
+               end;
+            end;
+           if p^.explizit then
+            begin
+              { boolean to byte are special because the
+                location can be different }
+              if is_integer(p^.resulttype) and
+                 is_boolean(p^.left^.resulttype) then
+               begin
+                  p^.convtyp:=tc_bool_2_int;
+                  firstconvert[p^.convtyp](p);
+                  exit;
+               end;
+              { ansistring to pchar }
+              if is_pchar(p^.resulttype) and
+                 is_ansistring(p^.left^.resulttype) then
+               begin
+                 p^.convtyp:=tc_ansistring_2_pchar;
+                 firstconvert[p^.convtyp](p);
+                 exit;
+               end;
+              { do common tc_equal cast }
+              p^.convtyp:=tc_equal;
+
+              { enum to ordinal will always be s32bit }
+              if (p^.left^.resulttype^.deftype=enumdef) and
+                 is_ordinal(p^.resulttype) then
+               begin
+                 if p^.left^.treetype=ordconstn then
                   begin
-                     { boolean to byte are special because the
-                       location can be different }
+                    hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
+                    disposetree(p);
+                    firstpass(hp);
+                    p:=hp;
+                    exit;
+                  end
+                 else
+                  begin
+                    if isconvertable(s32bitdef,p^.resulttype,p^.convtyp,ordconstn,false)=0 then
+                      CGMessage(cg_e_illegal_type_conversion);
+                  end;
+               end
 
-                     if is_integer(p^.resulttype) and
-                        is_boolean(p^.left^.resulttype) then
-                       begin
-                          p^.convtyp:=tc_bool_2_int;
-                          firstconvert[p^.convtyp](p);
-                          exit;
-                       end;
-                     if is_pchar(p^.resulttype) and
-                        is_ansistring(p^.left^.resulttype) then
-                       begin
-                          p^.convtyp:=tc_ansistring_2_pchar;
-                          firstconvert[p^.convtyp](p);
-                          exit;
-                       end;
-                     { do common tc_equal cast }
-                     p^.convtyp:=tc_equal;
-                     { wenn Aufz„hltyp nach Ordinal konvertiert werden soll }
-                     { dann Aufz„hltyp=s32bit                          }
-                     if (p^.left^.resulttype^.deftype=enumdef) and
-                        is_ordinal(p^.resulttype) then
-                       begin
-                          if p^.left^.treetype=ordconstn then
-                            begin
-                               hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
-                               disposetree(p);
-                               firstpass(hp);
-                               p:=hp;
-                               exit;
-                            end
-                          else
-                            begin
-                               if isconvertable(s32bitdef,p^.resulttype,p^.convtyp,ordconstn,false)=0 then
-                                 CGMessage(cg_e_illegal_type_conversion);
-                            end;
-
-                       end
-                     { ordinal to enumeration }
-                     else
-                       if (p^.resulttype^.deftype=enumdef) and
-                          is_ordinal(p^.left^.resulttype) then
-                         begin
-                            if p^.left^.treetype=ordconstn then
-                              begin
-                                 hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
-                                 disposetree(p);
-                                 firstpass(hp);
-                                 p:=hp;
-                                 exit;
-                              end
-                            else
-                              begin
-                                 if IsConvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,ordconstn,false)=0 then
-                                   CGMessage(cg_e_illegal_type_conversion);
-                              end;
-                         end
-                     {Are we typecasting an ordconst to a char?}
-                     else
-                       if is_char(p^.resulttype) and
-                          is_ordinal(p^.left^.resulttype) then
-                         begin
-                            if p^.left^.treetype=ordconstn then
-                              begin
-                                 hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
-                                 firstpass(hp);
-                                 disposetree(p);
-                                 p:=hp;
-                                 exit;
-                              end
-                            else
-                              begin
-                                 { this is wrong because it converts to a 4 byte long var !!
-                                   if not isconvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,ordconstn  nur Dummy ) then }
-                                 if IsConvertable(p^.left^.resulttype,u8bitdef,p^.convtyp,ordconstn,false)=0 then
-                                   CGMessage(cg_e_illegal_type_conversion);
-                              end;
-                         end
-                     { only if the same size or formal def }
-                     { why do we allow typecasting of voiddef ?? (PM) }
-                     else
-                       begin
-                          if not(
-                             (p^.left^.resulttype^.deftype=formaldef) or
-                             (p^.left^.resulttype^.size=p^.resulttype^.size) or
-                             (is_equal(p^.left^.resulttype,voiddef)  and
-                             (p^.left^.treetype=derefn))
-                             ) then
-                             CGMessage(cg_e_illegal_type_conversion);
-                          if ((p^.left^.resulttype^.deftype=orddef) and
-                             (p^.resulttype^.deftype=pointerdef)) or
-                             ((p^.resulttype^.deftype=orddef) and
-                             (p^.left^.resulttype^.deftype=pointerdef))
-                             {$ifdef extdebug}and (p^.firstpasscount=0){$endif} then
-                               CGMessage(cg_d_pointer_to_longint_conv_not_portable);
-                       end;
-                     { the conversion into a strutured type is only }
-                     { possible, if the source is no register    }
-                     if ((p^.resulttype^.deftype in [recorddef,stringdef,arraydef]) or
-                         ((p^.resulttype^.deftype=objectdef) and not(pobjectdef(p^.resulttype)^.isclass))
-                        ) and (p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
-                        {it also works if the assignment is overloaded }
-                        not is_assignment_overloaded(p^.left^.resulttype,p^.resulttype) then
-                       CGMessage(cg_e_illegal_type_conversion);
-                end
+              { ordinal to enumeration }
               else
-                CGMessage2(type_e_incompatible_types,p^.left^.resulttype^.typename,p^.resulttype^.typename);
-           end
+               if (p^.resulttype^.deftype=enumdef) and
+                  is_ordinal(p^.left^.resulttype) then
+                begin
+                  if p^.left^.treetype=ordconstn then
+                   begin
+                     hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
+                     disposetree(p);
+                     firstpass(hp);
+                     p:=hp;
+                     exit;
+                   end
+                  else
+                   begin
+                     if IsConvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,ordconstn,false)=0 then
+                       CGMessage(cg_e_illegal_type_conversion);
+                   end;
+                end
+
+              {Are we typecasting an ordconst to a char?}
+              else
+                if is_char(p^.resulttype) and
+                   is_ordinal(p^.left^.resulttype) then
+                 begin
+                   if p^.left^.treetype=ordconstn then
+                    begin
+                      hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
+                      firstpass(hp);
+                      disposetree(p);
+                      p:=hp;
+                      exit;
+                    end
+                   else
+                    begin
+                      { this is wrong because it converts to a 4 byte long var !!
+                      if not isconvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,ordconstn  nur Dummy ) then }
+                      if IsConvertable(p^.left^.resulttype,u8bitdef,p^.convtyp,ordconstn,false)=0 then
+                        CGMessage(cg_e_illegal_type_conversion);
+                    end;
+                 end
+
+               { only if the same size or formal def }
+               { why do we allow typecasting of voiddef ?? (PM) }
+               else
+                begin
+                  if not(
+                     (p^.left^.resulttype^.deftype=formaldef) or
+                     (p^.left^.resulttype^.size=p^.resulttype^.size) or
+                     (is_equal(p^.left^.resulttype,voiddef)  and
+                     (p^.left^.treetype=derefn))
+                     ) then
+                    CGMessage(cg_e_illegal_type_conversion);
+                  if ((p^.left^.resulttype^.deftype=orddef) and
+                      (p^.resulttype^.deftype=pointerdef)) or
+                      ((p^.resulttype^.deftype=orddef) and
+                       (p^.left^.resulttype^.deftype=pointerdef))
+                       {$ifdef extdebug}and (p^.firstpasscount=0){$endif} then
+                    CGMessage(cg_d_pointer_to_longint_conv_not_portable);
+                end;
+
+               { the conversion into a strutured type is only }
+               { possible, if the source is no register    }
+               if ((p^.resulttype^.deftype in [recorddef,stringdef,arraydef]) or
+                   ((p^.resulttype^.deftype=objectdef) and not(pobjectdef(p^.resulttype)^.isclass))
+                  ) and (p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
+                  {it also works if the assignment is overloaded }
+                  not is_assignment_overloaded(p^.left^.resulttype,p^.resulttype) then
+                 CGMessage(cg_e_illegal_type_conversion);
+            end
+           else
+            CGMessage2(type_e_incompatible_types,p^.left^.resulttype^.typename,p^.resulttype^.typename);
          end;
+
         { ordinal contants can be directly converted }
         if (p^.left^.treetype=ordconstn) and is_ordinal(p^.resulttype) then
           begin
@@ -913,7 +912,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35.2.1  1999-06-13 22:39:19  peter
+  Revision 1.35.2.2  1999-06-15 18:54:53  peter
+    * more procvar fixes
+
+  Revision 1.35.2.1  1999/06/13 22:39:19  peter
     * use proc_to_procvar_equal
 
   Revision 1.35  1999/06/02 22:44:24  pierre
