@@ -168,29 +168,6 @@ compiler_cycle:
 
 
 #######################################
-# IDE
-#######################################
-
-.PHONY: ide_comp ide_full
-
-ide_comp:
-        $(MAKE) -C compiler ppuclean
-        $(MAKE) -C ide full
-
-# Look if libgdb.a is available then use fullgdb
-LIBGDB:=$(strip $(wildcard packages/gdbint/libgdb/$(OS_TARGET)/libgdb.a))
-ifneq ($(LIBGDB),)
-ide_full:
-        $(MAKE) -C compiler ppuclean
-        $(MAKE) -C ide fullgdb
-else
-ide_full:
-        $(MAKE) -C compiler ppuclean
-        $(MAKE) -C ide full
-endif
-
-
-#######################################
 # Install targets
 #######################################
 
@@ -208,17 +185,7 @@ doc_install:
 # Packaging targets
 #######################################
 
-idezips: ide_fullzip ide_fullgdbzip optcompinstall optcompzip
-
-ide_compzip:
-        $(MAKE) compiler_clean
-        $(MAKE) ide_clean
-        $(MAKE) ide_full
-        $(MAKE) -C ide/text zipinstall ZIPNAME=ide-comp-$(PACKAGESUFFIX)
-ide_fullgdbzip:
-        $(MAKE) ide_clean
-        $(MAKE) ide_fullgdb
-        $(MAKE) -C ide/text zipinstall ZIPNAME=ide-full-$(PACKAGESUFFIX)
+optzips: optcompinstall optcompzip
 
 optcompinstall:
         $(MAKE) compiler_cycle OPT=-dNEWOPTIMIZATIONS
@@ -285,7 +252,7 @@ endif
         $(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) utils_all $(BUILDOPTS)
 ifdef IDE
-        $(MAKE) ide_full $(BUILDOPTS)
+        $(MAKE) ide_all $(BUILDOPTS)
 endif
         $(ECHOREDIR) Build > build-stamp.$(OS_TARGET)
 
@@ -332,7 +299,7 @@ zipinstall: build-stamp.$(OS_TARGET)
         $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)
         $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=util$(ZIPSUFFIX)
 ifdef IDE
-        $(NOSTOP)$(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS)
+        $(NOSTOP)$(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=ide$(ZIPSUFFIX)
 endif
 
 
