@@ -43,7 +43,8 @@ type
 
     PCompilerMessageListBox = ^TCompilerMessageListBox;
     TCompilerMessageListBox = object(TMessageListBox)
-      function GetPalette: PPalette; virtual;
+      function  GetPalette: PPalette; virtual;
+      procedure SelectFirstError;
     end;
 
     PCompilerMessageWindow = ^TCompilerMessageWindow;
@@ -181,6 +182,22 @@ const
   P: string[length(CBrowserListBox)] = CBrowserListBox;
 begin
   GetPalette:=@P;
+end;
+
+procedure TCompilerMessageListBox.SelectFirstError;
+  function IsError(P : PCompilerMessage) : boolean;
+    begin
+      IsError:=(P^.TClass and (V_Fatal or V_Error))<>0;
+    end;
+  var
+    P : PCompilerMessage;
+begin
+  P:=List^.FirstThat(@IsError);
+  If Assigned(P) then
+    Begin
+      FocusItem(List^.IndexOf(P));
+      DrawView;
+    End;
 end;
 
 
@@ -679,10 +696,14 @@ begin
 {$endif TEMPHEAP}
   if Assigned(CompilerMessageWindow) then
     with CompilerMessageWindow^ do
-    if GetState(sfVisible) then
       begin
-        SetState(sfSelected,false);
-        SetState(sfSelected,true);
+        if GetState(sfVisible) then
+          begin
+            SetState(sfSelected,false);
+            SetState(sfSelected,true);
+          end;
+        if (status.errorCount>0) then
+          MsgLB^.SelectFirstError;
       end;
   { ^^^ we need this trick to reactivate the desktop }
   EditorModified:=false;
@@ -742,7 +763,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.49  2000-01-25 00:26:35  pierre
+  Revision 1.50  2000-02-06 23:41:42  pierre
+   +  TCompilerMessageListBox.SelectFirstError
+
+  Revision 1.49  2000/01/25 00:26:35  pierre
    + Browser info saving
 
   Revision 1.48  2000/01/14 15:38:28  pierre
