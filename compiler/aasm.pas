@@ -287,7 +287,9 @@ unit aasm;
           constructor init_end;
        end;
 
-       TMarker = (NoPropInfoStart, NoPropInfoEnd, AsmBlockStart, AsmBlockEnd);
+       TMarker = (NoPropInfoStart, NoPropInfoEnd,
+         AsmBlockStart, AsmBlockEnd,
+         InlineStart,InlineEnd);
        pai_marker = ^tai_marker;
        tai_marker = object(tai)
          Kind: TMarker;
@@ -1048,7 +1050,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.79  2000-02-28 17:23:56  daniel
+  Revision 1.80  2000-02-29 23:55:53  pierre
+   + InlineStat and InlineEnd amrker added
+
+  Revision 1.79  2000/02/28 17:23:56  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new
