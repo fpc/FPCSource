@@ -1531,6 +1531,11 @@ function tDLLScannerWin32.GetEdata(HeaderEntry:cardinal):longbool;
      fsplit(impname,_d,_n,_e);
      for j:=0 to pred(ExpDir.NumNames)do
       begin
+{ Don't know why but this gives serious problems with overflow checking on }
+{$IFOPT Q+}
+{$DEFINE OVERFLOW_CHECK_WAS_ON}
+{$ENDIF}
+{$Q-}
        seek(f,RawOffset-VirtAddr+ExpDir.AddrOrds+j*2);
        blockread(f,Ordinal,2);
        seek(f,RawOffset-VirtAddr+ExpDir.AddrFuncs+cardinal(Ordinal)*4);
@@ -1540,6 +1545,9 @@ function tDLLScannerWin32.GetEdata(HeaderEntry:cardinal):longbool;
        seek(f,RawOffset-VirtAddr+ulongval);
        blockread(f,cstring,sizeof(cstring));
        isData:=GetSectionName(procentry,Fl)='';
+{$IFDEF OVERFLOW_CHECK_WAS_ON}
+{$Q+}
+{$ENDIF}
        if not isData then
         isData:=Fl and IMAGE_SCN_CNT_CODE<>IMAGE_SCN_CNT_CODE;
        Store(succ(Ordinal),cstring,isData);
@@ -1617,7 +1625,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2002-11-30 18:45:28  carl
+  Revision 1.8  2002-12-01 18:57:34  carl
+    * disable overflow checking in some parts to avoid problems
+
+  Revision 1.7  2002/11/30 18:45:28  carl
     + profiling support for Win32
 
   Revision 1.6  2002/11/16 18:40:38  carl
