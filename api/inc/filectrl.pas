@@ -32,7 +32,7 @@ interface
 {$I platform.inc}
 
 uses
-  Common, FileSys;
+  ApiComm, FileSys;
 
 { The following platforms are supported
     OS/2 either 1.x, or 2.x
@@ -159,7 +159,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:31  peter
+  Revision 1.2  2000-02-29 11:43:16  pierre
+    Common renamed APIComm to avoid problems with free vision
+
+  Revision 1.1  2000/01/06 01:20:31  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  1999/12/23 19:36:47  peter
@@ -177,7 +180,7 @@ end.
   Revision 1.6  1998/10/26 11:22:49  peter
     * updates
 
-  
+
    Date       Version  Who     Comments
    07/06/97   0.1      bazsi   Initial implementation
                                many of the platforms implemented, but not

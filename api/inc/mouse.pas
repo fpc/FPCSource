@@ -27,7 +27,7 @@ interface
 {$i platform.inc}
 
 uses
-  Common;
+  ApiComm;
 
 const
   { We have an errorcode base of 1010 }
@@ -141,7 +141,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-02-07 22:54:44  florian
+  Revision 1.4  2000-02-29 11:43:16  pierre
+    Common renamed APIComm to avoid problems with free vision
+
+  Revision 1.3  2000/02/07 22:54:44  florian
     * custommouse define removed, i.e. code is always active
     * the xor value for the mouse cursor must be $7f instead of $ff
 
@@ -155,7 +158,7 @@ end.
   Revision 1.2  1999/12/31 17:25:24  marco
 
 
-  Added {$G+}, TP version required it.
+  Added $G+, TP version required it.
 
   Revision 1.1  1999/12/23 19:36:47  peter
     * place unitfiles in target dirs

@@ -32,7 +32,7 @@ unit Video;
 interface
 
 uses
-  Common;
+  ApiComm;
 
 {$i platform.inc}
 
@@ -223,7 +223,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-02-06 14:28:19  florian
+  Revision 1.3  2000-02-29 11:43:16  pierre
+    Common renamed APIComm to avoid problems with free vision
+
+  Revision 1.2  2000/02/06 14:28:19  florian
     * mouse support for vesa resolutions under go32v2, needs currently the define
       custommouse
 

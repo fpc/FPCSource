@@ -33,7 +33,7 @@ uses
 {$endif win32}
 {$endif DEBUG}
 
-  Common;
+  ApiComm;
 
 const
   { We have an errorcode base of 1010 }
@@ -231,7 +231,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:31  peter
+  Revision 1.2  2000-02-29 11:43:16  pierre
+    Common renamed APIComm to avoid problems with free vision
+
+  Revision 1.1  2000/01/06 01:20:31  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  1999/12/23 19:36:47  peter
