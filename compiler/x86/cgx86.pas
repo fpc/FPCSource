@@ -1480,17 +1480,29 @@ unit cgx86;
 
 
     procedure tcgx86.g_profilecode(list : taasmoutput);
+    
       var
-        pl : tasmlabel;
+        pl           : tasmlabel;
+        mcountprefix : String[4];
+        
       begin
         case target_info.system of
         {$ifndef NOTARGETWIN32}
            system_i386_win32,
         {$endif}
            system_i386_freebsd,
+	   system_i386_netbsd,
+//	   system_i386_openbsd,
            system_i386_wdosx,
            system_i386_linux:
              begin
+		Case target_info.system Of 
+		 system_i386_freebsd : mcountprefix:='.';
+		 system_i386_netbsd : mcountprefix:='__';
+//		 system_i386_openbsd : mcountprefix:='.';
+		else
+  		 mcountPrefix:='';
+		end;
                 objectlibrary.getaddrlabel(pl);
                 list.concat(Tai_section.Create(sec_data));
                 list.concat(Tai_align.Create(4));
@@ -1498,7 +1510,7 @@ unit cgx86;
                 list.concat(Tai_const.Create_32bit(0));
                 list.concat(Tai_section.Create(sec_code));
                 list.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,pl,0,NR_EDX));
-                a_call_name(list,target_info.Cprefix+'mcount');
+                a_call_name(list,target_info.Cprefix+mcountprefix+'mcount');
                 include(rgint.used_in_proc,RS_EDX);
              end;
 
@@ -1737,7 +1749,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.85  2003-10-30 16:22:40  peter
+  Revision 1.86  2003-10-30 18:53:53  marco
+   * profiling fix
+
+  Revision 1.85  2003/10/30 16:22:40  peter
     * call firstpass before allocation and codegeneration is started
     * move leftover code from pass_2.generatecode() to psub
 
