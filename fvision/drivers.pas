@@ -79,7 +79,7 @@ USES
      {$ifdef VER1_0}
        linux,
      {$else}
-       unix,
+       baseunix,unix,
      {$endif}
    {$ENDIF}
 
@@ -725,11 +725,17 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
 {$ENDIF}
 {$IFDEF OS_UNIX}
   var
-    tv : TimeVal;
+     tv : TimeVal;
   {  tz : TimeZone;}
   begin
+    {$ifdef ver1_0}
     GetTimeOfDay(tv{,tz});
     GetDosTicks:=((tv.Sec mod 86400) div 60)*1092+((tv.Sec mod 60)*1000000+tv.USec) div 54945;
+    {$else}
+    FPGetTimeOfDay(@tv,nil{,tz}); 
+    GetDosTicks:=((tv.tv_Sec mod 86400) div 60)*1092+((tv.tv_Sec mod 60)*1000000+tv.tv_USec) div 54945;
+
+    {$endif}
   end;
 {$ENDIF OS_UNIX}
 {$IFDEF OS_WINDOWS}
@@ -1703,7 +1709,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.37  2002-10-17 11:22:46  pierre
+ Revision 1.38  2003-10-01 16:20:27  marco
+  * baseunix fixes for 1.1
+
+ Revision 1.37  2002/10/17 11:22:46  pierre
   * fix a problem in InitVideo with StoreVideoMode
 
  Revision 1.36  2002/10/07 15:44:43  pierre

@@ -28,7 +28,7 @@ uses
 {$ifdef VER1_0}
   linux;
 {$else}
-  unix;
+  BaseUnix,unix;
 {$endif}
 
 Const
@@ -49,7 +49,7 @@ begin
   PendingSystemEvents:=0;
   FillChar(LastSystemEvent,sizeof(TSystemEvent),0);
   FillChar(WinSize,sizeof(WinSize),0);
-  ioctl(stdinputhandle,TIOCGWINSZ,@winsize);
+  fpioctl(stdinputhandle,TIOCGWINSZ,@winsize);
   LastXSize:=WinSize.ws_row;
   LastYSize:=WinSize.ws_col;
   If LastXSize=0 then
@@ -100,7 +100,7 @@ begin
   else
    begin
      FillChar(WinSize,sizeof(WinSize),0);
-     ioctl(stdinputhandle,TIOCGWINSZ,@winsize);
+     fpioctl(stdinputhandle,TIOCGWINSZ,@winsize);
      if (winsize.ws_col<>0) and (winsize.ws_row<>0) and
         ((winsize.ws_row<>lastxsize) or (winsize.ws_col<>lastysize)) then
        begin
@@ -119,7 +119,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-06-18 09:54:13  pierre
+  Revision 1.4  2003-10-01 16:20:27  marco
+   * baseunix fixes for 1.1
+
+  Revision 1.3  2003/06/18 09:54:13  pierre
    * use termios.inc TwinSize definition
 
   Revision 1.2  2002/06/07 14:15:10  pierre

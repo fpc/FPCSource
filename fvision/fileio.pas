@@ -236,7 +236,7 @@ FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Wor
     {$ifdef VER1_0}
       linux;
     {$else}
-      unix;
+      Baseunix,unix;
     {$endif}
 {$ENDIF}
 
@@ -293,7 +293,7 @@ END;
 {$ENDIF}
 {$IFDEF OS_UNIX}                                     { LINUX CODE }
 BEGIN
-   fdClose(Handle);                                   { Close the file }
+   {$ifdef ver1_0}fdClose{$else}fpclose{$endif}(Handle);                                   { Close the file }
    FileClose := LinuxError <= 0
 END;
 {$ENDIF}
@@ -396,12 +396,22 @@ BEGIN
 END;
 {$ENDIF}
 {$IFDEF OS_UNIX}
+
+{$ifndef ver1_0}
+ var tmp : ansistring;
+{$endif}
+
 BEGIN
    if mode = fa_Create    then mode := Open_Creat or Open_RdWr else
    if mode = fa_OpenRead  then mode := Open_RdOnly             else
    if mode = fa_OpenWrite then mode := Open_WrOnly             else
    if mode = fa_Open      then mode := Open_RdWr;
-   FileOpen := fdOpen(FileName, mode);
+   {$ifdef ver1_0}
+   FileOpen := fdOpen(FileName,mode);
+   {$else}
+   tmp:=filename;
+   FileOpen := fpopen(tmp,longint(mode));
+   {$endif}
 END;
 {$ENDIF}
 
@@ -479,9 +489,9 @@ END;
 VAR
    Actual : LongInt;
 BEGIN
-   Actual := fdSeek(Handle, FileSize, 0);             { Position file }
+   Actual := {$ifdef ver1_0}fdSeek{$else} fplseek{$endif}(Handle, FileSize, 0);             { Position file }
    If (Actual = FileSize) Then Begin                  { No position error }
-     if (fdTruncate(Handle, FileSize))                { Truncate the file }
+     if ({$ifdef ver1_0}fdTruncate{$else}fpftruncate{$endif}(Handle,FileSize)){$ifndef ver1_0}=0{$endif}       { Truncate the file }
         Then SetFileSize := 0                         { No truncate error }
         else SetFileSize := 103;                      { File truncate error }
    End Else SetFileSize := 103;                       { File truncate error }
@@ -557,7 +567,7 @@ END;
 {$ENDIF}
 {$IFDEF OS_UNIX}
 BEGIN
-   Actual := fdSeek(Handle, Pos, MoveType);
+   Actual := {$ifdef ver1_0}fdSeek{$else}fplseek{$endif}(Handle, Pos, MoveType);
    If (Actual <> -1) Then SetFilePos := 0 Else        { No position error }
       SetFilePos := 107;                               { File position error }
 END;
@@ -621,7 +631,7 @@ END;
 {$ENDIF}
 {$IFDEF OS_UNIX}
 BEGIN
-   Actual := fdRead(Handle, Buf, Count);
+   Actual := {$ifdef ver1_0}fdRead{$else} fpread{$endif}(Handle, Buf, Count);
    if (Actual = Count) Then FileRead := 0             { No read error }
      Else FileRead := 104;                            { File read error }
 END;
@@ -685,7 +695,7 @@ END;
 {$ENDIF}
 {$IFDEF OS_UNIX}
 BEGIN
-   Actual := fdWrite(Handle, Buf, Count);
+   Actual := {$ifdef ver1_0}fdWrite{$else}fpwrite{$endif}(Handle, Buf, Count);
    If (Actual = Count) Then FileWrite := 0 Else       { No write error }
      FileWrite := 105;                                { File write error }
 END;
@@ -694,7 +704,10 @@ END;
 END.
 {
  $Log$
- Revision 1.10  2002-10-13 20:52:09  hajny
+ Revision 1.11  2003-10-01 16:20:27  marco
+  * baseunix fixes for 1.1
+
+ Revision 1.10  2002/10/13 20:52:09  hajny
    * mistyping corrected
 
  Revision 1.9  2002/10/12 19:39:00  hajny
