@@ -57,6 +57,10 @@
   {$undef cpuflags}
 {$endif alpha}
 
+{$ifdef sparc}
+  {$define callparatemp}
+{$endif sparc}
+
 {$ifdef powerpc}
   {$define callparatemp}
 {$endif powerpc}
@@ -73,7 +77,12 @@
 
 {
   $Log$
-  Revision 1.19  2003-05-09 17:47:02  peter
+  Revision 1.20  2003-05-24 21:12:57  florian
+    * if something doesn't work with callparatemp, the define callparatemp
+      should be used because other processors with reigster calling conventions
+      depend on this as well
+
+  Revision 1.19  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 
