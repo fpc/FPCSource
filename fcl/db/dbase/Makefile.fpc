@@ -20,12 +20,12 @@ fpcdir=../../..
 fpcpackage=y
 units_i386=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur \
       dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile \
-      dbf_prscore dbf_prsdef dbf_prssupp dbf_str
+      dbf_prscore dbf_prsdef dbf_prssupp dbf_str dbf_wtil
 
 [clean]
 units=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur \
       dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile \
-      dbf_prscore dbf_prsdef dbf_prssupp dbf_str
+      dbf_prscore dbf_prsdef dbf_prssupp dbf_str dbf_wtil
 
 [prerules]
 # dbf_Wtil is needed on all targets except win32

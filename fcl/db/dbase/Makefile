@@ -226,9 +226,9 @@ endif
 ifeq ($(CPU_TARGET),i386)
 override TARGET_EXAMPLES+=testdbf
 endif
-override CLEAN_UNITS+=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile dbf_prscore dbf_prsdef dbf_prssupp dbf_str
+override CLEAN_UNITS+=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile dbf_prscore dbf_prsdef dbf_prssupp dbf_str dbf_wtil
 ifeq ($(CPU_TARGET),i386)
-override INSTALL_UNITS+=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile dbf_prscore dbf_prsdef dbf_prssupp dbf_str
+override INSTALL_UNITS+=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile dbf_prscore dbf_prsdef dbf_prssupp dbf_str dbf_wtil
 endif
 override INSTALL_FPCPACKAGE=y
 override COMPILER_OPTIONS+=-S2 -Sh
