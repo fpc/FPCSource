@@ -110,11 +110,11 @@ type
       procedure   GetLine(Line: integer; var Text, Attr: string); virtual;
       procedure   GetCursorPos(var P: TPoint); virtual;
       procedure   Capture; virtual;
-      procedure   Restore; virtual;
       procedure   SwitchTo; virtual;
       procedure   SwitchBack; virtual;
     private
-      DosScreenBufferHandle : THandle;
+      DosScreenBufferHandle,
+      IDEScreenBufferHandle : THandle;
       IDEActive : boolean;
       procedure BufferCopy(src,dest : THandle);
     end;
@@ -468,6 +468,9 @@ end;
 constructor TWin32Screen.Init;
 var
   SecurityAttr : Security_attributes;
+  BigWin : Coord;
+  res : boolean;
+  Error : dword;
 begin
   inherited Init;
   SecurityAttr.nLength:=SizeOf(Security_attributes);
@@ -477,31 +480,49 @@ begin
     GENERIC_READ or GENERIC_WRITE,
     0,SecurityAttr,
     CONSOLE_TEXTMODE_BUFFER,nil);
+  IDEScreenBufferHandle:=GetStdHandle(STD_OUTPUT_HANDLE);
+{$ifdef win32bigwin}
+  BigWin.X:=80;
+  BigWin.Y:=50;
+  SetConsoleScreenBufferSize(DosScreenBufferHandle,BigWin);
+  SetConsoleScreenBufferSize(IDEScreenBufferHandle,BigWin);
+{$endif win32bigwin}
   Capture;
-  { SetConsoleActiveScreenBuffer(DosScreenBufferHandle);}
-  IDEActive:=true;
+  BigWin.X:=80;
+  BigWin.Y:=50;
+  { Try to allow to store more info }
+  res:=SetConsoleScreenBufferSize(DosScreenBufferHandle,BigWin);
+  if not res then
+    error:=GetLastError;
+  SwitchBack;
 end;
-
 
 destructor TWin32Screen.Done;
 begin
   if IDEActive then
-    SwitchBack;
-  Restore;
+    SwitchTo;
   CloseHandle(DosScreenBufferHandle);
   inherited Done;
 end;
 
-
 function TWin32Screen.GetWidth: integer;
+var
+  ConsoleScreenBufferInfo : Console_screen_buffer_info;
 begin
-  GetWidth:=ScreenWidth;
+  GetConsoleScreenBufferInfo(DosScreenBufferHandle,
+    @ConsoleScreenBufferInfo);
+  GetWidth:=ConsoleScreenBufferInfo.dwSize.X;
+  {GetWidth:=ScreenWidth;}
 end;
 
-
 function TWin32Screen.GetHeight: integer;
+var
+  ConsoleScreenBufferInfo : Console_screen_buffer_info;
 begin
-  GetHeight:=ScreenHeight;
+  GetConsoleScreenBufferInfo(DosScreenBufferHandle,
+    @ConsoleScreenBufferInfo);
+  GetHeight:=ConsoleScreenBufferInfo.dwSize.Y;
+  {GetHeight:=ScreenHeight;}
 end;
 
 
@@ -589,26 +610,21 @@ end;
 
 procedure TWin32Screen.Capture;
 begin
-  BufferCopy(GetStdHandle(STD_OUTPUT_HANDLE),DosScreenBufferHandle);
+  BufferCopy(IDEScreenBufferHandle,DosScreenBufferHandle);
 end;
-
-procedure TWin32Screen.Restore;
-begin
-  BufferCopy(DosScreenBufferHandle,GetStdHandle(STD_OUTPUT_HANDLE));
-end;
-
 
 procedure TWin32Screen.SwitchTo;
 begin
   SetConsoleActiveScreenBuffer(DosScreenBufferHandle);
-  IDEActive:=true;
+  SetStdHandle(Std_Output_Handle,DosScreenBufferHandle);
+  IDEActive:=false;
 end;
-
 
 procedure TWin32Screen.SwitchBack;
 begin
-  SetConsoleActiveScreenBuffer(GetStdHandle(STD_OUTPUT_HANDLE));
-  IDEActive:=false;
+  SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
+  SetStdHandle(Std_Output_Handle,IDEScreenBufferHandle);
+  IDEActive:=true;
 end;
 
 {$endif}
@@ -642,14 +658,18 @@ begin
   if UserScreen<>nil then
    begin
      UserScreen^.SwitchTo;
-     Dispose(UserScreen, Done); UserScreen:=nil;
+     Dispose(UserScreen, Done);
+     UserScreen:=nil;
    end;
 end;
 
 end.
 {
   $Log$
-  Revision 1.6  1999-09-22 13:02:00  pierre
+  Revision 1.7  1999-11-10 17:12:00  pierre
+   * Win32 screen problems solved
+
+  Revision 1.6  1999/09/22 13:02:00  pierre
    + Twin32Screen added
 
   Revision 1.5  1999/08/16 18:25:24  peter
@@ -698,4 +718,4 @@ end.
     Original implementation
 
 }
-   
+
