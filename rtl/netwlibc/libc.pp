@@ -1273,11 +1273,12 @@ type
      end;
 
    Ptimezone = ^Ttimezone;
-   Ttimezone = record                   { returned by gettimeofday() }
+   TTimezone = record                   { returned by gettimeofday() }
         tz_secondswest : time_t;        { seconds west of UTC }
         tz_minuteswest : longint;       { minutes west of UTC (GMT) }
         tz_dsttime     : longint;       { nonzero if DST is ever in effect }
      end;
+   Timezone = TTimezone;
 
 {
 ** Normally this functions fills struct tms with several time values. Most of
@@ -1296,6 +1297,7 @@ type
         tv_sec  : longint;
         tv_usec : longint;
      end;
+   Timeval = TTimeval;
 
 (** unsupported pragma#pragma pack()*)
 { operations on struct timeval; note timercmp() does not work for >= or <=  }
@@ -7196,7 +7198,7 @@ function getnlmhandlefromthread(thread:pointer):pointer;cdecl;external libc_nlm 
 function getnlmname(handle:pointer; name:Pchar):Pchar;cdecl;external libc_nlm name 'getnlmname';
 function getnlmloadpath(loadpath:Pchar):Pchar;cdecl;external libc_nlm name 'getnlmloadpath';
 function getthreadname(threadid:pointer; name:Pchar; maxlen:size_t):longint;cdecl;external libc_nlm name 'getthreadname';
-function getthreadid:pointer;cdecl;external libc_nlm name 'getthreadid';
+function _getthreadid:pointer;cdecl;external libc_nlm name 'getthreadid';
 function library_calloc(handle:pointer; size:size_t; count:size_t):pointer;cdecl;external libc_nlm name 'library_calloc';
 procedure library_free(addr:pointer);cdecl;external libc_nlm name 'library_free';
 function library_malloc(handle:pointer; size:size_t):pointer;cdecl;external libc_nlm name 'library_malloc';
@@ -9068,3 +9070,10 @@ end;
 
 end.
 {$endif}
+
+{
+  $Log$
+  Revision 1.5  2004-12-07 11:40:43  armin
+  * implemented GetProcessId, defined TimeVal and TimeZone in addition to TTimeVal, TTimeZone, Makefile defaults to binutilsprefix i386-netware
+
+}

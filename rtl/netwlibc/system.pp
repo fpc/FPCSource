@@ -1011,8 +1011,7 @@ end;
 
 function GetProcessID: SizeUInt;
 begin
-{$WARNING GetProcessID implementation missing}
- GetProcessID := 1;
+ GetProcessID := SizeUInt (getnlmhandle);
 end;
 
 
@@ -1191,7 +1190,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.9  2004-12-05 14:36:38  hajny
+  Revision 1.10  2004-12-07 11:40:43  armin
+  * implemented GetProcessId, defined TimeVal and TimeZone in addition to TTimeVal, TTimeZone, Makefile defaults to binutilsprefix i386-netware
+
+  Revision 1.9  2004/12/05 14:36:38  hajny
     + GetProcessID added
 
   Revision 1.8  2004/11/25 12:38:17  armin

@@ -69,6 +69,9 @@ override FPCOPT+=-dMT -dDEBUG_MT
 #CREATESMART=1
 CREATESMART=0
 
+# always use i386-netware- as the prefix for binutils (they are the same for netware and netwlibc)
+BINUTILSPREFIX=i386-netware-
+
 # Paths
 OBJPASDIR=$(RTL)/objpas
 
