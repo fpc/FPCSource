@@ -63,7 +63,6 @@
      TCOLORREF = cardinal;
 
      SHORT = integer;
-     INT   = longint;
      WINT  = longint;
      LONG  = longint;
      DWORD = cardinal;
@@ -572,7 +571,7 @@
 
      ICMENUMPROC = function (_para1:LPTSTR; _para2:LPARAM):longint;stdcall;
 
-     EDITWORDBREAKPROCEX = function (_para1:pchar; _para2:LONG; _para3:BYTE; _para4:INT):LONG;stdcall;
+     EDITWORDBREAKPROCEX = function (_para1:pchar; _para2:LONG; _para3:BYTE; _para4:WINT):LONG;stdcall;
 
      PFNLVCOMPARE = function (_para1:LPARAM; _para2:LPARAM; _para3:LPARAM):longint;stdcall;
 
@@ -938,7 +937,10 @@ type
 
 {
   $Log$
-  Revision 1.14  2002-11-27 20:08:21  peter
+  Revision 1.15  2002-12-12 17:34:35  peter
+    * Renaming INT type to WINT
+
+  Revision 1.14  2002/11/27 20:08:21  peter
     * added PBOOL
 
   Revision 1.13  2002/10/09 20:45:12  florian

@@ -91,12 +91,12 @@ function GlobalGetAtomNameA(nAtom:ATOM; lpBuffer:LPSTR; nSize:longint):UINT; ext
 function AddAtomA(lpString:LPCSTR):ATOM; external 'kernel32' name 'AddAtomA';
 function FindAtomA(lpString:LPCSTR):ATOM; external 'kernel32' name 'FindAtomA';
 function GetAtomNameA(nAtom:ATOM; lpBuffer:LPSTR; nSize:longint):UINT; external 'kernel32' name 'GetAtomNameA';
-function GetProfileIntA(lpAppName:LPCSTR; lpKeyName:LPCSTR; nDefault:INT):UINT; external 'kernel32' name 'GetProfileIntA';
+function GetProfileIntA(lpAppName:LPCSTR; lpKeyName:LPCSTR; nDefault:WINT):UINT; external 'kernel32' name 'GetProfileIntA';
 function GetProfileStringA(lpAppName:LPCSTR; lpKeyName:LPCSTR; lpDefault:LPCSTR; lpReturnedString:LPSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetProfileStringA';
 function WriteProfileStringA(lpAppName:LPCSTR; lpKeyName:LPCSTR; lpString:LPCSTR):WINBOOL; external 'kernel32' name 'WriteProfileStringA';
 function GetProfileSectionA(lpAppName:LPCSTR; lpReturnedString:LPSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetProfileSectionA';
 function WriteProfileSectionA(lpAppName:LPCSTR; lpString:LPCSTR):WINBOOL; external 'kernel32' name 'WriteProfileSectionA';
-function GetPrivateProfileIntA(lpAppName:LPCSTR; lpKeyName:LPCSTR; nDefault:INT; lpFileName:LPCSTR):UINT; external 'kernel32' name 'GetPrivateProfileIntA';
+function GetPrivateProfileIntA(lpAppName:LPCSTR; lpKeyName:LPCSTR; nDefault:WINT; lpFileName:LPCSTR):UINT; external 'kernel32' name 'GetPrivateProfileIntA';
 function GetPrivateProfileStringA(lpAppName:LPCSTR; lpKeyName:LPCSTR; lpDefault:LPCSTR; lpReturnedString:LPSTR; nSize:DWORD;lpFileName:LPCSTR):DWORD; external 'kernel32' name 'GetPrivateProfileStringA';
 function WritePrivateProfileStringA(lpAppName:LPCSTR; lpKeyName:LPCSTR; lpString:LPCSTR; lpFileName:LPCSTR):WINBOOL; external 'kernel32' name 'WritePrivateProfileStringA';
 function GetPrivateProfileSectionA(lpAppName:LPCSTR; lpReturnedString:LPSTR; nSize:DWORD; lpFileName:LPCSTR):DWORD; external 'kernel32' name 'GetPrivateProfileSectionA';
@@ -491,7 +491,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-09-15 17:53:44  peter
+  Revision 1.8  2002-12-12 17:34:35  peter
+    * Renaming INT type to WINT
+
+  Revision 1.7  2002/09/15 17:53:44  peter
     * Remove Float type, use Single instead
 
   Revision 1.6  2002/09/07 16:01:29  peter

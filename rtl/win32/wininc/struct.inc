@@ -665,7 +665,7 @@
           hwndOwner : HWND;
           hDC : HDC;
           lpLogFont : LPLOGFONT;
-          iPointSize : INT;
+          iPointSize : WINT;
           Flags : DWORD;
           rgbColors : DWORD;
           lCustData : LPARAM;
@@ -675,8 +675,8 @@
           lpszStyle : LPTSTR;
           nFontType : WORD;
           ___MISSING_ALIGNMENT__ : WORD;
-          nSizeMin : INT;
-          nSizeMax : INT;
+          nSizeMin : WINT;
+          nSizeMax : WINT;
        end;
      LPCHOOSEFONT = ^TCHOOSEFONT;
      PCHOOSEFONT = ^TCHOOSEFONT;
@@ -3284,8 +3284,8 @@
           lStructSize : DWORD;
           lpOutString : LPTSTR;
           lpOrder : ^UINT;
-          lpDx : ^INT;
-          lpCaretPos : ^INT;
+          lpDx : ^WINT;
+          lpCaretPos : ^WINT;
           lpClass : LPTSTR;
           lpGlyphs : ^UINT;
           nGlyphs : UINT;
@@ -5053,11 +5053,11 @@
 
      PROTOCOL_INFO = record
           dwServiceFlags : DWORD;
-          iAddressFamily : INT;
-          iMaxSockAddr : INT;
-          iMinSockAddr : INT;
-          iSocketType : INT;
-          iProtocol : INT;
+          iAddressFamily : WINT;
+          iMaxSockAddr : WINT;
+          iMinSockAddr : WINT;
+          iSocketType : WINT;
+          iProtocol : WINT;
           dwMessageSize : DWORD;
           lpProtocol : LPTSTR;
        end;
@@ -7014,7 +7014,10 @@ type
 
 {
   $Log$
-  Revision 1.17  2002-11-04 12:19:01  marco
+  Revision 1.18  2002-12-12 17:34:35  peter
+    * Renaming INT type to WINT
+
+  Revision 1.17  2002/11/04 12:19:01  marco
    * Move tmsg and family to messages.inc. windows.pp needed include sequence patch
 
   Revision 1.16  2002/10/02 21:03:04  peter

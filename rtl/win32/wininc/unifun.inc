@@ -90,12 +90,12 @@ function GlobalGetAtomNameW(nAtom:ATOM; lpBuffer:LPWSTR; nSize:longint):UINT; ex
 function AddAtomW(lpString:LPCWSTR):ATOM; external 'kernel32' name 'AddAtomW';
 function FindAtomW(lpString:LPCWSTR):ATOM; external 'kernel32' name 'FindAtomW';
 function GetAtomNameW(nAtom:ATOM; lpBuffer:LPWSTR; nSize:longint):UINT; external 'kernel32' name 'GetAtomNameW';
-function GetProfileIntW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; nDefault:INT):UINT; external 'kernel32' name 'GetProfileIntW';
+function GetProfileIntW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; nDefault:WINT):UINT; external 'kernel32' name 'GetProfileIntW';
 function GetProfileStringW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; lpDefault:LPCWSTR; lpReturnedString:LPWSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetProfileStringW';
 function WriteProfileStringW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; lpString:LPCWSTR):WINBOOL; external 'kernel32' name 'WriteProfileStringW';
 function GetProfileSectionW(lpAppName:LPCWSTR; lpReturnedString:LPWSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetProfileSectionW';
 function WriteProfileSectionW(lpAppName:LPCWSTR; lpString:LPCWSTR):WINBOOL; external 'kernel32' name 'WriteProfileSectionW';
-function GetPrivateProfileIntW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; nDefault:INT; lpFileName:LPCWSTR):UINT; external 'kernel32' name 'GetPrivateProfileIntW';
+function GetPrivateProfileIntW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; nDefault:WINT; lpFileName:LPCWSTR):UINT; external 'kernel32' name 'GetPrivateProfileIntW';
 function GetPrivateProfileStringW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; lpDefault:LPCWSTR; lpReturnedString:LPWSTR; nSize:DWORD;lpFileName:LPCWSTR):DWORD; external 'kernel32' name 'GetPrivateProfileStringW';
 function WritePrivateProfileStringW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; lpString:LPCWSTR; lpFileName:LPCWSTR):WINBOOL; external 'kernel32' name 'WritePrivateProfileStringW';
 function GetPrivateProfileSectionW(lpAppName:LPCWSTR; lpReturnedString:LPWSTR; nSize:DWORD; lpFileName:LPCWSTR):DWORD; external 'kernel32' name 'GetPrivateProfileSectionW';
@@ -494,7 +494,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-09-15 17:53:45  peter
+  Revision 1.7  2002-12-12 17:34:36  peter
+    * Renaming INT type to WINT
+
+  Revision 1.6  2002/09/15 17:53:45  peter
     * Remove Float type, use Single instead
 
   Revision 1.5  2002/09/07 16:01:32  peter
