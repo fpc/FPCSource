@@ -60,7 +60,7 @@ begin
 end;
 
 
-Function FileWrite (Handle : Longint; Var Buffer; Count : Longint) : Longint;
+Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
 
 Var Res : longint;
 
@@ -429,7 +429,11 @@ end;
 
 {
   $Log$
-  Revision 1.14  2000-02-09 16:59:34  peter
+  Revision 1.15  2000-02-17 22:16:05  sg
+  * Changed the second argument of FileWrite from "var buffer" to
+    "const buffer", like in Delphi.
+
+  Revision 1.14  2000/02/09 16:59:34  peter
     * truncated log
 
   Revision 1.13  2000/01/16 22:25:38  peter

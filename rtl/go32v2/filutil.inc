@@ -90,7 +90,7 @@ result := Do_Read(Handle, longint(@Buffer), Count);
 end;
 
 
-Function FileWrite (Handle : Longint; Var Buffer; Count : Longint) : Longint;
+Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
 begin
 result := Do_Write(Handle, longint(@Buffer), Count);
 end;
@@ -456,7 +456,11 @@ end;
 
 {
   $Log$
-  Revision 1.12  2000-02-09 16:59:28  peter
+  Revision 1.13  2000-02-17 22:16:05  sg
+  * Changed the second argument of FileWrite from "var buffer" to
+    "const buffer", like in Delphi.
+
+  Revision 1.12  2000/02/09 16:59:28  peter
     * truncated log
 
   Revision 1.11  2000/01/16 22:25:38  peter

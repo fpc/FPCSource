@@ -36,7 +36,7 @@ begin
 end;
 
 
-Function FileWrite (Handle : Longint; Var Buffer; Count : Longint) : Longint;
+Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
 
 begin
   //!! Needs implementing
@@ -167,7 +167,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:30  daniel
+  Revision 1.4  2000-02-17 22:16:05  sg
+  * Changed the second argument of FileWrite from "var buffer" to
+    "const buffer", like in Delphi.
+
+  Revision 1.3  2000/01/07 16:41:30  daniel
     * copyright 2000
 
   Revision 1.2  1999/04/08 12:22:54  peter
