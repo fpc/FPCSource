@@ -53,8 +53,7 @@ interface
     procedure push_value_para(list:taasmoutput;p:tnode;
                               varspez:tvarspez;
                               calloption:tproccalloption;
-                              para_offset:longint;
-                              alignment:longint;
+                              alignment:byte;
                               const locpara : tparalocation);
 
     procedure gen_load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
@@ -676,8 +675,7 @@ implementation
     procedure push_value_para(list:taasmoutput;p:tnode;
                               varspez:tvarspez;
                               calloption:tproccalloption;
-                              para_offset:longint;
-                              alignment:longint;
+                              alignment:byte;
                               const locpara : tparalocation);
       var
         href : treference;
@@ -699,6 +697,7 @@ implementation
         { Handle Floating point types differently }
         if p.resulttype.def.deftype=floatdef then
          begin
+(*
            if calloption=pocall_inline then
              begin
                size:=align(tfloatdef(p.resulttype.def).size,alignment);
@@ -716,6 +715,7 @@ implementation
                end;
              end
            else
+*)
              begin
 {$ifdef i386}
                case p.location.loc of
@@ -802,6 +802,7 @@ implementation
                     if cgsize in [OS_64,OS_S64] then
                      begin
                        inc(pushedparasize,8);
+(*
                        if calloption=pocall_inline then
                         begin
                           reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
@@ -814,11 +815,13 @@ implementation
                             cg64.a_load64_loc_ref(list,p.location,href);
                         end
                        else
+*)
                         cg64.a_param64_loc(list,p.location,locpara);
                      end
                     else
                      begin
                        inc(pushedparasize,alignment);
+(*
                        if calloption=pocall_inline then
                         begin
                           reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
@@ -831,6 +834,7 @@ implementation
                             cg.a_load_loc_ref(list,p.location.size,p.location,href);
                         end
                        else
+*)
                         cg.a_param_loc(list,p.location,locpara);
                      end;
                     location_release(list,p.location);
@@ -840,12 +844,14 @@ implementation
                 LOC_CMMXREGISTER:
                   begin
                      inc(pushedparasize,8);
+(*
                      if calloption=pocall_inline then
                        begin
                           reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
                           cg.a_loadmm_reg_ref(list,p.location.register,href);
                        end
                      else
+*)
                       cg.a_parammm_reg(list,p.location.register);
                   end;
 {$endif SUPPORT_MMX}
@@ -1967,6 +1973,7 @@ implementation
     procedure gen_alloc_parast(list: taasmoutput;st:tparasymtable);
       var
         sym : tsym;
+        l   : longint;
       begin
         sym:=tsym(st.symindex.first);
         while assigned(sym) do
@@ -1975,12 +1982,14 @@ implementation
               begin
                 with tvarsym(sym) do
                   begin
+                    l:=getvaluesize;
                     { Allocate local copy? }
-                    if (vo_has_local_copy in varoptions) then
+                    if (vo_has_local_copy in varoptions) and
+                       (l>0) then
                       begin
                         localloc.loc:=LOC_REFERENCE;
-                        localloc.size:=int_cgsize(getvaluesize);
-                        tg.GetLocal(list,getvaluesize,localloc.reference);
+                        localloc.size:=int_cgsize(l);
+                        tg.GetLocal(list,l,localloc.reference);
                       end
                     else
                       begin
@@ -2002,8 +2011,8 @@ implementation
                               localloc.register:=rg.getregisterint(list,localloc.size);
 *)
                             localloc.loc:=LOC_REFERENCE;
-                            localloc.size:=int_cgsize(getvaluesize);
-                            tg.GetLocal(list,getvaluesize,localloc.reference);
+                            localloc.size:=paraitem.paraloc[calleeside].size;
+                            tg.GetLocal(list,tcgsize2size[localloc.size],localloc.reference);
                           end
                         else
                           localloc:=paraitem.paraloc[calleeside];
@@ -2055,7 +2064,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.147  2003-09-23 21:03:59  peter
+  Revision 1.148  2003-09-25 21:28:00  peter
+    * parameter fixes
+
+  Revision 1.147  2003/09/23 21:03:59  peter
     * check for refs>0 in init/final local data
 
   Revision 1.146  2003/09/23 17:56:05  peter

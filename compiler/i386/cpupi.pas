@@ -33,9 +33,6 @@ unit cpupi;
 
     type
        ti386procinfo = class(tcgprocinfo)
-          procedure allocate_interrupt_parameter;override;
-          procedure allocate_framepointer_reg;override;
-          procedure handle_body_start;override;
        end;
 
 
@@ -44,40 +41,15 @@ unit cpupi;
     uses
       cgbase, cpubase, rgobj;
 
-    procedure ti386procinfo.allocate_interrupt_parameter;
-      begin
-         { we push Flags and CS as long
-           to cope with the IRETD
-           and we save 6 register + 4 selectors }
-         {$warning TODO interrupt allocation}
-//         inc(procdef.parast.address_fixup,8+6*4+4*2);
-      end;
-
-
-    procedure ti386procinfo.allocate_framepointer_reg;
-      begin
-        if framepointer=NR_EBP then
-          begin
-            { Make sure the register allocator won't allocate registers
-              into ebp }
-            include(rg.used_in_proc_int,RS_EBP);
-            exclude(rg.unusedregsint,RS_EBP);
-          end;
-      end;
-
-
-    procedure ti386procinfo.handle_body_start;
-      begin
-        inherited handle_body_start;
-      end;
-
-
 begin
    cprocinfo:=ti386procinfo;
 end.
 {
   $Log$
-  Revision 1.12  2003-09-23 17:56:06  peter
+  Revision 1.13  2003-09-25 21:30:11  peter
+    * parameter fixes
+
+  Revision 1.12  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

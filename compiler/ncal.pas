@@ -159,8 +159,7 @@ interface
           procedure insert_typeconv(do_count : boolean);
           procedure det_registers;
           procedure firstcallparan(do_count : boolean);
-          procedure secondcallparan(push_from_left_to_right:boolean;calloption:tproccalloption;
-                para_alignment,para_offset : longint);virtual;abstract;
+          procedure secondcallparan(calloption:tproccalloption;alignment:byte);virtual;abstract;
           function docompare(p: tnode): boolean; override;
           procedure printnodetree(var t:text);override;
        end;
@@ -2514,7 +2513,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.181  2003-09-23 17:56:05  peter
+  Revision 1.182  2003-09-25 21:28:00  peter
+    * parameter fixes
+
+  Revision 1.181  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

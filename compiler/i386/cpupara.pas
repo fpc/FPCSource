@@ -249,7 +249,12 @@ unit cpupara;
 {$warning HACK: framepointer reg shall be a normal parameter}
         if p.parast.symtablelevel>normal_function_level then
           inc(parasize,POINTER_SIZE);
-{$warning callerparaloc shall not be the same as calleeparaloc}
+        { we push Flags and CS as long
+          to cope with the IRETD
+          and we save 6 register + 4 selectors }
+        if po_interrupt in p.procoptions then
+          inc(parasize,8+6*4+4*2);
+        { Assign fields }
         hp:=tparaitem(p.para.first);
         while assigned(hp) do
           begin
@@ -267,6 +272,11 @@ unit cpupara;
             paraloc.reference.offset:=parasize+target_info.first_parm_offset;
             varalign:=used_align(varalign,p.paraalign,p.paraalign);
             parasize:=align(parasize+l,varalign);
+            if (side=callerside) then
+              begin
+                paraloc.reference.index:=NR_STACK_POINTER_REG;
+                dec(paraloc.reference.offset,POINTER_SIZE);
+              end;
             hp.paraloc[side]:=paraloc;
             hp:=tparaitem(hp.next);
           end;
@@ -291,7 +301,6 @@ unit cpupara;
 {$warning HACK: framepointer reg shall be a normal parameter}
         if p.parast.symtablelevel>normal_function_level then
           inc(parasize,POINTER_SIZE);
-{$warning callerparaloc shall not be the same as calleeparaloc}
         hp:=tparaitem(p.para.first);
         while assigned(hp) do
           begin
@@ -309,7 +318,7 @@ unit cpupara;
 
               64bit values are in EAX:EDX or on the stack.
             }
-            if (sr<=NR_ECX) and not(is_64bit) then
+            if (sr<=RS_ECX) and not(is_64bit) then
               begin
                 paraloc.loc:=LOC_REGISTER;
                 if is_64bit then
@@ -342,6 +351,12 @@ unit cpupara;
                 varalign:=used_align(varalign,p.paraalign,p.paraalign);
                 parasize:=align(parasize+l,varalign);
               end;
+            if (side=callerside) and
+               (paraloc.loc=LOC_REFERENCE) then
+              begin
+                paraloc.reference.index:=NR_STACK_POINTER_REG;
+                dec(paraloc.reference.offset,POINTER_SIZE);
+              end;
             hp.paraloc[side]:=paraloc;
             hp:=tparaitem(hp.next);
           end;
@@ -372,7 +387,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2003-09-23 17:56:06  peter
+  Revision 1.31  2003-09-25 21:30:11  peter
+    * parameter fixes
+
+  Revision 1.30  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

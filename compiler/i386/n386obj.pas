@@ -36,7 +36,7 @@ uses
   symconst,symtype,symdef,symsym,
   fmodule,
   nobj,
-  cpubase,cginfo,
+  cpuinfo,cpubase,cginfo,
   cga,tgobj,rgobj,cgobj;
 
    type
@@ -91,9 +91,9 @@ function getselfoffsetfromsp(procdef: tprocdef): longint;
 begin
   { framepointer is pushed for nested procs }
   if procdef.parast.symtablelevel>normal_function_level then
-    getselfoffsetfromsp:=4
+    getselfoffsetfromsp:=2*POINTER_SIZE
   else
-    getselfoffsetfromsp:=0;
+    getselfoffsetfromsp:=POINTER_SIZE;
 end;
 
 
@@ -223,7 +223,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2003-09-25 14:59:06  peter
+  Revision 1.25  2003-09-25 21:30:11  peter
+    * parameter fixes
+
+  Revision 1.24  2003/09/25 14:59:06  peter
     * fix intf wrapper code
 
   Revision 1.23  2003/09/23 17:56:06  peter

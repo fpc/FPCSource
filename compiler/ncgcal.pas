@@ -36,8 +36,7 @@ interface
        private
           tempparaloc : tparalocation;
        public
-          procedure secondcallparan(push_from_left_to_right:boolean;calloption:tproccalloption;
-                para_alignment,para_offset : longint);override;
+          procedure secondcallparan(calloption:tproccalloption;alignment:byte);override;
        end;
 
        tcgcallnode = class(tcallnode)
@@ -100,7 +99,7 @@ implementation
                              TCGCALLPARANODE
 *****************************************************************************}
 
-    procedure tcgcallparanode.secondcallparan(push_from_left_to_right:boolean;calloption:tproccalloption;para_alignment,para_offset : longint);
+    procedure tcgcallparanode.secondcallparan(calloption:tproccalloption;alignment:byte);
       var
          otlabel,
          oflabel : tasmlabel;
@@ -111,16 +110,10 @@ implementation
                 assigned(paraitem.parasym)) then
            internalerror(200304242);
 
-         { set default para_alignment to target_info.stackalignment }
-         if para_alignment=0 then
-           para_alignment:=aktalignment.paraalign;
-
          { push from left to right if specified }
-         if push_from_left_to_right and assigned(right) then
-          begin
-            tcallparanode(right).secondcallparan(push_from_left_to_right,
-                                                 calloption,para_alignment,para_offset);
-          end;
+         if assigned(right) and
+            (calloption in pushleftright_pocalls) then
+           tcallparanode(right).secondcallparan(calloption,alignment);
 
          otlabel:=truelabel;
          oflabel:=falselabel;
@@ -145,7 +138,7 @@ implementation
                  location_release(exprasmlist,left.location);
                end
              else
-               push_value_para(exprasmlist,left,vs_value,calloption,para_offset,para_alignment,tempparaloc);
+               push_value_para(exprasmlist,left,vs_value,calloption,alignment,tempparaloc);
            end
          { hidden parameters }
          else if paraitem.is_hidden then
@@ -160,22 +153,12 @@ implementation
                     internalerror(200305071);
 
                   inc(pushedparasize,POINTER_SIZE);
-                  if calloption=pocall_inline then
-                    begin
-                       tmpreg:=rg.getaddressregister(exprasmlist);
-                       cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
-                       reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
-                       rg.ungetregisterint(exprasmlist,tmpreg);
-                    end
-                  else
-                    cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
+                  cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                   location_release(exprasmlist,left.location);
                end
              else
                begin
-                  push_value_para(exprasmlist,left,paraitem.paratyp,calloption,
-                    para_offset,para_alignment,tempparaloc);
+                 push_value_para(exprasmlist,left,paraitem.paratyp,calloption,alignment,tempparaloc);
                end;
            end
          { filter array of const c styled args }
@@ -197,13 +180,7 @@ implementation
               if (left.nodetype=addrn) and
                  (not(nf_procvarload in left.flags)) then
                 begin
-                  if calloption=pocall_inline then
-                    begin
-                       reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                       cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,href);
-                    end
-                  else
-                    cg.a_param_loc(exprasmlist,left.location,tempparaloc);
+                  cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                   location_release(exprasmlist,left.location);
                 end
               else
@@ -211,55 +188,10 @@ implementation
                    if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                      internalerror(200304235);
 
-                   if calloption=pocall_inline then
-                     begin
-                       tmpreg:=rg.getaddressregister(exprasmlist);
-                       cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
-                       reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
-                       rg.ungetregisterint(exprasmlist,tmpreg);
-                     end
-                   else
-                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
+                   cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                    location_release(exprasmlist,left.location);
                 end;
            end
-(*
-         { handle call by reference parameter }
-         else if (paraitem.paratyp in [vs_var,vs_out]) or
-                 { win32 stdcall const parameters are also
-                   call by reference, Delphi compatible }
-                 (paraitem.paratyp=vs_const) and
-                 (calloption=pocall_stdcall) and
-                 (target_info.target=target_i386_win32) then
-           begin
-              if (left.location.loc<>LOC_REFERENCE) then
-               begin
-                 { passing self to a var parameter is allowed in
-                   TP and delphi }
-                 if not((left.location.loc=LOC_CREFERENCE) and
-                        is_self_node(left)) then
-                  internalerror(200106041);
-               end;
-              if (paraitem.paratyp=vs_out) and
-                 assigned(paraitem.paratype.def) and
-                 not is_class(paraitem.paratype.def) and
-                 paraitem.paratype.def.needs_inittable then
-                cg.g_finalize(exprasmlist,paraitem.paratype.def,left.location.reference,false);
-              inc(pushedparasize,POINTER_SIZE);
-              if calloption=pocall_inline then
-                begin
-                   tmpreg:=rg.getaddressregister(exprasmlist);
-                   cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
-                   reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
-                   rg.ungetregisterint(exprasmlist,tmpreg);
-                end
-              else
-                cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
-              location_release(exprasmlist,left.location);
-           end
-*)
          else
               { don't push a node that already generated a pointer type
                 by address for implicit hidden parameters }
@@ -299,22 +231,12 @@ implementation
                     end;
 
                    inc(pushedparasize,POINTER_SIZE);
-                   if calloption=pocall_inline then
-                     begin
-                        tmpreg:=rg.getaddressregister(exprasmlist);
-                        cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
-                        reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                        cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
-                        rg.ungetregisterint(exprasmlist,tmpreg);
-                     end
-                   else
-                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
+                   cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                    location_release(exprasmlist,left.location);
                 end
               else
                 begin
-                   push_value_para(exprasmlist,left,paraitem.paratyp,calloption,
-                     para_offset,para_alignment,tempparaloc);
+                  push_value_para(exprasmlist,left,paraitem.paratyp,calloption,alignment,tempparaloc);
                 end;
          truelabel:=otlabel;
          falselabel:=oflabel;
@@ -322,16 +244,12 @@ implementation
          { update return location in callnode when this is the function
            result }
          if (vo_is_funcret in tvarsym(paraitem.parasym).varoptions) then
-          begin
-            location_copy(aktcallnode.location,left.location);
-          end;
+           location_copy(aktcallnode.location,left.location);
 
          { push from right to left }
-         if not push_from_left_to_right and assigned(right) then
-          begin
-              tcallparanode(right).secondcallparan(push_from_left_to_right,
-                                                   calloption,para_alignment,para_offset);
-          end;
+         if assigned(right) and
+            not(calloption in pushleftright_pocalls) then
+           tcallparanode(right).secondcallparan(calloption,alignment);
       end;
 
 
@@ -377,7 +295,9 @@ implementation
        else if (current_procinfo.procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
           begin
             hregister:=rg.getaddressregister(exprasmlist);
-            cg.g_load_parent_framepointer(exprasmlist,tprocdef(procdefinition).parast,hregister);
+            { we need to push the framepointer of the owner of the called
+              nested procedure }
+            cg.g_load_parent_framepointer(exprasmlist,procdefinition.owner,hregister);
             cg.a_param_reg(exprasmlist,OS_ADDR,hregister,framepointer_paraloc);
             rg.ungetaddressregister(exprasmlist,hregister);
           end;
@@ -457,11 +377,6 @@ implementation
             else
               begin
                 cgsize:=def_cgsize(resulttype.def);
-
-                { an object constructor is a function with pointer result }
-                if (procdefinition.proctypeoption=potype_constructor) then
-                  cgsize:=OS_ADDR;
-
                 if cgsize<>OS_NO then
                  begin
                    location_reset(location,LOC_REGISTER,cgsize);
@@ -735,9 +650,7 @@ implementation
          { Process parameters }
          if assigned(left) then
            begin
-              tcallparanode(left).secondcallparan(
-                (procdefinition.proccalloption in pushleftright_pocalls),procdefinition.proccalloption,
-                 para_alignment,0);
+             tcallparanode(left).secondcallparan(procdefinition.proccalloption,procdefinition.paraalign);
 
              pushparas;
            end;
@@ -1320,7 +1233,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.116  2003-09-23 17:56:05  peter
+  Revision 1.117  2003-09-25 21:28:00  peter
+    * parameter fixes
+
+  Revision 1.116  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
