@@ -277,7 +277,9 @@ unit tree;
     procedure disposetree(p : ptree);
     procedure putnode(p : ptree);
     function getnode : ptree;
+{***Obsolete
     procedure clearnodes;
+***}
     procedure set_location(var destloc,sourceloc : tlocation);
     procedure swap_location(var destloc,sourceloc : tlocation);
     procedure set_file_line(from,_to : ptree);
@@ -314,15 +316,19 @@ unit tree;
         this is a pool for the tree nodes to get more performance
  ****************************************************************************}
 
+{***Obsolete
     var
        root : ptree;
+***}
 
     procedure init_tree;
 
       begin
+{***Obsolete
          root:=nil;
+***}
       end;
-
+{***Obsolete
     procedure clearnodes;
 
       var
@@ -337,6 +343,7 @@ unit tree;
               hp:=root;
            end;
       end;
+***}
 
     function getnode : ptree;
 
@@ -344,6 +351,7 @@ unit tree;
          hp : ptree;
 
       begin
+{***Obsolete
          if root=nil then
            new(hp)
          else
@@ -351,6 +359,8 @@ unit tree;
               hp:=root;
               root:=root^.left;
            end;
+***}
+         new(hp);
 
          { makes error tracking easier }
          fillchar(hp^,sizeof(ttree),#0);
@@ -391,11 +401,8 @@ unit tree;
 {$ifdef extdebug}
          if p^.firstpasscount>maxfirstpasscount then
             maxfirstpasscount:=p^.firstpasscount;
-         dispose(p);
-{$else extdebug}
-         p^.left:=root;
-         root:=p;
 {$endif extdebug}
+         dispose(p);
       end;
 
     function getcopy(p : ptree) : ptree;
@@ -1598,7 +1605,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.16  1998-06-12 14:50:49  peter
+  Revision 1.17  1998-06-22 08:59:03  daniel
+  - Removed pool of nodes.
+
+  Revision 1.16  1998/06/12 14:50:49  peter
     * removed the tree dependency to types.pas
     * long_fil.pas support (not fully tested yet)
 
