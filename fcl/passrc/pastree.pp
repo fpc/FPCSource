@@ -1140,7 +1140,7 @@ function TPasRecordType.GetDeclaration (full : boolean) : string;
 Var
   S,T : TStringList;
   temp : String;
-  I : integer;
+  I,J : integer;
     
 begin
   S:=TStringList.Create;
@@ -1158,8 +1158,8 @@ begin
       If Pos(LineEnding,Temp)>0 then
         begin
         T.Text:=Temp;
-        For I:=0 to T.Count-1 do
-          S.Add('  '+T[i]+';');
+        For J:=0 to T.Count-1 do
+          S.Add('  '+T[J]+';');
         end
       else
         S.Add('  '+Temp+';');
@@ -1392,7 +1392,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-11-22 12:12:38  sg
+  Revision 1.3  2004-07-23 21:43:54  michael
+  + Fixed error (never-ending loops) in trecordtype.GetDeclaration
+
+  Revision 1.2  2003/11/22 12:12:38  sg
   * Parse tree elements now can store a line number and source file for the
     position of their declaration
 
