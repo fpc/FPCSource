@@ -148,13 +148,17 @@ end;
 procedure tarobjectwriter.createarhdr(fn:string;size:longint;const gid,uid,mode:string);
 var
   tmp : string[9];
+  hfn : string;
 begin
   fillchar(arhdr,sizeof(tarhdr),' ');
 { create ar header }
   { win32 will change names starting with .\ to ./ when using lfn, corrupting
     the sort order required for the idata sections. To prevent this strip
     always the path from the filename. (PFV) }
-  fn:=SplitFileName(fn)+'/';
+  hfn:=SplitFileName(fn);
+  if hfn='' then
+    hfn:=fn;
+  fn:=hfn+'/';
   if length(fn)>16 then
    begin
      arhdr.name[0]:='/';
@@ -283,7 +287,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2004-05-09 11:07:39  peter
+  Revision 1.14  2004-05-27 18:53:43  peter
+    * fix writing of // header
+
+  Revision 1.13  2004/05/09 11:07:39  peter
   strip path from filenames of members, because win32 changes .\ to ./ for long filenames
 
   Revision 1.12  2002/05/18 13:34:11  peter
