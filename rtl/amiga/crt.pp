@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998 by Nils Sjoholm and Carl Eric Codere
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,8 +13,22 @@
  **********************************************************************}
 
 
-
 unit Crt;
+
+{--------------------------------------------------------------------}
+{ LEFT TO DO:                                                        }
+{--------------------------------------------------------------------}
+{ o Write special characters are not recognized                      }
+{ o Write does not take care of window coordinates yet.              }
+{ o Read does not recognize the special editing characters           }
+{ o Read does not take care of window coordinates yet.               }
+{ o Readkey extended scancode is not correct yet                     }
+{ o Color mapping only works for 4 colours                           }
+{ o ClrScr, DeleteLine, InsLine do not work with window coordinates  }
+{--------------------------------------------------------------------}
+
+
+
 Interface
 
 Const
@@ -75,25 +89,25 @@ Const
   Blink         = 128;
 
 {Other Defaults}
-
-  TextAttr   : Byte = $07;
   LastMode   : Word = 3;
   WindMin    : Word = $0;
   WindMax    : Word = $184f;
+{ These don't change anything if they are modified }
+  CheckSnow  : Boolean = FALSE;
+  DirectVideo: Boolean = FALSE;
 var
+  TextAttr : BYTE;
   { CheckBreak have to make this one to a function for Amiga }
-  CheckEOF,
-  CheckSnow,
-  DirectVideo: Boolean;
+  CheckEOF : Boolean;
 
 Procedure AssignCrt(Var F: Text);
 Function  KeyPressed: Boolean;
 Function  ReadKey: Char;
 Procedure TextMode(Mode: Integer);
-Procedure Window(X1, Y1, X2, Y2: Integer);
-Procedure GoToXy(X: Integer; Y: Integer);
-Function  WhereX: Integer;
-Function  WhereY: Integer;
+Procedure Window(X1, Y1, X2, Y2: BYTE);
+Procedure GoToXy(X: byte; Y: byte);
+Function  WhereX: Byte;
+Function  WhereY: Byte;
 Procedure ClrScr;
 Procedure ClrEol;
 Procedure InsLine;
@@ -121,8 +135,15 @@ Implementation
 {$i textrec.inc}
 {$i filerec.inc}
 
-Var
-  maxcols,maxrows : word;
+var
+  maxcols,maxrows : longint;
+
+CONST
+  { This is used to make sure that readkey returns immediately }
+  { if keypressed was used beforehand.                         }
+  KeyPress : char = #0;
+  _LVODisplayBeep = -96;
+
 
 Type
 
@@ -508,41 +529,56 @@ begin
    ConData := pos + 1;
 end;
 
-function WhereX : integer;
+function WhereX : Byte;
 begin
-   WhereX := ConData(CD_CURRX);
+   WhereX := Byte(ConData(CD_CURRX))-lo(windmin);
 end;
 
-function WhereY : integer;
+function realx: byte;
 begin
-   WhereY := ConData(CD_CURRY);
+   RealX := Byte(ConData(CD_CURRX));
 end;
 
-function maxx : integer;
+function realy: byte;
 begin
-   maxx := ConData(CD_MAXX);
+ RealY := Byte(ConData(CD_CURRY));
 end;
 
-function maxy : integer;
+function WhereY : Byte;
 begin
-   maxy := ConData(CD_MAXY);
+   WhereY := Byte(ConData(CD_CURRY))-hi(windmin);
 end;
 
-procedure GotoXY(x, y : integer);
-var
-   mx, my : integer;
+function screencols : integer;
 begin
-   mx := maxx;
-   my := maxy;
-
-   if x < 1 then x := wherex
-   else if x > mx then x := mx;
-
-   if y < 1 then y := wherey
-   else if y > my then y := my;
-
-   Write(CSI, y, ';', x, 'H');
+   screencols := ConData(CD_MAXX);
 end;
+
+function screenrows : integer;
+begin
+   screenrows := ConData(CD_MAXY);
+end;
+
+
+ procedure Realgotoxy(x,y : integer);
+ begin
+       Write(CSI, y, ';', x, 'H');
+ end;
+
+
+ procedure gotoxy(x,y : byte);
+ begin
+        if (x<1) then
+          x:=1;
+        if (y<1) then
+          y:=1;
+        if y+hi(windmin)-2>=hi(windmax) then
+          y:=hi(windmax)-hi(windmin)+1;
+        if x+lo(windmin)-2>=lo(windmax) then
+          x:=lo(windmax)-lo(windmin)+1;
+        Write(CSI, y+hi(windmin), ';', x+lo(windmin), 'H');
+ end;
+
 
 procedure CursorOff;
 begin
@@ -572,6 +608,12 @@ var
    idcmp, vanil   :  Longint;
 begin
    key   := #0;
+   if KeyPress <> #0 then
+    Begin
+      ReadKey:=KeyPress;
+      KeyPress:=#0;
+      exit;
+    end;
    info  := OpenInfo;
 
    if info <> nil then begin
@@ -585,7 +627,11 @@ begin
          msg   := WaitPort(win^.UserPort);
          imsg  := pIntuiMessage(GetMsg(win^.UserPort));
 
-         if (imsg^.Class_ = IDCMP_VANILLAKEY) or (imsg^.Class_ = IDCMP_RAWKEY) then key := char(imsg^.Code);
+         if (imsg^.Class_ = IDCMP_VANILLAKEY) then
+              key := char(imsg^.Code)
+         else
+         if (imsg^.Class_ = IDCMP_RAWKEY) then
+              key := char(imsg^.Code);
 
          ReplyMsg(pMessage(imsg));
       until key <> #0;
@@ -616,6 +662,7 @@ var
    idcmp, vanil   :  Longint;
    ispressed : Boolean;
 begin
+   KeyPress := #0;
    ispressed := False;
    info  := OpenInfo;
 
@@ -629,7 +676,11 @@ begin
       msg   := WaitPort(win^.UserPort);
       imsg  := pIntuiMessage(GetMsg(win^.UserPort));
 
-      if (imsg^.Class_ = IDCMP_VANILLAKEY) or (imsg^.Class_ = IDCMP_RAWKEY) then ispressed := true;
+      if (imsg^.Class_ = IDCMP_VANILLAKEY) or (imsg^.Class_ = IDCMP_RAWKEY) then
+      Begin
+        ispressed := true;
+        KeyPress := char(imsg^.Code)
+      end;
 
       ReplyMsg(pMessage(imsg));
 
@@ -659,14 +710,19 @@ begin
    Write(CSI, '4', color, 'm');
 end;
 
-procedure window(X1,Y1,X2,Y2 : Integer);
-begin
+procedure Window(X1,Y1,X2,Y2: Byte);
+ begin
+   if (x1<1) or (x2>screencols) or (y2>screenrows) or
+     (x1>x2) or (y1>y2) then
+       exit;
+   windmin:=(x1-1) or ((y1-1) shl 8);
+   windmax:=(x2-1) or ((y2-1) shl 8);
+   gotoxy(1,1);
+ end;
 
-end;
 
-procedure assigncrt(var f : text);
-begin
-end;
+
+
 
 procedure DelLine;
 begin
@@ -721,20 +777,203 @@ end;
 
 procedure textmode(mode : integer);
 begin
+       lastmode:=mode;
+       mode:=mode and $ff;
+       windmin:=0;
+       windmax:=(screencols-1) or ((screenrows-1) shl 8);
+       maxcols:=screencols;
+       maxrows:=screenrows;
 end;
 
 procedure normvideo;
 begin
 end;
 
+function GetTextBackground : byte;
+var
+   info  :  pInfoData;
+   pen   :  byte;
+begin
+   pen   := 1;
+   info  := OpenInfo;
+
+   if info <> nil then begin
+      pen   := pConUnit((pIoStdReq(info^.id_InUse))^.io_Unit)^.cu_BgPen;
+
+      CloseInfo(info);
+   end;
+
+   GetTextBackground := pen;
+end;
+
+function GetTextColor : byte;
+var
+   info  :  pInfoData;
+   pen   :  byte;
+begin
+   pen   := 1;
+   info  := OpenInfo;
+
+   if info <> nil then begin
+      pen   := pConUnit((pIoStdReq(info^.id_InUse))^.io_Unit)^.cu_FgPen;
+
+      CloseInfo(info);
+   end;
+
+   GetTextColor   := pen;
+end;
+
+
+{*****************************************************************************
+                          Read and Write routines
+*****************************************************************************}
+{ Problem here: Currently all these routines are not implemented because of how }
+{ the console device works. Because w low level write is required to change the }
+{ position of the cursor, and since the CrtWrite is assigned as the standard    }
+{ write routine, a recursive call will occur                                    }
+
+{ How to fix this:                                                              }
+{  At startup make a copy of the Output handle, and then use this copy to make  }
+{  low level positioning calls. This does not seem to work yet.                 }
+
+
+
+   Function CrtWrite(var f : textrec):integer;
+
+      var
+         i,col,row : longint;
+         c : char;
+         buf: array[0..1] of char;
+
+      begin
+         col:=realx;
+         row:=realy;
+         inc(row);
+         inc(col);
+         for i:=0 to f.bufpos-1 do
+           begin
+              c:=f.buffer[i];
+              case ord(c) of
+                 10 : begin
+                         inc(row);
+                      end;
+                 13 : begin
+                         col:=lo(windmin)+1;
+                     end;
+                 8 : if col>lo(windmin)+1 then
+                       begin
+                          dec(col);
+                       end;
+                 7 : begin
+                         { beep }
+                         asm
+                           move.l a6,d6               { save base pointer    }
+                           move.l _IntuitionBase,a6   { set library base     }
+                           sub.l  a0,a0
+                           jsr    _LVODisplayBeep(a6)
+                           move.l d6,a6               { restore base pointer }
+                         end;
+                      end;
+              else
+                 begin
+                   buf[0]:=c;
+                   realgotoxy(row,col);
+                   do_write(f.handle,longint(@buf[0]),1);
+                   inc(col);
+                 end;
+              end;
+              if col>lo(windmax)+1 then
+                begin
+                   col:=lo(windmin)+1;
+                   inc(row);
+                end;
+              while row>hi(windmax)+1 do
+                begin
+                   delline;
+                   dec(row);
+                end;
+           end;
+         f.bufpos:=0;
+         realgotoxy(row-1,col-1);
+         CrtWrite:=0;
+      end;
+
+   Function CrtClose(Var F: TextRec): Integer;
+     Begin
+       F.Mode:=fmClosed;
+       CrtClose:=0;
+     End;
+
+   Function CrtOpen(Var F: TextRec): Integer;
+     Begin
+       If F.Mode = fmOutput Then
+        CrtOpen:=0
+       Else
+        CrtOpen:=5;
+     End;
+
+   Function CrtRead(Var F: TextRec): Integer;
+     Begin
+       f.bufend:=do_read(f.handle,longint(f.bufptr),f.bufsize);
+       f.bufpos:=0;
+       CrtRead:=0;
+     End;
+
+   Function CrtInOut(Var F: TextRec): Integer;
+     Begin
+       Case F.Mode of
+        fmInput: CrtInOut:=CrtRead(F);
+        fmOutput: CrtInOut:=CrtWrite(F);
+       End;
+     End;
+
+   procedure assigncrt(var f : text);
+     begin
+   {     TextRec(F).Mode:=fmClosed;
+        TextRec(F).BufSize:=SizeOf(TextBuf);
+        TextRec(F).BufPtr:=@TextRec(F).Buffer;
+        TextRec(F).BufPos:=0;
+        TextRec(F).OpenFunc:=@CrtOpen;
+        TextRec(F).InOutFunc:=@CrtInOut;
+        TextRec(F).FlushFunc:=@CrtInOut;
+        TextRec(F).CloseFunc:=@CrtClose;
+        TextRec(F).Name[0]:='.';
+        TextRec(F).Name[1]:=#0;}
+     end;
+
+
+var
+  old_exit : pointer;
+
+procedure crt_exit;
+begin
+  { Restore default colors }
+  write(CSI,'0m');
+  exitproc:=old_exit;
+end;
 
 
 Begin
+   old_exit:=exitproc;
+   exitproc:=@crt_exit;
    { load system variables to temporary variables to save time }
-   maxcols:=maxy;
-   maxrows:=maxx;
+   maxcols:=screencols;
+   maxrows:=screenrows;
+   { Set the initial text attributes }
+   { Text background }
+   Textattr:=(textattr and $8f) or ((GetTextBackGround and $7) shl 4);
+   { Text foreground }
+   TextAttr := (TextAttr and $70) or GetTextColor;
    { set output window }
-   windmax:=((maxcols-1) shl 8) or (maxrows-1);
+   windmax:=(maxcols-1) or (( maxrows-1) shl 8);
+
+
+   { Get a copy of the standard      }
+   { output handle, and when using   }
+   { direct console calls, use this  }
+   { handle instead.                 }
+{   assigncrt(Output);
+   TextRec(Output).mode:=fmOutput;}
 end.
 
 
