@@ -268,6 +268,7 @@ type pword = ^word;
 begin
   if IndexTableRead then OK:=true else
  begin
+  FillChar(R, SizeOf(R), 0);
   LastTag:=''; CurPtr:=0;
   OK:=(IndexTablePos<>0);
   if OK then begin F^.Seek(IndexTablePos); OK:=F^.Status=stOK; end;
