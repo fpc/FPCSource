@@ -6,4 +6,5 @@ const
         b:set of 1..4=[2,3];    {Also crashes, but is the same bug.}
 
 begin
+   writeln(a);
 end.

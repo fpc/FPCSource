@@ -105,6 +105,7 @@ Fixed bugs:
   bug0087.pp   shows internal error 12 - no more SegFaults           OK 0.99.1 (FK)
   bug0088.pp   internal error 12 or Runerror 216                     OK 0.99.1 (FK)
   bug0089.pp   internal error 12 or Runerror 216                     OK 0.99.1 (FK)
+  bug0092.pp   The unfixable bug. Maybe we find a solution one day.  OK 0.99.6 (FK)
   bug0093.pp   Two Cardinal type bugs                                0K 0.99.1 (FK/MvC)
   bug0094.pp   internal error when recordtype not found with case    OK 0.99.1
   bug0095.pp   case with ranges starting with #0 bugs                OK 0.99.1 (FK)
@@ -123,8 +124,11 @@ Fixed bugs:
   bug0112.pp   still generates an internal error 10                  OK 0.99.1 (FK)
   bug0113.pp   point initialization problems                         OK 0.99.1 (PM/FK)
   bug0114.pp   writeln problem (by Pavel Ozerski)                    OK 0.99.1 (PFV)
+  bug0115.pp   missing writeln for comp data type                    OK 0.99.6 (FK)
   bug0116.pp   when local variable size is > $ffff, enter can't be   OK 0.99.1 (FK)
                used to create the stack frame, but it is with -Og
+  bug0121.pp   cardinal -> byte conversion not work (and crashes)    OK 0.99.6 (FK) 
+  bug0126.pp   packed array isn't allowed                            OK 0.99.6 (FK)
 
 Unproducable bugs:
 ------------------
@@ -152,7 +156,6 @@ bug0080.pp   Shows Missing High() (internal) function.
 bug0083.pp   shows missing "dynamic" set constructor
 bug0090.pp   shows PChar comparison problem
 bug0091.pp   missing standard functions in constant expressions
-bug0092.pp   The unfixable bug. Maybe we find a solution one day.
 bug0096.pp   problem with objects as parameters
 bug0097.pp   two errors in bp7 but not in FPC
 bug0100.pp   a unit may only occure once in uses
@@ -160,16 +163,13 @@ bug0103.pp   problems with boolean typecasts (other type)
 bug0107.pp   shows page fault problem (run in TRUE DOS mode)
 bug0110.pp   SigSegv when using undeclared var in Case
 bug0111.pp   blockread(typedfile,...) is not allowed in TP7
-bug0115.pp   missing writeln for comp data type
 bug0117.pp   internalerror 17 (and why is there an automatic float 
               conversion?)
 bug0118.pp   Procedural vars cannot be assigned nil ?
 bug0119.pp   problem with methods
 bug0120.pp   inc/dec(enumeration) doesn't work
-bug0121.pp   cardinal -> byte conversion not work (and crashes)
 bug0122.pp   exit() gives a warning that the result is not set
 bug0123.pp   problem with intel assembler (shrd)
 bug0124.pp   problem with -Rintel switch and indexing (whatever the order)
 bug0125.pp   wrong colors with DOS CRT unit
-bug0126.pp   packed array isn't allowed
 bug0127.pp   problem with cdecl in implementation part
