@@ -101,6 +101,8 @@ begin
             '4' : opt_processors:=i486;
             '5' : opt_processors:=pentium;
             '6' : opt_processors:=pentiumpro;
+            '7' : opt_processors:=cx6x86;
+            '8' : opt_processors:=amdk6
             else IllegalPara(opt);
             end;
           end;
@@ -123,7 +125,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-04-29 10:33:55  pierre
+  Revision 1.4  1998-05-10 12:07:15  jonas
+    + switches for 6x86 and k6 optimizations
+
+  Revision 1.3  1998/04/29 10:33:55  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output
