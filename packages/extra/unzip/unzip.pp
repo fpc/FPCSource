@@ -78,7 +78,6 @@ windos,
 {$endif Delphi}
 {$else Windows}
 strings,
-crt,
 dos,
 {$endif Windows}
 ziptypes;
@@ -388,8 +387,8 @@ VAR slide : pchar;            {Sliding dictionary for unzipping}
     inpos, readpos : integer;  {position in input buffer, position read from file}
 {$ifdef windows}
     dlghandle : word;         {optional: handle of a cancel and "%-done"-dialog}
-{$endif}
     dlgnotify : integer;      {notification code to tell dialog how far the decompression is}
+{$endif}
 
 VAR w : longint;                 {Current Position in slide}
     b : longint;              {Bit Buffer}
@@ -576,10 +575,9 @@ BEGIN
 {$endif}
 END;
 
-{************************ keep other programs running ***************************}
-
-PROCEDURE messageloop;
+{************************* tell dialog to show % ******************************}
 {$ifdef windows}
+PROCEDURE messageloop;
 VAR msg : tmsg;
 BEGIN
   lastusedtime := gettickcount;
@@ -589,19 +587,6 @@ BEGIN
       DispatchMessage ( Msg );
     END;
 END;
-{$else}
-VAR ch : word;
-BEGIN
-  IF keypressed THEN BEGIN
-    ch := byte ( readkey );
-    IF ch = 0 THEN ch := 256 + byte ( readkey );  {Extended code}
-    IF ch = dlgnotify THEN totalabort := TRUE;
-  END
-END;
-{$endif}
-
-{************************* tell dialog to show % ******************************}
-{$ifdef windows}
 PROCEDURE showpercent; {use this with the low level functions only !!!}
 VAR percent : word;
 BEGIN
@@ -630,8 +615,8 @@ BEGIN
     readpos := sizeof ( inbuf ); {Simulates reading -> no blocking}
     zipeof := TRUE
   END ELSE BEGIN
-    messageloop;      {Other programs, or in DOS: keypressed?}
     {$ifdef windows}
+    messageloop;      {Other programs, or in DOS: keypressed?}
     showpercent;      {Before, because it shows the data processed, not read!}
     {$endif}
     {$I-}
@@ -1438,8 +1423,8 @@ BEGIN
       exit
     END;
     inc ( reachedsize, outcnt );
-    messageloop;      {Other programs, or in DOS: keypressed?}
     {$ifdef windows}
+    messageloop;      {Other programs, or in DOS: keypressed?}
     showpercent;
     {$endif}
   END;
@@ -3336,7 +3321,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.8  2004-05-03 20:52:50  peter
+  Revision 1.9  2004-12-26 15:43:33  peter
+    * remove crt dependency
+
+  Revision 1.8  2004/05/03 20:52:50  peter
     * 64 bit fixes
 
   Revision 1.7  2003/11/03 09:34:42  marco
