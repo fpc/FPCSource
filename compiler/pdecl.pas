@@ -154,7 +154,15 @@ unit pdecl;
                            { value_str is disposed with p so I need a copy }
                            getmem(sp,p^.length+1);
                            move(p^.value_str^,sp^[1],p^.length);
-                           sp^[0]:=chr(p^.length);
+                           {$ifndef TP}
+                             {$ifopt H+}
+                               setlength(sp^,p^.length);
+                             {$else}
+                               sp^[0]:=chr(p^.length);
+                             {$endif}
+                           {$else}
+                             sp^[0]:=chr(p^.length);
+                           {$endif}
                            symtablestack^.insert(new(pconstsym,init(name,conststring,longint(sp),nil)));
                         end;
                       realconstn :
@@ -2089,7 +2097,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.83  1998-11-16 11:28:59  pierre
+  Revision 1.84  1998-11-17 10:40:15  peter
+    * H+ fixes
+
+  Revision 1.83  1998/11/16 11:28:59  pierre
     * stackcheck removed for i386_win32
     * exportlist does not crash at least !!
       (was need for tests dir !)z

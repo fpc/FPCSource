@@ -431,7 +431,15 @@ unit ptconst;
                        len:=255
                       else
                        len:=p^.length;
-                      s[0]:=chr(len);
+                      {$ifndef TP}
+                        {$ifopt H+}
+                          setlength(s,len);
+                        {$else}
+                          s[0]:=chr(len);
+                        {$endif}
+                      {$else}
+                        s[0]:=chr(len);
+                      {$endif}
                       move(p^.value_str^,s[1],len);
                     end
                    else
@@ -623,7 +631,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.27  1998-11-16 12:12:23  peter
+  Revision 1.28  1998-11-17 10:40:16  peter
+    * H+ fixes
+
+  Revision 1.27  1998/11/16 12:12:23  peter
     - generate_pascii which is obsolete
 
   Revision 1.26  1998/11/10 17:53:06  peter
