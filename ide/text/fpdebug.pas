@@ -95,7 +95,7 @@ const
 var
   Debugger : PDebugController;
   BreakpointCollection : PBreakpointCollection;
-  
+
 procedure InitDebugger;
 procedure DoneDebugger;
 procedure InitGDBWindow;
@@ -132,7 +132,7 @@ procedure TDebugController.InsertBreakpoints;
   begin
     PB^.Insert;
   end;
-    
+
 begin
   BreakpointCollection^.ForEach(@DoInsert);
 end;
@@ -534,7 +534,7 @@ function  TBreakpointCollection.GetGDB(index : longint) : PBreakpoint;
   begin
     IsNum:=P^.GDBIndex=index;
   end;
-  
+
 begin
   if index=0 then
     GetGDB:=nil
@@ -549,7 +549,7 @@ procedure TBreakpointCollection.ShowBreakpoints(W : PSourceWindow);
     If assigned(P^.FileName) and (P^.FileName^=W^.Editor^.FileName) then
       W^.Editor^.SetLineBreakState(P^.Line,P^.state=bs_enabled);
   end;
-  
+
 begin
   ForEach(@SetInSource);
 end;
@@ -560,7 +560,7 @@ function TBreakpointCollection.GetType(typ : BreakpointType;Const s : String) : 
   begin
     IsThis:=(P^.typ=typ) and (P^.Name^=S);
   end;
-  
+
 begin
   GetType:=FirstThat(@IsThis);
 end;
@@ -603,9 +603,11 @@ end;
 
 procedure InitDebugger;
 begin
+{$ifdef DEBUG}
   Assign(gdb_file,'gdb$$$.out');
   Rewrite(gdb_file);
   Use_gdb_file:=true;
+{$endif}
   if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) then
     DoCompile(cRun);
   if CompilationPhase<>cpDone then
@@ -630,9 +632,11 @@ begin
   if assigned(Debugger) then
    dispose(Debugger,Done);
   Debugger:=nil;
+{$ifdef DEBUG}
   If Use_gdb_file then
     Close(GDB_file);
   Use_gdb_file:=false;
+{$endif}
   {DoneGDBWindow;}
 end;
 
@@ -672,7 +676,12 @@ end.
 
 {
   $Log$
-  Revision 1.12  1999-02-11 19:07:20  pierre
+  Revision 1.13  1999-02-16 10:43:54  peter
+    * use -dGDB for the compiler
+    * only use gdb_file when -dDEBUG is used
+    * profiler switch is now a toggle instead of radiobutton
+
+  Revision 1.12  1999/02/11 19:07:20  pierre
     * GDBWindow redesigned :
       normal editor apart from
       that any kbEnter will send the line (for begin to cursor)

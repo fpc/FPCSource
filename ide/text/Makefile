@@ -16,10 +16,6 @@
 # Defaults
 #####################################################################
 
-ifdef inlinux
-LIBDIR=/usr/lib/gcc-lib/i486-linux/2.7.2.3
-endif
-
 # We always need the API and FV
 NEEDUNITDIR=../../api ../../fv
 # Adding these is not possible, because it will then find views.pas before
@@ -29,7 +25,7 @@ NEEDUNITDIR=../../api ../../fv
 # when making a full version include the compiler
 ifdef FULL
 override NEEDUNITDIR+=../../compiler
-override NEEDOPT+=-dBrowserCol -Sg
+override NEEDOPT+=-dBrowserCol -dGDB -Sg
 else
 override NEEDUNITDIR+=../fake/compiler
 endif
@@ -86,12 +82,16 @@ endif
 # Dependencies
 #####################################################################
 
+ifdef inlinux
+LIBDIR=/usr/lib/gcc-lib/i486-linux/2.7.2.3
+endif
+
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 
 full:
 	make all FULL=1
 
-fullgdb: clean_compiler
+fullgdb:
 	make all FULL=1 GDB=1
 
 clean_compiler:
@@ -99,7 +99,12 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.8  1999-02-04 17:19:23  peter
+# Revision 1.9  1999-02-16 10:43:53  peter
+#   * use -dGDB for the compiler
+#   * only use gdb_file when -dDEBUG is used
+#   * profiler switch is now a toggle instead of radiobutton
+#
+# Revision 1.8  1999/02/04 17:19:23  peter
 #   * linux fixes
 #
 # Revision 1.7  1999/02/04 13:32:00  pierre

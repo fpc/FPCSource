@@ -107,6 +107,9 @@ var
 implementation
 
 uses
+{$ifdef linux}
+  linux,
+{$endif}
   Video,Mouse,Keyboard,
   Dos,Objects,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
   Systems,BrowCol,
@@ -408,7 +411,7 @@ begin
                if assigned(Debugger) and (PView(Event.InfoPtr)=Debugger^.LastSource) then
                  Debugger^.LastSource:=nil;
              end;
-               
+
          end;
   end;
   inherited HandleEvent(Event);
@@ -463,7 +466,11 @@ begin
     WriteShellMsg;
 
   SwapVectors;
+{$ifdef linux}
+  Shell(ProgramPath+' '+Params);
+{$else}
   Dos.Exec(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params);
+{$endif}
   SwapVectors;
 
   ShowIDEScreen;
@@ -657,7 +664,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  1999-02-11 19:07:22  pierre
+  Revision 1.15  1999-02-16 10:43:55  peter
+    * use -dGDB for the compiler
+    * only use gdb_file when -dDEBUG is used
+    * profiler switch is now a toggle instead of radiobutton
+
+  Revision 1.14  1999/02/11 19:07:22  pierre
     * GDBWindow redesigned :
       normal editor apart from
       that any kbEnter will send the line (for begin to cursor)

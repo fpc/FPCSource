@@ -346,7 +346,8 @@ end;
 procedure TIDEApp.DoDebuggerSwitch;
 var R,R2: TRect;
     D: PCenterDialog;
-    RB1,RB2: PRadioButtons;
+    RB : PRadioButtons;
+    CB: PCheckBoxes;
     IL2: PInputLine;
     L,I: longint;
     Items: PSItem;
@@ -361,23 +362,26 @@ begin
     Items:=nil;
     for I:=DebugInfoSwitches^.ItemCount-1 downto 0 do
       Items:=NewSItem(DebugInfoSwitches^.ItemName(I), Items);
-    New(RB1, Init(R2, Items));
+    New(RB, Init(R2, Items));
     L:=DebugInfoSwitches^.GetCurrSel;
-    RB1^.SetData(L);
-    Insert(RB1);
+    RB^.SetData(L);
+    Insert(RB);
     R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Debugging information', RB1)));
+    Insert(New(PLabel, Init(R2, 'Debugging information', RB)));
 
     R2.Copy(R); Inc(R2.A.Y,2+DebugInfoSwitches^.ItemCount+2); R2.B.Y:=R2.A.Y+ProfileInfoSwitches^.ItemCount;
     Items:=nil;
     for I:=ProfileInfoSwitches^.ItemCount-1 downto 0 do
       Items:=NewSItem(ProfileInfoSwitches^.ItemName(I), Items);
-    New(RB2, Init(R2, Items));
+    New(CB, Init(R2, Items));
     L:=ProfileInfoSwitches^.GetCurrSel;
-    RB2^.SetData(L);
-    Insert(RB2);
+    If L = 1 then
+      CB^.SetData(3)
+    else
+      CB^.SetData(1);
+    Insert(CB);
     R2.Copy(R); Inc(R2.A.Y,6); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Profiling Switches', RB2)));
+    Insert(New(PLabel, Init(R2, 'Profiling Switches', CB)));
 
     {custom }
     R2.A.Y:=R2.B.Y+2;
@@ -389,15 +393,22 @@ begin
     Insert(New(PLabel, Init(R2,'~A~dditional compiler args', IL2)));
   end;
   InsertButtons(D);
-  RB1^.Select;
+  RB^.Select;
   if Desktop^.ExecView(D)=cmOK then
   begin
-    DebugInfoSwitches^.SetCurrSel(RB1^.Value);
-    ProfileInfoSwitches^.SetCurrSel(RB2^.Value);
+    DebugInfoSwitches^.SetCurrSel(RB^.Value);
+    Writeln(':',CB^.Value,':');
+    readln;
+    if CB^.Value = 3 then
+      I := 1
+    else
+      I := 0;
+    ProfileInfoSwitches^.SetCurrSel(I);
     CustomArg[SwitchesMode]:=IL2^.Data^;
   end;
   Dispose(D, Done);
 end;
+
 
 
 procedure TIDEApp.Directories;
@@ -713,7 +724,12 @@ end;
 
 {
   $Log$
-  Revision 1.13  1999-02-10 09:52:43  pierre
+  Revision 1.14  1999-02-16 10:43:56  peter
+    * use -dGDB for the compiler
+    * only use gdb_file when -dDEBUG is used
+    * profiler switch is now a toggle instead of radiobutton
+
+  Revision 1.13  1999/02/10 09:52:43  pierre
    * MemorySizeSwitches -> MemorySwitches (were duplicates)
 
   Revision 1.12  1999/02/08 17:41:34  pierre
