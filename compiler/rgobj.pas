@@ -788,11 +788,11 @@ implementation
 
     begin
       d:=reginfo[m].degree;
-    {$ifdef extdebug}
-      if reginfo[m].degree=0 then
-        internalerror(200312151);
-    {$endif}
-      dec(reginfo[m].degree);
+//      if reginfo[m].degree=0 then
+//        internalerror(200312151);
+
+      if reginfo[m].degree>0 then
+        dec(reginfo[m].degree);
       if d=usable_registers_cnt then
         begin
           {Enable moves for m.}
@@ -820,23 +820,23 @@ implementation
     procedure trgobj.simplify;
 
     var adj : Psuperregisterworklist;
-        n : Tsuperregister;
+        m,n : Tsuperregister;
         i : word;
     begin
       {We take the element with the least interferences out of the
        simplifyworklist. Since the simplifyworklist is now sorted, we
        no longer need to search, but we can simply take the first element.}
-      n:=simplifyworklist.get;
+      m:=simplifyworklist.get;
 
       {Push it on the selectstack.}
-      selectstack.add(n);
-      include(reginfo[n].flags,ri_selected);
-      adj:=reginfo[n].adjlist;
+      selectstack.add(m);
+      include(reginfo[m].flags,ri_selected);
+      adj:=reginfo[m].adjlist;
       if adj<>nil then
         for i:=1 to adj^.length do
           begin
             n:=adj^.buf[i-1];
-            if (n>first_imaginary) and
+            if (n>=first_imaginary) and
                (reginfo[n].flags*[ri_selected,ri_coalesced]=[]) then
               decrement_degree(n);
           end;
@@ -852,7 +852,8 @@ implementation
 
     procedure trgobj.add_worklist(u:Tsuperregister);
       begin
-        if (u>=first_imaginary) and not move_related(u) and
+        if (u>=first_imaginary) and
+           (not move_related(u)) and
            (reginfo[u].degree<usable_registers_cnt) then
           begin
             if not freezeworklist.delete(u) then
@@ -869,8 +870,8 @@ implementation
       function ok(t,r:Tsuperregister):boolean;
 
       begin
-        ok:=(reginfo[t].degree<usable_registers_cnt) or
-            (t<first_imaginary) or
+        ok:=(t<first_imaginary) or
+            (reginfo[t].degree<usable_registers_cnt) or
             ibitmap[r,t];
       end;
 
@@ -975,7 +976,8 @@ implementation
                   lists while the degree does not change (add_edge will increase it).
                   Instead, we will decrement manually. (Only if the degree has been
                   increased.) }
-                if decrement and (t>=first_imaginary) and
+                if decrement and
+                   (t>=first_imaginary) and
                    (reginfo[t].degree>0) then
                   dec(reginfo[t].degree);
               end;
@@ -1674,7 +1676,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.106  2003-12-18 17:06:21  florian
+  Revision 1.107  2003-12-22 22:13:46  peter
+    * made decrease_degree working, but not really fixed
+
+  Revision 1.106  2003/12/18 17:06:21  florian
     * arm compiler compilation fixed
 
   Revision 1.105  2003/12/17 21:59:05  peter
