@@ -175,7 +175,7 @@ Var
   stdout:text absolute output;
   {$ENDIF}
 begin
-  Writeln(stdout,'An unhandled exception occurred at 0x',HexStr(Ptrint(Addr),sizeof(PtrInt)*2),' :');
+  Writeln(stdout,'An unhandled exception occurred at $',HexStr(Ptrint(Addr),sizeof(PtrInt)*2),' :');
   if Obj is exception then
    begin
      Message:=Exception(Obj).ClassName+' : '+Exception(Obj).Message;
@@ -183,11 +183,6 @@ begin
    end
   else
    Writeln(stdout,'Exception object ',Obj.ClassName,' is not of class Exception.');
-  { to get a nice symify }
-  {$IFNDEF VIRTUALPASCAL}
-  Writeln(stdout,BackTraceStrFunc(Addr));
-  Dump_Stack(stdout,frame);
-  {$ENDIF}
   Writeln(stdout,'');
   Halt(217);
 end;
