@@ -26,7 +26,11 @@ Unit catch;
 {$ifdef go32v2}
   { go32v2 stack check goes nuts if ss is not the data selector (PM) }
   {$S-}
+{$ifdef DEBUG}
+  {$define NOCATCH}
+{$endif DEBUG}
 {$endif}
+
 
 interface
 uses
@@ -100,7 +104,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2000-02-09 13:22:45  peter
+  Revision 1.12  2000-02-18 12:34:43  pierre
+   DEBUG implies NOCATCH for go32v2
+
+  Revision 1.11  2000/02/09 13:22:45  peter
     * log truncated
 
   Revision 1.10  2000/01/07 01:14:20  peter

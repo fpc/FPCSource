@@ -120,6 +120,9 @@ uses
   catch,
 {$endif}
 {$ifdef go32v2}
+  {$ifdef DEBUG}
+    {$define NOCATCH}
+  {$endif DEBUG}
   catch,
   {$ifdef nocatch}
   lineinfo,
@@ -276,7 +279,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2000-02-10 23:44:43  florian
+  Revision 1.56  2000-02-18 12:34:43  pierre
+   DEBUG implies NOCATCH for go32v2
+
+  Revision 1.55  2000/02/10 23:44:43  florian
     * big update for exception handling code generation: possible mem holes
       fixed, break/continue/exit should work always now as expected
 
