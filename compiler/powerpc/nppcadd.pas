@@ -31,6 +31,7 @@ interface
 
     type
        tppcaddnode = class(taddnode)
+          function pass_1: tnode; override;
           procedure pass_2;override;
          private
           procedure pass_left_and_right;
@@ -58,6 +59,26 @@ interface
       cpupara,
       ncon,nset,
       cga,ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+
+
+{*****************************************************************************
+                                  Pass 1
+*****************************************************************************}
+
+    function tppcaddnode.pass_1: tnode;
+      begin
+        if (nodetype in [equaln,unequaln]) and
+           is_64bitint(left.resulttype.def) then
+          begin
+            result := nil;
+            firstpass(left);
+            firstpass(right);
+            location.loc := LOC_FLAGS;
+            calcregisters(self,2,0,0);
+            exit;
+          end;
+        result := inherited pass_1;
+      end;
 
 
 {*****************************************************************************
@@ -113,9 +134,11 @@ interface
               begin
                 location_force_reg(exprasmlist,n.location,def_cgsize(n.resulttype.def),false);
                 if not cmpop then
-                  location.register := n.location.register;
-                  if is_64bitint(n.resulttype.def) then
-                    location.registerhigh := n.location.registerhigh;
+                  begin
+                    location.register := n.location.register;
+                    if is_64bitint(n.resulttype.def) then
+                      location.registerhigh := n.location.registerhigh;
+                  end;
               end;
             LOC_CONSTANT:
               begin
@@ -790,6 +813,10 @@ interface
            end;
         end;
 
+
+    var
+      tempreg64: tregister64;
+
       begin
         firstcomplex(self);
 
@@ -837,50 +864,88 @@ interface
         load_left_right(cmpop,(cs_check_overflow in aktlocalswitches) and
             (nodetype in [addn,subn]));
 
-        // can't do much with a constant on the left side here
-        if (nodetype = subn) then
-          begin
-            if (nf_swaped in flags) then
-              swapleftright;
-            if left.location.loc = LOC_CONSTANT then
-              if not(cs_check_overflow in aktlocalswitches) and
-                 (longint(left.location.value) >= low(smallint)) and
-                 (longint(left.location.value) <= high(smallint)) then
-                begin
-                  // optimize
-                  exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
-                    location.register,right.location.registerlow,
-                    left.location.value));
-                  exprasmlist.concat(taicpu.op_reg_reg(A_SUBFZE,
-                    location.register,right.location.registerhigh));
-                  clear_left_right(false);
-                  exit;
-                end
-              else
-                begin
-                  // load constant in register
-                  location_force_reg(exprasmlist,left.location,
-                    def_cgsize(left.resulttype.def),false);
-                  location.register64 := left.location.register64;
-                end;
-           end;
-
         if not(cs_check_overflow in aktlocalswitches) or
            not(nodetype in [addn,subn]) then
           begin
             case nodetype of
               ltn,lten,
-              gtn,gten,
-              equaln,unequaln:
+              gtn,gten:
                 begin
                   emit_cmp64_hi;
                   firstjmp64bitcmp;
                   emit_cmp64_lo;
                   secondjmp64bitcmp;
                 end;
-              xorn,orn,andn,addn,subn:
+              equaln,unequaln:
                 begin
-                  if left.location.loc = LOC_CONSTANT then
+                  // instead of doing a complicated compare, do
+                  // (left.hi xor right.hi) or (left.lo xor right.lo)
+                  // (somewhate optimized so that no superfluous 'mr's are
+                  //  generated)
+                  if (left.location.loc = LOC_CONSTANT) then
+                    swapleftright;
+                  if (right.location.loc = LOC_CONSTANT) then
+                    begin
+                      if left.location.loc = LOC_REGISTER then
+                        begin
+                          tempreg64.reglo := left.location.registerlow;
+                          tempreg64.reghi := left.location.registerhigh;
+                        end
+                      else
+                        begin
+                          if (aword(right.location.valueqword) <> 0) then
+                            tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist)
+                          else
+                            tempreg64.reglo := left.location.registerlow;
+                          if ((right.location.valueqword shr 16) <> 0) then
+                            tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist)
+                          else
+                            tempreg64.reghi := left.location.registerhigh;
+                        end;
+
+                      if (aword(right.location.valueqword) <> 0) then
+                        begin
+                          cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
+                            aword(right.location.valueqword),
+                            left.location.registerlow,tempreg64.reglo);
+                        end;
+                      if ((right.location.valueqword shr 16) <> 0) then
+                        begin
+                          cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
+                            (right.location.valueqword shr 16),
+                            left.location.registerhigh,tempreg64.reghi);
+                        end;
+                    end
+                  else
+                    begin
+                       tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist);
+                       tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist);
+                       cg64.a_op64_reg_reg_reg(exprasmlist,OP_XOR,
+                         left.location.register64,right.location.register64,
+                         tempreg64);
+                    end;
+
+                  cg.a_reg_alloc(exprasmlist,R_0);
+                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR_,R_0,
+                    tempreg64.reglo,tempreg64.reghi));
+                  cg.a_reg_dealloc(exprasmlist,R_0);
+                  if (tempreg64.reglo <> left.location.registerlow) then
+                    cg.free_scratch_reg(exprasmlist,tempreg64.reglo);
+                  if (tempreg64.reghi <> left.location.registerhigh) then
+                    cg.free_scratch_reg(exprasmlist,tempreg64.reghi);
+
+                  location_reset(location,LOC_FLAGS,OS_NO);
+                  location.resflags := getresflags;
+                end;
+              xorn,orn,andn,addn:
+                begin
+                  if (location.registerlow = R_NO) then
+                    begin
+                      location.registerlow := rg.getregisterint(exprasmlist);
+                      location.registerhigh := rg.getregisterint(exprasmlist);
+                    end;
+
+                  if (left.location.loc = LOC_CONSTANT) then
                     swapleftright;
                   if (right.location.loc = LOC_CONSTANT) then
                     cg64.a_op64_const_reg_reg(exprasmlist,op,right.location.valueqword,
@@ -888,6 +953,89 @@ interface
                   else
                     cg64.a_op64_reg_reg_reg(exprasmlist,op,right.location.register64,
                       left.location.register64,location.register64);
+                end;
+              subn:
+                begin
+                  if (nf_swaped in flags) then
+                    swapleftright;
+
+                  if left.location.loc <> LOC_CONSTANT then
+                    begin
+                      if (location.registerlow = R_NO) then
+                        begin
+                         location.registerlow := rg.getregisterint(exprasmlist);
+                         location.registerhigh := rg.getregisterint(exprasmlist);
+                      end;
+                      if right.location.loc <> LOC_CONSTANT then
+                        // reg64 - reg64
+                        cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,
+                          right.location.register64,left.location.register64,
+                          location.register64)
+                      else
+                        // reg64 - const64
+                        cg64.a_op64_const_reg_reg(exprasmlist,OP_SUB,
+                          right.location.valueqword,left.location.register64,
+                          location.register64)
+                    end
+                  else if ((left.location.valueqword shr 32) = 0) then
+                    begin
+                      if (location.registerlow = R_NO) then
+                        begin
+                         location.registerlow := rg.getregisterint(exprasmlist);
+                         location.registerhigh := rg.getregisterint(exprasmlist);
+                      end;
+                      if (int64(left.location.valueqword) >= low(smallint)) and
+                         (int64(left.location.valueqword) <= high(smallint)) then
+                        begin
+                          // consts16 - reg64
+                          exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
+                            location.registerlow,right.location.registerlow,
+                            aword(left.location.value)));
+                        end
+                      else
+                        begin
+                          // const32 - reg64
+                          cg.a_load_const_reg(exprasmlist,OS_32,
+                            aword(left.location.valueqword),location.registerlow);
+                          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBC,
+                            location.registerlow,location.registerlow,
+                            right.location.registerlow));
+                        end;
+                      exprasmlist.concat(taicpu.op_reg_reg(A_SUBFZE,
+                        location.registerhigh,right.location.registerhigh));
+                    end
+                  else if (aword(left.location.valueqword) = 0) then
+                    begin
+                      // (const32 shl 32) - reg64
+                      if (location.registerlow = R_NO) then
+                        begin
+                         location.registerlow := rg.getregisterint(exprasmlist);
+                         location.registerhigh := rg.getregisterint(exprasmlist);
+                      end;
+                      exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
+                        location.registerlow,right.location.registerlow,0));
+                      cg.a_load_const_reg(exprasmlist,OS_INT,
+                        left.location.valueqword shr 32,location.registerhigh);
+                      exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBFE,
+                        location.registerhigh,right.location.registerhigh,
+                        location.registerhigh));
+                    end
+                  else
+                    begin
+                      // const64 - reg64
+                      location_force_reg(exprasmlist,left.location,
+                        def_cgsize(left.resulttype.def),true);
+                      if (left.location.loc = LOC_REGISTER) then
+                        location.register64 := left.location.register64
+                      else if (location.registerlow = R_NO) then
+                        begin
+                         location.registerlow := rg.getregisterint(exprasmlist);
+                         location.registerhigh := rg.getregisterint(exprasmlist);
+                        end;
+                      cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,
+                        right.location.register64,left.location.register64,
+                        location.register64);
+                     end;
                 end;
               else
                 internalerror(2002072803);
@@ -919,7 +1067,8 @@ interface
         { set result location }
         { (emit_compare sets it to LOC_FLAGS for compares, so set the }
         {  real location only now) (JM)                               }
-        if cmpop then
+        if cmpop and
+           not(nodetype in [equaln,unequaln]) then
           location_reset(location,LOC_JUMP,OS_NO);
 
         clear_left_right(cmpop);
@@ -1304,7 +1453,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-08-31 21:30:46  florian
+  Revision 1.16  2002-09-04 19:42:45  jonas
+    * fixed bugs in 64bit operations (registers weren't always allocated for
+      the result)
+    * optimized 'const64 - reg64/mem64'
+    * optimized equaln/unequaln with 64bit values (change them to
+      '(left.hi xor right.hi) or (left.lo xor right.lo)' so there are less
+      branches and the result can be returned in the flags this way. Could
+      be done for the i386 too probably.
+
+  Revision 1.15  2002/08/31 21:30:46  florian
     * fixed several problems caused by Jonas' commit :)
 
   Revision 1.14  2002/08/31 19:26:20  jonas
