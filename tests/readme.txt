@@ -13,6 +13,13 @@ units............Helper units for doing the tests
 utils............Utilities for processing tests
 
 
+Writing a test
+--------------
+A test should have a name on the form t*.pp, to be recognized as a test.
+It should return 0 on success, any other value indicate failure.
+
+
+
 Test directives
 ---------------
 At the top of the test source code, some directives
@@ -121,12 +128,18 @@ TEST_DELTEMP         delete executable after running, so the remote system
 TEST_REMOTEPW        pass a password with -pw to remote tools, mainly usefull for putty
 
 Example:
+-------
+  make TEST_FPC=$HOME/fpc/compiler/ppcsparc TEST_BINUTILSPREFIX=sparc-linux- \
+       TEST_RSH=sunny TEST_REMOTEPATH=/tmp/tests
 
-make TEST_FPC=$HOME/fpc/compiler/ppcsparc TEST_BINUTILSPREFIX=sparc-linux- TEST_RSH=sunny TEST_REMOTEPATH=/tmp/tests
-make TEST_FPC=$HOME/fpc/compiler/ppcsparc TEST_BINUTILSPREFIX=sparc-linux- TEST_SSH=fpc@sunny TEST_REMOTEPATH=/tmp/tests
+  make TEST_FPC=$HOME/fpc/compiler/ppcsparc TEST_BINUTILSPREFIX=sparc-linux- \
+       TEST_SSH=fpc@sunny TEST_REMOTEPATH=/tmp/tests
 
 Example for win32/putty:
-make TEST_FPC=c:\fpc\compiler\ppcarm TEST_BINUTILSPREFIX=arm-linux- TEST_PUTTY=root@192.168.42.210 TEST_REMOTEPATH=/tmp TEST_DELTEMP=1 "TEST_REMOTEPW=xxx" FPC=c:\fpc\compiler\ppc386
+
+  make TEST_FPC=c:\fpc\compiler\ppcarm TEST_BINUTILSPREFIX=arm-linux- \
+       TEST_PUTTY=root@192.168.42.210 TEST_REMOTEPATH=/tmp TEST_DELTEMP=1 \
+       "TEST_REMOTEPW=xxx" FPC=c:\fpc\compiler\ppc386
 
 Emulator execution
 ------------------
@@ -138,4 +151,22 @@ EMULATOR	     name of the emulator to use
 Example:
 
 make TEST_FPC=~/fpc/compiler/ppcrossarm TEST_OPT=-XParm-linux- EMULATOR=qemu-arm
-make TEST_FPC=~/fpc/compiler/ppcrossarm TEST_OPT=-XParm-linux- EMULATOR=qemu-arm digest DBDIGESTOPT="-C qemu-arm" USESQL=YES
+make TEST_FPC=~/fpc/compiler/ppcrossarm TEST_OPT=-XParm-linux- EMULATOR=qemu-arm \
+     digest DBDIGESTOPT="-C qemu-arm" USESQL=YES
+
+
+Example cross testing of target MacOS with driver Darwin
+--------------------------------------------------------
+NOTE Today it is possible to run the test suite MacOS native.
+
+A machine with both MacOS X and classic MacOS installed. Note that make will not
+run the tests, that has to be done in MPW with the scripts in utils/macos.
+
+  make clean alltest TEST_OS_TARGET=macos TEST_OPT="-WT -st" \
+       USEUNITDIR=/Projekt/Freepascal/fpc/rtl/macos 
+
+To clean. Note that same options as above has to be given so that the correct
+files will be removed.
+
+  make clean TEST_OS_TARGET=macos USEUNITDIR=/Projekt/Freepascal/fpc/rtl/macos
+
