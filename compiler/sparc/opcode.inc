@@ -1,27 +1,20 @@
-{*****************************************************************************}
-{ File                   : sparcop.pas                                        }
-{ Author                 : Mazen NEIFER                                       }
-{ Project                : Free Pascal Compiler (FPC)                         }
-{ Creation date          : 2002\05\01                                         }
-{ Last modification date : 2002\07\01                                         }
-{ Licence                : GPL                                                }
-{ Bug report             : mazen.neifer.01@supaero.org                        }
-{*****************************************************************************}
-{
+{******************************************************************************
 	$Id$
-}
+ *****************************************************************************}
 A_NONE,
 A_ABCD,
 A_ADD,A_ADDcc,A_ADDX,A_ADDXcc,
 A_AND,A_ANDcc,A_ANDN,A_ADDNcc,
+{Branching instructions}
+A_JMPL,
+A_CALL,
 A_BN,A_BNE,A_BE,A_BG,A_BLE,A_BGE,A_BI,A_BGU,A_BLEU,A_BCC,
 A_BCS,A_BPOS,A_NEG,A_BVC,A_BVS,A_BA,
-A_CALL,
-A_CBccc,
 A_FBN,A_FBU,A_FBG,A_FBUG,A_FBL,A_FBUL,A_FBLG,A_FBNE,
 A_FBE,A_FBUE,A_FBGE,A_FBUGE,A_FBLE,A_FBULE,A_FBO,A_FBA,
+A_CBccc,
 A_FLUSH,
-A_JMPL,
+{Load instructions}
 A_LDSB,A_LDSH,A_LDSTUB,
 A_LDUB,A_LDUH,A_LD,A_LDD,A_LDF,A_LDFSR,A_LDDF,A_LDC,A_LDCSR,A_LDDC,
 A_LDSBA,A_LDSHA,A_LDUBA,A_LDUHA,A_LDA,A_LDDA,
@@ -66,7 +59,7 @@ A_FCPop1,A_CPop2,
           {Synthetic instructions}
 A_btst,A_bset,A_bclr,A_btog,
 A_clr,A_clrb,A_clrh,
-A_CMP,
+A_cmp,
 A_dec,A_deccc,
 A_inc,A_inccc,
 A_not,
@@ -74,5 +67,8 @@ A_set,
 A_skipz,A_skipnz,
 A_tst
 {
-	$Log:
+	$Log$
+	Revision 1.3  2002-10-17 14:48:34  mazen
+	* branch instructions are now contigous
+
 }

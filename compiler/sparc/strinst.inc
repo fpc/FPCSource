@@ -1,27 +1,18 @@
-{*****************************************************************************}
-{ File                   : strinst.inc                                        }
-{ Author                 : Mazen NEIFER                                       }
-{ Project                : Free Pascal Compiler (FPC)                         }
-{ Creation date          : 2002\05\08                                         }
-{ Last modification date : 2002\07\01                                         }
-{ Licence                : GPL                                                }
-{ Bug report             : mazen.neifer.01@supaero.org                        }
-{*****************************************************************************}
-{
+{******************************************************************************
 	$Id$
-}
+ *****************************************************************************}
           'NONE',
           'ABCD',
           'ADD','ADDcc','ADDX','ADDXcc',
           'AND','ANDcc','ANDN','ADDNcc',
+          'JMPL',
+          'CALL',
           'BN','BNE','BE','BG','BLE','BGE','BI','BGU','BLEU','BCC',
           'BCS','BPOS','NEG','BVC','BVS','BA',
-          'CALL',
-          'CBccc',
           'FBN','FBU','FBG','FBUG','FBL','FBUL','FBLG','FBNE',
           'FBE','FBUE','FBGE','FBUGE','FBLE','FBULE','FBO','FBA',
+          'CBccc',
           'FLUSH',
-          'JMPL',
           'LDSB','LDSH','LDSTUB',
           'LDUB','LDUH','LD','LDD','LDF','LDFSR','LDDF','LDC','LDCSR','LDDC',
           'LDSBA','LDSHA','LDUBA','LDUHA','LDA','LDDA',
@@ -75,7 +66,10 @@
           'tst'
 {
 	$Log$
-	Revision 1.2  2002-10-01 21:07:48  mazen
-	attinst.inc --> strinst.inc
+	Revision 1.3  2002-10-17 14:48:34  mazen
+	* branch instructions are now contigous
 
+	Revision 1.2  2002/10/01 21:07:48  mazen
+	attinst.inc --> strinst.inc
+	
 }
