@@ -263,6 +263,8 @@ begin
      if status.errorcount=0 then
       begin
         starttime:=getrealtime-starttime;
+        if starttime<0 then
+          starttime:=starttime+3600.0*24.0;
         Message2(general_i_abslines_compiled,tostr(status.compiledlines),tostr(trunc(starttime))+
           '.'+tostr(trunc(frac(starttime)*10)));
       end;
@@ -296,7 +298,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  1999-09-16 23:05:52  florian
+  Revision 1.35  1999-09-28 19:48:45  florian
+    * bug 617 fixed
+
+  Revision 1.34  1999/09/16 23:05:52  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.33  1999/09/07 15:10:04  pierre
