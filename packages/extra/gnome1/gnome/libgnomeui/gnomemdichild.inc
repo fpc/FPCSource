@@ -1,10 +1,10 @@
 {$IfDef read_interface}
 
 type
-   TGnomeMDIChildViewCreator = TGtkWidget;
-   TGnomeMDIChildMenuCreator = TGList;
-   TGnomeMDIChildConfigFunc = gchar;
-   TGnomeMDIChildLabelFunc = TGtkWidget;
+   TGnomeMDIChildViewCreator = Function : PGtkWidget; cdecl;
+   TGnomeMDIChildMenuCreator = Function : PGList; cdecl;
+   TGnomeMDIChildConfigFunc = Function : Pgchar; cdecl;
+   TGnomeMDIChildLabelFunc = Function : PGtkWidget; cdecl;
    
    PGnomeMDIChild = ^TGnomeMDIChild;
    TGnomeMDIChild = record
