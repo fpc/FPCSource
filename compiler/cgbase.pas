@@ -392,6 +392,16 @@ implementation
 
     begin
       delete:=false;
+{$ifdef VER1_0}
+      { indexword in 1.0.x is broken }
+      for i:=1 to length do
+        if buf^[i-1]=s then
+          begin
+            deleteidx(i-1);
+            delete:=true;
+            break;
+          end;
+{$else VER1_0}
 {$ifndef FPC}
       for i:=1 to length do
         if buf^[i-1]=s then
@@ -401,13 +411,14 @@ implementation
             break;
           end;
 {$else FPC}
-      i := indexword(buf^,length,s);
-      if i <> -1 then
+      i:=indexword(buf^,length,s);
+      if i<>-1 then
         begin
           deleteidx(i);
           delete := true;
         end;
 {$endif FPC}
+{$endif VER1_0}
     end;
 
 
@@ -595,7 +606,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.92  2004-07-18 15:14:59  jonas
+  Revision 1.93  2004-07-19 19:21:02  florian
+    * indexword in 1.0.x is broken
+
+  Revision 1.92  2004/07/18 15:14:59  jonas
     * use indexword() in tsuperregisterworklist.delete, greatly speeds up
       compilation of tw2242
 
