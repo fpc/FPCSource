@@ -1332,7 +1332,7 @@ gprt21$(OEXT) : $(CPU_TARGET)/gprt0.as
 	$(AS) -o gprt21$(OEXT) $(CPU_TARGET)/gprt0.as
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp sysconst.inc systypes.inc $(SYSDEPS)
 	$(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
-systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT)
+systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 dateutils$(PPUEXT): $(OBJPASDIR)/dateutils.pp $(SYSTEMUNIT)$(PPUEXT)
@@ -1398,3 +1398,4 @@ ipc$(PPUEXT) : ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 runerrors$(PPUEXT) : $(INC)/runerrors.pp $(SYSTEMUNIT)$(PPUEXT)
+cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT) systhrds$(PPUEXT)
