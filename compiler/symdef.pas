@@ -745,6 +745,7 @@ interface
        pbestrealtype : ^ttype = @s64floattype;
 {$endif ARM}
 
+    function reverseparaitems(p: tparaitem): tparaitem;
     function mangledname_prefix(typeprefix:string;st:tsymtable):string;
 
 {$ifdef GDB}
@@ -792,6 +793,24 @@ implementation
 {****************************************************************************
                                   Helpers
 ****************************************************************************}
+
+    function reverseparaitems(p: tparaitem): tparaitem;
+      var
+        hp1, hp2: tparaitem;
+      begin
+        hp1:=nil;
+        while assigned(p) do
+          begin
+             { pull out }
+             hp2:=p;
+             p:=tparaitem(p.next);
+             { pull in }
+             tparaitem(hp2.next):=hp1;
+             hp1:=hp2;
+          end;
+        reverseparaitems:=hp1;
+      end;
+
 
     function mangledname_prefix(typeprefix:string;st:tsymtable):string;
       var
@@ -5876,7 +5895,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.166  2003-10-01 15:32:58  florian
+  Revision 1.167  2003-10-01 16:49:05  florian
+    * para items are now reversed for pascal calling conventions
+
+  Revision 1.166  2003/10/01 15:32:58  florian
     * fixed FullProcName to handle constructors, destructors and operators correctly
 
   Revision 1.165  2003/10/01 15:00:02  peter

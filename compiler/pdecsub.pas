@@ -1770,6 +1770,9 @@ const
         { insert parentfp parameter if required }
         insert_parentfp_para(pd);
 
+        if pd.proccalloption=pocall_pascal then
+          tparaitem(pd.para.first):=reverseparaitems(tparaitem(pd.para.first));
+
         currpara:=tparaitem(pd.para.first);
         while assigned(currpara) do
          begin
@@ -2146,7 +2149,10 @@ const
 end.
 {
   $Log$
-  Revision 1.139  2003-09-28 21:44:55  peter
+  Revision 1.140  2003-10-01 16:49:05  florian
+    * para items are now reversed for pascal calling conventions
+
+  Revision 1.139  2003/09/28 21:44:55  peter
     * fix check that filedef needs var para
 
   Revision 1.138  2003/09/28 17:55:04  peter
