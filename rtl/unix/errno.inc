@@ -63,7 +63,7 @@ ESysEAGAIN      = 35;           { Resource temporarily unavailable }
 
 // non posix from here on.
 
-ESysEWOULDBLOCK = SYS_EAGAIN;   { Operation would block }
+ESysEWOULDBLOCK = ESYSEAGAIN;   { Operation would block }
 ESysEINPROGRESS = 36;   { Operation now in progress }
 ESysEALREADY    = 37;   { Operation already in progress }
 
@@ -76,7 +76,7 @@ ESysENOPROTOOPT = 42;   { Protocol not available }
 ESysEPROTONOSUPPORT= 43;{ Protocol not supported }
 ESysESOCKTNOSUPPORT= 44;{ Socket type not supported }
 ESysEOPNOTSUPP  = 45;   { Operation not supported }
-ESysENOTSUP     = SYS_EOPNOTSUPP;       { Operation not supported }
+ESysENOTSUP     = ESYSEOPNOTSUPP;       { Operation not supported }
 ESysEPFNOSUPPORT= 46;   { Protocol family not supported }
 ESysEAFNOSUPPORT= 47;   { Address family not supported by protocol family }
 ESysEADDRINUSE  = 48;   { Address already in use }
@@ -217,7 +217,10 @@ ESysEDQUOT      = 122;  { Quota exceeded }
 
 {
   $Log$
-  Revision 1.5  2002-12-18 16:50:39  marco
+  Revision 1.6  2003-01-02 23:57:32  marco
+   * small patch
+
+  Revision 1.5  2002/12/18 16:50:39  marco
    * Unix RTL generic parts. Linux working, *BSD will follow shortly
 
   Revision 1.4  2002/09/07 16:01:27  peter
