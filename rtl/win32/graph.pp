@@ -23,13 +23,13 @@ uses
 
   var
     { this procedure allows to hook keyboard messages }
-    charmessagehandler : function(Window: hwnd; AMessage, WParam,
+    charmessagehandler : function(Window: hwnd; AMessage, WParam : longword;
                                   LParam: Longint): Longint;
     { this procedure allows to hook mouse messages }
-    mousemessagehandler : function(Window: hwnd; AMessage, WParam,
+    mousemessagehandler : function(Window: hwnd; AMessag, WParam : longword;
                                    LParam: Longint): Longint;
     { this procedure allows to wm_command messages }
-    commandmessagehandler : function(Window: hwnd; AMessage, WParam,
+    commandmessagehandler : function(Window: hwnd; AMessage, WParam : longword;
                                    LParam: Longint): Longint;
 
     NotifyMessageHandler : function(Window: hwnd; AMessage, WParam,
@@ -1165,7 +1165,7 @@ procedure restorestate;
   begin
   end;
 
-function WindowProcGraph(Window: HWnd; AMessage, WParam,
+function WindowProcGraph(Window: HWnd; AMessage, WParam : longword;
                     LParam: Longint): Longint; stdcall; export;
 
   var
@@ -1323,7 +1323,7 @@ begin
   end;
 end;
 
-function WindowProcParent(Window: HWnd; AMessage, WParam,
+function WindowProcParent(Window: HWnd; AMessage, WParam : longword;
                     LParam: Longint): Longint; stdcall; export;
 
 begin
@@ -2227,7 +2227,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-09-07 16:01:28  peter
+  Revision 1.11  2003-04-23 11:08:09  florian
+    * fixed parameter types
+
+  Revision 1.10  2002/09/07 16:01:28  peter
     * old logs removed and tabs fixed
 
   Revision 1.9  2002/01/06 15:37:20  florian
