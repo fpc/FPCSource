@@ -951,7 +951,10 @@ begin
   S:=IntToStrL(Size,7);
   S:=S+' byte';
   if Size>1 then S:=S+'s';
-  SizeStr:=S;
+  if Size=-1 then
+    SizeStr:='variable'
+  else
+    SizeStr:=S;
 end;
 function AddrStr(Addr: longint): string;
 { Warning this is endian specific code !! (PM) }
@@ -1692,7 +1695,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.29  2000-06-22 09:07:12  pierre
+  Revision 1.30  2000-07-05 10:19:07  pierre
+   + display 'variable' for open array size
+
+  Revision 1.29  2000/06/22 09:07:12  pierre
    * Gabor changes: see fixes.txt
 
   Revision 1.28  2000/06/16 08:50:42  pierre
