@@ -95,7 +95,7 @@ Var S : String;
 Begin
  S:=FileName;
  DoDirSeparators(S);
-{$ifdef Unix}
+{$ifdef HasUnix}
   Result:=Unix.fexpand(S);
 {$else}
   Result:=Dos.Fexpand(S);
@@ -232,7 +232,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-10-22 21:57:54  michael
+  Revision 1.9  2003-01-10 21:02:13  marco
+   * hasunix fix for beos
+
+  Revision 1.8  2002/10/22 21:57:54  michael
   + Added some missing path functions
 
   Revision 1.7  2002/10/12 15:34:09  michael
