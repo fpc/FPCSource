@@ -78,7 +78,8 @@ begin
          ((taicpu(hp2).opcode = A_LEAVE) or
           (taicpu(hp2).opcode = A_RET)) and
          (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
-         (taicpu(p).oper[0]^.ref^.offset >= tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset) and
+         not(assigned(current_procinfo.procdef.funcretsym) and
+             (taicpu(p).oper[0]^.ref^.offset < tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
          (taicpu(p).oper[0]^.ref^.index = NR_NO) then
         begin
           asml.remove(p);
@@ -978,7 +979,8 @@ begin
                                 (taicpu(hp1).opcode = A_RET)) and
                                (taicpu(p).oper[1]^.typ = top_ref) and
                                (taicpu(p).oper[1]^.ref^.base = current_procinfo.FramePointer) and
-                               (taicpu(p).oper[1]^.ref^.offset >= tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset) and
+                               not(assigned(current_procinfo.procdef.funcretsym) and
+                                   (taicpu(p).oper[1]^.ref^.offset < tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
                                (taicpu(p).oper[1]^.ref^.index = NR_NO) and
                                (taicpu(p).oper[0]^.typ = top_reg) then
                               begin
@@ -1527,7 +1529,8 @@ begin
                           (taicpu(hp2).opcode = A_RET)) and
                          (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
                          (taicpu(p).oper[0]^.ref^.index = NR_NO) and
-                         (taicpu(p).oper[0]^.ref^.offset >= tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset) and
+                         not(assigned(current_procinfo.procdef.funcretsym) and
+                             (taicpu(p).oper[0]^.ref^.offset < tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
                          (hp1.typ = ait_instruction) and
                          (taicpu(hp1).opcode = A_MOV) and
                          (taicpu(hp1).opsize = S_B) and
@@ -1996,7 +1999,10 @@ end.
 
 {
   $Log$
-  Revision 1.53  2003-12-15 21:25:49  peter
+  Revision 1.54  2004-01-22 16:14:17  peter
+    * fixed crashes when procdef.funcretsym is not valid
+
+  Revision 1.53  2003/12/15 21:25:49  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check
