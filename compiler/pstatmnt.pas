@@ -831,6 +831,7 @@ unit pstatmnt;
           classh : pobjectdef;
           pd,pd2 : pdef;
           store_valid : boolean;
+          destructorpos,storepos : tfileposinfo;
           tt : ttreetyp;
         begin
           ht:=token;
@@ -868,6 +869,7 @@ unit pstatmnt;
                    { function styled new is handled in factor }
                    { destructors have no parameters }
                    destrukname:=pattern;
+                   destructorpos:=tokenpos;
                    consume(_ID);
 
                    pd:=p^.resulttype;
@@ -902,7 +904,11 @@ unit pstatmnt;
                         exit;
                      end;
                    { search cons-/destructor, also in parent classes }
+                   storepos:=tokenpos;
+                   tokenpos:=destructorpos;
                    sym:=search_class_member(classh,pattern);
+                   tokenpos:=storepos;
+
                    { the second parameter of new/dispose must be a call }
                    { to a cons-/destructor                              }
                    if (not assigned(sym)) or (sym^.typ<>procsym) then
@@ -1320,7 +1326,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.107  1999-11-09 13:02:46  peter
+  Revision 1.108  1999-11-10 00:24:02  pierre
+   * more browser details
+
+  Revision 1.107  1999/11/09 13:02:46  peter
     * fixed 'raise end;'
 
   Revision 1.106  1999/11/06 14:34:23  peter

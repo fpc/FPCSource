@@ -100,7 +100,7 @@ var sp:stringid;
     hs:string;
     st : psymtable;
     overloaded_level:word;
-    procstartfilepos : tfileposinfo;
+    storepos,procstartfilepos : tfileposinfo;
 begin
 { Save the position where this procedure really starts and set col to 1 which
   looks nicer }
@@ -123,9 +123,11 @@ begin
 { method ? }
   if not(parse_only) and try_to_consume(_POINT) then
    begin
+     storepos:=tokenpos;
      tokenpos:=procstartfilepos;
      getsym(sp,true);
      sym:=srsym;
+     tokenpos:=storepos;
      { load proc name }
      sp:=pattern;
      realname:=orgpattern;
@@ -1907,7 +1909,10 @@ end.
 
 {
   $Log$
-  Revision 1.33  1999-11-09 23:43:08  pierre
+  Revision 1.34  1999-11-10 00:24:02  pierre
+   * more browser details
+
+  Revision 1.33  1999/11/09 23:43:08  pierre
    * better browser info
 
   Revision 1.32  1999/11/09 23:06:45  peter
