@@ -551,7 +551,8 @@ begin
   Compile(FileName);
   if LinkAfter then
     begin
-       CompilationPhase:=cpLinking;
+       CompilationPhase:=cpLinking;                                                                                                                                                                                                                            
+       CompilerStatusDialog^.Update;
 {$ifdef linux}
        Shell(PpasFile+source_os.scriptext);
 {$else}
@@ -604,7 +605,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  1999-06-28 12:39:14  pierre
+  Revision 1.30  1999-06-28 15:59:04  pierre
+   * View Linking stage if external linking
+
+  Revision 1.29  1999/06/28 12:39:14  pierre
    + close all browsers before compiling
 
   Revision 1.28  1999/06/21 23:42:16  pierre
