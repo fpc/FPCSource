@@ -2364,12 +2364,15 @@ Begin
   p:=p+'=';            {Else HOST will also find HOSTNAME, etc}
   ep:=envp;
   found:=false;
-  while (not found) and (ep^<>nil) do
+  if ep<>nil then
    begin
-     if strlcomp(@p[1],(ep^),length(p))=0 then
-      found:=true
-     else
-      ep:=ep+4;
+     while (not found) and (ep^<>nil) do
+      begin
+        if strlcomp(@p[1],(ep^),length(p))=0 then
+         found:=true
+        else
+         ep:=ep+4;
+      end;
    end;
   if found then
    getenv:=ep^+length(p)
@@ -3510,7 +3513,10 @@ End.
 
 {
   $Log$
-  Revision 1.21  1998-10-15 08:31:11  peter
+  Revision 1.22  1998-10-23 00:05:32  peter
+    * getenv with envp=nil check
+
+  Revision 1.21  1998/10/15 08:31:11  peter
     * type aliases using delphi typenaming
 
   Revision 1.20  1998/10/11 12:23:11  michael
