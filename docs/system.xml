@@ -569,8 +569,6 @@ Functions concerning memory issues.
 <tr><td><link id="High"/></td><td>Return highest index of open array or enumerated</td></tr>
 <tr><td><link id="IsMemoryManagerSet"/></td><td>Is the memory manager set</td></tr>
 <tr><td><link id="Low"/></td><td>Return lowest index of open array or enumerated</td></tr>
-<tr><td><link id="Maxavail"/></td><td>Return size of largest free memory block</td></tr>
-<tr><td><link id="Memavail"/></td><td>Return total available memory</td></tr>
 <tr><td><link id="Move"/></td><td>Move data from one location in memory to another</td></tr>
 <tr><td><link id="MoveChar0">MoveChar0</link></td><td>Move data till first zero character</td></tr>
 <tr><td><link id="New"/></td><td>Dynamically allocate memory for variable</td></tr>
@@ -2392,8 +2390,6 @@ If not enough memory is available, <var>Nil</var> will be returned.
 <link id="Dispose"/>
 <link id="Freemem"/>
 <link id="Getmem"/>
-<link id="Memavail"/>,
-<link id="Maxavail"/>
 </seealso>
 </element>
 

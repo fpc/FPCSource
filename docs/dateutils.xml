@@ -8,7 +8,13 @@
 -->
 <module name="dateutils">
 <short>Date/Time manipulation routines.</short>
-<descr/>
+<descr>
+<file>DateUtils</file> contains a large number of date/time manipulation
+routines, all based on the <var>TDateTime</var> type. There are routines for
+date/time math, for comparing dates and times, for composing dates and
+decomposing dates in their constituent parts.
+</descr>
+
 <!-- unresolved type reference Visibility: default -->
 <element name="SysUtils">
 <short>Exception support</short>
@@ -5609,7 +5615,7 @@ when they have received invalid arguments.
 </p>
 </descr>
 <seealso>
-<link id="InvalidDateTime"/>
+<link id="InvalidDateTimeError"/>
 <link id="InvalidDateDayError"/>
 <link id="InvalidDateMonthWeekError"/>
 <link id="InvalidDayOfWeekInMonthError"/>

@@ -1,6 +1,6 @@
 This is the README for the Free Pascal documentation.
 
-All documentation is stored here, in LaTeX format. 
+All documentation is stored here, in LaTeX format and in fpdoc format.
 it uses special style files (fpc*.sty) which are also in the directory.
 
 do a 'make dvi' to produce the dvi format of the docs.
@@ -27,28 +27,25 @@ Why LaTeX ?
 
 In order to translate the things to HTML, I use latex2html, since it is the
 most powerful and flexible, although sluggish... 
-For it to be able to use the fpc.sty, I had to write a fpc.perl script
-which it loads. The script seems to run fine when used standalone, but in
-conjunction with latex2html, I get a out of memory... ??
-I'm not familiar with perl, so if someone is, and can fix the thing, please
-do. (and let me know :) )
+
+Why fpdoc ?
+- Because it always creates up-to-date documentation.
+- The documentation is separate from the units contrary to many other
+  documentation tools which require comments in the sources, which makes
+  the source unreadable.
+- It's written in FPC.
+
+
 
 Then how to proceed ?
-If you just want to write latex docs, just use fpc.sty. (you don't need
-html.sty)
-If you want to be able to convert to html, (you need html.sty) the following 
-fixes the perl-problem :
-In the preamble of  your document, type :
-
-\usepackage{html}
-\latex{\usepackage{fpc}}
-\html{\input{fpc-html.tex}}
-
-The fpc-html.tex defines the same commands as fpc.sty, only in a language
-that latex2html understands.
-
+If you just want to write general latex docs, just use fpc.sty. 
 fpc.sty.doc describes what fpc.sty does. (one day I'll integrate them using
 the doc package, but I need some time for it)
 
+If you want to document units, use fpdoc. It is documented fairly complete,
+and you can have a look at the many .xml units for examples on how to use
+it.
+
 Happy TeXing,
+
 Michael.

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<short>Free Pascal Run-Time Library</short>
+<descr>
+<p>
+The Run-Time Library is the basis of all Free Pascal programs.
+It contains the basic units that most programs will use, and are made
+available on all platforms supported by Free pascal (well, more or less).
+</p>
+<p>
+There are units for compatibility with the Turbo Pascal Run-Time 
+library, and there are units for compatibility with Delphi.
+</p>
+<p>
+On top of these two sets, there are also a series of units to handle
+keyboard/mouse and text screens in a cross-platform way.
+</p>
+<p>
+Other units include platform specific units that implement the specifics
+of a platform, these are usually needed to support the Turbo Pascal or 
+Delphi units. 
+</p> 
+<p>
+Units that fall outside the above outline do not belong in the RTL, but
+should be included in the packages, or in the FCL. 
+</p>
+</descr>
+</package>
+</fpdoc-descriptions>

@@ -67,7 +67,8 @@ endif
 
 
 # Which docs are made when 'html' is specified
-HTML = user rtl fcl ref prog fpdoc chart
+# fcl removed, should be added later on.
+HTML = user rtl ref prog fpdoc chart
 
 # Can be 'report','book', 'html', 'hevea', 'ts3' 'ts4'
 ifdef USEHEVEA
@@ -374,13 +375,13 @@ FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/cl
 fcl.inc: classes.xml
 	$(FPDOC) --output=fcl.inc $(FCLOPTS) --format=latex
 
-RTLOPTS=--package=rtl
+RTLOPTS=--package=rtl --descr=rtl.xml
 ifndef CURRENTXMLONLY
 XMLUNITS=sysutils strutils dateutils systhrds strings mouse keyboard \
          crt video dos sockets objects heaptrc mmx ipc printer typinfo \
          ports getopts emu387 dxeload go32 gpm graph oldlinux baseunix \
          unixtype unix classes unixutil x86 dynlibs linux math system\
-         objpas dateutils
+         objpas dateutils rtl
 RTLXML=$(addsuffix .xml,$(XMLUNITS))
 RTLOPTS+= --descr=strutils.xml --input="../rtl/objpas/strutils.pp" 
 RTLOPTS+= --descr=systhrds.xml --input="../rtl/unix/systhrds.pp -Fi../rtl/inc" 
@@ -677,7 +678,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.37  2004-12-22 08:47:31  marco
+# Revision 1.38  2004-12-30 13:48:53  michael
+# + Fixed warnings, completed dateutils
+#
+# Revision 1.37  2004/12/22 08:47:31  marco
 #  * bsd system unit location fix. Hope it works for Darwin too
 #
 # Revision 1.36  2004/12/21 22:58:24  michael
