@@ -53,7 +53,7 @@ interface
          cs_support_c_operators,cs_static_keyword,
          { generation }
          cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
-         cs_lineinfo,
+         cs_lineinfo,cs_threading,
          { linking }
          cs_create_smart,cs_create_dynamic,cs_create_pic
        );
@@ -143,7 +143,7 @@ interface
          pocall_system         { system call }
        );
        tproccalloptions = set of tproccalloption;
-       
+
 
      const
        proccalloptionStr : array[tproccalloption] of string[14]=('',
@@ -167,8 +167,8 @@ interface
 
        tnormalset = set of byte; { 256 elements set }
        pnormalset = ^tnormalset;
-       
-       
+
+
 
        pboolean   = ^boolean;
        pdouble    = ^double;
@@ -211,7 +211,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2002-10-05 12:43:24  carl
+  Revision 1.33  2002-10-14 19:43:41  peter
+    * threading switch, defines the symbol FPC_THREADING
+
+  Revision 1.32  2002/10/05 12:43:24  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

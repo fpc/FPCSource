@@ -705,6 +705,21 @@ implementation
         do_message(scan_f_user_defined);
       end;
 
+    procedure dir_threading;
+      var
+        mac : tmacro;
+      begin
+        do_moduleswitch(cs_threading);
+        { defined/undefine FPC_THREADING }
+        mac:=tmacro(current_scanner.macros.search('FPC_THREADING'));
+        if not assigned(mac) then
+         begin
+           mac:=tmacro.create('FPC_THREADING');
+           current_scanner.macros.insert(mac);
+         end;
+        mac.defined:=(cs_threading in aktmoduleswitches);
+      end;
+
     procedure dir_typedaddress;
       begin
         do_delphiswitch('T');
@@ -880,6 +895,7 @@ implementation
         AddDirective('DESCRIPTION',{$ifdef FPCPROCVAR}@{$endif}dir_description);
         AddDirective('ERROR',{$ifdef FPCPROCVAR}@{$endif}dir_error);
         AddDirective('EXTENDEDSYNTAX',{$ifdef FPCPROCVAR}@{$endif}dir_extendedsyntax);
+        AddDirective('EXTERNALSYM',{$ifdef FPCPROCVAR}@{$endif}dir_externalsym);
         AddDirective('FATAL',{$ifdef FPCPROCVAR}@{$endif}dir_fatal);
         AddDirective('GOTO',{$ifdef FPCPROCVAR}@{$endif}dir_goto);
         AddDirective('HINT',{$ifdef FPCPROCVAR}@{$endif}dir_hint);
@@ -919,17 +935,13 @@ implementation
         AddDirective('RANGECHECKS',{$ifdef FPCPROCVAR}@{$endif}dir_rangechecks);
         AddDirective('REFERENCEINFO',{$ifdef FPCPROCVAR}@{$endif}dir_referenceinfo);
         AddDirective('SATURATION',{$ifdef FPCPROCVAR}@{$endif}dir_saturation);
-        {ad 18.05.2001: Screen and Threadname for Netware}
         AddDirective('SCREENNAME',{$ifdef FPCPROCVAR}@{$endif}dir_screenname);
-        AddDirective('EXTERNALSYM',{$ifdef FPCPROCVAR}@{$endif}dir_externalsym);
-
         AddDirective('SMARTLINK',{$ifdef FPCPROCVAR}@{$endif}dir_smartlink);
         AddDirective('STACKFRAMES',{$ifdef FPCPROCVAR}@{$endif}dir_stackframes);
         AddDirective('STATIC',{$ifdef FPCPROCVAR}@{$endif}dir_static);
         AddDirective('STOP',{$ifdef FPCPROCVAR}@{$endif}dir_stop);
-        {ad 18.05.2001: Screen and Threadname for Netware}
+        AddDirective('THREADING',{$ifdef FPCPROCVAR}@{$endif}dir_threading);
         AddDirective('THREADNAME',{$ifdef FPCPROCVAR}@{$endif}dir_threadname);
-
         AddDirective('TYPEDADDRESS',{$ifdef FPCPROCVAR}@{$endif}dir_typedaddress);
         AddDirective('TYPEINFO',{$ifdef FPCPROCVAR}@{$endif}dir_typeinfo);
         AddDirective('UNITPATH',{$ifdef FPCPROCVAR}@{$endif}dir_unitpath);
@@ -948,7 +960,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2002-08-13 18:01:52  carl
+  Revision 1.20  2002-10-14 19:43:41  peter
+    * threading switch, defines the symbol FPC_THREADING
+
+  Revision 1.19  2002/08/13 18:01:52  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline
