@@ -11,12 +11,15 @@
     { This reduces the memory requirements a lot }
     {$PACKENUM 1}
 
-    { We don't use exceptions, so turn off the implicit
-      exceptions in the constructors }
     {$ifndef VER1_0}
+      { We don't use exceptions, so turn off the implicit
+        exceptions in the constructors }
       {$IMPLICITEXCEPTIONS OFF}
-      //{$calling register}
-      //{$define USEINLINE}
+      { Inline small functions }
+      {$define USEINLINE}
+    {$else}
+      { Optimizer is broken when compiling with optimizations using 1.0.x }
+      {$define NOOPT}  
     {$endif VER1_0}
 
     {$define FPCPROCVAR}
@@ -85,7 +88,10 @@
 
 {
   $Log$
-  Revision 1.28  2003-12-14 14:18:59  peter
+  Revision 1.29  2003-12-14 20:20:14  peter
+    * disable optimizer again for 1.0.x
+
+  Revision 1.28  2003/12/14 14:18:59  peter
     * optimizer works again with 1.0.x
     * fixed wrong loop in FindRegWithConst
 
