@@ -294,9 +294,11 @@ begin
     V_Used    : ClassS:=msg_class_used;
     V_Tried   : ClassS:=msg_class_tried;
     V_Debug   : ClassS:=msg_class_debug;
-{$endif}
     else
       ClassS:='???';
+{$endif}
+    else
+      ClassS:='';
   end;  
   if ClassS<>'' then
    ClassS:=RExpand(ClassS,0)+': ';
@@ -1294,7 +1296,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2004-11-06 17:22:52  peter
+  Revision 1.28  2004-11-06 22:02:48  peter
+    * fixed resize helptext
+
+  Revision 1.27  2004/11/06 17:22:52  peter
     * fixes for new fv
 
   Revision 1.26  2004/11/05 00:00:33  peter

@@ -491,9 +491,9 @@ begin
     NewStatusDef(hcDragging, hcDragging,
       NewStatusKey(status_help, kbF1, cmHelp,
       StdStatusKeys(
-      NewStatusKey('~'#24#25#26#27+'~ Move', kbNoKey, 65535,
-      NewStatusKey('~Shift+'#24#25#26#27+'~ Size', kbNoKey, 65535,
-      NewStatusKey('~'#17+'ды~ Done', kbNoKey, 65535,
+      NewStatusKey('~Cursor~ Move', kbNoKey, 65535,
+      NewStatusKey('~Shift+Cursor~ Size', kbNoKey, 65535,
+      NewStatusKey('~<ды~ Done', kbNoKey, 65535,
       NewStatusKey('~Esc~ Cancel', kbNoKey, 65535,
       nil)))))),
     NewStatusDef(hcStackWindow, hcStackWindow,
@@ -1248,7 +1248,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.28  2004-11-04 20:57:59  peter
+  Revision 1.29  2004-11-06 22:02:49  peter
+    * fixed resize helptext
+
+  Revision 1.28  2004/11/04 20:57:59  peter
   sysmsgs is always available
 
   Revision 1.27  2004/11/02 23:53:19  peter

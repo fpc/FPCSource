@@ -27,8 +27,8 @@ end;
 
 procedure TIDEApp.ResizeApplication(x, y : longint);
 var
-  OldR, R : TRect;
-  Mode: TVideoMode;
+  OldR : TRect;
+  Mode : TVideoMode;
 begin
   GetBounds(OldR);
   { adapt to new size }
@@ -259,7 +259,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2002-09-07 15:40:44  peter
+  Revision 1.5  2004-11-06 22:02:49  peter
+    * fixed resize helptext
+
+  Revision 1.4  2002/09/07 15:40:44  peter
     * old logs removed and tabs fixed
 
   Revision 1.3  2002/06/07 14:09:56  pierre
