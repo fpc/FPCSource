@@ -78,6 +78,9 @@ unit regexpr;
 
   implementation
 
+     uses
+        strings;
+
 {$ifdef DEBUG}
      procedure writecharset(c : tcharset);
 
@@ -310,8 +313,8 @@ unit regexpr;
                           new(hp);
                           doregister(hp);
                           hp^.typ:=ret_backtrace;
-                          // hp^.elsepath:=parseregexpr(elsepath);
-                          hp^.next:=@parseregexpr;
+                          hp^.elsepath:=parseregexpr(nil,elsepath);
+                          hp^.next:=parseregexpr;
                           parseregexpr:=hp;
                           exit;
                        end;
@@ -424,6 +427,7 @@ unit regexpr;
           endp : pregexprentry;
 
        begin
+          error:=false;
           GenerateRegExprEngine.Data:=nil;
           GenerateRegExprEngine.DestroyList:=nil;
           if regexpr=nil then
@@ -439,7 +443,7 @@ unit regexpr;
           GenerateRegExprEngine.Data:=parseregexpr(nil,endp);
           GenerateRegExprEngine.DestroyList:=first;
           if error or (currentpos^<>#0) then
-            DestroyRegExprEngine(Result);
+            DestroyRegExprEngine(GenerateRegExprEngine);
        end;
 
     procedure DestroyRegExprEngine(var regexpr : TRegExprEngine);
@@ -470,9 +474,9 @@ unit regexpr;
             dosearch:=false;
             while true do
               begin
-	         {$IFDEF Debug}
+{$ifdef DEBUG}
                  writeln(byte(regexpr^.typ));
-		 {$ENDIF Debug}
+{$endif}
                  case regexpr^.typ of
                     ret_endline:
                       begin
@@ -590,7 +594,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1.2.2  2000-07-30 14:48:44  sg
+  Revision 1.1.2.3  2000-07-30 16:51:52  peter
+    * reinserted old regexpr with fix so testreg1 executes correctly
+
+  Revision 1.1.2.2  2000/07/30 14:48:44  sg
   * fixed small typo...
 
   Revision 1.1.2.1  2000/07/30 14:42:40  sg

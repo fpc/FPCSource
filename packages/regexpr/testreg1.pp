@@ -137,8 +137,12 @@ begin
    DestroyregExprEngine(r);
    }
    writeln('*** Testing unit regexpr was successful ***');
-end.  $Log$
-end.  Revision 1.2  2000-07-13 11:33:31  michael
-end.  + removed logs
-end. 
+end.
+{
+  $Log$
+  Revision 1.1.2.1  2000-07-30 16:51:52  peter
+    * reinserted old regexpr with fix so testreg1 executes correctly
+
+  Revision 1.2  2000/07/13 11:33:31  michael
+  + removed logs
 }
