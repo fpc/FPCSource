@@ -300,56 +300,54 @@ function stricomp(str1,str2 : pchar) : longint;assembler;
 { in: str1 in r3, str2 in r4                                 }
 { out: result of case insensitive comparison (< 0, = 0, > 0) }
 asm
-        { use r28 instead of r3 for str1 since r3 contains result }
-        subi    r28,r3,1
+        { use r5 instead of r3 for str1 since r3 contains result }
+        subi    r5,r3,1
         subi    r4,r4,1
 .LStriCompLoop:
         { load next chars }
-        lbzu    r29,1(r28)
+        lbzu    r6,1(r5)
         { check if one is zero }
-        cmplwi  cr1,r29,0
-        lbzu    r30,1(r4)
+        cmplwi  cr1,r6,0
+        lbzu    r7,1(r4)
         { calculate difference }
-        sub.    r3,r29,r30
+        sub.    r3,r6,r7
         { if chars are equal, no further test is necessary }
         beq+    .LStriCompEqual
 
         { make both lowercase, no branches }
-        li       r27,0
-        li       r25,0
 
-        { r3 := r29 - 'A' }
-        subic    r3,r29,65
-        { if r29 < 'A' then r27 := 0 else r27 := $ffffffff }
-        addme    r27,r27
-        { same for r30 }
-        subic    r3,r30,65
-        addme    r25,r25
+        { r3 := pred('A') - r6 }
+        subfic    r3,r6,64
+        { if r6 < 'A' then r8 := 0 else r8 := $ffffffff }
+        subfe    r8,r8,r8
+        { same for r7 }
+        subfic   r3,r7,64
+        subfe    r9,r9,r9
 
-        { r3 := 'Z' - r29 }
-        subfic   r3,r29,90
-        { if r29 < 'A' then r27 := 0 else r27 := $20 }
-        andi.    r27,r27,0x020
-        { if r29 > Z then r26 := 0 else r26 := $ffffffff }
-        subfe    r26,r26,r26
-        { same for r30 }
-        subfic   r3,r30,90
-        andi.    r25,r25,0x020
-        subfe    r24,r24,r24
+        { r3 := r6 - succ('Z') }
+        subic    r3,r6,91
+        { if r6 < 'A' then r8 := 0 else r8 := $20 }
+        andi.    r8,r8,0x020
+        { if r6 > Z then r10 := 0 else r10 := $ffffffff }
+        subfe    r10,r10,r10
+        { same for r7 }
+        subic    r3,r7,91
+        andi.    r9,r9,0x020
+        subfe    r11,r11,r11
 
-        { if (r29 in ['A'..'Z'] then r27 := $20 else r27 := 0 }
-        and      r27,r27,r26
-        { same for r30 }
-        and      r25,r25,r24
+        { if (r6 in ['A'..'Z'] then r8 := $20 else r8 := 0 }
+        and      r8,r8,r10
+        { same for r7 }
+        and      r9,r9,r11
 
         { make lowercase }
-        add      r29,r29,r27
-        { same for r30 }
-        add      r30,r30,r25
+        add      r6,r6,r8
+        { same for r7 }
+        add      r7,r7,r9
 
         { compare again }
-        sub.     r3,r29,r30
-        bne      .LStriCompDone
+        sub.     r3,r6,r7
+        bne-      .LStriCompDone
 .LStriCompEqual:
         { if they are equal and one is zero, then the other one is zero too }
         { and we're done as well (r3 also contains 0 then)                  }
@@ -388,23 +386,21 @@ asm
         beq     .LStrliCompEqual
 
         { see stricomp for explanation }
-        li       r8,0
-        li       r5,0
 
-        subic    r3,r0,65
-        addme    r8,r8
-        subic    r3,r10,65
-        addme    r5,r5
+        subfic   r3,r0,64
+        subfe    r8,r8,r8
+        subfic   r3,r10,64
+        subfe    r5,r5
 
-        subfic   r3,r0,90
+        subic    r3,r0,91
         andi.    r8,r8,0x020
         subfe    r7,r7,r7
-        subfic   r3,r10,90
+        subic    r3,r10,91
         andi.    r5,r5,0x020
-        subfe    r24,r24,r24
+        subfe    r11,r11,r11
 
         and      r8,r8,r7
-        and      r5,r5,r24
+        and      r5,r5,r11
         add      r0,r0,r8
         add      r10,r10,r5
 
@@ -516,7 +512,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  2004-05-01 17:02:37  jonas
+  Revision 1.25  2004-08-09 16:43:33  jonas
+    * fixed stricomp() and strlicomp()
+
+  Revision 1.24  2004/05/01 17:02:37  jonas
     * use some more string routines from libc if FPC_USE_LIBC is used
 
   Revision 1.23  2003/12/28 22:33:35  florian
