@@ -750,8 +750,10 @@ implementation
         hp:=p;
         while assigned(hp) do
          begin
+           { property allowed? calln has a property check itself }
            if (not allowprop) and
-              (hp^.isproperty) then
+              (hp^.isproperty) and
+              (hp^.treetype<>calln) then
             begin
               CGMessagePos(hp^.fileinfo,type_e_argument_cant_be_assigned);
               exit;
@@ -887,7 +889,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2000-02-01 09:41:27  peter
+  Revision 1.57  2000-02-05 12:11:50  peter
+    * property check for assigning fixed for calln
+
+  Revision 1.56  2000/02/01 09:41:27  peter
     * allow class -> voidpointer for delphi mode
 
   Revision 1.55  2000/01/07 01:14:27  peter
