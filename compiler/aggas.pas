@@ -473,7 +473,7 @@ var
            ait_real_80bit :
              begin
                if do_line then
-                AsmWriteLn(target_asm.comment+extended2str(tai_real_80bit(hp).value));
+                AsmWriteLn(target_asm.comment+target_asm.comment+extended2str(tai_real_80bit(hp).value));
              { Make sure e is a extended type, bestreal could be
                a different type (bestreal) !! (PFV) }
                e:=tai_real_80bit(hp).value;
@@ -490,7 +490,7 @@ var
            ait_real_64bit :
              begin
                if do_line then
-                AsmWriteLn(target_asm.comment+double2str(tai_real_64bit(hp).value));
+                AsmWriteLn(target_asm.comment+target_asm.comment+double2str(tai_real_64bit(hp).value));
                d:=tai_real_64bit(hp).value;
                { swap the values to correct endian if required }
                if source_info.endian <> target_info.endian then
@@ -508,7 +508,7 @@ var
            ait_real_32bit :
              begin
                if do_line then
-                AsmWriteLn(target_asm.comment+single2str(tai_real_32bit(hp).value));
+                AsmWriteLn(target_asm.comment+target_asm.comment+single2str(tai_real_32bit(hp).value));
                sin:=tai_real_32bit(hp).value;
                { swap the values to correct endian if required }
                if source_info.endian <> target_info.endian then
@@ -526,7 +526,7 @@ var
            ait_comp_64bit :
              begin
                if do_line then
-                AsmWriteLn(target_asm.comment+extended2str(tai_comp_64bit(hp).value));
+                AsmWriteLn(target_asm.comment+target_asm.comment+extended2str(tai_comp_64bit(hp).value));
                AsmWrite(#9'.byte'#9);
 {$ifdef FPC}
                co:=comp(tai_comp_64bit(hp).value);
@@ -800,7 +800,11 @@ var
 end.
 {
   $Log$
-  Revision 1.11  2002-08-20 16:55:38  peter
+  Revision 1.12  2002-08-31 16:05:17  florian
+    * write double # before float constants when -al is turned on
+      else some gas versions interpret it as line number
+
+  Revision 1.11  2002/08/20 16:55:38  peter
     * don't write (stabs)line info when inlining a procedure
 
   Revision 1.10  2002/08/18 22:16:14  florian
