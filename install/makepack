@@ -13,8 +13,9 @@ unset FPCDIR
 # Goto the toplevel if necessary
 [ -d install ] || cd ..
 
-make linux
-make source
+make linuxzip
+make sourcezip
+make docsrc
 make docs
 make demo
 

@@ -36,7 +36,7 @@ clean:
 	rm -f build-indep-stamp install-indep-stamp
 
 	rm -f debian-files-stamp
-	rm -f debian/*.files debian/*.docs debian/*.examples debian/*.postinst
+	rm -f debian/*.files debian/*.docs debian/*.examples debian/*.postinst debian/*.postrm
 
 	$(MAKE) compiler_distclean
 	$(MAKE) rtl_distclean
@@ -113,6 +113,9 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 	$(MAKE) demo_install $(INSTALLOPTS) DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-compiler
 	$(MAKE) doc_install $(INSTALLOPTS) DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-compiler
 
+# Create ppc386.cfg which is included as conffile
+	chmod 755 compiler/utils/samplecfg 
+	compiler/utils/samplecfg /usr/lib/fpc/$(FPCVERSION) $(INSTALL_DIR)/etc
 	touch install-arch-stamp
 
 

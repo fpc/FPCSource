@@ -1,3 +1,4 @@
+/etc/ppc386.cfg
 /usr/lib/fpc/%{fpcversion}/ppc386
 /usr/lib/fpc/%{fpcversion}/samplecfg
 /usr/lib/fpc/%{fpcversion}/msg
