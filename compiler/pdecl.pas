@@ -419,6 +419,13 @@ unit pdecl;
                  begin
                    getsym(pattern,true);
                    consume(_ID);
+                   { support unit.variable }
+                   if srsym^.typ=unitsym then
+                    begin
+                      consume(_POINT);
+                      getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
+                      consume(_ID);
+                    end;
                    { we should check the result type of srsym }
                    if not (srsym^.typ in [varsym,typedconstsym]) then
                      Message(parser_e_absolute_only_to_var_or_const);
@@ -1183,7 +1190,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.168  1999-11-06 14:34:21  peter
+  Revision 1.169  1999-11-09 12:58:29  peter
+    * support absolute unit.variable
+
+  Revision 1.168  1999/11/06 14:34:21  peter
     * truncated log to 20 revs
 
   Revision 1.167  1999/10/26 12:30:44  peter
