@@ -1039,15 +1039,14 @@ unit pexpr;
                                              begin
                                                p1:=gentypenode(pd,ptypesym(srsym));
                                                p1^.resulttype:=pd;
-                                               srsymtable:=pobjectdef(pd)^.symtable;
-                                               sym:=pvarsym(srsymtable^.search(pattern));
                                                { search also in inherited methods }
-                                               while sym=nil do
-                                                begin
-                                                  pd:=pobjectdef(pd)^.childof;
-                                                  srsymtable:=pobjectdef(pd)^.symtable;
-                                                  sym:=pvarsym(srsymtable^.search(pattern));
-                                                end;
+                                               repeat
+                                                 srsymtable:=pobjectdef(pd)^.symtable;
+                                                 sym:=pvarsym(srsymtable^.search(pattern));
+                                                 if assigned(sym) then
+                                                  break;
+                                                 pd:=pobjectdef(pd)^.childof;
+                                               until not assigned(pd);
                                                consume(_ID);
                                                do_member_read(false,sym,p1,pd,again);
                                              end
@@ -2093,7 +2092,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.141  1999-09-11 19:47:26  florian
+  Revision 1.142  1999-09-13 16:26:32  peter
+    * fix crash with empty object as childs
+
+  Revision 1.141  1999/09/11 19:47:26  florian
     * bug fix for @tobject.method, fixes bug 557, 605 and 606
 
   Revision 1.140  1999/09/11 09:08:33  florian
