@@ -33,7 +33,7 @@ BEGIN
  setviewport(0,0,getmaxx,getmaxy,clipoff);
  clearviewport;
  SetTextStyle(0,Horizdir,2);
- OuttextXY(30,50,'FPCTris v0.08, (C) by Marco van de Voort.');
+ OuttextXY(30,50,'FPCTris v0.08, (C) by Marco v/d Voort.');
  SetTextStyle(0,Horizdir,1);
  OutTextXY(300,HelpY-30,'A demo of the FPC Graph unit');
 
