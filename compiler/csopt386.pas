@@ -1,6 +1,7 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Jonas Maebe
+    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
+      development team
 
     This unit contains the common subexpression elimination procedure.
 
@@ -173,50 +174,6 @@ Begin {CheckSequence}
         Found := OrgRegFound;
         RegInfo := OrgRegInfo;
       End;
-{ sometimes, registers in RegsLoadedForRef (which normally aren't/shouldn't }
-{ be used anymore after the sequence, are still used nevertheless (when     }
-{ range checking is on for instance, because this is not "normal" generated }
-{ code, but more or less manually inserted)                                 }
-(*
-{$ifndef fpc}
-  If TmpResult Then
-{$else fpc}
-  If CheckSequence And (Found > 0) Then
-{$endif fpc}
-    For RegCounter := R_EAX to R_EDI Do
-      If (RegCounter in RegInfo.RegsLoadedForRef) And
-         (RegInfo.New2OldReg[RegCounter] <> RegCounter) Then
-        Begin
-          OldNrOfMods := PPaiProp(PrevNonRemovablePai^.OptInfo)^.
-            Regs[RegInfo.New2OldReg[RegCounter]].NrOfMods;
-          hp2 := p;
-          For Cnt := 1 to Pred(OldNrOfMods) Do
-            GetNextInstruction(hp2, hp2);
-{ hp2 now containts the last instruction of the sequence }
-{ get the writestate at this point of the register in TmpState }
-          TmpState := PPaiProp(hp2^.OptInfo)^.Regs[RegCounter].WState;
-{ now, even though reg is in RegsLoadedForRef, sometimes it's still used  }
-{ afterwards. It is not if either it is not in usedregs anymore after the }
-{ sequence, or if it is loaded with a new value right after the sequence  }
-          If GetNextInstruction(hp2, hp2) and
-             (TmpState = PPaiProp(hp2^.OptInfo)^.Regs[RegCounter].WState) And
-             (RegCounter in PPaiProp(hp2^.OptInfo)^.UsedRegs) Then
-{ it is still used, so remove it from RegsLoadedForRef }
-            Begin
-{$ifdef regrefdebug}
-              hp3 := new(pai_asm_comment,init(strpnew(att_reg2str[regcounter]+
-                         ' removed from regsloadedforref')));
-              hp3^.fileinfo := hp2^.fileinfo;
-              hp3^.next := hp2^.next;
-              hp3^.previous := hp2;
-              hp2^.next := hp3;
-              If assigned(hp3^.next) then
-                Pai(hp3^.next)^.previous := hp3;
-{$endif regrefdebug}
-              Exclude(RegInfo.RegsLoadedForRef,RegCounter);
-            End;
-        End;
-*)
 {$ifndef fpc}
   CheckSequence := TmpResult;
 {$endif fpc}
@@ -386,26 +343,6 @@ begin
   pai_align(p)^.reg := lastRemoved;
 End;
 
-{$ifdef replacereg}
-function FindRegDealloc(reg: tregister; p: pai): boolean;
-{ assumes reg is a 32bit register }
-begin
-  findregdealloc := false;
-  while assigned(p^.previous) and
-        ((Pai(p^.previous)^.typ in (skipinstr+[ait_align])) or
-         ((Pai(p^.previous)^.typ = ait_label) and
-          not(Pai_Label(p^.previous)^.l^.is_used))) do
-    begin
-      p := pai(p^.previous);
-      if (p^.typ = ait_regalloc) and
-         (pairegalloc(p)^.reg = reg) then
-        begin
-          findregdealloc := not(pairegalloc(p)^.allocation);
-          break;
-        end;
-    end
-end;
-
 Procedure RestoreRegContentsTo(reg: TRegister; const c: TContent; p, endP: pai);
 var
 {$ifdef replaceregdebug}
@@ -445,6 +382,26 @@ begin
         hp^.previous^.next := hp;
     end;
 {$endif replaceregdebug}
+end;
+
+{$ifdef replacereg}
+function FindRegDealloc(reg: tregister; p: pai): boolean;
+{ assumes reg is a 32bit register }
+begin
+  findregdealloc := false;
+  while assigned(p^.previous) and
+        ((Pai(p^.previous)^.typ in (skipinstr+[ait_align])) or
+         ((Pai(p^.previous)^.typ = ait_label) and
+          not(Pai_Label(p^.previous)^.l^.is_used))) do
+    begin
+      p := pai(p^.previous);
+      if (p^.typ = ait_regalloc) and
+         (pairegalloc(p)^.reg = reg) then
+        begin
+          findregdealloc := not(pairegalloc(p)^.allocation);
+          break;
+        end;
+    end
 end;
 
 Procedure ClearRegContentsFrom(reg: TRegister; p, endP: pai);
@@ -898,22 +855,7 @@ Begin
                                             (paicpu(p)^.opcode = A_MOVZX) or
                                             (paicpu(p)^.opcode = A_MOVSX)) And
                                            (paicpu(p)^.Oper[0].typ = top_ref)) Then
-                                          if (PPaiProp(p^.OptInfo)^.Regs[Reg32(paicpu(p)^.Oper[1].reg)].NrOfMods
-                                               <= (Cnt - Cnt2 + 1)) and
-                                             (Reg32(paicpu(p)^.Oper[1].reg) in regInfo.regsLoadedForRef) then
-                                            begin
-                                              hp3 := p;
-                                              for Cnt3 := PPaiProp(p^.OptInfo)^.Regs[Reg32(paicpu(p)^.Oper[1].reg)].NrOfMods
-                                                  downto 1 do
-                                                begin
-{$ifndef noremove}
-                                                  if regInInstruction(paicpu(p)^.Oper[1].reg,hp3) then
-                                                    PPaiProp(hp3^.OptInfo)^.CanBeRemoved := True;
-{$endif noremove}
-                                                  getNextInstruction(hp3,hp3);
-                                                end
-                                            end
-                                          else hp1 := p;
+                                         hp1 := p;
 {$ifndef noremove}
                                        if regInInstruction(Paicpu(hp2)^.oper[1].reg,p) then
                                          PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
@@ -1041,22 +983,39 @@ Begin
                                    Continue;
                                  End
                                Else
-                                 If (Cnt > 0) And
-                                    (PPaiProp(p^.OptInfo)^.
+                                 If (PPaiProp(p^.OptInfo)^.
                                       Regs[Reg32(Paicpu(p)^.oper[1].reg)].Typ = Con_Ref) And
                                     (PPaiProp(p^.OptInfo)^.CanBeRemoved) Then
-                                   Begin
-                                     hp2 := p;
-                                     Cnt2 := 1;
-                                     While Cnt2 <= Cnt Do
-                                       Begin
-                                         If RegInInstruction(Paicpu(hp2)^.oper[1].reg, p) Then
-                                           PPaiProp(p^.OptInfo)^.CanBeRemoved := False;
-                                         Inc(Cnt2);
-                                         GetNextInstruction(p, p);
-                                       End;
-                                     Continue;
-                                   End;
+                                   if (cnt > 0) then
+                                     begin
+                                       hp2 := p;
+                                       Cnt2 := 1;
+                                       While Cnt2 <= Cnt Do
+                                         Begin
+                                           If RegInInstruction(Paicpu(hp2)^.oper[1].reg, p) Then
+                                             PPaiProp(p^.OptInfo)^.CanBeRemoved := False;
+                                           Inc(Cnt2);
+                                           GetNextInstruction(p, p);
+                                         End;
+                                       Continue;
+                                     End
+                                   else
+                                     begin
+                                       { Fix for web bug 972 }
+                                       regCounter := Reg32(Paicpu(p)^.oper[1].reg);
+                                       cnt := PPaiProp(p^.optInfo)^.Regs[regCounter].nrOfMods;
+                                       hp3 := p;
+                                       for cnt2 := 1 to cnt do
+                                         if not(regModifiedByInstruction(regCounter,hp3) and
+                                                not(PPaiProp(hp3^.optInfo)^.canBeRemoved)) then
+                                           getNextInstruction(hp3,hp3)
+                                         else
+                                           break;
+                                       getLastInstruction(p,hp4);
+                                       RestoreRegContentsTo(regCounter,
+                                         PPaiProp(hp4^.optInfo)^.Regs[regCounter],
+                                         p,hp3);
+                                     end;
                               End;
                           End;
                       End;
@@ -1181,7 +1140,10 @@ End.
 
 {
  $Log$
- Revision 1.59  2000-06-01 11:01:20  peter
+ Revision 1.60  2000-06-03 09:41:37  jonas
+   * fixed web bug 972, test for the bug in tests/testopt/testcse3.pp
+
+ Revision 1.59  2000/06/01 11:01:20  peter
    * removed notes
 
  Revision 1.58  2000/04/29 16:57:44  jonas
