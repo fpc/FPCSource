@@ -1167,9 +1167,7 @@ interface
                            popedx:=true;
                           end;
                          { left.location can be R_EAX !!! }
-{$ifndef noAllocEdi}
                          getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                          { load the left value }
                          emitloadord2reg(left.location,u32bitdef,R_EDI,true);
                          release_loc(left.location);
@@ -1182,18 +1180,14 @@ interface
                          { allocate EAX if it isn't yet allocated (JM) }
                          if (R_EAX in unused) then
                            exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-{$ifndef noAllocEdi}
                          { also allocate EDX, since it is also modified by }
                          { a mul (JM)                                      }
                          if R_EDX in unused then
                            exprasmlist^.concat(new(pairegalloc,alloc(R_EDX)));
-{$endif noAllocEdi}
                          emit_reg(A_MUL,S_L,R_EDI);
-{$ifndef noAllocEdi}
                          ungetregister32(R_EDI);
                          if R_EDX in unused then
                            exprasmlist^.concat(new(pairegalloc,dealloc(R_EDX)));
-{$endif noAllocEdi}
                          if R_EAX in unused then
                            exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
                          location.register := getregister32;
@@ -1293,31 +1287,22 @@ interface
                                begin
                                   if extra_not then
                                     emit_reg(A_NOT,opsize,location.register);
-{$ifndef noAllocEdi}
                                   getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                   emit_reg_reg(A_MOV,opsize,right.location.register,R_EDI);
                                   emit_reg_reg(op,opsize,location.register,R_EDI);
                                   emit_reg_reg(A_MOV,opsize,R_EDI,location.register);
-{$ifndef noAllocEdi}
                                   ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                end
                              else
                                begin
                                   if extra_not then
                                     emit_reg(A_NOT,opsize,location.register);
-
-{$ifndef noAllocEdi}
                                   getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                   emit_ref_reg(A_MOV,opsize,
                                     newreference(right.location.reference),R_EDI);
                                   emit_reg_reg(op,opsize,location.register,R_EDI);
                                   emit_reg_reg(A_MOV,opsize,R_EDI,location.register);
-{$ifndef noAllocEdi}
                                   ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                   ungetiftemp(right.location.reference);
                                   del_reference(right.location.reference);
                                end;
@@ -1361,16 +1346,12 @@ interface
                                     begin
                                        if extra_not then
                                          begin
-{$ifndef noAllocEdi}
                                             getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                             emit_reg_reg(A_MOV,S_L,right.location.register,R_EDI);
                                             emit_reg(A_NOT,S_L,R_EDI);
                                             emit_reg_reg(A_AND,S_L,R_EDI,
                                               location.register);
-{$ifndef noAllocEdi}
                                             ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                          end
                                        else
                                          begin
@@ -1382,17 +1363,13 @@ interface
                                     begin
                                        if extra_not then
                                          begin
-{$ifndef noAllocEdi}
                                             getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                             emit_ref_reg(A_MOV,S_L,newreference(
                                               right.location.reference),R_EDI);
                                             emit_reg(A_NOT,S_L,R_EDI);
                                             emit_reg_reg(A_AND,S_L,R_EDI,
                                               location.register);
-{$ifndef noAllocEdi}
                                             ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                          end
                                        else
                                          begin
@@ -1776,37 +1753,27 @@ interface
                                begin
                                   if right.location.loc=LOC_CREGISTER then
                                     begin
-{$ifndef noAllocEdi}
                                        getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                        emit_reg_reg(A_MOV,opsize,right.location.register,R_EDI);
                                        emit_reg_reg(op,opsize,location.register,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,R_EDI,location.register);
-{$ifndef noAllocEdi}
                                        ungetregister32(R_EDI);
                                        getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                        emit_reg_reg(A_MOV,opsize,right.location.registerhigh,R_EDI);
                                        { the carry flag is still ok }
                                        emit_reg_reg(op2,opsize,location.registerhigh,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,R_EDI,location.registerhigh);
-{$ifndef noAllocEdi}
                                        ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                     end
                                   else
                                     begin
-{$ifndef noAllocEdi}
                                        getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                        emit_ref_reg(A_MOV,opsize,
                                          newreference(right.location.reference),R_EDI);
                                        emit_reg_reg(op,opsize,location.registerlow,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,R_EDI,location.registerlow);
-{$ifndef noAllocEdi}
                                        ungetregister32(R_EDI);
                                        getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                        hr:=newreference(right.location.reference);
                                        inc(hr^.offset,4);
                                        emit_ref_reg(A_MOV,opsize,
@@ -1815,9 +1782,7 @@ interface
                                        emit_reg_reg(op2,opsize,location.registerhigh,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,R_EDI,
                                          location.registerhigh);
-{$ifndef noAllocEdi}
                                        ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                        ungetiftemp(right.location.reference);
                                        del_reference(right.location.reference);
                                     end;
@@ -2067,9 +2032,7 @@ interface
                      begin
                        if not(R_EAX in unused) then
                          begin
-{$ifndef noAllocEdi}
                            getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                            emit_reg_reg(A_MOV,S_L,R_EAX,R_EDI);
                          end;
                        emit_reg(A_FNSTSW,S_NO,R_AX);
@@ -2077,9 +2040,7 @@ interface
                        if not(R_EAX in unused) then
                          begin
                            emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
-{$ifndef noAllocEdi}
                            ungetregister32(R_EDI);
-{$endif noAllocEdi}
                          end;
                        if swaped then
                         begin
@@ -2326,7 +2287,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 15:06:18  peter
+  Revision 1.5  2000-09-30 16:08:45  peter
+    * more cg11 updates
+
+  Revision 1.4  2000/09/24 15:06:18  peter
     * use defines.inc
 
   Revision 1.3  2000/09/22 22:42:52  florian

@@ -35,15 +35,18 @@ interface
 implementation
 
     uses
-       htypechk,ncal,hcodegen,verbose,nmat,
-       pass_1,nld,symconst,cutils;
+       htypechk,hcodegen,verbose,
+       pass_1,symconst,cutils;
 
     {$I node.inc}
 
 end.
 {
   $Log$
-  Revision 1.6  2000-09-28 19:49:52  florian
+  Revision 1.7  2000-09-30 16:08:45  peter
+    * more cg11 updates
+
+  Revision 1.6  2000/09/28 19:49:52  florian
   *** empty log message ***
 
   Revision 1.5  2000/09/27 18:14:31  florian

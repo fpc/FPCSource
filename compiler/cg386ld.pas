@@ -401,6 +401,9 @@ implementation
          ai : paicpu;
          op : tasmop;
          pushed : boolean;
+         regspushed : tpushed;
+         regs_to_push: byte;
+         ungettemp : boolean;
 
       begin
          otlabel:=truelabel;
@@ -465,11 +468,45 @@ implementation
            begin
               if is_ansistring(p^.left^.resulttype) then
                 begin
-                  { the source and destinations are released
-                    in loadansistring, because an ansi string can
-                    also be in a register
-                  }
-                  loadansistring(p);
+                  { before pushing any parameter, we have to save all used      }
+                  { registers, but before that we have to release the       }
+                  { registers of that node to save uneccessary pushed       }
+                  { so be careful, if you think you can optimize that code (FK) }
+
+                  { nevertheless, this has to be changed, because otherwise the }
+                  { register is released before it's contents are pushed ->     }
+                  { problems with the optimizer (JM)                            }
+                  del_reference(p^.left^.location.reference);
+                  ungettemp:=false;
+                  { Find out which registers have to be pushed (JM) }
+                  regs_to_push := $ff;
+                  remove_non_regvars_from_loc(p^.right^.location,regs_to_push);
+                  { And push them (JM) }
+                  pushusedregisters(regspushed,regs_to_push);
+                  case p^.right^.location.loc of
+                     LOC_REGISTER,LOC_CREGISTER:
+                       begin
+                          exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p^.right^.location.register)));
+                          ungetregister32(p^.right^.location.register);
+                       end;
+                     LOC_REFERENCE,LOC_MEM:
+                       begin
+                          { First release the registers because emit_push_mem may  }
+                          { load the reference in edi before pushing and then the  }
+                          { dealloc is too late (and optimizations are missed (JM) }
+                          del_reference(p^.right^.location.reference);
+                          { This one doesn't need extra registers (JM) }
+                          emit_push_mem(p^.right^.location.reference);
+                          ungettemp:=true;
+                       end;
+                  end;
+                  emitpushreferenceaddr(p^.left^.location.reference);
+                  del_reference(p^.left^.location.reference);
+                  emitcall('FPC_ANSISTR_ASSIGN');
+                  maybe_loadesi;
+                  popusedregisters(regspushed);
+                  if ungettemp then
+                    ungetiftemp(p^.right^.location.reference);
                 end
               else
               if is_shortstring(p^.left^.resulttype) and
@@ -958,7 +995,7 @@ implementation
                   begin
                     if vaddr then
                      begin
-                       emit_to_mem(hp^.left);
+                       emit_to_mem(hp^.left^.location,hp^.left^.resulttype);
                        emit_push_lea_loc(hp^.left^.location,freetemp);
                        del_reference(hp^.left^.location.reference);
                      end
@@ -972,7 +1009,7 @@ implementation
                     inc(href.offset,4);
                     if vaddr then
                      begin
-                       emit_to_mem(hp^.left);
+                       emit_to_mem(hp^.left^.location,hp^.left^.resulttype);
                        emit_lea_loc_ref(hp^.left^.location,href,freetemp);
                      end
                     else
@@ -1011,7 +1048,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 21:19:49  peter
+  Revision 1.7  2000-09-30 16:08:45  peter
+    * more cg11 updates
+
+  Revision 1.6  2000/09/24 21:19:49  peter
     * delphi compile fixes
 
   Revision 1.5  2000/08/27 16:11:49  peter

@@ -28,7 +28,12 @@ unit cgai386;
 interface
 
     uses
-       cobjects,tree,
+       cobjects,
+{$ifdef CG11}
+       node,
+{$else}
+       tree,
+{$endif}
        cpubase,cpuasm,
        symconst,symtable,aasm;
 
@@ -94,7 +99,7 @@ interface
 
     procedure emit_pushw_loc(const t:tlocation);
     procedure emit_push_lea_loc(const t:tlocation;freetemp:boolean);
-    procedure emit_to_mem(var p:ptree);
+    procedure emit_to_mem(var t:tlocation;def:pdef);
     procedure emit_to_reg16(var hr:tregister);
     procedure emit_to_reg32(var hr:tregister);
     procedure emit_mov_reg_loc(reg: TRegister; const t:tlocation);
@@ -102,19 +107,18 @@ interface
 
     procedure copyshortstring(const dref,sref : treference;len : byte;
                         loadref, del_sref: boolean);
-    procedure loadansistring(p : ptree);
 
     procedure finalize(t : pdef;const ref : treference;is_already_ref : boolean);
     procedure incrstringref(t : pdef;const ref : treference);
     procedure decrstringref(t : pdef;const ref : treference);
 
-    function maybe_push(needed : byte;p : ptree;isint64 : boolean) : boolean;
+    function maybe_push(needed : byte;p : {$ifdef CG11}tnode{$else}ptree{$endif};isint64 : boolean) : boolean;
     procedure push_int(l : longint);
     procedure emit_push_mem(const ref : treference);
     procedure emitpushreferenceaddr(const ref : treference);
-    procedure pushsetelement(p : ptree);
-    procedure restore(p : ptree;isint64 : boolean);
-    procedure push_value_para(p:ptree;inlined,is_cdecl:boolean;
+    procedure pushsetelement(p : {$ifdef CG11}tnode{$else}ptree{$endif});
+    procedure restore(p : {$ifdef CG11}tnode{$else}ptree{$endif};isint64 : boolean);
+    procedure push_value_para(p:{$ifdef CG11}tnode{$else}ptree{$endif};inlined,is_cdecl:boolean;
                               para_offset:longint;alignment : longint);
 
 {$ifdef TEMPS_NOT_PUSH}
@@ -129,12 +133,12 @@ interface
     procedure floatstoreops(t : tfloattype;var op : tasmop;var s : topsize);
 
     procedure maybe_loadesi;
-    procedure maketojumpbool(p : ptree);
+    procedure maketojumpbool(p : {$ifdef CG11}tnode{$else}ptree{$endif});
     procedure emitloadord2reg(const location:Tlocation;orddef:Porddef;destreg:Tregister;delloc:boolean);
-    procedure emitoverflowcheck(p:ptree);
-    procedure emitrangecheck(p:ptree;todef:pdef);
+    procedure emitoverflowcheck(p:{$ifdef CG11}tnode{$else}ptree{$endif});
+    procedure emitrangecheck(p:{$ifdef CG11}tnode{$else}ptree{$endif};todef:pdef);
     procedure concatcopy(source,dest : treference;size : longint;delsource : boolean;loadref:boolean);
-    procedure firstcomplex(p : ptree);
+    procedure firstcomplex(p : {$ifdef CG11}tnode{$else}ptree{$endif});
 
     procedure genentrycode(alist : paasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
                            stackframe:longint;
@@ -172,8 +176,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$else}
        strings,
 {$endif}
-       cutils,globtype,systems,globals,verbose,fmodule,types,pbase,
-       tgeni386,temp_gen,hcodegen,ppu,regvars
+       cutils,globtype,systems,globals,verbose,fmodule,types,
+       tgeni386,temp_gen,hcodegen,regvars
 {$ifdef GDB}
        ,gdb
 {$endif}
@@ -522,10 +526,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                  S_W : hreg:=R_DI;
                                  S_L : hreg:=R_EDI;
                                end;
-{$ifndef noAllocEdi}
                                if hreg in [R_DI,R_EDI] then
                                  getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                emit_ref_reg(A_MOV,siz,
                                  newreference(t.reference),hreg);
                                del_reference(t.reference);
@@ -538,10 +540,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                     else
                                       ungetregister(hreg);
                                  end;
-{$ifndef noAllocEdi}
                                if hreg in [R_DI,R_EDI] then
                                  ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                { we can release the registers }
                                { but only AFTER the MOV! Important for the optimizer!
                                  (JM)}
@@ -802,16 +802,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                              internalerror(331)
                            else
                              begin
-{$ifndef noAllocEdi}
                                getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                emit_ref_reg(A_LEA,S_L,
                                  newreference(t.reference),R_EDI);
                                exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
                                  R_EDI,newreference(ref))));
-{$ifndef noAllocEdi}
                                ungetregister32(R_EDI);
-{$endif noAllocEdi}
                              end;
                             { release the registers }
                             del_reference(t.reference);
@@ -833,15 +829,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                              internalerror(331)
                            else
                              begin
-{$ifndef noAllocEdi}
                                getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                emit_ref_reg(A_LEA,S_L,
                                  newreference(t.reference),R_EDI);
                                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
-{$ifndef noAllocEdi}
                                ungetregister32(R_EDI);
-{$endif noAllocEdi}
                              end;
                            if freetemp then
                             ungetiftemp(t.reference);
@@ -890,32 +882,28 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
 
-    procedure emit_to_mem(var p:ptree);
+    procedure emit_to_mem(var t:tlocation;def:pdef);
 
       var
          r : treference;
 
       begin
-        case p^.location.loc of
+        case t.loc of
                LOC_FPU : begin
-                           reset_reference(p^.location.reference);
-                           gettempofsizereference(10,p^.location.reference);
-                           floatstore(pfloatdef(p^.resulttype)^.typ,p^.location.reference);
-                           {  This can't be never a l-value! (FK)
-                              p^.location.loc:=LOC_REFERENCE; }
+                           reset_reference(t.reference);
+                           gettempofsizereference(10,t.reference);
+                           floatstore(pfloatdef(def)^.typ,t.reference);
                          end;
                LOC_REGISTER:
                  begin
-                    if is_64bitint(p^.resulttype) then
+                    if is_64bitint(def) then
                       begin
                          gettempofsizereference(8,r);
-                         emit_reg_ref(A_MOV,S_L,p^.location.registerlow,
-                           newreference(r));
+                         emit_reg_ref(A_MOV,S_L,t.registerlow,newreference(r));
                          inc(r.offset,4);
-                         emit_reg_ref(A_MOV,S_L,p^.location.registerhigh,
-                           newreference(r));
+                         emit_reg_ref(A_MOV,S_L,t.registerhigh,newreference(r));
                          dec(r.offset,4);
-                         p^.location.reference:=r;
+                         t.reference:=r;
                       end
                     else
                       internalerror(1405001);
@@ -923,18 +911,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                LOC_MEM,
          LOC_REFERENCE : ;
          LOC_CFPUREGISTER : begin
-                           emit_reg(A_FLD,S_NO,correct_fpuregister(p^.location.register,fpuvaroffset));
+                           emit_reg(A_FLD,S_NO,correct_fpuregister(t.register,fpuvaroffset));
                            inc(fpuvaroffset);
-                           reset_reference(p^.location.reference);
-                           gettempofsizereference(10,p^.location.reference);
-                           floatstore(pfloatdef(p^.resulttype)^.typ,p^.location.reference);
-                           {  This can't be never a l-value! (FK)
-                              p^.location.loc:=LOC_REFERENCE; }
+                           reset_reference(t.reference);
+                           gettempofsizereference(10,t.reference);
+                           floatstore(pfloatdef(def)^.typ,t.reference);
                          end;
          else
          internalerror(333);
         end;
-        p^.location.loc:=LOC_MEM;
+        t.loc:=LOC_MEM;
       end;
 
 
@@ -1086,62 +1072,78 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          popusedregisters(pushedregs);
       end;
 
-    procedure loadansistring(p : ptree);
-    {
-      copies an ansistring from p^.right to p^.left, we
-      assume, that both sides are ansistring, firstassignement have
-      to take care of that, an ansistring can't be a register variable
-    }
-      var
-         pushed : tpushed;
-         regs_to_push: byte;
-         ungettemp : boolean;
-      begin
-         { before pushing any parameter, we have to save all used      }
-         { registers, but before that we have to release the       }
-         { registers of that node to save uneccessary pushed       }
-         { so be careful, if you think you can optimize that code (FK) }
-
-         { nevertheless, this has to be changed, because otherwise the }
-         { register is released before it's contents are pushed ->     }
-         { problems with the optimizer (JM)                            }
-         del_reference(p^.left^.location.reference);
-         ungettemp:=false;
-         { Find out which registers have to be pushed (JM) }
-         regs_to_push := $ff;
-         remove_non_regvars_from_loc(p^.right^.location,regs_to_push);
-         { And push them (JM) }
-         pushusedregisters(pushed,regs_to_push);
-         case p^.right^.location.loc of
-            LOC_REGISTER,LOC_CREGISTER:
-              begin
-                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p^.right^.location.register)));
-                 ungetregister32(p^.right^.location.register);
-              end;
-            LOC_REFERENCE,LOC_MEM:
-              begin
-                 { First release the registers because emit_push_mem may  }
-                 { load the reference in edi before pushing and then the  }
-                 { dealloc is too late (and optimizations are missed (JM) }
-                 del_reference(p^.right^.location.reference);
-                 { This one doesn't need extra registers (JM) }
-                 emit_push_mem(p^.right^.location.reference);
-                 ungettemp:=true;
-              end;
-         end;
-         emitpushreferenceaddr(p^.left^.location.reference);
-         del_reference(p^.left^.location.reference);
-         emitcall('FPC_ANSISTR_ASSIGN');
-         maybe_loadesi;
-         popusedregisters(pushed);
-         if ungettemp then
-           ungetiftemp(p^.right^.location.reference);
-      end;
-
 
 {*****************************************************************************
                            Emit Push Functions
 *****************************************************************************}
+
+{$ifdef CG11}
+    function maybe_push(needed : byte;p : tnode;isint64 : boolean) : boolean;
+      var
+         pushed : boolean;
+         {hregister : tregister; }
+{$ifdef TEMPS_NOT_PUSH}
+         href : treference;
+{$endif TEMPS_NOT_PUSH}
+      begin
+         if needed>usablereg32 then
+           begin
+              if (p.location.loc=LOC_REGISTER) then
+                begin
+                   if isint64 then
+                     begin
+{$ifdef TEMPS_NOT_PUSH}
+                        gettempofsizereference(href,8);
+                        p.temp_offset:=href.offset;
+                        href.offset:=href.offset+4;
+                        exprasmlist^.concat(new(paicpu,op_reg(A_MOV,S_L,p.location.registerhigh,href)));
+                        href.offset:=href.offset-4;
+{$else TEMPS_NOT_PUSH}
+                        exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p.location.registerhigh)));
+{$endif TEMPS_NOT_PUSH}
+                        ungetregister32(p^.location.registerhigh);
+                     end
+{$ifdef TEMPS_NOT_PUSH}
+                   else
+                     begin
+                        gettempofsizereference(href,4);
+                        p.temp_offset:=href.offset;
+                     end
+{$endif TEMPS_NOT_PUSH}
+                     ;
+                   pushed:=true;
+{$ifdef TEMPS_NOT_PUSH}
+                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,p.location.register,href)));
+{$else TEMPS_NOT_PUSH}
+                   exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p.location.register)));
+{$endif TEMPS_NOT_PUSH}
+                   ungetregister32(p.location.register);
+                end
+              else if (p.location.loc in [LOC_MEM,LOC_REFERENCE]) and
+                      ((p.location.reference.base<>R_NO) or
+                       (p.location.reference.index<>R_NO)
+                      ) then
+                  begin
+                     del_reference(p.location.reference);
+                     getexplicitregister32(R_EDI);
+                     emit_ref_reg(A_LEA,S_L,newreference(p^.location.reference),R_EDI);
+{$ifdef TEMPS_NOT_PUSH}
+                     gettempofsizereference(href,4);
+                     exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,href)));
+                     p^.temp_offset:=href.offset;
+{$else TEMPS_NOT_PUSH}
+                     exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
+{$endif TEMPS_NOT_PUSH}
+                     ungetregister32(R_EDI);
+                     pushed:=true;
+                  end
+              else pushed:=false;
+           end
+         else pushed:=false;
+         maybe_push:=pushed;
+      end;
+
+{$else CG11}
 
     function maybe_push(needed : byte;p : ptree;isint64 : boolean) : boolean;
       var
@@ -1190,9 +1192,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                       ) then
                   begin
                      del_reference(p^.location.reference);
-{$ifndef noAllocEdi}
-                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
+                     getexplicitregister32(R_EDI);
                      emit_ref_reg(A_LEA,S_L,newreference(p^.location.reference),
                        R_EDI);
 {$ifdef TEMPS_NOT_PUSH}
@@ -1202,9 +1202,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$else TEMPS_NOT_PUSH}
                      exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
 {$endif TEMPS_NOT_PUSH}
-{$ifndef noAllocEdi}
                      ungetregister32(R_EDI);
-{$endif noAllocEdi}
                      pushed:=true;
                   end
               else pushed:=false;
@@ -1212,6 +1210,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          else pushed:=false;
          maybe_push:=pushed;
       end;
+{$endif CG11}
 
 {$ifdef TEMPS_NOT_PUSH}
     function maybe_savetotemp(needed : byte;p : ptree;isint64 : boolean) : boolean;
@@ -1249,16 +1248,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                       ) then
                   begin
                      del_reference(p^.location.reference);
-{$ifndef noAllocEdi}
                      getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                      emit_ref_reg(A_LEA,S_L,newreference(p^.location.reference),
                        R_EDI);
                      gettempofsizereference(href,4);
                      exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,href)));
-{$ifndef noAllocEdi}
                      ungetregister32(R_EDI);
-{$endif noAllocEdi}
                      p^.temp_offset:=href.offset;
                      pushed:=true;
                   end
@@ -1277,14 +1272,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             not(cs_littlesize in aktglobalswitches)
            Then
              begin
-{$ifndef noAllocEdi}
                getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                emit_reg_reg(A_XOR,S_L,R_EDI,R_EDI);
                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
-{$ifndef noAllocEdi}
                ungetregister32(R_EDI);
-{$endif noAllocEdi}
              end
            else
              exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,l)));
@@ -1301,14 +1292,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 not(cs_littlesize in aktglobalswitches)
                then
                  begin
-{$ifndef noAllocEdi}
                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                    emit_ref_reg(A_MOV,S_L,newreference(ref),R_EDI);
                    exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
-{$ifndef noAllocEdi}
                    ungetregister32(R_EDI);
-{$endif noAllocEdi}
                  end
                else exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,newreference(ref))));
            end;
@@ -1343,14 +1330,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,ref.base)))
               else
                 begin
-{$ifndef noAllocEdi}
                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                    emit_ref_reg(A_LEA,S_L,newreference(ref),R_EDI);
                    exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
-{$ifndef noAllocEdi}
                    ungetregister32(R_EDI);
-{$endif noAllocEdi}
                 end;
            end;
         end;
@@ -1656,25 +1639,19 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                inc(pushedparasize,8);
                                if inlined then
                                  begin
-{$ifndef noAllocEdi}
                                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
-{$ifndef noAllocEdi}
                                    ungetregister32(R_EDI);
                                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                    inc(tempreference.offset,4);
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize+4);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
-{$ifndef noAllocEdi}
                                    ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                  end
                                else
                                  begin
@@ -1688,16 +1665,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                inc(pushedparasize,4);
                                if inlined then
                                  begin
-{$ifndef noAllocEdi}
                                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
-{$ifndef noAllocEdi}
                                    ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                  end
                                else
                                  emit_push_mem(tempreference);
@@ -1717,16 +1690,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 end;
                                if inlined then
                                 begin
-{$ifndef noAllocEdi}
                                   getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                   emit_ref_reg(A_MOV,opsize,
                                     newreference(tempreference),hreg);
                                   r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
-{$ifndef noAllocEdi}
                                   ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                 end
                                else
                                 emit_push_mem_size(tempreference,p^.resulttype^.size);
@@ -1744,16 +1713,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                inc(pushedparasize,4);
                                if inlined then
                                  begin
-{$ifndef noAllocEdi}
                                     getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                     emit_ref_reg(A_MOV,S_L,
                                       newreference(tempreference),R_EDI);
                                     r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                     exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
-{$ifndef noAllocEdi}
                                     ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                  end
                                else
                                  emit_push_mem(tempreference);
@@ -1765,16 +1730,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               inc(tempreference.offset,4);
                               if inlined then
                                 begin
-{$ifndef noAllocEdi}
                                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
-{$ifndef noAllocEdi}
                                    ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                 end
                               else
                                 emit_push_mem(tempreference);
@@ -1782,16 +1743,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               dec(tempreference.offset,4);
                               if inlined then
                                 begin
-{$ifndef noAllocEdi}
                                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
-{$ifndef noAllocEdi}
                                    ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                 end
                               else
                                 emit_push_mem(tempreference);
@@ -1805,16 +1762,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 inc(tempreference.offset,6);
                               if inlined then
                                 begin
-{$ifndef noAllocEdi}
                                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
-{$ifndef noAllocEdi}
                                    ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                 end
                               else
                                 emit_push_mem(tempreference);
@@ -1822,16 +1775,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               inc(pushedparasize,4);
                               if inlined then
                                 begin
-{$ifndef noAllocEdi}
                                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
-{$ifndef noAllocEdi}
                                    ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                 end
                               else
                                 emit_push_mem(tempreference);
@@ -1851,16 +1800,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 end;
                               if inlined then
                                 begin
-{$ifndef noAllocEdi}
                                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                    emit_ref_reg(A_MOV,opsize,
                                      newreference(tempreference),hreg);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
-{$ifndef noAllocEdi}
                                    ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                 end
                               else
                                 exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,opsize,
@@ -1875,16 +1820,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                          inc(pushedparasize,4);
                          if inlined then
                            begin
-{$ifndef noAllocEdi}
                               getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                               emit_ref_reg(A_MOV,S_L,
                                 newreference(tempreference),R_EDI);
                               r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
-{$ifndef noAllocEdi}
                               ungetregister32(R_EDI);
-{$endif noAllocEdi}
                            end
                          else
                            emit_push_mem(tempreference);
@@ -1991,9 +1932,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                begin
                   if not(R_EAX in unused) then
                     begin
-{$ifndef noAllocEdi}
                       getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                       emit_reg_reg(A_MOV,S_L,R_EAX,R_EDI);
                     end;
                   emit_flag2reg(p^.location.resflags,R_AL);
@@ -2020,9 +1959,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   if not(R_EAX in unused) then
                     begin
                       emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
-{$ifndef noAllocEdi}
                       ungetregister32(R_EDI);
-{$endif noAllocEdi}
                     end;
                end;
 {$ifdef SUPPORT_MMX}
@@ -2328,27 +2265,19 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               emitjmp(C_L,neglabel);
             end;
            { insert bound instruction only }
-{$ifndef noAllocEdi}
            getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
            exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),0,R_EDI)));
            emitcall('FPC_BOUNDCHECK');
-{$ifndef noAllocEdi}
            ungetregister32(R_EDI);
-{$endif noAllocEdi}
            { u32bit needs 2 checks }
            if doublebound then
             begin
               emitjmp(C_None,poslabel);
               emitlab(neglabel);
-{$ifndef noAllocEdi}
               getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
               exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),8,R_EDI)));
               emitcall('FPC_BOUNDCHECK');
-{$ifndef noAllocEdi}
               ungetregister32(R_EDI);
-{$endif noAllocEdi}
               emitlab(poslabel);
             end;
            if popecx then
@@ -2367,18 +2296,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                hreg:=p^.location.register
               else
                begin
-{$ifndef noAllocEdi}
                  getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                  emit_reg_reg(op,opsize,p^.location.register,R_EDI);
                  hreg:=R_EDI;
                end;
             end
            else
             begin
-{$ifndef noAllocEdi}
               getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
               emit_ref_reg(op,opsize,newreference(p^.location.reference),R_EDI);
               hreg:=R_EDI;
             end;
@@ -2400,10 +2325,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               exprasmlist^.concat(new(paicpu,op_reg_ref(A_BOUND,S_L,hreg,newreference(href))));
               emitlab(poslabel);
             end;
-{$ifndef noAllocEdi}
            if hreg = R_EDI then
              ungetregister32(R_EDI);
-{$endif noAllocEdi}
          end;
       end;
 
@@ -2441,9 +2364,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
              (not(cs_littlesize in aktglobalswitches ) and (size<=12))) then
            begin
               helpsize:=size shr 2;
-{$ifndef noAllocEdi}
               getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
               for i:=1 to helpsize do
                 begin
                    emit_ref_reg(A_MOV,S_L,newreference(source),R_EDI);
@@ -2468,9 +2389,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    inc(dest.offset,2);
                    dec(size,2);
                 end;
-{$ifndef noAllocEdi}
               ungetregister32(R_EDI);
-{$endif noAllocEdi}
               if size>0 then
                 begin
                    { and now look for an 8 bit register }
@@ -2503,9 +2422,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    if swap then
                      { was earlier XCHG, of course nonsense }
                      begin
-{$ifndef noAllocEdi}
                        getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                        emit_reg_reg(A_MOV,S_L,reg32,R_EDI);
                      end;
                    emit_ref_reg(A_MOV,S_B,newreference(source),reg8);
@@ -2517,9 +2434,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    if swap then
                      begin
                        emit_reg_reg(A_MOV,S_L,R_EDI,reg32);
-{$ifndef noAllocEdi}
                        ungetregister32(R_EDI);
-{$endif noAllocEdi}
                      end
                    else
                      ungetregister(reg8);
@@ -2527,17 +2442,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            end
          else
            begin
-{$ifndef noAllocEdi}
               getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
               emit_ref_reg(A_LEA,S_L,newreference(dest),R_EDI);
 {$ifdef regallocfix}
              {is this ok?? (JM)}
               del_reference(dest);
 {$endif regallocfix}
-{$ifndef noAllocEdi}
               exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
-{$endif noAllocEdi}
               if loadref then
                 emit_ref_reg(A_MOV,S_L,newreference(source),R_ESI)
               else
@@ -2578,10 +2489,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    if size=1 then
                      exprasmlist^.concat(new(paicpu,op_none(A_MOVSB,S_NO)));
                 end;
-{$ifndef noAllocEdi}
               ungetregister32(R_EDI);
               exprasmlist^.concat(new(pairegalloc,dealloc(R_ESI)));
-{$endif noAllocEdi}
               if ecxpushed then
                 exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)))
               else
@@ -2668,9 +2577,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       begin
          if assigned(procinfo^._class) then
            begin
-{$ifndef noAllocEdi}
               exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
-{$endif noAllocEdi}
               if lexlevel>normal_function_level then
                 begin
                    new(hp);
@@ -3008,9 +2915,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               reset_reference(r^);
               r^.base:=procinfo^.framepointer;
               r^.offset:=pvarsym(p)^.address+4+procinfo^.para_offset;
-{$ifndef noAllocEdi}
               getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
               exprasmlist^.concat(new(paicpu,
                 op_ref_reg(A_MOV,S_L,r,R_EDI)));
 
@@ -3050,17 +2955,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    emitlab(ok);
                    exprasmlist^.concat(new(paicpu,
                      op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
-{$ifndef noAllocEdi}
                    ungetregister32(R_EDI);
-{$endif noAllocEdi}
                    { now reload EDI }
                    new(r);
                    reset_reference(r^);
                    r^.base:=procinfo^.framepointer;
                    r^.offset:=pvarsym(p)^.address+4+procinfo^.para_offset;
-{$ifndef noAllocEdi}
                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                    exprasmlist^.concat(new(paicpu,
                      op_ref_reg(A_MOV,S_L,r,R_EDI)));
 
@@ -3142,9 +3043,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 S_W : exprasmlist^.concat(new(paicpu,op_none(A_MOVSW,S_NO)));
                 S_L : exprasmlist^.concat(new(paicpu,op_none(A_MOVSD,S_NO)));
               end;
-{$ifndef noAllocEdi}
               ungetregister32(R_EDI);
-{$endif noAllocEdi}
               exprasmlist^.concat(new(paicpu,
                 op_reg(A_POP,S_L,R_ESI)));
               exprasmlist^.concat(new(paicpu,
@@ -3324,9 +3223,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             begin
               exprasmlist^.insert(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
               emitinsertcall('FPC_HELP_CONSTRUCTOR');
-{$ifndef noAllocEdi}
               getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
               exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI)));
             end;
         end;
@@ -3349,9 +3246,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            hr^.offset:=procinfo^.selfpointer_offset;
            hr^.base:=procinfo^.framepointer;
            exprasmlist^.insert(new(paicpu,op_ref_reg(A_MOV,S_L,hr,R_ESI)));
-{$ifndef noAllocEdi}
            exprasmlist^.insert(new(pairegalloc,alloc(R_ESI)));
-{$endif noAllocEdi}
         end;
       { should we save edi,esi,ebx like C ? }
       if (po_savestdregs in aktprocsym^.definition^.procoptions) then
@@ -3438,9 +3333,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                   else
                                     begin
                                        getlabel(again);
-{$ifndef noAllocEdi}
                                        getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                        exprasmlist^.concat(new(paicpu,
                                          op_const_reg(A_MOV,S_L,stackframe div winstackpagesize,R_EDI)));
                                        emitlab(again);
@@ -3451,9 +3344,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                        exprasmlist^.concat(new(paicpu,
                                          op_reg(A_DEC,S_L,R_EDI)));
                                        emitjmp(C_NZ,again);
-{$ifndef noAllocEdi}
                                        ungetregister32(R_EDI);
-{$endif noAllocEdi}
                                        exprasmlist^.concat(new(paicpu,
                                          op_const_reg(A_SUB,S_L,stackframe mod winstackpagesize,R_ESP)));
                                     end
@@ -3693,9 +3584,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           else
             begin
               emitinsertcall('FPC_HELP_DESTRUCTOR');
-{$ifndef noAllocEdi}
               getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
               exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI)));
               { must the object be finalized ? }
               if procinfo^._class^.needs_inittable then
@@ -3703,9 +3592,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    getlabel(nofinal);
                    exprasmlist^.insert(new(pai_label,init(nofinal)));
                    emitinsertcall('FPC_FINALIZE');
-{$ifndef noAllocEdi}
                    ungetregister32(R_EDI);
-{$endif noAllocEdi}
                    exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_ESI)));
                    exprasmlist^.insert(new(paicpu,op_sym(A_PUSH,S_L,procinfo^._class^.get_inittable_label)));
                    ai:=new(paicpu,op_sym(A_Jcc,S_NO,nofinal));
@@ -3840,14 +3727,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   else
                     begin
                       emit_ref_reg(A_MOV,S_L,new_reference(procinfo^.framepointer,12),R_ESI);
-{$ifndef noAllocEdi}
                        getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                       emit_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI);
                       emitcall('FPC_HELP_FAIL');
-{$ifndef noAllocEdi}
                       ungetregister32(R_EDI);
-{$endif noAllocEdi}
                     end;
                   emitlab(okexitlabel);
 
@@ -4083,7 +3966,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.15  2000-09-24 15:06:12  peter
+  Revision 1.16  2000-09-30 16:08:45  peter
+    * more cg11 updates
+
+  Revision 1.15  2000/09/24 15:06:12  peter
     * use defines.inc
 
   Revision 1.14  2000/09/16 12:22:52  peter

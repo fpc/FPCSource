@@ -192,7 +192,12 @@ implementation
 
     uses
        globtype,globals,htypechk,
-       tree,verbose,symconst;
+{$ifdef CG11}
+       node,
+{$else}
+       tree,
+{$endif}
+       verbose,symconst;
 
     var
        b_needs_init_final : boolean;
@@ -1143,7 +1148,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-09-24 15:06:32  peter
+  Revision 1.12  2000-09-30 16:08:46  peter
+    * more cg11 updates
+
+  Revision 1.11  2000/09/24 15:06:32  peter
     * use defines.inc
 
   Revision 1.10  2000/09/18 12:31:15  jonas

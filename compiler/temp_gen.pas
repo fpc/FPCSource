@@ -27,7 +27,8 @@ unit temp_gen;
 interface
 
     uses
-      cpubase,cpuinfo,cobjects,globals,tree,hcodegen,verbose,fmodule,aasm;
+      cpubase,cpuinfo,cobjects,globals,
+      hcodegen,verbose,fmodule,aasm;
 
     type
       ttemptype = (tt_none,tt_free,tt_normal,tt_persistant,tt_ansistring,tt_freeansistring,tt_widestring,tt_freewidestring);
@@ -541,7 +542,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 15:06:31  peter
+  Revision 1.5  2000-09-30 16:08:45  peter
+    * more cg11 updates
+
+  Revision 1.4  2000/09/24 15:06:31  peter
     * use defines.inc
 
   Revision 1.3  2000/08/27 16:11:55  peter

@@ -381,9 +381,7 @@ implementation
                       { the set element isn't never samller than a byte  }
                       { and because it's a small set we need only 5 bits }
                       { but 8 bits are easier to load               }
-{$ifndef noAllocEdi}
                       getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                       emit_ref_reg(A_MOVZX,S_BL,
                         newreference(left.location.reference),R_EDI);
                       hr:=R_EDI;
@@ -417,12 +415,8 @@ implementation
                           newreference(right.location.reference));
                     end;
                   end;
-{$ifndef noAllocEdi}
                   { simply to indicate EDI is deallocated here too (JM) }
                   ungetregister32(hr);
-{$else noAllocEdi}
-                  ungetregister32(hr);
-{$endif noAllocEdi}
                   location.loc:=LOC_FLAGS;
                   location.resflags:=F_C;
                 end;
@@ -1066,7 +1060,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-09-24 20:17:44  florian
+  Revision 1.3  2000-09-30 16:08:45  peter
+    * more cg11 updates
+
+  Revision 1.2  2000/09/24 20:17:44  florian
     * more conversion work done
 
   Revision 1.1  2000/09/24 19:38:39  florian

@@ -57,9 +57,7 @@ implementation
       hcodegen,
 {$endif newcg}
       htypechk,pass_1,
-      cpubase,ncnv,ncal,nld,
-      ncon,nmat,nset
-      ;
+      cpubase;
 
     function isbinaryoverloaded(var p : tbinarynode) : boolean;
 
@@ -1104,7 +1102,7 @@ implementation
                   CGMessage(type_e_mismatch);
               end;
               location.loc:=LOC_MMXREGISTER;
-              calcregisters(p,0,0,1);
+              calcregisters(self,0,0,1);
               convdone:=true;
             end
           else
@@ -1316,7 +1314,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-09-28 19:49:52  florian
+  Revision 1.11  2000-09-30 16:08:45  peter
+    * more cg11 updates
+
+  Revision 1.10  2000/09/28 19:49:52  florian
   *** empty log message ***
 
   Revision 1.9  2000/09/27 21:33:22  florian

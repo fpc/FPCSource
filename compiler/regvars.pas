@@ -26,7 +26,9 @@ unit regvars;
 
 interface
 
-uses aasm, tree;
+uses
+  aasm,
+  tree;
 
 procedure assign_regvars(var p: ptree);
 procedure load_regvars(asml: paasmoutput; p: ptree);
@@ -481,7 +483,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-09-30 13:08:16  jonas
+  Revision 1.8  2000-09-30 16:08:45  peter
+    * more cg11 updates
+
+  Revision 1.7  2000/09/30 13:08:16  jonas
     * regvars are now zeroed at the start of their life if they contain an 8
       or 16bit var/parameter, because the full 32bits are used if they are
       necessary for a btrl instruction

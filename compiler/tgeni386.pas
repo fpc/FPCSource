@@ -27,7 +27,13 @@ unit tgeni386;
 interface
 
     uses
-       cobjects,globals,tree,hcodegen,verbose,aasm,
+       cobjects,globals,
+       hcodegen,verbose,aasm,
+{$ifdef CG11}
+       node,
+{$else}
+       tree,
+{$endif}
        cpubase,cpuasm
        ;
 
@@ -90,11 +96,11 @@ interface
 {$ifdef SUPPORT_MMX}
        regvar_longintarray = array[R_EAX..R_MM6] of longint;
        regvar_booleanarray = array[R_EAX..R_MM6] of boolean;
-       regvar_ptreearray = array[R_EAX..R_MM6] of ptree;
+       regvar_ptreearray = array[R_EAX..R_MM6] of {$ifdef CG11}tnode{$else}ptree{$endif};
 {$else SUPPORT_MMX}
        regvar_longintarray = array[R_EAX..R_EDI] of longint;
        regvar_booleanarray = array[R_EAX..R_EDI] of boolean;
-       regvar_ptreearray = array[R_EAX..R_EDI] of ptree;
+       regvar_ptreearray = array[R_EAX..R_EDI] of {$ifdef CG11}tnode{$else}ptree{$endif};
 {$endif SUPPORT_MMX}
 
     var
@@ -651,7 +657,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:32  peter
+  Revision 1.7  2000-09-30 16:08:46  peter
+    * more cg11 updates
+
+  Revision 1.6  2000/09/24 15:06:32  peter
     * use defines.inc
 
   Revision 1.5  2000/08/27 16:11:55  peter

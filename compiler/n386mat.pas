@@ -161,9 +161,7 @@ implementation
                               end
                             else
                               begin
-{$ifndef noAllocEdi}
                                 getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                 hreg2 := R_EDI;
                                 emit_reg_reg(A_MOV,S_L,hreg1,R_EDI);
                               { if the left value is signed, R_EDI := $ffffffff,
@@ -175,13 +173,8 @@ implementation
                           { add to the left value }
                             emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
                           { release EDX if we used it }
-{$ifndef noAllocEdi}
                           { also releas EDI }
                           ungetregister32(hreg2);
-{$else noAllocEdi}
-                          if (hreg2 = R_EDX) then
-                            ungetregister32(hreg2);
-{$endif noAllocEdi}
                           { do the shift }
                             emit_const_reg(A_SAR,S_L,power,hreg1);
                           end
@@ -216,9 +209,7 @@ implementation
                       { EDI is always free, it's }
                       { only used for temporary  }
                       { purposes              }
-{$ifndef noAllocEdi}
                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                    if (right.location.loc<>LOC_REGISTER) and
                       (right.location.loc<>LOC_CREGISTER) then
                      begin
@@ -270,9 +261,7 @@ implementation
                      emit_reg(A_DIV,S_L,R_EDI)
                    else
                      emit_reg(A_IDIV,S_L,R_EDI);
-{$ifndef noAllocEdi}
                    ungetregister32(R_EDI);
-{$endif noAllocEdi}
                    if treetype=divn then
                      begin
                         { if result register is busy then copy }
@@ -893,9 +882,7 @@ implementation
              secondpass(left);
              location.loc:=LOC_MMXREGISTER;
              { prepare EDI }
-{$ifndef noAllocEdi}
              getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
              emit_const_reg(A_MOV,S_L,$ffffffff,R_EDI);
              { load operand }
              case left.location.loc of
@@ -916,9 +903,7 @@ implementation
              end;
              { load mask }
              emit_reg_reg(A_MOVD,S_NO,R_EDI,R_MM7);
-{$ifndef noAllocEdi}
              ungetregister32(R_EDI);
-{$endif noAllocEdi}
              { lower 32 bit }
              emit_reg_reg(A_PXOR,S_D,R_MM7,location.register);
              { shift mask }
@@ -1000,7 +985,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-09-24 15:06:18  peter
+  Revision 1.3  2000-09-30 16:08:45  peter
+    * more cg11 updates
+
+  Revision 1.2  2000/09/24 15:06:18  peter
     * use defines.inc
 
   Revision 1.1  2000/09/22 22:24:37  florian
