@@ -27,7 +27,7 @@ fpcdir=..
 
 [prerules]
 # Don't export version it can change after the first compile
-unexport FPC_VERSION
+unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
 CYCLETARGETS=i386 powerpc sparc m68k
