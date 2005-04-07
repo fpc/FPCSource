@@ -1924,7 +1924,10 @@ unit rgobj;
               ((tai_regalloc(loadpos).instr=nil) or
                (tai_regalloc(loadpos).instr=instr)) do
           begin
-            if tai_regalloc(loadpos).ratype=ra_dealloc then
+            { Only add deallocs belonging to the instruction. Explicit inserted deallocs
+              belong to the previous instruction and not the current instruction }
+            if (tai_regalloc(loadpos).instr=instr) and
+               (tai_regalloc(loadpos).ratype=ra_dealloc) then
               live_registers.add(getsupreg(tai_regalloc(loadpos).reg));
             loadpos:=tai(loadpos.previous);
           end;
@@ -2020,7 +2023,11 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.157  2005-04-07 15:42:04  peter
+  Revision 1.158  2005-04-07 16:25:05  peter
+    * during spilling only add deallocs to live_registers that belong
+      to the instruction
+
+  Revision 1.157  2005/04/07 15:42:04  peter
     * only in EXTDEBUG leave register allocator when it fails. Otherwise
       give an IE
 
