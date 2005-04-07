@@ -150,9 +150,6 @@ Source: examples\ibase\*.*; DestDir: {app}\examples\ibase; Flags: ignoreversion;
 ; MD5
 Source: units\i386-win32\md5\*.*; DestDir: {app}\units\i386-win32\md5; Flags: ignoreversion; Components: packages/md5
 Source: examples\md5\*.*; DestDir: {app}\examples\md5; Flags: ignoreversion; Components: packages/md5
-; MMSystem
-Source: units\i386-win32\mmsystem\*.*; DestDir: {app}\units\i386-win32\mmsystem; Flags: ignoreversion; Components: packages/mmsystem
-;Source: examples\mmsystem\*.*; DestDir: {app}\examples\mmsystem; Flags: ignoreversion; Components: packages/mmsystem
 ; MySQL
 Source: units\i386-win32\mysql\*.*; DestDir: {app}\units\i386-win32\mysql; Flags: ignoreversion; Components: packages/mysql
 Source: examples\mysql\*.*; DestDir: {app}\examples\mysql; Flags: ignoreversion; Components: packages/mysql
@@ -183,9 +180,9 @@ Source: examples\tcl\*.*; DestDir: {app}\examples\tcl; Flags: ignoreversion; Com
 ; unzip
 Source: units\i386-win32\unzip\*.*; DestDir: {app}\units\i386-win32\unzip; Flags: ignoreversion; Components: packages/unzip
 ; Source: examples\unzip\*.*; DestDir: {app}\examples\unzip; Flags: ignoreversion; Components: packages/unzip
-; winver
-Source: units\i386-win32\winver\*.*; DestDir: {app}\units\i386-win32\winver; Flags: ignoreversion; Components: packages/winver
-Source: examples\winver\*.*; DestDir: {app}\examples\winver; Flags: ignoreversion; Components: packages/winver
+; winunits
+Source: units\i386-win32\winunits\*.*; DestDir: {app}\units\i386-win32\winunits; Flags: ignoreversion; Components: packages/winunits
+;Source: examples\winunits\*.*; DestDir: {app}\examples\winunits; Flags: ignoreversion; Components: packages/winunits
 ; zlib
 Source: units\i386-win32\zlib\*.*; DestDir: {app}\units\i386-win32\zlib; Flags: ignoreversion; Components: packages/zlib
 ; Source: examples\zlib\*.*; DestDir: {app}\examples\zlib; Flags: ignoreversion; Components: packages/unzip
@@ -220,7 +217,6 @@ Name: packages/gtk2; Description: GTK 2 units; Types: Custom Full
 Name: packages/opengl; Description: OpenGL units; Types: Custom Full
 Name: packages/ibase; Description: Interbase/Firebird units; Types: Custom Full
 Name: packages/mysql; Description: MySQL units; Types: Custom Full
-Name: packages/mmsystem; Description: MultiMedia System units; Types: Custom Full
 Name: packages/gdbint; Description: GDB access units; Types: Custom Full
 Name: packages/paszlib; Description: Paszlib unit (provide acces to gzipped files); Types: Custom Full
 Name: packages/regexp; Description: Regular Expression support units; Types: Custom Full
@@ -233,7 +229,7 @@ Name: packages/cdrom; Description: Portable CD-ROM acces; Types: Custom Full
 Name: packages/odbc; Description: ODBC data acces; Types: Custom Full
 Name: packages/sqlite; Description: SQLITE data access; Types: Custom Full
 Name: packages/tcl; Description: TCL interpreter access; Types: Custom Full
-Name: packages/winver; Description: Windows file version information access; Types: Custom Full
+Name: packages/winunits; Description: Windows API units; Types: Custom Full
 ;Name: sources; Description: Pascal source files; Types: Custom Full
 ;Name: sources/base; Description: Base sources, required; Types: Custom Full
 ;Name: sources/compiler; Description: Compiler sources; Types: Custom Full
@@ -247,7 +243,6 @@ Name: packages/winver; Description: Windows file version information access; Typ
 ;Name: sources/gtk; Description: GTK source files; Types: Custom Full
 ;Name: sources/interbase; Description: Interbase/Firebird source files; Types: Custom Full
 ;Name: sources/mysql; Description: MySQL source files; Types: Custom Full
-;Name: sources/mmsystem; Description: MultiMedia System source files; Types: Custom Full
 ;Name: sources/gdbint; Description: GDB access source files; Types: Custom Full
 ;Name: sources/paszlib; Description: Paszlib source files; Types: Custom Full
 ;Name: sources/regexp; Description: Regular Expression support source files; Types: Custom Full
@@ -269,7 +264,7 @@ Name: packages/winver; Description: Windows file version information access; Typ
 ;Name: sources/odbc; Description: ODBC data acces source files; Types: Custom Full
 ;Name: sources/sqlite; Description: SQLITE data access source files; Types: Custom Full
 ;Name: sources/tcl; Description: TCL interpreter access source files; Types: Custom Full
-;Name: sources/winver; Description: Windows file version information access source files; Types: Custom Full
+;Name: sources/winunits; Description: Windows API source files; Types: Custom Full
 
 [Types]
 Name: Full; Description: Full installation
