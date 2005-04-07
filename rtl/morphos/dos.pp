@@ -609,6 +609,7 @@ begin
       f.Time := fib_Date.ds_Days * (24 * 60 * 60) +
                 fib_Date.ds_Minute * 60 +
                 fib_Date.ds_Tick div 50;
+      f.attr := 0;
       {*------------------------------------*}
       {* Determine if is a file or a folder *}
       {*------------------------------------*}
@@ -651,6 +652,7 @@ begin
       f.Time := fib_Date.ds_Days * (24 * 60 * 60) +
                 fib_Date.ds_Minute * 60 +
                 fib_Date.ds_Tick div 50;
+      f.attr := 0;
       {*------------------------------------*}
       {* Determine if is a file or a folder *}
       {*------------------------------------*}
@@ -1003,7 +1005,10 @@ End.
 
 {
   $Log$
-  Revision 1.14  2005-02-14 17:13:30  peter
+  Revision 1.15  2005-04-07 03:57:58  karoly
+    * fixed attribute handling in findfirst/findnext
+
+  Revision 1.14  2005/02/14 17:13:30  peter
     * truncate log
 
 }
