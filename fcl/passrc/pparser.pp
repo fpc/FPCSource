@@ -310,7 +310,6 @@ function TPasParser.ParseType(Parent: TPasElement; Prefix : String): TPasType;
   end;
 
 var
-  TypeToken: TToken;
   Name, s: String;
   EnumValue: TPasEnumValue;
   Ref: TPasElement;
@@ -320,7 +319,6 @@ begin
   case CurToken of
     tkIdentifier:
       begin
-        TypeToken := CurToken;
         Name := CurTokenString;
         If (Prefix<>'') then
           Name:=Prefix+'.'+Name;
@@ -832,8 +830,6 @@ begin
   Result := TPasResString(CreateElement(TPasResString, CurTokenString, Parent));
   try
     ExpectToken(tkEqual);
-    ExpectToken(tkString);
-    UngetToken;
     Result.Value := ParseExpression;
     ExpectToken(tkSemicolon);
   except
@@ -1116,7 +1112,7 @@ var
   i: Integer;
   VarType: TPasType;
   Value, S: String;
-  U,M: string;
+  M: string;
 begin
   while True do
   begin
@@ -1374,7 +1370,7 @@ end;
 
 
 procedure TPasParser.ParseProperty(Element:TPasElement);
-  
+
   function GetAccessorName: String;
   begin
     ExpectIdentifier;
@@ -1400,7 +1396,7 @@ begin
   ParseArgList(Element, TPasProperty(Element).Args, tkSquaredBraceClose);
   NextToken;
   end;
-  
+
   if CurToken = tkColon then
   begin
   // read property type
@@ -1793,6 +1789,7 @@ var
 var
   s: String;
 begin
+  Result := nil;
   FileResolver := nil;
   Scanner := nil;
   Parser := nil;
@@ -1826,18 +1823,22 @@ begin
 
     Parser := TPasParser.Create(Scanner, FileResolver, AEngine);
     Filename := '';
-    Start := @FPCCommandLine[1];
-    CurPos := Start;
-    while CurPos[0] <> #0 do
-    begin
-      if CurPos[0] = ' ' then
+
+    if FPCCommandLine<>'' then
       begin
+        Start := @FPCCommandLine[1];
+        CurPos := Start;
+        while CurPos[0] <> #0 do
+        begin
+          if CurPos[0] = ' ' then
+          begin
+            ProcessCmdLinePart;
+            Start := CurPos + 1;
+          end;
+          Inc(CurPos);
+        end;
         ProcessCmdLinePart;
-        Start := CurPos + 1;
       end;
-      Inc(CurPos);
-    end;
-    ProcessCmdLinePart;
 
     if Filename = '' then
       raise Exception.Create(SErrNoSourceGiven);
@@ -1856,7 +1857,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2005-02-17 18:33:31  peter
+  Revision 1.16  2005-04-07 07:55:40  marco
+   * patch from peter for resoursestring=string bug + fix crash missing --input
+
+  Revision 1.15  2005/02/17 18:33:31  peter
     * parse global properties
 
   Revision 1.14  2005/02/14 17:13:16  peter
