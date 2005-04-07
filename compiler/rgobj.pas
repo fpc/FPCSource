@@ -536,9 +536,15 @@ unit rgobj;
             begin
               inc(spillingcounter);
               if spillingcounter>maxspillingcounter then
-                exit;
-              if spillingcounter>maxspillingcounter then
-                internalerror(200309041);
+                begin
+{$ifdef EXTDEBUG}
+                  { Only exit here so the .s file is still generated. Assembling
+                    the file will still trigger an error }
+                  exit;
+{$else}
+                  internalerror(200309041);
+{$endif}
+                end;
               endspill:=not spill_registers(list,headertai);
             end;
         until endspill;
@@ -2014,7 +2020,11 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.156  2005-03-25 21:55:43  jonas
+  Revision 1.157  2005-04-07 15:42:04  peter
+    * only in EXTDEBUG leave register allocator when it fails. Otherwise
+      give an IE
+
+  Revision 1.156  2005/03/25 21:55:43  jonas
     * removed some unused variables
 
   Revision 1.155  2005/03/20 19:47:46  peter
