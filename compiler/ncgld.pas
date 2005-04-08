@@ -383,7 +383,6 @@ implementation
          otlabel,hlabel,oflabel : tasmlabel;
          fputyp : tfloattype;
          href : treference;
-         old_allow_multi_pass2,
          releaseright : boolean;
          len : aint;
          r:Tregister;
@@ -400,6 +399,7 @@ implementation
           in most cases we can process first the right node which contains
           the most complex code. Exceptions for this are:
             - result is in flags, loading left will then destroy the flags
+            - result is a jump, loading left must be already done before the jump is made
             - result need reference count, when left points to a value used in
               right then decreasing the refcnt on left can possibly release
               the memory before right increased the refcnt, result is that an
@@ -408,21 +408,9 @@ implementation
 
            But not when the result is in the flags, then
           loading the left node afterwards can destroy the flags.
-
-          when the right node returns as LOC_JUMP then we will generate
-          the following code:
-
-          rightnode
-          true:
-            leftnode
-            assign 1
-          false:
-            leftnode
-            assign 0
         }
-        if (right.expectloc<>LOC_FLAGS) and
-           ((right.expectloc=LOC_JUMP) or
-            (right.nodetype=calln) or
+        if not(right.expectloc in [LOC_FLAGS,LOC_JUMP]) and
+           ((right.nodetype=calln) or
             (right.resulttype.def.needs_inittable) or
             (right.registersint>=left.registersint)) then
          begin
@@ -439,10 +427,7 @@ implementation
            if codegenerror then
              exit;
 
-           { We skip the generation of the left node when it's a jump, see
-             explanation above }
-           if (right.location.loc<>LOC_JUMP) and
-              not(nf_concat_string in flags) then
+           if not(nf_concat_string in flags) then
             begin
               { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
               { can be false                                             }
@@ -509,7 +494,8 @@ implementation
             tcgtemprefnode(left).changelocation(right.location.reference);
           end
         { shortstring assignments are handled separately }
-        else *) if is_shortstring(left.resulttype.def) then
+        else *)
+        if is_shortstring(left.resulttype.def) then
           begin
             {
               we can get here only in the following situations
@@ -666,22 +652,10 @@ implementation
               LOC_JUMP :
                 begin
                   objectlibrary.getlabel(hlabel);
-                  { generate the leftnode for the true case, and
-                    release the location }
                   cg.a_label(exprasmlist,truelabel);
-                  secondpass(left);
-                  if codegenerror then
-                    exit;
                   cg.a_load_const_loc(exprasmlist,1,left.location);
                   cg.a_jmp_always(exprasmlist,hlabel);
-                  { generate the leftnode for the false case }
                   cg.a_label(exprasmlist,falselabel);
-                  old_allow_multi_pass2:=allow_multi_pass2;
-                  allow_multi_pass2:=true;
-                  secondpass(left);
-                  allow_multi_pass2:=old_allow_multi_pass2;
-                  if codegenerror then
-                    exit;
                   cg.a_load_const_loc(exprasmlist,0,left.location);
                   cg.a_label(exprasmlist,hlabel);
                 end;
@@ -956,7 +930,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.139  2005-02-14 17:13:06  peter
+  Revision 1.140  2005-04-08 15:18:08  peter
+  remove multiple pass2 calls. It is not supported anymore by all nodes (ttempcreatenode)
+
+  Revision 1.139  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.138  2005/02/13 19:57:15  florian

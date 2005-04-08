@@ -34,7 +34,6 @@ uses
        tflowcontrol = set of tenumflowcontrol;
 
     var
-       allow_multi_pass2 : boolean;
        flowcontrol : tflowcontrol;
 
 { produces the actual code }
@@ -169,8 +168,7 @@ implementation
 {$ifdef EXTDEBUG}
             if (p.expectloc=LOC_INVALID) then
               Comment(V_Warning,'ExpectLoc is not set before secondpass: '+nodetype2str[p.nodetype]);
-            if (not allow_multi_pass2) and
-               (p.location.loc<>LOC_INVALID) then
+            if (p.location.loc<>LOC_INVALID) then
               Comment(V_Warning,'Location.Loc is already set before secondpass: '+nodetype2str[p.nodetype]);
             if (cs_asm_nodes in aktglobalswitches) then
               logsecond(p.nodetype,true);
@@ -215,7 +213,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2005-02-14 17:13:07  peter
+  Revision 1.78  2005-04-08 15:18:08  peter
+  remove multiple pass2 calls. It is not supported anymore by all nodes (ttempcreatenode)
+
+  Revision 1.77  2005/02/14 17:13:07  peter
     * truncate log
 
 }
