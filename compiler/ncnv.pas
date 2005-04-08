@@ -1721,11 +1721,6 @@ implementation
             end;
         end;
 
-        { check if the result could be in a register }
-        if not(tstoreddef(resulttype.def).is_intregable) and
-           not(tstoreddef(resulttype.def).is_fpuregable) then
-          make_not_regable(left);
-
         { now call the resulttype helper to do constant folding }
         result:=resulttype_call_helper(convtype);
       end;
@@ -2645,7 +2640,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.181  2005-04-06 11:49:37  michael
+  Revision 1.182  2005-04-08 15:16:37  peter
+  remove forcing of non-regvar for left node when converting to non-regvar
+
+  Revision 1.181  2005/04/06 11:49:37  michael
   * Fix methodpointer copy from callnode to loadnode
 
   Revision 1.180  2005/03/25 22:20:18  peter
