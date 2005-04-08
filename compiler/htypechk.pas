@@ -838,6 +838,7 @@ implementation
     function  valid_for_assign(p:tnode;opts:TValidAssigns):boolean;
       var
         hp : tnode;
+        gotstring,
         gotwith,
         gotsubscript,
         gotpointer,
@@ -861,6 +862,7 @@ implementation
         gotpointer:=false;
         gotwith:=false;
         gotdynarray:=false;
+        gotstring:=false;
         hp:=p;
         if not(valid_void in opts) and
            is_void(hp.resulttype.def) then
@@ -887,11 +889,14 @@ implementation
                    recorddef, { handle record like class it needs a subscription }
                    classrefdef :
                      gotclass:=true;
+                   stringdef :
+                     gotstring:=true;
                  end;
                  { 1. if it returns a pointer and we've found a deref,
                    2. if it returns a class or record and a subscription or with is found
                    3. if the address is needed of a field (subscriptn) }
                  if (gotpointer and gotderef) or
+                    (gotstring and gotvec) or
                     (
                      gotclass and
                      (gotsubscript or gotwith)
@@ -1075,10 +1080,14 @@ implementation
                    recorddef, { handle record like class it needs a subscription }
                    classrefdef :
                      gotclass:=true;
+                   stringdef :
+                     gotstring:=true;
                  end;
                  { 1. if it returns a pointer and we've found a deref,
-                   2. if it returns a class or record and a subscription or with is found }
-                 if (gotpointer and gotderef) or
+                   2. if it returns a class or record and a subscription or with is found
+                   3. string is returned }
+                 if (gotstring and gotvec) or
+                    (gotpointer and gotderef) or
                     (gotclass and (gotsubscript or gotwith)) then
                   result:=true
                  else
@@ -2053,7 +2062,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.122  2005-04-01 07:12:29  marco
+  Revision 1.123  2005-04-08 15:18:32  peter
+  support string[index] for const/var assignment
+
+  Revision 1.122  2005/04/01 07:12:29  marco
    * from peter for bug 3862
 
   Revision 1.121  2005/03/28 15:04:40  peter
