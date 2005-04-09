@@ -76,12 +76,16 @@ function pthread_mutexattr_init(_para1:Ppthread_mutexattr_t):cint;cdecl;external
 function pthread_mutexattr_destroy(_para1:Ppthread_mutexattr_t):cint;cdecl;external;
 function pthread_mutexattr_gettype(_para1:Ppthread_mutexattr_t; _para2:Pcint):cint;cdecl;external;
 function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cint;cdecl;external;
+function pthread_cond_timedwait(__cond:ppthread_cond_t; __mutex:ppthread_mutex_t; __abstime:ptimespec):longint;cdecl;external;
 
 
 
 {
   $Log$
-  Revision 1.7  2005-02-14 17:13:22  peter
+  Revision 1.8  2005-04-09 20:28:04  marco
+   * added condtimedwait
+
+  Revision 1.7  2005/02/14 17:13:22  peter
     * truncate log
 
 }
