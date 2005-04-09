@@ -238,6 +238,12 @@ begin
   currenttm.rtleventsetEvent(state);
 end;
 
+procedure RTLeventResetEvent(state:pRTLEvent);
+
+begin
+  currenttm.rtleventResetEvent(state);
+end;
+
 procedure RTLeventStartWait(state:pRTLEvent);
 
 begin
@@ -248,6 +254,12 @@ procedure RTLeventWaitFor(state:pRTLEvent);
 
 begin
   currenttm.rtleventWaitFor(state);
+end;
+
+procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
+
+begin
+  currenttm.rtleventWaitForTimeout(state,timeout);
 end;
 
 procedure RTLeventsync(m:trtlmethod;p:tprocedure);
@@ -319,7 +331,11 @@ end;
 
 function  NoGetCurrentThreadId : dword;
 begin
-  NoThreadError;
+  if IsMultiThread then
+    NoThreadError
+  else
+    ThreadingAlreadyUsed:=true;
+  result:=ThreadID;
 end;
 
 procedure NoCriticalSection(var CS);
@@ -411,22 +427,27 @@ begin
 end;
 
 procedure NORTLeventStartWait(state:pRTLEvent);
-
-begin
-  NoThreadError;
-end;
+  begin
+    NoThreadError;
+  end;
+  
 
 procedure NORTLeventWaitFor(state:pRTLEvent);
+  begin
+    NoThreadError;
+  end;
+  
 
-begin
-  NoThreadError;
-end;
+procedure NORTLeventWaitForTimeout(state:pRTLEvent;timeout : longint);
+  begin
+    NoThreadError;
+  end;
+  
 
 procedure NORTLeventsync(m:trtlmethod;p:tprocedure);
-
-begin
-  NoThreadError;
-end;
+  begin
+    NoThreadError;
+  end;
 
 
 Var
@@ -468,6 +489,7 @@ begin
     rtleventStartWait      :=@NortleventStartWait;
     rtleventWaitFor        :=@NortleventWaitFor;
     rtleventsync           :=@Nortleventsync;
+    rtleventwaitfortimeout :=@NortleventWaitForTimeout;
     end;
   SetThreadManager(NoThreadManager);
 end;
@@ -475,7 +497,14 @@ end;
 
 {
   $Log$
-  Revision 1.25  2005-04-03 19:29:28  florian
+  Revision 1.26  2005-04-09 17:26:08  florian
+    + classes.mainthreadid is set now
+    + rtleventresetevent
+    + rtleventwairfor with timeout
+    + checksynchronize with timeout
+    * race condition in synchronize fixed
+
+  Revision 1.25  2005/04/03 19:29:28  florian
     * proper error message if the cthreads unit is included too late
       uses clause
 

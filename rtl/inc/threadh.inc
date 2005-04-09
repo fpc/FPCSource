@@ -44,6 +44,7 @@ type
   TBasicEventWaitForHandler = function (timeout:cardinal;state:peventstate):longint;
   TBasicEventCreateHandler  = function (EventAttributes :Pointer;  AManualReset,InitialState : Boolean;const Name:ansistring):pEventState;
   TRTLEventHandler          = procedure(AEvent:PRTLEvent);
+  TRTLEventHandlerTimeout   = procedure(AEvent:PRTLEvent;timeout : longint);
   TRTLCreateEventHandler    = function:PRTLEvent;
   TRTLEventSyncHandler      = procedure (m:trtlmethod;p:tprocedure);
 
@@ -77,9 +78,11 @@ type
     RTLEventCreate         : TRTLCreateEventHandler;
     RTLEventDestroy        : TRTLEventHandler;
     RTLEventSetEvent       : TRTLEventHandler;
+    RTLEventResetEvent     : TRTLEventHandler;
     RTLEventStartWait      : TRTLEventHandler;
     RTLEventWaitFor        : TRTLEventHandler;
     RTLEventSync           : TRTLEventSyncHandler;
+    RTLEventWaitForTimeout : TRTLEventHandlerTimeout;
   end;
 
 {*****************************************************************************
@@ -144,13 +147,22 @@ function  basiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
 function  RTLEventCreate :PRTLEvent;
 procedure RTLeventdestroy(state:pRTLEvent);
 procedure RTLeventSetEvent(state:pRTLEvent);
+procedure RTLeventResetEvent(state:pRTLEvent);
 procedure RTLeventStartWait(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent);
+procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
 procedure RTLeventsync(m:trtlmethod;p:tprocedure);
 
 {
   $Log$
-  Revision 1.28  2005-02-25 22:02:48  florian
+  Revision 1.29  2005-04-09 17:26:08  florian
+    + classes.mainthreadid is set now
+    + rtleventresetevent
+    + rtleventwairfor with timeout
+    + checksynchronize with timeout
+    * race condition in synchronize fixed
+
+  Revision 1.28  2005/02/25 22:02:48  florian
     * another "transfer to linux"-commit
 
   Revision 1.27  2005/02/14 17:13:29  peter

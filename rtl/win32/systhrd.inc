@@ -396,18 +396,30 @@ begin
   SetEvent(THANDLE(AEvent));
 end;
 
+procedure intRTLEventResetEvent(AEvent: PRTLEvent);
+begin
+  ResetEvent(THANDLE(AEvent));
+end;
+
 procedure intRTLEventStartWait(AEvent: PRTLEvent);
 begin
-  // nothing to do, win32 events stay signalled after being set
+  { this is to get at least some common behaviour on unix and win32:
+    events before startwait are lost on unix, so reset the event on
+    win32 as well }
+  ResetEvent(THANDLE(AEvent));
 end;
 
 procedure intRTLEventWaitFor(AEvent: PRTLEvent);
-CONST
+const
   INFINITE=-1;
 begin
   WaitForSingleObject(THANDLE(AEvent), INFINITE);
 end;
 
+procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
+begin
+  WaitForSingleObject(THANDLE(AEvent), timeout);
+end;
 
 
 Var
@@ -447,8 +459,10 @@ begin
     RTLEventCreate         :=@intRTLEventCreate;
     RTLEventDestroy        :=@intRTLEventDestroy;
     RTLEventSetEvent       :=@intRTLEventSetEvent;
+    RTLEventResetEvent     :=@intRTLEventResetEvent;
     RTLEventStartWait      :=@intRTLEventStartWait;
     RTLEventWaitFor        :=@intRTLEventWaitFor;
+    RTLEventWaitForTimeout :=@intRTLEventWaitForTimeout;
     end;
   SetThreadManager(WinThreadManager);
   InitHeapMutexes;
@@ -458,7 +472,14 @@ end;
 
 {
   $Log$
-  Revision 1.2  2005-02-08 16:28:27  peter
+  Revision 1.3  2005-04-09 17:26:08  florian
+    + classes.mainthreadid is set now
+    + rtleventresetevent
+    + rtleventwairfor with timeout
+    + checksynchronize with timeout
+    * race condition in synchronize fixed
+
+  Revision 1.2  2005/02/08 16:28:27  peter
   pulseevent -> setevent
 
   Revision 1.1  2005/02/06 13:06:20  peter

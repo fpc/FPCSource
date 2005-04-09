@@ -527,6 +527,13 @@ begin
   pthread_mutex_unlock(@p^.mutex);
 end;
 
+
+procedure intRTLEventResetEvent(AEvent: PRTLEvent);
+  begin
+    { events before startwait are ignored unix }
+  end;
+
+
 procedure intRTLEventStartWait(AEvent: PRTLEvent);
 var p:pintrtlevent;
 
@@ -634,7 +641,14 @@ finalization
 end.
 {
   $Log$
-  Revision 1.25  2005-04-03 19:29:28  florian
+  Revision 1.26  2005-04-09 17:26:08  florian
+    + classes.mainthreadid is set now
+    + rtleventresetevent
+    + rtleventwairfor with timeout
+    + checksynchronize with timeout
+    * race condition in synchronize fixed
+
+  Revision 1.25  2005/04/03 19:29:28  florian
     * proper error message if the cthreads unit is included too late
       uses clause
 
