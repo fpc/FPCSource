@@ -551,8 +551,24 @@ begin
   pthread_mutex_unlock(@p^.mutex);
 end;
 
+
+procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
+  var
+    p : pintrtlevent;
+    errres : cint;
+    timespec : ttimespec;
+  begin
+    p:=pintrtlevent(aevent);
+    timespec.tv_sec:=timeout div 1000;
+    timespec.tv_nsec:=(timeout mod 1000)*1000000;
+    errres:=pthread_cond_timedwait(@p^.condvar, @p^.mutex, @timespec);
+    if (errres=0) or (errres=ESysETIMEDOUT) then
+      pthread_mutex_unlock(@p^.mutex);
+  end;
+
+
 type
-	tthreadmethod = procedure of object;
+  threadmethod = procedure of object;
 
 
 Function CInitThreads : Boolean;
@@ -621,7 +637,9 @@ begin
     rtlEventCreate         :=@intrtlEventCreate;
     rtlEventDestroy        :=@intrtlEventDestroy;
     rtlEventSetEvent       :=@intrtlEventSetEvent;
+    rtlEventResetEvent     :=@intrtlEventResetEvent;
     rtlEventStartWait      :=@intrtlEventStartWait;
+    rtleventWaitForTimeout :=@intrtleventWaitForTimeout;
     rtleventWaitFor        :=@intrtleventWaitFor;
     end;
   SetThreadManager(CThreadManager);
@@ -641,7 +659,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.26  2005-04-09 17:26:08  florian
+  Revision 1.27  2005-04-09 18:45:43  florian
+    * fixed some unix stuff
+
+  Revision 1.26  2005/04/09 17:26:08  florian
     + classes.mainthreadid is set now
     + rtleventresetevent
     + rtleventwairfor with timeout
