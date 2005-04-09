@@ -42,21 +42,16 @@ uses
 
 initialization
   CommonInit;
-  {$ifndef ver1_0}
-  InitCriticalSection(SynchronizeCritSect);
-  ExecuteEvent := RtlEventCreate;
-  SynchronizeMethod := nil;
-  {$endif}
+  
 finalization
   CommonCleanup;
-  {$ifndef ver1_0}
-    DoneCriticalSection(SynchronizeCritSect);
-  RtlEventDestroy(ExecuteEvent);
-  {$endif}
 end.
 {
   $Log$
-  Revision 1.9  2005-03-07 17:57:26  peter
+  Revision 1.10  2005-04-09 07:23:07  florian
+    * applied Jesus Reyes win32 crash fixed
+
+  Revision 1.9  2005/03/07 17:57:26  peter
     * renamed rtlconst to rtlconsts
 
   Revision 1.8  2005/02/14 17:13:32  peter
