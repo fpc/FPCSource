@@ -57,7 +57,6 @@ type
     function Write(const Buffer; Count: Longint): Longint; override;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
-//    function Seek(Offset: Int64; Origin: TSeekOrigin): Int64; override;
   end;
   
   { TSqliteDataset }
@@ -70,8 +69,12 @@ type
     FIndexFieldName: String;
     FIndexFieldNo: Integer;
     FAutoIncFieldNo: Integer;
-    FNextAutoInc:Integer;   
+    FNextAutoInc:Integer;
+    {$ifdef Debug}
+    FFCurrentItem: PDataRecord;
+    {$else}
     FCurrentItem: PDataRecord;
+    {$endif}
     FBeginItem: PDataRecord;
     FEndItem: PDataRecord;
     FCacheItem: PDataRecord;
@@ -92,9 +95,10 @@ type
     FAddedItems: TList;
     FDeletedItems: TList;
     FOrphanItems: TList;
-    procedure BuildLinkedList;
-    procedure DisposeLinkedList;
   protected
+    procedure DisposeLinkedList;
+    procedure BuildLinkedList; virtual;
+    //TDataSet overrides
     function AllocRecordBuffer: PChar; override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
@@ -129,14 +133,18 @@ type
     destructor Destroy; override;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
     // Additional procedures
-    function ApplyUpdates: Boolean;
-    function CreateTable: Boolean;
+    function ApplyUpdates: Boolean; virtual;
+    function CreateTable: Boolean; virtual;
     function ExecSQL:Integer;
     function ExecSQL(ASql:String):Integer;
     function TableExists: Boolean;
     procedure RefetchData;
     function SqliteReturnString: String;
     function UpdatesPending: Boolean;
+    {$ifdef DEBUG}
+    procedure SetCurrentItem(Value:PDataRecord);
+    property FCurrentItem: PDataRecord read FFCurrentItem write SetCurrentItem;
+    {$endif}
     {$ifdef USE_SQLITEDS_INTERNALS}
     property BeginItem: PDataRecord read FBeginItem;
     property EndItem: PDataRecord read FEndItem;
@@ -278,17 +286,7 @@ begin
   else
     FRowSize:=0;  
 end;  
-{
-function TDSMemoryStream.Seek(Offset: Int64; Origin: TSeekOrigin): Int64;
-begin
-  Case Origin of
-    soBeginning : FPosition:=Offset;
-    soEnd       : FPosition:=FRowSize+Offset;
-    soCurrent   : FPosition:=FPosition+Offset;
-  end;
-  Result:=FPosition;
-end;
-}
+
 function TDSStream.Seek(Offset: Longint; Origin: Word): Longint;
 begin
   Case Origin of
@@ -428,7 +426,6 @@ end;
 
 constructor TSqliteDataset.Create(AOwner: TComponent);
 begin
-  //FComplexSql:=False;
   BookmarkSize := SizeOf(Pointer);
   FBufferSize := SizeOf(PPDataRecord);
   FUpdatedItems:= TList.Create;
@@ -777,7 +774,9 @@ end;
 
 procedure TSqliteDataset.InternalSetToRecord(Buffer: PChar);
 begin
-  FCurrentItem:=PPDataRecord(Buffer)^;
+  //Todo: see why only under linux InternalSetToRecord is called with FCacheItem as parameter
+  if PPDataRecord(Buffer)^ <> FCacheItem then
+    FCurrentItem:=PPDataRecord(Buffer)^;
 end;
 
 function TSqliteDataset.IsCursorOpen: Boolean;
@@ -1167,5 +1166,62 @@ procedure Register;
 begin
   RegisterComponents('Data Access', [TSqliteDataset]);
 end;
+
+{$ifdef DEBUG}
+procedure TSqliteDataset.SetCurrentItem(Value:PDataRecord);
+var
+ ANo:Integer;
+
+  function GetItemPos:Integer;
+  var
+    TempItem:PDataRecord;
+  begin
+    Result:= -1;
+    TempItem:=FBeginItem;
+    if Value = FCacheItem then
+       Result:=-2
+    else
+    while Value <> TempItem do
+    begin
+     if TempItem^.Next <> nil then
+     begin
+       inc(Result);
+       TempItem:=TempItem^.Next;
+     end
+     else
+     begin
+      Result:=-1;
+      break;
+     end;
+    end;
+  end;
+
+begin
+  if Value = FBeginItem then
+  begin
+    writeln('FCurrentItem set to FBeginItem: ',IntToHex(Integer(Value),0));
+    FFCurrentItem:=Value;
+  end
+  else
+    if Value = FEndItem then
+    begin
+      writeln('FCurrentItem set to FEndItem: ',IntToHex(Integer(Value),0));
+      FFCurrentItem:=Value;
+    end
+    else
+      if Value = FCacheItem then
+      begin
+        writeln('FCurrentItem set to FCacheItem: ',IntToHex(Integer(Value),0));
+        FFCurrentItem:=Value;
+      end
+      else
+      begin
+        writeln('FCurrentItem set from ',IntToHex(Integer(FFCurrentItem),0),' to ',IntToHex(Integer(Value),0));
+        Ano:=GetItemPos;
+        writeln('Item position is ',ANo);
+        FFCurrentItem:=Value;
+      end;
+end;
+{$endif}
  
 end. 
