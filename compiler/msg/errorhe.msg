@@ -307,6 +307,8 @@ scan_e_wrong_switch_toggle_default=02066_E_שימוש במתג שגוי, השתמש ב ON/OFF/DEFAU
 scan_e_mode_switch_not_allowed=02067_E_מצב מתג "$1" לא מורשה
 % A mode switch has already been encountered, or, in case of option -Mmacpas,
 % a mode switch occur after UNIT.
+scan_e_error_macro_undefined=02068_E_משתנה זמן הידור "$1" לא הוגדר.
+% Thus the conditional compile time expression cannot be evaluated.
 % \end{description}
 #
 # Parser
@@ -409,56 +411,56 @@ parser_w_range_check_error=03036_W_שגיאה בבדיקת טווח בעת הערכת קבועים
 % The constants are out of their allowed range.
 parser_e_double_caselabel=03037_E_הכזרת תווית כפולה בcase
 % You are specifying the same label 2 times in a \var{case} statement.
-parser_e_case_lower_less_than_upper_bound=03038_E_Upper bound of case range is less than lower bound
+parser_e_case_lower_less_than_upper_bound=03038_E_הטווח הסופי קטן מהטווח ההתחלתי
 % The upper bound of a \var{case} label is less than the lower bound and this
 % is useless
-parser_e_type_const_not_possible=03039_E_typed constants of classes are not allowed
+parser_e_type_const_not_possible=03039_E_הכרזת טיפוס קבועים של מחלקות אסורה
 % You cannot declare a constant of type class or object.
-parser_e_no_overloaded_procvars=03040_E_functions variables of overloaded functions are not allowed
+parser_e_no_overloaded_procvars=03040_E_משתנים של פונקציות מרובות שימוש אינם מורשות
 % You are trying to assign an overloaded function to a procedural variable.
 % This is not allowed
-parser_e_invalid_string_size=03041_E_string length must be a value from 1 to 255
+parser_e_invalid_string_size=03041_E_אורך מחרוזת חייב להיות עם ערכים מ1 ל255
 % The length of a shortstring in Pascal is limited to 255 characters. You are
 % trying to declare a string with length lower than 1 or greater than 255
-parser_w_use_extended_syntax_for_objects=03042_W_use extended syntax of NEW and DISPOSE for instances of objects
+parser_w_use_extended_syntax_for_objects=03042_W_השתמש בתחביר מורחב של NEW וDISPOSE לעותקים של אובייקט
 % If you have a pointer \var{a} to a class type, then the statement
 % \var{new(a)} will not initialize the class (i.e. the constructor isn't
 % called), although space will be allocated. you should issue the
 % \var{new(a,init)} statement. This will allocate space, and call the
 % constructor of the object
-parser_w_no_new_dispose_on_void_pointers=03043_W_use of NEW or DISPOSE for untyped pointers is meaningless
-parser_e_no_new_dispose_on_void_pointers=03044_E_use of NEW or DISPOSE is not possible for untyped pointers
+parser_w_no_new_dispose_on_void_pointers=03043_W_השימוש במצביע לא מוגדר עם NEW ו DISPOSE חסר משמעות
+parser_e_no_new_dispose_on_void_pointers=03044_E_בלתי אפשרי להשתמש במצביע לא מוגדר עם NEW או DISPOSE
 % You cannot use \var{new(p)} or \var{dispose(p)} if \var{p} is an untyped pointer
 % because no size is associated to an untyped pointer.
 % Accepted for compatibility in \var{tp} and \var{delphi} modes.
-parser_e_class_id_expected=03045_E_class identifier expected
+parser_e_class_id_expected=03045_E_מצפה למזהה מחלקה
 % This happens when the compiler scans a procedure declaration that contains
 % a dot,
 % i.e., a object or class method, but the type in front of the dot is not
 % a known type.
-parser_e_no_type_not_allowed_here=03046_E_type identifier not allowed here
+parser_e_no_type_not_allowed_here=03046_E_סוג מזהה לא מורשה במיקום הנוכחי
 % You cannot use a type inside an expression.
-parser_e_methode_id_expected=03047_E_method identifier expected
+parser_e_methode_id_expected=03047_E_מצפה למזהה מתודי
 % This identifier is not a method.
 % This happens when the compiler scans a procedure declaration that contains
 % a dot, i.e., a object or class method, but the procedure name is not a
 % procedure of this type.
-parser_e_header_dont_match_any_member=03048_E_function header doesn't match any method of this class "$1"
+parser_e_header_dont_match_any_member=03048_E_הגדרת הפונקציה לא זהה למתודות של המחלקה "$1"
 % This identifier is not a method.
 % This happens when the compiler scans a procedure declaration that contains
 % a dot, i.e., a object or class method, but the procedure name is not a
 % procedure of this type.
-parser_d_procedure_start=03049_DL_procedure/function $1
+parser_d_procedure_start=03049_DL_פרוצדורה/פונקציה $1
 % When using the \var{-vd} switch, the compiler tells you when it starts
 % processing a procedure or function implementation.
-parser_e_error_in_real=03050_E_Illegal floating point constant
+parser_e_error_in_real=03050_E_קבוע של מספר ממשי אינו חוקי
 % The compiler expects a floating point expression, and gets something else.
-parser_e_fail_only_in_constructor=03051_E_FAIL can be used in constructors only
+parser_e_fail_only_in_constructor=03051_E_FAIL יכול להיות בשימוש רק בתוך יוצר
 % You are using the \var{fail} keyword outside a constructor method.
-parser_e_no_paras_for_destructor=03052_E_Destructors can't have parameters
+parser_e_no_paras_for_destructor=03052_E_הורסים לא יכולים להכיל פרמטרים
 % You are declaring a destructor with a parameter list. Destructor methods
 % cannot have parameters.
-parser_e_only_class_methods_via_class_ref=03053_E_Only class methods can be referred with class references
+parser_e_only_class_methods_via_class_ref=03053_E_רק מתודות מחלקה יכולות להיות מוגדרות בהתייחסות מחלקה
 % This error occurs in a situation like the following:
 % \begin{verbatim}
 % Type :
@@ -472,7 +474,7 @@ parser_e_only_class_methods_via_class_ref=03053_E_Only class methods can be refe
 % \end{verbatim}
 % \var{Free} is not a class method and hence cannot be called with a class
 % reference.
-parser_e_only_class_methods=03054_E_Only class methods can be accessed in class methods
+parser_e_only_class_methods=03054_E_רק מתודת מחלקה יכולה לגשת למתודת מחלקה
 % This is related to the previous error. You cannot call a method of an object
 % from a inside a class method. The following code would produce this error:
 % \begin{verbatim}
@@ -483,24 +485,24 @@ parser_e_only_class_methods=03054_E_Only class methods can be accessed in class 
 % \end{verbatim}
 % Because free is a normal method of a class it cannot be called from a class
 % method.
-parser_e_case_mismatch=03055_E_Constant and CASE types do not match
+parser_e_case_mismatch=03055_E_קבועים וסוג CASE אינם מתאימים
 % One of the labels is not of the same type as the case variable.
-parser_e_illegal_symbol_exported=03056_E_The symbol can't be exported from a library
+parser_e_illegal_symbol_exported=03056_E_לא ניתן לייצא את הסמל מספרייה
 % You can only export procedures and functions when you write a library. You
 % cannot export variables or constants.
-parser_w_should_use_override=03057_W_An inherited method is hidden by "$1"
+parser_w_should_use_override=03057_W_מתודת ירושה נסתרת ע"י "$1"
 % A method that is declared \var{virtual} in a parent class, should be
 % overridden in the descendent class with the \var{override} directive. If you
 % don't specify the \var{override} directive, you will hide the parent method;
 % you will not override it.
-parser_e_nothing_to_be_overridden=03058_E_There is no method in an ancestor class to be overridden: "$1"
+parser_e_nothing_to_be_overridden=03058_E_אין מתודה  במחלקה של האב אשר ניתן לשכתב: "$1"
 % You are trying to \var{override} a virtual method of a parent class that does
 % not exist.
-parser_e_no_procedure_to_access_property=03059_E_No member is provided to access property
+parser_e_no_procedure_to_access_property=03059_E_לא ניתן מספר לגשת למאפיין
 % You specified no \var{read} directive for a property.
-parser_w_stored_not_implemented=03060_W_Stored prorperty directive is not yet implemented
+parser_w_stored_not_implemented=03060_W_מאפיין שמור אינו מבוצע עדיין
 % The \var{stored} directive is not yet implemented
-parser_e_ill_property_access_sym=03061_E_Illegal symbol for property access
+parser_e_ill_property_access_sym=03061_E_סימן לא חוקי לגישת המאפיין
 % There is an error in the \var{read} or \var{write} directives for an array
 % property. When you declare an array property, you can only access it with
 % procedures and functions. The following code woud cause such an error.
@@ -510,85 +512,85 @@ parser_e_ill_property_access_sym=03061_E_Illegal symbol for property access
 %   property x [i : integer]: integer read I write i;
 % \end{verbatim}
 %
-parser_e_cant_access_protected_member=03062_E_Cannot access a protected field of an object here
+parser_e_cant_access_protected_member=03062_E_לא ניתן לגשת לשדה מוגן באובייקט הנוכחי
 % Fields that are declared in a \var{protected} section of an object or class
 % declaration cannot be accessed outside the module wher the object is
 % defined, or outside descendent object methods.
-parser_e_cant_access_private_member=03063_E_Cannot access a private field of an object here
+parser_e_cant_access_private_member=03063_E_לא ניתן לגשת לשדה פרטי באובקייט הנוכחי
 % Fields that are declared in a \var{private} section of an object or class
 % declaration cannot be accessed outside the module where the class is
 % defined.
-parser_e_overridden_methods_not_same_ret=03066_E_overridden methods must have the same return type: "$2" is overriden by "$1" which has another return type
+parser_e_overridden_methods_not_same_ret=03066_E_מתודה מרובת שימוש חייבת להיות זהה בסוג המשתנה: "$2" בשימוש ע"י "$1", אשר מכילה סוג משתנה אחר
 % If you declare overridden methods in a class definition, they must
 % have the same return type.
-parser_e_dont_nest_export=03067_E_EXPORT declared functions can't be nested
+parser_e_dont_nest_export=03067_E_הגדדרת פונקציות EXPORT לא יכולות להיות מקוננות
 % You cannot declare a function or procedure within a function or procedure
 % that was declared as an export procedure.
-parser_e_methods_dont_be_export=03068_E_methods can't be EXPORTed
+parser_e_methods_dont_be_export=03068_E_אי אפשר לייצא את המתודה
 % You cannot declare a procedure that is a method for an object as
 % \var{export}ed.
-parser_e_call_by_ref_without_typeconv=03069_E_call by var parameters have to match exactly: Got "$1" expected "$2"
+parser_e_call_by_ref_without_typeconv=03069_E_השימוש בפרמטר של משתנה חייב להיות זהה: מכיל "$1" מצפה ל"$2"
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
 % type conversion.
-parser_e_no_super_class=03070_E_Class isn't a parent class of the current class
+parser_e_no_super_class=03070_E_המחלקה איננה מחלקת אב של המחלקה הנוכחית
 % When calling inherited methods, you are trying to call a method of a non-related
 % class. You can only call an inherited method of a parent class.
-parser_e_self_not_in_method=03071_E_SELF is only allowed in methods
+parser_e_self_not_in_method=03071_E_SELF מורשה רק במתודות
 % You are trying to use the \var{self} parameter outside an object's method.
 % Only methods get passed the \var{self} parameters.
-parser_e_generic_methods_only_in_methods=03072_E_methods can be only in other methods called direct with type identifier of the class
+parser_e_generic_methods_only_in_methods=03072_E_מתודות יכולות להיקרא ישירות רק בתוך מתודות אחרות עם סוג מזהה שלהמחלקה
 % A construction like \var{sometype.somemethod} is only allowed in a method.
-parser_e_illegal_colon_qualifier=03073_E_Illegal use of ':'
+parser_e_illegal_colon_qualifier=03073_E_שימוש לא חוקי של ':'
 % You are using the format \var{:} (colon) 2 times on an expression that
 % is not a real expression.
-parser_e_illegal_set_expr=03074_E_range check error in set constructor or duplicate set element
+parser_e_illegal_set_expr=03074_E_שגיאה בבדיקת טווח בסדרת יוצרים או שכפול סדרה
 % The declaration of a set contains an error. Either one of the elements is
 % outside the range of the set type, either two of the elements are in fact
 % the same.
-parser_e_pointer_to_class_expected=03075_E_Pointer to object expected
+parser_e_pointer_to_class_expected=03075_E_מצפה למצביע אובייקט
 % You specified an illegal type in a \var{new} statement.
 % The extended syntax of \var{new} needs an  object as a parameter.
-parser_e_expr_have_to_be_constructor_call=03076_E_Expression must be constructor call
+parser_e_expr_have_to_be_constructor_call=03076_E_הביטוי חייב להיות קריאת יוצר
 % When using the extended syntax of \var{new}, you must specify the constructor
 % method of the object you are trying to create. The procedure you specified
 % is not a constructor.
-parser_e_expr_have_to_be_destructor_call=03077_E_Expression must be destructor call
+parser_e_expr_have_to_be_destructor_call=03077_E_הביטוי חייב להיות קריאת הורס
 % When using the extended syntax of \var{dispose}, you must specify the
 % destructor method of the object you are trying to dispose of.
 % The procedure you specified is not a destructor.
-parser_e_invalid_record_const=03078_E_Illegal order of record elements
+parser_e_invalid_record_const=03078_E_סדר לא חוקי של אלמנטים ברשומה
 % When declaring a constant record, you specified the fields in the wrong
 % order.
-parser_e_false_with_expr=03079_E_Expression type must be class or record type
+parser_e_false_with_expr=03079_E_סוג ביטוי חייב להיות ביטוי רשומה או מחלקה
 % A \var{with} statement needs an argument that is of the type \var{record}
 % or \var{class}. You are using \var{with} on an expression that is not of
 % this type.
-parser_e_void_function=03080_E_Procedures can't return a value
+parser_e_void_function=03080_E_פרוצדורה לא יכולה להחזיר ערך
 % In \fpc, you can specify a return value for a function when using
 % the \var{exit} statement. This error occurs when you try to do this with a
 % procedure. Procedures  cannot return a value.
-parser_e_constructors_always_objects=03081_E_constructors and destructors must be methods
+parser_e_constructors_always_objects=03081_E_היוצרים וההורסים חייבים להיות מתודיים
 % You're declaring a procedure as destructor or constructor, when the
 % procedure isn't a class method.
-parser_e_operator_not_overloaded=03082_E_Operator is not overloaded
+parser_e_operator_not_overloaded=03082_E_האופריטור לא מרובה שימוש
 % You're trying to use an overloaded operator when it is not overloaded for
 % this type.
-parser_e_no_such_assignment=03083_E_Impossible to overload assignment for equal types
+parser_e_no_such_assignment=03083_E_לא ניתן להציב ערכים לסוגים מרובי שימוש
 % You can not overload assignment for types
 % that the compiler considers as equal.
-parser_e_overload_impossible=03084_E_Impossible operator overload
+parser_e_overload_impossible=03084_E_בלתי אפשרי להשתמש באופרטור מרובה שימוש
 % The combination of operator, arguments and return type are
 % incompatible.
-parser_e_no_reraise_possible=03085_E_Re-raise isn't possible there
+parser_e_no_reraise_possible=03085_E_לא ניתן להרים חריגה
 % You are trying to raise an exception where it is not allowed. You can only
 % raise exceptions in an \var{except} block.
-parser_e_no_new_or_dispose_for_classes=03086_E_The extended syntax of new or dispose isn't allowed for a class
+parser_e_no_new_or_dispose_for_classes=03086_E_התחביר המורחב של NEW או DISPOSE לא מורשה למחלקות
 % You cannot generate an instance of a class with the extended syntax of
 % \var{new}. The constructor must be used for that. For the same reason, you
 % cannot call \var{dispose} to de-allocate an instance of a class, the
 % destructor must be used for that.
-parser_e_procedure_overloading_is_off=03088_E_Procedure overloading is switched off
+parser_e_procedure_overloading_is_off=03088_E_האפשרות לפרוצדורות מרובות שימוש כבוי
 % When using the \var{-So} switch, procedure overloading is switched off.
 % Turbo Pascal does not support function overloading.
 parser_e_overload_operator_failed=03089_E_It is not possible to overload this operator (overload = instead)
@@ -1326,12 +1328,12 @@ sym_w_wrong_C_pack=05034_W_Type "$1" is not aligned correctly in current record 
 % for C structures.
 sym_e_illegal_field=05035_E_Unknown record field identifier "$1"
 % The field doesn't exist in the record/object definition.
-sym_n_uninitialized_local_variable=05036_W_Local variable "$1" does not seem to be initialized
+sym_w_uninitialized_local_variable=05036_W_Local variable "$1" does not seem to be initialized
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-sym_n_uninitialized_variable=05037_W_Variable "$1" does not seem to be initialized
+sym_w_uninitialized_variable=05037_W_Variable "$1" does not seem to be initialized
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
@@ -1367,6 +1369,16 @@ sym_e_cant_create_unique_type=05056_E_Can't create unique type from this type
 % Only simple types like ordinal, float and string types are supported when
 % redefining a type with \var{type newtype = type oldtype;}.
 % \end{description}
+sym_h_uninitialized_local_variable=05057_H_Local variable "$1" does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. appears in the right-hand-side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assigment)
+sym_h_uninitialized_variable=05058_H_Variable "$1" does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. appears in the right-hand-side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assigment)
 #
 # Codegenerator
 #
@@ -2332,7 +2344,7 @@ P*2WC_Specify console type application (MacOS only)
 P*2WG_Specify graphic type application (MacOS only)
 P*2WT_Specify tool type application (MPW tool, MacOS only)
 **1X_executable options:
-**2Xc_link with the c library
+**2Xc_pass --shared to the linker (Unix only)
 **2Xd_don't use standard library search path (needed for cross compile)
 **2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)
 **2XP<x>_prepend the binutils names with the prefix <x>
