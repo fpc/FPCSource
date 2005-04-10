@@ -286,7 +286,7 @@ end;
 
 Function TParam.GetIsNull: Boolean;
 begin
-  Result:=FNull or VarIsNull(FValue) or VarIsClear(FValue);
+  Result:= VarIsNull(FValue) or VarIsClear(FValue);
 end;
 
 Function TParam.IsEqual(AValue: TParam): Boolean;
@@ -371,7 +371,6 @@ Procedure TParam.SetAsVariant(const AValue: Variant);
 begin
   FValue:=AValue;
   FBound:=not VarIsClear(Value);
-  FNull:=VarIsClear(Value) or VarIsNull(Value);
   if FDataType = ftUnknown then
     case VarType(Value) of
       varBoolean  : FDataType:=ftBoolean;
@@ -430,7 +429,6 @@ begin
   ParamType:=ptUnknown;
   DataType:=ftUnknown;
   FValue:=Unassigned;
-  FNull:=True;
 end;
 
 constructor TParam.Create(AParams: TParams; AParamType: TParamType);
@@ -524,7 +522,6 @@ end;
 Procedure TParam.Clear;
 begin
   FValue:=UnAssigned;
-  FNull:=True;
 end;
 
 Procedure TParam.GetData(Buffer: Pointer);
@@ -700,7 +697,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2005-03-24 20:54:53  michael
+  Revision 1.6  2005-04-10 18:27:39  joost
+  - removed TParam.FNull
+
+  Revision 1.5  2005/03/24 20:54:53  michael
   + Fix in params from Luk Vandelaer
 
   Revision 1.4  2005/02/14 17:13:12  peter
