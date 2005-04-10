@@ -20,7 +20,7 @@ type
     TransactionHandle   : PPGConn;
   end;
 
-  TPQCursor = Class(TSQLHandle)
+  TPQCursor = Class(TSQLCursor)
     protected
     Statement : string;
     tr        : Pointer;
@@ -41,16 +41,17 @@ type
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; override;
 
-    Function AllocateCursorHandle : TSQLHandle; override;
+    Function AllocateCursorHandle : TSQLCursor; override;
     Function AllocateTransactionHandle : TSQLHandle; override;
 
-    procedure FreeStatement(cursor : TSQLHandle); override;
-    procedure PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string); override;
-    procedure FreeFldBuffers(cursor : TSQLHandle); override;
-    procedure Execute(cursor: TSQLHandle;atransaction:tSQLtransaction); override;
-    procedure AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs); override;
-    function Fetch(cursor : TSQLHandle) : boolean; override;
-    function LoadField(cursor : TSQLHandle;FieldDef : TfieldDef;buffer : pointer) : boolean; override;
+    procedure CloseStatement(cursor : TSQLCursor); override;
+    procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); override;
+    procedure FreeFldBuffers(cursor : TSQLCursor); override;
+    procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); override;
+    procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); override;
+    function Fetch(cursor : TSQLCursor) : boolean; override;
+    procedure UnPrepareStatement(cursor : TSQLCursor); override;
+    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
     function Commit(trans : TSQLHandle) : boolean; override;
@@ -58,7 +59,8 @@ type
     function StartdbTransaction(trans : TSQLHandle) : boolean; override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
-
+  public
+    constructor Create(AOwner : TComponent); override;
   published
     property DatabaseName;
     property KeepConnection;
@@ -79,6 +81,7 @@ ResourceString
   SErrFieldDefsFailed = 'Can not extract field information from query';
   SErrFetchFailed = 'Fetch of data failed';
   SErrNoDatabaseName = 'Database connect string (DatabaseName) not filled in!';
+  SErrPrepareFailed = 'Preparation of query failed.';
 
 const Oid_Bool     = 16;
       Oid_Text     = 25;
@@ -95,6 +98,12 @@ const Oid_Bool     = 16;
       oid_time      = 1083;
       oid_numeric   = 1700;
 
+constructor TPQConnection.Create(AOwner : TComponent);
+
+begin
+  inherited;
+  FConnOptions := FConnOptions + [sqSupportParams];
+end;
 
 function TPQConnection.GetTransactionHandle(trans : TSQLHandle): pointer;
 begin
@@ -304,7 +313,7 @@ begin
   end;
 end;
 
-Function TPQConnection.AllocateCursorHandle : TSQLHandle;
+Function TPQConnection.AllocateCursorHandle : TSQLCursor;
 
 begin
   result := TPQCursor.create;
@@ -316,28 +325,102 @@ begin
   result := TPQTrans.create;
 end;
 
-procedure TPQConnection.PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string);
+procedure TPQConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams);
+
+const TypeStrings : array[TFieldType] of string =
+    (
+      'Unknown',
+      'text',
+      'int',
+      'int',
+      'int',
+      'bool',
+      'float',
+      'numeric',
+      'numeric',
+      'date',
+      'time',
+      'datetime',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'int',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown',
+      'Unknown'
+    );
+
+
+var s : string;
+    i : integer;
 
 begin
+  ObtainSQLStatementType(cursor,buf);
   with (cursor as TPQCursor) do
     begin
-    (cursor as TPQCursor).statement := buf;
-    if StatementType = stselect then
+    FPrepared := False;
+    nr := inttostr(FCursorcount);
+    inc(FCursorCount);
+    // Prior to v8 there is no support for cursors and parameters.
+    // So that's not supported.
+    if FStatementType = stselect then
+      statement := 'DECLARE slctst' + name + nr +' BINARY CURSOR FOR ' + buf
+    else if FStatementType in [stInsert,stUpdate,stDelete] then
       begin
-      nr := inttostr(FCursorcount);
-      statement := 'DECLARE slctst' + name + nr +' BINARY CURSOR FOR ' + statement;
-      inc(FCursorcount);
-      end;
+      tr := aTransaction.Handle;
+      // Only available for pq 8.0, so don't use it...
+      // Res := pqprepare(tr,'prepst'+name+nr,pchar(buf),params.Count,pchar(''));
+      s := 'prepare prepst'+nr+' ';
+      if Assigned(AParams) and (AParams.count > 0) then
+        begin
+        s := s + '(';
+        for i := 0 to AParams.count-1 do
+          begin
+          s := s + TypeStrings[AParams[i].DataType] + ',';
+          buf := stringreplace(buf,':'+AParams[i].Name,'$'+inttostr(i+1),[rfReplaceAll,rfIgnoreCase]);
+          end;
+        s[length(s)] := ')';
+        end;
+      s := s + ' as ' + buf;
+      res := pqexec(tr,pchar(s));
+      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+        begin
+        pqclear(res);
+        DatabaseError(SErrPrepareFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self)
+        end;
+      FPrepared := True;
+      end
+    else
+      statement := buf;
     end;
 end;
 
-procedure TPQConnection.FreeStatement(cursor : TSQLHandle);
+procedure TPQConnection.CloseStatement(cursor : TSQLCursor);
 
 begin
   with cursor as TPQCursor do
    if (PQresultStatus(res) <> PGRES_FATAL_ERROR) then //Don't try to do anything if the transaction has already encountered an error.
     begin
-    if StatementType = stselect then
+    if FStatementType = stselect then
       begin
       Res := pqexec(tr,pchar('CLOSE slctst' + name + nr));
       if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
@@ -351,32 +434,74 @@ begin
     end;
 end;
 
-procedure TPQConnection.FreeFldBuffers(cursor : TSQLHandle);
+procedure TPQConnection.UnPrepareStatement(cursor : TSQLCursor);
+
+begin
+  with (cursor as TPQCursor) do if FPrepared then
+    begin
+    res := pqexec(tr,pchar('deallocate prepst'+nr));
+    if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+      begin
+      pqclear(res);
+      DatabaseError(SErrPrepareFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self)
+      end;
+    pqclear(res);
+    FPrepared := False;
+    end;
+end;
+
+procedure TPQConnection.FreeFldBuffers(cursor : TSQLCursor);
 
 begin
 // Do nothing
 end;
 
-procedure TPQConnection.Execute(cursor: TSQLHandle;atransaction:tSQLtransaction);
+procedure TPQConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams);
 
-var st : string;
+var ar : array of pchar;
+    i  : integer;
+    s  : string;
 
 begin
   with cursor as TPQCursor do
     begin
-    tr := aTransaction.Handle;
-//    res := pqexecParams(tr,pchar(statement),0,nil,nil,nil,nil,1);
-    st := statement;
-    res := pqexec(tr,pchar(st));
-    if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+    if FStatementType in [stInsert,stUpdate,stDelete] then
       begin
-      pqclear(res);
-      DatabaseError(SErrExecuteFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self);
+      if Assigned(AParams) and (AParams.count > 0) then
+        begin
+        setlength(ar,Aparams.count);
+        for i := 0 to AParams.count -1 do
+          ar[i] := pchar(AParams[i].asstring);
+        res := PQexecPrepared(tr,pchar('prepst'+nr),Aparams.count,@Ar[0],nil,nil,0)
+        end
+      else
+        res := PQexecPrepared(tr,pchar('prepst'+nr),0,nil,nil,nil,0);
+      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+        begin
+        pqclear(res);
+        DatabaseError(SErrExecuteFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self);
+        end;
+      end
+    else
+      begin
+      tr := aTransaction.Handle;
+
+      s := statement;
+      //Should be altered, just like in TSQLQuery.ApplyRecUpdate
+      if assigned(AParams) then for i := 0 to AParams.count-1 do
+        s := stringreplace(s,':'+AParams[i].Name,AParams[i].asstring,[rfReplaceAll,rfIgnoreCase]);
+      res := pqexec(tr,pchar(s));
+      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+        begin
+        pqclear(res);
+        DatabaseError(SErrExecuteFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self);
+        end;
       end;
     end;
 end;
 
-procedure TPQConnection.AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs);
+
+procedure TPQConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs);
 var
   i         : integer;
   size      : integer;
@@ -415,7 +540,7 @@ begin
   Result := FSQLDatabaseHandle;
 end;
 
-function TPQConnection.Fetch(cursor : TSQLHandle) : boolean;
+function TPQConnection.Fetch(cursor : TSQLCursor) : boolean;
 
 var st : string;
 
@@ -433,7 +558,7 @@ begin
     end;
 end;
 
-function TPQConnection.LoadField(cursor : TSQLHandle;FieldDef : TfieldDef;buffer : pointer) : boolean;
+function TPQConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean;
 
 var
   x,i          : integer;
