@@ -524,6 +524,12 @@ operator /(const op1,op2 : variant) dest : variant;
      dest:=op1;
      variantmanager.varop(dest,op2,opdivide);
   end;
+  
+operator **(const op1,op2 : variant) dest : variant;
+  begin
+     dest:=op1;
+     variantmanager.varop(dest,op2,oppower);
+  end;
 
 operator div(const op1,op2 : variant) dest : variant;
   begin
@@ -618,7 +624,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.28  2005-04-10 09:22:38  florian
+  Revision 1.29  2005-04-10 20:24:31  florian
+    + basic operators (int, real and string) for variants implemented
+
+  Revision 1.28  2005/04/10 09:22:38  florian
     + varrarrayredim added and implemented
 
   Revision 1.27  2005/03/28 13:38:05  florian

@@ -70,7 +70,7 @@ type
 
    tvarop = (opadd,opsubtract,opmultiply,opdivide,opintdivide,opmodulus,
              opshiftleft,opshiftright,opand,opor,opxor,opcompare,opnegate,
-             opnot,opcmpeq,opcmpne,opcmplt,opcmple,opcmpgt,opcmpge);
+             opnot,opcmpeq,opcmpne,opcmplt,opcmple,opcmpgt,opcmpge,oppower);
 
    tvardata = packed record
       vtype : tvartype;
@@ -306,6 +306,7 @@ operator +(const op1,op2 : variant) dest : variant;
 operator -(const op1,op2 : variant) dest : variant;
 operator *(const op1,op2 : variant) dest : variant;
 operator /(const op1,op2 : variant) dest : variant;
+operator **(const op1,op2 : variant) dest : variant;
 operator div(const op1,op2 : variant) dest : variant;
 operator mod(const op1,op2 : variant) dest : variant;
 operator -(const op : variant) dest : variant;
@@ -320,7 +321,10 @@ procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
 
 {
   $Log$
-  Revision 1.22  2005-04-10 09:22:38  florian
+  Revision 1.23  2005-04-10 20:24:31  florian
+    + basic operators (int, real and string) for variants implemented
+
+  Revision 1.22  2005/04/10 09:22:38  florian
     + varrarrayredim added and implemented
 
   Revision 1.21  2005/03/28 13:38:05  florian
