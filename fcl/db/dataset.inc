@@ -1755,6 +1755,14 @@ begin
   findfield(Fieldname).asstring := value;
 end;
 
+Function TDataset.Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean;
+
+begin
+  if fIsUnidirectional then
+    DataBaseError(SUniDirectional);
+  Result := False;
+end;
+
 
 Procedure TDataset.UnRegisterDataSource(ADatasource : TDatasource);
 
@@ -1765,7 +1773,10 @@ end;
 
 {
   $Log$
-  Revision 1.33  2005-03-29 10:07:34  michael
+  Revision 1.34  2005-04-10 18:26:27  joost
+  - implemented TDataset.Locate
+
+  Revision 1.33  2005/03/29 10:07:34  michael
   + fix for activerecord, bof false after append.
 
   Revision 1.32  2005/02/14 17:13:12  peter
