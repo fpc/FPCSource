@@ -25,6 +25,8 @@ interface
 uses SysUtils, Classes, DB;
 
 type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages);
+     TConnOption = (sqSupportParams);
+     TConnOptions= set of TConnOption;
 
 type
   TSQLConnection = class;
@@ -36,8 +38,12 @@ type
     stStartTrans, stCommit, stRollback, stSelectForUpd);
 
   TSQLHandle = Class(TObject)
-    protected
-    StatementType       : TStatementType;
+  end;
+
+  TSQLCursor = Class(TSQLHandle)
+  public
+    FPrepared      : Boolean;
+    FStatementType : TStatementType;
   end;
 
 
@@ -47,6 +53,7 @@ const
                   'create', 'get', 'put', 'execute',
                   'start','commit','rollback', '?'
                  );
+ SQLDelimiterCharacters = [',',' ','(',')',#13,#10,#9];
 
 
 { TSQLConnection }
@@ -62,22 +69,26 @@ type
 
     procedure SetTransaction(Value : TSQLTransaction);
   protected
+    FConnOptions         : TConnOptions;
+
     function StrToStatementType(s : string) : TStatementType; virtual;
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetAsSQLText(Field : TField) : string; virtual;
     function GetHandle : pointer; virtual; abstract;
 
-    Function AllocateCursorHandle : TSQLHandle; virtual; abstract;
+    Function AllocateCursorHandle : TSQLCursor; virtual; abstract;
     Function AllocateTransactionHandle : TSQLHandle; virtual; abstract;
 
-    procedure FreeStatement(cursor : TSQLHandle); virtual; abstract;
-    procedure PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string); virtual; abstract;
-    procedure FreeFldBuffers(cursor : TSQLHandle); virtual; abstract;
-    procedure Execute(cursor: TSQLHandle;atransaction:tSQLtransaction); virtual; abstract;
-    procedure AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs); virtual; abstract;
-    function Fetch(cursor : TSQLHandle) : boolean; virtual; abstract;
-    function LoadField(cursor : TSQLHandle;FieldDef : TfieldDef;buffer : pointer) : boolean; virtual; abstract;
+    procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); virtual; abstract;
+    procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); virtual; abstract;
+    function Fetch(cursor : TSQLCursor) : boolean; virtual; abstract;
+    procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); virtual; abstract;
+    procedure CloseStatement(cursor : TSQLCursor); virtual; abstract;
+    procedure UnPrepareStatement(cursor : TSQLCursor); virtual; abstract;
+
+    procedure FreeFldBuffers(cursor : TSQLCursor); virtual; abstract;
+    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean; virtual; abstract;
     function GetTransactionHandle(trans : TSQLHandle): pointer; virtual; abstract;
     function Commit(trans : TSQLHandle) : boolean; virtual; abstract;
     function RollBack(trans : TSQLHandle) : boolean; virtual; abstract;
@@ -87,9 +98,11 @@ type
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; virtual;abstract;
+    Procedure ObtainSQLStatementType(Cursor : TSQLCursor; SQLStr : string);
   public
     property Handle: Pointer read GetHandle;
     destructor Destroy; override;
+    property ConnOptions: TConnOptions read FConnOptions;
   published
     property Password : string read FPassword write FPassword;
     property Transaction : TSQLTransaction read FTransaction write SetTransaction;
@@ -136,30 +149,31 @@ type
 
   TSQLQuery = class (Tbufdataset)
   private
-    FCursor              : TSQLHandle;
+    FCursor              : TSQLCursor;
     FUpdateable          : boolean;
     FTableName           : string;
-    FSQL                 : TStrings;
+    FSQL                 : TStringList;
     FIsEOF               : boolean;
     FLoadingFieldDefs    : boolean;
     FIndexDefs           : TIndexDefs;
     FReadOnly            : boolean;
     FUpdateMode          : TUpdateMode;
+    FParams              : TParams;
     FusePrimaryKeyAsKey  : Boolean;
 //    FSchemaInfo          : TSchemaInfo;
 
-    procedure FreeStatement;
-    procedure PrepareStatement;
+    procedure CloseStatement;
     procedure FreeFldBuffers;
     procedure InitUpdates(SQL : string);
     function GetIndexDefs : TIndexDefs;
+    function GetStatementType : TStatementType;
     procedure SetIndexDefs(AValue : TIndexDefs);
     procedure SetReadOnly(AValue : Boolean);
     procedure SetUsePrimaryKeyAsKey(AValue : Boolean);
     procedure SetUpdateMode(AValue : TUpdateMode);
+    procedure OnChangeSQL(Sender : TObject);
 
     procedure Execute;
-
   protected
     // abstract & virtual methods of TBufDataset
     function Fetch : boolean; override;
@@ -167,15 +181,18 @@ type
     // abstract & virtual methods of TDataset
     procedure UpdateIndexDefs; override;
     procedure SetDatabase(Value : TDatabase); override;
+    Procedure SetTransaction(Value : TDBTransaction); override;
     procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); override;
     procedure InternalClose; override;
     procedure InternalHandleException; override;
     procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
     function  GetCanModify: Boolean; override;
-    Function GetSQLStatementType(SQL : String) : TStatementType; virtual;
     function ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean; override;
+    Function IsPrepared : Boolean; virtual;
   public
+    procedure Prepare; virtual;
+    procedure UnPrepare; virtual;
     procedure ExecSQL; virtual;
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -214,16 +231,19 @@ type
 
     property Transaction;
     property ReadOnly : Boolean read FReadOnly write SetReadOnly;
-    property SQL : TStrings read FSQL write FSQL;
+    property SQL : TStringlist read FSQL write FSQL;
     property IndexDefs : TIndexDefs read GetIndexDefs;
+    property Params : TParams read FParams write FParams;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey;
+    property Prepared : boolean read IsPrepared;
+    property StatementType : TStatementType read GetStatementType;
 //    property SchemaInfo : TSchemaInfo read FSchemaInfo default stNoSchema;
   end;
 
 implementation
 
-uses dbconst;
+uses dbconst, strutils;
 
 { TSQLConnection }
 
@@ -291,6 +311,54 @@ begin
   end; {case}
 end;
 
+Procedure TSQLConnection.ObtainSQLStatementType(Cursor : TSQLCursor; SQLStr : string);
+
+Var
+  L        : Integer;
+  cmt      : boolean;
+  P,PE,PP  : PChar;
+  S        : string;
+
+begin
+  L := Length(SQLstr);
+
+  if L=0 then
+    begin
+    DatabaseError(SErrNoStatement);
+    exit;
+    end;
+
+  P:=Pchar(SQLstr);
+  PP:=P;
+  Cmt:=False;
+  While ((P-PP)<L) do
+    begin
+    if not (P^ in [' ',#13,#10,#9]) then
+      begin
+      if not Cmt then
+        begin
+        // Check for comment.
+        Cmt:=(P^='/') and (((P-PP)<=L) and (P[1]='*'));
+        if not (cmt) then
+          Break;
+        end
+      else
+        begin
+        // Check for end of comment.
+         Cmt:=Not( (P^='*') and (((P-PP)<=L) and (P[1]='/')) );
+        If not cmt then
+          Inc(p);
+        end;
+      end;
+    inc(P);
+    end;
+  PE:=P+1;
+  While ((PE-PP)<L) and (PE^ in ['0'..'9','a'..'z','A'..'Z','_']) do
+   Inc(PE);
+  Setlength(S,PE-P);
+  Move(P^,S[1],(PE-P));
+  Cursor.FStatementType := StrToStatementType(s);
+end;
 
 function TSQLConnection.GetSchemaInfoSQL( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string;
 
@@ -381,6 +449,43 @@ begin
 end;
 
 { TSQLQuery }
+procedure TSQLQuery.OnChangeSQL(Sender : TObject);
+
+var s         : string;
+    i         : integer;
+    p         : pchar;
+    ParamName : String;
+
+begin
+  UnPrepare;
+  if (FSQL <> nil) then
+    begin
+    if assigned(FParams) then FParams.Clear;
+    s := FSQL.Text;
+    i := posex(':',s);
+    while i > 0 do
+      begin
+      inc(i);
+      p := @s[i];
+      repeat
+      inc(p);
+      until (p^ in SQLDelimiterCharacters);
+      if not assigned(FParams) then FParams := TParams.create(self);
+      ParamName := copy(s,i,p-@s[i]);
+      if FParams.FindParam(ParamName) = nil then
+        FParams.CreateParam(ftUnknown, ParamName, ptInput);
+      i := posex(':',s,i);
+      end;
+    end
+end;
+
+Procedure TSQLQuery.SetTransaction(Value : TDBTransaction);
+
+begin
+  UnPrepare;
+  inherited;
+end;
+
 procedure TSQLQuery.SetDatabase(Value : TDatabase);
 
 var db : tsqlconnection;
@@ -388,6 +493,7 @@ var db : tsqlconnection;
 begin
   if (Database <> Value) then
     begin
+    UnPrepare;
     db := value as tsqlconnection;
     inherited setdatabase(value);
     if assigned(value) and (Transaction = nil) and (Assigned(db.Transaction)) then
@@ -395,49 +501,56 @@ begin
     end;
 end;
 
-procedure TSQLQuery.FreeStatement;
+procedure TSQLQuery.CloseStatement;
 begin
   if assigned(FCursor) then
-    begin
-    (Database as tsqlconnection).FreeStatement(FCursor);
-//    FreeAndNil(FCursor);
-    end;
+    (Database as tsqlconnection).CloseStatement(FCursor);
 end;
 
-procedure TSQLQuery.PrepareStatement;
+Function TSQLQuery.IsPrepared : Boolean;
+
+begin
+  Result := Assigned(FCursor) and FCursor.FPrepared;
+end;
+
+procedure TSQLQuery.Prepare;
 var
   Buf   : string;
-  x     : integer;
   db    : tsqlconnection;
   sqltr : tsqltransaction;
 
 begin
-  db := (Database as tsqlconnection);
-  if not assigned(Db) then
-    DatabaseError(SErrDatabasenAssigned);
-  if not Db.Connected then
-    db.Open;
-  if not assigned(Transaction) then
-    DatabaseError(SErrTransactionnSet);
-
-  sqltr := (transaction as tsqltransaction);
-  if not sqltr.Active then sqltr.StartTransaction;
-
-  if assigned(fcursor) then FreeAndNil(fcursor);
-  FCursor := Db.AllocateCursorHandle;
-
-  Buf := '';
-  for x := 0 to FSQL.Count - 1 do
-    Buf := Buf + FSQL[x] + ' '#10;  // multiline SQl. Provides line info in sqlErrors and allows single line comments
-
-  if Buf='' then
+  if not IsPrepared then
     begin
-    DatabaseError(SErrNoStatement);
-    exit;
+
+    db := (Database as tsqlconnection);
+    sqltr := (transaction as tsqltransaction);
+    if not assigned(Db) then
+      DatabaseError(SErrDatabasenAssigned);
+    if not assigned(sqltr) then
+      DatabaseError(SErrTransactionnSet);
+
+    if not Db.Connected then db.Open;
+    if not sqltr.Active then sqltr.StartTransaction;
+
+    if assigned(fcursor) then FreeAndNil(fcursor);
+    FCursor := Db.AllocateCursorHandle;
+
+    buf := TrimRight(FSQL.Text);
+
+    Db.PrepareStatement(Fcursor,sqltr,buf,FParams);
+
+    if (FCursor.FStatementType = stSelect) and not ReadOnly then
+      InitUpdates(Buf);
     end;
-  FCursor.StatementType := GetSQLStatementType(buf);
-  if (FCursor.StatementType = stSelect) and not ReadOnly then InitUpdates(Buf);
-  Db.PrepareStatement(Fcursor,sqltr,buf);
+end;
+
+procedure TSQLQuery.UnPrepare;
+
+begin
+  CheckInactive;
+  if IsPrepared then (Database as tsqlconnection).UnPrepareStatement(FCursor);
+  FreeAndNil(FCursor);
 end;
 
 procedure TSQLQuery.FreeFldBuffers;
@@ -447,7 +560,7 @@ end;
 
 function TSQLQuery.Fetch : boolean;
 begin
-  if not (Fcursor.StatementType in [stSelect]) then
+  if not (Fcursor.FStatementType in [stSelect]) then
     Exit;
 
   if not FIsEof then FIsEOF := not (Database as tsqlconnection).Fetch(Fcursor);
@@ -456,7 +569,7 @@ end;
 
 procedure TSQLQuery.Execute;
 begin
-  (Database as tsqlconnection).execute(Fcursor,Transaction as tsqltransaction);
+  (Database as tsqlconnection).execute(Fcursor,Transaction as tsqltransaction, FParams);
 end;
 
 function TSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean;
@@ -473,7 +586,7 @@ end;
 procedure TSQLQuery.InternalClose;
 begin
   FreeFldBuffers;
-  FreeStatement;
+  CloseStatement;
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
@@ -523,7 +636,7 @@ Var
       if Cmt then
         begin
         end
-      else if (p^ in [',',' ','(',')',#13,#10,#9]) then
+      else if (p^ in SQLDelimiterCharacters) then
         begin
         if stm then break;
         end
@@ -597,16 +710,18 @@ end;
 
 procedure TSQLQuery.InternalOpen;
 
-var tel : integer;
-    f   : TField;
-s : string;
+var tel         : integer;
+    f           : TField;
+    s           : string;
+    WasPrepared : boolean;
 begin
   try
-    PrepareStatement;
-    if Fcursor.StatementType in [stSelect] then
+    WasPrepared := IsPrepared;
+    Prepare;
+    if FCursor.FStatementType in [stSelect] then
       begin
       Execute;
-      InternalInitFieldDefs;
+      if not WasPrepared then InternalInitFieldDefs; // if query was prepared before opening, fields are already created
       if DefaultFields then
         begin
         CreateFields;
@@ -642,10 +757,10 @@ end;
 procedure TSQLQuery.ExecSQL;
 begin
   try
-    PrepareStatement;
+    Prepare;
     Execute;
   finally
-    FreeStatement;
+    CloseStatement;
   end;
 end;
 
@@ -653,6 +768,7 @@ constructor TSQLQuery.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
   FSQL := TStringList.Create;
+  FSQL.OnChange := @OnChangeSQL;
   FIndexDefs := TIndexDefs.Create(Self);
   FReadOnly := false;
 // Delphi has upWhereAll as default, but since strings and oldvalue's don't work yet
@@ -665,54 +781,9 @@ end;
 destructor TSQLQuery.Destroy;
 begin
   if Active then Close;
-//  if assigned(FCursor) then FCursor.destroy;
+  UnPrepare;
   FreeAndNil(FSQL);
   inherited Destroy;
-end;
-
-Function TSQLQuery.GetSQLStatementType(SQL : String) : TStatementType;
-
-Var
-  L       : Integer;
-  cmt     : boolean;
-  P,PE,PP : PChar;
-  S       : string;
-
-begin
-  Result:=stNone;
-  L:=Length(SQL);
-  If (L=0) then
-    Exit;
-  P:=Pchar(SQL);
-  PP:=P;
-  Cmt:=False;
-  While ((P-PP)<L) do
-    begin
-    if not (P^ in [' ',#13,#10,#9]) then
-      begin
-      if not Cmt then
-        begin
-        // Check for comment.
-        Cmt:=(P^='/') and (((P-PP)<=L) and (P[1]='*'));
-        if not (cmt) then
-          Break;
-        end
-      else
-        begin
-        // Check for end of comment.
-         Cmt:=Not( (P^='*') and (((P-PP)<=L) and (P[1]='/')) );
-        If not cmt then
-          Inc(p);
-        end;
-      end;
-    inc(P);
-    end;
-  PE:=P+1;
-  While ((PE-PP)<L) and (PE^ in ['0'..'9','a'..'z','A'..'Z','_']) do
-   Inc(PE);
-  Setlength(S,PE-P);
-  Move(P^,S[1],(PE-P));
-  result := (DataBase as TSQLConnection).StrToStatementType(s);
 end;
 
 procedure TSQLQuery.SetReadOnly(AValue : Boolean);
@@ -854,7 +925,7 @@ end;
 Function TSQLQuery.GetCanModify: Boolean;
 
 begin
-  if FCursor.StatementType = stSelect then
+  if FCursor.FStatementType = stSelect then
     Result:= Active and  FUpdateable and (not FReadOnly)
   else
     Result := False;
@@ -885,17 +956,30 @@ begin
   SQL.Add((DataBase as tsqlconnection).GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaPattern));
 end;
 
-
 function TSQLQuery.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
 begin
   result := (DataBase as tsqlconnection).CreateBlobStream(Field, Mode);
+end;
+
+function TSQLQuery.GetStatementType : TStatementType;
+
+begin
+  if assigned(FCursor) then Result := FCursor.FStatementType
+    else Result := stNone;
 end;
 
 end.
 
 {
   $Log$
-  Revision 1.15  2005-03-23 08:17:51  michael
+  Revision 1.16  2005-04-10 18:29:26  joost
+  - implemented parameter support for sqldb
+  - Added TSQLConnection.ConnOptions
+  - renamed TSQLQuery.FreeStatement to TSQLQuery.CloseStatement
+  - renamed TSQLQuery.PrepareStatement to TSQLQuery.Prepare
+  - added TSQLQuery.UnPrepare
+
+  Revision 1.15  2005/03/23 08:17:51  michael
   + Several patches from Jose A. Rimon
   # Prevents "field not found" error, when use a query without the primary key
   Set SQLlen of different data types
