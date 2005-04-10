@@ -68,14 +68,17 @@ Const
   SMetadataUnavailable     = 'The metadata is not available for this type of database.';
   SDeletedRecord           = 'The record is deleted.';
   SIndexNotFound           = 'Index ''%s'' not found';
-
+  SParameterCountIncorrect = 'The number of parameters is incorrect.';
 Implementation
 
 end.
 
 {
   $Log$
-  Revision 1.9  2005-03-18 10:17:34  michael
+  Revision 1.10  2005-04-10 18:28:30  joost
+  - implemented parameter support for sqldb
+
+  Revision 1.9  2005/03/18 10:17:34  michael
   + Patch to IndexDefs from Alexandrov Alexandru
 
   Revision 1.8  2005/02/14 17:13:12  peter
