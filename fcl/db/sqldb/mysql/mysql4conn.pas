@@ -19,7 +19,7 @@ Type
   protected
   end;
 
-  TMySQLCursor = Class(TSQLHandle)
+  TMySQLCursor = Class(TSQLCursor)
   protected
     FQMySQL : PMySQL;
     FRes: PMYSQL_RES;                   { Record pointer }
@@ -50,16 +50,16 @@ Type
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; override;
 
-    Function AllocateCursorHandle : TSQLHandle; override;
+    Function AllocateCursorHandle : TSQLCursor; override;
     Function AllocateTransactionHandle : TSQLHandle; override;
 
-    procedure FreeStatement(cursor : TSQLHandle); override;
-    procedure PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string); override;
-    procedure FreeFldBuffers(cursor : TSQLHandle); override;
-    procedure Execute(cursor: TSQLHandle;atransaction:tSQLtransaction); override;
-    procedure AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs); override;
-    function Fetch(cursor : TSQLHandle) : boolean; override;
-    function LoadField(cursor : TSQLHandle;FieldDef : TfieldDef;buffer : pointer) : boolean; override;
+    procedure CloseStatement(cursor : TSQLCursor); override;
+    procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); override;
+    procedure FreeFldBuffers(cursor : TSQLCursor); override;
+    procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams); override;
+    procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); override;
+    function Fetch(cursor : TSQLCursor) : boolean; override;
+    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
@@ -203,7 +203,7 @@ begin
   Result:=FMySQL;
 end;
 
-function TMySQLConnection.AllocateCursorHandle: TSQLHandle;
+function TMySQLConnection.AllocateCursorHandle: TSQLCursor;
 begin
   Result:=TMySQLCursor.Create;
 end;
@@ -213,14 +213,14 @@ begin
   Result:=TMySQLTransaction.Create;
 end;
 
-procedure TMySQLConnection.FreeStatement(cursor: TSQLHandle);
+procedure TMySQLConnection.CloseStatement(cursor: TSQLCursor);
 
 Var
   C : TMySQLCursor;
 
 begin
   C:=Cursor as TMysqlCursor;
-  if c.StatementType=stSelect then
+  if c.FStatementType=stSelect then
     c.FNeedData:=False;
   If (C.FRes<>Nil) then
     begin
@@ -233,13 +233,15 @@ begin
     end;
 end;
 
-procedure TMySQLConnection.PrepareStatement(cursor: TSQLHandle;
-  ATransaction: TSQLTransaction; buf: string);
+procedure TMySQLConnection.PrepareStatement(cursor: TSQLCursor;
+  ATransaction: TSQLTransaction; buf: string;AParams : TParams);
 begin
+  if assigned(AParams) and (AParams.count > 0) then
+    DatabaseError('Parameters (not) yet supported for the MySQL SqlDB connection.',self);
   With Cursor as TMysqlCursor do
     begin
     FStatement:=Buf;
-    if StatementType=stSelect then
+    if FStatementType=stSelect then
       FNeedData:=True;
     ConnectMySQL(FQMySQL,FMySQL^.host,FMySQL^.user,FMySQL^.passwd);
     if mysql_select_db(FQMySQL,pchar(DatabaseName))<>0 then
@@ -247,7 +249,7 @@ begin
     end
 end;
 
-procedure TMySQLConnection.FreeFldBuffers(cursor: TSQLHandle);
+procedure TMySQLConnection.FreeFldBuffers(cursor: TSQLCursor);
 
 Var
   C : TMySQLCursor;
@@ -261,8 +263,8 @@ begin
     end;
 end;
 
-procedure TMySQLConnection.Execute(cursor: TSQLHandle;
-  atransaction: tSQLtransaction);
+procedure TMySQLConnection.Execute(cursor: TSQLCursor;
+  atransaction: tSQLtransaction;AParams : TParams);
 
 Var
   C : TMySQLCursor;
@@ -324,7 +326,7 @@ begin
   end;
 end;
 
-procedure TMySQLConnection.AddFieldDefs(cursor: TSQLHandle;
+procedure TMySQLConnection.AddFieldDefs(cursor: TSQLCursor;
   FieldDefs: TfieldDefs);
 
 var
@@ -355,7 +357,7 @@ begin
 //  Writeln('MySQL: Finished adding fielddefs');
 end;
 
-function TMySQLConnection.Fetch(cursor: TSQLHandle): boolean;
+function TMySQLConnection.Fetch(cursor: TSQLCursor): boolean;
 
 Var
   C : TMySQLCursor;
@@ -366,7 +368,7 @@ begin
   Result:=(C.Row<>Nil);
 end;
 
-function TMySQLConnection.LoadField(cursor : TSQLHandle;
+function TMySQLConnection.LoadField(cursor : TSQLCursor;
   FieldDef : TfieldDef;buffer : pointer) : boolean;
 
 var
