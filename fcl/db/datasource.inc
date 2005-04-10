@@ -84,19 +84,19 @@ Procedure TDataLink.CalcRange;
 var
     aMax, aMin: integer;
 begin
-    aMin:= DataSet.FActiveRecord - FBufferCount + 1;
-    If aMin < 0 Then aMin:= 0;
-    aMax:= Dataset.FBufferCount - FBufferCount;
-    If aMax < 0 then aMax:= 0;
+  aMin:= DataSet.FActiveRecord - FBufferCount + 1;
+  If aMin < 0 Then aMin:= 0;
+  aMax:= Dataset.FBufferCount - FBufferCount;
+  If aMax < 0 then aMax:= 0;
 
-    If aMax>DataSet.FActiveRecord Then aMax:=DataSet.FActiveRecord;
+  If aMax>DataSet.FActiveRecord Then aMax:=DataSet.FActiveRecord;
 
-    If FFirstRecord < aMin Then FFirstRecord:= aMin;
-    If FFirstrecord > aMax Then FFirstRecord:= aMax;
+  If FFirstRecord < aMin Then FFirstRecord:= aMin;
+  If FFirstrecord > aMax Then FFirstRecord:= aMax;
 
-    If (FfirstRecord<>0) And
-       (DataSet.FActiveRecord - FFirstRecord < FBufferCount -1) Then
-        Dec(FFirstRecord, 1);
+  If (FfirstRecord<>0) And
+     (DataSet.FActiveRecord - FFirstRecord < FBufferCount -1) Then
+    Dec(FFirstRecord, 1);
 
 end;
 
@@ -106,31 +106,23 @@ Procedure TDataLink.DataEvent(Event: TDataEvent; Info: Ptrint);
 
 begin
   Case Event of
-    deFieldChange,
-    deRecordChange :
+    deFieldChange, deRecordChange:
       If Not FUpdatingRecord then
         RecordChanged(TField(Info));
-    deDataSetChange:
-      begin
+    deDataSetChange: begin
       SetActive(DataSource.DataSet.Active);
       CalcFirstRecord(Info);
       DatasetChanged;
-      end;
-    deDataSetScroll:
-      DatasetScrolled(CalcFirstRecord(Info));
-    deLayoutChange:
-      begin
+    end;
+    deDataSetScroll: DatasetScrolled(CalcFirstRecord(Info));
+    deLayoutChange: begin
       CalcFirstRecord(Info);
       LayoutChanged;
-      end;
-    deUpdateRecord:
-      UpdateRecord;
-    deUpdateState:
-      CheckActiveAndEditing;
-    deCheckBrowseMode:
-      CheckBrowseMode;
-    deFocusControl:
-      FocusControl(TFieldRef(Info));
+    end;
+    deUpdateRecord: UpdateRecord;
+    deUpdateState: CheckActiveAndEditing;
+    deCheckBrowseMode: CheckBrowseMode;
+    deFocusControl: FocusControl(TFieldRef(Info));
   end;
 end;
 
@@ -197,7 +189,7 @@ end;
 
 Function TDataLink.GetRecordCount: Integer;
 
-Var D : TDataSet;
+Var D: TDataSet;
 
 begin
   Result:=Dataset.FRecordCount;
@@ -326,6 +318,7 @@ end;
 Function TDetailDataLink.GetDetailDataSet: TDataSet;
 
 begin
+  Result := nil;
 end;
 
 
@@ -336,12 +329,16 @@ end;
 constructor TMasterDataLink.Create(ADataSet: TDataSet);
 
 begin
+  inherited Create;
+  FDataSet := ADataSet;
+  FFields := TList.Create;
 end;
 
 
 destructor TMasterDataLink.Destroy;
 
 begin
+  FFields.Free;
   inherited Destroy;
 end;
 
@@ -349,35 +346,62 @@ end;
 Procedure TMasterDataLink.ActiveChanged;
 
 begin
+  FFields.Clear;
+  if Active then
+  try
+    DataSet.GetFieldList(FFields, FFieldNames);
+  except
+    FFields.Clear;
+    raise;
+  end;
+  if FDataSet.Active and not (csDestroying in FDataSet.ComponentState) then
+    if Active and (FFields.Count > 0) then
+    begin
+      if Assigned(FOnMasterChange) then FOnMasterChange(Self);
+    end else
+      if Assigned(FOnMasterDisable) then FOnMasterDisable(Self);
 end;
 
 
 Procedure TMasterDataLink.CheckBrowseMode;
 
 begin
+  if FDataSet.Active then FDataSet.CheckBrowseMode;
 end;
 
 
 Function TMasterDataLink.GetDetailDataSet: TDataSet;
 
 begin
+  Result := FDataSet;
 end;
 
 
 Procedure TMasterDataLink.LayoutChanged;
 
 begin
+  ActiveChanged;
 end;
 
 
 Procedure TMasterDataLink.RecordChanged(Field: TField);
 
 begin
+  if (DataSource.State <> dsSetKey) and FDataSet.Active and
+     (FFields.Count > 0) and ((Field = nil) or
+     (FFields.IndexOf(Field) >= 0)) and
+     Assigned(FOnMasterChange) then
+    FOnMasterChange(Self);
 end;
 
 procedure TMasterDatalink.SetFieldNames(const Value: string);
 
 begin
+  if FFieldNames <> Value then
+  begin
+    FFieldNames := Value;
+    ActiveChanged;
+  end;
 end;
 
 
@@ -389,9 +413,9 @@ Constructor TDataSource.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
-  FDatalinks:=TList.Create;
-  FEnabled:=True;
-  FAutoEdit:=True;
+  FDatalinks := TList.Create;
+  FEnabled := True;
+  FAutoEdit := True;
 end;
 
 
@@ -505,16 +529,15 @@ begin
   FDatalinks.Remove(Datalink);
   If Dataset<>Nil then
     DataSet.RecalcBufListSize;
-    //Dataset.SetBufListSize(DataLink.BufferCount);
+  //Dataset.SetBufListSize(DataLink.BufferCount);
 end;
 
 
 procedure TDataSource.ProcessEvent(Event : TDataEvent; Info : Ptrint);
 
 Const
-  OnDataChangeEvents = [deRecordChange, deDataSetChange,
-                           deDataSetScroll,
-                           deLayoutChange,deUpdateState];
+    OnDataChangeEvents = [deRecordChange, deDataSetChange, deDataSetScroll,
+                          deLayoutChange,deUpdateState];
 
 Var
   NeedDataChange : Boolean;

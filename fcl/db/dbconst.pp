@@ -69,13 +69,24 @@ Const
   SDeletedRecord           = 'The record is deleted.';
   SIndexNotFound           = 'Index ''%s'' not found';
   SParameterCountIncorrect = 'The number of parameters is incorrect.';
+  SFieldValueError         = 'Invalid value for field ''%s''';
+  SInvalidCalcType         = 'Field ''%s'' cannot be a calculated or lookup field';
+
+
 Implementation
 
 end.
 
 {
   $Log$
-  Revision 1.10  2005-04-10 18:28:30  joost
+  Revision 1.11  2005-04-10 22:18:43  joost
+  Patch from Alexandrov Alexandru
+  - implemented TDataset.BindFields
+  - master-detail relation implemented
+  - improved variant-support for fields
+  - implemented TField.Assign and TField.AssignValue
+
+  Revision 1.10  2005/04/10 18:28:30  joost
   - implemented parameter support for sqldb
 
   Revision 1.9  2005/03/18 10:17:34  michael

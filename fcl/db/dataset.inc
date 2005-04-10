@@ -73,8 +73,8 @@ end;
 
 Procedure TDataset.BindFields(Binding: Boolean);
 
-// Var I : longint;
-
+var i, j, FieldIndex: Integer;
+    FieldDef: TFieldDef;
 begin
   {
      Here some magic will be needed later; for now just simply set
@@ -84,6 +84,23 @@ begin
   For I:=0 to FFieldList.Count-1 do
     FFieldList[i].FFieldNo:=I;
   }
+  FBlobFieldCount := 0;
+  for i := 0 to Fields.Count - 1 do
+    with Fields[i] do begin
+      if Binding then begin
+          FieldDef := nil;
+          FieldIndex := FieldDefs.IndexOf(Fields[i].FieldName);
+          if FieldIndex <> -1 then begin
+            FieldDef := FieldDefs[FieldIndex];
+            FFieldNo := FieldDef.FieldNo;
+            if IsBlob then begin
+              FSize := FieldDef.Size;
+              FOffset := FBlobFieldCount;
+              Inc(FBlobFieldCount);
+            end;
+          end else FFieldNo := FieldIndex;
+      end else FFieldNo := 0;;
+    end;
 end;
 
 Function TDataset.BookmarkAvailable: Boolean;
@@ -174,17 +191,20 @@ Var
 begin
   // Do some bookkeeping;
   case Event of
-    deFieldChange :
-      begin
-      if TField(Info).FieldKind in [fkData,fkInternalCalc] then
-        SetModified(True);
-      if FInternalCalcFields and (TField(Info).FieldKind = fkData) then
-          RefreshInternalCalcFields(ActiveBuffer)
-      else if (FCalcFieldsSize <> 0) and FAutoCalcFields and
-        (TField(Info).FieldKind = fkData) then
-        CalculateFields(ActiveBuffer);
-      TField(Info).Change;
-      end;
+    deFieldChange: begin
+        if TField(Info).FieldKind in [fkData,fkInternalCalc] then
+          SetModified(True);
+        if State <> dsSetKey then begin
+          if FInternalCalcFields and (TField(Info).FieldKind = fkData) then
+              RefreshInternalCalcFields(ActiveBuffer)
+          else if (FCalcFieldsSize <> 0) and FAutoCalcFields and
+            (TField(Info).FieldKind = fkData) then
+            CalculateFields(ActiveBuffer);
+          TField(Info).Change;
+        end;
+    end;
+    deDataSetChange, deDataSetScroll:
+      if State <> dsInsert then UpdateCursorPos;
   end;
   // Distribute event to datasets;
   if FDisableControlsCount = 0 then
@@ -792,7 +812,7 @@ begin
       FActiverecord := Value -1;
       end;
 
-   If Assigned(FBuffers) then
+    If Assigned(FBuffers) then
       begin
       For I:=Value+1 to FBufferCount do
         FreeRecordBuffer(FBuffers[i]);
@@ -984,14 +1004,13 @@ Procedure TDataset.CheckBrowseMode;
 begin
   CheckActive;
   DataEvent(deCheckBrowseMode,0);
-  If State In [dsedit,dsinsert] then
-    begin
-    UpdateRecord;
-    If Modified then
-      Post
-    else
-      Cancel;
+  Case State of
+    dsedit,dsinsert: begin
+      UpdateRecord;
+      If Modified then Post else Cancel;
     end;
+    dsSetKey: Post;
+  end;
 end;
 
 Procedure TDataset.ClearFields;
@@ -1640,13 +1659,9 @@ end;
 Procedure TDataset.SetFields(const Values: array of const);
 
 Var I  : longint;
-
 begin
   For I:=0 to high(Values) do
-    Case Values[I].vtype of
-      vtInteger : FieldByNumber(i).AsLongInt:=Values[I].VInteger;
-      // needs Completion..
-    end;
+    Fields[I].AssignValue(Values[I]);
 end;
 
 Function TDataset.Translate(Src, Dest: PChar; ToOem: Boolean): Integer;
@@ -1773,7 +1788,14 @@ end;
 
 {
   $Log$
-  Revision 1.34  2005-04-10 18:26:27  joost
+  Revision 1.35  2005-04-10 22:18:43  joost
+  Patch from Alexandrov Alexandru
+  - implemented TDataset.BindFields
+  - master-detail relation implemented
+  - improved variant-support for fields
+  - implemented TField.Assign and TField.AssignValue
+
+  Revision 1.34  2005/04/10 18:26:27  joost
   - implemented TDataset.Locate
 
   Revision 1.33  2005/03/29 10:07:34  michael

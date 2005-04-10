@@ -33,6 +33,7 @@ const
   // whether it's true or false.
   YesNoChars : Array[Boolean] of char = ('Y','N');
 
+
 type
 {$ifdef ver1_0}
   PtrInt = Longint;
@@ -53,7 +54,8 @@ type
 
   TDataEvent = (deFieldChange, deRecordChange, deDataSetChange,
     deDataSetScroll, deLayoutChange, deUpdateRecord, deUpdateState,
-    deCheckBrowseMode, dePropertyChange, deFieldListChange, deFocusControl);
+    deCheckBrowseMode, dePropertyChange, deFieldListChange, deFocusControl,
+    deParentScroll);
 
   TUpdateStatus = (usUnmodified, usModified, usInserted, usDeleted);
 
@@ -179,6 +181,8 @@ type
   TFieldRef = ^TField;
   TFieldChars = set of Char;
 
+  { TField }
+
   TField = class(TComponent)
   Private
     FAlignMent : TAlignment;
@@ -268,10 +272,12 @@ type
     procedure SetSize(AValue: Word); virtual;
     procedure SetParentComponent(AParent: TComponent); override;
     procedure SetText(const AValue: string); virtual;
+    procedure SetVarValue(const AValue: Variant); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(const Value: TVarRec);
     procedure Clear; virtual;
     procedure FocusControl;
     function GetData(Buffer: Pointer): Boolean;
@@ -286,6 +292,7 @@ type
     property AsLongint: Longint read GetAsLongint write SetAsLongint;
     property AsInteger: Integer read GetAsInteger write SetAsInteger;
     property AsString: string read GetAsString write SetAsString;
+    property AsVariant: variant read GetAsVariant write SetAsVariant;
     property AttributeSet: string read FAttributeSet write FAttributeSet;
     property Calculated: Boolean read FCalculated write FCalculated;
     property CanModify: Boolean read FCanModify;
@@ -351,6 +358,7 @@ type
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
+    procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -394,7 +402,7 @@ type
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
-    procedure SetAsVariant(AValue: variant); override;
+    procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : longint) : Boolean;
@@ -428,6 +436,7 @@ type
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsLargeint(AValue: Largeint); virtual;
     procedure SetAsString(const AValue: string); override;
+    procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : largeint) : Boolean;
@@ -481,6 +490,7 @@ type
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
+    procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : Double) : Boolean;
@@ -509,6 +519,7 @@ type
     function GetDefaultWidth: Longint; override;
     procedure SetAsBoolean(AValue: Boolean); override;
     procedure SetAsString(const AValue: string); override;
+    procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
     property Value: Boolean read GetAsBoolean write SetAsBoolean;
@@ -532,6 +543,7 @@ type
     procedure SetAsDateTime(AValue: TDateTime); override;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsString(const AValue: string); override;
+    procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
     property Value: TDateTime read GetAsDateTime write SetAsDateTime;
@@ -562,6 +574,7 @@ type
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetText(const AValue: string); override;
+    procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -608,6 +621,7 @@ type
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetAsCurrency(AValue: Currency); virtual;
+    procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : Currency) : Boolean;
@@ -640,6 +654,7 @@ type
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetText(const AValue: string); override;
+    procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
@@ -1884,8 +1899,6 @@ begin
   //!! To be implemented
 end;
 
-
-
 {$i dataset.inc}
 {$i fields.inc}
 {$i datasource.inc}
@@ -1897,7 +1910,14 @@ end.
 
 {
   $Log$
-  Revision 1.45  2005-04-10 18:26:54  joost
+  Revision 1.46  2005-04-10 22:18:43  joost
+  Patch from Alexandrov Alexandru
+  - implemented TDataset.BindFields
+  - master-detail relation implemented
+  - improved variant-support for fields
+  - implemented TField.Assign and TField.AssignValue
+
+  Revision 1.45  2005/04/10 18:26:54  joost
   - implemented TDataset.Locate
   - removed TParam.FNull
 

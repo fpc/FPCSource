@@ -265,7 +265,54 @@ end;
 procedure TField.Assign(Source: TPersistent);
 
 begin
-  //!! To be implemented
+  if Source = nil then Clear
+  else if Source is TField then begin
+    Value := TField(Source).Value;
+  end else
+    inherited Assign(Source);
+end;
+
+procedure TField.AssignValue(const Value: TVarRec);
+  procedure Error;
+  begin
+    DatabaseErrorFmt(SFieldValueError, [DisplayName]);
+  end;
+
+begin
+  with Value do
+    case VType of
+      vtInteger:
+        AsInteger := VInteger;
+      vtBoolean:
+        AsBoolean := VBoolean;
+      vtChar:
+        AsString := VChar;
+      vtExtended:
+        AsFloat := VExtended^;
+      vtString:
+        AsString := VString^;
+      vtPointer:
+        if VPointer <> nil then Error;
+      vtPChar:
+        AsString := VPChar;
+      vtObject:
+        if (VObject = nil) or (VObject is TPersistent) then
+          Assign(TPersistent(VObject))
+        else
+          Error;
+      vtAnsiString:
+        AsString := string(VAnsiString);
+//      vtCurrency:
+//        AsCurrency := VCurrency^;
+      vtVariant:
+        if not VarIsClear(VVariant^) then Self.Value := VVariant^;
+      vtWideString:
+        AsString := WideString(VWideString);
+      vtInt64:
+        Self.Value := VInt64^;
+    else
+      Error;
+    end;
 end;
 
 procedure TField.Change;
@@ -285,7 +332,8 @@ end;
 procedure TField.Clear;
 
 begin
-  SetData(Nil);
+  if FieldKind in [fkData, fkInternalCalc] then
+    SetData(Nil);
 end;
 
 procedure TField.DataChanged;
@@ -510,7 +558,14 @@ end;
 procedure TField.SetAsVariant(AValue: Variant);
 
 begin
-  AccessError(SVariant);
+  if VarIsNull(AValue) then
+    Clear
+  else
+    try
+      SetVarValue(AValue);
+    except
+      on EVariantError do DatabaseErrorFmt(SFieldValueError, [DisplayName]);
+    end;
 end;
 
 
@@ -590,6 +645,11 @@ procedure TField.SetText(const AValue: string);
 
 begin
   AsString:=AValue;
+end;
+
+procedure TField.SetVarValue(const AValue: Variant);
+begin
+  AccessError(SVariant);
 end;
 
 procedure TField.Validate(Buffer: Pointer);
@@ -808,6 +868,11 @@ begin
     SetData(@AValue[1]);
 end;
 
+procedure TStringField.SetVarValue(const AValue: Variant);
+begin
+  SetAsString(AValue);
+end;
+
 { ---------------------------------------------------------------------
     TNumericField
   ---------------------------------------------------------------------}
@@ -951,8 +1016,7 @@ begin
     RangeError(Avalue,FMinrange,FMaxRange);
 end;
 
-procedure TLongintField.SetAsVariant(AValue: Variant);
-
+procedure TLongintField.SetVarValue(const AValue: Variant);
 begin
   SetAsLongint(AValue);
 end;
@@ -1142,6 +1206,11 @@ begin
     end;
 end;
 
+procedure TLargeintField.SetVarValue(const AValue: Variant);
+begin
+  SetAsLargeint(AValue);
+end;
+
 Function TLargeintField.CheckRange(AValue : largeint) : Boolean;
 
 begin
@@ -1281,7 +1350,7 @@ Var
     E : Double;
 
 begin
-  text:='';
+  TheText:='';
   If Not GetData(@E) then exit;
   If ADisplayText or (Length(FEditFormat) = 0) Then
     Fmt:=FDisplayFormat
@@ -1320,6 +1389,11 @@ begin
     DatabaseErrorFmt(SNotAFloat,[AVAlue])
   Else
     SetAsFloat(R);
+end;
+
+procedure TFloatField.SetVarValue(const AValue: Variant);
+begin
+  SetAsFloat(Avalue);
 end;
 
 constructor TFloatField.Create(AOwner: TComponent);
@@ -1411,6 +1485,11 @@ begin
     DatabaseErrorFmt(SNotABoolean,[AValue]);
 end;
 
+procedure TBooleanField.SetVarValue(const AValue: Variant);
+begin
+  SetAsBoolean(AValue);
+end;
+
 constructor TBooleanField.Create(AOwner: TComponent);
 
 begin
@@ -1454,6 +1533,11 @@ function TDateTimeField.GetAsDateTime: TDateTime;
 begin
   If Not GetData(@Result) then
     Result:=0;
+end;
+
+procedure TDateTimeField.SetVarValue(const AValue: Variant);
+begin
+  SetAsDateTime(AValue);
 end;
 
 function TDateTimeField.GetAsVariant: Variant;
@@ -1619,6 +1703,11 @@ begin
   SetAsString(Avalue);
 end;
 
+procedure TBinaryField.SetVarValue(const AValue: Variant);
+begin
+  SetAsString(Avalue);
+end;
+
 
 constructor TBinaryField.Create(AOwner: TComponent);
 
@@ -1763,6 +1852,11 @@ begin
     RangeError(AValue,FMinValue,FMaxvalue);
 end;
 
+procedure TBCDField.SetVarValue(const AValue: Variant);
+begin
+  SetAsCurrency(AValue);
+end;
+
 Function TBCDField.CheckRange(AValue : Currency) : Boolean;
 
 begin
@@ -1896,6 +1990,11 @@ end;
 
 procedure TBlobField.SetText(const AValue: string);
 
+begin
+  SetAsString(AValue);
+end;
+
+procedure TBlobField.SetVarValue(const AValue: Variant);
 begin
   SetAsString(AValue);
 end;
@@ -2192,7 +2291,14 @@ end;
 
 {
   $Log$
-  Revision 1.29  2005-04-04 07:30:51  michael
+  Revision 1.30  2005-04-10 22:18:43  joost
+  Patch from Alexandrov Alexandru
+  - implemented TDataset.BindFields
+  - master-detail relation implemented
+  - improved variant-support for fields
+  - implemented TField.Assign and TField.AssignValue
+
+  Revision 1.29  2005/04/04 07:30:51  michael
   + Patch from Jesus reyes to notify changes to DisplayFormat
 
   Revision 1.28  2005/03/23 08:17:51  michael
