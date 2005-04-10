@@ -1053,6 +1053,7 @@ type
     function IsEmpty: Boolean;
     function IsSequenced: Boolean; virtual;
     procedure Last;
+    function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; virtual;
     function MoveBy(Distance: Longint): Longint;
     procedure Next;
     procedure Open;
@@ -1458,7 +1459,6 @@ type
     FValue: Variant;
     FPrecision: Integer;
     FNumericScale: Integer;
-    FNull: Boolean;
     FName: string;
     FDataType: TFieldType;
     FBound: Boolean;
@@ -1897,7 +1897,11 @@ end.
 
 {
   $Log$
-  Revision 1.44  2005-04-04 07:30:51  michael
+  Revision 1.45  2005-04-10 18:26:54  joost
+  - implemented TDataset.Locate
+  - removed TParam.FNull
+
+  Revision 1.44  2005/04/04 07:30:51  michael
   + Patch from Jesus reyes to notify changes to DisplayFormat
 
   Revision 1.43  2005/03/29 10:07:34  michael
