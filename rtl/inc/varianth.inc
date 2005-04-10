@@ -315,10 +315,15 @@ operator >(const op1,op2 : variant) dest : boolean;
 operator >=(const op1,op2 : variant) dest : boolean;
 operator <=(const op1,op2 : variant) dest : boolean;
 
+{ variant helpers }
+procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
 
 {
   $Log$
-  Revision 1.21  2005-03-28 13:38:05  florian
+  Revision 1.22  2005-04-10 09:22:38  florian
+    + varrarrayredim added and implemented
+
+  Revision 1.21  2005/03/28 13:38:05  florian
     + a lot of vararray stuff
 
   Revision 1.20  2005/03/25 19:02:59  florian
@@ -332,5 +337,4 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
   Revision 1.17  2005/01/15 18:47:26  florian
     * several variant init./final. stuff fixed
-
 }

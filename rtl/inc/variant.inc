@@ -568,6 +568,11 @@ operator <=(const op1,op2 : variant) dest : boolean;
      dest:=variantmanager.cmpop(op1,op2,opcmplt);
   end;
 
+procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
+  begin
+    variantmanager.vararrayredim(a,highbound);
+  end;
+  
 
 {**********************************************************************
                       Variant manager functions
@@ -613,7 +618,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.27  2005-03-28 13:38:05  florian
+  Revision 1.28  2005-04-10 09:22:38  florian
+    + varrarrayredim added and implemented
+
+  Revision 1.27  2005/03/28 13:38:05  florian
     + a lot of vararray stuff
 
   Revision 1.26  2005/03/25 19:02:59  florian
