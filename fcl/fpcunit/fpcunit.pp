@@ -111,7 +111,7 @@ type
     FTestName: string;
     FTestSuiteName: string;
     FLineNumber: longint;
-    FMethodName: string;
+    FFailedMethodName: string;
     FRaisedExceptionClass: TClass;
     FRaisedExceptionMessage: string;
     FSourceUnitName: string;
@@ -131,7 +131,7 @@ type
     property ExceptionClassName: string read GetExceptionClassName;
     property SourceUnitName: string read FSourceUnitName write FSourceUnitName;
     property LineNumber: longint read FLineNumber write FLineNumber;
-    property MethodName: string read FMethodName write FMethodName;
+    property FailedMethodName: string read FFailedMethodName write FFailedMethodName;
     property TestLastStep: TTestStep read FTestLastStep write SetTestLastStep;
   end;
 
@@ -170,11 +170,11 @@ type
     property TestName: string read GetTestName write SetTestName;
   end;
 
-  TTestClass = Class of TTestCase;
+  TTestCaseClass = class of TTestCase;
 
   TTestSuite = class(TTest)
   private
-    FTests: TList;
+    FTests: TFPList;
     FName: string;
     FTestSuiteName: string;
     function GetTest(Index: integer): TTest;
@@ -199,36 +199,40 @@ type
     property Test[Index: integer]: TTest read GetTest; default;
     property TestSuiteName: string read GetTestSuiteName write SetTestSuiteName;
     property TestName: string read GetTestName write SetTestName;
-    property Tests: TList read FTests;
+    property Tests: TFPList read FTests;
   end;
+  
+  TProtect = procedure(aTest: TTest; aResult: TTestResult);
+
+  { TTestResult }
 
   TTestResult = class(TObject)
   private
   protected
     FRunTests: integer;
-    FFailures: TList;
-    FErrors: TList;
-    FListeners: TList;
+    FFailures: TFPList;
+    FErrors: TFPList;
+    FListeners: TFPList;
     function GetNumErrors: integer;
     function GetNumFailures: integer;
   public
     constructor Create; virtual;
     destructor Destroy; override;
-    property Listeners: TList read FListeners;
+    property Listeners: TFPList read FListeners;
     procedure ClearErrorLists;
     procedure StartTest(ATest: TTest);
     procedure AddFailure(ATest: TTest; E: EAssertionFailedError);
     procedure AddError(ATest: TTest; E: Exception; AUnitName: string;
-      AMethodName: string; ALineNumber: longint);
+      AFailedMethodName: string; ALineNumber: longint);
     procedure EndTest(ATest: TTest);
     procedure AddListener(AListener: ITestListener);
     procedure RemoveListener(AListener: ITestListener);
     procedure Run(ATestCase: TTestCase);
-    procedure RunProtected(ATestCase: TTestCase);
+    procedure RunProtected(ATestCase: TTest; protect: TProtect);
     function WasSuccessful: boolean;
   published
-    property Failures: TList read FFailures;
-    property Errors: TList read FErrors;
+    property Failures: TFPList read FFailures;
+    property Errors: TFPList read FErrors;
     property RunTests: integer read FRunTests;
     property NumberOfErrors: integer read GetNumErrors;
     property NumberOfFailures: integer read GetNumFailures;
@@ -717,12 +721,12 @@ constructor TTestSuite.Create(AClass: TClass);
 var
   ml: TStringList;
   i: integer;
-  tc: TTestClass;
+  tc: TTestCaseClass;
 begin
   Create(AClass.ClassName);
   if AClass.InheritsFrom(TTestCase) then
   begin
-    tc := TTestClass(AClass);
+    tc := TTestCaseClass(AClass);
     ml := TStringList.Create;
     try
       GetMethodList(AClass, ml);
@@ -759,7 +763,7 @@ end;
 constructor TTestSuite.Create;
 begin
   inherited Create;
-  FTests := TList.Create;
+  FTests := TFPList.Create;
 end;
 
 destructor TTestSuite.Destroy;
@@ -843,9 +847,9 @@ end;
 constructor TTestResult.Create;
 begin
   inherited Create;
-  FFailures := TList.Create;
-  FErrors := TList.Create;
-  FListeners := TList.Create;
+  FFailures := TFPList.Create;
+  FErrors := TFPList.Create;
+  FListeners := TFPList.Create;
 end;
 
 destructor TTestResult.Destroy;
@@ -899,7 +903,7 @@ begin
 end;
 
 procedure TTestResult.AddError(ATest: TTest; E: Exception;
-  AUnitName: string; AMethodName: string; ALineNumber: longint);
+  AUnitName: string; AFailedMethodName: string; ALineNumber: longint);
 var
   i: integer;
   f: TTestFailure;
@@ -907,7 +911,7 @@ begin
   //lock mutex
   f := TTestFailure.CreateFailure(ATest, E, ATest.LastStep);
   f.SourceUnitName := AUnitName;
-  f.MethodName := AMethodName;
+  f.FailedMethodName := AFailedMethodName;
   f.LineNumber := ALineNumber;
   FErrors.Add(f);
   for i := 0 to FListeners.Count - 1 do
@@ -923,15 +927,19 @@ begin
     ITestListener(FListeners[i]).EndTest(ATest);
 end;
 
+procedure ProtectTest(aTest: TTest; aResult: TTestResult);
+begin
+  TTestCase(aTest).RunBare;
+end;
 
 procedure TTestResult.Run(ATestCase: TTestCase);
 begin
   StartTest(ATestCase);
-  RunProtected(ATestCase);
+  RunProtected(ATestCase, @ProtectTest);
   EndTest(ATestCase);
 end;
 
-procedure TTestResult.RunProtected(ATestCase: TTestCase);
+procedure TTestResult.RunProtected(ATestCase: TTest; protect: TProtect);
 var
   func, source: shortstring;
   line: longint;
@@ -940,7 +948,7 @@ begin
   source := '';
   line := 0;
   try
-    ATestCase.RunBare;
+    protect(ATestCase, Self);
   except
     on E: EAssertionFailedError do
       AddFailure(ATestCase, E);

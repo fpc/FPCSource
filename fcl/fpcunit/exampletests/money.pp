@@ -62,7 +62,7 @@ type
 
   TMoneyBag = class(TInterfacedObject, IMoney)
   private
-    FMonies: TList;
+    FMonies: TFPList;
     function AddToMoniesList(const Item: IInterface): Integer;
     function RemoveFromMoniesList(const Item: IInterface): Integer;
     function FindMoney(aCurrencyUnit: string): ISingleCurrencyMoney;
@@ -162,7 +162,7 @@ end;
 
 constructor TMoneyBag.Create;
 begin
-  FMonies := TList.Create;
+  FMonies := TFPList.Create;
 end;
 
 destructor TMoneyBag.Destroy;

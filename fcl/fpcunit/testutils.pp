@@ -33,7 +33,7 @@ type
   end;
   {$M-}
 
-procedure FreeObjects(List: TList);
+procedure FreeObjects(List: TFPList);
 procedure GetMethodList( AObject: TObject; AList: TStrings ); overload;
 procedure GetMethodList( AClass: TClass; AList: TStrings ); overload;
 
@@ -103,7 +103,7 @@ begin
   end;
 end;
 
-procedure FreeObjects(List: TList);
+procedure FreeObjects(List: TFPList);
 var
   i: integer;
 begin

@@ -20,7 +20,7 @@ unit fpcunittests;
 interface
 
 uses
-  SysUtils, Classes, fpcunit, testutils, testregistry;
+  SysUtils, Classes, fpcunit, testutils, testregistry, testdecorator;
 
 type
 
@@ -159,6 +159,39 @@ type
   TMyIntfObj = class(TInterfacedObject, IMyIntf)
     procedure SayGoodbye;
   end;
+
+  { TEncapsulatedTestCase }
+
+  TEncapsulatedTestCase = class(TTestCase)
+  published
+    procedure TestOne;
+    procedure TestTwo;
+  end;
+  
+  { TMyTestSetup }
+
+  TMyTestSetup = class(TTestSetup)
+  protected
+    procedure OneTimeSetup; override;
+    procedure OneTimeTearDown; override;
+  end;
+
+
+  { TTestDecoratorTest }
+
+  TTestDecoratorTest=class(TTestCase)
+  private
+    res: TTestResult;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure TestRun;
+    procedure TestOneTimeSetup;
+  end; 
+  
+var
+  CountSetup: integer;
 
 implementation
 
@@ -744,8 +777,71 @@ begin
   AssertTrue(True);
 end;
 
+procedure TTestDecoratorTest.SetUp;
+begin
+  res := TTestResult.Create;
+end;
+
+procedure TTestDecoratorTest.TearDown;
+begin
+  FreeAndNil(res);
+end;
+
+procedure TTestDecoratorTest.TestRun;
+var
+  suite: TTestSuite;
+  decorator: TTestDecorator;
+begin
+  suite := TTestSuite.Create(TEncapsulatedTestCase);
+  decorator := TTestDecorator.Create(suite);
+  decorator.Run(res);
+  AssertEquals('wrong number of executed tests', 2, res.RunTests);
+  AssertEquals('wrong number of failures', 1, res.Failures.Count);
+  decorator.Free;
+end;
+
+procedure TTestDecoratorTest.TestOneTimeSetup;
+var
+  suite: TTestSuite;
+  setupDecorator: TTestSetup;
+begin
+  CountSetup := 0;
+  suite := TTestSuite.Create(TEncapsulatedTestCase);
+  setupDecorator := TMyTestSetup.Create(suite);
+  setupDecorator.Run(res);
+  AssertEquals('wrong number of executed tests', 2, res.RunTests);
+  AssertEquals('wrong number of failures', 1, res.Failures.Count);
+  AssertEquals('One-time Setup not executed', 1, CountSetup);
+  setupDecorator.Free;
+end;
+
+{ TEncapsulatedTestCase }
+
+procedure TEncapsulatedTestCase.TestOne;
+begin
+  AssertTrue(True);
+end;
+
+procedure TEncapsulatedTestCase.TestTwo;
+begin
+  AssertTrue(False);
+end;
+
+{ TMyTestSetup }
+
+procedure TMyTestSetup.OneTimeSetup;
+begin
+  Inc(CountSetup)
+end;
+
+procedure TMyTestSetup.OneTimeTearDown;
+begin
+
+end;
+
+
 initialization
 
-  RegisterTests([TTestCaseTest, TTestSuiteTest, TAssertTest, TListenerTest]);
+  RegisterTests([TTestCaseTest, TTestSuiteTest, TAssertTest, TListenerTest, TTestDecoratorTest]);
 
 end.

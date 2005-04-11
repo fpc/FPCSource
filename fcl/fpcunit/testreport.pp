@@ -79,7 +79,7 @@ begin
 writeln('<error ExceptionClassName="', AError.ExceptionClassName, '">');
   writeln('<message>', AError.ExceptionMessage, '</message>');
   writeln('<sourceunit>', AError.SourceUnitName, '</sourceunit>');
-  writeln('<methodname>', AError.MethodName, '</methodname>');
+  writeln('<methodname>', AError.FailedMethodName, '</methodname>');
   writeln('<linenumber>', AError.LineNumber, '</linenumber>');
   writeln('</error>');
 end;
@@ -181,7 +181,7 @@ begin
         Result := Result + '  <ExceptionMessage>' + f.ExceptionMessage + '</ExceptionMessage>' + System.sLineBreak;
         Result := Result + '  <SourceUnitName>' + f.SourceUnitName + '</SourceUnitName>' + System.sLineBreak;
         Result := Result + '  <LineNumber>' + IntToStr(f.LineNumber) + '</LineNumber>' + System.sLineBreak;
-        Result := Result + '  <MethodName>' + f.MethodName + '</MethodName>' + System.sLineBreak;
+        Result := Result + '  <FailedMethodName>' + f.FailedMethodName + '</FailedMethodName>' + System.sLineBreak;
         Result := Result + '</Error>' + System.sLineBreak;
       end;
       Result := Result + '</ListOfErrors>';

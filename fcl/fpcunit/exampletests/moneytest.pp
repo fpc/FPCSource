@@ -98,8 +98,11 @@ end;
 procedure TMoneyTest.testBagSimpleAdd;
 var
   expected: IMoney;
+  a, b: IMoney;
 begin
-  expected := TMoneyBag.CreateWith(TMoney.Create(26, 'CHF'), TMoney.Create(7, 'USD'));
+  a := TMoney.Create(26, 'CHF');
+  b := TMoney.Create(7, 'USD');
+  expected := TMoneyBag.CreateWith(a, b);
   AssertTrue('expected ' + expected.toString + ' but was ' + FMB1.add(F14CHF).toString, expected.equals(FMB1.add(F14CHF)));
 end;
 

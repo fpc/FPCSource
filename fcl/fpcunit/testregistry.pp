@@ -20,12 +20,18 @@ unit testregistry;
 interface
 
 uses
-  fpcunit;
+  fpcunit, testdecorator;
+  
+type
+
+  TTestDecoratorClass = class of TTestDecorator;
 
 
-procedure RegisterTest(ATestClass: TTestClass); overload;
+procedure RegisterTest(ATestClass: TTestCaseClass); overload;
 
-procedure RegisterTests(ATests: Array of TTestClass);
+procedure RegisterTests(ATests: Array of TTestCaseClass);
+
+procedure RegisterTestDecorator(ADecoratorClass: TTestDecoratorClass; ATestClass: TTestCaseClass);
 
 function NumberOfRegisteredTests: longint;
 
@@ -43,12 +49,17 @@ begin
   Result := FTestRegistry;
 end;
 
-procedure RegisterTest(ATestClass: TTestClass);
+procedure RegisterTest(ATestClass: TTestCaseClass);
 begin
   GetTestRegistry.AddTestSuiteFromClass(ATestClass);
 end;
 
-procedure RegisterTests(ATests: Array of TTestClass);
+procedure RegisterTestDecorator(ADecoratorClass: TTestDecoratorClass; ATestClass: TTestCaseClass);
+begin
+  GetTestRegistry.AddTest(ADecoratorClass.Create(TTestSuite.Create(ATestClass)));
+end;
+
+procedure RegisterTests(ATests: Array of TTestCaseClass);
 var
   i: integer;
 begin
