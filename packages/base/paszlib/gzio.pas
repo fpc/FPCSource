@@ -26,7 +26,7 @@ uses
 type gzFile = voidp;
 type z_off_t = long;
 
-function gzopen  (path:string; mode:string) : gzFile;
+function gzopen  (path:ansistring; mode:string) : gzFile;
 function gzsetparams (f:gzfile; level:int; strategy:int) : int;
 function gzread  (f:gzFile; buf:voidp; len:uInt) : int;
 function gzgetc  (f:gzfile) : int;
@@ -84,7 +84,7 @@ type gz_stream = record
   outbuf      : pBytef;   { output buffer }
   crc         : uLong;    { crc32 of uncompressed data }
   msg,                    { error message - limit 79 chars }
-  path        : string[79];   { path name for debugging only - limit 79 chars }
+  path        : ansistring;   { path name for debugging only - limit 79 chars }
   transparent : boolean;  { true if input file is not a .gz file }
   mode        : char;     { 'w' or 'r' }
   startpos    : long;     { start of compressed data in file (header skipped) }
@@ -115,7 +115,7 @@ procedure check_header(s:gz_streamp); forward;
 
 ============================================================================}
 
-function gzopen (path:string; mode:string) : gzFile;
+function gzopen (path:ansistring; mode:string) : gzFile;
 
 var
 
