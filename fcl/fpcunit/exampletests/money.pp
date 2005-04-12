@@ -178,7 +178,7 @@ end;
 function TMoneyBag.Simplify: IMoney;
 begin
   if FMonies.Count = 1 then
-    Result := IInterface(FMonies.items[0]) as IMoney
+    Result := IMoney(FMonies.items[0])
   else
     Result := Self;
 end;
@@ -203,7 +203,7 @@ var
   i: integer;
 begin
   for i := 0 to aBag.FMonies.Count - 1 do
-    appendMoney(IUnknown(aBag.FMonies.Items[i]) as ISingleCurrencyMoney);
+    appendMoney(ISingleCurrencyMoney(aBag.FMonies.Items[i]));
 end;
 
 procedure TMoneyBag.appendMoney(aMoney: ISingleCurrencyMoney);
@@ -237,8 +237,8 @@ begin
   if factor <> 0 then
     for i := 0 to FMonies.Count - 1 do
     begin
-      TMoneyBag(Result._Self).appendMoney((IInterface(FMonies.items[i])
-        as ISingleCurrencyMoney).Multiply(factor) as ISingleCurrencyMoney);
+      TMoneyBag(Result._Self).appendMoney(ISingleCurrencyMoney(
+      ISingleCurrencyMoney(FMonies.items[i]).Multiply(factor)));
     end;
 end;
 
@@ -249,8 +249,8 @@ begin
   Result := TMoneyBag.Create;
   for i := 0 to FMonies.Count - 1 do
   begin
-    TMoneyBag(Result._Self).appendMoney((IInterface(FMonies.items[i])
-      as ISingleCurrencyMoney).negate as ISingleCurrencyMoney);
+    TMoneyBag(Result._Self).appendMoney(ISingleCurrencyMoney(
+      ISingleCurrencyMoney(FMonies.items[i]).negate));
   end;
 end;
 
@@ -270,7 +270,7 @@ var
 begin
   Result := '{';
   for i := 0 to FMonies.Count - 1 do
-    Result := Result + (IInterface(FMonies.items[i]) as ISingleCurrencyMoney).ToString;
+    Result := Result + ISingleCurrencyMoney(FMonies.items[i]).ToString;
   Result := Result + '}';
 end;
 
@@ -278,6 +278,7 @@ function TMoneyBag.equals(m: IMoney): boolean;
 var
   aMoneyBag: TMoneyBag;
   i: integer;
+  ism: ISingleCurrencyMoney;
 begin
   if m = nil then
   begin
@@ -299,7 +300,8 @@ begin
     end;
     for i := 0 to FMonies.Count - 1 do
     begin
-      if not aMoneyBag.Contains(IInterface(FMonies.items[i]) as ISingleCurrencyMoney) then
+      ism := ISingleCurrencyMoney(FMonies.items[i]);
+      if not aMoneyBag.Contains(ism) then
       begin
         Result := false;
         Exit;
@@ -389,15 +391,19 @@ begin
 end;
 
 function TMoney.equals(m: IMoney): boolean;
+var
+  ism: ISingleCurrencyMoney;
 begin
   if Assigned(m) then
   begin
     if isZero then
-      if Assigned(m as IMoney) then
-        Result := (m as IMoney).isZero;
+         Result := m.isZero;
     if m._Self.ClassType = TMoney  then
-       Result := ((m as ISingleCurrencyMoney).Amount = Amount) and
-          ((m as ISingleCurrencyMoney).CurrencyUnit = CurrencyUnit)
+    begin
+      ism := ISingleCurrencyMoney(m);
+       Result := (ism.Amount = Amount) and
+          (ism.CurrencyUnit = CurrencyUnit)
+    end
     else
       Result := false;
   end

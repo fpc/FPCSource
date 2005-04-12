@@ -64,12 +64,7 @@ end;
 
 procedure TMoneyTest.TearDown;
 begin
-  F12CHF := nil;
-  F14CHF := nil;
-  F7USD := nil;
-  F21USD := nil;
-  FMB1 := nil;
-  FMB2 := nil;
+
 end;
 
 procedure TMoneyTest.testBagCreate;
@@ -148,9 +143,11 @@ end;
 procedure TMoneyTest.testBagNotEquals;
 var
   expected: IMoney;
+  res: IMoney;
 begin
   expected := TMoneyBag.CreateWith(F12CHF, F7USD);
-  AssertFalse(expected.equals(TMoney.Create(12, 'CAD').add(F7USD)));
+  res := TMoney.Create(12, 'CAD').add(F7USD);
+  AssertFalse(expected.equals(res));
 end;
 
 procedure TMoneyTest.testMoneyBagEquals;
