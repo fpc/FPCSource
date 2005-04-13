@@ -783,6 +783,7 @@ begin
   if Active then Close;
   UnPrepare;
   FreeAndNil(FSQL);
+  FreeAndNil(FIndexDefs);
   inherited Destroy;
 end;
 
@@ -972,7 +973,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2005-04-10 18:29:26  joost
+  Revision 1.17  2005-04-13 22:10:26  joost
+  - TSQLQuery now frees FIndexDefs
+
+  Revision 1.16  2005/04/10 18:29:26  joost
   - implemented parameter support for sqldb
   - Added TSQLConnection.ConnOptions
   - renamed TSQLQuery.FreeStatement to TSQLQuery.CloseStatement
