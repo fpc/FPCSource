@@ -2,10 +2,6 @@ program testsqldb;
 
 { A very simple example for sqldb, written by Joost van der Sluis (2004)
 
-  Usage:
-  remove the defines for the databases whose clients aren't installed, or
-  the linking will fail.
-
   The following parameters are used, in given order:
 
     parameter1 = databasetype (mysql,interbase,postgresql - case sensitive)
@@ -23,15 +19,11 @@ program testsqldb;
 
 {$mode objfpc}{$H+}
 
-{$define pqconnection}
-{$define MySQLConnection}
-{$define IBConnection}
-
 uses
   Classes,
-{$ifdef pqconnection}     pqconnection, {$endif}
-{$ifdef MySQLConnection}  mysql4conn, {$endif}
-{$ifdef IBConnection}     IBConnection, {$endif}
+  pqconnection,
+  mysql4conn,
+  IBConnection,
   sqldb;
 
 var connection  : tSQLConnection;
@@ -42,15 +34,10 @@ var connection  : tSQLConnection;
 
 begin
   dbtype := paramstr(1);
-{$ifdef MySQLConnection}
   if dbtype = 'mysql' then connection := tMySQLConnection.Create(nil);
-{$endif}
-{$ifdef pqconnection}
   if dbtype = 'postgresql' then connection := tpqConnection.Create(nil);
-{$endif}
-{$ifdef IBConnection}
   if dbtype = 'interbase' then connection := tIBConnection.Create(nil);
-{$endif}
+
   if not assigned(connection) then exit; // probably an invalid database type given
 
   connection.DatabaseName := paramstr(2);
@@ -68,6 +55,8 @@ begin
     begin
       SQL.clear;
       sql.add('select * from ' + paramstr(3));
+      ReadOnly := True; // If the query is writeable, a transaction must be assigned
+                        // to the database.
       open;
 
       while not eof do
