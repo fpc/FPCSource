@@ -1719,7 +1719,6 @@ end;
 destructor TIndexDef.Destroy;
 
 begin
-  //!! To be implemented
   inherited Destroy;
 end;
 
@@ -1748,7 +1747,7 @@ end;
 destructor TIndexDefs.Destroy;
 
 begin
-  //!! To be implemented
+  inherited Destroy;
 end;
 
 Function TIndexDefs.AddIndexDef: TIndexDef;
@@ -1910,7 +1909,10 @@ end.
 
 {
   $Log$
-  Revision 1.46  2005-04-10 22:18:43  joost
+  Revision 1.47  2005-04-13 22:09:15  joost
+  - TIndexDefs.Destroy now calls inhedited.Destroy
+
+  Revision 1.46  2005/04/10 22:18:43  joost
   Patch from Alexandrov Alexandru
   - implemented TDataset.BindFields
   - master-detail relation implemented
