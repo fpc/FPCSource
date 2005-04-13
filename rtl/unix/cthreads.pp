@@ -197,90 +197,91 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       end;
 
 
-    function CBeginThread(sa : Pointer;stacksize : dword;
-                         ThreadFunction : tthreadfunc;p : pointer;
-                         creationFlags : dword; var ThreadId : THandle) : DWord;
-      var
-        ti : pthreadinfo;
-        thread_attr : pthread_attr_t;
-      begin
+  function CBeginThread(sa : Pointer;stacksize : dword;
+                       ThreadFunction : tthreadfunc;p : pointer;
+                       creationFlags : dword; var ThreadId : THandle) : DWord;
+    var
+      ti : pthreadinfo;
+      thread_attr : pthread_attr_t;
+    begin
 {$ifdef DEBUG_MT}
-        writeln('Creating new thread');
+      writeln('Creating new thread');
 {$endif DEBUG_MT}
-        { Initialize multithreading if not done }
-        if not IsMultiThread then
-         begin
+      { Initialize multithreading if not done }
+      if not IsMultiThread then
+       begin
 {$ifdef HASTHREADVAR}
-          { We're still running in single thread mode, setup the TLS }
-           pthread_key_create(@TLSKey,nil);
-           InitThreadVars(@CRelocateThreadvar);
+        { We're still running in single thread mode, setup the TLS }
+         pthread_key_create(@TLSKey,nil);
+         InitThreadVars(@CRelocateThreadvar);
 {$endif HASTHREADVAR}
-           IsMultiThread:=true;
-         end;
-        { the only way to pass data to the newly created thread
-          in a MT safe way, is to use the heap }
-        new(ti);
-        ti^.f:=ThreadFunction;
-        ti^.p:=p;
-        ti^.stklen:=stacksize;
-        { call pthread_create }
+         IsMultiThread:=true;
+       end;
+      { the only way to pass data to the newly created thread
+        in a MT safe way, is to use the heap }
+      new(ti);
+      ti^.f:=ThreadFunction;
+      ti^.p:=p;
+      ti^.stklen:=stacksize;
+      { call pthread_create }
 {$ifdef DEBUG_MT}
-        writeln('Starting new thread');
+      writeln('Starting new thread');
 {$endif DEBUG_MT}
-        pthread_attr_init(@thread_attr);
-        pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
+      pthread_attr_init(@thread_attr);
+      pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
 
-        // will fail under linux -- apparently unimplemented
-        pthread_attr_setscope(@thread_attr, PTHREAD_SCOPE_PROCESS);
+      // will fail under linux -- apparently unimplemented
+      pthread_attr_setscope(@thread_attr, PTHREAD_SCOPE_PROCESS);
 
-        // don't create detached, we need to be able to join (waitfor) on
-        // the newly created thread!
-        //pthread_attr_setdetachstate(@thread_attr, PTHREAD_CREATE_DETACHED);
-        if pthread_create(@threadid, @thread_attr, @ThreadMain,ti) <> 0 then begin
-          threadid := 0;
-        end;
-        CBeginThread:=threadid;
+      // don't create detached, we need to be able to join (waitfor) on
+      // the newly created thread!
+      //pthread_attr_setdetachstate(@thread_attr, PTHREAD_CREATE_DETACHED);
+      if pthread_create(@threadid, @thread_attr, @ThreadMain,ti) <> 0 then begin
+        threadid := 0;
+      end;
+      CBeginThread:=threadid;
 {$ifdef DEBUG_MT}
-        writeln('BeginThread returning ',CBeginThread);
+      writeln('BeginThread returning ',CBeginThread);
 {$endif DEBUG_MT}
-      end;
+    end;
 
 
-    procedure CEndThread(ExitCode : DWord);
-      begin
-        DoneThread;
-        pthread_detach(pthread_t(pthread_self()));
-        pthread_exit(pointer(ptrint(ExitCode)));
-      end;
+  procedure CEndThread(ExitCode : DWord);
+    begin
+      DoneThread;
+      pthread_detach(pthread_t(pthread_self()));
+      pthread_exit(pointer(ptrint(ExitCode)));
+    end;
 
 
-{$warning threadhandle can be larger than a dword}
-    function  CSuspendThread (threadHandle : dword) : dword;
+
+  function  CSuspendThread (threadHandle : TThreadID) : dword;
     begin
       {$Warning SuspendThread needs to be implemented}
     end;
 
-{$warning threadhandle can be larger than a dword}
-    function  CResumeThread  (threadHandle : dword) : dword;
+
+  function  CResumeThread  (threadHandle : TThreadID) : dword;
     begin
       {$Warning ResumeThread needs to be implemented}
     end;
 
-    procedure CThreadSwitch;  {give time to other threads}
+
+  procedure CThreadSwitch;  {give time to other threads}
     begin
       {extern int pthread_yield (void) __THROW;}
       {$Warning ThreadSwitch needs to be implemented}
     end;
 
-{$warning threadhandle can be larger than a dword}
-    function  CKillThread (threadHandle : dword) : dword;
+
+  function  CKillThread (threadHandle : TThreadID) : dword;
     begin
       pthread_detach(pthread_t(threadHandle));
       CKillThread := pthread_cancel(pthread_t(threadHandle));
     end;
 
-{$warning threadhandle can be larger than a dword}
-    function  CWaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
+
+  function  CWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
     var
       LResultP: Pointer;
       LResult: DWord;
@@ -292,20 +293,20 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     end;
 
 {$warning threadhandle can be larger than a dword}
-    function  CThreadSetPriority (threadHandle : dword; Prio: longint): boolean; {-15..+15, 0=normal}
+    function  CThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean; {-15..+15, 0=normal}
     begin
       {$Warning ThreadSetPriority needs to be implemented}
     end;
 
 
 {$warning threadhandle can be larger than a dword}
-    function  CThreadGetPriority (threadHandle : dword): Integer;
+  function  CThreadGetPriority (threadHandle : TThreadID): Integer;
     begin
       {$Warning ThreadGetPriority needs to be implemented}
     end;
+    
 
-{$warning threadhandle can be larger than a dword}
-    function  CGetCurrentThreadId : dword;
+  function  CGetCurrentThreadId : TThreadID;
     begin
       CGetCurrentThreadId:=dword(pthread_self());
     end;
@@ -659,7 +660,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.27  2005-04-09 18:45:43  florian
+  Revision 1.28  2005-04-13 20:10:50  florian
+    + TThreadID
+
+  Revision 1.27  2005/04/09 18:45:43  florian
     * fixed some unix stuff
 
   Revision 1.26  2005/04/09 17:26:08  florian

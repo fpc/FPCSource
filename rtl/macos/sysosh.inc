@@ -19,10 +19,11 @@
 {Platform specific information}
 type
 {$ifdef CPU64}
-  THandle = Int64;
+  THandle = Int64;  
 {$else CPU64}
   THandle = Longint;
 {$endif CPU64}
+  TThreadID = THandle;
 
      PRTLCriticalSection = ^TRTLCriticalSection;
      TRTLCriticalSection = record
@@ -32,7 +33,10 @@ type
 
 {
    $Log$
-   Revision 1.1  2005-02-07 21:30:12  peter
+   Revision 1.2  2005-04-13 20:10:50  florian
+     + TThreadID
+
+   Revision 1.1  2005/02/07 21:30:12  peter
      * system unit updated
 
    Revision 1.1  2005/02/06 16:57:18  peter

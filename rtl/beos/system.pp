@@ -27,8 +27,9 @@ interface
 {$I systemh.inc}
 
 type
- THandle = longint;
-
+  THandle = longint;
+  TThreadID = THandle;
+  
 { include heap support headers }
 
 {$I heaph.inc}
@@ -547,7 +548,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2005-04-03 21:10:59  hajny
+  Revision 1.23  2005-04-13 20:10:50  florian
+    + TThreadID
+
+  Revision 1.22  2005/04/03 21:10:59  hajny
     * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
 
   Revision 1.21  2005/02/14 17:13:21  peter

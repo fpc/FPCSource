@@ -20,7 +20,8 @@
 type
   { fd are int in C also for 64bit targets (x86_64) }
   THandle = Longint;
-
+  TThreadID = THandle;
+  
   { pthread_mutex_t }
   PRTLCriticalSection = ^TRTLCriticalSection;
   TRTLCriticalSection = record
@@ -37,7 +38,10 @@ type
 
 {
    $Log$
-   Revision 1.2  2005-02-14 17:13:30  peter
+   Revision 1.3  2005-04-13 20:10:50  florian
+     + TThreadID
+
+   Revision 1.2  2005/02/14 17:13:30  peter
      * truncate log
 
    Revision 1.1  2005/02/06 11:20:52  peter

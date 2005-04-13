@@ -19,16 +19,20 @@
 {Platform specific information}
 type
   THandle = Longint;
-
-     PRTLCriticalSection = ^TRTLCriticalSection;
-     TRTLCriticalSection = record
-       Locked: boolean
-     end;
+  TThreadID = THandle;
+  
+   PRTLCriticalSection = ^TRTLCriticalSection;
+   TRTLCriticalSection = record
+     Locked: boolean
+   end;
 
 
 {
    $Log$
-   Revision 1.1  2005-02-06 16:57:18  peter
+   Revision 1.2  2005-04-13 20:10:50  florian
+     + TThreadID
+
+   Revision 1.1  2005/02/06 16:57:18  peter
      * threads for go32v2,os,emx,netware
 
    Revision 1.1  2005/02/06 13:06:20  peter

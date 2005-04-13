@@ -3,7 +3,7 @@
     This file is part of the Free Pascal Run time library.
     Copyright (c) 2000 by the Free Pascal development team
 
-    This File contains the OS indenpendend declartions for multi
+    This file contains the OS indenpendend declartions for multi
     threading support in FPC
 
     See the File COPYING.FPC, included in this distribution,
@@ -26,15 +26,15 @@ type
   trtlmethod  = procedure of object;
 
   // Function prototypes for TThreadManager Record.
-  TBeginThreadHandler = Function (sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : THandle) : DWord;
+  TBeginThreadHandler = Function (sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : TThreadID) : DWord;
   TEndThreadHandler = Procedure (ExitCode : DWord);
   // Used for Suspend/Resume/Kill
-  TThreadHandler = Function (threadHandle : dword) : dword;
+  TThreadHandler = Function (threadHandle : TThreadID) : dword;
   TThreadSwitchHandler = Procedure;
-  TWaitForThreadTerminateHandler = Function (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
-  TThreadSetPriorityHandler = Function (threadHandle : dword; Prio: longint): boolean;            {-15..+15, 0=normal}
-  TThreadGetPriorityHandler = Function (threadHandle : dword): longint;
-  TGetCurrentThreadIdHandler = Function : dword;
+  TWaitForThreadTerminateHandler = Function (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
+  TThreadSetPriorityHandler = Function (threadHandle : TThreadID; Prio: longint): boolean;            {-15..+15, 0=normal}
+  TThreadGetPriorityHandler = Function (threadHandle : TThreadID): longint;
+  TGetCurrentThreadIdHandler = Function : TThreadID;
   TCriticalSectionHandler = Procedure (var cs);
   TInitThreadVarHandler = Procedure(var offset : dword;size : dword);
   TRelocateThreadVarHandler = Function(offset : dword) : pointer;
@@ -114,19 +114,19 @@ function BeginThread(sa : Pointer;stacksize : dword;
 { to other OSes too ...                                        }
 function BeginThread(ThreadFunction : tthreadfunc) : DWord;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : DWord;
-function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : THandle) : DWord;
+function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID) : DWord;
 
 procedure EndThread(ExitCode : DWord);
 procedure EndThread;
 
 {some thread support functions}
-function  SuspendThread (threadHandle : dword) : dword;
-function  ResumeThread  (threadHandle : dword) : dword;
+function  SuspendThread (threadHandle : TThreadID) : dword;
+function  ResumeThread  (threadHandle : TThreadID) : dword;
 procedure ThreadSwitch;                                                                {give time to other threads}
-function  KillThread (threadHandle : dword) : dword;
-function  WaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
-function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean;            {-15..+15, 0=normal}
-function  ThreadGetPriority (threadHandle : dword): longint;
+function  KillThread (threadHandle : TThreadID) : dword;
+function  WaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
+function  ThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean;            {-15..+15, 0=normal}
+function  ThreadGetPriority (threadHandle : TThreadID): longint;
 function  GetCurrentThreadId : dword;
 
 
@@ -155,7 +155,10 @@ procedure RTLeventsync(m:trtlmethod;p:tprocedure);
 
 {
   $Log$
-  Revision 1.29  2005-04-09 17:26:08  florian
+  Revision 1.30  2005-04-13 20:10:50  florian
+    + TThreadID
+
+  Revision 1.29  2005/04/09 17:26:08  florian
     + classes.mainthreadid is set now
     + rtleventresetevent
     + rtleventwairfor with timeout

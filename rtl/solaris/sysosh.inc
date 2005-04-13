@@ -18,16 +18,20 @@
 
 type
   THandle = Longint;
-
-     PRTLCriticalSection = ^TRTLCriticalSection;
-     TRTLCriticalSection = record
-     {$warning TODO TRTLCriticalSection}
-       Locked: boolean
-     end;
+  TThreadID = THandle;
+  
+  PRTLCriticalSection = ^TRTLCriticalSection;
+  TRTLCriticalSection = record
+  {$warning TODO TRTLCriticalSection}
+   Locked: boolean
+  end;
 
 {
    $Log$
-   Revision 1.1  2005-02-10 17:30:54  peter
+   Revision 1.2  2005-04-13 20:10:50  florian
+     + TThreadID
+
+   Revision 1.1  2005/02/10 17:30:54  peter
      * renamed to solaris
 
    Revision 1.1  2005/02/07 22:17:26  peter
