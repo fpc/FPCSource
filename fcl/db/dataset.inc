@@ -777,6 +777,7 @@ begin
 {$ifdef dsdebug}
     Writeln ('   Filling memory :',(Value+1-FBufferCount)*SizeOf(PChar));
 {$endif}
+    if FBufferCount > 0 then inc(FBufferCount); // Cause FBuffers[FBufferCount] is already allocated
     FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOF(Pchar),#0);
 {$ifdef dsdebug}
     Writeln ('   Filled memory :');
@@ -1788,7 +1789,10 @@ end;
 
 {
   $Log$
-  Revision 1.35  2005-04-10 22:18:43  joost
+  Revision 1.36  2005-04-13 22:08:16  joost
+  - fixed mem-leak in TDataset.SetBufListSize
+
+  Revision 1.35  2005/04/10 22:18:43  joost
   Patch from Alexandrov Alexandru
   - implemented TDataset.BindFields
   - master-detail relation implemented
