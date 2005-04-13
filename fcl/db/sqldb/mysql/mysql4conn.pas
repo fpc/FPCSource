@@ -26,8 +26,8 @@ Type
     FNeedData : Boolean;
     FStatement : String;
     Row : TMYSQL_ROW;
-    RowsAffected : Int64;
-    LastInsertID : Int64;
+    RowsAffected : QWord;
+    LastInsertID : QWord;
   end;
 
   TMySQLConnection = class (TSQLConnection)
@@ -149,9 +149,7 @@ end;
 procedure TMySQLConnection.ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
 
 begin
-  if (HMySQL=Nil) then
-    New(HMySQL);
-  mysql_init(HMySQL);
+  HMySQL := mysql_init(HMySQL);
   HMySQL:=mysql_real_connect(HMySQL,PChar(H),PChar(U),Pchar(P),Nil,0,Nil,0);
   If (HMySQL=Nil) then
     MySQlError(Nil,SErrServerConnectFailed,Self);
@@ -238,6 +236,7 @@ procedure TMySQLConnection.PrepareStatement(cursor: TSQLCursor;
 begin
   if assigned(AParams) and (AParams.count > 0) then
     DatabaseError('Parameters (not) yet supported for the MySQL SqlDB connection.',self);
+  ObtainSQLStatementType(cursor,buf);
   With Cursor as TMysqlCursor do
     begin
     FStatement:=Buf;
