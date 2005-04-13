@@ -78,7 +78,7 @@ Var
         EndThread(0);
       end;
 
-function BeginThread(sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : THandle) : DWord;
+function BeginThread(sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : TThreadID) : DWord;
 
 begin
   Result:=CurrentTM.BeginThread(sa,stacksize,threadfunction,P,creationflags,ThreadID);
@@ -90,13 +90,13 @@ begin
   CurrentTM.EndThread(ExitCode);
 end;
 
-function  SuspendThread (threadHandle : dword) : dword;
+function  SuspendThread (threadHandle : TThreadID) : dword;
 
 begin
   Result:=CurrentTM.SuspendThread(ThreadHandle);
 end;
 
-function ResumeThread  (threadHandle : dword) : dword;
+function ResumeThread  (threadHandle : TThreadID) : dword;
 
 begin
   Result:=CurrentTM.ResumeThread(ThreadHandle);
@@ -108,24 +108,24 @@ begin
   CurrentTM.ThreadSwitch;
 end;
 
-function  KillThread (threadHandle : dword) : dword;
+function  KillThread (threadHandle : TThreadID) : dword;
 
 begin
   Result:=CurrentTM.KillThread(ThreadHandle);
 end;
 
-function  WaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;
+function  WaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;
 
 begin
   Result:=CurrentTM.WaitForThreadTerminate(ThreadHandle,TimeOutMS);
 end;
 
-function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean;
+function  ThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean;
 begin
   Result:=CurrentTM.ThreadSetPriority(ThreadHandle,Prio);
 end;
 
-function  ThreadGetPriority (threadHandle : dword): longint;
+function  ThreadGetPriority (threadHandle : TThreadID): longint;
 
 begin
   Result:=CurrentTM.ThreadGetPriority(ThreadHandle);
@@ -294,7 +294,7 @@ end;
 
 function NoBeginThread(sa : Pointer;stacksize : dword;
                      ThreadFunction : tthreadfunc;p : pointer;
-                     creationFlags : dword; var ThreadId : THandle) : DWord;
+                     creationFlags : dword; var ThreadId : TThreadID) : DWord;
 begin
   NoThreadError;
 end;
@@ -304,7 +304,7 @@ begin
   NoThreadError;
 end;
 
-function  NoThreadHandler (threadHandle : dword) : dword;
+function  NoThreadHandler (threadHandle : TThreadID) : dword;
 begin
   NoThreadError;
 end;
@@ -314,22 +314,22 @@ begin
   NoThreadError;
 end;
 
-function  NoWaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
+function  NoWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
 begin
   NoThreadError;
 end;
 
-function  NoThreadSetPriority (threadHandle : dword; Prio: longint): boolean; {-15..+15, 0=normal}
+function  NoThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean; {-15..+15, 0=normal}
 begin
   NoThreadError;
 end;
 
-function  NoThreadGetPriority (threadHandle : dword): longint;
+function  NoThreadGetPriority (threadHandle : TThreadID): longint;
 begin
   NoThreadError;
 end;
 
-function  NoGetCurrentThreadId : dword;
+function  NoGetCurrentThreadId : TThreadID;
 begin
   if IsMultiThread then
     NoThreadError
@@ -430,19 +430,19 @@ procedure NORTLeventStartWait(state:pRTLEvent);
   begin
     NoThreadError;
   end;
-  
+
 
 procedure NORTLeventWaitFor(state:pRTLEvent);
   begin
     NoThreadError;
   end;
-  
+
 
 procedure NORTLeventWaitForTimeout(state:pRTLEvent;timeout : longint);
   begin
     NoThreadError;
   end;
-  
+
 
 procedure NORTLeventsync(m:trtlmethod;p:tprocedure);
   begin
@@ -497,7 +497,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  2005-04-09 17:26:08  florian
+  Revision 1.27  2005-04-13 20:15:47  florian
+    * TThread on linux fixed
+
+  Revision 1.26  2005/04/09 17:26:08  florian
     + classes.mainthreadid is set now
     + rtleventresetevent
     + rtleventwairfor with timeout
