@@ -287,6 +287,10 @@ Type
 
 Implementation
 
+{$ifdef HASVARIANT}
+uses Variants;
+{$endif}
+
 ResourceString
   SErrPropertyNotFound = 'Unknown property: "%s"';
   SErrUnknownEnumValue = 'Unknown enumeration value: "%s"';
@@ -803,7 +807,7 @@ begin
       case DataSize of
         1: PByte(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Byte(Value);
         2: PWord(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Word(Value);
-        4: PLongint(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Longint(Value);
+        4:PLongint(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Longint(Value);
         8: PInt64(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Value;
       end;
     ptstatic,
@@ -1492,12 +1496,83 @@ end;
 
 
 Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
+
+var
+  PropInfo: PPropInfo;
+
 begin
+  // find the property
+  PropInfo := GetPropInfo(Instance, PropName);
+  if PropInfo = nil then
+    raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName])
+ else
+   begin
+   Result := Null; //at worst
+   // call the right GetxxxProp
+   case PropInfo^.PropType^.Kind of
+     tkInteger, tkChar, tkWChar, tkClass, tkBool:
+        Result := GetOrdProp(Instance, PropInfo);
+     tkEnumeration:
+     if PreferStrings then
+       Result := GetEnumProp(Instance, PropInfo)
+     else
+       Result := GetOrdProp(Instance, PropInfo);
+     tkSet:
+       if PreferStrings then
+         Result := GetSetProp(Instance, PropInfo, False)
+       else
+         Result := GetOrdProp(Instance, PropInfo);
+     tkFloat:
+       Result := GetFloatProp(Instance, PropInfo);
+     tkMethod:
+       Result := PropInfo^.PropType^.Name;
+     tkString, tkLString, tkAString:
+       Result := GetStrProp(Instance, PropInfo);
+     tkWString:
+       Result := GetWideStrProp(Instance, PropInfo);
+     tkVariant:
+       Result := GetVariantProp(Instance, PropInfo);
+     tkInt64:
+       Result := GetInt64Prop(Instance, PropInfo);
+   else
+     raise EPropertyError.CreateFmt('Invalid Property Type: %s',[PropInfo^.PropType^.Name]);
+   end;
+   end;
 end;
 
-
 Procedure SetPropValue(Instance: TObject; const PropName: string;  const Value: Variant);
+
+var
+ PropInfo: PPropInfo;
+ TypeData: PTypeData;
+
 begin
+   // find the property
+   PropInfo := GetPropInfo(Instance, PropName);
+   if PropInfo = nil then
+     raise EPropertyError.CreateFmt('SetPropValue: Unknown property: "%s"', [PropName])
+   else
+     begin
+     TypeData := GetTypeData(PropInfo^.PropType);
+     // call right SetxxxProp
+     case PropInfo^.PropType^.Kind of
+       tkInteger, tkChar, tkWChar, tkBool, tkEnumeration, tkSet:
+         SetOrdProp(Instance, PropInfo, Value);
+       tkFloat:
+         SetFloatProp(Instance, PropInfo, Value);
+       tkString, tkLString, tkAString:
+         SetStrProp(Instance, PropInfo, VarToStr(Value));
+       tkWString:
+         SetWideStrProp(Instance, PropInfo, VarToWideStr(Value));
+       tkVariant:
+         SetVariantProp(Instance, PropInfo, Value);
+       tkInt64:
+         SetInt64Prop(Instance, PropInfo, Value);
+     else
+       raise EPropertyError.CreateFmt('SetPropValue: Invalid Property Type %s',
+                                      [PropInfo^.PropType^.Name]);
+     end;
+   end;
 end;
 
 
@@ -1543,7 +1618,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.43  2005-04-05 06:44:25  marco
+  Revision 1.44  2005-04-14 17:43:07  michael
+  + Added getPropValue by Uberto Barbini
+
+  Revision 1.43  2005/04/05 06:44:25  marco
    * Currency property patch from Dean Zobec
 
   Revision 1.42  2005/04/03 11:50:58  marco
