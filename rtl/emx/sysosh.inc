@@ -20,7 +20,7 @@
 type
   THandle = Longint;
   
-  TThreadID = THandle;
+  TThreadID = cardinal;
   
   { the fields of this record are os dependent  }
   { and they shouldn't be used in a program     }
@@ -38,7 +38,10 @@ type
 
 {
    $Log$
-   Revision 1.2  2005-04-13 20:10:50  florian
+   Revision 1.3  2005-04-14 21:17:51  hajny
+     * TThreadID changed to cardinal
+
+   Revision 1.2  2005/04/13 20:10:50  florian
      + TThreadID
 
    Revision 1.1  2005/02/06 16:57:18  peter
