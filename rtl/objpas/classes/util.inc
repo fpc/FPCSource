@@ -33,10 +33,10 @@ var
 begin
   for i:=0 to binbufsize-1 do
     begin
-      HexValue[0]:=hexdigits[(ord(binvalue^) and 15)];
-      HexValue[1]:=hexdigits[(ord(binvalue^) shr 4)];
-      inc(hexvalue,2);
-      inc(binvalue);
+    HexValue[0]:=hexdigits[1+((ord(binvalue^) shr 4))];
+    HexValue[1]:=hexdigits[1+((ord(binvalue^) and 15))];
+    inc(hexvalue,2);
+    inc(binvalue);
     end;
 end;
 
@@ -46,38 +46,40 @@ function HexToBin(HexValue, BinValue: PChar; BinBufSize: Integer): Integer;
 // A..F    1000001
 // a..f    1100001
 // 0..9     110000
-var
-        i,j : integer;
+var i,j,h,l : integer;
+
 begin
- i:=binbufsize;
- while (i>0) do
-   begin
-     if hexvalue^ IN ['A'..'F','a'..'f'] then
-       j:=(ord(hexvalue^)+9) and 15
-     else
-       if hexvalue^ IN ['0'..'9'] then
-         j:=(ord(hexvalue^)) and 15
-     else
-       break;
-     inc(hexvalue);
-     if hexvalue^ IN ['A'..'F','a'..'f'] then
-       j:=j+((ord(hexvalue^)+9) and 15) shl 4
-     else
-       if hexvalue^ IN ['0'..'9'] then
-         j:=j+((ord(hexvalue^)) and 15) shl 4
-     else
-       break;
-     inc(hexvalue);
-     binvalue^:=chr(j);
-     inc(binvalue);
-     dec(i);
-   end;
+  i:=binbufsize;
+  while (i>0) do
+    begin
+    if hexvalue^ IN ['A'..'F','a'..'f'] then
+      h:=((ord(hexvalue^)+9) and 15)
+    else if hexvalue^ IN ['0'..'9'] then
+      h:=((ord(hexvalue^)) and 15)
+    else
+      break;
+    inc(hexvalue);
+    if hexvalue^ IN ['A'..'F','a'..'f'] then
+      l:=(ord(hexvalue^)+9) and 15
+    else if hexvalue^ IN ['0'..'9'] then
+      l:=(ord(hexvalue^)) and 15
+    else
+      break;
+    j := l + (h shl 4);
+    inc(hexvalue);
+    binvalue^:=chr(j);
+    inc(binvalue);
+    dec(i);
+    end;
   result:=binbufsize-i;
-end;
+end;                  
 
 {
   $Log$
-  Revision 1.3  2005-02-14 17:13:31  peter
+  Revision 1.4  2005-04-14 17:43:53  michael
+  + Fix for BintoHex and hextobin by Uberto Barbini
+
+  Revision 1.3  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.2  2005/02/03 20:17:05  florian
