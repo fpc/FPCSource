@@ -1960,7 +1960,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pas $(SYSDEPS)
 	$(COMPILER) -Us -Sg $(SYSTEMUNIT).pas
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
 		   $(SYSTEMUNIT)$(PPUEXT)
@@ -2000,17 +2000,17 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUN
 	$(COMPILER) $(OBJPASDIR)/math.pp
 varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 		    $(OBJPASDIR)/varutilh.inc $(OS2INC)/varutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) -I$(OBJPASDIR) $(OS2INC)/varutils.pp
+	$(COMPILER) -Fi$(OBJPASDIR) $(OS2INC)/varutils.pp
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/rtlconst.pp
+	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
 dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
+	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
 convutil$(PPUEXT) : $(OBJPASDIR)/convutil.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutil.pp
+	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/convutil.pp
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/strutils.pp
 macpas$(PPUEXT) : $(INC)/macpas.pp system$(PPUEXT)
