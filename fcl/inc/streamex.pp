@@ -1,3 +1,5 @@
+{$mode objfpc}
+{$h+}
 unit streamex;
 
 Interface
