@@ -131,7 +131,7 @@ begin
   Result:=CurrentTM.ThreadGetPriority(ThreadHandle);
 end;
 
-function  GetCurrentThreadId : dword;
+function  GetCurrentThreadId : TThreadID;
 
 begin
   Result:=CurrentTM.GetCurrentThreadID();
@@ -497,7 +497,10 @@ end;
 
 {
   $Log$
-  Revision 1.27  2005-04-13 20:15:47  florian
+  Revision 1.28  2005-04-14 20:42:14  florian
+    * fixed more TThreadID stuff
+
+  Revision 1.27  2005/04/13 20:15:47  florian
     * TThread on linux fixed
 
   Revision 1.26  2005/04/09 17:26:08  florian

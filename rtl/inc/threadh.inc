@@ -127,7 +127,7 @@ function  KillThread (threadHandle : TThreadID) : dword;
 function  WaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
 function  ThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean;            {-15..+15, 0=normal}
 function  ThreadGetPriority (threadHandle : TThreadID): longint;
-function  GetCurrentThreadId : dword;
+function  GetCurrentThreadId : TThreadID;
 
 
 { this allows to do a lot of things in MT safe way }
@@ -155,7 +155,10 @@ procedure RTLeventsync(m:trtlmethod;p:tprocedure);
 
 {
   $Log$
-  Revision 1.30  2005-04-13 20:10:50  florian
+  Revision 1.31  2005-04-14 20:42:14  florian
+    * fixed more TThreadID stuff
+
+  Revision 1.30  2005/04/13 20:10:50  florian
     + TThreadID
 
   Revision 1.29  2005/04/09 17:26:08  florian
