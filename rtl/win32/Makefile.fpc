@@ -11,8 +11,8 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       lineinfo heaptrc matrix \
       windows winsock initc cmem dynlibs signals \
       dos crt objects graph messages \
-      rtlconsts sysconst sysutils typinfo math types \
-      strutils convutils dateutils varutils variants classes \
+      rtlconsts sysconst sysutils math types \
+      strutils convutils dateutils varutils variants typinfo classes \
       cpu mmx charset ucomplex getopts \
       wincrt winmouse winevent sockets printer \
       video mouse keyboard \
@@ -176,7 +176,7 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 winsysut$(PPUEXT) : winsysut.pp sysutils$(PPUEXT)
         $(COMPILER) winsysut.pp
 
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) variants$(PPUEXT) varutils$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
