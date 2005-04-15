@@ -24,11 +24,10 @@ type
         tm_wday : longint;
         tm_yday : longint;
         tm_isdst : longint;
-        tm_gmtoff : longint;
-        tm_zone : Pchar;
-        __tm_gmtoff : longint;
-        __tm_zone : Pchar;
-     end;
+        case boolean of 
+         false : (tm_gmtoff : longint;tm_zone : Pchar);
+         true  : (__tm_gmtoff : longint;__tm_zone : Pchar);
+	end;
 
    Pitimerspec = ^itimerspec;
    itimerspec = record
