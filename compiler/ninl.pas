@@ -1715,7 +1715,6 @@ implementation
               in_low_x,
               in_high_x:
                 begin
-                  set_varstate(left,vs_used,[vsf_must_be_valid]);
                   case left.resulttype.def.deftype of
                     orddef,
                     enumdef:
@@ -1738,11 +1737,13 @@ implementation
                            if is_open_array(left.resulttype.def) or
                               is_array_of_const(left.resulttype.def) then
                             begin
+                              set_varstate(left,vs_used,[vsf_must_be_valid]);
                               result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                             end
                            else
                             if is_dynamic_array(left.resulttype.def) then
                               begin
+                                set_varstate(left,vs_used,[vsf_must_be_valid]);
                                 { can't use inserttypeconv because we need }
                                 { an explicit type conversion (JM)         }
                                 hp := ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),nil);
@@ -1767,9 +1768,12 @@ implementation
                         else
                          begin
                            if is_open_string(left.resulttype.def) then
-                            result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
+			     begin
+                               set_varstate(left,vs_used,[vsf_must_be_valid]);
+                               result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
+			     end  
                            else
-                            result:=cordconstnode.create(tstringdef(left.resulttype.def).len,u8inttype,true);
+                             result:=cordconstnode.create(tstringdef(left.resulttype.def).len,u8inttype,true);
                          end;
                      end;
                     else
@@ -2479,7 +2483,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.163  2005-03-25 22:20:19  peter
+  Revision 1.164  2005-04-15 15:50:18  peter
+    * only give warnings for uninitialized variables in low()/high()
+      if the value is calculated at runtime
+
+  Revision 1.163  2005/03/25 22:20:19  peter
     * add hint when passing an uninitialized variable to a var parameter
 
   Revision 1.162  2005/03/25 21:46:06  jonas
