@@ -32,6 +32,7 @@ uses
 type
   TOption=class
     FirstPass,
+    ParaLogo,
     NoPressEnter,
     LogoWritten : boolean;
     FileLevel : longint;
@@ -367,8 +368,14 @@ begin
 
   { only parse define,undef,target,verbosity,link etc options the firsttime }
   if firstpass and
-     not((opt[1]='-') and (opt[2] in ['i','d','v','T','u','n','X','l'])) then
-   exit;
+     not(
+         (opt[1]='-') and
+         (
+          ((length(opt)>1) and (opt[2] in ['i','d','v','T','u','n','X','l'])) or
+          ((length(opt)>3) and (opt[2]='F') and (opt[3]='e'))
+         )
+        ) then
+    exit;
 
   Message1(option_handling_option,opt);
   case opt[1] of
@@ -819,7 +826,7 @@ begin
 
            'l' :
              if not UnSetBool(more,0) then
-               WriteLogo;
+               ParaLogo:=true;
 
            'm' :
              parapreprocess:=not UnSetBool(more,0);
@@ -1897,20 +1904,23 @@ begin
     option.parsecmd(cmd)
   else
     begin
+      { Write help pages if no parameters are passed }
+      if (paramcount=0) then
+        Option.WriteHelpPages;
       option.read_parameters;
       { Write only quickinfo }
       if option.quickinfo<>'' then
-       option.writequickinfo;
+        option.writequickinfo;
     end;
 
-{ Write help pages }
-  if (cmd='') and (paramcount=0) then
-   Option.WriteHelpPages;
-
-{ Stop if errors in options }
+  { Stop if errors in options }
   if ErrorCount>0 then
    StopOptions(1);
 
+  { Write logo }
+  if option.ParaLogo then
+    option.writelogo;
+    
   { Non-core target defines }
   Option.TargetDefines(true);
 
@@ -1963,8 +1973,8 @@ begin
       inputextension:=sourceext
      else if FileExists(inputdir+inputfile+pasext) then
        inputextension:=pasext
-     else if ((m_mac in aktmodeswitches) or target_info.p_ext_support) 
-	     and FileExists(inputdir+inputfile+pext) then
+     else if ((m_mac in aktmodeswitches) or target_info.p_ext_support)
+             and FileExists(inputdir+inputfile+pext) then
        inputextension:=pext;
    end;
 
@@ -2104,7 +2114,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.171  2005-03-20 22:36:45  olle
+  Revision 1.172  2005-04-15 15:43:54  peter
+    * -Fe on commandline redirects now all output
+
+  Revision 1.171  2005/03/20 22:36:45  olle
     * Cleaned up handling of source file extension.
     + Added support for .p extension for macos and darwin
 
