@@ -548,6 +548,14 @@ begin
   SafeCallException:=0;
 end;
 
+procedure TComponent.SetSubComponent(ASubComponent: Boolean);
+begin
+  if ASubComponent then
+    Include(FComponentStyle, csSubComponent)
+  else
+    Exclude(FComponentStyle, csSubComponent);
+end;
+
 
 function TComponent.UpdateAction(Action: TBasicAction): Boolean;
 begin
@@ -583,7 +591,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2005-02-14 17:13:31  peter
+  Revision 1.9  2005-04-15 07:21:09  michael
+  +  Streaming of subcomponents added by Marc Weustink
+
+  Revision 1.8  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.7  2005/02/02 19:56:11  florian
