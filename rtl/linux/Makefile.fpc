@@ -214,7 +214,7 @@ classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) 
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
@@ -227,7 +227,7 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
                     $(OBJPASDIR)/varutilh.inc varutils.pp sysutils$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
 
-variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT)
+variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) typinfo$(PPUEXT)
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
