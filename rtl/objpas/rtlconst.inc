@@ -110,7 +110,10 @@ ResourceString
   SErrindexTooLarge             = 'Bit index exceeds array limit: %d';
   SErrInvalidBitIndex           = 'Invalid bit index : %d';
   SErrNoStreaming               = 'Failed to initialize component: No streaming method available.';
+  SErrNoVariantSupport          = 'No variant support for properties. Please use the variants unit in your project and recompile';
   SErrOutOfMemory               = 'Out of memory';
+  SErrPropertyNotFound          = 'Unknown property: "%s"';
+  SErrUnknownEnumValue          = 'Unknown enumeration value: "%s"';
   SFailedToCallConstructor      = 'TStrings descendant "%s" failed to call inherited constructor';
   SFB                           = 'FB';
   SFCreateError                 = 'Unable to create file "%s"';
@@ -524,7 +527,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2005-04-14 21:47:27  hajny
+  Revision 1.2  2005-04-16 09:25:02  michael
+  + Added TypInfo unit constants
+
+  Revision 1.1  2005/04/14 21:47:27  hajny
     * rtlconst/s fix for GO32v2 etc.
 
   Revision 1.1  2005/03/07 17:57:25  peter
