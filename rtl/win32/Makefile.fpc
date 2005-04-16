@@ -176,7 +176,7 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 winsysut$(PPUEXT) : winsysut.pp sysutils$(PPUEXT)
         $(COMPILER) winsysut.pp
 
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) variants$(PPUEXT) varutils$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
@@ -240,3 +240,4 @@ callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
+variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) typinfo$(PPUEXT)

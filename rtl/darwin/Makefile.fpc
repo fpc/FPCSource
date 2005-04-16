@@ -173,7 +173,7 @@ classes$(PPUEXT) : sysutils$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) typinfo$(
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
-typinfo$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) variants$(PPUEXT)
+typinfo$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 math$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
@@ -199,7 +199,7 @@ strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
                     sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/strutils.pp
 
-variants$(PPUEXT) : sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT)
+variants$(PPUEXT) : sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT)
 
 #
 # Mac Pascal Model
