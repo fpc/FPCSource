@@ -240,7 +240,7 @@ constructor TField.Create(AOwner: TComponent);
 begin
   Inherited Create(AOwner);
   FVisible:=True;
-  FValidChars:=[#0..#155];
+  FValidChars:=[#0..#255];
 
   FProviderFlags := [pfInUpdate,pfInWhere];
 end;
@@ -2291,7 +2291,10 @@ end;
 
 {
   $Log$
-  Revision 1.30  2005-04-10 22:18:43  joost
+  Revision 1.31  2005-04-16 10:02:13  michael
+  + Patch to show/enter alternate charsets in grid editor.
+
+  Revision 1.30  2005/04/10 22:18:43  joost
   Patch from Alexandrov Alexandru
   - implemented TDataset.BindFields
   - master-detail relation implemented
