@@ -22,6 +22,7 @@ unit typinfo;
   interface
 
 {$MODE objfpc}
+{$h+}
 
   uses SysUtils;
 
@@ -243,11 +244,6 @@ Function  GetFloatProp(Instance: TObject; const PropName: string): Extended;
 Procedure SetFloatProp(Instance: TObject; const PropName: string; Value: Extended);
 Procedure SetFloatProp(Instance: TObject; PropInfo : PPropInfo;  Value : Extended);
 
-Function  GetVariantProp(Instance: TObject; PropInfo : PPropInfo): Variant;
-Function  GetVariantProp(Instance: TObject; const PropName: string): Variant;
-Procedure SetVariantProp(Instance: TObject; const PropName: string; const Value: Variant);
-Procedure SetVariantProp(Instance: TObject; PropInfo : PPropInfo; const Value: Variant);
-
 Function  GetObjectProp(Instance: TObject; const PropName: string): TObject;
 Function  GetObjectProp(Instance: TObject; const PropName: string; MinClass: TClass): TObject;
 Function  GetObjectProp(Instance: TObject; PropInfo: PPropInfo): TObject;
@@ -270,6 +266,11 @@ Procedure SetInt64Prop(Instance: TObject; const PropName: string;  const Value: 
 Function GetPropValue(Instance: TObject; const PropName: string): Variant;
 Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
 Procedure SetPropValue(Instance: TObject; const PropName: string; const Value: Variant);
+Function  GetVariantProp(Instance: TObject; PropInfo : PPropInfo): Variant;
+Function  GetVariantProp(Instance: TObject; const PropName: string): Variant;
+Procedure SetVariantProp(Instance: TObject; const PropName: string; const Value: Variant);
+Procedure SetVariantProp(Instance: TObject; PropInfo : PPropInfo; const Value: Variant);
+
 
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
@@ -283,18 +284,22 @@ const
     DotSep: String = '.';
 
 Type
-  EPropertyError = Class(Exception);
-
+  EPropertyError  = Class(Exception);
+  TGetPropValue   = Function (Instance: TObject; const PropName: string; PreferStrings: Boolean) : Variant;
+  TSetPropValue   = Procedure (Instance: TObject; const PropName: string; const Value: Variant);
+  TGetVariantProp = Function (Instance: TObject; PropInfo : PPropInfo): Variant;  
+  TSetVariantProp = Procedure (Instance: TObject; PropInfo : PPropInfo; const Value: Variant);
+  
+Const
+  OnGetPropValue   : TGetPropValue = Nil;
+  OnSetPropValue   : TSetPropValue = Nil;
+  OnGetVariantprop : TGetVariantProp = Nil;
+  OnSetVariantprop : TSetVariantProp = Nil;
+ 
 Implementation
 
-{$ifdef HASVARIANT}
-uses Variants;
-{$endif}
-
-ResourceString
-  SErrPropertyNotFound = 'Unknown property: "%s"';
-  SErrUnknownEnumValue = 'Unknown enumeration value: "%s"';
-
+uses rtlconsts;
+  
 type
   PMethod = ^TMethod;
 
@@ -1375,39 +1380,6 @@ end;
 
 
 { ---------------------------------------------------------------------
-  Variant properties
-  ---------------------------------------------------------------------}
-
-Function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
-begin
-{$warning GetVariantProp not implemented}
-{$ifdef HASVARIANT}
-  Result:=Null;
-{$else}
-  Result:=nil;
-{$endif}
-end;
-
-
-Procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo; const Value: Variant);
-begin
-{$warning SetVariantProp not implemented}
-end;
-
-
-Function GetVariantProp(Instance: TObject; const PropName: string): Variant;
-begin
-  Result:=GetVariantProp(Instance,FindPropInfo(Instance,PropName));
-end;
-
-
-Procedure SetVariantProp(Instance: TObject; const PropName: string;  const Value: Variant);
-begin
-  SetVariantprop(instance,FindpropInfo(Instance,PropName),Value);
-end;
-
-
-{ ---------------------------------------------------------------------
   Method properties
   ---------------------------------------------------------------------}
 
@@ -1486,6 +1458,43 @@ end;
 
 
 { ---------------------------------------------------------------------
+  Variant properties
+  ---------------------------------------------------------------------}
+
+Procedure CheckVariantEvent(P : Pointer);
+
+begin
+  If (P=Nil) then
+    Raise Exception.Create(SErrNoVariantSupport);
+end;
+
+Function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
+begin
+  CheckVariantEvent(Pointer(OnGetVariantProp));
+  Result:=OnGetVariantProp(Instance,PropInfo);
+end;
+
+
+Procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo; const Value: Variant);
+begin
+   CheckVariantEvent(Pointer(OnSetVariantProp));
+   OnSetVariantProp(Instance,PropInfo,Value);
+end;
+
+
+Function GetVariantProp(Instance: TObject; const PropName: string): Variant;
+begin
+  Result:=GetVariantProp(Instance,FindPropInfo(Instance,PropName));
+end;
+
+
+Procedure SetVariantProp(Instance: TObject; const PropName: string;  const Value: Variant);
+begin
+  SetVariantprop(instance,FindpropInfo(Instance,PropName),Value);
+end;
+
+
+{ ---------------------------------------------------------------------
   All properties through variant.
   ---------------------------------------------------------------------}
 
@@ -1497,82 +1506,16 @@ end;
 
 Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
 
-var
-  PropInfo: PPropInfo;
-
 begin
-  // find the property
-  PropInfo := GetPropInfo(Instance, PropName);
-  if PropInfo = nil then
-    raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName])
- else
-   begin
-   Result := Null; //at worst
-   // call the right GetxxxProp
-   case PropInfo^.PropType^.Kind of
-     tkInteger, tkChar, tkWChar, tkClass, tkBool:
-        Result := GetOrdProp(Instance, PropInfo);
-     tkEnumeration:
-     if PreferStrings then
-       Result := GetEnumProp(Instance, PropInfo)
-     else
-       Result := GetOrdProp(Instance, PropInfo);
-     tkSet:
-       if PreferStrings then
-         Result := GetSetProp(Instance, PropInfo, False)
-       else
-         Result := GetOrdProp(Instance, PropInfo);
-     tkFloat:
-       Result := GetFloatProp(Instance, PropInfo);
-     tkMethod:
-       Result := PropInfo^.PropType^.Name;
-     tkString, tkLString, tkAString:
-       Result := GetStrProp(Instance, PropInfo);
-     tkWString:
-       Result := GetWideStrProp(Instance, PropInfo);
-     tkVariant:
-       Result := GetVariantProp(Instance, PropInfo);
-     tkInt64:
-       Result := GetInt64Prop(Instance, PropInfo);
-   else
-     raise EPropertyError.CreateFmt('Invalid Property Type: %s',[PropInfo^.PropType^.Name]);
-   end;
-   end;
+  CheckVariantEvent(Pointer(OnGetPropValue));
+  Result:=OnGetPropValue(Instance,PropName,PreferStrings)
 end;
 
 Procedure SetPropValue(Instance: TObject; const PropName: string;  const Value: Variant);
 
-var
- PropInfo: PPropInfo;
- TypeData: PTypeData;
-
 begin
-   // find the property
-   PropInfo := GetPropInfo(Instance, PropName);
-   if PropInfo = nil then
-     raise EPropertyError.CreateFmt('SetPropValue: Unknown property: "%s"', [PropName])
-   else
-     begin
-     TypeData := GetTypeData(PropInfo^.PropType);
-     // call right SetxxxProp
-     case PropInfo^.PropType^.Kind of
-       tkInteger, tkChar, tkWChar, tkBool, tkEnumeration, tkSet:
-         SetOrdProp(Instance, PropInfo, Value);
-       tkFloat:
-         SetFloatProp(Instance, PropInfo, Value);
-       tkString, tkLString, tkAString:
-         SetStrProp(Instance, PropInfo, VarToStr(Value));
-       tkWString:
-         SetWideStrProp(Instance, PropInfo, VarToWideStr(Value));
-       tkVariant:
-         SetVariantProp(Instance, PropInfo, Value);
-       tkInt64:
-         SetInt64Prop(Instance, PropInfo, Value);
-     else
-       raise EPropertyError.CreateFmt('SetPropValue: Invalid Property Type %s',
-                                      [PropInfo^.PropType^.Name]);
-     end;
-   end;
+  CheckVariantEvent(Pointer(OnSetPropValue));
+  OnSetPropValue(Instance,PropName,Value);
 end;
 
 
@@ -1618,7 +1561,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.44  2005-04-14 17:43:07  michael
+  Revision 1.45  2005-04-16 09:24:29  michael
+  + Moved constants to rtlconsts and added callbacks for variant support
+
+  Revision 1.44  2005/04/14 17:43:07  michael
   + Added getPropValue by Uberto Barbini
 
   Revision 1.43  2005/04/05 06:44:25  marco
