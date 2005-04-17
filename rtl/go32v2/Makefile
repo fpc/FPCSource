@@ -1990,13 +1990,15 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
-	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconst$(PPUEXT)
+	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-		    $(OBJPASDIR)/varutilh.inc varutils.pp
+		    $(OBJPASDIR)/varutilh.inc varutils.pp sysutils$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR) varutils.pp
+variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT) typinfo$(PPUEXT)
+	$(COMPILER) -Fi$(INC) $(INC)/variants.pp
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
