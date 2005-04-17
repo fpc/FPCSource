@@ -62,7 +62,7 @@ Var
       end;
 
 
-    function BeginThread(ThreadFunction : tthreadfunc;p : pointer;var ThreadId : THandle) : DWord;
+    function BeginThread(ThreadFunction : tthreadfunc;p : pointer;var ThreadId : TThreadID) : DWord;
       begin
         BeginThread:=BeginThread(nil,DefaultStackSize,ThreadFunction,p,0,ThreadId);
       end;
@@ -497,7 +497,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  2005-04-14 20:42:14  florian
+  Revision 1.29  2005-04-17 17:19:41  hajny
+    * one more TThreadID fix
+
+  Revision 1.28  2005/04/14 20:42:14  florian
     * fixed more TThreadID stuff
 
   Revision 1.27  2005/04/13 20:15:47  florian
