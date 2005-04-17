@@ -25,7 +25,7 @@ interface
 
 uses
   typinfo,
-  rtlconst,
+  rtlconsts,
   types,
   sysutils;
 
@@ -45,7 +45,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2005-02-14 17:13:22  peter
+  Revision 1.5  2005-04-17 17:33:40  hajny
+    * more rtlconst/s fixes
+
+  Revision 1.4  2005/02/14 17:13:22  peter
     * truncate log
 
 }
