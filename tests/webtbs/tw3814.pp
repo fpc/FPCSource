@@ -25,10 +25,10 @@ type
 
     MyThread = class(TThread)
     private
-        worker: Tester;
+      worker: Tester;
     public
-	constructor Create(w: Tester);
-	procedure Execute; override;
+      constructor Create(w: Tester);
+	    procedure Execute; override;
     end;
 
 constructor MyThread.Create(w: Tester);
@@ -42,7 +42,8 @@ begin
   WriteLn('Starting MyThread.Execute');
   repeat
     // sleep(500);
-    Synchronize(worker.count);
+    if worker.count<10 then
+      Synchronize(worker.count);
   until Terminated;
   WriteLn('Ending MyThread.Execute');
 end;
