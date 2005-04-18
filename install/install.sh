@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 #
 # Free Pascal installation script for Unixy platforms.
 # Copyright 1996-2004 Michael Van Canneyt, Marco van de Voort and Peter Vreman
@@ -17,7 +17,7 @@ ask ()
 {
   askvar=$2
   eval old=\$$askvar
-  eval echo -n \""$1 [$old] : "\" 
+  eval printf \""$1 [$old] : "\" 
   read $askvar
   eval test -z \"\$$askvar\" && eval $askvar=\'$old\'
 }
@@ -26,7 +26,7 @@ ask ()
 yesno ()
 {
   while true; do
-  echo -n "$1 (Y/n) ? "
+  printf "$1 (Y/n) ? "
   read ans
   case X$ans in
    X|Xy|XY) return 0;;
@@ -38,13 +38,13 @@ yesno ()
 # Untar files ($3,optional) from  file ($1) to the given directory ($2)
 unztar ()
 {
- tar -xzf $HERE/$1 --directory $2 $3
+ tar -xzf $HERE/$1 -C $2 $3
 }
 
 # Untar tar.gz file ($2) from file ($1) and untar result to the given directory ($3)
 unztarfromtar ()
 {
- tar -xOf $HERE/$1 $2 | tar --directory $3 -xzf -
+ tar -xOf $HERE/$1 $2 | tar -C $3 -xzf -
 }
 
 # Get file list from tar archive ($1) in variable ($2)
@@ -95,7 +95,7 @@ checkpath ()
 #  $2 = cross prefix
 installbinary ()
 {
-  if [ "$2" == "" ]; then
+  if [ "$2" = "" ]; then
     FPCTARGET=$1
     CROSSPREFIX=
   else
@@ -145,7 +145,7 @@ installbinary ()
   unztarfromtar $BINARYTAR ${CROSSPREFIX}utils.$1.tar.gz $PREFIX
 
   ide=`tar -tf $BINARYTAR | grep "${CROSSPREFIX}ide.$1.tar.gz"`
-  if [ "$ide" == "${CROSSPREFIX}ide.$1.tar.gz" ]; then
+  if [ "$ide" = "${CROSSPREFIX}ide.$1.tar.gz" ]; then
     if yesno "Install Textmode IDE"; then
       unztarfromtar $BINARYTAR ${CROSSPREFIX}ide.$1.tar.gz $PREFIX
       rm -f $EXECDIR/fp
