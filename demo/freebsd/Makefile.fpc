@@ -4,7 +4,7 @@
 
 [target]
 units=
-programs=fontdemo
+programs=fontdemo sysmousetest
 
 [default]
 fpcdir=../..
