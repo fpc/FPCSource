@@ -108,7 +108,7 @@ procedure InitThread(stklen:cardinal);
 
 function BeginThread(sa : Pointer;stacksize : dword;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
-  var ThreadId : THandle) : DWord;
+  var ThreadId : TThreadID) : DWord;
 
 { add some simplfied forms which make lifer easier and porting }
 { to other OSes too ...                                        }
@@ -155,7 +155,10 @@ procedure RTLeventsync(m:trtlmethod;p:tprocedure);
 
 {
   $Log$
-  Revision 1.31  2005-04-14 20:42:14  florian
+  Revision 1.32  2005-04-20 06:32:47  hajny
+    * yet another TThreadID fix
+
+  Revision 1.31  2005/04/14 20:42:14  florian
     * fixed more TThreadID stuff
 
   Revision 1.30  2005/04/13 20:10:50  florian
