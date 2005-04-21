@@ -28,6 +28,12 @@ const
  TestDir: string = 'TESTDIR';
  TestFile: string = 'testfile';
 
+{$IFDEF MACOS}
+ RelPathPrefix = ':';
+{$ELSE}
+ RelPathPrefix = '';
+{$ENDIF}
+
 begin
  Err := false;
  MkDir (TestDir);
@@ -38,11 +44,11 @@ begin
   WriteLn ('Returned value = ', S);
   Err := true;
  end;
- Assign (F, TestDir + DirectorySeparator + TestFile);
+ Assign (F, RelPathPrefix + TestDir + DirectorySeparator + TestFile);
  Rewrite (F);
  Close (F);
  S := FSearch (TestFile, TestDir);
- if S <> TestDir + DirectorySeparator + TestFile then
+ if S <> RelPathPrefix + TestDir + DirectorySeparator + TestFile then
  begin
   WriteLn ('FSearch didn''t find the test file!!');
   WriteLn ('Returned value = ', S);
@@ -55,7 +61,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2005-02-14 17:13:37  peter
+  Revision 1.3  2005-04-21 20:37:43  olle
+    * Adapted for MacOS
+
+  Revision 1.2  2005/02/14 17:13:37  peter
     * truncate log
 
 }
