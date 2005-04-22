@@ -179,7 +179,7 @@ begin
     A_SHL:
       begin
         reference_reset(tmpref);
-        tmpref.base := newreg(R_INTREGISTER,reg1,R_SUBWHOLE);
+        tmpref.index := newreg(R_INTREGISTER,reg1,R_SUBWHOLE);
         tmpref.scalefactor := 1 shl p.oper[0]^.val;
         p.opcode := A_LEA;
         p.loadref(0,tmpref);
@@ -366,7 +366,10 @@ End.
 
 {
   $Log$
-  Revision 1.31  2005-02-14 17:13:10  peter
+  Revision 1.32  2005-04-22 15:55:08  jonas
+    * fixed web bug 3905
+
+  Revision 1.31  2005/02/14 17:13:10  peter
     * truncate log
 
 }
