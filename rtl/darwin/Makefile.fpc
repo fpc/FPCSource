@@ -141,7 +141,7 @@ unixutil$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 
 dynlibs$(PPUEXT) : dl$(PPUEXT)
 
-ctypes$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
+ctypes$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 
 
 #
@@ -241,7 +241,7 @@ termio$(PPUEXT) : baseunix$(PPUEXT)
 
 mouse$(PPUEXT) : baseunix$(PPUEXT) video$(PPUEXT)
 
-dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
+dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 
 sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
                    unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT) baseunix$(PPUEXT) initc$(PPUEXT)
