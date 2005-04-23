@@ -71,7 +71,7 @@ destructor tdeffile.destroy;
 begin
   if WrittenOnDisk and
      not(cs_link_extern in aktglobalswitches) then
-   DeleteFile(FName);
+   RemoveFile(FName);
   importlist.Free;
   exportlist.Free;
 end;
@@ -160,7 +160,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2005-02-14 17:13:06  peter
+  Revision 1.16  2005-04-23 14:15:58  hajny
+    * DeleteFile replaced with RemoveFile to avoid duplicate
+
+  Revision 1.15  2005/02/14 17:13:06  peter
     * truncate log
 
 }

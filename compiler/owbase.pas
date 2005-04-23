@@ -69,8 +69,8 @@ type
 implementation
 
 uses
-   cutils,
-   verbose;
+{   cutils,}
+   verbose, globals;
 
 const
   bufsize = 32768;
@@ -322,7 +322,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2005-02-14 17:13:07  peter
+  Revision 1.15  2005-04-23 14:15:58  hajny
+    * DeleteFile replaced with RemoveFile to avoid duplicate
+
+  Revision 1.14  2005/02/14 17:13:07  peter
     * truncate log
 
 }

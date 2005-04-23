@@ -139,8 +139,6 @@ interface
     function compareansistrings(p1,p2 : pchar;length1,length2 : longint) : longint;
     function concatansistrings(p1,p2 : pchar;length1,length2 : longint) : pchar;
 
-    function DeleteFile(const fn:string):boolean;
-
     {Lzw encode/decode to compress strings -> save memory.}
     function minilzw_encode(const s:string):string;
     function minilzw_decode(const s:string):string;
@@ -1083,21 +1081,6 @@ uses
 
 
 {*****************************************************************************
-                                 File Functions
-*****************************************************************************}
-
-    function DeleteFile(const fn:string):boolean;
-      var
-        f : file;
-      begin
-        {$I-}
-         assign(f,fn);
-         erase(f);
-        {$I-}
-        DeleteFile:=(IOResult=0);
-      end;
-
-{*****************************************************************************
                        Ultra basic KISS Lzw (de)compressor
 *****************************************************************************}
 
@@ -1240,7 +1223,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.51  2005-04-06 11:49:37  michael
+  Revision 1.52  2005-04-23 14:15:58  hajny
+    * DeleteFile replaced with RemoveFile to avoid duplicate
+
+  Revision 1.51  2005/04/06 11:49:37  michael
   * Fix methodpointer copy from callnode to loadnode
 
   Revision 1.50  2005/03/04 16:49:22  peter
