@@ -51,14 +51,14 @@ Type
     FTDeleteMenu,
     FRenameMenu,
     FDeleteMenu : TFPgtkMenuItem;
-    Procedure MenuRenameClick(Sender : TFPGtkWidget; Data : Pointer);
-    Procedure MenuDeleteClick(Sender : TFPGtkWidget; Data : Pointer);
+    Procedure MenuRenameClick(Sender : TFPGtkObject; Data : Pointer);
+    Procedure MenuDeleteClick(Sender : TFPGtkObject; Data : Pointer);
     Function  PopupModuleMenu(Sender:TFPgtkWidget; Event:PGdkEventButton; data:pointer): boolean;
     Function  PopupTopicMenu(Sender:TFPgtkWidget; Event:PGdkEventButton; data:pointer): boolean;
-    Procedure SelectTopic(Sender : TFPGtkWidget; Data : Pointer);
-    Procedure SelectModule(Sender : TFPGtkWidget; Data : Pointer);
-    Procedure SelectPackage(Sender : TFPGtkWidget; Data : Pointer);
-    Procedure SelectElement(Sender : TFPGtkWidget; Data : Pointer);
+    Procedure SelectTopic(Sender : TFPGtkObject; Data : Pointer);
+    Procedure SelectModule(Sender : TFPGtkObject; Data : Pointer);
+    Procedure SelectPackage(Sender : TFPGtkObject; Data : Pointer);
+    Procedure SelectElement(Sender : TFPGtkObject; Data : Pointer);
 //    Procedure DeSelectElement(Sender : TFPGtkWidget; Data : Pointer);
 //    Procedure DoSelectionChanged(Sender : TFPGtkWidget; Data : Pointer);
     Procedure ShowModuleElements(Module : TDomElement);
@@ -133,7 +133,7 @@ Type
     Function CurrentEditable : TFPGtkEditable;
     Function OnEditableFocusIn(Sender : TFPGtkWidget; Event : PGDKEventFocus;Data : Pointer) : Boolean;
     Function GetCurrentSelection : String;
-    Procedure OnTextModified(Sender : TFPGtkWidget; Data : Pointer);
+    Procedure OnTextModified(Sender : TFPGtkObject; Data : Pointer);
   Public
     Procedure Refresh;
     Constructor Create;
@@ -594,7 +594,7 @@ begin
   Result:=False;
 end;
 
-Procedure TElementEditor.OnTextModified(Sender : TFPGtkWidget; Data : Pointer);
+Procedure TElementEditor.OnTextModified(Sender : TFPGtkObject; Data : Pointer);
 
 begin
   FModified:=True;
@@ -702,7 +702,7 @@ begin
     end;
 end;
 }
-Procedure TPackageEditor.SelectModule(Sender : TFPGtkWidget; Data : Pointer);
+Procedure TPackageEditor.SelectModule(Sender : TFPGtkObject; Data : Pointer);
 
 Var
   W : TFPGtkWidget;
@@ -717,7 +717,7 @@ begin
     FOnSelectModule(Self,FCurrentModule);
 end;
 
-Procedure TPackageEditor.SelectPackage(Sender : TFPGtkWidget; Data : Pointer);
+Procedure TPackageEditor.SelectPackage(Sender : TFPGtkObject; Data : Pointer);
 
 begin
   FCurrentElement:=Nil;
@@ -728,7 +728,7 @@ begin
     FOnSelectPackage(Self,FCurrentPackage);
 end;
 
-Procedure TPackageEditor.SelectTopic(Sender : TFPGtkWidget; Data : Pointer);
+Procedure TPackageEditor.SelectTopic(Sender : TFPGtkObject; Data : Pointer);
 
 Var
   P : TDomElement;
@@ -771,7 +771,7 @@ begin
 // Writeln('Getselectednode done');
 end;
 
-Procedure TPackageEditor.MenuRenameClick(Sender : TFPGtkWidget; Data : Pointer);
+Procedure TPackageEditor.MenuRenameClick(Sender : TFPGtkObject; Data : Pointer);
 
 Var
   N : TNodeTreeItem;
@@ -791,7 +791,7 @@ begin
 end;
 
 
-Procedure TPackageEditor.MenuDeleteClick(Sender : TFPGtkWidget; Data : Pointer);
+Procedure TPackageEditor.MenuDeleteClick(Sender : TFPGtkObject; Data : Pointer);
 
 Var
   N : TNodeTreeItem;
@@ -935,7 +935,7 @@ begin
     end;
 end;
 
-Procedure TPackageEditor.SelectElement (Sender : TFPGtkWidget; Data : Pointer);
+Procedure TPackageEditor.SelectElement (Sender : TFPGtkObject; Data : Pointer);
 
 
 begin
