@@ -2006,7 +2006,7 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 		    $(OBJPASDIR)/varutilh.inc varutils.pp sysutils$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR) varutils.pp
-variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT)
+variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) rtlconsts$(PPUEXT)
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
