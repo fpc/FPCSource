@@ -69,7 +69,6 @@ type
 implementation
 
 uses
-{   cutils,}
    verbose, globals;
 
 const
@@ -123,7 +122,7 @@ begin
   f.free;
 { Remove if size is 0 }
   if size=0 then
-   DeleteFile(fn);
+   RemoveFile(fn);
   opened:=false;
   size:=0;
 end;
@@ -322,7 +321,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2005-04-23 14:15:58  hajny
+  Revision 1.16  2005-04-23 19:42:54  jonas
+    * fixed deletefile -> removefile
+
+  Revision 1.15  2005/04/23 14:15:58  hajny
     * DeleteFile replaced with RemoveFile to avoid duplicate
 
   Revision 1.14  2005/02/14 17:13:07  peter
