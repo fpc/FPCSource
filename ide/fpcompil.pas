@@ -806,7 +806,7 @@ procedure DoCompile(Mode: TCompileMode);
 var
   s,FileName: string;
   ErrFile : Text;
-  MustRestartDebugger,
+  MustRestartDebugger : boolean;
   Error,LinkErrorCount : longint;
   E : TEvent;
   DummyView: PView;
@@ -1226,7 +1226,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  2005-04-24 21:03:16  peter
+  Revision 1.41  2005-04-24 21:37:16  florian
+    * fixed compilation
+
+  Revision 1.40  2005/04/24 21:03:16  peter
     * always use exceptions to stop the compiler
     - remove stop, do_stop
 
