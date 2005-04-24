@@ -91,7 +91,7 @@ Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_
 begin
   Fpmmap:=pointer(longint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,
         {$ifdef FPC_BIG_ENDIAN}    hi(offst),lo(offst){$endif}
-        {$ifdef FPC_LITTLE_ENDIAN} lo(offst),hi(offst){$endif}
+        {$ifdef FPC_LITTLE_ENDIAN} lo(offst),hi(offst){$endif},0
         )));
 end;
 
@@ -535,7 +535,10 @@ end;
 
 {
  $Log$
- Revision 1.25  2005-03-13 14:11:06  marco
+ Revision 1.26  2005-04-24 19:11:28  marco
+  * mmap had another, yet unknown 8th parameter which must be 0 and comes after the offset param
+
+ Revision 1.25  2005/03/13 14:11:06  marco
   * fix from mischi
 
  Revision 1.24  2005/02/14 17:13:21  peter
