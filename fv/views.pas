@@ -3185,8 +3185,7 @@ BEGIN
      End;
      evMouseDown: Begin                               { Mouse press event }
          Clicked;                                     { Scrollbar clicked }
-         Mouse.X := Event.Where.X - Origin.X;      { Localize x value }
-         Mouse.Y := Event.Where.Y - Origin.Y;      { Localize y value }
+         MakeLocal(Event.Where, Mouse);                 { Localize mouse }
          Extent.A.X := 0;                             { Zero x extent value }
          Extent.A.Y := 0;                             { Zero y extent value }
          Extent.B.X := Size.X;                     { Set extent x value }
@@ -3196,8 +3195,7 @@ BEGIN
          ClickPart := GetPartCode;                    { Get part code }
          If (ClickPart <> sbIndicator) Then Begin     { Not thumb nail }
            Repeat
-             Mouse.X := Event.Where.X-Origin.X;    { Localize x value }
-             Mouse.Y := Event.Where.Y-Origin.Y;    { Localize y value }
+             MakeLocal(Event.Where, Mouse);                 { Localize mouse }
              If GetPartCode = ClickPart Then
                SetValue(Value+ScrollStep(ClickPart)); { Same part repeat }
            Until NOT MouseEvent(Event, evMouseAuto);  { Until auto done }
@@ -3205,8 +3203,7 @@ BEGIN
          End Else Begin                               { Thumb nail move }
            Iv := Value;                               { Initial value }
            Repeat
-             Mouse.X := Event.Where.X - Origin.X;  { Localize x value }
-             Mouse.Y := Event.Where.Y - Origin.Y;  { Localize y value }
+             MakeLocal(Event.Where, Mouse);                 { Localize mouse }
              Tracking := Extent.Contains(Mouse);      { Check contains }
              If Tracking Then Begin                   { Tracking mouse }
                If (Size.X=1) Then
@@ -4650,7 +4647,10 @@ END.
 
 {
  $Log$
- Revision 1.57  2005-02-14 17:13:18  peter
+ Revision 1.58  2005-04-24 21:49:23  peter
+ fix mouse clicks on the scrollbars
+
+ Revision 1.57  2005/02/14 17:13:18  peter
    * truncate log
 
  Revision 1.56  2005/01/07 22:29:48  florian
