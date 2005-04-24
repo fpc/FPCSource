@@ -227,7 +227,7 @@ type
     str  : string[30];
   end;
 const
-  flagopts=16;
+  flagopts=19;
   flagopt : array[1..flagopts] of tflagopt=(
     (mask: $1    ;str:'init'),
     (mask: $2    ;str:'final'),
@@ -244,7 +244,10 @@ const
     (mask: $1000  ;str:'little_endian'),
     (mask: $2000  ;str:'release'),
     (mask: $4000  ;str:'local_threadvars'),
-    (mask: $8000  ;str:'fpu emulation on')
+    (mask: $8000  ;str:'fpu_emulation_on'),
+    (mask: $10000  ;str:'has_debug_info'),
+    (mask: $20000  ;str:'local_symtable'),
+    (mask: $40000  ;str:'uses_variants')
   );
 var
   i : longint;
@@ -2155,7 +2158,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2005-03-27 14:10:53  jonas
+  Revision 1.69  2005-04-24 20:00:57  florian
+    + more module flags added
+
+  Revision 1.68  2005/03/27 14:10:53  jonas
     * const record parameters > 8 bytes are now passed by reference for non
       cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
       GPC (slightly more efficient than Metrowerks behaviour below, but
