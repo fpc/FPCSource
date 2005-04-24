@@ -63,7 +63,7 @@ Implementation
 
 {$IFNDEF MACOS_USE_FAKE_SYSUTILS}
 uses
-  sysutils;
+  comphook;
 {$ENDIF MACOS_USE_FAKE_SYSUTILS}
 
 {$ifdef has_signal}
@@ -94,7 +94,10 @@ end.
 
 {
   $Log$
-  Revision 1.24  2005-02-15 19:15:45  peter
+  Revision 1.25  2005-04-24 21:21:10  peter
+    * use comphook for fpc exceptions
+
+  Revision 1.24  2005/02/15 19:15:45  peter
     * Handle Control-C exception more cleanly
 
   Revision 1.23  2005/02/14 17:13:06  peter
