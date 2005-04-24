@@ -1284,7 +1284,6 @@ type
     FDatabase      : TDatabase;
     FDataSets      : TList;
     FOpenAfterRead : boolean;
-    Procedure SetDatabase (Value : TDatabase);
     Function GetDataSetCount : Longint;
     Function GetDataset(Index : longint) : TDBDataset;
     procedure RegisterDataset (DS : TDBDataset);
@@ -1292,6 +1291,7 @@ type
     procedure RemoveDataSets;
     procedure SetActive(Value : boolean);
   Protected
+    Procedure SetDatabase (Value : TDatabase); virtual;
     procedure CloseTrans;
     procedure openTrans;
     Procedure CheckDatabase;
@@ -1909,7 +1909,10 @@ end.
 
 {
   $Log$
-  Revision 1.47  2005-04-13 22:09:15  joost
+  Revision 1.48  2005-04-24 19:21:28  joost
+  - some fixes in assignment of transactions and databases
+
+  Revision 1.47  2005/04/13 22:09:15  joost
   - TIndexDefs.Destroy now calls inhedited.Destroy
 
   Revision 1.46  2005/04/10 22:18:43  joost

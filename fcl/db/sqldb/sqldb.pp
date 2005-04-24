@@ -130,6 +130,7 @@ type
     FAction              : TCommitRollbackAction;
   protected
     function GetHandle : Pointer; virtual;
+    Procedure SetDatabase (Value : TDatabase); override;
   public
     procedure Commit; virtual;
     procedure CommitRetaining; virtual;
@@ -260,22 +261,14 @@ end;
 
 procedure TSQLConnection.SetTransaction(Value : TSQLTransaction);
 begin
-  if FTransaction = nil then
-  begin
-    FTransaction := Value;
-    if Assigned(FTransaction) then
-      FTransaction.Database := Self;
-    exit;
-  end;
-
-  if (Value <> FTransaction) and (Value <> nil) then
-    if (not FTransaction.Active) then
+  if FTransaction<>value then
     begin
-      FTransaction := Value;
-      FTransaction.Database := Self;
-    end
-    else
+    if Assigned(FTransaction) and FTransaction.Active then
       DatabaseError(SErrAssTransaction);
+    if Assigned(Value) then
+      Value.Database := Self;
+    FTransaction := Value;
+    end;
 end;
 
 procedure TSQLConnection.UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string);
@@ -446,6 +439,19 @@ destructor TSQLTransaction.Destroy;
 begin
   Rollback;
   inherited Destroy;
+end;
+
+Procedure TSQLTransaction.SetDatabase(Value : TDatabase);
+
+begin
+  If Value<>Database then
+    begin
+    CheckInactive;
+    If Assigned(Database) then
+      with Database as TSqlConnection do
+        if Transaction = self then Transaction := nil;
+    inherited SetDatabase(Value);
+    end;
 end;
 
 { TSQLQuery }
@@ -973,7 +979,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2005-04-13 22:10:26  joost
+  Revision 1.18  2005-04-24 19:21:28  joost
+  - some fixes in assignment of transactions and databases
+
+  Revision 1.17  2005/04/13 22:10:26  joost
   - TSQLQuery now frees FIndexDefs
 
   Revision 1.16  2005/04/10 18:29:26  joost

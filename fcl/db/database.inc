@@ -250,9 +250,9 @@ end;
 Procedure TDBDataset.SetDatabase (Value : TDatabase);
 
 begin
-  CheckInactive;
   If Value<>FDatabase then
     begin
+    CheckInactive;
     If Assigned(FDatabase) then
       FDatabase.UnregisterDataset(Self);
     If Value<>Nil Then
@@ -344,9 +344,9 @@ end;
 Procedure TDBTransaction.SetDatabase (Value : TDatabase);
 
 begin
-  CheckInactive;
   If Value<>FDatabase then
     begin
+    CheckInactive;
     If Assigned(FDatabase) then
       FDatabase.UnregisterTransaction(Self);
     If Value<>Nil Then
@@ -444,7 +444,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2005-02-14 17:13:12  peter
+  Revision 1.11  2005-04-24 19:21:28  joost
+  - some fixes in assignment of transactions and databases
+
+  Revision 1.10  2005/02/14 17:13:12  peter
     * truncate log
 
 }

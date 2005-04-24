@@ -909,6 +909,9 @@ begin
     if not field.getData(@blobId) then
       exit;
 
+    if not assigned(Transaction) then
+      DatabaseError(SErrConnTransactionnSet);
+
     TransactionHandle := transaction.Handle;
     blobHandle := nil;
 
