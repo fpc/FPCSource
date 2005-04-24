@@ -38,20 +38,6 @@ Guardian:/usr/local/src/glibc-2.2.3/sysdeps/sparc/sparc32# more __longjmp.S
 {@Define the machine-dependent type `jmp_buf'.  SPARC version.}
 
 
-{$ifdef linux}
-  {$define needsigprocmask}
-{$endif}
-
-
-{$ifdef needsigprocmask}
-const
-  jmpbufsigmaskwords = 128 div 32;
-
-type
-  tjmpsigset=array[0..jmpbufsigmaskwords-1] of longint;
-  pjmpsigset=^tjmpsigset;
-{$endif needsigprocmask}
-
 type
   jmp_buf=packed record
     {stack pointer}
@@ -60,10 +46,6 @@ type
     JB_FP,
     {program counter}
     JB_PV:Pointer;
-
-{$ifdef needsigprocmask}
-    sigmask : tjmpsigset;
-{$endif needsigprocmask}
   end;
   Pjmp_buf=^jmp_buf;
 
@@ -71,7 +53,11 @@ function setjmp(var S:jmp_buf):longint;
 procedure longjmp(var S:jmp_buf;value:longint);
 {
   $Log$
-  Revision 1.7  2005-02-14 17:13:31  peter
+  Revision 1.8  2005-04-24 21:19:22  peter
+    * unblock signal in signalhandler, remove the sigprocmask call
+      from setjmp
+
+  Revision 1.7  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.6  2005/01/20 16:38:28  peter

@@ -14,29 +14,6 @@
 
  **********************************************************************}
 
-{$ifdef needsigprocmask}
-const
-  JMPSIG_BLOCK   = 0;
-  JMPSIG_SETMASK = 2;
-
-
-{$ifdef FPC_USE_LIBC}
-  function JmpSigProcMask(how:longint;nset : pjmpsigset;oset : pjmpsigset):longint; external name 'sigprocmask';
-{$else}
-  function JmpSigProcMask(how:longint;nset : pjmpsigset;oset : pjmpsigset):longint; external name 'FPC_SYSC_SIGPROCMASK';
-{$endif}
-
-procedure savesigmask(var s:jmp_buf);
-begin
-  jmpsigprocmask(JMPSIG_BLOCK,nil,@s.sigmask);
-end;
-
-procedure restoresigmask(var s:jmp_buf);
-begin
-  jmpsigprocmask(JMPSIG_SETMASK,@s.sigmask,nil);
-end;
-{$endif needsigprocmask}
-
 Function SetJmp (Var S : Jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];
 asm
 {$ifndef REGCALL}
@@ -56,9 +33,6 @@ asm
 {$endif}
   movl %edi,16(%eax)
   movl 8(%eax),%edi
-{$ifdef needsigprocmask}
-  call savesigmask
-{$endif needsigprocmask}
   xorl %eax,%eax
 end['EAX'];
 
@@ -66,13 +40,6 @@ end['EAX'];
 Procedure longJmp (Var S : Jmp_buf; value : longint); assembler;[Public, alias : 'FPC_LONGJMP'];
 asm
 {$ifdef REGCALL}
-{$ifdef needsigprocmask}
-  movl %edx, %ebx
-  movl %eax, %esi
-  call restoresigmask
-  movl %ebx, %edx
-  movl %esi, %eax
-{$endif needsigprocmask}
   xchgl %edx,%eax
 {$else}
   movl 8(%ebp),%edx
@@ -92,7 +59,11 @@ end;
 
 {
   $Log$
-  Revision 1.8  2005-02-14 17:13:22  peter
+  Revision 1.9  2005-04-24 21:19:22  peter
+    * unblock signal in signalhandler, remove the sigprocmask call
+      from setjmp
+
+  Revision 1.8  2005/02/14 17:13:22  peter
     * truncate log
 
   Revision 1.7  2005/02/13 20:01:37  peter

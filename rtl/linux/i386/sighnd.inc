@@ -68,6 +68,7 @@ begin
     SIGSEGV :
         res:=216;
   end;
+  reenable_signal(sig);
 { give runtime error at the position where the signal was raised }
   if res<>0 then
     HandleErrorAddrFrame(res,pointer(SigContext^.eip),pointer(SigContext^.ebp));
@@ -75,7 +76,11 @@ end;
 
 {
   $Log$
-  Revision 1.7  2005-02-17 18:05:57  peter
+  Revision 1.8  2005-04-24 21:19:22  peter
+    * unblock signal in signalhandler, remove the sigprocmask call
+      from setjmp
+
+  Revision 1.7  2005/02/17 18:05:57  peter
     * change order of if to prevent always stack overflow instead
       of generic fpu error when multiple states are set
 

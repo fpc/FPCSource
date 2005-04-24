@@ -46,6 +46,7 @@ begin
     SIGSEGV :
         res:=216;
   end;
+  reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
   if res<>0 then
     HandleErrorAddrFrame(res,pointer(SigContext^.pt_regs^.nip),pointer(SigContext^.pt_regs^.gpr[1]));
@@ -53,7 +54,11 @@ end;
 
 {
   $Log$
-  Revision 1.6  2005-02-14 17:13:30  peter
+  Revision 1.7  2005-04-24 21:19:22  peter
+    * unblock signal in signalhandler, remove the sigprocmask call
+      from setjmp
+
+  Revision 1.6  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.5  2005/01/30 18:01:15  peter

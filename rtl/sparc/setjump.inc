@@ -19,30 +19,6 @@
 #define RW_FP [%fp + 0x48]
 }
 
-{$ifdef needsigprocmask}
-const
-  JMPSIG_BLOCK   = 1;
-  JMPSIG_SETMASK = 4;
-
-{$ifdef FPC_USE_LIBC}
-  function JmpSigProcMask(how:longint;nset : pjmpsigset;oset : pjmpsigset):longint; external name 'sigprocmask';
-{$else}
-  function JmpSigProcMask(how:longint;nset : pjmpsigset;oset : pjmpsigset):longint; external name 'FPC_SYSC_SIGPROCMASK';
-{$endif}
-
-procedure savesigmask(var s:jmp_buf);
-begin
-  jmpsigprocmask(JMPSIG_BLOCK,nil,@s.sigmask);
-end;
-
-procedure restoresigmask(var s:jmp_buf);
-begin
-  jmpsigprocmask(JMPSIG_SETMASK,@s.sigmask,nil);
-end;
-{$endif needsigprocmask}
-
-
-
 procedure longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Public,alias:'FPC_LONGJMP'];
   asm
     // Store our arguments in global registers so we can still
@@ -88,12 +64,6 @@ procedure longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Public,
     sub     %fp, 64, %sp    // Allocate a register frame.
     st      %g3, [%fp+48]   // Set saved FP on restore below.
 
-{$ifdef needsigprocmask}
-    mov   %o1,%o0
-    call  restoresigmask
-    nop
-{$endif needsigprocmask}
-
     ld      [%o1+8], %o7    // Set return PC.
 
     retl
@@ -117,18 +87,17 @@ function setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:'FPC
     st      %sp, [%o0]
     st      %fp, [%o0+4]
 
-{$ifdef needsigprocmask}
-    call   savesigmask
-    nop
-{$endif needsigprocmask}
-
     ld      [%o0+8], %o7
     mov     %g0, %o0
   end;
 
 {
   $Log$
-  Revision 1.12  2005-02-14 17:13:31  peter
+  Revision 1.13  2005-04-24 21:19:22  peter
+    * unblock signal in signalhandler, remove the sigprocmask call
+      from setjmp
+
+  Revision 1.12  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.11  2005/02/13 20:01:38  peter

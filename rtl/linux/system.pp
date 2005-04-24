@@ -96,6 +96,22 @@ End;
                          SystemUnit Initialization
 *****************************************************************************}
 
+function  reenable_signal(sig : longint) : boolean;
+var
+  e : TSigSet;
+  i,j : byte;
+begin
+  fillchar(e,sizeof(e),#0);
+  { set is 1 based PM }
+  dec(sig);
+  i:=sig mod 32;
+  j:=sig div 32;
+  e[j]:=1 shl i;
+  fpsigprocmask(SIG_UNBLOCK,@e,nil);
+  reenable_signal:=geterrno=0;
+end;
+
+
 // signal handler is arch dependant due to processorexception to language
 // exception translation
 
@@ -238,7 +254,11 @@ End.
 
 {
   $Log$
-  Revision 1.24  2005-02-14 17:13:30  peter
+  Revision 1.25  2005-04-24 21:19:22  peter
+    * unblock signal in signalhandler, remove the sigprocmask call
+      from setjmp
+
+  Revision 1.24  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.23  2005/02/13 21:47:56  peter

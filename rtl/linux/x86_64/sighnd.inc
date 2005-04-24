@@ -32,20 +32,6 @@ function GetFPUState(const SigContext : TSigContext) : word;
   {$endif SYSTEM_DEBUG}
   end;
 
-function  reenable_signal(sig : longint) : boolean;
-var
-  e,olde : TSigSet;
-  i,j : byte;
-begin
-  fillchar(e,sizeof(e),#0);
-  { set is 1 based PM }
-  dec(sig);
-  i:=sig mod 32;
-  j:=sig div 32;
-  e[j]:=1 shl i;
-  fpsigprocmask(SIG_UNBLOCK,@e,nil);
-  reenable_signal:=geterrno=0;
-end;
 
 procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext); cdecl;
   var
@@ -91,7 +77,11 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
 
 {
   $Log$
-  Revision 1.4  2005-02-14 17:13:30  peter
+  Revision 1.5  2005-04-24 21:19:22  peter
+    * unblock signal in signalhandler, remove the sigprocmask call
+      from setjmp
+
+  Revision 1.4  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.3  2005/01/30 18:01:15  peter

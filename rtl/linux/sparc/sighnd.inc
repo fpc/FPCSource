@@ -66,6 +66,7 @@ begin
           res:=216;
         end;
   end;
+  reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
   if res<>0 then
     HandleErrorAddrFrame(res,addr,nil);
@@ -73,7 +74,11 @@ end;
 
 {
   $Log$
-  Revision 1.9  2005-02-14 17:13:30  peter
+  Revision 1.10  2005-04-24 21:19:22  peter
+    * unblock signal in signalhandler, remove the sigprocmask call
+      from setjmp
+
+  Revision 1.9  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.8  2005/02/05 23:46:12  peter

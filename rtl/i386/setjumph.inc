@@ -14,34 +14,10 @@
 
  **********************************************************************}
 
-{$ifndef VER1_0}
-  {$if (FPC_VERSION>1) or ((FPC_RELEASE>=9) and (FPC_PATCH>6))}
-    {$ifdef linux}
-      {$define needsigprocmask}
-    {$endif}
-  {$endif}
-{$endif}
-
-{$ifdef needsigprocmask}
-const
-{$ifdef FPC_USE_LIBC}
-  jmpbufsigmaskwords = 1024 div 32;
-{$else}
-  jmpbufsigmaskwords = 128 div 32;
-{$endif}
-
-type
-  tjmpsigset=array[0..jmpbufsigmaskwords-1] of longint;
-  pjmpsigset=^tjmpsigset;
-{$endif needsigprocmask}
-
 Type
   jmp_buf = packed record
     ebx,esi,edi : Longint;
     bp,sp,pc : Pointer;
-{$ifdef needsigprocmask}
-    sigmask : tjmpsigset;
-{$endif needsigprocmask}
     end;
   PJmp_buf = ^jmp_buf;
 
@@ -50,7 +26,11 @@ Procedure longjmp (Var S : Jmp_buf; value : longint);
 
 {
   $Log$
-  Revision 1.7  2005-02-14 17:13:22  peter
+  Revision 1.8  2005-04-24 21:19:22  peter
+    * unblock signal in signalhandler, remove the sigprocmask call
+      from setjmp
+
+  Revision 1.7  2005/02/14 17:13:22  peter
     * truncate log
 
   Revision 1.6  2005/01/24 16:54:16  peter
