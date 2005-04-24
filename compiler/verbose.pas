@@ -70,18 +70,12 @@ interface
     const
       msgfilename : string = '';
 
-    type
-      EControlCAbort=class(Exception)
-        constructor Create;
-      end;
-
     procedure SetRedirectFile(const fn:string);
     function  SetVerbosity(const s:string):boolean;
     procedure PrepareReport;
 
     function  CheckVerbosity(v:longint):boolean;
     procedure SetCompileModule(p:tmodulebase);
-    procedure Stop(err:longint);
     procedure ShowStatus;
     function  ErrorCount:longint;
     procedure SetErrorFlags(const s:string);
@@ -122,20 +116,6 @@ implementation
 
 var
   compiling_module : tmodulebase;
-
-
-{****************************************************************************
-                          Control-C Exception
-****************************************************************************}
-
-     constructor EControlCAbort.Create;
-       begin
-{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
-         inherited Create('Ctrl-C Signaled!');
-{$ELSE}
-         inherited Create;
-{$ENDIF}
-       end;
 
 
 {****************************************************************************
@@ -399,17 +379,11 @@ var
       end;
 
 
-    procedure stop(err:longint);
-      begin
-        do_stop(err);
-      end;
-
-
     procedure ShowStatus;
       begin
         UpdateStatus;
         if do_status() then
-         stop(1);
+          raise ECompilerAbort.Create;
       end;
 
 
@@ -468,7 +442,7 @@ var
         UpdateStatus;
         do_internalerror(i);
         inc(status.errorcount);
-        stop(1);
+        raise ECompilerAbort.Create;
       end;
 
 
@@ -493,12 +467,12 @@ var
         DefaultReplacements(s);
       { show comment }
         if do_comment(l,s) or dostop then
-         stop(1);
+          raise ECompilerAbort.Create;
         if (status.errorcount>=status.maxerrorcount) and not status.skip_error then
          begin
            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
            status.skip_error:=true;
-           stop(1);
+           raise ECompilerAbort.Create;
          end;
       end;
 
@@ -584,12 +558,12 @@ var
         DefaultReplacements(s);
       { show comment }
         if do_comment(v,s) or dostop then
-         stop(1);
+          raise ECompilerAbort.Create;
         if (status.errorcount>=status.maxerrorcount) and not status.skip_error then
          begin
            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
            status.skip_error:=true;
-           stop(1);
+           raise ECompilerAbort.Create;
          end;
       end;
 
@@ -900,7 +874,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.40  2005-02-16 22:39:25  olle
+  Revision 1.41  2005-04-24 21:01:37  peter
+    * always use exceptions to stop the compiler
+    - remove stop, do_stop
+
+  Revision 1.40  2005/02/16 22:39:25  olle
     * made macos compile
 
   Revision 1.39  2005/02/15 19:15:45  peter

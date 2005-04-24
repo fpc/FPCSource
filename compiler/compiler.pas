@@ -251,7 +251,6 @@ uses
 var
   CompilerInitedAfterArgs,
   CompilerInited : boolean;
-  olddo_stop : tstopprocedure;
 
 
 {****************************************************************************
@@ -320,12 +319,6 @@ begin
   InitAssembler;
   InitAsm;
   CompilerInitedAfterArgs:=true;
-end;
-
-procedure minimal_stop(err:longint);
-begin
-  DoneCompiler;
-  olddo_stop(err);
 end;
 
 
@@ -417,8 +410,18 @@ begin
         Message(general_e_compilation_aborted);
         DoneVerbose;
       end;
+    on ECompilerAbort do
+      begin
+        Message(general_e_compilation_aborted);
+        DoneVerbose;
+      end;
+    on ECompilerAbortSilent do
+      begin
+        DoneVerbose;
+      end;
     on Exception do
       begin
+        { General catchall, normally not used }
         Message(general_e_compilation_aborted);
         DoneVerbose;
         Raise;
@@ -443,7 +446,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.59  2005-03-25 21:55:43  jonas
+  Revision 1.60  2005-04-24 21:01:37  peter
+    * always use exceptions to stop the compiler
+    - remove stop, do_stop
+
+  Revision 1.59  2005/03/25 21:55:43  jonas
     * removed some unused variables
 
   Revision 1.58  2005/02/28 15:38:38  marco

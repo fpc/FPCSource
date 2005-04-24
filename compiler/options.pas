@@ -78,6 +78,7 @@ uses
 {$ENDIF USE_SYSUTILS}
   version,
   cutils,cmsgs,
+  comphook,
   symtable
 {$ifdef BrowserLog}
   ,browlog
@@ -137,8 +138,7 @@ begin
      Option.free;
      Option:=nil;
    end;
-  DoneVerbose;
-  Stop(err);
+  raise ECompilerAbortSilent.Create;
 end;
 
 
@@ -1920,7 +1920,7 @@ begin
   { Write logo }
   if option.ParaLogo then
     option.writelogo;
-    
+
   { Non-core target defines }
   Option.TargetDefines(true);
 
@@ -2114,7 +2114,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.172  2005-04-15 15:43:54  peter
+  Revision 1.173  2005-04-24 21:01:37  peter
+    * always use exceptions to stop the compiler
+    - remove stop, do_stop
+
+  Revision 1.172  2005/04/15 15:43:54  peter
     * -Fe on commandline redirects now all output
 
   Revision 1.171  2005/03/20 22:36:45  olle

@@ -186,9 +186,9 @@ function aout_sym(const name:string;typ,other:byte;desc:word;
 
 begin
     if aout_str_size+length(name)+1>sizeof(aout_str_tab) then
-        Do_Stop($da);
+        internalerror(200504241);
     if aout_sym_count>=sizeof(aout_sym_tab) div sizeof(aout_sym_tab[0]) then
-        Do_Stop($da);
+        internalerror(200504242);
     aout_sym_tab[aout_sym_count].strofs:=aout_str_size;
     aout_sym_tab[aout_sym_count].typ:=typ;
     aout_sym_tab[aout_sym_count].other:=other;
@@ -204,7 +204,7 @@ procedure aout_text_byte(b:byte);
 
 begin
     if aout_text_size>=sizeof(aout_text) then
-        Do_Stop($da);
+        internalerror(200504243);
     aout_text[aout_text_size]:=b;
     inc(aout_text_size);
 end;
@@ -224,7 +224,7 @@ procedure aout_treloc(address,symbolnum,pcrel,len,ext:longint);
 
 begin
     if aout_treloc_count>=sizeof(aout_treloc_tab) div sizeof(reloc) then
-        Do_Stop($da);
+        internalerror(200504244);
     aout_treloc_tab[aout_treloc_count].address:=address;
     aout_treloc_tab[aout_treloc_count].remaining:=symbolnum+pcrel shl 24+
      len shl 25+ext shl 27;
@@ -517,7 +517,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2005-02-14 17:13:10  peter
+  Revision 1.16  2005-04-24 21:02:10  peter
+    * always use exceptions to stop the compiler
+    - remove stop, do_stop
+
+  Revision 1.15  2005/02/14 17:13:10  peter
     * truncate log
 
 }

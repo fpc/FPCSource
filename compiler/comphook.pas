@@ -27,6 +27,7 @@ unit comphook;
 interface
 
 uses
+  SysUtils,
   finput;
 
 Const
@@ -96,8 +97,18 @@ type
 var
   status : tcompilerstatus;
 
+    type
+      EControlCAbort=class(Exception)
+        constructor Create;
+      end;
+      ECompilerAbort=class(Exception)
+        constructor Create;
+      end;
+      ECompilerAbortSilent=class(Exception)
+        constructor Create;
+      end;
+
 { Default Functions }
-procedure def_stop(err:longint);
 Function  def_status:boolean;
 Function  def_comment(Level:Longint;const s:string):boolean;
 function  def_internalerror(i:longint):boolean;
@@ -106,13 +117,6 @@ procedure def_donesymbolinfo;
 procedure def_extractsymbolinfo;
 function  def_openinputfile(const filename: string): tinputfile;
 Function  def_getnamedfiletime(Const F : String) : Longint;
-{$ifdef DEBUG}
-{ allow easy stopping in GDB
-  using
-  b DEF_GDB_STOP
-  cond 1 LEVEL <= 8 }
-procedure def_gdb_stop(level : longint);
-{$endif DEBUG}
 { Function redirecting for IDE support }
 type
   tstopprocedure         = procedure(err:longint);
@@ -127,7 +131,6 @@ type
   tgetnamedfiletimefunc = function(const filename: string): longint;
 
 const
-  do_stop          : tstopprocedure   = @def_stop;
   do_status        : tstatusfunction  = @def_status;
   do_comment       : tcommentfunction = @def_comment;
   do_internalerror : tinternalerrorfunction = @def_internalerror;
@@ -181,26 +184,42 @@ end;
 
 
 {****************************************************************************
-                         Predefined default Handlers
+                          Stopping the compiler
 ****************************************************************************}
 
-{ predefined handler when then compiler stops }
-procedure def_stop(err:longint);
-begin
-  Halt(err);
-end;
+     constructor EControlCAbort.Create;
+       begin
+{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
+         inherited Create('Ctrl-C Signaled!');
+{$ELSE}
+         inherited Create;
+{$ENDIF}
+       end;
 
-{$ifdef DEBUG}
-{ allow easy stopping in GDB
-  using
-  b DEF_GDB_STOP
-  cond 1 LEVEL <= 8 }
-procedure def_gdb_stop(level : longint);
-begin
-  { Its only a dummy for GDB }
-end;
-{$endif DEBUG}
 
+     constructor ECompilerAbort.Create;
+       begin
+{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
+         inherited Create('Compilation Aborted');
+{$ELSE}
+         inherited Create;
+{$ENDIF}
+       end;
+
+
+     constructor ECompilerAbortSilent.Create;
+       begin
+{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
+         inherited Create('Compilation Aborted');
+{$ELSE}
+         inherited Create;
+{$ENDIF}
+       end;
+
+
+{****************************************************************************
+                         Predefined default Handlers
+****************************************************************************}
 
 function def_status:boolean;
 {$ifdef HASGETHEAPSTATUS}
@@ -336,10 +355,6 @@ begin
      Writeln(status.reportbugfile,hs);
 {$endif}
    end;
-
-{$ifdef DEBUG}
-  def_gdb_stop(level);
-{$endif DEBUG}
 end;
 
 
@@ -398,7 +413,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  2005-02-28 15:38:38  marco
+  Revision 1.38  2005-04-24 21:01:37  peter
+    * always use exceptions to stop the compiler
+    - remove stop, do_stop
+
+  Revision 1.37  2005/02/28 15:38:38  marco
    * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
 
   Revision 1.36  2005/02/14 17:13:06  peter

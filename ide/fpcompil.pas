@@ -28,6 +28,9 @@ interface
 {$mode objfpc}
 
 uses
+  { We need to include the exceptions from SysUtils, but the types from
+    Objects need to be used. Keep the order SysUtils,Objects }
+  SysUtils,
   Objects,
   FInput,
   Drivers,Views,Dialogs,
@@ -662,19 +665,6 @@ begin
   CompilerStatus:=false;
 end;
 
-const
-  LONGJMPCALLED = -1;
-
-procedure CompilerStop(err: longint); {$ifndef FPC}far;{$endif}
-begin
-{ $ifdef HasSignal}
-  if StopJmpValid then
-    Longjmp(StopJmp,LONGJMPCALLED)
-  else
-    Halt(err);
-{ $endif}
-end;
-
 Function  CompilerGetNamedFileTime(const filename : string) : Longint; {$ifndef FPC}far;{$endif}
 var t: longint;
     W: PSourceWindow;
@@ -723,11 +713,6 @@ begin
      { update info messages }
      if assigned(CompilerStatusDialog) then
       CompilerStatusDialog^.Update;
-{$ifdef DEBUG}
- {$ifndef NODEBUG}
-//     def_gdb_stop(level);
- {$endif}
-{$endif DEBUG}
 {$ifdef redircompiler}
       RedirEnableAll;
 {$endif}
@@ -822,10 +807,7 @@ var
   s,FileName: string;
   ErrFile : Text;
   MustRestartDebugger,
-  StoreStopJumpValid : boolean;
-  StoreStopJmp : Jmp_buf;
-  StoreExitProc : pointer;
-  JmpRet,Error,LinkErrorCount : longint;
+  Error,LinkErrorCount : longint;
   E : TEvent;
   DummyView: PView;
   PPasFile : string[64];
@@ -884,7 +866,6 @@ begin
   EatIO;
 { hook compiler output }
   do_status:=@CompilerStatus;
-  do_stop:=@CompilerStop;
   do_comment:=@CompilerComment;
   do_openinputfile:=@CompilerOpenInputFile;
   do_getnamedfiletime:=@CompilerGetNamedFileTime;
@@ -907,61 +888,27 @@ begin
   PPasFile:='ppas'+source_info.scriptext;
   WUtils.DeleteFile(GetExePath+PpasFile);
   SetStatus('Compiling...');
-{ $ifdef HasSignal}
-  StoreStopJumpValid:=StopJmpValid;
-  StoreStopJmp:=StopJmp;
-{ $endif HasSignal}
-  StoreExitProc:=ExitProc;
-{ $ifdef HasSignal}
-  StopJmpValid:=true;
-  JmpRet:=SetJmp(StopJmp);
-{ $else
-  JmpRet:=0;
-$endif HasSignal}
-  if JmpRet=0 then
+  inc(CompileStamp);
+  ResetErrorMessages;
+  {$ifndef NODEBUG}
+  MustRestartDebugger:=false;
+  if assigned(Debugger) then
+  if Debugger^.HasExe then
     begin
-      inc(CompileStamp);
-      ResetErrorMessages;
-{$ifndef NODEBUG}
-      MustRestartDebugger:=false;
-      if assigned(Debugger) then
-        if Debugger^.HasExe then
-          begin
-            Debugger^.Reset;
-            MustRestartDebugger:=true;
-          end;
-{$endif NODEBUG}
-      FpIntF.Compile(FileName,SwitchesPath);
-      SetStatus('Finished compiling...');
-    end
-  else
-    begin
-      { We need to restore Exitproc to the value
-        it was before calling FPintF.compile PM }
-      ExitProc:=StoreExitProc;
-      Inc(status.errorCount);
-{ $ifdef HasSignal}
-      Case JmpRet of
-        LONGJMPCALLED : s:='Error';
-        SIGINT : s := 'Interrupted by Ctrl-C';
-        SIGILL : s := 'Illegal instruction';
-        SIGSEGV : s := 'Signal Segmentation violation';
-        SIGFPE : s:='Floating point signal';
-        else
-          s:='Undetermined signal '+inttostr(JmpRet);
-      end;
-      CompilerMessageWindow^.AddMessage(V_error,s+' during compilation','',0,0);
-{ $endif HasSignal}
-      if JmpRet<>LONGJMPCALLED then
-        begin
-          CompilerMessageWindow^.AddMessage(V_error,'Long jumped out of compilation...','',0,0);
-          SetStatus('Long jumped out of compilation...');
-        end;
+      Debugger^.Reset;
+      MustRestartDebugger:=true;
     end;
-{ $ifdef HasSignal}
-  StopJmpValid:=StoreStopJumpValid;
-  StopJmp:=StoreStopJmp;
-{ $endif HasSignal}
+  {$endif NODEBUG}
+  try
+    FpIntF.Compile(FileName,SwitchesPath);
+  except
+    on ECompilerAbort do
+      CompilerMessageWindow^.AddMessage(V_error,'Error during compilation','',0,0);
+    on E:Exception do
+      CompilerMessageWindow^.AddMessage(V_error,E.Message+' during compilation','',0,0);
+  end;
+  SetStatus('Finished compiling...');
+
   { Retrieve created exefile }
   If GetEXEPath<>'' then
     EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+GetTargetExeExt)
@@ -1279,7 +1226,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.39  2005-04-02 23:56:54  hajny
+  Revision 1.40  2005-04-24 21:03:16  peter
+    * always use exceptions to stop the compiler
+    - remove stop, do_stop
+
+  Revision 1.39  2005/04/02 23:56:54  hajny
     * fix for targets missing exception handler implementation
 
   Revision 1.38  2005/03/06 13:48:59  florian
