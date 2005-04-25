@@ -31,9 +31,6 @@ program FP;
 (**********************************************************************)
 
 uses
-{$ifdef EXTDEBUG}
-  checkmem,
-{$endif EXTDEBUG}
 {$ifndef NODEBUG}
 {$ifdef win32}
   fpcygwin,
@@ -498,7 +495,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.28  2005-02-14 17:13:18  peter
+  Revision 1.29  2005-04-25 08:19:10  marco
+   * checkmem removed
+
+  Revision 1.28  2005/02/14 17:13:18  peter
     * truncate log
 
 }
