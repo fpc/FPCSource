@@ -252,7 +252,7 @@ function declocked(var l : longint) : boolean;assembler;
      { this check should be done because a lock takes a lot }
      { of time!                                             }
 {$ifdef FPC_PIC}
-     movq       IsMultithreaded@GOTPCREL(%rip),%rax
+     movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
      cmpb       $0,IsMultithread
@@ -277,7 +277,7 @@ function declocked(var l : int64) : boolean;assembler;
      { this check should be done because a lock takes a lot }
      { of time!                                             }
 {$ifdef FPC_PIC}
-     movq       IsMultithreaded@GOTPCREL(%rip),%rax
+     movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
      cmpb       $0,IsMultithread
@@ -303,7 +303,7 @@ procedure inclocked(var l : longint);assembler;
      { this check should be done because a lock takes a lot }
      { of time!                                             }
 {$ifdef FPC_PIC}
-     movq       IsMultithreaded@GOTPCREL(%rip),%rax
+     movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
      cmpb       $0,IsMultithread
@@ -328,7 +328,7 @@ procedure inclocked(var l : int64);assembler;
      { this check should be done because a lock takes a lot }
      { of time!                                             }
 {$ifdef FPC_PIC}
-     movq       IsMultithreaded@GOTPCREL(%rip),%rax
+     movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
      cmpb       $0,IsMultithread
@@ -374,14 +374,25 @@ asm
   { initialize fpu }
   fninit
   fwait
+{$ifdef FPC_PIC}
+  movq fpucw@GOTPCREL(%rip),%rax
+  fldcw (%rax)
+  { set sse exceptions }
+  movq mxcsr@GOTPCREL(%rip),%rax
+  ldmxcsr (%rax)
+{$else FPC_PIC}
   fldcw fpucw
   { set sse exceptions }
   ldmxcsr mxcsr
+{$endif FPC_PIC}
 end;
 
 {
   $Log$
-  Revision 1.19  2005-02-14 17:13:32  peter
+  Revision 1.20  2005-04-25 09:40:27  florian
+    * some ifdef'ed pic code
+
+  Revision 1.19  2005/02/14 17:13:32  peter
     * truncate log
 
   Revision 1.18  2005/02/05 22:30:50  florian

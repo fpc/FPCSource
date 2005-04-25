@@ -21,9 +21,16 @@
     procedure Set8087CW(cw:word);assembler;
     asm
       movw cw,%ax
+{$ifdef FPC_PIC}
+      movq default8087cw@GOTPCREL(%rip),%rax
+      movw %ax,(%rax)
+      fnclex
+      fldcw (%rax)
+{$else FPC_PIC}
       movw %ax,default8087cw
       fnclex
       fldcw default8087cw
+{$endif FPC_PIC}
     end;
 
     function Get8087CW:word;assembler;
@@ -278,7 +285,10 @@
 
 {
   $Log$
-  Revision 1.9  2005-02-14 17:13:32  peter
+  Revision 1.10  2005-04-25 09:40:27  florian
+    * some ifdef'ed pic code
+
+  Revision 1.9  2005/02/14 17:13:32  peter
     * truncate log
 
   Revision 1.8  2005/01/30 18:41:53  peter
