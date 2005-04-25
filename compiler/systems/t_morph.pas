@@ -137,44 +137,59 @@ begin
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
    begin
-     { vlink doesn't need, and doesn't support GROUP }
-     if (cs_link_on_target in aktglobalswitches) then begin
+    { vlink doesn't need, and doesn't support GROUP }
+    if (cs_link_on_target in aktglobalswitches) then 
+     begin
       LinkRes.Add(')');
       LinkRes.Add('GROUP(');
      end;
-     while not StaticLibFiles.Empty do
+    while not StaticLibFiles.Empty do
      begin
-       S:=StaticLibFiles.GetFirst;
-       LinkRes.AddFileName(maybequoted(s));
+      S:=StaticLibFiles.GetFirst;
+      LinkRes.AddFileName(maybequoted(s));
      end;
    end;
-  LinkRes.Add(')');
+  
+  if (cs_link_on_target in aktglobalswitches) then 
+   begin
+    LinkRes.Add(')');
 
-  { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
-    here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-  linklibc:=false;
-  while not SharedLibFiles.Empty do
-   begin
-    S:=SharedLibFiles.GetFirst;
-    if s<>'c' then
+    { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
+      here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+    linklibc:=false;
+    while not SharedLibFiles.Empty do
      begin
-      i:=Pos(target_info.sharedlibext,S);
-      if i>0 then
-       Delete(S,i,255);
-      LinkRes.Add('-l'+s);
-     end
-    else
-     begin
-      LinkRes.Add('-l'+s);
-      linklibc:=true;
+      S:=SharedLibFiles.GetFirst;
+      if s<>'c' then
+       begin
+        i:=Pos(target_info.sharedlibext,S);
+        if i>0 then
+         Delete(S,i,255);
+        LinkRes.Add('-l'+s);
+       end
+      else
+       begin
+        LinkRes.Add('-l'+s);
+        linklibc:=true;
+       end;
      end;
-   end;
-  { be sure that libc&libgcc is the last lib }
-  if linklibc then
+    { be sure that libc&libgcc is the last lib }
+    if linklibc then
+     begin
+      LinkRes.Add('-lc');
+      LinkRes.Add('-lgcc');
+     end;
+   end
+  else
    begin
-    LinkRes.Add('-lc');
-    LinkRes.Add('-lgcc');
+    while not SharedLibFiles.Empty do
+     begin
+      S:=SharedLibFiles.GetFirst;
+      LinkRes.Add('lib'+s+target_info.staticlibext);
+     end;
+    LinkRes.Add(')');    
    end;
+
 
 { Write and Close response }
   linkres.writetodisk;
@@ -255,7 +270,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2005-02-14 17:13:10  peter
+  Revision 1.14  2005-04-25 15:58:59  karoly
+    * static linking fixes
+
+  Revision 1.13  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.12  2005/02/11 07:23:22  karoly
