@@ -1148,7 +1148,8 @@ implementation
                      end;
                    typedconstsym :
                      begin
-                       if ttypedconstsym(tloadnode(hp).symtableentry).is_writable then
+                       if ttypedconstsym(tloadnode(hp).symtableentry).is_writable or
+                          (valid_addr in opts) then
                         result:=true
                        else
                         CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
@@ -2062,7 +2063,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.123  2005-04-08 15:18:32  peter
+  Revision 1.124  2005-04-25 08:59:07  peter
+  allow gettting the address of read-only typedconsts
+
+  Revision 1.123  2005/04/08 15:18:32  peter
   support string[index] for const/var assignment
 
   Revision 1.122  2005/04/01 07:12:29  marco
