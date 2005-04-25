@@ -73,6 +73,7 @@ implementation
          current_module:=nil;
          compiled_module:=nil;
          current_procinfo:=nil;
+         SetCompileModule(nil);
 
          loaded_units:=TLinkedList.Create;
 
@@ -135,6 +136,7 @@ implementation
          current_module:=nil;
          compiled_module:=nil;
          current_procinfo:=nil;
+         SetCompileModule(nil);
 
          { unload units }
          loaded_units.free;
@@ -665,7 +667,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2005-02-14 17:13:07  peter
+  Revision 1.76  2005-04-25 08:15:17  peter
+  reset compiling_module in doneparser
+
+  Revision 1.75  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.74  2005/02/10 20:06:34  peter
