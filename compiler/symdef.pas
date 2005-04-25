@@ -2183,15 +2183,10 @@ implementation
     function Tfloatdef.stabstring:Pchar;
       begin
         case typ of
-          s32real,s64real:
-            { found this solution in stabsread.c from GDB v4.16 }
+          s32real,s64real,s80real:
             stabstring:=stabstr_evaluate('r$1;${savesize};0;',[tstoreddef(s32inttype.def).numberstring]);
           s64currency,s64comp:
             stabstring:=stabstr_evaluate('r$1;-${savesize};0;',[tstoreddef(s32inttype.def).numberstring]);
-          s80real:
-           { under dos at least you must give a size of twelve instead of 10 !! }
-           { this is probably do to the fact that in gcc all is pushed in 4 bytes size }
-            stabstring:=stabstr_evaluate('r$1;12;0;',[tstoreddef(s32inttype.def).numberstring]);
           else
             internalerror(10005);
         end;
@@ -6404,7 +6399,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.303  2005-04-03 15:20:42  florian
+  Revision 1.304  2005-04-25 13:15:18  peter
+    * extended stabs use size of 10
+
+  Revision 1.303  2005/04/03 15:20:42  florian
     * class ref. properties can be published now
 
   Revision 1.302  2005/03/28 15:04:13  peter
