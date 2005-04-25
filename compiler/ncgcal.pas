@@ -313,6 +313,7 @@ implementation
 
     procedure tcgcallparanode.secondcallparan;
       var
+         href    : treference;
          otlabel,
          oflabel : tasmlabel;
       begin
@@ -328,6 +329,14 @@ implementation
              objectlibrary.getlabel(truelabel);
              objectlibrary.getlabel(falselabel);
              secondpass(left);
+
+             { release memory for refcnt out parameters }
+             if (parasym.varspez=vs_out) and
+                (left.resulttype.def.needs_inittable) then
+               begin
+                 location_get_data_ref(exprasmlist,left.location,href,false);
+                 cg.g_decrrefcount(exprasmlist,left.resulttype.def,href);
+               end;
 
 {$ifdef PASS2INLINE}
              if assigned(aktcallnode.inlinecode) then
@@ -799,12 +808,12 @@ implementation
              cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp);
            end;
 
-        regs_to_save_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
-        regs_to_save_fpu:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
-        regs_to_save_mm:=paramanager.get_volatile_registers_mm(procdefinition.proccalloption);
+         regs_to_save_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
+         regs_to_save_fpu:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
+         regs_to_save_mm:=paramanager.get_volatile_registers_mm(procdefinition.proccalloption);
 
-        { Include Function result registers }
-        if (not is_void(resulttype.def)) then
+         { Include Function result registers }
+         if (not is_void(resulttype.def)) then
           begin
             case procdefinition.funcretloc[callerside].loc of
               LOC_REGISTER,
@@ -1245,7 +1254,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.203  2005-04-05 21:06:44  peter
+  Revision 1.204  2005-04-25 09:41:28  peter
+  decr refcnt for out paras
+
+  Revision 1.203  2005/04/05 21:06:44  peter
     * support typecasting a ordinal const to 8 byte record. a_param_loc
       can't be used. Instead force the location to memory so it uses
       a_param_ref
