@@ -327,6 +327,11 @@ Implementation
           end;
 
 
+        procedure handleat;
+          begin
+          end;
+
+
         function MaybeBuildReference:boolean;
           { Try to create a reference, if not a reference is found then false
             is returned }
@@ -369,6 +374,19 @@ Implementation
                      BuildRecordOffsetSize(tempstr,l,k);
                      inc(oper.opr.ref.offset,l);
                    end;
+                  if actasmtoken=AS_AT then
+                    begin
+                      consume(AS_AT);
+                      if actasmtoken=AS_ID then
+                        begin
+                          if actasmpattern='GOTPCREL' then
+                            oper.opr.ref.refaddr:=addr_pic
+                          else
+                            Message(asmr_e_invalid_reference_syntax);
+                        end
+                      else
+                        Message(asmr_e_invalid_reference_syntax);
+                    end;
                   case actasmtoken of
                     AS_END,
                     AS_SEPARATOR,
@@ -486,7 +504,23 @@ Implementation
                      begin
                        if oper.SetupVar(expr,false) then
                         begin
-                        end
+                          if actasmtoken=AS_AT then
+                            begin
+                              consume(AS_AT);
+                              if actasmtoken=AS_ID then
+                                begin
+                                  if actasmpattern='GOTPCREL' then
+                                    begin
+                                      oper.opr.ref.refaddr:=addr_pic;
+                                      consume(AS_ID);
+                                    end
+                                  else
+                                    Message(asmr_e_invalid_reference_syntax);
+                                end
+                              else
+                                Message(asmr_e_invalid_reference_syntax);
+                            end;
+                          end
                        else
                         Begin
                           { look for special symbols ... }
@@ -775,7 +809,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.10  2005-02-14 17:13:10  peter
+  Revision 1.11  2005-04-25 09:51:07  florian
+    + pic code reading for the assembler readers
+    * loadaddr generates pic code as well now
+
+  Revision 1.10  2005/02/14 17:13:10  peter
     * truncate log
 
 }

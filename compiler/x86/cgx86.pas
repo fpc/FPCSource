@@ -659,9 +659,23 @@ unit cgx86;
             begin
               if assigned(ref.symbol) then
                 begin
-                  tmpref:=ref;
-                  tmpref.refaddr:=ADDR_FULL;
-                  list.concat(Taicpu.op_ref_reg(A_MOV,tcgsize2opsize[OS_ADDR],tmpref,r));
+                  if cs_create_pic in aktmoduleswitches then
+                    begin
+{$ifdef x86_64}
+                      reference_reset_symbol(tmpref,ref.symbol,0);
+                      tmpref.refaddr:=addr_pic;
+                      tmpref.base:=NR_RIP;
+                      list.concat(taicpu.op_ref_reg(A_MOV,S_Q,tmpref,r));
+{$else x86_64}
+                      internalerror(2005042501);
+{$endif x86_64}
+                    end
+                  else
+                    begin
+                      tmpref:=ref;
+                      tmpref.refaddr:=ADDR_FULL;
+                      list.concat(Taicpu.op_ref_reg(A_MOV,tcgsize2opsize[OS_ADDR],tmpref,r));
+                    end;
                 end
               else
                 a_load_const_reg(list,OS_ADDR,offset,r);
@@ -1774,7 +1788,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.147  2005-03-13 17:15:26  florian
+  Revision 1.148  2005-04-25 09:51:07  florian
+    + pic code reading for the assembler readers
+    * loadaddr generates pic code as well now
+
+  Revision 1.147  2005/03/13 17:15:26  florian
     + storing non-extended floats to memory generates now a fwait to get exceptions at the correct place
 
   Revision 1.146  2005/02/14 17:13:10  peter
