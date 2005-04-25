@@ -19,11 +19,10 @@ fpcpackage=y
 [default]
 fpcdir=../..
 
-[prerules]
-DATA2INC=../data2inc
-
 [rules]
+ifneq ($(DATA2INC),)
 fpcmake.inc: fpcmake.ini
         $(DATA2INC) -b -s fpcmake.ini fpcmake.inc fpcmakeini
+endif
 
 fpcmake$(EXEEXT): $(wildcard fpcm*.pp) fpcmake.inc
