@@ -948,6 +948,13 @@ implementation
                          inserttypeconv(left,s64inttype);
                          inserttypeconv(right,s64inttype);
                        end
+                     { For substraction the result can be < 0 but also > maxlongint, we
+                       fallback to int64 that can handle both }
+                     else if (nodetype=subn) then
+                       begin
+                         inserttypeconv(left,s64inttype);
+                         inserttypeconv(right,s64inttype);
+                       end
                      else
                        begin
                          if (torddef(left.resulttype.def).typ<>u32bit) then
@@ -2195,7 +2202,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.144  2005-04-06 07:31:51  michael
+  Revision 1.145  2005-04-25 08:29:00  peter
+  longword-longword gives int64
+
+  Revision 1.144  2005/04/06 07:31:51  michael
   + * fix constant folding for string+char (from Peter)
 
   Revision 1.143  2005/03/25 22:20:18  peter
