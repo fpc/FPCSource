@@ -475,6 +475,11 @@ begin
     Result:=-1;
 end;
 
+function TField.GetAsCurrency: Currency;
+begin
+  Result := GetAsFloat;
+end;
+
 procedure TField.SetAlignment(const AValue: TAlignMent);
 begin
   if FAlignment <> AValue then
@@ -482,6 +487,11 @@ begin
     FAlignment := Avalue;
     PropertyChanged(false);
     end;
+end;
+
+procedure TField.SetAsCurrency(AValue: Currency);
+begin
+  SetAsFloat(AValue);
 end;
 
 function TField.GetIsNull: Boolean;
@@ -2298,7 +2308,12 @@ end;
 
 {
   $Log$
-  Revision 1.32  2005-04-26 15:45:30  michael
+  Revision 1.33  2005-04-26 16:48:58  michael
+   * Some patches from Uberto Barbini
+     + TLoginEvent more Delphi compatible (D5 and bigger).
+     * AsCurrency Property for TField.
+
+  Revision 1.32  2005/04/26 15:45:30  michael
   + Patch from Sergey Smirnov to fix TTimeField.AsString
 
   Revision 1.31  2005/04/16 10:02:13  michael

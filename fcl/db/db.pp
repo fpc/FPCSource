@@ -167,6 +167,7 @@ type
     property Count: Longint read GetCount;
     Property HiddenFields : Boolean Read FHiddenFields Write FHiddenFields;
     property Items[Index: Longint]: TFieldDef read GetItem; default;
+    property Updated: Boolean read FUpdated write FUpdated;
   end;
 
 { TField }
@@ -243,6 +244,7 @@ type
     procedure DataChanged;
     procedure FreeBuffers; virtual;
     function GetAsBoolean: Boolean; virtual;
+    function GetAsCurrency: Currency; virtual;
     function GetAsDateTime: TDateTime; virtual;
     function GetAsFloat: Double; virtual;
     function GetAsLongint: Longint; virtual;
@@ -262,6 +264,7 @@ type
     procedure PropertyChanged(LayoutAffected: Boolean);
     procedure ReadState(Reader: TReader); override;
     procedure SetAsBoolean(AValue: Boolean); virtual;
+    procedure SetAsCurrency(AValue: Currency); virtual;
     procedure SetAsDateTime(AValue: TDateTime); virtual;
     procedure SetAsFloat(AValue: Double); virtual;
     procedure SetAsLongint(AValue: Longint); virtual;
@@ -287,6 +290,7 @@ type
     procedure SetFieldType(AValue: TFieldType); virtual;
     procedure Validate(Buffer: Pointer);
     property AsBoolean: Boolean read GetAsBoolean write SetAsBoolean;
+    property AsCurrency: Currency read GetAsCurrency write SetAsCurrency;
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
     property AsFloat: Double read GetAsFloat write SetAsFloat;
     property AsLongint: Longint read GetAsLongint write SetAsLongint;
@@ -611,7 +615,7 @@ type
     FCurrency   : boolean;
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
-    function GetAsCurrency: Currency; virtual;
+    function GetAsCurrency: Currency; override;
     function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
@@ -622,7 +626,7 @@ type
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
-    procedure SetAsCurrency(AValue: Currency); virtual;
+    procedure SetAsCurrency(AValue: Currency); override;
     procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -1313,8 +1317,7 @@ type
 
   { TDatabase }
 
-  TLoginEvent = procedure(Database: TDatabase;
-    LoginParams: TStrings) of object;
+  TLoginEvent = procedure(Sender: TObject; Username, Password: string) of object;
 
   TDatabaseClass = Class Of TDatabase;
 
@@ -1939,7 +1942,12 @@ end.
 
 {
   $Log$
-  Revision 1.50  2005-04-26 16:37:44  michael
+  Revision 1.51  2005-04-26 16:48:58  michael
+   * Some patches from Uberto Barbini
+     + TLoginEvent more Delphi compatible (D5 and bigger).
+     * AsCurrency Property for TField.
+
+  Revision 1.50  2005/04/26 16:37:44  michael
   + Added TCustomConnection by Uberto Barbini
 
   Revision 1.49  2005/04/26 15:45:30  michael
