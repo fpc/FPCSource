@@ -442,9 +442,89 @@ begin
     DatabaseError(SNoDatasets);
 end;
 
+{ ---------------------------------------------------------------------
+    TCustomConnection
+  ---------------------------------------------------------------------}
+
+procedure TCustomConnection.SetAfterConnect(const AValue: TNotifyEvent);
+begin
+  if FAfterConnect=AValue then exit;
+  FAfterConnect:=AValue;
+end;
+
+procedure TCustomConnection.SetAfterDisconnect(const AValue: TNotifyEvent);
+begin
+  if FAfterDisconnect=AValue then exit;
+  FAfterDisconnect:=AValue;
+end;
+
+procedure TCustomConnection.SetBeforeConnect(const AValue: TNotifyEvent);
+begin
+  if FBeforeConnect=AValue then exit;
+  FBeforeConnect:=AValue;
+end;
+
+procedure TCustomConnection.SetBeforeDisconnect(const AValue: TNotifyEvent);
+begin
+  if FBeforeDisconnect=AValue then exit;
+  FBeforeDisconnect:=AValue;
+end;
+
+procedure TCustomConnection.DoInternalConnect;
+begin
+  if Assigned(BeforeConnect) then
+    BeforeConnect(self);
+  DoConnect;
+  if Assigned(AfterConnect) then
+    AfterConnect(self);
+end;
+
+procedure TCustomConnection.DoInternalDisconnect;
+begin
+  if Assigned(BeforeDisconnect) then
+    BeforeDisconnect(self);
+  DoDisconnect;
+  if Assigned(AfterDisconnect) then
+    AfterDisconnect(self);
+end;
+
+procedure TCustomConnection.DoConnect;
+
+begin
+  // Do nothing yet
+end;
+
+procedure TCustomConnection.DoDisconnect;
+
+begin
+  // Do nothing yet
+end;
+
+function TCustomConnection.GetConnected: boolean;
+
+begin
+  Result := Connected;
+end;
+
+procedure TCustomConnection.StartTransaction;
+
+begin
+  // Do nothing yet
+end;
+
+procedure TCustomConnection.EndTransaction;
+
+begin
+  // Do nothing yet
+end;
+
+
 {
   $Log$
-  Revision 1.11  2005-04-24 19:21:28  joost
+  Revision 1.12  2005-04-26 16:37:44  michael
+  + Added TCustomConnection by Uberto Barbini
+
+  Revision 1.11  2005/04/24 19:21:28  joost
   - some fixes in assignment of transactions and databases
 
   Revision 1.10  2005/02/14 17:13:12  peter

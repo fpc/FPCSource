@@ -1373,6 +1373,34 @@ type
     property Params : TStrings read FParams Write FParams;
     property OnLogin: TLoginEvent read FOnLogin write FOnLogin;
   end;
+  
+    { TCustomConnection }
+
+  TCustomConnection = class(TDatabase)
+  private
+    FAfterConnect: TNotifyEvent;
+    FAfterDisconnect: TNotifyEvent;
+    FBeforeConnect: TNotifyEvent;
+    FBeforeDisconnect: TNotifyEvent;
+    procedure SetAfterConnect(const AValue: TNotifyEvent);
+    procedure SetAfterDisconnect(const AValue: TNotifyEvent);
+    procedure SetBeforeConnect(const AValue: TNotifyEvent);
+    procedure SetBeforeDisconnect(const AValue: TNotifyEvent);
+  protected
+    procedure DoInternalConnect; override;
+    procedure DoInternalDisconnect; override;
+    procedure DoConnect; virtual;
+    procedure DoDisconnect; virtual;
+    function GetConnected : boolean; virtual;
+    procedure StartTransaction; override;
+    procedure EndTransaction; override;
+  published
+    property AfterConnect : TNotifyEvent read FAfterConnect write SetAfterConnect;
+    property BeforeConnect : TNotifyEvent read FBeforeConnect write SetBeforeConnect;
+    property AfterDisconnect : TNotifyEvent read FAfterDisconnect write SetAfterDisconnect;
+    property BeforeDisconnect : TNotifyEvent read FBeforeDisconnect write SetBeforeDisconnect;
+  end;
+  
 
   { TBufDataset }
 
@@ -1911,7 +1939,10 @@ end.
 
 {
   $Log$
-  Revision 1.49  2005-04-26 15:45:30  michael
+  Revision 1.50  2005-04-26 16:37:44  michael
+  + Added TCustomConnection by Uberto Barbini
+
+  Revision 1.49  2005/04/26 15:45:30  michael
   + Patch from Sergey Smirnov to fix TTimeField.AsString
 
   Revision 1.48  2005/04/24 19:21:28  joost
