@@ -947,7 +947,7 @@ Begin
   P:=Pos(DecimalSeparator,S);
   If (P<>0) Then
     S[P] := '.';
-  Val(S,Value,E);
+  Val(trim(S),Value,E);
   Result:=(E=0);
 End;
 
@@ -1791,7 +1791,11 @@ Begin
   Result:=StrPas(@Buf);
 End;
 
-
+function FormatCurr(const Format: string; Value: Currency): string;
+begin
+  Result := FormatFloat(Format, Value);
+end;
+  
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -2094,7 +2098,10 @@ const
 
 {
   $Log$
-  Revision 1.35  2005-03-25 22:53:39  jonas
+  Revision 1.36  2005-04-26 16:40:51  michael
+  + Added FormatCurr by Uberto Barbini
+
+  Revision 1.35  2005/03/25 22:53:39  jonas
     * fixed several warnings and notes about unused variables (mainly) or
       uninitialised use of variables/function results (a few)
 

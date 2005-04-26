@@ -161,6 +161,7 @@ Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
 Procedure FloatToDecimal(Var Result: TFloatRec; Value: Extended; Precision, Decimals : integer);
 Function FormatFloat(Const Format : String; Value : Extended) : String;
 Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
+function FormatCurr(const Format: string; Value: Currency): string;
 
 {// MBCS Functions. No MBCS yet, so mostly these are calls to the regular counterparts.}
 Type
@@ -202,7 +203,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.16  2005-03-12 14:56:22  florian
+  Revision 1.17  2005-04-26 16:40:51  michael
+  + Added FormatCurr by Uberto Barbini
+
+  Revision 1.16  2005/03/12 14:56:22  florian
     + added Ansi* routines to widestring manager
     * made them using OS calls on windows
 
