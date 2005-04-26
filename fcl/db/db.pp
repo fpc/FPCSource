@@ -561,6 +561,8 @@ type
 { TTimeField }
 
   TTimeField = class(TDateTimeField)
+  protected
+    procedure SetAsString(const AValue: string); override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -1909,7 +1911,10 @@ end.
 
 {
   $Log$
-  Revision 1.48  2005-04-24 19:21:28  joost
+  Revision 1.49  2005-04-26 15:45:30  michael
+  + Patch from Sergey Smirnov to fix TTimeField.AsString
+
+  Revision 1.48  2005/04/24 19:21:28  joost
   - some fixes in assignment of transactions and databases
 
   Revision 1.47  2005/04/13 22:09:15  joost

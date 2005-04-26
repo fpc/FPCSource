@@ -1647,6 +1647,13 @@ begin
   SetDataType(ftTime);
 end;
 
+procedure TTimeField.SetAsString(const AValue: string);
+Var R : TDateTime;
+begin
+  R:=StrToTime(AVAlue);
+  SetData(@R);
+end;
+
 
 
 { TBinaryField }
@@ -2291,7 +2298,10 @@ end;
 
 {
   $Log$
-  Revision 1.31  2005-04-16 10:02:13  michael
+  Revision 1.32  2005-04-26 15:45:30  michael
+  + Patch from Sergey Smirnov to fix TTimeField.AsString
+
+  Revision 1.31  2005/04/16 10:02:13  michael
   + Patch to show/enter alternate charsets in grid editor.
 
   Revision 1.30  2005/04/10 22:18:43  joost
