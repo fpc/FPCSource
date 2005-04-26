@@ -6,7 +6,7 @@
 main=fcl
 
 [target]
-units=fpcunit  testregistry  testreport testutils
+units=fpcunit  testregistry  testreport testutils testdecorator
 exampledirs=exampletests
 
 [compiler]
