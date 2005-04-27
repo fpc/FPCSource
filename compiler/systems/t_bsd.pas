@@ -265,7 +265,7 @@ begin
          ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE `cat $RES`';
        end
      else
-       ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
+       ExeCmd[1]:='ld $OPT $DYNLINK $STATIC  $GCSECTIONS $STRIP -L. -o $EXE $RES';
      DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
      { first try glibc2 }
@@ -631,7 +631,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.29  2005-04-27 14:47:54  marco
+  Revision 1.30  2005-04-27 21:47:08  marco
+   * $GCSECTIONS also added to else case
+
+  Revision 1.29  2005/04/27 14:47:54  marco
    * tf_smartlink_sections and some shared lib pull-ups from t_linux
 
   Revision 1.28  2005/02/14 17:13:10  peter
