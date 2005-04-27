@@ -262,11 +262,11 @@ begin
    begin
      if LdSupportsNoResponseFile then
        begin
-         ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE `cat $RES`';
+         ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE `cat $RES`';
        end
      else
        ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
-     DllCmd[1]:='ld $OPT -shared -L. -o $EXE $RES';
+     DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
      { first try glibc2 }
 {$ifdef GLIBC2} {Keep linux code in place. FBSD might go to a different
@@ -479,6 +479,7 @@ var
   cmdstr  : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];
+  GCSectionsStr,
   StaticStr,
   StripStr   : string[40];
 begin
@@ -489,6 +490,7 @@ begin
   StaticStr:='';
   StripStr:='';
   DynLinkStr:='';
+  GCSectionsStr:='';
   if (cs_link_staticflag in aktglobalswitches) then
     begin
       if (target_info.system=system_m68k_netbsd) and
@@ -503,6 +505,11 @@ begin
      StripStr:='-s'
    else
      StripStr:='-x';
+
+  if (cs_link_smart in aktglobalswitches) and
+     (tf_smartlink_sections in target_info.flags) then
+   GCSectionsStr:='--gc-sections';
+
   If (cs_profile in aktmoduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
@@ -519,6 +526,7 @@ begin
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
   success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,LdSupportsNoResponseFile);
 
@@ -532,6 +540,9 @@ end;
 
 Function TLinkerBSD.MakeSharedLibrary:boolean;
 var
+  InitStr,
+  FiniStr,
+  SoNameStr : string[80];
   binstr : String;
   cmdstr  : TCmdStr;
   success : boolean;
@@ -543,11 +554,19 @@ begin
 { Write used files and libraries }
   WriteResponseFile(true);
 
+  InitStr:='-init FPC_LIB_START';
+  FiniStr:='-fini FPC_LIB_EXIT';
+  SoNameStr:='-soname '+SplitFileName(current_module.sharedlibfilename^);
+
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$INIT',InitStr);
+  Replace(cmdstr,'$FINI',FiniStr);
+  Replace(cmdstr,'$SONAME',SoNameStr);
+
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
 
 { Strip the library ? }
@@ -612,7 +631,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2005-02-14 17:13:10  peter
+  Revision 1.29  2005-04-27 14:47:54  marco
+   * tf_smartlink_sections and some shared lib pull-ups from t_linux
+
+  Revision 1.28  2005/02/14 17:13:10  peter
     * truncate log
 
 }
