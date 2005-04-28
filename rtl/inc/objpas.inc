@@ -614,14 +614,18 @@
           IEntry: pinterfaceentry;
         begin
           IEntry:=getinterfaceentry(iid);
-          if Assigned(IEntry) then begin
-            PPointer(@obj)^:=Pointer(Self)+IEntry^.IOffset;
-            getinterface:=True;
-          end
-          else begin
-            PPointer(@Obj)^:=nil;
-            getinterface:=False;
-          end;
+          if Assigned(IEntry) then
+            begin
+              Pointer(obj):=Pointer(Self)+IEntry^.IOffset;
+              if assigned(pointer(obj)) then
+                iinterface(obj)._AddRef;
+              getinterface:=True;
+            end
+          else
+            begin
+              PPointer(@Obj)^:=nil;
+              getinterface:=False;
+            end;
         end;
 
       function TObject.getinterfacebystr(const iidstr : string;out obj) : boolean;
@@ -629,14 +633,18 @@
           IEntry: pinterfaceentry;
         begin
           IEntry:=getinterfaceentrybystr(iidstr);
-          if Assigned(IEntry) then begin
-            PPointer(@obj)^:=Pointer(Self)+IEntry^.IOffset;
-            getinterfacebystr:=True;
-          end
-          else begin
-            PPointer(@Obj)^:=nil;
-            getinterfacebystr:=False;
-          end;
+          if Assigned(IEntry) then
+            begin
+              Pointer(obj):=Pointer(Self)+IEntry^.IOffset;
+              if assigned(pointer(obj)) then
+                iinterface(obj)._AddRef;
+              getinterfacebystr:=True;
+            end
+          else
+            begin
+              PPointer(@Obj)^:=nil;
+              getinterfacebystr:=False;
+            end;
         end;
 
       class function TObject.getinterfaceentry(const iid : tguid) : pinterfaceentry;
@@ -758,7 +766,10 @@
 
 {
   $Log$
-  Revision 1.48  2005-04-05 21:05:31  peter
+  Revision 1.49  2005-04-28 17:58:18  florian
+    * getinterface fixed
+
+  Revision 1.48  2005/04/05 21:05:31  peter
     * call initspecialchars if one of the specialchars is configured
       for the first time
 
