@@ -1,9 +1,9 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2001 by Free Pascal development team
+    Copyright (c) 2001-2005 by Free Pascal development team
 
-    Low leve file functions
+    Low level file functions
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -27,12 +27,12 @@ end;
 procedure do_close(h : longint);
 var
   err: OSErr;
-{No error handling, according to the other targets, which seems reasonable,
+{Ignore error handling, according to the other targets, which seems reasonable,
 because close might be used to clean up after an error.}
 begin
   {$ifdef MACOS_USE_STDCLIB}
   c_close(h);
-  // Errno2InOutRes;
+  errno:= 0;
   {$else}
   err:= FSClose(h);
   // OSErr2InOutRes(err);
@@ -287,7 +287,6 @@ begin
           err:= FSpGetFullPath(spec, fullPath, false);
           InOutRes:= MacOSErr2RTEerr(err);
         end;
-
       if InOutRes <> 0 then
         exit;
 
@@ -352,7 +351,10 @@ end;
 
 {
    $Log$
-   Revision 1.3  2005-03-20 19:37:31  olle
+   Revision 1.4  2005-04-28 18:21:04  olle
+     * Set errno to zero after close
+
+   Revision 1.3  2005/03/20 19:37:31  olle
      + Added optional path translation mechanism
 
    Revision 1.2  2005/02/14 17:13:30  peter
