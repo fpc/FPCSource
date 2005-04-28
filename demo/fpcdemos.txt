@@ -1,6 +1,6 @@
 FPC demo package
 ================
-This packages contains the following subdirs:
+This packages contains the following subdirectories:
 
 - text     text mode demos (should run everywhere)
 - graph    demos those use the graph unit (runs nearly everywhere)
@@ -13,11 +13,15 @@ This packages contains the following subdirs:
 - palmos   demos those are palmos specific (dragonball)
 - netware  demos those are netware(clib) specific
 - netwlibc demos those are netware(libc) specific
+- macos    demos those are macos (classic) specific
 
-To build the programs simply type 'make' in the base dir. To do a cross
-build, type make OS_TARGET=crosstarget, i.e. make OS_TARGET=win32. This
-assumes the crossbinutils and cross RTL are properly installed and
-configured.
+To build the programs (except for macos) simply type 'make' in the base
+dir. To do a cross build, type make OS_TARGET=crosstarget, i.e. make
+OS_TARGET=win32. This assumes the crossbinutils and cross RTL are properly
+installed and configured.
+
+To build the macos sample, issue the command 'fpc <filename>' in MPW in
+directory macos.
 
 If you want to add further samples, edit Makefile.fpc and rebuild the real
 Makefile by entering 'fpcmake -T all'. This is a special fpc generic utility
