@@ -1191,7 +1191,6 @@ end;
 
 
 Function CurrToStr(Value: Currency): string;
-
 begin
   Result:=FloatToStrF(Value,ffNumber,15,2);
 end;
@@ -1201,6 +1200,13 @@ begin
   if not TextToFloat(PChar(S), Result, fvCurrency) then
     Raise EConvertError.createfmt(SInValidFLoat,[S]);
 end;
+
+
+Function TryStrToCurr(Const S : String; Var Value: Currency): Boolean;
+Begin
+  Result := TextToFloat(PChar(S), Value, fvCurrency);
+End;
+
 
 function StrToCurrDef(const S: string; Default : Currency): Currency;
 begin
@@ -2098,7 +2104,10 @@ const
 
 {
   $Log$
-  Revision 1.36  2005-04-26 16:40:51  michael
+  Revision 1.37  2005-04-28 09:15:44  florian
+    + variants: string -> float/int casts
+
+  Revision 1.36  2005/04/26 16:40:51  michael
   + Added FormatCurr by Uberto Barbini
 
   Revision 1.35  2005/03/25 22:53:39  jonas

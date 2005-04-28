@@ -105,116 +105,24 @@ begin
   end;
 end;
 
+
 Function VariantToLongint(Const VargSrc : TVarData) : Longint;
-
-begin
-  With VargSrc do
-    Case (VType and VarTypeMask) of
-      VarSmallInt: Result:=VSmallInt;
-      VarShortInt: Result:=VShortInt;
-      VarInteger : Result:=VInteger;
-      VarSingle  : Result:=Round(VSingle);
-      VarDouble  : Result:=Round(VDouble);
-      VarCurrency: Result:=Round(VCurrency);
-      VarDate    : Result:=Round(VDate);
-      VarOleStr  : Result:=StrToInt(WideCharToString(vOleStr));
-      VarBoolean : Result:=Longint(VBoolean);
-      VarByte    : Result:=VByte;
-      VarWord    : Result:=VWord;
-      VarLongWord   : Result:=VLongWord;
-      VarInt64   : Result:=VInt64;
-      VarQword   : Result:=VQWord;
-  else
-    VariantTypeMismatch;
-  end;
-end;
-
-Function VariantToCardinal(Const VargSrc : TVarData) : Cardinal;
-
-begin
-  With VargSrc do
-    Case (VType and VarTypeMask) of
-      VarSmallInt: Result:=VSmallInt;
-      VarShortInt: Result:=VShortInt;
-      VarInteger : Result:=VInteger;
-      VarSingle  : Result:=Round(VSingle);
-      VarDouble  : Result:=Round(VDouble);
-      VarCurrency: Result:=Round(VCurrency);
-      VarDate    : Result:=Round(VDate);
-      VarOleStr  : Result:=StrToInt(WideCharToString(vOleStr));
-      VarBoolean : Result:=Longint(VBoolean);
-      VarByte    : Result:=VByte;
-      VarWord    : Result:=VWord;
-      VarLongWord   : Result:=VLongWord;
-      VarInt64   : Result:=VInt64;
-      VarQword   : Result:=VQWord;
-  else
-    VariantTypeMismatch;
-  end;
-end;
-
-Function VariantToSingle(Const VargSrc : TVarData) : Single;
-
-begin
-  With VargSrc do
-    Case (VType and VarTypeMask) of
-      VarSmallInt: Result:=VSmallInt;
-      VarShortInt: Result:=VShortInt;
-      VarInteger : Result:=VInteger;
-      VarSingle  : Result:=VSingle;
-      VarDouble  : Result:=VDouble;
-      VarCurrency: Result:=VCurrency;
-      VarDate    : Result:=VDate;
-      VarOleStr  : NoWideStrings;
-      VarBoolean : Result:=Longint(VBoolean);
-      VarByte    : Result:=VByte;
-      VarWord    : Result:=VWord;
-      VarLongWord   : Result:=VLongWord;
-      VarInt64   : Result:=VInt64;
-      VarQword   : Result:=VQWord;
-  else
-    VariantTypeMismatch;
-  end;
-end;
-
-Function VariantToDouble(Const VargSrc : TVarData) : Double;
-
-begin
-  With VargSrc do
-    Case (VType and VarTypeMask)  of
-      VarSmallInt: Result:=VSmallInt;
-      VarShortInt: Result:=VShortInt;
-      VarInteger : Result:=VInteger;
-      VarSingle  : Result:=VSingle;
-      VarDouble  : Result:=VDouble;
-      VarCurrency: Result:=VCurrency;
-      VarDate    : Result:=VDate;
-      VarOleStr  : NoWideStrings;
-      VarBoolean : Result:=Longint(VBoolean);
-      VarByte    : Result:=VByte;
-      VarWord    : Result:=VWord;
-      VarLongWord   : Result:=VLongWord;
-      VarInt64   : Result:=VInt64;
-      VarQword   : Result:=VQWord;
-  else
-    VariantTypeMismatch;
-  end;
-end;
-
-Function VariantToCurrency(Const VargSrc : TVarData) : Currency;
-
-begin
-  Try
+  begin
     With VargSrc do
       Case (VType and VarTypeMask) of
         VarSmallInt: Result:=VSmallInt;
         VarShortInt: Result:=VShortInt;
         VarInteger : Result:=VInteger;
-        VarSingle  : Result:=FloatToCurr(VSingle);
-        VarDouble  : Result:=FloatToCurr(VDouble);
-        VarCurrency: Result:=VCurrency;
-        VarDate    : Result:=FloatToCurr(VDate);
-        VarOleStr  : NoWideStrings;
+        VarSingle  : Result:=Round(VSingle);
+        VarDouble  : Result:=Round(VDouble);
+        VarCurrency: Result:=Round(VCurrency);
+        VarDate    : Result:=Round(VDate);
+        VarOleStr  :
+          if not(TryStrToInt(WideCharToString(vOleStr),Result)) then
+            VariantTypeMismatch;
+        VarString  :
+          if not(TryStrToInt(ansistring(vString),Result)) then
+            VariantTypeMismatch;
         VarBoolean : Result:=Longint(VBoolean);
         VarByte    : Result:=VByte;
         VarWord    : Result:=VWord;
@@ -224,13 +132,155 @@ begin
     else
       VariantTypeMismatch;
     end;
-  except
-    On EConvertError do
-      VariantTypeMismatch;
-    else
-      Raise;
   end;
-end;
+
+
+Function VariantToCardinal(Const VargSrc : TVarData) : Cardinal;
+  var
+    l : longint;
+  begin
+    With VargSrc do
+      Case (VType and VarTypeMask) of
+        VarSmallInt: Result:=VSmallInt;
+        VarShortInt: Result:=VShortInt;
+        VarInteger : Result:=VInteger;
+        VarSingle  : Result:=Round(VSingle);
+        VarDouble  : Result:=Round(VDouble);
+        VarCurrency: Result:=Round(VCurrency);
+        VarDate    : Result:=Round(VDate);
+        VarOleStr  :
+          begin
+            if not(TryStrToInt(WideCharToString(vOleStr),l)) then
+              VariantTypeMismatch;
+            result:=l;
+          end;
+        VarString  :
+          begin
+            if not(TryStrToInt(ansistring(vString),l)) then
+              VariantTypeMismatch;
+            result:=l;
+          end;
+        VarBoolean : Result:=Longint(VBoolean);
+        VarByte    : Result:=VByte;
+        VarWord    : Result:=VWord;
+        VarLongWord   : Result:=VLongWord;
+        VarInt64   : Result:=VInt64;
+        VarQword   : Result:=VQWord;
+    else
+      VariantTypeMismatch;
+    end;
+  end;
+
+
+Function VariantToSingle(Const VargSrc : TVarData) : Single;
+  var
+    e : extended;
+  begin
+    With VargSrc do
+      Case (VType and VarTypeMask) of
+        VarSmallInt: Result:=VSmallInt;
+        VarShortInt: Result:=VShortInt;
+        VarInteger : Result:=VInteger;
+        VarSingle  : Result:=VSingle;
+        VarDouble  : Result:=VDouble;
+        VarCurrency: Result:=VCurrency;
+        VarDate    : Result:=VDate;
+        VarOleStr  :
+          begin
+            if not(TryStrToFloat(WideCharToString(vOleStr),Result)) then
+              VariantTypeMismatch;
+             result:=e;
+          end;
+        VarString  :
+          begin
+            if not(TryStrToFloat(ansistring(vString),Result)) then
+              VariantTypeMismatch;
+             result:=e;
+          end;
+
+        VarBoolean : Result:=Longint(VBoolean);
+        VarByte    : Result:=VByte;
+        VarWord    : Result:=VWord;
+        VarLongWord   : Result:=VLongWord;
+        VarInt64   : Result:=VInt64;
+        VarQword   : Result:=VQWord;
+    else
+      VariantTypeMismatch;
+    end;
+  end;
+
+
+Function VariantToDouble(Const VargSrc : TVarData) : Double;
+  var
+    e : extended;
+  begin
+    With VargSrc do
+      Case (VType and VarTypeMask)  of
+        VarSmallInt: Result:=VSmallInt;
+        VarShortInt: Result:=VShortInt;
+        VarInteger : Result:=VInteger;
+        VarSingle  : Result:=VSingle;
+        VarDouble  : Result:=VDouble;
+        VarCurrency: Result:=VCurrency;
+        VarDate    : Result:=VDate;
+        VarOleStr  :
+          begin
+            if not(TryStrToFloat(WideCharToString(vOleStr),Result)) then
+              VariantTypeMismatch;
+             result:=e;
+          end;
+        VarString  :
+          begin
+            if not(TryStrToFloat(ansistring(vString),Result)) then
+              VariantTypeMismatch;
+             result:=e;
+          end;
+        VarBoolean : Result:=Longint(VBoolean);
+        VarByte    : Result:=VByte;
+        VarWord    : Result:=VWord;
+        VarLongWord   : Result:=VLongWord;
+        VarInt64   : Result:=VInt64;
+        VarQword   : Result:=VQWord;
+    else
+      VariantTypeMismatch;
+    end;
+  end;
+
+
+Function VariantToCurrency(Const VargSrc : TVarData) : Currency;
+  begin
+    Try
+      With VargSrc do
+        Case (VType and VarTypeMask) of
+          VarSmallInt: Result:=VSmallInt;
+          VarShortInt: Result:=VShortInt;
+          VarInteger : Result:=VInteger;
+          VarSingle  : Result:=FloatToCurr(VSingle);
+          VarDouble  : Result:=FloatToCurr(VDouble);
+          VarCurrency: Result:=VCurrency;
+          VarDate    : Result:=FloatToCurr(VDate);
+          VarOleStr  :
+            if not(TryStrToCurr(WideCharToString(vOleStr),Result)) then
+              VariantTypeMismatch;
+          VarString  :
+            if not(TryStrToCurr(ansistring(vString),Result)) then
+              VariantTypeMismatch;
+          VarBoolean : Result:=Longint(VBoolean);
+          VarByte    : Result:=VByte;
+          VarWord    : Result:=VWord;
+          VarLongWord   : Result:=VLongWord;
+          VarInt64   : Result:=VInt64;
+          VarQword   : Result:=VQWord;
+      else
+        VariantTypeMismatch;
+      end;
+    except
+      On EConvertError do
+        VariantTypeMismatch;
+      else
+        Raise;
+    end;
+  end;
 
 
 Function VariantToDate(Const VargSrc : TVarData) : TDateTime;
@@ -588,7 +638,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2005-03-28 20:36:14  florian
+  Revision 1.14  2005-04-28 09:15:44  florian
+    + variants: string -> float/int casts
+
+  Revision 1.13  2005/03/28 20:36:14  florian
     * some variant <-> string types fixes
 
   Revision 1.12  2005/03/10 21:05:36  florian

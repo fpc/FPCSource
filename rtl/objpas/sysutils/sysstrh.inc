@@ -152,6 +152,7 @@ Function FloattoCurr (Const Value : Extended) : Currency;
 function TryFloatToCurr(const Value: Extended; var AResult: Currency): Boolean;
 Function CurrToStr(Value: Currency): string;
 function StrToCurr(const S: string): Currency;
+function TryStrToCurr(const S: string;Var Value : Currency): Boolean;
 function StrToCurrDef(const S: string; Default : Currency): Currency;
 function StrToBool(const S: string): Boolean;
 function BoolToStr(B: Boolean): string;
@@ -203,7 +204,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.17  2005-04-26 16:40:51  michael
+  Revision 1.18  2005-04-28 09:15:44  florian
+    + variants: string -> float/int casts
+
+  Revision 1.17  2005/04/26 16:40:51  michael
   + Added FormatCurr by Uberto Barbini
 
   Revision 1.16  2005/03/12 14:56:22  florian
