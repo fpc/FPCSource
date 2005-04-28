@@ -105,8 +105,13 @@ output can be customised.
 which comes with the \fpc documentation. From this output, PDF documents can
 be generated, and with the use of latex2rtf, RTF or Winhelp files. Text
 files can also be generated.
+\item[Text] plain ascii text files. No cross-referencing exists. Other than
+that it resembles the LaTeX output in it's structure.
+\item[Man] Unix man pages. Each function/procedure/method identifier is a man
+page. Constants are on a separate page, as are types, variables and
+resourcestrings.
 \end{description}
-Plans exist to create direct text output and RTF output as well.
+Plans exist to create direct RTF output as well.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Getting more information.
@@ -798,6 +803,33 @@ Finally, to cross-reference between related functions, types or classes, a
 of links to related information. This tag can only have sub-tags which are
 \var{link} tags. For more about the \tag{link} tag, see \seetag{link}.
 
+To add a section or page of documentation that is not directly related to a
+single identifier in a unit, a \tag{topic} tag can be used. This tag can
+appear inside a \var{package} or \var{module} tag, and can contain a
+\tag{short} or \tag{descr} tag. The contents of the \tag{short} tag will be
+used for the title of the section or page. In on-line formats, a short list
+of related topics will appear in the package or module page, with links to
+the pages that contain the text of the topics. In a linear format, the topic
+sections will be inserted before the description of all identifiers.
+
+If the topic appears in a \tag{package} tag, then it can be nested: 2 levels
+of topics may be used. This is not so for topics inside a module: they can
+not be nested (the level of nesting in a linear documentation format is limited).
+
+The following is an example of a valid topic tag:
+\begin{verbatim}
+<module name="CRT">
+<topic name="UsingKeyboard">
+<short>Using the keyboard functions</short>
+<descr>
+To use the keyboard functions of the CRT unit, one...
+</descr>
+</topic>
+\end{verbatim}
+
+Topic nodes can be useful to add 'how to' sections to a unit, or to provide
+general IDE help.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % cross-referencing
 \section{Element names and cross-referencing}
@@ -907,7 +939,8 @@ fpdoc-description & Global tag & \pageref{tag:fpdocdescription} \\
 module & Unit tag & \pageref{tag:module} \\
 package & Package global tab & \pageref{tag:package} \\
 seealso & Cross-reference section & \pageref{tag:seealso} \\
-short & Short description & \pageref{tag:short} \\ \hline
+short & Short description & \pageref{tag:short} \\ 
+topic & Topic page & \pageref{tag:topic} \\ \hline
 \end{tabularx}
 \end{table}
 
@@ -1540,6 +1573,24 @@ Cell (1,2) & Cell (2,2)
 \end{tabular}
  
 See also: \seetag{tr}, \seetag{table}
+
+%\subsection{\tag{topic} : Topic section}
+\label{tag:topic}
+The topic tag starts a topic page or section. A topic page or section is
+not linked to an identifier in some unit: it exists by itself. It must be 
+inside a \tag{package} or \tag{module} tag. It must have a \attr{name}
+attribute (for cross-referencing). If it appears inside a \tag{package}, 
+it can be nested: a \tag{topic} may be inside another \tag{topic} tag.
+
+\begin{verbatim}
+<module name="CRT">
+<topic name="UsingKeyboard">
+<short>Using the keyboard functions</short>
+<descr>
+To use the keyboard functions of the CRT unit, one...
+</descr>
+</topic>
+\end{verbatim}
 
 % Tag tr
 \subsection{\tag{tr} : table row}
