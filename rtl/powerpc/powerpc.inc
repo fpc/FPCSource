@@ -1038,33 +1038,32 @@ asm
 end;
 
 {NOTE: On MACOS, 68000 code might call powerpc code, through the MixedMode manager,
-(even in the OS in system 9). The pointer to the switching stack frame is
+(even in the OS in system 9). The pointer to the switching stack frame is then
 indicated by the first bit set to 1. This is checked below.}
+
+{Both routines below assumes that framebp is a valid framepointer or nil.}
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
    cmplwi  r3,0
-   beq     .Lcaller_addr_frame_null
-{$ifdef MACOS}
-   rlwinm       r4,r3,0,31,31
-   cmpwi        r4,0
-   bne  cr0,.Lcaller_addr_frame_null
-{$endif MACOS}
+   beq     .Lcaller_addr_invalid
    lwz r3,0(r3)
    cmplwi  r3,0
-   beq     .Lcaller_addr_frame_null
+   beq     .Lcaller_addr_invalid
 {$ifdef MACOS}
-   rlwinm       r4,r3,0,31,31
-   cmpwi        r4,0
-   bne  cr0,.Lcaller_addr_frame_null
+   rlwinm  r4,r3,0,31,31
+   cmpwi   r4,0
+   bne  cr0,.Lcaller_addr_invalid
 {$endif MACOS}
 {$ifdef FPC_ABI_AIX}
    lwz r3,8(r3)
 {$else FPC_ABI_AIX}
    lwz r3,4(r3)
 {$endif FPC_ABI_AIX}
-.Lcaller_addr_frame_null:
+   blr
+.Lcaller_addr_invalid:
+   li r3,0
 end;
 
 
@@ -1072,14 +1071,16 @@ end;
 function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
     cmplwi  r3,0
-    beq     .Lcaller_frame_null
+    beq     .Lcaller_frame_invalid
+    lwz  r3,0(r3)
 {$ifdef MACOS}
     rlwinm      r4,r3,0,31,31
     cmpwi       r4,0
-    bne cr0,.Lcaller_frame_null
+    bne cr0,.Lcaller_frame_invalid
 {$endif MACOS}
-    lwz  r3,0(r3)
-.Lcaller_frame_null:
+    blr
+.Lcaller_frame_invalid:
+    li r3,0
 end;
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
@@ -1156,7 +1157,10 @@ end;
 
 {
   $Log$
-  Revision 1.75  2005-02-14 17:13:31  peter
+  Revision 1.76  2005-04-28 18:29:01  olle
+    * Fixed bug in stack crawling routines for macos
+
+  Revision 1.75  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.74  2005/01/31 20:57:41  olle
