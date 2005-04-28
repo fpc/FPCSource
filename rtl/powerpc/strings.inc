@@ -54,10 +54,10 @@ asm
         {$ifdef macos}
         {  load constant 0xfefefeff }
         lis     r8,0xfefe
-        addi    r8,r8,0xfeff
+        ori     r8,r8,0xfeff
         {  load constant 0x80808080}
         lis     r7,0x8080
-        addi    r7,r7,0x8080
+        ori     r7,r7,0x8080
         {$else}
         lis     r8,(0xfefefeff)@ha
         addi    r8,r8,(0xfefefeff)@l
@@ -128,22 +128,16 @@ asm
         {$ifdef macos}
         {  load constant 0xfefefeff }
         lis     r8,0xfefe
-        addi    r8,r8,0xfeff
+        ori     r8,r8,0xfeff
         {  load constant 0x80808080}
         lis     r7,0x8080
-        addi    r7,r7,0x8080
+        ori     r7,r7,0x8080
         {$else}
         lis     r8,(0xfefefeff)@ha
         addi    r8,r8,(0xfefefeff)@l
         lis     r7,(0x80808080)@ha
         addi    r7,r7,(0x80808080)@l
         {$endif}
-{
-        li      r8,-257        { 0x0feff }
-        andis.  r8,r8,0x0fefe
-        li      r9,-32640      { 0x08080 }
-        andis.  r9,r9,0x08080
-}
 .LStrECopyAlignedLoop:
 
         {  load next 4 bytes  }
@@ -505,7 +499,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  2005-02-14 17:13:31  peter
+  Revision 1.29  2005-04-28 18:22:34  olle
+    * Fixed loding of magic constant for macos
+
+  Revision 1.28  2005/02/14 17:13:31  peter
     * truncate log
 
 }
