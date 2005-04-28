@@ -35,7 +35,7 @@ const
    varword = 18;
    varlongword = 19;
    varint64 = 20;
-   varqword = 21;   
+   varqword = 21;
 
    varstrarg = $48;
    varstring = $100;
@@ -131,6 +131,7 @@ type
       vartoword64 : function(const v : variant) : qword;
       vartobool : function(const v : variant) : boolean;
       vartoreal : function(const v : variant) : extended;
+      vartotdatetime : function(const v : variant) : tdatetime;
       vartocurr : function(const v : variant) : currency;
       vartopstr : procedure(var s ;const v : variant);
       vartolstr : procedure(var s : ansistring;const v : variant);
@@ -145,6 +146,8 @@ type
       varfromint64 : procedure(var dest : variant;const source : int64);
       varfromword64 : procedure(var dest : variant;const source : qword);
       varfromreal : procedure(var dest : variant;const source : extended);
+      varfromtdatetime : procedure(var dest : Variant;const source : TDateTime);
+      varfromcurr : procedure(var dest : Variant;const source : Currency);
       varfrompstr: procedure(var dest : variant; const source : ShortString);
       varfromlstr: procedure(var dest : variant; const source : ansistring);
       varfromwstr: procedure(var dest : variant; const source : WideString);
@@ -241,10 +244,9 @@ operator :=(const source : comp) dest : variant;
 {$endif SUPPORT_COMP}
 
 { Misc. }
-{ Fixme!!!!
 operator :=(const source : currency) dest : variant;
 operator :=(const source : tdatetime) dest : variant;
-}
+
 {**********************************************************************
                        from Variant assignments
  **********************************************************************}
@@ -289,9 +291,10 @@ operator :=(const source : variant) dest : comp;
 
 { Misc. }
 operator :=(const source : variant) dest : currency;
-{ Fixme!!!!
+{$ifdef HASOVERLOADASSIGNBYUNIQUERESULT}
 operator :=(const source : variant) dest : tdatetime;
-}
+{$endif HASOVERLOADASSIGNBYUNIQUERESULT}
+
 {**********************************************************************
                          Operators
  **********************************************************************}
@@ -321,7 +324,10 @@ procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
 
 {
   $Log$
-  Revision 1.23  2005-04-10 20:24:31  florian
+  Revision 1.24  2005-04-28 19:34:19  florian
+    + variant<->currency/tdatetime operators
+
+  Revision 1.23  2005/04/10 20:24:31  florian
     + basic operators (int, real and string) for variants implemented
 
   Revision 1.22  2005/04/10 09:22:38  florian

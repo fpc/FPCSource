@@ -60,8 +60,8 @@ procedure variant_addref(var v : tvardata);[Public,Alias:'FPC_VARIANT_ADDREF'];
     if assigned(VarAddRefProc) then
       VarAddRefProc(v);
   end;
-  
-{ using pointers as argument here makes life for the compiler easier }  
+
+{ using pointers as argument here makes life for the compiler easier }
 procedure fpc_variant_copy(d,s : pointer);compilerproc;
   begin
     if assigned(VarCopyProc) then
@@ -91,8 +91,8 @@ procedure fpc_vararray_get(var d : variant;const s : variant;indices : psizeint;
   begin
     d:=variantmanager.vararrayget(s,len,indices);
   end;
-  
-  
+
+
 procedure fpc_vararray_put(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
   begin
     variantmanager.vararrayput(d,s,len,indices);
@@ -274,15 +274,17 @@ end;
 
 
 { Misc. }
-{ Fixme!!!
 operator :=(const source : currency) dest : variant;
   begin
+    VariantManager.VarFromCurr(Dest,Source);
   end;
+
 
 operator :=(const source : tdatetime) dest : variant;
   begin
+    VariantManager.VarFromTDateTime(Dest,Source);
   end;
-}
+
 {**********************************************************************
                        from Variant assignments
  **********************************************************************}
@@ -447,20 +449,21 @@ begin
 end;
 {$endif SUPPORT_COMP}
 
+
 { Misc. }
 operator :=(const source : variant) dest : currency;
-
 begin
   dest:=variantmanager.vartocurr(source);
 end;
 
-(* FIXME !!!
-operator :=(const source : variant) dest : tdatetime;
 
+{$ifdef HASOVERLOADASSIGNBYUNIQUERESULT}
+operator :=(const source : variant) dest : tdatetime;
 begin
-  dest:=variantmanager.currtovar(source);
+  dest:=variantmanager.vartotdatetime(source);
 end;
-*)
+{$endif HASOVERLOADASSIGNBYUNIQUERESULT}
+
 {**********************************************************************
                                Operators
  **********************************************************************}
@@ -524,7 +527,7 @@ operator /(const op1,op2 : variant) dest : variant;
      dest:=op1;
      variantmanager.varop(dest,op2,opdivide);
   end;
-  
+
 operator **(const op1,op2 : variant) dest : variant;
   begin
      dest:=op1;
@@ -578,7 +581,7 @@ procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
   begin
     variantmanager.vararrayredim(a,highbound);
   end;
-  
+
 
 {**********************************************************************
                       Variant manager functions
@@ -624,7 +627,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.29  2005-04-10 20:24:31  florian
+  Revision 1.30  2005-04-28 19:34:19  florian
+    + variant<->currency/tdatetime operators
+
+  Revision 1.29  2005/04/10 20:24:31  florian
     + basic operators (int, real and string) for variants implemented
 
   Revision 1.28  2005/04/10 09:22:38  florian
