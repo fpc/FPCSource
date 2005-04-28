@@ -7330,7 +7330,7 @@ failed. This operation takes into account the system settings for floating
 point representations.
 </descr>
 <errors>
-On error, -1 is returned.
+On error, <var>False</var> is returned.
 </errors>
 <seealso>
 <link id="StrToFloat"/>
@@ -7340,48 +7340,160 @@ On error, -1 is returned.
 <element name="WideCompareStr">
 <short>Compare two widestrings (case sensitive)</short>
 <descr>
+<p>
+<var>WideCompareStr</var> compares two widestrings and returns the following
+result:
+</p>
+<dl>
+<dt>&lt; 0</dt><dd>  if <var>S1&lt;S2</var>.</dd>
+<dt>0</dt><dd>if <var>S1=S2</var>.</dd>
+<dt>&gt; 0</dt><dd> if <var>S1&gt;S2</var>.</dd>
+</dl>
+<p>
+The comparision takes into account wide characters, i.e. it takes
+care of strange accented characters. Contrary to <link id="WideCompareText"/>,
+the comparision is case sensitive.
+</p>
 </descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="WideCompareText"/>
+<link id="WideSameStr"/>
+<link id="WideSameText"/>
+</seealso>
 </element>
 
 <element name="WideCompareText">
 <short>Compare two widestrings  (ignoring case).</short>
 <descr>
+<descr>
+<p>
+<var>WideCompareStr</var> compares two widestrings and returns the following
+result:
+</p>
+<dl>
+<dt>&lt; 0</dt><dd>  if <var>S1&lt;S2</var>.</dd>
+<dt>0</dt><dd>if <var>S1=S2</var>.</dd>
+<dt>&gt; 0</dt><dd> if <var>S1&gt;S2</var>.</dd>
+</dl>
+<p>
+The comparision takes into account wide characters, i.e. it takes
+care of strange accented characters. Contrary to <link id="WideCompareStr"/>,
+the comparision is case insensitive.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="WideCompareStr"/>
+<link id="WideSameStr"/>
+<link id="WideSameText"/>
+</seealso>
 </descr>
 </element>
 
 <element name="WideFormat">
 <short>Format a wide string.</short>
 <descr>
+<p>
+<var>WideFormat</var> does the same as <link id="Format"/> but accepts as a
+formatting string a WideString.  The resulting string is also a WideString.
+</p>
+<p>
+For more information about the used formatting characters, see the 
+<link id="Format"/> string.
+</p>
 </descr>
+<link
 </element>
 
 <element name="WideLowerCase">
 <short>Change a widestring to all-lowercase.</short>
 <descr>
+<p>
+<var>WideLowerCase</var> converts the string <var>S</var> to lowercase characters
+and returns the resulting string. It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+</p>
+<remark> 
+On linux, no language setting is taken in account yet.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="WideUpperCase"/>
+</seealso>
 </descr>
 </element>
 
 <element name="WideSameStr">
 <short>Check whether two widestrings are the same (case sensitive)</short>
 <descr>
+<var>WideSameStr</var> returns <var>True</var> if <link id="WideCompareStr"/>
+returns 0 (zero), i.e. when <var>S1</var> and <var>S2</var> are the same
+string (taking into account case).
 </descr>
+<seealso>
+<link id="WideSameText"/>
+<link id="WideCompareStr"/>
+<link id="WideCompareText"/>
+<link id="AnsiSameStr"/>
+</seealso>
 </element>
 
 <element name="WideSameText">
 <short>Check whether two widestrings are the same (ignoring case)</short>
 <descr>
+<var>WideSameText</var> returns <var>True</var> if <link id="WideCompareText"/>
+returns 0 (zero), i.e. when <var>S1</var> and <var>S2</var> are the same
+string (taking into account case).
 </descr>
+<seealso>
+<link id="WideSameStr"/>
+<link id="WideCompareStr"/>
+<link id="WideCompareText"/>
+<link id="AnsiSameText"/>
+</seealso>
 </element>
 
 <element name="WideUpperCase">
 <short>Change a widestring to all-lowercase.</short>
 <descr>
+<var>WideUpperCase</var> converts the string <var>S</var> to uppercase characters
+and returns the resulting string. It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+</p>
+<remark> 
+On linux, no language setting is taken in account yet.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="WideLowerCase"/>
+</seealso>
 </descr>
 </element>
 
 <element name="WrapText">
-<short></short>
-<descr></descr>
+<short>Word-wrap a text.</short>
+<descr>
+<var>WrapText</var> does a wordwrap at column <var>MaxCol</var> of the string 
+in <var>Line</var>. It breaks the string only at characters which are in 
+<var>BreakChars</var> (default whitespace and hyphen) and inserts then the string
+<var>BreakStr</var> (default the lineending character for the current OS).
+</descr>
+<seealso>
+<link id="StringReplace"/>
+<seealso>
 </element>
 
 
