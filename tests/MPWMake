@@ -37,7 +37,24 @@ DIRS = :webtbs: :webtbf: :tbs: :tbf: :test: :test:cg: :test:cg:cdecl: :test:unit
 :utils:testfail Ä :utils:testfail.pp
 	"{FPC}" -WT "{OPT}" -FE:utils: :utils:testfail.pp
 
-utils Ä :utils:dotest :utils:digest :utils:fail :utils:testfail
+utils Ä
+	Set Exit 0
+	Set isMade ''
+	Set isMade :utils:fpcmade.Å > Dev:Null
+	Set Exit 1
+	If "{isMade}" == ':utils:fpcmade.powerpc-macos'
+  	Echo utils macos made
+	Else If "{isMade}" == ''
+		Echo utils not made
+		Make utilsbuild -f MPWMake > Makeout2 ; Makeout2
+	Else
+		Echo utils made by other
+		Make clean_utils -f MPWMake > Makeout2 ; Makeout2		
+		Make utilsbuild -f MPWMake > Makeout2 ; Makeout2
+	End
+
+utilsbuild Ä :utils:dotest :utils:digest :utils:fail :utils:testfail
+	Echo Compiled > :utils:fpcmade.powerpc-macos
 
 ################################
 # Units
@@ -142,7 +159,9 @@ clean Ä clean_test
 
 clean_utils Ä
 	Set Exit 0 # To handle the case, when there is no match
+	Delete -y :utils:fpcmade.Å
 	Delete -y :utils:dotest :utils:digest :utils:fail :utils:testfail
+	Delete -y :utils:Å.o :utils:Å.ppu :utils:Å.xcoff
 	Set Exit 1 #Revert error handling
 
 distclean Ä clean clean_utils
