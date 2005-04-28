@@ -2228,7 +2228,12 @@ const
                (compare_paras(pd.paras,hd.paras,cp_none,[cpo_comparedefaultvalue])>=te_equal) and
                { for operators equal_paras is not enough !! }
                ((pd.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
-                equal_defs(hd.rettype.def,pd.rettype.def))
+                { be careful here, equal_defs doesn't take care of unique }
+                (hd.rettype.def=pd.rettype.def) or
+                (equal_defs(hd.rettype.def,pd.rettype.def) and
+                 not(df_unique in hd.rettype.def.defoptions) and not(df_unique in pd.rettype.def.defoptions)
+                )
+               )
               ) then
              begin
                { Check if we've found the forwarddef, if found then
@@ -2461,7 +2466,10 @@ const
 end.
 {
   $Log$
-  Revision 1.233  2005-04-06 19:39:04  florian
+  Revision 1.234  2005-04-28 19:32:11  florian
+    * overloading of assignment operator by different unique result types now possible
+
+  Revision 1.233  2005/04/06 19:39:04  florian
     * fixed previous commit
 
   Revision 1.232  2005/04/06 19:09:39  florian

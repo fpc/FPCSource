@@ -1790,6 +1790,7 @@ begin
   def_system_macro('HASGETHEAPSTATUS');
   def_system_macro('HASGETFPCHEAPSTATUS');
   def_system_macro('HASFUNCTIONCOPYDYNARR');
+  def_system_macro('HASOVERLOADASSIGNBYUNIQUERESULT');
 
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
@@ -2114,7 +2115,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.173  2005-04-24 21:01:37  peter
+  Revision 1.174  2005-04-28 19:32:11  florian
+    * overloading of assignment operator by different unique result types now possible
+
+  Revision 1.173  2005/04/24 21:01:37  peter
     * always use exceptions to stop the compiler
     - remove stop, do_stop
 
