@@ -19,8 +19,13 @@ end ['EAX'];
 end ['D0'];
 {$endif CPU68K}
 {$ifdef cpupowerpc}
+{$ifndef macos}
        lis r3, stacksize@ha
        lwz r3, stacksize@l(r3)
+{$else macos}
+       lwz r3, stacksize(r2)
+       lwz r3, 0(r3)
+{$endif macos}
 end;
 {$endif cpupowerpc}
 {$ifdef cpusparc}
