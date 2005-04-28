@@ -1,7 +1,7 @@
 { %version=1.1 }
 
 {$ifdef fpc}{$mode objfpc}{$endif}
-{$apptype console}
+
 var
   err : boolean;
 procedure Demo(x:array of longint);
