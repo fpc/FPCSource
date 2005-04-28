@@ -27,7 +27,11 @@ unit comphook;
 interface
 
 uses
+{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
   SysUtils,
+{$ELSE}
+  globals,
+{$ENDIF}
   finput;
 
 Const
@@ -413,7 +417,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  2005-04-24 21:01:37  peter
+  Revision 1.39  2005-04-28 19:27:12  olle
+    * Made compile on macos
+
+  Revision 1.38  2005/04/24 21:01:37  peter
     * always use exceptions to stop the compiler
     - remove stop, do_stop
 
