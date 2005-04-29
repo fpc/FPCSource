@@ -74,6 +74,19 @@ are minor differences on linux/unix.
 </seealso>
 <example file="printex/printex"/>
 </element>
+
+<element name="InitPrinter">
+<short>Initialize the printer</short>
+<descr>
+</descr>
+</element>
+
+<element name="IsLstAvailable">
+<short>Determine whether printer is available.</short>
+<descr>
+</descr>
+</element>
+
 </module>
 </package>
 </fpdoc-descriptions>

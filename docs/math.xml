@@ -1630,6 +1630,38 @@ compatibility.
 </descr>
 </element>
 
+<element name="GetSSECSR">
+<short>Get MXCSR control word (Intel only)</short>
+<descr>
+<var>GetSSECSR</var> can be used to get the SSE/SSE2 control DWord.
+It is equivalent to the <var>LDMXCSR</var> assembler instruction, and
+returns the control dword.
+</descr>
+</element>
+
+<element name="ifthen">
+<short>Return one of two values, depending on a boolean condition</short>
+<descr>
+<p>
+<var>ifthen</var> returns <var>iftrue</var> if <var>val</var> is
+<var>True</var>, and <var>False</var> if <var>val</var> is <var>False</var>.
+</p>
+<p>
+This function can be used in expressions.
+</p>
+</descr>
+</element>
+
+<element name="SetSSECSR">
+<short>Set MXCSR control word (Intel only)</short>
+<descr>
+<var>SetSSECSR</var> can be used to set the SSE/SSE2 control DWord.
+It is equivalent to the <var>STMXCSR</var> assembler instruction, and stores
+<var>w</var> in the control dword.
+</descr>
+</element>
+
+
 </module>
 </package>
 </fpdoc-descriptions>

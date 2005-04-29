@@ -3502,6 +3502,78 @@ This type just refers to the correct <link id="TStringSearchOption"/> and is pro
         <errors/>
         <seealso/>
       </element>
+
+<!-- procedure Visibility: default -->
+<element name="BinToHex">
+<short>Convert a binary buffer to a hexadecimal string</short>
+<descr>
+<p>
+<var>BinToHex</var> converts the byte values in <var>BinValue</var> 
+to a string consisting of 2-charachter hexadecimal strings in
+<var>HexValue</var>.
+<var>BufSize</var> specifies the length of <var>BinValue</var>, which means
+that <var>HexValue</var> must have size <var>2*BufSize</var>.
+</p>
+<p>
+For example a buffer containing the byte values 255 and 0 will be converted to
+FF00.
+</p>
+</descr>
+<errors>
+No length checking is done, so if an invalid size is specified, an exception
+may follow.
+</errors>
+<seealso>
+<link id="HexToBin"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="HexToBin">
+<short>Convert a hexadecimal string to a binary buffer</short>
+<descr>
+<var>HexToBin</var> scans the hexadecimal string representation in
+<var>HexValue</var> and transforms every 2 character hexadecimal 
+number to a byte and stores it in <var>BinValue</var>. The buffer size is
+the size of the binary buffer. Scanning will stop if the size of the binary
+buffer is reached or when an invalid character is encountered. The return
+value is the number of stored bytes.
+</descr>
+<errors>
+No length checking is done, so if an invalid size is specified, an exception
+may follow.
+</errors>
+<seealso>
+<link id="BinToHex"/>
+</seealso>
+</element>
+
+<element name="RPos">
+<short>Find last occurrence of substring or character in a string</short>
+<descr>
+<var>RPos</var> looks in <var>S</var> for the character <var>C</var> or the string
+<var>SubStr</var>. It starts looking at the end of the string, and searches
+towards the beginning of the string. If a match is found, it returns the
+position of the match. 
+</descr>
+<seealso>
+<link id="RPosEx"/>
+</seealso>
+</element>
+
+<element name="RPosex">
+<short>Find last occurrence substring or character in a string, starting at a certain position</short>
+<descr>
+<var>RPos</var> looks in <var>S</var> for the character <var>C</var> or the string
+<var>SubStr</var>. It starts looking at position <var>Offs</var>, and searches
+towards the beginning of the string. If a match is found, it returns the
+position of the match. 
+</descr>
+<seealso>
+<link id="RPos"/>
+</seealso>
+</element>
+
     </module>
     <!-- strutils -->
   </package>

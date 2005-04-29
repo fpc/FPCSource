@@ -675,6 +675,10 @@ None.
 </seealso>
 </element>
 
+<element name="GPM_MAGIC">
+<short>Constant identifying GPM in <link id="gpm_Open"/>.</short>
+</element>
+
 </module>
 </package>
 </fpdoc-descriptions>

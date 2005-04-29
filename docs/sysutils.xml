@@ -7259,9 +7259,6 @@ indicate the end-of-line sequence for a text file.
 </descr>
 </element>
 
-</descr>
-</element>
-
 <element name="TSysLocale">
 <short>Type describing the current locale</short>
 <descr>
@@ -7407,7 +7404,9 @@ For more information about the used formatting characters, see the
 <link id="Format"/> string.
 </p>
 </descr>
-<link
+<seealso>
+<link id="Format"/>
+</seealso>
 </element>
 
 <element name="WideLowerCase">
@@ -7429,7 +7428,6 @@ None.
 <seealso>
 <link id="WideUpperCase"/>
 </seealso>
-</descr>
 </element>
 
 <element name="WideSameStr">
@@ -7465,6 +7463,7 @@ string (taking into account case).
 <element name="WideUpperCase">
 <short>Change a widestring to all-lowercase.</short>
 <descr>
+<p>
 <var>WideUpperCase</var> converts the string <var>S</var> to uppercase characters
 and returns the resulting string. It takes into account the operating system language
 settings when doing this, so spcial characters are converted correctly as
@@ -7480,7 +7479,6 @@ None.
 <seealso>
 <link id="WideLowerCase"/>
 </seealso>
-</descr>
 </element>
 
 <element name="WrapText">
@@ -7493,7 +7491,7 @@ in <var>Line</var>. It breaks the string only at characters which are in
 </descr>
 <seealso>
 <link id="StringReplace"/>
-<seealso>
+</seealso>
 </element>
 
 
