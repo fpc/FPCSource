@@ -183,7 +183,7 @@ and raises an \var{EAssertionFailed} exception.
 
 \subsection{\var{\protect\$CHECKPOINTER} : Check pointer values}
 The \var{\{\$CHECKPOINTER\}} directive turns heap pointer checking on (value
-\var{ON}} or off (value \var{OFF}). When heap pointer checking is on and the
+\var{ON}) or off (value \var{OFF}). When heap pointer checking is on and the
 code is compiled with the \var{-gh} (heaptrace) option on, then a check is
 inserted when dereferencing a pointer. The check will verify that the
 pointer contains a valid value, i.e. points to a location that is reachable
@@ -503,16 +503,17 @@ be used. It accepts the following three values:
 
 The \var{\{\$I-\}} or \var{\{\$IOCHECKS OFF\}} directive tells the compiler
 not to generate input/output checking code in the program. By default, the
-compiler does not generate this code, it must be switched on using the \var{-Ci}
-command-line switch.
+compiler generates I/O checking code. This behaviour can be controlled
+globally with the \var{-Ci} switch.
 
 When compiling using the \var{-Ci} compiler switch, the \fpc compiler inserts
 input/output checking code after every input/output call in the code.
 If an error occurred during input or output, then a run-time error will
-be generated. Use this switch to avoid this behaviour.
+be generated. This switch can also be used to avoid this behaviour.
 
-To check if something went wrong, the \var{IOResult} function can be used
-to see if everything went without problems.
+If no I/O checking code is generated, to check if something went wrong, 
+the \var{IOResult} function can be used to see if everything went without 
+problems.
 
 Conversely, \var{\{\$I+\}} will turn error-checking back on, until another
 directive is encountered which turns it off again.
