@@ -1503,6 +1503,284 @@ machinen, and returns the correctly ordered result.
 </seealso>
 </element>
 
+<!-- unresolved type reference Visibility: default -->
+<element name="UnixType">
+<short>Basic Unix types</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TIn_addr">
+<short>Alias for <link id="#rtl.sockets.In_addr">in_addr</link> record type.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="pin_addr">
+<short>Pointer to <link id="#rtl.sockets.In_addr">in_addr</link> record.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TInAddr">
+<short>Alias for <link id="#rtl.sockets.In_addr">in_addr</link> record type.</short>
+</element>
+
+<!-- array type Visibility: default -->
+<element name="in_addrbytes">
+<short>Array with same length as <link id="#rtl.sockets.In_addr">in_addr</link> record</short>
+<descr>
+<var>in_addrbytes</var> is used to typecast a <link id="in_addr"/> record to
+an array of bytes.
+</descr>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="Sockaddr">
+<short>Alias for <link id="#rtl.sockets.TSockAddr">TSockAddr</link> record type.</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="NetAddrToStr">
+<short>Convert a network address to a string.</short>
+<descr>
+<var>NetAddrToStr</var> converts the network address in <var>Entry</var> to
+a string representation in human-readable form (a dotted quad).
+</descr>
+<seealso>
+<link id="HostAddrToStr"/>
+<link id="StrToNetAddr"/>
+<link id="StrToHostAddr"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="HostAddrToStr">
+<short>Convert a host address to a string.</short>
+<descr>
+<p>
+<var>HostAddrToStr</var> converts the host address in <var>Entry</var> to
+a string representation in human-readable form (a dotted quad).
+</p>
+<p>
+Basically, it is the same as <link id="NetAddrToStr"/>, but with the bytes
+in correct order.
+</p>
+</descr>
+<seealso>
+<link id="NetAddrToStr"/>
+<link id="StrToHostAddr"/>
+<link id="StrToNetAddr"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="StrToHostAddr">
+<short>Convert a string to a host address.</short>
+<descr>
+<var>StrToHostAddr</var> converts the string representation in <var>IP</var>
+to a host address and returns the host address. 
+</descr>
+<errors>
+On error, the host address is filled with zeroes.
+</errors>
+<seealso>
+<link id="NetAddrToStr"/>
+<link id="HostAddrToStr"/>
+<link id="StrToNetAddr"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="StrToNetAddr">
+<short>Convert a string to a network address.</short>
+<descr>
+<var>StrToNetAddr</var> converts the string representation in <var>IP</var>
+to a network address and returns the network address. 
+</descr>
+<errors>
+On error, the network address is filled with zeroes.
+</errors>
+<seealso>
+<link id="NetAddrToStr"/>
+<link id="HostAddrToStr"/>
+<link id="StrToHostAddr"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="HostToNet">
+<short>Convert a host address to a network address</short>
+<descr>
+<var>HostToNet</var> converts a host address to a network address.
+It takes care of endianness of the host machine. The address can be
+specified as a dotted quad or as a longint.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="NetToHost"/>
+<link id="NToHS"/>
+<link id="HToNS"/>
+<link id="ShortHostToNet"/>
+<link id="ShortNetToHost"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="NetToHost">
+<short>Convert a network address to a host address.</short>
+<descr>
+<var>NetToHost</var> converts a network address to a host address. 
+It takes care of endianness of the host machine. The address can be
+specified as a dotted quad or as a longint.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="HostToNet"/>
+<link id="NToHS"/>
+<link id="HToNS"/>
+<link id="ShortHostToNet"/>
+<link id="ShortNetToHost"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="ShortHostToNet">
+<short>Convert a host port number to a network port number</short>
+<descr>
+<var>ShortHostToNet</var> converts a host port number to a network port
+number. It takes care of endianness of the host machine. 
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="ShortNetToHost"/>
+<link id="HostToNet"/>
+<link id="NToHS"/>
+<link id="HToNS"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="ShortNetToHost">
+<short>Convert a network port number to a host port number</short>
+<descr>
+<var>ShortNetToHost</var> converts a network port number to a host port
+number. It takes care of endianness of the host machine.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="ShortNetToHost"/>
+<link id="HostToNet"/>
+<link id="NToHS"/>
+<link id="HToNS"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="HostAddrToStr6">
+<short>Convert a IPV6 host address to a string representation.</short>
+<descr>
+<p>
+<var>HostAddrToStr6</var> converts the IPV6 host address in <var>Entry</var> to
+a string representation in human-readable form.
+</p>
+<p>
+Basically, it is the same as <link id="NetAddrToStr6"/>, but with the bytes
+in correct order.
+</p>
+</descr>
+<seealso>
+<link id="NetAddrToStr"/>
+<link id="StrToHostAddr"/>
+<link id="StrToNetAddr"/>
+<link id="StrToHostAddr6"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="StrToHostAddr6">
+<short>Convert a string to a IPV6 host address.</short>
+<descr>
+<var>StrToHostAddr6</var> converts the string representation in <var>IP</var>
+to a IPV6 host address and returns the host address.
+</descr>
+<errors>
+On error, the address is filled with zeroes.
+</errors>
+<seealso>
+<link id="NetAddrToStr6"/>
+<link id="HostAddrToStr6"/>
+<link id="StrToHostAddr"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="NetAddrToStr6">
+<short>Convert a IPV6 network address to a string.</short>
+<descr>
+<p>
+<var>NetAddrToStr6</var> converts the IPV6 network address in <var>Entry</var> to
+a string representation in human-readable form.
+</p>
+<p>
+Basically, it is the same as <link id="NetAddrToStr6"/>, but with the bytes
+in correct order.
+</p>
+</descr>
+<seealso>
+<link id="NetAddrToStr"/>
+<link id="StrToHostAddr"/>
+<link id="StrToNetAddr"/>
+<link id="StrToHostAddr6"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="StrToNetAddr6">
+<short>Convert a string to a IPV6 network address</short>
+<descr>
+<var>StrToNetAddr6</var> converts the string representation in <var>IP</var>
+to a IPV6 network address and returns the network address.
+</descr>
+<errors>
+On error, the address is filled with zeroes.
+</errors>
+<seealso>
+<link id="NetAddrToStr6"/>
+<link id="HostAddrToStr6"/>
+<link id="StrToHostAddr6"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="NoAddress">
+<short>Constant indicating invalid (no) network address.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="NoNet">
+<short>Constant indicating invalid (no) network address.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="NoAddress6">
+<short>Constant indicating invalid (no) IPV6 network address.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="NoNet6">
+<short>Constant indicating invalid (no) IPV6 network address.</short>
+</element>
+
 </module>
 </package>
 </fpdoc-descriptions>

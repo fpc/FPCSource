@@ -3275,6 +3275,203 @@ A stream error may occur when writing the strings to the stream.
 <short>Value for invalid handle. Initial value for file stream handles or when the stream is closed.</short>
 </element>
 
+<!-- function Visibility: default -->
+<element name="CallVoidConstructor">
+<short>Call a constructor with no arguments</short>
+<descr>
+<p>
+<var>CallVoidConstructor</var> calls the constructor of an object. 
+<var>Ctor</var> is the address of the constructor, <var>Obj</var> is a
+pointer to the instance. If it is <var>Nil</var>, then a new instance is
+allocated. <var>VMT</var> is a pointer to the object's VMT. The return value
+is a pointer to the instance.
+</p>
+<p>
+Note that this can only be used on  constructors that require no arguments.
+</p>
+</descr>
+<errors>
+If the constructor expects arguments, the stack may be corrupted.
+</errors>
+<seealso>
+<link id="CallPointerConstructor"/>
+<link id="CallPointerMethod"/>
+<link id="CallVoidLocal"/>
+<link id="CallPointerLocal"/>
+<link id="CallVoidMethodLocal"/>
+<link id="CallPointerMethodLocal"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="CallPointerConstructor">
+<short>Call a constructor with a pointer argument.</short>
+<descr>
+<p>
+<var>CallVoidConstructor</var> calls the constructor of an object.
+<var>Ctor</var> is the address of the constructor, <var>Obj</var> is a
+pointer to the instance. If it is <var>Nil</var>, then a new instance is
+allocated. <var>VMT</var> is a pointer to the object's VMT.
+<var>Param1</var> is passed to the constructor. The return value
+is a pointer to the instance.
+</p>
+<p>
+Note that this can only be used on  constructors that require a pointer as
+the sole argument. It can also be used to call a constructor with a single
+argument by reference.
+</p>
+</descr>
+<errors>
+If the constructor expects other arguments than a pointer, the stack may be corrupted.
+</errors>
+<seealso>
+<link id="CallVoidConstructor"/>
+<link id="CallPointerMethod"/>
+<link id="CallVoidLocal"/>
+<link id="CallPointerLocal"/>
+<link id="CallVoidMethodLocal"/>
+<link id="CallPointerMethodLocal"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="CallVoidMethod">
+<short>Call an object method</short>
+<descr>
+<var>CallVoidMethod</var> calls the method with address <var>Method</var>
+for instance <var>Obj</var>. It returns a pointer to the instance.
+</descr>
+<errors>
+If the method expects parameters, the stack may become corrupted.
+</errors>
+<seealso>
+<link id="CallPointerMethod"/>
+<link id="CallVoidLocal"/>
+<link id="CallPointerLocal"/>
+<link id="CallVoidMethodLocal"/>
+<link id="CallPointerMethodLocal"/>
+<link id="CallVoidConstructor"/>
+<link id="CallPointerConstructor"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="CallPointerMethod">
+<short>Call a method with a single pointer argument</short>
+<descr>
+<var>CallPointerMethod</var> calls the method with address <var>Method</var>
+for instance <var>Obj</var>. It passes <var>Param1</var> to the method as
+the single argument. It returns a pointer to the instance.
+</descr>
+<errors>
+If the method expects other parameters than a single pointer, the stack may become corrupted.
+</errors>
+<seealso>
+<link id="CallVoidMethod"/>
+<link id="CallVoidLocal"/>
+<link id="CallPointerLocal"/>
+<link id="CallVoidMethodLocal"/>
+<link id="CallPointerMethodLocal"/>
+<link id="CallVoidConstructor"/>
+<link id="CallPointerConstructor"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="CallVoidLocal">
+<short>Call a local nested procedure.</short>
+<descr>
+<var>CallVoidLocal</var> calls the local procedure with address
+<var>Func</var>, where <var>Frame</var> is the frame of the wrapping
+function.
+</descr>
+<errors>
+If the local function expects parameters, the stack may become corrupted.
+</errors>
+<seealso>
+<link id="CallPointerMethod"/>
+<link id="CallVoidMethod"/>
+<link id="CallPointerLocal"/>
+<link id="CallVoidMethodLocal"/>
+<link id="CallPointerMethodLocal"/>
+<link id="CallVoidConstructor"/>
+<link id="CallPointerConstructor"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="CallPointerLocal">
+<short>Call a local nested function with a pointer argument</short>
+<descr>
+<var>CallPointerLocal</var> calls the local procedure with address
+<var>Func</var>, where <var>Frame</var> is the frame of the wrapping
+function. It passes <var>Param1</var> to the local function.
+</descr>
+<errors>
+If the local function expects other parameters than a pointer, the stack may become corrupted.
+</errors>
+<seealso>
+<link id="CallPointerMethod"/>
+<link id="CallVoidMethod"/>
+<link id="CallVoidLocal"/>
+<link id="CallVoidMethodLocal"/>
+<link id="CallPointerMethodLocal"/>
+<link id="CallVoidConstructor"/>
+<link id="CallPointerConstructor"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="CallVoidMethodLocal">
+<short>Call a local procedure of a method</short>
+<descr>
+<var>CallVoidMethodLocal</var> calls the local procedure with address
+<var>Func</var>, where <var>Frame</var> is the frame of the wrapping
+method.
+</descr>
+<errors>
+If the local function expects parameters, the stack may become corrupted.
+</errors>
+<seealso>
+<link id="CallPointerMethod"/>
+<link id="CallVoidMethod"/>
+<link id="CallPointerLocal"/>
+<link id="CallVoidLocal"/>
+<link id="CallPointerMethodLocal"/>
+<link id="CallVoidConstructor"/>
+<link id="CallPointerConstructor"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="CallPointerMethodLocal">
+<short>Call a local procedure of a method with a pointer argument</short>
+<var>CallPointerMethodLocal</var> calls the local procedure with address
+<var>Func</var>, where <var>Frame</var> is the frame of the wrapping
+method. It passes <var>Param1</var> to the local function.
+</descr>
+<errors>
+If the local function expects other parameters than a pointer, the stack may become corrupted.
+</errors>
+<seealso>
+<link id="CallPointerMethod"/>
+<link id="CallVoidMethod"/>
+<link id="CallPointerLocal"/>
+<link id="CallVoidLocal"/>
+<link id="CallVoidMethodLocal"/>
+<link id="CallVoidConstructor"/>
+<link id="CallPointerConstructor"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="DefaultTPCompatible">
+<short>Default value for <link id="#rtl.objects.tstream.tpcompatible">tstream.tpcompatible</link></short>
+<descr>
+<var>DefaultTPCompatible</var> is used to initialize <link
+id="tstream.tpcompatible">tstream.tpcompatible</link>.
+</descr>
+</element>
 
 </module>
 </package>

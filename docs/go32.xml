@@ -2134,6 +2134,213 @@ Check the <link id="int31error"/> variable.
 </seealso>
 </element>
 
+<!-- variable Visibility: default -->
+<element name="tmeminfo.reserved0">
+<short>Unused</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="tmeminfo.reserved1">
+<short>Unused</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="tmeminfo.reserved2">
+<short>Unused</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="set_descriptor_access_right">
+<short>Set access rights to memory descriptor</short>
+<descr>
+<var>set_descriptor_access_right</var> sets the access rights for descriptor
+<var>d</var> to <var>w</var>
+</descr>
+</element>
+
+<!-- function Visibility: default -->
+<element name="map_device_in_memory_block">
+<short>Map a device into program's memory space</short>
+<descr>
+<var>map_device_in_memory_block</var> allows to map a device in memory. This
+function is a direct call of the extender. For more information about it's
+arguments, see the extender documentation.
+</descr>
+</element>
+
+<!-- function Visibility: default -->
+<element name="get_exception_handler">
+<short>Return current exception handler</short>
+<descr>
+<var>get_exception_handler</var> returns the exception handler for exception
+<var>E</var> in <var>intaddr</var>. It returns <var>True</var> if the call
+was successful, <var>False</var> if not.
+</descr>
+<seealso>
+<link id="set_exception_handler"/>
+<link id="get_pm_exception_handler"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="set_exception_handler">
+<short>Set exception handler</short>
+<descr>
+<var>set_exception_handler</var> sets the exception handler for exception
+<var>E</var> to <var>intaddr</var>. It returns <var>True</var> if the call
+was successful, <var>False</var> if not.
+</descr>
+<seealso>
+<link id="get_exception_handler"/>
+<link id="set_pm_exception_handler"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="get_pm_exception_handler">
+<short>Get protected mode exception handler</short>
+<descr>
+<var>get_pm_exception_handler</var> returns the protected mode exception handler for exception
+<var>E</var> in <var>intaddr</var>. It returns <var>True</var> if the call
+was successful, <var>False</var> if not.
+</descr>
+<seealso>
+<link id="get_exception_handler"/>
+<link id="set_pm_exception_handler"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="set_pm_exception_handler">
+<short>Set protected mode exception handler</short>
+<descr>
+<var>set_pm_exception_handler</var> sets the protected mode exception handler for exception
+<var>E</var> to <var>intaddr</var>. It returns <var>True</var> if the call
+was successful, <var>False</var> if not.
+</descr>
+<seealso>
+<link id="set_exception_handler"/>
+<link id="get_pm_exception_handler"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="request_linear_region">
+<short>Request linear address region.</short>
+<descr>
+<var>request_linear_region</var> requests a linear range of addresses of
+size <var>Size</var>, starting at <var>linearaddr</var>. If successful,
+<var>True</var> is returned, and a handle to the address region is returned in
+<var>blockhandle</var>.
+</descr>
+<errors>
+On error, <var>False</var> is returned.
+</errors>
+</element>
+
+<!-- function Visibility: default -->
+<element name="tb_segment">
+<short>Return DOS transfer buffer segment</short>
+<descr>
+<var>tb_segment</var> returns the DOS transfer buffer segment.
+</descr>
+<seealso>
+<link id="transfer_buffer"/>
+<link id="tb_offset"/>
+<link id="tb_size"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="tb_offset">
+<short>Return DOS transfer buffer offset</short>
+<descr>
+<var>tb_offset</var> returns the DOS transfer buffer segment.
+</descr>
+<seealso>
+<link id="transfer_buffer"/>
+<link id="tb_segment"/>
+<link id="tb_size"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="dpmi_dosmemput">
+<short>Move data from DPMI memory to DOS memory.</short>
+<descr>
+<var>dpmi_dosmemput</var> moves <var>count</var> bytes of data from
+<var>data</var> to the DOS memory location indicated by <var>seg</var> and
+<var>ofs</var>.
+</descr>
+<seealso>
+<link id="dpmi_dosmemget"/>
+<link id="dpmi_dosmemmove"/>
+<link id="dpmi_dosmemfillchar"/>
+<link id="dpmi_dosmemfillword"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="dpmi_dosmemget">
+<short>Move data from DOS memory to DPMI memory</short>
+<descr>
+<var>dpmi_dosmemput</var> moves <var>count</var> bytes of data from
+the DOS memory location indicated by <var>seg</var> and
+<var>ofs</var> to DPMI memory indicated by <var>data</var>.
+</descr>
+<seealso>
+<link id="dpmi_dosmemput"/>
+<link id="dpmi_dosmemmove"/>
+<link id="dpmi_dosmemfillchar"/>
+<link id="dpmi_dosmemfillword"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="dpmi_dosmemmove">
+<short>Move DOS memory</short>
+<descr>
+<var>dpmi_dosmemmove</var> moves <var>count</var> bytes from DOS memory
+<var>sseg</var>,<var>sofs</var> to <var>dseg</var>,<var>dofs</var>.
+</descr>
+<seealso>
+<link id="dpmi_dosmemput"/>
+<link id="dpmi_dosmemget"/>
+<link id="dpmi_dosmemfillchar"/>
+<link id="dpmi_dosmemfillword"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="dpmi_dosmemfillchar">
+<short>Fill DOS memory with a character</short>
+<descr>
+<var>dpmi_dosmemfillchar</var> fills the DOS memory reagion indicated by
+<var>seg</var>,<var>ofs</var> with <var>count</var> characters <var>c</var>.
+</descr>
+<seealso>
+<link id="dpmi_dosmemput"/>
+<link id="dpmi_dosmemget"/>
+<link id="dpmi_dosmemmove"/>
+<link id="dpmi_dosmemfillword"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="dpmi_dosmemfillword">
+<short>Fill DOS memory with a word value</short>
+<descr>
+<var>dpmi_dosmemfillword</var> fills the DOS memory reagion indicated by
+<var>seg</var>,<var>ofs</var> with <var>count</var> words <var>W</var>.
+</descr>
+<seealso>
+<link id="dpmi_dosmemput"/>
+<link id="dpmi_dosmemget"/>
+<link id="dpmi_dosmemfillchar"/>
+<link id="dpmi_dosmemmove"/>
+</seealso>
+</element>
+
 </module>
 </package>
 </fpdoc-descriptions>
