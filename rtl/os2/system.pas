@@ -482,19 +482,21 @@ var
   argvlen : longint;
 
   procedure allocarg(idx,len:longint);
-  begin
-    if idx>=argvlen then
-     begin
-       argvlen:=(idx+8) and (not 7);
-       sysreallocmem(argv,argvlen*sizeof(pointer));
-     end;
-    { use realloc to reuse already existing memory }
-    (* TH: the previous sentence applies to argv, not *)
-    (* to argv[idx], which is never allocated before. *)
-    { always allocate, even if length is zero, since }
-    { the arg. is still present!                     }
-    argv[idx] := sysallocmem(len+1);
-  end;
+    var
+      oldargvlen : longint;
+    begin
+      if idx>=argvlen then
+       begin
+         oldargvlen:=argvlen;
+         argvlen:=(idx+8) and (not 7);
+         sysreallocmem(argv,argvlen*sizeof(pointer));
+         fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
+       end;
+      { use realloc to reuse already existing memory }
+      { always allocate, even if length is zero, since }
+      { the arg. is still present!                     }
+      sysreallocmem(argv[idx],len+1);
+    end;
 
 begin
   count:=0;
@@ -770,7 +772,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2005-04-03 21:10:59  hajny
+  Revision 1.84  2005-05-01 13:01:03  peter
+  use fillchar after reallocmem, fix taken from win32
+
+  Revision 1.83  2005/04/03 21:10:59  hajny
     * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
 
   Revision 1.82  2005/03/27 20:50:35  hajny
