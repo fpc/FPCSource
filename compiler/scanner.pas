@@ -470,7 +470,7 @@ implementation
                       begin
                         hs := current_scanner.preproc_pattern;
                         mac := tmacro(search_macro(hs));
-                        if assigned(mac) then
+                        if assigned(mac) and mac.defined then
                           begin
                             hs := '1';
                             mac.is_used:=true;
@@ -3351,7 +3351,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.104  2005-03-28 21:34:36  olle
+  Revision 1.105  2005-05-02 18:44:00  michael
+  + Patch from Christian Iversen to fix defined() macro command
+
+  Revision 1.104  2005/03/28 21:34:36  olle
     * Disabled warning for undefined compile time var in mode macpas, since it did not work.
 
   Revision 1.103  2005/03/20 22:36:45  olle
