@@ -43,12 +43,12 @@ utils Ä
 	Set isMade :utils:fpcmade.Å > Dev:Null
 	Set Exit 1
 	If "{isMade}" == ':utils:fpcmade.powerpc-macos'
-  	Echo utils macos made
+  	#Echo utils macos made
 	Else If "{isMade}" == ''
-		Echo utils not made
+		#Echo utils not made
 		Make utilsbuild -f MPWMake > Makeout2 ; Makeout2
 	Else
-		Echo utils made by other
+		#Echo utils made by other
 		Make clean_utils -f MPWMake > Makeout2 ; Makeout2		
 		Make utilsbuild -f MPWMake > Makeout2 ; Makeout2
 	End
@@ -90,6 +90,7 @@ testprep-stamp.{TEST_FULL_TARGET} Ä {TEST_OUTPUTDIR} utils units copyfiles
 
 {TEST_OUTPUTDIR} Ä
 	Set Exit 0
+	NewFolder :output
 	NewFolder {TEST_OUTPUTDIR}
 	Set Exit 1
 
