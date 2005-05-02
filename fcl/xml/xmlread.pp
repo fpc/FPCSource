@@ -1297,8 +1297,10 @@ end;
   predefined in XML: }
 
 procedure TXMLReader.ResolveEntities(RootNode: TDOMNode);
+var
+  Node, NextNode: TDOMNode;
 
-  procedure ReplaceEntityRef(EntityNode: TDOMNode; const Replacement: String);
+  procedure ReplaceEntityRef(EntityNode: TDOMNode; const Replacement: string);
   var
     PrevSibling, NextSibling: TDOMNode;
   begin
@@ -1310,6 +1312,8 @@ procedure TXMLReader.ResolveEntities(RootNode: TDOMNode);
       RootNode.RemoveChild(EntityNode);
       if Assigned(NextSibling) and (NextSibling.NodeType = TEXT_NODE) then
       begin
+        // next sibling is to be removed, so we can't use it anymore
+        NextNode := NextSibling.NextSibling;
         TDOMCharacterData(PrevSibling).AppendData(
         TDOMCharacterData(NextSibling).Data);
         RootNode.RemoveChild(NextSibling);
@@ -1323,13 +1327,11 @@ procedure TXMLReader.ResolveEntities(RootNode: TDOMNode);
         RootNode.ReplaceChild(Doc.CreateTextNode(Replacement), EntityNode);
   end;
 
-var
-  Node, NextSibling: TDOMNode;
 begin
   Node := RootNode.FirstChild;
   while Assigned(Node) do
   begin
-    NextSibling := Node.NextSibling;
+    NextNode := Node.NextSibling;
     if Node.NodeType = ENTITY_REFERENCE_NODE then
       if Node.NodeName = 'amp' then
         ReplaceEntityRef(Node, '&')
@@ -1341,7 +1343,7 @@ begin
         ReplaceEntityRef(Node, '<')
       else if Node.NodeName = 'quot' then
         ReplaceEntityRef(Node, '"');
-    Node := NextSibling;
+    Node := NextNode;
   end;
 end;
 
@@ -1389,8 +1391,8 @@ begin
     Reader := TXMLReader.Create;
     try
       Reader.ProcessXML(buf, AFilename);
-      ADoc := TXMLDocument(Reader.doc);
     finally
+      ADoc := TXMLDocument(Reader.doc);
       Reader.Free;
     end;
   finally
@@ -1563,7 +1565,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2005-03-14 21:10:12  florian
+  Revision 1.17  2005-05-02 13:06:51  michael
+  + Patch from Vincent Snijders to fix reading of entities
+
+  Revision 1.16  2005/03/14 21:10:12  florian
     * adapated for the new widestring manager
 
   Revision 1.15  2005/02/14 17:13:18  peter
