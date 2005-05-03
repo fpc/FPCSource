@@ -475,15 +475,15 @@ end;
 procedure InitArguments;
 var
   arglen,
-  count   : longint;
+  count   : PtrInt;
   argstart,
   pc,arg  : pchar;
   quote   : char;
-  argvlen : longint;
+  argvlen : PtrInt;
 
-  procedure allocarg(idx,len:longint);
+  procedure allocarg(idx,len: PtrInt);
     var
-      oldargvlen : longint;
+      oldargvlen : PtrInt;
     begin
       if idx>=argvlen then
        begin
@@ -495,7 +495,8 @@ var
       { use realloc to reuse already existing memory }
       { always allocate, even if length is zero, since }
       { the arg. is still present!                     }
-      sysreallocmem(argv[idx],len+1);
+{      sysreallocmem(argv[idx],len+1);}
+      ArgV [Idx] := SysAllocMem (Succ (Len));
     end;
 
 begin
@@ -772,7 +773,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2005-05-01 13:01:03  peter
+  Revision 1.85  2005-05-03 22:17:26  hajny
+    * SysAllocMem used for ArgV [Idx] allocation again
+
+  Revision 1.84  2005/05/01 13:01:03  peter
   use fillchar after reallocmem, fix taken from win32
 
   Revision 1.83  2005/04/03 21:10:59  hajny
