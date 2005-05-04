@@ -93,8 +93,7 @@
       end;
 
     function fpc_intf_as(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_INTF_AS']; {$ifdef hascompilerproc} compilerproc; {$endif}
-      const
-        S_OK = 0;
+
       var
         tmpi: pointer; // _AddRef before _Release
       begin
@@ -110,8 +109,7 @@
 
 
     function fpc_class_as_intf(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_CLASS_AS_INTF']; {$ifdef hascompilerproc} compilerproc; {$endif}
-      const
-        S_OK = 0;
+
       var
         tmpi: pointer; // _AddRef before _Release
       begin
@@ -766,7 +764,10 @@
 
 {
   $Log$
-  Revision 1.49  2005-04-28 17:58:18  florian
+  Revision 1.50  2005-05-04 08:56:03  michael
+  + Removed S_OK declarations, they are in objpash.inc
+
+  Revision 1.49  2005/04/28 17:58:18  florian
     * getinterface fixed
 
   Revision 1.48  2005/04/05 21:05:31  peter
