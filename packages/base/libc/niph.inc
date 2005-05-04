@@ -10,7 +10,7 @@ Type
 
    Piphdr = ^iphdr;
    iphdr = record
-        flag0 : word;
+        flag0 : byte;
         tos : u_int8_t;
         tot_len : u_int16_t;
         id : u_int16_t;
@@ -24,7 +24,7 @@ Type
 
    Pip = ^ip;
    ip = record
-        flag0 : dword;
+        flag0 : byte;
         ip_tos : u_int8_t;
         ip_len : u_short;
         ip_id : u_short;
