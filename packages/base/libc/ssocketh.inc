@@ -45,3 +45,7 @@ function sendmsg(__fd:longint; const __message: msghdr; __flags:longint):ssize_t
 function recvmsg(__fd:longint; var __message: msghdr; __flags:longint):ssize_t;cdecl;external clib name 'recvmsg';
 function getsockopt(__fd:longint; __level:longint; __optname:longint; __optval:pointer; var __optlen: socklen_t):longint;cdecl;external clib name 'getsockopt';
 function accept(__fd:longint; var __addr: sockaddr; var __addr_len:socklen_t):longint;cdecl;external clib name 'accept';
+function send(__fd:longint; const __buf; __n:size_t; __flags:longint):ssize_t;cdecl;external clib name 'send';
+function recv(__fd:longint; var __buf; __n:size_t; __flags:longint):ssize_t;cdecl;external clib name 'recv';
+function sendto(__fd:longint; const __buf; __n:size_t; __flags:longint; __addr:Psockaddr;  __addr_len:socklen_t):ssize_t;cdecl;external clib name 'sendto';
+function recvfrom(__fd:longint; var __buf; __n:size_t; __flags:longint; __addr:Psockaddr;   __addr_len:Psocklen_t):ssize_t;cdecl;external clib name 'recvfrom';
