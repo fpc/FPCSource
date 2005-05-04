@@ -21,3 +21,4 @@ function inet_nsap_ntoa(__len:longint; __cp:Pbyte; __buf:Pchar):Pchar;cdecl;exte
   ---------------------------------------------------------------------}
 
 // Type
+function inet_aton(__cp:Pchar; var __inp:in_addr):in_addr_t;cdecl;external clib name 'inet_aton';
