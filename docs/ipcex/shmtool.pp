@@ -1,6 +1,6 @@
 Program shmtool;
 
-uses ipc,strings;
+uses ipc,strings,Baseunix;
 
 Const SegSize = 100;
 
@@ -47,24 +47,26 @@ begin
   val (mode,m,code);
   if code<>0 then
     usage;
-  If Not shmctl (shmid,IPC_STAT,@data) then
+  If shmctl (shmid,IPC_STAT,@data)=-1 then
     begin
-    writeln ('Error : shmctl :',ipcerror);
-    halt(1);
+     writeln ('Error : shmctl :',fpgeterrno);
+     halt(1);
     end;
   writeln ('Old permissions : ',data.shm_perm.mode);
   data.shm_perm.mode:=m;
-  If Not shmctl (shmid,IPC_SET,@data) then
+  If shmctl (shmid,IPC_SET,@data)=-1 then
     begin
-    writeln ('Error : shmctl :',ipcerror);
+    writeln ('Error : shmctl :',fpgeterrno);
     halt(1);
     end;
   writeln ('New permissions : ',data.shm_perm.mode);
 end;
 
+const ftokpath = '.'#0;
+
 begin
   if paramcount<1 then usage;
-  key := ftok ('.','S');
+   key := ftok (pchar(@ftokpath[1]),ord('S'));
   shmid := shmget(key,segsize,IPC_CREAT or IPC_EXCL or 438);
   If shmid=-1 then
     begin
@@ -72,7 +74,7 @@ begin
     shmid := shmget(key,segsize,0);
     If shmid = -1 then
       begin
-      Writeln ('shmget : Error !',ipcerror);
+      Writeln ('shmget : Error !',fpgeterrno);
       halt(1);
       end
     end
@@ -81,7 +83,7 @@ begin
   segptr:=shmat(shmid,nil,0);
   if longint(segptr)=-1 then
     begin
-    Writeln ('Shmat : error !',ipcerror);
+    Writeln ('Shmat : error !',fpgeterrno);
     halt(1);
     end;
   case upcase(paramstr(1)[1]) of
