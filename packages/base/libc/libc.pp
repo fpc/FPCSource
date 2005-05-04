@@ -208,7 +208,7 @@ Const
 {$i nip6h.inc}          // netinet/ip6.h
 {$i nip_icmph.inc}      // netinet/ip_icmp.h
 {$i ntcph.inc}          // netinet/tcp.h
-{$i nupdh.inc}          // netinet/udp.h
+{$i nudph.inc}          // netinet/udp.h
 {$i proutedh.inc}       // protocols/routed.h
 {$i prwhodh.inc}        // protocols/rwhod.h
 {$i ptalkdh.inc}        // protocols/talkd.h
