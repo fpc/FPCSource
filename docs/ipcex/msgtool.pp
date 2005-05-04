@@ -1,6 +1,6 @@
 program msgtool;
 
-Uses ipc;
+Uses ipc,baseunix;
 
 Type
   PMyMsgBuf = ^TMyMsgBuf;
@@ -12,7 +12,7 @@ Type
 Procedure DoError (Const Msg : string);
 
 begin
-  Writeln (msg,'returned an error : ',ipcerror);
+  Writeln (msg,' returned an error : ',fpgeterrno);
   halt(1);
 end;
 
@@ -25,7 +25,7 @@ begin
   Writeln ('Sending message.');
   Buf.mtype:=mtype;
   Buf.Mtext:=mtext;
-  If not msgsnd(Id,PMsgBuf(@Buf),256,0) then
+  If  msgsnd(Id,PMsgBuf(@Buf),256,0)=-1 then
     DoError('msgsnd');
 end;
 
@@ -36,7 +36,7 @@ Procedure ReadMessage (ID : Longint;
 begin
   Writeln ('Reading message.');
   Buf.MType:=MType;
-  If msgrcv(ID,PMSGBuf(@Buf),256,mtype,0) then
+  If msgrcv(ID,PMSGBuf(@Buf),256,mtype,0)<>-1 then
     Writeln ('Type : ',buf.mtype,' Text : ',buf.mtext)
   else
     DoError ('msgrcv');
@@ -45,8 +45,8 @@ end;
 Procedure RemoveQueue ( ID : Longint);
 
 begin
-  If msgctl (id,IPC_RMID,Nil) then
-    Writeln ('Removed Queue with id',Id);
+  If msgctl (id,IPC_RMID,Nil)<>-1 then
+    Writeln ('Removed Queue with id ',Id);
 end;
 
 Procedure ChangeQueueMode (ID,mode : longint);
@@ -54,11 +54,11 @@ Procedure ChangeQueueMode (ID,mode : longint);
 Var QueueDS : TMSQid_ds;
 
 begin
-  If Not msgctl (Id,IPC_STAT,@QueueDS) then
+  If  msgctl (Id,IPC_STAT,@QueueDS)=-1 then
     DoError ('msgctl : stat');
   Writeln ('Old permissions : ',QueueDS.msg_perm.mode);
   QueueDS.msg_perm.mode:=Mode;
-  if msgctl (ID,IPC_SET,@QueueDS) then
+  if msgctl (ID,IPC_SET,@QueueDS)=0 then
     Writeln ('New permissions : ',QueueDS.msg_perm.mode)
   else
    DoError ('msgctl : IPC_SET');
@@ -90,9 +90,11 @@ Var
   ID  : longint;
   Buf : TMyMsgBuf;
 
+const ipckey = '.'#0;
+
 begin
   If Paramcount<1 then Usage;
-  key :=Ftok('.','M');
+  key :=Ftok(@ipckey[1],ord('M'));
   ID:=msgget(key,IPC_CREAT or 438);
   If ID<0 then DoError ('MsgGet');
   Case upCase(Paramstr(1)[1]) of

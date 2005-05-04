@@ -2,14 +2,14 @@ Program semtool;
 
 { Program to demonstrat the use of semaphores }
 
-Uses ipc;
+Uses ipc,baseunix;
 
 Const MaxSemValue = 5;
 
 Procedure DoError (Const Msg : String);
 
 begin
-  Writeln ('Error : ',msg,' Code : ',IPCerror);
+  Writeln ('Error : ',msg,' Code : ',fpgeterrno);
   Halt(1);
 end;
 
@@ -18,7 +18,7 @@ Function getsemval (ID,Member : longint) : longint;
 Var S : TSEMun;
 
 begin
-  GetSemVal:=SemCtl(id,member,GETVAL,S);
+  GetSemVal:=SemCtl(id,member,SEM_GETVAL,S);
 end;
 
 Procedure DispVal (ID,member : longint);
@@ -54,15 +54,17 @@ Var Count : Longint;
     Semopts : TSemun;
 
 begin
-  If members>semmsl then
+// the semmsl constant seems kernel specific
+{  If members>semmsl then
     DoError ('Sorry, maximum number of semaphores in set exceeded');
+}
   Writeln ('Trying to create a new semaphore set with ',members,' members.');
   CreateSem:=semget(key,members,IPC_CREAT or IPC_Excl or 438);
   If CreateSem=-1 then
     DoError ('Semaphore set already exists.');
   Semopts.val:=MaxSemValue; { Initial value of semaphores }
   For Count:=0 to Members-1 do
-    semctl(CreateSem,count,setval,semopts);
+    semctl(CreateSem,count,SEM_SETVAL,semopts);
 end;
 
 Procedure lockSem (ID,Member: Longint);
@@ -82,7 +84,7 @@ begin
      DoError ('Semaphore resources exhausted (no lock)');
    lock.sem_num:=member;
    Writeln ('Attempting to lock member ',member, ' of semaphore ',ID);
-   if not semop(Id,@lock,1) then
+   if semop(Id,@lock,1)=-1 then
      DoError ('Lock failed')
    else
      Writeln ('Semaphore resources decremented by one');
@@ -106,7 +108,7 @@ begin
      DoError ('Semaphore not locked');
    Unlock.sem_num:=member;
    Writeln ('Attempting to unlock member ',member, ' of semaphore ',ID);
-   if not semop(Id,@unlock,1) then
+   if semop(Id,@unlock,1)=-1 then
      DoError ('Unlock failed')
    else
      Writeln ('Semaphore resources incremented by one');
@@ -179,9 +181,12 @@ end;
 Var Key : TKey;
     ID : Longint;
 
+
+const ipckey='.'#0;  
+
 begin
   If ParamCount<1 then USage;
-  key:=ftok('.','s');
+  key:=ftok(@ipckey[1],ORD('s'));
   Case UpCase(Paramstr(1)[1]) of
    'C' : begin
          if paramcount<>2 then usage;
