@@ -38,10 +38,13 @@ Function GetProcedureAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
 
 // Kylix/Delphi compability
+
 Function FreeLibrary(Lib : TLibHandle) : Boolean;
 Function GetProcAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
 
-
+Type
+  HModule = TLibHandle; 
+  
 Implementation
 
 { ---------------------------------------------------------------------
@@ -66,7 +69,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2005-02-14 17:13:22  peter
+  Revision 1.7  2005-05-04 09:04:58  michael
+  + Added HModule compatibility
+
+  Revision 1.6  2005/02/14 17:13:22  peter
     * truncate log
 
 }
