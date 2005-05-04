@@ -1306,83 +1306,88 @@ function Utf8ToUnicode(Dest: PWideChar; Source: PChar; MaxChars: SizeInt): SizeI
   end;
 
 
-function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source:
-PChar;
-  SourceBytes: SizeUInt): SizeUInt;
+function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
 
-  var
-    i,j : SizeUInt;
-    w : word;
-    b : byte;
+var
+  i,j : SizeUInt;
+  w: SizeUInt;
+  b : byte;
+begin
+  if not assigned(Source) then
   begin
     result:=0;
-    i:=0;
-    j:=0;
-    if assigned(Dest) then
-      begin
-        while (j<MaxDestChars) and (i<SourceBytes) do
-          begin
-            b:=byte(Source[i]);
-            inc(i);
-            // 2 or 3 bytes?
-            if b>=$80 then
-              begin
-                w:=b and $3f;
-                if i>=SourceBytes then
-                  exit;
-                // 3 bytes?
-                if (b and $20)<>0 then
-                  begin
-                    b:=byte(Source[i]);
-                    inc(i);
-                    if i>=SourceBytes then
-                      exit;
-                    if (b and $c0)<>$80 then
-                      exit;
-                    w:=(w shl 6) or (b and $3f);
-                  end;
-                b:=byte(Source[i]);
-                w:=(w shl 6) or (b and $3f);
-                if (b and $c0)<>$80 then
-                  exit;
-                inc(i);
-              end
-            else
-              w:=b;
-            Dest[j]:=WideChar(w);
-            inc(j);
-          end;
-      end
-    else
-      begin
-        while i<SourceBytes do
-          begin
-            b:=byte(Source[i]);
-            inc(i);
-            // 2 or 3 bytes?
-            if b>=$80 then
-              begin
-                if i>=SourceBytes then
-                  exit;
-                // 3 bytes?
-                if (b and $20)<>0 then
-                  begin
-                    b:=byte(Source[i]);
-                    inc(i);
-                    if i>=SourceBytes then
-                      exit;
-                    if (b and $c0)<>$80 then
-                      exit;
-                  end;
-                if (byte(Source[i]) and $c0)<>$80 then
-                  exit;
-                inc(i);
-              end;
-            inc(j);
-          end;
-      end;
-    result:=j+1;
+    exit;
   end;
+  result:=SizeUInt(-1);
+  i:=0;
+  j:=0;
+  if assigned(Dest) then
+    begin
+      while (j<MaxDestChars) and (i<SourceBytes) do
+        begin
+          b:=byte(Source[i]);
+          w:=b;
+          inc(i);
+          // 2 or 3 bytes?
+          if b>=$80 then
+            begin
+              w:=b and $3f;
+              if i>=SourceBytes then
+                exit;
+              // 3 bytes?
+              if (b and $20)<>0 then
+                begin
+                  b:=byte(Source[i]);
+                  inc(i);
+                  if i>=SourceBytes then
+                    exit;
+                  if (b and $c0)<>$80 then
+                    exit;
+                  w:=(w shl 6) or (b and $3f);
+                end;
+              b:=byte(Source[i]);
+              w:=(w shl 6) or (b and $3f);
+              if (b and $c0)<>$80 then
+                exit;
+              inc(i);
+            end;
+          Dest[j]:=WideChar(w);
+          inc(j);
+        end;
+      if j>=MaxDestChars then j:=MaxDestChars-1;
+      Dest[j]:=#0;
+    end
+  else
+    begin
+      while i<SourceBytes do
+        begin
+          b:=byte(Source[i]);
+          inc(i);
+          // 2 or 3 bytes?
+          if b>=$80 then
+            begin
+              if i>=SourceBytes then
+                exit;
+              // 3 bytes?
+              b := b and $3f;
+              if (b and $20)<>0 then
+                begin
+                  b:=byte(Source[i]);
+                  inc(i);
+                  if i>=SourceBytes then
+                    exit;
+                  if (b and $c0)<>$80 then
+                    exit;
+                end;
+              if (byte(Source[i]) and $c0)<>$80 then
+                exit;
+              inc(i);
+            end;
+          inc(j);
+        end;
+    end;
+  result:=j+1;
+end;
 
 
 function UTF8Encode(const s : WideString) : UTF8String;
@@ -1477,7 +1482,10 @@ procedure initwidestringmanager;
 
 {
   $Log$
-  Revision 1.57  2005-04-03 08:46:02  florian
+  Revision 1.58  2005-05-04 10:34:48  michael
+  + Fix for Utf8ToUnicode from Lazarus bug tracker 888
+
+  Revision 1.57  2005/04/03 08:46:02  florian
     * widestr->shortstr fixed
     * wstrings to system unit dependencies added
 
