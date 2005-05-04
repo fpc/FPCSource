@@ -697,6 +697,7 @@ procedure TLinearWriter.WriteTypes(ASection: TPasSection);
 var
   i: Integer;
   TypeDecl: TPasType;
+  DocNode : TDocNode;
 begin
   if ASection.Types.Count > 0 then
   begin
@@ -706,7 +707,13 @@ begin
       DescrBeginParaGraph;
       TypeDecl := TPasType(ASection.Types[i]);
       StartListing(False,'');
-      Writeln(EscapeText(TypeDecl.GetDeclaration(True)));
+      DocNode := Engine.FindDocNode(TypeDecl);
+      If Assigned(DocNode) and 
+         Assigned(DocNode.Node) and 
+         (Docnode.Node['opaque']='1') then
+          Writeln(TypeDecl.Name+' = '+SDocOpaque)
+      else    
+         Writeln(EscapeText(TypeDecl.GetDeclaration(True)));
       EndListing;
       WriteLabel(TypeDecl);
       WriteIndex(TypeDecl);

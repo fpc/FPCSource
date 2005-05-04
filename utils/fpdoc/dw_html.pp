@@ -2134,98 +2134,41 @@ begin
   TREl := CreateTR(TableEl);
   TDEl := CreateTD(TREl);
   CodeEl := CreateCode(CreatePara(TDEl));
+
+  DocNode := Engine.FindDocNode(AType);
   AppendKw(CodeEl, 'type ');
   AppendText(CodeEl, AType.Name);
   AppendSym(CodeEl, ' = ');
 
-  // Alias
-  if AType.ClassType = TPasAliasType then
-  begin
-    if Assigned(TPasAliasType(AType).DestType) then
-      AppendHyperlink(CodeEl, TPasAliasType(AType).DestType)
-    else
-      AppendText(CreateWarning(CodeEl), '<Destination type is NIL>');
-    AppendSym(CodeEl, ';');
-  end else
-  // Class of
-  if AType.ClassType = TPasClassOfType then
-  begin
-    AppendKw(CodeEl, 'class of ');
-    AppendHyperlink(CodeEl, TPasClassOfType(AType).DestType);
-    AppendSym(CodeEl, ';');
-  end else
-  // Enumeration
-  if AType.ClassType = TPasEnumType then
-  begin
-    AppendSym(CodeEl, '(');
-    for i := 0 to TPasEnumType(AType).Values.Count - 1 do
+  If Assigned(DocNode) and 
+     Assigned(DocNode.Node) and 
+     (Docnode.Node['opaque']='1') then
+    AppendText(CodeEl,SDocOpaque)
+  else 
     begin
-      EnumValue := TPasEnumValue(TPasEnumType(AType).Values[i]);
-      TREl := CreateTR(TableEl);
-      CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
-      AppendShortDescrCell(TREl, EnumValue);
-      AppendNbSp(CodeEl, 2);
-      s := EnumValue.Name;
-      if EnumValue.IsValueUsed then
-        s := s + ' = ' + IntToStr(EnumValue.Value);
-      if i < TPasEnumType(AType).Values.Count - 1 then
-        s := s + ',';
-      AppendPasSHFragment(CodeEl, s, 0);
-    end;
-    AppendSym(CreateCode(CreatePara(CreateTD(CreateTR(TableEl)))), ');');
-  end else
-  // Pointer type
-  if AType.ClassType = TPasPointerType then
-  begin
-    AppendSym(CodeEl, '^');
-    if Assigned(TPasPointerType(AType).DestType) then
-      AppendHyperlink(CodeEl, TPasPointerType(AType).DestType)
-    else
-      AppendText(CreateWarning(CodeEl), '<Destination type is NIL>');
-    AppendSym(CodeEl, ';');
-  end else
-  if AType.InheritsFrom(TPasProcedureType) then
-  begin
-    AppendSym(AppendType(CodeEl, TableEl, TPasType(AType), True), ';');
-    AppendProcArgsSection(BodyElement, TPasProcedureType(AType));
-  end else
-  // Record
-  if AType.ClassType = TPasRecordType then
-  begin
-    if TPasRecordType(AType).IsPacked then
-      AppendKw(CodeEl, 'packed record')
-    else
-      AppendKw(CodeEl, 'record');
-
-    for i := 0 to TPasRecordType(AType).Members.Count - 1 do
-    begin
-      Variable := TPasVariable(TPasRecordType(AType).Members[i]);
-      TREl := CreateTR(TableEl);
-      CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
-      AppendShortDescrCell(TREl, Variable);
-      AppendNbSp(CodeEl, 2);
-      AppendText(CodeEl, Variable.Name);
-      AppendSym(CodeEl, ': ');
-      AppendType(CodeEl, TableEl, Variable.VarType, False);
+    // Alias
+    if AType.ClassType = TPasAliasType then
+      begin
+      if Assigned(TPasAliasType(AType).DestType) then
+        AppendHyperlink(CodeEl, TPasAliasType(AType).DestType)
+      else
+        AppendText(CreateWarning(CodeEl), '<Destination type is NIL>');
       AppendSym(CodeEl, ';');
-    end;
-
-    CodeEl := CreateCode(CreatePara(CreateTD(CreateTR(TableEl))));
-    AppendText(CodeEl, ' '); // !!!: Dirty trick, necessary for current XML writer
-    AppendKw(CodeEl, 'end');
-    AppendSym(CodeEl, ';');
-  end else
-  // Set
-  if AType.ClassType = TPasSetType then
-  begin
-    AppendKw(CodeEl, 'set of ');
-    if TPasSetType(AType).EnumType.ClassType = TPasEnumType then
+    end else
+    // Class of
+    if AType.ClassType = TPasClassOfType then
+    begin
+      AppendKw(CodeEl, 'class of ');
+      AppendHyperlink(CodeEl, TPasClassOfType(AType).DestType);
+      AppendSym(CodeEl, ';');
+    end else
+    // Enumeration
+    if AType.ClassType = TPasEnumType then
     begin
       AppendSym(CodeEl, '(');
-      EnumType := TPasEnumType(TPasSetType(AType).EnumType);
-      for i := 0 to EnumType.Values.Count - 1 do
+      for i := 0 to TPasEnumType(AType).Values.Count - 1 do
       begin
-        EnumValue := TPasEnumValue(EnumType.Values[i]);
+        EnumValue := TPasEnumValue(TPasEnumType(AType).Values[i]);
         TREl := CreateTR(TableEl);
         CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
         AppendShortDescrCell(TREl, EnumValue);
@@ -2233,27 +2176,92 @@ begin
         s := EnumValue.Name;
         if EnumValue.IsValueUsed then
           s := s + ' = ' + IntToStr(EnumValue.Value);
-        if i < EnumType.Values.Count - 1 then
+        if i < TPasEnumType(AType).Values.Count - 1 then
           s := s + ',';
         AppendPasSHFragment(CodeEl, s, 0);
       end;
       AppendSym(CreateCode(CreatePara(CreateTD(CreateTR(TableEl)))), ');');
     end else
+    // Pointer type
+    if AType.ClassType = TPasPointerType then
     begin
-      AppendHyperlink(CodeEl, TPasSetType(AType).EnumType);
+      AppendSym(CodeEl, '^');
+      if Assigned(TPasPointerType(AType).DestType) then
+        AppendHyperlink(CodeEl, TPasPointerType(AType).DestType)
+      else
+        AppendText(CreateWarning(CodeEl), '<Destination type is NIL>');
       AppendSym(CodeEl, ';');
-    end;
-  end else
-  // Type alias
-  if AType.ClassType = TPasTypeAliasType then
-  begin
-    AppendKw(CodeEl, 'type ');
-    AppendHyperlink(CodeEl, TPasTypeAliasType(AType).DestType);
-    AppendSym(CodeEl, ';');
-  end else
-  // Probably one of the simple types, which allowed in other places as wel...
-    AppendSym(AppendType(CodeEl, TableEl, TPasType(AType), True), ';');
+    end else
+    if AType.InheritsFrom(TPasProcedureType) then
+    begin
+      AppendSym(AppendType(CodeEl, TableEl, TPasType(AType), True), ';');
+      AppendProcArgsSection(BodyElement, TPasProcedureType(AType));
+    end else
+    // Record
+    if AType.ClassType = TPasRecordType then
+    begin
+      if TPasRecordType(AType).IsPacked then
+        AppendKw(CodeEl, 'packed record')
+      else
+        AppendKw(CodeEl, 'record');
 
+      for i := 0 to TPasRecordType(AType).Members.Count - 1 do
+      begin
+        Variable := TPasVariable(TPasRecordType(AType).Members[i]);
+        TREl := CreateTR(TableEl);
+        CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
+        AppendShortDescrCell(TREl, Variable);
+        AppendNbSp(CodeEl, 2);
+        AppendText(CodeEl, Variable.Name);
+        AppendSym(CodeEl, ': ');
+        AppendType(CodeEl, TableEl, Variable.VarType, False);
+        AppendSym(CodeEl, ';');
+      end;
+
+      CodeEl := CreateCode(CreatePara(CreateTD(CreateTR(TableEl))));
+      AppendText(CodeEl, ' '); // !!!: Dirty trick, necessary for current XML writer
+      AppendKw(CodeEl, 'end');
+      AppendSym(CodeEl, ';');
+    end else
+    // Set
+    if AType.ClassType = TPasSetType then
+    begin
+      AppendKw(CodeEl, 'set of ');
+      if TPasSetType(AType).EnumType.ClassType = TPasEnumType then
+      begin
+        AppendSym(CodeEl, '(');
+        EnumType := TPasEnumType(TPasSetType(AType).EnumType);
+        for i := 0 to EnumType.Values.Count - 1 do
+        begin
+          EnumValue := TPasEnumValue(EnumType.Values[i]);
+          TREl := CreateTR(TableEl);
+          CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
+          AppendShortDescrCell(TREl, EnumValue);
+          AppendNbSp(CodeEl, 2);
+          s := EnumValue.Name;
+          if EnumValue.IsValueUsed then
+            s := s + ' = ' + IntToStr(EnumValue.Value);
+          if i < EnumType.Values.Count - 1 then
+            s := s + ',';
+          AppendPasSHFragment(CodeEl, s, 0);
+        end;
+        AppendSym(CreateCode(CreatePara(CreateTD(CreateTR(TableEl)))), ');');
+      end else
+      begin
+        AppendHyperlink(CodeEl, TPasSetType(AType).EnumType);
+        AppendSym(CodeEl, ';');
+      end;
+    end else
+    // Type alias
+    if AType.ClassType = TPasTypeAliasType then
+    begin
+      AppendKw(CodeEl, 'type ');
+      AppendHyperlink(CodeEl, TPasTypeAliasType(AType).DestType);
+      AppendSym(CodeEl, ';');
+    end else
+    // Probably one of the simple types, which allowed in other places as wel...
+      AppendSym(AppendType(CodeEl, TableEl, TPasType(AType), True), ';');
+    end;
   FinishElementPage(AType);
 end;
 
@@ -2871,7 +2879,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2005-02-14 17:13:38  peter
+  Revision 1.16  2005-05-04 08:38:58  michael
+  + Added support for opaque types
+
+  Revision 1.15  2005/02/14 17:13:38  peter
     * truncate log
 
   Revision 1.14  2005/01/12 21:11:41  michael

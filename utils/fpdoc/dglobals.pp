@@ -76,7 +76,8 @@ resourcestring
   SDocSourcePosition         = 'Source position: %s line %d';
   SDocSynopsis               = 'Synopsis';
   SDocVisibility             = 'Visibility';
-
+  SDocOpaque                 = 'Opaque type';
+  
   // Topics
   SDocRelatedTopics = 'Related topics';
   SDocUp            = 'Up';
@@ -1216,7 +1217,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2005-02-14 17:13:38  peter
+  Revision 1.10  2005-05-04 08:38:58  michael
+  + Added support for opaque types
+
+  Revision 1.9  2005/02/14 17:13:38  peter
     * truncate log
 
   Revision 1.8  2005/01/14 17:55:07  michael
