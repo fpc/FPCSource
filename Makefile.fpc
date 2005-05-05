@@ -297,8 +297,10 @@ ifeq ($(OS_TARGET),go32v2)
         $(COPY) $(CVSINSTALL)/bingo32/*.exe $(INSTALL_BINDIR)
 endif
 # binw32 (*.dll,*.exe,*.ico)
+ifneq ($(patsubst %/,%,$(subst \,/,$(dir $(CPPROG)))),$(patsubst %/,%,$(subst \,/,$(INSTALL_BINDIR))))
 ifeq ($(OS_TARGET),win32)
         $(COPY) $(addprefix $(CVSINSTALL)/binw32/,*.ico *.exe *.dll *.h) $(INSTALL_BINDIR)
+endif
 endif
 # binos2 (emx.dll,emxwrap.dll,unzip32.dll,fp2.ico)
 ifeq ($(OS_TARGET),os2)
