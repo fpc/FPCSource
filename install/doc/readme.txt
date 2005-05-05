@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                        Version 1.9.8 aka 2.0.0-Rc2
+                               Version 2.0.0
 
 
 ****************************************************************************
@@ -10,18 +10,12 @@
 
 Please also read the platform specific README file, if it exists.
 
-*** WARNING *** WARNING *** WARNING ***
-This a beta release and it still contains some known bugs. However, it would
-be very useful if you could test your projects with it and tell us when
-you find bugs. You can submit bug reports on the website.
-*** WARNING *** WARNING *** WARNING ***
-
-This package contains a freeware 32-bit pascal compiler for several
+This package contains a freeware 32-bit/64-bit pascal compiler for several
 platforms. The language and the runtime library are almost compatible with
 Turbo Pascal 7.0 and recent Delphi releases. There is also partial support
 for the Macintosh pascal dialect.
 
-Free Pascal 1.9.8 is currently available for the following platforms:
+Free Pascal 2.0.0 is currently available for the following platforms:
 - Linux-i386
 - Linux-powerpc
 - Linux-sparc
@@ -59,9 +53,10 @@ targets, feel free to contact us, e-mail addresses are listed below.
   - dynamic array support
   - variant support
 - code optimizer:
-  - peephole optimizer (80x86-only)
+  - peephole optimizer (80x86 only)
+  - jump optimizer
   - loading of variables into registers
-  - assembler level dataflow analyzer (80x86-only)
+  - assembler level dataflow analyzer (80x86 only)
   - stack frame eliminations
   - sophisticated register allocator
 - integrated BASM (built-in assembler) parser
@@ -105,7 +100,7 @@ Mac OS (classic)
 * Quick start - Win32 / OS/2 / DOS
 ****************************************************************************
 
-Download distribution archive (fpc-1.9.8.i386-win32.zip for Win32,
+Download distribution archive (fpc-2.0.0.i386-win32.zip for Win32,
 dos196.zip for GO32v2 or os2196.zip for OS/2) and unzip it
 into a temporary directory.
 
@@ -123,7 +118,7 @@ and type
 * Quick start - Linux/FreeBSD
 ****************************************************************************
 
-Download fpc-1.9.8.<cpu>-<os>.tar and untar into a temporary directory.
+Download fpc-2.0.0.<cpu>-<os>.tar and untar into a temporary directory.
 
 Start the install script with ./install.sh and follow the instructions.
 
@@ -195,7 +190,7 @@ and to modify it. You are of course free to do this
 so long as you observe the licence conditions. In order to make the
 compiler/rtl & ides in a resonable time (eg <30 minutes) you'll need at least
 32M of physical memory (64M is better) memory and at least a 200 Mhz processor
-and at least 20 Mbytes of free disk space. You'll also need
+and at least 100 Mbytes of free disk space. You'll also need
 some knowledge of making files & programming... it is not
 difficult but it isn't easy either!
 

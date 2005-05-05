@@ -1,10 +1,51 @@
 
                             Free Pascal Compiler
 
+                                Version 2.0.0
+
+******************************************************************************
+                              What's New in 2.0.0
+******************************************************************************
+Compiler:
+  + properties in objects are now allowed
+  + use of cmov when at least -Cppentium2 is supplied (i386+ only)
+  + .p is a searched source extension in macpas mode now
+  * Improved MacPas mode
+  * Improved variant support
+  * Updated language files
+  * Improved warnings regarding uninitialised variables
+  * Lot of small bugs and compatibility fixes
+  
+RTL:
+  * Several widestring and unicode fixes
+  * Heavily improved variant support
+  * Improved threading support
+  * Improved 64 bit compatibility
+  * Lot of small bugs and compatibility fixes
+  
+FCL:
+  * Improved data base support
+  * Lot of small bugs and compatibility fixes
+  
+Packages:
+  + Jedi windows api is part of the packages now
+  + Windows specific units of the rtl have been moved to packages/base/winunits
+  + XFree header conversions to X package added
+  * Endian and 64 bit fixes
+  * Lot of small bugs and compatibility fixes
+
+IDE:
+  * Small bug fixes
+  
+Misc:
+  * Improved docs
+  * Bug fixes for FreeVision
+  
+  
                         Version 1.9.8 aka 2.0.0-Rc2
 
 ******************************************************************************
-                      Whats New in 1.9.8 aka 2.0.0-Rc2
+                      What's New in 1.9.8 aka 2.0.0-Rc2
 ******************************************************************************
 
 
@@ -61,7 +102,7 @@ Misc:
                         Version 1.9.6 aka 2.0.0-Rc1
 
 ******************************************************************************
-                      Whats New in 1.9.6 aka 2.0.0-Rc1
+                      What's New in 1.9.6 aka 2.0.0-Rc1
 ******************************************************************************
 
 Compiler:
@@ -123,7 +164,7 @@ Misc:
 
 
 ******************************************************************************
-                      Whats New in 1.9.4 aka 2.0.0-Beta3
+                      What's New in 1.9.4 aka 2.0.0-Beta3
 ******************************************************************************
 
 Compiler:
@@ -170,7 +211,7 @@ Misc:
 
 
 ******************************************************************************
-                      Whats New in 1.9.2 aka 2.0.0-Beta2
+                      What's New in 1.9.2 aka 2.0.0-Beta2
 ******************************************************************************
 
 Compiler:
@@ -204,7 +245,7 @@ Misc:
   * improved docs
 
 ******************************************************************************
-                      Whats New in 1.9.0 aka 2.0.0-Beta1
+                      What's New in 1.9.0 aka 2.0.0-Beta1
 ******************************************************************************
 
 Compiler:
