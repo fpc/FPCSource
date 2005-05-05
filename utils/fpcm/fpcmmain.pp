@@ -58,7 +58,7 @@ interface
 {$endif}
 
     const
-      Version='1.9.8';
+      Version='2.0.0';
       Title='FPCMake Version '+Version;
       TitleDate=Title+' ['+{$ifdef fpc}{$i %DATE}{$else}'n/a'{$endif}+']';
 
@@ -1609,7 +1609,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2005-02-10 17:27:50  peter
+  Revision 1.46  2005-05-05 13:26:56  peter
+    * 2.0.0
+
+  Revision 1.45  2005/02/10 17:27:50  peter
     * sunos to solaris
 
   Revision 1.44  2005/01/10 20:33:09  peter
