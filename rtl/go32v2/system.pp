@@ -644,7 +644,7 @@ Begin
    FileNameCaseSensitive:=true;
 { Reset IO Error }
   InOutRes:=0;
-  ThreadID := 1;
+  InitSystemThreads;
 {$ifdef  EXCEPTIONS_IN_SYSTEM}
   InitDPMIExcp;
   InstallDefaultHandlers;
@@ -658,7 +658,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.51  2005-05-01 13:00:53  peter
+  Revision 1.52  2005-05-05 11:40:23  peter
+  Call InitSystemThreads
+
+  Revision 1.51  2005/05/01 13:00:53  peter
   use fillchar after reallocmem, fix taken from win32
 
   Revision 1.50  2005/04/03 21:10:59  hajny
