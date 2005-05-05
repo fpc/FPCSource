@@ -2002,7 +2002,8 @@ varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
 freebidi$(PPUEXT) : $(OBJPASDIR)/freebidi.pp
 utf8bidi$(PPUEXT) : $(OBJPASDIR)/utf8bidi.pp freebidi$(PPUEXT)
 	$(COMPILER) -Sc $(OBJPASDIR)/utf8bidi.pp
-variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT)
+variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
+	$(COMPILER) -Fi$(INC) $(INC)/variants.pp
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp

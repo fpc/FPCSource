@@ -1878,7 +1878,8 @@ rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 		    sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/strutils.pp
-variants$(PPUEXT) : sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT)
+variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
+	$(COMPILER) -Fi$(INC) $(INC)/variants.pp
 macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
 video$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/video.inc $(INC)/videoh.inc $(UNIXINC)/video.pp baseunix$(PPUEXT) strings$(PPUEXT) terminfo$(PPUEXT) termio$(PPUEXT)

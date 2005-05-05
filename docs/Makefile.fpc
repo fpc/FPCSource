@@ -15,7 +15,7 @@
 
 [package]
 name=fpdocs
-version=1.9.8
+version=2.0.0
 
 [require]
 nortl=y
@@ -205,7 +205,7 @@ help:
         @echo ' pdfdist       : pdf, and archive result.'
 
 clean:
-        -rm -f preamble.inc date.inc messages.inc
+        -rm -f preamble.inc date.inc messages.inc rtl.inc
         -rm -f *.4tc *.4ct *.css *.lg *.tmp *.xref
         -rm -rf $(DOCS)
         -rm -f $(CHK) $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(OUT) $(PS) $(HTML) *.i* $(LOT) $(TXT)
@@ -574,7 +574,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.11  2005-02-20 00:38:28  michael
+# Revision 1.12  2005-05-05 12:59:59  peter
+#   * 2.0.0
+#
+# Revision 1.11  2005/02/20 00:38:28  michael
 # + Changed tar.gz names to resemble zip names
 #
 # Revision 1.10  2005/02/19 22:24:47  peter

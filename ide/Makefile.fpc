@@ -6,7 +6,7 @@
 
 [package]
 name=ide
-version=1.9.8
+version=2.0.0
 
 [target]
 dirs=compiler
@@ -184,7 +184,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.31  2005-02-15 22:28:29  peter
+# Revision 1.32  2005-05-05 12:59:59  peter
+#   * 2.0.0
+#
+# Revision 1.31  2005/02/15 22:28:29  peter
 #   * 1.9.8
 #
 # Revision 1.30  2005/01/10 22:49:56  armin

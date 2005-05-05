@@ -231,7 +231,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=gdbint
-override PACKAGE_VERSION=1.9.8
+override PACKAGE_VERSION=2.0.0
 ifdef inUnix
 CURRDIR=./
 else
