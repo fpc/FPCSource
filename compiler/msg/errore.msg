@@ -1368,7 +1368,6 @@ sym_w_non_implemented_symbol=05055_W_Symbol "$1" is not implemented
 sym_e_cant_create_unique_type=05056_E_Can't create unique type from this type
 % Only simple types like ordinal, float and string types are supported when
 % redefining a type with \var{type newtype = type oldtype;}.
-% \end{description}
 sym_h_uninitialized_local_variable=05057_H_Local variable "$1" does not seem to be initialized
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
@@ -1379,6 +1378,7 @@ sym_h_uninitialized_variable=05058_H_Variable "$1" does not seem to be initializ
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
+% \end{description}
 #
 # Codegenerator
 #
