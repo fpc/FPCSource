@@ -484,7 +484,10 @@ implementation
                      Consts.concat(Tai_string.Create(tsym(p).realname));
 
                      dataSegment.concat(Tai_const.Create_sym(l));
-                     dataSegment.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0));
+                     if po_abstractmethod in pd.procoptions then
+                       dataSegment.concat(Tai_const.Create_sym(nil))
+                     else
+                       dataSegment.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0));
                    end;
                 end;
            end;
@@ -1362,7 +1365,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2005-03-17 09:08:54  michael
+  Revision 1.93  2005-05-05 21:09:10  florian
+    * write nil into the method table for abstract methods
+
+  Revision 1.92  2005/03/17 09:08:54  michael
   + Patch from peter to fix overload directive cheking in delphi mode
 
   Revision 1.91  2005/02/14 17:13:06  peter
