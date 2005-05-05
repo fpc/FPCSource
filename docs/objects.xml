@@ -3446,6 +3446,7 @@ If the local function expects parameters, the stack may become corrupted.
 <!-- function Visibility: default -->
 <element name="CallPointerMethodLocal">
 <short>Call a local procedure of a method with a pointer argument</short>
+<descr>
 <var>CallPointerMethodLocal</var> calls the local procedure with address
 <var>Func</var>, where <var>Frame</var> is the frame of the wrapping
 method. It passes <var>Param1</var> to the local function.
