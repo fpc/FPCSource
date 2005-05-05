@@ -2120,6 +2120,12 @@ Compiler CPU Target: $FPCCPU
 
 Supported targets:
   $OSTARGETS
+  
+Supported CPU instruction sets:
+  $INSTRUCTIONSETS
+
+Supported FPU instruction sets:
+  $FPUINSTRUCTIONSETS
 
 This program comes under the GNU General Public Licence
 For more information read COPYING.FPC
@@ -2185,12 +2191,13 @@ S*2Aas_assemble using GNU AS
 **2Cc<x>_set default calling convention to <x>
 **2CD_create also dynamic library (not supported)
 **2Ce_Compilation with emulated floating point opcodes
-**2Cf<x>_Select fpu instruction set to use to <x>
+**2Cf<x>_Select fpu instruction set to use, see fpc -i for possible values
 **2Cg_Generate PIC code
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
 **2Ci_IO-checking
 **2Cn_omit linking stage
 **2Co_check overflow of integer operations
+**2Cp<x>_select instruction set, see fpc -i for possible values
 **2Cr_range checking
 **2CR_verify object method call validity
 **2Cs<n>_set stack size to <n>
