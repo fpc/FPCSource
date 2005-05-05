@@ -161,6 +161,8 @@ var
   p : pchar;
   hs,hs1,s : TCmdStr;
   target : tsystem;
+  cpu : tprocessors;
+  fpu : tfputype;
 begin
   p:=MessagePchar(option_info);
   while assigned(p) do
@@ -178,6 +180,32 @@ begin
              hs1:=hs1+' (under development)';
             Replace(hs,'$OSTARGETS',hs1);
             Comment(V_Normal,hs);
+          end;
+      end
+     else if pos('$INSTRUCTIONSETS',s)>0 then
+      begin
+        for cpu:=low(tprocessors) to high(tprocessors) do
+          begin
+            hs:=s;
+            hs1:=processorsstr[cpu];
+            if hs1<>'' then
+              begin
+                Replace(hs,'$INSTRUCTIONSETS',hs1);
+                Comment(V_Normal,hs);
+              end;
+          end;
+      end
+     else if pos('$FPUINSTRUCTIONSETS',s)>0 then
+      begin
+        for fpu:=low(tfputype) to high(tfputype) do
+          begin
+            hs:=s;
+            hs1:=fputypestr[fpu];
+            if hs1<>'' then
+              begin
+                Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
+                Comment(V_Normal,hs);
+              end;
           end;
       end
      else
@@ -2115,7 +2143,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.174  2005-04-28 19:32:11  florian
+  Revision 1.175  2005-05-05 14:53:55  florian
+    + output of supported instruction sets in info page
+
+  Revision 1.174  2005/04/28 19:32:11  florian
     * overloading of assignment operator by different unique result types now possible
 
   Revision 1.173  2005/04/24 21:01:37  peter
