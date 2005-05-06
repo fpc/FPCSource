@@ -165,7 +165,7 @@ type
   GLUtessVertexDataProc = procedure(p1, p2: Pointer); extdecl;
   GLUtessEndDataProc = procedure(p: Pointer); extdecl;
   GLUtessErrorDataProc = procedure(p1: GLenum; p2: Pointer); extdecl;
-  GLUtessCombineDataProc = procedure(p1: var T3dArray; var p2: T4pArray; var p3: T4fArray;
+  GLUtessCombineDataProc = procedure(var p1: T3dArray; var p2: T4pArray; var p3: T4fArray;
                                      p4: PPointer; p5: Pointer); extdecl;
 
   // gluNurbsCallback
@@ -522,7 +522,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2005-05-06 15:02:55  michael
+  Revision 1.7  2005-05-06 17:02:07  florian
+    * compilation fixed
+
+  Revision 1.6  2005/05/06 15:02:55  michael
   + Fixed array declarations which need to be var
 
   Revision 1.5  2005/02/14 17:13:21  peter
