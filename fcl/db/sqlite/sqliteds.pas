@@ -25,6 +25,7 @@ unit sqliteds;
 {$H+}
 { $Define USE_SQLITEDS_INTERNALS}
 { $Define DEBUG}
+{ $Define DEBUGACTIVEBUFFER}
 
 interface
 
@@ -66,11 +67,11 @@ type
     FFileName: String;
     FSql: String;
     FTableName: String;
-    FIndexFieldName: String;
-    FIndexFieldNo: Integer;
+    FPrimaryKey: String;
+    FPrimaryKeyNo: Integer;
     FAutoIncFieldNo: Integer;
     FNextAutoInc:Integer;
-    {$ifdef Debug}
+    {$ifdef DEBUGACTIVEBUFFER}
     FFCurrentItem: PDataRecord;
     {$else}
     FCurrentItem: PDataRecord;
@@ -141,7 +142,7 @@ type
     procedure RefetchData;
     function SqliteReturnString: String;
     function UpdatesPending: Boolean;
-    {$ifdef DEBUG}
+    {$ifdef DEBUGACTIVEBUFFER}
     procedure SetCurrentItem(Value:PDataRecord);
     property FCurrentItem: PDataRecord read FFCurrentItem write SetCurrentItem;
     {$endif}
@@ -159,7 +160,7 @@ type
     property SqliteReturnId: Integer read FSqliteReturnId;
    published 
     property FileName: String read FFileName write FFileName;
-    property IndexFieldName: String read FIndexFieldName write FIndexFieldName;
+    property PrimaryKey: String read FPrimaryKey write FPrimaryKey;
     property SaveOnClose: Boolean read FSaveOnClose write FSaveOnClose; 
     property SaveOnRefetch: Boolean read FSaveOnRefetch write FSaveOnRefetch;
     property SQL: String read FSql write FSql;
@@ -378,9 +379,9 @@ begin
   if FSqliteReturnId <> SQLITE_OK then
   case FSqliteReturnId of
   SQLITE_ERROR:
-    DatabaseError('Invalid Sql',Self);
+    DatabaseError('Invalid SQL',Self);
   else
-    DatabaseError('Unknow Error',Self);
+    DatabaseError('Error returned by sqlite while retrieving data: '+SqliteReturnString,Self);
   end;  
   
   FDataAllocated:=True;
@@ -417,11 +418,15 @@ begin
     FBeginItem^.Next:=FEndItem;
   end;   
   FEndItem^.Next:=nil;
-   // Alloc item used in append/insert 
+  // Alloc item used in append/insert 
   New(FCacheItem);
   GetMem(FCacheItem^.Row,FRowBufferSize);
   For Counter := 0 to FRowCount - 1 do
-    FCacheItem^.Row[Counter]:=nil;     
+    FCacheItem^.Row[Counter]:=nil;
+  // Fill FBeginItem.Row with nil -> necessary for avoid exceptions in empty datasets       
+  GetMem(FBeginItem^.Row,FRowBufferSize);
+  For Counter := 0 to FRowCount - 1 do
+    FBeginItem^.Row[Counter]:=nil;
 end;
 
 constructor TSqliteDataset.Create(AOwner: TComponent);
@@ -460,25 +465,31 @@ var
 begin
   //Todo: insert debug info
   FDataAllocated:=False;
+  TempItem:=FBeginItem^.Next;
+  if TempItem <> nil then
+    while TempItem^.Next <> nil do
+    begin
+      for Counter:= 0 to FRowCount - 1 do
+        StrDispose(TempItem^.Row[Counter]);  
+      FreeMem(TempItem^.Row,FRowBufferSize);
+      TempItem:=TempItem^.Next;
+      Dispose(TempItem^.Previous);
+    end; 
+  
+  //Dispose FBeginItem
+  FreeMem(FBeginItem^.Row,FRowBufferSize);
+  Dispose(FBeginItem);
+    
   //Dispose cache item
   for Counter:= 0 to FRowCount - 1 do
     StrDispose(FCacheItem^.Row[Counter]);
   FreeMem(FCacheItem^.Row,FRowBufferSize);
   Dispose(FCacheItem);
-  If FBeginItem^.Next = nil then //remove it??
-    exit;
-  TempItem:=FBeginItem^.Next;
-  Dispose(FBeginItem);
-  while TempItem^.Next <> nil do
-  begin
-    for Counter:= 0 to FRowCount - 1 do
-      StrDispose(TempItem^.Row[Counter]);  
-    FreeMem(TempItem^.Row,FRowBufferSize);
-    TempItem:=TempItem^.Next;
-    Dispose(TempItem^.Previous);
-  end; 
-  // Free last item
+  
+  // Free last item (FEndItem)
   Dispose(TempItem);  
+  
+  //Dispose OrphanItems
   for Counter:= 0 to FOrphanItems.Count - 1 do
   begin
     TempItem:=PDataRecord(FOrphanItems[Counter]);
@@ -508,18 +519,7 @@ function TSqliteDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 var
   ValError:Word;
   FieldRow:PChar;
-  //FieldIndex:Integer;
 begin
-  if FRecordCount = 0 then // avoid exception in empty datasets -Todo: see if still applys
-  begin
-    Result:=False;
-    Exit;
-  end;
-  //Small hack to allow reopening datasets with TDbEdit 
-  //while not fix it in LCL (It seems that TDataLink doesnt update Field property
-  //after Closing and reopening datasets) 
-  //FieldRow:=PPDataRecord(ActiveBuffer)^^.Row[Field.Index];
-  //FieldIndex:=Field.FieldNo - 1;
   FieldRow:=PPDataRecord(ActiveBuffer)^^.Row[Field.FieldNo - 1];
   Result := FieldRow <> nil;  
   if Result and (Buffer <> nil) then //supports GetIsNull
@@ -756,11 +756,11 @@ begin
   if DefaultFields then 
     CreateFields;
   BindFields(True);
-  // Get indexfieldno if available
-  if FIndexFieldName <> '' then
-    FIndexFieldNo:=FieldByName(FIndexFieldName).FieldNo - 1
+  // Get PrimaryKeyNo if available
+  if Fields.FindField(FPrimaryKey) <> nil then
+    FPrimaryKeyNo:=Fields.FindField(FPrimaryKey).FieldNo - 1  
   else
-    FIndexFieldNo:=FAutoIncFieldNo;
+    FPrimaryKeyNo:=FAutoIncFieldNo; // -1 if there's no AutoIncField 
        
   BuildLinkedList;               
   FCurrentItem:=FBeginItem;  
@@ -862,13 +862,22 @@ end;
 // Specific functions 
 
 function TSqliteDataset.ExecSQL(ASql:String):Integer;
+var
+  AHandle: Pointer;
 begin
   Result:=0;
+  //Todo check if Filename exists
   if FSqliteHandle <> nil then
-  begin
-    FSqliteReturnId:= sqlite_exec(FSqliteHandle,PChar(ASql),nil,nil,nil);
-    Result:=sqlite_changes(FSqliteHandle);
-  end;      
+    AHandle:=FSqliteHandle
+  else 
+    if FFileName <> '' then  
+      AHandle := sqlite_open(PChar(FFilename),0,nil)
+    else
+      DatabaseError ('ExecSql - FileName not set');    
+  FSqliteReturnId:= sqlite_exec(AHandle,PChar(ASql),nil,nil,nil);
+  Result:=sqlite_changes(AHandle);     
+  if AHandle <> FSqliteHandle then
+    sqlite_close(AHandle);
 end;    
 
 function TSqliteDataset.ExecSQL:Integer;
@@ -882,16 +891,16 @@ var
   SqlTemp,KeyName,ASqlLine,TemplateStr:String;
 begin
   Result:=False;
-  if (FIndexFieldNo <> -1) and not FComplexSql then
+  if (FPrimaryKeyNo <> -1) and not FComplexSql then
   begin
     StatementsCounter:=0;
-    KeyName:=Fields[FIndexFieldNo].FieldName;
+    KeyName:=Fields[FPrimaryKeyNo].FieldName;
     {$ifdef DEBUG}
     WriteLn('ApplyUpdates called');
-    if FIndexFieldNo = FAutoIncFieldNo then
+    if FPrimaryKeyNo = FAutoIncFieldNo then
       WriteLn('Using an AutoInc field as primary key');
-    WriteLn('IndexFieldName: ',KeyName);
-    WriteLn('IndexFieldNo: ',FIndexFieldNo);
+    WriteLn('PrimaryKey: ',KeyName);
+    WriteLn('PrimaryKeyNo: ',FPrimaryKeyNo);
     {$endif}
     SqlTemp:='BEGIN TRANSACTION;';
     // Update changed records
@@ -916,7 +925,7 @@ begin
       end;
       //Todo: see if system.delete trunks AnsiString
       system.delete(ASqlLine,Length(ASqlLine),1);
-      SqlTemp:=SqlTemp + ASqlLine+' WHERE '+KeyName+' = '+StrPas(PDataRecord(FUpdatedItems[CounterItems])^.Row[FIndexFieldNo])+';';
+      SqlTemp:=SqlTemp + ASqlLine+' WHERE '+KeyName+' = '+StrPas(PDataRecord(FUpdatedItems[CounterItems])^.Row[FPrimaryKeyNo])+';';
       inc(StatementsCounter);
       //ApplyUpdates each 400 statements
       if StatementsCounter = 400 then
@@ -976,7 +985,7 @@ begin
     for CounterItems:= 0 to FDeletedItems.Count - 1 do  
     begin
       SqlTemp:=SqlTemp+TemplateStr+
-        StrPas(PDataRecord(FDeletedItems[CounterItems])^.Row[FIndexFieldNo])+';';    
+        StrPas(PDataRecord(FDeletedItems[CounterItems])^.Row[FPrimaryKeyNo])+';';    
       inc(StatementsCounter);
       //ApplyUpdates each 400 statements
       if StatementsCounter = 400 then
@@ -1167,7 +1176,7 @@ begin
   RegisterComponents('Data Access', [TSqliteDataset]);
 end;
 
-{$ifdef DEBUG}
+{$ifdef DEBUGACTIVEBUFFER}
 procedure TSqliteDataset.SetCurrentItem(Value:PDataRecord);
 var
  ANo:Integer;
