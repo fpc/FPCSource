@@ -1459,13 +1459,9 @@ This directive can be set to specify the thread name when compiling for
 Netware. 
 
 \subsection{\var{\protect\$THREADING} : Allow use of threads.}
-If a program needs threading, this directive must be specified; The compiler
-will then insert the \var{systhrd} unit in the uses list of the program and
-will enable some threading features. This directive defines or undefines the 
-\var{FPC\_THREADING} macro symbol.
 
-Specifying \var{\{\$THREADING OFF\}} will disable threading. The
-\var{FPC\_THREADING} will be undefined.
+This directive is obsolete. It is no longer used, and is recognized for
+backwards compatibility only.
 
 \subsection{\var{\protect\$UNITPATH} : Specify unit path.}
 

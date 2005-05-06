@@ -53,6 +53,10 @@ platform for which the documentation was generated.
 </seealso>
 </element>
 
+<element name="HMODULE">
+<short>Alias for <link id="#rtl.dynlibs.TLibHandle">TLibHandle</link> type.</short>
+</element>
+
 <!-- constant Visibility: default -->
 <element name="NilHandle">
 <short>Correctly typed Nil handle - returned on error by <link id="LoadLibrary"/></short>

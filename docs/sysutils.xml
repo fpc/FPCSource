@@ -4723,24 +4723,6 @@ base type of the <link id="PWordArray"/> type.
 </seealso>
 </element>
 
-<!-- record type Visibility: default -->
-<element name="TMethod">
-<short>Record describing a method.</short>
-<descr>
-<var>TMethod</var> describes a general method pointer, and is used in
-Run-Time Type Information handling.
-</descr>
-</element>
-
-<!-- variable Visibility: default -->
-<element name="TMethod.Code">
-<short>Pointer to method code.</short>
-</element>
-
-<!-- variable Visibility: default -->
-<element name="TMethod.Data">
-<short>Pointer to object instance.</short>
-</element>
 
 <!-- object Visibility: default -->
 <element name="Exception">
@@ -7365,7 +7347,6 @@ None.
 <element name="WideCompareText">
 <short>Compare two widestrings  (ignoring case).</short>
 <descr>
-<descr>
 <p>
 <var>WideCompareStr</var> compares two widestrings and returns the following
 result:
@@ -7389,7 +7370,6 @@ None.
 <link id="WideSameStr"/>
 <link id="WideSameText"/>
 </seealso>
-</descr>
 </element>
 
 <element name="WideFormat">

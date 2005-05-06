@@ -6868,6 +6868,1081 @@ current state of the heap.
 </seealso>
 </element>
 
+<!-- alias type Visibility: default -->
+<element name="TThreadID">
+<short>Type for Thread-IDs</short>
+<descr>
+This is an opaque type, it can differ from operating system to operating
+system.
+</descr>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PRTLCriticalSection">
+<short>Pointer to <link id="#rtl.system.TRTLCriticalSection"/> type.</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TRTLCriticalSection" opaque="1">
+<short>A critical section.</short>
+<descr>
+<var>TRTLCriticalSection</var> represents a critical section (a mutex). This is an opaque type, 
+it can differ from operating system to operating system. No assumptions
+should be made about it's structure or contents. 
+</descr>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="InitProc">
+<short>Initialization routine</short>
+<descr>
+<p>
+<var>InitProc</var> is a routine that can be called after all units were
+initialized. It can be set by units to execute code that can be initialized
+after all units were initialized.
+</p>
+<remark>
+When setting the value of <var>InitProc</var>, the previous value should
+always be saved, and called when the installed initialization routine has
+finished executing. 
+</remark>
+</descr>
+<seealso>
+<link id="ExitProc"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetProcessID">
+<short>Get the current process ID</short>
+<descr>
+<var>GetProcessID</var> returns the current process ID. 
+The meaning of the return value of this call is system dependent.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetThreadID"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetThreadID">
+<short>Get the current Thread ID.</short>
+<descr>
+<var>GetThreadID</var> returns the current process ID. 
+The meaning of the return value of this call is system dependent.
+</descr>
+<seealso>
+<link id="GetProcessID"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="S_OK">
+<short>Interface call result: OK</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="S_FALSE">
+<short>Interface call result: Not OK</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="E_NOINTERFACE">
+<short>Interface call result: Error: not an interface</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="E_UNEXPECTED">
+<short>Interface call result: Unexpected error</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="E_NOTIMPL">
+<short>Interface call result: Interface not implemented</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TMethod">
+<short>Record describing a method.</short>
+<descr>
+<var>TMethod</var> describes a general method pointer, and is used in
+Run-Time Type Information handling.
+</descr>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TMethod.Code">
+<short>Pointer to method code.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TMethod.Data">
+<short>Pointer to object instance.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TExceptObject.Framecount">
+<short>Number of frames in the exception object</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TExceptObject.Frames">
+<short>Pointer to array of frame pointers</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RaiseMaxFrameCount">
+<short>Maximum number of frames to include in <link id="#rtl.system.TExceptObject">TExceptObject</link></short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="tvarop.oppower">
+<short>Variant operation: Power</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="tvariantmanager.vartotdatetime">
+<short>Callback to convert a variant to a <var>TDatetime</var> value.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="tvariantmanager.varfromtdatetime">
+<short>Callback to convert a <var>TDateTime</var> value to a variant.</short>
+</element> 
+
+<!-- variable Visibility: default -->
+<element name="tvariantmanager.varfromcurr">
+<short>Callback to convert a variant to a currency value.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VarClearProc">
+<short>Callback to clear a variant.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VarAddRefProc">
+<short>Callback to increase reference count of a variant.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VarCopyProc">
+<short>Callback to copy a variant</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VarToLStrProc">
+<short>Callback to convert a variant to a ansistring.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VarToWStrProc">
+<short>Callback to convert a variant to a widestring.</short>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="VarArrayRedim">
+<short>Redimension a variant array</short>
+<descr>
+<var>VarArrayRedim</var> re-sizes the first dimension of the variant array
+<var>A</var>, giving it a new high bound <var>HighBound</var>. 
+Obviously, <var>A</var> must be a variant array for this function to work.
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- array type Visibility: default -->
+<element name="fpc_big_widechararray" skip="1">
+<short>Internal type used by widestring routines. Do not use</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="DefaultStackSize">
+<short>Default size for a new thread's stack (32k by default).</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="PEventState">
+<short>Pointer to EventState, which is an opaque type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="PRTLEvent">
+<short>Pointer to RTLEvent, which is an opaque type.</short>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="TThreadFunc">
+<short>Thread function prototype</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="trtlmethod">
+<short>Callback type for synchronization event.</short>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="TBeginThreadHandler">
+<short>Callback for thread start in <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TEndThreadHandler">
+<short>Callback for thread end in <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="TThreadHandler">
+<short>Generic thread handler callback for <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TThreadSwitchHandler">
+<short>Callback type for thread switch in <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="TWaitForThreadTerminateHandler">
+<short>Callback type for thread termination in <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="TThreadSetPriorityHandler">
+<short>Callback type for thread priority setting in <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="TThreadGetPriorityHandler">
+<short>Callback type for thread priority getting in <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="TGetCurrentThreadIdHandler">
+<short>Callback type for retrieving thread ID in <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TCriticalSectionHandler">
+<short>Generic callback type for critical section handling in <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TInitThreadVarHandler">
+<short>Threadvar initialization callback type for <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="TRelocateThreadVarHandler">
+<short>Threadvar relocalization callback type for <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TAllocateThreadVarsHandler">
+<short>Threadvar allocation callback type for <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TReleaseThreadVarsHandler">
+<short>Threadvar release callback type for <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TBasicEventHandler">
+<short>Generic callback type for handling eventstate in <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="TBasicEventWaitForHandler">
+<short>Wait for basic event callback type for <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="TBasicEventCreateHandler">
+<short>callback type for creating eventstate in <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TRTLEventHandler">
+<short>Generic TRTLEvent handling type for <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TRTLEventHandlerTimeout">
+<short>TRTLEvent timeout handling type for <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="TRTLCreateEventHandler">
+<short>Callback type for creating a <var>TRTLEvent</var> type in <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TRTLEventSyncHandler">
+<short>Callback type for event sycnhronization in <link id="#rtl.system.TThreadManager">TThreadManager</link>.</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TThreadManager">
+<short>Thread manager record.</short>
+<descr>
+<p>
+<var>TThreadManager</var> is a record that contains all callbacks needed for the thread handling
+routines of the Free Pascal Run-Time Library. The thread manager can be set
+by the <link id="SetThreadManager"/> procedure, and the current thread
+manager can be retrieved with the <link id="GetThreadManager"/> procedure.
+</p>
+<p>
+The Windows RTL will set the thread manager automatically to a system thread
+manager, based on the Windows threading routines. Unix operating systems
+provide a unit <file>cthreads</file> which implements threads based on the C
+library POSIX thread routines. It is not included by default, because it
+would make the system unit dependent on the C library.
+</p>
+
+<p>
+For more information about thread programming, see the programmer's guide.
+</p>
+</descr>
+<seealso>
+<link id="GetThreadManager"/>
+<link id="SetThreadManager"/>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.InitManager">
+<short>Initialize the thread manager.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.DoneManager">
+<short>Clean up the thread manager.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.BeginThread">
+<short>Start a new thread.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.EndThread">
+<short>End the current thread.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.SuspendThread">
+<short>Suspend a running thread.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.ResumeThread">
+<short>Resumt a suspended thread.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.KillThread">
+<short>Kill a running thread.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.ThreadSwitch">
+<short>Cause a threadswitch.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.WaitForThreadTerminate">
+<short>Wait for a thread to stop.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.ThreadSetPriority">
+<short>Set thread priority</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.ThreadGetPriority">
+<short>Get thread priority.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.GetCurrentThreadId">
+<short>Get current thread ID</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.InitCriticalSection">
+<short>Initialize a critical section.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.DoneCriticalSection">
+<short>Free a critical section</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.EnterCriticalSection">
+<short>Enter a critical section</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.LeaveCriticalSection">
+<short>leave a critical section.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.InitThreadVar">
+<short>Initialize a thread variable.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.RelocateThreadVar">
+<short>Relocate a thread variable.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.AllocateThreadVars">
+<short>Allocate thread variables.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.ReleaseThreadVars">
+<short>Release thread variables.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.BasicEventCreate">
+<short>Create a basic event.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.BasicEventDestroy">
+<short>Destroy a basic event.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.BasicEventResetEvent">
+<short>Reset a basic event.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.BasicEventSetEvent">
+<short>Set a basic event</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.BasiceventWaitFOr">
+<short>Wait for a basic event</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.RTLEventCreate">
+<short>Create an RTL event</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.RTLEventDestroy">
+<short>Free an RTL event</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.RTLEventSetEvent">
+<short>Set an RTL event</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.RTLEventResetEvent">
+<short>Reset an RTL event</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.RTLEventStartWait">
+<short>Wait for an RTL event.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.RTLEventWaitFor">
+<short>Wait for an RTL event.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.RTLEventSync">
+<short>Synchronize an RTL event.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TThreadManager.RTLEventWaitForTimeout">
+<short>Wait for RTL event, with timeout.</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetThreadManager">
+<short>Return the current thread manager</short>
+<descr>
+<p>
+<var>GetThreadManager</var> returns the currently used thread manager in
+<var>TM</var>.
+</p>
+<p>
+For more information about thread programming, see the programmer's guide.
+</p>
+</descr>
+<seealso>
+<link id="SetThreadManager"/>
+<link id="TThreadManager"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="SetThreadManager">
+<short>Set the thread manager, optionally return the current thread manager.</short>
+<descr>
+<p>
+<var>SetThreadManager</var> sets the thread manager to <var>NewTM</var>.
+If <var>OldTM</var> is given, <var>SetThreadManager</var> uses it to return the
+previously used thread manager.
+</p>
+<p>
+The function returns <var>True</var> if the threadmanager was set
+succesfully, <var>False</var> if an error occurred.
+</p>
+<p>
+For more information about thread programming, see the programmer's guide.
+</p>
+</descr>
+<errors>
+If an error occurred cleaning up the previous manager, or an error occurred
+initializing the new manager, <var>False</var> is returned.
+</errors>
+<seealso>
+<link id="GetThreadManager"/>
+<link id="TThreadManager"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="SetNoThreadManager">
+<short>Clear the threadmanager</short>
+<descr>
+<var>SetNoThreadManager</var> clears the thread manager by setting the
+thread manager to an empty thread manager record.
+</descr>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="InitThread">
+<short>Initialize a thread</short>
+<descr>
+Do not use, this is used internally by the thread manager.
+</descr>
+</element>
+
+<!-- function Visibility: default -->
+<element name="BeginThread">
+<short>Start a new thread.</short>
+<descr>
+<p>
+<var>BeginThread</var> starts a new thread and executes
+<var>ThreadFunction</var> in the new thread. If <var>P</var> is specified,
+then it is passed to <var>ThreadFunction</var>. If <var>ThreadId</var> is
+specified, it is filled with the thread ID of the newly started thread.
+</p>
+<p>
+The function returns zero on succes.
+</p>
+</descr>
+<errors>
+On error, a nonzero value is returned.
+</errors>
+<seealso>
+<link id="EndThread"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="EndThread">
+<short>End the current thread.</short>
+<descr>
+<p>
+<var>EndThread</var> ends the current thread. If <var>ExitCode</var> is
+supplied, it is returned as the exit code for the thread to a function
+waiting for the thread to terminate (<link id="WaitForThreadTerminate"/>).
+If it is omitted, zero is used.
+</p>
+<p>
+This function does not return.
+</p>
+</descr>
+<seealso>
+<link id="WaitForThreadTerminate"/>
+<link id="BeginThread"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="SuspendThread">
+<short>Suspend a running thread.</short>
+<descr>
+<p>
+<var>SuspendThread</var> suspends a running thread. The thread is identified
+with it's handle or ID <var>threadHandle</var>.
+</p>
+<p>
+The function returns zero if succesful. A nonzero return value indicates
+failure.
+</p>
+</descr>
+<errors>
+If a failure occurred, a nonzero result is returned. The meaning is systemm
+dependent.
+</errors>
+<seealso>
+<link id="ResumeThread"/>
+<link id="KillThread"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="ResumeThread">
+<short>Resume a suspended thread.</short>
+<descr>
+<p>
+<var>ResumeThread</var> causes a suspended thread (using <link
+id="SuspendThread"/>) to resume it's execution. The thread is 
+identified with it's handle or ID <var>threadHandle</var>.
+</p>
+<p>
+The function returns zero if succesful. A nonzero return value indicates
+failure.
+</p>
+</descr>
+<errors>
+If a failure occurred, a nonzero result is returned. The meaning is systemm
+dependent.
+</errors>
+<seealso>
+<link id="SuspendThread"/>
+<link id="KillThread"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="ThreadSwitch">
+<short>Signal possibility of thread switch</short>
+<descr>
+<p>
+<var>ThreadSwitch</var> signals the operating system that the thread should
+be suspended and that another thread should be executed.
+</p>
+<p>
+This call is a hint only, and may be ignored.
+</p>
+</descr>
+<seealso>
+<link id="SuspendThread"/>
+<link id="ResumeThread"/>
+<link id="KillThread"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="KillThread">
+<short>Kill a running thread</short>
+<descr>
+<p>
+<var>KillThread</var> causes a running thread to be aborted. The thread is
+identified by it's handle or ID <var>threadHandle</var>.
+</p>
+<p>
+The function returns zero if succesful. A nonzero return value indicates
+failure.
+</p>
+</descr>
+<errors>
+If a failure occurred, a nonzero result is returned. The meaning is systemm
+dependent.
+</errors>
+<seealso>
+<link id="WaitForThreadTerminate"/>
+<link id="EndThread"/>
+<link id="SuspendThread"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="WaitForThreadTerminate">
+<short>Wait for a thread to terminate.</short>
+<descr>
+<p>
+<var>WaitForThreadTerminate</var> waits for a thread to finish it's
+execution. The thread is identified by it's handle or ID
+<var>threadHandle</var>. If the thread does not exit within <var>TimeoutMs</var>
+milliseconds, the function will return with an error value.
+</p>
+<p>
+The function returns the exit code of the thread.
+</p>
+</descr>
+<seealso>
+<link id="EndThread"/>
+<link id="KillThread"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="ThreadSetPriority">
+<short>Set the priority of a thread.</short>
+<descr>
+<var>ThreadSetPriority</var> sets the priority of thread <var>TThreadID</var> to <var>Prio</var>.
+Priority is a value between -15 and 15. 
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="ThreadGetPriority"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="ThreadGetPriority">
+<short>Return the priority of a thread.</short>
+<descr>
+<var>ThreadGetPriority</var> returns the priority of thread
+<var>TThreadID</var> to <var>Prio</var>. The returned priority
+is a value between -15 and 15.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="ThreadSetPriority"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetCurrentThreadId">
+<short>Return the id of the currently running thread.</short>
+<descr>
+<var>GetCurrentThreadId</var> returns the ID of the currently running
+thread. It can be used in calls such as <link id="KillThread"/> or 
+<link id="ThreadSetPriority"/>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="KillThread"/>
+<link id="ThreadSetPriority"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="InitCriticalSection">
+<short>Initialize a critical section</short>
+<descr>
+<p>
+<var>InitCriticalSection</var> initializes a critical section <var>CS</var>
+for use. Before using a critical section with <link id="EnterCriticalsection"/> or
+<link id="LeaveCriticalsection"/> the critical section should be initialized
+with <var>InitCriticalSection</var>.
+</p>
+<p>
+When a critical section is no longer used, it should be disposed of with
+<link id="DoneCriticalsection"/>
+</p>
+</descr>
+<seealso>
+<link id="DoneCriticalsection"/>
+<link id="EnterCriticalsection"/>
+<link id="LeaveCriticalsection"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="DoneCriticalsection">
+<short>Clean up a critical section.</short>
+<descr>
+<var>DoneCriticalsection</var> cleans up the critical section <var>CS</var>.
+After a call to <var>DoneCriticalsection</var>, the critical section can no
+longer be used with <link id="EnterCriticalsection"/> or
+<link id="LeaveCriticalsection"/>,  unless it is again initialized with <link
+id="InitCriticalSection"/>
+</descr>
+<seealso>
+<link id="InitCriticalsection"/>
+<link id="EnterCriticalsection"/>
+<link id="LeaveCriticalsection"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="EnterCriticalSection">
+<short>Enter a critical section</short>
+<descr>
+<p>
+<var>EnterCriticalSection</var> will suspend the current thread if another
+thread has currently entered the critical section. When the other thread has
+left the critical section (through <link id="LeaveCriticalSection"/>), the
+current thread resumes execution. The result is that only 1 thread is
+executing code which is protected by a <var>EnterCriticalsection</var> and 
+<var>LeaveCriticalSection</var> pair.
+</p>
+<p>
+The critical section must have been initialized with <link id="InitCriticalSection"/>
+prior to a call to <var>EnterCriticalsection</var>.
+</p>
+<p>
+A call to <var>EnterCriticalsection</var> must always be matched by a call
+to <link id="LeaveCriticalSection"/>. To avoid problems, it is best to
+include the code to be execute in a <var>try...finally</var> block, as
+follows:
+</p>
+<code>
+  EnterCriticalSection(Section);
+  Try 
+    // Code to be protected goes here.
+  Finally
+    LeaveCriticalSection(Section);
+  end;
+</code>
+<p>
+For performance reasons it is best to limit the code between the entering
+and leaving of a critical section as short as possible.
+</p>
+</descr>
+<seealso>
+<link id="InitCriticalsection"/>
+<link id="DoneCriticalsection"/>
+<link id="LeaveCriticalsection"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="LeaveCriticalsection">
+<short>Leave a critical section</short>
+<descr>
+<p>
+<var>LeaveCriticalSection</var> signals that the current thread is exiting
+the critical section <var>CS</var> it has entered with <link id="EnterCriticalSection"/>.
+</p>
+<p>
+The critical section must have been initialized with <link id="InitCriticalSection"/>
+prior to a call to <var>EnterCriticalsection</var> and <var>LeaveCriticalSection</var>.
+</p>
+</descr>
+<seealso>
+<link id="InitCriticalsection"/>
+<link id="DoneCriticalsection"/>
+<link id="EnterCriticalsection"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="BasicEventCreate">
+<short>Obsolete. Don't use</short>
+<descr>
+<var>BasicEventCreate</var> is obsolete, use <link id="RTLEventCreate"/>
+instead.
+</descr>
+<seealso>
+<link id="RTLEventCreate"/></seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="basiceventdestroy">
+<short>Obsolete. Don't use</short>
+<descr>
+<var>basiceventdestroy</var> is obsolete. Use <link id="RTLEventDestroy"/>
+instead.
+</descr>
+<seealso>
+<link id="RTLEventDestroy"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="basiceventResetEvent">
+<short>Obsolete. Don't use</short>
+<descr>
+<var>basiceventResetEvent</var> is obsolete. Use <link id="RTLEventResetEvent"/>
+instead.
+</descr>
+<seealso>
+<link id="RTLEventResetEvent"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="basiceventSetEvent">
+<short>Obsolete. Don't use</short>
+<descr>
+<var>basiceventSetEvent</var> is obsolete. Use <link id="RTLEventSetEvent"/>
+instead.
+</descr>
+<seealso>
+<link id="RTLEventSetEvent"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="basiceventWaitFor">
+<short>Obsolete. Don't use</short>
+<descr>
+<var>basiceventwaitfor</var> is obsolete. Use <link id="RTLEventWaitFor"/>
+instead.
+</descr>
+<seealso>
+<link id="RTLEventWaitFor"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="RTLEventCreate">
+<short>Create a new RTL event</short>
+<descr>
+<p>
+<var>RTLEventCreate</var> creates and initializes a new RTL event.  RTL
+events are used to notify other threads that a certain condition is met, 
+and to notify other threads of condition changes (conditional variables).
+</p>
+<p>
+The function returns an initialized RTL event, which must be disposed of
+with <link id="RTLEventdestroy"/>
+</p>
+<p>
+<var>RTLEvent</var> is used mainly for the synchronize method.
+</p>
+</descr>
+<seealso>
+<link id="RTLEventDestroy"/>
+<link id="RTLEventSet"/>
+<link id="RTLEventReSet"/>
+<link id="RTLEventWaitFor"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="RTLeventdestroy">
+<short>Destroy a RTL Event</short>
+<descr>
+<var>RTLeventdestroy</var> destroys the RTL event <var>State</var>.
+After a call to <var>RTLeventdestroy</var>, the <var>State</var> RTL event
+may no longer be used.
+</descr>
+<seealso>
+<link id="RTLEventCreate"/>
+<link id="RTLEventReset"/>
+<link id="RTLEventSet"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="RTLeventSetEvent">
+<short>Notify threads of the event.</short>
+<descr>
+<var>RTLeventSetEvent</var> notifies other threads which are listening, 
+that the event has occurred.
+</descr>
+<seealso>
+<link id="RTLEventCreate"/>
+<link id="RTLEventResetEvent"/>
+<link id="RTLEventDestroy"/>
+<link id="RTLEventWaitFor"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="RTLeventResetEvent">
+<short>Reset an event</short>
+<descr>
+<var>RTLeventSetEvent</var> notifies other threads which are listening,
+that the event has occurred.
+</descr>
+<seealso>
+<link id="RTLEventCreate"/>
+<link id="RTLEventDestroy"/>
+<link id="RTLEventSetEvent"/>
+<link id="RTLEventWaitFor"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="RTLeventStartWait">
+<short>Prepare the event for waiting.</short>
+<descr>
+<p>
+<var>RTLeventResetEvent</var> signals that a thread is ready to start
+waiting on an event <var>state</var>. No event can be posted until a thread explicitly 
+starts waiting on the event using <link id="RTLEventWaitFor"/>.
+</p>
+</descr>
+<seealso>
+<link id="RTLEventCreate"/>
+<link id="RTLEventDestroy"/>
+<link id="RTLEventSetEvent"/>
+<link id="RTLEventWaitFor"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="RTLeventWaitFor">
+<short>Wait for an event.</short>
+<descr>
+<p>
+<var>RTLeventWaitFor</var> suspends the thread till the event occurs. The
+event will occur when another thread calls <link id="RTLEventSetEvent"/> on
+<var>State</var>.
+</p>
+<p>
+By default, the thread will be suspended indefinitely. However, if
+<var>TimeOut</var> is specified, then the thread will resume after timeout
+milliseconds have elapsed.
+</p>
+</descr>
+<seealso>
+<link id="RTLEventCreate"/>
+<link id="RTLEventDestroy"/>
+<link id="RTLEventSetEvent"/>
+<link id="RTLEventWaitFor"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="RTLeventsync">
+<short>Obsolete. Don't use</short>
+<descr>
+<var>RTLeventsync</var> is obsolete, don't use it.
+</descr>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="CtrlZMarksEOF">
+<short>Determine whether CTRL-Z marks the end of file.</short>
+<descr>
+<p>
+<var>CtrlZMarksEOF</var> indicates whether on this system, an
+<var>CTRL-Z</var> character (ordinal 26) in a file marks the 
+end of the file. This is <var>False</var> on most systems except on DOS.
+</p>
+<p>
+To get DOS-compatible behaviour, this constant can be set to <var>True</var>
+</p>
+</descr>
+<seealso>
+<link id="LineEnding"/>
+<link id="SetTextLineEnding"/>
+</seealso>
+</element>
 
 </module>
 </package>

@@ -698,7 +698,10 @@ compatibiliy purposes only.
 <var>TList</var> is a class that can be used to manage collections of
 pointers. It introduces methods and properties to store the pointers, search
 in the list of pointers, sort them. It manages its memory by itself, no
-intervention for that is needed.
+intervention for that is needed. It has an event notification mechanism
+which allows to notify of list changes. This slows down some of
+<var>TList</var> mechanisms, and if no notification is used,
+<link id="TFPList"/> may be used instead.
 </p>
 <p>
 To manage collections of strings, it is better to use a <link
@@ -710,6 +713,20 @@ descendent can be made to manage collections of various kinds.
 <seealso>
 <link id="TStrings"/>
 <link id="TCollection"/>
+</seealso>
+</element>
+
+<element name="TList.Create">
+<short>Class to manage collections of pointers.</short>
+<descr>
+<p>
+<var>TList.Create</var> creates a new instance of <var>TList</var>. 
+It clears the list and prepares it for use.
+</p>
+</descr>
+<seealso>
+<link id="TList"/>
+<link id="TList.Destroy"/>
 </seealso>
 </element>
 
@@ -1108,6 +1125,465 @@ The list is zero-based, so Index must be in the range <var>0</var> to
 <!--  property List: PPointerList read FList; -->
 
 <element name="TList.List">
+<short>
+Memory array where pointers are stored.
+</short>
+<descr>
+<var>List</var> points to the memory space where the pointers are stored.
+This can be used to quickly copy the list of pinters to another location.
+</descr>
+</element>
+
+<!--
+ **********************************************************************
+ TFPList
+ **********************************************************************
+-->
+
+<element name="TFPList">
+<short>Class to manage collections of pointers.</short>
+<descr>
+<p>
+<var>TFPList</var> is a class that can be used to manage collections of
+pointers. It introduces methods and properties to store the pointers, search
+in the list of pointers, sort them. It manages its memory by itself, no
+intervention for that is needed. Contrary to <link id="TList"/>,
+<var>TFPList</var> has no notification mechanism. If no notification
+mechanism is used, it is better to use <var>TFPList</var> instead of
+<var>TList</var>, as the performance of <var>TFPList</var> is much higher.
+</p>
+<p>
+To manage collections of strings, it is better to use a <link
+id="TStrings"/> descendent such as <link id="TStringList"/>. To manage
+general objects, a <link id="TCollection"/> class exists, from which a
+descendent can be made to manage collections of various kinds.
+</p>
+</descr>
+<seealso>
+<link id="TStrings"/>
+<link id="TCollection"/>
+</seealso>
+</element>
+
+<element name="TFPList.Assign">
+<short>Assigns all items of a list to this list.</short>
+<descr>
+<var>Assign</var> clears the list and adds all pointers in
+<var>Obj</var> to the list.
+</descr>
+<seealso>
+<link id="TFPList.Add"/>
+<link id="TFPList.Clear"/>
+</seealso>
+</element>
+
+<element name="TFPList.Extract">
+<short>Remove the first occurrence of a pointer from the list.</short>
+<descr>
+<var>Extract</var> searches for the first occurrence of <var>Item</var> in
+the list and deletes it from the list. If <var>Item</var> was found, it's 
+value is returned. If <var>Item</var> was not found, <var>Nil</var> is returned.
+</descr>
+<seealso>
+<link id="TFPList.Delete"/>
+</seealso>
+</element>
+
+<!-- To be documented later on maybe ?
+
+    function Get(Index: Integer): Pointer;
+<element name="">
+<short>
+</short>
+<descr>
+</descr>
+</element>
+
+
+    procedure Grow; virtual;
+<element name="">
+<short>
+</short>
+<descr>
+</descr>
+</element>
+
+
+    procedure Put(Index: Integer; Item: Pointer);
+<element name="">
+<short>
+</short>
+<descr>
+</descr>
+</element>
+
+
+    procedure SetCapacity(NewCapacity: Integer);
+<element name="">
+<short>
+</short>
+<descr>
+</descr>
+</element>
+
+
+    procedure SetCount(NewCount: Integer);
+<element name="">
+<short>
+</short>
+<descr>
+</descr>
+</element>
+
+-->
+
+<element name="TFPList.Destroy">
+<short>
+Destroys the list and releases the memory used to store the list elements.
+</short>
+<descr>
+<var>Destroy</var> destroys the list and releases the memory used to store 
+the list elements. The elements themselves are in no way touched, i.e. any
+meomory they point to must be explicitly released before calling the
+destructor.
+</descr>
+</element>
+
+
+<element name="TFPList.Add">
+<short>
+Adds a new pointer to the list.
+</short>
+<descr>
+<p>
+<var>Add</var> adds a new pointer to the list after the last pointer (i.e.
+at position <var>Count</var>, thus increasing the item count with 1. 
+If the list is at full capacity, the capacity of the list is expanded, 
+using the <link id="TFPList.Grow">Grow</link> method.
+</p>
+<p>
+To insert a pointer at a certain position in the list, use the <link
+id="TFPList.Insert">Insert</link> method instead.
+</p>
+</descr>
+<seealso>
+<link id="TFPList.Delete">Delete</link>
+<link id="TFPList.Grow">Grow</link>
+<link id="TFPList.Insert">Insert</link>
+</seealso>
+</element>
+
+
+
+<element name="TFPList.Clear">
+<short>
+Clears the pointer list.
+</short>
+<descr>
+<var>Clear</var> removes all pointers from the list, and sets the capacity to
+0, thus freeing any memory allocated to maintain the list.
+</descr>
+<seealso>
+<link id="TFPList.Destroy">Destroy</link>
+</seealso>
+</element>
+
+
+<!--    procedure Delete(Index: Integer); -->
+<element name="TFPList.Delete">
+<short>
+Removes a pointer from the list.
+</short>
+<descr>
+<p><var>Delete</var> removes the pointer at position <var>Index</var> from the
+list, shifting all following pointers one position up (or to the left).
+</p>
+<p>
+The memory the pointer is pointing to is <i>not</i> deallocated. 
+</p>
+</descr>
+</element>
+
+
+<element name="TFPList.Error">
+<short>
+Raises an <link id="EListError"/> exception.
+</short>
+<descr>
+<var>Error</var> raises an <link id="EListError"/> exception, with a message
+formatted with <var>Msg</var> and <var>Data</var>.
+</descr>
+</element>
+
+
+<!--    procedure Exchange(Index1, Index2: Integer); -->
+<element name="TFPList.Exchange">
+<short>
+Exchanges two pointers in the list.
+</short>
+<descr>
+<var>Exchange</var> exchanges the pointers at positions <var>Index1</var>
+and <var>Index2</var>. Both pointers must be withing the current range of
+the list, or an <link id="EListError"/> exception will be raised.
+</descr>
+</element>
+
+
+<element name="TFPList.Expand">
+<short>
+Increases the capacity of the list if needed.
+</short>
+<descr>
+<p>
+<var>Expand</var> increases the capacity of the list if the current element
+count matches the current list capacity.
+</p>
+<p>
+The capacity is increased according to the following algorithm:
+</p>
+<ol>
+<li>If the capacity is less than 3, the capacity is increased with 4.</li>
+<li>If the capacity is larger than 3 and less than 8, the capacity is increased with 8.</li>
+<li>If the capacity is larger than 8, the capacity is increased with 16.</li>
+</ol>
+<p>
+The return value is <var>Self</var>.
+</p>
+</descr>
+<seealso>
+<link id="TFPList.Capacity">Capacity</link>
+<!-- <link id="TFPList.SetCapacity"> -->
+</seealso>
+</element>
+
+
+<element name="TFPList.First">
+<short>
+Returns the first non-nil pointer in the list.
+</short>
+<descr>
+<p>
+<var>First</var> returns the value of the first non-nil pointer in the
+list.
+</p>
+<p> If there are no pointers in the list or all pointers equal
+<var>Nil</var>, then <var>Nil</var> is returned.
+</p>
+</descr>
+<seealso>
+<link id="TFPList.Last">Last</link>
+</seealso>
+</element>
+
+
+<!--    function IndexOf(Item: Pointer): Integer; -->
+<element name="TFPList.IndexOf">
+<short>
+Returns the index of a given pointer.
+</short>
+<descr>
+<p>
+<var>IndexOf</var> searches for the pointer <var>Item</var> in the list
+of pointers, and returns the index of the pointer, if found. 
+</p>
+<p>
+If no pointer with the value <var>Item</var> was found, -1 is returned.
+</p>
+</descr>
+</element>
+
+
+<element name="TFPList.Insert">
+<short>
+Inserts a new pointer in the list at a given position.
+</short>
+<descr>
+<p>
+<var>Insert</var> inserts pointer <var>Item</var> at position
+<var>Index</var> in the list. All pointers starting from <var>Index</var>
+are shifted to the right.
+</p>
+<p>
+If <var>Index</var> is not a valid position, then a <link id="EListError"/>
+exception is raised.
+</p>
+</descr>
+<seealso>
+<link id="TFPList.Add">Add</link>
+<link id="TFPList.Delete">Delete</link>
+</seealso>
+</element>
+
+<element name="TFPList.Insert.Item">
+<short> Pointer to be inserted.</short>
+</element>
+
+<element name="TFPList.Insert.Index">
+<short> Position where to insert</short>
+</element>
+
+<!--    function Last: Pointer; -->
+<element name="TFPList.Last">
+<short>
+Returns the last non-nil pointer in the list.
+</short>
+<descr>
+<p>
+<var>Last</var> returns the value of the last non-nil pointer in the
+list.
+</p>
+<p> If there are no pointers in the list or all pointers equal
+<var>Nil</var>, then <var>Nil</var> is returned.
+</p>
+</descr>
+<seealso>
+<link id="TFPList.First">First</link>
+</seealso>
+</element>
+
+<!--    procedure Move(CurIndex, NewIndex: Integer); -->
+<element name="TFPList.Move">
+<short>
+Moves a pointer from one position in the list to another.
+</short>
+<descr>
+<p>
+<var>Move</var> moves the pointer at position <var>CurIndex</var>
+to position <var>NewIndex</var>. This is done by storing the value 
+at position <var>CurIndex</var>, deleting the pointer at position
+<var>CurIndex</var>, and reinserting the value at position
+<var>NewIndex</var>
+</p>
+<p>
+If <var>CurIndex</var> or <var>Newindex</var> are not inside the valid
+range of indices, an <link id="EListError"/> exception is raised.
+</p>
+</descr>
+<seealso>
+<link id="TFPList.Exchange">Exchange</link>
+</seealso>
+</element>
+
+<!--    function Remove(Item: Pointer): Integer; -->
+<element name="TFPList.Remove">
+<short>
+Removes a value from the list.
+</short>
+<descr>
+<var>Remove</var> searches <var>Item</var> in the list, and, if it finds it,
+deletes the item from the list. Only the first occurrence of <var>Item</var>
+is removed.
+</descr>
+<seealso>
+<link id="TFPList.Delete">Delete</link>
+<link id="TFPList.IndexOf">IndexOf</link>
+<link id="TFPList.Insert">Insert</link>
+</seealso>
+</element>
+
+<!--    procedure Pack; -->
+<element name="TFPList.Pack">
+<short>
+Removes <var>Nil</var> pointers from the list and frees unused memory.
+</short>
+<descr>
+<var>Pack</var> removes all <var>nil</var> pointers from the list. 
+The capacity of the list is then set to the number of pointers in the list.
+
+This method can be used to free unused memory if the list has grown to
+very large sizes and has a lot of unneeded nil pointers in it.
+</descr>
+<seealso>
+<link id="TFPList.Clear"/>
+</seealso>
+</element>
+
+
+<!--    procedure Sort(Compare: TFPListSortCompare); -->
+<element name="TFPList.Sort">
+<short>
+Sorts the pointers in the list.
+</short>
+<descr>
+<p>
+<var>Sort></var> sorts the pointers in the list. Two pointers are compared
+by passing them to the <var>Compare</var> function. The result of this
+function determines how the pointers will be sorted:
+</p>
+<ul>
+<li> If the result of this function is negative, the first pointer is 
+assumed to be 'less' than the second and will be moved before the second 
+in the list.</li>
+<li> If the function result is positive, the first pointer is assumed to
+be 'greater than' the second and will be moved after the second in the
+list.</li>
+<li> if the function result is zero, the pointers are assumed to be 'equal'
+and no moving will take place. </li>
+</ul>
+<p>
+The sort is done using a quicksort algorithm.
+</p>
+</descr>
+</element>
+
+<!--    property Capacity: Integer read FCapacity write SetCapacity; -->
+<element name="TFPList.Capacity">
+<short>
+Current capacity (i.e. number of pointers that can be stored) of the list.
+</short>
+<descr>
+<p><var>Capacity</var> contains the number of pointers the list can store
+before it starts to grow. 
+</p>
+<p>
+If a new pointer is added to the list using <link id="TFPList.Add">add</link>
+or <link id="TFPList.Insert">insert</link>, and there is not enough memory to
+store the new pointer, then the list will try to allocate more memory to
+store the new pointer. Since this is a time consuming operation, it is
+important that this operation be performed as little as possible. If
+it is known how many pointers there will be before filling the list, it is
+a good idea to set the capacity first before filling. This ensures that the
+list doesn't need to grow, and will speed up filling the list.
+</p>
+</descr>
+<seealso>
+<link id="TFPList.SetCapacity">SetCapacity</link>
+<link id="TFPList.Count">Count</link>
+</seealso>
+</element>
+
+<!--    property Count: Integer read FCount write SetCount; -->
+<element name="TFPList.Count">
+<short>
+Current number of pointers in the list.
+</short>
+<descr>
+<var>Count</var> is the current number of (possibly <var>Nil</var>) pointers
+in the list. Since the list is zero-based, the index of the largest pointer
+is <var>Count-1</var>.
+</descr>
+<link id="TFPList.Capacity">Capacity</link>
+</element>
+
+<!--  property Items[Index: Integer]: Pointer read Get write Put; default; -->
+<element name="TFPList.Items">
+<short>
+Probides access to the pointers in the list. 
+</short>
+<descr>
+<p><var>Items</var> is used to access the pointers in the list. It is the
+default property of the <var>TFPList</var> class, so it can be omitted. 
+</p>
+<p>
+The list is zero-based, so Index must be in the range <var>0</var> to 
+<var>Count-1</var>.
+</p>
+</descr>
+</element>
+
+<!--  property List: PPointerList read FList; -->
+
+<element name="TFPList.List">
 <short>
 Memory array where pointers are stored.
 </short>
@@ -8183,6 +8659,19 @@ insert itself in the list of owned components of the owner.
 <seealso>
 <link id="TComponent.Insert">Insert</link>
 <link id="TComponent.Owner">Owner</link>
+</seealso>
+</element>
+
+<element name="TComponent.SetSubComponent"> 
+<short>Sets the <var>csSubComponent</var> style.</short>
+<descr>
+<var>SetSubComponent</var> includes <var>csSubComponent</var> in the
+<link id="TComponent.ComponentStyle">ComponentStyle</link> property
+if <var>ASubComponent</var> is <var>True</var>, and 
+excludes it again if <var>ASubComponent</var> is <var>False</var>.
+</descr>
+<seealso>
+<link id="TComponent.ComponentStyle"/>
 </seealso>
 </element>
 
