@@ -407,12 +407,28 @@ begin
 
     on EControlCAbort do
       begin
-        Message(general_e_compilation_aborted);
+        try
+          { in case of 50 errors, this could cause another exception,
+            suppress this exception
+          }
+          Message(general_e_compilation_aborted);
+        except
+          on ECompilerAbort do
+            ;
+        end;
         DoneVerbose;
       end;
     on ECompilerAbort do
       begin
-        Message(general_e_compilation_aborted);
+        try
+          { in case of 50 errors, this could cause another exception,
+            suppress this exception
+          }
+          Message(general_e_compilation_aborted);
+        except
+          on ECompilerAbort do
+            ;
+        end;
         DoneVerbose;
       end;
     on ECompilerAbortSilent do
@@ -422,7 +438,15 @@ begin
     on Exception do
       begin
         { General catchall, normally not used }
-        Message(general_e_compilation_aborted);
+        try
+          { in case of 50 errors, this could cause another exception,
+            suppress this exception
+          }
+          Message(general_e_compilation_aborted);
+        except
+          on ECompilerAbort do
+            ;
+        end;
         DoneVerbose;
         Raise;
       end;
@@ -446,7 +470,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.60  2005-04-24 21:01:37  peter
+  Revision 1.61  2005-05-06 18:54:26  florian
+    * better exception catching
+
+  Revision 1.60  2005/04/24 21:01:37  peter
     * always use exceptions to stop the compiler
     - remove stop, do_stop
 
