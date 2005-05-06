@@ -6,7 +6,7 @@
 main=fcl
 
 [target]
-units=fpcunittests  money  moneytest
+units=fpcunittests  money  moneytest testmockobject
 
 [compiler]
 options=-S2h
