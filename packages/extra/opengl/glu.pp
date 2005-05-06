@@ -89,10 +89,10 @@ var
   gluGetString: function(name: GLenum): PGLubyte; extdecl;
   gluOrtho2D: procedure(left,right, bottom, top: GLdouble); extdecl;
   gluPerspective: procedure(fovy, aspect, zNear, zFar: GLdouble); extdecl;
-  gluPickMatrix: procedure(x, y, width, height: GLdouble; viewport: TViewPortArray); extdecl;
+  gluPickMatrix: procedure(x, y, width, height: GLdouble; var viewport: TViewPortArray); extdecl;
   gluLookAt: procedure(eyex, eyey, eyez, centerx, centery, centerz, upx, upy, upz: GLdouble); extdecl;
-  gluProject: function(objx, objy, objz: GLdouble; const modelMatrix, projMatrix: T16dArray; viewport: TViewPortArray; winx, winy, winz: PGLdouble): Integer; extdecl;
-  gluUnProject: function(winx, winy, winz: GLdouble; const modelMatrix, projMatrix: T16dArray; viewport: TViewPortArray; objx, objy, objz: PGLdouble): Integer; extdecl;
+  gluProject: function(objx, objy, objz: GLdouble; var modelMatrix, projMatrix: T16dArray; var viewport: TViewPortArray; winx, winy, winz: PGLdouble): Integer; extdecl;
+  gluUnProject: function(winx, winy, winz: GLdouble; var modelMatrix, projMatrix: T16dArray; var viewport: TViewPortArray; objx, objy, objz: PGLdouble): Integer; extdecl;
   gluScaleImage: function(format: GLenum; widthin, heightin: GLint; typein: GLenum; const datain: Pointer; widthout, heightout: GLint; typeout: GLenum; dataout: Pointer): Integer; extdecl;
   gluBuild1DMipmaps: function(target: GLenum; components, width: GLint; format, atype: GLenum; const data: Pointer): Integer; extdecl;
   gluBuild2DMipmaps: function(target: GLenum; components, width, height: GLint; format, atype: GLenum; const data: Pointer): Integer; extdecl;
@@ -124,7 +124,7 @@ var
   gluDeleteTess: procedure(tess: PGLUtesselator); extdecl;
   gluTessBeginPolygon: procedure(tess: PGLUtesselator; polygon_data: Pointer); extdecl;
   gluTessBeginContour: procedure(tess: PGLUtesselator); extdecl;
-  gluTessVertex: procedure(tess: PGLUtesselator; coords: T3dArray; data: Pointer); extdecl;
+  gluTessVertex: procedure(tess: PGLUtesselator; var coords: T3dArray; data: Pointer); extdecl;
   gluTessEndContour: procedure(tess: PGLUtesselator); extdecl;
   gluTessEndPolygon: procedure(tess: PGLUtesselator); extdecl;
   gluTessProperty: procedure(tess: PGLUtesselator; which: GLenum; value: GLdouble); extdecl;
@@ -142,7 +142,7 @@ var
   gluPwlCurve: procedure(nobj: PGLUnurbs; count: GLint; aarray: PGLfloat; stride: GLint; atype: GLenum); extdecl;
   gluNurbsCurve: procedure(nobj: PGLUnurbs; nknots: GLint; knot: PGLfloat; stride: GLint; ctlarray: PGLfloat; order: GLint; atype: GLenum); extdecl;
   gluNurbsSurface: procedure(nobj: PGLUnurbs; sknot_count: GLint; sknot: PGLfloat; tknot_count: GLint; tknot: PGLfloat; s_stride, t_stride: GLint; ctlarray: PGLfloat; sorder, torder: GLint; atype: GLenum); extdecl;
-  gluLoadSamplingMatrices: procedure(nobj: PGLUnurbs; const modelMatrix, projMatrix: T16dArray; viewport: TViewPortArray); extdecl;
+  gluLoadSamplingMatrices: procedure(nobj: PGLUnurbs; var modelMatrix, projMatrix: T16dArray; var viewport: TViewPortArray); extdecl;
   gluNurbsProperty: procedure(nobj: PGLUnurbs; aproperty: GLenum; value: GLfloat); extdecl;
   gluGetNurbsProperty: procedure(nobj: PGLUnurbs; aproperty: GLenum; value: PGLfloat); extdecl;
   gluNurbsCallback: procedure(nobj: PGLUnurbs; which: GLenum; fn: TCallBack); extdecl;
@@ -159,13 +159,13 @@ type
   GLUtessVertexProc = procedure(p: Pointer); extdecl;
   GLUtessEndProc = procedure; extdecl;
   GLUtessErrorProc = procedure(p: GLenum); extdecl;
-  GLUtessCombineProc = procedure(p1: T3dArray; p2: T4pArray; p3: T4fArray; p4: PPointer); extdecl;
+  GLUtessCombineProc = procedure(var p1: T3dArray; p2: T4pArray; p3: T4fArray; p4: PPointer); extdecl;
   GLUtessBeginDataProc = procedure(p1: GLenum; p2: Pointer); extdecl;
   GLUtessEdgeFlagDataProc = procedure(p1: GLboolean; p2: Pointer); extdecl;
   GLUtessVertexDataProc = procedure(p1, p2: Pointer); extdecl;
   GLUtessEndDataProc = procedure(p: Pointer); extdecl;
   GLUtessErrorDataProc = procedure(p1: GLenum; p2: Pointer); extdecl;
-  GLUtessCombineDataProc = procedure(p1: T3dArray; p2: T4pArray; p3: T4fArray;
+  GLUtessCombineDataProc = procedure(p1: var T3dArray; var p2: T4pArray; var p3: T4fArray;
                                      p4: PPointer; p5: Pointer); extdecl;
 
   // gluNurbsCallback
@@ -522,8 +522,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2005-02-14 17:13:21  peter
+  Revision 1.6  2005-05-06 15:02:55  michael
+  + Fixed array declarations which need to be var
+
+  Revision 1.5  2005/02/14 17:13:21  peter
     * truncate log
 
 }
-
