@@ -301,29 +301,34 @@ begin
     Try
       Engine1:=TSkelEngine.Create;
       Try
-        Engine1.SetPackageName('diff'); // do not localize
-        ParseSource(Engine1, InputFile1, OSTarget, CPUTarget);
-        Engine1.FList.Sorted:=True;
-        if (InputFile2<>'') then
-          begin
-          Engine2:=TSkelEngine.Create;
-          Try
-            Engine2.SetPackageName('diff'); // do not localize
-            ParseSource(Engine2, InputFile2, OSTarget, CPUTarget);
-            Engine2.FList.Sorted:=True;
-            If cmdLineAction=ActionList then
-              begin
-              ListIdentifiers(InputFile1,Engine1.FList);
-              ListIdentifiers(InputFile2,Engine2.FList);
-              end
-            else
-              DiffIdentifiers(Engine1.Flist,Engine2.Flist);
-          finally
-            Engine2.Free;
-          end;
-          end
-        else
-          ListIdentifiers(InputFile1,Engine1.FList);
+        try
+          Engine1.SetPackageName('diff'); // do not localize
+          ParseSource(Engine1, InputFile1, OSTarget, CPUTarget);
+          Engine1.FList.Sorted:=True;
+          if (InputFile2<>'') then
+            begin
+              Engine2:=TSkelEngine.Create;
+              Try
+                Engine2.SetPackageName('diff'); // do not localize
+                ParseSource(Engine2, InputFile2, OSTarget, CPUTarget);
+                Engine2.FList.Sorted:=True;
+                If cmdLineAction=ActionList then
+                  begin
+                  ListIdentifiers(InputFile1,Engine1.FList);
+                  ListIdentifiers(InputFile2,Engine2.FList);
+                  end
+                else
+                  DiffIdentifiers(Engine1.Flist,Engine2.Flist);
+              finally
+                Engine2.Free;
+              end;
+            end
+          else
+            ListIdentifiers(InputFile1,Engine1.FList);
+        except
+          on e: eparsererror do
+            writeln(format('%s(%d,%d): Error: %s',[e.Filename,e.Row,e.Column,e.Message]));
+        end;
       Finally
         Engine1.Free;
       end;
@@ -336,7 +341,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2005-02-14 17:13:39  peter
+  Revision 1.6  2005-05-06 19:31:36  florian
+    * better error reporting
+
+  Revision 1.5  2005/02/14 17:13:39  peter
     * truncate log
 
   Revision 1.4  2005/01/01 19:56:29  armin
