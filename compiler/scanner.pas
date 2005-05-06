@@ -670,7 +670,7 @@ implementation
                                           end;
                                         end;
                                       conststring :
-                                        read_factor := upper(pchar(value.valueordptr))
+                                        read_factor := upper(pchar(value.valueptr))
                                     end;
                                   end;
                               end;
@@ -3351,7 +3351,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.105  2005-05-02 18:44:00  michael
+  Revision 1.106  2005-05-06 17:02:52  florian
+    * 32 -> 64 bit cross compilation fixed
+
+  Revision 1.105  2005/05/02 18:44:00  michael
   + Patch from Christian Iversen to fix defined() macro command
 
   Revision 1.104  2005/03/28 21:34:36  olle
