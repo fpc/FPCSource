@@ -1542,14 +1542,15 @@ generation is not yet fully supported.
 The \fpc compiler supports conditionals as in normal Turbo Pascal. It does,
 however, more than that. It allows you to make macros which can be used in
 your code, and it allows you to define messages or errors which will be
-displayed when compiling.
+displayed when compiling. It also has support for compile-time variables and
+compile-time expressions, as commonly found in \macos compilers.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Conditionals
 \section{Conditionals}
 \label{se:Conditionals}
-The rules for using conditional symbols are the same as under Turbo Pascal.
-Defining a symbol goes as follows:
+The rules for using conditional symbols are the same as under Turbo Pascal
+or Delphi. Defining a symbol goes as follows:
 \begin{verbatim}
 {$define Symbol}
 \end{verbatim}
@@ -1566,7 +1567,7 @@ Undefining an existing symbol is done in a similar way:
 \end{verbatim}
 If the symbol didn't exist yet, this doesn't do anything. If the symbol
 existed previously, the symbol will be erased, and will not be recognized
-any more in the code following the \verb|{$undef \dots}| statement.
+any more in the code following the \verb|{$undef ...}| statement.
 
 You can also undefine symbols from the command line with the \var{-u}
 command-line switch.
@@ -1606,9 +1607,129 @@ In this example, if \var{MySymbol} exists, then the call to \var{DoSomething}
 will be compiled. If it doesn't exist, the call to \var{DoSomethingElse} is
 compiled.
 
-Except for the Turbo Pascal constructs the \fpc compiler also
-supports a stronger conditional compile mechanism: The \var{\{\$if\}}
-construct.
+\subsection{Predefined symbols}
+
+The \fpc compiler defines some symbols before starting to compile your
+program or unit. You can use these symbols to differentiate between
+different versions of the compiler, and between different compilers.
+To get all the possible defines when starting compilation,
+see appendix \ref{ch:AppG}
+
+\begin{remark}Symbols, even when they're defined in the interface part of
+a unit, are not available outside that unit.
+\end{remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Macros
+\section{Macros}
+\label{se:Macros}
+Macros are very much like symbols or compile-time variables in their syntax, 
+the difference is that macros have a value whereas a symbol simply is defined 
+or is not defined. Furthermore, following the definition of a macro, any
+occurrence of the macro in the pascal source will be replaced with the value
+of the macro (much like the macro support in the C preprocessor). If macro 
+support is required, the \var{-Sm} command-line switch must be used to
+switch it on, or the directive must be inserted:
+\begin{verbatim}
+{$MACROS ON}
+\end{verbatim}
+otherwise macros will be regarded as a symbol.
+
+Defining a macro in a program is done in the same way as defining a symbol;
+in a \var{\{\$define\}} preprocessor statement\footnote{In compiler
+versions older than 0.9.8, the assignment operator for a macros wasn't
+\var{:=} but \var{=}}:
+\begin{verbatim}
+{$define ident:=expr}
+\end{verbatim}
+If the compiler encounters \var{ident} in the rest of the source file, it
+will be replaced immediately by \var{expr}. This replacement works
+recursive, meaning that when the compiler expanded one macro, it
+will look at the resulting expression again to see if another replacement
+can be made. This means that care should be taken when using macros, 
+because an infinite loop can occur in this manner.
+
+Here are two examples which illustrate the use of macros:
+\begin{verbatim}
+{$define sum:=a:=a+b;}
+...
+sum          { will be expanded to 'a:=a+b;'
+               remark the absence of the semicolon}
+...
+{$define b:=100}
+sum          { Will be expanded recursively to a:=a+100; }
+...
+\end{verbatim}
+The previous example could go wrong:
+\begin{verbatim}
+{$define sum:=a:=a+b;}
+...
+sum          { will be expanded to 'a:=a+b;'
+               remark the absence of the semicolon}
+...
+{$define b=sum} { DON'T do this !!!}
+sum          { Will be infinitely recursively expanded \dots }
+...
+\end{verbatim}
+On my system, the last example results in a heap error, causing the compiler
+to exit with a run-time error 203.
+
+\begin{remark}Macros defined in the interface part of a unit are not
+available outside that unit! They can just be used as a notational
+convenience, or in conditional compiles.
+\end{remark}
+By default the compiler predefines three
+macros, containing the version number, the release number and the patch
+number. They are listed in \seet{DefMacros}.
+\begin{FPCltable}{ll}{Predefined macros}{DefMacros} \hline
+Symbol & Contains \\ \hline
+\var{FPC\_VERSION} & The version number of the compiler. \\
+\var{FPC\_RELEASE} & The release number of the compiler. \\
+\var{FPC\_PATCH} & The patch number of the compiler. \\
+\hline
+\end{FPCltable}
+
+\begin{remark}Don't forget that macro support isn't on by default. It must
+be turned on  with the \var{-Sm} command-line switch or using the
+\var{\{\$MACROS ON\}} directive.
+\end{remark}
+
+
+\section{Compile time variables}
+In MacPas mode, compile time variables can be defined. They are distinct
+from symbols in that they have a value, and they are distinct from macros,
+in that they cannot be used to replace portions of the source text with
+their value. Their behaviour are compatible with compile time variables 
+found in popular pascal compilers for Macintosh. 
+
+A compile time variable is defined like this:
+\begin{verbatim}
+{$SETC  ident:= expression}
+\end{verbatim}
+The expression is a so-called compile time expression, which is evaluated once, 
+at the point where the \var{\{\$SETC \}} directve is encountered in the
+source. The resulting value is then assigned to the compile time variable.
+
+A second \var{\{\$SETC \}} directive for the same variable overwrites the previous value.
+
+Contrary to macros and symbols, compile time variables defined in the 
+Interface part of a unit are exported. This means their value will be 
+available in units which uses the unit in which the variable is defined. 
+This requires that both units are compiled in macpas mode.
+
+The big difference between macros and compile time variables is that the
+former is a pure text substitution mechanism (much like in C), where the
+latter resemble normal programming language variables, but they are
+available to the compiler only. 
+
+In mode MacPas, compile time variables are always enabled.
+
+\section{Compile time expressions}
+\subsection{Definition}
+Except for the regular Turbo Pascal constructs for conditional compilation,
+the \fpc compiler also supports a stronger conditional compile mechanism: 
+The \var{\{\$if\}} construct, which can be used to evaluate compile-time
+expressions.
 
 The prototype of this construct is as follows:
 \begin{verbatim}
@@ -1618,10 +1739,59 @@ The prototype of this construct is as follows:
   BetterCompileTheseLines;
 {$endif}
 \end{verbatim}
-In this directive \var{expr} is a Pascal expression which is evaluated using
-strings, unless both parts of a comparision can be evaluated as numbers,
-in which case they are evaluated using numbers\footnote{Otherwise
-\var{\{\$if 8>54\}} would evaluate to \var{True}}.
+
+The content of an expression is restricted to what can be evaluated at
+compile-time:
+\begin{itemize}
+\item Constants (strings, numbers)
+\item Macros
+\item Compile time variables (mode MacPas only)
+\item Pascal constant expression (mode Delphi only)
+\end{itemize}
+The symbols are replaced with their value. For macros recursive substitution
+might occur.
+
+The following boolean operators are available:
+\begin{verbatim}
+=,  <>,  >,  <,  >=,  <=, AND,  NOT,  OR,  IN 
+\end{verbatim}
+The IN operator tests for presence of a compile-time variable in a set.
+
+The following functions are also available:
+\begin{description}
+\item[TRUE] Defined in MacPas mode only, it evaluates to True. In other
+modes, 1 can be used.
+\item[FALSE] Defined in MacPas mode only, it evaluates to False. In other
+modes, 0 can be used.
+\item[DEFINED(sym)] will evaluate to \var{TRUE} if a compile time symbol is
+defined. In MacPas mode, the parentheses are optional, i.e. 
+\begin{verbatim}
+{$IF DEFINED(MySym)}
+\end{verbatim}
+is equivalent to 
+\begin{verbatim}
+{$IF DEFINED MySym}
+\end{verbatim}
+\item[UNDEFINED sym] will evaluate to \var{TRUE} if a compile time symbol is {\em
+not} defined, and \var{FALSE} otherwise (mode MacPas only).
+\item[OPTION(opt)] evaluates to \var{TRUE} if a compiler option is set (mode MacPas
+only). It is equivalent to the \var{\{\$IFOPT \}} directive.
+\item[SIZEOF(passym)] Evaluates to the size of a pascal type, variable or
+constant.
+\item[DECLARED(passym)] Evaluates to \var{TRUE} if the pascal symbol is
+declared at this point in the sources, or \var{FALSE} if it is not yet
+defined.
+\end{description}
+
+In expressions, the following rules are used for evaluation:
+\begin{itemize}
+\item If all parts of the expression can be evaluated as booleans (with 1
+and 0 representing \var{TRUE} and \var{FALSE}, the expression is evaluated
+using booleans. 
+\item If all parts of the expression can be evaluated as nuumbers, then the
+expression is evaluated using numbers.
+\item In all other cases, the expression is evaluated using strings.
+\end{itemize}
 If the complete expression evaluates to \var{'0'}, then it is considered
 false and rejected. Otherwise it is considered true and accepted. This may
 have unexpected consequences:
@@ -1634,13 +1804,66 @@ will evaluate to \var{False} and be rejected, while
 \end{verbatim}
 will evaluate to \var{True}.
 
-You can use any Pascal operator to construct your expression: \var{=, <>,
->, <, >=, <=, AND, NOT, OR} and you can use round brackets to change the
-precedence of the operators. Additionally, the constants \var{FALSE} and
-\var{TRUE} can be used, and the operator \var{UNDEFINED}. The \var{UNDEFINED}
-operator returns \var{TRUE} if a macro was not yet defined.
+\subsection{Usage}
+The basic usage of compile time expressions is as follows:
+\begin{verbatim}
+{$if expr}
+  CompileTheseLines;
+{$endif}
+\end{verbatim}
+If \var{expr} evaluates to \var{TRUE}, then \var{CompileTheseLines} will be
+included in the source.
 
-The following example shows you many of the possibilities:
+Like in regular pascal, it is possible to use \var{\{\$ELSE \}}:
+\begin{verbatim}
+{$if expr}
+  CompileTheseLines;
+{$else}
+  BetterCompileTheseLines;
+{$endif}
+\end{verbatim}
+If \var{expr} evaluates to \var{True},  \var{CompileTheseLines} will be
+compiled. Otherwise, \var{BetterCompileTheseLines} will be compiled.
+
+Additionally, it is possible to use var{\{\$ELSEIF\}}
+\begin{verbatim}
+{$IF  expr}
+  // ...
+{$ELSEIF  expr}
+  // ...
+{$ELSEIF  expr}
+  // ...
+{$ELSE}
+  // ...
+{$ENDIF}
+\end{verbatim}
+
+In addition to the above constructs, which are also supported by Delphi,
+the above is completely equivalent to the following construct in MacPas mode:
+\begin{verbatim}
+{$IFC  expr}
+  //...
+{$ELIFC  expr}
+...
+{$ELIFC  expr}
+...
+{$ELSEC}
+...
+{$ENDC}
+\end{verbatim}
+that is, \var{IFC} corresponds to \var{IF}, \var{ELIFC} corresponds to
+\var{ELSEIF}, \var{ELSEC} is equivalent with \var{ELSEC} and \var{ENDC} is
+the equivalent of \var{ENDIF}. Additionally, \var{IFEND} is an equivalent to
+\var{ENDIF}:
+\begin{verbatim}
+{$IF EXPR}
+  CompileThis;
+{$ENDIF}
+\end{verbatim}
+
+In MacPas mode it is possible to mix these constructs.
+
+The following example shows some of the possibilities:
 \begin{verbatim}
 {$ifdef fpc}
 
@@ -1768,21 +1991,27 @@ with normal symbols, only if you use macros, which are explained in
 \sees{Macros}. They can be very useful. When trying this example, you must
 switch on macro support, with the \var{-Sm} command-line switch.
 
-\subsection{Predefined symbols}
+The following example works only in MacPas mode:
+\begin{verbatim}
+{$SETC TARGET_OS_MAC := (NOT UNDEFINED MACOS) OR (NOT UNDEFINED DARWIN)}
 
-The \fpc compiler defines some symbols before starting to compile your
-program or unit. You can use these symbols to differentiate between
-different versions of the compiler, and between different compilers.
-To get all the possible defines when starting compilation,
-see appendix \ref{ch:AppG}
+{$SETC DEBUG := TRUE}
+{$SETC VERSION := 4}
+{$SETC NEWMODULEUNDERDEVELOPMENT := (VERSION >= 4) OR DEBUG}
 
-\begin{remark}Symbols, even when they're defined in the interface part of
-a unit, are not available outside that unit.
-\end{remark}
-
+{$IFC NEWMODULEUNDERDEVELOPMENT}
+  {$IFC TARGET_OS_MAC}
+  ... new mac code
+  {$ELSEC}
+  ... new other code
+  {$ENDC}
+{$ELSEC}
+... old code
+{$ENDC}
+\end{verbatim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Macros
+% Messages
 \section{Messages}
 \label{se:Messages}
 \fpc lets you define normal, warning and error messages in your code.
@@ -1818,6 +2047,10 @@ For warnings:
 \begin{verbatim}
 {$Warning Warning Message text}
 \end{verbatim}
+For hints:
+\begin{verbatim}
+{$Hint Warning Message text}
+\end{verbatim}
 For errors:
 \begin{verbatim}
 {$Error  Error Message text}
@@ -1846,73 +2079,6 @@ the symbol \var{RequiredVar} isn't defined:
 \end{verbatim}
 But the compiler will continue to compile. It will not, however, generate a
 unit file or a program (since an error occurred).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Macros
-\section{Macros}
-\label{se:Macros}
-Macros are very much like symbols in their syntax, the difference is that
-macros have a value whereas a symbol simply is defined or is not defined.
-If you want macro support, you need to specify the \var{-Sm} command-line
-switch, otherwise your macro will be regarded as a symbol.
-
-Defining a macro in your program is done in the same way as defining a symbol;
-in a \var{\{\$define\}} preprocessor statement\footnote{In compiler
-versions older than 0.9.8, the assignment operator for a macros wasn't
-\var{:=} but \var{=}}:
-\begin{verbatim}
-{$define ident:=expr}
-\end{verbatim}
-If the compiler encounters \var{ident} in the rest of the source file, it
-will be replaced immediately by \var{expr}. This replacement works
-recursive, meaning that when the compiler expanded one of your macros, it
-will look at the resulting expression again to see if another replacement
-can be made. You need to be careful with this, because an infinite loop can
-occur in this manner.
-
-Here are two examples which illustrate the use of macros:
-\begin{verbatim}
-{$define sum:=a:=a+b;}
-...
-sum          { will be expanded to 'a:=a+b;'
-               remark the absence of the semicolon}
-...
-{$define b:=100}
-sum          { Will be expanded recursively to a:=a+100; }
-...
-\end{verbatim}
-The previous example could go wrong:
-\begin{verbatim}
-{$define sum:=a:=a+b;}
-...
-sum          { will be expanded to 'a:=a+b;'
-               remark the absence of the semicolon}
-...
-{$define b=sum} { DON'T do this !!!}
-sum          { Will be infinitely recursively expanded \dots }
-...
-\end{verbatim}
-On my system, the last example results in a heap error, causing the compiler
-to exit with a run-time error 203.
-
-\begin{remark}Macros defined in the interface part of a unit are not
-available outside that unit! They can just be used as a notational
-convenience, or in conditional compiles.
-\end{remark}
-By default the compiler predefines three
-macros, containing the version number, the release number and the patch
-number. They are listed in \seet{DefMacros}.
-\begin{FPCltable}{ll}{Predefined macros}{DefMacros} \hline
-Symbol & Contains \\ \hline
-\var{FPC\_VERSION} & The version number of the compiler. \\
-\var{FPC\_RELEASE} & The release number of the compiler. \\
-\var{FPC\_PATCH} & The patch number of the compiler. \\
-\hline
-\end{FPCltable}
-
-\begin{remark}Don't forget that macros support isn't on by default. You
-need to compile with the \var{-Sm} command-line switch.
-\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Using assembly language
@@ -4706,37 +4872,27 @@ available for thread-local storage (\var{ThreadVar}), and cross-platform
 low-level thread routines are available for those operating systems that
 support threads.
 
-The compiler must be told to enable threading in a program. This is done 
-using the \var{\{\$THREADING\}} directive:
-\begin{verbatim}
-Program MyThreads;
-
-{$THREADING ON}
-
-Uses Xyz;
-\end{verbatim}
-The threading directive must appear in the program source code, before the
-uses clause: One of the effects of the directive is that the \file{systhrds} 
-unit is inserted in the \var{uses} clause of the program. This unit contains
-all threading routines.
+All routines for threading are available in the system unit, under the form 
+of a thread manager. A thread manager must implement some basic routines
+which the RTL needs to be able to support threading. For Windows, a default
+threading manager is integrated in the system unit. For other platforms,
+a thread manager must be included explicitly by the programmer. On systems
+where posix threads are available, the \file{cthreads} unit implements a
+thread manager which uses the C POSIX  thread library. No native pascal
+thread library exists for such systems.
 
 Although it is not forbidden to do so, it is not recommended to use system-specific 
 threading routines: The language support for multithreaded programs will not be 
 enabled, meaning that threadvars will not work, the heap manager will be confused 
 which may lead to severe program errors.
 
-The above code only enables language support for threading. The actual threading 
-is implemented using a thread manager. On OSes which have built-in support for 
-threading (such as \windows), the system thread manager will be used and threading 
-is functional. For other OSes (for example, \linux) the threading code resides in
-the C library (it uses pthreads) and must be enabled specifically: this means that
-a thread manager must be used which uses Libc's threading routines to implement 
-the necessary threading routines. The system thread manager will raise an exception
-if threads are started. 
+If no threading support is present in the binary, the use of thread routines
+or the creation of a thread will result in an exception or a run-time error 232.
 
 For \linux (and other Unixes), the C thread manager can be enabled by inserting the
 \var{cthreads} unit in the program's unit clause. Without this, threading programs 
-will give an error when started.
+will give an error when started. It is imperative that the unit be inserted
+as early in the uses clause as possible.
 
 At a later time, a system thread manager may be implemented which implements threads
 without Libc support.
