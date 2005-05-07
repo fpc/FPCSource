@@ -932,6 +932,10 @@ Mainly for the compiler developers.
 compiler can find the executables \file{as} (the assembler) and \file{ld}
 (the linker).
 \olabel{e}
+\item[-FaXYZ] loads units \var{XYZ} after the system unit, but before any other 
+unit is loaded. \var{XYZ} is a comma-separated list of unit names. This can only be used
+for programs, and has the same effect as if \var{XYZ} were inserted as the
+first item in the program's \var{uses} clause.
 \item[-FcXXX] set the input codepage to \var{XXX}. Experimental.
 \item [-FD] same as \var{-e}.
 \item [-Fexxx] This option tells the compiler to write errors, etc. to
