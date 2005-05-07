@@ -122,13 +122,22 @@ function FormatDateTime(FormatStr: string; DateTime: TDateTime):string;
 procedure DateTimeToString(var Result: string; const FormatStr: string; const DateTime: TDateTime);
 Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
 Function FileDateToDateTime (Filedate : Longint) :TDateTime;
+function TryStrToDate(const S: string; out Value: TDateTime): Boolean;
+// function TryStrToDate(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
+function TryStrToTime(const S: string; out Value: TDateTime): Boolean;
+// function TryStrToTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
+function TryStrToDateTime(const S: string; out Value: TDateTime): Boolean;
+// function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 
 { FPC Extra }
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 
 {
   $Log$
-  Revision 1.4  2005-03-17 15:21:10  marco
+  Revision 1.5  2005-05-07 10:23:17  florian
+    + TryStrToDate/Time functions
+
+  Revision 1.4  2005/03/17 15:21:10  marco
    * fixed incmonths default param. Thnks nldelphi
 
   Revision 1.3  2005/02/14 17:13:31  peter

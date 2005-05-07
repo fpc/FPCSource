@@ -753,9 +753,58 @@ begin
           EncodeTime(Time shr 11, (Time shr 5) and 63, (Time and 31) shl 1,0);
 end;
 
+
+function TryStrToDate(const S: string; out Value: TDateTime): Boolean;
+  begin
+    result:=true;
+    try
+      value:=StrToDate(s);
+    except
+      on EConvertError do
+        result:=false
+    end;
+  end;
+  
+  
+// function TryStrToDate(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
+
+
+function TryStrToTime(const S: string; out Value: TDateTime): Boolean;
+  begin
+    result:=true;
+    try
+      value:=StrToTime(s);
+    except
+      on EConvertError do
+        result:=false
+    end;
+  end;
+  
+  
+// function TryStrToTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
+
+
+function TryStrToDateTime(const S: string; out Value: TDateTime): Boolean;
+  begin
+    result:=true;
+    try
+      value:=StrToDateTime(s);
+    except
+      on EConvertError do
+        result:=false
+    end;
+  end;
+  
+  
+// function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
+
+
 {
   $Log$
-  Revision 1.9  2005-03-25 22:53:39  jonas
+  Revision 1.10  2005-05-07 10:23:17  florian
+    + TryStrToDate/Time functions
+
+  Revision 1.9  2005/03/25 22:53:39  jonas
     * fixed several warnings and notes about unused variables (mainly) or
       uninitialised use of variables/function results (a few)
 
