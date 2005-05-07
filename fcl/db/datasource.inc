@@ -7,6 +7,7 @@ Constructor TDataLink.Create;
 begin
   Inherited Create;
   FBufferCount:=1;
+  FDataSource := nil;
   FDatasourceFixed:=False;
 end;
 
