@@ -421,6 +421,11 @@ var
   FieldUpdBuf : PFieldUpdateBuffer;
 
 begin
+  if not (state in [dsEdit, dsInsert]) then
+    begin
+    DatabaseErrorFmt(SNotInEditState,[NAme],self);
+    exit;
+    end;
   If Field.Fieldno > 0 then // If = 0, then calculated field or something
     begin
     CurrBuff := ActiveBuffer;
