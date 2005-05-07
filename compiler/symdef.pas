@@ -135,6 +135,7 @@ interface
           function gettypename:string;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure setsize;
+          function is_publishable : boolean;override;
           function needs_inittable : boolean;override;
           procedure write_rtti_data(rt:trttitype);override;
 {$ifdef GDB}
@@ -2508,6 +2509,13 @@ implementation
         { don't know how to handle this }
       end;
 {$endif GDB}
+
+
+    function tvariantdef.is_publishable : boolean;
+      begin
+         is_publishable:=true;
+      end;
+
 
 {****************************************************************************
                                TPOINTERDEF
@@ -6399,7 +6407,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.304  2005-04-25 13:15:18  peter
+  Revision 1.305  2005-05-07 16:43:02  florian
+    + made variant publishable
+
+  Revision 1.304  2005/04/25 13:15:18  peter
     * extended stabs use size of 10
 
   Revision 1.303  2005/04/03 15:20:42  florian
