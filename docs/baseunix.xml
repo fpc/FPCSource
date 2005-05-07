@@ -4795,6 +4795,36 @@ It is simply a wrapper to the kernel system call.
 </seealso>
 </element>
 
+<element name="cDouble">
+<short>Double precision real format.</short>
+</element>
+
+
+<element name="cFloat">
+<short>Floating-point real format </short>
+</element>
+
+
+<element name="clDouble">
+<short>Long double precision real format (Extended)</short>
+</element>
+
+
+<element name="pcDouble">
+<short>Pointer to <link id="#rtl.baseunix.cdouble">cdouble</link> type.</short>
+</element>
+
+
+<element name="pcFloat">
+<short>Pointer to <link id="#rtl.baseunix.cfloat">cfloat</link> type.</short>
+</element>
+
+
+<element name="pclDouble">
+<short>Pointer to <link id="#rtl.baseunix.cldouble">cldouble</link> type.</short>
+</element>
+
+
 </module> <!-- BaseUnix -->
 </package>
 </fpdoc-descriptions>

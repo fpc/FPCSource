@@ -2756,11 +2756,10 @@ errors are:
 <element name="FormatBuf">
 <short>Format a string with given arguments and store the result in a buffer.</short>
 <descr>
-<var>FormatBuf</var> calls formatfloat with <var>Buf</var>.
+<var>FormatBuf</var> calls <link id="Format"/> and stores the result in <var>Buf</var>.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="Format"/>
 </seealso>
 <example file="sysutex/ex72"/>
 </element>
@@ -7474,6 +7473,74 @@ in <var>Line</var>. It breaks the string only at characters which are in
 </seealso>
 </element>
 
+<element name="FormatCurr">
+<short>Format a currency</short>
+<descr>
+<p>
+<var>FormatCurr</var> formats the currency <var>Value</var> according to the
+formatting rule in <var>Format</var>, and returns the resulting string.
+</p>
+<p>
+For an explanation of the formatting characters, see <link
+id="FormatFloat"/>.
+</p>
+</descr>
+<seealso>
+<link id="FormatFloat"/>
+<link id="FloatToText"/>
+</seealso>
+</element>
+
+
+<element name="TryStrToCurr">
+<short>Try to convert a string to a currency</short>
+<descr>
+<p>
+<var>TryStrToCurr</var> converts the string <var>S</var> to a currency value
+and returns the value in <var>Value</var>. The function returns
+<var>True</var> if it was successful, <var>False</var> if not. This is 
+contrary to <link id="StrToCurr"/>, which raises an exception when the 
+conversion fails.
+</p>
+<p>
+The function takes into account locale information.
+</p>
+</descr>
+<seealso>
+<link id="StrToCurr"/>
+<link id="TextToFloat"/>
+</seealso>
+</element>
+
+
+<element name="WideFmtStr">
+<short>Widestring format</short>
+<descr>
+<var>WideFmtStr</var> formats <var>Args</var> according to the format string
+in <var>Fmt</var> and returns the resulting string in <var>Res</var>.
+</descr>
+<seealso>
+<link id="WideFormat"/>
+<link id="WideFormatBuf"/>
+<link id="Format"/>
+</seealso>
+</element>
+
+<element name="WideFormatBuf">
+<short>Format widestring in a buffer.</short>
+<descr>
+<var>WideFormatBuf</var> calls simply <link id="WideFormat"/> with
+<var>Fmt</var> (with length <var>FmtLen</var> bytes) and stores maximum 
+<var>BufLen</var> bytes in the buffer <var>buf</var>. It returns the number
+of copied bytes.
+</descr>
+<seealso>
+<link id="WideFmtStr"/>
+<link id="WideFormat"/>
+<link id="Format"/>
+<link id="FormatBuf"/>
+</seealso>
+</element>
 
 </module>
 </package>

@@ -827,6 +827,53 @@ anytime.
 <short><link id="#rtl.unix.fpGetPriority"/> option: Get user priority.</short>
 </element>
 
+<element name="cDouble">
+<short>Double precision real format.</short>
+</element>
+
+
+<element name="cFloat">
+<short>Floating-point real format </short>
+</element>
+
+
+<element name="clDouble">
+<short>Long double precision real format (Extended)</short>
+</element>
+
+
+<element name="pcDouble">
+<short>Pointer to <link id="#rtl.unixtype.cdouble">cdouble</link> type.</short>
+</element>
+
+
+<element name="pcFloat">
+<short>Pointer to <link id="#rtl.unixtype.cfloat">cfloat</link> type.</short>
+</element>
+
+
+<element name="pclDouble">
+<short>Pointer to <link id="#rtl.unixtype.cldouble">cldouble</link> type.</short>
+</element>
+
+<element name="psize_t">
+<short>Pointer to <link id="rtl.unixtype.size_t">size_t</link> type.</short>
+</element>
+
+
+<element name="pwchar_t">
+<short>Pointer to <link id="rtl.unixtype.wchar_t">wchar_t</link> type.</short>
+</element>
+
+
+<element name="wchar_t">
+<short>Wide character type.</short>
+</element>
+
+
+<element name="wint_t">
+<short>Wide character size type.</short>
+</element>
 
 </module> <!-- unixtype -->
 </package>

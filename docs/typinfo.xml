@@ -1534,6 +1534,86 @@ information. If a wrong name is given for an enumerated value, then an
 </seealso>
 </element>
 
+<element name="OnGetPropValue">
+<short>Callback to get a property value as a variant.</short>
+<descr>
+This callback is set by the variants unit to enable reading of properties as
+a variant. If set, it is called by the <link id="GetPropValue"/> function.
+</descr>
+</element>
+
+
+<element name="OnGetVariantprop">
+<short>Callback to get a variant property value.</short>
+<descr>
+This callback is set by the variants unit to enable reading of variant properties
+If set, it is called by the <link id="GetVariantProp"/> function.
+</descr>
+</element>
+
+
+<element name="OnSetPropValue">
+<short>Callback to set a property value as a variant.</short>
+<descr>
+This callback is set by the variants unit to enable writing of properties as
+a variant. If set, it is called by the <link id="SetPropValue"/> function.
+</descr>
+</element>
+
+
+<element name="OnSetVariantprop">
+<short>Callback to set a variant property value.</short>
+<descr>
+This callback is set by the variants unit to enable writing of variant
+properties. If set, it is called by the <link id="GetVariantProp"/> function.
+</descr>
+</element>
+
+
+<element name="TGetPropValue">
+<short>Callback type for the <link id="#rtl.TypInfo.OnGetPropValue">OnGetPropValue</link> callback
+event</short>.
+<descr>
+The callback function must return the property with name <var>PropName</var>
+of instance <var>Instance</var>. If <var>PreferStrings</var> is true, it
+should favour converting the property to a string value. The function needs
+to return the variant with the property value.
+</descr>
+</element>
+
+
+
+<element name="TGetVariantProp">
+<short>Callback type for the <link id="#rtl.TypInfo.OnGetVariantProp">OnGetVariantProp</link> callback
+event</short>.
+<descr>
+The callback function must return the variant property with name <var>PropName</var>
+of instance <var>Instance</var>.
+</descr>
+</element>
+
+
+<element name="TSetPropValue">
+<short>Callback type for the <link id="#rtl.TypInfo.OnSetPropValue">OnSetPropValue</link> callback
+event</short>.
+<descr>
+The callback function must set the property with name <var>PropName</var>
+of instance <var>Instance</var> to <var>Value</var>.
+</descr>
+</element>
+
+
+<element name="TSetVariantProp">
+<short>Callback type for the <link id="#rtl.TypInfo.OnSetVariantProp">OnSetVariantProp</link> callback
+event</short>.
+<descr>
+The callback function must set the variant property with name <var>PropName</var>
+of instance to <var>Value</var>.
+</descr>
+</element>
+
+
+
 </module>
 </package>
 </fpdoc-descriptions>

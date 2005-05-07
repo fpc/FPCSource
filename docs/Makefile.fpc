@@ -264,7 +264,7 @@ FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(OS_SOURCE)
 fcl.inc: classes.xml
         $(FPDOC) --output=fcl.inc $(FCLOPTS) --format=latex
 
-RTLOPTS=--package=rtl --descr=rtl.xml
+RTLOPTS=--hide-protected --warn-no-node --package=rtl --descr=rtl.xml
 ifndef CURRENTXMLONLY
 XMLUNITS=sysutils strutils dateutils strings mouse keyboard \
          crt video dos sockets objects heaptrc mmx ipc printer typinfo \
@@ -574,7 +574,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.12  2005-05-05 12:59:59  peter
+# Revision 1.13  2005-05-07 09:41:09  michael
+# + Last changes to RTL documentation
+#
+# Revision 1.12  2005/05/05 12:59:59  peter
 #   * 2.0.0
 #
 # Revision 1.11  2005/02/20 00:38:28  michael

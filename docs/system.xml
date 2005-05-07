@@ -7925,6 +7925,12 @@ milliseconds have elapsed.
 </descr>
 </element>
 
+<element name="ThreadingAlreadyUsed">
+<short>Internal constant for the threading system. Don't use.</short>
+</element>
+
+
+
 <!-- constant Visibility: default -->
 <element name="CtrlZMarksEOF">
 <short>Determine whether CTRL-Z marks the end of file.</short>
@@ -7943,6 +7949,8 @@ To get DOS-compatible behaviour, this constant can be set to <var>True</var>
 <link id="SetTextLineEnding"/>
 </seealso>
 </element>
+
+<element name="SIGSTKSZ" skip="1"/>
 
 </module>
 </package>

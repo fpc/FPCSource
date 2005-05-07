@@ -2517,6 +2517,39 @@ function.
 <short>Pad bytes. Do not use.</short>
 </element>
 
+<element name="cDouble">
+<short>Double precision real format.</short>
+</element>
+
+
+<element name="cFloat">
+<short>Floating-point real format </short>
+</element>
+
+
+<element name="clDouble">
+<short>Long double precision real format (Extended)</short>
+</element>
+
+
+<element name="pcDouble">
+<short>Pointer to <link id="#rtl.baseunix.cdouble">cdouble</link> type.</short>
+</element>
+
+
+<element name="pcFloat">
+<short>Pointer to <link id="#rtl.baseunix.cfloat">cfloat</link> type.</short>
+</element>
+
+
+<element name="pclDouble">
+<short>Pointer to <link id="#rtl.baseunix.cldouble">cldouble</link> type.</short>
+</element>
+
+<element name="tzseconds">
+<short>Timezone offset in seconds</short>
+</element>
+
 </module> <!-- Unix -->
 </package>
 </fpdoc-descriptions>
