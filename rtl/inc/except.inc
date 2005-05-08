@@ -57,7 +57,7 @@ end;
 function AcquireExceptionObject: Pointer;
 begin
   If ExceptObjectStack=nil then begin
-    runerror(231); // which error?
+    AcquireExceptionObject := nil
   end else begin
     Inc(ExceptObjectStack^.refcount);
     AcquireExceptionObject := ExceptObjectStack^.FObject;
@@ -66,14 +66,11 @@ end;
 
 procedure ReleaseExceptionObject;
 begin
-  If ExceptObjectStack=nil then begin
-    runerror(231); // which error?
-  end else begin
-    if ExceptObjectStack^.refcount = 0 then begin
-      runerror(231); // which error?
-    end;
+  If ExceptObjectStack <> nil then begin
+    if ExceptObjectStack^.refcount > 0 then begin
     Dec(ExceptObjectStack^.refcount);
   end;
+end;
 end;
 
 {$ifndef HAS_ADDR_STACK_ON_STACK}
@@ -349,7 +346,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.20  2005-04-03 11:32:05  florian
+  Revision 1.21  2005-05-08 21:20:26  michael
+  + Patch to return nil if there is no exception object (as in Delphi)
+
+  Revision 1.20  2005/04/03 11:32:05  florian
     * ref. counting for popping second exceptiono object fixed
 
   Revision 1.19  2005/02/14 17:13:22  peter
