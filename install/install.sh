@@ -7,7 +7,7 @@
 # Everything can be set when the script is run.
 #
 
-# Release Version 1.9.8 will be replaced by makepack
+# Release Version will be replaced by makepack
 VERSION=%version%
 
 # some useful functions
@@ -148,8 +148,6 @@ installbinary ()
   if [ "$ide" = "${CROSSPREFIX}ide.$1.tar.gz" ]; then
     if yesno "Install Textmode IDE"; then
       unztarfromtar $BINARYTAR ${CROSSPREFIX}ide.$1.tar.gz $PREFIX
-      rm -f $EXECDIR/fp
-      ln -sf $LIBDIR/fp $EXECDIR/fp
     fi
   fi
 
