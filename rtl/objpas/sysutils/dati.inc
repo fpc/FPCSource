@@ -753,6 +753,7 @@ begin
           EncodeTime(Time shr 11, (Time shr 5) and 63, (Time and 31) shl 1,0);
 end;
 
+{$ifndef VER1_0}
 
 function TryStrToDate(const S: string; out Value: TDateTime): Boolean;
   begin
@@ -798,10 +799,14 @@ function TryStrToDateTime(const S: string; out Value: TDateTime): Boolean;
   
 // function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 
+{$endif VER1_0}
 
 {
   $Log$
-  Revision 1.10  2005-05-07 10:23:17  florian
+  Revision 1.11  2005-05-08 08:03:15  florian
+    + cycling with 1.0.x fixed, hopefully the last fix of this for ever ;)
+
+  Revision 1.10  2005/05/07 10:23:17  florian
     + TryStrToDate/Time functions
 
   Revision 1.9  2005/03/25 22:53:39  jonas
