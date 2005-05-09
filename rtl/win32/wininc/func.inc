@@ -436,6 +436,8 @@ function MoveWindow(hWnd:HWND; X:longint; Y:longint; nWidth:longint; nHeight:lon
 function SetWindowPos(hWnd:HWND; hWndInsertAfter:HWND; X:longint; Y:longint; cx:longint;cy:longint; uFlags:UINT):WINBOOL; external 'user32' name 'SetWindowPos';
 function GetWindowPlacement(hWnd:HWND; var lpwndpl:WINDOWPLACEMENT):WINBOOL; external 'user32' name 'GetWindowPlacement';
 function SetWindowPlacement(hWnd:HWND; var lpwndpl:WINDOWPLACEMENT):WINBOOL; external 'user32' name 'SetWindowPlacement';
+function GetWindowPlacement(hWnd:HWND; lpwndpl:PWINDOWPLACEMENT):WINBOOL; external 'user32' name 'GetWindowPlacement';
+function SetWindowPlacement(hWnd:HWND; lpwndpl:PWINDOWPLACEMENT):WINBOOL; external 'user32' name 'SetWindowPlacement';
 function BeginDeferWindowPos(nNumWindows:longint):HDWP; external 'user32' name 'BeginDeferWindowPos';
 function DeferWindowPos(hWinPosInfo:HDWP; hWnd:HWND; hWndInsertAfter:HWND; x:longint; y:longint;cx:longint; cy:longint; uFlags:UINT):HDWP; external 'user32' name 'DeferWindowPos';
 function EndDeferWindowPos(hWinPosInfo:HDWP):WINBOOL; external 'user32' name 'EndDeferWindowPos';
@@ -2335,7 +2337,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  2005-02-14 17:13:32  peter
+  Revision 1.25  2005-05-09 18:39:58  michael
+  + Added overloads of G(S)etwindowplacement with pointer versions
+
+  Revision 1.24  2005/02/14 17:13:32  peter
     * truncate log
 
 }
