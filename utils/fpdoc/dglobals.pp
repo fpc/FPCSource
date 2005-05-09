@@ -96,6 +96,9 @@ resourcestring
   SManUsageNoUnitPrefix       = 'Do not prefix man pages with unit name.';
   SManUsageWriterDescr        = 'UNIX man page output.';
   SManUsagePackageDescription = 'Use descr as the description of man pages';
+  
+  // HTML usage
+  SHTMLUsageFooter = 'Append xhmtl from file as footer to html page';
 
   STitle                      = 'FPDoc - Free Pascal Documentation Tool';
   SCopyright                  = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
@@ -1217,7 +1220,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2005-05-04 08:38:58  michael
+  Revision 1.11  2005-05-09 18:50:13  michael
+  * Added patch from Vincent Snijders to add a footer to each HTML page
+
+  Revision 1.10  2005/05/04 08:38:58  michael
   + Added support for opaque types
 
   Revision 1.9  2005/02/14 17:13:38  peter

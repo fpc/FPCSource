@@ -104,6 +104,8 @@ type
     CurOutputNode: TDOMNode;
     InsideHeadRow, DoPasHighlighting: Boolean;
     HighlighterFlags: Byte;
+    
+    FooterFile: string;
 
     function ResolveLinkID(const Name: String): DOMString;
     function ResolveLinkWithinPackage(AElement: TPasElement;
@@ -206,6 +208,7 @@ type
     procedure FinishElementPage(AElement: TPasElement);
     Procedure AppendSeeAlsoSection(AElement : TPasElement;DocNode : TDocNode);
     Procedure AppendExampleSection(AElement : TPasElement;DocNode : TDocNode);
+    procedure AppendFooter;
 
     procedure CreatePageBody(AElement: TPasElement; ASubpageIndex: Integer); virtual;
     procedure CreatePackagePageBody;
@@ -240,6 +243,7 @@ type
     property OnTest: TNotifyEvent read FOnTest write SetOnTest;
     Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
     Procedure WriteDoc; override;
+    class procedure Usage(List: TStrings); override;
   end;
 
   THTMWriter = class(THTMLWriter)
@@ -250,7 +254,7 @@ type
 
 implementation
 
-uses SysUtils, XHTML, XMLWrite, HTMWrite, sh_pas;
+uses SysUtils, XHTML, XMLRead, XMLWrite, HTMWrite, sh_pas;
 
 
 Function FixHTMLpath(S : String) : STring;
@@ -554,6 +558,7 @@ begin
   HTMLEl.AppendChild(BodyElement);
 
   CreatePageBody(AElement, ASubpageIndex);
+  AppendFooter;
 
   HeadEl.AppendChild(El);
   El['rel'] := 'stylesheet';
@@ -1798,6 +1803,12 @@ begin
     end;
 end;
 
+procedure THTMLWriter.AppendFooter;
+begin
+  if FooterFile<>'' then
+    ReadXMLFragment(BodyElement, FooterFile);
+end;
+
 procedure THTMLWriter.FinishElementPage(AElement: TPasElement);
 
 var
@@ -2833,6 +2844,8 @@ begin
   Result:=True;
   if Cmd = '--html-search' then
     SearchPage := Arg
+  else if Cmd = '--footer' then
+    FooterFile := Arg
   else
     Result:=False;
 end;
@@ -2841,6 +2854,12 @@ procedure THTMLWriter.WriteDoc;
 begin
    WriteLn(Format(SWritingPages, [PageCount]));
    WriteHTMLPages;
+end;
+
+procedure THTMLWriter.Usage(List: TStrings);
+begin
+  List.add('--footer');
+  List.Add(SHTMLUsageFooter);
 end;
 
 // private methods
@@ -2879,7 +2898,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2005-05-04 08:38:58  michael
+  Revision 1.17  2005-05-09 18:50:13  michael
+  * Added patch from Vincent Snijders to add a footer to each HTML page
+
+  Revision 1.16  2005/05/04 08:38:58  michael
   + Added support for opaque types
 
   Revision 1.15  2005/02/14 17:13:38  peter
