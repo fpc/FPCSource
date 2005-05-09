@@ -1035,7 +1035,8 @@ Begin
         Begin
           Str(Value:digits:precision, Result);
           P := Pos('.', Result);
-          Result[P] := DecimalSeparator;
+          if P<>0 then
+            Result[P] := DecimalSeparator;
           TooLarge := P > Precision + 1;
         End;
 
@@ -1051,11 +1052,13 @@ Begin
                Dec(P);
                end;
           end
-        else
+        else if (P<>0) then // we have a decimalseparator
           begin
           P := Length(Result);
-          While Result[P] = '0' Do Dec(P);
-          If Result[P] = DecimalSeparator Then Dec(P);
+          While (P>0) and (Result[P] = '0') Do 
+            Dec(P);
+          If (P>0) and (Result[P]=DecimalSeparator) Then 
+            Dec(P);
           SetLength(Result, P);
           end;
       End;
@@ -2104,7 +2107,10 @@ const
 
 {
   $Log$
-  Revision 1.37  2005-04-28 09:15:44  florian
+  Revision 1.38  2005-05-09 18:35:06  michael
+  + Fixed bug 3957
+
+  Revision 1.37  2005/04/28 09:15:44  florian
     + variants: string -> float/int casts
 
   Revision 1.36  2005/04/26 16:40:51  michael
