@@ -389,8 +389,17 @@ begin
           NextToken;
           if CurToken = tkBraceClose then
             break
-          else if CurToken <> tkComma then
-            ParseExc(SParserExpectedCommaRBracket);
+          else if CurToken in [tkEqual,tkAssign] then
+            begin
+            EnumValue.AssignedValue:=ParseExpression;
+            NextToken;
+            if CurToken = tkBraceClose then
+              Break
+            else if not (CurToken=tkComma) then
+              ParseExc(SParserExpectedCommaRBracket);
+            end
+          else if not (CurToken=tkComma) then
+            ParseExc(SParserExpectedCommaRBracket)
         end;
       end;
     tkSet:
@@ -1004,8 +1013,17 @@ begin
             NextToken;
             if CurToken = tkBraceClose then
               break
-            else if CurToken <> tkComma then
-              ParseExc(SParserExpectedCommaRBracket);
+            else if CurToken in [tkEqual,tkAssign] then
+              begin
+              EnumValue.AssignedValue:=ParseExpression;
+              NextToken;
+              if CurToken = tkBraceClose then
+                Break
+              else if not (CurToken=tkComma) then
+                ParseExc(SParserExpectedCommaRBracket);
+              end
+            else if not (CurToken=tkComma) then
+              ParseExc(SParserExpectedCommaRBracket)
           end;
           ExpectToken(tkSemicolon);
         except
@@ -1857,7 +1875,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2005-04-07 07:55:40  marco
+  Revision 1.17  2005-05-10 06:08:59  michael
+  + Added parsing of explicitly assigned enumerated values
+
+  Revision 1.16  2005/04/07 07:55:40  marco
    * patch from peter for resoursestring=string bug + fix crash missing --input
 
   Revision 1.15  2005/02/17 18:33:31  peter
