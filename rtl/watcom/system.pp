@@ -304,9 +304,7 @@ var
        fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
        argv[idx]:=nil;
      end;
-    { use realloc to reuse already existing memory }
-    if len<>0 then
-      sysreallocmem(argv[idx],len+1);
+     ArgV [Idx] := SysAllocMem (Succ (Len));
   end;
 
 begin
@@ -1541,7 +1539,10 @@ End.
 
 {
   $Log$
-  Revision 1.22  2005-04-13 20:10:50  florian
+  Revision 1.23  2005-05-10 21:45:08  hajny
+    * fix for potential SIGSEGV during argv allocation
+
+  Revision 1.22  2005/04/13 20:10:50  florian
     + TThreadID
 
   Revision 1.21  2005/04/03 21:10:59  hajny
