@@ -48,7 +48,7 @@ const
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = $ffff;
-
+ MaxPathLen = 256;
 
 CONST
   { Default filehandles }
@@ -560,7 +560,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.15  2005-04-03 21:10:59  hajny
+  Revision 1.16  2005-05-12 20:29:04  michael
+  + Added maxpathlen constant (maximum length of filename path)
+
+  Revision 1.15  2005/04/03 21:10:59  hajny
     * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
 
   Revision 1.14  2005/02/14 17:13:30  peter

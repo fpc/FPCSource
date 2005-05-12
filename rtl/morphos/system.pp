@@ -35,7 +35,8 @@ const
   DriveSeparator = ':';
   PathSeparator = ';';
   maxExitCode = 255;
-
+  MaxPathLen = 256;
+  
 const
   UnusedHandle    : LongInt = -1;
   StdInputHandle  : LongInt = 0;
@@ -335,7 +336,10 @@ end.
 
 {
   $Log$
-  Revision 1.34  2005-05-10 21:45:08  hajny
+  Revision 1.35  2005-05-12 20:29:04  michael
+  + Added maxpathlen constant (maximum length of filename path)
+
+  Revision 1.34  2005/05/10 21:45:08  hajny
     * fix for potential SIGSEGV during argv allocation
 
   Revision 1.33  2005/04/03 21:10:59  hajny

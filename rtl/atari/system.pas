@@ -45,6 +45,7 @@ const
  PathSeparator = ';';
  FileNameCaseSensitive = false;
  maxExitCode = 255;
+ MaxPathLen = 255;
 
  sLineBreak: string [1] = LineEnding;
     { used for single computations }
@@ -773,7 +774,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2005-04-03 21:10:59  hajny
+  Revision 1.15  2005-05-12 20:29:04  michael
+  + Added maxpathlen constant (maximum length of filename path)
+
+  Revision 1.14  2005/04/03 21:10:59  hajny
     * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
 
   Revision 1.13  2005/02/14 17:13:21  peter

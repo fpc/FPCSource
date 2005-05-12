@@ -50,7 +50,8 @@ const
   PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
   MaxExitCode = 65535;
-
+  MaxPathLen = 256;
+  
 type    Tos=(osDOS,osOS2,osDPMI);
 
 const   os_mode: Tos = osOS2;
@@ -773,7 +774,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2005-05-03 22:17:26  hajny
+  Revision 1.86  2005-05-12 20:29:04  michael
+  + Added maxpathlen constant (maximum length of filename path)
+
+  Revision 1.85  2005/05/03 22:17:26  hajny
     * SysAllocMem used for ArgV [Idx] allocation again
 
   Revision 1.84  2005/05/01 13:01:03  peter

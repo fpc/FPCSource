@@ -44,7 +44,8 @@ const
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 255;
-
+ MaxPathLen = 256;
+ 
 const
 { Default filehandles }
   UnusedHandle    = -1;
@@ -1539,7 +1540,10 @@ End.
 
 {
   $Log$
-  Revision 1.23  2005-05-10 21:45:08  hajny
+  Revision 1.24  2005-05-12 20:29:04  michael
+  + Added maxpathlen constant (maximum length of filename path)
+
+  Revision 1.23  2005/05/10 21:45:08  hajny
     * fix for potential SIGSEGV during argv allocation
 
   Revision 1.22  2005/04/13 20:10:50  florian
