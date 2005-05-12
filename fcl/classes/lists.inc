@@ -84,6 +84,9 @@ begin
   if NewCapacity=FCapacity then
     exit;
   ReallocMem(FList,SizeOf(Pointer)*NewCapacity);
+  if NewCapacity > FCapacity then
+    FillChar (FList^ [FCapacity],
+                              (NewCapacity - FCapacity) * SizeOf (pointer), 0);
   FCapacity:=NewCapacity;
 end;
 
@@ -450,7 +453,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2005-02-14 17:13:11  peter
+  Revision 1.4  2005-05-12 21:47:34  hajny
+    * fix for SIGSEGV due to access to uninitialized pointers in TList
+
+  Revision 1.3  2005/02/14 17:13:11  peter
     * truncate log
 
 }
