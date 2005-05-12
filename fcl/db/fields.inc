@@ -1391,14 +1391,14 @@ end;
 procedure TFloatField.SetAsString(const AValue: string);
 
 Var R : Double;
-    Code : longint;
 
 begin
-  Val(AVAlue,R,Code);
-  If Code<>0 then
-    DatabaseErrorFmt(SNotAFloat,[AVAlue])
-  Else
+  try
+    R := StrToFloat(AValue);
     SetAsFloat(R);
+  except
+    DatabaseErrorFmt(SNotAFloat, [AValue]);
+  end;
 end;
 
 procedure TFloatField.SetVarValue(const AValue: Variant);
@@ -1487,9 +1487,11 @@ Var Temp : string;
 
 begin
   Temp:=UpperCase(AValue);
-  If Temp=FDisplays[True,True] Then
+  if Temp='' then
+    Clear
+  else if pos(Temp, FDisplays[True,True])=1 then
     SetAsBoolean(True)
-  else If Temp=FDisplays[True,False] then
+  else if pos(Temp, FDisplays[True,False])=1 then
     SetAsBoolean(False)
   else
     DatabaseErrorFmt(SNotABoolean,[AValue]);
@@ -2308,7 +2310,15 @@ end;
 
 {
   $Log$
-  Revision 1.33  2005-04-26 16:48:58  michael
+  Revision 1.34  2005-05-12 18:52:32  michael
+    - Patch from Jesus Reyes:
+    * TFloatField.SetAsString doesn't look at DecimalSeparator for
+      converting a string into a Float
+    * TBooleanField.SetAsString won't accept an empty string as a valid
+      value, also the patch allows strings as T, F or any starting
+      substring of DisplayValues to be accepted.
+
+  Revision 1.33  2005/04/26 16:48:58  michael
    * Some patches from Uberto Barbini
      + TLoginEvent more Delphi compatible (D5 and bigger).
      * AsCurrency Property for TField.
