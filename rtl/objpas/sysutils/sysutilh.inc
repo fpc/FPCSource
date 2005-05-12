@@ -194,7 +194,7 @@ const
   PathDelim={System.}DirectorySeparator;
   DriveDelim={System.}DriveSeparator;
   PathSep={System.}PathSeparator;
-
+  MAX_PATH={System.}MaxPathLen;
 
 Type
    TFileRec=FileRec;
@@ -237,7 +237,10 @@ Type
 
 {
   $Log$
-  Revision 1.14  2005-03-12 14:56:22  florian
+  Revision 1.15  2005-05-12 20:30:51  michael
+  + Added MAX_PATH for Delphi/Kylix compatibility.
+
+  Revision 1.14  2005/03/12 14:56:22  florian
     + added Ansi* routines to widestring manager
     * made them using OS calls on windows
 
