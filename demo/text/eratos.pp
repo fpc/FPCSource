@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1993-2005 by Florian Klaempfl
 
     Eratos Example, Calculates all Prime Numbers from 1 to max
 
@@ -16,7 +16,13 @@
 program eratosthenes;
 
   const
+{$ifndef MACOS}
      max = 1000000;
+{$else}
+     max = 10000; {Actually it works with 100000 also, but not 1000000,}
+                  {in which case the OS refuses to start it.}
+{$endif}
+
   var
      a : array[1..max] of boolean;
 
@@ -55,7 +61,10 @@ program eratosthenes;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:06:35  peter
+  Revision 1.3  2005-05-14 11:11:33  olle
+    * Smaller arrray sizes for macos
+
+  Revision 1.2  2002/09/07 15:06:35  peter
     * old logs removed and tabs fixed
 
 }
