@@ -835,18 +835,28 @@ begin
 
  CmdLine2 := ComLine;
  if RedirStdIn <> '' then CmdLine2 := CmdLine2 + ' < ' + RedirStdIn;
+
+ {$ifndef macos}
  if RedirStdOut <> '' then CmdLine2 := CmdLine2 + ' > ' + RedirStdOut;
  if RedirStdErr <> '' then
  begin
-  {$ifndef macos}
   if RedirStdErr = RedirStdOut then
     CmdLine2 := CmdLine2 + ' 2>&1'
   else
     CmdLine2 := CmdLine2 + ' 2> ' + RedirStdErr;
-  {$else macos}
-  CmdLine2 := CmdLine2 + ' ' + #179 + ' ' + RedirStdErr; {#179 is "greater or equal" char}
-  {$endif macos}
  end;
+ {$else macos}
+ if RedirStdErr <> RedirStdOut then
+   if RedirStdOut <> '' then CmdLine2 := CmdLine2 + ' > ' + RedirStdOut;
+ if RedirStdErr <> '' then
+ begin
+  if RedirStdErr = RedirStdOut then
+    CmdLine2 := CmdLine2 + ' ' + #183 + ' ' + RedirStdErr  {#183 is "capital sigma" char in MacRoman}
+  else
+    CmdLine2 := CmdLine2 + ' ' + #179 + ' ' + RedirStdErr; {#179 is "greater or equal" char in MacRoman}
+ end;
+ {$endif macos}
+
  DosExecute (ProgName, CmdLine2);
  ExecuteRedir:=(IOStatus=0) and (ExecuteResult=0);
 end;
@@ -1017,7 +1027,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.21  2005-02-14 17:13:37  peter
+  Revision 1.22  2005-05-14 11:18:52  olle
+    * Fix for MacOS when redirect stdout and stderr to same stream
+
+  Revision 1.21  2005/02/14 17:13:37  peter
     * truncate log
 
   Revision 1.20  2005/01/26 22:05:06  olle
