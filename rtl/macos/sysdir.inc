@@ -1,10 +1,10 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Florian Klaempfl and Pavel Ozerski
+    Copyright (c) 1999-2005 by Florian Klaempfl and Pavel Ozerski
     member of the Free Pascal development team.
 
-    FPC Pascal system unit for the Win32 API.
+    Low level directory functions for MacOS
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -121,7 +121,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2005-02-14 17:13:30  peter
+  Revision 1.3  2005-05-14 11:52:37  olle
+    * Updated header comments
+
+  Revision 1.2  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.1  2005/02/07 21:30:12  peter
