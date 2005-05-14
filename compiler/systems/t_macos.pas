@@ -164,9 +164,11 @@ begin
          * it is signaled it is a 32 bit app. (perhaps not nessecary on PowerPC)
          * heapsize  }
       if apptype <> app_tool then
-        Add('Echo "data ''SIZE'' (-1) '#182'{ $'#182'"1080 ' + heapsizestr + ' ' + heapsizestr +
+        begin
+          Add('Echo "data ''SIZE'' (-1) '#182'{ $'#182'"1080 ' + heapsizestr + ' ' + heapsizestr +
                                          #182'" '#182'};" | Rez -a -o ' + ScriptFixFileName(current_module.exefilename^));
-      Add('Exit If "{Status}" != 0');
+          Add('Exit If "{Status}" != 0');
+        end;
 
       {Add mac resources}
       if apptype = app_cui then
@@ -272,7 +274,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2005-03-25 21:55:43  jonas
+  Revision 1.23  2005-05-14 12:15:18  olle
+    * Fix small issue for link script
+
+  Revision 1.22  2005/03/25 21:55:43  jonas
     * removed some unused variables
 
   Revision 1.21  2005/02/14 17:13:10  peter
