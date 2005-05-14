@@ -28,9 +28,9 @@ interface
 
     const
        { version string }
-       version_nr = '1';
-       release_nr = '9';
-       patch_nr   = '9';
+       version_nr = '2';
+       release_nr = '0';
+       patch_nr   = '1';
        minorpatch = '';
 
        { word version for ppu file }
@@ -90,7 +90,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  2005-04-28 20:19:31  michael
+  Revision 1.37  2005-05-14 16:17:00  peter
+    * 2.0.1
+
+  Revision 1.36  2005/04/28 20:19:31  michael
   + Back to 1.9.9 for snapshot generation
 
   Revision 1.34  2005/02/25 11:41:27  peter
