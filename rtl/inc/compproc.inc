@@ -335,7 +335,6 @@ procedure fpc_largeset_contains_sets(set1,set2 : pointer; size: longint); compil
 procedure fpc_rangeerror; compilerproc;
 procedure fpc_divbyzero; compilerproc;
 procedure fpc_overflow; compilerproc;
-//procedure fpc_iocheck(addr : longint); compilerproc;
 procedure fpc_iocheck; compilerproc;
 
 procedure fpc_InitializeUnits; compilerproc;
@@ -366,7 +365,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.67  2005-03-28 13:38:05  florian
+  Revision 1.68  2005-05-14 11:53:31  olle
+    - Removed outcommented function
+
+  Revision 1.67  2005/03/28 13:38:05  florian
     + a lot of vararray stuff
 
   Revision 1.66  2005/03/05 16:37:28  florian
