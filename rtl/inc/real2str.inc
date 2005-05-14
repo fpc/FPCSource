@@ -194,7 +194,7 @@ begin
       end;
     rt_s64real :
       begin
-{ if the maximum suppported type is double, we can print out one digit }
+{ if the maximum supported type is double, we can print out one digit }
 { less, because otherwise we can't round properly and 1e-400 becomes   }
 { 0.99999999999e-400 (JM)                                              }
 {$ifdef support_extended}
@@ -461,7 +461,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2005-02-14 17:13:26  peter
+  Revision 1.18  2005-05-14 11:54:00  olle
+    * Fixed typo
+
+  Revision 1.17  2005/02/14 17:13:26  peter
     * truncate log
 
 }
