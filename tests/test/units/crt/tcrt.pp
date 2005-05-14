@@ -89,7 +89,7 @@ begin
   writeln ('The following line should then become blank from column 10');
   writeln ('12345678901234567890');
   writeln;
-  writeln ('This line should dissapear.');
+  writeln ('This line should disappear.');
   writeln;
   writeln ('Between this line and the next, an empty line should appear.');
   writeln ('This is the next line, above which the empty one should appear');
@@ -100,7 +100,7 @@ begin
   gotoxy (10,6);clreol;
   gotoxy (1,8);delline;
   gotoxy (1,10); insline;
-  gotoxy (17,13); clreol;
+  gotoxy (18,13); clreol;
   writeln ('end.');
   readkey;
 end.
