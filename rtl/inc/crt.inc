@@ -108,12 +108,12 @@ begin
 end;
 
 
-procedure TextMode (Mode: integer);
+procedure TextMode (Mode: word);
 { Use this procedure to set-up a specific text-mode.}
 begin
  TextAttr := $07;
  LastMode := Mode;
- SetScreenMode (word (Mode));
+ SetScreenMode (Mode);
  WindMin := 0;
  WindMaxX := Pred (ScreenWidth);
  WindMaxY := Pred (ScreenHeight);
@@ -410,7 +410,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2005-05-14 14:58:41  hajny
+  Revision 1.3  2005-05-14 15:01:49  hajny
+    * TextMode parameter type changed to word for TP/BP compatibility
+
+  Revision 1.2  2005/05/14 14:58:41  hajny
     * TextMode parameter type changed temporarily not to break other platforms
 
   Revision 1.1  2005/05/14 14:32:55  hajny

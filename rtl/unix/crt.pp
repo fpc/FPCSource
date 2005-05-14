@@ -1416,7 +1416,7 @@ end;
 
 
 
-Procedure TextMode(Mode: Integer);
+Procedure TextMode (Mode: word);
 {
   Only Clears Screen under linux}
 begin
@@ -1626,7 +1626,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.24  2005-03-16 18:17:23  jonas
+  Revision 1.25  2005-05-14 15:01:49  hajny
+    * TextMode parameter type changed to word for TP/BP compatibility
+
+  Revision 1.24  2005/03/16 18:17:23  jonas
     * fix from mischi to fix extra spaces under some terminals
 
   Revision 1.23  2005/03/15 09:20:11  jonas

@@ -144,7 +144,7 @@ end;
 ****************************************************************************}
 
 
-procedure textmode(mode : integer);
+procedure textmode (Mode: word);
 
 var
    regs : trealregs;
@@ -770,7 +770,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2005-02-14 17:13:22  peter
+  Revision 1.13  2005-05-14 15:01:49  hajny
+    * TextMode parameter type changed to word for TP/BP compatibility
+
+  Revision 1.12  2005/02/14 17:13:22  peter
     * truncate log
 
 }

@@ -141,7 +141,7 @@ end;
 ****************************************************************************}
 
 
-procedure textmode(mode : integer);
+procedure textmode (mode: word);
 begin
   Window (1,1,byte(ScreenWidth),byte(ScreenHeight));
   ClrScr;
