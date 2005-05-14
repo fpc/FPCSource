@@ -1,62 +1,1 @@
-#Assembles, links and run tests of FreePascal
-#Param 1, the directory with the tests to perform.
-#Note versions can be either 2 or 3 fields, e g 1.1  1.0.10
-
-(Evaluate {0} =~ /(Å:)¨1[Â:]*/) > Dev:Null
-Set mydir {¨1}
-
-Set -e debugverbose 1
-Echo "** Assembles, links and run tests for MacOS **" 
-
-#Delete -i Å.o
-Set -e nrOfSucceded 0
-Set -e nrOfFailed 0
-
-#Set compiler version
-Set compver '1.9' #Must be at least two fields
-If `Evaluate "{compver}" !~ /([0-9]*)¨1.([0-9]*)¨2.([0-9]*)¨3/`
-  If `Evaluate "{compver}" !~ /([0-9]*)¨1.([0-9]*)¨2/`
-    Echo Error in compiler version no
-    Exit 1
-  Else
-    Set ¨3 0
-  End
-End
-Set -e cv1 {¨1};Set -e cv2 {¨2}; Set -e cv3 {¨3}
-
-Directory {1}units:
-
-#Iterate through files in :units:
-Set Exit 0 # To handle the case, in the for stmt, when there is no match
-For sourceWithExt In Å.s
-  Set Exit 1 #Revert error handling
-  (Evaluate "{sourceWithExt}" =~ /(([Â.])*)¨1Å/) > Dev:Null
-  Set unitname {¨1}
-  If `Exists {unitname}.o`
-    Continue
-  End
-  SetFile -c 'MPS ' -t 'TEXT' {unitname}_ppas
-  Execute {unitname}_ppas
-  Set Exit 0 # To handle the case, in the for stmt, when there is no match
-End
-Set Exit 1 #Revert error handling
-
-Directory {1}
-
-{mydir}LinkRunDir ':test:'
-{mydir}LinkRunDir ':test:cg:'
-{mydir}LinkRunDir ':test:cg:cdecl:'
-{mydir}LinkRunDir ':test:units:system:'
-{mydir}LinkRunDir ':test:units:strings:'
-{mydir}LinkRunDir ':test:units:objects:'
-{mydir}LinkRunDir ':test:units:math:'
-{mydir}LinkRunDir ':test:opt:'
-{mydir}LinkRunDir ':tbs:'
-{mydir}LinkRunDir ':tbf:'
-{mydir}LinkRunDir ':webtbs:'
-{mydir}LinkRunDir ':webtbf:'
-
-Echo "============================================================="
-Echo '** Test session finished. **'
-Echo "No of succeded tests: {nrOfSucceded}"
-Echo "No of failed tests: {nrOfFailed}"
+#Assembles, links and run tests of FreePascal#Param 1, the directory with the tests to perform.#Note versions can be either 2 or 3 fields, e g 1.1  1.0.10(Evaluate {0} =~ /(Å:)¨1[Â:]*/) > Dev:NullSet mydir {¨1}Set -e debugverbose 1Echo "** Assembles, links and run tests for MacOS **" #Delete -i Å.oSet -e nrOfSucceded 0Set -e nrOfFailed 0#Set compiler versionSet compver '1.9' #Must be at least two fieldsIf `Evaluate "{compver}" !~ /([0-9]*)¨1.([0-9]*)¨2.([0-9]*)¨3/`  If `Evaluate "{compver}" !~ /([0-9]*)¨1.([0-9]*)¨2/`    Echo Error in compiler version no    Exit 1  Else    Set ¨3 0  EndEndSet -e cv1 {¨1};Set -e cv2 {¨2}; Set -e cv3 {¨3}Directory {1}units:#Iterate through files in :units:Set Exit 0 # To handle the case, in the for stmt, when there is no matchFor sourceWithExt In Å.s  Set Exit 1 #Revert error handling  (Evaluate "{sourceWithExt}" =~ /(([Â.])*)¨1Å/) > Dev:Null  Set unitname {¨1}  If `Exists {unitname}.o`    Continue  End  SetFile -c 'MPS ' -t 'TEXT' {unitname}_ppas  Execute {unitname}_ppas  Set Exit 0 # To handle the case, in the for stmt, when there is no matchEndSet Exit 1 #Revert error handlingDirectory {1}{mydir}LinkRunDir ':test:'{mydir}LinkRunDir ':test:cg:'{mydir}LinkRunDir ':test:cg:cdecl:'{mydir}LinkRunDir ':test:units:system:'{mydir}LinkRunDir ':test:units:strings:'{mydir}LinkRunDir ':test:units:objects:'{mydir}LinkRunDir ':test:units:math:'{mydir}LinkRunDir ':test:opt:'{mydir}LinkRunDir ':tbs:'{mydir}LinkRunDir ':tbf:'{mydir}LinkRunDir ':webtbs:'{mydir}LinkRunDir ':webtbf:'Echo "============================================================="Echo '** Test session finished. **'#duesnt work:#Echo "No of succeded tests: {nrOfSucceded}"#Echo "No of failed tests: {nrOfFailed}"
