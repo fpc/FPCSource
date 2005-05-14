@@ -15,521 +15,293 @@ unit crt;
 
 interface
 
+{$IFNDEF VER1_0}
+ {$INLINE ON}
+{$ENDIF VER1_0}
+
+
 {$i crth.inc}
 
-{cemodeset means that the procedure textmode has failed to set up a mode.}
+procedure Window32 (X1, Y1, X2, Y2: dword);
+procedure GotoXY32 (X, Y: dword);
+function WhereX32: dword;
+function WhereY32: dword;
 
-type
-  cexxxx=(cenoerror,cemodeset);
 
 var
-  crt_error:cexxxx;                   {Crt-status.            RW}
+ ScreenHeight, ScreenWidth: dword;
+(* API *)
+
 
 implementation
 
+{uses keyboard, video;}
+
+
 {$i textrec.inc}
 
-const   extkeycode:char=#0;
+const
+ VioHandle: word = 0;
 
-var maxrows,maxcols:word;
 
-type    Tkbdkeyinfo=record
-            charcode,scancode:char;
-            fbstatus,bnlsshift:byte;
-            fsstate:word;
-            time:longint;
-        end;
+type
+ TKbdKeyInfo = record
+  CharCode, ScanCode: char;
+  fbStatus, bNlsShift: byte;
+  fsState: word;
+  Time: longint;
+ end;
 
-        {if you have information on the folowing datastructure, please
-         send them to me at d.s.p.mantione@twi.tudelft.nl}
-
-        {This datastructure is needed when we ask in what video mode we are,
-         or we want to set up a new mode.}
-
-        viomodeinfo=record
-            cb:word;                         { length of the entire data
+ VioModeInfo = record
+  cb: word;                         { length of the entire data
                                                structure }
-            fbtype,                          { bit mask of mode being set}
-            color: byte;                     { number of colors (power of 2) }
-            col,                             { number of text columns }
-            row,                             { number of text rows }
-            hres,                            { horizontal resolution }
-            vres: word;                      { vertical resolution }
-            fmt_ID,                          { attribute format
-                                               ! more info wanted !}
-            attrib: byte;                    { number of attributes }
-            buf_addr,                        { physical address of
+  fbType,                          { bit mask of mode being set}
+  Color: byte;                     { number of colors (power of 2) }
+  Col,                             { number of text columns }
+  Row,                             { number of text rows }
+  HRes,                            { horizontal resolution }
+  VRes: word;                      { vertical resolution }
+  fmt_ID,                          { attribute format }
+  Attrib: byte;                    { number of attributes }
+  Buf_Addr,                        { physical address of
                                                videobuffer, e.g. $0b800}
-            buf_length,                      { length of a videopage (bytes)}
-            full_length,                     { total video-memory on video-
+  Buf_Length,                      { length of a videopage (bytes)}
+  Full_Length,                     { total video-memory on video-
                                                card (bytes)}
-            partial_length:longint;          { ????? info wanted !}
-            ext_data_addr:pointer;           { ????? info wanted !}
-        end;
+  Partial_Length: longint;          { ????? info wanted !}
+  Ext_Data_Addr: pointer;           { ????? info wanted !}
+ end;
 
-    TVioCursorInfo=record
-        case boolean of
-        false:(
-        yStart:word;    {Cursor start (top) scan line (0-based)}
-        cEnd:word;      {Cursor end (bottom) scan line}
-        cx:word;        {Cursor width (0=default width)}
-        Attr:word);     {Cursor colour attribute (-1=hidden)}
-        true:(
+ TVioCursorInfo=record
+  case boolean of
+   false: (
+        yStart: word;    {Cursor start (top) scan line (0-based)}
+        cEnd: word;      {Cursor end (bottom) scan line}
+        cx: word;        {Cursor width (0=default width)}
+        Attr: word);     {Cursor colour attribute (-1=hidden)}
+   true:(
         yStartInt: integer; {integer variants can be used to specify negative}
-        cEndInt:integer; {negative values (interpreted as percentage by OS/2)}
-        cxInt:integer;
-        AttrInt:integer);
-    end;
-    PVioCursorInfo=^TVioCursorInfo;
+        cEndInt: integer; {negative values (interpreted as percentage by OS/2)}
+        cxInt: integer;
+        AttrInt: integer);
+ end;
+ PVioCursorInfo = ^TVioCursorInfo;
 
 
-{EMXWRAP.DLL has strange calling conventions: All parameters must have
- a 4 byte size.}
-
-function kbdcharin(var Akeyrec:Tkbdkeyinfo;wait,kbdhandle:longint):word; cdecl;
+function KbdCharIn (var AKeyRec: TKbdKeyInfo; Wait, KbdHandle: longint):
+                                                                   word; cdecl;
                    external 'EMXWRAP' index 204;
-function kbdpeek(var Akeyrec:TkbdkeyInfo;kbdhandle:word):word; cdecl;
+function KbdPeek (var AKeyRec: TKbdKeyInfo; KbdHandle: longint): word; cdecl;
                  external 'EMXWRAP' index 222;
 
-function dossleep(time:cardinal):word; cdecl;
+function DosSleep (Time: cardinal): word; cdecl;
                   external 'DOSCALLS' index 229;
-function vioscrollup(top,left,bottom,right,lines:longint;
-                     var screl:word;viohandle:longint):word; cdecl;
-                     external 'EMXWRAP' index 107;
-function vioscrolldn(top,left,bottom,right,lines:longint;
-                     var screl:word;viohandle:longint):word; cdecl;
-                     external 'EMXWRAP' index 147;
-function viogetcurpos(var row,column:word;viohandle:longint):word; cdecl;
-                      external 'EMXWRAP' index 109;
-function viosetcurpos(row,column,viohandle:longint):word; cdecl;
-                      external 'EMXWRAP' index 115;
-function viowrtcharstratt(s:Pchar;len,row,col:longint;var attr:byte;
-                          viohandle:longint):word; cdecl;
-                          external 'EMXWRAP' index 148;
-function viogetmode(var Amodeinfo:viomodeinfo;viohandle:longint):word; cdecl;
-                    external 'EMXWRAP' index 121;
-function viosetmode(var Amodeinfo:viomodeinfo;viohandle:longint):word; cdecl;
-                    external 'EMXWRAP' index 122;
-function VioSetCurType(var CurData:TVioCursorInfo;VioHandle:word):word; cdecl;
+function VioScrollUp (Top, Left, Bottom, Right, Lines: longint;
+                      var ScrEl: word; VioHandle: word): word; cdecl;
+                      external 'EMXWRAP' index 107;
+{$WARNING ScrEl as word not DBCS safe!}
+function VioScrollDn (Top, Left, Bottom, Right, Lines: longint;
+                      var ScrEl: word; VioHandle: word): word; cdecl;
+                      external 'EMXWRAP' index 147;
+function VioScrollRight (Top, Left, Bottom, Right, Columns: word;
+                                var ScrEl: word; VioHandle: word): word; cdecl;
+external 'EMXWRAP' index 112;
+{external 'VIOCALLS' index 12;}
+function VioGetCurPos (var Row, Column: word; VioHandle: word): word; cdecl;
+                       external 'EMXWRAP' index 109;
+function VioSetCurPos (Row, Column, VioHandle: word): word; cdecl;
+                       external 'EMXWRAP' index 115;
+function VioWrtCharStrAtt (S: PChar; Len, Row, Col: longint; var Attr: byte;
+                           VioHandle: word): word; cdecl;
+                           external 'EMXWRAP' index 148;
+function VioGetMode (var AModeInfo: VioModeInfo; VioHandle: word): word; cdecl;
+                     external 'EMXWRAP' index 121;
+function VioSetMode (var AModeInfo: VioModeInfo; VioHandle: word): word; cdecl;
+                     external 'EMXWRAP' index 122;
+function VioSetCurType (var CurData: TVioCursorInfo; VioHandle: word): word;
+                                                                         cdecl;
 external 'EMXWRAP' index 132;
 {external 'VIOCALLS' index 32;}
-function VioGetCurType(var CurData:TVioCursorInfo;VioHandle:word):word; cdecl;
+function VioGetCurType (var CurData: TVioCursorInfo; VioHandle: word): word;
+                                                                         cdecl;
 external 'EMXWRAP' index 127;
 {external 'VIOCALLS' index 27;}
+function VioCreatePS (var VPS: word; Depth, Width, Format, Attrs: integer;
+                                                  Reserved: word): word; cdecl;
+external 'EMXWRAP' index 156;
+{external 'VIOCALLS' index 56;}
 function DosBeep (Freq, MS: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 286;
 
 
-procedure setscreenmode(mode:word);
 
-{ This procedure sets a new videomode. Note that the constants passes to
-  this procedure are different than in the dos mode.}
-
-const   modecols:array[0..2] of word=(40,80,132);
-        moderows:array[0..3] of word=(25,28,43,50);
-
-var newmode:viomodeinfo;
-
-begin
-  newmode.cb:=8;
-  newmode.fbtype:=1;          {Non graphics colour mode.}
-  newmode.color:=4;           {We want 16 colours, 2^4=16.}
-  newmode.col:=modecols[mode and 15];
-  newmode.row:=moderows[mode shr 4];
-  if viosetmode(newmode,0)=0 then
-    crt_error:=cenoerror
-  else
-    crt_error:=cemodeset;
-  maxcols:=newmode.col;
-  maxrows:=newmode.row;
-end;
-
-procedure getcursor(var y,x:word);
-{Get the cursor position.}
-begin
-  viogetcurpos(y,x,0)
-end;
-
-procedure setcursor(y,x:word);
-{Set the cursor position.}
-begin
-  viosetcurpos(y,x,0)
-end;
-
-procedure scroll_up(top,left,bottom,right,lines:word;var screl:word);
-begin
-  vioscrollup(top,left,bottom,right,lines,screl,0)
-end;
-
-procedure scroll_dn(top,left,bottom,right,lines:word;var screl:word);
-begin
-  vioscrolldn(top,left,bottom,right,lines,screl,0)
-end;
-
-function keypressed:boolean;
-{Checks if a key is pressed.}
-var Akeyrec:Tkbdkeyinfo;
-
-begin
-  kbdpeek(Akeyrec,0);
-  keypressed:=(extkeycode<>#0) or ((Akeyrec.fbstatus and $40)<>0);
-end;
-
-function readkey:char;
-{Reads the next character from the keyboard.}
-var Akeyrec:Tkbdkeyinfo;
-    c,s:char;
-
-begin
-    if extkeycode<>#0 then
-        begin
-            readkey:=extkeycode;
-            extkeycode:=#0
-        end
-    else
-        begin
-          kbdcharin(Akeyrec,0,0);
-          c:=Akeyrec.charcode;
-          s:=Akeyrec.scancode;
-          if (c=#224) and (s<>#0) then
-            c:=#0;
-          if c=#0 then
-            extkeycode:=s;
-          readkey:=c;
-        end;
-end;
-
-procedure clrscr;
-{Clears the current window.}
-var screl:word;
-
-begin
-    screl:=$20+textattr shl 8;
-    scroll_up(hi(windmin),lo(windmin),
-              hi(windmax),lo(windmax),
-              hi(windmax)-hi(windmin)+1,
-              screl);
-    gotoXY(1,1);
-end;
-
-procedure gotoXY(x,y:byte);
-
-{Positions the cursor on (x,y) relative to the window origin.}
-
-begin
-    if x<1 then
-        x:=1;
-    if y<1 then
-        y:=1;
-    if y+hi(windmin)-2>=hi(windmax) then
-        y:=hi(windmax)-hi(windmin)+1;
-    if x+lo(windmin)-2>=lo(windmax) then
-        x:=lo(windmax)-lo(windmin)+1;
-    setcursor(y+hi(windmin)-1,x+lo(windmin)-1);
-end;
-
-function whereX:byte;
-
-{Returns the x position of the cursor.}
-
-var x,y:word;
-
-begin
-    getcursor(y,x);
-    whereX:=x-lo(windmin)+1;
-end;
-
-function whereY:byte;
-
-{Returns the y position of the cursor.}
-
-var x,y:word;
-
-begin
-    getcursor(y,x);
-    whereY:=y-hi(windmin)+1;
-end;
-
-procedure clreol;
-{Clear from current position to end of line.
-Contributed by Michail A. Baikov}
-
-var i:byte;
-
-begin
-    {not fastest, but compatible}
-    for i:=wherex to lo(windmax) do write(' ');
-        gotoxy(1,wherey); {may be not}
-end;
-
-
-procedure delline;
-
-{Deletes the line at the cursor.}
-
-var row,left,right,bot:longint;
-    fil:word;
-
-begin
-    row:=whereY;
-    left:=lo(windmin);
-    right:=lo(windmax);
-    bot:=hi(windmax)+1;
-    fil:=$20 or (textattr shl 8);
-    scroll_up(row+1,left,bot,right,1,fil);
-end;
-
-procedure insline;
-
-{Inserts a line at the cursor position.}
-
-var row,left,right,bot:longint;
-    fil:word;
-
-begin
-    row:=whereY;
-    left:=lo(windmin);
-    right:=lo(windmax);
-    bot:=hi(windmax);
-    fil:=$20 or (textattr shl 8);
-    scroll_dn(row,left,bot,right,1,fil);
-end;
-
-procedure textmode(mode:integer);
-
-{ Use this procedure to set-up a specific text-mode.}
-
-begin
-    textattr:=$07;
-    lastmode:=mode;
-    mode:=mode and $ff;
-    setscreenmode(mode);
-    windmin:=0;
-    windmax:=(maxcols-1) or ((maxrows-1) shl 8);
-    clrscr;
-end;
-
-procedure textcolor(color:byte);
-
-{All text written after calling this will have color as foreground colour.}
-
-begin
-    textattr:=(textattr and $70) or (color and $f)+color and 128;
-end;
-
-procedure textbackground(color:byte);
-
-{All text written after calling this will have colour as background colour.}
-
-begin
-    textattr:=(textattr and $8f) or ((color and $7) shl 4);
-end;
-
-procedure normvideo;
-
-{Changes the text-background to black and the foreground to white.}
-
-begin
-    textattr:=$7;
-end;
-
-procedure lowvideo;
-
-{All text written after this will have low intensity.}
-
-begin
-    textattr:=textattr and $f7;
-end;
-
-procedure highvideo;
-
-{All text written after this will have high intensity.}
-
-begin
-    textattr:=textattr or $8;
-end;
-
-procedure delay(ms:word);
-{Waits ms microseconds.}
-begin
-  dossleep(ms)
-end;
-
-procedure window(X1,Y1,X2,Y2:byte);
-{Change the write window to the given coordinates.}
-begin
-    if (X1<1) or
-     (Y1<1) or
-     (X2>maxcols) or
-     (Y2>maxrows) or
-     (X1>X2) or
-     (Y1>Y2) then
-        exit;
-    windmin:=(X1-1) or ((Y1-1) shl 8);
-    windmax:=(X2-1) or ((Y2-1) shl 8);
-    gotoXY(1,1);
-end;
-
-procedure writePchar(s:Pchar;len:word);
-{Write a series of characters to the screen.
- Not very fast, but is just text-mode isn't it?}
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
 var
-  x,y:word;
-  i,n:integer;
-  screl:word;
-  ca:Pchar;
+{$endif HASTHREADVAR}
+ ExtKeyCode: char;
 
+
+
+function KeyPressed: boolean;
+{Checks if a key is pressed.}
+var
+ AKeyRec: TKbdKeyinfo;
 begin
-  i:=0;
-  getcursor(y,x);
-  while i<=len-1 do
+ if ExtKeyCode <> #0 then
+  KeyPressed := true
+ else
+  KeyPressed := (KbdPeek (AKeyRec, 0) = 0)
+                                         and ((AKeyRec.fbStatus and $40) <> 0);
+end;
+
+
+function ReadKey: char;
+{Reads the next character from the keyboard.}
+var
+ AKeyRec: TKbdKeyInfo;
+ C, S: char;
+begin
+ if ExtKeyCode <> #0 then
   begin
-    case s[i] of
-      #7: DosBeep (800, 250);
-      #8: if X > Succ (Lo (WindMin)) then Dec (X);
-{      #9: x:=(x-lo(windmin)) and $fff8+8+lo(windmin);}
-      #10: inc(y);
-      #13: x:=lo(windmin);
-      else
-      begin
-        ca:=@s[i];
-        n:=1;
-        while not(s[i+1] in [#7,#8,#10,#13]) and
-              (x+n<=lo(windmax)) and (i<len-1) do
-        begin
-          inc(n);
-          inc(i);
-        end;
-        viowrtcharstratt(ca,n,y,x,textattr,0);
-        x:=x+n;
-      end;
-    end;
-    if x>lo(windmax) then
-        begin
-            x:=lo(windmin);
-            inc(y);
-        end;
-    if y>hi(windmax) then
-        begin
-            screl:=$20+textattr shl 8;
-            scroll_up(hi(windmin),lo(windmin),
-                      hi(windmax),lo(windmax),
-                      1,screl);
-            y:=hi(windmax);
-        end;
-    inc(i);
+   ReadKey := ExtKeyCode;
+   ExtKeyCode := #0
+  end
+ else
+  begin
+   KbdCharIn (AKeyRec, 0, 0);
+   C := AKeyRec.CharCode;
+   S := AKeyRec.ScanCode;
+   if (C = #224) and (S <> #0) then
+    C := #0;
+   if C = #0 then
+    ExtKeyCode := S;
+   ReadKey := C;
   end;
-  setcursor(y,x);
-end;
-
-function crtread(var f:textrec):word;
-{Read a series of characters from the console.}
-var max,curpos:integer;
-    c:char;
-    clist:array[0..2] of char;
-
-begin
-    max:=f.bufsize-2;
-    curpos:=0;
-    repeat
-        c:=readkey;
-        case c of
-            #0:
-                readkey;
-            #8:
-                if curpos>0 then
-                    begin
-                        clist:=#8' '#8;
-                        writePchar(@clist,3);
-                        dec(curpos);
-                    end;
-            #13:
-                begin
-                    f.bufptr^[curpos]:=#13;
-                    inc(curpos);
-                    f.bufptr^[curpos]:=#10;
-                    inc(curpos);
-                    f.bufpos:=0;
-                    f.bufend:=curpos;
-                    clist[0]:=#13;
-                    writePchar(@clist,1);
-                    break;
-                end;
-            #32..#255:
-                if curpos<max then
-                    begin
-                        f.bufptr^[curpos]:=c;
-                        inc(curpos);
-                        writePchar(@c,1);
-                    end;
-        end;
-    until false;
-    crtread:=0;
-end;
-
-function crtwrite(var f:textrec):word;
-
-{Write a series of characters to the console.}
-
-begin
-    writePchar(Pchar(f.bufptr),f.bufpos);
-    f.bufpos:=0;
-    crtwrite:=0;
 end;
 
 
-function crtopen(var f:textrec):integer;
-
+procedure GetScreenCursor (var X, Y: dword);
+{$IFNDEF VER1_0}
+                                             inline;
+{$ENDIF VER1_0}
+(* Return current cursor postion - 0-based. *)
+var
+ X0, Y0: word;
 begin
-    if f.mode=fmoutput then
-        crtopen:=0
-    else
-        crtopen:=5;
+ X := 0;
+ Y := 0;
+ if VioGetCurPos (Y0, X0, VioHandle) = 0 then
+  begin
+   X := X0;
+   Y := Y0;
+  end;
 end;
 
-function crtinout(var f:textrec):integer;
 
+procedure SetScreenCursor (X, Y: dword);
+{$IFNDEF VER1_0}
+                                         inline;
+{$ENDIF VER1_0}
+(* Set current cursor postion - 0-based. *)
 begin
-    case f.mode of
-        fminput:
-            crtinout:=crtread(f);
-        fmoutput:
-            crtinout:=crtwrite(f);
-    end;
+ VioSetCurPos (Y, X, VioHandle);
 end;
 
-function crtclose(var f:textrec):integer;
 
+procedure RemoveLines (Row: dword; Cnt: dword);
+{$IFNDEF VER1_0}
+                                                inline;
+{$ENDIF VER1_0}
+(* Remove Cnt lines from screen starting with (0-based) Row. *)
+var
+ ScrEl: word;
 begin
-    f.mode:=fmclosed;
-    crtclose:=0;
+ ScrEl := $20 or (TextAttr shl 8);
+ VioScrollUp (Row + WindMinY, WindMinX, WindMaxY, WindMaxX, Cnt, ScrEl,
+                                                                    VioHandle);
 end;
 
-procedure assigncrt(var f:text);
 
-{Assigns a file to the crt console.}
-
+procedure ClearCells (X, Y, Cnt: dword);
+{$IFNDEF VER1_0}
+                                         inline;
+{$ENDIF VER1_0}
+(* Clear Cnt cells in line Y (0-based) starting with position X (0-based). *)
+var
+ ScrEl: word;
 begin
-    textrec(f).mode:=fmclosed;
-    textrec(f).bufsize:=128;
-    textrec(f).bufptr:=@textrec(f).buffer;
-    textrec(f).bufpos:=0;
-    textrec(f).openfunc:=@crtopen;
-    textrec(f).inoutfunc:=@crtinout;
-    textrec(f).flushfunc:=@crtinout;
-    textrec(f).closefunc:=@crtclose;
-    textrec(f).name[0]:='.';
-    textrec(f).name[0]:=#0;
+ ScrEl := $20 or (TextAttr shl 8);
+ VioScrollRight (Y, X, Y, X + Pred (Cnt), Cnt, ScrEl, VioHandle);
 end;
 
-procedure sound(hz:word);
-{sound and nosound are not implemented because the OS/2 API supports a freq/
- duration procedure instead of start/stop procedures.}
+
+procedure InsLine;
+(* Inserts a line at cursor position. *)
+var
+ ScrEl: word;
 begin
+ ScrEl := $20 or (TextAttr shl 8);
+ VioScrollDn (Pred (WhereY32) + WindMinY, WindMinX, WindMaxY, WindMaxX, 1,
+                                                             ScrEl, VioHandle);
 end;
 
-procedure nosound;
+
+procedure SetScreenMode (Mode: word);
+var
+ NewMode: VioModeInfo;
 begin
+ NewMode.cb := 8;
+ VioGetMode (NewMode, VioHandle);
+ NewMode.fbType := 1;  {Non graphics colour mode.}
+ NewMode.Color := 4;   {We want 16 colours, 2^4=16 - requests for BW ignored.}
+ case Mode and $FF of
+  BW40, CO40: NewMode.Col := 40;
+  BW80, CO80: NewMode.Col := 80;
+ else
+  begin
+(* Keep current amount of columns! *)
+  end;
+ end;
+ case Mode and $100 of
+  0: NewMode.Row := 25;
+  $100: NewMode.Row := 50
+ else
+  begin
+(* Keep current amount of rows! *)
+  end;
+ end;
+ VioSetMode (NewMode, VioHandle);
+ ScreenWidth := NewMode.Col;
+ ScreenHeight := NewMode.Row;
+end;
+
+
+procedure Delay (Ms: word);
+{Waits ms milliseconds.}
+begin
+ DosSleep (Ms)
+end;
+
+
+procedure WriteNormal (C: char; X, Y: dword);
+{$IFNDEF VER1_0}
+                                              inline;
+{$ENDIF VER1_0}
+(* Write C to console at X, Y (0-based). *)
+begin
+ VioWrtCharStrAtt (@C, 1, Y, X, TextAttr, VioHandle);
+end;
+
+
+procedure WriteBell;
+{$IFNDEF VER1_0}
+                     inline;
+{$ENDIF VER1_0}
+(* Write character #7 - beep. *)
+begin
+ DosBeep (800, 250);
 end;
 
 
@@ -543,14 +315,14 @@ procedure CursorOn;
 var
  I: TVioCursorInfo;
 begin
- VioGetCurType (I, 0);
+ VioGetCurType (I, VioHandle);
  with I do
   begin
    yStartInt := -90;
    cEndInt := -100;
    Attr := 15;
   end;
- VioSetCurType (I, 0);
+ VioSetCurType (I, VioHandle);
 end;
 
 
@@ -558,9 +330,9 @@ procedure CursorOff;
 var
  I: TVioCursorInfo;
 begin
- VioGetCurType (I, 0);
+ VioGetCurType (I, VioHandle);
  I.AttrInt := -1;
- VioSetCurType (I, 0);
+ VioSetCurType (I, VioHandle);
 end;
 
 
@@ -568,52 +340,54 @@ procedure CursorBig;
 var
  I: TVioCursorInfo;
 begin
- VioGetCurType (I, 0);
+ VioGetCurType (I, VioHandle);
  with I do
   begin
    yStart := 0;
    cEndInt := -100;
    Attr := 15;
   end;
- VioSetCurType (I, 0);
+ VioSetCurType (I, VioHandle);
 end;
 
+
+(* Include common, platform independent part. *)
+{$I crt.inc}
 
 
 {Initialization.}
 
 var
-  curmode: viomodeinfo;
+ CurMode: VioModeInfo;
 begin
-  textattr:=lightgray;
-  curmode.cb:=sizeof(curmode);
-  viogetmode(curmode,0);
-  maxcols:=curmode.col;
-  maxrows:=curmode.row;
-  lastmode:=0;
-  case maxcols of
-    40: lastmode:=0;
-    80: lastmode:=1;
-    132: lastmode:=2;
-  end;
-  case maxrows of
-    25:;
-    28: lastmode:=lastmode+16;
-    43: lastmode:=lastmode+32;
-    50: lastmode:=lastmode+48;
-  end;
-  windmin:=0;
-  windmax:=((maxrows-1) shl 8) or (maxcols-1);
-  crt_error:=cenoerror;
-  assigncrt(input);
-  textrec(input).mode:=fminput;
-  assigncrt(output);
-  textrec(output).mode:=fmoutput;
+ if not (IsConsole) then
+  VioCreatePS (VioHandle, 25, 80, 1, 1, 0);
+{  InitVideo;}
+ CurMode.cb := SizeOf (CurMode);
+ VioGetMode (CurMode, VioHandle);
+ ScreenWidth := CurMode.Col;
+ ScreenHeight := CurMode.Row;
+ LastMode := 0;
+ case ScreenWidth of
+  40: LastMode := CO40;
+  80: LastMode := CO80
+ else
+  LastMode := 255
+ end;
+ case ScreenHeight of
+  50: LastMode := LastMode + $100
+ else
+  LastMode := LastMode + $FF00;
+ end;
+ CrtInit;
 end.
 
 {
   $Log$
-  Revision 1.12  2005-03-30 23:11:35  hajny
+  Revision 1.13  2005-05-14 14:40:45  hajny
+    * fix for bug 3713 and other - basis for future common implementation prepared
+
+  Revision 1.12  2005/03/30 23:11:35  hajny
     * OS/2 fixes merged to EMX
 
   Revision 1.11  2005/03/30 22:42:49  hajny
