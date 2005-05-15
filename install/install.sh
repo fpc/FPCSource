@@ -8,7 +8,7 @@
 #
 
 # Release Version will be replaced by makepack
-VERSION=%version%
+VERSION=2.0.0
 
 # some useful functions
 # ask displays 1st parameter, and ask new value for variable, whose name is
@@ -249,7 +249,6 @@ echo
 # Install the demos. Optional.
 if [ -f demo.tar.gz ]; then
   if yesno "Install demos"; then
-    ask "Install demos in" DEMODIR
     echo Installing demos in $DEMODIR ...
     makedirhierarch $DEMODIR
     unztar demo.tar.gz $DEMODIR
