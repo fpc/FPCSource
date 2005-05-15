@@ -1285,6 +1285,10 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 unexport FPC_VERSION
+TEST_HOSTNAME:=$(shell hostname -s)
+ifeq ($(TEST_HOSTNAME),)
+TEST_HOSTNAME:=$(shell hostname)
+endif
 ifndef TEST_FPC
 TEST_FPC=$(wildcard $(dir $(CURDIR))compiler/$(notdir $(FPC)))
 ifeq ($(TEST_FPC), )
@@ -1329,6 +1333,13 @@ endif
 endif
 endif
 TEST_OUTPUTDIR=output/$(TEST_FULL_TARGET)
+TEST_DATETIME:=$(shell $(DATE) +%Y%m%d%H%M)
+ifndef TEST_USER
+TEST_USER=$(USER)
+endif
+DB_TARGZ=$(TEST_HOSTNAME)-$(TEST_DATETIME).tar.gz
+DB_HOST=fpc@www.freepascal.org
+DB_UPLOADDIR=/home/fpc/testsuite/incoming
 ifndef FAILLIST
 export FAILLIST:=$(TEST_OUTPUTDIR)/faillist
 endif
@@ -1351,9 +1362,6 @@ utils:
 	$(MAKE) -C utils utils
 utilsdb:
 	$(MAKE) -C utils utilsdb
-ifndef DBDIGEST
-DBDIGEST=utils/dbdigest
-endif
 ifndef DIGEST
 DIGEST=utils/digest
 endif
@@ -1455,14 +1463,29 @@ distclean: clean fpc_distclean
 	$(DELTREE) output
 	$(MAKE) -C utils distclean
 	-$(DEL) testprep-stamp.*
-.PHONY: all full digest dailytest onlyknown onlygraph onlyinteractive
+.PHONY: all full digest onlyknown onlygraph onlyinteractive
 digest : utils
 	-$(DIGEST) $(LOG)
-dbdigest: utilsdb
-	-$(DBDIGEST) -v $(TEST_FPC_VERSION) -o $(TEST_OS_TARGET) -c $(TEST_CPU_TARGET) -l $(LOG) $(DBDIGESTOPT)
+$(TEST_OUTPUTDIR)/dbdigest.cfg:
+	$(ECHOREDIR) "OS=$(TEST_OS_TARGET)" > $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) "CPU=$(TEST_CPU_TARGET)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) "Version=$(TEST_FPC_VERSION)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) "LogFile=log" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) "Submitter=$(TEST_USER)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) "Machine=$(TEST_HOSTNAME)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) "Comment=$(TEST_OPT)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+$(TEST_OUTPUTDIR)/tar.lst:
+	cd $(TEST_OUTPUTDIR) && find . -name '*.log' -or -name '*.elg' > tar.lst
+	$(ECHOREDIR) "log" >> $(TEST_OUTPUTDIR)/tar.lst
+	$(ECHOREDIR) "dbdigest.cfg" >> $(TEST_OUTPUTDIR)/tar.lst
+$(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/tar.lst $(TEST_OUTPUTDIR)/dbdigest.cfg
+	cd $(TEST_OUTPUTDIR) && tar cfz $(DB_TARGZ) --files-from=tar.lst
+uploadrun: $(TEST_OUTPUTDIR)/$(DB_TARGZ)
+	scp $(TEST_OUTPUTDIR)/$(DB_TARGZ) $(DB_HOST):$(DB_UPLOADDIR)/$(DB_TARGZ).part
+	ssh $(DB_HOST) "mv $(DB_UPLOADDIR)/$(DB_TARGZ).part $(DB_UPLOADDIR)/$(DB_TARGZ)"
 all : allexectests
 full : clean allexectests digest
-fulldb : clean allexectests digest dbdigest
+fulldb : clean allexectests digest uploadrun
 onlyknown :
 	$(MAKE) full "DOTESTOPT= $(DOTESTOPT) -k-"
 onlygraph :
@@ -1472,15 +1495,16 @@ onlyinteractive :
 info :
 	@$(ECHO) "This Makefile allows to test the compiler"
 	@$(ECHO)
-	@$(ECHO) "Targets:"
-	@$(ECHO) "  all   - continue all tests"
-	@$(ECHO) "  full  - clean and run all tests"
-	@$(ECHO) "  dailytest - run full and save results"
-	@$(ECHO) "              in files having the date as extension"
+	@$(ECHO) "Basic Targets:"
+	@$(ECHO) "  all    - continue all tests"
+	@$(ECHO) "  full   - clean and run all tests"
+	@$(ECHO) "  fulldb - full and upload test results"
+	@$(ECHO) "  digest - compute and print test statistics"
+	@$(ECHO)
+	@$(ECHO) "Advanced Targets:"
 	@$(ECHO) "  onlyknown - run only known bugs"
 	@$(ECHO) "  onlygraph - run only graph tests"
 	@$(ECHO) "  onlyinteractive - run only interactive tests"
-	@$(ECHO) "  digest    - compute and print test statistics"
 	@$(ECHO)
 	@$(ECHO) "Host environment:"
 	@$(ECHO) "  $(FULL_TARGET)"
@@ -1489,10 +1513,9 @@ info :
 	@$(ECHO) "Test environment:"
 	@$(ECHO) "  $(TEST_FULL_TARGET)"
 	@$(ECHO) "  compiler: $(TEST_FPC) ver: $(TEST_FPC_VERSION)"
-override DATESUFFIX:=$(shell $(DATE) +%Y.%m.%d)
-ifneq ($(wildcard log.$(DATESUFFIX)),)
-override DATESUFFIX=$(shell $(DATE) +%Y.%m.%d.%H.%M)
-endif
-ifneq ($(wildcard lastdate.txt),)
-LASTDATESUFFIX:=$(shell cat lastdate.txt)
-endif
+	@$(ECHO)
+	@$(ECHO) "Output settings:"
+	@$(ECHO) "  DateTime : $(TEST_DATETIME)"
+	@$(ECHO) "  Outputdir: $(TEST_OUTPUTDIR)"
+	@$(ECHO) "  Uploaddir: $(DB_UPLOADDIR)"
+	@$(ECHO) "  tar.gz   : $(DB_TARGZ)"
