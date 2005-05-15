@@ -14,7 +14,7 @@
 #
 
 [package]
-name=fpdocs
+name=fpc
 version=2.0.0
 
 [require]
@@ -574,7 +574,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.13  2005-05-07 09:41:09  michael
+# Revision 1.14  2005-05-15 12:10:00  peter
+#   * use doc/fpc-$version instead of fpdocs-$version
+#
+# Revision 1.13  2005/05/07 09:41:09  michael
 # + Last changes to RTL documentation
 #
 # Revision 1.12  2005/05/05 12:59:59  peter
