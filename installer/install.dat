@@ -5,8 +5,8 @@
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 1.9.6
-version=1.9.6
+title=Free Pascal Compiler 2.0.0
+version=2.0.0
 
 #
 # General
@@ -364,7 +364,7 @@ package=units-lvm.source.zip[ulvmsrc.zip],OS/2 LVM interface unit
 # Source-2 11
 package=units-pasjpeg.source.zip[upjpsrc.zip],PasJPEG units
 # Source-2 12
-package=units-fv.source.zip[ufvsrc.zip],Free ~V~ision (FV)
+package=units-fv.source.zip[ufvsrc.zip],Free Vision (FV)
 # Source-2 13
 package=units-libpng.source.zip[ulpngsrc.zip],LibPNG interface units
 # Source-2 14
@@ -380,9 +380,13 @@ package=units-sqlite.source.zip[usqltsrc.zip],SQLite interface units
 pack=Sources 3
 filecheck=*.source.zip[*src.zip]
 # Source-3 1
-package=units-winver.source.zip[uwversrc.zip],Windows version detection unit
+package=units-winunits.source.zip[uwinusrc.zip],Win32 API interface units
 # Source-3 2
 package=units-tcl.source.zip[utclsrc.zip],TCL interface units
+# Source-3 3
+package=umd5src.zip,Unit for MD5 processing
+# Source-3 4
+package=units-postgres.source.zip[upgrssrc.zip],PostgreSQL interface units
 
 
 defaultcfg=
