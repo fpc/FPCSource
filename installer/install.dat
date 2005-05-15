@@ -94,8 +94,6 @@ package=units-cdrom.i386-win32.zip,CD-ROM interface units
 # Win32 11
 package=units-odbc.i386-win32.zip,ODBC interface units
 # Win32 12
-package=units-winver.i386-win32.zip,Windows version detection unit
-# Win32 13
 package=units-tcl.i386-win32.zip,TCL interface units
 
 
@@ -113,7 +111,7 @@ package=units-ibase.i386-win32.zip,Interbase interface units
 # Win32-2 5
 package=units-mysql.i386-win32.zip,MySQL interface units
 # Win32-2 6
-package=units-mmsystem.i386-win32.zip,MMSystem interface units
+package=units-winunits.i386-win32.zip,Win32 API interface units
 # Win32-2 7
 package=units-gdbint.i386-win32.zip,GDB Interfacing units
 # Win32-2 8
@@ -126,11 +124,11 @@ package=units-unzip.i386-win32.zip,Unzip units
 package=units-zlib.i386-win32.zip,ZLib interface units
 # Win32-2 12
 package=units-netdb.i386-win32.zip,NetDB units
-# Win32-2 14
+# Win32-2 13
 package=units-pasjpeg.i386-win32.zip,Pas~J~PEG units
-# Win32-2 15
+# Win32-2 14
 package=units-md5.i386-win32.zip,Unit for MD~5~ processing
-# Win32-2 16
+# Win32-2 15
 package=units-fv.i386-win32.zip,Free ~V~ision (FV)
 
 
@@ -332,8 +330,6 @@ package=units-zlib.source.zip[uzlibsrc.zip],ZLib interface units
 # Source 14
 package=units-netdb.source.zip[undbsrc.zip],NetDB units
 # Source 15
-package=units-mmsystem.source.zip,Win32 MMSystem interface units
-# Source 16
 package=units-gdbint.source.zip[ugdbsrc.zip],GDB interface units
 
 #
@@ -387,6 +383,8 @@ package=units-tcl.source.zip[utclsrc.zip],TCL interface units
 package=umd5src.zip,Unit for MD5 processing
 # Source-3 4
 package=units-postgres.source.zip[upgrssrc.zip],PostgreSQL interface units
+# Source-3 5
+package=units-gtk2.source.zip[ugtk2src.zip],GTK2 interface units
 
 
 defaultcfg=
