@@ -341,7 +341,7 @@ ifdef IDE
 endif
 
 singlezipinstall: $(BUILDSTAMP)
-        $(MAKE) fpc_zipinstall ZIPTARGET=install ZIPNAME=fpc $(INSTALLOPTS)
+        $(MAKE) fpc_zipinstall ZIPTARGET=install ZIPNAME=fpc-$(PACKAGE_VERSION) $(INSTALLOPTS)
 
 
 ##########################################################################

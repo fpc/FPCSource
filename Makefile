@@ -2441,7 +2441,7 @@ ifdef IDE
 	$(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS)
 endif
 singlezipinstall: $(BUILDSTAMP)
-	$(MAKE) fpc_zipinstall ZIPTARGET=install ZIPNAME=fpc $(INSTALLOPTS)
+	$(MAKE) fpc_zipinstall ZIPTARGET=install ZIPNAME=fpc-$(PACKAGE_VERSION) $(INSTALLOPTS)
 .PHONY: crossall crossinstall crosszipinstall crosssinglezipinstall
 crossall:
 	$(MAKE) all CROSSINSTALL=1
