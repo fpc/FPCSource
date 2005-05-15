@@ -405,6 +405,7 @@ demosrcinstall:
         $(MAKE) -C demo clean
         $(MKDIR) $(DEMOSOURCEDIR)
         $(COPYTREE) demo/* $(DEMOSOURCEDIR)
+        find $(DEMOSOURCEDIR) -name 'CVS' | xargs -n1 rm -rf
 
 demozip:
         $(MAKE) fpc_zipinstall ZIPTARGET=demosrcinstall FULLZIPNAME=demo
