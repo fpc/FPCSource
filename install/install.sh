@@ -209,8 +209,8 @@ esac
 SHORTARCH=$ARCHNAME
 
 FULLARCH=$ARCHNAME-$OSNAME
-DOCDIR=$PREFIX/share/doc/fpc-$VERSION
-DEMODIR=$DOCDIR/examples
+DOCDIR=$PREFIX
+DEMODIR=$PREFIX
 
 # Install all binary releases
 for f in *binary*.tar
