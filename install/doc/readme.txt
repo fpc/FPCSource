@@ -20,7 +20,6 @@ Free Pascal 2.0.0 is currently available for the following platforms:
 - Linux-powerpc
 - Linux-sparc
 - Linux-x86_64 (amd64)
-- Dos (i386), using the Go32v2 dos extender
 - Win32 (Win95/98/Me/XP/2000 and WinNT)
 - OS/2-i386 (OS/2 Warp v3.0, 4.0, WarpServer for e-Business and eComStation)
 - FreeBSD i386
@@ -34,6 +33,13 @@ Because release building is quite time intensive, we decide to start the
 2.0 beta series only with the most important targets. If you want to change
 this and create and maintain 2.0 beta releases for other platforms and
 targets, feel free to contact us, e-mail addresses are listed below.
+
+There are other platforms which are more or less working, but there is
+currently no maintainer for them and thus we cannot provide adequate
+support. DOS (i386) using the GO32v2 dos extender is one such example,
+other examples would include other BSD variants, etc. If you want to change
+this and create and maintain versions for other platforms and targets, feel
+free to contact us, e-mail addresses are listed below.
 
 ****************************************************************************
 * Features
@@ -52,6 +58,7 @@ targets, feel free to contact us, e-mail addresses are listed below.
   - COM, CORBA and raw interfaces support
   - dynamic array support
   - variant support
+  - inlining
 - code optimizer:
   - peephole optimizer (80x86 only)
   - jump optimizer
@@ -66,11 +73,12 @@ targets, feel free to contact us, e-mail addresses are listed below.
   - GNU Assembler (GAS)
   - Netwide assembler (Nasm)
   - Microsoft Assembler/Turbo Assembler (Masm/Tasm)
+  - Watcom assembler (wasm)
 - can call external C code
 - smartlinking (not yet supported under Mac OS X)
 - support for the GNU debugger
-- IDE (currently for GO32v2, Linux, FreeBSD and Win32 only, in beta testing
-  phase)
+- IDE (currently for GO32v2, Linux, FreeBSD, OS/2 and Win32 only; not all
+  platforms include debugger integrated in IDE)
 - can create binaries running natively under both DOS and OS/2 (EMX version)
 
 
@@ -97,12 +105,26 @@ Mac OS (classic)
  - Mac OS 9.2 has been tested, should probably also work from 7.5.3 and up.
 
 ****************************************************************************
-* Quick start - Win32 / OS/2 / DOS
+* Quick start - Win32
 ****************************************************************************
 
-Download distribution archive (fpc-2.0.0.i386-win32.zip for Win32,
-dos196.zip for GO32v2 or os2196.zip for OS/2) and unzip it
-into a temporary directory.
+Download the distribution package (fpc-2.0.0.i386-win32.exe) and run it
+- it is a self-extracting installer, so just follow the instructions
+to install it. Don't forget to set the path as mentioned by the install
+program.
+
+To test the compiler, change to the demo directory of the compiler
+and type
+        fpc hello
+        hello
+
+
+****************************************************************************
+* Quick start - OS/2 / DOS
+****************************************************************************
+
+Download distribution archive (os2200.zip for OS/2 or dos196.zip for
+GO32v2) and unzip it into a temporary directory.
 
 Start the install program INSTALL.EXE and follow the instructions.
 

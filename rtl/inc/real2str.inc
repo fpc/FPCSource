@@ -1,5 +1,5 @@
 {
-    $Id: real2str.inc,v 1.17 2005/02/14 17:13:26 peter Exp $
+    $Id: real2str.inc,v 1.18 2005/05/14 11:54:00 olle Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team
@@ -194,7 +194,7 @@ begin
       end;
     rt_s64real :
       begin
-{ if the maximum suppported type is double, we can print out one digit }
+{ if the maximum supported type is double, we can print out one digit }
 { less, because otherwise we can't round properly and 1e-400 becomes   }
 { 0.99999999999e-400 (JM)                                              }
 {$ifdef support_extended}
@@ -461,6 +461,9 @@ end;
 
 {
   $Log: real2str.inc,v $
+  Revision 1.18  2005/05/14 11:54:00  olle
+    * Fixed typo
+
   Revision 1.17  2005/02/14 17:13:26  peter
     * truncate log
 

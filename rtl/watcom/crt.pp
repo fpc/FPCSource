@@ -1,5 +1,5 @@
 {
-    $Id: crt.pp,v 1.5 2005/02/14 17:13:32 peter Exp $
+    $Id: crt.pp,v 1.6 2005/05/14 15:01:49 hajny Exp $
 
 }
 
@@ -133,7 +133,7 @@ end;
 ****************************************************************************}
 
 
-procedure textmode(mode : integer);
+procedure TextMode (Mode: word);
 
 var
    regs : trealregs;
@@ -756,6 +756,9 @@ end.
 
 {
   $Log: crt.pp,v $
+  Revision 1.6  2005/05/14 15:01:49  hajny
+    * TextMode parameter type changed to word for TP/BP compatibility
+
   Revision 1.5  2005/02/14 17:13:32  peter
     * truncate log
 

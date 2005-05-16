@@ -1,11 +1,9 @@
 {
-    $Id: sysosh.inc,v 1.2 2005/04/13 20:10:50 florian Exp $
+    $Id: sysosh.inc,v 1.3 2005/05/14 11:52:37 olle Exp $
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2001 by Free Pascal development team
+    Copyright (c) 2001-2005 by Free Pascal development team
 
-    This file implements all the base types and limits required
-    for a minimal POSIX compliant subset required to port the compiler
-    to a new OS.
+    This file implements all the base types and limits for MacOS
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -33,6 +31,9 @@ type
 
 {
    $Log: sysosh.inc,v $
+   Revision 1.3  2005/05/14 11:52:37  olle
+     * Updated header comments
+
    Revision 1.2  2005/04/13 20:10:50  florian
      + TThreadID
 

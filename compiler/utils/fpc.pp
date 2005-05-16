@@ -1,5 +1,5 @@
 {
-    $Id: fpc.pp,v 1.19 2005/02/14 17:13:10 peter Exp $
+    $Id: fpc.pp,v 1.20 2005/05/08 19:56:59 marco Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     This file is the "loader" for the Free Pascal compiler
@@ -203,11 +203,14 @@ program fpc;
          error(ppcbin+' can''t be executed, error message: '+e.message);
      end;
      if errorvalue<>0 then
-       error(ppcbin+' returned an error exitcode (normal if you did not specifiy a source file to be compiled)');
+       error(ppcbin+' returned an error exitcode (normal if you did not specify a source file to be compiled)');
      halt(errorvalue);
   end.
 {
   $Log: fpc.pp,v $
+  Revision 1.20  2005/05/08 19:56:59  marco
+   * typo fixed
+
   Revision 1.19  2005/02/14 17:13:10  peter
     * truncate log
 

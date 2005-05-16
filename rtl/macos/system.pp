@@ -1,5 +1,5 @@
 {
-    $Id: system.pp,v 1.32 2005/04/03 21:10:59 hajny Exp $
+    $Id: system.pp,v 1.33 2005/05/12 20:29:04 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002-2004 by Olle Raab
 
@@ -28,9 +28,10 @@ const
  PathSeparator = ',';  {Is used in MPW and OzTeX}
  FileNameCaseSensitive = false;
  CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
-
+  
  maxExitCode = 65535;
-
+ MaxPathLen = 256;
+  
 const
 { Default filehandles }
   UnusedHandle    : Longint = -1;
@@ -560,6 +561,9 @@ end.
 
 {
   $Log: system.pp,v $
+  Revision 1.33  2005/05/12 20:29:04  michael
+  + Added maxpathlen constant (maximum length of filename path)
+
   Revision 1.32  2005/04/03 21:10:59  hajny
     * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
 
