@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: unifun.inc,v 1.14 2005/04/03 15:17:50 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -491,8 +491,8 @@ end;
 {$endif read_implementation}
 
 {
-  $Log$
-  Revision 1.14  2005-04-03 15:17:50  marco
+  $Log: unifun.inc,v $
+  Revision 1.14  2005/04/03 15:17:50  marco
    * fix from bug 3861
 
   Revision 1.13  2005/02/14 17:13:32  peter

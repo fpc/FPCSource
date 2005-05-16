@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: version.pas,v 1.35 2005/04/28 20:17:21 michael Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Version/target constants
@@ -30,7 +30,7 @@ interface
        { version string }
        version_nr = '2';
        release_nr = '0';
-       patch_nr   = '1';
+       patch_nr   = '0';
        minorpatch = '';
 
        { word version for ppu file }
@@ -89,15 +89,9 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.38  2005-05-14 16:18:37  peter
-    * test
-
-  Revision 1.37  2005/05/14 16:17:00  peter
-    * 2.0.1
-
-  Revision 1.36  2005/04/28 20:19:31  michael
-  + Back to 1.9.9 for snapshot generation
+  $Log: version.pas,v $
+  Revision 1.35  2005/04/28 20:17:21  michael
+  * version 2.0.0
 
   Revision 1.34  2005/02/25 11:41:27  peter
     * 1.9.9
@@ -116,4 +110,5 @@ end.
 
   Revision 1.29  2005/01/02 10:20:08  florian
     * version and copyright increased
+
 }

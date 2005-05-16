@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpuasm.pas,v 1.6 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2000 by Florian Klaempfl
 
     Contains the assembler object for the ia64
@@ -296,8 +296,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.6  2005-02-14 17:13:10  peter
+  $Log: cpuasm.pas,v $
+  Revision 1.6  2005/02/14 17:13:10  peter
     * truncate log
 
 }

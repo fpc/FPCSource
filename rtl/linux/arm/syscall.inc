@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: syscall.inc,v 1.7 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by Florian Klaempfl,
     member of the Free Pascal development team.
@@ -247,8 +247,8 @@ end ['r4','r5','r6'];
 
 
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:30  peter
+  $Log: syscall.inc,v $
+  Revision 1.7  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.6  2005/01/04 14:13:58  florian

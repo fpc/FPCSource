@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtksocket.pp,v 1.4 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -105,8 +105,8 @@ procedure set_need_map(var a : TGtkSocket; __need_map : guint);
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:20  peter
+  $Log: gtksocket.pp,v $
+  Revision 1.4  2005/02/14 17:13:20  peter
     * truncate log
 
 }

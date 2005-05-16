@@ -226,8 +226,8 @@ Begin
 end.
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:37  peter
+  $Log: tint.pp,v $
+  Revision 1.5  2005/02/14 17:13:37  peter
     * truncate log
 
 }

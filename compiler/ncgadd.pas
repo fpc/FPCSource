@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncgadd.pas,v 1.45 2005/03/01 21:28:50 jonas Exp $
     Copyright (c) 2000-2002 by the FPC development team
 
     Code generation for add nodes (generic version)
@@ -792,8 +792,8 @@ begin
    caddnode:=tcgaddnode;
 end.
 {
-  $Log$
-  Revision 1.45  2005-03-01 21:28:50  jonas
+  $Log: ncgadd.pas,v $
+  Revision 1.45  2005/03/01 21:28:50  jonas
     * fixed web bug 3533
 
   Revision 1.44  2005/02/15 19:53:41  florian

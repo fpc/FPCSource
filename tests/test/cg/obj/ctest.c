@@ -384,8 +384,8 @@ struct _7BYTE_ test_function_struct()
 }
 
 /*
-  $Log$
-  Revision 1.7  2005-02-06 20:00:41  peter
+  $Log: ctest.c,v $
+  Revision 1.7  2005/02/06 20:00:41  peter
     * use int for 32bit types
 
   Revision 1.6  2002/11/18 00:42:16  pierre

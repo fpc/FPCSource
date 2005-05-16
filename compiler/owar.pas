@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: owar.pas,v 1.17 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     Contains the stuff for writing .a files directly
@@ -282,8 +282,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.17  2005-02-14 17:13:07  peter
+  $Log: owar.pas,v $
+  Revision 1.17  2005/02/14 17:13:07  peter
     * truncate log
 
 }

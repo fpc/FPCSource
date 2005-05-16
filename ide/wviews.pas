@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: wviews.pas,v 1.15 2005/04/04 16:16:09 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -2551,8 +2551,8 @@ end;
 
 END.
 {
-  $Log$
-  Revision 1.15  2005-04-04 16:16:09  peter
+  $Log: wviews.pas,v $
+  Revision 1.15  2005/04/04 16:16:09  peter
     * use res instead of result
 
   Revision 1.14  2005/02/14 17:13:19  peter

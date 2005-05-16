@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ptype.pas,v 1.76 2005/02/17 17:52:39 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Does parsing types for Free Pascal
@@ -655,8 +655,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.76  2005-02-17 17:52:39  peter
+  $Log: ptype.pas,v $
+  Revision 1.76  2005/02/17 17:52:39  peter
     * allow enum arithmetics inside an enum def, compatible with delphi
 
   Revision 1.75  2005/02/14 17:13:07  peter

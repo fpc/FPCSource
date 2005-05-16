@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: gtkdemo.pp,v 1.4 2005/02/14 17:13:17 peter Exp $
 
     GTK (demo) implementation for shedit
     Copyright (C) 1999-2000 by Sebastian Guenther (sg@freepascal.org)
@@ -111,8 +111,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:17  peter
+  $Log: gtkdemo.pp,v $
+  Revision 1.4  2005/02/14 17:13:17  peter
     * truncate log
 
 }

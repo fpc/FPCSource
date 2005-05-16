@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pstatmnt.pas,v 1.156 2005/03/25 22:20:19 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Does the parsing of the statements
@@ -1181,8 +1181,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.156  2005-03-25 22:20:19  peter
+  $Log: pstatmnt.pas,v $
+  Revision 1.156  2005/03/25 22:20:19  peter
     * add hint when passing an uninitialized variable to a var parameter
 
   Revision 1.155  2005/02/14 17:13:07  peter

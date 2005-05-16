@@ -1,3 +1,0 @@
-\begin{psyntax}{Label}{label}
-\synt{label}  \begin{stack} \synt{digit\ sequence} \\ \synt{identifier} \end{stack}
-\end{psyntax}

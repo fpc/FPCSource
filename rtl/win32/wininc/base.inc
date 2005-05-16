@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: base.inc,v 1.25 2005/02/14 17:13:32 peter Exp $
     This file is part of the Free Pascal run time library.
     This unit contains base definition for the Win32 API
     Copyright (c) 1999-2000 by Florian Klaempfl,
@@ -940,8 +940,8 @@ type
 {$endif read_implementation}
 
 {
-  $Log$
-  Revision 1.25  2005-02-14 17:13:32  peter
+  $Log: base.inc,v $
+  Revision 1.25  2005/02/14 17:13:32  peter
     * truncate log
 
   Revision 1.24  2005/02/06 11:22:38  florian

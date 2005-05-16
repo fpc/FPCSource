@@ -2,7 +2,7 @@
 
 # KDOC -- C++ and CORBA IDL interface documentation tool.
 # Sirtaj Singh Kang <taj@kde.org>, Jan 1999.
-# $Id$
+# $Id: kalyptus,v 1.1 2003/09/22 01:35:54 florian Exp $
 
 # All files in this project are distributed under the GNU General
 # Public License. This is Free Software.

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: options.pas,v 1.175 2005/05/05 14:53:55 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
     Reads command line options and config files
@@ -2142,8 +2142,8 @@ finalization
    option.free;
 end.
 {
-  $Log$
-  Revision 1.175  2005-05-05 14:53:55  florian
+  $Log: options.pas,v $
+  Revision 1.175  2005/05/05 14:53:55  florian
     + output of supported instruction sets in info page
 
   Revision 1.174  2005/04/28 19:32:11  florian

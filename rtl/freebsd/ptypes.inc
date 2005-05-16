@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ptypes.inc,v 1.17 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -202,8 +202,8 @@ const
    Prio_User    = 2;
 
 {
-  $Log$
-  Revision 1.17  2005-02-14 17:13:22  peter
+  $Log: ptypes.inc,v $
+  Revision 1.17  2005/02/14 17:13:22  peter
     * truncate log
 
 }

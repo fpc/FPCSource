@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dw_ipf.pp,v 1.3 2005/01/14 17:55:07 michael Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
@@ -1343,8 +1343,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.3  2005-01-14 17:55:07  michael
+  $Log: dw_ipf.pp,v $
+  Revision 1.3  2005/01/14 17:55:07  michael
   + Added unix man page output; Implemented usage
 
   Revision 1.2  2005/01/12 21:11:41  michael

@@ -1,4 +1,4 @@
-{ $Id$ }
+{ $Id: validate.pas,v 1.11 2005/02/14 17:13:18 peter Exp $ }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {   System independent GRAPHICAL clone of VALIDATE.PAS     }
@@ -1058,8 +1058,8 @@ END;
 END.
 
 {
- $Log$
- Revision 1.11  2005-02-14 17:13:18  peter
+ $Log: validate.pas,v $
+ Revision 1.11  2005/02/14 17:13:18  peter
    * truncate log
 
 }

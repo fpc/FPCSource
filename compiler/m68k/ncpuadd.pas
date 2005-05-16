@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncpuadd.pas,v 1.9 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl and Jonas Maebe
 
     Code generation for add nodes on the Motorola 680x0 family
@@ -425,8 +425,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.9  2005-02-14 17:13:10  peter
+  $Log: ncpuadd.pas,v $
+  Revision 1.9  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.8  2005/01/20 17:47:01  peter

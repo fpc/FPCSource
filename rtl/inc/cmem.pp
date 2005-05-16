@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cmem.pp,v 1.14 2005/03/04 16:49:34 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999 by Michael Van Canneyt, member of the
     Free Pascal development team
@@ -202,8 +202,8 @@ Finalization
 end.
 
 {
- $Log$
- Revision 1.14  2005-03-04 16:49:34  peter
+ $Log: cmem.pp,v $
+ Revision 1.14  2005/03/04 16:49:34  peter
    * fix getheapstatus bootstrapping
 
  Revision 1.13  2005/02/28 15:38:38  marco

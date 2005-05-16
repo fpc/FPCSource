@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: itcpugas.pas,v 1.5 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit contains the ARM GAS instruction tables
@@ -112,8 +112,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:09  peter
+  $Log: itcpugas.pas,v $
+  Revision 1.5  2005/02/14 17:13:09  peter
     * truncate log
 
 }

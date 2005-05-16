@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: math.inc,v 1.24 2005/03/13 17:14:46 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2001 by the Free Pascal development team
 
@@ -277,8 +277,8 @@
      end;
 
 {
-  $Log$
-  Revision 1.24  2005-03-13 17:14:46  florian
+  $Log: math.inc,v $
+  Revision 1.24  2005/03/13 17:14:46  florian
     * some floating point routines improved
 
   Revision 1.23  2005/03/09 20:50:11  florian

@@ -103,8 +103,8 @@ end;
 end.
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:20  peter
+  $Log: wbargs.pas,v $
+  Revision 1.4  2005/02/14 17:13:20  peter
     * truncate log
 
 }

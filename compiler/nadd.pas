@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: nadd.pas,v 1.145 2005/04/25 08:29:00 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Type checking and register allocation for add nodes
@@ -2201,8 +2201,8 @@ begin
    caddnode:=taddnode;
 end.
 {
-  $Log$
-  Revision 1.145  2005-04-25 08:29:00  peter
+  $Log: nadd.pas,v $
+  Revision 1.145  2005/04/25 08:29:00  peter
   longword-longword gives int64
 
   Revision 1.144  2005/04/06 07:31:51  michael

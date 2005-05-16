@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: ziptypes.pp,v 1.4 2005/02/14 17:13:21 peter Exp $
 }
 UNIT ziptypes;
 {
@@ -201,8 +201,8 @@ END;
 
 END.
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:21  peter
+  $Log: ziptypes.pp,v $
+  Revision 1.4  2005/02/14 17:13:21  peter
     * truncate log
 
 }

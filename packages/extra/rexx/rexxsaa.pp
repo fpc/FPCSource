@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: rexxsaa.pp,v 1.4 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 1989, 1991 IBM Corporation
     Copyright (c) 2003 by Yuri Prokushev (prokushev@freemail.ru).
 
@@ -873,8 +873,8 @@ End;
 End.
 
 {
-$Log$
-Revision 1.4  2005-02-14 17:13:21  peter
+$Log: rexxsaa.pp,v $
+Revision 1.4  2005/02/14 17:13:21  peter
   * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: timeddlg.pas,v 1.2 2005/02/14 17:13:18 peter Exp $
 
    Timed dialogs for Free Vision
 
@@ -255,8 +255,8 @@ begin
 end.
 
 {
- $Log$
- Revision 1.2  2005-02-14 17:13:18  peter
+ $Log: timeddlg.pas,v $
+ Revision 1.2  2005/02/14 17:13:18  peter
    * truncate log
 
 }

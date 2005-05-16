@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pdecobj.pas,v 1.87 2005/03/16 21:09:22 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Does object types for Free Pascal
@@ -728,8 +728,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.87  2005-03-16 21:09:22  peter
+  $Log: pdecobj.pas,v $
+  Revision 1.87  2005/03/16 21:09:22  peter
     * allow property in objects in all modes except tp
 
   Revision 1.86  2005/02/14 17:13:07  peter

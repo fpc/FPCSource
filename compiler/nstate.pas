@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: nstate.pas,v 1.5 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Daniel Mantione
 
     This unit contains support routines for the state tracker
@@ -124,8 +124,8 @@ end;
 end.
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:06  peter
+  $Log: nstate.pas,v $
+  Revision 1.5  2005/02/14 17:13:06  peter
     * truncate log
 
 }

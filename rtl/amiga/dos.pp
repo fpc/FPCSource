@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dos.pp,v 1.10 2005/02/14 17:13:21 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1998-2001 by Nils Sjoholm and Carl Eric Codere
     members of the Free Pascal development team
@@ -1472,8 +1472,8 @@ Begin
 End.
 
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:21  peter
+  $Log: dos.pp,v $
+  Revision 1.10  2005/02/14 17:13:21  peter
     * truncate log
 
 }

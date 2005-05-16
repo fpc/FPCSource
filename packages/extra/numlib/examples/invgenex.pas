@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: invgenex.pas,v 1.2 2005/02/14 17:13:21 peter Exp $
 
 }
 
@@ -31,8 +31,8 @@ end.
 
 {
 
-$Log$
-Revision 1.2  2005-02-14 17:13:21  peter
+$Log: invgenex.pas,v $
+Revision 1.2  2005/02/14 17:13:21  peter
   * truncate log
 
 }

@@ -1,6 +1,6 @@
 {
     *********************************************************************
-    $Id$
+    $Id: sysstrh.inc,v 1.18 2005/04/28 09:15:44 florian Exp $
     Copyright (C) 1997, 1998 Gertjan Schouten
 
     This program is free software; you can redistribute it and/or modify
@@ -203,8 +203,8 @@ function RightStr(const S: string; Count: integer): string;
 function BCDToInt(Value: integer): integer;
 
 {
-  $Log$
-  Revision 1.18  2005-04-28 09:15:44  florian
+  $Log: sysstrh.inc,v $
+  Revision 1.18  2005/04/28 09:15:44  florian
     + variants: string -> float/int casts
 
   Revision 1.17  2005/04/26 16:40:51  michael

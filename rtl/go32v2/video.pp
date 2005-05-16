@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: video.pp,v 1.8 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -321,8 +321,8 @@ initialization
   SetVideoDriver(SysVideoDriver);
 end.
 {
-  $Log$
-  Revision 1.8  2005-02-14 17:13:22  peter
+  $Log: video.pp,v $
+  Revision 1.8  2005/02/14 17:13:22  peter
     * truncate log
 
 }

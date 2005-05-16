@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ppheap.pas,v 1.16 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Pierre Muller
 
     Simple unit to add source line and column to each
@@ -162,8 +162,8 @@ begin
   pp_heap_init;
 end.
 {
-  $Log$
-  Revision 1.16  2005-02-14 17:13:07  peter
+  $Log: ppheap.pas,v $
+  Revision 1.16  2005/02/14 17:13:07  peter
     * truncate log
 
 }

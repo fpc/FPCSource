@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: typinfo.pp,v 1.45 2005/04/16 09:24:29 michael Exp $
     This file is part of the Free Pascal run time library.
 
     Copyright (c) 1999-2000 by Florian Klaempfl
@@ -1560,8 +1560,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.45  2005-04-16 09:24:29  michael
+  $Log: typinfo.pp,v $
+  Revision 1.45  2005/04/16 09:24:29  michael
   + Moved constants to rtlconsts and added callbacks for variant support
 
   Revision 1.44  2005/04/14 17:43:07  michael

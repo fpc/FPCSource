@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cclasses.pas,v 1.45 2005/05/12 21:40:42 hajny Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
     This module provides some basic classes
@@ -2366,8 +2366,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.45  2005-05-12 21:40:42  hajny
+  $Log: cclasses.pas,v $
+  Revision 1.45  2005/05/12 21:40:42  hajny
     * fix for SIGSEGV due to access to uninitialized pointers in TList
 
   Revision 1.44  2005/03/25 23:03:04  jonas

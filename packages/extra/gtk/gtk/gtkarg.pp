@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkarg.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -41,8 +41,8 @@ procedure gtk_arg_to_valueloc(arg:PGtkArg; value_pointer:gpointer);cdecl;externa
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: gtkarg.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

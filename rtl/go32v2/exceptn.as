@@ -485,8 +485,8 @@ ___djgpp_hw_lock_end:
         ret                                     /* LD does weird things */
 
 /*
-   $Log$
-   Revision 1.6  2002-09-08 09:16:15  jonas
+   $Log: exceptn.as,v $
+   Revision 1.6  2002/09/08 09:16:15  jonas
      * added closing of comment for logs to avoid warning
 
    Revision 1.5  2002/09/07 16:01:18  peter

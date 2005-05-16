@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: mandel.pp,v 1.6 2002/09/07 15:06:35 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993-98 by Gernot Tenchio
 
@@ -353,8 +353,8 @@ begin
   {$endif}
 end.
 {
-  $Log$
-  Revision 1.6  2002-09-07 15:06:35  peter
+  $Log: mandel.pp,v $
+  Revision 1.6  2002/09/07 15:06:35  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/04/11 19:47:48  pierre

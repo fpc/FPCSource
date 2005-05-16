@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: xhtml.pp,v 1.4 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Component Library
 
     XHTML helper classes
@@ -131,8 +131,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:18  peter
+  $Log: xhtml.pp,v $
+  Revision 1.4  2005/02/14 17:13:18  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: install.pas,v 1.29 2005/02/14 17:13:19 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993-98 by Florian Klaempfl
     member of the Free Pascal development team
@@ -2045,8 +2045,8 @@ begin
      close(log);
 end.
 {
-  $Log$
-  Revision 1.29  2005-02-14 17:13:19  peter
+  $Log: install.pas,v $
+  Revision 1.29  2005/02/14 17:13:19  peter
     * truncate log
 
   Revision 1.28  2005/01/07 16:48:14  peter

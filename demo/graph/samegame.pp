@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: samegame.pp,v 1.10 2005/02/14 17:13:10 peter Exp $
 
     This program is both available in XTDFPC as in the FPC demoes.
     Copyright (C) 1999 by Marco van de Voort
@@ -600,8 +600,8 @@ BEGIN
   {$endif}
 END.
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:10  peter
+  $Log: samegame.pp,v $
+  Revision 1.10  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.9  2004/06/21 07:03:36  marco

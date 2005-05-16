@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: libasync.pp,v 1.10 2005/02/14 17:13:19 peter Exp $
 
     libasync: Asynchronous event management
     Copyright (C) 2001-2002 by
@@ -220,8 +220,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:19  peter
+  $Log: libasync.pp,v $
+  Revision 1.10  2005/02/14 17:13:19  peter
     * truncate log
 
 }

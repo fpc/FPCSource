@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pass_1.pas,v 1.35 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit handles the typecheck and node conversion pass
@@ -220,8 +220,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.35  2005-02-14 17:13:07  peter
+  $Log: pass_1.pas,v $
+  Revision 1.35  2005/02/14 17:13:07  peter
     * truncate log
 
 }

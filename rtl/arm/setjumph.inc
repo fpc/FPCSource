@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: setjumph.inc,v 1.2 2005/02/14 17:13:21 peter Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team.
@@ -26,8 +26,8 @@ procedure longjmp(var S : jmp_buf;value : longint);
 
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:21  peter
+  $Log: setjumph.inc,v $
+  Revision 1.2  2005/02/14 17:13:21  peter
     * truncate log
 
 }

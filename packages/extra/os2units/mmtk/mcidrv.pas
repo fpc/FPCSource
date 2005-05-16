@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: mcidrv.pas,v 1.4 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 1991, 1992 by International Business Machines Corporation
     Copyright (c) 2002 by Andry Svirgunov (cool2@ngs.ru)
     Copyright (c) 2002-2003 by Yuri Prokushev (prokushev@freemail.ru)
@@ -359,8 +359,8 @@ function mdmDriverNotify( usDeviceID: Integer; wnd: Hwnd; usMsgType: Integer;
 End.
 
 {
-$Log$
-Revision 1.4  2005-02-14 17:13:21  peter
+$Log: mcidrv.pas,v $
+Revision 1.4  2005/02/14 17:13:21  peter
   * truncate log
 
 }

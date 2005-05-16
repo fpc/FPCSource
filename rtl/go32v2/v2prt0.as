@@ -1,5 +1,5 @@
 /*
-    $Id$
+    $Id: v2prt0.as,v 1.7 2003/09/27 11:52:35 peter Exp $
 */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 /*****************************************************************************\
@@ -934,8 +934,8 @@ ___PROXY_LEN:
         .comm __os_trueversion,2
 
 /*
-  $Log$
-  Revision 1.7  2003-09-27 11:52:35  peter
+  $Log: v2prt0.as,v $
+  Revision 1.7  2003/09/27 11:52:35  peter
     * sbrk returns pointer
 
   Revision 1.6  2002/09/08 09:16:15  jonas

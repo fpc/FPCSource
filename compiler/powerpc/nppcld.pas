@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: nppcld.pas,v 1.9 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate ppc assembler for nodes that handle loads and assignments
@@ -124,8 +124,8 @@ begin
    cloadnode:=tppcloadnode;
 end.
 {
-  $Log$
-  Revision 1.9  2005-02-14 17:13:10  peter
+  $Log: nppcld.pas,v $
+  Revision 1.9  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.8  2005/01/24 18:13:46  jonas

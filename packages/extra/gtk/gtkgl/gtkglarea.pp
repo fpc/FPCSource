@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: gtkglarea.pp,v 1.4 2005/02/14 17:13:21 peter Exp $
 
   Translation of the gtkglarea 4 headers for Free Pascal
   Copyright (C) 2000 Sebastian Guenther
@@ -170,8 +170,8 @@ end;
 {$endif os2}
 end.
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:21  peter
+  $Log: gtkglarea.pp,v $
+  Revision 1.4  2005/02/14 17:13:21  peter
     * truncate log
 
 }

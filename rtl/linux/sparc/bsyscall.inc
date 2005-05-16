@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: bsyscall.inc,v 1.2 2005/03/03 22:02:59 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2005 by Michael Van Canneyt,
     member of the Free Pascal development team.
@@ -39,8 +39,8 @@ asm
 end;
 
 {
-  $Log$
-  Revision 1.2  2005-03-03 22:02:59  florian
+  $Log: bsyscall.inc,v $
+  Revision 1.2  2005/03/03 22:02:59  florian
     * final fppipe fix hopefully
 
   Revision 1.1  2005/03/03 20:58:38  florian

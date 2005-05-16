@@ -1,6 +1,6 @@
 Unit sysctl;
 
-{  $Id$
+{  $Id: sysctl.pp,v 1.9 2005/02/14 17:13:21 peter Exp $
    This file is part of the Free Pascal run time library.
    (c) 2002 by Marco van de Voort
    member of the Free Pascal development team.
@@ -153,8 +153,8 @@ End;
 end.
 
 {
-  $Log$
-  Revision 1.9  2005-02-14 17:13:21  peter
+  $Log: sysctl.pp,v $
+  Revision 1.9  2005/02/14 17:13:21  peter
     * truncate log
 
 }

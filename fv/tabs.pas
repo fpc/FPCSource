@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: tabs.pas,v 1.6 2005/02/14 17:13:18 peter Exp $
 
    Tabbed group for TV/FV dialogs
 
@@ -397,8 +397,7 @@ begin
        else
        for I:=0 to DefCount-1 do
            begin
-             if (AtTab (I)^.ShortCut <> #0) and
-                      (Upcase(GetAltChar(Event.KeyCode)) = AtTab(I)^.ShortCut)
+             if Upcase(GetAltChar(Event.KeyCode))=AtTab(I)^.ShortCut
                 then begin
                        Index:=I;
                        ClearEvent(Event);
@@ -731,10 +730,7 @@ begin
   RegisterTab;
 end.
 {
- $Log$
- Revision 1.7  2005-05-15 15:23:28  hajny
-   * fix for buggy behaviour with Tabs without shortcuts
-
+ $Log: tabs.pas,v $
  Revision 1.6  2005/02/14 17:13:18  peter
    * truncate log
 

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: classes.pp,v 1.4 2005/02/14 17:13:17 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 
@@ -36,8 +36,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:17  peter
+  $Log: classes.pp,v $
+  Revision 1.4  2005/02/14 17:13:17  peter
     * truncate log
 
 }

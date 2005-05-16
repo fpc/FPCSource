@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: clkdll.pas,v 1.2 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 2002 by Mark Eckstein
     Copyright (c) 2003 by Yuri Prokushev (prokushev@freemail.ru)
 
@@ -170,8 +170,8 @@ Implementation
 End.
 
 {
-$Log$
-Revision 1.2  2005-02-14 17:13:21  peter
+$Log: clkdll.pas,v $
+Revision 1.2  2005/02/14 17:13:21  peter
   * truncate log
 
 }

@@ -8,7 +8,7 @@
 #
 
 # Release Version will be replaced by makepack
-VERSION=2.0.0
+VERSION=%version%
 
 # some useful functions
 # ask displays 1st parameter, and ask new value for variable, whose name is
@@ -209,8 +209,8 @@ esac
 SHORTARCH=$ARCHNAME
 
 FULLARCH=$ARCHNAME-$OSNAME
-DOCDIR=$PREFIX
-DEMODIR=$PREFIX
+DOCDIR=$PREFIX/share/doc/fpc-$VERSION
+DEMODIR=$DOCDIR/examples
 
 # Install all binary releases
 for f in *binary*.tar
@@ -249,6 +249,7 @@ echo
 # Install the demos. Optional.
 if [ -f demo.tar.gz ]; then
   if yesno "Install demos"; then
+    ask "Install demos in" DEMODIR
     echo Installing demos in $DEMODIR ...
     makedirhierarch $DEMODIR
     unztar demo.tar.gz $DEMODIR

@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: glu.pp,v 1.7 2005/05/06 17:02:07 florian Exp $
 
   Adaption of the delphi3d.net OpenGL units to FreePascal
   Sebastian Guenther (sg@freepascal.org) in 2002
@@ -521,8 +521,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.7  2005-05-06 17:02:07  florian
+  $Log: glu.pp,v $
+  Revision 1.7  2005/05/06 17:02:07  florian
     * compilation fixed
 
   Revision 1.6  2005/05/06 15:02:55  michael

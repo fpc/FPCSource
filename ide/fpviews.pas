@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpviews.pas,v 1.59 2005/03/07 17:16:56 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -4494,8 +4494,8 @@ end;
 
 END.
 {
-  $Log$
-  Revision 1.59  2005-03-07 17:16:56  peter
+  $Log: fpviews.pas,v $
+  Revision 1.59  2005/03/07 17:16:56  peter
     * ignore reserved tokens of length 1
 
   Revision 1.58  2005/02/14 17:13:18  peter

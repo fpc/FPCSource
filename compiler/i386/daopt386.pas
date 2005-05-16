@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: daopt386.pas,v 1.82 2005/02/26 01:23:29 jonas Exp $
     Copyright (c) 1998-2002 by Jonas Maebe, member of the Freepascal
       development team
 
@@ -2795,8 +2795,8 @@ end;
 end.
 
 {
-  $Log$
-  Revision 1.82  2005-02-26 01:23:29  jonas
+  $Log: daopt386.pas,v $
+  Revision 1.82  2005/02/26 01:23:29  jonas
     * fixed loop which could go into neverneverland in case of embedded
       assembler blocks
 

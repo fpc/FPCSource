@@ -1,5 +1,5 @@
 /*
-  $Id$
+  $Id: gprt0.as,v 1.3 2004/11/02 21:49:46 florian Exp $
   Dummy implementation
 
 */
@@ -155,8 +155,8 @@ ___fpc_ret_rbp:
 	.section	.note.GNU-stack,"",@progbits
 
 /*
-  $Log$
-  Revision 1.3  2004-11-02 21:49:46  florian
+  $Log: gprt0.as,v $
+  Revision 1.3  2004/11/02 21:49:46  florian
     * x86_64 requires always 16 byte alignment of the stack
 
   Revision 1.2  2004/11/02 20:41:57  florian

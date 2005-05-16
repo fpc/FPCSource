@@ -1,5 +1,5 @@
 /*
-  $Id$
+  $Id: prt0.as,v 1.14 2004/08/18 14:26:50 karoly Exp $
 */
 /* Startup code for programs linked with GNU libc.
    Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
@@ -71,8 +71,8 @@ ___fpc_brk_addr:
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
 /*
-  $Log$
-  Revision 1.14  2004-08-18 14:26:50  karoly
+  $Log: prt0.as,v $
+  Revision 1.14  2004/08/18 14:26:50  karoly
     * quick fix to make it compile
 
   Revision 1.13  2004/07/03 21:50:31  daniel

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysnr.inc,v 1.3 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
@@ -301,8 +301,8 @@ const
 { 237,238,239 reserved for NUMA API }
 
 {
-    $Log$
-    Revision 1.3  2005-02-14 17:13:30  peter
+    $Log: sysnr.inc,v $
+    Revision 1.3  2005/02/14 17:13:30  peter
       * truncate log
 
 }

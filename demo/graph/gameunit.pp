@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: gameunit.pp,v 1.9 2004/06/21 07:01:34 marco Exp $
 
     A simple unit with some common used routines for FPCGames (FpcTris and
       SameGame)
@@ -910,8 +910,8 @@ BEGIN
   Negative:=FALSE;                    { Negative=true-> better scores are lower}
 END.
 {
-  $Log$
-  Revision 1.9  2004-06-21 07:01:34  marco
+  $Log: gameunit.pp,v $
+  Revision 1.9  2004/06/21 07:01:34  marco
    * 1st and 3rd recommendation of bug 3177
 
   Revision 1.8  2002/09/07 15:06:35  peter

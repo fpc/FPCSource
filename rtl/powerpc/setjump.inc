@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: setjump.inc,v 1.10 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Jonas Maebe and other members of the
     Free Pascal development team
@@ -110,8 +110,8 @@ procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'F
     end;
 
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:31  peter
+  $Log: setjump.inc,v $
+  Revision 1.10  2005/02/14 17:13:31  peter
     * truncate log
 
 }

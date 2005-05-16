@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id$
+#  $Id: samplecfg,v 1.13 2005/02/19 18:50:20 florian Exp $
 #
 #  Generate Sample Free Pascal configuration file
 #

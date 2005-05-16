@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: rstconv.pp,v 1.6 2005/02/14 17:13:38 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Sebastian Guenther
     Added .rc and OS/2 MSG support in 2002 by Yuri Prokushev
@@ -390,8 +390,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.6  2005-02-14 17:13:38  peter
+  $Log: rstconv.pp,v $
+  Revision 1.6  2005/02/14 17:13:38  peter
     * truncate log
 
   Revision 1.5  2002/09/30 21:01:37  hajny

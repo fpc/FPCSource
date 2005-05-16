@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: mathu.inc,v 1.6 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2003 by Florian Klaempfl
     member of the Free Pascal development team
@@ -98,8 +98,8 @@ asm
 end;
 
 {
-  $Log$
-  Revision 1.6  2005-02-14 17:13:22  peter
+  $Log: mathu.inc,v $
+  Revision 1.6  2005/02/14 17:13:22  peter
     * truncate log
 
 }

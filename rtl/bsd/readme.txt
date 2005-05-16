@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: readme.txt,v 1.2 2002/10/27 11:58:30 marco Exp $
     This file is part of the Free Pascal run time librar~y.
     Copyright (c) 2000 by Marco van de Voort
     member of the Free Pascal development team.
@@ -44,8 +44,8 @@ i386/syscallh.inc	Headers to syscall.inc
 powerpc/syscall.inc	likewise for PPC.
 
 {
- $Log$
- Revision 1.2  2002-10-27 11:58:30  marco
+ $Log: readme.txt,v $
+ Revision 1.2  2002/10/27 11:58:30  marco
   * Modifications from Saturday.
 
 }

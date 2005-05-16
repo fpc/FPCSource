@@ -1,7 +1,7 @@
 #
 # Symbols exported from the TCP/IP NLM
 #
-# $Header$
+# $Header: /FPC/CVS/fpc/rtl/netware/socklib.imp,v 1.1 2004/08/13 19:57:44 armin Exp $
 #
 
 # SOCKLIB entry points

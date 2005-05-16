@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: errno.inc,v 1.10 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2005 by Michael Van Canneyt,
     member of the Free Pascal development team.
@@ -287,8 +287,8 @@ const
 {$endif FPC_HAS_ESYS}
 
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:30  peter
+  $Log: errno.inc,v $
+  Revision 1.10  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.9  2005/01/27 21:27:02  florian

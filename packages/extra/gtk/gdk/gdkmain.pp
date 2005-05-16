@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gdkmain.pp,v 1.7 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -389,8 +389,8 @@ procedure gdk_threads_leave;cdecl;external gdkdll name 'gdk_threads_leave';
 {$endif read_implementation}
 
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:20  peter
+  $Log: gdkmain.pp,v $
+  Revision 1.7  2005/02/14 17:13:20  peter
     * truncate log
 
 }

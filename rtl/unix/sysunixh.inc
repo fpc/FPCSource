@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysunixh.inc,v 1.26 2005/04/03 21:10:59 hajny Exp $
     This file is part of the Free Pascal Run time library.
     Copyright (c) 2001 by the Free Pascal development team
 
@@ -33,8 +33,7 @@ const
  PathSeparator = ':';
 { FileNameCaseSensitive is defined below! }
  maxExitCode = 255;
- MaxPathLen = 256; 
- 
+
 const
   UnusedHandle    = -1;
   StdInputHandle  = 0;
@@ -56,10 +55,7 @@ var argc:longint;external name 'operatingsystem_parameter_argc';
 {$endif}
 
 {
-  $Log$
-  Revision 1.27  2005-05-12 20:29:16  michael
-  + Added maxpathlen constant (maximum length of filename path)
-
+  $Log: sysunixh.inc,v $
   Revision 1.26  2005/04/03 21:10:59  hajny
     * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
 

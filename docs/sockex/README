@@ -1,9 +1,0 @@
-These are the example programs that appear in the FPC documentation.
- 
-Units guide, chapter on Sockets unit :
-
-Example programs
-socksvr.pp implements a small server application.
-sockcli.pp implements a small client application.
-serverex.pp implements a server application which handles more than one
-            connection. Donated by Brad Campbell.

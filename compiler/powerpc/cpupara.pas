@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpupara.pas,v 1.91 2005/03/27 14:10:53 jonas Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     PowerPC specific calling conventions
@@ -659,8 +659,8 @@ begin
    paramanager:=tppcparamanager.create;
 end.
 {
-  $Log$
-  Revision 1.91  2005-03-27 14:10:53  jonas
+  $Log: cpupara.pas,v $
+  Revision 1.91  2005/03/27 14:10:53  jonas
     * const record parameters > 8 bytes are now passed by reference for non
       cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
       GPC (slightly more efficient than Metrowerks behaviour below, but

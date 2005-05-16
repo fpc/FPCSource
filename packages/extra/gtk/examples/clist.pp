@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: clist.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the Gtk tutorial.
   clist.c
@@ -144,8 +144,8 @@ begin
   gtk_main();
 end.
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: clist.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

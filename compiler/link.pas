@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: link.pas,v 1.49 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit handles the linker and binder calls for programs and
@@ -705,8 +705,8 @@ initialization
 
 end.
 {
-  $Log$
-  Revision 1.49  2005-02-14 17:13:06  peter
+  $Log: link.pas,v $
+  Revision 1.49  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.48  2005/01/01 20:18:24  armin

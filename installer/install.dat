@@ -1,12 +1,12 @@
 #
-# $Id$
+# $Id: install.dat,v 1.39 2005/03/06 18:00:07 hajny Exp $
 #
 # Install file for Go32v2/Win32/OS2/EMX
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 2.0.0
-version=2.0.0
+title=Free Pascal Compiler 1.9.6
+version=1.9.6
 
 #
 # General
@@ -94,6 +94,8 @@ package=units-cdrom.i386-win32.zip,CD-ROM interface units
 # Win32 11
 package=units-odbc.i386-win32.zip,ODBC interface units
 # Win32 12
+package=units-winver.i386-win32.zip,Windows version detection unit
+# Win32 13
 package=units-tcl.i386-win32.zip,TCL interface units
 
 
@@ -111,7 +113,7 @@ package=units-ibase.i386-win32.zip,Interbase interface units
 # Win32-2 5
 package=units-mysql.i386-win32.zip,MySQL interface units
 # Win32-2 6
-package=units-winunits.i386-win32.zip,Win32 API interface units
+package=units-mmsystem.i386-win32.zip,MMSystem interface units
 # Win32-2 7
 package=units-gdbint.i386-win32.zip,GDB Interfacing units
 # Win32-2 8
@@ -124,11 +126,11 @@ package=units-unzip.i386-win32.zip,Unzip units
 package=units-zlib.i386-win32.zip,ZLib interface units
 # Win32-2 12
 package=units-netdb.i386-win32.zip,NetDB units
-# Win32-2 13
-package=units-pasjpeg.i386-win32.zip,Pas~J~PEG units
 # Win32-2 14
-package=units-md5.i386-win32.zip,Unit for MD~5~ processing
+package=units-pasjpeg.i386-win32.zip,Pas~J~PEG units
 # Win32-2 15
+package=units-md5.i386-win32.zip,Unit for MD~5~ processing
+# Win32-2 16
 package=units-fv.i386-win32.zip,Free ~V~ision (FV)
 
 
@@ -330,6 +332,8 @@ package=units-zlib.source.zip[uzlibsrc.zip],ZLib interface units
 # Source 14
 package=units-netdb.source.zip[undbsrc.zip],NetDB units
 # Source 15
+package=units-mmsystem.source.zip,Win32 MMSystem interface units
+# Source 16
 package=units-gdbint.source.zip[ugdbsrc.zip],GDB interface units
 
 #
@@ -360,7 +364,7 @@ package=units-lvm.source.zip[ulvmsrc.zip],OS/2 LVM interface unit
 # Source-2 11
 package=units-pasjpeg.source.zip[upjpsrc.zip],PasJPEG units
 # Source-2 12
-package=units-fv.source.zip[ufvsrc.zip],Free Vision (FV)
+package=units-fv.source.zip[ufvsrc.zip],Free ~V~ision (FV)
 # Source-2 13
 package=units-libpng.source.zip[ulpngsrc.zip],LibPNG interface units
 # Source-2 14
@@ -376,15 +380,9 @@ package=units-sqlite.source.zip[usqltsrc.zip],SQLite interface units
 pack=Sources 3
 filecheck=*.source.zip[*src.zip]
 # Source-3 1
-package=units-winunits.source.zip[uwinusrc.zip],Win32 API interface units
+package=units-winver.source.zip[uwversrc.zip],Windows version detection unit
 # Source-3 2
 package=units-tcl.source.zip[utclsrc.zip],TCL interface units
-# Source-3 3
-package=umd5src.zip,Unit for MD5 processing
-# Source-3 4
-package=units-postgres.source.zip[upgrssrc.zip],PostgreSQL interface units
-# Source-3 5
-package=units-gtk2.source.zip[ugtk2src.zip],GTK2 interface units
 
 
 defaultcfg=

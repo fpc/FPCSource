@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: scandir.pas,v 1.56 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements directive parsing for the scanner
@@ -1177,8 +1177,8 @@ begin
   localswitchesstackpos:= 0;
 end.
 {
-  $Log$
-  Revision 1.56  2005-02-14 17:13:07  peter
+  $Log: scandir.pas,v $
+  Revision 1.56  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.55  2005/02/06 11:15:32  peter

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: watcom.pp,v 1.5 2005/02/14 17:13:32 peter Exp $
 
 }
 //  this is generally go32 unit from go32v2 target.
@@ -1155,8 +1155,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:32  peter
+  $Log: watcom.pp,v $
+  Revision 1.5  2005/02/14 17:13:32  peter
     * truncate log
 
 }

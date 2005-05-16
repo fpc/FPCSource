@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: narminl.pas,v 1.10 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generates ARM inline nodes
@@ -201,8 +201,8 @@ begin
   cinlinenode:=tarminlinenode;
 end.
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:09  peter
+  $Log: narminl.pas,v $
+  Revision 1.10  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.9  2005/01/06 12:11:03  florian

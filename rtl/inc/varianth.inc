@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: varianth.inc,v 1.24 2005/04/28 19:34:19 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by the Free Pascal development team
 
@@ -323,8 +323,8 @@ operator <=(const op1,op2 : variant) dest : boolean;
 procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
 
 {
-  $Log$
-  Revision 1.24  2005-04-28 19:34:19  florian
+  $Log: varianth.inc,v $
+  Revision 1.24  2005/04/28 19:34:19  florian
     + variant<->currency/tdatetime operators
 
   Revision 1.23  2005/04/10 20:24:31  florian

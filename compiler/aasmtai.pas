@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: aasmtai.pas,v 1.96 2005/02/18 23:37:51 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements an abstract asmoutput class for all processor types
@@ -2248,8 +2248,8 @@ begin
   cai_align:=tai_align_abstract;
 end.
 {
-  $Log$
-  Revision 1.96  2005-02-18 23:37:51  jonas
+  $Log: aasmtai.pas,v $
+  Revision 1.96  2005/02/18 23:37:51  jonas
     * fixed spilling for several ppc instructions which only read registers
     + added support for registers in references that get changed (load/store
       with update)

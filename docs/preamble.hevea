@@ -1,5 +1,0 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Preamble for HTML output using Hevea
-%
-\documentclass[a4paper]{report}
-\input{fpc-hevea.tex}

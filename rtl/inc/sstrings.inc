@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sstrings.inc,v 1.36 2005/04/02 07:57:38 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -887,8 +887,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.36  2005-04-02 07:57:38  florian
+  $Log: sstrings.inc,v $
+  Revision 1.36  2005/04/02 07:57:38  florian
     + 0x is now recognized as hex prefix
 
   Revision 1.35  2005/03/20 12:45:19  michael

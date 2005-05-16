@@ -204,8 +204,8 @@ Begin
 end.
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:35  peter
+  $Log: tassign2.pp,v $
+  Revision 1.3  2005/02/14 17:13:35  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpunode.pas,v 1.11 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 2000-2003 by Florian Klaempfl
 
     This unit includes the ARM code generator into the compiler
@@ -44,8 +44,8 @@ unit cpunode;
 
 end.
 {
-  $Log$
-  Revision 1.11  2005-02-14 17:13:09  peter
+  $Log: cpunode.pas,v $
+  Revision 1.11  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.10  2005/01/30 14:43:40  florian

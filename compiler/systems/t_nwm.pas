@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: t_nwm.pas,v 1.25 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
@@ -576,8 +576,8 @@ initialization
   RegisterTarget(system_i386_netware_info);
 end.
 {
-  $Log$
-  Revision 1.25  2005-02-14 17:13:10  peter
+  $Log: t_nwm.pas,v $
+  Revision 1.25  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.24  2005/01/01 20:08:59  armin

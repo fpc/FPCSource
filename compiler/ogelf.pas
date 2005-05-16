@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ogelf.pas,v 1.25 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     Contains the binary elf writer
@@ -900,8 +900,8 @@ initialization
   RegisterAssembler(as_i386_elf32_info,TElf32Assembler);
 end.
 {
-  $Log$
-  Revision 1.25  2005-02-14 17:13:06  peter
+  $Log: ogelf.pas,v $
+  Revision 1.25  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.24  2005/01/10 15:54:59  peter

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: xmlrpc.pp,v 1.7 2005/02/14 17:13:15 peter Exp $
 
     XML-RPC server and client library
     Copyright (c) 2003-2004 by
@@ -944,8 +944,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:15  peter
+  $Log: xmlrpc.pp,v $
+  Revision 1.7  2005/02/14 17:13:15  peter
     * truncate log
 
 }

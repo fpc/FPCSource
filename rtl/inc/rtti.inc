@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: rtti.inc,v 1.22 2005/02/14 17:13:26 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt
     member of the Free Pascal development team
@@ -252,8 +252,8 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
   end;
 
 {
-  $Log$
-  Revision 1.22  2005-02-14 17:13:26  peter
+  $Log: rtti.inc,v $
+  Revision 1.22  2005/02/14 17:13:26  peter
     * truncate log
 
   Revision 1.21  2005/01/15 18:47:26  florian

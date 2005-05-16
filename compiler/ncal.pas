@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncal.pas,v 1.284 2005/04/06 11:49:37 michael Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This file implements the node for sub procedure calling.
@@ -2578,8 +2578,8 @@ begin
    ccallparanode:=tcallparanode;
 end.
 {
-  $Log$
-  Revision 1.284  2005-04-06 11:49:37  michael
+  $Log: ncal.pas,v $
+  Revision 1.284  2005/04/06 11:49:37  michael
   * Fix methodpointer copy from callnode to loadnode
 
   Revision 1.283  2005/04/05 21:07:43  peter

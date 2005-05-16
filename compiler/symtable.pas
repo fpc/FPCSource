@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: symtable.pas,v 1.172 2005/03/13 12:15:44 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     This unit handles the symbol tables
@@ -2467,8 +2467,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.172  2005-03-13 12:15:44  florian
+  $Log: symtable.pas,v $
+  Revision 1.172  2005/03/13 12:15:44  florian
     + reset in InitSymtable some global vars to avoid trouble with the ide
 
   Revision 1.171  2005/02/14 17:13:08  peter

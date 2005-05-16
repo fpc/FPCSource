@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dom_html.pp,v 1.3 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Component Library
 
     Implementation of DOM HTML interfaces
@@ -923,8 +923,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:18  peter
+  $Log: dom_html.pp,v $
+  Revision 1.3  2005/02/14 17:13:18  peter
     * truncate log
 
 }

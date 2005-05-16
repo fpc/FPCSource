@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: optbase.pas,v 1.5 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by the Free Pascal development team
 
     This routine contains the basic tables and information
@@ -35,8 +35,8 @@ implementation
 end.
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:10  peter
+  $Log: optbase.pas,v $
+  Revision 1.5  2005/02/14 17:13:10  peter
     * truncate log
 
 }

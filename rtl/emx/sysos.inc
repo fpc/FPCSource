@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysos.inc,v 1.1 2005/02/06 16:57:18 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -93,8 +93,8 @@ procedure emx_init; external 'EMX' index 1;
 
 
 {
-   $Log$
-   Revision 1.1  2005-02-06 16:57:18  peter
+   $Log: sysos.inc,v $
+   Revision 1.1  2005/02/06 16:57:18  peter
      * threads for go32v2,os,emx,netware
 
    Revision 1.1  2005/02/06 13:06:20  peter

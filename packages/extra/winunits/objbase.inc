@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: objbase.inc,v 1.1 2005/03/28 15:09:35 peter Exp $
     This file is part of the Free Pascal run time library.
 
     Contains the corresponding declarations to objbase.h
@@ -205,8 +205,8 @@
 {$endif read_interface}
 
 {
-  $Log$
-  Revision 1.1  2005-03-28 15:09:35  peter
+  $Log: objbase.inc,v $
+  Revision 1.1  2005/03/28 15:09:35  peter
   new winunits packages
 
   Revision 1.4  2005/02/14 17:13:32  peter

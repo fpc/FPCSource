@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: threadvr.inc,v 1.5 2005/02/14 17:13:29 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt
     member of the Free Pascal development team
@@ -101,8 +101,8 @@ end;
 {$endif HASTHREADVAR}
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:29  peter
+  $Log: threadvr.inc,v $
+  Revision 1.5  2005/02/14 17:13:29  peter
     * truncate log
 
   Revision 1.4  2005/02/05 23:49:49  florian

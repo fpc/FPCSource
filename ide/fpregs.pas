@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpregs.pas,v 1.11 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998-2000 by Pierre Muller
 
@@ -1637,8 +1637,8 @@ end.
 {$endif}
 
 {
-  $Log$
-  Revision 1.11  2005-02-14 17:13:18  peter
+  $Log: fpregs.pas,v $
+  Revision 1.11  2005/02/14 17:13:18  peter
     * truncate log
 
   Revision 1.10  2005/02/03 22:18:08  peter

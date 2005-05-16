@@ -1,5 +1,5 @@
 #
-#   $Id$
+#   $Id: prt0.as,v 1.10 2005/02/05 23:02:37 florian Exp $
 #   This file is part of the Free Pascal run time library.
 #   Copyright (c) 2002 by Florian Klaempfl
 #   members of the Free Pascal development team.
@@ -92,8 +92,8 @@ __data_start:
 	.section	.note.GNU-stack,"",@progbits
 
 #
-# $Log$
-# Revision 1.10  2005-02-05 23:02:37  florian
+# $Log: prt0.as,v $
+# Revision 1.10  2005/02/05 23:02:37  florian
 #   + added some missing c types
 #
 # Revision 1.9  2004/11/02 15:26:21  florian

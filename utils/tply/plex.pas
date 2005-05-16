@@ -20,7 +20,7 @@
   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-$Revision$
+$Revision: 1.4 $
 $Modtime: 96-08-01 10:22 $
 
 $History: LEX.PAS $

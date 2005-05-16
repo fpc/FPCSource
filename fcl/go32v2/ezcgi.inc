@@ -8,8 +8,8 @@ begin
   Result:=Dos.Getenv(EnvVar);
 end;
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:12  peter
+  $Log: ezcgi.inc,v $
+  Revision 1.5  2005/02/14 17:13:12  peter
     * truncate log
 
 }

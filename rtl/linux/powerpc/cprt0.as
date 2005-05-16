@@ -1,5 +1,5 @@
 /*
-  $Id$
+  $Id: cprt0.as,v 1.9 2004/09/02 18:57:37 marco Exp $
 */
 /* Startup code for programs linked with GNU libc.
    Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
@@ -74,8 +74,8 @@ ___fpc_brk_addr:
         .comm operatingsystem_parameter_argv,4
 
 /*
-  $Log$
-  Revision 1.9  2004-09-02 18:57:37  marco
+  $Log: cprt0.as,v $
+  Revision 1.9  2004/09/02 18:57:37  marco
    * fixed argc<->argv
 
   Revision 1.8  2004/08/18 14:26:50  karoly

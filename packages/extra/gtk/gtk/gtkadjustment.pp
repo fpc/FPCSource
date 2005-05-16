@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkadjustment.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -66,8 +66,8 @@ end;
 {$endif read_implementation}
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: gtkadjustment.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

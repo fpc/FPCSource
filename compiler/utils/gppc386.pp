@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: gppc386.pp,v 1.7 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2000-2002 by Pierre Muller
 
     This program allows to run the Makefiles
@@ -138,8 +138,8 @@ begin
     Erase(fpcgdbini);
 end.
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:10  peter
+  $Log: gppc386.pp,v $
+  Revision 1.7  2005/02/14 17:13:10  peter
     * truncate log
 
 }

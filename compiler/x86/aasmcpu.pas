@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: aasmcpu.pas,v 1.66 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
     Contains the abstract assembler implementation for the i386
@@ -2118,8 +2118,8 @@ begin
   cai_cpu:=taicpu;
 end.
 {
-  $Log$
-  Revision 1.66  2005-02-14 17:13:10  peter
+  $Log: aasmcpu.pas,v $
+  Revision 1.66  2005/02/14 17:13:10  peter
     * truncate log
 
 }

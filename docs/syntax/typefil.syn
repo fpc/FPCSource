@@ -1,3 +1,0 @@
-\begin{psyntax}{File types}{filetypes}
-\synt{file\ type} \lit*{file} \begin{stack}\\ \lit*{of} \synt{type} \end{stack}
-\end{psyntax}

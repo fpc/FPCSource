@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ogcoff.pas,v 1.34 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman and Pierre Muller
 
     Contains the binary coff reader and writer
@@ -1788,8 +1788,8 @@ initialization
   RegisterAssembler(as_i386_pecoffwdosx_info,TPECoffAssembler);
 end.
 {
-  $Log$
-  Revision 1.34  2005-02-14 17:13:06  peter
+  $Log: ogcoff.pas,v $
+  Revision 1.34  2005/02/14 17:13:06  peter
     * truncate log
 
 }

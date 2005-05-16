@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: systemh.inc,v 1.122 2005/04/03 19:29:28 florian Exp $
     This file is part of the Free Pascal Run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -771,8 +771,8 @@ const
 {$endif}
 
 {
-  $Log$
-  Revision 1.122  2005-04-03 19:29:28  florian
+  $Log: systemh.inc,v $
+  Revision 1.122  2005/04/03 19:29:28  florian
     * proper error message if the cthreads unit is included too late
       uses clause
 

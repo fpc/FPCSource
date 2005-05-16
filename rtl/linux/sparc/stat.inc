@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: stat.inc,v 1.4 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2003 by Jonas Maebe,
     member of the Free Pascal development team.
@@ -60,8 +60,8 @@
   end;
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:30  peter
+  $Log: stat.inc,v $
+  Revision 1.4  2005/02/14 17:13:30  peter
     * truncate log
 
 }

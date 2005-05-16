@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: systhrd.inc,v 1.1 2005/02/06 12:16:52 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Peter Vreman,
     member of the Free Pascal development team.
@@ -24,8 +24,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.1  2005-02-06 12:16:52  peter
+  $Log: systhrd.inc,v $
+  Revision 1.1  2005/02/06 12:16:52  peter
     * bsd thread updates
 
   Revision 1.1  2005/02/06 11:20:52  peter

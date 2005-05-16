@@ -1,3 +1,0 @@
-\begin{psyntax}{Goto statement}{gotostatement}
-\synt{goto\ statement} \lit*{goto} \synt{label}
-\end{psyntax}

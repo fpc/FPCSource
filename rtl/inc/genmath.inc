@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: genmath.inc,v 1.32 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2001 by Several contributors
 
@@ -1257,8 +1257,8 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 {$endif SUPPORT_DOUBLE}
 
 {
-  $Log$
-  Revision 1.32  2005-02-14 17:13:22  peter
+  $Log: genmath.inc,v $
+  Revision 1.32  2005/02/14 17:13:22  peter
     * truncate log
 
   Revision 1.31  2005/02/08 20:25:28  florian

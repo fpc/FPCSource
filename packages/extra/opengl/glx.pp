@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: glx.pp,v 1.3 2005/02/14 17:13:21 peter Exp $
 
   Translation of the Mesa GLX headers for FreePascal
   Copyright (C) 1999 Sebastian Guenther
@@ -245,8 +245,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:21  peter
+  $Log: glx.pp,v $
+  Revision 1.3  2005/02/14 17:13:21  peter
     * truncate log
 
 }

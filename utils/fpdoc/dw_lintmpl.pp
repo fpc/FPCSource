@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dw_lintmpl.pp,v 1.2 2005/02/14 17:13:39 peter Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
@@ -583,8 +583,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:39  peter
+  $Log: dw_lintmpl.pp,v $
+  Revision 1.2  2005/02/14 17:13:39  peter
     * truncate log
 
   Revision 1.1  2005/01/15 20:46:34  michael

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: tgcpu.pas,v 1.5 2005/02/14 17:13:09 peter Exp $
     Copyright (C) 1998-2000 by Florian Klaempfl
 
     This unit handles the temporary variables stuff for Alpha
@@ -42,8 +42,8 @@ begin
   tg:=ttgalpha.create;
 end.
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:09  peter
+  $Log: tgcpu.pas,v $
+  Revision 1.5  2005/02/14 17:13:09  peter
     * truncate log
 
 }

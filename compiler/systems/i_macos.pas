@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: i_macos.pas,v 1.20 2005/03/20 22:36:45 olle Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support information structures for MacOS
@@ -99,8 +99,8 @@ initialization
 {$endif cpupowerpc}
 end.
 {
-  $Log$
-  Revision 1.20  2005-03-20 22:36:45  olle
+  $Log: i_macos.pas,v $
+  Revision 1.20  2005/03/20 22:36:45  olle
     * Cleaned up handling of source file extension.
     + Added support for .p extension for macos and darwin
 

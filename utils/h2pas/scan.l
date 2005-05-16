@@ -1,6 +1,6 @@
 %{
 {
-    $Id$
+    $Id: scan.l,v 1.7 2004/09/08 22:21:41 carl Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify

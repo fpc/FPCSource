@@ -1,6 +1,6 @@
 {*****************************************************************************}
 {
-    $Id$
+    $Id: bmpcomn.pp,v 1.5 2005/02/14 17:13:12 peter Exp $
     This file is part of the Free Pascal's "Free Components Library".
     Copyright (c) 2003 by Mazen NEIFER of the Free Pascal development team
 
@@ -81,8 +81,8 @@ implementation
 
 end.
 {
-$Log$
-Revision 1.5  2005-02-14 17:13:12  peter
+$Log: bmpcomn.pp,v $
+Revision 1.5  2005/02/14 17:13:12  peter
   * truncate log
 
 }

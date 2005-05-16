@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ptypes.inc,v 1.11 2005/02/14 17:13:21 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -174,8 +174,8 @@ Const
 
 
 {
-  $Log$
-  Revision 1.11  2005-02-14 17:13:21  peter
+  $Log: ptypes.inc,v $
+  Revision 1.11  2005/02/14 17:13:21  peter
     * truncate log
 
   Revision 1.10  2005/02/11 13:07:05  jonas

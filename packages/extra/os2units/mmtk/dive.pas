@@ -1,6 +1,6 @@
 {****************************************************************************
 
-    $Id$
+    $Id: dive.pas,v 1.4 2005/02/14 17:13:21 peter Exp $
 
                              DIVE interface unit
                      FPC Pascal Runtime Library for OS/2
@@ -325,8 +325,8 @@ External 'DIVE' Index 18;
 End.
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:21  peter
+  $Log: dive.pas,v $
+  Revision 1.4  2005/02/14 17:13:21  peter
     * truncate log
 
 }

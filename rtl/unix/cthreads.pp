@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cthreads.pp,v 1.28 2005/04/13 20:10:50 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Peter Vreman,
     member of the Free Pascal development team.
@@ -659,8 +659,8 @@ initialization
 finalization
 end.
 {
-  $Log$
-  Revision 1.28  2005-04-13 20:10:50  florian
+  $Log: cthreads.pp,v $
+  Revision 1.28  2005/04/13 20:10:50  florian
     + TThreadID
 
   Revision 1.27  2005/04/09 18:45:43  florian

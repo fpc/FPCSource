@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: bunxovl.inc,v 1.18 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Marco van de Voort
 
@@ -371,8 +371,8 @@ end;
 
 
 {
- $Log$
- Revision 1.18  2005-02-14 17:13:31  peter
+ $Log: bunxovl.inc,v $
+ Revision 1.18  2005/02/14 17:13:31  peter
    * truncate log
 
  Revision 1.17  2005/01/30 18:01:15  peter

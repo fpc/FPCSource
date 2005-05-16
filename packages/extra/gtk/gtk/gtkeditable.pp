@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkeditable.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -139,8 +139,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: gtkeditable.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

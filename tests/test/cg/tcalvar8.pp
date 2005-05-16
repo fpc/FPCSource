@@ -825,8 +825,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:37  peter
+  $Log: tcalvar8.pp,v $
+  Revision 1.7  2005/02/14 17:13:37  peter
     * truncate log
 
 }

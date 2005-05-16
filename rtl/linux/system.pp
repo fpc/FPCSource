@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: system.pp,v 1.25 2005/04/24 21:19:22 peter Exp $
     This file is part of the Free Pascal run time librar~y.
     Copyright (c) 2000 by Marco van de Voort
     member of the Free Pascal development team.
@@ -253,8 +253,8 @@ Begin
 End.
 
 {
-  $Log$
-  Revision 1.25  2005-04-24 21:19:22  peter
+  $Log: system.pp,v $
+  Revision 1.25  2005/04/24 21:19:22  peter
     * unblock signal in signalhandler, remove the sigprocmask call
       from setjmp
 

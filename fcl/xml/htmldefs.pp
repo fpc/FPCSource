@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: htmldefs.pp,v 1.4 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Component Library
 
     HTML definitions and utility functions
@@ -350,8 +350,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:18  peter
+  $Log: htmldefs.pp,v $
+  Revision 1.4  2005/02/14 17:13:18  peter
     * truncate log
 
 }

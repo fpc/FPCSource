@@ -1,7 +1,7 @@
 {$mode objfpc}
 {$H+}
 {
-    $Id$
+    $Id: fpcmkcfg.pp,v 1.3 2005/03/25 21:21:30 jonas Exp $
     This file is part of Free Pascal Build tools
     Copyright (c) 2005 by Michael Van Canneyt
 
@@ -230,8 +230,8 @@ begin
   end;
 end.
 {
-  $Log$
-  Revision 1.3  2005-03-25 21:21:30  jonas
+  $Log: fpcmkcfg.pp,v $
+  Revision 1.3  2005/03/25 21:21:30  jonas
     * fixeed uninitialised variable
     - removed unused local variables
 

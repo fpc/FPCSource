@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cgcpu.pas,v 1.67 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the code generator for the i386
@@ -742,8 +742,8 @@ begin
   cg64 := tcg64f386.create;
 end.
 {
-  $Log$
-  Revision 1.67  2005-02-14 17:13:09  peter
+  $Log: cgcpu.pas,v $
+  Revision 1.67  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.66  2005/02/13 18:55:19  florian

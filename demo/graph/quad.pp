@@ -812,8 +812,8 @@ Begin
 
 End.
 {
-  $Log$
-  Revision 1.5  2002-09-07 15:06:35  peter
+  $Log: quad.pp,v $
+  Revision 1.5  2002/09/07 15:06:35  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/06/02 09:49:17  marco

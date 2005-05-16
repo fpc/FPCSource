@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: system.pp,v 1.73 2005/04/03 21:10:59 hajny Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl and Pavel Ozerski
     member of the Free Pascal development team.
@@ -39,8 +39,7 @@ const
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 65535;
- MaxPathLen = 260;
- 
+
 type
    PEXCEPTION_FRAME = ^TEXCEPTION_FRAME;
    TEXCEPTION_FRAME = record
@@ -1108,10 +1107,7 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.74  2005-05-12 20:29:04  michael
-  + Added maxpathlen constant (maximum length of filename path)
-
+  $Log: system.pp,v $
   Revision 1.73  2005/04/03 21:10:59  hajny
     * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
 

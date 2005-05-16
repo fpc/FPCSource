@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: arm.inc,v 1.12 2005/03/13 10:04:52 florian Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team.
@@ -182,8 +182,8 @@ end;
 *)
 
 {
-  $Log$
-  Revision 1.12  2005-03-13 10:04:52  florian
+  $Log: arm.inc,v $
+  Revision 1.12  2005/03/13 10:04:52  florian
     * move draft
 
   Revision 1.11  2005/02/14 17:13:21  peter

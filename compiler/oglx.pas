@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: oglx.pas,v 1.8 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 2002 by Daniel Mantione, Peter Vreman
 
     Contains the binary reader and writer for the linear executable
@@ -394,8 +394,8 @@ begin
   RegisterLinker(ld_i386_coff,Tlxlinker);}
 end.
 {
-  $Log$
-  Revision 1.8  2005-02-14 17:13:06  peter
+  $Log: oglx.pas,v $
+  Revision 1.8  2005/02/14 17:13:06  peter
     * truncate log
 
 }

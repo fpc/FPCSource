@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkbindings.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -128,8 +128,8 @@ procedure set_in_emission(var a : TGtkBindingEntry; __in_emission : guint);
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: gtkbindings.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

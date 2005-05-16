@@ -1,6 +1,6 @@
 {****************************************************************************
 
-    $Id$
+    $Id: crt.pas,v 1.6 2005/03/30 23:11:35 hajny Exp $
 
                             Standard CRT unit.
                     Free Pascal runtime library for EMX.
@@ -453,7 +453,7 @@ begin
     scroll_dn(row,left,bot,right,1,fil);
 end;
 
-procedure TextMode (Mode: word);
+procedure textmode(mode:integer);
 
 { Use this procedure to set-up a specific text-mode.}
 
@@ -959,10 +959,7 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.7  2005-05-14 15:01:49  hajny
-    * TextMode parameter type changed to word for TP/BP compatibility
-
+  $Log: crt.pas,v $
   Revision 1.6  2005/03/30 23:11:35  hajny
     * OS/2 fixes merged to EMX
 

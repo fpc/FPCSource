@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: tut6_1.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the GTK 1.2 tutorial.
   Section 6.1
@@ -87,8 +87,8 @@
      gtk_widget_show (window);
      //* Rest in gtk_main and wait for the fun to begin! */
      gtk_main ();
- end.  $Log$
- end.  Revision 1.3  2005-02-14 17:13:20  peter
+ end.  $Log: tut6_1.pp,v $
+ end.  Revision 1.3  2005/02/14 17:13:20  peter
  end.    * truncate log
  end.
 }

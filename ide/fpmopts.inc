@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpmopts.inc,v 1.14 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -1375,8 +1375,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.14  2005-02-14 17:13:18  peter
+  $Log: fpmopts.inc,v $
+  Revision 1.14  2005/02/14 17:13:18  peter
     * truncate log
 
 }

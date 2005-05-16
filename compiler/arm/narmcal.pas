@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: narmcal.pas,v 1.5 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Implements the ARM specific part of call nodes
@@ -50,8 +50,8 @@ begin
    ccallnode:=tarmcallnode;
 end.
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:09  peter
+  $Log: narmcal.pas,v $
+  Revision 1.5  2005/02/14 17:13:09  peter
     * truncate log
 
 }

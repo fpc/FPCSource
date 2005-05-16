@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpubase.pas,v 1.36 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Contains the base types for the m68k
@@ -461,8 +461,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.36  2005-02-14 17:13:10  peter
+  $Log: cpubase.pas,v $
+  Revision 1.36  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.35  2005/01/20 16:38:45  peter

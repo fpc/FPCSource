@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: lines.pp,v 1.2 2002/09/07 15:06:35 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993-98 by Florian Klaempfl
 
@@ -74,8 +74,8 @@ program count_lines;
      if lines=1 then writeln('1 Line') else writeln(lines,' Lines');
   end.
 {
-  $Log$
-  Revision 1.2  2002-09-07 15:06:35  peter
+  $Log: lines.pp,v $
+  Revision 1.2  2002/09/07 15:06:35  peter
     * old logs removed and tabs fixed
 
 }

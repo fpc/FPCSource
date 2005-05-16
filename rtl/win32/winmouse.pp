@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: winmouse.pp,v 1.7 2005/02/14 17:13:32 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -198,8 +198,8 @@ unit winmouse;
      MouseFound:=GetSystemMetrics(SM_MOUSEPRESENT)<>0;
   end.
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:32  peter
+  $Log: winmouse.pp,v $
+  Revision 1.7  2005/02/14 17:13:32  peter
     * truncate log
 
 }

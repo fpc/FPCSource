@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: rgobj.pas,v 1.158 2005/04/07 16:25:05 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the base class for the register allocator
@@ -2022,8 +2022,8 @@ unit rgobj;
 
 end.
 {
-  $Log$
-  Revision 1.158  2005-04-07 16:25:05  peter
+  $Log: rgobj.pas,v $
+  Revision 1.158  2005/04/07 16:25:05  peter
     * during spilling only add deallocs to live_registers that belong
       to the instruction
 

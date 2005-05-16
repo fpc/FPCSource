@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysnr.inc,v 1.2 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
@@ -260,8 +260,8 @@ Const
         syscall_nr_fremovexattr         = 237;
 
 {
-    $Log$
-    Revision 1.2  2005-02-14 17:13:30  peter
+    $Log: sysnr.inc,v $
+    Revision 1.2  2005/02/14 17:13:30  peter
       * truncate log
 
 }

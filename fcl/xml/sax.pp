@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sax.pp,v 1.4 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Component Library
 
     SAX 2 (Simple API for XML) implementation
@@ -933,8 +933,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:18  peter
+  $Log: sax.pp,v $
+  Revision 1.4  2005/02/14 17:13:18  peter
     * truncate log
 
 }

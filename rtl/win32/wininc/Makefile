@@ -1,5 +1,5 @@
 #
-#   $Id$
+#   $Id: Makefile,v 1.2 2002/09/07 16:01:29 peter Exp $
 #   This file is part of the Free Pascal run time library.
 #   Copyright (c) 1999-2000 by Michael van Canneyt
 #
@@ -158,7 +158,7 @@ unidef.inc : unifun.inc unidef.sed
 	sed -f unidef.sed unifun.inc > unidef.inc
 
 #
-# $Log$
-# Revision 1.2  2002-09-07 16:01:29  peter
+# $Log: Makefile,v $
+# Revision 1.2  2002/09/07 16:01:29  peter
 #   * old logs removed and tabs fixed
 #

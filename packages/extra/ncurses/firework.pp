@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: firework.pp,v 1.5 2005/02/14 17:13:21 peter Exp $
 }
 program firework;
 uses
@@ -136,8 +136,8 @@ begin
    end;
 end.
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:21  peter
+  $Log: firework.pp,v $
+  Revision 1.5  2005/02/14 17:13:21  peter
     * truncate log
 
 }

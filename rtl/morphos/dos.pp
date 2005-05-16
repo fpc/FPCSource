@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dos.pp,v 1.15 2005/04/07 03:57:58 karoly Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Karoly Balogh for Genesi S.a.r.l.
 
@@ -1004,8 +1004,8 @@ Begin
 End.
 
 {
-  $Log$
-  Revision 1.15  2005-04-07 03:57:58  karoly
+  $Log: dos.pp,v $
+  Revision 1.15  2005/04/07 03:57:58  karoly
     * fixed attribute handling in findfirst/findnext
 
   Revision 1.14  2005/02/14 17:13:30  peter

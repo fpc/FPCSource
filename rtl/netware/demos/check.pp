@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: check.pp,v 1.3 2005/02/14 17:13:30 peter Exp $
     This file is part of Free Pascal for Netware.
     Copyright (c) 1999-2002 by the Free Pascal development team.
 
@@ -45,8 +45,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:30  peter
+  $Log: check.pp,v $
+  Revision 1.3  2005/02/14 17:13:30  peter
     * truncate log
 
 }

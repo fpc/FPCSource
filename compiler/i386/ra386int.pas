@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ra386int.pas,v 1.89 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
     Does the parsing process for the intel styled inline assembler.
@@ -2059,8 +2059,8 @@ begin
   RegisterAsmMode(asmmode_i386_intel_info);
 end.
 {
-  $Log$
-  Revision 1.89  2005-02-14 17:13:10  peter
+  $Log: ra386int.pas,v $
+  Revision 1.89  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.88  2005/01/31 17:07:50  peter

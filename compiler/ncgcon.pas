@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncgcon.pas,v 1.49 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for constant nodes which are the same for
@@ -750,8 +750,8 @@ begin
    cguidconstnode:=tcgguidconstnode;
 end.
 {
-  $Log$
-  Revision 1.49  2005-02-14 17:13:06  peter
+  $Log: ncgcon.pas,v $
+  Revision 1.49  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.48  2005/01/31 19:41:01  peter

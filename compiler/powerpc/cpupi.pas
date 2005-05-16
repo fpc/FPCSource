@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpupi.pas,v 1.37 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     This unit contains the CPU specific part of tprocinfo
@@ -144,8 +144,8 @@ begin
    cprocinfo:=tppcprocinfo;
 end.
 {
-  $Log$
-  Revision 1.37  2005-02-14 17:13:10  peter
+  $Log: cpupi.pas,v $
+  Revision 1.37  2005/02/14 17:13:10  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cdrom.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
     Copyright (c) 1999-2000 by Michael Van Canneyt
 
     Unit to read a CDROM disc TOC and get a list of CD Rom devices
@@ -39,8 +39,8 @@ Implementation
 
 end.
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: cdrom.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

@@ -1,4 +1,4 @@
-{ $Id$
+{ $Id: nwnit.pp,v 1.2 2005/02/14 17:13:30 peter Exp $
 
   Netware Server Imports for FreePascal, contains definition from the
   following ndk header files:
@@ -3158,8 +3158,8 @@ implementation
 end.
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:30  peter
+  $Log: nwnit.pp,v $
+  Revision 1.2  2005/02/14 17:13:30  peter
     * truncate log
 
 }

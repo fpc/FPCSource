@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: httpsvlt.pp,v 1.5 2005/02/14 17:13:15 peter Exp $
 
     HTTP Servlet Classes
     Copyright (c) 2003 by
@@ -632,8 +632,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:15  peter
+  $Log: httpsvlt.pp,v $
+  Revision 1.5  2005/02/14 17:13:15  peter
     * truncate log
 
 }

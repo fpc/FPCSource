@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: tut6_4.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the GTK 1.2 tutorial.
   Section 6.4
@@ -86,8 +86,8 @@
 
         gtk_main();
   end.
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: tut6_4.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

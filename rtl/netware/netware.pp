@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: netware.pp,v 1.3 2005/02/14 17:13:30 peter Exp $
     <partof>
     Copyright (c) 1998 by <yourname>
 
@@ -164,8 +164,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:30  peter
+  $Log: netware.pp,v $
+  Revision 1.3  2005/02/14 17:13:30  peter
     * truncate log
 
 }

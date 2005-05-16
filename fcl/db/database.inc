@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: database.inc,v 1.12 2005/04/26 16:37:44 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team
@@ -520,8 +520,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.12  2005-04-26 16:37:44  michael
+  $Log: database.inc,v $
+  Revision 1.12  2005/04/26 16:37:44  michael
   + Added TCustomConnection by Uberto Barbini
 
   Revision 1.11  2005/04/24 19:21:28  joost

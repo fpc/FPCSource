@@ -3,7 +3,7 @@
 
 (* global definitions: *)
 {
-    $Id$
+    $Id: scan.pas,v 1.8 2005/02/14 17:13:39 peter Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify

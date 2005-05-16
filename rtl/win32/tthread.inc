@@ -212,8 +212,8 @@ begin
   GetExitCodeThread(FHandle, DWord(Result));
 end;
 {
-  $Log$
-  Revision 1.8  2005-02-25 21:52:07  florian
+  $Log: tthread.inc,v $
+  Revision 1.8  2005/02/25 21:52:07  florian
     * "transfer to linux"-commit
 
   Revision 1.7  2005/02/25 21:41:09  florian

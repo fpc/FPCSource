@@ -7,8 +7,8 @@ begin
    fl_show_colormap(0);
 end.
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:20  peter
+  $Log: colsel.pp,v $
+  Revision 1.4  2005/02/14 17:13:20  peter
     * truncate log
 
 }

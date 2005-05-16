@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: heaph.inc,v 1.15 2005/03/04 16:49:34 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -138,8 +138,8 @@ Function  Heapsize:ptrint;
 {$endif HASGETHEAPSTATUS}
 
 {
-  $Log$
-  Revision 1.15  2005-03-04 16:49:34  peter
+  $Log: heaph.inc,v $
+  Revision 1.15  2005/03/04 16:49:34  peter
     * fix getheapstatus bootstrapping
 
   Revision 1.14  2005/02/28 15:38:38  marco

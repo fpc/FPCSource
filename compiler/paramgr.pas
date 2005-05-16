@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: paramgr.pas,v 1.88 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Generic calling convention handling
@@ -386,8 +386,8 @@ finalization
 end.
 
 {
-   $Log$
-   Revision 1.88  2005-02-14 17:13:07  peter
+   $Log: paramgr.pas,v $
+   Revision 1.88  2005/02/14 17:13:07  peter
      * truncate log
 
    Revision 1.87  2005/02/08 16:40:16  florian

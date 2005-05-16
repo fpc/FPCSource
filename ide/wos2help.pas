@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: wos2help.pas,v 1.5 2005/02/14 17:13:19 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 2000 by Berczi Gabor
 
@@ -610,8 +610,8 @@ end;
 
 END.
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:19  peter
+  $Log: wos2help.pas,v $
+  Revision 1.5  2005/02/14 17:13:19  peter
     * truncate log
 
 }

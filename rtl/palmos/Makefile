@@ -1,5 +1,5 @@
 #
-#   $Id$
+#   $Id: Makefile,v 1.2 2002/09/07 16:01:25 peter Exp $
 #   This file is part of the Free Pascal run time library.
 #   Copyright (c) 1999-2000 by Michael van Canneyt
 #
@@ -241,7 +241,7 @@ libsclean : clean
 include $(CFG)/makefile.def
 
 #
-# $Log$
-# Revision 1.2  2002-09-07 16:01:25  peter
+# $Log: Makefile,v $
+# Revision 1.2  2002/09/07 16:01:25  peter
 #   * old logs removed and tabs fixed
 #

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: oscdeclh.inc,v 1.14 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -92,8 +92,8 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
 
 {
-   $Log$
-   Revision 1.14  2005-02-14 17:13:31  peter
+   $Log: oscdeclh.inc,v $
+   Revision 1.14  2005/02/14 17:13:31  peter
      * truncate log
 
    Revision 1.13  2005/02/13 20:01:38  peter

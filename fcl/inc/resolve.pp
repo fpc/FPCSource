@@ -824,8 +824,8 @@ Finalization
 
 end.
 {
-   $Log$
-   Revision 1.11  2005-03-18 10:58:16  marco
+   $Log: resolve.pp,v $
+   Revision 1.11  2005/03/18 10:58:16  marco
     * lots of endian fixes
 
    Revision 1.10  2005/02/14 17:13:15  peter

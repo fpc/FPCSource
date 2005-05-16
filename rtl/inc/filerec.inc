@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: filerec.inc,v 1.8 2005/02/26 15:42:45 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -38,8 +38,8 @@ type
   End;
 
 {
-  $Log$
-  Revision 1.8  2005-02-26 15:42:45  florian
+  $Log: filerec.inc,v $
+  Revision 1.8  2005/02/26 15:42:45  florian
     * userdata in file/textrecs now 32 bytes
 
   Revision 1.7  2005/02/14 17:13:22  peter

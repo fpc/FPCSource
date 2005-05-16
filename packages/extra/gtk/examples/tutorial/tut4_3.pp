@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: tut4_3.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the GTK 1.2 tutorial.
   Section 4.3
@@ -298,8 +298,8 @@ begin
 
     //return(0);
 
-end.  $Log$
-end.  Revision 1.3  2005-02-14 17:13:20  peter
+end.  $Log: tut4_3.pp,v $
+end.  Revision 1.3  2005/02/14 17:13:20  peter
 end.    * truncate log
 end.
 }

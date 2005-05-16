@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: t_palmos.pas,v 1.5 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2001-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
@@ -212,8 +212,8 @@ initialization
 {$endif m68k}
 end.
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:10  peter
+  $Log: t_palmos.pas,v $
+  Revision 1.5  2005/02/14 17:13:10  peter
     * truncate log
 
 }

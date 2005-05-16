@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: agarmgas.pas,v 1.24 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 2003 by Florian Klaempfl
 
     This unit implements an asm for the ARM
@@ -237,8 +237,8 @@ begin
   RegisterAssembler(as_arm_gas_info,TARMGNUAssembler);
 end.
 {
-  $Log$
-  Revision 1.24  2005-02-14 17:13:09  peter
+  $Log: agarmgas.pas,v $
+  Revision 1.24  2005/02/14 17:13:09  peter
     * truncate log
 
 }

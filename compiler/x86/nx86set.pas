@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: nx86set.pas,v 1.9 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate x86 assembler for in/case nodes
@@ -462,8 +462,8 @@ begin
    cinnode:=tx86innode;
 end.
 {
-  $Log$
-  Revision 1.9  2005-02-14 17:13:10  peter
+  $Log: nx86set.pas,v $
+  Revision 1.9  2005/02/14 17:13:10  peter
     * truncate log
 
  }

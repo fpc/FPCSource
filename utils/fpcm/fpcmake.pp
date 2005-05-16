@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpcmake.pp,v 1.14 2005/02/14 17:13:38 peter Exp $
     Copyright (c) 2001 by Peter Vreman
 
     Convert Makefile.fpc to Makefile
@@ -302,8 +302,8 @@ begin
    UseParameters;
 end.
 {
-  $Log$
-  Revision 1.14  2005-02-14 17:13:38  peter
+  $Log: fpcmake.pp,v $
+  Revision 1.14  2005/02/14 17:13:38  peter
     * truncate log
 
   Revision 1.13  2005/01/31 19:26:47  peter

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: i_go32v2.pas,v 1.7 2005/03/20 22:36:45 olle Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support information structures for go32v2
@@ -99,8 +99,8 @@ initialization
 {$endif cpu86}
 end.
 {
-  $Log$
-  Revision 1.7  2005-03-20 22:36:45  olle
+  $Log: i_go32v2.pas,v $
+  Revision 1.7  2005/03/20 22:36:45  olle
     * Cleaned up handling of source file extension.
     + Added support for .p extension for macos and darwin
 

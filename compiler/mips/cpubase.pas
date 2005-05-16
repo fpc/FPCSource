@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpubase.pas,v 1.1 2005/02/13 18:56:44 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
     Contains the base types for the ARM
@@ -490,7 +490,7 @@ unit cpubase;
 
 end.
 {
-  $Log$
-  Revision 1.1  2005-02-13 18:56:44  florian
+  $Log: cpubase.pas,v $
+  Revision 1.1  2005/02/13 18:56:44  florian
     + basic mips stuff
 }

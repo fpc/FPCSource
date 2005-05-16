@@ -1,5 +1,5 @@
 /*
-  $Id$
+  $Id: prt0.as,v 1.12 2005/02/03 19:09:11 karoly Exp $
 */
 /*
    This file is part of the Free Pascal run time library.
@@ -185,8 +185,8 @@ __abox__:
         .long 1
 
 /*
-  $Log$
-  Revision 1.12  2005-02-03 19:09:11  karoly
+  $Log: prt0.as,v $
+  Revision 1.12  2005/02/03 19:09:11  karoly
     * reworked startup code:
       - now uses AllocTaskPooled
       - check for unsuccessful stack allocation

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: errors.inc,v 1.6 2005/02/14 17:13:32 peter Exp $
     This file is part of the Free Pascal run time library.
     This unit contains the error code definition for the Win32 API
 
@@ -1165,8 +1165,8 @@
 {$endif read_interface}
 
 {
-  $Log$
-  Revision 1.6  2005-02-14 17:13:32  peter
+  $Log: errors.inc,v $
+  Revision 1.6  2005/02/14 17:13:32  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: asltest.pas,v 1.2 2005/02/14 17:13:10 peter Exp $
 
     Using an asl.library requester
     Free Pascal for MorphOS example
@@ -72,8 +72,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:10  peter
+  $Log: asltest.pas,v $
+  Revision 1.2  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.1  2005/01/30 20:03:43  karoly

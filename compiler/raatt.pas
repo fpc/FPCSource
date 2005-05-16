@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: raatt.pas,v 1.19 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
     Does the parsing for the GAS styled inline assembler.
@@ -1522,8 +1522,8 @@ unit raatt;
 end.
 
 {
-  $Log$
-  Revision 1.19  2005-02-14 17:13:07  peter
+  $Log: raatt.pas,v $
+  Revision 1.19  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.18  2005/01/20 17:05:53  peter

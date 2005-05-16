@@ -341,7 +341,7 @@ ifdef IDE
 endif
 
 singlezipinstall: $(BUILDSTAMP)
-        $(MAKE) fpc_zipinstall ZIPTARGET=install ZIPNAME=fpc-$(PACKAGE_VERSION) $(INSTALLOPTS)
+        $(MAKE) fpc_zipinstall ZIPTARGET=install ZIPNAME=fpc $(INSTALLOPTS)
 
 
 ##########################################################################
@@ -405,7 +405,6 @@ demosrcinstall:
         $(MAKE) -C demo clean
         $(MKDIR) $(DEMOSOURCEDIR)
         $(COPYTREE) demo/* $(DEMOSOURCEDIR)
-        find $(DEMOSOURCEDIR) -name 'CVS' | xargs -n1 rm -rf
 
 demozip:
         $(MAKE) fpc_zipinstall ZIPTARGET=demosrcinstall FULLZIPNAME=demo

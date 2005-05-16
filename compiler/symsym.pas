@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: symsym.pas,v 1.202 2005/03/14 15:59:18 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     Implementation for the symbols types of the symtable
@@ -2649,8 +2649,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.202  2005-03-14 15:59:18  peter
+  $Log: symsym.pas,v $
+  Revision 1.202  2005/03/14 15:59:18  peter
     * also set intsize for paralocs written to ppu
 
   Revision 1.201  2005/02/14 17:13:07  peter

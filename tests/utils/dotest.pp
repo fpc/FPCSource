@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: dotest.pp,v 1.46 2005/02/14 17:13:37 peter Exp $
     This file is part of the Free Pascal test suite.
     Copyright (c) 1999-2002 by the Free Pascal development team.
 
@@ -1165,8 +1165,8 @@ begin
   RunTest;
 end.
 {
-  $Log$
-  Revision 1.46  2005-02-14 17:13:37  peter
+  $Log: dotest.pp,v $
+  Revision 1.46  2005/02/14 17:13:37  peter
     * truncate log
 
   Revision 1.45  2005/01/26 22:05:06  olle

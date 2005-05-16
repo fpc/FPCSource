@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: nppccal.pas,v 1.35 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Implements the PowerPC specific part of call nodes
@@ -146,8 +146,8 @@ begin
    ccallnode:=tppccallnode;
 end.
 {
-  $Log$
-  Revision 1.35  2005-02-14 17:13:10  peter
+  $Log: nppccal.pas,v $
+  Revision 1.35  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.34  2005/01/06 02:13:03  karoly

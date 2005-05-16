@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpupara.pas,v 1.18 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Generates the argument location information for x86-64 target
@@ -492,8 +492,8 @@ begin
    paramanager:=tx86_64paramanager.create;
 end.
 {
-  $Log$
-  Revision 1.18  2005-02-14 17:13:10  peter
+  $Log: cpupara.pas,v $
+  Revision 1.18  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.17  2005/02/06 18:59:15  peter

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: blackbox.pp,v 1.2 2002/02/22 21:47:00 carl Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993-98 by Michael Van Canneyt
 
@@ -188,8 +188,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.2  2002-02-22 21:47:00  carl
+  $Log: blackbox.pp,v $
+  Revision 1.2  2002/02/22 21:47:00  carl
   + fix some wrong logical comparisons
 
 }

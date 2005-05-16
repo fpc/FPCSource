@@ -1,5 +1,5 @@
 ;
-; $Id$
+; $Id: ppcreg.dat,v 1.6 2004/06/17 16:55:46 peter Exp $
 ;
 ; PowerPC registers
 ;
@@ -122,8 +122,8 @@ CTR,$05,$0b,CTR,ctr,ctr,CTR,66,66
 FPSCR,$05,$0c,FPSCR,fpscr,fpscr,FPSCR,-1,-1
 
 ;
-; $Log$
-; Revision 1.6  2004-06-17 16:55:46  peter
+; $Log: ppcreg.dat,v $
+; Revision 1.6  2004/06/17 16:55:46  peter
 ;   * powerpc compiles again
 ;
 ; Revision 1.5  2003/12/10 22:19:27  florian

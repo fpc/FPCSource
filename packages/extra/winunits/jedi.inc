@@ -46,7 +46,7 @@
 {                                                                              }
 {******************************************************************************}
 
-// Last modified: $Date$
+// Last modified: $Date: 2005/04/04 07:56:11 $
 // For history see end of file
 
 (*
@@ -1020,8 +1020,8 @@
 
 // History:
 
-// $Log$
-// Revision 1.1  2005-04-04 07:56:11  marco
+// $Log: jedi.inc,v $
+// Revision 1.1  2005/04/04 07:56:11  marco
 //  * Jedi Windows Api initial import
 //
 // Revision 1.1  2004/11/11 09:39:29  marquardt

@@ -1,4 +1,4 @@
-{ $Id$ }
+{ $Id: memory.pas,v 1.11 2005/02/14 17:13:18 peter Exp $ }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {          System independent clone of MEMORY.PAS          }
@@ -870,8 +870,8 @@ END;
 END.
 
 {
- $Log$
- Revision 1.11  2005-02-14 17:13:18  peter
+ $Log: memory.pas,v $
+ Revision 1.11  2005/02/14 17:13:18  peter
    * truncate log
 
 }

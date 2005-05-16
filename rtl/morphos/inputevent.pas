@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: inputevent.pas,v 1.2 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
 
@@ -213,8 +213,8 @@ implementation
 end.
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:30  peter
+  $Log: inputevent.pas,v $
+  Revision 1.2  2005/02/14 17:13:30  peter
     * truncate log
 
 }

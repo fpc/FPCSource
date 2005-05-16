@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: compiler.pas,v 1.61 2005/05/06 18:54:26 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit is the interface of the compiler which can be used by
@@ -469,8 +469,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.61  2005-05-06 18:54:26  florian
+  $Log: compiler.pas,v $
+  Revision 1.61  2005/05/06 18:54:26  florian
     * better exception catching
 
   Revision 1.60  2005/04/24 21:01:37  peter

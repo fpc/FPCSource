@@ -891,8 +891,8 @@ sub listMember
 1;
 
 #
-# $Log$
-# Revision 1.1  2003-09-22 01:35:54  florian
+# $Log: kalyptusCxxToPas.pm,v $
+# Revision 1.1  2003/09/22 01:35:54  florian
 #   * initial release, mainly backup
 #
 #

@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gdk.pp,v 1.8 2005/02/14 17:13:20 peter Exp $
 
    GDK - The GIMP Drawing Kit
    Copyright (C) 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald
@@ -106,8 +106,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.8  2005-02-14 17:13:20  peter
+  $Log: gdk.pp,v $
+  Revision 1.8  2005/02/14 17:13:20  peter
     * truncate log
 
 }

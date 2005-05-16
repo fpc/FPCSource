@@ -1,6 +1,6 @@
 {****************************************************************************
 
-    $Id$
+    $Id: os2def.pas,v 1.9 2005/02/14 17:13:31 peter Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2002 by the Free Pascal development team.
@@ -3405,8 +3405,8 @@ End;
 
 end.
 {
-  $Log$
-  Revision 1.9  2005-02-14 17:13:31  peter
+  $Log: os2def.pas,v $
+  Revision 1.9  2005/02/14 17:13:31  peter
     * truncate log
 
 }

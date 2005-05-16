@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ports.pas,v 1.7 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -207,8 +207,8 @@ end {['eax', 'ecx', 'edx']};
 end.
 
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:31  peter
+  $Log: ports.pas,v $
+  Revision 1.7  2005/02/14 17:13:31  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncgmat.pas,v 1.32 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate generic mathematical nodes
@@ -472,8 +472,8 @@ begin
    cnotnode:=tcgnotnode;
 end.
 {
-  $Log$
-  Revision 1.32  2005-02-14 17:13:06  peter
+  $Log: ncgmat.pas,v $
+  Revision 1.32  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.31  2005/02/13 18:55:19  florian

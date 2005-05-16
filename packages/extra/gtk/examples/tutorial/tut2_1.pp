@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: tut2_1.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the GTK 1.2 tutorial.
   Section 2.1
@@ -89,8 +89,8 @@ begin
   // mouse event).
   gtk_main ();
 
-end.  $Log$
-end.  Revision 1.3  2005-02-14 17:13:20  peter
+end.  $Log: tut2_1.pp,v $
+end.  Revision 1.3  2005/02/14 17:13:20  peter
 end.    * truncate log
 end.
 }

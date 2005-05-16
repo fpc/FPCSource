@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ossysc.inc,v 1.26 2005/04/24 19:11:28 marco Exp $
     Copyright (c) 2002 by Marco van de Voort
 
     The base *BSD syscalls required to implement the system unit. These
@@ -534,8 +534,8 @@ begin
 end;
 
 {
- $Log$
- Revision 1.26  2005-04-24 19:11:28  marco
+ $Log: ossysc.inc,v $
+ Revision 1.26  2005/04/24 19:11:28  marco
   * mmap had another, yet unknown 8th parameter which must be 0 and comes after the offset param
 
  Revision 1.25  2005/03/13 14:11:06  marco

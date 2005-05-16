@@ -1,5 +1,5 @@
 #
-#   $Id$
+#   $Id: cprt0.as,v 1.2 2004/01/04 01:13:23 marco Exp $
 #   This file is part of the Free Pascal run time library.
 #   Copyright (c) 1999-2000 by Marco van de Voort, Michael Van Canneyt
 #                                                  and Peter Vreman

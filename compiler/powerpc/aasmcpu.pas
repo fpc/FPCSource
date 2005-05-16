@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: aasmcpu.pas,v 1.31 2005/02/18 23:37:51 jonas Exp $
     Copyright (c) 1999-2002 by Jonas Maebe
 
     Contains the assembler object for the PowerPC
@@ -421,8 +421,8 @@ begin
   cai_cpu:=taicpu;
 end.
 {
-  $Log$
-  Revision 1.31  2005-02-18 23:37:51  jonas
+  $Log: aasmcpu.pas,v $
+  Revision 1.31  2005/02/18 23:37:51  jonas
     * fixed spilling for several ppc instructions which only read registers
     + added support for registers in references that get changed (load/store
       with update)

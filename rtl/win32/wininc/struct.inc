@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: struct.inc,v 1.36 2005/02/26 15:06:25 florian Exp $
     This file is part of the Free Pascal run time library.
     This unit contains the record definition for the Win32 API
     Copyright (c) 1999-2000 by Florian KLaempfl,
@@ -7194,8 +7194,8 @@ type
 {$endif read_implementation}
 
 {
-  $Log$
-  Revision 1.36  2005-02-26 15:06:25  florian
+  $Log: struct.inc,v $
+  Revision 1.36  2005/02/26 15:06:25  florian
     + PDevideMode* added
 
   Revision 1.35  2005/02/14 17:13:32  peter

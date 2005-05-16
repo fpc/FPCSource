@@ -57,8 +57,8 @@ exitprocess:
 
 
 	
-// $Log$
-// Revision 1.4  2002-11-30 18:17:35  carl
+// $Log: wprt0.as,v $
+// Revision 1.4  2002/11/30 18:17:35  carl
 //   + profiling support
 //
 // Revision 1.3  2002/07/28 20:43:51  florian

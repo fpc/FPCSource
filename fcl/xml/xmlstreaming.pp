@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: xmlstreaming.pp,v 1.5 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Component Library
 
     XML serialisation driver
@@ -240,8 +240,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:18  peter
+  $Log: xmlstreaming.pp,v $
+  Revision 1.5  2005/02/14 17:13:18  peter
     * truncate log
 
 }

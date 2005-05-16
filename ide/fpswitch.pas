@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpswitch.pas,v 1.22 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998-2000 by Berczi Gabor
 
@@ -931,7 +931,7 @@ begin
      { better, we've a correct target list without "tilded" names instead a wrong one }
      for t:=low(tsystem) to high(tsystem) do
        if assigned(targetinfos[t]) then
-         AddSelectItem(targetinfos[t]^.name, LowerCaseStr (targetinfos[t]^.shortname),idNone);
+         AddSelectItem(targetinfos[t]^.name,targetinfos[t]^.shortname,idNone);
    end;
   New(AsmReaderSwitches,InitSelect('R'));
   with AsmReaderSwitches^ do
@@ -1211,10 +1211,7 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.23  2005-05-15 19:22:13  hajny
-    * initialization of targets fixed
-
+  $Log: fpswitch.pas,v $
   Revision 1.22  2005/02/14 17:13:18  peter
     * truncate log
 

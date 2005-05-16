@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dpmiexcp.pp,v 1.18 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Pierre Muller
 
@@ -1615,8 +1615,8 @@ begin
 end;
 {$endif IN_SYSTEM}
 {
-  $Log$
-  Revision 1.18  2005-02-14 17:13:22  peter
+  $Log: dpmiexcp.pp,v $
+  Revision 1.18  2005/02/14 17:13:22  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: genset.inc,v 1.9 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2001 by the Free Pascal development team
 
@@ -269,8 +269,8 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
 {$endif}
 
 {
-  $Log$
-  Revision 1.9  2005-02-14 17:13:22  peter
+  $Log: genset.inc,v $
+  Revision 1.9  2005/02/14 17:13:22  peter
     * truncate log
 
 }

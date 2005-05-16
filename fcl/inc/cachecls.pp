@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cachecls.pp,v 1.5 2005/02/14 17:13:12 peter Exp $
 
     Generic cache class for FCL
     Copyright (C) 2000 by Sebastian Guenther (sg@freepascal.org)
@@ -327,8 +327,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:12  peter
+  $Log: cachecls.pp,v $
+  Revision 1.5  2005/02/14 17:13:12  peter
     * truncate log
 
 }

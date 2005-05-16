@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gdktypes.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -1089,8 +1089,8 @@ type
 {$endif read_interface}
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: gdktypes.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

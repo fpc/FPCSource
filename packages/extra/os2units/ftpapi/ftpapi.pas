@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ftpapi.pas,v 1.4 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 2002 by Yuri Prokushev (prokushev@freemail.ru).
 
     Functions from FTPAPI.DLL (part of standard OS/2 Warp 4/eCS installation).
@@ -1182,8 +1182,8 @@ var FtpErrNo: integer; cdecl; external FTPAPIDLL index 20; // seems to be a copy
 End.
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:21  peter
+  $Log: ftpapi.pas,v $
+  Revision 1.4  2005/02/14 17:13:21  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fmodule.pas,v 1.53 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the first loading and searching of the modules
@@ -831,8 +831,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.53  2005-02-14 17:13:06  peter
+  $Log: fmodule.pas,v $
+  Revision 1.53  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.52  2005/01/19 22:19:41  peter

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncgld.pas,v 1.140 2005/04/08 15:18:08 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for nodes that handle loads and assignments which
@@ -929,8 +929,8 @@ begin
    crttinode:=tcgrttinode;
 end.
 {
-  $Log$
-  Revision 1.140  2005-04-08 15:18:08  peter
+  $Log: ncgld.pas,v $
+  Revision 1.140  2005/04/08 15:18:08  peter
   remove multiple pass2 calls. It is not supported anymore by all nodes (ttempcreatenode)
 
   Revision 1.139  2005/02/14 17:13:06  peter

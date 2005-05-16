@@ -1,6 +1,6 @@
 Program checkcvs;
 {
-    $Id$
+    $Id: checkcvs.pp,v 1.3 2002/09/07 15:40:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -242,8 +242,8 @@ Begin
 End.
 
 {
-  $Log$
-  Revision 1.3  2002-09-07 15:40:30  peter
+  $Log: checkcvs.pp,v $
+  Revision 1.3  2002/09/07 15:40:30  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/06/02 17:10:35  marco

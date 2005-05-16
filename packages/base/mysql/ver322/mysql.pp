@@ -1,4 +1,4 @@
-{ $Id$ }
+{ $Id: mysql.pp,v 1.3 2005/02/14 17:13:19 peter Exp $ }
 
 unit mysql;
 
@@ -324,8 +324,8 @@ end;
 end.
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:19  peter
+  $Log: mysql.pp,v $
+  Revision 1.3  2005/02/14 17:13:19  peter
     * truncate log
 
 }

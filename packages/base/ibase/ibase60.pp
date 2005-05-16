@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: ibase60.pp,v 1.7 2005/04/24 19:55:55 joost Exp $
 }
 unit ibase60;
 
@@ -9,8 +9,8 @@ unit ibase60;
 
 end.
 {
-  $Log$
-  Revision 1.7  2005-04-24 19:55:55  joost
+  $Log: ibase60.pp,v $
+  Revision 1.7  2005/04/24 19:55:55  joost
   - Placed dyn. loaded and stat. loaded headers in one file
 
   Revision 1.6  2005/02/14 17:13:19  peter

@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkwindow.pp,v 1.4 2005/02/14 17:13:21 peter Exp $
 }
 
 {****************************************************************************
@@ -180,8 +180,8 @@ end;
 {$endif read_implementation}
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:21  peter
+  $Log: gtkwindow.pp,v $
+  Revision 1.4  2005/02/14 17:13:21  peter
     * truncate log
 
 }

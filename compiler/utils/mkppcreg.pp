@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: mkppcreg.pp,v 1.9 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman and Florian Klaempfl
 
     Convert ppcreg.dat to several .inc files for usage with
@@ -396,8 +396,8 @@ begin
    write_inc_files;
 end.
 {
-  $Log$
-  Revision 1.9  2005-02-14 17:13:10  peter
+  $Log: mkppcreg.pp,v $
+  Revision 1.9  2005/02/14 17:13:10  peter
     * truncate log
 
 }

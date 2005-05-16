@@ -1,5 +1,5 @@
 /*
-  $Id$
+  $Id: cprt0.as,v 1.4 2004/11/02 21:49:46 florian Exp $
   Dummy implementation
 
 */
@@ -148,8 +148,8 @@ ___fpc_ret_rbp:
 
 
 /*
-  $Log$
-  Revision 1.4  2004-11-02 21:49:46  florian
+  $Log: cprt0.as,v $
+  Revision 1.4  2004/11/02 21:49:46  florian
     * x86_64 requires always 16 byte alignment of the stack
 
   Revision 1.3  2004/07/03 21:50:31  daniel

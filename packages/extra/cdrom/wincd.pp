@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: wincd.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 }
 unit wincd;
 
@@ -511,8 +511,8 @@ Initialization
   InitWinCD;
 end.
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: wincd.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

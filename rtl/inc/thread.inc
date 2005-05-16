@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: thread.inc,v 1.30 2005/04/20 07:41:48 hajny Exp $
     This file is part of the Free Pascal Run time library.
     Copyright (c) 2000 by the Free Pascal development team
 
@@ -496,8 +496,8 @@ end;
 {$endif DISABLE_NO_THREAD_MANAGER}
 
 {
-  $Log$
-  Revision 1.30  2005-04-20 07:41:48  hajny
+  $Log: thread.inc,v $
+  Revision 1.30  2005/04/20 07:41:48  hajny
     * two more (TThreadID)
 
   Revision 1.29  2005/04/17 17:19:41  hajny

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: systems.pas,v 1.104 2005/03/20 22:36:45 olle Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit contains information about the target systems supported
@@ -716,8 +716,8 @@ finalization
   DeregisterInfos;
 end.
 {
-  $Log$
-  Revision 1.104  2005-03-20 22:36:45  olle
+  $Log: systems.pas,v $
+  Revision 1.104  2005/03/20 22:36:45  olle
     * Cleaned up handling of source file extension.
     + Added support for .p extension for macos and darwin
 

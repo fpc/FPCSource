@@ -1,9 +1,9 @@
 {
-    $Id$
+    $Id: sysfile.inc,v 1.4 2005/04/28 18:21:04 olle Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001-2005 by Free Pascal development team
 
-    Low level file functions for MacOS
+    Low level file functions
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -350,10 +350,7 @@ end;
 
 
 {
-   $Log$
-   Revision 1.5  2005-05-14 11:52:37  olle
-     * Updated header comments
-
+   $Log: sysfile.inc,v $
    Revision 1.4  2005/04/28 18:21:04  olle
      * Set errno to zero after close
 

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpcodtmp.pas,v 1.7 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -639,8 +639,8 @@ end;
 END.
 
 {
- $Log$
- Revision 1.7  2005-02-14 17:13:18  peter
+ $Log: fpcodtmp.pas,v $
+ Revision 1.7  2005/02/14 17:13:18  peter
    * truncate log
 
 }

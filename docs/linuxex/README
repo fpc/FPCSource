@@ -1,7 +1,0 @@
-These are the example programs that appear in the FPC documentation.
- 
-Units guide, Linux unit :
-
-ex64.pp contains an example of the FpSysInfo function.
-ex71.pp contains an example of the Fpclone function.
-

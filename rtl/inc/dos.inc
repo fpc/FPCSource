@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dos.inc,v 1.8 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Tomas Hajny,
     member of the Free Pascal development team.
@@ -303,8 +303,8 @@ end;
 {$ENDIF HAS_FEXPAND}
 
 {
-  $Log$
-  Revision 1.8  2005-02-14 17:13:22  peter
+  $Log: dos.inc,v $
+  Revision 1.8  2005/02/14 17:13:22  peter
     * truncate log
 
   Revision 1.7  2005/01/23 09:50:59  hajny

@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: tthread.inc,v 1.15 2005/03/01 20:38:49 jonas Exp $
    This file is part of the Free Pascal run time library.
    (c) 2000-2003 by Marco van de Voort
    member of the Free Pascal development team.
@@ -583,8 +583,8 @@ end;
 {$ENDIF}
 
 {
-  $Log$
-  Revision 1.15  2005-03-01 20:38:49  jonas
+  $Log: tthread.inc,v $
+  Revision 1.15  2005/03/01 20:38:49  jonas
     * fixed web bug 3387: if one called resume right after creating a
       suspended thread, it was possible that resume was executed before
       that thread had completed its initialisation in BeginThread ->

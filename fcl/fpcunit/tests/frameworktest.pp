@@ -1,7 +1,7 @@
 {$mode objfpc}
 {$h+}
 {
-    $Id$
+    $Id: frameworktest.pp,v 1.2 2005/02/14 17:13:12 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec, Michael Van Canneyt
 

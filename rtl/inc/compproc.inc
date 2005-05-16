@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: compproc.inc,v 1.67 2005/03/28 13:38:05 florian Exp $
     This file is part of the Free Pascal Run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -335,6 +335,7 @@ procedure fpc_largeset_contains_sets(set1,set2 : pointer; size: longint); compil
 procedure fpc_rangeerror; compilerproc;
 procedure fpc_divbyzero; compilerproc;
 procedure fpc_overflow; compilerproc;
+//procedure fpc_iocheck(addr : longint); compilerproc;
 procedure fpc_iocheck; compilerproc;
 
 procedure fpc_InitializeUnits; compilerproc;
@@ -364,10 +365,7 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 {$endif hascompilerproc}
 
 {
-  $Log$
-  Revision 1.68  2005-05-14 11:53:31  olle
-    - Removed outcommented function
-
+  $Log: compproc.inc,v $
   Revision 1.67  2005/03/28 13:38:05  florian
     + a lot of vararray stuff
 

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ogmap.pas,v 1.5 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 2001-2002 by Peter Vreman
 
     Contains the class for generating a map file
@@ -137,8 +137,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:06  peter
+  $Log: ogmap.pas,v $
+  Revision 1.5  2005/02/14 17:13:06  peter
     * truncate log
 
 }

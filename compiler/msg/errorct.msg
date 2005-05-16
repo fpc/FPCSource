@@ -1,4 +1,4 @@
-#   $Id$
+#   $Id: errorct.msg,v 1.2 2005/04/20 08:13:25 florian Exp $
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1993-2005 by the Free Pascal Development team
 #

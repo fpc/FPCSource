@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: util.inc,v 1.4 2005/04/14 17:43:53 michael Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 
@@ -75,8 +75,8 @@ begin
 end;                  
 
 {
-  $Log$
-  Revision 1.4  2005-04-14 17:43:53  michael
+  $Log: util.inc,v $
+  Revision 1.4  2005/04/14 17:43:53  michael
   + Fix for BintoHex and hextobin by Uberto Barbini
 
   Revision 1.3  2005/02/14 17:13:31  peter

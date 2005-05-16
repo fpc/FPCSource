@@ -1,6 +1,6 @@
 Unit PtoPu;
 {
-    $Id$
+    $Id: ptopu.pp,v 1.8 2005/02/21 07:59:10 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of
     the Free Pascal development team
@@ -1256,8 +1256,8 @@ Begin
 end.
 
 {
-  $Log$
-  Revision 1.8  2005-02-21 07:59:10  michael
+  $Log: ptopu.pp,v $
+  Revision 1.8  2005/02/21 07:59:10  michael
   - keywords 'virtual' and 'uses' were added.
   - '{}' and '(**)' comment types were separated.
   - tokens now AnsiStrings

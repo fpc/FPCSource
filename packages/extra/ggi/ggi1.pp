@@ -1,4 +1,4 @@
-// $Id$
+// $Id: ggi1.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 // (c) 1999 Sebastian Guenther
 
 {$MODE objfpc}
@@ -102,8 +102,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: ggi1.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

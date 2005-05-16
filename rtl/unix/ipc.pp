@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ipc.pp,v 1.10 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2004 by the Free Pascal development team
 
@@ -416,8 +416,8 @@ uses Syscall;
 end.
 
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:31  peter
+  $Log: ipc.pp,v $
+  Revision 1.10  2005/02/14 17:13:31  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ogbase.pas,v 1.17 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     Contains the base stuff for binary object file writers
@@ -572,8 +572,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.17  2005-02-14 17:13:06  peter
+  $Log: ogbase.pas,v $
+  Revision 1.17  2005/02/14 17:13:06  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: testhst.pp,v 1.4 2005/03/18 12:08:09 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
@@ -63,8 +63,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.4  2005-03-18 12:08:09  marco
+  $Log: testhst.pp,v $
+  Revision 1.4  2005/03/18 12:08:09  marco
    * sockets now imported for conversion funcs
 
   Revision 1.3  2005/02/14 17:13:19  peter

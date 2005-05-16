@@ -1,4 +1,4 @@
-{ $Id$ }
+{ $Id: views.pas,v 1.58 2005/04/24 21:49:23 peter Exp $ }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {   System independent GRAPHICAL clone of VIEWS.PAS        }
@@ -4646,8 +4646,8 @@ END;
 END.
 
 {
- $Log$
- Revision 1.58  2005-04-24 21:49:23  peter
+ $Log: views.pas,v $
+ Revision 1.58  2005/04/24 21:49:23  peter
  fix mouse clicks on the scrollbars
 
  Revision 1.57  2005/02/14 17:13:18  peter

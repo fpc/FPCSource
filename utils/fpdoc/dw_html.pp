@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dw_html.pp,v 1.17 2005/05/09 18:50:13 michael Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
@@ -2897,8 +2897,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.17  2005-05-09 18:50:13  michael
+  $Log: dw_html.pp,v $
+  Revision 1.17  2005/05/09 18:50:13  michael
   * Added patch from Vincent Snijders to add a footer to each HTML page
 
   Revision 1.16  2005/05/04 08:38:58  michael

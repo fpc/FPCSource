@@ -1,5 +1,5 @@
 ;
-; $Id$
+; $Id: x86reg.dat,v 1.6 2005/02/06 00:05:56 florian Exp $
 ;
 ; x86 registers
 ;
@@ -142,8 +142,8 @@ NR_XMM14,$0400000e,xmm14,%xmm14,xmm14,xmm14,-1,-1,31,OT_XMMREG,6,64
 NR_XMM15,$0400000f,xmm15,%xmm15,xmm15,xmm15,-1,-1,32,OT_XMMREG,7,64
 
 ;
-; $Log$
-; Revision 1.6  2005-02-06 00:05:56  florian
+; $Log: x86reg.dat,v $
+; Revision 1.6  2005/02/06 00:05:56  florian
 ;   + x86_64 pic draft
 ;
 ; Revision 1.5  2004/06/16 20:07:11  florian

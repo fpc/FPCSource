@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: window.pas,v 1.2 2005/02/14 17:13:10 peter Exp $
 
     Opening a window with optional custom screen, and
     basic event-driven drawing into the window
@@ -146,8 +146,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:10  peter
+  $Log: window.pas,v $
+  Revision 1.2  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.1  2004/12/14 22:07:02  karoly

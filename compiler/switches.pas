@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: switches.pas,v 1.18 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements the parsing of the switches like $I-
@@ -233,8 +233,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.18  2005-02-14 17:13:07  peter
+  $Log: switches.pas,v $
+  Revision 1.18  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.17  2005/01/04 18:39:06  olle

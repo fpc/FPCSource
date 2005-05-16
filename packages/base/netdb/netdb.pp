@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: netdb.pp,v 1.17 2005/03/27 18:15:07 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
@@ -1242,8 +1242,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.17  2005-03-27 18:15:07  marco
+  $Log: netdb.pp,v $
+  Revision 1.17  2005/03/27 18:15:07  marco
    * /etc/protocol support
 
   Revision 1.16  2005/03/27 16:09:47  marco

@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: testzvt.pp,v 1.2 2005/02/14 17:13:20 peter Exp $
 
    TestZVT - An FPC Example Program demonstrating the most common use
              of ZVTTerm in a GNOME application.
@@ -195,8 +195,8 @@ begin
   gtk_exit(0);
 end.
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:20  peter
+  $Log: testzvt.pp,v $
+  Revision 1.2  2005/02/14 17:13:20  peter
     * truncate log
 
 }

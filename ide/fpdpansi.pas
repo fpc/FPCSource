@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpdpansi.pas,v 1.5 2005/02/14 17:13:18 peter Exp $
     This file is part of text IDE
     Copyright (c) 2000 by Pierre Muller
 
@@ -114,8 +114,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:18  peter
+  $Log: fpdpansi.pas,v $
+  Revision 1.5  2005/02/14 17:13:18  peter
     * truncate log
 
 }

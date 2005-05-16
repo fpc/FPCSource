@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dwriter.pp,v 1.6 2005/02/14 17:13:39 peter Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
@@ -1035,8 +1035,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.6  2005-02-14 17:13:39  peter
+  $Log: dwriter.pp,v $
+  Revision 1.6  2005/02/14 17:13:39  peter
     * truncate log
 
   Revision 1.5  2005/01/14 17:55:07  michael

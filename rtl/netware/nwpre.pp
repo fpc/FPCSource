@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: nwpre.pp,v 1.6 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
     Copyright (c) 2001 Armin Diehl
@@ -151,8 +151,8 @@ END;
 
 end.
 {
-  $Log$
-  Revision 1.6  2005-02-14 17:13:30  peter
+  $Log: nwpre.pp,v $
+  Revision 1.6  2005/02/14 17:13:30  peter
     * truncate log
 
 }

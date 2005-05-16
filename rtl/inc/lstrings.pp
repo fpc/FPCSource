@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: lstrings.pp,v 1.4 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team
@@ -534,8 +534,8 @@ end.
 {$endif}
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:22  peter
+  $Log: lstrings.pp,v $
+  Revision 1.4  2005/02/14 17:13:22  peter
     * truncate log
 
 }

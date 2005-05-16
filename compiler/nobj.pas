@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: nobj.pas,v 1.93 2005/05/05 21:09:10 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Routines for the code generation of data structures
@@ -1364,8 +1364,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.93  2005-05-05 21:09:10  florian
+  $Log: nobj.pas,v $
+  Revision 1.93  2005/05/05 21:09:10  florian
     * write nil into the method table for abstract methods
 
   Revision 1.92  2005/03/17 09:08:54  michael

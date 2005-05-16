@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkprivate.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -88,8 +88,8 @@ function  GTK_WIDGET_IS_OFFSCREEN(obj : PGtkWidget) : boolean;
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: gtkprivate.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

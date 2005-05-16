@@ -9,7 +9,7 @@
  * Convert `<' to `&lt';  `>' to `&gt';  and `&' to `&amp'
  * If -u specified, compress duplicate blank lines.
  *
- * $Id$
+ * $Id: man2html.c,v 1.1 2000/07/13 06:30:22 michael Exp $
  */
 
 #include <stdio.h>

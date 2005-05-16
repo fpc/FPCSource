@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: htypechk.pas,v 1.124 2005/04/25 08:59:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit exports some help routines for the type checking
@@ -2062,8 +2062,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.124  2005-04-25 08:59:07  peter
+  $Log: htypechk.pas,v $
+  Revision 1.124  2005/04/25 08:59:07  peter
   allow gettting the address of read-only typedconsts
 
   Revision 1.123  2005/04/08 15:18:32  peter

@@ -14,7 +14,7 @@
  *  E-Mail:        isteinmann@bluewin.ch
  *  Homepage:      http://www.technetium.dk
  *
- *  $Date$
+ *  $Date: 2004/08/27 21:05:10 $
  *  $Rev: 1651 $
  *
  *****************************************************************************)

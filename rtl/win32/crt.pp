@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: crt.pp,v 1.24 2005/02/14 17:13:32 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -109,9 +109,9 @@ end;
 ****************************************************************************}
 
 
-procedure TextMode (Mode: word);
+procedure textmode(mode : integer);
 begin
-  {$WARNING TextMode not implemented yet!!}
+  {!!! Not done yet !!! }
 end;
 
 Procedure TextColor(Color: Byte);
@@ -830,10 +830,7 @@ begin
 end. { unit Crt }
 
 {
-  $Log$
-  Revision 1.25  2005-05-14 15:01:49  hajny
-    * TextMode parameter type changed to word for TP/BP compatibility
-
+  $Log: crt.pp,v $
   Revision 1.24  2005/02/14 17:13:32  peter
     * truncate log
 

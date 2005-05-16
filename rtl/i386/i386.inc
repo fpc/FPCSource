@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: i386.inc,v 1.69 2005/03/14 21:09:04 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -1580,8 +1580,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.69  2005-03-14 21:09:04  florian
+  $Log: i386.inc,v $
+  Revision 1.69  2005/03/14 21:09:04  florian
     * widestring manager can handle now ansi<->wide string conversions even if the lens don't match
 
   Revision 1.68  2005/02/14 17:13:22  peter

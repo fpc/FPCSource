@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: wstringh.inc,v 1.7 2005/03/14 21:09:04 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2005 by Florian Klaempfl,
     member of the Free Pascal development team.
@@ -98,8 +98,8 @@ Procedure SetWideStringManager (Const New : TWideStringManager);
 Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideStringManager);
 
 {
-  $Log$
-  Revision 1.7  2005-03-14 21:09:04  florian
+  $Log: wstringh.inc,v $
+  Revision 1.7  2005/03/14 21:09:04  florian
     * widestring manager can handle now ansi<->wide string conversions even if the lens don't match
 
   Revision 1.6  2005/03/12 14:56:22  florian

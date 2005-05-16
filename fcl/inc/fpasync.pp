@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpasync.pp,v 1.7 2005/02/14 17:13:15 peter Exp $
 
     fpAsync: Asynchronous event management for Free Pascal
     Copyright (C) 2001-2003 by
@@ -858,8 +858,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:15  peter
+  $Log: fpasync.pp,v $
+  Revision 1.7  2005/02/14 17:13:15  peter
     * truncate log
 
 }

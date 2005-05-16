@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: bunxsysc.inc,v 1.4 2005/03/03 20:58:38 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Marco van de Voort
 
@@ -533,8 +533,8 @@ end;
 
 
 {
- $Log$
- Revision 1.4  2005-03-03 20:58:38  florian
+ $Log: bunxsysc.inc,v $
+ Revision 1.4  2005/03/03 20:58:38  florian
    + routines in baseunix can be overriden by processor specifics in bsyscall.inc
 
  Revision 1.3  2005/03/03 20:13:44  florian

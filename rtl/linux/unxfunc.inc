@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: unxfunc.inc,v 1.3 2005/03/06 17:12:11 florian Exp $
    This file is part of the Free Pascal run time library.
    Copyright (c) 1999-2000 by Michael Van Canneyt,
      member of the Free Pascal development team.
@@ -58,8 +58,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.3  2005-03-06 17:12:11  florian
+  $Log: unxfunc.inc,v $
+  Revision 1.3  2005/03/06 17:12:11  florian
     * AssignPipe fixed
 
   Revision 1.2  2005/02/14 17:13:30  peter

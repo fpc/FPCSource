@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sparc.inc,v 1.21 2005/02/14 17:13:31 peter Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002-2004 by the Free Pascal development team.
@@ -361,8 +361,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.21  2005-02-14 17:13:31  peter
+  $Log: sparc.inc,v $
+  Revision 1.21  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.20  2005/02/13 18:58:27  florian

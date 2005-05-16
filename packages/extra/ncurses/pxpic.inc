@@ -447,8 +447,8 @@ begin{ of function CheckPicture}
       nCheckPxPicture:=CP(s,Pic,CPos,Resolved);
 end;
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:21  peter
+  $Log: pxpic.inc,v $
+  Revision 1.3  2005/02/14 17:13:21  peter
     * truncate log
 
 }

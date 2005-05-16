@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysos.inc,v 1.2 2005/02/13 22:13:20 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -103,8 +103,8 @@ begin
 end;
 
 {
-   $Log$
-   Revision 1.2  2005-02-13 22:13:20  peter
+   $Log: sysos.inc,v $
+   Revision 1.2  2005/02/13 22:13:20  peter
      * get solaris back in shape
 
    Revision 1.1  2005/02/10 17:30:54  peter

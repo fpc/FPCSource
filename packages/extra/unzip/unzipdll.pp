@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: unzipdll.pp,v 1.8 2005/02/14 17:13:21 peter Exp $
 }
 unit UnzipDLL;
 
@@ -247,8 +247,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.8  2005-02-14 17:13:21  peter
+  $Log: unzipdll.pp,v $
+  Revision 1.8  2005/02/14 17:13:21  peter
     * truncate log
 
 }

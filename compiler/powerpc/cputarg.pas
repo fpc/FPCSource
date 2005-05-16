@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cputarg.pas,v 1.10 2005/02/26 01:27:00 jonas Exp $
     Copyright (c) 2001-2002 by Peter Vreman
 
     Includes the powerpc dependent target units
@@ -72,8 +72,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.10  2005-02-26 01:27:00  jonas
+  $Log: cputarg.pas,v $
+  Revision 1.10  2005/02/26 01:27:00  jonas
     * fixed generic jumps optimizer and enabled it for ppc (the label table
       was not being initialised -> getfinaldestination always failed, which
       caused wrong optimizations in some cases)

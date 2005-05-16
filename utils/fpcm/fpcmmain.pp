@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpcmmain.pp,v 1.46 2005/05/05 13:26:56 peter Exp $
     Copyright (c) 2001 by Peter Vreman
 
     FPCMake - Main module
@@ -1608,8 +1608,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.46  2005-05-05 13:26:56  peter
+  $Log: fpcmmain.pp,v $
+  Revision 1.46  2005/05/05 13:26:56  peter
     * 2.0.0
 
   Revision 1.45  2005/02/10 17:27:50  peter

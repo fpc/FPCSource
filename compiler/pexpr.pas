@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pexpr.pas,v 1.189 2005/04/06 11:49:37 michael Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Does parsing of expression for Free Pascal
@@ -2618,8 +2618,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.189  2005-04-06 11:49:37  michael
+  $Log: pexpr.pas,v $
+  Revision 1.189  2005/04/06 11:49:37  michael
   * Fix methodpointer copy from callnode to loadnode
 
   Revision 1.188  2005/03/28 14:14:52  florian

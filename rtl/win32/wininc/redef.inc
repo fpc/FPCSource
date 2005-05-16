@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: redef.inc,v 1.31 2005/02/14 17:13:32 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2001 by the Free Pascal development team
 
@@ -1057,8 +1057,8 @@ end;
 {$endif read_implementation}
 
 {
-  $Log$
-  Revision 1.31  2005-02-14 17:13:32  peter
+  $Log: redef.inc,v $
+  Revision 1.31  2005/02/14 17:13:32  peter
     * truncate log
 
   Revision 1.30  2005/02/06 13:06:20  peter

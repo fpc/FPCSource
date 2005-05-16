@@ -1,6 +1,6 @@
 @echo off
 
-rem ***  $Id$
+rem ***  $Id: os2snap.cmd,v 1.6 2001/06/28 21:09:43 peter Exp $
 
 rem *** Batch file for creating of FPC snapshot for OS/2.
 rem *** FPCDIR variable must be set to your base FPC directory and
@@ -670,8 +670,8 @@ echo *Error: Environment variable FPCDIR must point to your base FPC directory!!
 goto End
 
 
-  $Log$
-  Revision 1.6  2001-06-28 21:09:43  peter
+  $Log: os2snap.cmd,v $
+  Revision 1.6  2001/06/28 21:09:43  peter
     * latest versions from 1.0.5 branch
 
   Revision 1.1.2.1  2001/05/15 18:41:14  carl

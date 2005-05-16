@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: tgobj.pas,v 1.51 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the base object for temp. generator
@@ -621,8 +621,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.51  2005-02-14 17:13:09  peter
+  $Log: tgobj.pas,v $
+  Revision 1.51  2005/02/14 17:13:09  peter
     * truncate log
 
 }

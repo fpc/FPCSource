@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: symdef.pas,v 1.305 2005/05/07 16:43:02 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     Symbol table implementation for the definitions
@@ -6406,8 +6406,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.305  2005-05-07 16:43:02  florian
+  $Log: symdef.pas,v $
+  Revision 1.305  2005/05/07 16:43:02  florian
     + made variant publishable
 
   Revision 1.304  2005/04/25 13:15:18  peter

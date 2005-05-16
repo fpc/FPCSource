@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: browlog.pas,v 1.21 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Pierre Muller
 
     Support routines for creating the browser log
@@ -515,8 +515,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.21  2005-02-14 17:13:06  peter
+  $Log: browlog.pas,v $
+  Revision 1.21  2005/02/14 17:13:06  peter
     * truncate log
 
 }

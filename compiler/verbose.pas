@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: verbose.pas,v 1.41 2005/04/24 21:01:37 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit handles the verbose management
@@ -873,8 +873,8 @@ finalization
   DoneRedirectFile;
 end.
 {
-  $Log$
-  Revision 1.41  2005-04-24 21:01:37  peter
+  $Log: verbose.pas,v $
+  Revision 1.41  2005/04/24 21:01:37  peter
     * always use exceptions to stop the compiler
     - remove stop, do_stop
 

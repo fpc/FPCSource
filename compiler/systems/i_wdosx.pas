@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: i_wdosx.pas,v 1.10 2005/03/20 22:36:45 olle Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support information structures for win32
@@ -101,8 +101,8 @@ initialization
 {$endif CPU86}
 end.
 {
-  $Log$
-  Revision 1.10  2005-03-20 22:36:45  olle
+  $Log: i_wdosx.pas,v $
+  Revision 1.10  2005/03/20 22:36:45  olle
     * Cleaned up handling of source file extension.
     + Added support for .p extension for macos and darwin
 

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysconst.pp,v 1.17 2005/03/28 13:38:05 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by Florian Klaempfl
     member of the Free Pascal development team
@@ -222,8 +222,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.17  2005-03-28 13:38:05  florian
+  $Log: sysconst.pp,v $
+  Revision 1.17  2005/03/28 13:38:05  florian
     + a lot of vararray stuff
 
   Revision 1.16  2005/03/17 16:29:04  peter

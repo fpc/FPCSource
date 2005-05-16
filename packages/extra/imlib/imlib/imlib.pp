@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: imlib.pp,v 1.2 2003/03/29 18:56:38 yuri Exp $
 
    Imlib library
 

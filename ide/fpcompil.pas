@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpcompil.pas,v 1.41 2005/04/24 21:37:16 florian Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -1225,8 +1225,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.41  2005-04-24 21:37:16  florian
+  $Log: fpcompil.pas,v $
+  Revision 1.41  2005/04/24 21:37:16  florian
     * fixed compilation
 
   Revision 1.40  2005/04/24 21:03:16  peter

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: shfolder.pp,v 1.1 2005/03/28 15:09:35 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -108,8 +108,8 @@ const
 
 end.
 {
-  $Log$
-  Revision 1.1  2005-03-28 15:09:35  peter
+  $Log: shfolder.pp,v $
+  Revision 1.1  2005/03/28 15:09:35  peter
   new winunits packages
 
   Revision 1.4  2005/02/14 17:13:32  peter

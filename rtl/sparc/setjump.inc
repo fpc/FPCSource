@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: setjump.inc,v 1.13 2005/04/24 21:19:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Jonas Maebe and other members of the
     Free Pascal development team
@@ -92,8 +92,8 @@ function setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:'FPC
   end;
 
 {
-  $Log$
-  Revision 1.13  2005-04-24 21:19:22  peter
+  $Log: setjump.inc,v $
+  Revision 1.13  2005/04/24 21:19:22  peter
     * unblock signal in signalhandler, remove the sigprocmask call
       from setjmp
 

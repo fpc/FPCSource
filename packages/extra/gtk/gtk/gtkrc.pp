@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkrc.pp,v 1.4 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -69,8 +69,8 @@ function  gtk_rc_parse_priority(scanner:PGScanner; priority:PGtkPathPriorityType
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:20  peter
+  $Log: gtkrc.pp,v $
+  Revision 1.4  2005/02/14 17:13:20  peter
     * truncate log
 
 }

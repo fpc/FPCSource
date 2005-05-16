@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pmhelp.pas,v 1.5 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Yuri Prokushev (prokushev@freemail.ru).
 
@@ -499,8 +499,8 @@ function DdfBitmap(ahddf: HDDF; hbm: HBITMAP; fAlign: cardinal): Longbool; cdecl
 
 end.
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:31  peter
+  $Log: pmhelp.pas,v $
+  Revision 1.5  2005/02/14 17:13:31  peter
     * truncate log
 
 }

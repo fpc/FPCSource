@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pinline.pas,v 1.44 2005/03/27 20:19:21 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generates nodes for routines that need compiler support
@@ -740,8 +740,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.44  2005-03-27 20:19:21  florian
+  $Log: pinline.pas,v $
+  Revision 1.44  2005/03/27 20:19:21  florian
     + compiler support for reading/writing of vararrays
 
   Revision 1.43  2005/03/25 22:20:19  peter

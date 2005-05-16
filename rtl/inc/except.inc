@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: except.inc,v 1.21 2005/05/08 21:20:26 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt
     member of the Free Pascal development team
@@ -345,8 +345,8 @@ begin
   ExceptAddrStack:=Nil;
 end;
 {
-  $Log$
-  Revision 1.21  2005-05-08 21:20:26  michael
+  $Log: except.inc,v $
+  Revision 1.21  2005/05/08 21:20:26  michael
   + Patch to return nil if there is no exception object (as in Delphi)
 
   Revision 1.20  2005/04/03 11:32:05  florian

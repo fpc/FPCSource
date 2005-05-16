@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gdkkeysyms.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -1325,8 +1325,8 @@ const
 {$endif read_interface}
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: gdkkeysyms.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

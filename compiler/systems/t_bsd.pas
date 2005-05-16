@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: t_bsd.pas,v 1.30 2005/04/27 21:47:08 marco Exp $
     Copyright (c) 1998-2002 by Peter Vreman (original Linux)
               (c) 2000      by Marco van de Voort (FreeBSD mods)
 
@@ -630,8 +630,8 @@ initialization
 {$endif powerpc}
 end.
 {
-  $Log$
-  Revision 1.30  2005-04-27 21:47:08  marco
+  $Log: t_bsd.pas,v $
+  Revision 1.30  2005/04/27 21:47:08  marco
    * $GCSECTIONS also added to else case
 
   Revision 1.29  2005/04/27 14:47:54  marco

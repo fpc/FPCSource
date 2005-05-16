@@ -145,8 +145,8 @@ BEGIN
 END.
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:19  peter
+  $Log: talk2boopsi.pas,v $
+  Revision 1.4  2005/02/14 17:13:19  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: numlib.txt,v 1.2 2002/09/07 15:43:04 peter Exp $
     This file is part of the Numlib package.
     Copyright (c) 1986-2000 by
      Kees van Ginneken, Wil Kortsmit and Loek van Reij of the
@@ -107,8 +107,8 @@ If A is a "n x n" bandmatrix with leftbound l, and rightbound r then
 
 Aij=0 if j<i-l or j>i+r
 {
-  $Log$
-  Revision 1.2  2002-09-07 15:43:04  peter
+  $Log: numlib.txt,v $
+  Revision 1.2  2002/09/07 15:43:04  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:18  peter

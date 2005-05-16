@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: termios.inc,v 1.4 2005/02/14 17:13:30 peter Exp $
    This file is part of the Free Pascal run time library.
    (c) 2000-2003 by Marco van de Voort
    member of the Free Pascal development team.
@@ -364,8 +364,8 @@ struct winsize {
         CDISCARD, CMIN, CTIME,  CSTATUS, POSIX_VDISABLE);
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:30  peter
+  $Log: termios.inc,v $
+  Revision 1.4  2005/02/14 17:13:30  peter
     * truncate log
 
 }

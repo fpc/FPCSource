@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pexports.pas,v 1.31 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit handles the exports parsing
@@ -181,8 +181,8 @@ implementation
 end.
 
 {
-  $Log$
-  Revision 1.31  2005-02-14 17:13:07  peter
+  $Log: pexports.pas,v $
+  Revision 1.31  2005/02/14 17:13:07  peter
     * truncate log
 
 }

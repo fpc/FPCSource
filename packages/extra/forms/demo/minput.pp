@@ -28,8 +28,8 @@ begin
   while (obj <> but) do obj:=fl_do_forms;
 end.
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:20  peter
+  $Log: minput.pp,v $
+  Revision 1.4  2005/02/14 17:13:20  peter
     * truncate log
 
 }

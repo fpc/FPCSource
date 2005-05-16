@@ -590,8 +590,8 @@ begin
 *)
   testSerial(o);
 end.
-  $Log$
-  Revision 1.4  2005-02-14 17:13:18  peter
+  $Log: testser.pp,v $
+  Revision 1.4  2005/02/14 17:13:18  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: timezone.inc,v 1.9 2005/02/14 17:13:31 peter Exp $
 
   Support for timezone info in /usr/share/timezone
 }
@@ -294,8 +294,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.9  2005-02-14 17:13:31  peter
+  $Log: timezone.inc,v $
+  Revision 1.9  2005/02/14 17:13:31  peter
     * truncate log
 
 }

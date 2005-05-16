@@ -1,5 +1,5 @@
 {
- $Id$
+ $Id: morph3d.pp,v 1.4 2005/02/14 17:13:21 peter Exp $
  *-
  * morph3d.c - Shows 3D morphing objects
  *
@@ -915,8 +915,8 @@ begin
   glutMainLoop();
 end.
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:21  peter
+  $Log: morph3d.pp,v $
+  Revision 1.4  2005/02/14 17:13:21  peter
     * truncate log
 
 }

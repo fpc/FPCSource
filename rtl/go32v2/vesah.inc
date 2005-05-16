@@ -1,6 +1,6 @@
 {
 
-    $Id$
+    $Id: vesah.inc,v 1.4 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Carl Eric Codere
 
@@ -95,8 +95,8 @@ var
   hasVesa: Boolean;       { true if we have a VESA compatible graphics card}
                           { initialized in QueryAdapterInfo in graph.inc }
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:22  peter
+  $Log: vesah.inc,v $
+  Revision 1.4  2005/02/14 17:13:22  peter
     * truncate log
 
 }

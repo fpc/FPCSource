@@ -1,4 +1,4 @@
-{ $Id$  }
+{ $Id: asciitab.pas,v 1.9 2005/02/15 21:44:40 peter Exp $  }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {   System independent GRAPHICAL clone of ASCIITAB.PAS     }
@@ -322,8 +322,8 @@ end;
 
 END.
 {
- $Log$
- Revision 1.9  2005-02-15 21:44:40  peter
+ $Log: asciitab.pas,v $
+ Revision 1.9  2005/02/15 21:44:40  peter
    * patch for Sergey to fix drawing and mouse
 
  Revision 1.8  2005/02/14 17:13:18  peter

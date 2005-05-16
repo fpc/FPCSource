@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpubase.inc,v 1.17 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
 
     Contains the basic declarations for the x86-64 architecture
@@ -146,8 +146,8 @@ const
       std_param_align = 8;
 
 {
-  $Log$
-  Revision 1.17  2005-02-14 17:13:10  peter
+  $Log: cpubase.inc,v $
+  Revision 1.17  2005/02/14 17:13:10  peter
     * truncate log
 
 }

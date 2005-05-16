@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pdecl.pas,v 1.95 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Does declaration (but not type) parsing for Free Pascal
@@ -667,8 +667,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.95  2005-02-14 17:13:07  peter
+  $Log: pdecl.pas,v $
+  Revision 1.95  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.94  2005/01/24 22:08:32  peter

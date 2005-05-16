@@ -639,8 +639,8 @@ Begin
 end.
 
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:35  peter
+  $Log: taddset.pp,v $
+  Revision 1.7  2005/02/14 17:13:35  peter
     * truncate log
 
 }

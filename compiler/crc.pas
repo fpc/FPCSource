@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: crc.pas,v 1.11 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 2000-2002 by Free Pascal Development Team
 
     Routines to compute CRC values
@@ -100,8 +100,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.11  2005-02-14 17:13:06  peter
+  $Log: crc.pas,v $
+  Revision 1.11  2005/02/14 17:13:06  peter
     * truncate log
 
 }

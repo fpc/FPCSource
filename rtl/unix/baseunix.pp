@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: baseunix.pp,v 1.4 2005/03/03 20:58:38 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Carl Eric Codere development team
 
@@ -92,8 +92,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.4  2005-03-03 20:58:38  florian
+  $Log: baseunix.pp,v $
+  Revision 1.4  2005/03/03 20:58:38  florian
     + routines in baseunix can be overriden by processor specifics in bsyscall.inc
 
   Revision 1.3  2005/02/14 17:13:31  peter

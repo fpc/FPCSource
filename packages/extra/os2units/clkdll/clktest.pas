@@ -11,8 +11,8 @@ begin
 end.
 
 {
-$Log$
-Revision 1.2  2005-02-14 17:13:21  peter
+$Log: clktest.pas,v $
+Revision 1.2  2005/02/14 17:13:21  peter
   * truncate log
 
 }

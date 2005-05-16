@@ -638,8 +638,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:19  peter
+  $Log: sortdemo.pas,v $
+  Revision 1.4  2005/02/14 17:13:19  peter
     * truncate log
 
 }

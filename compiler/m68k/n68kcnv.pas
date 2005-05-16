@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: n68kcnv.pas,v 1.15 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate m68k assembler for type converting nodes
@@ -239,8 +239,8 @@ begin
    ctypeconvnode:=tm68ktypeconvnode;
 end.
 {
-  $Log$
-  Revision 1.15  2005-02-14 17:13:10  peter
+  $Log: n68kcnv.pas,v $
+  Revision 1.15  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.14  2005/01/08 04:10:36  karoly

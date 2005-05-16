@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: pixmap.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the GTK tutorial.
   pixmap.c
@@ -87,8 +87,8 @@ begin
   gtk_main ();
 end.
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: pixmap.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

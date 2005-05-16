@@ -1,6 +1,6 @@
 Program Sysmousetest;
 {
-    $Id$
+    $Id: sysmousetest.pas,v 1.1 2005/04/19 13:01:59 marco Exp $
 
     This program is part of the FPC demoes.
     Copyright (C) 2000 by Marco van de Voort
@@ -231,8 +231,8 @@ end.
 
 {
 
-   $Log$
-   Revision 1.1  2005-04-19 13:01:59  marco
+   $Log: sysmousetest.pas,v $
+   Revision 1.1  2005/04/19 13:01:59  marco
     * sysmousetest for FreeBSD
 
 

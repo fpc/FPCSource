@@ -6,7 +6,7 @@
 program h2pas;
 
 (*
-    $Id$
+    $Id: h2pas.pas,v 1.16 2005/02/20 11:09:41 florian Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
@@ -8114,8 +8114,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.16  2005-02-20 11:09:41  florian
+  $Log: h2pas.pas,v $
+  Revision 1.16  2005/02/20 11:09:41  florian
     + added -P:
       allows to generate headers which load proc. dyn. from libs
 

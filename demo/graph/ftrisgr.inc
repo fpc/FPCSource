@@ -148,8 +148,8 @@ BEGIN
 END;
 
 {
-  $Log$
-  Revision 1.3  2002-09-07 15:06:35  peter
+  $Log: ftrisgr.inc,v $
+  Revision 1.3  2002/09/07 15:06:35  peter
     * old logs removed and tabs fixed
 
 }

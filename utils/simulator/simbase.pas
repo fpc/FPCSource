@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: simbase.pas,v 1.2 2002/09/07 15:40:37 peter Exp $
     This file is part of the Free Pascal simulator environment
     Copyright (c) 1999-2000 by Florian Klaempfl
 
@@ -115,8 +115,8 @@ begin
    {$endif FPC}
 end.
 {
-  $Log$
-  Revision 1.2  2002-09-07 15:40:37  peter
+  $Log: simbase.pas,v $
+  Revision 1.2  2002/09/07 15:40:37  peter
     * old logs removed and tabs fixed
 
 }

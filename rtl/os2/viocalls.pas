@@ -1,7 +1,7 @@
 {Set tabsize to 4.}
 {****************************************************************************
 
-  $Id$
+  $Id: viocalls.pas,v 1.4 2005/02/14 17:13:31 peter Exp $
 
                            VIOCALLS interface unit
                      Free Pascal Runtime Library for OS/2
@@ -1149,8 +1149,8 @@ external 'EMXWRAP' index 30;
 end.
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:31  peter
+  $Log: viocalls.pas,v $
+  Revision 1.4  2005/02/14 17:13:31  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: list.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the GTK tutorial.
   list.c
@@ -212,8 +212,8 @@ begin
     happens if the main window gets destroyed }
 end.
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: list.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

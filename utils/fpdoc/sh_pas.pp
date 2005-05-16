@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sh_pas.pp,v 1.2 2005/02/14 17:13:39 peter Exp $
 
     "SHEdit" - Text editor with syntax highlighting
     Copyright (C) 1999-2000 by Sebastian Guenther (sg@freepascal.org)
@@ -320,8 +320,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:39  peter
+  $Log: sh_pas.pp,v $
+  Revision 1.2  2005/02/14 17:13:39  peter
     * truncate log
 
   Revision 1.1  2003/03/17 23:03:20  michael

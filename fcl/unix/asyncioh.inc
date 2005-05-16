@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: asyncioh.inc,v 1.6 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -30,8 +30,8 @@ Type
     end;
 
 {
-  $Log$
-  Revision 1.6  2005-02-14 17:13:18  peter
+  $Log: asyncioh.inc,v $
+  Revision 1.6  2005/02/14 17:13:18  peter
     * truncate log
 
 }

@@ -1,6 +1,0 @@
-\begin{psyntax}{With statement}{withstatement}
-\synt{with\ statement}
-\begin{rep}[b] \synt{variable\ reference} \\ \lit* , \end{rep}
-\lit*{do}
-\synt{statement}
-\end{psyntax}

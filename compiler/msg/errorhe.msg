@@ -1,5 +1,5 @@
 #
-#   $Id$
+#   $Id: errorhe.msg,v 1.5 2005/04/10 08:11:14 florian Exp $
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2000 by the Free Pascal Development team
 #

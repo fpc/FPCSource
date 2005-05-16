@@ -1,6 +1,0 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Preamble for HTML output
-%
-\usepackage{html}
-\usepackage{htmllist}
-\input{fpc-html.tex}

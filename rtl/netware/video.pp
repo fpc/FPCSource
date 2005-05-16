@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: video.pp,v 1.5 2004/10/03 20:16:43 armin Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team

@@ -1,7 +1,7 @@
 {$PACKRECORDS C}
 
   {
-     $Id$
+     $Id: signal.inc,v 1.7 2005/02/14 17:13:21 peter Exp $
      Copyright (c) 2000 Apple Computer, Inc. All rights reserved.
 
      @APPLE_LICENSE_HEADER_START@
@@ -270,8 +270,8 @@ const
 
 
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:21  peter
+  $Log: signal.inc,v $
+  Revision 1.7  2005/02/14 17:13:21  peter
     * truncate log
 
   Revision 1.6  2005/01/30 18:01:15  peter

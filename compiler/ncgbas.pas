@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncgbas.pas,v 1.76 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     This unit implements some basic nodes
@@ -501,8 +501,8 @@ begin
    ctempdeletenode:=tcgtempdeletenode;
 end.
 {
-  $Log$
-  Revision 1.76  2005-02-14 17:13:06  peter
+  $Log: ncgbas.pas,v $
+  Revision 1.76  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.75  2005/01/31 17:07:50  peter

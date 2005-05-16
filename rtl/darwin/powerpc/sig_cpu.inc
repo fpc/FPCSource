@@ -1,5 +1,5 @@
   {
-     $Id$
+     $Id: sig_cpu.inc,v 1.3 2005/02/14 17:13:22 peter Exp $
      Copyright (c) 2000 Apple Computer, Inc. All rights reserved.
 
      @APPLE_LICENSE_HEADER_START@
@@ -267,8 +267,8 @@
      end;
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:22  peter
+  $Log: sig_cpu.inc,v $
+  Revision 1.3  2005/02/14 17:13:22  peter
     * truncate log
 
 }

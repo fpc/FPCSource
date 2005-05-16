@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ra386att.pas,v 1.60 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
     Does the parsing for the i386 GNU AS styled inline assembler.
@@ -51,8 +51,8 @@ initialization
   RegisterAsmMode(asmmode_i386_att_info);
 end.
 {
-  $Log$
-  Revision 1.60  2005-02-14 17:13:10  peter
+  $Log: ra386att.pas,v $
+  Revision 1.60  2005/02/14 17:13:10  peter
     * truncate log
 
 }

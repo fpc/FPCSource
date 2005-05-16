@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpcmwr.pp,v 1.36 2005/01/10 20:33:09 peter Exp $
     Copyright (c) 2001 by Peter Vreman
 
     FPCMake - Makefile writer
@@ -847,8 +847,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.36  2005-01-10 20:33:09  peter
+  $Log: fpcmwr.pp,v $
+  Revision 1.36  2005/01/10 20:33:09  peter
     * use cpu-os style
 
   Revision 1.35  2004/11/01 17:17:33  olle

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: tthread.inc,v 1.3 2005/02/25 21:41:09 florian Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2002 by the Free Pascal development team
 
@@ -177,8 +177,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-25 21:41:09  florian
+  $Log: tthread.inc,v $
+  Revision 1.3  2005/02/25 21:41:09  florian
     * generic tthread.synchronize
     * delphi compatible wakemainthread
 

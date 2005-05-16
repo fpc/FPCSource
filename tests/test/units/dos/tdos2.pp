@@ -705,8 +705,8 @@ Begin
 end.
 
 {
-  $Log$
-  Revision 1.14  2005-04-03 20:56:43  olle
+  $Log: tdos2.pp,v $
+  Revision 1.14  2005/04/03 20:56:43  olle
     * adapted to MacOS
 
   Revision 1.13  2005/02/14 17:13:37  peter

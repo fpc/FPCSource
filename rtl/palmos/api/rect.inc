@@ -25,8 +25,8 @@
   function RctPtInRectangle(x:SWord; y:SWord; r:RectanglePtr):Boolean;systrap sysTrapRctPtInRectangle;
   procedure RctGetIntersection(r1:RectanglePtr; r2:RectanglePtr; r3:RectanglePtr);systrap sysTrapRctGetIntersection;
 
-  $Log$
-  Revision 1.4  2005-02-14 17:13:31  peter
+  $Log: rect.inc,v $
+  Revision 1.4  2005/02/14 17:13:31  peter
     * truncate log
 
 }

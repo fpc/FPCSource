@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: termios.inc,v 1.14 2005/04/25 10:26:21 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2004 by Marco van de Voort
     member of the Free Pascal development team
@@ -1221,8 +1221,8 @@ Type
 {$PACKRECORDS Default}
 
 {
-  $Log$
-  Revision 1.14  2005-04-25 10:26:21  marco
+  $Log: termios.inc,v $
+  Revision 1.14  2005/04/25 10:26:21  marco
    * most constants now arch dependant due to ppc. Other archs still have to be checked
 
   Revision 1.13  2005/02/14 17:13:30  peter

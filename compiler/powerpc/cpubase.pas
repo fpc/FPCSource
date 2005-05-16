@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpubase.pas,v 1.98 2005/02/26 01:27:00 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Contains the base types for the PowerPC
@@ -557,8 +557,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.98  2005-02-26 01:27:00  jonas
+  $Log: cpubase.pas,v $
+  Revision 1.98  2005/02/26 01:27:00  jonas
     * fixed generic jumps optimizer and enabled it for ppc (the label table
       was not being initialised -> getfinaldestination always failed, which
       caused wrong optimizations in some cases)

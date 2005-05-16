@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pp.pas,v 1.35 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Commandline compiler for Free Pascal
@@ -209,8 +209,8 @@ begin
   Halt(compiler.Compile(''));
 end.
 {
-  $Log$
-  Revision 1.35  2005-02-14 17:13:07  peter
+  $Log: pp.pas,v $
+  Revision 1.35  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.34  2005/02/13 18:55:19  florian

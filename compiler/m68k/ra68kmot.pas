@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ra68kmot.pas,v 1.7 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2000 by Carl Eric Codere
 
     This unit does the parsing process for the motorola inline assembler
@@ -2271,8 +2271,8 @@ begin
   RegisterAsmMode(asmmode_i386_intel_info);
 end.
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:10  peter
+  $Log: ra68kmot.pas,v $
+  Revision 1.7  2005/02/14 17:13:10  peter
     * truncate log
 
 }

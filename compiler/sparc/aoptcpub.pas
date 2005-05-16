@@ -1,5 +1,5 @@
  {
-    $Id$
+    $Id: aoptcpub.pas,v 1.2 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2004 by Jonas Maebe, member of the Free Pascal
     Development Team
 
@@ -121,8 +121,8 @@ End;
 End.
 
 {
- $Log$
- Revision 1.2  2005-02-14 17:13:10  peter
+ $Log: aoptcpub.pas,v $
+ Revision 1.2  2005/02/14 17:13:10  peter
    * truncate log
 
 }

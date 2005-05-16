@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cgcpu.pas,v 1.72 2005/02/26 01:26:59 jonas Exp $
 
     Copyright (c) 2003 by Florian Klaempfl
     Member of the Free Pascal development team
@@ -1687,8 +1687,8 @@ begin
   cg64:=tcg64farm.create;
 end.
 {
-  $Log$
-  Revision 1.72  2005-02-26 01:26:59  jonas
+  $Log: cgcpu.pas,v $
+  Revision 1.72  2005/02/26 01:26:59  jonas
     * fixed generic jumps optimizer and enabled it for ppc (the label table
       was not being initialised -> getfinaldestination always failed, which
       caused wrong optimizations in some cases)

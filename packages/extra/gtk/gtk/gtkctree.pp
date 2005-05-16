@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkctree.pp,v 1.5 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -280,8 +280,8 @@ end;
 {$endif read_implementation}
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:20  peter
+  $Log: gtkctree.pp,v $
+  Revision 1.5  2005/02/14 17:13:20  peter
     * truncate log
 
 }

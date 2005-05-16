@@ -63,8 +63,8 @@ end;
 end.
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:20  peter
+  $Log: longarray.pas,v $
+  Revision 1.2  2005/02/14 17:13:20  peter
     * truncate log
 
 }

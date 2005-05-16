@@ -1,6 +1,6 @@
 {****************************************************************************
 
-    $Id$
+    $Id: dos.pas,v 1.45 2005/02/14 17:13:31 peter Exp $
 
                          Free Pascal Runtime-Library
                               DOS unit for OS/2
@@ -533,8 +533,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.45  2005-02-14 17:13:31  peter
+  $Log: dos.pas,v $
+  Revision 1.45  2005/02/14 17:13:31  peter
     * truncate log
 
 }

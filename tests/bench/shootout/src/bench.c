@@ -15,7 +15,7 @@ Ackermann's Function
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -47,7 +47,7 @@ Array Access
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  *
  * this program is modified from:
@@ -95,7 +95,7 @@ Count Lines/Words/Chars
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  *
  * this program is modified from:
@@ -146,7 +146,7 @@ Echo Client/Server
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -299,7 +299,7 @@ Exception Mechanisms
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -359,7 +359,7 @@ Fibonacci Numbers
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -389,7 +389,7 @@ Hash (Associative Array) Access
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -428,7 +428,7 @@ Hashes, Part II
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -474,7 +474,7 @@ Heapsort
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -554,7 +554,7 @@ Hello World
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -574,7 +574,7 @@ List Operations
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -808,7 +808,7 @@ Matrix Multiplication
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -882,7 +882,7 @@ Method Calls
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -980,7 +980,7 @@ Nested Loops
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -1013,7 +1013,7 @@ Object Instantiation
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -1117,7 +1117,7 @@ Producer/Consumer Threads
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -1211,7 +1211,7 @@ Random Number Generator
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -1251,7 +1251,7 @@ Regular Expression Matching
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -1395,7 +1395,7 @@ Reverse a File
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -1453,7 +1453,7 @@ Sieve of Erathostenes
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -1495,7 +1495,7 @@ Spell Checker
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  * with help from Brad Knotwell
  */
@@ -1576,7 +1576,7 @@ Statistical Moments
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -1658,7 +1658,7 @@ String Concatenation
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -1703,7 +1703,7 @@ Sum a Column of Integers
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 
@@ -1733,7 +1733,7 @@ Word Frequency Count
 
 
 /* -*- mode: c -*-
- * $Id$
+ * $Id: bench.c,v 1.1 2002/06/05 20:34:46 michael Exp $
  * http://www.bagley.org/~doug/shootout/
  */
 

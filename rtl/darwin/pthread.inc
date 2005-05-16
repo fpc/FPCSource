@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pthread.inc,v 1.8 2005/04/09 20:29:15 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Peter Vreman
     member of the Free Pascal development team.
@@ -78,8 +78,8 @@ function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cin
 function pthread_cond_timedwait(__cond:ppthread_cond_t; __mutex:ppthread_mutex_t; __abstime:ptimespec):cint; cdecl;external 'c' name 'pthread_cond_timedwait'; 
 
 {
-  $Log$
-  Revision 1.8  2005-04-09 20:29:15  marco
+  $Log: pthread.inc,v $
+  Revision 1.8  2005/04/09 20:29:15  marco
     * added condtimedwait
 
   Revision 1.7  2005/02/14 17:13:21  peter

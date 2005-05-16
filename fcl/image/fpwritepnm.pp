@@ -1,6 +1,6 @@
 {*****************************************************************************}
 {
-    $Id$
+    $Id: fpwritepnm.pp,v 1.2 2005/02/14 17:13:12 peter Exp $
     This file is part of the Free Pascal's "Free Components Library".
     Copyright (c) 2003 by Mazen NEIFER of the Free Pascal development team
 
@@ -145,8 +145,8 @@ initialization
   ImageHandlers.RegisterImageWriter ('PBM Format', 'pbm', TFPWriterPNM);
 end.
 {
-$Log$
-Revision 1.2  2005-02-14 17:13:12  peter
+$Log: fpwritepnm.pp,v $
+Revision 1.2  2005/02/14 17:13:12  peter
   * truncate log
 
 }

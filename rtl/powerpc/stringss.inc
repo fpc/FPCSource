@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: stringss.inc,v 1.14 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Jonas Maebe, member of the
     Free Pascal development team
@@ -40,8 +40,8 @@ end;
 {$endif FPC_UNIT_HAS_STRPCOPY}
 
 {
-  $Log$
-  Revision 1.14  2005-02-14 17:13:31  peter
+  $Log: stringss.inc,v $
+  Revision 1.14  2005/02/14 17:13:31  peter
     * truncate log
 
 }

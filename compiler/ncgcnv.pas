@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncgcnv.pas,v 1.74 2005/03/05 20:08:27 jonas Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Generate assembler for nodes that handle type conversions which are
@@ -567,8 +567,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.74  2005-03-05 20:08:27  jonas
+  $Log: ncgcnv.pas,v $
+  Revision 1.74  2005/03/05 20:08:27  jonas
     * fixed web bug 3694
 
   Revision 1.73  2005/02/14 17:13:06  peter

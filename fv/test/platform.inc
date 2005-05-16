@@ -1,4 +1,4 @@
-{ $Id$ }
+{ $Id: platform.inc,v 1.3 2005/02/14 17:13:18 peter Exp $ }
 {***************[ PLATFORM INCLUDE UNIT ]******************}
 {                                                          }
 {    System independent INCLUDE file to sort PLATFORMS     }
@@ -368,8 +368,8 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 
 {
- $Log$
- Revision 1.3  2005-02-14 17:13:18  peter
+ $Log: platform.inc,v $
+ Revision 1.3  2005/02/14 17:13:18  peter
    * truncate log
 
 }

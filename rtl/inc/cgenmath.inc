@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cgenmath.inc,v 1.6 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2001 by Several contributors
 
@@ -202,8 +202,8 @@ Not supported on Mac OS X 10.1
 {$endif not i386}
 
 {
-  $Log$
-  Revision 1.6  2005-02-14 17:13:22  peter
+  $Log: cgenmath.inc,v $
+  Revision 1.6  2005/02/14 17:13:22  peter
     * truncate log
 
 }

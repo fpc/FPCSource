@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ptypes.inc,v 1.9 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -146,8 +146,8 @@ const
     SIG_MAXSIG      = 128;      // highest signal version
 
 {
-  $Log$
-  Revision 1.9  2005-02-14 17:13:30  peter
+  $Log: ptypes.inc,v $
+  Revision 1.9  2005/02/14 17:13:30  peter
     * truncate log
 
 }

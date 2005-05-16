@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: termiosproc.inc,v 1.7 2005/02/14 17:13:30 peter Exp $
 }
 
 {******************************************************************************
@@ -150,8 +150,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:30  peter
+  $Log: termiosproc.inc,v $
+  Revision 1.7  2005/02/14 17:13:30  peter
     * truncate log
 
 }

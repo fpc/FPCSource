@@ -1,10 +1,10 @@
 {
-    $Id$
+    $Id: systhrd.inc,v 1.1 2005/02/07 21:30:12 peter Exp $
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002-2005 by Peter Vreman,
+    Copyright (c) 2002 by Peter Vreman,
     member of the Free Pascal development team.
 
-    MacOS threading support implementation.
+    Linux (pthreads) threading support implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -24,10 +24,7 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.2  2005-05-14 11:52:37  olle
-    * Updated header comments
-
+  $Log: systhrd.inc,v $
   Revision 1.1  2005/02/07 21:30:12  peter
     * system unit updated
 

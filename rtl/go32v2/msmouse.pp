@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: msmouse.pp,v 1.7 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -359,8 +359,8 @@ Begin
   MouseFound := InitMouse;
 End.
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:22  peter
+  $Log: msmouse.pp,v $
+  Revision 1.7  2005/02/14 17:13:22  peter
     * truncate log
 
   Revision 1.6  2005/02/07 17:28:09  peter

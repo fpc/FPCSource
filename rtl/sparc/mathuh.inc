@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: mathuh.inc,v 1.3 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -29,8 +29,8 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 procedure ClearExceptions(RaisePending: Boolean {$ifndef VER1_0}=true{$endif});
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:31  peter
+  $Log: mathuh.inc,v $
+  Revision 1.3  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.2  2005/02/13 18:58:27  florian

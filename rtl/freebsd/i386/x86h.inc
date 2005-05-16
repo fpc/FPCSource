@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: x86h.inc,v 1.3 2005/02/14 17:13:22 peter Exp $
    This file is part of the Free Pascal run time library.
    (c) 2000-2003 by Marco van de Voort
    member of the Free Pascal development team.
@@ -24,8 +24,8 @@ Function  IoPL(Level : longint) : Boolean;
 {$endif}
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:22  peter
+  $Log: x86h.inc,v $
+  Revision 1.3  2005/02/14 17:13:22  peter
     * truncate log
 
 }

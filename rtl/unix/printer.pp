@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: printer.pp,v 1.8 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
@@ -241,8 +241,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.8  2005-02-14 17:13:31  peter
+  $Log: printer.pp,v $
+  Revision 1.8  2005/02/14 17:13:31  peter
     * truncate log
 
 }

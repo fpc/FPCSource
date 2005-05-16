@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: tprocvar1.pp,v 1.7 2005/02/14 17:13:35 peter Exp $
   This program tries to test any aspect of procedure variables and related
   stuff in FPC mode
 }
@@ -146,8 +146,8 @@ begin
    writeln('Ok');
 end.
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:35  peter
+  $Log: tprocvar1.pp,v $
+  Revision 1.7  2005/02/14 17:13:35  peter
     * truncate log
 
 }

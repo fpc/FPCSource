@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ostypes.inc,v 1.9 2005/02/14 17:13:21 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -261,8 +261,8 @@ CONST
 
 
 {
-  $Log$
-  Revision 1.9  2005-02-14 17:13:21  peter
+  $Log: ostypes.inc,v $
+  Revision 1.9  2005/02/14 17:13:21  peter
     * truncate log
 
   Revision 1.8  2005/02/13 21:47:56  peter

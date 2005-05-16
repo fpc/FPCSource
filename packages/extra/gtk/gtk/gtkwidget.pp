@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkwidget.pp,v 1.6 2005/02/14 17:13:21 peter Exp $
 }
 
 {****************************************************************************
@@ -537,8 +537,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.6  2005-02-14 17:13:21  peter
+  $Log: gtkwidget.pp,v $
+  Revision 1.6  2005/02/14 17:13:21  peter
     * truncate log
 
   Revision 1.5  2005/02/06 19:51:53  peter

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysosh.inc,v 1.2 2005/04/13 20:10:50 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -42,8 +42,8 @@ const
 
 
 {
-   $Log$
-   Revision 1.2  2005-04-13 20:10:50  florian
+   $Log: sysosh.inc,v $
+   Revision 1.2  2005/04/13 20:10:50  florian
      + TThreadID
 
    Revision 1.1  2005/02/06 16:57:18  peter

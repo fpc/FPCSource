@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: math.inc,v 1.14 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000 by Jonas Maebe and other members of the
     Free Pascal development team
@@ -61,8 +61,8 @@
 {$endif}
 
 {
-  $Log$
-  Revision 1.14  2005-02-14 17:13:31  peter
+  $Log: math.inc,v $
+  Revision 1.14  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.13  2005/02/14 16:32:41  peter

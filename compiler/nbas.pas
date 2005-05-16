@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: nbas.pas,v 1.95 2005/03/27 20:19:21 florian Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     This unit implements some basic nodes
@@ -1025,8 +1025,8 @@ begin
    ctempdeletenode:=ttempdeletenode;
 end.
 {
-  $Log$
-  Revision 1.95  2005-03-27 20:19:21  florian
+  $Log: nbas.pas,v $
+  Revision 1.95  2005/03/27 20:19:21  florian
     + compiler support for reading/writing of vararrays
 
   Revision 1.94  2005/02/14 17:13:06  peter

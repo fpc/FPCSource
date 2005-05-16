@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: lister.pas,v 1.3 2005/04/06 20:16:48 marco Exp $
 
     This file is a Free Pascal example
     Copyright (C) 2005 by Marco van de Voort
@@ -299,8 +299,8 @@ Begin
 End.
 
 {
-   $Log$
-   Revision 1.3  2005-04-06 20:16:48  marco
+   $Log: lister.pas,v $
+   Revision 1.3  2005/04/06 20:16:48  marco
     * deletefile support
 
    Revision 1.2  2005/04/06 18:45:47  marco

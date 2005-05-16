@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: i_morph.pas,v 1.7 2005/03/20 22:36:45 olle Exp $
     Copyright (c) 2004 by Free Pascal Development Team
 
     This unit implements support information structures for MorphOS
@@ -100,8 +100,8 @@ initialization
 {$endif CPUPOWERPC}
 end.
 {
-  $Log$
-  Revision 1.7  2005-03-20 22:36:45  olle
+  $Log: i_morph.pas,v $
+  Revision 1.7  2005/03/20 22:36:45  olle
     * Cleaned up handling of source file extension.
     + Added support for .p extension for macos and darwin
 

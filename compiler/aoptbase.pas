@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: aoptbase.pas,v 1.11 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
     Development Team
 
@@ -258,8 +258,8 @@ unit aoptbase;
 end.
 
 {
-  $Log$
-  Revision 1.11  2005-02-14 17:13:06  peter
+  $Log: aoptbase.pas,v $
+  Revision 1.11  2005/02/14 17:13:06  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: heaptrc.pp,v 1.44 2005/04/04 15:16:26 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -1196,8 +1196,8 @@ finalization
    TraceExit;
 end.
 {
-  $Log$
-  Revision 1.44  2005-04-04 15:16:26  peter
+  $Log: heaptrc.pp,v $
+  Revision 1.44  2005/04/04 15:16:26  peter
     * fixed crash in tracereallocmem statictics
 
   Revision 1.43  2005/03/25 22:53:39  jonas

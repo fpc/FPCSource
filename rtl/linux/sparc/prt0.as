@@ -1,4 +1,4 @@
-#   $Id$
+#   $Id: prt0.as,v 1.9 2004/07/05 21:07:38 florian Exp $
 /* Startup code for elf32-sparc
    Copyright (C) 1997, 1998 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
@@ -73,8 +73,8 @@ _haltproc:
         .comm operatingsystem_parameter_argv,4
 
 #
-# $Log$
-# Revision 1.9  2004-07-05 21:07:38  florian
+# $Log: prt0.as,v $
+# Revision 1.9  2004/07/05 21:07:38  florian
 #   * remade makefile (too old fpcmake)
 #   * fixed sparc startup code
 #

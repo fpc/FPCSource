@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ezcgi.inc,v 1.8 2005/02/14 17:13:16 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 
@@ -27,8 +27,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.8  2005-02-14 17:13:16  peter
+  $Log: ezcgi.inc,v $
+  Revision 1.8  2005/02/14 17:13:16  peter
     * truncate log
 
 }

@@ -1,6 +1,6 @@
 unit matrix;
 {
-    $Id$
+    $Id: matrix.pp,v 1.4 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Daniel Mantione
 
@@ -829,8 +829,8 @@ implementation
 end.
 {$endif VER1_0}
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:22  peter
+  $Log: matrix.pp,v $
+  Revision 1.4  2005/02/14 17:13:22  peter
     * truncate log
 
 }

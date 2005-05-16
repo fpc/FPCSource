@@ -109,8 +109,8 @@ begin
       cgiStuff.Free;
    end;
 end.
-  $Log$
-  Revision 1.2  2005-02-14 17:13:18  peter
+  $Log: testez.pp,v $
+  Revision 1.2  2005/02/14 17:13:18  peter
     * truncate log
 
 }

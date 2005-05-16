@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dynarr.inc,v 1.38 2005/03/27 14:56:34 jonas Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000 by Florian Klaempfl
     member of the Free Pascal development team.
@@ -373,8 +373,8 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 
 
 {
-  $Log$
-  Revision 1.38  2005-03-27 14:56:34  jonas
+  $Log: dynarr.inc,v $
+  Revision 1.38  2005/03/27 14:56:34  jonas
     * fixed web bug 3805
     * extra range check in fpc_dynarray_copy (also error if lowidx >
       high(source))

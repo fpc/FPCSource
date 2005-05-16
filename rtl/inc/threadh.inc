@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: threadh.inc,v 1.32 2005/04/20 06:32:47 hajny Exp $
     This file is part of the Free Pascal Run time library.
     Copyright (c) 2000 by the Free Pascal development team
 
@@ -154,8 +154,8 @@ procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
 procedure RTLeventsync(m:trtlmethod;p:tprocedure);
 
 {
-  $Log$
-  Revision 1.32  2005-04-20 06:32:47  hajny
+  $Log: threadh.inc,v $
+  Revision 1.32  2005/04/20 06:32:47  hajny
     * yet another TThreadID fix
 
   Revision 1.31  2005/04/14 20:42:14  florian

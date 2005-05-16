@@ -1,5 +1,5 @@
 {******************************************************************************
-    $Id$
+    $Id: setjumph.inc,v 1.8 2005/04/24 21:19:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000-2002 by Jonas Maebe and other members of the
     Free Pascal development team
@@ -52,8 +52,8 @@ type
 function setjmp(var S:jmp_buf):longint;
 procedure longjmp(var S:jmp_buf;value:longint);
 {
-  $Log$
-  Revision 1.8  2005-04-24 21:19:22  peter
+  $Log: setjumph.inc,v $
+  Revision 1.8  2005/04/24 21:19:22  peter
     * unblock signal in signalhandler, remove the sigprocmask call
       from setjmp
 

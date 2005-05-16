@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: termiosh.inc,v 1.4 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -31,8 +31,8 @@ function  TTYname     (Handle:cint):string;
 function  TTYname     (var F:Text) :string;
 
 {
-    $Log$
-    Revision 1.4  2005-02-14 17:13:31  peter
+    $Log: termiosh.inc,v $
+    Revision 1.4  2005/02/14 17:13:31  peter
       * truncate log
 
 }

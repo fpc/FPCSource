@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: vesa.pas,v 1.10 2005/02/14 17:13:18 peter Exp $
     This file is part of the PinGUI - Platform Independent GUI Project
     Copyright (c) 1999 by Berczi Gabor
 
@@ -714,8 +714,8 @@ BEGIN
 {$endif FPC}
 END.
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:18  peter
+  $Log: vesa.pas,v $
+  Revision 1.10  2005/02/14 17:13:18  peter
     * truncate log
 
   Revision 1.9  2005/01/28 10:05:44  armin

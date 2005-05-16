@@ -2719,8 +2719,8 @@ implementation
 end.
 
 {
-  $Log$
-  Revision 1.1  2005-03-28 15:09:35  peter
+  $Log: activex.pp,v $
+  Revision 1.1  2005/03/28 15:09:35  peter
   new winunits packages
 
   Revision 1.15  2005/02/26 20:20:56  florian

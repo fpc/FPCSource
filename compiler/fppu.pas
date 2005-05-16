@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fppu.pas,v 1.68 2005/03/20 22:36:45 olle Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the first loading and searching of the modules
@@ -1610,8 +1610,8 @@ uses
 
 end.
 {
-  $Log$
-  Revision 1.68  2005-03-20 22:36:45  olle
+  $Log: fppu.pas,v $
+  Revision 1.68  2005/03/20 22:36:45  olle
     * Cleaned up handling of source file extension.
     + Added support for .p extension for macos and darwin
 

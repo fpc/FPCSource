@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkstyle.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -90,8 +90,8 @@ function  GTK_STYLE_ATTACHED(style : PGtkstyle) : boolean;
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: gtkstyle.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

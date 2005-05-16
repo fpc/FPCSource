@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkhandlebox.pp,v 1.4 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -153,8 +153,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:20  peter
+  $Log: gtkhandlebox.pp,v $
+  Revision 1.4  2005/02/14 17:13:20  peter
     * truncate log
 
 }

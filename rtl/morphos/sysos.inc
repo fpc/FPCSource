@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysos.inc,v 1.2 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -140,8 +140,8 @@ end;
 
 
 {
-   $Log$
-   Revision 1.2  2005-02-14 17:13:30  peter
+   $Log: sysos.inc,v $
+   Revision 1.2  2005/02/14 17:13:30  peter
      * truncate log
 
    Revision 1.1  2005/02/07 21:30:12  peter

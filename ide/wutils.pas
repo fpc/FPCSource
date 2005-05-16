@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: wutils.pas,v 1.21 2005/02/14 17:13:19 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -1378,8 +1378,8 @@ BEGIN
   Randomize;
 END.
 {
-  $Log$
-  Revision 1.21  2005-02-14 17:13:19  peter
+  $Log: wutils.pas,v $
+  Revision 1.21  2005/02/14 17:13:19  peter
     * truncate log
 
 }

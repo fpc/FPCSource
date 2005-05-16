@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkplug.pp,v 1.4 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -41,8 +41,8 @@ function  gtk_plug_new(socket_id:guint32):PGtkWidget;cdecl;external gtkdll name 
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:20  peter
+  $Log: gtkplug.pp,v $
+  Revision 1.4  2005/02/14 17:13:20  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: charset.pas,v 1.7 2005/02/14 17:13:06 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000 by Florian Klaempfl
     member of the Free Pascal development team.
@@ -253,8 +253,8 @@ finalization
     end;
 end.
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:06  peter
+  $Log: charset.pas,v $
+  Revision 1.7  2005/02/14 17:13:06  peter
     * truncate log
 
 }

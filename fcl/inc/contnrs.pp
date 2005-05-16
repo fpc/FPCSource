@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: contnrs.pp,v 1.10 2005/02/14 17:13:14 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2002 by Florian Klaempfl
 
@@ -504,8 +504,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:14  peter
+  $Log: contnrs.pp,v $
+  Revision 1.10  2005/02/14 17:13:14  peter
     * truncate log
 
 }

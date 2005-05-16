@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cgobj.pas,v 1.195 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2005 by Florian Klaempfl
     Member of the Free Pascal development team
 
@@ -2080,8 +2080,8 @@ finalization
 {$endif cpu64bit}
 end.
 {
-  $Log$
-  Revision 1.195  2005-02-14 17:13:06  peter
+  $Log: cgobj.pas,v $
+  Revision 1.195  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.194  2005/02/13 18:55:19  florian

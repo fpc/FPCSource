@@ -1,8 +1,0 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Preamble for report output
-%
-\documentclass[a4paper]{report}
-%
-\usepackage{fpc}
-%
-%

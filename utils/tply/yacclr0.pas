@@ -22,7 +22,7 @@
   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-$Revision$
+$Revision: 1.2 $
 $Modtime: 96-07-31 14:09 $
 
 $History: YACCLR0.PAS $

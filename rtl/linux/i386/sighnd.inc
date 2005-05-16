@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sighnd.inc,v 1.8 2005/04/24 21:19:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
@@ -75,8 +75,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.8  2005-04-24 21:19:22  peter
+  $Log: sighnd.inc,v $
+  Revision 1.8  2005/04/24 21:19:22  peter
     * unblock signal in signalhandler, remove the sigprocmask call
       from setjmp
 

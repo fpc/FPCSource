@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: rasm.pas,v 1.3 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by The Free Pascal Team
 
     This unit does the parsing process for the inline assembler
@@ -65,8 +65,8 @@ Implementation
 Begin
 end.
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:09  peter
+  $Log: rasm.pas,v $
+  Revision 1.3  2005/02/14 17:13:09  peter
     * truncate log
 
 }

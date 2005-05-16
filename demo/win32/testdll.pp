@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: testdll.pp,v 1.2 2002/09/07 15:06:35 peter Exp $
   Copyright (c) 1998 by Pierre Muller
 
   Win32 DLL usage example. It needs dlltest.pp
@@ -61,8 +61,8 @@ begin
   exitproc:=@newExit;
 end.
 {
-  $Log$
-  Revision 1.2  2002-09-07 15:06:35  peter
+  $Log: testdll.pp,v $
+  Revision 1.2  2002/09/07 15:06:35  peter
     * old logs removed and tabs fixed
 
 }

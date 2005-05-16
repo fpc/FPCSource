@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pmodules.pas,v 1.186 2005/03/25 21:55:43 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Handles the parsing and loading of the modules (ppufiles)
@@ -1626,8 +1626,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.186  2005-03-25 21:55:43  jonas
+  $Log: pmodules.pas,v $
+  Revision 1.186  2005/03/25 21:55:43  jonas
     * removed some unused variables
 
   Revision 1.185  2005/02/14 17:13:07  peter

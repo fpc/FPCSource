@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: unxovl.inc,v 1.5 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Marco van de Voort
 
@@ -27,8 +27,8 @@ begin
 end;
 
 {
- $Log$
- Revision 1.5  2005-02-14 17:13:31  peter
+ $Log: unxovl.inc,v $
+ Revision 1.5  2005/02/14 17:13:31  peter
    * truncate log
 
 }

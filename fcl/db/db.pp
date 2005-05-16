@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: db.pp,v 1.51 2005/04/26 16:48:58 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team
@@ -1941,8 +1941,8 @@ end;
 end.
 
 {
-  $Log$
-  Revision 1.51  2005-04-26 16:48:58  michael
+  $Log: db.pp,v $
+  Revision 1.51  2005/04/26 16:48:58  michael
    * Some patches from Uberto Barbini
      + TLoginEvent more Delphi compatible (D5 and bigger).
      * AsCurrency Property for TField.

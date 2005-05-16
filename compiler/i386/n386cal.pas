@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: n386cal.pas,v 1.104 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 assembler for in call nodes
@@ -95,8 +95,8 @@ begin
    ccallnode:=ti386callnode;
 end.
 {
-  $Log$
-  Revision 1.104  2005-02-14 17:13:09  peter
+  $Log: n386cal.pas,v $
+  Revision 1.104  2005/02/14 17:13:09  peter
     * truncate log
 
 }

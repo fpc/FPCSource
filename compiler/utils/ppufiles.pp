@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ppufiles.pp,v 1.6 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1999-2002 by Peter Vreman
 
     List files needed by PPU
@@ -252,8 +252,8 @@ begin
    end;
 end.
 {
-  $Log$
-  Revision 1.6  2005-02-14 17:13:10  peter
+  $Log: ppufiles.pp,v $
+  Revision 1.6  2005/02/14 17:13:10  peter
     * truncate log
 
 }

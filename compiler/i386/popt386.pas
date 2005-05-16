@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: popt386.pas,v 1.70 2005/03/20 21:41:10 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Jonas Maebe
 
     This unit contains the peephole optimizer.
@@ -2029,8 +2029,8 @@ end;
 end.
 
 {
-  $Log$
-  Revision 1.70  2005-03-20 21:41:10  florian
+  $Log: popt386.pas,v $
+  Revision 1.70  2005/03/20 21:41:10  florian
     * USECMOV fixed
 
   Revision 1.69  2005/02/26 01:27:00  jonas

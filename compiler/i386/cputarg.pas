@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cputarg.pas,v 1.16 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 2001-2002 by Peter Vreman
 
     Includes the i386 dependent target units
@@ -93,8 +93,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.16  2005-02-14 17:13:09  peter
+  $Log: cputarg.pas,v $
+  Revision 1.16  2005/02/14 17:13:09  peter
     * truncate log
 
 }

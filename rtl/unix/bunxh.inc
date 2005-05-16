@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: bunxh.inc,v 1.16 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Marco van de Voort
 
@@ -103,8 +103,8 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
 
 {
-  $Log$
-  Revision 1.16  2005-02-14 17:13:31  peter
+  $Log: bunxh.inc,v $
+  Revision 1.16  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.15  2005/02/13 20:01:38  peter

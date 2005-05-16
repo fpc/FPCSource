@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysosh.inc,v 1.3 2005/04/14 21:17:51 hajny Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -36,8 +36,8 @@ type
 
 
 {
-   $Log$
-   Revision 1.3  2005-04-14 21:17:51  hajny
+   $Log: sysosh.inc,v $
+   Revision 1.3  2005/04/14 21:17:51  hajny
      * TThreadID changed to cardinal
 
    Revision 1.2  2005/04/13 20:10:50  florian

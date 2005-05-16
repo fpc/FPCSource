@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: edit.pp,v 1.3 2002/09/07 15:06:35 peter Exp $
   Copyright (c) 1999 by Michael van Canneyt and Goran Andersson
 
   Win32 editor example.
@@ -460,8 +460,8 @@ Begin
 End.
 
 {
-  $Log$
-  Revision 1.3  2002-09-07 15:06:35  peter
+  $Log: edit.pp,v $
+  Revision 1.3  2002/09/07 15:06:35  peter
     * old logs removed and tabs fixed
 
 }

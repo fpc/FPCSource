@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: testib60.pp,v 1.4 2005/02/14 17:13:19 peter Exp $
 }
 program testib;
 
@@ -153,8 +153,8 @@ begin
     doerror(status);
 end.
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:19  peter
+  $Log: testib60.pp,v $
+  Revision 1.4  2005/02/14 17:13:19  peter
     * truncate log
 
    * the exception that proves the rule: {$ifdef unix} replaced by {$ifdef linux} :-)

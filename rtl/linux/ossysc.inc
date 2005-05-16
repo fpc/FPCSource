@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ossysc.inc,v 1.36 2005/02/14 17:13:30 peter Exp $
     Copyright (c) 2002 by Marco van de Voort
 
     The base Linux syscalls required to implement the system unit. These
@@ -475,8 +475,8 @@ begin
 end;
 
 {
- $Log$
- Revision 1.36  2005-02-14 17:13:30  peter
+ $Log: ossysc.inc,v $
+ Revision 1.36  2005/02/14 17:13:30  peter
    * truncate log
 
  Revision 1.35  2005/02/13 21:47:56  peter

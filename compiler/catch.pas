@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: catch.pas,v 1.25 2005/04/24 21:21:10 peter Exp $
     Copyright (c) 1998-2002 by Michael Van Canneyt
 
     Unit to catch segmentation faults and Ctrl-C and exit gracefully
@@ -93,8 +93,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.25  2005-04-24 21:21:10  peter
+  $Log: catch.pas,v $
+  Revision 1.25  2005/04/24 21:21:10  peter
     * use comphook for fpc exceptions
 
   Revision 1.24  2005/02/15 19:15:45  peter

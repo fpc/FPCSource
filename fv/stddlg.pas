@@ -1,4 +1,4 @@
-{ $Id$  }
+{ $Id: stddlg.pas,v 1.20 2005/03/07 16:59:42 peter Exp $  }
 {*******************************************************}
 { Free Vision Runtime Library                           }
 { StdDlg Unit                                           }
@@ -2730,8 +2730,8 @@ begin
 end.
 
 {
- $Log$
- Revision 1.20  2005-03-07 16:59:42  peter
+ $Log: stddlg.pas,v $
+ Revision 1.20  2005/03/07 16:59:42  peter
    * fix matchmask
 
  Revision 1.19  2005/02/14 17:13:18  peter

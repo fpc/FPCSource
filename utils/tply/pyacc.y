@@ -55,7 +55,7 @@
   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-$Revision$
+$Revision: 1.3 $
 $Modtime: 96-08-01 11:24 $
 
 

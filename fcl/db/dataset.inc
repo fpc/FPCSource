@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dataset.inc,v 1.36 2005/04/13 22:08:16 joost Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team
@@ -1788,8 +1788,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.36  2005-04-13 22:08:16  joost
+  $Log: dataset.inc,v $
+  Revision 1.36  2005/04/13 22:08:16  joost
   - fixed mem-leak in TDataset.SetBufListSize
 
   Revision 1.35  2005/04/10 22:18:43  joost

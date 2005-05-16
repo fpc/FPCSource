@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: radirect.pas,v 1.3 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Reads inline Alpha assembler and writes the lines direct to the output
@@ -313,8 +313,8 @@ initialization
 
 end.
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:09  peter
+  $Log: radirect.pas,v $
+  Revision 1.3  2005/02/14 17:13:09  peter
     * truncate log
 
 }

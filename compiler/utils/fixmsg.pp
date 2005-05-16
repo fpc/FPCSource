@@ -65,8 +65,8 @@ begin
   close(t);
 end.
 
-  $Log$
-  Revision 1.5  2005-02-14 17:13:10  peter
+  $Log: fixmsg.pp,v $
+  Revision 1.5  2005/02/14 17:13:10  peter
     * truncate log
 
 }

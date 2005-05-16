@@ -1,5 +1,5 @@
 {
- $Id$
+ $Id: system.pas,v 1.85 2005/05/03 22:17:26 hajny Exp $
  ****************************************************************************
 
     This file is part of the Free Pascal run time library.
@@ -50,8 +50,7 @@ const
   PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
   MaxExitCode = 65535;
-  MaxPathLen = 256;
-  
+
 type    Tos=(osDOS,osOS2,osDPMI);
 
 const   os_mode: Tos = osOS2;
@@ -773,10 +772,7 @@ begin
      end;
 end.
 {
-  $Log$
-  Revision 1.86  2005-05-12 20:29:04  michael
-  + Added maxpathlen constant (maximum length of filename path)
-
+  $Log: system.pas,v $
   Revision 1.85  2005/05/03 22:17:26  hajny
     * SysAllocMem used for ArgV [Idx] allocation again
 

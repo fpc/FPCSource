@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: nld.pas,v 1.148 2005/03/28 13:36:15 florian Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Type checking and register allocation for load/assignment nodes
@@ -1202,8 +1202,8 @@ begin
    crttinode:=trttinode;
 end.
 {
-  $Log$
-  Revision 1.148  2005-03-28 13:36:15  florian
+  $Log: nld.pas,v $
+  Revision 1.148  2005/03/28 13:36:15  florian
     + variants are now assigned using fpc_variant_copy
 
   Revision 1.147  2005/03/25 22:20:19  peter

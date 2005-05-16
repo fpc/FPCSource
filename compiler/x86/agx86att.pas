@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: agx86att.pas,v 1.19 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements an asmoutput class for i386 AT&T syntax
@@ -280,8 +280,8 @@ initialization
 {$endif x86_64}
 end.
 {
-  $Log$
-  Revision 1.19  2005-02-14 17:13:10  peter
+  $Log: agx86att.pas,v $
+  Revision 1.19  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.18  2005/02/06 00:05:56  florian

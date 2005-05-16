@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: globals.pas,v 1.175 2005/03/27 14:10:52 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements some support functions and global variables
@@ -2294,8 +2294,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.175  2005-03-27 14:10:52  jonas
+  $Log: globals.pas,v $
+  Revision 1.175  2005/03/27 14:10:52  jonas
     * const record parameters > 8 bytes are now passed by reference for non
       cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
       GPC (slightly more efficient than Metrowerks behaviour below, but

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fphelp.pas,v 1.12 2005/03/13 12:32:41 florian Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -521,8 +521,8 @@ end;
 
 END.
 {
-  $Log$
-  Revision 1.12  2005-03-13 12:32:41  florian
+  $Log: fphelp.pas,v $
+  Revision 1.12  2005/03/13 12:32:41  florian
     * more status line hints fixed
 
   Revision 1.11  2005/03/13 12:25:02  florian

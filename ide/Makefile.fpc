@@ -1,5 +1,5 @@
 #
-#   $Id$
+#   $Id: Makefile.fpc,v 1.32 2005/05/05 12:59:59 peter Exp $
 #
 #   Makefile.fpc for FP IDE
 #
@@ -183,8 +183,8 @@ clean_compiler:
         $(MAKE) -C ../compiler ppuclean
 
 #
-# $Log$
-# Revision 1.32  2005-05-05 12:59:59  peter
+# $Log: Makefile.fpc,v $
+# Revision 1.32  2005/05/05 12:59:59  peter
 #   * 2.0.0
 #
 # Revision 1.31  2005/02/15 22:28:29  peter

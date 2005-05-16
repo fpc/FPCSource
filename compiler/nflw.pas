@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: nflw.pas,v 1.112 2005/03/25 22:20:19 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Type checking and register allocation for nodes that influence
@@ -1390,8 +1390,8 @@ begin
    connode:=tonnode;
 end.
 {
-  $Log$
-  Revision 1.112  2005-03-25 22:20:19  peter
+  $Log: nflw.pas,v $
+  Revision 1.112  2005/03/25 22:20:19  peter
     * add hint when passing an uninitialized variable to a var parameter
 
   Revision 1.111  2005/03/24 23:06:43  peter

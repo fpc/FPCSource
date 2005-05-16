@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: system.pp,v 1.22 2005/04/13 20:10:50 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -44,8 +44,7 @@ const
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 255;
- MaxPathLen = 256;
- 
+
 const
 { Default filehandles }
   UnusedHandle    = -1;
@@ -305,7 +304,9 @@ var
        fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
        argv[idx]:=nil;
      end;
-     ArgV [Idx] := SysAllocMem (Succ (Len));
+    { use realloc to reuse already existing memory }
+    if len<>0 then
+      sysreallocmem(argv[idx],len+1);
   end;
 
 begin
@@ -1539,13 +1540,7 @@ Begin
 End.
 
 {
-  $Log$
-  Revision 1.24  2005-05-12 20:29:04  michael
-  + Added maxpathlen constant (maximum length of filename path)
-
-  Revision 1.23  2005/05/10 21:45:08  hajny
-    * fix for potential SIGSEGV during argv allocation
-
+  $Log: system.pp,v $
   Revision 1.22  2005/04/13 20:10:50  florian
     + TThreadID
 

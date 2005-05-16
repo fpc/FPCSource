@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: classes.pp,v 1.6 2005/04/17 17:33:40 hajny Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 
@@ -53,8 +53,8 @@ finalization
 {$endif}
 end.
 {
-  $Log$
-  Revision 1.6  2005-04-17 17:33:40  hajny
+  $Log: classes.pp,v $
+  Revision 1.6  2005/04/17 17:33:40  hajny
     * more rtlconst/s fixes
 
   Revision 1.5  2005/02/14 17:13:30  peter

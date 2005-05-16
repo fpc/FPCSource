@@ -1,6 +1,6 @@
 {
     *********************************************************************
-    $Id$
+    $Id: sysansih.inc,v 1.4 2005/02/14 17:13:31 peter Exp $
     Copyright (C) 2002 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
@@ -28,8 +28,8 @@ function AnsiStrRScan(Str : PChar;Chr : Char) : PChar;
 function AnsiStrScan(Str : PChar;Chr: Char) : PChar;
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:31  peter
+  $Log: sysansih.inc,v $
+  Revision 1.4  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.3  2005/02/03 16:21:59  peter

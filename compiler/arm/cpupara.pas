@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpupara.pas,v 1.31 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 2003 by Florian Klaempfl
 
     ARM specific calling conventions
@@ -448,8 +448,8 @@ begin
    paramanager:=tarmparamanager.create;
 end.
 {
-  $Log$
-  Revision 1.31  2005-02-14 17:13:09  peter
+  $Log: cpupara.pas,v $
+  Revision 1.31  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.30  2005/02/03 20:04:49  peter

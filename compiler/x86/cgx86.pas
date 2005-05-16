@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cgx86.pas,v 1.148 2005/04/25 09:51:07 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the common parts of the code generator for the i386 and the x86-64.
@@ -1787,8 +1787,8 @@ unit cgx86;
 
 end.
 {
-  $Log$
-  Revision 1.148  2005-04-25 09:51:07  florian
+  $Log: cgx86.pas,v $
+  Revision 1.148  2005/04/25 09:51:07  florian
     + pic code reading for the assembler readers
     * loadaddr generates pic code as well now
 

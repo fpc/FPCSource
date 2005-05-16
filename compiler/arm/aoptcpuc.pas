@@ -1,5 +1,5 @@
  {
-    $Id$
+    $Id: aoptcpuc.pas,v 1.1 2005/02/20 19:11:04 florian Exp $
     Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
     Development Team
 
@@ -38,8 +38,8 @@ Implementation
 
 End.
 {
-  $Log$
-  Revision 1.1  2005-02-20 19:11:04  florian
+  $Log: aoptcpuc.pas,v $
+  Revision 1.1  2005/02/20 19:11:04  florian
     * initial commit
 
   Revision 1.6  2005/02/14 17:13:10  peter

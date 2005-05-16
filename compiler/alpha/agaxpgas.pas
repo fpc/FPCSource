@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: agaxpgas.pas,v 1.3 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an asm for the DEC Alpha
@@ -127,8 +127,8 @@ unit agaxpgas;
 end.
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:09  peter
+  $Log: agaxpgas.pas,v $
+  Revision 1.3  2005/02/14 17:13:09  peter
     * truncate log
 
 }

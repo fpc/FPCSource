@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkthemes.pp,v 1.4 2005/02/14 17:13:21 peter Exp $
 }
 
 {****************************************************************************
@@ -34,8 +34,8 @@ procedure gtk_themes_exit(error_code:gint);cdecl;external gtkdll name 'gtk_theme
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:21  peter
+  $Log: gtkthemes.pp,v $
+  Revision 1.4  2005/02/14 17:13:21  peter
     * truncate log
 
 }

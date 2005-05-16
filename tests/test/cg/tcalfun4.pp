@@ -1403,8 +1403,8 @@ if value_ansistring <> RESULT_BIGSTRING then
 end.
 
 {
-  $Log$
-  Revision 1.8  2005-02-14 17:13:36  peter
+  $Log: tcalfun4.pp,v $
+  Revision 1.8  2005/02/14 17:13:36  peter
     * truncate log
 
 }

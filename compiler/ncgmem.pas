@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncgmem.pas,v 1.106 2005/04/06 19:39:04 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for memory related nodes which are
@@ -862,8 +862,8 @@ begin
    cvecnode:=tcgvecnode;
 end.
 {
-  $Log$
-  Revision 1.106  2005-04-06 19:39:04  florian
+  $Log: ncgmem.pas,v $
+  Revision 1.106  2005/04/06 19:39:04  florian
     * fixed previous commit
 
   Revision 1.105  2005/04/06 19:09:39  florian

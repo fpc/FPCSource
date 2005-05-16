@@ -427,8 +427,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:31  peter
+  $Log: graph16.inc,v $
+  Revision 1.4  2005/02/14 17:13:31  peter
     * truncate log
 
 }

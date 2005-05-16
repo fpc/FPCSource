@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cgcpu.pas,v 1.107 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the code generator for the SPARC
@@ -1479,8 +1479,8 @@ begin
   cg64:=TCg64Sparc.Create;
 end.
 {
-  $Log$
-  Revision 1.107  2005-02-14 17:13:10  peter
+  $Log: cgcpu.pas,v $
+  Revision 1.107  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.106  2005/02/13 18:55:19  florian

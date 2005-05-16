@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpmdebug.inc,v 1.10 2005/04/04 03:59:13 marco Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -282,8 +282,8 @@ end;
 {$endif NODEBUG}
 
 {
-  $Log$
-  Revision 1.10  2005-04-04 03:59:13  marco
+  $Log: fpmdebug.inc,v $
+  Revision 1.10  2005/04/04 03:59:13  marco
    * fix for 3194: Use mouse to exit output screen
 
   Revision 1.9  2005/02/14 17:13:18  peter

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: mtest.pp,v 1.5 2005/02/14 17:13:12 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -199,8 +199,8 @@ begin
 end.
 
 {
-   $Log$
-   Revision 1.5  2005-02-14 17:13:12  peter
+   $Log: mtest.pp,v $
+   Revision 1.5  2005/02/14 17:13:12  peter
      * truncate log
 
 }

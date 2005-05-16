@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: node.pas,v 1.98 2005/03/25 23:03:04 jonas Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Basic node handling
@@ -1125,8 +1125,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.98  2005-03-25 23:03:04  jonas
+  $Log: node.pas,v $
+  Revision 1.98  2005/03/25 23:03:04  jonas
     - removed unused variables
 
   Revision 1.97  2005/03/05 16:17:30  jonas

@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: dxegen.pp,v 1.8 2004/09/15 19:20:51 hajny Exp $
    Copyright (C) 1995 Charles Sandmann (sandmann@clio.rice.edu)
    This software may be freely distributed with above copyright, no warranty.
    Based on code by DJ Delorie, it's really his, enhanced, bugs fixed.
@@ -311,8 +311,8 @@ Begin
   Close(output_f);
 End.
 {
- $Log$
- Revision 1.8  2004-09-15 19:20:51  hajny
+ $Log: dxegen.pp,v $
+ Revision 1.8  2004/09/15 19:20:51  hajny
    * dxegen compilable for any target now
 
  Revision 1.7  2004/09/15 08:35:39  michael

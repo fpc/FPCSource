@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: aasmcpu.pas,v 1.41 2005/02/20 12:23:45 florian Exp $
     Copyright (c) 2003 by Florian Klaempfl
 
     Contains the assembler object for the ARM
@@ -517,8 +517,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.41  2005-02-20 12:23:45  florian
+  $Log: aasmcpu.pas,v $
+  Revision 1.41  2005/02/20 12:23:45  florian
     * fixed constant insertation
 
   Revision 1.40  2005/02/15 21:24:40  florian

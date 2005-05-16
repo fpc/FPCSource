@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: systhrdh.inc,v 1.4 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2001 by the Free Pascal development team
 
@@ -31,8 +31,8 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint;
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:31  peter
+  $Log: systhrdh.inc,v $
+  Revision 1.4  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.3  2005/02/06 20:31:35  florian

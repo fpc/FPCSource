@@ -50,8 +50,8 @@
   procedure FntGetScrollValues(chars:pChar; width:Word; scrollPos:Word; linesP:WordPtr; topLine:WordPtr);systrap sysTrapFntGetScrollValues;
   function FntDefineFont(font:FontID; fontP:FontPtr):Err;systrap sysTrapFntDefineFont;
 
-  $Log$
-  Revision 1.4  2005-02-14 17:13:31  peter
+  $Log: font.inc,v $
+  Revision 1.4  2005/02/14 17:13:31  peter
     * truncate log
 
 }

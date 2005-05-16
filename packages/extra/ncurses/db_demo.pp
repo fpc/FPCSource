@@ -187,8 +187,8 @@ Begin
    End;
 End.
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:21  peter
+  $Log: db_demo.pp,v $
+  Revision 1.3  2005/02/14 17:13:21  peter
     * truncate log
 
 }

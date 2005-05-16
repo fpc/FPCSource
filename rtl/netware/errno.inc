@@ -137,8 +137,8 @@
      SYS_ENOCONTEXT = 105;        // no thread library context present
      SYS_ELASTERR = SYS_ENOCONTEXT;
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:30  peter
+  $Log: errno.inc,v $
+  Revision 1.5  2005/02/14 17:13:30  peter
     * truncate log
 
 }

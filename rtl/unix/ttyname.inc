@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ttyname.inc,v 1.4 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Peter Vreman
     member of the Free Pascal development team.
@@ -89,8 +89,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:31  peter
+  $Log: ttyname.inc,v $
+  Revision 1.4  2005/02/14 17:13:31  peter
     * truncate log
 
 }

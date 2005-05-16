@@ -1,4 +1,4 @@
-# $Id$
+# $Id: makefile.cpu,v 1.2 2002/09/07 16:01:26 peter Exp $
 #
 # Here we set processor dependent include file names.
 #
@@ -6,8 +6,8 @@
 CPUNAMES=powerpc math set
 CPUINCNAMES=$(addsuffix .inc,$(CPUNAMES))
 #
-# $Log$
-# Revision 1.2  2002-09-07 16:01:26  peter
+# $Log: makefile.cpu,v $
+# Revision 1.2  2002/09/07 16:01:26  peter
 #   * old logs removed and tabs fixed
 #
 # Revision 1.1  2002/07/26 16:54:48  florian

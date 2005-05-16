@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncgutil.pas,v 1.266 2005/03/28 13:10:22 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Helper routines for all code generators
@@ -2404,8 +2404,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.266  2005-03-28 13:10:22  peter
+  $Log: ncgutil.pas,v $
+  Revision 1.266  2005/03/28 13:10:22  peter
   named sections for intf wrappers
 
   Revision 1.265  2005/03/25 21:55:43  jonas

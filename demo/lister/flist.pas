@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: flist.pas,v 1.2 2005/04/06 20:16:48 marco Exp $
 
     This file is a Free Pascal example
     Copyright (C) 2005 by Marco van de Voort
@@ -434,8 +434,8 @@ End;
 end.
 
 {
-  $Log$
-  Revision 1.2  2005-04-06 20:16:48  marco
+  $Log: flist.pas,v $
+  Revision 1.2  2005/04/06 20:16:48  marco
    * deletefile support
 
   Revision 1.1  2005/04/06 08:54:16  marco

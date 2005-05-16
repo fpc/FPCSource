@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: gtkshedit.pp,v 1.5 2005/02/14 17:13:17 peter Exp $
 
     GTK implementation for SHEdit
     Copyright (C) 1999-2000 by Sebastian Guenther (sg@freepascal.org)
@@ -587,8 +587,8 @@ end;
 end.
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:17  peter
+  $Log: gtkshedit.pp,v $
+  Revision 1.5  2005/02/14 17:13:17  peter
     * truncate log
 
 }

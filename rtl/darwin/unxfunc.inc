@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: unxfunc.inc,v 1.3 2005/03/25 22:53:39 jonas Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Peter Vreman
 
@@ -60,8 +60,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.3  2005-03-25 22:53:39  jonas
+  $Log: unxfunc.inc,v $
+  Revision 1.3  2005/03/25 22:53:39  jonas
     * fixed several warnings and notes about unused variables (mainly) or
       uninitialised use of variables/function results (a few)
 

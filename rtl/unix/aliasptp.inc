@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: aliasptp.inc,v 1.4 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Marco van de Voort
     Member of the Free Pascal development team
@@ -81,8 +81,8 @@ CONST
 //   wordsinsigset = UnixType.wordsinsigset;
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:31  peter
+  $Log: aliasptp.inc,v $
+  Revision 1.4  2005/02/14 17:13:31  peter
     * truncate log
 
 }

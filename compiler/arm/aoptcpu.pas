@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: aoptcpu.pas,v 1.2 2005/02/20 19:36:03 florian Exp $
     Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
     Development Team
 
@@ -40,8 +40,8 @@ Implementation
 
 End.
 {
- $Log$
- Revision 1.2  2005-02-20 19:36:03  florian
+ $Log: aoptcpu.pas,v $
+ Revision 1.2  2005/02/20 19:36:03  florian
    * optimizer files fixed
 
  Revision 1.1  2005/02/20 19:11:04  florian

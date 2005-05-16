@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cutils.pas,v 1.52 2005/04/23 14:15:58 hajny Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements some support functions
@@ -1222,8 +1222,8 @@ initialization
   initupperlower;
 end.
 {
-  $Log$
-  Revision 1.52  2005-04-23 14:15:58  hajny
+  $Log: cutils.pas,v $
+  Revision 1.52  2005/04/23 14:15:58  hajny
     * DeleteFile replaced with RemoveFile to avoid duplicate
 
   Revision 1.51  2005/04/06 11:49:37  michael

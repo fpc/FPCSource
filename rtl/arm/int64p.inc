@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: int64p.inc,v 1.5 2005/02/14 17:13:21 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -46,8 +46,8 @@ end ['r4','r5','r6'];
 
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:21  peter
+  $Log: int64p.inc,v $
+  Revision 1.5  2005/02/14 17:13:21  peter
     * truncate log
 
   Revision 1.4  2005/01/04 12:57:52  florian

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: openlib.pas,v 1.2 2005/02/14 17:13:10 peter Exp $
 
     Two ways of opening and using libraries
     Free Pascal for MorphOS example
@@ -95,8 +95,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:10  peter
+  $Log: openlib.pas,v $
+  Revision 1.2  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.1  2004/12/14 22:00:17  karoly

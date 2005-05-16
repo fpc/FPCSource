@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ctypes.pp,v 1.5 2005/03/13 10:05:13 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Marco van de Voort, member of the
     Free Pascal development team
@@ -97,8 +97,8 @@ implementation
 end.
 
 {
- $Log$
- Revision 1.5  2005-03-13 10:05:13  florian
+ $Log: ctypes.pp,v $
+ Revision 1.5  2005/03/13 10:05:13  florian
    + floating point c types added
 
  Revision 1.4  2005/03/01 22:45:09  hajny

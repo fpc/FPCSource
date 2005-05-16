@@ -1,4 +1,4 @@
-{ $Id$  }
+{ $Id: dialogs.pas,v 1.34 2005/03/06 21:31:15 florian Exp $  }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {   System independent GRAPHICAL clone of DIALOGS.PAS      }
@@ -4144,8 +4144,8 @@ END;
 
 END.
 {
- $Log$
- Revision 1.34  2005-03-06 21:31:15  florian
+ $Log: dialogs.pas,v $
+ Revision 1.34  2005/03/06 21:31:15  florian
    * fixed crash with empty labels
 
  Revision 1.33  2005/02/14 17:13:18  peter

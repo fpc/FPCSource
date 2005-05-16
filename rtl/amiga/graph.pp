@@ -790,8 +790,8 @@ begin
   CurY := 0;
 end.
 
-  $Log$
-  Revision 1.4  2005-02-14 17:13:21  peter
+  $Log: graph.pp,v $
+  Revision 1.4  2005/02/14 17:13:21  peter
     * truncate log
 
 }

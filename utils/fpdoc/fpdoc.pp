@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpdoc.pp,v 1.10 2005/02/14 17:13:39 peter Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
@@ -283,8 +283,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:39  peter
+  $Log: fpdoc.pp,v $
+  Revision 1.10  2005/02/14 17:13:39  peter
     * truncate log
 
   Revision 1.9  2005/02/05 12:30:08  michael

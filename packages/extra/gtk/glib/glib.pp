@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: glib.pp,v 1.10 2005/02/14 17:13:20 peter Exp $
 
    GLIB - Library of useful routines for C programming
    Copyright (C) 1995-1997  Peter Mattis, Spencer Kimball and Josh MacDonald
@@ -1655,8 +1655,8 @@ procedure set_year(var a : TGDate; __year : guint);
 
 end.
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:20  peter
+  $Log: glib.pp,v $
+  Revision 1.10  2005/02/14 17:13:20  peter
     * truncate log
 
   Revision 1.9  2005/02/06 19:51:53  peter

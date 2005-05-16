@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: testuri.pp,v 1.3 2005/02/14 17:13:19 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
@@ -60,8 +60,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:19  peter
+  $Log: testuri.pp,v $
+  Revision 1.3  2005/02/14 17:13:19  peter
     * truncate log
 
 }

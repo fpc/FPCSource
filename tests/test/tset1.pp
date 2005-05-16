@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: tset1.pp,v 1.3 2000/11/30 22:38:21 peter Exp $
 
   Program to test set functions
 }

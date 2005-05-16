@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysutils.pp,v 1.7 2005/02/26 14:38:14 florian Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Karoly Balogh
@@ -568,8 +568,8 @@ Finalization
   DoneExceptions;
 end.
 {
-    $Log$
-    Revision 1.7  2005-02-26 14:38:14  florian
+    $Log: sysutils.pp,v $
+    Revision 1.7  2005/02/26 14:38:14  florian
       + SysLocale
 
     Revision 1.6  2005/02/14 17:13:30  peter

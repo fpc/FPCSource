@@ -1,5 +1,5 @@
 #
-#   $Id$
+#   $Id: gprt0.as,v 1.4 2004/07/03 21:50:31 daniel Exp $
 #   This file is part of the Free Pascal run time library.
 #   Copyright (c) 1999-2000 by Michael Van Canneyt and Peter Vreman
 #   members of the Free Pascal development team.
@@ -77,8 +77,8 @@ ___fpucw:
         .comm operatingsystem_parameter_argv,4
 
 #
-# $Log$
-# Revision 1.4  2004-07-03 21:50:31  daniel
+# $Log: gprt0.as,v $
+# Revision 1.4  2004/07/03 21:50:31  daniel
 #   * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
 #     longer necessary
 #

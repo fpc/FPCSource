@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: x86_64.inc,v 1.20 2005/04/25 09:40:27 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Florian Klaempfl.
     Member of the Free Pascal development team
@@ -388,8 +388,8 @@ asm
 end;
 
 {
-  $Log$
-  Revision 1.20  2005-04-25 09:40:27  florian
+  $Log: x86_64.inc,v $
+  Revision 1.20  2005/04/25 09:40:27  florian
     * some ifdef'ed pic code
 
   Revision 1.19  2005/02/14 17:13:32  peter

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpuinfo.pas,v 1.5 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by the Free Pascal development team
 
     Basic Processor information for the virtual instruction set
@@ -56,8 +56,8 @@ Implementation
 
 end.
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:10  peter
+  $Log: cpuinfo.pas,v $
+  Revision 1.5  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.4  2005/01/20 16:38:45  peter

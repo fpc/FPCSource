@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysfile.inc,v 1.1 2005/02/07 22:04:55 peter Exp $
     This file is part of the Free Pascal run time library.
 
     Main OS dependant body of the system unit, loosely modelled
@@ -226,8 +226,8 @@ End;
 
 
 {
-  $Log$
-  Revision 1.1  2005-02-07 22:04:55  peter
+  $Log: sysfile.inc,v $
+  Revision 1.1  2005/02/07 22:04:55  peter
     * moved to unix
 
   Revision 1.1  2005/02/06 13:06:20  peter

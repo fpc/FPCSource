@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: syscallh.inc,v 1.2 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 2002 by Marco van de Voort
 
     Header for syscall in system unit for i386 *BSD.
@@ -46,8 +46,8 @@ function do__sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7,Para
 {$endif}
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:21  peter
+  $Log: syscallh.inc,v $
+  Revision 1.2  2005/02/14 17:13:21  peter
     * truncate log
 
 }

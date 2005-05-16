@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpuinfo.pas,v 1.24 2005/03/27 14:10:53 jonas Exp $
     Copyright (c) 1998-2002 by the Free Pascal development team
 
     Basic Processor information for the PowerPC
@@ -73,8 +73,8 @@ Implementation
 
 end.
 {
-  $Log$
-  Revision 1.24  2005-03-27 14:10:53  jonas
+  $Log: cpuinfo.pas,v $
+  Revision 1.24  2005/03/27 14:10:53  jonas
     * const record parameters > 8 bytes are now passed by reference for non
       cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
       GPC (slightly more efficient than Metrowerks behaviour below, but

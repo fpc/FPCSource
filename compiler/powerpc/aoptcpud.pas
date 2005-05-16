@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: aoptcpud.pas,v 1.7 2005/02/26 01:27:00 jonas Exp $
     Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
     Development Team
 
@@ -41,8 +41,8 @@ Implementation
 End.
 
 {
-  $Log$
-  Revision 1.7  2005-02-26 01:27:00  jonas
+  $Log: aoptcpud.pas,v $
+  Revision 1.7  2005/02/26 01:27:00  jonas
     * fixed generic jumps optimizer and enabled it for ppc (the label table
       was not being initialised -> getfinaldestination always failed, which
       caused wrong optimizations in some cases)

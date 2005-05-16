@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: so32dll.pas,v 1.3 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000, 2001 by madded2 (madded@vao.udmnet.ru).
     Copyright (c) 2002, 2004 Yuri Prokushev (prokushev@freemail.ru).
@@ -1580,8 +1580,8 @@ const
 *)
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:31  peter
+  $Log: so32dll.pas,v $
+  Revision 1.3  2005/02/14 17:13:31  peter
     * truncate log
 
 }

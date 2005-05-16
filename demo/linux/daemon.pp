@@ -2,7 +2,7 @@
                                  CncWare
                            (c) Copyright 2000
  ---------------------------------------------------------------------------
-  $Id$
+  $Id: daemon.pp,v 1.5 2005/04/06 10:47:01 marco Exp $
   Filename..: daemon.pp
   Programmer: Ken J. Wright
   Date......: 03/21/2000
@@ -141,8 +141,8 @@ Begin
    Until bTerm;
 End.
 {
-  $Log$
-  Revision 1.5  2005-04-06 10:47:01  marco
+  $Log: daemon.pp,v $
+  Revision 1.5  2005/04/06 10:47:01  marco
    * sigactionhandler fix
 
   Revision 1.4  2004/06/04 12:37:52  marco

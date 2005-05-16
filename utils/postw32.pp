@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: postw32.pp,v 1.2 2002/09/07 15:40:30 peter Exp $
     Copyright (c) 1998-2000 by Pavel Ozerski
 
     This program implements support post processing
@@ -380,8 +380,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.2  2002-09-07 15:40:30  peter
+  $Log: postw32.pp,v $
+  Revision 1.2  2002/09/07 15:40:30  peter
     * old logs removed and tabs fixed
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: parabase.pas,v 1.12 2005/02/15 21:39:48 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Generic calling convention handling
@@ -251,8 +251,8 @@ implementation
 end.
 
 {
-   $Log$
-   Revision 1.12  2005-02-15 21:39:48  peter
+   $Log: parabase.pas,v $
+   Revision 1.12  2005/02/15 21:39:48  peter
      * remove is_single_reference
      * revert loading of ref-to-ref para valu
 

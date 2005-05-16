@@ -496,8 +496,8 @@ begin
   {$endif}
 end.
 {
-  $Log$
-  Revision 1.4  2002-09-07 15:06:35  peter
+  $Log: maze.pp,v $
+  Revision 1.4  2002/09/07 15:06:35  peter
     * old logs removed and tabs fixed
 
   Revision 1.3  2002/04/11 19:48:44  pierre

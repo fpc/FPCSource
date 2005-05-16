@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: winclip.pas,v 1.4 2005/02/14 17:13:19 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1999 by Pierre Muller
 
@@ -247,8 +247,8 @@ end;
 end.
 
 {
- $Log$
- Revision 1.4  2005-02-14 17:13:19  peter
+ $Log: winclip.pas,v $
+ Revision 1.4  2005/02/14 17:13:19  peter
    * truncate log
 
 }

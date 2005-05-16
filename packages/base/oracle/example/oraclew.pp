@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: oraclew.pp,v 1.3 2005/02/14 17:13:19 peter Exp $
     Copyright (c) 1999-2000 by Pavel Stingl <stingp1.eti@mail.cez.cz>
 
 
@@ -439,8 +439,8 @@ finalization
 end.
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:19  peter
+  $Log: oraclew.pp,v $
+  Revision 1.3  2005/02/14 17:13:19  peter
     * truncate log
 
 }

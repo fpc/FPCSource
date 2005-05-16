@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: t_beos.pas,v 1.18 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
@@ -495,8 +495,8 @@ initialization
 {$endif i386}
 end.
 {
-  $Log$
-  Revision 1.18  2005-02-14 17:13:10  peter
+  $Log: t_beos.pas,v $
+  Revision 1.18  2005/02/14 17:13:10  peter
     * truncate log
 
 }

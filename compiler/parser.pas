@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: parser.pas,v 1.76 2005/04/25 08:15:17 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit does the parsing process
@@ -666,8 +666,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.76  2005-04-25 08:15:17  peter
+  $Log: parser.pas,v $
+  Revision 1.76  2005/04/25 08:15:17  peter
   reset compiling_module in doneparser
 
   Revision 1.75  2005/02/14 17:13:07  peter

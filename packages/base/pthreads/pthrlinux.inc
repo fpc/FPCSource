@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: pthrlinux.inc,v 1.3 2005/02/14 17:13:19 peter Exp $
    This file is part of the Free Pascal run time library.
    Copyright (c) 1999-2000 by Michael Van Canneyt,
    members of the Free Pascal development team.
@@ -400,8 +400,8 @@ type
   function sem_getvalue(var __sem: sem_t; var __sval:cint):cint;cdecl;external libthreads;
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:19  peter
+  $Log: pthrlinux.inc,v $
+  Revision 1.3  2005/02/14 17:13:19  peter
     * truncate log
 
 }

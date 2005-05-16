@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpuswtch.pas,v 1.3 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     interprets the commandline options which are arm specific
@@ -118,8 +118,8 @@ initialization
   coption:=toptionarm;
 end.
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:09  peter
+  $Log: cpuswtch.pas,v $
+  Revision 1.3  2005/02/14 17:13:09  peter
     * truncate log
 
 }

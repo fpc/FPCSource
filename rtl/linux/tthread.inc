@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: tthread.inc,v 1.15 2005/03/06 15:24:03 florian Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Peter Vreman
 
@@ -321,8 +321,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.15  2005-03-06 15:24:03  florian
+  $Log: tthread.inc,v $
+  Revision 1.15  2005/03/06 15:24:03  florian
     * FreeOnTerminate handling fixed
 
   Revision 1.14  2005/03/01 20:38:49  jonas

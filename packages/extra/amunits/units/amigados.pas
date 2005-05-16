@@ -4520,8 +4520,8 @@ end;
 END. (* UNIT DOS *)
 
 {
-   $Log$
-   Revision 1.8  2005-02-14 17:13:20  peter
+   $Log: amigados.pas,v $
+   Revision 1.8  2005/02/14 17:13:20  peter
      * truncate log
    
 }

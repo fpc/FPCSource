@@ -30,8 +30,8 @@ type
 implementation
 
 end.
-  $Log$
-  Revision 1.4  2005-02-14 17:13:12  peter
+  $Log: ddg_rec.pp,v $
+  Revision 1.4  2005/02/14 17:13:12  peter
     * truncate log
 
 }

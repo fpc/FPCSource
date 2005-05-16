@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: aasmcpu.pas,v 1.3 2005/03/24 13:30:17 florian Exp $
     Copyright (c) 2003 by Florian Klaempfl
 
     Contains the assembler object for MIPS
@@ -339,8 +339,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.3  2005-03-24 13:30:17  florian
+  $Log: aasmcpu.pas,v $
+  Revision 1.3  2005/03/24 13:30:17  florian
     * small compilation fix
 
   Revision 1.2  2005/02/14 17:13:10  peter

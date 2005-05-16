@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: gettext.pp,v 1.9 2005/03/15 16:27:04 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2001 by the Free Pascal development team
 
@@ -309,8 +309,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.9  2005-03-15 16:27:04  peter
+  $Log: gettext.pp,v $
+  Revision 1.9  2005/03/15 16:27:04  peter
     * use dispose instead of freemem to also release the initialize types
 
   Revision 1.8  2005/02/14 17:13:15  peter

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpuasm.pas,v 1.4 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
@@ -26,8 +26,8 @@ unit cpuasm;
 
 end.
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:10  peter
+  $Log: cpuasm.pas,v $
+  Revision 1.4  2005/02/14 17:13:10  peter
     * truncate log
 
 }

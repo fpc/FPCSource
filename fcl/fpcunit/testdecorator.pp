@@ -1,7 +1,7 @@
 {$mode objfpc}
 {$h+}
 {
-    $Id$
+    $Id: testdecorator.pp,v 1.1 2005/04/11 18:10:55 michael Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2005 by Dean Zobec
 

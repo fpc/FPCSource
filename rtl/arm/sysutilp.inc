@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysutilp.inc,v 1.3 2005/02/14 17:13:21 peter Exp $
     This file is part of the Free Pascal run time library.
 
     Copyright (c) 2001 by Florian Klaempfl
@@ -51,8 +51,8 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:21  peter
+  $Log: sysutilp.inc,v $
+  Revision 1.3  2005/02/14 17:13:21  peter
     * truncate log
 
 }

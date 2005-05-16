@@ -156,8 +156,8 @@ ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
         $(COMPILER) $(INC)/ctypes.pp $(REDIR)
 
 #
-# $Log$
-# Revision 1.11  2005-01-10 20:32:34  hajny
+# $Log: Makefile.fpc,v $
+# Revision 1.11  2005/01/10 20:32:34  hajny
 #   + ctypes added
 #
 # Revision 1.10  2004/10/30 12:36:48  peter

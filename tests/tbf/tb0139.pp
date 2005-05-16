@@ -19,8 +19,8 @@ Begin
 end.
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:35  peter
+  $Log: tb0139.pp,v $
+  Revision 1.2  2005/02/14 17:13:35  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: nppccnv.pas,v 1.56 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate PowerPC assembler for type converting nodes
@@ -344,8 +344,8 @@ begin
    ctypeconvnode:=tppctypeconvnode;
 end.
 {
-  $Log$
-  Revision 1.56  2005-02-14 17:13:10  peter
+  $Log: nppccnv.pas,v $
+  Revision 1.56  2005/02/14 17:13:10  peter
     * truncate log
 
 }

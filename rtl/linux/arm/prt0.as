@@ -105,8 +105,8 @@ __data_start:
 3:      .align 4
 
 /*
-  $Log$
-  Revision 1.5  2004-11-05 12:48:15  florian
+  $Log: prt0.as,v $
+  Revision 1.5  2004/11/05 12:48:15  florian
     * beautified
 
   Revision 1.4  2004/07/03 21:50:31  daniel

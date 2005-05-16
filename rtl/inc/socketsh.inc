@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: socketsh.inc,v 1.27 2005/03/28 11:10:51 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -237,8 +237,8 @@ CONST
   	NoNet6    : Tin6_addr = (u6_addr16:(0,0,0,0,0,0,0,0));
 
 {
-  $Log$
-  Revision 1.27  2005-03-28 11:10:51  marco
+  $Log: socketsh.inc,v $
+  Revision 1.27  2005/03/28 11:10:51  marco
    * more netdb and Kylix related minor fixes. At the last minute, commented
       out TSockAddrIn since I found that relied on TScokAddrIn=TSockAddr
 

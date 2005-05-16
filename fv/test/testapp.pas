@@ -1,4 +1,4 @@
-{ $Id$ }
+{ $Id: testapp.pas,v 1.5 2005/02/14 17:13:18 peter Exp $ }
 PROGRAM TestApp;
 
 { $UNDEF OS2PM}
@@ -384,8 +384,8 @@ END.
 
 
 {
- $Log$
- Revision 1.5  2005-02-14 17:13:18  peter
+ $Log: testapp.pas,v $
+ Revision 1.5  2005/02/14 17:13:18  peter
    * truncate log
 
 }

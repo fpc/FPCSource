@@ -1,5 +1,5 @@
 #
-#    $Id$
+#    $Id: prelude.as,v 1.2 2003/03/25 18:17:54 armin Exp $
 #    This file is part of the Free Pascal run time library.
 #    Copyright (c) 1999-2002 by the Free Pascal development team
 #    Copyright (c) 2002 Armin Diehl

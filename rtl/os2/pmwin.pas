@@ -1,6 +1,6 @@
 {****************************************************************************
 
-    $Id$
+    $Id: pmwin.pas,v 1.14 2005/02/14 17:13:31 peter Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
@@ -3782,8 +3782,8 @@ Function WinSetErrorInfo(ErrID: ErrorID; Flags: Cardinal; Params: Array of const
 end.
 
 {
-  $Log$
-  Revision 1.14  2005-02-14 17:13:31  peter
+  $Log: pmwin.pas,v $
+  Revision 1.14  2005/02/14 17:13:31  peter
     * truncate log
 
 }

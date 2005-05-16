@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncnv.pas,v 1.182 2005/04/08 15:16:37 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Type checking and register allocation for type converting nodes
@@ -2639,8 +2639,8 @@ begin
    cisnode:=tisnode;
 end.
 {
-  $Log$
-  Revision 1.182  2005-04-08 15:16:37  peter
+  $Log: ncnv.pas,v $
+  Revision 1.182  2005/04/08 15:16:37  peter
   remove forcing of non-regvar for left node when converting to non-regvar
 
   Revision 1.181  2005/04/06 11:49:37  michael

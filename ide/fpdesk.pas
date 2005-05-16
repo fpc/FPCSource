@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpdesk.pas,v 1.15 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -959,8 +959,8 @@ end;
 
 END.
 {
-  $Log$
-  Revision 1.15  2005-02-14 17:13:18  peter
+  $Log: fpdesk.pas,v $
+  Revision 1.15  2005/02/14 17:13:18  peter
     * truncate log
 
   Revision 1.14  2005/01/08 11:43:18  florian

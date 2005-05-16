@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: astrings.inc,v 1.57 2005/04/06 07:45:14 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
@@ -878,8 +878,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.57  2005-04-06 07:45:14  michael
+  $Log: astrings.inc,v $
+  Revision 1.57  2005/04/06 07:45:14  michael
   + Removed erroneously committed debug statement
 
   Revision 1.56  2005/04/06 07:43:02  michael

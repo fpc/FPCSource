@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: systhrd.inc,v 1.3 2005/04/20 21:52:16 hajny Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002-5 by Tomas Hajny,
     member of the Free Pascal development team.
@@ -545,8 +545,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.3  2005-04-20 21:52:16  hajny
+  $Log: systhrd.inc,v $
+  Revision 1.3  2005/04/20 21:52:16  hajny
     * TThreadID fix
 
   Revision 1.2  2005/03/20 22:33:27  hajny

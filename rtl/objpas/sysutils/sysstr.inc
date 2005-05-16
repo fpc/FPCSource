@@ -1,6 +1,6 @@
 {
     *********************************************************************
-    $Id$
+    $Id: sysstr.inc,v 1.38 2005/05/09 18:35:06 michael Exp $
     Copyright (C) 1997, 1998 Gertjan Schouten
 
     This program is free software; you can redistribute it and/or modify
@@ -2106,8 +2106,8 @@ const
      #248, #249, #250, #251, #252, #253, #254, #255 );
 
 {
-  $Log$
-  Revision 1.38  2005-05-09 18:35:06  michael
+  $Log: sysstr.inc,v $
+  Revision 1.38  2005/05/09 18:35:06  michael
   + Fixed bug 3957
 
   Revision 1.37  2005/04/28 09:15:44  florian

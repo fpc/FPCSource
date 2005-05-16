@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: som.pas,v 1.6 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 1994-1996 by International Business Machines Corporation
     Copyright (c) 1997 Antony T Curtis.
     Copyright (c) 2002-2005 by Yuri Prokushev (prokushev@freemail.ru)
@@ -1524,8 +1524,8 @@ End.
 *)
 
 {
-$Log$
-Revision 1.6  2005-02-14 17:13:21  peter
+$Log: som.pas,v $
+Revision 1.6  2005/02/14 17:13:21  peter
   * truncate log
 
 }

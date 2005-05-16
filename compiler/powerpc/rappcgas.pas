@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: rappcgas.pas,v 1.19 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
     Does the parsing for the PowerPC GNU AS styled inline assembler.
@@ -733,8 +733,8 @@ initialization
   RegisterAsmMode(asmmode_ppc_standard_info);
 end.
 {
-  $Log$
-  Revision 1.19  2005-02-14 17:13:10  peter
+  $Log: rappcgas.pas,v $
+  Revision 1.19  2005/02/14 17:13:10  peter
     * truncate log
 
 }

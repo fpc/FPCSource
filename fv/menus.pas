@@ -1,4 +1,4 @@
-{ $Id$ }
+{ $Id: menus.pas,v 1.24 2005/02/14 17:13:18 peter Exp $ }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {   System independent GRAPHICAL clone of MENUS.PAS        }
@@ -1628,8 +1628,8 @@ END;
 
 END.
 {
- $Log$
- Revision 1.24  2005-02-14 17:13:18  peter
+ $Log: menus.pas,v $
+ Revision 1.24  2005/02/14 17:13:18  peter
    * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpugas.pas,v 1.32 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1999-2003 by Florian Klaempfl
 
     This unit implements an asmoutput class for SPARC AT&T syntax
@@ -205,8 +205,8 @@ begin
   RegisterAssembler(as_SPARC_as_info,TGasSPARC);
 end.
 {
-    $Log$
-    Revision 1.32  2005-02-14 17:13:10  peter
+    $Log: cpugas.pas,v $
+    Revision 1.32  2005/02/14 17:13:10  peter
       * truncate log
 
     Revision 1.31  2005/01/23 17:14:21  florian

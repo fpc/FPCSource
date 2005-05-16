@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ctypes.inc,v 1.4 2005/03/13 19:17:14 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -76,8 +76,8 @@ Type
     pclDouble = ^clDouble;
 
 {
-   $Log$
-   Revision 1.4  2005-03-13 19:17:14  florian
+   $Log: ctypes.inc,v $
+   Revision 1.4  2005/03/13 19:17:14  florian
      * indention fixed
 
    Revision 1.3  2005/03/13 10:05:13  florian

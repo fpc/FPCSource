@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysutilp.inc,v 1.9 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
 
     Copyright (c) 2001 by Jonas Maebe,
@@ -74,8 +74,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.9  2005-02-14 17:13:31  peter
+  $Log: sysutilp.inc,v $
+  Revision 1.9  2005/02/14 17:13:31  peter
     * truncate log
 
 }

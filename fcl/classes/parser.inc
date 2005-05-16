@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: parser.inc,v 1.2 2005/02/14 17:13:11 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -307,8 +307,8 @@ begin
   Result := (Token = toSymbol) and (CompareText(S, TokenString) = 0);
 end;
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:11  peter
+  $Log: parser.inc,v $
+  Revision 1.2  2005/02/14 17:13:11  peter
     * truncate log
 
 }

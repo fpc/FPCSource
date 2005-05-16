@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dw_latex.pp,v 1.11 2005/03/10 20:32:16 michael Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
@@ -689,8 +689,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.11  2005-03-10 20:32:16  michael
+  $Log: dw_latex.pp,v $
+  Revision 1.11  2005/03/10 20:32:16  michael
   + Fixed subsection/section writing
 
   Revision 1.10  2005/02/14 17:13:39  peter

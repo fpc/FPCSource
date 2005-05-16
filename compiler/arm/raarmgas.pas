@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: raarmgas.pas,v 1.13 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
     Does the parsing for the ARM GNU AS styled inline assembler.
@@ -797,8 +797,8 @@ initialization
   RegisterAsmMode(asmmode_arm_standard_info);
 end.
 {
-  $Log$
-  Revision 1.13  2005-02-14 17:13:09  peter
+  $Log: raarmgas.pas,v $
+  Revision 1.13  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.12  2005/01/05 15:22:58  florian

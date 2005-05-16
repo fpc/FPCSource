@@ -76,8 +76,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.6  2005-03-20 12:46:55  marco
+  $Log: stringl.pp,v $
+  Revision 1.6  2005/03/20 12:46:55  marco
    * sb removed legacymem. Fixed with getfpcheapstatus. Now 1.9.9 only
 
   Revision 1.5  2005/03/16 13:30:17  marco

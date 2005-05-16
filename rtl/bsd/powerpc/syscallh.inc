@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: syscallh.inc,v 1.3 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 2002 by Marco van de Voort
 
     Header for syscall in system unit for powerpc *nix.
@@ -44,8 +44,8 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):i
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):int64;  external name 'FPC_SYSCALL7';
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:21  peter
+  $Log: syscallh.inc,v $
+  Revision 1.3  2005/02/14 17:13:21  peter
     * truncate log
 
 }

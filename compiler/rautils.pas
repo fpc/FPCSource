@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: rautils.pas,v 1.104 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
     This unit implements some support routines for assembler parsing
@@ -1568,8 +1568,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.104  2005-02-14 17:13:07  peter
+  $Log: rautils.pas,v $
+  Revision 1.104  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.103  2005/01/31 17:07:50  peter

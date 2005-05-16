@@ -1,4 +1,4 @@
-{ $Id$  }
+{ $Id: inplong.pas,v 1.5 2005/02/14 17:13:18 peter Exp $  }
 Unit InpLong;
 
 (*--
@@ -305,8 +305,8 @@ end;
 
 end.
 {
- $Log$
- Revision 1.5  2005-02-14 17:13:18  peter
+ $Log: inplong.pas,v $
+ Revision 1.5  2005/02/14 17:13:18  peter
    * truncate log
 
 }

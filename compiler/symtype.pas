@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: symtype.pas,v 1.52 2005/03/07 17:58:27 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     This unit handles the symbol tables
@@ -1461,8 +1461,8 @@ finalization
 
 end.
 {
-  $Log$
-  Revision 1.52  2005-03-07 17:58:27  peter
+  $Log: symtype.pas,v $
+  Revision 1.52  2005/03/07 17:58:27  peter
     * fix protected checking
 
   Revision 1.51  2005/02/14 17:13:09  peter

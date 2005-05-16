@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkaccelerator.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -39,8 +39,8 @@ procedure gtk_accelerator_table_set_mod_mask(table:PGtkAcceleratorTable; modifie
 {$endif read_implementation}
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: gtkaccelerator.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

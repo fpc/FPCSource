@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncginl.pas,v 1.70 2005/04/04 16:04:47 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Carl Eric Codere
 
     Generate generic inline nodes
@@ -687,8 +687,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.70  2005-04-04 16:04:47  peter
+  $Log: ncginl.pas,v $
+  Revision 1.70  2005/04/04 16:04:47  peter
     * fix register allocation in second_assert
 
   Revision 1.69  2005/02/14 17:13:06  peter

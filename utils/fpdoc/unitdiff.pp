@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: unitdiff.pp,v 1.6 2005/05/06 19:31:36 florian Exp $
 
     UnitDiff Copyright (C) 2004 by the Free Pascal team
 
@@ -340,8 +340,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.6  2005-05-06 19:31:36  florian
+  $Log: unitdiff.pp,v $
+  Revision 1.6  2005/05/06 19:31:36  florian
     * better error reporting
 
   Revision 1.5  2005/02/14 17:13:39  peter

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: syscall.inc,v 1.13 2005/04/24 19:11:28 marco Exp $
     Copyright (c) 2002 by Marco van de Voort
 
     Syscall functions for i386 *BSD.
@@ -199,8 +199,8 @@ end;
 
 {$endif}
 {
-  $Log$
-  Revision 1.13  2005-04-24 19:11:28  marco
+  $Log: syscall.inc,v $
+  Revision 1.13  2005/04/24 19:11:28  marco
    * mmap had another, yet unknown 8th parameter which must be 0 and comes after the offset param
 
   Revision 1.12  2005/02/14 17:13:21  peter

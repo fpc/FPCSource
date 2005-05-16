@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: doslibd.inc,v 1.5 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
 
     dos definitions (V50) for MorphOS/PowerPC
@@ -1380,8 +1380,8 @@ type
 
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:30  peter
+  $Log: doslibd.inc,v $
+  Revision 1.5  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.4  2005/01/12 07:59:05  karoly

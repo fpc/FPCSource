@@ -1,3 +1,0 @@
-\begin{psyntax}{Set Types}{typeset}
-\synt{set\ type} \lit*{set} \lit*{of} \synt{ordinal\ type}
-\end{psyntax}

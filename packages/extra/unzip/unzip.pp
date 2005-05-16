@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: unzip.pp,v 1.10 2005/02/14 17:13:21 peter Exp $
 }
 UNIT Unzip;
 {
@@ -3320,8 +3320,8 @@ BEGIN
    ChfUnzip_Init;
 END.
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:21  peter
+  $Log: unzip.pp,v $
+  Revision 1.10  2005/02/14 17:13:21  peter
     * truncate log
 
 }

@@ -1,6 +1,6 @@
 {*****************************************************************************}
 {
-    $Id$
+    $Id: fpwritebmp.pp,v 1.7 2005/02/14 17:13:12 peter Exp $
     This file is part of the Free Pascal's "Free Components Library".
     Copyright (c) 2003 by Mazen NEIFER of the Free Pascal development team
 
@@ -147,8 +147,8 @@ initialization
   ImageHandlers.RegisterImageWriter ('BMP Format', 'bmp', TFPWriterBMP);
 end.
 {
-$Log$
-Revision 1.7  2005-02-14 17:13:12  peter
+$Log: fpwritebmp.pp,v $
+Revision 1.7  2005/02/14 17:13:12  peter
   * truncate log
 
 }

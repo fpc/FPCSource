@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gdkprivate.pp,v 1.6 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -321,8 +321,8 @@ function  GDK_font_lookup(xid : longint) : PGdkFont;
 
 
 {
-  $Log$
-  Revision 1.6  2005-02-14 17:13:20  peter
+  $Log: gdkprivate.pp,v $
+  Revision 1.6  2005/02/14 17:13:20  peter
     * truncate log
 
 }

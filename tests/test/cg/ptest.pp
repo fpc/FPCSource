@@ -443,8 +443,8 @@ function test_function_struct : _7byte_; cdecl; public;
 end.
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:35  peter
+  $Log: ptest.pp,v $
+  Revision 1.4  2005/02/14 17:13:35  peter
     * truncate log
 
 }

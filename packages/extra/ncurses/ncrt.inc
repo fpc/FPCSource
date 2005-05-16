@@ -936,8 +936,8 @@ Begin
    nCursor(cON);   { normal cursor }
 End;
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:21  peter
+  $Log: ncrt.inc,v $
+  Revision 1.7  2005/02/14 17:13:21  peter
     * truncate log
 
 }

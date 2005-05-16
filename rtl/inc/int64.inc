@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: int64.inc,v 1.29 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -365,8 +365,8 @@
 {$endif FPC_SYSTEM_HAS_MUL_INT64}
 
 {
-  $Log$
-  Revision 1.29  2005-02-14 17:13:22  peter
+  $Log: int64.inc,v $
+  Revision 1.29  2005/02/14 17:13:22  peter
     * truncate log
 
 }

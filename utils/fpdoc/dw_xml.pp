@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dw_xml.pp,v 1.4 2005/02/14 17:13:39 peter Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
@@ -118,8 +118,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:39  peter
+  $Log: dw_xml.pp,v $
+  Revision 1.4  2005/02/14 17:13:39  peter
     * truncate log
 
   Revision 1.3  2005/01/12 21:11:41  michael

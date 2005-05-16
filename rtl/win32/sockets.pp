@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sockets.pp,v 1.14 2005/02/14 17:13:32 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -388,8 +388,8 @@ finalization
   WSACleanUp;
 end.
 {
-  $Log$
-  Revision 1.14  2005-02-14 17:13:32  peter
+  $Log: sockets.pp,v $
+  Revision 1.14  2005/02/14 17:13:32  peter
     * truncate log
 
 }

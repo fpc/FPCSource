@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: msgdif.pp,v 1.10 2005/02/14 17:13:10 peter Exp $
     This program is part of the Free Pascal run time library.
     Copyright (c) 1998-2002 by Peter Vreman
 
@@ -529,8 +529,8 @@ begin
   WriteReorderedFile(NewFileName,orgfirst,difffirst);
 end.
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:10  peter
+  $Log: msgdif.pp,v $
+  Revision 1.10  2005/02/14 17:13:10  peter
     * truncate log
 
 }

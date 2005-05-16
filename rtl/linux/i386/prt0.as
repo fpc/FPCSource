@@ -1,5 +1,5 @@
 #
-#   $Id$
+#   $Id: prt0.as,v 1.5 2004/07/03 23:04:34 daniel Exp $
 #   This file is part of the Free Pascal run time library.
 #   Copyright (c) 1999-2004 by Michael Van Canneyt, Peter Vreman,
 #   & Daniel Mantione, members of the Free Pascal development team.
@@ -92,8 +92,8 @@ operatingsystem_parameters:
 	.set operatingsystem_parameter_argc,operatingsystem_parameters+4
 	.set operatingsystem_parameter_argv,operatingsystem_parameters+8
 #
-# $Log$
-# Revision 1.5  2004-07-03 23:04:34  daniel
+# $Log: prt0.as,v $
+# Revision 1.5  2004/07/03 23:04:34  daniel
 #   * Updated comments
 #
 # Revision 1.4  2004/07/03 21:50:31  daniel

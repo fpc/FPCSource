@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: classes.pp,v 1.10 2005/04/09 07:23:07 florian Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1998 by Michael Van Canneyt and Florian Klaempfl
 
@@ -47,8 +47,8 @@ finalization
   CommonCleanup;
 end.
 {
-  $Log$
-  Revision 1.10  2005-04-09 07:23:07  florian
+  $Log: classes.pp,v $
+  Revision 1.10  2005/04/09 07:23:07  florian
     * applied Jesus Reyes win32 crash fixed
 
   Revision 1.9  2005/03/07 17:57:26  peter

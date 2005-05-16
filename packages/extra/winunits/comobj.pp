@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: comobj.pp,v 1.1 2005/03/28 15:09:35 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Florian Klaempfl
     member of the Free Pascal development team.
@@ -78,8 +78,8 @@ unit comobj;
 
 end.
 {
-  $Log$
-  Revision 1.1  2005-03-28 15:09:35  peter
+  $Log: comobj.pp,v $
+  Revision 1.1  2005/03/28 15:09:35  peter
   new winunits packages
 
   Revision 1.3  2005/02/14 17:13:32  peter

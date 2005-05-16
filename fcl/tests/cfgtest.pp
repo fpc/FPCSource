@@ -1,4 +1,4 @@
-// $Id$
+// $Id: cfgtest.pp,v 1.4 2005/02/14 17:13:18 peter Exp $
 
 {$MODE objfpc}
 {$H+}
@@ -52,8 +52,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:18  peter
+  $Log: cfgtest.pp,v $
+  Revision 1.4  2005/02/14 17:13:18  peter
     * truncate log
 
 }

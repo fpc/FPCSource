@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpredir.pas,v 1.12 2005/03/07 17:08:14 peter Exp $
     This file is part of the Free Pascal Test Suite
     Copyright (c) 1999-2000 by Pierre Muller
 
@@ -1022,8 +1022,8 @@ finalization
   Dispose(FIn); Dispose(FOut); Dispose(FErr);
 End.
 {
-  $Log$
-  Revision 1.12  2005-03-07 17:08:14  peter
+  $Log: fpredir.pas,v $
+  Revision 1.12  2005/03/07 17:08:14  peter
     * add quotes
 
   Revision 1.11  2005/02/14 17:13:18  peter

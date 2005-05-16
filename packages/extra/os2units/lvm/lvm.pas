@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: lvm.pas,v 1.2 2005/02/14 17:13:21 peter Exp $
    Copyright (c) International Business Machines  Corp., 2000
    Copyright (c) 2003 Yuri Prokushev
 
@@ -5239,8 +5239,8 @@ End.
 }
 
 {
-$Log$
-Revision 1.2  2005-02-14 17:13:21  peter
+$Log: lvm.pas,v $
+Revision 1.2  2005/02/14 17:13:21  peter
   * truncate log
 
 }

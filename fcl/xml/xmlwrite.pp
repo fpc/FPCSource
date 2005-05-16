@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: xmlwrite.pp,v 1.19 2005/03/14 21:10:12 florian Exp $
     This file is part of the Free Component Library
 
     XML writing routines
@@ -590,8 +590,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.19  2005-03-14 21:10:12  florian
+  $Log: xmlwrite.pp,v $
+  Revision 1.19  2005/03/14 21:10:12  florian
     * adapated for the new widestring manager
 
   Revision 1.18  2005/02/14 17:13:18  peter

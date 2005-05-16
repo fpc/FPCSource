@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: eventlog.inc,v 1.2 2005/02/14 17:13:11 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
@@ -21,8 +21,8 @@
 {$i felog.inc}
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:11  peter
+  $Log: eventlog.inc,v $
+  Revision 1.2  2005/02/14 17:13:11  peter
     * truncate log
 
 }

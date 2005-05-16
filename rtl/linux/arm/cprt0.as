@@ -131,8 +131,8 @@ __data_start:
 3:      .align 4
 
 /*
-  $Log$
-  Revision 1.3  2004-11-05 13:15:07  florian
+  $Log: cprt0.as,v $
+  Revision 1.3  2004/11/05 13:15:07  florian
     * fixed label names
 
   Revision 1.2  2004/11/05 13:01:34  florian

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dglobals.pp,v 1.11 2005/05/09 18:50:13 michael Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2002 by
@@ -98,7 +98,7 @@ resourcestring
   SManUsagePackageDescription = 'Use descr as the description of man pages';
   
   // HTML usage
-  SHTMLUsageFooter = 'Append xhtml from file as footer to html page';
+  SHTMLUsageFooter = 'Append xhmtl from file as footer to html page';
 
   STitle                      = 'FPDoc - Free Pascal Documentation Tool';
   SCopyright                  = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
@@ -1219,10 +1219,7 @@ end.
 
 
 {
-  $Log$
-  Revision 1.12  2005-05-15 19:36:30  hajny
-    * mistyping fixed (xhmtl)
-
+  $Log: dglobals.pp,v $
   Revision 1.11  2005/05/09 18:50:13  michael
   * Added patch from Vincent Snijders to add a footer to each HTML page
 

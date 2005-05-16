@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: nx86inl.pas,v 1.8 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate x86 inline nodes
@@ -343,8 +343,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.8  2005-02-14 17:13:10  peter
+  $Log: nx86inl.pas,v $
+  Revision 1.8  2005/02/14 17:13:10  peter
     * truncate log
 
 }

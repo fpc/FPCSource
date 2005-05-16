@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: globtype.pas,v 1.72 2005/03/27 14:10:52 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     Global types
@@ -322,8 +322,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.72  2005-03-27 14:10:52  jonas
+  $Log: globtype.pas,v $
+  Revision 1.72  2005/03/27 14:10:52  jonas
     * const record parameters > 8 bytes are now passed by reference for non
       cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
       GPC (slightly more efficient than Metrowerks behaviour below, but

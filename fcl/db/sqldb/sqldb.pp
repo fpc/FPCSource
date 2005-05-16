@@ -1,4 +1,4 @@
-{   $Id$
+{   $Id: sqldb.pp,v 1.18 2005/04/24 19:21:28 joost Exp $
 
     Copyright (c) 2004 by Joost van der Sluis
 
@@ -978,8 +978,8 @@ end;
 end.
 
 {
-  $Log$
-  Revision 1.18  2005-04-24 19:21:28  joost
+  $Log: sqldb.pp,v $
+  Revision 1.18  2005/04/24 19:21:28  joost
   - some fixes in assignment of transactions and databases
 
   Revision 1.17  2005/04/13 22:10:26  joost

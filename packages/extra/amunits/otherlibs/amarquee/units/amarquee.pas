@@ -1152,8 +1152,8 @@ begin
 END. (* UNIT AMARQUEE *)
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:19  peter
+  $Log: amarquee.pas,v $
+  Revision 1.3  2005/02/14 17:13:19  peter
     * truncate log
 
 }

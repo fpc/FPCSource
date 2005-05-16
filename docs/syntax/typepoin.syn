@@ -1,3 +1,0 @@
-\begin{psyntax}{Pointer types}{pointertypes}
-\synt{pointer\ type} \lit*\^{} \synt{type\ identifier}
-\end{psyntax}

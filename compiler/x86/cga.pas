@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cga.pas,v 1.11 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Helper routines for the i386 code generator
@@ -128,8 +128,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.11  2005-02-14 17:13:10  peter
+  $Log: cga.pas,v $
+  Revision 1.11  2005/02/14 17:13:10  peter
     * truncate log
 
 }

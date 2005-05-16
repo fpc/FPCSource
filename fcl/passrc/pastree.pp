@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pastree.pp,v 1.7 2005/02/14 17:13:16 peter Exp $
     This file is part of the Free Component Library
 
     Pascal parse tree classes
@@ -184,7 +184,6 @@ type
     function ElementTypeName: String; override;
     IsValueUsed: Boolean;
     Value: Integer;
-    AssignedValue : String;
   end;
 
   TPasEnumType = class(TPasType)
@@ -1402,10 +1401,7 @@ end.
 
 
 {
-  $Log$
-  Revision 1.8  2005-05-10 06:08:59  michael
-  + Added parsing of explicitly assigned enumerated values
-
+  $Log: pastree.pp,v $
   Revision 1.7  2005/02/14 17:13:16  peter
     * truncate log
 

@@ -1,6 +1,6 @@
 {****************************************************************************
 
-    $Id$
+    $Id: pmdemo1.pp,v 1.2 2002/09/07 15:06:35 peter Exp $
 
                    Copyright (c) 1999-2000 by Florian Klaempfl
 
@@ -76,8 +76,8 @@ program pmdemo1;
     WinTerminate(ab);
  end.
 {
-  $Log$
-  Revision 1.2  2002-09-07 15:06:35  peter
+  $Log: pmdemo1.pp,v $
+  Revision 1.2  2002/09/07 15:06:35  peter
     * old logs removed and tabs fixed
 
 }

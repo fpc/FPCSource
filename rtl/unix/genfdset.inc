@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: genfdset.inc,v 1.6 2005/02/14 17:13:31 peter Exp $
    This file is part of the Free Pascal run time library.
    (c) 2002 by Marco van de Voort
    members of the Free Pascal development team.
@@ -63,8 +63,8 @@ Begin
 End;
 
 {
-   $Log$
-   Revision 1.6  2005-02-14 17:13:31  peter
+   $Log: genfdset.inc,v $
+   Revision 1.6  2005/02/14 17:13:31  peter
      * truncate log
 
 }

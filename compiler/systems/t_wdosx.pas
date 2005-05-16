@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: t_wdosx.pas,v 1.6 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2001-2002 Pavel ??????
 
     This unit implements support import,export,link routines
@@ -85,8 +85,8 @@ initialization
 end.
 
 {
-  $Log$
-  Revision 1.6  2005-02-14 17:13:10  peter
+  $Log: t_wdosx.pas,v $
+  Revision 1.6  2005/02/14 17:13:10  peter
     * truncate log
 
 }

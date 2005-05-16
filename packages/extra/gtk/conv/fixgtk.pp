@@ -120,7 +120,7 @@ begin
   reset(t);
   rewrite(f);
   writeln(f,'{');
-  writeln(f,'   $Id$');
+  writeln(f,'   $Id: fixgtk.pp,v 1.3 2005/02/14 17:13:20 peter Exp $');
   writeln(f,'}');
   writeln(f,'');
   writeln(f,'{$ifndef gtk_include_files}');
@@ -189,8 +189,8 @@ begin
         writeln(f,'{$endif not gtk_include_files}');
         writeln(f,'');
         writeln(f,'{');
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: fixgtk.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

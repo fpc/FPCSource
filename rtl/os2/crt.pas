@@ -1,6 +1,6 @@
 {****************************************************************************
 
-    $Id$
+    $Id: crt.pas,v 1.13 2005/05/14 14:40:45 hajny Exp $
 
                             Standard CRT unit.
                     Free Pascal runtime library for OS/2.
@@ -383,8 +383,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.13  2005-05-14 14:40:45  hajny
+  $Log: crt.pas,v $
+  Revision 1.13  2005/05/14 14:40:45  hajny
     * fix for bug 3713 and other - basis for future common implementation prepared
 
   Revision 1.12  2005/03/30 23:11:35  hajny

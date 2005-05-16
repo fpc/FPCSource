@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: aliases.inc,v 1.4 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000 by Florian Klaempfl
     member of the Free Pascal development team.
@@ -32,8 +32,8 @@ Procedure int_Initialize (Data,TypeInfo: Pointer); [external name 'FPC_INITIALIZ
 procedure int_FinalizeArray(data,typeinfo : pointer;count,size : longint); [external name 'FPC_FINALIZEARRAY'];
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:22  peter
+  $Log: aliases.inc,v $
+  Revision 1.4  2005/02/14 17:13:22  peter
     * truncate log
 
 }

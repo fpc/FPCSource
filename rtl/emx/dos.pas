@@ -1,6 +1,6 @@
 {****************************************************************************
 
-    $Id$
+    $Id: dos.pas,v 1.17 2005/02/14 17:13:22 peter Exp $
 
                          Free Pascal Runtime-Library
                               DOS unit for EMX
@@ -1079,8 +1079,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.17  2005-02-14 17:13:22  peter
+  $Log: dos.pas,v $
+  Revision 1.17  2005/02/14 17:13:22  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: custapp.inc,v 1.3 2005/02/14 17:13:16 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
@@ -59,8 +59,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:16  peter
+  $Log: custapp.inc,v $
+  Revision 1.3  2005/02/14 17:13:16  peter
     * truncate log
 
 }

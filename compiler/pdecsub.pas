@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pdecsub.pas,v 1.234 2005/04/28 19:32:11 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Daniel Mantione
 
     Does the parsing of the procedures/functions
@@ -2465,8 +2465,8 @@ const
 
 end.
 {
-  $Log$
-  Revision 1.234  2005-04-28 19:32:11  florian
+  $Log: pdecsub.pas,v $
+  Revision 1.234  2005/04/28 19:32:11  florian
     * overloading of assignment operator by different unique result types now possible
 
   Revision 1.233  2005/04/06 19:39:04  florian

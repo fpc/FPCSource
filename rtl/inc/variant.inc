@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: variant.inc,v 1.30 2005/04/28 19:34:19 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by the Free Pascal development team
 
@@ -626,8 +626,8 @@ procedure initvariantmanager;
 
 
 {
-  $Log$
-  Revision 1.30  2005-04-28 19:34:19  florian
+  $Log: variant.inc,v $
+  Revision 1.30  2005/04/28 19:34:19  florian
     + variant<->currency/tdatetime operators
 
   Revision 1.29  2005/04/10 20:24:31  florian

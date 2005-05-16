@@ -1,5 +1,5 @@
 
-# $Id$
+# $Id: release.tem,v 1.2 2001/01/11 16:34:07 florian Exp $
 
 #  St. Task                                                 Person    Date/Time
 #  [5] 8-59                                                 61-69     71-78
@@ -229,8 +229,8 @@
 -      (28)
 
 #
-# $Log$
-# Revision 1.2  2001-01-11 16:34:07  florian
+# $Log: release.tem,v $
+# Revision 1.2  2001/01/11 16:34:07  florian
 #   + version must be changed for installer and docs too
 #   + util*.zip must be copied and checked as well
 #

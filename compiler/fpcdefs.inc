@@ -94,8 +94,8 @@
 {$ENDIF MACOS}
 
 {
-  $Log$
-  Revision 1.51  2005-03-20 21:41:29  florian
+  $Log: fpcdefs.inc,v $
+  Revision 1.51  2005/03/20 21:41:29  florian
     * USECMOV activated
 
   Revision 1.50  2005/02/26 01:26:59  jonas

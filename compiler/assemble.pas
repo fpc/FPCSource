@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: assemble.pas,v 1.84 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2004 by Peter Vreman
 
     This unit handles the assemblerfile write and assembler calls of FPC
@@ -1682,8 +1682,8 @@ Implementation
 
 end.
 {
-  $Log$
-  Revision 1.84  2005-02-14 17:13:06  peter
+  $Log: assemble.pas,v $
+  Revision 1.84  2005/02/14 17:13:06  peter
     * truncate log
 
 }

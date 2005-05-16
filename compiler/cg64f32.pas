@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cg64f32.pas,v 1.70 2005/02/15 19:16:04 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
     Member of the Free Pascal development team
 
@@ -791,8 +791,8 @@ unit cg64f32;
 
 end.
 {
-  $Log$
-  Revision 1.70  2005-02-15 19:16:04  peter
+  $Log: cg64f32.pas,v $
+  Revision 1.70  2005/02/15 19:16:04  peter
     * fix passing of 64bit values when using -Or
 
   Revision 1.69  2005/02/14 17:13:06  peter

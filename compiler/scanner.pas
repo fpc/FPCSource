@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: scanner.pas,v 1.106 2005/05/06 17:02:52 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the scanner part and handling of the switches
@@ -3350,8 +3350,8 @@ exit_label:
 
 end.
 {
-  $Log$
-  Revision 1.106  2005-05-06 17:02:52  florian
+  $Log: scanner.pas,v $
+  Revision 1.106  2005/05/06 17:02:52  florian
     * 32 -> 64 bit cross compilation fixed
 
   Revision 1.105  2005/05/02 18:44:00  michael

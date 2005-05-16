@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ppc.dpr,v 1.6 2002/10/05 12:43:27 carl Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     Commandline compiler for Free Pascal
@@ -156,8 +156,8 @@ begin
   Halt(compiler.Compile(''));
 end.
 {
-  $Log$
-  Revision 1.6  2002-10-05 12:43:27  carl
+  $Log: ppc.dpr,v $
+  Revision 1.6  2002/10/05 12:43:27  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

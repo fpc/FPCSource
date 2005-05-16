@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpubase.inc,v 1.18 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
 
     Contains the basic declarations for the i386 architecture
@@ -169,8 +169,8 @@
 
 
 {
-  $Log$
-  Revision 1.18  2005-02-14 17:13:09  peter
+  $Log: cpubase.inc,v $
+  Revision 1.18  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.17  2005/01/20 16:38:45  peter

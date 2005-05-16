@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: debugserverintf.pp,v 1.2 2005/02/14 17:13:38 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
@@ -381,8 +381,8 @@ end;
 end.
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:38  peter
+  $Log: debugserverintf.pp,v $
+  Revision 1.2  2005/02/14 17:13:38  peter
     * truncate log
 
   Revision 1.1  2003/01/02 14:44:29  michael

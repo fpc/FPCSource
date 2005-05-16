@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysutilp.inc,v 1.5 2005/03/12 18:45:15 florian Exp $
     This file is part of the Free Pascal run time library.
 
     Copyright (c) 2003 by Peter Vreman,
@@ -124,8 +124,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.5  2005-03-12 18:45:15  florian
+  $Log: sysutilp.inc,v $
+  Revision 1.5  2005/03/12 18:45:15  florian
     * InterlockedDecrement fixed
 
   Revision 1.4  2005/02/14 17:13:31  peter

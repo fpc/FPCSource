@@ -1,6 +1,6 @@
 {
     *********************************************************************
-    $Id$
+    $Id: datih.inc,v 1.6 2005/05/08 08:03:15 florian Exp $
     Copyright (C) 1997, 1998 Gertjan Schouten
 
     This program is free software; you can redistribute it and/or modify
@@ -135,8 +135,8 @@ function TryStrToDateTime(const S: string; out Value: TDateTime): Boolean;
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 
 {
-  $Log$
-  Revision 1.6  2005-05-08 08:03:15  florian
+  $Log: datih.inc,v $
+  Revision 1.6  2005/05/08 08:03:15  florian
     + cycling with 1.0.x fixed, hopefully the last fix of this for ever ;)
 
   Revision 1.5  2005/05/07 10:23:17  florian

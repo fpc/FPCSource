@@ -1,6 +1,6 @@
 
 {
-    $Id$
+    $Id: fpstre.inc,v 1.31 2005/03/13 12:32:41 florian Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 2000 by Florian Klaempfl & Berczi Gabor
 
@@ -1067,8 +1067,8 @@ const
                             #3'and will now be closed.';
 
 {
-  $Log$
-  Revision 1.31  2005-03-13 12:32:41  florian
+  $Log: fpstre.inc,v $
+  Revision 1.31  2005/03/13 12:32:41  florian
     * more status line hints fixed
 
   Revision 1.30  2005/03/13 12:25:02  florian

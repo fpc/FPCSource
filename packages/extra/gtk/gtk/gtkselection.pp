@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkselection.pp,v 1.4 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -64,8 +64,8 @@ procedure gtk_selection_data_free(data:PGtkSelectionData);cdecl;external gtkdll 
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:20  peter
+  $Log: gtkselection.pp,v $
+  Revision 1.4  2005/02/14 17:13:20  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: msg2inc.pp,v 1.15 2005/02/14 17:13:10 peter Exp $
     This program is part of the Free Pascal run time library.
     Copyright (c) 1998-2002 by Peter Vreman
 
@@ -815,8 +815,8 @@ begin
   end;
 end.
 {
-  $Log$
-  Revision 1.15  2005-02-14 17:13:10  peter
+  $Log: msg2inc.pp,v $
+  Revision 1.15  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.14  2005/01/24 17:41:57  olle

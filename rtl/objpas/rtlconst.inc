@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: rtlconst.inc,v 1.2 2005/04/16 09:25:02 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by Florian Klaempfl
     member of the Free Pascal development team
@@ -526,8 +526,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.2  2005-04-16 09:25:02  michael
+  $Log: rtlconst.inc,v $
+  Revision 1.2  2005/04/16 09:25:02  michael
   + Added TypInfo unit constants
 
   Revision 1.1  2005/04/14 21:47:27  hajny

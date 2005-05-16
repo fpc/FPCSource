@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cgbase.pas,v 1.101 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Some basic types and constants for the code generation
@@ -596,8 +596,8 @@ finalization
   dispose(mms_movescalar);
 end.
 {
-  $Log$
-  Revision 1.101  2005-02-14 17:13:06  peter
+  $Log: cgbase.pas,v $
+  Revision 1.101  2005/02/14 17:13:06  peter
     * truncate log
 
 }

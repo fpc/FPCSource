@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: aliasctp.inc,v 1.5 2005/03/16 22:26:12 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Marco van de Voort
     Member of the Free Pascal development team
@@ -52,8 +52,8 @@ Type
     pcDouble  = UnixType.pcDouble;
     pclDouble = UnixType.pclDouble;
 {
-   $Log$
-   Revision 1.5  2005-03-16 22:26:12  florian
+   $Log: aliasctp.inc,v $
+   Revision 1.5  2005/03/16 22:26:12  florian
      + ansi<->wide implemented using iconv
 
    Revision 1.4  2005/03/13 10:05:13  florian

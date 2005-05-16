@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ppu.pas,v 1.65 2005/03/27 14:10:52 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Routines to read/write ppu files
@@ -1068,8 +1068,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.65  2005-03-27 14:10:52  jonas
+  $Log: ppu.pas,v $
+  Revision 1.65  2005/03/27 14:10:52  jonas
     * const record parameters > 8 bytes are now passed by reference for non
       cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
       GPC (slightly more efficient than Metrowerks behaviour below, but

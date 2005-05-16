@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gdkrgb.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -49,8 +49,8 @@ function  gdk_rgb_get_visual:PGdkVisual;cdecl;external gdkdll name 'gdk_rgb_get_
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: gdkrgb.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

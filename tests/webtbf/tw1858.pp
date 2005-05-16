@@ -22,8 +22,8 @@ implementation
 end.
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:37  peter
+  $Log: tw1858.pp,v $
+  Revision 1.3  2005/02/14 17:13:37  peter
     * truncate log
 
 }

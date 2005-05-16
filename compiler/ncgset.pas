@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncgset.pas,v 1.75 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Carl Eric Codere
 
     Generate generic assembler for in set/case labels
@@ -869,8 +869,8 @@ begin
    ccasenode:=tcgcasenode;
 end.
 {
-  $Log$
-  Revision 1.75  2005-02-14 17:13:06  peter
+  $Log: ncgset.pas,v $
+  Revision 1.75  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.74  2005/01/04 20:14:40  florian

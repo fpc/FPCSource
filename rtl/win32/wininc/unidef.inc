@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: unidef.inc,v 1.13 2005/02/14 17:13:32 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -492,8 +492,8 @@ end;
 {$endif read_implementation}
 
 {
-  $Log$
-  Revision 1.13  2005-02-14 17:13:32  peter
+  $Log: unidef.inc,v $
+  Revision 1.13  2005/02/14 17:13:32  peter
     * truncate log
 
 }

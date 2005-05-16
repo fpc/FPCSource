@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysfile.inc,v 1.2 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -402,8 +402,8 @@ end;
 
 
 {
-   $Log$
-   Revision 1.2  2005-02-14 17:13:30  peter
+   $Log: sysfile.inc,v $
+   Revision 1.2  2005/02/14 17:13:30  peter
      * truncate log
 
    Revision 1.1  2005/02/06 16:57:18  peter

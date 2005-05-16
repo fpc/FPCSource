@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysnr.inc,v 1.5 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003-2004 by Florian Klaempfl,
     member of the Free Pascal development team.
@@ -272,8 +272,8 @@ Const
   syscall_nr_remap_file_pages           = $900000+253;
 
 {
-    $Log$
-    Revision 1.5  2005-02-14 17:13:30  peter
+    $Log: sysnr.inc,v $
+    Revision 1.5  2005/02/14 17:13:30  peter
       * truncate log
 
 }

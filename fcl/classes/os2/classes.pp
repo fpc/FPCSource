@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: classes.pp,v 1.2 2005/02/14 17:13:11 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2002 by the Free Pascal development team
 
@@ -46,8 +46,8 @@ finalization
 
 end.
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:11  peter
+  $Log: classes.pp,v $
+  Revision 1.2  2005/02/14 17:13:11  peter
     * truncate log
 
 }

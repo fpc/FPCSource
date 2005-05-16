@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pdecvar.pas,v 1.98 2005/03/09 23:44:18 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Parses variable declarations. Used for var statement and record
@@ -1319,8 +1319,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.98  2005-03-09 23:44:18  peter
+  $Log: pdecvar.pas,v $
+  Revision 1.98  2005/03/09 23:44:18  peter
   support external <dllname>; also for variables
 
   Revision 1.97  2005/02/14 17:13:07  peter

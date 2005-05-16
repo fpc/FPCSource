@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: defcmp.pas,v 1.73 2005/04/04 16:30:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Compare definitions and parameter lists
@@ -1401,8 +1401,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.73  2005-04-04 16:30:07  peter
+  $Log: defcmp.pas,v $
+  Revision 1.73  2005/04/04 16:30:07  peter
     * support open array to pointer
 
   Revision 1.72  2005/03/28 15:19:18  peter

@@ -1,5 +1,5 @@
 #
-#   $Id$
+#   $Id: gprt0.as,v 1.3 2004/07/03 21:50:30 daniel Exp $
 #   This file is part of the Free Pascal run time library.
 #   Copyright (c) 1999-2000 by Marco van de Voort, Michael Van Canneyt
 #                                                  and Peter Vreman

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: intuition.pas,v 1.3 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
 
@@ -4689,8 +4689,8 @@ end;
 end. (* UNIT INTUITION *)
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:30  peter
+  $Log: intuition.pas,v $
+  Revision 1.3  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.2  2005/01/30 19:00:09  karoly

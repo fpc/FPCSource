@@ -1,4 +1,4 @@
-// $Id$
+// $Id: b64dec.pp,v 1.4 2005/02/14 17:13:18 peter Exp $
 
 // base64-decodes data from StdIn and writes the output to StdOut
 // (c) 1999 Sebastian Guenther
@@ -31,8 +31,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:18  peter
+  $Log: b64dec.pp,v $
+  Revision 1.4  2005/02/14 17:13:18  peter
     * truncate log
 
 }

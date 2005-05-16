@@ -1,5 +1,5 @@
 #
-#   $Id$
+#   $Id: errorn.msg,v 1.6 2004/01/22 21:19:36 florian Exp $
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
 #

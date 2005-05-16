@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: aoptcpu.pas,v 1.4 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2004 by Jonas Maebe
 
     This unit calls the optimization procedures to optimize the assembler
@@ -41,8 +41,8 @@ begin
   casmoptimizer:=TCpuAsmOptimizer;
 end.
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:10  peter
+  $Log: aoptcpu.pas,v $
+  Revision 1.4  2005/02/14 17:13:10  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: alphasim.pas,v 1.2 2002/09/07 15:40:36 peter Exp $
     This file is part of the Free Pascal simulator environment
     Copyright (c) 1999-2000 by Florian Klaempfl
 
@@ -1275,8 +1275,8 @@ program alphaemu;
      sim.done;
   end.
 {
-  $Log$
-  Revision 1.2  2002-09-07 15:40:36  peter
+  $Log: alphasim.pas,v $
+  Revision 1.2  2002/09/07 15:40:36  peter
     * old logs removed and tabs fixed
 
 }

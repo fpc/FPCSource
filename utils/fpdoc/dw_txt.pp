@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dw_txt.pp,v 1.3 2005/02/14 17:13:39 peter Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2005 by Michael Van Canneyt
@@ -683,8 +683,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:39  peter
+  $Log: dw_txt.pp,v $
+  Revision 1.3  2005/02/14 17:13:39  peter
     * truncate log
 
   Revision 1.2  2005/01/14 17:55:07  michael

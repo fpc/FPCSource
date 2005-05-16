@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: ibase40.pp,v 1.4 2005/02/14 17:13:19 peter Exp $
 }
 unit ibase40;
 
@@ -1846,8 +1846,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:19  peter
+  $Log: ibase40.pp,v $
+  Revision 1.4  2005/02/14 17:13:19  peter
     * truncate log
 
 }

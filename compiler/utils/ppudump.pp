@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ppudump.pp,v 1.69 2005/04/24 20:00:57 florian Exp $
     Copyright (c) 1998-2002 by the FPC Development Team
 
     Dumps the contents of a FPC unit file (PPU File)
@@ -2157,8 +2157,8 @@ begin
     Halt(1);
 end.
 {
-  $Log$
-  Revision 1.69  2005-04-24 20:00:57  florian
+  $Log: ppudump.pp,v $
+  Revision 1.69  2005/04/24 20:00:57  florian
     + more module flags added
 
   Revision 1.68  2005/03/27 14:10:53  jonas

@@ -1,6 +1,6 @@
 {
     *********************************************************************
-    $Id$
+    $Id: syswideh.inc,v 1.6 2005/03/12 14:56:22 florian Exp $
     Copyright (C) 2002 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
@@ -34,8 +34,8 @@ Procedure WideFmtStr(Var Res: WideString; Const Fmt : WideString; Const args: Ar
 
 
 {
-  $Log$
-  Revision 1.6  2005-03-12 14:56:22  florian
+  $Log: syswideh.inc,v $
+  Revision 1.6  2005/03/12 14:56:22  florian
     + added Ansi* routines to widestring manager
     * made them using OS calls on windows
 

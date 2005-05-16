@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: comphook.pas,v 1.39 2005/04/28 19:27:12 olle Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit handles the compilerhooks for output to external programs
@@ -416,8 +416,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.39  2005-04-28 19:27:12  olle
+  $Log: comphook.pas,v $
+  Revision 1.39  2005/04/28 19:27:12  olle
     * Made compile on macos
 
   Revision 1.38  2005/04/24 21:01:37  peter

@@ -1,6 +1,6 @@
 {****************************************************************************
 
-    $Id$
+    $Id: pmstddlg.pas,v 1.5 2005/02/14 17:13:31 peter Exp $
 
                           PMSTDDLG interface unit
                      FPC Pascal Runtime Library for OS/2
@@ -1286,8 +1286,8 @@ unit PMStdDlg;
 
 end.
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:31  peter
+  $Log: pmstddlg.pas,v $
+  Revision 1.5  2005/02/14 17:13:31  peter
     * truncate log
 
 }

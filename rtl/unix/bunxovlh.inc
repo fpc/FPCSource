@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: bunxovlh.inc,v 1.8 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Marco van de Voort
 
@@ -92,8 +92,8 @@ Function  wtermsig     (Status : cInt): cInt;
 
 Function fpReadLink(Name:ansistring):ansistring;
 {
- $Log$
- Revision 1.8  2005-02-14 17:13:31  peter
+ $Log: bunxovlh.inc,v $
+ Revision 1.8  2005/02/14 17:13:31  peter
    * truncate log
 
  Revision 1.7  2005/02/13 20:01:38  peter

@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: osmacro.inc,v 1.2 2005/02/14 17:13:30 peter Exp $
     Copyright (c) 2000-2002 by Marco van de Voort
 
     The "linux" posixy macro's that are used both in the Baseunx unit as the
@@ -90,8 +90,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:30  peter
+  $Log: osmacro.inc,v $
+  Revision 1.2  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.1  2005/02/13 21:47:56  peter

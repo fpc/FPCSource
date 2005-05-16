@@ -1,7 +1,7 @@
 {$mode objfpc}
 {$h+}
 {
-    $Id$
+    $Id: strutils.pp,v 1.16 2005/04/14 17:43:35 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -1679,8 +1679,8 @@ end;
 end.
 
 {
-  $Log$
-  Revision 1.16  2005-04-14 17:43:35  michael
+  $Log: strutils.pp,v $
+  Revision 1.16  2005/04/14 17:43:35  michael
   + Fix for BintoHex and hextobin by Uberto Barbini
 
   Revision 1.15  2005/03/25 22:53:39  jonas

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: filutilh.inc,v 1.10 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -95,8 +95,8 @@ Function GetFileHandle(var f : File):Longint;
 Function GetFileHandle(var f : Text):Longint;
 
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:31  peter
+  $Log: filutilh.inc,v $
+  Revision 1.10  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.9  2005/01/24 18:25:46  olle

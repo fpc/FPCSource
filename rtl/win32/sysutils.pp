@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysutils.pp,v 1.45 2005/03/12 14:56:22 florian Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
@@ -1128,8 +1128,8 @@ Finalization
    FreeLibrary(CFGDllHandle);
 end.
 {
-  $Log$
-  Revision 1.45  2005-03-12 14:56:22  florian
+  $Log: sysutils.pp,v $
+  Revision 1.45  2005/03/12 14:56:22  florian
     + added Ansi* routines to widestring manager
     * made them using OS calls on windows
 

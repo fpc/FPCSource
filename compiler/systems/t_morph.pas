@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: t_morph.pas,v 1.14 2005/04/25 15:58:59 karoly Exp $
     Copyright (c) 2004 by Free Pascal Development Team
 
     This unit implements support import, export, link routines
@@ -269,8 +269,8 @@ initialization
   RegisterTarget(system_powerpc_morphos_info);
 end.
 {
-  $Log$
-  Revision 1.14  2005-04-25 15:58:59  karoly
+  $Log: t_morph.pas,v $
+  Revision 1.14  2005/04/25 15:58:59  karoly
     * static linking fixes
 
   Revision 1.13  2005/02/14 17:13:10  peter

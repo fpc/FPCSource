@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: psub.pas,v 1.230 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Daniel Mantione
 
     Does the parsing and codegeneration at subroutine level
@@ -1467,8 +1467,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.230  2005-02-14 17:13:07  peter
+  $Log: psub.pas,v $
+  Revision 1.230  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.229  2005/01/04 16:36:31  peter

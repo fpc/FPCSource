@@ -19,7 +19,7 @@ Program fd2pascal;
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   --------------------------------------------------------------------------- }
 
-{ $Id$ }
+{ $Id: fd2pascal.pp,v 1.5 2005/02/14 17:13:20 peter Exp $ }
 
 uses
 {$ifdef ver1_0}
@@ -31,7 +31,7 @@ uses
 {$endif}
   ;
 
-Const RevString = '$Revision$';
+Const RevString = '$Revision: 1.5 $';
   NrOptions = 4;
   Options   : Array[0..NrOptions] Of String[20] =
               ('v','callback','main','altformat','compensate');
@@ -1135,8 +1135,8 @@ begin
   EmitForms;
   EmitFooter;
   CloseOutFile;
-end.  $Log$
-end.  Revision 1.5  2005-02-14 17:13:20  peter
+end.  $Log: fd2pascal.pp,v $
+end.  Revision 1.5  2005/02/14 17:13:20  peter
 end.    * truncate log
 end.
 }

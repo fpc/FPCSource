@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: gdbint.pp,v 1.29 2005/02/14 17:13:19 peter Exp $
     Copyright (c) 1998 by Peter Vreman
 
     Lowlevel GDB interface which communicates directly with libgdb
@@ -2467,8 +2467,8 @@ begin
   InitLibGDB;
 end.
 {
-  $Log$
-  Revision 1.29  2005-02-14 17:13:19  peter
+  $Log: gdbint.pp,v $
+  Revision 1.29  2005/02/14 17:13:19  peter
     * truncate log
 
   Revision 1.28  2005/01/07 18:47:33  florian

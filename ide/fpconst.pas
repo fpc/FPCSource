@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpconst.pas,v 1.22 2005/03/06 13:48:59 florian Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -473,8 +473,8 @@ implementation
 
 END.
 {
-  $Log$
-  Revision 1.22  2005-03-06 13:48:59  florian
+  $Log: fpconst.pas,v $
+  Revision 1.22  2005/03/06 13:48:59  florian
     + Units & Exe dir may now contain $fpc... valus
     * version to 1.0.4 increased
 

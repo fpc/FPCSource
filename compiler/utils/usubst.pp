@@ -1,7 +1,7 @@
 {$mode objfpc}
 {$H+}
 {
-    $Id$
+    $Id: usubst.pp,v 1.1 2005/02/05 10:25:30 peter Exp $
     This file is part of Free Pascal build tools
     Copyright (c) 2005 by Michael Van Canneyt
 
@@ -109,8 +109,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.1  2005-02-05 10:25:30  peter
+  $Log: usubst.pp,v $
+  Revision 1.1  2005/02/05 10:25:30  peter
     * move tools to compiler/utils/
 
   Revision 1.2  2005/01/09 15:19:03  peter

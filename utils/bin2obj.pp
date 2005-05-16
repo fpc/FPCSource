@@ -1,6 +1,6 @@
 program bin2obj;
 {
-    $Id$
+    $Id: bin2obj.pp,v 1.5 2002/09/07 15:40:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team
@@ -252,8 +252,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.5  2002-09-07 15:40:30  peter
+  $Log: bin2obj.pp,v $
+  Revision 1.5  2002/09/07 15:40:30  peter
     * old logs removed and tabs fixed
 
 }

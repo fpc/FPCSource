@@ -852,8 +852,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.8  2005-02-14 17:13:36  peter
+  $Log: tcalcst9.pp,v $
+  Revision 1.8  2005/02/14 17:13:36  peter
     * truncate log
 
 }

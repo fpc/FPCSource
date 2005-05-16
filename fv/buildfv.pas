@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: buildfv.pas,v 1.10 2005/02/14 17:13:18 peter Exp $
 
   Unit to build all units of Free Vision
 }
@@ -34,8 +34,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:18  peter
+  $Log: buildfv.pas,v $
+  Revision 1.10  2005/02/14 17:13:18  peter
     * truncate log
 
 }

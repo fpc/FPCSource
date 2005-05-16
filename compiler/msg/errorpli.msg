@@ -1,5 +1,5 @@
 #
-#   $Id$
+#   $Id: errorpli.msg,v 1.4 2003/11/03 08:11:28 michael Exp $
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2000 by the Free Pascal Development team
 #

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: n68kmat.pas,v 1.13 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate 680x0 assembler for math nodes
@@ -248,8 +248,8 @@ begin
    cmoddivnode:=tm68kmoddivnode;
 end.
 {
-  $Log$
-  Revision 1.13  2005-02-14 17:13:10  peter
+  $Log: n68kmat.pas,v $
+  Revision 1.13  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.12  2005/01/08 04:11:26  karoly

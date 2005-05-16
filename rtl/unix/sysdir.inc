@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysdir.inc,v 1.3 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
 
     Main OS dependant body of the system unit, loosely modelled
@@ -152,8 +152,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:31  peter
+  $Log: sysdir.inc,v $
+  Revision 1.3  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.2  2005/02/13 20:01:38  peter

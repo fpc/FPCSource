@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkaccelgroup.pp,v 1.4 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -79,8 +79,8 @@ function  gtk_accelerator_get_default_mod_mask:guint;cdecl;external gtkdll name 
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:20  peter
+  $Log: gtkaccelgroup.pp,v $
+  Revision 1.4  2005/02/14 17:13:20  peter
     * truncate log
 
 }

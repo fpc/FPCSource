@@ -1,6 +1,6 @@
 {
     *********************************************************************
-    $Id$
+    $Id: finah.inc,v 1.3 2005/02/14 17:13:31 peter Exp $
     Copyright (C) 1997, 1998 Gertjan Schouten
 
     This program is free software; you can redistribute it and/or modify
@@ -45,8 +45,8 @@ Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
 Function SameFileName(const S1, S2: string): Boolean;
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:31  peter
+  $Log: finah.inc,v $
+  Revision 1.3  2005/02/14 17:13:31  peter
     * truncate log
 
 }

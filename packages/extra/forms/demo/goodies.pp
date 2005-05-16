@@ -48,8 +48,8 @@ begin
   fl_show_messages('Good Bye');
 end.
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:20  peter
+  $Log: goodies.pp,v $
+  Revision 1.4  2005/02/14 17:13:20  peter
     * truncate log
 
 }

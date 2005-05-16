@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: fpdebug.pas,v 1.62 2005/03/13 12:25:02 florian Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998-2000 by Pierre Muller
 
@@ -3667,8 +3667,8 @@ end.
 {$endif}
 
 {
-  $Log$
-  Revision 1.62  2005-03-13 12:25:02  florian
+  $Log: fpdebug.pas,v $
+  Revision 1.62  2005/03/13 12:25:02  florian
     + Recent files write full name now as hint in the status line
     * Rundir hint in status line fixed
 

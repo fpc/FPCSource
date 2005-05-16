@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: objpash.inc,v 1.28 2005/02/14 17:13:26 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -311,8 +311,8 @@
        end;
 
 {
-  $Log$
-  Revision 1.28  2005-02-14 17:13:26  peter
+  $Log: objpash.inc,v $
+  Revision 1.28  2005/02/14 17:13:26  peter
     * truncate log
 
   Revision 1.27  2005/02/01 19:32:14  florian

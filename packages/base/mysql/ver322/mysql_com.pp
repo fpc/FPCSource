@@ -222,8 +222,8 @@ function  check_scramble(scramble,message : pchar; salt : cardinal;old_ver:my_bo
 function  get_tty_password(opt_message:  pchar) : pchar;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
 
 end.
-  $Log$
-  Revision 1.3  2005-02-14 17:13:19  peter
+  $Log: mysql_com.pp,v $
+  Revision 1.3  2005/02/14 17:13:19  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ncgcal.pas,v 1.204 2005/04/25 09:41:28 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for call nodes
@@ -1253,8 +1253,8 @@ begin
    ccallnode:=tcgcallnode;
 end.
 {
-  $Log$
-  Revision 1.204  2005-04-25 09:41:28  peter
+  $Log: ncgcal.pas,v $
+  Revision 1.204  2005/04/25 09:41:28  peter
   decr refcnt for out paras
 
   Revision 1.203  2005/04/05 21:06:44  peter

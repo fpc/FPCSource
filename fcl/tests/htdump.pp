@@ -1,4 +1,4 @@
-// $Id$
+// $Id: htdump.pp,v 1.4 2005/02/14 17:13:18 peter Exp $
 
 {
   This program takes an W3 IDL XML file with interface definitions and
@@ -178,8 +178,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:18  peter
+  $Log: htdump.pp,v $
+  Revision 1.4  2005/02/14 17:13:18  peter
     * truncate log
 
 }

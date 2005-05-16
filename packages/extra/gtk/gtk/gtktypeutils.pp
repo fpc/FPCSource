@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtktypeutils.pp,v 1.4 2005/02/14 17:13:21 peter Exp $
 }
 
 {****************************************************************************
@@ -358,8 +358,8 @@ function  GTK_RETLOC_POINTER(const a : TGtkArg) : Pgpointer;
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:21  peter
+  $Log: gtktypeutils.pp,v $
+  Revision 1.4  2005/02/14 17:13:21  peter
     * truncate log
 
 }

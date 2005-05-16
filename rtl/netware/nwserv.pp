@@ -1,4 +1,4 @@
-{ $Id$
+{ $Id: nwserv.pp,v 1.8 2005/02/14 17:13:30 peter Exp $
 
   Netware Server Imports for FreePascal, contains definition from the
   following header files:
@@ -5385,8 +5385,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.8  2005-02-14 17:13:30  peter
+  $Log: nwserv.pp,v $
+  Revision 1.8  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.7  2005/01/04 11:25:33  armin

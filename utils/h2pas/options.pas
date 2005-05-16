@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: options.pas,v 1.6 2005/02/20 11:09:41 florian Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
@@ -239,8 +239,8 @@ end;
 
 end.
 {
-   $Log$
-   Revision 1.6  2005-02-20 11:09:41  florian
+   $Log: options.pas,v $
+   Revision 1.6  2005/02/20 11:09:41  florian
      + added -P:
        allows to generate headers which load proc. dyn. from libs
 

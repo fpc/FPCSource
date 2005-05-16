@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: osdefs.inc,v 1.3 2005/02/14 17:29:06 peter Exp $
     Copyright (c) 2000-2002 by Marco van de Voort
 
     Target dependent defines used when compileing the baseunix unit
@@ -33,8 +33,8 @@
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:29:06  peter
+  $Log: osdefs.inc,v $
+  Revision 1.3  2005/02/14 17:29:06  peter
     * no stime for x86_64
 
   Revision 1.2  2005/02/14 17:13:30  peter

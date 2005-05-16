@@ -1,4 +1,4 @@
-$Id$
+$Id: bsdport.txt,v 1.5 2003/11/18 21:47:19 marco Exp $
 
 The Free Pascal *BSD port.
 
@@ -219,8 +219,8 @@ for i in *.s; do
  done
 
 {
-$Log$
-Revision 1.5  2003-11-18 21:47:19  marco
+$Log: bsdport.txt,v $
+Revision 1.5  2003/11/18 21:47:19  marco
  * minor updates
 
 Revision 1.4  2002/09/07 16:01:17  peter

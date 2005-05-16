@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: racpugas.pas,v 1.13 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Mazen NEIFER
 
     Does the parsing for the i386 GNU AS styled inline assembler.
@@ -671,8 +671,8 @@ initialization
   RegisterAsmMode(asmmode_Sparc_standard_info);
 end.
 {
-  $Log$
-  Revision 1.13  2005-02-14 17:13:10  peter
+  $Log: racpugas.pas,v $
+  Revision 1.13  2005/02/14 17:13:10  peter
     * truncate log
 
 }

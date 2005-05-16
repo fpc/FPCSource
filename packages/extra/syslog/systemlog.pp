@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: systemlog.pp,v 1.4 2005/02/14 17:13:21 peter Exp $
     This file is part of the Free Pascal packages.
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
@@ -165,8 +165,8 @@ const
 
 end.
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:21  peter
+  $Log: systemlog.pp,v $
+  Revision 1.4  2005/02/14 17:13:21  peter
     * truncate log
 
 }

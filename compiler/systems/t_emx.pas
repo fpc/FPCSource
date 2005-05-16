@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: t_emx.pas,v 1.16 2005/04/24 21:02:10 peter Exp $
     Copyright (c) 1998-2002 by Daniel Mantione
     Portions Copyright (c) 1998-2002 Eberhard Mattes
 
@@ -516,8 +516,8 @@ initialization
   RegisterTarget(system_i386_emx_info);
 end.
 {
-  $Log$
-  Revision 1.16  2005-04-24 21:02:10  peter
+  $Log: t_emx.pas,v $
+  Revision 1.16  2005/04/24 21:02:10  peter
     * always use exceptions to stop the compiler
     - remove stop, do_stop
 

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: n386set.pas,v 1.78 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 assembler for in set/case nodes
@@ -225,8 +225,8 @@ begin
    ccasenode:=ti386casenode;
 end.
 {
-  $Log$
-  Revision 1.78  2005-02-14 17:13:10  peter
+  $Log: n386set.pas,v $
+  Revision 1.78  2005/02/14 17:13:10  peter
     * truncate log
 
 }

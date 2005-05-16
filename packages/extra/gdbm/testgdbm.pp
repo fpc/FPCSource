@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: testgdbm.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of
     the Free Pascal development team
 
@@ -56,22 +56,22 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: testgdbm.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: testgdbm.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:20  peter
+  $Log: testgdbm.pp,v $
+  Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 
 }

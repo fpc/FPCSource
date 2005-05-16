@@ -1,6 +1,6 @@
 {
     *********************************************************************
-    $Id$
+    $Id: intfh.inc,v 1.2 2005/02/14 17:13:31 peter Exp $
     Copyright (C) 2002 Free Pascal Development Team
 
     This program is free software; you can redistribute it and/or modify
@@ -33,8 +33,8 @@ function GUIDToString(const GUID: TGUID): string;
 function IsEqualGUID(const guid1, guid2: TGUID): Boolean;
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:31  peter
+  $Log: intfh.inc,v $
+  Revision 1.2  2005/02/14 17:13:31  peter
     * truncate log
 
 }

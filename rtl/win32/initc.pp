@@ -1,5 +1,5 @@
 {
-  $Id$
+  $Id: initc.pp,v 1.16 2005/02/14 17:13:32 peter Exp $
 }
 unit initc;
 
@@ -33,8 +33,8 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.16  2005-02-14 17:13:32  peter
+  $Log: initc.pp,v $
+  Revision 1.16  2005/02/14 17:13:32  peter
     * truncate log
 
 }

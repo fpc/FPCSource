@@ -70,8 +70,8 @@ exitprocess:
 
 
 
-// $Log$
-// Revision 1.1  2004-11-04 17:15:01  peter
+// $Log: wcygprt0.as,v $
+// Revision 1.1  2004/11/04 17:15:01  peter
 //  * wcygprt is now used for cygwin (libc) linking, initc contains only cerrno
 //
 // Revision 1.4  2002/11/30 18:17:35  carl

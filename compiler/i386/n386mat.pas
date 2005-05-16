@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: n386mat.pas,v 1.74 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 assembler for math nodes
@@ -324,8 +324,8 @@ begin
    cnotnode:=ti386notnode;
 end.
 {
-  $Log$
-  Revision 1.74  2005-02-14 17:13:09  peter
+  $Log: n386mat.pas,v $
+  Revision 1.74  2005/02/14 17:13:09  peter
     * truncate log
 
 }

@@ -1,5 +1,5 @@
 {
-   $Id$
+   $Id: gtkmain.pp,v 1.4 2005/02/14 17:13:20 peter Exp $
 }
 
 {****************************************************************************
@@ -83,8 +83,8 @@ procedure gtk_propagate_event(widget:PGtkWidget; event:PGdkEvent);cdecl;external
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:20  peter
+  $Log: gtkmain.pp,v $
+  Revision 1.4  2005/02/14 17:13:20  peter
     * truncate log
 
 }

@@ -1,6 +1,6 @@
 {****************************************************************************
 
-    $Id$
+    $Id: pmgpi.pas,v 1.6 2005/02/14 17:13:31 peter Exp $
 
                             PMGPI interface unit
                      FPC Pascal Runtime Library for OS/2
@@ -2166,8 +2166,8 @@ function GpiPolygons(hps,ulCount : cardinal;var paplgn : POLYGON;flOptions,flMod
 end.
 
 {
-  $Log$
-  Revision 1.6  2005-02-14 17:13:31  peter
+  $Log: pmgpi.pas,v $
+  Revision 1.6  2005/02/14 17:13:31  peter
     * truncate log
 
 }

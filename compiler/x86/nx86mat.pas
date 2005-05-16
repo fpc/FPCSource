@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: nx86mat.pas,v 1.10 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate x86 code for math nodes
@@ -322,8 +322,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.10  2005-02-14 17:13:10  peter
+  $Log: nx86mat.pas,v $
+  Revision 1.10  2005/02/14 17:13:10  peter
     * truncate log
 
 }

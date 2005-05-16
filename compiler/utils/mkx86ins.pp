@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: mkx86ins.pp,v 1.7 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman and Florian Klaempfl
 
     Convert i386ins.dat from Nasm to a .inc file for usage with
@@ -454,8 +454,8 @@ begin
    writeln(insns,' nodes procesed (maxinfolen=',maxinfolen,')');
 end.
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:10  peter
+  $Log: mkx86ins.pp,v $
+  Revision 1.7  2005/02/14 17:13:10  peter
     * truncate log
 
 }

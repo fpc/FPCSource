@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysos.inc,v 1.4 2005/02/13 21:47:56 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -172,8 +172,8 @@ end;
 
 
 {
-   $Log$
-   Revision 1.4  2005-02-13 21:47:56  peter
+   $Log: sysos.inc,v $
+   Revision 1.4  2005/02/13 21:47:56  peter
      * include file cleanup part 2
 
    Revision 1.3  2005/02/07 22:04:55  peter

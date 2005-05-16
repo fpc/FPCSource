@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: x86.pp,v 1.7 2005/02/14 17:13:32 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1997-2004 by the Free Pascal development team
 
@@ -383,8 +383,8 @@ end;
 end.
 
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:32  peter
+  $Log: x86.pp,v $
+  Revision 1.7  2005/02/14 17:13:32  peter
     * truncate log
 
   Revision 1.6  2005/02/05 20:07:19  michael

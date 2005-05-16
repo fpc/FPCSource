@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: htmwrite.pp,v 1.7 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Component Library
 
     HTML writing routines
@@ -380,8 +380,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:18  peter
+  $Log: htmwrite.pp,v $
+  Revision 1.7  2005/02/14 17:13:18  peter
     * truncate log
 
 }

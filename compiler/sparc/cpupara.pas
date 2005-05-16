@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpupara.pas,v 1.55 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Calling conventions for the SPARC
@@ -321,8 +321,8 @@ begin
    ParaManager:=TSparcParaManager.create;
 end.
 {
-  $Log$
-  Revision 1.55  2005-02-14 17:13:10  peter
+  $Log: cpupara.pas,v $
+  Revision 1.55  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.54  2005/01/20 17:47:01  peter

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: osdefs.inc,v 1.2 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 2000-2002 by Marco van de Voort
 
     Target dependent defines used when compileing the baseunix unit
@@ -25,8 +25,8 @@
 {$define hassysctl}             // Use sysctl unit
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:21  peter
+  $Log: osdefs.inc,v $
+  Revision 1.2  2005/02/14 17:13:21  peter
     * truncate log
 
   Revision 1.1  2005/02/13 21:47:56  peter

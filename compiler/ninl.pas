@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ninl.pas,v 1.164 2005/04/15 15:50:18 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Type checking and register allocation for inline nodes
@@ -2482,8 +2482,8 @@ begin
    cinlinenode:=tinlinenode;
 end.
 {
-  $Log$
-  Revision 1.164  2005-04-15 15:50:18  peter
+  $Log: ninl.pas,v $
+  Revision 1.164  2005/04/15 15:50:18  peter
     * only give warnings for uninitialized variables in low()/high()
       if the value is calculated at runtime
 

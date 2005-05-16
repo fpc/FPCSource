@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ppdep.pp,v 1.4 2002/09/07 15:40:30 peter Exp $
     This program is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Peter Vreman
     member of the Free Pascal development team
@@ -578,8 +578,8 @@ begin
 end.
 
 {
-  $Log$
-  Revision 1.4  2002-09-07 15:40:30  peter
+  $Log: ppdep.pp,v $
+  Revision 1.4  2002/09/07 15:40:30  peter
     * old logs removed and tabs fixed
 
   Revision 1.3  2002/06/01 18:39:14  marco

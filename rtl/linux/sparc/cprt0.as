@@ -1,5 +1,5 @@
 /*
-  $Id$
+  $Id: cprt0.as,v 1.5 2004/09/25 18:43:45 florian Exp $
 */
         .section ".text"
         .align 4
@@ -81,8 +81,8 @@ _start:
         .comm operatingsystem_parameter_argv,4
 
 /*
-  $Log$
-  Revision 1.5  2004-09-25 18:43:45  florian
+  $Log: cprt0.as,v $
+  Revision 1.5  2004/09/25 18:43:45  florian
     * fixed symbol names
 
   Revision 1.4  2004/09/25 12:25:32  florian

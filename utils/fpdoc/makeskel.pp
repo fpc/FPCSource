@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: makeskel.pp,v 1.15 2005/02/14 17:13:39 peter Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
@@ -372,8 +372,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.15  2005-02-14 17:13:39  peter
+  $Log: makeskel.pp,v $
+  Revision 1.15  2005/02/14 17:13:39  peter
     * truncate log
 
   Revision 1.14  2004/11/15 18:00:18  michael

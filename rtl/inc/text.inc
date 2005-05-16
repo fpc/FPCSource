@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: text.inc,v 1.30 2005/04/03 21:10:59 hajny Exp $
     This file is part of the Free Pascal Run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -1306,8 +1306,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.30  2005-04-03 21:10:59  hajny
+  $Log: text.inc,v $
+  Revision 1.30  2005/04/03 21:10:59  hajny
     * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
 
   Revision 1.29  2005/02/14 17:13:29  peter

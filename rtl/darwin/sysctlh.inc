@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: sysctlh.inc,v 1.2 2005/02/14 17:13:22 peter Exp $
 }
 
 {$PACKRECORDS C}
@@ -534,8 +534,8 @@
        USER_MAXID = 21;
 
 {
-  $Log$
-  Revision 1.2  2005-02-14 17:13:22  peter
+  $Log: sysctlh.inc,v $
+  Revision 1.2  2005/02/14 17:13:22  peter
     * truncate log
 
 }

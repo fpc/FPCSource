@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cpupara.pas,v 1.68 2005/02/15 19:16:04 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Generates the argument location information for i386
@@ -598,8 +598,8 @@ begin
    paramanager:=ti386paramanager.create;
 end.
 {
-  $Log$
-  Revision 1.68  2005-02-15 19:16:04  peter
+  $Log: cpupara.pas,v $
+  Revision 1.68  2005/02/15 19:16:04  peter
     * fix passing of 64bit values when using -Or
 
   Revision 1.67  2005/02/14 19:42:02  peter

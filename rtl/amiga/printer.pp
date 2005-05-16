@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: printer.pp,v 1.5 2005/02/14 17:13:21 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -28,8 +28,8 @@ begin
   SetPrinterExit;
 end.
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:21  peter
+  $Log: printer.pp,v $
+  Revision 1.5  2005/02/14 17:13:21  peter
     * truncate log
 
 }

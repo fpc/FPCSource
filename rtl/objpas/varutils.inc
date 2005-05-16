@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: varutils.inc,v 1.24 2005/03/28 21:52:43 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2001 by the Free Pascal development team
 
@@ -717,8 +717,8 @@ end;
 
 {$endif HASVARIANT}
 {
-  $Log$
-  Revision 1.24  2005-03-28 21:52:43  florian
+  $Log: varutils.inc,v $
+  Revision 1.24  2005/03/28 21:52:43  florian
     * SafeCreateArray fixed
 
   Revision 1.23  2005/03/28 17:04:58  florian

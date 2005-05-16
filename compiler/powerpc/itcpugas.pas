@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: itcpugas.pas,v 1.8 2005/02/18 23:05:47 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit contains the PowerPC GAS instruction tables
@@ -143,8 +143,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.8  2005-02-18 23:05:47  jonas
+  $Log: itcpugas.pas,v $
+  Revision 1.8  2005/02/18 23:05:47  jonas
     - removed a non-existing instruction (lcrxe)
     * fixed an instruction (maffs_ -> mffs)
 

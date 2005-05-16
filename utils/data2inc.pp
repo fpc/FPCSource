@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: data2inc.pp,v 1.2 2002/09/07 15:40:30 peter Exp $
     Copyright (c) 1999-2000 by Peter Vreman (msg2inc) and
                           Marco van de Voort (data2inc)
     Placed under LGPL (See the file COPYING.FPC, included in this
@@ -891,8 +891,8 @@ begin
    DoFile;
 end.
 {
-  $Log$
-  Revision 1.2  2002-09-07 15:40:30  peter
+  $Log: data2inc.pp,v $
+  Revision 1.2  2002/09/07 15:40:30  peter
     * old logs removed and tabs fixed
 
 }

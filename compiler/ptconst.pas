@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: ptconst.pas,v 1.102 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Reads typed constants
@@ -1085,8 +1085,8 @@ implementation
 
 end.
 {
-  $Log$
-  Revision 1.102  2005-02-14 17:13:07  peter
+  $Log: ptconst.pas,v $
+  Revision 1.102  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.101  2005/02/02 19:42:19  florian

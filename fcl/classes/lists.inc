@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: lists.inc,v 1.4 2005/05/12 21:47:34 hajny Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -452,8 +452,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.4  2005-05-12 21:47:34  hajny
+  $Log: lists.inc,v $
+  Revision 1.4  2005/05/12 21:47:34  hajny
     * fix for SIGSEGV due to access to uninitialized pointers in TList
 
   Revision 1.3  2005/02/14 17:13:11  peter

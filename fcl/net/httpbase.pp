@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: httpbase.pp,v 1.3 2005/02/14 17:13:15 peter Exp $
 
     HTTPBase: Common HTTP utility declarations and classes
     Copyright (C) 2000-2003 by Sebastian Guenther (sg@freepascal.org)
@@ -487,8 +487,8 @@ end.
 
 
 {
-  $Log$
-  Revision 1.3  2005-02-14 17:13:15  peter
+  $Log: httpbase.pp,v $
+  Revision 1.3  2005/02/14 17:13:15  peter
     * truncate log
 
 }

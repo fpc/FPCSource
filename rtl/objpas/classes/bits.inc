@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: bits.inc,v 1.4 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -374,8 +374,8 @@ end;
 
 
 {
-  $Log$
-  Revision 1.4  2005-02-14 17:13:31  peter
+  $Log: bits.inc,v $
+  Revision 1.4  2005/02/14 17:13:31  peter
     * truncate log
 
 }

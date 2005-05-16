@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: genstr.inc,v 1.5 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Carl-Eric Codere,
     member of the Free Pascal development team.
@@ -267,8 +267,8 @@
 {$endif FPC_UNIT_HAS_STRLICOMP}
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:22  peter
+  $Log: genstr.inc,v $
+  Revision 1.5  2005/02/14 17:13:22  peter
     * truncate log
 
 }

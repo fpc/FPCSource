@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cgcpu.pas,v 1.196 2005/03/25 21:55:43 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the code generator for the PowerPC
@@ -2400,8 +2400,8 @@ begin
   cg64 :=tcg64fppc.create;
 end.
 {
-  $Log$
-  Revision 1.196  2005-03-25 21:55:43  jonas
+  $Log: cgcpu.pas,v $
+  Revision 1.196  2005/03/25 21:55:43  jonas
     * removed some unused variables
 
   Revision 1.195  2005/02/14 17:13:10  peter

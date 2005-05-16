@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: lowmath.inc,v 1.5 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Carl-Eric Codere,
     member of the Free Pascal development team
@@ -913,8 +913,8 @@ XDEF LONGMOD
 end;
 
 {
-  $Log$
-  Revision 1.5  2005-02-14 17:13:30  peter
+  $Log: lowmath.inc,v $
+  Revision 1.5  2005/02/14 17:13:30  peter
     * truncate log
 
 }

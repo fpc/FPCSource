@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: dbconst.pp,v 1.11 2005/04/10 22:18:43 joost Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team
@@ -78,8 +78,8 @@ Implementation
 end.
 
 {
-  $Log$
-  Revision 1.11  2005-04-10 22:18:43  joost
+  $Log: dbconst.pp,v $
+  Revision 1.11  2005/04/10 22:18:43  joost
   Patch from Alexandrov Alexandru
   - implemented TDataset.BindFields
   - master-detail relation implemented

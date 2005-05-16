@@ -696,8 +696,8 @@ begin
 end;
 
 {
-  $Log$
-  Revision 1.6  2005-04-10 18:27:39  joost
+  $Log: dsparams.inc,v $
+  Revision 1.6  2005/04/10 18:27:39  joost
   - removed TParam.FNull
 
   Revision 1.5  2005/03/24 20:54:53  michael

@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: cwstring.pp,v 1.5 2005/03/17 19:11:04 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2005 by Florian Klaempfl,
     member of the Free Pascal development team.
@@ -251,8 +251,8 @@ end.
 {$endif HASWIDESTRING}
 
 {
-  $Log$
-  Revision 1.5  2005-03-17 19:11:04  florian
+  $Log: cwstring.pp,v $
+  Revision 1.5  2005/03/17 19:11:04  florian
     * first working version
 
   Revision 1.4  2005/03/16 22:26:12  florian

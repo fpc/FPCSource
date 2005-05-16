@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: math.inc,v 1.7 2005/02/14 17:13:21 peter Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team.
@@ -98,8 +98,8 @@
     }
 {$endif INTERNCONSTINTF}
 {
-  $Log$
-  Revision 1.7  2005-02-14 17:13:21  peter
+  $Log: math.inc,v $
+  Revision 1.7  2005/02/14 17:13:21  peter
     * truncate log
 
   Revision 1.6  2005/01/06 13:02:03  florian

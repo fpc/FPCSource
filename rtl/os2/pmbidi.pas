@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: pmbidi.pas,v 1.3 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by Yuri Prokushev (prokushev@freemail.ru).
 
@@ -594,8 +594,8 @@ implementation
 end.
 
 {
-$Log$
-Revision 1.3  2005-02-14 17:13:31  peter
+$Log: pmbidi.pas,v $
+Revision 1.3  2005/02/14 17:13:31  peter
   * truncate log
 
 }

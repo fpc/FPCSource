@@ -1,5 +1,5 @@
 {
-    $Id$
+    $Id: system.pp,v 1.26 2005/03/25 22:53:39 jonas Exp $
     This file is part of the Free Pascal run time librar~y.
     Copyright (c) 2000 by Marco van de Voort
     member of the Free Pascal development team.
@@ -264,8 +264,8 @@ Begin
 End.
 
 {
-  $Log$
-  Revision 1.26  2005-03-25 22:53:39  jonas
+  $Log: system.pp,v $
+  Revision 1.26  2005/03/25 22:53:39  jonas
     * fixed several warnings and notes about unused variables (mainly) or
       uninitialised use of variables/function results (a few)
 
