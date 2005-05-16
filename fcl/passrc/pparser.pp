@@ -1,5 +1,5 @@
 {
-    $Id: pparser.pp,v 1.16 2005/04/07 07:55:40 marco Exp $
+    $Id: pparser.pp,v 1.17 2005/05/10 06:08:59 michael Exp $
     This file is part of the Free Component Library
 
     Pascal source parser
@@ -389,8 +389,17 @@ begin
           NextToken;
           if CurToken = tkBraceClose then
             break
-          else if CurToken <> tkComma then
-            ParseExc(SParserExpectedCommaRBracket);
+          else if CurToken in [tkEqual,tkAssign] then
+            begin
+            EnumValue.AssignedValue:=ParseExpression;
+            NextToken;
+            if CurToken = tkBraceClose then
+              Break
+            else if not (CurToken=tkComma) then
+              ParseExc(SParserExpectedCommaRBracket);
+            end
+          else if not (CurToken=tkComma) then
+            ParseExc(SParserExpectedCommaRBracket)
         end;
       end;
     tkSet:
@@ -1004,8 +1013,17 @@ begin
             NextToken;
             if CurToken = tkBraceClose then
               break
-            else if CurToken <> tkComma then
-              ParseExc(SParserExpectedCommaRBracket);
+            else if CurToken in [tkEqual,tkAssign] then
+              begin
+              EnumValue.AssignedValue:=ParseExpression;
+              NextToken;
+              if CurToken = tkBraceClose then
+                Break
+              else if not (CurToken=tkComma) then
+                ParseExc(SParserExpectedCommaRBracket);
+              end
+            else if not (CurToken=tkComma) then
+              ParseExc(SParserExpectedCommaRBracket)
           end;
           ExpectToken(tkSemicolon);
         except
@@ -1857,6 +1875,9 @@ end.
 
 {
   $Log: pparser.pp,v $
+  Revision 1.17  2005/05/10 06:08:59  michael
+  + Added parsing of explicitly assigned enumerated values
+
   Revision 1.16  2005/04/07 07:55:40  marco
    * patch from peter for resoursestring=string bug + fix crash missing --input
 

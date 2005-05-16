@@ -1,11 +1,9 @@
 {
-    $Id: sysheap.inc,v 1.1 2005/02/07 21:30:12 peter Exp $
+    $Id: sysheap.inc,v 1.2 2005/05/14 11:52:37 olle Exp $
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2001 by Free Pascal development team
+    Copyright (c) 2001-2005 by Free Pascal development team
 
-    This file implements all the base types and limits required
-    for a minimal POSIX compliant subset required to port the compiler
-    to a new OS.
+    Low level heap functions for MacOS
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -38,6 +36,9 @@ end;
 
 {
    $Log: sysheap.inc,v $
+   Revision 1.2  2005/05/14 11:52:37  olle
+     * Updated header comments
+
    Revision 1.1  2005/02/07 21:30:12  peter
      * system unit updated
 

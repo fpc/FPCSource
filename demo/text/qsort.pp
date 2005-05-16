@@ -1,7 +1,7 @@
 {
-    $Id: qsort.pp,v 1.2 2002/09/07 15:06:35 peter Exp $
+    $Id: qsort.pp,v 1.3 2005/05/14 11:11:33 olle Exp $
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993-98 by the Free Pascal Development Team
+    Copyright (c) 1993-2005 by the Free Pascal Development Team
 
     QuickSort Example
 
@@ -16,7 +16,12 @@
 program quicksort;
 
   const
+{$ifndef MACOS}
      max = 100000;
+{$else}
+     max = 1000; {Actually it works with 100000 also, but that might }
+                 {lead problems occacionally.}
+{$endif}
 
   type
      tlist = array[1..max] of longint;
@@ -78,6 +83,9 @@ begin
 end.
 {
   $Log: qsort.pp,v $
+  Revision 1.3  2005/05/14 11:11:33  olle
+    * Smaller arrray sizes for macos
+
   Revision 1.2  2002/09/07 15:06:35  peter
     * old logs removed and tabs fixed
 

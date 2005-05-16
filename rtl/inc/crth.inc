@@ -1,5 +1,5 @@
 {
-    $Id: crth.inc,v 1.4 2005/02/14 17:13:22 peter Exp $
+    $Id: crth.inc,v 1.5 2005/05/15 12:44:14 hajny Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -77,7 +77,7 @@ var
 procedure AssignCrt(var F: Text);
 function KeyPressed: Boolean;
 function ReadKey: Char;
-procedure TextMode(Mode: Integer);
+procedure TextMode (Mode: word);
 procedure Window(X1,Y1,X2,Y2: Byte);
 procedure GotoXY(X,Y: Byte);
 function WhereX: Byte;
@@ -102,6 +102,9 @@ procedure cursorbig;
 
 {
   $Log: crth.inc,v $
+  Revision 1.5  2005/05/15 12:44:14  hajny
+    * TextMode parameter type changed to word for TP/BP compatibility
+
   Revision 1.4  2005/02/14 17:13:22  peter
     * truncate log
 

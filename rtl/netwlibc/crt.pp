@@ -1,5 +1,5 @@
 {
-    $Id: crt.pp,v 1.1 2004/09/05 20:58:47 armin Exp $
+    $Id: crt.pp,v 1.2 2005/05/14 15:01:49 hajny Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2004 by the Free Pascal development team.
 
@@ -128,7 +128,7 @@ end;
 ****************************************************************************}
 
 
-procedure textmode(mode : integer);
+procedure TextMode (Mode: word);
 begin
   Window (1,1,byte(ScreenWidth),byte(ScreenHeight));
   ClrScr;

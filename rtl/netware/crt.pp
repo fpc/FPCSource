@@ -1,5 +1,5 @@
 {
-    $Id: crt.pp,v 1.5 2004/02/08 16:22:20 michael Exp $
+    $Id: crt.pp,v 1.6 2005/05/14 15:01:49 hajny Exp $
     Copyright (c) 1999-2001 by the Free Pascal development team.
 
     Borland Pascal 7 Compatible CRT Unit for Netware, tested with
@@ -141,7 +141,7 @@ end;
 ****************************************************************************}
 
 
-procedure textmode(mode : integer);
+procedure textmode (mode: word);
 begin
   Window (1,1,byte(ScreenWidth),byte(ScreenHeight));
   ClrScr;

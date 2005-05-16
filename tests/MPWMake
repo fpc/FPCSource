@@ -25,7 +25,7 @@ DIRS = :webtbs: :webtbf: :tbs: :tbf: :test: :test:cg: :test:cg:cdecl: :test:unit
 ################################
 # Utilities
 #
-:utils:dotest Ä :utils:dotest.pp
+:utils:dotest Ä :utils:dotest.pp :utils:redir.pp
 	"{FPC}" -WT "{OPT}" -FE:utils: :utils:dotest.pp
 
 :utils:digest Ä :utils:digest.pp

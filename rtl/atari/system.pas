@@ -1,5 +1,5 @@
 {
-    $Id: system.pas,v 1.14 2005/04/03 21:10:59 hajny Exp $
+    $Id: system.pas,v 1.15 2005/05/12 20:29:04 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Carl Eric Codere
     member of the Free Pascal development team
@@ -45,6 +45,7 @@ const
  PathSeparator = ';';
  FileNameCaseSensitive = false;
  maxExitCode = 255;
+ MaxPathLen = 255;
 
  sLineBreak: string [1] = LineEnding;
     { used for single computations }
@@ -773,6 +774,9 @@ end.
 
 {
   $Log: system.pas,v $
+  Revision 1.15  2005/05/12 20:29:04  michael
+  + Added maxpathlen constant (maximum length of filename path)
+
   Revision 1.14  2005/04/03 21:10:59  hajny
     * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
 

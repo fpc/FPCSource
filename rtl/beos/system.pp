@@ -1,5 +1,5 @@
 {
-    $Id: system.pp,v 1.23 2005/04/13 20:10:50 florian Exp $
+    $Id: system.pp,v 1.24 2005/05/12 20:29:04 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -43,7 +43,8 @@ const
  PathSeparator = ':';
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 255;
-
+ MaxPathLen = 256;
+ 
 const
   FileNameCaseSensitive : boolean = true;
   CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
@@ -548,6 +549,9 @@ begin
 end.
 {
   $Log: system.pp,v $
+  Revision 1.24  2005/05/12 20:29:04  michael
+  + Added maxpathlen constant (maximum length of filename path)
+
   Revision 1.23  2005/04/13 20:10:50  florian
     + TThreadID
 

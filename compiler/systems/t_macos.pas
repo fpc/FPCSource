@@ -1,5 +1,5 @@
 {
-    $Id: t_macos.pas,v 1.22 2005/03/25 21:55:43 jonas Exp $
+    $Id: t_macos.pas,v 1.23 2005/05/14 12:15:18 olle Exp $
     Copyright (c) 2001-2002 by Peter Vreman
 
     This unit implements support import,export,link routines for MacOS.
@@ -164,9 +164,11 @@ begin
          * it is signaled it is a 32 bit app. (perhaps not nessecary on PowerPC)
          * heapsize  }
       if apptype <> app_tool then
-        Add('Echo "data ''SIZE'' (-1) '#182'{ $'#182'"1080 ' + heapsizestr + ' ' + heapsizestr +
+        begin
+          Add('Echo "data ''SIZE'' (-1) '#182'{ $'#182'"1080 ' + heapsizestr + ' ' + heapsizestr +
                                          #182'" '#182'};" | Rez -a -o ' + ScriptFixFileName(current_module.exefilename^));
-      Add('Exit If "{Status}" != 0');
+          Add('Exit If "{Status}" != 0');
+        end;
 
       {Add mac resources}
       if apptype = app_cui then
@@ -272,6 +274,9 @@ initialization
 end.
 {
   $Log: t_macos.pas,v $
+  Revision 1.23  2005/05/14 12:15:18  olle
+    * Fix small issue for link script
+
   Revision 1.22  2005/03/25 21:55:43  jonas
     * removed some unused variables
 
