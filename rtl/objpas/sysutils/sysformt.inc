@@ -234,8 +234,10 @@ begin
               if Checkarg(vtinteger,false) then
                 Str(cardinal(Args[Doarg].VInteger),ToAdd)
               {$IFNDEF VIRTUALPASCAL}
-              else if CheckArg(vtInt64,true) then
+              else if CheckArg(vtInt64,false) then
                 Str(qword(Args[DoArg].VInt64^),toadd)
+              else if CheckArg(vtQWord,true) then
+                Str(Args[DoArg].VQWord^,toadd);
               {$ENDIF}
               ;
               Width:=Abs(width);
