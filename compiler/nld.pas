@@ -983,7 +983,8 @@ implementation
                          hp.left:=ctypeconvnode.create(hp.left,s32inttype);
                      end;
                    floatdef :
-                     hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
+                     if not(is_currency(hp.left.resulttype.def)) then
+                       hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
                    procvardef :
                      hp.left:=ctypeconvnode.create(hp.left,voidpointertype);
                    stringdef,
