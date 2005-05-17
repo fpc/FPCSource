@@ -790,7 +790,10 @@ implementation
                      end;
                    floatdef :
                      begin
-                       vtype:=vtExtended;
+                       if is_currency(lt) then
+                         vtype:=vtCurrency
+                       else
+                         vtype:=vtExtended;
                        freetemp:=false;
                        vaddr:=true;
                      end;
@@ -813,7 +816,14 @@ implementation
                    classrefdef :
                      vtype:=vtClass;
                    objectdef :
-                     vtype:=vtObject;
+                     if is_interface(lt) then
+                       vtype:=vtInterface
+                     else if is_class(lt) then
+                       vtype:=vtClass
+                     else if is_object(lt) then
+                       vtype:=vtObject
+                     else
+                       internalerror(200505171);
                    stringdef :
                      begin
                        if is_shortstring(lt) then
