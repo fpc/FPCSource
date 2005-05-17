@@ -39,12 +39,13 @@ var
       Check('Currency', a[0], vtCurrency);
       Check('Interface(nil)', a[1], vtInterface);
       Check('Interface', a[2], vtInterface);
-      Check('Class Object(nil)', a[3], vtObject);
+      { TObject is a class as well! }
+      Check('Class Object(nil)', a[3], vtClass);
       Check('Class', a[4], vtClass);
       {$IFDEF FPC}
       Check('QWord', a[5], vtQWord);
       {$ENDIF}
-      
+
       { I WISH FPC Introduce a vtDateTime for the TDatetime parameter }
     end;
 
