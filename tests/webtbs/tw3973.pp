@@ -139,6 +139,9 @@ begin
   WriteLn;
   if FailureCount = 0 then
     WriteLn('All passed')
-  else WriteLn(FailureCount, 'Failures');
-  ReadLn;
+  else
+    begin
+      WriteLn(FailureCount, 'Failures');
+      halt(1);
+    end;
 end.

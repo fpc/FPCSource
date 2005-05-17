@@ -763,10 +763,10 @@ implementation
                        if is_64bit(lt) then
                          begin
                             case torddef(lt).typ of
-                               s64bit:
-                                 vtype:=vtInt64;
-                               u64bit:
-                                 vtype:=vtQWord;
+                              s64bit:
+                                vtype:=vtInt64;
+                              u64bit:
+                                vtype:=vtQWord;
                             end;
                             freetemp:=false;
                             vaddr:=true;
