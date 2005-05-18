@@ -1,5 +1,4 @@
 {
-    $Id: rgcpu.pas,v 1.12 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the register allocator for m68k
@@ -40,10 +39,3 @@ unit rgcpu;
   implementation
 
 end.
-
-{
-  $Log: rgcpu.pas,v $
-  Revision 1.12  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

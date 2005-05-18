@@ -1,5 +1,4 @@
 {
-    $Id: cpupara.pas,v 1.4 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Alpha specific calling conventions
@@ -289,9 +288,3 @@ unit cpupara;
 begin
    paramanager:=talphaparamanager.create;
 end.
-{
-  $Log: cpupara.pas,v $
-  Revision 1.4  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

@@ -1,6 +1,5 @@
 {****************************************************************************
 
-    $Id: pmbitmap.pas,v 1.5 2005/02/14 17:13:31 peter Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2002 by the Free Pascal development team.
@@ -216,9 +215,3 @@ function PicIchg (ahab: longint; var pszFilename1, pszFilename2: PChar;
                    lType: longint): Longbool; cdecl; external 'PMPIC' index 12;
 
 end.
-{
-  $Log: pmbitmap.pas,v $
-  Revision 1.5  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

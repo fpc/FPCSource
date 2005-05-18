@@ -1,5 +1,4 @@
 {
-    $Id: symutil.pas,v 1.8 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit provides some help routines for symbol handling
@@ -112,9 +111,3 @@ implementation
 
 
 end.
-{
-  $Log: symutil.pas,v $
-  Revision 1.8  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

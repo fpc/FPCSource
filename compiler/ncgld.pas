@@ -1,5 +1,4 @@
 {
-    $Id: ncgld.pas,v 1.140 2005/04/08 15:18:08 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for nodes that handle loads and assignments which
@@ -938,26 +937,3 @@ begin
    carrayconstructornode:=tcgarrayconstructornode;
    crttinode:=tcgrttinode;
 end.
-{
-  $Log: ncgld.pas,v $
-  Revision 1.140  2005/04/08 15:18:08  peter
-  remove multiple pass2 calls. It is not supported anymore by all nodes (ttempcreatenode)
-
-  Revision 1.139  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.138  2005/02/13 19:57:15  florian
-    * better alignment checking
-
-  Revision 1.137  2005/02/10 21:54:36  peter
-    * data with inittables need to have a memory location assigned
-      for incrref
-
-  Revision 1.136  2005/01/23 17:14:21  florian
-    + optimized code generation on sparc
-    + some stuff for pic code on sparc added
-
-  Revision 1.135  2005/01/04 16:37:09  peter
-    * don't release temps for array of ansistring
-
-}

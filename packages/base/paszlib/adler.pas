@@ -111,4 +111,3 @@ end;
 #define DO16(buf)   DO8(buf,0); DO8(buf,8);
 }
 end.
-

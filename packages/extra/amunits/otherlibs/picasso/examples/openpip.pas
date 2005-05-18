@@ -90,8 +90,3 @@ Begin
         p96PIP_Close(wd);
     End Else Writeln ('Unable to open PIP.');
 End.
-
-{
-  $Log
-}
-

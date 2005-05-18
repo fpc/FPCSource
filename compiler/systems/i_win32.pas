@@ -1,5 +1,4 @@
 {
-    $Id: i_win32.pas,v 1.12 2005/03/20 22:36:45 olle Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support information structures for win32
@@ -108,13 +107,3 @@ initialization
   {$endif WIN32}
 {$endif CPU86}
 end.
-{
-  $Log: i_win32.pas,v $
-  Revision 1.12  2005/03/20 22:36:45  olle
-    * Cleaned up handling of source file extension.
-    + Added support for .p extension for macos and darwin
-
-  Revision 1.11  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: pmodules.pas,v 1.186 2005/03/25 21:55:43 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Handles the parsing and loading of the modules (ppufiles)
@@ -1625,35 +1624,3 @@ implementation
       end;
 
 end.
-{
-  $Log: pmodules.pas,v $
-  Revision 1.186  2005/03/25 21:55:43  jonas
-    * removed some unused variables
-
-  Revision 1.185  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.184  2005/02/06 21:33:28  peter
-    * -Fa option added, it'll load the units before the uses
-      line is parsed. Can be used to load cthreads from the commandline.
-      Example '-g -Faheaptrc,lineinfo' is the same as '-ghl'
-
-  Revision 1.183  2005/02/06 11:15:31  peter
-    * removed $threading
-
-  Revision 1.182  2005/02/06 00:05:56  florian
-    + x86_64 pic draft
-
-  Revision 1.181  2005/01/24 22:08:32  peter
-    * interface wrapper generation moved to cgobj
-    * generate interface wrappers after the module is parsed
-
-  Revision 1.180  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-  Revision 1.179  2005/01/09 20:24:43  olle
-    * rework of macro subsystem
-    + exportable macros for mode macpas
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: ahitest.pas,v 1.2 2005/02/14 17:13:10 peter Exp $
 
     Using AHI device interface to produce sound
     Free Pascal for MorphOS example
@@ -185,13 +184,3 @@ begin
   else
     cleanup('',0);
 end.
-
-{
-  $Log: ahitest.pas,v $
-  Revision 1.2  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.1  2005/01/30 20:03:43  karoly
-    * initial revision
-
-}

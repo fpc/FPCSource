@@ -1,5 +1,4 @@
 {
-    $Id: rabase.pas,v 1.5 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2003 by Peter Vreman, Florian Klaempfl and Carl Eric Codere
 
     Basic stuff for assembler readers
@@ -104,9 +103,3 @@ finalization
       asmmodeinfos[asmmode]:=nil;
     end;
 end.
-{
-  $Log: rabase.pas,v $
-  Revision 1.5  2005/02/14 17:13:07  peter
-    * truncate log
-
-}

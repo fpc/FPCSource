@@ -1,5 +1,4 @@
 {
-    $Id: aasmcpu.pas,v 1.5 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     Implements the assembler classes specific for the Alpha

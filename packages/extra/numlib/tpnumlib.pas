@@ -1,5 +1,4 @@
 {
-    $Id: tpnumlib.pas,v 1.2 2004/04/18 11:23:22 marco Exp $
     This file is part of the Numlib package.
     Copyright (c) 1986-2000 by
      Kees van Ginneken, Wil Kortsmit and Loek van Reij of the

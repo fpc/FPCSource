@@ -1,5 +1,4 @@
 {
-    $Id: pdecvar.pas,v 1.98 2005/03/09 23:44:18 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Parses variable declarations. Used for var statement and record
@@ -1318,40 +1317,3 @@ implementation
       end;
 
 end.
-{
-  $Log: pdecvar.pas,v $
-  Revision 1.98  2005/03/09 23:44:18  peter
-  support external <dllname>; also for variables
-
-  Revision 1.97  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.96  2005/02/03 17:11:40  peter
-    * more procvar directive fixes
-
-  Revision 1.95  2005/02/02 19:03:27  florian
-    * fixed proc. vars with calling specifiers in usual var declarations
-
-  Revision 1.94  2005/02/01 23:18:54  florian
-    * fixed:
-      r1 = record
-        p : procedure stdcall;
-        i : longint;
-      end;
-
-  Revision 1.93  2005/02/01 08:46:13  michael
-   * Patch from peter: fix macpas anonymous function procvar
-
-  Revision 1.92  2005/01/30 17:17:19  florian
-    * variables exported by $J/$Z in macpas mode are never regable
-
-  Revision 1.91  2005/01/06 13:30:41  florian
-    * widechararray patch from Peter
-
-  Revision 1.90  2005/01/04 16:52:07  peter
-    * don't typecast index of indexed properties
-
-  Revision 1.89  2005/01/04 16:37:38  peter
-    * give error when property doesn't reference a method or field
-
-}

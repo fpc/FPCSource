@@ -102,11 +102,3 @@ BEGIN
     WriteLN('The total size is ',TotalSize,' Byte.');
     CleanUp('',0);
 END.
-
-{
-  $Log: dirdemo.pas,v $
-  Revision 1.3  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
-

@@ -1,5 +1,4 @@
 {
-    $Id: psub.pas,v 1.230 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Daniel Mantione
 
     Does the parsing and codegeneration at subroutine level
@@ -1466,19 +1465,3 @@ implementation
 
 
 end.
-{
-  $Log: psub.pas,v $
-  Revision 1.230  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.229  2005/01/04 16:36:31  peter
-    * fix aftercosntruction calls, vmt=1 is used to indicate that
-      afterconstruction needs to be called
-    * only accept resourcestring when objpas is loaded
-
-  Revision 1.228  2005/01/03 22:27:56  peter
-    * insert stack_check helper call before doing register allocation
-      so the used registers can't be reused when parameters are loaded
-      into register variables
-
-}

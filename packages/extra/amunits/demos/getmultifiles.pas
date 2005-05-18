@@ -45,13 +45,3 @@ begin
   end else writeln('You didn''t pick any files');
   DestroyList(mylist);
 END.
-
-{
-  $Log: getmultifiles.pas,v $
-  Revision 1.2  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
-
-
-

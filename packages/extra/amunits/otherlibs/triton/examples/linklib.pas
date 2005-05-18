@@ -274,13 +274,3 @@ BEGIN  { Main }
      END
      ELSE CleanExit('Can''t create application',20);
 END.
-
-{
-  $Log
-}
-
-
-
-
-
-

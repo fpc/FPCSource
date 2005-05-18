@@ -1,5 +1,4 @@
 {
-    $Id: gdbcon.pas,v 1.3 2005/02/14 17:13:19 peter Exp $
 
     Fake GDBCon unit (including base from GDBInt)
 
@@ -159,10 +158,3 @@ begin
 end;
 
 end.
-{
-  $Log: gdbcon.pas,v $
-  Revision 1.3  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
-

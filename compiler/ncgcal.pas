@@ -1,5 +1,4 @@
 {
-    $Id: ncgcal.pas,v 1.204 2005/04/25 09:41:28 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for call nodes
@@ -1252,55 +1251,3 @@ begin
    ccallparanode:=tcgcallparanode;
    ccallnode:=tcgcallnode;
 end.
-{
-  $Log: ncgcal.pas,v $
-  Revision 1.204  2005/04/25 09:41:28  peter
-  decr refcnt for out paras
-
-  Revision 1.203  2005/04/05 21:06:44  peter
-    * support typecasting a ordinal const to 8 byte record. a_param_loc
-      can't be used. Instead force the location to memory so it uses
-      a_param_ref
-
-  Revision 1.202  2005/02/27 16:40:13  peter
-  fix register deallocation for 64bit results
-
-  Revision 1.201  2005/02/15 21:39:48  peter
-    * remove is_single_reference
-    * revert loading of ref-to-ref para valu
-
-  Revision 1.200  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.199  2005/01/30 21:51:57  jonas
-    * fixed darwin cycle
-
-  Revision 1.198  2005/01/29 11:36:52  peter
-    * update x86_64 with new cpupara
-
-  Revision 1.197  2005/01/20 17:47:01  peter
-    * remove copy_value_on_stack and a_param_copy_ref
-
-  Revision 1.196  2005/01/18 22:19:20  peter
-    * multiple location support for i386 a_param_ref
-    * remove a_param_copy_ref for i386
-
-  Revision 1.195  2005/01/12 10:02:22  florian
-    * removed ie20050111
-
-  Revision 1.194  2005/01/10 21:50:05  jonas
-    + support for passing records in registers under darwin
-    * tcgpara now also has an intsize field, which contains the size in
-      bytes of the whole parameter
-
-  Revision 1.193  2005/01/07 16:22:54  florian
-    + implemented abi compliant handling of strucutured functions results on sparc platform
-
-  Revision 1.192  2005/01/04 16:36:51  peter
-    * release temps in array constructor
-
-  Revision 1.191  2005/01/02 16:58:48  peter
-    * Don't release methodpointer. It is maybe still needed when we need to
-     convert the calln to loadn
-
-}

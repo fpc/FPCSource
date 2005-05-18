@@ -93,4 +93,3 @@ begin
    * mouse event). *)
   gtk_main ();
 end.
-

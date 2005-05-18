@@ -1,6 +1,5 @@
 {****************************************************************************
 
-    $Id: pmwp.pas,v 1.2 2005/02/14 17:13:31 peter Exp $
 
     This file is part of the Free Pascal run time library.
     Copyrigth (c) 2003 by Yuri Prokushev (prokushev@freemail.ru)
@@ -207,36 +206,3 @@ Function WinShutdownSystem(ahab: HAB;
 implementation
 
 end.
-
-{
-// Not implemented/not documented APIs
-WinShutdownAndReboot    PMWP     152 ?
-WinShutdown             PMWP     153 ?
-OldWinCreateObject      PMWP     202 ?
-WinRestartWorkplace     PMWP     221 ?
-ShlGetUserWordPtr       PMWP     224 ?
-WinUnlockSystem         PMWP     282 ?
-WinLockupSystem         PMWP     283 ?
-WinNotebookButtonFromID PMWP     511 ?
-WinWaitForShell         PMWP     512 ?
-}
-
-{
-// Not founded indexes
-Function WinSetFileIconN(pszFileName: PChar
-                         pIcnInfo: PICONINFO;
-                         ulIconIndex: Cardinal): Longbool; cdecl;
-    external 'PMWP' index ???;
-
-Function WinLoadFileIconN(pszFileName: PChar;
-                          fPrivate: Longbool,
-                          ulIconIndex: Cardinal): Cardinal; cdecl;
-    external 'PMWP' index ???;
-}
-
-{
-$Log: pmwp.pas,v $
-Revision 1.2  2005/02/14 17:13:31  peter
-  * truncate log
-
-}

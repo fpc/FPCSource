@@ -1,5 +1,4 @@
 {
-    $Id: cpuswtch.pas,v 1.14 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     interprets the commandline options which are i386 specific
@@ -114,9 +113,3 @@ end;
 initialization
   coption:=toption386;
 end.
-{
-  $Log: cpuswtch.pas,v $
-  Revision 1.14  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

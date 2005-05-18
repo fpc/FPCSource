@@ -1,5 +1,4 @@
 {
-    $Id: cpunode.pas,v 1.21 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Includes the PowerPC code generator
@@ -49,13 +48,3 @@ unit cpunode;
        ;
 
 end.
-{
-  $Log: cpunode.pas,v $
-  Revision 1.21  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.20  2005/01/24 22:08:32  peter
-    * interface wrapper generation moved to cgobj
-    * generate interface wrappers after the module is parsed
-
-}

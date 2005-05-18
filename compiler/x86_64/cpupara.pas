@@ -1,5 +1,4 @@
 {
-    $Id: cpupara.pas,v 1.18 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Generates the argument location information for x86-64 target
@@ -491,23 +490,3 @@ unit cpupara;
 begin
    paramanager:=tx86_64paramanager.create;
 end.
-{
-  $Log: cpupara.pas,v $
-  Revision 1.18  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.17  2005/02/06 18:59:15  peter
-    * arrays are always passed by addr
-    * cdecl array of const is passed by value so it doesn't allocate
-      anything
-
-  Revision 1.16  2005/02/03 20:04:49  peter
-    * push_addr_param must be defined per target
-
-  Revision 1.15  2005/02/03 18:32:25  peter
-    * fix extended paraloc
-
-  Revision 1.14  2005/01/29 11:36:52  peter
-    * update x86_64 with new cpupara
-
-}

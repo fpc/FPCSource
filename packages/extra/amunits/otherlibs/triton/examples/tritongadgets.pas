@@ -165,12 +165,3 @@ begin
     END;
     CleanExit('',0);
 END.
-
-{
-  $Log
-}
-
-
-
-
-

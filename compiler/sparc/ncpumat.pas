@@ -1,5 +1,4 @@
 {
-    $Id: ncpumat.pas,v 1.23 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate SPARC assembler for math nodes
@@ -323,9 +322,3 @@ begin
    cshlshrnode:=tSparcshlshrnode;
    cnotnode:=tSparcnotnode;
 end.
-{
-  $Log: ncpumat.pas,v $
-  Revision 1.23  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

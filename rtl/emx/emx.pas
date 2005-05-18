@@ -64,10 +64,3 @@ procedure emx_revision; cdecl;
 Implementation
 
 End.
-
-{
-$Log: emx.pas,v $
-Revision 1.3  2005/02/14 17:13:22  peter
-  * truncate log
-
-}

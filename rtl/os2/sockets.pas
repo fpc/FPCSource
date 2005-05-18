@@ -1,5 +1,4 @@
 {
-    $Id: sockets.pas,v 1.3 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 Yuri Prokushev
 
@@ -305,10 +304,3 @@ end;
 Begin
   so32dll.sock_init;
 End.
-
-{
-  $Log: sockets.pas,v $
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

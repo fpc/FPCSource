@@ -1,5 +1,4 @@
 {
-    $Id: defcmp.pas,v 1.73 2005/04/04 16:30:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Compare definitions and parameter lists
@@ -1400,39 +1399,3 @@ implementation
       end;
 
 end.
-{
-  $Log: defcmp.pas,v $
-  Revision 1.73  2005/04/04 16:30:07  peter
-    * support open array to pointer
-
-  Revision 1.72  2005/03/28 15:19:18  peter
-  support (wide)char to pwidechar
-
-  Revision 1.71  2005/03/13 11:42:48  florian
-    + made @(<formaldef>) assignment compatible with all pointer types
-
-  Revision 1.70  2005/03/11 21:55:43  florian
-    + array -> dyn. array type cast
-
-  Revision 1.69  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.68  2005/02/03 19:24:33  florian
-    + support for another explicit ugly delphi type cast added
-
-  Revision 1.67  2005/02/02 19:04:31  florian
-    * <class/interface>(<any ord. type>) in delphi mode allowed
-
-  Revision 1.66  2005/01/10 22:10:26  peter
-    * widestring patches from Alexey Barkovoy
-
-  Revision 1.65  2005/01/07 21:14:21  florian
-    + compiler side of variant<->interface implemented
-
-  Revision 1.64  2005/01/06 13:30:40  florian
-    * widechararray patch from Peter
-
-  Revision 1.63  2005/01/03 17:55:57  florian
-    + first batch of patches to support tdef.getcopy fully
-
-}

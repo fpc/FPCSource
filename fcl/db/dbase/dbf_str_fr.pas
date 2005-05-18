@@ -51,4 +51,3 @@ initialization
   STRING_INDEX_NOT_EXIST              := 'L''index "%s" n''existe pas.';
   STRING_NEED_EXCLUSIVE_ACCESS        := 'Access exclusif requis pour cette opération.';
 end.
-

@@ -1,5 +1,4 @@
 {
-    $Id: rautils.pas,v 1.104 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
     This unit implements some support routines for assembler parsing
@@ -1567,22 +1566,3 @@ end;
    end;
 
 end.
-{
-  $Log: rautils.pas,v $
-  Revision 1.104  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.103  2005/01/31 17:07:50  peter
-    * fix [regpara] in intel assembler
-
-  Revision 1.102  2005/01/20 17:05:53  peter
-    * use val() for decoding integers
-
-  Revision 1.101  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-  Revision 1.100  2005/01/05 15:22:39  florian
-    * added support of shifter ops in arm inline assembler
-
-}

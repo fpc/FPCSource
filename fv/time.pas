@@ -1,4 +1,3 @@
-{ $Id: time.pas,v 1.14 2005/02/14 17:13:18 peter Exp $ }
 {*********************[ TIME UNIT ]************************}
 {                                                          }
 {             System independent TIME unit                 }
@@ -464,10 +463,3 @@ BEGIN
 END;
 
 END.
-
-{
- $Log: time.pas,v $
- Revision 1.14  2005/02/14 17:13:18  peter
-   * truncate log
-
-}

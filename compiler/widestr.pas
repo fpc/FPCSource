@@ -1,5 +1,4 @@
 {
-    $Id: widestr.pas,v 1.17 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     This unit contains basic functions for unicode support in the
@@ -224,9 +223,3 @@ unit widestr;
       end;
 
 end.
-{
-  $Log: widestr.pas,v $
-  Revision 1.17  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

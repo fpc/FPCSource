@@ -1,5 +1,4 @@
 {
-    $Id: get9.pas,v 1.2 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 Karoly Balogh
 
@@ -65,13 +64,3 @@ end;
 
 begin
 end.
-
-{
-  $Log: get9.pas,v $
-  Revision 1.2  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.1  2005/01/06 08:28:41  karoly
-    * initial revision
-
-}

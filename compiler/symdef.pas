@@ -1,5 +1,4 @@
 {
-    $Id: symdef.pas,v 1.305 2005/05/07 16:43:02 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     Symbol table implementation for the definitions
@@ -6405,66 +6404,3 @@ implementation
       end;
 
 end.
-{
-  $Log: symdef.pas,v $
-  Revision 1.305  2005/05/07 16:43:02  florian
-    + made variant publishable
-
-  Revision 1.304  2005/04/25 13:15:18  peter
-    * extended stabs use size of 10
-
-  Revision 1.303  2005/04/03 15:20:42  florian
-    * class ref. properties can be published now
-
-  Revision 1.302  2005/03/28 15:04:13  peter
-  fix loading of inline info
-
-  Revision 1.301  2005/03/25 21:55:43  jonas
-    * removed some unused variables
-
-  Revision 1.300  2005/03/13 08:35:09  florian
-    * fixed FieldAddress for 64 bit and CPUs requiring proper alignment
-
-  Revision 1.299  2005/03/07 17:58:27  peter
-    * fix protected checking
-
-  Revision 1.298  2005/02/26 15:43:09  florian
-    * userdata in file/textrecs now 32 bytes
-
-  Revision 1.297  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.296  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-  Revision 1.295  2005/02/10 22:08:37  peter
-    * implprocs requires no duplicate entries of the same procdef
-
-  Revision 1.294  2005/02/02 19:02:47  florian
-    * type = type <procvar>; ignored
-
-  Revision 1.293  2005/02/01 08:46:13  michael
-   * Patch from peter: fix macpas anonymous function procvar
-
-  Revision 1.292  2005/01/30 11:26:40  peter
-    * add info that a procedure is local in error messages
-
-  Revision 1.291  2005/01/24 22:08:32  peter
-    * interface wrapper generation moved to cgobj
-    * generate interface wrappers after the module is parsed
-
-  Revision 1.290  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-  Revision 1.289  2005/01/16 14:47:26  florian
-    * typeinfo in typedata is now aligned
-
-  Revision 1.288  2005/01/09 15:05:29  peter
-    * fix interface vtbl optimization
-    * replace ugly pointer construct of ioffset()
-
-  Revision 1.287  2005/01/03 17:55:57  florian
-    + first batch of patches to support tdef.getcopy fully
-
-}

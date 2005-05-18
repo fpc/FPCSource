@@ -1,5 +1,4 @@
 {
-    $Id: pinline.pas,v 1.44 2005/03/27 20:19:21 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generates nodes for routines that need compiler support
@@ -739,24 +738,3 @@ implementation
       end;
 
 end.
-{
-  $Log: pinline.pas,v $
-  Revision 1.44  2005/03/27 20:19:21  florian
-    + compiler support for reading/writing of vararrays
-
-  Revision 1.43  2005/03/25 22:20:19  peter
-    * add hint when passing an uninitialized variable to a var parameter
-
-  Revision 1.42  2005/03/25 21:55:43  jonas
-    * removed some unused variables
-
-  Revision 1.41  2005/03/05 16:37:42  florian
-    * fixed copy(dyn. array,...);
-
-  Revision 1.40  2005/03/03 19:36:42  jonas
-    * fixed web bug 3740
-
-  Revision 1.39  2005/02/14 17:13:07  peter
-    * truncate log
-
-}

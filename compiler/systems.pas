@@ -1,5 +1,4 @@
 {
-    $Id: systems.pas,v 1.104 2005/03/20 22:36:45 olle Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit contains information about the target systems supported
@@ -715,22 +714,3 @@ initialization
 finalization
   DeregisterInfos;
 end.
-{
-  $Log: systems.pas,v $
-  Revision 1.104  2005/03/20 22:36:45  olle
-    * Cleaned up handling of source file extension.
-    + Added support for .p extension for macos and darwin
-
-  Revision 1.103  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.102  2005/02/13 20:11:16  peter
-    * sunos to solaris
-
-  Revision 1.101  2005/02/06 00:05:56  florian
-    + x86_64 pic draft
-
-  Revision 1.100  2005/01/25 18:48:15  peter
-    * tf_pic_uses_got added
-
-}

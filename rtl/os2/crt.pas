@@ -1,6 +1,5 @@
 {****************************************************************************
 
-    $Id: crt.pas,v 1.13 2005/05/14 14:40:45 hajny Exp $
 
                             Standard CRT unit.
                     Free Pascal runtime library for OS/2.
@@ -381,25 +380,3 @@ begin
  end;
  CrtInit;
 end.
-
-{
-  $Log: crt.pas,v $
-  Revision 1.13  2005/05/14 14:40:45  hajny
-    * fix for bug 3713 and other - basis for future common implementation prepared
-
-  Revision 1.12  2005/03/30 23:11:35  hajny
-    * OS/2 fixes merged to EMX
-
-  Revision 1.11  2005/03/30 22:42:49  hajny
-    * fix for InsLine
-
-  Revision 1.10  2005/03/30 22:40:25  hajny
-    * fix for 3792
-
-  Revision 1.9  2005/03/30 22:11:55  hajny
-    * patch from Sterling Bates for bug 3762 (with additional enhancements for better compatibility)
-
-  Revision 1.8  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-  $Id: invgenex.pas,v 1.2 2005/02/14 17:13:21 peter Exp $
 
 }
 
@@ -28,11 +27,3 @@ begin
   end; {term=1}
   close(input); close(output)
 end.
-
-{
-
-$Log: invgenex.pas,v $
-Revision 1.2  2005/02/14 17:13:21  peter
-  * truncate log
-
-}

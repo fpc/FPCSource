@@ -1,5 +1,4 @@
 {
-    $Id: aasmcpu.pas,v 1.41 2005/02/20 12:23:45 florian Exp $
     Copyright (c) 2003 by Florian Klaempfl
 
     Contains the assembler object for the ARM
@@ -516,22 +515,3 @@ implementation
       end;
 
 end.
-{
-  $Log: aasmcpu.pas,v $
-  Revision 1.41  2005/02/20 12:23:45  florian
-    * fixed constant insertation
-
-  Revision 1.40  2005/02/15 21:24:40  florian
-    * don't split indirect calls while inserting pc relative constants
-
-  Revision 1.39  2005/02/15 19:53:41  florian
-    * don't generate overflow results if they aren't necessary
-    * fixed op_reg_reg_reg_reg on arm
-
-  Revision 1.38  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.37  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-}

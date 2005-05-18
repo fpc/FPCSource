@@ -1,5 +1,4 @@
 {
-    $Id: rgbase.pas,v 1.4 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Helper routines for register allocator
@@ -79,9 +78,3 @@ implementation
       end;
 
 end.
-{
-  $Log: rgbase.pas,v $
-  Revision 1.4  2005/02/14 17:13:07  peter
-    * truncate log
-
-}

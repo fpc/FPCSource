@@ -1,5 +1,4 @@
 {
-    $Id: popt386.pas,v 1.70 2005/03/20 21:41:10 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Jonas Maebe
 
     This unit contains the peephole optimizer.
@@ -2027,25 +2026,3 @@ end;
 
 
 end.
-
-{
-  $Log: popt386.pas,v $
-  Revision 1.70  2005/03/20 21:41:10  florian
-    * USECMOV fixed
-
-  Revision 1.69  2005/02/26 01:27:00  jonas
-    * fixed generic jumps optimizer and enabled it for ppc (the label table
-      was not being initialised -> getfinaldestination always failed, which
-      caused wrong optimizations in some cases)
-    * changed the inverse_cond into a function, because tasmcond is a record
-      on ppc
-    + added a compare_conditions() function for the same reason
-
-  Revision 1.68  2005/02/25 20:50:53  jonas
-    * fixed uninitialised function result in getfinaldestination() when
-      maximum recursion reached
-
-  Revision 1.67  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

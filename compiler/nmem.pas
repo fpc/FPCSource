@@ -1,5 +1,4 @@
 {
-    $Id: nmem.pas,v 1.96 2005/04/06 19:39:04 florian Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Type checking and register allocation for memory related nodes
@@ -953,15 +952,3 @@ begin
   cvecnode := tvecnode;
   cwithnode := twithnode;
 end.
-{
-  $Log: nmem.pas,v $
-  Revision 1.96  2005/04/06 19:39:04  florian
-    * fixed previous commit
-
-  Revision 1.95  2005/03/25 22:20:19  peter
-    * add hint when passing an uninitialized variable to a var parameter
-
-  Revision 1.94  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

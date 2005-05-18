@@ -1,5 +1,4 @@
 {
-    $Id: nx64inl.pas,v 1.2 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate x86-64 inline nodes
@@ -41,9 +40,3 @@ implementation
 begin
    cinlinenode:=tx8664inlinenode;
 end.
-{
-  $Log: nx64inl.pas,v $
-  Revision 1.2  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

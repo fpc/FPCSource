@@ -1,5 +1,4 @@
 {
-    $Id: t_palmos.pas,v 1.5 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2001-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
@@ -211,9 +210,3 @@ initialization
   RegisterRes(res_m68k_palmos_info);
 {$endif m68k}
 end.
-{
-  $Log: t_palmos.pas,v $
-  Revision 1.5  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

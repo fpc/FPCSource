@@ -1,5 +1,4 @@
 {
-    $Id: n386add.pas,v 1.103 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Code generation for add nodes on the i386
@@ -651,12 +650,3 @@ interface
 begin
    caddnode:=ti386addnode;
 end.
-{
-  $Log: n386add.pas,v $
-  Revision 1.103  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.102  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: compiler.pas,v 1.61 2005/05/06 18:54:26 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit is the interface of the compiler which can be used by
@@ -468,42 +467,3 @@ begin
 end;
 
 end.
-{
-  $Log: compiler.pas,v $
-  Revision 1.61  2005/05/06 18:54:26  florian
-    * better exception catching
-
-  Revision 1.60  2005/04/24 21:01:37  peter
-    * always use exceptions to stop the compiler
-    - remove stop, do_stop
-
-  Revision 1.59  2005/03/25 21:55:43  jonas
-    * removed some unused variables
-
-  Revision 1.58  2005/02/28 15:38:38  marco
-   * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
-
-  Revision 1.57  2005/02/15 19:15:45  peter
-    * Handle Control-C exception more cleanly
-
-  Revision 1.56  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.55  2005/02/13 20:11:16  peter
-    * sunos to solaris
-
-  Revision 1.54  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-  Revision 1.53  2005/01/31 21:30:56  olle
-    + Added fake Exception classes, only for MACOS.
-
-  Revision 1.52  2005/01/26 16:23:28  peter
-    * detect arithmetic overflows for constants at compile time
-    * use try..except instead of setjmp
-
-  Revision 1.51  2005/01/09 20:24:43  olle
-    * rework of macro subsystem
-    + exportable macros for mode macpas
-
-}

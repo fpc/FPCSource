@@ -1,5 +1,4 @@
 {
-    $Id: paramgr.pas,v 1.88 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Generic calling convention handling
@@ -384,29 +383,3 @@ initialization
 finalization
   paramanager.free;
 end.
-
-{
-   $Log: paramgr.pas,v $
-   Revision 1.88  2005/02/14 17:13:07  peter
-     * truncate log
-
-   Revision 1.87  2005/02/08 16:40:16  florian
-     * dyn. arrays are returned in registers
-
-   Revision 1.86  2005/02/03 20:04:49  peter
-     * push_addr_param must be defined per target
-
-   Revision 1.85  2005/01/20 17:47:01  peter
-     * remove copy_value_on_stack and a_param_copy_ref
-
-   Revision 1.84  2005/01/18 22:19:20  peter
-     * multiple location support for i386 a_param_ref
-     * remove a_param_copy_ref for i386
-
-   Revision 1.83  2005/01/10 21:50:05  jonas
-     + support for passing records in registers under darwin
-     * tcgpara now also has an intsize field, which contains the size in
-       bytes of the whole parameter
-
-}
-

@@ -1,5 +1,4 @@
 {
-    $Id: ncpucall.pas,v 1.16 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate sparc assembler for in call nodes
@@ -55,13 +54,3 @@ implementation
 begin
   ccallnode:=TSparcCallNode;
 end.
-{
-  $Log: ncpucall.pas,v $
-  Revision 1.16  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.15  2005/01/07 16:22:54  florian
-    + implemented abi compliant handling of strucutured functions results on sparc platform
-
-}
-

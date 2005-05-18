@@ -1,5 +1,4 @@
 {
-    $Id: symtype.pas,v 1.52 2005/03/07 17:58:27 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     This unit handles the symbol tables
@@ -1460,16 +1459,3 @@ finalization
 {$endif MEMDEBUG}
 
 end.
-{
-  $Log: symtype.pas,v $
-  Revision 1.52  2005/03/07 17:58:27  peter
-    * fix protected checking
-
-  Revision 1.51  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.50  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-}

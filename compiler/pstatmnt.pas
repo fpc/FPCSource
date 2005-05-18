@@ -1,5 +1,4 @@
 {
-    $Id: pstatmnt.pas,v 1.156 2005/03/25 22:20:19 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Does the parsing of the statements
@@ -1180,28 +1179,3 @@ implementation
       end;
 
 end.
-{
-  $Log: pstatmnt.pas,v $
-  Revision 1.156  2005/03/25 22:20:19  peter
-    * add hint when passing an uninitialized variable to a var parameter
-
-  Revision 1.155  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.154  2005/02/11 16:24:59  peter
-    * don't set varstate to vs_used for record in with at start yet
-
-  Revision 1.153  2005/02/08 21:25:14  florian
-    * fixed usage of 000 as label
-
-  Revision 1.152  2005/02/03 17:10:58  peter
-    * check for-loop constants ranges
-
-  Revision 1.151  2005/01/31 20:23:53  peter
-    * set varstate before parsing the instruction block in for statements
-
-  Revision 1.150  2005/01/31 16:16:21  peter
-    * for-node cleanup, checking for uninitialzed from and to values
-      is now supported
-
-}

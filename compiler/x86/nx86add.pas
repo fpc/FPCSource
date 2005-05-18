@@ -1,5 +1,4 @@
 {
-    $Id: nx86add.pas,v 1.17 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Common code generation for add nodes on the i386 and x86
@@ -802,12 +801,3 @@ unit nx86add;
 begin
    caddnode:=tx86addnode;
 end.
-{
-  $Log: nx86add.pas,v $
-  Revision 1.17  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.16  2005/02/06 00:05:56  florian
-    + x86_64 pic draft
-
-}

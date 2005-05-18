@@ -1,5 +1,4 @@
 {
-    $Id: csopt386.pas,v 1.74 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
       development team
 
@@ -2193,10 +2192,3 @@ begin
 end;
 
 end.
-
-{
-  $Log: csopt386.pas,v $
-  Revision 1.74  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

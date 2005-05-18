@@ -1,5 +1,4 @@
 {
-    $Id: aoptcpud.pas,v 1.4 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
     Development Team
 
@@ -38,10 +37,3 @@ Implementation
 
 
 End.
-
-{
-  $Log: aoptcpud.pas,v $
-  Revision 1.4  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

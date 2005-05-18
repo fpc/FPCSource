@@ -1,5 +1,4 @@
 {
-    $Id: globtype.pas,v 1.72 2005/03/27 14:10:52 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     Global types
@@ -321,30 +320,3 @@ than 255 characters. That's why using Ansi Strings}
 implementation
 
 end.
-{
-  $Log: globtype.pas,v $
-  Revision 1.72  2005/03/27 14:10:52  jonas
-    * const record parameters > 8 bytes are now passed by reference for non
-      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
-      GPC (slightly more efficient than Metrowerks behaviour below, but
-      less efficient in most cases than our previous scheme)
-    + "mwpascal" procedure directive to support the const record parameter
-      behaviour of Metrowerks Pascal, which passes all const records by
-      reference
-
-  Revision 1.71  2005/02/17 17:52:39  peter
-    * allow enum arithmetics inside an enum def, compatible with delphi
-
-  Revision 1.70  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.69  2005/02/06 11:15:31  peter
-    * removed $threading
-
-  Revision 1.68  2005/01/23 21:09:12  florian
-    + added pi bit pattern to the compiler, so pi should always be correct
-
-  Revision 1.67  2005/01/04 16:20:51  florian
-    * fixed nan et al. handling on arm
-
-}

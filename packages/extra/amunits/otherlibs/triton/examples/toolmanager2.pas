@@ -164,11 +164,3 @@ begin
     i := TR_AutoRequest(Triton_App,NIL,@tritontags);
     CleanUp('',0);
 end.
-
-{
-  $Log
-}
-
-
-
-

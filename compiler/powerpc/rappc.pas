@@ -1,5 +1,4 @@
 {
-    $Id: rappc.pas,v 1.5 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2003 by Carl Eric Codere and Peter Vreman
 
     Handles the common ppc assembler reader routines
@@ -40,9 +39,3 @@ unit rappc;
   implementation
 
 end.
-{
-  $Log: rappc.pas,v $
-  Revision 1.5  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

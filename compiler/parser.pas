@@ -1,5 +1,4 @@
 {
-    $Id: parser.pas,v 1.76 2005/04/25 08:15:17 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit does the parsing process
@@ -665,33 +664,3 @@ implementation
     end;
 
 end.
-{
-  $Log: parser.pas,v $
-  Revision 1.76  2005/04/25 08:15:17  peter
-  reset compiling_module in doneparser
-
-  Revision 1.75  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.74  2005/02/10 20:06:34  peter
-    * fixed call to build sourcefiles needed for ide
-
-  Revision 1.73  2005/02/01 08:46:13  michael
-   * Patch from peter: fix macpas anonymous function procvar
-
-  Revision 1.72  2005/01/29 11:36:52  peter
-    * update x86_64 with new cpupara
-
-  Revision 1.71  2005/01/26 16:23:28  peter
-    * detect arithmetic overflows for constants at compile time
-    * use try..except instead of setjmp
-
-  Revision 1.70  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-  Revision 1.69  2005/01/09 20:24:43  olle
-    * rework of macro subsystem
-    + exportable macros for mode macpas
-
-}

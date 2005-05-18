@@ -65,11 +65,3 @@ begin
   Free_Engine_Memory(vca.Volume_Control_Data);
   Close_LVM_Engine;
 end.
-
-{
-$Log: lvmtest.pas,v $
-Revision 1.2  2005/02/14 17:13:21  peter
-  * truncate log
-
-}
-

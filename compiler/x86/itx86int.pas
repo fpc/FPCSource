@@ -1,5 +1,4 @@
 {
-    $Id: itx86int.pas,v 1.6 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit contains the i386 AT&T instruction tables
@@ -86,9 +85,3 @@ implementation
       end;
 
 end.
-{
-  $Log: itx86int.pas,v $
-  Revision 1.6  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

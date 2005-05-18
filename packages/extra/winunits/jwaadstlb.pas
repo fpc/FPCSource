@@ -1,4 +1,3 @@
-// $Id: jwaadstlb.pas,v 1.1 2005/04/04 07:56:10 marco Exp $
 
 unit JwaAdsTLB;
 

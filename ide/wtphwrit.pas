@@ -1,5 +1,4 @@
 {
-    $Id: wtphwrit.pas,v 1.3 2005/02/14 17:13:19 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -273,10 +272,3 @@ begin
 end;
 
 END.
-{
-  $Log: wtphwrit.pas,v $
-  Revision 1.3  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
-

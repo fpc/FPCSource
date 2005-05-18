@@ -1,5 +1,4 @@
 {
-    $Id: fppu.pas,v 1.68 2005/03/20 22:36:45 olle Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the first loading and searching of the modules
@@ -1609,24 +1608,3 @@ uses
       end;
 
 end.
-{
-  $Log: fppu.pas,v $
-  Revision 1.68  2005/03/20 22:36:45  olle
-    * Cleaned up handling of source file extension.
-    + Added support for .p extension for macos and darwin
-
-  Revision 1.67  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.66  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-  Revision 1.65  2005/01/10 21:02:35  olle
-    - disabled macro diff message
-
-  Revision 1.64  2005/01/09 20:24:43  olle
-    * rework of macro subsystem
-    + exportable macros for mode macpas
-
-}

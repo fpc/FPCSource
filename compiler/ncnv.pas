@@ -1,5 +1,4 @@
 {
-    $Id: ncnv.pas,v 1.182 2005/04/08 15:16:37 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Type checking and register allocation for type converting nodes
@@ -2638,45 +2637,3 @@ begin
    casnode:=tasnode;
    cisnode:=tisnode;
 end.
-{
-  $Log: ncnv.pas,v $
-  Revision 1.182  2005/04/08 15:16:37  peter
-  remove forcing of non-regvar for left node when converting to non-regvar
-
-  Revision 1.181  2005/04/06 11:49:37  michael
-  * Fix methodpointer copy from callnode to loadnode
-
-  Revision 1.180  2005/03/25 22:20:18  peter
-    * add hint when passing an uninitialized variable to a var parameter
-
-  Revision 1.179  2005/03/11 21:55:43  florian
-    + array -> dyn. array type cast
-
-  Revision 1.178  2005/03/05 16:09:20  jonas
-    * fixed small bug in ttypeconvnode.printnodeinfo
-
-  Revision 1.177  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.176  2005/02/03 18:43:59  florian
-    * in delphi mode const sets from enumerations with values > 255 are allowed if these elements aren't used
-
-  Revision 1.175  2005/01/30 11:26:40  peter
-    * add info that a procedure is local in error messages
-
-  Revision 1.174  2005/01/09 15:04:36  peter
-    * fix crash with -CR
-
-  Revision 1.173  2005/01/07 21:14:21  florian
-    + compiler side of variant<->interface implemented
-
-  Revision 1.172  2005/01/06 13:40:41  florian
-    * 1.0.10 starting patch from Peter
-
-  Revision 1.171  2005/01/06 13:30:41  florian
-    * widechararray patch from Peter
-
-  Revision 1.170  2005/01/03 17:55:57  florian
-    + first batch of patches to support tdef.getcopy fully
-
-}

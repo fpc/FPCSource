@@ -1,5 +1,4 @@
 {
-    $Id: ncginl.pas,v 1.70 2005/04/04 16:04:47 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Carl Eric Codere
 
     Generate generic inline nodes
@@ -685,16 +684,3 @@ implementation
 begin
    cinlinenode:=tcginlinenode;
 end.
-
-{
-  $Log: ncginl.pas,v $
-  Revision 1.70  2005/04/04 16:04:47  peter
-    * fix register allocation in second_assert
-
-  Revision 1.69  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.68  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-}

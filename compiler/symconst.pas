@@ -1,5 +1,4 @@
 {
-    $Id: symconst.pas,v 1.103 2005/03/27 14:10:52 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     Symbol table constants
@@ -439,34 +438,3 @@ initialization
     include(pushleftright_pocalls,pocall_compilerproc);
 
 end.
-{
-  $Log: symconst.pas,v $
-  Revision 1.103  2005/03/27 14:10:52  jonas
-    * const record parameters > 8 bytes are now passed by reference for non
-      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
-      GPC (slightly more efficient than Metrowerks behaviour below, but
-      less efficient in most cases than our previous scheme)
-    + "mwpascal" procedure directive to support the const record parameter
-      behaviour of Metrowerks Pascal, which passes all const records by
-      reference
-
-  Revision 1.102  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.101  2005/01/30 11:26:40  peter
-    * add info that a procedure is local in error messages
-
-  Revision 1.100  2005/01/09 20:24:43  olle
-    * rework of macro subsystem
-    + exportable macros for mode macpas
-
-  Revision 1.99  2005/01/06 02:13:03  karoly
-    * more SysV call support stuff for MorphOS
-
-  Revision 1.98  2005/01/05 02:31:06  karoly
-    * fixed SysV syscall support (MorphOS)
-
-  Revision 1.97  2005/01/04 17:40:33  karoly
-    + sysv style syscalls added for MorphOS
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: regvars.pas,v 1.83 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Jonas Maebe
 
     This unit handles register variable allocation
@@ -665,10 +664,3 @@ implementation
 
 
 end.
-
-{
-  $Log: regvars.pas,v $
-  Revision 1.83  2005/02/14 17:13:07  peter
-    * truncate log
-
-}

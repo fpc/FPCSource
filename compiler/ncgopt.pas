@@ -1,5 +1,4 @@
 {
-    $Id: ncgopt.pas,v 1.18 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2003 by Jonas Maebe
 
     This unit implements the generic implementation of optimized nodes
@@ -193,10 +192,3 @@ end;
 begin
   caddsstringcharoptnode := tcgaddsstringcharoptnode;
 end.
-
-{
-  $Log: ncgopt.pas,v $
-  Revision 1.18  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

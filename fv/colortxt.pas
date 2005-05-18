@@ -1,4 +1,3 @@
-{ $Id: colortxt.pas,v 1.4 2005/02/14 17:13:18 peter Exp $  }
 unit ColorTxt;
 
 {
@@ -125,9 +124,3 @@ end;
 
 
 end.
-{
- $Log: colortxt.pas,v $
- Revision 1.4  2005/02/14 17:13:18  peter
-   * truncate log
-
-}

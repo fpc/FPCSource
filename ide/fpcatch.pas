@@ -1,5 +1,4 @@
 {
-    $Id: fpcatch.pas,v 1.13 2005/04/02 23:56:54 hajny Exp $
     Copyright (c) 1997-98 by Michael Van Canneyt
 
     Unit to catch segmentation faults and Ctrl-C and exit gracefully
@@ -246,13 +245,3 @@ begin
 end;
 
 end.
-
-{
-  $Log: fpcatch.pas,v $
-  Revision 1.13  2005/04/02 23:56:54  hajny
-    * fix for targets missing exception handler implementation
-
-  Revision 1.12  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

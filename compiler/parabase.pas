@@ -1,5 +1,4 @@
 {
-    $Id: parabase.pas,v 1.12 2005/02/15 21:39:48 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Generic calling convention handling
@@ -249,30 +248,3 @@ implementation
 
 
 end.
-
-{
-   $Log: parabase.pas,v $
-   Revision 1.12  2005/02/15 21:39:48  peter
-     * remove is_single_reference
-     * revert loading of ref-to-ref para valu
-
-   Revision 1.11  2005/02/14 17:13:07  peter
-     * truncate log
-
-   Revision 1.10  2005/01/30 21:51:57  jonas
-     * fixed darwin cycle
-
-   Revision 1.9  2005/01/18 22:19:20  peter
-     * multiple location support for i386 a_param_ref
-     * remove a_param_copy_ref for i386
-
-   Revision 1.8  2005/01/10 21:50:05  jonas
-     + support for passing records in registers under darwin
-     * tcgpara now also has an intsize field, which contains the size in
-       bytes of the whole parameter
-
-   Revision 1.7  2005/01/07 16:22:54  florian
-     + implemented abi compliant handling of strucutured functions results on sparc platform
-
-}
-

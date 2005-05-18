@@ -1,5 +1,4 @@
 {
-    $Id: pmode.pas,v 1.4 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Sockets Interface
     Copyright (c) 1999 by Berczi Gabor
 
@@ -716,9 +715,3 @@ begin
 end;
 
 END.
-{
-  $Log: pmode.pas,v $
-  Revision 1.4  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

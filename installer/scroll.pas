@@ -1,5 +1,4 @@
 {
-    $Id: scroll.pas,v 1.7 2005/02/14 17:13:19 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000 by B'rczi, Gÿbor
     member of the Free Pascal development team
@@ -264,9 +263,3 @@ begin
 end;
 
 END.
-{
-  $Log: scroll.pas,v $
-  Revision 1.7  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: verbose.pas,v 1.41 2005/04/24 21:01:37 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit handles the verbose management
@@ -872,25 +871,3 @@ finalization
   { Be sure to close the redirect files to flush all data }
   DoneRedirectFile;
 end.
-{
-  $Log: verbose.pas,v $
-  Revision 1.41  2005/04/24 21:01:37  peter
-    * always use exceptions to stop the compiler
-    - remove stop, do_stop
-
-  Revision 1.40  2005/02/16 22:39:25  olle
-    * made macos compile
-
-  Revision 1.39  2005/02/15 19:15:45  peter
-    * Handle Control-C exception more cleanly
-
-  Revision 1.38  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.37  2005/02/07 17:25:28  peter
-  -vz for output to stderr
-
-  Revision 1.36  2005/01/20 17:29:07  peter
-    * fixed -vv
-
-}

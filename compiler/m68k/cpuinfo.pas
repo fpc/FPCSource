@@ -1,5 +1,4 @@
 {
-    $Id: cpuinfo.pas,v 1.15 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by the Free Pascal development team
 
     Basic Processor information for the PowerPC
@@ -75,9 +74,3 @@ Const
 Implementation
 
 end.
-{
-  $Log: cpuinfo.pas,v $
-  Revision 1.15  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

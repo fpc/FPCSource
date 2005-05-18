@@ -1,5 +1,4 @@
 {
-    $Id: cpuinfo.pas,v 1.5 2005/01/20 16:38:45 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1998-2000 by the Free Pascal development team
 

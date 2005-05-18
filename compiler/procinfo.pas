@@ -1,5 +1,4 @@
 {
-    $Id: procinfo.pas,v 1.18 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Information about the current procedure that is being compiled
@@ -182,9 +181,3 @@ implementation
 
 
 end.
-{
-  $Log: procinfo.pas,v $
-  Revision 1.18  2005/02/14 17:13:07  peter
-    * truncate log
-
-}

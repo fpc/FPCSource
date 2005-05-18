@@ -1,5 +1,4 @@
 {
-    $Id: ag386int.pas,v 1.56 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements an asmoutput class for Intel syntax with Intel i386+
@@ -874,12 +873,3 @@ initialization
   RegisterAssembler(as_i386_masm_info,T386IntelAssembler);
   RegisterAssembler(as_i386_wasm_info,T386IntelAssembler);
 end.
-{
-  $Log: ag386int.pas,v $
-  Revision 1.56  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.55  2005/01/24 20:44:29  florian
-    * wrong prefix output for masm fixed
-
-}

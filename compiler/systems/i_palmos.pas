@@ -1,5 +1,4 @@
 {
-    $Id: i_palmos.pas,v 1.7 2005/03/20 22:36:45 olle Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support information structures for PalmOS
@@ -88,13 +87,3 @@ initialization
   {$endif palmos}
 {$endif cpu68}
 end.
-{
-  $Log: i_palmos.pas,v $
-  Revision 1.7  2005/03/20 22:36:45  olle
-    * Cleaned up handling of source file extension.
-    + Added support for .p extension for macos and darwin
-
-  Revision 1.6  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

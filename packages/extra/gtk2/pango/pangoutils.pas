@@ -106,4 +106,3 @@ function pango_language_get_sample_string(language:PPangoLanguage):Pchar; cdecl;
 implementation
 
 end.
-

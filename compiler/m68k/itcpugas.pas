@@ -1,5 +1,4 @@
 {
-    $Id: itcpugas.pas,v 1.3 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit contains the m68k GAS instruction tables
@@ -137,9 +136,3 @@ interface
       end;
 
 end.
-{
-  $Log: itcpugas.pas,v $
-  Revision 1.3  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

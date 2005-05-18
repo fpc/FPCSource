@@ -1,6 +1,5 @@
 Program Sysmousetest;
 {
-    $Id: sysmousetest.pas,v 1.1 2005/04/19 13:01:59 marco Exp $
 
     This program is part of the FPC demoes.
     Copyright (C) 2000 by Marco van de Voort
@@ -228,12 +227,3 @@ begin
 //else 
 //  Writeln('This program must be run from the physical console, not over telnet or under X');
 end.
-
-{
-
-   $Log: sysmousetest.pas,v $
-   Revision 1.1  2005/04/19 13:01:59  marco
-    * sysmousetest for FreeBSD
-
-
-}

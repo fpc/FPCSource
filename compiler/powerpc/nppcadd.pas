@@ -1,5 +1,4 @@
 {
-    $Id: nppcadd.pas,v 1.57 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl and Jonas Maebe
 
     Code generation for add nodes on the PowerPC
@@ -1460,12 +1459,3 @@ interface
 begin
    caddnode:=tppcaddnode;
 end.
-{
-  $Log: nppcadd.pas,v $
-  Revision 1.57  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.56  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-}

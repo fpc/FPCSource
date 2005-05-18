@@ -1,5 +1,4 @@
 {
-    $Id: cgobj.pas,v 1.195 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2005 by Florian Klaempfl
     Member of the Free Pascal development team
 
@@ -2079,34 +2078,3 @@ finalization
   cg64.free;
 {$endif cpu64bit}
 end.
-{
-  $Log: cgobj.pas,v $
-  Revision 1.195  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.194  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-  Revision 1.193  2005/01/29 00:32:53  peter
-    * finalize for refcounted strings shall also reset temps to 0, the
-      previous exception that decrrefcnt already set it to 0 is not valid
-      anymore
-
-  Revision 1.192  2005/01/27 20:32:51  florian
-    + implemented overflow checking for 64 bit types on sparc
-
-  Revision 1.191  2005/01/24 22:08:32  peter
-    * interface wrapper generation moved to cgobj
-    * generate interface wrappers after the module is parsed
-
-  Revision 1.190  2005/01/20 17:47:01  peter
-    * remove copy_value_on_stack and a_param_copy_ref
-
-  Revision 1.189  2005/01/20 16:38:45  peter
-    * load jmp_buf_size from system unit
-
-  Revision 1.188  2005/01/18 22:19:20  peter
-    * multiple location support for i386 a_param_ref
-    * remove a_param_copy_ref for i386
-
-}

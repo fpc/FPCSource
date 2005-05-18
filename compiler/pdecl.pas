@@ -1,5 +1,4 @@
 {
-    $Id: pdecl.pas,v 1.95 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Does declaration (but not type) parsing for Free Pascal
@@ -666,16 +665,3 @@ implementation
       end;
 
 end.
-{
-  $Log: pdecl.pas,v $
-  Revision 1.95  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.94  2005/01/24 22:08:32  peter
-    * interface wrapper generation moved to cgobj
-    * generate interface wrappers after the module is parsed
-
-  Revision 1.93  2005/01/20 16:38:45  peter
-    * load jmp_buf_size from system unit
-
-}

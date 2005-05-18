@@ -1,5 +1,4 @@
 {
-    $Id: cputarg.pas,v 1.3 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 2001-2002 by Peter Vreman
 
     Includes the arm dependent target units
@@ -50,9 +49,3 @@ implementation
       ;
 
 end.
-{
-  $Log: cputarg.pas,v $
-  Revision 1.3  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

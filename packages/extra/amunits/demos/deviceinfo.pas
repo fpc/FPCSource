@@ -101,12 +101,3 @@ Begin
   AsdaLaVista(#10 + '  C U in next CF !' + #10,0);
 
 End.
-
-{
-  $Log: deviceinfo.pas,v $
-  Revision 1.2  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
-
-

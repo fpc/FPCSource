@@ -1,5 +1,4 @@
 {
-    $Id: aggas.pas,v 1.62 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2004 by the Free Pascal team
 
     This unit implements generic GNU assembler (v2.8 or later)
@@ -984,9 +983,3 @@ var
     end;
 
 end.
-{
-  $Log: aggas.pas,v $
-  Revision 1.62  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

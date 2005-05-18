@@ -1,5 +1,4 @@
 {
-    $Id: install.pas,v 1.29 2005/02/14 17:13:19 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993-98 by Florian Klaempfl
     member of the Free Pascal development team
@@ -2044,18 +2043,3 @@ begin
    if createlog then
      close(log);
 end.
-{
-  $Log: install.pas,v $
-  Revision 1.29  2005/02/14 17:13:19  peter
-    * truncate log
-
-  Revision 1.28  2005/01/07 16:48:14  peter
-    * fix writing of -T<targetos>
-
-  Revision 1.27  2005/01/05 21:27:55  hajny
-    * error message boxes instead of writeln
-
-  Revision 1.26  2005/01/05 17:43:44  armin
-  * maxpacks increased tp 30, close logfile before halt
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: t_amiga.pas,v 1.4 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2001-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
@@ -42,12 +41,3 @@ implementation
 initialization
   RegisterTarget(system_m68k_amiga_info);
 end.
-{
-  $Log: t_amiga.pas,v $
-  Revision 1.4  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.3  2005/02/03 03:54:07  karoly
-  t_morph.pas
-
-}

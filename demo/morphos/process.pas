@@ -1,5 +1,4 @@
 {
-    $Id: process.pas,v 1.2 2005/02/14 17:13:10 peter Exp $
 
     Spawning and messaging another DOS process
     Free Pascal for MorphOS example
@@ -182,13 +181,3 @@ begin
 
  ShutDown('');
 end.
-
-{
-  $Log: process.pas,v $
-  Revision 1.2  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.1  2004/12/14 21:54:23  karoly
-    * initial revision
-
-}

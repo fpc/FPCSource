@@ -1,5 +1,4 @@
 {
-    $Id: version.pas,v 1.35 2005/04/28 20:17:21 michael Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Version/target constants
@@ -88,27 +87,3 @@ begin
 end;
 
 end.
-{
-  $Log: version.pas,v $
-  Revision 1.35  2005/04/28 20:17:21  michael
-  * version 2.0.0
-
-  Revision 1.34  2005/02/25 11:41:27  peter
-    * 1.9.9
-
-  Revision 1.33  2005/02/15 22:31:35  peter
-    * back to 1.9.7 for head
-
-  Revision 1.32  2005/02/15 22:28:29  peter
-    * 1.9.8
-
-  Revision 1.31  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.30  2005/01/19 21:10:15  peter
-    * build wordversion from constants
-
-  Revision 1.29  2005/01/02 10:20:08  florian
-    * version and copyright increased
-
-}

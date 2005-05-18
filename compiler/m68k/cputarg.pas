@@ -1,5 +1,4 @@
 {
-    $Id: cputarg.pas,v 1.4 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2001-2002 by Peter Vreman
 
     Includes the m68k dependent target units
@@ -48,9 +47,3 @@ implementation
       ;
 
 end.
-{
-  $Log: cputarg.pas,v $
-  Revision 1.4  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

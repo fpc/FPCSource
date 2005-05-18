@@ -1,5 +1,4 @@
 {
-    $Id: pdecsub.pas,v 1.234 2005/04/28 19:32:11 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Daniel Mantione
 
     Does the parsing of the procedures/functions
@@ -2464,49 +2463,3 @@ const
       end;
 
 end.
-{
-  $Log: pdecsub.pas,v $
-  Revision 1.234  2005/04/28 19:32:11  florian
-    * overloading of assignment operator by different unique result types now possible
-
-  Revision 1.233  2005/04/06 19:39:04  florian
-    * fixed previous commit
-
-  Revision 1.232  2005/04/06 19:09:39  florian
-    * hidden parameters can be put now in registers as well
-
-  Revision 1.231  2005/03/27 14:10:52  jonas
-    * const record parameters > 8 bytes are now passed by reference for non
-      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
-      GPC (slightly more efficient than Metrowerks behaviour below, but
-      less efficient in most cases than our previous scheme)
-    + "mwpascal" procedure directive to support the const record parameter
-      behaviour of Metrowerks Pascal, which passes all const records by
-      reference
-
-  Revision 1.230  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.229  2005/02/03 17:11:40  peter
-    * more procvar directive fixes
-
-  Revision 1.228  2005/02/01 08:46:13  michael
-   * Patch from peter: fix macpas anonymous function procvar
-
-  Revision 1.227  2005/01/31 21:27:51  peter
-    * macpas procvars in parameters
-
-  Revision 1.226  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-  Revision 1.225  2005/01/06 02:13:03  karoly
-    * more SysV call support stuff for MorphOS
-
-  Revision 1.224  2005/01/05 02:31:06  karoly
-    * fixed SysV syscall support (MorphOS)
-
-  Revision 1.223  2005/01/04 17:40:33  karoly
-    + sysv style syscalls added for MorphOS
-
-}

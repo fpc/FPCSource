@@ -1,5 +1,4 @@
 {
-    $Id: node.pas,v 1.98 2005/03/25 23:03:04 jonas Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Basic node handling
@@ -1124,21 +1123,3 @@ implementation
       end;
 
 end.
-{
-  $Log: node.pas,v $
-  Revision 1.98  2005/03/25 23:03:04  jonas
-    - removed unused variables
-
-  Revision 1.97  2005/03/05 16:17:30  jonas
-    * fixed printnodelist indentation
-
-  Revision 1.96  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.95  2005/01/04 16:39:46  peter
-    * set nf_is_self node flag when self is loaded
-
-  Revision 1.94  2005/01/03 17:55:57  florian
-    + first batch of patches to support tdef.getcopy fully
-
-}

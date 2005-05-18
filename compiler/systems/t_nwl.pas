@@ -1,5 +1,4 @@
 {
-    $Id: t_nwl.pas,v 1.13 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2004 by Peter Vreman
 
     This unit implements support import,export,link routines
@@ -644,9 +643,3 @@ initialization
   RegisterExport(system_i386_netwlibc,TExportLibNetwlibc);
   RegisterTarget(system_i386_netwlibc_info);
 end.
-{
-  $Log: t_nwl.pas,v $
-  Revision 1.13  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

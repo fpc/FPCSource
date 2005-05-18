@@ -1,5 +1,4 @@
 {
-    $Id: nmat.pas,v 1.67 2005/03/25 22:20:19 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Type checking and register allocation for math nodes
@@ -853,12 +852,3 @@ begin
    cunaryminusnode:=tunaryminusnode;
    cnotnode:=tnotnode;
 end.
-{
-  $Log: nmat.pas,v $
-  Revision 1.67  2005/03/25 22:20:19  peter
-    * add hint when passing an uninitialized variable to a var parameter
-
-  Revision 1.66  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

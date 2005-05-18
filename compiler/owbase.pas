@@ -1,5 +1,4 @@
 {
-    $Id: owbase.pas,v 1.16 2005/04/23 19:42:54 jonas Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     Contains the base stuff for writing for object files to disk
@@ -319,15 +318,3 @@ end;
 
 
 end.
-{
-  $Log: owbase.pas,v $
-  Revision 1.16  2005/04/23 19:42:54  jonas
-    * fixed deletefile -> removefile
-
-  Revision 1.15  2005/04/23 14:15:58  hajny
-    * DeleteFile replaced with RemoveFile to avoid duplicate
-
-  Revision 1.14  2005/02/14 17:13:07  peter
-    * truncate log
-
-}

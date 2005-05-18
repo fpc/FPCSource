@@ -1,5 +1,4 @@
 {
-    $Id: scandir.pas,v 1.56 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements directive parsing for the scanner
@@ -1176,34 +1175,3 @@ implementation
 begin
   localswitchesstackpos:= 0;
 end.
-{
-  $Log: scandir.pas,v $
-  Revision 1.56  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.55  2005/02/06 11:15:32  peter
-    * removed $threading
-
-  Revision 1.54  2005/01/20 17:32:33  peter
-    * $COPERATORS added
-
-  Revision 1.53  2005/01/20 17:05:53  peter
-    * use val() for decoding integers
-
-  Revision 1.52  2005/01/18 15:44:43  peter
-    * ignore more delphi directives
-
-  Revision 1.51  2005/01/09 20:24:43  olle
-    * rework of macro subsystem
-    + exportable macros for mode macpas
-
-  Revision 1.50  2005/01/06 02:13:03  karoly
-    * more SysV call support stuff for MorphOS
-
-  Revision 1.49  2005/01/04 17:40:33  karoly
-    + sysv style syscalls added for MorphOS
-
-  Revision 1.48  2005/01/04 16:18:57  florian
-    * prepared for fpu mode depended define
-
-}

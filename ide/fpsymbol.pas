@@ -1,5 +1,4 @@
 {
-    $Id: fpsymbol.pas,v 1.9 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -1838,9 +1837,3 @@ begin
 end;
 
 END.
-{
-  $Log: fpsymbol.pas,v $
-  Revision 1.9  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

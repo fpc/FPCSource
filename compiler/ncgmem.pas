@@ -1,5 +1,4 @@
 {
-    $Id: ncgmem.pas,v 1.106 2005/04/06 19:39:04 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for memory related nodes which are
@@ -861,15 +860,3 @@ begin
    cwithnode:=tcgwithnode;
    cvecnode:=tcgvecnode;
 end.
-{
-  $Log: ncgmem.pas,v $
-  Revision 1.106  2005/04/06 19:39:04  florian
-    * fixed previous commit
-
-  Revision 1.105  2005/04/06 19:09:39  florian
-    * hidden parameters can be put now in registers as well
-
-  Revision 1.104  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

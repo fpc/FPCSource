@@ -1,5 +1,4 @@
 {
-    $Id: ncpuadd.pas,v 1.29 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Code generation for add nodes on the SPARC
@@ -375,9 +374,3 @@ interface
 begin
   caddnode:=tsparcaddnode;
 end.
-{
-  $Log: ncpuadd.pas,v $
-  Revision 1.29  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

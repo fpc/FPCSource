@@ -1,5 +1,4 @@
 {
-    $Id: browcol.pas,v 1.43 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Berczi Gabor
     Modifications Copyright (c) 1999-2002 Florian Klaempfl and Pierre Muller
 
@@ -2142,9 +2141,3 @@ begin
   oldexit:=exitproc;
   exitproc:=@browcol_exit;
 end.
-{
-  $Log: browcol.pas,v $
-  Revision 1.43  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

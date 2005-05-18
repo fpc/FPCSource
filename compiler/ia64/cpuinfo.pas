@@ -1,5 +1,4 @@
 {
-    $Id: cpuinfo.pas,v 1.9 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     Basic Processor information
@@ -59,9 +58,3 @@ Const
 Implementation
 
 end.
-{
-  $Log: cpuinfo.pas,v $
-  Revision 1.9  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

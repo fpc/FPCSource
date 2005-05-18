@@ -1,5 +1,4 @@
 {
-    $Id: symtable.pas,v 1.172 2005/03/13 12:15:44 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     This unit handles the symbol tables
@@ -2466,23 +2465,3 @@ implementation
      end;
 
 end.
-{
-  $Log: symtable.pas,v $
-  Revision 1.172  2005/03/13 12:15:44  florian
-    + reset in InitSymtable some global vars to avoid trouble with the ide
-
-  Revision 1.171  2005/02/14 17:13:08  peter
-    * truncate log
-
-  Revision 1.170  2005/01/20 16:38:45  peter
-    * load jmp_buf_size from system unit
-
-  Revision 1.169  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-  Revision 1.168  2005/01/09 20:24:43  olle
-    * rework of macro subsystem
-    + exportable macros for mode macpas
-
-}

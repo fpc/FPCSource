@@ -1,5 +1,4 @@
 {
-    $Id: cpuinfo.pas,v 1.21 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Basic Processor information for the SPARC
@@ -69,9 +68,3 @@ const
 implementation
 
 end.
-{
-  $Log: cpuinfo.pas,v $
-  Revision 1.21  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

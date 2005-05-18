@@ -74,12 +74,3 @@ BEGIN
   if month=3 then Write('Mar') else Write('Apr');
   Writeln('-',day);
 END.
-
-{
-  $Log: easter.pas,v $
-  Revision 1.2  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
-
-

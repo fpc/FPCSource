@@ -1,5 +1,4 @@
 {
-    $Id: rgcpu.pas,v 1.45 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the i386 specific class for the register
@@ -70,9 +69,3 @@ implementation
 
 
 end.
-{
-  $Log: rgcpu.pas,v $
-  Revision 1.45  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

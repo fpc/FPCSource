@@ -1,6 +1,5 @@
 {****************************************************************************
 
-    $Id: pmwsock.pas,v 1.5 2005/02/14 17:13:31 peter Exp $
 
     This file is part of the Free Pascal run time library.
     Copyrigth (c) 2003 by Yuri Prokushev (prokushev@freemail.ru)
@@ -1055,10 +1054,3 @@ begin
 end;
 
 end.
-
-{
-$Log: pmwsock.pas,v $
-Revision 1.5  2005/02/14 17:13:31  peter
-  * truncate log
-
-}

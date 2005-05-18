@@ -1,5 +1,4 @@
 {
-    $Id: getvolumes.pas,v 1.2 2005/02/14 17:13:10 peter Exp $
 
     Getting list of DOS volumes and assigns
     Free Pascal for MorphOS example
@@ -56,14 +55,3 @@ begin
   writeln('Current Assigns: ==========');
   dosList(LDF_ASSIGNS);
 end.
-
-
-{
-  $Log: getvolumes.pas,v $
-  Revision 1.2  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.1  2005/01/10 06:00:47  karoly
-    * initial revision
-
-}

@@ -1,4 +1,3 @@
-{ $Id: fvcommon.pas,v 1.9 2005/02/14 17:13:18 peter Exp $  }
 {********************[ COMMON UNIT ]***********************}
 {                                                          }
 {    System independent COMMON TYPES & DEFINITIONS         }
@@ -370,9 +369,3 @@ BEGIN
 END;
 
 END.
-{
- $Log: fvcommon.pas,v $
- Revision 1.9  2005/02/14 17:13:18  peter
-   * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: tokens.pas,v 1.37 2005/03/27 14:10:53 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     Tokens used by the compiler
@@ -529,27 +528,3 @@ begin
 end;
 
 end.
-{
-  $Log: tokens.pas,v $
-  Revision 1.37  2005/03/27 14:10:53  jonas
-    * const record parameters > 8 bytes are now passed by reference for non
-      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
-      GPC (slightly more efficient than Metrowerks behaviour below, but
-      less efficient in most cases than our previous scheme)
-    + "mwpascal" procedure directive to support the const record parameter
-      behaviour of Metrowerks Pascal, which passes all const records by
-      reference
-
-  Revision 1.36  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.35  2005/01/06 02:13:03  karoly
-    * more SysV call support stuff for MorphOS
-
-  Revision 1.34  2005/01/04 19:22:33  olle
-    * sorted in correctly new tokens added by Karoly
-
-  Revision 1.33  2005/01/04 17:40:33  karoly
-    + sysv style syscalls added for MorphOS
-
-}

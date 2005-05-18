@@ -44,4 +44,3 @@ begin
 
   g_module_close (module);
 end.
-

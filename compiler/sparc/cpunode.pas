@@ -1,5 +1,4 @@
 {******************************************************************************
-    $Id: cpunode.pas,v 1.13 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2000 by Florian Klaempfl
 
     Includes the iSPARC code generator
@@ -37,13 +36,3 @@ implementation
     rgcpu;
 
 end.
-{
-    $Log: cpunode.pas,v $
-    Revision 1.13  2005/02/14 17:13:10  peter
-      * truncate log
-
-    Revision 1.12  2005/01/24 22:08:33  peter
-      * interface wrapper generation moved to cgobj
-      * generate interface wrappers after the module is parsed
-
-}

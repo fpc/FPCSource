@@ -1,5 +1,4 @@
 {
-    $Id: comprsrc.pas,v 1.25 2005/03/04 16:49:14 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Handles the resource files handling
@@ -181,15 +180,3 @@ end;
 
 
 end.
-{
-  $Log: comprsrc.pas,v $
-  Revision 1.25  2005/03/04 16:49:14  peter
-    * maybequoted for windres args
-
-  Revision 1.24  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.23  2005/01/24 18:10:20  olle
-    + Mac style resource files can now be included in MacOS
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: inv.pas,v 1.3 2005/02/14 17:13:21 peter Exp $
     This file is part of the Numlib package.
     Copyright (c) 1986-2000 by
      Kees van Ginneken, Wil Kortsmit and Loek van Reij of the
@@ -266,9 +265,3 @@ begin
   freemem(t, n*sizeof(ArbFloat));
 end; {invgpd}
 end.
-{
-  $Log: inv.pas,v $
-  Revision 1.3  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: pbase.pas,v 1.31 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Contains some helper routines for the parser
@@ -271,13 +270,3 @@ implementation
       end;
 
 end.
-{
-  $Log: pbase.pas,v $
-  Revision 1.31  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.30  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: symsym.pas,v 1.202 2005/03/14 15:59:18 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     Implementation for the symbols types of the symtable
@@ -2648,27 +2647,3 @@ implementation
 
 
 end.
-{
-  $Log: symsym.pas,v $
-  Revision 1.202  2005/03/14 15:59:18  peter
-    * also set intsize for paralocs written to ppu
-
-  Revision 1.201  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.200  2005/02/03 21:43:25  peter
-    * fix range check error when compiled with 1.9.6
-
-  Revision 1.199  2005/01/09 20:24:43  olle
-    * rework of macro subsystem
-    + exportable macros for mode macpas
-
-  Revision 1.198  2005/01/04 16:38:54  peter
-    * fix setting minval for enum with specified values
-
-  Revision 1.197  2005/01/03 22:27:56  peter
-    * insert stack_check helper call before doing register allocation
-      so the used registers can't be reused when parameters are loaded
-      into register variables
-
-}

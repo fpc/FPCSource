@@ -1,5 +1,4 @@
 {
-    $Id: ra386int.pas,v 1.89 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
     Does the parsing process for the intel styled inline assembler.
@@ -2058,25 +2057,3 @@ const
 begin
   RegisterAsmMode(asmmode_i386_intel_info);
 end.
-{
-  $Log: ra386int.pas,v $
-  Revision 1.89  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.88  2005/01/31 17:07:50  peter
-    * fix [regpara] in intel assembler
-
-  Revision 1.87  2005/01/25 18:48:34  peter
-    * spaces in register names
-
-  Revision 1.86  2005/01/20 17:05:53  peter
-    * use val() for decoding integers
-
-  Revision 1.85  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-  Revision 1.84  2005/01/19 20:21:51  peter
-    * support labels in references
-
-}

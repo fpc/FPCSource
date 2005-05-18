@@ -1,5 +1,4 @@
 {
-    $Id: mciapi.pas,v 1.4 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 1992, 1993 by International Business Machines Corporation
     Copyright (c) 2002 by Andry Svirgunov (cool2@ngs.ru)
     Copyright (c) 2002-2003 by Yuri Prokushev (prokushev@freemail.ru)
@@ -122,10 +121,3 @@ Function mmioFindElement(ulCode: LongInt; pszElement: PChar; ulElementLen: LongI
     external 'MCIAPI' index 18;
 
 end.
-
-{
-$Log: mciapi.pas,v $
-Revision 1.4  2005/02/14 17:13:21  peter
-  * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: sw.pas,v 1.4 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 1990-1991 International Business Machines Corporation
     Copyright (c) 2003 by Yuri Prokushev (prokushev@freemail.ru)
 
@@ -518,22 +517,3 @@ Function WinRegisterGraphicButton: Longbool; cdecl;
     external 'SW' index 14;
 
 End.
-
-{
-$Log: sw.pas,v $
-Revision 1.4  2005/02/14 17:13:21  peter
-  * truncate log
-
-}
-
-{ No information about following functions
-  Index   Name
-³ 00009 ³ WinQuerySecondaryFrame
-³ 00010 ³ WinQuerySecondaryDialog
-³ 00013 ³ WinRegisterCircularSlider
-³ 00053 ³ WinQueryDefaultSize
-³ 00057 ³ WinSWAssocResModule
-³ 00060 ³ WinReportMessage
-³ 00061 ³ WinRegisterSelectionSlider
-³ 00067 ³ WinRegisterCircularSlider2
-}

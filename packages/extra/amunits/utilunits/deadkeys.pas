@@ -91,9 +91,3 @@ begin
    my_exit := ExitProc;
    ExitProc := @CloseConsoleDevice;
 end.
-
-{
-  $Log
-}
-
-

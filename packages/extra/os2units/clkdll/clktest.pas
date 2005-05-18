@@ -9,10 +9,3 @@ begin
   With NextDate do
     WriteLn(Hours,':',Minutes,':',Seconds);
 end.
-
-{
-$Log: clktest.pas,v $
-Revision 1.2  2005/02/14 17:13:21  peter
-  * truncate log
-
-}

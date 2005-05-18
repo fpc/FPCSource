@@ -1,5 +1,4 @@
 {
-    $Id: fpvars.pas,v 1.12 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -126,12 +125,3 @@ var   RecentFiles      : array[1..MaxRecentFileCount] of TRecentFileEntry;
 implementation
 
 END.
-{
-  $Log: fpvars.pas,v $
-  Revision 1.12  2005/02/14 17:13:18  peter
-    * truncate log
-
-  Revision 1.11  2005/01/08 11:43:18  florian
-    + vector unit window
-
-}

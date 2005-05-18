@@ -1,5 +1,4 @@
 {
-    $Id: cpunode.pas,v 1.4 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Imports the Alpha code generator
@@ -53,9 +52,3 @@ unit cpunode;
        ;
 
 end.
-{
-  $Log: cpunode.pas,v $
-  Revision 1.4  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

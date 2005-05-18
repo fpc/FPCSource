@@ -60,9 +60,3 @@ Begin
   End Else
      Writeln ('Unable to allocate list.');
 End.
-
-{
-  $Log
-}
-
-

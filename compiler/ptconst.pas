@@ -1,5 +1,4 @@
 {
-    $Id: ptconst.pas,v 1.102 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Reads typed constants
@@ -1084,22 +1083,3 @@ implementation
 {$endif fpc}
 
 end.
-{
-  $Log: ptconst.pas,v $
-  Revision 1.102  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.101  2005/02/02 19:42:19  florian
-    + allow to take the address of a resourcestring in typed constants
-
-  Revision 1.100  2005/01/24 21:39:03  peter
-    * remove multiple typeconvs for procvar
-
-  Revision 1.99  2005/01/09 15:05:29  peter
-    * fix interface vtbl optimization
-    * replace ugly pointer construct of ioffset()
-
-  Revision 1.98  2005/01/08 14:05:31  florian
-    * typed dyn. array constants can be only nil pointer
-
-}

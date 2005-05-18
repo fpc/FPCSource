@@ -1,5 +1,4 @@
 {
-    $Id: cpuinfo.pas,v 1.1 2005/02/13 18:56:44 florian Exp $
     Copyright (c) 1998-2002 by the Free Pascal development team
 
     Basic Processor information for the ARM
@@ -73,8 +72,3 @@ Const
 Implementation
 
 end.
-{
-  $Log: cpuinfo.pas,v $
-  Revision 1.1  2005/02/13 18:56:44  florian
-    + basic mips stuff
-}

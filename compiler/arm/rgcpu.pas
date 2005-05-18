@@ -1,5 +1,4 @@
 {
-    $Id: rgcpu.pas,v 1.17 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2003 by Florian Klaempfl
 
     This unit implements the arm specific class for the register
@@ -167,13 +166,3 @@ unit rgcpu;
 
 
 end.
-
-{
-  $Log: rgcpu.pas,v $
-  Revision 1.17  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.16  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-}

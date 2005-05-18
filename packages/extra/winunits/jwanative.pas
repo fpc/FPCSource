@@ -1,7 +1,6 @@
 // Interface unit for the Windows NT Native API
 // Copyright (C) 1999, 2000 Marcel van Brakel
 
-// $Id: jwanative.pas,v 1.1 2005/04/04 07:56:10 marco Exp $
 
 unit JwaNative;
 

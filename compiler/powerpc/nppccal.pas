@@ -1,5 +1,4 @@
 {
-    $Id: nppccal.pas,v 1.35 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Implements the PowerPC specific part of call nodes
@@ -145,18 +144,3 @@ implementation
 begin
    ccallnode:=tppccallnode;
 end.
-{
-  $Log: nppccal.pas,v $
-  Revision 1.35  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.34  2005/01/06 02:13:03  karoly
-    * more SysV call support stuff for MorphOS
-
-  Revision 1.33  2005/01/05 02:31:06  karoly
-    * fixed SysV syscall support (MorphOS)
-
-  Revision 1.32  2005/01/04 17:40:33  karoly
-    + sysv style syscalls added for MorphOS
-
-}

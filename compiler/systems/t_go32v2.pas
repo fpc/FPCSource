@@ -1,5 +1,4 @@
 {
-    $Id: t_go32v2.pas,v 1.9 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
@@ -363,12 +362,3 @@ initialization
   RegisterInternalLinker(system_i386_go32v2_info,TCoffLinker);
   RegisterTarget(system_i386_go32v2_info);
 end.
-{
-  $Log: t_go32v2.pas,v $
-  Revision 1.9  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.8  2005/01/30 12:03:28  peter
-    * only add @link.res if source is go32v2
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: options.pas,v 1.175 2005/05/05 14:53:55 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
     Reads command line options and config files
@@ -2141,65 +2140,3 @@ finalization
   if assigned(option) then
    option.free;
 end.
-{
-  $Log: options.pas,v $
-  Revision 1.175  2005/05/05 14:53:55  florian
-    + output of supported instruction sets in info page
-
-  Revision 1.174  2005/04/28 19:32:11  florian
-    * overloading of assignment operator by different unique result types now possible
-
-  Revision 1.173  2005/04/24 21:01:37  peter
-    * always use exceptions to stop the compiler
-    - remove stop, do_stop
-
-  Revision 1.172  2005/04/15 15:43:54  peter
-    * -Fe on commandline redirects now all output
-
-  Revision 1.171  2005/03/20 22:36:45  olle
-    * Cleaned up handling of source file extension.
-    + Added support for .p extension for macos and darwin
-
-  Revision 1.170  2005/03/05 16:37:42  florian
-    * fixed copy(dyn. array,...);
-
-  Revision 1.169  2005/03/04 16:49:22  peter
-    * getheapstatus fixes
-
-  Revision 1.168  2005/02/26 15:43:09  florian
-    * userdata in file/textrecs now 32 bytes
-
-  Revision 1.167  2005/02/19 18:32:16  florian
-    * defaultreplacement expansion for -XP and -Xr
-
-  Revision 1.166  2005/02/19 18:10:57  florian
-    * cross compiliation defines
-
-  Revision 1.165  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.164  2005/02/06 21:33:28  peter
-    * -Fa option added, it'll load the units before the uses
-      line is parsed. Can be used to load cthreads from the commandline.
-      Example '-g -Faheaptrc,lineinfo' is the same as '-ghl'
-
-  Revision 1.163  2005/02/05 10:24:17  florian
-  *** empty log message ***
-
-  Revision 1.162  2005/01/20 17:05:53  peter
-    * use val() for decoding integers
-
-  Revision 1.161  2005/01/09 20:24:43  olle
-    * rework of macro subsystem
-    + exportable macros for mode macpas
-
-  Revision 1.160  2005/01/08 23:14:50  peter
-    * Allow #include ~/.fpc.cfg
-
-  Revision 1.159  2005/01/04 16:19:52  florian
-    * arm sets FPUFPA by default for now
-
-  Revision 1.158  2005/01/03 20:27:47  peter
-  fix outline of 3rd level of options (-SI option mainly)
-
-}

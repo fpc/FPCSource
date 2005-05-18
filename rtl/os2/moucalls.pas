@@ -1,7 +1,6 @@
 {Set tabsize to 4.}
 {****************************************************************************
 
-  $Id: moucalls.pas,v 1.3 2005/02/14 17:13:31 peter Exp $
 
                            MOUCALLS interface unit
                      Free Pascal Runtime Library for OS/2
@@ -1087,10 +1086,3 @@ external 'MOUCALLS' index 10;
 
 
 end.
-
-{
-  $Log: moucalls.pas,v $
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

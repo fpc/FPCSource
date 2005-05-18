@@ -1,5 +1,4 @@
 {
-    $Id: nld.pas,v 1.148 2005/03/28 13:36:15 florian Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Type checking and register allocation for load/assignment nodes
@@ -1202,25 +1201,3 @@ begin
    ctypenode:=ttypenode;
    crttinode:=trttinode;
 end.
-{
-  $Log: nld.pas,v $
-  Revision 1.148  2005/03/28 13:36:15  florian
-    + variants are now assigned using fpc_variant_copy
-
-  Revision 1.147  2005/03/25 22:20:19  peter
-    * add hint when passing an uninitialized variable to a var parameter
-
-  Revision 1.146  2005/03/18 16:41:27  peter
-  don't check size differences for booleans
-
-  Revision 1.145  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.144  2005/02/11 16:25:26  peter
-    * fix IE with array of const in array of conts
-
-  Revision 1.143  2005/01/23 17:14:21  florian
-    + optimized code generation on sparc
-    + some stuff for pic code on sparc added
-
-}

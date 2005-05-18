@@ -1,5 +1,4 @@
 {
-    $Id: ncal.pas,v 1.284 2005/04/06 11:49:37 michael Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This file implements the node for sub procedure calling.
@@ -2577,46 +2576,3 @@ begin
    ccallnode:=tcallnode;
    ccallparanode:=tcallparanode;
 end.
-{
-  $Log: ncal.pas,v $
-  Revision 1.284  2005/04/06 11:49:37  michael
-  * Fix methodpointer copy from callnode to loadnode
-
-  Revision 1.283  2005/04/05 21:07:43  peter
-    * load all complex loads of parameters that are needed multiple times
-      to a temp to prevent calling functions twice
-
-  Revision 1.282  2005/03/28 15:05:17  peter
-  fix type of temps generated for parameters during inlining
-
-  Revision 1.281  2005/03/25 22:20:18  peter
-    * add hint when passing an uninitialized variable to a var parameter
-
-  Revision 1.280  2005/03/14 20:18:46  peter
-    * fix empty varargs codegeneration for x86_64
-
-  Revision 1.279  2005/02/17 17:50:26  peter
-    * member call to constructor returns void to prevent
-      generating unexpected code. Otherwise the return value is always
-      equal to self, which can also be directly accessed
-
-  Revision 1.278  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.277  2005/02/01 22:50:50  florian
-    * inherited; works now in delphi mode for private methods; looks like a delphi bug
-
-  Revision 1.276  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-  Revision 1.275  2005/01/04 16:36:31  peter
-    * fix aftercosntruction calls, vmt=1 is used to indicate that
-      afterconstruction needs to be called
-    * only accept resourcestring when objpas is loaded
-
-  Revision 1.274  2005/01/02 16:58:48  peter
-    * Don't release methodpointer. It is maybe still needed when we need to
-     convert the calln to loadn
-
-}

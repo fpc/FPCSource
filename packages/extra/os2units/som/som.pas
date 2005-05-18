@@ -1,5 +1,4 @@
 {
-    $Id: som.pas,v 1.6 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 1994-1996 by International Business Machines Corporation
     Copyright (c) 1997 Antony T Curtis.
     Copyright (c) 2002-2005 by Yuri Prokushev (prokushev@freemail.ru)
@@ -1507,25 +1506,3 @@ end;
 
 
 End.
-
-(*
-³ 00038 ³ somSaveMetrics // not found
-³ 00046 ³ somWriteMetrics // not found
-³ 00051 ³ somCreateDynamicClass // not found
-³ 00056 ³ SOM_IdTable // not found
-³ 00057 ³ SOM_IdTableSize // not found
-³ 00062 ³ somStartCriticalSection // not found
-³ 00063 ³ somEndCriticalSection // not found
-³ 00080 ³ somfixMsgTemplate // not found
-³ 00087 ³ SOMParentDerivedMetaclassClassData // not found
-³ 00132 ³ somFreeThreadData // not found
-³ 00135 ³ somIdMarshal  // not found
-³ 00361 ³ somMakeUserRdStub // Not found
-*)
-
-{
-$Log: som.pas,v $
-Revision 1.6  2005/02/14 17:13:21  peter
-  * truncate log
-
-}

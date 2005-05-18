@@ -1,5 +1,4 @@
 {
-    $Id: cpupara.pas,v 1.31 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 2003 by Florian Klaempfl
 
     ARM specific calling conventions
@@ -447,18 +446,3 @@ unit cpupara;
 begin
    paramanager:=tarmparamanager.create;
 end.
-{
-  $Log: cpupara.pas,v $
-  Revision 1.31  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.30  2005/02/03 20:04:49  peter
-    * push_addr_param must be defined per target
-
-  Revision 1.29  2005/01/15 21:45:35  florian
-    * arm compiler fixed
-
-  Revision 1.28  2005/01/01 19:30:17  florian
-    * ie with array of const;cdecl; fixed
-
-}

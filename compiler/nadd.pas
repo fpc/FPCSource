@@ -1,5 +1,4 @@
 {
-    $Id: nadd.pas,v 1.145 2005/04/25 08:29:00 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Type checking and register allocation for add nodes
@@ -2200,46 +2199,3 @@ implementation
 begin
    caddnode:=taddnode;
 end.
-{
-  $Log: nadd.pas,v $
-  Revision 1.145  2005/04/25 08:29:00  peter
-  longword-longword gives int64
-
-  Revision 1.144  2005/04/06 07:31:51  michael
-  + * fix constant folding for string+char (from Peter)
-
-  Revision 1.143  2005/03/25 22:20:18  peter
-    * add hint when passing an uninitialized variable to a var parameter
-
-  Revision 1.142  2005/03/14 20:18:22  peter
-    * for methodpointers compare only proc field
-
-  Revision 1.141  2005/02/17 17:52:39  peter
-    * allow enum arithmetics inside an enum def, compatible with delphi
-
-  Revision 1.140  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.139  2005/01/31 21:30:56  olle
-    + Added fake Exception classes, only for MACOS.
-
-  Revision 1.138  2005/01/31 16:15:04  peter
-    * zero based array with elementsize>1 fix
-
-  Revision 1.137  2005/01/26 16:23:28  peter
-    * detect arithmetic overflows for constants at compile time
-    * use try..except instead of setjmp
-
-  Revision 1.136  2005/01/16 11:56:37  peter
-    * fixed some tabs
-
-  Revision 1.135  2005/01/16 11:13:40  peter
-    * ord-ord always gives a signed result
-
-  Revision 1.134  2005/01/10 22:10:26  peter
-    * widestring patches from Alexey Barkovoy
-
-  Revision 1.133  2005/01/02 17:31:07  peter
-  unsigned*unsigned will also have unsigned result.
-
-}

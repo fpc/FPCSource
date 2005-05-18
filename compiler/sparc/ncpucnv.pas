@@ -1,4 +1,3 @@
-{    $Id: ncpucnv.pas,v 1.35 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate SPARC assembler for type converting nodes
@@ -295,9 +294,3 @@ implementation
 begin
    ctypeconvnode:=tsparctypeconvnode;
 end.
-{
-  $Log: ncpucnv.pas,v $
-  Revision 1.35  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

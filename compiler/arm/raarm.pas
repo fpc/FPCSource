@@ -1,5 +1,4 @@
 {
-    $Id: raarm.pas,v 1.3 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2003 by Carl Eric Codere and Peter Vreman
 
     Handles the common arm assembler reader routines
@@ -53,9 +52,3 @@ unit raarm;
 
 
 end.
-{
-  $Log: raarm.pas,v $
-  Revision 1.3  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

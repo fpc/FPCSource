@@ -1,5 +1,4 @@
 {
-    $Id: ncpuadd.pas,v 1.9 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl and Jonas Maebe
 
     Code generation for add nodes on the Motorola 680x0 family
@@ -423,16 +422,3 @@ implementation
 begin
    caddnode:=t68kaddnode;
 end.
-
-{
-  $Log: ncpuadd.pas,v $
-  Revision 1.9  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.8  2005/01/20 17:47:01  peter
-    * remove copy_value_on_stack and a_param_copy_ref
-
-  Revision 1.7  2005/01/08 04:10:36  karoly
-    * made m68k to compile again
-
-}

@@ -278,10 +278,3 @@ ProjectStart;
     END;
     CleanExit('',0);
 END.
-
-{
-  $Log
-}
-
-
-
