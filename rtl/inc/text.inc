@@ -755,6 +755,7 @@ End;
 
 Function NextChar(var f:Text;var s:string):Boolean;
 begin
+  NextChar:=false;
   if (TextRec(f).BufPos<TextRec(f).BufEnd) then
    if not (CtrlZMarksEOF) or (TextRec(f).Bufptr^[TextRec(f).BufPos]<>#26) then
     begin
@@ -767,9 +768,7 @@ begin
      If TextRec(f).BufPos>=TextRec(f).BufEnd Then
       FileFunc(TextRec(f).InOutFunc)(TextRec(f));
      NextChar:=true;
-   end
-  else
-   NextChar:=false;
+   end;
 end;
 
 
