@@ -234,8 +234,6 @@ install/macosx/resources/English.lproj/InstallationCheck.strings -text
 install/macosx/resources/German.lproj/InstallationCheck.strings -text
 install/macosx/resources/InstallationCheck -text
 install/macosx/resources/InstallationCheck.strings -text
-install/macosx/resources/License.txt -text
-install/macosx/resources/ReadMe.txt -text
 install/macosx/resources/postflight -text
 install/makepack -text
 install/makesource -text
@@ -443,7 +441,6 @@ packages/extra/unixutil/Makefile -text
 packages/extra/unzip/Makefile -text
 packages/extra/utmp/Makefile -text
 packages/extra/winunits/Makefile -text
-packages/extra/winunits/jedi.inc -text
 packages/extra/x11/Makefile -text
 packages/extra/zlib/Makefile -text
 rtl/COPYING -text
@@ -592,7 +589,6 @@ rtl/watcom/Makefile -text
 rtl/watcom/prt0.asm -text
 rtl/win32/Makefile -text
 rtl/win32/gprt0.as -text
-rtl/win32/mouse.pp -text
 rtl/win32/wcygprt0.as -text
 rtl/win32/wdllprt0.as -text
 rtl/win32/wininc/Makefile -text
@@ -644,7 +640,7 @@ tests/utils/Makefile -text
 tests/utils/macos/LinkRunDir -text
 tests/utils/macos/LinkRunTests -text
 tests/utils/tests.sql -text
-tests/webtbs/tw1472.pp -text
+tests/webtbs/tw1472.pp svneol=native#unset
 utils/Makefile -text
 utils/README -text
 utils/data2inc.exm -text
