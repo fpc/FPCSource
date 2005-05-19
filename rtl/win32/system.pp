@@ -14,10 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$ifndef VER1_0}
-{ $define MT}
-{$endif VER1_0}
-unit {$ifdef VER1_0}SysWin32{$else}System{$endif};
+unit System;
 interface
 
 {$ifdef SYSTEMDEBUG}

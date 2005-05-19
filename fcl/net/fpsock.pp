@@ -187,11 +187,7 @@ type
 implementation
 
 uses
-{$IFDEF VER1_0}
-  Linux;
-{$ELSE}
   baseunix,Unix;
-{$ENDIF}
 
 resourcestring
   SSocketNoEventLoopAssigned = 'No event loop assigned';
@@ -202,11 +198,9 @@ resourcestring
   SSocketAcceptError = 'Connection accept failed: %s';
   SSocketIsActive = 'Cannot change parameters while active';
 
-{$ifndef VER1_0}
 Const
   Sys_EAGAIN = ESYSEAGAIN;
   Sys_EINPROGRESS = ESYSEINPROGRESS;
-{$endif}
 
 
 // TSocketStream

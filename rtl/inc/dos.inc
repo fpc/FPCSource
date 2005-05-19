@@ -61,32 +61,15 @@ const
     Leap := true;
  end;
 
- {$IFDEF VER1_0}
-{ Necessary to avoid internal error 10... :-( }
-var
- DC: cardinal;
- I64: int64;
- {$ENDIF VER1_0}
 begin
   GetDate (Y, Mo, D, WD);
   GetTime (H, Mi, S, S100);
- {$IFDEF VER1_0}
-  DC := D + DayTable [Leap, Mo] + (Y div 400) * 97;
-  DC := DC + ((Y mod 400) div 100) * 24 + (Y mod 100) div 4;
-  I64 := S100 * 10 + S * 1000;
-  I64 := I64 + cardinal (Mi) * 60*1000;
-  I64 := I64 + int64 (H) * 60*60*1000;
-  I64 := I64 + int64 (DC) * 24*60*60*1000;
-  I64 := I64 + int64 (Y) * 365*24*60*60*1000;
-  GetMsCount := I64;
- {$ELSE VER1_0}
   GetMsCount := S100 * 10 + S * 1000 + cardinal (Mi) * 60*1000
        + int64 (H) * 60*60*1000
         + int64 (D + DayTable [Leap, Mo]
           + (Y div 400) * 97 + ((Y mod 400) div 100) * 24 + (Y mod 100) div 4)
                                                                 * 24*60*60*1000
          + int64 (Y) * 365*24*60*60*1000;
- {$ENDIF VER1_0}
 end;
 {$ENDIF HAS_GETMSCOUNT}
 

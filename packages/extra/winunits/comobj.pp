@@ -18,18 +18,15 @@ unit comobj;
 
   interface
 
-{$ifndef VER1_0}
    function CreateClassID : ansistring;
 
    function CreateComObject(const ClassID: TGUID) : IUnknown;
    function CreateRemoteComObject(const MachineName : WideString;const ClassID : TGUID) : IUnknown;
    function CreateOleObject(const ClassName : string) : IDispatch;
    function GetActiveOleObject(const ClassName: string) : IDispatch;
-{$endif VER1_0}
 
   implementation
 
-{$ifndef VER1_0}
     uses
        windows,activex;
 
@@ -74,7 +71,6 @@ unit comobj;
      end;
 
 
-{$endif VER1_0}
 
 end.
 {

@@ -81,10 +81,6 @@ begin
  Fpftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,lo(flength),hi(flength));
 end;
 
-{$ifdef VER1_0}
- {$DEFINE FPC_LITTLE_ENDIAN}
-{$endif}
-
 
 Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; [public, alias:  'FPC_SYSC_MMAP'];
 

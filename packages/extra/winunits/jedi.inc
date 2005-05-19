@@ -830,9 +830,6 @@
 
 {$IFDEF FPC}
   {$MODE Delphi}
-  {$IFDEF  VER1_0}
-     Please use FPC 1.1 or later to compile this.
-  {$ELSE}
     {$DEFINE SUPPORTS_OUTPARAMS}
     {$DEFINE SUPPORTS_WIDECHAR}
     {$DEFINE SUPPORTS_WIDESTRING}

@@ -18,11 +18,7 @@
 
 **********************************************************************}
 
-{$ifdef VER1_0}
-{$i linuxold.inc}
-{$else}
 {$i linuxnew.inc}
-{$endif}
 
 {
    $Log: linux.pp,v $

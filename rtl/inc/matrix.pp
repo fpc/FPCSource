@@ -28,10 +28,6 @@ unit matrix;
 
 {*****************************************************************************}
 
-{$ifdef VER1_0}
-{1.0 has too much macro bugs :( }
-interface implementation end.
-{$else}
 
 interface
 
@@ -827,7 +823,6 @@ implementation
 {$i mmatimp.inc}
 
 end.
-{$endif VER1_0}
 {
   $Log: matrix.pp,v $
   Revision 1.4  2005/02/14 17:13:22  peter

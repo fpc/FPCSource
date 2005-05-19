@@ -258,7 +258,7 @@ end ;
 {   IncMonth increments DateTime with NumberOfMonths months,
     NumberOfMonths can be less than zero   }
 
-function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer {$ifndef ver1_0} = 1 {$endif}): TDateTime;
+function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer = 1 ): TDateTime;
 var
   Year, Month, Day: word;
   S : Integer;
@@ -753,7 +753,6 @@ begin
           EncodeTime(Time shr 11, (Time shr 5) and 63, (Time and 31) shl 1,0);
 end;
 
-{$ifndef VER1_0}
 
 function TryStrToDate(const S: string; out Value: TDateTime): Boolean;
   begin
@@ -799,7 +798,6 @@ function TryStrToDateTime(const S: string; out Value: TDateTime): Boolean;
   
 // function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 
-{$endif VER1_0}
 
 {
   $Log: dati.inc,v $

@@ -137,20 +137,9 @@ function mkstemp(__template:Pchar):longint;cdecl;external clib name 'mkstemp';
 function mkstemp64(__template:Pchar):longint;cdecl;external clib name 'mkstemp64';
 function mkdtemp(__template:Pchar):Pchar;cdecl;external clib name 'mkdtemp';
 // **************** detect whether system symbol is hidden. Should be as of 1.9.4
-{$ifdef VER1_0}
-{$define __SYSTEMONLY}
-{$endif}
-{$ifdef VER1_1}
-{$define __SYSTEMONLY}
-{$endif}
-{$ifdef VER1_9_2}
-{$define __SYSTEMONLY}
-{$endif}
 // **************** End of detect
 function __system(__command:Pchar):longint;cdecl;external clib name 'system';
-{$ifndef __SYSTEMONLY}
 function system(__command:Pchar):longint;cdecl;external clib name 'system';
-{$endif}
 function canonicalize_file_name(__name:Pchar):Pchar;cdecl;external clib name 'canonicalize_file_name';
 function realpath(__name:Pchar; __resolved:Pchar):Pchar;cdecl;external clib name 'realpath';
 

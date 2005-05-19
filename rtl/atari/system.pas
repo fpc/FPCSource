@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$define ATARI}
-unit {$ifdef VER1_0}sysatari{$else}{$ifdef VER0_99}sysatari{$ELSE}system{$endif}{$ENDIF};
+unit system;
 
 {--------------------------------------------------------------------}
 { LEFT TO DO:                                                        }

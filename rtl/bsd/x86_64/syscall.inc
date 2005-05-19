@@ -242,7 +242,7 @@ procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
    .LSyscOK:
 end;
 
-function do__sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7,Param8:TSysParam):TSysResult; {$ifndef VER1_0} oldfpccall;{$endif}  external name 'FPC_DOSYS8';
+function do__sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7,Param8:TSysParam):TSysResult; oldfpccall; external name 'FPC_DOSYS8';
 // Hmm, we have to do something different :)
 
 asm

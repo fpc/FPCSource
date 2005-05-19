@@ -4157,6 +4157,7 @@ rtl/unix/unixutil.pp svneol=native#text/plain
 rtl/unix/unxdeclh.inc svneol=native#text/plain
 rtl/unix/unxovl.inc svneol=native#text/plain
 rtl/unix/unxovlh.inc svneol=native#text/plain
+rtl/unix/uuid.inc svneol=native#text/plain
 rtl/unix/varutils.pp svneol=native#text/plain
 rtl/unix/video.pp svneol=native#text/plain
 rtl/unix/x86.pp svneol=native#text/plain

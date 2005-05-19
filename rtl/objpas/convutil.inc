@@ -23,7 +23,6 @@ unit convutils;
 
 interface
 
-{$ifndef VER1_0}
 {$mode objfpc}
 {$H+}
 
@@ -203,11 +202,9 @@ function Convert ( const Measurement  : Double; const FromType, ToType  : TConvT
 function Convert ( const Measurement  : Double; const FromType1, FromType2, ToType1, ToType2  : TConvType ) :TConvUtilFloat;
 
 
-{$endif VER1_0}
 
 Implementation
 
-{$ifndef VER1_0}
 ResourceString  // Note, designations for FFU's are guesses.
 
   txtauSquareMillimeters   = 'Square millimeters (mm^2)';
@@ -647,7 +644,6 @@ initialization
 finalization
   setlength(theunits,0);
   setlength(thefamilies,0);
-{$endif VER1_0}
 end.
 
 {

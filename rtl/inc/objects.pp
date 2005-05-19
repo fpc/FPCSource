@@ -750,42 +750,15 @@ type
 
 function CallVoidConstructor(Ctor: pointer; Obj: pointer; VMT: pointer): pointer;
 begin
-{$ifdef VER1_0}
-  asm
-{$ifdef cpui386}
-        movl Obj, %esi
-{$endif}
-{$ifdef cpum68k}
-        move.l Obj, a5
-{$endif}
-  end;
-  CallVoidConstructor := VoidConstructor(Ctor)(VMT, Obj);
-{$else}
   CallVoidConstructor := VoidConstructor(Ctor)(Obj, VMT);
-{$endif}
 end;
 
 
 function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;
 {$undef FPC_CallPointerConstructor_Implemented}
 begin
-{$ifdef VER1_0}
-  asm
-{$ifdef cpui386}
-{$define FPC_CallPointerConstructor_Implemented}
-        movl Obj, %esi
-{$endif}
-{$ifdef cpum68k}
-{$define FPC_CallPointerConstructor_Implemented}
-        move.l Obj, a5
-{$endif}
-  end;
-  CallPointerConstructor := PointerConstructor(Ctor)(VMT, Obj, Param1)
-{$else}
-  { 1.1 does not esi to be loaded }
   {$define FPC_CallPointerConstructor_Implemented}
   CallPointerConstructor := PointerConstructor(Ctor)(Obj, VMT, Param1)
-{$endif}
 end;
 {$ifndef FPC_CallPointerConstructor_Implemented}
 {$error CallPointerConstructor function not implemented}
@@ -794,19 +767,6 @@ end;
 
 function CallVoidMethod(Method: pointer; Obj: pointer): pointer;
 begin
-{$ifdef VER1_0}
-  { load the object pointer }
-{$ifdef CPUI386}
-  asm
-        movl Obj, %esi
-  end;
-{$endif CPUI386}
-{$ifdef CPU68K}
-  asm
-        move.l Obj, a5
-  end;
-{$endif CPU68K}
-{$endif VER1_0}
   CallVoidMethod := VoidMethod(Method)(Obj)
 end;
 
@@ -814,26 +774,7 @@ end;
 function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): pointer;
 {$undef FPC_CallPointerMethod_Implemented}
 begin
-{$ifdef VER1_0}
-  asm
-{$ifdef cpui386}
 {$define FPC_CallPointerMethod_Implemented}
-        movl Obj, %esi
-{$endif}
-{$ifdef cpum68k}
-{$define FPC_CallPointerMethod_Implemented}
-        move.l Obj, a5
-{$endif}
-{$ifdef cpupowerpc}
-{$define FPC_CallPointerMethod_Implemented}
-{ for the powerpc, we don't need to load self, because we use standard calling conventions
-  so self should be in a register anyways }
-{$endif}
-  end;
-{$else}
-{ 1.1 does not esi to be loaded }
-{$define FPC_CallPointerMethod_Implemented}
-{$endif}
   CallPointerMethod := PointerMethod(Method)(Obj, Param1)
 end;
 {$ifndef FPC_CallPointerMethod_Implemented}
@@ -855,38 +796,12 @@ end;
 
 function CallVoidMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer): pointer;
 begin
-{$ifdef VER1_0}
-  { load the object pointer }
-{$ifdef CPUI386}
-  asm
-        movl Obj, %esi
-  end;
-{$endif CPUI386}
-{$ifdef CPU68K}
-  asm
-        move.l Obj, a5
-  end;
-{$endif CPU68K}
-{$endif VER1_0}
   CallVoidMethodLocal := VoidMethodLocal(Func)(Frame)
 end;
 
 
 function CallPointerMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer; Param1: pointer): pointer;
 begin
-{$ifdef VER1_0}
-  { load the object pointer }
-{$ifdef CPUI386}
-  asm
-        movl Obj, %esi
-  end;
-{$endif CPUI386}
-{$ifdef CPU68K}
-  asm
-        move.l Obj, a5
-  end;
-{$endif CPU68K}
-{$endif VER1_0}
   CallPointerMethodLocal := PointerMethodLocal(Func)(Frame, Param1)
 end;
 

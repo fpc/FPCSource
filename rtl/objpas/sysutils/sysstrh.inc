@@ -44,7 +44,6 @@ const
   MinDateTime: TDateTime = -657434.0;      { 01/01/0100 12:00:00.000 AM }
   MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
 
-{$ifndef VER1_0}
 {$if defined(FPC_HAS_TYPE_EXTENDED) or defined(FPC_HAS_TYPE_FLOAT128)}
   MinCurrency: Currency = -922337203685477.5807;
   MaxCurrency: Currency =  922337203685477.5807;
@@ -52,7 +51,6 @@ const
   MinCurrency: Currency = -922337203685477.0000;
   MaxCurrency: Currency =  922337203685477.0000;
 {$endif}
-{$endif VER1_0}
 
 Type
   TTextLineBreakStyle = (tlbsLF, tlbsCRLF,tlbsCR);   // Must move to system unit, and add Mac tlbsCR too ?

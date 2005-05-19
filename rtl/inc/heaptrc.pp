@@ -16,11 +16,6 @@
 unit heaptrc;
 interface
 
-{ 1.0.x doesn't have good rangechecking for cardinals }
-{$ifdef VER1_0}
-  {$R-}
-{$endif}
-
 {$goto on}
 
 Procedure DumpHeap;

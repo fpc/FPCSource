@@ -29,13 +29,7 @@
 type
    { some helpful data types }
 
-{$IFDEF VER1_0}
-(* System type alias cannot be used under version *)
-(* 1.0 because of different names of System unit. *)
-   THandle = longint;
-{$ELSE VER1_0}
    THandle = System.THandle;
-{$ENDIF VER1_0}
 
    TProcedure = procedure;
 
@@ -213,10 +207,8 @@ Type
   { MCBS functions }
   {$i sysansih.inc}
 
-{$ifndef VER1_0}
   { wide string functions }
   {$i syswideh.inc}
-{$endif VER1_0}
 
   { Read filename handling functions declaration }
   {$i finah.inc}

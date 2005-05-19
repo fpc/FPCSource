@@ -15,11 +15,6 @@ unit crt;
 
 interface
 
-{$IFNDEF VER1_0}
- {$INLINE ON}
-{$ENDIF VER1_0}
-
-
 {$i crth.inc}
 
 procedure Window32 (X1, Y1, X2, Y2: dword);
@@ -182,10 +177,7 @@ begin
 end;
 
 
-procedure GetScreenCursor (var X, Y: dword);
-{$IFNDEF VER1_0}
-                                             inline;
-{$ENDIF VER1_0}
+procedure GetScreenCursor (var X, Y: dword);inline;
 (* Return current cursor postion - 0-based. *)
 var
  X0, Y0: word;
@@ -200,20 +192,14 @@ begin
 end;
 
 
-procedure SetScreenCursor (X, Y: dword);
-{$IFNDEF VER1_0}
-                                         inline;
-{$ENDIF VER1_0}
+procedure SetScreenCursor (X, Y: dword); inline;
 (* Set current cursor postion - 0-based. *)
 begin
  VioSetCurPos (Y, X, VioHandle);
 end;
 
 
-procedure RemoveLines (Row: dword; Cnt: dword);
-{$IFNDEF VER1_0}
-                                                inline;
-{$ENDIF VER1_0}
+procedure RemoveLines (Row: dword; Cnt: dword); inline;
 (* Remove Cnt lines from screen starting with (0-based) Row. *)
 var
  ScrEl: word;
@@ -224,10 +210,7 @@ begin
 end;
 
 
-procedure ClearCells (X, Y, Cnt: dword);
-{$IFNDEF VER1_0}
-                                         inline;
-{$ENDIF VER1_0}
+procedure ClearCells (X, Y, Cnt: dword); inline;
 (* Clear Cnt cells in line Y (0-based) starting with position X (0-based). *)
 var
  ScrEl: word;
@@ -285,20 +268,14 @@ begin
 end;
 
 
-procedure WriteNormal (C: char; X, Y: dword);
-{$IFNDEF VER1_0}
-                                              inline;
-{$ENDIF VER1_0}
+procedure WriteNormal (C: char; X, Y: dword); inline;
 (* Write C to console at X, Y (0-based). *)
 begin
  VioWrtCharStrAtt (@C, 1, Y, X, TextAttr, VioHandle);
 end;
 
 
-procedure WriteBell;
-{$IFNDEF VER1_0}
-                     inline;
-{$ENDIF VER1_0}
+procedure WriteBell; inline;
 (* Write character #7 - beep. *)
 begin
  DosBeep (800, 250);

@@ -112,7 +112,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   end;
 
 
-procedure ClearExceptions(RaisePending: Boolean {$ifndef VER1_0}=true{$endif});
+procedure ClearExceptions(RaisePending: Boolean =true);
   begin
     set_fsr(get_fsr and $fffffc1f);
   end;

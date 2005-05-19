@@ -73,13 +73,8 @@ Type
   Longint  = +(-2147483647-1)..$7fffffff;
   Byte     = 0..255;
   Word     = 0..65535;
-  {$ifndef ver1_0}
   DWord    = LongWord;
   Cardinal = LongWord;
-  {$else}
-  Longword = cardinal;
-  Dword = cardinal;
-  {$endif}
   Integer  = SmallInt;
 {$endif HAS_INTERNAL_INTTYPES}
 
@@ -222,9 +217,7 @@ Type
   PUCS4Char           = ^UCS4Char;
   TUCS4CharArray      = array[0..$effffff] of UCS4Char;
   PUCS4CharArray      = ^TUCS4CharArray;
-{$ifndef VER1_0}
   UCS4String          = array of UCS4Char;
-{$endif VER1_0}
 
   UTF8String          = type ansistring;
   PUTF8String         = ^UTF8String;
@@ -280,11 +273,7 @@ Type
   PPWideChar          = ^PWideChar;
   { 1.0.x also has HASWIDECHAR defined, but doesn't support it
     fully, setting WChar to Word as fallback (PFV) }
-  {$ifndef VER1_0}
   WChar               = Widechar;
-  {$else}
-  WChar               = Word;
-  {$endif}
   UCS2Char            = WideChar;
   PUCS2Char           = PWideChar;
 {$else}
@@ -323,9 +312,7 @@ type
   PointerArray = array [0..512*1024*1024 - 2] of Pointer;
   PPointerArray = ^PointerArray;
 
-{$ifndef VER1_0}
   TBoundArray = array of Integer;
-{$endif VER1_0}
 
   TPCharArray = packed array[0..(MaxLongint div SizeOf(PChar))-1] of PChar;
   PPCharArray = ^TPCharArray;

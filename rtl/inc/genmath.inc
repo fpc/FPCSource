@@ -175,7 +175,6 @@ type
      End;
 
 
-{$ifndef VER1_0}
    function float64_to_int64_round_to_zero(a : float64) : int64;
      var
        aSign : flag;
@@ -217,7 +216,6 @@ type
          z:=-z;
        result:=z;
      end;
-{$endif VER1_0}
 
   Function ExtractFloat32Frac(a : Float32) : longint;
     Begin
@@ -300,11 +298,7 @@ type
          f64.low:=f64.high;
          f64.high:=l;
 {$endif cpuarm}
-{$ifdef VER1_0}
-         result:=float64_to_int32_round_to_zero(f64);
-{$else VER1_0}
          result:=float64_to_int64_round_to_zero(f64);
-{$endif VER1_0}
        end
      else
        begin

@@ -16,16 +16,12 @@
 
 ****************************************************************************}
 
-unit {$ifdef VER1_0}sysemx{$else}System{$endif};
+unit System;
 
 interface
 
 {Link the startup code.}
-{$ifdef VER1_0}
- {$l prt1.oo2}
-{$else}
- {$l prt1.o}
-{$endif}
+{$l prt1.o}
 
 {$I systemh.inc}
 

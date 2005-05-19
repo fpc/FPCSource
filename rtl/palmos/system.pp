@@ -16,7 +16,7 @@
 
 {$define PALMOS}
 {$ASMMODE DIRECT}
-unit {$ifdef VER1_0}syspalm{$else}system{$endif};
+unit system;
 
 {$I os.inc}
 

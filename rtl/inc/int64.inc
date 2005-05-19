@@ -309,10 +309,8 @@
                   ((_f1>fpc_mul_qword) or (f1>fpc_mul_qword)))) then
                   HandleErrorFrame(215,get_frame);
               end;
-{$ifndef VER1_0}
             { when bootstrapping, we forget about overflow checking for qword :) }
             f1overflowed:=f1overflowed or ((f1 and (1 shl 63))<>0);
-{$endif VER1_0}
             f1:=f1 shl 1;
             bitpos:=bitpos shl 1;
           end;
