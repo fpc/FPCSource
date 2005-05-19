@@ -26,6 +26,7 @@ interface
 {$DEFINE HAS_OSCONFIG}
 {$DEFINE HAS_TEMPDIR}
 {$DEFINE HASUNIX}
+{$DEFINE HASCREATEGUID}
 
 uses
   Unix,errors,sysconst,Unixtype;
@@ -63,6 +64,11 @@ Type
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
+
+{ Include CreateGUID function } 
+
+{$i uuid.inc}
+
 
 Const
 {Date Translation}
@@ -1088,6 +1094,7 @@ begin
   if (Result<>'') then
     Result:=IncludeTrailingPathDelimiter(Result);
 end;
+
 
 {****************************************************************************
                               Initialization code
