@@ -73,7 +73,7 @@ end;
 
 Procedure TDataset.BindFields(Binding: Boolean);
 
-var i, j, FieldIndex: Integer;
+var i, FieldIndex: Integer;
     FieldDef: TFieldDef;
 begin
   {
@@ -1493,13 +1493,11 @@ Var
   end;
 
 Var
-  PrevRecordCount : Integer;
   Scrolled : Integer;
 
 begin
   CheckBrowseMode;
   Result:=0; TheResult:=0;
-  PrevRecordCount:=FRecordCount;
   If ((Distance>0) and FEOF) or
      ((Distance<0) and FBOF) then
     exit;

@@ -188,7 +188,6 @@ type
   Private
     FAlignMent : TAlignment;
     FAttributeSet : String;
-    FBuffers : ppchar;
     FCalculated : Boolean;
     FCanModify : Boolean;
     FConstraintErrorMessage : String;
@@ -883,7 +882,6 @@ type
     FBufferCount: Longint;
     FCalcBuffer: PChar;
     FCalcFieldsSize: Longint;
-    FCanModify: Boolean;
     FConstraints: TCheckConstraints;
     FDisableControlsCount : Integer;
     FDisableControlsState : TDatasetState;
@@ -893,7 +891,6 @@ type
     FEOF: Boolean;
     FEnableControlsEvent : TDataEvent;
     FFieldList : TFields;
-    FFieldCount : Longint;
     FFieldDefs: TFieldDefs;
     FFilterOptions: TFilterOptions;
     FFilterText: string;
@@ -1835,16 +1832,12 @@ function TIndexDefs.GetIndexForFields(const Fields: string;
 var
   i, FieldsLen: integer;
   Last: TIndexDef;
-  Name: string;
-  Flds: string;
 begin
   Last := nil;
   FieldsLen := Length(Fields);
   for i := 0 to Count - 1 do
   begin
     Result := Items[I];
-    Name := Result.Name;
-    Flds := Result.Fields;
     if (Result.Options * [ixDescending, ixExpression] = []) and
        (not CaseInsensitive or (ixCaseInsensitive in Result.Options)) and
        AnsiSameText(Fields, Result.Fields) then
