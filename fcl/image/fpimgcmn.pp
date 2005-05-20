@@ -18,8 +18,6 @@ unit FPImgCmn;
 
 interface
 
-  PByteArray = ^TByteArray;
-
 function Swap(This : Longword): longword;
 function Swap(This : integer): integer;
 function Swap(This : Word): Word;
