@@ -4,11 +4,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
     Width,Prec : Longint;
     Left : Boolean;
     Fchar : char;
-{$ifdef ver1_0}
-    vl : int64;
-{$else}
     vq : qword;
-{$endif}
 
   {
     ReadFormat reads the format string. It returns the type character in
@@ -274,7 +270,6 @@ begin
                   if CheckArg(vtPChar,false) then
                     hs:=Args[doarg].VPChar
                 else
-{$ifndef VER1_0}
                   if CheckArg(vtPWideChar,false) then
                     hs:=WideString(Args[doarg].VPWideChar)
                 else
@@ -284,7 +279,6 @@ begin
                   if CheckArg(vtWidestring,false) then
                     hs:=WideString(Args[doarg].VWideString)
                 else
-{$endif VER1_0}
                   if CheckArg(vtAnsiString,true) then
                     hs:=ansistring(Args[doarg].VAnsiString);
                 Index:=Length(hs);
@@ -299,31 +293,6 @@ begin
               // Insert(':',ToAdd,5);
               end;
         'X' : begin
-{$ifdef ver1_0}
-              if Checkarg(vtinteger,false) then
-                 begin
-                   vl:=Args[Doarg].VInteger and int64($ffffffff);
-                   index:=16;
-                 end
-              else
-                 begin
-                   CheckArg(vtInt64,true);
-                   vl:=Args[DoArg].VInt64^;
-                   index:=31;
-                 end;
-              If Prec>index then
-                ToAdd:=HexStr(vl,index)
-              else
-                begin
-                // determine minimum needed number of hex digits.
-                Index:=1;
-                 While (DWord(1 shl (Index*4))<=DWord(Args[DoArg].VInteger)) and (index<8) do
-                  inc(Index);
-                If Index>Prec then
-                  Prec:=Index;
-                ToAdd:=HexStr(int64(vl),Prec);
-                end;
-{$else}
               if Checkarg(vtinteger,false) then
                  begin
                    vq:=Cardinal(Args[Doarg].VInteger);
@@ -347,7 +316,6 @@ begin
                   Prec:=Index;
                 ToAdd:=HexStr(vq,Prec);
                 end;
-{$endif}
               end;
         '%': ToAdd:='%';
       end;

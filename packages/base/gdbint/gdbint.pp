@@ -423,12 +423,8 @@ uses
   initc,
 {$endif win32}
 {$ifdef unix}
-  {$ifdef ver1_0}
-    linux,
-  {$else}
-    baseunix,
-  {$endif}
- {$endif}
+  baseunix,
+{$endif}
 {$ifdef go32v2}
   go32,
   dpmiexcp,
@@ -2401,7 +2397,7 @@ begin
   OldSigInt:=Signal(SIGINT,SignalHandler(@SIG_DFL));
 {$else}
   {$ifdef Unix}
-    OldSigInt:={$ifdef VER1_0}Signal{$else}fpSignal{$endif}(SIGINT,SignalHandler(SIG_DFL));
+    OldSigInt:=fpSignal(SIGINT,SignalHandler(SIG_DFL));
   {$else}
     OldSigInt:=Signal(SIGINT,SignalHandler(SIG_DFL));
   {$endif}
@@ -2432,7 +2428,7 @@ begin
   gdb_init;
 {$ifdef supportexceptions}
   {$ifdef unix}
-    {$ifdef VER1_0}Signal{$else}fpsignal{$endif}(SIGINT,OldSigInt);
+    fpsignal(SIGINT,OldSigInt);
   {$else}
     Signal(SIGINT,OldSigInt);
   {$endif}

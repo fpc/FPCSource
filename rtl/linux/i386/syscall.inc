@@ -19,7 +19,7 @@
 
 {$ASMMODE ATT}
 
-function FpSysCall(sysnr:TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif}[public,alias:'FPC_SYSCALL0'];
+function FpSysCall(sysnr:TSysParam):TSysResult; assembler; oldfpccall;[public,alias:'FPC_SYSCALL0'];
 
 asm
 { load the registers... }
@@ -28,9 +28,6 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef VER1_0}
-  movl  %eax,Errno
-{$else}
 {$ifdef REGCALL}
   movl  fpc_threadvar_relocate_proc,%ecx
   testl %ecx,%ecx
@@ -58,12 +55,11 @@ asm
   movl  %edx,(%eax)
 .LNoThread:
 {$endif REGCALL}
-{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1 : TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif}[public,alias:'FPC_SYSCALL1'];
+function FpSysCall(sysnr,param1 : TSysParam):TSysResult; assembler; oldfpccall;[public,alias:'FPC_SYSCALL1'];
 
 asm
 { load the registers... }
@@ -73,9 +69,6 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef VER1_0}
-  movl  %eax,Errno
-{$else}
 {$ifdef REGCALL}
   movl  fpc_threadvar_relocate_proc,%ecx
   testl %ecx,%ecx
@@ -103,12 +96,11 @@ asm
   movl  %edx,(%eax)
 .LNoThread:
 {$endif REGCALL}
-{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif} [public,alias:'FPC_SYSCALL2'];
+function FpSysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler; oldfpccall; [public,alias:'FPC_SYSCALL2'];
 
 asm
 { load the registers... }
@@ -119,9 +111,6 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef VER1_0}
-  movl  %eax,Errno
-{$else}
 {$ifdef REGCALL}
   movl  fpc_threadvar_relocate_proc,%ecx
   testl %ecx,%ecx
@@ -149,12 +138,11 @@ asm
   movl  %edx,(%eax)
 .LNoThread:
 {$endif REGCALL}
-{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif} [public,alias:'FPC_SYSCALL3'];
+function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler; oldfpccall; [public,alias:'FPC_SYSCALL3'];
 
 asm
 { load the registers... }
@@ -166,9 +154,6 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef VER1_0}
-  movl  %eax,Errno
-{$else}
 {$ifdef REGCALL}
   movl  fpc_threadvar_relocate_proc,%ecx
   testl %ecx,%ecx
@@ -196,12 +181,11 @@ asm
   movl  %edx,(%eax)
 .LNoThread:
 {$endif REGCALL}
-{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif} [public,alias:'FPC_SYSCALL4'];
+function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler; oldfpccall; [public,alias:'FPC_SYSCALL4'];
 
 asm
 { load the registers... }
@@ -214,9 +198,6 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef VER1_0}
-  movl  %eax,Errno
-{$else}
 {$ifdef REGCALL}
   movl  fpc_threadvar_relocate_proc,%ecx
   testl %ecx,%ecx
@@ -244,12 +225,11 @@ asm
   movl  %edx,(%eax)
 .LNoThread:
 {$endif REGCALL}
-{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif}[public,alias:'FPC_SYSCALL5'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler; oldfpccall;[public,alias:'FPC_SYSCALL5'];
 
 asm
 { load the registers... }
@@ -263,9 +243,6 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef VER1_0}
-  movl  %eax,Errno
-{$else}
 {$ifdef REGCALL}
   movl  fpc_threadvar_relocate_proc,%ecx
   testl %ecx,%ecx
@@ -293,14 +270,13 @@ asm
   movl  %edx,(%eax)
 .LNoThread:
 {$endif REGCALL}
-{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;
 
 {$ifdef notsupported}
 { Only 5 params are pushed, so it'll not work as expected (PFV) }
-function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif}[public,alias:'FPC_SYSCALL6'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler; oldfpccall;[public,alias:'FPC_SYSCALL6'];
 
 asm
 { load the registers... }
@@ -314,9 +290,6 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef VER1_0}
-  movl  %eax,Errno
-{$else}
 {$ifdef REGCALL}
   movl  fpc_threadvar_relocate_proc,%ecx
   testl %ecx,%ecx
@@ -344,7 +317,6 @@ asm
   movl  %edx,(%eax)
 .LNoThread:
 {$endif REGCALL}
-{$endif ver1_0}
   movl  $-1,%eax
 .LSyscOK:
 end;

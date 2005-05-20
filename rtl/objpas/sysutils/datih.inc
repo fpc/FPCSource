@@ -110,7 +110,7 @@ function DayOfWeek(DateTime: TDateTime): integer;
 function Date: TDateTime;
 function Time: TDateTime;
 function Now: TDateTime;
-function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer {$ifndef ver1_0} = 1 {$endif}): TDateTime;
+function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer = 1 ): TDateTime;
 function IsLeapYear(Year: Word): boolean;
 function DateToStr(Date: TDateTime): string;
 function TimeToStr(Time: TDateTime): string;
@@ -122,14 +122,12 @@ function FormatDateTime(FormatStr: string; DateTime: TDateTime):string;
 procedure DateTimeToString(var Result: string; const FormatStr: string; const DateTime: TDateTime);
 Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
 Function FileDateToDateTime (Filedate : Longint) :TDateTime;
-{$ifndef VER1_0}
 function TryStrToDate(const S: string; out Value: TDateTime): Boolean;
 // function TryStrToDate(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 function TryStrToTime(const S: string; out Value: TDateTime): Boolean;
 // function TryStrToTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 function TryStrToDateTime(const S: string; out Value: TDateTime): Boolean;
 // function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
-{$endif VER1_0}
 
 { FPC Extra }
 Procedure GetLocalTime(var SystemTime: TSystemTime);

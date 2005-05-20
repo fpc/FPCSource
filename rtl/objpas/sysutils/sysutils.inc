@@ -70,10 +70,8 @@
   { MCBS functions }
   {$i sysansi.inc}
 
-{$ifndef VER1_0}
   { wide string functions }
   {$i syswide.inc}
-{$endif VER1_0}
 
   { CPU Specific code }
   {$i sysutilp.inc}
@@ -262,11 +260,7 @@ begin
   else
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
   end;
-{$ifdef VER1_0}
-  Raise E at longint(Address){$ifdef ENHANCEDRAISE},longint(Frame){$endif};
-{$else VER1_0}
   Raise E at Address,Frame;
-{$endif VER1_0}
 end;
 
 {$IFDEF HAS_OSERROR}
@@ -408,14 +402,7 @@ end;
 procedure Abort;
 
 begin
-{$ifdef VER1_0}
-  Raise EAbort.Create(SAbortError) at Longint(Get_Caller_addr(Get_Frame));
-{$else VER1_0}
-  Raise EAbort.Create(SAbortError)
-  {$IFNDEF VIRTUALPASCAL}
-    at Pointer(Get_Caller_addr(Get_Frame));
-  {$ENDIF}
-{$endif VER1_0}
+  Raise EAbort.Create(SAbortError) at Pointer(Get_Caller_addr(Get_Frame));
 end;
 
 procedure OutOfMemoryError;

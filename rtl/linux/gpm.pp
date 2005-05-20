@@ -189,7 +189,7 @@ function gpm_getevent(var event:Tgpm_event):longint;
 function Gpm_Getchar : longint;}
 function gpm_repeat(millisec:longint):longint;
 function gpm_fitvaluesM(var x,y:longint; margin:longint):longint;
-function gpm_fitvalues(var x,y:longint):longint;{$ifndef VER1_0}inline;{$endif}
+function gpm_fitvalues(var x,y:longint):longint;inline;
 function gpm_pushroi(x1:longint;y1:longint;x2:longint;y2:longint;
                      mask:longint;fun:Tgpmhandler;xtradata:pointer):Pgpm_roi;
 function gpm_poproi(which:Pgpm_roi):Pgpm_roi;
@@ -198,8 +198,7 @@ function gpm_lowerroi(which:Pgpm_roi;after:Pgpm_roi):Pgpm_roi;
 {Should be pointer because proc accepts nil.}
 function gpm_getsnapshot(eptr:Pgpmevent):longint;
 {Overload for compatibility.}
-function gpm_getsnapshot(var eptr:Tgpmevent):longint;
-{$ifndef VER1_0}inline;{$endif}
+function gpm_getsnapshot(var eptr:Tgpmevent):longint;inline;
 {$endif}
 
 
@@ -362,7 +361,7 @@ var conn:Tgpmconnect;
 begin
   fpsigemptyset(new_sigset);
   fpsigaddset(new_sigset,SIGTSTP);
-  fpsigprocmask(SIG_BLOCK,{$ifdef ver1_0}@{$endif}new_sigset,{$ifdef ver1_0}@{$endif}old_sigset);
+  fpsigprocmask(SIG_BLOCK,new_sigset,old_sigset);
 
   {Open a completely transparent gpm connection.}
   conn.eventmask:=0;
@@ -702,8 +701,7 @@ begin
     end;
 end;
 
-function gpm_fitvalues(var x,y:longint):longint;
-{$ifndef VER1_0}inline;{$endif}
+function gpm_fitvalues(var x,y:longint):longint;inline;
 
 begin
   gpm_fitvalues:=gpm_fitvaluesm(x,y,-1);
@@ -943,8 +941,7 @@ begin
     end;
 end;
 
-function gpm_getsnapshot(var eptr:Tgpmevent):longint;
-{$ifndef VER1_0}inline;{$endif}
+function gpm_getsnapshot(var eptr:Tgpmevent):longint;inline;
 
 begin
     gpm_getsnapshot:=gpm_getsnapshot(@eptr);

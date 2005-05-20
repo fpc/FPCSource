@@ -453,9 +453,7 @@ end;
 
 function random(l:int64): int64;
 begin
-{$ifndef VER1_0}
   random := int64((qword(cardinal(genrand_MT19937)) or ((qword(cardinal(genrand_MT19937)) shl 32))) and $7fffffffffffffff) mod l;
-{$endif VER1_0}
 end;
 
 function random: extended;

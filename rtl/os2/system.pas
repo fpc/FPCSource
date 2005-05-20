@@ -15,7 +15,7 @@
 
 ****************************************************************************}
 
-unit {$ifdef VER1_0}sysos2{$else}System{$endif};
+unit System;
 
 interface
 

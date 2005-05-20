@@ -29,11 +29,7 @@ Type
     cInt32 = longint;
     cUInt32= cardinal;
     cInt64 = int64;
-{$ifndef VER1_0}
     cUInt64= qword;
-{$else}
-    cUInt64= int64;
-{$endif}
 
     cuchar = byte;
     cchar  = shortint;
@@ -47,11 +43,7 @@ Type
     cuLong = Cardinal;
 {$endif}
     clonglong = int64;
-{$ifndef VER1_0}
     culonglong = qword;
-{$else VER1_0}
-    culonglong = int64;
-{$endif VER1_0}
     cshort   = smallint;
     cushort  = word;
 

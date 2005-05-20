@@ -18,21 +18,13 @@
 Procedure BitsError (Msg : string);
 
 begin
-{$ifdef VER1_0}
-  Raise EBitsError.Create(Msg) at longint(get_caller_addr(get_frame));
-{$else VER1_0}
   Raise EBitsError.Create(Msg) at get_caller_addr(get_frame);
-{$endif VER1_0}
 end;
 
 Procedure BitsErrorFmt (Msg : string; const Args : array of const);
 
 begin
-{$ifdef VER1_0}
-  Raise EBitsError.CreateFmt(Msg,args) at longint(get_caller_addr(get_frame));
-{$else VER1_0}
   Raise EBitsError.CreateFmt(Msg,args) at get_caller_addr(get_frame);
-{$endif VER1_0}
 end;
 
 procedure TBits.CheckBitIndex (Bit : longint;CurrentSize : Boolean);
@@ -96,7 +88,7 @@ end;
 
 { ******************** TBits ***************************** }
 
-constructor TBits.Create(theSize : longint {$ifndef VER1_0} = 0 {$endif});
+constructor TBits.Create(theSize : longint = 0 );
 begin
    FSize := 0;
    FBits := nil;

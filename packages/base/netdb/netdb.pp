@@ -115,11 +115,7 @@ Function GetProtocolByNumber(proto: Integer;  Var H : TProtocolEntry) : boolean;
 Implementation
 
 uses 
-{$ifdef VER1_0}
-   Linux,
-{$else}
    BaseUnix,
-{$endif}
    sysutils;
 
 
@@ -441,7 +437,7 @@ Var
   SA : TInetSockAddr;
   Sock,L : Longint;
   Al,RTO : Longint;
-  ReadFDS : {$ifdef VER1_0}FDSet{$ELSE}TFDSet{$ENDIF};
+  ReadFDS : TFDSet;
   
 begin
   Result:=False;
@@ -468,20 +464,16 @@ begin
   sendto(sock,qry,qrylen+12,0,SA,SizeOf(SA));
   // Wait for answer.
   RTO:=TimeOutS*1000+TimeOutMS;
-  {$ifdef VER1_0}FD_ZERO{$else}fpFD_ZERO{$endif}(ReadFDS);
-  {$ifdef VER1_0}
-  FD_Set(Sock,readfds);
-  {$else}
+  fpFD_ZERO(ReadFDS);
   fpFD_Set(sock,readfds);
-  {$endif}
-  if {$ifdef ver1_0}Select{$else}fpSelect{$endif}(Sock+1,@readfds,Nil,Nil,RTO)<=0 then
+  if fpSelect(Sock+1,@readfds,Nil,Nil,RTO)<=0 then
     begin
-    {$ifdef VER1_0}fdclose{$ELSE}fpclose{$endif}(Sock);
+    fpclose(Sock);
     exit;
     end;
   AL:=SizeOf(SA);
   L:=recvfrom(Sock,ans,SizeOf(Ans),0,SA,AL);
-  {$ifdef VER1_0}fdclose{$ELSE}fpclose{$endif}(Sock);
+  fpclose(Sock);
   // Check lenght answer and fields in header data.
   If (L<12) or not CheckAnswer(Qry,Ans) Then
     exit;
@@ -594,11 +586,7 @@ begin
     if LIP4Count > 0 then begin
       inc(LIP4Count); // we loop to LIP4Count-1 later
       if LIP4Count > MaxIP4Mapped then LIP4Count := MaxIP4Mapped;
-{$ifdef VER1_0}      
-      if LIP4Count > High(Addresses)+1 then LIP4Count := High(Addresses)+1;
-{$else}      
       if LIP4Count > Length(Addresses) then LIP4Count := Length(Addresses);
-{$endif}      
       for i := 0 to LIP4Count-2 do begin
         Addresses[i] := NoAddress6;
         Addresses[i].u6_addr16[5] := $FFFF;

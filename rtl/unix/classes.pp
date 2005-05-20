@@ -46,10 +46,8 @@ initialization
 finalization
   CommonCleanup;
 
-{$ifndef VER1_0}
   if ThreadsInited then
      DoneThreads;
-{$endif}
 end.
 {
   $Log: classes.pp,v $

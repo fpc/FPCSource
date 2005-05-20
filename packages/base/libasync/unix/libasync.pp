@@ -40,11 +40,7 @@ type
 
 implementation
 
-{$ifdef VER1_0}
-uses Linux;
-{$else}
 uses baseunix, Unix;
-{$endif}
 
 const
   MaxHandle = SizeOf(TFDSet) * 8 - 1;
@@ -76,7 +72,7 @@ begin
   while Assigned(IOCallback) do
   begin
     if (IOCallback^.SavedHandleFlags and Open_NonBlock) = 0 then
-      {$ifdef VER1_0}fcntl{$else}fpfcntl{$endif}(IOCallback^.IOHandle, F_SetFl, IOCallback^.SavedHandleFlags);
+      fpfcntl(IOCallback^.IOHandle, F_SetFl, IOCallback^.SavedHandleFlags);
     IOCallback := IOCallback^.Next;
   end;
 
@@ -92,12 +88,12 @@ var
 begin
   if Handle^.Data.HighestHandle < 0 then
     // No I/O checks to do, so just wait...
-    AsyncResult := {$ifdef VER1_0}Select{$else}fpselect{$endif}(0, nil, nil, nil, TimeOut)
+    AsyncResult := fpselect(0, nil, nil, nil, TimeOut)
   else
   begin
     CurReadFDSet := PFDSet(Handle^.Data.FDData)[0];
     CurWriteFDSet := PFDSet(Handle^.Data.FDData)[1];
-    AsyncResult := {$ifdef VER1_0}Select{$else}fpselect{$endif}(Handle^.Data.HighestHandle + 1,
+    AsyncResult := fpselect(Handle^.Data.HighestHandle + 1,
       @CurReadFDSet, @CurWriteFDSet, nil, TimeOut);
 
     if AsyncResult > 0 then
@@ -108,13 +104,8 @@ begin
       begin
         CurIOCallback := PIOCallbackData(Handle^.Data.CurIOCallback);
         Handle^.Data.NextIOCallback := CurIOCallback^.Next;
-        {$ifdef VER1_0}
-        if (FD_IsSet(CurIOCallback^.IOHandle,CurReadFDSet)) and
-           (FD_IsSet(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0])) and
-        {$else}
         if (fpFD_ISSET(CurIOCallback^.IOHandle,CurReadFDSet) > 0) and
            (fpFD_ISSET(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0]) > 0) and
-        {$endif}
           Assigned(CurIOCallback^.ReadCallback) then
         begin
           CurIOCallback^.ReadCallback(CurIOCallback^.ReadUserData);
@@ -124,13 +115,8 @@ begin
 
         CurIOCallback := PIOCallbackData(Handle^.Data.CurIOCallback);
         if Assigned(CurIOCallback) and
-        {$ifdef VER1_0}
-           (FD_IsSet(CurIOCallback^.IOHandle, CurWriteFDSet)) and
-           (FD_IsSet(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1])) and
-        {$else}
            (fpFD_ISSET(CurIOCallback^.IOHandle, CurWriteFDSet) > 0) and
            (fpFD_ISSET(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1]) > 0) and
-        {$endif}
           Assigned(CurIOCallback^.WriteCallback) then
         begin
           CurIOCallback^.WriteCallback(CurIOCallback^.WriteUserData);
@@ -154,15 +140,15 @@ begin
     if not Assigned(Handle^.Data.FDData) then
     begin
       GetMem(Handle^.Data.FDData, SizeOf(TFDSet) * 2);
-      {$ifdef VER1_0}FD_ZERO{$else}fpFD_ZERO{$endif}(PFDSet(Handle^.Data.FDData)[0]);
-      {$ifdef VER1_0}FD_ZERO{$else}fpFD_ZERO{$endif}(PFDSet(Handle^.Data.FDData)[1]);
+      fpFD_ZERO(PFDSet(Handle^.Data.FDData)[0]);
+      fpFD_ZERO(PFDSet(Handle^.Data.FDData)[1]);
     end;
     if Data^.IOHandle > Handle^.Data.HighestHandle then
       Handle^.Data.HighestHandle := Data^.IOHandle;
   end;
 
-  Data^.SavedHandleFlags := {$ifdef VER1_0}fcntl{$else}fpfcntl{$endif}(Data^.IOHandle, F_GetFl);
-  {$ifdef VER1_0}fcntl{$else}fpfcntl{$endif}(Data^.IOHandle, F_SetFl, Data^.SavedHandleFlags or Open_NonBlock);
+  Data^.SavedHandleFlags := fpfcntl(Data^.IOHandle, F_GetFl);
+  fpfcntl(Data^.IOHandle, F_SetFl, Data^.SavedHandleFlags or Open_NonBlock);
 
   case Data^.IOHandle of
     StdInputHandle:
@@ -176,16 +162,16 @@ begin
   case i of
     Open_RdOnly:
       if cbRead in CallbackTypes then
-        {$ifdef VER1_0}FD_Set{$else}fpFD_SET{$endif}(Data^.IOHandle, PFDSet(Handle^.Data.FDData)[0]);
+        fpFD_SET(Data^.IOHandle, PFDSet(Handle^.Data.FDData)[0]);
     Open_WrOnly:
       if cbWrite in CallbackTypes then
-        {$ifdef VER1_0}FD_Set{$else}fpFD_SET{$endif}(Data^.IOHandle, PFDSet(Handle^.Data.FDData)[1]);
+        fpFD_SET(Data^.IOHandle, PFDSet(Handle^.Data.FDData)[1]);
     Open_RdWr:
       begin
         if cbRead in CallbackTypes then
-          {$ifdef VER1_0}FD_Set{$else}fpFD_SET{$endif}(Data^.IOHandle, PFDSet(Handle^.Data.FDData)[0]);
+          fpFD_SET(Data^.IOHandle, PFDSet(Handle^.Data.FDData)[0]);
         if cbWrite in CallbackTypes then
-          {$ifdef VER1_0}FD_Set{$else}fpFD_SET{$endif}(Data^.IOHandle, PFDSet(Handle^.Data.FDData)[1]);
+          fpFD_SET(Data^.IOHandle, PFDSet(Handle^.Data.FDData)[1]);
       end;
   end;
 end;
@@ -197,22 +183,17 @@ begin
     exit;
 
   if cbRead in CallbackTypes then
-    {$ifdef VER1_0}FD_CLR{$else}fpFD_CLR{$endif}(IOHandle, PFDSet(Handle^.Data.FDData)[0]);
+    fpFD_CLR(IOHandle, PFDSet(Handle^.Data.FDData)[0]);
   if cbWrite in CallbackTypes then
-    {$ifdef VER1_0}FD_CLR{$else}fpFD_CLR{$endif}(IOHandle, PFDSet(Handle^.Data.FDData)[1]);
+    fpFD_CLR(IOHandle, PFDSet(Handle^.Data.FDData)[1]);
 end;
 
 function asyncGetTicks: Int64; cdecl;
 var
   Time: TimeVal;
 begin
-   {$ifdef ver1_0}
-   GetTimeOfDay(time);
-   Result := Int64(Time.Sec) * 1000 + Int64(Time.USec div 1000);
-   {$else}
-   fpGetTimeOfDay(@time,nil);
-   Result := Int64(Time.tv_Sec) * 1000 + Int64(Time.tv_USec div 1000);
-   {$endif}
+  fpGetTimeOfDay(@time,nil);
+  Result := Int64(Time.tv_Sec) * 1000 + Int64(Time.tv_USec div 1000);
 end;
 
 

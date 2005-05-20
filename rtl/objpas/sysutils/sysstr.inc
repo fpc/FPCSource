@@ -409,81 +409,61 @@ end ;
 
 function AnsiUpperCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-  {$ifndef ver1_0}
     result:=widestringmanager.UpperAnsiStringProc(s);
-  {$endif}
   end;
   
   
 function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-  {$ifndef ver1_0}
     result:=widestringmanager.LowerAnsiStringProc(s);
-  {$endif}
   end;
   
   
 function AnsiCompareStr(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-  {$ifndef ver1_0}
     result:=widestringmanager.CompareStrAnsiStringProc(s1,s2);
-  {$endif}
   end;
   
   
 function AnsiCompareText(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-  {$ifndef ver1_0}
     result:=widestringmanager.CompareTextAnsiStringProc(s1,s2);
-  {$endif}
   end;
   
   
 function AnsiStrComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-  {$ifndef ver1_0}
     result:=widestringmanager.StrCompAnsiStringProc(s1,s2);
-  {$endif}
   end;
 
   
 function AnsiStrIComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-  {$ifndef ver1_0}
     result:=widestringmanager.StrICompAnsiStringProc(s1,s2); 
-  {$endif}
   end;
 
   
 function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-  {$ifndef ver1_0}
     result:=widestringmanager.StrLCompAnsiStringProc(s1,s2,maxlen);
-  {$endif}
   end;
 
   
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-  {$ifndef ver1_0}
     result:=widestringmanager.StrLICompAnsiStringProc(s1,s2,maxlen);
-  {$endif}
   end;
 
   
 function AnsiStrLower(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-  {$ifndef ver1_0}
     result:=widestringmanager.StrLowerAnsiStringProc(Str);
-  {$endif}
   end;
   
   
 function AnsiStrUpper(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-  {$ifndef ver1_0}
     result:=widestringmanager.StrUpperAnsiStringProc(Str);
-  {$endif}
   end;
 
 
@@ -1176,13 +1156,9 @@ end;
 function TryFloatToCurr(const Value: Extended; var AResult: Currency): Boolean;
 
 begin
-{$ifndef VER1_0}
   Result:=(Value>=MinCurrency) and (Value<=MaxCurrency);
   if Result then
     AResult := Value;
-{$else VER1_0}
-  Result:=false;
-{$endif VER1_0}
 end;
 
 function FloatToCurr(const Value: Extended): Currency;

@@ -40,13 +40,8 @@ const
 
 type
 
-{$IFDEF ver1_0}
-  SAXString = String;
-  SAXChar = Char;
-{$ELSE}
   SAXString = WideString;
   SAXChar = WideChar;
-{$ENDIF}
   PSAXChar = ^SAXChar;
 
 { Exceptions }
@@ -627,11 +622,7 @@ end;
 
 procedure TSAXAttributes.BadIndex(Index: Integer);
 begin
-{$ifdef VER1_0}
-  raise ESAXAttributeIndexError.Create(Index) at get_caller_addr(get_frame);
-{$else VER1_0}
   raise ESAXAttributeIndexError.Create(Index) at pointer(get_caller_addr(get_frame));
-{$endif VER1_0}
 end;
 
 

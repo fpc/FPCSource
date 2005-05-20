@@ -20,7 +20,6 @@ procedure InitInternationalGeneric;
     fillchar(SysLocale,sizeof(SysLocale),0);
     
     { keep these routines out of the executable? }
-{$ifndef VER1_0}
 {$ifndef FPC_NOGENERICANSIROUTINES}
     widestringmanager.UpperAnsiStringProc:=@GenericAnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@GenericAnsiLowerCase;    
@@ -33,7 +32,6 @@ procedure InitInternationalGeneric;
     widestringmanager.StrLowerAnsiStringProc:=@GenericAnsiStrLower;
     widestringmanager.StrUpperAnsiStringProc:=@GenericAnsiStrUpper;
 {$endif FPC_NOGENERICANSIROUTINES}    
-{$endif}
   end;
   
 {

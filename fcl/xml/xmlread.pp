@@ -373,9 +373,7 @@ begin
 end;
 
 {$IFDEF FPC}
-  {$IFNDEF VER1_0}
     {$DEFINE UsesFPCWidestrings}
-  {$ENDIF}
 {$ENDIF}
 
 {$IFDEF UsesFPCWidestrings}

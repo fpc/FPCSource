@@ -20,7 +20,7 @@
 
  **********************************************************************}
 
-unit {$ifdef VER1_0}SysMorph{$else}System{$endif};
+unit System;
 
 interface
 

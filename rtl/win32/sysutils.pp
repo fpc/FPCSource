@@ -896,11 +896,7 @@ Type
   PFNSHGetFolderPath = Function(Ahwnd: HWND; Csidl: Integer; Token: THandle; Flags: DWord; Path: PChar): HRESULT; stdcall;
 
 
-{$ifdef VER1_0}
-Const
-{$else}
 var
-{$endif}
   SHGetFolderPath : PFNSHGetFolderPath = Nil;
   CFGDLLHandle : THandle = 0;
 

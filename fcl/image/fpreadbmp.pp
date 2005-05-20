@@ -104,31 +104,14 @@ end;
 
 procedure TFPReaderBMP.SetupRead(nPalette, nRowBits: Integer; Stream : TStream);
 
-{$ifdef VER1_0}
-type
-  tcolinfo = ARRAY [0..0] OF TColorRGBA;
-  pcolinfo = ^tcolinfo;
-var
-  ColInfo: pcolinfo;
-{$else}
 var
   ColInfo: ARRAY OF TColorRGBA;
-{$endif}
   i: Integer;
 
 begin
   if nPalette>0 then
     begin
     GetMem(FPalette, nPalette*SizeOf(TFPColor));
-{$ifdef VER1_0}
-    GetMem(ColInfo, nPalette*Sizeof(TColorRGBA));
-    if BFI.ClrUsed>0 then
-      Stream.Read(ColInfo^[0],BFI.ClrUsed*SizeOf(TColorRGBA))
-    else // Seems to me that this is dangerous.
-      Stream.Read(ColInfo^[0],nPalette*SizeOf(TColorRGBA));
-    for i := 0 to nPalette-1 do
-      FPalette[i] := RGBAToFPColor(ColInfo^[i]);
-{$else}
     SetLength(ColInfo, nPalette);
     if BFI.ClrUsed>0 then
       Stream.Read(ColInfo[0],BFI.ClrUsed*SizeOf(TColorRGBA))
@@ -136,15 +119,11 @@ begin
       Stream.Read(ColInfo[0],nPalette*SizeOf(TColorRGBA));
     for i := 0 to High(ColInfo) do
       FPalette[i] := RGBAToFPColor(ColInfo[i]);
-{$endif}
     end
   else if BFI.ClrUsed>0 then { Skip palette }
     Stream.Position := Stream.Position + BFI.ClrUsed*SizeOf(TColorRGBA);
   ReadSize:=((nRowBits + 31) div 32) shl 2;
   GetMem(LineBuf,ReadSize);
-{$ifdef VER1_0}
-    FreeMem(ColInfo, nPalette*Sizeof(TColorRGBA));
-{$endif}
 end;
 
 procedure TFPReaderBMP.InternalRead(Stream:TStream; Img:TFPCustomImage);

@@ -13,11 +13,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 **********************************************************************}
-{$ifdef VER1_0}
-unit linux;
-{$else}
 unit oldlinux;
-{$endif}
 
 Interface
 
@@ -1557,24 +1553,24 @@ function MUnMap (P : Pointer; Size : Longint) : Boolean;
 Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 Function IoPL(Level : longint) : Boolean;
 {$ifdef cpui386}
-Procedure WritePort (Port : Longint; Value : Byte);{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure WritePort (Port : Longint; Value : Word);{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure WritePort (Port : Longint; Value : Longint);{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure WritePortB (Port : Longint; Value : Byte);{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure WritePortW (Port : Longint; Value : Word);{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure WritePortL (Port : Longint; Value : Longint);{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure WritePortL (Port : Longint; Var Buf; Count: longint);{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure WritePortW (Port : Longint; Var Buf; Count: longint);{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure WritePortB (Port : Longint; Var Buf; Count: longint);{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure ReadPort (Port : Longint; Var Value : Byte);{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure ReadPort (Port : Longint; Var Value : Word);{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure ReadPort (Port : Longint; Var Value : Longint);{$ifndef VER1_0}oldfpccall;{$endif}
-function  ReadPortB (Port : Longint): Byte;{$ifndef VER1_0}oldfpccall;{$endif}
-function  ReadPortW (Port : Longint): Word;{$ifndef VER1_0}oldfpccall;{$endif}
-function  ReadPortL (Port : Longint): LongInt;{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);{$ifndef VER1_0}oldfpccall;{$endif}
-Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure WritePort (Port : Longint; Value : Byte);oldfpccall;
+Procedure WritePort (Port : Longint; Value : Word);oldfpccall;
+Procedure WritePort (Port : Longint; Value : Longint);oldfpccall;
+Procedure WritePortB (Port : Longint; Value : Byte);oldfpccall;
+Procedure WritePortW (Port : Longint; Value : Word);oldfpccall;
+Procedure WritePortL (Port : Longint; Value : Longint);oldfpccall;
+Procedure WritePortL (Port : Longint; Var Buf; Count: longint);oldfpccall;
+Procedure WritePortW (Port : Longint; Var Buf; Count: longint);oldfpccall;
+Procedure WritePortB (Port : Longint; Var Buf; Count: longint);oldfpccall;
+Procedure ReadPort (Port : Longint; Var Value : Byte);oldfpccall;
+Procedure ReadPort (Port : Longint; Var Value : Word);oldfpccall;
+Procedure ReadPort (Port : Longint; Var Value : Longint);oldfpccall;
+function  ReadPortB (Port : Longint): Byte;oldfpccall;
+function  ReadPortW (Port : Longint): Word;oldfpccall;
+function  ReadPortL (Port : Longint): LongInt;oldfpccall;
+Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);oldfpccall;
+Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);oldfpccall;
+Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);oldfpccall;
 {$endif}
 
 {**************************
@@ -1641,7 +1637,7 @@ Uses Strings;
 {$endif}
 
 
-Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );{$ifndef ver1_0}oldfpccall;{$endif}assembler;
+Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );oldfpccall;assembler;
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -5636,7 +5632,7 @@ begin
 end;
 
 
-Procedure WritePort (Port : Longint; Value : Byte);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure WritePort (Port : Longint; Value : Byte);oldfpccall;
 {
   Writes 'Value' to port 'Port'
 }
@@ -5648,7 +5644,7 @@ begin
         end ['EAX','EDX'];
 end;
 
-Procedure WritePort (Port : Longint; Value : Word);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure WritePort (Port : Longint; Value : Word);oldfpccall;
 {
   Writes 'Value' to port 'Port'
 }
@@ -5663,7 +5659,7 @@ end;
 
 
 
-Procedure WritePort (Port : Longint; Value : Longint);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure WritePort (Port : Longint; Value : Longint);oldfpccall;
 {
   Writes 'Value' to port 'Port'
 }
@@ -5677,7 +5673,7 @@ begin
 end;
 
 
-Procedure WritePortB (Port : Longint; Value : Byte);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure WritePortB (Port : Longint; Value : Byte);oldfpccall;
 {
   Writes 'Value' to port 'Port'
 }
@@ -5689,7 +5685,7 @@ begin
         end ['EAX','EDX'];
 end;
 
-Procedure WritePortW (Port : Longint; Value : Word);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure WritePortW (Port : Longint; Value : Word);oldfpccall;
 {
   Writes 'Value' to port 'Port'
 }
@@ -5704,7 +5700,7 @@ end;
 
 
 
-Procedure WritePortL (Port : Longint; Value : Longint);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure WritePortL (Port : Longint; Value : Longint);oldfpccall;
 {
   Writes 'Value' to port 'Port'
 }
@@ -5719,7 +5715,7 @@ end;
 
 
 
-Procedure WritePortl (Port : Longint; Var Buf; Count: longint);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure WritePortl (Port : Longint; Var Buf; Count: longint);oldfpccall;
 {
   Writes 'Count' longints from 'Buf' to Port
 }
@@ -5736,7 +5732,7 @@ end;
 
 
 
-Procedure WritePortW (Port : Longint; Var Buf; Count: longint);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure WritePortW (Port : Longint; Var Buf; Count: longint);oldfpccall;
 {
   Writes 'Count' words from 'Buf' to Port
 }
@@ -5753,7 +5749,7 @@ end;
 
 
 
-Procedure WritePortB (Port : Longint; Var Buf; Count: longint);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure WritePortB (Port : Longint; Var Buf; Count: longint);oldfpccall;
 {
   Writes 'Count' bytes from 'Buf' to Port
 }
@@ -5770,7 +5766,7 @@ end;
 
 
 
-Procedure ReadPort (Port : Longint; Var Value : Byte);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure ReadPort (Port : Longint; Var Value : Byte);oldfpccall;
 {
   Reads 'Value' from port 'Port'
 }
@@ -5785,7 +5781,7 @@ end;
 
 
 
-Procedure ReadPort (Port : Longint; Var Value : Word);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure ReadPort (Port : Longint; Var Value : Word);oldfpccall;
 {
   Reads 'Value' from port 'Port'
 }
@@ -5800,7 +5796,7 @@ end;
 
 
 
-Procedure ReadPort (Port : Longint; Var Value : Longint);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure ReadPort (Port : Longint; Var Value : Longint);oldfpccall;
 {
   Reads 'Value' from port 'Port'
 }
@@ -5815,7 +5811,7 @@ end;
 
 
 
-function ReadPortB (Port : Longint): Byte;{$ifndef VER1_0}oldfpccall;{$endif} assembler;
+function ReadPortB (Port : Longint): Byte;oldfpccall; assembler;
 {
   Reads a byte from port 'Port'
 }
@@ -5828,7 +5824,7 @@ end ['EAX','EDX'];
 
 
 
-function ReadPortW (Port : Longint): Word;{$ifndef VER1_0}oldfpccall;{$endif} assembler;
+function ReadPortW (Port : Longint): Word;oldfpccall; assembler;
 {
   Reads a word from port 'Port'
 }
@@ -5840,7 +5836,7 @@ end ['EAX','EDX'];
 
 
 
-function ReadPortL (Port : Longint): LongInt;{$ifndef VER1_0}oldfpccall;{$endif} assembler;
+function ReadPortL (Port : Longint): LongInt;oldfpccall; assembler;
 {
   Reads a LongInt from port 'Port'
 }
@@ -5851,7 +5847,7 @@ end ['EAX','EDX'];
 
 
 
-Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);oldfpccall;
 {
   Reads 'Count' longints from port 'Port' to 'Buf'.
 }
@@ -5868,7 +5864,7 @@ end;
 
 
 
-Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);oldfpccall;
 {
   Reads 'Count' words from port 'Port' to 'Buf'.
 }
@@ -5885,7 +5881,7 @@ end;
 
 
 
-Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);oldfpccall;
 {
   Reads 'Count' bytes from port 'Port' to 'Buf'.
 }

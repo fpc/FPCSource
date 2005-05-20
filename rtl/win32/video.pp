@@ -339,11 +339,7 @@ begin
                     if LineCounter>y2 then
                       y2:=LineCounter;
                  end;
-{$ifdef VER1_0}
-               Word(LineBuf^[BufCounter].UniCodeChar) := WordRec(VideoBuf^[BufCounter]).One;
-{$else}
                LineBuf^[BufCounter].UniCodeChar := Widechar(WordRec(VideoBuf^[BufCounter]).One);
-{$endif}
                { If (WordRec(VideoBuf^[BufCounter]).Two and $80)<>0 then
                  LineBuf^[BufCounter].Attributes := $100+WordRec(VideoBuf^[BufCounter]).Two
                else }

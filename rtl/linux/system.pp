@@ -22,7 +22,7 @@
 { If you use an aout system, set the conditional AOUT}
 { $Define AOUT}
 
-Unit {$ifdef VER1_0}Syslinux{$else}System{$endif};
+Unit System;
 
 Interface
 

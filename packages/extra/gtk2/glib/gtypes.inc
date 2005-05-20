@@ -11,15 +11,6 @@
      dword = Cardinal;
      qword = Int64;
    {$ENDIF}
-   {$IFDEF VER1_0}
-   PLongint  = ^Longint;
-   PSmallInt = ^SmallInt;
-   PByte     = ^Byte;
-   PWord     = ^Word;
-   PDWord    = ^DWord;
-   PDouble   = ^Double;
-   PPchar    = ^Pchar;
-   {$ENDIF}
 
    PPPchar  = ^PPchar;
    PPPgchar = ^PPgchar;

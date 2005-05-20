@@ -18,19 +18,7 @@ unit FPImgCmn;
 
 interface
 
-{$ifdef VER1_0}
-type
-{$ifdef CPU68K}
-  { 1.0 m68k cpu compiler does not allow
-    types larger than 32k....
-    if we remove range checking all should be fine PM }
-  TByteArray = array[0..0] of byte;
-{$R-}
-{$else not CPU68K}
-  TByteArray = array[0..maxint] of byte;
-{$endif CPU68K}
   PByteArray = ^TByteArray;
-{$endif VER1_0}
 
 function Swap(This : Longword): longword;
 function Swap(This : integer): integer;
