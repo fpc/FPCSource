@@ -1097,6 +1097,9 @@ implementation
                       (hp.resulttype.def.deftype=stringdef) then
                      result:=true
                  else
+                   if valid_const in opts then
+                     result:=true
+                 else
                   CGMessagePos(hp.fileinfo,errmsg);
                  exit;
                end;
