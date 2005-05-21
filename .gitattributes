@@ -6101,6 +6101,7 @@ tests/webtbs/tw3899.pp svneol=native#text/plain
 tests/webtbs/tw3900.pp svneol=native#text/plain
 tests/webtbs/tw3953a.pp svneol=native#text/plain
 tests/webtbs/tw3953b.pp svneol=native#text/plain
+tests/webtbs/tw3971.pp svneol=native#text/plain
 tests/webtbs/tw3973.pp svneol=native#text/plain
 tests/webtbs/tw3977.pp svneol=native#text/plain
 tests/webtbs/tw3977.txt svneol=native#text/plain

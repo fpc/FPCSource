@@ -3092,10 +3092,12 @@ implementation
     function tarraydef.alignment : longint;
       begin
          { alignment is the size of the elements }
-         if elementtype.def.deftype=recorddef then
-          alignment:=elementtype.def.alignment
+         if (elementtype.def.deftype in [arraydef,recorddef]) or
+           ((elementtype.def.deftype=objectdef) and
+             is_object(elementtype.def)) then
+           alignment:=elementtype.def.alignment
          else
-          alignment:=elesize;
+           alignment:=elesize;
       end;
 
 
