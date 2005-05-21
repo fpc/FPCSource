@@ -56,11 +56,15 @@ begin
                     end
                   else if currentinfo.NodeName='msg' then
                     begin
-                      if currentinfo.haschildnodes and
-                        (currentinfo.firstchild is TDOMText) then
-                        currentmsg:=(currentinfo.firstchild as TDOMText).Data
+                      if currentinfo.haschildnodes then
+                        begin
+                          if (currentinfo.firstchild is TDOMText) then
+                            currentmsg:=(currentinfo.firstchild as TDOMText).Data
+                          else
+                            error('Malformed msg node');
+                        end
                       else
-                        error('Malformed msg node');
+                        currentmsg:='<empty log message>';
                     end
                   else if currentinfo.NodeName='date' then
                     begin
@@ -126,6 +130,9 @@ begin
                 end;
               if pathtemp<>'  ' then
                 writeln(pathtemp);
+              { truncate trailing new line }
+              while currentmsg[length(currentmsg)] in [#13,#10] do
+                delete(currentmsg,length(currentmsg),1);
               writeln;
               writeln('  ',currentmsg);
               writeln;
