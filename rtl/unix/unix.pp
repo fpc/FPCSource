@@ -1,5 +1,4 @@
 {
-   $Id: unix.pp,v 1.85 2005/03/25 22:53:39 jonas Exp $
    This file is part of the Free Pascal run time library.
    Copyright (c) 1999-2000 by Michael Van Canneyt,
    BSD parts (c) 2000 by Marco van de Voort
@@ -1217,32 +1216,3 @@ finalization
   DoneLocalTime;
 {$endif}
 End.
-
-{
-  $Log: unix.pp,v $
-  Revision 1.85  2005/03/25 22:53:39  jonas
-    * fixed several warnings and notes about unused variables (mainly) or
-      uninitialised use of variables/function results (a few)
-
-  Revision 1.84  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.83  2005/02/13 21:47:56  peter
-    * include file cleanup part 2
-
-  Revision 1.82  2005/02/13 20:01:38  peter
-    * include file cleanup
-
-  Revision 1.81  2005/02/06 11:20:52  peter
-    * threading in system unit
-    * removed systhrds unit
-
-  Revision 1.80  2005/01/30 18:01:15  peter
-    * signal cleanup for linux
-    * sigactionhandler instead of tsigaction for bsds
-    * sigcontext moved to cpu dir
-
-  Revision 1.79  2005/01/22 20:56:11  michael
-  + Patch for intFpExecVEMaybeP to use the right path (From Colin Western)
-
-}

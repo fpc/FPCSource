@@ -1,5 +1,4 @@
 {
-    $Id: timer.pp,v 1.3 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
 
@@ -34,10 +33,3 @@ implementation
 
 begin
 end.
-
-{
-  $Log: timer.pp,v $
-  Revision 1.3  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

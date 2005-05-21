@@ -1,5 +1,4 @@
 {
-    $Id: symnot.pas,v 1.5 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 2002 by Daniel Mantione
 
     This unit contains support routines for the variable access
@@ -62,10 +61,3 @@ end;
 begin
   notification_counter:=0;
 end.
-
-{
-  $Log: symnot.pas,v $
-  Revision 1.5  2005/02/14 17:13:07  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: cgcpu.pas,v 1.72 2005/02/26 01:26:59 jonas Exp $
 
     Copyright (c) 2003 by Florian Klaempfl
     Member of the Free Pascal development team
@@ -1686,40 +1685,3 @@ begin
   cg:=tcgarm.create;
   cg64:=tcg64farm.create;
 end.
-{
-  $Log: cgcpu.pas,v $
-  Revision 1.72  2005/02/26 01:26:59  jonas
-    * fixed generic jumps optimizer and enabled it for ppc (the label table
-      was not being initialised -> getfinaldestination always failed, which
-      caused wrong optimizations in some cases)
-    * changed the inverse_cond into a function, because tasmcond is a record
-      on ppc
-    + added a compare_conditions() function for the same reason
-
-  Revision 1.71  2005/02/16 22:02:26  florian
-    * fixed storing of floating point registers for procedures with large temp. area
-    * fixed int64 comparisation
-
-  Revision 1.70  2005/02/15 19:53:41  florian
-    * don't generate overflow results if they aren't necessary
-    * fixed op_reg_reg_reg_reg on arm
-
-  Revision 1.69  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.68  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-  Revision 1.67  2005/01/30 14:43:40  florian
-    * fixed compilation of arm compiler
-
-  Revision 1.66  2005/01/04 21:00:48  florian
-    * not operator for byte/word fixed
-
-  Revision 1.65  2005/01/04 20:15:05  florian
-    * load_reg_reg fixed
-
-  Revision 1.64  2005/01/04 15:36:32  florian
-    * implemented nostackframe calling convention directive
-
-}

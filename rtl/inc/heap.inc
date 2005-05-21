@@ -1,5 +1,4 @@
 {
-    $Id: heap.inc,v 1.51 2005/04/04 15:40:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 

@@ -1,5 +1,4 @@
 {
-  $Id: ibase60.inc,v 1.1 2005/04/24 19:55:55 joost Exp $
 }
 
 {$MODE objfpc}

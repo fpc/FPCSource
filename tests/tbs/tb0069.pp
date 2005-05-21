@@ -8,5 +8,3 @@ begin
    b:=89;
    writeln(a);
 end.
-
-

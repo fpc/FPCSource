@@ -27,4 +27,3 @@ begin
   o := TMyClass.Create;
   o.Doit;
 end.
-

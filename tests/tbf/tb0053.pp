@@ -37,4 +37,3 @@ begin
   testconst(conststring);
   testvar(conststring);{ refused a compile time }
 end.
-

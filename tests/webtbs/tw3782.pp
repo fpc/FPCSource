@@ -31,10 +31,8 @@ my_proc(my_fyl,'xxx');
 my_str[0]:='y';
 writeln(my_str);
 end.
-
 {
 It's a spilling bug:
-
 # [23] wascur[i]:=s[i+1];
          movl    -8(%ebp),%ireg23d
          # Register %ireg24d allocated

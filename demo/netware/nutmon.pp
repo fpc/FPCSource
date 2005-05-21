@@ -1,6 +1,5 @@
 Program nutmon;
 {
-    $Id: nutmon.pp,v 1.2 2005/02/14 17:13:10 peter Exp $
 
     Simple nut ups monitor for netware, see http://www.networkupstools.org
 
@@ -481,13 +480,3 @@ begin
     {$endif}
   end;
 end.
-
-{
-  $Log: nutmon.pp,v $
-  Revision 1.2  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.1  2004/12/29 21:39:53  armin
-  * changed makefile version to 1.9.6, added samples for Netware
-
-}

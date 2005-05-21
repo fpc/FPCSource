@@ -84,5 +84,3 @@ begin
   App.Run;
   App.Free;
 end.
-
-

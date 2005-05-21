@@ -1,5 +1,4 @@
 {
-    $Id: nx86cnv.pas,v 1.18 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate for x86-64 and i386 assembler for type converting nodes
@@ -290,9 +289,3 @@ implementation
       end;
 
 end.
-{
-  $Log: nx86cnv.pas,v $
-  Revision 1.18  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

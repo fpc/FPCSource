@@ -14,4 +14,3 @@ begin
   WriteLn(ptrint(@s));
   WriteLn(ptrint(@s[3]));
 end.
-

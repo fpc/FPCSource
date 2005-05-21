@@ -1,6 +1,5 @@
 {****************************************************************************
 
-    $Id: pmspl.pas,v 1.3 2005/02/14 17:13:31 peter Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by the Free Pascal development team.
@@ -768,10 +767,3 @@ function SplCopyJob (const pszSrcComputerName, pszSrcQueueName: PChar;
 
 
 end.
-
-{
-  $Log: pmspl.pas,v $
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

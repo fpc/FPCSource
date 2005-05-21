@@ -37,10 +37,8 @@ WriteLn(b.InstanceSize, '  Should be: 20');
 c := TObjectABCDEF.Create;
 WriteLn(c.InstanceSize, '  Should be: 28');
 end.
-
 {
 Here are the VMT tables from the assembler file:
-
 .globl VMT_TD$_TOBJECTAB
 VMT_TD$_TOBJECTAB:
  .long 12,-12

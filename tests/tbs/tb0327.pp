@@ -9,4 +9,3 @@ var a: ta;
 begin
   t(a);
 end.
-

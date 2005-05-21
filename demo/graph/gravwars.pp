@@ -923,8 +923,3 @@ BEGIN
   MainMenu;
   Finish;
 END.
-  $Log: gravwars.pp,v $
-  Revision 1.3  2002/09/07 15:06:35  peter
-    * old logs removed and tabs fixed
-
-}

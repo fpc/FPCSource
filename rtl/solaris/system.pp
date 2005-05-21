@@ -1,5 +1,4 @@
 {
-    $Id: system.pp,v 1.6 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -232,28 +231,3 @@ Begin
   initwidestringmanager;
 {$endif HASWIDESTRING}
 End.
-
-{
- $Log: system.pp,v $
- Revision 1.6  2005/02/14 17:13:31  peter
-   * truncate log
-
- Revision 1.5  2005/02/14 16:32:41  peter
-   * solaris updates
-
- Revision 1.4  2005/02/13 22:13:20  peter
-   * get solaris back in shape
-
- Revision 1.3  2005/02/13 21:47:56  peter
-   * include file cleanup part 2
-
- Revision 1.2  2005/02/10 17:30:54  peter
-   * renamed to solaris
-
- Revision 1.5  2005/02/07 22:17:26  peter
-   * updated for 1.9.x unix rtl
-
- Revision 1.4  2005/02/01 20:22:50  florian
-   * improved widestring infrastructure manager
-
-}

@@ -30,4 +30,3 @@ begin
   t.x(1);
   t.free;
 end.
-

@@ -1,5 +1,4 @@
 {
-    $Id: rropt386.pas,v 1.32 2005/04/22 15:55:08 jonas Exp $
     Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
       development team
 
@@ -363,13 +362,3 @@ end;
 
 
 End.
-
-{
-  $Log: rropt386.pas,v $
-  Revision 1.32  2005/04/22 15:55:08  jonas
-    * fixed web bug 3905
-
-  Revision 1.31  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

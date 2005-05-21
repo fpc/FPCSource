@@ -87,6 +87,3 @@ implementation
 {$UNDEF read_implementation}
 
 end.
-
-
-

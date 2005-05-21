@@ -1,5 +1,4 @@
-{ $Id: ggi2d.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
- *
+{*
  *  Free Pascal conversion (c) 1999 Sebastian Guenther
  *
  *  GGI/2D interface
@@ -190,11 +189,3 @@ function  ggi2dStretchBlitOp(
 implementation
 
 end.
-
-
-{
-  $Log: ggi2d.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

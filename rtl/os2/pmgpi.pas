@@ -1,6 +1,5 @@
 {****************************************************************************
 
-    $Id: pmgpi.pas,v 1.6 2005/02/14 17:13:31 peter Exp $
 
                             PMGPI interface unit
                      FPC Pascal Runtime Library for OS/2
@@ -2164,10 +2163,3 @@ function GpiSetDefViewingLimits(hps : cardinal;var prclLimits : RECTL) : longboo
 function GpiPolygons(hps,ulCount : cardinal;var paplgn : POLYGON;flOptions,flModel : cardinal) : longint; cdecl; external 'pmgpi' index 650;
 
 end.
-
-{
-  $Log: pmgpi.pas,v $
-  Revision 1.6  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

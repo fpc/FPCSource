@@ -45,9 +45,3 @@ begin
     fl_show_form(fclock, FL_PLACE_CENTER,FL_TRANSIENT,'clocks');
     fl_do_forms();
 end.
-{
-  $Log: flclock.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

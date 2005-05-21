@@ -29,4 +29,3 @@ Begin
    TObjectType1.Weird; // GPFs before exiting "Weird"
    Writeln('THE END.');
 End.
-

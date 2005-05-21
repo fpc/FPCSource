@@ -1,5 +1,4 @@
 {
-    $Id: cutils.pas,v 1.52 2005/04/23 14:15:58 hajny Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements some support functions
@@ -1221,21 +1220,3 @@ initialization
   makecrc32tbl;
   initupperlower;
 end.
-{
-  $Log: cutils.pas,v $
-  Revision 1.52  2005/04/23 14:15:58  hajny
-    * DeleteFile replaced with RemoveFile to avoid duplicate
-
-  Revision 1.51  2005/04/06 11:49:37  michael
-  * Fix methodpointer copy from callnode to loadnode
-
-  Revision 1.50  2005/03/04 16:49:22  peter
-    * getheapstatus fixes
-
-  Revision 1.49  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.48  2005/01/20 17:05:53  peter
-    * use val() for decoding integers
-
-}

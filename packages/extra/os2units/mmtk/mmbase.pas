@@ -1,5 +1,4 @@
 {
-    $Id: mmbase.pas,v 1.3 2003/02/15 18:44:55 hajny Exp $
     Copyright (c) 1990-1993 International Business Machines Corporation
     Copyright (c) 2002 by Andry Svirgunov (cool2@ngs.ru)
     Copyright (c) 2002-2003 by Yuri Prokushev (prokushev@freemail.ru)

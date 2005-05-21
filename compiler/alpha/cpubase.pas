@@ -1,5 +1,4 @@
 {
-    $Id: cpubase.pas,v 1.9 2005/02/14 17:13:09 peter Exp $
     Copyright (C) 1998-2000 by Florian Klaempfl
 
     This unit implements an asmlistitem class for the Alpha architecture.
@@ -456,9 +455,3 @@ end;
     end;
 
 end.
-{
-  $Log: cpubase.pas,v $
-  Revision 1.9  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

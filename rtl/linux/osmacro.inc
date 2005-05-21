@@ -1,5 +1,4 @@
 {
-   $Id: osmacro.inc,v 1.2 2005/02/14 17:13:30 peter Exp $
     Copyright (c) 2000-2002 by Marco van de Voort
 
     The "linux" posixy macro's that are used both in the Baseunx unit as the

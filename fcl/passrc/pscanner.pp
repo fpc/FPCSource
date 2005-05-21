@@ -1,5 +1,4 @@
 {
-    $Id: pscanner.pp,v 1.11 2005/02/14 17:13:17 peter Exp $
     This file is part of the Free Component Library
 
     Pascal source lexical scanner
@@ -1021,11 +1020,3 @@ begin
 end;
 
 end.
-
-
-{
-  $Log: pscanner.pp,v $
-  Revision 1.11  2005/02/14 17:13:17  peter
-    * truncate log
-
-}

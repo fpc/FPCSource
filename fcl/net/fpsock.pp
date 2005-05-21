@@ -1,5 +1,4 @@
 {
-    $Id: fpsock.pp,v 1.7 2005/03/18 10:58:16 marco Exp $
 
     Socket communication components
     Copyright (c) 2003 by
@@ -578,14 +577,3 @@ begin
 end;
 
 end.
-
-
-{
-  $Log: fpsock.pp,v $
-  Revision 1.7  2005/03/18 10:58:16  marco
-   * lots of endian fixes
-
-  Revision 1.6  2005/02/14 17:13:15  peter
-    * truncate log
-
-}

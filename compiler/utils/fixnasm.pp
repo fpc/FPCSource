@@ -1,5 +1,4 @@
 {
-    $Id: fixnasm.pp,v 1.6 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     Convert insns.dat from Nasm to an i386ins.dat for usage with
@@ -98,9 +97,3 @@ begin
   close(f);
   close(t);
 end.
-{
-  $Log: fixnasm.pp,v $
-  Revision 1.6  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

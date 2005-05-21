@@ -524,10 +524,3 @@ Begin
    WriteLn('Passed!');
 
 end.
-
-{
-   $Log: tcalpvr3.pp,v $
-   Revision 1.11  2005/02/14 17:13:37  peter
-     * truncate log
-
-}

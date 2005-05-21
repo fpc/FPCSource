@@ -1,5 +1,4 @@
 {
-  $Id: tfsearch.pp,v 1.3 2005/04/21 20:37:43 olle Exp $
     This file is part of the Free Pascal test suite.
     Copyright (c) 1999-2003 by the Free Pascal development team.
 
@@ -58,13 +57,3 @@ begin
  RmDir (TestDir);
  if Err then Halt (1);
 end.
-
-{
-  $Log: tfsearch.pp,v $
-  Revision 1.3  2005/04/21 20:37:43  olle
-    * Adapted for MacOS
-
-  Revision 1.2  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

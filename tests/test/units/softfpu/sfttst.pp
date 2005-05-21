@@ -825,11 +825,3 @@ Begin
 { int64testfloat32;}
  int64testfloat64;
 end.
-
-
-{
-  $Log: sfttst.pp,v $
-  Revision 1.5  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

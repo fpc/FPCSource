@@ -122,10 +122,3 @@ begin
   end
   else writeln('Can''t create application');
 end.
-
-{
-  $Log
-}
-
-
-

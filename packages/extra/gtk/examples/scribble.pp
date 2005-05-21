@@ -1,5 +1,4 @@
 {
-  $Id: scribble.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   Converted from C to Pascal by Frank Loemker
   <floemker@techfak.uni-bielefeld.de>
@@ -146,9 +145,3 @@ begin
 
   gtk_main ();
 end.
-{
-  $Log: scribble.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

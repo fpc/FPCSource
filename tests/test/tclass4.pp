@@ -43,4 +43,3 @@ Begin
   _cla2:=tobj2.create;
   tobj1(pointer(_cla2)).mymethod;
 end.
-

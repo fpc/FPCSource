@@ -110,9 +110,3 @@ begin
   while (fl_do_forms()<>nil) do
     begin end;
 end.
-{
-  $Log: objinactive.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

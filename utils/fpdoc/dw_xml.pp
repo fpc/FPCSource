@@ -1,5 +1,4 @@
 {
-    $Id: dw_xml.pp,v 1.4 2005/02/14 17:13:39 peter Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
@@ -115,37 +114,3 @@ initialization
 finalization
   UnRegisterWriter('xml');
 end.
-
-
-{
-  $Log: dw_xml.pp,v $
-  Revision 1.4  2005/02/14 17:13:39  peter
-    * truncate log
-
-  Revision 1.3  2005/01/12 21:11:41  michael
-  + New structure for writers. Implemented TXT writer
-
-  Revision 1.2  2005/01/09 15:59:50  michael
-  + Split out latex writer to linear and latex writer
-
-  Revision 1.1  2003/03/17 23:03:20  michael
-  + Initial import in CVS
-
-  Revision 1.5  2003/03/13 22:02:13  sg
-  * New version with many bugfixes and our own parser (now independent of the
-    compiler source)
-
-  Revision 1.4  2002/05/24 00:13:22  sg
-  * much improved new version, including many linking and output fixes
-
-  Revision 1.3  2002/03/12 10:58:36  sg
-  * reworked linking engine and internal structure
-
-  Revision 1.2  2001/07/27 10:21:42  sg
-  * Just a new, improved version ;)
-    (detailed changelogs will be provided again with the next commits)
-
-  Revision 1.1  2000/10/04 09:17:37  sg
-  * First public version
-
-}

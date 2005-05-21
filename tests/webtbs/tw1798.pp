@@ -23,4 +23,3 @@ const MyConst = 1;
 
 begin
 end.
-

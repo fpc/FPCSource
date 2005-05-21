@@ -1,5 +1,4 @@
 {
-    $Id: ncon.pas,v 1.65 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Type checking and register allocation for constants
@@ -913,9 +912,3 @@ begin
    cnilnode:=tnilnode;
    cguidconstnode:=tguidconstnode;
 end.
-{
-  $Log: ncon.pas,v $
-  Revision 1.65  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

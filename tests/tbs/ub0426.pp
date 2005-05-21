@@ -35,5 +35,3 @@ Begin
  myroutine3;
  z:=0;
 end.
-
-

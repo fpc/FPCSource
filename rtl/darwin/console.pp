@@ -1,4 +1,3 @@
-{  $Id: console.pp,v 1.2 2005/03/25 22:53:39 jonas Exp $
    This file is part of the Free Pascal run time library.
    (c) 2000 by Marco van de Voort
    member of the Free Pascal development team.

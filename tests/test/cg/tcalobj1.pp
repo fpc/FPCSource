@@ -3288,10 +3288,3 @@ begin
   WriteLN('**************** VMT OBJECT TESTS USING WITH *******************');
   testwith;
 end.
-
-{
-  $Log: tcalobj1.pp,v $
-  Revision 1.7  2005/02/14 17:13:36  peter
-    * truncate log
-
-}

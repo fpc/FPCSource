@@ -1,5 +1,4 @@
 {
-    $Id: fields.inc,v 1.34 2005/05/12 18:52:32 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team

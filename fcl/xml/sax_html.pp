@@ -1,5 +1,4 @@
 {
-    $Id: sax_html.pp,v 1.7 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Component Library
 
     HTML parser with SAX-like interface
@@ -645,11 +644,3 @@ end;
 
 
 end.
-
-
-{
-  $Log: sax_html.pp,v $
-  Revision 1.7  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

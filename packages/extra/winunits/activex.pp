@@ -2717,19 +2717,3 @@ implementation
 {$define read_implementation}
 
 end.
-
-{
-  $Log: activex.pp,v $
-  Revision 1.1  2005/03/28 15:09:35  peter
-  new winunits packages
-
-  Revision 1.15  2005/02/26 20:20:56  florian
-    + some new consts and types
-
-  Revision 1.14  2005/02/14 17:13:32  peter
-    * truncate log
-
-  Revision 1.13  2005/02/03 18:41:12  florian
-    * more clx compilation fixed
-
-}

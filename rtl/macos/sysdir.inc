@@ -1,5 +1,4 @@
 {
-    $Id: sysdir.inc,v 1.3 2005/05/14 11:52:37 olle Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2005 by Florian Klaempfl and Pavel Ozerski
     member of the Free Pascal development team.

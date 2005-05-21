@@ -1,5 +1,4 @@
 {
-    $Id: dwarf.pas,v 1.6 2005/03/25 21:55:43 jonas Exp $
     Copyright (c) 2003-2004 by Peter Vreman and Florian Klaempfl
 
     This units contains special support for DWARF debug info
@@ -418,12 +417,3 @@ begin
 {$warning TODO Maybe initialize per module}
   dwarfcfi:=tdwarfcfi.create;
 end.
-{
-  $Log: dwarf.pas,v $
-  Revision 1.6  2005/03/25 21:55:43  jonas
-    * removed some unused variables
-
-  Revision 1.5  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

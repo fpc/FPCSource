@@ -28,12 +28,3 @@ begin
      halt;
   end else writeln('Could''t run the program');
 end.
-
-{
-  $Log: checkmem.pas,v $
-  Revision 1.2  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
-
-

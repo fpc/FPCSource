@@ -1,5 +1,4 @@
 {
-    $Id: testgdb.pp,v 1.3 2005/02/14 17:13:19 peter Exp $
     Copyright (c) 1998 by Peter Vreman
 
     Small example program to the GDB
@@ -53,9 +52,3 @@ begin
   until false;
   Writeln('End of pascal GDB...');
 end.
-{
-  $Log: testgdb.pp,v $
-  Revision 1.3  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

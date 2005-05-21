@@ -110,9 +110,3 @@ begin
    fl_show_form(fd_buttform^.buttform,FL_PLACE_CENTER,FL_FULLBORDER,'buttform');
    while (fl_do_forms<>nil) do ;
 end.
-{
-  $Log: buttonall.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

@@ -73,10 +73,3 @@ begin
    TR_DeleteApp(Triton_App);
    END ELSE writeln('Can''t create Application',20);
 end.
-
-{
-  $Log
-}
-
-
-

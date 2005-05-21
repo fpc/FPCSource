@@ -1,5 +1,4 @@
 {
-    $Id: aasmcpu.pas,v 1.53 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1999-2002 by Mazen Neifer
 
     Contains the assembler object for the SPARC
@@ -311,9 +310,3 @@ begin
   cai_cpu:=taicpu;
   cai_align:=tai_align;
 end.
-{
-  $Log: aasmcpu.pas,v $
-  Revision 1.53  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

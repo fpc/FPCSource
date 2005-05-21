@@ -1,5 +1,4 @@
 {
-    $Id: narmmat.pas,v 1.10 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate ARM assembler for math nodes
@@ -120,9 +119,3 @@ begin
    cnotnode:=tarmnotnode;
    cunaryminusnode:=tarmunaryminusnode;
 end.
-{
-  $Log: narmmat.pas,v $
-  Revision 1.10  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

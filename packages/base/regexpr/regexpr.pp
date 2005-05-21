@@ -1,5 +1,4 @@
 {
-    $Id: regexpr.pp,v 1.4 2005/02/14 17:13:19 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000 by Florian Klaempfl
 
@@ -592,9 +591,3 @@ begin
    cs_nondigits:=cs_allchars-cs_digits;
    cs_nonwhitespace:=cs_allchars-cs_whitespace;
 end.
-{
-  $Log: regexpr.pp,v $
-  Revision 1.4  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

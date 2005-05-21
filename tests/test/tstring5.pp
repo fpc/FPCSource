@@ -37,4 +37,3 @@ begin
    if ''=f2 then
      do_error(1007);
 end.
-

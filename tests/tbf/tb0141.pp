@@ -19,4 +19,3 @@ begin
   l:=b;
   writeln(l);
 end.
-

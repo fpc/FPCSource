@@ -1,5 +1,4 @@
 {
-    $Id: rstconv.pp,v 1.6 2005/02/14 17:13:38 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Sebastian Guenther
     Added .rc and OS/2 MSG support in 2002 by Yuri Prokushev
@@ -387,20 +386,3 @@ begin
 
   ConversionProc;
 end.
-
-
-{
-  $Log: rstconv.pp,v $
-  Revision 1.6  2005/02/14 17:13:38  peter
-    * truncate log
-
-  Revision 1.5  2002/09/30 21:01:37  hajny
-    + .rc support added by Yuri Prokushev
-
-  Revision 1.4  2002/09/22 10:58:25  hajny
-    + support of IBM MSG files added by Yuri Prokushev
-
-  Revision 1.3  2002/09/07 15:40:31  peter
-    * old logs removed and tabs fixed
-
-}

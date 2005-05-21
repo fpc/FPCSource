@@ -10,4 +10,3 @@ begin
    c;
    a;
 end.
-

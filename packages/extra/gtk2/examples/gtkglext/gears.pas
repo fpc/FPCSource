@@ -547,12 +547,3 @@ begin
   gtk_main ();
 
 end.
-
-{
-   $Log: gears.pas,v $
-   Revision 1.1  2005/03/01 08:10:30  marco
-    * gtkglext from mischi. examples part
-
-
-}
- 

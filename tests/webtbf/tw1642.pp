@@ -29,4 +29,3 @@ begin
   writeln('i=',i);
   MyClass.Free;
 end.
-

@@ -1,5 +1,4 @@
 {
-    $Id: servlets.pp,v 1.2 2005/02/14 17:13:15 peter Exp $
 
     Basic Servlet Support
     Copyright (c) 2003 by
@@ -111,11 +110,3 @@ end;
 
 
 end.
-
-
-{
-  $Log: servlets.pp,v $
-  Revision 1.2  2005/02/14 17:13:15  peter
-    * truncate log
-
-}

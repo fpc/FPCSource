@@ -1,7 +1,6 @@
 {$mode objfpc}
 {$h+}
 {
-    $Id: testmockobject.pp,v 1.1 2005/05/06 19:38:43 michael Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2005 Uberto Barbini
 
@@ -126,4 +125,3 @@ end;
 initialization
   RegisterTests([TTestMock]);
 end.
-

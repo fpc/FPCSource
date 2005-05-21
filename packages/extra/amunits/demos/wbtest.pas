@@ -53,12 +53,3 @@ begin
        writeln('The programs name with ParamStr(0) is: ',ParamStr(0));
    end;
 end.
-
-{
-  $Log: wbtest.pas,v $
-  Revision 1.2  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
-
-

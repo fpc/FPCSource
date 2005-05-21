@@ -1,5 +1,4 @@
 {
-    $Id: narmcnv.pas,v 1.15 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate ARM assembler for type converting nodes
@@ -224,12 +223,3 @@ implementation
 begin
   ctypeconvnode:=tarmtypeconvnode;
 end.
-{
-  $Log: narmcnv.pas,v $
-  Revision 1.15  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.14  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-}

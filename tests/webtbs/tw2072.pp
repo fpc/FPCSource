@@ -16,5 +16,3 @@ const name = 'Delphi';
 begin
   writeln ('Hello ', name);
 end.
-
-

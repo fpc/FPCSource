@@ -1,5 +1,4 @@
 {
-    $Id: variant.inc,v 1.30 2005/04/28 19:34:19 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by the Free Pascal development team
 

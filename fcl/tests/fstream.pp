@@ -50,8 +50,3 @@ begin
   Writeln ('Stream Position is : ',Stream.Position);
   Stream.Free;
 end.
-  $Log: fstream.pp,v $
-  Revision 1.4  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

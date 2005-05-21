@@ -1,5 +1,4 @@
 {
-    $Id: nx64mat.pas,v 1.9 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate x86-64 assembler for math nodes
@@ -203,9 +202,3 @@ begin
    cshlshrnode:=tx8664shlshrnode;
    cnotnode:=tx8664notnode;
 end.
-{
-  $Log: nx64mat.pas,v $
-  Revision 1.9  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: ncgcnv.pas,v 1.74 2005/03/05 20:08:27 jonas Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Generate assembler for nodes that handle type conversions which are
@@ -565,17 +564,3 @@ begin
   ctypeconvnode := tcgtypeconvnode;
   casnode := tcgasnode;
 end.
-
-{
-  $Log: ncgcnv.pas,v $
-  Revision 1.74  2005/03/05 20:08:27  jonas
-    * fixed web bug 3694
-
-  Revision 1.73  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.72  2005/01/09 15:05:29  peter
-    * fix interface vtbl optimization
-    * replace ugly pointer construct of ioffset()
-
-}

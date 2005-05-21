@@ -10,4 +10,3 @@ var
 begin
    writeln(ord(e));
 end.
-

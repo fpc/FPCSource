@@ -1,5 +1,4 @@
 {
-    $Id: crt.pp,v 1.13 2005/05/14 15:01:49 hajny Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -767,13 +766,3 @@ begin
 { Enable ctrl-c input (JM) }
   __djgpp_set_ctrl_c(0);
 end.
-
-{
-  $Log: crt.pp,v $
-  Revision 1.13  2005/05/14 15:01:49  hajny
-    * TextMode parameter type changed to word for TP/BP compatibility
-
-  Revision 1.12  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

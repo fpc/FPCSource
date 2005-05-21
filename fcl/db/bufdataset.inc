@@ -1,5 +1,4 @@
 {
-    $Id: bufdataset.inc,v 1.14 2005/05/07 14:41:00 joost Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team

@@ -102,9 +102,3 @@ begin
       END;
    Cleanexit('',0);
 end.
-
-{
-  $Log
-}
-
-

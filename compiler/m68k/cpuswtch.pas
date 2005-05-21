@@ -1,5 +1,4 @@
 {
-    $Id: cpuswtch.pas,v 1.9 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     interprets the commandline options which are 680x0 specific
@@ -105,9 +104,3 @@ end;
 initialization
   coption:=toptionm68k;
 end.
-{
-  $Log: cpuswtch.pas,v $
-  Revision 1.9  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

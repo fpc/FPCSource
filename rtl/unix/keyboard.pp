@@ -1,5 +1,4 @@
 {
-    $Id: keyboard.pp,v 1.22 2005/03/25 23:01:50 jonas Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -1531,12 +1530,3 @@ begin
   SetKeyBoardDriver(SysKeyBoardDriver);
   TCGetAttr(1,StartTio);
 end.
-{
-  $Log: keyboard.pp,v $
-  Revision 1.22  2005/03/25 23:01:50  jonas
-    * removed unused variable
-
-  Revision 1.21  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

@@ -220,9 +220,3 @@ begin
    fl_show_form (form, FL_PLACE_MOUSE, border, 'Box types');
   while (fl_do_forms <> exitob) do;
 end.
-{
-  $Log: boxtype.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

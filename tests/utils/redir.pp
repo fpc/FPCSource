@@ -1,5 +1,4 @@
 {
-    $Id: redir.pp,v 1.22 2005/05/14 11:18:52 olle Exp $
     This file is part of the Free Pascal Test Suite
     Copyright (c) 1999-2000 by Pierre Muller
 
@@ -1025,15 +1024,3 @@ initialization
 finalization
   Dispose(FIn); Dispose(FOut); Dispose(FErr);
 End.
-{
-  $Log: redir.pp,v $
-  Revision 1.22  2005/05/14 11:18:52  olle
-    * Fix for MacOS when redirect stdout and stderr to same stream
-
-  Revision 1.21  2005/02/14 17:13:37  peter
-    * truncate log
-
-  Revision 1.20  2005/01/26 22:05:06  olle
-    + added support for macos
-
-}

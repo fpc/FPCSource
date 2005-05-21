@@ -1,5 +1,4 @@
 {
-    $Id: winsock.pp,v 1.6 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     This unit contains the declarations for the WinSock2
     Socket Library for Netware and Win32
@@ -2438,9 +2437,3 @@ initialization
 finalization
   WSACleanUp;
 end.
-{
-  $Log: winsock.pp,v $
-  Revision 1.6  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

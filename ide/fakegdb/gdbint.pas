@@ -1,5 +1,4 @@
 {
-    $Id: gdbint.pas,v 1.4 2005/02/14 17:13:19 peter Exp $
 
     Fake GDBInt unit
 
@@ -304,9 +303,3 @@ end;
 
 
 end.
-{
-  $Log: gdbint.pas,v $
-  Revision 1.4  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

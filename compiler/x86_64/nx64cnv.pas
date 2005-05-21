@@ -1,5 +1,4 @@
 {
-    $Id: nx64cnv.pas,v 1.5 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate x86-64 assembler for type converting nodes
@@ -65,9 +64,3 @@ implementation
 begin
    ctypeconvnode:=tx8664typeconvnode;
 end.
-{
-  $Log: nx64cnv.pas,v $
-  Revision 1.5  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

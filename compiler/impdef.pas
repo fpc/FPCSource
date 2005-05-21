@@ -1,5 +1,4 @@
 {
-    $Id: impdef.pas,v 1.16 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Pavel
 
     This unit finds the export defs from PE files
@@ -482,10 +481,3 @@ begin
 end;
 
 end.
-
-{
-  $Log: impdef.pas,v $
-  Revision 1.16  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

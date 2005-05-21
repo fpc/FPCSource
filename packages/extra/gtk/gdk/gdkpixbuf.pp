@@ -1,5 +1,4 @@
 {
-   $Id: gdkpixbuf.pp,v 1.5 2005/02/14 17:13:20 peter Exp $
 
    GdkPixbuf library
 
@@ -442,10 +441,3 @@ end;
 
 {$endif os2}
 end.
-
-{
-  $Log: gdkpixbuf.pp,v $
-  Revision 1.5  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

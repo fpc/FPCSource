@@ -1,5 +1,4 @@
 {
-    $Id: nppcmat.pas,v 1.45 2005/03/25 21:55:43 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate PowerPC assembler for math nodes
@@ -522,12 +521,3 @@ begin
    cunaryminusnode:=tppcunaryminusnode;
    cnotnode:=tppcnotnode;
 end.
-{
-  $Log: nppcmat.pas,v $
-  Revision 1.45  2005/03/25 21:55:43  jonas
-    * removed some unused variables
-
-  Revision 1.44  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

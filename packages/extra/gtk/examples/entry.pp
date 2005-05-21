@@ -1,5 +1,4 @@
 {
-  $Id: entry.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the Gtk tutorial.
   entry.c
@@ -93,9 +92,3 @@ begin
 
   gtk_main();
 end.
-{
-  $Log: entry.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: h2paspp.pas,v 1.1 2000/12/27 21:59:59 peter Exp $
     Copyright (c) 2000 by Peter Vreman
 
     This program is free software; you can redistribute it and/or modify

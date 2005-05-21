@@ -1,5 +1,4 @@
 {
-    $Id: paswrite.pp,v 1.3 2005/02/14 17:13:16 peter Exp $
     This file is part of the Free Component Library
 
     Pascal tree source file writer
@@ -614,11 +613,3 @@ begin
 end;
 
 end.
-
-
-{
-  $Log: paswrite.pp,v $
-  Revision 1.3  2005/02/14 17:13:16  peter
-    * truncate log
-
-}

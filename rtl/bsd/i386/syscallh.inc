@@ -1,5 +1,4 @@
 {
-    $Id: syscallh.inc,v 1.11 2005/04/24 19:11:28 marco Exp $
     Copyright (c) 2002 by Marco van de Voort
 
     Header for syscall in system unit for i386 *BSD.

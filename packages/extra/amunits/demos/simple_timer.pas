@@ -209,12 +209,3 @@ begin
    show_time(mytimeval.tv_secs);
 
 end.
-
-{
-  $Log: simple_timer.pas,v $
-  Revision 1.2  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
-
-

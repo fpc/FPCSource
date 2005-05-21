@@ -1,5 +1,4 @@
 {
-    $Id: sysunixh.inc,v 1.27 2005/05/12 20:29:16 michael Exp $
     This file is part of the Free Pascal Run time library.
     Copyright (c) 2001 by the Free Pascal development team
 

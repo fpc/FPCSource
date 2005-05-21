@@ -1,5 +1,4 @@
 {
-    $Id: wini.pas,v 1.6 2005/02/14 17:13:19 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by B‚rczi G bor
 
@@ -507,9 +506,3 @@ end;
 
 
 END.
-{
-  $Log: wini.pas,v $
-  Revision 1.6  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

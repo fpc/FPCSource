@@ -33,4 +33,3 @@ begin
   testconst(astring(s));
   testconst(conststr);
 end.
-

@@ -1,5 +1,4 @@
 {
-    $Id: cpupara.pas,v 1.91 2005/03/27 14:10:53 jonas Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     PowerPC specific calling conventions
@@ -658,61 +657,3 @@ unit cpupara;
 begin
    paramanager:=tppcparamanager.create;
 end.
-{
-  $Log: cpupara.pas,v $
-  Revision 1.91  2005/03/27 14:10:53  jonas
-    * const record parameters > 8 bytes are now passed by reference for non
-      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
-      GPC (slightly more efficient than Metrowerks behaviour below, but
-      less efficient in most cases than our previous scheme)
-    + "mwpascal" procedure directive to support the const record parameter
-      behaviour of Metrowerks Pascal, which passes all const records by
-      reference
-
-  Revision 1.90  2005/02/19 14:04:14  jonas
-    * don't lose sign of ord types for register parameters
-
-  Revision 1.89  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.88  2005/02/11 15:20:23  jonas
-    * records which consist of only a union of one element have to be passed
-      according to record parameter passing rules, not according to the rules
-      of that item's type (change relevant to AIX abi only)
-
-  Revision 1.87  2005/02/03 20:04:49  peter
-    * push_addr_param must be defined per target
-
-  Revision 1.86  2005/01/31 17:46:25  peter
-    * fixed parseparaloc
-
-  Revision 1.85  2005/01/20 17:47:01  peter
-    * remove copy_value_on_stack and a_param_copy_ref
-
-  Revision 1.84  2005/01/14 20:59:17  jonas
-    * fixed overallocation of stack space for parameters under SYSV
-      (introduced in one of my previous commits)
-    * unified code of get_volatile_registers_fpu for SYSV and AIX
-
-  Revision 1.83  2005/01/13 22:02:40  jonas
-    * r2 can be used by the register allocator under Darwin
-    * merged the initialisations of the fpu register allocator for AIX and
-      SYSV
-
-  Revision 1.82  2005/01/13 19:32:08  jonas
-    * fixed copy_value_on_stack() for AIX abi
-    + added support for passing empty record parameters
-
-  Revision 1.81  2005/01/10 21:50:05  jonas
-    + support for passing records in registers under darwin
-    * tcgpara now also has an intsize field, which contains the size in
-      bytes of the whole parameter
-
-  Revision 1.80  2005/01/07 10:58:03  jonas
-    * fixed stupid tregister/tsuperregister bug (type checking circumvented
-      using explicit typecase), caused bug3523
-
-  Revision 1.79  2005/01/06 02:13:03  karoly
-    * more SysV call support stuff for MorphOS
-
-}

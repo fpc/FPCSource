@@ -136,9 +136,3 @@ end;
  StrDispose(Month);
  StrDispose(Year);
 end.
-
-{
-  $Log
-}
-
-

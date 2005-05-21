@@ -1,6 +1,5 @@
 
 {
-    $Id: fpstre.inc,v 1.31 2005/03/13 12:32:41 florian Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 2000 by Florian Klaempfl & Berczi Gabor
 

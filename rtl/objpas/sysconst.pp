@@ -1,5 +1,4 @@
 {
-    $Id: sysconst.pp,v 1.17 2005/03/28 13:38:05 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by Florian Klaempfl
     member of the Free Pascal development team
@@ -221,18 +220,3 @@ begin
 end;
 
 end.
-{
-  $Log: sysconst.pp,v $
-  Revision 1.17  2005/03/28 13:38:05  florian
-    + a lot of vararray stuff
-
-  Revision 1.16  2005/03/17 16:29:04  peter
-    * fixed str() call
-
-  Revision 1.15  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.14  2005/01/14 12:59:25  michael
-  + Implemented ForceDirectories for Delphi compatibility
-
-}

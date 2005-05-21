@@ -1,5 +1,4 @@
 {
- $Id: system.pas,v 1.86 2005/05/12 20:29:04 michael Exp $
  ****************************************************************************
 
     This file is part of the Free Pascal run time library.
@@ -772,33 +771,3 @@ begin
        DosFreeMem (P);
      end;
 end.
-{
-  $Log: system.pas,v $
-  Revision 1.86  2005/05/12 20:29:04  michael
-  + Added maxpathlen constant (maximum length of filename path)
-
-  Revision 1.85  2005/05/03 22:17:26  hajny
-    * SysAllocMem used for ArgV [Idx] allocation again
-
-  Revision 1.84  2005/05/01 13:01:03  peter
-  use fillchar after reallocmem, fix taken from win32
-
-  Revision 1.83  2005/04/03 21:10:59  hajny
-    * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
-
-  Revision 1.82  2005/03/27 20:50:35  hajny
-    * correction of previous mistyping
-
-  Revision 1.81  2005/03/27 20:40:54  hajny
-    * fix for allocarg
-
-  Revision 1.80  2005/03/01 21:59:14  hajny
-    * compilation fix
-
-  Revision 1.79  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.78  2005/02/06 16:57:18  peter
-    * threads for go32v2,os,emx,netware
-
-}

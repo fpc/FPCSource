@@ -1,5 +1,4 @@
 {
-    $Id: agppcgas.pas,v 1.47 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements an asm for the PowerPC
@@ -363,9 +362,3 @@ begin
   RegisterAssembler(as_ppc_gas_info,TPPCGNUAssembler);
   RegisterAssembler(as_ppc_gas_darwin_info,TPPCGNUAssembler);
 end.
-{
-  $Log: agppcgas.pas,v $
-  Revision 1.47  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

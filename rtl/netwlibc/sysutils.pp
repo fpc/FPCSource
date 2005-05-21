@@ -1,5 +1,4 @@
 {
-    $Id: sysutils.pp,v 1.10 2005/02/26 14:38:14 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2004 by the Free Pascal development team.
 
@@ -697,16 +696,3 @@ Initialization
 Finalization
   DoneExceptions;
 end.
-{
-
-  $Log: sysutils.pp,v $
-  Revision 1.10  2005/02/26 14:38:14  florian
-    + SysLocale
-
-  Revision 1.9  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.8  2005/01/04 11:25:34  armin
-  * rtl code cleanup, compat fixes between clib and libc
-
-}

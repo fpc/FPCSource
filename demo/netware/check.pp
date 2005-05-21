@@ -1,5 +1,4 @@
 {
-    $Id: check.pp,v 1.1 2004/12/29 21:39:53 armin Exp $
     This file is part of Free Pascal for Netware.
     Copyright (c) 1999-2002 by the Free Pascal development team.
 
@@ -43,11 +42,3 @@ begin
   System.NetwareCheckFunction := @checkfunction;
   ReadKey;
 end.
-
-{
-  $Log: check.pp,v $
-  Revision 1.1  2004/12/29 21:39:53  armin
-  * changed makefile version to 1.9.6, added samples for Netware
-
-}
-

@@ -1,5 +1,4 @@
 {
-  $Id: testib60.pp,v 1.4 2005/02/14 17:13:19 peter Exp $
 }
 program testib;
 
@@ -152,17 +151,3 @@ begin
   else
     doerror(status);
 end.
-{
-  $Log: testib60.pp,v $
-  Revision 1.4  2005/02/14 17:13:19  peter
-    * truncate log
-
-   * the exception that proves the rule: {$ifdef unix} replaced by {$ifdef linux} :-)
-
-  Revision 1.2  2002/09/07 15:42:52  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/01/29 17:54:53  peter
-    * splitted to base and extra
-
-}

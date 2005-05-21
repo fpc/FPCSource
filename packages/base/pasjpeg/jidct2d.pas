@@ -447,7 +447,6 @@ type
   matasm  = array[0..DCTSIZE2-1] of integer;
   bmatrix  = array[0..DCTSIZE2-1] of byte;
   bmatrixptr = ^bmatrix;
-
 procedure ANN_IDCT(var coef_block :matasm;
                    var outptr :bmatrix);
 

@@ -9,5 +9,3 @@ begin
   setlength(a,1000);
   v:=a;
 end.
-
-

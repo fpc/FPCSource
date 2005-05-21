@@ -28,4 +28,3 @@ begin
     end;
   writeln('ok');
 end.
-

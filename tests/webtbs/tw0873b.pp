@@ -36,5 +36,3 @@ begin
     Obj := TObject.Create;
     writeln('This won''t.');
 end.
-
-

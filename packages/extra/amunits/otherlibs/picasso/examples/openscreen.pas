@@ -212,8 +212,3 @@ BEGIN
 
     CleanUp('');
 END.
-
-{
-  $Log
-}
-

@@ -116,13 +116,3 @@ BEGIN
  WRITELN ('Good Bye. NEUDELSoft wünscht noch viel Spaß mit Amiga und Pascal.');
 
 END.
-
-{
-  $Log: showdevs.pas,v $
-  Revision 1.2  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
-
-
-

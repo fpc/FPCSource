@@ -1,5 +1,4 @@
 {
-    $Id: script.pas,v 1.32 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit handles the writing of script files
@@ -501,9 +500,3 @@ begin
 end;
 
 end.
-{
-  $Log: script.pas,v $
-  Revision 1.32  2005/02/14 17:13:07  peter
-    * truncate log
-
-}

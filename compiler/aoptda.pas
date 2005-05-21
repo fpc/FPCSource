@@ -1,5 +1,4 @@
 {
-    $Id: aoptda.pas,v 1.10 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
     Development Team
 
@@ -184,10 +183,3 @@ Unit aoptda;
 
 
 End.
-
-{
-  $Log: aoptda.pas,v $
-  Revision 1.10  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

@@ -20,4 +20,3 @@ begin
   Test(PAnsiChar('String:'+S+';'), PAnsiChar('String:'+S+';'));
   Test(PAnsiChar('String:'+P+';'), PAnsiChar('String:'+P+';'));
 end.
-

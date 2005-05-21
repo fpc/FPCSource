@@ -1,5 +1,4 @@
 {
-  $Id: digest.pp,v 1.8 2005/02/14 17:13:37 peter Exp $
     This file is part of the Free Pascal test suite.
     Copyright (c) 2002 by the Free Pascal development team.
 
@@ -237,10 +236,3 @@ begin
   close(logfile);
   display_results;
 end.
-
-{
-  $Log: digest.pp,v $
-  Revision 1.8  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

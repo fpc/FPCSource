@@ -1,5 +1,4 @@
 {
-    $Id: cpuswtch.pas,v 1.8 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
 
     interprets the commandline options which are iSPARC specific
@@ -124,9 +123,3 @@ end;
 initialization
   coption:=toptionSPARC;
 end.
-{
-  $Log: cpuswtch.pas,v $
-  Revision 1.8  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: ogelf.pas,v 1.25 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     Contains the binary elf writer
@@ -899,13 +898,3 @@ implementation
 initialization
   RegisterAssembler(as_i386_elf32_info,TElf32Assembler);
 end.
-{
-  $Log: ogelf.pas,v $
-  Revision 1.25  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.24  2005/01/10 15:54:59  peter
-    * Cleanup of writing of relocations to symbols
-    * Only local symbols will now use a constant value or section relocation
-
-}

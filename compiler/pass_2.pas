@@ -1,5 +1,4 @@
 {
-    $Id: pass_2.pas,v 1.78 2005/04/08 15:18:08 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit handles the codegeneration pass
@@ -211,12 +210,3 @@ implementation
 
 
 end.
-{
-  $Log: pass_2.pas,v $
-  Revision 1.78  2005/04/08 15:18:08  peter
-  remove multiple pass2 calls. It is not supported anymore by all nodes (ttempcreatenode)
-
-  Revision 1.77  2005/02/14 17:13:07  peter
-    * truncate log
-
-}

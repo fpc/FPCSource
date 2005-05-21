@@ -22,4 +22,3 @@ type TTest = class
 
 begin
 end.
-

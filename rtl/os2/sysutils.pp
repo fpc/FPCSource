@@ -1,5 +1,4 @@
 {
-    $Id: sysutils.pp,v 1.50 2005/03/01 23:27:57 hajny Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
@@ -1031,13 +1030,3 @@ Initialization
 Finalization
   DoneExceptions;
 end.
-
-{
-  $Log: sysutils.pp,v $
-  Revision 1.50  2005/03/01 23:27:57  hajny
-    * SysLocale initialized to empty for OS/2 too - probably wrong for DBCS versions
-
-  Revision 1.49  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

@@ -31,4 +31,3 @@ begin
         b := af[1]; { can be fixed by using b := af[1]() }
         b := ag[1](0);
 end.
-

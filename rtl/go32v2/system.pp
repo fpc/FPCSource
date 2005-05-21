@@ -1,5 +1,4 @@
 {
-    $Id: system.pp,v 1.53 2005/05/12 20:29:04 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -656,27 +655,3 @@ Begin
   initwidestringmanager;
 {$endif HASWIDESTRING}
 End.
-{
-  $Log: system.pp,v $
-  Revision 1.53  2005/05/12 20:29:04  michael
-  + Added maxpathlen constant (maximum length of filename path)
-
-  Revision 1.52  2005/05/05 11:40:23  peter
-  Call InitSystemThreads
-
-  Revision 1.51  2005/05/01 13:00:53  peter
-  use fillchar after reallocmem, fix taken from win32
-
-  Revision 1.50  2005/04/03 21:10:59  hajny
-    * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
-
-  Revision 1.49  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.48  2005/02/06 16:57:18  peter
-    * threads for go32v2,os,emx,netware
-
-  Revision 1.47  2005/02/01 20:22:49  florian
-    * improved widestring infrastructure manager
-
-}

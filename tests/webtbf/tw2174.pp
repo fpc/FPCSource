@@ -34,4 +34,3 @@ writeln('one');
 writeln('two!');
 {!!!}
 end.
-

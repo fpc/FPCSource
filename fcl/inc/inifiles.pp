@@ -1,5 +1,4 @@
 {
-    $Id: inifiles.pp,v 1.9 2005/04/05 21:08:08 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 Erik WachtMeester.
 
@@ -788,13 +787,3 @@ begin
 end;
 
 end.
-
-{
-  $Log: inifiles.pp,v $
-  Revision 1.9  2005/04/05 21:08:08  peter
-    * fix memory leaks
-
-  Revision 1.8  2005/02/14 17:13:15  peter
-    * truncate log
-
-}

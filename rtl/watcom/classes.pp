@@ -1,5 +1,4 @@
 {
-    $Id: classes.pp,v 1.4 2005/04/17 17:33:40 hajny Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 
@@ -42,12 +41,3 @@ finalization
   CommonCleanup;
 
 end.
-{
-  $Log: classes.pp,v $
-  Revision 1.4  2005/04/17 17:33:40  hajny
-    * more rtlconst/s fixes
-
-  Revision 1.3  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

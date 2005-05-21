@@ -1,5 +1,4 @@
 {
-   $Id: gtkincludes.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
    This file contains all includes needed by gtk.pp
 

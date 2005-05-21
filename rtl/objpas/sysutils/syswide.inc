@@ -1,6 +1,5 @@
 {
     *********************************************************************
-    $Id: syswide.inc,v 1.7 2005/03/12 14:56:22 florian Exp $
     Copyright (C) 2002-2005 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify

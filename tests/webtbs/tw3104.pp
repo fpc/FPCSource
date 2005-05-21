@@ -15,5 +15,3 @@ begin end;
 
 begin
 end.
-
-

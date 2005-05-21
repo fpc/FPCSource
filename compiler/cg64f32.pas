@@ -1,5 +1,4 @@
 {
-    $Id: cg64f32.pas,v 1.70 2005/02/15 19:16:04 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
     Member of the Free Pascal development team
 
@@ -790,19 +789,3 @@ unit cg64f32;
       end;
 
 end.
-{
-  $Log: cg64f32.pas,v $
-  Revision 1.70  2005/02/15 19:16:04  peter
-    * fix passing of 64bit values when using -Or
-
-  Revision 1.69  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.68  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-  Revision 1.67  2005/01/18 22:19:20  peter
-    * multiple location support for i386 a_param_ref
-    * remove a_param_copy_ref for i386
-
-}

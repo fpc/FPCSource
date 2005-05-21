@@ -217,4 +217,3 @@ initialization
   end;
   ImageHandlers.RegisterImageWriter ('JPEG graphics', 'jpg;jpeg', TFPWriterJPEG);
 end.
-

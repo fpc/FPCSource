@@ -1,5 +1,4 @@
 {
-    $Id: cthreads.pp,v 1.28 2005/04/13 20:10:50 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Peter Vreman,
     member of the Free Pascal development team.
@@ -658,40 +657,3 @@ initialization
   SetCThreadManager;
 finalization
 end.
-{
-  $Log: cthreads.pp,v $
-  Revision 1.28  2005/04/13 20:10:50  florian
-    + TThreadID
-
-  Revision 1.27  2005/04/09 18:45:43  florian
-    * fixed some unix stuff
-
-  Revision 1.26  2005/04/09 17:26:08  florian
-    + classes.mainthreadid is set now
-    + rtleventresetevent
-    + rtleventwairfor with timeout
-    + checksynchronize with timeout
-    * race condition in synchronize fixed
-
-  Revision 1.25  2005/04/03 19:29:28  florian
-    * proper error message if the cthreads unit is included too late
-      uses clause
-
-  Revision 1.24  2005/02/25 22:10:27  florian
-    * final fix for linux (hopefully)
-
-  Revision 1.23  2005/02/25 22:02:48  florian
-    * another "transfer to linux"-commit
-
-  Revision 1.22  2005/02/25 21:52:07  florian
-    * "transfer to linux"-commit
-
-  Revision 1.21  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.20  2005/02/06 11:20:52  peter
-    * threading in system unit
-    * removed systhrds unit
-
-}
-

@@ -34,4 +34,3 @@
 begin
  i:=c.create; i.p;
 end.
-

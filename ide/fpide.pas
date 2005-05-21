@@ -1,5 +1,4 @@
 {
-    $Id: fpide.pas,v 1.38 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -1248,16 +1247,3 @@ begin
 end;
 
 END.
-{
-  $Log: fpide.pas,v $
-  Revision 1.38  2005/02/14 17:13:18  peter
-    * truncate log
-
-  Revision 1.37  2005/01/08 11:43:18  florian
-    + vector unit window
-
-  Revision 1.36  2005/01/07 21:52:23  florian
-    * proper stepping in disassembler window now possible
-    + disassembler window to menu added
-
-}

@@ -13,4 +13,3 @@ function f : ta;
 begin
    f[1]:=1;
 end.
-

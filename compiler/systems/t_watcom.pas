@@ -1,5 +1,4 @@
 {
-    $Id: t_watcom.pas,v 1.8 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2003 by Wiktor Sywula
 
     This unit implements support import, export, link routines
@@ -177,9 +176,3 @@ initialization
   RegisterExternalLinker(system_i386_watcom_info,TLinkerWatcom);
   RegisterTarget(system_i386_watcom_info);
 end.
-{
-  $Log: t_watcom.pas,v $
-  Revision 1.8  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

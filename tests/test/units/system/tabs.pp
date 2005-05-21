@@ -279,10 +279,3 @@ Begin
   test_abs_longint;
   test_abs_int64;
 end.
-
-{
- $Log: tabs.pp,v $
- Revision 1.4  2005/02/14 17:13:37  peter
-   * truncate log
-
-}

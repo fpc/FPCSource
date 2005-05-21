@@ -1,5 +1,4 @@
 {
-    $Id: cgcpu.pas,v 1.34 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by the FPC team
 
     This unit implements the code generator for the 680x0
@@ -1317,15 +1316,3 @@ begin
   cg := tcg68k.create;
   cg64 :=tcg64f68k.create;
 end.
-
-{
-  $Log: cgcpu.pas,v $
-  Revision 1.34  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.33  2005/01/08 04:10:36  karoly
-    * made m68k to compile again
-
-}
-
-

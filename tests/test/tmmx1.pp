@@ -83,5 +83,3 @@ begin
    writeln('Test succesful');
    writeln;
 end.
-
-

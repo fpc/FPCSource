@@ -143,15 +143,3 @@ BEGIN
     dummy := RemoveGList(w, prop, -1);
     CleanUp('',0);
 END.
-
-{
-  $Log: talk2boopsi.pas,v $
-  Revision 1.4  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
-
-
-
-
-

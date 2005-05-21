@@ -1,4 +1,3 @@
-{ $Id: gadgets.pas,v 1.11 2005/02/28 15:38:38 marco Exp $  }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {   System independent GRAPHICAL clone of GADGETS.PAS      }
@@ -314,12 +313,3 @@ BEGIN
 END;
 
 END.
-{
- $Log: gadgets.pas,v $
- Revision 1.11  2005/02/28 15:38:38  marco
-  * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
-
- Revision 1.10  2005/02/14 17:13:18  peter
-   * truncate log
-
-}

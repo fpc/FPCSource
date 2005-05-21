@@ -74,15 +74,3 @@ begin
   test;
   Writeln ('Lost ',getfpcheapstatus.currheapused-data);
 end.
-
-{
-  $Log: stringl.pp,v $
-  Revision 1.6  2005/03/20 12:46:55  marco
-   * sb removed legacymem. Fixed with getfpcheapstatus. Now 1.9.9 only
-
-  Revision 1.5  2005/03/16 13:30:17  marco
-   * fixed with legacymem (I hope)
-
-  Revision 1.4  2005/02/14 17:13:18  peter
-    * truncate log
-}

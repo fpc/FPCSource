@@ -1,5 +1,4 @@
 {
-    $Id: posix.pp,v 1.3 2005/02/14 17:13:21 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Carl Eric Codere
     development team
@@ -77,10 +76,3 @@ implementation
 
 
 end.
-
-{
-  $Log: posix.pp,v $
-  Revision 1.3  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

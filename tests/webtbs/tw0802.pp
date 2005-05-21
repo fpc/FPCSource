@@ -6,4 +6,3 @@ program test;
 begin
   writeln('"',testf(0,-1,'A'),'"');
 end.
-

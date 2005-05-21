@@ -18,4 +18,3 @@ begin
  if (length(ar2) <> 3) then
    halt(3);
 end.
-

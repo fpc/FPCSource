@@ -1,5 +1,4 @@
 {
-  $Id: dbdigest.pp,v 1.14 2005/02/14 17:13:37 peter Exp $
     This file is part of the Free Pascal test suite.
     Copyright (c) 2002 by the Free Pascal development team.
 
@@ -472,10 +471,3 @@ begin
   else
     Verbose(V_ERROR,'Missing log file name');
 end.
-
-{
-  $Log: dbdigest.pp,v $
-  Revision 1.14  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

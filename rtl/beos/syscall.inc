@@ -1,5 +1,4 @@
 {
-    $Id: syscall.inc,v 1.2 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     This include implements the actual system call for the

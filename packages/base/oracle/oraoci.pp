@@ -1,5 +1,4 @@
 {
-    $Id: oraoci.pp,v 1.5 2005/02/14 17:13:19 peter Exp $
     Copyright (c) 1999-2000 by Pavel Stingl <stingp1.eti@mail.cez.cz>
 
 
@@ -1435,10 +1434,3 @@ implementation
 
 
 end.
-
-{
-  $Log: oraoci.pp,v $
-  Revision 1.5  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

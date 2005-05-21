@@ -76,4 +76,3 @@ Begin
  _encoding:='UTF-8';
  GetCharencoding(_encoding,_encoding);
 end.
-

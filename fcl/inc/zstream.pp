@@ -1,5 +1,4 @@
 {
-    $Id: zstream.pp,v 1.6 2005/02/14 17:13:15 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -446,9 +445,3 @@ begin
 end;
 
 end.
-{
-  $Log: zstream.pp,v $
-  Revision 1.6  2005/02/14 17:13:15  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: crt.pp,v 1.25 2005/05/14 15:01:49 hajny Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt and Peter Vreman,
     members of the Free Pascal development team.
@@ -1624,18 +1623,3 @@ Finalization
    FreeMem(ConsoleBuf,ScreenHeight*ScreenWidth*2);
 
 End.
-{
-  $Log: crt.pp,v $
-  Revision 1.25  2005/05/14 15:01:49  hajny
-    * TextMode parameter type changed to word for TP/BP compatibility
-
-  Revision 1.24  2005/03/16 18:17:23  jonas
-    * fix from mischi to fix extra spaces under some terminals
-
-  Revision 1.23  2005/03/15 09:20:11  jonas
-    * endianess fixes from mischi
-
-  Revision 1.22  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

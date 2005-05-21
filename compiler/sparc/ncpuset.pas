@@ -1,5 +1,4 @@
 {
-    $Id: ncpuset.pas,v 1.5 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2004 by Florian Klaempfl
 
     Generate sparc assembler for in set/case nodes
@@ -132,9 +131,3 @@ unit ncpuset;
 begin
   ccasenode:=tcpucasenode;
 end.
-{
-  $Log: ncpuset.pas,v $
-  Revision 1.5  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: cpuinfo.pas,v 1.16 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     Basic Processor information
@@ -83,12 +82,3 @@ Const
 Implementation
 
 end.
-{
-  $Log: cpuinfo.pas,v $
-  Revision 1.16  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.15  2005/01/20 16:38:45  peter
-    * load jmp_buf_size from system unit
-
-}

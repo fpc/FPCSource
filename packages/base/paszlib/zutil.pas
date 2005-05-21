@@ -460,10 +460,7 @@ end;
 
 
 end.
-
-
 { edited from a SWAG posting:
-
 In Turbo Pascal 6, the heap is the memory allocated when using the Procedures 'New' and
 'GetMem'. The heap starts at the address location pointed to by 'Heaporg' and
 grows to higher addresses as more memory is allocated. The top of the heap,

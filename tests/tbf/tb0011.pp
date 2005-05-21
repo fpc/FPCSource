@@ -16,4 +16,3 @@ begin
   new(o);            {This will create a internal error 9999}
   new(o,init);       {This will create a Segfault and Core Dump under linux}
 end.
-

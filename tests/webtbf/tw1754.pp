@@ -4,4 +4,3 @@ type
 
 begin
 end.
-

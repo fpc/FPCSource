@@ -1,5 +1,4 @@
 {
-    $Id: fpswitch.pas,v 1.22 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998-2000 by Berczi Gabor
 
@@ -1210,9 +1209,3 @@ end;
 
 
 end.
-{
-  $Log: fpswitch.pas,v $
-  Revision 1.22  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

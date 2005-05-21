@@ -35,9 +35,3 @@ begin
    fl_show_form(form0,FL_PLACE_CENTER,FL_FULLBORDER, 'IconTest');
    fl_do_forms();
 end.
-{
-  $Log: iconify.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

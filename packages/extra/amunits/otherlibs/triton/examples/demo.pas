@@ -1147,13 +1147,3 @@ BEGIN
        TR_DeleteApp(App);;
     end;
 END.
-
-{
-  $Log
-}
-
-
-
-
-
-

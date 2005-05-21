@@ -1,5 +1,4 @@
 {
-    $Id: wstrings.inc,v 1.58 2005/05/04 10:34:48 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2005 by Florian Klaempfl,
     member of the Free Pascal development team.

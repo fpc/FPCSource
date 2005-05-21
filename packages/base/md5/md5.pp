@@ -1,5 +1,4 @@
 {
-    $Id: md5.pp,v 1.2 2002/09/07 15:42:52 peter Exp $
     This file is part of the Free Pascal packages.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -386,4 +385,3 @@ Initialization
   FillChar(Padding,SizeOF(Padding),0);
   Padding[0]:=$80;
 end.
-

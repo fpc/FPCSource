@@ -1,5 +1,4 @@
 {
-    $Id: ossysc.inc,v 1.26 2005/04/24 19:11:28 marco Exp $
     Copyright (c) 2002 by Marco van de Voort
 
     The base *BSD syscalls required to implement the system unit. These

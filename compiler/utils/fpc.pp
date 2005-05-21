@@ -1,5 +1,4 @@
 {
-    $Id: fpc.pp,v 1.20 2005/05/08 19:56:59 marco Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     This file is the "loader" for the Free Pascal compiler

@@ -1,7 +1,6 @@
 {$mode objfpc}
 {$h+}
 {
-    $Id: suitetest.pp,v 1.4 2005/02/27 12:20:19 michael Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec
 
@@ -223,4 +222,3 @@ initialization
   RegisterTests([TSuiteTest]);
 
 end.
-

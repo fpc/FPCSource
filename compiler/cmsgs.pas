@@ -1,5 +1,4 @@
 {
-    $Id: cmsgs.pas,v 1.14 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements the message object
@@ -412,9 +411,3 @@ begin
 end;
 
 end.
-{
-  $Log: cmsgs.pas,v $
-  Revision 1.14  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

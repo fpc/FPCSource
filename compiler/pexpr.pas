@@ -1,5 +1,4 @@
 {
-    $Id: pexpr.pas,v 1.189 2005/04/06 11:49:37 michael Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Does parsing of expression for Free Pascal
@@ -2617,42 +2616,3 @@ implementation
     end;
 
 end.
-{
-  $Log: pexpr.pas,v $
-  Revision 1.189  2005/04/06 11:49:37  michael
-  * Fix methodpointer copy from callnode to loadnode
-
-  Revision 1.188  2005/03/28 14:14:52  florian
-    * fpc_variant_get call fixed
-
-  Revision 1.187  2005/03/27 20:19:21  florian
-    + compiler support for reading/writing of vararrays
-
-  Revision 1.186  2005/03/25 22:20:19  peter
-    * add hint when passing an uninitialized variable to a var parameter
-
-  Revision 1.185  2005/03/05 16:37:42  florian
-    * fixed copy(dyn. array,...);
-
-  Revision 1.184  2005/03/04 09:56:35  jonas
-    * fixed Lazarus compilation
-
-  Revision 1.183  2005/03/04 07:46:36  jonas
-    * properties can also be inherited/overridden
-
-  Revision 1.182  2005/03/03 19:58:14  jonas
-    * fixed web bug 3738
-
-  Revision 1.181  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.180  2005/02/06 20:29:12  florian
-    * fixed precedence of is-operator
-
-  Revision 1.179  2005/01/20 17:05:53  peter
-    * use val() for decoding integers
-
-  Revision 1.178  2005/01/04 16:38:07  peter
-    * don't allow properties in C style operators
-
-}

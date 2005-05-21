@@ -8,4 +8,3 @@ type
 
 begin
 end.
-

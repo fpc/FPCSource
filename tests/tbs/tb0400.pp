@@ -13,4 +13,3 @@ begin
    p:=pointer(i64);
    p:=pointer(q);
 end.
-

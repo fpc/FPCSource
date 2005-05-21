@@ -37,4 +37,3 @@ initialization
   STRING_INDEX_NOT_EXIST              := '»ндекс "%s" не существует.';
   STRING_NEED_EXCLUSIVE_ACCESS        := 'Ќевозможно выполнить - сначала нужно получить монопольный доступ.';
 end.
-

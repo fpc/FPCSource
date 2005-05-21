@@ -1,5 +1,4 @@
 {
-    $Id: agppcmpw.pas,v 1.44 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     This unit implements an asmoutput class for PowerPC with MPW syntax
@@ -1460,12 +1459,3 @@ var
 initialization
   RegisterAssembler(as_powerpc_mpw_info,TPPCMPWAssembler);
 end.
-{
-  $Log: agppcmpw.pas,v $
-  Revision 1.44  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.43  2005/02/08 22:46:00  olle
-    * fixed erroneous asm line directive
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: gdb.pas,v 1.21 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This units contains special support for the GDB
@@ -232,10 +231,3 @@ if current_module.modulename^='NCNV' then
          inherited destroy;
       end;
 end.
-
-{
-  $Log: gdb.pas,v $
-  Revision 1.21  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: i_bsd.pas,v 1.17 2005/03/20 22:36:45 olle Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support information structures for FreeBSD/NetBSD
@@ -497,16 +496,3 @@ initialization
   {$endif}
 {$endif cpu68}
 end.
-{
-  $Log: i_bsd.pas,v $
-  Revision 1.17  2005/03/20 22:36:45  olle
-    * Cleaned up handling of source file extension.
-    + Added support for .p extension for macos and darwin
-
-  Revision 1.16  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.15  2005/01/25 18:48:15  peter
-    * tf_pic_uses_got added
-
-}

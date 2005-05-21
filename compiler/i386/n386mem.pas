@@ -1,5 +1,4 @@
 {
-    $Id: n386mem.pas,v 1.66 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 assembler for in memory related nodes
@@ -139,9 +138,3 @@ begin
    cderefnode:=ti386derefnode;
    cvecnode:=ti386vecnode;
 end.
-{
-  $Log: n386mem.pas,v $
-  Revision 1.66  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

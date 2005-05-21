@@ -1,5 +1,4 @@
 {
-    $Id: libc.pp,v 1.11 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 Armin Diehl, member of the Free Pascal
     development team
@@ -9221,17 +9220,3 @@ end;
 
 
 end.
-{$endif}
-
-{
-  $Log: libc.pp,v $
-  Revision 1.11  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.10  2005/02/06 16:57:18  peter
-    * threads for go32v2,os,emx,netware
-
-  Revision 1.9  2005/01/04 11:25:33  armin
-  * rtl code cleanup, compat fixes between clib and libc
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: socketsh.inc,v 1.27 2005/03/28 11:10:51 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 

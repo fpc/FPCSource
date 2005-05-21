@@ -7,4 +7,3 @@ Type
 
 begin
 end.
-

@@ -1,5 +1,4 @@
 {
-    $Id: osdefs.inc,v 1.2 2005/02/14 17:13:31 peter Exp $
     Copyright (c) 2000-2002 by Marco van de Voort
 
     Target dependent defines used when compileing the baseunix unit

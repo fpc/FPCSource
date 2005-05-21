@@ -314,4 +314,3 @@ initialization
   end;
   ImageHandlers.RegisterImageReader ('JPEG Graphics', 'jpg;jpeg', TFPReaderJPEG);
 end.
-

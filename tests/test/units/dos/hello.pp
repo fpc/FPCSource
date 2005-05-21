@@ -10,11 +10,3 @@ Begin
    end;
  RunError(213);
 end.
-
-{
-
-  $Log: hello.pp,v $
-  Revision 1.3  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: ppu.pas,v 1.65 2005/03/27 14:10:52 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Routines to read/write ppu files
@@ -1067,29 +1066,3 @@ end;
       end;
 
 end.
-{
-  $Log: ppu.pas,v $
-  Revision 1.65  2005/03/27 14:10:52  jonas
-    * const record parameters > 8 bytes are now passed by reference for non
-      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
-      GPC (slightly more efficient than Metrowerks behaviour below, but
-      less efficient in most cases than our previous scheme)
-    + "mwpascal" procedure directive to support the const record parameter
-      behaviour of Metrowerks Pascal, which passes all const records by
-      reference
-
-  Revision 1.64  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.63  2005/01/24 17:46:18  olle
-    + ppu files now has FPas as creator code on MacOS
-
-  Revision 1.62  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-  Revision 1.61  2005/01/09 20:24:43  olle
-    * rework of macro subsystem
-    + exportable macros for mode macpas
-
-}

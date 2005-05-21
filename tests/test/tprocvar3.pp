@@ -1,5 +1,4 @@
 {
-  $Id: tprocvar3.pp,v 1.2 2005/02/14 17:13:35 peter Exp $
   This program tries to test any aspect of procedure variables and related
   stuff in Delphi mode
 }
@@ -144,9 +143,3 @@ begin
      do_error(1001);
    writeln('Ok');
 end.
-{
-  $Log: tprocvar3.pp,v $
-  Revision 1.2  2005/02/14 17:13:35  peter
-    * truncate log
-
-}

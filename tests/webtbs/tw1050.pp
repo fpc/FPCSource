@@ -44,7 +44,6 @@ BEGIN
   UNTIL (i=255){FALSE};                    {until error}
   CloseGraph;
 END.
-
 {OUTPUT: program runs OK until i=31 and   }
 {bsize=2060 bytes. When i increments to 32}
 {(bsize=2190), runtime error is generated }

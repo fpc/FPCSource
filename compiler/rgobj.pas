@@ -1,5 +1,4 @@
 {
-    $Id: rgobj.pas,v 1.158 2005/04/07 16:25:05 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the base class for the register allocator
@@ -2021,29 +2020,3 @@ unit rgobj;
       end;
 
 end.
-{
-  $Log: rgobj.pas,v $
-  Revision 1.158  2005/04/07 16:25:05  peter
-    * during spilling only add deallocs to live_registers that belong
-      to the instruction
-
-  Revision 1.157  2005/04/07 15:42:04  peter
-    * only in EXTDEBUG leave register allocator when it fails. Otherwise
-      give an IE
-
-  Revision 1.156  2005/03/25 21:55:43  jonas
-    * removed some unused variables
-
-  Revision 1.155  2005/03/20 19:47:46  peter
-    * fix spilling code when explicit cpu registers are used in an
-      instruction
-
-  Revision 1.154  2005/02/18 23:37:51  jonas
-    * fixed spilling for several ppc instructions which only read registers
-    + added support for registers in references that get changed (load/store
-      with update)
-
-  Revision 1.153  2005/02/14 17:13:07  peter
-    * truncate log
-
-}

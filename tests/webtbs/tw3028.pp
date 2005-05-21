@@ -19,4 +19,3 @@ begin
   end
   else writeln('OK');
 end.
-

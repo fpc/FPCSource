@@ -42,4 +42,3 @@ begin
  writeln('refcount b 1: ',pinteger(pchar(pointer(ar2[1].stack)-8))^);
  finalize(ar2);
 end.
-

@@ -1,5 +1,4 @@
 {
-    $Id: ncpuinln.pas,v 1.12 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate SPARC inline nodes
@@ -148,9 +147,3 @@ implementation
 begin
   cInlineNode:=tsparcinlinenode;
 end.
-{
-  $Log: ncpuinln.pas,v $
-  Revision 1.12  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: wpstk.pp,v 1.2 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 2000-2003 by WPS Toolkit Project - Christian Langanke
     Copyright (c) 2003-2004 by Yuri Prokushev (prokushev@freemail.ru)
 
@@ -750,10 +749,3 @@ APIRET APIENTRY WtkQueryFileCDateTime( PCDATE pcdate, PCTIME pctime, PChar pszNa
 implementation
 
 end.
-
-{
-$Log: wpstk.pp,v $
-Revision 1.2  2005/02/14 17:13:21  peter
-  * truncate log
-
-}

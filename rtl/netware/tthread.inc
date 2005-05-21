@@ -1,5 +1,4 @@
 {
-    $Id: tthread.inc,v 1.5 2005/02/25 21:41:09 florian Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2003-2004 Armin Diehl, member of the Free Pascal
     development team

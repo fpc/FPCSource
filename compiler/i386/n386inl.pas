@@ -1,5 +1,4 @@
 {
-    $Id: n386inl.pas,v 1.75 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 inline nodes
@@ -41,9 +40,3 @@ implementation
 begin
    cinlinenode:=ti386inlinenode;
 end.
-{
-  $Log: n386inl.pas,v $
-  Revision 1.75  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

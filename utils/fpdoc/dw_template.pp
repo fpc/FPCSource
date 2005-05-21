@@ -1,5 +1,4 @@
 {
-    $Id: dw_template.pp,v 1.2 2005/02/14 17:13:39 peter Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2005 by Michael Van Canneyt
@@ -1001,4 +1000,3 @@ initialization
 finalization
   UnRegisterWriter(TemplateName);
 end.
-

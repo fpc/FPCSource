@@ -1,5 +1,4 @@
 {
-    $Id: sysnr.inc,v 1.5 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003-2004 by Florian Klaempfl,
     member of the Free Pascal development team.

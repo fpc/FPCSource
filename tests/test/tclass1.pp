@@ -66,4 +66,3 @@ begin
    o1.destroy;
    writeln('ok');
 end.
-

@@ -1,5 +1,4 @@
 {
-    $Id: cgcpu.pas,v 1.196 2005/03/25 21:55:43 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the code generator for the PowerPC
@@ -2399,32 +2398,3 @@ begin
   cg := tcgppc.create;
   cg64 :=tcg64fppc.create;
 end.
-{
-  $Log: cgcpu.pas,v $
-  Revision 1.196  2005/03/25 21:55:43  jonas
-    * removed some unused variables
-
-  Revision 1.195  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.194  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-  Revision 1.193  2005/01/24 22:08:32  peter
-    * interface wrapper generation moved to cgobj
-    * generate interface wrappers after the module is parsed
-
-  Revision 1.192  2005/01/13 22:02:40  jonas
-    * r2 can be used by the register allocator under Darwin
-    * merged the initialisations of the fpu register allocator for AIX and
-      SYSV
-
-  Revision 1.191  2005/01/10 21:50:05  jonas
-    + support for passing records in registers under darwin
-    * tcgpara now also has an intsize field, which contains the size in
-      bytes of the whole parameter
-
-  Revision 1.190  2005/01/05 19:01:53  karoly
-    * sysv abi also uses F0-F13 as volatile registers
-
-}

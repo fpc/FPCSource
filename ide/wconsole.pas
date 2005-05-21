@@ -1,5 +1,4 @@
 {
-    $Id: wconsole.pas,v 1.9 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 2001 by Pierre Muller
 
@@ -83,10 +82,3 @@ Begin
 End;
 
 end.
-
-{
-  $Log: wconsole.pas,v $
-  Revision 1.9  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

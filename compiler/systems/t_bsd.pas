@@ -1,5 +1,4 @@
 {
-    $Id: t_bsd.pas,v 1.30 2005/04/27 21:47:08 marco Exp $
     Copyright (c) 1998-2002 by Peter Vreman (original Linux)
               (c) 2000      by Marco van de Voort (FreeBSD mods)
 
@@ -629,15 +628,3 @@ initialization
   RegisterTarget(system_powerpc_netbsd_info);
 {$endif powerpc}
 end.
-{
-  $Log: t_bsd.pas,v $
-  Revision 1.30  2005/04/27 21:47:08  marco
-   * $GCSECTIONS also added to else case
-
-  Revision 1.29  2005/04/27 14:47:54  marco
-   * tf_smartlink_sections and some shared lib pull-ups from t_linux
-
-  Revision 1.28  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

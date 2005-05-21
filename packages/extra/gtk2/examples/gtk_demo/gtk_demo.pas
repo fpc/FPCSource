@@ -1088,5 +1088,3 @@ begin
 
   gtk_main;
 end.
-
-

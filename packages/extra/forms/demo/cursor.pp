@@ -87,9 +87,3 @@ Begin
    fl_show_form(fd_cursor^.cursor,FL_PLACE_CENTER,FL_FULLBORDER,'cursor');
    fl_do_forms;
 end.
-{
-  $Log: cursor.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

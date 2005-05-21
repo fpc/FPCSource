@@ -1,5 +1,4 @@
 {
-   $Id: unxsysch.inc,v 1.8 2005/02/14 17:13:21 peter Exp $
    This file is part of the Free Pascal run time library.
    Copyright (c) 2003 Marco van de Voort
    member of the Free Pascal development team.

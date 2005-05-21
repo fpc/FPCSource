@@ -1,5 +1,4 @@
 {
-    $Id: ctypes.pp,v 1.5 2005/03/13 10:05:13 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Marco van de Voort, member of the
     Free Pascal development team
@@ -83,23 +82,3 @@ implementation
 
 
 end.
-
-{
- $Log: ctypes.pp,v $
- Revision 1.5  2005/03/13 10:05:13  florian
-   + floating point c types added
-
- Revision 1.4  2005/03/01 22:45:09  hajny
-   * Florian's changes from ctypes.inc merged in to make xlib compilable under non-Unix again
-
- Revision 1.3  2005/02/14 17:13:22  peter
-     * truncate log
-
- Revision 1.2  2005/02/12 17:35:18  marco
-  * some kylix stuf
-
- Revision 1.1  2005/01/10 10:32:50  marco
-  * initial version
-
-
-}

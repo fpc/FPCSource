@@ -45,4 +45,3 @@ Begin
   _obj2:=new(pobj2,init);
   pobj1(_obj2)^.mymethod;
 end.
-

@@ -11,4 +11,3 @@ begin
   if c in [#64..#255] then
    writeln('boe');
 end.
-

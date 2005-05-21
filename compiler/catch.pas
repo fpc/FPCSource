@@ -1,5 +1,4 @@
 {
-    $Id: catch.pas,v 1.25 2005/04/24 21:21:10 peter Exp $
     Copyright (c) 1998-2002 by Michael Van Canneyt
 
     Unit to catch segmentation faults and Ctrl-C and exit gracefully
@@ -91,23 +90,3 @@ begin
   {$endif}
 {$endif nocatch}
 end.
-
-{
-  $Log: catch.pas,v $
-  Revision 1.25  2005/04/24 21:21:10  peter
-    * use comphook for fpc exceptions
-
-  Revision 1.24  2005/02/15 19:15:45  peter
-    * Handle Control-C exception more cleanly
-
-  Revision 1.23  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.22  2005/01/31 21:30:56  olle
-    + Added fake Exception classes, only for MACOS.
-
-  Revision 1.21  2005/01/26 16:23:28  peter
-    * detect arithmetic overflows for constants at compile time
-    * use try..except instead of setjmp
-
-}

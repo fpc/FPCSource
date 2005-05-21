@@ -1,5 +1,4 @@
 {
-    $Id: fpcmpkg.pp,v 1.3 2002/09/07 15:40:32 peter Exp $
     Copyright (c) 2001 by Peter Vreman
 
     FPCMake - Package.Fpc writer
@@ -107,9 +106,3 @@ implementation
       end;
 
 end.
-{
-  $Log: fpcmpkg.pp,v $
-  Revision 1.3  2002/09/07 15:40:32  peter
-    * old logs removed and tabs fixed
-
-}

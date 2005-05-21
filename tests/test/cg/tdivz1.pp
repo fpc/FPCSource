@@ -34,9 +34,3 @@ begin
   int64cnt := 0;
   int64res := int64res div int64cnt;
 end.
-{
-  $Log: tdivz1.pp,v $
-  Revision 1.3  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

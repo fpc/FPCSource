@@ -113,4 +113,3 @@ Begin
    test(int64val and $FFFFFFFF, -2);
 {$ENDIF}
 end.
-

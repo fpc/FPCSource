@@ -1,5 +1,4 @@
 {
-    $Id: cpubase.pas,v 1.98 2005/02/26 01:27:00 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Contains the base types for the PowerPC
@@ -556,27 +555,3 @@ implementation
 
 
 end.
-{
-  $Log: cpubase.pas,v $
-  Revision 1.98  2005/02/26 01:27:00  jonas
-    * fixed generic jumps optimizer and enabled it for ppc (the label table
-      was not being initialised -> getfinaldestination always failed, which
-      caused wrong optimizations in some cases)
-    * changed the inverse_cond into a function, because tasmcond is a record
-      on ppc
-    + added a compare_conditions() function for the same reason
-
-  Revision 1.97  2005/02/18 23:05:47  jonas
-    - removed a non-existing instruction (lcrxe)
-    * fixed an instruction (maffs_ -> mffs)
-
-  Revision 1.96  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.95  2005/01/20 16:38:45  peter
-    * load jmp_buf_size from system unit
-
-  Revision 1.94  2005/01/10 21:48:45  jonas
-    - removed deprecated constants
-
-}

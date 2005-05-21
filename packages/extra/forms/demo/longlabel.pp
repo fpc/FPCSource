@@ -56,9 +56,3 @@ begin
   fl_set_object_label(but,'Quit');
   fl_do_forms();
 end.
-{
-  $Log: longlabel.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

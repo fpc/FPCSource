@@ -11,4 +11,3 @@ begin
   else
     halt(1);
 end.
-

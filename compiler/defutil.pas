@@ -1,5 +1,4 @@
 {
-    $Id: defutil.pas,v 1.24 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit provides some help routines for type handling
@@ -906,15 +905,3 @@ implementation
 
 
 end.
-{
-  $Log: defutil.pas,v $
-  Revision 1.24  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.23  2005/02/03 17:10:21  peter
-    * fix win32 small array parameters
-
-  Revision 1.22  2005/01/10 22:10:26  peter
-    * widestring patches from Alexey Barkovoy
-
-}

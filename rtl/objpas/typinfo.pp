@@ -1,5 +1,4 @@
 {
-    $Id: typinfo.pp,v 1.45 2005/04/16 09:24:29 michael Exp $
     This file is part of the Free Pascal run time library.
 
     Copyright (c) 1999-2000 by Florian Klaempfl
@@ -1559,40 +1558,3 @@ begin
 end;
 
 end.
-{
-  $Log: typinfo.pp,v $
-  Revision 1.45  2005/04/16 09:24:29  michael
-  + Moved constants to rtlconsts and added callbacks for variant support
-
-  Revision 1.44  2005/04/14 17:43:07  michael
-  + Added getPropValue by Uberto Barbini
-
-  Revision 1.43  2005/04/05 06:44:25  marco
-   * Currency property patch from Dean Zobec
-
-  Revision 1.42  2005/04/03 11:50:58  marco
-   * patch for 3854 added. There are probably more places that need explicit
-  currency handling.
-
-  Revision 1.41  2005/03/14 21:15:52  florian
-    * fixed compilation on i386
-
-  Revision 1.40  2005/03/14 19:16:06  peter
-    * getordprop supports int64
-
-  Revision 1.39  2005/02/26 20:59:38  florian
-    * fixed 1.0.10 issue
-
-  Revision 1.38  2005/02/26 11:37:01  florian
-    + overload of GetPropList added
-
-  Revision 1.37  2005/02/22 12:14:56  marco
-   * getproplist sorted param added.
-
-  Revision 1.36  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.35  2005/02/08 16:10:29  florian
-    * TTOrdType -> TOrdType
-
-}

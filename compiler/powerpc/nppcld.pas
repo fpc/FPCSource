@@ -1,5 +1,4 @@
 {
-    $Id: nppcld.pas,v 1.9 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate ppc assembler for nodes that handle loads and assignments
@@ -123,19 +122,3 @@ unit nppcld;
 begin
    cloadnode:=tppcloadnode;
 end.
-{
-  $Log: nppcld.pas,v $
-  Revision 1.9  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.8  2005/01/24 18:13:46  jonas
-    * fixed bug introduced in revision 1.6
-
-  Revision 1.7  2005/01/20 17:47:01  peter
-    * remove copy_value_on_stack and a_param_copy_ref
-
-  Revision 1.6  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-}

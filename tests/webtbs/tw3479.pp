@@ -15,4 +15,3 @@ begin
  Writeln(WrapText(Line1 +   #10+ Line2,    #10, [' '], 10));
  Writeln(WrapText(Line1 +#13#10+ Line2, #13#10, [' '], 10));
 end.
-

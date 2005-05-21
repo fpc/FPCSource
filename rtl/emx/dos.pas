@@ -1,6 +1,5 @@
 {****************************************************************************
 
-    $Id: dos.pas,v 1.17 2005/02/14 17:13:22 peter Exp $
 
                          Free Pascal Runtime-Library
                               DOS unit for EMX
@@ -1077,10 +1076,3 @@ begin
  LastDosExitCode := 0;
  ExecFlags := 0;
 end.
-
-{
-  $Log: dos.pas,v $
-  Revision 1.17  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

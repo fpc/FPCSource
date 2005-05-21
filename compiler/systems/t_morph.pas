@@ -1,5 +1,4 @@
 {
-    $Id: t_morph.pas,v 1.14 2005/04/25 15:58:59 karoly Exp $
     Copyright (c) 2004 by Free Pascal Development Team
 
     This unit implements support import, export, link routines
@@ -268,18 +267,3 @@ initialization
   RegisterExternalLinker(system_powerpc_morphos_info,TLinkerMorphOS);
   RegisterTarget(system_powerpc_morphos_info);
 end.
-{
-  $Log: t_morph.pas,v $
-  Revision 1.14  2005/04/25 15:58:59  karoly
-    * static linking fixes
-
-  Revision 1.13  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.12  2005/02/11 07:23:22  karoly
-    * cleanups, finalized vlink support
-
-  Revision 1.11  2005/02/03 03:54:07  karoly
-  t_morph.pas
-
-}

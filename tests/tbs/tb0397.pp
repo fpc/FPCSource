@@ -5,4 +5,3 @@ begin
      halt(1);
    halt(0);
 end.
-

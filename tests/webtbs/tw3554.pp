@@ -14,4 +14,3 @@ begin
   WriteLn(c);
   WriteLn(d('a','b'));
 end.
-

@@ -20,4 +20,3 @@ begin
   a := Ack(3, NUM);
   WriteLn( 'Ack(3,' + IntToStr(NUM) + '): ' + IntToStr(a) );
 end.
-

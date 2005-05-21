@@ -1,4 +1,3 @@
-// $Id: xmldump.pp,v 1.4 2005/02/14 17:13:18 peter Exp $
 
 {$MODE objfpc}
 {$H+}
@@ -70,11 +69,3 @@ begin
   DumpNode(xml, '| ');
   xml.Free;
 end.
-
-
-{
-  $Log: xmldump.pp,v $
-  Revision 1.4  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

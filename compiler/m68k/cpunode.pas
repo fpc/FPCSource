@@ -1,5 +1,4 @@
 {
-    $Id: cpunode.pas,v 1.6 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Includes the 680x0/Coldfire code generator
@@ -51,9 +50,3 @@ unit cpunode;
        ;
 
 end.
-{
-  $Log: cpunode.pas,v $
-  Revision 1.6  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

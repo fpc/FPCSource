@@ -1,5 +1,4 @@
 {
-    $Id: cgcpu.pas,v 1.107 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the code generator for the SPARC
@@ -1478,32 +1477,3 @@ begin
   cg:=TCgSparc.Create;
   cg64:=TCg64Sparc.Create;
 end.
-{
-  $Log: cgcpu.pas,v $
-  Revision 1.107  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.106  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-  Revision 1.105  2005/01/27 20:32:51  florian
-    + implemented overflow checking for 64 bit types on sparc
-
-  Revision 1.104  2005/01/25 20:58:30  florian
-    * fixed load64 which shouldn't do a make_simple_ref
-
-  Revision 1.103  2005/01/24 22:08:32  peter
-    * interface wrapper generation moved to cgobj
-    * generate interface wrappers after the module is parsed
-
-  Revision 1.102  2005/01/23 17:14:21  florian
-    + optimized code generation on sparc
-    + some stuff for pic code on sparc added
-
-  Revision 1.101  2005/01/07 16:22:54  florian
-    + implemented abi compliant handling of strucutured functions results on sparc platform
-
-  Revision 1.100  2005/01/01 13:19:09  florian
-    * improved code generation for OP_MUL/OP_IMUL
-
-}

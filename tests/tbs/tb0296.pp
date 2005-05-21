@@ -17,4 +17,3 @@ const oo : array[0..1] of ll = (
                                   (yy:insubset2));
 begin
 end.
-

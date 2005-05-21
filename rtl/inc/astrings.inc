@@ -1,5 +1,4 @@
 {
-    $Id: astrings.inc,v 1.57 2005/04/06 07:45:14 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.

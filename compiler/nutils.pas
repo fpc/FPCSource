@@ -1,5 +1,4 @@
 {
-    $Id: nutils.pas,v 1.31 2005/04/06 11:49:37 michael Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Type checking and register allocation for inline nodes
@@ -561,16 +560,3 @@ implementation
       end;
 
 end.
-
-{
-  $Log: nutils.pas,v $
-  Revision 1.31  2005/04/06 11:49:37  michael
-  * Fix methodpointer copy from callnode to loadnode
-
-  Revision 1.30  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.29  2005/01/04 16:39:46  peter
-    * set nf_is_self node flag when self is loaded
-
-}

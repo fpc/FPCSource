@@ -17,4 +17,3 @@ BEGIN
       if cuek = 4 then ;
     end;
 END.
-

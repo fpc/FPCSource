@@ -7188,12 +7188,3 @@ begin
 end;
 
 END.
-{
-  $Log: weditor.pas,v $
-  Revision 1.52  2005/02/14 17:13:18  peter
-    * truncate log
-
-  Revision 1.51  2005/01/07 18:29:48  florian
-    * fixed endian dependend code
-
-}

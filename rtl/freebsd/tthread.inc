@@ -1,5 +1,4 @@
 {
-   $Id: tthread.inc,v 1.15 2005/03/01 20:38:49 jonas Exp $
    This file is part of the Free Pascal run time library.
    (c) 2000-2003 by Marco van de Voort
    member of the Free Pascal development team.

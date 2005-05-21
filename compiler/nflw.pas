@@ -1,5 +1,4 @@
 {
-    $Id: nflw.pas,v 1.112 2005/03/25 22:20:19 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Type checking and register allocation for nodes that influence
@@ -1389,34 +1388,3 @@ begin
    ctryfinallynode:=ttryfinallynode;
    connode:=tonnode;
 end.
-{
-  $Log: nflw.pas,v $
-  Revision 1.112  2005/03/25 22:20:19  peter
-    * add hint when passing an uninitialized variable to a var parameter
-
-  Revision 1.111  2005/03/24 23:06:43  peter
-    * don't remove repeat until node in repeat until true;
-
-  Revision 1.110  2005/02/23 20:38:09  florian
-    + variants can be used as cond. expr. in if, while, repeat ... until statements
-
-  Revision 1.109  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.108  2005/01/31 20:23:53  peter
-    * set varstate before parsing the instruction block in for statements
-
-  Revision 1.107  2005/01/31 16:16:21  peter
-    * for-node cleanup, checking for uninitialzed from and to values
-      is now supported
-
-  Revision 1.106  2005/01/16 14:44:03  peter
-    * fix unreachable code check for repeat loop
-
-  Revision 1.105  2005/01/16 10:50:32  peter
-    * give warning for unreachable code in while/if statements
-
-  Revision 1.104  2005/01/03 17:55:57  florian
-    + first batch of patches to support tdef.getcopy fully
-
-}

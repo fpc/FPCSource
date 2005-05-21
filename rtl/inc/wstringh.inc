@@ -1,5 +1,4 @@
 {
-    $Id: wstringh.inc,v 1.7 2005/03/14 21:09:04 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2005 by Florian Klaempfl,
     member of the Free Pascal development team.

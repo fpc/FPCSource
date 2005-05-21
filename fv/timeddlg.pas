@@ -1,5 +1,4 @@
 {
-   $Id: timeddlg.pas,v 1.2 2005/02/14 17:13:18 peter Exp $
 
    Timed dialogs for Free Vision
 
@@ -253,10 +252,3 @@ end;
 begin
   RegisterTimedDialog;
 end.
-
-{
- $Log: timeddlg.pas,v $
- Revision 1.2  2005/02/14 17:13:18  peter
-   * truncate log
-
-}

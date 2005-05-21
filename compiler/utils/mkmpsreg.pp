@@ -1,5 +1,4 @@
 {
-    $Id: mkmpsreg.pp,v 1.1 2005/02/13 18:56:44 florian Exp $
     Copyright (c) 1998-2002 by Peter Vreman and Florian Klaempfl
 
     Convert mipsreg.dat to several .inc files for usage with
@@ -348,8 +347,3 @@ begin
    build_gas_regname_index;
    write_inc_files;
 end.
-{
-  $Log: mkmpsreg.pp,v $
-  Revision 1.1  2005/02/13 18:56:44  florian
-    + basic mips stuff
-}

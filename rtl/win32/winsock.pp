@@ -1,5 +1,4 @@
 {
-    $Id: winsock.pp,v 1.17 2005/04/03 11:33:08 marco Exp $
     This file is part of the Free Pascal run time library.
     This unit contains the declarations for the Win32 Socket Library
 
@@ -909,12 +908,3 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
       end;
 
 end.
-{
-  $Log: winsock.pp,v $
-  Revision 1.17  2005/04/03 11:33:08  marco
-   * some constants changed to unsigned to avoid warnings (bug 3817)
-
-  Revision 1.16  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

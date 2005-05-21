@@ -1,7 +1,6 @@
 {$PACKRECORDS C}
 
   {
-     $Id: signal.inc,v 1.7 2005/02/14 17:13:21 peter Exp $
      Copyright (c) 2000 Apple Computer, Inc. All rights reserved.
 
      @APPLE_LICENSE_HEADER_START@

@@ -1,5 +1,4 @@
 {
-    $Id: cgx86.pas,v 1.148 2005/04/25 09:51:07 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the common parts of the code generator for the i386 and the x86-64.
@@ -1786,31 +1785,3 @@ unit cgx86;
 
 
 end.
-{
-  $Log: cgx86.pas,v $
-  Revision 1.148  2005/04/25 09:51:07  florian
-    + pic code reading for the assembler readers
-    * loadaddr generates pic code as well now
-
-  Revision 1.147  2005/03/13 17:15:26  florian
-    + storing non-extended floats to memory generates now a fwait to get exceptions at the correct place
-
-  Revision 1.146  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.145  2005/02/06 00:05:56  florian
-    + x86_64 pic draft
-
-  Revision 1.144  2005/02/05 18:32:17  florian
-    * fixed previous commit
-
-  Revision 1.143  2005/02/05 18:08:48  florian
-    * fixed dword -> qword/int64 type cast on x86_64
-
-  Revision 1.142  2005/01/25 18:48:15  peter
-    * tf_pic_uses_got added
-
-  Revision 1.141  2005/01/08 16:00:55  florian
-    * fixed loadaddr; I wonder how it ever worked
-
-}

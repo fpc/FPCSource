@@ -1,5 +1,4 @@
 {
-    $Id: t_atari.pas,v 1.3 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2001-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
@@ -42,9 +41,3 @@ implementation
 initialization
   RegisterTarget(system_m68k_atari_info);
 end.
-{
-  $Log: t_atari.pas,v $
-  Revision 1.3  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: narmadd.pas,v 1.21 2005/02/16 22:02:26 florian Exp $
     Copyright (c) 2000-2002 by Florian Klaempfl
 
     Code generation for add nodes on the ARM
@@ -335,13 +334,3 @@ interface
 begin
   caddnode:=tarmaddnode;
 end.
-{
-  $Log: narmadd.pas,v $
-  Revision 1.21  2005/02/16 22:02:26  florian
-    * fixed storing of floating point registers for procedures with large temp. area
-    * fixed int64 comparisation
-
-  Revision 1.20  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

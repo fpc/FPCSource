@@ -1,5 +1,4 @@
 {
-    $Id: gdbcon.pp,v 1.7 2005/02/14 17:13:19 peter Exp $
     Copyright (c) 1998 by Peter Vreman
 
     Lowlevel GDB interface which communicates directly with libgdb
@@ -345,9 +344,3 @@ end;
 
 
 end.
-{
-  $Log: gdbcon.pp,v $
-  Revision 1.7  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

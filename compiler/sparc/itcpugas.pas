@@ -1,5 +1,4 @@
 {
-    $Id: itcpugas.pas,v 1.7 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Mazen NEIFER
 
     This unit contains the SPARC GAS instruction tables
@@ -97,9 +96,3 @@ implementation
       end;
 
 end.
-{
-  $Log: itcpugas.pas,v $
-  Revision 1.7  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

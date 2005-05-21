@@ -1,5 +1,4 @@
 {
-    $Id: bunxovl.inc,v 1.18 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Marco van de Voort
 

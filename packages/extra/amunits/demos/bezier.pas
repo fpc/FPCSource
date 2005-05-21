@@ -258,12 +258,3 @@ begin
     until False;
     CleanUpAndDie;
 end.
-
-{
-  $Log: bezier.pas,v $
-  Revision 1.4  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
-
-

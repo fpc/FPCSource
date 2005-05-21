@@ -1,5 +1,4 @@
 {
-    $Id: func.inc,v 1.25 2005/05/09 18:39:58 michael Exp $
     This file is part of the Free Pascal run time library.
     This unit contains the record definition for the Win32 API
     Copyright (c) 1999-2000 by Florian KLaempfl,

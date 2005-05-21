@@ -335,8 +335,3 @@ Begin
   LongintTestGe;
   LongintTestSub;
 end.
-
-
-{
- $Log
-}

@@ -19,7 +19,6 @@ Program fd2pascal;
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   --------------------------------------------------------------------------- }
 
-{ $Id: fd2pascal.pp,v 1.5 2005/02/14 17:13:20 peter Exp $ }
 
 uses
 {$ifdef ver1_0}

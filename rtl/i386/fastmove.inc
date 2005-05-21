@@ -1,5 +1,4 @@
 {
-  $Id: fastmove.inc,v 1.5 2005/01/26 20:58:10 florian Exp $
   Copyright (c) 2004, John O'Harrow (john@almcrest.demon.co.uk)
 
 This software is provided 'as-is', without any express or implied warranty.

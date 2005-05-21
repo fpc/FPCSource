@@ -1757,4 +1757,3 @@ finalization
   DbfWordsSensPartialList.Free;
 
 end.
-

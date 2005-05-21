@@ -25,4 +25,3 @@ end;
 begin
   TBla.X;
 end.
-

@@ -1,5 +1,4 @@
 {
-    $Id: ggigraph.pp,v 1.8 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
 
@@ -535,9 +534,3 @@ initialization
 finalization
   SetRawMode(False);
 end.
-{
-  $Log: ggigraph.pp,v $
-  Revision 1.8  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

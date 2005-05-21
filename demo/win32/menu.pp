@@ -1,4 +1,3 @@
-{   $Id: menu.pp,v 1.4 2002/09/07 15:06:35 peter Exp $
   Copyright (c) 1999 by Michael van Canneyt
 
   Win32 menu creation example.
@@ -338,16 +337,3 @@ Begin
         End;
     End;
 End.
-
-{
-  $Log: menu.pp,v $
-  Revision 1.4  2002/09/07 15:06:35  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/02/22 13:37:49  pierre
-   * fix problem if started through cygwin bash
-
-  Revision 1.2  2002/02/21 11:43:54  pierre
-   * fix range check problems and wrong uses of HEdit and HStatus handles
-
-}

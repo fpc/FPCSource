@@ -96,4 +96,3 @@ if not makedef(binname,GetOption('-o','--output'),GetOption('-l','--library'))th
    halt(1);
   end;
 end.
-

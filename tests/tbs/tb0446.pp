@@ -10,4 +10,3 @@ begin
    halt(1);
   writeln('OK')
 end.
-

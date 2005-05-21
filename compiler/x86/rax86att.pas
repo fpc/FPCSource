@@ -1,5 +1,4 @@
 {
-    $Id: rax86att.pas,v 1.11 2005/04/25 09:51:07 florian Exp $
     Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
     Does the parsing for the x86 GNU AS styled inline assembler.
@@ -807,13 +806,3 @@ Implementation
 
 
 end.
-{
-  $Log: rax86att.pas,v $
-  Revision 1.11  2005/04/25 09:51:07  florian
-    + pic code reading for the assembler readers
-    * loadaddr generates pic code as well now
-
-  Revision 1.10  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

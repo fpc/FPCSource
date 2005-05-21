@@ -1,4 +1,3 @@
-{ $Id: nwcalls.pp,v 1.1 2005/01/14 22:13:11 armin Exp $
 
   Netware Server Imports for FreePascal Netware Clib RTL, contains
   definitions from the following NDK header files:
@@ -6066,10 +6065,3 @@ implementation
     end;
 *)
 end.
-
-{
-  $Log: nwcalls.pp,v $
-  Revision 1.1  2005/01/14 22:13:11  armin
-  * added nwcalls.pp
-
-}

@@ -85,11 +85,3 @@ writeln('CheckBox off')
       END;
    CleanUp('',0);
 end.
-
-{
-  $Log
-}
-
-
-
-

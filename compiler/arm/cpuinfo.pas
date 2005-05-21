@@ -1,5 +1,4 @@
 {
-    $Id: cpuinfo.pas,v 1.12 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by the Free Pascal development team
 
     Basic Processor information for the ARM
@@ -89,12 +88,3 @@ Const
 Implementation
 
 end.
-{
-  $Log: cpuinfo.pas,v $
-  Revision 1.12  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.11  2005/01/20 16:38:45  peter
-    * load jmp_buf_size from system unit
-
-}

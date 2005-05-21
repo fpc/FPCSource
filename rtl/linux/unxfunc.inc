@@ -1,5 +1,4 @@
 {
-   $Id: unxfunc.inc,v 1.3 2005/03/06 17:12:11 florian Exp $
    This file is part of the Free Pascal run time library.
    Copyright (c) 1999-2000 by Michael Van Canneyt,
      member of the Free Pascal development team.

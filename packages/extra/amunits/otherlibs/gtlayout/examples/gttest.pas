@@ -103,10 +103,3 @@ begin
      until done;
      CleanUp('all ok',0);
 end.
-
-{
-  $Log
-}
-
-
-

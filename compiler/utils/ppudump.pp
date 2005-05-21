@@ -1,5 +1,4 @@
 {
-    $Id: ppudump.pp,v 1.69 2005/04/24 20:00:57 florian Exp $
     Copyright (c) 1998-2002 by the FPC Development Team
 
     Dumps the contents of a FPC unit file (PPU File)
@@ -2156,33 +2155,3 @@ begin
   if has_errors then
     Halt(1);
 end.
-{
-  $Log: ppudump.pp,v $
-  Revision 1.69  2005/04/24 20:00:57  florian
-    + more module flags added
-
-  Revision 1.68  2005/03/27 14:10:53  jonas
-    * const record parameters > 8 bytes are now passed by reference for non
-      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
-      GPC (slightly more efficient than Metrowerks behaviour below, but
-      less efficient in most cases than our previous scheme)
-    + "mwpascal" procedure directive to support the const record parameter
-      behaviour of Metrowerks Pascal, which passes all const records by
-      reference
-
-  Revision 1.67  2005/03/07 18:38:46  peter
-    * explicit paraloc for funcret
-    * libsym for powerpc ppu's
-
-  Revision 1.66  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.65  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-  Revision 1.64  2005/01/09 20:24:43  olle
-    * rework of macro subsystem
-    + exportable macros for mode macpas
-
-}

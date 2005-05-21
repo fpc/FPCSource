@@ -2894,4 +2894,3 @@ initialization
   DbfBasePath := ApplicationPath;
 
 end.
-

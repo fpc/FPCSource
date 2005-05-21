@@ -1,5 +1,4 @@
 {
-    $Id: defines.inc,v 1.21 2005/03/12 13:55:07 florian Exp $
     This file is part of the Free Pascal run time library.
     This unit contains the constant definitions for the Win32 API
     Copyright (c) 1999-2000 by Florian Klaempfl,

@@ -1,5 +1,4 @@
 {
-    $Id: options.pas,v 1.6 2005/02/20 11:09:41 florian Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
@@ -238,24 +237,3 @@ begin
 end;
 
 end.
-{
-   $Log: options.pas,v $
-   Revision 1.6  2005/02/20 11:09:41  florian
-     + added -P:
-       allows to generate headers which load proc. dyn. from libs
-
-   Revision 1.5  2005/02/14 17:13:39  peter
-     * truncate log
-
-   Revision 1.4  2004/09/08 22:21:41  carl
-     + support for creating packed records
-     * var parameter bugfixes
-
-   Revision 1.3  2004/08/13 02:35:30  carl
-     + bugfixes with C++ comments, they are now placed above the definition
-     * some bugfixes with the _label reserved word.
-
-   Revision 1.2  2002/09/07 15:40:34  peter
-     * old logs removed and tabs fixed
-
-}

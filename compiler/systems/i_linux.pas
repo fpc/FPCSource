@@ -1,5 +1,4 @@
 {
-    $Id: i_linux.pas,v 1.37 2005/03/20 22:36:45 olle Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support information structures for linux
@@ -505,22 +504,3 @@ initialization
   {$endif linux}
 {$endif CPUARM}
 end.
-{
-  $Log: i_linux.pas,v $
-  Revision 1.37  2005/03/20 22:36:45  olle
-    * Cleaned up handling of source file extension.
-    + Added support for .p extension for macos and darwin
-
-  Revision 1.36  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.35  2005/02/06 00:05:56  florian
-    + x86_64 pic draft
-
-  Revision 1.34  2005/01/30 17:45:38  florian
-    * better alignment on linux
-
-  Revision 1.33  2005/01/25 18:48:15  peter
-    * tf_pic_uses_got added
-
-}

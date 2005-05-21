@@ -52,4 +52,3 @@ initialization
   STRING_INDEX_NOT_EXIST              := 'Index "%s" bestaat niet.';
   STRING_NEED_EXCLUSIVE_ACCESS        := 'Exclusieve toegang is vereist voor deze actie.';
 end.
-

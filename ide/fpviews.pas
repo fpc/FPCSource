@@ -1,5 +1,4 @@
 {
-    $Id: fpviews.pas,v 1.59 2005/03/07 17:16:56 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -4493,24 +4492,3 @@ end;
 
 
 END.
-{
-  $Log: fpviews.pas,v $
-  Revision 1.59  2005/03/07 17:16:56  peter
-    * ignore reserved tokens of length 1
-
-  Revision 1.58  2005/02/14 17:13:18  peter
-    * truncate log
-
-  Revision 1.57  2005/01/16 00:43:03  florian
-    * fixed disassembly window on sparc
-
-  Revision 1.56  2005/01/08 13:43:44  florian
-    * updated version and copyright
-
-  Revision 1.55  2005/01/08 11:43:18  florian
-    + vector unit window
-
-  Revision 1.54  2005/01/07 19:09:28  florian
-    * highlight keywords of all language modes
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: strings.inc,v 1.29 2005/04/28 18:22:34 olle Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000 by Jonas Maebe, member of the
     Free Pascal development team

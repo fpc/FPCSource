@@ -1,5 +1,4 @@
 {
-    $Id: cgcpu.pas,v 1.22 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     This unit implements the code generator for the x86-64.
@@ -138,16 +137,3 @@ begin
   cg64:=tcg64f64.create;
 {$endif cpu64bit}
 end.
-{
-  $Log: cgcpu.pas,v $
-  Revision 1.22  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.21  2005/02/06 00:05:56  florian
-    + x86_64 pic draft
-
-  Revision 1.20  2005/01/24 22:08:33  peter
-    * interface wrapper generation moved to cgobj
-    * generate interface wrappers after the module is parsed
-
-}

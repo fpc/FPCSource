@@ -1,5 +1,4 @@
 {
-    $Id: thread.inc,v 1.30 2005/04/20 07:41:48 hajny Exp $
     This file is part of the Free Pascal Run time library.
     Copyright (c) 2000 by the Free Pascal development team
 

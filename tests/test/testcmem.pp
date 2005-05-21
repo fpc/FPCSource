@@ -25,10 +25,3 @@ begin
   if err then
     halt(1);
 end.
-
-{
-  $Log: testcmem.pp,v $
-  Revision 1.2  2005/02/14 17:13:35  peter
-    * truncate log
-
-}

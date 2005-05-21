@@ -1,5 +1,4 @@
 {
-    $Id: nppcset.pas,v 1.19 2005/03/25 21:55:43 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Carl Eric Codere
 
     Generate PowerPC assembler for in set/case nodes
@@ -152,12 +151,3 @@ implementation
 begin
    ccasenode:=tppccasenode;
 end.
-{
-  $Log: nppcset.pas,v $
-  Revision 1.19  2005/03/25 21:55:43  jonas
-    * removed some unused variables
-
-  Revision 1.18  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

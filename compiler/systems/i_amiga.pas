@@ -1,5 +1,4 @@
 {
-    $Id: i_amiga.pas,v 1.9 2005/03/20 22:36:45 olle Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support information structures for AmigaOS
@@ -165,16 +164,3 @@ initialization
   {$endif AMIGA}
 {$endif CPUPOWERPC}
 end.
-{
-  $Log: i_amiga.pas,v $
-  Revision 1.9  2005/03/20 22:36:45  olle
-    * Cleaned up handling of source file extension.
-    + Added support for .p extension for macos and darwin
-
-  Revision 1.8  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.7  2005/02/03 03:54:06  karoly
-  t_morph.pas
-
-}

@@ -17,4 +17,3 @@ begin
   if l1<>l2 then
     halt(1);
 end.
-

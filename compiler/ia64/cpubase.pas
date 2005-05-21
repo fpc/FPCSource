@@ -1,5 +1,4 @@
 {
-    $Id: cpubase.pas,v 1.9 2005/02/14 17:13:10 peter Exp $
     Copyright (C) 2000 by Florian Klaempfl
 
     this unit implements an asmlistitem class for the iA-64 architecture
@@ -281,9 +280,3 @@ implementation
     end;
 
 end.
-{
-  $Log: cpubase.pas,v $
-  Revision 1.9  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: rasm.pas,v 1.3 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2003 by Peter Vreman, Florian Klaempfl and Carl Eric Codere
 
     Basic stuff for assembler readers
@@ -67,9 +66,3 @@ unit rasm;
 
 
 end.
-{
-  $Log: rasm.pas,v $
-  Revision 1.3  2005/02/14 17:13:07  peter
-    * truncate log
-
-}

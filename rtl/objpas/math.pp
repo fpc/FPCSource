@@ -1,5 +1,4 @@
 {
-    $Id: math.pp,v 1.32 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -1381,25 +1380,3 @@ begin
 end;
 
 end.
-{
-  $Log: math.pp,v $
-  Revision 1.32  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.31  2005/02/08 20:49:16  florian
-    * operator **(int64,int64) returns int64 now
-
-  Revision 1.30  2005/02/08 20:25:28  florian
-    - killed power from system unit
-    * move operator ** to math unit
-
-  Revision 1.29  2005/01/31 13:59:23  marco
-   * fixed
-
-  Revision 1.28  2005/01/12 20:17:39  florian
-    * generic arctan2 for 3rd and 4th quadrand fixed
-
-  Revision 1.27  2005/01/04 16:47:05  florian
-    * compilation on ARM fixed
-
-}

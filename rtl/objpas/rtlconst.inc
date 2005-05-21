@@ -1,5 +1,4 @@
 {
-    $Id: rtlconst.inc,v 1.2 2005/04/16 09:25:02 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by Florian Klaempfl
     member of the Free Pascal development team
@@ -525,18 +524,3 @@ ResourceString
 implementation
 
 end.
-{
-  $Log: rtlconst.inc,v $
-  Revision 1.2  2005/04/16 09:25:02  michael
-  + Added TypInfo unit constants
-
-  Revision 1.1  2005/04/14 21:47:27  hajny
-    * rtlconst/s fix for GO32v2 etc.
-
-  Revision 1.1  2005/03/07 17:57:25  peter
-    * renamed rtlconst to rtlconsts
-
-  Revision 1.7  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

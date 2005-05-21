@@ -9,4 +9,3 @@ begin
   while false do
     continue;
 end.
-

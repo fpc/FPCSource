@@ -1,5 +1,4 @@
 {
-   $Id: linuxold.inc,v 1.19 2005/02/14 17:13:31 peter Exp $
    This file is part of the Free Pascal run time library.
    Copyright (c) 1999-2000 by Michael Van Canneyt,
    BSD parts (c) 2000 by Marco van de Voort
@@ -5907,10 +5906,3 @@ finalization
   DoneLocalTime;
 
 End.
-
-{
-  $Log: linuxold.inc,v $
-  Revision 1.19  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

@@ -97,4 +97,3 @@ begin
     (* Rest in gtk_main and wait for the fun to begin! *)
     gtk_main ();
 end.
-

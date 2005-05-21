@@ -76,4 +76,3 @@ begin
   if thread1.p=thread2.p then
     error;
 end.
-

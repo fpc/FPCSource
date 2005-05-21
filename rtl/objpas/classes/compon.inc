@@ -1,5 +1,4 @@
 {
-    $Id: compon.inc,v 1.9 2005/04/15 07:21:09 michael Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
 

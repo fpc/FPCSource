@@ -1,5 +1,4 @@
 {
-    $Id: crt.pp,v 1.2 2005/05/14 15:01:49 hajny Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2004 by the Free Pascal development team.
 
@@ -623,4 +622,3 @@ begin
   //_SetCtrlCharCheckMode (CheckBreak);
   //_SetAutoScreenDestructionMode (TRUE);
 end.
-

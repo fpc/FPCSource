@@ -1,4 +1,3 @@
-{ $Id: drivers.pas,v 1.52 2005/02/14 17:13:18 peter Exp $ }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {    System independent clone of DRIVERS.PAS               }
@@ -1531,9 +1530,3 @@ BEGIN
    SaveExit := ExitProc;                              { Save old exit }
    ExitProc := @ExitDrivers;                          { Set new exit }
 END.
-{
- $Log: drivers.pas,v $
- Revision 1.52  2005/02/14 17:13:18  peter
-   * truncate log
-
-}

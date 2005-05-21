@@ -1,5 +1,4 @@
 {
-    $Id: daopt386.pas,v 1.82 2005/02/26 01:23:29 jonas Exp $
     Copyright (c) 1998-2002 by Jonas Maebe, member of the Freepascal
       development team
 
@@ -2793,18 +2792,3 @@ end;
 
 
 end.
-
-{
-  $Log: daopt386.pas,v $
-  Revision 1.82  2005/02/26 01:23:29  jonas
-    * fixed loop which could go into neverneverland in case of embedded
-      assembler blocks
-
-  Revision 1.81  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.80  2005/01/03 14:59:28  jonas
-    * remove "release subregA; allocate other_subreg_of_A" sequences so the
-      register renaming doesn't stop early
-
-}

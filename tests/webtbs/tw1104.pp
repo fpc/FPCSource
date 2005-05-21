@@ -11,4 +11,3 @@ begin
   if (r1<>0.0) or (r2<>0.0) then
    halt(1);
 end.
-

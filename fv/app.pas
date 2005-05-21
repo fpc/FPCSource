@@ -1,4 +1,3 @@
-{ $Id: app.pas,v 1.30 2005/02/14 17:13:18 peter Exp $}
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {   System independent GRAPHICAL clone of APP.PAS          }
@@ -1153,9 +1152,3 @@ BEGIN
 END;
 
 END.
-{
- $Log: app.pas,v $
- Revision 1.30  2005/02/14 17:13:18  peter
-   * truncate log
-
-}

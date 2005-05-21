@@ -1,5 +1,4 @@
 {
-    $Id: t_macos.pas,v 1.23 2005/05/14 12:15:18 olle Exp $
     Copyright (c) 2001-2002 by Peter Vreman
 
     This unit implements support import,export,link routines for MacOS.
@@ -272,24 +271,3 @@ initialization
   RegisterImport(system_powerpc_macos,timportlibmacos);
 {$endif powerpc}
 end.
-{
-  $Log: t_macos.pas,v $
-  Revision 1.23  2005/05/14 12:15:18  olle
-    * Fix small issue for link script
-
-  Revision 1.22  2005/03/25 21:55:43  jonas
-    * removed some unused variables
-
-  Revision 1.21  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.20  2005/02/08 22:30:32  olle
-    + added SIZE resource facilities
-
-  Revision 1.19  2005/01/24 17:53:12  olle
-    + Mac style resource files can now be included in MacOS
-
-  Revision 1.18  2005/01/09 16:35:41  olle
-    + linker response file is now removed after linking
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: globdir.inc,v 1.10 2004/11/08 20:28:29 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1999 by Berczi Gabor
 

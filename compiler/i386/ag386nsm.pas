@@ -1,5 +1,4 @@
 {
-    $Id: ag386nsm.pas,v 1.52 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements an asmoutput class for the Nasm assembler with
@@ -906,12 +905,3 @@ initialization
   RegisterAssembler(as_i386_nasmbeos_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmelf_info,T386NasmAssembler);
 end.
-{
-  $Log: ag386nsm.pas,v $
-  Revision 1.52  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.51  2005/01/18 17:49:45  peter
-    * fix section names
-
-}

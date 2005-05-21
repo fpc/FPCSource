@@ -678,10 +678,3 @@ begin
   else
     WriteLn('Passed!');
 end.
-
-{
-  $Log: tcalcst4.pp,v $
-  Revision 1.10  2005/02/14 17:13:36  peter
-    * truncate log
-
-}

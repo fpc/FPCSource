@@ -63,4 +63,3 @@ begin
   if (top2_display_called<>1) or (top3_display_called<>2) then
     Halt(1);
 end.
-

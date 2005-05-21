@@ -735,4 +735,3 @@ begin
   Strings := nil;
   Labels := nil;
 end.
-

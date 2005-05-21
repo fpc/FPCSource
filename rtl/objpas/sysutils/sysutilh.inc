@@ -1,5 +1,4 @@
 {
-    $Id: sysutilh.inc,v 1.15 2005/05/12 20:30:51 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team

@@ -279,9 +279,3 @@ begin
 
     while (fl_do_forms()<>nil) do;
 end.
-{
-  $Log: colbrowser.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

@@ -1,4 +1,3 @@
-{   $Id: testib.pp,v 1.7 2005/02/14 17:13:12 peter Exp $
 
     Copyright (c) 2000 by Pavel Stingl
 
@@ -91,10 +90,3 @@ begin
   Database.Close;
   WriteLn(Database.Connected);
 end.
-
-{
-  $Log: testib.pp,v $
-  Revision 1.7  2005/02/14 17:13:12  peter
-    * truncate log
-
-}

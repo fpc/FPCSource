@@ -1,5 +1,4 @@
 {
-    $Id: dbwhtml.pp,v 1.8 2005/02/14 17:13:12 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -692,9 +691,3 @@ end;
 
 
 end.
-{
-  $Log: dbwhtml.pp,v $
-  Revision 1.8  2005/02/14 17:13:12  peter
-    * truncate log
-
-}

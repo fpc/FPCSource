@@ -84,9 +84,3 @@ Begin
    End Else
        Writeln ('DisplayID is 0.');
 End.
-
-{
-  $Log
-}
-
-

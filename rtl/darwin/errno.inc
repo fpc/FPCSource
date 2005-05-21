@@ -1,5 +1,4 @@
   {
-     $Id: errno.inc,v 1.4 2005/02/14 17:13:21 peter Exp $
 
      Copyright (c) 2000 Apple Computer, Inc. All rights reserved.
 

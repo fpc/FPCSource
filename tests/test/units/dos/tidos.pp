@@ -1,6 +1,5 @@
 { %INTERACTIVE }
 {
-  $Id: tidos.pp,v 1.3 2005/02/14 17:13:37 peter Exp $
 
   Program to test DOS unit by Peter Vreman.
   Only main TP functions are tested (nothing with Interrupts/Break/Verify).
@@ -198,10 +197,3 @@ begin
   TestDisk;
   TestFile;
 end.
-
-{
-  $Log: tidos.pp,v $
-  Revision 1.3  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

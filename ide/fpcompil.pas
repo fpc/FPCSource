@@ -1,5 +1,4 @@
 {
-    $Id: fpcompil.pas,v 1.41 2005/04/24 21:37:16 florian Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -1224,32 +1223,3 @@ end;
 
 
 end.
-{
-  $Log: fpcompil.pas,v $
-  Revision 1.41  2005/04/24 21:37:16  florian
-    * fixed compilation
-
-  Revision 1.40  2005/04/24 21:03:16  peter
-    * always use exceptions to stop the compiler
-    - remove stop, do_stop
-
-  Revision 1.39  2005/04/02 23:56:54  hajny
-    * fix for targets missing exception handler implementation
-
-  Revision 1.38  2005/03/06 13:48:59  florian
-    + Units & Exe dir may now contain $fpc... valus
-    * version to 1.0.4 increased
-
-  Revision 1.37  2005/02/28 15:38:38  marco
-   * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
-
-  Revision 1.36  2005/02/14 17:13:18  peter
-    * truncate log
-
-  Revision 1.35  2005/02/10 20:57:02  peter
-    * implement tinputfile.getfiletime
-
-  Revision 1.34  2005/01/08 12:05:13  florian
-    * user screen parsing fixed
-
-}

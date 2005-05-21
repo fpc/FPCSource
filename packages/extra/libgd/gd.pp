@@ -1,5 +1,4 @@
 {
-    $Id: gd.pp,v 1.4 2004/05/02 20:50:38 jonas Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of
     the Free Pascal development team

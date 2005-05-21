@@ -1,5 +1,4 @@
 {
-  $Id: unzipdll.pp,v 1.8 2005/02/14 17:13:21 peter Exp $
 }
 unit UnzipDLL;
 
@@ -245,10 +244,3 @@ begin
   if UpCase (C) = 'Y' then FileUnzipEx := TFileUnzipEx (@Unzip.FileUnzipEx) else Halt (255);
  end;
 end.
-
-{
-  $Log: unzipdll.pp,v $
-  Revision 1.8  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

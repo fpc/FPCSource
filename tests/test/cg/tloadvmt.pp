@@ -63,10 +63,3 @@ Begin
   else
     WriteLn('Success!');
 end.
-
-{
-  $Log: tloadvmt.pp,v $
-  Revision 1.3  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

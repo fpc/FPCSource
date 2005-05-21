@@ -1,5 +1,4 @@
 {
-    $Id: sysosh.inc,v 1.3 2005/05/14 11:52:37 olle Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001-2005 by Free Pascal development team
 

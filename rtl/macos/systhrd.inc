@@ -1,5 +1,4 @@
 {
-    $Id: systhrd.inc,v 1.2 2005/05/14 11:52:37 olle Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002-2005 by Peter Vreman,
     member of the Free Pascal development team.

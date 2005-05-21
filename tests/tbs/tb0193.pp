@@ -36,4 +36,3 @@ end;
 begin
   writeln(getstacksize);
 end.
-

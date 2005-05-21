@@ -20,4 +20,3 @@ var r : sigactionrec;
 begin
   r.sa_handler:=signalhandler(@signaltorunerror);
 end.
-

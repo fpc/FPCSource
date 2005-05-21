@@ -85,9 +85,3 @@ Begin
   if has_errors then
     Halt(1);
 end.
-{
-  $Log: tbreak.pp,v $
-  Revision 1.4  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

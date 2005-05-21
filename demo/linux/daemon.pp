@@ -2,7 +2,6 @@
                                  CncWare
                            (c) Copyright 2000
  ---------------------------------------------------------------------------
-  $Id: daemon.pp,v 1.5 2005/04/06 10:47:01 marco Exp $
   Filename..: daemon.pp
   Programmer: Ken J. Wright
   Date......: 03/21/2000
@@ -140,18 +139,3 @@ Begin
          fpSelect(0,nil,nil,nil,secs*1000);
    Until bTerm;
 End.
-{
-  $Log: daemon.pp,v $
-  Revision 1.5  2005/04/06 10:47:01  marco
-   * sigactionhandler fix
-
-  Revision 1.4  2004/06/04 12:37:52  marco
-   * modernized. Now only uses baseunix,sysutils
-
-  Revision 1.3  2002/09/07 15:06:35  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/02/25 12:56:43  marco
-   * Fixed two linux'isms, and commited Jonas fix for the RTE 103
-
-}

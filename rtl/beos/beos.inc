@@ -1,5 +1,4 @@
 {
-    $Id: beos.inc,v 1.3 2005/02/14 17:13:21 peter Exp $
     Copyright (c) 2001 by Carl Eric Codere
 
 

@@ -54,4 +54,3 @@ begin
   Obj2.Display;
   Obj3.display;
 end.
-

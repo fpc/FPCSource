@@ -1,5 +1,4 @@
 {
-  $Id: tut8_5.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the GTK 1.2 tutorial.
   Section 8.5
@@ -305,8 +304,3 @@ begin
 
   gtk_main();
 end.
-  $Log: tut8_5.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

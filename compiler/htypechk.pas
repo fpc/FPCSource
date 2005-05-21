@@ -1,5 +1,4 @@
 {
-    $Id: htypechk.pas,v 1.124 2005/04/25 08:59:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit exports some help routines for the type checking
@@ -2061,62 +2060,3 @@ implementation
 
 
 end.
-{
-  $Log: htypechk.pas,v $
-  Revision 1.124  2005/04/25 08:59:07  peter
-  allow gettting the address of read-only typedconsts
-
-  Revision 1.123  2005/04/08 15:18:32  peter
-  support string[index] for const/var assignment
-
-  Revision 1.122  2005/04/01 07:12:29  marco
-   * from peter for bug 3862
-
-  Revision 1.121  2005/03/28 15:04:40  peter
-  valid_property is only used for calln. Fields are always allowed
-
-  Revision 1.120  2005/03/25 22:20:18  peter
-    * add hint when passing an uninitialized variable to a var parameter
-
-  Revision 1.119  2005/03/10 00:15:20  peter
-  don't allow overloading orddef,enumdef.floatdef for unary operators
-
-  Revision 1.118  2005/02/20 13:12:22  peter
-    * allow assignment to elements of constant dyn array in delphi mode
-
-  Revision 1.117  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.116  2005/02/14 16:45:00  peter
-    * allow more operations on integers with a typecast to pointer
-
-  Revision 1.115  2005/02/13 20:33:57  peter
-    * allow nil^ passed to var parameter
-
-  Revision 1.114  2005/02/02 22:16:39  florian
-    * delphi assumes dyn. array access make expressions l-values because it's internally a pointer
-
-  Revision 1.113  2005/02/01 22:50:50  florian
-    * inherited; works now in delphi mode for private methods; looks like a delphi bug
-
-  Revision 1.112  2005/01/25 18:49:45  peter
-    * fix overload choosing with an qword overload
-    * allow to get the address of string temps in delphi mode
-
-  Revision 1.111  2005/01/19 23:23:12  florian
-    * taking the address of a resourcestring is allowed now
-
-  Revision 1.110  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-  Revision 1.109  2005/01/19 20:53:27  florian
-    * tmypointer(12435)^ is an l-value
-
-  Revision 1.108  2005/01/10 22:10:26  peter
-    * widestring patches from Alexey Barkovoy
-
-  Revision 1.107  2005/01/07 16:22:47  peter
-    * handle string-open array of (wide)char without variants
-
-}

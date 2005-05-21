@@ -1,5 +1,4 @@
 {
-    $Id: fpctris.pp,v 1.6 2004/02/18 16:43:04 marco Exp $
 
     This program is both available in XTDFPC as in the FPC demoes.
     Copyright (C) 1999 by Marco van de Voort
@@ -853,16 +852,3 @@ BEGIN
  DoFpcTris;
  SaveHighScore;
 END.
-
-{
-  $Log: fpctris.pp,v $
-  Revision 1.6  2004/02/18 16:43:04  marco
-   * added an API call to avoid the "Graph Window" window title
-
-  Revision 1.5  2002/09/07 15:06:34  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/06/02 09:49:17  marco
-   * Renamefest
-
-}

@@ -11,4 +11,3 @@ begin
    c:=-258674;
    writeln(c);
 end.
-

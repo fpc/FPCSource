@@ -1,5 +1,4 @@
 {
-    $Id: dbconst.pp,v 1.11 2005/04/10 22:18:43 joost Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team
@@ -76,31 +75,3 @@ Const
 Implementation
 
 end.
-
-{
-  $Log: dbconst.pp,v $
-  Revision 1.11  2005/04/10 22:18:43  joost
-  Patch from Alexandrov Alexandru
-  - implemented TDataset.BindFields
-  - master-detail relation implemented
-  - improved variant-support for fields
-  - implemented TField.Assign and TField.AssignValue
-
-  Revision 1.10  2005/04/10 18:28:30  joost
-  - implemented parameter support for sqldb
-
-  Revision 1.9  2005/03/18 10:17:34  michael
-  + Patch to IndexDefs from Alexandrov Alexandru
-
-  Revision 1.8  2005/02/14 17:13:12  peter
-    * truncate log
-
-  Revision 1.7  2005/02/07 11:23:04  joost
-    - added SMetadataUnavailable
-    - added SDeletedRecord
-
-  Revision 1.6  2005/01/12 10:29:20  michael
-    * Patch from Joost Van der Sluis:
-    - added error message for if transaction of DB is not set
-
-}

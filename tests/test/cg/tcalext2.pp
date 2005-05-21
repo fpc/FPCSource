@@ -252,10 +252,3 @@ begin
   if has_errors then
     Halt(1);
 end.
-
-{
-  $Log: tcalext2.pp,v $
-  Revision 1.2  2005/02/14 17:13:36  peter
-    * truncate log
-
-}

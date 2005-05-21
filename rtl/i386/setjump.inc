@@ -1,5 +1,4 @@
 {
-    $Id: setjump.inc,v 1.9 2005/04/24 21:19:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 

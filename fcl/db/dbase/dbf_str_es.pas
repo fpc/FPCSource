@@ -33,4 +33,3 @@ initialization
   STRING_INDEX_NOT_EXIST              := 'Indice "%s" no existe.';
   STRING_NEED_EXCLUSIVE_ACCESS        := 'Acceso Exclusivo requirido para esta operación.';
 end.
-

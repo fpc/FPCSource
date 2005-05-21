@@ -490,4 +490,3 @@ end; { GetStartMenuFolder }
 begin
   CurrentPlatform := GetCurrentPlatform;
 end.
-

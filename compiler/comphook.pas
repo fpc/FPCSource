@@ -1,5 +1,4 @@
 {
-    $Id: comphook.pas,v 1.39 2005/04/28 19:27:12 olle Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit handles the compilerhooks for output to external programs
@@ -415,22 +414,3 @@ begin
 end;
 
 end.
-{
-  $Log: comphook.pas,v $
-  Revision 1.39  2005/04/28 19:27:12  olle
-    * Made compile on macos
-
-  Revision 1.38  2005/04/24 21:01:37  peter
-    * always use exceptions to stop the compiler
-    - remove stop, do_stop
-
-  Revision 1.37  2005/02/28 15:38:38  marco
-   * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
-
-  Revision 1.36  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.35  2005/01/24 18:12:17  olle
-    * In MPW, whole path to source file is now displayed in messages.
-
-}

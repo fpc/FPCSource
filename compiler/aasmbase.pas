@@ -1,5 +1,4 @@
 {
-    $Id: aasmbase.pas,v 1.26 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements an abstract asmoutput class for all processor types
@@ -939,9 +938,3 @@ implementation
 
 
 end.
-{
-  $Log: aasmbase.pas,v $
-  Revision 1.26  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: ncgutil.pas,v 1.266 2005/03/28 13:10:22 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Helper routines for all code generators
@@ -2403,61 +2402,3 @@ implementation
       end;
 
 end.
-{
-  $Log: ncgutil.pas,v $
-  Revision 1.266  2005/03/28 13:10:22  peter
-  named sections for intf wrappers
-
-  Revision 1.265  2005/03/25 21:55:43  jonas
-    * removed some unused variables
-
-  Revision 1.264  2005/03/09 22:37:24  peter
-  put intf wrappers in code section
-
-  Revision 1.263  2005/03/02 19:44:11  jonas
-    * use expectloc in firstcomplex()
-
-  Revision 1.262  2005/02/15 21:39:48  peter
-    * remove is_single_reference
-    * revert loading of ref-to-ref para valu
-
-  Revision 1.261  2005/02/15 19:16:04  peter
-    * fix passing of 64bit values when using -Or
-
-  Revision 1.260  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.259  2005/01/30 21:51:57  jonas
-    * fixed darwin cycle
-
-  Revision 1.258  2005/01/24 22:08:32  peter
-    * interface wrapper generation moved to cgobj
-    * generate interface wrappers after the module is parsed
-
-  Revision 1.257  2005/01/20 17:47:01  peter
-    * remove copy_value_on_stack and a_param_copy_ref
-
-  Revision 1.256  2005/01/20 16:38:45  peter
-    * load jmp_buf_size from system unit
-
-  Revision 1.255  2005/01/19 20:04:46  florian
-    * init./final code isn't created for pure assembler procedures anymore
-
-  Revision 1.254  2005/01/18 22:19:20  peter
-    * multiple location support for i386 a_param_ref
-    * remove a_param_copy_ref for i386
-
-  Revision 1.253  2005/01/13 19:31:05  jonas
-    + support LOC_VOID in gen_load_para_value()
-
-  Revision 1.252  2005/01/10 21:50:05  jonas
-    + support for passing records in registers under darwin
-    * tcgpara now also has an intsize field, which contains the size in
-      bytes of the whole parameter
-
-  Revision 1.251  2005/01/03 22:27:56  peter
-    * insert stack_check helper call before doing register allocation
-      so the used registers can't be reused when parameters are loaded
-      into register variables
-
-}

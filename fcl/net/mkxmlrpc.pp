@@ -1,5 +1,4 @@
 {
-    $Id: mkxmlrpc.pp,v 1.6 2005/02/14 17:13:15 peter Exp $
 
     Automatic XML-RPC wrapper generator
     Copyright (c) 2003 by
@@ -867,11 +866,3 @@ begin
     ClassList.Free;
   end;
 end.
-
-
-{
-  $Log: mkxmlrpc.pp,v $
-  Revision 1.6  2005/02/14 17:13:15  peter
-    * truncate log
-
-}

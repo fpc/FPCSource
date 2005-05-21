@@ -1,5 +1,4 @@
 {
-    $Id: system.pp,v 1.26 2005/03/25 22:53:39 jonas Exp $
     This file is part of the Free Pascal run time librar~y.
     Copyright (c) 2000 by Marco van de Voort
     member of the Free Pascal development team.
@@ -262,23 +261,3 @@ Begin
   initwidestringmanager;
 {$endif HASWIDESTRING}
 End.
-
-{
-  $Log: system.pp,v $
-  Revision 1.26  2005/03/25 22:53:39  jonas
-    * fixed several warnings and notes about unused variables (mainly) or
-      uninitialised use of variables/function results (a few)
-
-  Revision 1.25  2005/02/14 17:13:21  peter
-    * truncate log
-
-  Revision 1.24  2005/02/13 21:47:56  peter
-    * include file cleanup part 2
-
-  Revision 1.23  2005/02/06 12:16:52  peter
-    * bsd thread updates
-
-  Revision 1.22  2005/02/01 20:22:49  florian
-    * improved widestring infrastructure manager
-
-}

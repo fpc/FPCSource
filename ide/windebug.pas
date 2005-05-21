@@ -1,5 +1,4 @@
 {
-    $Id: windebug.pas,v 1.3 2004/11/11 15:20:52 florian Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 2000 by Pierre Muller
 

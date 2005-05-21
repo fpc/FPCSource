@@ -1,6 +1,5 @@
 {
     *********************************************************************
-    $Id: datih.inc,v 1.6 2005/05/08 08:03:15 florian Exp $
     Copyright (C) 1997, 1998 Gertjan Schouten
 
     This program is free software; you can redistribute it and/or modify

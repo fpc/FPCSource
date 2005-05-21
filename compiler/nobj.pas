@@ -1,5 +1,4 @@
 {
-    $Id: nobj.pas,v 1.93 2005/05/05 21:09:10 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Routines for the code generation of data structures
@@ -1363,39 +1362,3 @@ implementation
 
 
 end.
-{
-  $Log: nobj.pas,v $
-  Revision 1.93  2005/05/05 21:09:10  florian
-    * write nil into the method table for abstract methods
-
-  Revision 1.92  2005/03/17 09:08:54  michael
-  + Patch from peter to fix overload directive cheking in delphi mode
-
-  Revision 1.91  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.90  2005/02/10 22:08:03  peter
-    * remove obsolete code
-
-  Revision 1.89  2005/02/02 02:19:42  karoly
-    * removed debug writelns from florian's previous commit
-
-  Revision 1.88  2005/02/01 23:18:54  florian
-    * fixed:
-      r1 = record
-        p : procedure stdcall;
-        i : longint;
-      end;
-
-  Revision 1.87  2005/01/24 22:08:32  peter
-    * interface wrapper generation moved to cgobj
-    * generate interface wrappers after the module is parsed
-
-  Revision 1.86  2005/01/10 20:41:55  peter
-    * write realname for published methods
-
-  Revision 1.85  2005/01/09 15:05:29  peter
-    * fix interface vtbl optimization
-    * replace ugly pointer construct of ioffset()
-
-}

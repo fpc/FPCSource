@@ -24,10 +24,3 @@ Begin
   RunError(202);
 {$endif}
 end.
-
-{
-  $Log: teststk.pp,v $
-  Revision 1.7  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

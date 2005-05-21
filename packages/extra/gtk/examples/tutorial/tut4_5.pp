@@ -1,5 +1,4 @@
 {
-  $Id: tut4_5.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the GTK 1.2 tutorial.
   Section 4.5

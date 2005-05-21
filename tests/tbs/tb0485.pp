@@ -153,4 +153,3 @@ if GetWidget.Width<>123 then
         halt(1);
   end;
 end.
-

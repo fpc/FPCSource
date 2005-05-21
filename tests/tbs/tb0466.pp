@@ -10,4 +10,3 @@ begin
    write(outf, w);
    close(outf);
 end.
-

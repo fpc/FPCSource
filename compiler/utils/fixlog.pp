@@ -1,5 +1,4 @@
 {
-    $Id: fixlog.pp,v 1.8 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     Remove all revision logs from source files after X revisions or
@@ -173,9 +172,3 @@ begin
      findclose(dir);
    end;
 end.
-{
-  $Log: fixlog.pp,v $
-  Revision 1.8  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

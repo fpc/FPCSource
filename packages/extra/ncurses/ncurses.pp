@@ -1,5 +1,4 @@
 {
-    $Id: ncurses.pp,v 1.10 2005/03/16 21:00:18 peter Exp $
     Copyright (c) 1998 by Michael Van Canneyt
     member of the Free Pascal development team
 
@@ -1707,12 +1706,3 @@ begin
 end;
 
 end.
-{
-  $Log: ncurses.pp,v $
-  Revision 1.10  2005/03/16 21:00:18  peter
-    * integer -> smallitn
-
-  Revision 1.9  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

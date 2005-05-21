@@ -1,6 +1,5 @@
 {
     *********************************************************************
-    $Id: syspchh.inc,v 1.5 2005/02/14 17:13:31 peter Exp $
     Copyright (C) 1997, 1998 Gertjan Schouten
 
     This program is free software; you can redistribute it and/or modify

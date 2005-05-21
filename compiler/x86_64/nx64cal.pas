@@ -1,5 +1,4 @@
 {
-    $Id: nx64cal.pas,v 1.4 2005/03/14 20:18:46 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Implements the x86-64 specific part of call nodes
@@ -61,13 +60,3 @@ implementation
 begin
    ccallnode:=tx8664callnode;
 end.
-{
-  $Log: nx64cal.pas,v $
-  Revision 1.4  2005/03/14 20:18:46  peter
-    * fix empty varargs codegeneration for x86_64
-
-  Revision 1.3  2005/02/14 17:13:10  peter
-    * truncate log
-
-}
-

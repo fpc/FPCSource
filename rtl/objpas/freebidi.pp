@@ -334,4 +334,3 @@ initialization
   CharWidth := @DefaultCharWidth;
 
 end.
-

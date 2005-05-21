@@ -1,5 +1,4 @@
 {
-    $Id: fp.pas,v 1.29 2005/04/25 08:19:10 marco Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998-2000 by Berczi Gabor
 
@@ -493,12 +492,3 @@ BEGIN
     writeln('Used time is ',getrealtime-StartTime:0:2);
 {$endif DEBUG}
 END.
-{
-  $Log: fp.pas,v $
-  Revision 1.29  2005/04/25 08:19:10  marco
-   * checkmem removed
-
-  Revision 1.28  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

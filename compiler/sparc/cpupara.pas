@@ -1,5 +1,4 @@
 {
-    $Id: cpupara.pas,v 1.55 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Calling conventions for the SPARC
@@ -320,20 +319,3 @@ implementation
 begin
    ParaManager:=TSparcParaManager.create;
 end.
-{
-  $Log: cpupara.pas,v $
-  Revision 1.55  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.54  2005/01/20 17:47:01  peter
-    * remove copy_value_on_stack and a_param_copy_ref
-
-  Revision 1.53  2005/01/10 21:50:05  jonas
-    + support for passing records in registers under darwin
-    * tcgpara now also has an intsize field, which contains the size in
-      bytes of the whole parameter
-
-  Revision 1.52  2005/01/07 16:22:54  florian
-    + implemented abi compliant handling of strucutured functions results on sparc platform
-
-}

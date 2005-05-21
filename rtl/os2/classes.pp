@@ -1,5 +1,4 @@
 {
-    $Id: classes.pp,v 1.6 2005/03/07 17:57:25 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2002 by the Free Pascal development team
 
@@ -46,12 +45,3 @@ finalization
   CommonCleanup;
 
 end.
-{
-  $Log: classes.pp,v $
-  Revision 1.6  2005/03/07 17:57:25  peter
-    * renamed rtlconst to rtlconsts
-
-  Revision 1.5  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

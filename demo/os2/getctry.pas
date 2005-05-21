@@ -1,5 +1,4 @@
 {
-    $Id: getctry.pas,v 1.3 2002/09/07 15:06:35 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993-2001 by Free Pascal team
 
@@ -38,13 +37,3 @@ begin
  WriteLn ('Code of the country is ', CtryInfo.Country,
                              ', current codepage is ', CtryInfo.CodePage, '.');
 end.
-
-{
-  $Log: getctry.pas,v $
-  Revision 1.3  2002/09/07 15:06:35  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/02/25 21:33:04  carl
-  * bugfix of demo compilation problem
-
-}

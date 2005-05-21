@@ -1,5 +1,4 @@
 {
-    $Id: n386con.pas,v 1.27 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 assembler for constants
@@ -89,9 +88,3 @@ implementation
 begin
    crealconstnode:=ti386realconstnode;
 end.
-{
-  $Log: n386con.pas,v $
-  Revision 1.27  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

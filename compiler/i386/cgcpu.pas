@@ -1,5 +1,4 @@
 {
-    $Id: cgcpu.pas,v 1.67 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the code generator for the i386
@@ -741,23 +740,3 @@ begin
   cg := tcg386.create;
   cg64 := tcg64f386.create;
 end.
-{
-  $Log: cgcpu.pas,v $
-  Revision 1.67  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.66  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-  Revision 1.65  2005/02/03 17:10:21  peter
-    * fix win32 small array parameters
-
-  Revision 1.64  2005/01/24 22:08:32  peter
-    * interface wrapper generation moved to cgobj
-    * generate interface wrappers after the module is parsed
-
-  Revision 1.63  2005/01/18 22:19:20  peter
-    * multiple location support for i386 a_param_ref
-    * remove a_param_copy_ref for i386
-
-}

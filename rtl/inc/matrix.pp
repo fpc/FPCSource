@@ -1,6 +1,5 @@
 unit matrix;
 {
-    $Id: matrix.pp,v 1.4 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Daniel Mantione
 
@@ -27,7 +26,6 @@ unit matrix;
  compiler. Contributions from the community are very welcome.}
 
 {*****************************************************************************}
-
 
 interface
 
@@ -823,9 +821,12 @@ implementation
 {$i mmatimp.inc}
 
 end.
+<<<<<<< .mine
+=======
 {
   $Log: matrix.pp,v $
   Revision 1.4  2005/02/14 17:13:22  peter
     * truncate log
 
 }
+>>>>>>> .r41

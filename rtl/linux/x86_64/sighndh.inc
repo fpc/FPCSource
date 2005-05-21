@@ -1,5 +1,4 @@
 {
-    $Id: sighndh.inc,v 1.1 2005/01/30 18:01:15 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Jonas Maebe,
     member of the Free Pascal development team.

@@ -149,9 +149,3 @@ begin
       fl_show_form(cbform^.newbut, FL_PLACE_CENTER, 0, nil);
       while(fl_do_forms <> cbform^.bexit) do ;
 end.
-{
-  $Log: newbutton.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

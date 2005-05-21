@@ -1,5 +1,4 @@
 {
-    $Id: fpdebug.pas,v 1.62 2005/03/13 12:25:02 florian Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998-2000 by Pierre Muller
 
@@ -19,11 +18,8 @@ interface
 implementation
 end.
 {$else}
-
 interface
-
 {$i globdir.inc}
-
 uses
 {$ifdef win32}
   Windows,
@@ -3664,18 +3660,4 @@ begin
 end;
 
 end.
-{$endif}
-
-{
-  $Log: fpdebug.pas,v $
-  Revision 1.62  2005/03/13 12:25:02  florian
-    + Recent files write full name now as hint in the status line
-    * Rundir hint in status line fixed
-
-  Revision 1.61  2005/02/14 17:13:18  peter
-    * truncate log
-
-  Revision 1.60  2005/01/08 11:43:18  florian
-    + vector unit window
-
-}
+{$endif NODEBUG}

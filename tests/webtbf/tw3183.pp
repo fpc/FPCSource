@@ -21,4 +21,3 @@ function to1.copy:string;
 
 begin
 end.
-

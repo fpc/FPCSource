@@ -55,4 +55,3 @@ begin
    end;
   print([3333,45,' test string']);
 end.
-

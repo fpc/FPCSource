@@ -1,5 +1,4 @@
 {
-    $Id: fpregs.pas,v 1.11 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998-2000 by Pierre Muller
 
@@ -18,10 +17,7 @@ unit FPRegs;
 interface
 implementation
 end.
-{$else}
-
-interface
-
+{$else NODEBUG}
 uses
 {$ifdef win32}
   Windows,
@@ -1634,27 +1630,4 @@ begin
 end;
 
 end.
-{$endif}
-
-{
-  $Log: fpregs.pas,v $
-  Revision 1.11  2005/02/14 17:13:18  peter
-    * truncate log
-
-  Revision 1.10  2005/02/03 22:18:08  peter
-    * fix generic cpu compile
-
-  Revision 1.9  2005/01/16 00:26:43  florian
-    + all sparc registers are displayed now
-    + more sophisticated coloring of changed registers
-
-  Revision 1.8  2005/01/12 21:48:31  florian
-    + register view for sparc
-
-  Revision 1.7  2005/01/10 20:52:11  florian
-    * compilation fixed
-
-  Revision 1.6  2005/01/08 11:43:18  florian
-    + vector unit window
-
-}
+{$endif NODEBUG}

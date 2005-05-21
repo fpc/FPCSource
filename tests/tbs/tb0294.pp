@@ -8,4 +8,3 @@ begin
   i:=integer(c);
   c:=char(i);
 end.
-

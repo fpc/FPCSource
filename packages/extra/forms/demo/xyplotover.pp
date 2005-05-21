@@ -67,10 +67,3 @@ begin
    fl_show_form(fd_fff^.fff,FL_PLACE_MOUSE,FL_TRANSIENT,'XYPlot Overlay');
    fl_do_forms();
 end.
-
-{
-  $Log: xyplotover.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

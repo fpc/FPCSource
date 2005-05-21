@@ -1,5 +1,4 @@
 {
-    $Id: rgcpu.pas,v 1.32 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the SPARC specific class for the register
@@ -162,9 +161,3 @@ implementation
     end;
 
 end.
-{
-  $Log: rgcpu.pas,v $
-  Revision 1.32  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

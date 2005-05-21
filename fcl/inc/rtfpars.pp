@@ -1,6 +1,5 @@
 Unit RTFPars;
 {
-    $Id: rtfpars.pp,v 1.4 2005/02/14 17:13:15 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, Member of the
     Free Pascal development team
@@ -1072,10 +1071,3 @@ begin
 end;
 
 end.
-
-{
-  $Log: rtfpars.pp,v $
-  Revision 1.4  2005/02/14 17:13:15  peter
-    * truncate log
-
-}

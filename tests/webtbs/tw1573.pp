@@ -25,4 +25,3 @@ begin
         vlA := TCheck.Create;
         aa([vlA,vlB]);
 end.
-

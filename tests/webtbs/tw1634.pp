@@ -13,7 +13,6 @@ program test;
 
 BEGIN
 END.
-
 // The above program gives error:
 // test.pas(13) Fatal: Unexpected end of file
 // But comment line changed to:

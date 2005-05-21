@@ -9,5 +9,3 @@ BEGIN
     ELSE
   ELSE a:=3;        { "Illegal expression" }
 END.
-
-

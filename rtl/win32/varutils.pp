@@ -1,5 +1,4 @@
 {
-    $Id: varutils.pp,v 1.6 2005/02/14 17:13:32 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -73,10 +72,3 @@ function SafeArrayUnlock(psa: PVarArray): HRESULT; stdcall;external oleaut;
 {$endif HASVARIANT}
 
 end.
-
-{
-  $Log: varutils.pp,v $
-  Revision 1.6  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: fpconst.pas,v 1.22 2005/03/06 13:48:59 florian Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -472,19 +471,3 @@ const
 implementation
 
 END.
-{
-  $Log: fpconst.pas,v $
-  Revision 1.22  2005/03/06 13:48:59  florian
-    + Units & Exe dir may now contain $fpc... valus
-    * version to 1.0.4 increased
-
-  Revision 1.21  2005/02/14 17:13:18  peter
-    * truncate log
-
-  Revision 1.20  2005/01/08 13:43:44  florian
-    * updated version and copyright
-
-  Revision 1.19  2005/01/08 11:43:18  florian
-    + vector unit window
-
-}

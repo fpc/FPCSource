@@ -1,5 +1,4 @@
 {
-    $Id: winevent.pp,v 1.4 2005/02/14 17:13:32 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -301,10 +300,3 @@ finalization
   DeleteCriticalSection(HandlerChanging);
 
 end.
-
-{
-  $Log: winevent.pp,v $
-  Revision 1.4  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

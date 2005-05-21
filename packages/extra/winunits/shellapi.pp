@@ -1,5 +1,4 @@
 {
-    $Id: shellapi.pp,v 1.1 2005/03/28 15:09:35 peter Exp $
     This file is part of the Free Pascal run time library.
     This unit contains the record definition for the Win32 API
     Copyright (c) 1999-2002 by Marco van de Voort,
@@ -941,15 +940,3 @@ Begin
 End;
 
 end.
-{
-  $Log: shellapi.pp,v $
-  Revision 1.1  2005/03/28 15:09:35  peter
-  new winunits packages
-
-  Revision 1.8  2005/02/14 17:13:32  peter
-    * truncate log
-
-  Revision 1.7  2005/02/03 20:48:56  florian
-    * fixed SHGetFileInfo
-
-}

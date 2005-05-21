@@ -1,5 +1,4 @@
 {
-    $Id: cpubase.pas,v 1.39 2005/02/26 01:26:59 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
     Contains the base types for the ARM
@@ -511,17 +510,3 @@ unit cpubase;
 
 
 end.
-{
-  $Log: cpubase.pas,v $
-  Revision 1.39  2005/02/26 01:26:59  jonas
-    * fixed generic jumps optimizer and enabled it for ppc (the label table
-      was not being initialised -> getfinaldestination always failed, which
-      caused wrong optimizations in some cases)
-    * changed the inverse_cond into a function, because tasmcond is a record
-      on ppc
-    + added a compare_conditions() function for the same reason
-
-  Revision 1.38  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

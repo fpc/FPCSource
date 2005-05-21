@@ -1,5 +1,4 @@
 {
-    $Id: ipccdecl.inc,v 1.2 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Marco van de Voort
     member of the Free Pascal development team

@@ -1,5 +1,4 @@
 {
-    $Id: system.pp,v 1.35 2005/05/12 20:29:04 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Karoly Balogh for Genesi S.a.r.l.
 
@@ -333,31 +332,3 @@ begin
   initwidestringmanager;
 {$endif HASWIDESTRING}
 end.
-
-{
-  $Log: system.pp,v $
-  Revision 1.35  2005/05/12 20:29:04  michael
-  + Added maxpathlen constant (maximum length of filename path)
-
-  Revision 1.34  2005/05/10 21:45:08  hajny
-    * fix for potential SIGSEGV during argv allocation
-
-  Revision 1.33  2005/04/03 21:10:59  hajny
-    * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
-
-  Revision 1.32  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.31  2005/02/07 21:30:12  peter
-    * system unit updated
-
-  Revision 1.30  2005/02/01 20:22:49  florian
-    * improved widestring infrastructure manager
-
-  Revision 1.29  2005/01/12 08:03:42  karoly
-    * Few more Sysutils functions implemented
-
-  Revision 1.28  2005/01/11 17:43:14  karoly
-    * some cleanup, more sanity checks and updates for sysutils
-
-}

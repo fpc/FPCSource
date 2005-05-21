@@ -1,5 +1,4 @@
 {
-    $Id: gpm.pp,v 1.6 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Peter Vreman
 
@@ -950,15 +949,3 @@ end;
 {$endif}
 
 end.
-{
-  $Log: gpm.pp,v $
-  Revision 1.6  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.5  2005/01/30 18:35:42  peter
-    * goto on
-
-  Revision 1.4  2005/01/30 18:00:28  peter
-    * move gpm.pp to linux
-
-}

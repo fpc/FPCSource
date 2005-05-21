@@ -24,7 +24,3 @@ var
 begin
   testintparam(t1);
 end.
-
-
-
-

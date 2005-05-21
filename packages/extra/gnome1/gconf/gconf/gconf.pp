@@ -1,5 +1,4 @@
 {
-   $Id: gconf.pp,v 1.2 2005/02/14 17:13:20 peter Exp $
 
    GConf
    Copyright (C) 1999, 2000 Red Hat Inc.

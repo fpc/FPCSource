@@ -24,4 +24,3 @@ begin
        giving a value of (b-a) or -2.2 for c. the
        same goes for floating point division. *)
 end.
-

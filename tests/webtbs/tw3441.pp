@@ -21,4 +21,3 @@ begin
   ArrayOfCharsTest(a, b); // This compiles
   ArrayOfConstTest(['a', a, b]); //_2.pas(19,29) Error: Incompatible types: got "Array[0..5] Of WideChar" expected "^Char"
 end.
-

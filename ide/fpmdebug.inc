@@ -1,5 +1,4 @@
 {
-    $Id: fpmdebug.inc,v 1.10 2005/04/04 03:59:13 marco Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 

@@ -1,5 +1,4 @@
 {
-    $Id: ncgflw.pas,v 1.104 2005/02/14 17:13:06 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for nodes that influence the flow which are
@@ -1448,13 +1447,3 @@ begin
    ctryfinallynode:=tcgtryfinallynode;
    connode:=tcgonnode;
 end.
-{
-  $Log: ncgflw.pas,v $
-  Revision 1.104  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.103  2005/01/31 16:16:21  peter
-    * for-node cleanup, checking for uninitialzed from and to values
-      is now supported
-
-}

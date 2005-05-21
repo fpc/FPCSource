@@ -1,5 +1,4 @@
 {
-    $Id: cpupi.pas,v 1.11 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     This unit contains the CPU specific part of tprocinfo
@@ -104,10 +103,3 @@ unit cpupi;
 begin
    cprocinfo:=tarmprocinfo;
 end.
-{
-  $Log: cpupi.pas,v $
-  Revision 1.11  2005/02/14 17:13:09  peter
-    * truncate log
-
-}
-

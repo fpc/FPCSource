@@ -73,4 +73,3 @@ begin
   transaction.free;
   connection.free;
 end.
-

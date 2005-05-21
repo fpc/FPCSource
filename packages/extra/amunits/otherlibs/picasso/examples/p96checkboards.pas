@@ -87,8 +87,3 @@ begin
 
    end;
 end.
-
-{
-  $Log
-}
-

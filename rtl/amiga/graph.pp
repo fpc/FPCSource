@@ -789,9 +789,3 @@ begin
   CurX := 0;
   CurY := 0;
 end.
-
-  $Log: graph.pp,v $
-  Revision 1.4  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

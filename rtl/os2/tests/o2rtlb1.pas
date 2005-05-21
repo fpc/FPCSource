@@ -15,12 +15,9 @@ begin
   writeln ('Number entered was ',number);
   readln;
 end.
-
 {(I have retyped now because my computer is not connected to the net, but I
 think that there are no errors).
-
 Now you can do some tests:
-
 1- Compile and run the program as is (that is, using crt). You will find that
       a) the program does not erase the screen (that is normal because we have
 commented clrscr), but the cursor goes to the first line, thus overwriting the

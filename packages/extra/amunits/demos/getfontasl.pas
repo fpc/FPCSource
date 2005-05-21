@@ -30,12 +30,3 @@ BEGIN
     END ELSE
        MessageBox('FPC Pascal request','You didn''t pick a font','Why not?');
 END.
-
-{
-  $Log: getfontasl.pas,v $
-  Revision 1.2  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
-
-

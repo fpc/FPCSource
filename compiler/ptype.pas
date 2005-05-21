@@ -1,5 +1,4 @@
 {
-    $Id: ptype.pas,v 1.76 2005/02/17 17:52:39 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Does parsing types for Free Pascal
@@ -654,22 +653,3 @@ implementation
       end;
 
 end.
-{
-  $Log: ptype.pas,v $
-  Revision 1.76  2005/02/17 17:52:39  peter
-    * allow enum arithmetics inside an enum def, compatible with delphi
-
-  Revision 1.75  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.74  2005/02/01 08:46:13  michael
-   * Patch from peter: fix macpas anonymous function procvar
-
-  Revision 1.73  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-  Revision 1.72  2005/01/04 16:39:12  peter
-    * allow enum with jumps as array index in delphi mode
-
-}

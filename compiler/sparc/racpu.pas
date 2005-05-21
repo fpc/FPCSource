@@ -1,5 +1,4 @@
 {
-    $Id: racpu.pas,v 1.4 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2003 by Mazen NEIFER
 
     Handles the common Sparc assembler reader routines
@@ -52,9 +51,3 @@ implementation
       end;
 
 end.
-{
-  $Log: racpu.pas,v $
-  Revision 1.4  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

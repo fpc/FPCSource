@@ -1,5 +1,4 @@
 {
-  $Id: filesel.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   Converted from C to Pascal by Javier Ros <jros@unavarra.es>
 }
@@ -53,9 +52,3 @@ begin
     gtk_widget_show(filew);
     gtk_main ();
 end.
-{
-  $Log: filesel.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

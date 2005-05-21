@@ -1,5 +1,4 @@
 {
-    $Id: scanner.pas,v 1.106 2005/05/06 17:02:52 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the scanner part and handling of the switches
@@ -3349,41 +3348,3 @@ exit_label:
 
 
 end.
-{
-  $Log: scanner.pas,v $
-  Revision 1.106  2005/05/06 17:02:52  florian
-    * 32 -> 64 bit cross compilation fixed
-
-  Revision 1.105  2005/05/02 18:44:00  michael
-  + Patch from Christian Iversen to fix defined() macro command
-
-  Revision 1.104  2005/03/28 21:34:36  olle
-    * Disabled warning for undefined compile time var in mode macpas, since it did not work.
-
-  Revision 1.103  2005/03/20 22:36:45  olle
-    * Cleaned up handling of source file extension.
-    + Added support for .p extension for macos and darwin
-
-  Revision 1.102  2005/03/20 18:13:34  olle
-    * Support for pascal constant expr in compile time expr, is now only allowed in mode Delphi
-    + Warning for undefined compile time var in mode macpas
-    * Support for some turbo directives in mode macpas
-    * Support for Metrowerks style DEFINED xxx
-
-  Revision 1.101  2005/02/27 17:15:01  peter
-  Support constants and IN operator in preprocessor patch by Christian Iversen
-
-  Revision 1.100  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.99  2005/01/20 17:05:53  peter
-    * use val() for decoding integers
-
-  Revision 1.98  2005/01/09 20:24:43  olle
-    * rework of macro subsystem
-    + exportable macros for mode macpas
-
-  Revision 1.97  2005/01/04 16:34:03  peter
-    * give error when reading identifier > 255 chars
-
-}

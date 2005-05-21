@@ -1,5 +1,4 @@
 {
-    $Id: ucomplex.pp,v 1.4 2005/02/14 17:13:29 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Pierre Muller,
     member of the Free Pascal development team.
@@ -613,9 +612,3 @@ Unit UComplex;
 
 
 end.
-{
-  $Log: ucomplex.pp,v $
-  Revision 1.4  2005/02/14 17:13:29  peter
-    * truncate log
-
-}

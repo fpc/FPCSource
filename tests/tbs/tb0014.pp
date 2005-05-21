@@ -32,4 +32,3 @@ begin
    init;
    if nextoptpass<>1 then Halt(1);
 end.
-

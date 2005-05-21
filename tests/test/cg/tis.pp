@@ -118,11 +118,3 @@ begin
   else
     WriteLn('Passed!');
 end.
-
-{
-
- $Log: tis.pp,v $
- Revision 1.4  2005/02/14 17:13:37  peter
-   * truncate log
-
-}

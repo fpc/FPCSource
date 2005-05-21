@@ -19,4 +19,3 @@ begin
       halt(1);
   writeln('ok');
 end.
-

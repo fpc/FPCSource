@@ -1,5 +1,4 @@
 {
-    $Id: pthread.inc,v 1.8 2005/04/09 20:29:15 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Peter Vreman
     member of the Free Pascal development team.

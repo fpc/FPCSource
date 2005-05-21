@@ -95,9 +95,3 @@ begin
    fl_show_form(fd_input^.input,FL_PLACE_CENTERFREE,FL_FULLBORDER,'input');
    while (fl_do_forms<>nil) do;
 end.
-{
-  $Log: inputall.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

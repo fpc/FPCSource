@@ -1,5 +1,4 @@
 {
-  $Id: statusbar.pp,v 1.3 2002/09/07 15:42:58 peter Exp $
 
   Converted from C to Pascal by Artur Bac with liitle additions changes
   <arturbac@poczta.onet.pl>

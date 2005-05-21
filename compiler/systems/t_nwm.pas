@@ -1,5 +1,4 @@
 {
-    $Id: t_nwm.pas,v 1.25 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
@@ -575,12 +574,3 @@ initialization
   RegisterExport(system_i386_netware,TExportLibNetware);
   RegisterTarget(system_i386_netware_info);
 end.
-{
-  $Log: t_nwm.pas,v $
-  Revision 1.25  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.24  2005/01/01 20:08:59  armin
-  * support ! in import file names for netware also
-
-}

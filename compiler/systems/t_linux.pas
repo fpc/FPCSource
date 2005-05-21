@@ -1,5 +1,4 @@
 {
-    $Id: t_linux.pas,v 1.35 2005/03/07 17:10:00 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
@@ -580,16 +579,3 @@ initialization
   RegisterTarget(system_arm_linux_info);
 {$endif ARM}
 end.
-
-{
-  $Log: t_linux.pas,v $
-  Revision 1.35  2005/03/07 17:10:00  peter
-    * use lib64 for x86_64
-
-  Revision 1.34  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.33  2005/01/10 15:56:13  peter
-    * generate export jmps in .text section
-
-}

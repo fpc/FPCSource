@@ -1,5 +1,4 @@
 {
-    $Id: cpupara.pas,v 1.68 2005/02/15 19:16:04 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Generates the argument location information for i386
@@ -597,30 +596,3 @@ unit cpupara;
 begin
    paramanager:=ti386paramanager.create;
 end.
-{
-  $Log: cpupara.pas,v $
-  Revision 1.68  2005/02/15 19:16:04  peter
-    * fix passing of 64bit values when using -Or
-
-  Revision 1.67  2005/02/14 19:42:02  peter
-  win32 stdcall fixes needed for tw3650
-
-  Revision 1.66  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.65  2005/02/03 20:04:49  peter
-    * push_addr_param must be defined per target
-
-  Revision 1.64  2005/01/30 11:03:22  peter
-    * revert last commit
-
-  Revision 1.62  2005/01/18 22:19:20  peter
-    * multiple location support for i386 a_param_ref
-    * remove a_param_copy_ref for i386
-
-  Revision 1.61  2005/01/10 21:50:05  jonas
-    + support for passing records in registers under darwin
-    * tcgpara now also has an intsize field, which contains the size in
-      bytes of the whole parameter
-
-}

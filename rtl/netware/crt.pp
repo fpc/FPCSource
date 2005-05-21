@@ -1,5 +1,4 @@
 {
-    $Id: crt.pp,v 1.6 2005/05/14 15:01:49 hajny Exp $
     Copyright (c) 1999-2001 by the Free Pascal development team.
 
     Borland Pascal 7 Compatible CRT Unit for Netware, tested with
@@ -652,4 +651,3 @@ begin
   _SetCtrlCharCheckMode (CheckBreak);
   _SetAutoScreenDestructionMode (TRUE);
 end.
-

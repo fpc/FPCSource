@@ -1,5 +1,4 @@
 {
-    $Id: graph.pp,v 1.15 2005/04/04 16:13:09 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
 
@@ -2224,15 +2223,3 @@ begin
   notifymessagehandler:=nil;
   OnGraphWindowCreation:=nil;
 end.
-{
-  $Log: graph.pp,v $
-  Revision 1.15  2005/04/04 16:13:09  peter
-    * use smallint
-
-  Revision 1.14  2005/03/31 12:47:20  marco
-   * fix from Thomas Schatzl for 3208
-
-  Revision 1.13  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

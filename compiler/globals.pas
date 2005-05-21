@@ -1,5 +1,4 @@
 {
-    $Id: globals.pas,v 1.175 2005/03/27 14:10:52 jonas Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements some support functions and global variables
@@ -2293,57 +2292,3 @@ end;
      end;
 
 end.
-{
-  $Log: globals.pas,v $
-  Revision 1.175  2005/03/27 14:10:52  jonas
-    * const record parameters > 8 bytes are now passed by reference for non
-      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
-      GPC (slightly more efficient than Metrowerks behaviour below, but
-      less efficient in most cases than our previous scheme)
-    + "mwpascal" procedure directive to support the const record parameter
-      behaviour of Metrowerks Pascal, which passes all const records by
-      reference
-
-  Revision 1.174  2005/03/20 22:36:45  olle
-    * Cleaned up handling of source file extension.
-    + Added support for .p extension for macos and darwin
-
-  Revision 1.173  2005/03/13 11:27:52  florian
-    + gpc mode uses tp_procvars
-
-  Revision 1.172  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.171  2005/02/08 22:33:51  olle
-    * fixed compilation on MacOS
-
-  Revision 1.170  2005/02/07 21:30:25  florian
-    * fixed typo in define
-
-  Revision 1.169  2005/02/06 21:33:28  peter
-    * -Fa option added, it'll load the units before the uses
-      line is parsed. Can be used to load cthreads from the commandline.
-      Example '-g -Faheaptrc,lineinfo' is the same as '-ghl'
-
-  Revision 1.168  2005/02/06 19:55:19  peter
-    * oldfpccall fixed
-
-  Revision 1.167  2005/02/05 16:17:19  florian
-    + setting sse exception mask on x86_64
-
-  Revision 1.166  2005/02/01 17:57:30  olle
-    * macpas now uses tp style proc params
-
-  Revision 1.165  2005/02/01 08:46:13  michael
-   * Patch from peter: fix macpas anonymous function procvar
-
-  Revision 1.164  2005/01/31 21:30:56  olle
-    + Added fake Exception classes, only for MACOS.
-
-  Revision 1.163  2005/01/23 22:13:50  florian
-    * fixed math constants for big endian cpus
-
-  Revision 1.162  2005/01/23 21:09:11  florian
-    + added pi bit pattern to the compiler, so pi should always be correct
-
-}

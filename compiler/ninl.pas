@@ -1,5 +1,4 @@
 {
-    $Id: ninl.pas,v 1.164 2005/04/15 15:50:18 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Type checking and register allocation for inline nodes
@@ -2481,31 +2480,3 @@ implementation
 begin
    cinlinenode:=tinlinenode;
 end.
-{
-  $Log: ninl.pas,v $
-  Revision 1.164  2005/04/15 15:50:18  peter
-    * only give warnings for uninitialized variables in low()/high()
-      if the value is calculated at runtime
-
-  Revision 1.163  2005/03/25 22:20:19  peter
-    * add hint when passing an uninitialized variable to a var parameter
-
-  Revision 1.162  2005/03/25 21:46:06  jonas
-    * terrornode.create -> cerrornode.create
-
-  Revision 1.161  2005/03/16 21:24:43  peter
-    * check parameters of str() better
-
-  Revision 1.160  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.159  2005/02/04 16:30:56  peter
-    * low(var) var must be valid
-
-  Revision 1.158  2005/01/23 21:47:14  florian
-    * another improvement of pi handling
-
-  Revision 1.157  2005/01/23 21:09:12  florian
-    + added pi bit pattern to the compiler, so pi should always be correct
-
-}

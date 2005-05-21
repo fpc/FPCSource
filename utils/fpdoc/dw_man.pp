@@ -1795,4 +1795,3 @@ initialization
 finalization
   UnRegisterWriter('man');
 end.
-

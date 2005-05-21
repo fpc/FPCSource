@@ -1,5 +1,4 @@
 {
-    $Id: windows.pp,v 1.8 2005/02/14 17:13:32 peter Exp $
     This file is part of the Free Pascal run time library.
     This unit contains the record definition for the Win32 API
     Copyright (c) 1999-2000 by Florian KLaempfl,
@@ -64,9 +63,3 @@ implementation
 {$i redef.inc}
 
 end.
-{
-  $Log: windows.pp,v $
-  Revision 1.8  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

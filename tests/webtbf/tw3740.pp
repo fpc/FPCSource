@@ -17,4 +17,3 @@ var
 begin
   New (p, Init (Init (False)))  { WRONG }
 end.
-

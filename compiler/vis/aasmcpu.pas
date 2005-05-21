@@ -1,5 +1,4 @@
 {
-    $Id: aasmcpu.pas,v 1.3 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2001 by Florian Klaempfl and Pierre Muller
 
     virtual instruction set family assembler instructions
@@ -247,9 +246,3 @@ implementation
       end;
 
 end.
-{
-  $Log: aasmcpu.pas,v $
-  Revision 1.3  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

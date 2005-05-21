@@ -290,11 +290,3 @@ Begin
  RealTestMul;
 { RealTestComplex;}
 end.
-
-
-{
-  $Log: taddreal1.pp,v $
-  Revision 1.6  2005/02/14 17:13:35  peter
-    * truncate log
-
-}

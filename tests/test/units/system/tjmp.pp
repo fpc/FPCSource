@@ -118,10 +118,3 @@ begin
   pobj^.testsetjmp;
   dispose(pobj, done);
 end.
-
-{
-  $Log: tjmp.pp,v $
-  Revision 1.3  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

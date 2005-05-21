@@ -1,5 +1,4 @@
 {
-    $Id: classes.pp,v 1.5 2005/03/07 17:57:25 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2004 by Michael Van Canneyt and Florian Klaempfl
 
@@ -46,15 +45,3 @@ finalization
   CommonCleanup;
 
 end.
-{
-  $Log: classes.pp,v $
-  Revision 1.5  2005/03/07 17:57:25  peter
-    * renamed rtlconst to rtlconsts
-
-  Revision 1.4  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.3  2005/02/06 16:57:18  peter
-    * threads for go32v2,os,emx,netware
-
-}

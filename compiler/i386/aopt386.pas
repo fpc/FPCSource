@@ -1,5 +1,4 @@
 {
-    $Id: aopt386.pas,v 1.11 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Jonas Maebe
 
     This unit calls the optimization procedures to optimize the assembler
@@ -118,9 +117,3 @@ Begin
 End;
 
 End.
-{
-  $Log: aopt386.pas,v $
-  Revision 1.11  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

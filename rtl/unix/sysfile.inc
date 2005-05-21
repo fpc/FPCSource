@@ -1,5 +1,4 @@
 {
-    $Id: sysfile.inc,v 1.1 2005/02/07 22:04:55 peter Exp $
     This file is part of the Free Pascal run time library.
 
     Main OS dependant body of the system unit, loosely modelled

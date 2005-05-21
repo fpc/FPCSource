@@ -47,4 +47,3 @@ begin
  check(WideFormat('%x', [$99999999]),'99999999');
  check(WideFormat('%x', [$999999999]),'999999999');
 end.
-

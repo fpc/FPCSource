@@ -16,4 +16,3 @@ begin
     else n:=StrToInt(paramstr(1));
   writeln(Tak(n*3, n*2, n*1):0:1);
 end.
-

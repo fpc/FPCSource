@@ -1,5 +1,4 @@
 {
-    $Id: ssockets.pp,v 1.26 2005/03/18 10:58:16 marco Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -598,13 +597,3 @@ begin
 end;
 {$endif}
 end.
-
-{
-  $Log: ssockets.pp,v $
-  Revision 1.26  2005/03/18 10:58:16  marco
-   * lots of endian fixes
-
-  Revision 1.25  2005/02/14 17:13:15  peter
-    * truncate log
-
-}

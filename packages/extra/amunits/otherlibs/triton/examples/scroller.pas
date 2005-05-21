@@ -76,11 +76,3 @@ begin
    TR_DeleteApp(App);
    END ELSE writeln(' Cant creat Application' );
 end.
-
-{
-  $Log
-}
-
-
-
-

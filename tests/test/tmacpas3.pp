@@ -37,4 +37,3 @@ begin
   if res <> 54 then
     Halt(1);
 end.
-

@@ -1,5 +1,4 @@
 {
-    $Id: base64.pp,v 1.4 2005/02/14 17:13:12 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
     base64 encoder & decoder (c) 1999 Sebastian Guenther
@@ -296,11 +295,3 @@ end;
 
 
 end.
-
-
-{
-  $Log: base64.pp,v $
-  Revision 1.4  2005/02/14 17:13:12  peter
-    * truncate log
-
-}

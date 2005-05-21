@@ -1,5 +1,4 @@
 {
-    $Id: woahelp.pas,v 1.4 2002/11/22 12:21:49 pierre Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 2000 by Berczi Gabor
 

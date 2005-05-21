@@ -89,9 +89,3 @@ Begin
   if has_errors then
     halt(1);
 end.
-{
-  $Log: tverify.pp,v $
-  Revision 1.4  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

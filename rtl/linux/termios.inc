@@ -1,5 +1,4 @@
 {
-    $Id: termios.inc,v 1.14 2005/04/25 10:26:21 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2004 by Marco van de Voort
     member of the Free Pascal development team

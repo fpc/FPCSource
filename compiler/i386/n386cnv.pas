@@ -1,5 +1,4 @@
 {
-    $Id: n386cnv.pas,v 1.74 2005/02/14 17:13:09 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 assembler for type converting nodes
@@ -69,9 +68,3 @@ implementation
 begin
    ctypeconvnode:=ti386typeconvnode;
 end.
-{
-  $Log: n386cnv.pas,v $
-  Revision 1.74  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

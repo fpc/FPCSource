@@ -1,5 +1,4 @@
 {
-    $Id: cpubase.pas,v 1.8 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by the Free Pascal dev. team
 
     Contains the base types for the virtual instruction set
@@ -642,9 +641,3 @@ implementation
 
 
 end.
-{
-  $Log: cpubase.pas,v $
-  Revision 1.8  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

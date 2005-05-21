@@ -1,6 +1,5 @@
 {****************************************************************************
 
-    $Id: crt.pas,v 1.7 2005/05/14 15:01:49 hajny Exp $
 
                             Standard CRT unit.
                     Free Pascal runtime library for EMX.
@@ -957,16 +956,3 @@ begin
     assigncrt(output);
     textrec(output).mode:=fmoutput;
 end.
-
-{
-  $Log: crt.pas,v $
-  Revision 1.7  2005/05/14 15:01:49  hajny
-    * TextMode parameter type changed to word for TP/BP compatibility
-
-  Revision 1.6  2005/03/30 23:11:35  hajny
-    * OS/2 fixes merged to EMX
-
-  Revision 1.5  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

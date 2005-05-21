@@ -1,5 +1,4 @@
 {
-  $Id: tdos.pp,v 1.11 2005/04/03 20:56:43 olle Exp $
 
   Program to test DOS unit by Peter Vreman.
   Only main TP functions are tested (nothing with Interrupts/Break/Verify).
@@ -194,13 +193,3 @@ begin
   TestDisk;
   TestFile;
 end.
-
-{
-  $Log: tdos.pp,v $
-  Revision 1.11  2005/04/03 20:56:43  olle
-    * adapted to MacOS
-
-  Revision 1.10  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

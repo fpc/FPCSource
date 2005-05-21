@@ -1,5 +1,4 @@
 {
-   $Id: gtk.pp,v 1.8 2005/02/14 17:13:20 peter Exp $
 
    GTK - The GIMP Toolkit
    Copyright (C) 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald
@@ -96,9 +95,3 @@ Type
 {$i gtkincludes.pp}
 
 end.
-{
-  $Log: gtk.pp,v $
-  Revision 1.8  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

@@ -1,7 +1,6 @@
 {Set tabsize to 4.}
 {****************************************************************************
 
-  $Id: kbdcalls.pas,v 1.3 2005/02/14 17:13:31 peter Exp $
 
                            KBDCALLS interface unit
                      Free Pascal Runtime Library for OS/2
@@ -1729,10 +1728,3 @@ external 'EMXWRAP' index 201;
 
 
 end.
-
-{
-  $Log: kbdcalls.pas,v $
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

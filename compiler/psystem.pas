@@ -1,5 +1,4 @@
 {
-    $Id: psystem.pas,v 1.78 2005/02/14 17:13:07 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Load the system unit, create required defs for systemunit
@@ -544,16 +543,3 @@ implementation
       end;
 
 end.
-{
-  $Log: psystem.pas,v $
-  Revision 1.78  2005/02/14 17:13:07  peter
-    * truncate log
-
-  Revision 1.77  2005/02/04 16:30:40  peter
-    * disable longstring
-
-  Revision 1.76  2005/01/19 22:19:41  peter
-    * unit mapping rewrite
-    * new derefmap added
-
-}

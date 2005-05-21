@@ -52,5 +52,3 @@ begin
 
     PTUnloadModule(module);
 end.
-
-

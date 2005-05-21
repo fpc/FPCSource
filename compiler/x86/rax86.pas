@@ -1,5 +1,4 @@
 {
-    $Id: rax86.pas,v 1.22 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
     Handles the common x86 assembler reader routines
@@ -741,12 +740,3 @@ begin
 end;
 
 end.
-{
-  $Log: rax86.pas,v $
-  Revision 1.22  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.21  2005/01/31 17:07:50  peter
-    * fix [regpara] in intel assembler
-
-}

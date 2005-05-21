@@ -1,5 +1,4 @@
 {
-    $Id: classes.pp,v 1.3 2005/03/07 17:57:25 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 
@@ -49,19 +48,3 @@ finalization
   if ThreadsInited then
      DoneThreads;
 end.
-{
-  $Log: classes.pp,v $
-  Revision 1.3  2005/03/07 17:57:25  peter
-    * renamed rtlconst to rtlconsts
-
-  Revision 1.2  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.1  2005/02/06 12:16:52  peter
-    * bsd thread updates
-
-  Revision 1.8  2005/02/06 11:20:52  peter
-    * threading in system unit
-    * removed systhrds unit
-
-}

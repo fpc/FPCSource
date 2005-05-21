@@ -16,8 +16,3 @@ begin
   writeln ('TNET : ',sizeof(TNET),' TNET.nettype : ',SizeOf(net_type));
   writeln ('USED_MEM : ',sizeof(TUSED_MEM));
 end.
-  $Log: mysqls.pp,v $
-  Revision 1.4  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

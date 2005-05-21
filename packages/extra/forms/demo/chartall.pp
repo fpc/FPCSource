@@ -80,9 +80,3 @@ begin
   fl_show_form(form,FL_PLACE_CENTER,FL_TRANSIENT,'Charts');
   fl_do_forms();
 end.
-{
-  $Log: chartall.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

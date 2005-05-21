@@ -1,5 +1,4 @@
 {
-    $Id: cpupara.pas,v 1.10 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 2002 by Florian Klaempfl
 
     Generates the argument location information for 680x0
@@ -193,10 +192,3 @@ unit cpupara;
 begin
   paramanager:=tm68kparamanager.create;
 end.
-
-{
-  $Log: cpupara.pas,v $
-  Revision 1.10  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

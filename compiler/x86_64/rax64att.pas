@@ -1,5 +1,4 @@
 {
-    $Id: rax64att.pas,v 1.2 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
     Does the parsing for the i386 GNU AS styled inline assembler.
@@ -68,9 +67,3 @@ const
 initialization
   RegisterAsmMode(asmmode_x86_64_gas_info);
 end.
-{
-  $Log: rax64att.pas,v $
-  Revision 1.2  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

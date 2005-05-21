@@ -21,4 +21,3 @@ procedure a; assembler;
 
 begin
 end.
-

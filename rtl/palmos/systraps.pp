@@ -1,4 +1,3 @@
-{ $Id: systraps.pp,v 1.4 2005/02/14 17:13:31 peter Exp $
   adapted for use with Free Pascal by Florian Klaempfl
 }
 { -------------------------------------------------- }
@@ -858,9 +857,3 @@ interface
 implementation
 
 end.
-{
-  $Log: systraps.pp,v $
-  Revision 1.4  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

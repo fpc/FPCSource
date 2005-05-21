@@ -1,5 +1,4 @@
 {
-    $Id: rgx86.pas,v 1.13 2005/03/10 00:27:04 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the x86 specific class for the register
@@ -323,12 +322,3 @@ implementation
 *)
 
 end.
-{
-  $Log: rgx86.pas,v $
-  Revision 1.13  2005/03/10 00:27:04  peter
-  movzx,movsx don't support memory destinations
-
-  Revision 1.12  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

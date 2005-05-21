@@ -1,6 +1,5 @@
 Program checkcvs;
 {
-    $Id: checkcvs.pp,v 1.3 2002/09/07 15:40:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -122,11 +121,9 @@ Begin
   Reset(F);
   Lines := 5;
   Found := FALSE;
-  Repeat                         {Valid files have $Id: somewhere
                                        in the first lines}
     ReadLn(F,S);
     LTrim(S,' ');
-    If Copy(S,1,4)='$Id:' Then
       Found := TRUE;
     dec(Lines);
   Until ((Lines=0) Or Found) Or EOF(F);
@@ -136,7 +133,6 @@ Begin
     EXIT;
    END;
   Found := FALSE;
-  Repeat                         {Valid files have $Id: somewhere
                                        in the first lines}
     ReadLn(F,S);
     LTrim(S,' ');
@@ -240,13 +236,3 @@ Begin
    End;
   FreeMem(NewestBuffer,bufferlimit);
 End.
-
-{
-  $Log: checkcvs.pp,v $
-  Revision 1.3  2002/09/07 15:40:30  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/06/02 17:10:35  marco
-   * Renamefest
-
-}

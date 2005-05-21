@@ -1,5 +1,4 @@
 {
-    $Id: sysutils.inc,v 1.20 2005/02/26 14:38:14 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team

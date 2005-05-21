@@ -1,5 +1,4 @@
 {
-    $Id: netdb.pp,v 1.17 2005/03/27 18:15:07 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
@@ -1227,51 +1226,3 @@ end;
 begin
   InitResolver;
 end.
-
-
-{
-  $Log: netdb.pp,v $
-  Revision 1.17  2005/03/27 18:15:07  marco
-   * /etc/protocol support
-
-  Revision 1.16  2005/03/27 16:09:47  marco
-   * some order fixes to the hosts file functions. Also tested on OS X, but
-     no changes necessary on Mac.
-
-  Revision 1.15  2005/03/22 13:39:11  marco
-   * support for BSD style network files
-
-  Revision 1.14  2005/03/18 10:58:16  marco
-   * lots of endian fixes
-
-  Revision 1.12  2005/02/07 14:12:31  marco
-   * fixed endianess ugliness (3636)
-
-  Revision 1.11  2004/02/20 21:35:00  peter
-    * 1.0.x fix
-
-  Revision 1.10  2004/01/24 12:23:10  michael
-  + Patch from Johannes Berg
-
-  Revision 1.9  2003/12/12 20:50:18  michael
-  + Fixed trimming of nameserver entries
-
-  Revision 1.8  2003/11/22 23:17:50  michael
-  Patch for ipv6 and CNAME record support from Johannes Berg
-
-  Revision 1.7  2003/09/29 19:21:19  marco
-   * ; added to line 150
-
-  Revision 1.6  2003/09/29 07:44:11  michael
-  + Endian patch from bas steendijk@xs4all.nl
-
-  Revision 1.5  2003/09/28 09:34:02  peter
-    * unix fix for 1.0.x
-
-  Revision 1.4  2003/09/18 16:30:23  marco
-   * unixreform fix
-
-  Revision 1.3  2003/05/17 20:54:03  michael
-  + uriparser unit added. Header/Footer blocks added
-
-}

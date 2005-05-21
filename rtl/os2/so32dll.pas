@@ -1,5 +1,4 @@
 {
-    $Id: so32dll.pas,v 1.3 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000, 2001 by madded2 (madded@vao.udmnet.ru).
     Copyright (c) 2002, 2004 Yuri Prokushev (prokushev@freemail.ru).
@@ -1261,9 +1260,7 @@ begin   Result:=WSwap(a);   end;
 { network -> host for small (2 bytes) }
 
 end.
-
 (* !!TODO   Following code not revised as yet
-
 {*
  * User-settable options (used with setsockopt).
  *}

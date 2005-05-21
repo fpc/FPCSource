@@ -1,5 +1,4 @@
 {
-  $Id: testib40.pp,v 1.3 2005/02/14 17:13:19 peter Exp $
 }
 program testib;
 
@@ -148,9 +147,3 @@ begin
   else
     doerror(status);
 end.
-{
-  $Log: testib40.pp,v $
-  Revision 1.3  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

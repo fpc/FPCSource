@@ -1,5 +1,4 @@
 {
-    $Id: ncgadd.pas,v 1.45 2005/03/01 21:28:50 jonas Exp $
     Copyright (c) 2000-2002 by the FPC development team
 
     Code generation for add nodes (generic version)
@@ -791,34 +790,3 @@ interface
 begin
    caddnode:=tcgaddnode;
 end.
-{
-  $Log: ncgadd.pas,v $
-  Revision 1.45  2005/03/01 21:28:50  jonas
-    * fixed web bug 3533
-
-  Revision 1.44  2005/02/15 19:53:41  florian
-    * don't generate overflow results if they aren't necessary
-    * fixed op_reg_reg_reg_reg on arm
-
-  Revision 1.43  2005/02/14 17:13:06  peter
-    * truncate log
-
-  Revision 1.42  2005/02/13 19:12:05  florian
-    * setup ovlov correctly
-
-  Revision 1.41  2005/02/13 18:55:19  florian
-    + overflow checking for the arm
-
-  Revision 1.40  2005/01/29 00:40:18  peter
-    * fixed x86_64 compile
-
-  Revision 1.39  2005/01/27 20:32:51  florian
-    + implemented overflow checking for 64 bit types on sparc
-
-  Revision 1.38  2005/01/20 21:28:52  florian
-    * optimized register usage for non-x86 e.g. 3 operand cpus
-
-  Revision 1.37  2005/01/01 14:32:53  florian
-    * maybe_constant means also that a loc can be CREGISTER
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: rgcpu.pas,v 1.19 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the powerpc specific class for the register
@@ -129,10 +128,3 @@ unit rgcpu;
 *)
 
 end.
-
-{
-  $Log: rgcpu.pas,v $
-  Revision 1.19  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

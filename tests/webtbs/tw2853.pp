@@ -14,4 +14,3 @@ begin
 {$endif LOOP}
    WriteLn('test');
 end.
-

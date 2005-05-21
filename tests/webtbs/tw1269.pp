@@ -47,5 +47,3 @@ begin
   writeln( calc(vt, nn) :0:0);
 {$endif COMP_IS_INT64}
 end.
-
-

@@ -1,4 +1,3 @@
-{ $Id: msgbox.pas,v 1.8 2005/02/14 17:13:18 peter Exp $ }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {   System independent GRAPHICAL clone of MSGBOX.PAS       }
@@ -308,10 +307,3 @@ begin
 end;
 
 END.
-
-{
- $Log: msgbox.pas,v $
- Revision 1.8  2005/02/14 17:13:18  peter
-   * truncate log
-
-}

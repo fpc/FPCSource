@@ -1399,10 +1399,3 @@ if value_ansistring <> RESULT_BIGSTRING then
  else
    WriteLn('Passed!');
 end.
-
-{
-  $Log: tcalfun5.pp,v $
-  Revision 1.6  2005/02/14 17:13:36  peter
-    * truncate log
-
-}
