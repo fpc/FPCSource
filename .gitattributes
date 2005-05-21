@@ -3033,6 +3033,13 @@ packages/extra/utmp/Makefile -text
 packages/extra/utmp/Makefile.fpc svneol=native#text/plain
 packages/extra/utmp/testutmp.pp svneol=native#text/plain
 packages/extra/utmp/utmp.pp svneol=native#text/plain
+packages/extra/uuid/Makefile svneol=native#text/plain
+packages/extra/uuid/Makefile.fpc svneol=native#text/plain
+packages/extra/uuid/README svneol=native#text/plain
+packages/extra/uuid/libuuid.pp svneol=native#text/plain
+packages/extra/uuid/testlibuid.pp svneol=native#text/plain
+packages/extra/uuid/testuid.pp svneol=native#text/plain
+packages/extra/uuid/uuid.pp svneol=native#text/plain
 packages/extra/winunits/Makefile -text
 packages/extra/winunits/Makefile.fpc svneol=native#text/plain
 packages/extra/winunits/activex.pp svneol=native#text/plain
