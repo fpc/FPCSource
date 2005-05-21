@@ -1,5 +1,4 @@
 {
-    $Id: keyboard.pp,v 1.13 2005/02/14 17:13:32 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -874,12 +873,3 @@ Const
 begin
   SetKeyBoardDriver(SysKeyBoardDriver);
 end.
-{
-  $Log: keyboard.pp,v $
-  Revision 1.13  2005/02/14 17:13:32  peter
-    * truncate log
-
-  Revision 1.12  2005/01/07 18:59:22  florian
-    * AltGr fixed
-
-}

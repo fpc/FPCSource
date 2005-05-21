@@ -1,5 +1,4 @@
 {
-    $Id: ctypes.inc,v 1.4 2005/03/13 19:17:14 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 

@@ -1,6 +1,5 @@
 { %INTERACTIVE }
 {
-  $Id: tcrt.pp,v 1.2 2005/05/14 14:31:51 hajny Exp $
 
   Program to test CRT unit by Mark May.
   Only standard TP functions are tested (except WhereX, WhereY).

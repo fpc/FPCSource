@@ -1,5 +1,4 @@
 {
-    $Id: mandel.pp,v 1.6 2002/09/07 15:06:35 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993-98 by Gernot Tenchio
 
@@ -352,18 +351,3 @@ begin
    Writeln('With graph driver ',gd,' and graph mode ',gm);
   {$endif}
 end.
-{
-  $Log: mandel.pp,v $
-  Revision 1.6  2002/09/07 15:06:35  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/04/11 19:47:48  pierre
-   * avoid RTE 103 for win32
-
-  Revision 1.4  2002/02/25 21:32:13  carl
-  + $goto on added for makefiles
-
-  Revision 1.3  2002/02/22 21:40:45  carl
-  * range check error fix
-
-}

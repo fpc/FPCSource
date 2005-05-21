@@ -1,5 +1,4 @@
 {
-   $Id: go32smsg.inc,v 1.2 2005/02/14 17:13:18 peter Exp $
 
    System independent system interface for go32v2
 

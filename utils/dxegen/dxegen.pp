@@ -1,5 +1,4 @@
 {
-   $Id: dxegen.pp,v 1.8 2004/09/15 19:20:51 hajny Exp $
    Copyright (C) 1995 Charles Sandmann (sandmann@clio.rice.edu)
    This software may be freely distributed with above copyright, no warranty.
    Based on code by DJ Delorie, it's really his, enhanced, bugs fixed.
@@ -310,21 +309,3 @@ Begin
       End;
   Close(output_f);
 End.
-{
- $Log: dxegen.pp,v $
- Revision 1.8  2004/09/15 19:20:51  hajny
-   * dxegen compilable for any target now
-
- Revision 1.7  2004/09/15 08:35:39  michael
- + Fix for wrong for loop variable from Tomas Hajny
-
- Revision 1.6  2002/09/07 15:40:31  peter
-   * old logs removed and tabs fixed
-
- Revision 1.5  2002/07/14 13:39:45  carl
-   * use special symbols for portability's sake
-
- Revision 1.4  2002/06/01 18:39:15  marco
-  * Renamefest
-
-}

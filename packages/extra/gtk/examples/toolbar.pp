@@ -1,5 +1,4 @@
 {
-  $Id: toolbar.pp,v 1.2 2002/05/31 11:54:33 marco Exp $
 
   Converted from C to Pascal by Artur Bac
   <arturbac@poczta.onet.pl>
@@ -325,4 +324,3 @@ The one thing you have to remember is that this widget must be shown manually
   gtk_main ();
 
 End.
-

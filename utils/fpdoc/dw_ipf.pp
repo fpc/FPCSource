@@ -1,5 +1,4 @@
 {
-    $Id: dw_ipf.pp,v 1.3 2005/01/14 17:55:07 michael Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
@@ -1340,56 +1339,3 @@ initialization
 finalization
   UnRegisterWriter('ipf');
 end.
-
-
-{
-  $Log: dw_ipf.pp,v $
-  Revision 1.3  2005/01/14 17:55:07  michael
-  + Added unix man page output; Implemented usage
-
-  Revision 1.2  2005/01/12 21:11:41  michael
-  + New structure for writers. Implemented TXT writer
-
-  Revision 1.1  2003/10/08 11:41:54  yuri
-  + Initial OS/2 IPF support added
-
-  Revision 1.4  2003/03/18 19:28:44  michael
-  + Some changes to output handling, more suitable for tex output
-
-  Revision 1.3  2003/03/18 19:12:29  michael
-  + More EscapeTex calls needed
-
-  Revision 1.2  2003/03/18 01:11:51  michael
-  + Some fixes to deal with illegal tex characters
-
-  Revision 1.1  2003/03/17 23:03:20  michael
-  + Initial import in CVS
-
-  Revision 1.13  2003/03/13 22:02:13  sg
-  * New version with many bugfixes and our own parser (now independent of the
-    compiler source)
-
-  Revision 1.12  2002/10/20 22:49:31  michael
-  + Sorted all overviews. Added table with enumeration values for enumerated types.
-
-  Revision 1.11  2002/05/24 00:13:22  sg
-  * much improved new version, including many linking and output fixes
-
-  Revision 1.10  2002/03/12 10:58:36  sg
-  * reworked linking engine and internal structure
-
-  Revision 1.9  2002/01/20 11:19:55  michael
-  + Added link attribute and property to TFPElement
-
-  Revision 1.8  2002/01/08 13:00:06  michael
-  + Added correct array handling and syntax highlighting is now optional
-
-  Revision 1.7  2002/01/08 08:22:40  michael
-  + Implemented latex writer
-
-  Revision 1.6  2001/12/17 14:41:42  michael
-  + Split out of latex writer
-
-  Revision 1.5  2001/12/17 13:41:18  jonas
-    * OsPathSeparator -> PathDelim
-}

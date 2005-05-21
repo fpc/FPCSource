@@ -25,4 +25,3 @@ var
 begin
   b := tb.create(b);
 end.
-

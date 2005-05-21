@@ -10,4 +10,3 @@ begin
      continue;
    until i=1;
 end.
-

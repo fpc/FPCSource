@@ -1,5 +1,4 @@
 {
-    $Id: dynarr.inc,v 1.38 2005/03/27 14:56:34 jonas Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000 by Florian Klaempfl
     member of the Free Pascal development team.

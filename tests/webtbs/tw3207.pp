@@ -30,4 +30,3 @@ begin
 
   for n := 1 to 1000 do CheckExtended;
 end.
-

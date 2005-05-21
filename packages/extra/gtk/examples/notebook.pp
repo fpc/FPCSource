@@ -1,5 +1,4 @@
 {
-  $Id: notebook.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the GTK tutorial.
   notebook.c
@@ -165,9 +164,3 @@ begin
 
   gtk_main ();
 end.
-{
-  $Log: notebook.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

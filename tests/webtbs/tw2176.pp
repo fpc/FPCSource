@@ -40,4 +40,3 @@ begin
   end;
   //in delphi it works OK
 end.
-

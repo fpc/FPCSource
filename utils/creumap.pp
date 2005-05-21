@@ -1,5 +1,4 @@
 {
-    $Id: creumap.pp,v 1.2 2002/09/07 15:40:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000 by Florian Klaempfl
 

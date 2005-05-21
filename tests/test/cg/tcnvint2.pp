@@ -197,10 +197,3 @@ begin
      halt(1);
    end;
 end.
-
-{
-   $Log: tcnvint2.pp,v $
-   Revision 1.8  2005/02/14 17:13:37  peter
-     * truncate log
-
-}

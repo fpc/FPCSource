@@ -1,5 +1,4 @@
 {
-    $Id: dos.pp,v 1.7 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2004 by the Free Pascal development team.
 
@@ -687,13 +686,3 @@ End;
 
 
 end.
-{
-  $Log: dos.pp,v $
-  Revision 1.7  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.6  2005/01/14 20:59:15  armin
-  * forgot to remove debug output in fsearch
-
-}
-

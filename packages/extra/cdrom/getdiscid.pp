@@ -1,5 +1,4 @@
 {
-    $Id: getdiscid.pp,v 1.2 2005/02/14 17:13:20 peter Exp $
     Copyright (c) 1999-2000 by Michael Van Canneyt
 
     Demonstrates DiscID unit usage.
@@ -42,10 +41,3 @@ begin
     Writeln('CDDB Query : ',GetCDDBQueryString(Entries,Tracks));
     end;
 end.
-
-{
-  $Log: getdiscid.pp,v $
-  Revision 1.2  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

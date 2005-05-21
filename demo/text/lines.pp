@@ -1,5 +1,4 @@
 {
-    $Id: lines.pp,v 1.2 2002/09/07 15:06:35 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993-98 by Florian Klaempfl
 

@@ -1,5 +1,4 @@
 {
-    $Id: varutils.pp,v 1.2 2005/02/14 17:13:32 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -37,10 +36,3 @@ Implementation
 {$i varutils.inc}
 
 end.
-
-{
-  $Log: varutils.pp,v $
-  Revision 1.2  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

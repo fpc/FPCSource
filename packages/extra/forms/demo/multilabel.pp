@@ -50,9 +50,3 @@ begin
   until (obj = readyobj);
   fl_hide_form(form);
 end.
-{
-  $Log: multilabel.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

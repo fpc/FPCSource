@@ -1,5 +1,4 @@
 {
-    $Id: lineinfo.pp,v 1.25 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000 by Peter Vreman
 
@@ -1043,9 +1042,3 @@ finalization
    CloseStabs;
 
 end.
-{
-  $Log: lineinfo.pp,v $
-  Revision 1.25  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

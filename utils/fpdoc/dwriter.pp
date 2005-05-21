@@ -1,5 +1,4 @@
 {
-    $Id: dwriter.pp,v 1.6 2005/02/14 17:13:39 peter Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
@@ -1032,49 +1031,3 @@ initialization
 finalization
   DoneWriterList;
 end.
-
-
-{
-  $Log: dwriter.pp,v $
-  Revision 1.6  2005/02/14 17:13:39  peter
-    * truncate log
-
-  Revision 1.5  2005/01/14 17:55:07  michael
-  + Added unix man page output; Implemented usage
-
-  Revision 1.4  2005/01/12 21:11:41  michael
-  + New structure for writers. Implemented TXT writer
-
-  Revision 1.3  2004/08/28 18:05:17  michael
-  + Check for non-nil context
-
-  Revision 1.2  2004/06/06 10:53:02  michael
-  + Added Topic support
-
-  Revision 1.1  2003/03/17 23:03:20  michael
-  + Initial import in CVS
-
-  Revision 1.9  2003/03/13 22:02:13  sg
-  * New version with many bugfixes and our own parser (now independent of the
-    compiler source)
-
-  Revision 1.8  2002/05/24 00:13:22  sg
-  * much improved new version, including many linking and output fixes
-
-  Revision 1.7  2002/03/12 10:58:36  sg
-  * reworked linking engine and internal structure
-
-  Revision 1.6  2001/07/27 10:21:42  sg
-  * Just a new, improved version ;)
-    (detailed changelogs will be provided again with the next commits)
-
-  Revision 1.5  2000/11/13 00:18:42  sg
-  * Comments within descriptions should be ignored now in all cases
-
-  Revision 1.4  2000/11/11 23:53:56  sg
-  * Added <pre> tag (with unified handling of <pre> and <code>)
-
-  Revision 1.3  2000/10/30 21:19:59  sg
-  * Changed syntax highlighting attribute in 'code' element from
-    'highlight' to 'highlighter'
-}

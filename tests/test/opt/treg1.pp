@@ -23,4 +23,3 @@ procedure p1;
 begin
    p1(e1);
 end.
-

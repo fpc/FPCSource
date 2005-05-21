@@ -325,8 +325,3 @@ begin
   Utmp_file := '/var/run/utmp';
   Set_search_parameters(Include,DefaultLoginType);
 end.
-  $Log: utmp.pp,v $
-  Revision 1.5  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

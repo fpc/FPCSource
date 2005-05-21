@@ -35,8 +35,3 @@ begin
 
   BaseStream.Free;
 end.
-  $Log: b64test2.pp,v $
-  Revision 1.4  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

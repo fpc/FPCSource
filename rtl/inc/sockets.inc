@@ -1,5 +1,4 @@
 {
-    $Id: sockets.inc,v 1.18 2005/03/25 22:53:39 jonas Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 

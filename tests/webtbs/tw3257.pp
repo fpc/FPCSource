@@ -26,4 +26,3 @@ uses
       result := tv.tv_sec;
     end;
 end.
-

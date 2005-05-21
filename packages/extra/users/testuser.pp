@@ -23,5 +23,3 @@ begin
     Glist.Free;
   end;
 end.
-
-

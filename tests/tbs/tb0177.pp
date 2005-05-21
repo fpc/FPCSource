@@ -29,4 +29,3 @@ begin
 
   Writeln('boolean(256) =',a);
 end.
-

@@ -1,5 +1,4 @@
 {
-    $Id: text.inc,v 1.30 2005/04/03 21:10:59 hajny Exp $
     This file is part of the Free Pascal Run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 

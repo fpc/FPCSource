@@ -56,10 +56,3 @@ Begin
   bobj := TBobject.create(i);
   raise bobj;
 end.
-
-{
-  $Log: traise3.pp,v $
-  Revision 1.3  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

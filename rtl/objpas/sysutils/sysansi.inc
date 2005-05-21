@@ -1,6 +1,5 @@
 {
     *********************************************************************
-    $Id: sysansi.inc,v 1.5 2005/02/14 17:13:31 peter Exp $
     Copyright (C) 2002 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify

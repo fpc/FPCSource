@@ -11,4 +11,3 @@ begin
   for i := 0 to 5 do
     write (longint_file, array_of_longint[i]);
 end.
-

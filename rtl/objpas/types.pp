@@ -1,5 +1,4 @@
 {
-    $Id: types.pp,v 1.10 2005/02/26 15:11:43 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Florian Klaempfl,
     member of the Free Pascal development team.
@@ -402,12 +401,3 @@ end;
 {$endif ver1_0}
 
 end.
-{
-  $Log: types.pp,v $
-  Revision 1.10  2005/02/26 15:11:43  florian
-    * TSize is imported from the Windows unit on win32
-
-  Revision 1.9  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

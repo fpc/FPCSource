@@ -1,5 +1,4 @@
 {
-    $Id: testdns.pp,v 1.5 2005/03/18 12:06:18 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
@@ -81,13 +80,3 @@ begin
   Writeln('ResolveHostByAddr:');
   testaddr('212.224.143.202');
 end.
-
-{
-  $Log: testdns.pp,v $
-  Revision 1.5  2005/03/18 12:06:18  marco
-   * some fixes
-
-  Revision 1.4  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

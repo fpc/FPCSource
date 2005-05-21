@@ -1,5 +1,4 @@
 {
-    $Id: fpcmwr.pp,v 1.36 2005/01/10 20:33:09 peter Exp $
     Copyright (c) 2001 by Peter Vreman
 
     FPCMake - Makefile writer
@@ -846,69 +845,3 @@ implementation
       end;
 
 end.
-{
-  $Log: fpcmwr.pp,v $
-  Revision 1.36  2005/01/10 20:33:09  peter
-    * use cpu-os style
-
-  Revision 1.35  2004/11/01 17:17:33  olle
-    * __missing_command will now have the name of the missing command appended.
-
-  Revision 1.34  2004/10/30 12:36:48  peter
-    * units are now created in separate directory units/cpu-os/
-    * distclean uses cleanall rule and removes units dir
-    * cross compile support fixed, it is now possible to cycle a ppcsparc
-      without deleting ppc386
-    * bintutilsperfix defaults to cpu-os-
-
-  Revision 1.33  2004/08/01 08:12:07  michael
-  + Patch from Vincent Snijders to fix CPU-specific installs
-
-  Revision 1.32  2004/07/12 06:42:52  michael
-  * Patch from peter to fix writing of target dir rules for cpu specific dirs
-
-  Revision 1.31  2004/07/11 18:58:19  peter
-    * support varaiable_cpu
-
-  Revision 1.30  2004/04/20 22:59:31  olle
-    * support for new fpcini section [defines]
-
-  Revision 1.29  2004/04/01 12:26:56  olle
-    + a tool not found is replaced by the fake command __missing_command__, so that make stops, if it tries to run the command.
-
-  Revision 1.28  2003/04/25 20:53:33  peter
-    * target_dir variable generation was not cpu dependent yet
-
-  Revision 1.27  2003/04/24 23:21:01  peter
-    * support different cpu target
-
-  Revision 1.26  2003/03/24 10:56:02  marco
-   * fix recursive zip making that corrupted utilsxxx.zip
-
-  Revision 1.25  2002/09/27 06:54:54  pierre
-   * translate default_cpu/os into CPU/OS_TARGET_DEFAULT
-
-  Revision 1.24  2002/09/07 15:40:32  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.23  2002/03/19 19:37:09  peter
-    * fix source location in zips for packages and demos
-
-  Revision 1.22  2002/03/11 19:10:36  peter
-    * Regenerated with updated fpcmake
-
-  Revision 1.21  2002/02/28 17:03:47  pierre
-   + CHECKDEPEND var to check if packages are up to date
-
-  Revision 1.20  2002/01/27 21:42:35  peter
-    * -r option to process target dirs also
-    * default changed to build only for current target
-    * removed auto building of required packages
-    * removed makefile target because it causes problems with
-      an internal rule of make
-
-  Revision 1.19  2002/01/06 21:50:05  peter
-    * lcl updates
-    * small optimizes for package check
-
-}

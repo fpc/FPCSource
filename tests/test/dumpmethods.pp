@@ -121,4 +121,3 @@ begin
   DumpClass(TPersistent);
   DumpClass(TMyPersistent);
 end.
-

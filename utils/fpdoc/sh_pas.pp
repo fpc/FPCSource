@@ -1,5 +1,4 @@
 {
-    $Id: sh_pas.pp,v 1.2 2005/02/14 17:13:39 peter Exp $
 
     "SHEdit" - Text editor with syntax highlighting
     Copyright (C) 1999-2000 by Sebastian Guenther (sg@freepascal.org)
@@ -317,21 +316,3 @@ end;
 
 
 end.
-
-
-{
-  $Log: sh_pas.pp,v $
-  Revision 1.2  2005/02/14 17:13:39  peter
-    * truncate log
-
-  Revision 1.1  2003/03/17 23:03:20  michael
-  + Initial import in CVS
-
-  Revision 1.2  2000/10/30 21:22:10  sg
-  * Increased all highlighting style constants by 1, as 0 is not valid!
-
-  Revision 1.1  2000/10/28 20:15:26  sg
-  * Many internal architectural improvements (especially linking)
-  * Improved writers
-
-}

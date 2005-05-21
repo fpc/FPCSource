@@ -1,5 +1,4 @@
 {
-    $Id: dos.pp,v 1.46 2005/03/15 16:53:52 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt and Peter Vreman,
     members of the Free Pascal development team
@@ -889,16 +888,3 @@ End;
 ******************************************************************************}
 
 End.
-
-{
-  $Log: dos.pp,v $
-  Revision 1.46  2005/03/15 16:53:52  peter
-    * return doserror=2 if path is empty in exec()
-
-  Revision 1.45  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.44  2005/02/13 20:01:38  peter
-    * include file cleanup
-
-}

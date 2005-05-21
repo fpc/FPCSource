@@ -1,5 +1,4 @@
 {
-    $Id: fpmansi.inc,v 1.5 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 2000 by Pierre Muller
 

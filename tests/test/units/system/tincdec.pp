@@ -644,11 +644,3 @@ Begin
   test_dec_s64;
   test_dec_u32;
 end.
-
-{
-  $Log: tincdec.pp,v $
-  Revision 1.2  2005/02/14 17:13:37  peter
-    * truncate log
-
-}
-

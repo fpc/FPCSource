@@ -1,5 +1,4 @@
 {
-    $Id: dos.pp,v 1.15 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -517,13 +516,3 @@ End;
 
 
 end.
-{
-  $Log: dos.pp,v $
-  Revision 1.15  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.14  2005/01/11 11:32:33  armin
-  * fixed compile error in getenv
-
-}
-

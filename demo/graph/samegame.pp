@@ -1,5 +1,4 @@
 {
-    $Id: samegame.pp,v 1.10 2005/02/14 17:13:10 peter Exp $
 
     This program is both available in XTDFPC as in the FPC demoes.
     Copyright (C) 1999 by Marco van de Voort
@@ -599,31 +598,3 @@ BEGIN
   Writeln('Last games'#39' score was : ',Score);
   {$endif}
 END.
-{
-  $Log: samegame.pp,v $
-  Revision 1.10  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.9  2004/06/21 07:03:36  marco
-   * 2nd recommendation 3177
-
-  Revision 1.8  2004/06/21 07:01:34  marco
-   * 1st and 3rd recommendation of bug 3177
-
-  Revision 1.7  2004/02/18 16:43:29  marco
-   *  added an API call to avoid the "Graph Window" window title, and readded previously removed variable
-        It was used in usegraph
-
-  Revision 1.6  2003/09/06 14:14:12  marco
-   * removed unused var reported in bug 2170
-
-  Revision 1.5  2002/09/07 15:06:35  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/06/02 09:49:17  marco
-   * Renamefest
-
-  Revision 1.3  2002/02/22 21:41:22  carl
-  * range check error fix
-
-}

@@ -16,4 +16,3 @@ var
 begin
   ReadTest(f);
 end.
-

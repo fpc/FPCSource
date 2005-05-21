@@ -39,4 +39,3 @@ testobj := ttestobj.create;
 testobj.testasmcall;
 testobj.destroy;
 end.
-

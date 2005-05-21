@@ -1,5 +1,4 @@
 {
-    $Id: sysint.inc,v 1.3 2005/03/13 14:30:24 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2005 by the Free Pascal development team
 

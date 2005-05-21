@@ -1,5 +1,4 @@
 {
-    $Id: fpdoc.pp,v 1.10 2005/02/14 17:13:39 peter Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
@@ -280,64 +279,3 @@ begin
     FreeOptions;
   end;
 end.
-
-
-{
-  $Log: fpdoc.pp,v $
-  Revision 1.10  2005/02/14 17:13:39  peter
-    * truncate log
-
-  Revision 1.9  2005/02/05 12:30:08  michael
-  + Fixed bug report from Ales Katona
-
-  Revision 1.8  2005/01/14 17:55:07  michael
-  + Added unix man page output; Implemented usage
-
-  Revision 1.7  2005/01/12 21:11:41  michael
-  + New structure for writers. Implemented TXT writer
-
-  Revision 1.6  2005/01/09 15:59:50  michael
-  + Split out latex writer to linear and latex writer
-
-  Revision 1.5  2004/08/28 18:03:23  michael
-  + Added warning if docnode not found (option --warn-no-node
-
-  Revision 1.4  2003/10/08 11:41:54  yuri
-  + Initial OS/2 IPF support added
-
-  Revision 1.3  2003/03/27 17:14:13  sg
-  * Added --ostarget and --cputarget
-
-  Revision 1.2  2003/03/18 19:28:44  michael
-  + Some changes to output handling, more suitable for tex output
-
-  Revision 1.1  2003/03/17 23:03:20  michael
-  + Initial import in CVS
-
-  Revision 1.13  2003/03/13 22:02:13  sg
-  * New version with many bugfixes and our own parser (now independent of the
-    compiler source)
-
-  Revision 1.12  2002/10/12 17:09:45  michael
-  + Added check for package name
-
-  Revision 1.11  2002/05/24 00:13:22  sg
-  * much improved new version, including many linking and output fixes
-
-  Revision 1.10  2002/03/12 10:58:36  sg
-  * reworked linking engine and internal structure
-
-  Revision 1.9  2002/01/08 13:00:06  michael
-  + Added correct array handling and syntax highlighting is now optional
-
-  Revision 1.8  2001/12/17 23:24:11  sg
-  * Added "--package" switch
-  * Now uses translation files written in lower-case
-
-  Revision 1.7  2001/07/27 12:17:20  sg
-  * Added "--html-search" command line argument
-
-  Revision 1.6  2001/07/27 10:21:42  sg
-  * Just a new, improved version ;)
-    (detailed changelogs will be provided again with the next commits)
-}

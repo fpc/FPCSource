@@ -1,5 +1,4 @@
 {
-   $Id: unixsmsg.inc,v 1.8 2005/02/14 17:13:18 peter Exp $
    System dependent system messages for unix
 
    Copyright (c) 2002 by Pierre Muller

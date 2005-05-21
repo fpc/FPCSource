@@ -1,5 +1,4 @@
 {
-    $Id: cpubase.inc,v 1.17 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
 
     Contains the basic declarations for the x86-64 architecture

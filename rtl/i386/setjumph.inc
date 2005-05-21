@@ -1,5 +1,4 @@
 {
-    $Id: setjumph.inc,v 1.8 2005/04/24 21:19:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1998 the Free Pascal development team
 

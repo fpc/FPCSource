@@ -1,5 +1,4 @@
 {
-    $Id: macpas.pp,v 1.4 2005/04/04 16:14:09 peter Exp $
     This file is part of the Free Pascal Run time library.
     Copyright (c) 2004 by Olle Raab
 

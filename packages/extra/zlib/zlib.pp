@@ -1,5 +1,4 @@
 {
-  $Id: zlib.pp,v 1.5 2005/02/14 17:13:21 peter Exp $
 }
 unit zlib;
 
@@ -179,9 +178,3 @@ function zError(err:longint):string;
   end;
 
 end.
-{
-  $Log: zlib.pp,v $
-  Revision 1.5  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

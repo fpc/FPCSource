@@ -66,4 +66,3 @@ begin
   RefCount(s,hrc,rc);
   writeln('ok');
 end.
-

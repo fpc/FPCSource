@@ -25,4 +25,3 @@ begin
       (((x+y)*(x-y))+((x+y)*(x-y)))+(((x+y)*(x-y))+((x+y)*(x-y))));
   Writeln('z = ',z);
 end.
-

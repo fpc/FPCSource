@@ -65,10 +65,3 @@ Begin
   raise TBobject.create(i) at @MyRoutine,pointer($00000001);
 {$endif}
 end.
-
-{
-  $Log: traise6.pp,v $
-  Revision 1.4  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

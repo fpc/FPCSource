@@ -19,6 +19,3 @@ begin
     writeln('Yo');
   end;
 end.
-
-
-

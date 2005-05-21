@@ -401,14 +401,3 @@ begin
   if has_fails then
     halt(1);
 end.
-
-
-{
- $Log: tiorte.pp,v $
- Revision 1.8  2005/04/03 20:53:40  olle
-   * adapted to MacOS
-
- Revision 1.7  2005/02/14 17:13:37  peter
-   * truncate log
-
-}

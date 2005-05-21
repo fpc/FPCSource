@@ -22,5 +22,3 @@ const
   o = ptr(0,0);
 Begin
 end.
-
-

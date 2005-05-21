@@ -1,5 +1,4 @@
 {
-  $Id: timezone.inc,v 1.9 2005/02/14 17:13:31 peter Exp $
 
   Support for timezone info in /usr/share/timezone
 }

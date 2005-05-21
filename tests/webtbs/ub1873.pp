@@ -17,4 +17,3 @@ implementation
 function GetServiceDisplayNameA; external advapi32 name 'GetServiceDisplayNameA';
 
 end.
-

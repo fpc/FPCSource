@@ -35,4 +35,3 @@ end;
 begin
   WriteLn(M(3,3,1,-1)-M(3,3,1,-1));
 end.
-

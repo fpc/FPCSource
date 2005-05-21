@@ -43,9 +43,3 @@ Begin
   { fl_do_forms will return only when Exit is pressed }
   fl_do_forms;
 end.
-{
-  $Log: pushbutton.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

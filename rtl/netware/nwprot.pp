@@ -1,4 +1,3 @@
-{ $Id: nwprot.pp,v 1.3 2005/02/14 17:13:30 peter Exp $
 
   Netware Server Imports for FreePascal, contains definitions for the
   netware server protocol library
@@ -1347,10 +1346,3 @@ end;
 
 
 end.
-
-{
-  $Log: nwprot.pp,v $
-  Revision 1.3  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

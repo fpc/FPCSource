@@ -1,5 +1,4 @@
 {
-    $Id: go32.pp,v 1.8 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     and implements some stuff for protected mode programming
     Copyright (c) 1999-2000 by the Free Pascal development team.
@@ -1184,10 +1183,3 @@ begin
    int31error:=0;
    dosmemselector:=_core_selector;
 end.
-
-{
-  $Log: go32.pp,v $
-  Revision 1.8  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

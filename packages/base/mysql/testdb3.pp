@@ -82,8 +82,3 @@ begin
   mysql_close(sock);
   halt(0);
 end.
-  $Log: testdb3.pp,v $
-  Revision 1.3  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

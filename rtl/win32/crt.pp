@@ -1,5 +1,4 @@
 {
-    $Id: crt.pp,v 1.25 2005/05/14 15:01:49 hajny Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 

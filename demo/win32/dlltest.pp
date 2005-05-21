@@ -1,5 +1,4 @@
 {
-  $Id: dlltest.pp,v 1.2 2002/09/07 15:06:35 peter Exp $
   Copyright (c) 1998 by Pierre Muller
 
   Win32 DLL usage example. It needs testdll.pp
@@ -24,9 +23,3 @@ begin
   writeln('Main: press enter');
   readln;
 end.
-{
-  $Log: dlltest.pp,v $
-  Revision 1.2  2002/09/07 15:06:35  peter
-    * old logs removed and tabs fixed
-
-}

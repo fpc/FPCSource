@@ -35,4 +35,3 @@ BEGIN
  TestSomething(O);
  TestSomething(O2);
 END.
-

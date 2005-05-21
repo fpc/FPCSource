@@ -1,5 +1,4 @@
 {
-    $Id: cachetest.pp,v 1.4 2005/02/14 17:13:18 peter Exp $
 
     Test program for the CacheCls unit
     Copyright (C) 2000 by Sebastian Guenther (sg@freepascal.org)
@@ -150,11 +149,3 @@ begin
   CacheTester.Run;
   CacheTester.Free;
 end.
-
-
-{
-  $Log: cachetest.pp,v $
-  Revision 1.4  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

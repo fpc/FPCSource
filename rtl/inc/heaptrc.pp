@@ -1,5 +1,4 @@
 {
-    $Id: heaptrc.pp,v 1.44 2005/04/04 15:16:26 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -1190,29 +1189,3 @@ finalization
   if useheaptrace then
    TraceExit;
 end.
-{
-  $Log: heaptrc.pp,v $
-  Revision 1.44  2005/04/04 15:16:26  peter
-    * fixed crash in tracereallocmem statictics
-
-  Revision 1.43  2005/03/25 22:53:39  jonas
-    * fixed several warnings and notes about unused variables (mainly) or
-      uninitialised use of variables/function results (a few)
-
-  Revision 1.42  2005/03/10 20:36:31  florian
-    * fixed pointer checking for win32, thx to Martin Schreiber for the patch
-
-  Revision 1.41  2005/03/04 16:49:34  peter
-    * fix getheapstatus bootstrapping
-
-  Revision 1.40  2005/02/28 15:38:38  marco
-   * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
-
-  Revision 1.39  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.38  2005/01/21 15:56:32  peter
-    * uses _eend instead of _edata in checkpointer, patch by
-      Martin Schreiber
-
-}

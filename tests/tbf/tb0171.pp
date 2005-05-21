@@ -7,4 +7,3 @@ const
 begin
   writeln(c2);
 end.
-

@@ -12,4 +12,3 @@ begin
    new(b);
    b^:=12;
 end.
-

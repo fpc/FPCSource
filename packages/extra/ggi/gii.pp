@@ -1,6 +1,4 @@
-{ $Id: gii.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
-
-
+{
    Free Pascal conversion (c) 1999 Sebastian Guenther
 
    LibGII API header file
@@ -121,11 +119,3 @@ type
 implementation
 
 end.
-
-
-{
-  $Log: gii.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: cwstring.pp,v 1.5 2005/03/17 19:11:04 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2005 by Florian Klaempfl,
     member of the Free Pascal development team.
@@ -245,25 +244,4 @@ initialization
 finalization
   iconv_close(iconv_ansi2wide);
 end.
-
-{$else HASWIDESTRING}
-end.
 {$endif HASWIDESTRING}
-
-{
-  $Log: cwstring.pp,v $
-  Revision 1.5  2005/03/17 19:11:04  florian
-    * first working version
-
-  Revision 1.4  2005/03/16 22:26:12  florian
-    + ansi<->wide implemented using iconv
-
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.2  2005/02/03 18:40:57  florian
-    + infrastructure for WideCompareText implemented
-
-  Revision 1.1  2005/02/01 20:22:50  florian
-    * improved widestring infrastructure manager
-}

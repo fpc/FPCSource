@@ -1,5 +1,4 @@
 {
-  $Id: popuperr.pp,v 1.2 2005/02/14 17:13:37 peter Exp $
     This file is part of the Free Pascal test suite.
     Copyright (c) 1999-2004 by the Free Pascal development team.
 
@@ -42,10 +41,3 @@ begin
   if os_Mode = osOS2 then _DosError (0);
 {$ENDIF OS2}
 end.
-
-{
-  $Log: popuperr.pp,v $
-  Revision 1.2  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-  $Id: bounce.pp,v 1.2 2002/12/18 13:33:20 pierre Exp $
   Bouncing ball demo.  Color index mode only!
 
   This program is in the public domain

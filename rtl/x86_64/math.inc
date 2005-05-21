@@ -1,5 +1,4 @@
 {
-    $Id: math.inc,v 1.10 2005/04/25 09:40:27 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2001 by the Free Pascal development team
 

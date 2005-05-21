@@ -917,11 +917,3 @@ begin
 end;
 
 end.
-
-
-{
-  $Log: mysqldb4.pp,v $
-  Revision 1.2  2005/02/14 17:13:12  peter
-    * truncate log
-
-}

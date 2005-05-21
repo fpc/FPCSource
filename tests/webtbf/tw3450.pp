@@ -20,4 +20,3 @@ begin
   // this fails, correctly
   A.I := 9;
 end.
-

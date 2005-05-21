@@ -22,5 +22,3 @@ end;
 begin
   fromhere;
 end.
-
-

@@ -1,5 +1,4 @@
 {
-    $Id: baseunix.pp,v 1.4 2005/03/03 20:58:38 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Carl Eric Codere development team
 
@@ -91,18 +90,3 @@ end;
 {$i bunxovl.inc}        { redefs and overloads implementation }
 
 end.
-{
-  $Log: baseunix.pp,v $
-  Revision 1.4  2005/03/03 20:58:38  florian
-    + routines in baseunix can be overriden by processor specifics in bsyscall.inc
-
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.2  2005/02/13 21:47:56  peter
-    * include file cleanup part 2
-
-  Revision 1.1  2005/02/13 20:01:38  peter
-    * include file cleanup
-
-}

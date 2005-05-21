@@ -1,5 +1,4 @@
 {
-    $Id: gdbobjs.inc,v 1.3 2005/02/14 17:13:19 peter Exp $
     Copyright (c) 1999 by Pierre Muller
 
     direct GDB objects linking for debug info

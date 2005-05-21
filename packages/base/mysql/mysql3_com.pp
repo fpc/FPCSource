@@ -70,13 +70,3 @@ implementation
 
 
 end.
-
-{
-  $Log: mysql3_com.pp,v $
-  Revision 1.5  2005/03/25 12:03:53  michael
-  + MySQL 3 dynamic connection by Bram Kuijvenhoven
-
-  Revision 1.4  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

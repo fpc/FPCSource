@@ -1,5 +1,4 @@
 {
-    $Id: sysos.inc,v 1.2 2005/02/13 22:13:20 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 

@@ -1,5 +1,4 @@
 {
-  $Id: ibase60dyn.pp,v 1.5 2005/04/24 19:55:55 joost Exp $
 
 
   Contains the Interbase/Firebird-functions calls
@@ -17,4 +16,3 @@ unit ibase60dyn;
 {$i ibase60.inc}
 
 end.
-

@@ -1,5 +1,4 @@
 {
-    $Id: powerpc.inc,v 1.76 2005/04/28 18:29:01 olle Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000-2001 by the Free Pascal development team.

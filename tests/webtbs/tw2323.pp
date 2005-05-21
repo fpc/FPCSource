@@ -15,4 +15,3 @@ begin
     mov al, [ebx - '(']
   end;
 end.
-

@@ -1,5 +1,4 @@
 {
-    $Id: dom_html.pp,v 1.3 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Component Library
 
     Implementation of DOM HTML interfaces
@@ -920,11 +919,3 @@ function THTMLDocument.CreateLIElement: THTMLLIElement; begin Result := THTMLLIE
 function THTMLDocument.CreateParagraphElement: THTMLParagraphElement; begin Result := THTMLParagraphElement.Create(Self, 'p') end;
 
 end.
-
-
-{
-  $Log: dom_html.pp,v $
-  Revision 1.3  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

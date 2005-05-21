@@ -1,5 +1,4 @@
 {
-    $Id: dglobals.pp,v 1.12 2005/05/15 19:36:30 hajny Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2002 by
@@ -1216,69 +1215,3 @@ end;
 initialization
   LEOL:=Length(LineEnding);
 end.
-
-
-{
-  $Log: dglobals.pp,v $
-  Revision 1.12  2005/05/15 19:36:30  hajny
-    * mistyping fixed (xhmtl)
-
-  Revision 1.11  2005/05/09 18:50:13  michael
-  * Added patch from Vincent Snijders to add a footer to each HTML page
-
-  Revision 1.10  2005/05/04 08:38:58  michael
-  + Added support for opaque types
-
-  Revision 1.9  2005/02/14 17:13:38  peter
-    * truncate log
-
-  Revision 1.8  2005/01/14 17:55:07  michael
-  + Added unix man page output; Implemented usage
-
-  Revision 1.7  2005/01/12 21:11:41  michael
-  + New structure for writers. Implemented TXT writer
-
-  Revision 1.6  2005/01/09 15:59:50  michael
-  + Split out latex writer to linear and latex writer
-
-  Revision 1.5  2004/08/28 18:47:48  michael
-  + Removed temporary warning about reading of doc file
-
-  Revision 1.4  2004/08/28 18:03:23  michael
-  + Added warning if docnode not found (option --warn-no-node
-
-  Revision 1.3  2004/06/06 10:53:02  michael
-  + Added Topic support
-
-  Revision 1.2  2003/11/28 12:51:37  sg
-  * Added support for source references
-
-  Revision 1.1  2003/03/17 23:03:20  michael
-  + Initial import in CVS
-
-  Revision 1.13  2003/03/13 22:02:13  sg
-  * New version with many bugfixes and our own parser (now independent of the
-    compiler source)
-
-  Revision 1.12  2002/11/15 19:44:18  sg
-  * Cosmetic changes
-
-  Revision 1.11  2002/10/12 17:00:45  michael
-  + Changes to be able to disable private/protected nodes in skeleton
-
-  Revision 1.10  2002/05/24 00:13:22  sg
-  * much improved new version, including many linking and output fixes
-
-  Revision 1.9  2002/03/25 23:16:24  sg
-  * fixed missing storing of documenation data for the DocNode of a module
-    (so e.g. the Unit Overview is working again)
-
-  Revision 1.8  2002/03/12 10:58:35  sg
-  * reworked linking engine and internal structure
-
-  Revision 1.7  2002/01/20 11:19:55  michael
-  + Added link attribute and property to TFPelement
-
-  Revision 1.6  2001/12/17 22:16:02  sg
-  * Added TFPDocEngine.HideProtected
-}

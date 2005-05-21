@@ -1,7 +1,5 @@
-{   $Id: interbase.pp,v 1.17 2005/03/23 08:35:05 michael Exp $
-
+{
     Copyright (c) 2000 by Pavel Stingl
-
 
     Interbase database & dataset
 
@@ -1256,16 +1254,3 @@ end;
 { TIBStoredProc }
 
 end.
-
-{
-  $Log: interbase.pp,v $
-  Revision 1.17  2005/03/23 08:35:05  michael
-  + Patch from Michalis Kamburelis to correct transactions
-
-  Revision 1.16  2005/03/17 09:02:17  michael
-  + Patch from Michalis Kamburelis to fix TField.IsNull
-
-  Revision 1.15  2005/02/14 17:13:12  peter
-    * truncate log
-
-}

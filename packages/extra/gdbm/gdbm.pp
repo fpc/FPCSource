@@ -1,5 +1,4 @@
 {
-    $Id: gdbm.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of
     the Free Pascal development team
 
@@ -198,10 +197,3 @@ begin
 end;
 
 end.
-
-{
-  $Log: gdbm.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

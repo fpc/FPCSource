@@ -1462,4 +1462,3 @@ Finalization
   If Assigned(DefEnv) then
     TODBCEnvironment(DefEnv).Free;
 end.
-

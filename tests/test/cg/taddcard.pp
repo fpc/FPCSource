@@ -347,8 +347,3 @@ Begin
   CardinalTestGe;
   CardinalTestSub;
 end.
-
-
-{
- $Log
-}

@@ -16,4 +16,3 @@ begin
      WriteLn(SizeOf(i));
      WriteLn(SizeOf(j));
 end.
-

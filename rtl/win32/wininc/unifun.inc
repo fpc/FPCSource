@@ -1,5 +1,4 @@
 {
-    $Id: unifun.inc,v 1.14 2005/04/03 15:17:50 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 

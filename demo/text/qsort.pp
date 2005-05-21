@@ -1,5 +1,4 @@
 {
-    $Id: qsort.pp,v 1.3 2005/05/14 11:11:33 olle Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993-2005 by the Free Pascal Development Team
 
@@ -81,12 +80,3 @@ begin
       writeln;
    end;
 end.
-{
-  $Log: qsort.pp,v $
-  Revision 1.3  2005/05/14 11:11:33  olle
-    * Smaller arrray sizes for macos
-
-  Revision 1.2  2002/09/07 15:06:35  peter
-    * old logs removed and tabs fixed
-
-}

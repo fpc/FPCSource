@@ -22,4 +22,3 @@ begin
   // should fail, and it does
   a := T4Bytes(w);
 end.
-

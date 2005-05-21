@@ -53,12 +53,3 @@ begin
   test((ptruint(pt) mod sizeof(pointer))=0);
 {$endif}
 end.
-{
-   $Log: talign2.pp,v $
-   Revision 1.5  2005/02/14 17:13:35  peter
-     * truncate log
-
-   Revision 1.4  2005/01/04 20:30:09  olle
-     - removed unnecessary mode switch
-
-}

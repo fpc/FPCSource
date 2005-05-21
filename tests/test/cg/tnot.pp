@@ -150,4 +150,3 @@ Begin
    test(int64res and $FFFFFFFF,$00008080);
 {$ENDIF}
 end.
-

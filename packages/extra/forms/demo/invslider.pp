@@ -65,9 +65,3 @@ begin
    fl_show_form(ui^.inv,FL_PLACE_CENTER,FL_TRANSIENT,'inv');
    while fl_do_forms <> ui^.done do;
 end.
-{
-  $Log: invslider.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

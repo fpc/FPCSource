@@ -16,6 +16,3 @@ begin
     else write(K) (* but echo ASCII to screen *)
   until k=#$0D;   (* terminate with ENTER key *)
 end.
-
-
-

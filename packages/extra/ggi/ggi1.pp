@@ -1,4 +1,3 @@
-// $Id: ggi1.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 // (c) 1999 Sebastian Guenther
 
 {$MODE objfpc}
@@ -99,11 +98,3 @@ begin
   ggiExit;
 
 end.
-
-
-{
-  $Log: ggi1.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

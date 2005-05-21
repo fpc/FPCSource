@@ -51,7 +51,6 @@ begin
   Test1c(IUnknown, nil, nil);
   Test2c(Null, nil, nil);
 end.
-
 (*
 // Fix for 1.9.7: compiler/i386/cpupara.pas:128 in
 // function ti386paramanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;

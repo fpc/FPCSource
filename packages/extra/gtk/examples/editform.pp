@@ -1,5 +1,4 @@
 {
-  $Id: editform.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file was created with Glade and comes originally from
   the examples which are delivered with Glade
@@ -323,9 +322,3 @@ begin
 
   gtk_main ();
 end.
-{
-  $Log: editform.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

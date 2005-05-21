@@ -1,5 +1,4 @@
 {
-    $Id: qos.inc,v 1.2 2002/09/07 16:01:21 peter Exp $
     This file is part of the Free Pascal run time library.
     This unit contains the declarations for the WinSock2
     Socket Library for Netware and Win32

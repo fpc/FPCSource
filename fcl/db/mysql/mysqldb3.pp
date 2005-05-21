@@ -914,14 +914,3 @@ begin
 end;
 
 end.
-
-
-{
-  $Log: mysqldb3.pp,v $
-  Revision 1.3  2005/03/27 14:55:47  joost
-  - adapted for new mysql_fetch_field_direct
-
-  Revision 1.2  2005/02/14 17:13:12  peter
-    * truncate log
-
-}

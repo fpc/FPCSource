@@ -10,4 +10,3 @@ program test;
 begin
    fillchar(l,sizeof(l),true);
 end.
-

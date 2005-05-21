@@ -82,9 +82,3 @@ begin
   fl_show_form(form,FL_PLACE_CENTER,FL_NOBORDER,'Free Object');
   fl_do_forms();
 end.
-{
-  $Log: free1.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

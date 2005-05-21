@@ -9,4 +9,3 @@ var
 begin
    d := double(dummyrec($ffffffff80000000));
 end.
-

@@ -1,5 +1,4 @@
 {
-  $Id: rulers.pp,v 1.2 2002/05/31 11:54:33 marco Exp $
 
   Converted from C to Pascal by Artur Bac with liitle additions by me
   <arturbac@@poczta.onet.pl>

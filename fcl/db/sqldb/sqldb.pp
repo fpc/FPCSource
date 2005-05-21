@@ -1,7 +1,5 @@
-{   $Id: sqldb.pp,v 1.18 2005/04/24 19:21:28 joost Exp $
-
+{
     Copyright (c) 2004 by Joost van der Sluis
-
 
     SQL database & dataset
 
@@ -976,52 +974,3 @@ begin
 end;
 
 end.
-
-{
-  $Log: sqldb.pp,v $
-  Revision 1.18  2005/04/24 19:21:28  joost
-  - some fixes in assignment of transactions and databases
-
-  Revision 1.17  2005/04/13 22:10:26  joost
-  - TSQLQuery now frees FIndexDefs
-
-  Revision 1.16  2005/04/10 18:29:26  joost
-  - implemented parameter support for sqldb
-  - Added TSQLConnection.ConnOptions
-  - renamed TSQLQuery.FreeStatement to TSQLQuery.CloseStatement
-  - renamed TSQLQuery.PrepareStatement to TSQLQuery.Prepare
-  - added TSQLQuery.UnPrepare
-
-  Revision 1.15  2005/03/23 08:17:51  michael
-  + Several patches from Jose A. Rimon
-  # Prevents "field not found" error, when use a query without the primary key
-  Set SQLlen of different data types
-   Use AliasName instead of SQLname to avoid "duplicate field name" error, for
-  example when using "coalesce" more than once
-  use SQLScale in ftLargeInt to get actual values
-   Send query to server with different lines. Provides line info in sqlErrors
-  and allows single line comments
-
-  Revision 1.14  2005/02/14 17:13:12  peter
-    * truncate log
-
-  Revision 1.13  2005/02/07 11:23:41  joost
-    - implemented TSQLQuery.SetSchemaInfo
-    - added support for delete and insert
-
-  Revision 1.12  2005/01/24 10:52:43  michael
-    * Patch from Joost van der Sluis
-    - Made it possible to run 'show' queries for MySQL
-
-  Revision 1.11  2005/01/12 10:30:33  michael
-   * Patch from Joost Van der Sluis:
-     - implemented TSQLQuery.UpdateIndexDefs
-     - implemented TSQLQuery.ReadOnly
-     - implemented TSQLQuery.IndexDefs
-     - implemented TSQLQuery.UpdateMode
-     - implemented TSQLQuery.UsePrimaryKeyAsKey (Set pfInKey in the
-       providerflags
-       of fields that are in the primary index of the underlying table)
-     - Added support for updates on date-fields
-
-}

@@ -16,4 +16,3 @@ begin
   if i=101 then
     halt(1);
 end.
-

@@ -1,5 +1,4 @@
 {
-    $Id: genmath.inc,v 1.32 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2001 by Several contributors
 

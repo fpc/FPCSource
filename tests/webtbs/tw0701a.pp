@@ -15,4 +15,3 @@ begin
   exitproc:=@MyExit;
   UseString('Dummy test');
 end.
-

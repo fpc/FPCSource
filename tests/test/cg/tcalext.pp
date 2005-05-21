@@ -773,10 +773,3 @@ begin
   if has_errors then
     Halt(1);
 end.
-
-{
-  $Log: tcalext.pp,v $
-  Revision 1.11  2005/02/14 17:13:36  peter
-    * truncate log
-
-}

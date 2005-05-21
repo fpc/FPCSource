@@ -77,4 +77,3 @@ begin
   MyClass.Test(1,1);
   MyClass.Done;
 end.
-

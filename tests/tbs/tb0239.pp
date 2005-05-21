@@ -37,4 +37,3 @@ begin
   if DoMem(mem)<>0 then
     halt(1);
 end.
-

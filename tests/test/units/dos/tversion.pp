@@ -59,10 +59,3 @@ end;
 Begin
   TestDosVersion;
 end.
-
-{
-  $Log: tversion.pp,v $
-  Revision 1.2  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

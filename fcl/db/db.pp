@@ -1,5 +1,4 @@
 {
-    $Id: db.pp,v 1.51 2005/04/26 16:48:58 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team
@@ -1939,72 +1938,3 @@ end;
 {$i dsparams.inc}
 
 end.
-
-{
-  $Log: db.pp,v $
-  Revision 1.51  2005/04/26 16:48:58  michael
-   * Some patches from Uberto Barbini
-     + TLoginEvent more Delphi compatible (D5 and bigger).
-     * AsCurrency Property for TField.
-
-  Revision 1.50  2005/04/26 16:37:44  michael
-  + Added TCustomConnection by Uberto Barbini
-
-  Revision 1.49  2005/04/26 15:45:30  michael
-  + Patch from Sergey Smirnov to fix TTimeField.AsString
-
-  Revision 1.48  2005/04/24 19:21:28  joost
-  - some fixes in assignment of transactions and databases
-
-  Revision 1.47  2005/04/13 22:09:15  joost
-  - TIndexDefs.Destroy now calls inhedited.Destroy
-
-  Revision 1.46  2005/04/10 22:18:43  joost
-  Patch from Alexandrov Alexandru
-  - implemented TDataset.BindFields
-  - master-detail relation implemented
-  - improved variant-support for fields
-  - implemented TField.Assign and TField.AssignValue
-
-  Revision 1.45  2005/04/10 18:26:54  joost
-  - implemented TDataset.Locate
-  - removed TParam.FNull
-
-  Revision 1.44  2005/04/04 07:30:51  michael
-  + Patch from Jesus reyes to notify changes to DisplayFormat
-
-  Revision 1.43  2005/03/29 10:07:34  michael
-  + fix for activerecord, bof false after append.
-
-  Revision 1.42  2005/03/25 11:38:01  michael
-  + Implementation of IndexForFields from   Alexandrov Alexandru
-
-  Revision 1.41  2005/03/18 11:54:56  michael
-  + Fixed second typo in provided patch
-
-  Revision 1.39  2005/03/18 10:17:34  michael
-  + Patch to IndexDefs from Alexandrov Alexandru
-
-  Revision 1.38  2005/02/16 09:31:58  michael
-  - Remove TTimeField and TDateField GetDataSize functions since both are exactly
-    equal to their ancestor: TDateTimeField.GetDataSize
-  - TAutoInc fields are set to ReadyOnly on create
-  - In TFieldDef.CreateField the presence of faReadyOnly in Attributes is respected
-
-  Revision 1.37  2005/02/14 17:13:12  peter
-    * truncate log
-
-  Revision 1.36  2005/02/07 11:21:50  joost
-    - Added TDataset.InternalInsert
-    - Implemented TField.DisplayName
-    - added support for TBufDataset delete and insert
-
-  Revision 1.35  2005/02/03 19:10:39  florian
-    + adapted for use fo tcollection.owner
-
-  Revision 1.34  2005/01/12 10:28:44  michael
-    * Patch from Joost Van der Sluis:
-     - implemented TUpdateMode, TProviderFlags
-     - implemented TIndexDef, TIndexDefs
-
-}

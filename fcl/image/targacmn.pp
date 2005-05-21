@@ -1,6 +1,5 @@
 {*****************************************************************************}
 {
-    $Id: targacmn.pp,v 1.3 2005/02/14 17:13:12 peter Exp $
     This file is part of the Free Pascal's "Free Components Library".
     Copyright (c) 2003 by Michael Van Canneyt of the Free Pascal development team
 

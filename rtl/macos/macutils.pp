@@ -1,5 +1,4 @@
 {
-    $Id: macutils.pp,v 1.4 2005/03/20 19:37:54 olle Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Olle Raab
 

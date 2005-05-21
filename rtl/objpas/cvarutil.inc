@@ -1,5 +1,4 @@
 {
-    $Id: cvarutil.inc,v 1.14 2005/04/28 09:15:44 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000,2001 by the Free Pascal development team
 

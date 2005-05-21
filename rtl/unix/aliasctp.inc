@@ -1,5 +1,4 @@
 {
-    $Id: aliasctp.inc,v 1.5 2005/03/16 22:26:12 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Marco van de Voort
     Member of the Free Pascal development team

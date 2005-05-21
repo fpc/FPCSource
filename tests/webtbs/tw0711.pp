@@ -57,13 +57,8 @@ readln;
  closegraph;
 
 end.
-
 {
-
                                                         I. Groma
-
                                                         groma@metal.elte.hu
-
                                                         Budapest 11/24/1999
-
 }

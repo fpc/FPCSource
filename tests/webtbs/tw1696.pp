@@ -20,5 +20,3 @@ Begin
                     FF_DONTCARE Or DEFAULT_PITCH,
                     'Verdana');
 End.
-
-

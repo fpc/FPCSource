@@ -16,6 +16,3 @@ begin
   b:=c;
   b:=si;
 end.
-
-
-

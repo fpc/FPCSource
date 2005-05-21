@@ -230,10 +230,3 @@ Begin
     WriteLn('Passed!');
 
 end.
-
-{
- $Log: tcall1.pp,v $
- Revision 1.7  2005/02/14 17:13:36  peter
-   * truncate log
-
-}

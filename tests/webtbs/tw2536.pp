@@ -33,11 +33,8 @@ const
 
 implementation
 end.
-
 unit testu3;
-
 interface
-
 Type
   TWSAData = Pointer;
   TStartupFunction = function(wVersionRequired: Word; var WSData: TWSAData): Integer stdcall;

@@ -1,5 +1,4 @@
 {
-    $Id: getopts.pp,v 1.7 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
@@ -504,9 +503,3 @@ begin
   Optind:=0;
   nrargs:=argc;
 end.
-{
-  $Log: getopts.pp,v $
-  Revision 1.7  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

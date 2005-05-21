@@ -98,7 +98,6 @@ begin
   reset(t);
   rewrite(f);
   writeln(f,'{');
-  writeln(f,'   $Id: fixgdk.pp,v 1.3 2005/02/14 17:13:20 peter Exp $');
   writeln(f,'}');
   writeln(f,'');
   writeln(f,'{$ifndef gdk_include_files}');

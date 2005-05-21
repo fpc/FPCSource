@@ -53,9 +53,3 @@ begin
   fl_do_forms;
   fl_hide_form(form);
 end.
-{
-  $Log: positioner.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

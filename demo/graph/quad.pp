@@ -811,18 +811,3 @@ Begin
    DoneMouse;
 
 End.
-{
-  $Log: quad.pp,v $
-  Revision 1.5  2002/09/07 15:06:35  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/06/02 09:49:17  marco
-   * Renamefest
-
-  Revision 1.3  2002/02/27 16:29:54  carl
-  * We should initialize the mouse!
-
-  Revision 1.2  2002/02/25 12:23:05  marco
-   * Fixes for Quad Win32 GUI mode
-
-}

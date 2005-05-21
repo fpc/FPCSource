@@ -1,5 +1,4 @@
 {
-    $Id: dom.pp,v 1.15 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Component Library
 
     Implementation of DOM interfaces
@@ -1623,11 +1622,3 @@ end;
 
 
 end.
-
-
-{
-  $Log: dom.pp,v $
-  Revision 1.15  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

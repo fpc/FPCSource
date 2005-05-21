@@ -1,5 +1,4 @@
 {
-    $Id: system.pp,v 1.33 2005/05/12 20:29:04 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002-2004 by Olle Raab
 
@@ -557,29 +556,3 @@ begin
       InitCursorCtl(nil);
     end;
 end.
-
-
-{
-  $Log: system.pp,v $
-  Revision 1.33  2005/05/12 20:29:04  michael
-  + Added maxpathlen constant (maximum length of filename path)
-
-  Revision 1.32  2005/04/03 21:10:59  hajny
-    * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
-
-  Revision 1.31  2005/03/20 19:37:31  olle
-    + Added optional path translation mechanism
-
-  Revision 1.30  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.29  2005/02/07 21:30:12  peter
-    * system unit updated
-
-  Revision 1.28  2005/02/01 20:22:49  florian
-    * improved widestring infrastructure manager
-
-  Revision 1.27  2005/01/24 18:51:23  olle
-    * filetype/filecreator changed after the file is opened, in case the file did not previously exist
-
-}

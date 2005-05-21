@@ -37,4 +37,3 @@ begin
         { Should fail with 'variable expected' }
         sp := @o.v [10];
 end.
-

@@ -5,4 +5,3 @@ var
 begin
   if a<>'fsfds' then;
 end.
-

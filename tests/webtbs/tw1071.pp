@@ -36,5 +36,3 @@ begin
     end;
   halt(0);
 end.
-
-

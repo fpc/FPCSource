@@ -1,7 +1,6 @@
 {$mode objfpc}
 {$h+}
 {
-    $Id: fpcunit.pp,v 1.8 2005/04/11 18:10:55 michael Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec, Michael Van Canneyt
 

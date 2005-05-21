@@ -47,9 +47,3 @@ begin
   fl_show_message('You typed:','',s);
   fl_show_messages('Good Bye');
 end.
-{
-  $Log: goodies.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: nwsnut.pp,v 1.3 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library
     for Netware.
     Copyright (c) 1999-2005 by the Free Pascal development team.
@@ -1532,13 +1531,3 @@ implementation
 
 
 end.
-
-{
-  $Log: nwsnut.pp,v $
-  Revision 1.3  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.2  2005/01/04 11:25:33  armin
-  * rtl code cleanup, compat fixes between clib and libc
-
-}

@@ -8,4 +8,3 @@ begin
    a[true]:=1234;
    a[false]:=123;
 end.
-

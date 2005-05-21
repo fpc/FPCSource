@@ -1,5 +1,4 @@
 {
-    $Id: fpcmdic.pp,v 1.3 2002/09/07 15:40:31 peter Exp $
     Copyright (c) 2001 by Peter Vreman
 
     TDictionary class
@@ -536,9 +535,3 @@ end;
 
 
 end.
-{
-  $Log: fpcmdic.pp,v $
-  Revision 1.3  2002/09/07 15:40:31  peter
-    * old logs removed and tabs fixed
-
-}

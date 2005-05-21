@@ -1,5 +1,4 @@
 {
-    $Id: frmabout.pp,v 1.2 2005/02/14 17:13:39 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
@@ -80,16 +79,3 @@ begin
 end;
 
 end.
-
-{
-  $Log: frmabout.pp,v $
-  Revision 1.2  2005/02/14 17:13:39  peter
-    * truncate log
-
-  Revision 1.1  2003/02/14 21:59:21  michael
-  + Initial implementation
-
-  Revision 1.1  2003/01/02 14:36:25  michael
-  + Initial implementation
-
-}

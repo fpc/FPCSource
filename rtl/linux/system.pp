@@ -1,5 +1,4 @@
 {
-    $Id: system.pp,v 1.25 2005/04/24 21:19:22 peter Exp $
     This file is part of the Free Pascal run time librar~y.
     Copyright (c) 2000 by Marco van de Voort
     member of the Free Pascal development team.
@@ -251,24 +250,3 @@ Begin
   initwidestringmanager;
 {$endif HASWIDESTRING}
 End.
-
-{
-  $Log: system.pp,v $
-  Revision 1.25  2005/04/24 21:19:22  peter
-    * unblock signal in signalhandler, remove the sigprocmask call
-      from setjmp
-
-  Revision 1.24  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.23  2005/02/13 21:47:56  peter
-    * include file cleanup part 2
-
-  Revision 1.22  2005/02/06 11:20:52  peter
-    * threading in system unit
-    * removed systhrds unit
-
-  Revision 1.21  2005/02/01 20:22:49  florian
-    * improved widestring infrastructure manager
-
-}

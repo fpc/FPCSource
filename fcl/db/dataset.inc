@@ -1,5 +1,4 @@
 {
-    $Id: dataset.inc,v 1.36 2005/04/13 22:08:16 joost Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team

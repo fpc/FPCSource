@@ -289,8 +289,3 @@ function  check_scramble(scramble,message : pchar; salt : cardinal;old_ver:my_bo
 function  get_tty_password(opt_message:  pchar) : pchar;stdcall;external;
 
 end.
-  $Log: mysql_com.pp,v $
-  Revision 1.2  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

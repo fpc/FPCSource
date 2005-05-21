@@ -9,4 +9,3 @@ procedure test(w : word);
 begin
    test(1234);
 end.
-

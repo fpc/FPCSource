@@ -22,7 +22,6 @@ DONE1:
   if i<>2 then
     halt(1);
 end.
-
 //DONE1:
 //    begin end; <- inserting this line fixes the problem
 //  finally

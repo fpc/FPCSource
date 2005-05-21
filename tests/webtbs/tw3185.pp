@@ -31,4 +31,3 @@ begin
  en1:= b1;
  proc(set2ty(longword([en1]))); //exp: 2 ok act: 1 error
 end.
-

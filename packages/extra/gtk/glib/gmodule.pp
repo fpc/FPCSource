@@ -1,5 +1,4 @@
 {
-   $Id: gmodule.pp,v 1.5 2005/02/14 17:13:20 peter Exp $
 
    GMODULE - GLIB wrapper code for dynamic module loading
    Copyright (C) 1998 Tim Janik
@@ -84,9 +83,3 @@ function  g_module_build_path(directory:Pgchar; module_name:Pgchar):Pgchar;cdecl
 implementation
 
 end.
-{
-  $Log: gmodule.pp,v $
-  Revision 1.5  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

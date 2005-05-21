@@ -46,4 +46,3 @@ Begin
   { Detect wrong typecast at compile time }
   tobj1(_cla2).mymethod;
 end.
-

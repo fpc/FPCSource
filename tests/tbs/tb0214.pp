@@ -18,4 +18,3 @@ begin
   test('test');
   test(32);
 end.
-

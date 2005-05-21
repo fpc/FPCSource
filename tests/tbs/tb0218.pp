@@ -18,4 +18,3 @@ begin
   test(3);
   t(5);
 end.
-

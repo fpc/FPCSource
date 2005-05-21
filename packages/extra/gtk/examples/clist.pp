@@ -1,5 +1,4 @@
 {
-  $Id: clist.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the Gtk tutorial.
   clist.c
@@ -143,9 +142,3 @@ begin
   gtk_widget_show_all(window);
   gtk_main();
 end.
-{
-  $Log: clist.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

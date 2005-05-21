@@ -1,6 +1,5 @@
 unit nutconnection;
 {
-    $Id: nutconnection.pp,v 1.1 2004/12/29 21:39:53 armin Exp $
     This file is part of nutmon for netware
     Copyright (c) 2004 armin diehl (armin@freepascal.org)
 
@@ -397,10 +396,3 @@ end;
 
 
 end.
-
-{
-  $Log: nutconnection.pp,v $
-  Revision 1.1  2004/12/29 21:39:53  armin
-  * changed makefile version to 1.9.6, added samples for Netware
-
-}

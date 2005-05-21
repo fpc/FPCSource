@@ -28,4 +28,3 @@ begin
   stream.Position := 0;
   s:=Read(stream);
 end.
-

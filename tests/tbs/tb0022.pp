@@ -22,4 +22,3 @@ end;
 begin
   HexW($fff);
 end.
-

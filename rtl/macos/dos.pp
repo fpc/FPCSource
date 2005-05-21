@@ -1,5 +1,4 @@
 {
-    $Id: dos.pp,v 1.12 2005/04/03 22:16:02 olle Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Olle Raab and
     members of the Free Pascal development team

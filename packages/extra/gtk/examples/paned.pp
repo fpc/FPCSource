@@ -1,5 +1,4 @@
 {
-  $Id: paned.pp,v 1.2 2002/05/31 11:54:33 marco Exp $
 
   Converted from C to Pascal by Artur Bac
   <arturbac@poczta.onet.pl>
@@ -152,4 +151,3 @@ Begin
     gtk_widget_show (window);
     gtk_main ();
 End.
-

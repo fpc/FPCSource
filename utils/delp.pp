@@ -1,5 +1,4 @@
 {
-    $Id: delp.pp,v 1.7 2002/09/07 15:40:30 peter Exp $
     Copyright (c) 1999-2000 by Peter Vreman
 
     Deletes all files generated for Pascal (*.exe,units,objects,libs)
@@ -264,21 +263,3 @@ begin
     else
       WriteLn(' - Total ',DStr(Total),' Bytes Freed');
 end.
-{
-  $Log: delp.pp,v $
-  Revision 1.7  2002/09/07 15:40:30  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/06/01 18:39:14  marco
-   * Renamefest
-
-  Revision 1.5  2002/03/02 23:21:32  carl
-  * small bugfix, was never prepending path to files, so they were never actually deleted!
-
-  Revision 1.4  2002/02/27 16:32:08  carl
-  + make it work on other platforms
-  + added OS/2 masks
-  - remove log
-
-}
-

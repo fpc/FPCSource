@@ -9,5 +9,3 @@ BEGIN
    FOR i:=LOW(aa^) TO HIGH(aa^) DO
      aa^[i]:=0;
 END.
-
-

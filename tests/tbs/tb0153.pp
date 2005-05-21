@@ -27,4 +27,3 @@ begin
 
   Left^[test] := not Left^[test];
 end.
-

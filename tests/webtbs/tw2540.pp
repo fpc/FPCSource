@@ -16,4 +16,3 @@ begin
   if (s <> '??') then
     halt(1);
 end.
-

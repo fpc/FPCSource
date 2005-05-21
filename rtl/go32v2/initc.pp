@@ -1,5 +1,4 @@
 {
-    $Id: initc.pp,v 1.6 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Pierre Muller
 
@@ -92,10 +91,3 @@ begin
         exitproc:=@run_c_destructors;
      end;
 end.
-
-{
-  $Log: initc.pp,v $
-  Revision 1.6  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

@@ -13,4 +13,3 @@ begin
    new(pb);
    pb^:=10;
 end.
-

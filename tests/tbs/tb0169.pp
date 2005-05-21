@@ -31,4 +31,3 @@ begin
   if greater then
     error;
 end.
-

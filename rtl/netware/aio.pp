@@ -1,5 +1,4 @@
 {
-    $Id: aio.pp,v 1.4 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library
     for Netware.
     Copyright (c) 1999-2002 by the Free Pascal development team.
@@ -502,11 +501,3 @@ implementation
 
 
 end.
-
-
-{
-  $Log: aio.pp,v $
-  Revision 1.4  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: mkarmreg.pp,v 1.5 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman and Florian Klaempfl
 
     Convert spreg.dat to several .inc files for usage with
@@ -297,9 +296,3 @@ begin
    build_std_regname_index;
    write_inc_files;
 end.
-{
-  $Log: mkarmreg.pp,v $
-  Revision 1.5  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: doslib.pp,v 1.5 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
 
@@ -135,18 +134,3 @@ end;
 begin
   DosBase:=MOS_DOSBase;
 end.
-
-{
-  $Log: doslib.pp,v $
-  Revision 1.5  2005/02/14 17:13:30  peter
-    * truncate log
-
-    + added {$INLINE ON} to fix cycle
-
-  Revision 1.2  2004/08/09 00:10:19  karoly
-    + added most of missing stuff
-
-  Revision 1.1  2004/06/26 20:46:17  karoly
-    * initial revision
-
-}

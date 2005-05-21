@@ -1,4 +1,3 @@
-{ $Id: platform.inc,v 1.16 2005/04/04 16:16:58 peter Exp $ }
 {***************[ PLATFORM INCLUDE UNIT ]******************}
 {                                                          }
 {    System independent INCLUDE file to sort PLATFORMS     }

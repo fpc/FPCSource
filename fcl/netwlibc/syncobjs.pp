@@ -1,5 +1,4 @@
 {
-    $Id: syncobjs.pp,v 1.2 2005/02/14 17:13:16 peter Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1998 by Florian Klaempfl
     member of the Free Pascal development team
@@ -175,10 +174,3 @@ begin
 end;
 
 end.
-
-{
-  $Log: syncobjs.pp,v $
-  Revision 1.2  2005/02/14 17:13:16  peter
-    * truncate log
-
-}

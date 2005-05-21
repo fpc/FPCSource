@@ -1,5 +1,4 @@
 {
-    $Id: util.inc,v 1.4 2005/04/14 17:43:53 michael Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 

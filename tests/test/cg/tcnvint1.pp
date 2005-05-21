@@ -204,10 +204,3 @@ begin
  lb1 := (bb1 > bb2);
  WriteLn('Value should be FALSE...',lb1);
 end.
-
-{
-   $Log: tcnvint1.pp,v $
-   Revision 1.5  2005/02/14 17:13:37  peter
-     * truncate log
-
-}

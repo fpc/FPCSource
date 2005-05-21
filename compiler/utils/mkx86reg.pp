@@ -1,5 +1,4 @@
 {
-    $Id: mkx86reg.pp,v 1.6 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1998-2002 by Peter Vreman and Florian Klaempfl
 
     Convert i386reg.dat to several .inc files for usage with
@@ -467,9 +466,3 @@ begin
    build_att_regname_index;
    write_inc_files;
 end.
-{
-  $Log: mkx86reg.pp,v $
-  Revision 1.6  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

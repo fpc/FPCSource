@@ -372,11 +372,3 @@ Begin
   settesttwo;
   settestthree;
 end.
-
-{
-
-  $Log: tin.pp,v $
-  Revision 1.5  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

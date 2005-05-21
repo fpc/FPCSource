@@ -1,5 +1,4 @@
 {
-    $Id: i386.inc,v 1.69 2005/03/14 21:09:04 florian Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 

@@ -36,4 +36,3 @@ begin
    test;
    test(4);
 end.
-

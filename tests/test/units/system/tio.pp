@@ -199,10 +199,3 @@ Begin
   test_rename(FILE_NAME2, 'test3.tmp');
   test_erase(FILE_NAME);
 end.
-
-{
- $Log: tio.pp,v $
- Revision 1.6  2005/02/14 17:13:37  peter
-   * truncate log
-
-}

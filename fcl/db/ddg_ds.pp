@@ -527,8 +527,3 @@ begin
 end;
 
 end.
-  $Log: ddg_ds.pp,v $
-  Revision 1.6  2005/02/14 17:13:12  peter
-    * truncate log
-
-}

@@ -138,9 +138,3 @@ begin
    }
    writeln('*** Testing unit regexpr was successful ***');
 end.
-{
-  $Log: testreg1.pp,v $
-  Revision 1.4  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

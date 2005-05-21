@@ -10,4 +10,3 @@ const
 implementation
 
 end.
-

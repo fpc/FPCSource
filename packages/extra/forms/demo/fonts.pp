@@ -105,9 +105,3 @@ begin
   fl_show_form(ui^.fontsform,FL_PLACE_CENTER,FL_TRANSIENT,'Fonts');
   fl_do_forms();
 end.
-{
-  $Log: fonts.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

@@ -22,4 +22,3 @@ begin
    close(f);
    erase(f);
 end.
-

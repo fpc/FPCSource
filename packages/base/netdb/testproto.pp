@@ -1,5 +1,4 @@
 {
-    $Id: testproto.pp,v 1.1 2005/03/27 18:14:58 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2005 by Marco van de Voort
 
@@ -68,11 +67,3 @@ begin
      testnumber(i);
   testnumber(99);   // should fail
 end.
-
-{
-  $Log: testproto.pp,v $
-  Revision 1.1  2005/03/27 18:14:58  marco
-   * new test
-
-
-}

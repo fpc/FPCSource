@@ -1,5 +1,4 @@
 {
-    $Id: system.pp,v 1.9 2005/05/12 20:29:04 michael Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
@@ -108,16 +107,3 @@ end;
 begin
    ExitCode:=0;
 end.
-
-{
-  $Log: system.pp,v $
-  Revision 1.9  2005/05/12 20:29:04  michael
-  + Added maxpathlen constant (maximum length of filename path)
-
-  Revision 1.8  2005/04/03 21:10:59  hajny
-    * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
-
-  Revision 1.7  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

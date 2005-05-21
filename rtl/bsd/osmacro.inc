@@ -1,5 +1,4 @@
 {
-    $Id: osmacro.inc,v 1.3 2005/02/15 22:27:45 jonas Exp $
     Copyright (c) 2000-2002 by Marco van de Voort
 
     The *BSD POSIX macro's that are used both in the Baseunix unit as the

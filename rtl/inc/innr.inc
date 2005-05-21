@@ -1,5 +1,4 @@
 {
-    $Id: innr.inc,v 1.10 2005/02/14 17:13:22 peter Exp $
     This file is part of the Free Pascal run time library and compiler.
     Copyright (c) 1999-2000 by the Free Pascal development team
 

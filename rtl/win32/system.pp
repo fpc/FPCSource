@@ -1,5 +1,4 @@
 {
-    $Id: system.pp,v 1.74 2005/05/12 20:29:04 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl and Pavel Ozerski
     member of the Free Pascal development team.
@@ -1103,37 +1102,3 @@ begin
   InitWin32Widestrings
 {$endif HASWIDESTRING}
 end.
-
-{
-  $Log: system.pp,v $
-  Revision 1.74  2005/05/12 20:29:04  michael
-  + Added maxpathlen constant (maximum length of filename path)
-
-  Revision 1.73  2005/04/03 21:10:59  hajny
-    * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
-
-  Revision 1.72  2005/03/21 16:31:33  peter
-    * fix crash under win32 with previous reallocmem fix
-
-  Revision 1.71  2005/03/02 19:18:42  florian
-    * fixed compilation with 1.0.10
-
-  Revision 1.70  2005/02/26 20:43:52  florian
-    + WideCompareString and WideCompareText for win32 implemented
-
-  Revision 1.69  2005/02/26 10:21:17  florian
-    + implemented WideFormat
-    + some Widestring stuff implemented
-    * some Widestring stuff fixed
-
-  Revision 1.68  2005/02/14 17:13:32  peter
-    * truncate log
-
-  Revision 1.67  2005/02/06 13:06:20  peter
-    * moved file and dir functions to sysfile/sysdir
-    * win32 thread in systemunit
-
-  Revision 1.66  2005/02/01 20:22:50  florian
-    * improved widestring infrastructure manager
-
-}

@@ -1138,11 +1138,3 @@ Begin
     WriteLn('Passed!');
 
 end.
-
-
-{
-  $Log: tcalval4.pp,v $
-  Revision 1.8  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

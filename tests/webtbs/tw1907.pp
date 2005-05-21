@@ -20,10 +20,3 @@ begin
     a:=f1;
     b:=a(0);
 end.
-
-{
-  $Log: tw1907.pp,v $
-  Revision 1.4  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

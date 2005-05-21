@@ -28,7 +28,3 @@ var vmyclass : array[0..1] of classfamily =(dmyasso,dnextasso);
 
 begin
 end.
-
-
-
-

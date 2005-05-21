@@ -1,5 +1,4 @@
 {
-   $Id: w32smsg.inc,v 1.4 2005/02/14 17:13:18 peter Exp $
    System independent system interface for win32
 
    Copyright (c) 2000 by Pierre Muller

@@ -1,5 +1,4 @@
 {
-    $Id: xpath.pp,v 1.4 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Component Library
 
     Implementation of the XML Path Language (XPath) for Free Pascal
@@ -2497,11 +2496,3 @@ begin
 end;
 
 end.
-
-
-{
-  $Log: xpath.pp,v $
-  Revision 1.4  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

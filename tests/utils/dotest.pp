@@ -1,5 +1,4 @@
 {
-  $Id: dotest.pp,v 1.46 2005/02/14 17:13:37 peter Exp $
     This file is part of the Free Pascal test suite.
     Copyright (c) 1999-2002 by the Free Pascal development team.
 
@@ -1164,18 +1163,3 @@ begin
   GetArgs;
   RunTest;
 end.
-{
-  $Log: dotest.pp,v $
-  Revision 1.46  2005/02/14 17:13:37  peter
-    * truncate log
-
-  Revision 1.45  2005/01/26 22:05:06  olle
-    + added support for macos
-
-  Revision 1.44  2005/01/06 16:32:04  florian
-    + skipemu added
-
-  Revision 1.43  2005/01/01 18:59:52  florian
-    + emulator execution support added
-
-}

@@ -1,5 +1,4 @@
 {
-    $Id: test01.pp,v 1.1 2002/01/29 17:54:54 peter Exp $
     Copyright (c) 1999-2000 by Pavel Stingl <stingp1.eti@mail.cez.cz>
 
 
@@ -57,4 +56,3 @@ begin
   OraLogout;
   OraFin;
 end.
-

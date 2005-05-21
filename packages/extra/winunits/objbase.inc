@@ -1,5 +1,4 @@
 {
-    $Id: objbase.inc,v 1.1 2005/03/28 15:09:35 peter Exp $
     This file is part of the Free Pascal run time library.
 
     Contains the corresponding declarations to objbase.h

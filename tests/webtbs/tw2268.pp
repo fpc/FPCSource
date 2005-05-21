@@ -16,4 +16,3 @@ procedure bla(const i:longint); begin end;
 begin
  bla(PArr[Paramcount]);
 end.
-

@@ -6,4 +6,3 @@ begin
   if err then
     halt(1);
 end.
-

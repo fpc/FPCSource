@@ -1,5 +1,4 @@
 {
-  $Id: theap.pp,v 1.8 2005/03/04 17:09:49 peter Exp $
 
   Program to test heap functions, timing doesn't work
 }
@@ -169,6 +168,3 @@ BEGIN
    WriteLn;
    WriteLn ('Total time for benchmark: ', TotalTime, ' ms');
 END.
-
-
-

@@ -21,5 +21,3 @@ type
 
 begin
 end.
-
-

@@ -14,4 +14,3 @@ uses uimpluni1;
 
 begin
 end.
-

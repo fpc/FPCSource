@@ -1,6 +1,5 @@
 {
     *********************************************************************
-    $Id: sysstr.inc,v 1.38 2005/05/09 18:35:06 michael Exp $
     Copyright (C) 1997, 1998 Gertjan Schouten
 
     This program is free software; you can redistribute it and/or modify

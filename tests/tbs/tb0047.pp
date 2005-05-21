@@ -15,4 +15,3 @@ begin
    writeln(c);
    // error: writeln(a);
 end.
-

@@ -16,4 +16,3 @@ begin
    if paramstr(12)<>'' then
      halt(1);
 end.
-

@@ -1,5 +1,4 @@
 {
-   $Id: gdk_imlib.pp,v 1.2 2003/03/29 18:56:08 yuri Exp $
 
    gdk_imlib library
 

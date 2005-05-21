@@ -1,5 +1,4 @@
 {
-    $Id: syscall.inc,v 1.13 2005/04/24 19:11:28 marco Exp $
     Copyright (c) 2002 by Marco van de Voort
 
     Syscall functions for i386 *BSD.

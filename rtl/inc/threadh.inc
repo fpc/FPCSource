@@ -1,5 +1,4 @@
 {
-    $Id: threadh.inc,v 1.32 2005/04/20 06:32:47 hajny Exp $
     This file is part of the Free Pascal Run time library.
     Copyright (c) 2000 by the Free Pascal development team
 

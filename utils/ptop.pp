@@ -1,7 +1,6 @@
 
 Program PtoP;
 {
-    $Id: ptop.pp,v 1.3 2002/02/27 17:20:44 carl Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2002 by Michael Van Canneyt, member of
     the Free Pascal development team
@@ -192,15 +191,3 @@ begin
   Ins^.Done;
   OutS^.Done;
 end.
-
-{
-  $Log: ptop.pp,v $
-  Revision 1.3  2002/02/27 17:20:44  carl
-  + fix for BP
-
-  Revision 1.2  2002/02/27 16:33:45  carl
-  - truncated log
-  * bugfix of -l parameter (was never valid)
-  + added version information
-
-}

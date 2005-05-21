@@ -27,5 +27,3 @@ END;
 begin
   p;
 end.
-
-

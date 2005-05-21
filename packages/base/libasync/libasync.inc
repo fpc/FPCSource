@@ -1,5 +1,4 @@
 {
-    $Id: libasync.inc,v 1.6 2005/02/14 17:13:19 peter Exp $
 
     libasync: Asynchronous event management
     Copyright (C) 2001-2002 by

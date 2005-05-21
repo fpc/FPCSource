@@ -1,5 +1,4 @@
 {
-    $Id: mouse.pp,v 1.11 2005/03/31 14:43:03 marco Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -241,15 +240,3 @@ Const
 Begin
   SetMouseDriver(SysMouseDriver);
 end.
-{
-  $Log: mouse.pp,v $
-  Revision 1.11  2005/03/31 14:43:03  marco
-   * fix to lastmouseevent update
-
-  Revision 1.10  2005/02/14 17:13:32  peter
-    * truncate log
-
-  Revision 1.9  2005/01/12 10:25:48  armin
-  * Patch for bug 3548 from Peter
-
-}

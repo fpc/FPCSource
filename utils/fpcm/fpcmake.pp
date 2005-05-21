@@ -1,5 +1,4 @@
 {
-    $Id: fpcmake.pp,v 1.14 2005/02/14 17:13:38 peter Exp $
     Copyright (c) 2001 by Peter Vreman
 
     Convert Makefile.fpc to Makefile
@@ -301,34 +300,3 @@ begin
   else
    UseParameters;
 end.
-{
-  $Log: fpcmake.pp,v $
-  Revision 1.14  2005/02/14 17:13:38  peter
-    * truncate log
-
-  Revision 1.13  2005/01/31 19:26:47  peter
-    * show version+date if -v is used
-
-  Revision 1.12  2005/01/11 21:13:12  armin
-  * added -V to print version
-
-  Revision 1.11  2005/01/10 20:33:09  peter
-    * use cpu-os style
-
-  Revision 1.10  2004/12/05 11:18:04  hajny
-    * do not report '-?' as illegal option
-
-  Revision 1.9  2004/04/01 12:16:31  olle
-    * updated help text
-
-  Revision 1.8  2002/09/07 15:40:31  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.7  2002/01/27 21:42:35  peter
-    * -r option to process target dirs also
-    * default changed to build only for current target
-    * removed auto building of required packages
-    * removed makefile target because it causes problems with
-      an internal rule of make
-
-}

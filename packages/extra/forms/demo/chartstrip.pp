@@ -119,9 +119,3 @@ begin
     obj := fl_check_forms();
   until obj = exitbut;
 end.
-{
-  $Log: chartstrip.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

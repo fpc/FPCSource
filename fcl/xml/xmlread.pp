@@ -1,5 +1,4 @@
 {
-    $Id: xmlread.pp,v 1.17 2005/05/02 13:06:51 michael Exp $
     This file is part of the Free Component Library
 
     XML reading routines.
@@ -1561,21 +1560,3 @@ end;
 
 
 end.
-{
-  $Log: xmlread.pp,v $
-  Revision 1.17  2005/05/02 13:06:51  michael
-  + Patch from Vincent Snijders to fix reading of entities
-
-  Revision 1.16  2005/03/14 21:10:12  florian
-    * adapated for the new widestring manager
-
-  Revision 1.15  2005/02/14 17:13:18  peter
-    * truncate log
-
-  Revision 1.14  2005/02/01 20:23:39  florian
-    * adapted to new widestring manager
-
-  Revision 1.13  2005/01/22 20:54:51  michael
-  * Patch from Colin Western to correctly read CDATA
-
-}

@@ -1,6 +1,5 @@
 Unit PtoPu;
 {
-    $Id: ptopu.pp,v 1.8 2005/02/21 07:59:10 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, member of
     the Free Pascal development team
@@ -1254,35 +1253,3 @@ Begin
   CreateHash;
   dblch := [becomes, opencomment];
 end.
-
-{
-  $Log: ptopu.pp,v $
-  Revision 1.8  2005/02/21 07:59:10  michael
-  - keywords 'virtual' and 'uses' were added.
-  - '{}' and '(**)' comment types were separated.
-  - tokens now AnsiStrings
-  - the comments are now handled better, ptop now does multi line comments.
-  - added debug prints to verbose option
-          'line in-<number> out-<number> symbol "<name>" = "<value>"'
-    the <value> is truncated in the middle. this means visible beginning and
-    the end.
-
-  Revision 1.7  2003/11/24 22:39:25  michael
-  + set maxsymbolsize to 255
-
-  Revision 1.6  2003/03/27 14:23:00  michael
-  + Fixed use of linesize property, reported by Wolfgang Waffenschmidt
-
-  Revision 1.5  2002/09/07 15:40:31  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/07/14 13:39:45  carl
-    * use special symbols for portability's sake
-
-  Revision 1.3  2002/06/01 18:39:14  marco
-   * Renamefest
-
-  Revision 1.2  2002/02/27 16:35:31  carl
-  * bugfix of stream errors - would always give error!
-
-}

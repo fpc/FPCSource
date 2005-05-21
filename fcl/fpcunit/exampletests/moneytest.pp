@@ -295,4 +295,3 @@ initialization
   RegisterTests([TMoneyTest]);
 
 end.
-

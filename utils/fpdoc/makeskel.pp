@@ -1,5 +1,4 @@
 {
-    $Id: makeskel.pp,v 1.15 2005/02/14 17:13:39 peter Exp $
 
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
@@ -369,53 +368,3 @@ begin
   FreeOptions;
 
 end.
-
-
-{
-  $Log: makeskel.pp,v $
-  Revision 1.15  2005/02/14 17:13:39  peter
-    * truncate log
-
-  Revision 1.14  2004/11/15 18:00:18  michael
-  + Added help screen
-
-  Revision 1.13  2004/09/13 16:04:52  peter
-    * fix nested for-loop with same index
-
-  Revision 1.12  2004/08/29 15:32:41  michael
-  + More intelligent handling of nodes. Do not write unused nodes.
-
-  Revision 1.11  2004/08/28 18:18:59  michael
-  + Do not write descr nodes for module when updating
-
-  Revision 1.10  2004/08/28 18:15:14  michael
-  + Check whether outputfile not in inputfilenames
-
-  Revision 1.9  2004/08/28 18:04:06  michael
-  + Added update mode
-
-  Revision 1.8  2004/08/25 07:16:43  michael
-  + Improved translation handling
-
-  Revision 1.7  2004/08/24 14:48:25  michael
-  + Translate now called correctly...
-
-  Revision 1.6  2004/05/01 20:13:40  marco
-   * got fed up with exceptions on file not found.  Fileresolver now raises a
-        EFileNotFound error, and makeskel catches and exists gracefully
-
-  Revision 1.5  2003/11/28 12:51:37  sg
-  * Added support for source references
-
-  Revision 1.4  2003/09/02 13:26:47  mattias
-  MG: makeskel now ignores missing translation file
-
-  Revision 1.3  2003/05/07 16:31:32  sg
-  * Fixed a severe memory corruption problem on termination
-
-  Revision 1.2  2003/03/28 13:01:36  michael
-  + Patch from Charlie/iNQ to work with new scanner/parser
-
-  Revision 1.1  2003/03/17 23:03:20  michael
-  + Initial import in CVS
-}

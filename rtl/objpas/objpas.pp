@@ -1,5 +1,4 @@
 {
-    $Id: objpas.pp,v 1.14 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -388,13 +387,3 @@ Initialization
 finalization
 
 end.
-
-{
-  $Log: objpas.pp,v $
-  Revision 1.14  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.13  2005/01/24 18:03:19  peter
-    * pinteger in non-delphi/objfpc mode is psmallint
-
-}

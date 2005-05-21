@@ -69,10 +69,3 @@ Begin
   if has_errors then
     Halt(1);
 end.
-
-{
-  $Log: tdisk.pp,v $
-  Revision 1.3  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

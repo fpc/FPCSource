@@ -11,4 +11,3 @@ var
   cmcl : class of tmcl;
 begin
 end.
-

@@ -22,4 +22,3 @@ begin
   f := fib(NUM);
   WriteLn( IntToStr(f) );
 end.
-

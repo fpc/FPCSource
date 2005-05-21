@@ -1,5 +1,4 @@
 {
-  $Id: list.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the GTK tutorial.
   list.c
@@ -211,9 +210,3 @@ begin
   { we get here after gtk_main_quit() has been called which
     happens if the main window gets destroyed }
 end.
-{
-  $Log: list.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

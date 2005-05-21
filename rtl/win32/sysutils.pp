@@ -1,5 +1,4 @@
 {
-    $Id: sysutils.pp,v 1.45 2005/03/12 14:56:22 florian Exp $
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
@@ -1123,25 +1122,3 @@ Finalization
  if CFGDLLHandle<>0 then
    FreeLibrary(CFGDllHandle);
 end.
-{
-  $Log: sysutils.pp,v $
-  Revision 1.45  2005/03/12 14:56:22  florian
-    + added Ansi* routines to widestring manager
-    * made them using OS calls on windows
-
-  Revision 1.44  2005/03/10 19:12:28  florian
-    * applied fix from Vincent to fix make cyle crash on P4 with WinXP SP2
-
-  Revision 1.43  2005/03/02 21:10:08  florian
-    * fixed compilation with 1.0.10
-
-  Revision 1.42  2005/02/26 20:43:52  florian
-    + WideCompareString and WideCompareText for win32 implemented
-
-  Revision 1.41  2005/02/26 14:38:14  florian
-    + SysLocale
-
-  Revision 1.40  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

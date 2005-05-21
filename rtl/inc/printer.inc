@@ -1,5 +1,4 @@
 {
-    $Id: printer.inc,v 1.2 2005/02/14 17:13:26 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2004 by the Free Pascal development team
 

@@ -18,4 +18,3 @@ const
 
 begin
 end.
-

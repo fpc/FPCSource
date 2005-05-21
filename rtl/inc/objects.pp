@@ -1,5 +1,4 @@
 {
-    $Id: objects.pp,v 1.37 2005/02/14 17:13:25 peter Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -2918,9 +2917,3 @@ END;
 BEGIN
   invalidhandle:=UnusedHandle;
 END.
-{
-  $Log: objects.pp,v $
-  Revision 1.37  2005/02/14 17:13:25  peter
-    * truncate log
-
-}

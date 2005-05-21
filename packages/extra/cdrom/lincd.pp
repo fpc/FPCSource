@@ -1,5 +1,4 @@
 {
-    $Id: lincd.pp,v 1.4 2003/09/27 12:49:50 peter Exp $
     Copyright (c) 1999-2000 by Michael Van Canneyt
 
     Unit containing definitions from the Linux CDROM kernel interface.

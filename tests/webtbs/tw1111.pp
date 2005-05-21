@@ -4,4 +4,3 @@ var
 begin
   if v in [sMin..sMax] then ;
 end.
-

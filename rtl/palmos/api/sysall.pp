@@ -1,5 +1,4 @@
 {
-    $Id: sysall.pp,v 1.4 2005/02/14 17:13:31 peter Exp $
     This file is part of the Free Pascal run time library.
 
     Copyright (c) 1998 Florian Klaempfl
@@ -29,9 +28,3 @@ unit sysall;
   implementation
 
 end.
-{
-  $Log: sysall.pp,v $
-  Revision 1.4  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

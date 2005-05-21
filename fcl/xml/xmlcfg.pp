@@ -1,5 +1,4 @@
 {
-    $Id: xmlcfg.pp,v 1.7 2005/02/14 17:13:18 peter Exp $
     This file is part of the Free Component Library
 
     Implementation of TXMLConfig class
@@ -347,9 +346,3 @@ end;
 
 
 end.
-{
-  $Log: xmlcfg.pp,v $
-  Revision 1.7  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

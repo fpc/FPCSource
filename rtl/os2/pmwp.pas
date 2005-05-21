@@ -206,3 +206,28 @@ Function WinShutdownSystem(ahab: HAB;
 implementation
 
 end.
+{
+// Not implemented/not documented APIs
+WinShutdownAndReboot    PMWP     152 ?
+WinShutdown             PMWP     153 ?
+OldWinCreateObject      PMWP     202 ?
+WinRestartWorkplace     PMWP     221 ?
+ShlGetUserWordPtr       PMWP     224 ?
+WinUnlockSystem         PMWP     282 ?
+WinLockupSystem         PMWP     283 ?
+WinNotebookButtonFromID PMWP     511 ?
+WinWaitForShell         PMWP     512 ?
+}
+
+{
+// Not founded indexes
+Function WinSetFileIconN(pszFileName: PChar
+                         pIcnInfo: PICONINFO;
+                         ulIconIndex: Cardinal): Longbool; cdecl;
+    external 'PMWP' index ???;
+
+Function WinLoadFileIconN(pszFileName: PChar;
+                          fPrivate: Longbool,
+                          ulIconIndex: Cardinal): Cardinal; cdecl;
+    external 'PMWP' index ???;
+}

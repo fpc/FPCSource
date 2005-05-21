@@ -22,4 +22,3 @@ begin
   o1 := TObject.Create;
   AProc('',o1);
 end.
-

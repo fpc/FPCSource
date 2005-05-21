@@ -1,5 +1,4 @@
 {
-    $Id: bufstream.pp,v 1.3 2005/02/14 17:13:12 peter Exp $
     This file is part of the Free Component Library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -278,4 +277,3 @@ end;
 
 
 end.
-

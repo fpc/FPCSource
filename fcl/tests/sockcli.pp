@@ -1,6 +1,5 @@
 Program Client;
 {
-    $Id: sockcli.pp,v 1.5 2005/03/16 13:35:59 marco Exp $
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
 
@@ -37,13 +36,3 @@ begin
     Free;
     end;
 end.
-
-{
-  $Log: sockcli.pp,v $
-  Revision 1.5  2005/03/16 13:35:59  marco
-   * some fixes for objfpc mode
-
-  Revision 1.4  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

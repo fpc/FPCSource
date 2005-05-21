@@ -1,5 +1,4 @@
 {
-    $Id: doslibf.inc,v 1.5 2005/02/14 17:13:30 peter Exp $
     This file is part of the Free Pascal run time library.
 
     dos functions (V50) for MorphOS/PowerPC

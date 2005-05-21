@@ -13,4 +13,3 @@ var
 begin
   @p := f;
 end.
-

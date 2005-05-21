@@ -1,6 +1,5 @@
 {
     *********************************************************************
-    $Id: sysstrh.inc,v 1.18 2005/04/28 09:15:44 florian Exp $
     Copyright (C) 1997, 1998 Gertjan Schouten
 
     This program is free software; you can redistribute it and/or modify

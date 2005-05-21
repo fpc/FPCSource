@@ -1,5 +1,4 @@
 {
-    $Id: ppumove.pp,v 1.8 2005/02/14 17:13:10 peter Exp $
     Copyright (c) 1999-2002 by the FPC Development Team
 
     Add multiple FPC units into a static/shared library
@@ -612,9 +611,3 @@ begin
   if Not Quiet then
    Writeln('Done.');
 end.
-{
-  $Log: ppumove.pp,v $
-  Revision 1.8  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

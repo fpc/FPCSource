@@ -118,4 +118,3 @@ begin
   starti := i;
   kkb2(i);
 end.
-

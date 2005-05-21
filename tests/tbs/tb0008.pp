@@ -14,4 +14,3 @@ procedure test(x,y : longint);
 
 begin
 end.
-

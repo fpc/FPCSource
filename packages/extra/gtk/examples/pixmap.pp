@@ -1,5 +1,4 @@
 {
-  $Id: pixmap.pp,v 1.3 2005/02/14 17:13:20 peter Exp $
 
   This file extracted from the GTK tutorial.
   pixmap.c
@@ -86,9 +85,3 @@ begin
   { show the window }
   gtk_main ();
 end.
-{
-  $Log: pixmap.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

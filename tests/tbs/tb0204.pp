@@ -20,5 +20,3 @@ BEGIN
   Writeln( CheckThis );
   If CheckThis<>' Sixth' then halt(1);
 END.
-
-

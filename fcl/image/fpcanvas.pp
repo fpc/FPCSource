@@ -1,5 +1,4 @@
 {
-    $Id: fpcanvas.pp,v 1.16 2005/03/10 20:02:28 michael Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 

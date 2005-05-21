@@ -32,11 +32,3 @@ begin
 end;
 
 end.
-  $Log: dllist.pp,v $
-  Revision 1.5  2005/02/14 17:13:19  peter
-    * truncate log
-
-  Revision 1.4  2005/01/24 10:58:26  michael
-  + Dynamic library implementation by Joost van der Sluis
-
-}

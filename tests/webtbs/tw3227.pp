@@ -125,6 +125,3 @@ FType:=gffBYTE;
   end;
 
 end.
-
-
-

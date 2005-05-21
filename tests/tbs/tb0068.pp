@@ -24,4 +24,3 @@ end;
 begin
  SetupScanLines(1,2,3);
 end.
-

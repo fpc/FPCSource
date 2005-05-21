@@ -1,5 +1,4 @@
 {
-  $Id: xforms.pp,v 1.2 2005/02/14 17:13:20 peter Exp $
 }
 Unit xforms;
 Interface
@@ -2908,9 +2907,3 @@ begin
 end;
 
 end.
-{
-  $Log: xforms.pp,v $
-  Revision 1.2  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

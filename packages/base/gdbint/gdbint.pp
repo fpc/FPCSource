@@ -1,5 +1,4 @@
 {
-    $Id: gdbint.pp,v 1.29 2005/02/14 17:13:19 peter Exp $
     Copyright (c) 1998 by Peter Vreman
 
     Lowlevel GDB interface which communicates directly with libgdb
@@ -2462,15 +2461,3 @@ begin
 {$endif}
   InitLibGDB;
 end.
-{
-  $Log: gdbint.pp,v $
-  Revision 1.29  2005/02/14 17:13:19  peter
-    * truncate log
-
-  Revision 1.28  2005/01/07 18:47:33  florian
-    * sparc/linux uses 64 bit CORE_ADDR always it seems
-
-  Revision 1.27  2005/01/02 12:40:42  florian
-    * set default GDB version to 6
-
-}

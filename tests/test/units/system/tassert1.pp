@@ -60,10 +60,3 @@ begin
   test_assert_constant;
   WriteLn('Success!');
 end.
-
-{
-  $Log: tassert1.pp,v $
-  Revision 1.2  2005/02/14 17:13:37  peter
-    * truncate log
-
-}

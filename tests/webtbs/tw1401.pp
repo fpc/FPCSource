@@ -33,4 +33,3 @@ end;
 begin
   Writeln('Test for cardinal version of blockread/blockwrite');
 end.
-
