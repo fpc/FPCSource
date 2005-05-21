@@ -164,10 +164,18 @@ type
    procedure Beep;
    function SysErrorMessage(ErrorCode: Integer): String;
 
-   Function  CreateGUID(out GUID : TGUID) : Integer;
+Type
+   TCreateGUIDFunc = Function(Out GUID : TGUID) : Integer;
+
+Var
+   OnCreateGUID : TCreateGUIDFunc = Nil;
+  
+   Function CreateGUID(out GUID : TGUID) : Integer;
 
 type
   TTerminateProc = Function: Boolean;
+
+  
 
   procedure AddTerminateProc(TermProc: TTerminateProc);
   function CallTerminateProcs: Boolean;

@@ -62,15 +62,19 @@ implementation
     sysconst;
 
 {$define HASCREATEGUID}
-function CoCreateGuid(out guid: TGUID): HResult; stdcall; external 'ole32.dll' name 'CoCreateGuid';
-
-function CreateGUID(out Guid: TGUID): HResult;
-begin
-  Result := CoCreateGuid(Guid);
-end;
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
+
+{ UUID generation. }
+
+function CoCreateGuid(out guid: TGUID): HResult; stdcall; external 'ole32.dll' name 'CoCreateGuid';
+
+function SysCreateGUID(out Guid: TGUID): Integer;
+begin
+  Result := Integer(CoCreateGuid(Guid));
+end;
+
 
 {****************************************************************************
                               File Functions

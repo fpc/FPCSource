@@ -64,10 +64,8 @@ Type
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
-{ Include CreateGUID function } 
-
-{$i uuid.inc}
-
+{ Include SysCreateGUID function }
+{$i suuid.inc}
 
 Const
 {Date Translation}

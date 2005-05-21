@@ -495,14 +495,24 @@ begin
     P[i]:=Random(256);
 end;
 
+{$IFDEF HASCREATEGUID}
+Function SysCreateGUID(out GUID : TGUID) : Integer; forward;
+{$ENDIF}
 
-{$IFNDEF HASCREATEGUID}
 Function CreateGUID(out GUID : TGUID) : Integer;
 begin
-  Result:=0;
-  GetRandomBytes(GUID,SizeOf(Guid));  
+  If Assigned(OnCreateGUID) then
+    Result:=OnCreateGUID(GUID)
+  else
+    begin
+    {$IFDEF HASCREATEGUID}
+    Result:=SysCreateGUID(GUID);
+    {$ELSE}
+    GetRandomBytes(GUID,SizeOf(Guid));  
+    Result:=0;
+    {$ENDIF}    
+    end;
 end;
-{$ENDIF}
 
 {
   Revision 1.1  2003/10/06 21:01:06  peter
