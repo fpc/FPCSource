@@ -6312,6 +6312,7 @@ utils/simulator/fastmm64.pas svneol=native#text/plain
 utils/simulator/mm64.pas svneol=native#text/plain
 utils/simulator/simbase.pas svneol=native#text/plain
 utils/simulator/simlib.pas svneol=native#text/plain
+utils/svn2cl.pp svneol=native#text/plain
 utils/tply/COPYING -text
 utils/tply/Makefile -text
 utils/tply/Makefile.fpc svneol=native#text/plain
