@@ -655,9 +655,8 @@ begin
     oSection := FSectionList.SectionByName(Section);
     if oSection <> nil then with oSection.KeyList do
       for i := 0 to Count-1 do begin
-        s := Items[i].Value;
-        if s > '' then
-          Strings.Add(s);
+        s := Items[i].Ident+Separator+Items[i].Value;
+        Strings.Add(s);
       end;
   finally
     Strings.EndUpdate;
