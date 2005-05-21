@@ -662,7 +662,7 @@ implementation
             not(is_char(right.resulttype.def)) and
             not(is_boolean(right.resulttype.def)) then
            begin
-             inserttypeconv(right,s32inttype);
+             inserttypeconv(right,sinttype);
            end;
 
          case left.resulttype.def.deftype of
