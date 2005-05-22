@@ -40,7 +40,9 @@ begin
           currentmsg:='';
           currentauthor:='';
           currentdate:='';
-          currentrevision:='';
+          { get revision }
+          with entry as tdomelement do
+            currentrevision:=AttribStrings['revision'];
           if entry.haschildnodes then
             begin
               currentinfo:=entry.firstchild;
@@ -98,7 +100,11 @@ begin
               currentdate:=copy(currentdate,1,16);
               { replaced T }
               currentdate[11]:=' ';
-              writeln(currentdate,' ',currentauthor);
+              write(currentdate,' ',currentauthor);
+              if currentrevision<>'' then
+                writeln(' r',currentrevision)
+              else
+                writeln;
               writeln;
               { search for common prefix }
               maxequal:=65535;
