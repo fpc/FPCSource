@@ -221,17 +221,17 @@ procedure fpc_vararray_put(var d : variant;const s : variant;indices : psizeint;
 
 Procedure fpc_Read_End(var f:Text); compilerproc;
 Procedure fpc_ReadLn_End(var f : Text); compilerproc;
-Procedure fpc_Read_Text_ShortStr(var f : Text;var s : String); compilerproc;
-Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text;var s : PChar); compilerproc;
-Procedure fpc_Read_Text_PChar_As_Array(var f : Text;var s : array of char); compilerproc;
-Procedure fpc_Read_Text_AnsiStr(var f : Text;var s : AnsiString); compilerproc;
-Procedure fpc_Read_Text_Char(var f : Text; var c : char); compilerproc;
-Procedure fpc_Read_Text_SInt(var f : Text; var l :ValSInt); compilerproc;
-Procedure fpc_Read_Text_UInt(var f : Text; var u :ValUInt); compilerproc;
-Procedure fpc_Read_Text_Float(var f : Text; var v :ValReal); compilerproc;
+Procedure fpc_Read_Text_ShortStr(var f : Text;out s : String); compilerproc;
+Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text;out s : PChar); compilerproc;
+Procedure fpc_Read_Text_PChar_As_Array(var f : Text;out s : array of char); compilerproc;
+Procedure fpc_Read_Text_AnsiStr(var f : Text;out s : AnsiString); compilerproc;
+Procedure fpc_Read_Text_Char(var f : Text; out c : char); compilerproc;
+Procedure fpc_Read_Text_SInt(var f : Text; out l :ValSInt); compilerproc;
+Procedure fpc_Read_Text_UInt(var f : Text; out u :ValUInt); compilerproc;
+Procedure fpc_Read_Text_Float(var f : Text; out v :ValReal); compilerproc;
 {$ifndef CPU64}
-Procedure fpc_Read_Text_QWord(var f : text; var q : qword); compilerproc;
-Procedure fpc_Read_Text_Int64(var f : text; var i : int64); compilerproc;
+Procedure fpc_Read_Text_QWord(var f : text; out q : qword); compilerproc;
+Procedure fpc_Read_Text_Int64(var f : text; out i : int64); compilerproc;
 {$endif CPU64}
 
 {$ifdef FPC_INCLUDE_SOFTWARE_MOD_DIV}

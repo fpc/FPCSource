@@ -938,19 +938,19 @@ Begin
 End;
 
 
-Procedure fpc_Read_Text_ShortStr(var f : Text;var s : String); iocheck; [Public,Alias:'FPC_READ_TEXT_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Read_Text_ShortStr(var f : Text;out s : String); iocheck; [Public,Alias:'FPC_READ_TEXT_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Begin
   s[0]:=chr(ReadPCharLen(f,pchar(@s[1]),high(s)));
 End;
 
 
-Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text;var s : PChar); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_POINTER']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text;out s : PChar); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_POINTER']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Begin
   pchar(s+ReadPCharLen(f,s,$7fffffff))^:=#0;
 End;
 
 
-Procedure fpc_Read_Text_PChar_As_Array(var f : Text;var s : array of char); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_ARRAY']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Read_Text_PChar_As_Array(var f : Text;out s : array of char); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_ARRAY']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   len: longint;
 Begin
@@ -960,7 +960,7 @@ Begin
 End;
 
 
-Procedure fpc_Read_Text_AnsiStr(var f : Text;var s : AnsiString); iocheck; [Public,Alias:'FPC_READ_TEXT_ANSISTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Read_Text_AnsiStr(var f : Text;out s : AnsiString); iocheck; [Public,Alias:'FPC_READ_TEXT_ANSISTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   slen,len : longint;
 Begin
@@ -976,7 +976,7 @@ Begin
 End;
 
 {$ifdef hascompilerproc}
-procedure fpc_Read_Text_Char(var f : Text; var c: char); iocheck; [Public,Alias:'FPC_READ_TEXT_CHAR'];compilerproc;
+procedure fpc_Read_Text_Char(var f : Text; out c: char); iocheck; [Public,Alias:'FPC_READ_TEXT_CHAR'];compilerproc;
 {$else hascompilerproc}
 Function fpc_Read_Text_Char(var f : Text):char;[Public,Alias:'FPC_READ_TEXT_CHAR'];
 {$endif hascompilerproc}
@@ -1023,7 +1023,7 @@ end;
 
 
 {$ifdef hascompilerproc}
-Procedure fpc_Read_Text_SInt(var f : Text; var l : ValSInt); iocheck; [Public,Alias:'FPC_READ_TEXT_SINT']; compilerproc;
+Procedure fpc_Read_Text_SInt(var f : Text; out l : ValSInt); iocheck; [Public,Alias:'FPC_READ_TEXT_SINT']; compilerproc;
 {$else hascompilerproc}
 Function fpc_Read_Text_SInt(var f : Text):ValSInt;[Public,Alias:'FPC_READ_TEXT_SINT'];
 {$endif hascompilerproc}
@@ -1085,7 +1085,7 @@ End;
 
 
 {$ifdef hascompilerproc}
-Procedure fpc_Read_Text_UInt(var f : Text; var u : ValUInt);  iocheck; [Public,Alias:'FPC_READ_TEXT_UINT']; compilerproc;
+Procedure fpc_Read_Text_UInt(var f : Text; out u : ValUInt);  iocheck; [Public,Alias:'FPC_READ_TEXT_UINT']; compilerproc;
 {$else hascompilerproc}
 Function fpc_Read_Text_UInt(var f : Text):ValUInt;[Public,Alias:'FPC_READ_TEXT_UINT'];
 {$endif hascompilerproc}
@@ -1133,7 +1133,7 @@ End;
 
 
 {$ifdef hascompilerproc}
-procedure fpc_Read_Text_Float(var f : Text; var v : ValReal); iocheck; [Public,Alias:'FPC_READ_TEXT_FLOAT']; compilerproc;
+procedure fpc_Read_Text_Float(var f : Text; out v : ValReal); iocheck; [Public,Alias:'FPC_READ_TEXT_FLOAT']; compilerproc;
 {$else hascompilerproc}
 Function fpc_Read_Text_Float(var f : Text):ValReal;[Public,Alias:'FPC_READ_TEXT_FLOAT'];
 {$endif hascompilerproc}
@@ -1183,7 +1183,7 @@ end;
 {$ifndef cpu64}
 
 {$ifdef hascompilerproc}
-procedure fpc_Read_Text_QWord(var f : text; var q : qword); iocheck; [public,alias:'FPC_READ_TEXT_QWORD']; compilerproc;
+procedure fpc_Read_Text_QWord(var f : text; out q : qword); iocheck; [public,alias:'FPC_READ_TEXT_QWORD']; compilerproc;
 {$else hascompilerproc}
 function fpc_Read_Text_QWord(var f : text) : qword;[public,alias:'FPC_READ_TEXT_QWORD'];
 {$endif hascompilerproc}
@@ -1230,7 +1230,7 @@ Begin
 End;
 
 {$ifdef hascompilerproc}
-procedure fpc_Read_Text_Int64(var f : text; var i : int64); iocheck; [public,alias:'FPC_READ_TEXT_INT64']; compilerproc;
+procedure fpc_Read_Text_Int64(var f : text; out i : int64); iocheck; [public,alias:'FPC_READ_TEXT_INT64']; compilerproc;
 {$else hascompilerproc}
 function fpc_Read_Text_Int64(var f : text) : int64;[public,alias:'FPC_READ_TEXT_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif hascompilerproc}
