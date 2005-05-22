@@ -1,5 +1,4 @@
-#
-#   $Id: errores.msg,v 1.5 2005/03/07 19:52:29 florian Exp $
+﻿#
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2000 by the Free Pascal Development team
 #
@@ -185,23 +184,23 @@ scan_w_macro_cut_after_255_chars=02020_W_El contenido de las macros esta limitad
 % The contents of macros cannot be longer than 255 characters.
 scan_e_endif_without_if=02021_E_ENDIF sin IF(N)DEF
 % Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
-scan_f_user_defined=02022_F_El usuario definió: $1
+scan_f_user_defined=02022_F_Error de usuario: $1
 % A user defined fatal error occurred. see also the \progref
-scan_e_user_defined=02023_E_El usuario definió: $1
+scan_e_user_defined=02023_E_Error de usuario: $1
 % A user defined error occurred. see also the \progref
-scan_w_user_defined=02024_W_El usuario definió: $1
+scan_w_user_defined=02024_W_Aviso de usuario: $1
 % A user defined warning occurred. see also the \progref
-scan_n_user_defined=02025_N_El usuario definió: $1
+scan_n_user_defined=02025_N_Nota de usuario: $1
 % A user defined note was encountered. see also the \progref
-scan_h_user_defined=02026_H_El usuario definió: $1
+scan_h_user_defined=02026_H_Consejo de usuario: $1
 % A user defined hint was encountered. see also the \progref
-scan_i_user_defined=02027_I_El usuario definió: $1
+scan_i_user_defined=02027_I_Informacion de usuario: $1
 % User defined information was encountered. see also the \progref
 scan_e_keyword_cant_be_a_macro=02028_E_Palabra clave redefinida como macro no tiene efecto
 % You cannot redefine keywords with macros.
 scan_f_macro_buffer_overflow=02029_F_Desbordamiento del buffer de macro durante la lextura o expansión
 % Your macro or it's result  was too long for the compiler.
-scan_w_macro_deep_ten=02030_W_La expansión de macros excede una profundidad de 16.
+can_w_macro_too_deep=02030_W_La expansión de macros excede una profundidad de 16.
 % When expanding a macro, macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
@@ -300,13 +299,15 @@ scan_e_too_many_push=02063_F_Demasiados niveles de PUSH
 % A maximum of 20 levels is allowed.  This error occur only in mode MacPas.
 scan_e_too_many_pop=02064_E_A POP sin un PUSH previo
 % This error occur only in mode MacPas.
-scan_e_error_macro_lacks_value=02065_E_Macro "$1" no tiene ningun valor
+scan_e_error_macro_lacks_value=02065_E_Macro o variable de compilación "$1" no tiene ningún valor
 % Thus the conditional compiling expression cannot be evaluated.
 scan_e_wrong_switch_toggle_default=02066_E_Valor invalido para el conmutado, use ON/OFF/DEFAULT o +/-/*
 % You need to use ON or OFF or DEFAULT or a + or - or * to toggle the switch
 scan_e_mode_switch_not_allowed=02067_E_No esta permitido cambiar de modo a "$1" aqui
 % A mode switch has already been encountered, or, in case of option -Mmacpas,
 % a mode switch occur after UNIT.
+scan_e_error_macro_undefined=02068_E_Variable en tiempo de compilación "$1" no ha sido definida.
+% Thus the conditional compile time expression cannot be evaluated.
 % \end{description}
 #
 # Parser
@@ -379,7 +380,7 @@ parser_e_wrong_parameter_size=03026_E_Numero de parámetros incorrecto
 parser_e_overloaded_no_procedure=03027_E_el identificador sobrecargado "$1" no es una función
 % The compiler encountered a symbol with the same name as an overloaded
 % function, but it is not a function it can overload.
-parser_e_overloaded_have_same_parameters=03028_E_funciones sobrecargadas tienen los mismos par�metros
+parser_e_overloaded_have_same_parameters=03028_E_funciones sobrecargadas tienen los mismos par metros
 % You're declaring overloaded functions, but with the same parameter list.
 % Overloaded function must have at least 1 different parameter in their
 % declaration.
@@ -564,7 +565,7 @@ parser_e_false_with_expr=03079_E_El tipo de la expresión tiene que ser class o 
 % A \var{with} statement needs an argument that is of the type \var{record}
 % or \var{class}. You are using \var{with} on an expression that is not of
 % this type.
-parser_e_void_function=03080_E_Los procedimientos no pueden devolver ningun valor
+parser_e_void_function=03080_E_Los procedimientos no pueden devolver ningún valor
 % In \fpc, you can specify a return value for a function when using
 % the \var{exit} statement. This error occurs when you try to do this with a
 % procedure. Procedures  cannot return a value.
@@ -899,7 +900,7 @@ parser_e_no_procvarobj_const=03183_E_constantes con tipo de tipo Procedure/Funct
 % class instance it operates on (which can not be known at compile time).
 parser_e_default_value_only_one_para=03184_E_Sólo se puede asignar valor por defecto a un parámetro
 parser_e_default_value_expected_for_para=03185_E_Parámetro por defecto requerido para "$1"
-parser_w_unsupported_feature=03186_W_�Uso de una caracteristica no soportada!
+parser_w_unsupported_feature=03186_W_¡Uso de una caracteristica no soportada!
 % You're trying to force the compiler into doing something it cannot do yet.
 parser_h_c_arrays_are_references=03187_H_Arrays tipo C son pasados por referencia
 % Any array passed to a C functions is passed
@@ -1326,12 +1327,12 @@ sym_w_wrong_C_pack=05034_W_El tipo "$1" no esta correctamente alineado para C
 % for C structures.
 sym_e_illegal_field=05035_E_Identificador de campo de registro desconocido: "$1"
 % The field doesn't exist in the record/object definition.
-sym_n_uninitialized_local_variable=05036_W_La variable local "$1" no parace haber sido inicializada
+sym_w_uninitialized_local_variable=05036_W_La variable local "$1" no parace haber sido inicializada
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-sym_n_uninitialized_variable=05037_W_La variable "$1" no parece haber sido inicializada
+sym_w_uninitialized_variable=05037_W_La variable "$1" no parece haber sido inicializada
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
@@ -1366,6 +1367,16 @@ sym_w_non_implemented_symbol=05055_W_El símbolo "$1" no está implementado
 sym_e_cant_create_unique_type=05056_E_No se puede crear un tipo único a partir de este tipo
 % Only simple types like ordinal, float and string types are supported when
 % redefining a type with \var{type newtype = type oldtype;}.
+sym_h_uninitialized_local_variable=05057_H_La variable local "$1" no parece haber sido inicializada
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. appears in the right-hand-side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assigment)
+sym_h_uninitialized_variable=05058_H_La variable "$1" no parece haber sido inicializada
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. appears in the right-hand-side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assigment)
 % \end{description}
 #
 # Codegenerator
@@ -1376,7 +1387,7 @@ sym_e_cant_create_unique_type=05056_E_No se puede crear un tipo único a partir 
 % This section lists all messages that can be displayed if the code
 % generator encounters an error condition.
 % \begin{description}
-cg_e_parasize_too_big=06009_E_El tamaño de la lista de par�metros excede 65535 bytes
+cg_e_parasize_too_big=06009_E_El tamaño de la lista de par metros excede 65535 bytes
 % The I386 processor limits the parameter list to 65535 bytes (the \var{RET}
 % instruction causes this)
 cg_e_file_must_call_by_reference=06012_E_Los tipos File deben ser pasados por referencia
@@ -1596,7 +1607,7 @@ asmr_e_invalid_opcode_and_operand=07048_E_Combinación inválida de operacion y 
 % The opcode cannot be used with this type of operand
 asmr_e_syn_operand=07049_E_Error de sintaxis de ensamblador en operando
 asmr_e_syn_constant=07050_E_Error de sintaxis de ensamblador en constante
-asmr_e_invalid_string_expression=07051_E_Espresión de cadena noáv�lida
+asmr_e_invalid_string_expression=07051_E_Espresión de cadena noáv lida
 asmr_w_const32bit_for_address=07052_W_constante con la direccion del símbolo $1 que no es un puntero
 % A constant expression represents an address which does not fit
 % into a pointer. The address is probably incorrect
@@ -2109,6 +2120,12 @@ CPU de destino       : $FPCCPU
 Plataformas soportadas:
   $OSTARGETS
 
+Sets de instrucciones de la CPU soportados:
+  $INSTRUCTIONSETS
+
+Sets de instrucciones de la FPU soportados:
+  $FPUINSTRUCTIONSETS
+
 Este programa esta bajo la licencia GNU General Public Licence
 Para mas informació lea COPYING.FPC
 
@@ -2173,12 +2190,13 @@ S*2Aas_ensamblar usando GNU AS
 **2Cc<x>_cambiar la convencion de llamada por defecto a <x>
 **2CD_crear adicionalmente una librería dinámica (no soportado)
 **2Ce_Compilar con opcodes de punto flotante emulados
-**2Cf<x>_Cambiar el set de instrucciones de la FPU usado a <x>
+**2Cf<x>_Cambiar el set de instrucciones de la FPU usado, fpc -i para posibles valores<x>
 **2Cg_Generar código PIC
 **2Ch<n>_<n> bytes heap (entre 1023 y 67107840)
 **2Ci_Comprobación de E/S
 **2Cn_omitir etapa de enlazado
 **2Co_comprobar desbordamiento en operaciones de enteros
+**2Cp<x>_Cambiar el set de instrucciones usado, fpc -i para posibles valores
 **2Cr_comprobación de rango
 **2CR_verificar validez de objetos de llamada
 **2Cs<n>_definir el tamaño de la pila a <n>
