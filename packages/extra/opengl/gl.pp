@@ -1270,15 +1270,15 @@ var
   glGetLightiv: procedure(light, pname: GLenum; params: PGLint); extdecl;
   glGetMapdv: procedure(target, query: GLenum; v: PGLdouble); extdecl;
   glGetMapfv: procedure(target, query: GLenum; v: PGLfloat); extdecl;
-  glGetMapiv: procedure(target, query: GLenum; v: GLint); extdecl;
+  glGetMapiv: procedure(target, query: GLenum; v: PGLint); extdecl;
   glGetMaterialfv: procedure(face, pname: GLenum; params: PGLfloat); extdecl;
-  glGetMaterialiv: procedure(face, pname: GLenum; params: GLint); extdecl;
+  glGetMaterialiv: procedure(face, pname: GLenum; params: PGLint); extdecl;
   glGetPixelMapfv: procedure(map: GLenum; values: PGLfloat); extdecl;
   glGetPixelMapuiv: procedure(map: GLenum; values: PGLuint); extdecl;
   glGetPixelMapusv: procedure(map: GLenum; values: PGLushort); extdecl;
   glGetPointerv: procedure(pname: GLenum; params: Pointer); extdecl;
   glGetPolygonStipple: procedure(mask: PGLubyte); extdecl;
-  glGetString: function(name: GLenum): PGLubyte; extdecl;
+  glGetString: function(name: GLenum): PChar; extdecl;
   glGetTexEnvfv: procedure(target, pname: GLenum; params: PGLfloat); extdecl;
   glGetTexEnviv: procedure(target, pname: GLenum; params: PGLint); extdecl;
   glGetTexGendv: procedure(coord, pname: GLenum; params: PGLdouble); extdecl;
@@ -1314,7 +1314,7 @@ var
   glLightf: procedure(light, pname: GLenum; param: GLfloat); extdecl;
   glLightfv: procedure(light, pname: GLenum; const params: PGLfloat); extdecl;
   glLighti: procedure(light, pname: GLenum; param: GLint); extdecl;
-  glLightiv: procedure(light, pname: GLenum; const params: GLint); extdecl;
+  glLightiv: procedure(light, pname: GLenum; const params: PGLint); extdecl;
   glLineStipple: procedure(factor: GLint; pattern: GLushort); extdecl;
   glLineWidth: procedure(width: GLfloat); extdecl;
   glListBase: procedure(base: GLuint); extdecl;
