@@ -35,27 +35,27 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
      e : TMouseEvent;
 
   begin
-          EnterCriticalSection(ChangeMouseEvents);
-          e.x:=ir.Event.MouseEvent.dwMousePosition.x;
-          e.y:=ir.Event.MouseEvent.dwMousePosition.y;
-          e.buttons:=0;
-          e.action:=0;
-          if (ir.Event.MouseEvent.dwButtonState and FROM_LEFT_1ST_BUTTON_PRESSED<>0) then
-            e.buttons:=e.buttons or MouseLeftButton;
-          if (ir.Event.MouseEvent.dwButtonState and FROM_LEFT_2ND_BUTTON_PRESSED<>0) then
-            e.buttons:=e.buttons or MouseMiddleButton;
-          if (ir.Event.MouseEvent.dwButtonState and RIGHTMOST_BUTTON_PRESSED<>0) then
-            e.buttons:=e.buttons or MouseRightButton;
+    EnterCriticalSection(ChangeMouseEvents);
+    e.x:=ir.Event.MouseEvent.dwMousePosition.x;
+    e.y:=ir.Event.MouseEvent.dwMousePosition.y;
+    e.buttons:=0;
+    e.action:=0;
+    if (ir.Event.MouseEvent.dwButtonState and FROM_LEFT_1ST_BUTTON_PRESSED<>0) then
+      e.buttons:=e.buttons or MouseLeftButton;
+    if (ir.Event.MouseEvent.dwButtonState and FROM_LEFT_2ND_BUTTON_PRESSED<>0) then
+      e.buttons:=e.buttons or MouseMiddleButton;
+    if (ir.Event.MouseEvent.dwButtonState and RIGHTMOST_BUTTON_PRESSED<>0) then
+      e.buttons:=e.buttons or MouseRightButton;
 
-          if (Lasthandlermouseevent.x<>e.x) or (LasthandlerMouseEvent.y<>e.y) then
-            e.Action:=MouseActionMove;
-          if (LastHandlerMouseEvent.Buttons<>e.Buttons) then
-           begin
-            if (LasthandlerMouseEvent.Buttons and e.buttons<>LasthandlerMouseEvent.Buttons) then
-              e.Action:=MouseActionUp
-            else
-              e.Action:=MouseActionDown;
-           end;
+    if (Lasthandlermouseevent.x<>e.x) or (LasthandlerMouseEvent.y<>e.y) then
+      e.Action:=MouseActionMove;
+    if (LastHandlerMouseEvent.Buttons<>e.Buttons) then
+     begin
+      if (LasthandlerMouseEvent.Buttons and e.buttons<>LasthandlerMouseEvent.Buttons) then
+        e.Action:=MouseActionUp
+      else
+        e.Action:=MouseActionDown;
+     end;
 
 
 //
@@ -64,27 +64,35 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
 //  previous one. (bug 2312)
 //
 
-           { can we compress the events? }
-         if (PendingMouseEvents>0) and
-            (e.buttons=PendingMouseTail^.buttons) and
-            (e.action=PendingMouseTail^.action) then
-            begin
-               PendingMouseTail^.x:=e.x;
-               PendingMouseTail^.y:=e.y;
-            end
-          else
-            begin
+     { can we compress the events? }
+   if (PendingMouseEvents>0) and
+      (e.buttons=PendingMouseTail^.buttons) and
+      (e.action=PendingMouseTail^.action) then
+      begin
+         PendingMouseTail^.x:=e.x;
+         PendingMouseTail^.y:=e.y;
+      end
+    else
+      begin
+         if e.action<>0 then
+           begin
+             LastHandlermouseEvent:=e;
 
-               if e.action<>0 then
-                 begin
-                   LastHandlermouseEvent:=e;
-                   PutMouseEvent(e);
-                 end;
-               // this should be done in PutMouseEvent, now it is PM
-               // inc(PendingMouseEvents);
-            end;
-          LastMouseEvent:=e;
-          LeaveCriticalSection(ChangeMouseEvents);
+             { what till there is again space in the mouse event queue }
+             while PendingMouseEvents>=MouseEventBufSize do
+               begin
+                 LeaveCriticalSection(ChangeMouseEvents);
+                 sleep(0);
+                 EnterCriticalSection(ChangeMouseEvents);
+               end;
+
+             PutMouseEvent(e);
+           end;
+         // this should be done in PutMouseEvent, now it is PM
+         // inc(PendingMouseEvents);
+      end;
+    LastMouseEvent:=e;
+    LeaveCriticalSection(ChangeMouseEvents);
   end;
 
 procedure SysInitMouse;
@@ -150,9 +158,14 @@ begin
   EnterCriticalSection(ChangeMouseEvents);
   MouseEvent:=PendingMouseHead^;
   inc(PendingMouseHead);
-  if longint(PendingMouseHead)=longint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
+  if ptrint(PendingMouseHead)=ptrint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
    PendingMouseHead:=@PendingMouseEvent;
   dec(PendingMouseEvents);
+
+  { LastMouseEvent is already set at the end of the mouse event handler,
+    so this code might compare LastMouseEvent with itself leading to
+    "empty" events (FK)
+
   if (LastMouseEvent.x<>MouseEvent.x) or (LastMouseEvent.y<>MouseEvent.y) then
    MouseEvent.Action:=MouseActionMove;
   if (LastMouseEvent.Buttons<>MouseEvent.Buttons) then
@@ -162,8 +175,11 @@ begin
      else
        MouseEvent.Action:=MouseActionDown;
    end;
-  if MouseEvent.action=0 then MousEevent.action:=MouseActionMove; // can sometimes happen due to compression of events.
+  if MouseEvent.action=0 then
+    MousEevent.action:=MouseActionMove; // can sometimes happen due to compression of events.
   LastMouseEvent:=MouseEvent;
+  }
+
   LeaveCriticalSection(ChangeMouseEvents);
 end;
 
@@ -188,7 +204,7 @@ begin
    begin
      PendingMouseTail^:=MouseEvent;
      inc(PendingMouseTail);
-     if longint(PendingMouseTail)=longint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
+     if ptrint(PendingMouseTail)=ptrint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
       PendingMouseTail:=@PendingMouseEvent;
       { why isn't this done here ?
         so the win32 version do this by hand:}
