@@ -324,11 +324,9 @@ unit cgx86;
 
 
     procedure tcgx86.make_simple_ref(list:taasmoutput;var ref: treference);
-{$ifdef x86_64}
       var
         hreg : tregister;
         href : treference;
-{$endif x86_64}
       begin
 {$ifdef x86_64}
         { Only 32bit is allowed }
@@ -378,6 +376,31 @@ unit cgx86;
               end
             else if ref.base=NR_NO then
               ref.base:=hreg
+            else
+              begin
+                list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.base,hreg));
+                ref.base:=hreg;
+              end;
+          end;
+{$else x86_64}
+        if (cs_create_pic in aktmoduleswitches) and
+          assigned(ref.symbol) then
+          begin
+            reference_reset_symbol(href,ref.symbol,0);
+            hreg:=getaddressregister(list);
+            href.refaddr:=addr_pic;
+            href.base:=current_procinfo.got;
+            list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,hreg));
+
+            ref.symbol:=nil;
+
+            if ref.base=NR_NO then
+              ref.base:=hreg
+            else if ref.index=NR_NO then
+              begin
+                ref.index:=hreg;
+                ref.scalefactor:=1;
+              end
             else
               begin
                 list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.base,hreg));
@@ -666,7 +689,10 @@ unit cgx86;
                       tmpref.base:=NR_RIP;
                       list.concat(taicpu.op_ref_reg(A_MOV,S_Q,tmpref,r));
 {$else x86_64}
-                      internalerror(2005042501);
+                      reference_reset_symbol(tmpref,ref.symbol,0);
+                      tmpref.refaddr:=addr_pic;
+                      tmpref.base:=current_procinfo.got;
+                      list.concat(taicpu.op_ref_reg(A_MOV,S_L,tmpref,r));
 {$endif x86_64}
                     end
                   else
@@ -1753,6 +1779,7 @@ unit cgx86;
             a_call_name(list,'FPC_GETEIPINEBX');
             list.concat(taicpu.op_sym_ofs_reg(A_ADD,tcgsize2opsize[OS_ADDR],objectlibrary.newasmsymbol('_GLOBAL_OFFSET_TABLE_',AB_EXTERNAL,AT_DATA),0,NR_PIC_OFFSET_REG));
             list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
+            current_procinfo.got:=NR_PIC_OFFSET_REG;
           end;
       end;
 

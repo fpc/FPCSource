@@ -70,7 +70,11 @@ interface
            if assigned(symbol) then
              AsmWrite(symbol.name);
            if ref.refaddr=addr_pic then
+{$ifdef x86_64}
              AsmWrite('@GOTPCREL');
+{$else x86_64}
+             AsmWrite('@GOT');
+{$endif x86_64}
            if offset<0 then
              AsmWrite(tostr(offset))
            else
