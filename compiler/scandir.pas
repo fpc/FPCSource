@@ -1163,6 +1163,7 @@ implementation
         AddDirective('VARSTRINGCHECKS',directive_all, @dir_varstringchecks);
         AddDirective('VERSION',directive_all, @dir_version);
         AddDirective('WAIT',directive_all, @dir_wait);
+        AddDirective('WARN',directive_all, @dir_warnings);
         AddDirective('WARNING',directive_all, @dir_warning);
         AddDirective('WARNINGS',directive_all, @dir_warnings);
         AddDirective('WEAKPACKAGEUNIT',directive_all, @dir_weakpackageunit);
