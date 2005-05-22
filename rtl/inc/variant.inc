@@ -22,6 +22,18 @@ procedure invalidvariantop;
      HandleErrorFrame(221,get_frame);
   end;
 
+
+procedure invalidvariantopnovariants;
+  begin
+    writeln(stderr);
+    writeln(stderr,'Program needs probably the variants unit.');
+    writeln(stderr,'Include the variants unit in your uses statements');
+    writeln(stderr,'as one of the first units.');
+    writeln(stderr);
+    HandleErrorFrame(221,get_frame);
+  end;
+  
+  
 procedure vardisperror;
   begin
      HandleErrorFrame(222,get_frame);
@@ -619,7 +631,7 @@ procedure initvariantmanager;
      tvardata(Unassigned).VType:=varEmpty;
      tvardata(Null).VType:=varNull;
      for i:=0 to (sizeof(tvariantmanager) div sizeof(pointer))-1 do
-       ppointer(@variantmanager+i*sizeof(pointer))^:=@invalidvariantop;
+       ppointer(@variantmanager+i*sizeof(pointer))^:=@invalidvariantopnovariants;
      pointer(variantmanager.varclear):=@varclear
   end;
 
