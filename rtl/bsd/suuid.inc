@@ -15,6 +15,29 @@
 
  **********************************************************************}
 
+{$IFDEF FREEBSD5}
+{$IFDEF FPC_USE_LIBC}
+
+function cuuidgen(p:PGUID;x:cint):cint; external clib name 'uuidgen';
+
+{$ELSE}
+
+function cuuidgen(p:pguid;x:cint):cint;
+
+begin
+  result:=do_syscall(syscall_nr_uuidgen,tsysparam(p),tsysparam(x));
+end;
+{$ENDIF}
+
+Function SysCreateGUID(out GUID : TGUID) : Integer;
+
+begin
+ result:=0;
+ if cuuidgen(@guid,1)=-1 then
+    GetRandomBytes(GUID,SizeOf(Guid));  
+end;
+
+{$ELSE}
 
 Const 
   RandomDevice  = '/dev/urandom';
@@ -54,3 +77,4 @@ begin
     GetRandomBytes(GUID,SizeOf(Guid));  
   Result:=0;    
 end;
+{$ENDIF}
