@@ -83,9 +83,9 @@ type
   PPointer = ^Pointer;
 
 var
-  gluErrorString: function(errCode: GLenum): PGLubyte; extdecl;
+  gluErrorString: function(errCode: GLenum): PChar; extdecl;
   gluErrorUnicodeStringEXT: function(errCode: GLenum): PWideChar; extdecl;
-  gluGetString: function(name: GLenum): PGLubyte; extdecl;
+  gluGetString: function(name: GLenum): PChar; extdecl;
   gluOrtho2D: procedure(left,right, bottom, top: GLdouble); extdecl;
   gluPerspective: procedure(fovy, aspect, zNear, zFar: GLdouble); extdecl;
   gluPickMatrix: procedure(x, y, width, height: GLdouble; var viewport: TViewPortArray); extdecl;
