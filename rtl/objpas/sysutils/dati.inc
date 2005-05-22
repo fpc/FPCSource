@@ -89,7 +89,7 @@ end ;
 
 function TimeStampToMSecs(const TimeStamp: TTimeStamp): comp;
 begin
-  result := TimeStamp.Time + timestamp.date*msecsperday;
+  result := TimeStamp.Time + comp(timestamp.date)*msecsperday;
 end ;
 
 Function TryEncodeDate(Year,Month,Day : Word; Var Date : TDateTime) : Boolean;
