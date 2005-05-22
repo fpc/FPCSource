@@ -314,7 +314,7 @@ syscall_nr_getdirentries                =196;
  syscall_nr_rfork                       = 251;
  syscall_nr_nanosleep                   = 240;
  syscall_nr_getrusage                   =117;
-
+ syscall_nr_uuidgen			=392; { 5.x+}
 
 {
   $Log: sysnr.inc,v $
