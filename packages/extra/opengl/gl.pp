@@ -2244,9 +2244,9 @@ end;
 
 initialization
 
-  {$IFNDEF FPC}
+  {$IFDEF WIN32}
   Set8087CW($133F);
-  {$ENDIF}
+  {$ENDIF WIN32}
 
   try
     {$IFDEF Win32}
