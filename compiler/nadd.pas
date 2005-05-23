@@ -1001,10 +1001,8 @@ implementation
                     end;
 
                  { When there is a signed type we convert to signed int.
-                   Otherwise (both are unsigned) we keep the result also unsigned.
-                   Exception is substraction, that also gives an signed result }
-                 if (nodetype=subn) or
-                    (is_signed(ld) or is_signed(rd)) then
+                   Otherwise (both are unsigned) we keep the result also unsigned }
+                 if (is_signed(ld) or is_signed(rd)) then
                    begin
                      inserttypeconv(right,sinttype);
                      inserttypeconv(left,sinttype);
