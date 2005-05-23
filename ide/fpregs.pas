@@ -18,6 +18,7 @@ interface
 implementation
 end.
 {$else NODEBUG}
+interface
 uses
 {$ifdef win32}
   Windows,
