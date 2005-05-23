@@ -2,7 +2,7 @@
  ****************************************************************************
 
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2002 by Free Pascal development team
+    Copyright (c) 1999-2005 by Free Pascal development team
 
     Free Pascal - OS/2 runtime library
 
@@ -15,7 +15,7 @@
 
 ****************************************************************************}
 
-unit System;
+unit system;
 
 interface
 
@@ -472,6 +472,11 @@ begin
   envp[env_count]:=nil;
 end;
 
+var
+(* Initialized by system unit initialization *)
+    PIB: PProcessInfoBlock;
+
+
 procedure InitArguments;
 var
   arglen,
@@ -490,48 +495,56 @@ var
          oldargvlen:=argvlen;
          argvlen:=(idx+8) and (not 7);
          sysreallocmem(argv,argvlen*sizeof(pointer));
-         fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
+{         fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);}
        end;
       { use realloc to reuse already existing memory }
       { always allocate, even if length is zero, since }
       { the arg. is still present!                     }
-{      sysreallocmem(argv[idx],len+1);}
       ArgV [Idx] := SysAllocMem (Succ (Len));
     end;
 
 begin
-  count:=0;
-  argv:=nil;
-  argvlen:=0;
+  CmdLine := SysAllocMem (MaxPathLen);
 
-  // Get argv[0]
-  pc:=cmdline;
-  Arglen:=0;
-  repeat
-    Inc(Arglen);
-  until (pc[Arglen] = #0);
-  allocarg(count,arglen);
-  move(pc^,argv[count]^,arglen);
+  ArgV := SysAllocMem (8 * SizeOf (pointer));
 
-  { ReSetup cmdline variable }
-  repeat
-    Inc(Arglen);
-  until (pc[Arglen]=#0);
-  Inc(Arglen);
-  pc:=GetMem(ArgLen);
-  move(cmdline^, pc^, arglen);
-  Arglen:=0;
-  repeat
-    Inc(Arglen);
-  until (pc[Arglen]=#0);
-  pc[Arglen]:=' '; // combine argv[0] and command line
-  CmdLine:=pc;
+  ArgLen := StrLen (PChar (PIB^.Cmd));
+  Inc (ArgLen);
+
+  if DosQueryModuleName (PIB^.Handle, MaxPathLen, CmdLine) = 0 then
+   ArgVLen := Succ (StrLen (CmdLine))
+  else
+(* Error occurred - use program name from command line as fallback. *)
+   begin
+    Move (PIB^.Cmd^, CmdLine, ArgLen);
+    ArgVLen := ArgLen;
+   end;
+
+{ Get ArgV [0] }
+  ArgV [0] := SysAllocMem (ArgVLen);
+  Move (CmdLine^, ArgV [0]^, ArgVLen);
+  Count := 1;
+
+(* PC points to leading space after program name on command line *)
+  PC := PChar (PIB^.Cmd) + ArgLen;
+
+(* ArgLen contains size of command line arguments including leading space. *)
+  ArgLen := StrLen (PC);
+(* Just to make sure the leading space is there for all OS/2 versions... *)
+  if PC^ <> ' ' then
+   begin
+    CmdLine [ArgVLen] := ' ';
+    Inc (ArgVLen);
+   end;
+
+  SysReallocMem (CmdLine, ArgVLen + ArgLen);
+(* Ending #0 after program name gets overwritten with space from PIB^.Cmd. *)
+  Move (PC^, CmdLine [ArgVLen], Succ (ArgLen));
+
+(* ArgV has space for 8 parameters from the first allocation. *)
+  ArgVLen := 8;
 
   { process arguments }
-  pc:=cmdline;
-{$IfDef DEBUGARGUMENTS}
-  Writeln(stderr,'GetCommandLine is #',pc,'#');
-{$EndIf }
   while pc^<>#0 do
    begin
      { skip leading spaces }
@@ -685,7 +698,6 @@ begin
 end;
 
 var TIB: PThreadInfoBlock;
-    PIB: PProcessInfoBlock;
     RC: cardinal;
     ErrStr: string;
     P: pointer;
@@ -739,8 +751,8 @@ begin
     Environment := pointer (PIB^.Env);
     InitEnvironment;
 
-    CmdLine := pointer (PIB^.Cmd);
     InitArguments;
+
     DefaultCreator := '';
     DefaultFileType := '';
 
