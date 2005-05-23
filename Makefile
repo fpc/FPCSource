@@ -2605,6 +2605,11 @@ RPMDIR=$(BUILDDIR)/rpm
 RPMSPECFILE:=$(RPMDIR)/SPECS/fpc-$(PACKAGE_VERSION).spec
 RPMSOURCEFILE:=$(RPMDIR)/SOURCES/fpc-$(PACKAGE_VERSION)-src.tar.gz
 RPMSRCDIR:=$(RPMDIR)/SOURCES/fpc
+RPMDEFINES=--define "_topdir $(RPMDIR)" \
+	   --define "_sourcedir $(RPMDIR)/SOURCES" \
+	   --define "_builddir $(RPMDIR)/BUILD" \
+	   --define "_rpmdir $(RPMDIR)/RPMS" \
+	   --define "_srcrpmdir $(RPMDIR)/SRPMS"
 rpmcopy: distclean
 	false || [ -d $(RPMDIR) ] || install -d $(RPMDIR)
 	false || [ -d $(RPMDIR)/BUILD ] || install -d $(RPMDIR)/BUILD
@@ -2613,12 +2618,7 @@ rpmcopy: distclean
 	false || [ -d $(RPMDIR)/RPMS ] || install -d $(RPMDIR)/RPMS
 	false || [ -d $(RPMDIR)/SRPMS ] || install -d $(RPMDIR)/SRPMS
 	rm -rf $(RPMSRCDIR)
-	echo "%define _topdir $(RPMDIR)" > $(RPMSPECFILE)
-	echo "%define _sourcedir $(RPMDIR)/SOURCES" >> $(RPMSPECFILE)
-	echo "%define _builddir $(RPMDIR)/BUILD" >> $(RPMSPECFILE)
-	echo "%define _rpmdir $(RPMDIR)/RPMS" >> $(RPMSPECFILE)
-	echo "%define _srcrpmdir $(RPMDIR)/SRPMS" >> $(RPMSPECFILE)
-	sed "s+%FPCVERSION%+$(PACKAGE_VERSION)+" $(CVSINSTALL)/fpc.spec >> $(RPMSPECFILE)
+	sed "s+%FPCVERSION%+$(PACKAGE_VERSION)+" $(CVSINSTALL)/fpc.spec > $(RPMSPECFILE)
 ifndef NODOCS
 	cat $(CVSINSTALL)/fpcdoc.spec >> $(RPMSPECFILE)
 endif
@@ -2631,7 +2631,6 @@ endif
 	$(COPYTREE) packages $(RPMSRCDIR)
 	$(COPYTREE) utils $(RPMSRCDIR)
 	$(COPYTREE) demo $(RPMSRCDIR)
-	$(COPYTREE) logs $(RPMSRCDIR)
 	$(COPYTREE) Makefile* $(RPMSRCDIR)
 	$(COPYTREE) $(CVSINSTALL)/man $(RPMSRCDIR)
 	$(COPYTREE) $(CVSINSTALL)/doc $(RPMSRCDIR)
@@ -2644,7 +2643,7 @@ endif
 	cd $(RPMSRCDIR) ; tar cfvz $(RPMSOURCEFILE) *
 	rm -rf $(RPMSRCDIR)
 rpmbuild: checkfpcdir
-	$(RPMBUILD) --nodeps -ba $(RPMSPECFILE)
+	$(RPMBUILD) $(RPMDEFINES) --nodeps -ba $(RPMSPECFILE)
 	mv `find $(RPMDIR)/RPMS/ -name '*.rpm'` .
 	mv `find $(RPMDIR)/SRPMS/ -name '*.rpm'` .
 rpmclean:
