@@ -351,6 +351,7 @@ begin
       If (Count>0) then
         MD5Update(Context, Buf^, Count);
     Until (Count<BufSize);
+    FreeMem(Buf,BufSize);
     Close(F);
     end;
   MD5Final(Context, Result);
