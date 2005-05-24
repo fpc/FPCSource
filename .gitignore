@@ -1,0 +1,5 @@
+compiler/*.bak
+compiler/*.exe
+compiler/i386/*.bak
+compiler/utils/*.exe
+compiler/x86/*.bak
