@@ -2180,7 +2180,7 @@ begin
   If Old=-1 then
     Exit;
   // Check value
-  If Value<FFieldList.Count Then Value:=0;
+  If Value<0 Then Value:=0;
   If Value>=Count then Value:=Count-1;
   If Value<>Old then
     begin
