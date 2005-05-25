@@ -16,8 +16,8 @@ type
    TWaitResult = (wrSignaled, wrTimeout, wrAbandoned, wrError);
 
    TSyncroObject = class(TObject)
-      procedure Acquire;virtual;abstract;
-      procedure Release;virtual;abstract;
+      procedure Acquire;virtual;
+      procedure Release;virtual;
    end;
 
    TCriticalSection = class(TSyncroObject)
@@ -62,10 +62,3 @@ type
    TSimpleEvent = class(TEventObject)
       constructor Create;
    end;
-
-{
-  $Log: syncobh.inc,v $
-  Revision 1.7  2005/02/14 17:13:15  peter
-    * truncate log
-
-}
