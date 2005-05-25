@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<log>
+<logentry
+   revision="42">
+<author>fpc</author>
+<date>2005-05-21T09:42:41.620737Z</date>
+<msg>  * log and id tags removed
+</msg>
+</logentry>
+<logentry
+   revision="35">
+<author>florian</author>
+<date>2005-05-19T22:16:53.958853Z</date>
+<msg>  * fixed comparisation of booleans and nulls in variants, fixes bug 3953
+</msg>
+</logentry>
+<logentry
+   revision="34">
+<author>florian</author>
+<date>2005-05-19T22:13:11.823700Z</date>
+<msg>  * createguid fixed
+</msg>
+</logentry>
+<logentry
+   revision="33">
+<author>michael</author>
+<date>2005-05-19T21:14:45.797276Z</date>
+<msg>+ Removed VER1_0 defines</msg>
+</logentry>
+<logentry
+   revision="27">
+<author>michael</author>
+<date>2005-05-19T17:31:25.033833Z</date>
+<msg>+ Implementation of CreateGUID</msg>
+</logentry>
+<logentry
+   revision="20">
+<author>fpc</author>
+<date>2005-05-18T20:24:09.513140Z</date>
+<msg>  * property svn:mime-type for most files in main branch fixed
+</msg>
+</logentry>
+<logentry
+   revision="19">
+<author>fpc</author>
+<date>2005-05-18T16:53:52.841566Z</date>
+<msg>  * eol style property in main branch fixed
+</msg>
+</logentry>
+<logentry
+   revision="16">
+<author>fpc</author>
+<date>2005-05-18T16:16:11.495319Z</date>
+<msg>  * property svn:eol-style: native set
+</msg>
+</logentry>
+<logentry
+   revision="15">
+<author>marco</author>
+<date>2005-05-18T08:57:17.758875Z</date>
+<msg> * Patch from maillist for read() on a file with only a few numerical digits
+	in them and no crlf
+</msg>
+</logentry>
+<logentry
+   revision="13">
+<author>florian</author>
+<date>2005-05-17T22:27:53.833452Z</date>
+<msg>* format(%u",[&lt;qword&gt;]); fixed
+* made test working</msg>
+</logentry>
+<logentry
+   revision="7">
+<author>peter</author>
+<date>2005-05-16T20:59:02.681395Z</date>
+<msg>  * post 2.0.0 fixes from cvs
+
+</msg>
+</logentry>
+<logentry
+   revision="1">
+<author>fpc</author>
+<date>2005-05-16T18:37:41.817974Z</date>
+<msg>initial import</msg>
+</logentry>
+</log>
