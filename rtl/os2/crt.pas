@@ -14,6 +14,8 @@ unit crt;
 
 interface
 
+{$INLINE ON}
+
 {$i crth.inc}
 
 procedure Window32 (X1, Y1, X2, Y2: dword);
