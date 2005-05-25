@@ -130,7 +130,7 @@ function EncodeDate(Year, Month, Day: word): TDateTime;
 
 begin
   If Not TryEncodeDate(Year,Month,Day,Result) then
-    Raise Exception.CreateFmt('%d-%d-%d is not a valid date specification',
+    Raise EConvertError.CreateFmt('%d-%d-%d is not a valid date specification',
                               [Year,Month,Day]);
 end;
 
@@ -141,7 +141,7 @@ function EncodeTime(Hour, Minute, Second, MilliSecond:word):TDateTime;
 
 begin
   If not TryEncodeTime(Hour,Minute,Second,MilliSecond,Result) then
-    Raise Exception.CreateFmt('%d:%d:%d.%d is not a valid time specification',
+    Raise EConvertError.CreateFmt('%d:%d:%d.%d is not a valid time specification',
                               [Hour,Minute,Second,MilliSecond]);
 end;
 
