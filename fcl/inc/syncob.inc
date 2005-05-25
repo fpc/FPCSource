@@ -12,21 +12,23 @@
 
  **********************************************************************}
 
+procedure TSyncroObject.Acquire;
+  begin
+  end;
+  
+  
+procedure TSyncroObject.Release;
+  begin
+  end;
+  
+  
 procedure TCriticalSection.Enter;
-
   begin
      Acquire;
   end;
 
-procedure TCriticalSection.Leave;
 
+procedure TCriticalSection.Leave;
   begin
      Release;
   end;
-
-{
-  $Log: syncob.inc,v $
-  Revision 1.4  2005/02/14 17:13:15  peter
-    * truncate log
-
-}
