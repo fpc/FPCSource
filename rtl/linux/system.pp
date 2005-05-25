@@ -234,11 +234,11 @@ Begin
   { Setup heap }
   InitHeap;
   SysInitExceptions;
+  { Setup stdin, stdout and stderr }
+  SysInitStdIO;
   { Arguments }
   SetupCmdLine;
   SysInitExecPath;
-  { Setup stdin, stdout and stderr }
-  SysInitStdIO;
   { Reset IO Error }
   InOutRes:=0;
   { threading }

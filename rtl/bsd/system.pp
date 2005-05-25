@@ -246,12 +246,12 @@ Begin
   { Setup heap }
   InitHeap;
   SysInitExceptions;
-  { Arguments }
-  SetupCmdLine;
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
   { Reset IO Error }
   InOutRes:=0;
+  { Arguments }
+  SetupCmdLine;
   { threading }
   InitSystemThreads;
 {$ifdef HASVARIANT}
