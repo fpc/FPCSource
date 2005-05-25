@@ -880,6 +880,7 @@ program install;
       WLibPath: boolean;
     const
       EMXName: array [1..4] of char = 'EMX'#0;
+      BDF2EName: array [1..6] of char = 'BDF2E'#0;
 {$ENDIF}
     begin
       if haside then
@@ -922,15 +923,21 @@ program install;
          DosFreeModule (Handle);
        end
       else
-       begin
+       if DosLoadModule (@ErrPath, SizeOf (ErrPath), @BDF2EName, Handle) = 0 then
+        begin
+         WLibPath := false;
+         DosFreeModule (Handle);
+        end
+       else
+        begin
          WLibPath := true;
          Inc (YB, 2);
-       end;
+        end;
   {$ENDIF}
 {$ENDIF}
 
       R.Assign(6, 6, 74, YB);
-      inherited init(r,'Installation Successful.');
+      inherited init(r,'Installation successful.');
       Options:=Options or ofCentered;
 
 {$IFNDEF UNIX}
@@ -938,13 +945,6 @@ program install;
        begin
          R.Assign(2, 3, 64, 5);
          P:=new(pstatictext,init(r,'Extend your PATH variable with '''+S+''''));
-         insert(P);
-       end;
-
-      if MixedCasePath then
-       begin
-         R.Assign(2, 5, 64, 6);
-         P:=new(pstatictext,init(r,'You need to use setpath.bat file if you want to use Makefiles'));
          insert(P);
        end;
 
@@ -959,7 +959,14 @@ program install;
          P := New (PStaticText, Init (R, S));
          Insert (P);
        end;
-  {$ENDIF}
+  {$ELSE OS2}
+      if MixedCasePath then
+       begin
+         R.Assign(2, 5, 64, 6);
+         P:=new(pstatictext,init(r,'You need to use setpath.bat file if you want to use Makefiles'));
+         insert(P);
+       end;
+  {$ENDIF OS2}
 {$ENDIF}
 
       R.Assign(2, YB - 13, 64, YB - 12);
