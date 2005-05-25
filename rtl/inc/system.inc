@@ -410,8 +410,9 @@ var
   y: longint;
   kk: longint;
 begin
-  if (mti >= MT19937N) or
-     (randseed <> oldrandseed) { generate MT19937N longints at one time }
+  if RandSeed<>OldRandSeed then
+    mti:=MT19937N+1;
+  if (mti >= MT19937N) { generate MT19937N longints at one time }
   then begin
      if mti = (MT19937N+1) then  // if sgenrand_MT19937() has not been called,
        begin
