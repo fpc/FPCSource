@@ -12,23 +12,21 @@
 
  **********************************************************************}
 
-procedure TSyncroObject.Acquire;
-  begin
-  end;
-  
-  
-procedure TSyncroObject.Release;
-  begin
-  end;
-  
-  
+procedure TSynchroObject.Acquire;
+begin
+end;
+
+procedure TSynchroObject.Release;
+begin
+end;
+
 procedure TCriticalSection.Enter;
-  begin
-     Acquire;
-  end;
+begin
+  Acquire;
+end;
 
 
 procedure TCriticalSection.Leave;
-  begin
-     Release;
-  end;
+begin
+  Release;
+end;
