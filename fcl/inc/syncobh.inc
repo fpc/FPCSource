@@ -15,12 +15,12 @@
 type
    TWaitResult = (wrSignaled, wrTimeout, wrAbandoned, wrError);
 
-   TSyncroObject = class(TObject)
+   TSynchroObject = class(TObject)
       procedure Acquire;virtual;
       procedure Release;virtual;
    end;
 
-   TCriticalSection = class(TSyncroObject)
+   TCriticalSection = class(TSynchroObject)
    private
       CriticalSection : TRTLCriticalSection;
    public
@@ -32,7 +32,7 @@ type
       destructor Destroy;override;
    end;
 
-   THandleObject = class(TSyncroObject)
+   THandleObject = class(TSynchroObject)
    protected
       FHandle : TEventHandle;
       FLastError : Integer;
