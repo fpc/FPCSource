@@ -534,6 +534,9 @@ begin
            begin
              sIdent:=Trim(Copy(sLine, 1,  j - 1));
              sValue:=Trim(Copy(sLine, j + 1, Length(sLine) - j));
+             J:=Length(sValue);
+             If (J>0) and (sValue[1]='"') and (sValue[J]='"') then
+               sValue:=Copy(sValue,2,J-2);
            end;
         end;
         oSection.KeyList.Add(TIniFileKey.Create(sIdent, sValue));
