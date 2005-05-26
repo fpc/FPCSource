@@ -52,7 +52,7 @@ unit JwaWowNT16;
 {$I jediapilib.inc}
 
 // (rom) get rid of warnings about "index" directive
-{$WARN SYMBOL_PLATFORM OFF}
+{ $WARN SYMBOL_PLATFORM OFF}
 
 interface
 
