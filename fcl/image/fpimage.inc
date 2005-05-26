@@ -531,12 +531,15 @@ begin
       end
     else
       begin
-        OldPixels:=PFPIntegerArray(FData);
-        GetMem(FData,FWidth*FHeight*SizeOf(TFPColor));
-        for r:=0 to FHeight-1 do
-          for c:=0 to FWidth-1 do
-            Colors[c,r]:=FPalette.Color[OldPixels^[r*FWidth+c]];
-        FreeMem(OldPixels);
+        if Assigned(FData) then
+          begin
+          OldPixels:=PFPIntegerArray(FData);
+          GetMem(FData,FWidth*FHeight*SizeOf(TFPColor));
+          for r:=0 to FHeight-1 do
+            for c:=0 to FWidth-1 do
+              Colors[c,r]:=FPalette.Color[OldPixels^[r*FWidth+c]];
+          FreeMem(OldPixels);
+          end;
         FPalette.Free;
         FPalette:=nil;
       end;
