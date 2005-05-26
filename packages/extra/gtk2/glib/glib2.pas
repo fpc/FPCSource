@@ -1294,8 +1294,11 @@ begin
 end;
 
 function G_TYPE_INSTANCE_GET_CLASS(instance: Pointer; g_type: GType) : PGTypeClass;
+// #define G_TYPE_INSTANCE_GET_CLASS(instance, g_type, c_type)     (_G_TYPE_IGC ((instance), (g_type), c_type))
+// #define _G_TYPE_IGC(ip, gt, ct)         ((ct*) (((GTypeInstance*) ip)->g_class))
 begin
-   G_TYPE_INSTANCE_GET_CLASS:=private_g_type_check_class_cast(instance,g_type);
+   Result:=PGTypeInstance(Instance)^.g_class;
+   Result:=private_g_type_check_class_cast(Result,g_type);
 end;
 
 function G_TYPE_INSTANCE_GET_INTERFACE(instance: Pointer; g_type: GType) : Pointer;
