@@ -1410,6 +1410,8 @@ constructor TFloatField.Create(AOwner: TComponent);
 begin
   Inherited Create(AOwner);
   SetDatatype(ftfloat);
+  FPrecision:=15;
+  FValidChars := [DecimalSeparator, '+', '-', '0'..'9', 'E', 'e'];
 end;
 
 Function TFloatField.CheckRange(AValue : Double) : Boolean;
