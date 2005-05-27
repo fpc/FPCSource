@@ -548,7 +548,7 @@ begin
   El := Doc.CreateElement('meta');
   HeadEl.AppendChild(El);
   El['http-equiv'] := 'Content-Type';
-  El['content'] := 'text/html; charset=iso8859-1';
+  El['content'] := 'text/html; charset=iso-8859-1';
   TitleElement := Doc.CreateElement('title');
   HeadEl.AppendChild(TitleElement);
   El := Doc.CreateElement('link');
