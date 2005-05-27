@@ -53,6 +53,11 @@ h3, td.h3 {
   font-size: 12pt
 }
 
+/* source fragments */
+span.code {
+  white-space: nowrap
+}
+
 /* symbols in source fragments */
 span.sym {
   color: darkred

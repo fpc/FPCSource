@@ -804,7 +804,8 @@ end;
 
 function THTMLWriter.CreateCode(Parent: TDOMNode): THTMLElement;
 begin
-  Result := CreateEl(CreateEl(Parent, 'tt'), 'nobr');
+  Result := CreateEl(CreateEl(Parent, 'tt'), 'span');
+  Result['class'] := 'code';
 end;
 
 function THTMLWriter.CreateWarning(Parent: TDOMNode): THTMLElement;
