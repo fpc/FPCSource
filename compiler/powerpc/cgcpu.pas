@@ -1174,9 +1174,12 @@ const
                  end;
                end;
 
-             { compute end of gpr save area }
-             a_op_const_reg(list,OP_ADD,OS_ADDR,href.offset+8,NR_R12);
-          end;
+             { compute start of gpr save area }
+             inc(href.offset,4);
+          end
+        else 
+          { compute start of gpr save area }
+          reference_reset_base(href,NR_R12,-4);
 
         { save gprs and fetch GOT pointer }
         if usesgpr then
@@ -1190,7 +1193,6 @@ const
              else
                a_call_name(objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14),AB_EXTERNAL,AT_FUNCTION))
              }
-            reference_reset_base(href,NR_R12,-4);
             for regcounter2:=RS_R13 to RS_R31 do
               begin
                 if regcounter2 in rg[R_INTREGISTER].used_in_proc then
