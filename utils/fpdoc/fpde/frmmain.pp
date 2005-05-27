@@ -464,7 +464,7 @@ end;
 Procedure TMainForm.FileNewClick(Sender : TFPGtkObject; Data : Pointer);
 
 Const
-  template = '<?xml version="1.0" encoding="ISO8859-1"?>'+LineEnding+
+  template = '<?xml version="1.0" encoding="ISO-8859-1"?>'+LineEnding+
              '<fpdoc-descriptions>'+LineEnding+
              '</fpdoc-descriptions>'+LineEnding;
 

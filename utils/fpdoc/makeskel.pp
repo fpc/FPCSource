@@ -329,7 +329,7 @@ begin
     Assign(f, OutputName);
     Rewrite(f);
 
-    WriteLn(f, '<?xml version="1.0" encoding="ISO8859-1"?>');
+    WriteLn(f, '<?xml version="1.0" encoding="ISO-8859-1"?>');
     WriteLn(f, '<fpdoc-descriptions>');
     WriteLn(f, '<package name="', PackageName, '">');
 
