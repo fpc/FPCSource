@@ -3544,6 +3544,7 @@ rtl/inc/mvecimp.inc svneol=native#text/plain
 rtl/inc/objects.pp svneol=native#text/plain
 rtl/inc/objpas.inc svneol=native#text/plain
 rtl/inc/objpash.inc svneol=native#text/plain
+rtl/inc/pagemem.pp svneol=native#text/plain
 rtl/inc/printer.inc svneol=native#text/plain
 rtl/inc/printerh.inc svneol=native#text/plain
 rtl/inc/readme -text
