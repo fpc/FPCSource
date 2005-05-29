@@ -146,12 +146,8 @@ Const
 
 Var
   StatusCount : Array[TTestStatus] of Integer;
-  UnknownLines,
-  unexpected_run : Integer;
-  next_should_be_run : boolean;
+  UnknownLines : integer;
 
-var
-  prevline : string;
 
 Procedure ExtractTestFileName(Var Line : string);
 
@@ -167,7 +163,6 @@ Function Analyse(Var Line : string; Var Status : TTestStatus) : Boolean;
 
 Var
   TS : TTestStatus;
-  Found : Boolean;
 
 begin
   Result:=False;
@@ -199,7 +194,8 @@ TConfigOpt = (
   coSubmitter,
   coMachine,
   coComment,
-  coTestSrcDir
+  coTestSrcDir,
+  coVerbose
  );
 
 Const
@@ -217,11 +213,12 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'submitter',
   'machine',
   'comment',
-  'testsrcdir'
+  'testsrcdir',
+  'verbose'
 );
 
 ConfigOpts : Array[TConfigOpt] of char
-           = ('d','h','u','p','l','o','c','v','t','s','m','C','S');
+           = ('d','h','u','p','l','o','c','v','t','s','m','C','S','V');
 
 Var
   TestOS,
@@ -238,7 +235,8 @@ Var
   TestDate : TDateTime;
 
 Procedure SetOpt (O : TConfigOpt; Value : string);
-
+var
+  year,month,day,min,hour : word;
 begin
   Case O of
     coDatabaseName : DatabaseName:=Value;
@@ -249,10 +247,25 @@ begin
     coOS           : TestOS:=Value;
     coCPU          : TestCPU:=Value;
     coVersion      : TestVersion:=Value;
-    coDate         : TestDate:=StrToDate(Value);
+    coDate         : 
+      begin
+        { Formated like YYYYMMDDhhmm }
+	if Length(value)=12 then
+	  begin
+	    year:=StrToInt(Copy(value,1,4));
+	    month:=StrToInt(Copy(value,5,2));
+	    day:=StrToInt(Copy(Value,7,2));
+	    hour:=StrToInt(Copy(Value,9,2));
+	    min:=StrToInt(Copy(Value,11,2));
+	    TestDate:=EncodeDate(year,month,day)+EncodeTime(hour,min,0,0);
+	  end
+	else
+	  Verbose(V_Error,'Error in date format, use YYYYMMDDhhmm');  
+      end;
     coSubmitter    : Submitter:=Value;
     coMachine      : Machine:=Value;
     coComment      : Comment:=Value;
+    coVerbose      : DoVerbose:=true;
     coTestSrcDir   :
       begin
         TestSrcDir:=Value;
@@ -267,8 +280,7 @@ Function ProcessOption(S: String) : Boolean;
 Var
   N : String;
   I : Integer;
-  Found : Boolean;
-  co,o : TConfigOpt;
+  co : TConfigOpt;
 
 begin
   Verbose(V_DEBUG,'Processing option: '+S);
@@ -282,10 +294,7 @@ begin
       begin
       Result:=CompareText(ConfigStrings[co],N)=0;
       If Result then
-        begin
-        o:=co;
         Break;
-        end;
       end;
     end;
  If Result then
@@ -328,7 +337,7 @@ Procedure ProcessCommandLine;
 
 Var
   I : Integer;
-  O,V : String;
+  O : String;
   c,co : TConfigOpt;
   Found : Boolean;
 
@@ -460,7 +469,7 @@ procedure UpdateTestRun;
     qry:='UPDATE TESTRUN SET ';
     for i:=low(TTestStatus) to high(TTestStatus) do
       qry:=qry+format('%s=%d, ',[SQLField[i],StatusCount[i]]);
-    qry:=qry+format('TU_SUBMITTER="%s", TU_MACHINE="%s", TU_COMMENT="%s"',[Submitter,Machine,Comment]);
+    qry:=qry+format('TU_SUBMITTER="%s", TU_MACHINE="%s", TU_COMMENT="%s", TU_DATE="%s"',[Submitter,Machine,Comment,SqlDate(TestDate)]);
     qry:=qry+' WHERE TU_ID='+format('%d',[TestRunID]);
     RunQuery(Qry,res)
   end;
