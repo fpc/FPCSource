@@ -307,8 +307,10 @@ interface
           function pass_1 : tnode;virtual;abstract;
           { dermines the resulttype of the node }
           function det_resulttype : tnode;virtual;abstract;
-          { dermines the number of necessary temp. locations to evaluate
-            the node }
+
+          { tries to simplify the node, returns a value <>nil if a simplified
+            node has been created }
+          function simplify : tnode;virtual;
 {$ifdef state_tracking}
           { Does optimizations by keeping track of the variable states
             in a procedure }
@@ -317,6 +319,8 @@ interface
           { For a t1:=t2 tree, mark the part of the tree t1 that gets
             written to (normally the loadnode) as write access. }
           procedure mark_write;virtual;
+          { dermines the number of necessary temp. locations to evaluate
+            the node }
           procedure det_temp;virtual;abstract;
 
           procedure pass_2;virtual;abstract;
@@ -701,6 +705,12 @@ implementation
            exclude(flags,f)
          else
            include(flags,f);
+      end;
+
+
+    function tnode.simplify : tnode;
+      begin
+        result:=nil;
       end;
 
 

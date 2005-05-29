@@ -2124,12 +2124,29 @@ type
                 { const parameters which are passed by value instead of by reference }
                 { we need to take care that we use the type of the defined parameter and not of the
                   passed parameter, because these can be different in case of a formaldef (PFV) }
-                if (vo_is_funcret in tparavarsym(para.parasym).varoptions) or
+                if
+                  (
+                   { the problem is that we can't take the address of a function result :( }
+                   (vo_is_funcret in tparavarsym(para.parasym).varoptions) or
                    (para.parasym.varspez = vs_value) or
                    ((para.parasym.varspez = vs_const) and
-                    (not paramanager.push_addr_param(vs_const,para.parasym.vartype.def,procdefinition.proccalloption) or
-                    { the problem is that we can't take the address of a function result :( }
-                     (node_complexity(para.left) >= NODE_COMPLEXITY_INF))) then
+                   { the compiler expects that it can take the address of parameters passed by reference in
+                     the case of const so we can't replace the node simply by a constant node
+                     When playing with this code, ensure that
+                     function f(const a,b  : longint) : longint;inline;
+                       begin
+                         result:=a*b;
+                       end;
+
+                     [...]
+                     ...:=f(10,20));
+                     [...]
+
+                     is still folded. (FK)
+                     }
+                    (paramanager.push_addr_param(vs_const,para.parasym.vartype.def,procdefinition.proccalloption) or
+                    (node_complexity(para.left) >= NODE_COMPLEXITY_INF)))
+                   ) then
                   begin
                     { in theory, this is always regable, but ncgcall can't }
                     { handle it yet in all situations (JM)                 }
@@ -2217,6 +2234,9 @@ type
         { consider it must not be inlined if called
           again inside the args or itself }
         procdefinition.proccalloption:=pocall_default;
+
+        dosimplify(createblock);
+
         firstpass(createblock);
         procdefinition.proccalloption:=pocall_inline;
         { return inlined block }

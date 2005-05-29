@@ -68,6 +68,9 @@ interface
     function node_complexity(p: tnode): cardinal;
     procedure node_tree_set_filepos(var n:tnode;const filepos:tfileposinfo);
 
+    { tries to simplify the given node }
+    procedure dosimplify(var n : tnode);
+
 
 implementation
 
@@ -557,6 +560,36 @@ implementation
     procedure node_tree_set_filepos(var n:tnode;const filepos:tfileposinfo);
       begin
         foreachnodestatic(n,@setnodefilepos,@filepos);
+      end;
+
+{$ifdef FPCMT}
+    threadvar
+{$else FPCMT}
+    var
+{$endif FPCMT}
+      treechanged : boolean;
+
+    function callsimplify(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        hn : tnode;
+      begin
+        result:=fen_false;
+        hn:=n.simplify;
+        if assigned(hn) then
+          begin
+            treechanged:=true;
+            n:=hn;
+          end;
+      end;
+
+
+    { tries to simplify the given node calling the simplify method recursively }
+    procedure dosimplify(var n : tnode);
+      begin
+        repeat
+          treechanged:=false;
+          foreachnodestatic(n,@callsimplify,nil);
+        until not(treechanged);
       end;
 
 end.
