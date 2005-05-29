@@ -198,7 +198,8 @@ TConfigOpt = (
   coDate,
   coSubmitter,
   coMachine,
-  coComment
+  coComment,
+  coTestSrcDir
  );
 
 Const
@@ -215,11 +216,12 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'date',
   'submitter',
   'machine',
-  'comment'
+  'comment',
+  'testsrcdir'
 );
 
 ConfigOpts : Array[TConfigOpt] of char
-           = ('d','h','u','p','l','o','c','v','t','s','m','C');
+           = ('d','h','u','p','l','o','c','v','t','s','m','C','S');
 
 Var
   TestOS,
@@ -251,6 +253,12 @@ begin
     coSubmitter    : Submitter:=Value;
     coMachine      : Machine:=Value;
     coComment      : Comment:=Value;
+    coTestSrcDir   :
+      begin
+        TestSrcDir:=Value;
+	if (TestSrcDir<>'') and (TestSrcDir[length(TestSrcDir)]<>'/') then
+	  TestSrcDir:=TestSrcDir+'/';
+      end;	  
   end;
 end;
 
