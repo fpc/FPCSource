@@ -85,6 +85,7 @@ compiler/cp8859_1.pas svneol=native#text/plain
 compiler/crc.pas svneol=native#text/plain
 compiler/cresstr.pas svneol=native#text/plain
 compiler/cstreams.pas svneol=native#text/plain
+compiler/ctask.pas svneol=native#text/plain
 compiler/cutils.pas svneol=native#text/plain
 compiler/defcmp.pas svneol=native#text/plain
 compiler/defutil.pas svneol=native#text/plain
@@ -209,6 +210,7 @@ compiler/mips/rmipssri.inc svneol=native#text/plain
 compiler/mips/rmipssta.inc svneol=native#text/plain
 compiler/mips/rmipsstd.inc svneol=native#text/plain
 compiler/mips/rmipssup.inc svneol=native#text/plain
+compiler/modtask.pas svneol=native#text/plain
 compiler/mppc386.bat -text
 compiler/mppc68k.bat -text
 compiler/mppcsparc -text

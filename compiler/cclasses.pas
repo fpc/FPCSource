@@ -123,7 +123,7 @@ type
           constructor Create;
           destructor  Destroy;override;
           { true when the List is empty }
-          function  Empty:boolean;
+          function  Empty:boolean;{$ifdef USEINLINE}inline;{$endif}
           { deletes all Items }
           procedure Clear;
           { inserts an Item }
@@ -137,9 +137,9 @@ type
           { deletes an Item }
           procedure Remove(Item:TLinkedListItem);
           { Gets First Item }
-          function  GetFirst:TLinkedListItem;
+          function  GetFirst:TLinkedListItem;{$ifdef USEINLINE}inline;{$endif}
           { Gets last Item }
-          function  GetLast:TLinkedListItem;
+          function  GetLast:TLinkedListItem;{$ifdef USEINLINE}inline;{$endif}
           { inserts another List at the begin and make this List empty }
           procedure insertList(p : TLinkedList);
           { inserts another List before the provided item and make this List empty }
@@ -809,7 +809,7 @@ end;
       end;
 
 
-    function TLinkedList.empty:boolean;
+    function TLinkedList.empty:boolean;{$ifdef USEINLINE}inline;{$endif}
       begin
         Empty:=(FFirst=nil);
       end;
@@ -930,7 +930,7 @@ end;
       end;
 
 
-    function TLinkedList.GetFirst:TLinkedListItem;
+    function TLinkedList.GetFirst:TLinkedListItem;{$ifdef USEINLINE}inline;{$endif}
       begin
          if FFirst=nil then
           GetFirst:=nil
@@ -945,7 +945,7 @@ end;
       end;
 
 
-    function TLinkedList.GetLast:TLinkedListItem;
+    function TLinkedList.GetLast:TLinkedListItem;{$ifdef USEINLINE}inline;{$endif}
       begin
          if FLast=nil then
           Getlast:=nil
