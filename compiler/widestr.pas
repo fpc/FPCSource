@@ -23,6 +23,8 @@
 }
 unit widestr;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses
@@ -41,8 +43,8 @@ unit widestr;
           maxlen,len : SizeInt;
        end;
 
-    procedure initwidestring(var r : pcompilerwidestring);
-    procedure donewidestring(var r : pcompilerwidestring);
+    procedure initwidestring(out r : pcompilerwidestring);
+    procedure donewidestring(out r : pcompilerwidestring);
     procedure setlengthwidestring(r : pcompilerwidestring;l : SizeInt);
     function getlengthwidestring(r : pcompilerwidestring) : SizeInt;
     procedure concatwidestringchar(r : pcompilerwidestring;c : tcompilerwidechar);
@@ -63,7 +65,7 @@ unit widestr;
        globals;
 
 
-    procedure initwidestring(var r : pcompilerwidestring);
+    procedure initwidestring(out r : pcompilerwidestring);
 
       begin
          new(r);
@@ -72,7 +74,7 @@ unit widestr;
          r^.maxlen:=0;
       end;
 
-    procedure donewidestring(var r : pcompilerwidestring);
+    procedure donewidestring(out r : pcompilerwidestring);
 
       begin
          if assigned(r^.data) then

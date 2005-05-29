@@ -87,7 +87,7 @@ interface
     {# Returns true if value is a power of 2, the actual
        exponent value is returned in power.
     }
-    function ispowerof2(value : int64;var power : longint) : boolean;
+    function ispowerof2(value : int64;out power : longint) : boolean;
     function backspace_quote(const s:string;const qchars:Tcharset):string;
     function octal_quote(const s:string;const qchars:Tcharset):string;
     function maybequoted(const s:string):string;
@@ -629,7 +629,7 @@ uses
       end;
 
 
-    function ispowerof2(value : int64;var power : longint) : boolean;
+    function ispowerof2(value : int64;out power : longint) : boolean;
     {
       return if value is a power of 2. And if correct return the power
     }
