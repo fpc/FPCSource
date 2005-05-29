@@ -2152,9 +2152,10 @@ implementation
                   { range/overflow checking doesn't work properly }
                   { with the inc/dec code that's generated (JM)   }
                   (
-                   (left.resulttype.def.deftype = orddef) and
-                   not(is_char(left.resulttype.def)) and
-                   not(is_boolean(left.resulttype.def)) and
+                   (((left.resulttype.def.deftype = orddef) and
+                     not(is_char(left.resulttype.def)) and
+                     not(is_boolean(left.resulttype.def))) or
+                    (left.resulttype.def.deftype = pointerdef)) and
                    (aktlocalswitches * [cs_check_overflow,cs_check_range] <> [])
                   ) then
                  { convert to simple add (JM) }
@@ -2171,7 +2172,10 @@ implementation
                      end
                    else
                      { no, create constant 1 }
-                     hpp := cordconstnode.create(1,tcallparanode(left).left.resulttype,false);
+                     if (tcallparanode(left).left.resulttype.def.deftype <> pointerdef) then
+                       hpp := cordconstnode.create(1,tcallparanode(left).left.resulttype,false)
+                     else
+                       hpp := cordconstnode.create(1,ptrinttype,false);
                    { make sure we don't call functions part of the left node twice (and generally }
                    { optimize the code generation)                                                }
                    if node_complexity(tcallparanode(left).left) > 1 then
