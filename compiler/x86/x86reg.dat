@@ -1,0 +1,182 @@
+;
+; $Id: x86reg.dat,v 1.6 2005/02/06 00:05:56 florian Exp $
+;
+; x86 registers
+;
+; layout
+; <name>,<value>,<stdname>,<attname>,<masmname>,<nasmname>,<stabidx>,<dwarf32idx>,<dwarf64idx>,<ot value>,<opcode value>,[AMD64 specific]
+;
+; For stab/dwarf numbers see gdb/i386-tdep.c and gdb/amd64-tdep.c
+;
+NR_NO,$00000000,INVALID,INVALID,INVALID,INVALID,-1,-1,-1,OT_NONE,0
+NR_AL,$01010000,al,%al,al,al,0,0,0,OT_REG_AL,0
+NR_AH,$01020000,ah,%ah,ah,ah,0,0,0,OT_REG8,4
+NR_AX,$01030000,ax,%ax,ax,ax,0,0,0,OT_REG_AX,0
+NR_EAX,$01040000,eax,%eax,eax,eax,0,0,0,OT_REG_EAX,0
+NR_RAX,$01050000,rax,%rax,rax,rax,0,0,0,OT_REG_RAX,0,64
+NR_CL,$01010001,cl,%cl,cl,cl,1,1,2,OT_REG_CL,1
+NR_CH,$01020001,ch,%ch,ch,ch,1,1,2,OT_REG8,5
+NR_CX,$01030001,cx,%cx,cx,cx,1,1,2,OT_REG_CX,1
+NR_ECX,$01040001,ecx,%ecx,ecx,ecx,1,1,2,OT_REG_ECX,1
+NR_RCX,$01050001,rcx,%rcx,rcx,rcx,1,1,2,OT_REG_RCX,1,64
+NR_DL,$01010002,dl,%dl,dl,dl,2,2,1,OT_REG8,2
+NR_DH,$01020002,dh,%dh,dh,dh,2,2,1,OT_REG8,6
+NR_DX,$01030002,dx,%dx,dx,dx,2,2,1,OT_REG_DX,2
+NR_EDX,$01040002,edx,%edx,edx,edx,2,2,1,OT_REG32,2
+NR_RDX,$01050002,rdx,%rdx,rdx,rdx,2,2,1,OT_REG64,2,64
+NR_BL,$01010003,bl,%bl,bl,bl,3,3,3,OT_REG8,3
+NR_BH,$01020003,bh,%bh,bh,bh,3,3,3,OT_REG8,7
+NR_BX,$01030003,bx,%bx,bx,bx,3,3,3,OT_REG16,3
+NR_EBX,$01040003,ebx,%ebx,ebx,ebx,3,3,3,OT_REG32,3
+NR_RBX,$01050003,rbx,%rbx,rbx,rbx,3,3,3,OT_REG64,3,64
+NR_SIL,$01010004,sil,%sil,sil,sil,6,6,4,OT_REG8,6,64
+NR_SI,$01030004,si,%si,si,si,6,6,4,OT_REG16,6
+NR_ESI,$01040004,esi,%esi,esi,esi,6,6,4,OT_REG32,6
+NR_RSI,$01050004,rsi,%rsi,rsi,rsi,6,6,4,OT_REG64,6,64
+NR_DIL,$01010005,dil,%dil,dil,dil,7,7,5,OT_REG8,7,64
+NR_DI,$01030005,di,%di,di,di,7,7,5,OT_REG16,7
+NR_EDI,$01040005,edi,%edi,edi,edi,7,7,5,OT_REG32,7
+NR_RDI,$01050005,rdi,%rdi,rdi,rdi,7,7,5,OT_REG64,7,64
+NR_BPL,$01010006,bpl,%bpl,bpl,bpl,5,5,6,OT_REG8,5,64
+NR_BP,$01030006,bp,%bp,bp,bp,5,5,6,OT_REG16,5
+NR_EBP,$01040006,ebp,%ebp,ebp,ebp,5,5,6,OT_REG32,5
+NR_RBP,$01050006,rbp,%rbp,rbp,rbp,5,5,6,OT_REG64,5,64
+NR_SPL,$01010007,spl,%spl,spl,spl,4,4,7,OT_REG8,4,64
+NR_SP,$01030007,sp,%sp,sp,sp,4,4,7,OT_REG16,4
+NR_ESP,$01040007,esp,%esp,esp,esp,4,4,7,OT_REG32,4
+NR_RSP,$01050007,rsp,%rsp,rsp,rsp,4,4,7,OT_REG64,4,64
+NR_R8,$01050008,r8,%r8,r8,r8,-1,-1,8,OT_REG64,0,64
+NR_R8L,$01010008,r8b,%r8b,r8b,r8b,-1,-1,8,OT_REG8,0,64
+NR_R8W,$01030008,r8w,%r8w,r8w,r8w,-1,-1,8,OT_REG16,0,64
+NR_R8D,$01040008,r8d,%r8d,r8d,r8d,-1,-1,8,OT_REG32,0,64
+NR_R9,$01050009,r9,%r9,r9,r9,-1,-1,9,OT_REG64,0,64
+NR_R9L,$01010009,r9b,%r9b,r9b,r9b,-1,-1,9,OT_REG8,0,64
+NR_R9W,$01030009,r9w,%r9w,r9w,r9w,-1,-1,9,OT_REG16,0,64
+NR_R9D,$01040009,r9d,%r9d,r9d,r9d,-1,-1,9,OT_REG32,0,64
+NR_R10,$0105000a,r10,%r10,r10,r10,-1,-1,10,OT_REG64,0,64
+NR_R10L,$0101000a,r10b,%r10b,r10b,r10b,-1,-1,10,OT_REG8,0,64
+NR_R10W,$0103000a,r10w,%r10w,r10w,r10w,-1,-1,10,OT_REG16,0,64
+NR_R10D,$0104000a,r10d,%r10d,r10d,r10d,-1,-1,10,OT_REG32,0,64
+NR_R11,$0105000b,r11,%r11,r11,r11,-1,-1,11,OT_REG64,0,64
+NR_R11L,$0101000b,r11b,%r11b,r11b,r11b,-1,-1,11,OT_REG8,0,64
+NR_R11W,$0103000b,r11w,%r11w,r11w,r11w,-1,-1,11,OT_REG16,0,64
+NR_R11D,$0104000b,r11d,%r11d,r11d,r11d,-1,-1,11,OT_REG32,0,64
+NR_R12,$0105000c,r12,%r12,r12,r12,-1,-1,12,OT_REG64,0,64
+NR_R12L,$0101000c,r12b,%r12b,r12b,r12b,-1,-1,12,OT_REG8,0,64
+NR_R12W,$0103000c,r12w,%r12w,r12w,r12w,-1,-1,12,OT_REG16,0,64
+NR_R12D,$0104000c,r12d,%r12d,r12d,r12d,-1,-1,12,OT_REG32,0,64
+NR_R13,$0105000d,r13,%r13,r13,r13,-1,-1,13,OT_REG64,0,64
+NR_R13L,$0101000d,r13b,%r13b,r13b,r13b,-1,-1,13,OT_REG8,0,64
+NR_R13W,$0103000d,r13w,%r13w,r13w,r13w,-1,-1,13,OT_REG16,0,64
+NR_R13D,$0104000d,r13d,%r13d,r13d,r13d,-1,-1,13,OT_REG32,0,64
+NR_R14,$0105000e,r14,%r14,r14,r14,-1,-1,14,OT_REG64,0,64
+NR_R14L,$0101000e,r14b,%r14b,r14b,r14b,-1,-1,14,OT_REG8,0,64
+NR_R14W,$0103000e,r14w,%r14w,r14w,r14w,-1,-1,14,OT_REG16,0,64
+NR_R14D,$0104000e,r14d,%r14d,r14d,r14d,-1,-1,14,OT_REG32,0,64
+NR_R15,$0105000f,r15,%r15,r15,r15,-1,-1,15,OT_REG64,0,64
+NR_R15L,$0101000f,r15b,%r15b,r15b,r15b,-1,-1,15,OT_REG8,0,64
+NR_R15W,$0103000f,r15w,%r15w,r15w,r15w,-1,-1,15,OT_REG16,0,64
+NR_R15D,$0104000f,r15d,%r15d,r15d,r15d,-1,-1,15,OT_REG32,0,64
+
+; EIP is needed for DWARF call frame info return address (RA)
+NR_RIP,$05000000,rip,%rip,rip,rip,-1,8,16,OT_NONE,0,64
+NR_EIP,$05000000,eip,%eip,eip,eip,-1,8,16,OT_NONE,0
+NR_CS,$05000001,cs,%cs,cs,cs,-1,-1,-1,OT_REG_CS,1
+NR_DS,$05000002,ds,%ds,ds,ds,-1,-1,-1,OT_REG_DESS,3
+NR_ES,$05000003,es,%es,es,es,-1,-1,-1,OT_REG_DESS,0
+NR_SS,$05000004,ss,%ss,ss,ss,-1,-1,-1,OT_REG_DESS,2
+NR_FS,$05000005,fs,%fs,fs,fs,-1,-1,-1,OT_REG_FSGS,4
+NR_GS,$05000006,gs,%gs,gs,gs,-1,-1,-1,OT_REG_FSGS,5
+
+NR_DR0,$05000007,dr0,%dr0,dr0,dr0,-1,-1,-1,OT_REG_DREG,0
+NR_DR1,$05000008,dr1,%dr1,dr1,dr1,-1,-1,-1,OT_REG_DREG,1
+NR_DR2,$05000009,dr2,%dr2,dr2,dr2,-1,-1,-1,OT_REG_DREG,2
+NR_DR3,$0500000a,dr3,%dr3,dr3,dr3,-1,-1,-1,OT_REG_DREG,3
+NR_DR6,$0500000b,dr6,%dr6,dr6,dr6,-1,-1,-1,OT_REG_DREG,6
+NR_DR7,$0500000c,dr7,%dr7,dr7,dr7,-1,-1,-1,OT_REG_DREG,7
+NR_CR0,$0500000d,cr0,%cr0,cr0,cr0,-1,-1,-1,OT_REG_CREG,0
+NR_CR2,$0500000e,cr2,%cr2,cr2,cr2,-1,-1,-1,OT_REG_CREG,2
+NR_CR3,$0500000f,cr3,%cr3,cr3,cr3,-1,-1,-1,OT_REG_CREG,3
+NR_CR4,$05000010,cr4,%cr4,cr4,cr4,-1,-1,-1,OT_REG_CR4,4
+NR_TR3,$05000011,tr3,%tr3,tr3,tr3,-1,-1,-1,OT_REG_TREG,3
+NR_TR4,$05000012,tr4,%tr4,tr4,tr4,-1,-1,-1,OT_REG_TREG,4
+NR_TR5,$05000013,tr5,%tr5,tr5,tr5,-1,-1,-1,OT_REG_TREG,5
+NR_TR6,$05000014,tr6,%tr6,tr6,tr6,-1,-1,-1,OT_REG_TREG,6
+NR_TR7,$05000015,tr7,%tr7,tr7,tr7,-1,-1,-1,OT_REG_TREG,7
+
+NR_ST0,$02000000,st(0),%st(0),st(0),st0,12,11,33,OT_FPU0,0
+NR_ST1,$02000001,st(1),%st(1),st(1),st1,13,12,34,OT_FPUREG,1
+NR_ST2,$02000002,st(2),%st(2),st(2),st2,14,13,35,OT_FPUREG,2
+NR_ST3,$02000003,st(3),%st(3),st(3),st3,15,14,36,OT_FPUREG,3
+NR_ST4,$02000004,st(4),%st(4),st(4),st4,16,15,37,OT_FPUREG,4
+NR_ST5,$02000005,st(5),%st(5),st(5),st5,17,16,38,OT_FPUREG,5
+NR_ST6,$02000006,st(6),%st(6),st(6),st6,18,17,39,OT_FPUREG,6
+NR_ST7,$02000007,st(7),%st(7),st(7),st7,19,18,40,OT_FPUREG,7
+; Special code to that will map to %st(0)
+NR_ST,$02000008,st,%st,st,st0,12,11,33,OT_FPU0,0
+
+NR_MM0,$03000000,mm0,%mm0,mm0,mm0,29,29,41,OT_MMXREG,0
+NR_MM1,$03000001,mm1,%mm1,mm1,mm1,30,30,42,OT_MMXREG,1
+NR_MM2,$03000002,mm2,%mm2,mm2,mm2,31,31,43,OT_MMXREG,2
+NR_MM3,$03000003,mm3,%mm3,mm3,mm3,32,32,44,OT_MMXREG,3
+NR_MM4,$03000004,mm4,%mm4,mm4,mm4,33,33,45,OT_MMXREG,4
+NR_MM5,$03000005,mm5,%mm5,mm5,mm5,34,34,46,OT_MMXREG,5
+NR_MM6,$03000006,mm6,%mm6,mm6,mm6,35,35,47,OT_MMXREG,6
+NR_MM7,$03000007,mm7,%mm7,mm7,mm7,36,36,48,OT_MMXREG,7
+
+NR_XMM0,$04000000,xmm0,%xmm0,xmm0,xmm0,21,21,17,OT_XMMREG,0
+NR_XMM1,$04000001,xmm1,%xmm1,xmm1,xmm1,22,22,18,OT_XMMREG,1
+NR_XMM2,$04000002,xmm2,%xmm2,xmm2,xmm2,23,23,19,OT_XMMREG,2
+NR_XMM3,$04000003,xmm3,%xmm3,xmm3,xmm3,24,24,20,OT_XMMREG,3
+NR_XMM4,$04000004,xmm4,%xmm4,xmm4,xmm4,25,25,21,OT_XMMREG,4
+NR_XMM5,$04000005,xmm5,%xmm5,xmm5,xmm5,26,26,22,OT_XMMREG,5
+NR_XMM6,$04000006,xmm6,%xmm6,xmm6,xmm6,27,27,23,OT_XMMREG,6
+NR_XMM7,$04000007,xmm7,%xmm7,xmm7,xmm7,28,28,24,OT_XMMREG,7
+NR_XMM8,$04000008,xmm8,%xmm8,xmm8,xmm8,-1,-1,25,OT_XMMREG,0,64
+NR_XMM9,$04000009,xmm9,%xmm9,xmm9,xmm9,-1,-1,26,OT_XMMREG,1,64
+NR_XMM10,$0400000a,xmm10,%xmm10,xmm10,xmm10,-1,-1,27,OT_XMMREG,2,64
+NR_XMM11,$0400000b,xmm11,%xmm11,xmm11,xmm11,-1,-1,28,OT_XMMREG,3,64
+NR_XMM12,$0400000c,xmm12,%xmm12,xmm12,xmm12,-1,-1,29,OT_XMMREG,4,64
+NR_XMM13,$0400000d,xmm13,%xmm13,xmm13,xmm13,-1,-1,30,OT_XMMREG,5,64
+NR_XMM14,$0400000e,xmm14,%xmm14,xmm14,xmm14,-1,-1,31,OT_XMMREG,6,64
+NR_XMM15,$0400000f,xmm15,%xmm15,xmm15,xmm15,-1,-1,32,OT_XMMREG,7,64
+
+;
+; $Log: x86reg.dat,v $
+; Revision 1.6  2005/02/06 00:05:56  florian
+;   + x86_64 pic draft
+;
+; Revision 1.5  2004/06/16 20:07:11  florian
+;   * dwarf branch merged
+;
+; Revision 1.4.2.2  2004/04/20 16:35:58  peter
+;   * generate dwarf for stackframe entry
+;
+; Revision 1.4.2.1  2004/04/12 19:34:46  peter
+;   * basic framework for dwarf CFI
+;
+; Revision 1.4  2003/09/25 15:00:12  peter
+;   * %st is st0 in nasm
+;
+; Revision 1.3  2003/09/24 17:12:36  florian
+;   * x86-64 adaptions
+;
+; Revision 1.2  2003/09/03 15:55:02  peter
+;   * NEWRA branch merged
+;
+; Revision 1.1.2.5  2003/08/31 16:44:48  peter
+;   * OT fixed for DX
+;
+; Revision 1.1.2.4  2003/08/31 16:18:05  peter
+;   * more fixes
+;
+; Revision 1.1.2.3  2003/08/29 09:41:25  daniel
+;   * Further mkx86reg development
+;
+; Revision 1.1.2.2  2003/08/27 20:31:35  peter
+;   * make NR_ST unique value
+;
+; Revision 1.1.2.1  2003/08/27 19:55:54  peter
+;   * first tregister patch
+;
+;

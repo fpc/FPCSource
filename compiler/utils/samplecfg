@@ -1,0 +1,264 @@
+#!/bin/sh
+#
+#  $Id: samplecfg,v 1.13 2005/02/19 18:50:20 florian Exp $
+#
+#  Generate Sample Free Pascal configuration file
+#
+
+HOSTOS=`uname -s | tr A-Z a-z`
+echo Running on $HOSTOS
+
+if [ $# = 0 ]; then
+  echo 'Usage :'
+  echo 'samplecfg fpcdir confdir'
+  echo 'fpcdir = Path where FPC is installed'
+  echo 'confdir = Path to /etc'
+  exit 1
+fi
+if [ $2 ]; then
+  sysdir=$2
+  [ -d $sysdir ] || mkdir $sysdir
+else
+  sysdir=/etc
+fi
+
+# Detect if we have write permission in root.
+if [ -w $sysdir ] ; then
+  echo Write permission in $sysdir.
+  thefile=$sysdir/fpc.cfg
+else
+  echo No write premission in $sysdir.
+  thefile=$HOME/.fpc.cfg
+fi
+#
+if [ -f $thefile ] ; then
+  mv $thefile $thefile.orig  >/dev/null 2>&1
+  if [ $? = 0 ]; then
+    echo Saved old config to $thefile.orig
+  else
+    echo Could not save old config. Bailing out...
+    exit
+  fi
+fi
+
+# Find path to libgcc.a
+GCCSPEC=`(gcc -v 2>&1)| head -n 1| awk '{ print $4 } '`
+GCCDIR=`dirname $GCCSPEC`
+echo $GCCDIR
+if [ -f $GCCDIR ]; then
+# include ports tree dir for FreeBSDers.
+case $HOSTOS in
+ freebsd)
+    GCCDIR=-Fl/usr/local/lib
+     ;;
+ openbsd)
+    GCCDIR=-Fl/usr/local/lib
+     ;;
+ netbsd)
+   GCCDIR=-Fl/usr/pkg/lib
+     ;;
+esac
+else
+  echo Found libgcc.a in $GCCDIR
+  GCCDIR=-Fl$GCCDIR
+fi
+# Write the file
+echo Writing sample configuration file to $thefile
+cat <<EOFCFG > $thefile
+#
+# Example fpc.cfg for Free Pascal Compiler
+#
+
+# ----------------------
+# Defines (preprocessor)
+# ----------------------
+
+#
+# nested #IFNDEF, #IFDEF, #ENDIF, #ELSE, #DEFINE, #UNDEF are allowed
+#
+# -d is the same as #DEFINE
+# -u is the same as #UNDEF
+#
+
+#
+# Some examples (for switches see below, and the -? helppages)
+#
+# Try compiling with the -dRELEASE or -dDEBUG on the commandline
+#
+
+# For a release compile with optimizes and strip debuginfo
+#IFDEF RELEASE
+  -OG2p3
+  -Xs
+  #WRITE Compiling Release Version
+#ENDIF
+
+# For a debug version compile with debuginfo and all codegeneration checks on
+#IFDEF DEBUG
+  -g
+  -Crtoi
+  #WRITE Compiling Debug Version
+#ENDIF
+
+# set binutils prefix
+#IFDEF FPC_CROSSCOMPILING
+  -XP$fpctarget-
+#ENDIF
+
+# ----------------
+# Parsing switches
+# ----------------
+
+# Pascal language mode
+#      -Mfpc      free pascal dialect (default)
+#      -Mobjfpc   switch some Delphi 2 extensions on
+#      -Mdelphi   tries to be Delphi compatible
+#      -Mtp       tries to be TP/BP 7.0 compatible
+#      -Mgpc      tries to be gpc compatible
+#      -Mmacpas   tries to be compatible to the macintosh pascal dialects
+#
+# Turn on Object Pascal extensions by default
+#-Mobjfpc
+
+# Assembler reader mode
+#      -Rdefault  use default assembler
+#      -Ratt      read AT&T style assembler
+#      -Rintel    read Intel style assembler
+#
+# All assembler blocks are AT&T styled by default
+#-Ratt
+
+# Semantic checking
+#      -S2        same as -Mobjfpc
+#      -Sc        supports operators like C (*=,+=,/= and -=)
+#      -Sa        include assertion code.
+#      -Sd        same as -Mdelphi
+#      -Se<x>     compiler stops after the <x> errors (default is 1)
+#      -Sg        allow LABEL and GOTO
+#      -Sh        Use ansistrings
+#      -Si        support C++ styled INLINE
+#      -SI<x>     set interface style to <x>
+#         -SIcomCOM compatible interface (default)
+#         -SIcorbaCORBA compatible interface
+#      -Sm        support macros like C (global)
+#      -So        same as -Mtp
+#      -Sp        same as -Mgpc
+#      -Ss        constructor name must be init (destructor must be done)
+#      -St        allow static keyword in objects
+#
+# Allow goto, inline, C-operators, C-vars
+-Sgic
+
+# ---------------
+# Code generation
+# ---------------
+
+# Uncomment the next line if you always want static/dynamic units by default
+# (can be overruled with -CD, -CS at the commandline)
+#-CS
+#-CD
+
+# Set the default heapsize to 8Mb
+#-Ch8000000
+
+# Set default codegeneration checks (iocheck, overflow, range, stack)
+#-Ci
+#-Co
+#-Cr
+#-Ct
+
+# Optimizer switches for i386 compiler
+# -Og        generate smaller code
+# -OG        generate faster code (default)
+# -Or        keep certain variables in registers (still BUGGY!!!)
+# -Ou        enable uncertain optimizations (see docs)
+# -O1        level 1 optimizations (quick optimizations)
+# -O2        level 2 optimizations (-O1 + slower optimizations)
+# -O3        level 3 optimizations (same as -O2u)
+# -Op        target processor
+#     -Op1  set target processor to 386/486
+#     -Op2  set target processor to Pentium/PentiumMMX (tm)
+#     -Op3  set target processor to PPro/PII/c6x86/K6 (tm)
+
+# Optimize always for Size and PII
+#-OG2p3
+
+
+# -----------------------
+# Set Filenames and Paths
+# -----------------------
+
+# Slashes are also allowed under dos
+
+# path to the messagefile, not necessary anymore but can be used to override
+# the default language
+#-Fr$1/msg/errore.msg
+#-Fr$1/msg/errorn.msg
+
+# searchpath for includefiles
+#-Fi/pp/inc;/pp/rtl/inc
+
+# searchpath for units and other system dependent things
+-Fu$1/units/\$fpctarget
+-Fu$1/units/\$fpctarget/*
+-Fu$1/units/\$fpctarget/rtl
+#-Fu~/fpc/packages/base/*/units/$fpctarget;~/fpc/fcll/units/$fpctarget;~/fpc/rtl/units/$fpctarget
+
+# searchpath for libraries
+$GCCDIR
+#-Fl/pp/lib
+#-Fl/lib;/usr/lib
+
+
+# -------------
+# Linking
+# -------------
+
+# generate always debugging information for GDB (slows down the compiling
+# process)
+#      -gc        generate checks for pointers
+#      -gd        use dbx
+#      -gg        use gsym
+#      -gh        use heap trace unit (for memory leak debugging)
+#      -gl        use line info unit to show more info for backtraces
+#      -gv        generates programs tracable with valgrind
+#      -gw        generate dwarf debugging info
+#
+# Enable debuginfo and use the line info unit by default
+#-gl
+
+# always pass an option to the linker
+#-k-s
+
+# Always strip debuginfo from the executable
+-Xs
+
+
+# -------------
+# Miscellaneous
+# -------------
+
+# Write always a nice FPC logo ;)
+-l
+
+# Verbosity
+#      e : Show errors (default)       d : Show debug info
+#      w : Show warnings               u : Show unit info
+#      n : Show notes                  t : Show tried/used files
+#      h : Show hints                  m : Show defined macros
+#      i : Show general info           p : Show compiled procedures
+#      l : Show linenumbers            c : Show conditionals
+#      a : Show everything             0 : Show nothing (except errors)
+#      b : Show all procedure          r : Rhide/GCC compatibility mode
+#          declarations if an error    x : Executable info (Win32 only)
+#          occurs
+#
+# Display Info, Warnings, Notes and Hints
+-viwn
+# If you don't want so much verbosity use
+#-vw
+
+#
+# That's all folks
+#
+EOFCFG
