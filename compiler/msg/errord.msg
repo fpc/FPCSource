@@ -112,6 +112,7 @@ general_i_hint=01016_I_Hint:
 % Prefix for Hints
 general_e_path_does_not_exist=01017_E_Der Pfad "$1" existiert nicht
 % The specified path does not exist.
+general_e_compilation_aborted=01018_E_Kompilieren abgebrochen
 % \end{description}
 #
 # Scanner
@@ -136,9 +137,9 @@ scan_f_end_of_file=02000_F_Unerwartetes Dateiende
 scan_f_string_exceeds_line=02001_F_Zeichenkette geht Åber Zeilenende hinaus
 % You forgot probably to include the closing ' in a string, so it occupies
 % multiple lines.
-scan_f_illegal_char=02002_F_UnzulÑssiges Zeichen
+scan_f_illegal_char=02002_F_UnzulÑssiges Zeichen "$1" ($2)
 % An illegal character was encountered in the input file.
-scan_f_syn_expected=02003_F_Syntaxfehler, $1 erwartet aber $2 vorgefunden
+scan_f_syn_expected=02003_F_Syntaxfehler, "$1" erwartet, aber "$2" vorgefunden
 % This indicates that the compiler expected a different token than
 % the one you typed. It can occur almost everywhere where you make a
 % mistake against the pascal language.
@@ -172,7 +173,7 @@ scan_w_only_pack_records=02015_W_Record-Elemente kînnen nur im Raster 1,2,4 oder
 scan_w_only_pack_enum=02016_W_FÅr AufzÑhlungen kînnen nur die Grî·en 1,2 or 4 Bytes angegeben werden
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
 % \var{n}. Only 1,2 or 4 are valid in this case.
-scan_e_endif_expected=02017_E_$1 erwartet fÅr $2 definiert in Zeile $3
+scan_e_endif_expected=02017_E_$1 erwartet fÅr $1 $2 definiert in $3 Zeile $4
 % Your conditional compilation statements are unbalanced.
 scan_e_preproc_syntax_error=02018_E_Syntaxfehler im Argument einer $if Direktive
 % There is an error in the expression following the \var{\{\$if ..\}} compiler
@@ -202,7 +203,7 @@ scan_e_keyword_cant_be_a_macro=02028_E_Ein Makro, welches den selben Namen wie e
 % You cannot redefine keywords with macros.
 scan_f_macro_buffer_overflow=02029_F_MakropufferÅberlauf wÑhrend des Lesens oder Expandierens eines Makros
 % Your macro or it's result  was too long for the compiler.
-scan_w_macro_deep_ten=02030_W_Expansion des Makros Åberschreitet eine Makroschachtelungstiefe von 16
+scan_w_macro_too_deep=02030_W_Expansion des Makros Åberschreitet eine Makroschachtelungstiefe von 16
 % When expanding a macro macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
@@ -306,6 +307,11 @@ scan_e_error_macro_lacks_value=02065_E_Das Makro "$1" besitzt keinen Wert
 % Thus the conditional compiling expression cannot be evaluated.
 scan_e_wrong_switch_toggle_default=02066_E_Zum Modusumschalten kann nur ON/OFF/DEFAULT oder +/-/* verwendet werden
 % You need to use ON or OFF or DEFAULT or a + or - or * to toggle the switch
+scan_e_mode_switch_not_allowed=02067_E_Mode switch "$1" not allowed here
+% A mode switch has already been encountered, or, in case of option -Mmacpas,
+% a mode switch occur after UNIT.
+scan_e_error_macro_undefined=02068_E_Compile time variable "$1" is not defined.
+% Thus the conditional compile time expression cannot be evaluated.
 % \end{description}
 #
 # Parser
@@ -352,7 +358,7 @@ parser_w_constructor_should_be_public=03018_W_Konstruktor muss PUBLIC sein
 % Constructors must be in the 'public' part of an object (class) declaration.
 parser_w_destructor_should_be_public=03019_W_Destruktor muss PUBLIC sein
 % Destructors must be in the 'public' part of an object (class) declaration.
-parser_n_only_one_destructor=03020_N_Klasse darf nur einen Destructor besitzen
+parser_n_only_one_destructor=03020_N_Klasse darf nur einen Destruktor besitzen
 % You can declare only one destructor for a class.
 parser_e_no_local_objects=03021_E_Lokale Klassendefinitionen sind nicht zulÑssig
 % Classes must be defined globally. They cannot be defined inside a
@@ -528,7 +534,7 @@ parser_e_dont_nest_export=03067_E_Mit EXPORT deklarierte Funktionen dÅrfen nicht
 parser_e_methods_dont_be_export=03068_E_Methoden dÅrfen nicht EXPORTiert werden
 % You cannot declare a procedure that is a method for an object as
 % \var{export}ed. That is, your methods cannot be called from a C program.
-parser_e_call_by_ref_without_typeconv=03069_E_Aufrufe mit VAR-Parametern mÅssen exakt stimmen
+parser_e_call_by_ref_without_typeconv=03069_E_Aufrufe mit VAR-Parametern mÅssen exakt stimmen:  "$1" gefunden, "$2" erwartet
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
 % type conversion.
@@ -834,6 +840,8 @@ parser_e_procname_to_short_for_export=03159_E_Prozedurname zu kurz um exportiert
 % file correct with a name of length 1.
 parser_e_dlltool_unit_var_problem=03160_E_Es kann kein DEFFILE-Eintrag fÅr unit-globale Variablen erzeugt werden
 parser_e_dlltool_unit_var_problem2=03161_E_Kompiliere ohne "-WD"-Option
+% You need to compile this file without the -WD switch on the
+% commandline
 parser_f_need_objfpc_or_delphi_mode=03162_F_Es muss der Modus ObjFPC (-S2) oder Delphi (-Sd) aktiv sein, um dieses Modul zu Åbersetzen
 % You need to use {$mode objfpc} or {$mode delphi} to compile this file.
 % Or use the equivalent commandline switches -S2 or -Sd.
@@ -1000,6 +1008,8 @@ parser_w_implicit_uses_of_variants_unit=03211_W_Implicit uses of Variants unit
 parser_e_no_static_method_in_interfaces=03212_E_Class and static methods can't be used in INTERFACES
 % The specifier \var{class} and directive \var{static} can't be used in interfaces
 % because all methods of an interfaces must be public.
+parser_e_arithmetic_operation_overflow=03213_E_Overflow in arithmetic operation
+% An operation on two integers values produced an overflow
 % \end{description}
 #
 # Type Checking
@@ -1106,7 +1116,7 @@ type_w_maybe_wrong_hi_lo=04022_W_lo/hi(dword/qword) gibt oberes/unteres Word/DWo
 % to type case the argument to \var{word/integer}
 type_e_integer_or_real_expr_expected=04023_E_Integer- oder Real-Ausdruck erwartet
 % The first argument to \var{str} must a real or integer type.
-type_e_wrong_type_in_array_constructor=04024_E_Falscher Typ im Array-Konstructor
+type_e_wrong_type_in_array_constructor=04024_E_Falscher Typ "$1" im Array-Konstruktor
 % You are trying to use a type in an array constructor which is not
 % allowed.
 type_e_wrong_parameter_type=04025_E_Inkompatible Typen fÅr Argument Nr. #$1: habe $2 erhalten, aber $3 erwartet
@@ -1327,12 +1337,12 @@ sym_w_wrong_C_pack=05034_W_Typ "$1" ist im aktuellen Record mit C-Packing nicht 
 % for C structures.
 sym_e_illegal_field=05035_E_Unbekannter Record-Feldbezeichner $1
 % The field doesn't exist in the record definition.
-sym_n_uninitialized_local_variable=05036_W_Lokale Variable "$1" wird verwendet, bevor ihr ein Wert zugewiesen wurde
+sym_w_uninitialized_local_variable=05036_W_Lokale Variable "$1" wird verwendet, bevor ihr ein Wert zugewiesen wurde
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-sym_n_uninitialized_variable=05037_W_Variable "$1" scheint nicht initialisert worden zu sein
+sym_w_uninitialized_variable=05037_W_Variable "$1" scheint nicht initialisiert worden zu sein
 % These messages are displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % wasn't initialized first (i.e. appeared in the left-hand side of an
@@ -1367,6 +1377,16 @@ sym_w_non_implemented_symbol=05055_W_Symbol "$1" is not implemented
 sym_e_cant_create_unique_type=05056_E_Can't create unique type from this type
 % Only simple types like ordinal, float and string types are supported when
 % redefining a type with \var{type newtype = type oldtype;}.
+sym_h_uninitialized_local_variable=05057_H_Local variable "$1" does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. appears in the right-hand-side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assigment)
+sym_h_uninitialized_variable=05058_H_Variable "$1" does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. appears in the right-hand-side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assigment)
 % \end{description}
 #
 # Codegenerator
@@ -1410,10 +1430,10 @@ cg_w_unreachable_code=06018_W_Code wird niemals ausgefÅhrt
 cg_e_cant_call_abstract_method=06020_E_Abstrakte Methoden kînnen nicht direkt aufgerufen werden
 % You cannot call an abstract method directy, instead you must call a
 % overriding child method, because an abstract method isn't implemented.
-cg_d_register_weight=06027_D_Register $1 Gewichtung $2 $3
+cg_d_register_weight=06027_DL_Register $1 Gewichtung $2 $3
 % Debugging message. Shown when the compiler considers a variable for
 % keeping in the registers.
-cg_d_stackframe_omited=06029_D_Stackframe wird ausgelassen
+cg_d_stackframe_omited=06029_DL_Stackframe wird ausgelassen
 % Some procedure/functions do not need a complete stack-frame, so it is omitted.
 % This message will be displayed when the {-vd} switch is used.
 cg_e_unable_inline_object_methods=06031_E_Objektmethoden kînnen nicht Inline sein
@@ -1476,9 +1496,9 @@ cg_w_localsize_too_big=06042_W_Local variable size exceed limit for certain cpu'
 cg_e_localsize_too_big=06043_E_Local variables size exceeds supported limit
 % This indicates that you are declaring more than 32K of lcoal variables, which
 % is not supported by this processor.
-cg_e_break_not_allowed=06000_E_BREAK nicht zulÑssig
+cg_e_break_not_allowed=06044_E_BREAK nicht zulÑssig
 % You're trying to use \var{break} outside a loop construction.
-cg_e_continue_not_allowed=06001_E_CONTINUE nicht zulÑssig
+cg_e_continue_not_allowed=06045_E_CONTINUE nicht zulÑssig
 % You're trying to use \var{continue} outside a loop construction.
 % \end{description}
 
@@ -1488,9 +1508,9 @@ cg_e_continue_not_allowed=06001_E_CONTINUE nicht zulÑssig
 #
 # 07097 is the last used one
 #
-asmr_d_start_reading=07000_D_Starte $1 Stil Assembler Parsen
+asmr_d_start_reading=07000_DL_Starte $1 Stil Assembler Parsen
 % This informs you that an assembler block is being parsed
-asmr_d_finish_reading=07001_D_Beende $1 Stil Assembler Parsen
+asmr_d_finish_reading=07001_DL_Beende $1 Stil Assembler Parsen
 % This informs you that an assembler block has finished.
 asmr_e_none_label_contain_at=07002_E_Nicht-Label Bezeichner enthÑlt @
 % A identifier which isn't a label can't contain a @.
@@ -1555,7 +1575,7 @@ asmr_e_escape_seq_ignored=07027_E_Escape-Sequenz ignoriert: $1
 % is unknown, and is therefore ignored
 asmr_e_invalid_symbol_ref=07028_E_UngÅltige Symbolverwendung
 asmr_w_fwait_emu_prob=07029_W_FWAIT kann Emulationsprobleme mit emu387 verursachen
-asmr_w_fadd_to_faddp=07030_W_FADD ohne Operand wurde in FADDPÅbersetzt
+asmr_w_fadd_to_faddp=07030_W_$1 ohne Operand wurde in $1P Åbersetzt
 asmr_w_enter_not_supported_by_linux=07031_W_Der ENTER-Befehl wird vom Linux-Kernel nicht unterstÅtzt
 % ENTER instruction can generate a stack page fault that is not
 % caught correctly by the i386 Linux page handler.
@@ -1597,7 +1617,7 @@ asmr_e_invalid_opcode_and_operand=07048_E_UngÅltige Kombination von Opcode und O
 asmr_e_syn_operand=07049_E_Assembler Syntaxfehler im Operanden
 asmr_e_syn_constant=07050_E_Assembler Syntaxfehler in Konstanten
 asmr_e_invalid_string_expression=07051_E_UngÅltiger Stringausdruck
-asmr_w_const32bit_for_address=07052_-Bit-Konstanten fÅr Adresse erzeugt
+asmr_w_const32bit_for_address=07052_W_Konstante mit Symbol $1 fÅr Adresse erzeugt, die kein Pointer ist
 % A constant expression represents an address which does not fit
 % into a pointer. The address is probably incorrect
 asmr_e_unknown_opcode=07053_E_Unbekannter Opcode $1
@@ -1697,6 +1717,14 @@ asmr_w_unable_to_determine_reference_size_using_dword=07098_W_No size specified 
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
 % it falls back to use DWORD as default.
+asmr_e_illegal_shifterop_syntax=07099_E_Syntax error while trying to parse a shifter operand
+% ARM only; ARM assembler supports a so called shifter operand. The used syntax isn't
+% a valid shifter operand. Example for an operation with shifter operand:
+% \begin{verbatim}
+% asm
+%   orr     r2,r2,r2,lsl #8
+% end;
+% \end{verbatim}
 #
 # Assembler/binary writers
 #
@@ -1792,13 +1820,13 @@ exec_e_unit_not_shared_or_static_linkable=09027_E_unit $1 can't be shared or sta
 #
 # Executable information
 #
-execinfo_f_cant_process_executable=09023_F_Kann ausfÅhrbare Datei nicht nachbearbeiten: $1
-execinfo_f_cant_open_executable=09024_F_Kann ausfÅhrbare Datei nicht îffnen: $1
-execinfo_x_codesize=09025_X_Grîsse des Codes: $1 Bytes
-execinfo_x_initdatasize=09026_X_Grîsse der initialisierten Daten: $1 Bytes
-execinfo_x_uninitdatasize=09027_X_Grîsse der nicht initialisierten Daten: $1 Bytes
-execinfo_x_stackreserve=09028_X_Stack Bereich "reserved": $1 Bytes
-execinfo_x_stackcommit=09029_X_Stack Bereich "commited": $1 Bytes
+execinfo_f_cant_process_executable=09028_F_Kann ausfÅhrbare Datei nicht nachbearbeiten: $1
+execinfo_f_cant_open_executable=09029_F_Kann ausfÅhrbare Datei nicht îffnen: $1
+execinfo_x_codesize=09030_X_Grîsse des Codes: $1 Bytes
+execinfo_x_initdatasize=09031_X_Grîsse der initialisierten Daten: $1 Bytes
+execinfo_x_uninitdatasize=09032_X_Grîsse der nicht initialisierten Daten: $1 Bytes
+execinfo_x_stackreserve=09033_X_Stack Bereich "reserved": $1 Bytes
+execinfo_x_stackcommit=09034_X_Stack Bereich "commited": $1 Bytes
 #
 # Unit loading
 #
@@ -1911,46 +1939,47 @@ unit_u_check_time=10037_U_PPU prÅfe Datei $1 Zeit $2
 % When you use the \var{-vu} flag, the compiler show the filename and
 % date and time of the file which a recompile depends on
 % \end{description}
+### The following two error msgs is currently disabled.
+#unit_h_cond_not_set_in_last_compile=10038_H_Conditional $1 wurde beim Start beim letzten Kompilieren von $2 nicht gesetzt
+#% when recompilation of an unit is required the compiler will check that
+#% the same conditionals are set for the recompiliation. The compiler has
+#% found a conditional that currently is defined, but was not used the last
+#% time the unit was compiled.
+#unit_h_cond_set_in_last_compile=10039_H_Conditional $1 wurde beim Start beim letzten Kompilieren von $2 gesetzt
+#% when recompilation of an unit is required the compiler will check that
+#% the same conditionals are set for the recompiliation. The compiler has
+#% found a conditional that was used the last time the unit was compiled, but
+#% the conditional is currently not defined.
+unit_w_cant_compile_unit_with_changed_incfile=10040_W_Kann Unit $1 nicht rekompilieren, aber geÑnderte Include-Datei gefunden
+% A unit was found to have modified include files, but
+% some source files were not found, so recompilation is impossible.
+unit_h_source_modified=10041_H_Datei $1 ist neuer als die Release PPU Datei $2
+% A modified source file for a unit was found that was compiled with the
+% release flag (-Ur). The unit will not implicitly be recompiled because
+% this release flag is set.
+unit_u_ppu_invalid_fpumode=10042_U_Eine Unit wurde nicht mit der korrekten FPU Mode kompiliert
+% Trying to compile code while using units which were not compiled with
+% the same floating point format mode. Either all code should be compiled
+% with FPU emulation on, or with FPU emulation off.
+unit_u_loading_interface_units=10043_U_Interface Units werden von $1 geladen
+% When you use the \var{-vu} flag, the compiler warns that it starts
+% loading the units defined in the interface part of the unit.
+unit_u_loading_implementation_units=10044_U_Implementation Units werden von $1 geladen
+% When you use the \var{-vu} flag, the compiler warns that it starts
+% loading the units defined in the implementation part of the unit.
+unit_u_interface_crc_changed=10045_U_GeÑnderte Interface CRC für Unit $1
+% When you use the \var{-vu} flag, the compiler warns that it the
+% CRC calculated for the interface has been changed after the implementation
+% has been parsed.
+unit_u_implementation_crc_changed=10046_U_GeÑnderte Implementation CRC für Unit $1
+% When you use the \var{-vu} flag, the compiler warns that it the
+% CRC calculated has been changed after the implementation
+% has been parsed.
 # EndOfTeX
 
 #
 #  Options
 #
-unit_h_cond_not_set_in_last_compile=10038_H_Conditional $1 was not set at startup in last compilation of $2
-% when recompilation of an unit is required the compiler will check that
-% the same conditionals are set for the recompiliation. The compiler has
-% found a conditional that currently is defined, but was not used the last
-% time the unit was compiled.
-unit_h_cond_set_in_last_compile=10039_H_Conditional $1 was set at startup in last compilation of $2
-% when recompilation of an unit is required the compiler will check that
-% the same conditionals are set for the recompiliation. The compiler has
-% found a conditional that was used the last time the unit was compiled, but
-% the conditional is currently not defined.
-unit_w_cant_compile_unit_with_changed_incfile=10040_W_Can't recompile unit $1, but found modifed include files
-% A unit was found to have modified include files, but
-% some source files were not found, so recompilation is impossible.
-unit_h_source_modified=10041_H_File $1 is newer than Release PPU file $2
-% A modified source file for a unit was found that was compiled with the
-% release flag (-Ur). The unit will not implicitly be recompiled because
-% this release flag is set.
-unit_u_ppu_invalid_fpumode=10042_U_Using a unit which was not compiled with correct FPU mode
-% Trying to compile code while using units which were not compiled with
-% the same floating point format mode. Either all code should be compiled
-% with FPU emulation on, or with FPU emulation off.
-unit_u_loading_interface_units=10043_U_Loading interface units from $1
-% When you use the \var{-vu} flag, the compiler warns that it starts
-% loading the units defined in the interface part of the unit.
-unit_u_loading_implementation_units=10044_U_Loading implementation units from $1
-% When you use the \var{-vu} flag, the compiler warns that it starts
-% loading the units defined in the implementation part of the unit.
-unit_u_interface_crc_changed=10045_U_Interface CRC changed for unit $1
-% When you use the \var{-vu} flag, the compiler warns that it the
-% CRC calculated for the interface has been changed after the implementation
-% has been parsed.
-unit_u_implementation_crc_changed=10046_U_Implementation CRC changed for unit $1
-% When you use the \var{-vu} flag, the compiler warns that it the
-% CRC calculated has been changed after the implementation
-% has been parsed.
 unit_u_finished_compiling=10047_U_Finished compiling unit $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has finished compiling the unit.
@@ -2028,7 +2057,7 @@ option_too_many_cfg_files=11008_F_Zu viele verschachtelte Konfigurtionsdateien
 % You can only nest up to 16 config files.
 option_unable_open_file=11009_F_Kann Datei nicht îffnen $1
 % The option file cannot be found.
-option_reading_further_from=11010_N_Lese weitere Optionen aus $1
+option_reading_further_from=11010_D_Lese weitere Optionen aus $1
 % Displayed when you have notes turned on, and the compiler switches
 % to another options file.
 option_target_is_already_set=11011_W_Zielsystem ist bereits gesetzt: $1
@@ -2092,8 +2121,11 @@ option_interpreting_firstpass_option=11036_D_interpreting firstpass option "$1"
 option_interpreting_file_option=11033_D_interpreting file option "$1"
 option_read_config_file=11034_D_Reading config file "$1"
 option_found_file=11035_D_found source file name "$1"
-option_defining_symbol=11037_D_Defining symbol $1
-option_undefining_symbol=11038_D_Undefining symbol $1
+# the following two are not in errore.msg v 1.124. Should possibly be
+# deleted. I am not sure, though. Therefore, just commented out.
+# (KMS aka Mischi May 2005)
+#option_defining_symbol=11037_D_Defining symbol $1
+#option_undefining_symbol=11038_D_Undefining symbol $1
 % Additional infos about options, displayed
 % when you have debug option turned on.
 option_code_page_not_available=11039_E_Unknown code page
