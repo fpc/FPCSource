@@ -219,7 +219,7 @@ interface
       end;
 
 
-    procedure test_int31(flag : longint);
+    procedure test_int31(flag : longint); stdcall; { stack-args! }
       begin
          asm
             pushl %ebx
@@ -277,6 +277,7 @@ interface
       begin
          regs.realsp:=0;
          regs.realss:=0;
+         regs.realres:=0; { play it safe }
          asm
             { save all used registers to avoid crash under NTVDM }
             { when spawning a 32-bit DPMI application            }

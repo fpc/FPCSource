@@ -265,14 +265,18 @@ procedure sysrealintr(intnr : word;var regs : trealregs);
 begin
    regs.realsp:=0;
    regs.realss:=0;
+   regs.realres:=0; { spec says so, play it safe }
    asm
       pushl %ebx
       pushl %edi
+      pushl %fs   // Go32.RealIntr does it too (NTVDM bug),
+                  // "pushl" to avoid size prefix
       movw  intnr,%bx
       xorl  %ecx,%ecx
       movl  regs,%edi
       movw  $0x300,%ax
       int   $0x31
+      popl  %fs
       popl  %edi
       popl  %ebx
    end;
