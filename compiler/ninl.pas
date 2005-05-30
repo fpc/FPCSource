@@ -1770,7 +1770,7 @@ implementation
 			     begin
                                set_varstate(left,vs_used,[vsf_must_be_valid]);
                                result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
-			     end  
+			     end
                            else
                              result:=cordconstnode.create(tstringdef(left.resulttype.def).len,u8inttype,true);
                          end;
@@ -2171,11 +2171,12 @@ implementation
                          CGMessage(parser_e_illegal_expression);
                      end
                    else
-                     { no, create constant 1 }
-                     if (tcallparanode(left).left.resulttype.def.deftype <> pointerdef) then
-                       hpp := cordconstnode.create(1,tcallparanode(left).left.resulttype,false)
-                     else
-                       hpp := cordconstnode.create(1,ptrinttype,false);
+                     begin
+                       { no, create constant 1 }
+                       hpp := cordconstnode.create(1,tcallparanode(left).left.resulttype,false);
+                     end;
+                   if (tcallparanode(left).left.resulttype.def.deftype=pointerdef) then
+                     inserttypeconv_internal(hpp,ptrinttype);
                    { make sure we don't call functions part of the left node twice (and generally }
                    { optimize the code generation)                                                }
                    if node_complexity(tcallparanode(left).left) > 1 then
