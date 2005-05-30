@@ -16,27 +16,35 @@
 
 var
    variantmanager : tvariantmanager;
-
-procedure invalidvariantop;
-  begin
-     HandleErrorFrame(221,get_frame);
-  end;
-
-
-procedure invalidvariantopnovariants;
+   
+procedure printmissingvariantunit;
   begin
     writeln(stderr);
     writeln(stderr,'Program needs probably the variants unit.');
     writeln(stderr,'Include the variants unit in your uses statements');
     writeln(stderr,'as one of the first units.');
     writeln(stderr);
+  end;
+  
+  
+procedure invalidvariantop;
+  begin
+     printmissingvariantunit;
+     HandleErrorFrame(221,get_frame);
+  end;
+
+
+procedure invalidvariantopnovariants;
+  begin
+    printmissingvariantunit;
     HandleErrorFrame(221,get_frame);
   end;
   
   
 procedure vardisperror;
   begin
-     HandleErrorFrame(222,get_frame);
+    printmissingvariantunit;
+    HandleErrorFrame(222,get_frame);
   end;
 
 
