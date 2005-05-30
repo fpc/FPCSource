@@ -40,7 +40,7 @@ var
       Check('Interface(nil)', a[1], vtInterface);
       Check('Interface', a[2], vtInterface);
       { TObject is a class as well! }
-      Check('Class Object(nil)', a[3], vtClass);
+      Check('Class Object(nil)', a[3], vtObject);
       Check('Class', a[4], vtClass);
       {$IFDEF FPC}
       Check('QWord', a[5], vtQWord);
