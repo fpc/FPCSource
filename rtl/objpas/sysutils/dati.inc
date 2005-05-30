@@ -369,7 +369,7 @@ begin
    begin
      if (s[i] in ['0'..'9']) then
       s1 := s1 + s[i];
-     if (s[i] in [dateseparator,' ']) or (i = length(s)) then
+     if (s[i] in [dateseparator,' ']) or ((i = length(s)) and (s[i] in ['0'..'9'])) then
       begin
         inc(n);
         if n>3 then
@@ -378,7 +378,9 @@ begin
         if c<>0 then
          Raise EConvertError.Create('Invalid date format');
         s1 := '';
-      end ;
+      end
+     else if not (s[i] in ['0'..'9']) then
+      Raise EConvertError.Create('Invalid date format');
    end ;
   // Fill in values.
   getLocalTime(LocalTime);
@@ -416,7 +418,7 @@ begin
     if (TwoDigitYearCenturyWindow > 0) and (Y < ly) then
       Inc(Y, 100);
     end;
-  Result := DoEncodeDate(y, m, d);
+  Result := EncodeDate(y, m, d);
 end ;
 
 
