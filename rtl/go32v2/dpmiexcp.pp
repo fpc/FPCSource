@@ -240,7 +240,7 @@ var
 const
   int31error : word = 0;
 
-    procedure test_int31(flag : longint);
+    procedure test_int31(flag : longint); stdcall; { stack-args! }
       begin
          asm
             pushl %ebx
