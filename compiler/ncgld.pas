@@ -817,9 +817,8 @@ implementation
                    objectdef :
                      if is_interface(lt) then
                        vtype:=vtInterface
+                     { vtObject really means a class based on TObject }
                      else if is_class(lt) then
-                       vtype:=vtClass
-                     else if is_object(lt) then
                        vtype:=vtObject
                      else
                        internalerror(200505171);

@@ -989,8 +989,11 @@ implementation
                    stringdef,
                    variantdef,
                    pointerdef,
-                   classrefdef,
-                   objectdef : ;
+                   classrefdef:
+                     ;
+                   objectdef :
+                     if is_object(hp.left.resulttype.def) then
+                       CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
                    else
                      CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
                  end;
