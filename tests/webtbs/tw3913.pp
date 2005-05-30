@@ -1,4 +1,4 @@
-{ $mode objfpc}
+{$mode objfpc}
 uses
   sysutils;
 var
