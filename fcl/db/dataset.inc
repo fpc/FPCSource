@@ -1391,6 +1391,20 @@ begin
   Result:=(Bof and Eof);
 end;
 
+Function TDataset.IsLinkedTo(DataSource: TDataSource): Boolean;
+
+begin
+//!! Not tested, I never used nested DS
+  if (DataSource = nil) or (DataSource.Dataset = nil) then begin
+    Result := False
+  end else if DataSource.Dataset = Self then begin
+    Result := True;
+  end else begin
+    Result := DataSource.Dataset.IsLinkedTo(DataSource.Dataset.DataSource);
+  end;
+//!! DataSetField not implemented
+end;
+
 Function TDataset.IsSequenced: Boolean;
 
 begin
@@ -1724,6 +1738,12 @@ begin
   DataEvent(deUpdateRecord, 0);
 end;
 
+Function TDataSet.UpdateStatus: TUpdateStatus;
+
+begin
+  Result:=usUnmodified;
+end;
+
 Procedure TDataset.RemoveField (Field : TField);
 
 begin
@@ -1776,13 +1796,18 @@ begin
   Result := False;
 end;
 
+Function TDataset.Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; 
+
+begin
+  Result := False;
+end;
+          
 
 Procedure TDataset.UnRegisterDataSource(ADatasource : TDatasource);
 
 begin
   FDataSources.Remove(ADataSource);
 end;
-
 
 {
   $Log: dataset.inc,v $

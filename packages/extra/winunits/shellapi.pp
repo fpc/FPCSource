@@ -93,6 +93,10 @@ Function ShellExecuteW(hwnd: HWND;lpOperation : LPCWSTR ; lpFile : LPCWSTR ; lpP
 Function ShellExecute(HWND: hwnd;lpOperation : LPCSTR ; lpFile : LPCSTR ; lpParameters : LPCSTR; lpDirectory:  LPCSTR; nShowCmd:LONGINT):HInst; external 'shell32.dll' name 'ShellExecuteA';
 Function ShellExecute(hwnd: HWND;lpOperation : LPCWSTR ; lpFile : LPCWSTR ; lpParameters : LPCWSTR; lpDirectory:  LPCWSTR; nShowCmd:LONGINT):HInst; external 'shell32.dll' name 'ShellExecuteW';
 
+Function ShellExecuteEx(lpExecInfo: LPSHELLEXECUTEINFO):BOOL; external 'shell32.dll' name 'ShellExecuteEx';
+Function ShellExecuteExA(lpExecInfo: LPSHELLEXECUTEINFOA):BOOL; external 'shell32.dll' name 'ShellExecuteExA';
+Function ShellExecuteExW(lpExecInfo: LPSHELLEXECUTEINFOW):BOOL; external 'shell32.dll' name 'ShellExecuteExW';
+
 Function FindExecutableA(lpFile : LPCSTR ;lpDirectory : LPCSTR ; lpResult : LPSTR):HInst;external 'shell32.dll' name 'FindExecutableA';
 Function FindExecutableW(lpFile : LPCWSTR;lpDirectory : LPCWSTR; lpResult : LPWSTR):HInst;external 'shell32.dll' name 'FindExecutableW';
 Function FindExecutable(lpFile : LPCSTR ;lpDirectory : LPCSTR ; lpResult : LPSTR):HInst;external 'shell32.dll' name 'FindExecutableA';
