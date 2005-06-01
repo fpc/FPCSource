@@ -152,7 +152,8 @@ begin
   frames:=nil;
   framebufsize:=0;
   framecount:=0;
-  while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) Do
+  while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
+        (curr_frame<(StackBottom + StackLength)) do
    Begin
      caller_addr := get_caller_addr(curr_frame);
      caller_frame := get_caller_frame(curr_frame);
