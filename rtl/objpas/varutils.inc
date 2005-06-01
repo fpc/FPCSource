@@ -379,7 +379,8 @@ Function SafeArrayCreate(VarType, Dim: SizeInt; const Bounds: TVarArrayBoundArra
 Function SafeArrayAllocDescriptor(DimCount: SizeInt; var psa: PVarArray): HRESULT;stdcall;
 begin
   try
-    psa:=GetMem(SizeOf(TVarArray) + SizeOf(TVarArrayBound) * (DimCount - 1));
+    { one bound item is included in TVarArray }
+    psa:=GetMem(SizeOf(TVarArray) + SizeOf(TVarArrayBound)*(DimCount-1));
     Result:=VAR_OK;
   except
     On E : Exception do
@@ -391,7 +392,10 @@ Function SafeArrayAllocData(psa: PVarArray): HRESULT;stdcall;
 begin
   try
     With psa^ do
-      Data:=GetMem(SafeArrayElementTotal(psa)*ElementSize);
+      begin 
+        Data:=GetMem(SafeArrayElementTotal(psa)*ElementSize);
+        fillchar(Data^,SafeArrayElementTotal(psa)*ElementSize,0);
+      end;
     Result:=VAR_OK;
   except
     On E : Exception do
