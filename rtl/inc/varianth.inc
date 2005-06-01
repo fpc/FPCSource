@@ -57,15 +57,17 @@ type
      elementcount,lowbound  : SizeInt;
    end;
 
-   tvararray = packed record
-      dimcount,flags : word;
-      elementsize,lockcount : longint;
-      data : pointer;
-      bounds : array[0..255] of tvararraybound;
-   end;
-
    tvararrayboundarray = array[0..0] of tvararraybound;
    tvararraycoorarray = array[0..0] of SizeInt;
+
+   tvararray = packed record
+      dimcount,flags : word;
+      elementsize : ptrint;
+      lockcount : longint;
+      data : pointer;
+      bounds : tvararrayboundarray;
+   end;
+
 
    tvarop = (opadd,opsubtract,opmultiply,opdivide,opintdivide,opmodulus,
              opshiftleft,opshiftright,opand,opor,opxor,opcompare,opnegate,
