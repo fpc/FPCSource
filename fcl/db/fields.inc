@@ -156,6 +156,16 @@ begin
   Result:=TFieldDef(FItems[Index]);
 end;
 
+procedure TFieldDefs.Delete(Index: Longint);
+
+var
+  c: TComponent;
+begin
+  c := GetItem(Index);
+  RemoveComponent(c);
+  //c.Free; maybe not needed?
+end;
+
 constructor TFieldDefs.Create(ADataSet: TDataSet);
 
 begin
@@ -399,16 +409,58 @@ end;
 
 function TField.GetOldValue: Variant;
 
-var SaveState : tDatasetState;
+var SaveState : TDatasetState;
 
 begin
-  with FDataset do
-    begin
-    SaveState := State;
-    SetTempState(dsOldValue);
+  SaveState := FDataset.State;
+  try
+    FDataset.SetTempState(dsOldValue);
     Result := GetAsVariant;
-    RestoreState(SaveState);
-    end;
+  finally
+    FDataset.RestoreState(SaveState);
+  end;
+end;
+
+function TField.GetNewValue: Variant;
+
+var SaveState : TDatasetState;
+
+begin
+  SaveState := FDataset.State;
+  try
+    FDataset.SetTempState(dsNewValue);
+    Result := GetAsVariant;
+  finally
+    FDataset.RestoreState(SaveState);
+  end;
+end;
+
+procedure TField.SetNewValue(const AValue: Variant);
+
+var SaveState : TDatasetState;
+
+begin
+  SaveState := FDataset.State;
+  try
+    FDataset.SetTempState(dsNewValue);
+    SetAsVariant(AValue);
+  finally
+    FDataset.RestoreState(SaveState);
+  end;
+end;
+
+function TField.GetCurValue: Variant;
+
+var SaveState : TDatasetState;
+
+begin
+  SaveState := FDataset.State;
+  try
+    FDataset.SetTempState(dsCurValue);
+    Result := GetAsVariant;
+  finally
+    FDataset.RestoreState(SaveState);
+  end;
 end;
 
 function TField.GetCanModify: Boolean;
@@ -1423,6 +1475,41 @@ begin
     Result:=True;
 end;
 
+{ TCurrencyField }
+
+Constructor TCurrencyField.Create(AOwner: TComponent);
+
+begin
+  inherited Create(AOwner);
+  SetDataType(ftCurrency);
+end;
+
+procedure TCurrencyField.GetText(var TheText: string; ADisplayText: Boolean);
+
+Var
+    fmt : string;
+    ff: TFloatFormat;
+    E : Double;
+
+begin
+  TheText:='';
+  If Not GetData(@E) then exit;
+  If ADisplayText or (Length(FEditFormat) = 0) Then
+    Fmt:=FDisplayFormat
+  else
+    Fmt:=FEditFormat;
+
+  if ADisplayText then 
+    ff := ffCurrency 
+  else 
+    ff := ffFixed;
+        
+  If fmt<>'' then
+    TheText:=FormatFloat(fmt, E)
+  else
+    TheText:=FloatToStrF(E, ff, FPrecision, CurrencyDecimals);
+end;
+
 
 { TBooleanField }
 
@@ -1827,6 +1914,12 @@ begin
     Result:='';
 end;
 
+function TBCDField.GetValue(var AValue: Currency): Boolean;
+
+begin
+  Result := GetData(@AValue);
+end;
+  
 function TBCDField.GetDataSize: Word;
 
 begin

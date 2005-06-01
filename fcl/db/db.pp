@@ -160,6 +160,7 @@ type
     Function AddFieldDef : TFieldDef;
     procedure Assign(FieldDefs: TFieldDefs);
     procedure Clear;
+    procedure Delete(Index: Longint);
     function Find(const AName: string): TFieldDef;
     function IndexOf(const AName: string): Longint;
     procedure Update;
@@ -255,6 +256,8 @@ type
     function GetDataSize: Word; virtual;
     function GetDefaultWidth: Longint; virtual;
     function GetDisplayName : String;
+    function GetCurValue: Variant; virtual;
+    function GetNewValue: Variant; virtual;
     function GetIsNull: Boolean; virtual;
     function GetParentComponent: TComponent; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); virtual;
@@ -271,6 +274,7 @@ type
     procedure SetAsVariant(AValue: variant); virtual;
     procedure SetAsString(const AValue: string); virtual;
     procedure SetDataType(AValue: TFieldType);
+    procedure SetNewValue(const AValue: Variant);
     procedure SetSize(AValue: Word); virtual;
     procedure SetParentComponent(AParent: TComponent); override;
     procedure SetText(const AValue: string); virtual;
@@ -299,6 +303,7 @@ type
     property AttributeSet: string read FAttributeSet write FAttributeSet;
     property Calculated: Boolean read FCalculated write FCalculated;
     property CanModify: Boolean read FCanModify;
+    property CurValue: Variant read GetCurValue;
     property DataSet: TDataSet read FDataSet write SetDataSet;
     property DataSize: Word read GetDataSize;
     property DataType: TFieldType read FDataType;
@@ -307,6 +312,7 @@ type
     property FieldNo: Longint read FFieldNo;
     property IsIndexField: Boolean read FIsIndexField;
     property IsNull: Boolean read GetIsNull;
+    property NewValue: Variant read GetNewValue write SetNewValue;
     property Offset: word read FOffset;
     property Size: Word read FSize write FSize;
     property Text: string read FEditText write FEditText;
@@ -444,6 +450,7 @@ type
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : largeint) : Boolean;
     property Value: Longint read GetAsLongint write SetAsLongint;
+    property AsLargeInt: LargeInt read GetAsLargeint write SetAsLargeint;
   published
     property MaxValue: Largeint read FMaxValue write SetMaxValue default 0;
     property MinValue: Largeint read FMinValue write SetMinValue default 0;
@@ -505,6 +512,13 @@ type
     property Precision: Longint read FPrecision write FPrecision default 15;
   end;
 
+{ TCurrencyField }
+
+  TCurrencyField = class(TFloatField)
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure GetText(var TheText: string; ADisplayText: Boolean); override;
+  end;
 
 { TBooleanField }
 
@@ -618,6 +632,7 @@ type
     function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
+    function GetValue(var AValue: Currency): Boolean;
     function GetAsVariant: variant; override;
     function GetDataSize: Word; override;
     function GetDefaultWidth: Longint; override;
@@ -1071,9 +1086,11 @@ type
     procedure Insert;
     procedure InsertRecord(const Values: array of const);
     function IsEmpty: Boolean;
+    function IsLinkedTo(DataSource: TDataSource): Boolean;
     function IsSequenced: Boolean; virtual;
     procedure Last;
     function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; virtual;
+    function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; virtual;
     function MoveBy(Distance: Longint): Longint;
     procedure Next;
     procedure Open;
@@ -1085,6 +1102,7 @@ type
     function  Translate(Src, Dest: PChar; ToOem: Boolean): Integer; virtual;
     procedure UpdateCursorPos;
     procedure UpdateRecord;
+    function UpdateStatus: TUpdateStatus; virtual;
     property BOF: Boolean read FBOF;
     property Bookmark: TBookmarkStr read GetBookmarkStr write SetBookmarkStr;
     property CanModify: Boolean read GetCanModify;
@@ -1699,6 +1717,7 @@ Procedure DatabaseError (Const Msg : String; Comp : TComponent);
 Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of Const);
 Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const;
                             Comp : TComponent);
+Function ExtractFieldName(Const Fields: String; var Pos: Integer): String;
 
 implementation
 
@@ -1734,6 +1753,21 @@ begin
   Raise EDatabaseError.CreateFmt(Format('%s : %s',[Comp.Name,Fmt]),Args);
 end;
 
+Function ExtractFieldName(Const Fields: String; var Pos: Integer): String;
+
+var
+  i: integer;
+begin
+  for i := Pos to Length(Fields) do begin
+    if Fields[i] = ';' then begin
+      Result := Copy(Fields, Pos, i - Pos);
+      Pos := i + 1;
+      Exit;
+    end;
+  end;
+  Result := Copy(Fields, Pos, Length(Fields));
+  Pos := Length(Fields) + 1;
+end;
 
 { TIndexDef }
 
