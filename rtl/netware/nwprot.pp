@@ -1,4 +1,4 @@
-
+{
   Netware Server Imports for FreePascal, contains definitions for the
   netware server protocol library
 

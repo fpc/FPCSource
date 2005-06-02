@@ -1,4 +1,4 @@
-
+{
   Netware Server Imports for FreePascal, contains definition from the
   following ndk header files:
 
