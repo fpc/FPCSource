@@ -445,71 +445,90 @@ begin
   Result:=nil;
 end;
 
+function TDataSet.GetFieldData(Field: TField; Buffer: Pointer;
+  NativeFormat: Boolean): Boolean;
+  
+  function ConvertData(Field: TField; Source: TDateTimeRec): TDateTime;
+  var
+    TimeStamp: TTimeStamp;
+  begin
+    case Field.DataType of
+      ftDate:
+        begin
+          TimeStamp.Time := 0;
+          TimeStamp.Date := Source.Date;
+        end;
+      ftTime:
+        begin
+          TimeStamp.Time := Source.Time;
+          TimeStamp.Date := DateDelta;
+        end;
+    else
+      try
+        TimeStamp := MSecsToTimeStamp(Source.DateTime);
+      except
+        TimeStamp.Time := 0;
+        TimeStamp.Date := 0;
+      end;
+    end;
+//    Result := TimeStampToDateTime(TimeStamp);
+    Result := (TimeStamp.Date - DateDelta) + (TimeStamp.Time / MSecsPerDay);
+  end;
+
+var
+  d: TDateTimeRec;
+begin
+  if NativeFormat then
+    Result := GetFieldData(Field, Buffer) else
+  if Field.DataType in  [ ftDate, ftDateTime, ftTime ] then begin
+    Result := GetFieldData(Field, @d);
+    if Result then
+      TDateTime(Buffer^) := ConvertData(Field, d);
+  end else
+    Result := GetFieldData(Field, Buffer);
+end;
+
+procedure TDataSet.SetFieldData(Field: TField; Buffer: Pointer;
+  NativeFormat: Boolean);
+
+  function ConvertData(Field: TField; Data: TDateTime): TDateTimeRec;
+  var
+    TimeStamp: TTimeStamp;
+  begin
+    TimeStamp.Time := Trunc(Frac(Data) * MSecsPerDay);
+    TimeStamp.Date := DateDelta + Trunc(System.Int(Data));
+//    TimeStamp := DateTimeToTimeStamp(Data);
+    case Field.DataType of
+      ftDate: Result.Date := TimeStamp.Date;
+      ftTime: Result.Time := TimeStamp.Time;
+    else
+      Result.DateTime := TimeStampToMSecs(TimeStamp);
+    end;
+  end;
+
+var
+  d: TDateTimeRec;
+begin
+  if NativeFormat then
+    SetFieldData(Field, Buffer)
+  else
+  if Field.DataType in  [ ftDate, ftDateTime, ftTime ] then begin
+    d := ConvertData(Field, TDateTime(Buffer^));
+    SetFieldData(Field, @d);
+  end else
+    SetFieldData(Field, Buffer);
+end;
+
 Function TDataset.GetField (Index : Longint) : TField;
 
 begin
   Result:=FFIeldList[index];
 end;
 
-{
-  This is not yet allowed, FPC doesn't allow typed consts of Classes...
-
-Const
-  DefFieldClasses : Array [TFieldType] of TFieldClass =
-    ( { ftUnknown} Tfield,
-      { ftString} TStringField,
-      { ftSmallint} TLongIntField,
-      { ftInteger} TLongintField,
-      { ftWord} TLongintField,
-      { ftBoolean} TBooleanField,
-      { ftFloat} TFloatField,
-      { ftDate} TDateField,
-      { ftTime} TTimeField,
-      { ftDateTime} TDateTimeField,
-      { ftBytes} TBytesField,
-      { ftVarBytes} TVarBytesField,
-      { ftAutoInc} TAutoIncField,
-      { ftBlob} TBlobField,
-      { ftMemo} TMemoField,
-      { ftGraphic} TGraphicField,
-      { ftFmtMemo} TMemoField,
-      { ftParadoxOle} Nil,
-      { ftDBaseOle} Nil,
-      { ftTypedBinary} Nil,
-      { ftCursor} Nil
-    );
-}
-
 Function TDataset.GetFieldClass(FieldType: TFieldType): TFieldClass;
 
 begin
-  Case FieldType of
-     ftUnknown : Result:=Tfield;
-     ftString: Result := TStringField;
-     ftLargeint: Result := TLargeintField;
-     ftSmallint: Result := TSmallIntField;
-     ftInteger: Result := TLongintField;
-     ftWord: Result := TWordField;
-     ftBoolean: Result := TBooleanField;
-     ftFloat: Result := TFloatField;
-     ftBCD: Result := TBCDField;
-     ftDate: Result := TDateField;
-     ftTime: Result := TTimeField;
-     ftDateTime: Result := TDateTimeField;
-     ftBytes: Result := TBytesField;
-     ftVarBytes: Result := TVarBytesField;
-     ftAutoInc: Result := TAutoIncField;
-     ftBlob: Result := TBlobField;
-     ftMemo: Result := TMemoField;
-     ftGraphic: Result := TGraphicField;
-     ftFmtMemo: Result := TMemoField;
-     ftParadoxOle: Result := Nil;
-     ftDBaseOle: Result := Nil;
-     ftTypedBinary: Result := Nil;
-     ftCursor: Result := Nil
-  else
-     Result := nil;
-  end;
+  Result := DefaultFieldClasses[FieldType];
 end;
 
 Function TDataset.GetIsIndexField(Field: TField): Boolean;
@@ -620,7 +639,13 @@ end;
 Procedure TDataset.InitFieldDefs;
 
 begin
-  //!! To be implemented
+  if IsCursorOpen then InternalInitFieldDefs
+  else
+  try
+    OpenCursor(True);
+  finally
+    CloseCursor;
+  end;
 end;
 
 Procedure TDataset.InitRecord(Buffer: PChar);

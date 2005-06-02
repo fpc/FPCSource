@@ -70,7 +70,7 @@ Const
   SParameterCountIncorrect = 'The number of parameters is incorrect.';
   SFieldValueError         = 'Invalid value for field ''%s''';
   SInvalidCalcType         = 'Field ''%s'' cannot be a calculated or lookup field';
-
+  SDuplicateName           = 'Duplicate name ''%s'' in %s';
 
 Implementation
 

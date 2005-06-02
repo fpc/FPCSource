@@ -189,6 +189,8 @@ type
     function  GetCanModify: Boolean; override;
     function ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean; override;
     Function IsPrepared : Boolean; virtual;
+    function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload; override;
+    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload; override;
   public
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
@@ -515,6 +517,18 @@ Function TSQLQuery.IsPrepared : Boolean;
 
 begin
   Result := Assigned(FCursor) and FCursor.FPrepared;
+end;
+
+function TSQLQuery.GetFieldData(Field: TField; Buffer: Pointer;
+  NativeFormat: Boolean): Boolean;
+begin
+  Result:=GetFieldData(Field, Buffer);
+end;
+
+procedure TSQLQuery.SetFieldData(Field: TField; Buffer: Pointer;
+  NativeFormat: Boolean);
+begin
+  SetFieldData(Field, Buffer);
 end;
 
 procedure TSQLQuery.Prepare;

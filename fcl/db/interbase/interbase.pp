@@ -251,6 +251,7 @@ type
     procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
     function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
+    function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload; override;
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
     function GetRecordCount: integer; override;
     function GetRecordSize: Word; override;
@@ -270,6 +271,7 @@ type
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;
+    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload; override;
   public
     { This method is used for executing sql statements, which
       doesn't return any rows. (insert,delete,update, and DDL commands) }
@@ -1033,6 +1035,12 @@ begin
   end;
 end;
 
+function TIBQuery.GetFieldData(Field: TField; Buffer: Pointer;
+  NativeFormat: Boolean): Boolean;
+begin
+  Result := GetFieldData(Field, Buffer);
+end;
+
 function TIBQuery.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 begin
   if FStatementType <> stSelect then
@@ -1219,6 +1227,12 @@ end;
 
 procedure TIBQuery.SetFieldData(Field: TField; Buffer: Pointer);
 begin
+end;
+
+procedure TIBQuery.SetFieldData(Field: TField; Buffer: Pointer;
+  NativeFormat: Boolean);
+begin
+  SetFieldData(Field, Buffer);
 end;
 
 // public part
