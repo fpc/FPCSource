@@ -111,7 +111,9 @@ type
   TFieldAttribute = (faHiddenCol, faReadonly, faRequired, faLink, faUnNamed, faFixed);
   TFieldAttributes = set of TFieldAttribute;
 
-  TFieldDef = class(TComponent)
+  { TFieldDef }
+
+  TFieldDef = class(TCollectionItem)
   Private
     FDataType : TFieldType;
     FFieldNo : Longint;
@@ -123,50 +125,59 @@ type
     FDisplayName : String;
     FAttributes : TFieldAttributes;
     Function GetFieldClass : TFieldClass;
+    procedure SetAttributes(AValue: TFieldAttributes);
+    procedure SetDataType(AValue: TFieldType);
+    procedure SetPrecision(const AValue: Longint);
+    procedure SetSize(const AValue: Word);
+  protected
+    function GetDisplayName: string;
+    procedure SetDisplayName(const AValue: string);
   public
     constructor Create(AOwner: TFieldDefs; const AName: string;
       ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint);
     destructor Destroy; override;
+    procedure Assign(APersistent: TPersistent); override;
     function CreateField(AOwner: TComponent): TField;
     property FieldClass: TFieldClass read GetFieldClass;
     property FieldNo: Longint read FFieldNo;
     property InternalCalcField: Boolean read FInternalCalcField write FInternalCalcField;
     property Required: Boolean read FRequired;
   Published
-    property Attributes: TFieldAttributes read FAttributes write FAttributes default [];
+    property Attributes: TFieldAttributes read FAttributes write SetAttributes default [];
     property Name: string read FName write FName; // Must move to TNamedItem
     property DisplayName : string read FDisplayName write FDisplayName; // Must move to TNamedItem
-    property DataType: TFieldType read FDataType write FDataType;
-    property Precision: Longint read FPrecision write FPrecision;
-    property Size: Word read FSize write FSize;
+    property DataType: TFieldType read FDataType write SetDataType;
+    property Precision: Longint read FPrecision write SetPrecision;
+    property Size: Word read FSize write SetSize;
   end;
 
 { TFieldDefs }
 
-  TFieldDefs = class(TComponent)
+  TFieldDefs = class(TOwnedCollection)
   private
-    FDataSet: TDataSet;
-    FItems: TList;
     FUpdated: Boolean;
     FHiddenFields : Boolean;
-    function GetCount: Longint;
     function GetItem(Index: Longint): TFieldDef;
+    function GetDataset: TDataset;
+    procedure SetItem(Index: Longint; const AValue: TFieldDef);
+  protected
+    procedure SetItemName(AItem: TCollectionItem); override;
   public
     constructor Create(ADataSet: TDataSet);
-    destructor Destroy; override;
+//    destructor Destroy; override;
     procedure Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean);
     procedure Add(const AName: string; ADataType: TFieldType; ASize: Word);
     procedure Add(const AName: string; ADataType: TFieldType);
     Function AddFieldDef : TFieldDef;
     procedure Assign(FieldDefs: TFieldDefs);
-    procedure Clear;
-    procedure Delete(Index: Longint);
+//    procedure Clear;
+//    procedure Delete(Index: Longint);
     function Find(const AName: string): TFieldDef;
     function IndexOf(const AName: string): Longint;
     procedure Update;
-    property Count: Longint read GetCount;
     Property HiddenFields : Boolean Read FHiddenFields Write FHiddenFields;
-    property Items[Index: Longint]: TFieldDef read GetItem; default;
+    property Items[Index: Longint]: TFieldDef read GetItem write SetItem; default;
+    property Dataset: TDataset read GetDataset;
     property Updated: Boolean read FUpdated write FUpdated;
   end;
 
@@ -228,6 +239,7 @@ type
     FProviderFlags : TProviderFlags;
     Function GetIndex : longint;
     procedure SetAlignment(const AValue: TAlignMent);
+    procedure SetIndex(AValue: Integer);
     Procedure SetDataset(Value : TDataset);
     function GetDisplayText: String;
     procedure SetDisplayLabel(const AValue: string);
@@ -330,7 +342,7 @@ type
     property FieldKind: TFieldKind read FFieldKind write FFieldKind;
     property FieldName: string read FFieldName write FFieldName;
     property HasConstraints: Boolean read FHasConstraints;
-    property Index: Longint read GetIndex;
+    property Index: Longint read GetIndex write SetIndex;
     property ImportedConstraint: string read FImportedConstraint write FImportedConstraint;
     property LookupDataSet: TDataSet read FLookupDataSet write FLookupDataSet;
     property LookupKeyFields: string read FLookupKeyFields write FLookupKeyFields;
@@ -807,6 +819,7 @@ type
       Procedure CheckfieldKind(Fieldkind : TFieldKind; Field : TField);
       Function GetCount : Longint;
       Function GetField (Index : longint) : TField;
+      Procedure SetField(Index: Integer; Value: TField);
       Procedure SetFieldIndex (Field : TField;Value : Integer);
       Property OnChange : TNotifyEvent Read FOnChange Write FOnChange;
       Property ValidFieldKinds : TFieldKinds Read FValidFieldKinds;
@@ -825,7 +838,7 @@ type
       procedure Remove(Value : TField);
       Property Count : Integer Read GetCount;
       Property Dataset : TDataset Read FDataset;
-      Property Fields [Index : Integer] : TField Read GetField; default;
+      Property Fields [Index : Integer] : TField Read GetField Write SetField; default;
     end;
 
 
@@ -1032,7 +1045,8 @@ type
     procedure GetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
     function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; virtual; abstract;
     function GetDataSource: TDataSource; virtual;
-    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; virtual; abstract;
+    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; virtual; abstract;
+    function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload; virtual;
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
     function GetRecordSize: Word; virtual; abstract;
     procedure InternalAddRecord(Buffer: Pointer; Append: Boolean); virtual; abstract;
@@ -1050,7 +1064,8 @@ type
     function IsCursorOpen: Boolean; virtual; abstract;
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); virtual; abstract;
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
-    procedure SetFieldData(Field: TField; Buffer: Pointer); virtual; abstract;
+    procedure SetFieldData(Field: TField; Buffer: Pointer); overload; virtual; abstract;
+    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1705,6 +1720,48 @@ Const
       'TypedBinary',
       'Cursor'
     );}
+
+const
+  DefaultFieldClasses : Array [TFieldType] of TFieldClass =
+    ( { ftUnknown} Tfield,
+      { ftString} TStringField,
+      { ftSmallint} TLongIntField,
+      { ftInteger} TLongintField,
+      { ftWord} TLongintField,
+      { ftBoolean} TBooleanField,
+      { ftFloat} TFloatField,
+      { ftCurrency} Nil,
+      { ftBCD} TBCDField,
+      { ftDate} TDateField,
+      { ftTime} TTimeField,
+      { ftDateTime} TDateTimeField,
+      { ftBytes} TBytesField,
+      { ftVarBytes} TVarBytesField,
+      { ftAutoInc} TAutoIncField,
+      { ftBlob} TBlobField,
+      { ftMemo} TMemoField,
+      { ftGraphic} TGraphicField,
+      { ftFmtMemo} TMemoField,
+      { ftParadoxOle} Nil,
+      { ftDBaseOle} Nil,
+      { ftTypedBinary} Nil,
+      { ftCursor} Nil,
+      { ftFixedChar} TStringField,
+      { ftWideString} Nil,
+      { ftLargeint} TLargeIntField,
+      { ftADT} Nil,
+      { ftArray} Nil,
+      { ftReference} Nil,
+      { ftDataSet} Nil,
+      { ftOraBlob} TBlobField,
+      { ftOraClob} TMemoField,
+      { ftVariant} Nil,
+      { ftInterface} Nil,
+      { ftIDispatch} Nil,
+      { ftGuid} Nil,
+      { ftTimeStamp} Nil,
+      { ftFMTBcd} Nil
+    );
 
   dsEditModes = [dsEdit, dsInsert, dsSetKey];
   dsWriteModes = [dsEdit, dsInsert, dsSetKey, dsCalcFields, dsFilter,

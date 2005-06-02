@@ -124,6 +124,8 @@ type
 
     // TDataset method
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
+    function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload; override;
+    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload; override;
 
     property AffectedRows: QWord read FAffectedRows;
     property LastInsertID: Integer read FLastInsertID;
@@ -254,6 +256,18 @@ begin
     else
       Inc(CurBuf, MySQLDataSize(fld^.ftype, fld^.length));
     end;
+end;
+
+function TMySQLDataset.GetFieldData(Field: TField; Buffer: Pointer;
+  NativeFormat: Boolean): Boolean;
+begin
+  Result:=GetFieldData(Field, Buffer);
+end;
+
+procedure TMySQLDataset.SetFieldData(Field: TField; Buffer: Pointer;
+  NativeFormat: Boolean);
+begin
+  SetFieldData(Field, Buffer);
 end;
 
 function TMySQLDataset.GetRecNo: Integer;
@@ -696,9 +710,9 @@ begin
   EY := StrToInt(Copy(S, 1, 4));
   EM := StrToInt(Copy(S, 6, 2));
   ED := StrToInt(Copy(S, 9, 2));
-  EH := StrToInt(Copy(S, 11, 2));
-  EN := StrToInt(Copy(S, 14, 2));
-  ES := StrToInt(Copy(S, 17, 2));
+  EH := StrToInt(Copy(S, 12, 2));
+  EN := StrToInt(Copy(S, 15, 2));
+  ES := StrToInt(Copy(S, 18, 2));
   if (EY = 0) or (EM = 0) or (ED = 0) then
     Result := 0
   else

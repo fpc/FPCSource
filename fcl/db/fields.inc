@@ -51,7 +51,6 @@ begin
     If Not (FSize in [1,2,4]) then FSize:=4;
 
   FFieldNo:=AFieldNo;
-  AOwner.FItems.Add(Self);
 end;
 
 Destructor TFieldDef.Destroy;
@@ -60,6 +59,27 @@ Var I : longint;
 
 begin
   Inherited destroy;
+end;
+
+procedure TFieldDef.Assign(APersistent: TPersistent);
+var fd: TFieldDef;
+begin
+  fd := nil;
+  if APersistent is TFieldDef then
+    fd := APersistent as TFieldDef;
+  if Assigned(fd) then begin
+    Collection.BeginUpdate;
+    try
+      Name := fd.Name;
+      DataType := fd.DataType;
+      Size := fd.Size;
+      Precision := fd.Precision;
+      FRequired := fd.Required;
+    finally
+      Collection.EndUpdate;
+    end;
+  end else
+  inherited Assign(APersistent);
 end;
 
 Function TFieldDef.CreateField(AOwner: TComponent): TField;
@@ -88,7 +108,7 @@ begin
 {$ifdef dsdebug}
     Writeln ('TFieldDef.CReateField : Result Fieldno : ',Result.FieldNo,' Self : ',FieldNo);
 {$endif dsdebug}
-    Result.Dataset:=TFieldDefs(Owner).FDataset;
+    Result.Dataset:=TFieldDefs(Collection).Dataset;
     If Result is TFloatField then
       TFloatField(Result).Precision:=FPrecision;
   except
@@ -98,13 +118,55 @@ begin
 
 end;
 
+procedure TFieldDef.SetAttributes(AValue: TFieldAttributes);
+begin
+  FAttributes := AValue;
+  Changed(False);
+end;
+
+procedure TFieldDef.SetDataType(AValue: TFieldType);
+begin
+  FDataType := AValue;
+  Changed(False);
+end;
+
+procedure TFieldDef.SetPrecision(const AValue: Longint);
+begin
+  FPrecision := AValue;
+  Changed(False);
+end;
+
+procedure TFieldDef.SetSize(const AValue: Word);
+begin
+  FSize := AValue;
+  Changed(False);
+end;
+
+function TFieldDef.GetDisplayName: string;
+begin
+  Result := FDisplayName;
+  if Result = '' then
+    Result := Fname;
+end;
+
+procedure TFieldDef.SetDisplayName(const AValue: string);
+begin
+  if (AValue <> '') and (AnsiCompareText(AValue, DisplayName) <> 0) and
+    (Collection is TOwnedCollection) and
+    (TFieldDefs(Collection).IndexOf(AValue) >= 0) then
+    DatabaseErrorFmt(SDuplicateName, [AValue, Collection.ClassName]);
+  FName := AValue;
+end;
+
 Function TFieldDef.GetFieldClass : TFieldClass;
 
 begin
   //!! Should be owner as tdataset but that doesn't work ??
 
-  If Assigned(Owner) then
-    Result:=TFieldDefs(Owner).FDataSet.GetFieldClass(FDataType)
+  If Assigned(Collection) And
+     (Collection is TFieldDefs) And
+     Assigned(TFieldDefs(Collection).Dataset) then
+    Result:=TFieldDefs(Collection).Dataset.GetFieldClass(FDataType)
   else
     Result:=Nil;
 end;
@@ -113,6 +175,7 @@ end;
     TFieldDefs
   ---------------------------------------------------------------------}
 
+{
 destructor TFieldDefs.Destroy;
 
 begin
@@ -120,6 +183,7 @@ begin
   // This will destroy all fielddefs since we own them...
   Inherited Destroy;
 end;
+}
 
 procedure TFieldDefs.Add(const AName: string; ADataType: TFieldType);
 
@@ -141,37 +205,42 @@ begin
     DatabaseError(SNeedFieldName);
   // the fielddef will register itself here as a owned component.
   // fieldno is 1 based !
-  TFieldDef.Create(Self,AName,ADataType,ASize,Arequired,FItems.Count+1);
-end;
-
-function TFieldDefs.GetCount: Longint;
-
-begin
-  Result:=FItems.Count;
+  BeginUpdate;
+  try
+    TFieldDef.Create(Self,AName,ADataType,ASize,Arequired,Count+1);
+  finally
+    EndUpdate;
+  end;
 end;
 
 function TFieldDefs.GetItem(Index: Longint): TFieldDef;
 
 begin
-  Result:=TFieldDef(FItems[Index]);
+  Result := TFieldDef(inherited Items[Index]);;
 end;
 
-procedure TFieldDefs.Delete(Index: Longint);
-
-var
-  c: TComponent;
+function TFieldDefs.GetDataset: TDataset;
 begin
-  c := GetItem(Index);
-  RemoveComponent(c);
-  //c.Free; maybe not needed?
+  Result := TDataset(GetOwner);
 end;
 
-constructor TFieldDefs.Create(ADataSet: TDataSet);
-
+procedure TFieldDefs.SetItem(Index: Longint; const AValue: TFieldDef);
 begin
-  Inherited Create(ADataSet);
-  FItems:=TList.Create;
-  FDataset:=ADataset;
+  inherited Items[Index] := AValue;
+end;
+
+procedure TFieldDefs.SetItemName(AItem: TCollectionItem);
+begin
+  if AItem is TFieldDef then
+    with AItem as TFieldDef do
+      if Name = '' then
+        Name := Dataset.Name + Copy(ClassName, 2, 5) + IntToStr(ID+1)
+  else inherited SetItemName(AItem);
+end;
+
+constructor TFieldDefs.Create(ADataset: TDataset);
+begin
+  Inherited Create(TPersistent(ADataset), TFieldDef);
 end;
 
 procedure TFieldDefs.Assign(FieldDefs: TFieldDefs);
@@ -185,6 +254,7 @@ begin
       Add(Name,DataType,Size,Required);
 end;
 
+{
 procedure TFieldDefs.Clear;
 
 Var I : longint;
@@ -194,6 +264,7 @@ begin
     TFieldDef(Fitems[i]).Free;
   FItems.Clear;
 end;
+}
 
 function TFieldDefs.Find(const AName: string): TFieldDef;
 
@@ -202,8 +273,8 @@ Var I : longint;
 begin
   I:=IndexOf(AName);
   If I=-1 Then
-    DataBaseErrorFmt(SUnknownField,[AName,FDataSet.Name]);
-  Result:=TFieldDef(Fitems[i]);
+    DataBaseErrorFmt(SUnknownField,[AName,DataSet.Name]);
+  Result:=Items[i];
 end;
 
 function TFieldDefs.IndexOf(const AName: string): Longint;
@@ -211,8 +282,8 @@ function TFieldDefs.IndexOf(const AName: string): Longint;
 Var I : longint;
 
 begin
-  For I:=0 to Fitems.Count-1 do
-    If AnsiCompareText(TFieldDef(FItems[I]).Name,AName)=0 then
+  For I:=0 to Count-1 do
+    If AnsiCompareText(Items[I].Name,AName)=0 then
       begin
       Result:=I;
       Exit;
@@ -223,13 +294,13 @@ end;
 procedure TFieldDefs.Update;
 
 begin
-  FDataSet.UpdateFieldDefs;
+  DataSet.InitFieldDefs;
 end;
 
 Function TFieldDefs.AddFieldDef : TFieldDef;
 
 begin
-  Result:=TFieldDef.Create(Self,'',ftUnknown,0,False,FItems.Count+1);
+  Result:=TFieldDef.Create(Self,'',ftUnknown,0,False,Count+1);
 end;
 
 { ---------------------------------------------------------------------
@@ -260,7 +331,8 @@ begin
   IF Assigned(FDataSet) then
     begin
     FDataSet.Active:=False;
-    FDataSet.RemoveField(Self);
+    if Assigned(FFields) then
+      FFields.Remove(Self);
     end;
   Inherited Destroy;
 end;
@@ -487,7 +559,7 @@ begin
       Move (FValueBuffer^,Buffer^ ,DataSize);
     end
   else
-    Result:=FDataset.GetFieldData(Self,Buffer);
+    Result:=FDataset.GetFieldData(Self,Buffer,False);
 end;
 
 function TField.GetDataSize: Word;
@@ -538,6 +610,11 @@ begin
     FAlignment := Avalue;
     PropertyChanged(false);
     end;
+end;
+
+procedure TField.SetIndex(AValue: Integer);
+begin
+  if FFields <> nil then FFields.SetFieldIndex(Self, AValue)
 end;
 
 procedure TField.SetAsCurrency(AValue: Currency);
@@ -653,7 +730,7 @@ procedure TField.SetData(Buffer: Pointer);
 begin
   If Not Assigned(FDataset) then
     EDatabaseError.CreateFmt(SNoDataset,[FieldName]);
-  FDataSet.SetFieldData(Self,Buffer);
+  FDataSet.SetFieldData(Self,Buffer, False);
 end;
 
 Procedure TField.SetDataset (Value : TDataset);
@@ -2238,12 +2315,16 @@ end;
 Destructor TFields.Destroy;
 
 begin
+  if FFieldList <> nil then Clear;
   FFieldList.Free;
+  inherited Destroy;
 end;
 
 Procedure Tfields.Changed;
 
 begin
+  if (FDataSet <> nil) and not (csDestroying in FDataSet.ComponentState) then
+    FDataSet.DataEvent(deFieldListChange, 0);
   If Assigned(FOnChange) then
     FOnChange(Self);
 end;
@@ -2266,6 +2347,11 @@ Function TFields.GetField (Index : longint) : TField;
 
 begin
   Result:=Tfield(FFieldList[Index]);
+end;
+
+procedure Tfields.SetField(Index: Integer; Value: TField);
+begin
+  Fields[Index].Assign(Value);
 end;
 
 Procedure TFields.SetFieldIndex (Field : TField;Value : Integer);
@@ -2327,7 +2413,13 @@ end;
 Procedure TFields.Clear;
 
 begin
-  FFieldList.Clear;
+  with FFieldList do
+    while Count > 0 do begin
+      TField(Last).FDataSet := Nil;
+      TField(Last).Free;
+      FFieldList.Delete(Count - 1);
+    end;
+  Changed;
 end;
 
 Function TFields.FindField (Const Value : String) : TField;
@@ -2383,23 +2475,16 @@ end;
 
 Function TFields.IndexOf(Field : TField) : Longint;
 
-Var i : longint;
-
 begin
-  Result:=-1;
-  For I:=0 To FFieldList.Count-1 do
-    If Pointer(Field)=FFieldList[i] Then
-      Exit(I);
+  Result:=FFieldList.IndexOf(Field);
 end;
 
 procedure TFields.Remove(Value : TField);
 
-Var I : longint;
-
 begin
-  I:=IndexOf(Value);
-  If I<>0 then
-    FFieldList.Delete(I);
+  FFieldList.Remove(Value);
+  Value.FFields := nil;
+  Changed;
 end;
 
 {
