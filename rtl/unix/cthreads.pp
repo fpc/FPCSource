@@ -192,7 +192,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$endif DEBUG_MT}
         ThreadMain:=pointer(ti.f(ti.p));
         DoneThread;
-        pthread_detach(pthread_t(pthread_self()));
+        pthread_exit(nil);
       end;
 
 
