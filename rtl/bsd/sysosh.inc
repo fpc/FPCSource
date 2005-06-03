@@ -19,20 +19,17 @@
 type
   { fd are int in C also for 64bit targets (x86_64) }
   THandle = Longint;
-  TThreadID = THandle;
+{$ifdef darwin}
+{$ifndef cpu64}
+  TThreadID = Longint;
+{$else cpu64}
+  TThreadID = int64;
+{$endif}
+{$endif darwin}
   
   { pthread_mutex_t }
   PRTLCriticalSection = ^TRTLCriticalSection;
-  TRTLCriticalSection = record
-    __m_reserved: longint;
-    __m_count: longint;
-    __m_owner: pointer;
-    __m_kind:  longint;
-    __m_lock:  record
-       __status: sizeint;
-      __spinlock: longint;
-    end;
-  end;
+  TRTLCriticalSection = {$i pmutext.inc}
 
 
 {
