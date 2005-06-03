@@ -41,7 +41,7 @@ implementation
        nbas,ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr,procinfo,
-       dwarf,
+       dwarf,pexports,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -1487,7 +1487,7 @@ implementation
            DLL will include the edata section }
          if assigned(exportlib) and
             (target_info.system in [system_i386_win32,system_i386_wdosx]) and
-            assigned(current_module._exports.first) then
+            BinaryContainsExports then
            codesegment.concat(tai_const.create_sym(exportlib.edatalabel));
 
          If ResourceStrings.ResStrCount>0 then
@@ -1619,6 +1619,7 @@ implementation
                 linker.MakeSharedLibrary
                else
                 linker.MakeExecutable;
+               BinaryContainsExports:=false;
              end;
           end;
       end;
