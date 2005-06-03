@@ -307,7 +307,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
   function  CGetCurrentThreadId : TThreadID;
     begin
-      CGetCurrentThreadId:=dword(pthread_self());
+      CGetCurrentThreadId := TThreadID (pthread_self());
     end;
 
 
