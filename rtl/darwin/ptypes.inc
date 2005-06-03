@@ -154,7 +154,7 @@ type
 
    pthread_t            = pointer;
    pthread_attr_t       = record sig: clong; opaque: array[0..36-1] of byte; end;
-   pthread_mutex_t      = record sig: clong; opaque: array[0..40-1] of byte; end;
+   pthread_mutex_t      = {$i pmutext.inc}
    pthread_mutexattr_t  = record sig: clong; opaque: array[0..8-1] of byte; end;
    pthread_cond_t       = record sig: clong; opaque: array[0..24-1] of byte; end;
    pthread_condattr_t   = record sig: clong; opaque: array[0..4-1] of byte; end;

@@ -3361,6 +3361,7 @@ rtl/darwin/Makefile -text
 rtl/darwin/Makefile.fpc svneol=native#text/plain
 rtl/darwin/console.pp svneol=native#text/plain
 rtl/darwin/errno.inc svneol=native#text/plain
+rtl/darwin/pmutext.inc svneol=native#text/plain
 rtl/darwin/powerpc/sig_cpu.inc svneol=native#text/plain
 rtl/darwin/powerpc/sighnd.inc svneol=native#text/plain
 rtl/darwin/pthread.inc svneol=native#text/plain
@@ -3405,6 +3406,7 @@ rtl/freebsd/i386/prt0.as -text
 rtl/freebsd/i386/sighnd.inc svneol=native#text/plain
 rtl/freebsd/i386/x86.inc svneol=native#text/plain
 rtl/freebsd/i386/x86h.inc svneol=native#text/plain
+rtl/freebsd/pmutext.inc svneol=native#text/plain
 rtl/freebsd/pthread.inc svneol=native#text/plain
 rtl/freebsd/ptypes.inc svneol=native#text/plain
 rtl/freebsd/signal.inc svneol=native#text/plain
@@ -3727,6 +3729,7 @@ rtl/netbsd/i386/cprt0.as -text
 rtl/netbsd/i386/prt0.as -text
 rtl/netbsd/i386/prt0_10.as -text
 rtl/netbsd/i386/sighnd.inc svneol=native#text/plain
+rtl/netbsd/pmutext.inc svneol=native#text/plain
 rtl/netbsd/powerpc/cprt0.as -text
 rtl/netbsd/powerpc/prt0.as -text
 rtl/netbsd/powerpc/sighnd.inc svneol=native#text/plain
@@ -3928,6 +3931,7 @@ rtl/openbsd/errno.inc svneol=native#text/plain
 rtl/openbsd/i386/cprt0.as -text
 rtl/openbsd/i386/prt0.as -text
 rtl/openbsd/i386/sighnd.inc svneol=native#text/plain
+rtl/openbsd/pmutext.inc svneol=native#text/plain
 rtl/openbsd/ptypes.inc svneol=native#text/plain
 rtl/openbsd/signal.inc svneol=native#text/plain
 rtl/openbsd/syscalls.inc svneol=native#text/plain

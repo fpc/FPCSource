@@ -93,7 +93,7 @@ type
 
    pthread_t            = pointer;
    pthread_attr_t       = pointer;
-   pthread_mutex_t      = pointer;
+   pthread_mutex_t      = {$ pmutext.inc}
    pthread_mutexattr_t  = pointer;
    pthread_cond_t       = pointer;
    pthread_condattr_t   = pointer;
