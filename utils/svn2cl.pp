@@ -118,6 +118,11 @@ begin
                     maxequal:=j;
                 end;
 
+              { test/p1.pas test/p2.pas should use the prefix test/ instead of test/p }
+              if maxequal<65535 then
+                while (maxequal>0) and (paths[0][maxequal]<>'/') do
+                  dec(maxequal);
+
               { generate prefix }
               pathtemp:='  * '+copy(paths[0],1,maxequal)+': ';
               for i:=0 to paths.Count-1 do
