@@ -25,7 +25,7 @@ type
   trtlmethod  = procedure of object;
 
   // Function prototypes for TThreadManager Record.
-  TBeginThreadHandler = Function (sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : TThreadID) : DWord;
+  TBeginThreadHandler = Function (sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : TThreadID) : TThreadID;
   TEndThreadHandler = Procedure (ExitCode : DWord);
   // Used for Suspend/Resume/Kill
   TThreadHandler = Function (threadHandle : TThreadID) : dword;
@@ -107,13 +107,13 @@ procedure InitThread(stklen:cardinal);
 
 function BeginThread(sa : Pointer;stacksize : dword;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
-  var ThreadId : TThreadID) : DWord;
+  var ThreadId : TThreadID) : TThreadID;
 
 { add some simplfied forms which make lifer easier and porting }
 { to other OSes too ...                                        }
-function BeginThread(ThreadFunction : tthreadfunc) : DWord;
-function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : DWord;
-function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID) : DWord;
+function BeginThread(ThreadFunction : tthreadfunc) : TThreadID;
+function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : TThreadID;
+function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID) : TThreadID;
 
 procedure EndThread(ExitCode : DWord);
 procedure EndThread;

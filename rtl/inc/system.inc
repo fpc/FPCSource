@@ -554,7 +554,7 @@ Begin
   InOutRes:=0;
 End;
 
-Function GetThreadID:SizeUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function GetThreadID:TThreadID;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
 (* ThreadID is stored in a threadvar and made available in interface *)
 (* to allow setup of this value during thread initialization.        *)

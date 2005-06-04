@@ -368,7 +368,7 @@ ThreadVar
 {$else SUPPORT_THREADVAR}
 Var
 {$endif SUPPORT_THREADVAR}
-  ThreadID    : SizeUInt;
+  ThreadID    : TThreadID;
   { Standard In- and Output }
   ErrOutput,
   Output,
@@ -655,7 +655,7 @@ function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{
 Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Sptr:Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_ptr];{$endif}
 Function GetProcessID:SizeUInt;
-Function GetThreadID:SizeUInt;
+Function GetThreadID:TThreadID;
 
 
 {*****************************************************************************

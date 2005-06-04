@@ -18,7 +18,7 @@ Procedure InitSystemThreads;
 begin
   { This should be changed to a real value during
     thread driver initialization if appropriate. }
-  ThreadID := 1;
+  ThreadID := TThreadID(1);
   SetNoThreadManager;
 end;
 

@@ -198,7 +198,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
   function CBeginThread(sa : Pointer;stacksize : dword;
                        ThreadFunction : tthreadfunc;p : pointer;
-                       creationFlags : dword; var ThreadId : THandle) : DWord;
+                       creationFlags : dword; var ThreadId : TThreadId) : TThreadID;
     var
       ti : pthreadinfo;
       thread_attr : pthread_attr_t;
@@ -236,11 +236,11 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       // the newly created thread!
       //pthread_attr_setdetachstate(@thread_attr, PTHREAD_CREATE_DETACHED);
       if pthread_create(@threadid, @thread_attr, @ThreadMain,ti) <> 0 then begin
-        threadid := 0;
+        threadid := TThreadID(0);
       end;
       CBeginThread:=threadid;
 {$ifdef DEBUG_MT}
-      writeln('BeginThread returning ',CBeginThread);
+      writeln('BeginThread returning ',ptrint(CBeginThread));
 {$endif DEBUG_MT}
     end;
 
@@ -582,7 +582,7 @@ begin
 {$else}
   Result:=LoadPthreads;
 {$endif}
-  ThreadID := SizeUInt (pthread_self);
+  ThreadID := TThreadID (pthread_self);
 {$ifdef DEBUG_MT}
   Writeln('InitThreads : ',Result);
 {$endif DEBUG_MT}

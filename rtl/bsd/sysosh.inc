@@ -20,12 +20,10 @@ type
   { fd are int in C also for 64bit targets (x86_64) }
   THandle = Longint;
 {$ifdef darwin}
-{$ifndef cpu64}
-  TThreadID = Longint;
-{$else cpu64}
-  TThreadID = int64;
+  TThreadID = pointer;
+{$else}
+  TThreadID = longint;
 {$endif}
-{$endif darwin}
   
   { pthread_mutex_t }
   PRTLCriticalSection = ^TRTLCriticalSection;

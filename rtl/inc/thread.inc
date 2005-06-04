@@ -40,12 +40,8 @@ Var
 {*****************************************************************************
                             Overloaded functions
 *****************************************************************************}
-{$ifndef CPU64}
-{$ifndef unix}
-{$endif unix}
-{$endif CPU64}
 
-    function BeginThread(ThreadFunction : tthreadfunc) : DWord;
+    function BeginThread(ThreadFunction : tthreadfunc) : TThreadID;
       var
         dummy : TThreadID;
       begin
@@ -53,7 +49,7 @@ Var
       end;
 
 
-    function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : DWord;
+    function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : TThreadID;
       var
         dummy : TThreadID;
       begin
@@ -61,23 +57,18 @@ Var
       end;
 
 
-    function BeginThread(ThreadFunction : tthreadfunc;p : pointer;var ThreadId : TThreadID) : DWord;
+    function BeginThread(ThreadFunction : tthreadfunc;p : pointer;var ThreadId : TThreadID) : TThreadID;
       begin
         BeginThread:=BeginThread(nil,DefaultStackSize,ThreadFunction,p,0,ThreadId);
       end;
 
-
-{$ifndef CPU64}
-{$ifndef unix}
-{$endif unix}
-{$endif CPU64}
 
     procedure EndThread;
       begin
         EndThread(0);
       end;
 
-function BeginThread(sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : TThreadID) : DWord;
+function BeginThread(sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : TThreadID) : TThreadID;
 
 begin
   Result:=CurrentTM.BeginThread(sa,stacksize,threadfunction,P,creationflags,ThreadID);
@@ -293,7 +284,7 @@ end;
 
 function NoBeginThread(sa : Pointer;stacksize : dword;
                      ThreadFunction : tthreadfunc;p : pointer;
-                     creationFlags : dword; var ThreadId : TThreadID) : DWord;
+                     creationFlags : dword; var ThreadId : TThreadID) : TThreadID;
 begin
   NoThreadError;
 end;
