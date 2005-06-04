@@ -1522,22 +1522,24 @@ function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
 var
   Name: string;
 begin
-  Name := ExpectIdentifier;
   case proctype of
     pt_function:
       begin
+        Name := ExpectIdentifier;
         Result := TPasFunction(CreateElement(TPasFunction, Name, Parent));
         Result.ProcType := Engine.CreateFunctionType('', 'result', Result, true,
            Scanner.CurFilename, Scanner.CurRow);
       end;
     pt_procedure:
       begin
+        Name := ExpectIdentifier;
         Result := TPasProcedure(CreateElement(TPasProcedure, Name, Parent));
         Result.ProcType := TPasProcedureType(CreateElement(TPasProcedureType, '',
            Result));
       end;
     pt_operator:
       begin
+        name := tokeninfos[curtoken];
         Result := TPasOperator(CreateElement(TPasOperator, Name, Parent));
         Result.ProcType := Engine.CreateFunctionType('', '__INVALID__', Result, true,
            Scanner.CurFilename, Scanner.CurRow);
