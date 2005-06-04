@@ -89,7 +89,7 @@ type
     function GetDeclaration(full : Boolean) : string; virtual;
     Visibility: TPasMemberVisibility;
     property RefCount: LongWord read FRefCount;
-    property Name: string read FName;
+    property Name: string read FName write Fname;
     property Parent: TPasElement read FParent;
   end;
 
