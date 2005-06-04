@@ -26,18 +26,18 @@ type
   private
     FStream: TStream;
     IsStartOfLine: Boolean;
-    Indent, CurDeclSection: String;
+    Indent, CurDeclSection: string;
     DeclSectionStack: TList;
     procedure IncIndent;
     procedure DecIndent;
     procedure IncDeclSectionLevel;
     procedure DecDeclSectionLevel;
-    procedure PrepareDeclSection(const ADeclSection: String);
+    procedure PrepareDeclSection(const ADeclSection: string);
   public
     constructor Create(AStream: TStream);
     destructor Destroy; override;
-    procedure wrt(const s: String);
-    procedure wrtln(const s: String);
+    procedure wrt(const s: string);
+    procedure wrtln(const s: string);
     procedure wrtln;
 
     procedure WriteElement(AElement: TPasElement);
@@ -60,7 +60,7 @@ type
   end;
 
 
-procedure WritePasFile(AElement: TPasElement; const AFilename: String);
+procedure WritePasFile(AElement: TPasElement; const AFilename: string);
 procedure WritePasFile(AElement: TPasElement; AStream: TStream);
 
 
@@ -72,7 +72,7 @@ uses SysUtils;
 type
   PDeclSectionStackElement = ^TDeclSectionStackElement;
   TDeclSectionStackElement = record
-    LastDeclSection, LastIndent: String;
+    LastDeclSection, LastIndent: string;
   end;
 
 constructor TPasWriter.Create(AStream: TStream);
@@ -96,7 +96,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TPasWriter.wrt(const s: String);
+procedure TPasWriter.wrt(const s: string);
 begin
   if IsStartOfLine then
   begin
@@ -108,9 +108,9 @@ begin
 end;
 
 const
-  LF: String = #10;
+  LF: string = #10;
 
-procedure TPasWriter.wrtln(const s: String);
+procedure TPasWriter.wrtln(const s: string);
 begin
   wrt(s);
   Stream.Write(LF[1], 1);
@@ -468,7 +468,7 @@ end;
 procedure TPasWriter.WriteImplCommands(ACommands: TPasImplCommands);
 var
   i: Integer;
-  s: String;
+  s: string;
 begin
   for i := 0 to ACommands.Commands.Count - 1 do
   begin
@@ -572,7 +572,7 @@ begin
   Dispose(El);
 end;
 
-procedure TPasWriter.PrepareDeclSection(const ADeclSection: String);
+procedure TPasWriter.PrepareDeclSection(const ADeclSection: string);
 begin
   if ADeclSection <> CurDeclSection then
   begin
@@ -588,7 +588,7 @@ begin
 end;
 
 
-procedure WritePasFile(AElement: TPasElement; const AFilename: String);
+procedure WritePasFile(AElement: TPasElement; const AFilename: string);
 var
   Stream: TFileStream;
 begin

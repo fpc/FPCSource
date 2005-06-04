@@ -23,7 +23,7 @@ uses SysUtils, Classes;
 
 resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';
-  SErrOpenString = 'String exceeds end of line';
+  SErrOpenString = 'string exceeds end of line';
   SErrIncludeFileNotFound = 'Could not find include file ''%s''';
   SErrIfXXXNestingLimitReached = 'Nesting of $IFxxx too deep';
   SErrInvalidPPElse = '$ELSE without matching $IFxxx';
@@ -133,7 +133,7 @@ type
   TLineReader = class
   public
     function IsEOF: Boolean; virtual; abstract;
-    function ReadLine: String; virtual; abstract;
+    function ReadLine: string; virtual; abstract;
   end;
 
   TFileLineReader = class(TLineReader)
@@ -141,10 +141,10 @@ type
     FTextFile: Text;
     FileOpened: Boolean;
   public
-    constructor Create(const AFilename: String);
+    constructor Create(const AFilename: string);
     destructor Destroy; override;
     function IsEOF: Boolean; override;
-    function ReadLine: String; override;
+    function ReadLine: string; override;
   end;
 
   TFileResolver = class
@@ -153,9 +153,9 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure AddIncludePath(const APath: String);
-    function FindSourceFile(const AName: String): TLineReader;
-    function FindIncludeFile(const AName: String): TLineReader;
+    procedure AddIncludePath(const APath: string);
+    function FindSourceFile(const AName: string): TLineReader;
+    function FindIncludeFile(const AName: string): TLineReader;
   end;
 
   EScannerError       = class(Exception);
@@ -168,11 +168,11 @@ type
   private
     FFileResolver: TFileResolver;
     FCurSourceFile: TLineReader;
-    FCurFilename: String;
+    FCurFilename: string;
     FCurRow: Integer;
     FCurToken: TToken;
-    FCurTokenString: String;
-    FCurLine: String;
+    FCurTokenString: string;
+    FCurLine: string;
     FDefines: TStrings;
     TokenStr: PChar;
     FIncludeStack: TList;
@@ -186,36 +186,36 @@ type
 
     function GetCurColumn: Integer;
   protected
-    procedure Error(const Msg: String);
-    procedure Error(const Msg: String; Args: array of Const);
+    procedure Error(const Msg: string);
+    procedure Error(const Msg: string; Args: array of Const);
     function DoFetchToken: TToken;
   public
     constructor Create(AFileResolver: TFileResolver);
     destructor Destroy; override;
-    procedure OpenFile(const AFilename: String);
+    procedure OpenFile(const AFilename: string);
     function FetchToken: TToken;
 
     property FileResolver: TFileResolver read FFileResolver;
     property CurSourceFile: TLineReader read FCurSourceFile;
-    property CurFilename: String read FCurFilename;
+    property CurFilename: string read FCurFilename;
 
-    property CurLine: String read FCurLine;
+    property CurLine: string read FCurLine;
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
 
     property CurToken: TToken read FCurToken;
-    property CurTokenString: String read FCurTokenString;
+    property CurTokenString: string read FCurTokenString;
 
     property Defines: TStrings read FDefines;
   end;
 
 const
-  TokenInfos: array[TToken] of String = (
+  TokenInfos: array[TToken] of string = (
     'EOF',
     'Whitespace',
     'Comment',
     'Identifier',
-    'String',
+    'string',
     'Number',
     'Character',
     '(',
@@ -314,21 +314,21 @@ implementation
 type
   TIncludeStackItem = class
     SourceFile: TLineReader;
-    Filename: String;
+    Filename: string;
     Token: TToken;
-    TokenString: String;
-    Line: String;
+    TokenString: string;
+    Line: string;
     Row: Integer;
     TokenStr: PChar;
   end;
 
 
-constructor TFileLineReader.Create(const AFilename: String);
+constructor TFileLineReader.Create(const AFilename: string);
 begin
   inherited Create;
   Assign(FTextFile, AFilename);
   Reset(FTextFile);
-  FileOpened := True;
+  FileOpened := true;
 end;
 
 destructor TFileLineReader.Destroy;
@@ -343,7 +343,7 @@ begin
   Result := EOF(FTextFile);
 end;
 
-function TFileLineReader.ReadLine: String;
+function TFileLineReader.ReadLine: string;
 begin
   ReadLn(FTextFile, Result);
 end;
@@ -361,12 +361,12 @@ begin
   inherited Destroy;
 end;
 
-procedure TFileResolver.AddIncludePath(const APath: String);
+procedure TFileResolver.AddIncludePath(const APath: string);
 begin
   FIncludePaths.Add(IncludeTrailingPathDelimiter(ExpandFileName(APath)));
 end;
 
-function TFileResolver.FindSourceFile(const AName: String): TLineReader;
+function TFileResolver.FindSourceFile(const AName: string): TLineReader;
 begin
   if not FileExists(AName) then
     Raise EFileNotFoundError.create(Aname)
@@ -378,10 +378,10 @@ begin
     end;
 end;
 
-function TFileResolver.FindIncludeFile(const AName: String): TLineReader;
+function TFileResolver.FindIncludeFile(const AName: string): TLineReader;
 var
   i: Integer;
-  FN : String;
+  FN : string;
 
 begin
   Result := nil;
@@ -428,7 +428,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TPascalScanner.OpenFile(const AFilename: String);
+procedure TPascalScanner.OpenFile(const AFilename: string);
 begin
   FCurSourceFile := FileResolver.FindSourceFile(AFilename);
   FCurFilename := AFilename;
@@ -438,7 +438,7 @@ function TPascalScanner.FetchToken: TToken;
 var
   IncludeStackItem: TIncludeStackItem;
 begin
-  while True do
+  while true do
   begin
     Result := DoFetchToken;
     if FCurToken = tkEOF then
@@ -465,12 +465,12 @@ begin
   end;
 end;
 
-procedure TPascalScanner.Error(const Msg: String);
+procedure TPascalScanner.Error(const Msg: string);
 begin
   raise EScannerError.Create(Msg);
 end;
 
-procedure TPascalScanner.Error(const Msg: String; Args: array of Const);
+procedure TPascalScanner.Error(const Msg: string; Args: array of Const);
 begin
   raise EScannerError.CreateFmt(Msg, Args);
 end;
@@ -483,12 +483,12 @@ function TPascalScanner.DoFetchToken: TToken;
     begin
       FCurLine := '';
       TokenStr := nil;
-      Result := False;
+      Result := false;
     end else
     begin
       FCurLine := CurSourceFile.ReadLine;
       TokenStr := PChar(CurLine);
-      Result := True;
+      Result := true;
       Inc(FCurRow);
     end;
   end;
@@ -497,7 +497,7 @@ var
   TokenStart, CurPos: PChar;
   i: TToken;
   OldLength, SectionLength, NestingLevel, Index: Integer;
-  Directive, Param: String;
+  Directive, Param: string;
   IncludeStackItem: TIncludeStackItem;
 begin
   if TokenStr = nil then
@@ -581,7 +581,7 @@ begin
         OldLength := 0;
         FCurTokenString := '';
 
-        while True do
+        while true do
         begin
           if TokenStr[0] = '''' then
             if TokenStr[1] = '''' then
@@ -692,7 +692,7 @@ begin
     '0'..'9':
       begin
         TokenStart := TokenStr;
-        while True do
+        while true do
         begin
           Inc(TokenStr);
           case TokenStr[0] of
@@ -894,7 +894,7 @@ begin
               if PPIsSkipping then
               begin
                 PPSkipMode := ppSkipAll;
-                PPIsSkipping := True;
+                PPIsSkipping := true;
               end else
               begin
                 Param := UpperCase(Param);
@@ -902,7 +902,7 @@ begin
                 if Index < 0 then
                 begin
                   PPSkipMode := ppSkipIfBranch;
-                  PPIsSkipping := True;
+                  PPIsSkipping := true;
                 end else
                   PPSkipMode := ppSkipElseBranch;
               end;
@@ -916,7 +916,7 @@ begin
               if PPIsSkipping then
               begin
                 PPSkipMode := ppSkipAll;
-                PPIsSkipping := True;
+                PPIsSkipping := true;
               end else
               begin
                 Param := UpperCase(Param);
@@ -924,7 +924,7 @@ begin
                 if Index >= 0 then
                 begin
                   PPSkipMode := ppSkipIfBranch;
-                  PPIsSkipping := True;
+                  PPIsSkipping := true;
                 end else
                   PPSkipMode := ppSkipElseBranch;
               end;
@@ -938,13 +938,13 @@ begin
               if PPIsSkipping then
               begin
                 PPSkipMode := ppSkipAll;
-                PPIsSkipping := True;
+                PPIsSkipping := true;
               end else
               begin
                 { !!!: Currently, options are not supported, so they are just
                   assumed as not being set. }
                 PPSkipMode := ppSkipIfBranch;
-                PPIsSkipping := True;
+                PPIsSkipping := true;
               end;
             end else if Directive = 'IF' then
             begin
@@ -956,22 +956,22 @@ begin
               if PPIsSkipping then
               begin
                 PPSkipMode := ppSkipAll;
-                PPIsSkipping := True;
+                PPIsSkipping := true;
               end else
               begin
                 { !!!: Currently, expressions are not supported, so they are
                   just assumed as evaluating to false. }
                 PPSkipMode := ppSkipIfBranch;
-                PPIsSkipping := True;
+                PPIsSkipping := true;
               end;
             end else if Directive = 'ELSE' then
             begin
               if PPSkipStackIndex = 0 then
                 Error(SErrInvalidPPElse);
               if PPSkipMode = ppSkipIfBranch then
-                PPIsSkipping := False
+                PPIsSkipping := false
               else if PPSkipMode = ppSkipElseBranch then
-                PPIsSkipping := True;
+                PPIsSkipping := true;
             end else if Directive = 'ENDIF' then
             begin
               if PPSkipStackIndex = 0 then
