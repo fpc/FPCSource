@@ -38,7 +38,6 @@ compiler/arm/aoptcpu.pas svneol=native#text/plain
 compiler/arm/aoptcpub.pas svneol=native#text/plain
 compiler/arm/aoptcpuc.pas svneol=native#text/plain
 compiler/arm/aoptcpud.pas svneol=native#text/plain
-compiler/arm/armreg.dat -text
 compiler/arm/cgcpu.pas svneol=native#text/plain
 compiler/arm/cpubase.pas svneol=native#text/plain
 compiler/arm/cpuinfo.pas svneol=native#text/plain
@@ -174,7 +173,6 @@ compiler/m68k/cpupi.pas svneol=native#text/plain
 compiler/m68k/cpuswtch.pas svneol=native#text/plain
 compiler/m68k/cputarg.pas svneol=native#text/plain
 compiler/m68k/itcpugas.pas svneol=native#text/plain
-compiler/m68k/m68kreg.dat -text
 compiler/m68k/n68kcnv.pas svneol=native#text/plain
 compiler/m68k/n68kmat.pas svneol=native#text/plain
 compiler/m68k/ncpuadd.pas svneol=native#text/plain
@@ -196,7 +194,6 @@ compiler/mips/aasmcpu.pas svneol=native#text/plain
 compiler/mips/cpubase.pas svneol=native#text/plain
 compiler/mips/cpuinfo.pas svneol=native#text/plain
 compiler/mips/itcpugas.pas svneol=native#text/plain
-compiler/mips/mipsreg.dat -text
 compiler/mips/rmipscon.inc svneol=native#text/plain
 compiler/mips/rmipsdwf.inc svneol=native#text/plain
 compiler/mips/rmipsgas.inc svneol=native#text/plain
@@ -301,8 +298,6 @@ compiler/powerpc/nppcinl.pas svneol=native#text/plain
 compiler/powerpc/nppcld.pas svneol=native#text/plain
 compiler/powerpc/nppcmat.pas svneol=native#text/plain
 compiler/powerpc/nppcset.pas svneol=native#text/plain
-compiler/powerpc/ppcins.dat -text
-compiler/powerpc/ppcreg.dat -text
 compiler/powerpc/rappc.pas svneol=native#text/plain
 compiler/powerpc/rappcgas.pas svneol=native#text/plain
 compiler/powerpc/rgcpu.pas svneol=native#text/plain
@@ -377,7 +372,6 @@ compiler/sparc/rspsri.inc svneol=native#text/plain
 compiler/sparc/rspstab.inc svneol=native#text/plain
 compiler/sparc/rspstd.inc svneol=native#text/plain
 compiler/sparc/rspsup.inc svneol=native#text/plain
-compiler/sparc/spreg.dat -text
 compiler/sparc/strinst.inc svneol=native#text/plain
 compiler/switches.pas svneol=native#text/plain
 compiler/symbase.pas svneol=native#text/plain
@@ -479,8 +473,6 @@ compiler/x86/nx86set.pas svneol=native#text/plain
 compiler/x86/rax86.pas svneol=native#text/plain
 compiler/x86/rax86att.pas svneol=native#text/plain
 compiler/x86/rgx86.pas svneol=native#text/plain
-compiler/x86/x86ins.dat -text
-compiler/x86/x86reg.dat -text
 compiler/x86_64/aoptcpu.pas svneol=native#text/plain
 compiler/x86_64/aoptcpub.pas svneol=native#text/plain
 compiler/x86_64/aoptcpud.pas svneol=native#text/plain
