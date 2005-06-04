@@ -591,6 +591,13 @@ implementation
                         else
                           cg.g_concatcopy(exprasmlist,right.location.reference,left.location.reference,len);
                       end;
+                    LOC_MMREGISTER,
+                    LOC_CMMREGISTER:
+                      cg.a_loadmm_ref_reg(exprasmlist,
+                        right.location.size,
+                        left.location.size,
+                        right.location.reference,
+                        left.location.register,mms_movescalar);
                     else
                       internalerror(200203284);
                   end;
@@ -644,9 +651,18 @@ implementation
                     fputyp:=tfloatdef(ttypeconvnode(right).left.resulttype.def).typ
                   else
                     fputyp:=s32real;
-                  cg.a_loadfpu_reg_loc(exprasmlist,
-                      tfloat2tcgsize[fputyp],
-                      right.location.register,left.location);
+                  { we can't do direct moves between fpu and mm registers }
+                  if left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER] then
+                    begin
+                      location_force_mmregscalar(exprasmlist,right.location,false);
+                      cg.a_loadmm_reg_reg(exprasmlist,
+                          tfloat2tcgsize[fputyp],tfloat2tcgsize[fputyp],
+                          right.location.register,left.location.register,mms_movescalar);
+                    end
+                  else
+                    cg.a_loadfpu_reg_loc(exprasmlist,
+                        tfloat2tcgsize[fputyp],
+                        right.location.register,left.location);
                 end;
               LOC_JUMP :
                 begin

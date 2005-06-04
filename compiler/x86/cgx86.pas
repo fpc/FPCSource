@@ -41,6 +41,7 @@ unit cgx86;
 
         function getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         function getmmxregister(list:Taasmoutput):Tregister;
+        function getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
 
         procedure getcpuregister(list:Taasmoutput;r:Tregister);override;
         procedure ungetcpuregister(list:Taasmoutput;r:Tregister);override;
@@ -126,8 +127,6 @@ unit cgx86;
         procedure floatstoreops(t : tcgsize;var op : tasmop;var s : topsize);
       end;
 
-    function use_sse(def : tdef) : boolean;
-
    const
 {$ifdef x86_64}
       TCGSize2OpSize: Array[tcgsize] of topsize =
@@ -163,13 +162,6 @@ unit cgx86;
       TOpCmp2AsmCond: Array[topcmp] of TAsmCond = (C_NONE,
           C_E,C_G,C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A);
 
-    function use_sse(def : tdef) : boolean;
-      begin
-        use_sse:=(is_single(def) and (aktfputype in sse_singlescalar)) or
-          (is_double(def) and (aktfputype in sse_doublescalar));
-      end;
-
-
     procedure Tcgx86.done_register_allocators;
       begin
         rg[R_INTREGISTER].free;
@@ -185,12 +177,29 @@ unit cgx86;
         result:=rgfpu.getregisterfpu(list);
       end;
 
+
     function Tcgx86.getmmxregister(list:Taasmoutput):Tregister;
       begin
         if not assigned(rg[R_MMXREGISTER]) then
           internalerror(200312124);
         result:=rg[R_MMXREGISTER].getregister(list,R_SUBNONE);
       end;
+
+
+    function Tcgx86.getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;
+      begin
+        if not assigned(rg[R_MMXREGISTER]) then
+          internalerror(200312124);
+        case size of
+          OS_F64:
+            result:=rg[R_MMREGISTER].getregister(list,R_SUBMMD);
+          OS_F32:
+            result:=rg[R_MMREGISTER].getregister(list,R_SUBMMS);
+          else
+            internalerror(200506041);
+        end;
+      end;
+
 
     procedure Tcgx86.getcpuregister(list:Taasmoutput;r:Tregister);
       begin

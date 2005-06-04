@@ -19,7 +19,7 @@
 
  ****************************************************************************
 }
-unit n386con;
+unit nx86con;
 
 {$i fpcdefs.inc}
 
@@ -29,7 +29,7 @@ interface
        node,ncon,ncgcon;
 
     type
-       ti386realconstnode = class(tcgrealconstnode)
+       tx86realconstnode = class(tcgrealconstnode)
           function pass_1 : tnode;override;
           procedure pass_2;override;
        end;
@@ -38,6 +38,7 @@ implementation
 
     uses
       systems,globals,
+      symdef,
       defutil,
       cpubase,
       cga,cgx86,cgobj,cgbase,cgutils;
@@ -46,10 +47,10 @@ implementation
                            TI386REALCONSTNODE
 *****************************************************************************}
 
-    function ti386realconstnode.pass_1 : tnode;
+    function tx86realconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         if is_number_float(value_real) and (value_real=1.0) or (value_real=0.0) then
+         if is_number_float(value_real) and not(use_sse(resulttype.def)) and (value_real=1.0) or (value_real=0.0) then
            begin
               expectloc:=LOC_FPUREGISTER;
               registersfpu:=1;
@@ -58,19 +59,19 @@ implementation
            expectloc:=LOC_CREFERENCE;
       end;
 
-    procedure ti386realconstnode.pass_2;
+    procedure tx86realconstnode.pass_2;
 
       begin
          if is_number_float(value_real) then
            begin
-             if (value_real=1.0) then
+             if (value_real=1.0) and not(use_sse(resulttype.def)) then
                begin
                   emit_none(A_FLD1,S_NO);
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
                   location.register:=NR_ST;
                   tcgx86(cg).inc_fpu_stack;
                end
-             else if (value_real=0.0) then
+             else if (value_real=0.0) and not(use_sse(resulttype.def)) then
                begin
                   emit_none(A_FLDZ,S_NO);
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
@@ -86,5 +87,5 @@ implementation
 
 
 begin
-   crealconstnode:=ti386realconstnode;
+   crealconstnode:=tx86realconstnode;
 end.

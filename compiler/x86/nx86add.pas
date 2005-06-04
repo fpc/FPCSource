@@ -61,7 +61,7 @@ unit nx86add;
       verbose,cutils,
       cpuinfo,
       aasmbase,aasmtai,aasmcpu,
-      symconst,
+      symconst,symdef,
       cgobj,cgx86,cga,cgutils,
       paramgr,tgobj,ncgutil,
       ncon,nset,

@@ -49,7 +49,8 @@ interface
     uses
       systems,
       cutils,verbose,globals,
-      symconst,aasmbase,aasmtai,defutil,
+      symconst,symdef,
+      aasmbase,aasmtai,defutil,
       cgbase,pass_1,pass_2,
       ncon,
       cpubase,
@@ -171,10 +172,10 @@ interface
             location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
 
             { make life of register allocator easier }
-            location.register:=cg.getmmregister(exprasmlist,OS_M128);
+            location.register:=cg.getmmregister(exprasmlist,def_cgsize(resulttype.def));
             cg.a_loadmm_reg_reg(exprasmlist,def_cgsize(resulttype.def),def_cgsize(resulttype.def),left.location.register,location.register,mms_movescalar);
 
-            reg:=cg.getmmregister(exprasmlist,OS_M128);
+            reg:=cg.getmmregister(exprasmlist,def_cgsize(resulttype.def));
 
             objectlibrary.getdatalabel(l1);
             consts.concat(Tai_label.Create(l1));

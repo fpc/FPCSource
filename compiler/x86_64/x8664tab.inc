@@ -4530,6 +4530,13 @@
     flags   : if_386
   ),
   (
+    opcode  : A_MOVSX;
+    ops     : 2;
+    optypes : (ot_reg64,ot_regmem or ot_bits16,ot_none);
+    code    : #209#193#2#15#191#72;
+    flags   : if_x86_64
+  ),
+  (
     opcode  : A_MOVZX;
     ops     : 2;
     optypes : (ot_reg16,ot_memory,ot_none);

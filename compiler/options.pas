@@ -2123,6 +2123,7 @@ begin
      initalignment.jumpalign:=1;
      initalignment.loopalign:=1;
    end;
+
   UpdateAlignment(initalignment,option.paraalignment);
 
   set_system_macro('FPC_VERSION',version_nr);

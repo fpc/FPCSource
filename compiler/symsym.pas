@@ -1429,13 +1429,21 @@ implementation
             if tstoreddef(vartype.def).is_intregable then
               varregable:=vr_intreg
             else
-{$warning TODO: no fpu regvar in staticsymtable yet, need initialization with 0}
-              if (
+{ $warning TODO: no fpu regvar in staticsymtable yet, need initialization with 0 }
+              if {(
                   not assigned(owner) or
                   (owner.symtabletype<>staticsymtable)
-                 ) and
+                 ) and }
                  tstoreddef(vartype.def).is_fpuregable then
-                varregable:=vr_fpureg;
+                 begin
+{$ifdef x86}
+                   if use_sse(vartype.def) then
+                     varregable:=vr_mmreg
+                   else
+{$else x86}
+                     varregable:=vr_fpureg;
+{$endif x86}
+                 end;
           end;
       end;
 
