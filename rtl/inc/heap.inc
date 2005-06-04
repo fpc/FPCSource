@@ -642,7 +642,8 @@ procedure append_to_oslist(poc: poschunk);
 begin
   { decide whether to free block or add to list }
 {$ifdef HAS_SYSOSFREE}
-  if freeoslistcount >= 3 then
+  if (freeoslistcount >= MaxKeptOSChunks)
+  or (poc^.size > growheapsize2) then
     begin
       dec(internal_status.currheapsize, poc^.size);
       SysOSFree(poc, poc^.size);
