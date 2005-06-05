@@ -88,8 +88,8 @@ unit cgcpu;
      end;
 
      tcg64f68k = class(tcg64f32)
-       procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
-       procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;regdst : tregister64);override;
+       procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG; size: tcgsize; regsrc,regdst : tregister64);override;
+       procedure a_op64_const_reg(list : taasmoutput;op:TOpCG; size: tcgsize; value : int64;regdst : tregister64);override;
      end;
 
      { This function returns true if the reference+offset is valid.
@@ -1200,7 +1200,7 @@ unit cgcpu;
 {****************************************************************************}
 {                               TCG64F68K                                    }
 {****************************************************************************}
- procedure tcg64f68k.a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
+ procedure tcg64f68k.a_op64_reg_reg(list : taasmoutput;op:TOpCG;size: tcgsize; regsrc,regdst : tregister64);
   var
    hreg1, hreg2 : tregister;
    opcode : tasmop;
@@ -1262,7 +1262,7 @@ unit cgcpu;
   end;
 
 
- procedure tcg64f68k.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;regdst : tregister64);
+ procedure tcg64f68k.a_op64_const_reg(list : taasmoutput;op:TOpCG;size: tcgsize; value : int64;regdst : tregister64);
   var
    lowvalue : cardinal;
    highvalue : cardinal;

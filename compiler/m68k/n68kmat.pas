@@ -114,7 +114,7 @@ implementation
               secondpass(left);
               location_copy(location,left.location);
               location_force_reg(exprasmlist,location,OS_64,false);
-              cg64.a_op64_loc_reg(exprasmlist,OP_NOT,location,
+              cg64.a_op64_loc_reg(exprasmlist,OP_NOT,OS_64,location,
                 joinreg64(location.register64.reglo,location.register64.reghi));
            end
          else
