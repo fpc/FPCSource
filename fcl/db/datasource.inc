@@ -190,8 +190,6 @@ end;
 
 Function TDataLink.GetRecordCount: Integer;
 
-Var D: TDataSet;
-
 begin
   Result:=Dataset.FRecordCount;
   If Result>BufferCount then

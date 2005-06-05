@@ -55,8 +55,6 @@ end;
 
 Destructor TFieldDef.Destroy;
 
-Var I : longint;
-
 begin
   Inherited destroy;
 end;
@@ -2384,9 +2382,6 @@ begin
 end;
 
 Procedure TFields.CheckFieldName (Const Value : String);
-
-Var I : longint;
-    S : String;
 
 begin
   If FindField(Value)<>Nil then
