@@ -344,7 +344,7 @@ ifeq ($(FULL_TARGET),i386-win32)
 override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  process fileinfo resolve ssockets syncobjs
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex
+override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  resolve ssockets
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  process ssockets resolve fpasync syncobjs
@@ -371,7 +371,7 @@ ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex
+override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  resolve ssockets
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex
