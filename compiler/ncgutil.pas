@@ -357,17 +357,17 @@ implementation
         paramanager.freeparaloc(list,paraloc3);
         paramanager.freeparaloc(list,paraloc2);
         paramanager.freeparaloc(list,paraloc1);
-        cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        cg.allocallcpuregisters(list);
         cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
-        cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        cg.deallocallcpuregisters(list);
 
         paramanager.getintparaloc(pocall_default,1,paraloc1);
         paramanager.allocparaloc(list,paraloc1);
         cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
         paramanager.freeparaloc(list,paraloc1);
-        cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        cg.allocallcpuregisters(list);
         cg.a_call_name(list,'FPC_SETJMP');
-        cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        cg.deallocallcpuregisters(list);
 
         cg.g_exception_reason_save(list, t.reasonbuf);
         cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,cg.makeregsize(list,NR_FUNCTION_RESULT_REG,OS_S32),exceptlabel);
@@ -379,9 +379,9 @@ implementation
 
     procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
      begin
-         cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.allocallcpuregisters(list);
          cg.a_call_name(list,'FPC_POPADDRSTACK');
-         cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.deallocallcpuregisters(list);
 
          if not onlyfree then
           begin
@@ -1583,9 +1583,9 @@ implementation
             if not (target_info.system in [system_i386_win32,system_i386_wdosx]) or
                not (current_procinfo.procdef.proctypeoption=potype_proginit) then
               begin
-                cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
+                cg.allocallcpuregisters(list);
                 cg.g_profilecode(list);
-                cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
+                cg.deallocallcpuregisters(list);
               end;
           end;
 
@@ -1606,15 +1606,15 @@ implementation
               cg.a_paramaddr_ref(list,href,paraloc1);
               paramanager.freeparaloc(list,paraloc2);
               paramanager.freeparaloc(list,paraloc1);
-              cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
+              cg.allocallcpuregisters(list);
               cg.a_call_name(list,'_monstartup');
-              cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
+              cg.deallocallcpuregisters(list);
             end;
 
            { initialize units }
-           cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+           cg.allocallcpuregisters(list);
            cg.a_call_name(list,'FPC_INITIALIZEUNITS');
-           cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+           cg.deallocallcpuregisters(list);
 
 {$ifdef GDB}
            if (cs_debuginfo in aktmoduleswitches) then
@@ -1863,9 +1863,9 @@ implementation
         paramanager.allocparaloc(list,paraloc1);
         paramanager.freeparaloc(list,paraloc1);
         { Call the helper }
-        cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        cg.allocallcpuregisters(list);
         cg.a_call_name(list,'FPC_STACKCHECK');
-        cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        cg.deallocallcpuregisters(list);
         paraloc1.done;
       end;
 

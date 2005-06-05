@@ -258,9 +258,9 @@ implementation
             cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
             paramanager.freeparaloc(exprasmlist,paraloc1);
             paraloc1.done;
-            cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            cg.allocallcpuregisters(exprasmlist);
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-            cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            cg.deallocallcpuregisters(exprasmlist);
           end;
       end;
 
@@ -312,9 +312,9 @@ implementation
                 paramanager.allocparaloc(exprasmlist,paraloc1);
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(exprasmlist,paraloc1);
-                cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                cg.allocallcpuregisters(exprasmlist);
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-                cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                cg.deallocallcpuregisters(exprasmlist);
               end;
            end
          else if is_interfacecom(left.resulttype.def) then
@@ -330,9 +330,9 @@ implementation
                 paramanager.allocparaloc(exprasmlist,paraloc1);
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(exprasmlist,paraloc1);
-                cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                cg.allocallcpuregisters(exprasmlist);
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-                cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                cg.deallocallcpuregisters(exprasmlist);
               end;
            end
          else
@@ -526,9 +526,9 @@ implementation
                cg.a_param_loc(exprasmlist,left.location,paraloc1);
                paramanager.freeparaloc(exprasmlist,paraloc1);
                paramanager.freeparaloc(exprasmlist,paraloc2);
-               cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+               cg.allocallcpuregisters(exprasmlist);
                cg.a_call_name(exprasmlist,'FPC_DYNARRAY_RANGECHECK');
-               cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+               cg.deallocallcpuregisters(exprasmlist);
             end
          else
            cg.g_rangecheck(exprasmlist,right.location,right.resulttype.def,left.resulttype.def);
@@ -592,9 +592,9 @@ implementation
                    paramanager.allocparaloc(exprasmlist,paraloc1);
                    cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paraloc1);
                    paramanager.freeparaloc(exprasmlist,paraloc1);
-                   cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                   cg.allocallcpuregisters(exprasmlist);
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
-                   cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                   cg.deallocallcpuregisters(exprasmlist);
                 end;
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
@@ -685,9 +685,9 @@ implementation
                               cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc2);
-                              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                              cg.allocallcpuregisters(exprasmlist);
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
-                              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                              cg.deallocallcpuregisters(exprasmlist);
                            end;
 
                          st_shortstring:
@@ -824,9 +824,9 @@ implementation
                               cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc2);
-                              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                              cg.allocallcpuregisters(exprasmlist);
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
-                              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                              cg.deallocallcpuregisters(exprasmlist);
                            end;
                          st_shortstring:
                            begin

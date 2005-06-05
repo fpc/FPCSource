@@ -171,9 +171,9 @@ implementation
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
                        paraloc1.done;
-                       cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                       cg.allocallcpuregisters(exprasmlist);
                        cg.a_call_reg(exprasmlist,hregister);
-                       cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                       cg.deallocallcpuregisters(exprasmlist);
                        cg.getcpuregister(exprasmlist,NR_FUNCTION_RESULT_REG);
                        cg.ungetcpuregister(exprasmlist,NR_FUNCTION_RESULT_REG);
                        hregister:=cg.getaddressregister(exprasmlist);

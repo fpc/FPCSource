@@ -231,9 +231,9 @@ implementation
        paramanager.freeparaloc(exprasmlist,paraloc2);
        paramanager.freeparaloc(exprasmlist,paraloc3);
        paramanager.freeparaloc(exprasmlist,paraloc4);
-       cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+       cg.allocallcpuregisters(exprasmlist);
        cg.a_call_name(exprasmlist,'FPC_ASSERT');
-       cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+       cg.deallocallcpuregisters(exprasmlist);
        location_freetemp(exprasmlist,hp3.location);
        location_freetemp(exprasmlist,hp2.location);
        cg.a_label(exprasmlist,truelabel);

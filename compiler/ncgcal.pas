@@ -1022,9 +1022,9 @@ implementation
             (right=nil) and
             not(po_virtualmethod in procdefinition.procoptions) then
            begin
-              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.allocallcpuregisters(exprasmlist);
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
-              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.deallocallcpuregisters(exprasmlist);
            end;
 
          { release temps of paras }
@@ -1172,9 +1172,9 @@ implementation
             (right=nil) and
             not(po_virtualmethod in procdefinition.procoptions) then
            begin
-              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.allocallcpuregisters(exprasmlist);
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
-              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.deallocallcpuregisters(exprasmlist);
            end;
 
          { release temps of paras }
