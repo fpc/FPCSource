@@ -27,7 +27,7 @@ interface
 
 uses
   cclasses,aasmtai,
-  aasmbase,globals,verbose,
+  aasmbase,globals,verbose,symtype,
   cpubase,cpuinfo,cgbase,cgutils;
 
 
@@ -80,6 +80,8 @@ type
 
      constructor op_sym_ofs(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint);
      constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
+
+     function is_same_reg_move(regtype: Tregistertype):boolean;override;
 
   private
      procedure loadregset(opidx:longint;const s:tcpuregisterset);
@@ -414,6 +416,25 @@ type
          condition:=cond;
          ops:=1;
          loadsymbol(0,_op1,0);
+      end;
+
+
+    function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
+      begin
+        result:=(((opcode=A_MOVE) or (opcode=A_EXG)) and
+                 (regtype = R_INTREGISTER) and
+                 (ops=2) and
+                 (oper[0]^.typ=top_reg) and
+                 (oper[1]^.typ=top_reg) and
+                 (oper[0]^.reg=oper[1]^.reg)
+                ) or
+                ((opcode=A_FMOVE) and
+                 (regtype = R_FPUREGISTER) and
+                 (ops=2) and
+                 (oper[0]^.typ=top_reg) and
+                 (oper[1]^.typ=top_reg) and
+                 (oper[0]^.reg=oper[1]^.reg)
+                );
       end;
 
 

@@ -255,19 +255,21 @@ unit cpubase;
       NR_STACK_POINTER_REG = NR_SP;
       RS_STACK_POINTER_REG = RS_SP;
       {# Frame pointer register }
-      NR_FRAME_POINTER_REG = NR_A6;
-      RS_FRAME_POINTER_REG = RS_A6;
+{$warning FIX ME!!! frame pointer is A5 on Amiga, but A6 on unixes?}
+      NR_FRAME_POINTER_REG = NR_A5;
+      RS_FRAME_POINTER_REG = RS_A5;
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
       }
+{$warning FIX ME!!! pic offset reg conflicts with frame pointer?}
       NR_PIC_OFFSET_REG = NR_A5;
       { Return address for DWARF }
 {$warning TODO just a guess!}
       NR_RETURN_ADDRESS_REG = NR_A0;
       { Results are returned in this register (32-bit values) }
       NR_FUNCTION_RETURN_REG = NR_D0;
-      RS_FUNCTION_RETURN_REG = NR_D0;
+      RS_FUNCTION_RETURN_REG = RS_D0;
       { Low part of 64bit return value }
       NR_FUNCTION_RETURN64_LOW_REG = NR_D0;
       RS_FUNCTION_RETURN64_LOW_REG = RS_D0;
