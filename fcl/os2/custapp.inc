@@ -15,12 +15,6 @@
 
 { taken from dos unit }
 
-type
-    PPChar = ^PChar;
-
-var EnvC: longint; external name '_envc';
-    EnvP: PPChar; external name '_environ';
-
 function EnvStr (Index: longint): string;
 
 var HP: PChar;
@@ -56,10 +50,3 @@ begin
     List.Add(S);
     end;
 end;
-
-{
-  $Log: custapp.inc,v $
-  Revision 1.3  2005/02/14 17:13:16  peter
-    * truncate log
-
-}
