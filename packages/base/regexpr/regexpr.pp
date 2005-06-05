@@ -181,9 +181,11 @@ unit regexpr;
                               readchars:=cs_nonwordchars;
                            end;
                          else
-                           begin
-                              error:=true;
-                              exit;
+                           begin //Some basic escaping...
+                              readchars := [currentpos^];
+                              inc (currentpos);
+                              {error:=true;
+                              exit;}
                            end;
                      end;
                   end;
