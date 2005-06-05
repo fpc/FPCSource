@@ -12,19 +12,6 @@
  **********************************************************************}
 {$MODE objfpc}
 
-{$ifdef win32}
-  {$define notUnix}
-{$endif}
-
-{$ifdef netware}
-  {$define notUnix}
-{$endif}
-
-{$ifdef netwlibc}
-  {$define notUnix}
-  {$define netware}
-{$endif}
-
 unit ssockets;
 
 
@@ -126,7 +113,7 @@ type
     Property Port : Word Read FPort;
   end;
 
-{$ifndef notUnix}
+{$ifdef Unix}
   TUnixServer = Class(TSocketServer)
   Private
     FUnixAddr : TUnixSockAddr;
@@ -155,7 +142,7 @@ type
     Property Port : Word Read FPort;
   end;
 
-{$ifndef notUnix}
+{$ifdef Unix}
 
   TUnixSocket = Class(TSocketStream)
   Private
@@ -398,7 +385,7 @@ end;
 Procedure TSocketServer.SetNonBlocking;
 
 begin
-{$ifndef notUnix}
+{$ifdef Unix}
   {$ifdef ver1_0}fcntl{$else}fpfcntl{$endif}(FSocket,F_SETFL,{$ifdef ver1_0}OPEN_NONBLOCK{$else}O_NONBLOCK{$endif});
 {$endif}
   FNonBlocking:=True;
@@ -449,7 +436,7 @@ begin
   L:=SizeOf(FAddr);
   Result:=Sockets.Accept(Socket,Faddr,L);
   If Result<0 then
-{$ifndef notUnix}
+{$ifdef Unix}
     If SocketError={$ifdef ver1_0}Sys_EWOULDBLOCK{$else}ESysEWOULDBLOCK{$endif} then
       Raise ESocketError.Create(seAcceptWouldBlock,[socket])
     else
@@ -460,7 +447,7 @@ end;
 { ---------------------------------------------------------------------
     TUnixServer
   ---------------------------------------------------------------------}
-{$ifndef notUnix}
+{$ifdef Unix}
 Constructor TUnixServer.Create(AFileName : String);
 
 Var S : Longint;
@@ -567,7 +554,7 @@ end;
 { ---------------------------------------------------------------------
     TUnixSocket
   ---------------------------------------------------------------------}
-{$ifndef notUnix}
+{$ifdef Unix}
 Constructor TUnixSocket.Create(ASocket : Longint);
 
 begin
