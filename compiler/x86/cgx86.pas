@@ -181,15 +181,15 @@ unit cgx86;
     function Tcgx86.getmmxregister(list:Taasmoutput):Tregister;
       begin
         if not assigned(rg[R_MMXREGISTER]) then
-          internalerror(200312124);
+          internalerror(2003121214);
         result:=rg[R_MMXREGISTER].getregister(list,R_SUBNONE);
       end;
 
 
     function Tcgx86.getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;
       begin
-        if not assigned(rg[R_MMXREGISTER]) then
-          internalerror(200312124);
+        if not assigned(rg[R_MMREGISTER]) then
+          internalerror(2003121234);
         case size of
           OS_F64:
             result:=rg[R_MMREGISTER].getregister(list,R_SUBMMD);
