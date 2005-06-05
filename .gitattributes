@@ -860,6 +860,7 @@ fcl/os2/custapp.inc svneol=native#text/plain
 fcl/os2/eventlog.inc svneol=native#text/plain
 fcl/os2/ezcgi.inc svneol=native#text/plain
 fcl/os2/pipes.inc svneol=native#text/plain
+fcl/os2/resolve.inc svneol=native#text/plain
 fcl/passrc/Makefile -text
 fcl/passrc/Makefile.fpc svneol=native#text/plain
 fcl/passrc/pastree.pp svneol=native#text/plain
