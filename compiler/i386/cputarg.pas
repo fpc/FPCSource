@@ -50,8 +50,8 @@ implementation
     {$ifndef NOTARGETOS2}
       ,t_os2
     {$endif}
-    {$ifndef NOTARGETWIN32}
-      ,t_win32
+    {$ifndef NOTARGETWIN}
+      ,t_win
     {$endif}
     {$ifndef NOTARGETNETWARE}
       ,t_nwm

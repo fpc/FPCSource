@@ -19,7 +19,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
-unit t_win32;
+unit t_win;
 
 {$i fpcdefs.inc}
 
@@ -34,7 +34,7 @@ interface
 {$ifdef GDB}
        gdb,
 {$endif}
-       import,export,link,cgobj,i_win32;
+       import,export,link,cgobj,i_win;
 
 
   const

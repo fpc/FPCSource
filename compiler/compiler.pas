@@ -202,7 +202,7 @@ uses
   ,i_wdosx
 {$endif wdosx}
 {$ifdef win32}
-  ,i_win32
+  ,i_win
 {$endif win32}
   { assembler readers }
 {$ifdef i386}

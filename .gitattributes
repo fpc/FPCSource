@@ -398,7 +398,7 @@ compiler/systems/i_palmos.pas svneol=native#text/plain
 compiler/systems/i_sunos.pas svneol=native#text/plain
 compiler/systems/i_watcom.pas svneol=native#text/plain
 compiler/systems/i_wdosx.pas svneol=native#text/plain
-compiler/systems/i_win32.pas svneol=native#text/plain
+compiler/systems/i_win.pas svneol=native#text/plain
 compiler/systems/mac_crea.txt svneol=native#text/plain
 compiler/systems/t_amiga.pas svneol=native#text/plain
 compiler/systems/t_atari.pas svneol=native#text/plain
@@ -416,7 +416,7 @@ compiler/systems/t_palmos.pas svneol=native#text/plain
 compiler/systems/t_sunos.pas svneol=native#text/plain
 compiler/systems/t_watcom.pas svneol=native#text/plain
 compiler/systems/t_wdosx.pas svneol=native#text/plain
-compiler/systems/t_win32.pas svneol=native#text/plain
+compiler/systems/t_win.pas svneol=native#text/plain
 compiler/tgobj.pas svneol=native#text/plain
 compiler/tokens.pas svneol=native#text/plain
 compiler/utils/Makefile -text

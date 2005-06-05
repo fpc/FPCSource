@@ -31,7 +31,7 @@ implementation
     uses
        cutils,
        fmodule,globals,systems,
-       import,export,link,t_win32,i_wdosx;
+       import,export,link,t_win,i_wdosx;
 
   type
     timportlibwdosx=class(timportlibwin32)

@@ -142,9 +142,9 @@ unit cgx86;
          S_NO,S_NO,S_NO,S_NO,S_T);
 {$endif x86_64}
 
-{$ifndef NOTARGETWIN32}
+{$ifndef NOTARGETWIN}
       winstackpagesize = 4096;
-{$endif NOTARGETWIN32}
+{$endif NOTARGETWIN}
 
 
   implementation
@@ -1644,7 +1644,7 @@ unit cgx86;
 
       begin
         case target_info.system of
-        {$ifndef NOTARGETWIN32}
+        {$ifndef NOTARGETWIN}
            system_i386_win32,
         {$endif}
            system_i386_freebsd,
@@ -1687,18 +1687,18 @@ unit cgx86;
 
     procedure tcgx86.g_stackpointer_alloc(list : taasmoutput;localsize : longint);
 {$ifdef i386}
-{$ifndef NOTARGETWIN32}
+{$ifndef NOTARGETWIN}
       var
         href : treference;
         i : integer;
         again : tasmlabel;
-{$endif NOTARGETWIN32}
+{$endif NOTARGETWIN}
 {$endif i386}
       begin
         if localsize>0 then
          begin
 {$ifdef i386}
-{$ifndef NOTARGETWIN32}
+{$ifndef NOTARGETWIN}
            { windows guards only a few pages for stack growing, }
            { so we have to access every page first              }
            if (target_info.system=system_i386_win32) and
@@ -1729,7 +1729,7 @@ unit cgx86;
                  end
              end
            else
-{$endif NOTARGETWIN32}
+{$endif NOTARGETWIN}
 {$endif i386}
             list.concat(Taicpu.Op_const_reg(A_SUB,tcgsize2opsize[OS_ADDR],localsize,NR_STACK_POINTER_REG));
          end;
