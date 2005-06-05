@@ -104,7 +104,7 @@ implementation
             if t2.def.deftype=floatdef then
               begin
                 { when a comp or currency is used, use always the
-                  best type to calculate the result }
+                  best float type to calculate the result }
                 if (tfloatdef(t2.def).typ in [s64comp,s64currency]) or
                   (tfloatdef(t2.def).typ in [s64comp,s64currency]) then
                   result:=pbestrealtype^

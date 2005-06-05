@@ -837,7 +837,11 @@ implementation
                    tglobalvarsym(p).localloc.register);
              LOC_REFERENCE : ;
              LOC_CMMREGISTER :
-               ;
+               { clear the whole register }
+               cg.a_opmm_reg_reg(taasmoutput(arg),OP_XOR,reg_cgsize(tglobalvarsym(p).localloc.register),
+                 tglobalvarsym(p).localloc.register,
+                 tglobalvarsym(p).localloc.register,
+                 nil);
              LOC_CFPUREGISTER :
                ;
              else
