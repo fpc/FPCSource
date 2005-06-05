@@ -380,7 +380,7 @@ interface
 
     procedure T386NasmAssembler.WriteTree(p:taasmoutput);
     const
-      regallocstr : array[tregalloctype] of string[10]=(' released',' allocated',' sync',' resized');
+      regallocstr : array[tregalloctype] of string[10]=(' allocated',' released',' sync',' resized');
       tempallocstr : array[boolean] of string[10]=(' released',' allocated');
     var
       s : string;
