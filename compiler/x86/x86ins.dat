@@ -1908,7 +1908,7 @@ void                  \321\1\x9C                      386
 void                  \320\1\x9C                      186
 
 [PXOR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 mmxreg,mem            \301\2\x0F\xEF\110              PENT,MMX,SM
 mmxreg,mmxreg         \2\x0F\xEF\110                  PENT,MMX
 xmmreg,mem            \301\3\x66\x0F\xEF\110          WILLAMETTE,SSE2,SM
@@ -2764,7 +2764,7 @@ xmmreg,mem            \301\2\x0F\x14\110              KATMAI,SSE
 xmmreg,xmmreg         \2\x0F\x14\110                  KATMAI,SSE
 
 [XORPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,mem            \301\2\x0F\x57\110              KATMAI,SSE
 xmmreg,xmmreg         \2\x0F\x57\110                  KATMAI,SSE
 
@@ -3349,7 +3349,7 @@ xmmreg,xmmreg           \3\x66\x0F\x14\110              WILLAMETTE,SSE2
 xmmreg,mem              \301\3\x66\x0F\x14\110          WILLAMETTE,SSE2,SM
 
 [XORPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,xmmreg           \3\x66\x0F\x57\110              WILLAMETTE,SSE2
 xmmreg,mem              \301\3\x66\x0F\x57\110          WILLAMETTE,SSE2,SM
 
