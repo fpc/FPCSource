@@ -6201,7 +6201,7 @@ utils/dxegen/dxegen.pp svneol=native#text/plain
 utils/fpcm/Makefile -text
 utils/fpcm/Makefile.fpc svneol=native#text/plain
 utils/fpcm/fpcmake.inc svneol=native#text/plain
-utils/fpcm/fpcmake.ini -text
+utils/fpcm/fpcmake.ini svneol=native#text/plain
 utils/fpcm/fpcmake.pp svneol=native#text/plain
 utils/fpcm/fpcmdic.pp svneol=native#text/plain
 utils/fpcm/fpcmmain.pp svneol=native#text/plain
