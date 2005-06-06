@@ -332,7 +332,7 @@ type
     property OldValue: variant read GetOldValue;
     property ProviderFlags : TProviderFlags read FProviderFlags write FProviderFlags;
   published
-    property AlignMent : TAlignMent Read FAlignMent write SetAlignment;
+    property AlignMent : TAlignMent Read FAlignMent write SetAlignment default taLeftJustify;
     property CustomConstraint: string read FCustomConstraint write FCustomConstraint;
     property ConstraintErrorMessage: string read FConstraintErrorMessage write FConstraintErrorMessage;
     property DefaultExpression: string read FDefaultExpression write FDefaultExpression;
@@ -351,7 +351,7 @@ type
     property Origin: string read FOrigin write FOrigin;
     property ReadOnly: Boolean read FReadOnly write SetReadOnly;
     property Required: Boolean read FRequired write FRequired;
-    property Visible: Boolean read FVisible write SetVisible;
+    property Visible: Boolean read FVisible write SetVisible default True;
     property OnChange: TFieldNotifyEvent read FOnChange write FOnChange;
     property OnGetText: TFieldGetTextEvent read FOnGetText write FOnGetText;
     property OnSetText: TFieldSetTextEvent read FOnSetText write FOnSetText;
