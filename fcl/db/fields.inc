@@ -629,7 +629,7 @@ end;
 function TField.GetParentComponent: TComponent;
 
 begin
-  //!! To be implemented
+  Result := DataSet;
 end;
 
 procedure TField.GetText(var AText: string; ADisplayText: Boolean);
@@ -670,7 +670,9 @@ end;
 procedure TField.ReadState(Reader: TReader);
 
 begin
-  //!! To be implemented
+  inherited ReadState(Reader);
+  if Reader.Parent is TDataSet then
+    DataSet := TDataSet(Reader.Parent);
 end;
 
 procedure TField.SetAsBoolean(AValue: Boolean);
@@ -766,7 +768,8 @@ end;
 procedure TField.SetParentComponent(AParent: TComponent);
 
 begin
-  //!! To be implemented
+  if not (csLoading in ComponentState) then
+    DataSet := AParent as TDataSet;
 end;
 
 procedure TField.SetSize(AValue: Word);
