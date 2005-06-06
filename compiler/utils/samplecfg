@@ -202,7 +202,7 @@ cat <<EOFCFG > $thefile
 -Fu$1/units/\$fpctarget
 -Fu$1/units/\$fpctarget/*
 -Fu$1/units/\$fpctarget/rtl
-#-Fu~/fpc/packages/base/*/units/$fpctarget;~/fpc/fcll/units/$fpctarget;~/fpc/rtl/units/$fpctarget
+#-Fu~/fpc/packages/base/*/units/$fpctarget;~/fpc/fcl/units/$fpctarget;~/fpc/rtl/units/$fpctarget
 
 # searchpath for libraries
 $GCCDIR
