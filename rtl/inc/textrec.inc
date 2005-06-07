@@ -30,11 +30,7 @@ type
     Handle    : THandle;
     Mode      : longint;
     bufsize   : SizeInt;
-{$IFDEF FPC_LINEEND_IN_TEXTREC}
     _private  : SizeInt;
-{$ELSE FPC_LINEEND_IN_TEXTREC}
-    LineEnd   : TLineEndStr;
-{$ENDIF FPC_LINEEND_IN_TEXTREC}
     bufpos,
     bufend    : SizeInt;
     bufptr    : ^textbuf;
@@ -48,9 +44,7 @@ type
     UserData  : array[1..32] of byte;
 {$endif FPC_HASUSERDATA32}
     name      : array[0..textrecnamelength-1] of char;
-{$IFDEF FPC_LINEEND_IN_TEXTREC}
     LineEnd   : TLineEndStr;
-{$ENDIF FPC_LINEEND_IN_TEXTREC}
     buffer    : textbuf;
   End;
 
