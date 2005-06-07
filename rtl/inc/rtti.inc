@@ -152,13 +152,11 @@ begin
        fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
-{$ifdef HASWIDESTRING}
     tkWstring :
       begin
         fpc_WideStr_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
-{$endif HASWIDESTRING}
     tkArray :
       arrayrtti(data,typeinfo,@int_finalize);
     tkObject,
@@ -184,10 +182,8 @@ begin
   case PByte(TypeInfo)^ of
     tkAstring :
       fpc_AnsiStr_Incr_Ref(PPointer(Data)^);
-{$ifdef HASWIDESTRING}
     tkWstring :
       fpc_WideStr_Incr_Ref(PPointer(Data)^);
-{$endif HASWIDESTRING}
     tkArray :
       arrayrtti(data,typeinfo,@int_addref);
     tkobject,
@@ -215,10 +211,8 @@ begin
     { see AddRef for comment about below construct (JM) }
     tkAstring:
       fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
-{$ifdef HASWIDESTRING}
     tkWstring:
       fpc_WideStr_Decr_Ref(PPointer(Data)^);
-{$endif HASWIDESTRING}
     tkArray:
       arrayrtti(data,typeinfo,@fpc_systemDecRef);
     tkobject,

@@ -1915,9 +1915,7 @@ end;
 
 Function StrCharLength(const Str: PChar): Integer;
 begin
-{$ifdef HASWIDESTRING}
   result:=widestringmanager.CharLengthPCharProc(Str);
-{$endif HASWIDESTRING}
 end;
 
 

@@ -267,20 +267,12 @@ Type
   POleVariant         = ^OleVariant;
 {$endif HASVARIANT}
 
-{$ifdef HASWIDECHAR}
   PWideChar           = ^WideChar;
   PPWideChar          = ^PWideChar;
-  { 1.0.x also has HASWIDECHAR defined, but doesn't support it
-    fully, setting WChar to Word as fallback (PFV) }
   WChar               = Widechar;
   UCS2Char            = WideChar;
   PUCS2Char           = PWideChar;
-{$else}
-  WChar               = Word;
-{$endif HASWIDECHAR}
-{$ifdef HASWIDESTRING}
   PWideString         = ^WideString;
-{$endif HASWIDESTRING}
 
   { Needed for fpc_get_output }
   PText               = ^Text;
@@ -551,9 +543,7 @@ function  lowercase(const s : ansistring) : ansistring;
                              WideString Handling
 ****************************************************************************}
 
-{$ifdef HASWIDESTRING}
 {$i wstringh.inc}
-{$endif HASWIDESTRING}
 
 
 {****************************************************************************

@@ -1007,7 +1007,6 @@ end;
                     Target Dependent WideString stuff
 ****************************************************************************}
 
-{$ifdef HASWIDESTRING}
 
 function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
   begin
@@ -1115,13 +1114,10 @@ procedure InitWin32Widestrings;
     widestringmanager.CompareTextWideStringProc:=@Win32CompareTextWideString;
   end;
 
-{$endif HASWIDESTRING}
 
 
 Initialization
-{$ifdef HASWIDESTRING}
   InitWin32Widestrings;
-{$endif HASWIDESTRING}
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;

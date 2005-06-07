@@ -910,7 +910,6 @@ end;
 {$endif Set_i386_Exception_handler}
 
 
-{$ifdef HASWIDESTRING}
 {****************************************************************************
                       OS dependend widestrings
 ****************************************************************************}
@@ -945,7 +944,6 @@ procedure InitWin32Widestrings;
     widestringmanager.LowerWideStringProc:=@Win32WideLower;
   end;
 
-{$endif HASWIDESTRING}
 
 
 {****************************************************************************
@@ -1097,8 +1095,6 @@ begin
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
-{$ifdef HASWIDESTRING}
   initwidestringmanager;
   InitWin32Widestrings
-{$endif HASWIDESTRING}
 end.
