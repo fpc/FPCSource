@@ -72,13 +72,8 @@ begin
 end;
 end;
 
-{$ifndef HAS_ADDR_STACK_ON_STACK}
-Function fpc_PushExceptAddr (Ft: Longint): PJmp_buf ;
-  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}
-{$else HAS_ADDR_STACK_ON_STACK}
 Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}{$ifdef hascompilerproc} compilerproc; {$endif}
-{$endif HAS_ADDR_STACK_ON_STACK}
 
 var
   Buf : PJmp_buf;
@@ -89,28 +84,16 @@ begin
 {$endif}
   If ExceptAddrstack=Nil then
     begin
-{$ifndef HAS_ADDR_STACK_ON_STACK}
-      New(ExceptAddrStack);
-{$else HAS_ADDR_STACK_ON_STACK}
       ExceptAddrStack:=PExceptAddr(_newaddr);
-{$endif HAS_ADDR_STACK_ON_STACK}
       ExceptAddrStack^.Next:=Nil;
     end
   else
     begin
-{$ifndef HAS_ADDR_STACK_ON_STACK}
-      New(NewAddr);
-{$else HAS_ADDR_STACK_ON_STACK}
       NewAddr:=PExceptAddr(_newaddr);
-{$endif HAS_ADDR_STACK_ON_STACK}
       NewAddr^.Next:=ExceptAddrStack;
       ExceptAddrStack:=NewAddr;
     end;
-{$ifndef HAS_ADDR_STACK_ON_STACK}
-  new(buf);
-{$else HAS_ADDR_STACK_ON_STACK}
   buf:=PJmp_Buf(_buf);
-{$endif HAS_ADDR_STACK_ON_STACK}
   ExceptAddrStack^.Buf:=Buf;
   ExceptAddrStack^.FrameType:=ft;
   fpc_PushExceptAddr:=Buf;
@@ -206,10 +189,7 @@ end;
 
 
 Procedure fpc_PopAddrStack;[Public, Alias : 'FPC_POPADDRSTACK']; {$ifdef hascompilerproc} compilerproc; {$endif}
-{$ifndef HAS_ADDR_STACK_ON_STACK}
-var
-  hp : PExceptAddr;
-{$endif HAS_ADDR_STACK_ON_STACK}
+
 begin
 {$ifdef excdebug}
   writeln ('In Popaddrstack');
@@ -221,14 +201,7 @@ begin
     end
   else
     begin
-{$ifndef HAS_ADDR_STACK_ON_STACK}
-      hp:=ExceptAddrStack;
       ExceptAddrStack:=ExceptAddrStack^.Next;
-      dispose(hp^.buf);
-      dispose(hp);
-{$else HAS_ADDR_STACK_ON_STACK}
-      ExceptAddrStack:=ExceptAddrStack^.Next;
-{$endif HAS_ADDR_STACK_ON_STACK}
     end;
 end;
 
