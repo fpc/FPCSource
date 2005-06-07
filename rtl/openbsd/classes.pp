@@ -46,8 +46,6 @@ initialization
 finalization
   CommonCleanup;
 
-{$ifndef ver1_0}
   if ThreadsInited then
      DoneThreads;
-{$endif}
 end.

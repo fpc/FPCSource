@@ -243,11 +243,7 @@ function CallMsgFilterW(var lpMsg: TMsg; nCode: Integer): BOOL; external 'user32
 function CallNamedPipe(lpNamedPipeName: PChar; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesRead: DWORD; nTimeOut: DWORD): BOOL;external 'kernel32' name 'CallNamedPipeA';
 function CallNamedPipeA(lpNamedPipeName: LPCSTR; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesRead: DWORD; nTimeOut: DWORD): BOOL; external 'kernel32' name 'CallNamedPipeA';
 function CallNamedPipeW(lpNamedPipeName: LPWSTR; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesRead: DWORD; nTimeOut: DWORD): BOOL; external 'kernel32' name 'CallNamedPipeW';
-{$ifdef ver1_0}
-  function CoRegisterClassObject(const _para1:TCLSID; _para2:Pointer; _para3:DWORD; _para4:DWORD; var _para5:DWORD):HRESULT;external 'ole32.dll' name 'CoRegisterClassObject';
-{$else}
-  function CoRegisterClassObject(const _para1:TCLSID; _para2:IUnknown; _para3:DWORD; _para4:DWORD; out_para5:DWORD):HRESULT;external 'ole32.dll' name 'CoRegisterClassObject';
-{$endif}
+function CoRegisterClassObject(const _para1:TCLSID; _para2:IUnknown; _para3:DWORD; _para4:DWORD; out_para5:DWORD):HRESULT;external 'ole32.dll' name 'CoRegisterClassObject';
 function ChangeDisplaySettings(var lpDevMode: TDeviceMode; dwFlags: DWORD): Longint;external 'user32' name 'ChangeDisplaySettingsA';
 function ChangeDisplaySettingsA(var lpDevMode: TDeviceModeA; dwFlags: DWORD): Longint; external 'user32' name 'ChangeDisplaySettingsA';
 {$ifdef support_smartlink}

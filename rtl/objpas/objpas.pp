@@ -38,9 +38,7 @@ unit objpas;
        PointerArray  = array [0..512*1024*1024-2] of Pointer;
        TPointerArray = PointerArray;
        PPointerArray = ^PointerArray;
-{$ifdef HASINTF}
        TBoundArray = array of integer;
-{$endif HASINTF}
 
 {****************************************************************************
                              Compatibility routines.

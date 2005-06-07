@@ -1172,11 +1172,7 @@ var
      negative := false;
      s:='';
      { Workaround: }
-{$ifdef ver1_0}
-     if (l shr 32=$80000000) and ((l and $ffffffff)=0) then
-{$else}
      if l=int64($8000000000000000) then
-{$endif}
        begin
          s:='-9223372036854775808';
          exit;

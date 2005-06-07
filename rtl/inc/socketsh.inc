@@ -11,12 +11,8 @@
 
  **********************************************************************}
 
-{$IFNDEF ver1_0}
-  {$IFNDEF ver1_9_4}
-    {$INLINE ON}
-    {$define HASINLINE}
-  {$endif}
-{$ENDIF}
+{$INLINE ON}
+{$define HASINLINE}
 
 Type
 {$ifdef SOCK_HAS_SINLEN}

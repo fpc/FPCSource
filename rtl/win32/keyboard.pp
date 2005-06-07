@@ -56,7 +56,7 @@ var
    { used for keyboard specific stuff }
    KeyBoardLayout : HKL;
    Inited : Boolean;
-   HasAltGr  : Boolean{$ifndef ver1_0} = false {$endif};
+   HasAltGr  : Boolean = false;
 
 
 

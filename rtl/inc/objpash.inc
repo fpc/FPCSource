@@ -150,17 +150,14 @@
           { new for gtk, default handler for text based messages }
           procedure DefaultHandlerStr(var message);virtual;
 
-{$ifdef HASINTF}
           { interface functions }
           function GetInterface(const iid : tguid; out obj) : boolean;
           function GetInterfaceByStr(const iidstr : string; out obj) : boolean;
           class function GetInterfaceEntry(const iid : tguid) : pinterfaceentry;
           class function GetInterfaceEntryByStr(const iidstr : string) : pinterfaceentry;
           class function GetInterfaceTable : pinterfacetable;
-{$endif HASINTF}
        end;
 
-{$ifdef HASINTF}
        IUnknown = interface
          ['{00000000-0000-0000-C000-000000000046}']
          function QueryInterface(const iid : tguid;out obj) : longint;stdcall;
@@ -208,7 +205,6 @@
        PDispatch = ^IDispatch;
        PPDispatch = ^PDispatch;
 
-{$endif HASINTF}
 
        TExceptProc = Procedure (Obj : TObject; Addr : Pointer; FrameCount:Longint; Frame: PPointer);
 

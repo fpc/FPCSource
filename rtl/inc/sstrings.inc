@@ -378,11 +378,7 @@ end;
 {$ifdef STR_USES_VALINT}
 procedure fpc_shortstr_UInt(v : valUInt;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_UINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-  {$ifdef ver1_0}
-  procedure fpc_shortstr_cardinal(v : longword;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
-  {$else}
   procedure fpc_shortstr_longword(v : longword;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
-  {$endif}
 {$endif}
 begin
   int_str(v,s);

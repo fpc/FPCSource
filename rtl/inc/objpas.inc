@@ -33,30 +33,6 @@
          result := aobject;
       end;
 
-{$ifndef HASINTF}
-    { dummies for make cycle with 1.0.x }
-    procedure fpc_intf_decr_ref(var i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias: 'FPC_INTF_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
-      begin
-      end;
-
-    procedure fpc_intf_incr_ref(i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
-      begin
-      end;
-
-    procedure fpc_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN']; {$ifdef hascompilerproc} compilerproc; {$endif}
-      begin
-      end;
-
-    function fpc_intf_as(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_INTF_AS']; {$ifdef hascompilerproc} compilerproc; {$endif}
-      begin
-      end;
-
-    function fpc_class_as_intf(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_CLASS_AS_INTF']; {$ifdef hascompilerproc} compilerproc; {$endif}
-      begin
-      end;
-
-{$else HASINTF}
-
     { interface helpers }
     procedure fpc_intf_decr_ref(var i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias: 'FPC_INTF_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
@@ -121,7 +97,6 @@
         else
           fpc_class_as_intf:=nil;
       end;
-{$endif HASINTF}
 
 {****************************************************************************
                                TOBJECT
@@ -153,7 +128,6 @@
 
       procedure InitInterfacePointers(objclass: tclass;instance : pointer);
 
-{$ifdef HASINTF}
         var
            intftable : pinterfacetable;
            i : longint;
@@ -178,10 +152,6 @@
                objclass:=pclass(pointer(objclass)+vmtParent)^;
             end;
         end;
-{$else HASINTF}
-        begin
-        end;
-{$endif HASINTF}
 
       class function TObject.InitInstance(instance : pointer) : tobject;
 
@@ -191,9 +161,7 @@
            { insert VMT pointer into the new created memory area }
            { (in class methods self contains the VMT!)           }
            ppointer(instance)^:=pointer(self);
-{$ifdef HASINTF}
            InitInterfacePointers(self,instance);
-{$endif HASINTF}
            InitInstance:=TObject(Instance);
         end;
 
@@ -596,7 +564,6 @@
         begin
         end;
 
-{$ifdef HASINTF}
       function IsGUIDEqual(const guid1, guid2: tguid): boolean;
         begin
           IsGUIDEqual:=
@@ -749,7 +716,6 @@
          TInterfacedObject(NewInstance).frefcount:=1;
       end;
 
-{$endif HASINTF}
 
 {****************************************************************************
                              Exception Support

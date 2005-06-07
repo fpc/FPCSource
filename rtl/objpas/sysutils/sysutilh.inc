@@ -231,8 +231,6 @@ Type
 
   procedure FreeAndNil(var obj);
 
-{$ifdef HASINTF}
   { interface handling }
   {$i intfh.inc}
-{$endif HASINTF}
 

@@ -26,7 +26,7 @@ Uses BaseUnix,UnixType;
 // keep the code working.
 
 var
-  Tzseconds : Longint {$ifndef ver1_0} = 0 {$endif};
+  Tzseconds : Longint = 0;
 
 
 {********************
@@ -483,7 +483,7 @@ begin { Changes as above }
   fpsigaction(SIGQUIT, @ign, @quitact);
   fpsigemptyset(newsigblock);
   fpsigaddset(newsigblock,SIGCHLD);
-  fpsigprocmask(SIG_BLOCK,{$ifdef ver1_0}@{$endif}newsigblock,{$ifdef ver1_0}@{$endif}oldsigblock);
+  fpsigprocmask(SIG_BLOCK,newsigblock,oldsigblock);
   pid:=fpfork;
   if pid=0 then // We are in the Child
    begin

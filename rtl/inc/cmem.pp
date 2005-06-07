@@ -18,7 +18,6 @@ unit cmem;
 interface
 
 Const
-{$ifndef ver1_0}
 
 {$if defined(win32)}
   LibName = 'msvcrt';
@@ -30,28 +29,6 @@ Const
   LibName = 'StdCLib';
 {$else}
   LibName = 'c';
-{$endif}
-
-{$else}
-
-{$ifndef win32}
-  {$ifdef netware}
-  LibName = 'clib';
-  {$else}
-    {$ifdef netwlibc}
-    LibName = 'libc';
-    {$else}
-      {$ifdef macos}
-      LibName = 'StdCLib';
-      {$else}
-      LibName = 'c';
-      {$endif macos}
-    {$endif netwlibc}
-  {$endif}
-{$else}
-  LibName = 'msvcrt';
-{$endif}
-
 {$endif}
 
 Function Malloc (Size : ptrint) : Pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'malloc';

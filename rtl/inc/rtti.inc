@@ -164,13 +164,11 @@ begin
     tkObject,
     tkRecord:
       recordrtti(data,typeinfo,@int_finalize);
-{$ifdef HASINTF}
     tkInterface:
       begin
         Intf_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
-{$endif HASINTF}
     tkDynArray:
       fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
 {$ifdef HASVARIANT}
@@ -197,10 +195,8 @@ begin
       recordrtti(data,typeinfo,@int_addref);
     tkDynArray:
       fpc_dynarray_incr_ref(PPointer(Data)^);
-{$ifdef HASINTF}
     tkInterface:
       Intf_Incr_Ref(PPointer(Data)^);
-{$endif HASINTF}
 {$ifdef HASVARIANT}
     tkVariant:
       variant_addref(pvardata(Data)^);
@@ -230,10 +226,8 @@ begin
       recordrtti(data,typeinfo,@fpc_systemDecRef);
     tkDynArray:
       fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
-{$ifdef HASINTF}
     tkInterface:
       Intf_Decr_Ref(PPointer(Data)^);
-{$endif HASINTF}
 {$ifdef HASVARIANT}
     tkVariant:
       variant_clear(pvardata(data)^);

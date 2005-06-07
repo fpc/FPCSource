@@ -97,7 +97,7 @@ begin
 end;
 
 // needs oldfpccall;
-Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint; {$ifndef ver1_0} oldfpccall;{$endif}
+Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint; oldfpccall;
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
@@ -218,7 +218,7 @@ end;
 
 
 {
-function  intClone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifndef ver1_0} oldfpccall; {$endif}
+function  intClone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;  oldfpccall;
 
 
 var lerrno : Longint;

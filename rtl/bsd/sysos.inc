@@ -59,11 +59,7 @@ begin
 end;
 
 {$else}
-{$ifdef ver1_0}
-Var
-{$else}
 threadvar
-{$endif}
       Errno : longint;
 
 function geterrno:longint; [public, alias: 'FPC_SYS_GETERRNO'];

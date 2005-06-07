@@ -37,11 +37,7 @@ end;
 
 {$else}
 
-{$ifdef ver1_0}
-Var
-{$else}
 ThreadVar
-{$endif}
   Errno : longint;
 
 function geterrno:longint; [public, alias: 'FPC_SYS_GETERRNO'];

@@ -567,7 +567,6 @@ begin
     Result := False;
 end;
 
-{$ifdef HASINTF}
 function TComponent.QueryInterface(const IID: TGUID; out Obj): HResult;stdcall;
 begin
   if GetInterface(IID, Obj) then
@@ -586,5 +585,4 @@ begin
   result:=-1;
 end;
 
-{$endif HASINTF}
 

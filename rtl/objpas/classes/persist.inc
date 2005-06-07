@@ -84,7 +84,6 @@ end;
 {*                          TInterfacedPersistent                           *}
 {****************************************************************************}
 
-{$ifdef HASINTF}
 procedure TInterfacedPersistent.AfterConstruction;
 begin
   inherited;
@@ -118,7 +117,6 @@ begin
   else
     Result:=HResult($80004002);
 end;
-{$endif HASINTF}
 
 
 {****************************************************************************}
