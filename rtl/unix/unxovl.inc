@@ -25,10 +25,4 @@ begin
   statfs:=statfs(pchar(path),info);
 end;
 
-{
- $Log: unxovl.inc,v $
- Revision 1.5  2005/02/14 17:13:31  peter
-   * truncate log
-
-}
 

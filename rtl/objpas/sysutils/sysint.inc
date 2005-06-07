@@ -33,15 +33,3 @@ procedure InitInternationalGeneric;
 {$endif FPC_NOGENERICANSIROUTINES}    
   end;
   
-{
-  $Log: sysint.inc,v $
-  Revision 1.3  2005/03/13 14:30:24  marco
-   * some 1.0.x fixes
-
-  Revision 1.2  2005/03/12 14:56:22  florian
-    + added Ansi* routines to widestring manager
-    * made them using OS calls on windows
-
-  Revision 1.1  2005/02/26 19:25:01  florian
-    + initial commit
-}  

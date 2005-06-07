@@ -39,9 +39,3 @@ function  gtk_plug_new(socket_id:guint32):PGtkWidget;cdecl;external gtkdll name 
 {$endif read_implementation}
 
 
-{
-  $Log: gtkplug.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

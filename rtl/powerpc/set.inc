@@ -520,9 +520,3 @@ end;
 
 {$endif LARGESET}
 
-{
-  $Log: set.inc,v $
-  Revision 1.24  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

@@ -144,9 +144,3 @@ const
       }
       std_param_align = 8;
 
-{
-  $Log: cpubase.inc,v $
-  Revision 1.17  2005/02/14 17:13:10  peter
-    * truncate log
-
-}

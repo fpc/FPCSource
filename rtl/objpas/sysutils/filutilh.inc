@@ -93,12 +93,3 @@ Function FileIsReadOnly(const FileName: String): Boolean;
 Function GetFileHandle(var f : File):Longint;
 Function GetFileHandle(var f : Text):Longint;
 
-{
-  $Log: filutilh.inc,v $
-  Revision 1.10  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.9  2005/01/24 18:25:46  olle
-    + a tiny bit of support for macos
-
-}

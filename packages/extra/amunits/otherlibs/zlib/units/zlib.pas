@@ -307,8 +307,5 @@ begin
 
 END. (* UNIT ZLIB *)
 
-{
-  $Log
-}
 
 

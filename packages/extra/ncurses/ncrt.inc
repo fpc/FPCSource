@@ -935,9 +935,3 @@ Begin
    nEscDelay(500); { default is 1000 (1 second) }
    nCursor(cON);   { normal cursor }
 End;
-{
-  $Log: ncrt.inc,v $
-  Revision 1.7  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

@@ -1163,9 +1163,3 @@
 
 {$endif read_interface}
 
-{
-  $Log: errors.inc,v $
-  Revision 1.6  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

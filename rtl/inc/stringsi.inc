@@ -63,9 +63,3 @@
            end;
       end;
 
-{
-  $Log: stringsi.inc,v $
-  Revision 1.7  2005/02/14 17:13:29  peter
-    * truncate log
-
-}

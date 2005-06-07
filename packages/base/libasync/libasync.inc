@@ -480,9 +480,3 @@ begin
 end;
 
 
-{
-  $Log: libasync.inc,v $
-  Revision 1.6  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

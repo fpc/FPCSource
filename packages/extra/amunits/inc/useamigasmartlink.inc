@@ -36,8 +36,5 @@
    {$define use_amiga_smartlink}
 {$endif}
 
-{
-  $Log
-}
 
 

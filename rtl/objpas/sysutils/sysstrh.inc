@@ -199,28 +199,3 @@ function LeftStr(const S: string; Count: integer): string;
 function RightStr(const S: string; Count: integer): string;
 function BCDToInt(Value: integer): integer;
 
-{
-  $Log: sysstrh.inc,v $
-  Revision 1.18  2005/04/28 09:15:44  florian
-    + variants: string -> float/int casts
-
-  Revision 1.17  2005/04/26 16:40:51  michael
-  + Added FormatCurr by Uberto Barbini
-
-  Revision 1.16  2005/03/12 14:56:22  florian
-    + added Ansi* routines to widestring manager
-    * made them using OS calls on windows
-
-  Revision 1.15  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.14  2005/02/06 09:38:45  florian
-    +  StrCharLength infrastructure
-
-  Revision 1.13  2005/01/17 18:38:48  peter
-    * extended overload disabled for powerpc
-
-  Revision 1.12  2005/01/16 17:53:27  michael
-  + Patch from Colin Western to implemenet TryStrToFLoat
-
-}

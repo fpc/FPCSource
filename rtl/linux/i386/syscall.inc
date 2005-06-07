@@ -327,13 +327,4 @@ end;
 {$ENDIF SYS_LINUX}
 
 
-{
-  $Log: syscall.inc,v $
-  Revision 1.18  2005/03/07 08:27:57  florian
-    * applied syscall patch from C Western
-
-  Revision 1.17  2005/02/14 17:13:30  peter
-    * truncate log
-
-}
 

@@ -268,14 +268,3 @@ const
 
 
 
-{
-  $Log: signal.inc,v $
-  Revision 1.7  2005/02/14 17:13:21  peter
-    * truncate log
-
-  Revision 1.6  2005/01/30 18:01:15  peter
-    * signal cleanup for linux
-    * sigactionhandler instead of tsigaction for bsds
-    * sigcontext moved to cpu dir
-
-}

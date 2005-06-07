@@ -284,15 +284,3 @@ end;
 
 {$ENDIF HAS_FEXPAND}
 
-{
-  $Log: dos.inc,v $
-  Revision 1.8  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.7  2005/01/23 09:50:59  hajny
-    * yet another attempt to make Mac OS accept dos.inc without hacks ;-)
-
-  Revision 1.6  2005/01/01 20:31:02  olle
-    + hack again to make macos compile
-
-}

@@ -1055,16 +1055,3 @@ end;
 
 {$endif read_implementation}
 
-{
-  $Log: redef.inc,v $
-  Revision 1.31  2005/02/14 17:13:32  peter
-    * truncate log
-
-  Revision 1.30  2005/02/06 13:06:20  peter
-    * moved file and dir functions to sysfile/sysdir
-    * win32 thread in systemunit
-
-  Revision 1.29  2005/01/15 11:44:48  marco
-   * scrollwindow(ex) added at Neli's request
-
-}

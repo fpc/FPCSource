@@ -93,13 +93,3 @@
     operator := (b:real48) e:extended;
 {$endif SUPPORT_EXTENDED}
 
-{
-  $Log: mathh.inc,v $
-  Revision 1.22  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.21  2005/02/08 20:25:28  florian
-    - killed power from system unit
-    * move operator ** to math unit
-
-}

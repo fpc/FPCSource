@@ -649,10 +649,4 @@ begin
 END. (* UNIT COMMODITIES *)
 
 
-{
-  $Log: commodities.pas,v $
-  Revision 1.5  2005/02/14 17:13:20  peter
-    * truncate log
-
-}
 

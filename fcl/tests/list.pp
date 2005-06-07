@@ -96,14 +96,4 @@ begin
   Writeln ('Freeing list.');
   List.Free;
   DumpMem;
-end.  $Log: list.pp,v $
-end.  Revision 1.6  2005/03/20 12:46:55  marco
-end.   * sb removed legacymem. Fixed with getfpcheapstatus. Now 1.9.9 only
 end.
-end.  Revision 1.5  2005/03/16 13:30:17  marco
-end.   * fixed with legacymem (I hope)
-end.
-end.  Revision 1.4  2005/02/14 17:13:18  peter
-end.    * truncate log
-end.
-}

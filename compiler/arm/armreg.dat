@@ -1,6 +1,4 @@
 ;
-; $Id: armreg.dat,v 1.3 2004/06/16 20:07:10 florian Exp $
-;
 ; ARM registers
 ;
 ; layout
@@ -84,19 +82,3 @@ D14,$03,$00,d14,0,0
 S30,$03,$00,s20,0,0
 S31,$03,$00,s21,0,0
 D15,$03,$00,d15,0,0
-
-;
-; $Log: armreg.dat,v $
-; Revision 1.3  2004/06/16 20:07:10  florian
-;   * dwarf branch merged
-;
-; Revision 1.2.2.1  2004/06/12 17:01:01  florian
-;   * fixed compilation of arm compiler
-;
-; Revision 1.2  2003/09/09 12:53:39  florian
-;   * some assembling problems fixed
-;   * improved loadaddr_ref_reg
-;
-; Revision 1.1  2003/09/04 00:15:29  florian
-;   * first bunch of adaptions of arm compiler for new register type
-;

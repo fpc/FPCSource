@@ -29,12 +29,3 @@ function InterLockedDecrement (var Target: longint) : longint;
 function InterLockedExchange (var Target: longint;Source : longint) : longint;
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
 
-{
-  $Log: systhrdh.inc,v $
-  Revision 1.4  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.3  2005/02/06 20:31:35  florian
-    + GlobalNameSpace
-
-}

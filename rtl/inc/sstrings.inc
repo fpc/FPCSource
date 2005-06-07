@@ -885,18 +885,3 @@ begin
     end;
 end;
 
-{
-  $Log: sstrings.inc,v $
-  Revision 1.36  2005/04/02 07:57:38  florian
-    + 0x is now recognized as hex prefix
-
-  Revision 1.35  2005/03/20 12:45:19  michael
-  + Patch from Colin Western to fix uninitialized memory reads
-
-  Revision 1.34  2005/02/25 12:34:46  peter
-    * added HexStr(Pointer)
-
-  Revision 1.33  2005/02/14 17:13:27  peter
-    * truncate log
-
-}

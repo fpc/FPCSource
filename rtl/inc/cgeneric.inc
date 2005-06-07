@@ -147,9 +147,3 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
 
-{
-  $Log: cgeneric.inc,v $
-  Revision 1.4  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

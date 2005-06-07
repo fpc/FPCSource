@@ -90,12 +90,3 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpUmask       (cmask : TMode): TMode; cdecl; external clib name 'umask';
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
 
-{
-   $Log: oscdeclh.inc,v $
-   Revision 1.14  2005/02/14 17:13:31  peter
-     * truncate log
-
-   Revision 1.13  2005/02/13 20:01:38  peter
-     * include file cleanup
-
-}

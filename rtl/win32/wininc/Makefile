@@ -157,8 +157,3 @@ ascdef.inc : ascfun.inc ascdef.sed
 unidef.inc : unifun.inc unidef.sed
 	sed -f unidef.sed unifun.inc > unidef.inc
 
-#
-# $Log: Makefile,v $
-# Revision 1.2  2002/09/07 16:01:29  peter
-#   * old logs removed and tabs fixed
-#

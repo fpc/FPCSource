@@ -509,13 +509,3 @@ begin
 {$endif NODEBUG}
 end;
 
-{
-  $Log: fpmrun.inc,v $
-  Revision 1.11  2005/02/14 17:13:18  peter
-    * truncate log
-
-  Revision 1.10  2005/01/07 21:52:23  florian
-    * proper stepping in disassembler window now possible
-    + disassembler window to menu added
-
-}

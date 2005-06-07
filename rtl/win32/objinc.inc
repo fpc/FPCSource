@@ -182,9 +182,3 @@ BEGIN
     SetFileSize := 103;                       { File truncate error }
 END;
 
-{
-  $Log: objinc.inc,v $
-  Revision 1.8  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

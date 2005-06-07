@@ -73,15 +73,3 @@ begin
   result:=binbufsize-i;
 end;                  
 
-{
-  $Log: util.inc,v $
-  Revision 1.4  2005/04/14 17:43:53  michael
-  + Fix for BintoHex and hextobin by Uberto Barbini
-
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.2  2005/02/03 20:17:05  florian
-    + BinToHex and HexToBin from Marco added
-
-}

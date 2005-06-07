@@ -1134,8 +1134,4 @@ begin
   EmitForms;
   EmitFooter;
   CloseOutFile;
-end.  $Log: fd2pascal.pp,v $
-end.  Revision 1.5  2005/02/14 17:13:20  peter
-end.    * truncate log
 end.
-}

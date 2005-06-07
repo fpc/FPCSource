@@ -66,22 +66,4 @@ Type
     pcDouble  = ^cDouble;
     pclDouble = ^clDouble;
 
-{
-   $Log: ctypes.inc,v $
-   Revision 1.4  2005/03/13 19:17:14  florian
-     * indention fixed
-
-   Revision 1.3  2005/03/13 10:05:13  florian
-     + floating point c types added
-
-   Revision 1.2  2005/02/14 17:13:31  peter
-     * truncate log
-
-   Revision 1.1  2005/02/13 22:14:36  peter
-     * new files
-
-   Revision 1.6  2005/02/05 23:02:37  florian
-     + added some missing c types
-
-}
 

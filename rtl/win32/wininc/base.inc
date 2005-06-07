@@ -938,12 +938,3 @@ type
 
 {$endif read_implementation}
 
-{
-  $Log: base.inc,v $
-  Revision 1.25  2005/02/14 17:13:32  peter
-    * truncate log
-
-  Revision 1.24  2005/02/06 11:22:38  florian
-    + TAtom
-
-}

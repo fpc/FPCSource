@@ -19,12 +19,3 @@ program hello;
      writeln('Hello world');
   end.
 
-{
-    $Log: hello.pp,v $
-    Revision 1.3  2002/09/07 15:06:35  peter
-      * old logs removed and tabs fixed
-
-    Revision 1.2  2002/02/22 21:46:25  carl
-    + fixed log problems
-
-}

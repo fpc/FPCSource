@@ -96,15 +96,3 @@
     function cos(d : extended) : extended;[internproc:in_cos_extended];
     }
 {$endif INTERNCONSTINTF}
-{
-  $Log: math.inc,v $
-  Revision 1.7  2005/02/14 17:13:21  peter
-    * truncate log
-
-  Revision 1.6  2005/01/06 13:02:03  florian
-    * arctan, sin and cos are done in software on the arm
-
-  Revision 1.5  2005/01/01 18:34:24  florian
-    * fixed building
-
-}

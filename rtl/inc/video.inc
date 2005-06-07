@@ -260,10 +260,4 @@ begin
   DefaultErrorHandler := errAbort; { return error code }
 end;
 
-{
-  $Log: video.inc,v $
-  Revision 1.8  2005/02/14 17:13:30  peter
-    * truncate log
-
-}
 

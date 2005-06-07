@@ -165,9 +165,3 @@ asm
 .Lexit:
 end;
 
-{
-  $Log: strings.inc,v $
-  Revision 1.7  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

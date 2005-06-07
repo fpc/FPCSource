@@ -26,12 +26,3 @@ function AnsiStrPos(str,substr : PChar) : PChar;
 function AnsiStrRScan(Str : PChar;Chr : Char) : PChar;
 function AnsiStrScan(Str : PChar;Chr: Char) : PChar;
 
-{
-  $Log: sysansih.inc,v $
-  Revision 1.4  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.3  2005/02/03 16:21:59  peter
-    * 1.0.x fix
-
-}

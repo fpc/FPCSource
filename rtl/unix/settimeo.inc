@@ -33,13 +33,4 @@ end;
 
 {$endif}
 
-{
-  $Log: settimeo.inc,v $
-  Revision 1.8  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.7  2005/02/13 20:01:38  peter
-    * include file cleanup
-
-}
 

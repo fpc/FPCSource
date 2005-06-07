@@ -94,30 +94,3 @@ Procedure WideFmtStr(Var Res: WideString; Const Fmt : WideString; Const args: Ar
   end;
 
 
-{
-  $Log: syswide.inc,v $
-  Revision 1.7  2005/03/12 14:56:22  florian
-    + added Ansi* routines to widestring manager
-    * made them using OS calls on windows
-
-  Revision 1.6  2005/03/06 18:28:23  florian
-    + WideFormatBuf and WideFmtStr implemented
-
-  Revision 1.5  2005/02/26 15:00:14  florian
-    + WideSameStr
-
-  Revision 1.4  2005/02/26 10:21:17  florian
-    + implemented WideFormat
-    + some Widestring stuff implemented
-    * some Widestring stuff fixed
-
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.2  2005/02/03 18:40:02  florian
-    * compilation with 1.0.x fixed
-    + infrastructure for WideCompareText implemented
-
-  Revision 1.1  2005/02/01 20:22:50  florian
-    * improved widestring infrastructure manager
-}

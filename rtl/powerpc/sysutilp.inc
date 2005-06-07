@@ -72,9 +72,3 @@ asm
 end;
 
 
-{
-  $Log: sysutilp.inc,v $
-  Revision 1.9  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

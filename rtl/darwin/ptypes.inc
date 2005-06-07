@@ -172,12 +172,3 @@ Const
   Prio_User    = 2;
 
 
-{
-  $Log: ptypes.inc,v $
-  Revision 1.11  2005/02/14 17:13:21  peter
-    * truncate log
-
-  Revision 1.10  2005/02/11 13:07:05  jonas
-    * fixed SYS_NMLN constant
-
-}

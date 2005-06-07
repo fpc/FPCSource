@@ -104,9 +104,3 @@ Procedure SetMouseDriver(Const Driver : TMouseDriver);
 Procedure GetMouseDriver(Var Driver : TMouseDriver);
 { Returns the currently active mouse driver }
 
-{
-  $Log: mouseh.inc,v $
-  Revision 1.4  2005/02/14 17:13:25  peter
-    * truncate log
-
-}

@@ -490,9 +490,3 @@ end;
 
 {$endif read_implementation}
 
-{
-  $Log: unidef.inc,v $
-  Revision 1.13  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

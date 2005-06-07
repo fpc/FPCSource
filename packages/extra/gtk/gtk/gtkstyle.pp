@@ -88,9 +88,3 @@ function  GTK_STYLE_ATTACHED(style : PGtkstyle) : boolean;
 {$endif read_implementation}
 
 
-{
-  $Log: gtkstyle.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

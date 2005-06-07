@@ -30,16 +30,4 @@ type
   TRTLCriticalSection = {$i pmutext.inc}
 
 
-{
-   $Log: sysosh.inc,v $
-   Revision 1.3  2005/04/13 20:10:50  florian
-     + TThreadID
-
-   Revision 1.2  2005/02/14 17:13:21  peter
-     * truncate log
-
-   Revision 1.1  2005/02/06 12:16:52  peter
-     * bsd thread updates
-
-}
 

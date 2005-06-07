@@ -94,9 +94,3 @@ procedure set_is_user_signal(var a : TGtkSignalQuery; __is_user_signal : guint);
 {$endif read_implementation}
 
 
-{
-  $Log: gtksignal.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

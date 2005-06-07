@@ -35,17 +35,4 @@ type
   end;
 
 
-{
-   $Log: sysosh.inc,v $
-   Revision 1.3  2005/04/13 20:10:50  florian
-     + TThreadID
-
-   Revision 1.2  2005/02/14 17:13:30  peter
-     * truncate log
-
-   Revision 1.1  2005/02/06 11:20:52  peter
-     * threading in system unit
-     * removed systhrds unit
-
-}
 

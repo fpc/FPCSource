@@ -267,10 +267,4 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
  end;
 {$endif}
 
-{
-  $Log: genset.inc,v $
-  Revision 1.9  2005/02/14 17:13:22  peter
-    * truncate log
-
-}
 

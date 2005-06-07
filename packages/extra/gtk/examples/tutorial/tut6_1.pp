@@ -86,8 +86,4 @@
      gtk_widget_show (window);
      //* Rest in gtk_main and wait for the fun to begin! */
      gtk_main ();
- end.  $Log: tut6_1.pp,v $
- end.  Revision 1.3  2005/02/14 17:13:20  peter
- end.    * truncate log
  end.
-}

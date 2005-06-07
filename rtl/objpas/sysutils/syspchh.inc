@@ -48,9 +48,3 @@ function StrAlloc(Size: cardinal): PChar;
 function StrBufSize(Str: PChar): SizeUInt;
 procedure StrDispose(Str: PChar);
 
-{
-  $Log: syspchh.inc,v $
-  Revision 1.5  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

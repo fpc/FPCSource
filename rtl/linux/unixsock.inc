@@ -225,9 +225,3 @@ end;
 
 {$endif NEED_do_syscall}
 
-{
- $Log: unixsock.inc,v $
- Revision 1.14  2005/02/14 17:13:30  peter
-   * truncate log
-
-}

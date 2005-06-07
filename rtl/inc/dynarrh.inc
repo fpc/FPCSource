@@ -19,9 +19,3 @@ type
    tdynarrayindex = sizeint;
    pdynarrayindex = ^tdynarrayindex;
 
-{
-  $Log: dynarrh.inc,v $
-  Revision 1.4  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

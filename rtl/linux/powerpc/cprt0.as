@@ -74,7 +74,7 @@ ___fpc_brk_addr:
         .comm operatingsystem_parameter_argv,4
 
 /*
-  $Log: cprt0.as,v $
+
   Revision 1.9  2004/09/02 18:57:37  marco
    * fixed argc<->argv
 

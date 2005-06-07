@@ -491,9 +491,3 @@ end;
 
 {$endif read_implementation}
 
-{
-  $Log: ascfun.inc,v $
-  Revision 1.11  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

@@ -397,19 +397,3 @@ begin
 end;
 
 
-{
-  $Log: sockets.inc,v $
-  Revision 1.18  2005/03/25 22:53:39  jonas
-    * fixed several warnings and notes about unused variables (mainly) or
-      uninitialised use of variables/function results (a few)
-
-  Revision 1.17  2005/03/18 10:04:31  marco
-   * cosmetic fix in netaddrtostr
-
-  Revision 1.16  2005/02/14 17:13:26  peter
-    * truncate log
-
-  Revision 1.15  2005/02/13 19:59:57  marco
-   * More htons like functionality. IPV6 string support still missing
-
-}

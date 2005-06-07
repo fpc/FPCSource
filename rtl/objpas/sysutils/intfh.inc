@@ -31,9 +31,3 @@ function StringToGUID(const S: string): TGUID;
 function GUIDToString(const GUID: TGUID): string;
 function IsEqualGUID(const guid1, guid2: TGUID): Boolean;
 
-{
-  $Log: intfh.inc,v $
-  Revision 1.2  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

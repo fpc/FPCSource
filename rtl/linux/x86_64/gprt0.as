@@ -1,9 +1,3 @@
-/*
-  $Id: gprt0.as,v 1.3 2004/11/02 21:49:46 florian Exp $
-  Dummy implementation
-
-*/
-
 /* This is the canonical entry point, usually the first thing in the text
    segment.  The SVR4/i386 ABI (pages 3-31, 3-32) says that when the entry
    point runs, most registers' values are unspecified, except for:
@@ -90,13 +84,13 @@ main_stub:
         pushq   %rax
 
 	/* Initialize gmon */
-        movq    $_etext,%rsi                 
+        movq    $_etext,%rsi
         movq    $_start,%rdi
         call    monstartup
-        
+
         movq    $_mcleanup,%rdi
         call    atexit
-        
+
         /* start the program */
         xorq    %rbp,%rbp
         call    PASCALMAIN
@@ -153,15 +147,3 @@ ___fpc_ret_rbp:
 3:      .align 4
 
 	.section	.note.GNU-stack,"",@progbits
-
-/*
-  $Log: gprt0.as,v $
-  Revision 1.3  2004/11/02 21:49:46  florian
-    * x86_64 requires always 16 byte alignment of the stack
-
-  Revision 1.2  2004/11/02 20:41:57  florian
-    * initial implementation
-
-  Revision 1.1  2003/01/06 19:39:17  florian
-    + dummy implementations
-*/

@@ -81,9 +81,3 @@ procedure gtk_propagate_event(widget:PGtkWidget; event:PGdkEvent);cdecl;external
 {$endif read_implementation}
 
 
-{
-  $Log: gtkmain.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

@@ -823,10 +823,4 @@ implementation
 end.
 <<<<<<< .mine
 =======
-{
-  $Log: matrix.pp,v $
-  Revision 1.4  2005/02/14 17:13:22  peter
-    * truncate log
-
-}
 >>>>>>> .r41

@@ -1378,15 +1378,3 @@ type
 
 
 
-{
-  $Log: doslibd.inc,v $
-  Revision 1.5  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.4  2005/01/12 07:59:05  karoly
-    * Integers changed to SmallInt to be compatible with all modes
-
-  Revision 1.3  2005/01/10 04:58:52  karoly
-    * fixed alignment problem in TDosList
-
-}

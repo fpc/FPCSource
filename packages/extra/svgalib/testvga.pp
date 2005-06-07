@@ -21,8 +21,4 @@ begin
       vga_setmode(0);
       end;
   until mode=0;
-end.  $Log: testvga.pp,v $
-end.  Revision 1.3  2005/02/14 17:13:21  peter
-end.    * truncate log
 end.
-}

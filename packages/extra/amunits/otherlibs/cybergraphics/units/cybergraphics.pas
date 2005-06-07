@@ -738,8 +738,5 @@ begin
 
 END. (* UNIT CYBERGRAPHICS *)
 
-{
-  $Log
-}
 
 

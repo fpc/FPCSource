@@ -47,9 +47,3 @@ function  gdk_rgb_get_visual:PGdkVisual;cdecl;external gdkdll name 'gdk_rgb_get_
 {$endif read_implementation}
 
 
-{
-  $Log: gdkrgb.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

@@ -52,9 +52,3 @@ asm
         stb     r10,0(r3)
 end;
 
-{
-  $Log: strpas.inc,v $
-  Revision 1.12  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

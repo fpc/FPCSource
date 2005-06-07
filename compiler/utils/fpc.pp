@@ -205,15 +205,3 @@ program fpc;
        error(ppcbin+' returned an error exitcode (normal if you did not specify a source file to be compiled)');
      halt(errorvalue);
   end.
-{
-  $Log: fpc.pp,v $
-  Revision 1.20  2005/05/08 19:56:59  marco
-   * typo fixed
-
-  Revision 1.19  2005/02/14 17:13:10  peter
-    * truncate log
-
-  Revision 1.18  2005/01/14 21:04:44  armin
-  * added .nlm extension for netware
-
-}

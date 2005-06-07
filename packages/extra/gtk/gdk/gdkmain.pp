@@ -387,9 +387,3 @@ procedure gdk_threads_leave;cdecl;external gdkdll name 'gdk_threads_leave';
 {$ifdef read_implementation}
 {$endif read_implementation}
 
-{
-  $Log: gdkmain.pp,v $
-  Revision 1.7  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

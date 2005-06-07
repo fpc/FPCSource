@@ -145,9 +145,3 @@ const
     SIG_MAXSIG      = 128;      // highest signal version
     wordsinsigset   = 4;                // words in sigset_t
 
-{
-  $Log: ptypes.inc,v $
-  Revision 1.7  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

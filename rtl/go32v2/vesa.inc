@@ -2740,12 +2740,3 @@ Const
     LinearPageOfs := YOffset*(MaxX+1);
   end;
 
-{
-  $Log: vesa.inc,v $
-  Revision 1.12  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.11  2005/02/02 11:57:19  jonas
-    * fix from Tomas for calling conventions
-
-}

@@ -314,11 +314,3 @@ syscall_nr_getdirentries                =196;
  syscall_nr_rfork                       = 251;
  syscall_nr_nanosleep                   = 240;
  syscall_nr_getrusage                   =117;
-
-
-{
-  $Log: sysnr.inc,v $
-  Revision 1.12  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

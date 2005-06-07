@@ -14,9 +14,3 @@
 
 function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
 
-{
-  $Log: unxsysch.inc,v $
-  Revision 1.8  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

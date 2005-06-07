@@ -20,9 +20,3 @@ Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 begin
   Result := False;
 end;
-{
-  $Log: pipes.inc,v $
-  Revision 1.5  2005/02/14 17:13:12  peter
-    * truncate log
-
-}

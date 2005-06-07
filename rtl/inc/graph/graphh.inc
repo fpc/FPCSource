@@ -784,9 +784,3 @@ Function GetDriverName: string;
  procedure OutText(const TextString : string);
 
 
-{
-  $Log: graphh.inc,v $
-  Revision 1.9  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

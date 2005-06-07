@@ -161,9 +161,3 @@ const
   ErrorInfo: Pointer = nil;
   ErrorHandler: TErrorHandler = @DefaultErrorHandler;
 
-{
-  $Log: videoh.inc,v $
-  Revision 1.8  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

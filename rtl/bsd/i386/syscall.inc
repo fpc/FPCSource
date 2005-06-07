@@ -189,12 +189,3 @@ asm
 end;
 
 {$endif}
-{
-  $Log: syscall.inc,v $
-  Revision 1.13  2005/04/24 19:11:28  marco
-   * mmap had another, yet unknown 8th parameter which must be 0 and comes after the offset param
-
-  Revision 1.12  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

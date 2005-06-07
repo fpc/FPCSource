@@ -73,7 +73,7 @@ exitprocess:
      
      
 //
-// $Log: wdllprt0.as,v $
+
 // Revision 1.4  2002/12/04 21:36:44  carl
 //   * libraries would no longer compile because of my profiling fix
 //

@@ -76,15 +76,4 @@ type
   PSigContext = ^TSigContext;
   TSigContext= tsigcontext_struct;
 
-{
-  $Log: sighndh.inc,v $
-  Revision 1.2  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.1  2005/01/30 18:01:15  peter
-    * signal cleanup for linux
-    * sigactionhandler instead of tsigaction for bsds
-    * sigcontext moved to cpu dir
-
-}
 

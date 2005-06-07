@@ -3,7 +3,7 @@
 */
 
 /*
-  $Log: gprt0.as,v $
+
   Revision 1.3  2002/09/07 16:01:20  peter
     * old logs removed and tabs fixed
 

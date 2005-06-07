@@ -44,9 +44,3 @@ asm
 end;
 {$endif FPC_UNIT_HAS_STRPCOPY}
 
-{
-  $Log: stringss.inc,v $
-  Revision 1.14  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

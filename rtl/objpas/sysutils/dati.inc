@@ -800,25 +800,3 @@ function TryStrToDateTime(const S: string; out Value: TDateTime): Boolean;
 // function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 
 
-{
-  $Log: dati.inc,v $
-  Revision 1.11  2005/05/08 08:03:15  florian
-    + cycling with 1.0.x fixed, hopefully the last fix of this for ever ;)
-
-  Revision 1.10  2005/05/07 10:23:17  florian
-    + TryStrToDate/Time functions
-
-  Revision 1.9  2005/03/25 22:53:39  jonas
-    * fixed several warnings and notes about unused variables (mainly) or
-      uninitialised use of variables/function results (a few)
-
-  Revision 1.8  2005/03/17 15:21:10  marco
-   * fixed incmonths default param. Thnks nldelphi
-
-  Revision 1.7  2005/03/10 19:48:27  florian
-    * fixed compatibility problem of DateTimeToString
-
-  Revision 1.6  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

@@ -25,23 +25,4 @@ type
    Locked: boolean
   end;
 
-{
-   $Log: sysosh.inc,v $
-   Revision 1.2  2005/04/13 20:10:50  florian
-     + TThreadID
-
-   Revision 1.1  2005/02/10 17:30:54  peter
-     * renamed to solaris
-
-   Revision 1.1  2005/02/07 22:17:26  peter
-     * updated for 1.9.x unix rtl
-
-   Revision 1.1  2005/02/06 16:57:18  peter
-     * threads for go32v2,os,emx,netware
-
-   Revision 1.1  2005/02/06 13:06:20  peter
-     * moved file and dir functions to sysfile/sysdir
-     * win32 thread in systemunit
-
-}
 

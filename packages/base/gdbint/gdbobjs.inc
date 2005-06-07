@@ -180,9 +180,3 @@
 {$L ../bfd/aout32.o}
 {$L ../bfd/stab-sym.o}
 {$endif GDB_V418}
-{
-  $Log: gdbobjs.inc,v $
-  Revision 1.3  2005/02/14 17:13:19  peter
-    * truncate log
-
-}

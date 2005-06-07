@@ -7192,28 +7192,3 @@ type
 
 {$endif read_implementation}
 
-{
-  $Log: struct.inc,v $
-  Revision 1.36  2005/02/26 15:06:25  florian
-    + PDevideMode* added
-
-  Revision 1.35  2005/02/14 17:13:32  peter
-    * truncate log
-
-  Revision 1.34  2005/02/06 13:06:20  peter
-    * moved file and dir functions to sysfile/sysdir
-    * win32 thread in systemunit
-
-  Revision 1.33  2005/02/03 18:41:12  florian
-    * more clx compilation fixed
-
-  Revision 1.32  2005/01/19 14:24:46  marco
-   * some comments about COMSTAT added
-
-  Revision 1.31  2005/01/08 14:43:34  florian
-    + added LOGFONTW
-
-  Revision 1.30  2005/01/08 14:39:01  florian
-    * DEVMODE fixed
-
-}

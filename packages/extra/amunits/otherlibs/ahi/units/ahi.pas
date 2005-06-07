@@ -944,8 +944,5 @@ begin
 
 END. (* UNIT AHI *)
 
-{
-  $Log
-}
 
 

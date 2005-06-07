@@ -201,21 +201,4 @@ type
   TSigActionRec = SigActionRec;
   PSigActionRec = ^SigActionRec;
 
-{
-  $Log: signal.inc,v $
-  Revision 1.26  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.25  2005/02/05 22:53:43  peter
-    * use typecasted sigactionhandler, needed for arm
-
-  Revision 1.24  2005/02/05 22:45:54  peter
-    * sigactionhandler fixed for arm
-
-  Revision 1.23  2005/01/30 18:01:15  peter
-    * signal cleanup for linux
-    * sigactionhandler instead of tsigaction for bsds
-    * sigcontext moved to cpu dir
-
-}
 

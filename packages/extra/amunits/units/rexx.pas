@@ -767,11 +767,5 @@ begin
 
 END. (* UNIT REXXSYSLIB *)
 
-{
-  $Log: rexx.pas,v $
-  Revision 1.7  2005/02/14 17:13:20  peter
-    * truncate log
-
-}
 
 

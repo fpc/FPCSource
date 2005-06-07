@@ -85,9 +85,3 @@ end;
 {$endif read_implementation}
 
 
-{
-  $Log: gtkaccellabel.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

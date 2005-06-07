@@ -55,9 +55,3 @@ function  gtk_menu_factory_find(factory:PGtkMenuFactory; path:Pgchar):PGtkMenuPa
 {$endif read_implementation}
 
 
-{
-  $Log: gtkmenufactory.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

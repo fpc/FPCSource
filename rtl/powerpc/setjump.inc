@@ -108,9 +108,3 @@ procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'F
      mr r3,r4
     end;
 
-{
-  $Log: setjump.inc,v $
-  Revision 1.10  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

@@ -106,9 +106,3 @@ procedure gtk_marshal_NONE__INT_POINTER(theobject:PGtkObject; func:TGtkSignalFun
 {$endif read_implementation}
 
 
-{
-  $Log: gtkmarshal.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

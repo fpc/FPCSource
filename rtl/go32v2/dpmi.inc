@@ -42,9 +42,3 @@ asm
     POP BP                                                      { Restore BP }
   end;
 
-{
-  $Log: dpmi.inc,v $
-  Revision 1.4  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

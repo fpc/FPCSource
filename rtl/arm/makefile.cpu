@@ -1,13 +1,6 @@
-# $Id: makefile.cpu,v 1.1 2003/08/21 03:24:43 florian Exp $
 #
 # Here we set processor dependent include file names.
 #
 
 CPUNAMES=arm math set
 CPUINCNAMES=$(addsuffix .inc,$(CPUNAMES))
-#
-# $Log: makefile.cpu,v $
-# Revision 1.1  2003/08/21 03:24:43  florian
-#   + basic makefile.cpu added
-#
-#

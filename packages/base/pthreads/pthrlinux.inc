@@ -398,10 +398,4 @@ type
   function sem_post(var __sem: sem_t):cint;cdecl;external libthreads;
   function sem_getvalue(var __sem: sem_t; var __sval:cint):cint;cdecl;external libthreads;
 
-{
-  $Log: pthrlinux.inc,v $
-  Revision 1.3  2005/02/14 17:13:19  peter
-    * truncate log
-
-}
 

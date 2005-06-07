@@ -200,9 +200,3 @@ Not supported on Mac OS X 10.1
 
 {$endif not i386}
 
-{
-  $Log: cgenmath.inc,v $
-  Revision 1.6  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

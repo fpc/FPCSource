@@ -1218,8 +1218,5 @@ begin
 
 END. (* UNIT REQTOOLS *)
 
-{
-  $Log
-}
 
 

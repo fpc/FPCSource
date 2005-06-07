@@ -107,7 +107,7 @@ begin
               impl:=true;
               break;
             end;
-  $Log: fixgtkcdecl.pp,v $
+
   Revision 1.3  2005/02/14 17:13:20  peter
     * truncate log
 

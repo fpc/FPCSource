@@ -1065,26 +1065,3 @@ const
       leaving_after_error = #3'The IDE generated an internal error'#13+
                             #3'and will now be closed.';
 
-{
-  $Log: fpstre.inc,v $
-  Revision 1.31  2005/03/13 12:32:41  florian
-    * more status line hints fixed
-
-  Revision 1.30  2005/03/13 12:25:02  florian
-    + Recent files write full name now as hint in the status line
-    * Rundir hint in status line fixed
-
-  Revision 1.29  2005/03/12 13:48:58  florian
-    * fixed string Temporarily exit to DOS
-
-  Revision 1.28  2005/02/14 17:13:18  peter
-    * truncate log
-
-  Revision 1.27  2005/01/08 11:43:18  florian
-    + vector unit window
-
-  Revision 1.26  2005/01/07 21:52:23  florian
-    * proper stepping in disassembler window now possible
-    + disassembler window to menu added
-
-}

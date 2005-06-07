@@ -876,24 +876,3 @@ begin
 end;
 
 
-{
-  $Log: astrings.inc,v $
-  Revision 1.57  2005/04/06 07:45:14  michael
-  + Removed erroneously committed debug statement
-
-  Revision 1.56  2005/04/06 07:43:02  michael
-  + Variant type conversion rules
-
-  Revision 1.55  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.54  2005/01/28 19:50:51  peter
-  1.0.x fixes
-
-  Revision 1.53  2005/01/25 18:50:45  peter
-    * 1.0.x fix
-
-  Revision 1.52  2005/01/09 10:38:59  florian
-    * replaced CompareChar by CompareByte, saves one redirection
-
-}

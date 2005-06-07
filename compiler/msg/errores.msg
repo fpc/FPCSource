@@ -2366,4 +2366,3 @@ P*2WT_Especifica aplicación de tipo herramienta (herramienta MPW, MacOS sólo)
 
 #
 # The End...
-#

@@ -65,12 +65,4 @@ type
     reserved1 : array[0..7] of qword;
   end;
 
-{
-  $Log: sighndh.inc,v $
-  Revision 1.1  2005/01/30 18:01:15  peter
-    * signal cleanup for linux
-    * sigactionhandler instead of tsigaction for bsds
-    * sigcontext moved to cpu dir
-
-}
 

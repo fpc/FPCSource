@@ -684,15 +684,3 @@ SysCall MOS_DOSBase 1008;
 
 
 
-{
-  $Log: doslibf.inc,v $
-  Revision 1.5  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.4  2005/01/12 07:59:54  karoly
-    * Integers changed to SmallInt to be compatible with all modes
-
-  Revision 1.3  2005/01/11 17:44:52  karoly
-    * some updates for sysutils
-
-}

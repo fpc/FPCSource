@@ -808,27 +808,3 @@ begin
   inherited Destroy;
 end;
 
-{
-  $Log: streams.inc,v $
-  Revision 1.9  2005/03/25 20:07:43  peter
-    * add const to 64bit seeks
-
-  Revision 1.8  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.7  2005/01/20 16:37:57  peter
-    * 1.0.x fix
-
-  Revision 1.6  2005/01/19 19:57:57  michael
-  + CustomMemoryStream.getsize overridden
-
-  Revision 1.5  2005/01/19 09:09:50  michael
-    * Patch from Peter to fix 64bit issue in tstream.seek()
-
-  Revision 1.4  2005/01/18 22:31:44  michael
-  + Patch from Mattias Gaertner to fix CopyFrom
-
-  Revision 1.3  2005/01/09 13:15:37  michael
-  + Added TOwnerStream
-
- }

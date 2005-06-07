@@ -1,6 +1,3 @@
-/*
-    $Id: v2prt0.as,v 1.7 2003/09/27 11:52:35 peter Exp $
-*/
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 /*****************************************************************************\
  * Interface to 32-bit executable (from stub.asm)
@@ -932,19 +929,3 @@ ___PROXY_LEN:
         .long 7
 
         .comm __os_trueversion,2
-
-/*
-  $Log: v2prt0.as,v $
-  Revision 1.7  2003/09/27 11:52:35  peter
-    * sbrk returns pointer
-
-  Revision 1.6  2002/09/08 09:16:15  jonas
-    * added closing of comment for logs to avoid warning
-
-  Revision 1.5  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/02/03 09:51:41  peter
-    * merged winxp fixes
-
-*/

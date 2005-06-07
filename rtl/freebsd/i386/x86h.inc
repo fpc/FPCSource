@@ -22,9 +22,3 @@ Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 Function  IoPL(Level : longint) : Boolean;
 {$endif}
 
-{
-  $Log: x86h.inc,v $
-  Revision 1.3  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

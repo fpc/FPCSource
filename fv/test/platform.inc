@@ -366,10 +366,4 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$ENDIF}
 
 
-{
- $Log: platform.inc,v $
- Revision 1.3  2005/02/14 17:13:18  peter
-   * truncate log
-
-}
 

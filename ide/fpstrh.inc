@@ -995,9 +995,3 @@ const
                                'Az asztal tartalma nem kerlt t rol sra.';
       error_user_screen_not_avail = 'A felhaszn l¢i k‚perny‹ nem el‚rhet‹.';
 
-{
-  $Log: fpstrh.inc,v $
-  Revision 1.4  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

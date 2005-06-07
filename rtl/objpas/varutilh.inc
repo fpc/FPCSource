@@ -101,12 +101,3 @@ const
 
 {$endif HASVARIANT}
 
-{
-  $Log: varutilh.inc,v $
-  Revision 1.10  2005/02/25 14:39:31  peter
-    * 64bit fixes
-
-  Revision 1.9  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

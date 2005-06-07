@@ -180,22 +180,4 @@ asm
 end;
 *)
 
-{
-  $Log: arm.inc,v $
-  Revision 1.12  2005/03/13 10:04:52  florian
-    * move draft
-
-  Revision 1.11  2005/02/14 17:13:21  peter
-    * truncate log
-
-  Revision 1.10  2005/01/05 15:59:02  florian
-    + added nostackframe directive to get_frame
-
-  Revision 1.9  2005/01/05 15:21:14  florian
-    * fillchar fixed; it's used now
-
-  Revision 1.8  2005/01/04 16:46:38  florian
-    + correct setting of FPU exception mask
-
-}
 

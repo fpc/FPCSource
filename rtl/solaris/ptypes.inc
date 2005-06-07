@@ -235,13 +235,4 @@ CONST
   Prio_PGrp    = 1;
   Prio_User    = 2;
 
-{
-   $Log: ptypes.inc,v $
-   Revision 1.2  2005/02/14 17:13:31  peter
-     * truncate log
-
-   Revision 1.1  2005/02/13 22:14:36  peter
-     * new files
-
-}
 

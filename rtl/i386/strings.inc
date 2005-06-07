@@ -625,9 +625,3 @@ asm
 end;
 {$endif FPC_UNIT_HAS_STRLOWER}
 
-{
-  $Log: strings.inc,v $
-  Revision 1.18  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

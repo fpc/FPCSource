@@ -226,26 +226,3 @@ Type
   {$i intfh.inc}
 {$endif HASINTF}
 
-{
-  $Log: sysutilh.inc,v $
-  Revision 1.15  2005/05/12 20:30:51  michael
-  + Added MAX_PATH for Delphi/Kylix compatibility.
-
-  Revision 1.14  2005/03/12 14:56:22  florian
-    + added Ansi* routines to widestring manager
-    * made them using OS calls on windows
-
-  Revision 1.13  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.12  2005/02/03 18:40:02  florian
-    * compilation with 1.0.x fixed
-    + infrastructure for WideCompareText implemented
-
-  Revision 1.11  2005/02/03 16:21:59  peter
-    * 1.0.x fix
-
-  Revision 1.10  2005/02/01 20:22:50  florian
-    * improved widestring infrastructure manager
-
-}

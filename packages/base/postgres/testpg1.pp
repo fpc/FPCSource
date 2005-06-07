@@ -102,9 +102,4 @@ begin
 
   { close the connection to the database and cleanup }
   PQfinish(conn);
-
-end.  $Log: testpg1.pp,v $
-end.  Revision 1.3  2005/02/14 17:13:19  peter
-end.    * truncate log
 end.
-}

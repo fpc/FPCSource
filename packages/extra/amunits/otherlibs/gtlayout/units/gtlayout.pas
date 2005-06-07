@@ -1304,8 +1304,5 @@ begin
 
 END. (* UNIT GTLAYOUT *)
 
-{
-  $Log
-}
 
 

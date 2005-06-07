@@ -54,12 +54,3 @@ type
     buffer    : textbuf;
   End;
 
-{
-  $Log: textrec.inc,v $
-  Revision 1.9  2005/02/26 15:42:45  florian
-    * userdata in file/textrecs now 32 bytes
-
-  Revision 1.8  2005/02/14 17:13:29  peter
-    * truncate log
-
-}

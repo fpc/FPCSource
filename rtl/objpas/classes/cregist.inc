@@ -219,12 +219,3 @@ begin
 end;
 
 
-{
-  $Log: cregist.inc,v $
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.2  2005/02/02 19:39:59  florian
-    * empty class grouping functions
-
-}

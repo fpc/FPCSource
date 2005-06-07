@@ -32,9 +32,3 @@ procedure ClearExceptions(RaisePending: Boolean =true);
 procedure SetSSECSR(w : dword);
 function GetSSECSR : dword;
 
-{
-  $Log: mathuh.inc,v $
-  Revision 1.3  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

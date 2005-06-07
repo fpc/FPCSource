@@ -150,19 +150,3 @@ begin
  {$endif}
 end;
 
-{
-  $Log: sysdir.inc,v $
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.2  2005/02/13 20:01:38  peter
-    * include file cleanup
-
-  Revision 1.1  2005/02/07 22:04:55  peter
-    * moved to unix
-
-  Revision 1.1  2005/02/06 13:06:20  peter
-    * moved file and dir functions to sysfile/sysdir
-    * win32 thread in systemunit
-
-}

@@ -207,8 +207,5 @@ Const
         syscall_nr_mquery       = 286;
         syscall_nr_MAXSYSCALL   = 287;
 
-{
-  $Log          $
-}
 
 

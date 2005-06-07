@@ -44,12 +44,3 @@ asm
 end ['r4','r5','r6'];
 
 
-{
-  $Log: int64p.inc,v $
-  Revision 1.5  2005/02/14 17:13:21  peter
-    * truncate log
-
-  Revision 1.4  2005/01/04 12:57:52  florian
-    * fixed overflow checking for qword*qword
-
-}

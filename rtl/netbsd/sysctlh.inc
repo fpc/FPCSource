@@ -875,11 +875,3 @@ const
         (Name: 'maxdgram';CtlType: CTLTYPE_INT ),
         (Name: 'recvspace';CtlType: CTLTYPE_INT ),
         (Name: 'pcblist';CtlType: CTLTYPE_STRUCT ));
-
-{
-
-  $Log: sysctlh.inc,v $
-  Revision 1.2  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

@@ -255,9 +255,3 @@ begin
     Result := ord (EventType);
 end;
 
-{
-  $Log: eventlog.inc,v $
-  Revision 1.5  2005/02/14 17:13:16  peter
-    * truncate log
-
-}

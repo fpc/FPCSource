@@ -200,9 +200,3 @@ const
    Prio_PGrp    = 1;
    Prio_User    = 2;
 
-{
-  $Log: ptypes.inc,v $
-  Revision 1.17  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

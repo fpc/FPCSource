@@ -104,9 +104,3 @@ const
 
    { SSE }
 
-{
-  $Log: compinnr.inc,v $
-  Revision 1.16  2005/02/14 17:13:06  peter
-    * truncate log
-
-}

@@ -1017,7 +1017,7 @@
 
 // History:
 
-// $Log: jedi.inc,v $
+
 // Revision 1.1  2005/04/04 07:56:11  marco
 //  * Jedi Windows Api initial import
 //

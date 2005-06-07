@@ -19,10 +19,4 @@
 
 {$i felog.inc}
 
-{
-  $Log: eventlog.inc,v $
-  Revision 1.2  2005/02/14 17:13:12  peter
-    * truncate log
-
-}
 

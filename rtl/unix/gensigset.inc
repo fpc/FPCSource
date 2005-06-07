@@ -70,9 +70,3 @@ Begin
      fpsigismember:=0;
 End;
 
-{
-   $Log: gensigset.inc,v $
-   Revision 1.5  2005/02/14 17:13:31  peter
-     * truncate log
-
-}

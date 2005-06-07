@@ -79,12 +79,3 @@ function pthread_cond_timedwait(__cond:ppthread_cond_t; __mutex:ppthread_mutex_t
 
 
 
-{
-  $Log: pthread.inc,v $
-  Revision 1.8  2005/04/09 20:28:04  marco
-   * added condtimedwait
-
-  Revision 1.7  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

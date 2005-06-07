@@ -275,15 +275,3 @@
            end;
      end;
 
-{
-  $Log: math.inc,v $
-  Revision 1.24  2005/03/13 17:14:46  florian
-    * some floating point routines improved
-
-  Revision 1.23  2005/03/09 20:50:11  florian
-    * C. Western: utf-8 reading from resource files
-
-  Revision 1.22  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

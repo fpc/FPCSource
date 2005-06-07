@@ -126,9 +126,3 @@ procedure set_in_emission(var a : TGtkBindingEntry; __in_emission : guint);
 {$endif read_implementation}
 
 
-{
-  $Log: gtkbindings.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

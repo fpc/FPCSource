@@ -314,15 +314,3 @@ asm
 end;
 
 
-{
-  $Log: syscall.inc,v $
-  Revision 1.19  2005/03/03 20:58:38  florian
-    + routines in baseunix can be overriden by processor specifics in bsyscall.inc
-
-  Revision 1.18  2005/03/03 20:13:44  florian
-    + sparc specific pipe implementation
-
-  Revision 1.17  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

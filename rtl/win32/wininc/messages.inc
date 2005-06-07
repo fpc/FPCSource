@@ -1307,9 +1307,3 @@ Type
 
 {$endif read_interface}
 
-{
-  $Log: messages.inc,v $
-  Revision 1.14  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

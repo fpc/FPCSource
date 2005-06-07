@@ -96,29 +96,3 @@ Procedure GetWideStringManager (Var Manager : TWideStringManager);
 Procedure SetWideStringManager (Const New : TWideStringManager);
 Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideStringManager);
 
-{
-  $Log: wstringh.inc,v $
-  Revision 1.7  2005/03/14 21:09:04  florian
-    * widestring manager can handle now ansi<->wide string conversions even if the lens don't match
-
-  Revision 1.6  2005/03/12 14:56:22  florian
-    + added Ansi* routines to widestring manager
-    * made them using OS calls on windows
-
-  Revision 1.5  2005/02/26 15:00:14  florian
-    + WideSameStr
-
-  Revision 1.4  2005/02/26 10:21:17  florian
-    + implemented WideFormat
-    + some Widestring stuff implemented
-    * some Widestring stuff fixed
-
-  Revision 1.3  2005/02/06 09:38:45  florian
-    +  StrCharLength infrastructure
-
-  Revision 1.2  2005/02/03 18:40:50  florian
-    + infrastructure for WideCompareText implemented
-
-  Revision 1.1  2005/02/01 20:22:49  florian
-    * improved widestring infrastructure manager
-}

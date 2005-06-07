@@ -96,11 +96,5 @@ begin
   semctl:=do_syscall(syscall_nr_SEMCTL,TSysParam(semid),TSysParam(semnum),TSysParam(cmd),TSysParam(@arg));
 end;
 
-{
-  $Log: ipcsys.inc,v $
-  Revision 1.3  2005/02/14 17:13:30  peter
-    * truncate log
-
-}
 
 

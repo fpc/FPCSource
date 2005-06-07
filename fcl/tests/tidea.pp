@@ -37,8 +37,4 @@ begin
     end;
   Writeln ('Position after Reading : ',DS.Position);
   DS.destroy;
-end.  $Log: tidea.pp,v $
-end.  Revision 1.4  2005/02/14 17:13:18  peter
-end.    * truncate log
 end.
-}

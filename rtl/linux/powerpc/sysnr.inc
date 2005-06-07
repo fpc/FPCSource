@@ -258,9 +258,3 @@ Const
         syscall_nr_lremovexattr         = 236;
         syscall_nr_fremovexattr         = 237;
 
-{
-    $Log: sysnr.inc,v $
-    Revision 1.2  2005/02/14 17:13:30  peter
-      * truncate log
-
-}

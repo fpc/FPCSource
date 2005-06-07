@@ -196,9 +196,3 @@ unit winmouse;
      mousebuttonstate:=0;
      MouseFound:=GetSystemMetrics(SM_MOUSEPRESENT)<>0;
   end.
-{
-  $Log: winmouse.pp,v $
-  Revision 1.7  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

@@ -323,29 +323,3 @@ operator <=(const op1,op2 : variant) dest : boolean;
 { variant helpers }
 procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
 
-{
-  $Log: varianth.inc,v $
-  Revision 1.24  2005/04/28 19:34:19  florian
-    + variant<->currency/tdatetime operators
-
-  Revision 1.23  2005/04/10 20:24:31  florian
-    + basic operators (int, real and string) for variants implemented
-
-  Revision 1.22  2005/04/10 09:22:38  florian
-    + varrarrayredim added and implemented
-
-  Revision 1.21  2005/03/28 13:38:05  florian
-    + a lot of vararray stuff
-
-  Revision 1.20  2005/03/25 19:02:59  florian
-    + more vararray stuff
-
-  Revision 1.19  2005/03/25 18:03:50  florian
-    + some vararray stuff added
-
-  Revision 1.18  2005/02/14 17:13:29  peter
-    * truncate log
-
-  Revision 1.17  2005/01/15 18:47:26  florian
-    * several variant init./final. stuff fixed
-}

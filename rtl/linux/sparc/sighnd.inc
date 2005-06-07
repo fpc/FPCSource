@@ -71,25 +71,4 @@ begin
     HandleErrorAddrFrame(res,addr,nil);
 end;
 
-{
-  $Log: sighnd.inc,v $
-  Revision 1.10  2005/04/24 21:19:22  peter
-    * unblock signal in signalhandler, remove the sigprocmask call
-      from setjmp
-
-  Revision 1.9  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.8  2005/02/05 23:46:12  peter
-    * set addr:=nil for other signals
-
-  Revision 1.7  2005/02/05 23:45:38  peter
-    * sigcontext is invalid, use siginfo only
-
-  Revision 1.6  2005/01/30 18:01:15  peter
-    * signal cleanup for linux
-    * sigactionhandler instead of tsigaction for bsds
-    * sigcontext moved to cpu dir
-
-}
 

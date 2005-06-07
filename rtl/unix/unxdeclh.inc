@@ -21,9 +21,3 @@ Function fsync (fd : cint) : cint; cdecl; external clib name 'fsync';
 Function StatFS  (Path:pchar;Var Info:tstatfs):cint; cdecl; external clib name 'statfs';
 function pipe (var fildes: filedesarray):cint;  cdecl; external clib name 'pipe';
 function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint;   cdecl; external clib name 'gettimeofday';
-{
-   $Log: unxdeclh.inc,v $
-   Revision 1.7  2005/02/14 17:13:31  peter
-     * truncate log
-
-}

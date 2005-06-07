@@ -130,12 +130,3 @@ begin
   MUnMap:=do_syscall(syscall_nr_munmap,longint(P),Size);
 end;
 
-{
-   $Log: unxsysc.inc,v $
-   Revision 1.2  2005/02/14 17:13:22  peter
-     * truncate log
-
-   Revision 1.1  2005/02/13 20:01:37  peter
-     * include file cleanup
-
-}

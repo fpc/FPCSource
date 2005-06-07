@@ -301,12 +301,3 @@ CONST
 
 {$i signal.inc}
 
-{
-  $Log: ostypes.inc,v $
-  Revision 1.12  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.11  2005/02/13 21:47:56  peter
-    * include file cleanup part 2
-
-}

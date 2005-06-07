@@ -240,13 +240,4 @@ CONST
   Prio_PGrp    = 1;
   Prio_User    = 2;
 
-{
-   $Log: ptypes.inc,v $
-   Revision 1.14  2005/03/16 22:26:12  florian
-     + ansi<->wide implemented using iconv
-
-   Revision 1.13  2005/02/14 17:13:30  peter
-     * truncate log
-
-}
 

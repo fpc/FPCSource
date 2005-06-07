@@ -90,9 +90,3 @@ begin
 end;
 
 
-{
-  $Log: thread.inc,v $
-  Revision 1.4  2005/02/14 17:13:11  peter
-    * truncate log
-
-}

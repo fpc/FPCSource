@@ -265,9 +265,3 @@
         uc_mcontext: ^mcontext_t;      { machine specific context }
      end;
 
-{
-  $Log: sig_cpu.inc,v $
-  Revision 1.3  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

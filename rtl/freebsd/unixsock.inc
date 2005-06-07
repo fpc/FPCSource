@@ -108,9 +108,3 @@ begin
   socketerror:=fpgeterrno;
 end;
 
-{
- $Log: unixsock.inc,v $
- Revision 1.11  2005/02/14 17:13:22  peter
-   * truncate log
-
-}

@@ -77,9 +77,3 @@ function  gtk_accelerator_get_default_mod_mask:guint;cdecl;external gtkdll name 
 {$endif read_implementation}
 
 
-{
-  $Log: gtkaccelgroup.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

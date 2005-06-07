@@ -344,23 +344,3 @@ begin
   ExceptObjectstack:=Nil;
   ExceptAddrStack:=Nil;
 end;
-{
-  $Log: except.inc,v $
-  Revision 1.21  2005/05/08 21:20:26  michael
-  + Patch to return nil if there is no exception object (as in Delphi)
-
-  Revision 1.20  2005/04/03 11:32:05  florian
-    * ref. counting for popping second exceptiono object fixed
-
-  Revision 1.19  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.18  2005/01/29 17:01:18  peter
-    * fix crash with backtrace if invalid frame is passed
-
-  Revision 1.17  2005/01/26 17:07:10  peter
-    * retrieve backtrace when exception is raised
-    * RaiseMaxFrameCount added to limit the number of backtraces, setting
-      it to 0 disables backtraces. Default is 16
-
-}

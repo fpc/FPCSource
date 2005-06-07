@@ -25,9 +25,3 @@ begin
  if DosScanEnv (PChar (EnvVar), P) = 0 then GetEnv := P else GetEnv := '';
 end;
 
-{
-  $Log: ezcgi.inc,v $
-  Revision 1.8  2005/02/14 17:13:16  peter
-    * truncate log
-
-}

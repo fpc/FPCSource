@@ -56,19 +56,3 @@ asm
   jmp 20(%edx)
 end;
 
-{
-  $Log: setjump.inc,v $
-  Revision 1.9  2005/04/24 21:19:22  peter
-    * unblock signal in signalhandler, remove the sigprocmask call
-      from setjmp
-
-  Revision 1.8  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.7  2005/02/13 20:01:37  peter
-    * include file cleanup
-
-  Revision 1.6  2005/01/20 16:38:28  peter
-    * restore sigprocmask for linux
-
-}

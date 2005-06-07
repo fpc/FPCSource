@@ -1347,8 +1347,5 @@ begin
 
 END. (* UNIT RENDER *)
 
-{
-  $Log
-}
 
 

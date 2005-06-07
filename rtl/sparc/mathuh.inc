@@ -27,12 +27,3 @@ function GetExceptionMask: TFPUExceptionMask;
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 procedure ClearExceptions(RaisePending: Boolean =true);
 
-{
-  $Log: mathuh.inc,v $
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.2  2005/02/13 18:58:27  florian
-    + FPU controll routines in math unit
-
-}

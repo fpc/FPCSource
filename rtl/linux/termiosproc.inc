@@ -148,9 +148,3 @@ begin
   IsATTY:=IsaTTY(textrec(f).handle);
 end;
 
-{
-  $Log: termiosproc.inc,v $
-  Revision 1.7  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

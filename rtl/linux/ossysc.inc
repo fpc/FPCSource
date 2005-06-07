@@ -473,24 +473,3 @@ begin
  fpgettimeofday:=do_syscall(syscall_nr_gettimeofday,TSysParam(tp),TSysParam(tzp));
 end;
 
-{
- $Log: ossysc.inc,v $
- Revision 1.36  2005/02/14 17:13:30  peter
-   * truncate log
-
- Revision 1.35  2005/02/13 21:47:56  peter
-   * include file cleanup part 2
-
- Revision 1.34  2005/02/13 20:01:38  peter
-   * include file cleanup
-
- Revision 1.33  2005/02/06 12:16:52  peter
-   * bsd thread updates
-
- Revision 1.32  2005/01/31 20:13:24  peter
-   * rt_sigaction for all cpus
-
- Revision 1.31  2005/01/31 19:22:48  peter
-   * i386 also needs rtsignal
-
-}

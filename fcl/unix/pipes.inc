@@ -31,9 +31,3 @@ begin
 {$endif}
 end;
 
-{
-  $Log: pipes.inc,v $
-  Revision 1.8  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

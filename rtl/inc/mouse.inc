@@ -207,9 +207,3 @@ begin
   Driver:=CurrentMouseDriver;
 end;
 
-{
-  $Log: mouse.inc,v $
-  Revision 1.7  2005/02/14 17:13:25  peter
-    * truncate log
-
-}

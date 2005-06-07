@@ -446,9 +446,3 @@ begin{ of function CheckPicture}
    Else
       nCheckPxPicture:=CP(s,Pic,CPos,Resolved);
 end;
-{
-  $Log: pxpic.inc,v $
-  Revision 1.3  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

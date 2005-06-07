@@ -103,9 +103,3 @@ procedure set_need_map(var a : TGtkSocket; __need_map : guint);
 {$endif read_implementation}
 
 
-{
-  $Log: gtksocket.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

@@ -75,9 +75,3 @@ begin
   IOPerm:=do_syscall(syscall_nr_sysarch,longint(@sa));
 end;
 
-{
- $Log: x86.inc,v $
- Revision 1.4  2005/02/14 17:13:22  peter
-   * truncate log
-
-}

@@ -1154,15 +1154,3 @@ asm
 end;
 
 
-{
-  $Log: powerpc.inc,v $
-  Revision 1.76  2005/04/28 18:29:01  olle
-    * Fixed bug in stack crawling routines for macos
-
-  Revision 1.75  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.74  2005/01/31 20:57:41  olle
-    * Fixed stack frame access for macos
-
-}

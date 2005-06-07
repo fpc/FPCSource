@@ -543,19 +543,3 @@ begin
 end;
 
 
-{
-  $Log: systhrd.inc,v $
-  Revision 1.3  2005/04/20 21:52:16  hajny
-    * TThreadID fix
-
-  Revision 1.2  2005/03/20 22:33:27  hajny
-    * thread local memory freed
-
-  Revision 1.1  2005/02/06 16:57:18  peter
-    * threads for go32v2,os,emx,netware
-
-  Revision 1.1  2005/02/06 13:06:20  peter
-    * moved file and dir functions to sysfile/sysdir
-    * win32 thread in systemunit
-
-}

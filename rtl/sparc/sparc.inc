@@ -359,21 +359,3 @@ asm
 end;
 
 
-{
-  $Log: sparc.inc,v $
-  Revision 1.21  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.20  2005/02/13 18:58:27  florian
-    + FPU controll routines in math unit
-
-  Revision 1.19  2005/02/07 22:17:48  peter
-    * add $ifdef for move
-
-  Revision 1.18  2005/01/27 21:26:39  florian
-    + getgot function added
-
-  Revision 1.17  2005/01/18 20:37:26  florian
-    * set floating point precision and ieee compliance
-
-}

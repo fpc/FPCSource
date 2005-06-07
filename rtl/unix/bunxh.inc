@@ -101,12 +101,3 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpGetEnv     (name : pChar): pChar;
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
 
-{
-  $Log: bunxh.inc,v $
-  Revision 1.16  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.15  2005/02/13 20:01:38  peter
-    * include file cleanup
-
-}

@@ -62,9 +62,3 @@ Type
   HKEY = Cardinal;
   PHKEY = ^HKEY;
 
-{
-  $Log: regdef.inc,v $
-  Revision 1.4  2005/02/14 17:13:15  peter
-    * truncate log
-
-}

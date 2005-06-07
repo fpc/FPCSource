@@ -319,30 +319,3 @@ begin
   ThreadSetPriority(FHandle, Priorities[Value]);
 end;
 
-{
-  $Log: tthread.inc,v $
-  Revision 1.15  2005/03/06 15:24:03  florian
-    * FreeOnTerminate handling fixed
-
-  Revision 1.14  2005/03/01 20:38:49  jonas
-    * fixed web bug 3387: if one called resume right after creating a
-      suspended thread, it was possible that resume was executed before
-      that thread had completed its initialisation in BeginThread ->
-      FInitialSuspended was set to false in resume and nevertheless a
-      semafore was posted
-    * second problem fixed: set FSuspended to false before waking up the
-      thread, so that it doesn't get FSuspended = true right after waking
-      up. This should be done atomically to be completely correct though.
-
-  Revision 1.13  2005/02/25 21:41:09  florian
-    * generic tthread.synchronize
-    * delphi compatible wakemainthread
-
-  Revision 1.12  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.11  2005/02/06 11:20:52  peter
-    * threading in system unit
-    * removed systhrds unit
-
-}

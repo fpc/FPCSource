@@ -101,24 +101,4 @@ begin
                 (handle=StdErrorHandle);
 end;
 
-{
-   $Log: sysos.inc,v $
-   Revision 1.2  2005/02/13 22:13:20  peter
-     * get solaris back in shape
-
-   Revision 1.1  2005/02/10 17:30:54  peter
-     * renamed to solaris
-
-   Revision 1.1  2005/02/07 22:17:26  peter
-     * updated for 1.9.x unix rtl
-
-   Revision 1.2  2005/02/06 13:06:20  peter
-     * moved file and dir functions to sysfile/sysdir
-     * win32 thread in systemunit
-
-   Revision 1.1  2005/02/06 11:20:52  peter
-     * threading in system unit
-     * removed systhrds unit
-
-}
 

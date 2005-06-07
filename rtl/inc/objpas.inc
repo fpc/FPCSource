@@ -761,25 +761,6 @@
                                 Initialize
 ****************************************************************************}
 
-{
-  $Log: objpas.inc,v $
-  Revision 1.50  2005/05/04 08:56:03  michael
-  + Removed S_OK declarations, they are in objpash.inc
-
-  Revision 1.49  2005/04/28 17:58:18  florian
-    * getinterface fixed
-
-  Revision 1.48  2005/04/05 21:05:31  peter
-    * call initspecialchars if one of the specialchars is configured
-      for the first time
-
-  Revision 1.47  2005/03/13 08:34:58  florian
-    * fixed FieldAddress for 64 bit and CPUs requiring proper alignment
-
-  Revision 1.46  2005/02/14 17:13:26  peter
-    * truncate log
-
-}
 
 
 

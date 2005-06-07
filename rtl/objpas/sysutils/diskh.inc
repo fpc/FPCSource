@@ -21,12 +21,3 @@ Function CreateDir (Const NewDir : String) : Boolean;
 Function RemoveDir (Const Dir : String) : Boolean;
 Function ForceDirectories(Const Dir: string): Boolean;
 
-{
-  $Log: diskh.inc,v $
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.2  2005/01/14 12:59:25  michael
-  + Implemented ForceDirectories for Delphi compatibility
-
-}

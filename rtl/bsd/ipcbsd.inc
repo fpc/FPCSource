@@ -82,9 +82,3 @@ begin
  msgctl:= (do_syscall(syscall_nr_msgsys,0, msqid, cmd, tsysparam(buf)));
 end;
 
-{
-  $Log: ipcbsd.inc,v $
-  Revision 1.2  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

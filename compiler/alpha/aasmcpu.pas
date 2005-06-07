@@ -279,9 +279,3 @@ implementation
 
 
     end.
-{
-  $Log: aasmcpu.pas,v $
-  Revision 1.5  2005/02/14 17:13:09  peter
-    * truncate log
-
-}

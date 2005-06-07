@@ -156,10 +156,6 @@ ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
         $(COMPILER) $(INC)/ctypes.pp $(REDIR)
 
 #
-# $Log: Makefile.fpc,v $
-# Revision 1.11  2005/01/10 20:32:34  hajny
-#   + ctypes added
-#
 # Revision 1.10  2004/10/30 12:36:48  peter
 #   * units are now created in separate directory units/cpu-os/
 #   * distclean uses cleanall rule and removes units dir
@@ -181,5 +177,4 @@ ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
 #
 # Revision 1.5  2004/05/06 21:12:41  florian
 #   * changed extensions
-#
 #

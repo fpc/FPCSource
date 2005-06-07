@@ -644,39 +644,3 @@ procedure initvariantmanager;
   end;
 
 
-{
-  $Log: variant.inc,v $
-  Revision 1.30  2005/04/28 19:34:19  florian
-    + variant<->currency/tdatetime operators
-
-  Revision 1.29  2005/04/10 20:24:31  florian
-    + basic operators (int, real and string) for variants implemented
-
-  Revision 1.28  2005/04/10 09:22:38  florian
-    + varrarrayredim added and implemented
-
-  Revision 1.27  2005/03/28 13:38:05  florian
-    + a lot of vararray stuff
-
-  Revision 1.26  2005/03/25 19:02:59  florian
-    + more vararray stuff
-
-  Revision 1.25  2005/02/24 22:36:36  florian
-    + some variant stuff fixed and added
-
-  Revision 1.24  2005/02/14 17:13:29  peter
-    * truncate log
-
-  Revision 1.23  2005/02/01 20:22:24  florian
-    + interface <-> variant conversion from Danny Milosavljevic
-
-  Revision 1.22  2005/01/15 18:47:26  florian
-    * several variant init./final. stuff fixed
-
-  Revision 1.21  2005/01/08 20:43:44  florian
-    + init/cleaning code for variants added
-
-  Revision 1.20  2005/01/07 21:15:46  florian
-    + basic rtl support for variant <-> interface implemented
-
-}

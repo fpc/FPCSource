@@ -31,8 +31,4 @@ begin
    writeln ('End of Read');
    D.Free;
    writeln ('freed CompressionStream');
-end.  $Log: testz.pp,v $
-end.  Revision 1.4  2005/02/14 17:13:18  peter
-end.    * truncate log
 end.
-}

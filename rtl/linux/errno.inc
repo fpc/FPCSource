@@ -285,12 +285,3 @@ const
   ESysEDQUOT      = 122;  { Quota exceeded }
 {$endif FPC_HAS_ESYS}
 
-{
-  $Log: errno.inc,v $
-  Revision 1.10  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.9  2005/01/27 21:27:02  florian
-    * sparc got correct errnos
-
-}
