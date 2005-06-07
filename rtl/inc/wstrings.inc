@@ -855,11 +855,7 @@ begin
 end;
 
 
-{$ifdef interncopy}
 Function Fpc_WideStr_Copy (Const S : WideString; Index,Size : SizeInt) : WideString;compilerproc;
-{$else}
-Function Copy (Const S : WideString; Index,Size : SizeInt) : WideString;
-{$endif}
 var
   ResultAddress : Pointer;
 begin
@@ -884,11 +880,7 @@ begin
         PWideChar(ResultAddress+Size*sizeof(WideChar))^:=#0;
       end;
    end;
-{$ifdef interncopy}
   Pointer(fpc_widestr_Copy):=ResultAddress;
-{$else}
-  Pointer(Copy):=ResultAddress;
-{$endif}
 end;
 
 

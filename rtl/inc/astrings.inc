@@ -555,11 +555,7 @@ begin
    move(Str[1],S[ofs+1],length(Str)+1);
 end;
 
-{$ifdef interncopy}
 Function Fpc_Ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
-{$else}
-Function Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;
-{$endif}
 var
   ResultAddress : Pointer;
 begin
@@ -584,11 +580,7 @@ begin
         PByte(ResultAddress+Size)^:=0;
       end;
    end;
-{$ifdef interncopy}
   Pointer(fpc_ansistr_Copy):=ResultAddress;
-{$else}
-  Pointer(Copy):=ResultAddress;
-{$endif}
 end;
 
 

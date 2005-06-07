@@ -462,9 +462,6 @@ function strpas(p:pchar):shortstring;external name 'FPC_PCHAR_TO_SHORTSTR';
 function strlen(p:pchar):longint;external name 'FPC_PCHAR_LENGTH';
 
 { Shortstring functions }
-{$ifndef InternCopy}
-Function  Copy(const s:shortstring;index:SizeInt;count:SizeInt):shortstring;
-{$endif interncopy}
 Procedure Delete(Var s:shortstring;index:SizeInt;count:SizeInt);
 Procedure Insert(const source:shortstring;Var s:shortstring;index:SizeInt);
 Procedure Insert(source:Char;Var s:shortstring;index:SizeInt);
@@ -491,9 +488,6 @@ Function  Chr(b:byte):Char;
 {$endif}
 Function  upCase(c:Char):Char;
 Function  lowerCase(c:Char):Char; overload;
-{$ifndef InternCopy}
-function  copy(c:char;index : SizeInt;count : SizeInt): shortstring;
-{$endif interncopy}
 function  pos(const substr : shortstring;c:char): SizeInt;
 
 
@@ -502,9 +496,6 @@ function  pos(const substr : shortstring;c:char): SizeInt;
 ****************************************************************************}
 
 Procedure UniqueString(Var S : AnsiString);external name 'FPC_ANSISTR_UNIQUE';
-{$ifndef InternCopy}
-Function  Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;
-{$endif interncopy}
 Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : SizeInt;
 Function  Pos (c : Char; Const s : AnsiString) : SizeInt;
 Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : SizeInt);
