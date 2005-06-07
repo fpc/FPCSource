@@ -830,11 +830,7 @@ asm
 end;
 
 
-{$ifdef interncopy}
 procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
-{$else}
-procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
-{$endif}
 assembler; nostackframe;
 { input: r3: len, r4: sstr, r5: dstr }
 asm

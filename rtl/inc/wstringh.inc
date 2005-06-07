@@ -16,9 +16,6 @@
 
 
 procedure UniqueString(Var S : WideString);external name 'FPC_WIDESTR_UNIQUE';
-{$ifndef InternCopy}
-Function  Copy (Const S : WideString; Index,Size : SizeInt) : WideString;
-{$endif interncopy}
 Function Pos (Const Substr : WideString; Const Source : WideString) : SizeInt;
 Function Pos (c : Char; Const s : WideString) : SizeInt;
 Function Pos (c : WideChar; Const s : WideString) : SizeInt;

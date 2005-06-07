@@ -22,11 +22,7 @@ begin
   s[0]:=chr(len);
 end;
 
-{$ifdef interncopy}
 function fpc_shortstr_copy(const s : shortstring;index : SizeInt;count : SizeInt): shortstring;compilerproc;
-{$else}
-function copy(const s : shortstring;index : SizeInt;count : SizeInt): shortstring;
-{$endif}
 begin
   if count<0 then
    count:=0;
@@ -39,13 +35,8 @@ begin
   else
    if count>length(s)-index then
     count:=length(s)-index;
-{$ifdef interncopy}
   fpc_shortstr_Copy[0]:=chr(Count);
   Move(s[Index+1],fpc_shortstr_Copy[1],Count);
-{$else}
-  Copy[0]:=chr(Count);
-  Move(s[Index+1],Copy[1],Count);
-{$endif}
 end;
 
 

@@ -546,11 +546,7 @@ begin
     result[0]:=chr(len);
 end;
 
-{$ifdef interncopy}
 procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN']; {$ifdef HAS_COMPILER_PROC} compilerproc; {$endif}
-{$else}
-procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY']; {$ifdef HAS_COMPILER_PROC} compilerproc; {$endif}
-{$endif}
 var
   slen : byte;
 type
