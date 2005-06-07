@@ -436,8 +436,16 @@ end;
 
 Procedure TDataset.GetChildren(Proc: TGetChildProc; Root: TComponent);
 
+var
+ I: Integer;
+ Field: TField;
+
 begin
-  //!! To be implemented
+ for I := 0 to Fields.Count - 1 do begin
+   Field := Fields[I];
+   if (Field.Owner = Root) then
+     Proc(Field);
+ end;
 end;
 
 Function TDataset.GetDataSource: TDataSource;
@@ -465,7 +473,7 @@ function TDataSet.GetFieldData(Field: TField; Buffer: Pointer;
         end;
     else
       try
-        TimeStamp := MSecsToTimeStamp(Source.DateTime);
+        TimeStamp := MSecsToTimeStamp(Trunc(Source.DateTime));
       except
         TimeStamp.Time := 0;
         TimeStamp.Date := 0;
@@ -855,8 +863,12 @@ end;
 
 Procedure TDataset.SetChildOrder(Component: TComponent; Order: Longint);
 
+var
+  Field: TField;
 begin
-  //!! To be implemented
+  Field := Component as TField;
+  if Fields.IndexOf(Field) >= 0 then
+    Field.Index := Order;
 end;
 
 Procedure TDataset.SetCurrentRecord(Index: Longint);
@@ -914,9 +926,32 @@ end;
 
 Procedure TDataset.SetName(const Value: TComponentName);
 
+function CheckName(FieldName: string): string;
+var i,j: integer;
 begin
-  //!! To be implemented
+  Result := FieldName;
+  i := 0;
+  j := 0;
+  while (i < Fields.Count) do begin
+    if Result = Fields[i].FieldName then begin
+      inc(j);
+      Result := FieldName + IntToStr(j);
+    end else Inc(i);
+  end;
+end;
+var i: integer;
+    nm: string;
+    old: string;
+begin
+  if Self.Name = Value then Exit;
+  old := Self.Name;
   inherited SetName(Value);
+  if (csDesigning in ComponentState) then
+    for i := 0 to Fields.Count - 1 do begin
+      nm := old + Fields[i].FieldName;
+      if Copy(Fields[i].Name, 1, Length(nm)) = nm then
+        Fields[i].Name := CheckName(Value + Fields[i].FieldName);
+    end;
 end;
 
 Procedure TDataset.SetOnFilterRecord(const Value: TFilterRecordEvent);
