@@ -38,11 +38,7 @@ type
     inoutfunc,
     flushfunc,
     closefunc : pointer;
-{$ifndef FPC_HASUSERDATA32}    
-    UserData  : array[1..16] of byte;
-{$else FPC_HASUSERDATA32}    
     UserData  : array[1..32] of byte;
-{$endif FPC_HASUSERDATA32}
     name      : array[0..textrecnamelength-1] of char;
     LineEnd   : TLineEndStr;
     buffer    : textbuf;
