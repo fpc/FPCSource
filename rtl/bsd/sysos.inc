@@ -170,20 +170,4 @@ end;
 
 
 
-{
-   $Log: sysos.inc,v $
-   Revision 1.4  2005/02/13 21:47:56  peter
-     * include file cleanup part 2
-
-   Revision 1.3  2005/02/07 22:04:55  peter
-     * moved to unix
-
-   Revision 1.2  2005/02/06 13:06:20  peter
-     * moved file and dir functions to sysfile/sysdir
-     * win32 thread in systemunit
-
-   Revision 1.1  2005/02/06 12:16:52  peter
-     * bsd thread updates
-
-}
 

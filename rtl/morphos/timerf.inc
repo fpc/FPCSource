@@ -36,9 +36,3 @@ procedure GetSysTime(Dest: PTimeVal location 'a0');
 SysCall TimerBase 66;
 
 
-{
-  $Log: timerf.inc,v $
-  Revision 1.2  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

@@ -3272,9 +3272,3 @@ Begin
    End;
 End. { of Unit oCrt }
 
-{
-  $Log: ocrt.pp,v $
-  Revision 1.6  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

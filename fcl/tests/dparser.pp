@@ -34,8 +34,4 @@ begin
       InFile.Free;
     end;
   end;
-end.  $Log: dparser.pp,v $
-end.  Revision 1.4  2005/02/14 17:13:18  peter
-end.    * truncate log
 end.
-}

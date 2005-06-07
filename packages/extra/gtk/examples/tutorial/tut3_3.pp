@@ -94,9 +94,4 @@ begin
   // and waits for an event to occur (like a key press or
   // mouse event).
   gtk_main ();
-
-end.  $Log: tut3_3.pp,v $
-end.  Revision 1.3  2005/02/14 17:13:20  peter
-end.    * truncate log
 end.
-}

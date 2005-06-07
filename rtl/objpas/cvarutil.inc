@@ -635,18 +635,3 @@ end;
 
 {$endif HASVARIANT}
 
-{
-  $Log: cvarutil.inc,v $
-  Revision 1.14  2005/04/28 09:15:44  florian
-    + variants: string -> float/int casts
-
-  Revision 1.13  2005/03/28 20:36:14  florian
-    * some variant <-> string types fixes
-
-  Revision 1.12  2005/03/10 21:05:36  florian
-    + writing of variants implemented
-
-  Revision 1.11  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

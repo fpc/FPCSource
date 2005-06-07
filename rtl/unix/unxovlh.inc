@@ -18,9 +18,3 @@ Function PClose      (Var F:text) : cint;
 Function StatFS(Path:ansistring;Var Info:Tstatfs):cint;
 //Function fpReadLink(Name:ansistring):ansistring;
 
-{
-   $Log: unxovlh.inc,v $
-   Revision 1.5  2005/02/14 17:13:31  peter
-     * truncate log
-
-}

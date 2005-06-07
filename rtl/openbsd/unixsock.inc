@@ -209,9 +209,3 @@ begin
      Sock2File(Sock,SockIn,SockOut);
 end;
 
-{
- $Log: unixsock.inc,v $
- Revision 1.3  2005/02/14 17:13:31  peter
-   * truncate log
-
-}

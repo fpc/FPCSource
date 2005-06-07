@@ -36,12 +36,3 @@ type
     name      : array[0..filerecnamelength] of char;
   End;
 
-{
-  $Log: filerec.inc,v $
-  Revision 1.8  2005/02/26 15:42:45  florian
-    * userdata in file/textrecs now 32 bytes
-
-  Revision 1.7  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

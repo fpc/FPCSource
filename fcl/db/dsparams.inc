@@ -695,18 +695,3 @@ begin
   end;
 end;
 
-{
-  $Log: dsparams.inc,v $
-  Revision 1.6  2005/04/10 18:27:39  joost
-  - removed TParam.FNull
-
-  Revision 1.5  2005/03/24 20:54:53  michael
-  + Fix in params from Luk Vandelaer
-
-  Revision 1.4  2005/02/14 17:13:12  peter
-    * truncate log
-
-  Revision 1.3  2005/02/01 09:05:52  marco
-   * delete fix
-
-}

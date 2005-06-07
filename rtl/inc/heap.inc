@@ -1380,39 +1380,4 @@ begin
   fillchar(internal_status,sizeof(internal_status),0);
 end;
 
-{
-  $Log: heap.inc,v $
-  Revision 1.51  2005/04/04 15:40:30  peter
-    * check if there is enough room before concatting blocks in
-      systryresizemem()
-
-  Revision 1.50  2005/03/25 22:53:39  jonas
-    * fixed several warnings and notes about unused variables (mainly) or
-      uninitialised use of variables/function results (a few)
-
-  Revision 1.49  2005/03/21 16:31:33  peter
-    * fix crash under win32 with previous reallocmem fix
-
-  Revision 1.48  2005/03/20 18:57:29  peter
-    * fixed tryresizemem
-
-  Revision 1.47  2005/03/04 16:49:34  peter
-    * fix getheapstatus bootstrapping
-
-  Revision 1.46  2005/03/02 14:25:19  marco
-   * small typo fix on last commit
-
-  Revision 1.45  2005/03/02 10:46:10  marco
-   * getfpcheapstatus now also on memmgr
-
-  Revision 1.44  2005/02/28 15:38:38  marco
-   * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
-
-  Revision 1.43  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.42  2005/01/30 11:56:29  peter
-    * allow Freemem(nil)
-
-}
 

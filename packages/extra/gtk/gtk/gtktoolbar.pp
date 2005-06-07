@@ -90,9 +90,3 @@ function  gtk_toolbar_get_button_relief(toolbar:PGtkToolbar):TGtkReliefStyle;cde
 {$endif read_implementation}
 
 
-{
-  $Log: gtktoolbar.pp,v $
-  Revision 1.3  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

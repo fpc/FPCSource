@@ -28,8 +28,4 @@ begin
       Write ('IP address : ',Ip_address[1],'.',Ip_address[2]);
       Writeln ('.',ip_address[3],'.',ip_address[4]);
       end;
-end.  $Log: testutmp.pp,v $
-end.  Revision 1.3  2005/02/14 17:13:21  peter
-end.    * truncate log
 end.
-}

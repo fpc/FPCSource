@@ -19,9 +19,3 @@
 {$undef amiga}
 {$undef macos}
 
-{
-  $Log: os.inc,v $
-  Revision 1.4  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

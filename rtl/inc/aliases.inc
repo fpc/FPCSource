@@ -30,9 +30,3 @@ Procedure int_DecRef (Data, TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}savereg
 Procedure int_Initialize (Data,TypeInfo: Pointer); [external name 'FPC_INITIALIZE'];
 procedure int_FinalizeArray(data,typeinfo : pointer;count,size : longint); [external name 'FPC_FINALIZEARRAY'];
 
-{
-  $Log: aliases.inc,v $
-  Revision 1.4  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

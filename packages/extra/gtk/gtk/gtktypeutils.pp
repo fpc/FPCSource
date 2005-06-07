@@ -356,9 +356,3 @@ function  GTK_RETLOC_POINTER(const a : TGtkArg) : Pgpointer;
 {$endif read_implementation}
 
 
-{
-  $Log: gtktypeutils.pp,v $
-  Revision 1.4  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

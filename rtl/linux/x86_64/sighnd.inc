@@ -74,19 +74,4 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
       HandleErrorAddrFrame(res,pointer(SigContext^.rip),pointer(SigContext^.rbp));
   end;
 
-{
-  $Log: sighnd.inc,v $
-  Revision 1.5  2005/04/24 21:19:22  peter
-    * unblock signal in signalhandler, remove the sigprocmask call
-      from setjmp
-
-  Revision 1.4  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.3  2005/01/30 18:01:15  peter
-    * signal cleanup for linux
-    * sigactionhandler instead of tsigaction for bsds
-    * sigcontext moved to cpu dir
-
-}
 

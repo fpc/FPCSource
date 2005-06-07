@@ -1521,9 +1521,3 @@ End.
 ³ 00361 ³ somMakeUserRdStub // Not found
 *)
 
-{
-$Log: som.pas,v $
-Revision 1.6  2005/02/14 17:13:21  peter
-  * truncate log
-
-}

@@ -1610,9 +1610,3 @@ begin
   Signal(SIGILL,@HandleException);
 end;
 {$endif IN_SYSTEM}
-{
-  $Log: dpmiexcp.pp,v $
-  Revision 1.18  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

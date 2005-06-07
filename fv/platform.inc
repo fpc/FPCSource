@@ -399,13 +399,4 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$ENDIF}
 
 
-{
- $Log: platform.inc,v $
- Revision 1.16  2005/04/04 16:16:58  peter
-   * $mode fpc
-
- Revision 1.15  2005/02/14 17:13:18  peter
-   * truncate log
-
-}
 

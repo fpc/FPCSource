@@ -1,6 +1,3 @@
-/*
-  $Id: gprt0.as,v 1.4 2004/11/05 21:36:36 florian Exp $
-*/
         .section ".text"
         .align 4
         .global _start
@@ -100,11 +97,3 @@ _start:
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
-/*
-  $Log: gprt0.as,v $
-  Revision 1.4  2004/11/05 21:36:36  florian
-    * initial implementation
-
-  Revision 1.3  2003/05/23 21:09:14  florian
-    + dummy implementation readded to satisfy makefile
-*/

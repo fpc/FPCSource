@@ -58,12 +58,3 @@ program eratosthenes;
      eratos;
   end.
 
-{
-  $Log: eratos.pp,v $
-  Revision 1.3  2005/05/14 11:11:33  olle
-    * Smaller arrray sizes for macos
-
-  Revision 1.2  2002/09/07 15:06:35  peter
-    * old logs removed and tabs fixed
-
-}

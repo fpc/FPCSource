@@ -91,14 +91,4 @@ procedure emx_init; external 'EMX' index 1;
 
 
 
-{
-   $Log: sysos.inc,v $
-   Revision 1.1  2005/02/06 16:57:18  peter
-     * threads for go32v2,os,emx,netware
-
-   Revision 1.1  2005/02/06 13:06:20  peter
-     * moved file and dir functions to sysfile/sysdir
-     * win32 thread in systemunit
-
-}
 

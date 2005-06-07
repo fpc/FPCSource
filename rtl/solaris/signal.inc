@@ -155,18 +155,3 @@ type
   TSigActionRec = SigActionRec;
   PSigActionRec = ^SigActionRec;
 
-{
-  $Log: signal.inc,v $
-  Revision 1.5  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.4  2005/02/14 16:32:41  peter
-    * solaris updates
-
-  Revision 1.3  2005/02/13 22:13:20  peter
-    * get solaris back in shape
-
-  Revision 1.2  2005/02/10 17:30:54  peter
-    * renamed to solaris
-
-}

@@ -106,12 +106,3 @@ here, and hope you know what it is in english:
 If A is a "n x n" bandmatrix with leftbound l, and rightbound r then
 
 Aij=0 if j<i-l or j>i+r
-{
-  $Log: numlib.txt,v $
-  Revision 1.2  2002/09/07 15:43:04  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/01/29 17:55:18  peter
-    * splitted to base and extra
-
-}

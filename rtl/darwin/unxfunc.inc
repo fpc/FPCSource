@@ -58,19 +58,3 @@ begin
 end;
 
 
-{
-  $Log: unxfunc.inc,v $
-  Revision 1.3  2005/03/25 22:53:39  jonas
-    * fixed several warnings and notes about unused variables (mainly) or
-      uninitialised use of variables/function results (a few)
-
-  Revision 1.2  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.1  2005/02/13 21:47:56  peter
-    * include file cleanup part 2
-
-  Revision 1.1  2005/02/13 20:01:37  peter
-    * include file cleanup
-
-}

@@ -221,12 +221,3 @@ end;
 {$ENDIF SYS_LINUX}
 
 
-{
-  $Log: syscall.inc,v $
-  Revision 1.11  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.10  2005/02/05 23:49:49  florian
-    * threadvars on x86_64 fixed
-
-}

@@ -123,9 +123,3 @@ function  GDK_FONT_XFONT(font : PGdkFontPrivate) : gpointer;
 {$endif read_implementation}
 
 
-{
-  $Log: gdkx.pp,v $
-  Revision 1.7  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

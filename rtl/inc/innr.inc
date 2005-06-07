@@ -137,9 +137,3 @@ const
 
    { SSE }
 
-{
-  $Log: innr.inc,v $
-  Revision 1.10  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

@@ -91,9 +91,3 @@ Begin
   end;
 End;
 
-{
-  $Log: typefile.inc,v $
-  Revision 1.6  2005/02/14 17:13:29  peter
-    * truncate log
-
-}

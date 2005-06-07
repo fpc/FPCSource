@@ -1,4 +1,3 @@
-/* $Id: fpu.as,v 1.4 2002/09/08 09:16:15 jonas Exp $ */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 /* Translated from tasm to GAS by C. Sandmann */
 /* One comment displaced to get it compiled by as.exe directly  !!! */
@@ -48,12 +47,3 @@ Lexit:
         popl    %esi                    /* Fix stack first */
         popl    %esi
         ret
-/*
-  $Log: fpu.as,v $
-  Revision 1.4  2002/09/08 09:16:15  jonas
-    * added closing of comment for logs to avoid warning
-
-  Revision 1.3  2002/09/07 16:01:18  peter
-    * old logs removed and tabs fixed
-
-*/

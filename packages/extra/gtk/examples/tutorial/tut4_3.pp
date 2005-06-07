@@ -296,9 +296,4 @@ begin
     //* gtk_exit is used. */
 
     //return(0);
-
-end.  $Log: tut4_3.pp,v $
-end.  Revision 1.3  2005/02/14 17:13:20  peter
-end.    * truncate log
 end.
-}

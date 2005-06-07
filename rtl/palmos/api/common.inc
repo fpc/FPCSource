@@ -102,8 +102,3 @@ ACCOMPANYING THE COMPACT DISK.
 
        { Function types }
        ProcPtr = function : Long;cdecl;
-  $Log: common.inc,v $
-  Revision 1.4  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

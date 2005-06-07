@@ -79,9 +79,3 @@ CONST
     SIG_MAXSIG    = UnixType.SIG_MAXSIG;
 //   wordsinsigset = UnixType.wordsinsigset;
 
-{
-  $Log: aliasptp.inc,v $
-  Revision 1.4  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

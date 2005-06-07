@@ -5941,12 +5941,3 @@ const
 
 {$endif read_implementation}
 
-{
-  $Log: defines.inc,v $
-  Revision 1.21  2005/03/12 13:55:07  florian
-    + IDC_HAND
-
-  Revision 1.20  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

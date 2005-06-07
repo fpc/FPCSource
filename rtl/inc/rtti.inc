@@ -250,15 +250,3 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
        int_finalize(data+size*i,typeinfo);
   end;
 
-{
-  $Log: rtti.inc,v $
-  Revision 1.22  2005/02/14 17:13:26  peter
-    * truncate log
-
-  Revision 1.21  2005/01/15 18:47:26  florian
-    * several variant init./final. stuff fixed
-
-  Revision 1.20  2005/01/08 20:43:44  florian
-    + init/cleaning code for variants added
-
-}

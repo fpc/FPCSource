@@ -458,12 +458,3 @@ begin
     else s:=temp;
 end;
 
-{
-  $Log: real2str.inc,v $
-  Revision 1.18  2005/05/14 11:54:00  olle
-    * Fixed typo
-
-  Revision 1.17  2005/02/14 17:13:26  peter
-    * truncate log
-
-}

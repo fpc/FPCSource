@@ -130,9 +130,3 @@ asm
 end;
 
 
-{
-  $Log: strlen.inc,v $
-  Revision 1.4  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

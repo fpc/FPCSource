@@ -32,12 +32,3 @@ procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'F
   end;
 
 
-{
-  $Log: setjump.inc,v $
-  Revision 1.6  2005/02/14 17:13:21  peter
-    * truncate log
-
-  Revision 1.5  2005/01/04 16:22:05  florian
-    + added nostackframe directive
-
-}

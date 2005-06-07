@@ -1234,9 +1234,3 @@ end;
 
 {$endif FPC_SYSTEM_HAS_SYSRESETFPU}
 
-{
-  $Log: generic.inc,v $
-  Revision 1.90  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

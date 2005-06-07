@@ -45,9 +45,3 @@ procedure gtk_drag_dest_handle_event(toplevel:PGtkWidget; event:PGdkEvent);cdecl
 {$endif read_implementation}
 
 
-{
-  $Log: gtkdnd.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

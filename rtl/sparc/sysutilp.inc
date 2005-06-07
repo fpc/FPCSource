@@ -122,12 +122,3 @@ asm
 end;
 
 
-{
-  $Log: sysutilp.inc,v $
-  Revision 1.5  2005/03/12 18:45:15  florian
-    * InterlockedDecrement fixed
-
-  Revision 1.4  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

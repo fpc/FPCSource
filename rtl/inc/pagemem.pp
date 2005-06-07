@@ -882,6 +882,3 @@ finalization
   setmemorymanager(oldmemman);
 end.
 
-{
- $Log: $
-}

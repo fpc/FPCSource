@@ -86,15 +86,3 @@ Const
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
   {$endif}
 
-{
-  $Log: unxconst.inc,v $
-  Revision 1.2  2005/02/14 17:13:30  peter
-    * truncate log
-
-  Revision 1.1  2005/02/13 21:47:56  peter
-    * include file cleanup part 2
-
-  Revision 1.12  2005/02/13 20:01:38  peter
-    * include file cleanup
-
-}

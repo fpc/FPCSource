@@ -44,9 +44,3 @@ function do_sysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):i
 function do__sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7,Param8:TSysParam):TSysResult; oldfpccall;  external name 'FPC_DOSYS8';
 {$endif}
 
-{
-  $Log: syscallh.inc,v $
-  Revision 1.2  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

@@ -400,8 +400,5 @@ begin
 
 END. (* UNIT MYSTICVIEW *)
 
-{
-  $Log
-}
 
 

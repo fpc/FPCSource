@@ -1,6 +1,5 @@
 ;****************************************************************************
 ;
-;   $Id: ppcins.dat,v 1.1 2002/07/13 21:50:34 florian Exp $
 ;   Copyright (c) 2002 by Florian Klaempfl
 ;
 ;   Instruction template table for the PowerPC
@@ -67,10 +66,3 @@ cmp       crfD,L,rA,rB          opcode=31,op21=0,reserved=$80000200
 cmpi      crfD,L,rA,SIMM        opcode=11,reserved=$00000200
 cmpl      crfD,L,rA,rB          opcode=31,op21=32,reserved=$80000200
 cmpli     crfD,L,rA,UIMM        opcode=10,reserved=$00000200
-
-;
-; $Log: ppcins.dat,v $
-; Revision 1.1  2002/07/13 21:50:34  florian
-;   + initial version, a lot of instructions need to be added
-;
-;

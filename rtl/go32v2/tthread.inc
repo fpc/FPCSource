@@ -84,13 +84,3 @@ begin
 end;
 
 
-{
-  $Log: tthread.inc,v $
-  Revision 1.3  2005/02/25 21:41:09  florian
-    * generic tthread.synchronize
-    * delphi compatible wakemainthread
-
-  Revision 1.2  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

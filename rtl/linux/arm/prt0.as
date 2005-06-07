@@ -103,23 +103,3 @@ __data_start:
 2:      .long 0
         .long 2,0,0
 3:      .align 4
-
-/*
-  $Log: prt0.as,v $
-  Revision 1.5  2004/11/05 12:48:15  florian
-    * beautified
-
-  Revision 1.4  2004/07/03 21:50:31  daniel
-    * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
-      longer necessary
-
-  Revision 1.3  2004/03/11 22:39:53  florian
-    * arm startup code fixed
-    * made some generic math code more readable
-
-  Revision 1.2  2004/01/20 18:32:46  florian
-    * fixed sigill problem when running in gdb
-
-  Revision 1.1  2003/08/27 13:07:07  florian
-    * initial revision of arm startup code
-*/

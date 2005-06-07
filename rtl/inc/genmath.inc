@@ -1249,13 +1249,3 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 {$endif FPC_SYSTEM_HAS_REAL2DOUBLE}
 {$endif SUPPORT_DOUBLE}
 
-{
-  $Log: genmath.inc,v $
-  Revision 1.32  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.31  2005/02/08 20:25:28  florian
-    - killed power from system unit
-    * move operator ** to math unit
-
-}

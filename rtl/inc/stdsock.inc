@@ -111,9 +111,3 @@ begin
   fpsocketpair:=cfpsocketpair(d,xtype,protocol,sv);
 end;
 
-{
-  $Log: stdsock.inc,v $
-  Revision 1.4  2005/02/14 17:13:28  peter
-    * truncate log
-
-}

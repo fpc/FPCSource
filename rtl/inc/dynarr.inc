@@ -371,20 +371,3 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
   end;
 
 
-{
-  $Log: dynarr.inc,v $
-  Revision 1.38  2005/03/27 14:56:34  jonas
-    * fixed web bug 3805
-    * extra range check in fpc_dynarray_copy (also error if lowidx >
-      high(source))
-
-  Revision 1.37  2005/03/05 16:37:28  florian
-    * fixed copy(dyn. array,...);
-
-  Revision 1.36  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.35  2005/01/24 21:32:48  florian
-    * fixed copy(dyn. array of ansistring)
-
-}

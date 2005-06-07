@@ -138,15 +138,3 @@ Function  Maxavail:ptrint;
 Function  Heapsize:ptrint;
 {$endif HASGETHEAPSTATUS}
 
-{
-  $Log: heaph.inc,v $
-  Revision 1.15  2005/03/04 16:49:34  peter
-    * fix getheapstatus bootstrapping
-
-  Revision 1.14  2005/02/28 15:38:38  marco
-   * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
-
-  Revision 1.13  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

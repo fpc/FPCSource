@@ -28,9 +28,3 @@ Type
 Function Setjmp (Var S : Jmp_buf) : longint;
 Procedure longjmp (Var S : Jmp_buf; value : longint);
 
-{
-  $Log: setjumph.inc,v $
-  Revision 1.6  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

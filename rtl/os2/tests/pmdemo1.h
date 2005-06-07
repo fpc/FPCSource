@@ -6,7 +6,7 @@
 #define ID_ClientWindow	1
 
 /*
-  $Log: pmdemo1.h,v $
+
   Revision 1.3  2002/11/30 18:43:02  hajny
     * fix for missing end of comment block
 

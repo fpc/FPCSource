@@ -19,9 +19,3 @@
 
 {$i linuxnew.inc}
 
-{
-   $Log: linux.pp,v $
-   Revision 1.33  2005/02/14 17:13:31  peter
-     * truncate log
-
-}

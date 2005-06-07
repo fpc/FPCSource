@@ -104,15 +104,3 @@ type
   TCloneFunc=function(args:pointer):longint;cdecl;
 
 
-{
-  $Log: unxconst.inc,v $
-  Revision 1.2  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.1  2005/02/13 21:47:56  peter
-    * include file cleanup part 2
-
-  Revision 1.2  2005/02/06 12:16:52  peter
-    * bsd thread updates
-
-}

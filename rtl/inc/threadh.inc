@@ -152,35 +152,3 @@ procedure RTLeventWaitFor(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
 procedure RTLeventsync(m:trtlmethod;p:tprocedure);
 
-{
-  $Log: threadh.inc,v $
-  Revision 1.32  2005/04/20 06:32:47  hajny
-    * yet another TThreadID fix
-
-  Revision 1.31  2005/04/14 20:42:14  florian
-    * fixed more TThreadID stuff
-
-  Revision 1.30  2005/04/13 20:10:50  florian
-    + TThreadID
-
-  Revision 1.29  2005/04/09 17:26:08  florian
-    + classes.mainthreadid is set now
-    + rtleventresetevent
-    + rtleventwairfor with timeout
-    + checksynchronize with timeout
-    * race condition in synchronize fixed
-
-  Revision 1.28  2005/02/25 22:02:48  florian
-    * another "transfer to linux"-commit
-
-  Revision 1.27  2005/02/14 17:13:29  peter
-    * truncate log
-
-  Revision 1.26  2005/02/06 11:20:52  peter
-    * threading in system unit
-    * removed systhrds unit
-
-  Revision 1.25  2005/01/21 21:43:12  armin
-  * applied patch to compile go32v2 from Tomas (tested by John)
-
-}

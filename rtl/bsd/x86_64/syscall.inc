@@ -256,9 +256,3 @@ asm
 end;
 
 
-{
-  $Log: syscall.inc,v $
-  Revision 1.4  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

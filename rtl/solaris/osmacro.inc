@@ -88,18 +88,3 @@ begin
  wtermsig:=cint(status and 127);
 end;
 
-{
-  $Log: osmacro.inc,v $
-  Revision 1.2  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.1  2005/02/13 22:13:20  peter
-    * get solaris back in shape
-
-  Revision 1.2  2005/02/13 21:47:56  peter
-    * include file cleanup part 2
-
-  Revision 1.4  2005/02/13 20:01:38  peter
-    * include file cleanup
-
-}

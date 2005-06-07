@@ -309,20 +309,3 @@
            vtQWord      : (VQWord: PQWord);
        end;
 
-{
-  $Log: objpash.inc,v $
-  Revision 1.28  2005/02/14 17:13:26  peter
-    * truncate log
-
-  Revision 1.27  2005/02/01 19:32:14  florian
-    + tmethod
-
-  Revision 1.26  2005/01/31 19:41:39  peter
-    * interface additions
-
-  Revision 1.25  2005/01/26 17:07:10  peter
-    * retrieve backtrace when exception is raised
-    * RaiseMaxFrameCount added to limit the number of backtraces, setting
-      it to 0 disables backtraces. Default is 16
-
-}

@@ -280,19 +280,3 @@ begin
 end;
 {$endif NODEBUG}
 
-{
-  $Log: fpmdebug.inc,v $
-  Revision 1.10  2005/04/04 03:59:13  marco
-   * fix for 3194: Use mouse to exit output screen
-
-  Revision 1.9  2005/02/14 17:13:18  peter
-    * truncate log
-
-  Revision 1.8  2005/01/08 11:43:18  florian
-    + vector unit window
-
-  Revision 1.7  2005/01/07 21:52:23  florian
-    * proper stepping in disassembler window now possible
-    + disassembler window to menu added
-
-}

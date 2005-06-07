@@ -1273,9 +1273,3 @@ program alphaemu;
      stopsim;
      sim.done;
   end.
-{
-  $Log: alphasim.pas,v $
-  Revision 1.2  2002/09/07 15:40:36  peter
-    * old logs removed and tabs fixed
-
-}

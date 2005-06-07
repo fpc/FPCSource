@@ -263,9 +263,3 @@ begin
   ExecuteDialog(New(PFPAboutDialog, Init), nil);
 end;
 
-{
-  $Log: fpmhelp.inc,v $
-  Revision 1.5  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

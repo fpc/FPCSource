@@ -362,9 +362,3 @@ struct winsize {
         POSIX_VDISABLE, CINTR,  CQUIT,  CSUSP,  CDSUSP, CSTART, CSTOP,  CLNEXT,
         CDISCARD, CMIN, CTIME,  CSTATUS, POSIX_VDISABLE);
 
-{
-  $Log: termios.inc,v $
-  Revision 1.5  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

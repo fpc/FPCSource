@@ -262,9 +262,3 @@ end;
 {$endif read_implementation}
 
 
-{
-  $Log: gtktable.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

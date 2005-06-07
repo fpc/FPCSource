@@ -1,4 +1,3 @@
-#   $Id: prt0.as,v 1.9 2004/07/05 21:07:38 florian Exp $
 /* Startup code for elf32-sparc
    Copyright (C) 1997, 1998 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
@@ -71,33 +70,3 @@ _haltproc:
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
-
-#
-# $Log: prt0.as,v $
-# Revision 1.9  2004/07/05 21:07:38  florian
-#   * remade makefile (too old fpcmake)
-#   * fixed sparc startup code
-#
-# Revision 1.8  2004/07/03 21:50:31  daniel
-#   * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
-#     longer necessary
-#
-# Revision 1.7  2004/05/27 23:15:02  peter
-#   * startup argc,argv,envp fix
-#   * stat fixed
-#
-# Revision 1.6  2004/05/17 20:56:56  peter
-#   * use ldsh to load exitcode
-#
-# Revision 1.5  2004/03/16 10:19:11  mazen
-# + _haltproc definition for linux/sparc
-#
-# Revision 1.4  2003/06/02 22:03:37  mazen
-# *making init and fini symbols compatible FPC code by
-#  changing  _init ==> fpc_initialize
-#  and _fini ==> fpc_finalize
-#
-# Revision 1.3  2002/11/18 19:03:46  mazen
-# * start code of gcc adapted for FPC
-#
-

@@ -59,7 +59,7 @@ exitprocess:
      
 
 //
-// $Log: gprt0.as,v $
+
 // Revision 1.1  2002/11/30 18:17:35  carl
 //   + profiling support
 //

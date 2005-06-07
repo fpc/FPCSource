@@ -469,21 +469,4 @@ begin
 end;
 
 
-{
-  $Log: systhrd.inc,v $
-  Revision 1.3  2005/04/09 17:26:08  florian
-    + classes.mainthreadid is set now
-    + rtleventresetevent
-    + rtleventwairfor with timeout
-    + checksynchronize with timeout
-    * race condition in synchronize fixed
-
-  Revision 1.2  2005/02/08 16:28:27  peter
-  pulseevent -> setevent
-
-  Revision 1.1  2005/02/06 13:06:20  peter
-    * moved file and dir functions to sysfile/sysdir
-    * win32 thread in systemunit
-
-}
 

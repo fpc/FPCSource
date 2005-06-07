@@ -235,25 +235,3 @@ CONST
  	NoAddress6: Tin6_addr = (u6_addr16:(0,0,0,0,0,0,0,0));
   	NoNet6    : Tin6_addr = (u6_addr16:(0,0,0,0,0,0,0,0));
 
-{
-  $Log: socketsh.inc,v $
-  Revision 1.27  2005/03/28 11:10:51  marco
-   * more netdb and Kylix related minor fixes. At the last minute, commented
-      out TSockAddrIn since I found that relied on TScokAddrIn=TSockAddr
-
-  Revision 1.26  2005/02/18 13:10:10  marco
-   * noadress and friend, ipv4 changed to an enum.
-
-  Revision 1.25  2005/02/14 17:13:26  peter
-    * truncate log
-
-  Revision 1.24  2005/02/13 21:10:31  marco
-   * in_addr_bytes to easily put an array over the byte type
-
-  Revision 1.23  2005/02/13 19:59:57  marco
-   * More htons like functionality. IPV6 string support still missing
-
-  Revision 1.22  2005/02/12 17:34:56  marco
-   * some kylix stuf
-
-}

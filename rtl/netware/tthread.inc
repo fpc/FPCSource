@@ -255,13 +255,3 @@ begin
     FHandle := 0;
 end;
 
-{
-  $Log: tthread.inc,v $
-  Revision 1.5  2005/02/25 21:41:09  florian
-    * generic tthread.synchronize
-    * delphi compatible wakemainthread
-
-  Revision 1.4  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

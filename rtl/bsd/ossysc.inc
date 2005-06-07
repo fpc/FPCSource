@@ -528,24 +528,3 @@ begin
   fpreadlink:=do_syscall(syscall_nr_readlink, TSysParam(name),TSysParam(linkname),maxlen);
 end;
 
-{
- $Log: ossysc.inc,v $
- Revision 1.26  2005/04/24 19:11:28  marco
-  * mmap had another, yet unknown 8th parameter which must be 0 and comes after the offset param
-
- Revision 1.25  2005/03/13 14:11:06  marco
-  * fix from mischi
-
- Revision 1.24  2005/02/14 17:13:21  peter
-   * truncate log
-
- Revision 1.23  2005/02/13 21:47:56  peter
-   * include file cleanup part 2
-
- Revision 1.22  2005/02/13 20:01:37  peter
-   * include file cleanup
-
- Revision 1.21  2005/02/06 12:16:52  peter
-   * bsd thread updates
-
-}

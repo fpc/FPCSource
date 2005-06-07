@@ -74,9 +74,3 @@ program pmdemo1;
     WinDestroyMsgQueue(mq);
     WinTerminate(ab);
  end.
-{
-  $Log: pmdemo1.pp,v $
-  Revision 1.2  2002/09/07 15:06:35  peter
-    * old logs removed and tabs fixed
-
-}

@@ -90,19 +90,3 @@ function setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:'FPC
     mov     %g0, %o0
   end;
 
-{
-  $Log: setjump.inc,v $
-  Revision 1.13  2005/04/24 21:19:22  peter
-    * unblock signal in signalhandler, remove the sigprocmask call
-      from setjmp
-
-  Revision 1.12  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.11  2005/02/13 20:01:38  peter
-    * include file cleanup
-
-  Revision 1.10  2005/01/20 16:38:28  peter
-    * restore sigprocmask for linux
-
-}

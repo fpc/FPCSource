@@ -131,18 +131,3 @@ function TryStrToDateTime(const S: string; out Value: TDateTime): Boolean;
 { FPC Extra }
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 
-{
-  $Log: datih.inc,v $
-  Revision 1.6  2005/05/08 08:03:15  florian
-    + cycling with 1.0.x fixed, hopefully the last fix of this for ever ;)
-
-  Revision 1.5  2005/05/07 10:23:17  florian
-    + TryStrToDate/Time functions
-
-  Revision 1.4  2005/03/17 15:21:10  marco
-   * fixed incmonths default param. Thnks nldelphi
-
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

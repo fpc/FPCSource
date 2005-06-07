@@ -72,9 +72,3 @@ program count_lines;
      gotoxy(1,wherey);
      if lines=1 then writeln('1 Line') else writeln(lines,' Lines');
   end.
-{
-  $Log: lines.pp,v $
-  Revision 1.2  2002/09/07 15:06:35  peter
-    * old logs removed and tabs fixed
-
-}

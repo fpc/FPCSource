@@ -211,20 +211,3 @@ begin
     WaitForSingleObject(ulong(FHandle), INFINITE);
   GetExitCodeThread(FHandle, DWord(Result));
 end;
-{
-  $Log: tthread.inc,v $
-  Revision 1.8  2005/02/25 21:52:07  florian
-    * "transfer to linux"-commit
-
-  Revision 1.7  2005/02/25 21:41:09  florian
-    * generic tthread.synchronize
-    * delphi compatible wakemainthread
-
-  Revision 1.6  2005/02/14 17:13:32  peter
-    * truncate log
-
-  Revision 1.5  2005/02/06 13:06:20  peter
-    * moved file and dir functions to sysfile/sysdir
-    * win32 thread in systemunit
-
-}

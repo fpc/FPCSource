@@ -2334,12 +2334,3 @@ end;
 
 {$endif read_implementation}
 
-{
-  $Log: func.inc,v $
-  Revision 1.25  2005/05/09 18:39:58  michael
-  + Added overloads of G(S)etwindowplacement with pointer versions
-
-  Revision 1.24  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

@@ -828,16 +828,3 @@ begin
   TextRec(Input).Handle:= GetStdHandle(STD_INPUT_HANDLE);
 end. { unit Crt }
 
-{
-  $Log: crt.pp,v $
-  Revision 1.25  2005/05/14 15:01:49  hajny
-    * TextMode parameter type changed to word for TP/BP compatibility
-
-  Revision 1.24  2005/02/14 17:13:32  peter
-    * truncate log
-
-  Revision 1.23  2005/01/03 18:16:12  peter
-  fix clrscr with windowsize<>screensize
-  fix cursorbig
-
-}

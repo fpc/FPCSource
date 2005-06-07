@@ -1869,35 +1869,3 @@ begin
   FDataSources.Remove(ADataSource);
 end;
 
-{
-  $Log: dataset.inc,v $
-  Revision 1.36  2005/04/13 22:08:16  joost
-  - fixed mem-leak in TDataset.SetBufListSize
-
-  Revision 1.35  2005/04/10 22:18:43  joost
-  Patch from Alexandrov Alexandru
-  - implemented TDataset.BindFields
-  - master-detail relation implemented
-  - improved variant-support for fields
-  - implemented TField.Assign and TField.AssignValue
-
-  Revision 1.34  2005/04/10 18:26:27  joost
-  - implemented TDataset.Locate
-
-  Revision 1.33  2005/03/29 10:07:34  michael
-  + fix for activerecord, bof false after append.
-
-  Revision 1.32  2005/02/14 17:13:12  peter
-    * truncate log
-
-  Revision 1.31  2005/02/07 11:19:27  joost
-    - Fixed insertion at buffer-limit
-    - Added TDataset.InternalInsert
-    - The deDatasetScrollEvent was not always raised
-    - Changed resync-order in AppendRecord
-
-  Revision 1.30  2005/01/12 10:27:57  michael
-    * Patch from Joost Van der Sluis:
-    - implemented ControlsDisabled
-
-}

@@ -530,9 +530,3 @@ const
 { syscall_nr_compat_12_getdirentries = 196 }
  syscall_nr_getdirentries = syscall_nr_compat_12_getdirentries;
 
-{
-  $Log: sysnr.inc,v $
-  Revision 1.3  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

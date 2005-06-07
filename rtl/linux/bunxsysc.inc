@@ -531,23 +531,3 @@ begin
 end;
 
 
-{
- $Log: bunxsysc.inc,v $
- Revision 1.4  2005/03/03 20:58:38  florian
-   + routines in baseunix can be overriden by processor specifics in bsyscall.inc
-
- Revision 1.3  2005/03/03 20:13:44  florian
-   + sparc specific pipe implementation
-
- Revision 1.2  2005/02/14 17:13:30  peter
-   * truncate log
-
- Revision 1.1  2005/02/13 20:01:38  peter
-   * include file cleanup
-
- Revision 1.15  2005/01/30 18:01:15  peter
-   * signal cleanup for linux
-   * sigactionhandler instead of tsigaction for bsds
-   * sigcontext moved to cpu dir
-
-}

@@ -1,6 +1,4 @@
 ;
-; $Id: x86reg.dat,v 1.6 2005/02/06 00:05:56 florian Exp $
-;
 ; x86 registers
 ;
 ; layout

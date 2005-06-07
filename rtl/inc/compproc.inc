@@ -362,24 +362,3 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {$endif hascompilerproc}
 
-{
-  $Log: compproc.inc,v $
-  Revision 1.68  2005/05/14 11:53:31  olle
-    - Removed outcommented function
-
-  Revision 1.67  2005/03/28 13:38:05  florian
-    + a lot of vararray stuff
-
-  Revision 1.66  2005/03/05 16:37:28  florian
-    * fixed copy(dyn. array,...);
-
-  Revision 1.65  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.64  2005/01/07 21:15:46  florian
-    + basic rtl support for variant <-> interface implemented
-
-  Revision 1.63  2005/01/06 13:39:59  florian
-    * widecharray patch from Peter
-
-}

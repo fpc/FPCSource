@@ -766,9 +766,3 @@ Const rtfKey : Array [0..281] of TRTFKey =
 ( rtfKMajor: 0; rtfKMinor:              -1; rtfKstr : ''; rtfkHash : 0)
 );
 
-{
-  $Log: rtfdata.inc,v $
-  Revision 1.5  2005/02/14 17:13:15  peter
-    * truncate log
-
-}

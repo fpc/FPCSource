@@ -23,19 +23,3 @@ Type
 Function Setjmp (Var S : Jmp_buf) : longint;
 Procedure longjmp (Var S : Jmp_buf; value : longint);
 
-{
-  $Log: setjumph.inc,v $
-  Revision 1.8  2005/04/24 21:19:22  peter
-    * unblock signal in signalhandler, remove the sigprocmask call
-      from setjmp
-
-  Revision 1.7  2005/02/14 17:13:22  peter
-    * truncate log
-
-  Revision 1.6  2005/01/24 16:54:16  peter
-    * no sigprocmask for 1.0.x bootstrapping
-
-  Revision 1.5  2005/01/20 16:38:28  peter
-    * restore sigprocmask for linux
-
-}

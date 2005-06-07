@@ -2354,4 +2354,3 @@ P*2WT_Especifica aplicació tipus eina (eina MPW, només MacOS)
 
 #
 # The End...
-#

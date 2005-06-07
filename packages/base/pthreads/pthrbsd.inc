@@ -359,9 +359,3 @@ function pthread_attr_getfloatstate(_para1:Ppthread_attr_t; _para2:Pcint):cint;c
   function sem_getvalue(var __sem: sem_t; var __sval:cint):cint;cdecl;external;
 
 
-{
-   $Log: pthrbsd.inc,v $
-   Revision 1.7  2005/02/14 17:13:19  peter
-     * truncate log
-
-}

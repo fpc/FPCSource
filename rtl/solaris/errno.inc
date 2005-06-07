@@ -177,15 +177,3 @@ ESysEREMOTEIO   = 121;  { Remote I/O error }
 ESysEDQUOT      = 122;  { Quota exceeded }
 *)
 
-{
-  $Log: errno.inc,v $
-  Revision 1.3  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.2  2005/02/10 17:30:54  peter
-    * renamed to solaris
-
-  Revision 1.4  2005/02/07 22:17:26  peter
-    * updated for 1.9.x unix rtl
-
-}

@@ -100,9 +100,3 @@
                                  #3+'nincs kidolgozva...'#13+
                                  #3+'';
 
-{
-  $Log: wconstsh.inc,v $
-  Revision 1.3  2005/02/14 17:13:18  peter
-    * truncate log
-
-}

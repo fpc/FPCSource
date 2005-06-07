@@ -369,14 +369,3 @@ begin
 end;
 
 
-{
- $Log: bunxovl.inc,v $
- Revision 1.18  2005/02/14 17:13:31  peter
-   * truncate log
-
- Revision 1.17  2005/01/30 18:01:15  peter
-   * signal cleanup for linux
-   * sigactionhandler instead of tsigaction for bsds
-   * sigcontext moved to cpu dir
-
-}

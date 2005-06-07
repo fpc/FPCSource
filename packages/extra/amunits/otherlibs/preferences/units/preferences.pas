@@ -387,8 +387,5 @@ begin
 
 END. (* UNIT PREFERENCES *)
 
-{
-  $Log
-}
 
 

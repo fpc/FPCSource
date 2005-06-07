@@ -167,12 +167,3 @@
       std_param_align = 4;
 
 
-{
-  $Log: cpubase.inc,v $
-  Revision 1.18  2005/02/14 17:13:09  peter
-    * truncate log
-
-  Revision 1.17  2005/01/20 16:38:45  peter
-    * load jmp_buf_size from system unit
-
-}

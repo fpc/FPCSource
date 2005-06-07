@@ -368,8 +368,5 @@ begin
 
 END. (* UNIT LUCYPLAY *)
 
-{
-  $Log
-}
 
 

@@ -21,9 +21,3 @@ function IsLstAvailable: boolean;
 (* Allow to initialize printer with different name. *)
 procedure InitPrinter (const PrinterName: string);
 
-{
-  $Log: printerh.inc,v $
-  Revision 1.2  2005/02/14 17:13:26  peter
-    * truncate log
-
-}

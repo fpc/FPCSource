@@ -361,9 +361,3 @@
       end;
 {$endif FPC_SYSTEM_HAS_MUL_INT64}
 
-{
-  $Log: int64.inc,v $
-  Revision 1.29  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

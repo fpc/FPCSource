@@ -71,12 +71,3 @@ A_FMOVd,
 A_FABSd,
 A_FABSq
 
-{
-        $Log: opcode.inc,v $
-        Revision 1.17  2005/02/14 17:13:10  peter
-          * truncate log
-
-        Revision 1.16  2005/01/07 16:22:54  florian
-          + implemented abi compliant handling of strucutured functions results on sparc platform
-
-}

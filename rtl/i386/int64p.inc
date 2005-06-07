@@ -258,9 +258,3 @@
           HandleErrorFrame(215,get_frame);
       end;
 
-{
-  $Log: int64p.inc,v $
-  Revision 1.7  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

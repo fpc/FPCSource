@@ -496,12 +496,3 @@ end;
 {$endif FPC_UNIT_HAS_STRLOWER}
 
 
-{
-  $Log: strings.inc,v $
-  Revision 1.29  2005/04/28 18:22:34  olle
-    * Fixed loding of magic constant for macos
-
-  Revision 1.28  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

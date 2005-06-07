@@ -93,9 +93,3 @@ var
   VESAModeInfo    : TVESAModeInfo;     { Current Mode information }
   hasVesa: Boolean;       { true if we have a VESA compatible graphics card}
                           { initialized in QueryAdapterInfo in graph.inc }
-{
-  $Log: vesah.inc,v $
-  Revision 1.4  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

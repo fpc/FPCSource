@@ -783,8 +783,5 @@ begin
 
 END. (* UNIT GUIGFX *)
 
-{
-  $Log
-}
 
 

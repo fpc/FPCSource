@@ -270,9 +270,3 @@ Const
   syscall_nr_epoll_wait                 = $900000+252;
   syscall_nr_remap_file_pages           = $900000+253;
 
-{
-    $Log: sysnr.inc,v $
-    Revision 1.5  2005/02/14 17:13:30  peter
-      * truncate log
-
-}

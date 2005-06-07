@@ -68,11 +68,5 @@ Const
         SHUT_RDWR       =2;             { shut down both sides }
 
 
-{
-   $Log: unxsockh.inc,v $
-   Revision 1.3  2005/02/14 17:13:22  peter
-     * truncate log
-
-}
 
 

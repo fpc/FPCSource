@@ -2320,9 +2320,3 @@ CONST
 (0,0,0,0,0,0,0,0))
 );
 
-{
-  $Log: fontdata.inc,v $
-  Revision 1.5  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

@@ -518,15 +518,3 @@ begin
 end;
 
 
-{
-  $Log: database.inc,v $
-  Revision 1.12  2005/04/26 16:37:44  michael
-  + Added TCustomConnection by Uberto Barbini
-
-  Revision 1.11  2005/04/24 19:21:28  joost
-  - some fixes in assignment of transactions and databases
-
-  Revision 1.10  2005/02/14 17:13:12  peter
-    * truncate log
-
-}

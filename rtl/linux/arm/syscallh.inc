@@ -40,9 +40,3 @@ function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; ext
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  external name 'FPC_SYSCALL6';
 
-{
-  $Log: syscallh.inc,v $
-  Revision 1.2  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

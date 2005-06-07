@@ -24,9 +24,3 @@ Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 begin
   CreatePipeHandles := DosCreatePipe (InHandle, OutHandle, PipeBufSize) = 0;
 end;
-{
-  $Log: pipes.inc,v $
-  Revision 1.6  2005/02/14 17:13:16  peter
-    * truncate log
-
-}

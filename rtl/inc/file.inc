@@ -409,9 +409,3 @@ Begin
   Rename(f,Pchar(@p));
 End;
 
-{
-  $Log: file.inc,v $
-  Revision 1.9  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

@@ -150,9 +150,3 @@ Function  GetMsCount: int64;
  startup on DOS-like x86 platforms, derived from Unix time on Unix etc.}
 
 
-{
-  $Log: dosh.inc,v $
-  Revision 1.6  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

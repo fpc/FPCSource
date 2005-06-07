@@ -195,9 +195,3 @@ Function FunctionKeyName (KeyCode : Word) : String;
 Function KeyEventToString(KeyEvent : TKeyEvent) : String;
 { Returns a string representation of the pressed key }
 
-{
-  $Log: keybrdh.inc,v $
-  Revision 1.7  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

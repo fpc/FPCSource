@@ -1,5 +1,4 @@
 #
-#   $Id: prt0.as,v 1.5 2004/07/03 23:04:34 daniel Exp $
 #   This file is part of the Free Pascal run time library.
 #   Copyright (c) 1999-2004 by Michael Van Canneyt, Peter Vreman,
 #   & Daniel Mantione, members of the Free Pascal development team.
@@ -21,7 +20,7 @@
 #
 #
 # Stack layout at program start:
-# 
+#
 #         nil
 #         envn
 #         ....
@@ -91,15 +90,3 @@ operatingsystem_parameters:
 	.set operatingsystem_parameter_envp,operatingsystem_parameters+0
 	.set operatingsystem_parameter_argc,operatingsystem_parameters+4
 	.set operatingsystem_parameter_argv,operatingsystem_parameters+8
-#
-# $Log: prt0.as,v $
-# Revision 1.5  2004/07/03 23:04:34  daniel
-#   * Updated comments
-#
-# Revision 1.4  2004/07/03 21:50:31  daniel
-#   * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
-#     longer necessary
-#
-# Revision 1.3  2002/09/07 16:01:20  peter
-#   * old logs removed and tabs fixed
-#

@@ -232,9 +232,3 @@ Function WinLoadFileIconN(pszFileName: PChar;
     external 'PMWP' index ???;
 }
 
-{
-$Log: pmwp.pas,v $
-Revision 1.2  2005/02/14 17:13:31  peter
-  * truncate log
-
-}

@@ -59,12 +59,3 @@
 
 {$endif}
 
-{
-  $Log: math.inc,v $
-  Revision 1.14  2005/02/14 17:13:31  peter
-    * truncate log
-
-  Revision 1.13  2005/02/14 16:32:41  peter
-    * solaris updates
-
-}

@@ -1531,9 +1531,6 @@ begin
 
 END. (* UNIT TRITON *)
 
-{
-  $Log
-}
 
 
 

@@ -961,7 +961,4 @@ begin
 
 END. (* UNIT PICASSO96API *)
 
-{
-  $Log
-}
 

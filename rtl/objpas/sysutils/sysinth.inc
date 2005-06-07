@@ -140,12 +140,3 @@ var
   SysLocale : TSysLocale;
 
 
-{
-  $Log: sysinth.inc,v $
-  Revision 1.3  2005/02/26 14:38:14  florian
-    + SysLocale
-
-  Revision 1.2  2005/02/14 17:13:31  peter
-    * truncate log
-
-}

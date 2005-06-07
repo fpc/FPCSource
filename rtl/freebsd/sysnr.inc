@@ -316,9 +316,3 @@ syscall_nr_getdirentries                =196;
  syscall_nr_getrusage                   =117;
  syscall_nr_uuidgen			=392; { 5.x+}
 
-{
-  $Log: sysnr.inc,v $
-  Revision 1.12  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

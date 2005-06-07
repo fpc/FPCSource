@@ -71,7 +71,7 @@ ___fpc_brk_addr:
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
 /*
-  $Log: prt0.as,v $
+
   Revision 1.14  2004/08/18 14:26:50  karoly
     * quick fix to make it compile
 

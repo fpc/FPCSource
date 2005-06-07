@@ -203,12 +203,3 @@
 
 {$endif read_interface}
 
-{
-  $Log: objbase.inc,v $
-  Revision 1.1  2005/03/28 15:09:35  peter
-  new winunits packages
-
-  Revision 1.4  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

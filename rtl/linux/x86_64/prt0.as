@@ -1,5 +1,4 @@
 #
-#   $Id: prt0.as,v 1.10 2005/02/05 23:02:37 florian Exp $
 #   This file is part of the Free Pascal run time library.
 #   Copyright (c) 2002 by Florian Klaempfl
 #   members of the Free Pascal development team.
@@ -90,40 +89,3 @@ __data_start:
 3:      .align 4
 
 	.section	.note.GNU-stack,"",@progbits
-
-#
-# $Log: prt0.as,v $
-# Revision 1.10  2005/02/05 23:02:37  florian
-#   + added some missing c types
-#
-# Revision 1.9  2004/11/02 15:26:21  florian
-#   * fixed sse exception handling
-#
-# Revision 1.8  2004/07/03 21:50:31  daniel
-#   * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
-#     longer necessary
-#
-# Revision 1.7  2004/04/24 17:14:09  florian
-#   * prt0.as exit code handling fixed
-#   * int64 mod int64 for negative numbers fixed
-#
-# Revision 1.6  2004/04/20 20:30:11  florian
-#   * fixed halt code
-#
-# Revision 1.5  2004/04/12 19:05:55  florian
-#   + haltproc added
-#
-# Revision 1.4  2004/02/20 23:48:27  peter
-#   * c stub implemented
-#
-# Revision 1.3  2004/02/08 15:33:50  florian
-#   * linking problems fixed
-#   + abi tag added
-#
-# Revision 1.2  2004/02/02 21:02:38  peter
-#   * fixed syntax errors
-#
-# Revision 1.1  2003/01/06 19:33:10  florian
-#   + initial revision
-#
-#

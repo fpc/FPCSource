@@ -628,6 +628,3 @@ end;
 
 end. (* UNIT AHI *)
 
-{
-  $Log
-}

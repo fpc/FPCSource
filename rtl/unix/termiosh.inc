@@ -29,9 +29,3 @@ Function  IsATTY      (var f:text)  :cint;
 function  TTYname     (Handle:cint):string;
 function  TTYname     (var F:Text) :string;
 
-{
-    $Log: termiosh.inc,v $
-    Revision 1.4  2005/02/14 17:13:31  peter
-      * truncate log
-
-}

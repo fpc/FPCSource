@@ -37,9 +37,3 @@ procedure gtk_accelerator_table_set_mod_mask(table:PGtkAcceleratorTable; modifie
 {$ifdef read_implementation}
 {$endif read_implementation}
 
-{
-  $Log: gtkaccelerator.pp,v $
-  Revision 1.3  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

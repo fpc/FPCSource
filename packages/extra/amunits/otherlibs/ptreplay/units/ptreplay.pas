@@ -491,9 +491,6 @@ begin
 END. (* UNIT PTREPLAY *)
 
 
-{
-  $Log
-}
 
 
 

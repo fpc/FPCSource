@@ -319,9 +319,3 @@ function  GDK_font_lookup(xid : longint) : PGdkFont;
 {$endif read_implementation}
 
 
-{
-  $Log: gdkprivate.pp,v $
-  Revision 1.6  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

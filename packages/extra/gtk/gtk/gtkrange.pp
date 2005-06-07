@@ -174,9 +174,3 @@ end;
 {$endif read_implementation}
 
 
-{
-  $Log: gtkrange.pp,v $
-  Revision 1.4  2005/02/14 17:13:20  peter
-    * truncate log
-
-}

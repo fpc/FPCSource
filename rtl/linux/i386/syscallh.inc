@@ -43,9 +43,3 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResu
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  oldfpccall; external name 'FPC_SYSCALL6';
 {$endif notsupported}
 
-{
-  $Log: syscallh.inc,v $
-  Revision 1.7  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

@@ -1,6 +1,4 @@
 ;
-; $Id: x86ins.dat,v 1.11 2004/06/16 20:07:11 florian Exp $
-;
 ; Table of assembler instructions for Free Pascal
 ; adapted from Netwide Assembler by Peter Vreman
 ;
@@ -3420,61 +3418,3 @@ reg64,reg32           \321\301\1\x63\110              X86_64
 [CDO,cqto]
 (Ch_MRAX, Ch_WRDX, Ch_None)
 void                  \321\1\x99                      X86_64
-
-;
-; $Log: x86ins.dat,v $
-; Revision 1.11  2004/06/16 20:07:11  florian
-;   * dwarf branch merged
-;
-; Revision 1.10.2.4  2004/04/24 21:18:33  florian
-;   * integer -> int64 and shortint -> int64 type cast for x86-64 fixed
-;
-; Revision 1.10.2.3  2004/04/24 16:28:23  florian
-;   * fixed cqto opcode
-;
-; Revision 1.10.2.2  2004/04/24 16:02:19  florian
-;   * sign extension for int div int fixed
-;
-; Revision 1.10.2.1  2004/04/22 19:59:48  florian
-;   * longint loading fixed
-;
-; Revision 1.10  2004/04/08 16:49:42  peter
-;   * MOVSL fixed
-;
-; Revision 1.9  2004/02/09 22:14:17  peter
-;   * more x86_64 parameter fixes
-;   * tparalocation.lochigh is now used to indicate if registerhigh
-;     is used and what the type is
-;
-; Revision 1.8  2004/02/03 16:53:37  peter
-; *** empty log message ***
-;
-; Revision 1.7  2004/01/15 14:01:32  florian
-;   + x86 instruction tables for x86-64 extended
-;
-; Revision 1.6  2003/12/25 12:01:35  florian
-;   + possible sse2 unit usage for double calculations
-;   * some sse2 assembler issues fixed
-;
-; Revision 1.5  2003/11/22 00:35:42  jonas
-;   * fixed properties for MOVSB
-;
-; Revision 1.4  2003/11/13 18:54:22  jonas
-; * fixed XSTORE instruction info
-;
-; Revision 1.3  2003/09/09 12:54:45  florian
-;   * x86 instruction table updated to nasm 0.98.37:
-;       - sse3 aka prescott support
-;       - small fixes
-;
-; Revision 1.2  2003/09/03 15:55:02  peter
-;   * NEWRA branch merged
-;
-; Revision 1.1.2.1  2003/08/27 19:55:54  peter
-;   * first tregister patch
-;
-; Revision 1.7  2003/01/05 13:36:53  florian
-;   * x86-64 compiles
-;   + very basic support for float128 type (x86-64 only)
-;
-;

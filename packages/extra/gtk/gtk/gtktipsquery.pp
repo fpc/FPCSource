@@ -96,9 +96,3 @@ end;
 {$endif read_implementation}
 
 
-{
-  $Log: gtktipsquery.pp,v $
-  Revision 1.3  2005/02/14 17:13:21  peter
-    * truncate log
-
-}

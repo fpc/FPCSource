@@ -2697,27 +2697,3 @@ begin
   loaddynlibproc.free;
 end.
 
-{
-  $Log: h2pas.y,v $
-  Revision 1.10  2005/02/20 11:09:41  florian
-    + added -P:
-      allows to generate headers which load proc. dyn. from libs
-
-  Revision 1.9  2004/09/08 22:21:41  carl
-    + support for creating packed records
-    * var parameter bugfixes
-
-  Revision 1.8  2004/08/13 02:35:29  carl
-    + bugfixes with C++ comments, they are now placed above the definition
-    * some bugfixes with the _label reserved word.
-
-  Revision 1.7  2004/06/20 17:56:05  marco
-   Patch from Christian Iversen. ioresult check when opening for output
-
-  Revision 1.6  2003/02/13 22:20:24  michael
-  + Patch from Jeff Pohlmeyer to process empty structs
-
-  Revision 1.5  2002/09/07 15:40:33  peter
-    * old logs removed and tabs fixed
-
-}

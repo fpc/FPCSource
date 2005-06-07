@@ -83,8 +83,5 @@
 {$endif dont_use_openlib}
 
 
-{
-  $Log
-}
 
 

@@ -90,14 +90,5 @@ Function  wifsignaled  (Status : cInt): boolean;
 Function  wtermsig     (Status : cInt): cInt;
 
 Function fpReadLink(Name:ansistring):ansistring;
-{
- $Log: bunxovlh.inc,v $
- Revision 1.8  2005/02/14 17:13:31  peter
-   * truncate log
-
- Revision 1.7  2005/02/13 20:01:38  peter
-   * include file cleanup
-
-}
 
 

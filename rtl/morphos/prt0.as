@@ -185,7 +185,7 @@ __abox__:
         .long 1
 
 /*
-  $Log: prt0.as,v $
+
   Revision 1.12  2005/02/03 19:09:11  karoly
     * reworked startup code:
       - now uses AllocTaskPooled

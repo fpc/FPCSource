@@ -489,12 +489,3 @@ end;
 
 {$endif read_implementation}
 
-{
-  $Log: unifun.inc,v $
-  Revision 1.14  2005/04/03 15:17:50  marco
-   * fix from bug 3861
-
-  Revision 1.13  2005/02/14 17:13:32  peter
-    * truncate log
-
-}

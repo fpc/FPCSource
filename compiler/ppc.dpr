@@ -155,20 +155,3 @@ begin
 { Call the compiler with empty command, so it will take the parameters }
   Halt(compiler.Compile(''));
 end.
-{
-  $Log: ppc.dpr,v $
-  Revision 1.6  2002/10/05 12:43:27  carl
-    * fixes for Delphi 6 compilation
-     (warning : Some features do not work under Delphi)
-
-  Revision 1.5  2002/09/07 15:25:07  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/08/12 15:08:40  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-}

@@ -386,18 +386,3 @@ asm
 {$endif FPC_PIC}
 end;
 
-{
-  $Log: x86_64.inc,v $
-  Revision 1.20  2005/04/25 09:40:27  florian
-    * some ifdef'ed pic code
-
-  Revision 1.19  2005/02/14 17:13:32  peter
-    * truncate log
-
-  Revision 1.18  2005/02/05 22:30:50  florian
-    * some PIC ifdefs
-
-  Revision 1.17  2005/02/05 16:19:44  florian
-    + completed SSE exception masks
-
-}

@@ -265,9 +265,3 @@
      end;
 {$endif FPC_UNIT_HAS_STRLICOMP}
 
-{
-  $Log: genstr.inc,v $
-  Revision 1.5  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

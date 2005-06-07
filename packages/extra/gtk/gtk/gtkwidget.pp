@@ -535,12 +535,3 @@ end;
 {$endif read_implementation}
 
 
-{
-  $Log: gtkwidget.pp,v $
-  Revision 1.6  2005/02/14 17:13:21  peter
-    * truncate log
-
-  Revision 1.5  2005/02/06 19:51:53  peter
-    * 64bit fixes
-
-}

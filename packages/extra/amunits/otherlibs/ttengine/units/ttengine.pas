@@ -548,8 +548,5 @@ begin
 
 END. (* UNIT TTENGINE *)
 
-{
-  $Log
-}
 
 

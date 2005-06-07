@@ -259,12 +259,3 @@ CONST
 {$i signal.inc}
 
 
-{
-  $Log: ostypes.inc,v $
-  Revision 1.9  2005/02/14 17:13:21  peter
-    * truncate log
-
-  Revision 1.8  2005/02/13 21:47:56  peter
-    * include file cleanup part 2
-
-}
