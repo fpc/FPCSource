@@ -46,6 +46,14 @@ const
             casmreader : ti386attreader;
           );
 
+  asmmode_i386_standard_info : tasmmodeinfo =
+          (
+            id    : asmmode_standard;
+            idtxt : 'STANDARD';
+            casmreader : ti386attreader;
+          );
+
 initialization
   RegisterAsmMode(asmmode_i386_att_info);
+  RegisterAsmMode(asmmode_i386_standard_info);
 end.
