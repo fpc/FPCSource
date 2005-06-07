@@ -1153,7 +1153,8 @@ implementation
                    typedconstsym :
                      begin
                        if ttypedconstsym(tloadnode(hp).symtableentry).is_writable or
-                          (valid_addr in opts) then
+                          (valid_addr in opts) or
+                          (valid_const in opts) then
                         result:=true
                        else
                         CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
