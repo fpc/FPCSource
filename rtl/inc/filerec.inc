@@ -28,11 +28,7 @@ type
     Mode      : longint;
     RecSize   : SizeInt;
     _private  : array[1..3 * SizeOf(SizeInt) + 5 * SizeOf (pointer)] of byte;
-{$ifndef FPC_HASUSERDATA32}    
-    UserData  : array[1..16] of byte;
-{$else FPC_HASUSERDATA32}    
     UserData  : array[1..32] of byte;
-{$endif FPC_HASUSERDATA32}
     name      : array[0..filerecnamelength] of char;
   End;
 
