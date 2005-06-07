@@ -530,9 +530,7 @@
                    inc(Temp);
                    I:=Temp^;
                    inc(temp,I+1);                // skip name string;
-{$ifdef FPC_ALIGNSRTTI}
                    temp:=aligntoptr(temp);
-{$endif FPC_ALIGNSRTTI}
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
                    move(PRecRec(Temp)^.Count,Count,sizeof(Count));
 {$else FPC_REQUIRES_PROPER_ALIGNMENT}
