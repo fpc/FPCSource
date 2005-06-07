@@ -22,9 +22,7 @@ type libcint   = longint;
 function fpgetCerrno:libcint;
 procedure fpsetCerrno(err:libcint);
 
-{$ifdef HASGLOBALPROPERTY}
 property cerrno:libcint read fpgetCerrno write fpsetcerrno;
-{$endif HASGLOBALPROPERTY}
 
 implementation
 
