@@ -608,7 +608,6 @@ begin
 end;
 
 
-{$ifdef HASWIDESTRING}
 Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; S : WideString); iocheck; [Public,alias:'FPC_WRITE_TEXT_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
  Writes a WideString to the Text file T
@@ -630,7 +629,6 @@ begin
     else InOutRes:=103;
   end;
 end;
-{$endif HASWIDESTRING}
 
 Procedure fpc_Write_Text_SInt(Len : Longint;var t : Text;l : ValSInt); iocheck; [Public,Alias:'FPC_WRITE_TEXT_SINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
@@ -722,7 +720,6 @@ Begin
 End;
 
 
-{$ifdef HASWIDECHAR}
 Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); iocheck; [Public,Alias:'FPC_WRITE_TEXT_WIDECHAR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   ch : char;
@@ -745,7 +742,6 @@ Begin
   TextRec(t).Bufptr^[TextRec(t).BufPos]:=ch;
   Inc(TextRec(t).BufPos);
 End;
-{$endif HASWIDECHAR}
 
 
 {*****************************************************************************

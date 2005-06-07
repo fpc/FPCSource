@@ -762,7 +762,6 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
-{$ifdef HASWIDESTRING}
 {$ifndef FPC_SYSTEM_HAS_FPC_PWIDECHAR_LENGTH}
 
 function fpc_pwidechar_length(p:pwidechar):longint;[public,alias:'FPC_PWIDECHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -774,7 +773,6 @@ begin
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_PWIDECHAR_LENGTH}
-{$endif HASWIDESTRING}
 
 {****************************************************************************
                        Caller/StackFrame Helpers

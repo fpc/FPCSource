@@ -226,12 +226,10 @@ Function  GetStrProp(Instance: TObject; const PropName: string): string;
 Procedure SetStrProp(Instance: TObject; const PropName: string; const Value: AnsiString);
 Procedure SetStrProp(Instance: TObject; PropInfo : PPropInfo; const Value : Ansistring);
 
-{$ifdef HASWIDESTRING}
 Function GetWideStrProp(Instance: TObject; PropInfo: PPropInfo): WideString;
 Function GetWideStrProp(Instance: TObject; const PropName: string): WideString;
 Procedure SetWideStrProp(Instance: TObject; const PropName: string; const Value: WideString);
 Procedure SetWideStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: WideString);
-{$endif HASWIDESTRING}
 
 Function  GetFloatProp(Instance: TObject; PropInfo : PPropInfo) : Extended;
 Function  GetFloatProp(Instance: TObject; const PropName: string): Extended;
@@ -1005,10 +1003,8 @@ var
 begin
   Result:='';
   case Propinfo^.PropType^.Kind of
-{$ifdef HASWIDESTRING}
     tkWString:
       Result:=GetWideStrProp(Instance,PropInfo);
-{$endif HASWIDESTRING}
     tkSString:
       begin
         case (PropInfo^.PropProcs) and 3 of
@@ -1063,10 +1059,8 @@ var
   AMethod : TMethod;
 begin
   case Propinfo^.PropType^.Kind of
-{$ifdef HASWIDESTRING}
     tkWString:
       SetWideStrProp(Instance,PropInfo,Value);
-{$endif HASWIDESTRING}
     tkSString:
       begin
         case (PropInfo^.PropProcs shr 2) and 3 of
@@ -1123,7 +1117,6 @@ begin
 end;
 
 
-{$ifdef HASWIDESTRING}
 Function GetWideStrProp(Instance: TObject; const PropName: string): WideString;
 begin
   Result:=GetWideStrProp(Instance, FindPropInfo(Instance, PropName));
@@ -1204,7 +1197,6 @@ begin
   end;
 end;
 
-{$endif HASWIDESTRING}
 
 
 { ---------------------------------------------------------------------

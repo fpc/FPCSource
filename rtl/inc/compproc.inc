@@ -177,11 +177,9 @@ Procedure fpc_WideStr_CheckRange(len,index : SizeInt); compilerproc;
 Procedure fpc_WideStr_SetLength (Var S : WideString; l : SizeInt); compilerproc;
 function fpc_widestr_Unique(Var S : Pointer): Pointer; compilerproc;
 
-{$ifdef HASWIDECHAR}
 Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
 Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc;
 Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
-{$endif HASWIDECHAR}
 
 { from text.inc }
 Function fpc_get_input:PText;{$ifdef hascompilerproc}compilerproc;{$endif}
@@ -192,9 +190,7 @@ Procedure fpc_Write_Text_ShortStr(Len : Longint;var f : Text;const s : String); 
 Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of char); compilerproc;
 Procedure fpc_Write_Text_PChar_As_Pointer(Len : Longint;var f : Text;p : PChar); compilerproc;
 Procedure fpc_Write_Text_AnsiStr (Len : Longint; Var f : Text; S : AnsiString); compilerproc;
-{$ifdef HASWIDESTRING}
 Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; S : WideString); compilerproc;
-{$endif HASWIDESTRING}
 Procedure fpc_Write_Text_SInt(Len : Longint;var t : Text;l : ValSInt); compilerproc;
 Procedure fpc_Write_Text_UInt(Len : Longint;var t : Text;l : ValUInt); compilerproc;
 {$ifndef CPU64}
@@ -204,9 +200,7 @@ procedure fpc_write_text_int64(len : longint;var t : text;i : int64); compilerpr
 Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
 Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); compilerproc;
 Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); compilerproc;
-{$ifdef HASWIDECHAR}
 Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); compilerproc;
-{$endif HASWIDECHAR}
 
 {$ifdef HASVARIANT}
 procedure fpc_variant_copy(d,s : pointer);compilerproc;

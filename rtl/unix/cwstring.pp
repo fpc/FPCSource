@@ -19,13 +19,10 @@ unit cwstring;
 
 interface
 
-{$ifdef HASWIDESTRING}
 procedure SetCWidestringManager;
-{$endif HASWIDESTRING}
 
 implementation
 
-{$ifdef HASWIDESTRING}
 {$linklib c}
 
 Uses
@@ -244,4 +241,3 @@ initialization
 finalization
   iconv_close(iconv_ansi2wide);
 end.
-{$endif HASWIDESTRING}

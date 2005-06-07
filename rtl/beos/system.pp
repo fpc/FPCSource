@@ -542,7 +542,5 @@ begin
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
-{$ifdef HASWIDESTRING}
   initwidestringmanager;
-{$endif HASWIDESTRING}
 end.

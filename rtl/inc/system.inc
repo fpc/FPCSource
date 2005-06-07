@@ -259,9 +259,7 @@ end;
 {Requires int64.inc, since that contains the VAL functions for int64 and qword}
 {$i astrings.inc}
 
-{$ifdef HASWIDESTRING}
 {$i wstrings.inc}
-{$endif HASWIDESTRING}
 
 {$i aliases.inc}
 
