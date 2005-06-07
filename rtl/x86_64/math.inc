@@ -43,7 +43,6 @@
                        EXTENDED data type routines
  ****************************************************************************}
 
-{$ifdef INTERNCONSTINTF}
     {$define FPC_SYSTEM_HAS_PI}
     function fpc_pi_real : ValReal;compilerproc;
     begin
@@ -100,31 +99,9 @@
       runerror(207);
       result:=0;
     end;
-{$else}
-    {$define FPC_SYSTEM_HAS_PI}
-    function pi : ValReal;[internproc:fpc_in_pi];
-    {$define FPC_SYSTEM_HAS_ABS}
-    function abs(d : ValReal) : ValReal;[internproc:fpc_in_abs_real];
-    {$define FPC_SYSTEM_HAS_SQR}
-    function sqr(d : ValReal) : ValReal;[internproc:fpc_in_sqr_real];
-    {$define FPC_SYSTEM_HAS_SQRT}
-    function sqrt(d : ValReal) : ValReal;[internproc:fpc_in_sqrt_real];
-    {$define FPC_SYSTEM_HAS_ARCTAN}
-    function arctan(d : ValReal) : ValReal;[internproc:fpc_in_arctan_real];
-    {$define FPC_SYSTEM_HAS_LN}
-    function ln(d : ValReal) : ValReal;[internproc:fpc_in_ln_real];
-    {$define FPC_SYSTEM_HAS_SIN}
-    function sin(d : ValReal) : ValReal;[internproc:fpc_in_sin_real];
-    {$define FPC_SYSTEM_HAS_COS}
-    function cos(d : ValReal) : ValReal;[internproc:fpc_in_cos_real];
-{$endif}
 
     {$define FPC_SYSTEM_HAS_EXP}
-  {$ifdef INTERNCONSTINTF}
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
-  {$else}
-    function exp(d : ValReal) : ValReal;assembler;[internconst:fpc_in_const_exp];
-  {$endif}
        asm
             // comes from DJ GPP
             fldt        d
@@ -158,11 +135,7 @@
 
 
     {$define FPC_SYSTEM_HAS_FRAC}
-  {$ifdef INTERNCONSTINTF}
     function fpc_frac_real(d : ValReal) : ValReal;assembler;compilerproc;
-  {$else}
-    function frac(d : ValReal) : ValReal;assembler;[internconst:fpc_in_const_frac];
-  {$endif}
       asm
             subq $16,%rsp
             fnstcw -4(%rbp)
@@ -183,11 +156,7 @@
 
 
     {$define FPC_SYSTEM_HAS_INT}
-  {$ifdef INTERNCONSTINTF}
     function fpc_int_real(d : ValReal) : ValReal;assembler;compilerproc;
-  {$else}
-    function int(d : ValReal) : ValReal;assembler;[internconst:fpc_in_const_int];
-  {$endif}
       asm
             subq $16,%rsp
             fnstcw -4(%rbp)
@@ -206,11 +175,7 @@
 
 
     {$define FPC_SYSTEM_HAS_TRUNC}
-  {$ifdef INTERNCONSTINTF}
     function fpc_trunc_real(d : ValReal) : int64;assembler;compilerproc;
-  {$else}
-    function trunc(d : ValReal) : int64;assembler;[internconst:fpc_in_const_trunc];
-  {$endif}
       var
         oldcw,
         newcw : word;
@@ -232,13 +197,7 @@
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
-{$ifdef internconstintf}
     function fpc_round_real(d : ValReal) : int64;assembler;compilerproc;
-{$else}
-    function round(d : extended) : int64;[internconst:fpc_in_const_round, external name 'FPC_ROUND'];
-
-    function fpc_round(d : extended) : int64;assembler;[public, alias:'FPC_ROUND'];compilerproc;
-{$endif}
       var
         oldcw,
         newcw : word;

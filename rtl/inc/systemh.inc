@@ -395,7 +395,7 @@ function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt;
 procedure MoveChar0(const buf1;var buf2;len:SizeInt);
 function  IndexChar0(const buf;len:SizeInt;b:char):SizeInt;
 function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;{$ifdef INLINEGENERICS}inline;{$endif}
-procedure prefetch(const mem);{$ifdef INTERNCONSTINTF}[internproc:fpc_in_prefetch_var];{$endif}
+procedure prefetch(const mem);[internproc:fpc_in_prefetch_var];
 
 
 {****************************************************************************
@@ -404,25 +404,25 @@ procedure prefetch(const mem);{$ifdef INTERNCONSTINTF}[internproc:fpc_in_prefetc
 
 Function  lo(B: Byte):Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  hi(b : Byte) : Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function  lo(i : Integer) : byte;  {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_lo_Word];{$endif}
-Function  lo(w : Word) : byte;     {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_lo_Word];{$endif}
-Function  lo(l : Longint) : Word;  {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_lo_long];{$endif}
-Function  lo(l : DWord) : Word;    {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_lo_long];{$endif}
-Function  lo(i : Int64) : DWord;   {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_lo_qword];{$endif}
-Function  lo(q : QWord) : DWord;   {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_lo_qword];{$endif}
-Function  hi(i : Integer) : byte;  {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_hi_Word];{$endif}
-Function  hi(w : Word) : byte;     {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_hi_Word];{$endif}
-Function  hi(l : Longint) : Word;  {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_hi_long];{$endif}
-Function  hi(l : DWord) : Word;    {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_hi_long];{$endif}
-Function  hi(i : Int64) : DWord;   {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_hi_qword];{$endif}
-Function  hi(q : QWord) : DWord;   {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_hi_qword];{$endif}
+Function  lo(i : Integer) : byte;  [INTERNPROC: fpc_in_lo_Word];
+Function  lo(w : Word) : byte;     [INTERNPROC: fpc_in_lo_Word];
+Function  lo(l : Longint) : Word;  [INTERNPROC: fpc_in_lo_long];
+Function  lo(l : DWord) : Word;    [INTERNPROC: fpc_in_lo_long];
+Function  lo(i : Int64) : DWord;   [INTERNPROC: fpc_in_lo_qword];
+Function  lo(q : QWord) : DWord;   [INTERNPROC: fpc_in_lo_qword];
+Function  hi(i : Integer) : byte;  [INTERNPROC: fpc_in_hi_Word];
+Function  hi(w : Word) : byte;     [INTERNPROC: fpc_in_hi_Word];
+Function  hi(l : Longint) : Word;  [INTERNPROC: fpc_in_hi_long];
+Function  hi(l : DWord) : Word;    [INTERNPROC: fpc_in_hi_long];
+Function  hi(i : Int64) : DWord;   [INTERNPROC: fpc_in_hi_qword];
+Function  hi(q : QWord) : DWord;   [INTERNPROC: fpc_in_hi_qword];
 
-Function swap (X : Word) : Word;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_swap_word];{$endif}
-Function Swap (X : Integer) : Integer;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_swap_word];{$endif}
-Function swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_swap_long];{$endif}
-Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_swap_long];{$endif}
-Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_swap_qword];{$endif}
-Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_swap_qword];{$endif}
+Function swap (X : Word) : Word;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_word];
+Function Swap (X : Integer) : Integer;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_word];
+Function swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_long];
+Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_long];
+Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_qword];
+Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_qword];
 
 Function Align (Addr : PtrInt; Alignment : PtrInt) : PtrInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Align (Addr : Pointer; Alignment : PtrInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -432,15 +432,15 @@ Function  Random(l:int64):int64;
 Function  Random: extended;
 Procedure Randomize;
 
-Function abs(l:Longint):Longint;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_abs];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
-Function abs(l:Int64):Int64;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_abs];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
-Function sqr(l:Longint):Longint;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_sqr];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
-Function sqr(l:Int64):Int64;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_sqr];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
-Function sqr(l:QWord):QWord;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_sqr];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:Longint):Boolean;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:Longword):Boolean;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:Int64):Boolean;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:QWord):Boolean;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
+Function abs(l:Longint):Longint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function abs(l:Int64):Int64;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function sqr(l:Longint):Longint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function sqr(l:Int64):Int64;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function sqr(l:QWord):QWord;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function odd(l:Longint):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function odd(l:Longword):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function odd(l:Int64):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function odd(l:QWord):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { float math routines }
 {$I mathh.inc}
@@ -449,7 +449,7 @@ Function odd(l:QWord):Boolean;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_
                          Addr/Pointer Handling
 ****************************************************************************}
 
-Function  ptr(sel,off:Longint):farpointer;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_ptr];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  ptr(sel,off:Longint):farpointer;[internconst:fpc_in_const_ptr];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Cseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Dseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -481,11 +481,7 @@ Function  binStr(Val:int64;cnt:byte):shortstring;
 Function  hexStr(Val:Pointer):shortstring;
 
 { Char functions }
-{$ifdef INTERNCONSTINTF}
 Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
-{$else}
-Function  Chr(b:byte):Char;
-{$endif}
 Function  upCase(c:Char):Char;
 Function  lowerCase(c:Char):Char; overload;
 function  pos(const substr : shortstring;c:char): SizeInt;
@@ -552,13 +548,8 @@ Procedure Truncate (Var F:File);
 Procedure Assign(Var f:TypedFile;const Name:string);
 Procedure Assign(Var f:TypedFile;p:pchar);
 Procedure Assign(Var f:TypedFile;c:char);
-{$ifdef INTERNCONSTINTF}
 Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
-{$else}
-Procedure Rewrite(Var f:TypedFile);
-Procedure Reset(Var f:TypedFile);
-{$endif}
 
 {****************************************************************************
                             Text File Management
@@ -584,7 +575,7 @@ Function  SeekEOLn (Var t:Text):Boolean;
 Function  SeekEOF (Var t:Text):Boolean;
 Function  SeekEOLn:Boolean;
 Function  SeekEOF:Boolean;
-Procedure SetTextBuf(Var f:Text; Var Buf);{$ifdef INTERNCONSTINTF}[INTERNPROC:fpc_in_settextbuf_file_x];{$endif}
+Procedure SetTextBuf(Var f:Text; Var Buf);[INTERNPROC:fpc_in_settextbuf_file_x];
 Procedure SetTextBuf(Var f:Text; Var Buf; Size:Longint);
 Procedure SetTextLineEnding(Var f:Text; Ending:string);
 
@@ -609,7 +600,7 @@ function get_caller_addr(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$
 function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function Sptr:Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_ptr];{$endif}
+Function Sptr:Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_ptr];
 Function GetProcessID:SizeUInt;
 Function GetThreadID:TThreadID;
 

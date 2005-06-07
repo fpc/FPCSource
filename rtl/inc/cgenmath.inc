@@ -22,11 +22,7 @@
 {$ifdef SUPPORT_DOUBLE}
     function c_trunc(d: double): double; cdecl; external 'c' name 'trunc';
 
-  {$ifdef INTERNCONSTINTF}
     function fpc_int_real(d: double): double;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}
-    function int(d: double): double; {$ifdef MATHINLINE}inline;{$endif}[internconst:fpc_in_const_int];
-  {$endif}
     begin
       result := c_trunc(d);
     end;
@@ -36,11 +32,7 @@
 
     function c_truncf(d: real): double; cdecl; external 'c' name 'truncf';
 
-  {$ifdef INTERNCONSTINTF}
     function fpc_int_real(d: real): real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}
-    function int(d: real) : real;[internconst:fpc_in_const_int];
-  {$endif}
       begin
         { this will be correct since real = single in the case of }
         { the motorola version of the compiler...                 }
@@ -81,12 +73,7 @@
 
     function c_sqrt(d: double): double; cdecl; external 'c' name 'sqrt';
 
-  {$ifdef INTERNCONSTINTF}
     function fpc_sqrt_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}
-    function fpc_sqrt_real(d:Real):Real;compilerproc; external name 'FPC_SQRT_REAL';
-    function sqrt(d:Real):Real;[internconst:fpc_in_const_sqrt];[public, alias: 'FPC_SQRT_REAL']; {$ifdef MATHINLINE}inline;{$endif}
-  {$endif}
     begin
       result := c_sqrt(d);
     end;
@@ -98,11 +85,7 @@
 {$define FPC_SYSTEM_HAS_EXP}
     function c_exp(d: double): double; cdecl; external 'c' name 'exp';
 
-  {$ifdef INTERNCONSTINTF}
     function fpc_Exp_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}
-    function Exp(d:Real):Real;[internconst:fpc_in_const_exp]; {$ifdef MATHINLINE}inline;{$endif}
-  {$endif}
     begin
       result := c_exp(d);
     end;
@@ -117,7 +100,7 @@ Not supported on Mac OS X 10.1
 
     function c_llround(d: double): int64; cdecl; external 'c' name 'llround';
 
-    function round(d : Real) : int64;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round];{$endif} external name 'FPC_ROUND';
+    function round(d : Real) : int64; external name 'FPC_ROUND';
 
     function fpc_round(d : Real) : int64;[public, alias:'FPC_ROUND'];compilerproc;
     begin
@@ -132,11 +115,7 @@ Not supported on Mac OS X 10.1
 
     function c_log(d: double): double; cdecl; external 'c' name 'log';
 
-  {$ifdef INTERNCONSTINTF}
     function fpc_Ln_real(d:Real):Real;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
-  {$else}
-    function Ln(d:Real):Real;[internconst:fpc_in_const_ln];{$ifdef MATHINLINE}inline;{$endif}
-  {$endif}
     begin
       result := c_log(d);
     end;
@@ -147,11 +126,7 @@ Not supported on Mac OS X 10.1
 {$define FPC_SYSTEM_HAS_SIN}
     function c_sin(d: double): double; cdecl; external 'c' name 'sin';
 
-  {$ifdef INTERNCONSTINTF}
     function fpc_Sin_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}
-    function Sin(d:Real):Real;[internconst:fpc_in_const_sin]; {$ifdef MATHINLINE}inline;{$endif}
-  {$endif}
     begin
       result := c_sin(d);
     end;
@@ -163,11 +138,7 @@ Not supported on Mac OS X 10.1
 {$define FPC_SYSTEM_HAS_COS}
     function c_cos(d: double): double; cdecl; external 'c' name 'cos';
 
-  {$ifdef INTERNCONSTINTF}
     function fpc_Cos_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}
-    function Cos(d:Real):Real;[internconst:fpc_in_const_cos];{$ifdef MATHINLINE}inline;{$endif}
-  {$endif}
     begin
       result := c_cos(d);
     end;
@@ -179,11 +150,7 @@ Not supported on Mac OS X 10.1
 {$define FPC_SYSTEM_HAS_ARCTAN}
     function c_atan(d: double): double; cdecl; external 'c' name 'atan';
 
-  {$ifdef INTERNCONSTINTF}
     function fpc_ArcTan_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}
-    function ArcTan(d:Real):Real;[internconst:fpc_in_const_arctan];{$ifdef MATHINLINE}inline;{$endif}
-  {$endif}
     begin
       result := c_atan(d);
     end;

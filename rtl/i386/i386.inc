@@ -1307,7 +1307,7 @@ end ['EAX'];
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_abs];{$endif}
+function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifndef REGCALL}
         movl    l,%eax
@@ -1319,7 +1319,7 @@ end ['EAX','EDX'];
 
 
 {$define FPC_SYSTEM_HAS_ODD_LONGINT}
-function odd(l:longint):boolean;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}
+function odd(l:longint):boolean;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifdef SYSTEMINLINE}
        movl     l,%eax
@@ -1334,7 +1334,7 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
-function sqr(l:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_sqr];{$endif}
+function sqr(l:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifdef SYSTEMINLINE}
        movl     l,%eax

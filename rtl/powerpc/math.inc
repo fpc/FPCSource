@@ -25,7 +25,6 @@ const
                        EXTENDED data type routines
  ****************************************************************************}
 
-{$ifdef INTERNCONSTINTF}
     {$define FPC_SYSTEM_HAS_PI}
     function fpc_pi_real : valreal;compilerproc;
     begin
@@ -50,28 +49,13 @@ const
       result:=0;
     end;
 
-{$else}
-    {$define FPC_SYSTEM_HAS_PI}
-    function pi : double;[internproc:fpc_in_pi];
-
-    {$define FPC_SYSTEM_HAS_ABS}
-    function abs(d : extended) : extended;[internproc:fpc_in_abs_real];
-
-    {$define FPC_SYSTEM_HAS_SQR}
-    function sqr(d : extended) : extended;[internproc:fpc_in_sqr_real];
-{$endif ndef INTERNCONSTINTF}
-
       const
         factor: double = double(int64(1) shl 32);
         factor2: double = double(int64(1) shl 31);
 
 {$ifndef FPC_SYSTEM_HAS_TRUNC}
     {$define FPC_SYSTEM_HAS_TRUNC}
-    {$ifdef INTERNCONSTINTF}
     function fpc_trunc_real(d : valreal) : int64;assembler;compilerproc;
-    {$else}
-    function trunc(d : extended) : int64;assembler;[internconst:fpc_in_const_trunc];
-    {$endif}
       { input: d in fr1      }
       { output: result in r3 }
       assembler;
@@ -163,7 +147,7 @@ const
 (*
 {$ifndef FPC_SYSTEM_HAS_ROUND}
     {$define FPC_SYSTEM_HAS_ROUND}
-    function round(d : extended) : int64;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round, external name 'FPC_ROUND'];{$endif}
+    function round(d : extended) : int64;
 
     function fpc_round(d : extended) : int64;assembler;[public, alias:'FPC_ROUND'];compilerproc;
       { exactly the same as trunc, except that one fctiwz has become fctiw }

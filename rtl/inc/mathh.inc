@@ -44,7 +44,6 @@
   {$endif}
 {$endif}
 
-{$ifdef internconstintf}
     function pi : ValReal;[internproc:fpc_in_pi_real];
     function abs(d : ValReal) : ValReal;[internproc:fpc_in_abs_real];
     function sqr(d : ValReal) : ValReal;[internproc:fpc_in_sqr_real];
@@ -58,21 +57,6 @@
     function frac(d : ValReal) : ValReal;[internproc:fpc_in_frac_real];
     function int(d : ValReal) : ValReal;[internproc:fpc_in_int_real];
     function trunc(d : ValReal) : int64;[internproc:fpc_in_trunc_real];
-{$else}
-    function abs(d : ValReal) : ValReal;
-    function arctan(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
-    function cos(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
-    function exp(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
-    function frac(d : ValReal) : ValReal;
-    function int(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
-    function ln(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
-    function pi : ValReal;
-    function sin(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
-    function sqr(d : ValReal) : ValReal;
-    function sqrt(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
-    function round(d : ValReal) : int64;
-    function trunc(d : ValReal) : int64;
-{$endif internconstintf}
 
 {$ifdef FPC_CURRENCY_IS_INT64}
     function trunc(c : currency) : int64;
