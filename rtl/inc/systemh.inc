@@ -119,9 +119,7 @@ Type
   Comp    = int64;
   PComp = ^Comp;
 
-{$ifdef FPC_HASNOFARPOINTER}
   FarPointer = Pointer;
-{$endif FPC_HASNOFARPOINTER}
 {$endif CPUM68K}
 
 {$ifdef CPUPOWERPC}
@@ -138,9 +136,7 @@ Type
   Comp = Int64;
   PComp = ^Comp;
 
-{$ifdef FPC_HASNOFARPOINTER}
   FarPointer = Pointer;
-{$endif FPC_HASNOFARPOINTER}
 {$endif CPUPOWERPC}
 
 {$ifdef CPUSPARC}
@@ -157,9 +153,7 @@ Type
   Comp = Int64;
   PComp = ^Comp;
 
-{$ifdef FPC_HASNOFARPOINTER}
   FarPointer = Pointer;
-{$endif FPC_HASNOFARPOINTER}
 {$endif CPUSPARC}
 
 {$ifdef CPUARM}
@@ -178,9 +172,7 @@ Type
   Comp = Int64;
   PComp = ^Comp;
 
-{$ifdef FPC_HASNOFARPOINTER}
   FarPointer = Pointer;
-{$endif FPC_HASNOFARPOINTER}
 {$endif CPUARM}
 
 {$ifdef CPU64}
