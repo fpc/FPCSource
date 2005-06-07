@@ -571,9 +571,7 @@ begin
 
     InitSystemThreads;
 
-{$ifdef HASVARIANT}
     initvariantmanager;
-{$endif HASVARIANT}
 
     if os_Mode in [osDOS,osDPMI] then
         DosEnvInit;

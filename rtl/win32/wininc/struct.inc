@@ -6651,44 +6651,6 @@
      TWOHandleArray = array[0..MAXIMUM_WAIT_OBJECTS-1] of HANDLE;
      PWOHandleArray = ^TWOHandleArray;
 
-{$ifndef HASVARIANT}
-  { This causes trouble with a compiler which has real variant support FK }
-  { Variant support }
-  TVarType = Word;
-  PVariant = ^TVariant;
-
-{ This variant type definition doesn't contain _all_ possible variant
-  types - some are not possible atm with FPC, e.g. VT_BSTR to mention
-  This is part of the variant definition used by Windows API not that Borland
-  TVarRec one which is already partially implemented.
-  Needed for some COM objects }
-
-  TVariant = record
-    vt: TVarType;
-    wReserved1: Word;
-    wReserved2: Word;
-    wReserved3: Word;
-    case Integer of
-      VT_UI1:                  (bVal: Byte);
-      VT_I2:                   (iVal: Smallint);
-      VT_I4:                   (lVal: Longint);
-      VT_R4:                   (fltVal: Single);
-      VT_R8:                   (dblVal: Double);
-      VT_BOOL:                 (vbool: WordBool);
-      VT_ERROR:                (scode: HResult);
-      VT_BYREF or VT_UI1:      (pbVal: ^Byte);
-      VT_BYREF or VT_I2:       (piVal: ^Smallint);
-      VT_BYREF or VT_I4:       (plVal: ^Longint);
-      VT_BYREF or VT_R4:       (pfltVal: ^Single);
-      VT_BYREF or VT_R8:       (pdblVal: ^Double);
-      VT_BYREF or VT_BOOL:     (pbool: ^WordBool);
-      VT_BYREF or VT_ERROR:    (pscode: ^HResult);
-      VT_BYREF:                (byRef: Pointer);
-  end;
-
- VARIANT = TVariant;
-{$endif HASVARIANT}
-
  MMRESULT = Longint;
 
 type

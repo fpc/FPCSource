@@ -757,9 +757,7 @@ begin
     DefaultFileType := '';
 
     InitSystemThreads;
-{$ifdef HASVARIANT}
     initvariantmanager;
-{$endif HASVARIANT}
 
 {$IFDEF EXTDUMPGROW}
 {    Int_HeapSize := high (cardinal);}

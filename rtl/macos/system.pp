@@ -542,9 +542,7 @@ begin
   InOutRes:=0;
   errno:=0;
   InitSystemThreads;
-{$ifdef HASVARIANT}
   initvariantmanager;
-{$endif HASVARIANT}
   initwidestringmanager;
 
   if StandAlone = 0 then

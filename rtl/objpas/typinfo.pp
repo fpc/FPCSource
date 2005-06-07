@@ -29,9 +29,6 @@ unit typinfo;
 // temporary types:
 
     type
-{$ifndef HASVARIANT}
-       Variant      = Pointer;
-{$endif}
 
 {$MINENUMSIZE 1   this saves a lot of memory }
        // if you change one of the following enumeration types

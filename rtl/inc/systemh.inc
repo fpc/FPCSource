@@ -262,10 +262,8 @@ Type
 
   PDate               = ^TDateTime;
   PError              = ^Error;
-{$ifdef HASVARIANT}
   PVariant            = ^Variant;
   POleVariant         = ^OleVariant;
-{$endif HASVARIANT}
 
   PWideChar           = ^WideChar;
   PPWideChar          = ^PWideChar;
@@ -712,9 +710,7 @@ const
                            Variant support
 *****************************************************************************}
 
-{$ifdef HASVARIANT}
 {$i varianth.inc}
-{$endif HASVARIANT}
 
 {*****************************************************************************
                    Internal helper routines support

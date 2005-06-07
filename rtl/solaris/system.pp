@@ -224,8 +224,6 @@ Begin
 { Arguments }
   SetupCmdLine;
   InitSystemThreads;
-{$ifdef HASVARIANT}
   initvariantmanager;
-{$endif HASVARIANT}
   initwidestringmanager;
 End.

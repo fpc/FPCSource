@@ -12,7 +12,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$ifdef HASVARIANT}
 
 Resourcestring
 
@@ -633,5 +632,4 @@ begin
       end;
 end;
 
-{$endif HASVARIANT}
 

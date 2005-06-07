@@ -202,7 +202,6 @@ Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); compil
 Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); compilerproc;
 Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); compilerproc;
 
-{$ifdef HASVARIANT}
 procedure fpc_variant_copy(d,s : pointer);compilerproc;
 procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); compilerproc;
 function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
@@ -211,7 +210,6 @@ function fpc_variant_to_interface(const v : variant) : iinterface;compilerproc;
 function fpc_interface_to_variant(const i : iinterface) : variant;compilerproc;
 procedure fpc_vararray_get(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
 procedure fpc_vararray_put(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
-{$endif HASVARIANT}
 
 Procedure fpc_Read_End(var f:Text); compilerproc;
 Procedure fpc_ReadLn_End(var f : Text); compilerproc;

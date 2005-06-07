@@ -1092,9 +1092,7 @@ begin
   InitSystemThreads;
   { Reset internal error variable }
   errno:=0;
-{$ifdef HASVARIANT}
   initvariantmanager;
-{$endif HASVARIANT}
   initwidestringmanager;
   InitWin32Widestrings
 end.

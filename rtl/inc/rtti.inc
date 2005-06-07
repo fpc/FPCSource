@@ -136,10 +136,8 @@ begin
     tkObject,
     tkRecord:
       recordrtti(data,typeinfo,@int_initialize);
-{$ifdef HASVARIANT}
     tkVariant:
       variant_init(PVarData(Data)^);
-{$endif HASVARIANT}
   end;
 end;
 
@@ -169,10 +167,8 @@ begin
       end;
     tkDynArray:
       fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
-{$ifdef HASVARIANT}
     tkVariant:
       variant_clear(PVarData(Data)^);
-{$endif HASVARIANT}
   end;
 end;
 
@@ -193,10 +189,8 @@ begin
       fpc_dynarray_incr_ref(PPointer(Data)^);
     tkInterface:
       Intf_Incr_Ref(PPointer(Data)^);
-{$ifdef HASVARIANT}
     tkVariant:
       variant_addref(pvardata(Data)^);
-{$endif HASVARIANT}
   end;
 end;
 
@@ -222,10 +216,8 @@ begin
       fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
     tkInterface:
       Intf_Decr_Ref(PPointer(Data)^);
-{$ifdef HASVARIANT}
     tkVariant:
       variant_clear(pvardata(data)^);
-{$endif HASVARIANT}
   end;
 end;
 
