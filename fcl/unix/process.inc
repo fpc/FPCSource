@@ -3,12 +3,8 @@
 }
 
 uses
-{$ifdef ver1_0}
-   Linux;
-{$else}
    Unix,
    Baseunix;
-{$endif}
 
 
 
@@ -20,51 +16,6 @@ Const
   GeometryOption : String = '-geometry';
   TitleOption : String ='-title';
 
-
-{$ifdef ver1_0}
-// Compatibility functions.
-// Change to function, check results..
-procedure fpDup2(H1,H2 : Longint);
-
-begin
-  dup2(H1,H2)
-end;
-
-function fpFork : Longint;
-
-begin
-end;
-
-function fpGetEnv(S : String) : PChar;
-
-begin
-  Result:=GetEnv(S : String);
-end;
-
-Procedure fpExecve(S : PChar; A,E : PPChar);
-
-begin
-  ExecVE(S,A,E);
-end;
-
-Procedure fpExecv(S : PChar; A : PPChar);
-
-begin
-  ExecVE(S,A);
-end;
-
-Function fpWaitPID(H: Longint; P : Pointer; Opts : Longint) : Integer;
-
-begin
-  Result:=WaitPID(Handle,@FExitCode,Opts);
-end;
-
-Function fpKill(PID,SIG : Longint) : Longint;
-
-begin
-  Result:=kill(Handle,SIGTERM)=0;
-end;
-{$endif}
 
 
 procedure TProcess.CloseProcessHandles;

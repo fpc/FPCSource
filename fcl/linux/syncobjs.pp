@@ -19,11 +19,7 @@ interface
 
 uses
   pthreads,
-{$ifdef ver1_0}
-  Linux,
-{$else}
   unix,
-{$endif}
   sysutils;
 
 type

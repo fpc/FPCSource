@@ -34,10 +34,6 @@ const
 
 
 type
-{$ifdef ver1_0}
-  PtrInt = Longint;
-  PPtrInt = ^PtrInt;
-{$endif}
 
 {LargeInt}
   LargeInt = Int64;
