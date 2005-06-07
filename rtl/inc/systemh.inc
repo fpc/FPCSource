@@ -462,9 +462,6 @@ function strpas(p:pchar):shortstring;external name 'FPC_PCHAR_TO_SHORTSTR';
 function strlen(p:pchar):longint;external name 'FPC_PCHAR_LENGTH';
 
 { Shortstring functions }
-{$ifndef INTERNSETLENGTH}
-Procedure SetLength (Var S:ShortString;len:SizeInt);
-{$endif INTERNSETLENGTH}
 {$ifndef InternCopy}
 Function  Copy(const s:shortstring;index:SizeInt;count:SizeInt):shortstring;
 {$endif interncopy}
@@ -475,9 +472,6 @@ Function  Pos(const substr:shortstring;const s:shortstring):SizeInt;
 Function  Pos(C:Char;const s:shortstring):SizeInt;
 Procedure SetString (Var S : Shortstring; Buf : PChar; Len : SizeInt);
 Procedure SetString (Var S : AnsiString; Buf : PChar; Len : SizeInt);
-{$ifndef INTERNLENGTH}
-Function  Length(s:string):byte;
-{$endif INTERNLENGTH}
 Function  upCase(const s:shortstring):shortstring;
 Function  lowerCase(const s:shortstring):shortstring; overload;
 Function  Space(b:byte):shortstring;
@@ -501,22 +495,13 @@ Function  lowerCase(c:Char):Char; overload;
 function  copy(c:char;index : SizeInt;count : SizeInt): shortstring;
 {$endif interncopy}
 function  pos(const substr : shortstring;c:char): SizeInt;
-{$ifndef INTERNLENGTH}
-function  length(c:char):byte;
-{$endif INTERNLENGTH}
 
 
 {****************************************************************************
                              AnsiString Handling
 ****************************************************************************}
 
-{$ifndef INTERNSETLENGTH}
-Procedure SetLength (Var S : AnsiString; l : SizeInt);
-{$endif INTERNSETLENGTH}
 Procedure UniqueString(Var S : AnsiString);external name 'FPC_ANSISTR_UNIQUE';
-{$ifndef INTERNLENGTH}
-Function  Length (Const S : AnsiString) : SizeInt;
-{$endif INTERNLENGTH}
 {$ifndef InternCopy}
 Function  Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;
 {$endif interncopy}

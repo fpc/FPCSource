@@ -15,13 +15,7 @@
  **********************************************************************}
 
 
-{$ifndef INTERNSETLENGTH}
-Procedure SetLength (Var S : WideString; l : SizeInt);
-{$endif INTERNSETLENGTH}
 procedure UniqueString(Var S : WideString);external name 'FPC_WIDESTR_UNIQUE';
-{$ifndef INTERNLENGTH}
-Function  Length (Const S : WideString) : SizeInt;
-{$endif INTERNLENGTH}
 {$ifndef InternCopy}
 Function  Copy (Const S : WideString; Index,Size : SizeInt) : WideString;
 {$endif interncopy}
