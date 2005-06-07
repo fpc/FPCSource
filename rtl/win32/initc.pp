@@ -11,9 +11,7 @@ type
 function fpgetCerrno:libcint;
 procedure fpsetCerrno(err:libcint);
 
-{$ifndef ver1_0}
 property cerrno:libcint read fpgetCerrno write fpsetcerrno;
-{$endif}
 
 
 implementation

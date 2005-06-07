@@ -87,10 +87,8 @@
         temp.free;
       end;
 
-{$ifdef HASINTF}
   { Interfaces support }
   {$i sysuintf.inc}
-{$endif HASINTF}
 
     constructor Exception.Create(const msg : string);
 

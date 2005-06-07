@@ -11,7 +11,6 @@
 
  **********************************************************************}
 
-{$ifdef HASINTF}
 
 type
    IReadWriteSync = interface
@@ -22,7 +21,6 @@ type
      procedure EndWrite;
    end;
 
-{$endif HASINTF}
 
 function InterLockedIncrement (var Target: longint) : longint;
 function InterLockedDecrement (var Target: longint) : longint;

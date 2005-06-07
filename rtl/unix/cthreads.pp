@@ -122,11 +122,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
     procedure CReleaseThreadVars;
       begin
-        {$ifdef ver1_0}
-        Fpmunmap(longint(pthread_getspecific(tlskey)),threadvarblocksize);
-        {$else}
         Fpmunmap(pointer(pthread_getspecific(tlskey)),threadvarblocksize);
-        {$endif}
       end;
 
 { Include OS independent Threadvar initialization }

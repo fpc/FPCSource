@@ -68,12 +68,10 @@ Function MidBStr(const AText: AnsiString; const AByteStart, AByteCount: Integer)
 Function AnsiLeftStr(const AText: AnsiString; const ACount: Integer): AnsiString;
 Function AnsiRightStr(const AText: AnsiString; const ACount: Integer): AnsiString;
 Function AnsiMidStr(const AText: AnsiString; const AStart, ACount: Integer): AnsiString;
-{$ifndef ver1_0}
 Function LeftBStr(const AText: AnsiString; const AByteCount: Integer): AnsiString;
 Function LeftStr(const AText: WideString; const ACount: Integer): WideString;
 Function RightStr(const AText: WideString; const ACount: Integer): WideString;
 Function MidStr(const AText: WideString; const AStart, ACount: Integer): WideString;
-{$endif}
 
 { ---------------------------------------------------------------------
     Extended search and replace
@@ -487,7 +485,6 @@ begin
   Result:=Copy(AText,AStart,ACount);
 end;
 
-{$ifndef ver1_0}
 Function LeftStr(const AText: WideString; const ACount: Integer): WideString;
 
 begin
@@ -515,7 +512,6 @@ Function MidStr(const AText: WideString; const AStart, ACount: Integer): WideStr
 begin
   Result:=Copy(AText,AStart,ACount);
 end;
-{$endif}
 
 
 

@@ -38,10 +38,8 @@ unit softfpu;
 }
 {$Q-}
 
-{$ifndef ver1_0}
 {$ifdef fpc}
 {$define hascompilerproc}
-{$endif}
 {$endif}
 
 {$ifdef fpc}

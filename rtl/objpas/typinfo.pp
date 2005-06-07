@@ -190,13 +190,8 @@ Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo;
 Function FindPropInfo(Instance: TObject; const PropName: string): PPropInfo;
 Function FindPropInfo(AClass:TClass;const PropName: string): PPropInfo;
 Procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
-{$ifdef ver1_0}
-Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean):longint;
-Function GetPropList(TypeInfo: PTypeInfo; var PropList: PPropList): SizeInt;
-{$else}
 Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean = true):longint;
 Function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
-{$endif}
 
 
 // Property information routines.
@@ -608,11 +603,7 @@ Type TInsertProp = Procedure (PL : PProplist;PI : PPropInfo; Count : longint);
 
 //Const InsertProps : array[false..boolean] of TInsertProp = (InsertPropNoSort,InsertProp);
 
-{$ifdef ver1_0}
-Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean):longint;
-{$else}
 Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean = true):longint;
-{$endif}
 
 {
   Store Pointers to property information OF A CERTAIN KIND in the list pointed
@@ -654,11 +645,7 @@ begin
 end;
 
 
-{$ifdef ver1_0}
-Function GetPropList(TypeInfo: PTypeInfo; var PropList: PPropList): SizeInt;
-{$else}
 Function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
-{$endif}
   begin
     result:=GetTypeData(TypeInfo)^.Propcount;
     if result>0 then

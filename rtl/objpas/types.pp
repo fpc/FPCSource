@@ -21,7 +21,6 @@ unit types;
        Windows;
 {$endif Win32}
 
-{$ifndef ver1_0}
 const
   RT_RCDATA = PChar(10);
 
@@ -228,7 +227,6 @@ type
   STATSTG = TStatStg;
   PStatStg = ^TStatStg;
 
-{$ifdef HASINTF}
   IClassFactory = Interface(IUnknown) ['{00000001-0000-0000-C000-000000000046}']
      Function CreateInstance(Const unkOuter : IUnknown;Const riid : TGUID;Out vObject) : HResult;StdCall;
      Function LockServer(fLock : LongBool) : HResult;StdCall;
@@ -254,7 +252,6 @@ type
      Function Stat(out statstg : TStatStg;grfStatFlag : Longint) : HRESULT;stdcall;
      function Clone(out stm : IStream) : HRESULT;stdcall;
   end;
-{$endif HASINTF}
 {$endif win32}
 
 function EqualRect(const r1,r2 : TRect) : Boolean;
@@ -268,11 +265,8 @@ function IsRectEmpty(const Rect : TRect) : Boolean;
 function OffsetRect(var Rect : TRect;DX : Integer;DY : Integer) : Boolean;
 function CenterPoint(const Rect: TRect): TPoint;
 
-{$endif ver1_0}
-
 implementation
 
-{$ifndef ver1_0}
 
 function EqualRect(const r1,r2 : TRect) : Boolean;
 
@@ -398,6 +392,5 @@ begin
 end;
 
 
-{$endif ver1_0}
 
 end.

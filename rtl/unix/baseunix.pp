@@ -38,14 +38,9 @@ Uses UnixType;
   {$i bunxh.inc}                { Functions}
 {$ENDIF}
 
-{$ifndef ver1_0}
   function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
   procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
   property errno : cint read fpgeterrno write fpseterrno;
-{$else}
-  function fpgeterrno:longint;
-  procedure fpseterrno(err:longint);
-{$endif}
 
 {$i bunxovlh.inc}
 
@@ -56,23 +51,6 @@ implementation
 Uses Sysctl;
 {$endif}
 
-{$ifdef ver1_0}
-// workaround for 1.0.10 bugs.
-
-function intgeterrno:longint; external name 'FPC_SYS_GETERRNO';
-procedure intseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
-
-function fpgeterrno:longint;
-begin
-  fpgeterrno:=intgeterrno;
-end;
-
-procedure fpseterrno(err:longint);
-begin
-  intseterrno(err);
-end;
-
-{$endif}
 
 {$i genfuncs.inc}       // generic calls. (like getenv)
 {$I gensigset.inc}     // general sigset funcs implementation.

@@ -56,16 +56,10 @@ var
   CheckEOF: Boolean;      { Enable Ctrl-Z }
   DirectVideo: Boolean;   { Enable direct video addressing }
   CheckSnow: Boolean;     { Enable snow filtering }
-{$ifdef ver1_0}
-const
-{$endif}
   LastMode: Word = 3;         { Current text mode }
   TextAttr: Byte = $07;         { Current text attribute }
   WindMin: Word  = $0;          { Window upper left coordinates }
   WindMax: Word  = $184f;          { Window lower right coordinates }
-{$ifdef ver1_0}
-var
-{$endif}
   { FPC Specific for large screen support }
   WindMinX : DWord;
   WindMaxX : DWord;
