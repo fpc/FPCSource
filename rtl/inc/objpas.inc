@@ -18,7 +18,7 @@
 ****************************************************************************}
 
     { the reverse order of the parameters make code generation easier }
-    function fpc_do_is(aclass : tclass;aobject : tobject) : boolean;[public,alias: 'FPC_DO_IS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_do_is(aclass : tclass;aobject : tobject) : boolean;[public,alias: 'FPC_DO_IS']; compilerproc;
       begin
          fpc_do_is:=assigned(aobject) and assigned(aclass) and
            aobject.inheritsfrom(aclass);
@@ -26,7 +26,7 @@
 
 
     { the reverse order of the parameters make code generation easier }
-    function fpc_do_as(aclass : tclass;aobject : tobject): tobject;[public,alias: 'FPC_DO_AS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_do_as(aclass : tclass;aobject : tobject): tobject;[public,alias: 'FPC_DO_AS']; compilerproc;
       begin
          if assigned(aobject) and not(aobject.inheritsfrom(aclass)) then
            handleerrorframe(219,get_frame);
@@ -34,31 +34,27 @@
       end;
 
     { interface helpers }
-    procedure fpc_intf_decr_ref(var i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias: 'FPC_INTF_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    procedure fpc_intf_decr_ref(var i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias: 'FPC_INTF_DECR_REF']; compilerproc;
       begin
         if assigned(i) then
           IUnknown(i)._Release;
         i:=nil;
       end;
 
-    {$ifdef hascompilerproc}
     { local declaration for intf_decr_ref for local access }
     procedure intf_decr_ref(var i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [external name 'FPC_INTF_DECR_REF'];
-    {$endif hascompilerproc}
 
 
-    procedure fpc_intf_incr_ref(i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    procedure fpc_intf_incr_ref(i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias: 'FPC_INTF_INCR_REF']; compilerproc;
       begin
          if assigned(i) then
            IUnknown(i)._AddRef;
       end;
 
-    {$ifdef hascompilerproc}
     { local declaration of intf_incr_ref for local access }
     procedure intf_incr_ref(i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [external name 'FPC_INTF_INCR_REF'];
-    {$endif hascompilerproc}
 
-    procedure fpc_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    procedure fpc_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN']; compilerproc;
       begin
          if assigned(S) then
            IUnknown(S)._AddRef;
@@ -67,7 +63,7 @@
          D:=S;
       end;
 
-    function fpc_intf_as(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_INTF_AS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_intf_as(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_INTF_AS']; compilerproc;
 
       var
         tmpi: pointer; // _AddRef before _Release
@@ -83,7 +79,7 @@
       end;
 
 
-    function fpc_class_as_intf(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_CLASS_AS_INTF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_class_as_intf(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_CLASS_AS_INTF']; compilerproc;
 
       var
         tmpi: pointer; // _AddRef before _Release

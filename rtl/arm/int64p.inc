@@ -14,7 +14,7 @@
  **********************************************************************}
 
 {$define FPC_SYSTEM_HAS_MUL_QWORD}
-function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;assembler;[public,alias: 'FPC_MUL_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;assembler;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
 asm
   mov r6,#0
   // lo(f1)*lo(f2)

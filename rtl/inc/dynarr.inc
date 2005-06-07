@@ -43,14 +43,14 @@ function aligntoptr(p : pointer) : pointer;
   end;
 
 
-procedure fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex);[Public,Alias:'FPC_DYNARRAY_RANGECHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex);[Public,Alias:'FPC_DYNARRAY_RANGECHECK']; compilerproc;
   begin
      if not(assigned(p)) or (i<0) or (i>pdynarray(p-sizeof(tdynarray))^.high) then
        HandleErrorFrame(201,get_frame);
   end;
 
 
-function fpc_dynarray_length(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNARRAY_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_dynarray_length(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNARRAY_LENGTH']; compilerproc;
   begin
      if assigned(p) then
        fpc_dynarray_length:=pdynarray(p-sizeof(tdynarray))^.high+1
@@ -59,7 +59,7 @@ function fpc_dynarray_length(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DY
   end;
 
 
-function fpc_dynarray_high(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNARRAY_HIGH']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_dynarray_high(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNARRAY_HIGH']; compilerproc;
   begin
      if assigned(p) then
        fpc_dynarray_high:=pdynarray(p-sizeof(tdynarray))^.high
@@ -94,7 +94,7 @@ procedure fpc_dynarray_clear_internal(p : pointer;ti : pointer);
   end;
 
 
-procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_DYNARRAY_CLEAR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_DYNARRAY_CLEAR']; compilerproc;
   var
      realp : pdynarray;
   begin
@@ -106,13 +106,11 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
     p:=nil;
   end;
 
-{$ifdef hascompilerproc}
 { alias for internal use }
 Procedure fpc_dynarray_clear (var p : pointer;ti : pointer);[external name 'FPC_DYNARRAY_CLEAR'];
-{$endif hascompilerproc}
 
 
-procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_DYNARRAY_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_DYNARRAY_DECR_REF']; compilerproc;
   var
      realp : pdynarray;
   begin
@@ -130,12 +128,10 @@ procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);{$ifndef NOSAVEREG
      p := nil;
   end;
 
-{$ifdef hascompilerproc}
 { provide local access to dynarr_decr_ref for dynarr_setlength }
 procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [external name 'FPC_DYNARRAY_DECR_REF'];
-{$endif}
 
-procedure fpc_dynarray_incr_ref(p : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_DYNARRAY_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_dynarray_incr_ref(p : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_DYNARRAY_INCR_REF']; compilerproc;
   var
      realp : pdynarray;
   begin
@@ -149,17 +145,15 @@ procedure fpc_dynarray_incr_ref(p : pointer);{$ifndef NOSAVEREGISTERS}saveregist
      inclocked(realp^.refcount);
   end;
 
-{$ifdef hascompilerproc}
 { provide local access to dynarr_decr_ref for dynarr_setlength }
 procedure fpc_dynarray_incr_ref(p : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_DYNARRAY_INCR_REF'];
-{$endif}
 
 { provide local access to dynarr_setlength }
 procedure int_dynarray_setlength(var p : pointer;pti : pointer;
   dimcount : dword;dims : pdynarrayindex);[external name 'FPC_DYNARR_SETLENGTH'];
 
 procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
-  dimcount : dword;dims : pdynarrayindex);[Public,Alias:'FPC_DYNARR_SETLENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  dimcount : dword;dims : pdynarrayindex);[Public,Alias:'FPC_DYNARR_SETLENGTH']; compilerproc;
 
   var
      i : tdynarrayindex;
@@ -298,13 +292,13 @@ function int_dynarray_copy(psrc : pointer;ti : pointer;
     lowidx,count:tdynarrayindex) : pointer;[external name 'FPC_DYNARR_COPY'];
 
 function fpc_dynarray_copy(psrc : pointer;ti : pointer;
-    lowidx,count:tdynarrayindex) : pointer;[Public,Alias:'FPC_DYNARR_COPY'];{$ifdef hascompilerproc} compilerproc; {$endif}
+    lowidx,count:tdynarrayindex) : pointer;[Public,Alias:'FPC_DYNARR_COPY'];compilerproc;
 {$else HASFUNCTIONCOPYDYNARR}
 procedure int_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
     lowidx,count:tdynarrayindex);[external name 'FPC_DYNARR_COPY'];
 
 procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
-    lowidx,count:tdynarrayindex);[Public,Alias:'FPC_DYNARR_COPY'];{$ifdef hascompilerproc} compilerproc; {$endif}
+    lowidx,count:tdynarrayindex);[Public,Alias:'FPC_DYNARR_COPY'];compilerproc;
 {$endif HASFUNCTIONCOPYDYNARR}
   var
     realpdest,

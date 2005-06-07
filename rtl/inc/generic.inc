@@ -359,7 +359,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
 { Note: _vmt will be reset to -1 when memory is allocated,
   this is needed for fpc_help_fail }
-function fpc_help_constructor(_self:pointer;var _vmt:pointer;_vmt_pos:cardinal):pointer;[public,alias:'FPC_HELP_CONSTRUCTOR'];{$ifdef hascompilerproc}compilerproc;{$endif}
+function fpc_help_constructor(_self:pointer;var _vmt:pointer;_vmt_pos:cardinal):pointer;[public,alias:'FPC_HELP_CONSTRUCTOR'];compilerproc;
 type
   ppointer = ^pointer;
   pvmt = ^tvmt;
@@ -397,7 +397,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 { Note: _self will not be reset, the compiler has to generate the reset }
-procedure fpc_help_destructor(_self,_vmt:pointer;vmt_pos:cardinal);[public,alias:'FPC_HELP_DESTRUCTOR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_help_destructor(_self,_vmt:pointer;vmt_pos:cardinal);[public,alias:'FPC_HELP_DESTRUCTOR'];  compilerproc;
 type
   ppointer = ^pointer;
   pvmt = ^tvmt;
@@ -457,7 +457,7 @@ end;
 {$ifndef NOCLASSHELPERS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
-function fpc_new_class(_self,_vmt:pointer):pointer;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_new_class(_self,_vmt:pointer):pointer;[public,alias:'FPC_NEW_CLASS']; compilerproc;
 begin
   { Inherited call? }
   if _vmt=nil then
@@ -485,7 +485,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
-procedure fpc_check_object(_vmt : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_CHECK_OBJECT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_check_object(_vmt : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_CHECK_OBJECT'];  compilerproc;
 type
   pvmt = ^tvmt;
   tvmt = packed record
@@ -506,7 +506,7 @@ end;
 { checks for a correct vmt pointer }
 { deeper check to see if the current object is }
 { really related to the true }
-procedure fpc_check_object_ext(vmt, expvmt : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_CHECK_OBJECT_EXT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_check_object_ext(vmt, expvmt : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_CHECK_OBJECT_EXT']; compilerproc;
 type
   pvmt = ^tvmt;
   tvmt = packed record
@@ -534,7 +534,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
-function fpc_shortstr_to_shortstr(len:longint;const sstr:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_shortstr_to_shortstr(len:longint;const sstr:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
 var
   slen : byte;
 begin
@@ -564,7 +564,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
-function fpc_shortstr_concat(const s1,s2:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_CONCAT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_shortstr_concat(const s1,s2:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_CONCAT']; compilerproc;
 var
   s1l, s2l : byte;
 begin
@@ -580,7 +580,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
-procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring);{$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring);compilerproc;
     [public,alias:'FPC_SHORTSTR_APPEND_SHORTSTR'];
 var
   s1l, s2l : byte;
@@ -596,7 +596,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
-function fpc_shortstr_compare(const left,right:shortstring) : longint;[public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_shortstr_compare(const left,right:shortstring) : longint;[public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
 var
    s1,s2,max,i : byte;
    d : longint;
@@ -627,7 +627,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
-function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
 var
   l : longint;
   s: shortstring;
@@ -649,20 +649,13 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
-{$ifdef hascompilerproc}
 function fpc_chararray_to_shortstr(const arr: array of char):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
 var
   l: longint;
-{$else hascompilerproc}
-function fpc_chararray_to_shortstr(arr:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR'];
-var
-{$endif hascompilerproc}
  index: longint;
  len: byte;
 begin
-{$ifdef hascompilerproc}
   l := high(arr)+1;
-{$endif hascompilerproc}
   if l>=256 then
     l:=255
   else if l<0 then
@@ -678,7 +671,6 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
-{$ifdef hascompilerproc}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_TO_CHARARRAY}
 
@@ -699,56 +691,9 @@ end;
 
 {$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_TO_CHARARRAY}
 
-{$else hascompilerproc}
-
-{$ifopt r+}
-{$define rangeon}
-{$r-}
-{$endif}
-
-{$ifndef FPC_SYSTEM_HAS_FPC_STR_TO_CHARARRAY}
-procedure fpc_str_to_chararray(strtyp, arraysize: longint; src,dest: pchar);[public,alias:'FPC_STR_TO_CHARARRAY'];  {$ifdef hascompilerproc} compilerproc; {$endif}
-type
-  plongint = ^longint;
-var
-  len: longint;
-begin
-  case strtyp of
-    { shortstring }
-    0:
-      begin
-        len := byte(src[0]);
-        inc(src);
-      end;
-{$ifdef SUPPORT_ANSISTRING}
-    { ansistring}
-    1: len := length(ansistring(pointer(src)));
-{$endif SUPPORT_ANSISTRING}
-    { longstring }
-    2:;
-    { widestring }
-    3: ;
-  end;
-  if len > arraysize then
-    len := arraysize;
-  { make sure we don't dereference src if it can be nil (JM) }
-  if len > 0 then
-    move(src^,dest^,len);
-  fillchar(dest[len],arraysize-len,0);
-end;
-
-{$endif FPC_SYSTEM_HAS_FPC_STR_TO_CHARARRAY}
-
-{$ifdef rangeon}
-{$r+}
-{undef rangeon}
-{$endif rangeon}
-
-{$endif hascompilerproc}
-
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
-function fpc_pchar_length(p:pchar):longint;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_pchar_length(p:pchar):longint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
 var i : longint;
 begin
   i:=0;
@@ -760,7 +705,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PWIDECHAR_LENGTH}
 
-function fpc_pwidechar_length(p:pwidechar):longint;[public,alias:'FPC_PWIDECHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_pwidechar_length(p:pwidechar):longint;[public,alias:'FPC_PWIDECHAR_LENGTH']; compilerproc;
 var i : longint;
 begin
   i:=0;
@@ -812,7 +757,7 @@ function count_leading_zeros_32bit(l : longint) : longint;
 
 
 {$ifndef FPC_SYSTEM_HAS_DIV_DWORD}
-function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; compilerproc;
   var
      shift,lzz,lzn : longint;
   begin
@@ -842,7 +787,7 @@ function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; {$
 
 
 {$ifndef FPC_SYSTEM_HAS_MOD_DWORD}
-function fpc_mod_dword(n,z : dword) : dword; [public,alias: 'FPC_MOD_DWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_mod_dword(n,z : dword) : dword; [public,alias: 'FPC_MOD_DWORD']; compilerproc;
   var
      shift,lzz,lzn : longint;
   begin
@@ -873,7 +818,7 @@ function fpc_mod_dword(n,z : dword) : dword; [public,alias: 'FPC_MOD_DWORD']; {$
 
 
 {$ifndef FPC_SYSTEM_HAS_DIV_LONGINT}
-function fpc_div_longint(n,z : longint) : longint; [public,alias: 'FPC_DIV_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_div_longint(n,z : longint) : longint; [public,alias: 'FPC_DIV_LONGINT']; compilerproc;
   var
      sign : boolean;
      d1,d2 : dword;
@@ -906,7 +851,7 @@ function fpc_div_longint(n,z : longint) : longint; [public,alias: 'FPC_DIV_LONGI
 
 
 {$ifndef FPC_SYSTEM_HAS_MOD_LONGINT}
-function fpc_mod_longint(n,z : longint) : longint; [public,alias: 'FPC_MOD_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_mod_longint(n,z : longint) : longint; [public,alias: 'FPC_MOD_LONGINT']; compilerproc;
   var
      signed : boolean;
      r,nq,zq : dword;

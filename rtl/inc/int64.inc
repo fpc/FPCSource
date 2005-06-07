@@ -33,7 +33,7 @@
 {$ifdef  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
 {$ifndef FPC_SYSTEM_HAS_SHL_QWORD}
-    function fpc_shl_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHL_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_shl_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHL_QWORD']; compilerproc;
       begin
         shift:=shift and 63;
         if shift=0 then
@@ -53,7 +53,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_SHR_QWORD}
-   function fpc_shr_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHR_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+   function fpc_shr_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHR_QWORD']; compilerproc;
       begin
         shift:=shift and 63;
         if shift=0 then
@@ -73,7 +73,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_SHL_INT64}
-    function fpc_shl_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHL_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_shl_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHL_INT64']; compilerproc;
       begin
         shift:=shift and 63;
         if shift=0 then
@@ -93,7 +93,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_SHR_INT64}
-    function fpc_shr_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHR_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_shr_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHR_INT64']; compilerproc;
       begin
         shift:=shift and 63;
         if shift=0 then
@@ -145,7 +145,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_DIV_QWORD}
-    function fpc_div_qword(n,z : qword) : qword;[public,alias: 'FPC_DIV_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_div_qword(n,z : qword) : qword;[public,alias: 'FPC_DIV_QWORD']; compilerproc;
 
       var
          shift,lzz,lzn : longint;
@@ -177,7 +177,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_MOD_QWORD}
-    function fpc_mod_qword(n,z : qword) : qword;[public,alias: 'FPC_MOD_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_mod_qword(n,z : qword) : qword;[public,alias: 'FPC_MOD_QWORD']; compilerproc;
 
       var
          shift,lzz,lzn : longint;
@@ -210,7 +210,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_DIV_INT64}
-    function fpc_div_int64(n,z : int64) : int64;[public,alias: 'FPC_DIV_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_div_int64(n,z : int64) : int64;[public,alias: 'FPC_DIV_INT64']; compilerproc;
 
       var
          sign : boolean;
@@ -248,7 +248,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_MOD_INT64}
-    function fpc_mod_int64(n,z : int64) : int64;[public,alias: 'FPC_MOD_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_mod_int64(n,z : int64) : int64;[public,alias: 'FPC_MOD_INT64']; compilerproc;
 
       var
          signed : boolean;
@@ -284,7 +284,7 @@
     { multiplies two qwords
       the longbool for checkoverflow avoids a misaligned stack
     }
-    function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
 
       var
          _f1,bitpos : qword;
@@ -318,7 +318,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_MUL_INT64}
-    function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64;[public,alias: 'FPC_MUL_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64;[public,alias: 'FPC_MUL_INT64']; compilerproc;
 
       var
          sign : boolean;

@@ -39,10 +39,6 @@ unit softfpu;
 {$Q-}
 
 {$ifdef fpc}
-{$define hascompilerproc}
-{$endif}
-
-{$ifdef fpc}
 {$goto on}
 {$endif}
 
@@ -106,7 +102,7 @@ the corresponding value `b', and 0 otherwise.  The comparison is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float64_lt(a: float64;b: float64): flag; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float64_lt(a: float64;b: float64): flag; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns 1 if the double-precision floating-point value `a' is less than
@@ -115,7 +111,7 @@ is performed according to the IEC/IEEE Standard for Binary Floating-Point
 Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float64_le(a: float64;b: float64): flag; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float64_le(a: float64;b: float64): flag; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns 1 if the double-precision floating-point value `a' is equal to
@@ -123,7 +119,7 @@ the corresponding value `b', and 0 otherwise.  The comparison is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float64_eq(a: float64;b: float64): flag; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float64_eq(a: float64;b: float64): flag; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the square root of the double-precision floating-point value `a'.
@@ -131,7 +127,7 @@ The operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_sqrt( a: float64; var out: float64 ); {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure float64_sqrt( a: float64; var out: float64 ); compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the remainder of the double-precision floating-point value `a'
@@ -139,7 +135,7 @@ with respect to the corresponding value `b'.  The operation is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_rem(a: float64; b : float64; var out: float64); {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure float64_rem(a: float64; b : float64; var out: float64); compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of dividing the double-precision floating-point value `a'
@@ -147,7 +143,7 @@ by the corresponding value `b'.  The operation is performed according to the
 IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_div(a: float64; b : float64 ; var out: float64 ); {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure float64_div(a: float64; b : float64 ; var out: float64 ); compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of multiplying the double-precision floating-point values
@@ -155,7 +151,7 @@ Returns the result of multiplying the double-precision floating-point values
 for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_mul( a: float64; b:float64; Var out: float64); {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure float64_mul( a: float64; b:float64; Var out: float64); compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of subtracting the double-precision floating-point values
@@ -163,7 +159,7 @@ Returns the result of subtracting the double-precision floating-point values
 for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_sub(a: float64; b : float64; var out: float64); {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure float64_sub(a: float64; b : float64; var out: float64); compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of adding the double-precision floating-point values `a'
@@ -171,7 +167,7 @@ and `b'.  The operation is performed according to the IEC/IEEE Standard for
 Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_add( a: float64; b : float64; Var out : float64); {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure float64_add( a: float64; b : float64; Var out : float64); compilerproc;
 {*
 -------------------------------------------------------------------------------
 Rounds the double-precision floating-point value `a' to an integer,
@@ -180,7 +176,7 @@ operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_round_to_int(a: float64; var out: float64 ); {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure float64_round_to_int(a: float64; var out: float64 ); compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the double-precision floating-point value
@@ -189,7 +185,7 @@ performed according to the IEC/IEEE Standard for Binary Floating-Point
 Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float64_to_float32(a: float64 ): float32; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float64_to_float32(a: float64 ): float32; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the double-precision floating-point value
@@ -201,7 +197,7 @@ the conversion overflows, the largest integer with the same sign as `a' is
 returned.
 -------------------------------------------------------------------------------
 *}
-Function float64_to_int32_round_to_zero(a: float64 ): int32; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float64_to_int32_round_to_zero(a: float64 ): int32; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the double-precision floating-point value
@@ -213,7 +209,7 @@ positive integer is returned.  Otherwise, if the conversion overflows, the
 largest integer with the same sign as `a' is returned.
 -------------------------------------------------------------------------------
 *}
-Function float64_to_int32(a: float64): int32; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float64_to_int32(a: float64): int32; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns 1 if the single-precision floating-point value `a' is less than
@@ -221,7 +217,7 @@ the corresponding value `b', and 0 otherwise.  The comparison is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_lt( a:float32 ; b : float32): flag; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float32_lt( a:float32 ; b : float32): flag; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns 1 if the single-precision floating-point value `a' is less than
@@ -230,7 +226,7 @@ is performed according to the IEC/IEEE Standard for Binary Floating-Point
 Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_le( a: float32; b : float32 ):flag; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float32_le( a: float32; b : float32 ):flag; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns 1 if the single-precision floating-point value `a' is equal to
@@ -238,7 +234,7 @@ the corresponding value `b', and 0 otherwise.  The comparison is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_eq( a:float32; b:float32): flag; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float32_eq( a:float32; b:float32): flag; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the square root of the single-precision floating-point value `a'.
@@ -246,7 +242,7 @@ The operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_sqrt(a: float32 ): float32; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float32_sqrt(a: float32 ): float32; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the remainder of the single-precision floating-point value `a'
@@ -254,7 +250,7 @@ with respect to the corresponding value `b'.  The operation is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_rem(a: float32; b: float32 ):float32; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float32_rem(a: float32; b: float32 ):float32; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of dividing the single-precision floating-point value `a'
@@ -262,7 +258,7 @@ by the corresponding value `b'.  The operation is performed according to the
 IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_div(a: float32;b: float32 ): float32; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float32_div(a: float32;b: float32 ): float32; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of multiplying the single-precision floating-point values
@@ -270,7 +266,7 @@ Returns the result of multiplying the single-precision floating-point values
 for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_mul(a: float32; b: float32 ) : float32; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float32_mul(a: float32; b: float32 ) : float32; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of subtracting the single-precision floating-point values
@@ -278,7 +274,7 @@ Returns the result of subtracting the single-precision floating-point values
 for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_sub( a: float32 ; b:float32 ): float32; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float32_sub( a: float32 ; b:float32 ): float32; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of adding the single-precision floating-point values `a'
@@ -286,7 +282,7 @@ and `b'.  The operation is performed according to the IEC/IEEE Standard for
 Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_add( a: float32; b:float32 ): float32; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float32_add( a: float32; b:float32 ): float32; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Rounds the single-precision floating-point value `a' to an integer,
@@ -295,7 +291,7 @@ operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_round_to_int( a: float32): float32; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float32_round_to_int( a: float32): float32; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the single-precision floating-point value
@@ -304,7 +300,7 @@ performed according to the IEC/IEEE Standard for Binary Floating-Point
 Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float32_to_float64( a : float32; var out: Float64); {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure float32_to_float64( a : float32; var out: Float64); compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the single-precision floating-point value
@@ -316,7 +312,7 @@ the conversion overflows, the largest integer with the same sign as `a' is
 returned.
 -------------------------------------------------------------------------------
 *}
-Function float32_to_int32_round_to_zero( a: Float32 ): int32; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float32_to_int32_round_to_zero( a: Float32 ): int32; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the single-precision floating-point value
@@ -328,7 +324,7 @@ positive integer is returned.  Otherwise, if the conversion overflows, the
 largest integer with the same sign as `a' is returned.
 -------------------------------------------------------------------------------
 *}
-Function float32_to_int32( a : float32) : int32; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function float32_to_int32( a : float32) : int32; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the 32-bit two's complement integer `a' to
@@ -336,7 +332,7 @@ the double-precision floating-point format.  The conversion is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure int32_to_float64( a: int32; var c: float64 ); {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure int32_to_float64( a: int32; var c: float64 ); compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the 32-bit two's complement integer `a' to
@@ -344,21 +340,21 @@ the single-precision floating-point format.  The conversion is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function int32_to_float32( a: int32): float32; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function int32_to_float32( a: int32): float32; compilerproc;
 
 {*----------------------------------------------------------------------------
 | Returns the result of converting the 64-bit two's complement integer `a'
 | to the double-precision floating-point format.  The conversion is performed
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*}
-function int64_to_float64( a: int64 ): float64; {$ifdef hascompilerproc} compilerproc; {$endif}
+function int64_to_float64( a: int64 ): float64; compilerproc;
 
 {*----------------------------------------------------------------------------
 | Returns the result of converting the 64-bit two's complement integer `a'
 | to the single-precision floating-point format.  The conversion is performed
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*}
-function int64_to_float32( a: int64 ): float32; {$ifdef hascompilerproc} compilerproc; {$endif}
+function int64_to_float32( a: int64 ): float32; compilerproc;
 
 
 CONST
@@ -2077,7 +2073,7 @@ the single-precision floating-point format.  The conversion is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function int32_to_float32( a: int32): float32; {$ifdef fpc}[public,Alias:'INT32_TO_FLOAT32'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Function int32_to_float32( a: int32): float32; {$ifdef fpc}[public,Alias:'INT32_TO_FLOAT32'];compilerproc;{$endif}
  Var
   zSign : Flag;
  Begin
@@ -2107,7 +2103,7 @@ the double-precision floating-point format.  The conversion is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure int32_to_float64( a: int32; var c: float64 );{$ifdef fpc} [public,Alias:'INT32_TO_FLOAT64'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Procedure int32_to_float64( a: int32; var c: float64 );{$ifdef fpc} [public,Alias:'INT32_TO_FLOAT64'];compilerproc;{$endif}
   var
     zSign : flag;
     absA : bits32;
@@ -2149,7 +2145,7 @@ positive integer is returned.  Otherwise, if the conversion overflows, the
 largest integer with the same sign as `a' is returned.
 -------------------------------------------------------------------------------
 *}
-Function float32_to_int32( a : float32) : int32;{$ifdef fpc} [public,Alias:'FLOAT32_TO_INT32'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Function float32_to_int32( a : float32) : int32;{$ifdef fpc} [public,Alias:'FLOAT32_TO_INT32'];compilerproc;{$endif}
   Var
     aSign: flag;
     aExp, shiftCount: int16;
@@ -2238,7 +2234,7 @@ returned.
 -------------------------------------------------------------------------------
 *}
 Function float32_to_int32_round_to_zero( a: Float32 ): int32;
- {$ifdef fpc}[public,Alias:'FLOAT32_TO_INT32_ROUND_TO_ZERO'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+ {$ifdef fpc}[public,Alias:'FLOAT32_TO_INT32_ROUND_TO_ZERO'];compilerproc;{$endif}
  Var
     aSign : flag;
     aExp, shiftCount : int16;
@@ -2292,7 +2288,7 @@ Arithmetic.
 -------------------------------------------------------------------------------
 *}
 Procedure float32_to_float64( a : float32; var out: Float64);
-{$ifdef fpc}[public,Alias:'FLOAT32_TO_FLOAT64'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc}[public,Alias:'FLOAT32_TO_FLOAT64'];compilerproc;{$endif}
   Var
     aSign : flag;
     aExp : int16;
@@ -2336,7 +2332,7 @@ Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
 Function float32_round_to_int( a: float32): float32;
-{$ifdef fpc}[public,Alias:'FLOAT32_ROUND_TO_INT'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc}[public,Alias:'FLOAT32_ROUND_TO_INT'];compilerproc;{$endif}
   Var
     aSign: flag;
     aExp: int16;
@@ -2634,7 +2630,7 @@ and `b'.  The operation is performed according to the IEC/IEEE Standard for
 Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_add( a: float32; b:float32 ): float32;{$ifdef fpc} [public,Alias:'FLOAT32_ADD'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Function float32_add( a: float32; b:float32 ): float32;{$ifdef fpc} [public,Alias:'FLOAT32_ADD'];compilerproc;{$endif}
   Var
     aSign, bSign: Flag;
   Begin
@@ -2657,7 +2653,7 @@ Returns the result of subtracting the single-precision floating-point values
 for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_sub( a: float32 ; b:float32 ): float32;{$ifdef fpc} [public,Alias:'FLOAT32_SUB'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Function float32_sub( a: float32 ; b:float32 ): float32;{$ifdef fpc} [public,Alias:'FLOAT32_SUB'];compilerproc;{$endif}
   Var
     aSign, bSign: flag;
   Begin
@@ -2680,7 +2676,7 @@ Returns the result of multiplying the single-precision floating-point values
 for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_mul(a: float32; b: float32 ) : float32;{$ifdef fpc} [public,Alias:'FLOAT32_MUL'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Function float32_mul(a: float32; b: float32 ) : float32;{$ifdef fpc} [public,Alias:'FLOAT32_MUL'];compilerproc;{$endif}
 
   Var
     aSign, bSign, zSign: flag;
@@ -2763,7 +2759,7 @@ by the corresponding value `b'.  The operation is performed according to the
 IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_div(a: float32;b: float32 ): float32;{$ifdef fpc} [public,Alias:'FLOAT32_DIV'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Function float32_div(a: float32;b: float32 ): float32;{$ifdef fpc} [public,Alias:'FLOAT32_DIV'];compilerproc;{$endif}
   Var
     aSign, bSign, zSign: flag;
     aExp, bExp, zExp: int16;
@@ -2862,7 +2858,7 @@ with respect to the corresponding value `b'.  The operation is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_rem(a: float32; b: float32 ):float32;{$ifdef fpc} [public,Alias:'FLOAT32_REM'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Function float32_rem(a: float32; b: float32 ):float32;{$ifdef fpc} [public,Alias:'FLOAT32_REM'];compilerproc;{$endif}
   Var
     aSign, bSign, zSign: flag;
     aExp, bExp, expDiff: int16;
@@ -2981,7 +2977,7 @@ The operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_sqrt(a: float32 ): float32;{$ifdef fpc} [public,Alias:'FLOAT32_SQRT'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Function float32_sqrt(a: float32 ): float32;{$ifdef fpc} [public,Alias:'FLOAT32_SQRT'];compilerproc;{$endif}
 Var
     aSign : flag;
     aExp, zExp : int16;
@@ -3064,7 +3060,7 @@ the corresponding value `b', and 0 otherwise.  The comparison is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_eq( a:float32; b:float32): flag;{$ifdef fpc} [public,Alias:'FLOAT32_EQ'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Function float32_eq( a:float32; b:float32): flag;{$ifdef fpc} [public,Alias:'FLOAT32_EQ'];compilerproc;{$endif}
 Begin
     if ((( extractFloat32Exp( a ) = $FF ) AND  (extractFloat32Frac( a )<>0))
          OR ( ( extractFloat32Exp( b ) = $FF ) AND  (extractFloat32Frac( b )<>0) )
@@ -3088,7 +3084,7 @@ is performed according to the IEC/IEEE Standard for Binary Floating-Point
 Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_le( a: float32; b : float32 ):flag;{$ifdef fpc} [public,Alias:'FLOAT32_LE'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Function float32_le( a: float32; b : float32 ):flag;{$ifdef fpc} [public,Alias:'FLOAT32_LE'];compilerproc;{$endif}
 var
     aSign, bSign: flag;
 Begin
@@ -3119,7 +3115,7 @@ the corresponding value `b', and 0 otherwise.  The comparison is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_lt( a:float32 ; b : float32): flag;{$ifdef fpc} [public,Alias:'FLOAT32_LT'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Function float32_lt( a:float32 ; b : float32): flag;{$ifdef fpc} [public,Alias:'FLOAT32_LT'];compilerproc;{$endif}
 var
     aSign, bSign: flag;
 Begin
@@ -3243,7 +3239,7 @@ positive integer is returned.  Otherwise, if the conversion overflows, the
 largest integer with the same sign as `a' is returned.
 -------------------------------------------------------------------------------
 *}
-Function float64_to_int32(a: float64): int32;{$ifdef fpc} [public,Alias:'FLOAT64_TO_INT32'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Function float64_to_int32(a: float64): int32;{$ifdef fpc} [public,Alias:'FLOAT64_TO_INT32'];compilerproc;{$endif}
 var
     aSign: flag;
     aExp, shiftCount: int16;
@@ -3340,7 +3336,7 @@ returned.
 -------------------------------------------------------------------------------
 *}
 Function float64_to_int32_round_to_zero(a: float64 ): int32;
-{$ifdef fpc} [public,Alias:'FLOAT64_TO_INT32_ROUND_TO_ZERO'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc} [public,Alias:'FLOAT64_TO_INT32_ROUND_TO_ZERO'];compilerproc;{$endif}
 Var
     aSign: flag;
     aExp, shiftCount: int16;
@@ -3407,7 +3403,7 @@ performed according to the IEC/IEEE Standard for Binary Floating-Point
 Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float64_to_float32(a: float64 ): float32;{$ifdef fpc} [public,Alias:'FLOAT64_TO_FLOAT32'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Function float64_to_float32(a: float64 ): float32;{$ifdef fpc} [public,Alias:'FLOAT64_TO_FLOAT32'];compilerproc;{$endif}
 Var
     aSign: flag;
     aExp: int16;
@@ -3444,7 +3440,7 @@ operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_round_to_int(a: float64; var out: float64 );{$ifdef fpc} [public,Alias:'FLOAT64_ROUND_TO_INT'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+Procedure float64_round_to_int(a: float64; var out: float64 );{$ifdef fpc} [public,Alias:'FLOAT64_ROUND_TO_INT'];compilerproc;{$endif}
 
 Var
     aSign: flag;
@@ -3809,7 +3805,7 @@ Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
 Procedure float64_add( a: float64; b : float64; Var out : float64);
-{$ifdef fpc}[public,Alias:'FLOAT64_ADD'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc}[public,Alias:'FLOAT64_ADD'];compilerproc;{$endif}
 Var
     aSign, bSign: flag;
 Begin
@@ -3833,7 +3829,7 @@ for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
 Procedure float64_sub(a: float64; b : float64; var out: float64);
-{$ifdef fpc}[public,Alias:'FLOAT64_SUB'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc}[public,Alias:'FLOAT64_SUB'];compilerproc;{$endif}
 Var
     aSign, bSign: flag;
 Begin
@@ -3857,7 +3853,7 @@ for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
 Procedure float64_mul( a: float64; b:float64; Var out: float64);
-{$ifdef fpc}[public,Alias:'FLOAT64_MUL'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc}[public,Alias:'FLOAT64_MUL'];compilerproc;{$endif}
 Var
     aSign, bSign, zSign: flag;
     aExp, bExp, zExp: int16;
@@ -3946,7 +3942,7 @@ IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
 Procedure float64_div(a: float64; b : float64 ; var out: float64 );
-{$ifdef fpc}[public,Alias:'FLOAT64_DIV'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc}[public,Alias:'FLOAT64_DIV'];compilerproc;{$endif}
 Var
     aSign, bSign, zSign: flag;
     aExp, bExp, zExp: int16;
@@ -4062,7 +4058,7 @@ according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
 Procedure float64_rem(a: float64; b : float64; var out: float64);
-{$ifdef fpc}[public,Alias:'FLOAT64_REM'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc}[public,Alias:'FLOAT64_REM'];compilerproc;{$endif}
 Var
     aSign, bSign, zSign: flag;
     aExp, bExp, expDiff: int16;
@@ -4202,7 +4198,7 @@ Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
 Procedure float64_sqrt( a: float64; var out: float64 );
-{$ifdef fpc}[public,Alias:'FLOAT64_SQRT'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc}[public,Alias:'FLOAT64_SQRT'];compilerproc;{$endif}
 Var
     aSign: flag;
     aExp, zExp: int16;
@@ -4299,7 +4295,7 @@ according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
 Function float64_eq(a: float64; b: float64): flag;
-{$ifdef fpc}[public,Alias:'FLOAT64_EQ'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc}[public,Alias:'FLOAT64_EQ'];compilerproc;{$endif}
 Begin
     if
          (
@@ -4339,7 +4335,7 @@ Arithmetic.
 -------------------------------------------------------------------------------
 *}
 Function float64_le(a: float64;b: float64): flag;
-{$ifdef fpc}[public,Alias:'FLOAT64_LE'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc}[public,Alias:'FLOAT64_LE'];compilerproc;{$endif}
 Var
     aSign, bSign: flag;
 Begin
@@ -4387,7 +4383,7 @@ according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
 Function float64_lt(a: float64;b: float64): flag;
-{$ifdef fpc}[public,Alias:'FLOAT64_LT'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc}[public,Alias:'FLOAT64_LT'];compilerproc;{$endif}
 Var
     aSign, bSign: flag;
 Begin
@@ -4571,7 +4567,7 @@ End;
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*}
 function int64_to_float32( a: int64 ): float32;
-{$ifdef fpc}[public,Alias:'INT64_TO_FLOAT32'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc}[public,Alias:'INT64_TO_FLOAT32'];compilerproc;{$endif}
 var
     zSign : flag;
     absA : uint64;
@@ -4622,7 +4618,7 @@ End;
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*}
 function int64_to_float64( a: int64 ): float64;
-{$ifdef fpc}[public,Alias:'INT64_TO_FLOAT64'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
+{$ifdef fpc}[public,Alias:'INT64_TO_FLOAT64'];compilerproc;{$endif}
 var
  zSign : flag;
  float_result : float64;

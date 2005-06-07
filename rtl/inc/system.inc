@@ -511,23 +511,23 @@ end;
                              Miscellaneous
 *****************************************************************************}
 
-procedure fpc_rangeerror;[public,alias:'FPC_RANGEERROR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_rangeerror;[public,alias:'FPC_RANGEERROR']; compilerproc;
 begin
   HandleErrorFrame(201,get_frame);
 end;
 
-procedure fpc_divbyzero;[public,alias:'FPC_DIVBYZERO']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_divbyzero;[public,alias:'FPC_DIVBYZERO']; compilerproc;
 begin
   HandleErrorFrame(200,get_frame);
 end;
 
-procedure fpc_overflow;[public,alias:'FPC_OVERFLOW']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_overflow;[public,alias:'FPC_OVERFLOW']; compilerproc;
 begin
   HandleErrorFrame(215,get_frame);
 end;
 
 
-procedure fpc_iocheck;{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_IOCHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_iocheck;{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_IOCHECK']; compilerproc;
 var
   l : longint;
 begin
@@ -604,7 +604,7 @@ type
 var
   InitFinalTable : TInitFinalTable;external name 'INITFINAL';
 
-procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
   i : longint;
 begin
@@ -933,7 +933,7 @@ end;
                           Abstract/Assert support.
 *****************************************************************************}
 
-procedure fpc_AbstractErrorIntern;{$ifdef hascompilerproc}compilerproc;{$endif}[public,alias : 'FPC_ABSTRACTERROR'];
+procedure fpc_AbstractErrorIntern;compilerproc;[public,alias : 'FPC_ABSTRACTERROR'];
 begin
   If pointer(AbstractErrorProc)<>nil then
     AbstractErrorProc();
@@ -941,7 +941,7 @@ begin
 end;
 
 
-Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [Public,Alias : 'FPC_ASSERT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [Public,Alias : 'FPC_ASSERT']; compilerproc;
 begin
   if pointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
