@@ -421,9 +421,7 @@ type
 {$endif}
 
 {$ifndef INTERNCONSTINTF}
-  {$ifdef hascompilerproc}
     function fpc_abs_real(d:Real):Real;compilerproc; external name 'FPC_ABS_REAL';
-  {$endif hascompilerproc}
 {$endif}
 
 {$endif not FPC_SYSTEM_HAS_ABS}
@@ -567,9 +565,7 @@ type
   {$ifdef INTERNCONSTINTF}
     function fpc_sqrt_real(d:Real):Real;compilerproc;
   {$else}
-    {$ifdef hascompilerproc}
        function fpc_sqrt_real(d:Real):Real;compilerproc; external name 'FPC_SQRT_REAL';
-    {$endif hascompilerproc}
     function sqrt(d:Real):Real;[internconst:fpc_in_const_sqrt];[public, alias: 'FPC_SQRT_REAL'];
   {$endif}
     {*****************************************************************}
@@ -714,12 +710,8 @@ type
   {$ifdef INTERNCONSTINTF}
     function fpc_round_real(d : Real) : int64;compilerproc;
   {$else}
-    {$ifdef hascompilerproc}
       function round(d : Real) : int64;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round];{$endif} external name 'FPC_ROUND';
-      function fpc_round(d : Real) : int64;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
-   {$else}
-      function round(d : Real) : int64;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round];{$endif}
-   {$endif hascompilerproc}
+      function fpc_round(d : Real) : int64;[public, alias:'FPC_ROUND'];compilerproc;
  {$endif}
      var
       fr: Real;

@@ -45,7 +45,7 @@ begin
 end;
 
 
-Procedure fpc_reset_typed(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_reset_typed(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED']; compilerproc;
 Begin
   If InOutRes <> 0 then
    exit;
@@ -53,7 +53,7 @@ Begin
 End;
 
 
-Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_REWRITE_TYPED']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_REWRITE_TYPED']; compilerproc;
 Begin
   If InOutRes <> 0 then
    exit;
@@ -61,7 +61,7 @@ Begin
 End;
 
 
-Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf);[IOCheck, Public, Alias :'FPC_TYPED_WRITE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf);[IOCheck, Public, Alias :'FPC_TYPED_WRITE']; compilerproc;
 Begin
   If InOutRes <> 0 then
    exit;
@@ -73,7 +73,7 @@ Begin
   end;
 End;
 
-Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias :'FPC_TYPED_READ']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias :'FPC_TYPED_READ']; compilerproc;
 var
   Result : Longint;
 Begin

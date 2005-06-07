@@ -14,7 +14,7 @@
  **********************************************************************}
 
 {$define FPC_SYSTEM_HAS_DIV_QWORD}
-    function fpc_div_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_DIV_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_div_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_DIV_QWORD']; compilerproc;
       { from the ppc compiler writers guide }
       assembler; nostackframe;
       asm
@@ -126,7 +126,7 @@
 {$define FPC_SYSTEM_HAS_MOD_QWORD}
     function int_div_qword(n,z : qword) : qword;external name 'FPC_DIV_QWORD';
 
-    function fpc_mod_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_MOD_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_mod_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_MOD_QWORD']; compilerproc;
       assembler;
       var
         oldlr: pointer;
@@ -144,7 +144,7 @@
     { multiplies two qwords
       the longbool for checkoverflow avoids a misaligned stack
     }
-    function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
       assembler; nostackframe;
       asm
         // (r3:r4) = (r3:r4) * (r5:r6),  checkoverflow is in r7

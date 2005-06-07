@@ -30,7 +30,6 @@ type
   fpc_small_set = longint;
   fpc_normal_set = array[0..7] of longint;
 
-{$ifdef hascompilerproc}
 
 { Needed to solve overloading problem with call from assembler (PFV) }
 {$ifdef valuegetmem}
@@ -182,8 +181,8 @@ Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc
 Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
 
 { from text.inc }
-Function fpc_get_input:PText;{$ifdef hascompilerproc}compilerproc;{$endif}
-Function fpc_get_output:PText;{$ifdef hascompilerproc}compilerproc;{$endif}
+Function fpc_get_input:PText;compilerproc;
+Function fpc_get_output:PText;compilerproc;
 Procedure fpc_Write_End(var f:Text); compilerproc;
 Procedure fpc_Writeln_End(var f:Text); compilerproc;
 Procedure fpc_Write_Text_ShortStr(Len : Longint;var f : Text;const s : String); compilerproc;
@@ -213,9 +212,9 @@ procedure fpc_vararray_put(var d : variant;const s : variant;indices : psizeint;
 
 Procedure fpc_Read_End(var f:Text); compilerproc;
 Procedure fpc_ReadLn_End(var f : Text); compilerproc;
-Procedure fpc_Read_Text_ShortStr(var f : Text;var s : String); compilerproc;
-Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text;var s : PChar); compilerproc;
-Procedure fpc_Read_Text_PChar_As_Array(var f : Text;var s : array of char); compilerproc;
+Procedure fpc_Read_Text_ShortStr(var f : Text;out s : String); compilerproc;
+Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text;out s : PChar); compilerproc;
+Procedure fpc_Read_Text_PChar_As_Array(var f : Text;out s : array of char); compilerproc;
 Procedure fpc_Read_Text_AnsiStr(var f : Text;var s : AnsiString); compilerproc;
 Procedure fpc_Read_Text_Char(var f : Text; var c : char); compilerproc;
 Procedure fpc_Read_Text_SInt(var f : Text; var l :ValSInt); compilerproc;
@@ -352,5 +351,4 @@ function fpc_int64_to_double(i: int64): double; compilerproc;
 function fpc_qword_to_double(q: qword): double; compilerproc;
 {$endif FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 
-{$endif hascompilerproc}
 

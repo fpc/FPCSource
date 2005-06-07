@@ -235,13 +235,9 @@
 {$ifdef internconstintf}
     function fpc_round_real(d : ValReal) : int64;assembler;compilerproc;
 {$else}
-  {$ifdef hascompilerproc}
     function round(d : extended) : int64;[internconst:fpc_in_const_round, external name 'FPC_ROUND'];
 
-    function fpc_round(d : extended) : int64;assembler;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
-  {$else}
-    function round(d : extended) : int64;assembler;[internconst:fpc_in_const_round];
-  {$endif hascompilerproc}
+    function fpc_round(d : extended) : int64;assembler;[public, alias:'FPC_ROUND'];compilerproc;
 {$endif}
       var
         oldcw,

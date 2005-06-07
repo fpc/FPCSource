@@ -168,7 +168,7 @@ begin
 end;
 
 
-Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_WIDESTR_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_WIDESTR_DECR_REF']; compilerproc;
 {
   Decreases the ReferenceCount of a non constant widestring;
   If the reference count is zero, deallocate the string;
@@ -193,16 +193,10 @@ Begin
 {$endif}
 end;
 
-{$ifdef hascompilerproc}
 { alias for internal use }
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_WIDESTR_DECR_REF'];
-{$endif compilerproc}
 
-{$ifdef hascompilerproc}
-Procedure fpc_WideStr_Incr_Ref (S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_WIDESTR_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
-{$else}
-Procedure fpc_WideStr_Incr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_WIDESTR_INCR_REF'];
-{$endif compilerproc}
+Procedure fpc_WideStr_Incr_Ref (S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_WIDESTR_INCR_REF']; compilerproc;
 Begin
   If S=Nil then
     exit;
@@ -211,12 +205,10 @@ Begin
   inclocked(PWideRec(S-WideFirstOff)^.Ref);
 end;
 
-{$ifdef hascompilerproc}
 { alias for internal use }
 Procedure fpc_WideStr_Incr_Ref (S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_WIDESTR_INCR_REF'];
-{$endif compilerproc}
 
-function fpc_WideStr_To_ShortStr (high_of_res: SizeInt;const S2 : WideString): shortstring;[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_WideStr_To_ShortStr (high_of_res: SizeInt;const S2 : WideString): shortstring;[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];  compilerproc;
 {
   Converts a WideString to a ShortString;
 }
@@ -238,7 +230,7 @@ begin
 end;
 
 
-Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString;{$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString;compilerproc;
 {
   Converts a ShortString to a WideString;
 }
@@ -256,16 +248,7 @@ begin
 end;
 
 
-{ old style helper }
-{$ifndef hascompilerproc}
-
-Procedure fpc_ShortStr_To_WideStr (Var S1 : Pointer; Const S2 : ShortString);[Public, alias: 'FPC_SHORTSTR_TO_WIDESTR'];
-begin
-  s1 := pointer(fpc_ShortStr_To_WideStr(s2));
-end;
-{$endif hascompilerproc}
-
-Function fpc_WideStr_To_AnsiStr (const S2 : WideString): AnsiString; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_WideStr_To_AnsiStr (const S2 : WideString): AnsiString; compilerproc;
 {
   Converts a WideString to an AnsiString
 }
@@ -284,16 +267,8 @@ begin
    end;
 end;
 
-{ old style helper }
-{$ifndef hascompilerproc}
-Procedure fpc_WideStr_To_AnsiStr (Var S1 : Pointer;const S2 : WideString);[Public, alias: 'FPC_WIDESTR_TO_ANSISTR'];
-begin
-  s1 := pointer(fpc_WideStr_To_AnsiStr(s2));
-end;
-{$endif hascompilerproc}
 
-
-Function fpc_AnsiStr_To_WideStr (Const S2 : AnsiString): WideString; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_AnsiStr_To_WideStr (Const S2 : AnsiString): WideString; compilerproc;
 {
   Converts an AnsiString to a WideString;
 }
@@ -370,17 +345,9 @@ begin
 end;
 
 
-{ old style helper }
-{$ifndef hascompilerproc}
-Procedure fpc_AnsiStr_To_WideStr (Var S1 : Pointer; Const S2 : AnsiString);[Public, alias: 'FPC_ANSISTR_TO_WIDESTR'];
-begin
-  s1 := pointer(fpc_AnsiStr_To_WideStr(s2));
-end;
-{$endif hascompilerproc}
-
 
 { checked against the ansistring routine, 2001-05-27 (FK) }
-Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_WIDESTR_ASSIGN']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_WIDESTR_ASSIGN']; compilerproc;
 {
   Assigns S2 to S1 (S1:=S2), taking in account reference counts.
 }
@@ -394,19 +361,13 @@ begin
   S1:=S2;
 end;
 
-{$ifdef hascompilerproc}
 { alias for internal use }
 Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC_WIDESTR_ASSIGN'];
-{$endif hascompilerproc}
 
 { checked against the ansistring routine, 2001-05-27 (FK) }
-{$ifdef hascompilerproc}
 function fpc_WideStr_Concat (const S1,S2 : WideString): WideString; compilerproc;
 var
   S3: WideString absolute result;
-{$else hascompilerproc}
-Procedure fpc_WideStr_Concat (S1,S2 : WideString;var S3 : WideString);[Public, alias: 'FPC_WIDESTR_CONCAT'];
-{$endif hascompilerproc}
 {
   Concatenates 2 WideStrings : S1+S2.
   Result Goes to S3;
@@ -432,7 +393,7 @@ begin
 end;
 
 
-Function fpc_Char_To_WideStr(const c : WideChar): WideString; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Char_To_WideStr(const c : WideChar): WideString; compilerproc;
 {
   Converts a Char to a WideString;
 }
@@ -446,16 +407,8 @@ begin
   PWideChar(Pointer(fpc_Char_To_WideStr)+sizeof(WideChar))^:=#0;
 end;
 
-{ old style helper }
-{$ifndef hascompilerproc}
-Procedure fpc_Char_To_WideStr(var S1 : Pointer; c : WideChar);[Public, alias: 'FPC_CHAR_TO_WIDESTR'];
-begin
-  s1 := pointer(fpc_Char_To_WideStr(c));
-end;
-{$endif hascompilerproc}
 
-
-Function fpc_PChar_To_WideStr(const p : pchar): WideString; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_PChar_To_WideStr(const p : pchar): WideString; compilerproc;
 Var
   L : SizeInt;
 begin
@@ -467,16 +420,7 @@ begin
   widestringmanager.Ansi2WideMoveProc(P,fpc_PChar_To_WideStr,l);
 end;
 
-{ old style helper }
-{$ifndef hascompilerproc}
-
-Procedure fpc_PChar_To_WideStr(var a : WideString;p : pchar);[Public,Alias : 'FPC_PCHAR_TO_WIDESTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
-begin
-  pointer(a) := pointer(fpc_PChar_To_WideStr(p));
-end;
-{$endif hascompilerproc}
-
-Function fpc_CharArray_To_WideStr(const arr: array of char): WideString; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_CharArray_To_WideStr(const arr: array of char): WideString; compilerproc;
 var
   i  : SizeInt;
 begin
@@ -490,42 +434,14 @@ begin
   widestringmanager.Ansi2WideMoveProc (pchar(@arr),fpc_CharArray_To_WideStr,i);
 end;
 
-{ old style helper }
-{$ifndef hascompilerproc}
-Procedure fpc_CharArray_To_WideStr(var a : WideString; p: pointer; len: SizeInt); [Public,Alias : 'FPC_CHARARRAY_TO_WIDESTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
-var
-  src: pchar;
-  i: SizeInt;
-begin
-  src := pchar(p);
-  if src[0]=#0 Then
-    begin
-      pointer(a) := nil;
-      exit;
-    end;
-  i:=IndexChar(src^,len,#0);
-  if i = -1 then
-    i := len;
-  pointer(a) := NewWideString(i);
-  widestringmanager.Ansi2WideMoveProc (src,a,i);
-end;
-{$endif not hascompilerproc}
-
-{$ifdef hascompilerproc}
 function fpc_WideCharArray_To_ShortStr(const arr: array of widechar): shortstring;[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
 var
   l: longint;
-{$else hascompilerproc}
-function fpc_WideCharArray_To_ShortStr(arr:pwidechar; l : longint):shortstring;[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR'];
-var
-{$endif hascompilerproc}
  index: longint;
  len: byte;
  temp: ansistring;
 begin
-{$ifdef hascompilerproc}
   l := high(arr)+1;
-{$endif hascompilerproc}
   if l>=256 then
     l:=255
   else if l<0 then
@@ -535,16 +451,12 @@ begin
     len := l
   else
     len := index;
-{$ifdef hascompilerproc}
   widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),temp,len);
-{$else}
-  widestringmanager.Wide2AnsiMoveProc (arr, temp,len);
-{$endif}
   fpc_WideCharArray_To_ShortStr := temp;
   //fpc_WideCharArray_To_ShortStr[0]:=chr(len);
 end;
 
-Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar): AnsiString; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar): AnsiString; compilerproc;
 var
   i  : SizeInt;
 begin
@@ -558,28 +470,7 @@ begin
   widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),fpc_WideCharArray_To_AnsiStr,i);
 end;
 
-{ old style helper }
-{$ifndef hascompilerproc}
-Procedure fpc_WideCharArray_To_AnsiStr(var a : AnsiString; p: pointer; len: SizeInt); [Public,Alias : 'FPC_WIDECHARARRAY_TO_ANSISTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
-var
-  src: pwidechar;
-  i: SizeInt;
-begin
-  src := pwidechar(p);
-  if src[0]=#0 Then
-    begin
-      pointer(a) := nil;
-      exit;
-    end;
-  i:=IndexWord(src^,len,0);
-  if i = -1 then
-    i := len;
-  pointer(a) := NewAnsiString(i);
-  widestringmanager.Wide2AnsiMoveProc (src,a,i);
-end;
-{$endif not hascompilerproc}
-
-Function fpc_WideCharArray_To_WideStr(const arr: array of widechar): WideString; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_WideCharArray_To_WideStr(const arr: array of widechar): WideString; compilerproc;
 var
   i  : SizeInt;
 begin
@@ -595,30 +486,6 @@ begin
   PWideChar(Pointer(@fpc_WideCharArray_To_WideStr[1])+i*sizeof(WideChar))^:=#0;
 end;
 
-{ old style helper }
-{$ifndef hascompilerproc}
-Procedure fpc_WideCharArray_To_WideStr(var a : WideString; p: pointer; len: SizeInt); [Public,Alias : 'FPC_WIDECHARARRAY_TO_WIDESTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
-var
-  src: pwidechar;
-  i: SizeInt;
-begin
-  src := pwidechar(p);
-  if src[0]=#0 Then
-    begin
-      pointer(a) := nil;
-      exit;
-    end;
-  i:=IndexWord(src^,len,#0);
-  if i = -1 then
-    i := len;
-  pointer(a) := NewWideString(i);
-  Move(p^, PWideChar(Pointer(@a[1]))^,i*sizeof(WideChar));
-  { Terminating Zero }
-  PWideChar(Pointer(@a[1])+i*sizeof(WideChar))^:=#0;
-end;
-{$endif not hascompilerproc}
-
-{$ifdef hascompilerproc}
 { inside the compiler, the resulttype is modified to that of the actual }
 { chararray we're converting to (JM)                                    }
 function fpc_widestr_to_chararray(arraysize: SizeInt; const src: WideString): fpc_big_chararray;[public,alias: 'FPC_WIDESTR_TO_CHARARRAY']; compilerproc;
@@ -636,9 +503,7 @@ begin
   move(temp[1],fpc_widestr_to_chararray[0],len);
   fillchar(fpc_widestr_to_chararray[len],arraysize-len,0);
 end;
-{$endif hascompilerproc}
 
-{$ifdef hascompilerproc}
 { inside the compiler, the resulttype is modified to that of the actual }
 { widechararray we're converting to (JM)                                }
 function fpc_widestr_to_widechararray(arraysize: SizeInt; const src: WideString): fpc_big_widechararray;[public,alias: 'FPC_WIDESTR_TO_WIDECHARARRAY']; compilerproc;
@@ -653,9 +518,7 @@ begin
     move(src[1],fpc_widestr_to_widechararray[0],len*SizeOf(WideChar));
   fillchar(fpc_widestr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
 end;
-{$endif hascompilerproc}
 
-{$ifdef hascompilerproc}
 { inside the compiler, the resulttype is modified to that of the actual }
 { chararray we're converting to (JM)                                    }
 function fpc_ansistr_to_widechararray(arraysize: SizeInt; const src: AnsiString): fpc_big_widechararray;[public,alias: 'FPC_ANSISTR_TO_WIDECHARARRAY']; compilerproc;
@@ -674,9 +537,7 @@ begin
   move(temp[1],fpc_ansistr_to_widechararray[0],len*sizeof(widechar));
   fillchar(fpc_ansistr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
 end;
-{$endif hascompilerproc}
 
-{$ifdef hascompilerproc}
 function fpc_shortstr_to_widechararray(arraysize: SizeInt; const src: ShortString): fpc_big_widechararray;[public,alias: 'FPC_SHORTSTR_TO_WIDECHARARRAY']; compilerproc;
 var
   len: longint;
@@ -693,8 +554,7 @@ begin
   fillchar(fpc_shortstr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
 end;
 
-{$endif hascompilerproc}
-Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt;[Public,Alias : 'FPC_WIDESTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt;[Public,Alias : 'FPC_WIDESTR_COMPARE']; compilerproc;
 {
   Compares 2 WideStrings;
   The result is
@@ -721,20 +581,20 @@ begin
 end;
 
 
-Procedure fpc_WideStr_CheckZero(p : pointer);[Public,Alias : 'FPC_WIDESTR_CHECKZERO']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_CheckZero(p : pointer);[Public,Alias : 'FPC_WIDESTR_CHECKZERO']; compilerproc;
 begin
   if p=nil then
     HandleErrorFrame(201,get_frame);
 end;
 
 
-Procedure fpc_WideStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_WIDESTR_RANGECHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_WIDESTR_RANGECHECK']; compilerproc;
 begin
   if (index>len) or (Index<1) then
     HandleErrorFrame(201,get_frame);
 end;
 
-Procedure fpc_WideStr_SetLength (Var S : WideString; l : SizeInt);[Public,Alias : 'FPC_WIDESTR_SETLENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_SetLength (Var S : WideString; l : SizeInt);[Public,Alias : 'FPC_WIDESTR_SETLENGTH']; compilerproc;
 {
   Sets The length of string S to L.
   Makes sure S is unique, and contains enough room.
@@ -830,7 +690,7 @@ procedure WideCharToStrVar(S : PWideChar;var Dest : AnsiString);
 
 
 
-Function fpc_widestr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_WIDESTR_UNIQUE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_widestr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_WIDESTR_UNIQUE']; compilerproc;
 {
   Make sure reference count of S is 1,
   using copy-on-write semantics.
@@ -1062,7 +922,7 @@ begin
 end;
 
 
-Function fpc_Val_Real_WideStr(Const S : WideString; Var Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Val_Real_WideStr(Const S : WideString; Var Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_WIDESTR']; compilerproc;
 Var
   SS : String;
 begin
@@ -1077,7 +937,7 @@ begin
 end;
 
 
-Function fpc_Val_UInt_WideStr (Const S : WideString; Var Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Val_UInt_WideStr (Const S : WideString; Var Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_WIDESTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1092,7 +952,7 @@ begin
 end;
 
 
-Function fpc_Val_SInt_WideStr (DestSize: SizeInt; Const S : WideString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Val_SInt_WideStr (DestSize: SizeInt; Const S : WideString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_WIDESTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1109,7 +969,7 @@ end;
 
 {$ifndef CPU64}
 
-Function fpc_Val_qword_WideStr (Const S : WideString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Val_qword_WideStr (Const S : WideString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_WIDESTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1124,7 +984,7 @@ begin
 end;
 
 
-Function fpc_Val_int64_WideStr (Const S : WideString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Val_int64_WideStr (Const S : WideString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_WIDESTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1141,7 +1001,7 @@ end;
 {$endif CPU64}
 
 
-procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : SizeInt;var s : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : SizeInt;var s : WideString);compilerproc;
 var
   ss : shortstring;
 begin
@@ -1151,9 +1011,9 @@ end;
 
 
 {$ifdef STR_USES_VALINT}
-Procedure fpc_WideStr_SInt(v : ValSint; Len : SizeInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_SInt(v : ValSint; Len : SizeInt; Var S : WideString);compilerproc;
 {$else}
-Procedure fpc_WideStr_Longint(v : Longint; Len : SizeInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Longint(v : Longint; Len : SizeInt; Var S : WideString);compilerproc;
 {$endif}
 Var
   SS : ShortString;
@@ -1164,9 +1024,9 @@ end;
 
 
 {$ifdef STR_USES_VALINT}
-Procedure fpc_WideStr_UInt(v : ValUInt;Len : SizeInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_UInt(v : ValUInt;Len : SizeInt; Var S : WideString);compilerproc;
 {$else}
-Procedure fpc_WideStr_Longword(v : Longword;Len : SizeInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Longword(v : Longword;Len : SizeInt; Var S : WideString);compilerproc;
 {$endif}
 Var
   SS : ShortString;
@@ -1178,7 +1038,7 @@ end;
 
 {$ifndef CPU64}
 
-Procedure fpc_WideStr_Int64(v : Int64; Len : SizeInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Int64(v : Int64; Len : SizeInt; Var S : WideString);compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1187,7 +1047,7 @@ begin
 end;
 
 
-Procedure fpc_WideStr_Qword(v : Qword;Len : SizeInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Qword(v : Qword;Len : SizeInt; Var S : WideString);compilerproc;
 Var
   SS : ShortString;
 begin

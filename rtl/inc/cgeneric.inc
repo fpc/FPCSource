@@ -139,7 +139,7 @@ end;
 
 function libc_pchar_length(p:pchar):cardinal; cdecl; external 'c' name 'strlen';
 
-function fpc_pchar_length(p:pchar):longint;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_pchar_length(p:pchar):longint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
 begin
   fpc_pchar_length:=libc_pchar_length(p);
 end;

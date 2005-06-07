@@ -84,9 +84,7 @@
   {$ifdef INTERNCONSTINTF}
     function fpc_sqrt_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
   {$else}
-    {$ifdef hascompilerproc}
     function fpc_sqrt_real(d:Real):Real;compilerproc; external name 'FPC_SQRT_REAL';
-    {$endif hascompilerproc}
     function sqrt(d:Real):Real;[internconst:fpc_in_const_sqrt];[public, alias: 'FPC_SQRT_REAL']; {$ifdef MATHINLINE}inline;{$endif}
   {$endif}
     begin
@@ -119,19 +117,12 @@ Not supported on Mac OS X 10.1
 
     function c_llround(d: double): int64; cdecl; external 'c' name 'llround';
 
-{$ifdef hascompilerproc}
     function round(d : Real) : int64;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round];{$endif} external name 'FPC_ROUND';
 
-    function fpc_round(d : Real) : int64;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+    function fpc_round(d : Real) : int64;[public, alias:'FPC_ROUND'];compilerproc;
     begin
       fpc_round := c_llround(d);
     end;
-{$else}
-    function round(d : Real) : int64;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round];{$endif}
-    begin
-      round := c_llround(d);
-    end;
-{$endif hascompilerproc}
 {$endif}
 *)
 

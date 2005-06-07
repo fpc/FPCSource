@@ -126,7 +126,7 @@ end;
 
 
 
-Procedure fpc_Initialize (Data,TypeInfo : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias : 'FPC_INITIALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Initialize (Data,TypeInfo : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias : 'FPC_INITIALIZE'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
     tkAstring,tkWstring,tkInterface,tkDynArray:
@@ -142,7 +142,7 @@ begin
 end;
 
 
-Procedure fpc_finalize (Data,TypeInfo: Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias : 'FPC_FINALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_finalize (Data,TypeInfo: Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias : 'FPC_FINALIZE'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
     tkAstring :
@@ -173,7 +173,7 @@ begin
 end;
 
 
-Procedure fpc_Addref (Data,TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [Public,alias : 'FPC_ADDREF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Addref (Data,TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [Public,alias : 'FPC_ADDREF'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
     tkAstring :
@@ -199,7 +199,7 @@ end;
 { we use another name else the compiler gets puzzled because of the wrong forward def }
 procedure fpc_systemDecRef (Data, TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_DECREF'];
 
-Procedure fpc_DecRef (Data, TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,alias : 'FPC_DECREF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_DecRef (Data, TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,alias : 'FPC_DECREF'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
     { see AddRef for comment about below construct (JM) }
@@ -222,7 +222,7 @@ begin
 end;
 
 
-procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Public,Alias:'FPC_FINALIZEARRAY'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Public,Alias:'FPC_FINALIZEARRAY'];  compilerproc;
   var
      i : longint;
   begin

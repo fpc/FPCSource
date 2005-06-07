@@ -16,7 +16,7 @@
 {$R- no range checking }
 
 {$define FPC_SYSTEM_HAS_DIV_QWORD}
-    function fpc_div_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_DIV_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_div_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_DIV_QWORD']; compilerproc;
       var
          shift,lzz,lzn : longint;
          saveebx,saveedi : longint;
@@ -90,7 +90,7 @@
 
 
 {$define FPC_SYSTEM_HAS_MOD_QWORD}
-    function fpc_mod_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_MOD_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_mod_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_MOD_QWORD']; compilerproc;
       var
          shift,lzz,lzn : longint;
          saveebx,saveedi : longint;
@@ -171,7 +171,7 @@
     { multiplies two qwords
       the longbool for checkoverflow avoids a misaligned stack
     }
-    function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
       var
         r : qword;
         overflowed : boolean;

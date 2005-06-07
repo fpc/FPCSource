@@ -18,7 +18,7 @@
  { THIS DEPENDS ON THE ENDIAN OF THE ARCHITECTURE!
    Not anymore PM}
 
-function fpc_set_load_small(l: fpc_small_set): fpc_normal_set; [public,alias:'FPC_SET_LOAD_SMALL']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_set_load_small(l: fpc_small_set): fpc_normal_set; [public,alias:'FPC_SET_LOAD_SMALL']; compilerproc;
  {
   load a normal set p from a smallset l
  }
@@ -30,7 +30,7 @@ function fpc_set_load_small(l: fpc_small_set): fpc_normal_set; [public,alias:'FP
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_CREATE_ELEMENT}
-function fpc_set_create_element(b : byte): fpc_normal_set;[public,alias:'FPC_SET_CREATE_ELEMENT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_set_create_element(b : byte): fpc_normal_set;[public,alias:'FPC_SET_CREATE_ELEMENT']; compilerproc;
  {
   create a new set in p from an element b
  }
@@ -42,7 +42,6 @@ function fpc_set_create_element(b : byte): fpc_normal_set;[public,alias:'FPC_SET
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_SET_BYTE}
 
-{$ifdef hascompilerproc}
  function fpc_set_set_byte(const source: fpc_normal_set; b : byte): fpc_normal_set; compilerproc;
  {
   add the element b to the set "source"
@@ -55,25 +54,11 @@ function fpc_set_create_element(b : byte): fpc_normal_set;[public,alias:'FPC_SET
     c := (1 shl (b mod 32)) or c;
     fpc_set_set_byte[b div 32] := c;
   end;
-{$else hascompilerproc}
- procedure do_set_byte(p : pointer;b : byte);[public,alias:'FPC_SET_SET_BYTE'];
- {
-  add the element b to the set pointed by p
- }
-  var
-   c: longint;
-  begin
-    c := fpc_normal_set(p^)[b div 32];
-    c := (1 shl (b mod 32)) or c;
-    fpc_normal_set(p^)[b div 32] := c;
-  end;
-{$endif hascompilerproc}
 {$endif FPC_SYSTEM_HAS_FPC_SET_SET_BYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_UNSET_BYTE}
 
-{$ifdef hascompilerproc}
 function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_set; compilerproc;
  {
    suppresses the element b to the set pointed by p
@@ -87,25 +72,10 @@ function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_
     c := c and not (1 shl (b mod 32));
     fpc_set_unset_byte[b div 32] := c;
   end;
-{$else hascompilerproc}
-procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'];
- {
-   suppresses the element b to the set pointed by p
-   used for exclude(set,element)
- }
-  var
-   c: longint;
-  begin
-    c := fpc_normal_set(p^)[b div 32];
-    c := c and not (1 shl (b mod 32));
-    fpc_normal_set(p^)[b div 32] := c;
-  end;
-{$endif hascompilerproc}
 {$endif FPC_SYSTEM_HAS_FPC_SET_UNSET_BYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_SET_RANGE}
-{$ifdef hascompilerproc}
  function fpc_set_set_range(const orgset: fpc_normal_set; l,h : byte): fpc_normal_set; compilerproc;
  {
    adds the range [l..h] to the set orgset
@@ -122,29 +92,12 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
         fpc_set_set_range[i div 32] := c;
       end;
   end;
-{$else hascompilerproc}
- procedure do_set_range(p : pointer;l,h : byte);[public,alias:'FPC_SET_SET_RANGE'];
- {
-  bad implementation, but it's very seldom used
- }
-  var
-   i: integer;
-   c: longint;
-  begin
-    for i:=l to h do
-      begin
-        c := fpc_normal_set(p^)[i div 32];
-        c := (1 shl (i mod 32)) or c;
-        fpc_normal_set(p^)[i div 32] := c;
-      end;
-  end;
-{$endif hascompilerproc}
 {$endif ndef FPC_SYSTEM_HAS_FPC_SET_SET_RANGE}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
 
- function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; [public,alias:'FPC_SET_IN_BYTE']; {$ifdef hascompilerproc} compilerproc; {$else} {$ifndef NOSAVEREGISTERS}saveregisters;{$endif} {$endif}
+ function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; [public,alias:'FPC_SET_IN_BYTE']; compilerproc; 
  {
    tests if the element b is in the set p the carryflag is set if it present
  }
@@ -155,13 +108,9 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_ADD_SETS}
-{$ifdef hascompilerproc}
  function fpc_set_add_sets(const set1,set2: fpc_normal_set): fpc_normal_set;[public,alias:'FPC_SET_ADD_SETS']; compilerproc;
  var
    dest: fpc_normal_set absolute fpc_set_add_sets;
-{$else hascompilerproc}
- procedure do_add_sets(const set1,set2: fpc_normal_Set; var dest : fpc_normal_set);[public,alias:'FPC_SET_ADD_SETS'];
-{$endif hascompilerproc}
  {
    adds set1 and set2 into set dest
  }
@@ -175,13 +124,9 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_MUL_SETS}
-{$ifdef hascompilerproc}
  function fpc_set_mul_sets(const set1,set2: fpc_normal_set): fpc_normal_set;[public,alias:'FPC_SET_MUL_SETS']; compilerproc;
  var
    dest: fpc_normal_set absolute fpc_set_mul_sets;
-{$else hascompilerproc}
- procedure do_mul_sets(const set1,set2: fpc_normal_set; var dest: fpc_normal_set);[public,alias:'FPC_SET_MUL_SETS'];
-{$endif hascompilerproc}
  {
    multiplies (takes common elements of) set1 and set2 result put in dest
  }
@@ -195,13 +140,9 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_SUB_SETS}
-{$ifdef hascompilerproc}
  function fpc_set_sub_sets(const set1,set2: fpc_normal_set): fpc_normal_set;[public,alias:'FPC_SET_SUB_SETS']; compilerproc;
  var
    dest: fpc_normal_set absolute fpc_set_sub_sets;
-{$else hascompilerproc}
- procedure do_sub_sets(const set1,set2: fpc_normal_set; var dest: fpc_normal_set);[public,alias:'FPC_SET_SUB_SETS'];
-{$endif hascompilerproc}
  {
   computes the diff from set1 to set2 result in dest
  }
@@ -215,13 +156,9 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_SYMDIF_SETS}
-{$ifdef hascompilerproc}
  function fpc_set_symdif_sets(const set1,set2: fpc_normal_set): fpc_normal_set;[public,alias:'FPC_SET_SYMDIF_SETS']; compilerproc;
  var
    dest: fpc_normal_set absolute fpc_set_symdif_sets;
-{$else hascompilerproc}
- procedure do_symdif_sets(const set1,set2: fpc_normal_set; var dest: fpc_normal_set);[public,alias:'FPC_SET_SYMDIF_SETS'];
-{$endif hascompilerproc}
  {
    computes the symetric diff from set1 to set2 result in dest
  }
@@ -234,7 +171,7 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_COMP_SETS}
- function fpc_set_comp_sets(const set1,set2 : fpc_normal_set):boolean;[public,alias:'FPC_SET_COMP_SETS'];{$ifdef hascompilerproc} compilerproc; {$else} {$ifndef NOSAVEREGISTERS}saveregisters;{$endif} {$endif}
+ function fpc_set_comp_sets(const set1,set2 : fpc_normal_set):boolean;[public,alias:'FPC_SET_COMP_SETS'];compilerproc;
  {
   compares set1 and set2 zeroflag is set if they are equal
  }
@@ -252,7 +189,7 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_CONTAINS_SET}
- function fpc_set_contains_sets(const set1,set2 : fpc_normal_set):boolean;[public,alias:'FPC_SET_CONTAINS_SETS'];{$ifdef hascompilerproc} compilerproc; {$else} saveregisters; {$endif}
+ function fpc_set_contains_sets(const set1,set2 : fpc_normal_set):boolean;[public,alias:'FPC_SET_CONTAINS_SETS'];compilerproc;
  {
   on exit, zero flag is set if set1 <= set2 (set2 contains set1)
  }

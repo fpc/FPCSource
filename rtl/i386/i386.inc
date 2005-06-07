@@ -635,7 +635,7 @@ end;
 ****************************************************************************}
 {$ifndef HAS_GENERICCONSTRUCTOR}
 {$define FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
-procedure fpc_help_constructor; assembler; [public,alias:'FPC_HELP_CONSTRUCTOR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_help_constructor; assembler; [public,alias:'FPC_HELP_CONSTRUCTOR']; compilerproc;
 asm
 { Entry without preamble, since we need the ESP of the constructor
   Stack (relative to %ebp):
@@ -723,7 +723,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_FAIL}
-procedure fpc_help_fail;assembler;[public,alias:'FPC_HELP_FAIL']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_help_fail;assembler;[public,alias:'FPC_HELP_FAIL']; compilerproc;
 { should be called with a object that needs to be
   freed if VMT field is at -1
   %edi contains VMT offset in object again }
@@ -762,7 +762,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
-procedure fpc_help_destructor;assembler;[public,alias:'FPC_HELP_DESTRUCTOR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_help_destructor;assembler;[public,alias:'FPC_HELP_DESTRUCTOR']; compilerproc;
 asm
 { Stack (relative to %ebp):
     12 Self
@@ -806,7 +806,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_NEW_CLASS}
-procedure fpc_new_class;assembler;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_new_class;assembler;[public,alias:'FPC_NEW_CLASS']; compilerproc;
 asm
         { to be sure in the future, we save also edit }
         pushl   %edi
@@ -843,7 +843,7 @@ end;
 procedure int_dispose_class;external name 'FPC_DISPOSE_CLASS';
 
 {$define FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-procedure fpc_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS']; compilerproc;
 asm
         { to be sure in the future, we save also edit }
         pushl   %edi
@@ -871,7 +871,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_FAIL_CLASS}
-procedure fpc_help_fail_class;assembler;[public,alias:'FPC_HELP_FAIL_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_help_fail_class;assembler;[public,alias:'FPC_HELP_FAIL_CLASS']; compilerproc;
 { a non zero class must allways be disposed
   VMT is allways at pos 0 }
 asm
@@ -888,7 +888,7 @@ end;
 
 {$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 { we want the stack for debugging !! PM }
-procedure fpc_check_object(obj : pointer);[public,alias:'FPC_CHECK_OBJECT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_check_object(obj : pointer);[public,alias:'FPC_CHECK_OBJECT']; compilerproc;
 begin
 asm
         pushl   %edi
@@ -913,7 +913,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
-procedure fpc_check_object_ext;assembler;[public,alias:'FPC_CHECK_OBJECT_EXT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_check_object_ext;assembler;[public,alias:'FPC_CHECK_OBJECT_EXT']; compilerproc;
 { checks for a correct vmt pointer }
 { deeper check to see if the current object is }
 { really related to the true }
@@ -963,7 +963,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
-function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
 begin
   asm
         cld
@@ -1041,7 +1041,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
-function fpc_shortstr_concat(const s1,s2:shortstring):shortstring;{$ifdef hascompilerproc}compilerproc;{$endif}
+function fpc_shortstr_concat(const s1,s2:shortstring):shortstring;compilerproc;
 begin
   asm
         movl    __RESULT,%edi
@@ -1102,7 +1102,6 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 
-{$ifdef hascompilerproc}
 procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring);compilerproc;
     [public,alias:'FPC_SHORTSTR_APPEND_SHORTSTR'];
 begin
@@ -1141,44 +1140,6 @@ begin
         movsb
   end ['EBX','ECX','EAX','ESI','EDI'];
 end;
-{$else hascompilerproc}
-procedure fpc_shortstr_concat_int(const s1,s2:shortstring);[public,alias:'FPC_SHORTSTR_CONCAT'];
-begin
-  asm
-        movl    s1,%esi
-        movl    s2,%edi
-        movl    %edi,%ebx
-        movzbl  (%edi),%ecx
-        xor     %eax,%eax
-        lea     1(%edi,%ecx),%edi
-        negl    %ecx
-        addl    $0x0ff,%ecx
-        lodsb
-        cmpl    %ecx,%eax
-        jbe     .LStrConcat1
-        movl    %ecx,%eax
-.LStrConcat1:
-        addb    %al,(%ebx)
-        cmpl    $7,%eax
-        jl      .LStrConcat2
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        rep
-        movsb
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-.LStrConcat2:
-        movl    %eax,%ecx
-        rep
-        movsb
-  end ['EBX','ECX','EAX','ESI','EDI'];
-end;
-{$endif hascompilerproc}
 {$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 
 
@@ -1242,7 +1203,7 @@ asm
         movl    saveebx,%ebx
 end;
 {$else SHORTSTRCOMPAREINREG}
-function fpc_shortstr_compare(const left,right:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_shortstr_compare(const left,right:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
 begin
   asm
         cld
@@ -1296,14 +1257,14 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
-function fpc_pchar_to_shortstr(p:pchar):shortstring;assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_pchar_to_shortstr(p:pchar):shortstring;assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
 {$include strpas.inc}
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
-function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
 {$include strlen.inc}
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 

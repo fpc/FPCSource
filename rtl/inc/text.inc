@@ -435,13 +435,13 @@ Begin
 End;
 
 
-Function fpc_get_input:PText;{$ifdef hascompilerproc}compilerproc;{$endif}
+Function fpc_get_input:PText;compilerproc;
 begin
   fpc_get_input:=@Input;
 end;
 
 
-Function fpc_get_output:PText;{$ifdef hascompilerproc}compilerproc;{$endif}
+Function fpc_get_output:PText;compilerproc;
 begin
   fpc_get_output:=@Output;
 end;
@@ -492,14 +492,14 @@ begin
 end;
 
 
-Procedure fpc_Write_End(var f:Text);[Public,Alias:'FPC_WRITE_END']; iocheck; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Write_End(var f:Text);[Public,Alias:'FPC_WRITE_END']; iocheck; compilerproc;
 begin
   if TextRec(f).FlushFunc<>nil then
    FileFunc(TextRec(f).FlushFunc)(TextRec(f));
 end;
 
 
-Procedure fpc_Writeln_End(var f:Text);[Public,Alias:'FPC_WRITELN_END']; iocheck; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Writeln_End(var f:Text);[Public,Alias:'FPC_WRITELN_END']; iocheck; compilerproc;
 begin
   If InOutRes <> 0 then exit;
   case TextRec(f).mode of
@@ -517,7 +517,7 @@ begin
 end;
 
 
-Procedure fpc_Write_Text_ShortStr(Len : Longint;var f : Text;const s : String); iocheck; [Public,Alias:'FPC_WRITE_TEXT_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Write_Text_ShortStr(Len : Longint;var f : Text;const s : String); iocheck; [Public,Alias:'FPC_WRITE_TEXT_SHORTSTR']; compilerproc;
 Begin
   If (InOutRes<>0) then
    exit;
@@ -537,7 +537,7 @@ End;
 procedure Write_Str(Len : Longint;var f : Text;const s : String); iocheck; [external name 'FPC_WRITE_TEXT_SHORTSTR'];
 
 
-Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of char); iocheck; [Public,Alias:'FPC_WRITE_TEXT_PCHAR_AS_ARRAY']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of char); iocheck; [Public,Alias:'FPC_WRITE_TEXT_PCHAR_AS_ARRAY']; compilerproc;
 var
   ArrayLen : longint;
   p : pchar;
@@ -564,7 +564,7 @@ Begin
 End;
 
 
-Procedure fpc_Write_Text_PChar_As_Pointer(Len : Longint;var f : Text;p : PChar); iocheck; [Public,Alias:'FPC_WRITE_TEXT_PCHAR_AS_POINTER']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Write_Text_PChar_As_Pointer(Len : Longint;var f : Text;p : PChar); iocheck; [Public,Alias:'FPC_WRITE_TEXT_PCHAR_AS_POINTER']; compilerproc;
 var
   PCharLen : longint;
 Begin
@@ -584,7 +584,7 @@ Begin
 End;
 
 
-Procedure fpc_Write_Text_AnsiStr (Len : Longint; Var f : Text; S : AnsiString); iocheck; [Public,alias:'FPC_WRITE_TEXT_ANSISTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Write_Text_AnsiStr (Len : Longint; Var f : Text; S : AnsiString); iocheck; [Public,alias:'FPC_WRITE_TEXT_ANSISTR']; compilerproc;
 {
  Writes a AnsiString to the Text file T
 }
@@ -608,7 +608,7 @@ begin
 end;
 
 
-Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; S : WideString); iocheck; [Public,alias:'FPC_WRITE_TEXT_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; S : WideString); iocheck; [Public,alias:'FPC_WRITE_TEXT_WIDESTR']; compilerproc;
 {
  Writes a WideString to the Text file T
 }
@@ -630,7 +630,7 @@ begin
   end;
 end;
 
-Procedure fpc_Write_Text_SInt(Len : Longint;var t : Text;l : ValSInt); iocheck; [Public,Alias:'FPC_WRITE_TEXT_SINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Write_Text_SInt(Len : Longint;var t : Text;l : ValSInt); iocheck; [Public,Alias:'FPC_WRITE_TEXT_SINT']; compilerproc;
 var
   s : String;
 Begin
@@ -641,7 +641,7 @@ Begin
 End;
 
 
-Procedure fpc_Write_Text_UInt(Len : Longint;var t : Text;l : ValUInt); iocheck; [Public,Alias:'FPC_WRITE_TEXT_UINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Write_Text_UInt(Len : Longint;var t : Text;l : ValUInt); iocheck; [Public,Alias:'FPC_WRITE_TEXT_UINT']; compilerproc;
 var
   s : String;
 Begin
@@ -654,7 +654,7 @@ End;
 
 {$ifndef CPU64}
 
-procedure fpc_write_text_qword(len : longint;var t : text;q : qword); iocheck; [public,alias:'FPC_WRITE_TEXT_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_write_text_qword(len : longint;var t : text;q : qword); iocheck; [public,alias:'FPC_WRITE_TEXT_QWORD']; compilerproc;
 var
   s : string;
 begin
@@ -664,7 +664,7 @@ begin
   write_str(len,t,s);
 end;
 
-procedure fpc_write_text_int64(len : longint;var t : text;i : int64); iocheck; [public,alias:'FPC_WRITE_TEXT_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_write_text_int64(len : longint;var t : text;i : int64); iocheck; [public,alias:'FPC_WRITE_TEXT_INT64']; compilerproc;
 var
   s : string;
 begin
@@ -676,7 +676,7 @@ end;
 
 {$endif CPU64}
 
-Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); iocheck; [Public,Alias:'FPC_WRITE_TEXT_FLOAT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); iocheck; [Public,Alias:'FPC_WRITE_TEXT_FLOAT']; compilerproc;
 var
   s : String;
 Begin
@@ -687,7 +687,7 @@ Begin
 End;
 
 
-Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); iocheck; [Public,Alias:'FPC_WRITE_TEXT_BOOLEAN']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); iocheck; [Public,Alias:'FPC_WRITE_TEXT_BOOLEAN']; compilerproc;
 Begin
   If (InOutRes<>0) then
    exit;
@@ -699,7 +699,7 @@ Begin
 End;
 
 
-Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); iocheck; [Public,Alias:'FPC_WRITE_TEXT_CHAR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); iocheck; [Public,Alias:'FPC_WRITE_TEXT_CHAR']; compilerproc;
 Begin
   If (InOutRes<>0) then
     exit;
@@ -720,7 +720,7 @@ Begin
 End;
 
 
-Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); iocheck; [Public,Alias:'FPC_WRITE_TEXT_WIDECHAR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); iocheck; [Public,Alias:'FPC_WRITE_TEXT_WIDECHAR']; compilerproc;
 var
   ch : char;
 Begin
@@ -809,14 +809,14 @@ begin
 end;
 
 
-Procedure fpc_Read_End(var f:Text);[Public,Alias:'FPC_READ_END']; iocheck; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Read_End(var f:Text);[Public,Alias:'FPC_READ_END']; iocheck; compilerproc;
 begin
   if TextRec(f).FlushFunc<>nil then
    FileFunc(TextRec(f).FlushFunc)(TextRec(f));
 end;
 
 
-Procedure fpc_ReadLn_End(var f : Text);[Public,Alias:'FPC_READLN_END']; iocheck; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_ReadLn_End(var f : Text);[Public,Alias:'FPC_READLN_END']; iocheck; compilerproc;
 var prev: char;
 Begin
 { Check error and if file is open and load buf if empty }
@@ -934,19 +934,19 @@ Begin
 End;
 
 
-Procedure fpc_Read_Text_ShortStr(var f : Text;var s : String); iocheck; [Public,Alias:'FPC_READ_TEXT_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Read_Text_ShortStr(var f : Text;out s : String); iocheck; [Public,Alias:'FPC_READ_TEXT_SHORTSTR']; compilerproc;
 Begin
   s[0]:=chr(ReadPCharLen(f,pchar(@s[1]),high(s)));
 End;
 
 
-Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text;var s : PChar); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_POINTER']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text;out s : PChar); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_POINTER']; compilerproc;
 Begin
   pchar(s+ReadPCharLen(f,s,$7fffffff))^:=#0;
 End;
 
 
-Procedure fpc_Read_Text_PChar_As_Array(var f : Text;var s : array of char); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_ARRAY']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Read_Text_PChar_As_Array(var f : Text;out s : array of char); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_ARRAY']; compilerproc;
 var
   len: longint;
 Begin
@@ -956,7 +956,7 @@ Begin
 End;
 
 
-Procedure fpc_Read_Text_AnsiStr(var f : Text;var s : AnsiString); iocheck; [Public,Alias:'FPC_READ_TEXT_ANSISTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Read_Text_AnsiStr(var f : Text;var s : AnsiString); iocheck; [Public,Alias:'FPC_READ_TEXT_ANSISTR']; compilerproc;
 var
   slen,len : longint;
 Begin
@@ -971,17 +971,9 @@ Begin
   SetLength(S,Slen);
 End;
 
-{$ifdef hascompilerproc}
 procedure fpc_Read_Text_Char(var f : Text; var c: char); iocheck; [Public,Alias:'FPC_READ_TEXT_CHAR'];compilerproc;
-{$else hascompilerproc}
-Function fpc_Read_Text_Char(var f : Text):char;[Public,Alias:'FPC_READ_TEXT_CHAR'];
-{$endif hascompilerproc}
 Begin
-{$ifdef hascompilerproc}
   c:=#0;
-{$else hascompilerproc}
-  fpc_Read_Text_Char:=#0;
-{$endif hascompilerproc}
 { Check error and if file is open }
   If (InOutRes<>0) then
    exit;
@@ -1000,38 +992,22 @@ Begin
    begin
      FileFunc(TextRec(f).InOutFunc)(TextRec(f));
      If TextRec(f).BufPos>=TextRec(f).BufEnd Then
-{$ifdef hascompilerproc}
        begin
          c := #26;
          exit;
        end;
-{$else hascompilerproc}
-       exit(#26);
-{$endif hascompilerproc}
    end;
-{$ifdef hascompilerproc}
   c:=TextRec(f).Bufptr^[TextRec(f).BufPos];
-{$else hascompilerproc}
-  fpc_Read_Text_Char:=TextRec(f).Bufptr^[TextRec(f).BufPos];
-{$endif hascompilerproc}
   inc(TextRec(f).BufPos);
 end;
 
 
-{$ifdef hascompilerproc}
 Procedure fpc_Read_Text_SInt(var f : Text; var l : ValSInt); iocheck; [Public,Alias:'FPC_READ_TEXT_SINT']; compilerproc;
-{$else hascompilerproc}
-Function fpc_Read_Text_SInt(var f : Text):ValSInt;[Public,Alias:'FPC_READ_TEXT_SINT'];
-{$endif hascompilerproc}
 var
   hs   : String;
   code : longint;
 Begin
-{$ifdef hascompilerproc}
   l:=0;
-{$else hascompilerproc}
-  fpc_Read_Text_SInt:=0;
-{$endif hascompilerproc}
 { Leave if error or not open file, else check for empty buf }
   If (InOutRes<>0) then
    exit;
@@ -1058,7 +1034,6 @@ Begin
       exit;
      ReadNumeric(f,hs);
    end;
-{$ifdef hascompilerproc}
    if (hs = '') then
     L := 0
    else
@@ -1067,33 +1042,15 @@ Begin
      if Code <> 0 then
       InOutRes:=106;
     end;
-{$else hascompilerproc}
-   if (hs = '') then
-    fpc_Read_Text_SInt := 0
-   else
-    begin
-     Val(hs,fpc_Read_Text_SInt,code);
-     if Code <> 0 then
-      InOutRes:=106;
-    end;
-{$endif hascompilerproc}
 End;
 
 
-{$ifdef hascompilerproc}
 Procedure fpc_Read_Text_UInt(var f : Text; var u : ValUInt);  iocheck; [Public,Alias:'FPC_READ_TEXT_UINT']; compilerproc;
-{$else hascompilerproc}
-Function fpc_Read_Text_UInt(var f : Text):ValUInt;[Public,Alias:'FPC_READ_TEXT_UINT'];
-{$endif hascompilerproc}
 var
   hs   : String;
   code : longint;
 Begin
-{$ifdef hascompilerproc}
   u:=0;
-{$else hascompilerproc}
-  fpc_Read_Text_UInt:=0;
-{$endif hascompilerproc}
 { Leave if error or not open file, else check for empty buf }
   If (InOutRes<>0) then
    exit;
@@ -1118,30 +1075,18 @@ Begin
       exit;
      ReadNumeric(f,hs);
    end;
-{$ifdef hascompilerproc}
   val(hs,u,code);
-{$else hascompilerproc}
-  val(hs,fpc_Read_Text_UInt,code);
-{$endif hascompilerproc}
   If code<>0 Then
    InOutRes:=106;
 End;
 
 
-{$ifdef hascompilerproc}
 procedure fpc_Read_Text_Float(var f : Text; var v : ValReal); iocheck; [Public,Alias:'FPC_READ_TEXT_FLOAT']; compilerproc;
-{$else hascompilerproc}
-Function fpc_Read_Text_Float(var f : Text):ValReal;[Public,Alias:'FPC_READ_TEXT_FLOAT'];
-{$endif hascompilerproc}
 var
   hs : string;
   code : Word;
 begin
-{$ifdef hascompilerproc}
   v:=0.0;
-{$else hascompilerproc}
-  fpc_Read_Text_Float:=0.0;
-{$endif hascompilerproc}
 { Leave if error or not open file, else check for empty buf }
   If (InOutRes<>0) then
    exit;
@@ -1166,11 +1111,7 @@ begin
       exit;
      ReadNumeric(f,hs);
    end;
-{$ifdef hascompilerproc}
   val(hs,v,code);
-{$else hascompilerproc}
-  val(hs,fpc_Read_Text_Float,code);
-{$endif hascompilerproc}
   If code<>0 Then
    InOutRes:=106;
 end;
@@ -1178,20 +1119,12 @@ end;
 
 {$ifndef cpu64}
 
-{$ifdef hascompilerproc}
 procedure fpc_Read_Text_QWord(var f : text; var q : qword); iocheck; [public,alias:'FPC_READ_TEXT_QWORD']; compilerproc;
-{$else hascompilerproc}
-function fpc_Read_Text_QWord(var f : text) : qword;[public,alias:'FPC_READ_TEXT_QWORD'];
-{$endif hascompilerproc}
 var
   hs   : String;
   code : longint;
 Begin
-{$ifdef hascompilerproc}
   q:=0;
-{$else hascompilerproc}
-  fpc_Read_Text_QWord:=0;
-{$endif hascompilerproc}
   { Leave if error or not open file, else check for empty buf }
   If (InOutRes<>0) then
    exit;
@@ -1216,29 +1149,17 @@ Begin
       exit;
      ReadNumeric(f,hs);
    end;
-{$ifdef hascompilerproc}
   val(hs,q,code);
-{$else hascompilerproc}
-  val(hs,fpc_Read_Text_QWord,code);
-{$endif hascompilerproc}
   If code<>0 Then
    InOutRes:=106;
 End;
 
-{$ifdef hascompilerproc}
 procedure fpc_Read_Text_Int64(var f : text; var i : int64); iocheck; [public,alias:'FPC_READ_TEXT_INT64']; compilerproc;
-{$else hascompilerproc}
-function fpc_Read_Text_Int64(var f : text) : int64;[public,alias:'FPC_READ_TEXT_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
-{$endif hascompilerproc}
 var
   hs   : String;
   code : Longint;
 Begin
-{$ifdef hascompilerproc}
   i:=0;
-{$else hascompilerproc}
-  fpc_Read_Text_Int64:=0;
-{$endif hascompilerproc}
 { Leave if error or not open file, else check for empty buf }
   If (InOutRes<>0) then
    exit;
@@ -1263,11 +1184,7 @@ Begin
       exit;
      ReadNumeric(f,hs);
    end;
-{$ifdef hascompilerproc}
   Val(hs,i,code);
-{$else hascompilerproc}
-  Val(hs,fpc_Read_Text_Int64,code);
-{$endif hascompilerproc}
   If code<>0 Then
    InOutRes:=106;
 End;

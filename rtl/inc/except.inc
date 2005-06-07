@@ -73,7 +73,7 @@ end;
 end;
 
 Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
-  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}{$ifdef hascompilerproc} compilerproc; {$endif}
+  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}compilerproc;
 
 var
   Buf : PJmp_buf;
@@ -101,7 +101,7 @@ end;
 
 
 Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer);
-  [Public, Alias : 'FPC_PUSHEXCEPTOBJECT'];{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}{$ifdef hascompilerproc} compilerproc; {$endif}
+  [Public, Alias : 'FPC_PUSHEXCEPTOBJECT'];{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}compilerproc;
 var
   Newobj : PExceptObject;
   framebufsize,
@@ -157,10 +157,8 @@ begin
   ExceptObjectStack^.frames:=frames;
 end;
 
-{$ifdef hascompilerproc}
 { make it avalable for local use }
 Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer); [external name 'FPC_PUSHEXCEPTOBJECT'];
-{$endif}
 
 
 Procedure DoUnHandledException;
@@ -172,7 +170,7 @@ begin
 end;
 
 
-Function fpc_Raiseexception (Obj : TObject; AnAddr,AFrame : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Raiseexception (Obj : TObject; AnAddr,AFrame : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION']; compilerproc;
 begin
 {$ifdef excdebug}
   writeln ('In RaiseException');
@@ -188,7 +186,7 @@ begin
 end;
 
 
-Procedure fpc_PopAddrStack;[Public, Alias : 'FPC_POPADDRSTACK']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_PopAddrStack;[Public, Alias : 'FPC_POPADDRSTACK']; compilerproc;
 
 begin
 {$ifdef excdebug}
@@ -206,7 +204,7 @@ begin
 end;
 
 
-function fpc_PopObjectStack : TObject;[Public, Alias : 'FPC_POPOBJECTSTACK']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_PopObjectStack : TObject;[Public, Alias : 'FPC_POPOBJECTSTACK']; compilerproc;
 var
   hp : PExceptObject;
 begin
@@ -236,7 +234,7 @@ end;
 
 { this is for popping exception objects when a second exception is risen }
 { in an except/on                                                        }
-function fpc_PopSecondObjectStack : TObject;[Public, Alias : 'FPC_POPSECONDOBJECTSTACK']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_PopSecondObjectStack : TObject;[Public, Alias : 'FPC_POPSECONDOBJECTSTACK']; compilerproc;
 var
   hp : PExceptObject;
 begin
@@ -264,7 +262,7 @@ begin
     end;
 end;
 
-Procedure fpc_ReRaise;[Public, Alias : 'FPC_RERAISE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_ReRaise;[Public, Alias : 'FPC_RERAISE']; compilerproc;
 begin
 {$ifdef excdebug}
   writeln ('In reraise');
@@ -276,7 +274,7 @@ begin
 end;
 
 
-Function fpc_Catches(Objtype : TClass) : TObject;[Public, Alias : 'FPC_CATCHES']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Catches(Objtype : TClass) : TObject;[Public, Alias : 'FPC_CATCHES']; compilerproc;
 var
   _Objtype : TExceptObjectClass;
 begin
@@ -302,7 +300,7 @@ begin
     end;
 end;
 
-Procedure fpc_DestroyException(o : TObject);[Public, Alias : 'FPC_DESTROYEXCEPTION']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_DestroyException(o : TObject);[Public, Alias : 'FPC_DESTROYEXCEPTION']; compilerproc;
 begin
   { with free we're on the really save side }
   o.Free;

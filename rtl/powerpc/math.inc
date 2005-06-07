@@ -163,13 +163,9 @@ const
 (*
 {$ifndef FPC_SYSTEM_HAS_ROUND}
     {$define FPC_SYSTEM_HAS_ROUND}
-{$ifdef hascompilerproc}
     function round(d : extended) : int64;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round, external name 'FPC_ROUND'];{$endif}
 
-    function fpc_round(d : extended) : int64;assembler;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
-{$else}
-    function round(d : extended) : int64;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round];{$endif}
-{$endif hascompilerproc}
+    function fpc_round(d : extended) : int64;assembler;[public, alias:'FPC_ROUND'];compilerproc;
       { exactly the same as trunc, except that one fctiwz has become fctiw }
       { input: d in fr1      }
       { output: result in r3 }
