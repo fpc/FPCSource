@@ -296,9 +296,7 @@
 {$ifdef HASCURRENCY}
            vtCurrency   : (VCurrency: PCurrency);
 {$endif HASCURRENCY}
-{$ifdef HASVARIANT}
            vtVariant    : (VVariant: PVariant);
-{$endif HASVARIANT}
            vtInterface  : (VInterface: Pointer);
            vtWideString : (VWideString: Pointer);
            vtInt64      : (VInt64: PInt64);

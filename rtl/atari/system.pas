@@ -766,7 +766,5 @@ begin
   errno := 0;
 { Setup command line arguments }
   argc:=GetParamCount(args);
-{$ifdef HASVARIANT}
   initvariantmanager;
-{$endif HASVARIANT}
 end.

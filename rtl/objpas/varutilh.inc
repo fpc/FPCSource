@@ -16,7 +16,6 @@
  **********************************************************************}
 
 
-{$ifdef HASVARIANT}
 Type
   EVarianterror = Class(Exception)
     ErrCode : longint;
@@ -99,5 +98,4 @@ const
   ARR_DISPATCH      = $0400;
   ARR_VARIANT       = $0800;
 
-{$endif HASVARIANT}
 

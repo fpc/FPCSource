@@ -325,8 +325,6 @@ begin
 { Arguments }
   GenerateArgs;
   InitSystemThreads;
-{$ifdef HASVARIANT}
   initvariantmanager;
-{$endif HASVARIANT}
   initwidestringmanager;
 end.

@@ -35,7 +35,6 @@ Implementation
     Windows external definitions.
   ---------------------------------------------------------------------}
 
-{$ifdef HASVARIANT}
 const
   oleaut = 'oleaut32.dll';
 
@@ -69,6 +68,5 @@ function SafeArrayPutElement(psa: PVarArray; Indices: PVarArrayCoorArray;  const
 function SafeArrayRedim(psa: PVarArray; const NewBound: TVarArrayBound): HRESULT; stdcall;external oleaut;
 function SafeArrayUnaccessData(psa: PVarArray): HRESULT; stdcall;external oleaut;
 function SafeArrayUnlock(psa: PVarArray): HRESULT; stdcall;external oleaut;
-{$endif HASVARIANT}
 
 end.

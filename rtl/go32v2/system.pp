@@ -648,8 +648,6 @@ Begin
   InitDPMIExcp;
   InstallDefaultHandlers;
 {$endif  EXCEPTIONS_IN_SYSTEM}
-{$ifdef HASVARIANT}
   initvariantmanager;
-{$endif HASVARIANT}
   initwidestringmanager;
 End.

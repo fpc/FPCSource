@@ -479,8 +479,6 @@ Begin
   IsConsole := TRUE;
   ExitCode  := 0;
   InitSystemThreads;
-{$ifdef HASVARIANT}
   initvariantmanager;
-{$endif HASVARIANT}
   initwidestringmanager;
 End.

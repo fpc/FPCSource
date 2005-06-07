@@ -539,8 +539,6 @@ begin
 (* This should be changed to a real value during *)
 (* thread driver initialization if appropriate.  *)
   ThreadID := 1;
-{$ifdef HASVARIANT}
   initvariantmanager;
-{$endif HASVARIANT}
   initwidestringmanager;
 end.
