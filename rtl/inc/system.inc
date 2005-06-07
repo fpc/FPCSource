@@ -46,31 +46,6 @@ var
   initialstklen : longint;external name '__stklen';
 
 
-{****************************************************************************
-                     Routines which have compiler magic
-****************************************************************************}
-
-{$ifndef INTERNCONSTINTF}
-Function  lo(i : Integer) : byte;  [INTERNPROC: fpc_in_lo_Word];
-Function  lo(w : Word) : byte;     [INTERNPROC: fpc_in_lo_Word];
-Function  lo(l : Longint) : Word;  [INTERNPROC: fpc_in_lo_long];
-Function  lo(l : DWord) : Word;    [INTERNPROC: fpc_in_lo_long];
-Function  hi(i : Integer) : byte;  [INTERNPROC: fpc_in_hi_Word];
-Function  hi(w : Word) : byte;     [INTERNPROC: fpc_in_hi_Word];
-Function  hi(l : Longint) : Word;  [INTERNPROC: fpc_in_hi_long];
-Function  hi(l : DWord) : Word;    [INTERNPROC: fpc_in_hi_long];
-
-Function  lo(q : QWord) : DWord;  [INTERNPROC: fpc_in_lo_qword];
-Function  lo(i : Int64) : DWord;  [INTERNPROC: fpc_in_lo_qword];
-Function  hi(q : QWord) : DWord;  [INTERNPROC: fpc_in_hi_qword];
-Function  hi(i : Int64) : DWord;  [INTERNPROC: fpc_in_hi_qword];
-
-Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
-
-Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
-Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
-{$endif INTERNCONSTINTF}
-
 
 {****************************************************************************
                     Include processor specific routines
@@ -186,32 +161,32 @@ begin
    Lo := b and $0f
 end;
 
-Function swap (X : Word) : Word;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_swap_word];{$endif}
+Function swap (X : Word) : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   swap:=(X and $ff) shl 8 + (X shr 8)
 End;
 
-Function Swap (X : Integer) : Integer;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_swap_word];{$endif}
+Function Swap (X : Integer) : Integer;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   swap:=(X and $ff) shl 8 + (X shr 8)
 End;
 
-Function swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_swap_long];{$endif}
+Function swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Swap:=(X and $ffff) shl 16 + (X shr 16)
 End;
 
-Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_swap_long];{$endif}
+Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Swap:=(X and $ffff) shl 16 + (X shr 16)
 End;
 
-Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_swap_qword];{$endif}
+Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
 End;
 
-Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_swap_qword];{$endif}
+Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
 End;
@@ -457,7 +432,7 @@ end;
                             Memory Management
 ****************************************************************************}
 
-Function Ptr(sel,off : Longint) : farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_ptr];{$endif}
+Function Ptr(sel,off : Longint) : farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   ptr:=farpointer((sel shl 4)+off);
 End;

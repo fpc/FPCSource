@@ -295,7 +295,7 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}nostackframe;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_abs];{$endif}
+function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}nostackframe;
 asm
   sra %o0,31,%g1
   add %o0,%g1,%o0

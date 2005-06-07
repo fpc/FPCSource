@@ -62,7 +62,6 @@ const
    fpc_in_leave             = 51; {macpas}
    fpc_in_cycle             = 52; {macpas}
 
-{$ifdef INTERNCONSTINTF}
 { Internal constant functions }
    fpc_in_const_sqr        = 100;
    fpc_in_const_abs        = 101;
@@ -89,38 +88,6 @@ const
    fpc_in_arctan_real      = 130;
    fpc_in_ln_real          = 131;
    fpc_in_sin_real         = 132;
-{$else}
-{ Internal constant functions }
-   fpc_in_const_trunc      = 100;
-   fpc_in_const_round      = 101;
-   fpc_in_const_frac       = 102;
-   fpc_in_const_abs        = 103;
-   fpc_in_const_int        = 104;
-   fpc_in_const_sqr        = 105;
-   fpc_in_const_odd        = 106;
-   fpc_in_const_ptr        = 107;
-   fpc_in_const_swap_word  = 108;
-   fpc_in_const_swap_long  = 109;
-   fpc_in_const_pi         = 110;
-   fpc_in_const_sqrt       = 111;
-   fpc_in_const_arctan     = 112;
-   fpc_in_const_cos        = 113;
-   fpc_in_const_exp        = 114;
-   fpc_in_const_ln         = 115;
-   fpc_in_const_sin        = 116;
-   fpc_in_lo_qword         = 117;
-   fpc_in_hi_qword         = 118;
-   fpc_in_cos_real     = 119;
-   fpc_in_pi               = 121;
-   fpc_in_abs_real     = 122;
-   fpc_in_sqr_real     = 123;
-   fpc_in_sqrt_real    = 124;
-   fpc_in_arctan_real  = 125;
-   fpc_in_ln_real      = 126;
-   fpc_in_sin_real     = 127;
-   fpc_in_const_swap_qword = 128;
-   fpc_in_prefetch_var     = 129;
-{$endif}
 
 { MMX functions }
 { these contants are used by the mmx unit }

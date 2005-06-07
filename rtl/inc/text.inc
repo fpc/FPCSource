@@ -416,10 +416,6 @@ Begin
 End;
 
 
-{$ifndef INTERNCONSTINTF}
-Procedure SetTextBuf(Var F : Text; Var Buf);[INTERNPROC: fpc_In_settextbuf_file_x];
-{$endif}
-
 
 Procedure SetTextBuf(Var F : Text; Var Buf; Size : Longint);
 Begin
