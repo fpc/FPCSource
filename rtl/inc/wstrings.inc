@@ -734,11 +734,7 @@ begin
     HandleErrorFrame(201,get_frame);
 end;
 
-{$ifndef INTERNSETLENGTH}
-Procedure SetLength (Var S : WideString; l : SizeInt);
-{$else INTERNSETLENGTH}
 Procedure fpc_WideStr_SetLength (Var S : WideString; l : SizeInt);[Public,Alias : 'FPC_WIDESTR_SETLENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
-{$endif INTERNSETLENGTH}
 {
   Sets The length of string S to L.
   Makes sure S is unique, and contains enough room.
@@ -832,19 +828,6 @@ procedure WideCharToStrVar(S : PWideChar;var Dest : AnsiString);
   end;
 
 
-{$ifndef INTERNLENGTH}
-Function Length (Const S : WideString) : SizeInt;
-{
-  Returns the length of an WideString.
-  Takes in acount that zero strings are NIL;
-}
-begin
-  If Pointer(S)=Nil then
-    Length:=0
-  else
-    Length:=PWideRec(Pointer(S)-WideFirstOff)^.Len;
-end;
-{$endif INTERNLENGTH}
 
 
 Function fpc_widestr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_WIDESTR_UNIQUE']; {$ifdef hascompilerproc} compilerproc; {$endif}

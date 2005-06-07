@@ -66,10 +66,6 @@ Function  hi(q : QWord) : DWord;  [INTERNPROC: fpc_in_hi_qword];
 Function  hi(i : Int64) : DWord;  [INTERNPROC: fpc_in_hi_qword];
 
 Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
-{$ifndef INTERNLENGTH}
-Function Length(s : string) : byte; [INTERNPROC: fpc_in_Length_string];
-Function Length(c : char) : byte;   [INTERNPROC: fpc_in_Length_string];
-{$endif INTERNLENGTH}
 
 Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];

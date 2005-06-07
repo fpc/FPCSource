@@ -15,11 +15,7 @@
                     subroutines for string handling
 ****************************************************************************}
 
-{$ifndef INTERNSETLENGTH}
-procedure SetLength(var s:shortstring;len:SizeInt);
-{$else INTERNSETLENGTH}
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt);[Public,Alias : 'FPC_SHORTSTR_SETLENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
-{$endif INTERNSETLENGTH}
 begin
   if Len>255 then
    Len:=255;

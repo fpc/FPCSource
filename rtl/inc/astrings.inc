@@ -410,11 +410,7 @@ begin
     HandleErrorFrame(201,get_frame);
 end;
 
-{$ifndef INTERNSETLENGTH}
-Procedure SetLength (Var S : AnsiString; l : SizeInt);
-{$else INTERNSETLENGTH}
 Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : SizeInt);[Public,Alias : 'FPC_ANSISTR_SETLENGTH'];  {$ifdef hascompilerproc} compilerproc; {$endif}
-{$endif INTERNSETLENGTH}
 {
   Sets The length of string S to L.
   Makes sure S is unique, and contains enough room.
@@ -495,20 +491,6 @@ end;
 {*****************************************************************************
                      Public functions, In interface.
 *****************************************************************************}
-
-{$ifndef INTERNLENGTH}
-Function Length (Const S : AnsiString) : SizeInt;
-{
-  Returns the length of an AnsiString.
-  Takes in acount that zero strings are NIL;
-}
-begin
-  If Pointer(S)=Nil then
-    Length:=0
-  else
-    Length:=PAnsiRec(Pointer(S)-FirstOff)^.Len;
-end;
-{$endif INTERNLENGTH}
 
 
 {$ifdef HASCOMPILERPROC}
