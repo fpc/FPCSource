@@ -1485,28 +1485,6 @@ end;
                                Bounds Check
 ****************************************************************************}
 
-{$ifndef NOBOUNDCHECK}
-
-procedure int_boundcheck;assembler;[public,alias: 'FPC_BOUNDCHECK'];
-var dummy_to_force_stackframe_generation_for_trace: Longint;
-{
-  called with:
-    %ecx - value
-    %edi - pointer to the ranges
-}
-asm
-        cmpl    (%edi),%ecx
-        jl      .Lbc_err
-        cmpl    4(%edi),%ecx
-        jle     .Lbc_ok
-.Lbc_err:
-        pushl   %ebp
-        pushl   $201
-        call    HandleErrorFrame
-.Lbc_ok:
-end;
-
-{$endif NOBOUNDCHECK}
 
 { do a thread save inc/dec }
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
