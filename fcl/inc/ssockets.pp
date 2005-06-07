@@ -136,8 +136,8 @@ type
   Protected
     Procedure DoConnect(ASocket : longint); Virtual;
   Public
-    Constructor Create(ASocket : longint); Override; {$ifndef ver1_0}Overload;{$endif}
-    Constructor Create(const AHost: String; APort: Word); {$ifndef ver1_0}Overload;{$endif}
+    Constructor Create(ASocket : longint); Override; Overload;
+    Constructor Create(const AHost: String; APort: Word); Overload;
     Property Host : String Read FHost;
     Property Port : Word Read FPort;
   end;
@@ -150,8 +150,8 @@ type
   Protected
     Procedure DoConnect(ASocket : longint); Virtual;
   Public
-    Constructor Create(ASocket : Longint); {$ifndef ver1_0}Overload;{$endif}
-    Constructor Create(AFileName : String); {$ifndef ver1_0}Overload;{$endif}
+    Constructor Create(ASocket : Longint); Overload;
+    Constructor Create(AFileName : String); Overload;
     Property FileName : String Read FFileName;
   end;
 {$endif}
@@ -160,12 +160,8 @@ Implementation
 
 uses
 {$ifdef unix}
-  {$ifdef ver1_0}
-    Linux,
-  {$else}
-    BaseUnix, Unix,
-  {$endif}
- {$endif}
+  BaseUnix, Unix,
+{$endif}
   resolve;
 
 Const
@@ -386,7 +382,7 @@ Procedure TSocketServer.SetNonBlocking;
 
 begin
 {$ifdef Unix}
-  {$ifdef ver1_0}fcntl{$else}fpfcntl{$endif}(FSocket,F_SETFL,{$ifdef ver1_0}OPEN_NONBLOCK{$else}O_NONBLOCK{$endif});
+  fpfcntl(FSocket,F_SETFL,O_NONBLOCK);
 {$endif}
   FNonBlocking:=True;
 end;
@@ -437,7 +433,7 @@ begin
   Result:=Sockets.Accept(Socket,Faddr,L);
   If Result<0 then
 {$ifdef Unix}
-    If SocketError={$ifdef ver1_0}Sys_EWOULDBLOCK{$else}ESysEWOULDBLOCK{$endif} then
+    If SocketError=ESysEWOULDBLOCK then
       Raise ESocketError.Create(seAcceptWouldBlock,[socket])
     else
 {$endif}
@@ -487,7 +483,7 @@ begin
   L:=Length(FFileName);
   Result:=Sockets.Accept(Socket,FUnixAddr,L);
   If Result<0 then
-    If SocketError={$ifdef ver1_0}Sys_EWOULDBLOCK{$else}ESysEWOULDBLOCK{$endif} then
+    If SocketError=ESysEWOULDBLOCK then
       Raise ESocketError.Create(seAcceptWouldBlock,[socket])
     else
       Raise ESocketError.Create(seAcceptFailed,[socket,SocketError]);

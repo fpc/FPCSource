@@ -13,12 +13,7 @@
 
 
 Uses
-{$ifdef ver1_0}
-  Linux
-{$else}
-  baseUnix
-{$endif}
-  ;
+  baseUnix;
 
 { Declared EXPLICITLY with Ansistring, so NO mistaking is possible }
 
@@ -28,7 +23,7 @@ Var P : Pchar;
 
 begin
    // Linux version returns pchar.
-   p:={$ifdef ver1_0}Linux.getenv{$else}BaseUnix.fpgetenv{$endif}(EnvVar);
+   p:=BaseUnix.fpgetenv(EnvVar);
    if P<>nil then
      getenv:=strpas(p)
    else

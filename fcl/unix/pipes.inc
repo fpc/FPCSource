@@ -14,20 +14,12 @@
  **********************************************************************}
 
 Uses
-{$ifdef ver1_0}
-  Linux
-{$else}
   Unix
-{$endif}
   ;
 
 Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 
 begin
-{$ifdef ver1_0}
-  Result := AssignPipe (Inhandle,OutHandle);
-{$else}
   Result := (AssignPipe (Inhandle,OutHandle)<>-1);
-{$endif}
 end;
 
