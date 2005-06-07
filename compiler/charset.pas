@@ -176,11 +176,11 @@ unit charset;
          hp : punicodemap;
 
       const
-         mapcache : string = '';
          mapcachep : punicodemap = nil;
 
       begin
-         if (mapcache=s) and (mapcachep^.cpname=s) then
+         if assigned(mapcachep) and
+            (mapcachep^.cpname=s) then
            begin
               getmap:=mapcachep;
               exit;
@@ -191,7 +191,6 @@ unit charset;
               if hp^.cpname=s then
                 begin
                    getmap:=hp;
-                   mapcache:=s;
                    mapcachep:=hp;
                    exit;
                 end;
