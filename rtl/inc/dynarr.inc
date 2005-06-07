@@ -80,9 +80,7 @@ procedure fpc_dynarray_clear_internal(p : pointer;ti : pointer);
      { skip kind and name }
      inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen)+2);
 
-{$ifdef FPC_ALIGNSRTTI}
      ti:=aligntoptr(ti);
-{$endif FPC_ALIGNSRTTI}
 
      elesize:=psizeint(ti)^;
      eletype:=pdynarraytypeinfo(pointer(pdynarraytypeinfo(pointer(ti)+sizeof(sizeint)))^);
@@ -181,9 +179,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      { skip kind and name }
      inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen)+2);
 
-{$ifdef FPC_ALIGNSRTTI}
      ti:=aligntoptr(ti);
-{$endif FPC_ALIGNSRTTI}
 
      elesize:=psizeint(ti)^;
      eletype:=pdynarraytypeinfo(pointer(pdynarraytypeinfo(pointer(ti)+sizeof(sizeint)))^);
@@ -333,9 +329,7 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
      { skip kind and name }
      inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen)+2);
 
-{$ifdef FPC_ALIGNSRTTI}
      ti:=aligntoptr(ti);
-{$endif FPC_ALIGNSRTTI}
 
      elesize:=psizeint(ti)^;
      eletype:=pdynarraytypeinfo(pointer(pdynarraytypeinfo(pointer(ti)+sizeof(sizeint)))^);
