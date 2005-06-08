@@ -28,7 +28,8 @@ interface
     { reads an exports statement in a library }
     procedure read_exports;
 
-
+    var
+      BinaryContainsExports: boolean = false;
 implementation
 
     uses
@@ -77,6 +78,7 @@ implementation
         end;
 
       begin
+         BinaryContainsExports:=true;
          DefString:='';
          InternalProcName:='';
          consume(_EXPORTS);
