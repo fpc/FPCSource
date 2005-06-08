@@ -311,7 +311,7 @@ distclean: tempclean execlean cleanall $(addsuffix _clean,$(CYCLETARGETS)) $(add
 # Make targets
 #####################################################################
 
-$(MSG2INC): $(COMPILERUTILSDIR)/msg2inc.pp
+$(MSG2INC): $(COMPILER_TARGETDIR) $(COMPILER_UNITTARGETDIR) $(COMPILERUTILSDIR)/msg2inc.pp
         $(COMPILER) -FE. $(COMPILERUTILSDIR)/msg2inc.pp
 
 # The msgtxt.inc only depends on the error?.msg file, not on msg2inc,

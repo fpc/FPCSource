@@ -2553,7 +2553,7 @@ cycleclean: cleanall $(addsuffix _clean,$(PPC_TARGET))
 	-$(DEL) $(EXENAME)
 clean: tempclean execlean cleanall $(addsuffix _clean,$(PPC_TARGET)) $(addsuffix _clean,$(TARGET_DIRS))
 distclean: tempclean execlean cleanall $(addsuffix _clean,$(CYCLETARGETS)) $(addsuffix _distclean,$(TARGET_DIRS))
-$(MSG2INC): $(COMPILERUTILSDIR)/msg2inc.pp
+$(MSG2INC): $(COMPILER_TARGETDIR) $(COMPILER_UNITTARGETDIR) $(COMPILERUTILSDIR)/msg2inc.pp
 	$(COMPILER) -FE. $(COMPILERUTILSDIR)/msg2inc.pp
 msgtxt.inc: $(MSGFILE)
 	$(MAKE) $(MSG2INC)
