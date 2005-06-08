@@ -192,7 +192,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       end;
 
 
-  function CBeginThread(sa : Pointer;stacksize : dword;
+  function CBeginThread(sa : Pointer;stacksize : PtrUInt;
                        ThreadFunction : tthreadfunc;p : pointer;
                        creationFlags : dword; var ThreadId : TThreadId) : TThreadID;
     var
@@ -299,7 +299,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     begin
       {$Warning ThreadGetPriority needs to be implemented}
     end;
-    
+
 
   function  CGetCurrentThreadId : TThreadID;
     begin
