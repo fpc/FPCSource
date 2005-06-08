@@ -261,4 +261,11 @@ begin
 end;
 
 
+{
+   $Log: sysfile.inc,v $
+   Revision 1.1  2005/02/06 13:06:20  peter
+     * moved file and dir functions to sysfile/sysdir
+     * win32 thread in systemunit
+
+}
 

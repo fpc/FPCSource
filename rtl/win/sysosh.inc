@@ -1,10 +1,8 @@
 {
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 2001 by Free Pascal development team
+    Basic Windows stuff
 
-    This file implements all the base types and limits required
-    for a minimal POSIX compliant subset required to port the compiler
-    to a new OS.
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2002-2005 by Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -15,15 +13,18 @@
 
  **********************************************************************}
 
-{Platform specific information}
+{ Platform specific information }
 type
 {$ifdef CPU64}
   THandle = QWord;
+  ULONG_PTR = QWord;
 {$else CPU64}
   THandle = DWord;
+  ULONG_PTR = DWord;
 {$endif CPU64}
   TThreadID = THandle;
-  
+  SIZE_T = ULONG_PTR;
+
   { the fields of this record are os dependent  }
   { and they shouldn't be used in a program     }
   { only the type TCriticalSection is important }
@@ -32,9 +33,7 @@ type
     DebugInfo : pointer;
     LockCount : longint;
     RecursionCount : longint;
-    OwningThread : DWord;
-    LockSemaphore : DWord;
-    Reserved : DWord;
+    OwningThread : THandle;
+    LockSemaphore : THandle;
+    SpinCount : ULONG_PTR;
   end;
-
-

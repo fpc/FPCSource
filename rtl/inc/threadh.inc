@@ -25,7 +25,7 @@ type
   trtlmethod  = procedure of object;
 
   // Function prototypes for TThreadManager Record.
-  TBeginThreadHandler = Function (sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : TThreadID) : TThreadID;
+  TBeginThreadHandler = Function (sa : Pointer;stacksize : PtrUInt; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : TThreadID) : TThreadID;
   TEndThreadHandler = Procedure (ExitCode : DWord);
   // Used for Suspend/Resume/Kill
   TThreadHandler = Function (threadHandle : TThreadID) : dword;

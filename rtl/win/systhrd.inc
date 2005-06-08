@@ -33,8 +33,8 @@ function TlsSetValue(dwTlsIndex : DWord;lpTlsValue : pointer) : LongBool;
 function TlsFree(dwTlsIndex : DWord) : LongBool;
   stdcall;external 'kernel32' name 'TlsFree';
 function CreateThread(lpThreadAttributes : pointer;
-  dwStackSize : DWord; lpStartAddress : pointer;lpParameter : pointer;
-  dwCreationFlags : DWord;var lpThreadId : DWord) : Dword;
+  dwStackSize : SIZE_T; lpStartAddress : pointer;lpParameter : pointer;
+  dwCreationFlags : DWord;var lpThreadId : DWord) : THandle;
   stdcall;external 'kernel32' name 'CreateThread';
 procedure ExitThread(dwExitCode : DWord);
   stdcall;external 'kernel32' name 'ExitThread';
@@ -42,16 +42,16 @@ function GlobalAlloc(uFlags:DWord; dwBytes:DWORD):Pointer;
   stdcall;external 'kernel32' name 'GlobalAlloc';
 function GlobalFree(hMem : Pointer):Pointer; stdcall;external 'kernel32' name 'GlobalFree';
 procedure Sleep(dwMilliseconds: DWord); stdcall;external 'kernel32' name 'Sleep';
-function  WinSuspendThread (threadHandle : dword) : dword; stdcall;external 'kernel32' name 'SuspendThread';
-function  WinResumeThread  (threadHandle : dword) : dword; stdcall;external 'kernel32' name 'ResumeThread';
-function  TerminateThread  (threadHandle : dword; var exitCode : dword) : boolean; stdcall;external 'kernel32' name 'TerminateThread';
-function  WaitForSingleObject (hHandle,Milliseconds: dword): dword; stdcall;external 'kernel32' name 'WaitForSingleObject';
-function  WinThreadSetPriority (threadHandle : dword; Prio: longint): boolean; stdcall;external 'kernel32' name 'SetThreadPriority';
-function  WinThreadGetPriority (threadHandle : dword): LongInt; stdcall;external 'kernel32' name 'GetThreadPriority';
+function  WinSuspendThread (threadHandle : THandle) : dword; stdcall;external 'kernel32' name 'SuspendThread';
+function  WinResumeThread  (threadHandle : THandle) : dword; stdcall;external 'kernel32' name 'ResumeThread';
+function  TerminateThread  (threadHandle : THandle; var exitCode : dword) : boolean; stdcall;external 'kernel32' name 'TerminateThread';
+function  WaitForSingleObject (hHandle : THandle;Milliseconds: dword): dword; stdcall;external 'kernel32' name 'WaitForSingleObject';
+function  WinThreadSetPriority (threadHandle : THandle; Prio: longint): boolean; stdcall;external 'kernel32' name 'SetThreadPriority';
+function  WinThreadGetPriority (threadHandle : THandle): LongInt; stdcall;external 'kernel32' name 'GetThreadPriority';
 function  WinGetCurrentThreadId : dword; stdcall;external 'kernel32' name 'GetCurrentThread';
-function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar):CARDINAL; stdcall; external 'kernel32' name 'CreateEventA';
-function  ResetEvent(hEvent:CARDINAL):LONGBOOL; stdcall; external 'kernel32' name 'ResetEvent';
-function  SetEvent(hEvent:CARDINAL):LONGBOOL; stdcall; external 'kernel32' name 'SetEvent';
+function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall; external 'kernel32' name 'CreateEventA';
+function  ResetEvent(hEvent:THandle):LONGBOOL; stdcall; external 'kernel32' name 'ResetEvent';
+function  SetEvent(hEvent:THandle):LONGBOOL; stdcall; external 'kernel32' name 'SetEvent';
 
 CONST
    WAIT_OBJECT_0 = 0;
@@ -154,11 +154,12 @@ CONST
       end;
 
 
-    function SysBeginThread(sa : Pointer;stacksize : dword;
+    function SysBeginThread(sa : Pointer;stacksize : ptruint;
                          ThreadFunction : tthreadfunc;p : pointer;
-                         creationFlags : dword; var ThreadId : DWord) : DWord;
+                         creationFlags : dword;var ThreadId : TThreadID) : TThreadID;
       var
         ti : pthreadinfo;
+        _threadid : DWord;
       begin
 {$ifdef DEBUG_MT}
         writeln('Creating new thread');
@@ -183,7 +184,9 @@ CONST
 {$ifdef DEBUG_MT}
         writeln('Starting new thread');
 {$endif DEBUG_MT}
-        SysBeginThread:=CreateThread(sa,stacksize,@ThreadMain,ti,creationflags,threadid);
+        _threadid:=ThreadID;
+        SysBeginThread:=CreateThread(sa,stacksize,@ThreadMain,ti,creationflags,_threadid);
+        ThreadID:=_threadid;
       end;
 
 
@@ -200,19 +203,19 @@ CONST
     end;
 
 
-    function  SysSuspendThread (threadHandle : dword) : dword;
+    function  SysSuspendThread (threadHandle : TThreadID) : dword;
     begin
       SysSuspendThread:=WinSuspendThread(threadHandle);
     end;
 
 
-    function  SysResumeThread  (threadHandle : dword) : dword;
+    function  SysResumeThread  (threadHandle : TThreadID) : dword;
     begin
       SysResumeThread:=WinResumeThread(threadHandle);
     end;
 
 
-    function  SysKillThread (threadHandle : dword) : dword;
+    function  SysKillThread (threadHandle : TThreadID) : dword;
     var exitCode : dword;
     begin
       if not TerminateThread (threadHandle, exitCode) then
@@ -221,25 +224,25 @@ CONST
         SysKillThread := 0;
     end;
 
-    function  SysWaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;
+    function  SysWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;
     begin
       if timeoutMs = 0 then dec (timeoutMs);  // $ffffffff is INFINITE
       SysWaitForThreadTerminate := WaitForSingleObject(threadHandle, TimeoutMs);
     end;
 
 
-    function  SysThreadSetPriority (threadHandle : dword; Prio: longint): boolean;            {-15..+15, 0=normal}
+    function  SysThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean;            {-15..+15, 0=normal}
     begin
       SysThreadSetPriority:=WinThreadSetPriority(threadHandle,Prio);
     end;
 
 
-    function  SysThreadGetPriority (threadHandle : dword): longint;
+    function  SysThreadGetPriority (threadHandle : TThreadID): longint;
     begin
       SysThreadGetPriority:=WinThreadGetPriority(threadHandle);
     end;
 
-    function  SysGetCurrentThreadId : dword;
+    function  SysGetCurrentThreadId : TThreadID;
     begin
       SysGetCurrentThreadId:=Win32GetCurrentThreadId;
     end;
@@ -467,6 +470,3 @@ begin
   InitHeapMutexes;
   ThreadID := GetCurrentThreadID;
 end;
-
-
-

@@ -1,22 +1,22 @@
 #
-#   Makefile.fpc for Free Pascal Win32 RTL
+#   Makefile.fpc for Free Pascal Win64 RTL
 #
 
 [package]
 main=rtl
 
 [target]
-loaders=wprt0 wdllprt0 gprt0 wcygprt0
-units=$(SYSTEMUNIT) ctypes objpas macpas strings \
-      lineinfo heaptrc matrix \
-      windows winsock initc cmem dynlibs signals \
-      dos crt objects graph messages \
-      rtlconsts sysconst sysutils math types \
-      strutils convutils dateutils varutils variants typinfo classes \
-      cpu mmx charset ucomplex getopts \
-      wincrt winmouse winevent sockets printer \
-      video mouse keyboard \
-      winsysut
+loaders= #wprt0 wdllprt0 gprt0 wcygprt0
+units=$(SYSTEMUNIT) # ctypes objpas macpas strings \
+#     lineinfo heaptrc matrix \
+#     windows winsock initc cmem dynlibs signals \
+#     dos crt objects graph messages \
+#     rtlconsts sysconst sysutils math types \
+#     strutils convutils dateutils varutils variants typinfo classes \
+#     cpu mmx charset ucomplex getopts \
+#     wincrt winmouse winevent sockets printer \
+#     video mouse keyboard \
+#     winsysut
 
 rsts=math varutils typinfo variants classes dateutils sysconst
 
@@ -28,10 +28,10 @@ fpcpackage=y
 
 [default]
 fpcdir=../..
-target=win32
+target=win64
 
 [compiler]
-includedir=$(INC) $(PROCINC)
+includedir=$(INC) $(PROCINC) $(RTL)/win
 sourcedir=$(INC) $(PROCINC)
 
 
@@ -58,7 +58,7 @@ OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 
 # Files used by windows.pp
-include $(WININC)/makefile.inc
+# include $(WININC)/makefile.inc
 
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 

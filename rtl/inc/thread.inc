@@ -74,6 +74,12 @@ begin
   Result:=CurrentTM.BeginThread(sa,stacksize,threadfunction,P,creationflags,ThreadID);
 end;
 
+function BeginThread(sa : Pointer;stacksize : qword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : TThreadID) : TThreadID;
+
+begin
+  Result:=CurrentTM.BeginThread(sa,stacksize,threadfunction,P,creationflags,ThreadID);
+end;
+
 procedure EndThread(ExitCode : DWord);
 
 begin
@@ -282,7 +288,7 @@ begin
   RunError(232)
 end;
 
-function NoBeginThread(sa : Pointer;stacksize : dword;
+function NoBeginThread(sa : Pointer;stacksize : PtrUInt;
                      ThreadFunction : tthreadfunc;p : pointer;
                      creationFlags : dword; var ThreadId : TThreadID) : TThreadID;
 begin

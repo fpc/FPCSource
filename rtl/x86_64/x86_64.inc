@@ -385,4 +385,3 @@ asm
   ldmxcsr mxcsr
 {$endif FPC_PIC}
 end;
-

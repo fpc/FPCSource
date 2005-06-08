@@ -1,10 +1,8 @@
 {
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 2001 by Free Pascal development team
+    Basic heap handling for windows platforms
 
-    This file implements all the base types and limits required
-    for a minimal POSIX compliant subset required to port the compiler
-    to a new OS.
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2001-2005 by Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -21,27 +19,27 @@
  ****************************************************************************}
 
    { memory functions }
-   function GetProcessHeap : DWord;
+   function GetProcessHeap : THandle;
      stdcall;external 'kernel32' name 'GetProcessHeap';
-   function HeapAlloc(hHeap : DWord; dwFlags : DWord; dwBytes : DWord) : Longint;
+   function HeapAlloc(hHeap : DWord; dwFlags : DWord; dwBytes : SIZE_T) : pointer;
      stdcall;external 'kernel32' name 'HeapAlloc';
-   function HeapFree(hHeap : dword; dwFlags : dword; lpMem: pointer) : boolean;
+   function HeapFree(hHeap : THandle; dwFlags : dword; lpMem: pointer) : boolean;
      stdcall;external 'kernel32' name 'HeapFree';
 {$IFDEF SYSTEMDEBUG}
-   function WinAPIHeapSize(hHeap : DWord; dwFlags : DWord; ptr : Pointer) : DWord;
+   function WinAPIHeapSize(hHeap : THandle; dwFlags : DWord; ptr : Pointer) : DWord;
      stdcall;external 'kernel32' name 'HeapSize';
 {$ENDIF}
 
 
 function SysOSAlloc(size: ptrint): pointer;
 var
-  l : longword;
+  p : pointer;
 begin
-  l := HeapAlloc(GetProcessHeap, 0, size);
+  p := HeapAlloc(GetProcessHeap, 0, size);
 {$ifdef DUMPGROW}
-  Writeln('new heap part at $',hexstr(l,8), ' size = ',WinAPIHeapSize(GetProcessHeap()));
+  Writeln('new heap part at $',hexstr(ptrint(p),sizeof(ptrint)*2), ' size = ',WinAPIHeapSize(GetProcessHeap()));
 {$endif}
-  SysOSAlloc := pointer(l);
+  SysOSAlloc := p;
 end;
 
 {$define HAS_SYSOSFREE}
@@ -50,6 +48,4 @@ procedure SysOSFree(p: pointer; size: ptrint);
 begin
   HeapFree(GetProcessHeap, 0, p);
 end;
-
-
 

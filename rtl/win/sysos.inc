@@ -1,10 +1,8 @@
 {
+    Basic stuff for windows rtls
+
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
-
-    This file implements all the base types and limits required
-    for a minimal POSIX compliant subset required to port the compiler
-    to a new OS.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -167,14 +165,8 @@ type
     wMilliseconds: Word;
   end;
 
-{$IFDEF SUPPORT_THREADVAR}
 threadvar
-{$ELSE SUPPORT_THREADVAR}
-var
-{$ENDIF SUPPORT_THREADVAR}
-    errno : longint;
-
-{$ASMMODE ATT}
+  errno : longint;
 
 
    { misc. functions }
@@ -276,6 +268,3 @@ var
      end;
      errno:=0;
    end;
-
-
-

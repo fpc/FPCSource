@@ -4179,6 +4179,12 @@ rtl/watcom/system.pp svneol=native#text/plain
 rtl/watcom/sysutils.pp svneol=native#text/plain
 rtl/watcom/varutils.pp svneol=native#text/plain
 rtl/watcom/watcom.pp svneol=native#text/plain
+rtl/win/sysdir.inc svneol=native#text/plain
+rtl/win/sysfile.inc svneol=native#text/plain
+rtl/win/sysheap.inc svneol=native#text/plain
+rtl/win/sysos.inc svneol=native#text/plain
+rtl/win/sysosh.inc svneol=native#text/plain
+rtl/win/systhrd.inc svneol=native#text/plain
 rtl/win32/Makefile -text
 rtl/win32/Makefile.fpc svneol=native#text/plain
 rtl/win32/classes.pp svneol=native#text/plain
@@ -4195,13 +4201,7 @@ rtl/win32/objinc.inc svneol=native#text/plain
 rtl/win32/printer.pp svneol=native#text/plain
 rtl/win32/signals.pp svneol=native#text/plain
 rtl/win32/sockets.pp svneol=native#text/plain
-rtl/win32/sysdir.inc svneol=native#text/plain
-rtl/win32/sysfile.inc svneol=native#text/plain
-rtl/win32/sysheap.inc svneol=native#text/plain
-rtl/win32/sysos.inc svneol=native#text/plain
-rtl/win32/sysosh.inc svneol=native#text/plain
 rtl/win32/system.pp svneol=native#text/plain
-rtl/win32/systhrd.inc svneol=native#text/plain
 rtl/win32/sysutils.pp svneol=native#text/plain
 rtl/win32/syswin32.pp svneol=native#text/plain
 rtl/win32/tthread.inc svneol=native#text/plain
@@ -4209,7 +4209,6 @@ rtl/win32/varutils.pp svneol=native#text/plain
 rtl/win32/video.pp svneol=native#text/plain
 rtl/win32/wcygprt0.as -text
 rtl/win32/wdllprt0.as -text
-rtl/win32/win32.inc svneol=native#text/plain
 rtl/win32/wincrt.pp svneol=native#text/plain
 rtl/win32/windows.pp svneol=native#text/plain
 rtl/win32/winevent.pp svneol=native#text/plain
@@ -4233,6 +4232,9 @@ rtl/win32/winsock.pp svneol=native#text/plain
 rtl/win32/winsysut.pp svneol=native#text/plain
 rtl/win32/wprt0.as -text
 rtl/win32/wprt0_10.as -text
+rtl/win64/Makefile svneol=native#text/plain
+rtl/win64/Makefile.fpc svneol=native#text/plain
+rtl/win64/system.pp svneol=native#text/plain
 rtl/x86_64/int64p.inc svneol=native#text/plain
 rtl/x86_64/makefile.cpu -text
 rtl/x86_64/math.inc svneol=native#text/plain

@@ -92,14 +92,24 @@ Type
 {$endif CPUI386}
 
 {$ifdef CPUX86_64}
+{$ifndef WIN64}
+  { win64 doesn't support the legacy fpu }
   {$define DEFAULT_EXTENDED}
+  {$define SUPPORT_EXTENDED}
+  {$define SUPPORT_COMP}
+  ValReal = Extended;
+{$else WIN64}
+  {$define DEFAULT_DOUBLE}
+  ValReal = Double;
+
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
+  Comp = Int64;
+  PComp = ^Comp;
+{$endif WIN64}
 
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
-  {$define SUPPORT_EXTENDED}
-  {$define SUPPORT_COMP}
 
-  ValReal = Extended;
 {$endif CPUX86_64}
 
 {$ifdef CPUM68K}

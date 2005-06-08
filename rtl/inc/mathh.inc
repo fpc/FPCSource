@@ -23,11 +23,13 @@
 {$endif cpui386}
 
 {$ifdef cpux86_64}
+{$ifndef WIN64}
     const
       Default8087CW : word = $1332;
 
     procedure Set8087CW(cw:word);
     function Get8087CW:word;
+{$endif WIN64}
 {$endif cpux86_64}
 
    { declarations of the math routines }
