@@ -1032,7 +1032,8 @@ implementation
                  { Temp strings are stored in memory, for compatibility with
                    delphi only }
                    if (m_delphi in aktmodeswitches) and
-                      (valid_addr in opts) and
+                      ((valid_addr in opts) or
+                       (valid_const in opts)) and
                       (hp.resulttype.def.deftype=stringdef) then
                      result:=true
                  else
