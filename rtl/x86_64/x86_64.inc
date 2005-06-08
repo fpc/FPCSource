@@ -370,9 +370,11 @@ const
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
+{$ifndef WIN64}
   { initialize fpu }
   fninit
   fwait
+{$endif WIN64}
 {$ifdef FPC_PIC}
   movq fpucw@GOTPCREL(%rip),%rax
   fldcw (%rax)
