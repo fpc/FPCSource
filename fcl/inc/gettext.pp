@@ -76,7 +76,7 @@ type
 
 implementation
 
-uses dos;
+uses {$ifdef win32} windows, {$endif}dos;
 
 var
   GettextUsed: Boolean;
@@ -260,10 +260,39 @@ end;
 {$endif}
 
 procedure TranslateResourceStrings(const AFilename: String);
+
+{$ifdef win32}
+procedure GetLanguageIDs(var Lang, FallbackLang: string);
+var
+  Buffer: array[1..4] of char;
+  Country: string;
+  UserLCID: LCID;
+begin
+  //defaults
+  Lang := '';
+  FallbackLang:='';
+  UserLCID := GetUserDefaultLCID;
+  if GetLocaleInfo(UserLCID, LOCALE_SABBREVLANGNAME, @Buffer, 4)<>0 then
+    FallbackLang := lowercase(copy(Buffer,1,2));
+  if GetLocaleInfo(UserLCID, LOCALE_SABBREVCTRYNAME, @Buffer, 4)<>0 then begin
+    Country := copy(Buffer,1,2);
+
+    // some 2 letter codes are not the first two letters of the 3 letter code
+    // there are probably more, but first let us see if there are translations
+    if (Buffer='PRT') then Country:='PT';
+
+    Lang := FallbackLang+'_'+Country;
+  end;
+end;
+{$endif}
+
 var
   mo: TMOFile;
   lang, FallbackLanguage: String;
 begin
+  {$ifdef win32}
+  GetLanguageIDs(Lang, FallbackLanguage);
+  {$else}
   lang := GetEnv('LC_ALL');
   if Length(lang) = 0 then
   begin
@@ -275,8 +304,8 @@ begin
         exit;   // no language defined via environment variables
     end;
   end;
-
   FallbackLanguage := Copy(lang, 1, 2);
+  {$endif}
   try
     mo := TMOFile.Create(Format(AFilename, [FallbackLanguage]));
     try
