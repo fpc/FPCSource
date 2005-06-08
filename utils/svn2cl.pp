@@ -1,7 +1,7 @@
 {$mode objfpc}
 {$h+}
 uses
-  classes,dom,xmlread;
+  sysutils,classes,dom,xmlread;
 
 procedure error(const s : string);
   begin
@@ -16,17 +16,23 @@ var
   currentpath,
   currentinfo : TDomNode;
   hs,
+  dirprefix,
+  newlineprefix,
   currentmsg,
   currentauthor,
   currentdate,
   pathtemp,
   currentrevision : string;
   paths : tstringlist;
-  i,j,maxequal : longint;
+  pathprefixes : tstringlist;
+  i,j,maxequal : integer;
+  firstpath : boolean;
 
 begin
   paths:=tstringlist.create;
   paths.sorted:=true;
+  pathprefixes:=tstringlist.create;
+  pathprefixes.sorted:=true;
   ReadXMLFile(doc,paramstr(1));
   root:=doc.DocumentElement;
   if root.haschildnodes and
@@ -80,13 +86,19 @@ begin
                     begin
                       currentpath:=currentinfo.firstchild;
                       paths.clear;
+                      pathprefixes.clear;
                       while assigned(currentpath) do
                         begin
                           if currentpath.NodeName<>'path' then
                             error('Path node expected');
                           if currentpath.haschildnodes and
                             (currentpath.firstchild is TDOMText) then
-                            paths.add((currentpath.firstchild as TDOMText).Data)
+                            begin
+                              paths.add((currentpath.firstchild as TDOMText).Data);
+                              hs:=ExtractFilePath((currentpath.firstchild as TDOMText).Data);
+                              if not pathprefixes.Find(hs,i) then
+                                pathprefixes.add(hs);
+                            end
                           else
                             error('Malformed date node');
 
@@ -106,46 +118,105 @@ begin
               else
                 writeln;
               writeln;
-              { search for common prefix }
-              maxequal:=65535;
-              for i:=1 to paths.Count-1 do
-                begin
-                  j:=1;
-                  while (paths[0][j]=paths[i][j]) and (j<=maxequal) do
-                    inc(j);
-                  dec(j);
-                  if j<maxequal then
-                    maxequal:=j;
-                end;
 
-              { test/p1.pas test/p2.pas should use the prefix test/ instead of test/p }
-              if maxequal<65535 then
-                while (maxequal>0) and (paths[0][maxequal]<>'/') do
-                  dec(maxequal);
-
-              { generate prefix }
-              pathtemp:='  * '+copy(paths[0],1,maxequal)+': ';
-              for i:=0 to paths.Count-1 do
+              { search for common pathprefix }
+              if pathprefixes.Count>1 then
                 begin
-                  hs:=copy(paths[i],maxequal+1,65535);
-                  if (length(pathtemp)+length(', '+hs)>80) and
-                    (pathtemp<>'  ') then
+                  maxequal:=65535;
+                  for i:=1 to pathprefixes.Count-1 do
                     begin
-                      writeln(pathtemp+',');
-                      pathtemp:='  ';
+                      j:=1;
+                      while (pathprefixes[0][j]=pathprefixes[i][j]) and (j<=maxequal) do
+                        inc(j);
+                      dec(j);
+                      if j<maxequal then
+                        maxequal:=j;
                     end;
-                  { non empty path but not first? }
-                  if (pathtemp<>'  ') and (pathtemp[length(pathtemp)-1]<>':') then
-                    pathtemp:=pathtemp+', ';
-                  pathtemp:=pathtemp+hs;
+
+                  { test/p1.pas test/p2.pas should use the prefix test/ instead of test/p }
+                  if maxequal<65535 then
+                    while (maxequal>0) and (pathprefixes[0][maxequal]<>'/') do
+                      dec(maxequal);
+                  Writeln('  '+Copy(pathprefixes[0],1,maxequal)+': ');
+                  dirprefix:='    ';
+                  newlineprefix:='      ';
+                end
+              else
+                begin
+                  maxequal:=0;
+                  dirprefix:='  ';
+                  newlineprefix:='    ';
                 end;
-              if pathtemp<>'  ' then
-                writeln(pathtemp);
-              { truncate trailing new line }
-              while currentmsg[length(currentmsg)] in [#13,#10] do
-                delete(currentmsg,length(currentmsg),1);
+
+              for i:=0 to pathprefixes.Count-1 do
+                begin
+                  pathtemp:=dirprefix;
+                  if maxequal+1<length(pathprefixes[i]) then
+                    pathtemp:=pathtemp+Copy(pathprefixes[i],maxequal+1,65535)+': ';
+                  firstpath:=true;
+                  for j:=0 to paths.Count-1 do
+                    begin
+                      if ExtractFilePath(paths[j])=pathprefixes[i] then
+                        begin
+                          hs:=copy(paths[j],length(pathprefixes[i])+1,65535);
+                          if (length(pathtemp)+length(hs)>=78) and
+                             (pathtemp<>newlineprefix) then
+                            begin
+                              writeln(pathtemp+',');
+                              pathtemp:=newlineprefix;
+                              firstpath:=true;
+                            end;
+                          { non empty path but not first? }
+                          if firstpath then
+                            firstpath:=false
+                          else
+                            pathtemp:=pathtemp+', ';
+                          pathtemp:=pathtemp+hs;
+                          { delete already processed paths for performance }
+                          paths.delete(j);
+                          break;
+                        end;
+                    end;
+                  if pathtemp<>newlineprefix then
+                    writeln(pathtemp);
+                end;
+
+              { truncate trailing spaces and new lines from log message }
+              i:=length(currentmsg);
+              while (i>0) and (currentmsg[i] in [#13,#10,#9,' ']) do
+                dec(i);
+              delete(currentmsg,i+1,length(currentmsg)-i);
+
+              { Pretty print message starting with at least 2 spaces each line }
               writeln;
-              writeln('  ',currentmsg);
+              i:=0;
+              hs:=currentmsg;
+              while (hs<>'') do
+                begin
+                  newlineprefix:='  ';
+                  i:=0;
+                  while (i<length(hs)) and not(hs[i+1] in [#13,#10]) do
+                    inc(i);
+                  j:=1;
+                  while (j<length(hs)) and
+                        (j<length(newlineprefix)) and
+                        (hs[j] in [' ']) do
+                    inc(j);
+                  writeln(newlineprefix,copy(hs,j,i-j+1));
+                  { remove eol and add additional empty lines }
+                  j:=0;
+                  while (i<length(hs)) and (hs[i+1] in [#13,#10]) do
+                    begin
+                      if hs[i+1]=#10 then
+                        begin
+                          inc(j);
+                          if j>2 then
+                            writeln;
+                        end;
+                      inc(i);
+                    end;
+                  delete(hs,1,i);
+                end;
               writeln;
             end
           else
