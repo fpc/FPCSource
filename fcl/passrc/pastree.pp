@@ -74,31 +74,31 @@ type
   TPasElement = class
   private
     FRefCount: LongWord;
-    FName: String;
+    FName: string;
     FParent: TPasElement;
   public
-    SourceFilename: String;
+    SourceFilename: string;
     SourceLinenumber: Integer;
-    constructor Create(const AName: String; AParent: TPasElement); virtual;
+    constructor Create(const AName: string; AParent: TPasElement); virtual;
     procedure AddRef;
     procedure Release;
-    function FullName: String;          // Name including parent's names
-    function PathName: String;          // = Module.Name + FullName
+    function FullName: string;          // Name including parent's names
+    function PathName: string;          // = Module.Name + FullName
     function GetModule: TPasModule;
-    function ElementTypeName: String; virtual;
-    function GetDeclaration(full : Boolean) : String; virtual;
+    function ElementTypeName: string; virtual;
+    function GetDeclaration(full : Boolean) : string; virtual;
     Visibility: TPasMemberVisibility;
     property RefCount: LongWord read FRefCount;
-    property Name: String read FName;
+    property Name: string read FName write Fname;
     property Parent: TPasElement read FParent;
   end;
 
   TPasSection = class(TPasElement)
   public
-    constructor Create(const AName: String; AParent: TPasElement); override;
+    constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
-    function ElementTypeName: String; override;
-    procedure AddUnitToUsesList(const AUnitName: String);
+    function ElementTypeName: string; override;
+    procedure AddUnitToUsesList(const AUnitName: string);
     UsesList: TList;            // TPasUnresolvedTypeRef or TPasModule elements
     Declarations, ResStrings, Types, Consts, Classes,
       Functions, Variables: TList;
@@ -107,91 +107,91 @@ type
   TPasModule = class(TPasElement)
   public
     destructor Destroy; override;
-    function ElementTypeName: String; override;
-    function GetDeclaration(full : boolean) : String; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : boolean) : string; override;
     InterfaceSection, ImplementationSection: TPasSection;
-    PackageName: String;
+    PackageName: string;
   end;
 
   TPasPackage = class(TPasElement)
   public
-    constructor Create(const AName: String; AParent: TPasElement); override;
+    constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
-    function ElementTypeName: String; override;
+    function ElementTypeName: string; override;
     Modules: TList;     // List of TPasModule objects
   end;
 
   TPasResString = class(TPasElement)
   public
-    function ElementTypeName: String; override;
-    function GetDeclaration(full : Boolean) : String; Override;
-    Value: String;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : Boolean) : string; Override;
+    Value: string;
   end;
 
   TPasType = class(TPasElement)
   public
-    function ElementTypeName: String; override;
+    function ElementTypeName: string; override;
   end;
 
   TPasPointerType = class(TPasType)
   public
     destructor Destroy; override;
-    function ElementTypeName: String; override;
-    function GetDeclaration(full : Boolean): String; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : Boolean): string; override;
     DestType: TPasType;
   end;
 
   TPasAliasType = class(TPasType)
   public
     destructor Destroy; override;
-    function ElementTypeName: String; override;
-    function GetDeclaration(full : Boolean): String; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : Boolean): string; override;
     DestType: TPasType;
   end;
 
   TPasTypeAliasType = class(TPasAliasType)
   public
-    function ElementTypeName: String; override;
+    function ElementTypeName: string; override;
   end;
 
   TPasClassOfType = class(TPasAliasType)
   public
-    function ElementTypeName: String; override;
-    function GetDeclaration(full: boolean) : String; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full: boolean) : string; override;
   end;
 
 
   TPasRangeType = class(TPasType)
   public
-    function ElementTypeName: String; override;
-    function GetDeclaration(full : boolean) : String; override;
-    RangeStart, RangeEnd: String;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : boolean) : string; override;
+    RangeStart, RangeEnd: string;
   end;
 
   TPasArrayType = class(TPasType)
   public
     destructor Destroy; override;
-    function ElementTypeName: String; override;
-    function GetDeclaration(full : boolean) : String; override;
-    IndexRange : String;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : boolean) : string; override;
+    IndexRange : string;
     IsPacked : Boolean;          // 12/04/04 - Dave - Added
     ElType: TPasType;
   end;
 
   TPasEnumValue = class(TPasElement)
   public
-    function ElementTypeName: String; override;
+    function ElementTypeName: string; override;
     IsValueUsed: Boolean;
     Value: Integer;
-    AssignedValue : String;
+    AssignedValue : string;
   end;
 
   TPasEnumType = class(TPasType)
   public
-    constructor Create(const AName: String; AParent: TPasElement); override;
+    constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
-     function ElementTypeName: String; override;
-    function GetDeclaration(full : boolean) : String; override;
+     function ElementTypeName: string; override;
+    function GetDeclaration(full : boolean) : string; override;
     Procedure GetEnumNames(Names : TStrings);
     Values: TList;      // List of TPasEnumValue objects
   end;
@@ -199,17 +199,17 @@ type
   TPasSetType = class(TPasType)
   public
     destructor Destroy; override;
-    function ElementTypeName: String; override;
-    function GetDeclaration(full : boolean) : String; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : boolean) : string; override;
     EnumType: TPasType;
   end;
 
   TPasRecordType = class(TPasType)
   public
-    constructor Create(const AName: String; AParent: TPasElement); override;
+    constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
-    function ElementTypeName: String; override;
-    function GetDeclaration(full : boolean) : String; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : boolean) : string; override;
     IsPacked: Boolean;
     Members: TList;     // array of TPasVariable elements
   end;
@@ -219,9 +219,9 @@ type
 
   TPasClassType = class(TPasType)
   public
-    constructor Create(const AName: String; AParent: TPasElement); override;
+    constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
-    function ElementTypeName: String; override;
+    function ElementTypeName: string; override;
     ObjKind: TPasObjKind;
     AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
     IsPacked: Boolean;        // 12/04/04 - Dave - Added
@@ -233,23 +233,23 @@ type
   TPasArgument = class(TPasElement)
   public
     destructor Destroy; override;
-    function ElementTypeName: String; override;
-    function GetDeclaration(full : boolean) : String; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : boolean) : string; override;
     Access: TArgumentAccess;
     ArgType: TPasType;
-    Value: String;
+    Value: string;
   end;
 
   TPasProcedureType = class(TPasType)
   public
-    constructor Create(const AName: String; AParent: TPasElement); override;
+    constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
-    class function TypeName: String; virtual;
-    function ElementTypeName: String; override;
+    class function TypeName: string; virtual;
+    function ElementTypeName: string; override;
     IsOfObject: Boolean;
-    function GetDeclaration(full : boolean) : String; override;
+    function GetDeclaration(full : boolean) : string; override;
     procedure GetArguments(List : TStrings);
-    function CreateArgument(const AName, AUnresolvedTypeName: String):
+    function CreateArgument(const AName, AUnresolvedTypeName: string):
       TPasArgument;
     Args: TList;        // List of TPasArgument objects
   end;
@@ -257,80 +257,80 @@ type
   TPasResultElement = class(TPasElement)
   public
     destructor Destroy; override;
-    function ElementTypeName : String; override;
+    function ElementTypeName : string; override;
     ResultType: TPasType;
   end;
 
   TPasFunctionType = class(TPasProcedureType)
   public
     destructor Destroy; override;
-    class function TypeName: String; override;
-    function ElementTypeName: String; override;
-    function GetDeclaration(Full : boolean) : String; override;
+    class function TypeName: string; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(Full : boolean) : string; override;
     ResultEl: TPasResultElement;
   end;
 
   TPasUnresolvedTypeRef = class(TPasType)
   public
     // Typerefs cannot be parented! -> AParent _must_ be NIL
-    constructor Create(const AName: String; AParent: TPasElement); override;
-    function ElementTypeName: String; override;
+    constructor Create(const AName: string; AParent: TPasElement); override;
+    function ElementTypeName: string; override;
   end;
 
   TPasTypeRef = class(TPasUnresolvedTypeRef)
   public
-    // function GetDeclaration(full : Boolean): String; override;
+    // function GetDeclaration(full : Boolean): string; override;
     RefType: TPasType;
   end;
 
   TPasVariable = class(TPasElement)
   public
     destructor Destroy; override;
-    function ElementTypeName: String; override;
-    function GetDeclaration(full : boolean) : String; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : boolean) : string; override;
     VarType: TPasType;
-    Value: String;
+    Value: string;
     Modifiers : string;
   end;
 
   TPasConst = class(TPasVariable)
   public
-    function ElementTypeName: String; override;
+    function ElementTypeName: string; override;
   end;
 
   TPasProperty = class(TPasVariable)
   public
-    constructor Create(const AName: String; AParent: TPasElement); override;
+    constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
-    function ElementTypeName: String; override;
-    function GetDeclaration(full : boolean) : String; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : boolean) : string; override;
     Args: TList;        // List of TPasArgument objects
     IndexValue, ReadAccessorName, WriteAccessorName,
-      StoredAccessorName, DefaultValue: String;
+      StoredAccessorName, DefaultValue: string;
     IsDefault, IsNodefault: Boolean;
   end;
 
   TPasProcedureBase = class(TPasElement)
   public
-    function TypeName: String; virtual; abstract;
+    function TypeName: string; virtual; abstract;
   end;
 
   TPasOverloadedProc = class(TPasProcedureBase)
   public
-    constructor Create(const AName: String; AParent: TPasElement); override;
+    constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
-    function ElementTypeName: String; override;
-    function TypeName: String; override;
+    function ElementTypeName: string; override;
+    function TypeName: string; override;
     Overloads: TList;           // List of TPasProcedure nodes
   end;
 
   TPasProcedure = class(TPasProcedureBase)
   public
     destructor Destroy; override;
-    function ElementTypeName: String; override;
-    function TypeName: String; override;
+    function ElementTypeName: string; override;
+    function TypeName: string; override;
     ProcType: TPasProcedureType;
-    function GetDeclaration(full: Boolean): String; override;
+    function GetDeclaration(full: Boolean): string; override;
     procedure GetModifiers(List: TStrings);
     IsVirtual, IsDynamic, IsAbstract, IsOverride,
       IsOverload, IsMessage: Boolean;
@@ -338,20 +338,26 @@ type
 
   TPasFunction = class(TPasProcedure)
   public
-    function ElementTypeName: String; override;
-    function GetDeclaration (full : boolean) : String; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration (full : boolean) : string; override;
+  end;
+
+  TPasOperator = class(TPasProcedure)
+  public
+    function ElementTypeName: string; override;
+    function GetDeclaration (full : boolean) : string; override;
   end;
 
   TPasConstructor = class(TPasProcedure)
   public
-    function ElementTypeName: String; override;
-    function TypeName: String; override;
+    function ElementTypeName: string; override;
+    function TypeName: string; override;
   end;
 
   TPasDestructor = class(TPasProcedure)
   public
-    function ElementTypeName: String; override;
-    function TypeName: String; override;
+    function ElementTypeName: string; override;
+    function TypeName: string; override;
   end;
 
 
@@ -359,10 +365,10 @@ type
 
   TPasProcedureImpl = class(TPasElement)
   public
-    constructor Create(const AName: String; AParent: TPasElement); override;
+    constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
-    function ElementTypeName: String; override;
-    function TypeName: String; virtual;
+    function ElementTypeName: string; override;
+    function TypeName: string; virtual;
     ProcType: TPasProcedureType;
     Locals: TList;
     Body: TPasImplBlock;
@@ -370,14 +376,14 @@ type
 
   TPasConstructorImpl = class(TPasProcedureImpl)
   public
-    function ElementTypeName: String; override;
-    function TypeName: String; override;
+    function ElementTypeName: string; override;
+    function TypeName: string; override;
   end;
 
   TPasDestructorImpl = class(TPasProcedureImpl)
   public
-    function ElementTypeName: String; override;
-    function TypeName: String; override;
+    function ElementTypeName: string; override;
+    function TypeName: string; override;
   end;
 
   TPasImplElement = class(TPasElement)
@@ -385,12 +391,12 @@ type
 
   TPasImplCommand = class(TPasImplElement)
   public
-    Command: String;
+    Command: string;
   end;
 
   TPasImplCommands = class(TPasImplElement)
   public
-    constructor Create(const AName: String; AParent: TPasElement); override;
+    constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
     Commands: TStrings;
   end;
@@ -398,7 +404,7 @@ type
   TPasImplIfElse = class(TPasImplElement)
   public
     destructor Destroy; override;
-    Condition: String;
+    Condition: string;
     IfBranch, ElseBranch: TPasImplElement;
   end;
 
@@ -406,33 +412,33 @@ type
   public
     destructor Destroy; override;
     Variable: TPasVariable;
-    StartValue, EndValue: String;
+    StartValue, EndValue: string;
     Body: TPasImplElement;
   end;
 
   TPasImplBlock = class(TPasImplElement)
   public
-    constructor Create(const AName: String; AParent: TPasElement); override;
+    constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
-    function AddCommand(const ACommand: String): TPasImplCommand;
+    function AddCommand(const ACommand: string): TPasImplCommand;
     function AddCommands: TPasImplCommands;
-    function AddIfElse(const ACondition: String): TPasImplIfElse;
+    function AddIfElse(const ACondition: string): TPasImplIfElse;
     function AddForLoop(AVar: TPasVariable;
-      const AStartValue, AEndValue: String): TPasImplForLoop;
+      const AStartValue, AEndValue: string): TPasImplForLoop;
     Elements: TList;    // TPasImplElement objects
   end;
 
 
 const
-  AccessNames: array[TArgumentAccess] of String[6] = ('', 'const ', 'var ', 'out ');
+  AccessNames: array[TArgumentAccess] of string[6] = ('', 'const ', 'var ', 'out ');
   AllVisibilities: TPasMemberVisibilities =
      [visDefault, visPrivate, visProtected, visPublic,
       visPublished, visAutomated];
 
-  VisibilityNames: array[TPasMemberVisibility] of String = (
+  VisibilityNames: array[TPasMemberVisibility] of string = (
     'default', 'private', 'protected', 'public', 'published', 'automated');
 
-  ObjKindNames: array[TPasObjKind] of String = (
+  ObjKindNames: array[TPasObjKind] of string = (
     'object', 'class', 'interface');
 
 
@@ -443,40 +449,41 @@ uses SysUtils;
 
 { Parse tree element type name functions }
 
-function TPasElement.ElementTypeName: String; begin Result := SPasTreeElement end;
-function TPasSection.ElementTypeName: String; begin Result := SPasTreeSection end;
-function TPasModule.ElementTypeName: String; begin Result := SPasTreeModule end;
-function TPasPackage.ElementTypeName: String; begin Result := SPasTreePackage end;
-function TPasResString.ElementTypeName: String; begin Result := SPasTreeResString end;
-function TPasType.ElementTypeName: String; begin Result := SPasTreeType end;
-function TPasPointerType.ElementTypeName: String; begin Result := SPasTreePointerType end;
-function TPasAliasType.ElementTypeName: String; begin Result := SPasTreeAliasType end;
-function TPasTypeAliasType.ElementTypeName: String; begin Result := SPasTreeTypeAliasType end;
-function TPasClassOfType.ElementTypeName: String; begin Result := SPasTreeClassOfType end;
-function TPasRangeType.ElementTypeName: String; begin Result := SPasTreeRangeType end;
-function TPasArrayType.ElementTypeName: String; begin Result := SPasTreeArrayType end;
-function TPasEnumValue.ElementTypeName: String; begin Result := SPasTreeEnumValue end;
-function TPasEnumType.ElementTypeName: String; begin Result := SPasTreeEnumType end;
-function TPasSetType.ElementTypeName: String; begin Result := SPasTreeSetType end;
-function TPasRecordType.ElementTypeName: String; begin Result := SPasTreeRecordType end;
-function TPasArgument.ElementTypeName: String; begin Result := SPasTreeArgument end;
-function TPasProcedureType.ElementTypeName: String; begin Result := SPasTreeProcedureType end;
-function TPasResultElement.ElementTypeName: String; begin Result := SPasTreeResultElement end;
-function TPasFunctionType.ElementTypeName: String; begin Result := SPasTreeFunctionType end;
-function TPasUnresolvedTypeRef.ElementTypeName: String; begin Result := SPasTreeUnresolvedTypeRef end;
-function TPasVariable.ElementTypeName: String; begin Result := SPasTreeVariable end;
-function TPasConst.ElementTypeName: String; begin Result := SPasTreeConst end;
-function TPasProperty.ElementTypeName: String; begin Result := SPasTreeProperty end;
-function TPasOverloadedProc.ElementTypeName: String; begin Result := SPasTreeOverloadedProcedure end;
-function TPasProcedure.ElementTypeName: String; begin Result := SPasTreeProcedure end;
-function TPasFunction.ElementTypeName: String; begin Result := SPasTreeFunction end;
-function TPasConstructor.ElementTypeName: String; begin Result := SPasTreeConstructor end;
-function TPasDestructor.ElementTypeName: String; begin Result := SPasTreeDestructor end;
-function TPasProcedureImpl.ElementTypeName: String; begin Result := SPasTreeProcedureImpl end;
-function TPasConstructorImpl.ElementTypeName: String; begin Result := SPasTreeConstructorImpl end;
-function TPasDestructorImpl.ElementTypeName: String; begin Result := SPasTreeDestructorImpl end;
+function TPasElement.ElementTypeName: string; begin Result := SPasTreeElement end;
+function TPasSection.ElementTypeName: string; begin Result := SPasTreeSection end;
+function TPasModule.ElementTypeName: string; begin Result := SPasTreeModule end;
+function TPasPackage.ElementTypeName: string; begin Result := SPasTreePackage end;
+function TPasResString.ElementTypeName: string; begin Result := SPasTreeResString end;
+function TPasType.ElementTypeName: string; begin Result := SPasTreeType end;
+function TPasPointerType.ElementTypeName: string; begin Result := SPasTreePointerType end;
+function TPasAliasType.ElementTypeName: string; begin Result := SPasTreeAliasType end;
+function TPasTypeAliasType.ElementTypeName: string; begin Result := SPasTreeTypeAliasType end;
+function TPasClassOfType.ElementTypeName: string; begin Result := SPasTreeClassOfType end;
+function TPasRangeType.ElementTypeName: string; begin Result := SPasTreeRangeType end;
+function TPasArrayType.ElementTypeName: string; begin Result := SPasTreeArrayType end;
+function TPasEnumValue.ElementTypeName: string; begin Result := SPasTreeEnumValue end;
+function TPasEnumType.ElementTypeName: string; begin Result := SPasTreeEnumType end;
+function TPasSetType.ElementTypeName: string; begin Result := SPasTreeSetType end;
+function TPasRecordType.ElementTypeName: string; begin Result := SPasTreeRecordType end;
+function TPasArgument.ElementTypeName: string; begin Result := SPasTreeArgument end;
+function TPasProcedureType.ElementTypeName: string; begin Result := SPasTreeProcedureType end;
+function TPasResultElement.ElementTypeName: string; begin Result := SPasTreeResultElement end;
+function TPasFunctionType.ElementTypeName: string; begin Result := SPasTreeFunctionType end;
+function TPasUnresolvedTypeRef.ElementTypeName: string; begin Result := SPasTreeUnresolvedTypeRef end;
+function TPasVariable.ElementTypeName: string; begin Result := SPasTreeVariable end;
+function TPasConst.ElementTypeName: string; begin Result := SPasTreeConst end;
+function TPasProperty.ElementTypeName: string; begin Result := SPasTreeProperty end;
+function TPasOverloadedProc.ElementTypeName: string; begin Result := SPasTreeOverloadedProcedure end;
+function TPasProcedure.ElementTypeName: string; begin Result := SPasTreeProcedure end;
+function TPasFunction.ElementTypeName: string; begin Result := SPasTreeFunction end;
+function TPasOperator.ElementTypeName: string; begin Result := SPasTreeFunction end;
+function TPasConstructor.ElementTypeName: string; begin Result := SPasTreeConstructor end;
+function TPasDestructor.ElementTypeName: string; begin Result := SPasTreeDestructor end;
+function TPasProcedureImpl.ElementTypeName: string; begin Result := SPasTreeProcedureImpl end;
+function TPasConstructorImpl.ElementTypeName: string; begin Result := SPasTreeConstructorImpl end;
+function TPasDestructorImpl.ElementTypeName: string; begin Result := SPasTreeDestructorImpl end;
 
-function TPasClassType.ElementTypeName: String;
+function TPasClassType.ElementTypeName: string;
 begin
   case ObjKind of
     okObject: Result := SPasTreeObjectType;
@@ -489,7 +496,7 @@ end;
 { All other stuff: }
 
 
-constructor TPasElement.Create(const AName: String; AParent: TPasElement);
+constructor TPasElement.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create;
   FName := AName;
@@ -509,7 +516,7 @@ begin
     Dec(FRefCount);
 end;
 
-function TPasElement.FullName: String;
+function TPasElement.FullName: string;
 var
   p: TPasElement;
 begin
@@ -526,7 +533,7 @@ begin
   end;
 end;
 
-function TPasElement.PathName: String;
+function TPasElement.PathName: string;
 var
   p: TPasElement;
 begin
@@ -555,7 +562,7 @@ begin
   end;
 end;
 
-function TPasElement.GetDeclaration (full : boolean): String;
+function TPasElement.GetDeclaration (full : boolean): string;
 
 begin
   if Full then
@@ -564,7 +571,7 @@ begin
     Result := '';
 end;
 
-constructor TPasSection.Create(const AName: String; AParent: TPasElement);
+constructor TPasSection.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   UsesList := TList.Create;
@@ -599,7 +606,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TPasSection.AddUnitToUsesList(const AUnitName: String);
+procedure TPasSection.AddUnitToUsesList(const AUnitName: string);
 begin
   UsesList.Add(TPasUnresolvedTypeRef.Create(AUnitName, Self));
 end;
@@ -615,7 +622,7 @@ begin
 end;
 
 
-constructor TPasPackage.Create(const AName: String; AParent: TPasElement);
+constructor TPasPackage.Create(const AName: string; AParent: TPasElement);
 begin
   if (Length(AName) > 0) and (AName[1] <> '#') then
     inherited Create('#' + AName, AParent)
@@ -659,7 +666,7 @@ begin
 end;
 
 
-constructor TPasEnumType.Create(const AName: String; AParent: TPasElement);
+constructor TPasEnumType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   Values := TList.Create;
@@ -697,7 +704,7 @@ begin
 end;
 
 
-constructor TPasRecordType.Create(const AName: String; AParent: TPasElement);
+constructor TPasRecordType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   Members := TList.Create;
@@ -714,7 +721,7 @@ begin
 end;
 
 
-constructor TPasClassType.Create(const AName: String; AParent: TPasElement);
+constructor TPasClassType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   IsPacked := False;                     // 12/04/04 - Dave - Added
@@ -742,7 +749,7 @@ begin
 end;
 
 
-constructor TPasProcedureType.Create(const AName: String; AParent: TPasElement);
+constructor TPasProcedureType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   Args := TList.Create;
@@ -758,13 +765,13 @@ begin
   inherited Destroy;
 end;
 
-function TPasProcedureType.TypeName: String;
+function TPasProcedureType.TypeName: string;
 begin
   Result := 'procedure';
 end;
 
 function TPasProcedureType.CreateArgument(const AName,
-  AUnresolvedTypeName: String): TPasArgument;
+  AUnresolvedTypeName: string): TPasArgument;
 begin
   Result := TPasArgument.Create(AName, Self);
   Args.Add(Result);
@@ -787,13 +794,13 @@ begin
   inherited Destroy;
 end;
 
-function TPasFunctionType.TypeName: String;
+function TPasFunctionType.TypeName: string;
 begin
   Result := 'function';
 end;
 
 
-constructor TPasUnresolvedTypeRef.Create(const AName: String; AParent: TPasElement);
+constructor TPasUnresolvedTypeRef.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, nil);
 end;
@@ -809,7 +816,7 @@ begin
 end;
 
 
-constructor TPasProperty.Create(const AName: String; AParent: TPasElement);
+constructor TPasProperty.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   Args := TList.Create;
@@ -826,7 +833,7 @@ begin
 end;
 
 
-constructor TPasOverloadedProc.Create(const AName: String; AParent: TPasElement);
+constructor TPasOverloadedProc.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   Overloads := TList.Create;
@@ -842,7 +849,7 @@ begin
   inherited Destroy;
 end;
 
-function TPasOverloadedProc.TypeName: String;
+function TPasOverloadedProc.TypeName: string;
 begin
   if Assigned(TPasProcedure(Overloads[0]).ProcType) then
     Result := TPasProcedure(Overloads[0]).ProcType.TypeName
@@ -858,25 +865,25 @@ begin
   inherited Destroy;
 end;
 
-function TPasProcedure.TypeName: String;
+function TPasProcedure.TypeName: string;
 begin
   Result := ProcType.TypeName;
 end;
 
 
-function TPasConstructor.TypeName: String;
+function TPasConstructor.TypeName: string;
 begin
   Result := 'constructor';
 end;
 
 
-function TPasDestructor.TypeName: String;
+function TPasDestructor.TypeName: string;
 begin
   Result := 'destructor';
 end;
 
 
-constructor TPasProcedureImpl.Create(const AName: String; AParent: TPasElement);
+constructor TPasProcedureImpl.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   Locals := TList.Create;
@@ -899,24 +906,24 @@ begin
   inherited Destroy;
 end;
 
-function TPasProcedureImpl.TypeName: String;
+function TPasProcedureImpl.TypeName: string;
 begin
   Result := ProcType.TypeName;
 end;
 
 
-function TPasConstructorImpl.TypeName: String;
+function TPasConstructorImpl.TypeName: string;
 begin
   Result := 'constructor';
 end;
 
-function TPasDestructorImpl.TypeName: String;
+function TPasDestructorImpl.TypeName: string;
 begin
   Result := 'destructor';
 end;
 
 
-constructor TPasImplCommands.Create(const AName: String; AParent: TPasElement);
+constructor TPasImplCommands.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   Commands := TStringList.Create;
@@ -949,7 +956,7 @@ begin
 end;
 
 
-constructor TPasImplBlock.Create(const AName: String; AParent: TPasElement);
+constructor TPasImplBlock.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   Elements := TList.Create;
@@ -965,7 +972,7 @@ begin
   inherited Destroy;
 end;
 
-function TPasImplBlock.AddCommand(const ACommand: String): TPasImplCommand;
+function TPasImplBlock.AddCommand(const ACommand: string): TPasImplCommand;
 begin
   Result := TPasImplCommand.Create('', Self);
   Elements.Add(Result);
@@ -978,7 +985,7 @@ begin
   Elements.Add(Result);
 end;
 
-function TPasImplBlock.AddIfElse(const ACondition: String): TPasImplIfElse;
+function TPasImplBlock.AddIfElse(const ACondition: string): TPasImplIfElse;
 begin
   Result := TPasImplIfElse.Create('', Self);
   Elements.Add(Result);
@@ -986,7 +993,7 @@ begin
 end;
 
 function TPasImplBlock.AddForLoop(AVar: TPasVariable; const AStartValue,
-  AEndValue: String): TPasImplForLoop;
+  AEndValue: string): TPasImplForLoop;
 begin
   Result := TPasImplForLoop.Create('', Self);
   Elements.Add(Result);
@@ -1001,7 +1008,7 @@ end;
 
   ---------------------------------------------------------------------}
 
-function TPasModule.GetDeclaration(full : boolean): String;
+function TPasModule.GetDeclaration(full : boolean): string;
 begin
   Result := 'Unit ' + Name;
 end;
@@ -1062,7 +1069,7 @@ begin
     Result:=Name+' = '+Result;
 end;
 
-Function IndentStrings(S : TStrings; indent : Integer) : String;
+Function IndentStrings(S : TStrings; indent : Integer) : string;
 
 Var
   I,CurrLen,CurrPos : Integer;
@@ -1144,7 +1151,7 @@ function TPasRecordType.GetDeclaration (full : boolean) : string;
 
 Var
   S,T : TStringList;
-  temp : String;
+  temp : string;
   I,J : integer;
 
 begin
@@ -1183,7 +1190,7 @@ end;
 procedure TPasProcedureType.GetArguments(List : TStrings);
 
 Var
-  T : String;
+  T : string;
   I : Integer;
 
 begin
@@ -1227,7 +1234,7 @@ function TPasFunctionType.GetDeclaration (full : boolean) : string;
 
 Var
   S : TStringList;
-  T : String;
+  T : string;
 
 begin
   S:=TStringList.Create;
@@ -1281,7 +1288,7 @@ end;
 function TPasProperty.GetDeclaration (full : boolean) : string;
 
 Var
-  S : String;
+  S : string;
   I : Integer;
 
 begin
@@ -1316,7 +1323,7 @@ end;
 
 Procedure TPasProcedure.GetModifiers(List : TStrings);
 
-  Procedure DoAdd(B : Boolean; S : String);
+  Procedure DoAdd(B : Boolean; S : string);
 
   begin
     if B then
@@ -1354,7 +1361,36 @@ function TPasFunction.GetDeclaration (full : boolean) : string;
 
 Var
   S : TStringList;
-  T : String;
+  T : string;
+
+begin
+  S:=TStringList.Create;
+  try
+    If Full then
+      S.Add(TypeName+' '+Name);
+    ProcType.GetArguments(S);
+    If Assigned((Proctype as TPasFunctionType).ResultEl) then
+      With TPasFunctionType(ProcType).ResultEl.ResultType do
+        begin
+        T:=' : ';
+        If (Name<>'') then
+          T:=T+Name
+        else
+          T:=T+GetDeclaration(False);
+        S.Add(T);
+        end;
+    GetModifiers(S);
+    Result:=IndentStrings(S,Length(S[0]));
+  finally
+    S.Free;
+  end;
+end;
+
+function TPasOperator.GetDeclaration (full : boolean) : string;
+
+Var
+  S : TStringList;
+  T : string;
 
 begin
   S:=TStringList.Create;
