@@ -1,6 +1,9 @@
 compiler/*.bak
 compiler/*.exe
+compiler/*.o
+compiler/*.ppu
 compiler/*.s
+compiler/*.tmp
 compiler/alpha/*.bak
 compiler/alpha/*.exe
 compiler/alpha/*.s
