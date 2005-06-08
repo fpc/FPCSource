@@ -42,8 +42,8 @@ implementation
     {$ifndef NOTARGETFREEBSD}
       ,t_bsd
     {$endif}
-    {$ifndef NOTARGETWIN32}
-      ,t_win32
+    {$ifndef NOTARGETWIN}
+      ,t_win
     {$endif}
 
 {**************************************
