@@ -64,11 +64,13 @@ implementation
       systems,
       globals,
       cutils,verbose,
+      symconst,
       defutil,
-      aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmcpu,
+      symdef,
       cgbase,pass_2,
       cpuinfo,cpubase,paramgr,
-      nbas,ncon,ncal,ncnv,nld,
+      nbas,ncon,ncal,ncnv,nld,ncgutil,
       cga,cgutils,cgx86,cgobj;
 
 
@@ -96,10 +98,18 @@ implementation
       end;
 
      function tx86inlinenode.first_abs_real : tnode;
-      begin
-        expectloc:=LOC_FPUREGISTER;
+       begin
+         if use_sse(resulttype.def) then
+           begin
+             expectloc:=LOC_MMREGISTER;
+             registersmm:=max(left.registersmm,1);
+           end
+         else
+           begin
+             expectloc:=LOC_FPUREGISTER;
+             registersfpu:=max(left.registersfpu,1);
+          end;
         registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
@@ -190,8 +200,8 @@ implementation
                   def_cgsize(left.resulttype.def),
                   left.location.reference,location.register);
              end
-         else
-            internalerror(309991);
+           else
+             internalerror(309991);
          end;
        end;
 
@@ -203,10 +213,33 @@ implementation
          emit_none(A_FPATAN,S_NO);
        end;
 
+
      procedure tx86inlinenode.second_abs_real;
+       var
+         href : treference;
        begin
-         load_fpu_location;
-         emit_none(A_FABS,S_NO);
+         if use_sse(resulttype.def) then
+           begin
+             secondpass(left);
+             location_force_mmregscalar(exprasmlist,left.location,false);
+             location:=left.location;
+             case tfloatdef(resulttype.def).typ of
+               s32real:
+                 reference_reset_symbol(href,
+                   objectlibrary.newasmsymbol('FPC_ABSMASK_SINGLE',AB_EXTERNAL,AT_DATA),0);
+               s64real:
+                 reference_reset_symbol(href,
+                   objectlibrary.newasmsymbol('FPC_ABSMASK_DOUBLE',AB_EXTERNAL,AT_DATA),0);
+               else
+                 internalerror(200506081);
+             end;
+             exprasmlist.concat(taicpu.op_ref_reg(A_ANDPS,S_XMM,href,location.register))
+           end
+         else
+           begin
+             load_fpu_location;
+             emit_none(A_FABS,S_NO);
+           end;
        end;
 
 

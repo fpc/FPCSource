@@ -22,7 +22,7 @@
 {
   This unit implements an asmoutput class for Intel syntax with Intel i386+
 }
-unit ag386int;
+unit agx86int;
 
 {$i fpcdefs.inc}
 
@@ -33,7 +33,7 @@ interface
       aasmbase,aasmtai,aasmcpu,assemble,cgutils;
 
     type
-      T386IntelAssembler = class(TExternalAssembler)
+      Tx86IntelAssembler = class(TExternalAssembler)
       private
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;dest : boolean);
@@ -62,6 +62,13 @@ implementation
         'CODE','DATA','DATA','BSS',
         '','','','','','',
         '','','','','',''
+      );
+
+      secnamesml64 : array[TAsmSectionType] of string[7] = ('',
+        '_TEXT','_DATE','_DATA','_BSS',
+        '','','','',
+        'idata$2','idata$4','idata$5','idata$6','idata$7','edata',
+        '',''
       );
 
     function single2str(d : single) : string;
@@ -151,10 +158,10 @@ implementation
 
 
 {****************************************************************************
-                               T386IntelAssembler
+                               tx86IntelAssembler
  ****************************************************************************}
 
-    procedure T386IntelAssembler.WriteReference(var ref : treference);
+    procedure tx86IntelAssembler.WriteReference(var ref : treference);
       var
         first : boolean;
       begin
@@ -207,7 +214,7 @@ implementation
       end;
 
 
-    procedure T386IntelAssembler.WriteOper(const o:toper;s : topsize; opcode: tasmop;dest : boolean);
+    procedure tx86IntelAssembler.WriteOper(const o:toper;s : topsize; opcode: tasmop;dest : boolean);
       begin
         case o.typ of
           top_reg :
@@ -226,6 +233,7 @@ implementation
                       S_B : AsmWrite('byte ptr ');
                       S_W : AsmWrite('word ptr ');
                       S_L : AsmWrite('dword ptr ');
+                      S_Q : AsmWrite('qword ptr ');
                      S_IS : AsmWrite('word ptr ');
                      S_IL : AsmWrite('dword ptr ');
                      S_IQ : AsmWrite('qword ptr ');
@@ -245,6 +253,22 @@ implementation
                              AsmWrite('dword ptr ')
                             else
                              AsmWrite('word ptr ');
+{$ifdef x86_64}
+                     S_BQ : if dest then
+                             AsmWrite('qword ptr ')
+                            else
+                             AsmWrite('byte ptr ');
+                     S_WQ : if dest then
+                             AsmWrite('qword ptr ')
+                            else
+                             AsmWrite('word ptr ');
+                     S_LQ : if dest then
+                             AsmWrite('qword ptr ')
+                            else
+                             AsmWrite('dword ptr ');
+                     S_XMM: AsmWrite('xmmword ptr ');
+
+{$endif x86_64}
                      end;
                    end;
                   WriteReference(o.ref^);
@@ -265,12 +289,12 @@ implementation
                 end;
             end;
           else
-            internalerror(10001);
+            internalerror(2005060510);
         end;
       end;
 
 
-    procedure T386IntelAssembler.WriteOper_jmp(const o:toper;s : topsize);
+    procedure tx86IntelAssembler.WriteOper_jmp(const o:toper;s : topsize);
     begin
       case o.typ of
         top_reg :
@@ -287,7 +311,11 @@ implementation
                     if s=S_FAR then
                       AsmWrite('far ptr ')
                     else
+{$ifdef x86_64}
+                      AsmWrite('qword ptr ');
+{$else x86_64}
                       AsmWrite('dword ptr ');
+{$endif x86_64}
                   end;
                 WriteReference(o.ref^);
               end
@@ -302,7 +330,7 @@ implementation
               end;
           end;
         else
-          internalerror(10001);
+          internalerror(2005060511);
       end;
     end;
 
@@ -315,9 +343,9 @@ implementation
 
     const
       ait_const2str : array[ait_const_128bit..ait_const_indirect_symbol] of string[20]=(
-        #9'FIXME128',#9'FIXME64',#9'DD'#9,#9'DW'#9,#9'DB'#9,
+        #9''#9,#9'DQ'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
         #9'FIXMESLEB',#9'FIXEMEULEB',
-        #9'RVA'#9,#9'FIXMEINDIRECT'#9
+        #9'DD RVA'#9,#9'FIXMEINDIRECT'#9
       );
 
     Function PadTabs(const p:string;addch:char):string;
@@ -339,7 +367,7 @@ implementation
        PadTabs:=s+#9;
     end;
 
-    procedure T386IntelAssembler.WriteTree(p:TAAsmoutput);
+    procedure tx86IntelAssembler.WriteTree(p:TAAsmoutput);
     const
       regallocstr : array[tregalloctype] of string[10]=(' allocated',' released',' sync',' resized');
       tempallocstr : array[boolean] of string[10]=(' released',' allocated');
@@ -444,14 +472,24 @@ implementation
              end;
 
        ait_section : begin
-                       if LasTSecType<>sec_none then
-                        AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
                        if tai_section(hp).sectype<>sec_none then
                         begin
-                          AsmLn;
-                          AsmWriteLn('_'+secnames[tai_section(hp).sectype]+#9#9+
-                                     'SEGMENT'#9'PARA PUBLIC USE32 '''+
-                                     secnames[tai_section(hp).sectype]+'''');
+                          if aktoutputformat=as_x86_64_masm then
+                            begin
+                              if LasTSecType<>sec_none then
+                                AsmWriteLn(secnamesml64[LasTSecType]+#9#9'ENDS');
+                              AsmLn;
+                              AsmWriteLn(secnamesml64[tai_section(hp).sectype]+#9+'SEGMENT')
+                            end
+                          else
+                            begin
+                              if LasTSecType<>sec_none then
+                                AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
+                              AsmLn;
+                              AsmWriteLn('_'+secnames[tai_section(hp).sectype]+#9#9+
+                                         'SEGMENT'#9'PARA PUBLIC USE32 '''+
+                                         secnames[tai_section(hp).sectype]+'''');
+                            end;
                         end;
                        LasTSecType:=tai_section(hp).sectype;
                      end;
@@ -462,11 +500,12 @@ implementation
                        if tai_align(hp).aligntype>1 then
                          AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
                      end;
-     ait_datablock : begin
-                       if tai_datablock(hp).is_global then
-                         AsmWriteLn(#9'PUBLIC'#9+tai_datablock(hp).sym.name);
-                       AsmWriteLn(PadTabs(tai_datablock(hp).sym.name,#0)+'DB'#9+tostr(tai_datablock(hp).size)+' DUP(?)');
-                     end;
+           ait_datablock :
+             begin
+               if tai_datablock(hp).is_global then
+                 AsmWriteLn(#9'PUBLIC'#9+tai_datablock(hp).sym.name);
+               AsmWriteLn(PadTabs(tai_datablock(hp).sym.name,#0)+'DB'#9+tostr(tai_datablock(hp).size)+' DUP(?)');
+             end;
            ait_const_uleb128bit,
            ait_const_sleb128bit,
            ait_const_128bit,
@@ -661,13 +700,16 @@ implementation
                        else
                         prefix:= '';
                        if (aktoutputformat = as_i386_wasm) and
-                        (taicpu(hp).opsize=S_W) and
-                        (taicpu(hp).opcode=A_PUSH) and
-                        (taicpu(hp).oper[0]^.typ=top_const) then
-                        begin
-                          AsmWriteln(#9#9'DB 66h,68h ; pushw imm16');
-                          AsmWrite(#9#9'DW');
-                        end
+                         (taicpu(hp).opsize=S_W) and
+                         (taicpu(hp).opcode=A_PUSH) and
+                         (taicpu(hp).oper[0]^.typ=top_const) then
+                         begin
+                           AsmWriteln(#9#9'DB 66h,68h ; pushw imm16');
+                           AsmWrite(#9#9'DW');
+                         end
+                       else if (aktoutputformat=as_x86_64_masm) and
+                         (taicpu(hp).opcode=A_MOVQ) then
+                         AsmWrite(#9#9'mov')
                        else
                          AsmWrite(#9#9+prefix+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]+suffix);
                        if taicpu(hp).ops<>0 then
@@ -751,22 +793,27 @@ ait_stab_function_name : ;
       begin
         if tasmsymbol(p).defbind=AB_EXTERNAL then
           begin
-            if (aktoutputformat in [as_i386_masm,as_i386_wasm]) then
-              currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name
-                +': NEAR')
-            else
-              currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name);
+            case aktoutputformat of
+              as_i386_masm,as_i386_wasm:
+                currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name
+                  +': NEAR');
+              as_x86_64_masm:
+                currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name
+                  +': PROC');
+              else
+                currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name);
+            end;
           end;
       end;
 
-    procedure T386IntelAssembler.WriteExternals;
+    procedure tx86IntelAssembler.WriteExternals;
       begin
         currentasmlist:=self;
         objectlibrary.symbolsearch.foreach_static(@writeexternal,nil);
       end;
 
 
-    function t386intelassembler.DoAssemble : boolean;
+    function tx86intelassembler.DoAssemble : boolean;
     var f : file;
     begin
       DoAssemble:=Inherited DoAssemble;
@@ -788,22 +835,25 @@ ait_stab_function_name : ;
     end;
 
 
-    procedure T386IntelAssembler.WriteAsmList;
+    procedure tx86IntelAssembler.WriteAsmList;
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
        comment(v_info,'Start writing intel-styled assembler output for '+current_module.mainsource^);
 {$endif}
       LasTSecType:=sec_none;
-      AsmWriteLn(#9'.386p');
-      { masm 6.11 does not seem to like LOCALS PM }
-      if (aktoutputformat = as_i386_tasm) then
+      if aktoutputformat<>as_x86_64_masm then
         begin
-          AsmWriteLn(#9'LOCALS '+target_asm.labelprefix);
+          AsmWriteLn(#9'.386p');
+          { masm 6.11 does not seem to like LOCALS PM }
+          if (aktoutputformat = as_i386_tasm) then
+            begin
+              AsmWriteLn(#9'LOCALS '+target_asm.labelprefix);
+            end;
+          AsmWriteLn('DGROUP'#9'GROUP'#9'_BSS,_DATA');
+          AsmWriteLn(#9'ASSUME'#9'CS:_CODE,ES:DGROUP,DS:DGROUP,SS:DGROUP');
+          AsmLn;
         end;
-      AsmWriteLn('DGROUP'#9'GROUP'#9'_BSS,_DATA');
-      AsmWriteLn(#9'ASSUME'#9'CS:_CODE,ES:DGROUP,DS:DGROUP,SS:DGROUP');
-      AsmLn;
 
       WriteExternals;
 
@@ -816,6 +866,11 @@ ait_stab_function_name : ;
       WriteTree(rttilist);
       WriteTree(resourcestringlist);
       WriteTree(bsssegment);
+      Writetree(importssection);
+      { exports are written by DLLTOOL
+        if we use it so don't insert it twice (PM) }
+      if not UseDeffileForExports and assigned(exportssection) then
+        Writetree(exportssection);
 
       AsmWriteLn(#9'END');
       AsmLn;
@@ -868,8 +923,25 @@ ait_stab_function_name : ;
             comment : '; ';
           );
 
+       as_x86_64_masm_info : tasminfo =
+          (
+            id     : as_x86_64_masm;
+            idtxt  : 'MASM';
+            asmbin : 'ml64';
+            asmcmd : '/c /Cp $ASM /Fo$OBJ';
+            supported_target : system_any; { what should I write here ?? }
+            flags : [af_allowdirect,af_needar];
+            labelprefix : '@@';
+            comment : '; ';
+          );
+
 initialization
-  RegisterAssembler(as_i386_tasm_info,T386IntelAssembler);
-  RegisterAssembler(as_i386_masm_info,T386IntelAssembler);
-  RegisterAssembler(as_i386_wasm_info,T386IntelAssembler);
+{$ifdef x86_64}
+  RegisterAssembler(as_x86_64_masm_info,tx86IntelAssembler);
+{$endif x86_64}
+{$ifdef i386}
+  RegisterAssembler(as_i386_tasm_info,tx86IntelAssembler);
+  RegisterAssembler(as_i386_masm_info,tx86IntelAssembler);
+  RegisterAssembler(as_i386_wasm_info,tx86IntelAssembler);
+{$endif i386}
 end.

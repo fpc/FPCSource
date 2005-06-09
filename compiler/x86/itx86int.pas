@@ -39,6 +39,15 @@ implementation
       cpubase;
 
     const
+    {$ifdef x86_64}
+      int_regname_table : array[tregisterindex] of string[7] = (
+        {$i r8664int.inc}
+      );
+
+      int_regname_index : array[tregisterindex] of tregisterindex = (
+        {$i r8664iri.inc}
+      );
+    {$else x86_64}
       int_regname_table : array[tregisterindex] of string[7] = (
         {$i r386int.inc}
       );
@@ -46,6 +55,7 @@ implementation
       int_regname_index : array[tregisterindex] of tregisterindex = (
         {$i r386iri.inc}
       );
+    {$endif x86_64}
 
 
     function findreg_by_intname(const s:string):byte;

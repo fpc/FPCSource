@@ -410,8 +410,8 @@ unit cpupara;
                   begin
                     paraloc:=hp.paraloc[side].add_location;
                     paraloc^.loc:=LOC_REFERENCE;
-                    { Extended and double need a single location }
-                    if (paracgsize in [OS_F80,OS_F64,OS_F32]) then
+                    { single and double need a single location }
+                    if (paracgsize in [OS_F64,OS_F32]) then
                       begin
                         paraloc^.size:=paracgsize;
                         l:=paralen;
@@ -524,7 +524,7 @@ unit cpupara;
                         paraloc:=hp.paraloc[side].add_location;
                         paraloc^.loc:=LOC_REFERENCE;
                         { Extended and double need a single location }
-                        if (paracgsize in [OS_F80,OS_F64,OS_F32]) then
+                        if (paracgsize in [OS_F64,OS_F32]) then
                           begin
                             paraloc^.size:=paracgsize;
                             l:=paralen;

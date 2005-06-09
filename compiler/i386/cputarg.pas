@@ -83,7 +83,7 @@ implementation
       ,ag386nsm
     {$endif}
     {$ifndef NOAG386INT}
-      ,ag386int
+      ,agx86int
     {$endif}
 
       ,ogcoff

@@ -565,5 +565,5 @@
 'movsldup',
 'movabs',
 'movsxd',
-'cdo'
+'cqo'
 );

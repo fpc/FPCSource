@@ -1619,4 +1619,12 @@ initialization
   RegisterRes(res_gnu_windres_info);
   RegisterTarget(system_i386_win32_info);
 {$endif i386}
+{$ifdef x86_64}
+  RegisterExternalLinker(system_x64_win64_info,TLinkerWin32);
+  RegisterImport(system_x86_64_win64,TImportLibWin32);
+  RegisterExport(system_x86_64_win64,TExportLibWin32);
+  RegisterDLLScanner(system_x86_64_win64,TDLLScannerWin32);
+  RegisterRes(res_gnu_windres_info);
+  RegisterTarget(system_x64_win64_info);
+{$endif x86_64}
 end.

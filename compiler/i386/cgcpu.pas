@@ -164,7 +164,7 @@ unit cgcpu;
         if use_push(cgpara) then
           begin
             { Record copy? }
-            if (cgpara.size in [OS_NO,OS_F64,OS_F80]) or (size=OS_NO) then
+            if (cgpara.size in [OS_NO,OS_F64]) or (size=OS_NO) then
               begin
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);

@@ -3415,6 +3415,6 @@ reg32,imm               \321\10\xB8\41                  X86_64
 reg64,mem             \321\301\1\x63\110              X86_64
 reg64,reg32           \321\301\1\x63\110              X86_64
 
-[CDO,cqto]
+[CQO,cqto]
 (Ch_MRAX, Ch_WRDX, Ch_None)
 void                  \321\1\x99                      X86_64

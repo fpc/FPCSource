@@ -50,6 +50,9 @@ implementation
              Assemblers
 **************************************}
 
+    {$ifndef NOAGX86_64INT}
+      ,agx86int
+    {$endif}
     {$ifndef NOAGX86_64ATT}
       ,agx86att
     {$endif}

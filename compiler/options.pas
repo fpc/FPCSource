@@ -1868,7 +1868,17 @@ begin
   def_system_macro('CPU64');
   { not supported for now, afaik (FK)
    def_system_macro('FPC_HAS_TYPE_FLOAT128'); }
-  def_system_macro('FPC_HAS_TYPE_EXTENDED');
+
+  { win64 doesn't support the legacy fpu }
+  if target_info.system<>system_x86_64_win64 then
+    def_system_macro('FPC_HAS_TYPE_EXTENDED')
+  else
+    begin
+      def_system_macro('FPC_CURRENCY_IS_INT64');
+      def_system_macro('FPC_COMP_IS_INT64');
+      undef_system_macro('FPC_HAS_TYPE_EXTENDED');
+    end;
+
   def_system_macro('FPC_HAS_TYPE_DOUBLE');
   def_system_macro('FPC_HAS_TYPE_SINGLE');
 {$endif}

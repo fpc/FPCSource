@@ -57,6 +57,7 @@ const
     OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
     OS_M32,
     OS_ADDR,OS_NO,OS_NO,
+    OS_NO,
     OS_NO);
 
 

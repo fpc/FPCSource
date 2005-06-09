@@ -2320,10 +2320,16 @@ implementation
 {$ifdef cpu64bit}
         case filetyp of
           ft_text :
-            savesize:=628;
+            if target_info.system in [system_x86_64_win64,system_ia64_win64] then
+              savesize:=632
+            else
+              savesize:=628;
           ft_typed,
           ft_untyped :
-            savesize:=368;
+            if target_info.system in [system_x86_64_win64,system_ia64_win64] then
+              savesize:=372
+            else
+              savesize:=368;
         end;
 {$else cpu64bit}
         case filetyp of

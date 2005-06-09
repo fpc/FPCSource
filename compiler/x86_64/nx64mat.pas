@@ -113,7 +113,7 @@ implementation
             if torddef(left.resulttype.def).typ=u64bit then
               emit_reg_reg(A_XOR,S_Q,NR_RDX,NR_RDX)
             else
-              emit_none(A_CDO,S_NO);
+              emit_none(A_CQO,S_NO);
 
             {Division depends on the right type.}
             if Torddef(right.resulttype.def).typ=u64bit then

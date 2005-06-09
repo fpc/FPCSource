@@ -49,7 +49,8 @@ interface
        's','l','t','v','x',
        'd',
        '','','',
-       't'
+       't',
+       ''
      );
 {$else x86_64}
      gas_opsize2str : array[topsize] of string[2] = ('',
@@ -58,7 +59,8 @@ interface
        's','l','t','v','',
        'd',
        '','','',
-       't'
+       't',
+       ''
      );
 {$endif x86_64}
 

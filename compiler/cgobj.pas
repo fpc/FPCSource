@@ -563,7 +563,7 @@ implementation
     function tcg.getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;
       begin
         if not assigned(rg[R_MMREGISTER]) then
-          internalerror(200312124);
+          internalerror(2003121214);
         result:=rg[R_MMREGISTER].getregister(list,cgsize2subreg(size));
       end;
 

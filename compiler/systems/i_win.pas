@@ -96,6 +96,67 @@ unit i_win;
             use_function_relative_addresses : true
           );
 
+       system_x64_win64_info : tsysteminfo =
+          (
+            system       : system_x86_64_win64;
+            name         : 'Win64 for x64';
+            shortname    : 'Win64';
+            flags        : [];
+            cpu          : cpu_x86_64;
+            unit_env     : 'WIN64UNITS';
+            extradefines : 'MSWINDOWS';
+            exeext       : '.exe';
+            defext       : '.def';
+            scriptext    : '.bat';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.rc';
+            resobjext    : '.or';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : '';
+            sharedClibext : '.dll';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : '';
+            p_ext_support : false;
+            Cprefix      : '_';
+            newline      : #13#10;
+            dirsep       : '\';
+            files_case_relevent : true;
+            assem        : as_x86_64_pecoff;
+            assemextern  : as_x86_64_masm;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_gnu_windres;
+            script       : script_dos;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 8;
+                loopalign       : 8;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 8;
+                localalignmin   : 8;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 8;
+                maxCrecordalign : 16
+              );
+            first_parm_offset : 16;
+            stacksize    : 262144;
+            DllScanSupported:true;
+            use_function_relative_addresses : true
+          );
+
   implementation
 
 initialization
@@ -106,4 +167,12 @@ initialization
     {$endif WDOSX}
   {$endif WIN32}
 {$endif CPU86}
+
+{$ifdef CPUX86_64}
+  {$ifdef WIN64}
+    {$ifndef WDOSX}
+      set_source_info(system_x64_win64_info);
+    {$endif WDOSX}
+  {$endif WIN64}
+{$endif CPUX86_64}
 end.

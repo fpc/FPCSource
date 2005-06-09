@@ -42,6 +42,7 @@ implementation
 
     uses
       globals,globtype,verbose,
+      systems,
       symconst,symtype,symsym,symdef,symtable,
       aasmtai,aasmcpu,ncgutil,fmodule,
 {$ifdef GDB}
@@ -120,6 +121,9 @@ implementation
       var
         hrecst : trecordsymtable;
       begin
+        if target_info.system=system_x86_64_win64 then
+          pbestrealtype:=@s64floattype;
+
 {$ifdef cpufpemu}
         { Normal types }
         if (cs_fp_emulation in aktmoduleswitches) then
@@ -141,7 +145,8 @@ implementation
             addtype('Real',s64floattype);
           end;
 {$ifdef x86}
-        adddef('Comp',tfloatdef.create(s64comp));
+        if target_info.system<>system_x86_64_win64 then
+          adddef('Comp',tfloatdef.create(s64comp));
 {$endif x86}
         addtype('Currency',s64currencytype);
         addtype('Pointer',voidpointertype);
@@ -358,7 +363,10 @@ implementation
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
-        s64currencytype.setdef(tfloatdef.create(s64currency));
+        if target_info.system<>system_x86_64_win64 then
+          s64currencytype.setdef(tfloatdef.create(s64currency))
+        else
+          s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
 {$endif x86}
 {$ifdef powerpc}
         s32floattype.setdef(tfloatdef.create(s32real));

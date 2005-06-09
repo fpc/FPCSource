@@ -112,7 +112,10 @@ interface
              system_powerpc_MorphOS,    { 33 }
              system_x86_64_freebsd,     { 34 }
              system_i386_netwlibc,      { 35 }
-	     system_powerpc_Amiga	{ 36 }
+	     system_powerpc_Amiga,      { 36 }
+             system_x86_64_win64,       { 37 }
+             system_arm_wince,          { 38 }
+             system_ia64_win64          { 39 }
        );
 
        tasm = (as_none
@@ -134,6 +137,8 @@ interface
              ,as_m68k_mit
              ,as_powerpc_mpw
              ,as_darwin
+             ,as_x86_64_masm
+             ,as_x86_64_pecoff
        );
 
        tar = (ar_none
@@ -243,7 +248,7 @@ interface
           flags        : set of tsystemflags;
           cpu          : tsystemcpu;
           unit_env     : string[16];
-          extradefines : string[40]; 
+          extradefines : string[40];
           exeext,
           defext,
           scriptext,

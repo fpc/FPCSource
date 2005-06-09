@@ -343,9 +343,9 @@ begin
   openinc(numfile,fileprefix+'num.inc');
   openinc(stdfile,fileprefix+'std.inc');
   openinc(attfile,fileprefix+'att.inc');
+  openinc(intfile,fileprefix+'int.inc');
   if not(x86_64) then
     begin
-      openinc(intfile,fileprefix+'int.inc');
       openinc(nasmfile,fileprefix+'nasm.inc');
     end;
   openinc(stabfile,fileprefix+'stab.inc');
@@ -356,10 +356,10 @@ begin
   openinc(rnifile,fileprefix+'rni.inc');
   openinc(srifile,fileprefix+'sri.inc');
   openinc(arifile,fileprefix+'ari.inc');
+  openinc(irifile,fileprefix+'iri.inc');
   if not(x86_64) then
     begin
       openinc(nrifile,fileprefix+'nri.inc');
-      openinc(irifile,fileprefix+'iri.inc');
     end;
   first:=true;
   for i:=0 to regcount-1 do
@@ -369,9 +369,9 @@ begin
           writeln(numfile,',');
           writeln(stdfile,',');
           writeln(attfile,',');
+          writeln(intfile,',');
           if not(x86_64) then
             begin
-              writeln(intfile,',');
               writeln(nasmfile,',');
             end;
           writeln(stabfile,',');
@@ -381,9 +381,9 @@ begin
           writeln(rnifile,',');
           writeln(srifile,',');
           writeln(arifile,',');
+          writeln(irifile,',');
           if not(x86_64) then
             begin
-              writeln(irifile,',');
               writeln(nrifile,',');
             end;
         end
@@ -393,9 +393,9 @@ begin
       write(numfile,'tregister(',numbers[i],')');
       write(stdfile,'''',stdnames[i],'''');
       write(attfile,'''',attnames[i],'''');
+      write(intfile,'''',intnames[i],'''');
       if not(x86_64) then
         begin
-          write(intfile,'''',intnames[i],'''');
           write(nasmfile,'''',nasmnames[i],'''');
         end;
       write(stabfile,stabs[i]);
@@ -408,10 +408,9 @@ begin
       write(rnifile,regnumber_index[i]);
       write(srifile,std_regname_index[i]);
       write(arifile,att_regname_index[i]);
-
+      write(irifile,int_regname_index[i]);
       if not(x86_64) then
         begin
-          write(irifile,int_regname_index[i]);
           write(nrifile,nasm_regname_index[i]);
         end;
     end;
@@ -420,9 +419,9 @@ begin
   closeinc(numfile);
   closeinc(attfile);
   closeinc(stdfile);
+  closeinc(intfile);
   if not(x86_64) then
     begin
-      closeinc(intfile);
       closeinc(nasmfile);
     end;
   closeinc(stabfile);
@@ -433,10 +432,10 @@ begin
   closeinc(rnifile);
   closeinc(srifile);
   closeinc(arifile);
+  closeinc(irifile);
   if not(x86_64) then
     begin
       closeinc(nrifile);
-      closeinc(irifile);
     end;
   writeln('Done!');
   writeln(regcount,' registers procesed');

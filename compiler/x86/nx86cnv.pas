@@ -198,14 +198,113 @@ implementation
          hregister : tregister;
          l1,l2 : tasmlabel;
          signtested : boolean;
+         hreg : tregister;
+         op : tasmop;
       begin
-      {
+{$ifdef x86_64}
         if use_sse(resulttype.def) then
           begin
+            if is_double(resulttype.def) then
+              op:=A_CVTSI2SD
+            else if is_single(resulttype.def) then
+              op:=A_CVTSI2SS
+            else
+              internalerror(200506061);
 
+            location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
+            location.register:=cg.getmmregister(exprasmlist,def_cgsize(resulttype.def));
+            if (left.location.loc=LOC_REGISTER) and (torddef(left.resulttype.def).typ=u64bit) then
+              begin
+{$ifdef cpu64bit}
+                emit_const_reg(A_BT,S_Q,63,left.location.register);
+{$else cpu64bit}
+                emit_const_reg(A_BT,S_L,31,left.location.register64.reghi);
+{$endif cpu64bit}
+                signtested:=true;
+              end
+            else
+              signtested:=false;
+
+            case torddef(left.resulttype.def).typ of
+              u64bit:
+                begin
+                   { unsigned 64 bit ints are harder to handle:
+                     we load bits 0..62 and then check bit 63:
+                     if it is 1 then we add $80000000 000000000
+                     as double                                  }
+                   objectlibrary.getdatalabel(l1);
+                   objectlibrary.getlabel(l2);
+
+                   if not(signtested) then
+                     begin
+                       inc(left.location.reference.offset,4);
+                       emit_const_ref(A_BT,S_L,31,left.location.reference);
+                       dec(left.location.reference.offset,4);
+                     end;
+
+                   exprasmlist.concat(taicpu.op_ref_reg(op,S_Q,left.location.reference,location.register));
+
+                   cg.a_jmp_flags(exprasmlist,F_NC,l2);
+                   Consts.concat(Tai_label.Create(l1));
+                   reference_reset_symbol(href,l1,0);
+
+                   { I got these constant from a test program (FK) }
+                   if is_double(resulttype.def) then
+                     begin
+                       { double (2^64) }
+                       consts.concat(Tai_const.Create_32bit(0));
+                       consts.concat(Tai_const.Create_32bit($43f00000));
+                       exprasmlist.concat(taicpu.op_ref_reg(A_ADDSD,S_NO,href,location.register));
+                     end
+                   else if is_single(resulttype.def) then
+                     begin
+                       { single(2^64) }
+                       consts.concat(Tai_const.Create_32bit($5f800000));
+                       exprasmlist.concat(taicpu.op_ref_reg(A_ADDSS,S_NO,href,location.register));
+                     end
+                   else
+                     internalerror(200506071);
+                   cg.a_label(exprasmlist,l2);
+                end
+              else
+                begin
+                  if (left.resulttype.def.size=4) and not(torddef(left.resulttype.def).typ=u32bit) then
+                    begin
+                      case left.location.loc of
+                        LOC_CREFERENCE,
+                        LOC_REFERENCE :
+                          exprasmList.concat(Taicpu.op_ref_reg(op,S_L,left.location.reference,location.register));
+                        LOC_CREGISTER,
+                        LOC_REGISTER :
+                          exprasmList.concat(Taicpu.op_reg_reg(op,S_L,left.location.register,location.register));
+                        else
+                          internalerror(200506072);
+                      end;
+                    end
+                  else if left.resulttype.def.size=8 then
+                    begin
+                      case left.location.loc of
+                        LOC_CREFERENCE,
+                        LOC_REFERENCE :
+                          exprasmList.concat(Taicpu.op_ref_reg(op,S_Q,left.location.reference,location.register));
+                        LOC_CREGISTER,
+                        LOC_REGISTER :
+                          exprasmList.concat(Taicpu.op_reg_reg(op,S_Q,left.location.register,location.register));
+                        else
+                          internalerror(200506073);
+                      end;
+                    end
+                  else
+                    begin
+                      hreg:=cg.getintregister(exprasmlist,OS_64);
+                      cg.a_load_loc_reg(exprasmlist,OS_64,left.location,hreg);
+                      exprasmList.concat(Taicpu.Op_reg_reg(op,S_NO,hreg,location.register));
+                    end
+                end;
+            end;
           end
         else
-      }
+{$endif x86_64}
           begin
             location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
             if (left.location.loc=LOC_REGISTER) and (torddef(left.resulttype.def).typ=u64bit) then
