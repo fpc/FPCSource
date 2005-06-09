@@ -795,7 +795,7 @@ End;
 { Wait for DTime milliseconds }
 Procedure Delay(DTime: Word);
 Begin
-  {$ifdef ver1_0}Select{$else}fpselect{$endif}(0,nil,nil,nil,DTime);
+  fpselect(0,nil,nil,nil,DTime);
 End;
 
 { create a new subwindow of stdscr }

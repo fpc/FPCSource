@@ -18,8 +18,6 @@ const
 
    LONG_MIN = (-(LONG_MAX)) - 1;
    ULONG_MAX = 4294967295;
-{$ifndef ver1_0}
    LLONG_MAX = QWord(9223372036854775807);
    LLONG_MIN = (-LLONG_MAX - 1);
    ULLONG_MAX = 18446744073709551615;
-{$endif}

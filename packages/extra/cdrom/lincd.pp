@@ -18,13 +18,8 @@ unit lincd;
 interface
 
 uses
-{$ifdef ver1_0}
-  linux
-{$else}
   baseunix,
-  unix
-{$endif}
-  ;
+  unix;
 
 { ---------------------------------------------------------------------
     cdrom.h header translation.
@@ -47,7 +42,7 @@ Type
 {$PACKRECORDS C}
 
 const
-   EDRIVE_CANT_DO_THIS = {$ifdef ver1_0}Sys_EOPNOTSUPP{$else}ESysEOPNOTSUPP{$endif}; // = 95
+   EDRIVE_CANT_DO_THIS = ESysEOPNOTSUPP; // = 95
    CDROMPAUSE = $5301;
    CDROMRESUME = $5302;
    CDROMPLAYMSF = $5303;
@@ -1155,23 +1150,15 @@ begin
   Writeln('Testing device : ',Device);
 {$endif}
   Result:=False;
-{$ifdef ver1_0}
-  If not fstat(device,info) then
-{$else}
   If fpstat(device,info)<>0 then
-{$endif}
     exit;
-  if not ({$ifdef ver1_0}S_ISCHR{$else}fpS_ISCHR{$endif}(info.mode) or
-     {$Ifdef ver1_0}S_ISBLK{$else}fpS_ISBLK{$endif}(info.mode)) then
+  if not (fpS_ISCHR(info.mode) or
+     fpS_ISBLK(info.mode)) then
     exit;
-  S:={$ifdef ver1_0}ReadLink{$else}fpReadLink{$endif}(Device);
+  S:=fpReadLink(Device);
   If (S<>'') then
     Device:=S;
-{$ifdef ver1_0}
-  If Not FStat(Device,info) then
-{$else}
   If fpStat(Device,info)<>0 then
-{$endif}
     exit;
   DeviceMajor:=info.rdev shr 8;
   If DeviceMajor in [IDE0_MAJOR,IDE1_MAJOR,IDE2_MAJOR,IDE3_MAJOR] then
@@ -1185,10 +1172,10 @@ begin
       end
     else
       begin
-      F:={$ifdef ver1_0}fdOpen{$else}fpOpen{$endif}(Device,OPEN_RDONLY or OPEN_NONBLOCK);
+      F:=fpOpen(Device,OPEN_RDONLY or OPEN_NONBLOCK);
       Result:=(F>=0);
       If Result then
-        {$ifdef ver1_0}fdClose{$else}fpClose{$endif}(F);
+        fpClose(F);
       end;
     end;
 end;
@@ -1204,15 +1191,11 @@ begin
   Writeln('Testing for ATAPI');
 {$endif}
   Result:=False;
-  f:={$ifdef ver1_0}fdOpen{$else}fpOpen{$endif}(device,OPEN_RDONLY or OPEN_NONBLOCK);
+  f:=fpOpen(device,OPEN_RDONLY or OPEN_NONBLOCK);
   If (f<0) then
     exit;
-{$ifdef ver1_0}
-  Result:=ioctl(f,CDROMVOLREAD,@info);
-{$else}
   Result:=(fpIOCtl(f,CDROMVOLREAD,@info)=0);
-{$endif}
-  {$ifdef ver1_0}fdClose{$else}fpClose{$endif}(f);
+  fpClose(f);
 end;
 
 end.

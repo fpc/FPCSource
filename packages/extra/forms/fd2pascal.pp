@@ -21,14 +21,9 @@ Program fd2pascal;
 
 
 uses
-{$ifdef ver1_0}
-  Linux
-{$else}
   baseunix,
   Unix,
-  unixutil
-{$endif}
-  ;
+  unixutil;
 
 Const RevString = '$Revision: 1.5 $';
   NrOptions = 4;
@@ -506,22 +501,12 @@ var info : stat;
 
 begin
   FileName:=Copy(Filename,1,Length(Filename)-3)+'.pp';
-  {$ifdef ver1_0}
-  fstat(FileName,info);
-  if linuxerror=0 then
-    begin
-    { File exists, move to .bak}
-    link(FileName,FileName+'.bak');
-    unlink(FileName);
-    end;
-  {$else}
   if fpstat(FileName,info)<>-1 Then
     begin
     { File exists, move to .bak}
       fplink (FileName,FileName+'.bak');
       fpunlink(FileName);
     end;
-  {$endif}
 
   assign(outfile,filename);
 {$i-}

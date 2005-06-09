@@ -75,17 +75,10 @@ here.  *)
 
 {UT: these settings create matching records: }
 {$packrecords 4}
-{$ifndef ver1_0}
 {$ALIGN 4}
-{$endif}
 {$MINENUMSIZE 4}
 
 
-{$ifdef ver1_0}
-Type
- PBoolean     = ^Boolean;
- PLongWord    = ^LongWord;
-{$endif}
 
 const
   BFD_VERSION   = '2.10.91';
@@ -149,7 +142,7 @@ type
 is in practice already 0 *)
 
   bfd_format = (
-    bfd_unknown {$ifndef ver1_0}= 0{$endif},  (* file format is unknown *)
+    bfd_unknown  = 0,  (* file format is unknown *)
     bfd_object,     (* linker/assember/compiler output *)
     bfd_archive,    (* object archive file *)
     bfd_core        (* core dump *)
@@ -270,10 +263,10 @@ is in practice already 0 *)
     name: pchar;
   end;
 
-  bfd_direction = (no_direction  {$ifndef ver1_0}= 0{$endif},
-                   read_direction {$ifndef ver1_0}= 1{$endif},
-                   write_direction {$ifndef ver1_0}= 2{$endif},
-                   both_direction   {$ifndef ver1_0}= 3{$endif});
+  bfd_direction = (no_direction    = 0,
+                   read_direction  = 1,
+                   write_direction = 2,
+                   both_direction  = 3);
 
   TBFD = record
     (* The filename the application opened the BFD with.  *)
@@ -1913,7 +1906,7 @@ is in practice already 0 *)
   arelent_chain = relent_chain;
 
   bfd_error = (
-    bfd_error_no_error {$ifndef Ver1_0} = 0 {$endif},
+    bfd_error_no_error = 0 ,
     bfd_error_system_call,
     bfd_error_invalid_target,
     bfd_error_wrong_format,
