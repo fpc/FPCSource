@@ -106,9 +106,6 @@ Begin
   If declocked(l^) then
     { Ref count dropped to zero }
     DisposeAnsiString (S);        { Remove...}
-{$ifndef decrrefnotnil}
-  s:=nil;
-{$endif}
 end;
 
 { also define alias for internal use in the system unit }

@@ -188,9 +188,6 @@ Begin
   If declocked(l^) then
     { Ref count dropped to zero }
     DisposeWideString (S);        { Remove...}
-{$ifndef decrrefnotnil}
-  s:=nil;
-{$endif}
 end;
 
 { alias for internal use }
