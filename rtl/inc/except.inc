@@ -70,7 +70,7 @@ end;
 end;
 
 Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
-  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}compilerproc;
+  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];compilerproc;
 
 var
   Buf : PJmp_buf;
@@ -98,7 +98,7 @@ end;
 
 
 Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer);
-  [Public, Alias : 'FPC_PUSHEXCEPTOBJECT'];{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}compilerproc;
+  [Public, Alias : 'FPC_PUSHEXCEPTOBJECT']; compilerproc;
 var
   Newobj : PExceptObject;
   framebufsize,

@@ -110,7 +110,7 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
 Procedure fpc_dynarray_clear (var p : pointer;ti : pointer);[external name 'FPC_DYNARRAY_CLEAR'];
 
 
-procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_DYNARRAY_DECR_REF']; compilerproc;
+procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); [Public,Alias:'FPC_DYNARRAY_DECR_REF']; compilerproc;
   var
      realp : pdynarray;
   begin
@@ -129,9 +129,9 @@ procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);{$ifndef NOSAVEREG
   end;
 
 { provide local access to dynarr_decr_ref for dynarr_setlength }
-procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [external name 'FPC_DYNARRAY_DECR_REF'];
+procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); [external name 'FPC_DYNARRAY_DECR_REF'];
 
-procedure fpc_dynarray_incr_ref(p : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_DYNARRAY_INCR_REF']; compilerproc;
+procedure fpc_dynarray_incr_ref(p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_REF']; compilerproc;
   var
      realp : pdynarray;
   begin
@@ -146,7 +146,7 @@ procedure fpc_dynarray_incr_ref(p : pointer);{$ifndef NOSAVEREGISTERS}saveregist
   end;
 
 { provide local access to dynarr_decr_ref for dynarr_setlength }
-procedure fpc_dynarray_incr_ref(p : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_DYNARRAY_INCR_REF'];
+procedure fpc_dynarray_incr_ref(p : pointer); [external name 'FPC_DYNARRAY_INCR_REF'];
 
 { provide local access to dynarr_setlength }
 procedure int_dynarray_setlength(var p : pointer;pti : pointer;

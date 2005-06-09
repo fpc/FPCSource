@@ -734,7 +734,7 @@ var
 {$endif}
 
 
-procedure CheckPointer(p : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public, alias : 'FPC_CHECKPOINTER'];
+procedure CheckPointer(p : pointer); [public, alias : 'FPC_CHECKPOINTER'];
 var
   i  : ptrint;
   pp : pheap_mem_info;

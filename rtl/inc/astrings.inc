@@ -86,7 +86,7 @@ begin
 end;
 
 
-Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_ANSISTR_DECR_REF'];  compilerproc;
+Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF'];  compilerproc;
 {
   Decreases the ReferenceCount of a non constant ansistring;
   If the reference count is zero, deallocate the string;
@@ -109,9 +109,9 @@ Begin
 end;
 
 { also define alias for internal use in the system unit }
-Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [external name 'FPC_ANSISTR_DECR_REF'];
+Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [external name 'FPC_ANSISTR_DECR_REF'];
 
-Procedure fpc_AnsiStr_Incr_Ref (S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_ANSISTR_INCR_REF'];  compilerproc;
+Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [Public,Alias:'FPC_ANSISTR_INCR_REF'];  compilerproc;
 Begin
   If S=Nil then
     exit;
@@ -121,7 +121,7 @@ Begin
 end;
 
 { also define alias which can be used inside the system unit }
-Procedure fpc_AnsiStr_Incr_Ref (S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_ANSISTR_INCR_REF'];
+Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [external name 'FPC_ANSISTR_INCR_REF'];
 
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_ANSISTR_ASSIGN'];  compilerproc;
 {
