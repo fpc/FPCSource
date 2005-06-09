@@ -168,7 +168,7 @@ begin
 end;
 
 
-Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_WIDESTR_DECR_REF']; compilerproc;
+Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_DECR_REF']; compilerproc;
 {
   Decreases the ReferenceCount of a non constant widestring;
   If the reference count is zero, deallocate the string;
@@ -191,9 +191,9 @@ Begin
 end;
 
 { alias for internal use }
-Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_WIDESTR_DECR_REF'];
+Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[external name 'FPC_WIDESTR_DECR_REF'];
 
-Procedure fpc_WideStr_Incr_Ref (S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_WIDESTR_INCR_REF']; compilerproc;
+Procedure fpc_WideStr_Incr_Ref (S : Pointer);[Public,Alias:'FPC_WIDESTR_INCR_REF']; compilerproc;
 Begin
   If S=Nil then
     exit;
@@ -203,7 +203,7 @@ Begin
 end;
 
 { alias for internal use }
-Procedure fpc_WideStr_Incr_Ref (S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_WIDESTR_INCR_REF'];
+Procedure fpc_WideStr_Incr_Ref (S : Pointer);[external name 'FPC_WIDESTR_INCR_REF'];
 
 function fpc_WideStr_To_ShortStr (high_of_res: SizeInt;const S2 : WideString): shortstring;[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];  compilerproc;
 {

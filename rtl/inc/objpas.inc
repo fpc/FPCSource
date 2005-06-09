@@ -34,7 +34,7 @@
       end;
 
     { interface helpers }
-    procedure fpc_intf_decr_ref(var i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias: 'FPC_INTF_DECR_REF']; compilerproc;
+    procedure fpc_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF']; compilerproc;
       begin
         if assigned(i) then
           IUnknown(i)._Release;
@@ -42,17 +42,17 @@
       end;
 
     { local declaration for intf_decr_ref for local access }
-    procedure intf_decr_ref(var i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [external name 'FPC_INTF_DECR_REF'];
+    procedure intf_decr_ref(var i: pointer); [external name 'FPC_INTF_DECR_REF'];
 
 
-    procedure fpc_intf_incr_ref(i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias: 'FPC_INTF_INCR_REF']; compilerproc;
+    procedure fpc_intf_incr_ref(i: pointer);[public,alias: 'FPC_INTF_INCR_REF']; compilerproc;
       begin
          if assigned(i) then
            IUnknown(i)._AddRef;
       end;
 
     { local declaration of intf_incr_ref for local access }
-    procedure intf_incr_ref(i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [external name 'FPC_INTF_INCR_REF'];
+    procedure intf_incr_ref(i: pointer); [external name 'FPC_INTF_INCR_REF'];
 
     procedure fpc_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN']; compilerproc;
       begin

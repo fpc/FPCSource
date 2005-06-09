@@ -126,7 +126,7 @@ end;
 
 
 
-Procedure fpc_Initialize (Data,TypeInfo : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias : 'FPC_INITIALIZE'];  compilerproc;
+Procedure fpc_Initialize (Data,TypeInfo : pointer);[Public,Alias : 'FPC_INITIALIZE'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
     tkAstring,tkWstring,tkInterface,tkDynArray:
@@ -142,7 +142,7 @@ begin
 end;
 
 
-Procedure fpc_finalize (Data,TypeInfo: Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias : 'FPC_FINALIZE'];  compilerproc;
+Procedure fpc_finalize (Data,TypeInfo: Pointer);[Public,Alias : 'FPC_FINALIZE'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
     tkAstring :
@@ -173,7 +173,7 @@ begin
 end;
 
 
-Procedure fpc_Addref (Data,TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [Public,alias : 'FPC_ADDREF'];  compilerproc;
+Procedure fpc_Addref (Data,TypeInfo : Pointer); [Public,alias : 'FPC_ADDREF'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
     tkAstring :
@@ -197,9 +197,9 @@ end;
 
 { alias for internal use }
 { we use another name else the compiler gets puzzled because of the wrong forward def }
-procedure fpc_systemDecRef (Data, TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_DECREF'];
+procedure fpc_systemDecRef (Data, TypeInfo : Pointer);[external name 'FPC_DECREF'];
 
-Procedure fpc_DecRef (Data, TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,alias : 'FPC_DECREF'];  compilerproc;
+Procedure fpc_DecRef (Data, TypeInfo : Pointer);[Public,alias : 'FPC_DECREF'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
     { see AddRef for comment about below construct (JM) }

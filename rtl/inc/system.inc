@@ -502,7 +502,7 @@ begin
 end;
 
 
-procedure fpc_iocheck;{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_IOCHECK']; compilerproc;
+procedure fpc_iocheck;[public,alias:'FPC_IOCHECK']; compilerproc;
 var
   l : longint;
 begin
@@ -538,7 +538,7 @@ end;
 {$DEFINE STACKCHECK}
 {$ENDIF}
 {$S-}
-procedure fpc_stackcheck(stack_size:Cardinal);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_STACKCHECK'];
+procedure fpc_stackcheck(stack_size:Cardinal);[public,alias:'FPC_STACKCHECK'];
 var
   c : Pointer;
 begin
@@ -652,7 +652,7 @@ begin
 end;
 
 
-Procedure lib_exit;{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_LIB_EXIT'];
+Procedure lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
 begin
   InternalExit;
 end;
@@ -916,7 +916,7 @@ begin
 end;
 
 
-Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [Public,Alias : 'FPC_ASSERT']; compilerproc;
+Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer); [Public,Alias : 'FPC_ASSERT']; compilerproc;
 begin
   if pointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)

@@ -454,7 +454,7 @@ end;
 {$endif FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
-procedure fpc_check_object(_vmt : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_CHECK_OBJECT'];  compilerproc;
+procedure fpc_check_object(_vmt : pointer); [public,alias:'FPC_CHECK_OBJECT'];  compilerproc;
 type
   pvmt = ^tvmt;
   tvmt = packed record
@@ -475,7 +475,7 @@ end;
 { checks for a correct vmt pointer }
 { deeper check to see if the current object is }
 { really related to the true }
-procedure fpc_check_object_ext(vmt, expvmt : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_CHECK_OBJECT_EXT']; compilerproc;
+procedure fpc_check_object_ext(vmt, expvmt : pointer); [public,alias:'FPC_CHECK_OBJECT_EXT']; compilerproc;
 type
   pvmt = ^tvmt;
   tvmt = packed record
