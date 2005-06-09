@@ -1,7 +1,0 @@
-#!/bin/sh
-
-version=`"$2"usr/local/bin/fpc -iV`
-"$2"usr/local/lib/fpc/"$version"/samplecfg "$2"usr/local/lib/fpc/"$version" "$4"/etc
-
-# remove obsolete documentation
-rm -f "$2"Developer/Documentation/Free\ Pascal\ Compiler/Free\ Component\ Library.pdf

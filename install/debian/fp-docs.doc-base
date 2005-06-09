@@ -1,9 +1,0 @@
-Document: fpc-docs
-Title: Free Pascal Documentation
-Author: Michael van Canneyt
-Abstract: Documentation for the Free Pascal Compiler.
- .
-Section: Development
-
-Format: PDF
-Files: /usr/share/doc/fp-docs/*.pdf

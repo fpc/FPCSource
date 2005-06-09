@@ -1,9 +1,0 @@
-# Script to copy a file, and in the same moment
-# translate possible LF's to CR
-
-Duplicate -y "{1}" {TempFolder}maccopytemp
-SetFile -c 'MPS ' -t 'TEXT' {TempFolder}maccopytemp
-Translate ¶r ¶n < {TempFolder}maccopytemp  > "{2}"
-SetFile -c 'MPS ' -t 'TEXT' "{2}"
-#SetFile -c 'MPS ' -t 'TEXT' "{2}" -l `Evaluate {3}*100`,`Evaluate {4}*100`
-Delete -y {TempFolder}maccopytemp

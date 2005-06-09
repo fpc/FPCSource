@@ -1,4 +1,0 @@
-/usr/share/doc/fp-units-net
-
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/netdb
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/libasync

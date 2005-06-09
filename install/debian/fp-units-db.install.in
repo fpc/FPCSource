@@ -1,9 +1,0 @@
-/usr/share/doc/fp-units-db
-
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/mysql
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/ibase
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/postgres
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/oracle
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/odbc
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/gdbm
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/sqlite
