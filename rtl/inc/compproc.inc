@@ -52,12 +52,8 @@ Function  fpc_shortstr_Copy(const s:shortstring;index:SizeInt;count:SizeInt):sho
 Function  fpc_ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
 Function  fpc_widestr_Copy (Const S : WideString; Index,Size : SizeInt) : WideString;compilerproc;
 function  fpc_char_copy(c:char;index : SizeInt;count : SizeInt): shortstring;compilerproc;
-{$ifdef HASFUNCTIONCOPYDYNARR}
 function fpc_dynarray_copy(psrc : pointer;ti : pointer;
     lowidx,count:tdynarrayindex) : pointer;compilerproc;
-{$else HASFUNCTIONCOPYDYNARR}
-procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;lowidx,count:tdynarrayindex);compilerproc;
-{$endif HASFUNCTIONCOPYDYNARR}
 
 function  fpc_dynarray_length(p : pointer) : tdynarrayindex; compilerproc;
 function  fpc_dynarray_high(p : pointer) : tdynarrayindex; compilerproc;
