@@ -123,14 +123,6 @@ function GetFPCHeapStatus:TFPCHeapStatus;
 procedure GetHeapStatus(var status:THeapStatus);
 {$endif HASGETFPCHEAPSTATUS}
 
-{$ifndef ValueGetmem}
-{ Needed to solve overloading problem with call from assembler (PFV) }
-Procedure AsmGetmem(var p:pointer;size:ptrint);
-{$endif ValueGetmem}
-{$ifndef ValueFreemem}
-Procedure AsmFreemem(var p:pointer);
-{$endif ValueFreemem}
-
 { Bootstrapping }
 {$ifndef HASGETHEAPSTATUS}
 Function  Memavail:ptrint;

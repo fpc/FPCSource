@@ -655,20 +655,13 @@ asm
         movl    %esp,%esi
       { Save Register}
         pushal
-{$ifdef valuegetmem}
         { esi can be destroyed in fpc_getmem!!! (JM) }
         pushl   %esi
-{$endif valuegetmem}
       { Memory size }
         pushl   (%eax)
-{$ifdef valuegetmem}
         call    fpc_getmem
         popl    %esi
         movl    %eax,(%esi)
-{$else valuegetmem}
-        pushl   %esi
-        call    AsmGetMem
-{$endif valuegetmem}
         movl    $-1,8(%ebp)
         popal
       { Avoid 80386DX bug }
@@ -746,14 +739,8 @@ asm
         movl    (%esi,%edi,1),%eax
         movl    %esi,12(%ebp)
         { push object position }
-{$ifdef valuefreemem}
         pushl   %esi
         call    fpc_freemem
-{$else valuefreemem}
-        leal    12(%ebp),%eax
-        pushl   %eax
-        call    AsmFreeMem
-{$endif valuefreemem}
         { set both object places to zero }
         xorl    %esi,%esi
         movl    %esi,12(%ebp)
@@ -784,20 +771,9 @@ asm
       { I think for precaution }
       { that we should clear the VMT here }
         movl    $0,(%eax,%edi,1)
-{$ifdef valuefreemem}
       { Freemem }
         pushl   %eax
         call    fpc_freemem
-{$else valuefreemem}
-      { temporary Variable }
-        subl    $4,%esp
-        movl    %esp,%edi
-      { SELF }
-        movl    %eax,(%edi)
-        pushl   %edi
-        call    AsmFreeMem
-        addl    $4,%esp
-{$endif valuefreemem}
 .LHD_3:
         popal
         { avoid the 80386DX bug }

@@ -32,12 +32,8 @@ type
 
 
 { Needed to solve overloading problem with call from assembler (PFV) }
-{$ifdef valuegetmem}
 Function  fpc_getmem(size:ptrint):pointer;compilerproc;
-{$endif}
-{$ifdef valuefreemem}
 Procedure fpc_freemem(p:pointer);compilerproc;
-{$endif valuefreemem}
 
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt); compilerproc;
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; compilerproc;
