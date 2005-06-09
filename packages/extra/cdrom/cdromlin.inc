@@ -1,10 +1,6 @@
 uses
-{$ifdef ver1_0}
-  linux,
-{$else}
   baseunix,
   unix,
-{$endif}
   lincd;
 
 Function ReadCDTOC(Device : String; Var CDTOC : Array of TTocEntry) : Integer;
@@ -15,17 +11,13 @@ Var
   tocentry : tcdrom_tocentry;
 
 begin
-  drive:={$ifdef ver1_0}fdopen{$else}fpOpen{$endif}(Device, Open_RDONLY or Open_NONBLOCK);
+  drive:=fpOpen(Device, Open_RDONLY or Open_NONBLOCK);
   if drive<0 then
     begin
     Result:=-1;
     Exit;
     end;
-{$Ifdef ver1_0}
-  if not ioctl(drive, CDROMREADTOCHDR, @tochdr) then
-{$else}
   if fpioctl(drive, CDROMREADTOCHDR, @tochdr)<>0 then
-{$endif}
     begin
     Result:=-1;
     Exit;
@@ -39,7 +31,7 @@ begin
       begin
       tocentry.cdte_track := i;
       tocentry.cdte_format := CDROM_MSF;
-      {$ifdef ver1_0}ioctl{$else}fpIOCtl{$endif}(drive, CDROMREADTOCENTRY, @tocentry);
+      fpIOCtl(drive, CDROMREADTOCENTRY, @tocentry);
       // We should do some error checking here actually.
       With cdtoc[result] do
         begin
@@ -53,7 +45,7 @@ begin
       end;
     tocentry.cdte_track := $AA;
     tocentry.cdte_format := CDROM_MSF;
-    {$ifdef ver1_0}ioctl{$else}fpIOCtl{$endif}(drive, CDROMREADTOCENTRY, @tocentry);
+    fpIOCtl(drive, CDROMREADTOCENTRY, @tocentry);
     With cdtoc[Result] do
       begin
       Min := tocentry.cdte_addr.msf.minute;
@@ -63,7 +55,7 @@ begin
       inc(frame, sec*75);
       end;
     end;
-  {$ifdef ver1_0}fdclose{$else}fpClose{$endif}(drive);
+  fpClose(drive);
 end;
 
 { ---------------------------------------------------------------------

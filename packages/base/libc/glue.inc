@@ -11,11 +11,7 @@ Type
   P__long_double_t = ^__long_double_t;
   size_t = Cardinal;
   Psize_t = size_t;
-{$ifdef ver1_0}
-  UInt64 = Int64; // Must be unsigned.
-{$else}
   UInt64 = 0..High(Int64); // Must be unsigned.
-{$endif}
   wchar_t = widechar;
   Pwchar_t = ^wchar_t;
   PPwchar_t = ^Pwchar_t;

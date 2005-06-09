@@ -70,11 +70,6 @@ CONST ULONG_MAX= high(culong);
 
 type
 
-{$ifdef ver1_0}
-     cint   = longint;
-     pcint  = ^cint;
-     size_t = cardinal;
-{$endif}
      psize_t   = ^size_t;
      psigset_t = ^sigset;
 

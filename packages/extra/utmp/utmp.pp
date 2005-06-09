@@ -3,13 +3,8 @@ unit Utmp;
 interface
 
 uses
-{$ifdef ver1_0}
-  Linux
-{$else}
   BaseUnix,
-  Unix
-{$endif}
-  ;
+  Unix;
 
 const
   Device_name_length = 12;
@@ -247,8 +242,8 @@ var
     S : Stat;
 
   begin
-    {$ifdef ver1_0}FStat{$else}fpstat{$endif}(Utmp_file, S);
-    Number_of_utmp_entries := {$ifdef ver1_0}S.Size{$else}s.st_size{$endif} div System.SizeOf(tLL_Utmp);
+    fpstat(Utmp_file, S);
+    Number_of_utmp_entries := s.st_size div System.SizeOf(tLL_Utmp);
   end;
 
 

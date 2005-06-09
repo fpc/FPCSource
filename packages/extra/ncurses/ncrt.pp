@@ -26,12 +26,8 @@ Interface
 
 Uses
 {$ifdef Unix}
-  {$ifdef ver1_0}
-    linux,
-  {$else}
     baseunix,
     termio,
-  {$endif}
 {$endif}
   ncurses,
   dos;  {dos needed for TextRec}

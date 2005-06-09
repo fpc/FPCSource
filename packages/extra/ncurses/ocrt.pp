@@ -150,12 +150,8 @@ Interface
 
 Uses
 {$ifdef unix}
-  {$ifdef ver1_0}
-    linux,
-  {$else}
     baseunix,
     termio,
-  {$endif}
 {$endif}
   ncurses,panel,menu,
   dos;  {dos needed for TextRec}
@@ -1256,20 +1252,16 @@ End;
  ----------------------------------------------}
 function nKeypressed(timeout : word) : boolean;
 var
-   fds : {$ifdef ver1_0}FDSet{$else}TFDSet{$endif};
+   fds : TFDSet;
    maxFD : longint;
 Begin
-   {$ifdef ver1_0}FD_Zero{$else}fpFD_Zero{$endif}(fds);
+   fpFD_Zero(fds);
    maxFD := 1;
    { turn on stdin bit }
-{$ifdef ver1_0}
-   If not FD_IsSet(STDIN,fds) Then
-{$else}
    If fpFD_IsSet(STDIN,fds)=0 Then
-{$endif}
-     {$ifdef ver1_0}FD_Set{$else}fpFD_Set{$endif}(STDIN,fds);
+     fpFD_Set(STDIN,fds);
    { wait for some input }
-   If {$ifdef ver1_0}Select{$else}fpSelect{$endif}(maxFD,@fds,nil,nil,timeout) > 0 Then
+   If fpSelect(maxFD,@fds,nil,nil,timeout) > 0 Then
       nKeypressed := TRUE
    Else
       nKeypressed := FALSE;

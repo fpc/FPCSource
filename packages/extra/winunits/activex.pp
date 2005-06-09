@@ -27,7 +27,6 @@ Uses Windows,types;
 
 
 type
-{$ifndef ver1_0}
 { extra types }
    TOleChar = Types.TOleChar;
    POleStr = Types.POleStr;
@@ -35,9 +34,6 @@ type
    TBStr = POleStr;
    PBStr = ^TBStr;
    TOleEnum = type LongWord;
-{$else ver1_0}
-   POleStr = PWideChar;
-{$endif ver1_0}
 
 {Glue types, should be linked to the proper windows unit types}
 TYPE

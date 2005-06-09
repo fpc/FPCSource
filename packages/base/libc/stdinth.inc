@@ -34,75 +34,55 @@ const
   INT8_MIN = -(128);
   INT16_MIN = (-(32767)) - 1;
   INT32_MIN = (-(2147483647)) - 1;
-{$ifndef ver1_0}
   INT64_MIN             = int64_t(-int64_t(9223372036854775807)-1);
-{$endif}
 
   INT8_MAX = 127;
   INT16_MAX = 32767;
   INT32_MAX = 2147483647;
-{$ifndef ver1_0}
   INT64_MAX             = int64_t(9223372036854775807);
-{$endif}
 
   UINT8_MAX = 255;
   UINT16_MAX = 65535;
   UINT32_MAX = 4294967295;
-{$ifndef ver1_0}
   UINT64_MAX            = uint64_t(-1);
-{$endif}
 
   INT_LEAST8_MIN = -(128);
   INT_LEAST16_MIN = (-(32767)) - 1;
   INT_LEAST32_MIN = (-(2147483647)) - 1;
-{$ifndef ver1_0}
   INT_LEAST64_MIN = int_least64_t(-int64_t(9223372036854775807)-1);
-{$endif}
 
   INT_LEAST8_MAX = 127;
   INT_LEAST16_MAX = 32767;
   INT_LEAST32_MAX = 2147483647;
-{$ifndef ver1_0}
   INT_LEAST64_MAX =  int_least64_t(9223372036854775807);
-{$endif}
 
   UINT_LEAST8_MAX = 255;
   UINT_LEAST16_MAX = 65535;
   UINT_LEAST32_MAX = 4294967295;
-{$ifndef ver1_0}
   UINT_LEAST64_MAX      = uint_least64_t(-1);
-{$endif}
 
   INT_FAST8_MIN = -(128);
   INT_FAST16_MIN = (-(2147483647)) - 1;
   INT_FAST32_MIN = (-(2147483647)) - 1;
-{$ifndef ver1_0}
   INT_FAST64_MIN        = int_fast64_t(-Int64(9223372036854775807)-1);
-{$endif}
 
   INT_FAST8_MAX = 127;
   INT_FAST16_MAX = 2147483647;
   INT_FAST32_MAX = 2147483647;
-{$ifndef ver1_0}
   INT_FAST64_MAX        = int_fast64_t(9223372036854775807);
-{$endif}
 
   UINT_FAST8_MAX = 255;
   UINT_FAST16_MAX = 4294967295;
   UINT_FAST32_MAX = 4294967295;
-{$ifndef ver1_0}
   UINT_FAST64_MAX       = uint_fast64_t(-1);
-{$endif}
 
   INTPTR_MIN = (-(2147483647)) - 1;
   INTPTR_MAX = 2147483647;
   UINTPTR_MAX = 4294967295;
 
-{$ifndef ver1_0}
   INTMAX_MIN            = Int64(-Int64(9223372036854775807)-1);
   INTMAX_MAX            = Int64(9223372036854775807);
   UINTMAX_MAX           = QWord(-1);
-{$endif}
 
   PTRDIFF_MIN = (-(2147483647)) - 1;
   PTRDIFF_MAX = 2147483647;
