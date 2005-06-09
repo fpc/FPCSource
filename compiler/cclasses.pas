@@ -367,40 +367,26 @@ implementation
 
 
     procedure tmemdebug.start;
-{$ifdef HASGETHEAPSTATUS}
+
       var
         status : TFPCHeapStatus;
-{$endif HASGETHEAPSTATUS}
+
       begin
-{$ifdef HASGETHEAPSTATUS}
         status:=GetFPCHeapStatus;
         startmem:=status.CurrHeapUsed;
-{$else HASGETHEAPSTATUS}
-        startmem:=memavail;
-{$endif HASGETHEAPSTATUS}
       end;
 
 
     procedure tmemdebug.stop;
-{$ifdef HASGETHEAPSTATUS}
       var
         status : TFPCHeapStatus;
-{$endif HASGETHEAPSTATUS}
       begin
-{$ifdef HASGETHEAPSTATUS}
         if startmem<>0 then
          begin
            status:=GetFPCHeapStatus;
            inc(TotalMem,startmem-status.CurrHeapUsed);
            startmem:=0;
          end;
-{$else HASGETHEAPSTATUS}
-        if startmem<>0 then
-         begin
-           inc(TotalMem,memavail-startmem);
-           startmem:=0;
-         end;
-{$endif HASGETHEAPSTATUS}
       end;
 
 

@@ -116,16 +116,6 @@ implementation
       end;
 
 
-{$ifdef VER1_0}
-    function get_extra_info(p : pointer) : string;
-      begin
-        with pextra_info(p)^ do
-         begin
-           get_extra_info:=getfilename(fileindex)+'('+tostr(line)+','+tostr(col)+
-             ') ';
-         end;
-      end;
-{$else}
     procedure show_extra_info(var t : text;p : pointer);
       begin
         with pextra_info(p)^ do
@@ -133,7 +123,6 @@ implementation
            writeln(t,getfilename(fileindex)+'('+tostr(line)+','+tostr(col)+') ');
          end;
       end;
-{$endif}
 
 
   const
@@ -145,13 +134,9 @@ implementation
          begin
             keepreleased:=true;
             SetHeapTraceOutput('heap.log');
-{$ifdef VER1_0}
-            SetExtraInfoString(@get_extra_info);
-{$else}
             SetHeapExtraInfo(sizeof(textra_info),
                              @set_extra_info,
                              @show_extra_info);
-{$endif}
          end;
        pp_heap_inited:=true;
     end;

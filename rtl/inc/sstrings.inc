@@ -145,7 +145,6 @@ begin
 end;
 
 
-{$ifdef interncopy}
 function fpc_char_copy(c:char;index : SizeInt;count : SizeInt): shortstring;compilerproc;
 begin
   if (index=1) and (Count>0) then
@@ -153,16 +152,6 @@ begin
   else
    fpc_char_Copy:='';
 end;
-{$else}
-function copy(c:char;index : SizeInt;count : SizeInt): shortstring;
-begin
-  if (index=1) and (Count>0) then
-   Copy:=c
-  else
-   Copy:='';
-end;
-{$endif}
-
 
 function pos(const substr : shortstring;c:char): SizeInt;
 begin

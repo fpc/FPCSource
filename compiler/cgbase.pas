@@ -389,28 +389,12 @@ implementation
     begin
       delete:=false;
       { indexword in 1.0.x and 1.9.4 is broken }
-{$ifndef VER1_0}
-  {$ifndef VER1_9_4}
-    {$define USEINDEXWORD}
-  {$endif}
-{$endif}
-{$ifdef USEINDEXWORD}
       i:=indexword(buf^,length,s);
       if i<>-1 then
         begin
           deleteidx(i);
           delete := true;
         end;
-{$else USEINDEXWORD}
-      for i:=1 to length do
-        if buf^[i-1]=s then
-          begin
-            deleteidx(i-1);
-            delete:=true;
-            break;
-          end;
-{$endif USEINDEXWORD}
-{$undef USEINDEXWORD}
     end;
 
 

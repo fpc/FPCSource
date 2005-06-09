@@ -359,9 +359,7 @@ function Compile(const cmd:string):longint;
 var
   starttime  : real;
 {$ifdef SHOWUSEDMEM}
-{$ifdef HASGETHEAPSTATUS}
   hstatus : TFPCHeapStatus;
-{$endif HASGETHEAPSTATUS}
 {$endif SHOWUSEDMEM}
 begin
   try
@@ -451,12 +449,8 @@ begin
       end;
   end;
 {$ifdef SHOWUSEDMEM}
-  {$ifdef HASGETHEAPSTATUS}
       hstatus:=GetFPCHeapStatus;
       Writeln('Max Memory used/heapsize: ',DStr(hstatus.MaxHeapUsed shr 10),'/',DStr(hstatus.MaxHeapSize shr 10),' Kb');
-  {$else HASGETHEAPSTATUS}
-      Writeln('Memory used (heapsize): ',DStr(system.Heapsize shr 10),' Kb');
-  {$endif HASGETHEAPSTATUS}
 {$endif SHOWUSEDMEM}
 
   { Set the return value if an error has occurred }

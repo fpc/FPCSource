@@ -11,32 +11,13 @@
   { This reduces the memory requirements a lot }
   {$PACKENUM 1}
 
-  {$ifndef VER1_0}
-      { We don't use exceptions, so turn off the implicit
-        exceptions in the constructors }
-      {$IMPLICITEXCEPTIONS OFF}
-      { Inline small functions, but not when EXTDEBUG is used }
-      {$ifndef EXTDEBUG}
-        {$define USEINLINE}
-      {$endif EXTDEBUG}
-  {$else}
-      { Optimizer is broken when compiling with optimizations using 1.0.x }
-      {$ifndef USEOPT}
-        {$define NOOPT}
-      {$endif}
-
-      { 1.0.x generates broken code for sysutils }
-      {$ifndef FORCE_SYSUTILS}
-        {$undef USE_SYSUTILS}
-      {$endif}
-  {$endif VER1_0}
-
-  {$ifdef VER1_9_4}
-     { 1.9.4 generates broken code for sysutils }
-     {$ifndef FORCE_SYSUTILS}
-       {$undef USE_SYSUTILS}
-     {$endif}
-  {$endif}
+  { We don't use exceptions, so turn off the implicit
+    exceptions in the constructors }
+  {$IMPLICITEXCEPTIONS OFF}
+  { Inline small functions, but not when EXTDEBUG is used }
+  {$ifndef EXTDEBUG}
+    {$define USEINLINE}
+  {$endif EXTDEBUG}
 
   {$define USEEXCEPT}
 
