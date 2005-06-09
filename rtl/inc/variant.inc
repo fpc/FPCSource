@@ -476,12 +476,10 @@ begin
 end;
 
 
-{$ifdef HASOVERLOADASSIGNBYUNIQUERESULT}
 operator :=(const source : variant) dest : tdatetime;
 begin
   dest:=variantmanager.vartotdatetime(source);
 end;
-{$endif HASOVERLOADASSIGNBYUNIQUERESULT}
 
 {**********************************************************************
                                Operators

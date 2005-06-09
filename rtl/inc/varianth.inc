@@ -292,9 +292,7 @@ operator :=(const source : variant) dest : comp;
 
 { Misc. }
 operator :=(const source : variant) dest : currency;
-{$ifdef HASOVERLOADASSIGNBYUNIQUERESULT}
 operator :=(const source : variant) dest : tdatetime;
-{$endif HASOVERLOADASSIGNBYUNIQUERESULT}
 
 {**********************************************************************
                          Operators
