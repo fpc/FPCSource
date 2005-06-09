@@ -105,7 +105,8 @@ type
   end;
 
 
-{  TOnXMLRPCCallCompleted = procedure(AParser: TXMLRPCParser) of object;
+{$ifdef NEVERTRUE}
+  TOnXMLRPCCallCompleted = procedure(AParser: TXMLRPCParser) of object;
 
   TXMLRPCClient = class
   private
@@ -133,7 +134,8 @@ type
 
     property OnBeginRPC: TNotifyEvent read FOnBeginRPC write FOnBeginRPC;
     property OnEndRPC: TNotifyEvent read FOnEndRPC write FOnEndRPC;
-  end;}
+  end;
+{$endif}
 
   TCheckCallEvent = procedure(AParser: TXMLRPCParser; const APath: TStrings;
     var ExecCall: Boolean) of object;
@@ -705,8 +707,9 @@ begin
 end;
 
 
+{$IFDEF NEVERTRUE}
 // XML-RPC Client
-{
+
 constructor TXMLRPCClient.Create(AEventLoop: TEventLoop);
 begin
   inherited Create;
@@ -807,17 +810,12 @@ begin
             vtExtended: Writer.AddParam(Params, Writer.CreateDoubleValue(VExtended^));
             vtString: Writer.AddParam(Params, Writer.CreateStringValue(VString^));
             vtPChar: Writer.AddParam(Params, Writer.CreateStringValue(VPChar));
-}           {$IFDEF HasWideStrings}
-{            vtWideChar: Writer.AddParam(Params, Writer.CreateStringValue(VWideChar));
+            vtWideChar: Writer.AddParam(Params, Writer.CreateStringValue(VWideChar));
             vtPWideChar: Writer.AddParam(Params, Writer.CreateStringValue(VPWideChar));
-}           {$ENDIF}
-{            vtAnsiString: Writer.AddParam(Params, Writer.CreateStringValue(String(VAnsiString)));
+            vtAnsiString: Writer.AddParam(Params, Writer.CreateStringValue(String(VAnsiString)));
             // vtCurrency: ?
             // vtVariant: ?
-}           {$IFDEF HasWideStrings}
-{            vtWideString: Writer.AddParam(Params, Writer.CreateStringValue(WideString(VWideString)));
-}           {$ENDIF}
-{            vtInt64: Writer.AddParam(Params, Writer.CreateIntValue(VInt64^));
+            vtInt64: Writer.AddParam(Params, Writer.CreateIntValue(VInt64^));
           else
             raise Exception.Create('Unsupported data type in RPC argument list');
           end;
@@ -868,6 +866,7 @@ begin
   LocalEventLoop.Break;
 end;
 }
+{$ENDIF NEVERTRUE}
 
 // XML-RPC Server
 
