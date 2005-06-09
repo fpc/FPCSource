@@ -70,9 +70,7 @@ const
     ReAllocMem: @SysReAllocMem;
     MemSize: @SysMemSize;
     GetHeapStatus: @SysGetHeapStatus;
-{$ifdef HASGETFPCHEAPSTATUS}
     GetFPCHeapStatus: @SysGetFPCHeapStatus;
-{$endif HASGETFPCHEAPSTATUS}
   );
 
   MemoryMutexManager: TMemoryMutexManager = (
@@ -130,11 +128,7 @@ type
   pfreelists   = ^tfreelists;
 
 var
-{$ifdef HASGETFPCHEAPSTATUS}
   internal_status : TFPCHeapStatus;
-{$else HASGETFPCHEAPSTATUS}
-  internal_status : THeapStatus;
-{$endif HASGETFPCHEAPSTATUS}
 
   freelists_fixed    : tfreelists;
   freelist_var       : pmemchunk_var;
@@ -265,7 +259,6 @@ begin
 end;
 
 
-{$ifdef HASGETFPCHEAPSTATUS}
 function GetHeapStatus:THeapStatus;
 begin
   if IsMultiThread and MemoryManager.NeedLock then
@@ -300,25 +293,6 @@ begin
      Result:=MemoryManager.GetFPCHeapStatus();
    end;
 end;
-{$else HASGETFPCHEAPSTATUS}
-procedure GetHeapStatus(var status:THeapStatus);
-begin
-  if IsMultiThread and MemoryManager.NeedLock then
-   begin
-     try
-       MemoryMutexManager.MutexLock;
-       MemoryManager.GetHeapStatus(status);
-     finally
-       MemoryMutexManager.MutexUnlock;
-     end;
-   end
-  else
-   begin
-     MemoryManager.GetHeapStatus(status);
-   end;
-end;
-{$endif HASGETFPCHEAPSTATUS}
-
 
 
 function MemSize(p:pointer):ptrint;
@@ -467,27 +441,10 @@ begin
 end;
 
 
-{ Bootstrapping }
-{$ifndef HASGETHEAPSTATUS}
-Function  Memavail:ptrint;
-begin
-  result:=0;
-end;
-Function  Maxavail:ptrint;
-begin
-  result:=0;
-end;
-Function  Heapsize:ptrint;
-begin
-  result:=0;
-end;
-{$endif HASGETHEAPSTATUS}
-
 {*****************************************************************************
                                GetHeapStatus
 *****************************************************************************}
 
-{$ifdef HASGETFPCHEAPSTATUS}
 function SysGetFPCHeapStatus:TFPCHeapStatus;
 begin
   internal_status.CurrHeapFree:=internal_status.CurrHeapSize-internal_status.CurrHeapUsed;
@@ -509,14 +466,6 @@ begin
   result.Overhead         :=0;
   result.HeapErrorCode    :=0;
 end;
-{$else}
-procedure SysGetHeapStatus(var status:THeapStatus);
-begin
-  internal_status.CurrHeapFree:=internal_status.CurrHeapSize-internal_status.CurrHeapUsed;
-  status:=internal_status;
-end;
-{$endif HASGETFPCHEAPSTATUS}
-
 
 
 {$ifdef DUMPBLOCKS}   // TODO
