@@ -633,11 +633,7 @@ begin
 end;
 
 
-{$ifdef STR_USES_VALINT}
 Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc;
-{$else}
-Procedure fpc_AnsiStr_Longword(v : Longword;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_CARDINAL']; compilerproc;
-{$endif}
 Var
   SS : ShortString;
 begin
@@ -647,11 +643,7 @@ end;
 
 
 
-{$ifdef STR_USES_VALINT}
 Procedure fpc_AnsiStr_SInt(v : ValSInt;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALSINT']; compilerproc;
-{$else}
-Procedure fpc_AnsiStr_Longint(v : Longint; Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_LONGINT']; compilerproc;
-{$endif}
 Var
   SS : ShortString;
 begin

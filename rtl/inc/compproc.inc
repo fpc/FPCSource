@@ -67,7 +67,6 @@ procedure fpc_dynarray_incr_ref(p : pointer); compilerproc;
 procedure fpc_dynarray_setlength(var p : pointer;pti : pointer; dimcount : dword;dims : pdynarrayindex); compilerproc;
 
 { Str() support }
-{$ifdef STR_USES_VALINT}
 procedure fpc_ShortStr_sint(v : valsint;len : SizeInt;var s : shortstring); compilerproc;
 procedure fpc_shortstr_uint(v : valuint;len : SizeInt;var s : shortstring); compilerproc;
 procedure fpc_chararray_sint(v : valsint;len : SizeInt;var a : array of char); compilerproc;
@@ -76,16 +75,6 @@ procedure fpc_AnsiStr_sint(v : valsint; Len : SizeInt; Var S : AnsiString); comp
 procedure fpc_AnsiStr_uint(v : valuint;Len : SizeInt; Var S : AnsiString); compilerproc;
 procedure fpc_WideStr_sint(v : valsint; Len : SizeInt; Var S : WideString); compilerproc;
 procedure fpc_WideStr_uint(v : valuint;Len : SizeInt; Var S : WideString); compilerproc;
-{$else}
-procedure fpc_ShortStr_Longint(v : longint;len : longint;var s : shortstring); compilerproc;
-procedure fpc_shortstr_longword(v : longword;len : longint;var s : shortstring); compilerproc;
-procedure fpc_chararray_Longint(v : longint;len : longint;var a : array of char); compilerproc;
-procedure fpc_chararray_longword(v : longword;len : longint;var a : array of char); compilerproc;
-procedure fpc_AnsiStr_Longint(v : Longint; Len : Longint; Var S : AnsiString); compilerproc;
-procedure fpc_AnsiStr_Longword(v : Longword;Len : Longint; Var S : AnsiString); compilerproc;
-procedure fpc_WideStr_Longint(v : Longint; Len : Longint; Var S : WideString); compilerproc;
-procedure fpc_WideStr_Longword(v : Longword;Len : Longint; Var S : WideString); compilerproc;
-{$endif}
 {$ifndef CPU64}
 procedure fpc_shortstr_qword(v : qword;len : SizeInt;var s : shortstring); compilerproc;
 procedure fpc_shortstr_int64(v : int64;len : SizeInt;var s : shortstring); compilerproc;

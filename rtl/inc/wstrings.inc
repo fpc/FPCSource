@@ -1007,11 +1007,7 @@ begin
 end;
 
 
-{$ifdef STR_USES_VALINT}
 Procedure fpc_WideStr_SInt(v : ValSint; Len : SizeInt; Var S : WideString);compilerproc;
-{$else}
-Procedure fpc_WideStr_Longint(v : Longint; Len : SizeInt; Var S : WideString);compilerproc;
-{$endif}
 Var
   SS : ShortString;
 begin
@@ -1020,11 +1016,7 @@ begin
 end;
 
 
-{$ifdef STR_USES_VALINT}
 Procedure fpc_WideStr_UInt(v : ValUInt;Len : SizeInt; Var S : WideString);compilerproc;
-{$else}
-Procedure fpc_WideStr_Longword(v : Longword;Len : SizeInt; Var S : WideString);compilerproc;
-{$endif}
 Var
   SS : ShortString;
 begin
