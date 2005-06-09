@@ -56,23 +56,11 @@
 ****************************************************************************}
 
 Type
-{$Ifdef HAS_INTERNAL_INTTYPES}
   { The compiler has all integer types defined internally. Here
     we define only aliases }
   DWord    = LongWord;
   Cardinal = LongWord;
   Integer  = SmallInt;
-{$else HAS_INTERNAL_INTTYPES}
-  ShortInt = -128..127;
-  SmallInt = -32768..32767;
-  { can't use -2147483648 because of a bug in 1.0.2's val() procedure (JM) }
-  Longint  = +(-2147483647-1)..$7fffffff;
-  Byte     = 0..255;
-  Word     = 0..65535;
-  DWord    = LongWord;
-  Cardinal = LongWord;
-  Integer  = SmallInt;
-{$endif HAS_INTERNAL_INTTYPES}
 
 {$ifdef CPUI386}
   { for bootstrapping with 1.0.x }
