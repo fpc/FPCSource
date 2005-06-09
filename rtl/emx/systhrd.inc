@@ -74,7 +74,6 @@ function DosExitCritSec:cardinal; cdecl; external 'DOSCALLS' index 233;
                              Threadvar support
 *****************************************************************************}
 
-{$ifdef HASTHREADVAR}
 const
  ThreadVarBlockSize: dword = 0;
 
@@ -128,7 +127,6 @@ end;
         fpc_threadvar_relocate_proc := @SysRelocateThreadvar;
       end;
 
-{$endif HASTHREADVAR}
 
 
 {*****************************************************************************

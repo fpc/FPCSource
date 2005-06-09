@@ -37,11 +37,8 @@ Type
 
 Const
   CatchAllExceptions : PtrInt = -1;
-{$ifdef SUPPORT_THREADVAR}
+
 ThreadVar
-{$else SUPPORT_THREADVAR}
-Var
-{$endif SUPPORT_THREADVAR}
   ExceptAddrStack   : PExceptAddr;
   ExceptObjectStack : PExceptObject;
 

@@ -19,7 +19,6 @@
                            Threadvar support
 *****************************************************************************}
 
-{$ifdef HASTHREADVAR}
 
 type
   pltvInitEntry = ^ltvInitEntry;
@@ -97,5 +96,4 @@ begin
    fpc_threadvar_relocate_proc:=RelocProc;
 end;
 
-{$endif HASTHREADVAR}
 

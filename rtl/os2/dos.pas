@@ -51,11 +51,7 @@ Type
         {Flags for the exec procedure:
         }
 
-{$ifdef HASTHREADVAR}
 threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
 (* For compatibility with VP/2, used for runflags in Exec procedure. *)
     ExecFlags: cardinal;
 
@@ -81,11 +77,7 @@ implementation
 
 {$I dos.inc}
 
-{$ifdef HASTHREADVAR}
 threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
   LastDosErrorModuleName: string;
 
 

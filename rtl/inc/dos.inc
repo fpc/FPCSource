@@ -21,11 +21,7 @@ const
  ExtensionSeparator = '.';
 
 {$IFNDEF HAS_DOSEXITCODE}
- {$IFDEF HASTHREADVAR}
 threadvar
- {$ELSE HASTHREADVAR}
-var
- {$ENDIF HASTHREADVAR}
   LastDosExitCode: longint;
 
 function DosExitCode: word;

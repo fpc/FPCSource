@@ -417,11 +417,7 @@ asm
 end;
 
 
-{$ifdef HASTHREADVAR}
 threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
   DefaultCreator: ShortString;
   DefaultFileType: ShortString;
 
