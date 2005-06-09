@@ -187,20 +187,9 @@ implementation
                          else if is_constrealnode(p) and
                                  (torddef(t.def).typ=scurrency)
                            { allow bootstrapping }
-{$ifdef VER1_0}
-{                             I get IE 10 here. I guess it's no problem if a 1.0 bootstrapped
-                              compiler doesn't display the error here.
-                                 and (trealconstnode(p).value_real*10000 >= real(low(int64))) and
-                                 (trealconstnode(p).value_real*10000 <= real(high(int64)))}
-{$endif VER1_0}
                            then
                              begin
-{$ifdef VER1_0}
-                               { only trunc is 64 bit in 1.0.x so use trunc here to allow bootstrapping }
-                               intvalue:=trunc(trealconstnode(p).value_real*10000);
-{$else VER1_0}
                                intvalue:=round(trealconstnode(p).value_real*10000);
-{$endif VER1_0}
                              end
                          else
                            begin
@@ -237,18 +226,11 @@ implementation
                  s80real :
                    curconstSegment.concat(Tai_real_80bit.Create(value));
 
-{$ifdef ver1_0}
-                 s64comp :
-                   curconstSegment.concat(Tai_comp_64bit.Create(value));
-                 s64currency:
-                   curconstSegment.concat(Tai_comp_64bit.Create(value*10000));
-{$else ver1_0}
                  { the round is necessary for native compilers where comp isn't a float }
                  s64comp :
                    curconstSegment.concat(Tai_comp_64bit.Create(round(value)));
                  s64currency:
                    curconstSegment.concat(Tai_comp_64bit.Create(round(value*10000)));
-{$endif ver1_0}
                  s128real:
                    curconstSegment.concat(Tai_real_128bit.Create(value));
                  else

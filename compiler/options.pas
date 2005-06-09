@@ -1763,61 +1763,11 @@ begin
   def_system_macro('VER'+version_nr+'_'+release_nr+'_'+patch_nr);
 
 { Temporary defines, until things settle down }
-  def_system_macro('HASWIDECHAR');
-  def_system_macro('HASWIDESTRING');
-  def_system_macro('HASOUT');
-  def_system_macro('HASGLOBALPROPERTY');
-  def_system_macro('FPC_HASPREFETCH');
-  def_system_macro('FPC_LINEEND_IN_TEXTREC');
-  def_system_macro('FPC_ALIGNSRTTI');
-  def_system_macro('FPC_HASNOFARPOINTER');
-  def_system_macro('FPC_HASUSERDATA32');
-{$ifdef i386}
-  def_system_macro('HASINTF');
-  def_system_macro('HASVARIANT');
-{$endif i386}
-{$ifdef x86_64}
-  def_system_macro('HASINTF');
-  def_system_macro('HASVARIANT');
-{$endif x86_64}
 {$ifdef powerpc}
-  def_system_macro('HASINTF');
-  def_system_macro('HASVARIANT');
   def_system_macro('FPC_MTFSB0_CORRECTED');
 {$endif powerpc}
-{$ifdef arm}
-  def_system_macro('HASINTF');
-  def_system_macro('HASVARIANT');
-{$endif arm}
-{$ifdef sparc}
-  def_system_macro('HASINTF');
-  def_system_macro('HASVARIANT');
-{$endif sparc}
-  def_system_macro('INTERNSETLENGTH');
-  def_system_macro('INTERNLENGTH');
-  def_system_macro('INTERNCOPY');
-  def_system_macro('INT64FUNCRESOK');
-  def_system_macro('HAS_ADDR_STACK_ON_STACK');
-  def_system_macro('NOBOUNDCHECK');
-  def_system_macro('HASCOMPILERPROC');
-  def_system_macro('INTERNCONSTINTF');
-  def_system_macro('VALUEGETMEM');
-  def_system_macro('VALUEFREEMEM');
-  def_system_macro('HASCURRENCY');
-  def_system_macro('HASTHREADVAR');
-  def_system_macro('HAS_GENERICCONSTRUCTOR');
-  def_system_macro('NOCLASSHELPERS');
   if pocall_default = pocall_register then
     def_system_macro('REGCALL');
-  def_system_macro('DECRREFNOTNIL');
-  def_system_macro('HAS_INTERNAL_INTTYPES');
-  def_system_macro('STR_USES_VALINT');
-  def_system_macro('NOSAVEREGISTERS');
-  def_system_macro('SHORTSTRCOMPAREINREG');
-  def_system_macro('HASGETHEAPSTATUS');
-  def_system_macro('HASGETFPCHEAPSTATUS');
-  def_system_macro('HASFUNCTIONCOPYDYNARR');
-  def_system_macro('HASOVERLOADASSIGNBYUNIQUERESULT');
 
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
