@@ -81,11 +81,7 @@ Type
     Sec   : word;
   End;
 
-{$ifdef HASTHREADVAR}
 threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
   DosError : integer;
 
 {$ifdef cpui386}

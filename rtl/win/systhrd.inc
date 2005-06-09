@@ -66,7 +66,6 @@ CONST
                              Threadvar support
 *****************************************************************************}
 
-{$ifdef HASTHREADVAR}
     const
       threadvarblocksize : dword = 0;
 
@@ -105,7 +104,6 @@ CONST
         GlobalFree(TlsGetValue(tlskey));
       end;
 
-{$endif HASTHREADVAR}
 
 
 {*****************************************************************************
@@ -123,9 +121,7 @@ CONST
     procedure DoneThread;
       begin
         { Release Threadvars }
-{$ifdef HASTHREADVAR}
         SysReleaseThreadVars;
-{$endif HASTHREADVAR}
       end;
 
 
@@ -133,11 +129,9 @@ CONST
       var
         ti : tthreadinfo;
       begin
-{$ifdef HASTHREADVAR}
         { Allocate local thread vars, this must be the first thing,
           because the exception management and io depends on threadvars }
         SysAllocateThreadVars;
-{$endif HASTHREADVAR}
         { Copy parameter to local data }
 {$ifdef DEBUG_MT}
         writeln('New thread started, initialising ...');
@@ -167,11 +161,9 @@ CONST
         { Initialize multithreading if not done }
         if not IsMultiThread then
          begin
-{$ifdef HASTHREADVAR}
            { We're still running in single thread mode, setup the TLS }
            TLSKey:=TlsAlloc;
            InitThreadVars(@SysRelocateThreadvar);
-{$endif HASTHREADVAR}
            IsMultiThread:=true;
          end;
         { the only way to pass data to the newly created thread
@@ -447,12 +439,10 @@ begin
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;
     LeaveCriticalSection   :=@SysLeaveCriticalSection;
-{$ifdef HASTHREADVAR}
     InitThreadVar          :=@SysInitThreadVar;
     RelocateThreadVar      :=@SysRelocateThreadVar;
     AllocateThreadVars     :=@SysAllocateThreadVars;
     ReleaseThreadVars      :=@SysReleaseThreadVars;
-{$endif HASTHREADVAR}
     BasicEventCreate       :=@intBasicEventCreate;
     BasicEventDestroy      :=@intBasicEventDestroy;
     BasicEventResetEvent   :=@intBasicEventResetEvent;

@@ -70,7 +70,6 @@ procedure DosSleep (MSec: cardinal); cdecl; external 'DOSCALLS' index 229;
                              Threadvar support
 *****************************************************************************}
 
-{$ifdef HASTHREADVAR}
 const
  ThreadVarBlockSize: dword = 0;
 
@@ -124,7 +123,6 @@ end;
         fpc_threadvar_relocate_proc := @SysRelocateThreadvar;
       end;
 *)
-{$endif HASTHREADVAR}
 
 
 {*****************************************************************************
@@ -159,9 +157,7 @@ end;
     procedure DoneThread;
       begin
         { Release Threadvars }
-{$ifdef HASTHREADVAR}
         SysReleaseThreadVars;
-{$endif HASTHREADVAR}
       end;
 
 
@@ -169,11 +165,9 @@ end;
       var
         ti : tthreadinfo;
       begin
-{$ifdef HASTHREADVAR}
         { Allocate local thread vars, this must be the first thing,
           because the exception management and io depends on threadvars }
         SysAllocateThreadVars;
-{$endif HASTHREADVAR}
         { Copy parameter to local data }
 {$ifdef DEBUG_MT}
         writeln('New thread started, initialising ...');
@@ -202,11 +196,9 @@ end;
         { Initialize multithreading if not done }
         if not IsMultiThread then
          begin
-{$ifdef HASTHREADVAR}
            if DosAllocThreadLocalMemory (1, DataIndex) <> 0
              then RunError (8);
            InitThreadVars(@SysRelocateThreadVar);
-{$endif HASTHREADVAR}
            IsMultiThread:=true;
          end;
         { the only way to pass data to the newly created thread
@@ -521,12 +513,10 @@ begin
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;
     LeaveCriticalSection   :=@SysLeaveCriticalSection;
-{$ifdef HASTHREADVAR}
     InitThreadVar          :=@SysInitThreadVar;
     RelocateThreadVar      :=@SysRelocateThreadVar;
     AllocateThreadVars     :=@SysAllocateThreadVars;
     ReleaseThreadVars      :=@SysReleaseThreadVars;
-{$endif HASTHREADVAR}
     BasicEventCreate       :=@IntBasicEventCreate;
     BasicEventDestroy      :=@IntBasicEventDestroy;
     BasicEventResetEvent   :=@IntBasicEventResetEvent;

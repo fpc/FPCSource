@@ -60,7 +60,6 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
                              Threadvar support
 *****************************************************************************}
 
-{$ifdef HASTHREADVAR}
     const
       threadvarblocksize : dword = 0;
 
@@ -127,7 +126,6 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
 { Include OS independent Threadvar initialization }
 
-{$endif HASTHREADVAR}
 
 
 {*****************************************************************************
@@ -145,9 +143,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     procedure DoneThread;
       begin
         { Release Threadvars }
-{$ifdef HASTHREADVAR}
         CReleaseThreadVars;
-{$endif HASTHREADVAR}
       end;
 
 
@@ -168,11 +164,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         s := 'New thread started, initing threadvars'#10;
         fpwrite(0,s[1],length(s));
 {$endif DEBUG_MT}
-{$ifdef HASTHREADVAR}
         { Allocate local thread vars, this must be the first thing,
           because the exception management and io depends on threadvars }
         CAllocateThreadVars;
-{$endif HASTHREADVAR}
         { Copy parameter to local data }
 {$ifdef DEBUG_MT}
         s := 'New thread started, initialising ...'#10;
@@ -205,11 +199,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       { Initialize multithreading if not done }
       if not IsMultiThread then
        begin
-{$ifdef HASTHREADVAR}
         { We're still running in single thread mode, setup the TLS }
          pthread_key_create(@TLSKey,nil);
          InitThreadVars(@CRelocateThreadvar);
-{$endif HASTHREADVAR}
          IsMultiThread:=true;
        end;
       { the only way to pass data to the newly created thread
@@ -619,12 +611,10 @@ begin
     DoneCriticalSection    :=@CDoneCriticalSection;
     EnterCriticalSection   :=@CEnterCriticalSection;
     LeaveCriticalSection   :=@CLeaveCriticalSection;
-{$ifdef hasthreadvar}
     InitThreadVar          :=@CInitThreadVar;
     RelocateThreadVar      :=@CRelocateThreadVar;
     AllocateThreadVars     :=@CAllocateThreadVars;
     ReleaseThreadVars      :=@CReleaseThreadVars;
-{$endif}
     BasicEventCreate       :=@intBasicEventCreate;
     BasicEventDestroy      :=@intBasicEventDestroy;
     BasicEventResetEvent   :=@intBasicEventResetEvent;

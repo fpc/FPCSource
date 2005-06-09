@@ -131,12 +131,8 @@ external 'DOSCALLS' index 286;
 
 
 
-{$ifdef HASTHREADVAR}
 threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
- ExtKeyCode: char;
+  ExtKeyCode: char;
 
 
 

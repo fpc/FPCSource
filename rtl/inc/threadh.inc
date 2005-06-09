@@ -96,9 +96,7 @@ Function SetThreadManager(Const NewTM : TThreadManager) : Boolean;
 Procedure SetNoThreadManager;
 {$endif DISABLE_NO_THREAD_MANAGER}
 // Needs to be exported, so the manager can call it.
-{$ifdef HASTHREADVAR}
 procedure InitThreadVars(RelocProc : Pointer);
-{$endif HASTHREADVAR}
 procedure InitThread(stklen:cardinal);
 
 {*****************************************************************************

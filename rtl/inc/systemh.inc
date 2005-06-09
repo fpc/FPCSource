@@ -28,9 +28,6 @@
 {$endif}
 
 { Use threadvars when the compiler supports it }
-{$ifdef HASTHREADVAR}
-  {$define SUPPORT_THREADVAR}
-{$endif HASTHREADVAR}
 
 { don't use FPU registervariables on the i386 }
 {$ifdef CPUI386}
@@ -352,11 +349,7 @@ var
   { Threading support }
   fpc_threadvar_relocate_proc : pointer; public name 'FPC_THREADVAR_RELOCATE';
 
-{$ifdef SUPPORT_THREADVAR}
 ThreadVar
-{$else SUPPORT_THREADVAR}
-Var
-{$endif SUPPORT_THREADVAR}
   ThreadID    : TThreadID;
   { Standard In- and Output }
   ErrOutput,

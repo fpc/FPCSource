@@ -27,7 +27,6 @@
                              Threadvar support
 *****************************************************************************}
 
-{$ifdef HASTHREADVAR}
     const
       threadvarblocksize : dword = 0;
       thredvarsmainthread: pointer = nil; // to free the threadvars in the signal handler
@@ -82,7 +81,6 @@
       pthread_setspecific(tlskey,newPtr);
     end;
 
-{$endif HASTHREADVAR}
 
 
 {*****************************************************************************
@@ -100,10 +98,8 @@
     procedure DoneThread;
       begin
         { Release Threadvars }
-{$ifdef HASTHREADVAR}
         WRITE_DEBUG('DoneThread, releasing threadvars'#13#10);
         SysReleaseThreadVars;
-{$endif HASTHREADVAR}
       end;
 
 
@@ -112,11 +108,9 @@
         ti : tthreadinfo;
       begin
         WRITE_DEBUG('New thread started, initing threadvars'#13#10);
-{$ifdef HASTHREADVAR}
         { Allocate local thread vars, this must be the first thing,
           because the exception management and io depends on threadvars }
         SysAllocateThreadVars;
-{$endif HASTHREADVAR}
         { Copy parameter to local data }
         WRITE_DEBUG('New thread started, initialising ...'#13#10);
         ti:=pthreadinfo(param)^;
@@ -143,11 +137,9 @@
         { Initialize multithreading if not done }
         if not IsMultiThread then
          begin
-{$ifdef HASTHREADVAR}
           { We're still running in single thread mode, setup the TLS }
            pthread_key_create(@TLSKey,nil);
            InitThreadVars(@SysRelocateThreadvar);
-{$endif HASTHREADVAR}
            IsMultiThread:=true;
          end;
         { the only way to pass data to the newly created thread
@@ -423,12 +415,10 @@ begin
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;
     LeaveCriticalSection   :=@SysLeaveCriticalSection;
-{$ifdef hasthreadvar}
     InitThreadVar          :=@SysInitThreadVar;
     RelocateThreadVar      :=@SysRelocateThreadVar;
     AllocateThreadVars     :=@SysAllocateThreadVars;
     ReleaseThreadVars      :=@SysReleaseThreadVars;
-{$endif}
     BasicEventCreate       :=@intBasicEventCreate;
     BasicEventDestroy      :=@intBasicEventDestroy;
     BasicEventResetEvent   :=@intBasicEventResetEvent;
@@ -437,9 +427,7 @@ begin
     end;
   SetThreadManager(NWThreadManager);
   InitHeapMutexes;
-  {$ifdef HASTHREADVAR}
   ThVarAllocResourceTag := AllocateResourceTag(getnlmhandle,'Threadvar Memory',AllocSignature);
-  {$endif}
   NWSysSetThreadFunctions (@SysAllocateThreadVars,
                            @SysReleaseThreadVars,
                            @SysSetThreadDataAreaPtr);

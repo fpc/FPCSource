@@ -196,11 +196,7 @@ begin
 end;
 
 
-{$ifdef HASTHREADVAR}
 threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
  CurrX, CurrY: dword;
 
 

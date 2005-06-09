@@ -31,7 +31,6 @@
                              Threadvar support
 *****************************************************************************}
 
-{$ifdef HASTHREADVAR}
 
 const
    threadvarblocksize : dword = 0;     // total size of allocated threadvars
@@ -106,7 +105,6 @@ begin
   end;
 end;
 
-{$endif HASTHREADVAR}
 
 
 {*****************************************************************************
@@ -127,9 +125,7 @@ procedure DoneThread;
 
   begin
      { release thread vars }
-{$ifdef HASTHREADVAR}
      SysReleaseThreadVars;
-{$endif}
   end;
 
 
@@ -139,11 +135,9 @@ function ThreadMain(param : pointer) : dword; cdecl;
      ti : tthreadinfo;
 
   begin
-{$ifdef HASTHREADVAR}
      { Allocate local thread vars, this must be the first thing,
        because the exception management and io depends on threadvars }
      SysAllocateThreadVars;
-{$endif HASTHREADVAR}
 {$ifdef DEBUG_MT}
      ConsolePrintf(#13'New thread %x started, initialising ...'#13#10,_GetThreadID);
 {$endif DEBUG_MT}
@@ -167,13 +161,11 @@ function SysBeginThread(sa : Pointer;stacksize : dword;
 {$ifdef DEBUG_MT}
      ConsolePrintf(#13'Creating new thread'#13#10);
 {$endif DEBUG_MT}
-{$ifdef HASTHREADVAR}
      if not IsMultiThread then
      begin
        InitThreadVars(@SysRelocateThreadvar);
        IsMultithread:=true;
      end;
-{$endif}
      { the only way to pass data to the newly created thread }
      { in a MT safe way, is to use the heap                  }
      new(ti);
@@ -472,12 +464,10 @@ begin
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;
     LeaveCriticalSection   :=@SysLeaveCriticalSection;
-{$ifdef HASTHREADVAR}
     InitThreadVar          :=@SysInitThreadVar;
     RelocateThreadVar      :=@SysRelocateThreadVar;
     AllocateThreadVars     :=@SysAllocateThreadVars;
     ReleaseThreadVars      :=@SysReleaseThreadVars;
-{$endif HASTHREADVAR}
     BasicEventCreate       :=@NoBasicEventCreate;
     basiceventdestroy      :=@Nobasiceventdestroy;
     basiceventResetEvent   :=@NobasiceventResetEvent;
