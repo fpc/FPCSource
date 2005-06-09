@@ -453,37 +453,6 @@ begin
 end;
 {$endif FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 
-
-{$ifndef NOCLASSHELPERS}
-
-{$ifndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
-function fpc_new_class(_self,_vmt:pointer):pointer;[public,alias:'FPC_NEW_CLASS']; compilerproc;
-begin
-  { Inherited call? }
-  if _vmt=nil then
-    begin
-      fpc_new_class:=_self;
-      exit;
-    end;
-
-  fpc_new_class := tclass(_vmt).NewInstance
-end;
-{$endif FPC_SYSTEM_HAS_FPC_NEW_CLASS}
-
-
-{$ifndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-procedure fpc_dispose_class(_self: pointer; flag : longint);[public,alias:'FPC_DISPOSE_CLASS'];compilerproc;
-begin
-  { inherited -> flag = 0 -> no destroy }
-  { normal -> flag = 1 -> destroy }
-  if (_self <> nil) and (flag = 1) then
-    tobject(_self).FreeInstance;
-end;
-{$endif ndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-
-{$endif NOCLASSHELPERS}
-
-
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 procedure fpc_check_object(_vmt : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_CHECK_OBJECT'];  compilerproc;
 type
