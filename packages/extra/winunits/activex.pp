@@ -1492,7 +1492,6 @@ TYPE
 
 //  CURRENCY                       = CY;
 
-{$IFDEF HASINTF}
 
 // Forward interfaces.
 
@@ -2666,7 +2665,6 @@ TYPE
     function ContextSensitiveHelp(fEnterMode: BOOL): HResult; stdcall;
   end;
 
-{$ENDIF}
 
   tagOleMenuGroupWidths = record
     width : array[0..5] Of LONG;
@@ -2680,7 +2678,6 @@ TYPE
 { ******************************************************************************************************************
                                                           stuff from objbase.h
   ****************************************************************************************************************** }
-{$IFDEF HASINTF}
 
 {$i wininc/objbase.inc}
 
@@ -2693,7 +2690,6 @@ TYPE
   function IsEqualIID(const iid1,iid2 : TIID) : Boolean;stdcall;external 'ole32.dll' name 'IsEqualGUID';
   function IsEqualCLSID(const clsid1,clsid2 : TCLSID) : Boolean;stdcall;external 'ole32.dll' name 'IsEqualGUID';
 
-{$ENDIF HASINTF}
 
 
 const
