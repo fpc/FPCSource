@@ -820,7 +820,6 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
-{$ifdef SHORTSTRCOMPAREINREG}
 function fpc_shortstr_compare(const left,right:shortstring): longint;assembler; [public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
 var
   saveesi,saveedi,saveebx : longint;
@@ -876,55 +875,6 @@ asm
         movl    saveesi,%esi
         movl    saveebx,%ebx
 end;
-{$else SHORTSTRCOMPAREINREG}
-function fpc_shortstr_compare(const left,right:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
-begin
-  asm
-        cld
-        xorl    %ebx,%ebx
-        xorl    %eax,%eax
-        movl    right,%esi
-        movl    left,%edi
-        movb    (%esi),%al
-        movb    (%edi),%bl
-        movl    %eax,%edx
-        incl    %esi
-        incl    %edi
-        cmpl    %ebx,%eax
-        jbe     .LStrCmp1
-        movl    %ebx,%eax
-.LStrCmp1:
-        cmpl    $7,%eax
-        jl      .LStrCmp2
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        orl     %ecx,%ecx
-        rep
-        cmpsb
-        jne     .LStrCmp3
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        orl     %ecx,%ecx
-        rep
-        cmpsl
-        je      .LStrCmp2
-        movl    $4,%eax
-        sub     %eax,%esi
-        sub     %eax,%edi
-.LStrCmp2:
-        movl    %eax,%ecx
-        orl     %eax,%eax
-        rep
-        cmpsb
-        jne     .LStrCmp3
-        cmp     %ebx,%edx
-.LStrCmp3:
-  end ['EDX','ECX','EBX','EAX','ESI','EDI'];
-end;
-{$endif SHORTSTRCOMPAREINREG}
 
 {$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
