@@ -351,22 +351,14 @@ end;
                               Str() Helpers
 *****************************************************************************}
 
-{$ifdef STR_USES_VALINT}
 procedure fpc_shortstr_SInt(v : valSInt;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_SINT']; compilerproc;
-{$else}
-procedure fpc_shortstr_longint(v : longint;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGINT']; compilerproc;
-{$endif}
 begin
   int_str(v,s);
   if length(s)<len then
     s:=space(len-length(s))+s;
 end;
 
-{$ifdef STR_USES_VALINT}
 procedure fpc_shortstr_UInt(v : valUInt;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_UINT']; compilerproc;
-{$else}
-  procedure fpc_shortstr_longword(v : longword;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGWORD']; compilerproc;
-{$endif}
 begin
   int_str(v,s);
   if length(s)<len then
@@ -409,11 +401,7 @@ end;
    Array Of Char Str() helpers
 }
 
-{$ifdef STR_USES_VALINT}
 procedure fpc_chararray_sint(v : valsint;len : SizeInt;var a:array of char);compilerproc;
-{$else}
-procedure fpc_chararray_longint(v : longint;len : SizeInt;var a:array of char);compilerproc;
-{$endif}
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -429,11 +417,7 @@ begin
 end;
 
 
-{$ifdef STR_USES_VALINT}
 procedure fpc_chararray_uint(v : valuint;len : SizeInt;var a : array of char);compilerproc;
-{$else}
-procedure fpc_chararray_longword(v : longword;len : SizeInt;var a : array of char);compilerproc;
-{$endif}
 var
   ss : shortstring;
   maxlen : SizeInt;
