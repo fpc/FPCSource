@@ -126,7 +126,6 @@ begin
   CMemSize:=pptrint(p-sizeof(ptrint))^;
 end;
 
-{$ifdef HASGETFPCHEAPSTATUS}  
 function CGetHeapStatus:THeapStatus;
 
 var res: THeapStatus;
@@ -141,14 +140,6 @@ function CGetFPCHeapStatus:TFPCHeapStatus;
 begin
   fillchar(CGetFPCHeapStatus,sizeof(CGetFPCHeapStatus),0);
 end;
-{$else HASGETFPCHEAPSTATUS}  
-Procedure CGetHeapStatus(var status:THeapStatus);
-
-begin
-  fillchar(status,sizeof(status),0);
-end;
-{$endif HASGETFPCHEAPSTATUS}  
-
 
 Const
  CMemoryManager : TMemoryManager =
@@ -161,9 +152,7 @@ Const
       ReallocMem : @CReAllocMem;
       MemSize : @CMemSize;
       GetHeapStatus : @CGetHeapStatus;
-{$ifdef HASGETFPCHEAPSTATUS}  
       GetFPCHeapStatus: @CGetFPCHeapStatus;	
-{$endif HASGETFPCHEAPSTATUS}  
     );
 
 Var

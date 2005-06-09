@@ -15,7 +15,6 @@
 
 { Memorymanager }
 type
-{$ifdef HASGETFPCHEAPSTATUS}
   TFPCHeapStatus = record
     MaxHeapSize,
     MaxHeapUsed,
@@ -35,15 +34,6 @@ type
     Overhead: Cardinal;
     HeapErrorCode: Cardinal;
   end;
-{$else HASGETFPCHEAPSTATUS}
-  THeapStatus = record
-    MaxHeapSize,
-    MaxHeapUsed,
-    CurrHeapSize,
-    CurrHeapUsed,
-    CurrHeapFree  : ptrint;
-  end;
-{$endif HASGETFPCHEAPSTATUS}
 
   PMemoryManager = ^TMemoryManager;
   TMemoryManager = record
@@ -54,12 +44,8 @@ type
     AllocMem            : Function(Size:ptrint):Pointer;
     ReAllocMem          : Function(var p:pointer;Size:ptrint):Pointer;
     MemSize             : function(p:pointer):ptrint;
-{$ifdef HASGETFPCHEAPSTATUS}
     GetHeapStatus       : function :THeapStatus;
     GetFPCHeapStatus    : function :TFPCHeapStatus;
-{$else HASGETFPCHEAPSTATUS}
-    GetHeapStatus : procedure(var status:THeapStatus);
-{$endif HASGETFPCHEAPSTATUS}
   end;
 
   TMemoryMutexManager = record
@@ -92,12 +78,8 @@ Function  SysMemSize(p:pointer):ptrint;
 Function  SysAllocMem(size:ptrint):Pointer;
 function  SysTryResizeMem(var p:pointer;size : ptrint):boolean;
 Function  SysReAllocMem(var p:pointer;size:ptrint):Pointer;
-{$ifdef HASGETFPCHEAPSTATUS}
 function  SysGetHeapStatus:THeapStatus;
 function  SysGetFPCHeapStatus:TFPCHeapStatus;
-{$else}
-procedure SysGetHeapStatus(var status:THeapStatus);
-{$endif HASGETFPCHEAPSTATUS}
 
 { Tp7 functions }
 Procedure Getmem(Var p:pointer;Size:ptrint);
@@ -116,17 +98,8 @@ function Freememory(p:pointer):ptrint;
 function AllocMem(Size:ptrint):pointer;
 function ReAllocMem(var p:pointer;Size:ptrint):pointer;
 function ReAllocMemory(var p:pointer;Size:ptrint):pointer;
-{$ifdef HASGETFPCHEAPSTATUS}
 function GetHeapStatus:THeapStatus;
 function GetFPCHeapStatus:TFPCHeapStatus;
-{$else}
-procedure GetHeapStatus(var status:THeapStatus);
-{$endif HASGETFPCHEAPSTATUS}
 
 { Bootstrapping }
-{$ifndef HASGETHEAPSTATUS}
-Function  Memavail:ptrint;
-Function  Maxavail:ptrint;
-Function  Heapsize:ptrint;
-{$endif HASGETHEAPSTATUS}
 
