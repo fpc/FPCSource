@@ -622,8 +622,10 @@ implementation
     procedure tcg.allocallcpuregisters(list:Taasmoutput);
       begin
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+{$ifndef i386}
         alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         alloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
+{$endif i386}
       end;
 
 
@@ -639,8 +641,10 @@ implementation
     procedure tcg.deallocallcpuregisters(list:Taasmoutput);
       begin
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+{$ifndef i386}
         dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         dealloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
+{$endif i386}
       end;
 
 

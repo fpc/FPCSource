@@ -153,6 +153,7 @@ procedure TResourceStrings.CreateResourceStringList;
          begin
             objectlibrary.getdatalabel(l1);
             resourcestringlist.concat(tai_const.create_sym(l1));
+            maybe_new_object_file(consts);
             consts.concat(tai_align.Create(const_align(sizeof(aint))));
             consts.concat(tai_const.create_aint(-1));
             consts.concat(tai_const.create_aint(len));
@@ -170,6 +171,7 @@ procedure TResourceStrings.CreateResourceStringList;
        objectlibrary.getdatalabel(l1);
        L:=Length(Name);
        resourcestringlist.concat(tai_const.create_sym(l1));
+       maybe_new_object_file(consts);
        consts.concat(tai_align.Create(const_align(sizeof(aint))));
        consts.concat(tai_const.create_aint(-1));
        consts.concat(tai_const.create_aint(l));
@@ -187,9 +189,10 @@ Var
 begin
   if not(assigned(resourcestringlist)) then
     resourcestringlist:=taasmoutput.create;
-  resourcestringlist.insert(tai_const.create_32bit(resstrcount));
-  resourcestringlist.insert(tai_symbol.createname_global(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),AT_DATA,0));
-  resourcestringlist.insert(tai_align.Create(const_align(sizeof(aint))));
+  maybe_new_object_file(resourcestringlist);
+  resourcestringlist.concat(tai_align.Create(const_align(sizeof(aint))));
+  resourcestringlist.concat(tai_symbol.createname_global(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),AT_DATA,0));
+  resourcestringlist.concat(tai_const.create_32bit(resstrcount));
   R:=TResourceStringItem(List.First);
   While assigned(R) do
    begin
