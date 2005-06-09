@@ -378,11 +378,7 @@ begin
         VarInteger : Result:=VInteger;
         VarSingle  : Result:=Trunc(VSingle);
         VarDouble  : Result:=Trunc(VDouble);
-{$ifdef HASCURRENCY}
         VarCurrency: Result:=Trunc(VCurrency);
-{$else}
-        VarCurrency: Result:=VCurrency;
-{$endif}
         VarDate    : Result:=Trunc(VDate);
         VarOleStr  : NoWideStrings;
         VarBoolean : Result:=Longint(VBoolean);
@@ -413,11 +409,7 @@ begin
         VarInteger : Result:=VInteger;
         VarSingle  : Result:=Trunc(VSingle);
         VarDouble  : Result:=Trunc(VDouble);
-{$ifdef HASCURRENCY}
         VarCurrency: Result:=Trunc(VCurrency);
-{$else}
-        VarCurrency: Result:=VCurrency;
-{$endif}
         VarDate    : Result:=Trunc(VDate);
         VarOleStr  : NoWideStrings;
         VarBoolean : Result:=Longint(VBoolean);

@@ -428,7 +428,6 @@ begin
  ReAllocMemory := ReAllocMem(p,size);
 end;
 
-{$ifdef ValueGetmem}
 
 { Needed for calls from Assembler }
 function fpc_getmem(size:ptrint):pointer;compilerproc;[public,alias:'FPC_GETMEM'];
@@ -448,18 +447,6 @@ begin
    end;
 end;
 
-{$else ValueGetmem}
-
-{ Needed for calls from Assembler }
-procedure AsmGetMem(var p:pointer;size:ptrint);[public,alias:'FPC_GETMEM'];
-begin
-  p := MemoryManager.GetMem(size);
-end;
-
-{$endif ValueGetmem}
-
-{$ifdef ValueFreemem}
-
 procedure fpc_freemem(p:pointer);compilerproc;[public,alias:'FPC_FREEMEM'];
 begin
   if IsMultiThread and MemoryManager.NeedLock then
@@ -478,16 +465,6 @@ begin
        MemoryManager.FreeMem(p);
    end;
 end;
-
-{$else ValueFreemem}
-
-procedure AsmFreeMem(var p:pointer);[public,alias:'FPC_FREEMEM'];
-begin
-  if p <> nil then
-    MemoryManager.FreeMem(p);
-end;
-
-{$endif ValueFreemem}
 
 
 { Bootstrapping }

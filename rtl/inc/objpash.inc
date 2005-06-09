@@ -293,9 +293,7 @@
            vtClass      : (VClass: TClass);
            vtPWideChar  : (VPWideChar: PWideChar);
            vtAnsiString : (VAnsiString: Pointer);
-{$ifdef HASCURRENCY}
            vtCurrency   : (VCurrency: PCurrency);
-{$endif HASCURRENCY}
            vtVariant    : (VVariant: PVariant);
            vtInterface  : (VInterface: Pointer);
            vtWideString : (VWideString: Pointer);

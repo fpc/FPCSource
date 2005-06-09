@@ -213,9 +213,6 @@ Type
   UTF8String          = type ansistring;
   PUTF8String         = ^UTF8String;
 
-{$ifndef HASCURRENCY}
-  Currency            = Int64;
-{$endif HASCURRENCY}
   HRESULT             = type Longint;
   TDateTime           = type Double;
   Error               = type Longint;

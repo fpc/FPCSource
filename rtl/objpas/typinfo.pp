@@ -1208,10 +1208,8 @@ type
   TGetDoubleProcIndex = function(Index: integer): Double of object;
   TGetSingleProc = function:Single of object;
   TGetSingleProcIndex = function(Index: integer):Single of object;
-{$ifdef HASCURRENCY}
   TGetCurrencyProc = function : Currency of object;
   TGetCurrencyProcIndex = function(Index: integer) : Currency of object;
-{$endif HASCURRENCY}
 var
   AMethod : TMethod;
 begin
@@ -1227,10 +1225,8 @@ begin
          Result:=PExtended(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
        ftcomp:
          Result:=PComp(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
-{$ifdef HASCURRENCY}
        ftcurr:
          Result:=PCurrency(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
-{$endif HASCURRENCY}
        end;
     ptStatic,
     ptVirtual:
@@ -1256,13 +1252,11 @@ begin
               Result:=TGetExtendedProc(AMethod)()
             else
               Result:=TGetExtendedProcIndex(AMethod)(PropInfo^.Index);
-          {$ifdef HASCURRENCY}
           ftCurr:
             if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
               Result:=TGetCurrencyProc(AMethod)()
             else
               Result:=TGetCurrencyProcIndex(AMethod)(PropInfo^.Index);
-          {$endif HASCURRENCY}
         end;
       end;
   end;
@@ -1277,10 +1271,8 @@ type
   TSetDoubleProcIndex = procedure(Index: integer; const AValue: Double) of object;
   TSetSingleProc = procedure(const AValue: Single) of object;
   TSetSingleProcIndex = procedure(Index: integer; const AValue: Single) of object;
-{$ifdef HASCURRENCY}
   TSetCurrencyProc = procedure(const AValue: Currency) of object;
   TSetCurrencyProcIndex = procedure(Index: integer; const AValue: Currency) of object;
-{$endif HASCURRENCY}
 Var
   AMethod : TMethod;
 begin
@@ -1300,10 +1292,8 @@ begin
         ftComp:
           PComp(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
 {$endif FPC_COMP_IS_INT64}
-{$ifdef HASCURRENCY}
         ftCurr:
  	  PCurrency(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
-{$endif HASCURRENCY}
        end;
     ptStatic,
     ptVirtual:
@@ -1329,13 +1319,11 @@ begin
               TSetExtendedProc(AMethod)(Value)
             else
               TSetExtendedProcIndex(AMethod)(PropInfo^.Index,Value);
-          {$ifdef HASCURRENCY}
           ftCurr:
             if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
               TSetCurrencyProc(AMethod)(Value)
             else
               TSetCurrencyProcIndex(AMethod)(PropInfo^.Index,Value);
-          {$endif HASCURRENCY}
         end;
       end;
   end;
