@@ -778,6 +778,8 @@ interface
           subn :
             begin
               op:=OP_SUB;
+              if (nf_swaped in flags) then
+                swapleftright;
             end;
           ltn,lten,
           gtn,gten,
@@ -906,9 +908,6 @@ interface
                 end;
               subn:
                 begin
-                  if (nf_swaped in flags) then
-                    swapleftright;
-
                   if left.location.loc <> LOC_CONSTANT then
                     begin
                       if (location.register64.reglo = NR_NO) then
