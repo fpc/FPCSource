@@ -78,7 +78,7 @@ Function FileTruncate (Handle,Size: Longint) : boolean;
 Function FileAge (Const FileName : String): Longint;
 Function FileExists (Const FileName : String) : Boolean;
 Function DirectoryExists (Const Directory : String) : Boolean;
-Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
+Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
 Function FindNext (Var Rslt : TSearchRec) : Longint;
 Procedure FindClose (Var F : TSearchrec);
 Function FileGetDate (Handle : Longint) : Longint;

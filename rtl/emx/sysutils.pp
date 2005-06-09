@@ -571,7 +571,7 @@ type    TRec = record
         end;
         PSearchRec = ^SearchRec;
 
-function FindFirst (const Path: string; Attr: longint; var Rslt: TSearchRec): longint;
+function FindFirst (const Path: string; Attr: longint; out Rslt: TSearchRec): longint;
 
 var SR: PSearchRec;
     FStat: PFileFindBuf3;
