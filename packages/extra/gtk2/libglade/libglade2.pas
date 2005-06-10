@@ -36,7 +36,7 @@ uses
 const
 {$ifdef win32}
   {$define gtkwin}
-  LibGladeLib = 'libglade-2.0.dll';
+  LibGladeLib = 'libglade-2.0-0.dll';
   {$IFDEF FPC}
   {$smartlink on}
   {$ENDIF}
