@@ -240,7 +240,7 @@ ifeq ($(FULL_TARGET),i386-win32)
 override TARGET_PROGRAMS+=stringl dparser fstream mstream list threads testrtf cfgtest xmldump htdump testez tidea b64test b64test2 b64enc b64dec restest testz testz2 istream doecho testol testcont txmlreg testreg tstelcmd testapp testcgi testbs  showver testproc testhres testnres testsres testrhre testrnre testrsre testur
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_PROGRAMS+=stringl dparser fstream mstream list threads testrtf cfgtest xmldump htdump testez tidea b64test b64test2 b64enc b64dec restest testz testz2 istream doecho testol testcont txmlreg testreg tstelcmd testapp testcgi testbs
+override TARGET_PROGRAMS+=stringl dparser fstream mstream list threads testrtf cfgtest xmldump htdump testez tidea b64test b64test2 b64enc b64dec restest testz testz2 istream doecho testol testcont txmlreg testreg tstelcmd testapp testcgi testbs  isockcli isocksvr testhres testnres testsres testrhre testrnre testrsre testur
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 override TARGET_PROGRAMS+=stringl dparser fstream mstream list threads testrtf cfgtest xmldump htdump testez tidea b64test b64test2 b64enc b64dec restest testz testz2 istream doecho testol testcont txmlreg testreg tstelcmd testapp testcgi testbs  sockcli isockcli dsockcli socksvr isocksvr dsocksvr testhres testnres testsres testrhre testrnre testrsre testur
@@ -267,7 +267,7 @@ ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_PROGRAMS+=stringl dparser fstream mstream list threads testrtf cfgtest xmldump htdump testez tidea b64test b64test2 b64enc b64dec restest testz testz2 istream doecho testol testcont txmlreg testreg tstelcmd testapp testcgi testbs
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_PROGRAMS+=stringl dparser fstream mstream list threads testrtf cfgtest xmldump htdump testez tidea b64test b64test2 b64enc b64dec restest testz testz2 istream doecho testol testcont txmlreg testreg tstelcmd testapp testcgi testbs
+override TARGET_PROGRAMS+=stringl dparser fstream mstream list threads testrtf cfgtest xmldump htdump testez tidea b64test b64test2 b64enc b64dec restest testz testz2 istream doecho testol testcont txmlreg testreg tstelcmd testapp testcgi testbs  isockcli isocksvr testhres testnres testsres testrhre testrnre testrsre testur
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 override TARGET_PROGRAMS+=stringl dparser fstream mstream list threads testrtf cfgtest xmldump htdump testez tidea b64test b64test2 b64enc b64dec restest testz testz2 istream doecho testol testcont txmlreg testreg tstelcmd testapp testcgi testbs

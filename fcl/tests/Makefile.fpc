@@ -16,6 +16,10 @@ programs_darwin=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
                testhres testnres testsres testrhre testrnre testrsre testur
 programs_freebsd=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
                testhres testnres testsres testrhre testrnre testrsre testur
+programs_os2=isockcli isocksvr testhres testnres testsres testrhre \
+             testrnre testrsre testur
+programs_emx=isockcli isocksvr testhres testnres testsres testrhre \
+             testrnre testrsre testur
 
 rst=restest
 
