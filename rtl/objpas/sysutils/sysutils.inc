@@ -174,9 +174,6 @@
 Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer; FrameCount: Longint; Frames: PPointer);[public,alias:'FPC_BREAK_UNHANDLED_EXCEPTION'];
 Var
   Message : String;
-  {$IFDEF VIRTUALPASCAL}
-  stdout:text absolute output;
-  {$ENDIF}
   i : longint;
 begin
   Writeln(stdout,'An unhandled exception occurred at $',HexStr(Ptrint(Addr),sizeof(PtrInt)*2),' :');
@@ -331,29 +328,19 @@ end;
 function ExceptObject: TObject;
 
 begin
-  {$IFDEF VIRTUALPASCAL}
-  // vpascal does exceptions more the delphi way...
-  // this needs to be written from scratch.
-  {$ELSE}
   If RaiseList=Nil then
     Result:=Nil
   else
     Result:=RaiseList^.FObject;
-  {$ENDIF}
 end;
 
 function ExceptAddr: Pointer;
 
 begin
-  {$IFDEF VIRTUALPASCAL}
-  // vpascal does exceptions more the delphi way...
-  // this needs to be written from scratch.
-  {$ELSE}
   If RaiseList=Nil then
     Result:=Nil
   else
     Result:=RaiseList^.Addr;
-  {$ENDIF}
 end;
 
 function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;

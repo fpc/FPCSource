@@ -19,11 +19,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
 
     Procedure ReadInteger;
 
-{$IFDEF VIRTUALPASCAL}
-var Code: longint;
-{$ELSE}
 var Code: word;
-{$ENDIF}
 
     begin
       If Value<>-1 then exit; // Was already read.
@@ -213,11 +209,8 @@ begin
         'D' : begin
               if Checkarg(vtinteger,false) then
                 Str(Args[Doarg].VInteger,ToAdd)
-              {$IFNDEF VIRTUALPASCAL}
               else if CheckArg(vtInt64,true) then
-                Str(Args[DoArg].VInt64^,toadd)
-              {$ENDIF}
-              ;
+                Str(Args[DoArg].VInt64^,toadd);
               Width:=Abs(width);
               Index:=Prec-Length(ToAdd);
               If ToAdd[1]<>'-' then
@@ -229,13 +222,10 @@ begin
         'U' : begin
               if Checkarg(vtinteger,false) then
                 Str(cardinal(Args[Doarg].VInteger),ToAdd)
-              {$IFNDEF VIRTUALPASCAL}
               else if CheckArg(vtInt64,false) then
                 Str(qword(Args[DoArg].VInt64^),toadd)
               else if CheckArg(vtQWord,true) then
                 Str(Args[DoArg].VQWord^,toadd);
-              {$ENDIF}
-              ;
               Width:=Abs(width);
               Index:=Prec-Length(ToAdd);
               ToAdd:=StringOfChar('0',Index)+ToAdd

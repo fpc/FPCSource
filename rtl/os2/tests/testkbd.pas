@@ -9,14 +9,10 @@ uses
 {$IFDEF FPC}
  KbdCalls;
 {$ELSE}
- {$IFDEF VIRTUALPASCAL}
- Os2Base;
- {$ELSE}
-  {$IFDEF SPEED}
+ {$IFDEF SPEED}
  BseSub;
-  {$ELSE}
+ {$ELSE}
  Os2Subs;
-  {$ENDIF}
  {$ENDIF}
 {$ENDIF}
 

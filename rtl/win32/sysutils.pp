@@ -17,18 +17,11 @@
 unit sysutils;
 interface
 
-{$IFNDEF VIRTUALPASCAL}
 {$MODE objfpc}
-{$ENDIF}
 { force ansistrings }
 {$H+}
 
 uses
-  {$IFDEF VIRTUALPASCAL}
-  vpglue,
-  strings,
-  crt,
-  {$ENDIF}
   dos,
   windows;
 
@@ -172,13 +165,8 @@ Function DosToWinTime (DTime:longint;Var Wtime : TFileTime):longbool;
 var
   lft : TFileTime;
 begin
-  {$IFDEF VIRTUALPASCAL}
-  DosToWinTime:=DosDateTimeToFileTime(longrec(dtime).hi,longrec(dtime).lo,lft) and
-                LocalFileTimeToFileTime(lft,Wtime);
- {$ELSE}
   DosToWinTime:=DosDateTimeToFileTime(longrec(dtime).hi,longrec(dtime).lo,@lft) and
                 LocalFileTimeToFileTime(lft,Wtime);
- {$ENDIF}
 end;
 
 
@@ -304,15 +292,11 @@ Function FileSetDate (Handle,Age : Longint) : Longint;
 Var
   FT: TFileTime;
 begin
-  {$IFDEF VIRTUALPASCAL}
-    Result := 0;
-  {$ELSE}
-    Result := 0;
-    if DosToWinTime(Age,FT) and
-      SetFileTime(Handle, ft, ft, FT) then
-      Exit;
+  Result := 0;
+  if DosToWinTime(Age,FT) and
+    SetFileTime(Handle, ft, ft, FT) then
+    Exit;
   Result := GetLastError;
-  {$ENDIF}
 end;
 
 
@@ -351,13 +335,7 @@ function GetDiskFreeSpace(drive:pchar;var sector_cluster,bytes_sector,
                           freeclusters,totalclusters:longint):longbool;
          stdcall;external 'kernel32' name 'GetDiskFreeSpaceA';
 type
-  {$IFDEF VIRTUALPASCAL}
-   {&StdCall+}
-   TGetDiskFreeSpaceEx = function(drive:pchar;var availableforcaller,total,free):longbool;
-   {&StdCall-}
-  {$ELSE}
    TGetDiskFreeSpaceEx = function(drive:pchar;var availableforcaller,total,free):longbool;stdcall;
-  {$ENDIF}
 
 var
  GetDiskFreeSpaceEx : TGetDiskFreeSpaceEx;
@@ -841,11 +819,7 @@ begin
     begin
        kernel32dll:=LoadLibrary('kernel32');
        if kernel32dll<>0 then
-  {$IFDEF VIRTUALPASCAL}
-         @GetDiskFreeSpaceEx:=GetProcAddress(0,'GetDiskFreeSpaceExA');
-        {$ELSE}
          GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
-        {$ENDIF}
     end;
 end;
 

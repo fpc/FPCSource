@@ -64,13 +64,8 @@ Const
   EmptyStr : string = '';
   NullStr : PString = @EmptyStr;
 
-{$IFDEF VIRTUALPASCAL}
-  EmptyWideStr : AnsiString = '';
-  NullWideStr : PString = @EmptyWideStr;
-{$ELSE}
   EmptyWideStr : WideString = '';
 //  NullWideStr : PWideString = @EmptyWideStr;
-{$ENDIF}
 
 function NewStr(const S: string): PString;
 procedure DisposeStr(S: PString);
@@ -109,22 +104,16 @@ function AdjustLineBreaks(const S: string): string;
 function AdjustLineBreaks(const S: string; Style: TTextLineBreakStyle): string;
 function IsValidIdent(const Ident: string): boolean;
 function IntToStr(Value: integer): string;
-{$IFNDEF VIRTUALPASCAL}
 function IntToStr(Value: Int64): string;
-{$ENDIF}
 function IntToStr(Value: QWord): string;
 function IntToHex(Value: integer; Digits: integer): string;
 function IntToHex(Value: Int64; Digits: integer): string;
 function StrToInt(const s: string): integer;
 function TryStrToInt(const s: string; var i : integer) : boolean;
-{$IFNDEF VIRTUALPASCAL}
 function StrToInt64(const s: string): int64;
 function TryStrToInt64(const s: string; var i : int64) : boolean;
-{$ENDIF}
 function StrToIntDef(const S: string; Default: integer): integer;
-{$IFNDEF VIRTUALPASCAL}
 function StrToInt64Def(const S: string; Default: int64): int64;
-{$ENDIF}
 function LoadStr(Ident: integer): string;
 // function FmtLoadStr(Ident: integer; const Args: array of const): string;
 Function Format (Const Fmt : String; const Args : Array of const) : String;
