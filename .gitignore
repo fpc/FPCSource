@@ -1,0 +1,6 @@
+compiler/*.bak
+compiler/*.exe
+compiler/*.o
+compiler/*.ppu
+compiler/*.s
+compiler/*.tmp
