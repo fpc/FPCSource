@@ -112,28 +112,35 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put $(SYSTEMUNIT) unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
+# Select 32/64 mode
+ifeq ($(CPU_TARGET),i386)
+  ASTARGET=--32
+endif
+ifeq ($(CPU_TARGET),x86_64)
+  ASTARGET=--64
+endif
 
 #
 # Loaders
 #
 
 prt0$(OEXT) : $(CPU_TARGET)/prt0.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/prt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/prt0.as
 
 dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
 
 gprt0$(OEXT) : $(CPU_TARGET)/gprt0.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(CPU_TARGET)/gprt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(CPU_TARGET)/gprt0.as
 
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
 
 cprt21$(OEXT) : $(CPU_TARGET)/cprt21.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)cprt21$(OEXT) $(CPU_TARGET)/cprt21.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt21$(OEXT) $(CPU_TARGET)/cprt21.as
 
 gprt21$(OEXT) : $(CPU_TARGET)/gprt21.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)gprt21$(OEXT) $(CPU_TARGET)/gprt21.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt21$(OEXT) $(CPU_TARGET)/gprt21.as
 
 
 #
