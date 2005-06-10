@@ -36,7 +36,7 @@ const
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 65535;
  MaxPathLen = 260;
- 
+
 type
    PEXCEPTION_FRAME = ^TEXCEPTION_FRAME;
    TEXCEPTION_FRAME = record
@@ -382,6 +382,7 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
      { This strange construction is needed to solve the _SS problem
        with a smartlinked syswin32 (PFV) }
      asm
+{!!!!!!!
          { allocate space for an exception frame }
         pushl $0
         pushl %fs:(0)
@@ -401,6 +402,7 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
         xorl %ebp,%ebp
         call PASCALMAIN
         popl %ebp
+}
      end;
      { if we pass here there was no error ! }
      system_exit;

@@ -23,16 +23,12 @@ procedure dummyproc;assembler;
     .balign 16
     .globl FPC_ABSMASK_SINGLE
 FPC_ABSMASK_SINGLE:
-    .long 0x7FFFFFFF
-    .long 0x7FFFFFFF
-    .long 0x7FFFFFFF
-    .long 0x7FFFFFFF
+    .quad 0x7FFFFFFF7FFFFFFF
+    .quad 0x7FFFFFFF7FFFFFFF
     .globl FPC_ABSMASK_DOUBLE
 FPC_ABSMASK_DOUBLE:
-    .long 0xFFFFFFFF
-    .long 0x7FFFFFFF
-    .long 0xFFFFFFFF
-    .long 0x7FFFFFFF
+    .quad 0x7FFFFFFFFFFFFFFF
+    .quad 0x7FFFFFFFFFFFFFFF
   .text
   end;
 
