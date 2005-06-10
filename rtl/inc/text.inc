@@ -952,7 +952,7 @@ Begin
 End;
 
 
-Procedure fpc_Read_Text_AnsiStr(var f : Text;var s : AnsiString); iocheck; [Public,Alias:'FPC_READ_TEXT_ANSISTR']; compilerproc;
+Procedure fpc_Read_Text_AnsiStr(var f : Text;out s : AnsiString); iocheck; [Public,Alias:'FPC_READ_TEXT_ANSISTR']; compilerproc;
 var
   slen,len : longint;
 Begin
@@ -967,7 +967,7 @@ Begin
   SetLength(S,Slen);
 End;
 
-procedure fpc_Read_Text_Char(var f : Text; var c: char); iocheck; [Public,Alias:'FPC_READ_TEXT_CHAR'];compilerproc;
+procedure fpc_Read_Text_Char(var f : Text; out c: char); iocheck; [Public,Alias:'FPC_READ_TEXT_CHAR'];compilerproc;
 Begin
   c:=#0;
 { Check error and if file is open }
@@ -998,7 +998,7 @@ Begin
 end;
 
 
-Procedure fpc_Read_Text_SInt(var f : Text; var l : ValSInt); iocheck; [Public,Alias:'FPC_READ_TEXT_SINT']; compilerproc;
+Procedure fpc_Read_Text_SInt(var f : Text; out l : ValSInt); iocheck; [Public,Alias:'FPC_READ_TEXT_SINT']; compilerproc;
 var
   hs   : String;
   code : longint;
@@ -1041,7 +1041,7 @@ Begin
 End;
 
 
-Procedure fpc_Read_Text_UInt(var f : Text; var u : ValUInt);  iocheck; [Public,Alias:'FPC_READ_TEXT_UINT']; compilerproc;
+Procedure fpc_Read_Text_UInt(var f : Text; out u : ValUInt);  iocheck; [Public,Alias:'FPC_READ_TEXT_UINT']; compilerproc;
 var
   hs   : String;
   code : longint;
@@ -1077,7 +1077,7 @@ Begin
 End;
 
 
-procedure fpc_Read_Text_Float(var f : Text; var v : ValReal); iocheck; [Public,Alias:'FPC_READ_TEXT_FLOAT']; compilerproc;
+procedure fpc_Read_Text_Float(var f : Text; out v : ValReal); iocheck; [Public,Alias:'FPC_READ_TEXT_FLOAT']; compilerproc;
 var
   hs : string;
   code : Word;
@@ -1115,7 +1115,7 @@ end;
 
 {$ifndef cpu64}
 
-procedure fpc_Read_Text_QWord(var f : text; var q : qword); iocheck; [public,alias:'FPC_READ_TEXT_QWORD']; compilerproc;
+procedure fpc_Read_Text_QWord(var f : text; out q : qword); iocheck; [public,alias:'FPC_READ_TEXT_QWORD']; compilerproc;
 var
   hs   : String;
   code : longint;
@@ -1150,7 +1150,7 @@ Begin
    InOutRes:=106;
 End;
 
-procedure fpc_Read_Text_Int64(var f : text; var i : int64); iocheck; [public,alias:'FPC_READ_TEXT_INT64']; compilerproc;
+procedure fpc_Read_Text_Int64(var f : text; out i : int64); iocheck; [public,alias:'FPC_READ_TEXT_INT64']; compilerproc;
 var
   hs   : String;
   code : Longint;
