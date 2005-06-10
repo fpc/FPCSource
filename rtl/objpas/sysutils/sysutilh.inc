@@ -207,9 +207,7 @@ Type
   {$i sysinth.inc}
 
   { Read pchar handling functions declaration }
-  {$IFNDEF VIRTUALPASCAL}
   {$i syspchh.inc}
-  {$ENDIF}
 
   { MCBS functions }
   {$i sysansih.inc}

@@ -682,12 +682,10 @@ begin
 end ;
 
 
-{$IFNDEF VIRTUALPASCAL}
 function IntToStr(Value: int64): string;
 begin
  System.Str(Value, result);
 end ;
-{$ENDIF}
 
 function IntToStr(Value: QWord): string;
 begin
@@ -715,7 +713,6 @@ begin
  end;
 end ;
 
-{$IFNDEF VIRTUALPASCAL} // overloading
 function IntToHex(Value: int64; Digits: integer): string;
 var i: integer;
 begin
@@ -730,7 +727,6 @@ begin
    value := value shr 4;
  end;
 end ;
-{$ENDIF}
 
 
 function TryStrToInt(const s: string; var i : integer) : boolean;
@@ -744,11 +740,7 @@ end;
     if S does not represent a valid integer value EConvertError is raised  }
 
 function StrToInt(const S: string): integer;
-{$IFDEF VIRTUALPASCAL}
-var Error: longint;
-{$ELSE}
 var Error: word;
-{$ENDIF}
 begin
   Val(S, result, Error);
   if Error <> 0 then raise EConvertError.createfmt(SInValidInteger,[S]);
@@ -756,11 +748,7 @@ end ;
 
 
 function StrToInt64(const S: string): int64;
-{$IFDEF VIRTUALPASCAL}
-var Error: longint;
-{$ELSE}
 var Error: word;
-{$ENDIF}
 
 begin
   Val(S, result, Error);
@@ -781,11 +769,7 @@ end;
     Default is returned in case S does not represent a valid integer value  }
 
 function StrToIntDef(const S: string; Default: integer): integer;
-{$IFDEF VIRTUALPASCAL}
-var Error: longint;
-{$ELSE}
 var Error: word;
-{$ENDIF}
 begin
 Val(S, result, Error);
 if Error <> 0 then result := Default;
@@ -795,11 +779,7 @@ end ;
     Default is returned in case S does not represent a valid integer value  }
 
 function StrToInt64Def(const S: string; Default: int64): int64;
-{$IFDEF VIRTUALPASCAL}
-var Error: longint;
-{$ELSE}
 var Error: word;
-{$ENDIF}
 begin
 Val(S, result, Error);
 if Error <> 0 then result := Default;
@@ -1197,11 +1177,7 @@ function StrToBool(const S: string): Boolean;
 Var
   Temp : String;
   D : Double;
-{$IFDEF VIRTUALPASCAL}
-  Code: longint;
-{$ELSE}
   Code: word;
-{$ENDIF}
 
 begin
   Temp:=upcase(S);

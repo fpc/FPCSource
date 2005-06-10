@@ -27,12 +27,10 @@ type
    CharArray = array[0..0] of char;
 
 { Processor dependent part, shared withs strings unit }
-{$IFNDEF VIRTUALPASCAL}  // in system there
 {$ifdef FPC_USE_LIBC}
 {$i cgenstr.inc}
 {$endif FPC_USE_LIBC}
 {$i strings.inc }
-{$ENDIF}
 
 { Read generic string functions that are not implemented for the processor }
 {$i genstr.inc}

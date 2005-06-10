@@ -9,14 +9,10 @@ uses
  DosCalls;
 {$ELSE}
  Os2Def,
- {$IFDEF VIRTUALPASCAL}
- Os2Base;
- {$ELSE}
-  {$IFDEF SPEED}
+ {$IFDEF SPEED}
  BseDos;
-  {$ELSE}
+ {$ELSE}
  DosProcs, DosTypes;
-  {$ENDIF}
  {$ENDIF}
 {$ENDIF}
 

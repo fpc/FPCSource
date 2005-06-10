@@ -20,10 +20,6 @@
     System Utilities For Free Pascal
 }
 
-{$IFDEF VIRTUALPASCAL}
- {$J+}
-{$ENDIF}
-
 function ChangeFileExt(const FileName, Extension: string): string;
 var i: longint;
 begin
@@ -97,9 +93,7 @@ Var S : String;
 
 Begin
  S:=FileName;
- {$IFNDEF VIRTUALPASCAL}
  DoDirSeparators(S);
- {$ENDIF}
 {$ifdef HasUnix}
   Result:=fexpand(S);
 {$else}
