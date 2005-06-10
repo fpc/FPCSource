@@ -1,93 +1,28 @@
-{
-    $Id: sysutils.pp,v 1.59 2005/03/25 22:53:39 jonas Exp $
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Florian Klaempfl
-    member of the Free Pascal development team
+{$mode objfpc}
+{$H+}
+unit uuid;
 
-    Sysutils unit for linux
+Interface
 
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
+uses SysUtils;
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
- **********************************************************************}
+Function CreateMacGUID(Out GUID : TGUID) : Integer;
 
 
-Const 
-  KernelUUID       = '/proc/sys/kernel/random/uuid';
-  PreferKernelUUID = False;
-  
+Implementation
 
-Procedure GetURandomBytes(Var Buf; NBytes : Integer);
-
-Var
-  fd,I : Integer;
-  P : PByte;
-  
-begin
-  P:=@Buf;
-  fd:=FileOpen('/dev/urandom',fmOpenRead);
-  if (fd>=0) then
-    Try
-      While (NBytes>0) do
-        begin
-        I:=FileRead(fd,P^,nbytes);
-        If I>0 then
-          begin
-          Inc(P,I);
-          Dec(NBytes,I);
-          end;
-        end;  
-    Finally
-      FileClose(Fd);
-    end
-  else
-    GetRandomBytes(Buf,NBytes);
-end;
+uses unixtype, sockets, baseunix, unix;
 
 Const 
   MAX_ADJUSTMENT = 10;
   IPPROTO_IP     = 0;
-  AF_INET        = 2;
-  SOCK_DGRAM     = 2; 
+//  AF_INET        = 2;
+//  SOCK_DGRAM     = 2; 
   IF_NAMESIZE    = 16;
   SIOCGIFCONF    = $8912;
   SIOCGIFHWADDR  = $8927;
   
 Type
-{$ifdef FreeBSD}
-{$DEFINE SOCK_HAS_SINLEN}               // BSD definition of scoketaddr
-{$endif}
-{$ifdef SOCK_HAS_SINLEN}
-  sa_family_t=cuchar;
-{$else}
-  sa_family_t=cushort;
-{$endif}
-Type
-  in_addr = packed record
-             case boolean of
-             true: (s_addr  : cuint32);         // inaddr_t=cuint32
-             false: (s_bytes : packed array[1..4] of byte);
-  end;
-        
-  TSockAddr = packed Record // if sa_len is defined, sa_family_t is smaller
-  {$ifdef SOCK_HAS_SINLEN}
-     sa_len     : cuchar;
-  {$endif}
-    case integer of
-      0: (sa_family: sa_family_t;
-          sa_data: packed array[0..13] of Byte);
-      1: (sin_family: sa_family_t;
-          sin_port: cushort;
-          sin_addr: in_addr;
-          sin_zero: packed array[0..7] of Byte);
-      end;
-
-  PSockAddr = ^TSockAddr;
-  Sockaddr  = TSockAddr;                // Kylix compat
   {$packrecords c}
   tifr_ifrn = record
     case integer of
@@ -132,35 +67,25 @@ Type
     node : Array[0..5] of byte;
   end;
 
-Function SocketCall(SockCallNr,a1,a2,a3,a4,a5,a6:longint):longint;
-var
-  Args:array[1..6] of longint;
-begin
-  args[1]:=a1;
-  args[2]:=a2;
-  args[3]:=a3;
-  args[4]:=a4;
-  args[5]:=a5;
-  args[6]:=a6;
-  SocketCall:=do_Syscall(syscall_nr_socketcall,sockcallnr,longint(@args));
-end;
-                          
-function SocketCall(SockCallNr,a1,a2,a3:longint):longint;
-begin
-   SocketCall:=SocketCall(SockCallNr,a1,a2,a3,0,0,0);
-end;
-                  
-function  fpsocket (domain:cint; xtype:cint; protocol: cint):cint;
-begin
-  fpSocket:=SocketCall(1,Domain,xtype,Protocol);
-end;
-
 Var
   MacAddr      : Packed Array[1..6] of byte = (0,0,0,0,0,0);
   MacAddrTried : Byte = 0 ;
   Last   : TTimeVal = (tv_sec:0;tv_usec:0);
   ClockSeq   : Word = 0;
   AdjustMent : Integer = 0;
+
+Procedure GetRandomBytes(Var Buf; NBytes : Integer);
+
+Var
+  I : Integer;
+  P : PByte;
+
+begin
+  P:=@Buf;
+  Randomize;
+  For I:=0 to NBytes-1 do
+    P[i]:=Random(256);
+end;
   
 Function GetMacAddr : Boolean;
 
@@ -306,15 +231,15 @@ begin
     write(hexstr(MacAddr[i],2),':');
 end;
 
-Function CreateMacGUID(Var GUID : TGUID) : Boolean;
+Function CreateMacGUID(Out GUID : TGUID) : Integer;
 
 Var
   UU       : TUUId;
   ClockMid : Cardinal;
 
 begin
-  Result:=GetMacAddr;
-  If Result then
+  Result:=Ord(not GetMacAddr);
+  If (Result=0) then
     begin
     // DumpMacAddr;
     // Writeln;
@@ -327,44 +252,6 @@ begin
     end;
 end;
 
-Function CreateKernelGUID(Var GUID : TGUID) : Boolean;
-
-Const
-  UUIDLen = 36;
-
-Var
-  fd: Longint;
-  S : String;
-  
-begin
-  fd:=FileOpen(KernelUUID,fmOpenRead);
-  Result:=(Fd>=0);
-  if Result then
-    begin
-    SetLength(S,UUIDLen);
-    SetLength(S,FileRead(fd,S[1],UUIDLen));
-    Result:=(Length(S)=UUIDLen);
-    If Result then
-      begin
-      GUID:=StringToGUID('{'+S+'}');
-      //Writeln('Kernel ID = ',GuidToString(GUID));
-      end;
-    end;
-end;
-
-Function CreateGUID(out GUID : TGUID) : Integer;
-
-begin
-  if PreferKernelUUID then
-    begin
-    if not CreateKernelGUID(Guid) then
-      if not CreateMACGuid(Guid) then
-        GetRandomBytes(GUID,SizeOf(Guid));  
-    end
-  else  
-    if not CreateMACGuid(Guid) then
-      if not CreateKernelGUID(Guid) then
-        GetRandomBytes(GUID,SizeOf(Guid));  
-  Result:=0;    
-end;
-
+initialization
+  OnCreateGUID:=@CreateMacGUID;
+end.

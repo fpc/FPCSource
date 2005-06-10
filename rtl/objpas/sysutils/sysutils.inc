@@ -480,6 +480,37 @@ begin
     end;
 end;
 
+Procedure GetRandomBytes(Var Buf; NBytes : Integer);
+
+Var
+  I : Integer;
+  P : PByte;
+
+begin
+  P:=@Buf;
+  Randomize;
+  For I:=0 to NBytes-1 do
+    P[i]:=Random(256);
+end;
+
+{$IFDEF HASCREATEGUID}
+Function SysCreateGUID(out GUID : TGUID) : Integer; forward;
+{$ENDIF}
+
+Function CreateGUID(out GUID : TGUID) : Integer;
+begin
+  If Assigned(OnCreateGUID) then
+    Result:=OnCreateGUID(GUID)
+  else
+    begin
+    {$IFDEF HASCREATEGUID}
+    Result:=SysCreateGUID(GUID);
+    {$ELSE}
+    GetRandomBytes(GUID,SizeOf(Guid));  
+    Result:=0;
+    {$ENDIF}    
+    end;
+end;
 
 {
   Revision 1.1  2003/10/06 21:01:06  peter

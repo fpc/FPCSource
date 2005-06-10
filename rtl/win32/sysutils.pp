@@ -35,6 +35,7 @@ uses
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
 {$DEFINE HAS_OSCONFIG}
+{$DEFINE HAS_CREATEGUID}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -60,8 +61,19 @@ implementation
   uses
     sysconst;
 
+{$define HASCREATEGUID}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
+
+{ UUID generation. }
+
+function CoCreateGuid(out guid: TGUID): HResult; stdcall; external 'ole32.dll' name 'CoCreateGuid';
+
+function SysCreateGUID(out Guid: TGUID): Integer;
+begin
+  Result := Integer(CoCreateGuid(Guid));
+end;
 
 
 {****************************************************************************
