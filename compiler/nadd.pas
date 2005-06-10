@@ -91,6 +91,32 @@ implementation
 {$maxfpuregisters 0}
 {$endif fpc}
 
+    function getbestreal(const t1,t2 : ttype) : ttype;
+      const
+        floatweight : array[tfloattype] of byte =
+          (2,3,4,0,1,5);
+      begin
+        if t1.def.deftype=floatdef then
+          begin
+            result:=t1;
+            if t2.def.deftype=floatdef then
+              begin
+                { when a comp or currency is used, use always the
+                  best type to calculate the result }
+                if (tfloatdef(t2.def).typ in [s64comp,s64currency]) or
+                  (tfloatdef(t2.def).typ in [s64comp,s64currency]) then
+                  result:=pbestrealtype^
+                else
+                  if floatweight[tfloatdef(t2.def).typ]>floatweight[tfloatdef(t1.def).typ] then
+                    result:=t2;
+              end;
+          end
+        else if t2.def.deftype=floatdef then
+          result:=t2
+        else internalerror(200508061);
+      end;
+
+
     constructor taddnode.create(tt : tnodetype;l,r : tnode);
       begin
          inherited create(tt,l,r);
@@ -222,6 +248,7 @@ implementation
               end
             else
              begin
+               resultrealtype:=getbestreal(left.resulttype,right.resulttype);
                inserttypeconv(right,resultrealtype);
                inserttypeconv(left,resultrealtype);
              end;
