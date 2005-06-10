@@ -599,6 +599,12 @@ procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
     variantmanager.vararrayredim(a,highbound);
   end;
 
+procedure VarCast(var dest : variant;const source : variant;vartype : longint);
+
+  begin
+    variantmanager.varcast(dest,source,vartype);
+  end;
+
 
 {**********************************************************************
                       Variant manager functions

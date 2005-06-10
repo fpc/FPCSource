@@ -320,4 +320,5 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
 { variant helpers }
 procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
+procedure VarCast(var dest : variant;const source : variant;vartype : longint);
 
