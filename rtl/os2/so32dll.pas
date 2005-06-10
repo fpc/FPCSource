@@ -2,6 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000, 2001 by madded2 (madded@vao.udmnet.ru).
     Copyright (c) 2002, 2004 Yuri Prokushev (prokushev@freemail.ru).
+    Copyright (c) 2005 Soren Ager
 
     Interface to OS/2 32-bit sockets library
 
@@ -37,6 +38,7 @@ interface
 
 {$MODE ObjFPC}
 {$ASMMODE Intel}
+{$PACKRECORDS 1}
 
 (***************************************************************************)
 (*                                                                         *)
@@ -1030,7 +1032,140 @@ type
     tv_usec  :  Longint; // Number of microseconds
   end;
 
+{
+ * ioctl & ip trace support
+}
+const
+  FIONREAD      = (Ord('f') SHL 8) OR 127;
+  FIONBIO       = (Ord('f') SHL 8) OR 126;
 
+  FIOASYNC      = (Ord('f') SHL 8) OR 125;
+  FIOTCPCKSUM   = (Ord('f') SHL 8) OR 128;
+  FIONSTATUS    = (Ord('f') SHL 8) OR 120;
+  FIONURG       = (Ord('f') SHL 8) OR 121;
+
+  SIOCSHIWAT    = (Ord('s') SHL 8) OR  0;
+  SIOCGHIWAT    = (Ord('s') SHL 8) OR  1;
+  SIOCSLOWAT    = (Ord('s') SHL 8) OR  2;
+  SIOCGLOWAT    = (Ord('s') SHL 8) OR  3;
+  SIOCATMARK    = (Ord('s') SHL 8) OR  7;
+  SIOCSPGRP     = (Ord('s') SHL 8) OR  8;
+  SIOCGPGRP     = (Ord('s') SHL 8) OR  9;
+  SIOCSHOSTID   = (Ord('s') SHL 8) OR 10;
+
+  SIOCADDRT     = (Ord('r') SHL 8) OR 10;
+  SIOCDELRT     = (Ord('r') SHL 8) OR 11;
+  SIOMETRIC1RT  = (Ord('r') SHL 8) OR 12;
+  SIOMETRIC2RT  = (Ord('r') SHL 8) OR 13;
+  SIOMETRIC3RT  = (Ord('r') SHL 8) OR 14;
+  SIOMETRIC4RT  = (Ord('r') SHL 8) OR 15;
+
+  SIOCREGADDNET = (Ord('r') SHL 8) OR 12;
+  SIOCREGDELNET = (Ord('r') SHL 8) OR 13;
+  SIOCREGROUTES = (Ord('r') SHL 8) OR 14;
+  SIOCFLUSHROUTES=(Ord('r') SHL 8) OR 15;
+
+  SIOCSIFADDR   = (Ord('i') SHL 8) OR 12;
+  SIOCGIFADDR   = (Ord('i') SHL 8) OR 13;
+  SIOCSIFDSTADDR= (Ord('i') SHL 8) OR 14;
+  SIOCGIFDSTADDR= (Ord('i') SHL 8) OR 15;
+  SIOCSIFFLAGS  = (Ord('i') SHL 8) OR 16;
+  SIOCGIFFLAGS  = (Ord('i') SHL 8) OR 17;
+  SIOCGIFBRDADDR= (Ord('i') SHL 8) OR 18;
+  SIOCSIFBRDADDR= (Ord('i') SHL 8) OR 19;
+  SIOCGIFCONF   = (Ord('i') SHL 8) OR 20;
+  SIOCGIFNETMASK= (Ord('i') SHL 8) OR 21;
+  SIOCSIFNETMASK= (Ord('i') SHL 8) OR 22;
+  SIOCGIFMETRIC = (Ord('i') SHL 8) OR 23;
+  SIOCSIFMETRIC = (Ord('i') SHL 8) OR 24;
+  SIOCSIFSETSIG = (Ord('i') SHL 8) OR 25;
+  SIOCSIFCLRSIG = (Ord('i') SHL 8) OR 26;
+  SIOCSIFBRD    = (Ord('i') SHL 8) OR 27; { SINGLE-rt bcst. using old # for bkw cmpt }
+  SIOCSIFALLRTB = (Ord('i') SHL 8) OR 63; { added to configure all-route broadcst }
+
+  SIOCGIFLOAD     =(Ord('i') SHL 8) OR 27;
+  SIOCSIFFILTERSRC=(Ord('i') SHL 8) OR 28;
+  SIOCGIFFILTERSRC=(Ord('i') SHL 8) OR 29;
+
+  SIOCSARP      = (Ord('i') SHL 8) OR 30;
+  SIOCGARP      = (Ord('i') SHL 8) OR 31;
+  SIOCDARP      = (Ord('i') SHL 8) OR 32;
+  SIOCSIFSNMPSIG= (Ord('i') SHL 8) OR 33;
+  SIOCSIFSNMPCLR= (Ord('i') SHL 8) OR 34;
+  SIOCSIFSNMPCRC= (Ord('i') SHL 8) OR 35;
+  SIOCSIFPRIORITY=(Ord('i') SHL 8) OR 36;
+  SIOCGIFPRIORITY=(Ord('i') SHL 8) OR 37;
+  SIOCSIFFILTERDST=(Ord('i') SHL 8) OR 38;
+  SIOCGIFFILTERDST=(Ord('i') SHL 8) OR 39;
+  SIOCSIF802_3  =  (Ord('i') SHL 8) OR 40;
+  SIOCSIFNO802_3=  (Ord('i') SHL 8) OR 41;
+  SIOCSIFNOREDIR=  (Ord('i') SHL 8) OR 42;
+  SIOCSIFYESREDIR= (Ord('i') SHL 8) OR 43;
+
+  SIOCSIFMTU    = (Ord('i') SHL 8) OR 45;
+  SIOCSIFFDDI   = (Ord('i') SHL 8) OR 46;
+  SIOCSIFNOFDDI = (Ord('i') SHL 8) OR 47;
+  SIOCSRDBRD    = (Ord('i') SHL 8) OR 48;
+  SIOCSARP_TR   = (Ord('i') SHL 8) OR 49;
+  SIOCGARP_TR   = (Ord('i') SHL 8) OR 50;
+
+{ multicast ioctls }
+  SIOCADDMULTI  = (Ord('i') SHL 8) OR 51;    { add m'cast addr }
+  SIOCDELMULTI  = (Ord('i') SHL 8) OR 52;    { del m'cast addr }
+  SIOCMULTISBC  = (Ord('i') SHL 8) OR 61;    { use broadcast to send IP multicast }
+  SIOCMULTISFA  = (Ord('i') SHL 8) OR 62;    { use functional addr to send IP multicast }
+
+
+{$IFDEF SLBOOTP}
+  SIOCGUNIT     = (Ord('i') SHL 8) OR 70;    { Used to retreive unit number on }
+                                             { serial interface }
+{$ENDIF}
+
+  SIOCSIFSPIPE   = (Ord('i') SHL 8) OR 71;   { used to set pipe size on interface }
+                                             { this is used as tcp send buffer size }
+  SIOCSIFRPIPE   = (Ord('i') SHL 8) OR 72;   { used to set pipe size on interface }
+                                             { this is used as tcp recv buffer size }
+  SIOCSIFTCPSEG = (Ord('i') SHL 8) OR 73;    { set the TCP segment size on interface }
+  SIOCSIFUSE576 = (Ord('i') SHL 8) OR 74;    { enable/disable the automatic change of mss to 576 }
+                                             { if going through a router }
+  SIOCGIFVALID  = (Ord('i') SHL 8) OR 75;    { to check if the interface is Valid or not }
+                                             { sk June 14 1995 }
+  SIOCGIFBOUND  = (Ord('i') SHL 8) OR 76;    { ioctl to return bound/shld bind ifs }
+{ Interface Tracing Support }
+  SIOCGIFEFLAGS = (Ord('i') SHL 8) OR 150;
+  SIOCSIFEFLAGS = (Ord('i') SHL 8) OR 151;
+  SIOCGIFTRACE  = (Ord('i') SHL 8) OR 152;
+  SIOCSIFTRACE  = (Ord('i') SHL 8) OR 153;
+
+{$IFDEF SLSTATS}
+  SIOCSSTAT    = (Ord('i') SHL 8) OR 154;
+  SIOCGSTAT    = (Ord('i') SHL 8) OR 155;
+{$ENDIF}
+
+{ NETSTAT stuff }
+  SIOSTATMBUF   = (Ord('n') SHL 8) OR 40;
+  SIOSTATTCP    = (Ord('n') SHL 8) OR 41;
+  SIOSTATUDP    = (Ord('n') SHL 8) OR 42;
+  SIOSTATIP     = (Ord('n') SHL 8) OR 43;
+  SIOSTATSO     = (Ord('n') SHL 8) OR 44;
+  SIOSTATRT     = (Ord('n') SHL 8) OR 45;
+  SIOFLUSHRT    = (Ord('n') SHL 8) OR 46;
+  SIOSTATICMP   = (Ord('n') SHL 8) OR 47;
+  SIOSTATIF     = (Ord('n') SHL 8) OR 48;
+  SIOSTATAT     = (Ord('n') SHL 8) OR 49;
+  SIOSTATARP    = (Ord('n') SHL 8) OR 50;
+  SIOSTATIF42   = (Ord('n') SHL 8) OR 51;
+
+(* From fpc 2.0.0
+  SIOCGIFFLAGS          =  $6900 + 17;  // get interface flags
+
+  { Interface Tracing Support }
+  SIOCGIFEFLAGS         =  $6900 + 150; // get interface enhanced flags
+  SIOCSIFEFLAGS         =  $6900 + 151; // set interface enhanced flags
+  SIOCGIFTRACE          =  $6900 + 152; // get interface trace data
+  SIOCSIFTRACE          =  $6900 + 153; // set interface trace data
+  { sorry, i skip other ioctl commands, see SYS\ioctl.h from toolkit for it.. }
+*)
 
 
 (* !!TODO Check all macros from sys/itypes.h
@@ -1066,7 +1201,7 @@ function  getinetversion(var version):Longint; cdecl;
 function  sock_errno:Longint; cdecl;
 
 { print last err string + str if not NIL }
-procedure psock_errno(const str:PChar); cdecl;
+procedure psock_errno(var str:PChar); cdecl;
 
 
 { * sockets creation / close funcs }
@@ -1096,10 +1231,10 @@ function  soabort(sock:Longint):Longint; cdecl;
 function accept(sock:Longint; var s_addr:sockaddr; s_addr_len:Longint):Longint; cdecl;
 
 { bind a local name to the socket }
-function bind(sock:Longint; const s_addr: sockaddr; s_addr_len:Longint):Longint; cdecl;
+function bind(sock:Longint; var s_addr: sockaddr; s_addr_len:Longint):Longint; cdecl;
 
 { connect socket to remote host }
-function connect(sock:Longint; const s_addr:sockaddr; s_addr_len:Longint):Longint; cdecl;
+function connect(sock:Longint; var s_addr:sockaddr; s_addr_len:Longint):Longint; cdecl;
 
 { listen on socket. max_conn - queue size of listen. }
 function listen(sock,max_conn:Longint):Longint; cdecl;
@@ -1114,13 +1249,13 @@ function listen(sock,max_conn:Longint):Longint; cdecl;
 function recv(sock:Longint; var buf; buf_len,flags:Longint):Longint; cdecl;
 
 { send data to socket. ! return N of sent bytes. -1 - err }
-function  send(sock:Longint; const buf; buf_len,flags:Longint):Longint; cdecl;
+function  send(sock:Longint; var buf; buf_len,flags:Longint):Longint; cdecl;
 
 { read data from socket. ! return N of readed bytes, or 0 (closed) or -1 }
 function  recvfrom(sock:Longint; var buf; buf_len,flags:Longint; var s_addr:sockaddr; var s_addr_len:Longint):Longint; cdecl;
 
 { send data to socket. ! return N of sent bytes. -1 - err }
-function  sendto(sock:Longint; const buf; buf_len,flags:Longint; var s_addr:sockaddr; s_addr_len:Longint):Longint; cdecl;
+function  sendto(sock:Longint; var buf; buf_len,flags:Longint; var s_addr:sockaddr; s_addr_len:Longint):Longint; cdecl;
 
 { read data into iov_count number of buffers iov.
   ! return N of readed bytes, or 0 (closed) or -1 }
@@ -1148,7 +1283,7 @@ function  sendmsg(sock:Longint; var msgbuf:msghdr; flags:Longint):Longint; cdecl
 function  os2_select(var sockets; N_reads, N_writes, N_exepts, timeout:Longint):Longint; cdecl;
 
 { bsd select here. heavy voodoo.. }
-function  select(nfds:Longint; const readfds,writefds,exceptfds:fd_set; const timeout:timeval):Longint; cdecl;
+function  select(nfds:Longint; var readfds,writefds,exceptfds:fd_set; var timeout:timeval):Longint; cdecl;
 
 (***************************************************************************)
 (*                                                                         *)
@@ -1175,7 +1310,7 @@ function getsockname(sock:Longint; var s_addr:sockaddr; var s_addr_len:Longint):
 function getsockopt(sock,level,optname:Longint; var buf; var buf_len:Longint):Longint; cdecl;
 
 { set socket options }
-function  setsockopt(sock,level,optname:Longint; const buf; buf_len:Longint):Longint; cdecl;
+function  setsockopt(sock,level,optname:Longint; var buf; buf_len:Longint):Longint; cdecl;
 
 { f@$king ioctl. use sys/ioctl.h }
 function os2_ioctl(sock,cmd:Longint; var data; data_len:Longint):Longint; cdecl;
@@ -1208,8 +1343,8 @@ asm
 end;
 
 function accept(sock:Longint; var s_addr: sockaddr; s_addr_len:Longint):Longint; cdecl; external 'SO32DLL' index 1;
-function bind(sock:Longint; const s_addr: sockaddr; s_addr_len:Longint):Longint; cdecl; external 'SO32DLL' index 2;
-function connect(sock:Longint; const s_addr:sockaddr; s_addr_len:Longint):Longint; cdecl; external 'SO32DLL' index 3;
+function bind(sock:Longint; var s_addr: sockaddr; s_addr_len:Longint):Longint; cdecl; external 'SO32DLL' index 2;
+function connect(sock:Longint; var s_addr:sockaddr; s_addr_len:Longint):Longint; cdecl; external 'SO32DLL' index 3;
 function gethostid: Longint; cdecl; external 'SO32DLL' index 4;
 function getpeername(sock:Longint; var s_addr:sockaddr; var s_addr_len:Longint):Longint; cdecl; external 'SO32DLL' index 5;
 function getsockname(sock:Longint; var s_addr:sockaddr; var s_addr_len:Longint):Longint; cdecl; external 'SO32DLL' index 6;
@@ -1219,9 +1354,9 @@ function listen(sock,max_conn:Longint):Longint; cdecl; external 'SO32DLL' index 
 function recv(sock:Longint; var buf; buf_len,flags:Longint):Longint; cdecl; external 'SO32DLL' index 10;
 function  recvfrom(sock:Longint; var buf; buf_len,flags:Longint;var s_addr:sockaddr; var s_addr_len:Longint):Longint; cdecl; external 'SO32DLL' index 11;
 function  os2_select(var sockets; N_reads, N_writes, N_exepts, timeout:Longint):Longint; cdecl; external 'SO32DLL' index 12;
-function  send(sock:Longint; const buf; buf_len,flags:Longint):Longint; cdecl; external 'SO32DLL' index 13;
-function  sendto(sock:Longint; const buf; buf_len,flags:Longint;var s_addr:sockaddr; s_addr_len:Longint):Longint; cdecl; external 'SO32DLL' index 14;
-function  setsockopt(sock,level,optname:Longint; const buf; buf_len:Longint):Longint; cdecl; external 'SO32DLL' index 15;
+function  send(sock:Longint; var buf; buf_len,flags:Longint):Longint; cdecl; external 'SO32DLL' index 13;
+function  sendto(sock:Longint; var buf; buf_len,flags:Longint;var s_addr:sockaddr; s_addr_len:Longint):Longint; cdecl; external 'SO32DLL' index 14;
+function  setsockopt(sock,level,optname:Longint; var buf; buf_len:Longint):Longint; cdecl; external 'SO32DLL' index 15;
 function  socket(domain,stype,protocol:Longint):Longint; cdecl; external 'SO32DLL' index 16;
 function  soclose(sock:Longint):Longint; cdecl; external 'SO32DLL' index 17;
 function  so_cancel(sock:Longint):Longint; cdecl; external 'SO32DLL' index 18;
@@ -1236,31 +1371,33 @@ function  sock_init:Longint; cdecl; external 'SO32DLL' index 26;
 function  addsockettolist(sock:Longint):Longint; cdecl; external 'SO32DLL' index 27;
 function  removesocketfromlist(sock:Longint):Longint; cdecl; external 'SO32DLL' index 28;
 { entry 29 not used }
-procedure psock_errno(const str:PChar); cdecl; external 'SO32DLL' index 30;
+procedure psock_errno(var str:PChar); cdecl; external 'SO32DLL' index 30;
 function  getinetversion(var version):Longint; cdecl; external 'SO32DLL' index 31;
 function  select(nfds:Longint;
-                 const readfds,writefds,exceptfds:fd_set;
-                 const timeout:timeval):Longint; cdecl; external 'SO32DLL' index 32;
+                 var readfds,writefds,exceptfds:fd_set;
+                 var timeout:timeval):Longint; cdecl; external 'SO32DLL' index 32;
 
 
 function  htonl(a:Longint):Longint;
-begin   Result:=LSwap(a);   end;
+begin   htonl:=LSwap(a);   end;
 { host -> network for long (4 bytes) }
 
 function  ntohl(a:Longint):Longint;
-begin   Result:=LSwap(a);   end;
+begin   ntohl:=LSwap(a);   end;
 { network -> host for long (4 bytes) }
 
 function  htons(a:Word):Word;
-begin   Result:=WSwap(a);   end;
+begin   htons:=WSwap(a);   end;
 { host -> network for small (2 bytes) }
 
 function  ntohs(a:Word):Word;
-begin   Result:=WSwap(a);   end;
+begin   ntohs:=WSwap(a);   end;
 { network -> host for small (2 bytes) }
 
 end.
+
 (* !!TODO   Following code not revised as yet
+
 {*
  * User-settable options (used with setsockopt).
  *}
@@ -1270,10 +1407,6 @@ end.
   TCP_TIMESTMP   = $04;    // RFC 1323 (RTTM TimeStamp)
   TCP_WINSCALE   = $05;    // RFC 1323 (Window Scale)
   TCP_CC         = $06;    // RFC 1644 (Connection Count)
-
-
-
-
 
 
 {
@@ -1335,19 +1468,7 @@ type
 
   pservent = ^servent;
 
-{
- * ioctl & ip trace support
-}
 const
-  SIOCGIFFLAGS          =  $6900 + 17;  // get interface flags
-
-  { Interface Tracing Support }
-  SIOCGIFEFLAGS         =  $6900 + 150; // get interface enhanced flags
-  SIOCSIFEFLAGS         =  $6900 + 151; // set interface enhanced flags
-  SIOCGIFTRACE          =  $6900 + 152; // get interface trace data
-  SIOCSIFTRACE          =  $6900 + 153; // set interface trace data
-  { sorry, i skip other ioctl commands, see SYS\ioctl.h from toolkit for it.. }
-
   IFF_UP                =  $1;          // interface is up
   IFF_BROADCAST         =  $2;          // broadcast address valid
   IFF_DEBUG             =  $4;          // turn on debugging

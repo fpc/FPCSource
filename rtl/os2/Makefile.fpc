@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       sysutils classes math typinfo varutils winsock \
       charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
       video mouse keyboard variants types rtlconst sysconst dateutil \
-      strutils convutil
+      strutils convutil so32dll sockets
 rsts=math varutils typinfo variants pmhelp classes sysconst dateutil
 
 [require]
@@ -132,6 +132,10 @@ pmwp$(PPUEXT) : pmwp.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 pmwsock$(PPUEXT) : pmwsock.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 winsock$(PPUEXT) : winsock.pas pmwsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+so32dll$(PPUEXT) : so32dll.pas $(SYSTEMUNIT)$(PPUEXT)
+
+sockets$(PPUEXT) : sockets.pas so32dll$(PPUEXT) ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 pmbidi$(PPUEXT) : pmbidi.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
