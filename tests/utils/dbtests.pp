@@ -48,6 +48,9 @@ Function  IDQuery(Qry : String) : Integer;
 Function  EscapeSQL( S : String) : String;
 Function SQLDate(D : TDateTime) : String;
 
+var
+  TestSrcDir : string;
+  
 Implementation
 
 Uses
@@ -257,7 +260,8 @@ Var
 
 begin
   Result:=-1;
-  If FileExists(Name) and GetConfig(Name,Info) then
+  If FileExists(TestSrcDir+Name) and
+     GetConfig(TestSrcDir+Name,Info) then
     begin
     If RunQuery(Format(SInsertTest,[ExtractFileName(Name),Name]),Res) then
       begin
