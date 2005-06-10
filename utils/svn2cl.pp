@@ -154,7 +154,8 @@ begin
                   if maxequal+1<length(pathprefixes[i]) then
                     pathtemp:=pathtemp+Copy(pathprefixes[i],maxequal+1,65535)+': ';
                   firstpath:=true;
-                  for j:=0 to paths.Count-1 do
+                  j:=0;
+                  while (j<paths.Count) do
                     begin
                       if ExtractFilePath(paths[j])=pathprefixes[i] then
                         begin
@@ -174,8 +175,9 @@ begin
                           pathtemp:=pathtemp+hs;
                           { delete already processed paths for performance }
                           paths.delete(j);
-                          break;
-                        end;
+                        end
+                      else
+                        inc(j);
                     end;
                   if pathtemp<>newlineprefix then
                     writeln(pathtemp);
