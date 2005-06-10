@@ -1,6 +1,5 @@
 compiler/*.bak
 compiler/*.exe
-compiler/*.o
-compiler/*.ppu
-compiler/*.s
-compiler/*.tmp
+compiler/i386/*.bak
+compiler/utils/*.exe
+compiler/x86/*.bak

@@ -93,12 +93,3 @@ procedure cursoron;
 procedure cursoroff;
 procedure cursorbig;
 
-{
-  $Log: crth.inc,v $
-  Revision 1.5  2005/05/15 12:44:14  hajny
-    * TextMode parameter type changed to word for TP/BP compatibility
-
-  Revision 1.4  2005/02/14 17:13:22  peter
-    * truncate log
-
-}

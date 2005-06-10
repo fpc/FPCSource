@@ -402,17 +402,3 @@ begin
  AssignCrt (Output);
  Rewrite (Output);
 end;
-
-{
-  $Log: crt.inc,v $
-  Revision 1.3  2005/05/14 15:01:49  hajny
-    * TextMode parameter type changed to word for TP/BP compatibility
-
-  Revision 1.2  2005/05/14 14:58:41  hajny
-    * TextMode parameter type changed temporarily not to break other platforms
-
-  Revision 1.1  2005/05/14 14:32:55  hajny
-    + basis for common platform independent implementation of Crt
-
-
-}
