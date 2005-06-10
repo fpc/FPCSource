@@ -1,8 +1,0 @@
-#!/bin/sh
-
-if test -f "$3"/usr/bin/gcc
-then
-  exit 0
-else
-  exit 112
-fi

@@ -1,8 +1,0 @@
-/usr/share/doc/fp-units-base
-
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/paszlib
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/pasjpeg
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/ncurses
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/x11
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/regexpr
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/md5

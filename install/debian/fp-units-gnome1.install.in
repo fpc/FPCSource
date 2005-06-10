@@ -1,6 +1,0 @@
-/usr/share/doc/fp-units-gnome1
-
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/imlib
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/gnome
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/gconf
-/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/zvt

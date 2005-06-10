@@ -1,9 +1,0 @@
-#
-#   Makefile.fpc for FPC win32 demos (part of FPC demo package)
-#
-
-[target]
-programs_win32=winhello menu dlltest testdll edit
-
-[default]
-fpcdir=../..
