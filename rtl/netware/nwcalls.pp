@@ -1,4 +1,4 @@
-
+{
   Netware Server Imports for FreePascal Netware Clib RTL, contains
   definitions from the following NDK header files:
 

@@ -9218,5 +9218,6 @@ begin
    a.flag0:=a.flag0 or ((__year shl bp_dos_tm_year) and bm_dos_tm_year);
 end;
 
-
 end.
+
+{$endif}
