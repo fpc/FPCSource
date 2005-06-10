@@ -218,7 +218,7 @@ END;
 
 
 
-Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
+Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
 begin
   IF path = '' then
     exit (18);

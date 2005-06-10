@@ -242,7 +242,7 @@ end;
 type
   PDOSSearchRec = ^SearchRec;
 
-Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
+Function FindFirst (Const Path : String; Attr : Longint; Out Rslt : TSearchRec) : Longint;
 Const
   faSpecial = faHidden or faSysFile or faVolumeID or faDirectory;
 var

@@ -243,7 +243,7 @@ begin
 end;
 
 
-Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
+Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
 begin
   Rslt.Name:=Path;
   Rslt.Attr:=attr;

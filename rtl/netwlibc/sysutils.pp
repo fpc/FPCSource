@@ -237,7 +237,7 @@ begin
   end;
 end;
 
-function findfirst(const path : string;attr : longint;var Rslt : TsearchRec) : longint;
+function findfirst(const path : string;attr : longint; out Rslt : TsearchRec) : longint;
 var
   path0 : string;
   p     : longint;
