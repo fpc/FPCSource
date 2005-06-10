@@ -179,23 +179,14 @@ end;
 {  Update -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Nov99 LdB            }
 {---------------------------------------------------------------------------}
 PROCEDURE THeapView.Update;
-{$ifdef HASGETHEAPSTATUS}
 var
   status : TFPCHeapStatus;
-{$endif HASGETHEAPSTATUS}
 BEGIN
-{$ifdef HASGETHEAPSTATUS}
    status:=GetFPCHeapStatus;
    If (OldMem <> status.CurrHeapUsed) Then Begin                 { Memory differs }
      OldMem := status.CurrHeapUsed;                              { Hold memory avail }
      DrawView;                                        { Now redraw }
    End;
-{$else}
-   If (OldMem <> MemAvail) Then Begin                 { Memory differs }
-     OldMem := MemAvail;                              { Hold memory avail }
-     DrawView;                                        { Now redraw }
-   End;
-{$endif}
 END;
 
 {--THeapView----------------------------------------------------------------}

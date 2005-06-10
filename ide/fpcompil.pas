@@ -116,11 +116,7 @@ implementation
 
 uses
 {$ifdef Unix}
-  {$ifdef VER1_0}
-    Linux,
-  {$else}
-    Unix, BaseUnix,
-  {$endif}
+  Unix, BaseUnix,
 {$endif}
 {$ifdef go32v2}
   dpmiexcp,
@@ -513,9 +509,7 @@ end;
 procedure TCompilerStatusDialog.Update;
 var
   StatusS,KeyS: string;
-{$ifdef HASGETHEAPSTATUS}
   hstatus : TFPCHeapStatus;
-{$endif HASGETHEAPSTATUS}
 const
   MaxFileNameSize = 46;
 begin
@@ -574,14 +568,9 @@ begin
   AddFormatParamStr(KillTilde(TargetSwitches^.ItemName(TargetSwitches^.GetCurrSel)));
   AddFormatParamInt(Status.CurrentLine);
   AddFormatParamInt(Status.CompiledLines);
-{$ifdef HASGETHEAPSTATUS}
   hstatus:=GetFPCHeapStatus;
   AddFormatParamInt(hstatus.CurrHeapUsed div 1024);
   AddFormatParamInt(hstatus.CurrHeapSize div 1024);
-{$else}
-  AddFormatParamInt((Heapsize-MemAvail) div 1024);
-  AddFormatParamInt(Heapsize div 1024);
-{$endif}
   AddFormatParamInt(Status.ErrorCount);
   ST^.SetText(
    FormatStrF(
