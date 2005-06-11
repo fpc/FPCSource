@@ -63,30 +63,44 @@ end ;
 {   UpperCase returns a copy of S where all lowercase characters ( from a to z )
     have been converted to uppercase   }
 
-function UpperCase(const S: string): string;
-var i: integer;
-begin
-result := S;
-i := Length(S);
-while i <> 0 do begin
-   if (result[i] in ['a'..'z']) then result[i] := char(byte(result[i]) - 32);
-   Dec(i);
-   end;
-end;
 
+Function UpperCase(Const S : String) : String;
+
+Var
+  i : Integer;
+  P : PChar;
+    
+begin
+  Result := S;
+  UniqueString(Result);
+  P:=Pchar(Result);
+  for i := 1 to Length(Result) do
+    begin
+    if (P^ in ['a'..'z']) then P^ := char(byte(p^) - 32);
+      Inc(P);
+    end;
+end;
+                            
 {   LowerCase returns a copy of S where all uppercase characters ( from A to Z )
     have been converted to lowercase  }
 
-function LowerCase(const S: string): string;
-var i: integer;
+Function Lowercase(Const S : String) : String;
+
+Var
+  i : Integer;
+  P : PChar;
+    
 begin
-result := S;
-i := Length(result);
-while i <> 0 do begin
-   if (result[i] in ['A'..'Z']) then result[i] := char(byte(result[i]) + 32);
-   dec(i);
-   end;
+  Result := S;
+  UniqueString(Result);
+  P:=Pchar(Result);
+  for i := 1 to Length(Result) do
+    begin
+    if (P^ in ['A'..'Z']) then P^ := char(byte(p^) + 32);
+      Inc(P);
+    end;
 end;
+                            
 
 {   CompareStr compares S1 and S2, the result is the based on
     substraction of the ascii values of the characters in S1 and S2
