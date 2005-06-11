@@ -2726,9 +2726,57 @@ const
 
 function Load_GL_ARB_fragment_program: Boolean;
 
-//***** GL_ATI_text_fragment_shader *****//
+{***** GL_ATI_text_fragment_shader *****}
 const
-  GL_TEXT_FRAGMENT_SHADER_ATI = $8200;
+     GL_TEXT_FRAGMENT_SHADER_ATI = $8200;
+
+{***** GL_ARB_vertex_buffer_object *****}
+const
+     GL_BUFFER_SIZE_ARB = $8764;
+     GL_BUFFER_USAGE_ARB = $8765;
+     GL_ARRAY_BUFFER_ARB = $8892;
+     GL_ELEMENT_ARRAY_BUFFER_ARB = $8893;
+     GL_ARRAY_BUFFER_BINDING_ARB = $8894;
+     GL_ELEMENT_ARRAY_BUFFER_BINDING_ARB = $8895;
+     GL_VERTEX_ARRAY_BUFFER_BINDING_ARB = $8896;
+     GL_NORMAL_ARRAY_BUFFER_BINDING_ARB = $8897;
+     GL_COLOR_ARRAY_BUFFER_BINDING_ARB = $8898;
+     GL_INDEX_ARRAY_BUFFER_BINDING_ARB = $8899;
+     GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING_ARB = $889A;
+     GL_EDGE_FLAG_ARRAY_BUFFER_BINDING_ARB = $889B;
+     GL_SECONDARY_COLOR_ARRAY_BUFFER_BINDING_ARB = $889C;
+     GL_FOG_COORDINATE_ARRAY_BUFFER_BINDING_ARB = $889D;
+     GL_WEIGHT_ARRAY_BUFFER_BINDING_ARB = $889E;
+     GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING_ARB = $889F;
+     GL_READ_ONLY_ARB = $88B8;
+     GL_WRITE_ONLY_ARB = $88B9;
+     GL_READ_WRITE_ARB = $88BA;
+     GL_BUFFER_ACCESS_ARB = $88BB;
+     GL_BUFFER_MAPPED_ARB = $88BC;
+     GL_BUFFER_MAP_POINTER_ARB = $88BD;
+     GL_STREAM_DRAW_ARB = $88E0;
+     GL_STREAM_READ_ARB = $88E1;
+     GL_STREAM_COPY_ARB = $88E2;
+     GL_STATIC_DRAW_ARB = $88E4;
+     GL_STATIC_READ_ARB = $88E5;
+     GL_STATIC_COPY_ARB = $88E6;
+     GL_DYNAMIC_DRAW_ARB = $88E8;
+     GL_DYNAMIC_READ_ARB = $88E9;
+     GL_DYNAMIC_COPY_ARB = $88EA;
+
+var
+     glBindBufferARB : procedure(target : GLenum; buffer: GLuint); extdecl;
+     glDeleteBuffersARB : procedure(n : GLsizei; buffers : PGLuint); extdecl;
+     glGenBuffersARB : procedure(n : GLsizei; buffers : PGLuint); extdecl;
+     glIsBufferARB : function (buffer : GLuint) :GLboolean; extdecl;
+     glBufferDataARB : procedure(target : GLenum; size:GLsizei; data:PGLvoid;usage: GLenum); extdecl;
+     glBufferSubDataARB : procedure(target : GLenum; offset :GLint; size : GLsizei; data: PGLvoid); extdecl;
+     glGetBufferSubDataARB : procedure(target : GLenum; offset :GLint; size : GLsizei; data: PGLvoid); extdecl;
+     glMapBufferARB : function (target :GLenum; access: GLenum) : PGLvoid; extdecl;
+     glUnmapBufferARB : function (target :GLenum) :GLboolean; extdecl;
+     glGetBufferParameterivARB:procedure(target:GLenum; pname:GLenum; params:PGLint); extdecl;
+     glGetBufferPointervARB : procedure(target: GLenum; pname:GLenum; params: PPGLvoid); extdecl;
+     function Load_GL_ARB_vertex_buffer_object : boolean;
 
 function Load_GL_ATI_text_fragment_shader: Boolean;
 
@@ -6518,6 +6566,40 @@ begin
     Result := TRUE;
   end;
 
+end;
+
+
+function load_GL_ARB_vertex_buffer_object : boolean;
+
+var extstring:string;
+
+begin
+  load_GL_ARB_vertex_buffer_object:=false;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  if glext_ExtensionSupported('GL_ARB_vertex_buffer_object',extstring) then
+    begin
+      glBindBufferARB := wglGetProcAddress('glBindBufferARB');
+      if not Assigned(glBindBufferARB) then Exit;
+      glDeleteBuffersARB := wglGetProcAddress('glDeleteBuffersARB');
+      if not Assigned(glDeleteBuffersARB) then Exit;
+      glGenBuffersARB := wglGetProcAddress('glGenBuffersARB');
+      if not Assigned(glGenBuffersARB) then Exit;
+      glIsBufferARB := wglGetProcAddress('glIsBufferARB');
+      if not Assigned(glIsBufferARB) then Exit;
+      glBufferDataARB := wglGetProcAddress('glBufferDataARB');
+      if not Assigned(glBufferDataARB) then Exit;
+      glGetBufferSubDataARB := wglGetProcAddress('glGetBufferSubDataARB');
+      if not Assigned(glGetBufferSubDataARB) then Exit;
+      glMapBufferARB := wglGetProcAddress('glMapBufferARB');
+      if not Assigned(glMapBufferARB) then Exit;
+      glUnmapBufferARB := wglGetProcAddress('glUnmapBufferARB');
+      if not Assigned(glMapBufferARB) then Exit;
+      glGetBufferParameterivARB := wglGetProcAddress('glGetBufferParameterivARB');
+      if not Assigned(glGetBufferParameterivARB) then Exit;
+      glGetBufferPointervARB := wglGetProcAddress('glGetBufferPointervARB');
+      if not Assigned(glGetBufferPointervARB) then Exit;
+    end;
+  load_GL_ARB_vertex_buffer_object:=true;
 end;
 
 {$IFDEF Win32}
