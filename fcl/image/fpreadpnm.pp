@@ -35,7 +35,7 @@ type
       FWidth      : Integer;
       FHeight     : Integer;
     protected
-      FMaxVal     : Integer;
+      FMaxVal     : Cardinal;
       FBitPP        : Byte;
       FScanLineSize : Integer;
       FScanLine   : PByte;
@@ -131,9 +131,7 @@ end;
 procedure TFPReaderPNM.InternalRead(Stream:TStream;Img:TFPCustomImage);
 
 var
-  Row,Coulumn,nBpLine,ReadSize:Integer;
-  aColor:TFPcolor;
-  aLine:PByte;
+  Row:Integer;
 
 begin
   ReadHeader(Stream);
@@ -199,7 +197,23 @@ procedure TFPReaderPNM.WriteScanLine(Row : Integer; Img : TFPCustomImage);
 Var
   C : TFPColor;
   L : Cardinal;
-  FHalfMaxVal : Word;
+  Scale: Cardinal;
+
+  function ScaleByte(B: Byte):Word;
+  begin
+    if FMaxVal = 255 then
+      Result := (B shl 8) or B { As used for reading .BMP files }
+    else { Mimic the above with multiplications }
+      Result := (B*(FMaxVal+1) + B) * 65535 div Scale;
+  end;
+
+  function ScaleWord(W: Word):Word;
+  begin
+    if FMaxVal = 65535 then
+      Result := W
+    else { Mimic the above with multiplications }
+      Result := Int64(W*(FMaxVal+1) + W) * 65535 div Scale;
+  end;
 
   Procedure ByteBnWScanLine;
 
@@ -238,7 +252,7 @@ Var
     P:=PWord(FScanLine);
     For I:=0 to FWidth-1 do
       begin
-      L:=(((P^ shl 16)+FHalfMaxVal) div FMaxVal) and $FFFF;
+      L:=ScaleWord(P^);
       C.Red:=L;
       C.Green:=L;
       C.Blue:=L;
@@ -257,14 +271,11 @@ Var
     P:=PWord(FScanLine);
     For I:=0 to FWidth-1 do
       begin
-      L:=(((P^ shl 16)+FHalfMaxVal) div FMaxVal) and $FFFF;
-      C.Red:=L;
+      C.Red:=ScaleWord(P^);
       Inc(P);
-      L:=(((P^ shl 16)+FHalfMaxVal) div FMaxVal) and $FFFF;
-      C.Green:=L;
+      C.Green:=ScaleWord(P^);
       Inc(P);
-      L:=(((P^ shl 16)+FHalfMaxVal) div FMaxVal) and $FFFF;
-      C.Blue:=L;
+      C.Blue:=ScaleWord(P^);
       Img.Colors[I,Row]:=C;
       Inc(P);
       end;
@@ -280,7 +291,7 @@ Var
     P:=PByte(FScanLine);
     For I:=0 to FWidth-1 do
       begin
-      L:=(((P^ shl 16)+FHalfMaxVal) div FMaxVal) and $FFFF;
+      L:=ScaleByte(P^);
       C.Red:=L;
       C.Green:=L;
       C.Blue:=L;
@@ -299,14 +310,11 @@ Var
     P:=PByte(FScanLine);
     For I:=0 to FWidth-1 do
       begin
-      L:=(((P^ shl 16)+FHalfMaxVal) div FMaxVal) and $FFFF;
-      C.Red:=L;
+      C.Red:=ScaleByte(P^);
       Inc(P);
-      L:=(((P^ shl 16)+FHalfMaxVal) div FMaxVal) and $FFFF;
-      C.Green:=L;
+      C.Green:=ScaleByte(P^);
       Inc(P);
-      L:=(((P^ shl 16)+FHalfMaxVal) div FMaxVal) and $FFFF;
-      C.Blue:=L;
+      C.Blue:=ScaleByte(P^);
       Img.Colors[I,Row]:=C;
       Inc(P);
       end;
@@ -314,17 +322,17 @@ Var
 
 begin
   C.Alpha:=AlphaOpaque;
-  FHalfMaxVal:=(FMaxVal div 2);
+  Scale := FMaxVal*(FMaxVal+1) + FMaxVal;
   Case FBitmapType of
     1 : ;
     2 : WordGrayScanline;
     3 : WordRGBScanline;
     4 : ByteBnWScanLine;
-    5 : If FBitPP=1 then
+    5 : If FBitPP=8 then
           ByteGrayScanLine
         else
           WordGrayScanLine;
-    6 : If FBitPP=3 then
+    6 : If FBitPP=24 then
           ByteRGBScanLine
         else
           WordRGBScanLine;
