@@ -68,10 +68,6 @@ interface
          [m_mac,m_all,m_result,m_cvar_support,m_tp_procvar];
 
 
-       { maximum number of locals in bytes before warning is emitted }
-       maxlocalsize = high(smallint);
-       { maximum number of paras in bytes before warning is emitted }
-       maxparasize = high(word);
        { maximum nesting of routines }
        maxnesting = 32;
 
