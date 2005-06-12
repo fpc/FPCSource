@@ -597,8 +597,7 @@ implementation
                      begin
                        parse_object_proc_directives(pd);
 
-                       { all Macintosh Object Pascal methods are virtual/  }
-                       { override; the override part is handled in nobj    }
+                       { all Macintosh Object Pascal methods are virtual.  }
                        { this can't be a class method, because macpas mode }
                        { has no m_class                                    }
                        if (m_mac in aktmodeswitches) then
