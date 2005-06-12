@@ -83,21 +83,28 @@ begin
   For I:=0 to FFieldList.Count-1 do
     FFieldList[i].FFieldNo:=I;
   }
+  FCalcFieldsSize := 0;
   FBlobFieldCount := 0;
   for i := 0 to Fields.Count - 1 do
     with Fields[i] do begin
       if Binding then begin
-          FieldDef := nil;
-          FieldIndex := FieldDefs.IndexOf(Fields[i].FieldName);
-          if FieldIndex <> -1 then begin
-            FieldDef := FieldDefs[FieldIndex];
-            FFieldNo := FieldDef.FieldNo;
-            if IsBlob then begin
-              FSize := FieldDef.Size;
-              FOffset := FBlobFieldCount;
-              Inc(FBlobFieldCount);
-            end;
-          end else FFieldNo := FieldIndex;
+          if FieldKind in [fkCalculated, fkLookup] then begin
+            FFieldNo := -1;
+            FOffset := FCalcFieldsSize;
+            Inc(FCalcFieldsSize, DataSize + 1);
+          end else begin
+            FieldDef := nil;
+            FieldIndex := FieldDefs.IndexOf(Fields[i].FieldName);
+            if FieldIndex <> -1 then begin
+              FieldDef := FieldDefs[FieldIndex];
+              FFieldNo := FieldDef.FieldNo;
+              if IsBlob then begin
+                FSize := FieldDef.Size;
+                FOffset := FBlobFieldCount;
+                Inc(FBlobFieldCount);
+              end;
+            end else FFieldNo := FieldIndex;
+          end;
       end else FFieldNo := 0;;
     end;
 end;
@@ -113,8 +120,17 @@ end;
 
 Procedure TDataset.CalculateFields(Buffer: PChar);
 
+var
+  I: Integer;
 begin
-  { no internal calced fields or caches yet }
+  FCalcBuffer := Buffer;
+  if (State <> dsInternalCalc) and (IsUniDirectional = False) then
+  begin
+    ClearCalcFields(CalcBuffer);
+    for I := 0 to Fields.Count - 1 do
+      with Fields[I] do
+        if FieldKind = fkLookup then {CalcLookupValue};
+  end;
   DoOnCalcFields;
 end;
 
@@ -424,8 +440,19 @@ end;
 
 Procedure TDataset.GetCalcFields(Buffer: PChar);
 
+var
+  dss: TDataSetState;
 begin
-  //!! To be implemented
+  if (FCalcFieldsSize > 0) or FInternalCalcFields then
+  begin
+    dss := FState;
+    FState := dsCalcFields;
+    try
+      CalculateFields(Buffer);
+    finally
+      FState := dss;
+    end;
+  end;
 end;
 
 Function TDataset.GetCanModify: Boolean;
@@ -1077,7 +1104,11 @@ Procedure TDataset.ClearFields;
 
 
 begin
-  //!! To be implemented
+  DataEvent(deCheckBrowseMode, 0);
+  FreeFieldBuffers;
+  InternalInitRecord(ActiveBuffer);
+  if State <> dsSetKey then GetCalcFields(ActiveBuffer);
+  DataEvent(deRecordChange, 0);
 end;
 
 Procedure TDataset.Close;
@@ -1269,6 +1300,7 @@ begin
   DoBeforeEdit;
   If Not TryDoing(@InternalEdit,OnEditError) then
     exit;
+  GetCalcFields(ActiveBuffer);
   SetState(dsedit);
   DataEvent(deRecordChange,0);
   DoAfterEdit;
