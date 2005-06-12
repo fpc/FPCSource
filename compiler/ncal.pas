@@ -2195,6 +2195,13 @@ type
         { create blocks for loading/deleting of local data }
         createblock:=internalstatements(createstatement);
         deleteblock:=internalstatements(deletestatement);
+
+        { add methodpointer init/fini code to init/done statements }
+        if assigned(methodpointerinit) then
+          addstatement(createstatement,methodpointerinit.getcopy);
+        if assigned(methodpointerdone) then
+          addstatement(deletestatement,methodpointerdone.getcopy);
+
         inlinelocals:=tlist.create;
         { get copy of the procedure body }
         body:=tprocdef(procdefinition).inlininginfo^.code.getcopy;
