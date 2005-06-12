@@ -665,6 +665,8 @@ implementation
                                 begin
                                   { new one has not override }
                                   if is_class(_class) and
+                                     { in Macintosh Object Pascal, all methods are virtual/override }
+                                     not(m_mac in aktmodeswitches) and
                                      not(po_overridingmethod in pd.procoptions) then
                                    begin
                                      { we start a new virtual tree, hide the old }

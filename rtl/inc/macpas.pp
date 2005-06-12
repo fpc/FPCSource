@@ -14,6 +14,8 @@
 
  **********************************************************************}
 
+{$mode objfpc}
+
 unit MacPas;
 
 interface
@@ -38,6 +40,8 @@ function FOUR_CHAR_CODE(literal: string): LongWord; {$ifdef systeminline}inline;
  to emulate the behaviour of mac pascal compilers}
 operator := (s: ShortString) res: LongWord; {$ifdef systeminline}inline;{$endif}
 
+{ Same as the "is" operator }
+Function Member (Instance : TObject; AClass : TClass) : boolean;
 
 implementation
 
@@ -56,5 +60,11 @@ operator := (s: ShortString) res: LongWord; {$ifdef systeminline}inline;{$endif}
 begin
   res := PLongWord(@s[1])^;
 end;
+
+Function Member (Instance : TObject; AClass : TClass) : boolean; {$ifdef systeminline}inline;{$endif}
+begin
+  Result:=Instance is AClass;
+end;
+
 
 end.

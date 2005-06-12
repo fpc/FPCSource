@@ -82,8 +82,64 @@ implementation
           set_varstate(p,vs_assigned,[])
         else
           set_varstate(p,vs_used,[vsf_must_be_valid]);
+        if (m_mac in aktmodeswitches) and
+           is_class(p.resulttype.def) then
+          begin
+            classh:=tobjectdef(p.resulttype.def);
+
+            if is_new then
+              begin
+                sym:=search_class_member(classh,'CREATE');
+                p2 := cloadvmtaddrnode.create(ctypenode.create(p.resulttype));;
+              end
+            else
+              begin
+                sym:=search_class_member(classh,'FREE');
+                p2 := p;
+             end;
+
+            if not(assigned(sym)) then
+              begin
+                 p.free;
+                 if is_new then
+                   p2.free;
+                 new_dispose_statement := cerrornode.create;
+                 consume_all_until(_RKLAMMER);
+                 consume(_RKLAMMER);
+                 exit;
+              end;
+
+            do_member_read(classh,false,sym,p2,again,[]);
+            
+            { we need the real called method }
+            do_resulttypepass(p2);
+
+            if (p2.nodetype=calln) and
+               assigned(tcallnode(p2).procdefinition) then
+              begin
+                if is_new then
+                  begin
+                    if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
+                      Message(parser_e_expr_have_to_be_constructor_call);
+                    p2.resulttype:=p.resulttype;
+                    p2:=cassignmentnode.create(p,p2);
+                    resulttypepass(p2);
+                  end
+                else
+                  begin
+                   { Free is not a destructor 
+                    if (tcallnode(p2).procdefinition.proctypeoption<>potype_destructor) then
+                      Message(parser_e_expr_have_to_be_destructor_call);
+                   }
+                  end
+              end
+            else
+              internalerror(2005061202);
+            new_dispose_statement := p2;
+          end
         { constructor,destructor specified }
-        if try_to_consume(_COMMA) then
+        else if not(m_mac in aktmodeswitches) and
+                try_to_consume(_COMMA) then
           begin
             { extended syntax of new and dispose }
             { function styled new is handled in factor }
