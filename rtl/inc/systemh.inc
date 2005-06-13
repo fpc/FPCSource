@@ -21,6 +21,11 @@
 {$I-,Q-,H-,R-,V-}
 {$mode objfpc}
 
+{ At least 2.0.0 is required }
+{$ifdef VER1}
+  {$fatal You need at least FPC 2.0.0}
+{$endif}
+
 { Using inlining for small system functions/wrappers }
 {$ifdef HASINLINE}
   {$inline on}
@@ -63,7 +68,6 @@ Type
   Integer  = SmallInt;
 
 {$ifdef CPUI386}
-  { for bootstrapping with 1.0.x }
   {$define CPU32}
 
   {$define DEFAULT_EXTENDED}
