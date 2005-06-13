@@ -360,7 +360,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='ld $OPT -o $OUT @$RES';
-     ExeCmd[2]:='emxbind -b $STRIP $APPTYPE $RSRC -k$STACKKB -h$HEAPMB -o $EXE $OUT -aim -s$DOSHEAPKB';
+     ExeCmd[2]:='emxbind -b $STRIP $APPTYPE $RSRC -k$STACKKB -h1 -o $EXE $OUT -ai -s8';
      if Source_Info.Script = script_dos then
       ExeCmd[3]:='del $OUT';
    end;
