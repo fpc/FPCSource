@@ -2130,6 +2130,7 @@ type
                    (vo_is_funcret in tparavarsym(para.parasym).varoptions) or
                    (para.parasym.varspez = vs_value) or
                    ((para.parasym.varspez = vs_const) and
+                    (para.parasym.vartype.def.deftype<>formaldef) and
                    { the compiler expects that it can take the address of parameters passed by reference in
                      the case of const so we can't replace the node simply by a constant node
                      When playing with this code, ensure that
