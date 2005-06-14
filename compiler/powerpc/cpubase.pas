@@ -402,7 +402,7 @@ uses
 implementation
 
     uses
-      rgBase,verbose;
+      rgbase,verbose;
 
     const
       std_regname_table : array[tregisterindex] of string[7] = (
