@@ -276,7 +276,34 @@
     { Malformed Macho file  }
        ESysEBADMACHO = 88;
     { Must be equal largest errno  }
-       ESysELAST = 88;
+    	   ESysELAST = 88;
 {$endif}
     { _POSIX_SOURCE  }
+
+    { Operation canceled }
+       ESysECANCELED = 89;
+    { Identifier removed }
+       ESysEIDRM = 90;
+    { No message of desired type }
+       ESysENOMSG = 91;   
+    { Illegal byte sequence }
+       ESysEILSEQ = 92;
+    { Attribute not found }
+       ESysENOATTR = 93;
+    { Bad message }
+       ESysEBADMSG = 94;
+    { Reserved }
+       ESysEMULTIHOP = 95;
+    { No message available on STREAM }
+       ESysENODATA = 96;
+    { Reserved }
+       ESysENOLINK = 97;
+    { No STREAM resources }
+       ESysENOSR = 98;
+    { Not a STREAM }
+       ESysENOSTR = 99;
+    { Protocol error }
+       ESysEPROTO = 100;
+    { STREAM ioctl timeout }
+       ESysETIME = 101;
 

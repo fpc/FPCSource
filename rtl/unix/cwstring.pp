@@ -25,6 +25,11 @@ implementation
 
 {$linklib c}
 
+{$ifdef bsd}
+{$linklib iconv}
+{$endif bsd}
+
+
 Uses
   BaseUnix,
   ctypes,
@@ -50,10 +55,18 @@ function towupper(__wc:wint_t):wint_t;cdecl;external;
 function wcscoll(__s1:pwchar_t; __s2:pwchar_t):longint;cdecl;external;
 
 const
+{$ifdef linux}
   __LC_CTYPE = 0;
   _NL_CTYPE_CLASS = (__LC_CTYPE shl 16);
   _NL_CTYPE_CODESET_NAME = (_NL_CTYPE_CLASS)+14;
   CODESET = _NL_CTYPE_CODESET_NAME;
+{$else linux}
+{$ifdef darwin}
+  CODESET = 0;
+{$else darwin}
+{$error lookup the value of CODESET in /usr/include/langinfo.h for your OS }
+{$endif darwin}
+{$endif linux}
 
 { unicode encoding name }
 {$ifdef FPC_LITTLE_ENDIAN}
