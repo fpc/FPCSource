@@ -42,32 +42,35 @@ ThreadVar
   ExceptAddrStack   : PExceptAddr;
   ExceptObjectStack : PExceptObject;
 
-{$IFNDEF VIRTUALPASCAL}
 Function RaiseList : PExceptObject;
-
 begin
   RaiseList:=ExceptObjectStack;
 end;
-{$ENDIF}
+
 
 function AcquireExceptionObject: Pointer;
 begin
-  If ExceptObjectStack=nil then begin
-    AcquireExceptionObject := nil
-  end else begin
-    Inc(ExceptObjectStack^.refcount);
-    AcquireExceptionObject := ExceptObjectStack^.FObject;
-  end;
+  If ExceptObjectStack<>nil then
+    begin
+      Inc(ExceptObjectStack^.refcount);
+      AcquireExceptionObject := ExceptObjectStack^.FObject;
+    end
+  else
+    RunError(231);
 end;
+
 
 procedure ReleaseExceptionObject;
 begin
-  If ExceptObjectStack <> nil then begin
-    if ExceptObjectStack^.refcount > 0 then begin
-    Dec(ExceptObjectStack^.refcount);
-  end;
+  If ExceptObjectStack <> nil then
+    begin
+      if ExceptObjectStack^.refcount > 0 then
+        Dec(ExceptObjectStack^.refcount);
+    end
+  else
+    RunError(231);
 end;
-end;
+
 
 Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];compilerproc;
