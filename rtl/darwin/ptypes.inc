@@ -57,6 +57,7 @@ type
     size_t   = cuint32;         { as definied in the C standard}
     TSize    = size_t;
     pSize    = ^size_t;
+    psize_t  = ^size_t;
 
     ssize_t  = cint32;          { used by function for returning number of bytes }
     TsSize   = ssize_t;
@@ -73,7 +74,11 @@ type
     time_t   = clong;           { used for returning the time  }
     TTime    = time_t;
     pTime    = ^time_t;
-    ptime_t =  ^time_t;
+    ptime_t  = ^time_t;
+
+    wchar_t  = widechar;
+    pwchar_t = ^wchar_t;
+    wint_t   = cint;
 
     socklen_t= cuint32;
     TSocklen = socklen_t;
@@ -92,8 +97,6 @@ type
   end;
   ptimespec= ^timespec;
   Ttimespec= timespec;
-
-
 
 CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
