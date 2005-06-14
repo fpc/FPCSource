@@ -1,3 +1,4 @@
+{
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate SPARC assembler for type converting nodes
