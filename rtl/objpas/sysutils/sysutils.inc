@@ -54,6 +54,25 @@
   {$endif OS_FILEISREADONLY}
 
 
+  {$ifndef OS_FILESETDATEBYNAME}
+  Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
+  
+  Var
+    fd : longint;
+    
+  begin
+    fd:=FileOpen(FileName,fmOpenRead);
+    If (Fd>=0) then
+      try
+        Result:=FileSetDate(fd,Age);
+      finally
+        FileClose(fd);
+      end
+    else
+      Result:=Fd;  
+  end;  
+  {$endif}
+
   { Read String Handling functions implementation }
   {$i sysstr.inc}
 

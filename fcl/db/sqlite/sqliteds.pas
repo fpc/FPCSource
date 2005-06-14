@@ -29,11 +29,7 @@ unit sqliteds;
 
 interface
 
-uses Classes, SysUtils, Db
-  {$ifdef DEBUG}
-  ,Crt
-  {$endif}
-  ;
+uses Classes, SysUtils, Db;
 
 type
   PDataRecord = ^DataRecord;
@@ -96,9 +92,20 @@ type
     FAddedItems: TList;
     FDeletedItems: TList;
     FOrphanItems: TList;
+    FMasterLink: TMasterDataLink;
+    FIndexFieldNames: String;
+    FIndexFieldList: TList;
+    function GetIndexFields(Value: Integer): TField;
+    procedure UpdateIndexFields;
   protected
     procedure DisposeLinkedList;
     procedure BuildLinkedList; virtual;
+    procedure MasterChanged(Sender: TObject);
+    procedure MasterDisabled(Sender: TObject);
+    procedure SetMasterFields(Value:String);
+    function GetMasterFields:String;
+    procedure SetMasterSource(Value: TDataSource);
+    function GetMasterSource:TDataSource;
     //TDataSet overrides
     function AllocRecordBuffer: PChar; override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
@@ -137,7 +144,7 @@ type
     function ApplyUpdates: Boolean; virtual;
     function CreateTable: Boolean; virtual;
     function ExecSQL:Integer;
-    function ExecSQL(ASql:String):Integer;
+    function ExecSQL(const ASql:String):Integer;
     function TableExists: Boolean;
     procedure RefetchData;
     function SqliteReturnString: String;
@@ -157,17 +164,22 @@ type
     property ExpectedAppends: Integer read FExpectedAppends write SetExpectedAppends;
     property ExpectedUpdates: Integer read FExpectedUpdates write SetExpectedUpdates;
     property ExpectedDeletes: Integer read FExpectedDeletes write SetExpectedDeletes;
+    property IndexFields[Value: Integer]: TField read GetIndexFields;
     property SqliteReturnId: Integer read FSqliteReturnId;
-   published 
+   published
+    property IndexFieldNames: string read FIndexFieldNames write FIndexFieldNames;
     property FileName: String read FFileName write FFileName;
     property PrimaryKey: String read FPrimaryKey write FPrimaryKey;
     property SaveOnClose: Boolean read FSaveOnClose write FSaveOnClose; 
     property SaveOnRefetch: Boolean read FSaveOnRefetch write FSaveOnRefetch;
     property SQL: String read FSql write FSql;
     property TableName: String read FTableName write FTableName;   
-    //property Active;
+    property MasterSource: TDataSource read GetMasterSource write SetMasterSource;
+    property MasterFields: string read GetMasterFields write SetMasterFields;
+    
+    property Active;
     property FieldDefs;
- 
+     
     //Events
     property BeforeOpen;
     property AfterOpen;
@@ -188,8 +200,6 @@ type
     property OnDeleteError;
     property OnEditError;
   end;
-  
-  procedure Register;
   
 implementation
 
@@ -224,7 +234,7 @@ begin
  // If the field contains another type, there will be problems  
  For Counter:= 0 to Columns - 1 do
  begin
-   ColumnStr:= UpCase(StrPas(ColumnNames[Counter + Columns]));
+   ColumnStr:= UpperCase(StrPas(ColumnNames[Counter + Columns]));
    If (ColumnStr = 'INTEGER') then  
    begin  
      AType:= ftInteger;
@@ -385,10 +395,7 @@ begin
   end;  
   
   FDataAllocated:=True;
-  New(FBeginItem);
-  FBeginItem^.Next:=nil;
-  FBeginItem^.Previous:=nil;
-  FBeginItem^.BookMarkFlag:=bfBOF;
+
   TempItem:=FBeginItem;
   FRecordCount:=0; 
   FSqliteReturnId:=sqlite_step(vm,@FRowCount,@ColumnValues,@ColumnNames);
@@ -404,22 +411,12 @@ begin
     FSqliteReturnId:=sqlite_step(vm,@FRowCount,@ColumnValues,@ColumnNames);  
   end;
   sqlite_finalize(vm, nil); 
-  // Init EndItem        
-  if FRecordCount <> 0 then 
-  begin
-    New(TempItem^.Next);
-    TempItem^.Next^.Previous:=TempItem;
-    FEndItem:=TempItem^.Next;    
-  end  
-  else
-  begin
-    New(FEndItem);
-    FEndItem^.Previous:=FBeginItem;    
-    FBeginItem^.Next:=FEndItem;
-  end;   
-  FEndItem^.Next:=nil;
+
+  // Attach EndItem
+  TempItem^.Next:=FEndItem;
+  FEndItem^.Previous:=TempItem;
+  
   // Alloc item used in append/insert 
-  New(FCacheItem);
   GetMem(FCacheItem^.Row,FRowBufferSize);
   For Counter := 0 to FRowCount - 1 do
     FCacheItem^.Row[Counter]:=nil;
@@ -431,6 +428,22 @@ end;
 
 constructor TSqliteDataset.Create(AOwner: TComponent);
 begin
+  // setup special items
+  New(FBeginItem);
+  New(FCacheItem);
+  New(FEndItem);
+  
+  FBeginItem^.Previous:=nil;
+  FEndItem^.Next:=nil;
+  
+  FBeginItem^.BookMarkFlag:=bfBOF;
+  FCacheItem^.BookMarkFlag:=bfEOF;
+  FEndItem^.BookMarkFlag:=bfEOF;
+  
+  FMasterLink:=TMasterDataLink.Create(Self);
+  FMasterLink.OnMasterChange:=@MasterChanged;
+  FMasterLink.OnMasterDisable:=@MasterDisabled;
+  FIndexFieldList:=TList.Create;
   BookmarkSize := SizeOf(Pointer);
   FBufferSize := SizeOf(PPDataRecord);
   FUpdatedItems:= TList.Create;
@@ -456,6 +469,19 @@ begin
   FAddedItems.Destroy;
   FDeletedItems.Destroy;
   FOrphanItems.Destroy;
+  FMasterLink.Destroy;
+  FIndexFieldList.Destroy;
+  // dispose special items
+  Dispose(FBeginItem);
+  Dispose(FCacheItem);
+  Dispose(FEndItem);
+end;
+
+function TSqliteDataset.GetIndexFields(Value: Integer): TField;
+begin
+  if (Value < 0) or (Value > FIndexFieldList.Count - 1) then
+    DatabaseError('Error acessing IndexFields: Index out of bonds');
+  Result:= TField(FIndexFieldList[Value]);
 end;
 
 procedure TSqliteDataset.DisposeLinkedList;
@@ -476,19 +502,14 @@ begin
       Dispose(TempItem^.Previous);
     end; 
   
-  //Dispose FBeginItem
+  //Dispose FBeginItem.Row
   FreeMem(FBeginItem^.Row,FRowBufferSize);
-  Dispose(FBeginItem);
     
   //Dispose cache item
   for Counter:= 0 to FRowCount - 1 do
     StrDispose(FCacheItem^.Row[Counter]);
   FreeMem(FCacheItem^.Row,FRowBufferSize);
-  Dispose(FCacheItem);
-  
-  // Free last item (FEndItem)
-  Dispose(TempItem);  
-  
+
   //Dispose OrphanItems
   for Counter:= 0 to FOrphanItems.Count - 1 do
   begin
@@ -620,9 +641,10 @@ var
   NewItem: PDataRecord;
   Counter:Integer;
 begin
-  //Todo: implement insert ??
+  {$ifdef DEBUG}
   if PPDataRecord(Buffer)^ <> FCacheItem then
     DatabaseError('PPDataRecord(Buffer) <> FCacheItem - Problem',Self);
+  {$endif}
   New(NewItem);
   GetMem(NewItem^.Row,FRowBufferSize);
   for Counter := 0 to FRowCount - 1 do 
@@ -640,8 +662,8 @@ end;
 procedure TSqliteDataset.InternalClose;
 begin
   if FSaveOnClose then
-    ApplyUpdates;  
-  //BindFields(False);  
+    ApplyUpdates;
+  //BindFields(False);
   if DefaultFields then
     DestroyFields;
   if FDataAllocated then
@@ -749,13 +771,31 @@ begin
     DatabaseError('TSqliteDataset - File '+FFileName+' not found');
   if (FTablename = '') and not (FComplexSql) then
     DatabaseError('TSqliteDataset - Tablename not set');  
+
+  if MasterSource <> nil then
+  begin
+    FSql := 'Select * from '+FTableName+';'; // forced to obtain all fields
+    FMasterLink.FieldNames:=MasterFields; //this should fill MasterLinks.Fields
+    //todo: ignore if Fields.Count = 0 (OnMasterChanged will not be called) or
+    // raise a error?
+    //if (FMasterLink.Fields.Count = 0) and (MasterSource.DataSet.Active) then
+    //   DatabaseError('Master Fields are not defined correctly');
+  end;
+  
   FSqliteHandle:=sqlite_open(PChar(FFileName),0,nil);
   if FSql = '' then
     FSql := 'Select * from '+FTableName+';';
   InternalInitFieldDefs;
+
   if DefaultFields then 
     CreateFields;
+
   BindFields(True);
+
+  UpdateIndexFields;
+  if FMasterLink.Active and (FIndexFieldList.Count <> FMasterLink.Fields.Count) then
+    DatabaseError('MasterFields count doesnt match IndexFields count');
+
   // Get PrimaryKeyNo if available
   if Fields.FindField(FPrimaryKey) <> nil then
     FPrimaryKeyNo:=Fields.FindField(FPrimaryKey).FieldNo - 1  
@@ -763,7 +803,7 @@ begin
     FPrimaryKeyNo:=FAutoIncFieldNo; // -1 if there's no AutoIncField 
        
   BuildLinkedList;               
-  FCurrentItem:=FBeginItem;  
+  FCurrentItem:=FBeginItem;
 end;
 
 procedure TSqliteDataset.InternalPost;
@@ -774,9 +814,7 @@ end;
 
 procedure TSqliteDataset.InternalSetToRecord(Buffer: PChar);
 begin
-  //Todo: see why only under linux InternalSetToRecord is called with FCacheItem as parameter
-  if PPDataRecord(Buffer)^ <> FCacheItem then
-    FCurrentItem:=PPDataRecord(Buffer)^;
+  FCurrentItem:=PPDataRecord(Buffer)^;
 end;
 
 function TSqliteDataset.IsCursorOpen: Boolean;
@@ -861,7 +899,82 @@ end;
 
 // Specific functions 
 
-function TSqliteDataset.ExecSQL(ASql:String):Integer;
+procedure TSqliteDataset.MasterChanged(Sender: TObject);
+  function GetSqlStr(AField:TField):String;
+  begin
+    case AField.DataType of
+      ftString,ftMemo: Result:='"'+AField.AsString+'"';//todo: handle " caracter properly
+      ftDateTime,ftDate,ftTime:Str(AField.AsDateTime,Result);
+    else
+      Result:=AField.AsString;  
+    end;//case
+  end;//function
+
+var
+  AFilter:String;
+  i:Integer;
+begin
+  AFilter:=' where ';
+  for i:= 0 to FMasterLink.Fields.Count - 1 do
+  begin
+    AFilter:=AFilter + IndexFields[i].FieldName +' = '+ GetSqlStr(TField(FMasterLink.Fields[i]));
+    if i <> FMasterLink.Fields.Count - 1 then
+      AFilter:= AFilter + ' and ';
+  end;
+  FSql:='Select * from '+FTableName+AFilter;
+  {$ifdef DEBUG}
+  writeln('Sql used to filter detail dataset:');
+  writeln(FSql);
+  {$endif}
+  RefetchData;
+end;
+
+procedure TSqliteDataset.MasterDisabled(Sender: TObject);
+begin
+  FSql:='Select * from '+FTableName+';'; 
+  RefetchData;
+end;
+
+procedure TSqliteDataset.SetMasterFields(Value: String);
+begin
+  if Active then
+    DatabaseError('It''s not allowed to set MasterFields property in a open dataset');
+  FMasterLink.FieldNames:=Value;
+end;
+
+function TSqliteDataset.GetMasterFields: String;
+begin
+  Result:=FMasterLink.FieldNames;
+end;
+
+
+procedure TSqliteDataset.UpdateIndexFields;
+begin
+  if FIndexFieldNames <> '' then
+  begin
+    FIndexFieldList.Clear;
+    try
+      GetFieldList(FIndexFieldList, FIndexFieldNames);
+    except
+      FIndexFieldList.Clear;
+      raise;
+    end;
+  end;
+end;
+
+
+function TSqliteDataset.GetMasterSource: TDataSource;
+begin
+  Result := FMasterLink.DataSource;
+end;
+
+procedure TSqliteDataset.SetMasterSource(Value: TDataSource);
+begin
+  FMasterLink.DataSource := Value;
+end;
+
+
+function TSqliteDataset.ExecSQL(const ASql:String):Integer;
 var
   AHandle: Pointer;
 begin
@@ -1063,6 +1176,7 @@ begin
     FSqliteReturnId:=sqlite_exec(FSqliteHandle,PChar(SqlTemp),nil,nil,nil);   
     Result:= FSqliteReturnId = SQLITE_OK;
     sqlite_close(FSqliteHandle);
+    FSqliteHandle:=nil;
   end
   else
     Result:=False;  
@@ -1122,7 +1236,6 @@ begin
   FUpdatedItems.Clear;
   FDeletedItems.Clear;
   FOrphanItems.Clear;
-  FRecordCount:=0;  
   //Reopen
   BuildLinkedList;               
   FCurrentItem:=FBeginItem;
@@ -1169,11 +1282,6 @@ function TSqliteDataset.UpdatesPending: Boolean;
 begin
   Result:= (FDeletedItems.Count > 0) or
     (FAddedItems.Count > 0) or (FUpdatedItems.Count > 0);
-end;
- 
-procedure Register;
-begin
-  RegisterComponents('Data Access', [TSqliteDataset]);
 end;
 
 {$ifdef DEBUGACTIVEBUFFER}

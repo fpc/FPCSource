@@ -83,6 +83,7 @@ Function FindNext (Var Rslt : TSearchRec) : Longint;
 Procedure FindClose (Var F : TSearchrec);
 Function FileGetDate (Handle : Longint) : Longint;
 Function FileSetDate (Handle,Age : Longint) : Longint;
+Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
 Function FileGetAttr (Const FileName : String) : Longint;
 Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
 Function DeleteFile (Const FileName : String) : Boolean;

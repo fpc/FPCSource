@@ -20,6 +20,7 @@ interface
 { force ansistrings }
 {$H+}
 
+{$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
 {$DEFINE HAS_OSCONFIG}
@@ -646,6 +647,19 @@ begin
   Result := fpAccess(PChar(FileName),W_OK)<>0;
 end;
 
+Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
+
+var
+  t: TUTimBuf;
+  
+begin
+  Result := 0;
+  t.actime := Age;
+  t.modtime := Age;
+  if fputime(PChar(FileName), @t) = -1 then
+    Result := fpgeterrno;
+end;
+
 {****************************************************************************
                               Disk Functions
 ****************************************************************************}
@@ -1022,6 +1036,8 @@ Function GetLastOSError : Integer;
 begin
   Result:=fpgetErrNo;
 end;
+
+
 
 { ---------------------------------------------------------------------
     Application config files
