@@ -77,7 +77,7 @@ implementation
       const
                     { signed   overflow }
         divops: array[boolean, boolean] of tasmop =
-          ((A_DIVWU,A_DIVWUO_),(A_DIVW,A_DIVWO_));
+          ((A_DIVWU,A_DIVWU_),(A_DIVW,A_DIVWO_));
         zerocond: tasmcond = (dirhint: DH_Plus; simple: true; cond:C_NE; cr: RS_CR1);
       var
          power  : longint;
@@ -87,7 +87,7 @@ implementation
          resultreg  : tregister;
          size       : Tcgsize;
          hl : tasmlabel;
-
+         done: boolean;
       begin
          secondpass(left);
          secondpass(right);
@@ -111,25 +111,38 @@ implementation
              resultreg := cg.getintregister(exprasmlist,size);
            end;
 
-         if (nodetype = divn) and
-            (right.nodetype = ordconstn) and
+         done := false;
+         if (right.nodetype = ordconstn) and
             ispowerof2(tordconstnode(right).value,power) then
-           begin
-             { From "The PowerPC Compiler Writer's Guide":                   }
-             { This code uses the fact that, in the PowerPC architecture,    }
-             { the shift right algebraic instructions set the Carry bit if   }
-             { the source register contains a negative number and one or     }
-             { more 1-bits are shifted out. Otherwise, the carry bit is      }
-             { cleared. The addze instruction corrects the quotient, if      }
-             { necessary, when the dividend is negative. For example, if     }
-             { n = -13, (0xFFFF_FFF3), and k = 2, after executing the srawi  }
-             { instruction, q = -4 (0xFFFF_FFFC) and CA = 1. After executing }
-             { the addze instruction, q = -3, the correct quotient.          }
-             cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_32,power,
-               numerator,resultreg);
-             exprasmlist.concat(taicpu.op_reg_reg(A_ADDZE,resultreg,resultreg));
-           end
-         else
+           if is_signed(right.resulttype.def) then
+             begin
+               if (nodetype = divn) then
+                 begin
+                   { From "The PowerPC Compiler Writer's Guide":                   }
+                   { This code uses the fact that, in the PowerPC architecture,    }
+                   { the shift right algebraic instructions set the Carry bit if   }
+                   { the source register contains a negative number and one or     }
+                   { more 1-bits are shifted out. Otherwise, the carry bit is      }
+                   { cleared. The addze instruction corrects the quotient, if      }
+                   { necessary, when the dividend is negative. For example, if     }
+                   { n = -13, (0xFFFF_FFF3), and k = 2, after executing the srawi  }
+                   { instruction, q = -4 (0xFFFF_FFFC) and CA = 1. After executing }
+                   { the addze instruction, q = -3, the correct quotient.          }
+                   cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,power,
+                     numerator,resultreg);
+                   exprasmlist.concat(taicpu.op_reg_reg(A_ADDZE,resultreg,resultreg));
+                   done := true;
+                 end
+             end
+           else
+            begin
+              if (nodetype = divn) then
+                cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_INT,power,numerator,resultreg)
+              else
+                cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,tordconstnode(right).value-1,numerator,resultreg);
+              done := true;
+            end;
+         if not done then
            begin
              { load divider in a register if necessary }
              location_force_reg(exprasmlist,right.location,
@@ -140,8 +153,6 @@ implementation
              divider := right.location.register;
 
              { needs overflow checking, (-maxlongint-1) div (-1) overflows! }
-             { And on PPC, the only way to catch a div-by-0 is by checking  }
-             { the overflow flag (JM)                                       }
              op := divops[is_signed(right.resulttype.def),
                           cs_check_overflow in aktlocalswitches];
              exprasmlist.concat(taicpu.op_reg_reg_reg(op,resultreg,numerator,
@@ -166,7 +177,11 @@ implementation
             cg.a_call_name(exprasmlist,'FPC_DIVBYZERO');
             cg.a_label(exprasmlist,hl);
           end;
-        cg.g_overflowcheck(exprasmlist,location,resulttype.def);
+        { unsigned division/module can only overflow in case of division by zero }
+        { (but checking this overflow flag is more convoluted than performing a  }
+        {  simple comparison with 0)                                             }
+        if is_signed(right.resulttype.def) then
+          cg.g_overflowcheck(exprasmlist,location,resulttype.def);
       end;
 
 
