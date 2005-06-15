@@ -49,15 +49,10 @@
    guint = dword;
 
    Pgfloat = ^gfloat;
-   {$IFDEF KYLIX}
-     gfloat = single;   //  Don't know why, but some routines requires this
-   {$ELSE}
-     gfloat = double;
-   {$ENDIF}
+   gfloat = double;
 
    Pgdouble = ^gdouble;
    gdouble = double;
-//       gdouble = extended;    // Or perhaps this one???
 
    pgpointer     = ^gpointer;
    gpointer      = pointer;
