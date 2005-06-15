@@ -443,11 +443,12 @@ implementation
            end;
          DoNotSplitLine:=false;
          case hp.typ of
-       ait_comment : Begin
-                       AsmWrite(target_asm.comment);
-                       AsmWritePChar(tai_comment(hp).str);
-                       AsmLn;
-                     End;
+           ait_comment :
+             Begin
+               AsmWrite(target_asm.comment);
+               AsmWritePChar(tai_comment(hp).str);
+               AsmLn;
+             End;
 
            ait_regalloc :
              begin
@@ -471,35 +472,37 @@ implementation
                  end;
              end;
 
-       ait_section : begin
-                       if tai_section(hp).sectype<>sec_none then
-                        begin
-                          if aktoutputformat=as_x86_64_masm then
-                            begin
-                              if LasTSecType<>sec_none then
-                                AsmWriteLn(secnamesml64[LasTSecType]+#9#9'ENDS');
-                              AsmLn;
-                              AsmWriteLn(secnamesml64[tai_section(hp).sectype]+#9+'SEGMENT')
-                            end
-                          else
-                            begin
-                              if LasTSecType<>sec_none then
-                                AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
-                              AsmLn;
-                              AsmWriteLn('_'+secnames[tai_section(hp).sectype]+#9#9+
-                                         'SEGMENT'#9'PARA PUBLIC USE32 '''+
-                                         secnames[tai_section(hp).sectype]+'''');
-                            end;
-                        end;
-                       LasTSecType:=tai_section(hp).sectype;
-                     end;
-         ait_align : begin
-                     { CAUSES PROBLEMS WITH THE SEGMENT DEFINITION   }
-                     { SEGMENT DEFINITION SHOULD MATCH TYPE OF ALIGN }
-                     { HERE UNDER TASM!                              }
-                       if tai_align(hp).aligntype>1 then
-                         AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
-                     end;
+           ait_section :
+             begin
+               if tai_section(hp).sectype<>sec_none then
+                begin
+                  if aktoutputformat=as_x86_64_masm then
+                    begin
+                      if LasTSecType<>sec_none then
+                        AsmWriteLn(secnamesml64[LasTSecType]+#9#9'ENDS');
+                      AsmLn;
+                      AsmWriteLn(secnamesml64[tai_section(hp).sectype]+#9+'SEGMENT')
+                    end
+                  else
+                    begin
+                      if LasTSecType<>sec_none then
+                        AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
+                      AsmLn;
+                      AsmWriteLn('_'+secnames[tai_section(hp).sectype]+#9#9+
+                                 'SEGMENT'#9'PARA PUBLIC USE32 '''+
+                                 secnames[tai_section(hp).sectype]+'''');
+                    end;
+                end;
+               LasTSecType:=tai_section(hp).sectype;
+             end;
+           ait_align :
+             begin
+               { CAUSES PROBLEMS WITH THE SEGMENT DEFINITION   }
+               { SEGMENT DEFINITION SHOULD MATCH TYPE OF ALIGN }
+               { HERE UNDER TASM!                              }
+                 if tai_align(hp).aligntype>1 then
+                   AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
+               end;
            ait_datablock :
              begin
                if tai_datablock(hp).is_global then
@@ -542,236 +545,248 @@ implementation
                AsmLn;
              end;
 
-        ait_real_32bit : AsmWriteLn(#9#9'DD'#9+single2str(tai_real_32bit(hp).value));
-        ait_real_64bit : AsmWriteLn(#9#9'DQ'#9+double2str(tai_real_64bit(hp).value));
-      ait_real_80bit : AsmWriteLn(#9#9'DT'#9+extended2str(tai_real_80bit(hp).value));
-          ait_comp_64bit : AsmWriteLn(#9#9'DQ'#9+comp2str(tai_real_80bit(hp).value));
-        ait_string : begin
-                       counter := 0;
-                       lines := tai_string(hp).len div line_length;
-                     { separate lines in different parts }
-                       if tai_string(hp).len > 0 then
-                        Begin
-                          for j := 0 to lines-1 do
-                           begin
-                             AsmWrite(#9#9'DB'#9);
-                             quoted:=false;
-                             for i:=counter to counter+line_length-1 do
-                                begin
-                                  { it is an ascii character. }
-                                  if (ord(tai_string(hp).str[i])>31) and
-                                     (ord(tai_string(hp).str[i])<128) and
-                                     (tai_string(hp).str[i]<>'"') then
-                                      begin
-                                        if not(quoted) then
-                                            begin
-                                              if i>counter then
-                                                AsmWrite(',');
-                                              AsmWrite('"');
-                                            end;
-                                        AsmWrite(tai_string(hp).str[i]);
-                                        quoted:=true;
-                                      end { if > 31 and < 128 and ord('"') }
-                                  else
-                                      begin
-                                          if quoted then
-                                              AsmWrite('"');
-                                          if i>counter then
-                                              AsmWrite(',');
-                                          quoted:=false;
-                                          AsmWrite(tostr(ord(tai_string(hp).str[i])));
-                                      end;
-                               end; { end for i:=0 to... }
-                             if quoted then AsmWrite('"');
-                               AsmWrite(target_info.newline);
-                             counter := counter+line_length;
-                          end; { end for j:=0 ... }
-                        { do last line of lines }
-                        if counter<tai_string(hp).len then
-                          AsmWrite(#9#9'DB'#9);
-                        quoted:=false;
-                        for i:=counter to tai_string(hp).len-1 do
-                          begin
-                            { it is an ascii character. }
-                            if (ord(tai_string(hp).str[i])>31) and
-                               (ord(tai_string(hp).str[i])<128) and
-                               (tai_string(hp).str[i]<>'"') then
-                                begin
-                                  if not(quoted) then
-                                      begin
-                                        if i>counter then
-                                          AsmWrite(',');
-                                        AsmWrite('"');
-                                      end;
-                                  AsmWrite(tai_string(hp).str[i]);
-                                  quoted:=true;
-                                end { if > 31 and < 128 and " }
-                            else
-                                begin
+           ait_real_32bit :
+             AsmWriteLn(#9#9'DD'#9+single2str(tai_real_32bit(hp).value));
+           ait_real_64bit :
+             AsmWriteLn(#9#9'DQ'#9+double2str(tai_real_64bit(hp).value));
+           ait_real_80bit :
+             AsmWriteLn(#9#9'DT'#9+extended2str(tai_real_80bit(hp).value));
+           ait_comp_64bit :
+             AsmWriteLn(#9#9'DQ'#9+comp2str(tai_real_80bit(hp).value));
+           ait_string :
+             begin
+               counter := 0;
+               lines := tai_string(hp).len div line_length;
+             { separate lines in different parts }
+               if tai_string(hp).len > 0 then
+                Begin
+                  for j := 0 to lines-1 do
+                   begin
+                     AsmWrite(#9#9'DB'#9);
+                     quoted:=false;
+                     for i:=counter to counter+line_length-1 do
+                        begin
+                          { it is an ascii character. }
+                          if (ord(tai_string(hp).str[i])>31) and
+                             (ord(tai_string(hp).str[i])<128) and
+                             (tai_string(hp).str[i]<>'"') then
+                              begin
+                                if not(quoted) then
+                                    begin
+                                      if i>counter then
+                                        AsmWrite(',');
+                                      AsmWrite('"');
+                                    end;
+                                AsmWrite(tai_string(hp).str[i]);
+                                quoted:=true;
+                              end { if > 31 and < 128 and ord('"') }
+                          else
+                              begin
                                   if quoted then
-                                    AsmWrite('"');
+                                      AsmWrite('"');
                                   if i>counter then
                                       AsmWrite(',');
                                   quoted:=false;
                                   AsmWrite(tostr(ord(tai_string(hp).str[i])));
-                                end;
-                          end; { end for i:=0 to... }
-                        if quoted then
-                          AsmWrite('"');
-                        end;
-                       AsmLn;
-                     end;
-         ait_label : begin
-                       if tai_label(hp).l.is_used then
-                        begin
-                          AsmWrite(tai_label(hp).l.name);
-                          if assigned(hp.next) and not(tai(hp.next).typ in
-                             [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                              ait_const_rva_symbol,
-                              ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
-                           AsmWriteLn(':')
-                          else
-                           DoNotSplitLine:=true;
-                        end;
-                     end;
-        ait_direct : begin
-                       AsmWritePChar(tai_direct(hp).str);
-                       AsmLn;
-                     end;
-        ait_symbol : begin
-                       if tai_symbol(hp).is_global then
-                         AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym.name);
-                       AsmWrite(tai_symbol(hp).sym.name);
-                       if assigned(hp.next) and not(tai(hp.next).typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                           ait_const_rva_symbol,
-                           ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
-                        AsmWriteLn(':')
-                     end;
-    ait_symbol_end : begin
-                     end;
-   ait_instruction : begin
-                       taicpu(hp).CheckNonCommutativeOpcodes;
-                       taicpu(hp).SetOperandOrder(op_intel);
-                       { Reset }
-                       suffix:='';
-                       prefix:= '';
-                       { We need to explicitely set
-                         word prefix to get selectors
-                         to be pushed in 2 bytes  PM }
-                       if (taicpu(hp).opsize=S_W) and
-                           (
-                            (
-                             (taicpu(hp).opcode=A_PUSH) or
-                             (taicpu(hp).opcode=A_POP)
-                            ) and
-                            (taicpu(hp).oper[0]^.typ=top_reg) and
-                            is_segment_reg(taicpu(hp).oper[0]^.reg)
-                           ) then
-                         AsmWriteln(#9#9'DB'#9'066h');
-
-                       { added prefix instructions, must be on same line as opcode }
-                       if (taicpu(hp).ops = 0) and
-                          ((taicpu(hp).opcode = A_REP) or
-                           (taicpu(hp).opcode = A_LOCK) or
-                           (taicpu(hp).opcode =  A_REPE) or
-                           (taicpu(hp).opcode =  A_REPNZ) or
-                           (taicpu(hp).opcode =  A_REPZ) or
-                           (taicpu(hp).opcode = A_REPNE)) then
-                        Begin
-                          prefix:=std_op2str[taicpu(hp).opcode]+#9;
-                          hp:=tai(hp.next);
-                        { this is theorically impossible... }
-                          if hp=nil then
-                           begin
-                             AsmWriteLn(#9#9+prefix);
-                             break;
-                           end;
-                          { nasm prefers prefix on a line alone
-                          AsmWriteln(#9#9+prefix); but not masm PM
-                          prefix:=''; }
-                          if aktoutputformat in [as_i386_nasmcoff,as_i386_nasmwin32,as_i386_nasmwdosx,
-                            as_i386_nasmelf,as_i386_nasmobj,as_i386_nasmbeos] then
-                             begin
-                               AsmWriteln(prefix);
-                               prefix:='';
-                             end;
-                        end
-                       else
-                        prefix:= '';
-                       if (aktoutputformat = as_i386_wasm) and
-                         (taicpu(hp).opsize=S_W) and
-                         (taicpu(hp).opcode=A_PUSH) and
-                         (taicpu(hp).oper[0]^.typ=top_const) then
-                         begin
-                           AsmWriteln(#9#9'DB 66h,68h ; pushw imm16');
-                           AsmWrite(#9#9'DW');
-                         end
-                       else if (aktoutputformat=as_x86_64_masm) and
-                         (taicpu(hp).opcode=A_MOVQ) then
-                         AsmWrite(#9#9'mov')
-                       else
-                         AsmWrite(#9#9+prefix+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]+suffix);
-                       if taicpu(hp).ops<>0 then
-                        begin
-                          if is_calljmp(taicpu(hp).opcode) then
-                           begin
-                             AsmWrite(#9);
-                             WriteOper_jmp(taicpu(hp).oper[0]^,taicpu(hp).opsize);
-                           end
-                          else
-                           begin
-                             for i:=0to taicpu(hp).ops-1 do
-                              begin
-                                if i=0 then
-                                 AsmWrite(#9)
-                                else
-                                 AsmWrite(',');
-                                WriteOper(taicpu(hp).oper[i]^,taicpu(hp).opsize,taicpu(hp).opcode,(i=2));
                               end;
-                           end;
+                       end; { end for i:=0 to... }
+                     if quoted then AsmWrite('"');
+                       AsmWrite(target_info.newline);
+                     counter := counter+line_length;
+                  end; { end for j:=0 ... }
+                { do last line of lines }
+                if counter<tai_string(hp).len then
+                  AsmWrite(#9#9'DB'#9);
+                quoted:=false;
+                for i:=counter to tai_string(hp).len-1 do
+                  begin
+                    { it is an ascii character. }
+                    if (ord(tai_string(hp).str[i])>31) and
+                       (ord(tai_string(hp).str[i])<128) and
+                       (tai_string(hp).str[i]<>'"') then
+                        begin
+                          if not(quoted) then
+                              begin
+                                if i>counter then
+                                  AsmWrite(',');
+                                AsmWrite('"');
+                              end;
+                          AsmWrite(tai_string(hp).str[i]);
+                          quoted:=true;
+                        end { if > 31 and < 128 and " }
+                    else
+                        begin
+                          if quoted then
+                            AsmWrite('"');
+                          if i>counter then
+                              AsmWrite(',');
+                          quoted:=false;
+                          AsmWrite(tostr(ord(tai_string(hp).str[i])));
                         end;
-                       AsmLn;
+                  end; { end for i:=0 to... }
+                if quoted then
+                  AsmWrite('"');
+                end;
+               AsmLn;
+             end;
+           ait_label :
+             begin
+               if tai_label(hp).l.is_used then
+                begin
+                  AsmWrite(tai_label(hp).l.name);
+                  if assigned(hp.next) and not(tai(hp.next).typ in
+                     [ait_const_32bit,ait_const_16bit,ait_const_8bit,
+                      ait_const_rva_symbol,
+                      ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
+                   AsmWriteLn(':')
+                  else
+                   DoNotSplitLine:=true;
+                end;
+             end;
+           ait_direct :
+             begin
+               AsmWritePChar(tai_direct(hp).str);
+               AsmLn;
+             end;
+           ait_symbol :
+             begin
+               if tai_symbol(hp).is_global then
+                 AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym.name);
+               AsmWrite(tai_symbol(hp).sym.name);
+               if assigned(hp.next) and not(tai(hp.next).typ in
+                  [ait_const_32bit,ait_const_16bit,ait_const_8bit,
+                   ait_const_rva_symbol,
+                   ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
+                AsmWriteLn(':')
+             end;
+           ait_symbol_end :
+             begin
+             end;
+           ait_instruction :
+             begin
+               taicpu(hp).CheckNonCommutativeOpcodes;
+               taicpu(hp).SetOperandOrder(op_intel);
+               { Reset }
+               suffix:='';
+               prefix:= '';
+               { We need to explicitely set
+                 word prefix to get selectors
+                 to be pushed in 2 bytes  PM }
+               if (taicpu(hp).opsize=S_W) and
+                   (
+                    (
+                     (taicpu(hp).opcode=A_PUSH) or
+                     (taicpu(hp).opcode=A_POP)
+                    ) and
+                    (taicpu(hp).oper[0]^.typ=top_reg) and
+                    is_segment_reg(taicpu(hp).oper[0]^.reg)
+                   ) then
+                 AsmWriteln(#9#9'DB'#9'066h');
+
+               { added prefix instructions, must be on same line as opcode }
+               if (taicpu(hp).ops = 0) and
+                  ((taicpu(hp).opcode = A_REP) or
+                   (taicpu(hp).opcode = A_LOCK) or
+                   (taicpu(hp).opcode =  A_REPE) or
+                   (taicpu(hp).opcode =  A_REPNZ) or
+                   (taicpu(hp).opcode =  A_REPZ) or
+                   (taicpu(hp).opcode = A_REPNE)) then
+                Begin
+                  prefix:=std_op2str[taicpu(hp).opcode]+#9;
+                  hp:=tai(hp.next);
+                { this is theorically impossible... }
+                  if hp=nil then
+                   begin
+                     AsmWriteLn(#9#9+prefix);
+                     break;
+                   end;
+                  { nasm prefers prefix on a line alone
+                  AsmWriteln(#9#9+prefix); but not masm PM
+                  prefix:=''; }
+                  if aktoutputformat in [as_i386_nasmcoff,as_i386_nasmwin32,as_i386_nasmwdosx,
+                    as_i386_nasmelf,as_i386_nasmobj,as_i386_nasmbeos] then
+                     begin
+                       AsmWriteln(prefix);
+                       prefix:='';
                      end;
+                end
+               else
+                prefix:= '';
+               if (aktoutputformat = as_i386_wasm) and
+                 (taicpu(hp).opsize=S_W) and
+                 (taicpu(hp).opcode=A_PUSH) and
+                 (taicpu(hp).oper[0]^.typ=top_const) then
+                 begin
+                   AsmWriteln(#9#9'DB 66h,68h ; pushw imm16');
+                   AsmWrite(#9#9'DW');
+                 end
+               else if (aktoutputformat=as_x86_64_masm) and
+                 (taicpu(hp).opcode=A_MOVQ) then
+                 AsmWrite(#9#9'mov')
+               else
+                 AsmWrite(#9#9+prefix+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]+suffix);
+               if taicpu(hp).ops<>0 then
+                begin
+                  if is_calljmp(taicpu(hp).opcode) then
+                   begin
+                     AsmWrite(#9);
+                     WriteOper_jmp(taicpu(hp).oper[0]^,taicpu(hp).opsize);
+                   end
+                  else
+                   begin
+                     for i:=0to taicpu(hp).ops-1 do
+                      begin
+                        if i=0 then
+                         AsmWrite(#9)
+                        else
+                         AsmWrite(',');
+                        WriteOper(taicpu(hp).oper[i]^,taicpu(hp).opsize,taicpu(hp).opcode,(i=2));
+                      end;
+                   end;
+                end;
+               AsmLn;
+             end;
 {$ifdef GDB}
-             ait_stabn,
-             ait_stabs,
-        ait_force_line,
-ait_stab_function_name : ;
+           ait_stabn,
+           ait_stabs,
+           ait_force_line,
+           ait_stab_function_name :
+             ;
 {$endif GDB}
-           ait_cutobject : begin
-                     { only reset buffer if nothing has changed }
-                       if AsmSize=AsmStartSize then
-                        AsmClear
-                       else
-                        begin
-                          if LasTSecType<>sec_none then
-                           AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
-                          AsmLn;
-                          AsmWriteLn(#9'END');
-                          AsmClose;
-                          DoAssemble;
-                          AsmCreate(tai_cutobject(hp).place);
-                        end;
-                     { avoid empty files }
-                       while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
-                        begin
-                          if tai(hp.next).typ=ait_section then
-                            lasTSecType:=tai_section(hp.next).sectype;
-                          hp:=tai(hp.next);
-                        end;
-                       AsmWriteLn(#9'.386p');
-                       AsmWriteLn('DGROUP'#9'GROUP'#9'_BSS,_DATA');
-                       AsmWriteLn(#9'ASSUME'#9'CS:_CODE,ES:DGROUP,DS:DGROUP,SS:DGROUP');
-                       { I was told that this isn't necesarry because }
-                       { the labels generated by FPC are unique (FK)  }
-                       { AsmWriteLn(#9'LOCALS '+target_asm.labelprefix); }
-                       if lasTSectype<>sec_none then
-                          AsmWriteLn('_'+secnames[lasTSectype]+#9#9+
-                                     'SEGMENT'#9'PARA PUBLIC USE32 '''+
-                                     secnames[lasTSectype]+'''');
-                       AsmStartSize:=AsmSize;
-                     end;
+           ait_cutobject :
+             begin
+               { only reset buffer if nothing has changed }
+                 if AsmSize=AsmStartSize then
+                  AsmClear
+                 else
+                  begin
+                    if LasTSecType<>sec_none then
+                     AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
+                    AsmLn;
+                    AsmWriteLn(#9'END');
+                    AsmClose;
+                    DoAssemble;
+                    AsmCreate(tai_cutobject(hp).place);
+                  end;
+               { avoid empty files }
+                 while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
+                  begin
+                    if tai(hp.next).typ=ait_section then
+                      lasTSecType:=tai_section(hp.next).sectype;
+                    hp:=tai(hp.next);
+                  end;
+                 AsmWriteLn(#9'.386p');
+                 AsmWriteLn('DGROUP'#9'GROUP'#9'_BSS,_DATA');
+                 AsmWriteLn(#9'ASSUME'#9'CS:_CODE,ES:DGROUP,DS:DGROUP,SS:DGROUP');
+                 { I was told that this isn't necesarry because }
+                 { the labels generated by FPC are unique (FK)  }
+                 { AsmWriteLn(#9'LOCALS '+target_asm.labelprefix); }
+                 if lasTSectype<>sec_none then
+                    AsmWriteLn('_'+secnames[lasTSectype]+#9#9+
+                               'SEGMENT'#9'PARA PUBLIC USE32 '''+
+                               secnames[lasTSectype]+'''');
+                 AsmStartSize:=AsmSize;
+               end;
            ait_marker :
              begin
                if tai_marker(hp).kind=InlineStart then
@@ -779,8 +794,8 @@ ait_stab_function_name : ;
                else if tai_marker(hp).kind=InlineEnd then
                  dec(InlineLevel);
              end;
-         else
-          internalerror(10000);
+           else
+            internalerror(10000);
          end;
          hp:=tai(hp.next);
        end;
