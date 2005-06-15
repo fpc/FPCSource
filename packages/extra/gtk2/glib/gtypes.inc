@@ -49,7 +49,7 @@
    guint = dword;
 
    Pgfloat = ^gfloat;
-   gfloat = double;
+   gfloat = single;
 
    Pgdouble = ^gdouble;
    gdouble = double;
