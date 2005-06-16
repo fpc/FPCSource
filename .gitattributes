@@ -427,7 +427,7 @@ compiler/utils/fixlog.pp svneol=native#text/plain
 compiler/utils/fixmsg.pp svneol=native#text/plain
 compiler/utils/fixnasm.pp svneol=native#text/plain
 compiler/utils/fixtab.pp svneol=native#text/plain
-compiler/utils/fpc.cft -text
+compiler/utils/fpc.cft svneol=native#text/plain
 compiler/utils/fpc.mpw -text
 compiler/utils/fpc.pp svneol=native#text/plain
 compiler/utils/fpccfg.inc svneol=native#text/plain

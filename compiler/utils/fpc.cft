@@ -133,12 +133,6 @@
 # searchpath for includefiles
 #-Fi/pp/inc;/pp/rtl/inc
 
-# searchpath for units and other system dependent things
--Fu$1/units/\$fpctarget
--Fu$1/units/\$fpctarget/*
--Fu$1/units/\$fpctarget/rtl
-#-Fu~/fpc/packages/base/*/units/$fpctarget;~/fpc/fcll/units/$fpctarget;~/fpc/rtl/units/$fpctarget
-
 # searchpath for includefiles
 # release them only if you know what you do
 # because this could cause a rebuild of the runtime library
