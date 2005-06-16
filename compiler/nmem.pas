@@ -449,13 +449,6 @@ implementation
          if codegenerror then
           exit;
 
-         { we should allow loc_mem for @string }
-         if not(left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-           begin
-             aktfilepos:=left.fileinfo;
-             CGMessage(parser_e_illegal_expression);
-           end;
-
          registersint:=left.registersint;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
