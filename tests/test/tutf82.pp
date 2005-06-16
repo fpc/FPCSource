@@ -1,3 +1,4 @@
+{$codepage utf8}
 var
   w : widestring;
 begin
