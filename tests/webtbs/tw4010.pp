@@ -2,12 +2,12 @@
 { Submitted by "Adrian" on  2005-05-23 }
 { e-mail: adrian@veith-system.de }
 
-{ $mode objfpc}
+{$mode objfpc}
 program Bug;
 
 type
   TDynamicByteArray = array of byte;
-  
+
 function MaxByte(const ar: array of byte): Integer;
 var
   i: Integer;
