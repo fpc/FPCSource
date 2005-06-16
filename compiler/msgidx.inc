@@ -84,6 +84,9 @@ const
   scan_e_wrong_switch_toggle_default=02066;
   scan_e_mode_switch_not_allowed=02067;
   scan_e_error_macro_undefined=02068;
+  scan_e_utf8_bigger_than_65535=02069;
+  scan_e_utf8_malformed=02070;
+  scan_c_switching_to_utf8=02071;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -653,9 +656,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 38455;
+  MsgTxtSize = 38582;
 
   MsgIdxMax : array[1..20] of longint=(
-    19,69,214,59,59,46,100,20,35,60,
+    19,72,214,59,59,46,100,20,35,60,
     40,1,1,1,1,1,1,1,1,1
   );

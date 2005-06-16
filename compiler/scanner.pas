@@ -1434,6 +1434,17 @@ implementation
               { first line? }
                 if line_no=0 then
                  begin
+                   c:=inputpointer^;
+                   { eat utf-8 signature? }
+                   if (ord(inputpointer^)=$ef) and
+                     (ord((inputpointer+1)^)=$bb) and
+                     (ord((inputpointer+2)^)=$bf) then
+                     begin
+                       inc(inputpointer,3);
+                       message(scan_c_switching_to_utf8);
+                       aktsourcecodepage:='utf8';
+                     end;
+
                    line_no:=1;
                    if cs_asm_source in aktglobalswitches then
                      inputfile.setline(line_no,bufstart);
@@ -2412,6 +2423,7 @@ implementation
         code    : integer;
         len,
         low,high,mid : longint;
+        w : word;
         m       : longint;
         mac     : tmacro;
         asciinr : string[6];
@@ -2928,7 +2940,50 @@ implementation
                                   break;
                                end;
                            end;
-                           if iswidestring then
+                           { interpret as utf-8 string? }
+                           if (ord(c)>=$80) and (aktsourcecodepage='utf8') then
+                             begin
+                               { convert existing string to an utf-8 string }
+                               if not iswidestring then
+                                 begin
+                                   ascii2unicode(@pattern[1],len,patternw);
+                                   iswidestring:=true;
+                                   len:=0;
+                                 end;
+                               { four or more chars aren't handled }
+                               if (ord(c) and $f0)=$f0 then
+                                 message(scan_e_utf8_bigger_than_65535)
+                               { three chars }
+                               else if (ord(c) and $e0)=$e0 then
+                                 begin
+                                   w:=ord(c) and $f;
+                                   readchar;
+                                   if (ord(c) and $c0)<>$80 then
+                                     message(scan_e_utf8_malformed);
+                                   w:=(w shl 6) or (ord(c) and $3f);
+                                   readchar;
+                                   if (ord(c) and $c0)<>$80 then
+                                     message(scan_e_utf8_malformed);
+                                   w:=(w shl 6) or (ord(c) and $3f);
+                                   concatwidestringchar(patternw,w);
+                                 end
+                               { two chars }
+                               else if (ord(c) and $c0)<>0 then
+                                 begin
+                                   w:=ord(c) and $1f;
+                                   readchar;
+                                   if (ord(c) and $c0)<>$80 then
+                                     message(scan_e_utf8_malformed);
+                                   w:=(w shl 6) or (ord(c) and $3f);
+                                   concatwidestringchar(patternw,w);
+                                 end
+                               { illegal }
+                               else if (ord(c) and $80)<>0 then
+                                 message(scan_e_utf8_malformed)
+                               else
+                                 concatwidestringchar(patternw,tcompilerwidechar(c))
+                             end
+                           else if iswidestring then
                              concatwidestringchar(patternw,asciichar2unicode(c))
                            else
                              begin

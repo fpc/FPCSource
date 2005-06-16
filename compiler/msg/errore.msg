@@ -309,6 +309,13 @@ scan_e_mode_switch_not_allowed=02067_E_Mode switch "$1" not allowed here
 % a mode switch occur after UNIT.
 scan_e_error_macro_undefined=02068_E_Compile time variable "$1" is not defined.
 % Thus the conditional compile time expression cannot be evaluated.
+scan_e_utf8_bigger_than_65535=02069_E_UTF-8 code greater than 65535 found
+% \fpc handles utf-8 strings internally as widestrings e.g. the char codes are limited to 65535
+scan_e_utf8_malformed=02070_E_Malformed UTF-8 string
+% The given string isn't a valid UTF-8 string
+scan_c_switching_to_utf8=02071_C_UTF-8 signature found, using UTF-8 encoding
+% The compiler found an UTF-8 encoding signature ($ef, $bb, $bf) at the beginning of a file,
+% so it interprets it as an UTF-8 file
 % \end{description}
 #
 # Parser

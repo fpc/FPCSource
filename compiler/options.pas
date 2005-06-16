@@ -682,7 +682,9 @@ begin
                    autoloadunits:=more;
                  'c' :
                    begin
-                     if not(cpavailable(more)) then
+                     if (upper(more)='UTF8') or (upper(more)='UTF-8') then
+                        initsourcecodepage:='utf8'
+                     else if not(cpavailable(more)) then
                        Message1(option_code_page_not_available,more)
                      else
                        initsourcecodepage:=more;
