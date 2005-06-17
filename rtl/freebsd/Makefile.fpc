@@ -13,7 +13,7 @@ loaders=prt0 cprt0 gprt0
 units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings syscall sysctl  baseunix unixutil \
       unix rtlconsts initc cmem matrix \
        dl termio  printer \
-      sysutils varutils variants typinfo types classes math  dynlibs \
+      sysutils varutils math variants typinfo types classes   dynlibs \
       $(CPU_UNITS) charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets ipc terminfo \
       video mouse keyboard console serial dateutils \
@@ -278,5 +278,5 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pp $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
-variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
+variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) math$(PPUEXT)
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp
