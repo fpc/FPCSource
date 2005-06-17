@@ -3293,6 +3293,11 @@ rtl/bsd/system.pp svneol=native#text/plain
 rtl/bsd/unxsysch.inc svneol=native#text/plain
 rtl/bsd/x86_64/syscall.inc svneol=native#text/plain
 rtl/bsd/x86_64/syscallh.inc svneol=native#text/plain
+rtl/common/fpmake.lpi svneol=native#text/plain
+rtl/common/fpmake.pp svneol=native#text/plain
+rtl/common/fpmkpkg.lpi svneol=native#text/plain
+rtl/common/fpmkpkg.pp svneol=native#text/plain
+rtl/common/fpmkunit.pp svneol=native#text/plain
 rtl/darwin/Makefile -text
 rtl/darwin/Makefile.fpc svneol=native#text/plain
 rtl/darwin/console.pp svneol=native#text/plain

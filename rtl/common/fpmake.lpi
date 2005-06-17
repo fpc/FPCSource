@@ -1,0 +1,162 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <PathDelim Value="/"/>
+    <Version Value="5"/>
+    <General>
+      <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <ActiveEditorIndexAtStart Value="0"/>
+      <IconPath Value="./"/>
+      <TargetFileExt Value=""/>
+    </General>
+    <JumpHistory Count="16" HistoryIndex="15">
+      <Position1>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="200" Column="35" TopLine="161"/>
+      </Position1>
+      <Position2>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="1600" Column="16" TopLine="1600"/>
+      </Position2>
+      <Position3>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="21" Column="1" TopLine="21"/>
+      </Position3>
+      <Position4>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="316" Column="21" TopLine="285"/>
+      </Position4>
+      <Position5>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="1116" Column="28" TopLine="1086"/>
+      </Position5>
+      <Position6>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="316" Column="7" TopLine="316"/>
+      </Position6>
+      <Position7>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="317" Column="30" TopLine="297"/>
+      </Position7>
+      <Position8>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="1145" Column="33" TopLine="1121"/>
+      </Position8>
+      <Position9>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="1116" Column="26" TopLine="1096"/>
+      </Position9>
+      <Position10>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="316" Column="31" TopLine="316"/>
+      </Position10>
+      <Position11>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="1138" Column="22" TopLine="1114"/>
+      </Position11>
+      <Position12>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="1141" Column="21" TopLine="1121"/>
+      </Position12>
+      <Position13>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="1689" Column="10" TopLine="1671"/>
+      </Position13>
+      <Position14>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="634" Column="1" TopLine="603"/>
+      </Position14>
+      <Position15>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="631" Column="17" TopLine="616"/>
+      </Position15>
+      <Position16>
+        <Filename Value="fpmkunit.pp"/>
+        <Caret Line="1787" Column="1" TopLine="1752"/>
+      </Position16>
+    </JumpHistory>
+    <Units Count="6">
+      <Unit0>
+        <CursorPos X="9" Y="22"/>
+        <EditorIndex Value="1"/>
+        <Filename Value="fpmake.pp"/>
+        <IsPartOfProject Value="True"/>
+        <Loaded Value="True"/>
+        <TopLine Value="1"/>
+        <UnitName Value="fpmake"/>
+        <UsageCount Value="59"/>
+      </Unit0>
+      <Unit1>
+        <CursorPos X="1" Y="2588"/>
+        <EditorIndex Value="0"/>
+        <Filename Value="fpmkunit.pp"/>
+        <IsPartOfProject Value="True"/>
+        <Loaded Value="True"/>
+        <TopLine Value="2552"/>
+        <UnitName Value="fpmkunit"/>
+        <UsageCount Value="59"/>
+      </Unit1>
+      <Unit2>
+        <CursorPos X="23" Y="27"/>
+        <Filename Value="fpc/rtl/objpas/sysutils/osutilsh.inc"/>
+        <TopLine Value="8"/>
+        <UsageCount Value="9"/>
+      </Unit2>
+      <Unit3>
+        <CursorPos X="3" Y="931"/>
+        <Filename Value="fpc/rtl/unix/sysutils.pp"/>
+        <TopLine Value="908"/>
+        <UnitName Value="sysutils"/>
+        <UsageCount Value="9"/>
+      </Unit3>
+      <Unit4>
+        <CursorPos X="18" Y="610"/>
+        <Filename Value="fpc/rtl/objpas/classes/classesh.inc"/>
+        <TopLine Value="590"/>
+        <UsageCount Value="8"/>
+      </Unit4>
+      <Unit5>
+        <CursorPos X="7" Y="159"/>
+        <Filename Value="fpc/rtl/objpas/classes/streams.inc"/>
+        <TopLine Value="152"/>
+        <UsageCount Value="8"/>
+      </Unit5>
+    </Units>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="5"/>
+    <CodeGeneration>
+      <Generate Value="Faster"/>
+    </CodeGeneration>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="2">
+      <Item1>
+        <Name Value="ECodetoolError"/>
+      </Item1>
+      <Item2>
+        <Name Value="EFOpenError"/>
+      </Item2>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
