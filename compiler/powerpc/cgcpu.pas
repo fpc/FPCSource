@@ -352,12 +352,15 @@ const
         l1: tasmsymbol;
       begin
         { function declared in the current unit? }
-        result := objectlibrary.getasmsymbol(s);
+        { doesn't work correctly, because this will also return a hit if we }
+        { previously took the address of an external procedure. It doesn't  }
+        { really matter, the linker will remove all unnecessary stubs.      }
+{        result := objectlibrary.getasmsymbol(s);
         if not(assigned(result)) then
-          begin
+          begin }
             stubname := 'L'+s+'$stub';
             result := objectlibrary.getasmsymbol(stubname);
-          end;
+{          end; }
         if assigned(result) then
           exit;
 
