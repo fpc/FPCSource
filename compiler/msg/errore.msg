@@ -2256,6 +2256,8 @@ S*2Aas_assemble using GNU AS
 **2Mgpc_tries to be gpc compatible
 **2Mmacpas_tries to be compatible to the macintosh pascal dialects
 **1n_don't read the default config file
+**1N<x>node tree optimizations
+**2Nu_unroll loops
 **1o<x>_change the name of the executable produced to <x>
 **1O<x>_optimizations:
 3*2Og_generate smaller code
