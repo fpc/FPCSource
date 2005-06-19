@@ -40,7 +40,7 @@ Procedure AddDisk(const path:string);
 implementation
 
 Uses
-  {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF}, Baseunix;
+  {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF}, Baseunix, unixutil;
 
 {$Define OS_FILEISREADONLY} // Specific implementation for Unix.
 
