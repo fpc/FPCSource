@@ -115,7 +115,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function  getcopy : tnode;override;
+          function  _getcopy : tnode;override;
           { Goes through all symbols in a class and subclasses and calls
             verify abstract for each .
           }
@@ -156,7 +156,7 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           procedure get_paratype;
           procedure insert_typeconv(do_count : boolean);
@@ -433,13 +433,13 @@ type
       end;
 
 
-    function tcallparanode.getcopy : tnode;
+    function tcallparanode._getcopy : tnode;
 
       var
          n : tcallparanode;
 
       begin
-         n:=tcallparanode(inherited getcopy);
+         n:=tcallparanode(inherited _getcopy);
          n.callparaflags:=callparaflags;
          n.parasym:=parasym;
          result:=n;
@@ -979,7 +979,7 @@ type
       end;
 
 
-    function tcallnode.getcopy : tnode;
+    function tcallnode._getcopy : tnode;
       var
         n : tcallnode;
         i : integer;
@@ -991,7 +991,7 @@ type
           the can reference methodpointer }
         oldleft:=left;
         left:=nil;
-        n:=tcallnode(inherited getcopy);
+        n:=tcallnode(inherited _getcopy);
         left:=oldleft;
         n.symtableprocentry:=symtableprocentry;
         n.symtableproc:=symtableproc;
@@ -999,30 +999,30 @@ type
         n.restype := restype;
         n.callnodeflags := callnodeflags;
         if assigned(methodpointerinit) then
-         n.methodpointerinit:=tblocknode(methodpointerinit.getcopy)
+         n.methodpointerinit:=tblocknode(methodpointerinit._getcopy)
         else
          n.methodpointerinit:=nil;
         { methodpointerinit is copied, now references to the temp will also be copied
           correctly. We can now copy the parameters and methodpointer }
         if assigned(left) then
-         n.left:=left.getcopy
+         n.left:=left._getcopy
         else
          n.left:=nil;
         if assigned(methodpointer) then
-         n.methodpointer:=methodpointer.getcopy
+         n.methodpointer:=methodpointer._getcopy
         else
          n.methodpointer:=nil;
         if assigned(methodpointerdone) then
-         n.methodpointerdone:=tblocknode(methodpointerdone.getcopy)
+         n.methodpointerdone:=tblocknode(methodpointerdone._getcopy)
         else
          n.methodpointerdone:=nil;
         if assigned(_funcretnode) then
-         n._funcretnode:=_funcretnode.getcopy
+         n._funcretnode:=_funcretnode._getcopy
         else
          n._funcretnode:=nil;
 {$ifdef PASS2INLINE}
         if assigned(inlinecode) then
-         n.inlinecode:=inlinecode.getcopy
+         n.inlinecode:=inlinecode._getcopy
         else
          n.inlinecode:=nil;
 {$endif PASS2INLINE}

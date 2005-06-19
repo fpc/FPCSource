@@ -56,13 +56,18 @@ interface
        end;
 
        tlabelsym = class(tstoredsym)
-          lab     : tasmlabel;
           used,
           defined : boolean;
-          code : pointer; { should be tnode }
-          constructor create(const n : string; l : tasmlabel);
+          { points to the matching node, only valid resulttype pass is run and
+            the goto<->label relation in the node tree is created, should
+            be a tnode }
+          code : pointer;
+
+          { when the label is defined in an asm block, this points to the
+            generated asmlabel }
+          asmblocklabel : tasmlabel;
+          constructor create(const n : string);
           constructor ppuload(ppufile:tcompilerppufile);
-          function mangledname:string;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
           function  stabstring : pchar;override;
@@ -507,11 +512,10 @@ implementation
                                  TLABELSYM
 ****************************************************************************}
 
-    constructor tlabelsym.create(const n : string; l : tasmlabel);
+    constructor tlabelsym.create(const n : string);
       begin
          inherited create(n);
          typ:=labelsym;
-         lab:=l;
          used:=false;
          defined:=false;
          code:=nil;
@@ -522,18 +526,9 @@ implementation
       begin
          inherited ppuload(ppufile);
          typ:=labelsym;
-         { this is all dummy
-           it is only used for local browsing }
-         lab:=nil;
          code:=nil;
          used:=false;
          defined:=true;
-      end;
-
-
-    function tlabelsym.mangledname:string;
-      begin
-        result:=lab.name;
       end;
 
 

@@ -329,8 +329,11 @@ interface
           function isequal(p : tnode) : boolean;
           { to implement comparisation, override this method }
           function docompare(p : tnode) : boolean;virtual;
-          { gets a copy of the node }
-          function getcopy : tnode;virtual;
+          { wrapper for getcopy }
+          function getcopy : tnode;
+
+          { does the real copying of a node }
+          function _getcopy : tnode;virtual;
 
           procedure insertintolist(l : tnodelist);virtual;
           { writes a node for debugging purpose, shouldn't be called }
@@ -363,7 +366,7 @@ interface
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           function docompare(p : tnode) : boolean;override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           procedure left_max;
           procedure printnodedata(var t:text);override;
@@ -383,7 +386,7 @@ interface
           function ischild(p : tnode) : boolean;override;
           function docompare(p : tnode) : boolean;override;
           procedure swapleftright;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           procedure left_right_max;
           procedure printnodedata(var t:text);override;
@@ -404,6 +407,8 @@ interface
     procedure ppuwritenode(ppufile:tcompilerppufile;n:tnode);
     function ppuloadnodetree(ppufile:tcompilerppufile):tnode;
     procedure ppuwritenodetree(ppufile:tcompilerppufile;n:tnode);
+    procedure ppuwritenoderef(ppufile:tcompilerppufile;n:tnode);
+    function ppuloadnoderef(ppufile:tcompilerppufile) : tnode;
 
     const
       printnodespacing = '   ';
@@ -525,6 +530,20 @@ implementation
          end
         else
          ppufile.putbyte(byte(emptynode));
+      end;
+
+
+    procedure ppuwritenoderef(ppufile:tcompilerppufile;n:tnode);
+      begin
+        { writing of node references isn't implemented yet (FK) }
+        internalerror(200506181);
+      end;
+
+
+    function ppuloadnoderef(ppufile:tcompilerppufile) : tnode;
+      begin
+        { reading of node references isn't implemented yet (FK) }
+        internalerror(200506182);
       end;
 
 
@@ -802,6 +821,12 @@ implementation
 
 
     function tnode.getcopy : tnode;
+      begin
+        result:=_getcopy;
+      end;
+
+
+    function tnode._getcopy : tnode;
       var
          p : tnode;
       begin
@@ -826,7 +851,7 @@ implementation
          p.firstpasscount:=firstpasscount;
 {$endif extdebug}
 {         p.list:=list; }
-         getcopy:=p;
+         result:=p;
       end;
 
 
@@ -899,16 +924,16 @@ implementation
       end;
 
 
-    function tunarynode.getcopy : tnode;
+    function tunarynode._getcopy : tnode;
       var
          p : tunarynode;
       begin
-         p:=tunarynode(inherited getcopy);
+         p:=tunarynode(inherited _getcopy);
          if assigned(left) then
-           p.left:=left.getcopy
+           p.left:=left._getcopy
          else
            p.left:=nil;
-         getcopy:=p;
+         result:=p;
       end;
 
 
@@ -1030,16 +1055,16 @@ implementation
       end;
 
 
-    function tbinarynode.getcopy : tnode;
+    function tbinarynode._getcopy : tnode;
       var
          p : tbinarynode;
       begin
-         p:=tbinarynode(inherited getcopy);
+         p:=tbinarynode(inherited _getcopy);
          if assigned(right) then
-           p.right:=right.getcopy
+           p.right:=right._getcopy
          else
            p.right:=nil;
-         getcopy:=p;
+         result:=p;
       end;
 
 

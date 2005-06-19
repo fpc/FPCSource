@@ -41,7 +41,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
@@ -62,7 +62,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
@@ -78,7 +78,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
@@ -98,7 +98,7 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           destructor destroy;override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function getpcharcopy : pchar;
@@ -116,7 +116,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
@@ -135,7 +135,7 @@ interface
           constructor create(const g:tguid);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
@@ -314,16 +314,16 @@ implementation
       end;
 
 
-    function trealconstnode.getcopy : tnode;
+    function trealconstnode._getcopy : tnode;
 
       var
          n : trealconstnode;
 
       begin
-         n:=trealconstnode(inherited getcopy);
+         n:=trealconstnode(inherited _getcopy);
          n.value_real:=value_real;
          n.lab_real:=lab_real;
-         getcopy:=n;
+         _getcopy:=n;
       end;
 
     function trealconstnode.det_resulttype:tnode;
@@ -406,16 +406,16 @@ implementation
       end;
 
 
-    function tordconstnode.getcopy : tnode;
+    function tordconstnode._getcopy : tnode;
 
       var
          n : tordconstnode;
 
       begin
-         n:=tordconstnode(inherited getcopy);
+         n:=tordconstnode(inherited _getcopy);
          n.value:=value;
          n.restype := restype;
-         getcopy:=n;
+         _getcopy:=n;
       end;
 
     function tordconstnode.det_resulttype:tnode;
@@ -491,16 +491,16 @@ implementation
       end;
 
 
-    function tpointerconstnode.getcopy : tnode;
+    function tpointerconstnode._getcopy : tnode;
 
       var
          n : tpointerconstnode;
 
       begin
-         n:=tpointerconstnode(inherited getcopy);
+         n:=tpointerconstnode(inherited _getcopy);
          n.value:=value;
          n.restype := restype;
-         getcopy:=n;
+         _getcopy:=n;
       end;
 
     function tpointerconstnode.det_resulttype:tnode;
@@ -645,13 +645,13 @@ implementation
       end;
 
 
-    function tstringconstnode.getcopy : tnode;
+    function tstringconstnode._getcopy : tnode;
 
       var
          n : tstringconstnode;
 
       begin
-         n:=tstringconstnode(inherited getcopy);
+         n:=tstringconstnode(inherited _getcopy);
          n.st_type:=st_type;
          n.len:=len;
          n.lab_str:=lab_str;
@@ -662,7 +662,7 @@ implementation
            end
          else
            n.value_str:=getpcharcopy;
-         getcopy:=n;
+         _getcopy:=n;
       end;
 
     function tstringconstnode.det_resulttype:tnode;
@@ -783,13 +783,13 @@ implementation
       end;
 
 
-    function tsetconstnode.getcopy : tnode;
+    function tsetconstnode._getcopy : tnode;
 
       var
          n : tsetconstnode;
 
       begin
-         n:=tsetconstnode(inherited getcopy);
+         n:=tsetconstnode(inherited _getcopy);
          if assigned(value_set) then
            begin
               new(n.value_set);
@@ -799,7 +799,7 @@ implementation
            n.value_set:=nil;
          n.restype := restype;
          n.lab_set:=lab_set;
-         getcopy:=n;
+         _getcopy:=n;
       end;
 
     function tsetconstnode.det_resulttype:tnode;
@@ -872,15 +872,15 @@ implementation
       end;
 
 
-    function tguidconstnode.getcopy : tnode;
+    function tguidconstnode._getcopy : tnode;
 
       var
          n : tguidconstnode;
 
       begin
-         n:=tguidconstnode(inherited getcopy);
+         n:=tguidconstnode(inherited _getcopy);
          n.value:=value;
-         getcopy:=n;
+         _getcopy:=n;
       end;
 
     function tguidconstnode.det_resulttype:tnode;

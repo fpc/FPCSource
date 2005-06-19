@@ -44,7 +44,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           procedure printnodeinfo(var t : text);override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -175,7 +175,7 @@ interface
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
-          function getcopy: tnode;override;
+          function _getcopy: tnode;override;
           destructor destroy; override;
          protected
           call: tnode;
@@ -581,14 +581,14 @@ implementation
       end;
 
 
-    function ttypeconvnode.getcopy : tnode;
+    function ttypeconvnode._getcopy : tnode;
       var
          n : ttypeconvnode;
       begin
-         n:=ttypeconvnode(inherited getcopy);
+         n:=ttypeconvnode(inherited _getcopy);
          n.convtype:=convtype;
          n.totype:=totype;
-         getcopy:=n;
+         _getcopy:=n;
       end;
 
     procedure ttypeconvnode.printnodeinfo(var t : text);
@@ -2583,10 +2583,10 @@ implementation
       end;
 
 
-    function tasnode.getcopy: tnode;
+    function tasnode._getcopy: tnode;
 
       begin
-        result := inherited getcopy;
+        result := inherited _getcopy;
         if assigned(call) then
           tasnode(result).call := call.getcopy
         else

@@ -875,6 +875,21 @@ begin
                  IllegalPara(opt);
              end;
 
+           'N' :
+             begin
+               j:=1;
+               while j<=length(more) do
+                begin
+                  case more[j] of
+                    'u' :
+                      initglobalswitches:=initglobalswitches+[cs_loopunroll];
+                     else
+                       IllegalPara(opt);
+                  end;
+                  inc(j);
+                end;
+             end;
+
            'o' :
              begin
                if More<>'' then

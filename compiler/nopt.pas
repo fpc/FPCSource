@@ -40,7 +40,7 @@ type
      { By default, pass_2 is the same as for addnode           }
      { Only if there's a processor specific implementation, it }
      { will be overridden.                                     }
-     function getcopy: tnode; override;
+     function _getcopy: tnode; override;
      function docompare(p: tnode): boolean; override;
   end;
 
@@ -51,7 +51,7 @@ type
     { pass_1 must be overridden, otherwise we get an endless loop }
     function det_resulttype: tnode; override;
     function pass_1: tnode; override;
-    function getcopy: tnode; override;
+    function _getcopy: tnode; override;
     function docompare(p: tnode): boolean; override;
    protected
     procedure updatecurmaxlen;
@@ -101,13 +101,13 @@ begin
   subnodetype := ts;
 end;
 
-function taddoptnode.getcopy: tnode;
+function taddoptnode._getcopy: tnode;
 var
   hp: taddoptnode;
 begin
-  hp := taddoptnode(inherited getcopy);
+  hp := taddoptnode(inherited _getcopy);
   hp.subnodetype := subnodetype;
-  getcopy := hp;
+  _getcopy := hp;
 end;
 
 function taddoptnode.docompare(p: tnode): boolean;
@@ -143,13 +143,13 @@ begin
   include(current_procinfo.flags,pi_do_call);
 end;
 
-function taddsstringoptnode.getcopy: tnode;
+function taddsstringoptnode._getcopy: tnode;
 var
   hp: taddsstringoptnode;
 begin
-  hp := taddsstringoptnode(inherited getcopy);
+  hp := taddsstringoptnode(inherited _getcopy);
   hp.curmaxlen := curmaxlen;
-  getcopy := hp;
+  _getcopy := hp;
 end;
 
 function taddsstringoptnode.docompare(p: tnode): boolean;

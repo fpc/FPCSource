@@ -118,7 +118,7 @@ than 255 characters. That's why using Ansi Strings}
          cs_load_gpc_unit,
          { optimizer }
          cs_regvars,cs_no_regalloc,cs_uncertainopts,cs_littlesize,
-         cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_align,
+         cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_align,cs_loopunroll,
          { browser }
          cs_browser_log,
          { debugger }

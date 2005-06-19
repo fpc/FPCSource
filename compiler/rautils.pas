@@ -1366,7 +1366,9 @@ Begin
   case sym.typ of
     labelsym :
       begin
-        hl:=tlabelsym(sym).lab;
+        if not(assigned(tlabelsym(sym).asmblocklabel)) then
+          objectlibrary.getlabel(tlabelsym(sym).asmblocklabel);
+        hl:=tlabelsym(sym).asmblocklabel;
         if emit then
          tlabelsym(sym).defined:=true
         else

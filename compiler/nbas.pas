@@ -61,7 +61,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
@@ -123,7 +123,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function getcopy: tnode; override;
+          function _getcopy: tnode; override;
           function pass_1 : tnode; override;
           function det_resulttype: tnode; override;
           function docompare(p: tnode): boolean; override;
@@ -137,7 +137,7 @@ interface
           constructor create_offset(const temp: ttempcreatenode;aoffset:longint);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function getcopy: tnode; override;
+          function _getcopy: tnode; override;
           procedure derefnode;override;
           function pass_1 : tnode; override;
           function det_resulttype : tnode; override;
@@ -159,7 +159,7 @@ interface
           constructor create_normal_temp(const temp: ttempcreatenode);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function getcopy: tnode; override;
+          function _getcopy: tnode; override;
           procedure derefnode;override;
           function pass_1: tnode; override;
           function det_resulttype: tnode; override;
@@ -622,11 +622,11 @@ implementation
       end;
 
 
-    function tasmnode.getcopy: tnode;
+    function tasmnode._getcopy: tnode;
       var
         n: tasmnode;
       begin
-        n := tasmnode(inherited getcopy);
+        n := tasmnode(inherited _getcopy);
         if assigned(p_asm) then
           begin
             n.p_asm:=taasmoutput.create;
@@ -634,7 +634,7 @@ implementation
           end
         else n.p_asm := nil;
         n.currenttai:=currenttai;
-        getcopy := n;
+        result:=n;
       end;
 
 
@@ -688,11 +688,11 @@ implementation
            (not tpointerdef(_restype.def).pointertype.def.needs_inittable));
       end;
 
-    function ttempcreatenode.getcopy: tnode;
+    function ttempcreatenode._getcopy: tnode;
       var
         n: ttempcreatenode;
       begin
-        n := ttempcreatenode(inherited getcopy);
+        n := ttempcreatenode(inherited _getcopy);
         n.size := size;
 
         new(n.tempinfo);
@@ -805,11 +805,11 @@ implementation
       end;
 
 
-    function ttemprefnode.getcopy: tnode;
+    function ttemprefnode._getcopy: tnode;
       var
         n: ttemprefnode;
       begin
-        n := ttemprefnode(inherited getcopy);
+        n := ttemprefnode(inherited _getcopy);
         n.offset := offset;
 
         if assigned(tempinfo^.hookoncopy) then
@@ -933,11 +933,11 @@ implementation
       end;
 
 
-    function ttempdeletenode.getcopy: tnode;
+    function ttempdeletenode._getcopy: tnode;
       var
         n: ttempdeletenode;
       begin
-        n := ttempdeletenode(inherited getcopy);
+        n := ttempdeletenode(inherited _getcopy);
         n.release_to_normal := release_to_normal;
 
         if assigned(tempinfo^.hookoncopy) then

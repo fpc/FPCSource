@@ -47,7 +47,7 @@ interface
           procedure derefimpl;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
        end;
        tloadparentfpnodeclass = class of tloadparentfpnode;
 
@@ -61,7 +61,7 @@ interface
           procedure mark_write;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
@@ -83,7 +83,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
           function det_resulttype:tnode;override;
@@ -107,7 +107,7 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
           function det_resulttype:tnode;override;
@@ -218,13 +218,13 @@ implementation
       end;
 
 
-    function tloadparentfpnode.getcopy : tnode;
+    function tloadparentfpnode._getcopy : tnode;
       var
          p : tloadparentfpnode;
       begin
-         p:=tloadparentfpnode(inherited getcopy);
+         p:=tloadparentfpnode(inherited _getcopy);
          p.parentpd:=parentpd;
-         getcopy:=p;
+         _getcopy:=p;
       end;
 
 
@@ -318,15 +318,15 @@ implementation
       end;
 
 
-    function taddrnode.getcopy : tnode;
+    function taddrnode._getcopy : tnode;
 
       var
          p : taddrnode;
 
       begin
-         p:=taddrnode(inherited getcopy);
+         p:=taddrnode(inherited _getcopy);
          p.getprocvardef:=getprocvardef;
-         getcopy:=p;
+         _getcopy:=p;
       end;
 
 
@@ -552,15 +552,15 @@ implementation
       end;
 
 
-    function tsubscriptnode.getcopy : tnode;
+    function tsubscriptnode._getcopy : tnode;
 
       var
          p : tsubscriptnode;
 
       begin
-         p:=tsubscriptnode(inherited getcopy);
+         p:=tsubscriptnode(inherited _getcopy);
          p.vs:=vs;
-         getcopy:=p;
+         _getcopy:=p;
       end;
 
 
@@ -863,17 +863,17 @@ implementation
       end;
 
 
-    function twithnode.getcopy : tnode;
+    function twithnode._getcopy : tnode;
 
       var
          p : twithnode;
 
       begin
-         p:=twithnode(inherited getcopy);
+         p:=twithnode(inherited _getcopy);
          p.withsymtable:=withsymtable;
          p.tablecount:=tablecount;
          if assigned(p.withrefnode) then
-           p.withrefnode:=withrefnode.getcopy
+           p.withrefnode:=withrefnode._getcopy
          else
            p.withrefnode:=nil;
          result:=p;

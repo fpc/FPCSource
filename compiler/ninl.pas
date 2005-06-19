@@ -36,7 +36,7 @@ interface
           constructor create(number : byte;is_const:boolean;l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function getcopy : tnode;override;
+          function _getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
@@ -116,11 +116,11 @@ implementation
       end;
 
 
-    function tinlinenode.getcopy : tnode;
+    function tinlinenode._getcopy : tnode;
       var
          n : tinlinenode;
       begin
-         n:=tinlinenode(inherited getcopy);
+         n:=tinlinenode(inherited _getcopy);
          n.inlinenumber:=inlinenumber;
          result:=n;
       end;
