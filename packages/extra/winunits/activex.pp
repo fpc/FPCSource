@@ -1376,7 +1376,7 @@ TYPE
   LPVARDESC                     = ^VARDESC;
   tagDISPPARAMS                 = Record
                                    rgvarg            : lpVARIANTARG;
-                                   rgdispipNamedArgs : lpDISPID;
+                                   rgdispidNamedArgs : lpDISPID;
                                    cArgs,
                                    cNamedArgs        : UINT;
                                    End;
