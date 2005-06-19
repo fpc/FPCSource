@@ -1,3 +1,24 @@
+{
+    Loop unrolling
+
+    Copyright (c) 2005 by Florian Klaempfl
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+ ****************************************************************************
+}
 unit optunrol;
 
 {$i fpcdefs.inc}
@@ -85,15 +106,16 @@ unit optunrol;
                 { let's unroll (and rock of course) }
                 for i:=1 to unrolls do
                   begin
+                    { create and insert copy of the statement block }
+                    addstatement(unrollstatement,tfornode(tfornode(node).t2).getcopy);
+
                     { set and insert entry label? }
                     if (counts mod unrolls<>0) and
-                      ((counts mod unrolls)=unrolls-i+1) then
+                      ((counts mod unrolls)=unrolls-i) then
                       begin
                         tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create);
                         addstatement(unrollstatement,tfornode(node).entrylabel);
                       end;
-                    { create and insert copy of the statement block }
-                    addstatement(unrollstatement,tfornode(tfornode(node).t2).getcopy);
 
                     { for itself increases at the last iteration }
                     if i<unrolls then
@@ -109,7 +131,32 @@ unit optunrol;
               end
             else
               begin
-                { for now, we can't handle this }
+                { unrolling is a little bit more tricky if we don't know the
+                  loop count at compile time, but the solution is to use a jump table
+                  which is indexed by "loop count mod unrolls" at run time and which
+                  jumps then at the appropriate place inside the loop. Because
+                  a module division is expensive, we can use only unroll counts dividable
+                  by 2 }
+                case unrolls of
+                  1..2:
+                    ;
+                  3:
+                    unrolls:=2;
+                  4..7:
+                    unrolls:=4;
+                  { unrolls>4 already make no sense imo, but who knows (FK) }
+                  8..15:
+                    unrolls:=8;
+                  16..31:
+                    unrolls:=16;
+                  32..63:
+                    unrolls:=32;
+                  64..$7fff:
+                    unrolls:=64;
+                  else
+                    exit;
+                end;
+                { we don't handle this yet }
                 exit;
               end;
             if not(assigned(result)) then

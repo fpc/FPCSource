@@ -354,8 +354,13 @@ implementation
          count_var_is_signed:=is_signed(left.resulttype.def);
 
          { first set the to value
-           because the count var can be in the expression !! }
-         do_loopvar_at_end:=lnf_dont_mind_loopvar_on_exit in loopflags;
+           because the count var can be in the expression ! }
+         do_loopvar_at_end:=(lnf_dont_mind_loopvar_on_exit in loopflags)
+         { if the loop is unrolled and there is a jump into the loop,
+           then we can't do the trick with incrementing the loop var only at the
+           end
+         }
+           and not(assigned(entrylabel));
 
          secondpass(t1);
          { calculate pointer value and check if changeable and if so }
