@@ -2,7 +2,7 @@
     This file is part of the Free Component Library
 
     Pascal parse tree classes
-    Copyright (c) 2000-2003 by
+    Copyright (c) 2000-2005 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
@@ -89,7 +89,7 @@ type
     function GetDeclaration(full : Boolean) : string; virtual;
     Visibility: TPasMemberVisibility;
     property RefCount: LongWord read FRefCount;
-    property Name: string read FName write Fname;
+    property Name: string read FName write FName;
     property Parent: TPasElement read FParent;
   end;
 
@@ -204,6 +204,16 @@ type
     EnumType: TPasType;
   end;
 
+  TPasRecordType = class;
+
+  TPasVariant = class(TPasElement)
+  public
+    constructor Create(const AName: string; AParent: TPasElement); override;
+    destructor Destroy; override;
+    Values: TStringList;
+    Members: TPasRecordType;
+  end;
+
   TPasRecordType = class(TPasType)
   public
     constructor Create(const AName: string; AParent: TPasElement); override;
@@ -212,6 +222,9 @@ type
     function GetDeclaration(full : boolean) : string; override;
     IsPacked: Boolean;
     Members: TList;     // array of TPasVariable elements
+    VariantName: string;
+    VariantType: TPasType;
+    Variants: TList;	// array of TPasVariant elements, may be nil!
   end;
 
 
@@ -704,6 +717,21 @@ begin
 end;
 
 
+constructor TPasVariant.Create(const AName: string; AParent: TPasElement);
+begin
+  inherited Create(AName, AParent);
+  Values := TStringList.Create;
+end;
+
+destructor TPasVariant.Destroy;
+begin
+  Values.Free;
+  if Assigned(Members) then
+    Members.Release;
+  inherited Destroy;
+end;
+
+
 constructor TPasRecordType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
@@ -717,6 +745,17 @@ begin
   for i := 0 to Members.Count - 1 do
     TPasVariable(Members[i]).Release;
   Members.Free;
+
+  if Assigned(VariantType) then
+    VariantType.Release;
+
+  if Assigned(Variants) then
+  begin
+    for i := 0 to Variants.Count - 1 do
+      TPasVariant(Variants[i]).Release;
+    Variants.Free;
+  end;
+
   inherited Destroy;
 end;
 
@@ -1096,7 +1135,6 @@ function TPasEnumType.GetDeclaration (full : boolean) : string;
 
 Var
   S : TStringList;
-  i : integer;
 
 begin
   S:=TStringList.Create;
@@ -1343,7 +1381,6 @@ function TPasProcedure.GetDeclaration (full : boolean) : string;
 
 Var
   S : TStringList;
-  Index : integer;
 begin
   S:=TStringList.Create;
   try

@@ -1,7 +1,6 @@
 {
-
     FPDoc  -  Free Pascal Documentation Tool
-    Copyright (C) 2000 - 2003 by
+    Copyright (C) 2000 - 2005 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
 
     * HTML/XHTML output generator
@@ -191,7 +190,8 @@ type
     procedure AppendShortDescrCell(Parent: TDOMNode; Element: TPasElement);
     function AppendHyperlink(Parent: TDOMNode; Element: TPasElement): TDOMElement;
     function AppendType(CodeEl, TableEl: TDOMElement;
-      Element: TPasType; Expanded: Boolean): TDOMElement;
+      Element: TPasType; Expanded: Boolean;
+      NestingLevel: Integer = 0): TDOMElement;
     function AppendProcType(CodeEl, TableEl: TDOMElement;
       Element: TPasProcedureType; Indent: Integer): TDOMElement;
     procedure AppendProcExt(CodeEl: TDOMElement; Element: TPasProcedure);
@@ -199,6 +199,8 @@ type
       Element: TPasProcedureBase);
     procedure AppendProcArgsSection(Parent: TDOMNode;
       Element: TPasProcedureType);
+    function AppendRecordType(CodeEl, TableEl: TDOMElement;
+      Element: TPasRecordType; NestingLevel: Integer): TDOMElement;
 
     procedure AppendTitle(const AText: DOMString);
     procedure AppendMenuBar(ASubpageIndex: Integer);
@@ -1362,7 +1364,7 @@ end;
 
 { Returns the new CodeEl, which will be the old CodeEl in most cases }
 function THTMLWriter.AppendType(CodeEl, TableEl: TDOMElement;
-  Element: TPasType; Expanded: Boolean): TDOMElement;
+  Element: TPasType; Expanded: Boolean; NestingLevel: Integer): TDOMElement;
 begin
   Result := CodeEl;
 
@@ -1388,6 +1390,9 @@ begin
   if Element.InheritsFrom(TPasRangeType) then
     AppendPasSHFragment(CodeEl, TPasRangeType(Element).RangeStart + '..' +
       TPasRangeType(Element).RangeEnd, 0)
+  // Record type
+  else if Element.ClassType = TPasRecordType then
+    Result := AppendRecordType(CodeEl, TableEl, TPasRecordType(Element), NestingLevel)
   else
   // Other types
     AppendHyperlink(CodeEl, Element);
@@ -1577,6 +1582,76 @@ begin
         AppendDescr(ResultEl, CreatePara(Parent), DocNode.ShortDescr, False);
     end;
   end;
+end;
+
+function THTMLWriter.AppendRecordType(CodeEl, TableEl: TDOMElement;
+  Element: TPasRecordType; NestingLevel: Integer): TDOMElement;
+var
+  i, j: Integer;
+  Variable: TPasVariable;
+  TREl, TDEl: TDOMElement;
+  CurVariant: TPasVariant;
+begin
+  if not (Element.Parent is TPasVariant) then
+    if Element.IsPacked then
+      AppendKw(CodeEl, 'packed record')
+    else
+      AppendKw(CodeEl, 'record');
+
+  for i := 0 to Element.Members.Count - 1 do
+  begin
+    Variable := TPasVariable(Element.Members[i]);
+    TREl := CreateTR(TableEl);
+    CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
+    AppendShortDescrCell(TREl, Variable);
+    AppendNbSp(CodeEl, NestingLevel * 2 + 2);
+    AppendText(CodeEl, Variable.Name);
+    AppendSym(CodeEl, ': ');
+    CodeEl := AppendType(CodeEl, TableEl, Variable.VarType, False, NestingLevel + 1);
+    AppendSym(CodeEl, ';');
+  end;
+
+  if Assigned(Element.VariantType) then
+  begin
+    TREl := CreateTR(TableEl);
+    CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
+    AppendNbSp(CodeEl, NestingLevel * 2 + 2);
+    AppendKw(CodeEl, 'case ');
+    if TPasRecordType(Element).VariantName <> '' then
+    begin
+      AppendText(CodeEl, TPasRecordType(Element).VariantName);
+      AppendSym(CodeEl, ': ');
+    end;
+    CodeEl := AppendType(CodeEl, TableEl, TPasRecordType(Element).VariantType, True);
+    AppendKw(CodeEl, ' of');
+    for i := 0 to TPasRecordType(Element).Variants.Count - 1 do
+    begin
+      CurVariant := TPasVariant(Element.Variants[i]);
+      TREl := CreateTR(TableEl);
+      CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
+      AppendNbSp(CodeEl, NestingLevel * 2 + 4);
+      for j := 0 to CurVariant.Values.Count - 1 do
+      begin
+	if j > 0 then
+	  AppendSym(CodeEl, ', ');
+	AppendPasSHFragment(CodeEl, CurVariant.Values[j], 0);
+      end;
+      AppendSym(CodeEl, ': (');
+      AppendType(CodeEl, TableEl, CurVariant.Members, True, NestingLevel + 3);
+      CodeEl := CreateCode(CreatePara(CreateTD_vtop(CreateTR(TableEl))));
+      AppendNbSp(CodeEl, NestingLevel * 2 + 6);
+      AppendSym(CodeEl, ');');
+    end;
+  end;
+
+  if not (Element.Parent is TPasVariant) then
+  begin
+    CodeEl := CreateCode(CreatePara(CreateTD(CreateTR(TableEl))));
+    AppendText(CodeEl, ' '); // !!!: Dirty trick, necessary for current XML writer
+    AppendNbSp(CodeEl, NestingLevel * 2);
+    AppendKw(CodeEl, 'end');
+  end;
+  Result := CodeEl;
 end;
 
 procedure THTMLWriter.AppendTitle(const AText: DOMString);
@@ -2211,27 +2286,7 @@ begin
     // Record
     if AType.ClassType = TPasRecordType then
     begin
-      if TPasRecordType(AType).IsPacked then
-        AppendKw(CodeEl, 'packed record')
-      else
-        AppendKw(CodeEl, 'record');
-
-      for i := 0 to TPasRecordType(AType).Members.Count - 1 do
-      begin
-        Variable := TPasVariable(TPasRecordType(AType).Members[i]);
-        TREl := CreateTR(TableEl);
-        CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
-        AppendShortDescrCell(TREl, Variable);
-        AppendNbSp(CodeEl, 2);
-        AppendText(CodeEl, Variable.Name);
-        AppendSym(CodeEl, ': ');
-        AppendType(CodeEl, TableEl, Variable.VarType, False);
-        AppendSym(CodeEl, ';');
-      end;
-
-      CodeEl := CreateCode(CreatePara(CreateTD(CreateTR(TableEl))));
-      AppendText(CodeEl, ' '); // !!!: Dirty trick, necessary for current XML writer
-      AppendKw(CodeEl, 'end');
+      CodeEl := AppendRecordType(CodeEl, TableEl, TPasRecordType(AType), 0);
       AppendSym(CodeEl, ';');
     end else
     // Set
