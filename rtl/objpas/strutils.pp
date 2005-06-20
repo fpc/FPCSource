@@ -22,7 +22,7 @@ uses
   SysUtils{, Types};
 
 { ---------------------------------------------------------------------
-    Case sensitive search/replace
+    Case insensitive search/replace
   ---------------------------------------------------------------------}
 
 Function AnsiResemblesText(const AText, AOther: string): Boolean;
@@ -34,7 +34,7 @@ Function AnsiMatchText(const AText: string; const AValues: array of string): Boo
 Function AnsiIndexText(const AText: string; const AValues: array of string): Integer;
 
 { ---------------------------------------------------------------------
-    Case insensitive search/replace
+    Case sensitive search/replace
   ---------------------------------------------------------------------}
 
 Function AnsiContainsStr(const AText, ASubText: string): Boolean;
@@ -188,9 +188,8 @@ begin
 end;
 
 { ---------------------------------------------------------------------
-    Case sensitive search/replace
+    Case insensitive search/replace
   ---------------------------------------------------------------------}
-
 Function AnsiResemblesText(const AText, AOther: string): Boolean;
 
 begin
@@ -203,17 +202,17 @@ end;
 Function AnsiContainsText(const AText, ASubText: string): Boolean;
 
 begin
-  AnsiContainsText:=Pos(ASubText,AText)<>0;
+  AnsiContainsText:=AnsiPos(ASubText,AText)<>0;
 end;
 
 Function AnsiStartsText(const ASubText, AText: string): Boolean;
 begin
-  Result:=Copy(AText,1,Length(AsubText))=ASubText;
+  Result:=AnsiCompareText(Copy(AText,1,Length(AsubText)),ASubText)=0;
 end;
 
 Function AnsiEndsText(const ASubText, AText: string): Boolean;
 begin
- result:=Copy(AText,Length(AText)-Length(ASubText)+1,Length(ASubText))=asubtext;
+ result:=AnsiCompareText(Copy(AText,Length(AText)-Length(ASubText)+1,Length(ASubText)),asubtext)=0;
 end;
 
 Function AnsiReplaceText(const AText, AFromText, AToText: string): string;
@@ -262,13 +261,13 @@ end;
 
 
 { ---------------------------------------------------------------------
-    Case insensitive search/replace
+    Case sensitive search/replace
   ---------------------------------------------------------------------}
 
 Function AnsiContainsStr(const AText, ASubText: string): Boolean;
 
 begin
-  Result := Pos(ASubText,AText)<>0;
+  Result := AnsiPos(ASubText,AText)<>0;
 end;
 
 
@@ -276,7 +275,7 @@ end;
 Function AnsiStartsStr(const ASubText, AText: string): Boolean;
 
 begin
-  Result := Pos(ASubText,AText)=1;
+  Result := AnsiPos(ASubText,AText)=1;
 end;
 
 
@@ -284,7 +283,7 @@ end;
 Function AnsiEndsStr(const ASubText, AText: string): Boolean;
 
 begin
- Result := Pos(ASubText,AText)=(length(AText)-length(ASubText)+1);
+ Result := AnsiPos(ASubText,AText)=(length(AText)-length(ASubText)+1);
 end;
 
 
@@ -340,7 +339,7 @@ end;
 
 Function ReverseString(const AText: string): string;
 
-var 
+var
     i,j:longint;
 
 begin
@@ -1653,7 +1652,7 @@ begin
       h:=((ord(hexvalue^)+9) and 15)
     else if hexvalue^ IN ['0'..'9'] then
       h:=((ord(hexvalue^)) and 15)
-    else 
+    else
       break;
     inc(hexvalue);
     if hexvalue^ IN ['A'..'F','a'..'f'] then
