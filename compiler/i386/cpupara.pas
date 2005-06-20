@@ -129,13 +129,15 @@ unit cpupara;
         case def.deftype of
           variantdef :
             begin
-              { Win32 stdcall passes small records on the stack for call by
-                value }
+              { variants are small enough to be passed by value except if
+                required by the windows api
+              }
               if (target_info.system=system_i386_win32) and
                  (calloption=pocall_stdcall) and
-                 (varspez=vs_value) and
-                 (def.size<=16) then
-                result:=false
+                 (varspez=vs_const) then
+                result:=true
+              else
+                result:=false;
             end;
           formaldef :
             result:=true;

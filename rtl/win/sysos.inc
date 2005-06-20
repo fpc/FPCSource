@@ -242,8 +242,6 @@ threadvar
    function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
      stdcall;external 'kernel32' name 'GetCurrentDirectoryA';
 
-
-
    Procedure Errno2InOutRes;
    Begin
      { DO NOT MODIFY UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING }

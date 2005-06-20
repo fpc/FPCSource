@@ -143,7 +143,11 @@ Function NewWideString(Len : SizeInt) : Pointer;
 Var
   P : Pointer;
 begin
+{$ifdef MSWINDOWS}
+  P:=SysAllocStringLen(nil,Len*sizeof(WideChar)+WideRecLen);
+{$else MSWINDOWS}
   GetMem(P,Len*sizeof(WideChar)+WideRecLen);
+{$endif MSWINDOWS}
   If P<>Nil then
    begin
      PWideRec(P)^.Len:=0;         { Initial length }
@@ -163,7 +167,11 @@ begin
   If S=Nil then
     exit;
   Dec (S,WideFirstOff);
+{$ifdef MSWINDOWS}
+  SysFreeString(S);
+{$else MSWINDOWS}
   FreeMem (S);
+{$endif MSWINDOWS}
   S:=Nil;
 end;
 
