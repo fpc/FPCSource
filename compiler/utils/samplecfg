@@ -43,6 +43,9 @@ fi
 
 # Find path to libgcc.a
 GCCSPEC=`(gcc -v 2>&1)| head -n 1| awk '{ print $4 } '`
+if [ -z "$GCCSPEC" ] ; then
+  GCCSPEC=`gcc -print-libgcc-file-name`
+fi
 GCCDIR=`dirname $GCCSPEC`
 echo $GCCDIR
 if [ -f $GCCDIR ]; then
