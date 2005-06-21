@@ -177,7 +177,7 @@ begin
     Inc(Arglen);
   until (pc[Arglen]=#0);
   allocarg(count,arglen);
-  move(pc^,argv[count]^,arglen);
+  move(pc^,argv[count]^,arglen+1);
   { Setup cmdline variable }
   cmdline:=GetCommandLine;
   { process arguments }
