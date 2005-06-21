@@ -432,85 +432,91 @@ begin
 end;
 
 procedure LoadGLu(const dll: String);
+var
+  MethodName: string = '';
+  
+  function GetGLuProcAddress(Lib: PtrInt; ProcName: PChar): Pointer;
+  begin
+    MethodName:=ProcName;
+    Result:=GetProcAddress(Lib, ProcName);
+  end;
+
 begin
 
   FreeGLu;
 
   hDLL := LoadLibrary(PChar(dll));
   if hDLL = 0 then raise Exception.Create('Could not load GLu from ' + dll);
+  try
+    @gluErrorString := GetGLuProcAddress(hDLL, 'gluErrorString');
+    @gluErrorUnicodeStringEXT := GetGLuProcAddress(hDLL, 'gluErrorUnicodeStringEXT');
+    @gluGetString := GetGLuProcAddress(hDLL, 'gluGetString');
+    @gluOrtho2D := GetGLuProcAddress(hDLL, 'gluOrtho2D');
+    @gluPerspective := GetGLuProcAddress(hDLL, 'gluPerspective');
+    @gluPickMatrix := GetGLuProcAddress(hDLL, 'gluPickMatrix');
+    @gluLookAt := GetGLuProcAddress(hDLL, 'gluLookAt');
+    @gluProject := GetGLuProcAddress(hDLL, 'gluProject');
+    @gluUnProject := GetGLuProcAddress(hDLL, 'gluUnProject');
+    @gluScaleImage := GetGLuProcAddress(hDLL, 'gluScaleImage');
+    @gluBuild1DMipmaps := GetGLuProcAddress(hDLL, 'gluBuild1DMipmaps');
+    @gluBuild2DMipmaps := GetGLuProcAddress(hDLL, 'gluBuild2DMipmaps');
+    @gluNewQuadric := GetGLuProcAddress(hDLL, 'gluNewQuadric');
+    @gluDeleteQuadric := GetGLuProcAddress(hDLL, 'gluDeleteQuadric');
+    @gluQuadricNormals := GetGLuProcAddress(hDLL, 'gluQuadricNormals');
+    @gluQuadricTexture := GetGLuProcAddress(hDLL, 'gluQuadricTexture');
+    @gluQuadricOrientation := GetGLuProcAddress(hDLL, 'gluQuadricOrientation');
+    @gluQuadricDrawStyle := GetGLuProcAddress(hDLL, 'gluQuadricDrawStyle');
+    @gluCylinder := GetGLuProcAddress(hDLL, 'gluCylinder');
+    @gluDisk := GetGLuProcAddress(hDLL, 'gluDisk');
+    @gluPartialDisk := GetGLuProcAddress(hDLL, 'gluPartialDisk');
+    @gluSphere := GetGLuProcAddress(hDLL, 'gluSphere');
+    @gluQuadricCallback := GetGLuProcAddress(hDLL, 'gluQuadricCallback');
+    @gluNewTess := GetGLuProcAddress(hDLL, 'gluNewTess');
+    @gluDeleteTess := GetGLuProcAddress(hDLL, 'gluDeleteTess');
+    @gluTessBeginPolygon := GetGLuProcAddress(hDLL, 'gluTessBeginPolygon');
+    @gluTessBeginContour := GetGLuProcAddress(hDLL, 'gluTessBeginContour');
+    @gluTessVertex := GetGLuProcAddress(hDLL, 'gluTessVertex');
+    @gluTessEndContour := GetGLuProcAddress(hDLL, 'gluTessEndContour');
+    @gluTessEndPolygon := GetGLuProcAddress(hDLL, 'gluTessEndPolygon');
+    @gluTessProperty := GetGLuProcAddress(hDLL, 'gluTessProperty');
+    @gluTessNormal := GetGLuProcAddress(hDLL, 'gluTessNormal');
+    @gluTessCallback := GetGLuProcAddress(hDLL, 'gluTessCallback');
+    @gluGetTessProperty := GetGLuProcAddress(hDLL, 'gluGetTessProperty');
+    @gluNewNurbsRenderer := GetGLuProcAddress(hDLL, 'gluNewNurbsRenderer');
+    @gluDeleteNurbsRenderer := GetGLuProcAddress(hDLL, 'gluDeleteNurbsRenderer');
+    @gluBeginSurface := GetGLuProcAddress(hDLL, 'gluBeginSurface');
+    @gluBeginCurve := GetGLuProcAddress(hDLL, 'gluBeginCurve');
+    @gluEndCurve := GetGLuProcAddress(hDLL, 'gluEndCurve');
+    @gluEndSurface := GetGLuProcAddress(hDLL, 'gluEndSurface');
+    @gluBeginTrim := GetGLuProcAddress(hDLL, 'gluBeginTrim');
+    @gluEndTrim := GetGLuProcAddress(hDLL, 'gluEndTrim');
+    @gluPwlCurve := GetGLuProcAddress(hDLL, 'gluPwlCurve');
+    @gluNurbsCurve := GetGLuProcAddress(hDLL, 'gluNurbsCurve');
+    @gluNurbsSurface := GetGLuProcAddress(hDLL, 'gluNurbsSurface');
+    @gluLoadSamplingMatrices := GetGLuProcAddress(hDLL, 'gluLoadSamplingMatrices');
+    @gluNurbsProperty := GetGLuProcAddress(hDLL, 'gluNurbsProperty');
+    @gluGetNurbsProperty := GetGLuProcAddress(hDLL, 'gluGetNurbsProperty');
+    @gluNurbsCallback := GetGLuProcAddress(hDLL, 'gluNurbsCallback');
 
-  @gluErrorString := GetProcAddress(hDLL, 'gluErrorString');
-  @gluErrorUnicodeStringEXT := GetProcAddress(hDLL, 'gluErrorUnicodeStringEXT');
-  @gluGetString := GetProcAddress(hDLL, 'gluGetString');
-  @gluOrtho2D := GetProcAddress(hDLL, 'gluOrtho2D');
-  @gluPerspective := GetProcAddress(hDLL, 'gluPerspective');
-  @gluPickMatrix := GetProcAddress(hDLL, 'gluPickMatrix');
-  @gluLookAt := GetProcAddress(hDLL, 'gluLookAt');
-  @gluProject := GetProcAddress(hDLL, 'gluProject');
-  @gluUnProject := GetProcAddress(hDLL, 'gluUnProject');
-  @gluScaleImage := GetProcAddress(hDLL, 'gluScaleImage');
-  @gluBuild1DMipmaps := GetProcAddress(hDLL, 'gluBuild1DMipmaps');
-  @gluBuild2DMipmaps := GetProcAddress(hDLL, 'gluBuild2DMipmaps');
-  @gluNewQuadric := GetProcAddress(hDLL, 'gluNewQuadric');
-  @gluDeleteQuadric := GetProcAddress(hDLL, 'gluDeleteQuadric');
-  @gluQuadricNormals := GetProcAddress(hDLL, 'gluQuadricNormals');
-  @gluQuadricTexture := GetProcAddress(hDLL, 'gluQuadricTexture');
-  @gluQuadricOrientation := GetProcAddress(hDLL, 'gluQuadricOrientation');
-  @gluQuadricDrawStyle := GetProcAddress(hDLL, 'gluQuadricDrawStyle');
-  @gluCylinder := GetProcAddress(hDLL, 'gluCylinder');
-  @gluDisk := GetProcAddress(hDLL, 'gluDisk');
-  @gluPartialDisk := GetProcAddress(hDLL, 'gluPartialDisk');
-  @gluSphere := GetProcAddress(hDLL, 'gluSphere');
-  @gluQuadricCallback := GetProcAddress(hDLL, 'gluQuadricCallback');
-  @gluNewTess := GetProcAddress(hDLL, 'gluNewTess');
-  @gluDeleteTess := GetProcAddress(hDLL, 'gluDeleteTess');
-  @gluTessBeginPolygon := GetProcAddress(hDLL, 'gluTessBeginPolygon');
-  @gluTessBeginContour := GetProcAddress(hDLL, 'gluTessBeginContour');
-  @gluTessVertex := GetProcAddress(hDLL, 'gluTessVertex');
-  @gluTessEndContour := GetProcAddress(hDLL, 'gluTessEndContour');
-  @gluTessEndPolygon := GetProcAddress(hDLL, 'gluTessEndPolygon');
-  @gluTessProperty := GetProcAddress(hDLL, 'gluTessProperty');
-  @gluTessNormal := GetProcAddress(hDLL, 'gluTessNormal');
-  @gluTessCallback := GetProcAddress(hDLL, 'gluTessCallback');
-  @gluGetTessProperty := GetProcAddress(hDLL, 'gluGetTessProperty');
-  @gluNewNurbsRenderer := GetProcAddress(hDLL, 'gluNewNurbsRenderer');
-  @gluDeleteNurbsRenderer := GetProcAddress(hDLL, 'gluDeleteNurbsRenderer');
-  @gluBeginSurface := GetProcAddress(hDLL, 'gluBeginSurface');
-  @gluBeginCurve := GetProcAddress(hDLL, 'gluBeginCurve');
-  @gluEndCurve := GetProcAddress(hDLL, 'gluEndCurve');
-  @gluEndSurface := GetProcAddress(hDLL, 'gluEndSurface');
-  @gluBeginTrim := GetProcAddress(hDLL, 'gluBeginTrim');
-  @gluEndTrim := GetProcAddress(hDLL, 'gluEndTrim');
-  @gluPwlCurve := GetProcAddress(hDLL, 'gluPwlCurve');
-  @gluNurbsCurve := GetProcAddress(hDLL, 'gluNurbsCurve');
-  @gluNurbsSurface := GetProcAddress(hDLL, 'gluNurbsSurface');
-  @gluLoadSamplingMatrices := GetProcAddress(hDLL, 'gluLoadSamplingMatrices');
-  @gluNurbsProperty := GetProcAddress(hDLL, 'gluNurbsProperty');
-  @gluGetNurbsProperty := GetProcAddress(hDLL, 'gluGetNurbsProperty');
-  @gluNurbsCallback := GetProcAddress(hDLL, 'gluNurbsCallback');
-
-  @gluBeginPolygon := GetProcAddress(hDLL, 'gluBeginPolygon');
-  @gluNextContour := GetProcAddress(hDLL, 'gluNextContour');
-  @gluEndPolygon := GetProcAddress(hDLL, 'gluEndPolygon');
-
+    @gluBeginPolygon := GetGLuProcAddress(hDLL, 'gluBeginPolygon');
+    @gluNextContour := GetGLuProcAddress(hDLL, 'gluNextContour');
+    @gluEndPolygon := GetGLuProcAddress(hDLL, 'gluEndPolygon');
+  except
+    raise Exception.Create('Could not load ' + MethodName + ' from ' + dll);
+  end;
 end;
 
 initialization
 
-  try
-    {$IFDEF Win32}
-    LoadGLu('glu32.dll');
-    {$ELSE}
-    {$ifdef darwin}
-    LoadGLu('/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib');
-    {$else}
-    LoadGLu('libGLU.so.1');
-    {$ENDIF}
-    {$endif}
-  except
-    writeln('error opening libGLU');
-    halt(1);
-  end;
+  {$IFDEF Win32}
+  LoadGLu('glu32.dll');
+  {$ELSE}
+  {$ifdef darwin}
+  LoadGLu('/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib');
+  {$else}
+  LoadGLu('libGLU.so.1');
+  {$ENDIF}
+  {$endif}
 
 finalization
 
