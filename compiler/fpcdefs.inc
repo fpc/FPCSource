@@ -5,9 +5,14 @@
   {$goto on}
   {$inline on}
 
-  { 1Mb stack }
+{$ifdef win32}
+  { 256MB stack }
+  { under windows the stack can't grow }
+  {$MEMORY 256000000}
+{$else win32}
+  { 1MB stack }
   {$MEMORY 1000000}
-
+{$endif win32}
   { This reduces the memory requirements a lot }
   {$PACKENUM 1}
 
