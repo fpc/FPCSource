@@ -82,6 +82,7 @@ type
   GLdouble   = Double;        PGLdouble   = ^GLdouble;
   GLclampd   = Double;        PGLclampd   = ^GLclampd;
 { GLvoid     = void; }        PGLvoid     = Pointer;
+                              PPGLvoid    = ^PGLvoid;
 
 {******************************************************************************}
 
