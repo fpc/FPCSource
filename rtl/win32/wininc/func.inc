@@ -1233,6 +1233,8 @@ function CommDlg_OpenSave_SetControlText(_hdlg:HWND;_id : longint;_text : LPSTR)
 function CommDlg_OpenSave_HideControl(_hdlg:HWND;_id : longint) : LRESULT;
 function CommDlg_OpenSave_SetDefExt(_hdlg:HWND;_pszext : LPSTR) : LRESULT;
 
+function GetNextWindow(hWnd:HWND; uCmd:UINT):HWND; external 'user32' name 'GetWindow';
+
 function GlobalAllocPtr(flags,cb:DWord):Pointer;
 function GlobalFreePtr(lp:Pointer):Pointer;
 function GlobalUnlockPtr(lp:pointer):Pointer;
