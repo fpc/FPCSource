@@ -408,7 +408,7 @@ begin
           { in case of 50 errors, this could cause another exception,
             suppress this exception
           }
-          Message(general_e_compilation_aborted);
+          Message(general_f_compilation_aborted);
         except
           on ECompilerAbort do
             ;
@@ -421,7 +421,7 @@ begin
           { in case of 50 errors, this could cause another exception,
             suppress this exception
           }
-          Message(general_e_compilation_aborted);
+          Message(general_f_compilation_aborted);
         except
           on ECompilerAbort do
             ;
@@ -439,7 +439,7 @@ begin
           { in case of 50 errors, this could cause another exception,
             suppress this exception
           }
-          Message(general_e_compilation_aborted);
+          Message(general_f_compilation_aborted);
         except
           on ECompilerAbort do
             ;
