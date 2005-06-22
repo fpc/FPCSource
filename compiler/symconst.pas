@@ -112,7 +112,11 @@ const
   paranr_syscall_legacy   = high(word)-2;
   paranr_result_leftright = high(word)-1;
 
+
 type
+  { keep this in sync with TIntfFlag in rtl/objpas/typinfo.pp }
+  TCompilerIntfFlag = (ifHasGuid,ifDispInterface,ifDispatch,ifHasStrGUID);
+
   { Deref entry options }
   tdereftype = (deref_nil,
     deref_sym,

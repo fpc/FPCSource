@@ -45,7 +45,7 @@ unit typinfo;
        TMethodKind = (mkProcedure,mkFunction,mkConstructor,mkDestructor,
                       mkClassProcedure, mkClassFunction);
        TParamFlags    = set of (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut);
-       TIntfFlag      = (ifHasGuid,ifDispInterface,ifDispatch);
+       TIntfFlag      = (ifHasGuid,ifDispInterface,ifDispatch,ifHasStrGUID);
        TIntfFlags     = set of TIntfFlag;
        TIntfFlagsBase = set of TIntfFlag;
 
@@ -124,13 +124,20 @@ unit typinfo;
               (MinInt64Value, MaxInt64Value: Int64);
             tkQWord:
               (MinQWordValue, MaxQWordValue: QWord);
-            tkInterface,
+            tkInterface:
+              (
+               IntfParent: PTypeInfo;
+               IntfFlags : TIntfFlagsBase;
+               GUID: TGUID;
+               IntfUnit: ShortString;
+              );
             tkInterfaceRaw:
               (
-               IntfParent: PPTypeInfo;
-               IID: PGUID;
-               IIDStr: ShortString;
-               IntfUnit: ShortString;
+               RawIntfParent: PTypeInfo;
+               RawIntfFlags : TIntfFlagsBase;
+               IID: TGUID;
+               RawIntfUnit: ShortString;
+               IIDStr: ShortString;               
               );
       end;
 

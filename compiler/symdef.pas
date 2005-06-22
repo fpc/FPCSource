@@ -5879,6 +5879,8 @@ implementation
 
 
     procedure tobjectdef.write_rtti_data(rt:trttitype);
+      var
+        i : longint;
       begin
          case objecttype of
             odt_class:
@@ -5914,27 +5916,55 @@ implementation
              end;
            fullrtti :
              begin
-               if (oo_has_vmt in objectoptions) and
-                  not(objecttype in [odt_interfacecom,odt_interfacecorba]) then
-                 rttiList.concat(Tai_const.Createname(vmt_mangledname,AT_DATA,0))
-               else
-                 rttiList.concat(Tai_const.create_sym(nil));
+               if not(objecttype in [odt_interfacecom,odt_interfacecorba]) then
+                 begin
+                   if (oo_has_vmt in objectoptions) then
+                     rttiList.concat(Tai_const.Createname(vmt_mangledname,AT_DATA,0))
+                   else
+                     rttiList.concat(Tai_const.create_sym(nil));
+                 end;
 
-               { write owner typeinfo }
-               if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
+               { write parent typeinfo }
+               if assigned(childof) and ((oo_can_have_published in childof.objectoptions) or
+                 (objecttype in [odt_interfacecom,odt_interfacecorba])) then
                  rttiList.concat(Tai_const.Create_sym(childof.get_rtti_label(fullrtti)))
                else
                  rttiList.concat(Tai_const.create_sym(nil));
 
-               { count total number of properties }
-               if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
-                 count:=childof.next_free_name_index
-               else
-                 count:=0;
+               if objecttype in [odt_object,odt_class] then
+                 begin
+                   { count total number of properties }
+                   if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
+                     count:=childof.next_free_name_index
+                   else
+                     count:=0;
 
-               { write it }
-               symtable.foreach(@count_published_properties,nil);
-               rttiList.concat(Tai_const.Create_16bit(count));
+                   { write it }
+                   symtable.foreach(@count_published_properties,nil);
+                   rttiList.concat(Tai_const.Create_16bit(count));
+                 end
+               else
+                 { interface: write flags, iid and iidstr }
+                 begin
+                   rttiList.concat(Tai_const.Create_32bit(
+                     { ugly, but working }
+                     longint([
+                       TCompilerIntfFlag(ord(ifHasGuid)*ord(assigned(iidguid))),
+                       TCompilerIntfFlag(ord(ifHasStrGUID)*ord(assigned(iidstr)))
+                     ])
+                     {
+                     ifDispInterface,
+                     ifDispatch, }
+                     ));
+{$ifdef cpurequiresproperalignment}
+                   rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
+                   rttilist.concat(Tai_const.Create_32bit(longint(iidguid^.D1)));
+                   rttilist.concat(Tai_const.Create_16bit(iidguid^.D2));
+                   rttilist.concat(Tai_const.Create_16bit(iidguid^.D3));
+                   for i:=Low(iidguid^.D4) to High(iidguid^.D4) do
+                     rttilist.concat(Tai_const.Create_8bit(iidguid^.D4[i]));
+                 end;
 
                { write unit name }
                rttiList.concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
@@ -5944,14 +5974,32 @@ implementation
                rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
 
-               { write published properties count }
-               count:=0;
-               symtable.foreach(@count_published_properties,nil);
-               rttiList.concat(Tai_const.Create_16bit(count));
+               { write iidstr }
+               if objecttype in [odt_interfacecom,odt_interfacecorba] then
+                 begin
+                   if assigned(iidstr) then
+                     begin
+                       rttiList.concat(Tai_const.Create_8bit(length(iidstr^)));
+                       rttiList.concat(Tai_string.Create(iidstr^));
+                     end
+                   else
+                     rttiList.concat(Tai_const.Create_8bit(0));
+{$ifdef cpurequiresproperalignment}
+                   rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
+                 end;
+
+               if objecttype in [odt_object,odt_class] then
+                 begin
+                   { write published properties count }
+                   count:=0;
+                   symtable.foreach(@count_published_properties,nil);
+                   rttiList.concat(Tai_const.Create_16bit(count));
 
 {$ifdef cpurequiresproperalignment}
-               rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+                   rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
+                 end;
 
                { count is used to write nameindex   }
 
