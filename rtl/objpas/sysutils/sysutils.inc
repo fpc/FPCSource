@@ -362,6 +362,24 @@ begin
     Result:=RaiseList^.Addr;
 end;
 
+function ExceptFrameCount: Longint;
+
+begin
+  If RaiseList=Nil then
+    Result:=0
+  else
+    Result:=RaiseList^.Framecount;
+end;
+
+function ExceptFrames: PPointer;
+
+begin
+  If RaiseList=Nil then
+    Result:=Nil
+  else
+    Result:=RaiseList^.Frames;
+end;
+
 function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
                                Buffer: PChar; Size: Integer): Integer;
 
