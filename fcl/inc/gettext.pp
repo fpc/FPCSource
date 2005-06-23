@@ -70,6 +70,7 @@ type
   EMOFileError = class(Exception);
 
 
+  procedure GetLanguageIDs(var Lang, FallbackLang: string);
   procedure TranslateResourceStrings(AFile: TMOFile);
   procedure TranslateResourceStrings(const AFilename: String);
 
@@ -259,8 +260,6 @@ begin
 end;
 {$endif}
 
-procedure TranslateResourceStrings(const AFilename: String);
-
 {$ifdef win32}
 procedure GetLanguageIDs(var Lang, FallbackLang: string);
 var
@@ -284,15 +283,11 @@ begin
     Lang := FallbackLang+'_'+Country;
   end;
 end;
-{$endif}
 
-var
-  mo: TMOFile;
-  lang, FallbackLanguage: String;
+{$else}
+
+procedure GetLanguageIDs(var Lang, FallbackLang: string);
 begin
-  {$ifdef win32}
-  GetLanguageIDs(Lang, FallbackLanguage);
-  {$else}
   lang := GetEnv('LC_ALL');
   if Length(lang) = 0 then
   begin
@@ -304,10 +299,18 @@ begin
         exit;   // no language defined via environment variables
     end;
   end;
-  FallbackLanguage := Copy(lang, 1, 2);
-  {$endif}
+  FallbackLang := Copy(lang, 1, 2);
+end;
+{$endif}
+
+procedure TranslateResourceStrings(const AFilename: String);
+var
+  mo: TMOFile;
+  lang, FallbackLang: String;
+begin
+  GetLanguageIDs(Lang, FallbackLang);
   try
-    mo := TMOFile.Create(Format(AFilename, [FallbackLanguage]));
+    mo := TMOFile.Create(Format(AFilename, [FallbackLang]));
     try
       TranslateResourceStrings(mo);
     finally
