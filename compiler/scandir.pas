@@ -1060,7 +1060,9 @@ implementation
           begin
              current_scanner.skipspace;
              s:=current_scanner.readcomment;
-             if not(cpavailable(s)) then
+             if (upper(s)='UTF8') or (upper(s)='UTF-8') then
+               aktsourcecodepage:='utf8'
+             else if not(cpavailable(s)) then
                Message1(option_code_page_not_available,s)
              else
                aktsourcecodepage:=s;
