@@ -841,6 +841,7 @@ implementation
         gotstring,
         gotwith,
         gotsubscript,
+        gotrecord,
         gotpointer,
         gotvec,
         gotclass,
@@ -858,6 +859,7 @@ implementation
         gotsubscript:=false;
         gotvec:=false;
         gotderef:=false;
+        gotrecord:=false;
         gotclass:=false;
         gotpointer:=false;
         gotwith:=false;
@@ -875,43 +877,60 @@ implementation
            { property allowed? calln has a property check itself }
            if (nf_isproperty in hp.flags) then
             begin
-              if (hp.nodetype<>calln) or
-                 (valid_property in opts) then
-               result:=true
+              if (hp.nodetype=calln) then
+                begin
+                  { check return type }
+                  case hp.resulttype.def.deftype of
+                    pointerdef :
+                      gotpointer:=true;
+                    objectdef :
+                      gotclass:=is_class_or_interface(hp.resulttype.def);
+                    recorddef :
+                      gotrecord:=true;
+                    classrefdef :
+                      gotclass:=true;
+                    stringdef :
+                      gotstring:=true;
+                  end;
+                  if (valid_property in opts) then
+                    begin
+                      { don't allow writing to calls that will create
+                        temps like calls that return a structure and we
+                        are assigning to a member }
+                      if (valid_const in opts) or
+                         not(
+                             (gotsubscript and gotrecord) or
+                             (gotstring and gotvec)
+                            ) then
+                        result:=true
+                      else
+                        CGMessagePos(hp.fileinfo,errmsg);
+                    end
+                  else
+                    begin
+                      { 1. if it returns a pointer and we've found a deref,
+                        2. if it returns a class or record and a subscription or with is found
+                        3. if the address is needed of a field (subscriptn) }
+                      if (gotpointer and gotderef) or
+                         (gotstring and gotvec) or
+                         (
+                          (gotclass or gotrecord) and
+                          (gotsubscript or gotwith)
+                         ) or
+                         (
+                           (gotvec and gotdynarray)
+                         ) or
+                         (
+                          (Valid_Addr in opts) and
+                          (hp.nodetype=subscriptn)
+                         ) then
+                        result:=true
+                      else
+                        CGMessagePos(hp.fileinfo,errmsg);
+                    end;
+                end
               else
-               begin
-                 { check return type }
-                 case hp.resulttype.def.deftype of
-                   pointerdef :
-                     gotpointer:=true;
-                   objectdef :
-                     gotclass:=is_class_or_interface(hp.resulttype.def);
-                   recorddef, { handle record like class it needs a subscription }
-                   classrefdef :
-                     gotclass:=true;
-                   stringdef :
-                     gotstring:=true;
-                 end;
-                 { 1. if it returns a pointer and we've found a deref,
-                   2. if it returns a class or record and a subscription or with is found
-                   3. if the address is needed of a field (subscriptn) }
-                 if (gotpointer and gotderef) or
-                    (gotstring and gotvec) or
-                    (
-                     gotclass and
-                     (gotsubscript or gotwith)
-                    ) or
-                    (
-                      (gotvec and gotdynarray)
-                    ) or
-                    (
-                     (Valid_Addr in opts) and
-                     (hp.nodetype=subscriptn)
-                    ) then
-                   result:=true
-                 else
-                   CGMessagePos(hp.fileinfo,errmsg);
-               end;
+                result:=true;
               exit;
             end;
            if (Valid_Const in opts) and is_constnode(hp) then
