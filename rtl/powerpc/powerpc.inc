@@ -39,12 +39,9 @@ asm
   mtfsfi 1,0
   mtfsfi 2,0
   mtfsfi 3,0
-{$ifdef fpc_mtfsb0_corrected}
   mtfsb0 21
   mtfsb0 22
   mtfsb0 23
-
-{$endif fpc_mtfsb0_corrected}
 
   { enable invalid operations and division by zero exceptions. }
   { No overflow/underflow, since those give some spurious      }
