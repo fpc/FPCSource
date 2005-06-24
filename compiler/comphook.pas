@@ -148,9 +148,7 @@ const
 implementation
 
   uses
-{$IFDEF USE_SYSUTILS}
-    SysUtils,
-{$ELSE USE_SYSUTILS}
+{$IFNDEF USE_SYSUTILS}
    dos,
 {$ENDIF USE_SYSUTILS}
    cutils
