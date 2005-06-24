@@ -684,7 +684,11 @@ implementation
             PathExists := true;
             exit;
           end;
+{$ifdef USE_SYSUTILS}
+        F := ExpandFileName(F);
+{$else USE_SYSUTILS}
         F := FExpand (F);
+{$endif USE_SYSUTILS}
         I := Pos (DriveSeparator, F);
         if (F [Length (F)] = DirectorySeparator)
                   and (((I = 0) and (Length (F) > 1)) or (I <> Length (F) - 1))
@@ -1150,7 +1154,11 @@ implementation
            currPath:= CurDirRelPath(source_info)
          else
           begin
+{$ifdef USE_SYSUTILS}
+            currPath:=FixPath(ExpandFileName(currpath),false);
+{$else USE_SYSUTILS}
             currPath:=FixPath(FExpand(currPath),false);
+{$endif USE_SYSUTILS}
             if (CurrentDir<>'') and (Copy(currPath,1,length(CurrentDir))=CurrentDir) then
              begin
 {$ifdef AMIGA}
@@ -1185,7 +1193,7 @@ implementation
                         end;
                     end;
                 until findnext(dir) <> 0;
-              end
+              end;
 {$ELSE USE_SYSUTILS}
             findfirst(prefix+'*',directory,dir);
             while doserror=0 do

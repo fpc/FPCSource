@@ -235,9 +235,6 @@ function Compile(const cmd:string):longint;
 implementation
 
 uses
-{$IFDEF USE_SYSUTILS}
-  SysUtils,
-{$ENDIF USE_SYSUTILS}
   aasmcpu;
 
 {$ifdef EXTDEBUG}

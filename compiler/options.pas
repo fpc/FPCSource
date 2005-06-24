@@ -1304,7 +1304,11 @@ begin
    Message(option_too_many_cfg_files);
 { open file }
   Message1(option_using_file,filename);
+{$ifdef USE_SYSUTILS}
+  assign(f,ExpandFileName(filename));
+{$else USE_SYSUTILS}
   assign(f,FExpand(filename));
+{$endif USE_SYsUTILS}
   {$I-}
   reset(f);
   {$I+}
