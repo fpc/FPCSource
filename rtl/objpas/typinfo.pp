@@ -271,6 +271,7 @@ Procedure SetVariantProp(Instance: TObject; PropInfo : PPropInfo; const Value: V
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
+function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : String;
 function SetToString(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean) : String;
 function SetToString(PropInfo: PPropInfo; Value: Integer) : String;
 function StringToSet(PropInfo: PPropInfo; const Value: string): Integer;
@@ -357,12 +358,18 @@ end;
 
 Function SetToString(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean) : String;
 
+begin
+  Result:=SetToString(PropInfo^.PropType,Value,Brackets);
+end;
+
+Function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : String;
+
 Var
   I : Integer;
   PTI : PTypeInfo;
 
 begin
-  PTI:=GetTypeData(PropInfo^.PropType)^.CompType;
+  PTI:=GetTypeData(TypeInfo)^.CompType;
   Result:='';
   For I:=0 to SizeOf(Integer)*8-1 do
     begin
