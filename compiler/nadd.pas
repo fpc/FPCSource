@@ -1009,7 +1009,7 @@ implementation
              else
                begin
                  { if the left or right value is smaller than the normal
-                   type s32inttype and is unsigned, and the other value
+                   type sinttype and is unsigned, and the other value
                    is a constant < 0, the result will always be false/true
                    for equal / unequal nodes.
                  }
@@ -1041,9 +1041,12 @@ implementation
                          CGMessage(type_w_signed_unsigned_always_false);
                     end;
 
-                 { When there is a signed type we convert to signed int.
-                   Otherwise (both are unsigned) we keep the result also unsigned }
-                 if (is_signed(ld) or is_signed(rd)) then
+                 { When there is a signed type or there is a minus operation
+                   we convert to signed int. Otherwise (both are unsigned) we keep
+                   the result also unsigned. This is compatible with Delphi (PFV) }
+                 if is_signed(ld) or
+                    is_signed(rd) or
+                    (nodetype=subn) then
                    begin
                      inserttypeconv(right,sinttype);
                      inserttypeconv(left,sinttype);
