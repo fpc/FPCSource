@@ -275,6 +275,7 @@ function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : S
 function SetToString(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean) : String;
 function SetToString(PropInfo: PPropInfo; Value: Integer) : String;
 function StringToSet(PropInfo: PPropInfo; const Value: string): Integer;
+function StringToSet(TypeInfo: PTypeInfo; const Value: string): Integer;
 
 const
     BooleanIdents: array[Boolean] of String = ('False', 'True');
@@ -412,8 +413,13 @@ begin
     end;
 end;
 
-
 Function StringToSet(PropInfo: PPropInfo; const Value: string): Integer;
+
+begin
+  Result:=StringToSet(PropInfo^.PropType,Value);
+end;
+
+Function StringToSet(TypeInfo: PTypeInfo; const Value: string): Integer;
 Var
   S,T : String;
   I : Integer;
@@ -421,7 +427,7 @@ Var
 
 begin
   Result:=0;
-  PTI:=GetTypeData(PropInfo^.PropType)^.Comptype;
+  PTI:=GetTypeData(TypeInfo)^.Comptype;
   S:=Value;
   I:=1;
   If Length(S)>0 then
