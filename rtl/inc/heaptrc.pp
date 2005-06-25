@@ -433,6 +433,11 @@ var
 {$endif}
   extra_size : ptrint;
 begin
+  if p=nil then
+    begin
+      TraceFreeMemSize:=0;
+      exit;
+    end;
   inc(freemem_size,size);
   inc(freemem8_size,((size+7) div 8)*8);
   pp:=pheap_mem_info(p-sizeof(theap_mem_info));
@@ -554,6 +559,11 @@ var
   l  : ptrint;
   pp : pheap_mem_info;
 begin
+  if p=nil then
+    begin
+      TraceFreeMem:=0;
+      exit;
+    end;
   pp:=pheap_mem_info(p-sizeof(theap_mem_info));
   l:=SysMemSize(pp);
   dec(l,sizeof(theap_mem_info)+pp^.extra_info_size);
