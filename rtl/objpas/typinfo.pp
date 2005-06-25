@@ -271,9 +271,11 @@ Procedure SetVariantProp(Instance: TObject; PropInfo : PPropInfo; const Value: V
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
+function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : String;
 function SetToString(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean) : String;
 function SetToString(PropInfo: PPropInfo; Value: Integer) : String;
 function StringToSet(PropInfo: PPropInfo; const Value: string): Integer;
+function StringToSet(TypeInfo: PTypeInfo; const Value: string): Integer;
 
 const
     BooleanIdents: array[Boolean] of String = ('False', 'True');
@@ -357,12 +359,18 @@ end;
 
 Function SetToString(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean) : String;
 
+begin
+  Result:=SetToString(PropInfo^.PropType,Value,Brackets);
+end;
+
+Function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : String;
+
 Var
   I : Integer;
   PTI : PTypeInfo;
 
 begin
-  PTI:=GetTypeData(PropInfo^.PropType)^.CompType;
+  PTI:=GetTypeData(TypeInfo)^.CompType;
   Result:='';
   For I:=0 to SizeOf(Integer)*8-1 do
     begin
@@ -405,8 +413,13 @@ begin
     end;
 end;
 
-
 Function StringToSet(PropInfo: PPropInfo; const Value: string): Integer;
+
+begin
+  Result:=StringToSet(PropInfo^.PropType,Value);
+end;
+
+Function StringToSet(TypeInfo: PTypeInfo; const Value: string): Integer;
 Var
   S,T : String;
   I : Integer;
@@ -414,7 +427,7 @@ Var
 
 begin
   Result:=0;
-  PTI:=GetTypeData(PropInfo^.PropType)^.Comptype;
+  PTI:=GetTypeData(TypeInfo)^.Comptype;
   S:=Value;
   I:=1;
   If Length(S)>0 then
