@@ -304,10 +304,13 @@ implementation
           begin
             result:=cloadnode.create(srsym,srsymtable);
             include(result.flags,nf_is_self);
-            resulttypepass(result);
           end
         else
-          CGMessage(parser_e_illegal_expression);
+          begin
+            result:=cerrornode.create;
+            CGMessage(parser_e_illegal_expression);
+          end;
+        resulttypepass(result);
       end;
 
 
@@ -319,12 +322,13 @@ implementation
         result:=nil;
         searchsym('result',srsym,srsymtable);
         if assigned(srsym) then
-          begin
-            result:=cloadnode.create(srsym,srsymtable);
-            resulttypepass(result);
-          end
+          result:=cloadnode.create(srsym,srsymtable)
         else
-          CGMessage(parser_e_illegal_expression);
+          begin
+            result:=cerrornode.create;
+            CGMessage(parser_e_illegal_expression);
+          end;
+        resulttypepass(result);
       end;
 
 
@@ -339,10 +343,13 @@ implementation
           begin
             result:=cloadnode.create(srsym,srsymtable);
             include(result.flags,nf_load_self_pointer);
-            resulttypepass(result);
           end
         else
-          CGMessage(parser_e_illegal_expression);
+          begin
+            result:=cerrornode.create;
+            CGMessage(parser_e_illegal_expression);
+          end;
+        resulttypepass(result);
       end;
 
 
@@ -354,12 +361,13 @@ implementation
         result:=nil;
         searchsym('vmt',srsym,srsymtable);
         if assigned(srsym) then
-          begin
-            result:=cloadnode.create(srsym,srsymtable);
-            resulttypepass(result);
-          end
+          result:=cloadnode.create(srsym,srsymtable)
         else
-          CGMessage(parser_e_illegal_expression);
+          begin
+            result:=cerrornode.create;
+            CGMessage(parser_e_illegal_expression);
+          end;
+        resulttypepass(result);
       end;
 
 
