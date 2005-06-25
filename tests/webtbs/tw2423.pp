@@ -1,4 +1,6 @@
 { %target=win32 }
+{ %interactive }
+
 { Source provided for Free Pascal Bug Report 2423 }
 { Submitted by "Pavel V. Ozerski" on  2003-03-18 }
 { e-mail: ozerski@list.ru }
@@ -69,7 +71,7 @@ begin
    begin
     setlength(s,i);
     break;
-   end; 
+   end;
  s:=s+'demo.htm';
  assign(t,s);
  rewrite(t,1);
