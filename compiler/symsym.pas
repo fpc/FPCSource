@@ -123,7 +123,7 @@ interface
           function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
           function search_procdef_bypara(para:tlist;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
-          function search_procdef_assignment_operator(fromdef,todef:tdef):Tprocdef;
+          function search_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
           function is_visible_for_object(currobjdef:tdef):boolean;override;
 {$ifdef GDB}
@@ -988,13 +988,12 @@ implementation
       end;
 
 
-    function Tprocsym.search_procdef_assignment_operator(fromdef,todef:tdef):Tprocdef;
+    function Tprocsym.search_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
       var
         convtyp : tconverttype;
         pd      : pprocdeflist;
         bestpd  : tprocdef;
-        eq,
-        besteq  : tequaltype;
+        eq      : tequaltype;
         hpd     : tprocdef;
         i       : byte;
       begin
@@ -1004,7 +1003,15 @@ implementation
         pd:=pdlistfirst;
         while assigned(pd) do
           begin
-            if equal_defs(todef,pd^.def.rettype.def) then
+            if equal_defs(todef,pd^.def.rettype.def) and
+              { the result type must be always really equal and not an alias,
+                if you mess with this code, check tw4093 }
+              ((todef=pd^.def.rettype.def) or
+               (
+                 not(df_unique in todef.defoptions) and
+                 not(df_unique in pd^.def.rettype.def.defoptions)
+               )
+              ) then
              begin
                i:=0;
                { ignore vs_hidden parameters }
@@ -1014,8 +1021,18 @@ implementation
                if assigned(pd^.def.paras[i]) then
                 begin
                   eq:=compare_defs_ext(fromdef,tparavarsym(pd^.def.paras[i]).vartype.def,nothingn,convtyp,hpd,[]);
+
+                  { alias? if yes, only l1 choice,
+                    if you mess with this code, check tw4093 }
+                  if (eq=te_exact) and
+                    (fromdef<>tparavarsym(pd^.def.paras[i]).vartype.def) and
+                    ((df_unique in fromdef.defoptions) or
+                    (df_unique in tparavarsym(pd^.def.paras[i]).vartype.def.defoptions)) then
+                    eq:=te_convert_l1;
+
                   if eq=te_exact then
                    begin
+                     besteq:=eq;
                      result:=pd^.def;
                      exit;
                    end;

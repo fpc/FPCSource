@@ -2051,6 +2051,7 @@ implementation
     var st:Tsymtable;
         sym:Tprocsym;
         sv:cardinal;
+        besteq:tequaltype;
 
     begin
       st:=symtablestack;
@@ -2062,8 +2063,10 @@ implementation
             begin
               if sym.typ<>procsym then
                 internalerror(200402031);
-              search_assignment_operator:=sym.search_procdef_assignment_operator(from_def,to_def);
-              if search_assignment_operator<>nil then
+              { if the source type is an alias then this is only the second choice,
+                if you mess with this code, check tw4093 }
+              search_assignment_operator:=sym.search_procdef_assignment_operator(from_def,to_def,besteq);
+              if (search_assignment_operator<>nil) and (besteq=te_exact) then
                 break;
             end;
           st:=st.next;

@@ -25,5 +25,4 @@ begin
   writeln(v);
   DT := V;
   WriteLn(DateTimeToStr(DT));
-  ReadLn;
 end.
