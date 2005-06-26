@@ -472,7 +472,7 @@ end;
 function TFPWriterPNG.ColorDataColorW(color:TFPColor) : TColorData;
 begin
   with color do
-    result := red + (green shl 16) + (blue shl 32);
+    result := red + (green shl 16) + (qword(blue) shl 32);
 end;
 
 function TFPWriterPNG.ColorDataColorAB(color:TFPColor) : TColorData;
@@ -484,7 +484,7 @@ end;
 function TFPWriterPNG.ColorDataColorAW(color:TFPColor) : TColorData;
 begin
   with color do
-    result := red + (green shl 16) + (blue shl 32) + (alpha shl 48);
+    result := red + (green shl 16) + (qword(blue) shl 32) + (qword(alpha) shl 48);
 end;
 
 { Data making routines }
