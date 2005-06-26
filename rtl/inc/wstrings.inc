@@ -633,7 +633,6 @@ begin
           Dec(Pointer(S),WideFirstOff);
           if L*sizeof(WideChar)+WideRecLen>MemSize(Pointer(S)) then
               reallocmem(pointer(S), L*sizeof(WideChar)+WideRecLen);
-          end;
           Inc(Pointer(S), WideFirstOff);
         end
 {$endif MSWINDOWS}        
