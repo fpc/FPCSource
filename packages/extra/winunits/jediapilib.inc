@@ -35,7 +35,10 @@
 { For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html }
 {                                                                              }
 {******************************************************************************}
-{$A+,Z4}
+{$ifndef FPC}
+{$A+}
+{$endif FPC}
+{$Z4}
 
 // This file is intended for C header conversions.
 // It defines several mutually exclusive IFDEFs which determine
