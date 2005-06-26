@@ -1447,26 +1447,24 @@ implementation
 
          { The program intialization needs an alias, so it can be called
            from the bootstrap code.}
-         if islibrary or
-            (target_info.system in [system_powerpc_macos,system_powerpc_darwin]) then
+         
+         if islibrary then
           begin
-            pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'main'),potype_proginit,st);
+            pd:=create_main_proc(make_mangledname('',current_module.localsymtable,mainaliasname),potype_proginit,st);
             { Win32 startup code needs a single name }
 //            if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
             pd.aliasnames.insert('PASCALMAIN');
           end
-         else
-          begin
-            if (target_info.system = system_i386_netware) or
-               (target_info.system = system_i386_netwlibc) then
-            begin
-              pd:=create_main_proc('PASCALMAIN',potype_proginit,st); { main is need by the netware rtl }
-            end else
-            begin
-              pd:=create_main_proc('main',potype_proginit,st);
-              pd.aliasnames.insert('PASCALMAIN');
-            end;
-          end;
+         else if (target_info.system = system_i386_netware) or
+                 (target_info.system = system_i386_netwlibc) then
+           begin
+             pd:=create_main_proc('PASCALMAIN',potype_proginit,st); { main is need by the netware rtl }
+           end
+         else 
+           begin
+             pd:=create_main_proc(mainaliasname,potype_proginit,st);
+             pd.aliasnames.insert('PASCALMAIN');
+           end;
          tcgprocinfo(current_procinfo).parse_body;
          tcgprocinfo(current_procinfo).generate_code;
          tcgprocinfo(current_procinfo).resetprocdef;

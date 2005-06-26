@@ -216,16 +216,23 @@ end;
 { can also be used with other BSD's if they use the system's crtX instead of prtX }
 
 {$ifdef Darwin}
+
+{$ifndef FPC_DARWIN_PASCALMAIN}
 procedure pascalmain; external name 'PASCALMAIN';
 
 { Main entry point in C style, needed to capture program parameters. }
 procedure main(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
+{$else FPC_DARWIN_PASCALMAIN}
+procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
+{$endif FPC_DARWIN_PASCALMAIN}
 
 begin
   argc:= argcparam;
   argv:= argvparam;
   envp:= envpparam;
+{$ifndef FPC_DARWIN_PASCALMAIN}
   pascalmain;  {run the pascal main program}
+{$endif FPC_DARWIN_PASCALMAIN}
 end;
 {$endif Darwin}
 {$endif FPC_USE_LIBC}

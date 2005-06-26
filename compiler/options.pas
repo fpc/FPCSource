@@ -1223,6 +1223,11 @@ begin
                         exclude(initglobalswitches,cs_link_shared);
                         LinkTypeSetExplicitly:=true;
                       end;
+                    'M' :
+                      begin
+                        mainaliasname:=Copy(more,2,length(More)-1);
+                        More:='';
+                      end;
                     '-' :
                       begin
                         exclude(initglobalswitches,cs_link_staticflag);
@@ -1784,6 +1789,8 @@ begin
   def_system_macro('VER'+version_nr+'_'+release_nr+'_'+patch_nr);
 
 { Temporary defines, until things settle down }
+  { "main" symbol is generated in the main program, and left out of the system unit }
+  def_system_macro('FPC_DARWIN_PASCALMAIN');
   if pocall_default = pocall_register then
     def_system_macro('REGCALL');
 
