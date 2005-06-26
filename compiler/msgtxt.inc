@@ -1,7 +1,7 @@
 {$ifdef Delphi}
-const msgtxt : array[0..000160] of string[240]=(
+const msgtxt : array[0..000161] of string[240]=(
 {$else Delphi}
-const msgtxt : array[0..000160,1..240] of char=(
+const msgtxt : array[0..000161,1..240] of char=(
 {$endif Delphi}
   '01000_T_Compiler: $1'#000+
   '01001_D_Compiler OS: $1'#000+
@@ -917,28 +917,29 @@ const msgtxt : array[0..000160,1..240] of char=(
   'e'#010,
   '**2*_    lots of debugging info'#010+
   '3*1W<x>_Win32-like target options'#010+
+  '3*2WB_Create a relocatable image'#010+
   '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
   '3*2WC_Specify console type application'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE'#010+
-  '3*2WF_Specify full-screen type app','lication (OS/2 only)'#010+
+  '3','*2WF_Specify full-screen type application (OS/2 only)'#010+
   '3*2WG_Specify graphic type application'#010+
   '3*2WN_Do not generate relocation code (necessary for debugging)'#010+
   '3*2WR_Generate relocation code'#010+
-  'P*2WC_Specify console type application (MacOS only)'#010+
-  'P*2WG_Specify graphic type applic','ation (MacOS only)'#010+
+  'P*2WC_Specify console type application (MacOS only)'#010,
+  'P*2WG_Specify graphic type application (MacOS only)'#010+
   'P*2WT_Specify tool type application (MPW tool, MacOS only)'#010+
   '**1X_executable options:'#010+
   '**2Xc_pass --shared to the linker (Unix only)'#010+
-  '**2Xd_don'#039't use standard library search path (needed for cross com'+
-  'pile)'#010+
-  '**2XD_try to link u','nits dynamic          (defines FPC_LINK_DYNAMIC)'#010+
+  '**2Xd_don'#039't use standard library search path (needed for c','ross c'+
+  'ompile)'#010+
+  '**2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)'#010+
   '**2XP<x>_prepend the binutils names with the prefix <x>'#010+
   '**2Xr<x>_set library search path to <x> (needed for cross compile)'#010+
-  '**2Xs_strip all symbols from executable'#010+
-  '**2XS_try to link units stat','ic (default) (defines FPC_LINK_STATIC)'#010+
+  '**2Xs_strip all symbols from execut','able'#010+
+  '**2XS_try to link units static (default) (defines FPC_LINK_STATIC)'#010+
   '**2Xt_link with static libraries (-static is passed to linker)'#010+
   '**2XX_try to link units smart            (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_shows this help'#010+
-  '**1h_shows this help without waiting'#000
+  '**1h_shows t','his help without waiting'#000
 );

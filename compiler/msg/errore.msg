@@ -2349,6 +2349,7 @@ S*2Tlinux_Linux
 **2*_v : write fpcdebug.txt with     p : Write tree.log with parse tree
 **2*_    lots of debugging info
 3*1W<x>_Win32-like target options
+3*2WB_Create a relocatable image
 3*2WB<x>_Set Image base to Hexadecimal <x> value
 3*2WC_Specify console type application
 3*2WD_Use DEFFILE to export functions of DLL or EXE
