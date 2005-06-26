@@ -114,12 +114,14 @@ implementation
 { used by wstrings.inc because wstrings.inc is included before sysos.inc
   this is put here (FK) }
 
-function SysAllocStringLen(psz:pointer;len:Integer):pointer;stdcall;
+function SysAllocStringLen(psz:pointer;len:dword):pointer;stdcall;
  external 'oleaut32.dll' name 'SysAllocStringLen';
 
 procedure SysFreeString(bstr:pointer);stdcall;
  external 'oleaut32.dll' name 'SysFreeString';
 
+function SysReAllocStringLen(var bstr:pointer;psz: pointer;
+  len:dword): Integer; stdcall;external 'oleaut32.dll' name 'SysReAllocStringLen';
 
 
 { include system independent routines }
