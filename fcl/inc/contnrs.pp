@@ -21,18 +21,29 @@ uses
   SysUtils,Classes;
 
 Type
+
 {$inline on}
 
-  TFPObjectList = class(TFPList)
+  TFPObjectList = class(TObject)
   private
     FFreeObjects : Boolean;
+    FList: TFPList;
+    function GetCount: integer;
+    procedure SetCount(const AValue: integer);
   protected
     function GetItem(Index: Integer): TObject; {$ifdef HASINLINE} inline;{$endif}
     procedure SetItem(Index: Integer; AObject: TObject); {$ifdef HASINLINE} inline;{$endif}
+    procedure SetCapacity(NewCapacity: Integer);
+    function GetCapacity: integer;
   public
     constructor Create;
     constructor Create(FreeObjects : Boolean);
+    destructor Destroy; override;
+    procedure Clear;
     function Add(AObject: TObject): Integer; {$ifdef HASINLINE} inline;{$endif}
+    procedure Delete(Index: Integer); {$ifdef HASINLINE} inline;{$endif}
+    procedure Exchange(Index1, Index2: Integer);
+    function Expand: TFPObjectList;
     function Extract(Item: TObject): TObject;
     function Remove(AObject: TObject): Integer;
     function IndexOf(AObject: TObject): Integer;
@@ -40,8 +51,15 @@ Type
     procedure Insert(Index: Integer; AObject: TObject); {$ifdef HASINLINE} inline;{$endif}
     function First: TObject;
     function Last: TObject;
+    procedure Move(CurIndex, NewIndex: Integer);
+    procedure Assign(Obj:TFPObjectList);
+    procedure Pack;
+    procedure Sort(Compare: TListSortCompare);
+    property Capacity: Integer read GetCapacity write SetCapacity;
+    property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
     property Items[Index: Integer]: TObject read GetItem write SetItem; default;
+    property List: TFPList read FList;
   end;
 
   TObjectList = class(TList)
@@ -155,51 +173,112 @@ implementation
 
 constructor TFPObjectList.Create(FreeObjects : boolean);
 begin
-  inherited Create;
-  FFreeObjects:=Freeobjects;
+  Create;
+  FFreeObjects := Freeobjects;
+end;
+
+destructor TFPObjectList.Destroy;
+begin
+  if (FList <> nil) then
+  begin
+    Clear;
+    FList.Destroy;
+  end;
+  inherited Destroy;
+end;
+
+procedure TFPObjectList.Clear;
+var
+  i: integer;
+begin
+  if FFreeObjects then
+    for i := 0 to FList.Count - 1 do
+      TObject(FList[i]).Free;
+  FList.Clear;
 end;
 
 constructor TFPObjectList.Create;
 begin
   inherited Create;
-  FFreeObjects:=True;
+  FList := TFPList.Create;
+  FFreeObjects := True;
+end;
+
+function TFPObjectList.GetCount: integer;
+begin
+  Result := FList.Count;
+end;
+
+procedure TFPObjectList.SetCount(const AValue: integer);
+begin
+  if FList.Count <> AValue then
+    FList.Count := AValue;
 end;
 
 function TFPObjectList.GetItem(Index: Integer): TObject; {$ifdef HASINLINE} inline;{$endif}
 begin
-  Result:=TObject(inherited Get(Index));
+  Result := TObject(FList[Index]);
 end;
 
 procedure TFPObjectList.SetItem(Index: Integer; AObject: TObject); {$ifdef HASINLINE} inline;{$endif}
-var
-  O : TObject;
 begin
   if OwnsObjects then
-    begin
-    O:=GetItem(Index);
-    O.Free;
-    end;
-  Put(Index,Pointer(AObject));
+    TObject(FList[Index]).Free;
+  FList[index] := AObject;
+end;
+
+procedure TFPObjectList.SetCapacity(NewCapacity: Integer);
+begin
+  FList.Capacity := NewCapacity;
+end;
+
+function TFPObjectList.GetCapacity: integer;
+begin
+  Result := FList.Capacity;
 end;
 
 function TFPObjectList.Add(AObject: TObject): Integer; {$ifdef HASINLINE} inline;{$endif}
 begin
-  Result:=inherited Add(Pointer(AObject));
+  Result := FList.Add(AObject);
+end;
+
+procedure TFPObjectList.Delete(Index: Integer); {$ifdef HASINLINE} inline;{$endif}
+begin
+  if OwnsObjects then
+    TObject(FList[Index]).Free;
+  FList.Delete(Index);
+end;
+
+procedure TFPObjectList.Exchange(Index1, Index2: Integer);
+begin
+  FList.Exchange(Index1, Index2);
+end;
+
+function TFPObjectList.Expand: TFPObjectList;
+begin
+  FList.Expand;
+  Result := Self;
 end;
 
 function TFPObjectList.Extract(Item: TObject): TObject;
 begin
-  Result:=Tobject(inherited Extract(Pointer(Item)));
+  Result := TObject(FList.Extract(Item));
 end;
 
 function TFPObjectList.Remove(AObject: TObject): Integer;
 begin
-  Result:=inherited Remove(Pointer(AObject));
+  Result := IndexOf(AObject);
+  if (Result <> -1) then
+  begin
+    if OwnsObjects then
+      TObject(FList[Result]).Free;
+    FList.Delete(Result);
+  end;
 end;
 
 function TFPObjectList.IndexOf(AObject: TObject): Integer;
 begin
-  Result:=inherited indexOF(Pointer(AObject));
+  Result := FList.IndexOf(Pointer(AObject));
 end;
 
 function TFPObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt : Integer): Integer;
@@ -224,17 +303,41 @@ end;
 
 procedure TFPObjectList.Insert(Index: Integer; AObject: TObject); {$ifdef HASINLINE} inline;{$endif}
 begin
-  inherited Insert(Index,Pointer(AObject));
+  FList.Insert(Index, Pointer(AObject));
+end;
+
+procedure TFPObjectList.Move(CurIndex, NewIndex: Integer);
+begin
+  FList.Move(CurIndex, NewIndex);
+end;
+
+procedure TFPObjectList.Assign(Obj: TFPObjectList);
+var
+  i: Integer;
+begin
+  Clear;
+  for I := 0 to Obj.Count - 1 do
+    Add(Obj[i]);
+end;
+
+procedure TFPObjectList.Pack;
+begin
+  FList.Pack;
+end;
+
+procedure TFPObjectList.Sort(Compare: TListSortCompare);
+begin
+  FList.Sort(Compare);
 end;
 
 function TFPObjectList.First: TObject;
 begin
-  Result := TObject(inherited First);
+  Result := TObject(FList.First);
 end;
 
 function TFPObjectList.Last: TObject;
 begin
-  Result := TObject(inherited Last);
+  Result := TObject(FList.Last);
 end;
 
 { TObjectList }
@@ -336,21 +439,20 @@ begin
 end;
 
 
-Procedure TObjectList.Insert(Index: Integer; AObject: TObject);
-
+procedure TObjectList.Insert(Index: Integer; AObject: TObject);
 begin
   Inherited Insert(Index,Pointer(AObject));
 end;
 
 
-Function TObjectList.First: TObject;
+function TObjectList.First: TObject;
 
 begin
   Result := TObject(Inherited First);
 end;
 
 
-Function TObjectList.Last: TObject;
+function TObjectList.Last: TObject;
 
 begin
   Result := TObject(Inherited Last);
