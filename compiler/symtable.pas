@@ -1196,7 +1196,7 @@ implementation
               { but private ids can be reused }
               hsym:=search_class_member(tobjectdef(defowner),sym.name);
               if assigned(hsym) and
-                 Tsym(hsym).is_visible_for_object(tobjectdef(defowner)) then
+                 tsym(hsym).is_visible_for_object(tobjectdef(defowner),tobjectdef(defowner)) then
                 DuplicateSym(sym,hsym);
            end;
          inherited insert(sym);
@@ -1282,7 +1282,7 @@ implementation
                hsym:=search_class_member(tobjectdef(next.next.defowner),sym.name);
                if assigned(hsym) and
                  { private ids can be reused }
-                  (hsym.is_visible_for_object(tobjectdef(next.next.defowner)) or
+                  (hsym.is_visible_for_object(tobjectdef(next.next.defowner),tobjectdef(next.next.defowner)) or
                    (hsym.owner.defowner.owner.symtabletype<>globalsymtable)) then
                 begin
                   { delphi allows to reuse the names in a class, but not
@@ -1323,7 +1323,7 @@ implementation
               hsym:=search_class_member(tobjectdef(next.defowner),sym.name);
               { private ids can be reused }
               if assigned(hsym) and
-                 Tsym(hsym).is_visible_for_object(tobjectdef(next.defowner)) then
+                 Tsym(hsym).is_visible_for_object(tobjectdef(next.defowner),tobjectdef(next.defowner)) then
                begin
                  { delphi allows to reuse the names in a class, but not
                    in object (tp7 compatible) }
@@ -1809,6 +1809,7 @@ implementation
       var
         speedvalue : cardinal;
         topclass   : tobjectdef;
+        context : tobjectdef;
       begin
          speedvalue:=getspeedvalue(s);
          srsymtable:=symtablestack;
@@ -1831,7 +1832,11 @@ implementation
                      if assigned(current_procinfo) then
                        topclass:=current_procinfo.procdef._class;
                    end;
-                 if Tsym(srsym).is_visible_for_object(topclass) then
+                 if assigned(current_procinfo) then
+                   context:=current_procinfo.procdef._class
+                 else
+                   context:=nil;
+                 if tsym(srsym).is_visible_for_object(topclass,context) then
                    begin
                      { we need to know if a procedure references symbols
                        in the static symtable, because then it can't be
@@ -1868,7 +1873,7 @@ implementation
                   srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
                   if assigned(srsym) and
                      (not assigned(current_procinfo) or
-                      Tsym(srsym).is_visible_for_object(current_procinfo.procdef._class)) then
+                      tsym(srsym).is_visible_for_object(current_procinfo.procdef._class,current_procinfo.procdef._class)) then
                     begin
                       result:=true;
                       exit;
@@ -1909,7 +1914,7 @@ implementation
        end;
 
 
-    function  searchsym_in_class(classh:tobjectdef;const s : stringid):tsym;
+    function searchsym_in_class(classh:tobjectdef;const s : stringid):tsym;
       var
         speedvalue : cardinal;
         topclassh  : tobjectdef;
@@ -1936,7 +1941,7 @@ implementation
           begin
             sym:=tsym(classh.symtable.speedsearch(s,speedvalue));
             if assigned(sym) and
-               Tsym(sym).is_visible_for_object(topclassh) then
+               Tsym(sym).is_visible_for_object(topclassh,current_procinfo.procdef._class) then
               break;
             classh:=classh.childof;
           end;
@@ -1944,7 +1949,7 @@ implementation
       end;
 
 
-    function  searchsym_in_class_by_msgint(classh:tobjectdef;i:longint):tsym;
+    function searchsym_in_class_by_msgint(classh:tobjectdef;i:longint):tsym;
       var
         topclassh  : tobjectdef;
         def        : tdef;
@@ -1995,7 +2000,7 @@ implementation
       end;
 
 
-    function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string):tsym;
+    function searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string):tsym;
       var
         topclassh  : tobjectdef;
         def        : tdef;
@@ -2218,7 +2223,7 @@ implementation
             begin
               if (srsym.typ<>procsym) then
                internalerror(200111022);
-              if srsym.is_visible_for_object(tobjectdef(aprocsym.owner.defowner)) then
+              if srsym.is_visible_for_object(tobjectdef(aprocsym.owner.defowner),tobjectdef(aprocsym.owner.defowner)) then
                begin
                  srsym.add_para_match_to(Aprocsym,[cpo_ignorehidden,cpo_allowdefaults]);
                  { we can stop if the overloads were already added

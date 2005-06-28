@@ -550,19 +550,19 @@ implementation
                      { don't forget that min can be negativ  PM }
                      enumdef :
                        if tenumdef(tt2.def).min>=0 then
-                        tt.setdef(tsetdef.create(tt2,tenumdef(tt2.def).max))
+                        tt.setdef(tsetdef.create(tt2,tenumdef(tt2.def).min,tenumdef(tt2.def).max))
                        else
                         Message(sym_e_ill_type_decl_set);
                      orddef :
                        begin
                          case torddef(tt2.def).typ of
                            uchar :
-                             tt.setdef(tsetdef.create(tt2,255));
+                             tt.setdef(tsetdef.create(tt2,0,255));
                            u8bit,u16bit,u32bit,
                            s8bit,s16bit,s32bit :
                              begin
                                if (torddef(tt2.def).low>=0) then
-                                tt.setdef(tsetdef.create(tt2,torddef(tt2.def).high))
+                                tt.setdef(tsetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
                                else
                                 Message(sym_e_ill_type_decl_set);
                              end;

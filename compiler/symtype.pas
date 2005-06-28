@@ -118,7 +118,11 @@ interface
          function  gettypedef:tdef;virtual;
          procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
-         function is_visible_for_object(currobjdef:Tdef):boolean;virtual;
+         { currobjdef is the object def to assume, this is necessary for protected and
+           private,
+           context is the object def we're really in, this is for the strict stuff
+         }
+         function is_visible_for_object(currobjdef:tdef;context : tdef):boolean;virtual;
       end;
 
       tsymarr = array[0..maxlongint div sizeof(pointer)-1] of tsym;
@@ -475,7 +479,7 @@ implementation
       end;
 
 
-    function Tsym.is_visible_for_object(currobjdef:Tdef):boolean;
+    function Tsym.is_visible_for_object(currobjdef:Tdef;context : tdef):boolean;
       begin
         is_visible_for_object:=false;
 
@@ -487,7 +491,21 @@ implementation
            (not owner.defowner.owner.iscurrentunit) then
           exit;
 
-        { protected symbols are vissible in the module that defines them and
+        if (sp_strictprivate in symoptions) then
+          begin
+            result:=assigned(currobjdef) and
+              (context=tdef(owner.defowner));
+            exit;
+          end;
+
+        if (sp_strictprotected in symoptions) then
+          begin
+            result:=assigned(context) and
+              context.is_related(tdef(owner.defowner));
+            exit;
+          end;
+
+        { protected symbols are visible in the module that defines them and
           also visible to related objects }
         if (sp_protected in symoptions) and
            (

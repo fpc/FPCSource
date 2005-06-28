@@ -705,7 +705,9 @@ interface
        tsetdef = class(tstoreddef)
           elementtype : ttype;
           settype : tsettype;
-          constructor create(const t:ttype;high : longint);
+          setbase,
+          setmax : aint;
+          constructor create(const t:ttype;low,high : aint);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           function getcopy : tstoreddef;override;
@@ -2714,7 +2716,9 @@ implementation
          inherited create;
          deftype:=setdef;
          elementtype:=t;
-         if high<32 then
+         setbase:=low;
+         setmax:=high;
+         if (high-low)+1<=32 then
            begin
             settype:=smallset;
            {$ifdef testvarsets}
@@ -2757,6 +2761,9 @@ implementation
             varset : savesize:=ppufile.getlongint;
             smallset : savesize:=Sizeof(longint);
          end;
+          normset : savesize:=ppufile.getaint;
+          smallset : savesize:=Sizeof(longint);
+        end;
       end;
 
 
@@ -2786,6 +2793,8 @@ implementation
          ppufile.putbyte(byte(settype));
          if settype=varset then
            ppufile.putlongint(savesize);
+         if settype=normset then
+           ppufile.putaint(savesize);
          ppufile.writeentry(ibsetdef);
       end;
 
@@ -3202,9 +3211,9 @@ implementation
         { static variables from objects are like global objects }
         if (Tsym(p).typ=fieldvarsym) and not (sp_static in Tsym(p).symoptions) then
           begin
-            if (sp_protected in tsym(p).symoptions) then
+            if ([sp_protected,sp_strictprotected]*tsym(p).symoptions)<>[] then
               spec:='/1'
-            else if (sp_private in tsym(p).symoptions) then
+            else if ([sp_private,sp_strictprivate]*tsym(p).symoptions)<>[] then
               spec:='/0'
             else
               spec:='';
@@ -4069,7 +4078,20 @@ implementation
            not(owner.defowner.owner.iscurrentunit) then
           exit;
 
-        { protected symbols are vissible in the module that defines them and
+        if (sp_strictprivate in symoptions) then
+          begin
+            result:=currobjdef=tobjectdef(owner.defowner);
+            exit;
+          end;
+
+        if (sp_strictprotected in symoptions) then
+          begin
+             result:=assigned(currobjdef) and
+               currobjdef.is_related(tobjectdef(owner.defowner));
+             exit;
+          end;
+
+        { protected symbols are visible in the module that defines them and
           also visible to related objects. The related object must be defined
           in the current module }
         if (sp_protected in symoptions) and
@@ -5139,8 +5161,7 @@ implementation
              { only important for classes }
              lastvtableindex:=c.lastvtableindex;
              objectoptions:=objectoptions+(c.objectoptions*
-               [oo_has_virtual,oo_has_private,oo_has_protected,
-                oo_has_constructor,oo_has_destructor]);
+               inherited_objectoptions);
              if not (objecttype in [odt_interfacecom,odt_interfacecorba]) then
                begin
                   { add the data of the anchestor class }
@@ -5387,9 +5408,9 @@ implementation
               end;
            { here 2A must be changed for private and protected }
            { 0 is private 1 protected and 2 public }
-           if (sp_private in tsym(p).symoptions) then
+           if ([sp_private,sp_strictprivate]*tsym(p).symoptions)<>[] then
              sp:='0'
-           else if (sp_protected in tsym(p).symoptions) then
+           else if ([sp_protected,sp_strictprocted*tsym(p).symoptions)<>[] then
              sp:='1'
            else
              sp:='2';

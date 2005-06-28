@@ -1008,6 +1008,8 @@ parser_e_no_static_method_in_interfaces=03212_E_Class and static methods can't b
 % because all methods of an interfaces must be public.
 parser_e_arithmetic_operation_overflow=03213_E_Overflow in arithmetic operation
 % An operation on two integers values produced an overflow
+parser_e_protected_or_private_expected=03214_E_Protected or private expected
+% \var{strict} can be only used together with \var{protected} or \var{private}.
 % \end{description}
 #
 # Type Checking
