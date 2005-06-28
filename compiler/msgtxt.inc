@@ -933,13 +933,16 @@ const msgtxt : array[0..000161,1..240] of char=(
   '**2Xd_don'#039't use standard library search path (needed for c','ross c'+
   'ompile)'#010+
   '**2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)'#010+
+  '**2Xm_generate link map'#010+
+  '**2XM<x>_set the name of the '#039'main'#039' program routine (default i'+
+  's '#039'main'#039')'#010+
   '**2XP<x>_prepend the binutils names with the prefix <x>'#010+
-  '**2Xr<x>_set library search path to <x> (needed for cross compile)'#010+
-  '**2Xs_strip all symbols from execut','able'#010+
+  '**2Xr<','x>_set library search path to <x> (needed for cross compile)'#010+
+  '**2Xs_strip all symbols from executable'#010+
   '**2XS_try to link units static (default) (defines FPC_LINK_STATIC)'#010+
   '**2Xt_link with static libraries (-static is passed to linker)'#010+
-  '**2XX_try to link units smart            (defines FPC_LINK_SMART)'#010+
+  '**2XX_try',' to link units smart            (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_shows this help'#010+
-  '**1h_shows t','his help without waiting'#000
+  '**1h_shows this help without waiting'#000
 );
