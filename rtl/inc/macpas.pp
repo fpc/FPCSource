@@ -41,7 +41,13 @@ function FOUR_CHAR_CODE(literal: string): LongWord; {$ifdef systeminline}inline;
 operator := (s: ShortString) res: LongWord; {$ifdef systeminline}inline;{$endif}
 
 { Same as the "is" operator }
-Function Member (Instance : TObject; AClass : TClass) : boolean;
+Function Member (Instance : TObject; AClass : TClass) : boolean; {$ifdef systeminline}inline;{$endif}
+
+function ord4(i: smallint): smallint; {$ifdef systeminline}inline;{$endif}
+function ord4(l: longint): longint; {$ifdef systeminline}inline;{$endif}
+function ord4(c: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+function ord4(p: pointer): ptrint; {$ifdef systeminline}inline;{$endif}
+
 
 implementation
 
@@ -67,4 +73,34 @@ begin
 end;
 
 
+function ord4(i: smallint): smallint; {$ifdef systeminline}inline;{$endif}
+begin
+  result:=i;
+end;
+
+
+function ord4(l: longint): longint; {$ifdef systeminline}inline;{$endif}
+begin
+  result := l;
+end;
+
+
+function ord4(c: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+begin
+  result := c;
+end;
+
+
+function ord4(p: pointer): ptrint; {$ifdef systeminline}inline;{$endif}
+begin
+  result := ptrint(p);
+end;
+
+
+{$ifdef powerpc}
+begin
+  asm
+    mtfsfi 6,1
+  end;
+{$endif powerpc}
 end.
