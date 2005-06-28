@@ -116,7 +116,6 @@ implementation
       procedure loadsigned;
         begin
           location_force_mem(exprasmlist,left.location);
-          location.register:=cg.getfpuregister(exprasmlist,location.size);
           { Load memory in fpu register }
           cg.a_loadfpu_ref_reg(exprasmlist,OS_F32,left.location.reference,location.register);
           tg.ungetiftemp(exprasmlist,left.location.reference);
@@ -141,7 +140,10 @@ implementation
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
         if is_signed(left.resulttype.def) then
-          loadsigned
+          begin
+            location.register:=cg.getfpuregister(exprasmlist,location.size);
+            loadsigned;
+          end
         else
           begin
             objectlibrary.getdatalabel(l1);
@@ -150,7 +152,13 @@ implementation
             hregister:=cg.getintregister(exprasmlist,OS_32);
             cg.a_load_loc_reg(exprasmlist,OS_32,left.location,hregister);
 
-            loadsigned;
+            { here we need always an 64 bit register }
+            location.register:=cg.getfpuregister(exprasmlist,OS_F64);
+            location_force_mem(exprasmlist,left.location);
+            { Load memory in fpu register }
+            cg.a_loadfpu_ref_reg(exprasmlist,OS_F32,left.location.reference,location.register);
+            tg.ungetiftemp(exprasmlist,left.location.reference);
+            exprasmlist.concat(taicpu.op_reg_reg(A_FiTOd,location.register,location.register));
 
             exprasmList.concat(Taicpu.op_reg_reg(A_CMP,hregister,NR_G0));
             cg.a_jmp_flags(exprasmlist,F_GE,l2);
