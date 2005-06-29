@@ -21,6 +21,28 @@ uses
   SysUtils,Classes;
 
 Type
+{$inline on}
+
+  TFPObjectList = class(TFPList)
+  private
+    FFreeObjects : Boolean;
+  protected
+    function GetItem(Index: Integer): TObject; {$ifdef HASINLINE} inline;{$endif}
+    procedure SetItem(Index: Integer; AObject: TObject); {$ifdef HASINLINE} inline;{$endif}
+  public
+    constructor Create;
+    constructor Create(FreeObjects : Boolean);
+    function Add(AObject: TObject): Integer; {$ifdef HASINLINE} inline;{$endif}
+    function Extract(Item: TObject): TObject;
+    function Remove(AObject: TObject): Integer;
+    function IndexOf(AObject: TObject): Integer;
+    function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
+    procedure Insert(Index: Integer; AObject: TObject); {$ifdef HASINLINE} inline;{$endif}
+    function First: TObject;
+    function Last: TObject;
+    property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
+    property Items[Index: Integer]: TObject read GetItem write SetItem; default;
+  end;
 
   TObjectList = class(TList)
   private
@@ -130,6 +152,92 @@ Type
   end;
 
 implementation
+
+constructor TFPObjectList.Create(FreeObjects : boolean);
+begin
+  inherited Create;
+  FFreeObjects:=Freeobjects;
+end;
+
+constructor TFPObjectList.Create;
+begin
+  inherited Create;
+  FFreeObjects:=True;
+end;
+
+function TFPObjectList.GetItem(Index: Integer): TObject; {$ifdef HASINLINE} inline;{$endif}
+begin
+  Result:=TObject(inherited Get(Index));
+end;
+
+procedure TFPObjectList.SetItem(Index: Integer; AObject: TObject); {$ifdef HASINLINE} inline;{$endif}
+var
+  O : TObject;
+begin
+  if OwnsObjects then
+    begin
+    O:=GetItem(Index);
+    O.Free;
+    end;
+  Put(Index,Pointer(AObject));
+end;
+
+function TFPObjectList.Add(AObject: TObject): Integer; {$ifdef HASINLINE} inline;{$endif}
+begin
+  Result:=inherited Add(Pointer(AObject));
+end;
+
+function TFPObjectList.Extract(Item: TObject): TObject;
+begin
+  Result:=Tobject(inherited Extract(Pointer(Item)));
+end;
+
+function TFPObjectList.Remove(AObject: TObject): Integer;
+begin
+  Result:=inherited Remove(Pointer(AObject));
+end;
+
+function TFPObjectList.IndexOf(AObject: TObject): Integer;
+begin
+  Result:=inherited indexOF(Pointer(AObject));
+end;
+
+function TFPObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt : Integer): Integer;
+var
+  I : Integer;
+begin
+  I:=AStartAt;
+  Result:=-1;
+  If AExact then
+    while (I<Count) and (Result=-1) do
+      If Items[i].ClassType=AClass then
+        Result:=I
+      else
+        Inc(I)
+  else
+    while (I<Count) and (Result=-1) do
+      If Items[i].InheritsFrom(AClass) then
+        Result:=I
+      else
+        Inc(I);
+end;
+
+procedure TFPObjectList.Insert(Index: Integer; AObject: TObject); {$ifdef HASINLINE} inline;{$endif}
+begin
+  inherited Insert(Index,Pointer(AObject));
+end;
+
+function TFPObjectList.First: TObject;
+begin
+  Result := TObject(inherited First);
+end;
+
+function TFPObjectList.Last: TObject;
+begin
+  Result := TObject(inherited Last);
+end;
+
+{ TObjectList }
 
 constructor tobjectlist.create(freeobjects : boolean);
 
