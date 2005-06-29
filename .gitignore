@@ -2103,6 +2103,7 @@ tests/bench/shootout/src/units
 tests/bench/shootout/units
 tests/bench/units
 tests/fpcmade.*
+tests/output
 tests/tbf/*.bak
 tests/tbf/*.exe
 tests/tbf/*.o
@@ -2312,7 +2313,6 @@ tests/test/opt/*.ppu
 tests/test/opt/*.s
 tests/test/opt/fpcmade.*
 tests/test/opt/units
-tests/test/units
 tests/test/units/*.bak
 tests/test/units/*.exe
 tests/test/units/*.o
@@ -2376,7 +2376,6 @@ tests/test/units/sysutils/*.s
 tests/test/units/sysutils/fpcmade.*
 tests/test/units/sysutils/units
 tests/test/units/units
-tests/units
 tests/units/*.bak
 tests/units/*.exe
 tests/units/*.o
