@@ -213,7 +213,8 @@ implementation
       var
         low,high,mid : longint;
       begin
-        if not (length(s) in [tokenlenmin..tokenlenmax]) then
+        if not (length(s) in [tokenlenmin..tokenlenmax]) or
+           not (s[1] in ['a'..'z','A'..'Z']) then
          begin
            is_keyword:=false;
            exit;
@@ -869,9 +870,6 @@ implementation
         mac.is_used:=true;
         if (cs_support_macro in aktmoduleswitches) then
           begin
-             { key words are never substituted }
-             if is_keyword(hs) then
-               Message(scan_e_keyword_cant_be_a_macro);
              { !!!!!! handle macro params, need we this? }
              current_scanner.skipspace;
 
@@ -886,6 +884,10 @@ implementation
                  current_scanner.readchar;
                  current_scanner.skipspace;
                end;
+
+             { key words are never substituted }
+             if is_keyword(hs) then
+               Message(scan_e_keyword_cant_be_a_macro);
 
              new(macrobuffer);
              macropos:=0;
