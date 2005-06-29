@@ -652,7 +652,7 @@ implementation
          { maybe type conversion for the index value, but
            do not convert enums,booleans,char }
          if (right.resulttype.def.deftype<>enumdef) and
-            not(is_char(right.resulttype.def)) and
+            not(is_char(right.resulttype.def) or is_widechar(right.resulttype.def)) and
             not(is_boolean(right.resulttype.def)) then
            begin
              inserttypeconv(right,sinttype);
