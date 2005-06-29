@@ -203,7 +203,7 @@ type
 
   { set types }
   tsettype = (
-    normset,smallset
+    normset,smallset,varset
   );
 
   tvarianttype = (

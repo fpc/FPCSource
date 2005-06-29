@@ -707,7 +707,7 @@ interface
           settype : tsettype;
           setbase,
           setmax : aint;
-          constructor create(const t:ttype;low,high : aint);
+          constructor create(const t:ttype;high : aint);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           function getcopy : tstoreddef;override;
@@ -2716,9 +2716,9 @@ implementation
          inherited create;
          deftype:=setdef;
          elementtype:=t;
-         setbase:=low;
+         // setbase:=low;
          setmax:=high;
-         if (high-low)+1<=32 then
+         if high<32 then
            begin
             settype:=smallset;
            {$ifdef testvarsets}
@@ -2757,13 +2757,10 @@ implementation
          ppufile.gettype(elementtype);
          settype:=tsettype(ppufile.getbyte);
          case settype of
-            normset : savesize:=32;
-            varset : savesize:=ppufile.getlongint;
-            smallset : savesize:=Sizeof(longint);
+           normset : savesize:=32;
+           varset : savesize:=ppufile.getlongint;
+           smallset : savesize:=Sizeof(longint);
          end;
-          normset : savesize:=ppufile.getaint;
-          smallset : savesize:=Sizeof(longint);
-        end;
       end;
 
 
@@ -5410,7 +5407,7 @@ implementation
            { 0 is private 1 protected and 2 public }
            if ([sp_private,sp_strictprivate]*tsym(p).symoptions)<>[] then
              sp:='0'
-           else if ([sp_protected,sp_strictprocted*tsym(p).symoptions)<>[] then
+           else if ([sp_protected,sp_strictprotected]*tsym(p).symoptions)<>[] then
              sp:='1'
            else
              sp:='2';
