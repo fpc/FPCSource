@@ -1066,7 +1066,10 @@ var
   pcurrsize: ptrint;
 begin
   if p=nil then
-    exit;
+    begin
+      result:=0;
+      exit;
+    end;
   pcurrsize := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr))^.size;
   { check if this is a fixed- or var-sized chunk }
   if (pcurrsize and fixedsizeflag) = 0 then
@@ -1088,14 +1091,14 @@ var
   pcurrsize: ptrint;
 begin
   SysFreeMemSize := 0;
+  if p=nil then
+    exit;
   if size<=0 then
     begin
       if size<0 then
         HandleError(204);
       exit;
     end;
-  if p=nil then
-    HandleError(204);
 
   pcurrsize := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr))^.size;
   { check if this is a fixed- or var-sized chunk }
