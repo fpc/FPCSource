@@ -1,3 +1,4 @@
+{ %fail }
 {$ifdef fpc}
   {$Mode Delphi}
 {$endif}
