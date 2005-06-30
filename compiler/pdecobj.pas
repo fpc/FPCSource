@@ -214,6 +214,11 @@ implementation
 
         begin
            readobjecttype:=true;
+           { MacPas object model is more like Delphi's than like TP's, but }
+           { uses the object keyword instead of class                      }
+           if (m_mac in aktmodeswitches) and
+              (token = _OBJECT) then
+             token := _CLASS;
            { distinguish classes and objects }
            case token of
               _OBJECT:
@@ -591,6 +596,13 @@ implementation
                     if assigned(pd) then
                      begin
                        parse_object_proc_directives(pd);
+
+                       { all Macintosh Object Pascal methods are virtual.  }
+                       { this can't be a class method, because macpas mode }
+                       { has no m_class                                    }
+                       if (m_mac in aktmodeswitches) then
+                         include(pd.procoptions,po_virtualmethod);
+
                        handle_calling_convention(pd);
 
                        { add definition to procsym }
