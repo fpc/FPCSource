@@ -684,6 +684,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
+          procedure derefimpl;override;
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
           procedure calcsavesize;
@@ -1782,6 +1783,18 @@ implementation
         basedef:=tenumdef(basedefderef.resolve);
         { restart ordering }
         firstenum:=nil;
+      end;
+
+
+    procedure tenumdef.derefimpl;
+      begin
+        if assigned(basedef) and
+           (firstenum=nil) then
+          begin
+            firstenum:=basedef.firstenum;
+            while assigned(firstenum) and (tenumsym(firstenum).value<>minval) do
+              firstenum:=tenumsym(firstenum).nextenum;
+          end;
       end;
 
 
