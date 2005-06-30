@@ -219,7 +219,9 @@ type
     potype_unitfinalize, { unit finalization }
     potype_constructor,  { Procedure is a constructor }
     potype_destructor,   { Procedure is a destructor }
-    potype_operator      { Procedure defines an operator }
+    potype_operator,     { Procedure defines an operator }
+    potype_procedure,
+    potype_function
   );
   tproctypeoptions=set of tproctypeoption;
 

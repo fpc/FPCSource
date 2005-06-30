@@ -878,7 +878,7 @@ implementation
           _FUNCTION :
             begin
               consume(_FUNCTION);
-              if parse_proc_head(aclass,potype_none,pd) then
+              if parse_proc_head(aclass,potype_function,pd) then
                 begin
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then
@@ -917,7 +917,7 @@ implementation
           _PROCEDURE :
             begin
               consume(_PROCEDURE);
-              if parse_proc_head(aclass,potype_none,pd) then
+              if parse_proc_head(aclass,potype_procedure,pd) then
                 begin
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then

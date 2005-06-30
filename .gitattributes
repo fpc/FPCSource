@@ -4423,6 +4423,7 @@ tests/tbf/tb0174a.pp svneol=native#text/plain
 tests/tbf/tb0174b.pp svneol=native#text/plain
 tests/tbf/tb0174c.pp svneol=native#text/plain
 tests/tbf/tb0174d.pp svneol=native#text/plain
+tests/tbf/tb0175.pp svneol=native#text/plain
 tests/tbf/ub0115.pp svneol=native#text/plain
 tests/tbf/ub0149.pp svneol=native#text/plain
 tests/tbf/ub0158a.pp svneol=native#text/plain
