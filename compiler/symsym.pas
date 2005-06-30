@@ -1019,10 +1019,12 @@ implementation
              begin
                i:=0;
                { ignore vs_hidden parameters }
-               while assigned(pd^.def.paras[i]) and
+               while (i<pd^.def.paras.count) and
+                     assigned(pd^.def.paras[i]) and
                      (vo_is_hidden_para in tparavarsym(pd^.def.paras[i]).varoptions) do
                  inc(i);
-               if assigned(pd^.def.paras[i]) then
+               if (i<pd^.def.paras.count) and
+                  assigned(pd^.def.paras[i]) then
                 begin
                   eq:=compare_defs_ext(fromdef,tparavarsym(pd^.def.paras[i]).vartype.def,nothingn,convtyp,hpd,[]);
 
