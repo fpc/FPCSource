@@ -5467,6 +5467,7 @@ tests/webtbf/tw3740.pp svneol=native#text/plain
 tests/webtbf/tw3790.pp svneol=native#text/plain
 tests/webtbf/tw3841.pp svneol=native#text/plain
 tests/webtbf/tw4111.pp svneol=native#text/plain
+tests/webtbf/tw4139.pp svneol=native#text/plain
 tests/webtbf/uw0744.pp svneol=native#text/plain
 tests/webtbf/uw0840a.pp svneol=native#text/plain
 tests/webtbf/uw0840b.pp svneol=native#text/plain
