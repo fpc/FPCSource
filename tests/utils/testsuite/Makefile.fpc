@@ -1,0 +1,14 @@
+#
+# Makefile.fpc for Free Pascal testing utilities
+#
+
+[package]
+name=testsuite
+version=1.9.9
+
+[require]
+nortl=fcl
+libc=y
+
+[target]
+programs=testsuite
