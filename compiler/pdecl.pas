@@ -524,7 +524,8 @@ implementation
                 This need to be done after the rtti has been written, because
                 it can contain a reference to that data (PFV)
                 This is not for forward classes }
-              if (tt.def.deftype=objectdef) then
+              if (tt.def.deftype=objectdef) and
+                 (tt.def.owner.symtabletype in [staticsymtable,globalsymtable]) then
                 with Tobjectdef(tt.def) do
                   begin
                     if not(oo_is_forward in objectoptions) then
