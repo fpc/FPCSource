@@ -445,17 +445,8 @@ implementation
         if (cs_fp_emulation in aktmoduleswitches) then
           AddUnit('SoftFpu');
 {$endif cpufpemu}
-        { Objpas unit? }
-        if m_objpas in aktmodeswitches then
-          AddUnit('ObjPas');
-        { Macpas unit? }
-        if m_mac in aktmodeswitches then
-          AddUnit('MacPas');
-        { Profile unit? Needed for go32v2 only }
-        if (cs_profile in aktmoduleswitches) and
-           (target_info.system in [system_i386_go32v2,system_i386_watcom]) then
-          AddUnit('Profile');
         { Units only required for main module }
+        { load heaptrace before any other units especially objpas }
         if not(current_module.is_unit) then
          begin
            { Heaptrc unit }
@@ -468,6 +459,16 @@ implementation
            if (cs_gdb_valgrind in aktglobalswitches) then
              AddUnit('CMem');
          end;
+        { Objpas unit? }
+        if m_objpas in aktmodeswitches then
+          AddUnit('ObjPas');
+        { Macpas unit? }
+        if m_mac in aktmodeswitches then
+          AddUnit('MacPas');
+        { Profile unit? Needed for go32v2 only }
+        if (cs_profile in aktmoduleswitches) and
+           (target_info.system in [system_i386_go32v2,system_i386_watcom]) then
+          AddUnit('Profile');
         { save default symtablestack }
         defaultsymtablestack:=symtablestack;
         defaultmacrosymtablestack:=macrosymtablestack;
@@ -1447,7 +1448,7 @@ implementation
 
          { The program intialization needs an alias, so it can be called
            from the bootstrap code.}
-         
+
          if islibrary then
           begin
             pd:=create_main_proc(make_mangledname('',current_module.localsymtable,mainaliasname),potype_proginit,st);
@@ -1460,7 +1461,7 @@ implementation
            begin
              pd:=create_main_proc('PASCALMAIN',potype_proginit,st); { main is need by the netware rtl }
            end
-         else 
+         else
            begin
              pd:=create_main_proc(mainaliasname,potype_proginit,st);
              pd.aliasnames.insert('PASCALMAIN');
