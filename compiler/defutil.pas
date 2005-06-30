@@ -175,6 +175,9 @@ interface
     {# Returns true, if def is an extended type }
     function is_extended(def : tdef) : boolean;
 
+    {# Returns true, if definition is a "real" real (i.e. single/double/extended) }
+    function is_real(def : tdef) : boolean;
+
     {# Returns true, if def is a 32 bit integer type }
     function is_32bitint(def : tdef) : boolean;
 
@@ -253,6 +256,14 @@ implementation
       begin
         result:=(def.deftype=floatdef) and
           (tfloatdef(def).typ=s80real);
+      end;
+
+
+    { returns true, if definition is a "real" real (i.e. single/double/extended) }
+    function is_real(def : tdef) : boolean;
+      begin
+        result:=(def.deftype=floatdef) and
+          (tfloatdef(def).typ in [s32real,s64real,s80real]);
       end;
 
 
