@@ -1570,7 +1570,8 @@ implementation
       var
         href : treference;
         paraloc1,
-        paraloc2 : tcgpara;
+        paraloc2,
+        paraloc3 : tcgpara;
         hp   : tused_unit;
       begin
         paraloc1.init;
@@ -1615,6 +1616,12 @@ implementation
               cg.deallocallcpuregisters(list);
             end;
 
+           if (target_info.system = system_powerpc_darwin) then
+             begin
+              { the parameters are already in the right registers }
+              cg.a_call_name(list,target_info.cprefix+'FPC_SYSTEMMAIN');
+             end;
+           
            { initialize units }
            cg.allocallcpuregisters(list);
            cg.a_call_name(list,'FPC_INITIALIZEUNITS');
