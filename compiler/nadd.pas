@@ -962,7 +962,8 @@ implementation
                  { when one of the operand is signed perform
                    the operation in 64bit, can't use rd/ld here because there
                    could be already typeconvs inserted }
-                 if is_signed(left.resulttype.def) or is_signed(right.resulttype.def) then
+                 if is_signed(left.resulttype.def) or
+                    is_signed(right.resulttype.def) then
                    begin
                      CGMessage(type_w_mixed_signed_unsigned);
                      inserttypeconv(left,s64inttype);
@@ -970,38 +971,10 @@ implementation
                    end
                  else
                    begin
-                     { convert positive constants to u32bit }
-                     if (torddef(ld).typ<>u32bit) and
-                        is_constintnode(left) and
-                        (tordconstnode(left).value >= 0) then
+                     if (torddef(left.resulttype.def).typ<>u32bit) then
                        inserttypeconv(left,u32inttype);
-                     if (torddef(rd).typ<>u32bit) and
-                        is_constintnode(right) and
-                        (tordconstnode(right).value >= 0) then
+                     if (torddef(right.resulttype.def).typ<>u32bit) then
                        inserttypeconv(right,u32inttype);
-                     { when one of the operand is signed perform
-                       the operation in 64bit, can't use rd/ld here because there
-                       could be already typeconvs inserted }
-                     if is_signed(left.resulttype.def) or is_signed(right.resulttype.def) then
-                       begin
-                         CGMessage(type_w_mixed_signed_unsigned);
-                         inserttypeconv(left,s64inttype);
-                         inserttypeconv(right,s64inttype);
-                       end
-                     { For substraction the result can be < 0 but also > maxlongint, we
-                       fallback to int64 that can handle both }
-                     else if (nodetype=subn) then
-                       begin
-                         inserttypeconv(left,s64inttype);
-                         inserttypeconv(right,s64inttype);
-                       end
-                     else
-                       begin
-                         if (torddef(left.resulttype.def).typ<>u32bit) then
-                           inserttypeconv(left,u32inttype);
-                         if (torddef(right.resulttype.def).typ<>u32bit) then
-                           inserttypeconv(right,u32inttype);
-                       end;
                    end;
                end
 {$endif cpu64bit}
