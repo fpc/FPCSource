@@ -479,7 +479,7 @@ implementation
       end;
 
 
-    function Tsym.is_visible_for_object(currobjdef:Tdef;context : tdef):boolean;
+    function tsym.is_visible_for_object(currobjdef:Tdef;context : tdef):boolean;
       begin
         is_visible_for_object:=false;
 
