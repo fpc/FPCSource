@@ -1,7 +1,7 @@
 { %fail }
 {$Mode Delphi}
 {$R-,X+,V-}
-uses crt, tw3969u;
+uses crt, uw3969;
 
 var
   myobj: testobj;

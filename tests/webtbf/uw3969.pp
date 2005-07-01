@@ -1,7 +1,7 @@
 {$Mode Delphi}
 {$R-,X+,V-}
 
-unit tw3969u;
+unit uw3969;
 
 interface
 
