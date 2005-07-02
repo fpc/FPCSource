@@ -624,7 +624,9 @@ implementation
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 {$ifndef i386}
         alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
+{$ifdef cpumm}
         alloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
+{$endif cpumm}
 {$endif i386}
       end;
 
@@ -643,7 +645,9 @@ implementation
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 {$ifndef i386}
         dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
+{$ifdef cpumm}
         dealloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
+{$endif cpumm}
 {$endif i386}
       end;
 
