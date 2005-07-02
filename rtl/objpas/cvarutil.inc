@@ -209,8 +209,6 @@ Function VariantToSingle(Const VargSrc : TVarData) : Single;
 
 
 Function VariantToDouble(Const VargSrc : TVarData) : Double;
-  var
-    e : extended;
   begin
     With VargSrc do
       Case (VType and VarTypeMask)  of
@@ -225,13 +223,6 @@ Function VariantToDouble(Const VargSrc : TVarData) : Double;
           begin
             if not(TryStrToFloat(WideCharToString(vOleStr),Result)) then
               VariantTypeMismatch;
-             result:=e;
-          end;
-        VarString  :
-          begin
-            if not(TryStrToFloat(ansistring(vString),Result)) then
-              VariantTypeMismatch;
-             result:=e;
           end;
         VarBoolean : Result:=Longint(VBoolean);
         VarByte    : Result:=VByte;
