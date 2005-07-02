@@ -1429,6 +1429,8 @@ interface
                     end;
                   subn:
                     begin
+                      if nf_swaped in flags then
+                        swapleftright;
                       exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
                         left.location.register,right.location.register));
                       exprasmlist.concat(taicpu.op_reg_reg(A_CMPLW,left.location.register,location.register));
