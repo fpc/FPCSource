@@ -1936,8 +1936,10 @@ implementation
           begin
             sym:=tsym(classh.symtable.speedsearch(s,speedvalue));
             if assigned(sym) and
-               Tsym(sym).is_visible_for_object(topclassh) then
-              break;
+               tsym(sym).is_visible_for_object(topclassh) then
+              break
+            else
+              sym:=nil;
             classh:=classh.childof;
           end;
          searchsym_in_class:=sym;
