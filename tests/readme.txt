@@ -11,6 +11,8 @@ tbf..............Tests for other bugs, added by the fpc core team
                    (fail compile) Digits in filename is a serial no
 units............Helper units for doing the tests
 utils............Utilities for processing tests
+packages.........Tests for packages: to run this tests, the full fpc sources
+                 must be build
 
 
 Writing a test
@@ -163,7 +165,7 @@ A machine with both MacOS X and classic MacOS installed. Note that make will not
 run the tests, that has to be done in MPW with the scripts in utils/macos.
 
   make clean alltest TEST_OS_TARGET=macos TEST_OPT="-WT -st" \
-       USEUNITDIR=/Projekt/Freepascal/fpc/rtl/macos 
+       USEUNITDIR=/Projekt/Freepascal/fpc/rtl/macos
 
 To clean. Note that same options as above has to be given so that the correct
 files will be removed.
