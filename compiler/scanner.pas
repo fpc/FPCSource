@@ -2984,7 +2984,12 @@ implementation
                                  concatwidestringchar(patternw,tcompilerwidechar(c))
                              end
                            else if iswidestring then
-                             concatwidestringchar(patternw,asciichar2unicode(c))
+                             begin
+                               if aktsourcecodepage='utf8' then
+                                 concatwidestringchar(patternw,ord(c))
+                               else
+                                 concatwidestringchar(patternw,asciichar2unicode(c))
+                             end
                            else
                              begin
                                if len<255 then
