@@ -51,6 +51,10 @@ unit nx86add;
         procedure second_cmpsmallset;override;
         procedure second_cmp64bit;override;
         procedure second_cmpordinal;override;
+{$ifdef SUPPORT_MMX}
+        procedure second_opmmxset;override;
+        procedure second_opmmx;override;
+{$endif SUPPORT_MMX}
       end;
 
 
@@ -432,6 +436,264 @@ unit nx86add;
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
       end;
+
+
+{*****************************************************************************
+                                AddMMX
+*****************************************************************************}
+
+{$ifdef SUPPORT_MMX}
+    procedure tx86addnode.second_opmmx;
+      var
+        op         : TAsmOp;
+        cmpop      : boolean;
+        mmxbase    : tmmxtype;
+        hreg,
+        hregister  : tregister;
+      begin
+        pass_left_right;
+
+        cmpop:=false;
+        mmxbase:=mmx_type(left.resulttype.def);
+        location_reset(location,LOC_MMXREGISTER,def_cgsize(resulttype.def));
+        case nodetype of
+          addn :
+            begin
+              if (cs_mmx_saturation in aktlocalswitches) then
+                begin
+                   case mmxbase of
+                      mmxs8bit:
+                        op:=A_PADDSB;
+                      mmxu8bit:
+                        op:=A_PADDUSB;
+                      mmxs16bit,mmxfixed16:
+                        op:=A_PADDSB;
+                      mmxu16bit:
+                        op:=A_PADDUSW;
+                   end;
+                end
+              else
+                begin
+                   case mmxbase of
+                      mmxs8bit,mmxu8bit:
+                        op:=A_PADDB;
+                      mmxs16bit,mmxu16bit,mmxfixed16:
+                        op:=A_PADDW;
+                      mmxs32bit,mmxu32bit:
+                        op:=A_PADDD;
+                   end;
+                end;
+            end;
+          muln :
+            begin
+               case mmxbase of
+                  mmxs16bit,mmxu16bit:
+                    op:=A_PMULLW;
+                  mmxfixed16:
+                    op:=A_PMULHW;
+               end;
+            end;
+          subn :
+            begin
+              if (cs_mmx_saturation in aktlocalswitches) then
+                begin
+                   case mmxbase of
+                      mmxs8bit:
+                        op:=A_PSUBSB;
+                      mmxu8bit:
+                        op:=A_PSUBUSB;
+                      mmxs16bit,mmxfixed16:
+                        op:=A_PSUBSB;
+                      mmxu16bit:
+                        op:=A_PSUBUSW;
+                   end;
+                end
+              else
+                begin
+                   case mmxbase of
+                      mmxs8bit,mmxu8bit:
+                        op:=A_PSUBB;
+                      mmxs16bit,mmxu16bit,mmxfixed16:
+                        op:=A_PSUBW;
+                      mmxs32bit,mmxu32bit:
+                        op:=A_PSUBD;
+                   end;
+                end;
+            end;
+          xorn:
+            op:=A_PXOR;
+          orn:
+            op:=A_POR;
+          andn:
+            op:=A_PAND;
+          else
+            internalerror(2003042214);
+        end;
+
+        { left and right no register?  }
+        { then one must be demanded    }
+        if (left.location.loc<>LOC_MMXREGISTER) then
+         begin
+           if (right.location.loc=LOC_MMXREGISTER) then
+            begin
+              location_swap(left.location,right.location);
+              toggleflag(nf_swaped);
+            end
+           else
+            begin
+              { register variable ? }
+              if (left.location.loc=LOC_CMMXREGISTER) then
+               begin
+                 hregister:=tcgx86(cg).getmmxregister(exprasmlist);
+                 emit_reg_reg(A_MOVQ,S_NO,left.location.register,hregister);
+               end
+              else
+               begin
+                 if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                  internalerror(200203245);
+
+                 hregister:=tcgx86(cg).getmmxregister(exprasmlist);
+                 emit_ref_reg(A_MOVQ,S_NO,left.location.reference,hregister);
+               end;
+
+              location_reset(left.location,LOC_MMXREGISTER,OS_NO);
+              left.location.register:=hregister;
+            end;
+         end;
+
+        { at this point, left.location.loc should be LOC_MMXREGISTER }
+        if right.location.loc<>LOC_MMXREGISTER then
+         begin
+           if (nodetype=subn) and (nf_swaped in flags) then
+            begin
+              hreg:=tcgx86(cg).getmmxregister(exprasmlist);
+              if right.location.loc=LOC_CMMXREGISTER then
+               begin
+                 emit_reg_reg(A_MOVQ,S_NO,right.location.register,hreg);
+                 emit_reg_reg(op,S_NO,left.location.register,hreg);
+               end
+              else
+               begin
+                 if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                  internalerror(200203247);
+                 emit_ref_reg(A_MOVQ,S_NO,right.location.reference,hreg);
+                 emit_reg_reg(op,S_NO,left.location.register,hreg);
+               end;
+               location.register:=hreg;
+            end
+           else
+            begin
+              if (right.location.loc=LOC_CMMXREGISTER) then
+                emit_reg_reg(op,S_NO,right.location.register,left.location.register)
+              else
+               begin
+                 if not(right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                  internalerror(200203246);
+                 emit_ref_reg(op,S_NO,right.location.reference,left.location.register);
+               end;
+              location.register:=left.location.register;
+            end;
+          end
+        else
+          begin
+            { right.location=LOC_MMXREGISTER }
+            if (nodetype=subn) and (nf_swaped in flags) then
+             begin
+               emit_reg_reg(op,S_NO,left.location.register,right.location.register);
+               location_swap(left.location,right.location);
+               toggleflag(nf_swaped);
+             end
+            else
+             begin
+               emit_reg_reg(op,S_NO,right.location.register,left.location.register);
+             end;
+            location.register:=left.location.register;
+          end;
+
+        location_freetemp(exprasmlist,right.location);
+        if cmpop then
+          location_freetemp(exprasmlist,left.location);
+      end;
+{$endif SUPPORT_MMX}
+
+
+{*****************************************************************************
+                                   addmmxset
+*****************************************************************************}
+
+{$ifdef SUPPORT_MMX}
+    procedure tx86addnode.second_opmmxset;
+
+    var opsize : TCGSize;
+        op     : TAsmOp;
+        cmpop,
+        noswap : boolean;
+    begin
+      pass_left_right;
+
+      cmpop:=false;
+      noswap:=false;
+      opsize:=OS_32;
+      case nodetype of
+        addn:
+          begin
+            { are we adding set elements ? }
+            if right.nodetype=setelementn then
+              begin
+                { adding elements is not commutative }
+{                if nf_swaped in flags then
+                  swapleftright;}
+                { bts requires both elements to be registers }
+{                location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],false);
+                location_force_reg(exprasmlist,right.location,opsize_2_cgsize[opsize],true);
+                op:=A_BTS;
+                noswap:=true;}
+              end
+            else
+              op:=A_POR;
+          end;
+        symdifn :
+          op:=A_PXOR;
+        muln:
+          op:=A_PAND;
+        subn:
+          op:=A_PANDN;
+        equaln,
+        unequaln :
+          begin
+            op:=A_PCMPEQD;
+            cmpop:=true;
+          end;
+        lten,gten:
+          begin
+            if (not(nf_swaped in flags) and (nodetype = lten)) or
+               ((nf_swaped in flags) and (nodetype = gten)) then
+              swapleftright;
+            location_force_reg(exprasmlist,left.location,opsize,true);
+            emit_op_right_left(A_AND,opsize);
+            op:=A_PCMPEQD;
+            cmpop:=true;
+            { warning: ugly hack, we need a JE so change the node to equaln }
+            nodetype:=equaln;
+          end;
+          xorn :
+            op:=A_PXOR;
+          orn :
+            op:=A_POR;
+          andn :
+            op:=A_PAND;
+          else
+            internalerror(2003042215);
+        end;
+        { left must be a register }
+        left_must_be_reg(opsize,noswap);
+{        emit_generic_code(op,opsize,true,extra_not,false);}
+        location_freetemp(exprasmlist,right.location);
+        if cmpop then
+          location_freetemp(exprasmlist,left.location);
+      end;
+{$endif SUPPORT_MMX}
+
 
 
 {*****************************************************************************

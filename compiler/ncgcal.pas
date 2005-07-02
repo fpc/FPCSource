@@ -301,7 +301,7 @@ implementation
 {$ifdef SUPPORT_MMX}
              LOC_MMXREGISTER,
              LOC_CMMXREGISTER:
-               cg.a_parammm_reg(exprasmlist,left.location.register);
+               cg.a_parammm_reg(exprasmlist,OS_M64,left.location.register,tempcgpara,nil);
 {$endif SUPPORT_MMX}
              else
                internalerror(200204241);

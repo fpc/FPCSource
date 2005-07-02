@@ -839,7 +839,7 @@ implementation
          p.registersfpu:=registersfpu;
 {$ifdef SUPPORT_MMX}
          p.registersmmx:=registersmmx;
-         p.registerskni:=registerskni;
+         p.registersmm:=registersmm;
 {$endif SUPPORT_MMX}
          p.resulttype:=resulttype;
          p.fileinfo:=fileinfo;

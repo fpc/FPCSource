@@ -47,6 +47,7 @@ interface
   implementation
 
     uses
+      globtype,
       systems,
       cutils,verbose,globals,
       symconst,symdef,
@@ -109,7 +110,7 @@ interface
       begin
         secondpass(left);
         location_reset(location,LOC_MMXREGISTER,OS_NO);
-        hreg:=cg.getmmxregister(exprasmlist,OS_M64);
+        hreg:=tcgx86(cg).getmmxregister(exprasmlist);
         emit_reg_reg(A_PXOR,S_NO,hreg,hreg);
         case left.location.loc of
           LOC_MMXREGISTER:
@@ -118,14 +119,13 @@ interface
             end;
           LOC_CMMXREGISTER:
             begin
-               location.register:=cg.getmmxregister(exprasmlist,OS_M64);
+               location.register:=tcgx86(cg).getmmxregister(exprasmlist);
                emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE:
             begin
-               reference_release(exprasmlist,left.location.reference);
-               location.register:=cg.getmmxregister(exprasmlist,OS_M64);
+               location.register:=tcgx86(cg).getmmxregister(exprasmlist);
                emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
             end;
           else
@@ -152,7 +152,6 @@ interface
                op:=A_PSUBD;
           end;
         emit_reg_reg(op,S_NO,location.register,hreg);
-        cg.ungetregister(exprasmlist,hreg);
         emit_reg_reg(A_MOVQ,S_NO,hreg,location.register);
       end;
 {$endif SUPPORT_MMX}
@@ -294,28 +293,25 @@ interface
           location_copy(location,left.location);
         LOC_CMMXREGISTER:
           begin
-            location.register:=cg.getmmxregister(exprasmlist,OS_M64);
+            location.register:=tcgx86(cg).getmmxregister(exprasmlist);
             emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
           end;
         LOC_REFERENCE,
         LOC_CREFERENCE:
           begin
-            location_release(exprasmlist,left.location);
-            location.register:=cg.getmmxregister(exprasmlist,OS_M64);
+            location.register:=tcgx86(cg).getmmxregister(exprasmlist);
             emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
           end;
       end;
       { load mask }
-      hreg:=cg.getmmxregister(exprasmlist,OS_M64);
+      hreg:=tcgx86(cg).getmmxregister(exprasmlist);
       emit_reg_reg(A_MOVD,S_NO,r,hreg);
-      cg.ungetregister(exprasmlist,r);
       { lower 32 bit }
-      emit_reg_reg(A_PXOR,S_D,hreg,location.register);
+      emit_reg_reg(A_PXOR,S_NO,hreg,location.register);
       { shift mask }
       emit_const_reg(A_PSLLQ,S_NO,32,hreg);
       { higher 32 bit }
-      cg.ungetregister(exprasmlist,hreg);
-      emit_reg_reg(A_PXOR,S_D,hreg,location.register);
+      emit_reg_reg(A_PXOR,S_NO,hreg,location.register);
     end;
 {$endif SUPPORT_MMX}
 end.

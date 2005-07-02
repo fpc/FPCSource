@@ -607,9 +607,9 @@ implementation
               LOC_MMXREGISTER:
                 begin
                   if left.location.loc=LOC_CMMXREGISTER then
-                    cg.a_loadmm_reg_reg(exprasmlist,right.location.register,left.location.register)
+                    cg.a_loadmm_reg_reg(exprasmlist,OS_M64,OS_M64,right.location.register,left.location.register,nil)
                   else
-                    cg.a_loadmm_reg_ref(exprasmlist,right.location.register,left.location.reference);
+                    cg.a_loadmm_reg_ref(exprasmlist,OS_M64,OS_M64,right.location.register,left.location.reference,nil);
                 end;
 {$endif SUPPORT_MMX}
               LOC_MMREGISTER,
