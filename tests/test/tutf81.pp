@@ -3,4 +3,5 @@
 begin
   w:='äüö';
   writeln(w);
+  writeln('äa');
 end.
