@@ -175,6 +175,11 @@ type
        next_slave : Pst_mysql;
        last_used_slave : Pst_mysql;
        last_used_con : Pst_mysql;
+
+       stmts : pointer; // LIST
+       methods : pointer; // Pst_mysql_methods
+       thd : pointer;
+       unbuffered_fetch_owner : pmy_bool;
     end;
   TMYSQL = st_mysql;
   PMYSQL = ^TMYSQL;
