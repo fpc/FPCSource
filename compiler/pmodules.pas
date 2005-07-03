@@ -107,7 +107,7 @@ implementation
          begin
            { regenerate the importssection for win32 }
            if assigned(importssection) and
-              (target_info.system in [system_i386_win32,system_i386_wdosx]) then
+              (target_info.system in [system_i386_win32,system_i386_wdosx, system_arm_wince]) then
             begin
               importsSection.clear;
               importlib.generatesmartlib;

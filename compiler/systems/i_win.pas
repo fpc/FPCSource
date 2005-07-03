@@ -157,6 +157,67 @@ unit i_win;
             use_function_relative_addresses : true
           );
 
+       system_arm_wince_info : tsysteminfo =
+          (
+            system       : system_arm_wince;
+            name         : 'WinCE for ARM';
+            shortname    : 'WinCE';
+            flags        : [];
+            cpu          : cpu_arm;
+            unit_env     : '';
+            extradefines : 'UNDER_CE';
+            exeext       : '.exe';
+            defext       : '.def';
+            scriptext    : '.bat';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.rc';
+            resobjext    : '.or';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : '';
+            sharedClibext : '.dll';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : '';
+            p_ext_support : false;
+            Cprefix      : '_';
+            newline      : #13#10;
+            dirsep       : '\';
+            files_case_relevent : true;
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_gnu_windres;
+            script       : script_dos;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 262144;
+            DllScanSupported:false;
+            use_function_relative_addresses : true
+          );
+          
   implementation
 
 initialization
@@ -175,4 +236,10 @@ initialization
     {$endif WDOSX}
   {$endif WIN64}
 {$endif CPUX86_64}
+
+{$ifdef CPUARM}
+  {$ifdef WINCE}
+    set_source_info(system_arm_wince_info);
+  {$endif WINCE}
+{$endif CPUARM}
 end.

@@ -249,7 +249,7 @@ implementation
          suffix : integer;
 {$endif GDB}
          hp2 : twin32imported_item;
-         lhead,lname,lcode,
+         lhead,lname,lcode, {$ifdef ARM} lpcode, {$endif ARM}
          lidata4,lidata5 : tasmlabel;
          href : treference;
       begin
@@ -298,7 +298,9 @@ implementation
                  if not hp2.is_var then
                   begin
                     objectlibrary.getlabel(lcode);
-                    reference_reset_symbol(href,lcode,0);
+                  {$ifdef ARM}
+                    objectlibrary.getlabel(lpcode);
+                  {$endif ARM}
                     { place jump in codesegment, insert a code section in the
                       imporTSection to reduce the amount of .s files (PFV) }
                     new_section(importsSection,sec_code,'',0);
@@ -311,8 +313,19 @@ implementation
                     else
                       mangledstring:=hp2.func^;
                     importsSection.concat(Tai_symbol.Createname_global(mangledstring,AT_FUNCTION,0));
+                  {$ifdef ARM}
+                    reference_reset_symbol(href,lpcode,0);
+                    importsSection.concat(Taicpu.op_reg_ref(A_LDR,NR_R12,href));
+                    reference_reset_base(href,NR_R12,0);
+                    importsSection.concat(Taicpu.op_reg_ref(A_LDR,NR_R15,href));
+                    importsSection.concat(Tai_label.Create(lpcode));
+                    reference_reset_symbol(href,lcode,0);
+                    importsSection.concat(tai_const.create_sym_offset(href.symbol,href.offset));
+                  {$else ARM}
+                    reference_reset_symbol(href,lcode,0);
                     importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                     importsSection.concat(Tai_align.Create_op(4,$90));
+                  {$endif ARM}
 {$IfDef GDB}
                     if (cs_debuginfo in aktmoduleswitches) and assigned(hp2.procdef) then
                        hp2.procdef.concatstabto(importssection);
@@ -393,7 +406,7 @@ implementation
       var
          hp1 : timportlist;
          hp2 : twin32imported_item;
-         l1,l2,l3,l4 : tasmlabel;
+         l1,l2,l3,l4 {$ifdef ARM} ,l5 {$endif ARM} : tasmlabel;
          mangledstring : string;
 {$ifdef GDB}
          importname : string;
@@ -455,8 +468,10 @@ implementation
                    if not hp2.is_var then
                     begin
                       objectlibrary.getlabel(l4);
-                      { create indirect jump }
-                      reference_reset_symbol(href,l4,0);
+                    {$ifdef ARM}
+                      objectlibrary.getlabel(l5);
+                    {$endif ARM}
+                      { create indirect jump and }
                       { place jump in codesegment }
                       new_section(importsSection,sec_code,'',0);
 {$IfDef GDB}
@@ -468,8 +483,19 @@ implementation
                       else
                         mangledstring:=hp2.func^;
                       importsSection.concat(Tai_symbol.Createname_global(mangledstring,AT_FUNCTION,0));
+                    {$ifdef ARM}
+                      reference_reset_symbol(href,l5,0);
+                      importsSection.concat(Taicpu.op_reg_ref(A_LDR,NR_R12,href));
+                      reference_reset_base(href,NR_R12,0);
+                      importsSection.concat(Taicpu.op_reg_ref(A_LDR,NR_R15,href));
+                      importsSection.concat(Tai_label.Create(l5));
+                      reference_reset_symbol(href,l4,0);
+                      importsSection.concat(tai_const.create_sym_offset(href.symbol,href.offset));
+                    {$else ARM}
+                      reference_reset_symbol(href,l4,0);
                       importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                       importsSection.concat(Tai_align.Create_op(4,$90));
+                    {$endif ARM}
 {$IfDef GDB}
                       if (cs_debuginfo in aktmoduleswitches) and assigned(hp2.procdef) then
                         hp2.procdef.concatstabto(importssection);
@@ -861,18 +887,25 @@ end;
 
 
 Procedure TLinkerWin32.SetDefaultInfo;
+var
+  targetopts: string;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld -b pe-i386 -m i386pe $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
-     DllCmd[1]:='ld -b pe-i386 -m i386pe $OPT $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
+     {$ifdef ARM}
+       targetopts:='-m armpe';
+     {$else ARM}
+       targetopts:='-b pe-i386 -m i386pe';
+     {$endif ARM}
+     ExeCmd[1]:='ld '+targetopts+' $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
+     DllCmd[1]:='ld '+targetopts+' $OPT $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
      { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
        use short forms to avoid 128 char limitation problem }
      ExeCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-     ExeCmd[3]:='ld -b pe-i386 -m i386pe $OPT $STRIP $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
+     ExeCmd[3]:='ld '+targetopts+' $OPT $STRIP $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
      { DllCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF'; }
      DllCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-     DllCmd[3]:='ld -b pe-i386 -m i386pe $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
+     DllCmd[3]:='ld '+targetopts+' $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
    end;
 end;
 
@@ -1240,6 +1273,10 @@ var
   secroot,hsecroot : psecfill;
   zerobuf : pointer;
 begin
+  {$ifdef ARM}
+    postprocessexecutable:=true;
+    exit;
+  {$endif ARM}
   postprocessexecutable:=false;
   { when -s is used or it's a dll then quit }
   if (cs_link_extern in aktglobalswitches) then
@@ -1627,4 +1664,11 @@ initialization
   RegisterRes(res_gnu_windres_info);
   RegisterTarget(system_x64_win64_info);
 {$endif x86_64}
+{$ifdef arm}
+  RegisterExternalLinker(system_arm_wince_info,TLinkerWin32);
+  RegisterImport(system_arm_wince,TImportLibWin32);
+  RegisterExport(system_arm_wince,TExportLibWin32);
+  RegisterRes(res_gnu_windres_info);
+  RegisterTarget(system_arm_wince_info);
+{$endif arm}
 end.

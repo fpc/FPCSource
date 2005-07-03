@@ -113,7 +113,7 @@ implementation
                      an underline }
                    if InternalProcName[1]='_' then
                      delete(InternalProcName,1,1)
-                   else if (target_info.system in [system_i386_win32,system_i386_wdosx]) and UseDeffileForExports then
+                   else if (target_info.system in [system_i386_win32,system_i386_wdosx,system_arm_wince]) and UseDeffileForExports then
                      begin
                        Message(parser_e_dlltool_unit_var_problem);
                        Message(parser_e_dlltool_unit_var_problem2);
@@ -134,7 +134,7 @@ implementation
                     end;
                    hp.options:=hp.options or eo_index;
                    pt.free;
-                   if target_info.system in [system_i386_win32,system_i386_wdosx] then
+                   if target_info.system in [system_i386_win32,system_i386_wdosx,system_arm_wince] then
                     DefString:=srsym.realname+'='+InternalProcName+' @ '+tostr(hp.index)
                    else
                     DefString:=srsym.realname+'='+InternalProcName; {Index ignored!}

@@ -38,6 +38,9 @@ implementation
     {$ifndef NOTARGETLINUX}
       ,t_linux
     {$endif}
+    {$ifndef NOTARGETWINCE}
+      ,t_win
+    {$endif}
 
 {**************************************
              Assemblers
