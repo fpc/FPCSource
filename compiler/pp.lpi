@@ -10,65 +10,67 @@
         <MainUnitHasTitleStatement Value="False"/>
       </Flags>
       <MainUnit Value="0"/>
-      <ActiveEditorIndexAtStart Value="2"/>
+      <ActiveEditorIndexAtStart Value="0"/>
+      <IconPath Value="./"/>
       <TargetFileExt Value=".exe"/>
       <Title Value="pp"/>
     </General>
-    <JumpHistory Count="5" HistoryIndex="4">
-      <Position1>
-        <Filename Value="pp.pas"/>
-        <Caret Line="1" Column="1" TopLine="37"/>
-      </Position1>
-      <Position2>
-        <Filename Value="pp.pas"/>
-        <Caret Line="139" Column="50" TopLine="114"/>
-      </Position2>
-      <Position3>
-        <Filename Value="cstreams.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position3>
-      <Position4>
-        <Filename Value="globals.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position4>
-      <Position5>
-        <Filename Value="globals.pas"/>
-        <Caret Line="1555" Column="38" TopLine="1536"/>
-      </Position5>
-    </JumpHistory>
-    <Units Count="3">
+    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <Units Count="7">
       <Unit0>
-        <CursorPos X="7" Y="129"/>
+        <CursorPos X="1" Y="208"/>
         <EditorIndex Value="0"/>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
         <Loaded Value="True"/>
-        <TopLine Value="109"/>
+        <TopLine Value="171"/>
         <UnitName Value="pp"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="23"/>
       </Unit0>
       <Unit1>
         <CursorPos X="1" Y="1"/>
-        <EditorIndex Value="1"/>
         <Filename Value="cstreams.pas"/>
-        <Loaded Value="True"/>
         <TopLine Value="1"/>
         <UnitName Value="cstreams"/>
         <UsageCount Value="10"/>
       </Unit1>
       <Unit2>
-        <CursorPos X="45" Y="27"/>
-        <EditorIndex Value="2"/>
+        <CursorPos X="5" Y="1548"/>
         <Filename Value="globals.pas"/>
-        <Loaded Value="True"/>
-        <TopLine Value="97"/>
+        <TopLine Value="1544"/>
         <UnitName Value="globals"/>
         <UsageCount Value="10"/>
       </Unit2>
+      <Unit3>
+        <CursorPos X="1" Y="1"/>
+        <Filename Value="fpcdefs.inc"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="10"/>
+      </Unit3>
+      <Unit4>
+        <CursorPos X="5" Y="32"/>
+        <Filename Value="x86\cpubase.pas"/>
+        <TopLine Value="13"/>
+        <UsageCount Value="10"/>
+      </Unit4>
+      <Unit5>
+        <CursorPos X="1" Y="140"/>
+        <Filename Value="options.pas"/>
+        <TopLine Value="121"/>
+        <UnitName Value="options"/>
+        <UsageCount Value="10"/>
+      </Unit5>
+      <Unit6>
+        <CursorPos X="28" Y="292"/>
+        <Filename Value="compiler.pas"/>
+        <TopLine Value="290"/>
+        <UnitName Value="compiler"/>
+        <UsageCount Value="10"/>
+      </Unit6>
     </Units>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
+      <DestinationDirectory Value="c:\temp/publishedproject/"/>
       <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
       <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
@@ -83,17 +85,28 @@
     <Version Value="5"/>
     <PathDelim Value="\"/>
     <SearchPaths>
-      <OtherUnitFiles Value="i386\;x86\"/>
+      <IncludeFiles Value="i386\"/>
+      <OtherUnitFiles Value="i386\;x86\;systems\"/>
       <UnitOutputDirectory Value="C:\fpc\compiler\myunits"/>
     </SearchPaths>
     <Parsing>
-      <Style Value="2"/>
+      <SyntaxOptions>
+        <D2Extensions Value="False"/>
+        <CStyleOperator Value="False"/>
+        <AllowLabel Value="False"/>
+        <CPPInline Value="False"/>
+      </SyntaxOptions>
     </Parsing>
     <CodeGeneration>
       <Generate Value="Faster"/>
       <TargetProcessor Value="3"/>
       <TargetOS Value="Win32"/>
     </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="True"/>
+      </Debugging>
+    </Linking>
     <Other>
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
@@ -105,6 +118,12 @@
     </Other>
   </CompilerOptions>
   <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Source Value="pp.pas"/>
+        <Line Value="208"/>
+      </Item1>
+    </BreakPoints>
     <Exceptions Count="2">
       <Item1>
         <Name Value="ECodetoolError"/>
