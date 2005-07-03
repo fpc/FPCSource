@@ -37,3 +37,12 @@ type
     LockSemaphore : THandle;
     SpinCount : ULONG_PTR;
   end;
+
+const
+{$ifdef WINCE}
+  KernelDLL = 'coredll';
+  ApiSuffix = 'W';
+{$else WINCE}
+  KernelDLL = 'kernel32';
+  ApiSuffix = 'A';
+{$endif WINCE}

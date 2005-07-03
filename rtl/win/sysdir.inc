@@ -58,20 +58,27 @@ end;
 
 procedure chdir(const s:string);[IOCHECK];
 begin
+{$ifndef WINCE}
   If (s='') or (InOutRes <> 0) then
    exit;
   dirfn(TDirFnType(@SetCurrentDirectory),s);
   if Inoutres=2 then
    Inoutres:=3;
+{$else WINCE}
+  InOutRes:=1;
+{$endif WINCE}
 end;
 
 procedure GetDir (DriveNr: byte; var Dir: ShortString);
+{$ifndef WINCE}
 const
   Drive:array[0..3]of char=(#0,':',#0,#0);
+{$endif WINCE}
 var
   defaultdrive:boolean;
   DirBuf,SaveBuf:array[0..259] of Char;
 begin
+{$ifndef WINCE}
   defaultdrive:=drivenr=0;
   if not defaultdrive then
    begin
@@ -92,6 +99,9 @@ begin
   dir:=strpas(DirBuf);
   if not FileNameCaseSensitive then
    dir:=upcase(dir);
+{$else WINCE}
+  Dir:='\';
+{$endif WINCE}
 end;
 
 {

@@ -4176,6 +4176,9 @@ rtl/win32/wprt0_10.as -text
 rtl/win64/Makefile svneol=native#text/plain
 rtl/win64/Makefile.fpc svneol=native#text/plain
 rtl/win64/system.pp svneol=native#text/plain
+rtl/wince/Makefile.fpc svneol=native#text/plain
+rtl/wince/system.pp svneol=native#text/plain
+rtl/wince/wprt0.as svneol=native#text/plain
 rtl/x86_64/int64p.inc svneol=native#text/plain
 rtl/x86_64/makefile.cpu -text
 rtl/x86_64/math.inc svneol=native#text/plain

@@ -29,7 +29,11 @@ end;
 
 function do_isdevice(handle:thandle):boolean;
 begin
+{$ifndef WINCE}
   do_isdevice:=(getfiletype(handle)=2);
+{$else WINCE}
+  do_isdevice:=False;
+{$endif WINCE}
 end;
 
 

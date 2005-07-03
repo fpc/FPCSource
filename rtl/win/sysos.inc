@@ -171,76 +171,84 @@ threadvar
 
    { misc. functions }
    function GetLastError : DWORD;
-     stdcall;external 'kernel32' name 'GetLastError';
+     stdcall;external KernelDLL name 'GetLastError';
 
    { time and date functions }
    function GetTickCount : longint;
-     stdcall;external 'kernel32' name 'GetTickCount';
+     stdcall;external KernelDLL name 'GetTickCount';
 
+{$ifndef WINCE}
    { process functions }
    procedure ExitProcess(uExitCode : UINT);
-     stdcall;external 'kernel32' name 'ExitProcess';
+     stdcall;external KernelDLL name 'ExitProcess';
 
    { Startup }
    procedure GetStartupInfo(p : pointer);
-     stdcall;external 'kernel32' name 'GetStartupInfoA';
+     stdcall;external KernelDLL name 'GetStartupInfoA';
    function GetStdHandle(nStdHandle:DWORD):THANDLE;
-     stdcall;external 'kernel32' name 'GetStdHandle';
+     stdcall;external KernelDLL name 'GetStdHandle';
+{$endif WINCE}
 
    { command line/enviroment functions }
    function GetCommandLine : pchar;
-     stdcall;external 'kernel32' name 'GetCommandLineA';
+     stdcall;external KernelDLL name 'GetCommandLine' + ApiSuffix;
 
+{$ifndef WINCE}
   function GetCurrentProcessId:DWORD;
-    stdcall; external 'kernel32' name 'GetCurrentProcessId';
+    stdcall; external KernelDLL name 'GetCurrentProcessId';
 
   function Win32GetCurrentThreadId:DWORD;
-    stdcall; external 'kernel32' name 'GetCurrentThreadId';
+    stdcall; external KernelDLL name 'GetCurrentThreadId';
+{$endif WINCE}
 
    { module functions }
    function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
-     stdcall;external 'kernel32' name 'GetModuleFileNameA';
+     stdcall;external KernelDLL name 'GetModuleFileName' + ApiSuffix;
    function GetModuleHandle(p : pointer) : longint;
-     stdcall;external 'kernel32' name 'GetModuleHandleA';
+     stdcall;external KernelDLL name 'GetModuleHandle' + ApiSuffix;
    function GetCommandFile:pchar;forward;
 
    { file functions }
    function WriteFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;
-     stdcall;external 'kernel32' name 'WriteFile';
+     stdcall;external KernelDLL name 'WriteFile';
    function ReadFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;
-     stdcall;external 'kernel32' name 'ReadFile';
+     stdcall;external KernelDLL name 'ReadFile';
    function CloseHandle(h : thandle) : longint;
-     stdcall;external 'kernel32' name 'CloseHandle';
+     stdcall;external KernelDLL name 'CloseHandle';
    function DeleteFile(p : pchar) : longint;
-     stdcall;external 'kernel32' name 'DeleteFileA';
+     stdcall;external KernelDLL name 'DeleteFile' + ApiSuffix;
    function MoveFile(old,_new : pchar) : longint;
-     stdcall;external 'kernel32' name 'MoveFileA';
+     stdcall;external KernelDLL name 'MoveFile' + ApiSuffix;
    function SetFilePointer(l1,l2 : thandle;l3 : pointer;l4 : longint) : longint;
-     stdcall;external 'kernel32' name 'SetFilePointer';
+     stdcall;external KernelDLL name 'SetFilePointer';
    function GetFileSize(h:thandle;p:pointer) : longint;
-     stdcall;external 'kernel32' name 'GetFileSize';
+     stdcall;external KernelDLL name 'GetFileSize';
    function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                        lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
                        dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
-     stdcall;external 'kernel32' name 'CreateFileA';
+     stdcall;external KernelDLL name 'CreateFile' + ApiSuffix;
    function SetEndOfFile(h : thandle) : longbool;
-     stdcall;external 'kernel32' name 'SetEndOfFile';
+     stdcall;external KernelDLL name 'SetEndOfFile';
+{$ifndef WINCE}
    function GetFileType(Handle:thandle):DWord;
-     stdcall;external 'kernel32' name 'GetFileType';
+     stdcall;external KernelDLL name 'GetFileType';
+{$endif WINCE}
    function GetFileAttributes(p : pchar) : dword;
-     stdcall;external 'kernel32' name 'GetFileAttributesA';
+     stdcall;external KernelDLL name 'GetFileAttributes' + ApiSuffix;
 
    { Directory }
    function CreateDirectory(name : pointer;sec : pointer) : longbool;
-     stdcall;external 'kernel32' name 'CreateDirectoryA';
+     stdcall;external KernelDLL name 'CreateDirectory' + ApiSuffix;
    function RemoveDirectory(name:pointer):longbool;
-     stdcall;external 'kernel32' name 'RemoveDirectoryA';
+     stdcall;external KernelDLL name 'RemoveDirectory' + ApiSuffix;
+{$ifndef WINCE}
    function SetCurrentDirectory(name : pointer) : longbool;
-     stdcall;external 'kernel32' name 'SetCurrentDirectoryA';
+     stdcall;external KernelDLL name 'SetCurrentDirectory' + ApiSuffix;
    function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
-     stdcall;external 'kernel32' name 'GetCurrentDirectoryA';
+     stdcall;external KernelDLL name 'GetCurrentDirectory' + ApiSuffix;
+{$endif WINCE}
 
    Procedure Errno2InOutRes;
    Begin

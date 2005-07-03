@@ -20,11 +20,11 @@
 
    { memory functions }
    function GetProcessHeap : THandle;
-     stdcall;external 'kernel32' name 'GetProcessHeap';
+     stdcall;external KernelDLL name 'GetProcessHeap';
    function HeapAlloc(hHeap : DWord; dwFlags : DWord; dwBytes : SIZE_T) : pointer;
-     stdcall;external 'kernel32' name 'HeapAlloc';
+     stdcall;external KernelDLL name 'HeapAlloc';
    function HeapFree(hHeap : THandle; dwFlags : dword; lpMem: pointer) : boolean;
-     stdcall;external 'kernel32' name 'HeapFree';
+     stdcall;external KernelDLL name 'HeapFree';
 {$IFDEF SYSTEMDEBUG}
    function WinAPIHeapSize(hHeap : THandle; dwFlags : DWord; ptr : Pointer) : DWord;
      stdcall;external 'kernel32' name 'HeapSize';
