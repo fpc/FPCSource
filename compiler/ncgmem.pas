@@ -245,6 +245,12 @@ implementation
                  location.reference.base:=cg.getaddressregister(exprasmlist);
                  cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,location.reference.base);
               end;
+            LOC_CONSTANT:
+              begin
+                location.reference.offset:=left.location.value;
+              end;
+            else
+              internalerror(200507031);
          end;
          if (cs_gdb_heaptrc in aktglobalswitches) and
             (cs_checkpointer in aktlocalswitches) and
