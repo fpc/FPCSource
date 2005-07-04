@@ -276,38 +276,49 @@ implementation
         current_scanner.poppreprocstack;
       end;
 
-
     procedure dir_ifdef;
       var
         hs    : string;
         mac   : tmacro;
+        condition : boolean;
       begin
-        current_scanner.skipspace;
-        hs:=current_scanner.readid;
-        if hs='' then
-          Message(scan_e_error_in_preproc_expr);
-        mac:=tmacro(search_macro(hs));
-        if assigned(mac) then
-          mac.is_used:=true;
-        current_scanner.addpreprocstack(pp_ifdef,assigned(mac) and mac.defined,hs,scan_c_ifdef_found);
+        if not assigned(current_scanner.preprocstack) or current_scanner.preprocstack.accept then
+          begin
+            current_scanner.skipspace;
+            hs:=current_scanner.readid;
+            if hs='' then
+              Message(scan_e_error_in_preproc_expr);
+            mac:=tmacro(search_macro(hs));
+            if assigned(mac) then
+              mac.is_used:=true;
+            condition:= assigned(mac) and mac.defined;
+          end
+        else
+          condition:= false; {Arbitrary, since everything is skipped anyway}
+        current_scanner.addpreprocstack(pp_ifdef,condition,hs,scan_c_ifdef_found);
       end;
-
 
     procedure dir_ifndef;
       var
         hs    : string;
         mac   : tmacro;
+        condition : boolean;
       begin
-        current_scanner.skipspace;
-        hs:=current_scanner.readid;
-        if hs='' then
-          Message(scan_e_error_in_preproc_expr);
-        mac:=tmacro(search_macro(hs));
-        if assigned(mac) then
-          mac.is_used:=true;
-        current_scanner.addpreprocstack(pp_ifndef,not(assigned(mac) and mac.defined),hs,scan_c_ifndef_found);
+        if not assigned(current_scanner.preprocstack) or current_scanner.preprocstack.accept then
+          begin
+            current_scanner.skipspace;
+            hs:=current_scanner.readid;
+            if hs='' then
+              Message(scan_e_error_in_preproc_expr);
+            mac:=tmacro(search_macro(hs));
+            if assigned(mac) then
+              mac.is_used:=true;
+            condition:= not(assigned(mac) and mac.defined);
+          end
+        else
+          condition:= false; {Arbitrary, since everything is skipped anyway}
+        current_scanner.addpreprocstack(pp_ifndef,condition,hs,scan_c_ifndef_found);
       end;
-
 
     procedure dir_ifopt;
       var
@@ -315,17 +326,22 @@ implementation
         found : boolean;
         state : char;
       begin
-        found:= false;
-        current_scanner.skipspace;
-        hs:=current_scanner.readid;
-        if (length(hs)>1) then
-         Message1(scan_w_illegal_switch,hs)
+        if not assigned(current_scanner.preprocstack) or current_scanner.preprocstack.accept then
+          begin
+            found:= false;
+            current_scanner.skipspace;
+            hs:=current_scanner.readid;
+            if (length(hs)>1) then
+             Message1(scan_w_illegal_switch,hs)
+            else
+             begin
+               state:=current_scanner.ReadState;
+               if state in ['-','+'] then
+                found:=CheckSwitch(hs[1],state);
+             end;
+          end
         else
-         begin
-           state:=current_scanner.ReadState;
-           if state in ['-','+'] then
-            found:=CheckSwitch(hs[1],state);
-         end;
+          found:= false; {Arbitrary, since everything is skipped anyway}
         current_scanner.addpreprocstack(pp_ifopt,found,hs,scan_c_ifopt_found);
       end;
 
@@ -833,7 +849,10 @@ implementation
       var
         hs : string;
       begin
-        hs:=parse_compiler_expr;
+        if not assigned(current_scanner.preprocstack) or current_scanner.preprocstack.accept then
+          hs:=parse_compiler_expr
+        else
+          hs:='0'; {Arbitrary, since everything is skipped anyway}
         current_scanner.addpreprocstack(pp_if,hs<>'0',hs,scan_c_if_found);
       end;
 
@@ -842,7 +861,10 @@ implementation
       var
         hs : string;
       begin
-        hs:=parse_compiler_expr;
+        if not assigned(current_scanner.preprocstack) or current_scanner.preprocstack.accept then
+          hs:=parse_compiler_expr
+        else
+          hs:='0'; {Arbitrary, since everything is skipped anyway}
         current_scanner.elseifpreprocstack(hs<>'0');
       end;
 
