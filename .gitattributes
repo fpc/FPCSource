@@ -1635,6 +1635,7 @@ packages/base/sqlite/Makefile.fpc svneol=native#text/plain
 packages/base/sqlite/fpmake.inc svneol=native#text/plain
 packages/base/sqlite/fpmake.pp svneol=native#text/plain
 packages/base/sqlite/sqlite.pp svneol=native#text/plain
+packages/base/sqlite/sqlite3.pp svneol=native#text/plain
 packages/base/sqlite/sqlitedb.pas svneol=native#text/plain
 packages/base/sqlite/test.pas svneol=native#text/plain
 packages/extra/Makefile svneol=native#text/plain
