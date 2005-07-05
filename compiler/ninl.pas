@@ -2176,7 +2176,7 @@ implementation
                        hpp := cordconstnode.create(1,tcallparanode(left).left.resulttype,false);
                      end;
                    if (tcallparanode(left).left.resulttype.def.deftype=pointerdef) then
-                     inserttypeconv_internal(hpp,ptrinttype);
+                     inserttypeconv_internal(hpp,sinttype);
                    { make sure we don't call functions part of the left node twice (and generally }
                    { optimize the code generation)                                                }
                    if node_complexity(tcallparanode(left).left) > 1 then
@@ -2199,6 +2199,7 @@ implementation
                    else
                      hpp := caddnode.create(subn,hp,hpp);
                    { assign result of addition }
+                   inserttypeconv_internal(hpp,hp.resulttype);
                    addstatement(newstatement,cassignmentnode.create(hp.getcopy,hpp));
                    { deallocate the temp }
                    if assigned(tempnode) then
