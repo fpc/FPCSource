@@ -442,8 +442,11 @@ implementation
                                       htype:=p2.resulttype;
                                   end
                                 else
-                                  update_constsethi(p2.resulttype)
-                              end
+                                  update_constsethi(p2.resulttype);
+                              end;
+
+                            if assigned(htype.def) then
+                              inserttypeconv(p2,htype)
                             else
                               inserttypeconv(p2,u8inttype);
 
