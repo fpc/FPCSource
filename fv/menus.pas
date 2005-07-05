@@ -1389,7 +1389,9 @@ BEGIN
              Event.What := evCommand;                 { Change to command }
              Event.Command := T^.Command;             { Set command value }
              Event.InfoPtr := Nil;                    { Clear info ptr }
-             Exit;                                    { Now exit }
+             PutEvent(Event);                           { Put event on queue }
+             ClearEvent(Event);                         { Clear the event }
+             Exit;             Exit;                                    { Now exit }
            End;
            T := T^.Next;                              { Next item }
          End;
