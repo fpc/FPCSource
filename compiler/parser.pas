@@ -35,6 +35,7 @@ interface
 implementation
 
     uses
+      sysutils,
       cutils,cclasses,
       globtype,version,tokens,systems,globals,verbose,
       symbase,symtable,symsym,
@@ -515,13 +516,25 @@ implementation
          { If the compile level > 1 we get a nice "unit expected" error
            message if we are trying to use a program as unit.}
          try
-           if (token=_UNIT) or (compile_level>1) then
-             begin
-               current_module.is_unit:=true;
-               proc_unit;
-             end
-           else
-             proc_program(token=_LIBRARY);
+           try
+             if (token=_UNIT) or (compile_level>1) then
+               begin
+                 current_module.is_unit:=true;
+                 proc_unit;
+               end
+             else
+               proc_program(token=_LIBRARY);
+           except
+             on ECompilerAbort do
+               raise;
+             on Exception do
+               begin
+                 { Increase errorcounter to prevent some
+                   checks during cleanup }
+                 inc(status.errorcount);
+                 raise;
+               end;
+           end;
          finally
            { restore old state }
            done_module;
