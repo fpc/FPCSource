@@ -2,6 +2,8 @@
 { Submitted by "C Western" on  2005-06-26 }
 { e-mail: mftq75@dsl.pipex.com }
 
+{$mode delphi}
+
 uses StrUtils;
 
 function mypos(s1,s2 : widestring) : integer;overload;
