@@ -166,7 +166,13 @@ begin
   If (ExceptProc<>Nil) and (ExceptObjectStack<>Nil) then
     with ExceptObjectStack^ do
       TExceptProc(ExceptProc)(FObject,Addr,FrameCount,Frames);
-  RunError(217);
+  if erroraddr = nil then
+    RunError(217)
+  else
+    if errorcode <= maxExitCode then
+      halt(errorcode)
+    else
+      halt(255)
 end;
 
 
