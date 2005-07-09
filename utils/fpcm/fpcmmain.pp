@@ -123,7 +123,7 @@ interface
         { morphos } ( false, false, true,  false ,false, false),
         { netwlibc }( true,  false, false, false, false, false),
         { win64   } ( false, false, false, false, true,  false),
-        { wince    }( false, false, false, false, false, true )
+        { wince    }( true,  false, false, false, false, true )
       );
 
     type
