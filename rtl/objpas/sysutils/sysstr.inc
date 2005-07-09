@@ -2120,8 +2120,9 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
 
   function ScanStr(c : Char) : Boolean;
     begin
-      while (s[n] <> c) and (Length(s) > n) do inc(n);
+      while (s[n] <> c) and (Length(s) > n) do
         inc(n);
+      inc(n);
       If (n <= Length(s)) then
         Result := True
       else
@@ -2145,9 +2146,14 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
             begin
               inc(m);
               case fmt[m] of
-                'd': Result := vtInteger;
-                'f': Result := vtExtended;
-                's': Result := vtString;
+                'd':
+                  Result:=vtInteger;
+                'f':
+                  Result:=vtExtended;
+                's':
+                  Result:=vtString;
+                'c':
+                  Result:=vtChar;
                 else
                   raise EFormatError.CreateFmt(SInvalidFormat,[fmt]);
               end;
@@ -2173,9 +2179,22 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
         case j of
           vtInteger :
             begin
-              if GetInt > 0 then
+              if GetInt>0 then
                 begin
                   plongint(Pointers[i])^:=StrToInt(s1);
+                  inc(Result);
+                end
+              else
+                break;
+
+            end;
+
+          vtchar :
+            begin
+              if Length(s)>n then
+                begin
+                  pchar(Pointers[i])^:=s[n];
+                  inc(n);
                   inc(Result);
                 end
               else
