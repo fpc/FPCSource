@@ -150,6 +150,8 @@ Function FormatFloat(Const Format : String; Value : Extended) : String;
 Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
 function FormatCurr(const Format: string; Value: Currency): string;
 
+function SScanf(const s: string; const fmt : string;const Pointers : array of Pointer) : Integer;
+
 {// MBCS Functions. No MBCS yet, so mostly these are calls to the regular counterparts.}
 Type
   TMbcsByteType = (mbSingleByte, mbLeadByte, mbTrailByte);

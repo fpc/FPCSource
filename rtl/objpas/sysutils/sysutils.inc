@@ -536,38 +536,3 @@ begin
     end;
 end;
 
-{
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.17  2003/09/06 20:46:07  marco
-   * 3 small VP fixes from Noah Silva. One (OutOfMemory error) failed.
-
-  Revision 1.16  2003/04/06 11:06:39  michael
-  + Added exception classname to output of unhandled exception for better identification
-
-  Revision 1.15  2003/03/18 08:28:23  michael
-  Patch from peter for Abort routine
-
-  Revision 1.14  2003/03/17 15:11:51  armin
-  + someone AssertErrorHandler, BackTraceFunc and Dump_Stack so that pointer instead of longint is needed
-
-  Revision 1.13  2003/01/01 20:58:07  florian
-    + added invalid instruction exception
-
-  Revision 1.12  2002/10/07 19:43:24  florian
-    + empty prototypes for the AnsiStr* multi byte functions added
-
-  Revision 1.11  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.10  2002/07/16 13:57:39  florian
-    * raise takes now a void pointer as at and frame address
-      instead of a longint, fixed
-
-  Revision 1.9  2002/01/25 17:42:03  peter
-    * interface helpers
-
-  Revision 1.8  2002/01/25 16:23:03  peter
-    * merged filesearch() fix
-}

@@ -5315,6 +5315,7 @@ tests/test/units/system/ttrunc.pp svneol=native#text/plain
 tests/test/units/sysutils/execansi.pp svneol=native#text/plain
 tests/test/units/sysutils/execedbya.pp svneol=native#text/plain
 tests/test/units/sysutils/extractquote.pp svneol=native#text/plain
+tests/test/units/sysutils/tsscanf.pp svneol=native#text/plain
 tests/test/uprocext1.pp svneol=native#text/plain
 tests/test/uprocext2.pp svneol=native#text/plain
 tests/test/utasout.pp svneol=native#text/plain
