@@ -21,14 +21,24 @@ type
   Pst_mysql_field = ^st_mysql_field;
   st_mysql_field = record
        name : Pchar;
+       org_name : pchar;
        table : Pchar;
        org_table : Pchar;
        db : Pchar;
+       catalog : pchar;
        def : Pchar;
-       length : dword;
-       max_length : dword;
-       flags : dword;
-       decimals : dword;
+       length : culong;
+       max_length : culong;
+       name_length : cuint;
+       org_name_length : cuint;
+       table_length : cuint;
+       org_table_length : cuint;
+       db_length : cuint;
+       catalog_length : cuint;
+       def_length : cuint;
+       flags : cuint;
+       decimals : cuint;
+       charsetnr : cuint;
        ftype : enum_field_types;
     end;
   MYSQL_FIELD = st_mysql_field;
@@ -51,6 +61,7 @@ type
   st_mysql_rows = record
      next : Pst_mysql_rows;
      data : MYSQL_ROW;
+     length : culong;
   end;
   MYSQL_ROWS = st_mysql_rows;
   TMYSQL_ROWS = MYSQL_ROWS;
@@ -88,25 +99,34 @@ type
   Pst_mysql_data = ^st_mysql_data;
   st_mysql_data = record
        rows : my_ulonglong;
-       fields : dword;
+       fields : cuint;
        data : PMYSQL_ROWS;
        alloc : MEM_ROOT;
+       prev_ptr : ^MYSQL_ROWS;
     end;
   MYSQL_DATA = st_mysql_data;
   TMYSQL_DATA = MYSQL_DATA;
   PMYSQL_DATA = ^MYSQL_DATA;
 
+  mysql_option = (MYSQL_OPT_CONNECT_TIMEOUT,MYSQL_OPT_COMPRESS,
+    MYSQL_OPT_NAMED_PIPE,MYSQL_INIT_COMMAND,
+    MYSQL_READ_DEFAULT_FILE,MYSQL_READ_DEFAULT_GROUP,
+    MYSQL_SET_CHARSET_DIR,MYSQL_SET_CHARSET_NAME
+    );
+
   Pst_mysql_options = ^st_mysql_options;
   st_mysql_options = record
-       connect_timeout : dword;
-       client_flag : dword;
-       port : dword;
-       host : Pchar;
-       init_command : Pchar;
-       user : Pchar;
-       password : Pchar;
-       unix_socket : Pchar;
-       db : Pchar;
+       connect_timeout,
+       read_timeout,
+       write_timeout: cuint;
+       port,protocol : cuint;
+       client_flag : culong;
+       host,
+       user,
+       password,
+       unix_socket,
+       db : pchar;
+       init_commands : pst_dynamic_array;
        my_cnf_file : Pchar;
        my_cnf_group : Pchar;
        charset_dir : Pchar;
@@ -116,22 +136,25 @@ type
        ssl_ca : Pchar;
        ssl_capath : Pchar;
        ssl_cipher : Pchar;
-       max_allowed_packet : Cardinal;
+       shared_memory_base_name : pchar;
+       max_allowed_packet : culong;
        use_ssl : my_bool;
        compress : my_bool;
        named_pipe : my_bool;
        rpl_probe : my_bool;
        rpl_parse : my_bool;
        no_master_reads : my_bool;
+       methods_to_use : mysql_option;
+       client_ip : pchar;
+       secure_auth : my_bool;
+       local_infile_init : pointer;
+       local_infile_read : pointer;
+       local_infile_end : pointer;
+       local_infile_error : pointer;
+       local_infile_userdata : pointer;
     end;
   TMYSQL_OPTIONS = st_mysql_options;
   PTMYSQL_OPTIONS = ^TMYSQL_OPTIONS;
-
-  mysql_option = (MYSQL_OPT_CONNECT_TIMEOUT,MYSQL_OPT_COMPRESS,
-    MYSQL_OPT_NAMED_PIPE,MYSQL_INIT_COMMAND,
-    MYSQL_READ_DEFAULT_FILE,MYSQL_READ_DEFAULT_GROUP,
-    MYSQL_SET_CHARSET_DIR,MYSQL_SET_CHARSET_NAME
-    );
 
   mysql_status = (MYSQL_STATUS_READY,MYSQL_STATUS_GET_RESULT,
     MYSQL_STATUS_USE_RESULT);
@@ -156,20 +179,21 @@ type
        affected_rows : my_ulonglong;
        insert_id : my_ulonglong;
        extra_info : my_ulonglong;
-       thread_id : dword;
-       packet_length : dword;
-       port : dword;
-       client_flag : dword;
-       server_capabilities : dword;
-       protocol_version : dword;
-       field_count : dword;
-       server_status : dword;
-       server_language : dword;
+       thread_id : culong;
+       packet_length : culong;
+       port : cuint;
+       client_flag : culong;
+       server_capabilities : culong;
+       protocol_version : cuint;
+       field_count : cuint;
+       server_status : cuint;
+       server_language : cuint;
+       warning_count : cuint;
        options : st_mysql_options;
        status : mysql_status;
        free_me : my_bool;
        reconnect : my_bool;
-       scramble_buff : array[0..8] of char;
+       scramble_buff : array[0..20] of char;
        rpl_pivot : my_bool;
        master : Pst_mysql;
        next_slave : Pst_mysql;
@@ -190,14 +214,16 @@ type
        fields : PMYSQL_FIELD;
        data : PMYSQL_DATA;
        data_cursor : PMYSQL_ROWS;
-       lengths : Pdword;
+       lengths : pculong;
        handle : PMYSQL;
        field_alloc : MEM_ROOT;
        field_count : dword;
-       current_field : dword;
+       current_field : cuint;
        row : MYSQL_ROW;
        current_row : MYSQL_ROW;
        eof : my_bool;
+       unbuffered_fetch_cancelled : my_bool;
+       methods : pointer; { was ^my_sql_methods }
     end;
   MYSQL_RES = st_mysql_res;
   TMYSQL_RES = MYSQL_RES;

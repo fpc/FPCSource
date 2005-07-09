@@ -1415,6 +1415,7 @@ packages/base/mysql/README -text
 packages/base/mysql/fpmake.inc svneol=native#text/plain
 packages/base/mysql/fpmake.pp svneol=native#text/plain
 packages/base/mysql/mkdb -text
+packages/base/mysql/my4_sys.pp svneol=native#text/plain
 packages/base/mysql/mysql3.pp svneol=native#text/plain
 packages/base/mysql/mysql3_com.pp svneol=native#text/plain
 packages/base/mysql/mysql3_comdyn.pp svneol=native#text/plain

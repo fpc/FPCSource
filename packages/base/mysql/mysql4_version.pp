@@ -31,7 +31,7 @@ interface
 
   const
      PROTOCOL_VERSION = 10;
-     MYSQL_SERVER_VERSION = '4.0.1-alpha';
+     MYSQL_SERVER_VERSION = '4.1.10a';
      MYSQL_SERVER_SUFFIX = '-max';
      FRM_VER = 6;
      MYSQL_VERSION_ID = 40001;

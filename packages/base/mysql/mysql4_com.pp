@@ -1,19 +1,12 @@
-unit mysql4_com;
-interface
-
-{
-  Automatically converted by H2Pas 0.99.15 from mysql_com.ph
-  The following command line parameters were used:
-    -p
-    -D
-    -l
-    mysqlclient
-    mysql_com.ph
-}
 {$mode objfpc}{$H+}
 {$MACRO on}
 
 {$PACKRECORDS C}
+unit mysql4_com;
+interface
+
+uses
+  ctypes;
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}

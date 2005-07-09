@@ -1,7 +1,7 @@
 unit mysql4;
 interface
 
-uses mysql4_com;
+uses ctypes,my4_sys,mysql4_com;
 
 {
   Automatically converted by H2Pas 0.99.15 from mysql.ph
