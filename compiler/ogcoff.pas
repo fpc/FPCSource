@@ -1780,9 +1780,22 @@ const go32v2stub : array[0..2047] of byte=(
             comment : '';
           );
 
+       as_i386_pecoffwince_info : tasminfo =
+          (
+            id     : as_i386_pecoffwince;
+            idtxt  : 'PECOFFWINCE';
+            asmbin : '';
+            asmcmd : '';
+            supported_target : system_i386_wince;
+            flags : [af_outputbinary];
+            labelprefix : '.L';
+            comment : '';
+          );
+
 
 initialization
   RegisterAssembler(as_i386_coff_info,TCoffAssembler);
   RegisterAssembler(as_i386_pecoff_info,TPECoffAssembler);
   RegisterAssembler(as_i386_pecoffwdosx_info,TPECoffAssembler);
+  RegisterAssembler(as_i386_pecoffwince_info,TPECoffAssembler);
 end.

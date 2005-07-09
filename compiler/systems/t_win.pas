@@ -1037,8 +1037,11 @@ begin
   AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
    RelocStr:='--base-file base.$$$';
-  if apptype=app_gui then
-   AppTypeStr:='--subsystem windows';
+  if target_info.system in [system_arm_wince,system_i386_wince] then
+   AppTypeStr:='--subsystem wince'
+  else
+    if apptype=app_gui then
+     AppTypeStr:='--subsystem windows';
   if assigned(DLLImageBase) then
    ImageBaseStr:='--image-base=0x'+DLLImageBase^;
   if (cs_link_strip in aktglobalswitches) then
@@ -1273,10 +1276,6 @@ var
   secroot,hsecroot : psecfill;
   zerobuf : pointer;
 begin
-  {$ifdef ARM}
-    postprocessexecutable:=true;
-    exit;
-  {$endif ARM}
   postprocessexecutable:=false;
   { when -s is used or it's a dll then quit }
   if (cs_link_extern in aktglobalswitches) then
@@ -1317,12 +1316,16 @@ begin
   { sub system }
   { gui=2 }
   { cui=3 }
-  case apptype of
-    app_gui :
-      peheader.Subsystem:=2;
-    app_cui :
-      peheader.Subsystem:=3;
-  end;
+  { wincegui=9 }
+  if target_info.system in [system_arm_wince,system_i386_wince] then
+    peheader.Subsystem:=9
+  else
+    case apptype of
+      app_gui :
+        peheader.Subsystem:=2;
+      app_cui :
+        peheader.Subsystem:=3;
+    end;
   if dllversion<>'' then
     begin
      peheader.MajorImageVersion:=dllmajor;
@@ -1655,6 +1658,12 @@ initialization
   RegisterDLLScanner(system_i386_win32,TDLLScannerWin32);
   RegisterRes(res_gnu_windres_info);
   RegisterTarget(system_i386_win32_info);
+  
+  RegisterExternalLinker(system_i386_wince_info,TLinkerWin32);
+  RegisterImport(system_i386_wince,TImportLibWin32);
+  RegisterExport(system_i386_wince,TExportLibWin32);
+  RegisterDLLScanner(system_i386_wince,TDLLScannerWin32);
+  RegisterTarget(system_i386_wince_info);
 {$endif i386}
 {$ifdef x86_64}
   RegisterExternalLinker(system_x64_win64_info,TLinkerWin32);

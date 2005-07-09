@@ -871,7 +871,7 @@ implementation
                 { address }
                 else if is_constintnode(pt) and
                         ((target_info.system in [system_i386_go32v2,system_i386_watcom,
-                                                 system_i386_wdosx,system_i386_win32,system_arm_wince]) or
+                                                 system_i386_wdosx,system_i386_win32,system_arm_wince,system_i386_wince]) or
                          (m_objfpc in aktmodeswitches) or
                          (m_delphi in aktmodeswitches)) then
                  begin

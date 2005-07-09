@@ -115,7 +115,8 @@ interface
 	     system_powerpc_Amiga,      { 36 }
              system_x86_64_win64,       { 37 }
              system_arm_wince,          { 38 }
-             system_ia64_win64          { 39 }
+             system_ia64_win64,         { 39 }
+             system_i386_wince          { 40 }
        );
 
        tasm = (as_none
@@ -139,6 +140,7 @@ interface
              ,as_darwin
              ,as_x86_64_masm
              ,as_x86_64_pecoff
+             ,as_i386_pecoffwince
        );
 
        tar = (ar_none

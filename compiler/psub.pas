@@ -1296,7 +1296,7 @@ implementation
                     not(
                         assigned(pd.import_dll) and
                         (target_info.system in [system_i386_win32,system_i386_wdosx,
-                                                system_i386_emx,system_i386_os2,system_arm_wince])
+                                                system_i386_emx,system_i386_os2,system_arm_wince,system_i386_wince])
                        ) then
                    begin
                      s:=proc_get_importname(pd);
