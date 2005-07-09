@@ -4,7 +4,13 @@ Written by Yury Sidorov 2005
 */
 
 .section .text
-  .balign 4
+@ for kernel exception handler, must be directly before ___EH_CODE_START__
+__EH_HANDLER__:
+	.word _ARM_ExceptionHandler
+	.word 0
+
+__EH_CODE_START__:
+
 .globl mainCRTStartup
 mainCRTStartup:
 .globl _mainCRTStartup
@@ -24,8 +30,8 @@ do_start:
 
 .globl asm_exit
 asm_exit:
-  eor   r0,r0,r0
-  bl	exitthread
+  mov r0,#0
+  bl exitthread
   
 _PISCONSOLE:
   .long U_SYSTEM_ISCONSOLE
@@ -65,3 +71,9 @@ exitthread:
 .section .idata$7
 .L6:
 	.ascii	"coredll.dll\000"
+
+@ for kernel exception handler
+	.section .pdata
+	.word __EH_CODE_START__
+@ max 22 bits for number of instructions
+	.word 0xc0000002 | (0xFFFFF << 8)

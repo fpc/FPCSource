@@ -50,8 +50,8 @@ function  TerminateThread  (threadHandle : THandle; var exitCode : dword) : bool
 function  WaitForSingleObject (hHandle : THandle;Milliseconds: dword): dword; stdcall;external KernelDLL name 'WaitForSingleObject';
 function  WinThreadSetPriority (threadHandle : THandle; Prio: longint): boolean; stdcall;external KernelDLL name 'SetThreadPriority';
 function  WinThreadGetPriority (threadHandle : THandle): LongInt; stdcall;external KernelDLL name 'GetThreadPriority';
-function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall; external KernelDLL name 'CreateEvent' + ApiSuffix;
 {$ifndef WINCE}
+function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall; external KernelDLL name 'CreateEventA';
 function  ResetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'ResetEvent';
 function  SetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'SetEvent';
 {$endif WINCE}

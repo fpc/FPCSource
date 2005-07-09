@@ -187,13 +187,11 @@ threadvar
      stdcall;external KernelDLL name 'GetStartupInfoA';
    function GetStdHandle(nStdHandle:DWORD):THANDLE;
      stdcall;external KernelDLL name 'GetStdHandle';
-{$endif WINCE}
 
    { command line/enviroment functions }
    function GetCommandLine : pchar;
-     stdcall;external KernelDLL name 'GetCommandLine' + ApiSuffix;
+     stdcall;external KernelDLL name 'GetCommandLineA';
 
-{$ifndef WINCE}
   function GetCurrentProcessId:DWORD;
     stdcall; external KernelDLL name 'GetCurrentProcessId';
 
@@ -217,37 +215,35 @@ threadvar
      stdcall;external KernelDLL name 'ReadFile';
    function CloseHandle(h : thandle) : longint;
      stdcall;external KernelDLL name 'CloseHandle';
-   function DeleteFile(p : pchar) : longint;
-     stdcall;external KernelDLL name 'DeleteFile' + ApiSuffix;
-   function MoveFile(old,_new : pchar) : longint;
-     stdcall;external KernelDLL name 'MoveFile' + ApiSuffix;
    function SetFilePointer(l1,l2 : thandle;l3 : pointer;l4 : longint) : longint;
      stdcall;external KernelDLL name 'SetFilePointer';
    function GetFileSize(h:thandle;p:pointer) : longint;
      stdcall;external KernelDLL name 'GetFileSize';
-   function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
-                       lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
-                       dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
-     stdcall;external KernelDLL name 'CreateFile' + ApiSuffix;
    function SetEndOfFile(h : thandle) : longbool;
      stdcall;external KernelDLL name 'SetEndOfFile';
 {$ifndef WINCE}
    function GetFileType(Handle:thandle):DWord;
      stdcall;external KernelDLL name 'GetFileType';
-{$endif WINCE}
    function GetFileAttributes(p : pchar) : dword;
-     stdcall;external KernelDLL name 'GetFileAttributes' + ApiSuffix;
+     stdcall;external KernelDLL name 'GetFileAttributesA';
+   function DeleteFile(p : pchar) : longint;
+     stdcall;external KernelDLL name 'DeleteFileA';
+   function MoveFile(old,_new : pchar) : longint;
+     stdcall;external KernelDLL name 'MoveFileA';
+   function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
+                       lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
+                       dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
+     stdcall;external KernelDLL name 'CreateFileA';
 
    { Directory }
    function CreateDirectory(name : pointer;sec : pointer) : longbool;
-     stdcall;external KernelDLL name 'CreateDirectory' + ApiSuffix;
+     stdcall;external KernelDLL name 'CreateDirectoryA';
    function RemoveDirectory(name:pointer):longbool;
-     stdcall;external KernelDLL name 'RemoveDirectory' + ApiSuffix;
-{$ifndef WINCE}
+     stdcall;external KernelDLL name 'RemoveDirectoryA';
    function SetCurrentDirectory(name : pointer) : longbool;
-     stdcall;external KernelDLL name 'SetCurrentDirectory' + ApiSuffix;
+     stdcall;external KernelDLL name 'SetCurrentDirectoryA';
    function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
-     stdcall;external KernelDLL name 'GetCurrentDirectory' + ApiSuffix;
+     stdcall;external KernelDLL name 'GetCurrentDirectoryA';
 {$endif WINCE}
 
    Procedure Errno2InOutRes;

@@ -86,8 +86,15 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Loaders
 #
 
-wprt0$(OEXT) : $(PRT0).as
-        $(AS) -o $(UNITTARGETDIRPREFIX)wprt0$(OEXT) $(PRT0).as
+#
+# Loaders
+#
+
+wprt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)wprt0$(OEXT) $(CPU_TARGET)/$(PRT0).as
+        
+#wprt0$(OEXT) : $(PRT0).as
+#        $(AS) -o $(UNITTARGETDIRPREFIX)wprt0$(OEXT) $(PRT0).as
 
 gprt0$(OEXT) : gprt0.as
 

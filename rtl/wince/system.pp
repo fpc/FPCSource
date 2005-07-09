@@ -14,15 +14,14 @@
 
  **********************************************************************}
 unit System;
+
 interface
 
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
 
-{$ifdef cpui386}
-  {$define Set_i386_Exception_handler}
-{$endif cpui386}
+{$define WINCE_EXCEPTION_HANDLING}
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -36,13 +35,6 @@ const
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 65535;
  MaxPathLen = 260;
-
-type
-   PEXCEPTION_FRAME = ^TEXCEPTION_FRAME;
-   TEXCEPTION_FRAME = record
-     next : PEXCEPTION_FRAME;
-     handler : pointer;
-   end;
 
 const
 { Default filehandles }
@@ -59,7 +51,6 @@ const
 
   { Thread count for DLL }
   Thread_count : longint = 0;
-  System_exception_frame : PEXCEPTION_FRAME =nil;
 
 var
 { C compatible arguments }
@@ -86,16 +77,23 @@ type
   HMODULE = THandle;
 
 { Wrappers for some WinAPI calls }
-function EventModify(h: THandle; func: DWORD): LONGBOOL;
-    stdcall; external KernelDLL name 'EventModify';
-function TlsCall(p1, p2: DWORD): DWORD;
-    stdcall; external KernelDLL name 'TlsCall';
-function ResetEvent(h: THandle): LONGBOOL;
-function SetEvent(h: THandle): LONGBOOL;
-function GetCurrentProcessId:DWORD;
-function Win32GetCurrentThreadId:DWORD;
-function TlsAlloc : DWord;
-function TlsFree(dwTlsIndex : DWord) : LongBool;
+function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall;
+function ResetEvent(h: THandle): LONGBOOL; stdcall;
+function SetEvent(h: THandle): LONGBOOL; stdcall;
+function GetCurrentProcessId:DWORD; stdcall;
+function Win32GetCurrentThreadId:DWORD; stdcall;
+function TlsAlloc : DWord; stdcall;
+function TlsFree(dwTlsIndex : DWord) : LongBool; stdcall;
+
+function GetFileAttributes(p : pchar) : dword; stdcall;
+function DeleteFile(p : pchar) : longint; stdcall;
+function MoveFile(old,_new : pchar) : longint; stdcall;
+function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
+                   lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
+                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint; stdcall;
+
+function CreateDirectory(name : pointer;sec : pointer) : longbool; stdcall;
+function RemoveDirectory(name:pointer):longbool; stdcall;
 
 implementation
 
@@ -112,26 +110,108 @@ function SysReAllocStringLen(var bstr:pointer;psz: pointer;
   len:dword): Integer; stdcall;external 'oleaut32.dll' name 'SysReAllocStringLen';
 *)
 
+function MessageBox(w1:longint;l1,l2:PWideChar;w2:longint):longint;
+   stdcall;external 'coredll' name 'MessageBoxW';
+
 { include system independent routines }
 {$I system.inc}
+
+{*****************************************************************************
+                              ANSI <-> Wide
+*****************************************************************************}
+const
+  { MultiByteToWideChar  }
+     MB_PRECOMPOSED = 1;
+     MB_COMPOSITE = 2;
+     MB_ERR_INVALID_CHARS = 8;
+     MB_USEGLYPHCHARS = 4;
+     CP_ACP = 0;
+     CP_OEMCP = 1;
+
+function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
+    stdcall; external 'coredll' name 'MultiByteToWideChar';
+function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint; lpMultiByteStr:PChar;cchMultiByte:longint; lpDefaultChar:PChar; lpUsedDefaultChar:pointer):longint;
+    stdcall; external 'coredll' name 'WideCharToMultiByte';
+
+function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
+begin
+  Result := MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, AnsiBuf, AnsiBufLen, WideBuf, WideBufLen);
+end;
+
+function WideToAnsiBuf(WideBuf: PWideChar; WideBufLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
+begin
+  Result := WideCharToMultiByte(CP_ACP, 0, WideBuf, WideBufLen, AnsiBuf, AnsiBufLen, nil, nil);
+end;
 
 {*****************************************************************************
                       WinAPI wrappers implementation
 *****************************************************************************}
 
-const
-  EVENT_PULSE =     1;
-  EVENT_RESET =     2;
-  EVENT_SET   =     3;
+function GetFileAttributesW(p : pwidechar) : dword;
+    stdcall;external KernelDLL name 'GetFileAttributesW';
+function DeleteFileW(p : pwidechar) : longint;
+    stdcall;external KernelDLL name 'DeleteFileW';
+function MoveFileW(old,_new : pwidechar) : longint;
+    stdcall;external KernelDLL name 'MoveFileW';
+function CreateFileW(lpFileName:pwidechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
+                   lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
+                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
+ stdcall;external KernelDLL name 'CreateFileW';
+function CreateDirectoryW(name : pwidechar;sec : pointer) : longbool;
+ stdcall;external KernelDLL name 'CreateDirectoryW';
+function RemoveDirectoryW(name:pwidechar):longbool;
+ stdcall;external KernelDLL name 'RemoveDirectoryW';
 
-function ResetEvent(h: THandle): LONGBOOL;
+function GetFileAttributes(p : pchar) : dword; stdcall;
+var
+  buf: array[0..MaxPathLen] of WideChar;
 begin
-	ResetEvent := EventModify(h,EVENT_RESET);
+  AnsiToWideBuf(p, -1, buf, SizeOf(buf));
+  GetFileAttributes := GetFileAttributesW(buf);
 end;
 
-function SetEvent(h: THandle): LONGBOOL;
+function DeleteFile(p : pchar) : longint; stdcall;
+var
+  buf: array[0..MaxPathLen] of WideChar;
 begin
-	SetEvent := EventModify(h,EVENT_SET);
+  AnsiToWideBuf(p, -1, buf, SizeOf(buf));
+  DeleteFile := DeleteFileW(buf);
+end;
+
+function MoveFile(old,_new : pchar) : longint; stdcall;
+var
+  buf_old, buf_new: array[0..MaxPathLen] of WideChar;
+begin
+  AnsiToWideBuf(old, -1, buf_old, SizeOf(buf_old));
+  AnsiToWideBuf(_new, -1, buf_new, SizeOf(buf_new));
+  MoveFile := MoveFileW(buf_old, buf_new);
+end;
+
+function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
+                   lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
+                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint; stdcall;
+var
+  buf: array[0..MaxPathLen] of WideChar;
+begin
+  AnsiToWideBuf(lpFileName, -1, buf, SizeOf(buf));
+  CreateFile := CreateFileW(buf, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
+                            dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+end;
+
+function CreateDirectory(name : pointer;sec : pointer) : longbool; stdcall;
+var
+  buf: array[0..MaxPathLen] of WideChar;
+begin
+  AnsiToWideBuf(name, -1, buf, SizeOf(buf));
+  CreateDirectory := CreateDirectoryW(buf, sec);
+end;
+
+function RemoveDirectory(name:pointer):longbool; stdcall;
+var
+  buf: array[0..MaxPathLen] of WideChar;
+begin
+  AnsiToWideBuf(name, -1, buf, SizeOf(buf));
+  RemoveDirectory := RemoveDirectoryW(buf);
 end;
 
 const
@@ -148,7 +228,38 @@ const
 type
   PHandle = ^THandle;
 
-function GetCurrentProcessId:DWORD;
+const
+  EVENT_PULSE =     1;
+  EVENT_RESET =     2;
+  EVENT_SET   =     3;
+
+function CreateEventW(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:PWideChar): THandle;
+   stdcall; external KernelDLL name 'CreateEventW';
+
+function CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall;
+var
+  buf: array[0..MaxPathLen] of WideChar;
+begin
+  AnsiToWideBuf(lpName, -1, buf, SizeOf(buf));
+  CreateEvent := CreateEventW(lpEventAttributes, bManualReset, bInitialState, buf);
+end;
+
+function EventModify(h: THandle; func: DWORD): LONGBOOL;
+    stdcall; external KernelDLL name 'EventModify';
+function TlsCall(p1, p2: DWORD): DWORD;
+    stdcall; external KernelDLL name 'TlsCall';
+
+function ResetEvent(h: THandle): LONGBOOL; stdcall;
+begin
+	ResetEvent := EventModify(h,EVENT_RESET);
+end;
+
+function SetEvent(h: THandle): LONGBOOL; stdcall;
+begin
+	SetEvent := EventModify(h,EVENT_SET);
+end;
+
+function GetCurrentProcessId:DWORD; stdcall;
 var
   p: PHandle;
 begin
@@ -156,7 +267,7 @@ begin
   GetCurrentProcessId := p^;
 end;
 
-function Win32GetCurrentThreadId:DWORD;
+function Win32GetCurrentThreadId:DWORD; stdcall;
 var
   p: PHandle;
 begin
@@ -168,27 +279,36 @@ const
   TLS_FUNCALLOC = 0;
   TLS_FUNCFREE  = 1;
 
-function TlsAlloc : DWord;
+function TlsAlloc : DWord; stdcall;
 begin
   TlsAlloc := TlsCall(TLS_FUNCALLOC, 0);
 end;
 
-function TlsFree(dwTlsIndex : DWord) : LongBool;
+function TlsFree(dwTlsIndex : DWord) : LongBool; stdcall;
 begin
   TlsFree := LongBool(TlsCall(TLS_FUNCFREE, dwTlsIndex));
 end;
-
 
 {*****************************************************************************
                               Parameter Handling
 *****************************************************************************}
 
+function GetCommandLine : pwidechar;
+    stdcall;external KernelDLL name 'GetCommandLineW';
+
 var
   ModuleName : array[0..255] of char;
 
 function GetCommandFile:pchar;
+var
+  buf: PWideChar;
 begin
-  GetModuleFileName(0,@ModuleName,255);
+  if ModuleName[0] = #0 then begin
+    GetMem(buf, SizeOf(ModuleName)*2);
+    GetModuleFileName(0,buf,SizeOf(ModuleName)*2);
+    WideToAnsiBuf(buf, -1, @ModuleName, SizeOf(ModuleName));
+    FreeMem(buf);
+  end;
   GetCommandFile:=@ModuleName;
 end;
 
@@ -222,19 +342,25 @@ var
 begin
   { create commandline, it starts with the executed filename which is argv[0] }
   { Win32 passes the command NOT via the args, but via getmodulefilename}
-  count:=0;
   argv:=nil;
   argvlen:=0;
   pc:=getcommandfile;
   Arglen:=0;
-  repeat
+  while pc[Arglen] <> #0 do
     Inc(Arglen);
-  until (pc[Arglen]=#0);
-  allocarg(count,arglen);
-  move(pc^,argv[count]^,arglen+1);
+  allocarg(0,arglen);
+  move(pc^,argv[0]^,arglen+1);
   { Setup cmdline variable }
-  cmdline:=GetCommandLine;
+  arg:=PChar(GetCommandLine);
+  count:=WideToAnsiBuf(PWideChar(arg), -1, nil, 0);
+  GetMem(cmdline, arglen + count + 3);
+  cmdline^:='"';
+  move(pc^, (cmdline + 1)^, arglen);
+  (cmdline + arglen + 1)^:='"';
+  (cmdline + arglen + 2)^:=' ';
+  WideToAnsiBuf(PWideChar(arg), -1, cmdline + arglen + 3, count);
   { process arguments }
+  count:=0;
   pc:=cmdline;
 {$IfDef SYSTEM_DEBUG_STARTUP}
   Writeln(stderr,'Win32 GetCommandLine is #',pc,'#');
@@ -407,8 +533,6 @@ end;
                          System Dependent Exit code
 *****************************************************************************}
 
-procedure install_exception_handlers;forward;
-procedure remove_exception_handlers;forward;
 procedure PascalMain;stdcall;external name 'PASCALMAIN';
 procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
 Procedure ExitDLL(Exitcode : longint); forward;
@@ -416,6 +540,7 @@ procedure asm_exit(Exitcode : longint);external name 'asm_exit';
 
 Procedure system_exit;
 begin
+  FreeMem(cmdline);
   { don't call ExitProcess inside
     the DLL exit code !!
     This crashes Win95 at least PM }
@@ -427,7 +552,6 @@ begin
      Close(stdout);
      { what about Input and Output ?? PM }
    end;
-  remove_exception_handlers;
 
   { call exitprocess, with cleanup as required }
   asm_exit(exitcode);
@@ -437,19 +561,6 @@ var
   { value of the stack segment
     to check if the call stack can be written on exceptions }
   _SS : Cardinal;
-
-procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
-  begin
-     IsLibrary:=false;
-     { install the handlers for exe only ?
-       or should we install them for DLL also ? (PM) }
-     install_exception_handlers;
-     { This strange construction is needed to solve the _SS problem
-       with a smartlinked syswin32 (PFV) }
-     PASCALMAIN;
-     { if we pass here there was no error ! }
-     system_exit;
-  end;
 
 Const
   { DllEntryPoint  }
@@ -521,52 +632,7 @@ begin
     LongJmp(DLLBuf,1);
 end;
 
-{$ifdef Set_i386_Exception_handler}
-
-function GetCurrentProcess : dword;
- stdcall;external 'coredll' name 'GetCurrentProcess';
-
-function ReadProcessMemory(process : dword;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
- stdcall;external 'coredll' name 'ReadProcessMemory';
-
-function is_prefetch(p : pointer) : boolean;
-  var
-    a : array[0..15] of byte;
-    doagain : boolean;
-    instrlo,instrhi,opcode : byte;
-    i : longint;
-  begin
-    result:=false;
-    { read memory savely without causing another exeception }
-    if not(ReadProcessMemory(GetCurrentProcess,p,@a,sizeof(a),nil)) then
-      exit;
-    i:=0;
-    doagain:=true;
-    while doagain and (i<15) do
-      begin
-        opcode:=a[i];
-        instrlo:=opcode and $f;
-        instrhi:=opcode and $f0;
-        case instrhi of
-          { prefix? }
-          $20,$30:
-            doagain:=(instrlo and 7)=6;
-          $60:
-            doagain:=(instrlo and $c)=4;
-          $f0:
-            doagain:=instrlo in [0,2,3];
-          $0:
-            begin
-              result:=(instrlo=$f) and (a[i+1] in [$d,$18]);
-              exit;
-            end;
-          else
-            doagain:=false;
-        end;
-        inc(i);
-      end;
-  end;
-
+{$ifdef WINCE_EXCEPTION_HANDLING}
 
 //
 // Hardware exception handling
@@ -597,80 +663,139 @@ function is_prefetch(p : pointer) : boolean;
 }
 
 const
-  SEVERITY_SUCCESS                = $00000000;
+  SEVERITY_SUCCESS        = $00000000;
   SEVERITY_INFORMATIONAL  = $40000000;
-  SEVERITY_WARNING                = $80000000;
-  SEVERITY_ERROR                  = $C0000000;
+  SEVERITY_WARNING        = $80000000;
+  SEVERITY_ERROR          = $C0000000;
 
 const
   STATUS_SEGMENT_NOTIFICATION             = $40000005;
   DBG_TERMINATE_THREAD                    = $40010003;
   DBG_TERMINATE_PROCESS                   = $40010004;
-  DBG_CONTROL_C                                   = $40010005;
-  DBG_CONTROL_BREAK                               = $40010008;
+  DBG_CONTROL_C                           = $40010005;
+  DBG_CONTROL_BREAK                       = $40010008;
 
   STATUS_GUARD_PAGE_VIOLATION             = $80000001;
-  STATUS_DATATYPE_MISALIGNMENT    = $80000002;
-  STATUS_BREAKPOINT                               = $80000003;
-  STATUS_SINGLE_STEP                              = $80000004;
+  STATUS_DATATYPE_MISALIGNMENT            = $80000002;
+  STATUS_BREAKPOINT                       = $80000003;
+  STATUS_SINGLE_STEP                      = $80000004;
   DBG_EXCEPTION_NOT_HANDLED               = $80010001;
 
   STATUS_ACCESS_VIOLATION                 = $C0000005;
   STATUS_IN_PAGE_ERROR                    = $C0000006;
   STATUS_INVALID_HANDLE                   = $C0000008;
-  STATUS_NO_MEMORY                                = $C0000017;
+  STATUS_NO_MEMORY                        = $C0000017;
   STATUS_ILLEGAL_INSTRUCTION              = $C000001D;
-  STATUS_NONCONTINUABLE_EXCEPTION = $C0000025;
+  STATUS_NONCONTINUABLE_EXCEPTION         = $C0000025;
   STATUS_INVALID_DISPOSITION              = $C0000026;
-  STATUS_ARRAY_BOUNDS_EXCEEDED    = $C000008C;
-  STATUS_FLOAT_DENORMAL_OPERAND   = $C000008D;
+  STATUS_ARRAY_BOUNDS_EXCEEDED            = $C000008C;
+  STATUS_FLOAT_DENORMAL_OPERAND           = $C000008D;
   STATUS_FLOAT_DIVIDE_BY_ZERO             = $C000008E;
   STATUS_FLOAT_INEXACT_RESULT             = $C000008F;
-  STATUS_FLOAT_INVALID_OPERATION  = $C0000090;
+  STATUS_FLOAT_INVALID_OPERATION          = $C0000090;
   STATUS_FLOAT_OVERFLOW                   = $C0000091;
   STATUS_FLOAT_STACK_CHECK                = $C0000092;
   STATUS_FLOAT_UNDERFLOW                  = $C0000093;
-  STATUS_INTEGER_DIVIDE_BY_ZERO   = $C0000094;
+  STATUS_INTEGER_DIVIDE_BY_ZERO           = $C0000094;
   STATUS_INTEGER_OVERFLOW                 = $C0000095;
-  STATUS_PRIVILEGED_INSTRUCTION   = $C0000096;
+  STATUS_PRIVILEGED_INSTRUCTION           = $C0000096;
   STATUS_STACK_OVERFLOW                   = $C00000FD;
   STATUS_CONTROL_C_EXIT                   = $C000013A;
-  STATUS_FLOAT_MULTIPLE_FAULTS    = $C00002B4;
+  STATUS_FLOAT_MULTIPLE_FAULTS            = $C00002B4;
   STATUS_FLOAT_MULTIPLE_TRAPS             = $C00002B5;
   STATUS_REG_NAT_CONSUMPTION              = $C00002C9;
-
+{
   EXCEPTION_EXECUTE_HANDLER               = 1;
   EXCEPTION_CONTINUE_EXECUTION    = -1;
   EXCEPTION_CONTINUE_SEARCH               = 0;
+}
+const
+  ExceptionContinueExecution = 0;
+  ExceptionContinueSearch = 1;
+  ExceptionNestedException = 2;
+  ExceptionCollidedUnwind = 3;
+  ExceptionExecuteHandler = 4;
 
+  MaxExceptionLevel = 16;
+  exceptLevel : Byte = 0;
+
+{$ifdef CPUARM}
+const
+  CONTEXT_ARM                     = $0000040;
+  CONTEXT_CONTROL                 = CONTEXT_ARM or $00000001;
+  CONTEXT_INTEGER                 = CONTEXT_ARM or $00000002;
+  CONTEXT_SEGMENTS                = CONTEXT_ARM or $00000004;
+  CONTEXT_FLOATING_POINT          = CONTEXT_ARM or $00000008;
+  CONTEXT_DEBUG_REGISTERS         = CONTEXT_ARM or $00000010;
+  CONTEXT_EXTENDED_REGISTERS      = CONTEXT_ARM or $00000020;
+
+  CONTEXT_FULL                    = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS;
+  
   EXCEPTION_MAXIMUM_PARAMETERS    = 15;
 
-  CONTEXT_X86                                     = $00010000;
-  CONTEXT_CONTROL                         = CONTEXT_X86 or $00000001;
-  CONTEXT_INTEGER                         = CONTEXT_X86 or $00000002;
-  CONTEXT_SEGMENTS                        = CONTEXT_X86 or $00000004;
+  NUM_VFP_REGS = 32;
+  NUM_EXTRA_CONTROL_REGS = 8;
+
+type
+  PContext = ^TContext;
+  TContext = record
+    ContextFlags : LongWord;
+// This section is specified/returned if the ContextFlags word contains
+// the flag CONTEXT_INTEGER.
+    R0 : LongWord;
+    R1 : LongWord;
+    R2 : LongWord;
+    R3 : LongWord;
+    R4 : LongWord;
+    R5 : LongWord;
+    R6 : LongWord;
+    R7 : LongWord;
+    R8 : LongWord;
+    R9 : LongWord;
+    R10 : LongWord;
+    R11 : LongWord;
+    R12 : LongWord;
+// This section is specified/returned if the ContextFlags word contains
+// the flag CONTEXT_CONTROL.
+    Sp : LongWord;
+    Lr : LongWord;
+    Pc : LongWord;
+    Psr : LongWord;
+    Fpscr : LongWord;
+    FpExc : LongWord;
+// Floating point registers
+    S : array[0..(NUM_VFP_REGS + 1)-1] of LongWord;
+    FpExtra : array[0..(NUM_EXTRA_CONTROL_REGS)-1] of LongWord;
+  end;
+{$endif CPUARM}
+
+{$ifdef CPUI386}
+const
+  CONTEXT_X86                     = $00010000;
+  CONTEXT_CONTROL                 = CONTEXT_X86 or $00000001;
+  CONTEXT_INTEGER                 = CONTEXT_X86 or $00000002;
+  CONTEXT_SEGMENTS                = CONTEXT_X86 or $00000004;
   CONTEXT_FLOATING_POINT          = CONTEXT_X86 or $00000008;
   CONTEXT_DEBUG_REGISTERS         = CONTEXT_X86 or $00000010;
   CONTEXT_EXTENDED_REGISTERS      = CONTEXT_X86 or $00000020;
-
-  CONTEXT_FULL                            = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS;
-
+  
   MAXIMUM_SUPPORTED_EXTENSION     = 512;
-
+  EXCEPTION_MAXIMUM_PARAMETERS    = 15;
+  
 type
   PFloatingSaveArea = ^TFloatingSaveArea;
   TFloatingSaveArea = packed record
-          ControlWord : Cardinal;
-          StatusWord : Cardinal;
-          TagWord : Cardinal;
-          ErrorOffset : Cardinal;
-          ErrorSelector : Cardinal;
-          DataOffset : Cardinal;
-          DataSelector : Cardinal;
-          RegisterArea : array[0..79] of Byte;
-          Cr0NpxState : Cardinal;
+    ControlWord : Cardinal;
+    StatusWord : Cardinal;
+    TagWord : Cardinal;
+    ErrorOffset : Cardinal;
+    ErrorSelector : Cardinal;
+    DataOffset : Cardinal;
+    DataSelector : Cardinal;
+    RegisterArea : array[0..79] of Byte;
+    Cr0NpxState : Cardinal;
   end;
-
+  
   PContext = ^TContext;
   TContext = packed record
       //
@@ -723,33 +848,73 @@ type
       //
           ExtendedRegisters : array[0..MAXIMUM_SUPPORTED_EXTENSION-1] of Byte;
   end;
+{$endif CPUI386}
 
 type
   PExceptionRecord = ^TExceptionRecord;
   TExceptionRecord = packed record
-          ExceptionCode   : Longint;
-          ExceptionFlags  : Longint;
-          ExceptionRecord : PExceptionRecord;
-          ExceptionAddress : Pointer;
-          NumberParameters : Longint;
-          ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of Pointer;
+    ExceptionCode   : Longint;
+    ExceptionFlags  : Longint;
+    ExceptionRecord : PExceptionRecord;
+    ExceptionAddress : Pointer;
+    NumberParameters : Longint;
+    ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of Pointer;
   end;
 
   PExceptionPointers = ^TExceptionPointers;
   TExceptionPointers = packed record
-          ExceptionRecord   : PExceptionRecord;
-          ContextRecord     : PContext;
+    ExceptionRecord   : PExceptionRecord;
+    ContextRecord     : PContext;
   end;
 
-{ type of functions that should be used for exception handling }
-  TTopLevelExceptionFilter = function (excep : PExceptionPointers) : Longint;stdcall;
+{$ifdef CPUI386}
+{**************************** i386 Exception handling *****************************************}
 
-function SetUnhandledExceptionFilter(lpTopLevelExceptionFilter : TTopLevelExceptionFilter) : TTopLevelExceptionFilter;
-        stdcall;external 'kernel32' name 'SetUnhandledExceptionFilter';
+function GetCurrentProcess:DWORD; stdcall;
+begin
+  GetCurrentProcess := SH_CURPROC+SYS_HANDLE_BASE;
+end;
 
-const
-  MaxExceptionLevel = 16;
-  exceptLevel : Byte = 0;
+function ReadProcessMemory(process : dword;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
+ stdcall;external 'coredll' name 'ReadProcessMemory';
+ 
+function is_prefetch(p : pointer) : boolean;
+var
+  a : array[0..15] of byte;
+  doagain : boolean;
+  instrlo,instrhi,opcode : byte;
+  i : longint;
+begin
+  result:=false;
+  { read memory savely without causing another exeception }
+  if not(ReadProcessMemory(GetCurrentProcess,p,@a,sizeof(a),nil)) then
+    exit;
+  i:=0;
+  doagain:=true;
+  while doagain and (i<15) do
+    begin
+      opcode:=a[i];
+      instrlo:=opcode and $f;
+      instrhi:=opcode and $f0;
+      case instrhi of
+        { prefix? }
+        $20,$30:
+          doagain:=(instrlo and 7)=6;
+        $60:
+          doagain:=(instrlo and $c)=4;
+        $f0:
+          doagain:=instrlo in [0,2,3];
+        $0:
+          begin
+            result:=(instrlo=$f) and (a[i+1] in [$d,$18]);
+            exit;
+          end;
+        else
+          doagain:=false;
+      end;
+      inc(i);
+    end;
+end;
 
 var
   exceptEip       : array[0..MaxExceptionLevel-1] of Longint;
@@ -771,189 +936,286 @@ end;
 
 procedure JumpToHandleErrorFrame;
 var
-        eip, ebp, error : Longint;
+  eip, ebp, error : Longint;
 begin
-        // save ebp
-        asm
-                movl (%ebp),%eax
-                movl %eax,ebp
-        end;
-        if (exceptLevel > 0) then
-                dec(exceptLevel);
+  // save ebp
+  asm
+    movl (%ebp),%eax
+    movl %eax,ebp
+  end;
+  if (exceptLevel > 0) then
+    dec(exceptLevel);
 
-        eip:=exceptEip[exceptLevel];
-        error:=exceptError[exceptLevel];
+  eip:=exceptEip[exceptLevel];
+  error:=exceptError[exceptLevel];
 {$ifdef SYSTEMEXCEPTIONDEBUG}
-        if IsConsole then
-          writeln(stderr,'In JumpToHandleErrorFrame error=',error);
+  if IsConsole then
+    writeln(stderr,'In JumpToHandleErrorFrame error=',error);
 {$endif SYSTEMEXCEPTIONDEBUG}
-        if resetFPU[exceptLevel] then asm
-                fninit
-                fldcw   fpucw
-        end;
-        { build a fake stack }
-        asm
+  if resetFPU[exceptLevel] then asm
+    fninit
+    fldcw   fpucw
+  end;
+  { build a fake stack }
+  asm
 {$ifdef REGCALL}
-                movl   ebp,%ecx
-                movl   eip,%edx
-                movl   error,%eax
-                pushl  eip
-                movl   ebp,%ebp // Change frame pointer
+    movl   ebp,%ecx
+    movl   eip,%edx
+    movl   error,%eax
+    pushl  eip
+    movl   ebp,%ebp // Change frame pointer
 {$else}
-                movl   ebp,%eax
-                pushl  %eax
-                movl   eip,%eax
-                pushl  %eax
-                movl   error,%eax
-                pushl  %eax
-                movl   eip,%eax
-                pushl  %eax
-                movl   ebp,%ebp // Change frame pointer
+    movl   ebp,%eax
+    pushl  %eax
+    movl   eip,%eax
+    pushl  %eax
+    movl   error,%eax
+    pushl  %eax
+    movl   eip,%eax
+    pushl  %eax
+    movl   ebp,%ebp // Change frame pointer
 {$endif}
 
 {$ifdef SYSTEMEXCEPTIONDEBUG}
-                jmpl   DebugHandleErrorAddrFrame
+    jmpl   DebugHandleErrorAddrFrame
 {$else not SYSTEMEXCEPTIONDEBUG}
-                jmpl   HandleErrorAddrFrame
+    jmpl   HandleErrorAddrFrame
 {$endif SYSTEMEXCEPTIONDEBUG}
-        end;
+  end;
 end;
 
-function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;stdcall;
+function i386_exception_handler(ExceptionRecord: PExceptionRecord;
+	    EstablisherFrame: pointer; ContextRecord: PContext;
+	    DispatcherContext: pointer): longint; cdecl;
 var
-        frame,
-        res  : longint;
-
-function SysHandleErrorFrame(error, frame : Longint; must_reset_fpu : Boolean) : Longint;
+  res: longint;
+  must_reset_fpu: boolean;
 begin
-        if (frame = 0) then
-                SysHandleErrorFrame:=EXCEPTION_CONTINUE_SEARCH
-        else begin
-                if (exceptLevel >= MaxExceptionLevel) then exit;
-
-                exceptEip[exceptLevel] := excep^.ContextRecord^.Eip;
-                exceptError[exceptLevel] := error;
-                resetFPU[exceptLevel] := must_reset_fpu;
-                inc(exceptLevel);
-
-                excep^.ContextRecord^.Eip := Longint(@JumpToHandleErrorFrame);
-                excep^.ExceptionRecord^.ExceptionCode := 0;
-
-                SysHandleErrorFrame := EXCEPTION_CONTINUE_EXECUTION;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-                if IsConsole then begin
-                        writeln(stderr,'Exception Continue Exception set at ',
-                                hexstr(exceptEip[exceptLevel],8));
-                        writeln(stderr,'Eip changed to ',
-                                hexstr(longint(@JumpToHandleErrorFrame),8), ' error=', error);
-                end;
-{$endif SYSTEMEXCEPTIONDEBUG}
+  res := ExceptionContinueSearch;
+  if ContextRecord^.SegSs=_SS then begin
+    must_reset_fpu := true;
+  {$ifdef SYSTEMEXCEPTIONDEBUG}
+    if IsConsole then Writeln(stderr,'Exception  ',
+            hexstr(excep^.ExceptionRecord^.ExceptionCode, 8));
+  {$endif SYSTEMEXCEPTIONDEBUG}
+    case cardinal(ExceptionRecord^.ExceptionCode) of
+      STATUS_INTEGER_DIVIDE_BY_ZERO,
+      STATUS_FLOAT_DIVIDE_BY_ZERO :
+        res := 200;
+      STATUS_ARRAY_BOUNDS_EXCEEDED :
+        begin
+          res := 201;
+          must_reset_fpu := false;
         end;
-end;
-
-begin
-        if excep^.ContextRecord^.SegSs=_SS then
-                frame := excep^.ContextRecord^.Ebp
+      STATUS_STACK_OVERFLOW :
+        begin
+          res := 202;
+          must_reset_fpu := false;
+        end;
+      STATUS_FLOAT_OVERFLOW :
+        res := 205;
+      STATUS_FLOAT_DENORMAL_OPERAND,
+      STATUS_FLOAT_UNDERFLOW :
+        res := 206;
+  {excep^.ContextRecord^.FloatSave.StatusWord := excep^.ContextRecord^.FloatSave.StatusWord and $ffffff00;}
+      STATUS_FLOAT_INEXACT_RESULT,
+      STATUS_FLOAT_INVALID_OPERATION,
+      STATUS_FLOAT_STACK_CHECK :
+        res := 207;
+      STATUS_INTEGER_OVERFLOW :
+        begin
+          res := 215;
+          must_reset_fpu := false;
+        end;
+      STATUS_ILLEGAL_INSTRUCTION:
+        res := 216;
+      STATUS_ACCESS_VIOLATION:
+        { Athlon prefetch bug? }
+        if is_prefetch(pointer(ContextRecord^.Eip)) then
+          begin
+            { if yes, then retry }
+            ExceptionRecord^.ExceptionCode := 0;
+            res:=ExceptionContinueExecution;
+          end
         else
-                frame := 0;
-        res := EXCEPTION_CONTINUE_SEARCH;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-        if IsConsole then Writeln(stderr,'Exception  ',
-                hexstr(excep^.ExceptionRecord^.ExceptionCode, 8));
-{$endif SYSTEMEXCEPTIONDEBUG}
-        case cardinal(excep^.ExceptionRecord^.ExceptionCode) of
-                STATUS_INTEGER_DIVIDE_BY_ZERO,
-                STATUS_FLOAT_DIVIDE_BY_ZERO :
-                        res := SysHandleErrorFrame(200, frame, true);
-                STATUS_ARRAY_BOUNDS_EXCEEDED :
-                        res := SysHandleErrorFrame(201, frame, false);
-                STATUS_STACK_OVERFLOW :
-                        res := SysHandleErrorFrame(202, frame, false);
-                STATUS_FLOAT_OVERFLOW :
-                        res := SysHandleErrorFrame(205, frame, true);
-                STATUS_FLOAT_DENORMAL_OPERAND,
-                STATUS_FLOAT_UNDERFLOW :
-                        res := SysHandleErrorFrame(206, frame, true);
-{excep^.ContextRecord^.FloatSave.StatusWord := excep^.ContextRecord^.FloatSave.StatusWord and $ffffff00;}
-                STATUS_FLOAT_INEXACT_RESULT,
-                STATUS_FLOAT_INVALID_OPERATION,
-                STATUS_FLOAT_STACK_CHECK :
-                        res := SysHandleErrorFrame(207, frame, true);
-                STATUS_INTEGER_OVERFLOW :
-                        res := SysHandleErrorFrame(215, frame, false);
-                STATUS_ILLEGAL_INSTRUCTION:
-                  res := SysHandleErrorFrame(216, frame, true);
-                STATUS_ACCESS_VIOLATION:
-                  { Athlon prefetch bug? }
-                  if is_prefetch(pointer(excep^.ContextRecord^.Eip)) then
-                    begin
-                      { if yes, then retry }
-                      excep^.ExceptionRecord^.ExceptionCode := 0;
-                      res:=EXCEPTION_CONTINUE_EXECUTION;
-                    end
-                  else
-                    res := SysHandleErrorFrame(216, frame, true);
+          res := 216;
 
-                STATUS_CONTROL_C_EXIT:
-                        res := SysHandleErrorFrame(217, frame, true);
-                STATUS_PRIVILEGED_INSTRUCTION:
-                  res := SysHandleErrorFrame(218, frame, false);
-                else
-                  begin
-                    if ((excep^.ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
-                      res  :=  SysHandleErrorFrame(217, frame, true)
-                    else
-                      res := SysHandleErrorFrame(255, frame, true);
-                  end;
+      STATUS_CONTROL_C_EXIT:
+        res := 217;
+      STATUS_PRIVILEGED_INSTRUCTION:
+        begin
+          res := 218;
+          must_reset_fpu := false;
         end;
-        syswin32_i386_exception_handler := res;
+      else
+        begin
+          if ((ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
+            res := 217
+          else
+            res := 255;
+        end;
+    end;
+    
+    if (res >= 200) and (exceptLevel < MaxExceptionLevel) then begin
+      exceptEip[exceptLevel] := ContextRecord^.Eip;
+      exceptError[exceptLevel] := res;
+      resetFPU[exceptLevel] := must_reset_fpu;
+      inc(exceptLevel);
+
+      ContextRecord^.Eip := Longint(@JumpToHandleErrorFrame);
+      ExceptionRecord^.ExceptionCode := 0;
+
+      res := ExceptionContinueExecution;
+    {$ifdef SYSTEMEXCEPTIONDEBUG}
+      if IsConsole then begin
+        writeln(stderr,'Exception Continue Exception set at ',
+                hexstr(exceptEip[exceptLevel],8));
+        writeln(stderr,'Eip changed to ',
+                hexstr(longint(@JumpToHandleErrorFrame),8), ' error=', error);
+      end;
+    {$endif SYSTEMEXCEPTIONDEBUG}
+    end;
+  end;
+  i386_exception_handler := res;
 end;
 
+{$endif CPUI386}
 
-procedure install_exception_handlers;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
+{$ifdef CPUARM}
+{**************************** ARM Exception handling *****************************************}
+
 var
-        oldexceptaddr,
-        newexceptaddr : Longint;
-{$endif SYSTEMEXCEPTIONDEBUG}
+  exceptPC        : array[0..MaxExceptionLevel-1] of Longint;
+  exceptError     : array[0..MaxExceptionLevel-1] of Byte;
 
+procedure JumpToHandleErrorFrame;
+var
+  _pc, _fp, _error : Longint;
 begin
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-        asm
-                movl $0,%eax
-                movl %fs:(%eax),%eax
-                movl %eax,oldexceptaddr
-        end;
-{$endif SYSTEMEXCEPTIONDEBUG}
-        SetUnhandledExceptionFilter(@syswin32_i386_exception_handler);
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-        asm
-                movl $0,%eax
-                movl %fs:(%eax),%eax
-                movl %eax,newexceptaddr
-        end;
-        if IsConsole then
-                writeln(stderr,'Old exception  ',hexstr(oldexceptaddr,8),
-                        ' new exception  ',hexstr(newexceptaddr,8));
-{$endif SYSTEMEXCEPTIONDEBUG}
+  // get original fp
+  asm
+    ldr r0,[r11,#-12]
+    str r0,_fp
+  end;
+  if (exceptLevel > 0) then
+    dec(exceptLevel);
+
+  _pc:=exceptPC[exceptLevel];
+  _error:=exceptError[exceptLevel];
+  asm
+    ldr r0,_error
+    ldr r1,_pc
+    ldr r2,_fp
+    mov r11,r2              // Change frame pointer
+    b HandleErrorAddrFrame
+  end;
 end;
 
-procedure remove_exception_handlers;
+function ARM_ExceptionHandler(ExceptionRecord: PExceptionRecord;
+	    EstablisherFrame: pointer; ContextRecord: PContext;
+	    DispatcherContext: pointer): longint; [public, alias : '_ARM_ExceptionHandler'];
+var
+  res: longint;
 begin
-        SetUnhandledExceptionFilter(nil);
+  res := ExceptionContinueSearch;
+
+  case cardinal(ExceptionRecord^.ExceptionCode) of
+    STATUS_INTEGER_DIVIDE_BY_ZERO,
+    STATUS_FLOAT_DIVIDE_BY_ZERO :
+      res := 200;
+    STATUS_ARRAY_BOUNDS_EXCEEDED :
+      res := 201;
+    STATUS_STACK_OVERFLOW :
+      res := 202;
+    STATUS_FLOAT_OVERFLOW :
+      res := 205;
+    STATUS_FLOAT_DENORMAL_OPERAND,
+    STATUS_FLOAT_UNDERFLOW :
+      res := 206;
+    STATUS_FLOAT_INEXACT_RESULT,
+    STATUS_FLOAT_INVALID_OPERATION,
+    STATUS_FLOAT_STACK_CHECK :
+      res := 207;
+    STATUS_INTEGER_OVERFLOW :
+      res := 215;
+    STATUS_ILLEGAL_INSTRUCTION:
+      res := 216;
+    STATUS_ACCESS_VIOLATION:
+      res := 216;
+    STATUS_CONTROL_C_EXIT:
+      res := 217;
+    STATUS_PRIVILEGED_INSTRUCTION:
+      res := 218;
+    else
+      begin
+        if ((ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
+          res := 217
+        else
+          res := 255;
+      end;
+  end;
+
+  if (res <> ExceptionContinueSearch) and (exceptLevel < MaxExceptionLevel) then begin
+    exceptPC[exceptLevel] := ContextRecord^.PC;
+    exceptError[exceptLevel] := res;
+    inc(exceptLevel);
+
+    ContextRecord^.PC := Longint(@JumpToHandleErrorFrame);
+    ExceptionRecord^.ExceptionCode := 0;
+
+    res := ExceptionContinueExecution;
+  {$ifdef SYSTEMEXCEPTIONDEBUG}
+    if IsConsole then begin
+      writeln(stderr,'Exception Continue Exception set at ',
+              hexstr(exceptEip[exceptLevel],8));
+      writeln(stderr,'Eip changed to ',
+              hexstr(longint(@JumpToHandleErrorFrame),8), ' error=', error);
+    end;
+  {$endif SYSTEMEXCEPTIONDEBUG}
+  end;
+  ARM_ExceptionHandler := res;
 end;
 
-{$else not cpui386 (Processor specific !!)}
-procedure install_exception_handlers;
+{$endif CPUARM}
+
+{$endif WINCE_EXCEPTION_HANDLING}
+
+procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
 begin
+  IsLibrary:=false;
+{$ifdef CPUARM}
+  asm
+    mov fp,#0
+    bl PASCALMAIN;
+  end;
+{$endif CPUARM}
+
+{$ifdef CPUI386}
+  asm
+  {$ifdef WINCE_EXCEPTION_HANDLING}
+    pushl i386_exception_handler
+    pushl %fs:(0)
+    mov %esp,%fs:(0)
+  {$endif WINCE_EXCEPTION_HANDLING}
+    pushl %ebp
+    xorl %ebp,%ebp
+    movl %esp,%eax
+    movl %eax,Win32StackTop
+    movw %ss,%bp
+    movl %ebp,_SS
+    call SysResetFPU
+    xorl %ebp,%ebp
+    call PASCALMAIN
+    popl %ebp
+  {$ifdef WINCE_EXCEPTION_HANDLING}
+    popl %fs:(0)
+    addl $4, %esp
+  {$endif WINCE_EXCEPTION_HANDLING}
+  end;
+{$endif CPUI386}
+  { if we pass here there was no error ! }
+  system_exit;
 end;
-
-procedure remove_exception_handlers;
-begin
-end;
-
-{$endif Set_i386_Exception_handler}
-
 
 {****************************************************************************
                       OS dependend widestrings
@@ -995,13 +1257,11 @@ procedure InitWin32Widestrings;
                     Error Message writing using messageboxes
 ****************************************************************************}
 
-function MessageBox(w1:longint;l1,l2:pointer;w2:longint):longint;
-   stdcall;external 'coredll' name 'MessageBoxW';
-
 const
   ErrorBufferLength = 1024;
 var
   ErrorBuf : array[0..ErrorBufferLength] of char;
+  ErrorBufW : array[0..ErrorBufferLength] of widechar;
   ErrorLen : longint;
 
 Function ErrorWrite(Var F: TextRec): Integer;
@@ -1036,7 +1296,8 @@ Begin
      i:=4;
    if (i=4) then
     begin
-      MessageBox(0,@ErrorBuf,pchar('Error'),0);
+      AnsiToWideBuf(@ErrorBuf, -1, @ErrorBufW, SizeOf(ErrorBufW));
+      MessageBox(0,@ErrorBufW,'Error',0);
       ErrorLen:=0;
     end;
   F.BufPos:=0;
@@ -1048,7 +1309,8 @@ Function ErrorClose(Var F: TextRec): Integer;
 begin
   if ErrorLen>0 then
    begin
-     MessageBox(0,@ErrorBuf,pchar('Error'),0);
+     AnsiToWideBuf(@ErrorBuf, -1, @ErrorBufW, SizeOf(ErrorBufW));
+     MessageBox(0,@ErrorBufW,'Error',0);
      ErrorLen:=0;
    end;
   ErrorLen:=0;
@@ -1094,6 +1356,13 @@ begin
  GetProcessID := ProcessID;
 end;
 
+procedure GetLibraryInstance;
+var
+  buf: array[0..MaxPathLen] of WideChar;
+begin
+  GetModuleFileName(0, @buf, SizeOf(buf));
+  HInstance:=GetModuleHandle(@buf);
+end;
 
 const
    Exe_entry_code : pointer = @Exe_entry;
@@ -1105,7 +1374,7 @@ begin
   { some misc Win32 stuff }
   hprevinst:=0;
   if not IsLibrary then
-    HInstance:=getmodulehandle(GetCommandFile);
+    GetLibraryInstance;
   MainInstance:=HInstance;
   { Setup heap }
   InitHeap;
