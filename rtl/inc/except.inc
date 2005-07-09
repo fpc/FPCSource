@@ -235,6 +235,7 @@ begin
        if assigned(hp^.frames) then
          freemem(hp^.frames);
        dispose(hp);
+       erroraddr:=nil;
     end;
 end;
 
