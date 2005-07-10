@@ -81,7 +81,11 @@ Begin
   TextRec(t).BufSize:=TextRecBufSize;
   TextRec(t).Bufptr:=@TextRec(t).Buffer;
   TextRec(t).OpenFunc:=@FileOpenFunc;
-  TextRec(t).LineEnd:=LineEnding;
+  Case DefaultTextLineBreakStyle Of
+    tlbsLF: TextRec(t).LineEnd := #10;
+    tlbsCRLF: TextRec(t).LineEnd := #13#10;
+    tlbsCR: TextRec(t).LineEnd := #13;
+  End;  
   Move(s[1],TextRec(t).Name,Length(s));
 End;
 
