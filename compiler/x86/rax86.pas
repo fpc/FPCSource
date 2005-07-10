@@ -564,7 +564,7 @@ begin
     begin
       if (ops=1) and (opcode=A_INT) then
         siz:=S_B;
-      if (ops=1) and (opcode=A_RET) then
+      if (ops=1) and (opcode=A_RET) or (opcode=A_RETN) or (opcode=A_RETF) then
         siz:=S_W;
       if (ops=1) and (opcode=A_PUSH) then
         begin

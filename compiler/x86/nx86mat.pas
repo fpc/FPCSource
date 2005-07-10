@@ -309,7 +309,7 @@ interface
       { lower 32 bit }
       emit_reg_reg(A_PXOR,S_NO,hreg,location.register);
       { shift mask }
-      emit_const_reg(A_PSLLQ,S_NO,32,hreg);
+      emit_const_reg(A_PSLLQ,S_B,32,hreg);
       { higher 32 bit }
       emit_reg_reg(A_PXOR,S_NO,hreg,location.register);
     end;
