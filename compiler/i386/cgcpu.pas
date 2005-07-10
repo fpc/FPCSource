@@ -285,7 +285,7 @@ unit cgcpu;
            { complex return values are removed from stack in C code PM }
            if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,
                                        current_procinfo.procdef.proccalloption) then
-             list.concat(Taicpu.Op_const(A_RET,S_NO,sizeof(aint)))
+             list.concat(Taicpu.Op_const(A_RET,S_W,sizeof(aint)))
            else
              list.concat(Taicpu.Op_none(A_RET,S_NO));
          end
@@ -297,7 +297,7 @@ unit cgcpu;
            { parameters are limited to 65535 bytes because ret allows only imm16 }
            if (parasize>65535) then
              CGMessage(cg_e_parasize_too_big);
-           list.concat(Taicpu.Op_const(A_RET,S_NO,parasize));
+           list.concat(Taicpu.Op_const(A_RET,S_W,parasize));
          end;
       end;
 
