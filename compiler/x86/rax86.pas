@@ -568,12 +568,12 @@ begin
         siz:=S_W;
       if (ops=1) and (opcode=A_PUSH) then
         begin
-          {We are a 32 compiler, assume 32-bit by default. This is Delphi compatible
-           but bad coding practise.}
+          {We are a 32 compiler, assume 32-bit by default. This is Delphi
+           compatible but bad coding practise.}
           siz:=S_L;
           message(asmr_w_unable_to_determine_reference_size_using_dword);
         end;
-      if (opcode=A_JMP) or (opcode=A_CALL) then
+      if (opcode=A_JMP) or (opcode=A_JCC) or (opcode=A_CALL) then
         if ops=1 then
           siz:=S_NEAR
         else
