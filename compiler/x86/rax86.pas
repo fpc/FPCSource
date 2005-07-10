@@ -667,8 +667,7 @@ begin
   ai.Ops:=Ops;
   ai.Allocate_oper(Ops);
   for i:=1 to Ops do
-   begin
-     case operands[i].opr.typ of
+    case operands[i].opr.typ of
        OPR_CONSTANT :
          ai.loadconst(i-1,operands[i].opr.val);
        OPR_REGISTER:
@@ -710,8 +709,7 @@ begin
                  ai.oper[i-1]^.ot:=(ai.oper[i-1]^.ot and not OT_SIZE_MASK) or asize;
              end;
          end;
-     end;
-   end;
+    end;
 
   if (opcode=A_CALL) and (opsize=S_FAR) then
     opcode:=A_LCALL;

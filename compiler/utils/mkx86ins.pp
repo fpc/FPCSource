@@ -350,17 +350,17 @@ begin
             break;
           inc(ops);
           optypes[ops]:=optypes[ops]+'ot_'+formatop(hs);
-          if s[i]=':' then
+{          if s[i]=':' then
             begin
                inc(i);
                optypes[ops]:=optypes[ops]+' or ot_'+formatop(readstr);
-            end;
+            end;}
           while s[i]='|' do
             begin
                inc(i);
                optypes[ops]:=optypes[ops]+' or ot_'+formatop(readstr);
             end;
-          if s[i]=',' then
+          if s[i] in [',',':'] then
             inc(i)
           else
             break;

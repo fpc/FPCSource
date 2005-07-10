@@ -983,9 +983,9 @@ imm32                 \321\1\xE9\64                   8086,PASS2
 imm32|near            \321\1\xE9\64                   8086,ND,PASS2
 imm32|far             \321\1\xEA\34\37                8086,ND,PASS2
 imm:imm               \323\1\xEA\35\30                8086
-imm16:imm             \320\1\xEA\31\30                8086
+;???? imm16:imm             \320\1\xEA\31\30                8086
 imm:imm16             \320\1\xEA\31\30                8086
-imm32:imm             \321\1\xEA\41\30                386
+;???? imm32:imm             \321\1\xEA\41\30                386
 imm:imm32             \321\1\xEA\41\30                386
 mem|far               \323\300\1\xFF\205              8086
 mem16|far             \320\300\1\xFF\205              8086
