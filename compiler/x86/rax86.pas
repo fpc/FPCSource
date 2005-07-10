@@ -559,6 +559,20 @@ begin
 {$endif ATTOP}
      end;
 
+  if (ops=1) and (opcode=A_INT) then
+    siz:=S_B;
+
+  if (ops=1) and (opcode=A_RET) then
+    siz:=S_W;
+
+  if (ops=1) and (opcode=A_PUSH) then
+    begin
+      {We are a 32 compiler, assume 32-bit by default. This is Delphi compatible
+       but bad coding practise.}
+      siz:=S_L;
+      message(asmr_w_unable_to_determine_reference_size_using_dword);
+    end;
+
    { GNU AS interprets FDIV without operand differently
      for version 2.9.1 and 2.10
      we add explicit args to it !! }
@@ -711,12 +725,15 @@ begin
          end;
     end;
 
+ {This is dead code since opcode and opsize aren't used from here!
+  Commented out...
   if (opcode=A_CALL) and (opsize=S_FAR) then
     opcode:=A_LCALL;
   if (opcode=A_JMP) and (opsize=S_FAR) then
     opcode:=A_LJMP;
   if (opcode=A_LCALL) or (opcode=A_LJMP) then
-    opsize:=S_FAR;
+    opsize:=S_FAR;}
+
  { Condition ? }
   if condition<>C_None then
    ai.SetCondition(condition);
