@@ -2074,12 +2074,28 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
     i,j,n,m : SizeInt;
     s1      : string;
 
-  function GetInt : Integer;
+  function GetInt(unsigned : boolean=false) : Integer;
     begin
       s1 := '';
       while (s[n] = ' ')  and (Length(s) > n) do
         inc(n);
-      while (s[n] in ['0'..'9', '+', '-'])
+      { read sign }
+      if (Length(s)>= n) and (s[n] in ['+', '-']) then
+        begin
+          { don't accept - when reading unsigned }
+          if unsigned and (s[n]='-') then
+            begin
+              result:=length(s1);
+              exit;
+            end
+          else
+            begin
+              s1:=s1+s[n];
+              inc(n);
+            end;
+        end;
+      { read numbers }
+      while (s[n] in ['0'..'9'])
         and (Length(s) >= n) do
         begin
           s1 := s1+s[n];
