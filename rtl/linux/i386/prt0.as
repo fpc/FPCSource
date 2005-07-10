@@ -44,15 +44,15 @@ _start:
         /* First locate the start of the environment variables */
         popl    %ecx                    /* Get argc in ecx */
         movl    %esp,%ebx               /* Esp now points to the arguments */
-	leal    4(%esp,%ecx,4),%eax     /* The start of the environment is: esp+4*eax+4 */
+        leal    4(%esp,%ecx,4),%eax     /* The start of the environment is: esp+4*eax+4 */
         andl    $0xfffffff8,%esp        /* Align stack */
 
-	leal    operatingsystem_parameters,%edi
-	stosl	/* Move the environment pointer */
-	xchg    %ecx,%eax
-	stosl   /* Move the argument counter    */
-	xchg	%ebx,%eax
-	stosl   /* Move the argument pointer    */
+        leal    operatingsystem_parameters,%edi
+        stosl   /* Move the environment pointer */
+        xchg    %ecx,%eax
+        stosl   /* Move the argument counter    */
+        xchg    %ebx,%eax
+        stosl   /* Move the argument pointer    */
 
 
         fninit                           /* initialize fpu */
@@ -65,9 +65,9 @@ _start:
         .globl  _haltproc
         .type   _haltproc,@function
 _haltproc:
-_haltproc2:		# GAS <= 2.15 bug: generates larger jump if a label is exported
-	xorl    %eax,%eax
-	incl    %eax			/* eax=1, exit call */
+_haltproc2:             # GAS <= 2.15 bug: generates larger jump if a label is exported
+        xorl    %eax,%eax
+        incl    %eax                    /* eax=1, exit call */
         movzwl  operatingsystem_result,%ebx
         int     $0x80
         jmp     _haltproc2
@@ -79,14 +79,14 @@ ___fpucw:
 
 .bss
         .type   ___fpc_brk_addr,@object
-	.comm   ___fpc_brk_addr,4        /* heap management */
+        .comm   ___fpc_brk_addr,4        /* heap management */
 
 operatingsystem_parameters:
-	.skip 3*4
+        .skip 3*4
 
-	.global operatingsystem_parameter_envp
-	.global operatingsystem_parameter_argc
-	.global operatingsystem_parameter_argv
-	.set operatingsystem_parameter_envp,operatingsystem_parameters+0
-	.set operatingsystem_parameter_argc,operatingsystem_parameters+4
-	.set operatingsystem_parameter_argv,operatingsystem_parameters+8
+        .global operatingsystem_parameter_envp
+        .global operatingsystem_parameter_argc
+        .global operatingsystem_parameter_argv
+        .set operatingsystem_parameter_envp,operatingsystem_parameters+0
+        .set operatingsystem_parameter_argc,operatingsystem_parameters+4
+        .set operatingsystem_parameter_argv,operatingsystem_parameters+8
