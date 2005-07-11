@@ -424,7 +424,8 @@ begin
       CheckError('FreeStatement', Status);
     Statement := nil;
     end;
-  reAllocMem((cursor as tibcursor).SQLDA,0);
+//  reAllocMem((cursor as tibcursor).SQLDA,0);
+// ^=bug moet nog ergens anders komen...
 end;
 
 procedure TIBConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams);
@@ -436,7 +437,7 @@ var dh    : pointer;
     i     : integer;
 
 begin
-  ObtainSQLStatementType(cursor,buf);
+//  ObtainSQLStatementType(cursor,buf);
   with cursor as TIBcursor do
     begin
     dh := GetHandle;
