@@ -206,6 +206,7 @@ type
     destructor Destroy; override;
     procedure SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string); virtual;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
+    property Prepared : boolean read IsPrepared;
   published
     // redeclared data set properties
     property Active;
@@ -244,7 +245,6 @@ type
     property Params : TParams read FParams write FParams;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey;
-    property Prepared : boolean read IsPrepared;
     property StatementType : TStatementType read GetStatementType;
 //    property SchemaInfo : TSchemaInfo read FSchemaInfo default stNoSchema;
   end;
