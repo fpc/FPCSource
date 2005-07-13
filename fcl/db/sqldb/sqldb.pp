@@ -51,7 +51,7 @@ const
                   'create', 'get', 'put', 'execute',
                   'start','commit','rollback', '?'
                  );
- SQLDelimiterCharacters = [',',' ','(',')',#13,#10,#9];
+ SQLDelimiterCharacters = [';',',',' ','(',')',#13,#10,#9];
 
 
 { TSQLConnection }
@@ -76,6 +76,7 @@ type
     function GetHandle : pointer; virtual; abstract;
 
     Function AllocateCursorHandle : TSQLCursor; virtual; abstract;
+    Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); virtual; abstract;
     Function AllocateTransactionHandle : TSQLHandle; virtual; abstract;
 
     procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); virtual; abstract;
@@ -159,6 +160,11 @@ type
     FUpdateMode          : TUpdateMode;
     FParams              : TParams;
     FusePrimaryKeyAsKey  : Boolean;
+    FSQLBuf              : String;
+    FFromPart            : String;
+    FWhereStartPos       : integer;
+    FWhereStopPos        : integer;
+    FParseSQL            : boolean;
 //    FSchemaInfo          : TSchemaInfo;
 
     procedure CloseStatement;
@@ -168,11 +174,14 @@ type
     function GetStatementType : TStatementType;
     procedure SetIndexDefs(AValue : TIndexDefs);
     procedure SetReadOnly(AValue : Boolean);
+    procedure SetParseSQL(AValue : Boolean);
     procedure SetUsePrimaryKeyAsKey(AValue : Boolean);
     procedure SetUpdateMode(AValue : TUpdateMode);
     procedure OnChangeSQL(Sender : TObject);
 
     procedure Execute;
+    Procedure SQLParser(var SQL : string);
+    Function AddFilter(SQLstr : string) : string;
   protected
     // abstract & virtual methods of TBufDataset
     function Fetch : boolean; override;
@@ -189,8 +198,8 @@ type
     function  GetCanModify: Boolean; override;
     function ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean; override;
     Function IsPrepared : Boolean; virtual;
-    function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload; override;
     procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload; override;
+    procedure SetFiltered(Value: Boolean); override;
   public
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
@@ -203,8 +212,8 @@ type
   published
     // redeclared data set properties
     property Active;
-//    property Filter;
-//    property Filtered;
+    property Filter;
+    property Filtered;
 //    property FilterOptions;
     property BeforeOpen;
     property AfterOpen;
@@ -239,6 +248,7 @@ type
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey;
     property StatementType : TStatementType read GetStatementType;
+    property ParseSQL : Boolean read FParseSQL write SetParseSQL;
 //    property SchemaInfo : TSchemaInfo read FSchemaInfo default stNoSchema;
   end;
 
@@ -519,28 +529,57 @@ begin
   Result := Assigned(FCursor) and FCursor.FPrepared;
 end;
 
-function TSQLQuery.GetFieldData(Field: TField; Buffer: Pointer;
-  NativeFormat: Boolean): Boolean;
-begin
-  Result:=GetFieldData(Field, Buffer);
-end;
-
 procedure TSQLQuery.SetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean);
 begin
   SetFieldData(Field, Buffer);
 end;
 
+Function TSQLQuery.AddFilter(SQLstr : string) : string;
+
+begin
+  if FWhereStartPos = 0 then
+    SQLstr := SQLstr + ' where (' + Filter + ')'
+  else if FWhereStopPos > 0 then
+    system.insert(' and ('+Filter+') ',SQLstr,FWhereStopPos+1)
+  else
+    system.insert(' where ('+Filter+') ',SQLstr,FWhereStartPos);
+  Result := SQLstr;
+end;
+
+procedure TSQLQuery.SetFiltered(Value: Boolean);
+
+var S : String;
+
+begin
+  if Value and not FParseSQL then DatabaseErrorFmt(SNoParseSQL,['Filtering ']);
+  if (Filtered <> Value) and Active then
+    begin
+    CloseStatement;
+    FIsEOF := False;
+    inherited internalclose;
+
+    s := FSQLBuf;
+
+    if Value then s := AddFilter(s);
+
+    (Database as tsqlconnection).PrepareStatement(Fcursor,(transaction as tsqltransaction),S,FParams);
+
+    Execute;
+    inherited InternalOpen;
+    First;
+    end;
+  inherited setfiltered(Value);
+end;
+
 procedure TSQLQuery.Prepare;
 var
-  Buf   : string;
   db    : tsqlconnection;
   sqltr : tsqltransaction;
 
 begin
   if not IsPrepared then
     begin
-
     db := (Database as tsqlconnection);
     sqltr := (transaction as tsqltransaction);
     if not assigned(Db) then
@@ -554,12 +593,17 @@ begin
     if assigned(fcursor) then FreeAndNil(fcursor);
     FCursor := Db.AllocateCursorHandle;
 
-    buf := TrimRight(FSQL.Text);
+    FSQLBuf := TrimRight(FSQL.Text);
+    
+    SQLParser(FSQLBuf);
 
-    Db.PrepareStatement(Fcursor,sqltr,buf,FParams);
+    if filtered then
+      Db.PrepareStatement(Fcursor,sqltr,AddFilter(FSQLBuf),FParams)
+    else
+      Db.PrepareStatement(Fcursor,sqltr,FSQLBuf,FParams);
 
     if (FCursor.FStatementType = stSelect) and not ReadOnly then
-      InitUpdates(Buf);
+      InitUpdates(FSQLBuf);
     end;
 end;
 
@@ -567,8 +611,11 @@ procedure TSQLQuery.UnPrepare;
 
 begin
   CheckInactive;
-  if IsPrepared then (Database as tsqlconnection).UnPrepareStatement(FCursor);
-  FreeAndNil(FCursor);
+  if IsPrepared then with Database as TSQLConnection do
+    begin
+    UnPrepareStatement(FCursor);
+    DeAllocateCursorHandle(FCursor);
+    end;
 end;
 
 procedure TSQLQuery.FreeFldBuffers;
@@ -632,98 +679,118 @@ begin
   end;
 end;
 
-procedure TSQLQuery.InitUpdates(SQL : string);
+procedure TSQLQuery.SQLParser(var SQL : string);
+
+type TParsePart = (ppStart,ppSelect,ppWhere,ppFrom,ppOrder,ppComment,ppBogus);
 
 Var
-  L       : Integer;
-  P,PP    : PChar;
-  PS: PChar;
-  S       : string;
-
-  function GetStatement(var StartP : PChar) : PChar;
-
-  var p        : pchar;
-      Cmt, Stm : boolean;
-
-  begin
-    p := StartP;
-    Cmt := false;
-    Stm := False;
-    While ((P-PP)<L) do
-      begin
-      if Cmt then
-        begin
-        end
-      else if (p^ in SQLDelimiterCharacters) then
-        begin
-        if stm then break;
-        end
-      else if not stm then
-        begin
-        StartP := p;
-        stm := true;
-        end;
-      inc(p);
-      end;
-    Result := P;
-  end;
+  PSQL,CurrentP,
+  PhraseP, PStatementPart : pchar;
+  S                       : string;
+  ParsePart               : TParsePart;
+  StrLength               : Integer;
 
 begin
-  FUpdateable := False;
+  PSQL:=Pchar(SQL);
+  ParsePart := ppStart;
 
-  L:=Length(SQL);
+  CurrentP := PSQL-1;
+  PhraseP := PSQL;
+  
+  FWhereStartPos := 0;
+  FWhereStopPos := 0;
 
-  PP:=Pchar(SQL);
-  P := pp;
-  PS := pp;
-
-// select-keyword
-  P := GetStatement(PS);
-
-  Setlength(S,P-PS);
-  Move(PS^,S[1],(P-PS));
-  S:=Lowercase(S);
-
-  if (S) <> 'select' then exit;
-
-// select-part
-
-  While ((P-PP)<L) and  (S <> 'from') do
+  repeat
     begin
-    repeat
-    PS := P;
-    P := GetStatement(PS);
-    until P^ <> ',';
+    inc(CurrentP);
 
-    Setlength(S,P-PS);
-    Move(PS^,S[1],(P-PS));
-    S:=Lowercase(S);
+    if CurrentP^ in [' ',#13,#10,#9,#0,'(',')',';'] then
+      begin
+      if (CurrentP-PhraseP > 0) or (CurrentP^ in [';',#0]) then
+        begin
+        strLength := CurrentP-PhraseP;
+        Setlength(S,strLength);
+        if strLength > 0 then Move(PhraseP^,S[1],(strLength));
+        s := uppercase(s);
+        
+        case ParsePart of
+          ppStart  : begin
+                     FCursor.FStatementType := (Database as tsqlconnection).StrToStatementType(s);
+                     if FCursor.FStatementType = stSelect then ParsePart := ppSelect
+                       else break;
+                     if not FParseSQL then break;
+                     PStatementPart := CurrentP;
+                     end;
+          ppSelect : begin
+                     if s = 'FROM' then
+                       begin
+                       ParsePart := ppFrom;
+                       PhraseP := CurrentP;
+                       PStatementPart := CurrentP;
+                       end;
+                     end;
+          ppFrom   : begin
+                     if (s = 'WHERE') or (s = 'ORDER') or (CurrentP^=#0) or (CurrentP^=';') then
+                       begin
+                       if (s = 'WHERE') then
+                         begin
+                         ParsePart := ppWhere;
+                         StrLength := PhraseP-PStatementPart;
+                         end
+                       else if (s = 'ORDER') then
+                         begin
+                         ParsePart := ppOrder;
+                         StrLength := PhraseP-PStatementPart
+                         end
+                       else
+                         begin
+                         ParsePart := ppBogus;
+                         StrLength := CurrentP-PStatementPart;
+                         end;
+                       Setlength(FFromPart,StrLength);
+                       Move(PStatementPart^,FFromPart[1],(StrLength));
+                       FFrompart := trim(FFrompart);
+                       FWhereStartPos := PStatementPart-PSQL+StrLength+1;
+                       PStatementPart := CurrentP;
+                       end;
+                     end;
+          ppWhere  : begin
+                     if (s = 'ORDER') or (CurrentP^=#0) or (CurrentP^=';') then
+                       begin
+                       ParsePart := ppBogus;
+                       FWhereStartPos := PStatementPart-PSQL;
+                       if s = 'ORDER' then
+                         FWhereStopPos := PhraseP-PSQL+1
+                       else
+                         FWhereStopPos := CurrentP-PSQL+1;
+                       end;
+                     end;
+        end; {case}
+        end;
+      PhraseP := CurrentP+1;
+      end
+    end;
+  until CurrentP^=#0;
+  if (FWhereStartPos > 0) and (FWhereStopPos > 0) then
+    begin
+    system.insert('(',SQL,FWhereStartPos+1);
+    inc(FWhereStopPos);
+    system.insert(')',SQL,FWhereStopPos);
+    end
+end;
 
+procedure TSQLQuery.InitUpdates(SQL : string);
+
+
+begin
+  if pos(',',FFromPart) > 0 then
+    FUpdateable := False // select-statements from more then one table are not updateable
+  else
+    begin
+    FUpdateable := True;
+    FTableName := FFromPart;
     end;
 
-// from-part
-
-  PS := P;
-  P := GetStatement(PS);
-
-  Setlength(FTableName,P-PS);
-  Move(PS^,FTableName[1],(P-PS));
-
-  While ((P-PP)<L)  do
-    begin
-    PS := P;
-    P := GetStatement(PS);
-
-    if P^ = ',' then exit; // select-statements from more then one table are not updateable
-
-    Setlength(S,P-PS);
-    Move(PS^,S[1],(P-PS));
-    S:=Lowercase(S);
-
-    if (s = 'where') or (s='order') then break;
-    end;
-
-  FUpdateable := True;
 end;
 
 procedure TSQLQuery.InternalOpen;
@@ -789,6 +856,7 @@ begin
   FSQL.OnChange := @OnChangeSQL;
   FIndexDefs := TIndexDefs.Create(Self);
   FReadOnly := false;
+  FParseSQL := True;
 // Delphi has upWhereAll as default, but since strings and oldvalue's don't work yet
 // (variants) set it to upWhereKeyOnly
   FUpdateMode := upWhereKeyOnly;
@@ -808,12 +876,27 @@ end;
 procedure TSQLQuery.SetReadOnly(AValue : Boolean);
 
 begin
-  if not Active then FReadOnly := AValue
-  else
+  CheckInactive;
+  if not AValue then
     begin
-    // Just temporary, this should be possible in the future
-    DatabaseError(SActiveDataset);
-    end;
+    if FParseSQL then FReadOnly := False
+      else DatabaseErrorFmt(SNoParseSQL,['Updating ']);
+    end
+  else FReadOnly := True;
+end;
+
+procedure TSQLQuery.SetParseSQL(AValue : Boolean);
+
+begin
+  CheckInactive;
+  if not AValue then
+    begin
+    FReadOnly := True;
+    Filtered := False;
+    FParseSQL := False;
+    end
+  else
+    FParseSQL := True;
 end;
 
 procedure TSQLQuery.SetUsePrimaryKeyAsKey(AValue : Boolean);
@@ -837,7 +920,6 @@ end;
 function TSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean;
 
 var
-    sql_tables : string;
     s : string;
 
   procedure UpdateWherePart(var sql_where : string;x : integer);
@@ -860,7 +942,6 @@ var
       sql_where  : string;
 
   begin
-    sql_tables := FTableName;
     sql_set := '';
     sql_where := '';
     for x := 0 to Fields.Count -1 do
@@ -876,7 +957,7 @@ var
 
     setlength(sql_set,length(sql_set)-1);
     setlength(sql_where,length(sql_where)-5);
-    result := 'update ' + sql_tables + ' set ' + sql_set + ' where ' + sql_where;
+    result := 'update ' + FTableName + ' set ' + sql_set + ' where ' + sql_where;
 
   end;
 
@@ -887,7 +968,6 @@ var
       sql_values : string;
 
   begin
-    sql_tables := FTableName;
     sql_fields := '';
     sql_values := '';
     for x := 0 to Fields.Count -1 do
@@ -901,7 +981,7 @@ var
     setlength(sql_fields,length(sql_fields)-1);
     setlength(sql_values,length(sql_values)-1);
 
-    result := 'insert into ' + sql_tables + ' (' + sql_fields + ') values (' + sql_values + ')';
+    result := 'insert into ' + FTableName + ' (' + sql_fields + ') values (' + sql_values + ')';
   end;
 
   function DeleteRecQuery : string;
@@ -910,15 +990,13 @@ var
       sql_where  : string;
 
   begin
-    sql_tables := FTableName;
-
     sql_where := '';
     for x := 0 to Fields.Count -1 do
       UpdateWherePart(sql_where,x);
 
     setlength(sql_where,length(sql_where)-5);
 
-    result := 'delete from ' + sql_tables + ' where ' + sql_where;
+    result := 'delete from ' + FTableName + ' where ' + sql_where;
   end;
 
 begin

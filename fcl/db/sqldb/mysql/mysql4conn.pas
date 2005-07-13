@@ -51,6 +51,7 @@ Type
     function GetHandle : pointer; override;
 
     Function AllocateCursorHandle : TSQLCursor; override;
+    Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
     Function AllocateTransactionHandle : TSQLHandle; override;
 
     procedure CloseStatement(cursor : TSQLCursor); override;
@@ -204,6 +205,12 @@ end;
 function TMySQLConnection.AllocateCursorHandle: TSQLCursor;
 begin
   Result:=TMySQLCursor.Create;
+end;
+
+Procedure TMySQLConnection.DeAllocateCursorHandle(var cursor : TSQLCursor);
+
+begin
+  FreeAndNil(cursor);
 end;
 
 function TMySQLConnection.AllocateTransactionHandle: TSQLHandle;
