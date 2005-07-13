@@ -486,7 +486,7 @@ function AnsiStrUpper(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
 
 {   Trim returns a copy of S with blanks characters on the left and right stripped off   }
 
-Const WhiteSpace = [' ',#10,#13,#9];
+Const WhiteSpace = [#0..' '];
 
 function Trim(const S: string): string;
 var Ofs, Len: integer;
