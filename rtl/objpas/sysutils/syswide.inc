@@ -18,6 +18,44 @@
     *********************************************************************
 }
 
+function Trim(const S: widestring): widestring;
+	var 
+	  Ofs, Len: sizeint;
+	begin
+	  len := Length(S);
+	  while (Len>0) and (S[Len]<=' ') do
+	   dec(Len);
+	  Ofs := 1;
+	  while (Ofs<=Len) and (S[Ofs]<=' ') do
+	   Inc(Ofs);
+	  result := Copy(S, Ofs, 1 + Len - Ofs);
+	end;
+	
+
+{   TrimLeft returns a copy of S with all blank characters on the left stripped off  }
+function TrimLeft(const S: widestring): widestring;
+	var 
+	  i,l:sizeint;
+	begin
+	  l := length(s);
+	  i := 1;
+	  while (i<=l) and (s[i]<=' ') do
+	   inc(i);
+	  Result := copy(s, i, l);
+	end;
+	
+
+{   TrimRight returns a copy of S with all blank characters on the right stripped off  }
+function TrimRight(const S: widestring): widestring;
+	var 
+		l:sizeint;
+	begin
+	  l := length(s);
+	  while (l>0) and (s[l]<=' ') do
+	   dec(l);
+	  result := copy(s,1,l);
+	end;
+
 
 function WideUpperCase(const s : WideString) : WideString;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin

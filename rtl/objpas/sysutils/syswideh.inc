@@ -18,6 +18,10 @@
     *********************************************************************
 }
 
+function Trim(const S: widestring): widestring;
+function TrimLeft(const S: widestring): widestring;
+function TrimRight(const S: widestring): widestring;
+
 function WideUpperCase(const s : WideString) : WideString;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function WideLowerCase(const s : WideString) : WideString;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function WideCompareStr(const s1, s2 : WideString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
@@ -30,5 +34,3 @@ Function WideFormatBuf (Var Buffer; BufLen : Cardinal;
                      Const Fmt; fmtLen : Cardinal;
                      Const Args : Array of const) : Cardinal;
 Procedure WideFmtStr(Var Res: WideString; Const Fmt : WideString; Const args: Array of const);
-
-
