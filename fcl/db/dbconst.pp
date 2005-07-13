@@ -71,6 +71,7 @@ Const
   SFieldValueError         = 'Invalid value for field ''%s''';
   SInvalidCalcType         = 'Field ''%s'' cannot be a calculated or lookup field';
   SDuplicateName           = 'Duplicate name ''%s'' in %s';
+  SNoParseSQL              = '%s is only possible if ParseSQL is True';
 
 Implementation
 
