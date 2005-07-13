@@ -67,6 +67,7 @@ type
     function GetHandle : pointer; override;
 
     Function AllocateCursorHandle : TSQLCursor; override;
+    Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
     Function AllocateTransactionHandle : TSQLHandle; override;
 
     procedure CloseStatement(cursor : TSQLCursor); override;
@@ -410,6 +411,17 @@ begin
   result := curs;
 end;
 
+procedure TIBConnection.DeAllocateCursorHandle(var cursor : TSQLCursor);
+
+begin
+  if assigned(cursor) then with cursor as TIBCursor do
+    begin
+    reAllocMem(SQLDA,0);
+    reAllocMem(in_SQLDA,0);
+    end;
+  FreeAndNil(cursor);
+end;
+
 Function TIBConnection.AllocateTransactionHandle : TSQLHandle;
 
 begin
@@ -424,8 +436,6 @@ begin
       CheckError('FreeStatement', Status);
     Statement := nil;
     end;
-//  reAllocMem((cursor as tibcursor).SQLDA,0);
-// ^=bug moet nog ergens anders komen...
 end;
 
 procedure TIBConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams);
@@ -585,6 +595,7 @@ var ParNr,SQLVarNr : integer;
     s               : string;
     i               : integer;
     currbuff        : pchar;
+    w               : word;
 
 begin
 {$R-}
@@ -607,7 +618,17 @@ begin
           begin
           {$R-}
           s := AParams[ParNr].AsString;
-          Move(s[1], in_sqlda^.SQLvar[SQLVarNr].SQLData^, length(s));
+          w := length(s);
+          if ((in_sqlda^.SQLvar[SQLVarNr].SQLType and not 1) = SQL_VARYING) then
+            begin
+            in_sqlda^.SQLvar[SQLVarNr].SQLLen := w;
+            in_sqlda^.SQLvar[SQLVarNr].SQLData := AllocMem(in_SQLDA^.SQLVar[SQLVarNr].SQLLen+2)
+            end;
+
+          CurrBuff := in_sqlda^.SQLvar[SQLVarNr].SQLData;
+          move(w,CurrBuff^,sizeof(w));
+          inc(CurrBuff,2);
+          Move(s[1], CurrBuff^, length(s));
           {$R+}
           end;
       else

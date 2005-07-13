@@ -42,6 +42,7 @@ type
     function GetHandle : pointer; override;
 
     Function AllocateCursorHandle : TSQLCursor; override;
+    Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
     Function AllocateTransactionHandle : TSQLHandle; override;
 
     procedure CloseStatement(cursor : TSQLCursor); override;
@@ -317,6 +318,12 @@ Function TPQConnection.AllocateCursorHandle : TSQLCursor;
 
 begin
   result := TPQCursor.create;
+end;
+
+Procedure TPQConnection.DeAllocateCursorHandle(var cursor : TSQLCursor);
+
+begin
+  FreeAndNil(cursor);
 end;
 
 Function TPQConnection.AllocateTransactionHandle : TSQLHandle;
