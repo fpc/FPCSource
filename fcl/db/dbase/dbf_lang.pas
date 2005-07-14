@@ -1,6 +1,6 @@
 unit dbf_lang;
 
-{$i Dbf_Common.inc}
+{$I dbf_common.inc}
 
 interface
 
@@ -9,9 +9,9 @@ uses
   Windows;
 {$else}
 {$ifdef KYLIX}
-  Libc,
-{$endif}
-  Types, Dbf_Wtil;
+  Libc, 
+{$endif}  
+  Types, dbf_wtil;
 {$endif}
 
 const
@@ -636,3 +636,4 @@ begin
 end;
 
 end.
+

@@ -2,7 +2,7 @@ unit dbf_prssupp;
 
 // parse support
 
-{$i Dbf_Common.inc}
+{$I dbf_common.inc}
 
 interface
 
@@ -182,3 +182,4 @@ begin
 end;
 
 end.
+

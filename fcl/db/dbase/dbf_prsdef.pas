@@ -2,13 +2,13 @@ unit dbf_prsdef;
 
 interface
 
-{$I Dbf_Common.inc}
+{$I dbf_common.inc}
 
 uses
   SysUtils,
   Classes,
-  Dbf_Common,
-  Dbf_PrsSupp;
+  dbf_common,
+  dbf_prssupp;
 
 const
   MaxArg = 6;
@@ -452,12 +452,14 @@ end;
 
 function TExprWord.GetIsVariable: Boolean;
 begin
+  // delphi wants to call the function pointed to by the variable, use '@'
+  // fpc simply returns pointer to function, no '@' needed
   Result := (@FExprFunc = @_StringVariable)         or
             (@FExprFunc = @_StringConstant)         or
             (@FExprFunc = @_StringVariableFixedLen) or
             (@FExprFunc = @_FloatVariable)          or
             (@FExprFunc = @_IntegerVariable)        or
-//            (@FExprFunc = @_SmallIntVariable)       or
+//            (FExprFunc = @_SmallIntVariable)       or
 {$ifdef SUPPORT_INT64}
             (@FExprFunc = @_LargeIntVariable)       or
 {$endif}
@@ -475,7 +477,7 @@ begin
 // not null-terminated (fixed len)
             (@FExprFunc <> @_FloatVariable)          and
             (@FExprFunc <> @_IntegerVariable)        and
-//            (@FExprFunc <> @_SmallIntVariable)       and
+//            (FExprFunc <> @_SmallIntVariable)       and
 {$ifdef SUPPORT_INT64}
             (@FExprFunc <> @_LargeIntVariable)       and
 {$endif}
@@ -1039,3 +1041,4 @@ begin
 end;
 
 end.
+

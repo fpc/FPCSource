@@ -4,16 +4,16 @@ unit dbf_pgcfile;
 
 interface
 
-{$I Dbf_Common.inc}
+{$I dbf_common.inc}
 
 {$ifdef USE_CACHE}
 
 uses
   Classes,
   SysUtils,
-  Dbf_Common,
-  Dbf_Avl,
-  Dbf_PgFile;
+  dbf_common,
+  dbf_avl,
+  dbf_pgfile;
 
 type
 

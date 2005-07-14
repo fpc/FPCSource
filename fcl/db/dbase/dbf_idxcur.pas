@@ -2,15 +2,15 @@ unit dbf_idxcur;
 
 interface
 
-{$I Dbf_Common.inc}
+{$I dbf_common.inc}
 
 uses
   SysUtils,
   Classes,
-  Dbf_Cursor,
-  Dbf_IdxFile,
-  Dbf_PrsDef,
-  Dbf_Common;
+  dbf_cursor,
+  dbf_idxfile,
+  dbf_prsdef,
+  dbf_common;
 
 type
 
@@ -178,3 +178,4 @@ begin
 end;
 
 end.
+

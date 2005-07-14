@@ -2,12 +2,12 @@ unit dbf_memo;
 
 interface
 
-{$I Dbf_Common.inc}
+{$I dbf_common.inc}
 
 uses
   Classes,
-  Dbf_PgFile,
-  Dbf_Common;
+  dbf_pgfile,
+  dbf_common;
 
 type
 
@@ -95,7 +95,7 @@ type
 implementation
 
 uses
-  SysUtils, Dbf_DbfFile;
+  SysUtils, dbf_dbffile;
 
 //====================================================================
 //=== Memo and binary fields support
@@ -168,7 +168,7 @@ begin
 
     // determine version
     if FDbfVersion = xBaseIII then
-      PDbtHdr(Header).bVer := 3;
+      PDbtHdr(Header)^.bVer := 3;
     VirtualLocks := false;
 
     if FileCreated or (HeaderSize = 0) then
@@ -330,7 +330,7 @@ var
   bytesBefore: Integer;
   bytesAfter: Integer;
   totsize: Integer;
-  read: Integer;
+  readBytes: Integer;
   append: Boolean;
   tmpRecNo: Integer;
 begin
@@ -372,28 +372,28 @@ begin
       totsize := Src.Size + bytesBefore + bytesAfter;
       if FDbfVersion <> xFoxPro then
       begin
-        PBlockHdr(FBuffer).MemoType := $0008FFFF;
-        PBlockHdr(FBuffer).MemoSize := totsize;
+        PBlockHdr(FBuffer)^.MemoType := $0008FFFF;
+        PBlockHdr(FBuffer)^.MemoSize := totsize;
       end else begin
-        PBlockHdr(FBuffer).MemoType := $01000000;
-        PBlockHdr(FBuffer).MemoSize := SwapInt(Src.Size);
+        PBlockHdr(FBuffer)^.MemoType := $01000000;
+        PBlockHdr(FBuffer)^.MemoSize := SwapInt(Src.Size);
       end;
     end;
     repeat
       // read bytes, don't overwrite header
-      read := Src.Read(FBuffer[bytesBefore], RecordSize{PDbtHdr(Header).BlockLen}-bytesBefore);
+      readBytes := Src.Read(FBuffer[bytesBefore], RecordSize{PDbtHdr(Header).BlockLen}-bytesBefore);
       // end of input data reached ? check if need to write block terminators
-      while (read < RecordSize - bytesBefore) and (bytesAfter > 0) do
+      while (readBytes < RecordSize - bytesBefore) and (bytesAfter > 0) do
       begin
-        FBuffer[read] := #$1A;
-        Inc(read);
+        FBuffer[readBytes] := #$1A;
+        Inc(readBytes);
         Dec(bytesAfter);
       end;
       // have we read anything that is to be written?
-      if read > 0 then
+      if readBytes > 0 then
       begin
         // clear any unused space
-        FillChar(FBuffer[bytesBefore+read], RecordSize-read-bytesBefore, ' ');
+        FillChar(FBuffer[bytesBefore+readBytes], RecordSize-readBytes-bytesBefore, ' ');
         // write to disk
         WriteRecord(tmpRecNo, @FBuffer[0]);
         Inc(tmpRecNo);
@@ -422,31 +422,31 @@ begin
   if FDbfVersion = xBaseIII then
     Result := 512
   else
-    Result := PDbtHdr(Header).BlockLen;
+    Result := PDbtHdr(Header)^.BlockLen;
 end;
 
 function  TDbaseMemoFile.GetMemoSize: Integer;
 begin
   // dBase4 memofiles contain small 'header'
   if PInteger(@FBuffer[0])^ = $0008FFFF then
-    Result := PBlockHdr(FBuffer).MemoSize-8
+    Result := PBlockHdr(FBuffer)^.MemoSize-8
   else
     Result := -1;
 end;
 
 function  TDbaseMemoFile.GetNextFreeBlock: Integer;
 begin
-  Result := PDbtHdr(Header).NextBlock;
+  Result := PDbtHdr(Header)^.NextBlock;
 end;
 
 procedure TDbaseMemoFile.SetNextFreeBlock(BlockNo: Integer);
 begin
-  PDbtHdr(Header).NextBlock := BlockNo;
+  PDbtHdr(Header)^.NextBlock := BlockNo;
 end;
 
 procedure TDbaseMemoFile.SetBlockLen(BlockLen: Integer);
 begin
-  PDbtHdr(Header).BlockLen := BlockLen;
+  PDbtHdr(Header)^.BlockLen := BlockLen;
 end;
 
 // ------------------------------------------------------------------
@@ -455,27 +455,27 @@ end;
 
 function  TFoxProMemoFile.GetBlockLen: Integer;
 begin
-  Result := Swap(PFptHdr(Header).BlockLen);
+  Result := Swap(PFptHdr(Header)^.BlockLen);
 end;
 
 function  TFoxProMemoFile.GetMemoSize: Integer;
 begin
-  Result := SwapInt(PBlockHdr(FBuffer).MemoSize);
+  Result := SwapInt(PBlockHdr(FBuffer)^.MemoSize);
 end;
 
 function  TFoxProMemoFile.GetNextFreeBlock: Integer;
 begin
-  Result := SwapInt(PFptHdr(Header).NextBlock);
+  Result := SwapInt(PFptHdr(Header)^.NextBlock);
 end;
 
 procedure TFoxProMemoFile.SetNextFreeBlock(BlockNo: Integer);
 begin
-  PFptHdr(Header).NextBlock := SwapInt(BlockNo);
+  PFptHdr(Header)^.NextBlock := SwapInt(BlockNo);
 end;
 
 procedure TFoxProMemoFile.SetBlockLen(BlockLen: Integer);
 begin
-  PFptHdr(Header).BlockLen := Swap(BlockLen);
+  PFptHdr(Header)^.BlockLen := Swap(BlockLen);
 end;
 
 // ------------------------------------------------------------------

@@ -22,14 +22,14 @@ unit dbf_reg;
 
 interface
 
-{$I Dbf_Common.inc}
+{$I dbf_common.inc}
 
 procedure Register;
 
 implementation
 
 {$ifndef FPC}
-{$R Dbf.dcr}
+{$R dbf.dcr}
 {$endif}
 
 uses
@@ -45,12 +45,12 @@ uses
   Forms,
   Dialogs,
 {$endif}
-  Dbf,
-  Dbf_DbfFile,
-  Dbf_IdxFile,
-  Dbf_Fields,
-  Dbf_Common,
-  Dbf_Str
+  dbf,
+  dbf_dbffile,
+  dbf_idxfile,
+  dbf_fields,
+  dbf_common,
+  dbf_str
 {$ifndef FPC}
   ,ExptIntf
 {$endif}

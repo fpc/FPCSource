@@ -4,8 +4,8 @@ unit dbf_str;
 
 interface
 
-{$I Dbf_Common.inc}
-{$I Dbf_Str.inc}
+{$I dbf_common.inc}
+{$I dbf_str.inc}
 
 implementation
 

@@ -2,22 +2,22 @@ unit dbf_common;
 
 interface
 
-{$I Dbf_Common.inc}
+{$I dbf_common.inc}
 
 uses
   SysUtils, Classes, DB
 {$ifndef WIN32}
-  , Types, Dbf_Wtil
+  , Types, dbf_wtil
 {$ifdef KYLIX}
   , Libc
-{$endif}
+{$endif}  
 {$endif}
   ;
 
 
 const
   TDBF_MAJOR_VERSION      = 6;
-  TDBF_MINOR_VERSION      = 41;
+  TDBF_MINOR_VERSION      = 45;
   TDBF_SUB_MINOR_VERSION  = 0;
 
   TDBF_TABLELEVEL_FOXPRO = 25;
@@ -108,6 +108,13 @@ function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PChar; Length: Integ
 // Does not stop at null (#0) terminator!
 function MemScan(const Buffer: Pointer; Chr: Byte; Length: Integer): Pointer;
 
+// Delphi 3 does not have a Min function
+{$ifdef DELPHI_3}
+{$ifndef DELPHI_4}
+function Min(x, y: integer): integer;
+{$endif}
+{$endif}
+
 implementation
 
 {$ifdef WIN32}
@@ -167,44 +174,10 @@ end;
 procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar; const PadChar: Char);
 var
   Temp: array[0..10] of Char;
-  I, J, K: Integer;
+  I, J: Integer;
   NegSign: boolean;
 begin
-  if Width <= 0 then
-    exit;
-
-  NegSign := Val < 0;
-  Val := Abs(Val);
-  // we'll have to store characters backwards first
-  I := 0;
-  J := 0;
-  repeat
-    Temp[I] := Chr((Val mod 10) + Ord('0'));
-    Val := Val div 10;
-    Inc(I);
-  until Val = 0;
-  // add sign
-  if NegSign then
-  begin
-    Dst[J] := '-';
-    Inc(J);
-  end;
-  // add spaces
-  for K := 0 to Width - I - J - 1 do
-  begin
-    Dst[J] := PadChar;
-    Inc(J);
-  end;
-  // if field too long, cut off
-  if J + I > Width then
-    I := Width - J;
-  // copy value, remember: stored backwards
-  repeat
-    Dst[J] := Temp[I-1];
-    Inc(J);
-    Dec(I);
-  until I = 0;
-  // done!
+  {$I getstrfromint.inc}
 end;
 
 {$ifdef SUPPORT_INT64}
@@ -212,44 +185,10 @@ end;
 procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PChar; const PadChar: Char);
 var
   Temp: array[0..19] of Char;
-  I, J, K: Integer;
+  I, J: Integer;
   NegSign: boolean;
 begin
-  if Width <= 0 then
-    exit;
-
-  NegSign := Val < 0;
-  Val := Abs(Val);
-  // we'll have to store characters backwards first
-  I := 0;
-  J := 0;
-  repeat
-    Temp[I] := Chr((Val mod 10) + Ord('0'));
-    Val := Val div 10;
-    inc(I);
-  until Val = 0;
-  // add sign
-  if NegSign then
-  begin
-    Dst[J] := '-';
-    inc(J);
-  end;
-  // add spaces
-  for K := 0 to Width - I - J - 1 do
-  begin
-    Dst[J] := PadChar;
-    inc(J);
-  end;
-  // if field too long, cut off
-  if J + I > Width then
-    I := Width - J;
-  // copy value, remember: stored backwards
-  repeat
-    Dst[J] := Temp[I-1];
-    inc(J);
-    dec(I);
-  until I = 0;
-  // done!
+  {$I getstrfromint.inc}
 end;
 
 {$endif}
@@ -403,19 +342,19 @@ end;
 
 {$ifdef USE_ASSEMBLER_486_UP}
 
-function SwapInt(const Value: Cardinal): Cardinal; register;
+function SwapInt(const Value: Cardinal): Cardinal; register; assembler;
 asm
   BSWAP EAX;
 end;
 
-procedure SwapInt64(Value {EAX}, Result {EDX}: Pointer); register;
+procedure SwapInt64(Value {EAX}, Result {EDX}: Pointer); register; assembler;
 asm
-  MOV ECX, dword ptr [EAX]
-  MOV EAX, dword ptr [EAX + 4]
-  BSWAP ECX
-  BSWAP EAX
-  MOV dword ptr [EDX+4], ECX
-  MOV dword ptr [EDX], EAX
+  MOV ECX, dword ptr [EAX] 
+  MOV EAX, dword ptr [EAX + 4] 
+  BSWAP ECX 
+  BSWAP EAX 
+  MOV dword ptr [EDX+4], ECX 
+  MOV dword ptr [EDX], EAX 
 end;
 
 {$else}
@@ -516,4 +455,21 @@ end;
 
 {$endif}
 
+{$ifdef DELPHI_3}
+{$ifndef DELPHI_4}
+
+function Min(x, y: integer): integer;
+begin
+  if x < y then
+    result := x
+  else
+    result := y;
+end;
+
+{$endif}
+{$endif}
+
 end.
+
+
+

@@ -1,6 +1,6 @@
 unit dbf_wtil;
 
-{$i Dbf_Common.inc}
+{$I dbf_common.inc}
 
 interface
 
@@ -9,7 +9,7 @@ uses
 {$ifdef FPC}
   BaseUnix,
 {$else}
-  Libc,
+  Libc, 
 {$endif}
   Types, SysUtils, Classes;
 
@@ -202,9 +202,9 @@ const
 *)
 {$ifdef FPC}
   ERROR_LOCK_VIOLATION = ESysEACCES;
-{$else}
+{$else}  
   ERROR_LOCK_VIOLATION = EACCES;
-{$endif}
+{$endif}  
 
 { MBCS and Unicode Translation Flags. }
   MB_PRECOMPOSED = 1; { use precomposed chars }
@@ -403,9 +403,9 @@ const
   L_XTND          = SEEK_END;
 *)
 
-const
 
-{$IFDEF FPC}
+{$ifdef FPC}
+const
    F_RDLCK = 0;
    F_WRLCK = 1;
    F_UNLCK = 2;
@@ -424,7 +424,7 @@ const
 
    EACCES = ESysEACCES;
    EAGAIN = ESysEAGAIN;
-{$ENDIF}
+{$endif}
 
 function LockFile(hFile: THandle; dwFileOffsetLow, dwFileOffsetHigh: DWORD; nNumberOfBytesToLockLow, nNumberOfBytesToLockHigh: DWORD): BOOL;
 var
@@ -488,40 +488,124 @@ end;
 
 function GetOEMCP: Cardinal;
 begin
+{$ifdef HUNGARIAN}
+  Result := 852;
+{$else}
   Result := $FFFFFFFF;
+{$endif}
 end;
 
 function GetACP: Cardinal;
 begin
+{$ifdef HUNGARIAN}
+  Result := 1250;
+{$else}
   Result := 1252;
+{$endif}
 end;
+
+{$ifdef HUNGARIAN}
+
+procedure OemHunHun(AnsiDst: PChar; cchDstLength: DWORD);
+var
+  Count: DWORD;
+begin
+  if Assigned(AnsiDst) and (cchDstLength<>0) then
+  begin
+    for Count:=0 to Pred(cchDstLength) do
+    begin
+      case AnsiDst^ of
+        #160:      AnsiDst^:= #225; {á}
+        #143,#181: AnsiDst^:= #193; {Á}
+        #130:      AnsiDst^:= #233; {é}
+        #144:      AnsiDst^:= #201; {É}
+        #161:      AnsiDst^:= #237; {í}
+        #141,#214: AnsiDst^:= #205; {Í}
+        #162:      AnsiDst^:= #243; {ó}
+        #149,#224: AnsiDst^:= #211; {Ó}
+        #148:      AnsiDst^:= #246; {ö}
+        #153:      AnsiDst^:= #214; {Ö}
+        #147,#139: AnsiDst^:= #245; {õ}
+        #167,#138: AnsiDst^:= #213; {Õ}
+        #163:      AnsiDst^:= #250; {ú}
+        #151,#233: AnsiDst^:= #218; {Ú}
+        #129:      AnsiDst^:= #252; {ü}
+        #154:      AnsiDst^:= #220; {Ü}
+        #150,#251: AnsiDst^:= #251; {û}
+        #152,#235: AnsiDst^:= #219; {Û}
+      end;
+      Inc(AnsiDst);
+    end;
+  end;
+end;
+
+procedure AnsiHunHun(AnsiDst: PChar; cchDstLength: DWORD);
+var
+  Count: DWORD;
+begin
+  if Assigned(AnsiDst) and (cchDstLength<>0) then
+  begin
+    for Count:=0 to Pred(cchDstLength) do
+    begin
+      case AnsiDst^ of
+        #225:      AnsiDst^:= #160; {á}
+        #193:      AnsiDst^:= #181; {Á}
+        #233:      AnsiDst^:= #130; {é}
+        #201:      AnsiDst^:= #144; {É}
+        #237:      AnsiDst^:= #161; {í}
+        #205:      AnsiDst^:= #214; {Í}
+        #243:      AnsiDst^:= #162; {ó}
+        #211:      AnsiDst^:= #224; {Ó}
+        #246:      AnsiDst^:= #148; {ö}
+        #214:      AnsiDst^:= #153; {Ö}
+        #245:      AnsiDst^:= #139; {õ}
+        #213:      AnsiDst^:= #138; {Õ}
+        #250:      AnsiDst^:= #163; {ú}
+        #218:      AnsiDst^:= #233; {Ú}
+        #252:      AnsiDst^:= #129; {ü}
+        #220:      AnsiDst^:= #154; {Ü}
+        #251:      AnsiDst^:= #251; {û}
+        #219:      AnsiDst^:= #235; {Û}
+      end;
+      Inc(AnsiDst);
+    end;
+  end;
+end;
+
+{$endif}
 
 function OemToChar(lpszSrc: PChar; lpszDst: PChar): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrCopy(lpszDst, lpszSrc);
-  Result := TRUE;
+  Result := true;
 end;
 
 function CharToOem(lpszSrc: PChar; lpszDst: PChar): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrCopy(lpszDst, lpszSrc);
-  Result := TRUE;
+  Result := true;
 end;
 
 function OemToCharBuff(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrLCopy(lpszDst, lpszSrc, cchDstLength);
-  Result := TRUE;
+{$ifdef HUNGARIAN}
+  OemHunHun(lpszDst, cchDstLength);
+{$endif}
+  Result := true;
 end;
 
 function CharToOemBuff(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrLCopy(lpszDst, lpszSrc, cchDstLength);
-  Result := TRUE;
+{$ifdef HUNGARIAN}
+  AnsiHunHun(lpszDst, cchDstLength);
+{$endif}
+  Result := true;
 end;
 
 function MultiByteToWideChar(CodePage: DWORD; dwFlags: DWORD; const lpMultiByteStr: LPCSTR; cchMultiByte: Integer; lpWideCharStr: LPWSTR; cchWideChar: Integer): Integer;
@@ -563,7 +647,7 @@ begin
   Result := True;
 end;
 
-function GetUserDefaultLCID: LCID; stdcall;
+function GetUserDefaultLCID: LCID;
 begin
   Result := LANG_ENGLISH or (SUBLANG_ENGLISH_UK shl 10);
 end;

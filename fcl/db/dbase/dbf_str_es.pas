@@ -2,8 +2,8 @@ unit dbf_str;
 
 interface
 
-{$I Dbf_Common.inc}
-{$I Dbf_Str.inc}
+{$I dbf_common.inc}
+{$I dbf_str.inc}
 
 implementation
 
@@ -33,3 +33,4 @@ initialization
   STRING_INDEX_NOT_EXIST              := 'Indice "%s" no existe.';
   STRING_NEED_EXCLUSIVE_ACCESS        := 'Acceso Exclusivo requirido para esta operación.';
 end.
+
