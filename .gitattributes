@@ -571,6 +571,7 @@ fcl/db/dbase/dbf_struct.inc svneol=native#text/plain
 fcl/db/dbase/dbf_wtil.pas svneol=native#text/plain
 fcl/db/dbase/fpmake.inc svneol=native#text/plain
 fcl/db/dbase/fpmake.pp svneol=native#text/plain
+fcl/db/dbase/getstrfromint.inc svneol=native#text/plain
 fcl/db/dbase/history.txt svneol=native#text/plain
 fcl/db/dbase/package.txt svneol=native#text/plain
 fcl/db/dbase/readme.txt svneol=native#text/plain
