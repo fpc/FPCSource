@@ -51,14 +51,6 @@ const
   MaxCurrency: Currency =  922337203685477.0000;
 {$endif}
 
-Type
-  TTextLineBreakStyle = (tlbsLF, tlbsCRLF,tlbsCR);   // Must move to system unit, and add Mac tlbsCR too ?
-
-Const
-  DefaultTextLineBreakStyle: TTextLineBreakStyle =
-    {$ifdef unix} tlbsLF {$else} {$ifdef macos} tlbsCR {$else} tlbsCRLF {$endif} {$endif} ;
-
-
 Const
   LeadBytes: set of Char = [];
   EmptyStr : string = '';
