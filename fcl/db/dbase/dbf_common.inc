@@ -3,6 +3,10 @@
 
 {.$define USE_CACHE}
 
+// modifies unix unit dbf_wtil to use hungarian encodings (hack)
+
+{.$define HUNGARIAN}
+
 // enables assembler routines, 486+ only
 
 {$define USE_ASSEMBLER_486_UP}
@@ -35,15 +39,15 @@
 //------------------------------------------------------
 
 
-{$ifdef VER80}          //      Delphi 1.0
+{$ifdef VER80}          //	Delphi 1.0
   #ERROR tDbf needs Delphi or C++ Builder 3 minimum.
 {$endif}
 
-{$ifdef VER90}          //       Delphi 2.0
+{$ifdef VER90}          //	 Delphi 2.0
   #ERROR tDbf needs Delphi or C++ Builder 3 minimum.
 {$endif}
 
-{$ifdef VER93}          //       is BCB++ 1.0
+{$ifdef VER93}          //	 is BCB++ 1.0
   #ERROR tDbf needs Delphi or C++ Builder 3 minimum.
 {$endif}
 
@@ -107,6 +111,26 @@
   {$define DELPHI_3}
 {$endif}
 
+{$ifdef VER160} // Delphi 8
+  {$define DELPHI_2005}
+  {$define DELPHI_8}
+  {$define DELPHI_7}
+  {$define DELPHI_6}
+  {$define DELPHI_5}
+  {$define DELPHI_4}
+  {$define DELPHI_3}
+{$endif}
+
+{$ifdef VER170} // Delphi 2005
+  {$define DELPHI_2005}
+  {$define DELPHI_8}
+  {$define DELPHI_7}
+  {$define DELPHI_6}
+  {$define DELPHI_5}
+  {$define DELPHI_4}
+  {$define DELPHI_3}
+{$endif}
+
 //-------------------------------------------------------
 //--- Conclude supported features from delphi version ---
 //-------------------------------------------------------
@@ -128,6 +152,7 @@
   {$define SUPPORT_FIELDDEF_INDEX}
   {$define SUPPORT_FIELDTYPES_V4}
   {$define SUPPORT_UINT32_CARDINAL}
+  {$define SUPPORT_MATH_UNIT}
 
 {$ifdef DELPHI_5}
 
@@ -170,12 +195,12 @@
   {$define SUPPORT_INT64}
   {$define SUPPORT_DEFAULT_PARAMS}
   {$define SUPPORT_NEW_TRANSLATE}
-  {$define SUPPORT_BACKWARD_FIELDDATA}
   {$define SUPPORT_NEW_FIELDDATA}
   {$define SUPPORT_FIELDDEF_TPERSISTENT}
   {$define SUPPORT_FIELDTYPES_V4}
   {$define SUPPORT_UINT32_CARDINAL}
   {$define SUPPORT_REINTRODUCE}
+  {$define SUPPORT_MATH_UNIT}
 
   // FPC 1.0.x exceptions: no 0/0 support
   {$ifdef VER1_0}
