@@ -24,16 +24,8 @@ type
       high : tdynarrayindex;
    end;
 
-   pdynarraytypeinfo = ^tdynarraytypeinfo;
-   tdynarraytypeinfo = packed record
-      kind : byte;
-      namelen : byte;
-      { here the chars follow, we've to skip them }
-      elesize : sizeint;
-      eletype : pdynarraytypeinfo;
-   end;
 
-function aligntoptr(p : pointer) : pointer;
+function aligntoptr(p : pointer) : pointer;inline;
   begin
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
     if (ptrint(p) mod sizeof(ptrint))<>0 then

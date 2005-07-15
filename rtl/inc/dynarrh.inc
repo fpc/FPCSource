@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal Run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2005 by the Free Pascal development team
 
     This file contains type declarations necessary for the dynamic
     array routine helpers in syshelp.inc
@@ -16,6 +16,15 @@
 **********************************************************************}
 
 type
-   tdynarrayindex = sizeint;
-   pdynarrayindex = ^tdynarrayindex;
+  tdynarrayindex = sizeint;
+  pdynarrayindex = ^tdynarrayindex;
 
+  pdynarraytypeinfo = ^tdynarraytypeinfo;
+  tdynarraytypeinfo = packed record
+    kind : byte;
+    namelen : byte;
+    { here the chars follow, we've to skip them }
+    elesize : sizeint;
+    eletype : pdynarraytypeinfo;
+    vartype : longint;
+  end;
