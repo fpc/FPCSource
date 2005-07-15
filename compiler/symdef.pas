@@ -1,7 +1,7 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
-
     Symbol table implementation for the definitions
+
+    Copyright (c) 1998-2005 by Florian Klaempfl, Pierre Muller
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -78,6 +78,7 @@ interface
           procedure deref;override;
           procedure derefimpl;override;
           function  size:aint;override;
+          function  getvartype:longint;override;
           function  alignment:longint;override;
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
@@ -422,6 +423,7 @@ interface
           function  is_publishable : boolean;override;
           function  gettypename:string;override;
           procedure setsize;
+          function getvartype : longint;override;
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
@@ -439,6 +441,7 @@ interface
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
           procedure setsize;
+          function  getvartype:longint;override;
           { debug }
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -850,23 +853,58 @@ interface
 implementation
 
     uses
-       strings,
-       { global }
-       verbose,
-       { target }
-       systems,aasmcpu,paramgr,
-       { symtable }
-       symsym,symtable,symutil,defutil,
-       { module }
+      strings,
+      { global }
+      verbose,
+      { target }
+      systems,aasmcpu,paramgr,
+      { symtable }
+      symsym,symtable,symutil,defutil,
+      { module }
 {$ifdef GDB}
-       gdb,
+      gdb,
 {$endif GDB}
-       fmodule,
-       { other }
-       gendef,
-       crc
-       ;
+      fmodule,
+      { other }
+      gendef,
+      crc
+      ;
 
+{****************************************************************************
+                                  Constants
+****************************************************************************}
+
+    const
+      varempty = 0;
+      varnull = 1;
+      varsmallint = 2;
+      varinteger = 3;
+      varsingle = 4;
+      vardouble = 5;
+      varcurrency = 6;
+      vardate = 7;
+      varolestr = 8;
+      vardispatch = 9;
+      varerror = 10;
+      varboolean = 11;
+      varvariant = 12;
+      varunknown = 13;
+      vardecimal = 14;
+      varshortint = 16;
+      varbyte = 17;
+      varword = 18;
+      varlongword = 19;
+      varint64 = 20;
+      varqword = 21;
+
+      varUndefined = -1;
+
+      varstrarg = $48;
+      varstring = $100;
+      varany = $101;
+      vartypemask = $fff;
+      vararray = $2000;
+      varbyref = $4000;
 
 {****************************************************************************
                                   Helpers
@@ -1077,6 +1115,12 @@ implementation
     function tstoreddef.size : aint;
       begin
          size:=savesize;
+      end;
+
+
+    function tstoreddef.getvartype:longint;
+      begin
+        result:=varUndefined;
       end;
 
 
@@ -1987,6 +2031,19 @@ implementation
       end;
 
 
+    function torddef.getvartype : longint;
+      const
+        basetype2vartype : array[tbasetype] of longint = (
+          varUndefined,
+          varbyte,varqword,varlongword,varqword,
+          varshortint,varsmallint,varinteger,varint64,
+          varboolean,varUndefined,varUndefined,
+          varUndefined,varUndefined,varCurrency);
+      begin
+        result:=basetype2vartype[typ];
+      end;
+
+
     procedure torddef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwritedef(ppufile);
@@ -2187,6 +2244,22 @@ implementation
          else
            savesize:=0;
          end;
+      end;
+
+
+    function tfloatdef.getvartype : longint;
+      const
+        floattype2vartype : array[tfloattype] of longint = (
+          varSingle,varDouble,varUndefined,
+          varUndefined,varCurrency,varUndefined);
+      begin
+        if (upper(typename)='TDATETIME') and
+          assigned(owner) and
+          assigned(owner.name) and
+          (owner.name^='SYSTEM') then
+          result:=varDate
+        else
+          result:=floattype2vartype[typ];
       end;
 
 
@@ -3158,7 +3231,7 @@ implementation
          { element type }
          rttiList.concat(Tai_const.Create_sym(tstoreddef(elementtype.def).get_rtti_label(rt)));
          { variant type }
-         // !!!!!!!!!!!!!!!!
+         rttilist.concat(Tai_const.Create_32bit(tstoreddef(elementtype.def).getvartype));
       end;
 
 
