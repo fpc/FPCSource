@@ -149,72 +149,72 @@ function fpc_interface_to_variant(const i : iinterface) : variant;compilerproc;
 
 { Integer }
 
-operator :=(const source : byte) dest : variant;
+operator :=(const source : byte) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   Variantmanager.varfromInt(Dest,Source,1);
 end;
 
 
-operator :=(const source : shortint) dest : variant;
+operator :=(const source : shortint) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   Variantmanager.varfromInt(Dest,Source,-1);
 end;
 
 
-operator :=(const source : word) dest : variant;
+operator :=(const source : word) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   Variantmanager.varfromInt(Dest,Source,2);
 end;
 
 
-operator :=(const source : smallint) dest : variant;
+operator :=(const source : smallint) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   Variantmanager.varfromInt(Dest,Source,-2);
 end;
 
 
-operator :=(const source : dword) dest : variant;
+operator :=(const source : dword) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   Variantmanager.varfromInt(Dest,Source,4);
 end;
 
 
-operator :=(const source : longint) dest : variant;
+operator :=(const source : longint) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   Variantmanager.varfromInt(Dest,Source,-4);
 end;
 
 
-operator :=(const source : qword) dest : variant;
+operator :=(const source : qword) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   Variantmanager.varfromWord64(Dest,Source);
 end;
 
 
-operator :=(const source : int64) dest : variant;
+operator :=(const source : int64) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   Variantmanager.varfromInt64(Dest,Source);
 end;
 
 { Boolean }
 
-operator :=(const source : boolean) dest : variant;
+operator :=(const source : boolean) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   Variantmanager.varfromBool(Dest,Source);
 end;
 
 
-operator :=(const source : wordbool) dest : variant;
+operator :=(const source : wordbool) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   Variantmanager.varfromBool(Dest,Boolean(Source));
 end;
 
 
-operator :=(const source : longbool) dest : variant;
+operator :=(const source : longbool) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   Variantmanager.varfromBool(Dest,Boolean(Source));
@@ -223,14 +223,14 @@ end;
 
 { Chars }
 
-operator :=(const source : char) dest : variant;
+operator :=(const source : char) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   VariantManager.VarFromPStr(Dest,Source);
 end;
 
 
-operator :=(const source : widechar) dest : variant;
+operator :=(const source : widechar) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   VariantManager.VarFromWStr(Dest,Source);
@@ -238,21 +238,21 @@ end;
 
 { Strings }
 
-operator :=(const source : shortstring) dest : variant;
+operator :=(const source : shortstring) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   VariantManager.VarFromPStr(Dest,Source);
 end;
 
 
-operator :=(const source : ansistring) dest : variant;
+operator :=(const source : ansistring) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   VariantManager.VarFromLStr(Dest,Source);
 end;
 
 
-operator :=(const source : widestring) dest : variant;
+operator :=(const source : widestring) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   VariantManager.VarFromWStr(Dest,Source);
@@ -261,7 +261,7 @@ end;
 { Floats }
 
 {$ifdef SUPPORT_SINGLE}
-operator :=(const source : single) dest : variant;
+operator :=(const source : single) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   VariantManager.VarFromReal(Dest,Source);
 end;
@@ -269,7 +269,7 @@ end;
 
 
 {$ifdef SUPPORT_DOUBLE}
-operator :=(const source : double) dest : variant;
+operator :=(const source : double) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   VariantManager.VarFromReal(Dest,Source);
 end;
@@ -277,7 +277,7 @@ end;
 
 
 {$ifdef SUPPORT_EXTENDED}
-operator :=(const source : extended) dest : variant;
+operator :=(const source : extended) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   VariantManager.VarFromReal(Dest,Source);
 end;
@@ -285,7 +285,7 @@ end;
 
 
 {$ifdef SUPPORT_COMP}
-Operator :=(const source : comp) dest : variant;
+Operator :=(const source : comp) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   VariantManager.VarFromReal(Dest,Source);
 end;
@@ -293,13 +293,13 @@ end;
 
 
 { Misc. }
-operator :=(const source : currency) dest : variant;
+operator :=(const source : currency) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     VariantManager.VarFromCurr(Dest,Source);
   end;
 
 
-operator :=(const source : tdatetime) dest : variant;
+operator :=(const source : tdatetime) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     VariantManager.VarFromTDateTime(Dest,Source);
   end;
@@ -310,56 +310,56 @@ operator :=(const source : tdatetime) dest : variant;
 
 { Integer }
 
-operator :=(const source : variant) dest : byte;
+operator :=(const source : variant) dest : byte;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   dest:=variantmanager.vartoint(source);
 end;
 
 
-operator :=(const source : variant) dest : shortint;
+operator :=(const source : variant) dest : shortint;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   dest:=variantmanager.vartoint(source);
 end;
 
 
-operator :=(const source : variant) dest : word;
+operator :=(const source : variant) dest : word;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   dest:=variantmanager.vartoint(source);
 end;
 
 
-operator :=(const source : variant) dest : smallint;
+operator :=(const source : variant) dest : smallint;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   dest:=variantmanager.vartoint(source);
 end;
 
 
-operator :=(const source : variant) dest : dword;
+operator :=(const source : variant) dest : dword;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   dest:=variantmanager.vartoint(source);
 end;
 
 
-operator :=(const source : variant) dest : longint;
+operator :=(const source : variant) dest : longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   dest:=variantmanager.vartoint(source);
 end;
 
 
-operator :=(const source : variant) dest : qword;
+operator :=(const source : variant) dest : qword;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   dest:=variantmanager.vartoword64(source);
 end;
 
 
-operator :=(const source : variant) dest : int64;
+operator :=(const source : variant) dest : int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   dest:=variantmanager.vartoint64(source);
@@ -368,21 +368,21 @@ end;
 
 { Boolean }
 
-operator :=(const source : variant) dest : boolean;
+operator :=(const source : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   dest:=variantmanager.vartobool(source);
 end;
 
 
-operator :=(const source : variant) dest : wordbool;
+operator :=(const source : variant) dest : wordbool;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   dest:=variantmanager.vartobool(source);
 end;
 
 
-operator :=(const source : variant) dest : longbool;
+operator :=(const source : variant) dest : longbool;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
    dest:=variantmanager.vartobool(source);
@@ -391,7 +391,7 @@ end;
 
 { Chars }
 
-operator :=(const source : variant) dest : char;
+operator :=(const source : variant) dest : char;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 Var
   S : String;
@@ -403,7 +403,7 @@ begin
 end;
 
 
-operator :=(const source : variant) dest : widechar;
+operator :=(const source : variant) dest : widechar;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 Var
   WS : WideString;
@@ -417,19 +417,19 @@ end;
 
 { Strings }
 
-operator :=(const source : variant) dest : shortstring;
+operator :=(const source : variant) dest : shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   VariantManager.VarToPStr(Dest,Source);
 end;
 
-operator :=(const source : variant) dest : ansistring;
+operator :=(const source : variant) dest : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   VariantManager.vartolstr(dest,source);
 end;
 
-operator :=(const source : variant) dest : widestring;
+operator :=(const source : variant) dest : widestring;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   variantmanager.vartowstr(dest,source);
@@ -438,7 +438,7 @@ end;
 { Floats }
 
 {$ifdef SUPPORT_SINGLE}
-operator :=(const source : variant) dest : single;
+operator :=(const source : variant) dest : single;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   dest:=variantmanager.vartoreal(source);
 end;
@@ -446,7 +446,7 @@ end;
 
 
 {$ifdef SUPPORT_DOUBLE}
-operator :=(const source : variant) dest : double;
+operator :=(const source : variant) dest : double;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   dest:=variantmanager.vartoreal(source);
 end;
@@ -454,7 +454,7 @@ end;
 
 
 {$ifdef SUPPORT_EXTENDED}
-operator :=(const source : variant) dest : extended;
+operator :=(const source : variant) dest : extended;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   dest:=variantmanager.vartoreal(source);
 end;
@@ -462,7 +462,7 @@ end;
 
 
 {$ifdef SUPPORT_COMP}
-operator :=(const source : variant) dest : comp;
+operator :=(const source : variant) dest : comp;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   dest:=comp(variantmanager.vartoreal(source));
 end;
@@ -470,126 +470,138 @@ end;
 
 
 { Misc. }
-operator :=(const source : variant) dest : currency;
+operator :=(const source : variant) dest : currency;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   dest:=variantmanager.vartocurr(source);
 end;
 
 
-operator :=(const source : variant) dest : tdatetime;
+operator :=(const source : variant) dest : tdatetime;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   dest:=variantmanager.vartotdatetime(source);
 end;
+
+
+operator :=(const source : olevariant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    tvardata(result):=tvardata(source);
+  end;
+  
+    
+operator :=(const source : variant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.olevarfromvar(dest,source);
+  end;
 
 {**********************************************************************
                                Operators
  **********************************************************************}
 
-operator or(const op1,op2 : variant) dest : variant;
+operator or(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op1;
      variantmanager.varop(dest,op2,opor);
   end;
 
-operator and(const op1,op2 : variant) dest : variant;
+operator and(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op1;
      variantmanager.varop(dest,op2,opand);
   end;
 
-operator xor(const op1,op2 : variant) dest : variant;
+operator xor(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op1;
      variantmanager.varop(dest,op2,opxor);
   end;
 
-operator not(const op : variant) dest : variant;
+operator not(const op : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op;
      variantmanager.varnot(dest);
   end;
 
-operator shl(const op1,op2 : variant) dest : variant;
+operator shl(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op1;
      variantmanager.varop(dest,op2,opshiftleft);
   end;
 
-operator shr(const op1,op2 : variant) dest : variant;
+operator shr(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op1;
      variantmanager.varop(dest,op2,opshiftright);
   end;
 
-operator +(const op1,op2 : variant) dest : variant;
+operator +(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op1;
      variantmanager.varop(dest,op2,opadd);
   end;
 
-operator -(const op1,op2 : variant) dest : variant;
+operator -(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op1;
      variantmanager.varop(dest,op2,opsubtract);
   end;
 
-operator *(const op1,op2 : variant) dest : variant;
+operator *(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op1;
      variantmanager.varop(dest,op2,opmultiply);
   end;
 
-operator /(const op1,op2 : variant) dest : variant;
+operator /(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op1;
      variantmanager.varop(dest,op2,opdivide);
   end;
 
-operator **(const op1,op2 : variant) dest : variant;
+operator **(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op1;
      variantmanager.varop(dest,op2,oppower);
   end;
 
-operator div(const op1,op2 : variant) dest : variant;
+operator div(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op1;
      variantmanager.varop(dest,op2,opintdivide);
   end;
 
-operator mod(const op1,op2 : variant) dest : variant;
+operator mod(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op1;
      variantmanager.varop(dest,op2,opmodulus);
   end;
 
-operator -(const op : variant) dest : variant;
+operator -(const op : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=op;
      variantmanager.varneg(dest);
   end;
 
-operator =(const op1,op2 : variant) dest : boolean;
+operator =(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=variantmanager.cmpop(op1,op2,opcmpeq);
   end;
 
-operator <(const op1,op2 : variant) dest : boolean;
+operator <(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=variantmanager.cmpop(op1,op2,opcmplt);
   end;
 
-operator >(const op1,op2 : variant) dest : boolean;
+operator >(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=variantmanager.cmpop(op1,op2,opcmpgt);
   end;
 
-operator >=(const op1,op2 : variant) dest : boolean;
+operator >=(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=variantmanager.cmpop(op1,op2,opcmpge);
   end;
 
-operator <=(const op1,op2 : variant) dest : boolean;
+operator <=(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
      dest:=variantmanager.cmpop(op1,op2,opcmplt);
   end;
@@ -646,5 +658,3 @@ procedure initvariantmanager;
        ppointer(@variantmanager+i*sizeof(pointer))^:=@invalidvariantopnovariants;
      pointer(variantmanager.varclear):=@varclear
   end;
-
-
