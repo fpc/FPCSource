@@ -1162,16 +1162,29 @@ begin
 
   { fix p to point to the heaprecord }
   pcurrsize := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr))^.size;
-  if (pcurrsize and fixedsizeflag) = 0 then
-    begin
-      currsize := pcurrsize and sizemask;
-      size := (size+sizeof(tmemchunk_var_hdr)+(blocksize-1)) and sizemask;
-    end
-  else
+
+  { handle fixed memchuncks separate. Only allow resizes when the
+    new size fits in the same block }
+  if (pcurrsize and fixedsizeflag) <> 0 then
     begin
       currsize := pcurrsize and fixedsizemask;
-      size := (size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and fixedsizemask;
+
+      { first check if the size fits in the fixed block range to prevent
+        "truncating" the size by the fixedsizemask }
+      if (size <= (maxblocksize - sizeof(tmemchunk_fixed_hdr))) and
+         ((size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and sizemask =currsize ) then
+        begin
+          systryresizemem:=true;
+          exit;
+        end;
+
+      { we need to allocate a new fixed or var memchunck }
+      exit;
     end;
+
+  { var memchunck }
+  currsize := pcurrsize and sizemask;
+  size := (size+sizeof(tmemchunk_var_hdr)+(blocksize-1)) and sizemask;
 
   { is the allocated block still correct? }
   if (currsize>=size) and (size>(currsize-blocksize)) then
@@ -1184,10 +1197,6 @@ begin
        exit;
    end;
 
-  { don't do resizes on fixed-size blocks }
-  if (pcurrsize and fixedsizeflag) <> 0 then
-    exit;
-
   { get pointer to block }
   pcurr := pmemchunk_var(pointer(p)-sizeof(tmemchunk_var_hdr));
   oldsize := currsize;
@@ -1196,7 +1205,7 @@ begin
   if size>currsize then
    begin
      { the size is bigger than the previous size, we need to allocated more mem.
-       We first check if the blocks after the current block are free. If not we
+       We first check if the blocks after the current block are free. If not then we
        simply call getmem/freemem to get the new block }
      if check_concat_free_chunk_forward(pcurr,size) then
        begin
