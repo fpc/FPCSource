@@ -1,8 +1,8 @@
 {
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 2000 by Florian Klaempfl
-
     This unit implements basic regular expression support
+
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2000-2005 by Florian Klaempfl
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -300,25 +300,40 @@ unit regexpr;
                             end;
                           inc(currentpos);
                        end;
+{
                     '|':
                        begin
 {$ifdef DEBUG}
                           writeln('Creating backtrace entry');
 {$endif DEBUG}
-                          inc(currentpos);
-                          if currentpos^=#0 then
+                          while currentpos^='|' do
                             begin
-                               error:=true;
-                               exit;
+                              inc(currentpos);
+                              if currentpos^=#0 then
+                                begin
+                                   error:=true;
+                                   exit;
+                                end;
+
+                          doregister(hp2);
+                          hp2^.typ:=ret_charset;
+                          hp2^.chars:=[];
+                          hp2^.elsepath:=next;
+
+                              new(hp);
+                              doregister(hp);
+                              hp^.typ:=ret_backtrace;
+                              hp^.elsepath:=parseregexpr();
+                              hp^.next:=next;
+                              if assigned(chaining) then
+                                chaining^:=hp
+                              else
+                                parseregexpr:=hp;
+                              chaining:=@hp^.elsepath;
                             end;
-                          new(hp);
-                          doregister(hp);
-                          hp^.typ:=ret_backtrace;
-                          // hp^.elsepath:=parseregexpr(elsepath);
-                          hp^.next:=@parseregexpr;
-                          parseregexpr:=hp;
                           exit;
                        end;
+}
                     ')':
                        exit;
                     '^':
