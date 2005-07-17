@@ -12,7 +12,6 @@
  **********************************************************************}
 
 {$INLINE ON}
-{$define HASINLINE}
 
 Type
 {$ifdef SOCK_HAS_SINLEN}
@@ -91,7 +90,7 @@ Type
           sin_port: cushort;
           sin_addr: in_addr;
           sin_zero: packed array[0..7] of Byte);
-      end; 
+      end;
 
   PSockAddr = ^TSockAddr;
   Sockaddr  = TSockAddr;                // Kylix compat
@@ -143,7 +142,7 @@ Type
   end;
 
   sockaddr_in6 = TInetSockAddr6;
-  
+
   psockaddr_in6 = ^sockaddr_in6;
 
   TSockPairArray = Array[0..1] of Longint;
@@ -201,10 +200,10 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 
 { Utility routines}
-function htonl( host : longint):longint;  {$ifdef HASINLINE} inline; {$endif}
-Function NToHl( Net : Longint) : Longint; {$ifdef HASINLINE} inline; {$endif}
-function htons( host : word):word;        {$ifdef HASINLINE} inline; {$endif}
-Function NToHs( Net : word):word;         {$ifdef HASINLINE} inline; {$endif}
+function htonl( host : longint):longint; inline;
+Function NToHl( Net : Longint) : Longint; inline;
+function htons( host : word):word; inline;
+Function NToHs( Net : word):word; inline;
 
 function NetAddrToStr (Entry : in_addr) : AnsiString;
 function HostAddrToStr(Entry : in_addr) : AnsiString;
@@ -225,7 +224,7 @@ function StrToHostAddr6(IP   : String) : Tin6_addr;     // not implemented?!?
 function NetAddrToStr6 (Entry: Tin6_addr) : AnsiString;
 function StrToNetAddr6 (IP   : AnsiString) : TIn6_Addr;
 
-CONST 
+CONST
 	NoAddress : in_addr  = (s_addr:0);
 	NoNet     : in_addr  = (s_addr:0);
  	NoAddress6: Tin6_addr = (u6_addr16:(0,0,0,0,0,0,0,0));

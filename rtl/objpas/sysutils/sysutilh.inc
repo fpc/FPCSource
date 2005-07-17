@@ -12,10 +12,8 @@
 
  **********************************************************************}
 { Using inlining for small system functions/wrappers }
-{$ifdef HASINLINE}
-  {$inline on}
-  {$define SYSUTILSINLINE}
-{$endif}
+{$inline on}
+{$define SYSUTILSINLINE}
 
   { Read date & Time function declarations }
   {$i osutilsh.inc}
