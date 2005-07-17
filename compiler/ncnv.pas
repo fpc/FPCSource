@@ -809,7 +809,10 @@ implementation
               if tstringdef(resulttype.def).string_typ=st_widestring then
                begin
                  initwidestring(ws);
-                 concatwidestringchar(ws,tcompilerwidechar(chr(tordconstnode(left).value)));
+                 if torddef(left.resulttype.def).typ=uwidechar then
+                   concatwidestringchar(ws,tcompilerwidechar(tordconstnode(left).value))
+                 else
+                   concatwidestringchar(ws,tcompilerwidechar(chr(tordconstnode(left).value)));
                  hp:=cstringconstnode.createwstr(ws);
                  donewidestring(ws);
                end
