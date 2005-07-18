@@ -2797,7 +2797,7 @@ implementation
                                    TSETDEF
 ***************************************************************************}
 
-    constructor tsetdef.create(const t:ttype;high : longint);
+    constructor tsetdef.create(const t:ttype;high : aint);
       begin
          inherited create;
          deftype:=setdef;
