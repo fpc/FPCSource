@@ -634,7 +634,6 @@ interface
        tprocdeflist = record
          def  : tprocdef;
          defderef : tderef;
-         own  : boolean;
          next : pprocdeflist;
        end;
 
