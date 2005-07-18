@@ -318,31 +318,6 @@ unit cpupara;
          loc : tcgloc;
          paracgsize: tcgsize;
 
-(*
-      procedure assignintreg;
-
-        begin
-          if nextintreg<=RS_R10 then
-            begin
-               paraloc^.loc:=LOC_REGISTER;
-               paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
-               inc(nextintreg);
-               if target_info.abi=abi_powerpc_aix then
-                 inc(stack_offset,4);
-            end
-          else
-             begin
-                paraloc^.loc:=LOC_REFERENCE;
-                if (side = callerside) then
-                  paraloc^.reference.index:=NR_STACK_POINTER_REG
-                else
-                  paraloc^.reference.index:=NR_R12;
-                paraloc^.reference.offset:=stack_offset;
-                inc(stack_offset,4);
-            end;
-        end;
-*)
-
       begin
 {$ifdef extdebug}
          if po_explicitparaloc in p.procoptions then
