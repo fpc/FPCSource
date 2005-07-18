@@ -28,7 +28,7 @@ interface
        { common }
        cutils,
        { target }
-       globtype,globals,
+       globtype,globals,widestr,
        { symtable }
        symconst,symbase,symtype,symdef,defcmp,
        { ppu }
@@ -317,6 +317,7 @@ interface
           constructor create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;const tt:ttype);
           constructor create_ptr(const n : string;t : tconsttyp;v : pointer;const tt:ttype);
           constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint);
+          constructor create_wstring(const n : string;t : tconsttyp;pw:pcompilerwidestring);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure buildderef;override;
@@ -2164,11 +2165,24 @@ implementation
       end;
 
 
+    constructor tconstsym.create_wstring(const n : string;t : tconsttyp;pw:pcompilerwidestring);
+      begin
+         inherited create(n);
+         fillchar(value, sizeof(value), #0);
+         typ:=constsym;
+         consttyp:=t;
+         pcompilerwidestring(value.valueptr):=pw;
+         consttype.reset;
+         value.len:=getlengthwidestring(pw);
+      end;
+
+
     constructor tconstsym.ppuload(ppufile:tcompilerppufile);
       var
          pd : pbestreal;
          ps : pnormalset;
          pc : pchar;
+         pw : pcompilerwidestring;
       begin
          inherited ppuload(ppufile);
          typ:=constsym;
@@ -2185,6 +2199,13 @@ implementation
              begin
                ppufile.gettype(consttype);
                value.valueordptr:=ppufile.getptruint;
+             end;
+           constwstring :
+             begin
+               initwidestring(pw);
+               setlengthwidestring(pw,ppufile.getlongint);
+               ppufile.getdata(pw^.data,pw^.len*sizeof(tcompilerwidechar));
+               pcompilerwidestring(value.valueptr):=pw;
              end;
            conststring,
            constresourcestring :
@@ -2227,6 +2248,8 @@ implementation
           conststring,
           constresourcestring :
             freemem(pchar(value.valueptr),value.len+1);
+          constwstring :
+            donewidestring(pcompilerwidestring(value.valueptr));
           constreal :
             dispose(pbestreal(value.valueptr));
           constset :
@@ -2267,6 +2290,11 @@ implementation
              begin
                ppufile.puttype(consttype);
                ppufile.putptruint(value.valueordptr);
+             end;
+           constwstring :
+             begin
+               ppufile.putlongint(getlengthwidestring(pcompilerwidestring(value.valueptr)));
+               ppufile.putdata(pcompilerwidestring(value.valueptr)^.data,pcompilerwidestring(value.valueptr)^.len*sizeof(tcompilerwidechar));
              end;
            conststring,
            constresourcestring :

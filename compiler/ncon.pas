@@ -611,13 +611,25 @@ implementation
 
 
     constructor tstringconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      var
+        pw : pcompilerwidestring;
       begin
         inherited ppuload(t,ppufile);
         st_type:=tstringtype(ppufile.getbyte);
         len:=ppufile.getlongint;
-        getmem(value_str,len+1);
-        ppufile.getdata(value_str^,len);
-        value_str[len]:=#0;
+        if st_type=st_widestring then
+          begin
+            initwidestring(pw);
+            setlengthwidestring(pw,len);
+            ppufile.getdata(pw^.data,pw^.len*sizeof(tcompilerwidechar));
+            pcompilerwidestring(value_str):=pw
+          end
+        else
+          begin
+            getmem(value_str,len+1);
+            ppufile.getdata(value_str^,len);
+            value_str[len]:=#0;
+          end;
         lab_str:=tasmlabel(ppufile.getasmsymbol);
       end;
 
@@ -627,7 +639,10 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putbyte(byte(st_type));
         ppufile.putlongint(len);
-        ppufile.putdata(value_str^,len);
+        if st_type=st_widestring then
+          ppufile.putdata(pcompilerwidestring(value_str)^.data,len*sizeof(tcompilerwidechar))
+        else
+          ppufile.putdata(value_str^,len);
         ppufile.putasmsymbol(lab_str);
       end;
 
