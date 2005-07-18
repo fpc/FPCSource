@@ -195,14 +195,10 @@ than 255 characters. That's why using Ansi Strings}
          pocall_cdecl,
          { C++ calling conventions }
          pocall_cppdecl,
-         { Procedure is used for internal compiler calls }
-         pocall_compilerproc,
          { Far16 for OS/2 }
          pocall_far16,
          { Old style FPC default calling }
          pocall_oldfpccall,
-         { Procedure is an assembler macro }
-         pocall_inline,
          { Procedure has compiler magic}
          pocall_internproc,
          { procedure is a system call, applies e.g. to MorphOS and PalmOS }
@@ -259,10 +255,8 @@ than 255 characters. That's why using Ansi Strings}
        proccalloptionStr : array[tproccalloption] of string[14]=('',
            'CDecl',
            'CPPDecl',
-           'CompilerProc',
            'Far16',
            'OldFPCCall',
-           'Inline',
            'InternProc',
            'SysCall',
            'Pascal',

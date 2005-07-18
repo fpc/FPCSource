@@ -769,14 +769,10 @@ type
     pocall_cdecl,
     { C++ calling conventions }
     pocall_cppdecl,
-    { Procedure is used for internal compiler calls }
-    pocall_compilerproc,
     { Far16 for OS/2 }
     pocall_far16,
     { Old style FPC default calling }
     pocall_oldfpccall,
-    { Procedure is an assembler macro }
-    pocall_inline,
     { Procedure has compiler magic}
     pocall_internproc,
     { procedure is a system call, applies e.g. to MorphOS and PalmOS }
@@ -845,7 +841,19 @@ type
     po_has_mangledname,
     po_has_public_name,
     po_forward,
-    po_global
+    po_global,
+    po_has_inlininginfo,
+    { The different kind of syscalls on MorphOS }
+    po_syscall_legacy,
+    po_syscall_sysv,
+    po_syscall_basesysv,
+    po_syscall_sysvbase,
+    po_syscall_r12base,
+    po_local,
+    { Procedure can be inlined }
+    po_inline,
+    { Procedure is used for internal compiler calls }
+    po_compilerproc
   );
   tprocoptions=set of tprocoption;
 procedure read_abstract_proc_def(var proccalloption:tproccalloption;var procoptions:tprocoptions);
@@ -866,10 +874,8 @@ const
   proccalloptionStr : array[tproccalloption] of string[14]=('',
      'CDecl',
      'CPPDecl',
-     'CompilerProc',
      'Far16',
      'OldFPCCall',
-     'Inline',
      'InternProc',
      'SysCall',
      'Pascal',
@@ -890,7 +896,7 @@ const
      (mask:potype_function;    str:'Function'),
      (mask:potype_procedure;   str:'Procedure')
   );
-  procopts=26;
+  procopts=35;
   procopt : array[1..procopts] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),
      (mask:po_virtualmethod;   str:'VirtualMethod'),
@@ -917,7 +923,16 @@ const
      (mask:po_has_mangledname; str:'HasMangledName'),
      (mask:po_has_public_name; str:'HasPublicName'),
      (mask:po_forward;         str:'Forward'),
-     (mask:po_global;          str:'Global')
+     (mask:po_global;          str:'Global'),
+     (mask:po_has_inlininginfo;str:'HasInliningInfo'),
+     (mask:po_syscall_legacy;  str:'SyscallLegacy'),
+     (mask:po_syscall_sysv;    str:'SyscallSysV'),
+     (mask:po_syscall_basesysv;str:'SyscallBaseSysV'),
+     (mask:po_syscall_sysvbase;str:'SyscallSysVBase'),
+     (mask:po_syscall_r12base; str:'SyscallR12Base'),
+     (mask:po_local;           str:'Local'),
+     (mask:po_inline;          str:'Inline'),
+     (mask:po_compilerproc;    str:'CompilerProc')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -943,7 +958,7 @@ begin
   writeln;
   proccalloption:=tproccalloption(ppufile.getbyte);
   writeln(space,'       CallOption : ',proccalloptionStr[proccalloption]);
-  ppufile.getsmallset(procoptions);
+  ppufile.getnormalset(procoptions);
   if procoptions<>[] then
    begin
      write(space,'          Options : ');
@@ -1500,7 +1515,7 @@ begin
                  write  (space,'   Library symbol : ');
                  readderef;
 	       end;
-             if (calloption=pocall_inline) then
+             if (po_inline in procoptions) then
               begin
                 write  (space,'       FuncretSym : ');
                 readderef;
@@ -1516,12 +1531,12 @@ begin
              readdefinitions('parast',false);
              readsymbols('parast');
              { localst }
-             if (calloption = pocall_inline) then
+             if (po_inline in procoptions) then
               begin
                 readdefinitions('localst',false);
                 readsymbols('localst');
               end;
-             if (calloption=pocall_inline) then
+             if (po_inline in procoptions) then
                readnodetree;
              delete(space,1,4);
            end;

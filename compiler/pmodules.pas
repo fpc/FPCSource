@@ -768,7 +768,7 @@ implementation
                 pd:=tprocdef(def);
                 if assigned(pd.localst) and
                    (pd.localst.symtabletype<>staticsymtable) and
-                   not((pd.proccalloption=pocall_inline) or
+                   not((po_inline in pd.procoptions) or
                        ((current_module.flags and uf_local_browser)<>0)) then
                   begin
                     free_localsymtables(pd.localst);

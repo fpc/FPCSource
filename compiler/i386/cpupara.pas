@@ -208,14 +208,6 @@ unit cpupara;
         case calloption of
           pocall_internproc :
             result:=[];
-          pocall_compilerproc :
-            begin
-              if pocall_default=pocall_oldfpccall then
-                result:=[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI,RS_EBX]
-              else
-                result:=[RS_EAX,RS_EDX,RS_ECX];
-            end;
-          pocall_inline,
           pocall_register,
           pocall_safecall,
           pocall_stdcall,
@@ -567,8 +559,6 @@ unit cpupara;
         case p.proccalloption of
           pocall_register :
             create_register_paraloc_info(p,side,p.paras,parareg,parasize);
-          pocall_inline,
-          pocall_compilerproc,
           pocall_internproc :
             begin
               { Use default calling }

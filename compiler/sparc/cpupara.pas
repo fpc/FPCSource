@@ -171,12 +171,12 @@ implementation
              begin
                p.funcretloc[side].loc:=LOC_REGISTER;
                { high }
-               if (side=callerside)  or (p.proccalloption=pocall_inline)then
+               if (side=callerside) (po_inline in p.procoptions) then
                  p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
                else
                  p.funcretloc[side].register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
                { low }
-               if (side=callerside) or (p.proccalloption=pocall_inline) then
+               if (side=callerside) or (po_inline in p.procoptions) then
                  p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG
                else
                  p.funcretloc[side].register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
@@ -186,7 +186,7 @@ implementation
              begin
                p.funcretloc[side].loc:=LOC_REGISTER;
                p.funcretloc[side].size:=retcgsize;
-               if (side=callerside)  or (p.proccalloption=pocall_inline)then
+               if (side=callerside)  or (po_inline in p.procoptions)then
                  p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
                else
                  p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));

@@ -1900,10 +1900,8 @@ end;
         DefProcCallName : array[tproccalloption] of string[12] = ('',
          'CDECL',
          'CPPDECL',
-         '', { compilerproc }
          'FAR16',
          'OLDFPCCALL',
-         'INLINE',
          '', { internproc }
          '', { syscall }
          'PASCAL',

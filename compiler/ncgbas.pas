@@ -225,7 +225,7 @@ interface
          { Allocate registers used in the assembler block }
          cg.alloccpuregisters(exprasmlist,R_INTREGISTER,used_regs_int);
 
-         if (current_procinfo.procdef.proccalloption=pocall_inline) then
+         if (po_inline in current_procinfo.procdef.procoptions) then
            begin
              objectlibrary.CreateUsedAsmSymbolList;
              hp:=tai(p_asm.first);

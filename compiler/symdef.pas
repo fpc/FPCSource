@@ -3694,7 +3694,7 @@ implementation
 {$endif i386}
          proctypeoption:=tproctypeoption(ppufile.getbyte);
          proccalloption:=tproccalloption(ppufile.getbyte);
-         ppufile.getsmallset(procoptions);
+         ppufile.getnormalset(procoptions);
 
          location_reset(funcretloc[callerside],LOC_INVALID,OS_NO);
          location_reset(funcretloc[calleeside],LOC_INVALID,OS_NO);
@@ -3731,7 +3731,7 @@ implementation
 {$endif}
          ppufile.putbyte(ord(proctypeoption));
          ppufile.putbyte(ord(proccalloption));
-         ppufile.putsmallset(procoptions);
+         ppufile.putnormalset(procoptions);
          ppufile.do_interface_crc:=oldintfcrc;
 
          if (po_explicitparaloc in procoptions) then

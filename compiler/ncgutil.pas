@@ -1953,7 +1953,7 @@ implementation
         if (sym.owner.symtabletype=globalsymtable) or
            maybe_smartlink_symbol or
            (assigned(current_procinfo) and
-            (current_procinfo.procdef.proccalloption=pocall_inline)) or
+            (po_inline in current_procinfo.procdef.procoptions)) or
            DLLSource then
           curconstSegment.concat(Tai_symbol.Createname_global(sym.mangledname,AT_DATA,l))
         else
@@ -1983,7 +1983,7 @@ implementation
            maybe_smartlink_symbol or
            DLLSource or
            (assigned(current_procinfo) and
-            (current_procinfo.procdef.proccalloption=pocall_inline)) or
+            (po_inline in current_procinfo.procdef.procoptions)) or
            (vo_is_exported in sym.varoptions) or
            (vo_is_C_var in sym.varoptions) then
           bssSegment.concat(Tai_datablock.Create_global(sym.mangledname,l))
@@ -2193,7 +2193,7 @@ implementation
                   begin
                     { for localloc <> LOC_REFERENCE, we need regvar support inside inlined procedures }
                     localloc.loc:=LOC_REFERENCE;
-                    localloc.size:=int_cgsize(paramanager.push_size(varspez,vartype.def,pocall_inline));
+                    localloc.size:=int_cgsize(paramanager.push_size(varspez,vartype.def,pd.proccalloption));
                     tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
                     calleeparaloc:=paraloc[calleeside].location;
                     callerparaloc:=paraloc[callerside].location;
@@ -2256,7 +2256,7 @@ implementation
         with tabstractnormalvarsym(pd.funcretsym) do
           begin
             localloc.loc:=LOC_REFERENCE;
-            localloc.size:=int_cgsize(paramanager.push_size(varspez,vartype.def,pocall_inline));
+            localloc.size:=int_cgsize(paramanager.push_size(varspez,vartype.def,pd.proccalloption));
             tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
             callerparaloc:=pd.funcretloc[callerside];
             case pd.funcretloc[calleeside].loc of

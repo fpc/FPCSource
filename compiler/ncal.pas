@@ -813,7 +813,7 @@ type
         include(callnodeflags,cnf_restypeset);
         { both the normal and specified resulttype either have to be returned via a }
         { parameter or not, but no mixing (JM)                                      }
-        if paramanager.ret_in_param(restype.def,pocall_compilerproc) xor
+        if paramanager.ret_in_param(restype.def,symtableprocentry.first_procdef.proccalloption) xor
            paramanager.ret_in_param(symtableprocentry.first_procdef.rettype.def,symtableprocentry.first_procdef.proccalloption) then
           internalerror(200108291);
       end;
@@ -857,7 +857,7 @@ type
                  para := tcallparanode(para.right);
               end;
             { no hidden resultpara found, error! }
-            if not(procdefinition.proccalloption = pocall_inline) then
+            if not(po_inline in procdefinition.procoptions) then
               internalerror(200306087);
           end;
       end;
@@ -2246,7 +2246,7 @@ type
         dosimplify(createblock);
 
         firstpass(createblock);
-        procdefinition.proccalloption:=pocall_inline;
+        include(procdefinition.procoptions,po_inline);
         { return inlined block }
         result := createblock;
       end;
@@ -2259,8 +2259,7 @@ type
          result:=nil;
 
          { Can we inline the procedure? }
-         if (procdefinition.proccalloption=pocall_inline) and
-            (po_has_inlininginfo in procdefinition.procoptions) then
+         if ([po_inline,po_has_inlininginfo] <= procdefinition.procoptions) then
            begin
              { Check if we can inline the procedure when it references proc/var that
                are not in the globally available }
@@ -2330,7 +2329,7 @@ type
 {$ifdef PASS2INLINE}
               { calc the correture value for the register }
               { handle predefined procedures }
-              if (procdefinition.proccalloption=pocall_inline) then
+              if (po_inline in procdefinition.procoptions) then
                 begin
                    { inherit flags }
                    current_procinfo.flags := current_procinfo.flags + (tprocdef(procdefinition).inlininginfo^.flags*inherited_inlining_flags);
@@ -2497,7 +2496,7 @@ type
            end;
 {$ifdef PASS2INLINE}
          if assigned(inlinecode) then
-           procdefinition.proccalloption:=pocall_inline;
+           include(procdefinition.procoptions,po_inline);
 {$endif PASS2INLINE}
       end;
 

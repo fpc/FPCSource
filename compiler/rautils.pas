@@ -829,7 +829,7 @@ Begin
                 indexreg:=NR_NO;
               opr.typ:=OPR_LOCAL;
               if assigned(current_procinfo.parent) and
-                 (current_procinfo.procdef.proccalloption<>pocall_inline) and
+                 not(po_inline in current_procinfo.procdef.procoptions) and
                  (sym.owner<>current_procinfo.procdef.localst) and
                  (sym.owner<>current_procinfo.procdef.parast) and
                  (current_procinfo.procdef.localst.symtablelevel>normal_function_level) and
