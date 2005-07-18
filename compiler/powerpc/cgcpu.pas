@@ -1180,7 +1180,7 @@ const
              { compute start of gpr save area }
              inc(href.offset,4);
           end
-        else 
+        else
           { compute start of gpr save area }
           reference_reset_base(href,NR_R12,-4);
 
@@ -1584,7 +1584,7 @@ const
      const
          macosLinkageAreaSize = 24;
 
-     var 
+     var
          href : treference;
          registerSaveAreaSize : longint;
 
@@ -2034,7 +2034,7 @@ const
       var
         make_global : boolean;
       begin
-        if procdef.proctypeoption<>potype_none then
+        if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
           Internalerror(200006137);
         if not assigned(procdef._class) or
            (procdef.procoptions*[po_classmethod, po_staticmethod,

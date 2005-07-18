@@ -4264,6 +4264,7 @@ tests/tbf/tb0170.pp svneol=native#text/plain
 tests/tbf/tb0171.pp svneol=native#text/plain
 tests/tbf/tb0172.pp svneol=native#text/plain
 tests/tbf/tb0173.pp svneol=native#text/plain
+tests/tbf/tb0175.pp svneol=native#text/plain
 tests/tbf/ub0115.pp svneol=native#text/plain
 tests/tbf/ub0149.pp svneol=native#text/plain
 tests/tbf/ub0158a.pp svneol=native#text/plain

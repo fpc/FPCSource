@@ -1414,7 +1414,7 @@ unit cgcpu;
         make_global : boolean;
         href : treference;
       begin
-        if procdef.proctypeoption<>potype_none then
+        if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
           Internalerror(200006137);
         if not assigned(procdef._class) or
            (procdef.procoptions*[po_classmethod, po_staticmethod,

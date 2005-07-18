@@ -798,7 +798,7 @@ type
     pocall_softfloat,
     { Metrowerks Pascal. Special case on Mac OS (X): passes all }
     { constant records by reference.                            }
-    pocall_mwpascal    
+    pocall_mwpascal
   );
   tproccalloptions=set of tproccalloption;
   tproctypeoption=(potype_none,
@@ -807,7 +807,9 @@ type
     potype_unitfinalize, { unit finalization }
     potype_constructor,  { Procedure is a constructor }
     potype_destructor,   { Procedure is a destructor }
-    potype_operator      { Procedure defines an operator }
+    potype_operator,     { Procedure defines an operator }
+    potype_procedure,
+    potype_function
   );
   tproctypeoptions=set of tproctypeoption;
   tprocoption=(po_none,
@@ -877,14 +879,16 @@ const
      'SoftFloat',
      'MWPascal'
    );
-  proctypeopts=6;
+  proctypeopts=8;
   proctypeopt : array[1..proctypeopts] of tproctypeopt=(
      (mask:potype_proginit;    str:'ProgInit'),
      (mask:potype_unitinit;    str:'UnitInit'),
      (mask:potype_unitfinalize;str:'UnitFinalize'),
      (mask:potype_constructor; str:'Constructor'),
      (mask:potype_destructor;  str:'Destructor'),
-     (mask:potype_operator;    str:'Operator')
+     (mask:potype_operator;    str:'Operator'),
+     (mask:potype_function;    str:'Function'),
+     (mask:potype_procedure;   str:'Procedure')
   );
   procopts=26;
   procopt : array[1..procopts] of tprocopt=(
@@ -925,21 +929,18 @@ begin
   readtype;
   writeln(space,'         Fpu used : ',ppufile.getbyte);
   proctypeoption:=tproctypeoption(ppufile.getbyte);
-  if proctypeoption<>potype_none then
-   begin
-     write(space,'       TypeOption : ');
-     first:=true;
-     for i:=1 to proctypeopts do
-      if (proctypeopt[i].mask=proctypeoption) then
-       begin
-         if first then
-           first:=false
-         else
-           write(', ');
-         write(proctypeopt[i].str);
-       end;
-     writeln;
-   end;
+  write(space,'       TypeOption : ');
+  first:=true;
+  for i:=1 to proctypeopts do
+   if (proctypeopt[i].mask=proctypeoption) then
+    begin
+      if first then
+        first:=false
+      else
+        write(', ');
+      write(proctypeopt[i].str);
+    end;
+  writeln;
   proccalloption:=tproccalloption(ppufile.getbyte);
   writeln(space,'       CallOption : ',proccalloptionStr[proccalloption]);
   ppufile.getsmallset(procoptions);
@@ -1498,7 +1499,7 @@ begin
                  { library symbol for AmigaOS/MorphOS }
                  write  (space,'   Library symbol : ');
                  readderef;
-	       end;	 
+	       end;
              if (calloption=pocall_inline) then
               begin
                 write  (space,'       FuncretSym : ');
