@@ -28,7 +28,9 @@
 
 { Using inlining for small system functions/wrappers }
 {$inline on}
+{$ifdef COMPPROCINLINEFIXED}
 {$define SYSTEMINLINE}
+{$endif COMPPROCINLINEFIXED}
 
 { don't use FPU registervariables on the i386 }
 {$ifdef CPUI386}
