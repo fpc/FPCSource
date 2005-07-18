@@ -935,7 +935,7 @@ implementation
                end;
                macrobuffer^[macropos]:=c;
                inc(macropos);
-               if macropos>maxmacrolen then
+               if macropos>=maxmacrolen then
                  Message(scan_f_macro_buffer_overflow);
                current_scanner.readchar;
              until false;
@@ -1725,7 +1725,7 @@ implementation
                  preprocstack.accept:=false;
                  preprocstack.typ:=pp_elseif;
                end
-           else if (not(assigned(preprocstack.next)) or (preprocstack.next.accept)) 
+           else if (not(assigned(preprocstack.next)) or (preprocstack.next.accept))
                    and compile_time_predicate(valuedescr) then
                begin
                  preprocstack.name:=valuedescr;
