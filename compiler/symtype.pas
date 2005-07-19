@@ -81,6 +81,7 @@ interface
          function  getmangledparaname:string;virtual;
          function  size:aint;virtual;abstract;
          function  alignment:longint;virtual;abstract;
+         function  getvartype:longint;virtual;abstract;
          function  getparentdef:tdef;virtual;
          function  getsymtable(t:tgetsymtable):tsymtable;virtual;
          function  is_publishable:boolean;virtual;abstract;
