@@ -759,6 +759,7 @@ implementation
              sl_load,
              sl_subscript :
                hp^.sym:=tsym(hp^.symderef.resolve);
+             sl_absolutetype,
              sl_typeconv :
                hp^.tt.resolve;
              sl_vec :
@@ -784,6 +785,7 @@ implementation
              sl_load,
              sl_subscript :
                hp^.symderef.build(hp^.sym);
+             sl_absolutetype,
              sl_typeconv :
                hp^.tt.buildderef;
              sl_vec :
@@ -1234,6 +1236,7 @@ implementation
                 getderef(symderef);
                 p.addsymderef(slt,symderef);
               end;
+            sl_absolutetype,
             sl_typeconv :
               begin
                 gettype(tt);
@@ -1398,6 +1401,7 @@ implementation
              sl_load,
              sl_subscript :
                putderef(hp^.symderef);
+             sl_absolutetype,
              sl_typeconv :
                puttype(hp^.tt);
              sl_vec :
