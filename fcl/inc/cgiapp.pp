@@ -341,6 +341,9 @@ Procedure TCgiApplication.ShowException(E: Exception);
 
 Var
   TheEmail : String;
+  FrameCount: integer;
+  Frames: PPointer;
+  FrameNumber:Integer;
 
 begin
   If not FContentTypeEmitted then
@@ -355,7 +358,14 @@ begin
     AddResponseLN('<center><hr><h1>'+Title+': ERROR</h1><hr></center><br><br>');
     AddResponseLN(SAppEncounteredError+'<br>');
     AddResponseLN('<ul>');
-    AddResponseLN('<li>'+SError+' <b>'+E.Message+'</b></ul><hr>');
+    AddResponseLN('<li>'+SError+' <b>'+E.Message+'</b>');
+    AddResponseLn('<li> Stack trace:<br>');
+    AddResponseLn(BackTraceStrFunc(ExceptAddr)+'<br>');
+    FrameCount:=ExceptFrameCount;
+    Frames:=ExceptFrames;
+    for FrameNumber := 0 to FrameCount-1 do
+      AddResponseLn(BackTraceStrFunc(Frames[FrameNumber])+'<br>');
+    AddResponseLn('</ul><hr>');
     TheEmail:=Email;
     If (TheEmail<>'') then
       AddResponseLN('<h5><p><i>'+SNotify+Administrator+': <a href="mailto:'+TheEmail+'">'+TheEmail+'</a></i></p></h5>');

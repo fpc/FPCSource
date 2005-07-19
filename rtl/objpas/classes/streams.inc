@@ -589,27 +589,20 @@ function TMemoryStream.Realloc(var NewCapacity: Longint): Pointer;
 Var MoveSize : Longint;
 
 begin
-  If NewCapacity>0 Then // round off to block size.
+  // round off to block size.
+  If NewCapacity<0 Then
+    NewCapacity:=0
+  else  
     NewCapacity := (NewCapacity + (TMSGrow-1)) and not (TMSGROW-1);
   // Only now check !
   If NewCapacity=FCapacity then
     Result:=FMemory
   else
-    If NewCapacity=0 then
-      FreeMem (FMemory,Fcapacity)
-    else
-      begin
-      GetMem (Result,NewCapacity);
+    begin
+      Result:=Reallocmem(FMemory,Newcapacity);
       If Result=Nil then
         Raise EStreamError.Create(SMemoryStreamError);
-      If FCapacity>0 then
-        begin
-        MoveSize:=FSize;
-        If MoveSize>NewCapacity then MoveSize:=NewCapacity;
-        Move (Fmemory^,Result^,MoveSize);
-        FreeMem (FMemory,FCapacity);
-        end;
-      end;
+    end;
 end;
 
 
