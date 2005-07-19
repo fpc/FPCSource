@@ -2241,7 +2241,7 @@ type
           addstatement(createstatement,funcretnode.getcopy);
         { consider it must not be inlined if called
           again inside the args or itself }
-        procdefinition.proccalloption:=pocall_default;
+        exclude(procdefinition.procoptions,po_inline);
 
         dosimplify(createblock);
 
