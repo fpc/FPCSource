@@ -304,12 +304,23 @@ implementation
                      else
                        begin
                          doconv:=tc_string_2_string;
-                         { Prefer conversions to shortstring over other
-                           conversions. This is compatible with Delphi (PFV) }
-                         if tstringdef(def_to).string_typ=st_shortstring then
-                           eq:=te_convert_l2
+                         if tstringdef(def_from).string_typ=st_widestring then
+                           begin
+                             { Prefer conversions to shortstring over other
+                               conversions. This is compatible with Delphi (PFV) }
+                             if tstringdef(def_to).string_typ=st_shortstring then
+                               eq:=te_convert_l3
+                             else
+                               eq:=te_convert_l2;
+                           end
                          else
-                           eq:=te_convert_l3;
+                           { Prefer shortstrings of different length or conversions
+                             from shortstring to ansistring }
+                           if (tstringdef(def_from).string_typ=st_shortstring) and
+                              (tstringdef(def_to).string_typ in [st_shortstring,st_ansistring]) then
+                           eq:=te_convert_l1
+                         else
+                           eq:=te_convert_l2;
                        end;
                    end;
                  orddef :
