@@ -65,6 +65,8 @@ interface
           constructor CreateCond(const n:string;p:tdirectiveproc);
        end;
 
+       tcompile_time_predicate = function(var valuedescr: String) : Boolean;
+
        tscannerfile = class
        public
           inputfile    : tinputfile;  { current inputfile list }
@@ -113,9 +115,9 @@ interface
           procedure end_of_file;
           procedure checkpreprocstack;
           procedure poppreprocstack;
-          procedure addpreprocstack(atyp : preproctyp;a:boolean;const s:string;w:longint);
+          procedure ifpreprocstack(atyp : preproctyp;compile_time_predicate:tcompile_time_predicate;messid:longint);
+          procedure elseifpreprocstack(compile_time_predicate:tcompile_time_predicate);
           procedure elsepreprocstack;
-          procedure elseifpreprocstack(accept:boolean);
           procedure handleconditional(p:tdirectiveitem);
           procedure handledirectives;
           procedure linebreak;
@@ -276,57 +278,72 @@ implementation
         current_scanner.poppreprocstack;
       end;
 
+    function isdef(var valuedescr: String): Boolean;
+      var
+        hs    : string;
+        mac   : tmacro;
+      begin
+        current_scanner.skipspace;
+        hs:=current_scanner.readid;
+        valuedescr:= hs;
+        if hs='' then
+          Message(scan_e_error_in_preproc_expr);
+        mac:=tmacro(search_macro(hs));
+        if assigned(mac) then
+          mac.is_used:=true;
+        isdef:= assigned(mac) and mac.defined;
+      end;
 
     procedure dir_ifdef;
+      begin
+        current_scanner.ifpreprocstack(pp_ifdef,@isdef,scan_c_ifdef_found);
+      end;
+
+    function isnotdef(var valuedescr: String): Boolean;
       var
         hs    : string;
         mac   : tmacro;
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
+        valuedescr:= hs;
         if hs='' then
           Message(scan_e_error_in_preproc_expr);
         mac:=tmacro(search_macro(hs));
         if assigned(mac) then
           mac.is_used:=true;
-        current_scanner.addpreprocstack(pp_ifdef,assigned(mac) and mac.defined,hs,scan_c_ifdef_found);
+        isnotdef:= not (assigned(mac) and mac.defined);
       end;
-
 
     procedure dir_ifndef;
-      var
-        hs    : string;
-        mac   : tmacro;
       begin
-        current_scanner.skipspace;
-        hs:=current_scanner.readid;
-        if hs='' then
-          Message(scan_e_error_in_preproc_expr);
-        mac:=tmacro(search_macro(hs));
-        if assigned(mac) then
-          mac.is_used:=true;
-        current_scanner.addpreprocstack(pp_ifndef,not(assigned(mac) and mac.defined),hs,scan_c_ifndef_found);
+        current_scanner.ifpreprocstack(pp_ifndef,@isnotdef,scan_c_ifndef_found);
       end;
 
-
-    procedure dir_ifopt;
+    function opt_check(var valuedescr: String): Boolean;
       var
         hs    : string;
-        found : boolean;
         state : char;
       begin
-        found:= false;
+        opt_check:= false;
         current_scanner.skipspace;
         hs:=current_scanner.readid;
+        valuedescr:= hs;
         if (length(hs)>1) then
-         Message1(scan_w_illegal_switch,hs)
+          Message1(scan_w_illegal_switch,hs)
         else
-         begin
-           state:=current_scanner.ReadState;
-           if state in ['-','+'] then
-            found:=CheckSwitch(hs[1],state);
-         end;
-        current_scanner.addpreprocstack(pp_ifopt,found,hs,scan_c_ifopt_found);
+          begin
+            state:=current_scanner.ReadState;
+            if state in ['-','+'] then
+              opt_check:=CheckSwitch(hs[1],state)
+            else
+              Message(scan_e_error_in_preproc_expr);
+          end;
+      end;
+
+    procedure dir_ifopt;
+      begin
+        current_scanner.ifpreprocstack(pp_ifopt,@opt_check,scan_c_ifopt_found);
       end;
 
     procedure dir_libprefix;
@@ -826,24 +843,24 @@ implementation
         parse_compiler_expr:=read_expr;
       end;
 
+    function boolean_compile_time_expr(var valuedescr: String): Boolean;
+      var
+        hs : string;
+      begin
+        hs:=parse_compiler_expr;
+        boolean_compile_time_expr:= hs <> '0';
+        valuedescr:= hs;
+      end;
 
     procedure dir_if;
-      var
-        hs : string;
       begin
-        hs:=parse_compiler_expr;
-        current_scanner.addpreprocstack(pp_if,hs<>'0',hs,scan_c_if_found);
+        current_scanner.ifpreprocstack(pp_if,@boolean_compile_time_expr, scan_c_if_found);
       end;
-
 
     procedure dir_elseif;
-      var
-        hs : string;
       begin
-        hs:=parse_compiler_expr;
-        current_scanner.elseifpreprocstack(hs<>'0');
+        current_scanner.elseifpreprocstack(@boolean_compile_time_expr);
       end;
-
 
     procedure dir_define;
       var
@@ -1646,20 +1663,31 @@ implementation
       end;
 
 
-    procedure tscannerfile.addpreprocstack(atyp : preproctyp;a:boolean;const s:string;w:longint);
+    procedure tscannerfile.ifpreprocstack(atyp : preproctyp;compile_time_predicate:tcompile_time_predicate;messid:longint);
+      var
+        condition: Boolean;
+        valuedescr: String;
       begin
-        preprocstack:=tpreprocstack.create(atyp,((preprocstack=nil) or preprocstack.accept) and a,preprocstack);
-        preprocstack.name:=s;
+        if (preprocstack=nil) or preprocstack.accept then
+          condition:= compile_time_predicate(valuedescr)
+        else
+          begin
+            condition:= false;
+            valuedescr:= '';
+          end;
+        preprocstack:=tpreprocstack.create(atyp, condition, preprocstack);
+        preprocstack.name:=valuedescr;
         preprocstack.line_nb:=line_no;
         preprocstack.owner:=self;
         if preprocstack.accept then
-         Message2(w,preprocstack.name,'accepted')
+          Message2(messid,preprocstack.name,'accepted')
         else
-         Message2(w,preprocstack.name,'rejected');
+          Message2(messid,preprocstack.name,'rejected');
       end;
 
-
     procedure tscannerfile.elsepreprocstack;
+      var
+        valuedescr: String;
       begin
         if assigned(preprocstack) and
            (preprocstack.typ<>pp_else) then
@@ -1680,8 +1708,9 @@ implementation
          Message(scan_e_endif_without_if);
       end;
 
-
-    procedure tscannerfile.elseifpreprocstack(accept:boolean);
+    procedure tscannerfile.elseifpreprocstack(compile_time_predicate:tcompile_time_predicate);
+      var
+        valuedescr: String;
       begin
         if assigned(preprocstack) and
            (preprocstack.typ in [pp_if,pp_elseif]) then
@@ -1691,16 +1720,15 @@ implementation
              not accepted then leave it at pp_if }
            if (preprocstack.typ=pp_elseif) then
              preprocstack.accept:=false
-           else
-             if (preprocstack.typ=pp_if) and preprocstack.accept then
+           else if (preprocstack.typ=pp_if) and preprocstack.accept then
                begin
                  preprocstack.accept:=false;
                  preprocstack.typ:=pp_elseif;
                end
-           else
-             if accept and
-                (not(assigned(preprocstack.next)) or (preprocstack.next.accept)) then
+           else if (not(assigned(preprocstack.next)) or (preprocstack.next.accept)) 
+                   and compile_time_predicate(valuedescr) then
                begin
+                 preprocstack.name:=valuedescr;
                  preprocstack.accept:=true;
                  preprocstack.typ:=pp_elseif;
                end;
