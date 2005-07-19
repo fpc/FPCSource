@@ -7,8 +7,8 @@ unit dbf_str_ru;
 
 interface
 
-{$I Dbf_Common.inc}
-{$I Dbf_Str.inc}
+{$I dbf_common.inc}
+{$I dbf_str.inc}
 
 implementation
 
@@ -37,3 +37,4 @@ initialization
   STRING_INDEX_NOT_EXIST              := '»ндекс "%s" не существует.';
   STRING_NEED_EXCLUSIVE_ACCESS        := 'Ќевозможно выполнить - сначала нужно получить монопольный доступ.';
 end.
+

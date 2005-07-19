@@ -2,7 +2,7 @@ unit dbf_str;
 
 interface
 
-{$I Dbf_Common.inc}
+{$I dbf_common.inc}
 
 var
   STRING_FILE_NOT_FOUND: string;
@@ -51,3 +51,4 @@ initialization
   STRING_INDEX_NOT_EXIST              := 'L''index "%s" n''existe pas.';
   STRING_NEED_EXCLUSIVE_ACCESS        := 'Access exclusif requis pour cette opération.';
 end.
+

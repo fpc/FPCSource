@@ -53,7 +53,7 @@ type
     FieldOffset     : Integer;  // 12..15   only applicable to foxpro databases
     FieldSize       : Byte;     // 16
     FieldPrecision  : Byte;     // 17
-    FoxProFlags     : Byte;     // 18
+    FoxProFlags	    : Byte;	// 18
     Dummy2          : array[19..31] of Byte;
   end;
 //====================================================================

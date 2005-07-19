@@ -8,14 +8,14 @@ unit dbf_prscore;
 
 interface
 
-{$I Dbf_Common.inc}
+{$I dbf_common.inc}
 
 uses
   SysUtils,
   Classes,
-  Dbf_Common,
-  Dbf_PrsSupp,
-  Dbf_PrsDef;
+  dbf_common,
+  dbf_prssupp,
+  dbf_prsdef;
 
 {$define ENG_NUMBERS}
 
@@ -194,7 +194,7 @@ begin
         CheckArguments(ArgList[I]);
 
         // test if correct type
-        if (ArgList[I].ExprWord.ResultType <> ExprCharToExprType(ExprWord.TypeSpec[I+1])) then
+        if (ArgList[I]^.ExprWord.ResultType <> ExprCharToExprType(ExprWord.TypeSpec[I+1])) then
           error := 2;
 
         // goto next argument
@@ -217,7 +217,7 @@ begin
         // check if not last function
         if I < FWordsList.Count - 1 then
         begin
-          TempExprWord := FWordsList.Items[I+1];
+          TempExprWord := TExprWord(FWordsList.Items[I+1]);
           if FWordsList.Compare(FWordsList.KeyOf(ExprWord), FWordsList.KeyOf(TempExprWord)) = 0 then
           begin
             ExprWord := TempExprWord;
@@ -328,13 +328,13 @@ var
 begin
   if ARec <> nil then
     repeat
-      TheNext := ARec.Next;
-      if ARec.Res <> nil then
-        ARec.Res.Free;
+      TheNext := ARec^.Next;
+      if ARec^.Res <> nil then
+        ARec^.Res.Free;
       I := 0;
-      while ARec.ArgList[I] <> nil do
+      while ARec^.ArgList[I] <> nil do
       begin
-        FreeMem(ARec.Args[I]);
+        FreeMem(ARec^.Args[I]);
         Inc(I);
       end;
       Dispose(ARec);
@@ -374,7 +374,7 @@ begin
     while ExprRec^.ArgList[I] <> nil do
     begin
       // save variable type for easy access
-      ExprRec^.ArgsType[I] := ExprRec^.ArgList[I].ExprWord.ResultType;
+      ExprRec^.ArgsType[I] := ExprRec^.ArgList[I]^.ExprWord.ResultType;
       // check if we need to copy argument, variables in general do not
       // need copying, except for fixed len strings which are not
       // null-terminated
@@ -408,13 +408,13 @@ begin
       FCurrentRec := ExprRec;
       FLastRec := ExprRec;
     end else begin
-      FLastRec.Next := ExprRec;
+      FLastRec^.Next := ExprRec;
       FLastRec := ExprRec;
     end;
   end;
 end;
 
-function TCustomExpressionParser.MakeTree(Expr: TExprCollection;
+function TCustomExpressionParser.MakeTree(Expr: TExprCollection; 
   FirstItem, LastItem: Integer): PExpressionRec;
 
 {
@@ -447,7 +447,7 @@ begin
   begin
     case TExprWord(Expr.Items[I]).ResultType of
       etLeftBracket: Inc(brCount);
-      etRightBracket:
+      etRightBracket: 
         begin
           Dec(brCount);
           if brCount < IArg then
@@ -478,17 +478,17 @@ begin
   // simple constant, variable or function?
   if LastItem = FirstItem then
   begin
-    Result.ExprWord := TExprWord(Expr.Items[FirstItem]);
-    Result.Oper := @Result.ExprWord.ExprFunc;
-    if Result.ExprWord.IsVariable then
+    Result^.ExprWord := TExprWord(Expr.Items[FirstItem]);
+    Result^.Oper := Result^.ExprWord.ExprFunc;
+    if Result^.ExprWord.IsVariable then
     begin
       // copy pointer to variable
-      Result.Args[0] := Result.ExprWord.AsPointer;
+      Result^.Args[0] := Result^.ExprWord.AsPointer;
       // is this a fixed length string variable?
-      if Result.ExprWord.FixedLen >= 0 then
+      if Result^.ExprWord.FixedLen >= 0 then
       begin
         // store length as second parameter
-        Result.Args[1] := PChar(Result.ExprWord.LenAsPointer);
+        Result^.Args[1] := PChar(Result^.ExprWord.LenAsPointer);
       end;
     end;
     exit;
@@ -517,23 +517,23 @@ begin
   if IEnd >= FirstItem then
   begin
     // save operator
-    Result.ExprWord := TExprWord(Expr.Items[IEnd]);
-    Result.Oper := Result.ExprWord.ExprFunc;
+    Result^.ExprWord := TExprWord(Expr.Items[IEnd]);
+    Result^.Oper := Result^.ExprWord.ExprFunc;
     // recurse into left part if present
     if IEnd > FirstItem then
     begin
-      Result.ArgList[IArg] := MakeTree(Expr, FirstItem, IEnd-1);
+      Result^.ArgList[IArg] := MakeTree(Expr, FirstItem, IEnd-1);
       Inc(IArg);
     end;
     // recurse into right part if present
     if IEnd < LastItem then
-      Result.ArgList[IArg] := MakeTree(Expr, IEnd+1, LastItem);
-  end else
-  if TExprWord(Expr.Items[FirstItem]).IsFunction then
+      Result^.ArgList[IArg] := MakeTree(Expr, IEnd+1, LastItem);
+  end else 
+  if TExprWord(Expr.Items[FirstItem]).IsFunction then 
   begin
     // save function
-    Result.ExprWord := TExprWord(Expr.Items[FirstItem]);
-    Result.Oper := Result.ExprWord.ExprFunc;
+    Result^.ExprWord := TExprWord(Expr.Items[FirstItem]);
+    Result^.Oper := Result^.ExprWord.ExprFunc;
     // parse function arguments
     IEnd := FirstItem + 1;
     IStart := IEnd;
@@ -552,7 +552,7 @@ begin
             if brCount = 1 then
             begin
               // argument separation found, build tree of argument expression
-              Result.ArgList[IArg] := MakeTree(Expr, IStart, IEnd-1);
+              Result^.ArgList[IArg] := MakeTree(Expr, IStart, IEnd-1);
               Inc(IArg);
               IStart := IEnd + 1;
             end;
@@ -561,7 +561,7 @@ begin
       end;
 
       // parse last argument
-      Result.ArgList[IArg] := MakeTree(Expr, IStart, IEnd-1);
+      Result^.ArgList[IArg] := MakeTree(Expr, IStart, IEnd-1);
     end;
   end else
     raise EParserException.Create('Operator/function missing');
@@ -972,8 +972,8 @@ begin
     //LAST operand should be boolean -otherwise If(,,) doesn't work
     while (FLastRec^.Next <> nil) do
       FLastRec := FLastRec^.Next;
-    if FLastRec.ExprWord <> nil then
-      Result := FLastRec.ExprWord.ResultType;
+    if FLastRec^.ExprWord <> nil then
+      Result := FLastRec^.ExprWord.ResultType;
   end;
 end;
 
@@ -990,16 +990,16 @@ begin
   pnew := NewExprWord.AsPointer;
   Rec := FCurrentRec;
   repeat
-    if (Rec.ExprWord = OldExprWord) then
+    if (Rec^.ExprWord = OldExprWord) then
     begin
-      Rec.ExprWord := NewExprWord;
-      Rec.Oper := NewExprWord.ExprFunc;
+      Rec^.ExprWord := NewExprWord;
+      Rec^.Oper := NewExprWord.ExprFunc;
     end;
     if p <> nil then
-      for J := 0 to Rec.ExprWord.MaxFunctionArg - 1 do
-        if Rec.Args[J] = p then
-          Rec.Args[J] := pnew;
-    Rec := Rec.Next;
+      for J := 0 to Rec^.ExprWord.MaxFunctionArg - 1 do
+        if Rec^.Args[J] = p then
+          Rec^.Args[J] := pnew;
+    Rec := Rec^.Next;
   until Rec = nil;
 end;
 
@@ -1008,20 +1008,20 @@ var
   I: Integer;
 begin
   New(Result);
-  Result.Oper := nil;
-  Result.AuxData := nil;
+  Result^.Oper := nil;
+  Result^.AuxData := nil;
   for I := 0 to MaxArg - 1 do
   begin
-    Result.Args[I] := nil;
-    Result.ArgsPos[I] := nil;
-    Result.ArgsSize[I] := 0;
-    Result.ArgsType[I] := etUnknown;
-    Result.ArgList[I] := nil;
+    Result^.Args[I] := nil;
+    Result^.ArgsPos[I] := nil;
+    Result^.ArgsSize[I] := 0;
+    Result^.ArgsType[I] := etUnknown;
+    Result^.ArgList[I] := nil;
   end;
-  Result.Res := nil;
-  Result.Next := nil;
-  Result.ExprWord := nil;
-  Result.ResetDest := false;
+  Result^.Res := nil;
+  Result^.Next := nil;
+  Result^.ExprWord := nil;
+  Result^.ResetDest := false;
 end;
 
 procedure TCustomExpressionParser.Evaluate(AnExpression: string);
@@ -1057,7 +1057,7 @@ begin
   begin
     // if no function specified, then no need to replace!
     if AFunction <> nil then
-      ReplaceExprWord(FWordsList.Items[I], TExprWord(AFunction));
+      ReplaceExprWord(TExprWord(FWordsList.Items[I]), TExprWord(AFunction));
     FWordsList.AtFree(I);
   end;
   if AFunction <> nil then
@@ -1077,7 +1077,7 @@ var
 begin
   if FWordsList.Search(PChar(AExprWord.Name), IOldVar) then
   begin
-    ReplaceExprWord(FWordsList.Items[IOldVar], AExprWord);
+    ReplaceExprWord(TExprWord(FWordsList.Items[IOldVar]), AExprWord);
     FWordsList.AtFree(IOldVar);
     FWordsList.Add(AExprWord);
   end
@@ -1124,3 +1124,4 @@ begin
 end;
 
 end.
+

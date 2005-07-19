@@ -33,6 +33,54 @@ BUGS & WARNINGS
 
 
 ------------------------
+V6.4.5
+
+- fixed: index create string raises exception unknown type
+
+
+------------------------
+V6.4.4
+
+- fixed: delphi 3 does not have math unit
+- fixed: exception in opening causes double free (thx arioch)
+- fixed: copy precision for float fields
+- fixed: force create index file, if index does not exist yet
+- fixed: memory leak in TPagedFile.FBufferPtr
+- fixed: TDbf.GetFileNames crash, more robust (rep by arioch)
+- added: character conversion hungarian (from attila)
+- fixed: index creation for tablelevel 7, mdx type 3
+- fixed: remember cursor position when changing showdeleted setting
+- fixed: findrecord to sync cursor position; endless loop or forgot records
+- chang: added initializations to 0 to suppress delphi warnings
+
+
+------------------------
+V6.4.3
+
+- fixed: delphi 3 compilation; dynamic array of restructure info (rep by kjteng)
+- fixed: datetime index creation using delphi 4 (rep by agam)
+- fixed: storage of negative numbers in integer fields (rep by agam)
+- fixed: index corruption when opening, with emptytable (rep by arioch)
+- fixed: index corruption on regenerateindexes (rep by piotr)
+
+
+------------------------
+V6.4.2
+
+- fixed: overflow in storing float field data (large negative number) (thx madruga)
+- fixed: restructure/pack create MDX database desktop compatible;
+    write db filename in mdx header (rep by rusmonk)
+- fixed: freepascal objfpc mode compatibility fixes (still needs some @-ies)
+- fixed: upon TDbf.Delete, use internal editing/posting such that BeforeEdit
+    and other events are not fired; also fixes cursor position bug upon
+    deletion (rep by bura)
+- fixed: only use float fields (UseFloatFields) if int64 not supported
+- fixed: deleted records undeleted when using RestructureTable with
+    Pack=false (rep by scenes)
+- fixed: made (hopefully) all references to units lowercase, for kylix
+
+
+------------------------
 V6.4.1
 
 - fixed: restructure numeric fields correctly, try to preserve data

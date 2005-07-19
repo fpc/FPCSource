@@ -2,14 +2,14 @@ unit dbf_fields;
 
 interface
 
-{$I Dbf_Common.inc}
+{$I dbf_common.inc}
 
 uses
   Classes,
   SysUtils,
-  Db,
-  Dbf_Common,
-  Dbf_Str;
+  db,
+  dbf_common,
+  dbf_str;
 
 type
   PDbfFieldDef = ^TDbfFieldDef;
@@ -49,7 +49,7 @@ type
 
     property DbfVersion: TXBaseVersion read GetDbfVersion;
   public
-    constructor Create(Collection: TCollection); override;
+    constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
 
     procedure Assign(Source: TPersistent); override;
@@ -107,9 +107,9 @@ type
 implementation
 
 uses
-  Dbf_DbfFile;      // for dbf header structures
+  dbf_dbffile;      // for dbf header structures
 
-{$I Dbf_Struct.inc}
+{$I dbf_struct.inc}
 
 // I keep changing that fields...
 // Last time has been asked by Venelin Georgiev
@@ -185,7 +185,7 @@ end;
 //====================================================================
 // DbfFieldDef
 //====================================================================
-constructor TDbfFieldDef.Create(Collection: TCollection); {virtual}
+constructor TDbfFieldDef.Create(ACollection: TCollection); {virtual}
 begin
   inherited;
 
@@ -370,7 +370,7 @@ begin
         FFieldType := ftBCD
       else
         FFieldType := ftCurrency;
-    '0' : FFieldType := ftBytes;        { Visual FoxPro ``_NullFlags'' }
+    '0' : FFieldType := ftBytes;	{ Visual FoxPro ``_NullFlags'' }
   else
     FNativeFieldType := #0;
     FFieldType := ftUnknown;
@@ -408,7 +408,7 @@ begin
         FNativeFieldType := 'I'
       else
         FNativeFieldType := 'N';
-    ftBCD, ftCurrency:
+    ftBCD, ftCurrency: 
       if DbfVersion = xFoxPro then
         FNativeFieldType := 'Y';
   end;
@@ -560,3 +560,4 @@ begin
 end;
 
 end.
+

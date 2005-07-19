@@ -2,13 +2,13 @@ unit dbf_cursor;
 
 interface
 
-{$I Dbf_Common.inc}
+{$I dbf_common.inc}
 
 uses
   SysUtils,
   Classes,
-  Dbf_PgFile,
-  Dbf_Common;
+  dbf_pgfile,
+  dbf_common;
 
 type
 
@@ -61,3 +61,4 @@ begin
 end;
 
 end.
+

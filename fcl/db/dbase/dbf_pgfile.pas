@@ -2,12 +2,12 @@ unit dbf_pgfile;
 
 interface
 
-{$I Dbf_Common.inc}
+{$I dbf_common.inc}
 
 uses
   Classes,
   SysUtils,
-  Dbf_Common;
+  dbf_common;
 
 //const
 //  MaxHeaders = 256;
@@ -15,7 +15,7 @@ uses
 type
   EPagedFile = Exception;
 
-  TPagedFileMode = (pfNone, pfMemoryCreate, pfMemoryOpen, pfExclusiveCreate,
+  TPagedFileMode = (pfNone, pfMemoryCreate, pfMemoryOpen, pfExclusiveCreate, 
     pfExclusiveOpen, pfReadWriteCreate, pfReadWriteOpen, pfReadOnly);
 
   // access levels:
@@ -150,11 +150,11 @@ uses
   Windows,
 {$else}
 {$ifdef KYLIX}
-  Libc,
+  Libc, 
+{$endif}  
+  Types, dbf_wtil,
 {$endif}
-  Types, Dbf_Wtil,
-{$endif}
-  Dbf_Str;
+  dbf_str;
 
 //====================================================================
 // TPagedFile
@@ -207,7 +207,7 @@ procedure TPagedFile.OpenFile;
 var
   fileOpenMode: Word;
 begin
-  if FActive then exit;
+  if FActive then exit;  
 
   // store user specified mode
   FUserMode := FMode;
@@ -259,6 +259,8 @@ begin
   FNeedLocks := IsSharedAccess;
 {$endif}
   FActive := true;
+  // allocate memory for bufferahead
+  UpdateBufferSize;
 end;
 
 procedure TPagedFile.CloseFile;
@@ -266,9 +268,12 @@ begin
   if FActive then
   begin
     FlushHeader;
+    FlushBuffer;
     // don't free the user's stream
     if not (FMode in [pfMemoryOpen, pfMemoryCreate]) then
       FreeAndNil(FStream);
+    // free bufferahead buffer
+    FreeMemAndNil(FBufferPtr);
 
     // mode possibly overridden in case of auto-created file
     FMode := FUserMode;
@@ -909,3 +914,4 @@ begin
 end;
 
 end.
+
