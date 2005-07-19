@@ -616,6 +616,8 @@ unit cgcpu;
             not(is_pc(ref.base)) and
             not(is_pc(ref.index))
            ) or
+           { [#xxx] isn't a valid address operand }
+           ((ref.base=NR_NO) and (ref.index=NR_NO)) or
            (ref.offset<-4095) or
            (ref.offset>4095) or
            ((oppostfix in [PF_SB,PF_H,PF_SH]) and
@@ -630,21 +632,24 @@ unit cgcpu;
            ) then
           begin
             reference_reset(tmpref);
-            { create consts entry }
-            objectlibrary.getlabel(l);
-            cg.a_label(current_procinfo.aktlocaldata,l);
-            tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 
-            if assigned(ref.symbol) then
-              current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
-            else
-              current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
-
-            { load consts entry }
+            { load symbol }
             tmpreg:=getintregister(list,OS_INT);
-            tmpref.symbol:=l;
-            tmpref.base:=NR_R15;
-            list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+            if assigned(ref.symbol) then
+              begin
+                objectlibrary.getlabel(l);
+                cg.a_label(current_procinfo.aktlocaldata,l);
+                tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+
+                current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset));
+
+                { load consts entry }
+                tmpref.symbol:=l;
+                tmpref.base:=NR_R15;
+                list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+              end
+            else
+              a_load_const_reg(list,OS_ADDR,ref.offset,tmpreg);
 
             if (ref.base<>NR_NO) then
               begin
@@ -1085,8 +1090,8 @@ unit cgcpu;
               ) then
           fixref(list,tmpref);
 
-        { expect a base here }
-        if tmpref.base=NR_NO then
+        { expect a base here if there is an index }
+        if (tmpref.base=NR_NO) and (tmpref.index<>NR_NO) then
           internalerror(200312022);
 
         if tmpref.index<>NR_NO then
@@ -1103,7 +1108,12 @@ unit cgcpu;
         else
           begin
             if tmpref.offset<>0 then
-              a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tmpref.offset,tmpref.base,r)
+              begin
+                if tmpref.base<>NR_NO then
+                  a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tmpref.offset,tmpref.base,r)
+                else
+                  a_load_const_reg(list,OS_ADDR,tmpref.offset,r);
+              end
             else
               begin
                 instr:=taicpu.op_reg_reg(A_MOV,r,tmpref.base);
