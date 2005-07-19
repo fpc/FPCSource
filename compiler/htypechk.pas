@@ -1672,8 +1672,8 @@ implementation
           while assigned(p) do
            begin
              if result<>'' then
-              result:=result+',';
-             result:=result+p.resulttype.def.typename;
+              result:=','+result;
+             result:=p.resulttype.def.typename+result;
              p:=tcallparanode(p.right);
            end;
         end;
@@ -1816,6 +1816,35 @@ implementation
                      from word->[longword,longint] }
                    if is_signed(def_from)<>is_signed(def_to) then
                      hp^.ordinal_distance:=hp^.ordinal_distance+1.0;
+                 end
+              else
+              { for value and const parameters check precision of real, give
+                penalty for loosing of precision }
+               if not(currpara.varspez in [vs_var,vs_out]) and
+                  is_real(def_from) and
+                  is_real(def_to) then
+                 begin
+                   eq:=te_equal;
+                   if is_extended(def_to) then
+                     rth:=bestreal(4)
+                   else
+                     if is_double (def_to) then
+                       rth:=bestreal(2)
+                   else
+                     rth:=bestreal(1);
+                   if is_extended(def_from) then
+                     rfh:=bestreal(4)
+                   else
+                     if is_double (def_from) then
+                       rfh:=bestreal(2)
+                   else
+                     rfh:=bestreal(1);
+                   { penalty for shrinking of precision }
+                   if rth<rfh then
+                     rfh:=(rfh-rth)*16
+                   else
+                     rfh:=rth-rfh;
+                   hp^.ordinal_distance:=hp^.ordinal_distance+rfh;
                  end
               else
               { generic type comparision }

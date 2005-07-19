@@ -5037,6 +5037,7 @@ tests/test/toperator3.pp svneol=native#text/plain
 tests/test/toperator4.pp svneol=native#text/plain
 tests/test/toperator5.pp svneol=native#text/plain
 tests/test/tover1.pp svneol=native#text/plain
+tests/test/tover2.pp svneol=native#text/plain
 tests/test/tpackrec.pp svneol=native#text/plain
 tests/test/tpara1.pp svneol=native#text/plain
 tests/test/tpara2.pp svneol=native#text/plain
