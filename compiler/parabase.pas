@@ -237,7 +237,7 @@ implementation
         I1 : tparavarsym absolute Item1;
         I2 : tparavarsym absolute Item2;
       begin
-        Result:=I1.paranr-I2.paranr;
+        Result:=longint(I1.paranr)-longint(I2.paranr);
       end;
 
 
