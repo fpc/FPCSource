@@ -161,9 +161,11 @@ implementation
                  aktpackrecords:=4
                else if (hs='RESET') then
                  aktpackrecords:=0
+               else
+                 Message1(scan_e_illegal_pack_records,hs);
              end
            else
-             Message(scan_w_only_pack_records);
+             Message1(scan_e_illegal_pack_records,hs);
          end
         else
          begin
@@ -175,7 +177,7 @@ implementation
             16 : aktpackrecords:=16;
             32 : aktpackrecords:=32;
            else
-            Message(scan_w_only_pack_records);
+            Message1(scan_e_illegal_pack_records,hs);
            end;
          end;
       end;
@@ -697,7 +699,7 @@ implementation
            if (hs='NORMAL') or (hs='DEFAULT') then
             aktpackenum:=4
            else
-            Message(scan_w_only_pack_enum);
+            Message1(scan_e_illegal_pack_enum, hs);
          end
         else
          begin
@@ -706,7 +708,7 @@ implementation
             2 : aktpackenum:=2;
             4 : aktpackenum:=4;
            else
-            Message(scan_w_only_pack_enum);
+            Message1(scan_e_illegal_pack_enum, pattern);
            end;
          end;
       end;
@@ -726,7 +728,7 @@ implementation
             if (hs='NORMAL') or (hs='DEFAULT') then
              aktpackrecords:=0
            else
-            Message(scan_w_only_pack_records);
+            Message1(scan_e_illegal_pack_records,hs);
          end
         else
          begin
@@ -738,7 +740,7 @@ implementation
             16 : aktpackrecords:=16;
             32 : aktpackrecords:=32;
            else
-            Message(scan_w_only_pack_records);
+            Message1(scan_e_illegal_pack_records,pattern);
            end;
          end;
       end;

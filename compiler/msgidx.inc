@@ -30,8 +30,8 @@ const
   scan_e_illegal_char_const=02011;
   scan_f_cannot_open_input=02012;
   scan_f_cannot_open_includefile=02013;
-  scan_w_only_pack_records=02015;
-  scan_w_only_pack_enum=02016;
+  scan_e_illegal_pack_records=02015;
+  scan_e_illegal_pack_enum=02016;
   scan_e_endif_expected=02017;
   scan_e_preproc_syntax_error=02018;
   scan_e_error_in_preproc_expr=02019;
@@ -656,7 +656,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 38615;
+  MsgTxtSize = 38588;
 
   MsgIdxMax : array[1..20] of longint=(
     19,72,214,59,59,46,100,20,35,60,

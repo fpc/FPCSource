@@ -167,12 +167,14 @@ scan_f_cannot_open_input=02012_F_Can't open file "$1"
 scan_f_cannot_open_includefile=02013_F_Can't open include file "$1"
 % \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
 % statement.
-scan_w_only_pack_records=02015_W_Records fields can be aligned to 1,2,4,8,16 or 32 bytes only
-% You are specifying the \var{\{\$PACKRECORDS n\} } with an illegal value for
-% \var{n}. Only 1, 2, 4, 8, 16 and 32 are valid in this case.
-scan_w_only_pack_enum=02016_W_Enumerated can be saved in 1,2 or 4 bytes only
+scan_e_illegal_pack_records=02015_E_Illegal record alignment specifier "$1"
+% You are specifying the \var{\{\$PACKRECORDS n\} } or \var{\{\$ALIGN n\} }
+% with an illegal value for \var{n}. For $PACKRECORDS valid alignments are 1, 2, 4, 8, 16, 32, C,
+% NORMAL, DEFAULT, and for $ALIGN valid alignment are 1, 2, 4, 8, 16, 32, ON,
+% OFF. Under mode MacPas $ALIGN also supports MAC68K, POWER and RESET.
+scan_e_illegal_pack_enum=02016_E_Illegal enum minimum-size specifier "$1"
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
-% \var{n}. Only 1,2 or 4 are valid in this case.
+% \var{n}. Only 1,2,4, NORMAL or DEFAULT are valid here.
 scan_e_endif_expected=02017_E_$ENDIF expected for $1 $2 defined in $3 line $4
 % Your conditional compilation statements are unbalanced.
 scan_e_preproc_syntax_error=02018_E_Syntax error while parsing a conditional compiling expression
