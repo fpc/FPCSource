@@ -14,5 +14,4 @@ begin
     WriteLn('problem')
   else
     Writeln('OK');
-  Readln;
 end.
