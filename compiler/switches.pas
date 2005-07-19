@@ -39,7 +39,7 @@ uses
 ****************************************************************************}
 
 type
-  TSwitchType=(ignoredsw,localsw,modulesw,globalsw,illegalsw,unsupportedsw);
+  TSwitchType=(ignoredsw,localsw,modulesw,globalsw,illegalsw,unsupportedsw,alignsw);
   SwitchRec=record
     typesw : TSwitchType;
     setsw  : byte;
@@ -48,7 +48,7 @@ type
 
 const
   turboSwitchTable: SwitchRecTable =(
-   {A} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {A} (typesw:alignsw; setsw:ord(cs_localnone)),
    {B} (typesw:localsw; setsw:ord(cs_full_boolean_eval)),
    {C} (typesw:localsw; setsw:ord(cs_do_assertion)),
    {D} (typesw:modulesw; setsw:ord(cs_debuginfo)),
@@ -146,46 +146,57 @@ begin
    with switchTablePtr^[switch] do
    begin
      case typesw of
-     ignoredsw : Message1(scan_n_ignored_switch,'$'+switch);
-     illegalsw : Message1(scan_w_illegal_switch,'$'+switch);
- unsupportedsw : Message1(scan_w_unsupported_switch,'$'+switch);
-       localsw : begin
-                   if not localswitcheschanged then
-                     nextaktlocalswitches:=aktlocalswitches;
-                   if state='+' then
-                    include(nextaktlocalswitches,tlocalswitch(setsw))
-                   else
-                    exclude(nextaktlocalswitches,tlocalswitch(setsw));
-                   localswitcheschanged:=true;
-                 end;
-      modulesw : begin
-                   if current_module.in_global then
-                    begin
-                      if state='+' then
-                        include(aktmoduleswitches,tmoduleswitch(setsw))
-                      else
-                        begin
-                          { Turning off debuginfo when lineinfo is requested
-                            is not possible }
-                          if not((cs_gdb_lineinfo in aktglobalswitches) and
-                                 (tmoduleswitch(setsw)=cs_debuginfo)) then
-                            exclude(aktmoduleswitches,tmoduleswitch(setsw));
-                        end;
-                    end
-                   else
-                    Message(scan_w_switch_is_global);
-                 end;
-      globalsw : begin
-                   if current_module.in_global and (current_module=main_module) then
-                    begin
-                      if state='+' then
-                       include(aktglobalswitches,tglobalswitch(setsw))
-                      else
-                       exclude(aktglobalswitches,tglobalswitch(setsw));
-                    end
-                   else
-                    Message(scan_w_switch_is_global);
-                 end;
+       alignsw:
+         if state='+' then
+           aktpackrecords:=4
+         else
+           aktpackrecords:=1;
+       ignoredsw :
+         Message1(scan_n_ignored_switch,'$'+switch);
+       illegalsw :
+         Message1(scan_w_illegal_switch,'$'+switch);
+       unsupportedsw :
+         Message1(scan_w_unsupported_switch,'$'+switch);
+       localsw :
+         begin
+           if not localswitcheschanged then
+             nextaktlocalswitches:=aktlocalswitches;
+           if state='+' then
+            include(nextaktlocalswitches,tlocalswitch(setsw))
+           else
+            exclude(nextaktlocalswitches,tlocalswitch(setsw));
+           localswitcheschanged:=true;
+         end;
+       modulesw :
+         begin
+           if current_module.in_global then
+            begin
+              if state='+' then
+                include(aktmoduleswitches,tmoduleswitch(setsw))
+              else
+                begin
+                  { Turning off debuginfo when lineinfo is requested
+                    is not possible }
+                  if not((cs_gdb_lineinfo in aktglobalswitches) and
+                         (tmoduleswitch(setsw)=cs_debuginfo)) then
+                    exclude(aktmoduleswitches,tmoduleswitch(setsw));
+                end;
+            end
+           else
+            Message(scan_w_switch_is_global);
+         end;
+       globalsw :
+         begin
+           if current_module.in_global and (current_module=main_module) then
+            begin
+              if state='+' then
+               include(aktglobalswitches,tglobalswitch(setsw))
+              else
+               exclude(aktglobalswitches,tglobalswitch(setsw));
+            end
+           else
+            Message(scan_w_switch_is_global);
+         end;
       end;
    end;
 end;
