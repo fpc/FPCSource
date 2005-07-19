@@ -25,7 +25,7 @@ unit globtype;
 interface
 
     const
-       maxidlen = 64;
+       maxidlen = 127;
 
     type
 {TCmdStr is used to pass command line parameters to an external program to be
