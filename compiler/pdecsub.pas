@@ -340,7 +340,7 @@ implementation
       var
         pd : tabstractprocdef absolute arg;
       begin
-        if (pd.proccalloption<>pocall_inline) or
+        if not(po_inline in pd.procoptions) or
            (tsym(p).typ<>paravarsym) then
          exit;
         with tparavarsym(p) do
@@ -1407,27 +1407,27 @@ const
       handler  : @pd_abstract;
       pocall   : pocall_none;
       pooption : [po_abstractmethod];
-      mutexclpocall : [pocall_internproc,pocall_inline];
+      mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_exports,po_interrupt,po_external]
+      mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]
     ),(
       idtok:_ALIAS;
       pd_flags : [pd_implemen,pd_body,pd_notobjintf];
       handler  : @pd_alias;
       pocall   : pocall_none;
       pooption : [];
-      mutexclpocall : [pocall_inline];
+      mutexclpocall : [];
       mutexclpotype : [];
-      mutexclpo     : [po_external]
+      mutexclpo     : [po_external,po_inline]
     ),(
       idtok:_ASMNAME;
       pd_flags : [pd_interface,pd_implemen,pd_notobjintf];
       handler  : @pd_asmname;
       pocall   : pocall_cdecl;
       pooption : [po_external];
-      mutexclpocall : [pocall_internproc,pocall_inline];
+      mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_external]
+      mutexclpo     : [po_external,po_inline]
     ),(
       idtok:_ASSEMBLER;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
@@ -1461,36 +1461,36 @@ const
       handler  : @pd_virtual;
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
-      mutexclpocall : [pocall_internproc,pocall_inline];
+      mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_exports,po_interrupt,po_external,po_overridingmethod]
+      mutexclpo     : [po_exports,po_interrupt,po_external,po_overridingmethod,po_inline]
     ),(
       idtok:_EXPORT;
       pd_flags : [pd_body,pd_interface,pd_implemen,pd_notobjintf];
       handler  : @pd_export;
       pocall   : pocall_none;
       pooption : [po_exports,po_global];
-      mutexclpocall : [pocall_internproc,pocall_inline];
+      mutexclpocall : [pocall_internproc];
       mutexclpotype : [potype_constructor,potype_destructor];
-      mutexclpo     : [po_external,po_interrupt]
+      mutexclpo     : [po_external,po_interrupt,po_inline]
     ),(
       idtok:_EXTERNAL;
       pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf];
       handler  : @pd_external;
       pocall   : pocall_none;
       pooption : [po_external];
-      mutexclpocall : [pocall_internproc,pocall_inline,pocall_syscall];
+      mutexclpocall : [pocall_internproc,pocall_syscall];
       mutexclpotype : [potype_constructor,potype_destructor];
-      mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler]
+      mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
     ),(
       idtok:_FAR;
       pd_flags : [pd_implemen,pd_body,pd_interface,pd_procvar,pd_notobject,pd_notobjintf];
       handler  : @pd_far;
       pocall   : pocall_none;
       pooption : [];
-      mutexclpocall : [pocall_internproc,pocall_inline];
+      mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : []
+      mutexclpo     : [po_inline]
     ),(
       idtok:_FAR16;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar,pd_notobject];
@@ -1506,9 +1506,9 @@ const
       handler  : @pd_forward;
       pocall   : pocall_none;
       pooption : [];
-      mutexclpocall : [pocall_internproc,pocall_inline];
+      mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_external]
+      mutexclpo     : [po_external,po_inline]
     ),(
       idtok:_OLDFPCCALL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -1522,8 +1522,8 @@ const
       idtok:_INLINE;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
       handler  : @pd_inline;
-      pocall   : pocall_inline;
-      pooption : [];
+      pocall   : pocall_none;
+      pooption : [po_inline];
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod]
@@ -1552,9 +1552,9 @@ const
       pocall   : pocall_none;
       pooption : [po_interrupt];
       mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,pocall_stdcall,
-                       pocall_inline,pocall_pascal,pocall_far16,pocall_oldfpccall];
+                       pocall_pascal,pocall_far16,pocall_oldfpccall];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
-      mutexclpo     : [po_external]
+      mutexclpo     : [po_external,po_inline]
     ),(
       idtok:_IOCHECK;
       pd_flags : [pd_implemen,pd_body,pd_notobjintf];
@@ -1570,9 +1570,9 @@ const
       handler  : @pd_message;
       pocall   : pocall_none;
       pooption : []; { can be po_msgstr or po_msgint }
-      mutexclpocall : [pocall_inline,pocall_internproc];
+      mutexclpocall : [pocall_internproc];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
-      mutexclpo     : [po_interrupt,po_external]
+      mutexclpo     : [po_interrupt,po_external,po_inline]
     ),(
       idtok:_MWPASCAL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -1615,9 +1615,9 @@ const
       handler  : @pd_override;
       pocall   : pocall_none;
       pooption : [po_overridingmethod,po_virtualmethod];
-      mutexclpocall : [pocall_inline,pocall_internproc];
+      mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod]
+      mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod,po_inline]
     ),(
       idtok:_PASCAL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -1633,9 +1633,9 @@ const
       handler  : @pd_public;
       pocall   : pocall_none;
       pooption : [po_public,po_global];
-      mutexclpocall : [pocall_internproc,pocall_inline];
+      mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_external]
+      mutexclpo     : [po_external,po_inline]
     ),(
       idtok:_REGISTER;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -1651,9 +1651,9 @@ const
       handler  : @pd_reintroduce;
       pocall   : pocall_none;
       pooption : [po_reintroduce];
-      mutexclpocall : [pocall_inline,pocall_internproc];
+      mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_external,po_interrupt,po_exports,po_overridingmethod]
+      mutexclpo     : [po_external,po_interrupt,po_exports,po_overridingmethod,po_inline]
     ),(
       idtok:_SAFECALL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -1680,9 +1680,9 @@ const
       handler  : @pd_static;
       pocall   : pocall_none;
       pooption : [po_staticmethod];
-      mutexclpocall : [pocall_inline,pocall_internproc];
+      mutexclpocall : [pocall_internproc];
       mutexclpotype : [potype_constructor,potype_destructor];
-      mutexclpo     : [po_external,po_interrupt,po_exports]
+      mutexclpo     : [po_external,po_interrupt,po_exports,po_inline]
     ),(
       idtok:_STDCALL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -1707,9 +1707,9 @@ const
       handler  : @pd_virtual;
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
-      mutexclpocall : [pocall_inline,pocall_internproc];
+      mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_external,po_interrupt,po_exports,po_overridingmethod]
+      mutexclpo     : [po_external,po_interrupt,po_exports,po_overridingmethod,po_inline]
     ),(
       idtok:_CPPDECL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -1726,15 +1726,15 @@ const
       pocall   : pocall_none;
       pooption : [po_varargs];
       mutexclpocall : [pocall_internproc,pocall_stdcall,pocall_register,
-                       pocall_inline,pocall_far16,pocall_oldfpccall,pocall_mwpascal];
+                       pocall_far16,pocall_oldfpccall,pocall_mwpascal];
       mutexclpotype : [];
-      mutexclpo     : [po_assembler,po_interrupt]
+      mutexclpo     : [po_assembler,po_interrupt,po_inline]
     ),(
       idtok:_COMPILERPROC;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
       handler  : nil;
-      pocall   : pocall_compilerproc;
-      pooption : [];
+      pocall   : pocall_none;
+      pooption : [po_compilerproc];
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_interrupt]
@@ -1977,12 +1977,10 @@ const
             else
             { Normal procedures }
               begin
-                case pd.proccalloption of
-                  pocall_compilerproc :
-                    begin
-                      pd.setmangledname(lower(pd.procsym.name));
-                    end;
-                end;
+                if (po_compilerproc in pd.procoptions) then
+                  begin
+                    pd.setmangledname(lower(pd.procsym.name));
+                  end;
               end;
           end;
 
@@ -2033,15 +2031,16 @@ const
               { Temporary stub, must be rewritten to support OS/2 far16 }
               Message1(parser_w_proc_directive_ignored,'FAR16');
             end;
-          pocall_inline :
+        end;
+
+        if (po_inline in pd.procoptions) then
             begin
               if not(cs_support_inline in aktmoduleswitches) then
                begin
                  Message(parser_e_proc_inline_not_supported);
-                 pd.proccalloption:=pocall_default;
+                 exclude(pd.procoptions,po_inline);
                end;
             end;
-        end;
 
         { For varargs directive also cdecl and external must be defined }
         if (po_varargs in pd.procoptions) then
@@ -2388,7 +2387,7 @@ const
                    hd.import_nr:=pd.import_nr;
                    { for compilerproc defines we need to rename and update the
                      symbolname to lowercase }
-                   if (pd.proccalloption=pocall_compilerproc) then
+                   if (po_compilerproc in pd.procoptions) then
                     begin
                       { rename to lowercase so users can't access it }
                       aprocsym.owner.rename(aprocsym.name,lower(aprocsym.name));

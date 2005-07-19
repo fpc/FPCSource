@@ -1389,6 +1389,8 @@ implementation
                           pc[len]:=#0;
                           p1:=cstringconstnode.createpchar(pc,len);
                         end;
+                      constwstring :
+                        p1:=cstringconstnode.createwstr(pcompilerwidestring(tconstsym(srsym).value.valueptr));
                       constreal :
                         p1:=crealconstnode.create(pbestreal(tconstsym(srsym).value.valueptr)^,pbestrealtype^);
                       constset :
@@ -1416,6 +1418,8 @@ implementation
                         end;
                       constguid :
                         p1:=cguidconstnode.create(pguid(tconstsym(srsym).value.valueptr)^);
+                      else
+                        internalerror(200507181);
                     end;
                   end;
 

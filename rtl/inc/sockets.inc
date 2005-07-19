@@ -172,7 +172,7 @@ end;
 
 type thostaddr= packed array[1..4] of byte;
 
-function htonl( host : longint):longint; {$ifdef HASINLINE} inline; {$ENDIF}
+function htonl( host : longint):longint; inline; 
 
 begin
 {$ifdef FPC_BIG_ENDIAN}
@@ -185,7 +185,7 @@ begin
 {$endif}
 end;
 
-Function NToHl (Net : Longint) : Longint;  {$ifdef HASINLINE} inline; {$ENDIF}
+Function NToHl (Net : Longint) : Longint; inline;
 
 begin
 {$ifdef FPC_BIG_ENDIAN}
@@ -198,7 +198,7 @@ begin
 {$endif}
 end;
 
-function htons( host : word):word; {$ifdef HASINLINE} inline; {$ENDIF}
+function htons( host : word):word; inline; 
 
 begin
 {$ifdef FPC_BIG_ENDIAN}
@@ -208,7 +208,7 @@ begin
 {$endif}
 end;
 
-Function NToHs (Net : word):word;{$ifdef HASINLINE} inline; {$ENDIF}
+Function NToHs (Net : word):word; inline;
 
 begin
 {$ifdef FPC_BIG_ENDIAN}

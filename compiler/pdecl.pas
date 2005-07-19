@@ -49,12 +49,12 @@ implementation
        { common }
        cutils,cclasses,
        { global }
-       globtype,tokens,verbose,
+       globtype,tokens,verbose,widestr,
        systems,
        { aasm }
        aasmbase,aasmtai,fmodule,
        { symtable }
-       symconst,symbase,symtype,symdef,symtable,paramgr,
+       symconst,symbase,symtype,symdef,symtable,paramgr,defutil,
        { pass 1 }
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { codegen }
@@ -75,6 +75,7 @@ implementation
         pd : pbestreal;
         pg : pguid;
         sp : pchar;
+        pw : pcompilerwidestring;
         storetokenpos : tfileposinfo;
       begin
         readconstant:=nil;
@@ -94,9 +95,18 @@ implementation
              end;
            stringconstn:
              begin
-                getmem(sp,tstringconstnode(p).len+1);
-                move(tstringconstnode(p).value_str^,sp^,tstringconstnode(p).len+1);
-                hp:=tconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len);
+               if is_widestring(p.resulttype.def) then
+                 begin
+                   initwidestring(pw);
+                   copywidestring(pcompilerwidestring(tstringconstnode(p).value_str),pw);
+                   hp:=tconstsym.create_wstring(orgname,constwstring,pw);
+                 end
+               else
+                 begin
+                   getmem(sp,tstringconstnode(p).len+1);
+                   move(tstringconstnode(p).value_str^,sp^,tstringconstnode(p).len+1);
+                   hp:=tconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len);
+                 end;
              end;
            realconstn :
              begin

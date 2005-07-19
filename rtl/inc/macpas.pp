@@ -21,10 +21,8 @@ unit MacPas;
 interface
 
 { Using inlining for small system functions/wrappers }
-{$ifdef HASINLINE}
-  {$inline on}
-  {$define SYSTEMINLINE}
-{$endif}
+{$inline on}
+{$define SYSTEMINLINE}
 
 type
   LongDouble = ValReal;

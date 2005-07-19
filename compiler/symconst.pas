@@ -265,7 +265,11 @@ type
     po_syscall_basesysv,
     po_syscall_sysvbase,
     po_syscall_r12base,
-    po_local
+    po_local,
+    { Procedure can be inlined }
+    po_inline,
+    { Procedure is used for internal compiler calls }
+    po_compilerproc
   );
   tprocoptions=set of tprocoption;
 
@@ -438,9 +442,5 @@ const
      );
 
 implementation
-
-initialization
-  if pocall_default in [pocall_register,pocall_internproc] then
-    include(pushleftright_pocalls,pocall_compilerproc);
 
 end.

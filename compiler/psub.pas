@@ -1050,7 +1050,7 @@ implementation
                end;
            end;
 
-         if (procdef.proccalloption=pocall_inline) then
+         if (po_inline in procdef.procoptions) then
            begin
              { Can we inline this procedure? }
              if checknodeinlining(procdef) then
@@ -1260,7 +1260,7 @@ implementation
                  { We can't support inlining for procedures that have nested
                    procedures because the nested procedures use a fixed offset
                    for accessing locals in the parent procedure (PFV) }
-                 if (current_procinfo.procdef.proccalloption=pocall_inline) and
+                 if (po_inline in current_procinfo.procdef.procoptions) and
                     (tcgprocinfo(current_procinfo).nestedprocs.count>0) then
                    begin
                      Message1(parser_w_not_supported_for_inline,'nested procedures');

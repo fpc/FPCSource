@@ -1769,6 +1769,8 @@ begin
   def_system_macro('VER'+version_nr+'_'+release_nr+'_'+patch_nr);
 
 { Temporary defines, until things settle down }
+  def_system_macro('COMPPROCINLINEFIXED');
+
   if pocall_default = pocall_register then
     def_system_macro('REGCALL');
 
