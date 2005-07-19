@@ -666,8 +666,7 @@ implementation
            begin
              { only write the proc definitions that belong
                to this procsym and are in the global symtable }
-             if p^.own and
-                (p^.def.owner.symtabletype in [globalsymtable,objectsymtable]) then
+             if p^.def.owner=owner then
                inc(n);
              p:=p^.next;
            end;
@@ -678,8 +677,7 @@ implementation
            begin
              { only write the proc definitions that belong
                to this procsym and are in the global symtable }
-             if p^.own and
-                (p^.def.owner.symtabletype in [globalsymtable,objectsymtable]) then
+             if p^.def.owner=owner then
                ppufile.putderef(p^.defderef);
              p:=p^.next;
            end;
@@ -718,7 +716,7 @@ implementation
          p:=pdlistfirst;
          while assigned(p) do
            begin
-              if p^.own and (p^.def.forwarddef) then
+              if (p^.def.owner=owner) and (p^.def.forwarddef) then
                 begin
                    if (m_mac in aktmodeswitches) and (p^.def.interfacedef) then
                      import_implict_external(p^.def)
@@ -741,7 +739,7 @@ implementation
          p:=pdlistfirst;
          while assigned(p) do
            begin
-             if p^.own then
+             if p^.def.owner=owner then
                p^.defderef.build(p^.def);
              p:=p^.next;
            end;
@@ -761,7 +759,10 @@ implementation
          p:=pdlistfirst;
          while assigned(p) do
            begin
-             if not p^.own then
+             if not(
+                    (p^.def=nil) or
+                    (p^.def.owner=owner)
+                   ) then
                internalerror(200310291);
              p^.def:=tprocdef(p^.defderef.resolve);
              p:=p^.next;
@@ -777,7 +778,6 @@ implementation
         pd^.def:=p;
         pd^.defderef.reset;
         pd^.next:=nil;
-        pd^.own:=(pd^.def.procsym=self);
         { Add at end of list to keep always
           a correct order, also after loading from ppu }
         if assigned(pdlistlast) then
@@ -802,7 +802,6 @@ implementation
         pd^.def:=nil;
         pd^.defderef:=d;
         pd^.next:=nil;
-        pd^.own:=true;
         { Add at end of list to keep always
           a correct order, also after loading from ppu }
         if assigned(pdlistlast) then
@@ -1067,7 +1066,7 @@ implementation
          p:=pdlistfirst;
          while assigned(p) do
            begin
-              if p^.own then
+              if p^.def.owner=owner then
                 p^.def.write_references(ppufile,locals);
               p:=p^.next;
            end;
@@ -1088,7 +1087,12 @@ implementation
          while assigned(p) do
            begin
               hp:=p^.next;
-              if p^.own then
+             { only keep the proc definitions:
+                - are not deref'd (def=nil)
+                - are in the same symtable as the procsym (for example both
+                  are in the staticsymtable) }
+             if (p^.def=nil) or
+                (p^.def.owner=owner) then
                 begin
                   { keep, add to list }
                   if assigned(pdlistlast) then
@@ -1124,7 +1128,7 @@ implementation
         p:=pdlistfirst;
         while assigned(p) do
           begin
-             if p^.own and
+             if (p^.def.owner=owner) and
                 p^.def.is_visible_for_object(tobjectdef(currobjdef)) then
                begin
                  result:=true;

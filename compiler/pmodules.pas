@@ -1291,11 +1291,15 @@ implementation
              Message1(unit_u_implementation_crc_changed,current_module.ppufilename^);
 {$endif EXTDEBUG}
 
-         { release all local symtables that are not needed anymore }
+         { release all overload references and local symtables that
+           are not needed anymore }
+         tstoredsymtable(current_module.localsymtable).unchain_overloaded;
+         tstoredsymtable(current_module.globalsymtable).unchain_overloaded;
          free_localsymtables(current_module.globalsymtable);
          free_localsymtables(current_module.localsymtable);
 
-         { remove static symtable (=refsymtable) here to save some mem }
+         { remove static symtable (=refsymtable) here to save some mem, possible references
+           (like procsym overloads) should already have been freed above }
          if not (cs_local_browser in aktmoduleswitches) then
            begin
               st.free;
