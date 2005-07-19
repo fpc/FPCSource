@@ -143,6 +143,7 @@ interface
           function det_resulttype : tnode; override;
           procedure mark_write;override;
           function docompare(p: tnode): boolean; override;
+          procedure printnodedata(var t:text);override;
          protected
           tempinfo: ptempinfo;
           offset : longint;
@@ -165,6 +166,7 @@ interface
           function det_resulttype: tnode; override;
           function docompare(p: tnode): boolean; override;
           destructor destroy; override;
+          procedure printnodedata(var t:text);override;
          protected
           tempinfo: ptempinfo;
           release_to_normal : boolean;
@@ -782,7 +784,7 @@ implementation
     procedure ttempcreatenode.printnodedata(var t:text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'size = ',size);
+        writeln(t,printnodeindention,'size = ',size,', temprestype = "',tempinfo^.restype.def.gettypename,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
       end;
 
 
@@ -831,6 +833,9 @@ implementation
           begin
             n.tempinfo := tempinfo;
           end;
+
+        if not assigned(n.tempinfo) then
+          internalerror(2005071901);
 
         result := n;
       end;
@@ -909,6 +914,12 @@ implementation
     begin
       include(flags,nf_write);
     end;
+
+    procedure ttemprefnode.printnodedata(var t:text);
+      begin
+        inherited printnodedata(t);
+        writeln(t,printnodeindention,'temprestype = "',tempinfo^.restype.def.gettypename,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
+      end;
 
 
 {*****************************************************************************
@@ -1011,6 +1022,12 @@ implementation
     destructor ttempdeletenode.destroy;
       begin
         dispose(tempinfo);
+      end;
+
+    procedure ttempdeletenode.printnodedata(var t:text);
+      begin
+        inherited printnodedata(t);
+        writeln(t,printnodeindention,'release_to_normal: ',release_to_normal,', temprestype = "',tempinfo^.restype.def.gettypename,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
       end;
 
 begin
