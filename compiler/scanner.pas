@@ -918,7 +918,7 @@ implementation
                end;
                macrobuffer^[macropos]:=c;
                inc(macropos);
-               if macropos>maxmacrolen then
+               if macropos>=maxmacrolen then
                  Message(scan_f_macro_buffer_overflow);
                current_scanner.readchar;
              until false;
