@@ -11,7 +11,7 @@ unit mysql4dyn;
 
 interface
 
-uses dynlibs, classes, sysutils, mysql4_comdyn;
+uses ctypes,dynlibs, classes, sysutils, my4_sys, mysql4_comdyn;
 
 
 {

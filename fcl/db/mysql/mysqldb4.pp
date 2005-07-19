@@ -688,12 +688,15 @@ end;
 function TMySQLDataset.InternalStrToDate(S: string): TDateTime;
 
 var
-  EY, EM, ED: Word;
+  EY, EM, ED: Longint;
 
 begin
+  SScanf(S,'%d-%d-%d',[@EY,@EM,@ED]);
+  {
   EY := StrToInt(Copy(S,1,4));
   EM := StrToInt(Copy(S,6,2));
   ED := StrToInt(Copy(S,9,2));
+  }
   if (EY = 0) or (EM = 0) or (ED = 0) then
     Result:=0
   else
@@ -703,16 +706,19 @@ end;
 function TMySQLDataset.InternalStrToDateTime(S: string): TDateTime;
 
 var
-  EY, EM, ED: Word;
-  EH, EN, ES: Word;
+  EY, EM, ED: Longint;
+  EH, EN, ES: Longint;
 
 begin
+  SScanf(S,'%d-%d-%d %d:%d:%d',[@EY,@EM,@ED,@EH,@EN,@ES]);
+  {
   EY := StrToInt(Copy(S, 1, 4));
   EM := StrToInt(Copy(S, 6, 2));
   ED := StrToInt(Copy(S, 9, 2));
   EH := StrToInt(Copy(S, 12, 2));
   EN := StrToInt(Copy(S, 15, 2));
   ES := StrToInt(Copy(S, 18, 2));
+  }
   if (EY = 0) or (EM = 0) or (ED = 0) then
     Result := 0
   else
@@ -723,28 +729,34 @@ end;
 function TMySQLDataset.InternalStrToTime(S: string): TDateTime;
 
 var
-  EH, EM, ES: Word;
+  EH, EM, ES: Longint;
 
 begin
+  SScanf(S,'%d:%d:%d',[@EH,@EM,@ES]);
+  {
   EH := StrToInt(Copy(S, 1, 2));
   EM := StrToInt(Copy(S, 4, 2));
   ES := StrToInt(Copy(S, 7, 2));
+  }
   Result := EncodeTime(EH, EM, ES, 0);
 end;
 
 function TMySQLDataset.InternalStrToTimeStamp(S: string): TDateTime;
 
 var
-  EY, EM, ED: Word;
-  EH, EN, ES: Word;
+  EY, EM, ED: longint;
+  EH, EN, ES: longint;
 
 begin
+  SScanf(S,'%d-%d-%d %d:%d:%d',[@EY,@EM,@ED,@EH,@EN,@ES]);
+  {
   EY := StrToInt(Copy(S, 1, 4));
   EM := StrToInt(Copy(S, 5, 2));
   ED := StrToInt(Copy(S, 7, 2));
   EH := StrToInt(Copy(S, 9, 2));
   EN := StrToInt(Copy(S, 11, 2));
   ES := StrToInt(Copy(S, 13, 2));
+  }
   if (EY = 0) or (EM = 0) or (ED = 0) then
     Result := 0
   else

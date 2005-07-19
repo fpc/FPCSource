@@ -69,7 +69,7 @@ Function UpperCase(Const S : String) : String;
 Var
   i : Integer;
   P : PChar;
-    
+
 begin
   Result := S;
   UniqueString(Result);
@@ -80,7 +80,7 @@ begin
       Inc(P);
     end;
 end;
-                            
+
 {   LowerCase returns a copy of S where all uppercase characters ( from A to Z )
     have been converted to lowercase  }
 
@@ -89,7 +89,7 @@ Function Lowercase(Const S : String) : String;
 Var
   i : Integer;
   P : PChar;
-    
+
 begin
   Result := S;
   UniqueString(Result);
@@ -100,7 +100,7 @@ begin
       Inc(P);
     end;
 end;
-                            
+
 
 {   CompareStr compares S1 and S2, the result is the based on
     substraction of the ascii values of the characters in S1 and S2
@@ -212,7 +212,7 @@ end;
 {==============================================================================}
 
 function GenericAnsiUpperCase(const s: string): string;
-  var 
+  var
     len, i: integer;
 begin
   len := length(s);
@@ -223,7 +223,7 @@ end;
 
 
 function GenericAnsiLowerCase(const s: string): string;
-  var 
+  var
     len, i: integer;
 begin
   len := length(s);
@@ -234,7 +234,7 @@ end;
 
 
 function GenericAnsiCompareStr(const S1, S2: string): PtrInt;
-  Var 
+  Var
     I,L1,L2 : SizeInt;
 begin
   Result:=0;
@@ -251,7 +251,7 @@ begin
 end;
 
 function GenericAnsiCompareText(const S1, S2: string): PtrInt;
-  Var 
+  Var
     I,L1,L2 : SizeInt;
 begin
   Result:=0;
@@ -424,56 +424,56 @@ function AnsiUpperCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$
   begin
     result:=widestringmanager.UpperAnsiStringProc(s);
   end;
-  
-  
+
+
 function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.LowerAnsiStringProc(s);
   end;
-  
-  
+
+
 function AnsiCompareStr(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.CompareStrAnsiStringProc(s1,s2);
   end;
-  
-  
+
+
 function AnsiCompareText(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.CompareTextAnsiStringProc(s1,s2);
   end;
-  
-  
+
+
 function AnsiStrComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.StrCompAnsiStringProc(s1,s2);
   end;
 
-  
+
 function AnsiStrIComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.StrICompAnsiStringProc(s1,s2); 
+    result:=widestringmanager.StrICompAnsiStringProc(s1,s2);
   end;
 
-  
+
 function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.StrLCompAnsiStringProc(s1,s2,maxlen);
   end;
 
-  
+
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.StrLICompAnsiStringProc(s1,s2,maxlen);
   end;
 
-  
+
 function AnsiStrLower(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.StrLowerAnsiStringProc(Str);
   end;
-  
-  
+
+
 function AnsiStrUpper(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.StrUpperAnsiStringProc(Str);
@@ -757,7 +757,7 @@ function StrToInt(const S: string): integer;
 var Error: word;
 begin
   Val(S, result, Error);
-  if Error <> 0 then raise EConvertError.createfmt(SInValidInteger,[S]);
+  if Error <> 0 then raise EConvertError.createfmt(SInvalidInteger,[S]);
 end ;
 
 
@@ -766,7 +766,7 @@ var Error: word;
 
 begin
   Val(S, result, Error);
-  if Error <> 0 then raise EConvertError.createfmt(SInValidInteger,[S]);
+  if Error <> 0 then raise EConvertError.createfmt(SInvalidInteger,[S]);
 end;
 
 
@@ -1028,9 +1028,9 @@ Begin
         else if (P<>0) then // we have a decimalseparator
           begin
           P := Length(Result);
-          While (P>0) and (Result[P] = '0') Do 
+          While (P>0) and (Result[P] = '0') Do
             Dec(P);
-          If (P>0) and (Result[P]=DecimalSeparator) Then 
+          If (P>0) and (Result[P]=DecimalSeparator) Then
             Dec(P);
           SetLength(Result, P);
           end;
@@ -1769,7 +1769,7 @@ function FormatCurr(const Format: string; Value: Currency): string;
 begin
   Result := FormatFloat(Format, Value);
 end;
-  
+
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -2068,3 +2068,179 @@ const
      #240, #241, #242, #243, #244, #245, #246, #247,
      #248, #249, #250, #251, #252, #253, #254, #255 );
 
+
+function sscanf(const s: string; const fmt : string;const Pointers : array of Pointer) : Integer;
+  var
+    i,j,n,m : SizeInt;
+    s1      : string;
+
+  function GetInt(unsigned : boolean=false) : Integer;
+    begin
+      s1 := '';
+      while (s[n] = ' ')  and (Length(s) > n) do
+        inc(n);
+      { read sign }
+      if (Length(s)>= n) and (s[n] in ['+', '-']) then
+        begin
+          { don't accept - when reading unsigned }
+          if unsigned and (s[n]='-') then
+            begin
+              result:=length(s1);
+              exit;
+            end
+          else
+            begin
+              s1:=s1+s[n];
+              inc(n);
+            end;
+        end;
+      { read numbers }
+      while (s[n] in ['0'..'9'])
+        and (Length(s) >= n) do
+        begin
+          s1 := s1+s[n];
+          inc(n);
+        end;
+      Result := Length(s1);
+    end;
+
+
+  function GetFloat : Integer;
+    begin
+      s1 := '';
+      while (s[n] = ' ')  and (Length(s) > n) do
+        inc(n);
+      while (s[n] in ['0'..'9', '+', '-', '.', 'e', 'E'])
+        and (Length(s) >= n) do
+        begin
+          s1 := s1+s[n];
+          inc(n);
+        end;
+      Result := Length(s1);
+    end;
+
+
+  function GetString : Integer;
+    begin
+      s1 := '';
+      while (s[n] = ' ')  and (Length(s) > n) do
+        inc(n);
+      while (s[n] <> ' ') and (Length(s) >= n) do
+        begin
+          s1 := s1+s[n];
+          inc(n);
+        end;
+      Result := Length(s1);
+    end;
+
+
+  function ScanStr(c : Char) : Boolean;
+    begin
+      while (s[n] <> c) and (Length(s) > n) do
+        inc(n);
+      inc(n);
+      If (n <= Length(s)) then
+        Result := True
+      else
+        Result := False;
+    end;
+
+
+  function GetFmt : Integer;
+    begin
+      Result := -1;
+      while true do
+        begin
+
+          while (fmt[m] = ' ') and (Length(fmt) > m) do
+            inc(m);
+
+          if (m >= Length(fmt)) then
+            break;
+
+          if (fmt[m] = '%') then
+            begin
+              inc(m);
+              case fmt[m] of
+                'd':
+                  Result:=vtInteger;
+                'f':
+                  Result:=vtExtended;
+                's':
+                  Result:=vtString;
+                'c':
+                  Result:=vtChar;
+                else
+                  raise EFormatError.CreateFmt(SInvalidFormat,[fmt]);
+              end;
+              inc(m);
+              break;
+            end;
+
+          if not(ScanStr(fmt[m])) then
+            break;
+          inc(m);
+        end;
+    end;
+
+
+  begin
+    n := 1;
+    m := 1;
+    Result := 0;
+
+    for i:=0 to High(Pointers) do
+      begin
+        j := GetFmt;
+        case j of
+          vtInteger :
+            begin
+              if GetInt>0 then
+                begin
+                  plongint(Pointers[i])^:=StrToInt(s1);
+                  inc(Result);
+                end
+              else
+                break;
+
+            end;
+
+          vtchar :
+            begin
+              if Length(s)>n then
+                begin
+                  pchar(Pointers[i])^:=s[n];
+                  inc(n);
+                  inc(Result);
+                end
+              else
+                break;
+
+            end;
+
+          vtExtended :
+            begin
+              if GetFloat>0 then
+                begin
+                  pextended(Pointers[i])^:=StrToFloat(s1);
+                  inc(Result);
+                end
+              else
+                break;
+            end;
+
+          vtString :
+            begin
+              if GetString > 0 then
+                begin
+                  pansistring(Pointers[i])^:=s1;
+                  inc(Result);
+                end
+              else
+                break;
+            end;
+          else
+            break;
+        end;
+      end;
+   end;

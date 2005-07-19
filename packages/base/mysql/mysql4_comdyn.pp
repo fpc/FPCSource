@@ -11,7 +11,7 @@ unit mysql4_comdyn;
 
 interface
 
-uses dynlibs, sysutils;
+uses ctypes,my4_sys,dynlibs, sysutils;
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}

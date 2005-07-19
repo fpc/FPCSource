@@ -1358,6 +1358,7 @@ packages/base/mysql/Makefile svneol=native#text/plain
 packages/base/mysql/Makefile.fpc svneol=native#text/plain
 packages/base/mysql/README -text
 packages/base/mysql/mkdb -text
+packages/base/mysql/my4_sys.pp svneol=native#text/plain
 packages/base/mysql/mysql3.pp svneol=native#text/plain
 packages/base/mysql/mysql3_com.pp svneol=native#text/plain
 packages/base/mysql/mysql3_comdyn.pp svneol=native#text/plain
@@ -5147,6 +5148,7 @@ tests/test/units/system/ttrunc.pp svneol=native#text/plain
 tests/test/units/sysutils/execansi.pp svneol=native#text/plain
 tests/test/units/sysutils/execedbya.pp svneol=native#text/plain
 tests/test/units/sysutils/extractquote.pp svneol=native#text/plain
+tests/test/units/sysutils/tsscanf.pp svneol=native#text/plain
 tests/test/uprocext1.pp svneol=native#text/plain
 tests/test/uprocext2.pp svneol=native#text/plain
 tests/test/utasout.pp svneol=native#text/plain

@@ -129,6 +129,7 @@ type
 
    { String conversion errors }
    EConvertError = class(Exception);
+   EFormatError = class(Exception);
 
    { Other errors }
    EAbort           = Class(Exception);

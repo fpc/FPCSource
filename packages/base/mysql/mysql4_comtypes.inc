@@ -80,10 +80,11 @@ const
    CLIENT_TRANSACTIONS = 8192;
    SERVER_STATUS_IN_TRANS = 1;
    SERVER_STATUS_AUTOCOMMIT = 2;
-   MYSQL_ERRMSG_SIZE = 200;
+   MYSQL_ERRMSG_SIZE = 512;
    NET_READ_TIMEOUT = 30;
    NET_WRITE_TIMEOUT = 60;
    MAX_BLOB_WIDTH = 8192;
+   SQLSTATE_LENGTH = 5;
 {
 #define NET_WAIT_TIMEOUT      (8 60 60)
  }
@@ -101,28 +102,30 @@ type
     write_pos : Pbyte;
     read_pos : Pbyte;
     fd : my_socket;
-    max_packet : dword;
-    max_packet_size : dword;
-    last_errno : dword;
-    pkt_nr : dword;
-    compress_pkt_nr : dword;
-    write_timeout : dword;
-    read_timeout : dword;
-    retry_count : dword;
-    fcntl : longint;
-    last_error : array[0..(MYSQL_ERRMSG_SIZE)-1] of char;
-    error : byte;
-    return_errno : my_bool;
+    max_packet,
+    max_packet_size : culong;
+    pkt_nr,
+    compress_pkt_nr : culong;
+    write_timeout,
+    read_timeout,
+    retry_count : cuint;
+    fcntl : cint;
     compress : my_bool;
-    remain_in_buf : dword;
-    length : dword;
-    buf_length : dword;
-    where_b : dword;
-    return_status : Pdword;
-    reading_or_writing : byte;
-    save_char : char;
+    remain_in_bufm,
+    length,
+    buf_length,
+    where_b : culong;
+    return_status : pcuint;
+    reading_or_writing : cuint;
+    save_char : cchar;
     no_send_ok : my_bool;
+    last_error : array[0..(MYSQL_ERRMSG_SIZE)-1] of char;
+    sqlstate : array[0..SQLSTATE_LENGTH] of char;
+    last_errno : cuint;
+    error : cuchar;
     query_cache_query : gptr;
+    report_error,
+    return_errno : my_bool;
   end;
   NET = st_net;
   TNET = NET;
