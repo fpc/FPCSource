@@ -1,7 +1,7 @@
-unit sqliteds;
+unit sqlite3ds;
 
 {
-    This is TSqliteDataset, a TDataset descendant class for use with fpc compiler
+    This is TSqlite3Dataset, a TDataset descendant class for use with fpc compiler
     Copyright (C) 2004  Luiz Américo Pereira Câmara
     Email: pascalive@bol.com.br
 
@@ -31,9 +31,9 @@ uses
   Classes, SysUtils, customsqliteds;
 
 type
-  { TSqliteDataset }
+  { TSqlite3Dataset }
 
-  TSqliteDataset = class (TCustomSqliteDataset)
+  TSqlite3Dataset = class (TCustomSqliteDataset)
   private
     function SqliteExec(AHandle: Pointer; ASql:PChar):Integer;override;
     function GetSqliteHandle: Pointer; override;
@@ -49,10 +49,7 @@ type
 implementation
 
 uses
-  sqlite,db;
-
-var
-  DummyAutoIncFieldNo:Integer;
+  sqlite3,db;
 
 function GetAutoIncValue(NextValue: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): integer; cdecl;
 var
@@ -69,21 +66,38 @@ begin
   Result:=1;
 end;
 
-function GetFieldDefs(TheDataset: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): integer; cdecl;
-var
-  FieldSize:Word;
-  Counter:Integer;
-  AType:TFieldType;
-  ColumnStr:String;
+{ TSqlite3Dataset }
+
+function TSqlite3Dataset.SqliteExec(AHandle: Pointer; ASql: PChar): Integer;
 begin
- // Sqlite is typeless (allows any type in any field)
- // regardless of what is in Create Table, but returns
- // exactly what is in Create Table statement
- // here is a trick to get the datatype.
- // If the field contains another type, there will be problems
- for Counter:= 0 to Columns - 1 do
- begin
-   ColumnStr:= UpperCase(StrPas(ColumnNames[Counter + Columns]));
+  Result:=sqlite3_exec(AHandle, ASql, nil, nil, nil);
+end;
+
+procedure TSqlite3Dataset.SqliteClose(AHandle: Pointer);
+begin
+  sqlite3_close(AHandle);
+  //todo:handle return data
+end;
+
+
+function TSqlite3Dataset.GetSqliteHandle: Pointer;
+begin
+  FSqliteReturnId:=sqlite3_open(PChar(FFileName),@Result);
+end;
+
+procedure TSqlite3Dataset.InternalInitFieldDefs;
+var
+  vm:Pointer;
+  ColumnStr:String;
+  Counter,FieldSize:Integer;
+  AType:TFieldType;
+begin
+  FieldDefs.Clear;
+  sqlite3_prepare(FSqliteHandle,PChar(FSql),-1,@vm,nil);
+	sqlite3_step(vm);
+	for Counter:= 0 to sqlite3_column_count(vm) - 1 do
+	begin
+   ColumnStr:= UpperCase(StrPas(sqlite3_column_decltype(vm,Counter)));
    if (ColumnStr = 'INTEGER') then
    begin
      AType:= ftInteger;
@@ -120,65 +134,38 @@ begin
    begin
      AType:= ftAutoInc;
      FieldSize:=SizeOf(Integer);
-     if DummyAutoIncFieldNo = -1 then
-       DummyAutoIncFieldNo:= Counter;
+     if FAutoIncFieldNo = -1 then
+       FAutoIncFieldNo:= Counter;
    end else
    begin
      AType:= ftString;
      FieldSize:=10; //??
    end;
-   TDataset(TheDataset).FieldDefs.Add(StrPas(ColumnNames[Counter]), AType, FieldSize, False);
- end;
- result:=-1;
-end;
-
-
-{ TSqliteDataset }
-
-function TSqliteDataset.SqliteExec(AHandle: Pointer; ASql: PChar): Integer;
-begin
-  Result:=sqlite_exec(AHandle, ASql, nil, nil, nil);
-end;
-
-procedure TSqliteDataset.SqliteClose(AHandle: Pointer);
-begin
-  sqlite_close(AHandle);
-end;
-
-
-function TSqliteDataset.GetSqliteHandle: Pointer;
-begin
-  Result:=sqlite_open(PChar(FFileName),0,nil);
-end;
-
-procedure TSqliteDataset.InternalInitFieldDefs;
-begin
-
-  FieldDefs.Clear;
-  sqlite_exec(FSqliteHandle,PChar('PRAGMA empty_result_callbacks = ON;PRAGMA show_datatypes = ON;'),nil,nil,nil);
-  DummyAutoIncFieldNo:=-1;
-  FSqliteReturnId:=sqlite_exec(FSqliteHandle,PChar(FSql),@GetFieldDefs,Self,nil);
-  FAutoIncFieldNo:=DummyAutoIncFieldNo;
-  {
-  if FSqliteReturnId <> SQLITE_ABORT then
-     DatabaseError(SqliteReturnString,Self);
-  }
+   FieldDefs.Add(StrPas(sqlite3_column_name(vm,Counter)), AType, FieldSize, False);
+   {$ifdef DEBUG}
+   writeln('Field Name: ',sqlite3_column_name(vm,Counter));
+   writeln('Field Type: ',sqlite3_column_decltype(vm,Counter));
+   {$endif}
+  end;
+	sqlite3_finalize(vm);
   FRowBufferSize:=(SizeOf(PPChar)*FieldDefs.Count);
+  {$ifdef DEBUG}
+  writeln('FieldDefs.Count: ',FieldDefs.Count);
+  {$endif}
 end;
 
-procedure TSqliteDataset.BuildLinkedList;
+procedure TSqlite3Dataset.BuildLinkedList;
 var
   TempItem:PDataRecord;
   vm:Pointer;
-  ColumnNames,ColumnValues:PPChar;
   Counter:Integer;
 begin
   //Get AutoInc Field initial value
   if FAutoIncFieldNo <> -1 then
-    sqlite_exec(FSqliteHandle,PChar('Select Max('+Fields[FAutoIncFieldNo].FieldName+') from ' + FTableName),
+    sqlite3_exec(FSqliteHandle,PChar('Select Max('+Fields[FAutoIncFieldNo].FieldName+') from ' + FTableName),
       @GetAutoIncValue,@FNextAutoInc,nil);
 
-  FSqliteReturnId:=sqlite_compile(FSqliteHandle,Pchar(FSql),nil,@vm,nil);
+  FSqliteReturnId:=sqlite3_prepare(FSqliteHandle,Pchar(FSql),-1,@vm,nil);
   if FSqliteReturnId <> SQLITE_OK then
   case FSqliteReturnId of
   SQLITE_ERROR:
@@ -191,7 +178,8 @@ begin
 
   TempItem:=FBeginItem;
   FRecordCount:=0;
-  FSqliteReturnId:=sqlite_step(vm,@FRowCount,@ColumnValues,@ColumnNames);
+  FRowCount:=sqlite3_column_count(vm);
+  FSqliteReturnId:=sqlite3_step(vm);
   while FSqliteReturnId = SQLITE_ROW do
   begin
     Inc(FRecordCount);
@@ -200,10 +188,10 @@ begin
     TempItem:=TempItem^.Next;
     GetMem(TempItem^.Row,FRowBufferSize);
     For Counter := 0 to FRowCount - 1 do
-      TempItem^.Row[Counter]:=StrNew(ColumnValues[Counter]);
-    FSqliteReturnId:=sqlite_step(vm,@FRowCount,@ColumnValues,@ColumnNames);
+      TempItem^.Row[Counter]:=StrNew(sqlite3_column_text(vm,Counter));
+    FSqliteReturnId:=sqlite3_step(vm);
   end;
-  sqlite_finalize(vm, nil);
+  sqlite3_finalize(vm);
 
   // Attach EndItem
   TempItem^.Next:=FEndItem;
@@ -219,11 +207,9 @@ begin
     FBeginItem^.Row[Counter]:=nil;
 end;
 
-function TSqliteDataset.TableExists: Boolean;
+function TSqlite3Dataset.TableExists: Boolean;
 var
   AHandle,vm:Pointer;
-  ColumnNames,ColumnValues:PPChar;
-  AInt:Integer;
 begin
   Result:=False;
   if not (FTableName = '') and FileExists(FFileName) then
@@ -242,27 +228,27 @@ begin
       {$endif}
       AHandle:=FSqliteHandle;
     end;
-    FSqliteReturnId:=sqlite_compile(AHandle,
-      Pchar('SELECT name FROM SQLITE_MASTER WHERE type = ''table'' AND name LIKE '''+ FTableName+ ''';'),
-      nil,@vm,nil);
+    FSqliteReturnId:=sqlite3_prepare(AHandle,
+    Pchar('SELECT name FROM SQLITE_MASTER WHERE type = ''table'' AND name LIKE '''+ FTableName+ ''';'),
+      -1,@vm,nil);
     {$ifdef DEBUG}
-    WriteLn('TableExists.sqlite_compile - SqliteReturnString:',SqliteReturnString);
+    WriteLn('TableExists.sqlite3_prepare - SqliteReturnString:',SqliteReturnString);
     {$endif}
-    FSqliteReturnId:=sqlite_step(vm,@AInt,@ColumnValues,@ColumnNames);
+    FSqliteReturnId:=sqlite3_step(vm);
     {$ifdef DEBUG}
-    WriteLn('TableExists.sqlite_step - SqliteReturnString:',SqliteReturnString);
+    WriteLn('TableExists.sqlite3_step - SqliteReturnString:',SqliteReturnString);
     {$endif}
     Result:=FSqliteReturnId = SQLITE_ROW;
-    sqlite_finalize(vm, nil);
+    sqlite3_finalize(vm);
     if (FSqliteHandle = nil) then
-      SqliteClose(AHandle);
+      sqlite3_close(AHandle);
   end;
   {$ifdef DEBUG}
   WriteLn('TableExists ('+FTableName+') Result:',Result);
   {$endif}
 end;
 
-function TSqliteDataset.SqliteReturnString: String;
+function TSqlite3Dataset.SqliteReturnString: String;
 begin
  case FSqliteReturnId of
       SQLITE_OK           : Result := 'SQLITE_OK          ';
@@ -290,8 +276,9 @@ begin
       SQLITE_NOLFS        : Result := 'SQLITE_NOLFS       ';
       SQLITE_AUTH         : Result := 'SQLITE_AUTH        ';
       SQLITE_FORMAT       : Result := 'SQLITE_FORMAT      ';
-     // SQLITE_RANGE        : Result := 'SQLITE_RANGE       ';
+      SQLITE_RANGE        : Result := 'SQLITE_RANGE       ';
       SQLITE_ROW          : Result := 'SQLITE_ROW         ';
+      SQLITE_NOTADB       : Result := 'SQLITE_NOTADB      ';
       SQLITE_DONE         : Result := 'SQLITE_DONE        ';
   else
     Result:='Unknow Return Value';
