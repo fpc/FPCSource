@@ -2110,6 +2110,7 @@ type
         para: tcallparanode;
         tempnode: ttempcreatenode;
         tempnodes: ttempnodes;
+        n: tnode;
       begin
         { parameters }
         para := tcallparanode(left);
@@ -2120,6 +2121,14 @@ type
                (not(vo_is_funcret in tparavarsym(para.parasym).varoptions) or
                 (not assigned(funcretnode))) then
               begin
+                { must take copy of para.left, because if it contains a       }
+                { temprefn pointing to a copied temp (e.g. methodpointer),    }
+                { then this parameter must be changed to point to the copy of }
+                { that temp (JM)                                              }
+                n := para.left.getcopy;
+                para.left.free;
+                para.left := n;
+
                 { create temps for value parameters, function result and also for    }
                 { const parameters which are passed by value instead of by reference }
                 { we need to take care that we use the type of the defined parameter and not of the
@@ -2196,11 +2205,10 @@ type
         createblock:=internalstatements(createstatement);
         deleteblock:=internalstatements(deletestatement);
 
-        { add methodpointer init/fini code to init/done statements }
+        { add methodpointer init code to init statement                    }
+        { (fini must be done later, as it will delete the hookoncopy info) }
         if assigned(methodpointerinit) then
           addstatement(createstatement,methodpointerinit.getcopy);
-        if assigned(methodpointerdone) then
-          addstatement(deletestatement,methodpointerdone.getcopy);
 
         inlinelocals:=tlist.create;
         { get copy of the procedure body }
@@ -2209,6 +2217,11 @@ type
         createinlineparas(createstatement,deletestatement);
         { replace the parameter loads with the parameter values }
         foreachnode(body,@replaceparaload,@fileinfo);
+
+        { copy methodpointer fini code }
+        if assigned(methodpointerdone) then
+          addstatement(deletestatement,methodpointerdone.getcopy);
+
         { free the temps for the locals }
         for i := 0 to inlinelocals.count-1 do
           if assigned(inlinelocals[i]) then
@@ -2228,6 +2241,12 @@ type
         include(procdefinition.procoptions,po_inline);
         { return inlined block }
         result := createblock;
+
+{$ifdef DEBUGINLINE}
+        writeln;
+        writeln('**************************',tprocdef(procdefinition).mangledname);
+        printnode(output,result);
+{$endif DEBUGINLINE}
       end;
 
 
