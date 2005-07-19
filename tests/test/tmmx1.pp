@@ -1,5 +1,4 @@
 { %CPU=i386 }
-{ %maxversion=1.0.99 }
 
 { this contains currently only a basic test of mmx support }
 { the following instructions are tested:

@@ -50,12 +50,12 @@ interface
           procedure second_addfloat;virtual;abstract;
           procedure second_addboolean;virtual;
           procedure second_addsmallset;virtual;
-{$ifdef i386}
+{$ifdef x86}
 {$ifdef SUPPORT_MMX}
-          procedure second_addmmxset;virtual;abstract;
-          procedure second_addmmx;virtual;abstract;
+          procedure second_opmmxset;virtual;abstract;
+          procedure second_opmmx;virtual;abstract;
 {$endif SUPPORT_MMX}
-{$endif}
+{$endif x86}
           procedure second_add64bit;virtual;
           procedure second_addordinal;virtual;
           procedure second_cmpfloat;virtual;abstract;
@@ -775,7 +775,7 @@ interface
 {$ifdef SUPPORT_MMX}
               else
                 if is_mmx_able_array(left.resulttype.def) then
-                  second_opmmx;
+                  second_opmmx
 {$endif SUPPORT_MMX}
               else
                 internalerror(200306016);

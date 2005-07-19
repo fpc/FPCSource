@@ -36,6 +36,7 @@
   {$define cpuflags}
   {$define cpuextended}
   {$define USECMOV}
+  {$define SUPPORT_MMX}
 {$endif i386}
 
 {$ifdef x86_64}
