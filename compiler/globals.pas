@@ -1870,7 +1870,8 @@ end;
             end;
            { Default enum packing for delphi/tp7 }
            if (m_tp7 in aktmodeswitches) or
-              (m_delphi in aktmodeswitches) then
+              (m_delphi in aktmodeswitches) or
+              (m_mac in aktmodeswitches) then
              aktpackenum:=1
            else
              aktpackenum:=4;
