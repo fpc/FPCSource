@@ -1,8 +1,8 @@
 {
+    This file contains the OS independent declarations of the system unit
+    
     This file is part of the Free Pascal Run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
-
-    This File contains the OS independent declarations of the system unit
+    Copyright (c) 1999-2005 by the Free Pascal development team
 
     See the File COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -27,12 +27,8 @@
 {$endif}
 
 { Using inlining for small system functions/wrappers }
-{$ifdef HASINLINE}
-  {$inline on}
-  {$define SYSTEMINLINE}
-{$endif}
-
-{ Use threadvars when the compiler supports it }
+{$inline on}
+{$define SYSTEMINLINE}
 
 { don't use FPU registervariables on the i386 }
 {$ifdef CPUI386}
@@ -584,7 +580,7 @@ function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{
 Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Sptr:Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_ptr];
 Function GetProcessID:SizeUInt;
-Function GetThreadID:TThreadID;
+Function GetThreadID:TThreadID;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 
 {*****************************************************************************

@@ -207,116 +207,119 @@ var
  **********************************************************************}
 
 { Integer }
-operator :=(const source : byte) dest : variant;
-operator :=(const source : shortint) dest : variant;
-operator :=(const source : word) dest : variant;
-operator :=(const source : smallint) dest : variant;
-operator :=(const source : dword) dest : variant;
-operator :=(const source : longint) dest : variant;
-operator :=(const source : qword) dest : variant;
-operator :=(const source : int64) dest : variant;
+operator :=(const source : byte) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : shortint) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : word) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : smallint) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : dword) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : longint) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : qword) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : int64) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Boolean }
-operator :=(const source : boolean) dest : variant;
-operator :=(const source : wordbool) dest : variant;
-operator :=(const source : longbool) dest : variant;
+operator :=(const source : boolean) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : wordbool) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : longbool) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Chars }
-operator :=(const source : char) dest : variant;
-operator :=(const source : widechar) dest : variant;
+operator :=(const source : char) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : widechar) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Strings }
-operator :=(const source : shortstring) dest : variant;
-operator :=(const source : ansistring) dest : variant;
-operator :=(const source : widestring) dest : variant;
+operator :=(const source : shortstring) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : ansistring) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : widestring) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Floats }
 {$ifdef SUPPORT_SINGLE}
-operator :=(const source : single) dest : variant;
+operator :=(const source : single) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_SINGLE}
 {$ifdef SUPPORT_DOUBLE}
-operator :=(const source : double) dest : variant;
+operator :=(const source : double) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_DOUBLE}
 {$ifdef SUPPORT_EXTENDED}
-operator :=(const source : extended) dest : variant;
+operator :=(const source : extended) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_EXTENDED}
 {$ifdef SUPPORT_COMP}
-operator :=(const source : comp) dest : variant;
+operator :=(const source : comp) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_COMP}
 
 { Misc. }
-operator :=(const source : currency) dest : variant;
-operator :=(const source : tdatetime) dest : variant;
+operator :=(const source : currency) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : tdatetime) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {**********************************************************************
                        from Variant assignments
  **********************************************************************}
 
 { Integer }
-operator :=(const source : variant) dest : byte;
-operator :=(const source : variant) dest : shortint;
-operator :=(const source : variant) dest : word;
-operator :=(const source : variant) dest : smallint;
-operator :=(const source : variant) dest : dword;
-operator :=(const source : variant) dest : longint;
-operator :=(const source : variant) dest : qword;
-operator :=(const source : variant) dest : int64;
+operator :=(const source : variant) dest : byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : shortint;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : word;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : smallint;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : dword;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : longint;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : qword;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Boolean }
-operator :=(const source : variant) dest : boolean;
-operator :=(const source : variant) dest : wordbool;
-operator :=(const source : variant) dest : longbool;
+operator :=(const source : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : wordbool;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : longbool;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Chars }
-operator :=(const source : variant) dest : char;
-operator :=(const source : variant) dest : widechar;
+operator :=(const source : variant) dest : char;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : widechar;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Strings }
-operator :=(const source : variant) dest : shortstring;
-operator :=(const source : variant) dest : ansistring;
-operator :=(const source : variant) dest : widestring;
+operator :=(const source : variant) dest : shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : widestring;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Floats }
 {$ifdef SUPPORT_SINGLE}
-operator :=(const source : variant) dest : single;
+operator :=(const source : variant) dest : single;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_SINGLE}
 {$ifdef SUPPORT_DOUBLE}
-operator :=(const source : variant) dest : double;
+operator :=(const source : variant) dest : double;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_DOUBLE}
 {$ifdef SUPPORT_EXTENDED}
-operator :=(const source : variant) dest : extended;
+operator :=(const source : variant) dest : extended;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_EXTENDED}
 {$ifdef SUPPORT_EXTENDED}
-operator :=(const source : variant) dest : comp;
+operator :=(const source : variant) dest : comp;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_COMP}
 
+operator :=(const source : olevariant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+
 { Misc. }
-operator :=(const source : variant) dest : currency;
-operator :=(const source : variant) dest : tdatetime;
+operator :=(const source : variant) dest : currency;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : tdatetime;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {**********************************************************************
                          Operators
  **********************************************************************}
 
-operator or(const op1,op2 : variant) dest : variant;
-operator and(const op1,op2 : variant) dest : variant;
-operator xor(const op1,op2 : variant) dest : variant;
-operator not(const op : variant) dest : variant;
-operator shl(const op1,op2 : variant) dest : variant;
-operator shr(const op1,op2 : variant) dest : variant;
-operator +(const op1,op2 : variant) dest : variant;
-operator -(const op1,op2 : variant) dest : variant;
-operator *(const op1,op2 : variant) dest : variant;
-operator /(const op1,op2 : variant) dest : variant;
-operator **(const op1,op2 : variant) dest : variant;
-operator div(const op1,op2 : variant) dest : variant;
-operator mod(const op1,op2 : variant) dest : variant;
-operator -(const op : variant) dest : variant;
-operator =(const op1,op2 : variant) dest : boolean;
-operator <(const op1,op2 : variant) dest : boolean;
-operator >(const op1,op2 : variant) dest : boolean;
-operator >=(const op1,op2 : variant) dest : boolean;
-operator <=(const op1,op2 : variant) dest : boolean;
+operator or(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator and(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator xor(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator not(const op : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator shl(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator shr(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator +(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator -(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator *(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator /(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator **(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator div(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator mod(const op1,op2 : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator -(const op : variant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator =(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator <(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator >(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator >=(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator <=(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { variant helpers }
 procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
