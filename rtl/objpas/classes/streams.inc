@@ -600,7 +600,7 @@ begin
   else
     begin
       Result:=Reallocmem(FMemory,Newcapacity);
-      If Result=Nil then
+      If (Result=Nil) and (Newcapacity>0) then
         Raise EStreamError.Create(SMemoryStreamError);
     end;
 end;
