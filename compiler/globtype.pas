@@ -76,6 +76,9 @@ than 255 characters. That's why using Ansi Strings}
        tdoublearray = array[0..7] of byte;
        textendedarray = array[0..9] of byte;
 
+       pconstset = ^tconstset;
+       tconstset = set of 0..255;
+
        { Switches which can be changed locally }
        tlocalswitch = (cs_localnone,
          { codegen }

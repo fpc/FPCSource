@@ -33,9 +33,6 @@ interface
        symtype;
 
     type
-       pconstset = ^tconstset;
-       tconstset = set of 0..255;
-
        tnodetype = (
           emptynode,        {No node (returns nil when loading from ppu)}
           addn,             {Represents the + operator}
