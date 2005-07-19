@@ -678,6 +678,8 @@ begin
   errorcode:=word(Errno);
   erroraddr:=addr;
   errorbase:=frame;
+  if ExceptAddrStack <> nil then
+    raise TObject(nil) at addr,frame;
   if errorcode <= maxExitCode then
     halt(errorcode)
   else
