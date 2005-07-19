@@ -773,7 +773,7 @@ implementation
                          if (m_delphi in aktmodeswitches) and is_integer(def_from) then
                           begin
                             doconv:=tc_cord_2_pointer;
-                            eq:=te_convert_l1;
+                            eq:=te_convert_l2;
                           end;
                       end;
                      { delphi compatible, allow explicit typecasts from
