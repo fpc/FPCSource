@@ -2175,8 +2175,17 @@ implementation
                        { no, create constant 1 }
                        hpp := cordconstnode.create(1,tcallparanode(left).left.resulttype,false);
                      end;
-                   if (tcallparanode(left).left.resulttype.def.deftype=pointerdef) then
+                   resulttypepass(hpp);
+{$ifndef cpu64bit}
+                   if not((hpp.resulttype.def.deftype=orddef) and
+                          (torddef(hpp.resulttype.def).typ<>u32bit)) then
+{$endif cpu64bit}
                      inserttypeconv_internal(hpp,sinttype);
+                   { No overflow check for pointer operations, because inc(pointer,-1) will always
+                     trigger an overflow. For uint32 it works because then the operation is done
+                     in 64bit }
+                   if (tcallparanode(left).left.resulttype.def.deftype=pointerdef) then
+                     exclude(aktlocalswitches,cs_check_overflow);
                    { make sure we don't call functions part of the left node twice (and generally }
                    { optimize the code generation)                                                }
                    if node_complexity(tcallparanode(left).left) > 1 then
