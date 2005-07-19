@@ -1719,7 +1719,7 @@ implementation
               else if is_ordinal(resulttype.def) then
                 begin
                    hp:=cordconstnode.create(TConstExprInt(tpointerconstnode(left).value),
-                     resulttype,true);
+                     resulttype,not(nf_explicit in flags));
                    result:=hp;
                    exit;
                 end;
