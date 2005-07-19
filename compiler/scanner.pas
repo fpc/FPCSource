@@ -673,12 +673,10 @@ implementation
                                         read_factor := upper(pchar(value.valueptr));
                                       constset :
                                         begin
-                                          hs:='';
+                                          hs:=',';
                                           for l:=0 to 255 do
                                             if l in pconstset(tconstsym(srsym).value.valueptr)^ then
-                                              hs:=hs+','+tostr(l);
-                                          if hs<>'' then
-                                            hs:=hs+',';
+                                              hs:=hs+tostr(l)+',';
                                           read_factor := hs;
                                         end;
                                     end;
