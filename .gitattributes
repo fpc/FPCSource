@@ -5173,6 +5173,13 @@ tests/utils/redir.pp svneol=native#text/plain
 tests/utils/testfail.pp svneol=native#text/plain
 tests/utils/tests.sql -text
 tests/utils/teststr.pp svneol=native#text/plain
+tests/utils/testsuite/Makefile svneol=native#text/plain
+tests/utils/testsuite/Makefile.fpc svneol=native#text/plain
+tests/utils/testsuite/defaults.sql svneol=native#text/plain
+tests/utils/testsuite/testsuite.lpi svneol=native#text/plain
+tests/utils/testsuite/testsuite.pp svneol=native#text/plain
+tests/utils/testsuite/testsuite.sql svneol=native#text/plain
+tests/utils/testsuite/utests.pp svneol=native#text/plain
 tests/utils/testu.pp svneol=native#text/plain
 tests/webtbf/tw0744.pp svneol=native#text/plain
 tests/webtbf/tw0769b.pp svneol=native#text/plain
