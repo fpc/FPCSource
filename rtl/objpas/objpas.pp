@@ -303,6 +303,18 @@ begin
             CurrentValue:=DefaultValue;
 end;
 
+Procedure FinalizeResourceTables;
+
+Var I,J : longint;
+
+begin
+  With ResourceStringTable do
+  For I:=0 to Count-1 do
+    With Tables[I]^ do
+        For J:=0 to Count-1 do
+          With ResRec[J] do
+            CurrentValue:='';
+end;
 Function ResourceStringTableCount : Longint;
 
 begin
@@ -383,5 +395,5 @@ end;
 Initialization
   ResetResourceTables;
 finalization
-
+  FinalizeResourceTables;
 end.
