@@ -101,13 +101,18 @@ Begin
 {$endif}
 end;
 
+
+{$ifndef HASEXPANDUNCFILENAME}
 function ExpandUNCFileName (Const FileName : string): String;
 begin
   Result:=ExpandFileName (FileName);
   //!! Here should follow code to replace the drive: part with UNC...
 end;
+{$endif HASEXPANDUNCFILENAME}
 
-Const MaxDirs = 129;
+
+Const
+  MaxDirs = 129;
 
 function ExtractRelativepath (Const BaseName,DestName : String): String;
 
