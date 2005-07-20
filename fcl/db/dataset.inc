@@ -88,23 +88,32 @@ begin
   for i := 0 to Fields.Count - 1 do
     with Fields[i] do begin
       if Binding then begin
-          if FieldKind in [fkCalculated, fkLookup] then begin
-            FFieldNo := -1;
-            FOffset := FCalcFieldsSize;
-            Inc(FCalcFieldsSize, DataSize + 1);
-          end else begin
-            FieldDef := nil;
-            FieldIndex := FieldDefs.IndexOf(Fields[i].FieldName);
-            if FieldIndex <> -1 then begin
-              FieldDef := FieldDefs[FieldIndex];
-              FFieldNo := FieldDef.FieldNo;
-              if IsBlob then begin
-                FSize := FieldDef.Size;
-                FOffset := FBlobFieldCount;
-                Inc(FBlobFieldCount);
-              end;
-            end else FFieldNo := FieldIndex;
-          end;
+        if FieldKind in [fkCalculated, fkLookup] then begin
+          FFieldNo := -1;
+          FOffset := FCalcFieldsSize;
+          Inc(FCalcFieldsSize, DataSize + 1);
+          if FieldKind in [fkLookup] then begin
+            if ((FLookupDataSet = nil) or (FLookupKeyFields = '') or
+               (FLookupResultField = '') or (FKeyFields = '')) then
+              DatabaseErrorFmt(SLookupInfoError, [DisplayName]);
+            FFields.CheckFieldNames(FKeyFields);
+            FLookupDataSet.Fields.CheckFieldNames(FLookupKeyFields);
+            FLookupDataSet.FieldByName(FLookupResultField);
+            if FLookupCache then RefreshLookupList;
+          end
+        end else begin
+          FieldDef := nil;
+          FieldIndex := FieldDefs.IndexOf(Fields[i].FieldName);
+          if FieldIndex <> -1 then begin
+            FieldDef := FieldDefs[FieldIndex];
+            FFieldNo := FieldDef.FieldNo;
+            if IsBlob then begin
+              FSize := FieldDef.Size;
+              FOffset := FBlobFieldCount;
+              Inc(FBlobFieldCount);
+            end;
+          end else FFieldNo := FieldIndex;
+        end;
       end else FFieldNo := 0;;
     end;
 end;
@@ -129,7 +138,7 @@ begin
     ClearCalcFields(CalcBuffer);
     for I := 0 to Fields.Count - 1 do
       with Fields[I] do
-        if FieldKind = fkLookup then {CalcLookupValue};
+        if FieldKind = fkLookup then CalcLookupValue;
   end;
   DoOnCalcFields;
 end;
@@ -1006,7 +1015,7 @@ end;
 Function TDataset.TempBuffer: PChar;
 
 begin
-  //!! To be implemented
+  Result := FBuffers[FRecordCount];
 end;
 
 Procedure TDataset.UpdateIndexDefs;
@@ -1868,16 +1877,42 @@ begin
   FBuffers[0]:=TempBuf;
 end;
 
-function TDataset.GetFieldValues(Fieldname : string) : string;
+function TDataset.GetFieldValues(Fieldname: string): Variant;
 
+var i: Integer;
+    FieldList: TList;
 begin
-  result := findfield(Fieldname).asstring;
+  if Pos(';', FieldName) <> 0 then begin
+    FieldList := TList.Create;
+    try
+      GetFieldList(FieldList, FieldName);
+      Result := VarArrayCreate([0, FieldList.Count - 1], varVariant);
+      for i := 0 to FieldList.Count - 1 do
+        Result[i] := TField(FieldList[i]).Value;
+    finally
+      FieldList.Free;
+    end;
+  end else
+    Result := FieldByName(FieldName).Value
 end;
 
-procedure TDataset.SetFieldValues(Fieldname : string;value : string);
+procedure TDataset.SetFieldValues(Fieldname: string; Value: Variant);
 
+var i: Integer;
+    FieldList: TList;
 begin
-  findfield(Fieldname).asstring := value;
+  if Pos(';', FieldName) <> 0 then
+  begin
+    FieldList := TList.Create;
+    try
+      GetFieldList(FieldList, FieldName);
+      for i := 0 to FieldList.Count - 1 do
+        TField(FieldList[i]).Value := Value[i];
+    finally
+      FieldList.Free;
+    end;
+  end else
+    FieldByName(FieldName).Value := Value;
 end;
 
 Function TDataset.Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean;

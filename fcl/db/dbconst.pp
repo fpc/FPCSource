@@ -72,6 +72,7 @@ Const
   SInvalidCalcType         = 'Field ''%s'' cannot be a calculated or lookup field';
   SDuplicateName           = 'Duplicate name ''%s'' in %s';
   SNoParseSQL              = '%s is only possible if ParseSQL is True';
+  SLookupInfoError         = 'Lookup information for field ''%s'' is incomplete';
 
 Implementation
 
