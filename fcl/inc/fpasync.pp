@@ -1,7 +1,7 @@
 {
 
     fpAsync: Asynchronous event management for Free Pascal
-    Copyright (C) 2001-2003 by
+    Copyright (C) 2001-2005 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
@@ -548,18 +548,18 @@ begin
         LastEndOfLine := i + 1;
 
         if Assigned(FOnLine) then
-        begin
+	begin
           FBuffer := RealBuffer + LastEndOfLine;
           FBytesInBuffer := CurBytesInBuffer - LastEndOfLine;
-          InCallback := True;
-          try
+	  InCallback := True;
+	  try
             FOnLine(line);
-          finally
-            InCallback := False;
-          end;
+	  finally
+	    InCallback := False;
+	  end;
           // Check if <this> has been destroyed by FOnLine:
           if DoStopAndFree then
-            exit;
+	    exit;
         end;
       end;
       Inc(i);
