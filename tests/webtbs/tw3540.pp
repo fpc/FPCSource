@@ -1,3 +1,4 @@
+{ %target=win32 }
 { %norun }
 { %cpu=i386 }
 { %opt=-s -Amasm -TWin32 -Rintel }

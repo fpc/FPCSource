@@ -3,10 +3,16 @@
 { e-mail: windowze2000@yahoo.es }
 uses sysutils;
 var b: byte;
+    s : string;
 begin
-  writeln(executeprocess('echo','works1 works2 works3'));
-  writeln(executeprocess('echo','works1 works2 works3'));
+{$ifdef unix}
+  s:='/bin/echo';
+{$else}
+  s:='echo';
+{$endif}
+  writeln(executeprocess(s,'works1 works2 works3'));
+  writeln(executeprocess(s,'works1 works2 works3'));
   writeln;
   for b:=1 to 2 do
-    writeln(executeprocess('echo','fails1 fails2 fails3'));
+    writeln(executeprocess(s,'fails1 fails2 fails3'));
 end.

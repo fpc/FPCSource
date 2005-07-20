@@ -42,7 +42,7 @@ begin
   WriteLn('Starting MyThread.Execute');
   repeat
     // sleep(500);
-    if worker.count<10 then
+    if worker.counter<10 then
       Synchronize(worker.count);
   until Terminated;
   WriteLn('Ending MyThread.Execute');

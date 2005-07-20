@@ -13,7 +13,13 @@ var
    s: ShortString;
 
 begin
-     Assign (f, 'test.dat');
+     Assign (f, 'tw3970.tmp');
+     Rewrite (f);
+     writeln(f,'1');
+     writeln(f,'2');
+     close(f);
+
+     Assign (f, 'tw3970.tmp');
      Reset (f);
 
      ReadLn (f, i);
