@@ -55,6 +55,7 @@ implementation
     sysconst;
 
 {$define HASCREATEGUID}
+{$define HASEXPANDUNCFILENAME}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -66,6 +67,41 @@ function CoCreateGuid(out guid: TGUID): HResult; stdcall; external 'ole32.dll' n
 function SysCreateGUID(out Guid: TGUID): Integer;
 begin
   Result := Integer(CoCreateGuid(Guid));
+end;
+
+
+function ExpandUNCFileName (const filename:string) : string;
+{ returns empty string on errors }
+var
+  s    : ansistring;
+  size : dword;
+  rc   : dword;
+  p,buf : pchar;
+begin
+  s := ExpandFileName (filename);
+
+  s := s + #0;
+
+  size := max_path;
+  getmem(buf,size);
+
+  try
+    rc := WNetGetUniversalName (pchar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
+
+    if rc=ERROR_MORE_DATA then
+      begin
+        buf:=reallocmem(buf,size);
+        rc := WNetGetUniversalName (pchar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
+      end;
+    if rc = NO_ERROR then
+      Result := PRemoteNameInfo(buf)^.lpUniversalName
+    else if rc = ERROR_NOT_CONNECTED then
+      Result := filename
+    else
+      Result := '';
+  finally
+    freemem(buf);
+  end;
 end;
 
 
