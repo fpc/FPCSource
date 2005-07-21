@@ -651,7 +651,7 @@ Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
 
 var
   t: TUTimBuf;
-  
+
 begin
   Result := 0;
   t.actime := Age;
@@ -923,6 +923,9 @@ Begin
    if Comline<>'' Then
      begin
        CommandLine:=ComLine;
+       { Make an unique copy because stringtoppchar modifies the
+         string }
+       UniqueString(CommandLine);
        cmdline2:=StringtoPPChar(CommandLine,1);
        cmdline2^:=pchar(Path);
      end
