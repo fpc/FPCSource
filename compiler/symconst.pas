@@ -145,7 +145,9 @@ type
     sp_hint_library,
     sp_hint_unimplemented,
     sp_has_overloaded,
-    sp_internal  { internal symbol, not reported as unused }
+    sp_internal,  { internal symbol, not reported as unused }
+    sp_strictprivate,
+    sp_strictprotected
   );
   tsymoptions=set of tsymoption;
 
@@ -289,6 +291,8 @@ type
     oo_has_virtual,        { the object/class has virtual methods }
     oo_has_private,
     oo_has_protected,
+    oo_has_strictprivate,
+    oo_has_strictprotected,
     oo_has_constructor,    { the object/class has a constructor }
     oo_has_destructor,     { the object/class has a destructor }
     oo_has_vmt,            { the object/class has a vmt }
@@ -416,6 +420,8 @@ const
 
 
 const
+   inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has_protected,
+                oo_has_strictprotected,oo_has_strictprivate,oo_has_constructor,oo_has_destructor];
    clearstack_pocalls = [
      pocall_cdecl,pocall_cppdecl,pocall_syscall
    ];

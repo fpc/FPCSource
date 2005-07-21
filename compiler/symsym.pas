@@ -120,7 +120,11 @@ interface
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function search_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
-          function is_visible_for_object(currobjdef:tdef):boolean;override;
+          { currobjdef is the object def to assume, this is necessary for protected and
+            private,
+            context is the object def we're really in, this is for the strict stuff
+          }
+          function is_visible_for_object(currobjdef:tdef;context:tdef):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
 {$endif GDB}
@@ -1119,7 +1123,7 @@ implementation
       end;
 
 
-    function tprocsym.is_visible_for_object(currobjdef:tdef):boolean;
+    function tprocsym.is_visible_for_object(currobjdef:tdef;context:tdef):boolean;
       var
         p : pprocdeflist;
       begin

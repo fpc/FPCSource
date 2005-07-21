@@ -721,7 +721,7 @@ implementation
          { read vars }
          sc:=tsinglelist.create;
          while (token=_ID) and
-               not(is_object and (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED])) do
+               not(is_object and (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
            begin
              sorg:=orgpattern;
              semicoloneaten:=false;

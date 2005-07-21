@@ -561,17 +561,44 @@ implementation
                            consume(_PUBLISHED);
                            current_object_option:=[sp_published];
                          end;
-                       else
+                       _STRICT :
                          begin
                            if is_interface(aktclass) then
-                             Message(parser_e_no_vars_in_interfaces);
+                              Message(parser_e_no_access_specifier_in_interfaces);
+                            consume(_STRICT);
+                            if token=_ID then
+                              begin
+                                case idtoken of
+                                  _PRIVATE:
+                                    begin
+                                      consume(_PRIVATE);
+                                      current_object_option:=[sp_strictprivate];
+                                      include(aktclass.objectoptions,oo_has_strictprivate);
+                                    end;
+                                  _PROTECTED:
+                                    begin
+                                      consume(_PROTECTED);
+                                      current_object_option:=[sp_strictprotected];
+                                      include(aktclass.objectoptions,oo_has_strictprotected);
+                                    end;
+                                  else
+                                    message(parser_e_protected_or_private_expected);
+                                end;
+                              end
+                            else
+                              message(parser_e_protected_or_private_expected);
+                          end;
+                        else
+                          begin
+                            if is_interface(aktclass) then
+                              Message(parser_e_no_vars_in_interfaces);
 
-                           if (sp_published in current_object_option) and
-                             not(oo_can_have_published in aktclass.objectoptions) then
-                             Message(parser_e_cant_have_published);
+                            if (sp_published in current_object_option) and
+                              not(oo_can_have_published in aktclass.objectoptions) then
+                              Message(parser_e_cant_have_published);
 
-                           read_var_decs(false,true,false);
-                         end;
+                            read_var_decs(false,true,false);
+                          end;
                     end;
                   end;
                 _PROPERTY :
