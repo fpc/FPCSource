@@ -1096,7 +1096,8 @@ const
 
         { save link register? }
         if not (po_assembler in current_procinfo.procdef.procoptions) then
-          if (pi_do_call in current_procinfo.flags) then
+          if (pi_do_call in current_procinfo.flags) or
+             ([cs_lineinfo,cs_debuginfo] * aktmoduleswitches <> []) then
             begin
                { save return address... }
                list.concat(taicpu.op_reg(A_MFLR,NR_R0));
