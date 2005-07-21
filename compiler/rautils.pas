@@ -944,6 +944,8 @@ procedure TOperand.InitRef;
 {*********************************************************************}
 var
   l : aint;
+  hsymofs : aint;
+  hsymbol : tasmsymbol;
   reg : tregister;
 Begin
   case opr.typ of
@@ -967,6 +969,15 @@ Begin
         opr.typ:=OPR_REFERENCE;
         Fillchar(opr.ref,sizeof(treference),0);
         opr.Ref.base:=reg;
+      end;
+    OPR_SYMBOL :
+      begin
+        hsymbol:=opr.symbol;
+        hsymofs:=opr.symofs;
+        opr.typ:=OPR_REFERENCE;
+        Fillchar(opr.ref,sizeof(treference),0);
+        opr.ref.symbol:=hsymbol;
+        opr.ref.offset:=hsymofs;
       end;
     else
       begin
@@ -1346,6 +1357,16 @@ Begin
            end;
      end;
    end;
+   { Support Field.Type as typecasting }
+   if (st=nil) and (s<>'') then
+     begin
+       asmsearchsym(s,sym,srsymtable);
+       if assigned(sym) and (sym.typ=typesym) then
+         begin
+           size:=ttypesym(sym).restype.def.size;
+           s:=''
+         end;
+     end;
    GetRecordOffsetSize:=(s='');
 end;
 

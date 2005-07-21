@@ -711,7 +711,7 @@ Unit Ra386int;
          begin
            Consume(AS_DOT);
            if actasmtoken=AS_ID then
-            s:=s+'.'+actasmpattern;
+             s:=s+'.'+actasmpattern;
            if not Consume(AS_ID) then
             begin
               RecoverConsume(true);
@@ -1626,14 +1626,26 @@ Unit Ra386int;
                        if SearchType(expr,typesize) then
                         begin
                           oper.hastype:=true;
-                          if (actasmtoken=AS_LPAREN) then
-                            begin
-                              Consume(AS_LPAREN);
-                              BuildOperand(oper);
-                              Consume(AS_RPAREN);
-                              if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
-                                oper.SetSize(typesize,true);
-                            end;
+                          case actasmtoken of
+                            AS_LPAREN :
+                              begin
+                                { Support Type([Reference]) }
+                                Consume(AS_LPAREN);
+                                BuildOperand(oper);
+                                Consume(AS_RPAREN);
+                                if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
+                                  oper.SetSize(typesize,true);
+                              end;
+                            AS_LBRACKET :
+                              begin
+                                { Support Var.Type[Index] }
+                                { Convert @label.Byte[1] to reference }
+                                if oper.opr.typ=OPR_SYMBOL then
+                                  oper.initref;
+                                if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
+                                  oper.SetSize(typesize,true);
+                              end;
+                          end;
                         end
                        else
                         begin
