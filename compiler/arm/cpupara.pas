@@ -107,7 +107,7 @@ unit cpupara;
             orddef:
               getparaloc:=LOC_REGISTER;
             floatdef:
-              if calloption=pocall_softfloat then
+              if calloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat] then
                 getparaloc:=LOC_REGISTER
               else
                 getparaloc:=LOC_FPUREGISTER;
@@ -287,6 +287,8 @@ unit cpupara;
                  if paracgsize=OS_NO then
                    paraloc^.size:=OS_ADDR
                  else if paracgsize in [OS_64,OS_S64] then
+                   paraloc^.size:=OS_32
+                 else if (loc=LOC_REGISTER) and (paracgsize in [OS_F32,OS_F64,OS_F80]) then
                    paraloc^.size:=OS_32
                  else
                    paraloc^.size:=paracgsize;

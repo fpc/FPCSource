@@ -253,8 +253,8 @@ implementation
                      cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara);
                    end;
 {$endif x86_64}
-{$ifdef sparc}
-                 { sparc pushes floats in normal registers }
+{$if defined(sparc) or defined(arm) }
+                 { sparc and arm passes floats in normal registers }
                  LOC_REGISTER,
                  LOC_CREGISTER,
 {$endif sparc}
