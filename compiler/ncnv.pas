@@ -366,8 +366,12 @@ implementation
                  p3:=nil;
                end;
               resulttypepass(p2);
+              set_varstate(p2,vs_used,[vsf_must_be_valid]);
               if assigned(p3) then
-               resulttypepass(p3);
+                begin
+                  resulttypepass(p3);
+                  set_varstate(p3,vs_used,[vsf_must_be_valid]);
+                end;
               if codegenerror then
                break;
               case p2.resulttype.def.deftype of

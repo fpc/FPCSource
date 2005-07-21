@@ -216,7 +216,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,paramgr,defcmp,defutil,htypechk,pass_1,
-      ncal,nadd,ncon,nmem,nld,ncnv,nbas,cgobj,
+      ncal,nadd,ncon,nmem,nld,ncnv,nbas,cgobj,nutils,
     {$ifdef state_tracking}
       nstate,
     {$endif}
@@ -353,6 +353,10 @@ implementation
          resulttype:=voidtype;
 
          resulttypepass(left);
+
+         { tp procvar support }
+         maybe_call_procvar(left,true);
+
          {A not node can be removed.}
          if left.nodetype=notn then
             begin
@@ -534,6 +538,10 @@ implementation
          resulttype:=voidtype;
 
          resulttypepass(left);
+
+         { tp procvar support }
+         maybe_call_procvar(left,true);
+
          { if path }
          if assigned(right) then
            resulttypepass(right);
