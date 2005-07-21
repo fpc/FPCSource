@@ -1,3 +1,5 @@
+{$mode delphi}
+
 type
   XTask   = type Pointer;
   XInt4   = Integer;

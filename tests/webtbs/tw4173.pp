@@ -8,6 +8,8 @@
 }
 
 
+{$inline on}
+
 {$define nok} { if this is defined, the operator with problem is compiled }
 { $define ok}  { if this is defined, the operator without problem is compiled }
 
