@@ -790,6 +790,86 @@ begin
 end;
 {$endif beos}
 
+{$ifdef darwin}
+type
+MachoFatHeader=
+packed record
+    magic: longint;
+    nfatarch: longint;
+end;
+
+MachoHeader=
+packed record
+     magic: longword;
+     cpu_type_t: longint;
+     cpu_subtype_t: longint;
+     filetype: longint;
+     ncmds: longint;
+     sizeofcmds: longint;
+     flags: longint;
+ 
+end;
+
+cmdblock=
+packed record
+   cmd: longint;
+   cmdsize: longint; 
+end;
+
+symbSeg=
+packed record
+ symoff :      longint; 
+ nsyms  :      longint;  
+ stroff :      longint; 
+ strsize:      longint;
+end;
+
+
+function readCommand: boolean;
+var
+    block:cmdblock;
+    readMore :boolean;
+    symbolsSeg:  symbSeg;
+
+begin
+    readCommand := false;
+    readMore := true;
+    blockread (f, block, sizeof(block));
+    if block.cmd = $2   then
+    begin
+        blockread (f, symbolsSeg, sizeof(symbolsSeg));
+        stabstrofs:=symbolsSeg.stroff;
+        stabofs:=symbolsSeg.symoff;
+        stabcnt:=symbolsSeg.nsyms;
+
+        readMore := false;
+        readCommand := true;
+        exit;
+    end;
+    if readMore then
+    begin
+       Seek(f, FilePos (f) + block.cmdsize - sizeof(block));
+    end;
+end;
+
+function LoadMachO32PPC:boolean;
+var
+   mh:MachoHeader;
+   i: longint;
+begin
+  StabsFunctionRelative:=false;
+  LoadMachO32PPC := false;
+  blockread (f, mh, sizeof(mh));
+  for i:= 1 to mh.ncmds do
+  begin
+     if readCommand then
+     begin
+         LoadMachO32PPC := true;
+         exit;
+     end;
+  end;
+end;
+{$endif darwin}
 
 {****************************************************************************
                           Executable Open/Close
@@ -859,6 +939,13 @@ begin
      exit;
    end;
 {$endif}
+{$ifdef darwin}
+  if LoadMachO32PPC then
+   begin
+     OpenStabs:=true;
+     exit;
+   end;
+{$endif darwin}
 {$ifdef netware}
   if LoadNetwareNLM then
    begin
