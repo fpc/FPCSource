@@ -167,7 +167,7 @@ begin
   { first test the index value }
   if (hp.options and eo_index)<>0 then
    begin
-     Message1(parser_e_no_export_with_index_for_target,'freebsd');
+     Message1(parser_e_no_export_with_index_for_target,'*bsd/darwin');
      exit;
    end;
   { now place in correct order }
@@ -225,10 +225,16 @@ begin
            codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
            codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
+{$ifdef powerpc}
+           codesegment.concat(Tai_align.create(16));
+           codesegment.concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
+           codeSegment.concat(Taicpu.Op_sym(A_B,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+           codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
+{$endif powerpc}
          end;
       end
      else
-      Message1(parser_e_no_export_of_variables_for_target,'freebsd');
+      Message1(parser_e_no_export_of_variables_for_target,'*bsd/darwin');
      hp2:=texported_item(hp2.next);
    end;
 end;
@@ -261,12 +267,26 @@ begin
    begin
      if LdSupportsNoResponseFile then
        begin
-         ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE `cat $RES`';
+         if (target_info.system <> system_powerpc_darwin) then
+           begin
+             ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE `cat $RES`';
+             DllCmd[1]:='ld $OPT -shared -L. -o $EXE `cat $RES`'
+           end
+         else
+           begin
+             ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
+             DllCmd[1]:='libtool $OPT -dynamic -init PASCALMAIN -multiply_defined suppress  -L. -o $EXE `cat $RES`'
+           end
        end
      else
-       ExeCmd[1]:='ld $OPT $DYNLINK $STATIC  $GCSECTIONS $STRIP -L. -o $EXE $RES';
-     DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
-     DllCmd[2]:='strip --strip-unneeded $EXE';
+       begin
+         ExeCmd[1]:='ld $OPT $DYNLINK $STATIC  $GCSECTIONS $STRIP -L. -o $EXE $RES';
+         DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
+       end;
+     if (target_info.system <> system_powerpc_darwin) then
+       DllCmd[2]:='strip --strip-unneeded $EXE'
+     else
+       DllCmd[2]:='strip -x $EXE';
      { first try glibc2 }
 {$ifdef GLIBC2} {Keep linux code in place. FBSD might go to a different
                                 glibc too once}
@@ -338,12 +358,15 @@ begin
     end
   else
     begin
-      { for darwin: always link dynamically against libc }
+      { for darwin: always link dynamically against libc }
       linklibc := true;
-      if not(cs_profile in aktmoduleswitches) then
-        prtobj:='/usr/lib/crt1.o'
+      if not(isdll) then
+        if not(cs_profile in aktmoduleswitches) then
+          prtobj:='/usr/lib/crt1.o'
+        else
+          prtobj:='/usr/lib/gcrt1.o'
       else
-        prtobj:='/usr/lib/gcrt1.o';
+        prtobj:='';
     end;
 
 
@@ -464,6 +487,11 @@ begin
         LinkRes.Add(')');
       end;
    end;
+  { ignore the fact that our relocations are in non-writable sections, }
+  { will be fixed once we have pic support                             }
+  if isdll and
+     (target_info.system = system_powerpc_darwin) then
+    LinkRes.Add('-read_only_relocs suppress');
 { Write and Close response }
   linkres.writetodisk;
   linkres.Free;
@@ -566,7 +594,7 @@ begin
   Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
 
-  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,LdSupportsNoResponseFile);
 
 { Strip the library ? }
   if success and (cs_link_strip in aktglobalswitches) then

@@ -126,22 +126,20 @@ implementation
                begin
                   symtabletype:=symtable.symtabletype;
                   hregister:=NR_NO;
-                  { DLL variable }
-                  if (vo_is_dll_var in tabstractvarsym(symtableentry).varoptions) then
+                  if (target_info.system=system_powerpc_darwin) and
+                     ([vo_is_dll_var,vo_is_external] * tabstractvarsym(symtableentry).varoptions <> []) then
                     begin
-                      if target_info.system=system_powerpc_darwin then
-                        begin
-                          generate_picvaraccess;
-                          if not(pi_needs_got in current_procinfo.flags) then
-                            internalerror(200403022);
-                        end
-                      else
-                        begin
-                          hregister:=cg.getaddressregister(exprasmlist);
-                          location.reference.symbol:=objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
-                          cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,location.reference,hregister);
-                          reference_reset_base(location.reference,hregister,0);
-                        end;
+                      if not(pi_needs_got in current_procinfo.flags) then
+                        internalerror(200403022);
+                      generate_picvaraccess;
+                    end
+                  else if (vo_is_dll_var in tabstractvarsym(symtableentry).varoptions) then
+                  { DLL variable }
+                    begin
+                      hregister:=cg.getaddressregister(exprasmlist);
+                      location.reference.symbol:=objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
+                      cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,location.reference,hregister);
+                      reference_reset_base(location.reference,hregister,0);
                     end
                   { Thread variable }
                   else if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then

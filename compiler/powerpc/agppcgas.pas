@@ -29,6 +29,7 @@ unit agppcgas;
   interface
 
     uses
+       aasmbase,
        aasmtai,
        aggas,
        cpubase;
@@ -36,6 +37,7 @@ unit agppcgas;
     type
       PPPCGNUAssembler=^TPPCGNUAssembler;
       TPPCGNUAssembler=class(TGNUassembler)
+        function sectionname(atype:tasmsectiontype;const aname:string):string;override;
         procedure WriteExtraHeader;override;
         procedure WriteInstruction(hp : tai);override;
       end;
@@ -44,7 +46,7 @@ unit agppcgas;
   implementation
 
     uses
-       cutils,globals,verbose,
+       cutils,globals,verbose,globtype,
        cgbase,cgutils,systems,
        assemble,
        itcpugas,
@@ -94,6 +96,16 @@ unit agppcgas;
 
        refaddr2str: array[trefaddr] of string[3] = ('','','@ha','@l','');
        refaddr2str_darwin: array[trefaddr] of string[4] = ('','','ha16','lo16','');
+
+
+
+    function TPPCGNUAssembler.sectionname(atype:tasmsectiontype;const aname:string):string;
+      begin
+        if (target_info.system = system_powerpc_darwin) and
+           (atype = sec_bss) then
+          atype := sec_code;
+        result := inherited sectionname(atype,aname);
+      end;
 
 
     function getreferencestring(var ref : treference) : string;

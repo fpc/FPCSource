@@ -91,7 +91,7 @@ unit nppcld;
         case target_info.system of
           system_powerpc_darwin:
             begin
-              if (vo_is_dll_var in tglobalvarsym(symtableentry).varoptions) or
+              if ([vo_is_dll_var,vo_is_external] * tglobalvarsym(symtableentry).varoptions <> []) or
                  ((tglobalvarsym(symtableentry).owner.symtabletype in [staticsymtable,globalsymtable]) and
                   not(tglobalvarsym(symtableentry).owner.iscurrentunit)) then
                 begin
