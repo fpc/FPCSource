@@ -202,7 +202,7 @@ implementation
                      cg.a_paramfpu_reg(exprasmlist,left.location.size,left.location.register,tempcgpara);
                    end;
                  else
-                   internalerror(2002042433);
+                   internalerror(200204249);
                end;
              LOC_FPUREGISTER,
              LOC_CFPUREGISTER:
@@ -224,8 +224,8 @@ implementation
                      cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara);
                    end;
 {$endif x86_64}
-{$ifdef sparc}
-                 { sparc pushes floats in normal registers }
+{$if defined(sparc) or defined(arm)}
+                 { sparc and arm pass floats in normal registers }
                  LOC_REGISTER,
                  LOC_CREGISTER,
 {$endif sparc}
@@ -254,7 +254,7 @@ implementation
                    end;
 {$endif x86_64}
 {$if defined(sparc) or defined(arm) }
-                 { sparc and arm passes floats in normal registers }
+                 { sparc and arm pass floats in normal registers }
                  LOC_REGISTER,
                  LOC_CREGISTER,
 {$endif sparc}

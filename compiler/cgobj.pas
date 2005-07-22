@@ -992,15 +992,26 @@ implementation
       var
          ref : treference;
       begin
-         cgpara.check_simple_location;
          case cgpara.location^.loc of
             LOC_FPUREGISTER,LOC_CFPUREGISTER:
-              a_loadfpu_reg_reg(list,size,r,cgpara.location^.register);
+              begin
+                cgpara.check_simple_location;
+                a_loadfpu_reg_reg(list,size,r,cgpara.location^.register);
+              end;
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
-                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset);
-                 a_loadfpu_reg_ref(list,size,r,ref);
-              end
+                cgpara.check_simple_location;
+                reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset);
+                a_loadfpu_reg_ref(list,size,r,ref);
+              end;
+            LOC_REGISTER,LOC_CREGISTER:
+              begin
+                { paramfpu_ref does the check_simpe_location check here if necessary }
+                tg.GetTemp(list,TCGSize2Size[size],tt_normal,ref);
+                a_loadfpu_reg_ref(list,size,r,ref);
+                a_paramfpu_ref(list,size,ref,cgpara);
+                tg.Ungettemp(list,ref);
+              end;
             else
               internalerror(2002071004);
          end;
@@ -1020,7 +1031,7 @@ implementation
               reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset);
               { concatcopy should choose the best way to copy the data }
               g_concatcopy(list,ref,href,tcgsize2size[size]);
-            end
+            end;
           else
             internalerror(200402201);
         end;
