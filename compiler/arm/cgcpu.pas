@@ -70,6 +70,7 @@ unit cgcpu;
         procedure a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); override;
 
+        procedure a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
           l : tasmlabel);override;
@@ -837,6 +838,34 @@ unit cgcpu;
                end;
            end;
        end;
+
+
+    procedure tcgarm.a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const paraloc : TCGPara);
+      var
+         href,href2 : treference;
+         hloc : pcgparalocation;
+      begin
+        href:=ref;
+        hloc:=paraloc.location;
+        while assigned(hloc) do
+          begin
+            case hloc^.loc of
+              LOC_FPUREGISTER,LOC_CFPUREGISTER:
+                a_loadfpu_ref_reg(list,size,ref,hloc^.register);
+              LOC_REGISTER :
+                a_load_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
+              LOC_REFERENCE :
+                begin
+                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset);
+                  a_load_ref_ref(list,hloc^.size,hloc^.size,href,href2);
+                end;
+              else
+                internalerror(200408241);
+           end;
+           inc(href.offset,tcgsize2size[hloc^.size]);
+           hloc:=hloc^.next;
+         end;
+      end;
 
 
      procedure tcgarm.a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize; reg1, reg2: tregister);
