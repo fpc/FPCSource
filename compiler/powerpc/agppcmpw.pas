@@ -803,7 +803,7 @@ var
       { lineinfo is only needed for codesegment (PFV) }
       do_line:=((cs_asm_source in aktglobalswitches) or
                 (cs_lineinfo in aktmoduleswitches))
-                 and (p=codesegment);
+                 and (p=asmlist[codesegment]);
       DoNotSplitLine:=false;
       hp:=tai(p.first);
       while assigned(hp) do
@@ -1420,12 +1420,12 @@ var
       If (cs_debuginfo in aktmoduleswitches) then
         WriteTree(debuglist);
 *)
-      WriteTree(codesegment);
-      WriteTree(datasegment);
-      WriteTree(consts);
-      WriteTree(rttilist);
-      WriteTree(resourcestringlist);
-      WriteTree(bsssegment);
+      WriteTree(asmlist[codesegment]);
+      WriteTree(asmlist[datasegment]);
+      WriteTree(asmlist[consts]);
+      WriteTree(asmlist[rttilist]);
+      WriteTree(asmlist[resourcestrings]);
+      WriteTree(asmlist[bsssegment]);
       {$ifdef GDB}
       WriteFileEndInfo;
       {$ENDIF}

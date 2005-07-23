@@ -105,7 +105,7 @@ implementation
            (af_smartlink_sections in target_asm.flags) then
           jumpsegment:=current_procinfo.aktlocaldata
         else
-          jumpsegment:=datasegment;
+          jumpsegment:=asmlist[datasegment];
         if not(jumptable_no_range) then
           begin
              { case expr less than min_ => goto elselabel }

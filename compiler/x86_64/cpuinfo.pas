@@ -59,8 +59,8 @@ Const
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
-     pocall_compilerproc,
-     pocall_inline,
+{     pocall_compilerproc,
+     pocall_inline,}
      pocall_register,
      pocall_safecall,
      pocall_stdcall,

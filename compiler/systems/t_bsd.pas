@@ -88,8 +88,8 @@ implementation
 
     procedure timportlibdarwin.preparelib(const s : string);
       begin
-         if not(assigned(importssection)) then
-           importssection:=TAAsmoutput.create;
+         if asmlist[importsection]=nil then
+           asmlist[importsection]:=TAAsmoutput.create;
       end;
 
 
@@ -220,16 +220,16 @@ begin
          begin
 {$ifdef i386}
            { place jump in codesegment }
-           codesegment.concat(Tai_align.Create_op(4,$90));
-           codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
-           codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
+           asmlist[codesegment].concat(Tai_align.Create_op(4,$90));
+           asmlist[codeSegment].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
+           asmlist[codeSegment].concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+           asmlist[codeSegment].concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
 {$ifdef powerpc}
-           codesegment.concat(Tai_align.create(16));
-           codesegment.concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           codeSegment.concat(Taicpu.Op_sym(A_B,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
-           codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
+           asmlist[codesegment].concat(Tai_align.create(16));
+           asmlist[codesegment].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
+           asmlist[codeSegment].concat(Taicpu.Op_sym(A_B,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+           asmlist[codeSegment].concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif powerpc}
          end;
       end

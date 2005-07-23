@@ -245,61 +245,47 @@ implementation
 *****************************************************************************}
 
     procedure init_module;
+
+      var to_create:set of Tasmlist;
+          i:Tasmlist;
       begin
-         { Create assembler output lists for CG }
          exprasmlist:=taasmoutput.create;
-         datasegment:=taasmoutput.create;
-         codesegment:=taasmoutput.create;
-         bsssegment:=taasmoutput.create;
-         debuglist:=taasmoutput.create;
-         withdebuglist:=taasmoutput.create;
-         consts:=taasmoutput.create;
-         rttilist:=taasmoutput.create;
-         picdata:=taasmoutput.create;
+         { Create assembler output lists for CG }
+         to_create:=[datasegment,codesegment,bsssegment,debuglist,
+                     withdebuglist,consts,rttilist,picdata];
+         for i:=low(Tasmlist) to high(Tasmlist) do
+           if i in to_create then
+             asmlist[i]:=Taasmoutput.create
+           else
+             asmlist[i]:=nil;
+
          if target_info.system=system_powerpc_darwin then
-           picdata.concat(tai_simple.create(ait_non_lazy_symbol_pointer));
-         ResourceStringList:=Nil;
-         importssection:=nil;
-         exportssection:=nil;
-         resourcesection:=nil;
+           asmlist[picdata].concat(tai_simple.create(ait_non_lazy_symbol_pointer));
          { Resource strings }
-         ResourceStrings:=TResourceStrings.Create;
+         cresstr.ResourceStrings:=TResourceStrings.Create;
          { use the librarydata from current_module }
          objectlibrary:=current_module.librarydata;
       end;
 
 
     procedure done_module;
-{$ifdef MEMDEBUG}
       var
+{$ifdef MEMDEBUG}
         d : tmemdebug;
 {$endif}
+        i:Tasmlist;
       begin
 {$ifdef MEMDEBUG}
          d:=tmemdebug.create(current_module.modulename^+' - asmlists');
 {$endif}
-         exprasmlist.free;
-         codesegment.free;
-         bsssegment.free;
-         datasegment.free;
-         debuglist.free;
-         withdebuglist.free;
-         consts.free;
-         rttilist.free;
-         picdata.free;
-         if assigned(ResourceStringList) then
-          ResourceStringList.free;
-         if assigned(importssection) then
-          importssection.free;
-         if assigned(exportssection) then
-          exportssection.free;
-         if assigned(resourcesection) then
-          resourcesection.free;
+         for i:=low(Tasmlist) to high(Tasmlist) do
+           if asmlist[i]<>nil then
+             asmlist[i].free;
 {$ifdef MEMDEBUG}
          d.free;
 {$endif}
          { resource strings }
-         ResourceStrings.free;
+         cresstr.resourcestrings.free;
          objectlibrary:=nil;
       end;
 
@@ -330,19 +316,8 @@ implementation
         { cg }
           oldparse_only  : boolean;
         { asmlists }
-          oldimports,
-          oldexports,
-          oldresource,
-          oldrttilist,
-          oldpicdata,
-          oldresourcestringlist,
-          oldbsssegment,
-          olddatasegment,
-          oldcodesegment,
-          oldexprasmlist,
-          olddebuglist,
-          oldwithdebuglist,
-          oldconsts     : taasmoutput;
+          oldexprasmlist:Taasmoutput;
+          oldasmlist:array[Tasmlist] of Taasmoutput;
           oldobjectlibrary : tasmlibrarydata;
         { resourcestrings }
           OldResourceStrings : tResourceStrings;
@@ -402,19 +377,8 @@ implementation
           { save cg }
             oldparse_only:=parse_only;
           { save assembler lists }
-            olddatasegment:=datasegment;
-            oldbsssegment:=bsssegment;
-            oldcodesegment:=codesegment;
-            olddebuglist:=debuglist;
-            oldwithdebuglist:=withdebuglist;
-            oldconsts:=consts;
-            oldrttilist:=rttilist;
-            oldpicdata:=picdata;
+            oldasmlist:=asmlist;
             oldexprasmlist:=exprasmlist;
-            oldimports:=importssection;
-            oldexports:=exportssection;
-            oldresource:=resourcesection;
-            oldresourcestringlist:=resourcestringlist;
             oldobjectlibrary:=objectlibrary;
             OldResourceStrings:=ResourceStrings;
           { save akt... state }
@@ -577,18 +541,7 @@ implementation
                    parse_only:=oldparse_only;
                    { restore asmlists }
                    exprasmlist:=oldexprasmlist;
-                   datasegment:=olddatasegment;
-                   bsssegment:=oldbsssegment;
-                   codesegment:=oldcodesegment;
-                   consts:=oldconsts;
-                   debuglist:=olddebuglist;
-                   withdebuglist:=oldwithdebuglist;
-                   importssection:=oldimports;
-                   exportssection:=oldexports;
-                   resourcesection:=oldresource;
-                   rttilist:=oldrttilist;
-                   picdata:=oldpicdata;
-                   resourcestringlist:=oldresourcestringlist;
+                   asmlist:=oldasmlist;
                    { object data }
                    ResourceStrings:=OldResourceStrings;
                    objectlibrary:=oldobjectlibrary;

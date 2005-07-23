@@ -364,33 +364,33 @@ const
         if assigned(result) then
           exit;
 
-        if not(assigned(importssection)) then
-          importssection:=TAAsmoutput.create;
+        if asmlist[importsection]=nil then
+          asmlist[importsection]:=TAAsmoutput.create;
 
-        importsSection.concat(Tai_section.Create(sec_data,'',0));
-        importsSection.concat(Tai_direct.create(strpnew('.section __TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16')));
-        importsSection.concat(Tai_align.Create(4));
+        asmlist[importsection].concat(Tai_section.Create(sec_data,'',0));
+        asmlist[importsection].concat(Tai_direct.create(strpnew('.section __TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16')));
+        asmlist[importsection].concat(Tai_align.Create(4));
         result := objectlibrary.newasmsymbol(stubname,AB_EXTERNAL,AT_FUNCTION);
-        importsSection.concat(Tai_symbol.Create(result,0));
-        importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+s)));
+        asmlist[importsection].concat(Tai_symbol.Create(result,0));
+        asmlist[importsection].concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+s)));
         l1 := objectlibrary.newasmsymbol('L'+s+'$lazy_ptr',AB_EXTERNAL,AT_FUNCTION);
         reference_reset_symbol(href,l1,0);
 {$ifdef powerpc}
         href.refaddr := addr_hi;
-        importsSection.concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
+        asmlist[importsection].concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
         href.refaddr := addr_lo;
         href.base := NR_R11;
-        importsSection.concat(taicpu.op_reg_ref(A_LWZU,NR_R12,href));
-        importsSection.concat(taicpu.op_reg(A_MTCTR,NR_R12));
-        importsSection.concat(taicpu.op_none(A_BCTR));
+        asmlist[importsection].concat(taicpu.op_reg_ref(A_LWZU,NR_R12,href));
+        asmlist[importsection].concat(taicpu.op_reg(A_MTCTR,NR_R12));
+        asmlist[importsection].concat(taicpu.op_none(A_BCTR));
 {$else powerpc}
         internalerror(2004010502);
 {$endif powerpc}
-        importsSection.concat(Tai_section.Create(sec_data,'',0));
-        importsSection.concat(Tai_direct.create(strpnew('.lazy_symbol_pointer')));
-        importsSection.concat(Tai_symbol.Create(l1,0));
-        importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+s)));
-        importsSection.concat(tai_const.createname(strpnew('dyld_stub_binding_helper'),AT_FUNCTION,0));
+        asmlist[importsection].concat(Tai_section.Create(sec_data,'',0));
+        asmlist[importsection].concat(Tai_direct.create(strpnew('.lazy_symbol_pointer')));
+        asmlist[importsection].concat(Tai_symbol.Create(l1,0));
+        asmlist[importsection].concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+s)));
+        asmlist[importsection].concat(tai_const.createname(strpnew('dyld_stub_binding_helper'),AT_FUNCTION,0));
       end;
 
 
@@ -407,9 +407,7 @@ const
                list.concat(taicpu.op_none(A_NOP));
            end
          else
-           begin
-             list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s)));
-           end;
+           list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s)));
 {
        the compiler does not properly set this flag anymore in pass 1, and
        for now we only need it after pass 2 (I hope) (JM)

@@ -575,6 +575,12 @@ interface
           procedure InsertAfter(Item,Loc : TLinkedListItem);override;
        end;
 
+       Tasmlist=({ default lists }
+                 datasegment,codesegment,bsssegment,debuglist,consts,
+                 withdebuglist,importsection,exportsection,
+                 resourcesection,rttilist,dwarflist,
+                 { data used by pic code }
+                 picdata,resourcestrings);
 
     var
       { array with all class types for tais }
@@ -592,15 +598,7 @@ interface
       { hook to notify uses of registers }
       add_reg_instruction_hook : tadd_reg_instruction_proc;
 
-      { default lists }
-      datasegment,codesegment,bsssegment,
-      debuglist,withdebuglist,consts,
-      importssection,exportssection,
-      resourcesection,rttilist,
-      dwarflist,
-      { data used by pic code }
-      picdata,
-      resourcestringlist         : taasmoutput;
+      asmlist:array[Tasmlist] of Taasmoutput;
 
       cai_align : tai_align_class;
       cai_cpu   : tai_cpu_class;

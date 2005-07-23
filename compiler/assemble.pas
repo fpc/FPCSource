@@ -1589,6 +1589,9 @@ Implementation
 
     procedure TInternalAssembler.MakeObject;
 
+    var to_do:set of Tasmlist;
+        i:Tasmlist;
+
         procedure addlist(p:TAAsmoutput);
         begin
           inc(lists);
@@ -1596,25 +1599,16 @@ Implementation
         end;
 
       begin
-        if cs_debuginfo in aktmoduleswitches then
-          addlist(debuglist);
-        addlist(codesegment);
-        addlist(datasegment);
-        addlist(consts);
-        addlist(rttilist);
-        addlist(picdata);
-        if assigned(resourcestringlist) then
-          addlist(resourcestringlist);
-        addlist(bsssegment);
-        if assigned(importssection) then
-          addlist(importssection);
-        if assigned(exportssection) and not UseDeffileForExports then
-          addlist(exportssection);
-        if assigned(resourcesection) then
-          addlist(resourcesection);
-{$warning TODO internal writer support for dwarf}
-        {if assigned(dwarflist) then
-          addlist(dwarflist);}
+        to_do:=[low(Tasmlist)..high(Tasmlist)];
+        if not(cs_debuginfo in aktmoduleswitches) then
+          exclude(to_do,debuglist);
+        if usedeffileforexports then
+          exclude(to_do,exportsection);
+        {$warning TODO internal writer support for dwarf}
+        exclude(to_do,dwarflist);
+        for i:=low(Tasmlist) to high(Tasmlist) do
+          if (i in to_do) and (asmlist[i]<>nil) then
+            addlist(asmlist[i]);
 
         if SmartAsm then
           writetreesmart

@@ -369,7 +369,7 @@ var
       { lineinfo is only needed for codesegment (PFV) }
       do_line:=(cs_asm_source in aktglobalswitches) or
                ((cs_lineinfo in aktmoduleswitches)
-                 and (p=codesegment));
+                 and (p=asmlist[codesegment]));
       hp:=tai(p.first);
       while assigned(hp) do
        begin
@@ -968,21 +968,21 @@ var
       symendcount:=0;
 
       If (cs_debuginfo in aktmoduleswitches) then
-        WriteTree(debuglist);
-      WriteTree(codesegment);
-      WriteTree(datasegment);
-      WriteTree(consts);
-      WriteTree(rttilist);
-      WriteTree(picdata);
-      Writetree(resourcestringlist);
-      WriteTree(bsssegment);
-      Writetree(importssection);
+        WriteTree(asmlist[debuglist]);
+      WriteTree(asmlist[codesegment]);
+      WriteTree(asmlist[datasegment]);
+      WriteTree(asmlist[consts]);
+      WriteTree(asmlist[rttilist]);
+      WriteTree(asmlist[picdata]);
+      Writetree(asmlist[resourcestrings]);
+      WriteTree(asmlist[bsssegment]);
+      Writetree(asmlist[importsection]);
       { exports are written by DLLTOOL
         if we use it so don't insert it twice (PM) }
-      if not UseDeffileForExports and assigned(exportssection) then
-        Writetree(exportssection);
-      Writetree(resourcesection);
-      Writetree(dwarflist);
+      if not UseDeffileForExports and assigned(asmlist[exportsection]) then
+        Writetree(asmlist[exportsection]);
+      Writetree(asmlist[resourcesection]);
+      Writetree(asmlist[dwarflist]);
       {$ifdef GDB}
       WriteFileEndInfo;
       {$ENDIF}

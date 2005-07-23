@@ -1784,7 +1784,7 @@ implementation
                 strpcopy(strend(p),'-');
                 strpcopy(strend(p),current_procinfo.procdef.mangledname);
               end;
-            list.concatlist(withdebuglist);
+            list.concatlist(asmlist[withdebuglist]);
             list.concat(Tai_stabn.Create(strnew(p)));
              { strpnew('224,0,0,'
              +current_procinfo.procdef.mangledname+'_end'))));}
@@ -1939,9 +1939,9 @@ implementation
         storefilepos:=aktfilepos;
         aktfilepos:=sym.fileinfo;
         if sym.is_writable then
-          curconstsegment:=datasegment
+          curconstsegment:=asmlist[datasegment]
         else
-          curconstsegment:=consts;
+          curconstsegment:=asmlist[consts];
         l:=sym.getsize;
         { insert cut for smartlinking or alignment }
         maybe_new_object_file(curconstSegment);
@@ -1973,11 +1973,11 @@ implementation
         if (vo_is_thread_var in sym.varoptions) then
           inc(l,sizeof(aint));
         varalign:=var_align(l);
-        maybe_new_object_file(bssSegment);
-        new_section(bssSegment,sec_bss,lower(sym.mangledname),varalign);
+        maybe_new_object_file(asmlist[bsssegment]);
+        new_section(asmlist[bsssegment],sec_bss,lower(sym.mangledname),varalign);
 {$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) then
-          sym.concatstabto(bssSegment);
+          sym.concatstabto(asmlist[bsssegment]);
 {$endif GDB}
         if (sym.owner.symtabletype=globalsymtable) or
            maybe_smartlink_symbol or
@@ -1986,9 +1986,9 @@ implementation
             (po_inline in current_procinfo.procdef.procoptions)) or
            (vo_is_exported in sym.varoptions) or
            (vo_is_C_var in sym.varoptions) then
-          bssSegment.concat(Tai_datablock.Create_global(sym.mangledname,l))
+          asmlist[bsssegment].concat(Tai_datablock.Create_global(sym.mangledname,l))
         else
-          bssSegment.concat(Tai_datablock.Create(sym.mangledname,l));
+          asmlist[bsssegment].concat(Tai_datablock.Create(sym.mangledname,l));
         aktfilepos:=storefilepos;
       end;
 
@@ -2333,11 +2333,11 @@ implementation
            def.rttitablesym:=rsym;
            { write rtti data }
            def.write_child_rtti_data(fullrtti);
-           maybe_new_object_file(rttilist);
-           new_section(rttilist,sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
-           rttiList.concat(Tai_symbol.Create_global(rsym.get_label,0));
+           maybe_new_object_file(asmlist[rttilist]);
+           new_section(asmlist[rttilist],sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
+           asmlist[rttilist].concat(Tai_symbol.Create_global(rsym.get_label,0));
            def.write_rtti_data(fullrtti);
-           rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
+           asmlist[rttilist].concat(Tai_symbol_end.Create(rsym.get_label));
          end;
       end;
 
@@ -2373,11 +2373,11 @@ implementation
            def.inittablesym:=rsym;
            { write inittable data }
            def.write_child_rtti_data(initrtti);
-           maybe_new_object_file(rttilist);
-           new_section(rttilist,sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
-           rttiList.concat(Tai_symbol.Create_global(rsym.get_label,0));
+           maybe_new_object_file(asmlist[rttilist]);
+           new_section(asmlist[rttilist],sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
+           asmlist[rttilist].concat(Tai_symbol.Create_global(rsym.get_label,0));
            def.write_rtti_data(initrtti);
-           rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
+           asmlist[rttilist].concat(Tai_symbol_end.Create(rsym.get_label));
          end;
       end;
 

@@ -390,7 +390,7 @@ implementation
       { lineinfo is only needed for codesegment (PFV) }
       do_line:=((cs_asm_source in aktglobalswitches) or
                 (cs_lineinfo in aktmoduleswitches))
-                 and (p=codesegment);
+                 and (p=asmlist[codesegment]);
       InlineLevel:=0;
       DoNotSplitLine:=false;
       hp:=tai(p.first);
@@ -875,17 +875,17 @@ implementation
     { INTEL ASM doesn't support stabs
       WriteTree(debuglist);}
 
-      WriteTree(codesegment);
-      WriteTree(datasegment);
-      WriteTree(consts);
-      WriteTree(rttilist);
-      WriteTree(resourcestringlist);
-      WriteTree(bsssegment);
-      Writetree(importssection);
+      WriteTree(asmlist[codesegment]);
+      WriteTree(asmlist[datasegment]);
+      WriteTree(asmlist[consts]);
+      WriteTree(asmlist[rttilist]);
+      WriteTree(asmlist[resourcestrings]);
+      WriteTree(asmlist[bsssegment]);
+      Writetree(asmlist[importsection]);
       { exports are written by DLLTOOL
         if we use it so don't insert it twice (PM) }
-      if not UseDeffileForExports and assigned(exportssection) then
-        Writetree(exportssection);
+      if not UseDeffileForExports and assigned(asmlist[exportsection]) then
+        Writetree(asmlist[exportsection]);
 
       AsmWriteLn(#9'END');
       AsmLn;

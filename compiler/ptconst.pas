@@ -99,9 +99,9 @@ implementation
          old_block_type:=block_type;
          block_type:=bt_const;
          if writable then
-           curconstsegment:=datasegment
+           curconstsegment:=asmlist[datasegment]
          else
-           curconstsegment:=consts;
+           curconstsegment:=asmlist[consts];
          case t.def.deftype of
             orddef:
               begin
@@ -304,8 +304,8 @@ implementation
                     else
                      varalign:=0;
                     varalign:=const_align(varalign);
-                    Consts.concat(Tai_align.Create(varalign));
-                    Consts.concat(Tai_label.Create(ll));
+                    asmlist[consts].concat(Tai_align.Create(varalign));
+                    asmlist[consts].concat(Tai_label.Create(ll));
                     if p.nodetype=stringconstn then
                       begin
                         len:=tstringconstnode(p).len;
@@ -315,13 +315,13 @@ implementation
                          len:=255;
                         getmem(ca,len+2);
                         move(tstringconstnode(p).value_str^,ca^,len+1);
-                        Consts.concat(Tai_string.Create_length_pchar(ca,len+1));
+                        asmlist[consts].concat(Tai_string.Create_length_pchar(ca,len+1));
                       end
                     else
                       if is_constcharnode(p) then
-                        Consts.concat(Tai_string.Create(char(byte(tordconstnode(p).value))+#0))
+                        asmlist[consts].concat(Tai_string.Create(char(byte(tordconstnode(p).value))+#0))
                     else
-                      Message(parser_e_illegal_expression);
+                      message(parser_e_illegal_expression);
                 end
               { maybe pwidechar ? }
               else
@@ -329,9 +329,9 @@ implementation
                    (p.nodetype<>addrn) then
                   begin
                     objectlibrary.getdatalabel(ll);
-                    curconstSegment.concat(Tai_const.Create_sym(ll));
-                    Consts.concat(tai_align.create(const_align(sizeof(aint))));
-                    Consts.concat(Tai_label.Create(ll));
+                    curconstsegment.concat(Tai_const.Create_sym(ll));
+                    asmlist[consts].concat(tai_align.create(const_align(sizeof(aint))));
+                    asmlist[consts].concat(Tai_label.Create(ll));
                     if (p.nodetype in [stringconstn,ordconstn]) then
                       begin
                         { convert to widestring stringconstn }
@@ -341,9 +341,9 @@ implementation
                          begin
                            pw:=pcompilerwidestring(tstringconstnode(p).value_str);
                            for i:=0 to tstringconstnode(p).len-1 do
-                            Consts.concat(Tai_const.Create_16bit(pw^.data[i]));
+                             asmlist[consts].concat(Tai_const.Create_16bit(pw^.data[i]));
                            { ending #0 }
-                           Consts.concat(Tai_const.Create_16bit(0))
+                           asmlist[consts].concat(Tai_const.Create_16bit(0))
                          end;
                       end
                     else
@@ -603,15 +603,15 @@ implementation
                      begin
                         { an empty ansi string is nil! }
                         if (strlength=0) then
-                          curconstSegment.concat(Tai_const.Create_sym(nil))
+                          curconstsegment.concat(Tai_const.Create_sym(nil))
                         else
                           begin
                             objectlibrary.getdatalabel(ll);
-                            curconstSegment.concat(Tai_const.Create_sym(ll));
-                            Consts.concat(tai_align.create(const_align(sizeof(aint))));
-                            Consts.concat(Tai_const.Create_aint(-1));
-                            Consts.concat(Tai_const.Create_aint(strlength));
-                            Consts.concat(Tai_label.Create(ll));
+                            curconstsegment.concat(Tai_const.Create_sym(ll));
+                            asmlist[consts].concat(tai_align.create(const_align(sizeof(aint))));
+                            asmlist[consts].concat(Tai_const.Create_aint(-1));
+                            asmlist[consts].concat(Tai_const.Create_aint(strlength));
+                            asmlist[consts].concat(Tai_label.Create(ll));
                             getmem(ca,strlength+2);
                             move(strval^,ca^,strlength);
                             { The terminating #0 to be stored in the .data section (JM) }
@@ -619,7 +619,7 @@ implementation
                             { End of the PChar. The memory has to be allocated because in }
                             { tai_string.done, there is a freemem(len+1) (JM)             }
                             ca[strlength+1]:=#0;
-                            Consts.concat(Tai_string.Create_length_pchar(ca,strlength+1));
+                            asmlist[consts].concat(Tai_string.Create_length_pchar(ca,strlength+1));
                           end;
                      end;
                  {$ifdef ansistring_bits}
@@ -627,21 +627,21 @@ implementation
                      begin
                         { an empty ansi string is nil! }
                         if (strlength=0) then
-                          curconstSegment.concat(Tai_const.Create_ptr(0))
+                          curconstsegment.concat(Tai_const.Create_ptr(0))
                         else
                           begin
                             objectlibrary.getdatalabel(ll);
-                            curconstSegment.concat(Tai_const_symbol.Create(ll));
+                            curconstsegment.concat(Tai_const_symbol.Create(ll));
                             { the actual structure starts at -12 from start label - CEC }
-                            Consts.concat(tai_align.create(const_align(pointer_size)));
+                            asmlist[consts].concat(tai_align.create(const_align(pointer_size)));
                             { first write the maximum size }
-                            Consts.concat(Tai_const.Create_64bit(strlength));
+                            asmlist[consts].concat(Tai_const.Create_64bit(strlength));
                             { second write the real length }
-                            Consts.concat(Tai_const.Create_64bit(strlength));
+                            asmlist[consts].concat(Tai_const.Create_64bit(strlength));
                             { redondent with maxlength but who knows ... (PM) }
                             { third write use count (set to -1 for safety ) }
-                            Consts.concat(Tai_const.Create_64bit(-1));
-                            Consts.concat(Tai_label.Create(ll));
+                            asmlist[consts].concat(Tai_const.Create_64bit(-1));
+                            asmlist[consts].concat(Tai_label.Create(ll));
                             getmem(ca,strlength+2);
                             move(strval^,ca^,strlength);
                             { The terminating #0 to be stored in the .data section (JM) }
@@ -649,7 +649,7 @@ implementation
                             { End of the PChar. The memory has to be allocated because in }
                             { tai_string.done, there is a freemem(len+1) (JM)             }
                             ca[strlength+1]:=#0;
-                            Consts.concat(Tai_string.Create_length_pchar(ca,strlength+1));
+                            asmlist[consts].concat(Tai_string.Create_length_pchar(ca,strlength+1));
                           end;
                      end;
                  {$endif}
@@ -662,14 +662,14 @@ implementation
                           begin
                             objectlibrary.getdatalabel(ll);
                             curconstSegment.concat(Tai_const.Create_sym(ll));
-                            Consts.concat(tai_align.create(const_align(sizeof(aint))));
-                            Consts.concat(Tai_const.Create_aint(-1));
-                            Consts.concat(Tai_const.Create_aint(strlength));
-                            Consts.concat(Tai_label.Create(ll));
+                            asmlist[consts].concat(tai_align.create(const_align(sizeof(aint))));
+                            asmlist[consts].concat(Tai_const.Create_aint(-1));
+                            asmlist[consts].concat(Tai_const.Create_aint(strlength));
+                            asmlist[consts].concat(Tai_label.Create(ll));
                             for i:=0 to strlength-1 do
-                              Consts.concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
+                              asmlist[consts].concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
                             { ending #0 }
-                            Consts.concat(Tai_const.Create_16bit(0))
+                            asmlist[consts].concat(Tai_const.Create_16bit(0))
                           end;
                      end;
                    st_longstring:
