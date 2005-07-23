@@ -582,80 +582,31 @@ var
 
 
     procedure Message1(w:longint;const s1:string);
-{$ifdef ver1_0}
-      var
-        hs1 : string;
-{$endif ver1_0}
+
       begin
         MaybeLoadMessageFile;
-{$ifdef ver1_0}
-        { 1.0.x is broken, it uses concatcopy instead of shortstring
-          copy when passing array of shortstring. (PFV) }
-        hs1:=s1;
-        Msg2Comment(msg^.Get(w,[hs1]));
-{$else ver1_0}
         Msg2Comment(msg^.Get(w,[s1]));
-{$endif ver1_0}
       end;
 
 
     procedure Message2(w:longint;const s1,s2:string);
-{$ifdef ver1_0}
-      var
-        hs1,hs2 : string;
-{$endif ver1_0}
       begin
         MaybeLoadMessageFile;
-{$ifdef ver1_0}
-        { 1.0.x is broken, it uses concatcopy instead of shortstring
-          copy when passing array of shortstring. (PFV) }
-        hs1:=s1;
-        hs2:=s2;
-        Msg2Comment(msg^.Get(w,[hs1,hs2]));
-{$else ver1_0}
         Msg2Comment(msg^.Get(w,[s1,s2]));
-{$endif ver1_0}
       end;
 
 
     procedure Message3(w:longint;const s1,s2,s3:string);
-{$ifdef ver1_0}
-      var
-        hs1,hs2,hs3 : string;
-{$endif ver1_0}
       begin
         MaybeLoadMessageFile;
-{$ifdef ver1_0}
-        { 1.0.x is broken, it uses concatcopy instead of shortstring
-          copy when passing array of shortstring. (PFV) }
-        hs1:=s1;
-        hs2:=s2;
-        hs3:=s3;
-        Msg2Comment(msg^.Get(w,[hs1,hs2,hs3]));
-{$else ver1_0}
         Msg2Comment(msg^.Get(w,[s1,s2,s3]));
-{$endif ver1_0}
       end;
 
 
     procedure Message4(w:longint;const s1,s2,s3,s4:string);
-{$ifdef ver1_0}
-      var
-        hs1,hs2,hs3,hs4 : string;
-{$endif ver1_0}
       begin
         MaybeLoadMessageFile;
-{$ifdef ver1_0}
-        { 1.0.x is broken, it uses concatcopy instead of shortstring
-          copy when passing array of shortstring. (PFV) }
-        hs1:=s1;
-        hs2:=s2;
-        hs3:=s3;
-        hs4:=s4;
-        Msg2Comment(msg^.Get(w,[hs1,hs2,hs3,hs4]));
-{$else ver1_0}
         Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]));
-{$endif ver1_0}
       end;
 
 

@@ -45,12 +45,6 @@ than 255 characters. That's why using Ansi Strings}
        qword = int64;
 {$endif fpc}
 
-{$ifdef ver1_0}
-       { Bootstrapping }
-       PtrInt = DWord;
-       SizeInt = Longint;
-{$endif ver1_0}
-
        { Natural integer register type and size for the target machine }
 {$ifdef cpu64bit}
        AWord = qword;

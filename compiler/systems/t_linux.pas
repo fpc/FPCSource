@@ -549,6 +549,11 @@ initialization
   RegisterImport(system_i386_linux,timportliblinux);
   RegisterExport(system_i386_linux,texportliblinux);
   RegisterTarget(system_i386_linux_info);
+
+  RegisterExternalLinker(system_x86_6432_linux_info,TLinkerLinux);
+  RegisterImport(system_x86_6432_linux,timportliblinux);
+  RegisterExport(system_x86_6432_linux,texportliblinux);
+  RegisterTarget(system_x86_6432_linux_info);
 {$endif i386}
 {$ifdef m68k}
   RegisterExternalLinker(system_m68k_linux_info,TLinkerLinux);

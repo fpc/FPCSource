@@ -90,10 +90,6 @@ begin
   FreeMem(Value,Len);
 end;
 
-{$ifdef ver1_0}
-  {$R-}
-{$endif}
-
 procedure TResourceStringItem.CalcHash;
 Var
   g : Cardinal;

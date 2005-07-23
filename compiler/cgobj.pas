@@ -1627,30 +1627,15 @@ implementation
     { type used is checked against todefs ranges. fromdef (p.resulttype.def) }
     { is the original type used at that location. When both defs are equal   }
     { the check is also insert (needed for succ,pref,inc,dec)                }
-{$ifndef ver1_0}
       const
         aintmax=high(aint);
-{$endif}
       var
         neglabel : tasmlabel;
         hreg : tregister;
         lto,hto,
         lfrom,hfrom : TConstExprInt;
         from_signed: boolean;
-{$ifdef ver1_0}
-        aintmax : aint;
-{$endif ver1_0}
       begin
-{$ifdef ver1_0}
-  {$ifdef cpu64bit}
-        { this is required to prevent incorrect code }
-        aintmax:=$7fffffff;
-        aintmax:=int64(aintmax shl 16) or int64($ffff);
-        aintmax:=int64(aintmax shl 16) or int64($ffff);
-  {$else cpu64bit}
-        aintmax:=high(aint);
-  {$endif cpu64bit}
-{$endif}
         { range checking on and range checkable value? }
         if not(cs_check_range in aktlocalswitches) or
            not(fromdef.deftype in [orddef,enumdef,arraydef]) then
