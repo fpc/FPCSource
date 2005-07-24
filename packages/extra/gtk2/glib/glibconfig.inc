@@ -8,7 +8,7 @@
 
 {$IFDEF read_forward_definitions}
    Pgint8 = ^gint8;
-   gint8 = char;
+   gint8 = shortint;
 
    Pguint8 = ^guint8;
    guint8 = byte;
