@@ -141,6 +141,7 @@ implementation
                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,location.reference,hregister);
                       reference_reset_base(location.reference,hregister,0);
                     end
+{$ifndef segment_threadvars}
                   { Thread variable }
                   else if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
                     begin
@@ -187,6 +188,7 @@ implementation
                        cg.a_label(exprasmlist,endrelocatelab);
                        location.reference.base:=hregister;
                     end
+{$endif}
                   { Nested variable }
                   else if assigned(left) then
                     begin
@@ -247,6 +249,10 @@ implementation
                                         reference_reset_symbol(location.reference,objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),0)
                                       else
                                         location:=tglobalvarsym(symtableentry).localloc;
+{$ifdef segment_threadvars}
+                                      if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
+                                        location.reference.segment:=NR_GS;
+{$endif}
                                     end;
                                 end;
                               else

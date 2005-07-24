@@ -554,7 +554,7 @@ const go32v2stub : array[0..2047] of byte=(
     function TCoffObjectData.sectionname(atype:tasmsectiontype;const aname:string):string;
       const
         secnames : array[tasmsectiontype] of string[16] = ('',
-          '.text','.data','.data','.bss',
+          '.text','.data','.data','.bss','.tbss',
           'common',
           '.note',
           '.stab','.stabstr',

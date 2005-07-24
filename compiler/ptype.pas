@@ -232,7 +232,7 @@ implementation
          { for tp7 don't allow forward types }
          if m_tp7 in aktmodeswitches then
            typecanbeforward:=false;
-         read_var_decs(true,false,false);
+         read_var_decs([vd_record]);
          consume(_END);
          typecanbeforward:=storetypecanbeforward;
          current_object_option:=old_object_option;

@@ -686,46 +686,58 @@ unit cgx86;
         tmpref  : treference;
       begin
         with ref do
-          if (base=NR_NO) and (index=NR_NO) then
-            begin
+          begin
+            if (base=NR_NO) and (index=NR_NO) then
               if assigned(ref.symbol) then
-                begin
-                  if cs_create_pic in aktmoduleswitches then
-                    begin
+                if cs_create_pic in aktmoduleswitches then
+                  begin
 {$ifdef x86_64}
-                      reference_reset_symbol(tmpref,ref.symbol,0);
-                      tmpref.refaddr:=addr_pic;
-                      tmpref.base:=NR_RIP;
-                      list.concat(taicpu.op_ref_reg(A_MOV,S_Q,tmpref,r));
+                    reference_reset_symbol(tmpref,ref.symbol,0);
+                    tmpref.refaddr:=addr_pic;
+                    tmpref.base:=NR_RIP;
+                    list.concat(taicpu.op_ref_reg(A_MOV,S_Q,tmpref,r));
 {$else x86_64}
-                      reference_reset_symbol(tmpref,ref.symbol,0);
-                      tmpref.refaddr:=addr_pic;
-                      tmpref.base:=current_procinfo.got;
-                      list.concat(taicpu.op_ref_reg(A_MOV,S_L,tmpref,r));
+                    reference_reset_symbol(tmpref,ref.symbol,0);
+                    tmpref.refaddr:=addr_pic;
+                    tmpref.base:=current_procinfo.got;
+                    list.concat(taicpu.op_ref_reg(A_MOV,S_L,tmpref,r));
 {$endif x86_64}
-                    end
-                  else
-                    begin
-                      tmpref:=ref;
-                      tmpref.refaddr:=ADDR_FULL;
-                      list.concat(Taicpu.op_ref_reg(A_MOV,tcgsize2opsize[OS_ADDR],tmpref,r));
-                    end;
-                end
+                  end
+                else
+                  begin
+                    tmpref:=ref;
+                    tmpref.refaddr:=ADDR_FULL;
+                    list.concat(Taicpu.op_ref_reg(A_MOV,tcgsize2opsize[OS_ADDR],tmpref,r));
+                  end
               else
-                a_load_const_reg(list,OS_ADDR,offset,r);
-            end
-          else if (base=NR_NO) and (index<>NR_NO) and
-                  (offset=0) and (scalefactor=0) and (symbol=nil) then
-            a_load_reg_reg(list,OS_ADDR,OS_ADDR,index,r)
-          else if (base<>NR_NO) and (index=NR_NO) and
-                  (offset=0) and (symbol=nil) then
-            a_load_reg_reg(list,OS_ADDR,OS_ADDR,base,r)
-          else
-            begin
-              tmpref:=ref;
-              make_simple_ref(list,tmpref);
-              list.concat(taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,r));
-            end;
+                a_load_const_reg(list,OS_ADDR,offset,r)
+            else if (base=NR_NO) and (index<>NR_NO) and
+                    (offset=0) and (scalefactor=0) and (symbol=nil) then
+              a_load_reg_reg(list,OS_ADDR,OS_ADDR,index,r)
+            else if (base<>NR_NO) and (index=NR_NO) and
+                    (offset=0) and (symbol=nil) then
+                a_load_reg_reg(list,OS_ADDR,OS_ADDR,base,r)
+            else
+              begin
+                tmpref:=ref;
+                make_simple_ref(list,tmpref);
+                list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,r));
+              end;
+            if (segment<>NR_NO) then
+              if segment=NR_GS then
+                begin
+{$ifdef segment_threadvars}
+                  {Convert thread local address to a process global addres
+                   as we cannot handle far pointers.}
+                  reference_reset_symbol(tmpref,objectlibrary.newasmsymbol(
+                    '___fpc_threadvar_offset',AB_EXTERNAL,AT_DATA),0);
+                  tmpref.segment:=NR_GS;
+                  list.concat(Taicpu.op_ref_reg(A_ADD,tcgsize2opsize[OS_ADDR],tmpref,r));
+{$endif}
+                end
+            else
+              cgmessage(cg_e_cant_use_far_pointer_there);
+          end;
       end;
 
 

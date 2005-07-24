@@ -193,23 +193,25 @@ unit cgcpu;
       begin
         with r do
           begin
+{$ifndef segment_threadvars}
             if (segment<>NR_NO) then
               cgmessage(cg_e_cant_use_far_pointer_there);
+{$endif}
             if use_push(cgpara) then
               begin
                 cgpara.check_simple_location;
                 opsize:=tcgsize2opsize[OS_ADDR];
-                if (base=NR_NO) and (index=NR_NO) then
+                if (segment=NR_NO) and (base=NR_NO) and (index=NR_NO) then
                   begin
                     if assigned(symbol) then
                       list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset))
                     else
                       list.concat(Taicpu.Op_const(A_PUSH,opsize,offset));
                   end
-                else if (base=NR_NO) and (index<>NR_NO) and
+                else if (segment=NR_NO) and (base=NR_NO) and (index<>NR_NO) and
                         (offset=0) and (scalefactor=0) and (symbol=nil) then
                   list.concat(Taicpu.Op_reg(A_PUSH,opsize,index))
-                else if (base<>NR_NO) and (index=NR_NO) and
+                else if (segment=NR_NO) and (base<>NR_NO) and (index=NR_NO) and
                         (offset=0) and (symbol=nil) then
                   list.concat(Taicpu.Op_reg(A_PUSH,opsize,base))
                 else

@@ -577,7 +577,7 @@ interface
 
        Tasmlist=({ default lists }
                  datasegment,codesegment,bsssegment,debuglist,consts,
-                 withdebuglist,importsection,exportsection,
+                 threadvarsegment,withdebuglist,importsection,exportsection,
                  resourcesection,rttilist,dwarflist,
                  { data used by pic code }
                  picdata,resourcestrings);

@@ -597,7 +597,7 @@ implementation
                               not(oo_can_have_published in aktclass.objectoptions) then
                               Message(parser_e_cant_have_published);
 
-                            read_var_decs(false,true,false);
+                            read_var_decs([vd_object]);
                           end;
                     end;
                   end;

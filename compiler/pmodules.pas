@@ -165,11 +165,12 @@ implementation
              ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
          end;
         { align code segment }
-        asmlist[codesegment].concat(Tai_align.Create(aktalignment.procalign));
+        asmlist[codesegment].concat(Tai_align.create(aktalignment.procalign));
         { Insert start and end of sections }
         fixseg(asmlist[codesegment],sec_code,'____seg_code');
         fixseg(asmlist[datasegment],sec_data,'____seg_data');
         fixseg(asmlist[bsssegment],sec_bss,'____seg_bss');
+        fixseg(asmlist[threadvarsegment],sec_bss,'____seg_tbss');
         { we should use .rdata section for these two no ?
           .rdata is a read only data section (PM) }
         fixseg(asmlist[rttilist],sec_data,'____seg_rtti');
@@ -190,7 +191,7 @@ implementation
 {$endif GDB}
       end;
 
-
+{$ifndef segment_threadvars}
     procedure InsertThreadvarTablesTable;
       var
         hp : tused_unit;
@@ -225,7 +226,6 @@ implementation
         asmlist[datasegment].concatlist(ltvTables);
         ltvTables.free;
       end;
-
 
     procedure AddToThreadvarList(p:tnamedindexitem;arg:pointer);
       var
@@ -266,6 +266,7 @@ implementation
           end;
          ltvTable.Free;
       end;
+{$endif}
 
 
     Procedure InsertResourceTablesTable;
@@ -912,6 +913,8 @@ implementation
           asmlist[codesegment].empty and
           asmlist[datasegment].empty and
           asmlist[bsssegment].empty and
+          asmlist[threadvarsegment].empty and
+          asmlist[rttilist].empty and
           ((asmlist[importsection]=nil) or asmlist[importsection].empty) and
           ((asmlist[resourcesection]=nil) or asmlist[resourcesection].empty) and
           ((asmlist[aasmtai.resourcestrings]=nil) or asmlist[aasmtai.resourcestrings].empty)
@@ -930,7 +933,7 @@ implementation
          force_init_final : boolean;
          pd : tprocdef;
          unitname8 : string[8];
-         has_impl: boolean;
+         has_impl,ag: boolean;
       begin
          if m_mac in aktmodeswitches then
            begin
@@ -1248,7 +1251,9 @@ implementation
          gen_intf_wrappers(asmlist[codesegment],current_module.localsymtable);
 
          { generate a list of threadvars }
+{$ifndef segment_threadvars}
          InsertThreadvars;
+{$endif}
 
          { generate imports }
          if current_module.uses_imports then
@@ -1256,15 +1261,19 @@ implementation
 
          { insert own objectfile, or say that it's in a library
            (no check for an .o when loading) }
-         if is_assembler_generated then
+         ag:=is_assembler_generated;
+         if ag then
            insertobjectfile
          else
-           current_module.flags:=current_module.flags or uf_no_link;
+           begin
+             current_module.flags:=current_module.flags or uf_no_link;
+             current_module.flags:=current_module.flags and not uf_has_debuginfo;
+           end;
 
          if cs_local_browser in aktmoduleswitches then
            current_module.localsymtable:=refsymtable;
 
-         if is_assembler_generated then
+         if ag then
           begin
             { create dwarf debuginfo }
             create_dwarf;
@@ -1561,8 +1570,10 @@ implementation
          { generate wrappers for interfaces }
          gen_intf_wrappers(asmlist[codesegment],current_module.localsymtable);
 
+{$ifndef segment_threadvars}
          { generate a list of threadvars }
          InsertThreadvars;
+{$endif}
 
          { generate imports }
          if current_module.uses_imports then
@@ -1574,7 +1585,9 @@ implementation
            exportlib.generatelib;
 
          { insert Tables and StackLength }
+{$ifndef segment_threadvars}
          insertThreadVarTablesTable;
+{$endif}
          insertResourceTablesTable;
          insertinitfinaltable;
          insertmemorysizes;

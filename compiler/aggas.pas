@@ -281,7 +281,7 @@ var
       const
         secnames : array[tasmsectiontype] of string[12] = ('',
 {$warning TODO .rodata not yet working}
-          '.text','.data','.data','.bss',
+          '.text','.data','.data','.bss','.tbss',
           'common',
           '.note',
           '.stab','.stabstr',
@@ -291,7 +291,7 @@ var
         );
       begin
         if use_smartlink_section and
-           (atype<>sec_bss) and
+           not (atype in [sec_bss,sec_tbss]) and
            (aname<>'') then
           result:='.gnu.linkonce'+copy(secnames[atype],1,2)+'.'+aname
         else
@@ -976,6 +976,7 @@ var
       WriteTree(asmlist[picdata]);
       Writetree(asmlist[resourcestrings]);
       WriteTree(asmlist[bsssegment]);
+      WriteTree(asmlist[threadvarsegment]);
       Writetree(asmlist[importsection]);
       { exports are written by DLLTOOL
         if we use it so don't insert it twice (PM) }

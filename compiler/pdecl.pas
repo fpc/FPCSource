@@ -574,7 +574,7 @@ implementation
     { the top symbol table of symtablestack         }
       begin
         consume(_VAR);
-        read_var_decs(false,false,false);
+        read_var_decs([]);
       end;
 
 
@@ -602,7 +602,7 @@ implementation
         consume(_THREADVAR);
         if not(symtablestack.symtabletype in [staticsymtable,globalsymtable]) then
           message(parser_e_threadvars_only_sg);
-        read_var_decs(false,false,true);
+        read_var_decs([vd_threadvar]);
       end;
 
 

@@ -29,9 +29,12 @@ interface
     uses
       symsym,symdef;
 
+    type   Tvar_dec_option=(vd_record,vd_object,vd_threadvar);
+           Tvar_dec_options=set of Tvar_dec_option;
+
     function read_property_dec(aclass:tobjectdef):tpropertysym;
 
-    procedure read_var_decs(is_record,is_object,is_threadvar:boolean);
+    procedure read_var_decs(options:Tvar_dec_options);
 
 
 implementation
@@ -582,7 +585,7 @@ implementation
     const
        variantrecordlevel : longint = 0;
 
-    procedure read_var_decs(is_record,is_object,is_threadvar:boolean);
+    procedure read_var_decs(options:Tvar_dec_options);
     { reads the filed of a record into a        }
     { symtablestack, if record=false        }
     { variants are forbidden, so this procedure }
@@ -710,7 +713,7 @@ implementation
 {$endif powerpc}
          old_current_object_option:=current_object_option;
          { all variables are public if not in a object declaration }
-         if not is_object then
+         if not(vd_object in options) then
           current_object_option:=[sp_public];
          old_block_type:=block_type;
          block_type:=bt_type;
@@ -720,8 +723,9 @@ implementation
           consume(_ID);
          { read vars }
          sc:=tsinglelist.create;
-         while (token=_ID) and
-               not(is_object and (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
+         while (token=_ID) and 
+            not((vd_object in options) and
+                (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
            begin
              sorg:=orgpattern;
              semicoloneaten:=false;
@@ -749,8 +753,7 @@ implementation
                consume(_ID);
              until not try_to_consume(_COMMA);
              consume(_COLON);
-             if (m_gpc in aktmodeswitches) and
-                not(is_record or is_object or is_threadvar) and
+             if (m_gpc in aktmodeswitches) and (options=[]) and
                 (token=_ID) and (orgpattern='__asmname__') then
                begin
                  consume(_ID);
@@ -760,7 +763,7 @@ implementation
              { this is needed for Delphi mode at least
                but should be OK for all modes !! (PM) }
              ignore_equal:=true;
-             if is_record or is_object then
+             if options*[vd_record,vd_object]<>[] then
               begin
                 { for records, don't search the recordsymtable for
                   the symbols of the types }
@@ -797,7 +800,7 @@ implementation
                    the alignment of the first field.  */
                }
                if (target_info.system in [system_powerpc_darwin, system_powerpc_macos]) and
-                  is_record and
+                  (vd_record in options) and
                   is_first_field and
                   (trecordsymtable(symtablestack).usefieldalignment = -1) then
                  begin
@@ -840,8 +843,7 @@ implementation
                end;
 
              { check for absolute }
-             if not symdone and
-                (idtoken=_ABSOLUTE) and not(is_record or is_object or is_threadvar) then
+             if not symdone and (idtoken=_ABSOLUTE) and (options=[]) then
               begin
                 consume(_ABSOLUTE);
                 abssym:=nil;
@@ -949,7 +951,7 @@ implementation
              try_consume_hintdirective(dummysymoptions);
 
              { Records and objects can't have default values }
-             if is_record or is_object then
+             if options*[vd_record,vd_object]<>[] then
                begin
                  { for a record there doesn't need to be a ; before the END or )    }
                  if not(token in [_END,_RKLAMMER]) and
@@ -966,7 +968,7 @@ implementation
                    if (tt.def.deftype=procvardef) and
                       (tt.def.typesym=nil) then
                      handle_calling_convention(tprocvardef(tt.def));
-                   read_default_value(sc,tt,is_threadvar);
+                   read_default_value(sc,tt,vd_threadvar in options);
                    consume(_SEMICOLON);
                    { for locals we've created typedconstsym with a different name }
                    if symtablestack.symtabletype<>localsymtable then
@@ -996,12 +998,11 @@ implementation
                  { Add calling convention for procvar }
                  handle_calling_convention(tprocvardef(tt.def));
                  { Handling of Delphi typed const = initialized vars }
-                 if (token=_EQUAL) and
-                    not(is_record or is_object) and
+                 if (token=_EQUAL) and (options*[vd_record,vd_object]=[]) and
                     not(m_tp7 in aktmodeswitches) and
                     (symtablestack.symtabletype<>parasymtable) then
                    begin
-                     read_default_value(sc,tt,is_threadvar);
+                     read_default_value(sc,tt,vd_threadvar in options);
                      consume(_SEMICOLON);
                      symdone:=true;
                      hasdefaultvalue:=true;
@@ -1009,7 +1010,7 @@ implementation
                end;
 
              { Check for EXTERNAL etc directives or, in macpas, if cs_external_var is set}
-             if not symdone and not(is_record or is_object or is_threadvar) then
+             if not symdone and (options=[]) then
               begin
                 if (
                      (token=_ID) and
@@ -1147,7 +1148,7 @@ implementation
               end;
 
              { Check for STATIC directive }
-             if not symdone and (is_object) and
+             if not symdone and (vd_object in options) and
                (cs_static_keyword in aktmoduleswitches) and (idtoken=_STATIC) then
                   begin
                     include(current_object_option,sp_static);
@@ -1183,14 +1184,14 @@ implementation
                       Message(parser_e_only_publishable_classes_can__be_published);
                       exclude(current_object_option,sp_published);
                     end;
-                  insert_syms(sc,tt,is_threadvar,dummysymoptions);
+                  insert_syms(sc,tt,vd_threadvar in options,dummysymoptions);
                   current_object_option:=old_current_object_option;
                end;
 
            end;
 
          { Check for Case }
-         if is_record and (token=_CASE) then
+         if (vd_record in options) and (token=_CASE) then
            begin
               maxsize:=0;
               maxalignment:=0;
@@ -1257,7 +1258,7 @@ implementation
                 consume(_LKLAMMER);
                 inc(variantrecordlevel);
                 if token<>_RKLAMMER then
-                  read_var_decs(true,false,false);
+                  read_var_decs([vd_record]);
                 dec(variantrecordlevel);
                 consume(_RKLAMMER);
                 { calculates maximal variant size }

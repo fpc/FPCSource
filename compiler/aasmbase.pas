@@ -47,7 +47,7 @@ interface
        TAsmRelocationType = (RELOC_ABSOLUTE,RELOC_RELATIVE,RELOC_RVA);
 
        TAsmSectionType=(sec_none,
-         sec_code,sec_data,sec_rodata,sec_bss,
+         sec_code,sec_data,sec_rodata,sec_bss,sec_tbss,
          sec_common, { used for executable creation }
          sec_custom, { custom section, no prefix }
          { stabs }
@@ -572,7 +572,7 @@ implementation
     function TAsmObjectData.sectionname(atype:tasmsectiontype;const aname:string):string;
       const
         secnames : array[tasmsectiontype] of string[12] = ('',
-          'code','data','rodata','bss',
+          'code','data','rodata','bss','tbss',
           'common',
           'note',
           'stab','stabstr',

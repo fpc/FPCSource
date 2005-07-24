@@ -252,7 +252,7 @@ implementation
          exprasmlist:=taasmoutput.create;
          { Create assembler output lists for CG }
          to_create:=[datasegment,codesegment,bsssegment,debuglist,
-                     withdebuglist,consts,rttilist,picdata];
+                     threadvarsegment,withdebuglist,consts,rttilist,picdata];
          for i:=low(Tasmlist) to high(Tasmlist) do
            if i in to_create then
              asmlist[i]:=Taasmoutput.create

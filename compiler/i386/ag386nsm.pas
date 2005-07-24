@@ -355,7 +355,7 @@ interface
     procedure T386NasmAssembler.WriteSection(atype:tasmsectiontype;const aname:string);
       const
         secnames : array[tasmsectiontype] of string[12] = ('',
-          '.text','.data','.rodata','.bss',
+          '.text','.data','.rodata','.bss','.tbss',
           'common',
           '.note',
           '.stab','.stabstr',
@@ -803,6 +803,7 @@ interface
       WriteTree(asmlist[rttilist]);
       WriteTree(asmlist[resourcestrings]);
       WriteTree(asmlist[bsssegment]);
+      WriteTree(asmlist[threadvarsegment]);
       Writetree(asmlist[importsection]);
       { exports are written by DLLTOOL
         if we use it so don't insert it twice (PM) }

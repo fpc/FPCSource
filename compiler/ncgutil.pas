@@ -1966,18 +1966,35 @@ implementation
       var
         l,varalign : longint;
         storefilepos : tfileposinfo;
+        list : Taasmoutput;
+        sectype : Tasmsectiontype;
       begin
         storefilepos:=aktfilepos;
         aktfilepos:=sym.fileinfo;
         l:=sym.getsize;
+     {$ifndef segment_threadvars}
         if (vo_is_thread_var in sym.varoptions) then
           inc(l,sizeof(aint));
+        list:=asmlist[bsssegment];
+        sectype:=sec_bss;
+     {$else}
+        if (vo_is_thread_var in sym.varoptions) then
+          begin
+            list:=asmlist[threadvarsegment];
+            sectype:=sec_tbss;
+          end
+        else
+          begin
+            list:=asmlist[bsssegment];
+            sectype:=sec_bss;
+          end;
+     {$endif}
         varalign:=var_align(l);
-        maybe_new_object_file(asmlist[bsssegment]);
-        new_section(asmlist[bsssegment],sec_bss,lower(sym.mangledname),varalign);
+        maybe_new_object_file(list);
+        new_section(list,sectype,lower(sym.mangledname),varalign);
 {$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) then
-          sym.concatstabto(asmlist[bsssegment]);
+          sym.concatstabto(list);
 {$endif GDB}
         if (sym.owner.symtabletype=globalsymtable) or
            maybe_smartlink_symbol or
@@ -1986,9 +2003,9 @@ implementation
             (po_inline in current_procinfo.procdef.procoptions)) or
            (vo_is_exported in sym.varoptions) or
            (vo_is_C_var in sym.varoptions) then
-          asmlist[bsssegment].concat(Tai_datablock.Create_global(sym.mangledname,l))
+          list.concat(Tai_datablock.create_global(sym.mangledname,l))
         else
-          asmlist[bsssegment].concat(Tai_datablock.Create(sym.mangledname,l));
+          list.concat(Tai_datablock.create(sym.mangledname,l));
         aktfilepos:=storefilepos;
       end;
 
@@ -2097,8 +2114,8 @@ implementation
                                   { PIC, DLL and Threadvar need extra code and are handled in ncgld }
                                   if not((target_info.system=system_powerpc_darwin) and
                                     (cs_create_pic in aktmoduleswitches)) and
-                                     not(vo_is_dll_var in varoptions) and
-                                     not(vo_is_thread_var in varoptions) then
+                                     not(vo_is_dll_var in varoptions) {$ifndef segment_threadvars} and
+                                     not(vo_is_thread_var in varoptions) {$endif} then
                                     reference_reset_symbol(localloc.reference,objectlibrary.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA),0);
                                 end;
                               else
