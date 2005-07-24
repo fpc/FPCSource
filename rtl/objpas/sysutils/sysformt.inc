@@ -231,24 +231,34 @@ begin
               ToAdd:=StringOfChar('0',Index)+ToAdd
               end;
         'E' : begin
-              CheckArg(vtExtended,true);
-              ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffexponent,Prec,3);
+              if CheckArg(vtCurrency,false) then
+                ToAdd:=FloatToStrF(Args[doarg].VCurrency^,ffexponent,Prec,3)
+              else if CheckArg(vtExtended,true) then
+                ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffexponent,Prec,3);
               end;
         'F' : begin
-              CheckArg(vtExtended,true);
-              ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffFixed,9999,Prec);
+              if CheckArg(vtCurrency,false) then
+                ToAdd:=FloatToStrF(Args[doarg].VCurrency^,ffFixed,9999,Prec)
+              else if CheckArg(vtExtended,true) then
+                ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffFixed,9999,Prec);
               end;
         'G' : begin
-              CheckArg(vtExtended,true);
-              ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffGeneral,Prec,3);
+              if CheckArg(vtCurrency,false) then
+                ToAdd:=FloatToStrF(Args[doarg].VCurrency^,ffGeneral,Prec,3)
+              else if CheckArg(vtExtended,true) then
+                ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffGeneral,Prec,3);
               end;
         'N' : begin
-              CheckArg(vtExtended,true);
-              ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffNumber,9999,Prec);
+              if CheckArg(vtCurrency,false) then
+                ToAdd:=FloatToStrF(Args[doarg].VCurrency^,ffNumber,9999,Prec)
+              else if CheckArg(vtExtended,true) then
+                ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffNumber,9999,Prec);
               end;
         'M' : begin
-              CheckArg(vtExtended,true);
-              ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffCurrency,9999,Prec);
+              if CheckArg(vtExtended,false) then
+                ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffCurrency,9999,Prec)
+              else if CheckArg(vtCurrency,true) then
+                ToAdd:=FloatToStrF(Args[doarg].VCurrency^,ffCurrency,9999,Prec);
               end;
         'S' : begin
                 if CheckArg(vtString,false) then
