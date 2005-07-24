@@ -220,6 +220,7 @@ compiler/msg/errorpl.msg svneol=native#text/plain
 compiler/msg/errorpli.msg svneol=native#text/plain
 compiler/msg/errorr.msg svneol=native#text/plain
 compiler/msg/errorrw.msg svneol=native#text/plain
+compiler/msg/errorues.msg svneol=native#text/plain
 compiler/msgidx.inc svneol=native#text/plain
 compiler/msgtxt.inc svneol=native#text/plain
 compiler/nadd.pas svneol=native#text/plain
