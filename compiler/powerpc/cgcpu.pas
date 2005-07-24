@@ -164,6 +164,7 @@ const
         inherited init_register_allocators;
         if target_info.system=system_powerpc_darwin then
           begin
+{
             if pi_needs_got in current_procinfo.flags then
               begin
                 current_procinfo.got:=NR_R31;
@@ -174,7 +175,7 @@ const
                    RS_R21,RS_R20,RS_R19,RS_R18,RS_R17,RS_R16,RS_R15,
                    RS_R14,RS_R13],first_int_imreg,[]);
               end
-            else
+            else}
               rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
                 [RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
                  RS_R9,RS_R10,RS_R11,RS_R12,RS_R31,RS_R30,RS_R29,
@@ -1223,6 +1224,7 @@ const
 
 
         { if we didn't get the GOT pointer till now, we've to calculate it now }
+(*
         if not(gotgot) and (pi_needs_got in current_procinfo.flags) then
           case target_info.system of
             system_powerpc_darwin:
@@ -1246,6 +1248,7 @@ const
                 list.concat(taicpu.op_reg_reg(A_MFSPR,NR_R31,NR_LR));
               end;
           end;
+*)
         { save the CR if necessary ( !!! always done currently ) }
         { still need to find out where this has to be done for SystemV
         a_reg_alloc(list,R_0);
