@@ -1168,7 +1168,10 @@ begin
   Count:=WordCount(S, WordDelims);
   I:=1;
   While (Not Result) and (I<=Count) do
+    begin
     Result:=ExtractWord(i,S,WordDelims)=W;
+    Inc(i);
+    end;
 end;
 
 
