@@ -462,14 +462,14 @@ begin
     DoEllipseAndFill (bounds)
   else
     begin
-    if not dp then
+    if p then
       DoEllipse (bounds)
-    else
+    else if dp then
       with bounds do
         TFPCustomDrawPen(Pen).Ellipse (left,top,right,bottom);
-    if not db then
+    if b then
       DoEllipseFill (bounds)
-    else
+    else if db then 
       with bounds do
         TFPCustomDrawBrush(Brush).Ellipse (left,top,right,bottom);
     end;
@@ -491,40 +491,32 @@ begin
 end;
 
 procedure TFPCustomCanvas.Rectangle (const Bounds:TRect);
-var p,b,dp,db,pb : boolean;
+var np,nb,dp,db,pb : boolean;
 begin
-  p := Pen.style <> psClear;
-  b := Brush.style <> bsClear;
-  if p and (pen is TFPCustomDrawPen) then
-      begin
-      p := false;
-      dp := true;
-      end;
-  if b and (brush is TFPCustomDrawBrush) then
-      begin
-      b := false;
-      db := true;
-      end;
-  if p and b then
-    begin
-    p := false;
-    b := false;
-    pb := true;
-    end;
-  if pb then
+  np:= Pen.style <> psClear; // Need pen ?
+  nb:= Brush.style <> bsClear;  // Need brush ?
+  dp:=(pen is TFPCustomDrawPen); // Pen draws ?
+  db:=(brush is TFPCustomDrawBrush); // Brush draws ?
+  if (np and nb) and not (db or db) then
     DoRectangleAndFill (bounds)
   else
     begin
-    if p then
-      DoRectangle (bounds)
-    else
-      with bounds do
-        TFPCustomDrawPen(Pen).Rectangle (left,top,right,bottom);
-    if b then
-      DoRectangleFill (bounds)
-    else
-      with bounds do
-        TFPCustomDrawBrush(Brush).Rectangle (left,top,right,bottom);
+    if np then
+      begin
+      If not dp then
+        DoRectangle (bounds)
+      else
+        with bounds do
+          TFPCustomDrawPen(Pen).Rectangle (left,top,right,bottom);
+      end;
+    if Nb then
+      begin
+      if not db then
+        DoRectangleFill (bounds)
+      else 
+        with bounds do
+          TFPCustomDrawBrush(Brush).Rectangle (left,top,right,bottom);
+      end;
     end;
 end;
 
@@ -544,6 +536,9 @@ var p,b,dp,db,pb : boolean;
 begin
   p := Pen.style <> psClear;
   b := Brush.style <> bsClear;
+  dp:=false;
+  db:=false;
+  pb:=False;
   if p and (pen is TFPCustomDrawPen) then
       begin
       p := false;
@@ -566,11 +561,11 @@ begin
     begin
     if p then
       DoPolygon (points)
-    else
+    else if dp then
       TFPCustomDrawPen(Pen).Polyline (points, true);
     if b then
       DoPolygonFill (points)
-    else
+    else if db then
       TFPCustomDrawBrush(Brush).Polygon (points);
     end;
 end;
@@ -609,5 +604,4 @@ begin
       colors [r,t] := image.colors[xx,t-y];
     end;
 end;
-
 
