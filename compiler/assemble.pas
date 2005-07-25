@@ -1606,6 +1606,9 @@ Implementation
           exclude(to_do,exportsection);
         {$warning TODO internal writer support for dwarf}
         exclude(to_do,dwarflist);
+{$ifndef segment_threadvars}
+        exclude(to_do,threadvarsegment);
+{$endif}
         for i:=low(Tasmlist) to high(Tasmlist) do
           if (i in to_do) and (asmlist[i]<>nil) then
             addlist(asmlist[i]);
