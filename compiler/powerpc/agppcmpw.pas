@@ -76,7 +76,7 @@ interface
         'csect', {code}
         'csect', {data}
         'csect', {read only data}
-        'csect', {bss}
+        'csect', {bss}, 'csect',
         'csect','csect','csect','csect','','','','','','','',''
       );
 
