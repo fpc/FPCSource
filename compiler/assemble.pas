@@ -1085,7 +1085,7 @@ Implementation
                end;
              ait_datablock :
                begin
-                 if not (objectdata.currsec.sectype in [sec_bss,sec_tbss]) then
+                 if not (objectdata.currsec.sectype in [sec_bss,sec_threadvar]) then
                    Message(asmw_e_alloc_data_only_in_bss);
                  l:=used_align(size_2_align(Tai_datablock(hp).size),0,objectdata.currsec.addralign);
                  if Tai_datablock(hp).is_global and
@@ -1256,7 +1256,7 @@ Implementation
            case hp.typ of
              ait_align :
                begin
-                 if objectdata.currsec.sectype in [sec_bss,sec_tbss] then
+                 if objectdata.currsec.sectype in [sec_bss,sec_threadvar] then
                    objectdata.alloc(Tai_align(hp).fillsize)
                  else
                    objectdata.writebytes(Tai_align(hp).calculatefillbuf(fillbuffer)^,Tai_align(hp).fillsize);

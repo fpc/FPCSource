@@ -236,7 +236,7 @@ implementation
               AshType:=SHT_PROGBITS;
               AAlign:=max(sizeof(aint),AAlign);
             end;
-          sec_bss,sec_tbss :
+          sec_bss,sec_threadvar :
             begin
               Ashflags:=SHF_ALLOC or SHF_WRITE;
               AshType:=SHT_NOBITS;
@@ -308,7 +308,9 @@ implementation
         createsection(sec_code,'',0,[]);
         createsection(sec_data,'',0,[]);
         createsection(sec_bss,'',0,[]);
-        createsection(sec_tbss,'',0,[]);
+{$ifdef segment_threadvars}
+        createsection(sec_threadvar,'',0,[]);
+{$endif}
         { create stabs sections if debugging }
         if (cs_debuginfo in aktmoduleswitches) then
          begin
@@ -332,9 +334,9 @@ implementation
       const
         secnames : array[tasmsectiontype] of string[12] = ('',
 {$ifdef userodata}
-          '.text','.data','.rodata','.bss','.tbss',
+          '.text','.data','.rodata','.bss','.threadvar',
 {$else userodata}
-          '.text','.data','.data','.bss','.tbss',
+          '.text','.data','.data','.bss','.threadvar',
 {$endif userodata}
           'common',
           '.note',
@@ -345,7 +347,7 @@ implementation
         );
       begin
         if use_smartlink_section and
-           not (atype in [sec_bss,sec_tbss]) and
+           not (atype in [sec_bss,sec_threadvar]) and
            (aname<>'') then
           result:='.gnu.linkonce'+copy(secnames[atype],1,2)+'.'+aname
         else
@@ -379,7 +381,7 @@ implementation
         if currsec=nil then
           internalerror(200403292);
 {$ifdef userodata}
-        if currsec.sectype in [sec_rodata,sec_bss,sec_tbss] then
+        if currsec.sectype in [sec_rodata,sec_bss,sec_threadvar] then
           internalerror(200408252);
 {$endif userodata}
         if assigned(p) then

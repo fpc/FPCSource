@@ -281,7 +281,7 @@ var
       const
         secnames : array[tasmsectiontype] of string[12] = ('',
 {$warning TODO .rodata not yet working}
-          '.text','.data','.data','.bss','.tbss',
+          '.text','.data','.data','.bss','.threadvar',
           'common',
           '.note',
           '.stab','.stabstr',
@@ -291,7 +291,7 @@ var
         );
       begin
         if use_smartlink_section and
-           not (atype in [sec_bss,sec_tbss]) and
+           not (atype in [sec_bss,sec_threadvar]) and
            (aname<>'') then
           result:='.gnu.linkonce'+copy(secnames[atype],1,2)+'.'+aname
         else

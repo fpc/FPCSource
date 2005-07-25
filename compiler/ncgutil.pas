@@ -1981,7 +1981,7 @@ implementation
         if (vo_is_thread_var in sym.varoptions) then
           begin
             list:=asmlist[threadvarsegment];
-            sectype:=sec_tbss;
+            sectype:=sec_threadvar;
           end
         else
           begin
