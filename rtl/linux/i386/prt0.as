@@ -59,6 +59,10 @@ _start:
         fwait
         fldcw   ___fpucw
 
+        /* Initialize gs for thread local storage */
+        pushw   %ds
+        popw    %gs
+
         xorl    %ebp,%ebp
         call    PASCALMAIN
 
@@ -81,6 +85,7 @@ ___fpucw:
         .type   ___fpc_brk_addr,@object
         .comm   ___fpc_brk_addr,4        /* heap management */
 
+
 operatingsystem_parameters:
         .skip 3*4
 
@@ -90,3 +95,6 @@ operatingsystem_parameters:
         .set operatingsystem_parameter_envp,operatingsystem_parameters+0
         .set operatingsystem_parameter_argc,operatingsystem_parameters+4
         .set operatingsystem_parameter_argv,operatingsystem_parameters+8
+
+//.section .threadvar,"aw",@nobits
+        .comm   ___fpc_threadvar_offset,4
