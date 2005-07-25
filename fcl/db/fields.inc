@@ -48,7 +48,7 @@ begin
     If Not (FSize in [4,8,10]) then FSize:=10
     end
   else If FDataType in [ftWord,ftsmallint,ftinteger] Then
-    If Not (FSize in [1,2,4]) then FSize:=4;
+    If Not (byte(FSize) in [1,2,4]) then FSize:=4;
 
   FFieldNo:=AFieldNo;
 end;
