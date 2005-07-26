@@ -421,6 +421,13 @@ implementation
            consume(_EQUAL);
            { support 'ttype=type word' syntax }
            unique:=try_to_consume(_TYPE);
+
+           { MacPas object model is more like Delphi's than like TP's, but }
+           { uses the object keyword instead of class                      }
+           if (m_mac in aktmodeswitches) and
+              (token = _OBJECT) then
+             token := _CLASS;
+
            { is the type already defined? }
            searchsym(typename,sym,srsymtable);
            newtype:=nil;
