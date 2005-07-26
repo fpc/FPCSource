@@ -214,11 +214,6 @@ implementation
 
         begin
            readobjecttype:=true;
-           { MacPas object model is more like Delphi's than like TP's, but }
-           { uses the object keyword instead of class                      }
-           if (m_mac in aktmodeswitches) and
-              (token = _OBJECT) then
-             token := _CLASS;
            { distinguish classes and objects }
            case token of
               _OBJECT:
