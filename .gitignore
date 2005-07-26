@@ -2417,6 +2417,10 @@ utils/*.exe
 utils/*.o
 utils/*.ppu
 utils/*.s
+utils/bin2obj
+utils/bin2obj.exe
+utils/data2inc
+utils/data2inc.exe
 utils/debugsvr/*.bak
 utils/debugsvr/*.exe
 utils/debugsvr/*.o
@@ -2445,6 +2449,8 @@ utils/debugsvr/gtk/bitmaps/units
 utils/debugsvr/gtk/fpcmade.*
 utils/debugsvr/gtk/units
 utils/debugsvr/units
+utils/delp
+utils/delp.exe
 utils/dxegen/*.bak
 utils/dxegen/*.exe
 utils/dxegen/*.o
@@ -2516,6 +2522,14 @@ utils/kalyptus/*.ppu
 utils/kalyptus/*.s
 utils/kalyptus/fpcmade.*
 utils/kalyptus/units
+utils/postw32
+utils/postw32.exe
+utils/ppdep
+utils/ppdep.exe
+utils/ptop
+utils/ptop.exe
+utils/rstconv
+utils/rstconv.exe
 utils/simulator/*.bak
 utils/simulator/*.exe
 utils/simulator/*.o
