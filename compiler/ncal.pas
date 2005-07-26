@@ -2154,8 +2154,11 @@ type
 
                      is still folded. (FK)
                      }
-                    (paramanager.push_addr_param(vs_const,para.parasym.vartype.def,procdefinition.proccalloption) or
-                    (node_complexity(para.left) >= NODE_COMPLEXITY_INF)))
+                    (
+                      { this must be a not ... of course }
+                      not(paramanager.push_addr_param(vs_const,para.parasym.vartype.def,procdefinition.proccalloption)) or
+                      (node_complexity(para.left) >= NODE_COMPLEXITY_INF)
+                    ))
                    ) then
                   begin
                     { in theory, this is always regable, but ncgcall can't }
