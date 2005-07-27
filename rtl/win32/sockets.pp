@@ -19,7 +19,7 @@ Interface
 {$define maybelibc:=}
 
   Uses
-     windows,winsock;
+     windows,winsock,ctypes;
 
 Type
   cushort=word;
