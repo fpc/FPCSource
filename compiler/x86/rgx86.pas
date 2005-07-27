@@ -142,7 +142,7 @@ implementation
                          (getsupreg(oper[0]^.reg)=orgreg) then
                         replaceoper:=0
                       else
-                        if (getregtype(oper[0]^.reg)=regtype) and
+                        if (getregtype(oper[1]^.reg)=regtype) and
                            (getsupreg(oper[1]^.reg)=orgreg) then
                           replaceoper:=1
                       else
@@ -177,6 +177,28 @@ implementation
                               A_DIVSS,
                               A_SHLD,
                               A_SHRD,
+                              A_CVTDQ2PD,
+                              A_CVTDQ2PS,
+                              A_CVTPD2DQ,
+                              A_CVTPD2PI,
+                              A_CVTPD2PS,
+                              A_CVTPI2PD,
+                              A_CVTPS2DQ,
+                              A_CVTPS2PD,
+                              A_CVTSD2SI,
+                              A_CVTSD2SS,
+                              A_CVTSI2SD,
+                              A_CVTSS2SD,
+                              A_CVTTPD2PI,
+                              A_CVTTPD2DQ,
+                              A_CVTTPS2DQ,
+                              A_CVTTSD2SI,
+                              A_CVTPI2PS,
+                              A_CVTPS2PI,
+                              A_CVTSI2SS,
+                              A_CVTSS2SI,
+                              A_CVTTPS2PI,
+                              A_CVTTSS2SI,
                               A_IMUL :
                                 replaceoper:=-1;
                             end;
