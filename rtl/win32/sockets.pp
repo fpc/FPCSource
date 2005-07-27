@@ -26,7 +26,7 @@ Type
   cuint16=word;
   cuint32=cardinal;
   size_t =cuint32;
-  ssize_t=Int64;
+  ssize_t=cint32;
   cint   =longint;
   pcint  =^cint;
   tsocklen=cint;
