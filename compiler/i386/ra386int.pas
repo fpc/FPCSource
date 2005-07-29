@@ -1095,6 +1095,7 @@ Unit Ra386int;
         hreg : tregister;
         GotStar,GotOffset,HadVar,
         GotPlus,Negative : boolean;
+        hl : tasmlabel;
       Begin
         Consume(AS_LBRACKET);
         if not(oper.opr.typ in [OPR_LOCAL,OPR_REFERENCE]) then
@@ -1114,8 +1115,6 @@ Unit Ra386int;
               Begin
                 if not GotPlus then
                   Message(asmr_e_invalid_reference_syntax);
-                if actasmpattern[1] = '@' then
-                 Message(asmr_e_local_label_not_allowed_as_ref);
                 GotStar:=false;
                 GotPlus:=false;
                 if SearchIConstant(actasmpattern,l) or
@@ -1168,6 +1167,14 @@ Unit Ra386int;
                       if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
                         oper.SetSize(typesize,true);
                     end
+                   else
+                    if is_locallabel(tempstr) then
+                      begin
+                        CreateLocalLabel(tempstr,hl,false);
+                        oper.InitRef;
+                        oper.opr.ref.symbol:=hl;
+                        oper.hasvar:=true;
+                      end
                    else
                     if oper.SetupVar(tempstr,GotOffset) then
                      begin
