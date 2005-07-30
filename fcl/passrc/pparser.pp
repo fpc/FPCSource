@@ -1334,7 +1334,13 @@ begin
       begin
         if CurToken = tkBraceOpen then
         begin
-	  ParseArgList(Parent, Element.Args, tkBraceClose);
+          NextToken;
+          if (CurToken = tkBraceClose) then
+          else
+            begin
+              UngetToken;
+              ParseArgList(Parent, Element.Args, tkBraceClose);
+            end;
 	  ExpectToken(tkColon);
 	end else if CurToken <> tkColon then
 	  ParseExc(SParserExpectedLBracketColon);
@@ -1347,7 +1353,13 @@ begin
       begin
         if CurToken = tkBraceOpen then
 	begin
-	  ParseArgList(Element, Element.Args, tkBraceClose);
+          NextToken;
+          if (CurToken = tkBraceClose) then
+          else
+            begin
+              UngetToken;
+              ParseArgList(Element, Element.Args, tkBraceClose);
+            end
 	end else if (CurToken = tkSemicolon) or (OfObjectPossible and (CurToken = tkOf)) then
 	  UngetToken
 	else
