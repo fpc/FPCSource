@@ -553,6 +553,18 @@ begin
           Move(TokenStart^, FCurTokenString[1], SectionLength);
         Result := tkChar;
       end;
+    '&':
+      begin
+        TokenStart := TokenStr;
+        repeat
+          Inc(TokenStr);
+        until not (TokenStr[0] in ['0'..'7']);
+        SectionLength := TokenStr - TokenStart;
+        SetLength(FCurTokenString, SectionLength);
+        if SectionLength > 0 then
+          Move(TokenStart^, FCurTokenString[1], SectionLength);
+        Result := tkNumber;
+      end;
     '$':
       begin
         TokenStart := TokenStr;
