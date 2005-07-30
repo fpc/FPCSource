@@ -429,7 +429,7 @@ begin
     tkRecord:
       begin
         Result := TPasRecordType(CreateElement(TPasRecordType, '', Parent));
-        TPasArrayType(Result).IsPacked := HadPackedModifier;
+        TPasRecordType(Result).IsPacked := HadPackedModifier;
 	try
           ParseRecordDecl(TPasRecordType(Result), False);
 	except
