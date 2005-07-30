@@ -164,6 +164,8 @@ type
   TPascalScannerPPSkipMode = (ppSkipNone, ppSkipIfBranch, ppSkipElseBranch,
     ppSkipAll);
 
+  TPOptions = (po_delphi);
+
   TPascalScanner = class
   private
     FFileResolver: TFileResolver;
@@ -190,6 +192,7 @@ type
     procedure Error(const Msg: string; Args: array of Const);
     function DoFetchToken: TToken;
   public
+    Options : set of TPOptions;
     constructor Create(AFileResolver: TFileResolver);
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
@@ -809,7 +812,7 @@ begin
             TokenStart := TokenStr;
           end else
           begin
-            if TokenStr[0] = '{' then
+            if not(po_delphi in Options) and (TokenStr[0] = '{') then
               Inc(NestingLevel)
             else if TokenStr[0] = '}' then
               Dec(NestingLevel);

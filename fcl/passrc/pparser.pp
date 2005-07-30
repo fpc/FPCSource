@@ -19,7 +19,7 @@ unit PParser;
 
 interface
 
-uses SysUtils, PasTree;
+uses SysUtils, PasTree, PScanner;
 
 resourcestring
   SErrNoSourceGiven = 'No source file specified';
@@ -81,7 +81,7 @@ function ParseSource(AEngine: TPasTreeContainer;
 
 implementation
 
-uses Classes, PScanner;
+uses Classes;
 
 type
 
@@ -108,6 +108,7 @@ type
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;
   public
+    Options : set of TPOptions;
     constructor Create(AScanner: TPascalScanner; AFileResolver: TFileResolver;
       AEngine: TPasTreeContainer);
     function CurTokenName: String;
@@ -1889,6 +1890,12 @@ var
         'F':
           if s[3] = 'i' then
             FileResolver.AddIncludePath(Copy(s, 4, Length(s)));
+        'S':
+          if s[3]='d' then
+            begin
+              include(Scanner.Options,po_delphi);
+              include(Parser.Options,po_delphi);
+            end;
       end;
     end else
       if Filename <> '' then
