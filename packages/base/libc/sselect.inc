@@ -1,12 +1,12 @@
 
-Function __FDELT(d: longint): Integer;
+Function __FDELT(d: longint): Integer;inline;
 
 begin
   Result:=d div __NFDBITS;
 end;
 
 
-Function __FDMASK(d: longint): __fd_mask;
+Function __FDMASK(d: longint): __fd_mask;inline;
 begin
   Result:=1 shl (d mod __NFDBITS);
 end;

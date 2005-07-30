@@ -12,7 +12,9 @@ Type
 
 const
   NFDBITS = __NFDBITS;
-
+  
+Function __FDELT(d: longint): Integer;inline;
+Function __FDMASK(d: longint): __fd_mask;inline;
 procedure FD_ZERO(var fdset: _fd_set);
 procedure FD_SET(fd: longint; var fdset: _fd_Set);
 procedure FD_CLR(fd: longint; var fdset: _fd_set);
