@@ -314,9 +314,19 @@ var
   Name, s: String;
   EnumValue: TPasEnumValue;
   Ref: TPasElement;
+  HadPackedModifier : Boolean;           // 12/04/04 - Dave - Added
 begin
   Result := nil;         // !!!: Remove in the future
+  HadPackedModifier := False;     { Assume not present }
   NextToken;
+  if CurToken = tkPacked then     { If PACKED modifier }
+     begin                        { Handle PACKED modifier for all situations }
+     NextToken;                   { Move to next token for rest of parse }
+     if CurToken in [tkArray, tkRecord, tkObject, tkClass] then  { If allowed }
+       HadPackedModifier := True  { rememeber for later }
+     else                         { otherwise, syntax error }
+       ParseExc(Format(SParserExpectTokenError,['ARRAY, RECORD, OBJECT or CLASS']))
+     end;
   case CurToken of
     tkIdentifier:
       begin
@@ -376,6 +386,7 @@ begin
     tkArray:
       begin
         Result := TPasArrayType(CreateElement(TPasArrayType, '', Parent));
+        TPasArrayType(Result).IsPacked := HadPackedModifier;
         ParseArrayType(TPasArrayType(Result));
       end;
     tkBraceOpen:
@@ -417,6 +428,7 @@ begin
     tkRecord:
       begin
         Result := TPasRecordType(CreateElement(TPasRecordType, '', Parent));
+        TPasArrayType(Result).IsPacked := HadPackedModifier;
 	try
           ParseRecordDecl(TPasRecordType(Result), False);
 	except
