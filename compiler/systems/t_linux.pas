@@ -216,8 +216,8 @@ var
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $RES';
-     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
+     ExeCmd[1]:='ld '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE -T $RES';
+     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE -T $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
 {$ifdef m68k}
      libctype:=glibc2;
@@ -427,9 +427,110 @@ begin
         LinkRes.Add(')');
       end;
    end;
+  {Entry point.}
+  linkres.add('ENTRY(_start)');
+
+  {Sections.}
+  linkres.add('SECTIONS');
+  linkres.add('{');
+  {Read-only sections, merged into text segment:}
+  linkres.add('  PROVIDE (__executable_start = 0x010000); . = 0x010000 +0x100;');
+  linkres.add('  .interp         : { *(.interp) }');
+  linkres.add('  .hash           : { *(.hash) }');
+  linkres.add('  .dynsym         : { *(.dynsym) }');
+  linkres.add('  .dynstr         : { *(.dynstr) }');
+  linkres.add('  .gnu.version    : { *(.gnu.version) }');
+  linkres.add('  .gnu.version_d  : { *(.gnu.version_d) }');
+  linkres.add('  .gnu.version_r  : { *(.gnu.version_r) }');
+  linkres.add('  .rel.dyn        :');
+  linkres.add('    {');
+  linkres.add('      *(.rel.init)');
+  linkres.add('      *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)');
+  linkres.add('      *(.rel.fini)');
+  linkres.add('      *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)');
+  linkres.add('      *(.rel.data.rel.ro*)');
+  linkres.add('      *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)');
+  linkres.add('      *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)');
+  linkres.add('      *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)');
+  linkres.add('      *(.rel.got)');
+  linkres.add('      *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)');
+  linkres.add('    }');
+  linkres.add('  .rela.dyn       :');
+  linkres.add('    {');
+  linkres.add('      *(.rela.init)');
+  linkres.add('      *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)');
+  linkres.add('      *(.rela.fini)');
+  linkres.add('      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)');
+  linkres.add('      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)');
+  linkres.add('      *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)');
+  linkres.add('      *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)');
+  linkres.add('      *(.rela.got)');
+  linkres.add('      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)');
+  linkres.add('    }');
+  linkres.add('  .rel.plt        : { *(.rel.plt) }');
+  linkres.add('  .rela.plt       : { *(.rela.plt) }');
+  linkres.add('  .init           :');
+  linkres.add('  {');
+  linkres.add('    KEEP (*(.init))');
+  linkres.add('  } =0x90909090');
+  linkres.add('  .plt            : { *(.plt) }');
+  linkres.add('  .text           :');
+  linkres.add('  {');
+  linkres.add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
+  linkres.add('    KEEP (*(.text.*personality*))');
+                   {.gnu.warning sections are handled specially by elf32.em.}
+  linkres.add('    *(.gnu.warning)');
+  linkres.add('  } =0x90909090');
+  linkres.add('  .fini           :');
+  linkres.add('  {');
+  linkres.add('    KEEP (*(.fini))');
+  linkres.add('  } =0x90909090');
+  linkres.add('  PROVIDE (_etext = .);');
+  linkres.add('  .rodata         : { *(.rodata .rodata.* .gnu.linkonce.r.*) }');
+  {Adjust the address for the data segment.  We want to adjust up to
+   the same address within the page on the next page up.}
+  linkres.add('  . = ALIGN (0x1000) - ((0x1000 - .) & (0x1000 - 1)); . = DATA_SEGMENT_ALIGN (0x1000, 0x1000);');
+  linkres.add('  .dynamic        : { *(.dynamic) }');
+  linkres.add('  .got            : { *(.got) }');
+  linkres.add('  . = DATA_SEGMENT_RELRO_END (12, .);');
+  linkres.add('  .got.plt        : { *(.got.plt) }');
+  linkres.add('  .data           :');
+  linkres.add('  {');
+  linkres.add('    *(.data .data.* .gnu.linkonce.d.*)');
+  linkres.add('    KEEP (*(.gnu.linkonce.d.*personality*))');
+  linkres.add('  }');
+  linkres.add('  _edata = .;');
+  linkres.add('  PROVIDE (edata = .);');
+{$ifdef zsegment_threadvars}
+  linkres.add('  _z = .;');
+  linkres.add('  .threadvar 0 : AT (_z) { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
+  linkres.add('  PROVIDE (_threadvar_size = SIZEOF(.threadvar));');
+  linkres.add('  . = _z + SIZEOF (.threadvar);');
+{$else}
+  linkres.add('  .threadvar : { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
+{$endif}
+  linkres.add('  __bss_start = .;');
+  linkres.add('  .bss            :');
+  linkres.add('  {');
+  linkres.add('   *(.bss .bss.* .gnu.linkonce.b.*)');
+  linkres.add('   *(COMMON)');
+  {Align here to ensure that the .bss section occupies space up to
+   _end.  Align after .bss to ensure correct alignment even if the
+   .bss section disappears because there are no input sections.}
+  linkres.add('   . = ALIGN(32 / 8);');
+  linkres.add('  }');
+  linkres.add('  . = ALIGN(32 / 8);');
+  linkres.add('  _end = .;');
+  linkres.add('  PROVIDE (end = .);');
+  linkres.add('  . = DATA_SEGMENT_END (.);');
+  {Stabs debugging sections.}
+  linkres.add('  .stab          0 : { *(.stab) }');
+  linkres.add('  .stabstr       0 : { *(.stabstr) }');
+  linkres.add('}');
+
 { Write and Close response }
-  linkres.writetodisk;
-  linkres.Free;
+  LinkRes.writetodisk;
+  LinkRes.Free;
 
   WriteResponseFile:=True;
 end;
