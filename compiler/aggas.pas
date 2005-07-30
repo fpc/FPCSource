@@ -513,6 +513,15 @@ var
 
            ait_datablock :
              begin
+               if Tai_datablock(hp).is_global then
+                 begin
+                   asmwrite(#9'.global ');
+                   asmwriteln(Tai_datablock(hp).sym.name);
+                 end;
+               asmwrite(Tai_datablock(hp).sym.name);
+               asmwriteln(':');
+               asmwriteln(#9'.skip '+tostr(Tai_datablock(hp).size));
+{$ifdef disabled}
                if (target_info.system <> system_powerpc_darwin) or
                   not tai_datablock(hp).is_global then
                  begin
@@ -538,6 +547,7 @@ var
                    if not(lasTSectype in [sec_data,sec_none]) then
                      WriteSection(lasTSectype,'');
                  end;
+{$endif}
              end;
 
 {$ifndef cpu64bit}

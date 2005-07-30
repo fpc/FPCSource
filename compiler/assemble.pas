@@ -1088,20 +1088,20 @@ Implementation
                  if not (objectdata.currsec.sectype in [sec_bss,sec_threadvar]) then
                    Message(asmw_e_alloc_data_only_in_bss);
                  l:=used_align(size_2_align(Tai_datablock(hp).size),0,objectdata.currsec.addralign);
-                 if Tai_datablock(hp).is_global and
+{                 if Tai_datablock(hp).is_global and
                     not SmartAsm then
-                  begin
-                    objectdata.allocsymbol(currpass,Tai_datablock(hp).sym,Tai_datablock(hp).size);
+                  begin}
+{                    objectdata.allocsymbol(currpass,Tai_datablock(hp).sym,Tai_datablock(hp).size);}
                     { force to be common/external, must be after setaddress as that would
                       set it to AB_GLOBAL }
-                    Tai_datablock(hp).sym.currbind:=AB_COMMON;
+{                    Tai_datablock(hp).sym.currbind:=AB_COMMON;
                   end
                  else
-                  begin
+                  begin}
                     objectdata.allocalign(l);
                     objectdata.allocsymbol(currpass,Tai_datablock(hp).sym,Tai_datablock(hp).size);
                     objectdata.alloc(Tai_datablock(hp).size);
-                  end;
+{                  end;}
                  objectlibrary.UsedAsmSymbolListInsert(Tai_datablock(hp).sym);
                end;
              ait_real_80bit :
@@ -1286,11 +1286,11 @@ Implementation
                  l:=used_align(size_2_align(Tai_datablock(hp).size),0,objectdata.currsec.addralign);
                  objectdata.writesymbol(Tai_datablock(hp).sym);
                  objectoutput.exportsymbol(Tai_datablock(hp).sym);
-                 if SmartAsm or (not Tai_datablock(hp).is_global) then
-                   begin
+{                 if SmartAsm or (not Tai_datablock(hp).is_global) then
+                   begin}
                      objectdata.allocalign(l);
                      objectdata.alloc(Tai_datablock(hp).size);
-                   end;
+{                   end;}
                end;
              ait_real_80bit :
                objectdata.writebytes(Tai_real_80bit(hp).value,10);
