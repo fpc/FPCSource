@@ -515,12 +515,12 @@ var
              begin
                if Tai_datablock(hp).is_global then
                  begin
-                   asmwrite(#9'.global ');
+                   asmwrite(#9'.globl ');
                    asmwriteln(Tai_datablock(hp).sym.name);
                  end;
                asmwrite(Tai_datablock(hp).sym.name);
                asmwriteln(':');
-               asmwriteln(#9'.skip '+tostr(Tai_datablock(hp).size));
+               asmwriteln(#9'.space '+tostr(Tai_datablock(hp).size));
 {$ifdef disabled}
                if (target_info.system <> system_powerpc_darwin) or
                   not tai_datablock(hp).is_global then
