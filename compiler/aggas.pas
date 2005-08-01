@@ -515,6 +515,12 @@ var
              begin
                if target_info.system=system_powerpc_darwin then
                  begin
+                   {On Mac OS X you can't have common symbols in a shared
+                    library, since those are in the TEXT section and the text section is
+                    read-only in shared libraries (so it can be shared among different
+                    processes). The alternate code creates some kind of common symbols in
+                    the data segment. The generic code no longer uses common symbols, but
+                    this doesn't work on Mac OS X as well.}
                    if tai_datablock(hp).is_global then
                      begin
                        asmwrite('.globl ');
