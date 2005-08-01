@@ -492,7 +492,6 @@ begin
   linkres.add('  . = ALIGN (0x1000) - ((0x1000 - .) & (0x1000 - 1)); . = DATA_SEGMENT_ALIGN (0x1000, 0x1000);');
   linkres.add('  .dynamic        : { *(.dynamic) }');
   linkres.add('  .got            : { *(.got) }');
-  linkres.add('  . = DATA_SEGMENT_RELRO_END (12, .);');
   linkres.add('  .got.plt        : { *(.got.plt) }');
   linkres.add('  .data           :');
   linkres.add('  {');
@@ -512,6 +511,7 @@ begin
   linkres.add('  __bss_start = .;');
   linkres.add('  .bss            :');
   linkres.add('  {');
+  linkres.add('   *(.dynbss)');
   linkres.add('   *(.bss .bss.* .gnu.linkonce.b.*)');
   linkres.add('   *(COMMON)');
   {Align here to ensure that the .bss section occupies space up to
