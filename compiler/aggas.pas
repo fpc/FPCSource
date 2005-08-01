@@ -513,41 +513,39 @@ var
 
            ait_datablock :
              begin
-               if Tai_datablock(hp).is_global then
-                 begin
-                   asmwrite(#9'.globl ');
-                   asmwriteln(Tai_datablock(hp).sym.name);
-                 end;
-               asmwrite(Tai_datablock(hp).sym.name);
-               asmwriteln(':');
-               asmwriteln(#9'.space '+tostr(Tai_datablock(hp).size));
-{$ifdef disabled}
-               if (target_info.system <> system_powerpc_darwin) or
-                  not tai_datablock(hp).is_global then
+               if target_info.system=system_powerpc_darwin then
                  begin
                    if tai_datablock(hp).is_global then
-                    AsmWrite(#9'.comm'#9)
+                     begin
+                       asmwrite('.globl ');
+                       asmwriteln(tai_datablock(hp).sym.name);
+                       asmwriteln('.data');
+                       asmwrite('.zerofill __DATA, __common, ');
+                       asmwrite(tai_datablock(hp).sym.name);
+                       asmwriteln(', '+tostr(tai_datablock(hp).size)+','+tostr(last_align));
+                       if not(lastSectype in [sec_data,sec_none]) then
+                         writesection(lastSectype,'');
+                     end
                    else
-                    AsmWrite(#9'.lcomm'#9);
-                   AsmWrite(tai_datablock(hp).sym.name);
-                   AsmWrite(','+tostr(tai_datablock(hp).size));
-                   if (target_info.system = system_powerpc_darwin) { and
-                      not(tai_datablock(hp).is_global)} then
-                     AsmWrite(','+tostr(last_align));
-                   AsmWriteln('');
+                     begin
+                       asmwrite(#9'.lcomm'#9);
+                       asmwrite(tai_datablock(hp).sym.name);
+                       asmwrite(','+tostr(tai_datablock(hp).size));
+                       asmwrite(','+tostr(last_align));
+                       asmwriteln('');
+                     end
                  end
                else
                  begin
-                   AsmWrite('.globl ');
-                   AsmWriteln(tai_datablock(hp).sym.name);
-                   AsmWriteln('.data');
-                   AsmWrite('.zerofill __DATA, __common, ');
-                   AsmWrite(tai_datablock(hp).sym.name);
-                   AsmWriteln(', '+tostr(tai_datablock(hp).size)+','+tostr(last_align));
-                   if not(lasTSectype in [sec_data,sec_none]) then
-                     WriteSection(lasTSectype,'');
+                   if Tai_datablock(hp).is_global then
+                     begin
+                       asmwrite(#9'.globl ');
+                       asmwriteln(Tai_datablock(hp).sym.name);
+                     end;
+                   asmwrite(Tai_datablock(hp).sym.name);
+                   asmwriteln(':');
+                   asmwriteln(#9'.space '+tostr(Tai_datablock(hp).size));
                  end;
-{$endif}
              end;
 
 {$ifndef cpu64bit}
