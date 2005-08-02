@@ -109,6 +109,9 @@ begin
   ObjUsed:=(pos('$OBJ',s)>0);
   Replace(s,'$OBJ',maybequoted(resobj));
   Replace(s,'$RES',maybequoted(fname));
+  { windres doesn't like empty include paths }
+  if respath='' then
+    respath:='.';
   Replace(s,'$INC',maybequoted(respath));
   if (target_info.system = system_i386_win32) and
      (srcfilepath<>'') then
@@ -117,6 +120,7 @@ begin
   if not (cs_link_extern in aktglobalswitches) then
    begin
      Message1(exec_i_compilingresource,fname);
+     Message2(exec_d_resbin_params,resbin,s);
 {$IFDEF USE_SYSUTILS}
      try
        if ExecuteProcess(resbin,s) <> 0 then
