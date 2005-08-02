@@ -1118,7 +1118,7 @@ implementation
                       (hp.resulttype.def.deftype=stringdef) then
                      result:=true
                  else
-                   if valid_const in opts then
+                   if ([valid_const,valid_addr] * opts = [valid_const]) then
                      result:=true
                  else
                   CGMessagePos(hp.fileinfo,errmsg);
