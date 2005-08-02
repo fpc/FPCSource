@@ -553,13 +553,14 @@ const
   exec_t_unit_not_shared_linkable_switch_to_static=09025;
   exec_e_unit_not_smart_or_static_linkable=09026;
   exec_e_unit_not_shared_or_static_linkable=09027;
-  execinfo_f_cant_process_executable=09028;
-  execinfo_f_cant_open_executable=09029;
-  execinfo_x_codesize=09030;
-  execinfo_x_initdatasize=09031;
-  execinfo_x_uninitdatasize=09032;
-  execinfo_x_stackreserve=09033;
-  execinfo_x_stackcommit=09034;
+  exec_d_resbin_params=09028;
+  execinfo_f_cant_process_executable=09128;
+  execinfo_f_cant_open_executable=09129;
+  execinfo_x_codesize=09130;
+  execinfo_x_initdatasize=09131;
+  execinfo_x_uninitdatasize=09132;
+  execinfo_x_stackreserve=09133;
+  execinfo_x_stackcommit=09134;
   unit_t_unitsearch=10000;
   unit_t_ppu_loading=10001;
   unit_u_ppu_name=10002;
@@ -657,9 +658,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 38626;
+  MsgTxtSize = 38691;
 
   MsgIdxMax : array[1..20] of longint=(
-    19,72,215,59,59,46,100,20,35,60,
+    19,72,215,59,59,46,100,20,135,60,
     40,1,1,1,1,1,1,1,1,1
   );

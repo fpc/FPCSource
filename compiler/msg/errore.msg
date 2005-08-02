@@ -1807,19 +1807,20 @@ exec_t_unit_not_smart_linkable_switch_to_static=09024_T_unit $1 can't be smart l
 exec_t_unit_not_shared_linkable_switch_to_static=09025_T_unit $1 can't be shared linked, switching to static linking
 exec_e_unit_not_smart_or_static_linkable=09026_E_unit $1 can't be smart or static linked
 exec_e_unit_not_shared_or_static_linkable=09027_E_unit $1 can't be shared or static linked
+exec_d_resbin_params=09028_D_Calling resource compiler "$1" with "$2" as command line
 %\end{description}
 # EndOfTeX
 
 #
 # Executable information
 #
-execinfo_f_cant_process_executable=09028_F_Can't post process executable $1
-execinfo_f_cant_open_executable=09029_F_Can't open executable $1
-execinfo_x_codesize=09030_X_Size of Code: $1 bytes
-execinfo_x_initdatasize=09031_X_Size of initialized data: $1 bytes
-execinfo_x_uninitdatasize=09032_X_Size of uninitialized data: $1 bytes
-execinfo_x_stackreserve=09033_X_Stack space reserved: $1 bytes
-execinfo_x_stackcommit=09034_X_Stack space commited: $1 bytes
+execinfo_f_cant_process_executable=09128_F_Can't post process executable $1
+execinfo_f_cant_open_executable=09129_F_Can't open executable $1
+execinfo_x_codesize=09130_X_Size of Code: $1 bytes
+execinfo_x_initdatasize=09131_X_Size of initialized data: $1 bytes
+execinfo_x_uninitdatasize=09132_X_Size of uninitialized data: $1 bytes
+execinfo_x_stackreserve=09133_X_Stack space reserved: $1 bytes
+execinfo_x_stackcommit=09134_X_Stack space commited: $1 bytes
 
 #
 # Unit loading
