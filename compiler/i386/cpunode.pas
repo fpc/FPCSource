@@ -52,8 +52,7 @@ unit cpunode;
        n386mem,
        n386set,
        n386inl,
-       n386mat,
-       n386cnv
+       n386mat
        ;
 
 end.
