@@ -271,6 +271,8 @@ Procedure SetVariantProp(Instance: TObject; PropInfo : PPropInfo; const Value: V
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
+function GetEnumNameCount(enum1: PTypeInfo): SizeInt;
+
 function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : String;
 function SetToString(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean) : String;
 function SetToString(PropInfo: PPropInfo; Value: Integer) : String;
@@ -354,6 +356,27 @@ begin
       PS:=PShortString(pointer(PS)+PByte(PS)^+1);
       Inc(Count);
     end;
+end;
+
+
+function GetEnumNameCount(enum1: PTypeInfo): SizeInt;
+var
+  PS: PShortString;
+  PT: PTypeData;
+  Count: SizeInt;
+begin
+  PT:=GetTypeData(enum1);
+  Count:=0;
+  Result:=0;
+  
+  PS:=@PT^.NameList;
+  While (PByte(PS)^<>0) do
+    begin
+      PS:=PShortString(pointer(PS)+PByte(PS)^+1);
+      Inc(Count);
+    end;
+
+  Result := Count;
 end;
 
 
