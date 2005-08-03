@@ -1208,16 +1208,13 @@ begin
        We first check if the blocks after the current block are free. If not then we
        simply call getmem/freemem to get the new block }
      if check_concat_free_chunk_forward(pcurr,size) then
-       begin
-         try_concat_free_chunk_forward(pcurr);
-         currsize := (pcurr^.size and sizemask);
-       end;
+       repeat
+         concat_two_blocks(pcurr,pmemchunk_var(pointer(pcurr)+currsize));
+         currsize := pcurr^.size and sizemask;
+       until currsize>=size
+     else
+       exit;
    end;
-
-  { not enough space? }
-  if size>currsize then
-    exit;
-
   { is the size smaller then we can adjust the block to that size and insert
     the other part into the freelist }
   if currsize>size then
