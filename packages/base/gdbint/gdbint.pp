@@ -1034,7 +1034,7 @@ var
   interpreter_p : pchar;cvar;
 
 { we need also to declare some vars }
-  watchdog      : longint;cvar;public;
+  watchdog      : longint;cvar;external;
   gdb_error     : longint;cvar;public;
   display_time  : longbool;cvar;public;
   display_space : longbool;cvar;public;
