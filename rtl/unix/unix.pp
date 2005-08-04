@@ -24,9 +24,10 @@ Uses BaseUnix,UnixType;
 
 // We init to zero to be able to put timezone stuff under IFDEF, and still
 // keep the code working.
+// We can't do this hear, since unixutil functions access this.
 
-var
-  Tzseconds : Longint = 0;
+// var
+//  Tzseconds : Longint = 0;
 
 
 {********************
@@ -203,7 +204,8 @@ procedure SigRaise (sig:integer);
 
 Implementation
 
-Uses Strings{$ifndef FPC_USE_LIBC},Syscall{$endif};
+Uses UnixUtil,  // tzseconds
+     Strings {$ifndef FPC_USE_LIBC},Syscall{$endif};
 
 {$i unxovl.inc}
 
