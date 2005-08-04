@@ -886,7 +886,7 @@ unit cgcpu;
       begin
          popaddress := false;
 
-	 writeln('concatcopy:',len);
+//	 writeln('concatcopy:',len);
 
          { this should never occur }
          if len > 65535 then

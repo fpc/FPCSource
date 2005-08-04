@@ -108,7 +108,7 @@ unit cpubase;
       { Available Superregisters }
       {$i r68ksup.inc}
 
-      { No Subregisters }
+      { ? whatever... }
       R_SUBWHOLE = R_SUBNONE;
 
       { Available Registers }
@@ -405,11 +405,11 @@ implementation
       begin
         case s of
           OS_8,OS_S8:
-            cgsize2subreg:=R_SUBL;
+            cgsize2subreg:=R_SUBWHOLE;
           OS_16,OS_S16:
-            cgsize2subreg:=R_SUBW;
+            cgsize2subreg:=R_SUBWHOLE;
           OS_32,OS_S32:
-            cgsize2subreg:=R_SUBD;
+            cgsize2subreg:=R_SUBWHOLE;
           else
             internalerror(200301231);
         end;

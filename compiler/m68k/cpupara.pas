@@ -345,7 +345,7 @@ unit cpupara;
                 if (loc = LOC_REGISTER) and
                    (nextintreg <= RS_D7) then
                   begin
-		    writeln('loc register');
+		    //writeln('loc register');
                     paraloc^.loc := loc;
                     { make sure we don't lose whether or not the type is signed }
                     if (paradef.deftype <> orddef) then
@@ -384,7 +384,7 @@ unit cpupara;
               end;
           end;
          result:=stack_offset;
-	 writeln('stack offset:',stack_offset);
+//	 writeln('stack offset:',stack_offset);
       end;
 
 
