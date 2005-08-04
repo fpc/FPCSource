@@ -217,7 +217,7 @@ unit cpupara;
                else
                  p.funcretloc[side].register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
                { high 32bits }
-               if side=callerside then
+               if side=calleeside then
                  p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
                else
                  p.funcretloc[side].register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;

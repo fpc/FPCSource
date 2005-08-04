@@ -886,13 +886,15 @@ unit cgcpu;
       begin
          popaddress := false;
 
+	 writeln('concatcopy:',len);
+
          { this should never occur }
          if len > 65535 then
            internalerror(0);
-         hregister := cg.getintregister(list,OS_INT);
+	   
+         hregister := getintregister(list,OS_INT);
 //         if delsource then
 //            reference_release(list,source);
-
 
          { from 12 bytes movs is being used }
          if {(not loadref) and} ((len<=8) or (not(cs_littlesize in aktglobalswitches) and (len<=12))) then
@@ -903,8 +905,8 @@ unit cgcpu;
               { move a dword x times }
               for i:=1 to helpsize do
                 begin
-                   cg.a_load_ref_reg(list,OS_INT,OS_INT,srcref,hregister);
-                   cg.a_load_reg_ref(list,OS_INT,OS_INT,hregister,dstref);
+                   a_load_ref_reg(list,OS_INT,OS_INT,srcref,hregister);
+                   a_load_reg_ref(list,OS_INT,OS_INT,hregister,dstref);
                    inc(srcref.offset,4);
                    inc(dstref.offset,4);
                    dec(len,4);
@@ -912,8 +914,8 @@ unit cgcpu;
               { move a word }
               if len>1 then
                 begin
-                   cg.a_load_ref_reg(list,OS_16,OS_16,srcref,hregister);
-                   cg.a_load_reg_ref(list,OS_16,OS_16,hregister,dstref);
+                   a_load_ref_reg(list,OS_16,OS_16,srcref,hregister);
+                   a_load_reg_ref(list,OS_16,OS_16,hregister,dstref);
                    inc(srcref.offset,2);
                    inc(dstref.offset,2);
                    dec(len,2);
@@ -921,14 +923,14 @@ unit cgcpu;
               { move a single byte }
               if len>0 then
                 begin
-                   cg.a_load_ref_reg(list,OS_8,OS_8,srcref,hregister);
-                   cg.a_load_reg_ref(list,OS_8,OS_8,hregister,dstref);
+                   a_load_ref_reg(list,OS_8,OS_8,srcref,hregister);
+                   a_load_reg_ref(list,OS_8,OS_8,hregister,dstref);
                 end
            end
          else
            begin
-              iregister:=cg.getaddressregister(list);
-              jregister:=cg.getaddressregister(list);
+              iregister:=getaddressregister(list);
+              jregister:=getaddressregister(list);
               { reference for move (An)+,(An)+ }
               reference_reset(hp1);
               hp1.base := iregister;   { source register }
@@ -942,9 +944,9 @@ unit cgcpu;
 {              if loadref then
                  cg.a_load_ref_reg(list,OS_INT,OS_INT,source,iregister)
               else}
-                 cg.a_loadaddr_ref_reg(list,source,iregister);
+                 a_loadaddr_ref_reg(list,source,iregister);
 
-              cg.a_loadaddr_ref_reg(list,dest,jregister);
+              a_loadaddr_ref_reg(list,dest,jregister);
 
               { double word move only on 68020+ machines }
               { because of possible alignment problems   }
@@ -955,11 +957,11 @@ unit cgcpu;
                    len := len mod 4;
                    list.concat(taicpu.op_const_reg(A_MOVE,S_L,helpsize div 4,hregister));
                    objectlibrary.getlabel(hl2);
-                   cg.a_jmp_always(list,hl2);
+                   a_jmp_always(list,hl2);
                    objectlibrary.getlabel(hl);
-                   cg.a_label(list,hl);
+                   a_label(list,hl);
                    list.concat(taicpu.op_ref_ref(A_MOVE,S_L,hp1,hp2));
-                   cg.a_label(list,hl2);
+                   a_label(list,hl2);
                    list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
                    if len > 1 then
                      begin
@@ -975,17 +977,17 @@ unit cgcpu;
                    helpsize := len;
                    list.concat(taicpu.op_const_reg(A_MOVE,S_L,helpsize,hregister));
                    objectlibrary.getlabel(hl2);
-                   cg.a_jmp_always(list,hl2);
+                   a_jmp_always(list,hl2);
                    objectlibrary.getlabel(hl);
-                   cg.a_label(list,hl);
+                   a_label(list,hl);
                    list.concat(taicpu.op_ref_ref(A_MOVE,S_B,hp1,hp2));
-                   cg.a_label(list,hl2);
+                   a_label(list,hl2);
                    list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
                 end;
 
               { restore the registers that we have just used olny if they are used! }
-              cg.ungetcpuregister(list, iregister);
-              cg.ungetcpuregister(list, jregister);
+              ungetcpuregister(list, iregister);
+              ungetcpuregister(list, jregister);
               if jregister = NR_A1 then
                 hp2.base := NR_NO;
               if iregister = NR_A0 then
@@ -997,7 +999,8 @@ unit cgcpu;
 //           if delsource then
 //               tg.ungetiftemp(list,source);
 
-           cg.ungetcpuregister(list,hregister);
+// Not needed? (KB)
+//           ungetcpuregister(list,hregister);
     end;
 
     procedure tcg68k.g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef);
@@ -1093,8 +1096,8 @@ unit cgcpu;
                 { restore the PC counter (push it on the stack)       }
                 reference_reset_base(ref,NR_STACK_POINTER_REG,0);
                 ref.direction:=dir_dec;
-                list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hregister,ref));
                 cg.a_reg_alloc(list,hregister);
+                list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hregister,ref));
                 list.concat(taicpu.op_none(A_RTS,S_NO));
                end;
            end;
