@@ -218,6 +218,7 @@ Var
 Procedure SetCWideStringManager;
 
 begin
+  CWideStringManager:=widestringmanager;
   With CWideStringManager do
     begin
       Wide2AnsiMoveProc:=@Wide2AnsiMove;
