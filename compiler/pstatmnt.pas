@@ -704,7 +704,7 @@ implementation
                 { catch specific exceptions }
                 begin
                    repeat
-                     consume(_ID);
+                     consume(_ON);
                      if token=_ID then
                        begin
                           objname:=pattern;
