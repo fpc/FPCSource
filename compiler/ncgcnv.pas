@@ -101,6 +101,9 @@ interface
               end
             else
               location_force_reg(exprasmlist,location,newsize,false);
+{$ifndef cpu64bit}
+            // if is_signed(left.resulttype) and
+{$endif cpu64bit}
           end
         else
           begin
