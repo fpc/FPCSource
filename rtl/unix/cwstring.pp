@@ -38,8 +38,8 @@ Uses
   sysutils,
   initc;
 
-Const libiconvname = 'iconv';
-
+Const
+    libiconvname='iconv';
 
 { Case-mapping "arrays" }
 var
@@ -88,9 +88,15 @@ type
   nl_item = longint;
 
 function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
+{$ifndef Darwin}
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
 function iconv_close(__cd:iconv_t):longint;cdecl;external libiconvname name 'iconv_close';
+{$else}
+function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'libiconv_open';
+function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'libiconv';
+function iconv_close(__cd:iconv_t):longint;cdecl;external libiconvname name 'libiconv_close';
+{$endif}
 
 var
   iconv_ansi2wide,
