@@ -64,7 +64,12 @@ const
 {$ifdef darwin}
   CODESET = 0;
 {$else darwin}
+{$ifdef FreeBSD} // actually FreeBSD5. internationalisation is afaik not default on 4.
+  CODESET = 0;
+{$else freebsd}
 {$error lookup the value of CODESET in /usr/include/langinfo.h for your OS }
+{$endif FreeNSD}
+
 {$endif darwin}
 {$endif linux}
 

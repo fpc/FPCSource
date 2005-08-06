@@ -59,18 +59,25 @@ type
 {$endif}
     TSize    = size_t;
     pSize    = ^size_t;
+    pSize_t  = ^size_t;
 
 {$ifdef CPU64}
     ssize_t  = cint64;          { used by function for returning number of bytes }
 {$else}
     ssize_t  = cint32;          { used by function for returning number of bytes}
 {$endif}
+
     TsSize   = ssize_t;
     psSize   = ^ssize_t;
 
     uid_t    = cuint32;         { used for user ID type        }
     TUid     = Uid_t;
     pUid     = ^Uid_t;
+
+    wint_t    = cint32;
+    wchar_t   = widechar;
+    pwchar_t  = ^wchar_t;
+
 
 {$ifdef CPU64}
     clock_t  = cuint32;         // 32-bit even on Athlon64
