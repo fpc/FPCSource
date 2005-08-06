@@ -381,7 +381,6 @@ var s : string;
     i : integer;
 
 begin
-  ObtainSQLStatementType(cursor,buf);
   with (cursor as TPQCursor) do
     begin
     FPrepared := False;

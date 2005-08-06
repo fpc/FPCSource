@@ -97,7 +97,6 @@ type
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; virtual;abstract;
-    Procedure ObtainSQLStatementType(Cursor : TSQLCursor; SQLStr : string);
   public
     property Handle: Pointer read GetHandle;
     destructor Destroy; override;
@@ -198,7 +197,6 @@ type
     function  GetCanModify: Boolean; override;
     function ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean; override;
     Function IsPrepared : Boolean; virtual;
-    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload; override;
     procedure SetFiltered(Value: Boolean); override;
   public
     procedure Prepare; virtual;
@@ -314,54 +312,6 @@ begin
   end; {case}
 end;
 
-Procedure TSQLConnection.ObtainSQLStatementType(Cursor : TSQLCursor; SQLStr : string);
-
-Var
-  L        : Integer;
-  cmt      : boolean;
-  P,PE,PP  : PChar;
-  S        : string;
-
-begin
-  L := Length(SQLstr);
-
-  if L=0 then
-    begin
-    DatabaseError(SErrNoStatement);
-    exit;
-    end;
-
-  P:=Pchar(SQLstr);
-  PP:=P;
-  Cmt:=False;
-  While ((P-PP)<L) do
-    begin
-    if not (P^ in [' ',#13,#10,#9]) then
-      begin
-      if not Cmt then
-        begin
-        // Check for comment.
-        Cmt:=(P^='/') and (((P-PP)<=L) and (P[1]='*'));
-        if not (cmt) then
-          Break;
-        end
-      else
-        begin
-        // Check for end of comment.
-         Cmt:=Not( (P^='*') and (((P-PP)<=L) and (P[1]='/')) );
-        If not cmt then
-          Inc(p);
-        end;
-      end;
-    inc(P);
-    end;
-  PE:=P+1;
-  While ((PE-PP)<L) and (PE^ in ['0'..'9','a'..'z','A'..'Z','_']) do
-   Inc(PE);
-  Setlength(S,PE-P);
-  Move(P^,S[1],(PE-P));
-  Cursor.FStatementType := StrToStatementType(s);
-end;
 
 function TSQLConnection.GetSchemaInfoSQL( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string;
 
@@ -529,12 +479,6 @@ begin
   Result := Assigned(FCursor) and FCursor.FPrepared;
 end;
 
-procedure TSQLQuery.SetFieldData(Field: TField; Buffer: Pointer;
-  NativeFormat: Boolean);
-begin
-  SetFieldData(Field, Buffer);
-end;
-
 Function TSQLQuery.AddFilter(SQLstr : string) : string;
 
 begin
@@ -595,6 +539,9 @@ begin
 
     FSQLBuf := TrimRight(FSQL.Text);
     
+    if FSQLBuf = '' then
+      DatabaseError(SErrNoStatement);
+
     SQLParser(FSQLBuf);
 
     if filtered then

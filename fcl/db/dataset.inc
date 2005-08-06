@@ -489,78 +489,30 @@ begin
   Result:=nil;
 end;
 
+function TDataSet.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
+
+begin
+  Result := False;
+end;
+
 function TDataSet.GetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean): Boolean;
   
-  function ConvertData(Field: TField; Source: TDateTimeRec): TDateTime;
-  var
-    TimeStamp: TTimeStamp;
-  begin
-    case Field.DataType of
-      ftDate:
-        begin
-          TimeStamp.Time := 0;
-          TimeStamp.Date := Source.Date;
-        end;
-      ftTime:
-        begin
-          TimeStamp.Time := Source.Time;
-          TimeStamp.Date := DateDelta;
-        end;
-    else
-      try
-        TimeStamp := MSecsToTimeStamp(Trunc(Source.DateTime));
-      except
-        TimeStamp.Time := 0;
-        TimeStamp.Date := 0;
-      end;
-    end;
-//    Result := TimeStampToDateTime(TimeStamp);
-    Result := (TimeStamp.Date - DateDelta) + (TimeStamp.Time / MSecsPerDay);
-  end;
-
-var
-  d: TDateTimeRec;
 begin
-  if NativeFormat then
-    Result := GetFieldData(Field, Buffer) else
-  if Field.DataType in  [ ftDate, ftDateTime, ftTime ] then begin
-    Result := GetFieldData(Field, @d);
-    if Result then
-      TDateTime(Buffer^) := ConvertData(Field, d);
-  end else
-    Result := GetFieldData(Field, Buffer);
+  Result := GetFieldData(Field, Buffer);
+end;
+
+procedure TDataSet.SetFieldData(Field: TField; Buffer: Pointer);
+
+begin
+// empty procedure
 end;
 
 procedure TDataSet.SetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean);
 
-  function ConvertData(Field: TField; Data: TDateTime): TDateTimeRec;
-  var
-    TimeStamp: TTimeStamp;
-  begin
-    TimeStamp.Time := Trunc(Frac(Data) * MSecsPerDay);
-    TimeStamp.Date := DateDelta + Trunc(System.Int(Data));
-//    TimeStamp := DateTimeToTimeStamp(Data);
-    case Field.DataType of
-      ftDate: Result.Date := TimeStamp.Date;
-      ftTime: Result.Time := TimeStamp.Time;
-    else
-      Result.DateTime := TimeStampToMSecs(TimeStamp);
-    end;
-  end;
-
-var
-  d: TDateTimeRec;
 begin
-  if NativeFormat then
-    SetFieldData(Field, Buffer)
-  else
-  if Field.DataType in  [ ftDate, ftDateTime, ftTime ] then begin
-    d := ConvertData(Field, TDateTime(Buffer^));
-    SetFieldData(Field, @d);
-  end else
-    SetFieldData(Field, Buffer);
+  SetFieldData(Field, Buffer);
 end;
 
 Function TDataset.GetField (Index : Longint) : TField;

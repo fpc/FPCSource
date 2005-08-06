@@ -1062,7 +1062,7 @@ type
     procedure GetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
     function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; virtual; abstract;
     function GetDataSource: TDataSource; virtual;
-    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; virtual; abstract;
+    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; virtual;
     function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload; virtual;
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
     function GetRecordSize: Word; virtual; abstract;
@@ -1081,7 +1081,7 @@ type
     function IsCursorOpen: Boolean; virtual; abstract;
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); virtual; abstract;
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
-    procedure SetFieldData(Field: TField; Buffer: Pointer); overload; virtual; abstract;
+    procedure SetFieldData(Field: TField; Buffer: Pointer); overload; virtual;
     procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload; virtual;
   public
     constructor Create(AOwner: TComponent); override;

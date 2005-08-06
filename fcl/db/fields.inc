@@ -558,7 +558,7 @@ begin
       Move (FValueBuffer^,Buffer^ ,DataSize);
     end
   else
-    Result:=FDataset.GetFieldData(Self,Buffer,False);
+    Result:=FDataset.GetFieldData(Self,Buffer);
 end;
 
 function TField.GetDataSize: Word;
