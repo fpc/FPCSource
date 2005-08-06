@@ -38,6 +38,8 @@ Uses
   sysutils,
   initc;
 
+Const libiconvname = 'iconv';
+
 
 { Case-mapping "arrays" }
 var
@@ -85,10 +87,10 @@ type
   iconv_t = pointer;
   nl_item = longint;
 
-function nl_langinfo(__item:nl_item):pchar;cdecl;external;
-function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external;
-function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external;
-function iconv_close(__cd:iconv_t):longint;cdecl;external;
+function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
+function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
+function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
+function iconv_close(__cd:iconv_t):longint;cdecl;external libiconvname name 'iconv_close';
 
 var
   iconv_ansi2wide,
