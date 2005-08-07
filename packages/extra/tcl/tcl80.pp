@@ -23,9 +23,9 @@
 unit Tcl80;
 
 {$MODE OBJFPC}
-{$ifdef i386}
+{$ifdef CPUI386}
   {$ASMMODE INTEL}
-{$endif i386}
+{$endif CPUI386}
 
 {$IFNDEF WIN32}
   {$IFNDEF OS2}
