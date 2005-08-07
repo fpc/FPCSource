@@ -20,6 +20,9 @@ uses Objects,Drivers,Views,Menus,Dialogs;
 const
       evIdle                 = $8000;
 
+      cmCopyWin = 240;
+      cmPasteWin = 241;
+
       cmLocalMenu            = 54100;
       cmUpdate               = 54101;
       cmListFocusChanged     = 54102;

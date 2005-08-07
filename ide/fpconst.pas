@@ -182,8 +182,10 @@ const
      cmUntilReturn       = 239;
      { WARNING these two are also defined in weditor.pas PM }
      { and why aren't these defines then removed? Gabor }
+     { commented out, now in wviews.pas FK
      cmCopyWin           = 240;
      cmPasteWin          = 241;
+     }
      cmRegisters         = 242;
      cmFPURegisters      = 243;
      cmDoReload          = 244;

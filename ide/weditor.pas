@@ -21,7 +21,7 @@ interface
 uses
   Dos,Objects,Drivers,Views,Dialogs,Menus,
   FVConsts,
-  WUtils;
+  WUtils,WViews;
 
 const
       cmFileNameChanged      = 51234;
@@ -712,10 +712,6 @@ type
 
 
 const
-
-     cmCopyWin = 240;
-     cmPasteWin = 241;
-
      { used for ShiftDel and ShiftIns to avoid
        GetShiftState to be considered for extending
        selection (PM) }
@@ -766,7 +762,7 @@ uses
 {$ifdef TEST_REGEXP}
   regexpr,
 {$endif TEST_REGEXP}
-  WConsts,WViews,WCEdit;
+  WConsts,WCEdit;
 
 type
     RecordWord = sw_word;
