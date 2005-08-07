@@ -15,7 +15,7 @@ type
 
 var p:pointer;
   l : ^longarray;
-  size, storage : longint;
+  size, storage : cardinal;
   i,j:longint;
   done:boolean;
   mem : sizeint;
@@ -27,6 +27,8 @@ begin
   repeat
     size := round(size * 1.1);
     storage := size * sizeof(real);
+    if storage>2000000000 then
+      storage:=2000000000;
     writeln('size=',size,' (storage=',storage,')');
     getmem(l,storage);
     if (l=nil) then
