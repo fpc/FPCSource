@@ -385,7 +385,12 @@ implementation
                          (left.resulttype.def.deftype in [pointerdef,classrefdef])
                         ) and
                      paramanager.push_addr_param(parasym.varspez,parasym.vartype.def,
-                         aktcallnode.procdefinition.proccalloption)) then
+                         aktcallnode.procdefinition.proccalloption)) and
+                     { dyn. arrays passed to an array of const must be passed by value, see tests/webtbs/tw4219.pp }
+                     not(
+                         is_array_of_const(parasym.vartype.def) and
+                         is_dynamic_array(left.resulttype.def)
+                        ) then
                    begin
                       { Passing a var parameter to a var parameter, we can
                         just push the address transparently }
