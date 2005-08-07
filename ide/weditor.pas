@@ -719,7 +719,10 @@ const
 
      CodeCompleteMinLen : byte = 4; { minimum length of text to try to complete }
 
-     ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin]);
+     ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin,
+       { cmUnselect should because like cut, copy, copywin:
+         if there is a selection, it is active, else it isn't }
+       cmUnselect]);
      FromClipCmds       : TCommandSet = ([cmPaste]);
      NulClipCmds        : TCommandSet = ([cmClear]);
      UndoCmd            : TCommandSet = ([cmUndo]);
@@ -3573,6 +3576,9 @@ begin
           cmCut         : ClipCut;
           cmCopy        : ClipCopy;
           cmPaste       : ClipPaste;
+
+          cmSelectAll   : SelectAll(true);
+          cmUnselect    : SelectAll(false);
 {$ifdef WinClipSupported}
           cmCopyWin     : ClipCopyWin;
           cmPasteWin    : ClipPasteWin;

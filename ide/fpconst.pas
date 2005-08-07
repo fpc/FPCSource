@@ -193,7 +193,7 @@ const
 
      { in wviews.pas defined
      cmSelectAll         = 246;
-     cmSelectClear       = 247;
+     cmUnselect          = 247;
      }
 
      cmNotImplemented    = 1000;
@@ -363,7 +363,7 @@ const
      hcCopyWin           = hcShift+cmCopyWin;
      hcPasteWin          = hcShift+cmPasteWin;
      hcSelectAll         = hcShift+cmSelectAll;
-     hcSelectClear       = hcShift+cmSelectClear;
+     hcUnselect          = hcShift+cmUnselect;
 
      hcFindProcedure     = hcShift+cmFindProcedure;
      hcObjects           = hcShift+cmObjects;

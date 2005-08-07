@@ -22,6 +22,8 @@ const
 
       cmCopyWin = 240;
       cmPasteWin = 241;
+      cmSelectAll         = 246;
+      cmUnselect          = 247;
 
       cmLocalMenu            = 54100;
       cmUpdate               = 54101;
