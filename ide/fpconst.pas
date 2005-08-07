@@ -21,7 +21,7 @@ uses Views,App,
      WViews,WEditor,WHTMLHlp;
 
 const
-     VersionStr           = '1.0.4';
+     VersionStr           = '1.0.6';
 
      MaxRecentFileCount   = 9;
      MaxToolCount         = 16;
@@ -191,6 +191,11 @@ const
      cmDoReload          = 244;
      cmVectorRegisters   = 245;
 
+     { in wviews.pas defined
+     cmSelectAll         = 246;
+     cmSelectClear       = 247;
+     }
+
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
      cmShowReadme        = 1002;
@@ -357,6 +362,8 @@ const
      hcShowClipboard     = hcShift+cmShowClipboard;
      hcCopyWin           = hcShift+cmCopyWin;
      hcPasteWin          = hcShift+cmPasteWin;
+     hcSelectAll         = hcShift+cmSelectAll;
+     hcSelectClear       = hcShift+cmSelectClear;
 
      hcFindProcedure     = hcShift+cmFindProcedure;
      hcObjects           = hcShift+cmObjects;
