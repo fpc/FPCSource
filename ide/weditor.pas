@@ -21,7 +21,7 @@ interface
 uses
   Dos,Objects,Drivers,Views,Dialogs,Menus,
   FVConsts,
-  WUtils;
+  WUtils,WViews;
 
 const
       cmFileNameChanged      = 51234;
@@ -712,10 +712,6 @@ type
 
 
 const
-
-     cmCopyWin = 240;
-     cmPasteWin = 241;
-
      { used for ShiftDel and ShiftIns to avoid
        GetShiftState to be considered for extending
        selection (PM) }
@@ -723,7 +719,10 @@ const
 
      CodeCompleteMinLen : byte = 4; { minimum length of text to try to complete }
 
-     ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin]);
+     ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin,
+       { cmUnselect should because like cut, copy, copywin:
+         if there is a selection, it is active, else it isn't }
+       cmUnselect]);
      FromClipCmds       : TCommandSet = ([cmPaste]);
      NulClipCmds        : TCommandSet = ([cmClear]);
      UndoCmd            : TCommandSet = ([cmUndo]);
@@ -766,7 +765,7 @@ uses
 {$ifdef TEST_REGEXP}
   regexpr,
 {$endif TEST_REGEXP}
-  WConsts,WViews,WCEdit;
+  WConsts,WCEdit;
 
 type
     RecordWord = sw_word;
@@ -3577,6 +3576,9 @@ begin
           cmCut         : ClipCut;
           cmCopy        : ClipCopy;
           cmPaste       : ClipPaste;
+
+          cmSelectAll   : SelectAll(true);
+          cmUnselect    : SelectAll(false);
 {$ifdef WinClipSupported}
           cmCopyWin     : ClipCopyWin;
           cmPasteWin    : ClipPasteWin;

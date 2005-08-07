@@ -67,6 +67,8 @@ const
       menu_edit_paste        = '~P~aste';
       menu_edit_clear        = 'C~l~ear';
       menu_edit_showclipboard= '~S~how clipboard';
+      menu_edit_selectall    = 'Select ~A~ll';
+      menu_edit_unselect     = 'U~n~select';
 
       menu_search            = '~S~earch';
       menu_search_find       = '~F~ind...';
@@ -945,6 +947,8 @@ const
       hint_editcopywin       = 'Copy the selected text in windows clipboard';
       hint_editpastewin      = 'Insert selected text from windows clipboard at the cursor position';
       hint_editclear         = 'Delete the selected text';
+      hint_editselectall     = 'Select the whole text';
+      hint_editunselect      = 'Unselect everything';
       hint_showclipboard     = 'Open then clipboard window';
       hint_searchmenu        = 'Text and symbols search commands';
       hint_searchfind        = 'Search for text';

@@ -330,9 +330,11 @@ begin
       NewItem(menu_edit_copy,menu_key_edit_copy, kbCtrlIns, cmCopy, hcCut,
       NewItem(menu_edit_paste,menu_key_edit_paste, kbShiftIns, cmPaste, hcPaste,
       NewItem(menu_edit_clear,menu_key_edit_clear, kbCtrlDel, cmClear, hcClear,
+      NewItem(menu_edit_selectall,'', kbNoKey, cmSelectAll, hcSelectAll,
+      NewItem(menu_edit_unselect,'', kbNoKey, cmUnselect, hcUnselect,
       NewLine(
       NewItem(menu_edit_showclipboard,'', kbNoKey, cmShowClipboard, hcShowClipboard,
-      WinPMI))))))
+      WinPMI))))))))
 {$ifdef DebugUndo}))){$endif DebugUndo}
       )))),
     NewSubMenu(menu_search,hcSearchMenu, NewMenu(

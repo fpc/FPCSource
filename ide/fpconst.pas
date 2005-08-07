@@ -21,7 +21,7 @@ uses Views,App,
      WViews,WEditor,WHTMLHlp;
 
 const
-     VersionStr           = '1.0.4';
+     VersionStr           = '1.0.6';
 
      MaxRecentFileCount   = 9;
      MaxToolCount         = 16;
@@ -182,12 +182,19 @@ const
      cmUntilReturn       = 239;
      { WARNING these two are also defined in weditor.pas PM }
      { and why aren't these defines then removed? Gabor }
+     { commented out, now in wviews.pas FK
      cmCopyWin           = 240;
      cmPasteWin          = 241;
+     }
      cmRegisters         = 242;
      cmFPURegisters      = 243;
      cmDoReload          = 244;
      cmVectorRegisters   = 245;
+
+     { in wviews.pas defined
+     cmSelectAll         = 246;
+     cmUnselect          = 247;
+     }
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -355,6 +362,8 @@ const
      hcShowClipboard     = hcShift+cmShowClipboard;
      hcCopyWin           = hcShift+cmCopyWin;
      hcPasteWin          = hcShift+cmPasteWin;
+     hcSelectAll         = hcShift+cmSelectAll;
+     hcUnselect          = hcShift+cmUnselect;
 
      hcFindProcedure     = hcShift+cmFindProcedure;
      hcObjects           = hcShift+cmObjects;

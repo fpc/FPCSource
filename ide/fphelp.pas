@@ -129,6 +129,8 @@ begin
     hcCut           : S:=hint_editcut;
     hcCopy          : S:=hint_editcopy;
     hcPaste         : S:=hint_editpaste;
+    hcSelectAll     : S:=hint_editselectall;
+    hcUnselect      : S:=hint_editunselect;
     hcCopyWin       : S:=hint_editcopywin;
     hcPasteWin      : S:=hint_editpastewin;
     hcClear         : S:=hint_editclear;
