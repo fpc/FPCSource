@@ -22,15 +22,10 @@ Interface
      windows,winsock,ctypes;
 
 Type
-  cushort=word;
-  cuint16=word;
-  cuint32=cardinal;
-  size_t =cuint32;
-  ssize_t=cint32;
-  cint   =longint;
-  pcint  =^cint;
-  tsocklen=cint;
-  psocklen=^tsocklen;
+  size_t  = cuint32;
+  ssize_t = cint32;
+  tsocklen= cint;
+  psocklen= ^tsocklen;
 
 
   Const
@@ -48,8 +43,6 @@ Implementation
 {******************************************************************************
                           Basic Socket Functions
 ******************************************************************************}
-
-
 
 //function fprecvmsg     (s:cint; msg: pmsghdr; flags:cint):ssize_t;
 //function fpsendmsg    (s:cint; hdr: pmsghdr; flags:cint):ssize;
@@ -97,7 +90,7 @@ end;
 function fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
 
 begin
-fpRecvFrom:=WinSock.RecvFrom(S,Buf,Len,Flags,Winsock.TSockAddr(from^),FromLen^);
+  fpRecvFrom:=WinSock.RecvFrom(S,Buf,Len,Flags,Winsock.TSockAddr(from^),FromLen^);
   if fpRecvFrom<0 then
     SocketError:=WSAGetLastError
   else
@@ -291,7 +284,6 @@ Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Long
 begin
   // SocketPair:=SocketCall(Socket_Sys_SocketPair,Domain,SocketType,Protocol,longint(@Pair),0,0);a
 end;
-
 
 {$ifdef unix}
 { mimic the linux fpWrite/fpRead calls for the file/text socket wrapper }
