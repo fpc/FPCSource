@@ -205,45 +205,29 @@ begin
   AnsiContainsText:=AnsiPos(ASubText,AText)<>0;
 end;
 
+
 Function AnsiStartsText(const ASubText, AText: string): Boolean;
 begin
   Result:=AnsiCompareText(Copy(AText,1,Length(AsubText)),ASubText)=0;
 end;
+
 
 Function AnsiEndsText(const ASubText, AText: string): Boolean;
 begin
  result:=AnsiCompareText(Copy(AText,Length(AText)-Length(ASubText)+1,Length(ASubText)),asubtext)=0;
 end;
 
+
 Function AnsiReplaceText(const AText, AFromText, AToText: string): string;
-
-var iFrom, iTo: longint;
-
 begin
-  iTo:=Pos(AFromText,AText);
-  if iTo=0 then
-    result:=AText
-  else
-    begin
-     result:='';
-     iFrom:=1;
-     while (ito<>0) do
-       begin
-         result:=Result+Copy(AText,IFrom,Ito-IFrom+1)+AToText;
-         ifrom:=ITo+Length(afromtext);
-         ito:=Posex(Afromtext,atext,ifrom);
-       end;
-     if ifrom<=length(atext) then
-      result:=result+copy(AText,ifrom, length(atext));
-    end;
+  Result := StringReplace(AText,AFromText,AToText,[rfReplaceAll,rfIgnoreCase]);
 end;
 
-Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;
 
+Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;
 begin
   Result:=(AnsiIndexText(AText,AValues)<>-1)
 end;
-
 
 
 Function AnsiIndexText(const AText: string; const AValues: array of string): Integer;
@@ -279,24 +263,19 @@ begin
 end;
 
 
-
 Function AnsiEndsStr(const ASubText, AText: string): Boolean;
-
 begin
  Result := AnsiPos(ASubText,AText)=(length(AText)-length(ASubText)+1);
 end;
 
 
 Function AnsiReplaceStr(const AText, AFromText, AToText: string): string;
-
 begin
 Result := StringReplace(AText,AFromText,AToText,[rfReplaceAll]);
 end;
 
 
-
 Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;
-
 begin
   Result:=AnsiIndexStr(AText,Avalues)<>-1;
 end;

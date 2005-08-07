@@ -1813,25 +1813,24 @@ begin
     Dec(Result);
 end;
 
-Function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
 
+Function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
 var
   Srch,OldP,RemS: string; // Srch and Oldp can contain uppercase versions of S,OldPattern
   P : Integer;
-
 begin
   Srch:=S;
   OldP:=OldPattern;
   if rfIgnoreCase in Flags then
     begin
-    Srch:=UpperCase(Srch);
-    OldP:=UpperCase(OldP);
+    Srch:=AnsiUpperCase(Srch);
+    OldP:=AnsiUpperCase(OldP);
     end;
   RemS:=S;
   Result:='';
   while (Length(Srch)<>0) do
     begin
-    P:=Pos(OldP, Srch);
+    P:=AnsiPos(OldP, Srch);
     if P=0 then
       begin
       Result:=Result+RemS;
@@ -1852,6 +1851,7 @@ begin
       end;
     end;
 end;
+
 
 Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
 
