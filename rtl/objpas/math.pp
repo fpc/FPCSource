@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Florian Klaempfl
+    Copyright (c) 1999-2005 by Florian Klaempfl
     member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -16,16 +16,15 @@
   (with some improvements)
 
   What's to do:
-    o a lot of function :), search for !!!!
     o some statistical functions
     o all financial functions
     o optimizations
 }
 
+{$MODE objfpc}
+{$inline on }
 unit math;
 interface
-
-{$MODE objfpc}
 
     uses
        sysutils;
@@ -138,29 +137,31 @@ function MinIntValue(const Data: array of Integer): Integer;
 function MaxIntValue(const Data: array of Integer): Integer;
 
 { Extra, not present in Delphi, but used frequently  }
-function Min(a, b: Integer): Integer;
-function Max(a, b: Integer): Integer;
+function Min(a, b: Integer): Integer;inline;
+function Max(a, b: Integer): Integer;inline;
+{ this causes more trouble than it solves
 function Min(a, b: Cardinal): Cardinal;
 function Max(a, b: Cardinal): Cardinal;
-function Min(a, b: Int64): Int64;
-function Max(a, b: Int64): Int64;
+}
+function Min(a, b: Int64): Int64;inline;
+function Max(a, b: Int64): Int64;inline;
 {$ifdef FPC_HAS_TYPE_SINGLE}
-function Min(a, b: Single): Single;
-function Max(a, b: Single): Single;
+function Min(a, b: Single): Single;inline;
+function Max(a, b: Single): Single;inline;
 {$endif FPC_HAS_TYPE_SINGLE}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function Min(a, b: Double): Double;
-function Max(a, b: Double): Double;
+function Min(a, b: Double): Double;inline;
+function Max(a, b: Double): Double;inline;
 {$endif FPC_HAS_TYPE_DOUBLE}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function Min(a, b: Extended): Extended;
-function Max(a, b: Extended): Extended;
+function Min(a, b: Extended): Extended;inline;
+function Max(a, b: Extended): Extended;inline;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function InRange(const AValue, AMin, AMax: Integer): Boolean;
-function InRange(const AValue, AMin, AMax: Int64): Boolean;
+function InRange(const AValue, AMin, AMax: Integer): Boolean;inline;
+function InRange(const AValue, AMin, AMax: Int64): Boolean;inline;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function InRange(const AValue, AMin, AMax: Double): Boolean;
+function InRange(const AValue, AMin, AMax: Double): Boolean;inline;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 function EnsureRange(const AValue, AMin, AMax: Integer): Integer;
@@ -182,31 +183,31 @@ const
   ZeroValue = 0;
   PositiveValue = High(TValueSign);
 
-function Sign(const AValue: Integer): TValueSign;
-function Sign(const AValue: Int64): TValueSign;
-function Sign(const AValue: Double): TValueSign;
+function Sign(const AValue: Integer): TValueSign;inline;
+function Sign(const AValue: Int64): TValueSign;inline;
+function Sign(const AValue: Double): TValueSign;inline;
 
 function IsZero(const A: Single; Epsilon: Single): Boolean;
-function IsZero(const A: Single): Boolean;
+function IsZero(const A: Single): Boolean;inline;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function IsZero(const A: Double; Epsilon: Double): Boolean;
-function IsZero(const A: Double): Boolean;
+function IsZero(const A: Double): Boolean;inline;
 {$endif FPC_HAS_TYPE_DOUBLE}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function IsZero(const A: Extended; Epsilon: Extended): Boolean;
-function IsZero(const A: Extended): Boolean;
+function IsZero(const A: Extended): Boolean;inline;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
 function IsNan(const d : Double): Boolean;
 function IsInfinite(const d : Double): Boolean;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function SameValue(const A, B: Extended): Boolean;
+function SameValue(const A, B: Extended): Boolean;inline;
 {$endif}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function SameValue(const A, B: Double): Boolean;
+function SameValue(const A, B: Double): Boolean;inline;
 {$endif}
-function SameValue(const A, B: Single): Boolean;
+function SameValue(const A, B: Single): Boolean;inline;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SameValue(const A, B: Extended; Epsilon: Extended): Boolean;
 {$endif}
@@ -377,7 +378,7 @@ begin
 end;
 
 
-function Sign(const AValue: Integer): TValueSign;
+function Sign(const AValue: Integer): TValueSign;inline;
 
 begin
   If Avalue<0 then
@@ -388,7 +389,7 @@ begin
     Result:=ZeroValue;
 end;
 
-function Sign(const AValue: Int64): TValueSign;
+function Sign(const AValue: Int64): TValueSign;inline;
 
 begin
   If Avalue<0 then
@@ -399,7 +400,7 @@ begin
     Result:=ZeroValue;
 end;
 
-function Sign(const AValue: Double): TValueSign;
+function Sign(const AValue: Double): TValueSign;inline;
 
 begin
   If Avalue<0.0 then
@@ -1052,7 +1053,7 @@ begin
 end;
 
 
-function Min(a, b: Integer): Integer;
+function Min(a, b: Integer): Integer;inline;
 begin
   if a < b then
     Result := a
@@ -1060,7 +1061,7 @@ begin
     Result := b;
 end;
 
-function Max(a, b: Integer): Integer;
+function Max(a, b: Integer): Integer;inline;
 begin
   if a > b then
     Result := a
@@ -1068,7 +1069,8 @@ begin
     Result := b;
 end;
 
-function Min(a, b: Cardinal): Cardinal;
+{
+function Min(a, b: Cardinal): Cardinal;inline;
 begin
   if a < b then
     Result := a
@@ -1076,15 +1078,16 @@ begin
     Result := b;
 end;
 
-function Max(a, b: Cardinal): Cardinal;
+function Max(a, b: Cardinal): Cardinal;inline;
 begin
   if a > b then
     Result := a
   else
     Result := b;
 end;
+}
 
-function Min(a, b: Int64): Int64;
+function Min(a, b: Int64): Int64;inline;
 begin
   if a < b then
     Result := a
@@ -1092,7 +1095,7 @@ begin
     Result := b;
 end;
 
-function Max(a, b: Int64): Int64;
+function Max(a, b: Int64): Int64;inline;
 begin
   if a > b then
     Result := a
@@ -1101,7 +1104,7 @@ begin
 end;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
-function Min(a, b: Single): Single;
+function Min(a, b: Single): Single;inline;
 begin
   if a < b then
     Result := a
@@ -1109,7 +1112,7 @@ begin
     Result := b;
 end;
 
-function Max(a, b: Single): Single;
+function Max(a, b: Single): Single;inline;
 begin
   if a > b then
     Result := a
@@ -1119,7 +1122,7 @@ end;
 {$endif FPC_HAS_TYPE_SINGLE}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function Min(a, b: Double): Double;
+function Min(a, b: Double): Double;inline;
 begin
   if a < b then
     Result := a
@@ -1127,7 +1130,7 @@ begin
     Result := b;
 end;
 
-function Max(a, b: Double): Double;
+function Max(a, b: Double): Double;inline;
 begin
   if a > b then
     Result := a
@@ -1137,7 +1140,7 @@ end;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function Min(a, b: Extended): Extended;
+function Min(a, b: Extended): Extended;inline;
 begin
   if a < b then
     Result := a
@@ -1145,7 +1148,7 @@ begin
     Result := b;
 end;
 
-function Max(a, b: Extended): Extended;
+function Max(a, b: Extended): Extended;inline;
 begin
   if a > b then
     Result := a
@@ -1154,26 +1157,26 @@ begin
 end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function InRange(const AValue, AMin, AMax: Integer): Boolean;
+function InRange(const AValue, AMin, AMax: Integer): Boolean;inline;
 
 begin
   Result:=(AValue>=AMin) and (AValue<=AMax);
 end;
 
-function InRange(const AValue, AMin, AMax: Int64): Boolean;
+function InRange(const AValue, AMin, AMax: Int64): Boolean;inline;
 begin
   Result:=(AValue>=AMin) and (AValue<=AMax);
 end;
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function InRange(const AValue, AMin, AMax: Double): Boolean;
+function InRange(const AValue, AMin, AMax: Double): Boolean;inline;
 
 begin
   Result:=(AValue>=AMin) and (AValue<=AMax);
 end;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
-function EnsureRange(const AValue, AMin, AMax: Integer): Integer;
+function EnsureRange(const AValue, AMin, AMax: Integer): Integer;inline;
 
 begin
   Result:=AValue;
@@ -1183,7 +1186,7 @@ begin
     Result:=AMax;
 end;
 
-function EnsureRange(const AValue, AMin, AMax: Int64): Int64;
+function EnsureRange(const AValue, AMin, AMax: Int64): Int64;inline;
 
 begin
   Result:=AValue;
@@ -1194,7 +1197,7 @@ begin
 end;
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function EnsureRange(const AValue, AMin, AMax: Double): Double;
+function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;
 
 begin
   Result:=AValue;
@@ -1219,7 +1222,7 @@ begin
   Result:=Abs(A)<=Epsilon;
 end;
 
-function IsZero(const A: Single): Boolean;
+function IsZero(const A: Single): Boolean;inline;
 
 begin
   Result:=IsZero(A,single(SZeroResolution));
@@ -1234,7 +1237,7 @@ begin
   Result:=Abs(A)<=Epsilon;
 end;
 
-function IsZero(const A: Double): Boolean;
+function IsZero(const A: Double): Boolean;inline;
 
 begin
   Result:=IsZero(A,DZeroResolution);
@@ -1250,7 +1253,7 @@ begin
   Result:=Abs(A)<=Epsilon;
 end;
 
-function IsZero(const A: Extended): Boolean;
+function IsZero(const A: Extended): Boolean;inline;
 
 begin
   Result:=IsZero(A,EZeroResolution);
@@ -1309,7 +1312,7 @@ begin
     Result:=((B-A)<=Epsilon);
 end;
 
-function SameValue(const A, B: Extended): Boolean;
+function SameValue(const A, B: Extended): Boolean;inline;
 
 begin
   Result:=SameValue(A,B,0);
@@ -1318,7 +1321,7 @@ end;
 
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function SameValue(const A, B: Double): Boolean;
+function SameValue(const A, B: Double): Boolean;inline;
 
 begin
   Result:=SameValue(A,B,0);
@@ -1336,7 +1339,7 @@ begin
 end;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
-function SameValue(const A, B: Single): Boolean;
+function SameValue(const A, B: Single): Boolean;inline;
 
 begin
   Result:=SameValue(A,B,0);
