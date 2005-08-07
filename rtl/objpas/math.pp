@@ -164,10 +164,10 @@ function InRange(const AValue, AMin, AMax: Int64): Boolean;inline;
 function InRange(const AValue, AMin, AMax: Double): Boolean;inline;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
-function EnsureRange(const AValue, AMin, AMax: Integer): Integer;
-function EnsureRange(const AValue, AMin, AMax: Int64): Int64;
+function EnsureRange(const AValue, AMin, AMax: Integer): Integer;inline;
+function EnsureRange(const AValue, AMin, AMax: Int64): Int64;inline;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function EnsureRange(const AValue, AMin, AMax: Double): Double;
+function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 
