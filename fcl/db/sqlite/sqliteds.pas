@@ -37,6 +37,8 @@ type
   private
     function SqliteExec(AHandle: Pointer; ASql:PChar):Integer;override;
     function GetSqliteHandle: Pointer; override;
+    function GetSqliteEncoding: String;
+    function GetSqliteVersion: String; override;
     procedure SqliteClose(AHandle: Pointer);override;
     procedure BuildLinkedList; override;
   protected
@@ -44,6 +46,8 @@ type
   public
     function SqliteReturnString: String; override;
     function TableExists: Boolean;override;
+    function QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;override;
+    property SqliteEncoding: String read GetSqliteEncoding;
   end;
 
 implementation
@@ -254,7 +258,7 @@ begin
     {$endif}
     Result:=FSqliteReturnId = SQLITE_ROW;
     sqlite_finalize(vm, nil);
-    if (FSqliteHandle = nil) then
+    if FSqliteHandle = nil then
       SqliteClose(AHandle);
   end;
   {$ifdef DEBUG}
@@ -290,7 +294,7 @@ begin
       SQLITE_NOLFS        : Result := 'SQLITE_NOLFS       ';
       SQLITE_AUTH         : Result := 'SQLITE_AUTH        ';
       SQLITE_FORMAT       : Result := 'SQLITE_FORMAT      ';
-     // SQLITE_RANGE        : Result := 'SQLITE_RANGE       ';
+      SQLITE_RANGE        : Result := 'SQLITE_RANGE       ';
       SQLITE_ROW          : Result := 'SQLITE_ROW         ';
       SQLITE_DONE         : Result := 'SQLITE_DONE        ';
   else
@@ -298,6 +302,70 @@ begin
  end;
 end;
 
+function TSqliteDataset.GetSqliteEncoding: String;
+begin
+  Result:=StrPas(sqlite_encoding);
+end;
+  
+function TSqliteDataset.GetSqliteVersion: String;
+begin
+  Result:=StrPas(sqlite_version);
+end;
 
+function TSqliteDataset.QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;
+var
+  vm,AHandle:Pointer;
+  ColumnNames,ColumnValues:PPChar;
+  ColCount:Integer;
+  
+  procedure FillStrings;
+  begin
+    while FSqliteReturnId = SQLITE_ROW do
+    begin
+      AStrList.Add(StrPas(ColumnValues[0]));
+      FSqliteReturnId:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);  
+    end;
+  end;
+  procedure FillStringsAndObjects;
+  begin
+    while FSqliteReturnId = SQLITE_ROW do
+    begin
+      // I know, this code is really dirty!!
+      AStrList.AddObject(StrPas(ColumnValues[0]),TObject(StrToInt(StrPas(ColumnValues[1]))));
+      FSqliteReturnId:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);  
+    end;
+  end;    
+begin
+  if FSqliteHandle <> nil then
+    AHandle:=FSqliteHandle
+  else
+    if FileExists(FFileName) then
+      AHandle:=GetSqliteHandle
+    else
+      DatabaseError('File '+FFileName+' not Exists',Self);    
+  Result:='';
+  if AStrList <> nil then
+    AStrList.Clear;
+  FSqliteReturnId:=sqlite_compile(AHandle,Pchar(ASql),nil,@vm,nil);
+  if FSqliteReturnId <> SQLITE_OK then
+    DatabaseError('Error returned by sqlite in QuickQuery: '+SqliteReturnString,Self);
+    
+  FSqliteReturnId:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);
+  if (FSqliteReturnId = SQLITE_ROW) and (ColCount > 0) then
+  begin
+    Result:=StrPas(ColumnValues[0]);
+    if AStrList <> nil then
+    begin   
+      if FillObjects and (ColCount > 1) then
+        FillStringsAndObjects
+      else
+        FillStrings;
+    end;          
+  end;  
+  sqlite_finalize(vm, nil); 
+  if FSqliteHandle = nil then
+    sqlite_close(AHandle);
+end;
+    
 end.
 
