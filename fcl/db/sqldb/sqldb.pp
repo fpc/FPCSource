@@ -987,22 +987,19 @@ var
   end;
 
 begin
-  Result := False;
-  with tsqlquery.Create(nil) do
-    begin
-    DataBase := self.Database;
-    transaction := self.transaction;
-    sql.clear;
+  Result := True;
     case UpdateKind of
       ukModify : s := ModifyRecQuery;
       ukInsert : s := InsertRecQuery;
       ukDelete : s := DeleteRecQuery;
     end; {case}
-    sql.add(s);
-    ExecSQL;
-    Result := true;
-    Free;
-    end;
+  try
+    (Database as TSQLConnection).ExecuteDirect(s,Transaction as TSQLTransaction);
+  except
+    on EDatabaseError do Result := False
+  else
+    raise;
+  end;
 end;
 
 
