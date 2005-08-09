@@ -332,6 +332,7 @@ begin
     if Assigned(FFields) then
       FFields.Remove(Self);
     end;
+  FLookupList.Free;
   Inherited Destroy;
 end;
 
@@ -557,7 +558,7 @@ begin
       Move (FValueBuffer^,Buffer^ ,DataSize);
     end
   else
-    Result:=FDataset.GetFieldData(Self,Buffer,False);
+    Result:=FDataset.GetFieldData(Self,Buffer);
 end;
 
 function TField.GetDataSize: Word;
@@ -585,6 +586,22 @@ Function TField.IsDisplayStored : Boolean;
 
 begin
   Result:=(DisplayLabel<>FieldName);
+end;
+
+function TField.GetLookupList: TLookupList;
+begin
+  if not Assigned(FLookupList) then
+    FLookupList := TLookupList.Create;
+  Result := FLookupList;
+end;
+
+procedure TField.CalcLookupValue;
+begin
+  if FLookupCache then
+    Value := LookupList.ValueOfKey(FDataSet.FieldValues[FKeyFields])
+  else if (FLookupDataSet <> nil) and FLookupDataSet.Active then
+    Value := FLookupDataSet.Lookup(FLookupKeyFields,
+      FDataSet.FieldValues[FKeyFields], FLookupResultField);
 end;
 
 function TField.getIndex : longint;
@@ -651,10 +668,41 @@ begin
   Result:=InputChar in FValidChars;
 end;
 
+procedure TField.RefreshLookupList;
+var SaveActive: Boolean;
+begin
+  if (FLookupDataSet <> nil) And (FLookupKeyFields <> '') And
+     (FlookupResultField <> '') And (FKeyFields <> '') then begin
+    SaveActive := FLookupDataSet.Active;
+    with FLookupDataSet do
+    try
+      Active := True;
+      FFields.CheckFieldNames(FLookupKeyFields);
+      FieldByName(FLookupResultField);
+      LookupList.Clear;
+      DisableControls;
+      try
+        First;
+        while not Eof do begin
+          FLookupList.Add(FieldValues[FLookupKeyFields],
+            FieldValues[FLookupResultField]);
+          Next;
+        end;
+      finally
+        EnableControls;
+      end;
+    finally
+      Active := SaveActive;
+    end;
+  end;
+end;
+
 procedure TField.Notification(AComponent: TComponent; Operation: TOperation);
 
 begin
   Inherited Notification(AComponent,Operation);
+  if (Operation = opRemove) and (AComponent = FLookupDataSet) then
+    FLookupDataSet := nil;
 end;
 
 procedure TField.PropertyChanged(LayoutAffected: Boolean);
@@ -2400,7 +2448,7 @@ begin
   T:=Value;
   Repeat
     I:=Pos(T,';');
-    If I=0 Then I:=Length(T);
+    If I=0 Then I:=Length(T)+1;
     S:=Copy(T,1,I-1);
     Delete(T,1,I);
     // Will raise an error if no such field...

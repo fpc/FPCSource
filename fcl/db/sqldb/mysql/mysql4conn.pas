@@ -243,7 +243,6 @@ procedure TMySQLConnection.PrepareStatement(cursor: TSQLCursor;
 begin
   if assigned(AParams) and (AParams.count > 0) then
     DatabaseError('Parameters (not) yet supported for the MySQL SqlDB connection.',self);
-  ObtainSQLStatementType(cursor,buf);
   With Cursor as TMysqlCursor do
     begin
     FStatement:=Buf;

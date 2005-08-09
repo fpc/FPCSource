@@ -126,8 +126,8 @@ type
     procedure SetPrecision(const AValue: Longint);
     procedure SetSize(const AValue: Word);
   protected
-    function GetDisplayName: string;
-    procedure SetDisplayName(const AValue: string);
+    function GetDisplayName: string; override;
+    procedure SetDisplayName(const AValue: string); override;
   public
     constructor Create(AOwner: TFieldDefs; const AName: string;
       ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint);
@@ -189,6 +189,25 @@ type
   TFieldRef = ^TField;
   TFieldChars = set of Char;
 
+  PLookupListRec = ^TLookupListRec;
+  TLookupListRec = record
+    Key: Variant;
+    Value: Variant;
+  end;
+
+  { TLookupList }
+
+  TLookupList = class(TObject)
+  private
+    FList: TList;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Add(const AKey, AValue: Variant);
+    procedure Clear;
+    function ValueOfKey(const AKey: Variant): Variant;
+  end;
+
   { TField }
 
   TField = class(TComponent)
@@ -218,6 +237,7 @@ type
     FLookupDataSet : TDataSet;
     FLookupKeyfields : String;
     FLookupresultField : String;
+    FLookupList: TLookupList;
     FOffset : Word;
     FOnChange : TFieldNotifyEvent;
     FOnGetText: TFieldGetTextEvent;
@@ -243,6 +263,8 @@ type
     procedure SetReadOnly(const AValue: Boolean);
     procedure SetVisible(const AValue: Boolean);
     function IsDisplayStored : Boolean;
+    function GetLookupList: TLookupList;
+    procedure CalcLookupValue;
   protected
     function AccessError(const TypeName: string): EDatabaseError;
     procedure CheckInactive;
@@ -296,6 +318,7 @@ type
     function GetData(Buffer: Pointer): Boolean;
     class function IsBlob: Boolean; virtual;
     function IsValidChar(InputChar: Char): Boolean; virtual;
+    procedure RefreshLookupList;
     procedure SetData(Buffer: Pointer);
     procedure SetFieldType(AValue: TFieldType); virtual;
     procedure Validate(Buffer: Pointer);
@@ -327,6 +350,7 @@ type
     property Value: variant read GetAsVariant write SetAsVariant;
     property OldValue: variant read GetOldValue;
     property ProviderFlags : TProviderFlags read FProviderFlags write FProviderFlags;
+    property LookupList: TLookupList read GetLookupList;
   published
     property AlignMent : TAlignMent Read FAlignMent write SetAlignment default taLeftJustify;
     property CustomConstraint: string read FCustomConstraint write FCustomConstraint;
@@ -988,7 +1012,7 @@ type
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
     function  GetFieldClass(FieldType: TFieldType): TFieldClass; virtual;
     Function  GetfieldCount : Integer;
-    function  GetFieldValues(fieldname : string) : string; virtual;
+    function  GetFieldValues(fieldname : string) : Variant; virtual;
     function  GetIsIndexField(Field: TField): Boolean; virtual;
     function  GetNextRecords: Longint; virtual;
     function  GetNextRecord: Boolean; virtual;
@@ -1013,14 +1037,13 @@ type
     procedure SetFilterOptions(Value: TFilterOptions); virtual;
     procedure SetFilterText(const Value: string); virtual;
     procedure SetFound(const Value: Boolean);
-    procedure SetFieldValues(fieldname : string;value : string); virtual;
+    procedure SetFieldValues(fieldname: string; Value: Variant); virtual;
     procedure SetModified(Value: Boolean);
     procedure SetName(const Value: TComponentName); override;
     procedure SetOnFilterRecord(const Value: TFilterRecordEvent); virtual;
     procedure SetRecNo(Value: Longint); virtual;
     procedure SetState(Value: TDataSetState);
     function SetTempState(const Value: TDataSetState): TDataSetState;
-    function TempBuffer: PChar;
     procedure UpdateIndexDefs; virtual;
     property ActiveRecord: Longint read FActiveRecord;
     property CurrentRecord: Longint read FCurrentRecord;
@@ -1038,7 +1061,7 @@ type
     procedure GetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
     function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; virtual; abstract;
     function GetDataSource: TDataSource; virtual;
-    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; virtual; abstract;
+    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; virtual;
     function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload; virtual;
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
     function GetRecordSize: Word; virtual; abstract;
@@ -1057,7 +1080,7 @@ type
     function IsCursorOpen: Boolean; virtual; abstract;
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); virtual; abstract;
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
-    procedure SetFieldData(Field: TField; Buffer: Pointer); overload; virtual; abstract;
+    procedure SetFieldData(Field: TField; Buffer: Pointer); overload; virtual;
     procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload; virtual;
   public
     constructor Create(AOwner: TComponent); override;
@@ -1128,7 +1151,7 @@ type
     property RecordSize: Word read GetRecordSize;
     property State: TDataSetState read FState;
     property Fields : TFields read FFieldList;
-    property FieldValues[fieldname : string] : string read GetFieldValues write SetFieldValues; default;
+    property FieldValues[fieldname : string] : Variant read GetFieldValues write SetFieldValues; default;
     property Filter: string read FFilterText write SetFilterText;
     property Filtered: Boolean read FFiltered write SetFiltered default False;
     property FilterOptions: TFilterOptions read FFilterOptions write FFilterOptions;
@@ -2008,6 +2031,50 @@ function TCheckConstraints.Add: TCheckConstraint;
 
 begin
   //!! To be implemented
+end;
+
+{ TLookupList }
+
+constructor TLookupList.Create;
+
+begin
+  FList := TList.Create;
+end;
+
+destructor TLookupList.Destroy;
+
+begin
+  if FList <> nil then Clear;
+  FList.Free;
+  inherited Destroy;
+end;
+
+procedure TLookupList.Add(const AKey, AValue: Variant);
+
+var LookupRec: PLookupListRec;
+begin
+  New(LookupRec);
+  LookupRec^.Key := AKey;
+  LookupRec^.Value := AValue;
+  FList.Add(LookupRec);
+end;
+
+procedure TLookupList.Clear;
+var i: integer;
+begin
+  for i := 0 to FList.Count - 1 do Dispose(PLookupListRec(FList[i]));
+  FList.Clear;
+end;
+
+function TLookupList.ValueOfKey(const AKey: Variant): Variant;
+
+var I: Integer;
+begin
+  Result := Null;
+  if VarIsNull(AKey) then Exit;
+  i := FList.Count - 1;
+  while (i > 0) And (PLookupListRec(FList.Items[I])^.Key <> AKey) do Dec(i);
+  if i >= 0 then Result := PLookupListRec(FList.Items[I])^.Value;
 end;
 
 {$i dataset.inc}
