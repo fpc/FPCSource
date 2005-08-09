@@ -56,6 +56,9 @@ const
 
 { TSQLConnection }
 type
+
+  { TSQLConnection }
+
   TSQLConnection = class (TDatabase)
   private
     FPassword            : string;
@@ -101,6 +104,8 @@ type
     property Handle: Pointer read GetHandle;
     destructor Destroy; override;
     property ConnOptions: TConnOptions read FConnOptions;
+    procedure ExecuteDirect(SQL : String); overload; virtual;
+    procedure ExecuteDirect(SQL : String; Transaction : TSQLTransaction); overload; virtual;
   published
     property Password : string read FPassword write FPassword;
     property Transaction : TSQLTransaction read FTransaction write SetTransaction;
@@ -297,6 +302,41 @@ end;
 destructor TSQLConnection.Destroy;
 begin
   inherited Destroy;
+end;
+
+Procedure TSQLConnection.ExecuteDirect(SQL: String);
+
+begin
+  ExecuteDirect(SQL,FTransaction);
+end;
+
+Procedure TSQLConnection.ExecuteDirect(SQL: String; Transaction : TSQLTransaction);
+
+var Cursor : TSQLCursor;
+
+begin
+  if not assigned(Transaction) then
+    DatabaseError(SErrTransactionnSet);
+
+  if not Connected then Open;
+  if not Transaction.Active then Transaction.StartTransaction;
+
+  try
+    Cursor := AllocateCursorHandle;
+
+    SQL := TrimRight(SQL);
+
+    if SQL = '' then
+      DatabaseError(SErrNoStatement);
+
+    Cursor.FStatementType := stNone;
+
+    PrepareStatement(cursor,Transaction,SQL,Nil);
+    execute(cursor,Transaction, Nil);
+    CloseStatement(Cursor);
+  finally;
+    DeAllocateCursorHandle(Cursor);
+  end;
 end;
 
 function TSQLConnection.GetAsSQLText(Field : TField) : string;
