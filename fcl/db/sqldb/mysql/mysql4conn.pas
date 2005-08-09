@@ -64,7 +64,7 @@ Type
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
-    function StartdbTransaction(trans : TSQLHandle) : boolean; override;
+    function StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
@@ -631,7 +631,7 @@ begin
   // Do nothing
 end;
 
-function TMySQLConnection.StartdbTransaction(trans: TSQLHandle): boolean;
+function TMySQLConnection.StartdbTransaction(trans: TSQLHandle; AParams : string): boolean;
 begin
   // Do nothing
 end;

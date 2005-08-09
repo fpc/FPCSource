@@ -94,7 +94,7 @@ type
     function GetTransactionHandle(trans : TSQLHandle): pointer; virtual; abstract;
     function Commit(trans : TSQLHandle) : boolean; virtual; abstract;
     function RollBack(trans : TSQLHandle) : boolean; virtual; abstract;
-    function StartdbTransaction(trans : TSQLHandle) : boolean; virtual; abstract;
+    function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual; abstract;
     procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
@@ -131,6 +131,7 @@ type
   private
     FTrans               : TSQLHandle;
     FAction              : TCommitRollbackAction;
+    FParams              : TStringList;
   protected
     function GetHandle : Pointer; virtual;
     Procedure SetDatabase (Value : TDatabase); override;
@@ -147,6 +148,7 @@ type
   published
     property Action : TCommitRollbackAction read FAction write FAction;
     property Database;
+    property Params : TStringList read FParams write FParams;
   end;
 
 { TSQLQuery }
@@ -427,17 +429,19 @@ begin
     Db.Open;
   if not assigned(FTrans) then FTrans := Db.AllocateTransactionHandle;
 
-  if Db.StartdbTransaction(FTrans) then OpenTrans;
+  if Db.StartdbTransaction(FTrans,FParams.CommaText) then OpenTrans;
 end;
 
 constructor TSQLTransaction.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
+  FParams := TStringList.Create;
 end;
 
 destructor TSQLTransaction.Destroy;
 begin
   Rollback;
+  FreeAndNil(FParams);
   inherited Destroy;
 end;
 
