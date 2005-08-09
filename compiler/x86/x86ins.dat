@@ -2225,7 +2225,8 @@ void                  \320\1\xAB                      8086
 (Ch_Wop1, Ch_None, Ch_None)
 mem                   \300\1\x0F\17\201               286,PROT
 mem16                 \300\1\x0F\17\201               286,PROT
-reg16                 \300\1\x0F\17\201               286,PROT
+reg16                 \320\1\x0F\17\201               286,PROT
+reg32                 \321\1\x0F\17\201               386,PROT
 
 [SUB,subX]
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
