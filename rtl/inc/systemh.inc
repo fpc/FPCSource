@@ -457,6 +457,7 @@ Procedure Insert(const source:shortstring;Var s:shortstring;index:SizeInt);
 Procedure Insert(source:Char;Var s:shortstring;index:SizeInt);
 Function  Pos(const substr:shortstring;const s:shortstring):SizeInt;
 Function  Pos(C:Char;const s:shortstring):SizeInt;
+Function  Pos (Const Substr : ShortString; Const Source : AnsiString) : SizeInt;
 Procedure SetString (Var S : Shortstring; Buf : PChar; Len : SizeInt);
 Procedure SetString (Var S : AnsiString; Buf : PChar; Len : SizeInt);
 Function  upCase(const s:shortstring):shortstring;

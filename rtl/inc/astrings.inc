@@ -495,6 +495,32 @@ begin
   Pointer(fpc_ansistr_Copy):=ResultAddress;
 end;
 
+Function Pos (Const Substr : ShortString; Const Source : AnsiString) : SizeInt;
+
+var
+  i,MaxLen : SizeInt;
+  pc : pchar;
+begin
+  Pos:=0;
+  if Length(SubStr)>0 then
+   begin
+     MaxLen:=Length(source)-Length(SubStr);
+     i:=0;
+     pc:=@source[1];
+     while (i<=MaxLen) do
+      begin
+        inc(i);
+        if (SubStr[1]=pc^) and
+           (CompareByte(Substr[1],pc^,Length(SubStr))=0) then
+         begin
+           Pos:=i;
+           exit;
+         end;
+        inc(pc);
+      end;
+   end;
+end;
+
 
 Function Pos (Const Substr : AnsiString; Const Source : AnsiString) : SizeInt;
 var
