@@ -8,7 +8,6 @@ type
      sa_restorer : procedure ;cdecl;
    end;
 
-
 const
    SA_NOCLDSTOP = 1;
    SA_NOCLDWAIT = 2;
@@ -37,8 +36,7 @@ const
 Type
   TSigAction = _sigaction;
   PSigAction = ^TSigAction;
-
   TRestoreHandler = procedure; cdecl;
-
+   __sigaction = _sigaction;
 
 

@@ -155,5 +155,26 @@ Type
   TSigInfo = siginfo;
 
   TSigEvent = sigevent;
-
-
+  _si_kill =  record
+    si_pid: __pid_t;
+    si_uid: __uid_t;
+  end;
+  _si_pad = packed array[0..__SI_PAD_SIZE-1] of Integer;
+  _si_sigfault = record
+    si_addr: Pointer; 
+  end;
+  _si_sigpoll = record
+    si_band: Longint; 
+    si_fd: Integer;
+  end;
+  _si_timer = record
+    _timer1: Cardinal;
+    _timer2: Cardinal;
+  end;
+  _si_rt =  record
+    si_pid: __pid_t;
+    si_uid: __uid_t;
+    si_sigval: sigval_t;
+  end;
+                  
+            
