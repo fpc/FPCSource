@@ -47,6 +47,7 @@ type
   TGlut3IntCallback = procedure(v1, v2, v3: Integer); cdecl;
   TGlut4IntCallback = procedure(v1, v2, v3, v4: Integer); cdecl;
   TGlut1Char2IntCallback = procedure(c: Byte; v1, v2: Integer); cdecl;
+  TGlut1UInt3IntCallback = procedure(u: Cardinal; v1, v2, v3: Integer); cdecl;
 
 const
   GLUT_API_VERSION                = 3;
@@ -174,6 +175,7 @@ const
   GLUT_INIT_WINDOW_HEIGHT         = 503;
   GLUT_INIT_DISPLAY_MODE          = 504;
   GLUT_ELAPSED_TIME               = 700;
+  GLUT_WINDOW_FORMAT_ID		  = 123;
 
   // glutDeviceGet parameters.
   GLUT_HAS_KEYBOARD               = 600;
@@ -186,6 +188,14 @@ const
   GLUT_NUM_BUTTON_BOX_BUTTONS     = 607;
   GLUT_NUM_DIALS                  = 608;
   GLUT_NUM_TABLET_BUTTONS         = 609;
+  GLUT_DEVICE_IGNORE_KEY_REPEAT   = 610;
+  GLUT_DEVICE_KEY_REPEAT          = 611;
+  GLUT_HAS_JOYSTICK               = 612;
+  GLUT_OWNS_JOYSTICK              = 613;
+  GLUT_JOYSTICK_BUTTONS           = 614;
+  GLUT_JOYSTICK_AXES              = 615;
+  GLUT_JOYSTICK_POLL_RATE         = 616;
+
 
   // glutLayerGet parameters.
   GLUT_OVERLAY_POSSIBLE           = 800;
@@ -243,6 +253,18 @@ const
   GLUT_CURSOR_NONE                 = 101;
   // Fullscreen crosshair (if available).
   GLUT_CURSOR_FULL_CROSSHAIR       = 102;
+
+  // GLUT device control sub-API.
+  // glutSetKeyRepeat modes.
+  GLUT_KEY_REPEAT_OFF      = 0;
+  GLUT_KEY_REPEAT_ON       = 1;
+  GLUT_KEY_REPEAT_DEFAULT  = 2;
+
+// Joystick button masks.
+  GLUT_JOYSTICK_BUTTON_A = 1;
+  GLUT_JOYSTICK_BUTTON_B = 2;
+  GLUT_JOYSTICK_BUTTON_C = 4;
+  GLUT_JOYSTICK_BUTTON_D = 8;
 
   // GLUT game mode sub-API.
   // glutGameModeGet.
@@ -307,7 +329,7 @@ var
   glutAttachMenu: procedure(button: Integer); extdecl;
   glutDetachMenu: procedure(button: Integer); extdecl;
 
-// GLUTsub-API.
+// GLUT window callback sub-API.
   glutDisplayFunc: procedure(f: TGlutVoidCallback); extdecl;
   glutReshapeFunc: procedure(f: TGlut2IntCallback); extdecl;
   glutKeyboardFunc: procedure(f: TGlut1Char2IntCallback); extdecl;
@@ -330,6 +352,9 @@ var
   glutMenuStatusFunc: procedure(f: TGlut3IntCallback); extdecl;
   glutOverlayDisplayFunc: procedure(f:TGlutVoidCallback); extdecl;
   glutWindowStatusFunc: procedure(f: TGlut1IntCallback); extdecl;
+  glutKeyboardUpFunc: procedure(f: TGlut1Char2IntCallback); extdecl;
+  glutSpecialUpFunc: procedure(f: TGlut3IntCallback); extdecl;
+  glutJoystickFunc: procedure(f: TGlut1UInt3IntCallback; pollInterval: Integer); extdecl;
 
 // GLUT color index sub-API.
   glutSetColor: procedure(cell: Integer; red, green, blue: GLfloat); extdecl;
@@ -383,7 +408,14 @@ var
 // GLUT debugging sub-API.
   glutReportErrors: procedure; extdecl;
 
-var
+// GLUT device control sub-API.
+
+  glutIgnoreKeyRepeat: procedure(ignore: Integer); extdecl;
+  glutSetKeyRepeat: procedure(repeatMode: Integer); extdecl;
+  glutForceJoystickFunc: procedure; extdecl;
+
+// GLUT game mode sub-API.
+
   //example glutGameModeString('1280x1024:32@75');
   glutGameModeString : procedure (const AString : PChar); extdecl;
   glutEnterGameMode : function : integer; extdecl;
@@ -469,6 +501,9 @@ begin
   @glutMenuStatusFunc := nil;
   @glutOverlayDisplayFunc := nil;
   @glutWindowStatusFunc := nil;
+  @glutKeyboardUpFunc := nil;
+  @glutSpecialUpFunc := nil;
+  @glutJoystickFunc := nil;
   @glutSetColor := nil;
   @glutGetColor := nil;
   @glutCopyColormap := nil;
@@ -507,7 +542,13 @@ begin
   @glutVideoResize := nil;
   @glutVideoPan := nil;
   @glutReportErrors := nil;
-
+  @glutIgnoreKeyRepeat := nil;
+  @glutSetKeyRepeat := nil;
+  @glutForceJoystickFunc := nil;
+  @glutGameModeString := nil;
+  @glutEnterGameMode := nil;
+  @glutLeaveGameMode := nil;
+  @glutGameModeGet := nil;
 end;
 
 procedure LoadGlut(const dll: String);
@@ -593,6 +634,9 @@ begin
     @glutMenuStatusFunc := GetGLutProcAddress(hDLL, 'glutMenuStatusFunc');
     @glutOverlayDisplayFunc := GetGLutProcAddress(hDLL, 'glutOverlayDisplayFunc');
     @glutWindowStatusFunc := GetGLutProcAddress(hDLL, 'glutWindowStatusFunc');
+    @glutKeyboardUpFunc := GetGLutProcAddress(hDLL, 'glutKeyboardUpFunc');
+    @glutSpecialUpFunc := GetGLutProcAddress(hDLL, 'glutSpecialUpFunc');
+    @glutJoystickFunc := GetGLutProcAddress(hDLL, 'glutJoystickFunc');
     @glutSetColor := GetGLutProcAddress(hDLL, 'glutSetColor');
     @glutGetColor := GetGLutProcAddress(hDLL, 'glutGetColor');
     @glutCopyColormap := GetGLutProcAddress(hDLL, 'glutCopyColormap');
@@ -631,10 +675,13 @@ begin
     @glutVideoResize := GetGLutProcAddress(hDLL, 'glutVideoResize');
     @glutVideoPan := GetGLutProcAddress(hDLL, 'glutVideoPan');
     @glutReportErrors := GetGLutProcAddress(hDLL, 'glutReportErrors');
+    @glutIgnoreKeyRepeat := GetGLutProcAddress(hDLL, 'glutIgnoreKeyRepeat');
+    @glutSetKeyRepeat := GetGLutProcAddress(hDLL, 'glutSetKeyRepeat');
+    @glutForceJoystickFunc := GetGLutProcAddress(hDLL, 'glutForceJoystickFunc');
     @glutGameModeString := GetGLutProcAddress(hDLL, 'glutGameModeString');
-    @glutEnterGameMode  := GetGLutProcAddress(hDLL, 'glutEnterGameMode');
-    @glutLeaveGameMode  := GetGLutProcAddress(hDLL, 'glutLeaveGameMode');
-    @glutGameModeGet    := GetGLutProcAddress(hDLL, 'glutGameModeGet');
+    @glutEnterGameMode := GetGLutProcAddress(hDLL, 'glutEnterGameMode');
+    @glutLeaveGameMode := GetGLutProcAddress(hDLL, 'glutLeaveGameMode');
+    @glutGameModeGet := GetGLutProcAddress(hDLL, 'glutGameModeGet');
   except
     raise Exception.Create('Could not load ' + MethodName + ' from ' + dll);
   end;
