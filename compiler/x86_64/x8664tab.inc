@@ -7879,8 +7879,15 @@
     opcode  : A_STR;
     ops     : 1;
     optypes : (ot_reg16,ot_none,ot_none);
-    code    : #192#1#15#15#129;
+    code    : #208#1#15#15#129;
     flags   : if_286 or if_prot
+  ),
+  (
+    opcode  : A_STR;
+    ops     : 1;
+    optypes : (ot_reg32,ot_none,ot_none);
+    code    : #209#1#15#15#129;
+    flags   : if_386 or if_prot
   ),
   (
     opcode  : A_SUB;
