@@ -245,112 +245,112 @@ endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings rsts=math varutils typinfo variants classes dateutils sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings rtlconsts sysconst
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_LOADERS+=wprt0 #wdllprt0 gprt0 wcygprt0
@@ -1900,6 +1900,10 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
+rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
+	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/sysconst.pp
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)

@@ -7,18 +7,21 @@ main=rtl
 
 [target]
 loaders= wprt0 #wdllprt0 gprt0 wcygprt0
-units=$(SYSTEMUNIT) objpas # ctypes objpas macpas strings \
+units=$(SYSTEMUNIT) objpas strings \
+# ctypes macpas
 #     lineinfo heaptrc matrix \
 #     windows winsock initc cmem dynlibs signals \
 #     dos crt objects graph messages \
-#     rtlconsts sysconst sysutils math types \
+      rtlconsts sysconst \
+#     sysutils \
+#     math types \
 #     strutils convutils dateutils varutils variants typinfo classes \
 #     cpu mmx charset ucomplex getopts \
 #     wincrt winmouse winevent sockets printer \
 #     video mouse keyboard \
 #     winsysut
 
-rsts=math varutils typinfo variants classes dateutils sysconst
+# rsts=math varutils typinfo variants classes dateutils sysconst
 
 [require]
 nortl=y
@@ -194,11 +197,11 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 #types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 #        $(COMPILER) $(OBJPASDIR)/types.pp
 
-#rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
-#        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
+rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
+        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
-#sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-#        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
 #dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
 #        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
