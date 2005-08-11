@@ -48,6 +48,12 @@ function scandir64(__dir:Pchar; __namelist:PPPdirent64; __selector:TSelectorFunc
 function getdirentries(__fd:longint; __buf:Pchar; __nbytes:size_t; __basep:P__off_t):__ssize_t;cdecl;external clib name 'getdirentries';
 function getdirentries64(__fd:longint; __buf:Pchar; __nbytes:size_t; __basep:P__off64_t):__ssize_t;cdecl;external clib name 'getdirentries64';
 
+function alphasort(const e1: Pointer; const e2: Pointer): Integer; cdecl; external clib name 'alphasort';
+function alphasort64(const e1: Pointer; const e2: Pointer): Integer; cdecl; external clib name 'alphasort64';
+function versionsort(const e1: Pointer; const e2: Pointer): Integer; cdecl; external clib name 'versionsort';
+function versionsort64(const e1: Pointer; const e2: Pointer): Integer; cdecl; external clib name 'versionsort64';
+
+
 { ---------------------------------------------------------------------
     Borland compatibility types
   ---------------------------------------------------------------------}

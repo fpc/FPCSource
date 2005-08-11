@@ -1,3 +1,6 @@
+const
+  __SI_MAX_SIZE = 128;
+  __SI_PAD_SIZE = (__SI_MAX_SIZE div sizeof (Integer)) - 3;
 
 type
 
@@ -10,9 +13,40 @@ type
    sigval_t = sigval;
    Psigval_t = ^sigval_t;
 
-const
-  __SI_MAX_SIZE = 128;
-  __SI_PAD_SIZE = (__SI_MAX_SIZE div sizeof (Integer)) - 3;
+
+  // Borland compatibility types moved here, needed for siginfo
+  _si_sigchld = record
+     si_pid: __pid_t;
+     si_uid: __uid_t;
+     si_status: Integer;
+     si_utime: __clock_t;
+     si_stime: __clock_t;
+  end;
+                        
+  _si_kill =  record
+    si_pid: __pid_t;
+    si_uid: __uid_t;
+  end;
+  _si_pad = packed array[0..__SI_PAD_SIZE-1] of Integer;
+  _si_sigfault = record
+    si_addr: Pointer; 
+  end;
+  _si_sigpoll = record
+    si_band: Longint; 
+    si_fd: Integer;
+  end;
+  _si_timer = record
+    _timer1: Cardinal;
+    _timer2: Cardinal;
+  end;
+  _si_rt =  record
+    si_pid: __pid_t;
+    si_uid: __uid_t;
+    si_sigval: sigval_t;
+  end;
+
+
+
 
 type
 
@@ -21,37 +55,14 @@ type
         si_signo : longint;
         si_errno : longint;
         si_code : longint;
-        _sifields : record
-            case longint of
-               0 : ( _pad : array[0..(__SI_PAD_SIZE)-1] of longint );
-               1 : ( _kill : record
-                    si_pid : __pid_t;
-                    si_uid : __uid_t;
-                 end );
-               2 : ( _timer : record
-                    _timer1 : dword;
-                    _timer2 : dword;
-                 end );
-               3 : ( _rt : record
-                    si_pid : __pid_t;
-                    si_uid : __uid_t;
-                    si_sigval : sigval_t;
-                 end );
-               4 : ( _sigchld : record
-                    si_pid : __pid_t;
-                    si_uid : __uid_t;
-                    si_status : longint;
-                    si_utime : __clock_t;
-                    si_stime : __clock_t;
-                 end );
-               5 : ( _sigfault : record
-                    si_addr : pointer;
-                 end );
-               6 : ( _sigpoll : record
-                    si_band : longint;
-                    si_fd : longint;
-                 end );
-            end;
+        Case integer of 
+          0: (_pad: _si_pad);
+          1: (_kill: _si_kill);
+          2: (_timer: _si_timer);
+          3: (_rt: _si_rt);
+          4: (_sigchld: _si_sigchld);
+          5: (_sigfault: _si_sigfault);
+          6: (_sigpoll: _si_sigpoll);
      end;
    siginfo_t = siginfo;
    Psiginfo_t = ^siginfo_t;
@@ -123,8 +134,6 @@ type
     _attribute: Pointer;               { Really pthread_attr_t.  }
   end;
 
-
-
   Psigevent = ^sigevent;
   sigevent = record
   sigev_value : sigval_t;
@@ -144,7 +153,6 @@ Const
   SIGEV_NONE = 1;
   SIGEV_THREAD = 2;
 
-
 { ---------------------------------------------------------------------
     Borland compatibility types
   ---------------------------------------------------------------------}
@@ -155,26 +163,5 @@ Type
   TSigInfo = siginfo;
 
   TSigEvent = sigevent;
-  _si_kill =  record
-    si_pid: __pid_t;
-    si_uid: __uid_t;
-  end;
-  _si_pad = packed array[0..__SI_PAD_SIZE-1] of Integer;
-  _si_sigfault = record
-    si_addr: Pointer; 
-  end;
-  _si_sigpoll = record
-    si_band: Longint; 
-    si_fd: Integer;
-  end;
-  _si_timer = record
-    _timer1: Cardinal;
-    _timer2: Cardinal;
-  end;
-  _si_rt =  record
-    si_pid: __pid_t;
-    si_uid: __uid_t;
-    si_sigval: sigval_t;
-  end;
+
                   
-            

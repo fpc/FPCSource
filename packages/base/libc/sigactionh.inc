@@ -38,5 +38,6 @@ Type
   PSigAction = ^TSigAction;
   TRestoreHandler = procedure; cdecl;
    __sigaction = _sigaction;
-
+  TSigActionHandler = procedure(Signal: Integer); cdecl; 
+    
 

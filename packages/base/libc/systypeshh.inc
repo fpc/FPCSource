@@ -50,3 +50,5 @@ Type
   blkcnt64_t = __blkcnt64_t;
   fsblkcnt64_t = __fsblkcnt64_t;
   fsfilcnt64_t = __fsfilcnt64_t;
+  u_int64_t = QWord;
+    

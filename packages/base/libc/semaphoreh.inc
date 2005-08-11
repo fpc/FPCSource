@@ -37,6 +37,9 @@ Type
      spinlock: Integer;
    end;
 
+  TPCharArray = System.TPCharArray;
+  PPCharArray = System.PPCharArray;
+
 function sem_init(var __sem: sem_t; __pshared:longint; __value:dword):longint;cdecl;external threadslib name 'sem_init';
 function sem_destroy(var __sem: sem_t):longint;cdecl;external threadslib name 'sem_destroy';
 function sem_close(var __sem: sem_t):longint;cdecl;external threadslib name 'sem_close';
@@ -46,4 +49,4 @@ function sem_trywait(var __sem: sem_t):longint;cdecl;external threadslib name 's
 function sem_post(var __sem: sem_t):longint;cdecl;external threadslib name 'sem_post';
 function sem_getvalue(var __sem: sem_t; __sval:Plongint):longint;cdecl;external threadslib name 'sem_getvalue';
 
-
+      

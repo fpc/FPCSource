@@ -27,6 +27,8 @@ Const
   PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP = 2;
   PTHREAD_RWLOCK_DEFAULT_NP = PTHREAD_RWLOCK_PREFER_WRITER_NP;
 
+  PTHREAD_ONCE_INIT = 0;
+      
 type
   TPThreadCleanupRoutine = procedure(Arg: Pointer); cdecl;
 
@@ -49,12 +51,20 @@ Const
   PTHREAD_CANCELED = Pointer(-1);
   PTHREAD_BARRIER_SERIAL_THREAD = -1;
 
+  NONRECURSIVE  = 0;
+  RECURSIVE     = 1;
+  
+  
+      
+
   // procedural types used in parameters to pthread functions
 Type
   TStartRoutine = function (_para1:pointer): integer; cdecl;// pthread_create
   TKeyValueDestructor = procedure(ValueInKey: Pointer); cdecl;
   TInitOnceProc = Procedure;cdecl;
   TForkHandler = procedure; cdecl;
+  
+  
 
 procedure __pthread_initialize;cdecl;external threadslib name '__pthread_initialize';
 function pthread_create(__thread:Ppthread_t; __attr:Ppthread_attr_t; __start_routine:TStartRoutine; __arg:pointer):longint;cdecl;external threadslib name 'pthread_create';
@@ -242,3 +252,10 @@ procedure _pthread_cleanup_push(var __buffer: _pthread_cleanup_buffer; __routine
 procedure _pthread_cleanup_pop(var __buffer:_pthread_cleanup_buffer; __execute:longint);cdecl; external threadslib;
 function pthread_sigmask(__how:longint; var __newmask:__sigset_t; var __oldmask:__sigset_t):longint;cdecl; external threadslib;
 
+{ Borland compatibility }
+
+function GetCurrentThreadID: TTHreadID ; cdecl; external threadslib name 'pthread_self';
+
+Type
+  TPThreadFunc = function(Parameter: Pointer): Integer; cdecl;
+  PPthreadCleanupBuffer = ^_pthread_cleanup_buffer;

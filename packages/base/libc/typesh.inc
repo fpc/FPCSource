@@ -76,6 +76,12 @@ type
   __intptr_t = longint;
   __socklen_t = dword;
   TFileDescriptor = integer;
+
+Const
+  stdin   = 0;
+  stdout  = 1;
+  stderr  = 2;
+           
   
 { ---------------------------------------------------------------------
     'h2pas -S -c -D -l libc -i' from sys/types.h

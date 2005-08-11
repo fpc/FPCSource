@@ -249,3 +249,8 @@ type
 function SA_LEN(const buf): Cardinal; // Untyped buffer; this is *unsafe*.
 function __libc_sa_len(__af: sa_family_t): Integer; cdecl;external clib name '__libc_sa_len';
 
+{ Borland compatibility }
+
+Type
+  PSocketLength = ^socklen_t;
+  
