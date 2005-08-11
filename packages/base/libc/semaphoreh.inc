@@ -6,6 +6,7 @@ type
         __sem_value : longint;
         __sem_waiting : _pthread_descr;
      end;
+              
 
 Const
   SEM_FAILED    = Psem_t(nil);
@@ -31,6 +32,14 @@ Type
   TSemaphore = sem_t;
   PSemaphore = ^TSemaphore;
 
+   __sem_lock_t = record { Not in header file - anonymous , should equal _pthread_fastlock} 
+     status: Longint;
+     spinlock: Integer;
+   end;
+
+  TPCharArray = System.TPCharArray;
+  PPCharArray = System.PPCharArray;
+
 function sem_init(var __sem: sem_t; __pshared:longint; __value:dword):longint;cdecl;external threadslib name 'sem_init';
 function sem_destroy(var __sem: sem_t):longint;cdecl;external threadslib name 'sem_destroy';
 function sem_close(var __sem: sem_t):longint;cdecl;external threadslib name 'sem_close';
@@ -40,4 +49,4 @@ function sem_trywait(var __sem: sem_t):longint;cdecl;external threadslib name 's
 function sem_post(var __sem: sem_t):longint;cdecl;external threadslib name 'sem_post';
 function sem_getvalue(var __sem: sem_t; __sval:Plongint):longint;cdecl;external threadslib name 'sem_getvalue';
 
-
+      

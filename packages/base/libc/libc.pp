@@ -224,7 +224,8 @@ Implementation
 
 uses kernelioctl;
 
-{$i cerrno.inc}        // errno.h asm/errno.h bits/errno.h macros.
+{$i types.inc}         // types.h macros.
+{$i cerrno.inc}       // errno.h asm/errno.h bits/errno.h macros.
 {$i time.inc}         // bits/time.h macros.
 {$i stime.inc}        // sys/time.h macros.
 {$i dirent.inc}       // dirent.h macros.

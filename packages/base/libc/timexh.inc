@@ -28,18 +28,18 @@ type
         calcnt : longint;
         errcnt : longint;
         stbcnt : longint;
-        a32 : longint;
-        b32 : longint;
-        c32 : longint;
-        d32 : longint;
-        e32 : longint;
-        f32 : longint;
-        g32 : longint;
-        h32 : longint;
-        i32 : longint;
-        j32 : longint;
-        k32 : longint;
-        l32 : longint;
+        bitfield11 : longint;
+        bitfield12 : longint;
+        bitfield13 : longint;
+        bitfield14 : longint;
+        bitfield21 : longint;
+        bitfield22 : longint;
+        bitfield23 : longint;
+        bitfield24 : longint;
+        bitfield31 : longint;
+        bitfield32 : longint;
+        bitfield33 : longint;
+        bitfield34 : longint;
      end;
 
 

@@ -1337,6 +1337,7 @@ packages/base/libc/timeh.inc svneol=native#text/plain
 packages/base/libc/timesh.inc svneol=native#text/plain
 packages/base/libc/timexh.inc svneol=native#text/plain
 packages/base/libc/ttyenth.inc svneol=native#text/plain
+packages/base/libc/types.inc svneol=native#text/plain
 packages/base/libc/typesh.inc svneol=native#text/plain
 packages/base/libc/ucontexth.inc svneol=native#text/plain
 packages/base/libc/ulimith.inc svneol=native#text/plain
