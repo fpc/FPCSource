@@ -131,6 +131,7 @@ resourcestring
   SNeedPackageName            = 'No package name specified. Please specify one using the --package option.';
   SDone                       = 'Done.';
   SErrCouldNotCreateOutputDir = 'Could not create output directory "%s"';
+  SErrCouldNotCreateFile      = 'Could not create file "%s": %s';
 
 Const
   SVisibility: array[TPasMemberVisibility] of string =

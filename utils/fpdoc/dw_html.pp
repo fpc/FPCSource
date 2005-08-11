@@ -302,6 +302,7 @@ end;
 function TLongNameFileAllocator.GetFilename(AElement: TPasElement;
   ASubindex: Integer): String;
 var
+  s: String;
   i: Integer;
 begin
   if AElement.ClassType = TPasPackage then
@@ -309,20 +310,68 @@ begin
   else if AElement.ClassType = TPasModule then
     Result := LowerCase(AElement.Name) + PathDelim + 'index'
   else
+  begin
+    if AElement is TPasOperator then
     begin
-    Result := LowerCase(AElement.PathName);
-    i := 1;
-    if (Length(Result)>0) and (Result[1]='#') then
+      Result := LowerCase(AElement.Parent.PathName) + '.op-';
+      s := Copy(AElement.Name, Pos(' ', AElement.Name) + 1, Length(AElement.Name));
+      s := Copy(s, 1, Pos('(', s) - 1);
+      if s = ':=' then
+        s := 'assign'
+      else if s = '+' then
+        s := 'add'
+      else if s = '-' then
+        s := 'sub'
+      else if s = '*' then
+        s := 'mul'
+      else if s = '/' then
+        s := 'div'
+      else if s = '**' then
+        s := 'power'
+      else if s = '=' then
+        s := 'equal'
+      else if s = '<>' then
+        s := 'unequal'
+      else if s = '<' then
+        s := 'less'
+      else if s = '<=' then
+        s := 'lessequal'
+      else if s = '>' then
+        s := 'greater'
+      else if s = '>=' then
+        s := 'greaterthan';
+      Result := Result + s + '-';
+      s := '';
+      i := 1;
+      while AElement.Name[i] <> '(' do
+        Inc(i);
+      Inc(i);
+      while AElement.Name[i] <> ')' do
       begin
+        if AElement.Name[i] = ',' then
+	begin
+	  s := s + '-';
+	  Inc(i);
+	end else
+	  s := s + AElement.Name[i];
+        Inc(i);
+      end;
+      Result := Result + LowerCase(s) + '-' + LowerCase(Copy(AElement.Name,
+        Pos('):', AElement.Name) + 3, Length(AElement.Name)));
+    end else
+      Result := LowerCase(AElement.PathName);
+    i := 1;
+    if (Length(Result) > 0) and (Result[1] = '#') then
+    begin
       while Result[i] <> '.' do
         Inc(i);
-      Result:=Copy(Result,i+1,Length(Result));
-      end;
+      Result := Copy(Result, i + 1, Length(Result));
+    end;
     i := 1;
-    while (I<=Length(Result)) and (Result[i]<>'.') do
+    while (i <= Length(Result)) and (Result[i] <> '.') do
       Inc(i);
-    If (I<=Length(Result)) and (I>0) then
-      Result[i]:= PathDelim;
+    if (i <= Length(Result)) and (i > 0) then
+      Result[i] := PathDelim;
   end;
 
   if ASubindex > 0 then
@@ -610,8 +659,13 @@ begin
       PageDoc := CreateHTMLPage(Element, SubpageIndex);
       try
         Filename := Engine.Output + Allocator.GetFilename(Element, SubpageIndex);
-        CreatePath(Filename);
-        WriteHTMLFile(PageDoc, Filename);
+        try
+          CreatePath(Filename);
+          WriteHTMLFile(PageDoc, Filename);
+        except
+	  on E: Exception do
+            WriteLn(Format(SErrCouldNotCreateFile, [FileName, e.Message]));
+        end;
       finally
         PageDoc.Free;
       end;
