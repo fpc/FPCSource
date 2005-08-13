@@ -263,7 +263,7 @@ begin
       '6',
 {$endif}
 {$ifdef arm}
-      'S',
+      'A',
 {$endif}
 {$ifdef powerpc}
       'P',
