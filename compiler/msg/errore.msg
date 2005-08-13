@@ -2334,7 +2334,7 @@ S*2Aas_assemble using GNU AS
 6*2Tmacos_Macintosh m68k (not supported)
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
-A*2Tarm_Windows CE
+A*2Twince_Windows CE
 P*2Tdarwin_Darwin and MacOS X on PowerPC
 P*2Tlinux_Linux on PowerPC
 P*2Tmacos_MacOS (classic) on PowerPC
