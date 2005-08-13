@@ -292,6 +292,11 @@ interface
        { alias for supported_target field in tasminfo }
        system_any = system_none;
 
+       system_wince : set of tsystem = [system_arm_wince,system_i386_wince];
+       system_linux : set of tsystem = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,
+                                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
+                                        system_x86_6432_linux];
+
        cpu2str : array[TSystemCpu] of string =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm');
