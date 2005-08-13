@@ -1781,6 +1781,10 @@ begin
     end;
   option.firstpass:=false;
 
+{ target is set here, for wince the default app type is gui }
+  if target_info.system in system_wince then
+    apptype:=app_gui;
+
 { default defines }
   def_system_macro(target_info.shortname);
   def_system_macro('FPC');
