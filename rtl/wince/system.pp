@@ -301,17 +301,14 @@ var
 
 function GetCommandFile:pchar;
 var
-  buf: PWideChar;
+  buf: array[0..MaxPathLen] of WideChar;
 begin
   if ModuleName[0] = #0 then begin
-    GetMem(buf, SizeOf(ModuleName)*2);
-    GetModuleFileName(0,buf,SizeOf(ModuleName)*2);
+    GetModuleFileName(0, @buf, SizeOf(buf));
     WideToAnsiBuf(buf, -1, @ModuleName, SizeOf(ModuleName));
-    FreeMem(buf);
   end;
   GetCommandFile:=@ModuleName;
 end;
-
 
 procedure setup_arguments;
 var
@@ -546,13 +543,11 @@ begin
     This crashes Win95 at least PM }
   if IsLibrary then
     ExitDLL(ExitCode);
-  if not IsConsole then
-   begin
-     Close(stderr);
-     Close(stdout);
-     { what about Input and Output ?? PM }
-   end;
-
+  if not IsConsole then begin
+    Close(stderr);
+    Close(stdout);
+    { what about Input and Output ?? PM }
+  end;
   { call exitprocess, with cleanup as required }
   asm_exit(exitcode);
 end;
@@ -704,11 +699,7 @@ const
   STATUS_FLOAT_MULTIPLE_FAULTS            = $C00002B4;
   STATUS_FLOAT_MULTIPLE_TRAPS             = $C00002B5;
   STATUS_REG_NAT_CONSUMPTION              = $C00002C9;
-{
-  EXCEPTION_EXECUTE_HANDLER               = 1;
-  EXCEPTION_CONTINUE_EXECUTION    = -1;
-  EXCEPTION_CONTINUE_SEARCH               = 0;
-}
+
 const
   ExceptionContinueExecution = 0;
   ExceptionContinueSearch = 1;
@@ -1334,16 +1325,31 @@ begin
   Rewrite(T);
 end;
 
+function _getstdfilex(fd: integer): pointer; cdecl; external 'coredll';
+function _fileno(fd: pointer): THandle; cdecl; external 'coredll';
 
 procedure SysInitStdIO;
 begin
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
     displayed in and messagebox }
-  AssignError(stderr);
-  AssignError(stdout);
-  Assign(Output,'');
-  Assign(Input,'');
-  Assign(ErrOutput,'');
+  StdInputHandle:=_fileno(_getstdfilex(0));
+  StdOutputHandle:=_fileno(_getstdfilex(1));
+  StdErrorHandle:=_fileno(_getstdfilex(3));
+  
+  if not IsConsole then begin
+    AssignError(stderr);
+    AssignError(stdout);
+    Assign(Output,'');
+    Assign(Input,'');
+    Assign(ErrOutput,'');
+  end
+  else begin
+    OpenStdIO(Input,fmInput,StdInputHandle);
+    OpenStdIO(Output,fmOutput,StdOutputHandle);
+    OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+    OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+    OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  end;
 end;
 
 (* ProcessID cached to avoid repeated calls to GetCurrentProcess. *)
@@ -1371,7 +1377,7 @@ const
 begin
   StackLength := InitialStkLen;
   StackBottom := Sptr - StackLength;
-  { some misc Win32 stuff }
+  { some misc stuff }
   hprevinst:=0;
   if not IsLibrary then
     GetLibraryInstance;

@@ -1037,8 +1037,12 @@ begin
   AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
    RelocStr:='--base-file base.$$$';
-  if target_info.system in [system_arm_wince,system_i386_wince] then
-   AppTypeStr:='--subsystem wince'
+  if target_info.system in [system_arm_wince,system_i386_wince] then 
+    begin
+      AppTypeStr:='--subsystem wince';
+      if apptype <> app_gui then
+        AppTypeStr:=AppTypeStr + ' --entry=mainCRTStartup';
+    end
   else
     if apptype=app_gui then
      AppTypeStr:='--subsystem windows';
