@@ -888,6 +888,7 @@ const msgtxt : array[0..000161,1..240] of char=(
   '3*2Twatcom_Watcom compatible DOS extender'#010+
   '3*2Twdosx_WDOSX DOS extender'#010+
   '3*2Twin32_Windows 32 Bi','t'#010+
+  '3*2Twince_Windows CE'#010+
   '4*2Tlinux_Linux'#010+
   '6*2Tamiga_Commodore Amiga'#010+
   '6*2Tatari_Atari ST/STe/TT'#010+
@@ -895,52 +896,53 @@ const msgtxt : array[0..000161,1..240] of char=(
   '6*2Tmacos_Macintosh m68k (not supported)'#010+
   '6*2Tpalmos_PalmOS'#010+
   'A*2Tlinux_Linux'#010+
-  'P*2Tdarwin_Darwin and MacOS X on PowerPC'#010+
+  'A*2Tarm_Windows CE'#010+
+  'P*2Tdarwin_Darwin and MacOS X on Po','werPC'#010+
   'P*2Tlinux_Linux on PowerPC'#010+
-  'P*2Tmac','os_MacOS (classic) on PowerPC'#010+
+  'P*2Tmacos_MacOS (classic) on PowerPC'#010+
   'P*2Tmorphos_MorphOS'#010+
   'S*2Tlinux_Linux'#010+
   '**1u<x>_undefines the symbol <x>'#010+
   '**1U_unit options:'#010+
   '**2Un_don'#039't check the unit name'#010+
   '**2Ur_generate release unit files'#010+
-  '**2Us_compile a system unit'#010+
-  '**1v<x>_Be verbose. <x> is a',' combination of the following letters:'#010+
+  '**2Us_compile a ','system unit'#010+
+  '**1v<x>_Be verbose. <x> is a combination of the following letters:'#010+
   '**2*_e : Show errors (default)       0 : Show nothing (except errors)'#010+
   '**2*_w : Show warnings               u : Show unit info'#010+
-  '**2*_n : Show notes                  t : Show tried/used files'#010+
-  '**2*_h : Sho','w hints                  c : Show conditionals'#010+
+  '**2*_n : Show notes                ','  t : Show tried/used files'#010+
+  '**2*_h : Show hints                  c : Show conditionals'#010+
   '**2*_i : Show general info           d : Show debug info'#010+
   '**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode'#010+
-  '**2*_a : Show everything             x : Executable info (Win32 on','ly'+
+  '**2*_a : Show everything  ','           x : Executable info (Win32 only'+
   ')'#010+
   '**2*_v : write fpcdebug.txt with     p : Write tree.log with parse tre'+
   'e'#010+
   '**2*_    lots of debugging info'#010+
   '3*1W<x>_Win32-like target options'#010+
   '3*2WB_Create a relocatable image'#010+
-  '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
-  '3*2WC_Specify co','nsole type application'#010+
+  '3*2WB<x>_Set Image base t','o Hexadecimal <x> value'#010+
+  '3*2WC_Specify console type application'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE'#010+
   '3*2WF_Specify full-screen type application (OS/2 only)'#010+
   '3*2WG_Specify graphic type application'#010+
-  '3*2WN_Do not generate relocation code (necessary for debugging)'#010+
-  '3*2WR_G','enerate relocation code'#010+
+  '3*2WN_Do not generate relocatio','n code (necessary for debugging)'#010+
+  '3*2WR_Generate relocation code'#010+
   'P*2WC_Specify console type application (MacOS only)'#010+
   'P*2WG_Specify graphic type application (MacOS only)'#010+
   'P*2WT_Specify tool type application (MPW tool, MacOS only)'#010+
-  '**1X_executable options:'#010+
-  '**2Xc_pass --shared to the l','inker (Unix only)'#010+
+  '**1X_executab','le options:'#010+
+  '**2Xc_pass --shared to the linker (Unix only)'#010+
   '**2Xd_don'#039't use standard library search path (needed for cross com'+
   'pile)'#010+
   '**2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)'#010+
   '**2Xm_generate link map'#010+
-  '**2XM<x>_set the name of the '#039'main'#039' program routine (defau','lt'+
+  '**2XM<x>_set the n','ame of the '#039'main'#039' program routine (default'+
   ' is '#039'main'#039')'#010+
   '**2XP<x>_prepend the binutils names with the prefix <x>'#010+
   '**2Xr<x>_set library search path to <x> (needed for cross compile)'#010+
   '**2Xs_strip all symbols from executable'#010+
-  '**2XS_try to link units static (default) (defines FPC_LINK_STAT','IC)'#010+
+  '**2XS_try to link units',' static (default) (defines FPC_LINK_STATIC)'#010+
   '**2Xt_link with static libraries (-static is passed to linker)'#010+
   '**2XX_try to link units smart            (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+

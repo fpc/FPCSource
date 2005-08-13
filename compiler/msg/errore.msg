@@ -2326,6 +2326,7 @@ S*2Aas_assemble using GNU AS
 3*2Twatcom_Watcom compatible DOS extender
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit
+3*2Twince_Windows CE
 4*2Tlinux_Linux
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
@@ -2333,6 +2334,7 @@ S*2Aas_assemble using GNU AS
 6*2Tmacos_Macintosh m68k (not supported)
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
+A*2Tarm_Windows CE
 P*2Tdarwin_Darwin and MacOS X on PowerPC
 P*2Tlinux_Linux on PowerPC
 P*2Tmacos_MacOS (classic) on PowerPC
