@@ -1382,7 +1382,14 @@ implementation
                         consume_all_until(_SEMICOLON);
                      end
                    else if islibrary or
-                           (target_info.system in [system_i386_WIN32,system_i386_wdosx,system_i386_Netware,system_i386_netwlibc,system_arm_wince]) then
+                     (target_info.system in [
+                     system_i386_win32,
+                     system_i386_wdosx,
+                     system_i386_Netware,
+                     system_i386_netwlibc,
+                     system_arm_wince,
+                     system_x86_64_win64,
+                     system_ia64_win64]+system_linux) then
                      read_exports
                    else
                      begin

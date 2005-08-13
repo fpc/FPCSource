@@ -203,7 +203,7 @@ procedure TLinkerLinux.SetDefaultInfo;
 }
 
 const
-{$ifdef i386}   platform_select='-b elf32-i386 -m elf_i386';{$endif} 
+{$ifdef i386}   platform_select='-b elf32-i386 -m elf_i386';{$endif}
 {$ifdef x86_64} platform_select='-b elf64-x86-64 -m elf_x86_64';{$endif}
 {$ifdef powerpc}platform_select='-b elf32-powerpc -m elf32ppclinux';{$endif}
 {$ifdef sparc}  platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
@@ -627,6 +627,8 @@ begin
 { Strip the library ? }
   if success and (cs_link_strip in aktglobalswitches) then
    begin
+     { only remove non global symbols and debugging info for a library }
+     Info.DllCmd[2]:='strip --discard-all --strip-debug $EXE';
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
