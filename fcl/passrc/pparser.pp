@@ -36,6 +36,7 @@ resourcestring
   SParserExpectedColonSemicolon = 'Expected ":" or ";"';
   SParserExpectedSemiColonEnd = 'Expected ";" or "End"';
   SParserExpectedConstVarID = 'Expected "const", "var" or identifier';
+  SParserExpectedColonID = 'Expected ":" or identifier';
   SParserSyntaxError = 'Syntax error';
   SParserTypeSyntaxError = 'Syntax error in type';
   SParserArrayTypeSyntaxError = 'Syntax error in array type';
@@ -85,7 +86,7 @@ uses Classes, PScanner;
 
 type
 
-  TDeclType = (declNone, declConst, declResourcestring, declType, declVar);
+  TDeclType = (declNone, declConst, declResourcestring, declType, declVar, declThreadvar);
 
   TProcType = (ptProcedure, ptFunction, ptOperator);
 
@@ -690,6 +691,8 @@ begin
         CurBlock := declType;
       tkVar:
         CurBlock := declVar;
+      tkThreadVar:
+        CurBlock := declThreadVar;
       tkProcedure:
         begin
           AddProcOrFunction(Section, ParseProcedureOrFunctionDecl(Section, ptProcedure));
@@ -757,7 +760,7 @@ begin
                     Section.Types.Add(TypeEl);
                 end;
               end;
-            declVar:
+            declVar, declThreadVar:
               begin
                 List := TList.Create;
                 try
@@ -1343,9 +1346,15 @@ begin
     ptOperator:
       begin
 	ParseArgList(Element, Element.Args, tkBraceClose);
-	TPasFunctionType(Element).ResultEl.Name := ExpectIdentifier;
-	if CurToken <> tkColon then
-	  ParseExc(SParserExpectedLBracketColon);
+        NextToken;
+        if (CurToken=tkIdentifier) then begin
+	  TPasFunctionType(Element).ResultEl.Name := CurTokenName;
+          ExpectToken(tkColon);
+        end
+        else if (CurToken=tkColon) then
+          TPasFunctionType(Element).ResultEl.Name := 'Result'
+        else
+          ParseExc(SParserExpectedColonID);
 	if Assigned(Element) then        // !!!
 	  TPasFunctionType(Element).ResultEl.ResultType := ParseType(Parent)
 	else
@@ -1362,7 +1371,8 @@ begin
     UngetToken;
 
   NextToken;
-  if CurToken = tkEqual then begin
+  if CurToken = tkEqual then
+  begin
     // for example: const p: procedure = nil;
     UngetToken;
     exit;
@@ -1382,15 +1392,29 @@ begin
     begin
 {      El['calling-conv'] := 'stdcall';}
       ExpectToken(tkSemicolon);
+    end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'COMPILERPROC') then
+    begin
+{      El['calling-conv'] := 'compilerproc';}
+      ExpectToken(tkSemicolon);
+    end else if (CurToken = tkInline) then
+    begin
+{      TPasProcedure(Parent).IsInline := True;}
+      ExpectToken(tkSemicolon);
     end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'DEPRECATED') then
     begin
-{      El['calling-conv'] := 'cdecl';}
+{      El['calling-conv'] := 'deprecated';}
       ExpectToken(tkSemicolon);
     end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'EXTERNAL') then
     begin
       repeat
         NextToken
       until CurToken = tkSemicolon;
+    end else if (CurToken = tkSquaredBraceOpen) then
+    begin
+      repeat
+        NextToken
+      until CurToken = tkSquaredBraceClose;
+      ExpectToken(tkSemicolon);
     end else if Parent.InheritsFrom(TPasProcedure) and
       (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'OVERLOAD') then
     begin
@@ -1529,6 +1553,7 @@ function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
   ProcType: TProcType): TPasProcedure;
 var
   Name: String;
+  i: Integer;
 begin
   case ProcType of
     ptFunction:
@@ -1547,7 +1572,8 @@ begin
       end;
     ptOperator:
       begin
-        Name := TokenInfos[CurToken];
+        NextToken;
+        Name := 'operator ' + TokenInfos[CurToken];
 	Result := TPasOperator(CreateElement(TPasOperator, Name, Parent));
 	Result.ProcType := Engine.CreateFunctionType('', '__INVALID__', Result,
 	  True, Scanner.CurFilename, Scanner.CurRow);
@@ -1555,6 +1581,20 @@ begin
   end;
 
   ParseProcedureOrFunctionHeader(Result, Result.ProcType, ProcType, False);
+
+  if ProcType = ptOperator then
+  begin
+    Result.Name := Result.Name + '(';
+    for i := 0 to Result.ProcType.Args.Count - 1 do
+    begin
+      if i > 0 then
+        Result.Name := Result.Name + ', ';
+      Result.Name := Result.Name +
+        TPasArgument(Result.ProcType.Args[i]).ArgType.Name;
+    end;
+    Result.Name := Result.Name + '): ' +
+      TPasFunctionType(Result.ProcType).ResultEl.ResultType.Name;
+  end;
 end;
 
 
@@ -1621,9 +1661,10 @@ begin
 	  Variant.Members.Free;
 	  raise;
 	end;
-	ExpectToken(tkSemicolon);
 	NextToken;
-	if CurToken = tkEnd then
+	if CurToken = tkSemicolon then
+	  NextToken;
+	if (CurToken = tkEnd) or (CurToken = tkBraceClose) then
 	  break
 	else
 	  UngetToken;
@@ -1792,10 +1833,6 @@ begin
                 VarList := TList.Create;
                 try
                   ParseInlineVarDecl(Result, VarList, CurVisibility, False);
-	          NextToken;
-	          // Records may be terminated with end, no semicolon
-		  if (CurToken <> tkEnd) and (CurToken <> tkSemicolon) then
-		    ParseExc(SParserExpectedSemiColonEnd);
                   for i := 0 to VarList.Count - 1 do
                   begin
                     Element := TPasElement(VarList[i]);

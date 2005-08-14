@@ -61,6 +61,9 @@ type
     tkDotDot,           // '..'
     tkAssign,           // ':='
     tkNotEqual,         // '<>'
+    tkLessEqualThan,	// '<='
+    tkGreaterEqualThan,	// '>='
+    tkPower,            // '**'
     // Reserved words
     tkabsolute,
     tkand,
@@ -118,6 +121,7 @@ type
     tkshr,
 //    tkstring,
     tkthen,
+    tkthreadvar,
     tkto,
     tktrue,
     tktry,
@@ -238,6 +242,9 @@ const
     '..',
     ':=',
     '<>',
+    '<=',
+    '>=',
+    '**',
     // Reserved words
     'absolute',
     'and',
@@ -295,6 +302,7 @@ const
     'shr',
 //    'string',
     'then',
+    'threadvar',
     'to',
     'true',
     'try',
@@ -643,7 +651,12 @@ begin
     '*':
       begin
         Inc(TokenStr);
-        Result := tkMul;
+        if TokenStr[0] = '*' then
+        begin
+          Inc(TokenStr);
+          Result := tkPower;
+        end else
+          Result := tkMul;
       end;
     '+':
       begin
@@ -749,7 +762,11 @@ begin
         begin
           Inc(TokenStr);
           Result := tkNotEqual;
-        end else
+        end else if TokenStr[0] = '=' then
+	begin
+	  Inc(TokenStr);
+	  Result := tkLessEqualThan;
+	end else
           Result := tkLessThan;
       end;
     '=':
@@ -760,7 +777,12 @@ begin
     '>':
       begin
         Inc(TokenStr);
-        Result := tkGreaterThan;
+	if TokenStr[0] = '=' then
+	begin
+	  Inc(TokenStr);
+	  Result := tkGreaterEqualThan;
+	end else
+	  Result := tkGreaterThan;
       end;
     '@':
       begin
