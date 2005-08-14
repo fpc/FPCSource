@@ -36,6 +36,7 @@ resourcestring
   SParserExpectedColonSemicolon = 'Expected ":" or ";"';
   SParserExpectedSemiColonEnd = 'Expected ";" or "End"';
   SParserExpectedConstVarID = 'Expected "const", "var" or identifier';
+  SParserExpectedColonID = 'Expected ":" or identifier';
   SParserSyntaxError = 'Syntax error';
   SParserTypeSyntaxError = 'Syntax error in type';
   SParserArrayTypeSyntaxError = 'Syntax error in array type';
@@ -1370,8 +1371,15 @@ begin
     ptOperator:
       begin
 	ParseArgList(Element, Element.Args, tkBraceClose);
-	TPasFunctionType(Element).ResultEl.Name := ExpectIdentifier;
-        ExpectToken(tkColon);
+        NextToken;
+        if (CurToken=tkIdentifier) then begin
+	  TPasFunctionType(Element).ResultEl.Name := CurTokenName;
+          ExpectToken(tkColon);
+        end
+        else if (CurToken=tkColon) then
+          TPasFunctionType(Element).ResultEl.Name := 'Result'
+        else
+          ParseExc(SParserExpectedColonID);
 	if Assigned(Element) then        // !!!
 	  TPasFunctionType(Element).ResultEl.ResultType := ParseType(Parent)
 	else
@@ -1409,13 +1417,17 @@ begin
     begin
 {      El['calling-conv'] := 'stdcall';}
       ExpectToken(tkSemicolon);
+    end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'COMPILERPROC') then
+    begin
+{      El['calling-conv'] := 'compilerproc';}
+      ExpectToken(tkSemicolon);
     end else if (CurToken = tkInline) then
     begin
 {      TPasProcedure(Parent).IsInline := True;}
       ExpectToken(tkSemicolon);
     end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'DEPRECATED') then
     begin
-{      El['calling-conv'] := 'cdecl';}
+{      El['calling-conv'] := 'deprecated';}
       ExpectToken(tkSemicolon);
     end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'EXTERNAL') then
     begin
