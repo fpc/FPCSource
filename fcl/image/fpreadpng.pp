@@ -1,4 +1,5 @@
 {
+    $Id: fpreadpng.pp,v 1.10 2003/10/19 21:09:51 luk Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
@@ -518,7 +519,7 @@ end;
 function TFPReaderPNG.ColorGrayAlpha16 (CD:TColorData) : TFPColor;
 var c : word;
 begin
-  c := (CD and qword($FFFF0000)) shr 16;
+  c := (CD shr 16) and $FFFF;
   with result do
     begin
     red := c;
@@ -535,56 +536,59 @@ begin
     begin
     c := CD and $FF;
     red := c + (c shl 8);
-    c := CD and $FF00;
-    green := c + (c shr 8);
-    c := (CD and $FF0000) shr 8;
-    blue := c + (c shr 8);
+    CD:=CD shr 8;
+    c := CD and $FF;
+    green := c + (c shl 8);
+    CD:=CD shr 8;
+    c := CD and $FF;
+    blue := c + (c shl 8);
     alpha := alphaOpaque;
     end;
 end;
 
 function TFPReaderPNG.ColorColor16 (CD:TColorData) : TFPColor;
-var c : qword;
 begin
   with result do
     begin
     red := CD and $FFFF;
-    c := qword($FFFF0000);
-    green := (CD and c) shr 16;
-    c := c shl 16;
-    blue := (CD and c) shr 32;
+    CD:=CD shr 16;
+    green := CD and $FFFF;
+    CD:=CD shr 16;
+    blue := CD and $FFFF;
     alpha := alphaOpaque;
     end;
 end;
 
 function TFPReaderPNG.ColorColorAlpha8 (CD:TColorData) : TFPColor;
-var c : qword;
+var c : word;
 begin
   with result do
     begin
     c := CD and $FF;
     red := c + (c shl 8);
-    c := CD and $FF00;
-    green := c + (c shr 8);
-    c := (CD and $FF0000) shr 8;
-    blue := c + (c shr 8);
-    c := (CD and qword($FF000000)) shr 16;
-    alpha := c + (c shr 8);
+    CD:=CD shr 8;
+    c := CD and $FF;
+    green := c + (c shl 8);
+    CD:=CD shr 8;
+    c := CD and $FF;
+    blue := c + (c shl 8);
+    CD:=CD shr 8;
+    c := CD and $FF;
+    alpha := c + (c shl 8);
     end;
 end;
 
 function TFPReaderPNG.ColorColorAlpha16 (CD:TColorData) : TFPColor;
-var c : qword;
 begin
   with result do
     begin
     red := CD and $FFFF;
-    c := qword($FFFF0000);
-    green := (CD and c) shr 16;
-    c := c shl 16;
-    blue := (CD and c) shr 32;
-    c := c shl 16;
-    alpha := (CD and c) shr 48;
+    CD:=CD shr 16;
+    green := CD and $FFFF;
+    CD:=CD shr 16;
+    blue := CD and $FFFF;
+    CD:=CD shr 16;
+    alpha := CD and $FFFF;
     end;
 end;
 
@@ -830,3 +834,4 @@ end;
 initialization
   ImageHandlers.RegisterImageReader ('Portable Network Graphics', 'png', TFPReaderPNG);
 end.
+
