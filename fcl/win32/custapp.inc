@@ -13,8 +13,8 @@
 
  **********************************************************************}
 
-function GetEnvironmentStrings : pchar; external 'kernel32' name 'GetEnvironmentStringsA';
-function FreeEnvironmentStrings(p : pchar) : longbool; external 'kernel32' name 'FreeEnvironmentStringsA';
+function GetEnvironmentStrings : pchar; stdcall; external 'kernel32' name 'GetEnvironmentStringsA';
+function FreeEnvironmentStrings(p : pchar) : longbool; stdcall; external 'kernel32' name 'FreeEnvironmentStringsA';
 
 Procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
 
