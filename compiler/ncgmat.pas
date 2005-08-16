@@ -219,8 +219,8 @@ implementation
         secondpass(left);
         { load left operator in a register }
         location_copy(location,left.location);
-        location_force_reg(exprasmlist,location,OS_INT,false);
-        cg.a_op_reg_reg(exprasmlist,OP_NEG,OS_INT,location.register,location.register);
+        location_force_reg(exprasmlist,location,OS_SINT,false);
+        cg.a_op_reg_reg(exprasmlist,OP_NEG,OS_SINT,location.register,location.register);
       end;
 
 
