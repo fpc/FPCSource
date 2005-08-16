@@ -15,12 +15,6 @@ uses
 {$EndIf}
 
 type
-  TAccessMode = (amReadWrite, amReadOnly);
-  TIsolationLevel = (ilConcurrent, ilConsistent, ilReadCommittedRecV,
-    ilReadCommitted);
-  TLockResolution = (lrWait, lrNoWait);
-  TTableReservation = (trNone, trSharedLockRead, trSharedLockWrite,
-    trProtectedLockRead, trProtectedLockWrite);
 
   TIBCursor = Class(TSQLCursor)
     protected
@@ -38,10 +32,6 @@ type
     TransactionHandle   : pointer;
     TPB                 : string;                // Transaction parameter buffer
     Status              : array [0..19] of ISC_STATUS;
-    AccessMode          : TAccessMode;
-    IsolationLevel      : TIsolationLevel;
-    LockResolution      : TLockResolution;
-    TableReservation    : TTableReservation;
   end;
 
   TIBConnection = class (TSQLConnection)
@@ -54,7 +44,6 @@ type
     procedure AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
     procedure TranslateFldType(SQLType, SQLLen, SQLScale : integer; var LensSet : boolean;
       var TrType : TFieldType; var TrLen : word);
-    procedure SetTPB(trans : TIBtrans);
     // conversion methods
     procedure GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
     procedure GetFloat(CurrBuff, Buffer : pointer; Field : TFieldDef);
@@ -80,7 +69,7 @@ type
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
-    function StartdbTransaction(trans : TSQLHandle) : boolean; override;
+    function StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
@@ -135,43 +124,6 @@ begin
   end;
 end;
 
-procedure TIBConnection.SetTPB(trans : TIBtrans);
-begin
-  with trans do
-    begin
-    TPB := chr(isc_tpb_version3);
-
-    case AccessMode of
-      amReadWrite : TPB := TPB + chr(isc_tpb_write);
-      amReadOnly  : TPB := TPB + chr(isc_tpb_read);
-    end;
-
-    case IsolationLevel of
-      ilConsistent        : TPB := TPB + chr(isc_tpb_consistency);
-      ilConcurrent        : TPB := TPB + chr(isc_tpb_concurrency);
-      ilReadCommittedRecV : TPB := TPB + chr(isc_tpb_read_committed) +
-        chr(isc_tpb_rec_version);
-      ilReadCommitted     : TPB := TPB + chr(isc_tpb_read_committed) +
-        chr(isc_tpb_no_rec_version);
-    end;
-
-    case LockResolution of
-      lrWait   : TPB := TPB + chr(isc_tpb_wait);
-      lrNoWait : TPB := TPB + chr(isc_tpb_nowait);
-    end;
-
-    case TableReservation of
-      trSharedLockRead     : TPB := TPB + chr(isc_tpb_shared) +
-        chr(isc_tpb_lock_read);
-      trSharedLockWrite    : TPB := TPB + chr(isc_tpb_shared) +
-        chr(isc_tpb_lock_write);
-      trProtectedLockRead  : TPB := TPB + chr(isc_tpb_protected) +
-        chr(isc_tpb_lock_read);
-      trProtectedLockWrite : TPB := TPB + chr(isc_tpb_protected) +
-        chr(isc_tpb_lock_write);
-    end;
-    end;
-end;
 
 constructor TIBConnection.Create(AOwner : TComponent);
 
@@ -203,18 +155,49 @@ begin
   else result := true;
 end;
 
-function TIBConnection.StartDBTransaction(trans : TSQLHandle) : boolean;
+function TIBConnection.StartDBTransaction(trans : TSQLHandle;AParams : String) : boolean;
 var
   DBHandle : pointer;
   tr       : TIBTrans;
+  i        : integer;
+  s        : string;
 begin
   result := false;
 
   DBHandle := GetHandle;
   tr := trans as TIBtrans;
-  SetTPB(tr);
   with tr do
     begin
+    TPB := chr(isc_tpb_version3);
+
+    i := 1;
+    s := ExtractSubStr(AParams,i,stdWordDelims);
+    while s <> '' do
+      begin
+      if s='isc_tpb_write' then TPB := TPB + chr(isc_tpb_write)
+      else if s='isc_tpb_read' then TPB := TPB + chr(isc_tpb_read)
+      else if s='isc_tpb_consistency' then TPB := TPB + chr(isc_tpb_consistency)
+      else if s='isc_tpb_concurrency' then TPB := TPB + chr(isc_tpb_concurrency)
+      else if s='isc_tpb_read_committed' then TPB := TPB + chr(isc_tpb_read_committed)
+      else if s='isc_tpb_rec_version' then TPB := TPB + chr(isc_tpb_rec_version)
+      else if s='isc_tpb_no_rec_version' then TPB := TPB + chr(isc_tpb_no_rec_version)
+      else if s='isc_tpb_wait' then TPB := TPB + chr(isc_tpb_wait)
+      else if s='isc_tpb_nowait' then TPB := TPB + chr(isc_tpb_nowait)
+      else if s='isc_tpb_shared' then TPB := TPB + chr(isc_tpb_shared)
+      else if s='isc_tpb_protected' then TPB := TPB + chr(isc_tpb_protected)
+      else if s='isc_tpb_exclusive' then TPB := TPB + chr(isc_tpb_exclusive)
+      else if s='isc_tpb_lock_read' then TPB := TPB + chr(isc_tpb_lock_read)
+      else if s='isc_tpb_lock_write' then TPB := TPB + chr(isc_tpb_lock_write)
+      else if s='isc_tpb_verb_time' then TPB := TPB + chr(isc_tpb_verb_time)
+      else if s='isc_tpb_commit_time' then TPB := TPB + chr(isc_tpb_commit_time)
+      else if s='isc_tpb_ignore_limbo' then TPB := TPB + chr(isc_tpb_ignore_limbo)
+      else if s='isc_tpb_autocommit' then TPB := TPB + chr(isc_tpb_autocommit)
+      else if s='isc_tpb_restart_requests' then TPB := TPB + chr(isc_tpb_restart_requests)
+      else if s='isc_tpb_no_auto_undo' then TPB := TPB + chr(isc_tpb_no_auto_undo);
+      s := ExtractSubStr(AParams,i,stdWordDelims);
+
+      end;
+
     TransactionHandle := nil;
 
     if isc_start_transaction(@Status, @TransactionHandle, 1,

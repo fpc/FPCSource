@@ -13,29 +13,73 @@ interface
   Manual corrections made by Luiz Américo - 2005
 }
 
-    const
-      External_library='sqlite3'; {Setup as you need}
-
-    Type
-    PPPChar = ^PPChar;
-    Plongint  = ^longint;
-    Psqlite3  = Pointer;
-    PPSqlite3 = ^PSqlite3;
-    Psqlite3_context  = Pointer;
-    Psqlite3_stmt  = Pointer;
-    PPsqlite3_stmt = ^Psqlite3_stmt;
-    Psqlite3_value  = Pointer;
-    PPsqlite3_value  = ^Psqlite3_value;
-    
-{$IFDEF FPC}
 {$PACKRECORDS C}
-{$ENDIF}
+
+const
+  External_library='sqlite3';
+
+  SQLITE_INTEGER = 1;   
+  SQLITE_FLOAT = 2;   
+{ #define SQLITE_TEXT  3  // See below  }
+  SQLITE_BLOB = 4;   
+  SQLITE_NULL = 5;   
+  SQLITE_TEXT = 3;   
+  SQLITE3_TEXT = 3;   
+  SQLITE_UTF8 = 1;       
+  SQLITE_UTF16LE = 2;       
+  SQLITE_UTF16BE = 3;       
+{ Use native byte order  }
+  SQLITE_UTF16 = 4;       
+{ sqlite3_create_function only  }
+  SQLITE_ANY = 5;  
+   
+   //sqlite_exec return values
+  SQLITE_OK = 0;   
+  SQLITE_ERROR = 1;{ SQL error or missing database  }
+  SQLITE_INTERNAL = 2;{ An internal logic error in SQLite  }
+  SQLITE_PERM = 3;   { Access permission denied  }
+  SQLITE_ABORT = 4; { Callback routine requested an abort  }
+  SQLITE_BUSY = 5;  { The database file is locked  }
+  SQLITE_LOCKED = 6;{ A table in the database is locked  }
+  SQLITE_NOMEM = 7; { A malloc() failed  }
+  SQLITE_READONLY = 8;{ Attempt to write a readonly database  }
+  SQLITE_INTERRUPT = 9;{ Operation terminated by sqlite3_interrupt() }
+  SQLITE_IOERR = 10;   { Some kind of disk I/O error occurred  }
+  SQLITE_CORRUPT = 11;   { The database disk image is malformed  }
+  SQLITE_NOTFOUND = 12;   { (Internal Only) Table or record not found  }
+  SQLITE_FULL = 13;   { Insertion failed because database is full  }
+  SQLITE_CANTOPEN = 14;   { Unable to open the database file  }
+  SQLITE_PROTOCOL = 15;   { Database lock protocol error  }
+  SQLITE_EMPTY = 16;   { Database is empty  }
+  SQLITE_SCHEMA = 17;   { The database schema changed  }
+  SQLITE_TOOBIG = 18;   { Too much data for one row of a table  }
+  SQLITE_CONSTRAINT = 19;   { Abort due to contraint violation  }
+  SQLITE_MISMATCH = 20;   { Data type mismatch  }
+  SQLITE_MISUSE = 21;   { Library used incorrectly  }
+  SQLITE_NOLFS = 22;   { Uses OS features not supported on host  }
+  SQLITE_AUTH = 23;   { Authorization denied  }
+  SQLITE_FORMAT = 24;   { Auxiliary database format error  }
+  SQLITE_RANGE = 25;   { 2nd parameter to sqlite3_bind out of range  }
+  SQLITE_NOTADB = 26;   { File opened that is not a database file  }
+  SQLITE_ROW = 100;   { sqlite3_step() has another row ready  }
+  SQLITE_DONE = 101;   { sqlite3_step() has finished executing  }
+
+type
+  sqlite_int64 = int64;
+  sqlite_uint64 = qword;
+  PPPChar = ^PPChar;
+  Psqlite3  = Pointer;
+  PPSqlite3 = ^PSqlite3;
+  Psqlite3_context  = Pointer;
+  Psqlite3_stmt  = Pointer;
+  PPsqlite3_stmt = ^Psqlite3_stmt;
+  Psqlite3_value  = Pointer;
+  PPsqlite3_value  = ^Psqlite3_value;
 
 //Callback function types
 //Notice that most functions were named using as prefix the function name that uses them,
 //rather than describing their functions  
 
-type
   sqlite3_callback = function (_para1:pointer; _para2:longint; _para3:PPchar; _para4:PPchar):longint;cdecl;
   busy_handler_func = function (_para1:pointer; _para2:longint):longint;cdecl;
   sqlite3_set_authorizer_func = function (_para1:pointer; _para2:longint; _para3:Pchar; _para4:Pchar; _para5:Pchar; _para6:Pchar):longint;cdecl;
@@ -50,96 +94,15 @@ type
   sqlite3_result_func = procedure (_para1:pointer);cdecl;
   sqlite3_create_collation_func = function (_para1:pointer; _para2:longint; _para3:pointer; _para4:longint; _para5:pointer):longint;cdecl;
   sqlite3_collation_needed_func = procedure (_para1:pointer; _para2:Psqlite3; eTextRep:longint; _para4:Pchar);cdecl;
-  
 
-const
-   SQLITE_VERSION = '3.2.1';   
-   SQLITE_VERSION_NUMBER = 3002001;   
-
-
-   SQLITE_INTEGER = 1;   
-   SQLITE_FLOAT = 2;   
-{ #define SQLITE_TEXT  3  // See below  }
-   SQLITE_BLOB = 4;   
-   SQLITE_NULL = 5;   
-  
-   SQLITE_TEXT = 3;   
-
-   SQLITE3_TEXT = 3;   
-
-   SQLITE_UTF8 = 1;       
-   SQLITE_UTF16LE = 2;       
-   SQLITE_UTF16BE = 3;       
-{ Use native byte order  }
-   SQLITE_UTF16 = 4;       
-{ sqlite3_create_function only  }
-   SQLITE_ANY = 5;  
-
-
+{$ifndef win32}
 var
-  sqlite3_version : Pchar;cvar;external;
+  //This is not working under windows. Any clues?
   sqlite3_temp_directory : Pchar;cvar;external;
- 
-
-function sqlite3_libversion:PChar;cdecl;external External_library name 'sqlite3_libversion';
-//function sqlite3_libversion_number:longint;cdecl;external External_library name 'sqlite3_libversion_number';
-
-type
-   sqlite_int64 = int64;
-   sqlite_uint64 = qword;
+{$endif}
 
 function sqlite3_close(_para1:Psqlite3):longint;cdecl;external External_library name 'sqlite3_close';
-
 function sqlite3_exec(_para1:Psqlite3; sql:Pchar; _para3:sqlite3_callback; _para4:pointer; errmsg:PPchar):longint;cdecl;external External_library name 'sqlite3_exec';
-
-const
-   SQLITE_OK = 0;   { SQL error or missing database  }
-   SQLITE_ERROR = 1;{ An internal logic error in SQLite  }
-   SQLITE_INTERNAL = 2;{ Access permission denied  }
-   SQLITE_PERM = 3;   { Callback routine requested an abort  }
-   SQLITE_ABORT = 4; { The database file is locked  }
-   SQLITE_BUSY = 5;  { A table in the database is locked  }
-   SQLITE_LOCKED = 6;{ A malloc() failed  }
-   SQLITE_NOMEM = 7; { Attempt to write a readonly database  }
-   SQLITE_READONLY = 8;{ Operation terminated by sqlite3_interrupt() }
-   SQLITE_INTERRUPT = 9;{ Some kind of disk I/O error occurred  }
-   SQLITE_IOERR = 10;   { The database disk image is malformed  }
-   SQLITE_CORRUPT = 11;   
-{ (Internal Only) Table or record not found  }
-   SQLITE_NOTFOUND = 12;   
-{ Insertion failed because database is full  }
-   SQLITE_FULL = 13;   
-{ Unable to open the database file  }
-   SQLITE_CANTOPEN = 14;   
-{ Database lock protocol error  }
-   SQLITE_PROTOCOL = 15;   
-{ Database is empty  }
-   SQLITE_EMPTY = 16;   
-{ The database schema changed  }
-   SQLITE_SCHEMA = 17;   
-{ Too much data for one row of a table  }
-   SQLITE_TOOBIG = 18;   
-{ Abort due to contraint violation  }
-   SQLITE_CONSTRAINT = 19;   
-{ Data type mismatch  }
-   SQLITE_MISMATCH = 20;   
-{ Library used incorrectly  }
-   SQLITE_MISUSE = 21;   
-{ Uses OS features not supported on host  }
-   SQLITE_NOLFS = 22;   
-{ Authorization denied  }
-   SQLITE_AUTH = 23;   
-{ Auxiliary database format error  }
-   SQLITE_FORMAT = 24;   
-{ 2nd parameter to sqlite3_bind out of range  }
-   SQLITE_RANGE = 25;   
-{ File opened that is not a database file  }
-   SQLITE_NOTADB = 26;   
-{ sqlite3_step() has another row ready  }
-   SQLITE_ROW = 100;   
-{ sqlite3_step() has finished executing  }
-   SQLITE_DONE = 101;   
-
 function sqlite3_last_insert_rowid(_para1:Psqlite3):sqlite_int64;cdecl;external External_library name 'sqlite3_last_insert_rowid';
 function sqlite3_changes(_para1:Psqlite3):longint;cdecl;external External_library name 'sqlite3_changes';
 function sqlite3_total_changes(_para1:Psqlite3):longint;cdecl;external External_library name 'sqlite3_total_changes';
@@ -161,7 +124,6 @@ procedure sqlite3_free(z:Pchar);cdecl;external External_library name 'sqlite3_fr
 function sqlite3_snprintf(_para1:longint; _para2:Pchar; _para3:Pchar):Pchar;cdecl;external External_library name 'sqlite3_snprintf';
 
 function sqlite3_set_authorizer(_para1:Psqlite3; xAuth:sqlite3_set_authorizer_func; pUserData:pointer):longint;cdecl;external External_library name 'sqlite3_set_authorizer';
-
 
 const
    SQLITE_COPY = 0;   
@@ -222,9 +184,9 @@ const
 
 { #define SQLITE_OK  0   // Allow access (This is actually defined above)  }
 { Abort the SQL statement with an error  }
-   SQLITE_DENY = 1;   
+  SQLITE_DENY = 1;   
 { Don't allow access, but don't generate an error  }
-   SQLITE_IGNORE = 2;   
+  SQLITE_IGNORE = 2;   
 
 function sqlite3_trace(_para1:Psqlite3; xTrace:sqlite3_trace_func; _para3:pointer):pointer;cdecl;external External_library name 'sqlite3_trace';
 procedure sqlite3_progress_handler(_para1:Psqlite3; _para2:longint; _para3:sqlite3_progress_handler_func; _para4:pointer);cdecl;external External_library name 'sqlite3_progress_handler';
@@ -318,19 +280,19 @@ function sqlite3_create_collation16(_para1:Psqlite3; zName:Pchar; eTextRep:longi
  
 function sqlite3_collation_needed(_para1:Psqlite3; _para2:pointer; _para3:sqlite3_collation_needed_func):longint;cdecl;external External_library name 'sqlite3_collation_needed';
 function sqlite3_collation_needed16(_para1:Psqlite3; _para2:pointer; _para3:sqlite3_collation_needed_func):longint;cdecl;external External_library name 'sqlite3_collation_needed16';
- 
+
+function sqlite3_libversion:PChar;cdecl;external External_library name 'sqlite3_libversion';
+//Alias for allowing better code portability (win32 is not working with external variables) 
+function sqlite3_version:PChar;cdecl;external External_library name 'sqlite3_libversion';
+
+// Not published functions
+//function sqlite3_libversion_number:longint;cdecl;external External_library name 'sqlite3_libversion_number';
 //function sqlite3_key(db:Psqlite3; pKey:pointer; nKey:longint):longint;cdecl;external External_library name 'sqlite3_key';
- 
 //function sqlite3_rekey(db:Psqlite3; pKey:pointer; nKey:longint):longint;cdecl;external External_library name 'sqlite3_rekey';
- 
 //function sqlite3_sleep(_para1:longint):longint;cdecl;external External_library name 'sqlite3_sleep';
- 
 //function sqlite3_expired(_para1:Psqlite3_stmt):longint;cdecl;external External_library name 'sqlite3_expired';
-   
 //function sqlite3_global_recover:longint;cdecl;external External_library name 'sqlite3_global_recover';
 
-
 implementation
-
 
 end.

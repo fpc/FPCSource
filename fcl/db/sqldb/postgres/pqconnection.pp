@@ -57,7 +57,7 @@ type
     function RollBack(trans : TSQLHandle) : boolean; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
-    function StartdbTransaction(trans : TSQLHandle) : boolean; override;
+    function StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
   public
@@ -159,7 +159,7 @@ begin
     end;
 end;
 
-function TPQConnection.StartdbTransaction(trans : TSQLHandle) : boolean;
+function TPQConnection.StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean;
 var
   res : PPGresult;
   tr  : TPQTrans;
