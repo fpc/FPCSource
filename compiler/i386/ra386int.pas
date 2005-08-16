@@ -887,7 +887,7 @@ Unit Ra386int;
                   Consume(AS_RPAREN);
               end;
             AS_STRING:
-              Begin
+              begin
                 l:=0;
                 case Length(actasmpattern) of
                  1 :
@@ -908,7 +908,7 @@ Unit Ra386int;
                 Consume(AS_STRING);
               end;
             AS_ID:
-              Begin
+              begin
                 hs:='';
                 hssymtyp:=AT_DATA;
                 def:=nil;
@@ -1035,12 +1035,11 @@ Unit Ra386int;
             AS_END,
             AS_RBRACKET,
             AS_SEPARATOR,
-            AS_COMMA:
-              Begin
-                break;
-              end;
+            AS_COMMA,
+            AS_COLON:
+              break;
           else
-            Begin
+            begin
               { write error only once. }
               if not errorflag then
                 Message(asmr_e_invalid_constant_expression);
@@ -1441,21 +1440,19 @@ Unit Ra386int;
           Message(asmr_e_invalid_operand_type);
         BuildConstSymbolExpression(true,false,l,tempstr,tempsymtyp);
         if tempstr<>'' then
-         begin
-           oper.opr.typ:=OPR_SYMBOL;
-           oper.opr.symofs:=l;
-           oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp);
-         end
+          begin
+            oper.opr.typ:=OPR_SYMBOL;
+            oper.opr.symofs:=l;
+            oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp);
+          end
         else
-         begin
-           if oper.opr.typ=OPR_NONE then
-             begin
-               oper.opr.typ:=OPR_CONSTANT;
-               oper.opr.val:=l;
-             end
-           else
-             inc(oper.opr.val,l);
-         end;
+          if oper.opr.typ=OPR_NONE then
+            begin
+              oper.opr.typ:=OPR_CONSTANT;
+              oper.opr.val:=l;
+            end
+          else
+            inc(oper.opr.val,l);
       end;
 
 
@@ -1484,7 +1481,7 @@ Unit Ra386int;
         hl      : tasmlabel;
         toffset,
         tsize   : aint;
-      Begin
+      begin
         expr:='';
         repeat
           if actasmtoken=AS_DOT then
@@ -1536,7 +1533,6 @@ Unit Ra386int;
           end;
 
           case actasmtoken of
-
             AS_OFFSET,
             AS_SIZEOF,
             AS_TYPE,
@@ -1699,14 +1695,15 @@ Unit Ra386int;
 
             AS_SEPARATOR,
             AS_END,
-            AS_COMMA:
+            AS_COMMA,
+            AS_COLON:
               break;
 
             else
               Message(asmr_e_syn_operand);
           end;
         until not(actasmtoken in [AS_DOT,AS_PLUS,AS_LBRACKET]);
-        if not((actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) or
+        if not((actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA,AS_COLON]) or
                (oper.hastype and (actasmtoken=AS_RPAREN))) then
          begin
            Message(asmr_e_syntax_error);
@@ -1720,47 +1717,46 @@ Unit Ra386int;
         PrefixOp,OverrideOp: tasmop;
         size,
         operandnum : longint;
-      Begin
+        is_far_const:boolean;
+        i:byte;
+      begin
         PrefixOp:=A_None;
         OverrideOp:=A_None;
+        is_far_const:=false;
         { prefix seg opcode / prefix opcode }
         repeat
           if is_prefix(actopcode) then
-           begin
+            with instr do
+              begin
+                OpOrder:=op_intel;
+                PrefixOp:=ActOpcode;
+                opcode:=ActOpcode;
+                condition:=ActCondition;
+                opsize:=ActOpsize;
+                ConcatInstruction(curlist);
+                consume(AS_OPCODE);
+              end
+          else
+           if is_override(actopcode) then
              with instr do
                begin
                  OpOrder:=op_intel;
-                 PrefixOp:=ActOpcode;
+                 OverrideOp:=ActOpcode;
                  opcode:=ActOpcode;
                  condition:=ActCondition;
                  opsize:=ActOpsize;
                  ConcatInstruction(curlist);
-               end;
-             Consume(AS_OPCODE);
-           end
+                 consume(AS_OPCODE);
+               end
           else
-           if is_override(actopcode) then
-            begin
-              with instr do
-                begin
-                  OpOrder:=op_intel;
-                  OverrideOp:=ActOpcode;
-                  opcode:=ActOpcode;
-                  condition:=ActCondition;
-                  opsize:=ActOpsize;
-                  ConcatInstruction(curlist);
-                end;
-              Consume(AS_OPCODE);
-            end
-          else
-           break;
+            break;
           { allow for newline after prefix or override }
           while actasmtoken=AS_SEPARATOR do
-            Consume(AS_SEPARATOR);
+            consume(AS_SEPARATOR);
         until (actasmtoken<>AS_OPCODE);
         { opcode }
         if (actasmtoken <> AS_OPCODE) then
-         Begin
+         begin
            Message(asmr_e_invalid_or_missing_opcode);
            RecoverConsume(false);
            exit;
@@ -1781,6 +1777,7 @@ Unit Ra386int;
           end;
         { We are reading operands, so opcode will be an AS_ID }
         operandnum:=1;
+        is_far_const:=false;
         Consume(AS_OPCODE);
         { Zero operand opcode ?  }
         if actasmtoken in [AS_SEPARATOR,AS_END] then
@@ -1791,7 +1788,6 @@ Unit Ra386int;
         { Read Operands }
         repeat
           case actasmtoken of
-
             { End of asm operands for this opcode }
             AS_END,
             AS_SEPARATOR :
@@ -1799,12 +1795,22 @@ Unit Ra386int;
 
             { Operand delimiter }
             AS_COMMA :
-              Begin
+              begin
                 if operandnum > Max_Operands then
                   Message(asmr_e_too_many_operands)
                 else
                   Inc(operandnum);
                 Consume(AS_COMMA);
+              end;
+            {Far constant, i.e. jmp $0000:$11111111.}
+            AS_COLON:
+              begin
+                is_far_const:=true;
+                if operandnum>1 then
+                  message(asmr_e_too_many_operands)
+                else
+                  inc(operandnum);
+                consume(AS_COLON);
               end;
 
             { Typecast, Constant Expression, Type Specifier }
@@ -1814,11 +1820,11 @@ Unit Ra386int;
             AS_TBYTE,
             AS_DQWORD,
             AS_QWORD :
-              Begin
+              begin
                 { load the size in a temp variable, so it can be set when the
                   operand is read }
                 size:=0;
-                Case actasmtoken of
+                case actasmtoken of
                   AS_DWORD : size:=4;
                   AS_WORD  : size:=2;
                   AS_BYTE  : size:=1;
@@ -1851,7 +1857,7 @@ Unit Ra386int;
             { Type specifier }
             AS_NEAR,
             AS_FAR :
-              Begin
+              begin
                 if actasmtoken = AS_NEAR then
                   begin
                     Message(asmr_w_near_ignored);
@@ -1874,7 +1880,11 @@ Unit Ra386int;
               BuildOperand(instr.Operands[operandnum] as tx86operand);
           end; { end case }
         until false;
-        instr.Ops:=operandnum;
+        instr.ops:=operandnum;
+        if is_far_const then
+          for i:=1 to operandnum do
+            if instr.operands[i].opr.typ<>OPR_CONSTANT then
+              message(asmr_e_expr_illegal);
       end;
 
 

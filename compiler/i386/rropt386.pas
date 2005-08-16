@@ -163,7 +163,7 @@ begin
             if (p.oper[0]^.ref^.refaddr=addr_full) then
               tmpref.symbol := p.oper[0]^.ref^.symbol
             else
-              internalerror(200402261);
+              internalerror(200402263);
           top_reg:
             begin
               tmpref.index := p.oper[0]^.reg;

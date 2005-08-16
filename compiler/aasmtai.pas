@@ -163,7 +163,8 @@ interface
        top_regset,
        top_shifterop,
        { m68k only }
-       top_reglist);
+       top_reglist
+       { i386 only});
 
       { kinds of operations that an instruction can perform on an operand }
       topertype = (operand_read,operand_write,operand_readwrite);
@@ -1874,6 +1875,7 @@ implementation
       end;
 
 
+
     procedure tai_cpu_abstract.loadref(opidx:longint;const r:treference);
       begin
         allocate_oper(opidx+1);
@@ -1970,7 +1972,6 @@ implementation
              end;
           end;
       end;
-
 
     procedure tai_cpu_abstract.clearop(opidx:longint);
       begin

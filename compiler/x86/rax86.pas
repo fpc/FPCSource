@@ -559,6 +559,28 @@ begin
 {$endif ATTOP}
      end;
 
+  {It is valid to specify some instructions without operand size.}
+  if siz=S_NO then
+    begin
+      if (ops=1) and (opcode=A_INT) then
+        siz:=S_B;
+      if (ops=1) and (opcode=A_RET) or (opcode=A_RETN) or (opcode=A_RETF) then
+        siz:=S_W;
+      if (ops=1) and (opcode=A_PUSH) then
+        begin
+          {We are a 32 compiler, assume 32-bit by default. This is Delphi
+           compatible but bad coding practise.}
+          siz:=S_L;
+          message(asmr_w_unable_to_determine_reference_size_using_dword);
+        end;
+      if (opcode=A_JMP) or (opcode=A_JCC) or (opcode=A_CALL) then
+        if ops=1 then
+          siz:=S_NEAR
+        else
+          siz:=S_FAR;
+    end;
+
+
    { GNU AS interprets FDIV without operand differently
      for version 2.9.1 and 2.10
      we add explicit args to it !! }
@@ -667,8 +689,7 @@ begin
   ai.Ops:=Ops;
   ai.Allocate_oper(Ops);
   for i:=1 to Ops do
-   begin
-     case operands[i].opr.typ of
+    case operands[i].opr.typ of
        OPR_CONSTANT :
          ai.loadconst(i-1,operands[i].opr.val);
        OPR_REGISTER:
@@ -710,15 +731,17 @@ begin
                  ai.oper[i-1]^.ot:=(ai.oper[i-1]^.ot and not OT_SIZE_MASK) or asize;
              end;
          end;
-     end;
-   end;
+    end;
 
+ {This is dead code since opcode and opsize aren't used from here!
+  Commented out...
   if (opcode=A_CALL) and (opsize=S_FAR) then
     opcode:=A_LCALL;
   if (opcode=A_JMP) and (opsize=S_FAR) then
     opcode:=A_LJMP;
   if (opcode=A_LCALL) or (opcode=A_LJMP) then
-    opsize:=S_FAR;
+    opsize:=S_FAR;}
+
  { Condition ? }
   if condition<>C_None then
    ai.SetCondition(condition);
