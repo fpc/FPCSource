@@ -19,7 +19,7 @@ unit PParser;
 
 interface
 
-uses SysUtils, PasTree;
+uses SysUtils, PasTree, PScanner;
 
 resourcestring
   SErrNoSourceGiven = 'No source file specified';
@@ -82,7 +82,7 @@ function ParseSource(AEngine: TPasTreeContainer;
 
 implementation
 
-uses Classes, PScanner;
+uses Classes;
 
 type
 
@@ -109,6 +109,7 @@ type
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;
   public
+    Options : set of TPOptions;
     constructor Create(AScanner: TPascalScanner; AFileResolver: TFileResolver;
       AEngine: TPasTreeContainer);
     function CurTokenName: String;
@@ -315,9 +316,19 @@ var
   Name, s: String;
   EnumValue: TPasEnumValue;
   Ref: TPasElement;
+  HadPackedModifier : Boolean;           // 12/04/04 - Dave - Added
 begin
   Result := nil;         // !!!: Remove in the future
+  HadPackedModifier := False;     { Assume not present }
   NextToken;
+  if CurToken = tkPacked then     { If PACKED modifier }
+     begin                        { Handle PACKED modifier for all situations }
+     NextToken;                   { Move to next token for rest of parse }
+     if CurToken in [tkArray, tkRecord, tkObject, tkClass] then  { If allowed }
+       HadPackedModifier := True  { rememeber for later }
+     else                         { otherwise, syntax error }
+       ParseExc(Format(SParserExpectTokenError,['ARRAY, RECORD, OBJECT or CLASS']))
+     end;
   case CurToken of
     tkIdentifier:
       begin
@@ -377,6 +388,7 @@ begin
     tkArray:
       begin
         Result := TPasArrayType(CreateElement(TPasArrayType, '', Parent));
+        TPasArrayType(Result).IsPacked := HadPackedModifier;
         ParseArrayType(TPasArrayType(Result));
       end;
     tkBraceOpen:
@@ -418,6 +430,7 @@ begin
     tkRecord:
       begin
         Result := TPasRecordType(CreateElement(TPasRecordType, '', Parent));
+        TPasRecordType(Result).IsPacked := HadPackedModifier;
 	try
           ParseRecordDecl(TPasRecordType(Result), False);
 	except
@@ -1324,7 +1337,13 @@ begin
       begin
         if CurToken = tkBraceOpen then
         begin
-	  ParseArgList(Parent, Element.Args, tkBraceClose);
+          NextToken;
+          if (CurToken = tkBraceClose) then
+          else
+            begin
+              UngetToken;
+              ParseArgList(Parent, Element.Args, tkBraceClose);
+            end;
 	  ExpectToken(tkColon);
 	end else if CurToken <> tkColon then
 	  ParseExc(SParserExpectedLBracketColon);
@@ -1337,7 +1356,13 @@ begin
       begin
         if CurToken = tkBraceOpen then
 	begin
-	  ParseArgList(Element, Element.Args, tkBraceClose);
+          NextToken;
+          if (CurToken = tkBraceClose) then
+          else
+            begin
+              UngetToken;
+              ParseArgList(Element, Element.Args, tkBraceClose);
+            end
 	end else if (CurToken = tkSemicolon) or (OfObjectPossible and (CurToken = tkOf)) then
 	  UngetToken
 	else
@@ -1914,6 +1939,12 @@ var
         'F':
           if s[3] = 'i' then
             FileResolver.AddIncludePath(Copy(s, 4, Length(s)));
+        'S':
+          if s[3]='d' then
+            begin
+              include(Scanner.Options,po_delphi);
+              include(Parser.Options,po_delphi);
+            end;
       end;
     end else
       if Filename <> '' then
