@@ -290,9 +290,6 @@ var
           '.debug_frame'
         );
       begin
-        if (target_info.system = system_powerpc_darwin) and
-           (atype = sec_bss) then
-          atype := sec_code;
         if use_smartlink_section and
            (atype<>sec_bss) and
            (aname<>'') then
@@ -516,16 +513,31 @@ var
 
            ait_datablock :
              begin
-               if tai_datablock(hp).is_global then
-                AsmWrite(#9'.comm'#9)
+               if (target_info.system <> system_powerpc_darwin) or
+                  not tai_datablock(hp).is_global then
+                 begin
+                   if tai_datablock(hp).is_global then
+                    AsmWrite(#9'.comm'#9)
+                   else
+                    AsmWrite(#9'.lcomm'#9);
+                   AsmWrite(tai_datablock(hp).sym.name);
+                   AsmWrite(','+tostr(tai_datablock(hp).size));
+                   if (target_info.system = system_powerpc_darwin) { and
+                      not(tai_datablock(hp).is_global)} then
+                     AsmWrite(','+tostr(last_align));
+                   AsmWriteln('');
+                 end
                else
-                AsmWrite(#9'.lcomm'#9);
-               AsmWrite(tai_datablock(hp).sym.name);
-               AsmWrite(','+tostr(tai_datablock(hp).size));
-               if (target_info.system = system_powerpc_darwin) and
-                  not(tai_datablock(hp).is_global) then
-                 AsmWrite(','+tostr(last_align));
-               AsmWriteln('');
+                 begin
+                   AsmWrite('.globl ');
+                   AsmWriteln(tai_datablock(hp).sym.name);
+                   AsmWriteln('.data');
+                   AsmWrite('.zerofill __DATA, __common, ');
+                   AsmWrite(tai_datablock(hp).sym.name);
+                   AsmWriteln(', '+tostr(tai_datablock(hp).size)+','+tostr(last_align));
+                   if not(lasTSectype in [sec_data,sec_none]) then
+                     WriteSection(lasTSectype,'');
+                 end;
              end;
 
 {$ifndef cpu64bit}

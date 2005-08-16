@@ -391,7 +391,8 @@ implementation
                   registersint:=1;
                 if ([vo_is_thread_var,vo_is_dll_var]*tabstractvarsym(symtableentry).varoptions)<>[] then
                   registersint:=1;
-                if (target_info.system=system_powerpc_darwin) and (vo_is_dll_var in tabstractvarsym(symtableentry).varoptions) then
+                if (target_info.system=system_powerpc_darwin) and
+                   ([vo_is_dll_var,vo_is_external] * tabstractvarsym(symtableentry).varoptions <> []) then
                   include(current_procinfo.flags,pi_needs_got);
                 { call to get address of threadvar }
                 if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
