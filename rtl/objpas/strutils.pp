@@ -1,10 +1,8 @@
-{$mode objfpc}
-{$h+}
 {
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
-
     Delphi/Kylix compatibility unit: String handling routines.
+
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2005 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,6 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}
+{$h+}
+{$inline on}
 unit strutils;
 
 interface
@@ -26,22 +27,22 @@ uses
   ---------------------------------------------------------------------}
 
 Function AnsiResemblesText(const AText, AOther: string): Boolean;
-Function AnsiContainsText(const AText, ASubText: string): Boolean;
-Function AnsiStartsText(const ASubText, AText: string): Boolean;
-Function AnsiEndsText(const ASubText, AText: string): Boolean;
-Function AnsiReplaceText(const AText, AFromText, AToText: string): string;
-Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;
+Function AnsiContainsText(const AText, ASubText: string): Boolean;inline;
+Function AnsiStartsText(const ASubText, AText: string): Boolean;inline;
+Function AnsiEndsText(const ASubText, AText: string): Boolean;inline;
+Function AnsiReplaceText(const AText, AFromText, AToText: string): string;inline;
+Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;inline;
 Function AnsiIndexText(const AText: string; const AValues: array of string): Integer;
 
 { ---------------------------------------------------------------------
     Case sensitive search/replace
   ---------------------------------------------------------------------}
 
-Function AnsiContainsStr(const AText, ASubText: string): Boolean;
-Function AnsiStartsStr(const ASubText, AText: string): Boolean;
-Function AnsiEndsStr(const ASubText, AText: string): Boolean;
-Function AnsiReplaceStr(const AText, AFromText, AToText: string): string;
-Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;
+Function AnsiContainsStr(const AText, ASubText: string): Boolean;inline;
+Function AnsiStartsStr(const ASubText, AText: string): Boolean;inline;
+Function AnsiEndsStr(const ASubText, AText: string): Boolean;inline;
+Function AnsiReplaceStr(const AText, AFromText, AToText: string): string;inline;
+Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;inline;
 Function AnsiIndexStr(const AText: string; const AValues: array of string): Integer;
 
 { ---------------------------------------------------------------------
@@ -50,28 +51,28 @@ Function AnsiIndexStr(const AText: string; const AValues: array of string): Inte
 
 Function DupeString(const AText: string; ACount: Integer): string;
 Function ReverseString(const AText: string): string;
-Function AnsiReverseString(const AText: AnsiString): AnsiString;
+Function AnsiReverseString(const AText: AnsiString): AnsiString;inline;
 Function StuffString(const AText: string; AStart, ALength: Cardinal;  const ASubText: string): string;
 Function RandomFrom(const AValues: array of string): string; overload;
-Function IfThen(AValue: Boolean; const ATrue: string; AFalse: string): string;
-Function IfThen(AValue: Boolean; const ATrue: string): string; // ; AFalse: string = ''
+Function IfThen(AValue: Boolean; const ATrue: string; AFalse: string): string;inline;
+Function IfThen(AValue: Boolean; const ATrue: string): string;inline; // ; AFalse: string = ''
 
 { ---------------------------------------------------------------------
     VB emulations.
   ---------------------------------------------------------------------}
 
-Function LeftStr(const AText: AnsiString; const ACount: Integer): AnsiString;
+Function LeftStr(const AText: AnsiString; const ACount: Integer): AnsiString;inline;
 Function RightStr(const AText: AnsiString; const ACount: Integer): AnsiString;
-Function MidStr(const AText: AnsiString; const AStart, ACount: Integer): AnsiString;
-Function RightBStr(const AText: AnsiString; const AByteCount: Integer): AnsiString;
-Function MidBStr(const AText: AnsiString; const AByteStart, AByteCount: Integer): AnsiString;
-Function AnsiLeftStr(const AText: AnsiString; const ACount: Integer): AnsiString;
-Function AnsiRightStr(const AText: AnsiString; const ACount: Integer): AnsiString;
-Function AnsiMidStr(const AText: AnsiString; const AStart, ACount: Integer): AnsiString;
-Function LeftBStr(const AText: AnsiString; const AByteCount: Integer): AnsiString;
-Function LeftStr(const AText: WideString; const ACount: Integer): WideString;
+Function MidStr(const AText: AnsiString; const AStart, ACount: Integer): AnsiString;inline;
+Function RightBStr(const AText: AnsiString; const AByteCount: Integer): AnsiString;inline;
+Function MidBStr(const AText: AnsiString; const AByteStart, AByteCount: Integer): AnsiString;inline;
+Function AnsiLeftStr(const AText: AnsiString; const ACount: Integer): AnsiString;inline;
+Function AnsiRightStr(const AText: AnsiString; const ACount: Integer): AnsiString;inline;
+Function AnsiMidStr(const AText: AnsiString; const AStart, ACount: Integer): AnsiString;inline;
+Function LeftBStr(const AText: AnsiString; const AByteCount: Integer): AnsiString;inline;
+Function LeftStr(const AText: WideString; const ACount: Integer): WideString;inline;
 Function RightStr(const AText: WideString; const ACount: Integer): WideString;
-Function MidStr(const AText: WideString; const AStart, ACount: Integer): WideString;
+Function MidStr(const AText: WideString; const AStart, ACount: Integer): WideString;inline;
 
 { ---------------------------------------------------------------------
     Extended search and replace
@@ -87,9 +88,9 @@ type
   TStringSeachOption = TStringSearchOption;
 
 Function SearchBuf(Buf: PChar; BufLen: Integer; SelStart, SelLength: Integer; SearchString: String; Options: TStringSearchOptions): PChar;
-Function SearchBuf(Buf: PChar; BufLen: Integer; SelStart, SelLength: Integer; SearchString: String): PChar; // ; Options: TStringSearchOptions = [soDown]
+Function SearchBuf(Buf: PChar; BufLen: Integer; SelStart, SelLength: Integer; SearchString: String): PChar;inline; // ; Options: TStringSearchOptions = [soDown]
 Function PosEx(const SubStr, S: string; Offset: Cardinal): Integer;
-Function PosEx(const SubStr, S: string): Integer; // Offset: Cardinal = 1
+Function PosEx(const SubStr, S: string): Integer;inline; // Offset: Cardinal = 1
 Function PosEx(c:char; const S: string; Offset: Cardinal): Integer;
 
 { ---------------------------------------------------------------------
@@ -100,20 +101,20 @@ type
   TSoundexLength = 1..MaxInt;
 
 Function Soundex(const AText: string; ALength: TSoundexLength): string;
-Function Soundex(const AText: string): string; // ; ALength: TSoundexLength = 4
+Function Soundex(const AText: string): string;inline; // ; ALength: TSoundexLength = 4
 
 type
   TSoundexIntLength = 1..8;
 
 Function SoundexInt(const AText: string; ALength: TSoundexIntLength): Integer;
-Function SoundexInt(const AText: string): Integer; //; ALength: TSoundexIntLength = 4
+Function SoundexInt(const AText: string): Integer;inline; //; ALength: TSoundexIntLength = 4
 Function DecodeSoundexInt(AValue: Integer): string;
 Function SoundexWord(const AText: string): Word;
 Function DecodeSoundexWord(AValue: Word): string;
-Function SoundexSimilar(const AText, AOther: string; ALength: TSoundexLength): Boolean;
-Function SoundexSimilar(const AText, AOther: string): Boolean; //; ALength: TSoundexLength = 4
-Function SoundexCompare(const AText, AOther: string; ALength: TSoundexLength): Integer;
-Function SoundexCompare(const AText, AOther: string): Integer; //; ALength: TSoundexLength = 4
+Function SoundexSimilar(const AText, AOther: string; ALength: TSoundexLength): Boolean;inline;
+Function SoundexSimilar(const AText, AOther: string): Boolean;inline; //; ALength: TSoundexLength = 4
+Function SoundexCompare(const AText, AOther: string; ALength: TSoundexLength): Integer;inline;
+Function SoundexCompare(const AText, AOther: string): Integer;inline; //; ALength: TSoundexLength = 4
 Function SoundexProc(const AText, AOther: string): Boolean;
 
 type
@@ -138,17 +139,17 @@ Function RPos(c:char;const S : AnsiString):Integer; overload;
 Function RPos (Const Substr : AnsiString; Const Source : AnsiString) : Integer; overload;
 function AddChar(C: Char; const S: string; N: Integer): string;
 function AddCharR(C: Char; const S: string; N: Integer): string;
-function PadLeft(const S: string; N: Integer): string;
-function PadRight(const S: string; N: Integer): string;
+function PadLeft(const S: string; N: Integer): string;inline;
+function PadRight(const S: string; N: Integer): string;inline;
 function PadCenter(const S: string; Len: Integer): string;
 function Copy2Symb(const S: string; Symb: Char): string;
 function Copy2SymbDel(var S: string; Symb: Char): string;
-function Copy2Space(const S: string): string;
-function Copy2SpaceDel(var S: string): string;
+function Copy2Space(const S: string): string;inline;
+function Copy2SpaceDel(var S: string): string;inline;
 function AnsiProperCase(const S: string; const WordDelims: TSysCharSet): string;
 function WordCount(const S: string; const WordDelims: TSysCharSet): Integer;
 function WordPosition(const N: Integer; const S: string; const WordDelims: TSysCharSet): Integer;
-function ExtractWord(N: Integer; const S: string;  const WordDelims: TSysCharSet): string;
+function ExtractWord(N: Integer; const S: string;  const WordDelims: TSysCharSet): string;inline;
 function ExtractWordPos(N: Integer; const S: string; const WordDelims: TSysCharSet; var Pos: Integer): string;
 function ExtractDelimited(N: Integer; const S: string;  const Delims: TSysCharSet): string;
 function ExtractSubstr(const S: string; var Pos: Integer;  const Delims: TSysCharSet): string;
@@ -199,32 +200,31 @@ begin
     Result:=False;
 end;
 
-Function AnsiContainsText(const AText, ASubText: string): Boolean;
-
+Function AnsiContainsText(const AText, ASubText: string): Boolean;inline;
 begin
   AnsiContainsText:=AnsiPos(ASubText,AText)<>0;
 end;
 
 
-Function AnsiStartsText(const ASubText, AText: string): Boolean;
+Function AnsiStartsText(const ASubText, AText: string): Boolean;inline;
 begin
   Result:=AnsiCompareText(Copy(AText,1,Length(AsubText)),ASubText)=0;
 end;
 
 
-Function AnsiEndsText(const ASubText, AText: string): Boolean;
+Function AnsiEndsText(const ASubText, AText: string): Boolean;inline;
 begin
  result:=AnsiCompareText(Copy(AText,Length(AText)-Length(ASubText)+1,Length(ASubText)),asubtext)=0;
 end;
 
 
-Function AnsiReplaceText(const AText, AFromText, AToText: string): string;
+Function AnsiReplaceText(const AText, AFromText, AToText: string): string;inline;
 begin
   Result := StringReplace(AText,AFromText,AToText,[rfReplaceAll,rfIgnoreCase]);
 end;
 
 
-Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;
+Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;inline;
 begin
   Result:=(AnsiIndexText(AText,AValues)<>-1)
 end;
@@ -248,43 +248,39 @@ end;
     Case sensitive search/replace
   ---------------------------------------------------------------------}
 
-Function AnsiContainsStr(const AText, ASubText: string): Boolean;
-
+Function AnsiContainsStr(const AText, ASubText: string): Boolean;inline;
 begin
   Result := AnsiPos(ASubText,AText)<>0;
 end;
 
 
-
-Function AnsiStartsStr(const ASubText, AText: string): Boolean;
-
+Function AnsiStartsStr(const ASubText, AText: string): Boolean;inline;
 begin
   Result := AnsiPos(ASubText,AText)=1;
 end;
 
 
-Function AnsiEndsStr(const ASubText, AText: string): Boolean;
+Function AnsiEndsStr(const ASubText, AText: string): Boolean;inline;
 begin
  Result := AnsiPos(ASubText,AText)=(length(AText)-length(ASubText)+1);
 end;
 
 
-Function AnsiReplaceStr(const AText, AFromText, AToText: string): string;
+Function AnsiReplaceStr(const AText, AFromText, AToText: string): string;inline;
 begin
 Result := StringReplace(AText,AFromText,AToText,[rfReplaceAll]);
 end;
 
 
-Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;
+Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;inline;
 begin
   Result:=AnsiIndexStr(AText,Avalues)<>-1;
 end;
 
 
 Function AnsiIndexStr(const AText: string; const AValues: array of string): Integer;
-
-var i : longint;
-
+var
+  i : longint;
 begin
   result:=-1;
   if high(AValues)=-1 Then
@@ -293,8 +289,6 @@ begin
      if (avalues[i]=AText) Then
        exit(i);                                 // make sure it is the first val.
 end;
-
-
 
 
 { ---------------------------------------------------------------------
@@ -332,7 +326,7 @@ begin
 end;
 
 
-Function AnsiReverseString(const AText: AnsiString): AnsiString;
+Function AnsiReverseString(const AText: AnsiString): AnsiString;inline;
 
 begin
   Result:=ReverseString(AText);
@@ -342,17 +336,16 @@ end;
 
 Function StuffString(const AText: string; AStart, ALength: Cardinal;  const ASubText: string): string;
 
-var i,j : longint;
+var i,j : SizeUInt;
 
 begin
   j:=length(ASubText);
   i:=length(AText);
-  SetLength(Result,i-ALength+j);
+  SetLength(Result,i+j-ALength);
   move (AText[1],result[1],AStart-1);
   move (ASubText[1],result[AStart],j);
-  move (AText[AStart+ALength], Result[AStart+j],i-AStart-ALength+1);
+  move (AText[AStart+ALength], Result[AStart+j],i+1-AStart-ALength);
 end;
-
 
 
 Function RandomFrom(const AValues: array of string): string; overload;
@@ -364,7 +357,7 @@ end;
 
 
 
-Function IfThen(AValue: Boolean; const ATrue: string; AFalse: string): string;
+Function IfThen(AValue: Boolean; const ATrue: string; AFalse: string): string;inline;
 
 begin
   if avalue then
@@ -375,7 +368,7 @@ end;
 
 
 
-Function IfThen(AValue: Boolean; const ATrue: string): string; // ; AFalse: string = ''
+Function IfThen(AValue: Boolean; const ATrue: string): string;inline; // ; AFalse: string = ''
 
 begin
   if avalue then
@@ -390,7 +383,7 @@ end;
     VB emulations.
   ---------------------------------------------------------------------}
 
-Function LeftStr(const AText: AnsiString; const ACount: Integer): AnsiString;
+Function LeftStr(const AText: AnsiString; const ACount: Integer): AnsiString;inline;
 
 begin
   Result:=Copy(AText,1,ACount);
@@ -407,7 +400,7 @@ begin
   Result:=Copy(AText,l-j+1,j);
 end;
 
-Function MidStr(const AText: AnsiString; const AStart, ACount: Integer): AnsiString;
+Function MidStr(const AText: AnsiString; const AStart, ACount: Integer): AnsiString;inline;
 
 begin
   if (ACount=0) or (AStart>length(atext)) then
@@ -417,65 +410,52 @@ end;
 
 
 
-Function LeftBStr(const AText: AnsiString; const AByteCount: Integer): AnsiString;
+Function LeftBStr(const AText: AnsiString; const AByteCount: Integer): AnsiString;inline;
 
 begin
   Result:=LeftStr(AText,AByteCount);
 end;
 
 
-
-Function RightBStr(const AText: AnsiString; const AByteCount: Integer): AnsiString;
-
+Function RightBStr(const AText: AnsiString; const AByteCount: Integer): AnsiString;inline;
 begin
   Result:=RightStr(Atext,AByteCount);
 end;
 
 
-
-Function MidBStr(const AText: AnsiString; const AByteStart, AByteCount: Integer): AnsiString;
-
+Function MidBStr(const AText: AnsiString; const AByteStart, AByteCount: Integer): AnsiString;inline;
 begin
   Result:=MidStr(AText,AByteStart,AByteCount);
 end;
 
 
-
-Function AnsiLeftStr(const AText: AnsiString; const ACount: Integer): AnsiString;
-
+Function AnsiLeftStr(const AText: AnsiString; const ACount: Integer): AnsiString;inline;
 begin
   Result := copy(AText,1,ACount);
 end;
 
 
-
-Function AnsiRightStr(const AText: AnsiString; const ACount: Integer): AnsiString;
-
+Function AnsiRightStr(const AText: AnsiString; const ACount: Integer): AnsiString;inline;
 begin
   Result := copy(AText,length(AText)-ACount+1,ACount);
 end;
 
 
-
-Function AnsiMidStr(const AText: AnsiString; const AStart, ACount: Integer): AnsiString;
-
+Function AnsiMidStr(const AText: AnsiString; const AStart, ACount: Integer): AnsiString;inline;
 begin
   Result:=Copy(AText,AStart,ACount);
 end;
 
-Function LeftStr(const AText: WideString; const ACount: Integer): WideString;
 
+Function LeftStr(const AText: WideString; const ACount: Integer): WideString;inline;
 begin
   Result:=Copy(AText,1,ACount);
 end;
 
 
-
 Function RightStr(const AText: WideString; const ACount: Integer): WideString;
-
 var
   j,l:integer;
-
 begin
   l:=length(atext);
   j:=ACount;
@@ -484,14 +464,10 @@ begin
 end;
 
 
-
-Function MidStr(const AText: WideString; const AStart, ACount: Integer): WideString;
-
+Function MidStr(const AText: WideString; const AStart, ACount: Integer): WideString;inline;
 begin
   Result:=Copy(AText,AStart,ACount);
 end;
-
-
 
 
 { ---------------------------------------------------------------------
@@ -607,19 +583,17 @@ end;
 
 
 
-Function SearchBuf(Buf: PChar; BufLen: Integer; SelStart, SelLength: Integer; SearchString: String): PChar; // ; Options: TStringSearchOptions = [soDown]
-
+Function SearchBuf(Buf: PChar; BufLen: Integer; SelStart, SelLength: Integer; SearchString: String): PChar;inline; // ; Options: TStringSearchOptions = [soDown]
 begin
   Result:=SearchBuf(Buf,BufLen,SelStart,SelLength,SearchString,[soDown]);
 end;
-
 
 
 Function PosEx(const SubStr, S: string; Offset: Cardinal): Integer;
 
 var i : pchar;
 begin
-  if (offset<1) or (offset>length(s)) then exit(0);
+  if (offset<1) or (offset>SizeUInt(length(s))) then exit(0);
   i:=strpos(@s[offset],@substr[1]);
   if i=nil then
     PosEx:=0
@@ -628,21 +602,21 @@ begin
 end;
 
 
-Function PosEx(const SubStr, S: string): Integer; // Offset: Cardinal = 1
-
+Function PosEx(const SubStr, S: string): Integer;inline; // Offset: Cardinal = 1
 begin
   posex:=posex(substr,s,1);
 end;
+
 
 Function PosEx(c:char; const S: string; Offset: Cardinal): Integer;
 
 var l : longint;
 begin
-  if (offset<1) or (offset>length(s)) then exit(0);
+  if (offset<1) or (offset>SizeUInt(length(s))) then exit(0);
   l:=length(s);
 {$ifndef useindexbyte}
-  while (offset<=l) and (s[offset]<>c) do inc(offset);
-  if offset>l then
+  while (SizeInt(offset)<=l) and (s[offset]<>c) do inc(offset);
+  if SizeInt(offset)>l then
    posex:=0
   else
    posex:=offset;
@@ -703,7 +677,7 @@ end;
 
 
 
-Function Soundex(const AText: string): string; // ; ALength: TSoundexLength = 4
+Function Soundex(const AText: string): string;inline; // ; ALength: TSoundexLength = 4
 
 begin
   Result:=Soundex(AText,4);
@@ -736,13 +710,10 @@ begin
 end;
 
 
-
-Function SoundexInt(const AText: string): Integer; //; ALength: TSoundexIntLength = 4
-
+Function SoundexInt(const AText: string): Integer;inline; //; ALength: TSoundexIntLength = 4
 begin
   Result:=SoundexInt(AText,4);
 end;
-
 
 
 Function DecodeSoundexInt(AValue: Integer): string;
@@ -766,7 +737,6 @@ begin
 end;
 
 
-
 Function SoundexWord(const AText: string): Word;
 
 Var
@@ -781,9 +751,7 @@ begin
 end;
 
 
-
 Function DecodeSoundexWord(AValue: Word): string;
-
 begin
   Result := Chr(Ord0+ (AValue mod 7));
   AValue := AValue div 7;
@@ -795,41 +763,31 @@ begin
 end;
 
 
-
-Function SoundexSimilar(const AText, AOther: string; ALength: TSoundexLength): Boolean;
-
+Function SoundexSimilar(const AText, AOther: string; ALength: TSoundexLength): Boolean;inline;
 begin
   Result:=Soundex(AText,ALength)=Soundex(AOther,ALength);
 end;
 
 
-
-Function SoundexSimilar(const AText, AOther: string): Boolean; //; ALength: TSoundexLength = 4
-
+Function SoundexSimilar(const AText, AOther: string): Boolean;inline; //; ALength: TSoundexLength = 4
 begin
   Result:=SoundexSimilar(AText,AOther,4);
 end;
 
 
-
-Function SoundexCompare(const AText, AOther: string; ALength: TSoundexLength): Integer;
-
+Function SoundexCompare(const AText, AOther: string; ALength: TSoundexLength): Integer;inline;
 begin
   Result:=AnsiCompareStr(Soundex(AText,ALength),Soundex(AOther,ALength));
 end;
 
 
-
-Function SoundexCompare(const AText, AOther: string): Integer; //; ALength: TSoundexLength = 4
-
+Function SoundexCompare(const AText, AOther: string): Integer;inline; //; ALength: TSoundexLength = 4
 begin
   Result:=SoundexCompare(AText,AOther,4);
 end;
 
 
-
 Function SoundexProc(const AText, AOther: string): Boolean;
-
 begin
   Result:=SoundexSimilar(AText,AOther);
 end;
@@ -961,15 +919,18 @@ begin
     Result:=Result+StringOfChar(C,N-l);
 end;
 
-function PadRight(const S: string; N: Integer): string;
+
+function PadRight(const S: string; N: Integer): string;inline;
 begin
   Result:=AddCharR(' ',S,N);
 end;
 
-function PadLeft(const S: string; N: Integer): string;
+
+function PadLeft(const S: string; N: Integer): string;inline;
 begin
   Result:=AddChar(' ',S,N);
 end;
+
 
 function Copy2Symb(const S: string; Symb: Char): string;
 
@@ -990,12 +951,12 @@ begin
   S:=TrimRight(Copy(S,Length(Result)+1,Length(S)));
 end;
 
-function Copy2Space(const S: string): string;
+function Copy2Space(const S: string): string;inline;
 begin
   Result:=Copy2Symb(S,' ');
 end;
 
-function Copy2SpaceDel(var S: string): string;
+function Copy2SpaceDel(var S: string): string;inline;
 begin
   Result:=Copy2SymbDel(S,' ');
 end;
@@ -1067,14 +1028,14 @@ begin
     end;
 end;
 
-function ExtractWord(N: Integer; const S: string; const WordDelims: TSysCharSet): string;
 
+function ExtractWord(N: Integer; const S: string; const WordDelims: TSysCharSet): string;inline;
 var
   i: Integer;
-
 begin
   Result:=ExtractWordPos(N,S,WordDelims,i);
 end;
+
 
 function ExtractWordPos(N: Integer; const S: string; const WordDelims: TSysCharSet; var Pos: Integer): string;
 var
@@ -1296,17 +1257,18 @@ const
   Arabics : Array[1..13] of Integer
           = (1,4,5,9,10,40,50,90,100,400,500,900,1000);
   Romans  :  Array[1..13] of String
-          = ('i','iV','V','iX','X','XL','L','XC','C','CD','D','CM','M');
+          = ('I','IV','V','IX','X','XL','L','XC','C','CD','D','CM','M');
 
 var
   i: Integer;
 
 begin
+  Result:='';
   for i:=13 downto 1 do
     while (Value >= Arabics[i]) do
       begin
-      Value:=Value-Arabics[i];
-      Result:=Result+Romans[i];
+        Value:=Value-Arabics[i];
+        Result:=Result+Romans[i];
       end;
 end;
 
@@ -1510,7 +1472,7 @@ end;
 
 Function RPosEX(C:char;const S : AnsiString;offs:cardinal):Integer; overload;
 
-var I   : Integer;
+var I   : SizeUInt;
     p,p2: pChar;
 
 Begin
@@ -1580,7 +1542,7 @@ begin
   rPosex:=0;
   llen:=Length(SubStr);
   maxlen:=length(source);
-  if offs<maxlen then maxlen:=offs;
+  if SizeInt(offs)<maxlen then maxlen:=offs;
   if (llen>0) and (maxlen>0) and ( llen<=maxlen)  then
    begin
 //     i:=maxlen;
