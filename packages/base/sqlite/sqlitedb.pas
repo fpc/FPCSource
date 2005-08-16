@@ -8,7 +8,7 @@ interface
 uses  Classes,strings,sqlite;
 
 type
-  TSQLiteExecCallback = function(Sender: TObject; Columns: Integer; ColumnValues: Pointer; ColumnNames: Pointer): integer of object; cdecl;
+  TSQLiteExecCallback = function(Sender: pointer; Columns: Integer; ColumnValues: ppchar; ColumnNames: ppchar): integer of object; cdecl;
   TSQLiteBusyCallback = function(Sender: TObject; ObjectName: PChar; BusyCount: integer): integer of object; cdecl;
   TOnData = Procedure(Sender: TObject; Columns: Integer; ColumnNames, ColumnValues: String)  of object;
   TOnBusy = Procedure(Sender: TObject; ObjectName: String; BusyCount: integer; var Cancel: Boolean) of object;
@@ -185,14 +185,14 @@ begin
   end;
 end;
 
-function ExecCallback(Sender: TObject; Columns: Integer; ColumnValues: Pointer; ColumnNames: Pointer): integer; cdecl;
+function ExecCallback(Sender: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPchar): integer; cdecl;
 var
   PVal, PName: ^PChar;
   n: integer;
   sVal, sName: String;
 begin
   Result := 0;
-  with Sender as TSQLite do
+  with TObject(Sender) as TSQLite do
   begin
     if (Assigned(fOnData) or Assigned(fTable)) then
     begin
@@ -213,7 +213,7 @@ begin
       sVal := fLstVal.CommaText;
       sName := fLstName.CommaText;
       if Assigned(fOnData) then
-        fOnData(Sender, Columns, sName, sVal);
+        fOnData(TObject(Sender), Columns, sName, sVal);
       if Assigned(fTable) then
       begin
         if fTable.Count = 0 then
