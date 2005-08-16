@@ -50,11 +50,6 @@ Const
 Var
   CurrX,CurrY : Byte;
   OutputRedir, InputRedir : boolean; { is the output/input being redirected (not a TTY) }
-  WinMinX,
-  WinMinY,
-  WinMaxX,
-  WinMaxY : Longint;
-
 
 {*****************************************************************************
                     Some Handy Functions Not in the System.PP
@@ -447,18 +442,18 @@ Function FullWin:boolean;
   Full Screen 80x25? Window(1,1,80,25) is used, allows faster routines
 }
 begin
-  FullWin:=(WinMinX=1) and (WinMinY=1) and
-           (WinMaxX=ScreenWidth) and (WinMaxY=ScreenHeight);
+  FullWin:=(WindMinX=1) and (WindMinY=1) and
+           (WindMaxX=ScreenWidth) and (WindMaxY=ScreenHeight);
 end;
 
 
 procedure LineWrite(const temp:String);
 {
   Write a Line to the screen, doesn't write on 80,25 under Dos
-  the Current CurrX is set to WinMax. NO MEMORY UPDATE!
+  the Current CurrX is set to WindMax. NO MEMORY UPDATE!
 }
 begin
-  CurrX:=WinMaxX+1;
+  CurrX:=WindMaxX+1;
   ttySendStr(Temp);
 end;
 
@@ -580,11 +575,11 @@ Procedure GotoXy(X: Byte; Y: Byte);
   Go to coordinates X,Y in the current window.
 }
 Begin
-  If (X>0) and (X<=WinMaxX- WinMinX+1) and
-     (Y>0) and (Y<=WinMaxY-WinMinY+1) Then
+  If (X>0) and (X<=WindMaxX- WindMinX+1) and
+     (Y>0) and (Y<=WindMaxY-WindMinY+1) Then
    Begin
-     Inc(X,WinMinX-1);
-     Inc(Y,WinMinY-1);
+     Inc(X,WindMinX-1);
+     Inc(Y,WindMinY-1);
      ttyGotoXY(x,y);
    End;
 End;
@@ -599,10 +594,10 @@ Begin
   if (X1>X2) or (X2>ScreenWidth) or
      (Y1>Y2) or (Y2>ScreenHeight) then
    exit;
-  WinMinX:=X1;
-  WinMaxX:=X2;
-  WinMinY:=Y1;
-  WinMaxY:=Y2;
+  WindMinX:=X1;
+  WindMaxX:=X2;
+  WindMinY:=Y1;
+  WindMaxY:=Y2;
   WindMin:=((Y1-1) Shl 8)+(X1-1);
   WindMax:=((Y2-1) Shl 8)+(X2-1);
   GoToXY(1,1);
@@ -640,8 +635,8 @@ Begin
    end
   else
    begin
-     For Cy:=WinMinY To WinMaxY Do
-      DoEmptyLine(Cy,WinMinX,WinMaxX);
+     For Cy:=WindMinY To WindMaxY Do
+      DoEmptyLine(Cy,WindMinX,WindMaxX);
      GoToXY(1,1);
    end;
   ttySetFlush(oldflush);
@@ -664,27 +659,27 @@ Begin
      TextAttr:=OldTextAttr;
      ttyColor(i);
    end;
-  if FullWin or (WinMaxX = ScreenWidth) then
+  if FullWin or (WindMaxX = ScreenWidth) then
    begin
      if not OutputRedir then
       ttySendStr(#27'[K');
    end
   else
    begin
-   { Tweak winmaxx and winmaxy so no scrolling happends }
-     len:=WinMaxX-CurrX+1;
+   { Tweak WindMaxx and WindMaxy so no scrolling happends }
+     len:=WindMaxX-CurrX+1;
      IsLastLine:=false;
-     if CurrY=WinMaxY then
+     if CurrY=WindMaxY then
       begin
-        inc(WinMaxX,3);
-        inc(WinMaxY,2);
+        inc(WindMaxX,3);
+        inc(WindMaxY,2);
         IsLastLine:=true;
       end;
      ttySendStr(Space(len));
      if IsLastLine then
       begin
-        dec(WinMaxX,3);
-        dec(WinMaxY,2);
+        dec(WindMaxX,3);
+        dec(WindMaxY,2);
       end;
      ttyGotoXY(0,0);
    end;
@@ -697,7 +692,7 @@ Function WhereX: Byte;
   Return current X-position of cursor.
 }
 Begin
-  WhereX:=CurrX-WinMinX+1;
+  WhereX:=CurrX-WindMinX+1;
 End;
 
 
@@ -707,7 +702,7 @@ Function WhereY: Byte;
   Return current Y-position of cursor.
 }
 Begin
-  WhereY:=CurrY-WinMinY+1;
+  WhereY:=CurrY-WindMinY+1;
 End;
 
 
@@ -1072,22 +1067,22 @@ End;
 
 procedure DoLn;
 begin
-  if CurrY=WinMaxY then
+  if CurrY=WindMaxY then
    begin
      if FullWin then
       begin
         ttySendStr(#10#13);
-        CurrX:=WinMinX;
-        CurrY:=WinMaxY;
+        CurrX:=WindMinX;
+        CurrY:=WindMaxY;
       end
      else
       begin
-        ScrollScrnRegionUp(WinMinX,WinMinY,WinMaxX,WinMaxY,1);
-        ttyGotoXY(WinMinX,WinMaxY);
+        ScrollScrnRegionUp(WindMinX,WindMinY,WindMaxX,WindMaxY,1);
+        ttyGotoXY(WindMinX,WindMaxY);
       end;
    end
   else
-   ttyGotoXY(WinMinX,CurrY+1);
+   ttyGotoXY(WindMinX,CurrY+1);
 end;
 
 
@@ -1126,7 +1121,7 @@ var
   begin
     while (SendBytes>0) do
      begin
-       LeftX:=WinMaxX-CurrX+1;
+       LeftX:=WindMaxX-CurrX+1;
        if (SendBytes>LeftX) then
         begin
           ttyWrite(Copy(s,i-SendBytes,LeftX));
@@ -1179,10 +1174,10 @@ begin
             'J' : if AnsiPara(AnsiCode)=2 then
                    ClrScr;
             'K' : ClrEol;
-            'A' : GotoXY(CurrX,Max(CurrY-AnsiPara(AnsiCode),WinMinY));
-            'B' : GotoXY(CurrX,Min(CurrY+AnsiPara(AnsiCode),WinMaxY));
-            'C' : GotoXY(Min(CurrX+AnsiPara(AnsiCode),WinMaxX),CurrY);
-            'D' : GotoXY(Max(CurrX-AnsiPara(AnsiCode),WinMinX),CurrY);
+            'A' : GotoXY(CurrX,Max(CurrY-AnsiPara(AnsiCode),WindMinY));
+            'B' : GotoXY(CurrX,Min(CurrY+AnsiPara(AnsiCode),WindMaxY));
+            'C' : GotoXY(Min(CurrX+AnsiPara(AnsiCode),WindMaxX),CurrY);
+            'D' : GotoXY(Max(CurrX-AnsiPara(AnsiCode),WindMinX),CurrY);
             'h' : ; {Stupid Thedraw [?7h Code}
            else
             found:=false;
@@ -1208,7 +1203,7 @@ begin
         case s[i] of
          #13 : begin {CR}
                  SendText;
-                 ttyGotoXY(WinMinX,CurrY);
+                 ttyGotoXY(WindMinX,CurrY);
                end;
          #10 : begin {NL}
                  SendText;
@@ -1382,7 +1377,7 @@ Procedure DelLine;
   Delete current line. Scroll subsequent lines up
 }
 Begin
-  ScrollScrnRegionUp(WinMinX, CurrY, WinMaxX, WinMaxY, 1);
+  ScrollScrnRegionUp(WindMinX, CurrY, WindMaxX, WindMaxY, 1);
 End;
 
 
@@ -1392,7 +1387,7 @@ Procedure InsLine;
   Insert line at current cursor position. Scroll subsequent lines down.
 }
 Begin
-  ScrollScrnRegionDown(WinMinX, CurrY, WinMaxX, WinMaxY, 1);
+  ScrollScrnRegionDown(WindMinX, CurrY, WindMaxX, WindMaxY, 1);
 End;
 
 
@@ -1587,10 +1582,10 @@ Initialization
     (TTYName(TextRec(Input).Handle) <> TTYName(TextRec(Output).Handle)));
 { Get Size of terminal and set WindMax to the window }
   GetConsoleBuf;
-  WinMinX:=1;
-  WinMinY:=1;
-  WinMaxX:=ScreenWidth;
-  WinMaxY:=ScreenHeight;
+  WindMinX:=1;
+  WindMinY:=1;
+  WindMaxX:=ScreenWidth;
+  WindMaxY:=ScreenHeight;
   WindMax:=((ScreenHeight-1) Shl 8)+(ScreenWidth-1);
 {Get Current X&Y or Reset to Home}
   if OutputRedir then
