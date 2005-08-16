@@ -776,94 +776,98 @@ end;
 
 function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;stdcall;
 var
-        frame,
-        res  : longint;
-
-function SysHandleErrorFrame(error, frame : Longint; must_reset_fpu : Boolean) : Longint;
+  res: longint;
+  err: byte;
+  must_reset_fpu: boolean;
 begin
-        if (frame = 0) then
-                SysHandleErrorFrame:=EXCEPTION_CONTINUE_SEARCH
-        else begin
-                if (exceptLevel >= MaxExceptionLevel) then exit;
-
-                exceptEip[exceptLevel] := excep^.ContextRecord^.Eip;
-                exceptError[exceptLevel] := error;
-                resetFPU[exceptLevel] := must_reset_fpu;
-                inc(exceptLevel);
-
-                excep^.ContextRecord^.Eip := Longint(@JumpToHandleErrorFrame);
-                excep^.ExceptionRecord^.ExceptionCode := 0;
-
-                SysHandleErrorFrame := EXCEPTION_CONTINUE_EXECUTION;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-                if IsConsole then begin
-                        writeln(stderr,'Exception Continue Exception set at ',
-                                hexstr(exceptEip[exceptLevel],8));
-                        writeln(stderr,'Eip changed to ',
-                                hexstr(longint(@JumpToHandleErrorFrame),8), ' error=', error);
-                end;
-{$endif SYSTEMEXCEPTIONDEBUG}
+  res := EXCEPTION_CONTINUE_SEARCH;
+  if excep^.ContextRecord^.SegSs=_SS then begin
+    err := 0;
+    must_reset_fpu := true;
+  {$ifdef SYSTEMEXCEPTIONDEBUG}
+    if IsConsole then Writeln(stderr,'Exception  ',
+            hexstr(excep^.ExceptionRecord^.ExceptionCode, 8));
+  {$endif SYSTEMEXCEPTIONDEBUG}
+    case cardinal(excep^.ExceptionRecord^.ExceptionCode) of
+      STATUS_INTEGER_DIVIDE_BY_ZERO,
+      STATUS_FLOAT_DIVIDE_BY_ZERO :
+        err := 200;
+      STATUS_ARRAY_BOUNDS_EXCEEDED :
+        begin
+          err := 201;
+          must_reset_fpu := false;
         end;
-end;
-
-begin
-        if excep^.ContextRecord^.SegSs=_SS then
-                frame := excep^.ContextRecord^.Ebp
+      STATUS_STACK_OVERFLOW :
+        begin
+          err := 202;
+          must_reset_fpu := false;
+        end;
+      STATUS_FLOAT_OVERFLOW :
+        err := 205;
+      STATUS_FLOAT_DENORMAL_OPERAND,
+      STATUS_FLOAT_UNDERFLOW :
+        err := 206;
+  {excep^.ContextRecord^.FloatSave.StatusWord := excep^.ContextRecord^.FloatSave.StatusWord and $ffffff00;}
+      STATUS_FLOAT_INEXACT_RESULT,
+      STATUS_FLOAT_INVALID_OPERATION,
+      STATUS_FLOAT_STACK_CHECK :
+        err := 207;
+      STATUS_INTEGER_OVERFLOW :
+        begin
+          err := 215;
+          must_reset_fpu := false;
+        end;
+      STATUS_ILLEGAL_INSTRUCTION:
+        err := 216;
+      STATUS_ACCESS_VIOLATION:
+        { Athlon prefetch bug? }
+        if is_prefetch(pointer(excep^.ContextRecord^.Eip)) then
+          begin
+            { if yes, then retry }
+            excep^.ExceptionRecord^.ExceptionCode := 0;
+            res:=EXCEPTION_CONTINUE_EXECUTION;
+          end
         else
-                frame := 0;
-        res := EXCEPTION_CONTINUE_SEARCH;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-        if IsConsole then Writeln(stderr,'Exception  ',
-                hexstr(excep^.ExceptionRecord^.ExceptionCode, 8));
-{$endif SYSTEMEXCEPTIONDEBUG}
-        case cardinal(excep^.ExceptionRecord^.ExceptionCode) of
-                STATUS_INTEGER_DIVIDE_BY_ZERO,
-                STATUS_FLOAT_DIVIDE_BY_ZERO :
-                        res := SysHandleErrorFrame(200, frame, true);
-                STATUS_ARRAY_BOUNDS_EXCEEDED :
-                        res := SysHandleErrorFrame(201, frame, false);
-                STATUS_STACK_OVERFLOW :
-                        res := SysHandleErrorFrame(202, frame, false);
-                STATUS_FLOAT_OVERFLOW :
-                        res := SysHandleErrorFrame(205, frame, true);
-                STATUS_FLOAT_DENORMAL_OPERAND,
-                STATUS_FLOAT_UNDERFLOW :
-                        res := SysHandleErrorFrame(206, frame, true);
-{excep^.ContextRecord^.FloatSave.StatusWord := excep^.ContextRecord^.FloatSave.StatusWord and $ffffff00;}
-                STATUS_FLOAT_INEXACT_RESULT,
-                STATUS_FLOAT_INVALID_OPERATION,
-                STATUS_FLOAT_STACK_CHECK :
-                        res := SysHandleErrorFrame(207, frame, true);
-                STATUS_INTEGER_OVERFLOW :
-                        res := SysHandleErrorFrame(215, frame, false);
-                STATUS_ILLEGAL_INSTRUCTION:
-                  res := SysHandleErrorFrame(216, frame, true);
-                STATUS_ACCESS_VIOLATION:
-                  { Athlon prefetch bug? }
-                  if is_prefetch(pointer(excep^.ContextRecord^.Eip)) then
-                    begin
-                      { if yes, then retry }
-                      excep^.ExceptionRecord^.ExceptionCode := 0;
-                      res:=EXCEPTION_CONTINUE_EXECUTION;
-                    end
-                  else
-                    res := SysHandleErrorFrame(216, frame, true);
+          err := 216;
 
-                STATUS_CONTROL_C_EXIT:
-                        res := SysHandleErrorFrame(217, frame, true);
-                STATUS_PRIVILEGED_INSTRUCTION:
-                  res := SysHandleErrorFrame(218, frame, false);
-                else
-                  begin
-                    if ((excep^.ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
-                      res  :=  SysHandleErrorFrame(217, frame, true)
-                    else
-                      res := SysHandleErrorFrame(255, frame, true);
-                  end;
+      STATUS_CONTROL_C_EXIT:
+        err := 217;
+      STATUS_PRIVILEGED_INSTRUCTION:
+        begin
+          err := 218;
+          must_reset_fpu := false;
         end;
-        syswin32_i386_exception_handler := res;
-end;
+      else
+        begin
+          if ((excep^.ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
+            err := 217
+          else
+            err := 255;
+        end;
+    end;
 
+    if (err <> 0) and (exceptLevel < MaxExceptionLevel) then begin
+      exceptEip[exceptLevel] := excep^.ContextRecord^.Eip;
+      exceptError[exceptLevel] := err;
+      resetFPU[exceptLevel] := must_reset_fpu;
+      inc(exceptLevel);
+
+      excep^.ContextRecord^.Eip := Longint(@JumpToHandleErrorFrame);
+      excep^.ExceptionRecord^.ExceptionCode := 0;
+
+      res := EXCEPTION_CONTINUE_EXECUTION;
+    {$ifdef SYSTEMEXCEPTIONDEBUG}
+      if IsConsole then begin
+        writeln(stderr,'Exception Continue Exception set at ',
+                hexstr(exceptEip[exceptLevel],8));
+        writeln(stderr,'Eip changed to ',
+                hexstr(longint(@JumpToHandleErrorFrame),8), ' error=', error);
+      end;
+    {$endif SYSTEMEXCEPTIONDEBUG}
+    end;
+  end;
+  syswin32_i386_exception_handler := res;
+end;
 
 procedure install_exception_handlers;
 {$ifdef SYSTEMEXCEPTIONDEBUG}
