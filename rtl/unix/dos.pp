@@ -54,7 +54,10 @@ Procedure AddDisk(const path:string);
 Implementation
 
 Uses
-  Strings,Unix,BaseUnix,{$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF};
+  UnixUtil, // tzSeconds
+  Strings,
+  Unix,
+  BaseUnix,{$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF};
 
 {$DEFINE HAS_GETMSCOUNT}
 
