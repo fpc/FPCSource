@@ -41,15 +41,10 @@ begin
     Result:=0;
 end;
 
-function DoEncodeTime(Hour, Minute, Second, MilliSecond: word): longint;
-
-Var
-  T : TDateTime;
+function DoEncodeTime(Hour, Minute, Second, MilliSecond: word): TDateTime;
 
 begin
-  If TryEncodeTime(Hour,Minute,Second,MilliSecond,T) then
-    Result:=trunc(T*MSecsPerDay)
-  else
+  If not TryEncodeTime(Hour,Minute,Second,MilliSecond,Result) then
     Result:=0;
 end;
 
@@ -209,7 +204,7 @@ end ;
 function SystemTimeToDateTime(const SystemTime: TSystemTime): TDateTime;
 begin
   result := DoEncodeDate(SystemTime.Year, SystemTime.Month, SystemTime.Day) +
-            DoEncodeTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond) / MSecsPerDay;
+            DoEncodeTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond);
 end ;
 
 {   DayOfWeek returns the Day of the week (sunday is day 1)  }
@@ -236,7 +231,7 @@ var
   SystemTime: TSystemTime;
 begin
   GetLocalTime(SystemTime);
-  Result := DoEncodeTime(SystemTime.Hour,SystemTime.Minute,SystemTime.Second,SystemTime.MilliSecond) / MSecsPerDay;
+  Result := DoEncodeTime(SystemTime.Hour,SystemTime.Minute,SystemTime.Second,SystemTime.MilliSecond);
 end ;
 
 {   Now returns the current Date and Time    }
@@ -247,7 +242,7 @@ var
 begin
   GetLocalTime(SystemTime);
   result := DoEncodeDate(SystemTime.Year,SystemTime.Month,SystemTime.Day) +
-            DoEncodeTime(SystemTime.Hour,SystemTime.Minute,SystemTime.Second,SystemTime.MilliSecond) / MSecsPerDay;
+            DoEncodeTime(SystemTime.Hour,SystemTime.Minute,SystemTime.Second,SystemTime.MilliSecond);
 end ;
 
 {   IncMonth increments DateTime with NumberOfMonths months,
