@@ -187,7 +187,8 @@ unit cpupara;
                           { cdecl array of const need to be ignored and therefor be puhsed
                             as value parameter with length 0 }
                           (calloption in [pocall_cdecl,pocall_cppdecl]) and
-                          is_array_of_const(def)
+                          (is_array_of_const(def) or
+                           is_dynamic_array(def))
                          );
             end;
           objectdef :

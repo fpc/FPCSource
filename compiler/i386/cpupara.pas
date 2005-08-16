@@ -161,9 +161,11 @@ unit cpupara;
                  (tarraydef(def).highrange>=tarraydef(def).lowrange) then
                 result:=false
               else
-              { array of const values are pushed on the stack }
+              { array of const values are pushed on the stack as
+                well as dyn. arrays }
                 if (calloption in [pocall_cdecl,pocall_cppdecl]) then
-                  result:=not is_array_of_const(def)
+                  result:=not(is_array_of_const(def) or
+                    is_dynamic_array(def))
               else
                 begin
                   result:=(

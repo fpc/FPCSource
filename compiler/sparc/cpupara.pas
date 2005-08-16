@@ -117,11 +117,15 @@ implementation
             exit;
           end;
         case def.deftype of
+          arraydef:
+            result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
+                             is_open_array(def) or
+                             is_array_of_const(def) or
+                             is_array_constructor(def);
           recorddef,
-          arraydef,
           variantdef,
           formaldef :
-            push_addr_param:=true;
+            result:=true;
           objectdef :
             result:=is_object(def);
           stringdef :
