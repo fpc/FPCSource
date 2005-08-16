@@ -39,7 +39,7 @@ begin
     else
       begin
         writeln('getmem() was successful');
-        freemem(l,storage);
+//        freemem(l,storage);
       end;
   until (done);
   domem(mem);
