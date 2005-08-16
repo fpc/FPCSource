@@ -288,4 +288,6 @@ implementation
           end;
       end;
 
+begin
+  ctypeconvnode:=tx86typeconvnode
 end.
