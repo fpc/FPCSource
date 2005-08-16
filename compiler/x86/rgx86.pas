@@ -146,7 +146,7 @@ implementation
                            (getsupreg(oper[1]^.reg)=orgreg) then
                           replaceoper:=1
                       else
-                        internalerror(200410101);
+                        internalerror(200410106);
                       case replaceoper of
                         0 :
                           begin
