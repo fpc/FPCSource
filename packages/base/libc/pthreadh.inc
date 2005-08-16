@@ -66,6 +66,7 @@ Type
   
   
 
+procedure __pthread_initialize;cdecl;external threadslib name '__pthread_initialize';
 function pthread_create(__thread:Ppthread_t; __attr:Ppthread_attr_t; __start_routine:TStartRoutine; __arg:pointer):longint;cdecl;external threadslib name 'pthread_create';
 function pthread_self:pthread_t;cdecl;external threadslib name 'pthread_self';
 function pthread_equal(__thread1:pthread_t; __thread2:pthread_t):longint;cdecl;external threadslib name 'pthread_equal';

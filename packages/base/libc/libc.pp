@@ -1,4 +1,5 @@
 {$mode objfpc}
+{$inline on}
 {$h+}
 unit libc;
 
