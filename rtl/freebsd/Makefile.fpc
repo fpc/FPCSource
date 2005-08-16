@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings syscall sysctl  baseun
       $(CPU_UNITS) charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets ipc terminfo \
       video mouse keyboard console serial dateutils \
-      sysconst cthreads strutils convutils dos objects
+      sysconst cthreads strutils convutils dos objects cwstring
 
 rsts=math varutils typinfo classes variants dateutils sysconst
 
@@ -280,3 +280,5 @@ ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
 variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) math$(PPUEXT)
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp
+
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)

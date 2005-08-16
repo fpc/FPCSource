@@ -25,10 +25,9 @@ implementation
 
 {$linklib c}
 
-{$ifdef bsd}
+{$ifndef linux}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
 {$linklib iconv}
-{$endif bsd}
-
+{$endif linux}
 
 Uses
   BaseUnix,
@@ -38,6 +37,12 @@ Uses
   sysutils,
   initc;
 
+Const
+{$ifdef Linux}
+    libiconvname='c';  // is in libc under Linux.
+{$else}
+    libiconvname='iconv';
+{$endif}
 
 { Case-mapping "arrays" }
 var
@@ -46,13 +51,12 @@ var
   WideUpperChars: WideString; // 1..65535
   WideLowerChars: WideString; // 1..65535
 
-
 { the following declarations are from the libc unit for linux so they
   might be very linux centric
   maybe this needs to be splitted in an os depend way later }
-function towlower(__wc:wint_t):wint_t;cdecl;external;
-function towupper(__wc:wint_t):wint_t;cdecl;external;
-function wcscoll(__s1:pwchar_t; __s2:pwchar_t):longint;cdecl;external;
+function towlower(__wc:wint_t):wint_t;cdecl;external libiconvname name 'towlower';
+function towupper(__wc:wint_t):wint_t;cdecl;external libiconvname name 'towupper';
+function wcscoll (__s1:pwchar_t; __s2:pwchar_t):cint;cdecl;external libiconvname name 'wcscoll';
 
 const
 {$ifdef linux}
@@ -64,7 +68,12 @@ const
 {$ifdef darwin}
   CODESET = 0;
 {$else darwin}
+{$ifdef FreeBSD} // actually FreeBSD5. internationalisation is afaik not default on 4.
+  CODESET = 0;
+{$else freebsd}
 {$error lookup the value of CODESET in /usr/include/langinfo.h for your OS }
+// and while doing it, check if iconv is in libc, and if the symbols are prefixed with iconv_ or libiconv_
+{$endif FreeBSD}
 {$endif darwin}
 {$endif linux}
 
@@ -78,12 +87,18 @@ const
 type
   piconv_t = ^iconv_t;
   iconv_t = pointer;
-  nl_item = longint;
+  nl_item = cint;
 
-function nl_langinfo(__item:nl_item):pchar;cdecl;external;
-function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external;
-function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external;
-function iconv_close(__cd:iconv_t):longint;cdecl;external;
+function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
+{$ifndef Darwin}
+function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
+function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
+function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'iconv_close';
+{$else}
+function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'libiconv_open';
+function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'libiconv';
+function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'libiconv_close';
+{$endif}
 
 var
   iconv_ansi2wide,
