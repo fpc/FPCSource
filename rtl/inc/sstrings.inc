@@ -57,7 +57,7 @@ end;
 
 procedure insert(const source : shortstring;var s : shortstring;index : SizeInt);
 var
-  cut,srclen,indexlen : longint;
+  cut,srclen,indexlen : SizeInt;
 begin
   if index<1 then
    index:=1;
@@ -65,9 +65,9 @@ begin
    index:=length(s)+1;
   indexlen:=Length(s)-Index+1;
   srclen:=length(Source);
-  if length(source)+length(s)>=sizeof(s) then
+  if SizeInt(length(source)+length(s))>=sizeof(s) then
    begin
-     cut:=length(source)+length(s)-sizeof(s)+1;
+     cut:=SizeInt(length(source)+length(s))-sizeof(s)+1;
      if cut>indexlen then
       begin
         dec(srclen,cut-indexlen);
@@ -84,7 +84,7 @@ end;
 
 procedure insert(source : Char;var s : shortstring;index : SizeInt);
 var
-  indexlen : longint;
+  indexlen : SizeInt;
 begin
   if index<1 then
    index:=1;

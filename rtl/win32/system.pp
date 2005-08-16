@@ -36,7 +36,7 @@ const
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 65535;
  MaxPathLen = 260;
- 
+
 type
    PEXCEPTION_FRAME = ^TEXCEPTION_FRAME;
    TEXCEPTION_FRAME = record
@@ -110,6 +110,19 @@ type
   HMODULE = THandle;
 
 implementation
+
+{ used by wstrings.inc because wstrings.inc is included before sysos.inc
+  this is put here (FK) }
+
+function SysAllocStringLen(psz:pointer;len:dword):pointer;stdcall;
+ external 'oleaut32.dll' name 'SysAllocStringLen';
+
+procedure SysFreeString(bstr:pointer);stdcall;
+ external 'oleaut32.dll' name 'SysFreeString';
+
+function SysReAllocStringLen(var bstr:pointer;psz: pointer;
+  len:dword): Integer; stdcall;external 'oleaut32.dll' name 'SysReAllocStringLen';
+
 
 { include system independent routines }
 {$I system.inc}
