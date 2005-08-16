@@ -31,9 +31,6 @@ interface
 
 
     type
-{$ifdef ver1_0}
-       ptrint = longint;
-{$endif ver1_0}
        pstring = ^string;
        get_var_value_proc=function(const s:string):string of object;
        Tcharset=set of char;
@@ -969,10 +966,6 @@ uses
 {*****************************************************************************
                                GetSpeedValue
 *****************************************************************************}
-
-{$ifdef ver1_0}
-  {$R-}
-{$endif}
 
     var
       Crc32Tbl : array[0..255] of cardinal;

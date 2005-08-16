@@ -117,14 +117,9 @@ implementation
       type
         tdummyarray = packed array[0..7] of byte;
 
-{$ifdef VER1_0}
-      var
-        dummy1, dummy2: int64;
-{$else VER1_0}
       const
          dummy1: int64 = $4330000080000000;
          dummy2: int64 = $4330000000000000;
-{$endif VER1_0}
 
       var
         tempconst: trealconstnode;
@@ -133,11 +128,6 @@ implementation
         size: tcgsize;
         signed : boolean;
       begin
-{$ifdef VER1_0}
-        dummy1 := (int64(1) shl 31) or (int64($43300000) shl 32);
-        dummy2 := int64($43300000) shl 32;
-{$endif VER1_0}
-
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
 
         { the code here comes from the PowerPC Compiler Writer's Guide }

@@ -89,6 +89,68 @@ unit i_linux;
             abi : abi_default
           );
 
+       system_x86_6432_linux_info : tsysteminfo =
+          (
+            system       : system_x86_6432_LINUX;
+            name         : 'Linux for x64_6432';
+            shortname    : 'Linux6432';
+            flags        : [tf_needs_symbol_size,tf_pic_uses_got{,tf_smartlink_sections}];
+            cpu          : cpu_x86_64;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            p_ext_support : false;
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
+            assem        : as_i386_elf32;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 16;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 8;
+                localalignmin   : 4;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 262144;
+            DllScanSupported:false;
+            use_function_relative_addresses : true;
+            abi : abi_default
+          );
+
        system_m68k_linux_info : tsysteminfo =
           (
             system       : system_m68k_linux;

@@ -111,7 +111,13 @@ interface
              system_i386_watcom,        { 32 }
              system_powerpc_MorphOS,    { 33 }
              system_x86_64_freebsd,     { 34 }
-             system_i386_netwlibc       { 35 }
+             system_i386_netwlibc,      { 35 }
+             system_powerpc_Amiga,      { 36 }
+             system_x86_64_win64,       { 37 }
+             system_arm_wince,          { 38 }
+             system_ia64_win64,         { 39 }
+             system_i386_wince,         { 40 }
+             system_x86_6432_linux      { 41 }
        );
 
        tasm = (as_none
