@@ -856,36 +856,36 @@
   ),
   (
     opcode  : A_CALL;
-    ops     : 1;
-    optypes : (ot_immediate or ot_immediate,ot_none,ot_none);
+    ops     : 2;
+    optypes : (ot_immediate,ot_immediate,ot_none);
     code    : #211#1#154#29#24;
     flags   : if_8086
   ),
   (
     opcode  : A_CALL;
-    ops     : 1;
-    optypes : (ot_immediate or ot_bits16 or ot_immediate,ot_none,ot_none);
+    ops     : 2;
+    optypes : (ot_immediate or ot_bits16,ot_immediate,ot_none);
     code    : #208#1#154#25#24;
     flags   : if_8086
   ),
   (
     opcode  : A_CALL;
-    ops     : 1;
-    optypes : (ot_immediate or ot_immediate or ot_bits16,ot_none,ot_none);
+    ops     : 2;
+    optypes : (ot_immediate,ot_immediate or ot_bits16,ot_none);
     code    : #208#1#154#25#24;
     flags   : if_8086
   ),
   (
     opcode  : A_CALL;
-    ops     : 1;
-    optypes : (ot_immediate or ot_bits32 or ot_immediate,ot_none,ot_none);
+    ops     : 2;
+    optypes : (ot_immediate or ot_bits32,ot_immediate,ot_none);
     code    : #209#1#154#33#24;
     flags   : if_386
   ),
   (
     opcode  : A_CALL;
-    ops     : 1;
-    optypes : (ot_immediate or ot_immediate or ot_bits32,ot_none,ot_none);
+    ops     : 2;
+    optypes : (ot_immediate,ot_immediate or ot_bits32,ot_none);
     code    : #209#1#154#33#24;
     flags   : if_386
   ),
@@ -3362,36 +3362,22 @@
   ),
   (
     opcode  : A_JMP;
-    ops     : 1;
-    optypes : (ot_immediate or ot_immediate,ot_none,ot_none);
+    ops     : 2;
+    optypes : (ot_immediate,ot_immediate,ot_none);
     code    : #211#1#234#29#24;
     flags   : if_8086
   ),
   (
     opcode  : A_JMP;
-    ops     : 1;
-    optypes : (ot_immediate or ot_bits16 or ot_immediate,ot_none,ot_none);
+    ops     : 2;
+    optypes : (ot_immediate,ot_immediate or ot_bits16,ot_none);
     code    : #208#1#234#25#24;
     flags   : if_8086
   ),
   (
     opcode  : A_JMP;
-    ops     : 1;
-    optypes : (ot_immediate or ot_immediate or ot_bits16,ot_none,ot_none);
-    code    : #208#1#234#25#24;
-    flags   : if_8086
-  ),
-  (
-    opcode  : A_JMP;
-    ops     : 1;
-    optypes : (ot_immediate or ot_bits32 or ot_immediate,ot_none,ot_none);
-    code    : #209#1#234#33#24;
-    flags   : if_386
-  ),
-  (
-    opcode  : A_JMP;
-    ops     : 1;
-    optypes : (ot_immediate or ot_immediate or ot_bits32,ot_none,ot_none);
+    ops     : 2;
+    optypes : (ot_immediate,ot_immediate or ot_bits32,ot_none);
     code    : #209#1#234#33#24;
     flags   : if_386
   ),
@@ -4528,6 +4514,13 @@
     optypes : (ot_reg32,ot_regmem or ot_bits16,ot_none);
     code    : #209#193#2#15#191#72;
     flags   : if_386
+  ),
+  (
+    opcode  : A_MOVSX;
+    ops     : 2;
+    optypes : (ot_reg64,ot_regmem or ot_bits16,ot_none);
+    code    : #209#193#2#15#191#72;
+    flags   : if_x86_64
   ),
   (
     opcode  : A_MOVZX;
