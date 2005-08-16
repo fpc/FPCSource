@@ -597,7 +597,7 @@ implementation
                     end;
                   pointerdef :
                     begin
-                      if not is_pchar(para.left.resulttype.def) then
+                      if (not is_pchar(para.left.resulttype.def)) or do_read then
                         begin
                           CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
                           error_para := true;
