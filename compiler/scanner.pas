@@ -1063,11 +1063,15 @@ implementation
 
         function findincludefile(const path,name,ext:string;var foundfile:string):boolean;
         var
-          found : boolean;
-          hpath : string;
+          found  : boolean;
+          hpath  : string;
+
         begin
          { look for the include file
-            1. specified path,path of current inputfile,current dir
+	   If path was specified as part of {$I } then
+	    1. specified path (expanded with path of inputfile if relative)
+           else
+            1. path of current inputfile,current dir
             2. local includepath
             3. global includepath }
            found:=false;
@@ -1078,15 +1082,18 @@ implementation
                if not path_absolute(path) then
                  hpath:=current_scanner.inputfile.path^+path
                else
-                 hpath:=path+';'+current_scanner.inputfile.path^;
+                 hpath:=path;
+               found:=FindFile(name+ext, hpath,foundfile);
              end
            else
-             hpath:=current_scanner.inputfile.path^;
-           found:=FindFile(name+ext, hpath+';'+CurDirRelPath(source_info),foundfile);
-           if (not found) then
-            found:=current_module.localincludesearchpath.FindFile(name+ext,foundfile);
-           if (not found) then
-            found:=includesearchpath.FindFile(name+ext,foundfile);
+             begin
+               hpath:=current_scanner.inputfile.path^+';'+CurDirRelPath(source_info);
+               found:=FindFile(name+ext, hpath,foundfile);
+               if not found then
+                 found:=current_module.localincludesearchpath.FindFile(name+ext,foundfile);
+               if not found  then
+                 found:=includesearchpath.FindFile(name+ext,foundfile);
+             end;
            findincludefile:=found;
         end;
 
@@ -1176,7 +1183,9 @@ implementation
                hp:=do_openinputfile(foundfile);
                current_scanner.addfile(hp);
                current_module.sourcefiles.register_file(hp);
-               if not current_scanner.openinputfile then
+               if (not found) then
+                Message1(scan_f_cannot_open_includefile,hs);
+              if (not current_scanner.openinputfile) then
                 Message1(scan_f_cannot_open_includefile,hs);
                Message1(scan_t_start_include_file,current_scanner.inputfile.path^+current_scanner.inputfile.name^);
                current_scanner.reload;
