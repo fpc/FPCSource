@@ -364,12 +364,13 @@ var
     begin
       if not assigned(p) then
        exit;
+
       last_align := 2;
       InlineLevel:=0;
-      { lineinfo is only needed for codesegment (PFV) }
+      { lineinfo is only needed for al_code (PFV) }
       do_line:=(cs_asm_source in aktglobalswitches) or
                ((cs_lineinfo in aktmoduleswitches)
-                 and (p=asmlist[codesegment]));
+                 and (p=asmlist[al_code]));
       hp:=tai(p.first);
       while assigned(hp) do
        begin
@@ -935,7 +936,7 @@ var
 {$ifdef GDB}
       fileinfo : tfileposinfo;
 {$endif GDB}
-
+      hal : tasmlist;
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
@@ -981,23 +982,13 @@ var
       AsmStartSize:=AsmSize;
       symendcount:=0;
 
-      If (cs_debuginfo in aktmoduleswitches) then
-        WriteTree(asmlist[debuglist]);
-      WriteTree(asmlist[codesegment]);
-      WriteTree(asmlist[datasegment]);
-      WriteTree(asmlist[consts]);
-      WriteTree(asmlist[rttilist]);
-      WriteTree(asmlist[picdata]);
-      Writetree(asmlist[resourcestrings]);
-      WriteTree(asmlist[bsssegment]);
-      WriteTree(asmlist[threadvarsegment]);
-      Writetree(asmlist[importsection]);
-      { exports are written by DLLTOOL
-        if we use it so don't insert it twice (PM) }
-      if not UseDeffileForExports and assigned(asmlist[exportsection]) then
-        Writetree(asmlist[exportsection]);
-      Writetree(asmlist[resourcesection]);
-      Writetree(asmlist[dwarflist]);
+      for hal:=low(Tasmlist) to high(Tasmlist) do
+        begin
+          AsmWriteLn(target_asm.comment+'Begin asmlist '+TasmlistStr[hal]);
+          writetree(asmlist[hal]);
+          AsmWriteLn(target_asm.comment+'End asmlist '+TasmlistStr[hal]);
+        end;
+
       {$ifdef GDB}
       WriteFileEndInfo;
       {$ENDIF}

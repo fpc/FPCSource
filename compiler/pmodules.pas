@@ -84,10 +84,10 @@ implementation
            { Recreate import section }
            if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
             begin
-              if assigned(asmlist[importsection]) then
-               asmlist[importsection].clear
+              if assigned(asmlist[al_imports]) then
+               asmlist[al_imports].clear
               else
-               asmlist[importsection]:=taasmoutput.Create;
+               asmlist[al_imports]:=taasmoutput.Create;
               importlib.generatelib;
             end;
            { Readd the not processed files }
@@ -106,10 +106,10 @@ implementation
         if (cs_create_smart in aktmoduleswitches) then
          begin
            { regenerate the importssection for win32 }
-           if assigned(asmlist[importsection]) and
+           if assigned(asmlist[al_imports]) and
               (target_info.system in [system_i386_win32,system_i386_wdosx, system_arm_wince,system_i386_wince]) then
             begin
-              asmlist[importsection].clear;
+              asmlist[al_imports].clear;
               importlib.generatesmartlib;
             end;
 
@@ -139,11 +139,11 @@ implementation
 
     procedure create_dwarf;
       begin
-        asmlist[dwarflist]:=taasmoutput.create;
+        asmlist[al_dwarf]:=taasmoutput.create;
         { Call frame information }
         if (tf_needs_dwarf_cfi in target_info.flags) and
            (af_supports_dwarf in target_asm.flags) then
-          dwarfcfi.generate_code(asmlist[dwarflist]);
+          dwarfcfi.generate_code(asmlist[al_dwarf]);
       end;
 
 
@@ -160,32 +160,34 @@ implementation
            then
          begin
            { align the first data }
-           asmlist[datasegment].insert(Tai_align.Create(const_align(32)));
-           asmlist[datasegment].insert(Tai_string.Create('FPC '+full_version_string+
+           asmlist[al_data].insert(Tai_align.Create(const_align(32)));
+           asmlist[al_data].insert(Tai_string.Create('FPC '+full_version_string+
              ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
          end;
         { align code segment }
-        asmlist[codesegment].concat(Tai_align.create(aktalignment.procalign));
+        asmlist[al_code].concat(Tai_align.create(aktalignment.procalign));
         { Insert start and end of sections }
-        fixseg(asmlist[codesegment],sec_code,'____seg_code');
-        fixseg(asmlist[datasegment],sec_data,'____seg_data');
-        fixseg(asmlist[bsssegment],sec_bss,'____seg_bss');
-        fixseg(asmlist[threadvarsegment],sec_bss,'____seg_tbss');
+        fixseg(asmlist[al_code],sec_code,'____seg_code');
+        fixseg(asmlist[al_data],sec_data,'____seg_data');
+        fixseg(asmlist[al_rodata],sec_rodata,'____seg_rodata');
+        fixseg(asmlist[al_bss],sec_bss,'____seg_bss');
+        fixseg(asmlist[al_threadvars],sec_bss,'____seg_tbss');
         { we should use .rdata section for these two no ?
           .rdata is a read only data section (PM) }
-        fixseg(asmlist[rttilist],sec_data,'____seg_rtti');
-        fixseg(asmlist[consts],sec_data,'____seg_consts');
-        fixseg(asmlist[picdata],sec_data,'____seg_picdata');
-        if assigned(asmlist[aasmtai.resourcestrings]) then
-          fixseg(asmlist[aasmtai.resourcestrings],sec_data,'____seg_resstrings');
+        fixseg(asmlist[al_rtti],sec_data,'____seg_rtti');
+        fixseg(asmlist[al_typedconsts],sec_data,'____seg_consts');
+        fixseg(asmlist[al_rotypedconsts],sec_rodata,'____seg_consts');
+        fixseg(asmlist[al_picdata],sec_data,'____seg_al_picdata');
+        if assigned(asmlist[aasmtai.al_resourcestrings]) then
+          fixseg(asmlist[aasmtai.al_resourcestrings],sec_data,'____seg_resstrings');
 {$ifdef GDB}
-        if assigned(asmlist[debuglist]) then
+        if assigned(asmlist[al_debug]) then
           begin
             oldaktfilepos:=aktfilepos;
             aktfilepos.line:=0;
-            asmlist[debuglist].insert(Tai_symbol.Createname('gcc2_compiled',AT_DATA,0));
-            asmlist[debuglist].insert(Tai_symbol.Createname('fpc_compiled',AT_DATA,0));
-            fixseg(asmlist[debuglist],sec_code,'____seg_debug');
+            asmlist[al_debug].insert(Tai_symbol.Createname('gcc2_compiled',AT_DATA,0));
+            asmlist[al_debug].insert(Tai_symbol.Createname('fpc_compiled',AT_DATA,0));
+            fixseg(asmlist[al_debug],sec_code,'____seg_debug');
             aktfilepos:=oldaktfilepos;
           end;
 {$endif GDB}
@@ -222,8 +224,8 @@ implementation
         ltvTables.insert(Tai_align.Create(const_align(sizeof(aint))));
         ltvTables.concat(Tai_symbol_end.Createname('FPC_THREADVARTABLES'));
         { insert in data segment }
-        maybe_new_object_file(asmlist[datasegment]);
-        asmlist[datasegment].concatlist(ltvTables);
+        maybe_new_object_file(asmlist[al_data]);
+        asmlist[al_data].concatlist(ltvTables);
         ltvTables.free;
       end;
 
@@ -260,8 +262,8 @@ implementation
             ltvTable.insert(Tai_align.Create(const_align(32)));
             ltvTable.concat(tai_const.create_sym(nil));  { end of list marker }
             ltvTable.concat(tai_symbol_end.createname(s));
-            maybe_new_object_file(asmlist[datasegment]);
-            asmlist[datasegment].concatlist(ltvTable);
+            maybe_new_object_file(asmlist[al_data]);
+            asmlist[al_data].concatlist(ltvTable);
             current_module.flags:=current_module.flags or uf_threadvars;
           end;
          ltvTable.Free;
@@ -288,7 +290,7 @@ implementation
            hp:=tused_unit(hp.next);
          end;
         { Add program resources, if any }
-        if asmlist[aasmtai.resourcestrings]<>nil then
+        if asmlist[aasmtai.al_resourcestrings]<>nil then
          begin
            ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),AT_DATA,0));
            Inc(Count);
@@ -299,8 +301,8 @@ implementation
         ResourceStringTables.insert(Tai_align.Create(const_align(4)));
         ResourceStringTables.concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
         { insert in data segment }
-        maybe_new_object_file(asmlist[datasegment]);
-        asmlist[datasegment].concatlist(ResourceStringTables);
+        maybe_new_object_file(asmlist[al_data]);
+        asmlist[al_data].concatlist(ResourceStringTables);
         ResourceStringTables.free;
       end;
 
@@ -351,8 +353,8 @@ implementation
         unitinits.insert(Tai_align.Create(const_align(4)));
         unitinits.concat(Tai_symbol_end.Createname('INITFINAL'));
         { insert in data segment }
-        maybe_new_object_file(asmlist[datasegment]);
-        asmlist[datasegment].concatlist(unitinits);
+        maybe_new_object_file(asmlist[al_data]);
+        asmlist[al_data].concatlist(unitinits);
         unitinits.free;
       end;
 
@@ -360,11 +362,11 @@ implementation
     procedure insertmemorysizes;
       begin
         { stacksize can be specified and is now simulated }
-        asmlist[datasegment].concat(Tai_align.Create(const_align(4)));
-        asmlist[datasegment].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,4));
-        asmlist[datasegment].concat(Tai_const.Create_32bit(stacksize));
-        asmlist[datasegment].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,4));
-        asmlist[datasegment].concat(Tai_const.Create_32bit(heapsize));
+        asmlist[al_data].concat(Tai_align.Create(const_align(4)));
+        asmlist[al_data].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,4));
+        asmlist[al_data].concat(Tai_const.Create_32bit(stacksize));
+        asmlist[al_data].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,4));
+        asmlist[al_data].concat(Tai_const.Create_32bit(heapsize));
       end;
 
 
@@ -659,14 +661,14 @@ implementation
                    dependent stabs }
                  write_used_unit_type_info(pu.u);
                  if assigned(pu.u.globalsymtable) then
-                   tglobalsymtable(pu.u.globalsymtable).concattypestabto(asmlist[debuglist]);
+                   tglobalsymtable(pu.u.globalsymtable).concattypestabto(asmlist[al_debug]);
                end;
              pu:=tused_unit(pu.next);
            end;
        end;
 
       var
-        vardebuglist : taasmoutput;
+        varal_debug : taasmoutput;
         storefilepos : tfileposinfo;
       begin
         if not (cs_debuginfo in aktmoduleswitches) then
@@ -678,37 +680,37 @@ implementation
         if current_module.is_unit then
           begin
             current_module.flags:=current_module.flags or uf_has_debuginfo;
-            asmlist[debuglist].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.globalsymtable,''),AT_DATA,0));
+            asmlist[al_debug].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.globalsymtable,''),AT_DATA,0));
           end
         else
-          asmlist[debuglist].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
+          asmlist[al_debug].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
         { first write all global/local symbols again to a temp list. This will flag
           all required tdefs. After that the temp list can be removed since the debuginfo is already
           written to the stabs when the variables/consts were written }
 {$warning Hack to get all needed types}
-        vardebuglist:=taasmoutput.create;
-        new_section(vardebuglist,sec_data,'',0);
+        varal_debug:=taasmoutput.create;
+        new_section(varal_debug,sec_data,'',0);
         if assigned(current_module.globalsymtable) then
-          tglobalsymtable(current_module.globalsymtable).concatstabto(vardebuglist);
+          tglobalsymtable(current_module.globalsymtable).concatstabto(varal_debug);
         if assigned(current_module.localsymtable) then
-          tstaticsymtable(current_module.localsymtable).concatstabto(vardebuglist);
-        vardebuglist.free;
+          tstaticsymtable(current_module.localsymtable).concatstabto(varal_debug);
+        varal_debug.free;
         { reset unit type info flag }
         reset_unit_type_info;
         { write used types from the used units }
         write_used_unit_type_info(current_module);
         { last write the types from this unit }
         if assigned(current_module.globalsymtable) then
-          tglobalsymtable(current_module.globalsymtable).concattypestabto(asmlist[debuglist]);
+          tglobalsymtable(current_module.globalsymtable).concattypestabto(asmlist[al_debug]);
         if assigned(current_module.localsymtable) then
-          tstaticsymtable(current_module.localsymtable).concattypestabto(asmlist[debuglist]);
+          tstaticsymtable(current_module.localsymtable).concattypestabto(asmlist[al_debug]);
         { include files }
         if (cs_gdb_dbx in aktglobalswitches) then
           begin
-            asmlist[debuglist].concat(tai_comment.Create(strpnew('EINCL of global '+
+            asmlist[al_debug].concat(tai_comment.Create(strpnew('EINCL of global '+
               tglobalsymtable(current_module.globalsymtable).name^+' has index '+
               tostr(tglobalsymtable(current_module.globalsymtable).moduleid))));
-            asmlist[debuglist].concat(Tai_stabs.Create(strpnew('"'+
+            asmlist[al_debug].concat(Tai_stabs.Create(strpnew('"'+
               tglobalsymtable(current_module.globalsymtable).name^+'",'+
               tostr(N_EINCL)+',0,0,0')));
             tglobalsymtable(current_module.globalsymtable).dbx_count_ok:={true}false;
@@ -910,14 +912,14 @@ implementation
       begin
         is_assembler_generated:=(Errorcount=0) and
           not(
-          asmlist[codesegment].empty and
-          asmlist[datasegment].empty and
-          asmlist[bsssegment].empty and
-          asmlist[threadvarsegment].empty and
-          asmlist[rttilist].empty and
-          ((asmlist[importsection]=nil) or asmlist[importsection].empty) and
-          ((asmlist[resourcesection]=nil) or asmlist[resourcesection].empty) and
-          ((asmlist[aasmtai.resourcestrings]=nil) or asmlist[aasmtai.resourcestrings].empty)
+          asmlist[al_code].empty and
+          asmlist[al_data].empty and
+          asmlist[al_bss].empty and
+          asmlist[al_threadvars].empty and
+          asmlist[al_rtti].empty and
+          ((asmlist[al_imports]=nil) or asmlist[al_imports].empty) and
+          ((asmlist[al_resources]=nil) or asmlist[al_resources].empty) and
+          ((asmlist[aasmtai.al_resourcestrings]=nil) or asmlist[aasmtai.al_resourcestrings].empty)
         );
       end;
 
@@ -1201,13 +1203,13 @@ implementation
          consume(_POINT);
 
          { Generate resoucestrings }
-         If ResourceStrings.ResStrCount>0 then
+         If al_resourcestrings.ResStrCount>0 then
           begin
-            ResourceStrings.CreateResourceStringList;
+            al_resourcestrings.CreateResourceStringList;
             current_module.flags:=current_module.flags or uf_has_resources;
             { only write if no errors found }
             if (Errorcount=0) then
-             ResourceStrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
+             al_resourcestrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
           end;
 
          if (Errorcount=0) then
@@ -1247,8 +1249,8 @@ implementation
 {$endif GDB}
 
          { generate wrappers for interfaces }
-         gen_intf_wrappers(asmlist[codesegment],current_module.globalsymtable);
-         gen_intf_wrappers(asmlist[codesegment],current_module.localsymtable);
+         gen_intf_wrappers(asmlist[al_code],current_module.globalsymtable);
+         gen_intf_wrappers(asmlist[al_code],current_module.localsymtable);
 
          { generate a list of threadvars }
 {$ifndef segment_threadvars}
@@ -1500,14 +1502,14 @@ implementation
          if assigned(exportlib) and
             (target_info.system in [system_i386_win32,system_i386_wdosx]) and
             BinaryContainsExports then
-           asmlist[codesegment].concat(tai_const.create_sym(exportlib.edatalabel));
+           asmlist[al_code].concat(tai_const.create_sym(exportlib.edatalabel));
 
-         If ResourceStrings.ResStrCount>0 then
+         If al_resourcestrings.ResStrCount>0 then
           begin
-            ResourceStrings.CreateResourceStringList;
+            al_resourcestrings.CreateResourceStringList;
             { only write if no errors found }
             if (Errorcount=0) then
-             ResourceStrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
+             al_resourcestrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
           end;
 
          { finalize? }
@@ -1568,7 +1570,7 @@ implementation
 {$endif GDB}
 
          { generate wrappers for interfaces }
-         gen_intf_wrappers(asmlist[codesegment],current_module.localsymtable);
+         gen_intf_wrappers(asmlist[al_code],current_module.localsymtable);
 
 {$ifndef segment_threadvars}
          { generate a list of threadvars }

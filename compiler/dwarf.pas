@@ -61,11 +61,11 @@ interface
 
       tdwarf=class
       private
-        FDwarfList : TLinkedList;
+        Fal_dwarf : TLinkedList;
       public
         constructor create;
         destructor destroy;override;
-        property DwarfList:TlinkedList read FDwarfList;
+        property al_dwarf:TlinkedList read Fal_dwarf;
       end;
 
       tdwarfcfi=class(tdwarf)
@@ -133,13 +133,13 @@ implementation
 
     constructor tdwarf.create;
       begin
-        FDwarfList:=TLinkedList.Create;
+        Fal_dwarf:=TLinkedList.Create;
       end;
 
 
     destructor tdwarf.destroy;
       begin
-        FDwarfList.Free;
+        Fal_dwarf.Free;
       end;
 
 
@@ -298,7 +298,7 @@ implementation
         lenstartlabel:=nil;
         lenendlabel:=nil;
 
-        hp:=TDwarfItem(Dwarflist.first);
+        hp:=TDwarfItem(al_dwarf.first);
         while assigned(hp) do
           begin
             case hp.op of
@@ -341,8 +341,8 @@ implementation
         { Check for open frames }
         if assigned(lenstartlabel) then
           internalerror(2004041210);
-        { Dwarflist is processed, remove items }
-        DwarfList.Clear;
+        { al_dwarf is processed, remove items }
+        al_dwarf.Clear;
       end;
 
 
@@ -354,7 +354,7 @@ implementation
         objectlibrary.getlabel(FFrameEndLabel);
         FLastloclabel:=FFrameStartLabel;
         list.concat(tai_label.create(FFrameStartLabel));
-        dwarflist.concat(tdwarfitem.create_reloffset(DW_CFA_start_frame,doe_32bit,FFrameStartLabel,FFrameEndLabel));
+        al_dwarf.concat(tdwarfitem.create_reloffset(DW_CFA_start_frame,doe_32bit,FFrameStartLabel,FFrameEndLabel));
       end;
 
 
@@ -362,7 +362,7 @@ implementation
       begin
         if not assigned(FFrameStartLabel) then
           internalerror(2004041213);
-        dwarflist.concat(tdwarfitem.create(DW_CFA_end_frame));
+        al_dwarf.concat(tdwarfitem.create(DW_CFA_end_frame));
         list.concat(tai_label.create(FFrameEndLabel));
         FFrameStartLabel:=nil;
         FFrameEndLabel:=nil;
@@ -378,7 +378,7 @@ implementation
           internalerror(200404082);
         objectlibrary.getlabel(currloclabel);
         list.concat(tai_label.create(currloclabel));
-        dwarflist.concat(tdwarfitem.create_reloffset(DW_CFA_advance_loc4,doe_32bit,FLastloclabel,currloclabel));
+        al_dwarf.concat(tdwarfitem.create_reloffset(DW_CFA_advance_loc4,doe_32bit,FLastloclabel,currloclabel));
         FLastloclabel:=currloclabel;
       end;
 
@@ -388,28 +388,28 @@ implementation
         cfa_advance_loc(list);
 {$warning TODO check if ref is a temp}
         { offset must be positive }
-        dwarflist.concat(tdwarfitem.create_reg_const(DW_CFA_offset_extended,doe_uleb,reg,doe_uleb,ofs div data_alignment_factor));
+        al_dwarf.concat(tdwarfitem.create_reg_const(DW_CFA_offset_extended,doe_uleb,reg,doe_uleb,ofs div data_alignment_factor));
       end;
 
 
     procedure tdwarfcfi.cfa_restore(list:taasmoutput;reg:tregister);
       begin
         cfa_advance_loc(list);
-        dwarflist.concat(tdwarfitem.create_reg(DW_CFA_restore_extended,doe_uleb,reg));
+        al_dwarf.concat(tdwarfitem.create_reg(DW_CFA_restore_extended,doe_uleb,reg));
       end;
 
 
     procedure tdwarfcfi.cfa_def_cfa_register(list:taasmoutput;reg:tregister);
       begin
         cfa_advance_loc(list);
-        dwarflist.concat(tdwarfitem.create_reg(DW_CFA_def_cfa_register,doe_uleb,reg));
+        al_dwarf.concat(tdwarfitem.create_reg(DW_CFA_def_cfa_register,doe_uleb,reg));
       end;
 
 
     procedure tdwarfcfi.cfa_def_cfa_offset(list:taasmoutput;ofs:longint);
       begin
         cfa_advance_loc(list);
-        dwarflist.concat(tdwarfitem.create_const(DW_CFA_def_cfa_offset,doe_uleb,ofs));
+        al_dwarf.concat(tdwarfitem.create_const(DW_CFA_def_cfa_offset,doe_uleb,ofs));
       end;
 
 

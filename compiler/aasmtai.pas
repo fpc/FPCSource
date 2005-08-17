@@ -576,11 +576,20 @@ interface
        end;
 
        Tasmlist=({ default lists }
-                 datasegment,codesegment,bsssegment,debuglist,consts,
-                 threadvarsegment,withdebuglist,importsection,exportsection,
-                 resourcesection,rttilist,dwarflist,
+                 al_code,al_bss,al_data,al_rodata,
+                 al_typedconsts,al_rotypedconsts,
+                 al_debug,al_threadvars,al_withdebug,al_imports,al_exports,
+                 al_resources,al_rtti,al_dwarf,
                  { data used by pic code }
-                 picdata,resourcestrings);
+                 al_picdata,al_resourcestrings);
+    const
+       TasmlistStr : array[tasmlist] of string[24] =({ default lists }
+           'al_code','al_bss','al_data','al_rodata',
+           'al_typedconsts','al_rotypedconsts',
+           'al_debug','al_threadvars','al_withdebug','al_imports','al_exports',
+           'al_resources','al_rtti','al_dwarf',
+           { data used by pic code }
+           'al_picdata','al_resourcestrings');
 
     var
       { array with all class types for tais }

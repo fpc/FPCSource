@@ -398,10 +398,10 @@ interface
       if not assigned(p) then
        exit;
       InlineLevel:=0;
-      { lineinfo is only needed for codesegment (PFV) }
+      { lineinfo is only needed for al_code (PFV) }
       do_line:=(cs_asm_source in aktglobalswitches) or
                ((cs_lineinfo in aktmoduleswitches)
-                 and (p=asmlist[codesegment]));
+                 and (p=asmlist[al_code]));
       hp:=tai(p.first);
       while assigned(hp) do
        begin
@@ -779,6 +779,8 @@ interface
 
 
     procedure T386NasmAssembler.WriteAsmList;
+    var
+      hal : tasmlist;
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
@@ -794,22 +796,12 @@ interface
 
       WriteExternals;
 
-    { Nasm doesn't support stabs
-      WriteTree(debuglist);}
-
-      WriteTree(asmlist[codesegment]);
-      WriteTree(asmlist[datasegment]);
-      WriteTree(asmlist[consts]);
-      WriteTree(asmlist[rttilist]);
-      WriteTree(asmlist[resourcestrings]);
-      WriteTree(asmlist[bsssegment]);
-      WriteTree(asmlist[threadvarsegment]);
-      Writetree(asmlist[importsection]);
-      { exports are written by DLLTOOL
-        if we use it so don't insert it twice (PM) }
-      if not UseDeffileForExports and assigned(asmlist[exportsection]) then
-        Writetree(asmlist[exportsection]);
-      Writetree(asmlist[resourcesection]);
+      for hal:=low(Tasmlist) to high(Tasmlist) do
+        begin
+          AsmWriteLn(target_asm.comment+'Begin asmlist '+TasmlistStr[hal]);
+          writetree(asmlist[hal]);
+          AsmWriteLn(target_asm.comment+'End asmlist '+TasmlistStr[hal]);
+        end;
 
       AsmLn;
 {$ifdef EXTDEBUG}

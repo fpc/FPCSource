@@ -1123,7 +1123,7 @@ implementation
              cg.a_label(exprasmlist,startlabel);
 
              { Here we must include the para and local symtable info }
-             procdefinition.concatstabto(withdebuglist);
+             procdefinition.concatstabto(al_withdebug);
 
              mangled_length:=length(current_procinfo.inlining_procinfo.procdef.mangledname);
              getmem(pp,mangled_length+50);
@@ -1133,7 +1133,7 @@ implementation
                  strpcopy(strend(pp),'-');
                  strpcopy(strend(pp),current_procinfo.inlining_procinfo.procdef.mangledname);
                end;
-             withdebugList.concat(Tai_stabn.Create(strnew(pp)));
+             al_withdebug.concat(Tai_stabn.Create(strnew(pp)));
            end;
 {$endif GDB}
 
@@ -1221,7 +1221,7 @@ implementation
                  strpcopy(strend(pp),'-');
                  strpcopy(strend(pp),current_procinfo.inlining_procinfo.procdef.mangledname);
                end;
-             withdebugList.concat(Tai_stabn.Create(strnew(pp)));
+             al_withdebug.concat(Tai_stabn.Create(strnew(pp)));
              freemem(pp,mangled_length+50);
            end;
 {$endif GDB}

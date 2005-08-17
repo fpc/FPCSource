@@ -2161,7 +2161,7 @@ implementation
          consttype.reset;
          value.len:=l;
          if t=constresourcestring then
-           ResStrIndex:=ResourceStrings.Register(name,pchar(value.valueptr),value.len);
+           ResStrIndex:=al_resourcestrings.Register(name,pchar(value.valueptr),value.len);
       end;
 
 

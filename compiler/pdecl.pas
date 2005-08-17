@@ -204,7 +204,6 @@ implementation
                    sym:=ttypedconstsym.createtype(orgname,tt,(cs_typed_const_writable in aktlocalswitches));
                    akttokenpos:=storetokenpos;
                    symtablestack.insert(sym);
-                   insertconstdata(ttypedconstsym(sym));
                    { procvar can have proc directives, but not type references }
                    if (tt.def.deftype=procvardef) and
                       (tt.sym=nil) then
@@ -334,21 +333,21 @@ implementation
                        { avoid wrong unused warnings web bug 801 PM }
                        inc(ttypesym(srsym).refs);
 {$ifdef GDB_UNUSED}
-                       if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
+                       if (cs_debuginfo in aktmoduleswitches) and assigned(al_debug) and
                           (tsym(p).owner.symtabletype in [globalsymtable,staticsymtable]) then
                         begin
                           ttypesym(p).isusedinstab:=true;
-{                          ttypesym(p).concatstabto(debuglist);}
+{                          ttypesym(p).concatstabto(al_debug);}
                           {not stabs for forward defs }
                           if not Ttypesym(p).isstabwritten then
                             begin
                               if Ttypesym(p).restype.def.typesym=p then
-                                Tstoreddef(Ttypesym(p).restype.def).concatstabto(debuglist)
+                                Tstoreddef(Ttypesym(p).restype.def).concatstabto(al_debug)
                               else
                                 begin
                                   stab_str:=Ttypesym(p).stabstring;
                                   if assigned(stab_str) then
-                                    debuglist.concat(Tai_stabs.create(stab_str));
+                                    al_debug.concat(Tai_stabs.create(stab_str));
                                   Ttypesym(p).isstabwritten:=true;
                                 end;
                             end;

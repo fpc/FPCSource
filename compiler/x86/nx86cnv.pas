@@ -245,21 +245,21 @@ implementation
                    exprasmlist.concat(taicpu.op_ref_reg(op,S_Q,left.location.reference,location.register));
 
                    cg.a_jmp_flags(exprasmlist,F_NC,l2);
-                   asmlist[consts].concat(Tai_label.Create(l1));
+                   asmlist[al_typedconsts].concat(Tai_label.Create(l1));
                    reference_reset_symbol(href,l1,0);
 
                    { I got these constant from a test program (FK) }
                    if is_double(resulttype.def) then
                      begin
                        { double (2^64) }
-                       asmlist[consts].concat(Tai_const.Create_32bit(0));
-                       asmlist[consts].concat(Tai_const.Create_32bit($43f00000));
+                       asmlist[al_typedconsts].concat(Tai_const.Create_32bit(0));
+                       asmlist[al_typedconsts].concat(Tai_const.Create_32bit($43f00000));
                        exprasmlist.concat(taicpu.op_ref_reg(A_ADDSD,S_NO,href,location.register));
                      end
                    else if is_single(resulttype.def) then
                      begin
                        { single(2^64) }
-                       asmlist[consts].concat(Tai_const.Create_32bit($5f800000));
+                       asmlist[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
                        exprasmlist.concat(taicpu.op_ref_reg(A_ADDSS,S_NO,href,location.register));
                      end
                    else
@@ -359,11 +359,11 @@ implementation
 
                    exprasmlist.concat(taicpu.op_ref(A_FILD,S_IQ,left.location.reference));
                    cg.a_jmp_flags(exprasmlist,F_NC,l2);
-                   asmlist[consts].concat(Tai_label.Create(l1));
+                   asmlist[al_typedconsts].concat(Tai_label.Create(l1));
                    { I got this constant from a test program (FK) }
-                   asmlist[consts].concat(Tai_const.Create_32bit(0));
-                   asmlist[consts].concat(Tai_const.Create_32bit(longint ($80000000)));
-                   asmlist[consts].concat(Tai_const.Create_32bit($0000403f));
+                   asmlist[al_typedconsts].concat(Tai_const.Create_32bit(0));
+                   asmlist[al_typedconsts].concat(Tai_const.Create_32bit(longint ($80000000)));
+                   asmlist[al_typedconsts].concat(Tai_const.Create_32bit($0000403f));
                    reference_reset_symbol(href,l1,0);
                    exprasmlist.concat(Taicpu.Op_ref(A_FLD,S_FX,href));
                    exprasmlist.concat(Taicpu.Op_reg_reg(A_FADDP,S_NO,NR_ST,NR_ST1));

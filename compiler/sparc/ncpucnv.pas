@@ -169,11 +169,11 @@ implementation
                s64real:
                  begin
                    hregister:=cg.getfpuregister(exprasmlist,OS_F64);
-                   asmlist[consts].concat(tai_align.create(const_align(8)));
-                   asmlist[consts].concat(Tai_label.Create(l1));
+                   asmlist[al_typedconsts].concat(tai_align.create(const_align(8)));
+                   asmlist[al_typedconsts].concat(Tai_label.Create(l1));
                    { I got this constant from a test program (FK) }
-                   asmlist[consts].concat(Tai_const.Create_32bit($41f00000));
-                   asmlist[consts].concat(Tai_const.Create_32bit(0));
+                   asmlist[al_typedconsts].concat(Tai_const.Create_32bit($41f00000));
+                   asmlist[al_typedconsts].concat(Tai_const.Create_32bit(0));
 
                    cg.a_loadfpu_ref_reg(exprasmlist,OS_F64,href,hregister);
                    exprasmlist.concat(taicpu.op_reg_reg_reg(A_FADDD,location.register,hregister,location.register));

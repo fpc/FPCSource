@@ -652,7 +652,6 @@ implementation
               tcsym:=ttypedconstsym.createtype('default'+vs.realname,tt,false);
               vs.defaultconstsym:=tcsym;
               symtablestack.insert(tcsym);
-              insertconstdata(tcsym);
               readtypedconst(tt,tcsym,false);
               { The variable has a value assigned }
               vs.varstate:=vs_assigned;
@@ -663,7 +662,6 @@ implementation
               tcsym.fileinfo:=vs.fileinfo;
               symtablestack.replace(vs,tcsym);
               vs.free;
-              insertconstdata(tcsym);
               consume(_EQUAL);
               readtypedconst(tt,tcsym,true);
             end;
@@ -723,7 +721,7 @@ implementation
           consume(_ID);
          { read vars }
          sc:=tsinglelist.create;
-         while (token=_ID) and 
+         while (token=_ID) and
             not((vd_object in options) and
                 (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
            begin
@@ -1119,7 +1117,7 @@ implementation
                    if vs.typ=globalvarsym then
                      begin
                        tglobalvarsym(vs).set_mangledname(C_Name);
-                       { insert in the datasegment when it is not external }
+                       { insert in the al_data when it is not external }
                        if (not extern_var) then
                          insertbssdata(tglobalvarsym(vs));
                        { now we can insert it in the import lib if its a dll, or

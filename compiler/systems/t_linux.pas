@@ -156,7 +156,7 @@ procedure texportliblinux.generatelib;
 var
   hp2 : texported_item;
 begin
-  new_section(asmlist[codesegment],sec_code,'',0);
+  new_section(asmlist[al_code],sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do
    begin
@@ -167,11 +167,11 @@ begin
           is declared with cdecl }
         if tprocsym(hp2.sym).first_procdef.mangledname<>hp2.name^ then
          begin
-           { place jump in codesegment }
-           asmlist[codesegment].concat(tai_align.create(target_info.alignment.procalign));
-           asmlist[codesegment].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           cg.a_jmp_name(asmlist[codesegment],tprocsym(hp2.sym).first_procdef.mangledname);
-           asmlist[codesegment].concat(Tai_symbol_end.Createname(hp2.name^));
+           { place jump in al_code }
+           asmlist[al_code].concat(tai_align.create(target_info.alignment.procalign));
+           asmlist[al_code].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
+           cg.a_jmp_name(asmlist[al_code],tprocsym(hp2.sym).first_procdef.mangledname);
+           asmlist[al_code].concat(Tai_symbol_end.Createname(hp2.name^));
          end;
       end
      else

@@ -1601,13 +1601,13 @@ Implementation
       begin
         to_do:=[low(Tasmlist)..high(Tasmlist)];
         if not(cs_debuginfo in aktmoduleswitches) then
-          exclude(to_do,debuglist);
+          exclude(to_do,al_debug);
         if usedeffileforexports then
-          exclude(to_do,exportsection);
+          exclude(to_do,al_exports);
         {$warning TODO internal writer support for dwarf}
-        exclude(to_do,dwarflist);
+        exclude(to_do,al_dwarf);
 {$ifndef segment_threadvars}
-        exclude(to_do,threadvarsegment);
+        exclude(to_do,al_threadvars);
 {$endif}
         for i:=low(Tasmlist) to high(Tasmlist) do
           if (i in to_do) and (asmlist[i]<>nil) then

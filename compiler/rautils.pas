@@ -1575,7 +1575,7 @@ end;
   {  linked list of instructions.                                       }
   {*********************************************************************}
    begin
-       asmlist[bsssegment].concat(Tai_datablock.Create_global(s,size));
+       asmlist[al_bss].concat(Tai_datablock.Create_global(s,size));
    end;
 
   Procedure ConcatLocalBss(const s : string;size : aint);
@@ -1585,7 +1585,7 @@ end;
   {  linked list of instructions.                                       }
   {*********************************************************************}
    begin
-       asmlist[bsssegment].concat(Tai_datablock.Create(s,size));
+       asmlist[al_bss].concat(Tai_datablock.Create(s,size));
    end;
 
 end.

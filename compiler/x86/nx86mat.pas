@@ -177,14 +177,14 @@ interface
             reg:=cg.getmmregister(exprasmlist,def_cgsize(resulttype.def));
 
             objectlibrary.getdatalabel(l1);
-            asmlist[consts].concat(Tai_label.Create(l1));
+            asmlist[al_typedconsts].concat(Tai_label.Create(l1));
             case def_cgsize(resulttype.def) of
               OS_F32:
-                asmlist[consts].concat(tai_const.create_32bit(longint(1 shl 31)));
+                asmlist[al_typedconsts].concat(tai_const.create_32bit(longint(1 shl 31)));
               OS_F64:
                 begin
-                  asmlist[consts].concat(tai_const.create_32bit(0));
-                  asmlist[consts].concat(tai_const.create_32bit(-(1 shl 31)));
+                  asmlist[al_typedconsts].concat(tai_const.create_32bit(0));
+                  asmlist[al_typedconsts].concat(tai_const.create_32bit(-(1 shl 31)));
                 end
               else
                 internalerror(2004110215);

@@ -862,10 +862,10 @@ implementation
                  end;
             end;
 
-            { add the procedure to the codesegment }
-            maybe_new_object_file(asmlist[codesegment]);
-            new_section(asmlist[codesegment],sec_code,lower(procdef.mangledname),aktalignment.procalign);
-            asmlist[codesegment].concatlist(aktproccode);
+            { add the procedure to the al_code }
+            maybe_new_object_file(asmlist[al_code]);
+            new_section(asmlist[al_code],sec_code,lower(procdef.mangledname),aktalignment.procalign);
+            asmlist[al_code].concatlist(aktproccode);
 
             { only now we can remove the temps }
             tg.resettempgen;
@@ -1301,7 +1301,7 @@ implementation
                    begin
                      s:=proc_get_importname(pd);
                      if s<>'' then
-                       gen_external_stub(asmlist[codesegment],pd,s);
+                       gen_external_stub(asmlist[al_code],pd,s);
                    end;
 
                  { Import DLL specified? }

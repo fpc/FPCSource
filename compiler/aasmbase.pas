@@ -268,7 +268,7 @@ implementation
         inusedlist:=false;
         pass:=255;
         ppuidx:=-1;
-        { mainly used to remove unused labels from the codesegment }
+        { mainly used to remove unused labels from the al_code }
         refs:=0;
       end;
 

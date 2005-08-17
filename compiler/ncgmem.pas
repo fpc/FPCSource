@@ -386,7 +386,7 @@ implementation
             objectlibrary.getaddrlabel(withstartlabel);
             objectlibrary.getaddrlabel(withendlabel);
             cg.a_label(exprasmlist,withstartlabel);
-            withdebugList.concat(Tai_stabs.Create(strpnew(
+            al_withdebug.concat(Tai_stabs.Create(strpnew(
                '"with'+tostr(withlevel)+':'+tostr(symtablestack.getnewtypecount)+
                '=*'+tstoreddef(left.resulttype.def).numberstring+'",'+
                tostr(N_LSYM)+',0,0,'+tostr(refnode.location.reference.offset))));
@@ -398,7 +398,7 @@ implementation
                 strpcopy(strend(pp),'-');
                 strpcopy(strend(pp),current_procinfo.procdef.mangledname);
               end;
-            withdebugList.concat(Tai_stabn.Create(strnew(pp)));
+            al_withdebug.concat(Tai_stabn.Create(strnew(pp)));
           end;
 {$endif WITHNODEDEBUG}
 
@@ -415,7 +415,7 @@ implementation
                strpcopy(strend(pp),'-');
                strpcopy(strend(pp),current_procinfo.procdef.mangledname);
              end;
-            withdebugList.concat(Tai_stabn.Create(strnew(pp)));
+            al_withdebug.concat(Tai_stabn.Create(strnew(pp)));
             freemem(pp,mangled_length+50);
             dec(withlevel);
           end;

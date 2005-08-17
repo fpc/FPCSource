@@ -103,7 +103,6 @@ interface
     procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;exceptlabel:tasmlabel);
     procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
 
-    procedure insertconstdata(sym : ttypedconstsym);
     procedure insertbssdata(sym : tglobalvarsym);
 
     procedure gen_alloc_symtable(list:TAAsmoutput;st:tsymtable);
@@ -1621,7 +1620,7 @@ implementation
               { the parameters are already in the right registers }
               cg.a_call_name(list,target_info.cprefix+'FPC_SYSTEMMAIN');
              end;
-           
+
            { initialize units }
            cg.allocallcpuregisters(list);
            cg.a_call_name(list,'FPC_INITIALIZEUNITS');
@@ -1784,7 +1783,7 @@ implementation
                 strpcopy(strend(p),'-');
                 strpcopy(strend(p),current_procinfo.procdef.mangledname);
               end;
-            list.concatlist(asmlist[withdebuglist]);
+            list.concatlist(asmlist[al_withdebug]);
             list.concat(Tai_stabn.Create(strnew(p)));
              { strpnew('224,0,0,'
              +current_procinfo.procdef.mangledname+'_end'))));}
@@ -1911,7 +1910,7 @@ implementation
 
     procedure gen_external_stub(list:taasmoutput;pd:tprocdef;const externalname:string);
       begin
-        { add the procedure to the codesegment }
+        { add the procedure to the al_code }
         maybe_new_object_file(list);
         new_section(list,sec_code,lower(pd.mangledname),aktalignment.procalign);
         list.concat(Tai_align.create(aktalignment.procalign));
@@ -1926,42 +1925,6 @@ implementation
                                Const Data
 ****************************************************************************}
 
-    procedure insertconstdata(sym : ttypedconstsym);
-    { this does not affect the local stack space, since all
-      typed constansts and initialized variables are always
-      put in the .data / .rodata section
-    }
-      var
-        storefilepos : tfileposinfo;
-        curconstsegment : taasmoutput;
-        l : longint;
-      begin
-        storefilepos:=aktfilepos;
-        aktfilepos:=sym.fileinfo;
-        if sym.is_writable then
-          curconstsegment:=asmlist[datasegment]
-        else
-          curconstsegment:=asmlist[consts];
-        l:=sym.getsize;
-        { insert cut for smartlinking or alignment }
-        maybe_new_object_file(curconstSegment);
-        new_section(curconstSegment,sec_rodata,lower(sym.mangledname),const_align(l));
-{$ifdef GDB}
-        if (cs_debuginfo in aktmoduleswitches) then
-          sym.concatstabto(curconstSegment);
-{$endif GDB}
-        if (sym.owner.symtabletype=globalsymtable) or
-           maybe_smartlink_symbol or
-           (assigned(current_procinfo) and
-            (po_inline in current_procinfo.procdef.procoptions)) or
-           DLLSource then
-          curconstSegment.concat(Tai_symbol.Createname_global(sym.mangledname,AT_DATA,l))
-        else
-          curconstSegment.concat(Tai_symbol.Createname(sym.mangledname,AT_DATA,l));
-        aktfilepos:=storefilepos;
-      end;
-
-
     procedure insertbssdata(sym : tglobalvarsym);
       var
         l,varalign : longint;
@@ -1975,17 +1938,17 @@ implementation
      {$ifndef segment_threadvars}
         if (vo_is_thread_var in sym.varoptions) then
           inc(l,sizeof(aint));
-        list:=asmlist[bsssegment];
+        list:=asmlist[al_bss];
         sectype:=sec_bss;
      {$else}
         if (vo_is_thread_var in sym.varoptions) then
           begin
-            list:=asmlist[threadvarsegment];
+            list:=asmlist[al_threadvars];
             sectype:=sec_threadvar;
           end
         else
           begin
-            list:=asmlist[bsssegment];
+            list:=asmlist[al_bss];
             sectype:=sec_bss;
           end;
      {$endif}
@@ -2350,11 +2313,11 @@ implementation
            def.rttitablesym:=rsym;
            { write rtti data }
            def.write_child_rtti_data(fullrtti);
-           maybe_new_object_file(asmlist[rttilist]);
-           new_section(asmlist[rttilist],sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
-           asmlist[rttilist].concat(Tai_symbol.Create_global(rsym.get_label,0));
+           maybe_new_object_file(asmlist[al_rtti]);
+           new_section(asmlist[al_rtti],sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
+           asmlist[al_rtti].concat(Tai_symbol.Create_global(rsym.get_label,0));
            def.write_rtti_data(fullrtti);
-           asmlist[rttilist].concat(Tai_symbol_end.Create(rsym.get_label));
+           asmlist[al_rtti].concat(Tai_symbol_end.Create(rsym.get_label));
          end;
       end;
 
@@ -2390,11 +2353,11 @@ implementation
            def.inittablesym:=rsym;
            { write inittable data }
            def.write_child_rtti_data(initrtti);
-           maybe_new_object_file(asmlist[rttilist]);
-           new_section(asmlist[rttilist],sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
-           asmlist[rttilist].concat(Tai_symbol.Create_global(rsym.get_label,0));
+           maybe_new_object_file(asmlist[al_rtti]);
+           new_section(asmlist[al_rtti],sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
+           asmlist[al_rtti].concat(Tai_symbol.Create_global(rsym.get_label,0));
            def.write_rtti_data(initrtti);
-           asmlist[rttilist].concat(Tai_symbol_end.Create(rsym.get_label));
+           asmlist[al_rtti].concat(Tai_symbol_end.Create(rsym.get_label));
          end;
       end;
 
