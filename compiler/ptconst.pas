@@ -41,7 +41,7 @@ implementation
        symconst,symbase,symdef,symtable,
        aasmbase,aasmtai,aasmcpu,defutil,defcmp,
        { pass 1 }
-       node,htypechk,
+       node,htypechk,procinfo,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
        { parser specific stuff }
        pbase,pexpr,
@@ -82,6 +82,7 @@ implementation
          pw        : pcompilerwidestring;
          error     : boolean;
          old_block_type : tblock_type;
+         storefilepos : tfileposinfo;
 
          procedure check_range(def:torddef);
          begin
@@ -98,10 +99,34 @@ implementation
       begin
          old_block_type:=block_type;
          block_type:=bt_const;
-         if writable then
-           curconstsegment:=datasegment
-         else
-           curconstsegment:=consts;
+
+         { put everything in the datasemgent to prevent
+           mixing array indexes with ansistring data }
+         curconstsegment:=datasegment;
+
+         if assigned(sym) then
+           begin
+             storefilepos:=aktfilepos;
+             aktfilepos:=sym.fileinfo;
+             l:=sym.getsize;
+             { insert cut for smartlinking or alignment }
+             maybe_new_object_file(curconstSegment);
+             new_section(curconstSegment,sec_rodata,lower(sym.mangledname),const_align(l));
+     {$ifdef GDB}
+             if (cs_debuginfo in aktmoduleswitches) then
+               sym.concatstabto(curconstSegment);
+     {$endif GDB}
+             if (sym.owner.symtabletype=globalsymtable) or
+                maybe_smartlink_symbol or
+                (assigned(current_procinfo) and
+                 (po_inline in current_procinfo.procdef.procoptions)) or
+                DLLSource then
+               curconstSegment.concat(Tai_symbol.Createname_global(sym.mangledname,AT_DATA,l))
+             else
+               curconstSegment.concat(Tai_symbol.Createname(sym.mangledname,AT_DATA,l));
+             aktfilepos:=storefilepos;
+           end;
+
          case t.def.deftype of
             orddef:
               begin

@@ -204,7 +204,6 @@ implementation
                    sym:=ttypedconstsym.createtype(orgname,tt,(cs_typed_const_writable in aktlocalswitches));
                    akttokenpos:=storetokenpos;
                    symtablestack.insert(sym);
-                   insertconstdata(ttypedconstsym(sym));
                    { procvar can have proc directives, but not type references }
                    if (tt.def.deftype=procvardef) and
                       (tt.sym=nil) then

@@ -649,7 +649,6 @@ implementation
               tcsym:=ttypedconstsym.createtype('default'+vs.realname,tt,false);
               vs.defaultconstsym:=tcsym;
               symtablestack.insert(tcsym);
-              insertconstdata(tcsym);
               readtypedconst(tt,tcsym,false);
               { The variable has a value assigned }
               vs.varstate:=vs_assigned;
@@ -660,7 +659,6 @@ implementation
               tcsym.fileinfo:=vs.fileinfo;
               symtablestack.replace(vs,tcsym);
               vs.free;
-              insertconstdata(tcsym);
               consume(_EQUAL);
               readtypedconst(tt,tcsym,true);
             end;

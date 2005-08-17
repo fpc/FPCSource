@@ -103,7 +103,6 @@ interface
     procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;exceptlabel:tasmlabel);
     procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
 
-    procedure insertconstdata(sym : ttypedconstsym);
     procedure insertbssdata(sym : tglobalvarsym);
 
     procedure gen_alloc_symtable(list:TAAsmoutput;st:tsymtable);
@@ -1904,42 +1903,6 @@ implementation
 {****************************************************************************
                                Const Data
 ****************************************************************************}
-
-    procedure insertconstdata(sym : ttypedconstsym);
-    { this does not affect the local stack space, since all
-      typed constansts and initialized variables are always
-      put in the .data / .rodata section
-    }
-      var
-        storefilepos : tfileposinfo;
-        curconstsegment : taasmoutput;
-        l : longint;
-      begin
-        storefilepos:=aktfilepos;
-        aktfilepos:=sym.fileinfo;
-        if sym.is_writable then
-          curconstsegment:=datasegment
-        else
-          curconstsegment:=consts;
-        l:=sym.getsize;
-        { insert cut for smartlinking or alignment }
-        maybe_new_object_file(curconstSegment);
-        new_section(curconstSegment,sec_rodata,lower(sym.mangledname),const_align(l));
-{$ifdef GDB}
-        if (cs_debuginfo in aktmoduleswitches) then
-          sym.concatstabto(curconstSegment);
-{$endif GDB}
-        if (sym.owner.symtabletype=globalsymtable) or
-           maybe_smartlink_symbol or
-           (assigned(current_procinfo) and
-            (po_inline in current_procinfo.procdef.procoptions)) or
-           DLLSource then
-          curconstSegment.concat(Tai_symbol.Createname_global(sym.mangledname,AT_DATA,l))
-        else
-          curconstSegment.concat(Tai_symbol.Createname(sym.mangledname,AT_DATA,l));
-        aktfilepos:=storefilepos;
-      end;
-
 
     procedure insertbssdata(sym : tglobalvarsym);
       var
