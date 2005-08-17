@@ -3195,7 +3195,6 @@ packages/extra/winunits/jwawsvns.pas svneol=native#text/plain
 packages/extra/winunits/jwawtsapi32.pas svneol=native#text/plain
 packages/extra/winunits/jwazmouse.pas svneol=native#text/plain
 packages/extra/winunits/mmsystem.pp svneol=native#text/plain
-packages/extra/winunits/objbase.inc svneol=native#text/plain
 packages/extra/winunits/ole2.pp svneol=native#text/plain
 packages/extra/winunits/shellapi.pp svneol=native#text/plain
 packages/extra/winunits/shfolder.pp svneol=native#text/plain
