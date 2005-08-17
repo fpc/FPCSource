@@ -1741,7 +1741,7 @@ const
   DefaultFieldClasses : Array [TFieldType] of TFieldClass =
     ( { ftUnknown} Tfield,
       { ftString} TStringField,
-      { ftSmallint} TLongIntField,
+      { ftSmallint} TSmallIntField,
       { ftInteger} TLongintField,
       { ftWord} TLongintField,
       { ftBoolean} TBooleanField,
