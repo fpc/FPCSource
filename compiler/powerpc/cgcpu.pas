@@ -2102,7 +2102,7 @@ const
          if (ref.base = NR_NO) then
            begin
              ref.base := ref.index;
-             ref.base := NR_NO;
+             ref.index := NR_NO;
            end;
          if (ref.base <> NR_NO) then
            begin
