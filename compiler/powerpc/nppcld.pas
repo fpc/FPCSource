@@ -40,6 +40,7 @@ unit nppcld;
     uses
       verbose,
       systems,
+      globtype,globals,
       cpubase,
       cgutils,cgobj,
       aasmbase,aasmtai,
@@ -93,7 +94,8 @@ unit nppcld;
             begin
               if ([vo_is_dll_var,vo_is_external] * tglobalvarsym(symtableentry).varoptions <> []) or
                  ((tglobalvarsym(symtableentry).owner.symtabletype in [staticsymtable,globalsymtable]) and
-                  not(tglobalvarsym(symtableentry).owner.iscurrentunit)) then
+                  (not(tglobalvarsym(symtableentry).owner.iscurrentunit) or
+                   (cs_create_pic in aktmoduleswitches))) then
                 begin
                   l:=objectlibrary.getasmsymbol('L'+tglobalvarsym(symtableentry).mangledname+'$non_lazy_ptr');
                   if not(assigned(l)) then
