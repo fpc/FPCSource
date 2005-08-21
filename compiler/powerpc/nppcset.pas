@@ -26,12 +26,13 @@ unit nppcset;
 interface
 
     uses
-       node,nset,ncgset,cpubase,cgbase,cgobj,aasmbase,aasmtai;
+       node,nset,ncgset,cpubase,cgbase,cgobj,aasmbase,aasmtai,globtype;
 
     type
-
        tppccasenode = class(tcgcasenode)
          protected
+           function  has_jumptable : boolean;override;
+           procedure genjumptable(hp : pcaselabel;min_,max_ : aint);override;
            procedure genlinearlist(hp : pcaselabel); override;
        end;
 
@@ -39,20 +40,88 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      systems,
       verbose,globals,
       symconst,symdef,defutil,
       paramgr,
       cpuinfo,
       pass_2,cgcpu,
       ncon,
-      tgobj,ncgutil,regvars,rgobj,aasmcpu;
-
-
+      tgobj,ncgutil,regvars,rgobj,aasmcpu,
+      procinfo,
+      cgutils;
 
 {*****************************************************************************
                             TCGCASENODE
 *****************************************************************************}
+
+
+    function tppccasenode.has_jumptable : boolean;
+      begin
+        has_jumptable:=true;
+      end;
+
+
+    procedure tppccasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
+      var
+        table : tasmlabel;
+        last : TConstExprInt;
+        indexreg : tregister;
+        href : treference;
+        jumpsegment : TAAsmOutput;
+
+        procedure genitem(t : pcaselabel);
+          var
+            i : aint;
+          begin
+            if assigned(t^.less) then
+              genitem(t^.less);
+            { fill possible hole }
+            for i:=last+1 to t^._low-1 do
+              jumpSegment.concat(Tai_const.Create_sym(elselabel));
+            for i:=t^._low to t^._high do
+              jumpSegment.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
+            last:=t^._high;
+            if assigned(t^.greater) then
+              genitem(t^.greater);
+          end;
+
+      begin
+        if (cs_create_smart in aktmoduleswitches) or
+           (af_smartlink_sections in target_asm.flags) then
+          jumpsegment:=current_procinfo.aktlocaldata
+        else
+          jumpsegment:=asmlist[al_data];
+        if not(jumptable_no_range) then
+          begin
+             { case expr less than min_ => goto elselabel }
+             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aint(min_),hregister,elselabel);
+             { case expr greater than max_ => goto elselabel }
+             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_gt,aint(max_),hregister,elselabel);
+          end;
+        objectlibrary.getlabel(table);
+        { make it a 32bit register }
+        // allocate base and index registers register
+        indexreg:= cg.makeregsize(exprasmlist, hregister, OS_INT);
+        { indexreg := hregister; }
+        cg.a_load_reg_reg(exprasmlist, opsize, OS_INT, hregister, indexreg);
+        { create reference, indexreg := indexreg * sizeof(OS_ADDR) }
+        cg.a_op_const_reg(exprasmlist, OP_MUL, OS_INT, tcgsize2size[OS_ADDR], indexreg);
+        reference_reset_symbol(href, table, (-aint(min_)) * tcgsize2size[OS_ADDR]);
+        href.index := indexreg;
+
+        cg.a_load_ref_reg(exprasmlist, OS_INT, OS_INT, href, indexreg);
+        
+        exprasmlist.concat(taicpu.op_reg(A_MTCTR, indexreg));
+        exprasmlist.concat(taicpu.op_none(A_BCTR));
+
+        { generate jump table }
+        if not(cs_littlesize in aktglobalswitches) then
+          jumpSegment.concat(Tai_Align.Create_Op(4, 0));
+        jumpSegment.concat(Tai_label.Create(table));
+        last:=min_;
+        genitem(hp);
+      end;
 
 
     procedure tppccasenode.genlinearlist(hp : pcaselabel);
