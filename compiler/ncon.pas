@@ -155,11 +155,7 @@ interface
     function genenumnode(v : tenumsym) : tordconstnode;
 
     { some helper routines }
-{$ifdef INT64FUNCRESOK}
     function get_ordinal_value(p : tnode) : TConstExprInt;
-{$else INT64FUNCRESOK}
-    function get_ordinal_value(p : tnode) : longint;
-{$endif INT64FUNCRESOK}
     function is_constresourcestringnode(p : tnode) : boolean;
     function str_length(p : tnode) : longint;
     function is_emptyset(p : tnode):boolean;
@@ -192,11 +188,7 @@ implementation
       end;
 
 
-{$ifdef INT64FUNCRESOK}
     function get_ordinal_value(p : tnode) : TConstExprInt;
-{$else INT64FUNCRESOK}
-    function get_ordinal_value(p : tnode) : longint;
-{$endif INT64FUNCRESOK}
       begin
         get_ordinal_value:=0;
         if is_constnode(p) then
