@@ -330,8 +330,8 @@ var
   begin
     while FSqliteReturnId = SQLITE_ROW do
     begin
-      // I know, this code is really dirty!!
-      AStrList.AddObject(StrPas(ColumnValues[0]),TObject(StrToInt(StrPas(ColumnValues[1]))));
+      // I know, this code is really dirty!!      
+      AStrList.AddObject(StrPas(ColumnValues[0]),TObject(PtrInt(StrToInt(StrPas(ColumnValues[1])))));
       FSqliteReturnId:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);  
     end;
   end;    

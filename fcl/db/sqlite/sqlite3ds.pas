@@ -307,8 +307,8 @@ var
   procedure FillStringsAndObjects;
   begin
     while FSqliteReturnId = SQLITE_ROW do
-    begin
-      AStrList.AddObject(StrPas(sqlite3_column_text(vm,0)),TObject(sqlite3_column_int(vm,1)));
+    begin      
+      AStrList.AddObject(StrPas(sqlite3_column_text(vm,0)),TObject(PtrInt(sqlite3_column_int(vm,1))));
       FSqliteReturnId:=sqlite3_step(vm);  
     end;
   end;    
