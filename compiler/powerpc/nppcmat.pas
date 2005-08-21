@@ -53,13 +53,96 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,
+      symconst,
       aasmbase,aasmcpu,aasmtai,
       defutil,
-      cgbase,cgutils,cgobj,pass_1,pass_2,
+      cgbase,cgutils,cgobj,pass_2,
       ncon,procinfo,
-      cpubase,cpuinfo,
-      ncgutil,cgcpu,cg64f32,rgobj;
+      cpubase,
+      ncgutil,cgcpu;
+
+{ helper functions }
+procedure getmagic_unsigned32(d : dword; out magic_m : dword; out magic_add : boolean; out magic_shift : dword);
+var
+    p : longint;
+    nc, delta, q1, r1, q2, r2 : dword;
+    
+begin
+    assert(d > 0);
+    
+    magic_add := false;
+    nc := - 1 - (-d) mod d;
+    p := 31; { initialize p }
+    q1 := $80000000 div nc; { initialize q1 = 2p/nc }
+    r1 := $80000000 - q1*nc; { initialize r1 = rem(2p,nc) }
+    q2 := $7FFFFFFF div d; { initialize q2 = (2p-1)/d }
+    r2 := $7FFFFFFF - q2*d; { initialize r2 = rem((2p-1),d) }
+    repeat
+        inc(p);
+        if (r1 >= (nc - r1)) then begin
+            q1 := 2 * q1 + 1; { update q1 }
+            r1 := 2*r1 - nc; { update r1 }
+        end else begin
+            q1 := 2*q1; { update q1 }
+            r1 := 2*r1; { update r1 }
+        end;
+        if ((r2 + 1) >= (d - r2)) then begin
+            if (q2 >= $7FFFFFFF) then
+                magic_add := true;
+            q2 := 2*q2 + 1; { update q2 }
+            r2 := 2*r2 + 1 - d; { update r2 }
+        end else begin
+            if (q2 >= $80000000) then 
+                magic_add := true;
+            q2 := 2*q2; { update q2 }
+            r2 := 2*r2 + 1; { update r2 }
+        end;
+        delta := d - 1 - r2;
+    until not ((p < 64) and ((q1 < delta) or ((q1 = delta) and (r1 = 0))));
+    magic_m := q2 + 1; { resulting magic number }
+    magic_shift := p - 32; { resulting shift }
+end;
+
+procedure getmagic_signed32(d : longint; out magic_m : longint; out magic_s : longint);
+const
+    two_31 : DWord = high(longint)+1;
+var
+    p : Longint;
+    ad, anc, delta, q1, r1, q2, r2, t : DWord;
+    
+begin
+    assert((d < -1) or (d > 1));
+
+    ad := abs(d);
+    t := two_31 + (DWord(d) shr 31);
+    anc := t - 1 - t mod ad; { absolute value of nc }
+    p := 31; { initialize p }
+    q1 := two_31 div anc; { initialize q1 = 2p/abs(nc) }
+    r1 := two_31 - q1*anc; { initialize r1 = rem(2p,abs(nc)) }
+    q2 := two_31 div ad; { initialize q2 = 2p/abs(d) }
+    r2 := two_31 - q2*ad; { initialize r2 = rem(2p,abs(d)) }
+    repeat 
+        inc(p);
+        q1 := 2*q1; { update q1 = 2p/abs(nc) }
+        r1 := 2*r1; { update r1 = rem(2p/abs(nc)) }
+        if (r1 >= anc) then begin { must be unsigned comparison }
+            inc(q1);
+            dec(r1, anc);
+        end;
+        q2 := 2*q2; { update q2 = 2p/abs(d) }
+        r2 := 2*r2; { update r2 = rem(2p/abs(d)) }
+        if (r2 >= ad) then begin { must be unsigned comparison }
+            inc(q2);
+            dec(r2, ad);
+        end;
+        delta := ad - r2;
+    until not ((q1 < delta) or ((q1 = delta) and (r1 = 0)));
+    magic_m := q2 + 1;
+    if (d < 0) then begin
+        magic_m := -magic_m; { resulting magic number }
+    end;
+    magic_s := p - 32; { resulting shift }
+end;
 
 {*****************************************************************************
                              TPPCMODDIVNODE
@@ -88,6 +171,112 @@ implementation
          size       : Tcgsize;
          hl : tasmlabel;
          done: boolean;
+         
+         procedure genOrdConstNodeDiv;
+         const
+             negops : array[boolean] of tasmop = (A_NEG, A_NEGO);
+         var
+             magic, shift : longint;
+             u_magic, u_shift : dword;
+             u_add : boolean;
+             
+             divreg : tregister;
+         begin
+             if (tordconstnode(right).value = 0) then begin
+                 internalerror(2005061701);
+             end else if (tordconstnode(right).value = 1) then begin
+                cg.a_load_reg_reg(exprasmlist, OS_INT, OS_INT, numerator, resultreg);
+             end else if (tordconstnode(right).value = -1) then begin
+                // note: only in the signed case possible..., may overflow
+                exprasmlist.concat(taicpu.op_reg_reg(negops[cs_check_overflow in aktlocalswitches], resultreg, numerator));
+             end else if (ispowerof2(tordconstnode(right).value, power)) then begin
+                if (is_signed(right.resulttype.def)) then begin
+                    { From "The PowerPC Compiler Writer's Guide", pg. 52ff          }
+                    cg.a_op_const_reg_reg(exprasmlist, OP_SAR, OS_INT, power,
+                        numerator, resultreg);
+                    exprasmlist.concat(taicpu.op_reg_reg(A_ADDZE, resultreg, resultreg));
+                end else begin
+                    cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, power, numerator, resultreg)
+                end;
+             end else begin
+                 { replace division by multiplication, both implementations }
+                 { from "The PowerPC Compiler Writer's Guide" pg. 53ff      }
+                 divreg := cg.getintregister(exprasmlist, OS_INT);
+                 if (is_signed(right.resulttype.def)) then begin
+                     getmagic_signed32(tordconstnode(right).value, magic, shift);
+                     // load magic value
+                     cg.a_load_const_reg(exprasmlist, OS_INT, magic, divreg);
+                     // multiply
+                     exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULHW, resultreg, numerator, divreg));
+                     // add/subtract numerator
+                     if (tordconstnode(right).value > 0) and (magic < 0) then begin
+                         cg.a_op_reg_reg_reg(exprasmlist, OP_ADD, OS_INT, numerator, resultreg, resultreg);
+                     end else if (tordconstnode(right).value < 0) and (magic > 0) then begin
+                         cg.a_op_reg_reg_reg(exprasmlist, OP_SUB, OS_INT, numerator, resultreg, resultreg);
+                     end;
+                     // shift shift places to the right (arithmetic)
+                     cg.a_op_const_reg_reg(exprasmlist, OP_SAR, OS_INT, shift, resultreg, resultreg);                     
+                     // extract and add sign bit
+                     if (tordconstnode(right).value >= 0) then begin
+                         cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, 31, numerator, divreg);
+                     end else begin
+                         cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, 31, resultreg, divreg);
+                     end;                     
+                     cg.a_op_reg_reg_reg(exprasmlist, OP_ADD, OS_INT, resultreg, divreg, resultreg);
+                 end else begin
+                     getmagic_unsigned32(tordconstnode(right).value, u_magic, u_add, u_shift);
+                     // load magic in divreg
+                     cg.a_load_const_reg(exprasmlist, OS_INT, u_magic, divreg);
+                     exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULHWU, resultreg, numerator, divreg));
+                     if (u_add) then begin
+                         cg.a_op_reg_reg_reg(exprasmlist, OP_SUB, OS_INT, resultreg, numerator, divreg);
+                         cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT,  1, divreg, divreg);
+                         cg.a_op_reg_reg_reg(exprasmlist, OP_ADD, OS_INT, divreg, resultreg, divreg);
+                         cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, u_shift-1, divreg, resultreg);
+                     end else begin
+                         cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, u_shift, resultreg, resultreg);
+                     end;
+                 end;
+             end;
+             done := true;
+         end;
+
+         procedure genOrdConstNodeMod;
+         var
+             modreg, maskreg, tempreg : tregister;
+         begin
+             if (tordconstnode(right).value = 0) then begin
+                 internalerror(2005061702);
+             end else if (abs(tordconstnode(right).value) = 1) then begin
+                // x mod +/-1 is always zero
+                cg.a_load_const_reg(exprasmlist, OS_INT, 0, resultreg);
+             end else if (ispowerof2(tordconstnode(right).value, power)) then begin
+                 if (is_signed(right.resulttype.def)) then begin
+                     
+                     tempreg := cg.getintregister(exprasmlist, OS_INT);
+                     maskreg := cg.getintregister(exprasmlist, OS_INT);
+                     modreg := cg.getintregister(exprasmlist, OS_INT);
+
+                     cg.a_load_const_reg(exprasmlist, OS_INT, abs(tordconstnode(right).value)-1, modreg);
+                     cg.a_op_const_reg_reg(exprasmlist, OP_SAR, OS_INT, 31, numerator, maskreg);
+                     cg.a_op_reg_reg_reg(exprasmlist, OP_AND, OS_INT, numerator, modreg, tempreg);
+
+                     exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC, maskreg, maskreg, modreg));
+                     exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC, modreg, tempreg, 0));
+                     exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBFE, modreg, modreg, modreg));
+                     cg.a_op_reg_reg_reg(exprasmlist, OP_AND, OS_INT, modreg, maskreg, maskreg);
+                     cg.a_op_reg_reg_reg(exprasmlist, OP_OR, OS_INT, maskreg, tempreg, resultreg);
+                 end else begin
+                     cg.a_op_const_reg_reg(exprasmlist, OP_AND, OS_INT, tordconstnode(right).value-1, numerator, resultreg);
+                 end;
+             end else begin
+                 genOrdConstNodeDiv();
+                 cg.a_op_const_reg_reg(exprasmlist, OP_MUL, OS_INT, tordconstnode(right).value, resultreg, resultreg);
+                 cg.a_op_reg_reg_reg(exprasmlist, OP_SUB, OS_INT, resultreg, numerator, resultreg);
+             end;
+         end;
+
+         
       begin
          secondpass(left);
          secondpass(right);
@@ -100,50 +289,26 @@ implementation
          location_copy(location,left.location);
          numerator := location.register;
          resultreg := location.register;
-         if (location.loc = LOC_CREGISTER) then
-           begin
-             location.loc := LOC_REGISTER;
-             location.register := cg.getintregister(exprasmlist,size);
-             resultreg := location.register;
-           end;
-         if (nodetype = modn) then
-           begin
-             resultreg := cg.getintregister(exprasmlist,size);
-           end;
+         if (location.loc = LOC_CREGISTER) then begin
+           location.loc := LOC_REGISTER;
+           location.register := cg.getintregister(exprasmlist,size);
+           resultreg := location.register;
+         end else if (nodetype = modn) or (right.nodetype = ordconstn) then begin
+           // for a modulus op, and for const nodes we need the result register
+           // to be an extra register
+           resultreg := cg.getintregister(exprasmlist,size);
+         end;
 
          done := false;
-         if (right.nodetype = ordconstn) and
-            ispowerof2(tordconstnode(right).value,power) then
-           if is_signed(right.resulttype.def) then
-             begin
-               if (nodetype = divn) then
-                 begin
-                   { From "The PowerPC Compiler Writer's Guide":                   }
-                   { This code uses the fact that, in the PowerPC architecture,    }
-                   { the shift right algebraic instructions set the Carry bit if   }
-                   { the source register contains a negative number and one or     }
-                   { more 1-bits are shifted out. Otherwise, the carry bit is      }
-                   { cleared. The addze instruction corrects the quotient, if      }
-                   { necessary, when the dividend is negative. For example, if     }
-                   { n = -13, (0xFFFF_FFF3), and k = 2, after executing the srawi  }
-                   { instruction, q = -4 (0xFFFF_FFFC) and CA = 1. After executing }
-                   { the addze instruction, q = -3, the correct quotient.          }
-                   cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,power,
-                     numerator,resultreg);
-                   exprasmlist.concat(taicpu.op_reg_reg(A_ADDZE,resultreg,resultreg));
-                   done := true;
-                 end
-             end
+         if (right.nodetype = ordconstn) then begin
+           if (nodetype = divn) then
+             genOrdConstNodeDiv
            else
-            begin
-              if (nodetype = divn) then
-                cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_INT,power,numerator,resultreg)
-              else
-                cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,tordconstnode(right).value-1,numerator,resultreg);
-              done := true;
-            end;
-         if not done then
-           begin
+             genOrdConstNodeMod;
+           done := true;
+         end;
+
+         if (not done) then begin
              { load divider in a register if necessary }
              location_force_reg(exprasmlist,right.location,
                def_cgsize(right.resulttype.def),true);
