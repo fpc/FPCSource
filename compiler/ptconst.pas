@@ -337,12 +337,12 @@ implementation
                     objectlibrary.getdatalabel(ll);
                     asmlist[cural].concat(Tai_const.Create_sym(ll));
                     if p.nodetype=stringconstn then
-                     varalign:=tstringconstnode(p).len
+                     varalign:=size_2_align(tstringconstnode(p).len)
                     else
                      varalign:=0;
                     varalign:=const_align(varalign);
-                    asmlist[al_typedconsts].concat(Tai_align.Create(varalign));
-                    asmlist[al_typedconsts].concat(Tai_label.Create(ll));
+                    asmlist[al_rodata].concat(Tai_align.Create(varalign));
+                    asmlist[al_rodata].concat(Tai_label.Create(ll));
                     if p.nodetype=stringconstn then
                       begin
                         len:=tstringconstnode(p).len;
@@ -352,11 +352,11 @@ implementation
                          len:=255;
                         getmem(ca,len+2);
                         move(tstringconstnode(p).value_str^,ca^,len+1);
-                        asmlist[al_typedconsts].concat(Tai_string.Create_length_pchar(ca,len+1));
+                        asmlist[al_rodata].concat(Tai_string.Create_length_pchar(ca,len+1));
                       end
                     else
                       if is_constcharnode(p) then
-                        asmlist[al_typedconsts].concat(Tai_string.Create(char(byte(tordconstnode(p).value))+#0))
+                        asmlist[al_rodata].concat(Tai_string.Create(char(byte(tordconstnode(p).value))+#0))
                     else
                       message(parser_e_illegal_expression);
                 end
