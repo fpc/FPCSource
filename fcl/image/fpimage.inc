@@ -98,7 +98,11 @@ begin
           if assigned (h) then
             begin
             Writer := h.Create;
-            SaveTofile (filename, Writer);
+            try
+              SaveTofile (filename, Writer);
+            finally
+              Writer.Free;
+            end;
             break;
             end;
         except
@@ -186,7 +190,11 @@ begin
             if assigned (h) then
               begin
               reader := h.Create;
-              loadfromfile (filename, reader);
+              try
+                loadfromfile (filename, reader);
+              finally
+                Reader.Free;
+              end;
               break;
               end;
           except
@@ -394,11 +402,12 @@ begin
     // Copy extra info
     FExtra.Assign(Src.Fextra);
     // Copy palette if needed.
+    SetSize(0,0); { avoid side-effects in descendant classes }
     UsePalette:=Src.UsePalette;
     If UsePalette then
       begin
       Palette.Count:=0;
-      Palette.Build(Src);
+      Palette.Merge(Src.Palette);
       end;
     // Copy image.
     SetSize(Src.Width,Src.height);
@@ -499,8 +508,8 @@ begin
         for r := 0 to h-1 do
           move (FData^[r*Width], NewData^[r*AWidth], w);
         end;
-      FreeMem (FData);
       end;
+    if Assigned(FData) then FreeMem(FData);
     FData := NewData;
     inherited;
     end;

@@ -97,5 +97,5 @@ begin
 end;
 
 initialization
-  ImageHandlers.RegisterImageWriter ('TARGA Format', 'tgha', TFPWriterTarga);
+  ImageHandlers.RegisterImageWriter ('TARGA Format', 'tga', TFPWriterTarga);
 end.

@@ -106,6 +106,10 @@ begin
     bfReserved:=0;
     bfSize:=bfOffset+BFI.SizeImage*BytesPerPixel;
     end;
+  {$IFDEF ENDIAN_BIG}
+  SwapBMPFileHeader(BFH);
+  SwapBMPInfoHeader(BFI);
+  {$ENDIF}
   Stream.seek(0,soFromBeginning);
   Stream.Write(bfh,sizeof(TBitMapFileHeader));
   Stream.Write(bfi,sizeof(TBitMapInfoHeader));

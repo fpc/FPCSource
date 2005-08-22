@@ -124,8 +124,12 @@ var chead : TChunkHeader;
 begin
   with FChunk do
     begin
+    {$IFDEF ENDIAN_LITTLE}
     chead.CLength := swap (alength);
-    if (ReadType = '') then
+    {$ELSE}
+    chead.CLength := alength;
+    {$ENDIF}
+	if (ReadType = '') then
       if atype <> ctUnknown then
         chead.CType := ChunkTypes[aType]
       else
@@ -134,7 +138,11 @@ begin
       chead.CType := ReadType;
     c := CalculateCRC (All1Bits, ReadType, sizeOf(ReadType));
     c := CalculateCRC (c, data^, alength);
+    {$IFDEF ENDIAN_LITTLE}
     crc := swap(c xor All1Bits);
+    {$ELSE}
+    crc := c xor All1Bits;
+    {$ENDIF}
     with TheStream do
       begin
       Write (chead, sizeof(chead));
@@ -381,10 +389,15 @@ var c : integer;
 begin
   with AHeader do
     begin
+    {$IFDEF ENDIAN_LITTLE}
     // problem: TheImage has integer width, PNG header longword width.
     //          Integer Swap can give negative value
     Width := swap (longword(TheImage.Width));
     height := swap (longword(TheImage.Height));
+    {$ELSE}
+    Width := TheImage.Width;
+    height := TheImage.Height;
+    {$ENDIF}
     if FUseAlpha then
       c := CountAlphas
     else
@@ -578,6 +591,9 @@ begin
   for x := 0 to pred(TheImage.Width) do
     begin
     cd := FGetPixel (x,y);
+    {$IFDEF ENDIAN_BIG}
+    cd:=swap(cd);
+    {$ENDIF}
     move (cd, ScanLine^[index], FBytewidth);
     if WordSized then
       begin
@@ -663,7 +679,9 @@ procedure TFPWriterPNG.WritetRNS;
       g := CalculateGray (SingleTransparentColor)
     else
       g := hi (CalculateGray(SingleTransparentColor));
+    {$IFDEF ENDIAN_LITTLE}
     g := swap (g);
+    {$ENDIF}
     move (g,ChunkDataBuffer^[0],2);
     WriteChunk;
   end;
@@ -675,9 +693,11 @@ procedure TFPWriterPNG.WritetRNS;
     with g do
       if WordSized then
         begin
+        {$IFDEF ENDIAN_LITTLE}
         red := swap (red);
         green := swap (green);
         blue := swap (blue);
+        {$ENDIF}
         move (g, ChunkDatabuffer^[0], 6);
         end
       else
