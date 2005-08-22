@@ -387,9 +387,77 @@ implementation
           setfilename(paramfn^, paramallowoutput);
       end;
 
-    function parse_compiler_expr:string;
+{
+Compile time expression type check
+----------------------------------
+Each subexpression returns its type to the caller, which then can
+do type check.  Since data types of compile time expressions is
+not well defined, the type system does a best effort. The drawback is
+that some errors might not be detected.
 
-        function read_expr : string; forward;
+Instead of returning a particular data type, a set of possible data types
+are returned. This way ambigouos types can be handled.  For instance a
+value of 1 can be both a boolean and and integer.
+
+Booleans
+--------
+
+The following forms of boolean values are supported:
+* C coded, that is 0 is false, non-zero is true.
+* TRUE/FALSE for mac style compile time variables
+
+Thus boolean mac compile time variables are always stored as TRUE/FALSE.
+When a compile time expression is evaluated, they are then translated
+to C coded booleans (0/1), to simplify for the expression evaluator.
+
+Note that this scheme then also of support mac compile time variables which
+are 0/1 but with a boolean meaning.
+
+The TRUE/FALSE format is new from 22 august 2005, but the above scheme
+means that units which is not recompiled, and thus stores 
+compile time variables as the old format (0/1), continue to work.
+
+}
+
+    type
+      {Compile time expression types}
+      TCTEType = (ctetBoolean, ctetInteger, ctetString, ctetSet);
+      TCTETypeSet = set of TCTEType;
+
+    const
+      cteTypeNames : array[TCTEType] of string[10] = (
+        'BOOLEAN','INTEGER','STRING','SET');
+
+      {Subset of types which can be elements in sets.}
+      setElementTypes = [ctetBoolean, ctetInteger, ctetString];
+
+
+    function GetCTETypeName(t: TCTETypeSet): String;
+      var
+        i: TCTEType;
+      begin
+        result:= '';
+        for i:= Low(TCTEType) to High(TCTEType) do
+          if i in t then
+            if result = '' then
+              result:= cteTypeNames[i]
+            else
+              result:= result + ' or ' + cteTypeNames[i];
+      end;
+
+    procedure CTEError(actType, desiredExprType: TCTETypeSet; place: String);
+
+    begin
+      Message3(scan_e_compile_time_typeerror,
+               GetCTETypeName(desiredExprType),
+               GetCTETypeName(actType),
+               place
+              );
+    end;
+
+    function parse_compiler_expr(var compileExprType: TCTETypeSet):string;
+
+        function read_expr(var exprType: TCTETypeSet) : string; forward;
 
         procedure preproc_consume(t : ttoken);
         begin
@@ -398,14 +466,23 @@ implementation
           current_scanner.preproc_token:=current_scanner.readpreproc;
         end;
 
-        function preproc_substitutedtoken: string;
+        function preproc_substitutedtoken(var macroType: TCTETypeSet): string;
+				{ Currently this parses identifiers as well as numbers. 
+          The result from this procedure can either be that the token
+          itself is a value, or that it is a compile time variable/macro,
+          which then is substituted for another value (for macros
+          recursivelly substituted).}
+
         var
           hs: string;
           mac : tmacro;
           macrocount,
           len : integer;
+          numres : longint;
+          w: word;
         begin
           result := current_scanner.preproc_pattern;
+          mac:= nil;
           { Substitue macros and compiler variables with their content/value.
             For real macros also do recursive substitution. }
           macrocount:=0;
@@ -441,21 +518,47 @@ implementation
                 end
             else
               begin
-                (*
-                // To make this work, there must be some kind of type checking here...
-                if m_mac in aktmodeswitches then
-                  Message1(scan_e_error_macro_undefined, result)
-                else
-                *)
                   break;
               end;
 
             if mac.is_compiler_var then
               break;
           until false;
+
+          {At this point, result do contain the value. Do some decoding and
+					 determine the type.}
+  				val(result,numres,w);
+  				if (w=0) then {It is an integer}
+  				  begin
+  				    if (numres = 0) or (numres = 1) then
+  		    		  macroType := [ctetInteger, ctetBoolean]
+  		    		else
+  		    		  macroType := [ctetInteger];  		    	
+		    		end
+          else if assigned(mac) and (m_mac in aktmodeswitches) and (result='FALSE') then
+					  begin
+						  result:= '0';
+     					macroType:= [ctetBoolean];
+						end
+          else if assigned(mac) and (m_mac in aktmodeswitches) and (result='TRUE') then
+					  begin
+						  result:= '1';
+     					macroType:= [ctetBoolean];
+						end
+          else if (m_mac in aktmodeswitches) and
+                  (not assigned(mac) or not mac.defined) and
+                  (macrocount = 1) then
+            begin
+              {Errors in mode mac is issued here. For non macpas modes there is
+               more liberty, but the error will eventually be caught at a later stage.}
+              Message1(scan_e_error_macro_undefined, result);
+              macroType:= [ctetString]; {Just to have something}
+            end
+          else
+            macroType:= [ctetString];
         end;
 
-        function read_factor : string;
+        function read_factor(var factorType: TCTETypeSet) : string;
         var
            hs : string;
            mac: tmacro;
@@ -464,12 +567,14 @@ implementation
            l : longint;
            w : integer;
            hasKlammer: Boolean;
+           setElemType : TCTETypeSet;
 
         begin
            if current_scanner.preproc_token=_ID then
              begin
                 if current_scanner.preproc_pattern='DEFINED' then
                   begin
+                    factorType:= [ctetBoolean];
                     preproc_consume(_ID);
                     current_scanner.skipspace;
                     if current_scanner.preproc_token =_LKLAMMER then
@@ -510,6 +615,7 @@ implementation
                 else
                 if (m_mac in aktmodeswitches) and (current_scanner.preproc_pattern='UNDEFINED') then
                   begin
+                    factorType:= [ctetBoolean];
                     preproc_consume(_ID);
                     current_scanner.skipspace;
                     if current_scanner.preproc_token =_ID then
@@ -533,6 +639,7 @@ implementation
                 else
                 if (m_mac in aktmodeswitches) and (current_scanner.preproc_pattern='OPTION') then
                   begin
+                    factorType:= [ctetBoolean];
                     preproc_consume(_ID);
                     current_scanner.skipspace;
                     if current_scanner.preproc_token =_LKLAMMER then
@@ -568,6 +675,7 @@ implementation
                 else
                 if current_scanner.preproc_pattern='SIZEOF' then
                   begin
+                    factorType:= [ctetInteger];
                     preproc_consume(_ID);
                     current_scanner.skipspace;
                     if current_scanner.preproc_token =_LKLAMMER then
@@ -607,6 +715,7 @@ implementation
                 else
                 if current_scanner.preproc_pattern='DECLARED' then
                   begin
+                    factorType:= [ctetBoolean];
                     preproc_consume(_ID);
                     current_scanner.skipspace;
                     if current_scanner.preproc_token =_LKLAMMER then
@@ -637,8 +746,11 @@ implementation
                 else
                 if current_scanner.preproc_pattern='NOT' then
                   begin
+                    factorType:= [ctetBoolean];
                     preproc_consume(_ID);
-                    hs:=read_factor();
+                    hs:=read_factor(factorType);
+                    if not (ctetBoolean in factorType) then
+                      CTEError(factorType, [ctetBoolean], 'NOT');
                     val(hs,l,w);
                     if l<>0 then
                       read_factor:='0'
@@ -648,21 +760,24 @@ implementation
                 else
                 if (m_mac in aktmodeswitches) and (current_scanner.preproc_pattern='TRUE') then
                   begin
+                    factorType:= [ctetBoolean];
                     preproc_consume(_ID);
                     read_factor:='1';
                   end
                 else
                 if (m_mac in aktmodeswitches) and (current_scanner.preproc_pattern='FALSE') then
                   begin
+                    factorType:= [ctetBoolean];
                     preproc_consume(_ID);
                     read_factor:='0';
                   end
                 else
                   begin
-                    hs:=preproc_substitutedtoken;
+                    hs:=preproc_substitutedtoken(factorType);
+
                     { Default is to return the original symbol }
                     read_factor:=hs;
-                    if (m_delphi in aktmodeswitches) then
+                    if (m_delphi in aktmodeswitches) and (ctetString in factorType) then
                       if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
                         begin
                           case srsym.typ of
@@ -676,18 +791,34 @@ implementation
                                           case consttype.def.deftype of
                                             orddef:
                                               begin
-                                                if is_integer(consttype.def) or is_boolean(consttype.def) then
-                                                  read_factor:=tostr(value.valueord)
-                                                else
-                                                  if is_char(consttype.def) then
+                                                if is_integer(consttype.def) then
+                                                  begin
+                                                    read_factor:=tostr(value.valueord);
+                                                    factorType:= [ctetInteger];
+                                                  end
+                                                else if is_boolean(consttype.def) then
+                                                  begin
+                                                    read_factor:=tostr(value.valueord);
+                                                    factorType:= [ctetBoolean];
+                                                  end
+                                                else if is_char(consttype.def) then
+                                                  begin
                                                     read_factor:=chr(value.valueord);
+                                                    factorType:= [ctetString];
+                                                  end
                                               end;
                                             enumdef:
-                                              read_factor:=tostr(value.valueord)
+                                              begin
+                                                read_factor:=tostr(value.valueord);
+                                                factorType:= [ctetInteger];
+                                              end;
                                           end;
                                         end;
                                       conststring :
-                                        read_factor := upper(pchar(value.valueptr));
+                                        begin
+                                          read_factor := upper(pchar(value.valueptr));
+                                          factorType:= [ctetString];
+                                        end;
                                       constset :
                                         begin
                                           hs:=',';
@@ -695,15 +826,18 @@ implementation
                                             if l in pconstset(tconstsym(srsym).value.valueptr)^ then
                                               hs:=hs+tostr(l)+',';
                                           read_factor := hs;
+                                          factorType:= [ctetSet];
                                         end;
                                     end;
                                   end;
                               end;
                             enumsym :
-                              read_factor:=tostr(tenumsym(srsym).value);
+                              begin
+																read_factor:=tostr(tenumsym(srsym).value);
+																factorType:= [ctetInteger];
+														  end;
                           end;
                         end;
-
                     preproc_consume(_ID);
                     current_scanner.skipspace;
                   end
@@ -711,7 +845,7 @@ implementation
            else if current_scanner.preproc_token =_LKLAMMER then
              begin
                 preproc_consume(_LKLAMMER);
-                read_factor:=read_expr;
+                read_factor:=read_expr(factorType);
                 preproc_consume(_RKLAMMER);
              end
            else if current_scanner.preproc_token = _LECKKLAMMER then
@@ -720,30 +854,44 @@ implementation
                read_factor := ',';
                while current_scanner.preproc_token = _ID do
                begin
-                 read_factor := read_factor+read_factor()+',';
+                 read_factor := read_factor+read_factor(setElemType)+',';
                  if current_scanner.preproc_token = _COMMA then
                    preproc_consume(_COMMA);
                end;
+               // TODO Add check of setElemType
                preproc_consume(_RECKKLAMMER);
+               factorType:= [ctetSet];
              end
            else
              Message(scan_e_error_in_preproc_expr);
         end;
 
-        function read_term : string;
+        function read_term(var termType: TCTETypeSet) : string;
         var
            hs1,hs2 : string;
            l1,l2 : longint;
            w : integer;
+           termType2: TCTETypeSet;
         begin
-          hs1:=read_factor;
+          hs1:=read_factor(termType);
           repeat
             if (current_scanner.preproc_token<>_ID) then
               break;
             if current_scanner.preproc_pattern<>'AND' then
               break;
+
+            {Check if first expr is boolean. Must be done here, after we know 
+             it is an AND expression.}
+            if not (ctetBoolean in termType) then
+              CTEError(termType, [ctetBoolean], 'AND');
+            termType:= [ctetBoolean];
+
             preproc_consume(_ID);
-            hs2:=read_factor;
+            hs2:=read_factor(termType2);
+
+            if not (ctetBoolean in termType2) then
+              CTEError(termType2, [ctetBoolean], 'AND');
+
             val(hs1,l1,w);
             val(hs2,l2,w);
             if (l1<>0) and (l2<>0) then
@@ -755,20 +903,32 @@ implementation
         end;
 
 
-        function read_simple_expr : string;
+        function read_simple_expr(var simpleExprType: TCTETypeSet) : string;
         var
            hs1,hs2 : string;
            l1,l2 : longint;
            w : integer;
+           simpleExprType2: TCTETypeSet;
         begin
-          hs1:=read_term;
+          hs1:=read_term(simpleExprType);
           repeat
             if (current_scanner.preproc_token<>_ID) then
               break;
             if current_scanner.preproc_pattern<>'OR' then
               break;
+
+            {Check if first expr is boolean. Must be done here, after we know 
+             it is an OR expression.}
+            if not (ctetBoolean in simpleExprType) then
+              CTEError(simpleExprType, [ctetBoolean], 'OR');
+            simpleExprType:= [ctetBoolean];
+
             preproc_consume(_ID);
-            hs2:=read_term;
+            hs2:=read_term(simpleExprType2);
+
+            if not (ctetBoolean in simpleExprType2) then
+              CTEError(simpleExprType2, [ctetBoolean], 'OR');
+
             val(hs1,l1,w);
             val(hs2,l2,w);
             if (l1<>0) or (l2<>0) then
@@ -779,75 +939,97 @@ implementation
           read_simple_expr:=hs1;
         end;
 
-        function read_expr : string;
+        function read_expr(var exprType: TCTETypeSet) : string;
         var
            hs1,hs2 : string;
            b : boolean;
-           t : ttoken;
+           op : ttoken;
            w : integer;
            l1,l2 : longint;
+           exprType2: TCTETypeSet;
         begin
-           hs1:=read_simple_expr;
-           t:=current_scanner.preproc_token;
-           if (t = _ID) and (current_scanner.preproc_pattern = 'IN') then
-             t := _IN;
-           if not (t in [_IN,_EQUAL,_UNEQUAL,_LT,_GT,_LTE,_GTE]) then
+           hs1:=read_simple_expr(exprType);
+           op:=current_scanner.preproc_token;
+           if (op = _ID) and (current_scanner.preproc_pattern = 'IN') then
+             op := _IN;
+           if not (op in [_IN,_EQUAL,_UNEQUAL,_LT,_GT,_LTE,_GTE]) then
              begin
                 read_expr:=hs1;
                 exit;
              end;
-           if (t = _IN) then
+             
+           if (op = _IN) then
              preproc_consume(_ID)
            else
-             preproc_consume(t);
-           hs2:=read_simple_expr;
-           if is_number(hs1) and is_number(hs2) then
+             preproc_consume(op);
+           hs2:=read_simple_expr(exprType2);
+
+           if op = _IN then
              begin
-                val(hs1,l1,w);
-                val(hs2,l2,w);
-                case t of
-                      _IN : Message(scan_e_preproc_syntax_error);
-                   _EQUAL : b:=l1=l2;
-                 _UNEQUAL : b:=l1<>l2;
-                      _LT : b:=l1<l2;
-                      _GT : b:=l1>l2;
-                     _GTE : b:=l1>=l2;
-                     _LTE : b:=l1<=l2;
-                end;
+               if exprType2 <> [ctetSet] then
+                 CTEError(exprType2, [ctetSet], 'IN');
+               if exprType = [ctetSet] then
+                 CTEError(exprType, setElementTypes, 'IN');
+
+              if is_number(hs1) and is_number(hs2) then
+                Message(scan_e_preproc_syntax_error)
+              else if hs2[1] = ',' then
+                b:=pos(','+hs1+',', hs2) > 0   { TODO For integer sets, perhaps check for numeric equivalence so that 0 = 00 }
+              else
+                Message(scan_e_preproc_syntax_error);
              end
            else
-             begin
-                case t of
-                      _IN : if hs2[1] = ',' then
-                              b:=pos(','+hs1+',', hs2) > 0
-                            else
-                              Message(scan_e_preproc_syntax_error);
-                   _EQUAL : b:=hs1=hs2;
-                 _UNEQUAL : b:=hs1<>hs2;
-                      _LT : b:=hs1<hs2;
-                      _GT : b:=hs1>hs2;
-                     _GTE : b:=hs1>=hs2;
-                     _LTE : b:=hs1<=hs2;
-                end;
-             end;
+						 begin
+							 if (exprType * exprType2) = [] then
+									CTEError(exprType2, exprType, tokeninfo^[op].str);
+	
+							 if is_number(hs1) and is_number(hs2) then
+								 begin
+										val(hs1,l1,w);
+										val(hs2,l2,w);
+										case op of
+											 _EQUAL : b:=l1=l2;
+										 _UNEQUAL : b:=l1<>l2;
+													_LT : b:=l1<l2;
+													_GT : b:=l1>l2;
+												 _GTE : b:=l1>=l2;
+												 _LTE : b:=l1<=l2;
+										end;
+								 end
+							 else
+								 begin
+										case op of
+											 _EQUAL : b:=hs1=hs2;
+										 _UNEQUAL : b:=hs1<>hs2;
+													_LT : b:=hs1<hs2;
+													_GT : b:=hs1>hs2;
+												 _GTE : b:=hs1>=hs2;
+												 _LTE : b:=hs1<=hs2;
+										end;
+								 end;
+						 end;
+
            if b then
              read_expr:='1'
            else
              read_expr:='0';
+           exprType:= [ctetBoolean];
         end;
-
      begin
         current_scanner.skipspace;
         { start preproc expression scanner }
         current_scanner.preproc_token:=current_scanner.readpreproc;
-        parse_compiler_expr:=read_expr;
-      end;
+        parse_compiler_expr:=read_expr(compileExprType);
+     end;
 
     function boolean_compile_time_expr(var valuedescr: String): Boolean;
       var
         hs : string;
+        exprType: TCTETypeSet;
       begin
-        hs:=parse_compiler_expr;
+        hs:=parse_compiler_expr(exprType);
+        if (exprType * [ctetBoolean]) = [] then
+          CTEError(exprType, [ctetBoolean], 'IF or ELSEIF');
         boolean_compile_time_expr:= hs <> '0';
         valuedescr:= hs;
       end;
@@ -862,7 +1044,7 @@ implementation
         current_scanner.elseifpreprocstack(@boolean_compile_time_expr);
       end;
 
-    procedure dir_define;
+    procedure dir_define_impl(macstyle: boolean);
       var
         hs  : string;
         bracketcount : longint;
@@ -898,7 +1080,7 @@ implementation
              { !!!!!! handle macro params, need we this? }
              current_scanner.skipspace;
 
-             if not (m_mac in aktmodeswitches) then
+             if not macstyle then
                begin
                  { may be a macro? }
                  if c <> ':' then
@@ -964,10 +1146,23 @@ implementation
           end;
       end;
 
+    procedure dir_define;
+      begin
+			  dir_define_impl(false);
+			end;
+
+    procedure dir_definec;
+      begin
+				dir_define_impl(true);
+			end;
+
     procedure dir_setc;
       var
         hs  : string;
         mac : tmacro;
+        exprType: TCTETypeSet;
+        l : longint;
+			  w : integer;
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
@@ -1008,9 +1203,22 @@ implementation
         if c='=' then
           begin
              current_scanner.readchar;
-             hs:= parse_compiler_expr;
+             hs:= parse_compiler_expr(exprType);
+             if (exprType * [ctetBoolean, ctetInteger]) = [] then
+               CTEError(exprType, [ctetBoolean, ctetInteger], 'SETC');
+
              if length(hs) <> 0 then
                begin
+							   {If we are absolutely shure it is boolean, translate
+								  to TRUE/FALSE to increase possibility to do future type check}
+							   if exprType = [ctetBoolean] then
+								   begin
+							       val(hs,l,w);
+                     if l<>0 then
+                       hs:='TRUE'
+                     else
+                       hs:='FALSE';
+                   end;
                  Message2(parser_c_macro_set_to,mac.name,hs);
                  { free buffer of macro ?}
                  if assigned(mac.buftext) then
@@ -1067,13 +1275,13 @@ implementation
           hpath  : string;
 
         begin
-         { look for the include file
+         (* look for the include file
 	   If path was specified as part of {$I } then
 	    1. specified path (expanded with path of inputfile if relative)
            else
             1. path of current inputfile,current dir
             2. local includepath
-            3. global includepath }
+            3. global includepath *)
            found:=false;
            foundfile:='';
            hpath:='';
@@ -1695,8 +1903,6 @@ implementation
       end;
 
     procedure tscannerfile.elsepreprocstack;
-      var
-        valuedescr: String;
       begin
         if assigned(preprocstack) and
            (preprocstack.typ<>pp_else) then
@@ -3436,7 +3642,7 @@ exit_label:
 
         { Directives and conditionals for mode macpas: }
         AddDirective('SETC',directive_mac, @dir_setc);
-        AddDirective('DEFINEC',directive_mac, @dir_define);
+        AddDirective('DEFINEC',directive_mac, @dir_definec);
         AddDirective('UNDEFC',directive_mac, @dir_undef);
 
         AddConditional('IFC',directive_mac, @dir_if);
