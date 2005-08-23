@@ -1,0 +1,143 @@
+I.Introduction
+
+Main goal of these files is to make available wince api under FPC.
+
+Even if wince5.0 informations are available since end of 2004, wince 4.2
+second edition api have been used -main reason is that i can't find on the 
+market any Pocket PC wince5 based -.
+
+Of course, any constructive comments will be appreciated
+Sincerely Yours
+orinaudo@gmail.com
+
+
+II.Remarks on how this have been done
+
+a)Row materials :
+
+-existing FPC win32api files from latest FPC 2.X.1 snapshot :
+windows.pp
+base.inc
+defines.inc
+errors.inc
+func.inc
+messages.inc
+redef.inc
+struct.inc
+unidef.inc
+
+- sdk provided .h
+- sdk provided .lib wich are :
+authhlp.lib, aygshell.lib, btd.lib, bthguid.lib, bthlink.lib,
+bthutil.lib, cecap.lib, CellCore.lib, cemapi.lib,
+ceosutil.lib, ceshell.lib, commctrl.lib, commdlg.lib,
+conncfg.lib, coredll.lib, crypt32.lib, cxport.lib, 
+dmoguids.lib, doclist.lib, grognard.lib,
+gx.lib, htmlview.lib, httpd.lib, imaging.lib, imgdecmp.lib,
+inkx.lib, iphlpapi.lib, mmtimer.lib, mqoa.lib, msdmo.lib,
+msmqrt.lib, msscript.lib, msxml.lib, msxmlguid.lib,
+ndis.lib, note_prj.lib, ntcompat.lib, ole32.lib,
+oleaut32.lib, phone.lib, pimstore.lib, pndtapi.lib,
+pushprxy.lib, richink.lib, secur32.lib, sms.lib,
+strmiids.lib, toolhelp.lib, urlmon.lib, uuid.lib,
+VBarCall.lib, VoiceCtl.lib, WAP.lib, webview.lib,
+wininet.lib, winsock.lib, wmlview.lib, ws2.lib,
+wsp.lib, wvuuid.lib.
+
+one problem was to be sure to use the right function name (with or without W)
+and the right corresponding wince dll name (wich is not same as win32) for each lib.
+
+Text extraction list of dll exported functions have been made.
+//with this kind of cmd script file:
+//FOR %%a in (*.lib) do arm-pe-objdump -p %aa >%aa-txt
+
+looking at lib imported, because some functions are implemented 
+directly in the lib and not from the dll.
+
+
+b-Tools
+extensive use SciTE editor (based on Scintilla project, www.scintilla.org),
+particularly 'find in file' function.
+
+c-How porting ?
+.discussing in ng, Florian and Yuri think that for several reasons(including automatic win32
+file genaration), dedicatd winceapi files were better solution instead of {$ifdef} approach
+in order to have only one set of files for all windows plateforms.
+I remain persuated that with so big amount of stuff will be less time consuming to maintain
+if there is only one set of files for all windows plateforms at least for common base pritimives. 
+
+..Also, it was important to be able to compile at any time, checking (struct type and syntax errors) of 
+added functions and also to be able to stop at any time beeing sure that no function was forgotten
+or unckecked.
+
+So until now changes are win32-i386 compilable.
+
+
+2 differents rules have been retained for porting depending of file kind :
+
+1°) concerning const, records and all stuff located in :
+base.inc, defines.inc, errors.inc, messages.inc, struct.inc
+
+Win32 actual files have been reused 'as this', just added traceability informations 
+at end of lines concerning changes or updates :
+
+
+//xxxxx   : just checked no changes
+//+xxxxx  : added
+//-xxxxx  : removed
+//~xxxxx  : updated
+xxxxx is the corresponding sdk .h filename
+
+defines were reused exactly as they are used in sdk .h files
+
+
+2°) concerning functions and procedures :
+func.inc,redef.inc,unidef.inc
+
+4 kinds of zone have been created using ifdef and/or comments
+
+x1.common win32 & wince
+x2.win32 only
+x3.win32 or wince not checked
+x4.wince only
+
+Starting, every existing win32 functions are moved in the x3 zone, then for each function
+using 'find in file', i search corresponding dll name and .h definition to update.
+Then - if required - the function header is updated and moved in the appropriate zone
+x1, x2 or x4. 
+
+Actually unidef.inc has been done, there is no more x3 zone but func.inc and redef.inc 
+have all zones.
+
+If an error is made, and an unexisting external function is declared in an existing dll then you'll 
+get an error message saying 'not a valid PocketPC application'. That said, if you plan to add a new 
+api, make a simple 'hello world' prg with just the new-api unit in uses clause, and check running prog 
+every 10 or 20 functions, better than testing directly a new 200 functions block.
+
+III.Install
+
+  windows.pp	-> fpcroot\rtl\wince
+  *.inc		-> fpcroot\rtl\wince\wininc
+
+
+IV.Changes 
+
+2005-08-17 :
+	consts and structs related files :
+          defines added _PPC_   was (__PPC__),  _MIPS_,_MIPS64, _X86_,_MPPC_,_IA64_,SHx,SH3,SH4,SH3e,ARM
+	  several consts and struct added
+
+	functions related files :
+	  {$ifdef} created
+
+2005-08-22 :
+	consts and structs related files :
+	  several consts and struct added
+
+	functions related files :
+	  unidef.inc	: 100% done
+	  func.inc	: 2% done
+	  redef.inc	: 0% done
+	  .several header habe been updated because type was longint and was 'int' in api doc.
+	  on 32bits plateforms there's no difference but on 64 bits there is,
+	  so according to api doc i updated longint to Integer when it was the case for .h definition.
