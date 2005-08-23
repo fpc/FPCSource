@@ -1032,6 +1032,7 @@ end;
 procedure TSQLQuery.SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string);
 
 begin
+  ReadOnly := True;
   SQL.Clear;
   SQL.Add((DataBase as tsqlconnection).GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaPattern));
 end;
