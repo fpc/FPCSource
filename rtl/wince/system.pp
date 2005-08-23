@@ -1332,10 +1332,6 @@ procedure SysInitStdIO;
 begin
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
     displayed in and messagebox }
-  StdInputHandle:=_fileno(_getstdfilex(0));
-  StdOutputHandle:=_fileno(_getstdfilex(1));
-  StdErrorHandle:=_fileno(_getstdfilex(3));
-  
   if not IsConsole then begin
     AssignError(stderr);
     AssignError(stdout);
@@ -1344,6 +1340,10 @@ begin
     Assign(ErrOutput,'');
   end
   else begin
+    StdInputHandle:=_fileno(_getstdfilex(0));
+    StdOutputHandle:=_fileno(_getstdfilex(1));
+    StdErrorHandle:=_fileno(_getstdfilex(3));
+
     OpenStdIO(Input,fmInput,StdInputHandle);
     OpenStdIO(Output,fmOutput,StdOutputHandle);
     OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
