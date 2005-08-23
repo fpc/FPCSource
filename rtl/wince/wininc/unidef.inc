@@ -193,7 +193,6 @@ function SendDlgItemMessage(hDlg:HWND; nIDDlgItem:Integer; Msg:UINT; wParam:WPAR
 function SendMessage(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external UserDLL name 'SendMessageW';
 function SendNotifyMessage(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external UserDLL name 'SendNotifyMessageW';
 function SetClassLong(hWnd:HWND; nIndex:Integer; dwNewLong:LONG):DWORD; external UserDLL name 'SetClassLongW';
-
 function SetDlgItemText(hDlg:HWND; nIDDlgItem:Integer; lpString:LPCWSTR):WINBOOL; external UserDLL name 'SetDlgItemTextW';
 function SetFileAttributes(lpFileName:LPCWSTR; dwFileAttributes:DWORD):WINBOOL; external KernelDLL name 'SetFileAttributesW';
 function SetLocaleInfo(Locale:LCID; LCType:LCTYPE; lpLCData:LPCWSTR):WINBOOL; external KernelDLL name 'SetLocaleInfoW';
@@ -201,7 +200,6 @@ function SetMenuItemInfo(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPCME
 function SetWindowsHookEx(idHook:longint; lpfn:HOOKPROC; hmod:HINST; dwThreadId:DWORD):HHOOK; external UserDLL name 'SetWindowsHookExW';
 function SetWindowText(hWnd:HWND; lpString:LPCWSTR):WINBOOL; external UserDLL name 'SetWindowTextW';
 function SetWindowLong(hWnd:HWND; nIndex:Integer; dwNewLong:LONG):LONG; external UserDLL name 'SetWindowLongW'; //~winuser nIndex is int
-
 function ShellExecuteEx(lpExecInfo:LPSHELLEXECUTEINFO):WINBOOL; external ShellDLLCore name 'ShellExecuteEx'; //+shellapi
 function SystemParametersInfo(uiAction:UINT; uiParam:UINT; pvParam:PVOID; fWinIni:UINT):WINBOOL; external UserDLL name 'SystemParametersInfoW';
 function StartDoc(_para1:HDC; _para2:PDOCINFOW):Integer; external GdiDLL name 'StartDocW';
@@ -235,6 +233,8 @@ function EnumPropsEx(hWnd:HWND; lpEnumFunc:PROPENUMPROCEX; lParam:LPARAM):Intege
 //'...W' not exported but '...' is
 function GetCharABCWidths(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPABC):WINBOOL; external GdiDLL name 'GetCharABCWidths';
 function GetCharWidth32(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPINT):WINBOOL; external GdiDLL name 'GetCharWidth32';
+//wince has W
+function GetProcAddress(hModule:HINST; lpProcName:LPCWSTR):FARPROC; external KernelDLL name 'GetProcAddressW';
 //'GetPropW', not exported but 'GetProp' with widechar header are
 function GetProp(hWnd:HWND; lpString:LPCWSTR):HANDLE; external UserDLL name 'GetProp';
 //!header specific to CE, not in comctl32(win32)/commctl(wince) but in coredll
@@ -377,6 +377,8 @@ function GetOutlineTextMetrics(_para1:HDC; _para2:UINT; _para3:LPOUTLINETEXTMETR
 function GetProfileInt(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; nDefault:WINT):UINT; external 'kernel32' name 'GetProfileIntW';
 function GetProfileString(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; lpDefault:LPCWSTR; lpReturnedString:LPWSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetProfileStringW';
 function GetProfileSection(lpAppName:LPCWSTR; lpReturnedString:LPWSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetProfileSectionW';
+//was in func.inc, wince has W
+function GetProcAddress(hModule:HINST; lpProcName:LPCSTR):FARPROC; external 'kernel32' name 'GetProcAddress';
 function GetProp(hWnd:HWND; lpString:LPCWSTR):HANDLE; external 'user32' name 'GetPropW';
 function GetPrivateProfileInt(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; nDefault:WINT; lpFileName:LPCWSTR):UINT; external 'kernel32' name 'GetPrivateProfileIntW';
 function GetPrivateProfileString(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; lpDefault:LPCWSTR; lpReturnedString:LPWSTR; nSize:DWORD;lpFileName:LPCWSTR):DWORD; external 'kernel32' name 'GetPrivateProfileStringW';

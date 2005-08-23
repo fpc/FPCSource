@@ -50,20 +50,72 @@
 
 {$ifdef read_interface}
 //begin common win32 & wince
+function DisableThreadLibraryCalls(hLibModule:HMODULE):WINBOOL; external KernelDLL name 'DisableThreadLibraryCalls';
+procedure ExitThread(dwExitCode:DWORD); external KernelDLL name 'ExitThread';
+function FlushInstructionCache(hProcess:HANDLE; lpBaseAddress:LPCVOID; dwSize:DWORD):WINBOOL; external KernelDLL name 'FlushInstructionCache';
 function FreeLibrary(hLibModule:HMODULE):WINBOOL; external KernelDLL name 'FreeLibrary';
 procedure FreeLibraryAndExitThread(hLibModule:HMODULE; dwExitCode:DWORD); external KernelDLL name 'FreeLibraryAndExitThread';
 function GetDlgCtrlID(hWnd:HWND):longint; external UserDLL name 'GetDlgCtrlID';
+function GetExitCodeProcess(hProcess:HANDLE; lpExitCode:LPDWORD):WINBOOL; external KernelDLL name 'GetExitCodeProcess';
+function GetExitCodeThread(hThread:HANDLE; lpExitCode:LPDWORD):WINBOOL; external KernelDLL name 'GetExitCodeThread';
+function GetLastError:DWORD; external KernelDLL name 'GetLastError';
+function GetProcessHeap:HANDLE; external KernelDLL name 'GetProcessHeap';
+function GetThreadPriority(hThread:HANDLE):Integer; external KernelDLL name 'GetThreadPriority';
+function GetThreadTimes(hThread:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:LPFILETIME; lpKernelTime:LPFILETIME; lpUserTime:LPFILETIME):WINBOOL; external KernelDLL name 'GetThreadTimes';
 function GetWindow(hWnd:HWND; uCmd:UINT):HWND; external UserDLL name 'GetWindow';
+function GlobalDiscard(hglbMem:HGLOBAL):HGLOBAL;
+procedure GlobalMemoryStatus(lpBuffer:LPMEMORYSTATUS); external KernelDLL name 'GlobalMemoryStatus';
+function HeapAlloc(hHeap:HANDLE; dwFlags:DWORD; dwBytes:DWORD):LPVOID; external KernelDLL name 'HeapAlloc';
+function HeapAllocTrace(hHeap:HANDLE; dwFlags:DWORD; dwBytes:DWORD; dwLineNum:DWORD; szFileName:PCHAR):LPVOID; external KernelDLL name 'HeapAllocTrace';  //+winbase
+function HeapCreate(flOptions:DWORD; dwInitialSize:DWORD; dwMaximumSize:DWORD):HANDLE; external KernelDLL name 'HeapCreate';
+function HeapDestroy(hHeap:HANDLE):WINBOOL; external KernelDLL name 'HeapDestroy';
+function HeapFree(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID):WINBOOL; external KernelDLL name 'HeapFree';
+function HeapReAlloc(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID; dwBytes:DWORD):LPVOID; external KernelDLL name 'HeapReAlloc';
+function HeapSize(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPCVOID):DWORD; external KernelDLL name 'HeapSize';
+function HeapValidate(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPCVOID):WINBOOL; external KernelDLL name 'HeapValidate';
 function InterlockedIncrement(lpAddend:LPLONG):LONG; external KernelDLL name 'InterlockedIncrement';
 function InterlockedDecrement(lpAddend:LPLONG):LONG; external KernelDLL name 'InterlockedDecrement';
 function InterlockedCompareExchange( var Destination:LPLONG; Exchange:LONG; Comperand:LONG):LONG; external KernelDLL name 'InterlockedCompareExchange';
 function InterlockedExchange(Target:LPLONG; Value:LONG):LONG; external KernelDLL name 'InterlockedExchange';
 function InterlockedExchangeAdd( Addend:LPLONG; Value:LONG):LONG; external KernelDLL name 'InterlockedExchangeAdd';
 function InterlockedTestExchange( Target:LPLONG; oldValue:LONG; newValue:LONG):LONG; external KernelDLL name 'InterlockedTestExchange';
+function LocalAlloc(uFlags:UINT; uBytes:UINT):HLOCAL; external KernelDLL name 'LocalAlloc';
+function LocalDiscard(hlocMem:HLOCAL):HLOCAL;
+function LocalFree(hMem:HLOCAL):HLOCAL; external KernelDLL name 'LocalFree';
+function LocalReAlloc(hMem:HLOCAL; uBytes:UINT; uFlags:UINT):HLOCAL; external KernelDLL name 'LocalReAlloc';
+function LocalSize(hMem:HLOCAL):UINT; external KernelDLL name 'LocalSize';
+function OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE; external KernelDLL name 'OpenProcess';
+procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; lpArguments:LPDWORD); external KernelDLL name 'RaiseException';
+procedure SetLastError(dwErrCode:DWORD); external KernelDLL name 'SetLastError';
+function SetThreadPriority(hThread:HANDLE; nPriority:Integer):WINBOOL; external KernelDLL name 'SetThreadPriority';
+function TerminateProcess(hProcess:HANDLE; uExitCode:UINT):WINBOOL; external KernelDLL name 'TerminateProcess';
+function TerminateThread(hThread:HANDLE; dwExitCode:DWORD):WINBOOL; external KernelDLL name 'TerminateThread';
+function VirtualAlloc(lpAddress:LPVOID; dwSize:DWORD; flAllocationType:DWORD; flProtect:DWORD):LPVOID; external KernelDLL name 'VirtualAlloc';
+function VirtualProtect(lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL; external KernelDLL name 'VirtualProtect';
+function VirtualQuery(lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external KernelDLL name 'VirtualQuery';
+function VirtualFree(lpAddress:LPVOID; dwSize:DWORD; dwFreeType:DWORD):WINBOOL; external KernelDLL name 'VirtualFree';
 //end common win32 & wince
 
 {$ifdef WINCE}
 //begin wince only
+//calculated value 
+function GetCurrentProcess:HANDLE; 
+//calculated value 
+function GetCurrentProcessId:DWORD; 
+//calculated value 
+function GetCurrentThread:HANDLE; 
+//calculated value 
+function GetCurrentThreadId:DWORD; 
+//redirected to LocalAlloc
+function GlobalAlloc(uFlags:UINT; dwBytes:DWORD):HGLOBAL; 
+//redirected to LocalFree
+function GlobalFree(hMem:HGLOBAL):HGLOBAL; 
+//redirected to LocalRealloc
+function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL; 
+//redirected to LocalSize
+function GlobalSize(hMem:HGLOBAL):DWORD; 
+//redirected to TerminateProcess
+procedure ExitProcess(uExitCode:UINT);
 
 //end wince only
 {$endif WINCE}
@@ -72,96 +124,64 @@ function InterlockedTestExchange( Target:LPLONG; oldValue:LONG; newValue:LONG):L
 //begin win32 only
 function AccessCheck(pSecurityDescriptor:PSECURITY_DESCRIPTOR; ClientToken:HANDLE; DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; PrivilegeSet:PPRIVILEGE_SET;PrivilegeSetLength:LPDWORD;
   GrantedAccess:LPDWORD; AccessStatus:LPBOOL):WINBOOL; external 'advapi32' name 'AccessCheck';
-//end win32 only
-
-
-//begin win32 or wince not checked
-function LockResource(hResData:HGLOBAL):LPVOID; external 'kernel32' name 'LockResource';
+function CreateIoCompletionPort(FileHandle:HANDLE; ExistingCompletionPort:HANDLE; CompletionKey:DWORD; NumberOfConcurrentThreads:DWORD):HANDLE; external 'kernel32' name 'CreateIoCompletionPort';
+function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID;
+  dwCreationFlags:DWORD; lpThreadId:LPDWORD):HANDLE; external 'kernel32' name 'CreateRemoteThread';
+procedure ExitProcess(uExitCode:UINT);external 'kernel32' name 'ExitProcess';
+procedure FatalExit(ExitCode:longint); external 'kernel32' name 'FatalExit';
 function FreeResource(hResData:HGLOBAL):WINBOOL; external 'kernel32' name 'FreeResource';
+function GetCurrentProcess:HANDLE; external 'kernel32' name 'GetCurrentProcess';
+function GetCurrentProcessId:DWORD; external 'kernel32' name 'GetCurrentProcessId';
+function GetCurrentThread:HANDLE; external 'kernel32' name 'GetCurrentThread';
+function GetCurrentThreadId:DWORD; external 'kernel32' name 'GetCurrentThreadId';
+function GetProcAddress(hModule:HINST; lpProcName:LPCSTR):FARPROC; external 'kernel32' name 'GetProcAddress';
+function GetProcessAffinityMask(hProcess:HANDLE; lpProcessAffinityMask:LPDWORD; lpSystemAffinityMask:LPDWORD):WINBOOL; external 'kernel32' name 'GetProcessAffinityMask';
+function GetProcessHeaps(NumberOfHeaps:DWORD; ProcessHeaps:PHANDLE):DWORD; external 'kernel32' name 'GetProcessHeaps';
+function GetProcessTimes(hProcess:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:LPFILETIME; lpKernelTime:LPFILETIME; lpUserTime:LPFILETIME):WINBOOL; external 'kernel32' name 'GetProcessTimes';
+function GetProcessWorkingSetSize(hProcess:HANDLE; lpMinimumWorkingSetSize:LPDWORD; lpMaximumWorkingSetSize:LPDWORD):WINBOOL; external 'kernel32' name 'GetProcessWorkingSetSize';
+{$ifdef LPLDT_ENTRY}
+function GetThreadSelectorEntry(hThread:HANDLE; dwSelector:DWORD; lpSelectorEntry:LPLDT_ENTRY):WINBOOL; external 'kernel32' name 'GetThreadSelectorEntry';
+{$endif LPLDT_ENTRY}
+function GetVersion:DWORD; external 'kernel32' name 'GetVersion';
+function GlobalAlloc(uFlags:UINT; dwBytes:DWORD):HGLOBAL; external 'kernel32' name 'GlobalAlloc';
+function GlobalCompact(dwMinFree:DWORD):UINT; external 'kernel32' name 'GlobalCompact';
+procedure GlobalFix(hMem:HGLOBAL); external 'kernel32' name 'GlobalFix';
+function GlobalFlags(hMem:HGLOBAL):UINT; external 'kernel32' name 'GlobalFlags';
+function GlobalFree(hMem:HGLOBAL):HGLOBAL; external 'kernel32' name 'GlobalFree';
+function GlobalHandle(pMem:LPCVOID):HGLOBAL; external 'kernel32' name 'GlobalHandle';
+function GlobalLock(hMem:HGLOBAL):LPVOID; external 'kernel32' name 'GlobalLock';
+function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL; external 'kernel32' name 'GlobalReAlloc';
+function GlobalSize(hMem:HGLOBAL):DWORD; external 'kernel32' name 'GlobalSize';
+procedure GlobalUnfix(hMem:HGLOBAL); external 'kernel32' name 'GlobalUnfix';
+function GlobalUnlock(hMem:HGLOBAL):WINBOOL; external 'kernel32' name 'GlobalUnlock';
+function GlobalUnWire(hMem:HGLOBAL):WINBOOL; external 'kernel32' name 'GlobalUnWire';
+function GlobalWire(hMem:HGLOBAL):LPVOID; external 'kernel32' name 'GlobalWire';
+function HeapCompact(hHeap:HANDLE; dwFlags:DWORD):UINT; external 'kernel32' name 'HeapCompact';
+function HeapLock(hHeap:HANDLE):WINBOOL; external 'kernel32' name 'HeapLock';
+function HeapUnlock(hHeap:HANDLE):WINBOOL; external 'kernel32' name 'HeapUnlock';
+function HeapWalk(hHeap:HANDLE; lpEntry:LPPROCESS_HEAP_ENTRY):WINBOOL; external 'kernel32' name 'HeapWalk';
+function LocalCompact(uMinFree:UINT):UINT; external 'kernel32' name 'LocalCompact';
+function LocalFlags(hMem:HLOCAL):UINT; external 'kernel32' name 'LocalFlags';
+function LocalHandle(pMem:LPCVOID):HLOCAL; external 'kernel32' name 'LocalHandle';
+function LocalLock(hMem:HLOCAL):LPVOID; external 'kernel32' name 'LocalLock';
+function LocalShrink(hMem:HLOCAL; cbNewSize:UINT):UINT; external 'kernel32' name 'LocalShrink';
+function LocalUnlock(hMem:HLOCAL):WINBOOL; external 'kernel32' name 'LocalUnlock';
+function LockResource(hResData:HGLOBAL):LPVOID; external 'kernel32' name 'LockResource';
+function SetErrorMode(uMode:UINT):UINT; external 'kernel32' name 'SetErrorMode';
+function SetProcessWorkingSetSize(hProcess:HANDLE; dwMinimumWorkingSetSize:DWORD; dwMaximumWorkingSetSize:DWORD):WINBOOL; external 'kernel32' name 'SetProcessWorkingSetSize';
+function SetThreadAffinityMask(hThread:HANDLE; dwThreadAffinityMask:DWORD):DWORD; external 'kernel32' name 'SetThreadAffinityMask';
+function UnhandledExceptionFilter(ExceptionInfo:lpemptyrecord):LONG; external 'kernel32' name 'UnhandledExceptionFilter';
+function VirtualProtectEx(hProcess:HANDLE; lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL; external 'kernel32' name 'VirtualProtectEx';
+function VirtualQueryEx(hProcess:HANDLE; lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external 'kernel32' name 'VirtualQueryEx';
+
 {$ifdef Unknown_functions}
 { WARNING: function not found !!}
 function WinMain(hInstance:HINST; hPrevInstance:HINST; lpCmdLine:LPSTR; nShowCmd:longint):longint; external External_library name 'WinMain';
 {$endif Unknown_functions}
-function DisableThreadLibraryCalls(hLibModule:HMODULE):WINBOOL; external 'kernel32' name 'DisableThreadLibraryCalls';
-function GetProcAddress(hModule:HINST; lpProcName:LPCSTR):FARPROC; external 'kernel32' name 'GetProcAddress';
-function GetVersion:DWORD; external 'kernel32' name 'GetVersion';
-function GlobalAlloc(uFlags:UINT; dwBytes:DWORD):HGLOBAL; external 'kernel32' name 'GlobalAlloc';
-function GlobalDiscard(hglbMem:HGLOBAL):HGLOBAL;
-function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL; external 'kernel32' name 'GlobalReAlloc';
-function GlobalSize(hMem:HGLOBAL):DWORD; external 'kernel32' name 'GlobalSize';
-function GlobalFlags(hMem:HGLOBAL):UINT; external 'kernel32' name 'GlobalFlags';
-function GlobalLock(hMem:HGLOBAL):LPVOID; external 'kernel32' name 'GlobalLock';
-function GlobalHandle(pMem:LPCVOID):HGLOBAL; external 'kernel32' name 'GlobalHandle';
-function GlobalUnlock(hMem:HGLOBAL):WINBOOL; external 'kernel32' name 'GlobalUnlock';
-function GlobalFree(hMem:HGLOBAL):HGLOBAL; external 'kernel32' name 'GlobalFree';
-function GlobalCompact(dwMinFree:DWORD):UINT; external 'kernel32' name 'GlobalCompact';
-procedure GlobalFix(hMem:HGLOBAL); external 'kernel32' name 'GlobalFix';
-procedure GlobalUnfix(hMem:HGLOBAL); external 'kernel32' name 'GlobalUnfix';
-function GlobalWire(hMem:HGLOBAL):LPVOID; external 'kernel32' name 'GlobalWire';
-function GlobalUnWire(hMem:HGLOBAL):WINBOOL; external 'kernel32' name 'GlobalUnWire';
-procedure GlobalMemoryStatus(lpBuffer:LPMEMORYSTATUS); external 'kernel32' name 'GlobalMemoryStatus';
-function LocalAlloc(uFlags:UINT; uBytes:UINT):HLOCAL; external 'kernel32' name 'LocalAlloc';
-function LocalDiscard(hlocMem:HLOCAL):HLOCAL;
-function LocalReAlloc(hMem:HLOCAL; uBytes:UINT; uFlags:UINT):HLOCAL; external 'kernel32' name 'LocalReAlloc';
-function LocalLock(hMem:HLOCAL):LPVOID; external 'kernel32' name 'LocalLock';
-function LocalHandle(pMem:LPCVOID):HLOCAL; external 'kernel32' name 'LocalHandle';
-function LocalUnlock(hMem:HLOCAL):WINBOOL; external 'kernel32' name 'LocalUnlock';
-function LocalSize(hMem:HLOCAL):UINT; external 'kernel32' name 'LocalSize';
-function LocalFlags(hMem:HLOCAL):UINT; external 'kernel32' name 'LocalFlags';
-function LocalFree(hMem:HLOCAL):HLOCAL; external 'kernel32' name 'LocalFree';
-function LocalShrink(hMem:HLOCAL; cbNewSize:UINT):UINT; external 'kernel32' name 'LocalShrink';
-function LocalCompact(uMinFree:UINT):UINT; external 'kernel32' name 'LocalCompact';
-function FlushInstructionCache(hProcess:HANDLE; lpBaseAddress:LPCVOID; dwSize:DWORD):WINBOOL; external 'kernel32' name 'FlushInstructionCache';
-function VirtualAlloc(lpAddress:LPVOID; dwSize:DWORD; flAllocationType:DWORD; flProtect:DWORD):LPVOID; external 'kernel32' name 'VirtualAlloc';
-function VirtualFree(lpAddress:LPVOID; dwSize:DWORD; dwFreeType:DWORD):WINBOOL; external 'kernel32' name 'VirtualFree';
-function VirtualProtect(lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL; external 'kernel32' name 'VirtualProtect';
-function VirtualQuery(lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external 'kernel32' name 'VirtualQuery';
-function VirtualProtectEx(hProcess:HANDLE; lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL; external 'kernel32' name 'VirtualProtectEx';
-function VirtualQueryEx(hProcess:HANDLE; lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external 'kernel32' name 'VirtualQueryEx';
-function HeapCreate(flOptions:DWORD; dwInitialSize:DWORD; dwMaximumSize:DWORD):HANDLE; external 'kernel32' name 'HeapCreate';
-function HeapDestroy(hHeap:HANDLE):WINBOOL; external 'kernel32' name 'HeapDestroy';
-function HeapAlloc(hHeap:HANDLE; dwFlags:DWORD; dwBytes:DWORD):LPVOID; external 'kernel32' name 'HeapAlloc';
-function HeapReAlloc(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID; dwBytes:DWORD):LPVOID; external 'kernel32' name 'HeapReAlloc';
-function HeapFree(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID):WINBOOL; external 'kernel32' name 'HeapFree';
-function HeapSize(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPCVOID):DWORD; external 'kernel32' name 'HeapSize';
-function HeapValidate(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPCVOID):WINBOOL; external 'kernel32' name 'HeapValidate';
-function HeapCompact(hHeap:HANDLE; dwFlags:DWORD):UINT; external 'kernel32' name 'HeapCompact';
-function GetProcessHeap:HANDLE; external 'kernel32' name 'GetProcessHeap';
-function GetProcessHeaps(NumberOfHeaps:DWORD; ProcessHeaps:PHANDLE):DWORD; external 'kernel32' name 'GetProcessHeaps';
-function HeapLock(hHeap:HANDLE):WINBOOL; external 'kernel32' name 'HeapLock';
-function HeapUnlock(hHeap:HANDLE):WINBOOL; external 'kernel32' name 'HeapUnlock';
-function HeapWalk(hHeap:HANDLE; lpEntry:LPPROCESS_HEAP_ENTRY):WINBOOL; external 'kernel32' name 'HeapWalk';
-function GetProcessAffinityMask(hProcess:HANDLE; lpProcessAffinityMask:LPDWORD; lpSystemAffinityMask:LPDWORD):WINBOOL; external 'kernel32' name 'GetProcessAffinityMask';
-function GetProcessTimes(hProcess:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:LPFILETIME; lpKernelTime:LPFILETIME; lpUserTime:LPFILETIME):WINBOOL; external 'kernel32' name 'GetProcessTimes';
-function GetProcessWorkingSetSize(hProcess:HANDLE; lpMinimumWorkingSetSize:LPDWORD; lpMaximumWorkingSetSize:LPDWORD):WINBOOL; external 'kernel32' name 'GetProcessWorkingSetSize';
-function SetProcessWorkingSetSize(hProcess:HANDLE; dwMinimumWorkingSetSize:DWORD; dwMaximumWorkingSetSize:DWORD):WINBOOL; external 'kernel32' name 'SetProcessWorkingSetSize';
-function OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE; external 'kernel32' name 'OpenProcess';
-function GetCurrentProcess:HANDLE; external 'kernel32' name 'GetCurrentProcess';
-function GetCurrentProcessId:DWORD; external 'kernel32' name 'GetCurrentProcessId';
-procedure ExitProcess(uExitCode:UINT);external 'kernel32' name 'ExitProcess';
-function TerminateProcess(hProcess:HANDLE; uExitCode:UINT):WINBOOL; external 'kernel32' name 'TerminateProcess';
-function GetExitCodeProcess(hProcess:HANDLE; lpExitCode:LPDWORD):WINBOOL; external 'kernel32' name 'GetExitCodeProcess';
-procedure FatalExit(ExitCode:longint); external 'kernel32' name 'FatalExit';
-procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; lpArguments:LPDWORD); external 'kernel32' name 'RaiseException';
-function UnhandledExceptionFilter(ExceptionInfo:lpemptyrecord):LONG; external 'kernel32' name 'UnhandledExceptionFilter';
-function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID;
-  dwCreationFlags:DWORD; lpThreadId:LPDWORD):HANDLE; external 'kernel32' name 'CreateRemoteThread';
-function GetCurrentThread:HANDLE; external 'kernel32' name 'GetCurrentThread';
-function GetCurrentThreadId:DWORD; external 'kernel32' name 'GetCurrentThreadId';
-function SetThreadAffinityMask(hThread:HANDLE; dwThreadAffinityMask:DWORD):DWORD; external 'kernel32' name 'SetThreadAffinityMask';
-function SetThreadPriority(hThread:HANDLE; nPriority:longint):WINBOOL; external 'kernel32' name 'SetThreadPriority';
-function GetThreadPriority(hThread:HANDLE):longint; external 'kernel32' name 'GetThreadPriority';
-function GetThreadTimes(hThread:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:LPFILETIME; lpKernelTime:LPFILETIME; lpUserTime:LPFILETIME):WINBOOL; external 'kernel32' name 'GetThreadTimes';
-procedure ExitThread(dwExitCode:DWORD); external 'kernel32' name 'ExitThread';
-function TerminateThread(hThread:HANDLE; dwExitCode:DWORD):WINBOOL; external 'kernel32' name 'TerminateThread';
-function GetExitCodeThread(hThread:HANDLE; lpExitCode:LPDWORD):WINBOOL; external 'kernel32' name 'GetExitCodeThread';
-{$ifdef LPLDT_ENTRY}
-function GetThreadSelectorEntry(hThread:HANDLE; dwSelector:DWORD; lpSelectorEntry:LPLDT_ENTRY):WINBOOL; external 'kernel32' name 'GetThreadSelectorEntry';
-{$endif LPLDT_ENTRY}
-function GetLastError:DWORD; external 'kernel32' name 'GetLastError';
-procedure SetLastError(dwErrCode:DWORD); external 'kernel32' name 'SetLastError';
-function CreateIoCompletionPort(FileHandle:HANDLE; ExistingCompletionPort:HANDLE; CompletionKey:DWORD; NumberOfConcurrentThreads:DWORD):HANDLE; external 'kernel32' name 'CreateIoCompletionPort';
-function SetErrorMode(uMode:UINT):UINT; external 'kernel32' name 'SetErrorMode';
+//end win32 only
+
+
+//begin win32 or wince not checked
 function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesRead:LPDWORD):WINBOOL; external 'kernel32' name 'ReadProcessMemory';
 function WriteProcessMemory(hProcess:HANDLE; lpBaseAddress:LPVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesWritten:LPDWORD):WINBOOL; external 'kernel32' name 'WriteProcessMemory';
 function GetThreadContext(hThread:HANDLE; lpContext:LPCONTEXT):WINBOOL; external 'kernel32' name 'GetThreadContext';
@@ -1286,17 +1306,73 @@ function SetLayeredWindowAttributes(HWND:hwnd;crKey :COLORREF;bAlpha : byte;dwFl
 
 //begin common win32 & wince
 
+function GlobalDiscard(hglbMem:HGLOBAL):HGLOBAL;
+begin
+  GlobalDiscard:=GlobalReAlloc(hglbMem,0,GMEM_MOVEABLE);
+end;
+
+function LocalDiscard(hlocMem:HLOCAL):HLOCAL;
+begin
+  LocalDiscard := LocalReAlloc(hlocMem,0,LMEM_MOVEABLE);
+end;
+
 //end common win32 & wince
 
 {$ifdef WINCE}
 //begin wince only
+function GetCurrentThread:HANDLE; 
+begin
+  GetCurrentThread:=SH_CURTHREAD+SYS_HANDLE_BASE;
+end;
+
+function GetCurrentThreadId:DWORD; 
+begin
+ GetCurrentThreadId:=Phandle(PUserKData+SYSHANDLE_OFFSET+SH_CURTHREAD*SizeOf(THandle))^;
+end;
+
+function GetCurrentProcess:HANDLE; 
+begin
+  GetCurrentProcess:=SH_CURPROC+SYS_HANDLE_BASE;
+end;
+
+function GetCurrentProcessId:DWORD; 
+begin	
+ GetCurrentProcessId:=Phandle(PUserKData+SYSHANDLE_OFFSET+SH_CURPROC*SizeOf(THandle))^;
+end;
+
+function GlobalAlloc(uFlags:UINT; dwBytes:DWORD):HGLOBAL; 
+begin
+  GlobalAlloc:=LocalAlloc(uFlags,dwBytes);
+end;
+
+function GlobalFree(hMem:HGLOBAL):HGLOBAL; 
+begin
+  GlobalFree:=LocalFree(hMem);
+end;
+
+function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL; 
+begin
+  GlobalReAlloc:=LocalReAlloc(hMem, dwBytes, LMEM_MOVEABLE);
+end;
+
+function GlobalSize(hMem:HGLOBAL):DWORD; 
+begin
+  GlobalSize:=LocalSize(hMem);
+end;
+
+procedure ExitProcess(uExitCode:UINT);
+begin
+  TerminateProcess (GetCurrentProcess, uExitCode);
+end;  
 
 //end wince only
 {$endif WINCE}
 
+
 {$ifdef WIN32}
 
 //begin win32 only
+
 //end win32 only
 
 //begin win32 or wince not checked
@@ -1355,18 +1431,6 @@ begin
 end;
 
 { End of bug fixes for bug report 1807. PM }
-
-function GlobalDiscard(hglbMem:HGLOBAL):HGLOBAL;
-begin
-  GlobalDiscard:=GlobalReAlloc(hglbMem,0,GMEM_MOVEABLE);
-end;
-
-
-function LocalDiscard(hlocMem:HLOCAL):HLOCAL;
-begin
-  LocalDiscard := LocalReAlloc(hlocMem,0,LMEM_MOVEABLE);
-end;
-
 
 procedure MoveMemory(Destination:PVOID; Source:pointer; Length:DWORD);
 begin

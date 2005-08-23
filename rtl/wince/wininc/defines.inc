@@ -2240,6 +2240,7 @@ Const
      LMEM_DISCARDABLE = 3840;
      LMEM_DISCARDED = 16384;
      LMEM_INVALID_HANDLE = 32768;
+     LMEM_VALID_FLAGS=$0F72;       //+winbase
   { LockFileEx  }
      LOCKFILE_FAIL_IMMEDIATELY = 1;
      LOCKFILE_EXCLUSIVE_LOCK = 2;
@@ -2940,6 +2941,34 @@ Const
      REMOTE_NAME_INFO_LEVEL = 2;
   { GetExitCodeThread  }
      STILL_ACTIVE = $103;
+
+  { kfuncs consts }  //+kfuncs
+  
+    {$ifdef ARM}
+      PUserKData = $FFFFC800;
+    {$else}
+      PUserKData = $00005800;
+    {$endif ARM}
+
+     SYSHANDLE_OFFSET = $004;
+     NUM_SYS_HANDLES  = 32;
+     SYS_HANDLE_BASE  = 64;
+     SH_WIN32         = 0;
+     SH_CURTHREAD     = 1;
+     SH_CURPROC       = 2;
+     SH_LAST_NOTIFY   = 16; // Last set notified on Thread/Process Termination
+     SH_GDI           = 16;
+     SH_WMGR          = 17;
+     SH_WNET	      = 18; // WNet APIs for network redirector
+     SH_COMM          = 19; // Communications not "COM"
+     SH_FILESYS_APIS  = 20; // File system APIS
+     SH_SHELL         = 21;
+     SH_DEVMGR_APIS   = 22; // File system device manager
+     SH_TAPI	      = 23;
+     SH_PATCHER	      = 24;
+     SH_SERVICES      = 26;
+     SH_LASTRESERVED  = 26;
+     
   { COMMPROP structure  }
      SP_SERIALCOMM = $1;
      BAUD_075 = $1;
