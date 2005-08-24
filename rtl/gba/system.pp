@@ -1,0 +1,295 @@
+{
+    $Id: system.pp,v 1.25 2005/04/24 21:19:22 peter Exp $
+    This file is part of the Free Pascal run time librar~y.
+    Copyright (c) 2000 by Marco van de Voort
+    member of the Free Pascal development team.
+
+    System unit for Linux.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+{ These things are set in the makefile, }
+{ But you can override them here.}
+
+
+{ If you use an aout system, set the conditional AOUT}
+{.$Define AOUT}
+
+Unit {$ifdef VER1_0}Sysgba{$else}System{$endif};
+
+Interface
+
+{$define FPC_IS_SYSTEM}
+
+{$i osdefs.inc}
+
+{$I sysunixh.inc}
+
+Implementation
+
+
+{$I system.inc}
+
+
+{*****************************************************************************
+                       Misc. System Dependent Functions
+*****************************************************************************}
+
+//procedure fpc_initializeunits;[public,alias:'FPC_INITIALIZEUNITS'];
+//begin
+//  { dummy }
+//end;
+
+//procedure fpc_do_exit;[public,alias:'FPC_DO_EXIT'];
+//begin
+//  { dummy }
+//end;
+
+//procedure halt; [public,alias:'FPC_HALT_ZERO'];
+//begin
+//  fpc_do_exit;
+//end; 
+
+
+
+///-F-/// procedure haltproc(e:longint);cdecl;external name '_haltproc';
+
+procedure System_exit;
+begin
+///-F-///   haltproc(ExitCode);
+End;
+
+
+Function ParamCount: Longint;
+Begin
+///-F-///  Paramcount:=argc-1
+End;
+
+
+function BackPos(c:char; const s: shortstring): integer;
+var
+ i: integer;
+Begin
+  for i:=length(s) downto 0 do
+    if s[i] = c then break;
+  if i=0 then
+    BackPos := 0
+  else
+    BackPos := i;
+end;
+
+
+ { variable where full path and filename and executable is stored }
+ { is setup by the startup of the system unit.                    }
+var
+ execpathstr : shortstring;
+
+function paramstr(l: longint) : string;
+ begin
+   { stricly conforming POSIX applications  }
+   { have the executing filename as argv[0] }
+///-F-///   if l=0 then
+///-F-///     begin
+///-F-///       paramstr := execpathstr;
+///-F-///     end
+///-F-///   else
+///-F-///     paramstr:=strpas(argv[l]);
+ end;
+
+Procedure Randomize;
+Begin
+  randseed:=longint(Fptime(nil));
+End;
+
+
+{*****************************************************************************
+                         SystemUnit Initialization
+*****************************************************************************}
+
+function  reenable_signal(sig : longint) : boolean;
+var
+  e : TSigSet;
+  i,j : byte;
+begin
+  fillchar(e,sizeof(e),#0);
+  { set is 1 based PM }
+  dec(sig);
+  i:=sig mod 32;
+  j:=sig div 32;
+  e[j]:=1 shl i;
+  fpsigprocmask(SIG_UNBLOCK,@e,nil);
+  reenable_signal:=geterrno=0;
+end;
+
+
+// signal handler is arch dependant due to processorexception to language
+// exception translation
+
+{$i sighnd.inc}
+
+var
+  act: SigActionRec;
+
+Procedure InstallSignals;
+begin
+  { Initialize the sigaction structure }
+  { all flags and information set to zero }
+  FillChar(act, sizeof(SigActionRec),0);
+  { initialize handler                    }
+  act.sa_handler := SigActionHandler(@SignalToRunError);
+  act.sa_flags:=SA_SIGINFO
+{$ifdef cpux86_64}
+    or $4000000
+{$endif cpux86_64}
+    ;
+  FpSigAction(SIGFPE,@act,nil);
+  FpSigAction(SIGSEGV,@act,nil);
+  FpSigAction(SIGBUS,@act,nil);
+  FpSigAction(SIGILL,@act,nil);
+end;
+
+procedure SetupCmdLine;
+var
+  bufsize,
+  len,j,
+  size,i : longint;
+  found  : boolean;
+  buf    : pchar;
+
+  procedure AddBuf;
+  begin
+    reallocmem(cmdline,size+bufsize);
+    move(buf^,cmdline[size],bufsize);
+    inc(size,bufsize);
+    bufsize:=0;
+  end;
+
+begin
+///-F-/// 
+{
+  GetMem(buf,ARG_MAX);
+  size:=0;
+  bufsize:=0;
+  i:=0;
+  while (i<argc) do
+   begin
+     len:=strlen(argv[i]);
+     if len>ARG_MAX-2 then
+      len:=ARG_MAX-2;
+     found:=false;
+     for j:=1 to len do
+      if argv[i][j]=' ' then
+       begin
+         found:=true;
+         break;
+       end;
+     if bufsize+len>=ARG_MAX-2 then
+      AddBuf;
+     if found then
+      begin
+        buf[bufsize]:='"';
+        inc(bufsize);
+      end;
+     move(argv[i]^,buf[bufsize],len);
+     inc(bufsize,len);
+     if found then
+      begin
+        buf[bufsize]:='"';
+        inc(bufsize);
+      end;
+     if i<argc then
+      buf[bufsize]:=' '
+     else
+      buf[bufsize]:=#0;
+     inc(bufsize);
+     inc(i);
+   end;
+  AddBuf;
+  FreeMem(buf,ARG_MAX);
+///-F-/// 
+}
+end;
+
+
+procedure SysInitStdIO;
+begin
+  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+end;
+
+
+procedure SysInitExecPath;
+var
+  i    : longint;
+begin
+  execpathstr[0]:=#0;
+  i:=Fpreadlink('/proc/self/exe',@execpathstr[1],high(execpathstr));
+  { it must also be an absolute filename, linux 2.0 points to a memory
+    location so this will skip that }
+  if (i>0) and (execpathstr[1]='/') then
+     execpathstr[0]:=char(i);
+end;
+
+function GetProcessID: SizeUInt;
+begin
+ GetProcessID := SizeUInt (fpGetPID);
+end;
+
+
+Begin
+///-F-///  IsConsole := TRUE;
+///-F-///  IsLibrary := FALSE;
+  StackLength := InitialStkLen;
+  StackBottom := Sptr - StackLength;
+  { Set up signals handlers }
+  InstallSignals;
+  { Setup heap }
+  InitHeap;
+  SysInitExceptions;
+  { Arguments }
+///-F-///  SetupCmdLine;
+  SysInitExecPath;
+  { Setup stdin, stdout and stderr }
+  SysInitStdIO;
+  { Reset IO Error }
+  InOutRes:=0;
+  { threading }
+  InitSystemThreads;
+{$ifdef HASVARIANT}
+///-F-///  initvariantmanager;
+{$endif HASVARIANT}
+{$ifdef HASWIDESTRING}
+///-F-///  initwidestringmanager;
+{$endif HASWIDESTRING}
+End.
+
+{
+  $Log: system.pp,v $
+  Revision 1.25  2005/04/24 21:19:22  peter
+    * unblock signal in signalhandler, remove the sigprocmask call
+      from setjmp
+
+  Revision 1.24  2005/02/14 17:13:30  peter
+    * truncate log
+
+  Revision 1.23  2005/02/13 21:47:56  peter
+    * include file cleanup part 2
+
+  Revision 1.22  2005/02/06 11:20:52  peter
+    * threading in system unit
+    * removed systhrds unit
+
+  Revision 1.21  2005/02/01 20:22:49  florian
+    * improved widestring infrastructure manager
+
+}
