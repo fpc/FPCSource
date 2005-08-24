@@ -117,7 +117,8 @@ interface
              system_arm_wince,          { 38 }
              system_ia64_win64,         { 39 }
              system_i386_wince,         { 40 }
-             system_x86_6432_linux      { 41 }
+             system_x86_6432_linux,     { 41 }
+             system_arm_gba             { 42 }
        );
 
        tasm = (as_none

@@ -41,6 +41,9 @@ implementation
     {$ifndef NOTARGETWINCE}
       ,t_win
     {$endif}
+    {$ifndef NOTARGETGBA}
+      ,t_gba
+    {$endif}
 
 {**************************************
              Assemblers

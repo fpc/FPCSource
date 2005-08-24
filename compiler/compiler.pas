@@ -1,8 +1,8 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
-
     This unit is the interface of the compiler which can be used by
-     external programs to link in the compiler
+    external programs to link in the compiler
+    
+    Copyright (c) 1998-2005 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -167,9 +167,12 @@ uses
 {$ifdef beos}
   ,i_beos
 {$endif beos}
-{$ifdef fbds}
+{$ifdef fbsd}
   ,i_fbsd
-{$endif fbds}
+{$endif fbsd}
+{$ifdef gba}
+  ,i_gba
+{$endif gba}
 {$ifdef go32v2}
   ,i_go32v2
 {$endif go32v2}
