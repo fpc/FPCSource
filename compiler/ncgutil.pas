@@ -1000,7 +1000,6 @@ implementation
         if not is_class_or_interface(tparavarsym(p).vartype.def) and
            tparavarsym(p).vartype.def.needs_inittable then
          begin
-           location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vartype.def));
            if (tparavarsym(p).varspez=vs_value) then
             begin
               include(current_procinfo.flags,pi_needs_implicit_finally);
