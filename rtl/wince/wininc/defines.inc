@@ -52,6 +52,7 @@
 {$ifdef WINCE}
   const
     UserDLL       = KernelDLL;
+    UserDLLAyg    = 'aygshell';
     SecurDLL      = KernelDLL;
     GdiDLL        = KernelDLL;
     ComctlDLL     = 'commctrl';
@@ -67,6 +68,7 @@
 {$ifdef WIN32}
   const
     UserDLL       = 'user32';
+    UserDLLAyg    = UserDLL;
     SecurDLL      = 'secur32';
     GdiDLL        = 'gdi32';
     ComctlDLL     = 'comctl32';
@@ -1264,14 +1266,18 @@
      {STARTDOC = 10; conflicts with AbortDoc function }
      cSTARTDOC = 10;
   { EscapeCommFunction  }
-     CLRDTR = 6;
-     CLRRTS = 4;
-     SETDTR = 5;
-     SETRTS = 3;
-     SETXOFF = 1;
-     SETXON = 2;
-     SETBREAK = 8;
-     CLRBREAK = 9;
+     CLRDTR = 6;				  //winbase
+     CLRRTS = 4;				  //winbase
+     SETDTR = 5;				  //winbase
+     SETRTS = 3;				  //winbase	
+     SETXOFF = 1;				  //winbase
+     SETXON = 2;				  //winbase
+     SETBREAK = 8;				  //winbase
+     CLRBREAK = 9;                                //winbase
+     // Some CE devices share a UART between an IRDA port and a serial port.
+     // These escape functions allow control over the mode.
+     SETIR = 10;  // Set the port to IR mode.     //+winbase
+     CLRIR = 11;  // Set the port to non-IR mode. //+winbase
   { ExitWindowsEx  }
      EWX_FORCE = 4;
      EWX_LOGOFF = 0;
@@ -1422,6 +1428,8 @@
      EV_RXCHAR = 1;
      EV_RXFLAG = 2;
      EV_TXEMPTY = 4;
+     EV_POWER = $2000;  // WINCE Power event.  //+winbase
+
   { GetCommModemStatus  }
      MS_CTS_ON = $10;
      MS_DSR_ON = $20;
@@ -2950,6 +2958,10 @@ Const
       PUserKData = $00005800;
     {$endif ARM}
 
+     EVENT_PULSE = 1;
+     EVENT_RESET = 2;
+     EVENT_SET = 3;
+
      SYSHANDLE_OFFSET = $004;
      NUM_SYS_HANDLES  = 32;
      SYS_HANDLE_BASE  = 64;
@@ -2968,6 +2980,9 @@ Const
      SH_PATCHER	      = 24;
      SH_SERVICES      = 26;
      SH_LASTRESERVED  = 26;
+
+     TLS_FUNCALLOC    = 0;
+     TLS_FUNCFREE     = 1;
      
   { COMMPROP structure  }
      SP_SERIALCOMM = $1;
