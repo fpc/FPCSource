@@ -382,9 +382,55 @@ begin
     SetLength(HostAddrToStr6, Length(HostAddrToStr6)-1);
 end;
 
+
 function StrToHostAddr6(IP : String) : TIn6_addr;
-begin
-end;
+Var Part   : String;
+    IPv6   : TIn6_addr;
+    P,J    : Integer;
+    W      : Word;
+    Index  : Integer;
+    ZeroAt : Integer;
+Begin
+  FillChar(IPv6,SizeOf(IPv6),0);
+  { Every 16-bit block is converted at its own and stored into Result. When }
+  { the '::' zero-spacer is found, its location is stored. Afterwards the   }
+  { address is shifted and zero-filled.                                     }
+  Index := 0; ZeroAt := -1;
+  J := 0;
+  P := Pos(':',IP);
+  While (P > 0) and (Length(IP) > 0) and (Index < 8) do
+    Begin
+      Part := '$'+Copy(IP,1,P-1);
+      Delete(IP,1,P);
+      if Length(Part) > 1 then  { is there a digit after the '$'? }
+        Val(Part,W,J)
+      else W := 0;
+      IPv6.u6_addr16[Index] := HtoNS(W);
+      if J <> 0 then
+        Begin
+          FillChar(IPv6,SizeOf(IPv6),0);
+          Exit;
+        End;
+      if IP[1] = ':' then
+        Begin
+          ZeroAt := Index;
+          Delete(IP,1,1);
+        End;
+      Inc(Index);
+      P := Pos(':',IP); if P = 0 then P := Length(IP)+1;
+    End;
+  { address      a:b:c::f:g:h }
+  { Result now   a : b : c : f : g : h : 0 : 0, ZeroAt = 2, Index = 6 }
+  { Result after a : b : c : 0 : 0 : f : g : h }
+  if ZeroAt >= 0 then
+    Begin
+      Move(IPv6.u6_addr16[ZeroAt+1],IPv6.u6_addr16[(8-Index)+ZeroAt+1],2*(Index-ZeroAt-1));
+      FillChar(IPv6.u6_addr16[ZeroAt+1],2*(8-Index),0);
+    End;
+
+  StrToHostAddr6:=IPv6;
+End;
+
 
 function NetAddrToStr6 (Entry : TIn6_Addr) : ansiString;
 begin
