@@ -130,7 +130,6 @@ function GetModuleFileName(hModule:HMODULE; lpFilename:LPWSTR; nSize:DWORD):DWOR
 function GetModuleHandle(lpModuleName:LPCWSTR):HMODULE; external KernelDLL name 'GetModuleHandleW';
 function GetNumberFormat(Locale:LCID; dwFlags:DWORD; lpValue:LPCWSTR; lpFormat:PNUMBERFMT; lpNumberStr:LPWSTR;cchNumber:Integer):Integer; external KernelDLL name 'GetNumberFormatW';
 function GetObject(_para1:HGDIOBJ; _para2:Integer; _para3:LPVOID):Integer; external GdiDLL name 'GetObjectW';
-function GetObjectType(h:HGDIOBJ):DWORD; external GdiDLL name 'GetObjectType'; //+wingdi
 //warning not exported from comdgl32(win32)/commdlg(wince) but coredll
 function GetOpenFileName(_para1:LPOPENFILENAMEW):WINBOOL; external ComdlgDLLCore name 'GetOpenFileNameW';
 //warning not exported from comdgl32(win32)/commdlg(wince) but coredll
