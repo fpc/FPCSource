@@ -796,12 +796,7 @@ type
            end;
          if not assigned(srsym) or
             (srsym.typ <> procsym) then
-           begin
-{$ifdef EXTDEBUG}
-             Comment(V_Error,'unknown compilerproc '+name);
-{$endif EXTDEBUG}
-             internalerror(200107271);
-           end;
+           Message1(cg_f_unknown_compiler,name);
          self.create(params,tprocsym(srsym),symowner,nil,[]);
        end;
 
