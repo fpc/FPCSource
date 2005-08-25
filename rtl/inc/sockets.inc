@@ -428,7 +428,7 @@ Begin
       FillChar(IPv6.u6_addr16[ZeroAt+1],2*(8-Index),0);
     End;
 
-  Result := IPv6;
+  StrToHostAddr6:=IPv6;
 End;
 
 
