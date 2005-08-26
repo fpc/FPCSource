@@ -431,6 +431,8 @@ begin
   linkres.add('ENTRY(_start)');
 
   {Sections.}
+{
+  commented out because it cause problems on several machines with different ld versions (FK)
   linkres.add('SECTIONS');
   linkres.add('{');
   {Read-only sections, merged into text segment:}
@@ -527,6 +529,7 @@ begin
   linkres.add('  .stab          0 : { *(.stab) }');
   linkres.add('  .stabstr       0 : { *(.stabstr) }');
   linkres.add('}');
+}
 
 { Write and Close response }
   LinkRes.writetodisk;
