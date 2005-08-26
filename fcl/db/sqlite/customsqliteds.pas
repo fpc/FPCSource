@@ -76,7 +76,7 @@ type
     FExpectedUpdates: Integer;
     FSaveOnClose: Boolean;
     FSaveOnRefetch: Boolean;
-    FComplexSql: Boolean;
+    FSqlMode: Boolean;
     FUpdatedItems: TFPList;
     FAddedItems: TFPList;
     FDeletedItems: TFPList;
@@ -136,7 +136,8 @@ type
     procedure InternalOpen; override;
     procedure InternalPost; override;
     procedure InternalSetToRecord(Buffer: PChar); override;
-    function IsCursorOpen: Boolean; override;    
+    function IsCursorOpen: Boolean; override;
+    function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;    
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
     procedure SetExpectedAppends(AValue:Integer);
@@ -169,7 +170,6 @@ type
     property AddedItems: TFPList read FAddedItems;
     property DeletedItems: TFPList read FDeletedItems;
     {$endif}
-    property ComplexSql: Boolean read FComplexSql write FComplexSql;
     property ExpectedAppends: Integer read FExpectedAppends write SetExpectedAppends;
     property ExpectedUpdates: Integer read FExpectedUpdates write SetExpectedUpdates;
     property ExpectedDeletes: Integer read FExpectedDeletes write SetExpectedDeletes;
@@ -184,13 +184,13 @@ type
     property SaveOnClose: Boolean read FSaveOnClose write FSaveOnClose; 
     property SaveOnRefetch: Boolean read FSaveOnRefetch write FSaveOnRefetch;
     property SQL: String read FSql write FSql;
+    property SqlMode: Boolean read FSqlMode write FSqlMode;
     property TableName: String read FTableName write FTableName;   
     property MasterSource: TDataSource read GetMasterSource write SetMasterSource;
     property MasterFields: string read GetMasterFields write SetMasterFields;
     
     property Active;
-    property FieldDefs;
-     
+       
     //Events
     property BeforeOpen;
     property AfterOpen;
@@ -215,7 +215,7 @@ type
 implementation
 
 uses
-  strutils;
+  strutils, variants;
 
 const
   SQLITE_OK = 0;//sqlite2.x.x and sqlite3.x.x defines this equal
@@ -635,9 +635,9 @@ procedure TCustomSqliteDataset.InternalOpen;
 begin
   FAutoIncFieldNo:=-1;
   if not FileExists(FFileName) then
-    DatabaseError('TCustomSqliteDataset - File "'+FFileName+'" not found',Self);
-  if (FTablename = '') and not (FComplexSql) then
-    DatabaseError('TCustomSqliteDataset - Tablename not set',Self);
+    DatabaseError('File "'+ExpandFileName(FFileName)+'" not found',Self);
+  if (FTablename = '') and not (FSqlMode) then
+    DatabaseError('Tablename not set',Self);
 
   if MasterSource <> nil then
   begin
@@ -689,9 +689,58 @@ begin
    Result := FDataAllocated;
 end;
 
+function TCustomSqliteDataset.Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean;
+var
+  AValue:String;
+  AField:TField;
+  AFieldIndex:Integer;
+  TempItem:PDataRecord;
+begin
+  Result:=False;
+  // Now, it allows to search only one field and ignores options 
+  AField:=Fields.FindField(keyfields);
+  if AField <> nil then
+    AFieldIndex:=AField.FieldNo - 1  
+  else
+    DatabaseError('Field "'+keyfields+'" not found',Self);
+  //get float types in appropriate format
+  if not (AField.DataType in [ftFloat,ftDateTime,ftTime,ftDate]) then
+    AValue:=keyvalues
+  else
+  begin
+    Str(VarToDateTime(keyvalues),AValue);
+    AValue:=Trim(AValue);
+  end;  
+  {$ifdef DEBUG}
+  writeln('=Locate=');
+  writeln('keyfields: ',keyfields);
+  writeln('keyvalues: ',keyvalues);
+  writeln('AValue: ',AValue);
+  {$endif}        
+  //Search the list
+  TempItem:=FBeginItem^.Next;
+  while TempItem <> FEndItem do
+  begin
+    if TempItem^.Row[AFieldIndex] <> nil then
+    begin
+      writeln('TempItem^.Row[AFieldIndex]: ',TempItem^.Row[AFieldIndex]);
+      writeln('PChar(AValue):              ',PChar(AValue));
+      writeln('StrComp result: ',StrComp(TempItem^.Row[AFieldIndex],PChar(AValue)));
+      if StrComp(TempItem^.Row[AFieldIndex],PChar(AValue)) = 0 then
+      begin
+        Result:=True;
+        FCurrentItem:=TempItem;
+        Resync([]);
+        Break;
+      end;
+    end;    
+    TempItem:=TempItem^.Next;
+  end;      
+end;
+
 procedure TCustomSqliteDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
 begin
-  //The BookMarkData is the Buffer itsef;
+  //The BookMarkData is the Buffer itself;
 end;
 
 procedure TCustomSqliteDataset.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
@@ -760,11 +809,12 @@ var
   TempItem:PDataRecord;
 begin
   if (Value >= FRecordCount) or (Value < 0) then
-    DatabaseError('SqliteDs - Record Number Out Of Range',Self);
+    DatabaseError('Record Number Out Of Range',Self);
   TempItem:=FBeginItem;
   for Counter := 0 to Value do
     TempItem:=TempItem^.Next;
-  PPDataRecord(ActiveBuffer)^:=TempItem;   
+  FCurrentItem:=TempItem;
+  Resync([]);
 end;
 
 // Specific functions 
@@ -874,7 +924,7 @@ var
   SqlTemp,KeyName,ASqlLine,TemplateStr:String;
 begin
   Result:=False;
-  if (FPrimaryKeyNo <> -1) and not FComplexSql then
+  if (FPrimaryKeyNo <> -1) and not FSqlMode then
   begin
     StatementsCounter:=0;
     KeyName:=Fields[FPrimaryKeyNo].FieldName;

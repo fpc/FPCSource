@@ -307,7 +307,7 @@ var
   procedure FillStringsAndObjects;
   begin
     while FSqliteReturnId = SQLITE_ROW do
-    begin      
+    begin
       AStrList.AddObject(StrPas(sqlite3_column_text(vm,0)),TObject(PtrInt(sqlite3_column_int(vm,1))));
       FSqliteReturnId:=sqlite3_step(vm);  
     end;
@@ -319,12 +319,12 @@ begin
     if FileExists(FFileName) then
       AHandle:=GetSqliteHandle
     else
-      DatabaseError('File '+FFileName+' not Exists',Self);    
+      DatabaseError('File "'+FFileName+'" not Exists',Self);    
   Result:='';
-  if AStrList <> nil then
-    AStrList.Clear;
+  // It's up to the caller clear or not the list
+  //if AStrList <> nil then
+  //  AStrList.Clear;
   FSqliteReturnId:=sqlite3_prepare(AHandle,Pchar(ASql),-1,@vm,nil);
-  //FSqliteReturnId:=sqlite_compile(AHandle,Pchar(ASql),nil,@vm,nil);
   if FSqliteReturnId <> SQLITE_OK then
     DatabaseError('Error returned by sqlite in QuickQuery: '+SqliteReturnString,Self);
     
