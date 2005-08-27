@@ -51,7 +51,7 @@
 
 {$ifdef WINCE}
   const
-    UserDLL       = KernelDLL;
+    UserDLLCore   = KernelDLL;
     UserDLLAyg    = 'aygshell';
     SecurDLL      = KernelDLL;
     GdiDLL        = KernelDLL;
@@ -60,14 +60,15 @@
     ComdlgDLL     = 'commdlg';
     ComdlgDLLCore = KernelDLL;
     VersionDLL    = KernelDLL;
-    AdvapiDLL     = KernelDLL;
-    MprDLL        = KernelDLL;
+    AdvapiDLLCore = KernelDLL;
+    MprDLLCore    = KernelDLL;
     ShellDLLCore  = KernelDLL;
+    ShellDLL      = 'CEShell';
 {$endif WINCE}
 
 {$ifdef WIN32}
   const
-    UserDLL       = 'user32';
+    UserDLLCore   = 'user32';
     UserDLLAyg    = UserDLL;
     SecurDLL      = 'secur32';
     GdiDLL        = 'gdi32';
@@ -76,9 +77,11 @@
     ComdlgDLL     = 'comdlg32';
     ComdlgDLLCore = ComdlgDLL;
     VersionDLL    = 'version';
-    AdvApiDLL     = 'advapi32';
-    MprDLL        = 'mpr';
+    AdvApiDLLCore = 'advapi32';
+    MprDLLCore    = 'mpr';
     ShellDLLCore  = 'shell32';
+    ShellDLL      = ShellDLLCore;
+    
 {$endif WIN32}
 
 {$PACKRECORDS C}
@@ -2165,6 +2168,21 @@ Const
      IME_REGWORD_STYLE_EUDC = 1;
      IME_REGWORD_STYLE_USER_FIRST = $80000000;
      IME_REGWORD_STYLE_USER_LAST = -(1);
+  { InitCommonControlEx }  //+commctrl
+     ICC_LISTVIEW_CLASSES  = $00000001; // listview, header
+     ICC_TREEVIEW_CLASSES  = $00000002; // treeview, tooltips
+     ICC_BAR_CLASSES       = $00000004; // toolbar, statusbar, trackbar, tooltips
+     ICC_TAB_CLASSES       = $00000008; // tab, tooltips
+     ICC_UPDOWN_CLASS      = $00000010; // updown
+     ICC_PROGRESS_CLASS    = $00000020; // progress
+     ICC_WIN95_CLASSES     = $000000FF; //
+     ICC_DATE_CLASSES      = $00000100; // month picker, date picker, time picker, updown
+     ICC_COOL_CLASSES      = $00000400; // rebar (coolbar) control
+     ICC_INTERNET_CLASSES  = $00000800; // IP Address control
+     ICC_TOOLTIP_CLASSES   = $00001000; // Tooltip static & button
+     ICC_CAPEDIT_CLASS     = $00002000; // All-caps edit control
+     ICC_FE_CLASSES        = $40000000; // FE specific input subclasses
+     
   { InitializeSecurityDescriptor  }
      SECURITY_DESCRIPTOR_REVISION = 1;
   { IsTextUnicode  }

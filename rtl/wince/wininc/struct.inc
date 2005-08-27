@@ -939,6 +939,13 @@
 
   type
 
+     tagINITCOMMONCONTROLSEX = record
+          dwSize:DWORD;             // size of this structure
+          dwICC:DWORD;              // flags indicating which classes to be initialized
+        end;  
+     INITCOMMONCONTROLSEX=tagINITCOMMONCONTROLSEX;
+     LPINITCOMMONCONTROLSEX=^tagINITCOMMONCONTROLSEX;
+
      COMMCONFIG = record
           dwSize : DWORD;
           wVersion : WORD;
@@ -4317,6 +4324,26 @@
      TICONMETRICS = ICONMETRICS;
      PICONMETRICS = ^ICONMETRICS;
 
+     IMAGELISTDRAWPARAMS = record  //+commctrl
+          cbSize : DWORD;
+          himl : HIMAGELIST;
+          i : Integer;
+          hdcDst : HDC;
+          x : Integer;
+          y : Integer;
+          cx : Integer;
+          cy : Integer;
+          xBitmap : Integer;        // x offest from the upperleft of bitmap
+          yBitmap : Integer;        // y offset from the upperleft of bitmap
+          rgbBk  : COLORREF;
+          rgbFg  : COLORREF;
+          fStyle  : UINT;
+          dwRop : DWORD;
+       end;  
+       
+     _IMAGELISTDRAWPARAMS=IMAGELISTDRAWPARAMS;
+     PIMAGELISTDRAWPARAMS=^IMAGELISTDRAWPARAMS;
+
      IMAGEINFO = record
           hbmImage : HBITMAP;
           hbmMask : HBITMAP;
@@ -6446,6 +6473,18 @@
      TSHFILEOPSTRUCT = SHFILEOPSTRUCT;
      PSHFILEOPSTRUCT = ^SHFILEOPSTRUCT;
 
+     SHFILEOPSTRUCTW = record //+shellapi
+          hwnd : HWND;
+          wFunc : UINT;
+          pFrom : LPCWSTR;
+          pTo : LPCWSTR;
+          fFlags : FILEOP_FLAGS;
+          fAnyOperationsAborted : WINBOOL;
+          hNameMappings : LPVOID;
+          lpszProgressTitle : LPCWSTR;
+       end;
+     LPSHFILEOPSTRUCTW = ^SHFILEOPSTRUCTW;
+     
      SHGNO = (SHGDN_NORMAL := 0,SHGDN_INFOLDER := 1,
        SHGDN_FORPARSING := $8000);
      tagSHGDN = SHGNO;
