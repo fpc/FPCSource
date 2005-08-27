@@ -29,7 +29,7 @@ unit scan;
    lexlib,yacclib;
 
     const
-       version = '0.99.16';
+       version = '1.0.0';
 
     type
        Char=system.char;
@@ -108,8 +108,18 @@ unit scan;
             p2 the typecast expr }
           t_size_specifier,
           { p1 expr for size }
-          t_default_value
+          t_default_value,
           { p1 expr for value }
+          t_statement_list,
+          { p1 is the statement
+            next is next if it exist }
+          t_whilenode,
+          t_fornode,
+          t_dowhilenode,
+          t_switchnode,
+          t_gotonode,
+          t_continuenode,
+          t_breaknode
           );
 
 const
@@ -141,9 +151,17 @@ const
           't_funcname',
           't_typespec',
           't_size_specifier',
-          't_default_value' 
+          't_default_value',
+          't_statement_list',
+          't_whilenode',
+          't_fornode',
+          't_dowhilenode',
+          't_switchnode',
+          't_gotonode',
+          't_continuenode',
+          't_breaknode'
    );
-    
+
 type
 
        presobject = ^tresobject;
@@ -195,9 +213,9 @@ type
     procedure internalerror(i : integer);
 
     function strpnew(const s : string) : pchar;
-    
+
     procedure writetree(p: presobject);
-    
+
 
   implementation
 
@@ -206,8 +224,8 @@ type
 
     const
        newline = #10;
-       
-       
+
+
     procedure writeentry(p: presobject; var currentlevel: integer);
     begin
                      if assigned(p^.p1) then
@@ -223,7 +241,7 @@ type
                           WriteLn(' Entry p3[',ttypstr[p^.p3^.typ],']',p^.p3^.str);
                         end;
     end;
-       
+
     procedure writetree(p: presobject);
     var
      i : integer;
@@ -248,11 +266,11 @@ type
                   end;
             end;
           end;
-           
+
           localp:=localp^.next;
          end;
     end;
-       
+
 
 
     procedure internalerror(i : integer);
@@ -474,7 +492,7 @@ D [0-9]
                                       if (c=newline) then
                                       begin
                                         writeln(outfile);
-                                        unget_char(c); 
+                                        unget_char(c);
                                       end;
                                       flush(outfile);
                                       exit;
@@ -494,9 +512,9 @@ D [0-9]
                                        write(outfile,aktspace);
                                      end;
                                   end;
-                                { Don't write this thing out, to 
+                                { Don't write this thing out, to
                                   avoid nested comments.
-                                }  
+                                }
                               '{','}' :
                                   begin
                                   end;
@@ -518,7 +536,7 @@ D [0-9]
                           else
                           If not stripcomment then
                             write(outfile,aktspace,'{');
-                            
+
                           repeat
                             c:=get_char;
                             case c of
@@ -529,20 +547,20 @@ D [0-9]
                                     begin
                                       if in_define then
                                         begin
-                                          commentstr:=commentstr+' }';  
+                                          commentstr:=commentstr+' }';
                                         end
                                       else
                                         begin
-                                          write(outfile,' }'); 
-                                          writeln(outfile); 
+                                          write(outfile,' }');
+                                          writeln(outfile);
                                         end;
-                                    end;  
+                                    end;
                                   flush(outfile);
                                   exit;
                                 end;
-                              { Don't write this comment out, 
+                              { Don't write this comment out,
                                 to avoid nested comment problems
-                              }  
+                              }
                               '{','}' :
                                   begin
                                   end;
@@ -553,7 +571,7 @@ D [0-9]
                                   begin
                                     if in_define then
                                      begin
-                                       commentstr:=commentstr+c;  
+                                       commentstr:=commentstr+c;
                                      end
                                     else
                                       write(outfile,c);
@@ -782,6 +800,7 @@ D [0-9]
 "near"                  return(_NEAR);
 "HUGE"                  return(_HUGE);
 "huge"                  return(_HUGE);
+"while"                 return(_WHILE);
 [A-Za-z_][A-Za-z0-9_]*  begin
                            if in_space_define=1 then
                              in_space_define:=2;
@@ -798,7 +817,7 @@ D [0-9]
 \n                      begin
                            if in_define then
                             begin
-                              in_space_define:=0;  
+                              in_space_define:=0;
                               if cont_line then
                               begin
                                 cont_line:=false;
@@ -811,7 +830,7 @@ D [0-9]
                             end;
                        end;
 \\$                    begin
-                           if in_define then 
+                           if in_define then
                            begin
                              cont_line:=true;
                            end

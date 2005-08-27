@@ -387,10 +387,15 @@ program h2pas;
                       write(outfile,')');
                       flush(outfile);
                     end;
-            else internalerror(2);
+            else
+              begin
+                writeln(ord(p^.typ));
+                internalerror(2);
+              end;
             end;
          end;
       end;
+
 
     procedure write_ifexpr(var outfile:text; p : presobject);
       begin
@@ -1144,8 +1149,42 @@ program h2pas;
          end;
       end;
 
+
+    procedure write_statement_block(var outfile:text; p : presobject);
+      begin
+        writeln(outfile,aktspace,'begin');
+        while assigned(p) do
+          begin
+            shift(2);
+            if assigned(p^.p1) then
+              begin
+                case p^.p1^.typ of
+                  t_whilenode:
+                    begin
+                      write(outfile,aktspace,'while ');
+                      write_expr(outfile,p^.p1^.p1);
+                      writeln(outfile,' do');
+                      shift(2);
+                      write_statement_block(outfile,p^.p1^.p2);
+                      popshift;
+                    end;
+                  else
+                    begin
+                      write(outfile,aktspace);
+                      write_expr(outfile,p^.p1);
+                      writeln(outfile,';');
+                    end;
+                end;
+              end;
+            p:=p^.next;
+            popshift;
+          end;
+        writeln(outfile,aktspace,'end;');
+      end;
+
 %}
 
+%token _WHILE _FOR _DO _GOTO _CONTINUE _BREAK
 %token TYPEDEF DEFINE
 %token COLON SEMICOLON COMMA
 %token LKLAMMER RKLAMMER LECKKLAMMER RECKKLAMMER
@@ -1155,10 +1194,11 @@ program h2pas;
 %token SHORT UNSIGNED LONG INT REAL _CHAR
 %token VOID _CONST
 %token _FAR _HUGE _NEAR
-%token _ASSIGN NEW_LINE SPACE_DEFINE
+%token NEW_LINE SPACE_DEFINE
 %token EXTERN STDCALL CDECL CALLBACK PASCAL WINAPI APIENTRY WINGDIAPI SYS_TRAP
 %token _PACKED
 %token ELLIPSIS
+%right _ASSIGN
 %right R_AND
 %left EQUAL UNEQUAL GT LT GTE LTE
 %left QUESTIONMARK COLON
@@ -1233,182 +1273,385 @@ systrap_specifier:
      | { $$:=nil; }
      ;
 
-declaration :
-     dec_specifier type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON
+statement :
+     expr SEMICOLON { $$:=$1; } |
+     _WHILE LKLAMMER expr RKLAMMER statement_list { $$:=new(presobject,init_two(t_whilenode,$3,$5)); }
+     ;
+
+
+statement_list : statement statement_list
      {
-      IsExtern:=false;
-      (* by default we must pop the args pushed on stack *)
-      no_pop:=false;
-      if (assigned($4)and assigned($4^.p1)and assigned($4^.p1^.p1))
-        and ($4^.p1^.p1^.typ=t_procdef) then
-         begin
-            repeat
-            If UseLib then
-              IsExtern:=true
-            else
-              IsExtern:=assigned($1)and($1^.str='extern');
-            no_pop:=assigned($3) and ($3^.str='no_pop');
+       $$:=new(presobject,init_one(t_statement_list,$1));
+       $$^.next:=$2;
+     } |
+     statement
+     {
+       $$:=new(presobject,init_one(t_statement_list,$1));
+     } |
+     SEMICOLON
+     {
+       $$:=new(presobject,init_one(t_statement_list,nil));
+     } |
+     {
+       $$:=new(presobject,init_one(t_statement_list,nil));
+     }
+     ;
 
-            if (block_type<>bt_func) and not(createdynlib) then
-              begin
-                writeln(outfile);
-                block_type:=bt_func;
-              end;
+statement_block :
+     LGKLAMMER statement_list RGKLAMMER { $$:=$2; }
+     ;
 
-            (* dyn. procedures must be put into a var block *)
-            if createdynlib then
-              begin
-                if (block_type<>bt_var) then
-                 begin
-                    if not(compactmode) then
-                      writeln(outfile);
-                    writeln(outfile,aktspace,'var');
-                    block_type:=bt_var;
-                 end;
-                shift(2);
-              end;
-            if not CompactMode then
-             begin
-               write(outfile,aktspace);
-               if not IsExtern then
-                write(implemfile,aktspace);
-             end;
-            (* distinguish between procedure and function *)
-            if assigned($2) then
-             if ($2^.typ=t_void) and ($4^.p1^.p1^.p1=nil) then
-              begin
-                if createdynlib then
+declaration :
+     dec_specifier type_specifier dec_modifier declarator_list statement_block
+     {
+       IsExtern:=false;
+       (* by default we must pop the args pushed on stack *)
+       no_pop:=false;
+       if (assigned($4)and assigned($4^.p1)and assigned($4^.p1^.p1))
+         and ($4^.p1^.p1^.typ=t_procdef) then
+          begin
+             repeat
+             If UseLib then
+               IsExtern:=true
+             else
+               IsExtern:=assigned($1)and($1^.str='extern');
+             no_pop:=assigned($3) and ($3^.str='no_pop');
+
+             if (block_type<>bt_func) and not(createdynlib) then
+               begin
+                 writeln(outfile);
+                 block_type:=bt_func;
+               end;
+
+             (* dyn. procedures must be put into a var block *)
+             if createdynlib then
+               begin
+                 if (block_type<>bt_var) then
                   begin
-                    write(outfile,$4^.p1^.p2^.p,' : procedure');
-                  end
-                else
-                  begin
-                    shift(10);
-                    write(outfile,'procedure ',$4^.p1^.p2^.p);
+                     if not(compactmode) then
+                       writeln(outfile);
+                     writeln(outfile,aktspace,'var');
+                     block_type:=bt_var;
                   end;
-                if assigned($4^.p1^.p1^.p2) then
-                  write_args(outfile,$4^.p1^.p1^.p2);
-                if createdynlib then
-                   begin
-                     loaddynlibproc.add('pointer('+$4^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+$4^.p1^.p2^.p+''');');
-                     freedynlibproc.add($4^.p1^.p2^.p+':=nil;');
-                   end
-                 else if not IsExtern then
-                 begin
-                   write(implemfile,'procedure ',$4^.p1^.p2^.p);
-                   if assigned($4^.p1^.p1^.p2) then
-                    write_args(implemfile,$4^.p1^.p1^.p2);
-                 end;
-              end
-            else
+                 shift(2);
+               end;
+             if not CompactMode then
               begin
-                if createdynlib then
-                  begin
-                    write(outfile,$4^.p1^.p2^.p,' : function');
-                  end
-                else
-                  begin
-                    shift(9);
-                    write(outfile,'function ',$4^.p1^.p2^.p);
-                  end;
-
-                 if assigned($4^.p1^.p1^.p2) then
-                   write_args(outfile,$4^.p1^.p1^.p2);
-                 write(outfile,':');
-                 write_p_a_def(outfile,$4^.p1^.p1^.p1,$2);
+                write(outfile,aktspace);
+                if not IsExtern then
+                 write(implemfile,aktspace);
+              end;
+             (* distinguish between procedure and function *)
+             if assigned($2) then
+              if ($2^.typ=t_void) and ($4^.p1^.p1^.p1=nil) then
+               begin
                  if createdynlib then
                    begin
-                     loaddynlibproc.add('pointer('+$4^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+$4^.p1^.p2^.p+''');');
-                     freedynlibproc.add($4^.p1^.p2^.p+':=nil;');
+                     write(outfile,$4^.p1^.p2^.p,' : procedure');
                    end
-                 else if not IsExtern then
+                 else
+                   begin
+                     shift(10);
+                     write(outfile,'procedure ',$4^.p1^.p2^.p);
+                   end;
+                 if assigned($4^.p1^.p1^.p2) then
+                   write_args(outfile,$4^.p1^.p1^.p2);
+                 if createdynlib then
+                    begin
+                      loaddynlibproc.add('pointer('+$4^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+$4^.p1^.p2^.p+''');');
+                      freedynlibproc.add($4^.p1^.p2^.p+':=nil;');
+                    end
+                  else if not IsExtern then
                   begin
-                    write(implemfile,'function ',$4^.p1^.p2^.p);
+                    write(implemfile,'procedure ',$4^.p1^.p2^.p);
                     if assigned($4^.p1^.p1^.p2) then
                      write_args(implemfile,$4^.p1^.p1^.p2);
-                    write(implemfile,':');
-                    write_p_a_def(implemfile,$4^.p1^.p1^.p1,$2);
                   end;
-              end;
-            if assigned($5) then
-              write(outfile,';systrap ',$5^.p);
-            (* No CDECL in interface for Uselib *)
-            if IsExtern and (not no_pop) then
-              write(outfile,';cdecl');
-            popshift;
-            if createdynlib then
-              begin
-                writeln(outfile,';');
-              end
-            else if UseLib then
-              begin
-                if IsExtern then
-                 begin
-                   write (outfile,';external');
-                   If UseName then
-                    Write(outfile,' External_library name ''',$4^.p1^.p2^.p,'''');
-                 end;
-                writeln(outfile,';');
-              end
-            else
-              begin
-                writeln(outfile,';');
-                if not IsExtern then
-                 begin
-                   writeln(implemfile,';');
-                   writeln(implemfile,aktspace,'begin');
-                   writeln(implemfile,aktspace,'  { You must implement this function }');
-                   writeln(implemfile,aktspace,'end;');
-                 end;
-              end;
-            IsExtern:=false;
-            if not(compactmode) and not(createdynlib) then
-             writeln(outfile);
-           until not NeedEllipsisOverload;
-         end
-       else (* $4^.p1^.p1^.typ=t_procdef *)
-       if assigned($4)and assigned($4^.p1) then
-         begin
-            shift(2);
-            if block_type<>bt_var then
-              begin
-                 if not(compactmode) then
-                   writeln(outfile);
-                 writeln(outfile,aktspace,'var');
-              end;
-            block_type:=bt_var;
-
-            shift(3);
-
-            IsExtern:=assigned($1)and($1^.str='extern');
-            (* walk through all declarations *)
-            hp:=$4;
-            while assigned(hp) and assigned(hp^.p1) do
-              begin
-                 (* write new var name *)
-                 if assigned(hp^.p1^.p2) and assigned(hp^.p1^.p2^.p) then
-                   write(outfile,aktspace,hp^.p1^.p2^.p);
-                 write(outfile,' : ');
-                 shift(2);
-                 (* write its type *)
-                 write_p_a_def(outfile,hp^.p1^.p1,$2);
-                 if assigned(hp^.p1^.p2)and assigned(hp^.p1^.p2^.p)then
+               end
+             else
+               begin
+                 if createdynlib then
                    begin
-                      if isExtern then
-                        write(outfile,';cvar;external')
-                      else
-                        write(outfile,';cvar;public');
+                     write(outfile,$4^.p1^.p2^.p,' : function');
+                   end
+                 else
+                   begin
+                     shift(9);
+                     write(outfile,'function ',$4^.p1^.p2^.p);
                    end;
+
+                  if assigned($4^.p1^.p1^.p2) then
+                    write_args(outfile,$4^.p1^.p1^.p2);
+                  write(outfile,':');
+                  write_p_a_def(outfile,$4^.p1^.p1^.p1,$2);
+                  if createdynlib then
+                    begin
+                      loaddynlibproc.add('pointer('+$4^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+$4^.p1^.p2^.p+''');');
+                      freedynlibproc.add($4^.p1^.p2^.p+':=nil;');
+                    end
+                  else if not IsExtern then
+                   begin
+                     write(implemfile,'function ',$4^.p1^.p2^.p);
+                     if assigned($4^.p1^.p1^.p2) then
+                      write_args(implemfile,$4^.p1^.p1^.p2);
+                     write(implemfile,':');
+                     write_p_a_def(implemfile,$4^.p1^.p1^.p1,$2);
+                   end;
+               end;
+             (* No CDECL in interface for Uselib *)
+             if IsExtern and (not no_pop) then
+               write(outfile,';cdecl');
+             popshift;
+             if createdynlib then
+               begin
                  writeln(outfile,';');
-                 popshift;
-                 hp:=hp^.p2;
+               end
+             else if UseLib then
+               begin
+                 if IsExtern then
+                  begin
+                    write (outfile,';external');
+                    If UseName then
+                     Write(outfile,' External_library name ''',$4^.p1^.p2^.p,'''');
+                  end;
+                 writeln(outfile,';');
+               end
+             else
+               begin
+                 writeln(outfile,';');
+                 if not IsExtern then
+                  begin
+                    writeln(implemfile,';');
+                    shift(2);
+                    if $5^.typ=t_statement_list then
+                      write_statement_block(implemfile,$5);
+                    popshift;
+                  end;
+               end;
+             IsExtern:=false;
+             if not(compactmode) and not(createdynlib) then
+              writeln(outfile);
+            until not NeedEllipsisOverload;
+          end
+        else (* $4^.p1^.p1^.typ=t_procdef *)
+        if assigned($4)and assigned($4^.p1) then
+          begin
+             shift(2);
+             if block_type<>bt_var then
+               begin
+                  if not(compactmode) then
+                    writeln(outfile);
+                  writeln(outfile,aktspace,'var');
+               end;
+             block_type:=bt_var;
+
+             shift(3);
+
+             IsExtern:=assigned($1)and($1^.str='extern');
+             (* walk through all declarations *)
+             hp:=$4;
+             while assigned(hp) and assigned(hp^.p1) do
+               begin
+                  (* write new var name *)
+                  if assigned(hp^.p1^.p2) and assigned(hp^.p1^.p2^.p) then
+                    write(outfile,aktspace,hp^.p1^.p2^.p);
+                  write(outfile,' : ');
+                  shift(2);
+                  (* write its type *)
+                  write_p_a_def(outfile,hp^.p1^.p1,$2);
+                  if assigned(hp^.p1^.p2)and assigned(hp^.p1^.p2^.p)then
+                    begin
+                       if isExtern then
+                         write(outfile,';cvar;external')
+                       else
+                         write(outfile,';cvar;public');
+                    end;
+                  writeln(outfile,';');
+                  popshift;
+                  hp:=hp^.p2;
+               end;
+             popshift;
+             popshift;
+          end;
+        if assigned($1)then  dispose($1,done);
+        if assigned($2)then  dispose($2,done);
+        if assigned($4)then  dispose($4,done);
+     }
+     | dec_specifier type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON
+     {
+       IsExtern:=false;
+       (* by default we must pop the args pushed on stack *)
+       no_pop:=false;
+       if (assigned($4)and assigned($4^.p1)and assigned($4^.p1^.p1))
+         and ($4^.p1^.p1^.typ=t_procdef) then
+          begin
+             repeat
+             If UseLib then
+               IsExtern:=true
+             else
+               IsExtern:=assigned($1)and($1^.str='extern');
+             no_pop:=assigned($3) and ($3^.str='no_pop');
+
+             if (block_type<>bt_func) and not(createdynlib) then
+               begin
+                 writeln(outfile);
+                 block_type:=bt_func;
+               end;
+
+             (* dyn. procedures must be put into a var block *)
+             if createdynlib then
+               begin
+                 if (block_type<>bt_var) then
+                  begin
+                     if not(compactmode) then
+                       writeln(outfile);
+                     writeln(outfile,aktspace,'var');
+                     block_type:=bt_var;
+                  end;
+                 shift(2);
+               end;
+             if not CompactMode then
+              begin
+                write(outfile,aktspace);
+                if not IsExtern then
+                 write(implemfile,aktspace);
               end;
-            popshift;
-            popshift;
-         end;
-       if assigned($1)then  dispose($1,done);
-       if assigned($2)then  dispose($2,done);
-       if assigned($4)then  dispose($4,done);
+             (* distinguish between procedure and function *)
+             if assigned($2) then
+              if ($2^.typ=t_void) and ($4^.p1^.p1^.p1=nil) then
+               begin
+                 if createdynlib then
+                   begin
+                     write(outfile,$4^.p1^.p2^.p,' : procedure');
+                   end
+                 else
+                   begin
+                     shift(10);
+                     write(outfile,'procedure ',$4^.p1^.p2^.p);
+                   end;
+                 if assigned($4^.p1^.p1^.p2) then
+                   write_args(outfile,$4^.p1^.p1^.p2);
+                 if createdynlib then
+                    begin
+                      loaddynlibproc.add('pointer('+$4^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+$4^.p1^.p2^.p+''');');
+                      freedynlibproc.add($4^.p1^.p2^.p+':=nil;');
+                    end
+                  else if not IsExtern then
+                  begin
+                    write(implemfile,'procedure ',$4^.p1^.p2^.p);
+                    if assigned($4^.p1^.p1^.p2) then
+                     write_args(implemfile,$4^.p1^.p1^.p2);
+                  end;
+               end
+             else
+               begin
+                 if createdynlib then
+                   begin
+                     write(outfile,$4^.p1^.p2^.p,' : function');
+                   end
+                 else
+                   begin
+                     shift(9);
+                     write(outfile,'function ',$4^.p1^.p2^.p);
+                   end;
+
+                  if assigned($4^.p1^.p1^.p2) then
+                    write_args(outfile,$4^.p1^.p1^.p2);
+                  write(outfile,':');
+                  write_p_a_def(outfile,$4^.p1^.p1^.p1,$2);
+                  if createdynlib then
+                    begin
+                      loaddynlibproc.add('pointer('+$4^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+$4^.p1^.p2^.p+''');');
+                      freedynlibproc.add($4^.p1^.p2^.p+':=nil;');
+                    end
+                  else if not IsExtern then
+                   begin
+                     write(implemfile,'function ',$4^.p1^.p2^.p);
+                     if assigned($4^.p1^.p1^.p2) then
+                      write_args(implemfile,$4^.p1^.p1^.p2);
+                     write(implemfile,':');
+                     write_p_a_def(implemfile,$4^.p1^.p1^.p1,$2);
+                   end;
+               end;
+             if assigned($5) then
+               write(outfile,';systrap ',$5^.p);
+             (* No CDECL in interface for Uselib *)
+             if IsExtern and (not no_pop) then
+               write(outfile,';cdecl');
+             popshift;
+             if createdynlib then
+               begin
+                 writeln(outfile,';');
+               end
+             else if UseLib then
+               begin
+                 if IsExtern then
+                  begin
+                    write (outfile,';external');
+                    If UseName then
+                     Write(outfile,' External_library name ''',$4^.p1^.p2^.p,'''');
+                  end;
+                 writeln(outfile,';');
+               end
+             else
+               begin
+                 writeln(outfile,';');
+                 if not IsExtern then
+                  begin
+                    writeln(implemfile,';');
+                    writeln(implemfile,aktspace,'begin');
+                    writeln(implemfile,aktspace,'  { You must implement this function }');
+                    writeln(implemfile,aktspace,'end;');
+                  end;
+               end;
+             IsExtern:=false;
+             if not(compactmode) and not(createdynlib) then
+              writeln(outfile);
+            until not NeedEllipsisOverload;
+          end
+        else (* $4^.p1^.p1^.typ=t_procdef *)
+        if assigned($4)and assigned($4^.p1) then
+          begin
+             shift(2);
+             if block_type<>bt_var then
+               begin
+                  if not(compactmode) then
+                    writeln(outfile);
+                  writeln(outfile,aktspace,'var');
+               end;
+             block_type:=bt_var;
+
+             shift(3);
+
+             IsExtern:=assigned($1)and($1^.str='extern');
+             (* walk through all declarations *)
+             hp:=$4;
+             while assigned(hp) and assigned(hp^.p1) do
+               begin
+                  (* write new var name *)
+                  if assigned(hp^.p1^.p2) and assigned(hp^.p1^.p2^.p) then
+                    write(outfile,aktspace,hp^.p1^.p2^.p);
+                  write(outfile,' : ');
+                  shift(2);
+                  (* write its type *)
+                  write_p_a_def(outfile,hp^.p1^.p1,$2);
+                  if assigned(hp^.p1^.p2)and assigned(hp^.p1^.p2^.p)then
+                    begin
+                       if isExtern then
+                         write(outfile,';cvar;external')
+                       else
+                         write(outfile,';cvar;public');
+                    end;
+                  writeln(outfile,';');
+                  popshift;
+                  hp:=hp^.p2;
+               end;
+             popshift;
+             popshift;
+          end;
+        if assigned($1)then  dispose($1,done);
+        if assigned($2)then  dispose($2,done);
+        if assigned($4)then  dispose($4,done);
      } |
      special_type_specifier SEMICOLON
      {
@@ -2251,32 +2494,33 @@ abstract_declarator :
      }
      ;
 
-expr    :
-          shift_expr
-          {$$:=$1;}
+expr    : shift_expr
+          { $$:=$1; }
           ;
 
 shift_expr :
-          expr EQUAL expr
-          { $$:=new(presobject,init_bop(' = ',$1,$3));}
+          expr _ASSIGN expr
+          { $$:=new(presobject,init_bop(':=',$1,$3)); }
+          | expr EQUAL expr
+          { $$:=new(presobject,init_bop('=',$1,$3));}
           | expr UNEQUAL expr
-          { $$:=new(presobject,init_bop(' <> ',$1,$3));}
+          { $$:=new(presobject,init_bop('<>',$1,$3));}
           | expr GT expr
-          { $$:=new(presobject,init_bop(' > ',$1,$3));}
+          { $$:=new(presobject,init_bop('>',$1,$3));}
           | expr GTE expr
-          { $$:=new(presobject,init_bop(' >= ',$1,$3));}
+          { $$:=new(presobject,init_bop('>=',$1,$3));}
           | expr LT expr
-          { $$:=new(presobject,init_bop(' < ',$1,$3));}
+          { $$:=new(presobject,init_bop('<',$1,$3));}
           | expr LTE expr
-          { $$:=new(presobject,init_bop(' <= ',$1,$3));}
+          { $$:=new(presobject,init_bop('<=',$1,$3));}
           | expr _PLUS expr
-          { $$:=new(presobject,init_bop(' + ',$1,$3));}
-               | expr MINUS expr
-          { $$:=new(presobject,init_bop(' - ',$1,$3));}
+          { $$:=new(presobject,init_bop('+',$1,$3));}
+          | expr MINUS expr
+          { $$:=new(presobject,init_bop('-',$1,$3));}
                | expr STAR expr
-          { $$:=new(presobject,init_bop(' * ',$1,$3));}
+          { $$:=new(presobject,init_bop('*',$1,$3));}
                | expr _SLASH expr
-          { $$:=new(presobject,init_bop(' / ',$1,$3));}
+          { $$:=new(presobject,init_bop('/',$1,$3));}
                | expr _OR expr
           { $$:=new(presobject,init_bop(' or ',$1,$3));}
                | expr _AND expr
@@ -2288,10 +2532,11 @@ shift_expr :
                | expr _SHR expr
           { $$:=new(presobject,init_bop(' shr ',$1,$3));}
           | expr QUESTIONMARK colon_expr
-          { $3^.p1:=$1;
-          $$:=$3;
-          inc(if_nb);
-          $$^.p:=strpnew('if_local'+str(if_nb));
+          {
+            $3^.p1:=$1;
+            $$:=$3;
+            inc(if_nb);
+            $$^.p:=strpnew('if_local'+str(if_nb));
           } |
           unary_expr {$$:=$1;}
           ;
