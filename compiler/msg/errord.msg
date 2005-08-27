@@ -99,19 +99,19 @@ general_i_writingresourcefile=01010_I_Resourcestringtabellendatei $1 wird geschr
 general_e_errorwritingresourcefile=01011_E_Fehler beim Schreiben der Resourcestringtabellendatei: $1
 % This message is shown when the compiler encountered an error when writing
 % the Resource String Table file
-general_i_fatal=01012_I_Fatal:
+general_i_fatal=01012_I_Fataler Fehler:
 % Prefix for Fatal Errors
-general_i_error=01013_I_Error:
+general_i_error=01013_I_Fehler:
 % Prefix for Errors
-general_i_warning=01014_I_Warning:
+general_i_warning=01014_I_Warnung:
 % Prefix for Warnings
-general_i_note=01015_I_Note:
+general_i_note=01015_I_Anmerkung:
 % Prefix for Notes
-general_i_hint=01016_I_Hint:
+general_i_hint=01016_I_Hinweis:
 % Prefix for Hints
 general_e_path_does_not_exist=01017_E_Der Pfad "$1" existiert nicht
 % The specified path does not exist.
-general_e_compilation_aborted=01018_E_Kompilieren abgebrochen
+general_f_compilation_aborted=01018_F_Kompilieren abgebrochen
 % \end{description}
 #
 # Scanner
@@ -171,9 +171,9 @@ scan_e_illegal_pack_records=02015_E_UngÅltige Record Ausrichtung "$1"
 % with an illegal value for \var{n}. For $PACKRECORDS valid alignments are 1, 2, 4, 8, 16, 32, C,
 % NORMAL, DEFAULT, and for $ALIGN valid alignment are 1, 2, 4, 8, 16, 32, ON,
 % OFF. Under mode MacPas $ALIGN also supports MAC68K, POWER and RESET.
-scan_e_illegal_pack_enum=02016_E_UngÅltige minimale Grî·e der AufzÑhlung "$1"
+scan_e_illegal_pack_enum=02016_E_UngÅltige minimale Grîsse der AufzÑhlung "$1"
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
-% \var{n}. Only 1,2 or 4 are valid in this case.
+% \var{n}. Only 1,2 or 4 NORMAL or DEFAULT are valid in this case.
 scan_e_endif_expected=02017_E_$1 erwartet fÅr $1 $2 definiert in $3 Zeile $4
 % Your conditional compilation statements are unbalanced.
 scan_e_preproc_syntax_error=02018_E_Syntaxfehler im Argument einer $if Direktive
@@ -903,7 +903,7 @@ parser_e_interface_has_no_guid=03180_E_Interface "$1" hat keine Interface-Identi
 % must have a GUID value set.
 parser_e_illegal_field_or_method=03181_E_Klassenfeld oder Methoden-Bezeichner "$1" unbekannt
 % Properties must refer to a field or method in the same class.
-parser_w_proc_overriding_calling=03182_W_Überschreibe die Calling Convention "$1" mit "$2"
+parser_w_proc_overriding_calling=03182_W_öberschreibe die Calling Convention "$1" mit "$2"
 % There are two directives in the procedure declaration that specify a calling
 % convention. Only the last directive will be used
 parser_e_no_procvarobj_const=03183_E_Die Konstante des Typs "procedure of object" kann nur mit NIL initialisiert werden
@@ -912,7 +912,7 @@ parser_e_no_procvarobj_const=03183_E_Die Konstante des Typs "procedure of object
 % that of the method (which is known at compile time) and that of the object or
 % class instance it operates on (which can not be known at compile time).
 parser_e_default_value_only_one_para=03184_E_Der Default Value kann nur einem Parameter zugewiesen werden
-parser_e_default_value_expected_for_para=03185_E_Default parameter required for "$1"
+parser_e_default_value_expected_for_para=03185_E_Standard Parameter fÅr "$1" benîtigt
 parser_w_unsupported_feature=03186_W_Verwendung eines nicht unterstÅtzten Features!
 % You're trying to force the compiler into doing something it cannot do yet.
 parser_h_c_arrays_are_references=03187_H_C Arrays werden "by reference" Åbergeben
@@ -922,7 +922,7 @@ parser_e_C_array_of_const_must_be_last=03188_E_C array of const muss letztes Arg
 % You can not add any other argument after an \var{array of const} for
 % \var{cdecl} functions, as the size pushed on stack for this argument is
 % not known.
-parser_h_type_redef=03189_H_Type "$1" redefinition
+parser_h_type_redef=03189_H_Erneute Definition des Typs "$1"
 % This is an indicator that a previously declared type is
 % being redefined as something else. This may, or may not
 % be, a cause for errors.
@@ -1158,7 +1158,7 @@ type_e_array_required=04033_E_Array Typ notwendig
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
 type_e_interface_type_expected=04034_E_Interface Typ erwartet, aber "$1" erhalten
-type_w_mixed_signed_unsigned=04035_W_Mischen von signed Ausdrücken und Longwords ergibt ein 64bit Ergebnis
+type_w_mixed_signed_unsigned=04035_W_Mischen von signed AusdrÅcken und Longwords ergibt ein 64bit Ergebnis
 % If you divide (or calculate the modulus of) a signed expression by a longword (or vice versa),
 % or if you have overflow and/or range checking turned on and use an arithmetic
 % expression (+, -, *, div, mod) in which both signed numbers and longwords appear,
@@ -1172,7 +1172,7 @@ type_w_mixed_signed_unsigned2=04036_W_Mischen von signed AusdrÅcken und kardinal
 % such a case both operands are converted to longword before the operation is
 % carried out. You can avoid this by typecasting one operand so it
 % matches the resulttype of the other one.
-type_e_typecast_wrong_size_for_assignment=04037_E_Typecast hat verschiedene Grî·en ($1 -> $2) in der Zuweisung
+type_e_typecast_wrong_size_for_assignment=04037_E_Typecast hat verschiedene Grîssen ($1 -> $2) in der Zuweisung
 % Type casting to a type with a different size is not allowed when the variable is
 % used for assigning.
 type_e_array_index_enums_with_assign_not_possible=04038_E_enums mit Zuweisungen kînnen nicht als Array-Index verwendet werden
@@ -1205,16 +1205,16 @@ type_w_instance_with_abstract=04046_W_Konstruktion der Klasse "$1" mit abstrakte
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
 % routine is ever called. All abstract methods should be overriden.
-type_h_in_range_check=04047_H_Der linke Operand des IN Operators sollte byte Grî·e haben
+type_h_in_range_check=04047_H_Der linke Operand des IN Operators sollte byte Grîsse haben
 % The left operand of the \var{in} operator is not an ordinal or enumeration which fits
 % within 8-bits, this may lead to range check errors. The  \var{in} operator
 % currently only supports a left operand which fits within a byte. In the case of
 % enumerations, the size of an element of an enumeration can be controlled with
 % the \var{\{\$PACKENUM\}} or \var{\{\$Zn\}} switches.
-type_w_smaller_possible_range_check=04048_W_Unpassende Typgrî·en, Gefahr des Datenverlusts oder BereichsprÅfungsfehlers
+type_w_smaller_possible_range_check=04048_W_Unpassende Typgrîssen, Gefahr des Datenverlusts oder BereichsprÅfungsfehlers
 % There is an assignment to a smaller type than the source type. This means that
 % this may cause a range-check error, or may lead to possible loss of data.
-type_h_smaller_possible_range_check=04049_H_Unpassende Typgrî·en, Gefahr des Datenverlusts oder BereichsprÅfungsfehlers
+type_h_smaller_possible_range_check=04049_H_Unpassende Typgrîssen, Gefahr des Datenverlusts oder BereichsprÅfungsfehlers
 % There is an assignment to a smaller type than the source type. This means that
 % this may cause a range-check error, or may lead to possible loss of data.
 type_e_cant_take_address_of_abstract_method=04050_E_Die Adresse einer abstrakten Methode kann nicht verwendet werden
@@ -1362,7 +1362,7 @@ sym_h_param_list=05039_H_Deklaration gefunden: $1
 % listed, with their parameter lists.
 sym_e_segment_too_large=05040_E_Datensegment zu gross (max. 2GB)
 % You get this when you declare an array whose size exceeds the 2GB limit.
-sym_e_no_matching_implementation_found=05042_E_No matching implementation for interface method "$1" found
+sym_e_no_matching_implementation_found=05042_E_Keine passende Implementation der Interface Methode "$1" gefunden
 % There was no matching method found which could implement the interface
 % method. Check argument types and result type of the methods.
 sym_w_deprecated_symbol=05043_W_Symbol "$1" ist veraltet
@@ -1458,7 +1458,7 @@ cg_e_cannot_call_cons_dest_inside_with=06037_E_Konstruktoren und Destruktoren kî
 cg_e_cannot_call_message_direct=06038_E_Kann Messagehandler-Methode nicht direkt aufrufen
 % A message method handler method can't be called directly if it contains an
 % explicit self argument
-cg_e_goto_inout_of_exception_block=06039_E_Sprung in- oder aus Exceptionblock heraus
+cg_e_goto_inout_of_exception_block=06039_E_Sprung in- oder aus dem Exceptionblock heraus
 % It isn't allowed to jump in or outside of an exception block like \var{try..finally..end;}:
 % \begin{verbatim}
 % label 1;
@@ -1492,13 +1492,13 @@ cg_e_control_flow_outside_finally=06040_E_Kontrollfluss-Anweisungen sind in eine
 % If the procedure \var{p} raises an exception the finally block is
 % executed. If the execution reaches the exit, it's unclear what to do:
 % exiting the procedure or searching for another exception handler
-cg_w_parasize_too_big=06041_W_Parameters size exceeds limit for certain cpu's
+cg_w_parasize_too_big=06041_W_Grîsse der Parameter Åberschreitet die Grenze fÅr bestimmte CPUs
 % This indicates that you are declaring more than 64K of parameters, which
 % might not be supported on other processor targets.
-cg_w_localsize_too_big=06042_W_Local variable size exceed limit for certain cpu's
+cg_w_localsize_too_big=06042_W_Grîsse der lokalen Variablen Åberschreitet die Grenze fÅr bestimmte CPUs
 % This indicates that you are declaring more than 32K of lcoal variables, which
 % might not be supported on other processor targets.
-cg_e_localsize_too_big=06043_E_Local variables size exceeds supported limit
+cg_e_localsize_too_big=06043_E_Grîsse der lokalen Variablen Åberschreitet die unterstÅtzte Grenze
 % This indicates that you are declaring more than 32K of lcoal variables, which
 % is not supported by this processor.
 cg_e_break_not_allowed=06044_E_BREAK nicht zulÑssig
@@ -1506,6 +1506,11 @@ cg_e_break_not_allowed=06044_E_BREAK nicht zulÑssig
 cg_e_continue_not_allowed=06045_E_CONTINUE nicht zulÑssig
 % You're trying to use \var{continue} outside a loop construction.
 % \end{description}
+cg_f_unknown_compiler=06046_F_Unbekannte Compiler-Prozedur "$1". öberprÅfe, ob die korrekte Laufzeit-Bibliothek verwendet wird.
+% The compiler expects that the runtime library contains some subrountines. If you see this error
+% and you didn't mess with the runtime library, it's very likely that the runtime library
+% you're using doesn't match the used compiler. If you changed the runtime library this error means
+% that you removed a subroutine which the compiler needs for internal use.
 # EndOfTeX
 
 
@@ -1687,7 +1692,7 @@ asmr_e_cannot_access_object_field_directly=07082_E_Kann auf Felder von Objekten/
 % You should load the self pointer first into a register and then access the
 % fields using the register as base. By default the self pointer is available
 % in the esi register on i386.
-asmr_e_unable_to_determine_reference_size=07083_E_Grî·e nicht spezifiziert und auch keine Mîglichkeit die Grî·e der Operanden zu bestimmen
+asmr_e_unable_to_determine_reference_size=07083_E_Grîsse nicht spezifiziert und auch keine Mîglichkeit die Grîsse der Operanden zu bestimmen
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference.
@@ -1715,7 +1720,7 @@ asmr_e_higher_cpu_mode_required=07097_E_Hîherer cpu Modus notwendig ($1)
 % Trying to use an instruction which is not supported in the current
 % cpu mode. Use a higher cpu generation to be able to use this
 % opcode in your assembler block
-asmr_w_unable_to_determine_reference_size_using_dword=07098_W_Grî·e nicht spezifiziert und auch keine Mîglichkeit die Grî·e der Operanden zu bestimmen. Es wird DWORD als Voreinstellung verwendet
+asmr_w_unable_to_determine_reference_size_using_dword=07098_W_Grîsse nicht spezifiziert und auch keine Mîglichkeit die Grîsse der Operanden zu bestimmen. Es wird DWORD als Voreinstellung verwendet
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
@@ -1750,8 +1755,8 @@ asmw_e_immediate_or_reference_expected=08010_E_Asm: Konstanten Ausdruck oder Ref
 asmw_e_value_exceeds_bounds=08011_E_Asm: $1 Wert Åberschreitet Grenzen $2
 asmw_e_short_jmp_out_of_range=08012_E_Asm: "Short jump" ist ausserhalb der Bereichs $1
 asmw_e_undefined_label=08013_E_Asm: Undefiniertes Label: $1
-asmw_e_comp_not_supported=08014_E_Asm: Comp wird für diese Ziel nicht unterstÅtzt
-asmw_e_extended_not_supported=08015_E_Asm: Extended Typ wird für diese Ziel nicht unterstÅtzt
+asmw_e_comp_not_supported=08014_E_Asm: Comp wird fÅr diese Ziel nicht unterstÅtzt
+asmw_e_extended_not_supported=08015_E_Asm: Extended Typ wird fÅr diese Ziel nicht unterstÅtzt
 asmw_e_duplicate_label=08016_E_Asm: Doppeltes Label $1
 asmw_e_redefined_label=08017_E_Asm: Neu definiertes Label $1
 asmw_e_first_defined_label=08018_E_Asm: First beginnt hier
@@ -1817,13 +1822,13 @@ exec_d_resbin_params=09028_D_Resource Compiler "$1" wird mit "$2" als Kommandoze
 #
 # Executable information
 #
-execinfo_f_cant_process_executable=09028_F_Kann ausfÅhrbare Datei nicht nachbearbeiten: $1
-execinfo_f_cant_open_executable=09029_F_Kann ausfÅhrbare Datei nicht îffnen: $1
-execinfo_x_codesize=09030_X_Grîsse des Codes: $1 Bytes
-execinfo_x_initdatasize=09031_X_Grîsse der initialisierten Daten: $1 Bytes
-execinfo_x_uninitdatasize=09032_X_Grîsse der nicht initialisierten Daten: $1 Bytes
-execinfo_x_stackreserve=09033_X_Stack Bereich "reserved": $1 Bytes
-execinfo_x_stackcommit=09034_X_Stack Bereich "commited": $1 Bytes
+execinfo_f_cant_process_executable=09128_F_Kann ausfÅhrbare Datei nicht nachbearbeiten: $1
+execinfo_f_cant_open_executable=09129_F_Kann ausfÅhrbare Datei nicht îffnen: $1
+execinfo_x_codesize=09130_X_Grîsse des Codes: $1 Bytes
+execinfo_x_initdatasize=09131_X_Grîsse der initialisierten Daten: $1 Bytes
+execinfo_x_uninitdatasize=09132_X_Grîsse der nicht initialisierten Daten: $1 Bytes
+execinfo_x_stackreserve=09133_X_Stack Bereich "reserved": $1 Bytes
+execinfo_x_stackcommit=09134_X_Stack Bereich "commited": $1 Bytes
 
 #
 # Unit loading
@@ -1967,11 +1972,11 @@ unit_u_loading_interface_units=10043_U_Interface Units werden von $1 geladen
 unit_u_loading_implementation_units=10044_U_Implementation Units werden von $1 geladen
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % loading the units defined in the implementation part of the unit.
-unit_u_interface_crc_changed=10045_U_GeÑnderte Interface CRC für Unit $1
+unit_u_interface_crc_changed=10045_U_GeÑnderte Interface CRC fÅr Unit $1
 % When you use the \var{-vu} flag, the compiler warns that it the
 % CRC calculated for the interface has been changed after the implementation
 % has been parsed.
-unit_u_implementation_crc_changed=10046_U_GeÑnderte Implementation CRC für Unit $1
+unit_u_implementation_crc_changed=10046_U_GeÑnderte Implementation CRC fÅr Unit $1
 % When you use the \var{-vu} flag, the compiler warns that it the
 % CRC calculated has been changed after the implementation
 % has been parsed.
@@ -2316,7 +2321,7 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 **2st_erzeuge Script um auf dem Zielsystem zu linken
 **2sr_Åberspringe die Phase der "register allocation" (mit -alr benutzen)
 **1T<x>_Ziel-Betriebssystem::
-3*2Temx_OS/2 via EMX (einschließlich EMX/RSX extender)
+3*2Temx_OS/2 via EMX (einschliesslich EMX/RSX extender)
 3*2Tfreebsd_FreeBSD
 3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
 3*2Tlinux_Linux
@@ -2372,7 +2377,7 @@ P*2WG_spezifiziere "graphic type application" (nur MacOS)
 P*2WT_spezifiziere "tool type application"    (MPW tool, nur MacOS)
 **1X_Programm-Optionen:
 **2Xc_Åbergebe --shared an den Linker (nur Unix)
-**2Xd_den Standard Bibliotheks-Suchphad NICHT nutzen (benîtigt für cross compile)
+**2Xd_den Standard Bibliotheks-Suchphad NICHT nutzen (benîtigt fÅr cross compile)
 **2XD_versuche Units dynamisch zu linken             (definiert FPC_LINK_DYNAMIC)
 **2Xm_erzeuge die "link map"
 **2XM<x>_setze den Namen der 'main' program Routine   (default ist 'main')
