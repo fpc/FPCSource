@@ -84,6 +84,10 @@ var
   {$endif}
 {$endif}
 
+{$if defined(win32) or defined(wince)}
+  {$define PE32}
+{$endif}
+
 {$ifdef netwlibc}
 {$define netware}
 {$endif}
@@ -294,7 +298,7 @@ end;
 {$endif Go32v2}
 
 
-{$ifdef win32}
+{$ifdef PE32}
 function LoadPeCoff:boolean;
 type
   tdosheader = packed record
@@ -409,7 +413,7 @@ begin
    end;
   LoadPeCoff:=(stabofs<>-1) and (stabstrofs<>-1);
 end;
-{$endif Win32}
+{$endif PE32}
 
 
 {$IFDEF EMX}
@@ -911,7 +915,7 @@ begin
      exit;
    end;
 {$ENDIF EMX}
-{$ifdef win32}
+{$ifdef PE32}
   if LoadPECoff then
    begin
      OpenStabs:=true;
