@@ -560,7 +560,8 @@ const go32v2stub : array[0..2047] of byte=(
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame'
+          '.debug_frame',
+          '.fpc'
         );
       begin
         { No support for named sections, because section names are limited to 8 chars }

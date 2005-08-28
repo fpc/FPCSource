@@ -152,7 +152,7 @@ interface
        tres = (res_none
             ,res_gnu_windres,res_emxbind
             ,res_m68k_palmos,res_m68k_mpw
-            ,res_powerpc_mpw
+            ,res_powerpc_mpw,res_elf
        );
 
        tscripttype = (script_none

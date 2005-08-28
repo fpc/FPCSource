@@ -270,6 +270,50 @@ implementation
       end;
 {$endif}
 
+    Procedure InsertResourceInfo;
+    
+    var
+      hp           : tused_unit;
+      found        : Boolean;
+      I            : Integer;
+      ResourceInfo : taasmoutput;
+      
+    begin
+      if target_res.id=res_elf then
+        begin
+        hp:=tused_unit(usedunits.first);
+        found:=false;
+        While Assigned(hp) and not Found do
+          begin
+          Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
+          hp:=tused_unit(hp.next);
+          end;
+        ResourceInfo:=TAAsmOutput.Create;
+        if found then
+          begin
+{$ifdef EXTERNALRESPTRS}
+          current_module.linkotherofiles.add('resptrs.o',link_allways);
+{$else EXTERNALRESPTRS}
+          new_section(ResourceInfo,sec_fpc,'resptrs',4);
+          ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESSYMBOL',AT_DATA,0));
+          For I:=1 to 32 do 
+            ResourceInfo.Concat(Tai_const.Create_32bit(0));
+{$endif EXTERNALRESPTRS}
+          { Valid pointer to resource information }
+          ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
+          ResourceInfo.concat(Tai_const.Createname('FPC_RESSYMBOL',AT_DATA,0));
+          end
+        else
+          begin
+          { Nil pointer to resource information }
+          ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
+          ResourceInfo.Concat(Tai_const.Create_32bit(0));
+          end;
+        maybe_new_object_file(asmlist[al_data]);
+        asmlist[al_data].concatlist(ResourceInfo);
+        ResourceInfo.free;
+        end;
+    end;
 
     Procedure InsertResourceTablesTable;
       var
@@ -1593,6 +1637,9 @@ implementation
          insertResourceTablesTable;
          insertinitfinaltable;
          insertmemorysizes;
+         { Insert symbol to resource info }
+         
+         InsertResourceInfo;
 
          { create dwarf debuginfo }
          create_dwarf;

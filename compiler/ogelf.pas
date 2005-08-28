@@ -253,6 +253,12 @@ implementation
               AshType:=SHT_STRTAB;
               AAlign:=1;
             end;
+          sec_fpc :
+            begin
+              AshFlags:=SHF_ALLOC;
+              AshType:=SHT_PROGBITS ;
+              AAlign:=4;// max(sizeof(aint),AAlign);
+            end;
         end;
         create_ext(Aname,Atype,Ashtype,Ashflags,0,0,Aalign,Aentsize);
       end;
@@ -343,7 +349,8 @@ implementation
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame'
+          '.debug_frame',
+          'fpc.resptrs'
         );
       begin
         if use_smartlink_section and

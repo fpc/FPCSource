@@ -33,7 +33,7 @@ implementation
     uses
       cutils,
       globtype,globals,systems,widestr,
-      verbose,comphook,
+      verbose,comphook,ppu,
       scanner,switches,
       fmodule,
       symtable,
@@ -846,11 +846,14 @@ implementation
             end;
         s:=AddExtension(FixFileName(s),target_info.resext);
         if target_info.res<>res_none then
+          begin
+          current_module.flags:=current_module.flags or uf_has_resourcefiles;
           if (target_info.res = res_emxbind) and
                                  not (Current_module.ResourceFiles.Empty) then
             Message(scan_w_only_one_resourcefile_supported)
           else
-            current_module.resourcefiles.insert(FixFileName(s))
+            current_module.resourcefiles.insert(FixFileName(s));
+          end 
         else
           Message(scan_e_resourcefiles_not_supported);
       end;

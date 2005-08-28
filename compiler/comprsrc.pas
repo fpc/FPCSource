@@ -166,12 +166,14 @@ var
 begin
   { OS/2 (EMX) must be processed elsewhere (in the linking/binding stage).
     same with MacOS}
-  if not (target_info.system in [system_i386_os2,system_i386_emx,system_powerpc_macos]) then
+  if not (target_info.system in [system_i386_os2,
+                                 system_i386_emx,system_powerpc_macos]) then
    While not current_module.ResourceFiles.Empty do
     begin
       case target_info.system of
         system_m68k_palmos,
         system_i386_win32,
+        system_i386_linux,
         system_i386_wdosx :
           hr:=new(presourcefile,init(current_module.ResourceFiles.getfirst));
         else

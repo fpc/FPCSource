@@ -57,7 +57,9 @@ interface
          { C++ exception handling unwinding (uses dwarf) }
          sec_eh_frame,
          { dwarf }
-         sec_debug_frame
+         sec_debug_frame,
+         { ELF resources }
+         sec_fpc
        );
 
        TAsmSectionOption = (aso_alloconly,aso_executable);
@@ -578,7 +580,8 @@ implementation
           'stab','stabstr',
           'idata2','idata4','idata5','idata6','idata7','edata',
           'eh_frame',
-          'debug_frame'
+          'debug_frame',
+          'fpc'
         );
       begin
         if aname<>'' then

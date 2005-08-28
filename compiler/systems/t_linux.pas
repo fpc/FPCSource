@@ -27,7 +27,7 @@ unit t_linux;
 interface
 
   uses
-    symsym,symdef,
+    symsym,symdef,ppu,
     import,export,link;
 
   type
@@ -54,6 +54,7 @@ interface
       procedure SetDefaultInfo;override;
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
+      function  postprocessexecutable(const fn : string;isdll:boolean):boolean;
     end;
 
 
@@ -591,7 +592,11 @@ begin
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
    RemoveFile(outputexedir+Info.ResName);
-
+   
+  if (success) then
+    success:=PostProcessExecutable(current_module.exefilename^,false);
+    
+ 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
 
@@ -644,6 +649,32 @@ begin
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;
 
+function tlinkerLinux.postprocessexecutable(const fn : string;isdll:boolean):boolean;
+
+Var
+  cmdstr: string;
+  found : boolean;
+  hp    : tused_unit;
+
+begin
+  postprocessexecutable:=True;
+  if target_res.id=res_elf then
+    begin
+    hp:=tused_unit(usedunits.first);
+    found:=false;
+    While Assigned(hp) and not Found do
+      begin
+      Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
+      hp:=tused_unit(hp.next);
+      end;
+    if found then
+      begin  
+      cmdstr:=' -f -i '+maybequoted(fn);
+      postprocessexecutable:=DoExec(FindUtil(utilsprefix+'fpcres'),cmdstr,false,false);
+      end;
+    end;  
+end;
+
 
 {*****************************************************************************
                                   Initialize
@@ -655,6 +686,7 @@ initialization
   RegisterImport(system_i386_linux,timportliblinux);
   RegisterExport(system_i386_linux,texportliblinux);
   RegisterTarget(system_i386_linux_info);
+  RegisterRes(res_elf32_info);
 
   RegisterExternalLinker(system_x86_6432_linux_info,TLinkerLinux);
   RegisterImport(system_x86_6432_linux,timportliblinux);
@@ -684,6 +716,7 @@ initialization
   RegisterImport(system_x86_64_linux,timportliblinux);
   RegisterExport(system_x86_64_linux,texportliblinux);
   RegisterTarget(system_x86_64_linux_info);
+  RegisterRes(res_elf64_info);
 {$endif x86_64}
 {$ifdef SPARC}
   RegisterExternalLinker(system_sparc_linux_info,TLinkerLinux);

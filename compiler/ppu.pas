@@ -143,7 +143,7 @@ const
   uf_local_browser = $200;
   uf_no_link       = $400;    { unit has no .o generated, but can still have
                                 external linking! }
-  uf_has_resources = $800;    { unit has resource section }
+  uf_has_resources = $800;    { unit has resource string section }
   uf_little_endian = $1000;
   uf_release       = $2000;   { unit was compiled with -Ur option }
   uf_threadvars    = $4000;   { unit has threadvars }
@@ -151,7 +151,9 @@ const
   uf_has_debuginfo = $10000;  { this unit has debuginfo generated }
   uf_local_symtable = $20000; { this unit has a local symtable stored }
   uf_uses_variants  = $40000; { this unit uses variants }
-
+  uf_has_resourcefiles = $80000; { this unit has external resources (using $R directive)}
+  
+  
 type
   ppureal=extended;
 
