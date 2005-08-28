@@ -63,7 +63,8 @@ Index   Pointer to
 {$ifdef fpc}
 {$mode objfpc}
 {$endif}
-{$H+}
+{$h+}
+
 unit elfres;
 
 interface
@@ -226,7 +227,7 @@ procedure TElfResCreator.DoAlign(const a: integer);
 var i: integer;
 begin
   i:=(4 - (FSectionStream.position MOD a)) MOD a;
-  if (i>0) then FSectionStream.Write(zeros,i);
+  if (i>0) then FSectionStream.Write(zeros[1],i);
 end;
 
 procedure TElfResCreator.Convert(const Source, Destination: String);
@@ -286,7 +287,7 @@ var l:longint;
     ws:WideString;
     wc:WideChar;
     name:string;
-    i: integer;
+    i,nl: integer;
     headersize:integer;
     headerstart:integer;
 begin
@@ -333,11 +334,11 @@ begin
 
   // create a hash of the name
   resinfo.reshash:=HashELF(name);
-
   // save the name plus a trailing #0 to the SymStream, also save
   // the position of this name in the SymStream
   resinfo.name:=SymStream.Position;
   name:=name+#0;
+  nl:=length(name);
   SymStream.Write(name[1],length(name));
 
   // We don't care about the rest of the header
@@ -353,7 +354,7 @@ begin
 
   // Align the data stream on a dword boundary
   i:=(4 - (DataStream.Position MOD 4)) MOD 4;
-  if (i>0) then DataStream.Write(zeros,i);
+  if (i>0) then DataStream.Write(zeros[1],i);
 end;
 
 procedure TElf32ResCreator.LoadBinaryDFMEntry(const rs:TStream; const DataStream:TMemoryStream; const SymStream:TMemoryStream; var resinfo:TELF32ResourceInfo);
@@ -494,7 +495,7 @@ begin
 
   // shstrtab - this is not aligned
   shstrtab_ofs:=FSectionStream.Position+sizeof(TElf32Header);
-  FSectionStream.Write(shstrtab,length(shstrtab));
+  FSectionStream.Write(shstrtab[1],length(shstrtab));
 
   // Write 12 section headers. The headers itself don't need to be aligned,
   // as their size can be divided by 4. As shstrtab is uneven and not aligned,
@@ -651,11 +652,11 @@ begin
   FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
 
   // now write the symbol table
-  FSectionStream.Write(symtab,length(symtab));
+  FSectionStream.Write(symtab[1],length(symtab));
   // We don't need to align it, as it's $90 in size
 
   // now write the string table, it's just a single byte
-  FSectionStream.Write(strtab,1);
+  FSectionStream.Write(strtab[1],1);
 
   // Ok, we are done, now let's really write something to disk...
 
@@ -678,7 +679,8 @@ begin
   Dest.Write(ElfHeader,sizeof(TElf32header));
 
   // And now let's dump our whole memorystream into it.
-  Dest.CopyFrom(FSectionStream,0);
+  FSectionStream.Position:=0;
+  Dest.CopyFrom(FSectionStream,FsectionStream.Size);
 end;
 
 
