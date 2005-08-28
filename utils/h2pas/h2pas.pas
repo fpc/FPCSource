@@ -1548,9 +1548,16 @@ begin
          popshift;
          popshift;
          end;
-         if assigned(yyv[yysp-4])then  dispose(yyv[yysp-4],done);
-         if assigned(yyv[yysp-3])then  dispose(yyv[yysp-3],done);
-         if assigned(yyv[yysp-1])then  dispose(yyv[yysp-1],done);
+         if assigned(yyv[yysp-4]) then
+         dispose(yyv[yysp-4],done);
+         if assigned(yyv[yysp-3]) then
+         dispose(yyv[yysp-3],done);
+         if assigned(yyv[yysp-2]) then
+         dispose(yyv[yysp-2],done);
+         if assigned(yyv[yysp-1]) then
+         dispose(yyv[yysp-1],done);
+         if assigned(yyv[yysp-0]) then
+         dispose(yyv[yysp-0],done);
          
        end;
   29 : begin

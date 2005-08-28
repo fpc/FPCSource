@@ -1473,9 +1473,16 @@ declaration :
              popshift;
              popshift;
           end;
-        if assigned($1)then  dispose($1,done);
-        if assigned($2)then  dispose($2,done);
-        if assigned($4)then  dispose($4,done);
+        if assigned($1) then
+          dispose($1,done);
+        if assigned($2) then
+          dispose($2,done);
+        if assigned($3) then
+          dispose($3,done);
+        if assigned($4) then
+          dispose($4,done);
+        if assigned($5) then
+          dispose($5,done);
      }
      | dec_specifier type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON
      {
@@ -2941,4 +2948,3 @@ begin
   freedynlibproc.free;
   loaddynlibproc.free;
 end.
-
