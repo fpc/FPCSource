@@ -76,6 +76,10 @@ const
 type
   HMODULE = THandle;
 
+{ ANSI <-> Wide }
+function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
+function WideToAnsiBuf(WideBuf: PWideChar; WideBufLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
+
 { Wrappers for some WinAPI calls }
 function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall;
 function ResetEvent(h: THandle): LONGBOOL; stdcall;
@@ -96,59 +100,59 @@ function CreateDirectory(name : pointer;sec : pointer) : longbool; stdcall;
 function RemoveDirectory(name:pointer):longbool; stdcall;
 
 function addd(d1,d2 : double) : double; compilerproc;
-   stdcall;external 'coredll' name '_addd';
+   cdecl;external 'coredll' name '__addd';
 
 function muld(d1,d2 : double) : double; compilerproc;
-   stdcall;external 'coredll' name '_muld';
+   cdecl;external 'coredll' name '__muld';
 
 function divd(d1,d2 : double) : double; compilerproc;
-   stdcall;external 'coredll' name '_divd';
+   cdecl;external 'coredll' name '__divd';
 
 function subd(d1,d2 : double) : double; compilerproc;
-   stdcall;external 'coredll' name '_subd';
+   cdecl;external 'coredll' name '__subd';
 
 function eqs(d1,d2 : single) : boolean; compilerproc;
-   stdcall;external 'coredll' name '_eqs';
+   cdecl;external 'coredll' name '__eqs';
 
 function nes(d1,d2 : single) : boolean; compilerproc;
-   stdcall;external 'coredll' name '_nes';
+   cdecl;external 'coredll' name '__nes';
 
 function lts(d1,d2 : single) : boolean; compilerproc;
-   stdcall;external 'coredll' name '_lts';
+   cdecl;external 'coredll' name '__lts';
 
 function gts(d1,d2 : single) : boolean; compilerproc;
-   stdcall;external 'coredll' name '_gts';
+   cdecl;external 'coredll' name '__gts';
 
 function ges(d1,d2 : single) : boolean; compilerproc;
-   stdcall;external 'coredll' name '_ges';
+   cdecl;external 'coredll' name '__ges';
 
 function les(d1,d2 : single) : boolean; compilerproc;
-   stdcall;external 'coredll' name '_les';
+   cdecl;external 'coredll' name '__les';
 
 function dtos(d : double) : single; compilerproc;
-   stdcall;external 'coredll' name '_dtos';
+   cdecl;external 'coredll' name '__dtos';
 
 function stod(d : single) : double; compilerproc;
-   stdcall;external 'coredll' name '_stod';
+   cdecl;external 'coredll' name '__stod';
 
 function negs(d : single) : single; compilerproc;
-   stdcall;external 'coredll' name '_negs';
+   cdecl;external 'coredll' name '__negs';
 
 function negd(d : double) : double; compilerproc;
-   stdcall;external 'coredll' name '_negd';
+   cdecl;external 'coredll' name '__negd';
 
 function utod(i : dword) : double; compilerproc;
-   stdcall;external 'coredll' name '_utod';
+   cdecl;external 'coredll' name '__utod';
 
 function itod(i : longint) : double; compilerproc;
-   stdcall;external 'coredll' name '_itod';
+   cdecl;external 'coredll' name '__itod';
 
 
 function ui64tod(i : qword) : double; compilerproc;
-   stdcall;external 'coredll' name '_ui64tod';
+   cdecl;external 'coredll' name '__u64tod';
 
 function i64tod(i : int64) : double; compilerproc;
-   stdcall;external 'coredll' name '_i64tod';
+   cdecl;external 'coredll' name '__i64tod';
 
 implementation
 
