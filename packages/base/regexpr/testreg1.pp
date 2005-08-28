@@ -1,10 +1,12 @@
+{$MODE OBJFPC}
 program testreg1;
 uses
    regexpr;
 
 var
-   r : tregexprengine;
+   r         : tregexprengine;
    index,len : longint;
+   S         : String;
 
 procedure do_error(i : longint);
 
@@ -111,11 +113,51 @@ begin
 
    { test real backtracking }
 
-   r:=GenerateRegExprEngine('nofoo|foo',[]);
+(*   r:=GenerateRegExprEngine('nofoo|foo',[]);
    if not(RegExprPos(r,'1234   foo1234XXXX',index,len)) or
      (index<>7) or (len<>3) then
      do_error(1300);
-   DestroyregExprEngine(r);
+   DestroyregExprEngine(r);*)
+
+  r := GenerateRegExprEngine('abc\(123\)$',[]);
+  if not (RegExprPos(r,'1234 abc(123)', index, len)) or
+         (index <> 5) or (len <> 8) then
+    do_error (1400);
+  DestroyregExprEngine(r);
+
+  r := GenerateRegExprEngine('^\t$',[ref_singleline]);
+  if not (RegExprPos(r,#9, index, len)) or
+         (index <> 0) or (len <> 1) then
+    do_error (1401);
+  DestroyregExprEngine(r);
+
+  r := GenerateRegExprEngine('^\n$',[ref_singleline]);
+  if not (RegExprPos(r,#10, index, len)) or
+         (index <> 0) or (len <> 1) then
+    do_error (1402);
+  DestroyregExprEngine(r);
+
+  r := GenerateRegExprEngine('^\f$',[ref_singleline]);
+  if not (RegExprPos(r,#12, index, len)) or
+         (index <> 0) or (len <> 1) then
+    do_error (1403);
+  DestroyregExprEngine(r);
+
+  r := GenerateRegExprEngine('^\r$',[ref_singleline]);
+  if not (RegExprPos(r,#13, index, len)) or
+         (index <> 0) or (len <> 1) then
+    do_error (1404);
+  DestroyregExprEngine(r);
+
+  r := GenerateRegExprEngine('^\a$',[ref_singleline]);
+  if not (RegExprPos(r,#7, index, len)) or
+         (index <> 0) or (len <> 1) then
+    do_error (1405);
+  DestroyregExprEngine(r);
+
+   s := '^Hello World \.  [a-z] \D { } |() ?a*.*\\ 1 $';
+   writeln ('Before Escaping: ', s);
+   writeln ('Afther Escaping: ', RegExprEscapeStr(s));
 
    {
    r:=GenerateRegExprEngine('(nofoo|foo)1234',[]);
