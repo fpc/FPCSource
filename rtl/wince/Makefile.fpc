@@ -6,13 +6,15 @@
 main=rtl
 
 [target]
-loaders= wprt0 #wdllprt0 gprt0 wcygprt0
+loaders= wprt0 #wdllprt0
 units=$(SYSTEMUNIT) objpas strings \
 # ctypes macpas
-#     lineinfo heaptrc matrix \
+      lineinfo \
+# heaptrc matrix \
       windows \
 # winsock initc cmem dynlibs signals \
-#     dos crt objects graph messages \
+      dos \
+# crt objects graph messages \
       rtlconsts sysconst \
 #     sysutils \
 #     math types \
@@ -62,9 +64,9 @@ OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 
 # Files used by windows.pp
-# include $(WININC)/makefile.inc
+include $(WININC)/makefile.inc
 
-#WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
+WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 
 
 [rules]
@@ -90,21 +92,10 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Loaders
 #
 
-#
-# Loaders
-#
-
 wprt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)wprt0$(OEXT) $(CPU_TARGET)/$(PRT0).as
 
-#wprt0$(OEXT) : $(PRT0).as
-#        $(AS) -o $(UNITTARGETDIRPREFIX)wprt0$(OEXT) $(PRT0).as
-
-gprt0$(OEXT) : gprt0.as
-
-wdllprt0$(OEXT) : wdllprt0.as
-
-wcygprt0$(OEXT) : wcygprt0.as
+#wdllprt0$(OEXT) : wdllprt0.as
 
 #
 # System Units (System, Objpas, Strings)
@@ -149,7 +140,7 @@ windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMUNIT)$(PPUEXT)
 # TP7 Compatible RTL Units
 #
 
-#dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT)
 
 #crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
 

@@ -183,11 +183,31 @@ function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideCh
 function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
 begin
   Result := MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, AnsiBuf, AnsiBufLen, WideBuf, WideBufLen);
+  if ((AnsiBufLen <> -1) or (Result = 0)) and (WideBuf <> nil) then
+  begin
+    if (Result + 1)*SizeOf(WideChar) > WideBufLen then
+    begin
+      Result := 0;
+      if WideBufLen < SizeOf(WideChar) then
+        exit;
+    end;
+    WideBuf[Result] := #0;
+  end;
 end;
 
 function WideToAnsiBuf(WideBuf: PWideChar; WideBufLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
 begin
   Result := WideCharToMultiByte(CP_ACP, 0, WideBuf, WideBufLen, AnsiBuf, AnsiBufLen, nil, nil);
+  if ((WideBufLen <> -1) or (Result = 0)) and (AnsiBuf <> nil) then
+  begin
+    if Result + 1 > AnsiBufLen then
+    begin
+      Result := 0;
+      if AnsiBufLen < 1 then
+        exit;
+    end;
+    AnsiBuf[Result] := #0;
+  end;
 end;
 
 {*****************************************************************************
@@ -1186,7 +1206,7 @@ begin
       res := 218;
     else
       begin
-        if ((ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
+        if ((cardinal(ExceptionRecord^.ExceptionCode) and SEVERITY_ERROR) = SEVERITY_ERROR) then
           res := 217
         else
           res := 255;
