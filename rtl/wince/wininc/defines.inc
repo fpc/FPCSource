@@ -2970,11 +2970,11 @@ Const
 
   { kfuncs consts }  //+kfuncs
   
-    {$ifdef ARM}
+    {$ifdef CPUARM}
       PUserKData = $FFFFC800;
     {$else}
       PUserKData = $00005800;
-    {$endif ARM}
+    {$endif CPUARM}
 
      EVENT_PULSE = 1;
      EVENT_RESET = 2;
@@ -4381,7 +4381,7 @@ Const
      TAPE_DRIVE_WRITE_SETMARKS = -(2130706432);
      TAPE_DRIVE_WRITE_SHORT_FMKS = -(2080374784);
   { ACCESS_MASK, ACCESS TYPES  }
-     DELETE = $00010000;       //+winnt
+//     DELETE = $00010000;       //+winnt  // The name conflicts with Delete procedure
      READ_CONTROL = $00020000; //+winnt
      WRITE_DAC = $00040000;    //winnt
      WRITE_OWNER = $00080000;  //winnt
@@ -5675,7 +5675,7 @@ Const
 
 {$endif SHx} //+winnt
 
-{$ifdef ARM} //+winnt all block added
+{$ifdef CPUARM} //+winnt all block added
 //
 // Processor Feature Values used in IsProcessorFeaturePresent API
 //
@@ -5719,7 +5719,7 @@ Const
      NUM_VFP_REGS = 32;
      NUM_EXTRA_CONTROL_REGS = 8;
 
-{$endif ARM} //+winnt
+{$endif CPUARM} //+winnt
 
   const
      { ASCIICHAR = AsciiChar; this is the kind of thing that can
@@ -6090,7 +6090,8 @@ const
      IS_TARGET_UNWIND:=(Flag and EXCEPTION_TARGET_UNWIND);
     end;
 
-    { was #define dname def_expr }
+
+    { was #define dname def_expr }
     function STD_INPUT_HANDLE : DWORD;
       begin
          STD_INPUT_HANDLE:=DWORD(-(10));

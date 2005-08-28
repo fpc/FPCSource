@@ -1925,7 +1925,7 @@
 
  {$endif SHx} //+winnt
 
- {$ifdef ARM} //+winnt all block added
+ {$ifdef CPUARM} //+winnt all block added
      CONTEXT = record
           ContextFlags : ULONG;
           R0  : ULONG;
@@ -1951,7 +1951,7 @@
           S       : Array [0..NUM_VFP_REGS] of ULONG;
           FpExtra : Array [0..NUM_EXTRA_CONTROL_REGS-1] of ULONG;
        end;
- {$endif ARM} //+winnt
+ {$endif CPUARM} //+winnt
 
      LPCONTEXT = ^CONTEXT;
      _CONTEXT = CONTEXT;
@@ -7115,10 +7115,8 @@
           ftLastWriteTime : FILETIME;
           nFileSizeHigh : DWORD;
           nFileSizeLow : DWORD;
-          dwReserved0 : DWORD;
-          dwReserved1 : DWORD;
-          cFileName : array[0..(MAX_PATH)-1] of TCHAR;
-          cAlternateFileName : array[0..13] of TCHAR;
+          dwOID: DWORD;
+          cFileName : array[0..MAX_PATH] of TCHAR;
        end;
      LPWIN32_FIND_DATA = ^WIN32_FIND_DATA;
      PWIN32_FIND_DATA = ^WIN32_FIND_DATA;

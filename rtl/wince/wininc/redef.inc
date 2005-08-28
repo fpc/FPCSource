@@ -22,14 +22,31 @@
 {$ifdef read_interface}
 
 //begin common win32 & wince
-
+function GetVersionExW(var lpVersionInformation: TOSVersionInfoW): BOOL; external KernelDLL name 'GetVersionExW';
+procedure GetLocalTime(var SystemTime: SYSTEMTIME); external KernelDLL name 'GetLocalTime';
+function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external KernelDLL name 'SetLocalTime';
+function CreateProcessW(lpApplicationName: LPWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR;
+  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external KernelDLL name 'CreateProcessW';
+function GetExitCodeProcess(hProcess: THandle; var lpExitCode: DWORD): BOOL; external KernelDLL name 'GetExitCodeProcess';
 //end common win32 & wince
 
 {$ifdef WINCE}
 //begin wince only
-
+function GetVersionEx(var lpVersionInformation: TOSVersionInfo): BOOL;external KernelDLL name 'GetVersionExW';
+function CreateProcess(lpApplicationName: LPTSTR; lpCommandLine: LPTSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPTSTR;
+  const lpStartupInfo: LPStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external KernelDLL name 'CreateProcessW';
+function FindFirstFile(lpFileName: LPTSTR; var lpFindFileData: TWIN32FindData): THandle; external KernelDLL name 'FindFirstFileW';
+function FindNextFile(hFindFile: THandle; var lpFindFileData: TWIN32FindData): BOOL; external KernelDLL name 'FindNextFileW';
 //end wince only
 {$endif WINCE}
+
+{$ifdef WIN32}
+//begin win32 only ie not exist in wince4.2 second release lib imported functions from dlls
+function GetVersionExA(var lpVersionInformation: TOSVersionInfo): BOOL; external 'kernel32' name 'GetVersionExA';
+function CreateProcessA(lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCSTR;
+  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessA';
+//end win32 only
+{$endif WIN32}
 
 {$ifdef WIN32}
 //begin win32 or wince not checked
@@ -320,18 +337,12 @@ function CreatePolyPolygonRgn(const pPtStructs; const pIntArray; p3, p4: Integer
 //  external 'advapi32' name 'CreatePrivateObjectSecurity';
 //function CreatePrivateObjectSecurityEx(ParentDescriptor, CreatorDescriptor: PSecurityDescriptor; var NewDescriptor: PSecurityDescriptor; ObjectType: PGUID; IsContainerObject: BOOL; AutoInheritFlags: ULONG; Token: THandle;
 //  const GenericMapping: TGenericMapping): BOOL;external 'advapi32' name 'CreatePrivateObjectSecurityEx';
-function CreateProcess(lpApplicationName: PChar; lpCommandLine: PChar; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: PChar;
-  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external 'kernel32' name 'CreateProcessA';
-function CreateProcessA(lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCSTR;
-  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessA';
 //function CreateProcessAsUser(hToken: THandle; lpApplicationName: PChar; lpCommandLine: PChar; lpProcessAttributes: PSecurityAttributes; lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD;
 // lpEnvironment: Pointer; lpCurrentDirectory: PChar; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external 'advapi32' name 'CreateProcessAsUserA';
 //function CreateProcessAsUserA(hToken: THandle; lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProcessAttributes: PSecurityAttributes; lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD;
 //  lpEnvironment: Pointer; lpCurrentDirectory: LPCSTR; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'advapi32' name 'CreateProcessAsUserA';
 //function CreateProcessAsUserW(hToken: THandle; lpApplicationName: LPWSTR; lpCommandLine: LPWSTR; lpProcessAttributes: PSecurityAttributes; lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD;
 //  lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'advapi32' name 'CreateProcessAsUserW';
-function CreateProcessW(lpApplicationName: LPWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR;
-  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessW';
 //function CreateRectRgnIndirect(const p1: TRect): HRGN; external 'gdi32' name 'CreateRectRgnIndirect';
 function CreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle;
   external 'kernel32' name 'CreateRemoteThread';
@@ -386,11 +397,9 @@ function FillConsoleOutputCharacter(hConsoleOutput: THandle; cCharacter: Char; n
 function FillConsoleOutputCharacterA(hConsoleOutput: THandle; cCharacter: AnsiChar; nLength: DWORD; dwWriteCoord: TCoord; var lpNumberOfCharsWritten: DWORD): BOOL; external 'kernel32' name 'FillConsoleOutputCharacterA';
 function FillConsoleOutputCharacterW(hConsoleOutput: THandle; cCharacter: WideChar; nLength: DWORD; dwWriteCoord: TCoord; var lpNumberOfCharsWritten: DWORD): BOOL; external 'kernel32' name 'FillConsoleOutputCharacterW';
 //function FillRect(hDC: HDC; const lprc: TRect; hbr: HBRUSH): Integer; external 'user32' name 'FillRect';
-function FindFirstFile(lpFileName: PChar; var lpFindFileData: TWIN32FindData): THandle;external 'kernel32' name 'FindFirstFileA';
 function FindFirstFileA(lpFileName: LPCSTR; var lpFindFileData: TWIN32FindDataA): THandle; external 'kernel32' name 'FindFirstFileA';
 //function FindFirstFileW(lpFileName: LPWSTR; var lpFindFileData: TWIN32FindDataW): THandle; external 'kernel32' name 'FindFirstFileW';
 //function FindFirstFreeAce(var pAcl: TACL; var pAce: Pointer): BOOL; external 'advapi32' name 'FindFirstFreeAce';
-function FindNextFile(hFindFile: THandle; var lpFindFileData: TWIN32FindData): BOOL;external 'kernel32' name 'FindNextFileA';
 function FindNextFileA(hFindFile: THandle; var lpFindFileData: TWIN32FindDataA): BOOL; external 'kernel32' name 'FindNextFileA';
 //function FindNextFileW(hFindFile: THandle; var lpFindFileData: TWIN32FindDataW): BOOL; external 'kernel32' name 'FindNextFileW';
 //function FlushInstructionCache(hProcess: THandle; const lpBaseAddress: Pointer; dwSize: DWORD): BOOL; external 'kernel32' name 'FlushInstructionCache';
@@ -476,7 +485,6 @@ function GetDiskFreeSpaceEx(lpDirectoryName: PChar;  lpFreeBytesAvailableToCalle
 function GetDiskFreeSpaceExA(lpDirectoryName: LPCSTR;  lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes: pLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExA';
 function GetDiskFreeSpaceExW(lpDirectoryName: LPWSTR;  lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes: pLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExW';
 //function GetEnhMetaFilePixelFormat(p1: HENHMETAFILE; p2: Cardinal; var p3: TPixelFormatDescriptor): UINT;external 'gdi32' name 'GetEnhMetaFilePixelFormat';
-function GetExitCodeProcess(hProcess: THandle; var lpExitCode: DWORD): BOOL; external 'kernel32' name 'GetExitCodeProcess';
 function GetExitCodeThread(hThread: THandle; var lpExitCode: DWORD): BOOL; external 'kernel32' name 'GetExitCodeThread';
 function GetFileInformationByHandle(hFile: THandle; var lpFileInformation: TByHandleFileInformation): BOOL; external 'kernel32' name 'GetFileInformationByHandle';
 //function GetFileSecurity(lpFileName: PChar; RequestedInformation: SECURITY_INFORMATION; pSecurityDescriptor: PSecurityDescriptor; nLength: DWORD; var lpnLengthNeeded: DWORD): BOOL;external 'advapi32' name 'GetFileSecurityA';
@@ -504,10 +512,8 @@ function GetKeyboardLayoutList(nBuff: Integer; var List): UINT; external 'user32
 //function GetKeyboardState(var KeyState: TKeyboardState): BOOL; external 'user32' name 'GetKeyboardState';
 //function GetLastInputInfo(var plii: TLastInputInfo): BOOL;external 'user32' name 'GetLastInputInfo';
 procedure GetSystemTime(var lpSystemTime:SYSTEMTIME); external 'kernel32' name 'GetSystemTime';
-procedure GetLocalTime(var SystemTime: SYSTEMTIME); external 'kernel32' name 'GetLocalTime';
 procedure GetSystemInfo(var SystemInfo:SYSTEM_INFO); external 'kernel32' name 'GetSystemInfo';
 function SetSystemTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external 'kernel32' name 'SetSystemTime';
-function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external 'kernel32' name 'SetLocalTime';
 function GetLogColorSpace(p1: HCOLORSPACE; var ColorSpace: TLogColorSpace; Size: DWORD): BOOL;external 'gdi32' name 'GetLogColorSpaceA';
 function GetLogColorSpaceA(p1: HCOLORSPACE; var ColorSpace: TLogColorSpaceA; Size: DWORD): BOOL; external 'gdi32' name 'GetLogColorSpaceA';
 //function GetLogColorSpaceW(p1: HCOLORSPACE; var ColorSpace: TLogColorSpaceW; Size: DWORD): BOOL; external 'gdi32' name 'GetLogColorSpaceW';
@@ -599,9 +605,6 @@ function GetUserObjectInformation(hObj: THandle; nIndex: Integer; pvInfo: Pointe
 function GetUserObjectInformationA(hObj: THandle; nIndex: Integer; pvInfo: Pointer; nLength: DWORD; var lpnLengthNeeded: DWORD): BOOL; external 'user32' name 'GetUserObjectInformationA';
 function GetUserObjectInformationW(hObj: THandle; nIndex: Integer; pvInfo: Pointer; nLength: DWORD; var lpnLengthNeeded: DWORD): BOOL; external 'user32' name 'GetUserObjectInformationW';
 function GetUserObjectSecurity(hObj: THandle; var pSIRequested: DWORD; pSID: PSecurityDescriptor; nLength: DWORD; var lpnLengthNeeded: DWORD): BOOL; external 'user32' name 'GetUserObjectSecurity';
-function GetVersionEx(var lpVersionInformation: TOSVersionInfo): BOOL;external 'kernel32' name 'GetVersionExA';
-function GetVersionExA(var lpVersionInformation: TOSVersionInfo): BOOL; external 'kernel32' name 'GetVersionExA';
-function GetVersionExW(var lpVersionInformation: TOSVersionInfoW): BOOL; external 'kernel32' name 'GetVersionExW';
 function GetViewportExtEx(DC: HDC; var Size: TSize): BOOL; external 'gdi32' name 'GetViewportExtEx';
 function GetViewportOrgEx(DC: HDC; var Point: TPoint): BOOL; external 'gdi32' name 'GetViewportOrgEx';
 function GetVolumeInformation(lpRootPathName: PChar; lpVolumeNameBuffer: PChar; nVolumeNameSize: DWORD; lpVolumeSerialNumber: PDWORD; var lpMaximumComponentLength, lpFileSystemFlags: DWORD;
