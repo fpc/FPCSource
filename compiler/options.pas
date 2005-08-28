@@ -2102,7 +2102,7 @@ begin
 
   { force fpu emulation on arm/wince }
   if target_info.system=system_arm_wince then
-    exclude(initmoduleswitches,cs_fp_emulation);
+    include(initmoduleswitches,cs_fp_emulation);
 
 {$ifdef x86_64}
   {$warning HACK: turn off smartlinking}

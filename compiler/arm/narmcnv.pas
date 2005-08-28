@@ -89,17 +89,17 @@ implementation
                     if is_currency(left.resulttype.def) then
                       left.resulttype := s64inttype;
                     if is_signed(left.resulttype.def) then
-                      fname:='i64tod'
+                      fname:='I64TOD'
                     else
-                      fname:='ui64tod';
+                      fname:='UI64TOD';
                   end
                 else
                   { other integers are supposed to be 32 bit }
                   begin
                     if is_signed(left.resulttype.def) then
-                      fname:='itod'
+                      fname:='ITOD'
                     else
-                      fname:='utod';
+                      fname:='UTOD';
                     firstpass(left);
                   end;
                 result:=ccallnode.createintern(fname,ccallparanode.create(

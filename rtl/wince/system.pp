@@ -99,6 +99,8 @@ function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
 function CreateDirectory(name : pointer;sec : pointer) : longbool; stdcall;
 function RemoveDirectory(name:pointer):longbool; stdcall;
 
+
+{ the external directive isn't really necessary here because it is overriden by external (FK) }
 function addd(d1,d2 : double) : double; compilerproc;
    cdecl;external 'coredll' name '__addd';
 
@@ -146,7 +148,6 @@ function utod(i : dword) : double; compilerproc;
 
 function itod(i : longint) : double; compilerproc;
    cdecl;external 'coredll' name '__itod';
-
 
 function ui64tod(i : qword) : double; compilerproc;
    cdecl;external 'coredll' name '__u64tod';

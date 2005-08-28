@@ -41,7 +41,7 @@ interface
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
           { All the following routines currently
-            call compilerproc's, unless they are
+            call compilerprocs, unless they are
             overriden in which case, the code
             generator handles them.
           }

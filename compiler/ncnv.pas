@@ -1865,14 +1865,14 @@ implementation
                   s32real:
                     case tfloatdef(resulttype.def).typ of
                       s64real:
-                        result:=ccallnode.createintern('stod',ccallparanode.create(left,nil));
+                        result:=ccallnode.createintern('STOD',ccallparanode.create(left,nil));
                       else
                         internalerror(2005082704);
                     end;
                   s64real:
                     case tfloatdef(resulttype.def).typ of
                       s32real:
-                        result:=ccallnode.createintern('dtos',ccallparanode.create(left,nil));
+                        result:=ccallnode.createintern('DTOS',ccallparanode.create(left,nil));
                       else
                         internalerror(2005082703);
                     end;

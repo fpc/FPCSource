@@ -411,7 +411,7 @@ const
   cg_e_localsize_too_big=06043;
   cg_e_break_not_allowed=06044;
   cg_e_continue_not_allowed=06045;
-  cg_f_unknown_compiler=06046;
+  cg_f_unknown_compilerproc=06046;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;

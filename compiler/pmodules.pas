@@ -271,13 +271,13 @@ implementation
 {$endif}
 
     Procedure InsertResourceInfo;
-    
+
     var
       hp           : tused_unit;
       found        : Boolean;
       I            : Integer;
       ResourceInfo : taasmoutput;
-      
+
     begin
       if target_res.id=res_elf then
         begin
@@ -299,7 +299,7 @@ implementation
 {$else EXTERNALRESPTRS}
           new_section(ResourceInfo,sec_fpc,'resptrs',4);
           ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESSYMBOL',AT_DATA,0));
-          For I:=1 to 32 do 
+          For I:=1 to 32 do
             ResourceInfo.Concat(Tai_const.Create_32bit(0));
 {$endif EXTERNALRESPTRS}
           end
@@ -502,7 +502,7 @@ implementation
              AddUnit('CMem');
 {$ifdef cpufpemu}
            { Floating point emulation unit? }
-           if (cs_fp_emulation in aktmoduleswitches) then
+           if (cs_fp_emulation in aktmoduleswitches) and not(target_info.system in system_wince) then
              AddUnit('SoftFpu');
 {$endif cpufpemu}
          end;
@@ -1638,7 +1638,7 @@ implementation
          insertinitfinaltable;
          insertmemorysizes;
          { Insert symbol to resource info }
-         
+
          InsertResourceInfo;
 
          { create dwarf debuginfo }

@@ -1856,33 +1856,33 @@ implementation
           begin
             case nodetype of
               addn:
-                procname:='add';
+                procname:='ADD';
               muln:
-                procname:='mul';
+                procname:='MUL';
               subn:
-                procname:='sub';
+                procname:='SUB';
               slashn:
-                procname:='div';
+                procname:='DIV';
               ltn:
-                procname:='lt';
+                procname:='LT';
               lten:
-                procname:='le';
+                procname:='LE';
               gtn:
-                procname:='gt';
+                procname:='GT';
               gten:
-                procname:='ge';
+                procname:='GE';
               equaln:
-                procname:='eq';
+                procname:='EQ';
               unequaln:
-                procname:='ne';
+                procname:='NE';
               else
                 CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resulttype.def.typename,right.resulttype.def.typename);
             end;
             case tfloatdef(resulttype.def).typ of
               s32real:
-                procname:=procname+'s';
+                procname:=procname+'S';
               s64real:
-                procname:=procname+'d';
+                procname:=procname+'D';
               {!!! not yet implemented
               s128real:
               }

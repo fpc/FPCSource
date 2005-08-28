@@ -795,8 +795,8 @@ type
                searchsym(upper(name),srsym,symowner);
            end;
          if not assigned(srsym) or
-            (srsym.typ <> procsym) then
-           Message1(cg_f_unknown_compiler,name);
+            (srsym.typ<>procsym) then
+           Message1(cg_f_unknown_compilerproc,name);
          self.create(params,tprocsym(srsym),symowner,nil,[]);
        end;
 

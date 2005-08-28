@@ -1505,7 +1505,7 @@ cg_e_break_not_allowed=06044_E_BREAK not allowed
 cg_e_continue_not_allowed=06045_E_CONTINUE not allowed
 % You're trying to use \var{continue} outside a loop construction.
 % \end{description}
-cg_f_unknown_compiler=06046_F_Unknown compilerproc "$1". Check if you use the correct run time library.
+cg_f_unknown_compilerproc=06046_F_Unknown compilerproc "$1". Check if you use the correct run time library.
 % The compiler expects that the runtime library contains some subrountines. If you see this error
 % and you didn't mess with the runtime library, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means

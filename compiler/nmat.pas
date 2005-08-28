@@ -678,9 +678,9 @@ implementation
               begin
                 case tfloatdef(resulttype.def).typ of
                   s32real:
-                    procname:='negs';
+                    procname:='NEGS';
                   s64real:
-                    procname:='negd';
+                    procname:='NEGD';
                   {!!! not yet implemented
                   s128real:
                   }
