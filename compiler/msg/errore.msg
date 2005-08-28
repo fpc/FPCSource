@@ -267,7 +267,7 @@ scan_e_illegal_asmmode_specifier=02050_E_Illegal assembler style specified "$1"
 % the compiler didn't recognize the mode you specified.
 scan_w_no_asm_reader_switch_inside_asm=02051_W_ASM reader switch is not possible inside asm statement, "$1" will be effective only for next
 % It is not possible to switch from one assembler reader to another
-% inside an assmebler block. The new reader will be used for next
+% inside an assembler block. The new reader will be used for next
 % assembler statements only.
 scan_e_wrong_switch_toggle=02052_E_Wrong switch toggle, use ON/OFF or +/-
 % You need to use ON or OFF or a + or - to toggle the switch
@@ -511,12 +511,12 @@ parser_e_nothing_to_be_overridden=03058_E_There is no method in an ancestor clas
 % not exist.
 parser_e_no_procedure_to_access_property=03059_E_No member is provided to access property
 % You specified no \var{read} directive for a property.
-parser_w_stored_not_implemented=03060_W_Stored prorperty directive is not yet implemented
+parser_w_stored_not_implemented=03060_W_Stored property directive is not yet implemented
 % The \var{stored} directive is not yet implemented
 parser_e_ill_property_access_sym=03061_E_Illegal symbol for property access
 % There is an error in the \var{read} or \var{write} directives for an array
 % property. When you declare an array property, you can only access it with
-% procedures and functions. The following code woud cause such an error.
+% procedures and functions. The following code would cause such an error.
 % \begin{verbatim}
 % tmyobject = class
 %   i : integer;
@@ -525,7 +525,7 @@ parser_e_ill_property_access_sym=03061_E_Illegal symbol for property access
 %
 parser_e_cant_access_protected_member=03062_E_Cannot access a protected field of an object here
 % Fields that are declared in a \var{protected} section of an object or class
-% declaration cannot be accessed outside the module wher the object is
+% declaration cannot be accessed outside the module where the object is
 % defined, or outside descendent object methods.
 parser_e_cant_access_private_member=03063_E_Cannot access a private field of an object here
 % Fields that are declared in a \var{private} section of an object or class
@@ -681,7 +681,7 @@ parser_d_compiling_second_time=03107_DL_Compiling $1 for the second time
 % When you request debug messages (\var{-vd}) the compiler tells you what
 % units it recompiles for the second time.
 parser_e_no_property_found_to_override=03109_E_No property found to override
-% You want to overrride a property of a parent class, when there is, in fact,
+% You want to override a property of a parent class, when there is, in fact,
 % no such property in the parent class.
 parser_e_only_one_default_property=03110_E_Only one default property is allowed
 % You specified a property as \var{Default}, but the class already has a
@@ -763,7 +763,7 @@ parser_e_cant_publish_that_property=03134_E_That kind of property can't be publi
 parser_e_empty_import_name=03136_E_An import name is required
 % Some targets need a name for the imported procedure or a \var{cdecl} specifier
 parser_e_division_by_zero=03138_E_Division by zero
-% There is a divsion by zero encounted
+% There is a division by zero encounted
 parser_e_invalid_float_operation=03139_E_Invalid floating point operation
 % An operation on two real type values produced an overflow or a division
 % by zero.
