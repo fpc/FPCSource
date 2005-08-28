@@ -6271,6 +6271,13 @@ utils/fpcm/fpcmpkg.pp svneol=native#text/plain
 utils/fpcm/fpcmwr.pp svneol=native#text/plain
 utils/fpcm/makefile.exm -text
 utils/fpcm/readme.txt svneol=native#text/plain
+utils/fpcres/Makefile svneol=native#text/plain
+utils/fpcres/Makefile.fpc svneol=native#text/plain
+utils/fpcres/elfbfd.pas svneol=native#text/plain
+utils/fpcres/elfres.pas svneol=native#text/plain
+utils/fpcres/elfresfix.pas svneol=native#text/plain
+utils/fpcres/fpcres.lpi svneol=native#text/plain
+utils/fpcres/fpcres.pas svneol=native#text/plain
 utils/fpdoc/COPYING -text
 utils/fpdoc/Makefile svneol=native#text/plain
 utils/fpdoc/Makefile.fpc svneol=native#text/plain
