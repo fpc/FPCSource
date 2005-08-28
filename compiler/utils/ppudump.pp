@@ -1413,7 +1413,7 @@ type
     u8bit,u16bit,u32bit,u64bit,
     s8bit,s16bit,s32bit,s64bit,
     bool8bit,bool16bit,bool32bit,
-    uchar,uwidechar
+    uchar,uwidechar,scurrency
   );
   tobjectdeftype = (odt_none,
     odt_class,
@@ -1484,6 +1484,7 @@ begin
                bool32bit : writeln('bool32bit');
                uchar     : writeln('uchar');
                uwidechar : writeln('uwidechar');
+               scurrency : writeln('ucurrency');
                else        writeln('!! Warning: Invalid base type ',b);
              end;
              writeln(space,'            Range : ',getint64,' to ',getint64);
