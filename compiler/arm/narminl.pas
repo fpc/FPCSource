@@ -85,10 +85,18 @@ implementation
 
     function tarminlinenode.first_abs_real : tnode;
       begin
-        expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
-        first_abs_real := nil;
+        if cs_fp_emulation in aktmoduleswitches then
+          begin
+//            if target_info.system in system_wince then
+            result:=inherited first_abs_real;
+          end
+        else
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            registersint:=left.registersint;
+            registersfpu:=max(left.registersfpu,1);
+            first_abs_real:=nil;
+          end;
       end;
 
 

@@ -27,7 +27,7 @@ unit cpupara;
   interface
 
     uses
-       globtype,
+       globtype,globals,
        aasmtai,
        cpuinfo,cpubase,cgbase,
        symconst,symbase,symtype,symdef,parabase,paramgr;
@@ -107,7 +107,7 @@ unit cpupara;
             orddef:
               getparaloc:=LOC_REGISTER;
             floatdef:
-              if calloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat] then
+              if (calloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat]) or (cs_fp_emulation in aktmoduleswitches) then
                 getparaloc:=LOC_REGISTER
               else
                 getparaloc:=LOC_FPUREGISTER;
@@ -403,8 +403,34 @@ unit cpupara;
         { Return in FPU register? }
         if p.rettype.def.deftype=floatdef then
           begin
-            p.funcretloc[side].loc:=LOC_FPUREGISTER;
-            p.funcretloc[side].register:=NR_FPU_RESULT_REG;
+            if (p.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat]) or (cs_fp_emulation in aktmoduleswitches) then
+              begin
+                case retcgsize of
+                  OS_64,
+                  OS_F64:
+                    begin
+                      { low }
+                      p.funcretloc[side].loc:=LOC_REGISTER;
+                      p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG;
+                      p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG;
+                      p.funcretloc[side].size:=OS_64;
+                    end;
+                  OS_32,
+                  OS_F32:
+                    begin
+                      p.funcretloc[side].loc:=LOC_REGISTER;
+                      p.funcretloc[side].register:=NR_FUNCTION_RETURN_REG;
+                      p.funcretloc[side].size:=OS_32;
+                    end;
+                  else
+                    internalerror(2005082603);
+                end;
+              end
+            else
+              begin
+                p.funcretloc[side].loc:=LOC_FPUREGISTER;
+                p.funcretloc[side].register:=NR_FPU_RESULT_REG;
+              end;
           end
           { Return in register? }
         else if not ret_in_param(p.rettype.def,p.proccalloption) then

@@ -1856,11 +1856,48 @@ implementation
 
     function ttypeconvnode.first_real_to_real : tnode;
       begin
-         first_real_to_real:=nil;
-        { comp isn't a floating type }
-         if registersfpu<1 then
-           registersfpu:=1;
-         expectloc:=LOC_FPUREGISTER;
+{$ifdef cpufpemu}
+        if cs_fp_emulation in aktmoduleswitches then
+          begin
+            if target_info.system in system_wince then
+              begin
+                case tfloatdef(left.resulttype.def).typ of
+                  s32real:
+                    case tfloatdef(resulttype.def).typ of
+                      s64real:
+                        result:=ccallnode.createintern('stod',ccallparanode.create(left,nil));
+                      else
+                        internalerror(2005082704);
+                    end;
+                  s64real:
+                    case tfloatdef(resulttype.def).typ of
+                      s32real:
+                        result:=ccallnode.createintern('dtos',ccallparanode.create(left,nil));
+                      else
+                        internalerror(2005082703);
+                    end;
+                  else
+                    internalerror(2005082702);
+                end;
+                left:=nil;
+                firstpass(result);
+                exit;
+              end
+            else
+              begin
+                {!! FIXME }
+                internalerror(2005082701);
+              end;
+          end
+        else
+{$endif cpufpemu}
+          begin
+            first_real_to_real:=nil;
+            { comp isn't a floating type }
+            if registersfpu<1 then
+              registersfpu:=1;
+            expectloc:=LOC_FPUREGISTER;
+          end;
       end;
 
 

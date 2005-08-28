@@ -202,6 +202,7 @@ uses
          end;
 {$ifdef cpufpemu}
        { check if floating point emulation is on?}
+       { fpu emulation isn't unit levelwise
         if ((ppufile.header.flags and uf_fpu_emulation)<>0) and
             (cs_fp_emulation in aktmoduleswitches) then
          begin
@@ -210,6 +211,7 @@ uses
            Message(unit_u_ppu_invalid_fpumode);
            exit;
          end;
+       }
 {$endif cpufpemu}
 
       { Load values to be access easier }

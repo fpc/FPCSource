@@ -48,7 +48,7 @@ interface
           { only implements "muln" nodes, the rest always has to be done in }
           { the code generator for performance reasons (JM)                 }
           function first_add64bitint: tnode; virtual;
-{$ifdef cpufpemu}
+
           { This routine calls internal runtime library helpers
             for all floating point arithmetic in the case
             where the emulation switches is on. Otherwise
@@ -56,7 +56,6 @@ interface
             the code generation phase.
           }
           function first_addfloat : tnode; virtual;
-{$endif cpufpemu}
        end;
        taddnodeclass = class of taddnode;
 
@@ -1789,8 +1788,7 @@ implementation
       end;
 
 
-{$ifdef cpufpemu}
-    function taddnode.first_addfloat: tnode;
+    function taddnode.first_addfloat : tnode;
       var
         procname: string[31];
         temp: tnode;
@@ -1806,43 +1804,103 @@ implementation
         if not (cs_fp_emulation in aktmoduleswitches) then
           exit;
 
-        case nodetype of
-          addn : procname := 'fpc_single_add';
-          muln : procname := 'fpc_single_mul';
-          subn : procname := 'fpc_single_sub';
-          slashn : procname := 'fpc_single_div';
-          ltn : procname := 'fpc_single_lt';
-          lten: procname := 'fpc_single_le';
-          gtn:
-            begin
-             procname := 'fpc_single_le';
-             notnode := true;
+        if not(target_info.system in system_wince) then
+          begin
+            case tfloatdef(resulttype.def).typ of
+              s32real:
+                procname:='float32';
+              s64real:
+                procname:='float64';
+              {!!! not yet implemented
+              s128real:
+              }
+              else
+                internalerror(2005082601);
             end;
-          gten:
-            begin
-              procname := 'fpc_single_lt';
-              notnode := true;
+
+            case nodetype of
+              addn:
+                procname:=procname+'_add';
+              muln:
+                procname:=procname+'_mul';
+              subn:
+                procname:=procname+'_sub';
+              slashn:
+                procname:=procname+'_div';
+              ltn:
+                procname:=procname+'_lt';
+              lten:
+                procname:=procname+'_le';
+              gtn:
+                begin
+                  procname:=procname+'_le';
+                  notnode:=true;
+                end;
+              gten:
+                begin
+                  procname:=procname+'_lt';
+                  notnode:=true;
+                end;
+              equaln:
+                procname:=procname+'_eq';
+              unequaln:
+                begin
+                  procname:=procname+'_eq';
+                  notnode:=true;
+                end;
+              else
+                CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resulttype.def.typename,right.resulttype.def.typename);
             end;
-          equaln: procname := 'fpc_single_eq';
-          unequaln :
-            begin
-              procname := 'fpc_single_eq';
-              notnode := true;
+          end
+        else
+          begin
+            case nodetype of
+              addn:
+                procname:='add';
+              muln:
+                procname:='mul';
+              subn:
+                procname:='sub';
+              slashn:
+                procname:='div';
+              ltn:
+                procname:='lt';
+              lten:
+                procname:='le';
+              gtn:
+                procname:='gt';
+              gten:
+                procname:='ge';
+              equaln:
+                procname:='eq';
+              unequaln:
+                procname:='ne';
+              else
+                CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resulttype.def.typename,right.resulttype.def.typename);
             end;
-          else
-            CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resulttype.def.typename,right.resulttype.def.typename);
-        end;
-        { convert the arguments (explicitely) to fpc_normal_set's }
-        result := ccallnode.createintern(procname,ccallparanode.create(right,
+            case tfloatdef(resulttype.def).typ of
+              s32real:
+                procname:=procname+'s';
+              s64real:
+                procname:=procname+'d';
+              {!!! not yet implemented
+              s128real:
+              }
+              else
+                internalerror(2005082602);
+            end;
+
+          end;
+
+        result:=ccallnode.createintern(procname,ccallparanode.create(right,
            ccallparanode.create(left,nil)));
         left:=nil;
         right:=nil;
 
         { do we need to reverse the result }
         if notnode then
-           result := cnotnode.create(result);
+          result:=cnotnode.create(result);
       end;
-{$endif cpufpemu}
 
 
     function taddnode.pass_1 : tnode;
@@ -1871,9 +1929,12 @@ implementation
          if nodetype=slashn then
            begin
 {$ifdef cpufpemu}
-             result := first_addfloat;
-             if assigned(result) then
-               exit;
+             if (aktfputype=fpu_soft) or (cs_fp_emulation in aktmoduleswitches) then
+               begin
+                 result:=first_addfloat;
+                 if assigned(result) then
+                   exit;
+               end;
 {$endif cpufpemu}
              expectloc:=LOC_FPUREGISTER;
              { maybe we need an integer register to save }
@@ -2076,9 +2137,12 @@ implementation
          else if (rd.deftype=floatdef) or (ld.deftype=floatdef) then
             begin
 {$ifdef cpufpemu}
-              result := first_addfloat;
-              if assigned(result) then
-                exit;
+             if (aktfputype=fpu_soft) or (cs_fp_emulation in aktmoduleswitches) then
+               begin
+                 result:=first_addfloat;
+                 if assigned(result) then
+                   exit;
+               end;
 {$endif cpufpemu}
               if nodetype in [addn,subn,muln,andn,orn,xorn] then
                 expectloc:=LOC_FPUREGISTER

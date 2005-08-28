@@ -606,7 +606,7 @@ begin
                begin
                  l:=Pos(':=',more);
                  if l>0 then
-                   set_system_compvar(Copy(more,1,l-1),Copy(more,l+2,255))                  
+                   set_system_compvar(Copy(more,1,l-1),Copy(more,l+2,255))
                  else
                    def_system_macro(more);
                end;
@@ -2099,6 +2099,10 @@ begin
   if (cs_debuginfo in initmoduleswitches) or
      (cs_profile in initmoduleswitches) then
     exclude(initglobalswitches,cs_link_strip);
+
+  { force fpu emulation on arm/wince }
+  if target_info.system=system_arm_wince then
+    exclude(initmoduleswitches,cs_fp_emulation);
 
 {$ifdef x86_64}
   {$warning HACK: turn off smartlinking}

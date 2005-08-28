@@ -1338,7 +1338,7 @@ implementation
 {$ifdef x86}
        result:=use_sse(self);
 {$else x86}
-       result:=(deftype=floatdef);
+       result:=(deftype=floatdef) and not(cs_fp_emulation in aktmoduleswitches);
 {$endif x86}
      end;
 

@@ -95,20 +95,62 @@ function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
 function CreateDirectory(name : pointer;sec : pointer) : longbool; stdcall;
 function RemoveDirectory(name:pointer):longbool; stdcall;
 
+function addd(d1,d2 : double) : double; compilerproc;
+   stdcall;external 'coredll' name '_addd';
+
+function muld(d1,d2 : double) : double; compilerproc;
+   stdcall;external 'coredll' name '_muld';
+
+function divd(d1,d2 : double) : double; compilerproc;
+   stdcall;external 'coredll' name '_divd';
+
+function subd(d1,d2 : double) : double; compilerproc;
+   stdcall;external 'coredll' name '_subd';
+
+function eqs(d1,d2 : single) : boolean; compilerproc;
+   stdcall;external 'coredll' name '_eqs';
+
+function nes(d1,d2 : single) : boolean; compilerproc;
+   stdcall;external 'coredll' name '_nes';
+
+function lts(d1,d2 : single) : boolean; compilerproc;
+   stdcall;external 'coredll' name '_lts';
+
+function gts(d1,d2 : single) : boolean; compilerproc;
+   stdcall;external 'coredll' name '_gts';
+
+function ges(d1,d2 : single) : boolean; compilerproc;
+   stdcall;external 'coredll' name '_ges';
+
+function les(d1,d2 : single) : boolean; compilerproc;
+   stdcall;external 'coredll' name '_les';
+
+function dtos(d : double) : single; compilerproc;
+   stdcall;external 'coredll' name '_dtos';
+
+function stod(d : single) : double; compilerproc;
+   stdcall;external 'coredll' name '_stod';
+
+function negs(d : single) : single; compilerproc;
+   stdcall;external 'coredll' name '_negs';
+
+function negd(d : double) : double; compilerproc;
+   stdcall;external 'coredll' name '_negd';
+
+function utod(i : dword) : double; compilerproc;
+   stdcall;external 'coredll' name '_utod';
+
+function itod(i : longint) : double; compilerproc;
+   stdcall;external 'coredll' name '_itod';
+
+
+function ui64tod(i : qword) : double; compilerproc;
+   stdcall;external 'coredll' name '_ui64tod';
+
+function i64tod(i : int64) : double; compilerproc;
+   stdcall;external 'coredll' name '_i64tod';
+
 implementation
-
-{ used by wstrings.inc because wstrings.inc is included before sysos.inc
-  this is put here (FK) }
-(*
-function SysAllocStringLen(psz:pointer;len:dword):pointer;stdcall;
- external 'oleaut32.dll' name 'SysAllocStringLen';
-
-procedure SysFreeString(bstr:pointer);stdcall;
- external 'oleaut32.dll' name 'SysFreeString';
-
-function SysReAllocStringLen(var bstr:pointer;psz: pointer;
-  len:dword): Integer; stdcall;external 'oleaut32.dll' name 'SysReAllocStringLen';
-*)
 
 function MessageBox(w1:longint;l1,l2:PWideChar;w2:longint):longint;
    stdcall;external 'coredll' name 'MessageBoxW';
@@ -721,7 +763,7 @@ const
   CONTEXT_EXTENDED_REGISTERS      = CONTEXT_ARM or $00000020;
 
   CONTEXT_FULL                    = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS;
-  
+
   EXCEPTION_MAXIMUM_PARAMETERS    = 15;
 
   NUM_VFP_REGS = 32;
@@ -769,10 +811,10 @@ const
   CONTEXT_FLOATING_POINT          = CONTEXT_X86 or $00000008;
   CONTEXT_DEBUG_REGISTERS         = CONTEXT_X86 or $00000010;
   CONTEXT_EXTENDED_REGISTERS      = CONTEXT_X86 or $00000020;
-  
+
   MAXIMUM_SUPPORTED_EXTENSION     = 512;
   EXCEPTION_MAXIMUM_PARAMETERS    = 15;
-  
+
 type
   PFloatingSaveArea = ^TFloatingSaveArea;
   TFloatingSaveArea = packed record
@@ -786,7 +828,7 @@ type
     RegisterArea : array[0..79] of Byte;
     Cr0NpxState : Cardinal;
   end;
-  
+
   PContext = ^TContext;
   TContext = packed record
       //
@@ -868,7 +910,7 @@ end;
 
 function ReadProcessMemory(process : dword;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
  stdcall;external 'coredll' name 'ReadProcessMemory';
- 
+
 function is_prefetch(p : pointer) : boolean;
 var
   a : array[0..15] of byte;
@@ -1046,7 +1088,7 @@ begin
             res := 255;
         end;
     end;
-    
+
     if (res >= 200) and (exceptLevel < MaxExceptionLevel) then begin
       exceptEip[exceptLevel] := ContextRecord^.Eip;
       exceptError[exceptLevel] := res;

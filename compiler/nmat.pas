@@ -647,50 +647,92 @@ implementation
     { overridden by:   }
     {   i386           }
     function tunaryminusnode.pass_1 : tnode;
+      var
+        procname: string[31];
+        temp: tnode;
       begin
-         result:=nil;
-         firstpass(left);
-         if codegenerror then
-           exit;
+        result:=nil;
+        firstpass(left);
+        if codegenerror then
+          exit;
 
-         registersint:=left.registersint;
-         registersfpu:=left.registersfpu;
+        if (cs_fp_emulation in aktmoduleswitches) and (left.resulttype.def.deftype=floatdef) then
+          begin
+            if not(target_info.system in system_wince) then
+              begin
+                case tfloatdef(resulttype.def).typ of
+                  s32real:
+                    procname:='float32_sub';
+                  s64real:
+                    procname:='float64_sub';
+                  {!!! not yet implemented
+                  s128real:
+                  }
+                  else
+                    internalerror(2005082801);
+                end;
+                result:=ccallnode.createintern(procname,ccallparanode.create(crealconstnode.create(0,resulttype),
+                  ccallparanode.create(left,nil)));
+              end
+            else
+              begin
+                case tfloatdef(resulttype.def).typ of
+                  s32real:
+                    procname:='negs';
+                  s64real:
+                    procname:='negd';
+                  {!!! not yet implemented
+                  s128real:
+                  }
+                  else
+                    internalerror(2005082802);
+                end;
+                result:=ccallnode.createintern(procname,ccallparanode.create(left,nil));
+              end;
+
+            left:=nil;
+          end
+        else
+          begin
+            registersint:=left.registersint;
+            registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
+            registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
 
-         if (left.resulttype.def.deftype=floatdef) then
-           begin
-              if (left.expectloc<>LOC_REGISTER) and
-                 (registersfpu<1) then
-                registersfpu:=1;
-              expectloc:=LOC_FPUREGISTER;
-           end
+            if (left.resulttype.def.deftype=floatdef) then
+              begin
+                if (left.expectloc<>LOC_REGISTER) and
+                  (registersfpu<1) then
+                  registersfpu:=1;
+                expectloc:=LOC_FPUREGISTER;
+              end
 {$ifdef SUPPORT_MMX}
-         else if (cs_mmx in aktlocalswitches) and
-           is_mmx_able_array(left.resulttype.def) then
-             begin
-               if (left.expectloc<>LOC_MMXREGISTER) and
-                  (registersmmx<1) then
-                 registersmmx:=1;
-             end
+             else if (cs_mmx in aktlocalswitches) and
+               is_mmx_able_array(left.resulttype.def) then
+                 begin
+                   if (left.expectloc<>LOC_MMXREGISTER) and
+                      (registersmmx<1) then
+                     registersmmx:=1;
+                 end
 {$endif SUPPORT_MMX}
 {$ifndef cpu64bit}
-         else if is_64bit(left.resulttype.def) then
-           begin
-              if (left.expectloc<>LOC_REGISTER) and
-                 (registersint<2) then
-                registersint:=2;
-              expectloc:=LOC_REGISTER;
-           end
+             else if is_64bit(left.resulttype.def) then
+               begin
+                  if (left.expectloc<>LOC_REGISTER) and
+                     (registersint<2) then
+                    registersint:=2;
+                  expectloc:=LOC_REGISTER;
+               end
 {$endif cpu64bit}
-         else if (left.resulttype.def.deftype=orddef) then
-           begin
-              if (left.expectloc<>LOC_REGISTER) and
-                 (registersint<1) then
-                registersint:=1;
-              expectloc:=LOC_REGISTER;
-           end;
+             else if (left.resulttype.def.deftype=orddef) then
+               begin
+                  if (left.expectloc<>LOC_REGISTER) and
+                     (registersint<1) then
+                    registersint:=1;
+                  expectloc:=LOC_REGISTER;
+               end;
+          end;
       end;
 
 

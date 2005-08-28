@@ -126,6 +126,8 @@ implementation
 
 {$ifdef cpufpemu}
         { Normal types }
+        { we use the same types as without emulator, the only
+          difference is that direct calls to the emulator are generated
         if (cs_fp_emulation in aktmoduleswitches) then
           begin
             addtype('Single',s32floattype);
@@ -136,6 +138,7 @@ implementation
             addtype('Extended',pbestrealtype^);
           end
         else
+        }
 {$endif cpufpemu}
           begin
             addtype('Single',s32floattype);

@@ -69,6 +69,7 @@
 
 {$ifdef arm}
   {$define cpuflags}
+  {$define cpufpemu}
   {$define cpuneedsdiv32helper}
   {$define cputargethasfixedstack}
   {$define cpurequiresproperalignment}

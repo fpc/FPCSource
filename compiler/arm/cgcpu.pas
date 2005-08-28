@@ -200,32 +200,43 @@ unit cgcpu;
 
     procedure tcgarm.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const paraloc : TCGPara);
       var
-        ref: treference;
-        tmpreg: tregister;
+        tmpref, ref: treference;
+        location: pcgparalocation;
+        sizeleft: aint;
       begin
-        paraloc.check_simple_location;
-        case paraloc.location^.loc of
-          LOC_REGISTER,LOC_CREGISTER:
-            a_load_ref_reg(list,size,size,r,paraloc.location^.register);
-          LOC_REFERENCE:
-            begin
-               reference_reset(ref);
-               ref.base:=paraloc.location^.reference.index;
-               ref.offset:=paraloc.location^.reference.offset;
-               tmpreg := getintregister(list,size);
-               a_load_ref_reg(list,size,size,r,tmpreg);
-               a_load_reg_ref(list,size,size,tmpreg,ref);
+        location := paraloc.location;
+        tmpref := r;
+        sizeleft := paraloc.intsize;
+        while assigned(location) do
+          begin
+            case location^.loc of
+              LOC_REGISTER,LOC_CREGISTER:
+                a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
+              LOC_REFERENCE:
+                begin
+                   reference_reset_base(ref,location^.reference.index,location^.reference.offset);
+                   g_concatcopy(list,tmpref,ref,sizeleft);
+                   if assigned(location^.next) then
+                     internalerror(2005010710);
+                end;
+              LOC_FPUREGISTER,LOC_CFPUREGISTER:
+                case location^.size of
+                   OS_F32, OS_F64:
+                     a_loadfpu_ref_reg(list,location^.size,tmpref,location^.register);
+                   else
+                     internalerror(2002072801);
+                end;
+              LOC_VOID:
+                begin
+                  // nothing to do
+                end;
+              else
+                internalerror(2002081103);
             end;
-          LOC_FPUREGISTER,LOC_CFPUREGISTER:
-            case size of
-               OS_F32, OS_F64:
-                 a_loadfpu_ref_reg(list,size,r,paraloc.location^.register);
-               else
-                 internalerror(2002072801);
-            end;
-          else
-            internalerror(2002081103);
-        end;
+            inc(tmpref.offset,tcgsize2size[location^.size]);
+            dec(sizeleft,tcgsize2size[location^.size]);
+            location := location^.next;
+          end;
       end;
 
 
@@ -235,21 +246,21 @@ unit cgcpu;
         tmpreg: tregister;
       begin
         paraloc.check_simple_location;
-         case paraloc.location^.loc of
-            LOC_REGISTER,LOC_CREGISTER:
-              a_loadaddr_ref_reg(list,r,paraloc.location^.register);
-            LOC_REFERENCE:
-              begin
-                reference_reset(ref);
-                ref.base := paraloc.location^.reference.index;
-                ref.offset := paraloc.location^.reference.offset;
-                tmpreg := getintregister(list,OS_ADDR);
-                a_loadaddr_ref_reg(list,r,tmpreg);
-                a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-              end;
-            else
-              internalerror(2002080701);
-         end;
+        case paraloc.location^.loc of
+          LOC_REGISTER,LOC_CREGISTER:
+            a_loadaddr_ref_reg(list,r,paraloc.location^.register);
+          LOC_REFERENCE:
+            begin
+              reference_reset(ref);
+              ref.base := paraloc.location^.reference.index;
+              ref.offset := paraloc.location^.reference.offset;
+              tmpreg := getintregister(list,OS_ADDR);
+              a_loadaddr_ref_reg(list,r,tmpreg);
+              a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
+            end;
+          else
+            internalerror(2002080701);
+        end;
       end;
 
 
@@ -904,7 +915,7 @@ unit cgcpu;
            OS_F80:
              oppostfix:=PF_E;
            else
-             InternalError(200309021);
+             InternalError(200309022);
          end;
          handle_load_store(list,A_STF,oppostfix,reg,ref);
        end;

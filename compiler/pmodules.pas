@@ -487,11 +487,6 @@ implementation
           prevent crashes when accessing .owner }
         generrorsym.owner:=systemunit;
         generrortype.def.owner:=systemunit;
-{$ifdef cpufpemu}
-        { Floating point emulation unit? }
-        if (cs_fp_emulation in aktmoduleswitches) then
-          AddUnit('SoftFpu');
-{$endif cpufpemu}
         { Units only required for main module }
         { load heaptrace before any other units especially objpas }
         if not(current_module.is_unit) then
@@ -505,6 +500,11 @@ implementation
            { Lineinfo unit }
            if (cs_gdb_valgrind in aktglobalswitches) then
              AddUnit('CMem');
+{$ifdef cpufpemu}
+           { Floating point emulation unit? }
+           if (cs_fp_emulation in aktmoduleswitches) then
+             AddUnit('SoftFpu');
+{$endif cpufpemu}
          end;
         { Objpas unit? }
         if m_objpas in aktmodeswitches then

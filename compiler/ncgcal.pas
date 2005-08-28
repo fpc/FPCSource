@@ -138,7 +138,7 @@ implementation
           location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
 
         { Handle Floating point types differently }
-        if left.resulttype.def.deftype=floatdef then
+        if (left.resulttype.def.deftype=floatdef) and not(cs_fp_emulation in aktmoduleswitches) then
          begin
 {$ifdef i386}
            if tempcgpara.location^.loc<>LOC_REFERENCE then
