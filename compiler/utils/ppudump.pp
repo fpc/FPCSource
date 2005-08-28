@@ -27,7 +27,7 @@ uses
   ppu;
 
 const
-  Version   = 'Version 1.9.8';
+  Version   = 'Version 2.0.0';
   Title     = 'PPU-Analyser';
   Copyright = 'Copyright (c) 1998-2005 by the Free Pascal Development Team';
 
@@ -137,7 +137,14 @@ type
              target_i386_watcom,        { 32 }
              target_powerpc_MorphOS,    { 33 }
              target_x86_64_freebsd,     { 34 }
-             target_i386_netwlibc       { 35 }
+             target_i386_netwlibc,      { 35 }
+             system_powerpc_Amiga,      { 36 }
+             system_x86_64_win64,       { 37 }
+             system_arm_wince,          { 38 }
+             system_ia64_win64,         { 39 }
+             system_i386_wince,         { 40 }
+             system_x86_6432_linux,     { 41 }
+             system_arm_gba             { 42 }
        );
 const
   Targets : array[ttarget] of string[17]=(
@@ -176,7 +183,14 @@ const
   { 32 }  'Watcom-i386',
   { 33 }  'MorphOS-powerpc',
   { 34 }  'FreeBSD-x86-64',
-  { 35 }  'Netware-i386-libc'
+  { 35 }  'Netware-i386-libc',
+  { 36 }  'Amiga-PowerPC',
+  { 37 }  'Win64-x64',
+  { 38 }  'WinCE-ARM',
+  { 39 }  'Win64-iA64',
+  { 40 }  'WinCE-i386',
+  { 41 }  'Linux-x64',
+  { 42 }  'GBA-ARM'
   );
 begin
   if w<=ord(high(ttarget)) then
