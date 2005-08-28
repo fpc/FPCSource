@@ -1546,12 +1546,13 @@ begin
              readdefinitions('parast',false);
              readsymbols('parast');
              { localst }
-             if (po_inline in procoptions) then
+             if (po_has_inlininginfo in procoptions) or
+               ((ppufile.header.flags and uf_local_browser)<>0) then
               begin
                 readdefinitions('localst',false);
                 readsymbols('localst');
               end;
-             if (po_inline in procoptions) then
+             if (po_has_inlininginfo in procoptions) then
                readnodetree;
              delete(space,1,4);
            end;
