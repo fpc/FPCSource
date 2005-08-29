@@ -3344,6 +3344,7 @@ rtl/emx/sysosh.inc svneol=native#text/plain
 rtl/emx/system.pas svneol=native#text/plain
 rtl/emx/systhrd.inc svneol=native#text/plain
 rtl/emx/sysutils.pp svneol=native#text/plain
+rtl/fpmake.inc svneol=native#text/plain
 rtl/fpmake.pp svneol=native#text/plain
 rtl/freebsd/Makefile svneol=native#text/plain
 rtl/freebsd/Makefile.fpc svneol=native#text/plain
