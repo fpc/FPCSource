@@ -289,7 +289,14 @@ unit cpupara;
                  else if paracgsize in [OS_64,OS_S64] then
                    paraloc^.size:=OS_32
                  else if (loc=LOC_REGISTER) and (paracgsize in [OS_F32,OS_F64,OS_F80]) then
-                   paraloc^.size:=OS_32
+                   case paracgsize of
+                     OS_F32:
+                       paraloc^.size:=OS_32;
+                     OS_F64:
+                       paraloc^.size:=OS_64;
+                     else
+                       internalerror(2005082901);
+                   end
                  else
                    paraloc^.size:=paracgsize;
                  case loc of
@@ -304,10 +311,13 @@ unit cpupara;
                           end
                         else
                           begin
+                            { LOC_REFERENCE covers always the overleft }
                             paraloc^.loc:=LOC_REFERENCE;
-                            paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                            paraloc^.reference.offset:=stack_offset;
-                            inc(stack_offset,4);
+                            paraloc^.size:=int_cgsize(paralen);
+                            if (side=callerside) then
+                              paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                            inc(stack_offset,align(paralen,4));
+                            paralen:=0;
                          end;
                       end;
                     LOC_FPUREGISTER:
