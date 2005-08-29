@@ -1101,6 +1101,13 @@ begin
                while j<=length(More) do
                 begin
                   case More[j] of
+                    'A':
+                      begin
+                        if UnsetBool(More, j) then
+                          apptype:=app_native
+                        else
+                          apptype:=app_cui;
+                      end;
                     'B':
                       begin
                         {  -WB200000 means set trefered base address

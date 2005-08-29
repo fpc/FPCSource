@@ -1037,7 +1037,7 @@ begin
   AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
    RelocStr:='--base-file base.$$$';
-  if target_info.system in [system_arm_wince,system_i386_wince] then 
+  if target_info.system in [system_arm_wince,system_i386_wince] then
     begin
       AppTypeStr:='--subsystem wince';
       if apptype <> app_gui then
@@ -1285,6 +1285,8 @@ begin
   if (cs_link_extern in aktglobalswitches) then
    begin
      case apptype of
+       app_native :
+         cmdstr:='--subsystem native';
        app_gui :
          cmdstr:='--subsystem gui';
        app_cui :
@@ -1325,6 +1327,8 @@ begin
     peheader.Subsystem:=9
   else
     case apptype of
+      app_native :
+        peheader.Subsystem:=1;
       app_gui :
         peheader.Subsystem:=2;
       app_cui :
@@ -1662,7 +1666,7 @@ initialization
   RegisterDLLScanner(system_i386_win32,TDLLScannerWin32);
   RegisterRes(res_gnu_windres_info);
   RegisterTarget(system_i386_win32_info);
-  
+
   RegisterExternalLinker(system_i386_wince_info,TLinkerWin32);
   RegisterImport(system_i386_wince,TImportLibWin32);
   RegisterExport(system_i386_wince,TExportLibWin32);

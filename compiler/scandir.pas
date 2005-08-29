@@ -236,6 +236,8 @@ implementation
                apptype:=app_gui
              else if hs='CONSOLE' then
                apptype:=app_cui
+             else if (hs='NATIVE') and (target_info.system in system_windows) then
+               apptype:=app_native
              else if (hs='FS') and (target_info.system in [system_i386_os2,
                                                          system_i386_emx]) then
                apptype:=app_fs
@@ -853,7 +855,7 @@ implementation
             Message(scan_w_only_one_resourcefile_supported)
           else
             current_module.resourcefiles.insert(FixFileName(s));
-          end 
+          end
         else
           Message(scan_e_resourcefiles_not_supported);
       end;

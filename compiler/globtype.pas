@@ -160,6 +160,7 @@ than 255 characters. That's why using Ansi Strings}
        { Win32, OS/2 & MacOS application types }
        tapptype = (
          app_none,
+         app_native,
          app_gui,               { graphic user-interface application}
          app_cui,       { console application}
          app_fs,        { full-screen type application (OS/2 and EMX only) }
