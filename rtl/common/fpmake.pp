@@ -3,7 +3,7 @@ program fpmake;
 {$mode objfpc}{$H+}
 
 uses
-  fpmakeunit
+  fpmkunit
   { add your units here };
 
 begin
