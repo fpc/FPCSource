@@ -304,23 +304,35 @@ implementation
                      else
                        begin
                          doconv:=tc_string_2_string;
-                         if tstringdef(def_from).string_typ=st_widestring then
-                           begin
-                             { Prefer conversions to shortstring over other
-                               conversions. This is compatible with Delphi (PFV) }
-                             if tstringdef(def_to).string_typ=st_shortstring then
-                               eq:=te_convert_l3
-                             else
-                               eq:=te_convert_l2;
-                           end
-                         else
-                           { Prefer shortstrings of different length or conversions
-                             from shortstring to ansistring }
-                           if (tstringdef(def_from).string_typ=st_shortstring) and
-                              (tstringdef(def_to).string_typ in [st_shortstring,st_ansistring]) then
-                           eq:=te_convert_l1
-                         else
-                           eq:=te_convert_l2;
+                         case tstringdef(def_from).string_typ of
+                           st_widestring :
+                             begin
+                               { Prefer conversions to ansistring }
+                               if tstringdef(def_to).string_typ=st_ansistring then
+                                 eq:=te_convert_l2
+                               else
+                                 eq:=te_convert_l3;
+                             end;
+                           st_shortstring :
+                             begin
+                               { Prefer shortstrings of different length or conversions
+                                 from shortstring to ansistring }
+                               if (tstringdef(def_to).string_typ=st_shortstring) then
+                                 eq:=te_convert_l1
+                               else if tstringdef(def_to).string_typ=st_ansistring then
+                                 eq:=te_convert_l2
+                               else
+                                 eq:=te_convert_l3;
+                             end;
+                           st_ansistring :
+                             begin
+                               { Prefer conversion to widestrings }
+                               if (tstringdef(def_to).string_typ=st_widestring) then
+                                 eq:=te_convert_l2
+                               else
+                                 eq:=te_convert_l3;
+                             end;
+                         end;
                        end;
                    end;
                  orddef :
