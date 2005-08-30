@@ -316,6 +316,7 @@ unit cpupara;
                             paraloc^.size:=int_cgsize(paralen);
                             if (side=callerside) then
                               paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                            paraloc^.reference.offset:=stack_offset;
                             inc(stack_offset,align(paralen,4));
                             paralen:=0;
                          end;
