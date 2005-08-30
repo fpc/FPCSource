@@ -148,3 +148,94 @@ procedure TFPPalette.Clear;
 begin
   SetCount (0);
 end;
+
+
+{ Functions to create standard palettes, by Giulio Bernardi 2005 }
+
+{ A simple 1 bit black and white palette }
+function CreateBlackAndWhitePalette : TFPPalette;
+var fppal : TFPPalette;
+    Col : TFPColor;
+begin
+  fppal:=TFPPalette.Create(2);
+  Col.Alpha:=AlphaOpaque;
+  Col.Red:=$FFFF; Col.Green:=$FFFF; Col.Blue:=$FFFF;
+  fppal.Color[0]:=Col;
+  Col.Red:=$0000; Col.Green:=$0000; Col.Blue:=$0000;
+  fppal.Color[1]:=Col;
+  Result:=fppal;
+end;
+
+{ The "standard" netscape 216-color palette (aka: web safe palette) }
+function CreateWebSafePalette : TFPPalette;
+var Col : TFPColor;
+    i : integer;
+    fppal : TFPPalette;
+begin
+  fppal:=TFPPalette.Create(216);
+  Col.Alpha:=AlphaOpaque;
+  i:=0;
+  Col.Red:=$FFFF;
+  while true do
+  begin
+    Col.Green:=$FFFF;
+    while true do
+    begin
+      Col.Blue:=$FFFF;
+      while true do
+      begin
+        fppal.Color[i]:=Col;
+        if Col.Blue=0 then break;
+        dec(Col.Blue,$3333);
+      end;
+      if Col.Green=0 then break;
+      dec(Col.Green,$3333);
+    end;
+    if Col.Red=0 then break;
+    dec(Col.Red,$3333);
+  end;
+  Result:=fppal;
+end;
+
+{ A grayscale palette. Not very useful. }
+function CreateGrayScalePalette : TFPPalette;
+var Col : TFPColor;
+    i : integer;
+    fppal : TFPPalette;
+begin
+  fppal:=TFPPalette.Create(256);
+  Col.Alpha:=AlphaOpaque;
+  for i:=$FF downto 0 do
+  begin
+    Col.Red:=i;
+    Col.Red:=(Col.Red shl 8) + Col.Red;
+    Col.Green:=Col.Red;
+    Col.Blue:=Col.Red;
+    fppal.Color[i]:=Col;
+  end;
+  Result:=fppal;
+end;
+
+{ Standard VGA 16 color palette. }
+function CreateVGAPalette : TFPPalette;
+var fppal : TFPPalette;
+begin
+  fppal:=TFPPalette.Create(16);
+  fppal.Color[0]:=colBlack;
+  fppal.Color[1]:=colNavy;
+  fppal.Color[2]:=colBlue;
+  fppal.Color[3]:=colMaroon;
+  fppal.Color[4]:=colPurple;
+  fppal.Color[5]:=colDkGreen;
+  fppal.Color[6]:=colRed;
+  fppal.Color[7]:=colTeal;
+  fppal.Color[8]:=colFuchsia;
+  fppal.Color[9]:=colOlive;
+  fppal.Color[10]:=colGray;
+  fppal.Color[11]:=colLime;
+  fppal.Color[12]:=colAqua;
+  fppal.Color[13]:=colSilver;
+  fppal.Color[14]:=colYellow;
+  fppal.Color[15]:=colWhite;
+  Result:=fppal;
+end;

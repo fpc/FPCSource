@@ -332,6 +332,11 @@ const
   GCM_Mathematical : TGrayConvMatrix = (red:0.334; green:0.333; blue:0.333);
   GCM_Photoshop : TGrayConvMatrix = (red:0.213; green:0.715; blue:0.072);
 
+function CreateBlackAndWhitePalette : TFPPalette;
+function CreateWebSafePalette : TFPPalette;
+function CreateGrayScalePalette : TFPPalette;
+function CreateVGAPalette : TFPPalette;
+
 implementation
 
 procedure FPImgError (Fmt:TErrorTextIndices; data : array of const);

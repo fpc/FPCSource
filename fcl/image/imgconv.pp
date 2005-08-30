@@ -69,7 +69,7 @@ begin
   else if T = 'B' then
     begin
     Writer := TFPWriterBMP.Create;
-    TFPWriterBMP(Writer).BytesPerPixel:=4;
+    TFPWriterBMP(Writer).BitsPerPixel:=32;
     end
   else if T = 'J' then
     Writer := TFPWriterJPEG.Create

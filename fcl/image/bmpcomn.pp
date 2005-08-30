@@ -21,6 +21,15 @@ interface
 const
 {BMP magic word is always 19778 : 'BM'}
   BMmagic=19778;
+
+{ Values for Compression field }
+  BI_RGB = 0;
+  BI_RLE8 = 1;
+  BI_RLE4 = 2;
+  BI_BITFIELDS = 3;
+  BI_JPEG = 4;
+  BI_PNG = 5;
+
 type
 
    TBitMapFileHeader = packed record
@@ -30,7 +39,7 @@ type
       bfSize:longint;
 {06+04 : Reserved}
       bfReserved:longint;
-{10+04 : Offset of image data : size if the file hieder + the info header}
+{10+04 : Offset of image data : size if the file hieder + the info header + palette}
       bfOffset:longint;
    end;
    PBitMapFileHeader = ^TBitMapFileHeader;
@@ -44,17 +53,17 @@ type
       Height:longint;
 {26+02 : Number of image planes : should be 1 always}
       Planes:word;
-{28+02 : Color resolution : Number of bits per pixel (1,4,8,24)}
+{28+02 : Color resolution : Number of bits per pixel (1,4,8,16,24,32)}
       BitCount:word;
 {30+04 : Compression Type}
       Compression:longint;
-{34+04 : Size of compressed image : should be 0 if no compression}
+{34+04 : Size of image data (not headers nor palette): can be 0 if no compression}
       SizeImage:longint;
 {38+04 : Horizontal resolution in pixel/meter}
       XPelsPerMeter:Longint;
 {42+04 : Vertical resolution in pixel/meter}
       YPelsPerMeter:Longint;
-{46+04 : Number of coros used}
+{46+04 : Number of colors used}
       ClrUsed:longint;
 {50+04 : Number of imprtant colors used : usefull for displaying on VGA256}
       ClrImportant:longint;
