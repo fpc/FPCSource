@@ -283,11 +283,13 @@ implementation
         begin
         hp:=tused_unit(usedunits.first);
         found:=false;
-        While Assigned(hp) and not Found do
-          begin
-          Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
-          hp:=tused_unit(hp.next);
-          end;
+        Found:=((current_module.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
+        If not found then
+          While Assigned(hp) and not Found do
+            begin
+            Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
+            hp:=tused_unit(hp.next);
+            end;
         ResourceInfo:=TAAsmOutput.Create;
         if found then
           begin

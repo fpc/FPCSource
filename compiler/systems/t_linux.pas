@@ -660,13 +660,16 @@ begin
   postprocessexecutable:=True;
   if target_res.id=res_elf then
     begin
-    hp:=tused_unit(usedunits.first);
-    found:=false;
-    While Assigned(hp) and not Found do
+    found:=((current_module.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
+    if not found then
       begin
-      Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
-      hp:=tused_unit(hp.next);
-      end;
+      hp:=tused_unit(usedunits.first);
+      While Assigned(hp) and not Found do
+        begin
+        Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
+        hp:=tused_unit(hp.next);
+        end;
+      end;  
     if found then
       begin  
       cmdstr:=' -f -i '+maybequoted(fn);
