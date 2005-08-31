@@ -17,6 +17,8 @@ unit FPImgCmn;
 
 interface
 
+function Swap(This : qword): qword;
+function Swap(This : int64): int64;
 function Swap(This : Longword): longword;
 function Swap(This : integer): integer;
 function Swap(This : Word): Word;
@@ -65,6 +67,28 @@ begin
   TmpB2 := (TmpW1 AND $FF00) SHR 8;
   TmpW1 := TmpB1;
   result := (AnInt SHL 16) + (TmpW1 SHL 8) + TmpB2;
+end;
+
+function Swap(This : qword): qword;
+var l1, l2 : longword;
+    res : qword;
+begin
+  l1:=This and $00000000FFFFFFFF;
+  l2:=(This and $FFFFFFFF00000000) shr 32;
+  l1:=swap(l1);
+  l2:=swap(l2);
+  res:=l1;
+  Result:=(res shl 32) + l2;
+end;
+
+function Swap(This : int64): int64;
+var r,p : ^qword;
+  res : int64;
+begin
+  p := @This;
+  r := @res;
+  r^ := Swap (p^);
+  result := res;
 end;
 
 var CRCtable : array[0..255] of longword;

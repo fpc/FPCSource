@@ -83,6 +83,7 @@ begin
     Halt(1);
     end;
   img := TFPMemoryImage.Create(0,0);
+  img.UsePalette:=false;
 end;
 
 procedure ReadImage;
@@ -146,7 +147,8 @@ begin
   if (paramcount <> 4) and (paramcount <> 3) then
     begin
     writeln ('Give filename to read and to write, preceded by filetype:');
-    writeln ('X for XPM, P for PNG, B for BMP (write only), J for JPEG');
+    writeln ('X for XPM, P for PNG, B for BMP, J for JPEG, T for TGA,');
+    writeln ('N for PNM (read only)');
     writeln ('example: imgconv X hello.xpm P hello.png');
     writeln ('example: imgconv hello.xpm P hello.png');
     writeln ('Options for');
@@ -163,7 +165,7 @@ begin
       Init;
       writeln ('Reading image');
       ReadImage;
-      writeln ('Writeing image');
+      writeln ('Writing image');
       WriteImage;
       writeln ('Clean up');
       Clean;

@@ -232,6 +232,9 @@ begin
   Progress(psStarting,0,false,Rect,'',continue);
   if not continue then exit;
   Stream.Read(BFI,SizeOf(BFI));
+  {$IFDEF ENDIAN_BIG}
+  SwapBMPInfoHeader(BFI);
+  {$ENDIF}
   { This will move past any junk after the BFI header }
   Stream.Position:=Stream.Position-SizeOf(BFI)+BFI.Size;
   with BFI do
@@ -504,6 +507,9 @@ var
   BFH:TBitMapFileHeader;
 begin
   stream.Read(BFH,SizeOf(BFH));
+  {$IFDEF ENDIAN_BIG}
+  SwapBMPFileHeader(BFH);
+  {$ENDIF}
   With BFH do
     Result:=(bfType=BMmagic); // Just check magic number
 end;

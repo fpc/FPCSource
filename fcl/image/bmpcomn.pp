@@ -85,6 +85,40 @@ type
 {54+?? : Color map : Lenght of color map is 4 bytes + the rest until the beginning of image data fixed in BFH.bfOffset}
     TColorMap=TColorRGBA;
 
+procedure SwapBMPFileHeader(var BFH : TBitMapFileHeader);
+procedure SwapBMPInfoHeader(var BFI : TBitMapInfoHeader);
+
 implementation
+
+uses FPImgCmn;
+
+procedure SwapBMPFileHeader(var BFH : TBitMapFileHeader);
+begin
+  with BFH do
+  begin
+    bfType:=swap(bfType);
+    bfSize:=swap(bfSize);
+    bfReserved:=swap(bfReserved);
+    bfOffset:=swap(bfOffset);
+  end;
+end;
+
+procedure SwapBMPInfoHeader(var BFI : TBitMapInfoHeader);
+begin
+  with BFI do
+  begin
+    Size:=swap(Size);
+    Width:=swap(Width);
+    Height:=swap(Height);
+    Planes:=swap(Planes);
+    BitCount:=swap(BitCount);
+    Compression:=swap(Compression);
+    SizeImage:=swap(SizeImage);
+    XPelsPerMeter:=swap(XPelsPerMeter);
+    YPelsPerMeter:=swap(YPelsPerMeter);
+    ClrUsed:=swap(ClrUsed);
+    ClrImportant:=swap(ClrImportant);
+  end;
+end;
 
 end.
