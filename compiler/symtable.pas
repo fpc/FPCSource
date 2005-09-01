@@ -227,6 +227,7 @@ interface
     {Name can be given in any case (it will be converted to upper case).}
     procedure def_system_macro(const name : string);
     procedure set_system_macro(const name, value : string);
+    procedure set_system_compvar(const name, value : string);
     procedure undef_system_macro(const name : string);
 
 {*** symtable stack ***}
@@ -2311,6 +2312,37 @@ implementation
          else
            begin
              mac.is_compiler_var:=false;
+             if assigned(mac.buftext) then
+               freemem(mac.buftext,mac.buflen);
+           end;
+         Message2(parser_c_macro_set_to,mac.name,value);
+         mac.buflen:=length(value);
+         getmem(mac.buftext,mac.buflen);
+         move(value[1],mac.buftext^,mac.buflen);
+         mac.defined:=true;
+      end;
+
+    procedure set_system_compvar(const name, value : string);
+      var
+        mac : tmacro;
+        s: string;
+      begin
+        if name = '' then
+          internalerror(2004121201);
+         s:= upper(name);
+         mac:=tmacro(search_macro(s));
+         if not assigned(mac) then
+           begin
+             mac:=tmacro.create(s);
+             mac.is_compiler_var:=true;
+             if macrosymtablestack.symtabletype=localmacrosymtable then
+               macrosymtablestack.insert(mac)
+             else
+               macrosymtablestack.next.insert(mac)
+           end
+         else
+           begin
+             mac.is_compiler_var:=true;
              if assigned(mac.buftext) then
                freemem(mac.buftext,mac.buflen);
            end;

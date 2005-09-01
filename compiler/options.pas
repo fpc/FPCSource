@@ -603,8 +603,13 @@ begin
 
            'd' :
              if more <> '' then
-               def_system_macro(more);
-
+               begin
+                 l:=Pos(':=',more);
+                 if l>0 then
+                   set_system_compvar(Copy(more,1,l-1),Copy(more,l+2,255))                  
+                 else
+                   def_system_macro(more);
+               end;
            'D' :
              begin
                include(initglobalswitches,cs_link_deffile);
