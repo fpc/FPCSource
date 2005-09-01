@@ -13,7 +13,7 @@
 
  **********************************************************************}
 { $define DEBUG}
-{
+(*
   TODO:
      - correct backtracking, for example in (...)*
      - | support
@@ -22,7 +22,12 @@
      - newline handling in DOS?
      - locals dependend upper/lowercase routines
      - extend the interface
-}
+     - support for number of matches:
+       {n}    Match exactly n times
+       {n,}   Match at least n times
+       {n,m}  Match at least n but not more than m times
+
+*)
 
 {$mode objfpc}
 
@@ -78,6 +83,9 @@ unit regexpr;
 
      function RegExprPos(regexprengine : TRegExprEngine;p : pchar;var index,len : longint) : boolean;
 
+     { This function Escape known regex chars and place the result on Return. If something went wrong the function will return false. }
+     function RegExprEscapeStr (const S : AnsiString) : AnsiString;
+
   implementation
 
 {$ifdef DEBUG}
@@ -102,9 +110,8 @@ unit regexpr;
        procedure doregister(p : pregexprentry);
 
          begin
-            p^.nextdestroy:=first;
-            if not(assigned(first)) then
-              first:=p;
+           p^.nextdestroy:=first;
+           first:=p;
          end;
 
        var
@@ -180,6 +187,16 @@ unit regexpr;
                               inc(currentpos);
                               readchars:=cs_nonwordchars;
                            end;
+                        'f' :
+                            begin
+                              inc(currentpos);
+                              readchars:= [#12];
+                            end;
+                        'a' :
+                            begin
+                              inc(currentpos);
+                              readchars:= [#7];
+                            end;
                          else
                            begin //Some basic escaping...
                               readchars := [currentpos^];
@@ -300,12 +317,15 @@ unit regexpr;
                             end;
                           inc(currentpos);
                        end;
-{
-                    '|':
+
+(*                    '|':
                        begin
 {$ifdef DEBUG}
                           writeln('Creating backtrace entry');
 {$endif DEBUG}
+                          if (not assigned (hp2)) then
+                            new (hp2);
+
                           while currentpos^='|' do
                             begin
                               inc(currentpos);
@@ -323,7 +343,7 @@ unit regexpr;
                               new(hp);
                               doregister(hp);
                               hp^.typ:=ret_backtrace;
-                              hp^.elsepath:=parseregexpr();
+                              hp^.elsepath:= parseregexpr (next, elsepath);
                               hp^.next:=next;
                               if assigned(chaining) then
                                 chaining^:=hp
@@ -333,7 +353,7 @@ unit regexpr;
                             end;
                           exit;
                        end;
-}
+*)
                     ')':
                        exit;
                     '^':
@@ -602,6 +622,32 @@ unit regexpr;
             end;
           index:=-1;
        end;
+
+
+  function RegExprEscapeStr (const S : AnsiString) : AnsiString;
+    var
+     i, len   : SizeUInt;
+
+    begin
+      Result := '';
+      if (S = '') then
+       exit;
+
+      SetLength(Result,Length(S)*2);
+
+      len := Length (S);
+
+      for i := 1 to len do
+        begin
+          if (S [i] in ['(','|', '.', '*', '?', '^', '$', '-', '[', '{', '}', ']', ')', '\']) then
+            begin
+              Result := Result + '\';
+            end;
+
+          Result := Result + S[i];
+        end;
+      SetLength(Result,Length(Result));
+    end;
 
 begin
    cs_nonwordchars:=cs_allchars-cs_wordchars;
