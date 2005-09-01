@@ -41,7 +41,7 @@ implementation
 
     uses
        globtype,cpuinfo,procinfo,
-       symconst;
+       symconst,widestr;
 
 
     function is_funcret_sym(p:tsymentry):boolean;
@@ -88,6 +88,12 @@ implementation
                   if (p1=pend) then
                    equal_constsym:=true;
                 end;
+             end;
+           constwstring :
+             begin
+               if (sym1.value.len=sym2.value.len) and
+                  (comparewidestrings(sym1.value.valueptr,sym2.value.valueptr)=0) then
+                 equal_constsym:=true;
              end;
            constreal :
              equal_constsym:=(pbestreal(sym1.value.valueptr)^=pbestreal(sym2.value.valueptr)^);
