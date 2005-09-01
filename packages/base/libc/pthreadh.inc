@@ -255,7 +255,12 @@ function pthread_sigmask(__how:longint; var __newmask:__sigset_t; var __oldmask:
 { Borland compatibility }
 
 function GetCurrentThreadID: TTHreadID ; cdecl; external threadslib name 'pthread_self';
-
+function InitializeCriticalSection(var lpCriticalSection: TRTLCriticalSection): Integer; 
+function EnterCriticalSection(var lpCriticalSection: TRTLCriticalSection): Integer; cdecl; external threadslib name 'pthread_mutex_lock';
+function LeaveCriticalSection(var lpCriticalSection: TRTLCriticalSection): Integer; cdecl; external threadslib name 'pthread_mutex_unlock';
+function TryEnterCriticalSection(var lpCriticalSection: TRTLCriticalSection): Boolean; 
+function DeleteCriticalSection(var lpCriticalSection: TRTLCriticalSection): Integer; cdecl; external threadslib name 'pthread_mutex_destroy';
+          
 Type
   TPThreadFunc = function(Parameter: Pointer): Integer; cdecl;
   PPthreadCleanupBuffer = ^_pthread_cleanup_buffer;

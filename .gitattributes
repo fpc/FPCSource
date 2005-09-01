@@ -1253,6 +1253,7 @@ packages/base/libc/printfh.inc svneol=native#text/plain
 packages/base/libc/proutedh.inc svneol=native#text/plain
 packages/base/libc/prwhodh.inc svneol=native#text/plain
 packages/base/libc/ptalkdh.inc svneol=native#text/plain
+packages/base/libc/pthread.inc svneol=native#text/plain
 packages/base/libc/pthreadh.inc svneol=native#text/plain
 packages/base/libc/pthreadtypesh.inc svneol=native#text/plain
 packages/base/libc/ptimedh.inc svneol=native#text/plain

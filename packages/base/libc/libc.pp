@@ -249,5 +249,6 @@ uses kernelioctl;
 {$i nif_ether.inc}    // netinet/if_ether.h macros.
 {$i nicmp6.inc}       // netinet/icmp6.h macros.
 {$i nip_icmp.inc}     // netinet/ip_icmp.h macros.
+{$i pthread.inc}      // pthread.h Kylix compatibility.
 
 end.
