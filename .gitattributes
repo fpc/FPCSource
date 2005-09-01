@@ -6105,6 +6105,7 @@ utils/fpcres/elfres.pas svneol=native#text/plain
 utils/fpcres/elfresfix.pas svneol=native#text/plain
 utils/fpcres/fpcres.lpi svneol=native#text/plain
 utils/fpcres/fpcres.pas svneol=native#text/plain
+utils/fpcres/resptrs.as -text
 utils/fpdoc/COPYING -text
 utils/fpdoc/Makefile svneol=native#text/plain
 utils/fpdoc/Makefile.fpc svneol=native#text/plain

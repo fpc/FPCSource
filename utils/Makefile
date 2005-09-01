@@ -239,13 +239,13 @@ ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc  fpmc
+override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc  fpmc fpcres
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc
+override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc  fpcres
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc
@@ -284,7 +284,7 @@ ifeq ($(FULL_TARGET),m68k-linux)
 override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc  fpcres
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc
+override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc  fpcres
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc
@@ -329,7 +329,7 @@ ifeq ($(FULL_TARGET),x86_64-linux)
 override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc  fpcres
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc
+override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc  fpcres
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc
@@ -2619,6 +2619,7 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPMC=1
+TARGET_DIRS_FPCRES=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_FPCM=1
@@ -2635,6 +2636,7 @@ TARGET_DIRS_H2PAS=1
 TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
+TARGET_DIRS_FPCRES=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_FPCM=1
@@ -2740,6 +2742,7 @@ TARGET_DIRS_H2PAS=1
 TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
+TARGET_DIRS_FPCRES=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 TARGET_DIRS_FPCM=1
@@ -2863,6 +2866,7 @@ TARGET_DIRS_H2PAS=1
 TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
+TARGET_DIRS_FPCRES=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 TARGET_DIRS_FPCM=1
