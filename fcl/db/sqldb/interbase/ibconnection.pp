@@ -20,8 +20,8 @@ type
     protected
     Status               : array [0..19] of ISC_STATUS;
     Statement            : pointer;
-    FFieldFlag           : array of shortint;
-    FinFieldFlag         : array of shortint;
+    FFieldFlag           : PByte;
+    FinFieldFlag         : PByte;
     SQLDA                : PXSQLDA;
     in_SQLDA             : PXSQLDA;
     ParamBinding         : array of integer;
@@ -59,8 +59,8 @@ type
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
     Function AllocateTransactionHandle : TSQLHandle; override;
 
-    procedure CloseStatement(cursor : TSQLCursor); override;
     procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); override;
+    procedure UnPrepareStatement(cursor : TSQLCursor); override;
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); override;
     procedure AddFieldDefs(cursor: TSQLCursor;FieldDefs : TfieldDefs); override;
@@ -389,6 +389,7 @@ begin
   curs := TIBCursor.create;
   curs.sqlda := nil;
   curs.statement := nil;
+  curs.FPrepared := False;
   AllocSQLDA(curs.SQLDA,1);
   AllocSQLDA(curs.in_SQLDA,1);
   result := curs;
@@ -401,6 +402,8 @@ begin
     begin
     reAllocMem(SQLDA,0);
     reAllocMem(in_SQLDA,0);
+    reAllocMem(FFieldFlag,0);
+    reAllocMem(FInFieldFlag,0);
     end;
   FreeAndNil(cursor);
 end;
@@ -409,16 +412,6 @@ Function TIBConnection.AllocateTransactionHandle : TSQLHandle;
 
 begin
   result := TIBTrans.create;
-end;
-
-procedure TIBConnection.CloseStatement(cursor : TSQLCursor);
-begin
-  with cursor as TIBcursor do
-    begin
-    if isc_dsql_free_statement(@Status, @Statement, DSQL_Drop) <> 0 then
-      CheckError('FreeStatement', Status);
-    Statement := nil;
-    end;
 end;
 
 procedure TIBConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams);
@@ -430,7 +423,6 @@ var dh    : pointer;
     i     : integer;
 
 begin
-//  ObtainSQLStatementType(cursor,buf);
   with cursor as TIBcursor do
     begin
     dh := GetHandle;
@@ -463,6 +455,7 @@ begin
 
     if isc_dsql_prepare(@Status, @tr, @Statement, 0, @Buf[1], Dialect, nil) <> 0 then
       CheckError('PrepareStatement', Status);
+    FPrepared := True;
     if assigned(AParams) and (AParams.count > 0) then
       begin
       AllocSQLDA(in_SQLDA,Length(ParamBinding));
@@ -471,7 +464,7 @@ begin
       if in_SQLDA^.SQLD > in_SQLDA^.SQLN then
         DatabaseError(SParameterCountIncorrect,self);
       {$R-}
-      SetLength(FinFieldFlag,in_SQLDA^.SQLD);
+      ReAllocMem(FInFieldFlag,SQLDA^.SQLD+1);
       for x := 0 to in_SQLDA^.SQLD - 1 do with in_SQLDA^.SQLVar[x] do
         begin
         if ((SQLType and not 1) = SQL_VARYING) then
@@ -484,6 +477,7 @@ begin
       end;
     if FStatementType = stselect then
       begin
+      FPrepared := False;
       if isc_dsql_describe(@Status, @Statement, 1, SQLDA) <> 0 then
         CheckError('PrepareSelect', Status);
       if SQLDA^.SQLD > SQLDA^.SQLN then
@@ -493,17 +487,31 @@ begin
           CheckError('PrepareSelect', Status);
         end;
       {$R-}
-      SetLength(FFieldFlag,SQLDA^.SQLD);
+      ReAllocMem(FFieldFlag,SQLDA^.SQLD+1);
       for x := 0 to SQLDA^.SQLD - 1 do with SQLDA^.SQLVar[x] do
         begin
         if ((SQLType and not 1) = SQL_VARYING) then
           SQLData := AllocMem(SQLDA^.SQLVar[x].SQLLen+2)
+//          ReAllocMem(SQLData,SQLDA^.SQLVar[x].SQLLen+2)
         else
           SQLData := AllocMem(SQLDA^.SQLVar[x].SQLLen);
+//             ReAllocMem(SQLData,SQLDA^.SQLVar[x].SQLLen);
         SQLInd  := @FFieldFlag[x];
         end;
       {$R+}
       end;
+    end;
+end;
+
+procedure TIBConnection.UnPrepareStatement(cursor : TSQLCursor);
+
+begin
+  with cursor as TIBcursor do
+    begin
+    if isc_dsql_free_statement(@Status, @Statement, DSQL_Drop) <> 0 then
+      CheckError('FreeStatement', Status);
+    Statement := nil;
+    FPrepared := False;
     end;
 end;
 

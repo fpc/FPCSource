@@ -45,7 +45,6 @@ type
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
     Function AllocateTransactionHandle : TSQLHandle; override;
 
-    procedure CloseStatement(cursor : TSQLCursor); override;
     procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); override;
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); override;
@@ -420,26 +419,6 @@ begin
     end;
 end;
 
-procedure TPQConnection.CloseStatement(cursor : TSQLCursor);
-
-begin
-  with cursor as TPQCursor do
-   if (PQresultStatus(res) <> PGRES_FATAL_ERROR) then //Don't try to do anything if the transaction has already encountered an error.
-    begin
-    if FStatementType = stselect then
-      begin
-      Res := pqexec(tr,pchar('CLOSE slctst' + name + nr));
-      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-        begin
-        pqclear(res);
-        DatabaseError(SErrClearSelection + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self)
-        end
-      end;
-    pqclear(baseres);
-    pqclear(res);
-    end;
-end;
-
 procedure TPQConnection.UnPrepareStatement(cursor : TSQLCursor);
 
 begin
@@ -459,7 +438,21 @@ end;
 procedure TPQConnection.FreeFldBuffers(cursor : TSQLCursor);
 
 begin
-// Do nothing
+  with cursor as TPQCursor do
+   if (PQresultStatus(res) <> PGRES_FATAL_ERROR) then //Don't try to do anything if the transaction has already encountered an error.
+    begin
+    if FStatementType = stselect then
+      begin
+      Res := pqexec(tr,pchar('CLOSE slctst' + name + nr));
+      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+        begin
+        pqclear(res);
+        DatabaseError(SErrClearSelection + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self)
+        end
+      end;
+    pqclear(baseres);
+    pqclear(res);
+    end;
 end;
 
 procedure TPQConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams);

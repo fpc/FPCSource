@@ -2,7 +2,7 @@
     This file is part of the Free Component Library
 
     Implementation of TXMLConfig class
-    Copyright (c) 1999 - 2001 by Sebastian Guenther, sg@freepascal.org
+    Copyright (c) 1999 - 2005 by Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -29,9 +29,16 @@ interface
 
 uses
   {$IFDEF MEM_CHECK}MemCheck,{$ENDIF}
-  Classes, DOM, XMLRead, XMLWrite;
+  SysUtils, Classes, DOM, XMLRead, XMLWrite;
+
+resourcestring
+  SMissingPathName = 'A part of the pathname is invalid (missing)';
+  SEscapingNecessary = 'Invalid pathname, escaping must be enabled';
+  SWrongRootName = 'XML file has wrong root element name';
 
 type
+
+  EXMLConfigError = class(Exception);
 
   {"APath" is the path and name of a value: A XML configuration file is
    hierachical. "/" is the path delimiter, the part after the last "/"
@@ -41,16 +48,21 @@ type
   TXMLConfig = class(TComponent)
   private
     FFilename: String;
+    FStartEmpty: Boolean;
+    FUseEscaping: Boolean;
+    FRootName: DOMString;
+    procedure SetFilename(const AFilename: String; ForceReload: Boolean);
     procedure SetFilename(const AFilename: String);
+    procedure SetStartEmpty(AValue: Boolean);
+    procedure SetRootName(const AValue: DOMString);
   protected
-    doc: TXMLDocument;
+    Doc: TXMLDocument;
     FModified: Boolean;
-    fDoNotLoad: boolean;
     procedure Loaded; override;
     function FindNode(const APath: String; PathHasValue: boolean): TDomNode;
+    function Escape(const s: String): String;
   public
-    constructor Create(const AFilename: String); overload;
-    constructor CreateClean(const AFilename: String);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Clear;
     procedure Flush;    // Writes the XML file
@@ -68,6 +80,10 @@ type
     property Modified: Boolean read FModified;
   published
     property Filename: String read FFilename write SetFilename;
+    property StartEmpty: Boolean read FStartEmpty write SetStartEmpty;
+    property UseEscaping: Boolean read FUseEscaping write FUseEscaping
+      default True;
+    property RootName: DOMString read FRootName write SetRootName;
   end;
 
 
@@ -75,52 +91,36 @@ type
 
 implementation
 
-uses SysUtils;
 
-
-constructor TXMLConfig.Create(const AFilename: String);
+constructor TXMLConfig.Create(AOwner: TComponent);
 begin
-  inherited Create(nil);
-  SetFilename(AFilename);
-end;
-
-constructor TXMLConfig.CreateClean(const AFilename: String);
-begin
-  inherited Create(nil);
-  fDoNotLoad:=true;
-  SetFilename(AFilename);
+  inherited Create(AOwner);
+  FUseEscaping := True;
+  FRootName := 'CONFIG';
+  Doc := TXMLDocument.Create;
+  Doc.AppendChild(Doc.CreateElement(RootName));
 end;
 
 destructor TXMLConfig.Destroy;
 begin
-  if Assigned(doc) then
+  if Assigned(Doc) then
   begin
     Flush;
-    doc.Free;
+    Doc.Free;
   end;
   inherited Destroy;
 end;
 
 procedure TXMLConfig.Clear;
-var
-  cfg: TDOMElement;
 begin
-  // free old document
-  doc.Free;
-  // create new document
-  doc := TXMLDocument.Create;
-  cfg :=TDOMElement(doc.FindNode('CONFIG'));
-  if not Assigned(cfg) then begin
-    cfg := doc.CreateElement('CONFIG');
-    doc.AppendChild(cfg);
-  end;
+  Doc.ReplaceChild(Doc.CreateElement(RootName), Doc.DocumentElement);
 end;
 
 procedure TXMLConfig.Flush;
 begin
   if Modified then
   begin
-    WriteXMLFile(doc, Filename);
+    WriteXMLFile(Doc, Filename);
     FModified := False;
   end;
 end;
@@ -132,25 +132,30 @@ var
   PathLen: integer;
   StartPos, EndPos: integer;
 begin
-  Result:=ADefault;
-  PathLen:=length(APath);
-  Node := doc.DocumentElement;
-  StartPos:=1;
-  while True do begin
-    EndPos:=StartPos;
-    while (EndPos<=PathLen) and (APath[EndPos]<>'/') do inc(EndPos);
-    if EndPos>PathLen then break;
-    SetLength(NodeName,EndPos-StartPos);
-    Move(APath[StartPos],NodeName[1],EndPos-StartPos);
-    StartPos:=EndPos+1;
-    Child := Node.FindNode(NodeName);
-    if not Assigned(Child) then exit;
+  Result := ADefault;
+  PathLen := Length(APath);
+  Node := Doc.DocumentElement;
+  StartPos := 1;
+  while True do
+  begin
+    EndPos := StartPos;
+    while (EndPos <= PathLen) and (APath[EndPos] <> '/') do
+      Inc(EndPos);
+    if EndPos > PathLen then
+      break;
+    SetLength(NodeName, EndPos - StartPos);
+    Move(APath[StartPos], NodeName[1], EndPos - StartPos);
+    StartPos := EndPos + 1;
+    Child := Node.FindNode(Escape(NodeName));
+    if not Assigned(Child) then
+      exit;
     Node := Child;
   end;
-  if StartPos>PathLen then exit;
-  SetLength(NodeName,PathLen-StartPos+1);
-  Move(APath[StartPos],NodeName[1],length(NodeName));
-  Attr := Node.Attributes.GetNamedItem(NodeName);
+  if StartPos > PathLen then
+    exit;
+  SetLength(NodeName, PathLen - StartPos + 1);
+  Move(APath[StartPos], NodeName[1], Length(NodeName));
+  Attr := Node.Attributes.GetNamedItem(Escape(NodeName));
   if Assigned(Attr) then
     Result := Attr.NodeValue;
 end;
@@ -171,9 +176,9 @@ begin
 
   s := GetValue(APath, s);
 
-  if AnsiCompareText(s,'TRUE')=0 then
+  if AnsiCompareText(s, 'TRUE')=0 then
     Result := True
-  else if AnsiCompareText(s,'FALSE')=0 then
+  else if AnsiCompareText(s, 'FALSE')=0 then
     Result := False
   else
     Result := ADefault;
@@ -187,15 +192,19 @@ var
   StartPos, EndPos: integer;
 begin
   Node := Doc.DocumentElement;
-  PathLen:=length(APath);
+  PathLen := Length(APath);
   StartPos:=1;
-  while True do begin
-    EndPos:=StartPos;
-    while (EndPos<=PathLen) and (APath[EndPos]<>'/') do inc(EndPos);
-    if EndPos>PathLen then break;
-    SetLength(NodeName,EndPos-StartPos);
-    Move(APath[StartPos],NodeName[1],EndPos-StartPos);
-    StartPos:=EndPos+1;
+  while True do
+  begin
+    EndPos := StartPos;
+    while (EndPos <= PathLen) and (APath[EndPos] <> '/') do
+      Inc(EndPos);
+    if EndPos > PathLen then
+      break;
+    SetLength(NodeName, EndPos - StartPos);
+    Move(APath[StartPos], NodeName[1], EndPos - StartPos);
+    StartPos := EndPos + 1;
+    NodeName := Escape(NodeName);
     Child := Node.FindNode(NodeName);
     if not Assigned(Child) then
     begin
@@ -205,9 +214,11 @@ begin
     Node := Child;
   end;
 
-  if StartPos>PathLen then exit;
-  SetLength(NodeName,PathLen-StartPos+1);
-  Move(APath[StartPos],NodeName[1],length(NodeName));
+  if StartPos > PathLen then
+    exit;
+  SetLength(NodeName, PathLen - StartPos + 1);
+  Move(APath[StartPos], NodeName[1], Length(NodeName));
+  NodeName := Escape(NodeName);
   if (not Assigned(TDOMElement(Node).GetAttributeNode(NodeName))) or
     (TDOMElement(Node)[NodeName] <> AValue) then
   begin
@@ -218,10 +229,10 @@ end;
 
 procedure TXMLConfig.SetDeleteValue(const APath, AValue, DefValue: String);
 begin
-  if AValue=DefValue then
+  if AValue = DefValue then
     DeleteValue(APath)
   else
-    SetValue(APath,AValue);
+    SetValue(APath, AValue);
 end;
 
 procedure TXMLConfig.SetValue(const APath: String; AValue: Integer);
@@ -232,10 +243,10 @@ end;
 procedure TXMLConfig.SetDeleteValue(const APath: String; AValue,
   DefValue: Integer);
 begin
-  if AValue=DefValue then
+  if AValue = DefValue then
     DeleteValue(APath)
   else
-    SetValue(APath,AValue);
+    SetValue(APath, AValue);
 end;
 
 procedure TXMLConfig.SetValue(const APath: String; AValue: Boolean);
@@ -249,7 +260,7 @@ end;
 procedure TXMLConfig.SetDeleteValue(const APath: String; AValue,
   DefValue: Boolean);
 begin
-  if AValue=DefValue then
+  if AValue = DefValue then
     DeleteValue(APath)
   else
     SetValue(APath,AValue);
@@ -259,8 +270,9 @@ procedure TXMLConfig.DeletePath(const APath: string);
 var
   Node: TDomNode;
 begin
-  Node:=FindNode(APath,false);
-  if (Node=nil) or (Node.ParentNode=nil) then exit;
+  Node := FindNode(APath, False);
+  if (Node = nil) or (Node.ParentNode = nil) then
+    exit;
   Node.ParentNode.RemoveChild(Node);
   FModified := True;
 end;
@@ -271,12 +283,15 @@ var
   StartPos: integer;
   NodeName: string;
 begin
-  Node:=FindNode(APath,true);
-  if (Node=nil) then exit;
-  StartPos:=length(APath);
-  while (StartPos>0) and (APath[StartPos]<>'/') do dec(StartPos);
-  NodeName:=copy(APath,StartPos+1,length(APath)-StartPos);
-  if (not Assigned(TDOMElement(Node).GetAttributeNode(NodeName))) then exit;
+  Node := FindNode(APath, True);
+  if not Assigned(Node) then
+    exit;
+  StartPos := Length(APath);
+  while (StartPos > 0) and (APath[StartPos] <> '/') do
+   Dec(StartPos);
+  NodeName := Escape(Copy(APath, StartPos+1, Length(APath) - StartPos));
+  if (not Assigned(TDOMElement(Node).GetAttributeNode(NodeName))) then
+    exit;
   TDOMElement(Node).RemoveAttribute(NodeName);
   FModified := True;
 end;
@@ -295,54 +310,122 @@ var
   StartPos, EndPos: integer;
   PathLen: integer;
 begin
-  Result := doc.DocumentElement;
-  PathLen:=length(APath);
-  StartPos:=1;
-  while (Result<>nil) do begin
-    EndPos:=StartPos;
-    while (EndPos<=PathLen) and (APath[EndPos]<>'/') do inc(EndPos);
-    if (EndPos>PathLen) and PathHasValue then exit;
-    if EndPos=StartPos then break;
-    SetLength(NodePath,EndPos-StartPos);
-    Move(APath[StartPos],NodePath[1],length(NodePath));
-    Result := Result.FindNode(NodePath);
-    StartPos:=EndPos+1;
-    if StartPos>PathLen then exit;
+  Result := Doc.DocumentElement;
+  PathLen := Length(APath);
+  StartPos := 1;
+  while Assigned(Result) do
+  begin
+    EndPos := StartPos;
+    while (EndPos <= PathLen) and (APath[EndPos] <> '/') do
+      Inc(EndPos);
+    if (EndPos > PathLen) and PathHasValue then
+      exit;
+    if EndPos = StartPos then
+      break;
+    SetLength(NodePath, EndPos - StartPos);
+    Move(APath[StartPos], NodePath[1], Length(NodePath));
+    Result := Result.FindNode(Escape(NodePath));
+    StartPos := EndPos + 1;
+    if StartPos > PathLen then
+      exit;
   end;
-  Result:=nil;
+  Result := nil;
 end;
 
-procedure TXMLConfig.SetFilename(const AFilename: String);
+function TXMLConfig.Escape(const s: String): String;
+const
+  AllowedChars = ['A'..'Z', 'a'..'z', '0'..'9', '.', '-', '_'];
 var
-  cfg: TDOMElement;
+  EscapingNecessary: Boolean;
+  i: Integer;
+begin
+  if Length(s) < 1 then
+    raise EXMLConfigError.Create(SMissingPathName);
+
+  if not (s[1] in ['A'..'Z', 'a'..'z', '_']) then
+    EscapingNecessary := True
+  else
+  begin
+    EscapingNecessary := False;
+    for i := 2 to Length(s) do
+      if not (s[i] in AllowedChars) then
+      begin
+        EscapingNecessary := True;
+	exit;
+      end;
+  end;
+
+  if EscapingNecessary then
+    if UseEscaping then
+    begin
+      Result := '_';
+      for i := 1 to Length(s) do
+        if s[i] in (AllowedChars - ['_']) then
+	  Result := Result + s[i]
+	else
+	  Result := Result + '_' + IntToHex(Ord(s[i]), 2);
+    end else
+      raise EXMLConfigError.Create(SEscapingNecessary)
+  else	// No escaping necessary
+    Result := s;
+end;
+
+procedure TXMLConfig.SetFilename(const AFilename: String; ForceReload: Boolean);
 begin
   {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLConfig.SetFilename A '+AFilename);{$ENDIF}
-  if FFilename = AFilename then exit;
+  if (not ForceReload) and (FFilename = AFilename) then
+    exit;
   FFilename := AFilename;
 
   if csLoading in ComponentState then
     exit;
 
-  if Assigned(doc) then
-  begin
-    Flush;
-    doc.Free;
-  end;
+  Flush;
+  FreeAndNil(Doc);
 
-  doc:=nil;
-  if FileExists(AFilename) and (not fDoNotLoad) then
-    ReadXMLFile(doc,AFilename);
+  if FileExists(AFilename) and (not FStartEmpty) then
+    ReadXMLFile(Doc, AFilename);
 
-  if not Assigned(doc) then
-    doc := TXMLDocument.Create;
+  if not Assigned(Doc) then
+    Doc := TXMLDocument.Create;
 
-  cfg :=TDOMElement(doc.FindNode('CONFIG'));
-  if not Assigned(cfg) then begin
-    cfg := doc.CreateElement('CONFIG');
-    doc.AppendChild(cfg);
-  end;
+  if not Assigned(Doc.DocumentElement) then
+    Doc.AppendChild(Doc.CreateElement(RootName))
+  else
+    if Doc.DocumentElement.NodeName <> RootName then
+      raise EXMLConfigError.Create('XML file has wrong root element name');
+
   {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLConfig.SetFilename END');{$ENDIF}
 end;
 
+procedure TXMLConfig.SetFilename(const AFilename: String);
+begin
+  SetFilename(AFilename, False);
+end;
+
+procedure TXMLConfig.SetRootName(const AValue: DOMString);
+var
+  Cfg: TDOMElement;
+begin
+  if AValue <> RootName then
+  begin
+    FRootName := AValue;
+    Cfg := Doc.CreateElement(AValue);
+    while Assigned(Doc.DocumentElement.FirstChild) do
+      Cfg.AppendChild(Doc.DocumentElement.FirstChild);
+    Doc.ReplaceChild(Cfg, Doc.DocumentElement);
+    FModified := True;
+  end;
+end;
+
+procedure TXMLConfig.SetStartEmpty(AValue: Boolean);
+begin
+  if AValue <> StartEmpty then
+  begin
+    FStartEmpty := AValue;
+    if (not AValue) and not Modified then
+      SetFilename(Filename, True);
+  end;
+end;
 
 end.

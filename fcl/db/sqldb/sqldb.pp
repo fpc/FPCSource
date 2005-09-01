@@ -41,6 +41,7 @@ type
   TSQLCursor = Class(TSQLHandle)
   public
     FPrepared      : Boolean;
+    FInitFieldDef  : Boolean;
     FStatementType : TStatementType;
   end;
 
@@ -86,7 +87,6 @@ type
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); virtual; abstract;
     function Fetch(cursor : TSQLCursor) : boolean; virtual; abstract;
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); virtual; abstract;
-    procedure CloseStatement(cursor : TSQLCursor); virtual; abstract;
     procedure UnPrepareStatement(cursor : TSQLCursor); virtual; abstract;
 
     procedure FreeFldBuffers(cursor : TSQLCursor); virtual; abstract;
@@ -173,7 +173,6 @@ type
     FParseSQL            : boolean;
 //    FSchemaInfo          : TSchemaInfo;
 
-    procedure CloseStatement;
     procedure FreeFldBuffers;
     procedure InitUpdates(SQL : string);
     function GetIndexDefs : TIndexDefs;
@@ -335,7 +334,7 @@ begin
 
     PrepareStatement(cursor,Transaction,SQL,Nil);
     execute(cursor,Transaction, Nil);
-    CloseStatement(Cursor);
+    UnPrepareStatement(Cursor);
   finally;
     DeAllocateCursorHandle(Cursor);
   end;
@@ -504,17 +503,12 @@ begin
   if (Database <> Value) then
     begin
     UnPrepare;
+    if assigned(FCursor) then (Database as TSQLConnection).DeAllocateCursorHandle(FCursor);
     db := value as tsqlconnection;
     inherited setdatabase(value);
     if assigned(value) and (Transaction = nil) and (Assigned(db.Transaction)) then
       transaction := Db.Transaction;
     end;
-end;
-
-procedure TSQLQuery.CloseStatement;
-begin
-  if assigned(FCursor) then
-    (Database as tsqlconnection).CloseStatement(FCursor);
 end;
 
 Function TSQLQuery.IsPrepared : Boolean;
@@ -543,7 +537,8 @@ begin
   if Value and not FParseSQL then DatabaseErrorFmt(SNoParseSQL,['Filtering ']);
   if (Filtered <> Value) and Active then
     begin
-    CloseStatement;
+    FreeFldBuffers;
+    (Database as tsqlconnection).UnPrepareStatement(FCursor);
     FIsEOF := False;
     inherited internalclose;
 
@@ -578,8 +573,9 @@ begin
     if not Db.Connected then db.Open;
     if not sqltr.Active then sqltr.StartTransaction;
 
-    if assigned(fcursor) then FreeAndNil(fcursor);
-    FCursor := Db.AllocateCursorHandle;
+//    if assigned(fcursor) then FreeAndNil(fcursor);
+    if not assigned(fcursor) then
+      FCursor := Db.AllocateCursorHandle;
 
     FSQLBuf := TrimRight(FSQL.Text);
     
@@ -593,8 +589,11 @@ begin
     else
       Db.PrepareStatement(Fcursor,sqltr,FSQLBuf,FParams);
 
-    if (FCursor.FStatementType = stSelect) and not ReadOnly then
-      InitUpdates(FSQLBuf);
+    if (FCursor.FStatementType = stSelect) then
+      begin
+      FCursor.FInitFieldDef := True;
+      if not ReadOnly then InitUpdates(FSQLBuf);
+      end;
     end;
 end;
 
@@ -603,10 +602,7 @@ procedure TSQLQuery.UnPrepare;
 begin
   CheckInactive;
   if IsPrepared then with Database as TSQLConnection do
-    begin
     UnPrepareStatement(FCursor);
-    DeAllocateCursorHandle(FCursor);
-    end;
 end;
 
 procedure TSQLQuery.FreeFldBuffers;
@@ -641,8 +637,8 @@ end;
 
 procedure TSQLQuery.InternalClose;
 begin
-  FreeFldBuffers;
-  CloseStatement;
+  if StatementType = stSelect then FreeFldBuffers;
+  if not IsPrepared then (database as TSQLconnection).UnPrepareStatement(FCursor);
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
@@ -789,15 +785,13 @@ procedure TSQLQuery.InternalOpen;
 var tel         : integer;
     f           : TField;
     s           : string;
-    WasPrepared : boolean;
 begin
   try
-    WasPrepared := IsPrepared;
     Prepare;
     if FCursor.FStatementType in [stSelect] then
       begin
       Execute;
-      if not WasPrepared then InternalInitFieldDefs; // if query was prepared before opening, fields are already created
+      if FCursor.FInitFieldDef then InternalInitFieldDefs;
       if DefaultFields then
         begin
         CreateFields;
@@ -836,7 +830,7 @@ begin
     Prepare;
     Execute;
   finally
-    CloseStatement;
+    if not IsPrepared then (database as TSQLConnection).UnPrepareStatement(Fcursor);
   end;
 end;
 
@@ -859,6 +853,7 @@ destructor TSQLQuery.Destroy;
 begin
   if Active then Close;
   UnPrepare;
+  if assigned(FCursor) then (Database as TSQLConnection).DeAllocateCursorHandle(FCursor);
   FreeAndNil(FSQL);
   FreeAndNil(FIndexDefs);
   inherited Destroy;
@@ -1037,6 +1032,7 @@ end;
 procedure TSQLQuery.SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string);
 
 begin
+  ReadOnly := True;
   SQL.Clear;
   SQL.Add((DataBase as tsqlconnection).GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaPattern));
 end;

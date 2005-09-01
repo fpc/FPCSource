@@ -7,15 +7,19 @@ programs=stringl dparser fstream mstream list threads testrtf \
          cfgtest xmldump htdump testez tidea \
          b64test b64test2 b64enc b64dec restest testz testz2 \
          istream doecho testol testcont txmlreg testreg tstelcmd \
-         testapp testcgi testbs
+         testapp testcgi testbs 
 programs_win32=showver testproc testhres testnres testsres testrhre \
-               testrnre testrsre testur
+               testrnre testrsre testur ipcserver ipcclient debugtest \
+               dbugsrv
 programs_linux=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
-               testhres testnres testsres testrhre testrnre testrsre testur
+               testhres testnres testsres testrhre testrnre testrsre testur \
+               ipcserver ipcclient debugtest dbugsrv
 programs_darwin=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
-               testhres testnres testsres testrhre testrnre testrsre testur
+               testhres testnres testsres testrhre testrnre testrsre testur \
+               ipcserver ipcclient debugtest dbugsrv
 programs_freebsd=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
-               testhres testnres testsres testrhre testrnre testrsre testur
+               testhres testnres testsres testrhre testrnre testrsre testur \
+               ipcserver ipcclient debugtest dbugsrv
 programs_os2=isockcli isocksvr testhres testnres testsres testrhre \
              testrnre testrsre testur
 programs_emx=isockcli isocksvr testhres testnres testsres testrhre \

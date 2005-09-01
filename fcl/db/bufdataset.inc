@@ -73,7 +73,7 @@ begin
   FOpen:=False;
   CancelUpdates;
   for i := 0 to FBRecordCount-1 do FreeRecordBuffer(FBBuffers[i]);
-  If FBRecordCount > 0 then ReAllocMem(FBBuffers,0);
+  If FBBufferCount > 0 then ReAllocMem(FBBuffers,0);
   FBRecordcount := 0;
   FBBuffercount := 0;
   FBCurrentrecord := -1;

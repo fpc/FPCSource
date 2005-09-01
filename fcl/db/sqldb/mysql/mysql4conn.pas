@@ -54,7 +54,6 @@ Type
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
     Function AllocateTransactionHandle : TSQLHandle; override;
 
-    procedure CloseStatement(cursor : TSQLCursor); override;
     procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); override;
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams); override;
@@ -218,26 +217,6 @@ begin
   Result:=TMySQLTransaction.Create;
 end;
 
-procedure TMySQLConnection.CloseStatement(cursor: TSQLCursor);
-
-Var
-  C : TMySQLCursor;
-
-begin
-  C:=Cursor as TMysqlCursor;
-  if c.FStatementType=stSelect then
-    c.FNeedData:=False;
-  If (C.FRes<>Nil) then
-    begin
-    C.FRes:=Nil;
-    end;
-  if (c.FQMySQL <> Nil) then
-    begin
-    mysql_close(c.FQMySQL);
-    c.FQMySQL:=Nil;
-    end;
-end;
-
 procedure TMySQLConnection.PrepareStatement(cursor: TSQLCursor;
   ATransaction: TSQLTransaction; buf: string;AParams : TParams);
 begin
@@ -261,6 +240,17 @@ Var
 
 begin
   C:=Cursor as TMysqlCursor;
+  if c.FStatementType=stSelect then
+    c.FNeedData:=False;
+  If (C.FRes<>Nil) then
+    begin
+    C.FRes:=Nil;
+    end;
+  if (c.FQMySQL <> Nil) then
+    begin
+    mysql_close(c.FQMySQL);
+    c.FQMySQL:=Nil;
+    end;
   If (C.FRes<>Nil) then
     begin
     Mysql_free_result(C.FRes);

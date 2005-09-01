@@ -331,7 +331,7 @@ var
     while FSqliteReturnId = SQLITE_ROW do
     begin
       // I know, this code is really dirty!!
-      AStrList.AddObject(StrPas(ColumnValues[0]),TObject(StrToInt(StrPas(ColumnValues[1]))));
+      AStrList.AddObject(StrPas(ColumnValues[0]),TObject(PtrInt(StrToInt(StrPas(ColumnValues[1])))));
       FSqliteReturnId:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);  
     end;
   end;    
@@ -344,8 +344,9 @@ begin
     else
       DatabaseError('File '+FFileName+' not Exists',Self);    
   Result:='';
-  if AStrList <> nil then
-    AStrList.Clear;
+  // It's up to the caller clear or not the list
+  //if AStrList <> nil then
+  //  AStrList.Clear;
   FSqliteReturnId:=sqlite_compile(AHandle,Pchar(ASql),nil,@vm,nil);
   if FSqliteReturnId <> SQLITE_OK then
     DatabaseError('Error returned by sqlite in QuickQuery: '+SqliteReturnString,Self);
