@@ -344,7 +344,7 @@ implementation
                             if is_ansistring(def_to) then
                               eq:=te_convert_l1
                             else if is_widestring(def_to) then
-                              eq:=te_convert_l2
+                              eq:=te_convert_l3
                             else
                               eq:=te_convert_l2;
                           end
@@ -364,6 +364,8 @@ implementation
                                 else
                                   eq:=te_convert_l2;
                               end
+                            else if is_widestring(def_to) then
+                              eq:=te_convert_l3
                             else
                               eq:=te_convert_l2;
                           end;
@@ -378,7 +380,9 @@ implementation
                          else
                            { size of widechar array is double due the sizeof a widechar }
                            if not(is_shortstring(def_to) and (def_from.size>255*sizeof(widechar))) then
-                             eq:=te_convert_l3;
+                             eq:=te_convert_l3
+                         else
+                           eq:=te_convert_l2;
                        end;
                    end;
                  pointerdef :
