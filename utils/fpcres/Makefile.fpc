@@ -1,0 +1,22 @@
+#
+#   Makefile.fpc for FPCMake
+#
+
+[target]
+programs=fpcres
+rsts=fpcres fpcresfix elfres
+
+[clean]
+units=fpcresfix elfbfd elfres
+
+[require]
+packages=rtl
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+fpcmake$(EXEEXT): fpcresfix.pas elfbfd.pas elfres.pas fpcres.pas

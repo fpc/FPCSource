@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <PathDelim Value="/"/>
+    <Version Value="5"/>
+    <General>
+      <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <ActiveEditorIndexAtStart Value="0"/>
+      <IconPath Value="./"/>
+      <TargetFileExt Value=""/>
+    </General>
+    <JumpHistory Count="18" HistoryIndex="17">
+      <Position1>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="175" Column="14" TopLine="138"/>
+      </Position1>
+      <Position2>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="144" Column="11" TopLine="122"/>
+      </Position2>
+      <Position3>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="143" Column="5" TopLine="122"/>
+      </Position3>
+      <Position4>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="148" Column="29" TopLine="126"/>
+      </Position4>
+      <Position5>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="152" Column="5" TopLine="130"/>
+      </Position5>
+      <Position6>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="162" Column="8" TopLine="140"/>
+      </Position6>
+      <Position7>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="162" Column="8" TopLine="140"/>
+      </Position7>
+      <Position8>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="163" Column="3" TopLine="141"/>
+      </Position8>
+      <Position9>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="162" Column="34" TopLine="141"/>
+      </Position9>
+      <Position10>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="170" Column="25" TopLine="148"/>
+      </Position10>
+      <Position11>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="170" Column="25" TopLine="148"/>
+      </Position11>
+      <Position12>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="170" Column="25" TopLine="148"/>
+      </Position12>
+      <Position13>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="148" Column="17" TopLine="148"/>
+      </Position13>
+      <Position14>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="67" Column="16" TopLine="67"/>
+      </Position14>
+      <Position15>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="70" Column="1" TopLine="28"/>
+      </Position15>
+      <Position16>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="233" Column="27" TopLine="190"/>
+      </Position16>
+      <Position17>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="143" Column="5" TopLine="121"/>
+      </Position17>
+      <Position18>
+        <Filename Value="fpcres.pas"/>
+        <Caret Line="137" Column="1" TopLine="137"/>
+      </Position18>
+    </JumpHistory>
+    <Units Count="5">
+      <Unit0>
+        <CursorPos X="18" Y="4"/>
+        <EditorIndex Value="0"/>
+        <Filename Value="fpcres.pas"/>
+        <IsPartOfProject Value="True"/>
+        <Loaded Value="True"/>
+        <TopLine Value="1"/>
+        <UnitName Value="fpcres"/>
+        <UsageCount Value="32"/>
+      </Unit0>
+      <Unit1>
+        <CursorPos X="1" Y="235"/>
+        <EditorIndex Value="1"/>
+        <Filename Value="elfres.pas"/>
+        <IsPartOfProject Value="True"/>
+        <Loaded Value="True"/>
+        <TopLine Value="206"/>
+        <UnitName Value="elfres"/>
+        <UsageCount Value="32"/>
+      </Unit1>
+      <Unit2>
+        <CursorPos X="1" Y="1"/>
+        <Filename Value="/home/michael/cmdline.pp"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="10"/>
+      </Unit2>
+      <Unit3>
+        <CursorPos X="1" Y="1"/>
+        <EditorIndex Value="3"/>
+        <Filename Value="elfbfd.pas"/>
+        <IsPartOfProject Value="True"/>
+        <Loaded Value="True"/>
+        <TopLine Value="1"/>
+        <UnitName Value="elfbfd"/>
+        <UsageCount Value="25"/>
+      </Unit3>
+      <Unit4>
+        <CursorPos X="1" Y="121"/>
+        <EditorIndex Value="2"/>
+        <Filename Value="elfresfix.pas"/>
+        <IsPartOfProject Value="True"/>
+        <Loaded Value="True"/>
+        <TopLine Value="109"/>
+        <UnitName Value="elfresfix"/>
+        <UsageCount Value="25"/>
+      </Unit4>
+    </Units>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="5"/>
+    <CodeGeneration>
+      <Generate Value="Faster"/>
+    </CodeGeneration>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="2">
+      <Item1>
+        <Name Value="ECodetoolError"/>
+      </Item1>
+      <Item2>
+        <Name Value="EFOpenError"/>
+      </Item2>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

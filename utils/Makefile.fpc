@@ -10,6 +10,7 @@ version=2.0.0
 dirs=fpcm tply h2pas fprcp dxegen fpdoc
 programs=ppdep ptop rstconv data2inc delp bin2obj postw32
 dirs_win32=fpmc
+dirs_linux=fpcres
 rsts=rstconv
 
 [require]
