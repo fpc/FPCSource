@@ -1829,6 +1829,7 @@ begin
   def_system_macro('FPC_HAS_TYPE_EXTENDED');
   def_system_macro('FPC_HAS_TYPE_DOUBLE');
   def_system_macro('FPC_HAS_TYPE_SINGLE');
+  def_system_macro('FPC_HAS_RESOURCES');
 {$endif}
 {$ifdef m68k}
   def_system_macro('CPU68K');

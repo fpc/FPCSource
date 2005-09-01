@@ -41,7 +41,11 @@ type
 
 Var
   InitRes : Boolean = False;
+{$ifdef FPC_HAS_RESOURCES}
   FPCResourceSectionLocation : pFPCResourceSectionTable; external name 'FPC_RESLOCATION';
+{$else}
+  FPCResourceSectionLocation : pFPCResourceSectionTable = Nil;
+{$endif}
   FPCRuntimeResourceInfoArray : PFPCRuntimeResourceInfo;
   ResInfoCount : Cardinal;
 
