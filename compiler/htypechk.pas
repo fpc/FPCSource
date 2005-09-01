@@ -1142,6 +1142,7 @@ implementation
                      begin
                        { loop counter? }
                        if not(Valid_Const in opts) and
+                          not gotderef and
                           (vo_is_loop_counter in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
                          CGMessage1(parser_e_illegal_assignment_to_count_var,tloadnode(hp).symtableentry.realname);
                        { derefed pointer }
