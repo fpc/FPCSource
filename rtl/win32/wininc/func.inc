@@ -149,6 +149,7 @@ procedure InitializeCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); exter
 procedure EnterCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external 'kernel32' name 'EnterCriticalSection';
 procedure LeaveCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external 'kernel32' name 'LeaveCriticalSection';
 procedure DeleteCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external 'kernel32' name 'DeleteCriticalSection';
+function TryEnterCriticalSection(lpCriticalSection:LPCRITICAL_SECTION):WINBOOL; external 'kernel32' name 'TryEnterCriticalSection';
 function SetEvent(hEvent:HANDLE):WINBOOL; external 'kernel32' name 'SetEvent';
 function ResetEvent(hEvent:HANDLE):WINBOOL; external 'kernel32' name 'ResetEvent';
 function PulseEvent(hEvent:HANDLE):WINBOOL; external 'kernel32' name 'PulseEvent';
