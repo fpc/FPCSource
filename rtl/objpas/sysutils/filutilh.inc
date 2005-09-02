@@ -26,7 +26,7 @@ Type
 {$else unix}
     FindHandle : THandle;
 {$endif unix}
-{$ifdef Win32}
+{$if defined(Win32) or defined(WinCE)}
     FindData : TWin32FindData;
 {$endif}
 {$ifdef netware_clib}
