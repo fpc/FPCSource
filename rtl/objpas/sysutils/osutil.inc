@@ -204,3 +204,24 @@ begin
   Result:=GetTempFileName('','');
 end;
 
+{$ifndef win32}
+Function GetTempFileName(Dir,Prefix: PChar; uUnique: DWORD; TempFileName: PChar):DWORD;
+
+Var
+  P,Buf : String;
+  L : Integer;
+  
+begin
+  P:=StrPas(Prefix);
+  if (uUnique<>0) then
+    P:=P+format('%.4x',[uUnique]);
+  Buf:=GetTempFileName(StrPas(Dir),P); 
+  L:=Length(Buf);
+  If (L>0) then
+    Move(Buf[1],TempFileName^,L+1);
+  if (uUnique<>0) then
+    result:=uUnique
+  else
+    result:=1;  
+end;
+{$endif}

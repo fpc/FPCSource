@@ -60,6 +60,16 @@ implementation
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
+Function SysGetTempFileName(lpPathName:LPCSTR; lpPrefixString:LPCSTR; uUnique:UINT; lpTempFileName:LPSTR):UINT; external 'kernel32' name 'GetTempFileNameA';
+
+function GetTempFileName(Dir,Prefix: PChar; uUnique: DWORD; TempFileName: PChar):DWORD;
+
+begin
+  Result:=SysGetTempFileName(Dir,Prefix,uUnique,TempFileName);
+end;
+
+
+
 { UUID generation. }
 
 function CoCreateGuid(out guid: TGUID): HResult; stdcall; external 'ole32.dll' name 'CoCreateGuid';
