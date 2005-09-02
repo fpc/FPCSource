@@ -248,112 +248,112 @@ GRAPHDIR=$(INC)/graph
 include $(WININC)/makefile.inc
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings lineinfo windows dos rtlconsts sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) ctypes objpas macpas strings lineinfo windows messages dos objects rtlconsts sysconst sysutils typinfo types classes strutils convutils charset getopts
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_LOADERS+=wprt0 #wdllprt0
@@ -1902,11 +1902,34 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
 windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(WININC) windows.pp
+messages$(PPUEXT): messages.pp $(WININC)/messages.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) -I$(WININC) messages.pp
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT)
+objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
+		    objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT) sysconst$(PPUEXT)
+	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) sysconst$(PPUEXT)
+	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/math.pp
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/types.pp
 rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
 	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
+dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
+convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutils.pp
+strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
+macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/macpas.pp $(REDIR)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
@@ -1916,3 +1939,4 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)

@@ -694,6 +694,29 @@ function SetEvent(hEvent:HANDLE):WINBOOL;
 //win32 version redirected
 function WindowFromPoint(Point:POINT):HWND; external UserDLLCore name 'WindowFromPoint';
 
+// SHGetSpecialFolderPath consts
+const
+  CSIDL_PROGRAMS           = $0002;
+  CSIDL_CONTROLS           = $0003;
+  CSIDL_PRINTERS           = $0004;
+  CSIDL_PERSONAL           = $0005;
+  CSIDL_FAVORITES          = $0006;
+  CSIDL_STARTUP            = $0007;
+  CSIDL_RECENT             = $0008;
+  CSIDL_SENDTO             = $0009;
+  CSIDL_BITBUCKET          = $000a;
+  CSIDL_STARTMENU          = $000b;
+  CSIDL_DESKTOPDIRECTORY   = $0010;
+  CSIDL_DRIVES             = $0011;
+  CSIDL_NETWORK            = $0012;
+  CSIDL_NETHOOD            = $0013;
+  CSIDL_FONTS		           = $0014;
+  CSIDL_TEMPLATES          = $0015;
+  CSIDL_APPDATA            = $001a;
+  
+function SHGetSpecialFolderPath(hwndOwner: HWND; lpszPath: LPTSTR; nFolder: LongInt; fCreate: BOOL): BOOL;
+  external 'coredll' name 'SHGetSpecialFolderPath';
+
 //end wince only
 {$endif WINCE}
 

@@ -33,15 +33,6 @@ Type
 
 {$i dosh.inc}
 
-//Const
-  { allow EXEC to inherited handles from calling process,
-    needed for FPREDIR in ide/text
-    now set to true by default because
-    other OS also pass open handles to childs
-    finally reset to false after Florian's response PM }
-//  ExecInheritsHandles : Longbool = false;
-
-
 implementation
 
 {$DEFINE HAS_GETMSCOUNT}
@@ -208,14 +199,19 @@ var
   i, len: LongInt;
 begin
   GetDriveName:=nil;
+  // Current drive is C: drive always
+  if drive = 0 then
+    drive:=2;
   if (drive < 3) or (drive > 26) then
     exit;
   if DriveNames[1] = nil then
   begin
+    // Drive C: is filesystem root always
     GetMem(DriveNames[1], 2*SizeOf(WideChar));
     DriveNames[1][0]:='\';
     DriveNames[1][1]:=#0;
     
+    // Other drives are found dinamically
     h:=FindFirstFile('\*', @fd);
     if h <> 0 then
     begin
@@ -322,7 +318,7 @@ begin
   F.ExcludeAttr:=(not Attr) and ($1e); {hidden,sys,dir,volume}
   StringToPchar(f.name);
 
-  { FindFirstFile is a Win32 Call }
+  { FindFirstFile is a WinCE Call }
   F.W32FindData.dwFileAttributes:=DosToWinAttr(f.attr);
   AnsiToWideBuf(@f.Name, -1, buf, SizeOf(buf));
   F.FindHandle:=FindFirstFile (buf, F.W32FindData);
@@ -497,81 +493,6 @@ Function  GetEnv(envvar: string): string;
 begin
   GetEnv:=''; //!!! fixme
 end;
-
-{
-  The environment is a block of zero terminated strings
-  terminated by a #0
-}
-(*
-function envcount : longint;
-var
-   hp,p : pchar;
-   count : longint;
-begin
-   p:=GetEnvironmentStrings;
-   hp:=p;
-   count:=0;
-   while  hp^<>#0 do
-     begin
-        { next string entry}
-        hp:=hp+strlen(hp)+1;
-        inc(count);
-     end;
-   FreeEnvironmentStrings(p);
-   envcount:=count;
-end;
-
-
-Function EnvStr (Index: longint): string;
-var
-   hp,p : pchar;
-   count,i : longint;
-begin
-   { envcount takes some time in win32 }
-   count:=envcount;
-
-   { range checking }
-   if (index<=0) or (index>count) then
-     begin
-        envstr:='';
-        exit;
-     end;
-   p:=GetEnvironmentStrings;
-   hp:=p;
-
-   { retrive the string with the given index }
-   for i:=2 to index do
-     hp:=hp+strlen(hp)+1;
-
-   envstr:=strpas(hp);
-   FreeEnvironmentStrings(p);
-end;
-
-
-Function  GetEnv(envvar: string): string;
-var
-   s : string;
-   i : longint;
-   hp,p : pchar;
-begin
-   getenv:='';
-   p:=GetEnvironmentStrings;
-   hp:=p;
-   while hp^<>#0 do
-     begin
-        s:=strpas(hp);
-        i:=pos('=',s);
-        if upcase(copy(s,1,i-1))=upcase(envvar) then
-          begin
-             getenv:=copy(s,i+1,length(s)-i);
-             break;
-          end;
-        { next string entry}
-        hp:=hp+strlen(hp)+1;
-     end;
-   FreeEnvironmentStrings(p);
-end;
-*)
 
 var
   oldexitproc : pointer;

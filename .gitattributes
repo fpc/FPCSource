@@ -4206,10 +4206,14 @@ rtl/win64/system.pp svneol=native#text/plain
 rtl/wince/Makefile svneol=native#text/plain
 rtl/wince/Makefile.fpc svneol=native#text/plain
 rtl/wince/arm/wprt0.as svneol=native#text/plain
+rtl/wince/classes.pp -text
 rtl/wince/dos.pp -text
 rtl/wince/i386/wprt0.as svneol=native#text/plain
+rtl/wince/messages.pp -text
 rtl/wince/readme-winceapi-port -text
 rtl/wince/system.pp svneol=native#text/plain
+rtl/wince/sysutils.pp -text
+rtl/wince/tthread.inc -text
 rtl/wince/windows.pp -text
 rtl/wince/wininc/base.inc -text
 rtl/wince/wininc/defines.inc -text

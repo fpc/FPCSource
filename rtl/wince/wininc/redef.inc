@@ -22,12 +22,87 @@
 {$ifdef read_interface}
 
 //begin common win32 & wince
+
+//
+//  A language ID is a 16 bit value which is the combination of a
+//  primary language ID and a secondary language ID.  The bits are
+//  allocated as follows:
+//
+//       +-----------------------+-------------------------+
+//       |     Sublanguage ID    |   Primary Language ID   |
+//       +-----------------------+-------------------------+
+//        15                   10 9                       0   bit
+//
+//
+//  Language ID creation/extraction macros:
+//
+//    MAKELANGID    - construct language id from a primary language id and
+//                    a sublanguage id.
+//    PRIMARYLANGID - extract primary language id from a language id.
+//    SUBLANGID     - extract sublanguage id from a language id.
+//
+
+function MAKELANGID(PrimaryLang, SubLang: USHORT): WORD;
+function PRIMARYLANGID(LangId: WORD): WORD;
+function SUBLANGID(LangId: WORD): WORD;
+
+//
+//  A locale ID is a 32 bit value which is the combination of a
+//  language ID, a sort ID, and a reserved area.  The bits are
+//  allocated as follows:
+//
+//       +-------------+---------+-------------------------+
+//       |   Reserved  | Sort ID |      Language ID        |
+//       +-------------+---------+-------------------------+
+//        31         20 19     16 15                      0   bit
+//
+//
+//  Locale ID creation/extraction macros:
+//
+//    MAKELCID            - construct the locale id from a language id and a sort id.
+//    MAKESORTLCID        - construct the locale id from a language id, sort id, and sort version.
+//    LANGIDFROMLCID      - extract the language id from a locale id.
+//    SORTIDFROMLCID      - extract the sort id from a locale id.
+//    SORTVERSIONFROMLCID - extract the sort version from a locale id.
+//
+
+const
+  NLS_VALID_LOCALE_MASK = $000fffff;                              //winnt
+
+function MAKELCID(LangId, SortId: WORD): DWORD;                   //winnt
+function MAKESORTLCID(LangId, SortId, SortVersion: WORD): DWORD;  //winnt
+function LANGIDFROMLCID(LocaleId: LCID): WORD;                    //winnt
+function SORTIDFROMLCID(LocaleId: LCID): WORD;                    //winnt
+function SORTVERSIONFROMLCID(LocaleId: LCID): WORD;               //winnt
+
+//
+//  Default System and User IDs for language and locale.
+//
+
+function LANG_SYSTEM_DEFAULT: WORD;                               //winnt
+function LANG_USER_DEFAULT: WORD;                                 //winnt
+function LOCALE_SYSTEM_DEFAULT: DWORD;                            //+winnt
+function LOCALE_USER_DEFAULT: DWORD;                            //+winnt
+function LOCALE_NEUTRAL: DWORD;                                   //winnt
+function LOCALE_INVARIANT: DWORD;                                 //winnt
+
+
 function GetVersionExW(var lpVersionInformation: TOSVersionInfoW): BOOL; external KernelDLL name 'GetVersionExW';
 procedure GetLocalTime(var SystemTime: SYSTEMTIME); external KernelDLL name 'GetLocalTime';
 function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external KernelDLL name 'SetLocalTime';
 function CreateProcessW(lpApplicationName: LPWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR;
   const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external KernelDLL name 'CreateProcessW';
 function GetExitCodeProcess(hProcess: THandle; var lpExitCode: DWORD): BOOL; external KernelDLL name 'GetExitCodeProcess';
+function ReadFile(hFile: THandle; var Buffer; nNumberOfBytesToRead: DWORD; var lpNumberOfBytesRead: DWORD; lpOverlapped: POverlapped): BOOL; external KernelDLL name 'ReadFile';
+function WriteFile(hFile: THandle; const Buffer; nNumberOfBytesToWrite: DWORD; var lpNumberOfBytesWritten: DWORD; lpOverlapped: POverlapped): BOOL; external KernelDLL name 'WriteFile';
+function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccessTime:FILETIME; var lpLastWriteTime:FILETIME):WINBOOL; external KernelDLL name 'SetFileTime';
+procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection); external KernelDLL name 'EnterCriticalSection';
+procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection); external KernelDLL name 'LeaveCriticalSection';
+function RegisterClassW(const lpWndClass: TWndClassW): ATOM; external UserDLLCore name 'RegisterClassW';
+//redirected to MsgWaitForMultipleObjectsEx
+function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; dwMilliseconds, dwWakeMask: DWORD): DWORD;
+function PeekMessageW(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL; external UserDLLCore name 'PeekMessageW';
+function GetExitCodeThread(hThread: THandle; var lpExitCode: DWORD): BOOL; external KernelDLL name 'GetExitCodeThread';
 //end common win32 & wince
 
 {$ifdef WINCE}
@@ -37,6 +112,8 @@ function CreateProcess(lpApplicationName: LPTSTR; lpCommandLine: LPTSTR; lpProce
   const lpStartupInfo: LPStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external KernelDLL name 'CreateProcessW';
 function FindFirstFile(lpFileName: LPTSTR; var lpFindFileData: TWIN32FindData): THandle; external KernelDLL name 'FindFirstFileW';
 function FindNextFile(hFindFile: THandle; var lpFindFileData: TWIN32FindData): BOOL; external KernelDLL name 'FindNextFileW';
+function RegisterClass(const lpWndClass: TWndClass): ATOM;external UserDLLCore name 'RegisterClassW';
+function PeekMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL;external UserDLLCore name 'PeekMessageW';
 //end wince only
 {$endif WINCE}
 
@@ -132,70 +209,6 @@ const
   FACILITY_NT_BIT = $10000000;
   HFILE_ERROR = HFILE(-1);
 
-//
-//  A language ID is a 16 bit value which is the combination of a
-//  primary language ID and a secondary language ID.  The bits are
-//  allocated as follows:
-//
-//       +-----------------------+-------------------------+
-//       |     Sublanguage ID    |   Primary Language ID   |
-//       +-----------------------+-------------------------+
-//        15                   10 9                       0   bit
-//
-//
-//  Language ID creation/extraction macros:
-//
-//    MAKELANGID    - construct language id from a primary language id and
-//                    a sublanguage id.
-//    PRIMARYLANGID - extract primary language id from a language id.
-//    SUBLANGID     - extract sublanguage id from a language id.
-//
-
-function MAKELANGID(PrimaryLang, SubLang: USHORT): WORD;
-function PRIMARYLANGID(LangId: WORD): WORD;
-function SUBLANGID(LangId: WORD): WORD;
-
-//
-//  A locale ID is a 32 bit value which is the combination of a
-//  language ID, a sort ID, and a reserved area.  The bits are
-//  allocated as follows:
-//
-//       +-------------+---------+-------------------------+
-//       |   Reserved  | Sort ID |      Language ID        |
-//       +-------------+---------+-------------------------+
-//        31         20 19     16 15                      0   bit
-//
-//
-//  Locale ID creation/extraction macros:
-//
-//    MAKELCID            - construct the locale id from a language id and a sort id.
-//    MAKESORTLCID        - construct the locale id from a language id, sort id, and sort version.
-//    LANGIDFROMLCID      - extract the language id from a locale id.
-//    SORTIDFROMLCID      - extract the sort id from a locale id.
-//    SORTVERSIONFROMLCID - extract the sort version from a locale id.
-//
-
-const
-  NLS_VALID_LOCALE_MASK = $000fffff;                              //winnt
-
-function MAKELCID(LangId, SortId: WORD): DWORD;                   //winnt
-function MAKESORTLCID(LangId, SortId, SortVersion: WORD): DWORD;  //winnt
-function LANGIDFROMLCID(LocaleId: LCID): WORD;                    //winnt
-function SORTIDFROMLCID(LocaleId: LCID): WORD;                    //winnt
-function SORTVERSIONFROMLCID(LocaleId: LCID): WORD;               //winnt
-
-//
-//  Default System and User IDs for language and locale.
-//
-
-function LANG_SYSTEM_DEFAULT: WORD;                               //winnt
-function LANG_USER_DEFAULT: WORD;                                 //winnt
-function LOCALE_SYSTEM_DEFAULT: DWORD;                            //+winnt
-function LOCALE_USER_DEFAULT: DWORD;                            //+winnt
-function LOCALE_NEUTRAL: DWORD;                                   //winnt
-function LOCALE_INVARIANT: DWORD;                                 //winnt
-
-
 function Succeeded(Status : HRESULT) : BOOL;
 function Failed(Status : HRESULT) : BOOL;
 function IsError(Status : HRESULT) : BOOL;
@@ -207,8 +220,6 @@ function HResultFromWin32(x : Longint) : HRESULT;
 function HResultFromNT(x : Longint) : HRESULT;
 
 procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'InitializeCriticalSection';
-procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'EnterCriticalSection';
-procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'LeaveCriticalSection';
 procedure DeleteCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'DeleteCriticalSection';
 function InitializeCriticalSectionAndSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD) : BOOL; external 'kernel32' name 'InitializeCriticalSectionAndSpinCount';
 function SetCriticalSectionSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD ): DWORD; external 'kernel32' name 'SetCriticalSectionSpinCount';
@@ -485,7 +496,6 @@ function GetDiskFreeSpaceEx(lpDirectoryName: PChar;  lpFreeBytesAvailableToCalle
 function GetDiskFreeSpaceExA(lpDirectoryName: LPCSTR;  lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes: pLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExA';
 function GetDiskFreeSpaceExW(lpDirectoryName: LPWSTR;  lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes: pLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExW';
 //function GetEnhMetaFilePixelFormat(p1: HENHMETAFILE; p2: Cardinal; var p3: TPixelFormatDescriptor): UINT;external 'gdi32' name 'GetEnhMetaFilePixelFormat';
-function GetExitCodeThread(hThread: THandle; var lpExitCode: DWORD): BOOL; external 'kernel32' name 'GetExitCodeThread';
 function GetFileInformationByHandle(hFile: THandle; var lpFileInformation: TByHandleFileInformation): BOOL; external 'kernel32' name 'GetFileInformationByHandle';
 //function GetFileSecurity(lpFileName: PChar; RequestedInformation: SECURITY_INFORMATION; pSecurityDescriptor: PSecurityDescriptor; nLength: DWORD; var lpnLengthNeeded: DWORD): BOOL;external 'advapi32' name 'GetFileSecurityA';
 //function GetFileSecurityA(lpFileName: LPCSTR; RequestedInformation: SECURITY_INFORMATION; pSecurityDescriptor: PSecurityDescriptor; nLength: DWORD; var lpnLengthNeeded: DWORD): BOOL; external 'advapi32' name 'GetFileSecurityA';
@@ -674,7 +684,6 @@ function MessageBoxIndirect(const MsgBoxParams: TMsgBoxParams): BOOL;external 'u
 function MessageBoxIndirectA(const MsgBoxParams: TMsgBoxParamsA): BOOL; external 'user32' name 'MessageBoxIndirectA';
 //function MessageBoxIndirectW(const MsgBoxParams: TMsgBoxParamsW): BOOL; external 'user32' name 'MessageBoxIndirectW';
 //function ModifyWorldTransform(DC: HDC; const p2: TXForm; p3: DWORD): BOOL; external 'gdi32' name 'ModifyWorldTransform';
-function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; dwMilliseconds, dwWakeMask: DWORD): DWORD;external 'user32' name 'MsgWaitForMultipleObjects';
 {$ifdef support_smartlink}
 function MsgWaitForMultipleObjectsEx(nCount: DWORD; var pHandles; dwMilliseconds, dwWakeMask, dwFlags: DWORD): DWORD;external 'user32' name 'MsgWaitForMultipleObjectsEx';
 {$endif support_smartlink}
@@ -698,9 +707,7 @@ function OpenThreadToken(ThreadHandle: THandle; DesiredAccess: DWORD; OpenAsSelf
 function PeekConsoleInput(hConsoleInput: THandle; var lpBuffer: TInputRecord; nLength: DWORD; var lpNumberOfEventsRead: DWORD): BOOL;external 'kernel32' name 'PeekConsoleInputA';
 function PeekConsoleInputA(hConsoleInput: THandle; var lpBuffer: TInputRecord; nLength: DWORD; var lpNumberOfEventsRead: DWORD): BOOL; external 'kernel32' name 'PeekConsoleInputA';
 function PeekConsoleInputW(hConsoleInput: THandle; var lpBuffer: TInputRecord; nLength: DWORD; var lpNumberOfEventsRead: DWORD): BOOL; external 'kernel32' name 'PeekConsoleInputW';
-function PeekMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL;external 'user32' name 'PeekMessageA';
 function PeekMessageA(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL; external 'user32' name 'PeekMessageA';
-function PeekMessageW(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL; external 'user32' name 'PeekMessageW';
 //function PlayEnhMetaFile(DC: HDC; p2: HENHMETAFILE; const p3: TRect): BOOL; external 'gdi32' name 'PlayEnhMetaFile';
 function PlayEnhMetaFileRecord(DC: HDC; var p2: THandleTable; const p3: TEnhMetaRecord; p4: UINT): BOOL; external 'gdi32' name 'PlayEnhMetaFileRecord';
 function PlayMetaFileRecord(DC: HDC; const p2: THandleTable; const p3: TMetaRecord; p4: UINT): BOOL; external 'gdi32' name 'PlayMetaFileRecord';
@@ -744,7 +751,6 @@ function ReadConsoleW(hConsoleInput: THandle; lpBuffer: Pointer; nNumberOfCharsT
 function ReadEventLog(hEventLog: THandle; dwReadFlags, dwRecordOffset: DWORD; lpBuffer: Pointer; nNumberOfBytesToRead: DWORD; var pnBytesRead, pnMinNumberOfBytesNeeded: DWORD): BOOL;external 'advapi32' name 'ReadEventLogA';
 function ReadEventLogA(hEventLog: THandle; dwReadFlags, dwRecordOffset: DWORD; lpBuffer: Pointer; nNumberOfBytesToRead: DWORD; var pnBytesRead, pnMinNumberOfBytesNeeded: DWORD): BOOL; external 'advapi32' name 'ReadEventLogA';
 function ReadEventLogW(hEventLog: THandle; dwReadFlags, dwRecordOffset: DWORD; lpBuffer: Pointer; nNumberOfBytesToRead: DWORD; var pnBytesRead, pnMinNumberOfBytesNeeded: DWORD): BOOL; external 'advapi32' name 'ReadEventLogW';
-function ReadFile(hFile: THandle; var Buffer; nNumberOfBytesToRead: DWORD; var lpNumberOfBytesRead: DWORD; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'ReadFile';
 function ReadProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; external 'kernel32' name 'ReadProcessMemory';
 //function RectInRegion(RGN: HRGN; const p2: TRect): BOOL; external 'gdi32' name 'RectInRegion';
 //function RectVisible(DC: HDC; const Rect: TRect): BOOL; external 'gdi32' name 'RectVisible';
@@ -767,12 +773,10 @@ function RegEnumValue(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbVa
 function RegEnumValueA(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; external 'advapi32' name 'RegEnumValueA';
 function RegEnumValueW(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; external 'advapi32' name 'RegEnumValueW';
 function RegGetKeySecurity(hKey: HKEY; SecurityInformation: SECURITY_INFORMATION; pSecurityDescriptor: PSecurityDescriptor; var lpcbSecurityDescriptor: DWORD): Longint; external 'advapi32' name 'RegGetKeySecurity';
-function RegisterClass(const lpWndClass: TWndClass): ATOM;external 'user32' name 'RegisterClassA';
 function RegisterClassA(const lpWndClass: TWndClassA): ATOM; external 'user32' name 'RegisterClassA';
 function RegisterClassEx(const WndClass: TWndClassEx): ATOM;external 'user32' name 'RegisterClassExA';
 function RegisterClassExA(const WndClass: TWndClassExA): ATOM; external 'user32' name 'RegisterClassExA';
 function RegisterClassExW(const WndClass: TWndClassExW): ATOM; external 'user32' name 'RegisterClassExW';
-function RegisterClassW(const lpWndClass: TWndClassW): ATOM; external 'user32' name 'RegisterClassW';
 function RegOpenKey(hKey: HKEY; lpSubKey: PChar; var phkResult: HKEY): Longint;external 'advapi32' name 'RegOpenKeyA';
 function RegOpenKeyA(hKey: HKEY; lpSubKey: LPCSTR; var phkResult: HKEY): Longint; external 'advapi32' name 'RegOpenKeyA';
 function RegOpenKeyEx(hKey: HKEY; lpSubKey: PChar; ulOptions: DWORD; samDesired: REGSAM; var phkResult: HKEY): Longint;external 'advapi32' name 'RegOpenKeyExA';
@@ -816,7 +820,6 @@ function SetDeviceGammaRamp(DC: HDC; var Ramp): BOOL; external 'gdi32' name 'Set
 function SetDIBColorTable(DC: HDC; p2, p3: UINT; var RGBQuadSTructs): UINT; external 'gdi32' name 'SetDIBColorTable';
 function SetDIBits(DC: HDC; Bitmap: HBITMAP; StartScan, NumScans: UINT; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT): Integer; external 'gdi32' name 'SetDIBits';
 //function SetDIBitsToDevice(DC: HDC; DestX, DestY: Integer; Width, Height: DWORD; SrcX, SrcY: Integer; nStartScan, NumScans: UINT; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT): Integer; external 'gdi32' name 'SetDIBitsToDevice';
-function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccessTime:FILETIME; var lpLastWriteTime:FILETIME):WINBOOL; external 'kernel32' name 'SetFileTime';
 //function SetKeyboardState(var KeyState: TKeyboardState): BOOL; external 'user32' name 'SetKeyboardState';
 //function SetLocalTime(const lpSystemTime: TSystemTime): BOOL; external 'kernel32' name 'SetLocalTime';
 //function SetMenuInfo(hMenu: HMENU; const lpcmi: TMenuInfo): BOOL;external 'user32' name 'SetMenuInfo';
@@ -945,7 +948,6 @@ function WriteConsoleOutputCharacterA(hConsoleOutput: THandle;lpCharacter: LPCST
 function WriteConsoleOutputCharacterW(hConsoleOutput: THandle;lpCharacter: LPWSTR; nLength: DWORD; dwWriteCoord: TCoord; var lpNumberOfCharsWritten: DWORD): BOOL; external 'kernel32' name 'WriteConsoleOutputCharacterW';
 function WriteConsoleOutputW(hConsoleOutput: THandle; lpBuffer: Pointer; dwBufferSize, dwBufferCoord: TCoord; var lpWriteRegion: TSmallRect): BOOL; external 'kernel32' name 'WriteConsoleOutputW';
 function WriteConsoleW(hConsoleOutput: THandle; const lpBuffer: Pointer; nNumberOfCharsToWrite: DWORD; var lpNumberOfCharsWritten: DWORD; lpReserved: Pointer): BOOL; external 'kernel32' name 'WriteConsoleW';
-function WriteFile(hFile: THandle; const Buffer; nNumberOfBytesToWrite: DWORD; var lpNumberOfBytesWritten: DWORD; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'WriteFile';
 function WriteFileEx(hFile: THandle; lpBuffer: Pointer; nNumberOfBytesToWrite: DWORD; const lpOverlapped: TOverlapped; lpCompletionRoutine: FARPROC): BOOL; external 'kernel32' name 'WriteFileEx';
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; external 'kernel32' name 'WriteProcessMemory';
 
@@ -972,10 +974,86 @@ function AnsiLowerBuff(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32' nam
 {$ifdef read_implementation}
 
 //begin common win32 & wince
+function MAKELANGID(PrimaryLang, SubLang: USHORT): WORD;
+begin
+  MAKELANGID := (SubLang shl 10) or PrimaryLang;
+end;
+
+function PRIMARYLANGID(LangId: WORD): WORD;
+begin
+  PRIMARYLANGID := LangId and $3FF;
+end;
+
+function SUBLANGID(LangId: WORD): WORD;
+begin
+  SUBLANGID := LangId shr 10;
+end;
+
+function MAKELCID(LangId, SortId: WORD): DWORD;
+begin
+  MAKELCID := (DWORD(SortId) shl 16) or DWORD(LangId);
+end;
+
+function MAKESORTLCID(LangId, SortId, SortVersion: WORD): DWORD;
+begin
+  MAKESORTLCID := MAKELCID(LangId, SortId) or (SortVersion shl 20);
+end;
+
+function LANGIDFROMLCID(LocaleId: LCID): WORD;
+begin
+  LANGIDFROMLCID := WORD(LocaleId);
+end;
+
+function SORTIDFROMLCID(LocaleId: LCID): WORD;
+begin
+  SORTIDFROMLCID := WORD((DWORD(LocaleId) shr 16) and $F);
+end;
+
+function SORTVERSIONFROMLCID(LocaleId: LCID): WORD;
+begin
+  SORTVERSIONFROMLCID := WORD((DWORD(LocaleId) shr 20) and $F);
+end;
+
+function LANG_SYSTEM_DEFAULT: WORD;
+begin
+  LANG_SYSTEM_DEFAULT := MAKELANGID(LANG_NEUTRAL, SUBLANG_SYS_DEFAULT);
+end;
+
+function LANG_USER_DEFAULT: WORD;
+begin
+  LANG_USER_DEFAULT := MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
+end;
+
+function LOCALE_USER_DEFAULT: DWORD;
+begin
+  LOCALE_USER_DEFAULT:= MAKELCID(LANG_USER_DEFAULT, SORT_DEFAULT);
+end;
+
+function LOCALE_SYSTEM_DEFAULT: DWORD;
+begin
+  LOCALE_SYSTEM_DEFAULT:= MAKELCID(LANG_SYSTEM_DEFAULT, SORT_DEFAULT);
+end;
+
+function LOCALE_NEUTRAL: DWORD;
+begin
+  LOCALE_NEUTRAL := MAKELCID(MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), SORT_DEFAULT);
+end;
+
+function LOCALE_INVARIANT: DWORD;
+begin
+  LOCALE_INVARIANT := MAKELCID(MAKELANGID(LANG_INVARIANT, SUBLANG_NEUTRAL), SORT_DEFAULT);
+end;
+
 //end common win32 & wince
 
 {$ifdef WINCE}
 //begin wince only
+
+function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; dwMilliseconds, dwWakeMask: DWORD): DWORD;
+begin
+  MsgWaitForMultipleObjects:=MsgWaitForMultipleObjectsEx(nCount,@pHandles,dwMilliseconds,dwWakeMask,0);
+end;
+
 //end wince only
 {$endif WINCE}
 
@@ -1029,75 +1107,6 @@ function HResultFromNT(x : Longint) : HRESULT;
      HResultFromNT:=x or FACILITY_NT_BIT;
   end;
 
-function MAKELANGID(PrimaryLang, SubLang: USHORT): WORD;
-begin
-  MAKELANGID := (SubLang shl 10) or PrimaryLang;
-end;
-
-function PRIMARYLANGID(LangId: WORD): WORD;
-begin
-  PRIMARYLANGID := LangId and $3FF;
-end;
-
-function SUBLANGID(LangId: WORD): WORD;
-begin
-  SUBLANGID := LangId shr 10;
-end;
-
-function MAKELCID(LangId, SortId: WORD): DWORD;
-begin
-  MAKELCID := (DWORD(SortId) shl 16) or DWORD(LangId);
-end;
-
-function MAKESORTLCID(LangId, SortId, SortVersion: WORD): DWORD;
-begin
-  MAKESORTLCID := MAKELCID(LangId, SortId) or (SortVersion shl 20);
-end;
-
-function LANGIDFROMLCID(LocaleId: LCID): WORD;
-begin
-  LANGIDFROMLCID := WORD(LocaleId);
-end;
-
-function SORTIDFROMLCID(LocaleId: LCID): WORD;
-begin
-  SORTIDFROMLCID := WORD((DWORD(LocaleId) shr 16) and $F);
-end;
-
-function SORTVERSIONFROMLCID(LocaleId: LCID): WORD;
-begin
-  SORTVERSIONFROMLCID := WORD((DWORD(LocaleId) shr 20) and $F);
-end;
-
-function LANG_SYSTEM_DEFAULT: WORD;
-begin
-  LANG_SYSTEM_DEFAULT := MAKELANGID(LANG_NEUTRAL, SUBLANG_SYS_DEFAULT);
-end;
-
-function LANG_USER_DEFAULT: WORD;
-begin
-  LANG_USER_DEFAULT := MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
-end;
-
-function LOCALE_SYSTEM_DEFAULT: DWORD;
-begin
-  LOCALE_SYSTEM_DEFAULT:= MAKELCID(LANG_SYSTEM_DEFAULT, SORT_DEFAULT);
-end;
-
-function LOCALE_USER_DEFAULT: DWORD;
-begin
-  LOCALE_USER_DEFAULT:= MAKELCID(LANG_USER_DEFAULT, SORT_DEFAULT);
-end;
-
-function LOCALE_NEUTRAL: DWORD;
-begin
-  LOCALE_NEUTRAL := MAKELCID(MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), SORT_DEFAULT);
-end;
-
-function LOCALE_INVARIANT: DWORD;
-begin
-  LOCALE_INVARIANT := MAKELCID(MAKELANGID(LANG_INVARIANT, SUBLANG_NEUTRAL), SORT_DEFAULT);
-end;
 //end win32 or wince not checked
 
 {$endif WIN32}

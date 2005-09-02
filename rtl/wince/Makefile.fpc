@@ -7,19 +7,20 @@ main=rtl
 
 [target]
 loaders= wprt0 #wdllprt0
-units=$(SYSTEMUNIT) objpas strings \
-# ctypes macpas
+units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       lineinfo \
 # heaptrc matrix \
-      windows \
+      windows messages \
 # winsock initc cmem dynlibs signals \
-      dos \
-# crt objects graph messages \
-      rtlconsts sysconst \
-#     sysutils \
-#     math types \
-#     strutils convutils dateutils varutils variants typinfo classes \
-#     cpu mmx charset ucomplex getopts \
+      dos objects \
+# crt graph \
+      rtlconsts sysconst sysutils \
+      typinfo types classes \
+# math dateutils
+      strutils convutils \
+#     varutils variants \
+      charset getopts
+# cpu mmx ucomplex \
 #     wincrt winmouse winevent sockets printer \
 #     video mouse keyboard \
 #     winsysut
@@ -118,8 +119,8 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(WININC) windows.pp
 
-#messages$(PPUEXT): messages.pp $(WININC)/messages.inc $(SYSTEMUNIT)$(PPUEXT)
-#        $(COMPILER) -I$(WININC) messages.pp
+messages$(PPUEXT): messages.pp $(WININC)/messages.inc $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) -I$(WININC) messages.pp
 
 #opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
@@ -144,7 +145,7 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(S
 
 #crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
 
-#objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
+objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Graph
@@ -162,22 +163,22 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(S
 # Delphi Compatible Units
 #
 
-#sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-#                    objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT) sysconst$(PPUEXT)
-#        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
+                    objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT) sysconst$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
-#classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-#                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) sysconst$(PPUEXT)
-#        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) sysconst$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 #winsysut$(PPUEXT) : winsysut.pp sysutils$(PPUEXT)
 #        $(COMPILER) winsysut.pp
 
-#typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
-#        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
-#math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
-#        $(COMPILER) $(OBJPASDIR)/math.pp
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/math.pp
 
 #varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 #                    $(OBJPASDIR)/varutilh.inc varutils.pp sysutils$(PPUEXT)
@@ -186,8 +187,8 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(S
 #variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
 #        $(COMPILER) -Fi$(INC) $(INC)/variants.pp
 
-#types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-#        $(COMPILER) $(OBJPASDIR)/types.pp
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/types.pp
 
 rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
@@ -195,21 +196,21 @@ rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
-#dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
-#        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
+dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
 
-#convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp
-#        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutils.pp
+convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutils.pp
 
-#strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
-#        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
+strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
 
 #
 # Mac Pascal Model
 #
 
-#macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT)
-#        $(COMPILER) $(INC)/macpas.pp $(REDIR)
+macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/macpas.pp $(REDIR)
 
 #
 # Other system-independent RTL Units
@@ -238,6 +239,6 @@ ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
-#ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
 #variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) typinfo$(PPUEXT)

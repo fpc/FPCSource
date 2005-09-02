@@ -56,12 +56,11 @@ var
 { C compatible arguments }
   argc : longint;
   argv : ppchar;
-{ Win32 Info }
+{ WinCE Info }
   hprevinst,
-  HInstance,
   MainInstance,
   DLLreason,DLLparam:longint;
-  Win32StackTop : Dword;
+  WinCEStackTop : Dword;
 
 type
   TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
@@ -72,9 +71,6 @@ const
   Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
-
-type
-  HMODULE = THandle;
 
 { ANSI <-> Wide }
 function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
@@ -157,6 +153,9 @@ function i64tod(i : int64) : double; compilerproc;
 
 implementation
 
+var
+  SysInstance : Longint;
+
 function MessageBox(w1:longint;l1,l2:PWideChar;w2:longint):longint;
    stdcall;external 'coredll' name 'MessageBoxW';
 
@@ -182,7 +181,7 @@ function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideCh
 
 function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
 begin
-  Result := MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, AnsiBuf, AnsiBufLen, WideBuf, WideBufLen);
+  Result := MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, AnsiBuf, AnsiBufLen, WideBuf, WideBufLen div SizeOf(WideChar));
   if ((AnsiBufLen <> -1) or (Result = 0)) and (WideBuf <> nil) then
   begin
     if (Result + 1)*SizeOf(WideChar) > WideBufLen then
@@ -192,7 +191,10 @@ begin
         exit;
     end;
     WideBuf[Result] := #0;
+    if (Result <> 0) or (AnsiBufLen = 0) then
+      Inc(Result);
   end;
+  Result:=Result*SizeOf(WideChar);
 end;
 
 function WideToAnsiBuf(WideBuf: PWideChar; WideBufLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
@@ -207,6 +209,8 @@ begin
         exit;
     end;
     AnsiBuf[Result] := #0;
+    if (Result <> 0) or (WideBufLen = 0) then
+      Inc(Result);
   end;
 end;
 
@@ -405,7 +409,7 @@ var
 
 begin
   { create commandline, it starts with the executed filename which is argv[0] }
-  { Win32 passes the command NOT via the args, but via getmodulefilename}
+  { WinCE passes the command NOT via the args, but via getmodulefilename}
   argv:=nil;
   argvlen:=0;
   pc:=getcommandfile;
@@ -427,7 +431,7 @@ begin
   count:=0;
   pc:=cmdline;
 {$IfDef SYSTEM_DEBUG_STARTUP}
-  Writeln(stderr,'Win32 GetCommandLine is #',pc,'#');
+  Writeln(stderr,'WinCE GetCommandLine is #',pc,'#');
 {$EndIf }
   while pc^<>#0 do
    begin
@@ -701,7 +705,7 @@ end;
 //
 
 {
-  Error code definitions for the Win32 API functions
+  Error code definitions for the WinCE API functions
 
 
   Values are 32 bit values layed out as follows:
@@ -1198,7 +1202,8 @@ begin
       res := 215;
     STATUS_ILLEGAL_INSTRUCTION:
       res := 216;
-    STATUS_ACCESS_VIOLATION:
+    STATUS_ACCESS_VIOLATION,
+    STATUS_DATATYPE_MISALIGNMENT:
       res := 216;
     STATUS_CONTROL_C_EXIT:
       res := 217;
@@ -1258,7 +1263,7 @@ begin
     pushl %ebp
     xorl %ebp,%ebp
     movl %esp,%eax
-    movl %eax,Win32StackTop
+    movl %eax,WinCEStackTop
     movw %ss,%bp
     movl %ebp,_SS
     call SysResetFPU
@@ -1283,7 +1288,45 @@ function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external Ke
 function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external KernelDLL name 'CharLowerBuffW';
 
 
-function Win32WideUpper(const s : WideString) : WideString;
+procedure WinCEWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
+  var
+    i: integer;
+  begin
+    if len = 0 then
+      dest:=''
+    else
+    begin
+      for i:=1 to 2 do begin
+        setlength(dest, len);
+        len:=WideCharToMultiByte(CP_ACP, 0, source, len, @dest[1], len, nil, nil);
+        if len > 0 then
+          break;
+        len:=WideCharToMultiByte(CP_ACP, 0, source, len, nil, 0, nil, nil);
+      end;
+      setlength(dest, len);
+    end;
+  end;
+  
+procedure WinCEAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+  var
+    i: integer;
+  begin
+    if len = 0 then
+      dest:=''
+    else
+    begin
+      for i:=1 to 2 do begin
+        setlength(dest, len);
+        len:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, @dest[1], len);
+        if len > 0 then
+          break;
+        len:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, nil, 0);
+      end;
+      setlength(dest, len);
+    end;
+  end;
+  
+function WinCEWideUpper(const s : WideString) : WideString;
   begin
     result:=s;
     UniqueString(result);
@@ -1292,7 +1335,7 @@ function Win32WideUpper(const s : WideString) : WideString;
   end;
 
 
-function Win32WideLower(const s : WideString) : WideString;
+function WinCEWideLower(const s : WideString) : WideString;
   begin
     result:=s;
     UniqueString(result);
@@ -1303,10 +1346,12 @@ function Win32WideLower(const s : WideString) : WideString;
 
 { there is a similiar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
-procedure InitWin32Widestrings;
+procedure InitWinCEWidestrings;
   begin
-    widestringmanager.UpperWideStringProc:=@Win32WideUpper;
-    widestringmanager.LowerWideStringProc:=@Win32WideLower;
+    widestringmanager.Wide2AnsiMoveProc:=@WinCEWide2AnsiMove;
+    widestringmanager.Ansi2WideMoveProc:=@WinCEAnsi2WideMove;
+    widestringmanager.UpperWideStringProc:=@WinCEWideUpper;
+    widestringmanager.LowerWideStringProc:=@WinCEWideLower;
   end;
 
 
@@ -1434,7 +1479,7 @@ var
   buf: array[0..MaxPathLen] of WideChar;
 begin
   GetModuleFileName(0, @buf, SizeOf(buf));
-  HInstance:=GetModuleHandle(@buf);
+  SysInstance:=GetModuleHandle(@buf);
 end;
 
 const
@@ -1464,5 +1509,5 @@ begin
   errno:=0;
   initvariantmanager;
   initwidestringmanager;
-  InitWin32Widestrings
+  InitWinCEWidestrings
 end.
