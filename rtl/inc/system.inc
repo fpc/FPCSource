@@ -1012,4 +1012,17 @@ end;
 { OS dependent dir functions }
 {$i sysdir.inc}
 
+{*****************************************************************************
+                            Resources support
+*****************************************************************************}
 
+
+{$ifndef HAS_RESOURCES}
+{$i sysres.inc}
+{$endif}
+
+Function FindResource(ModuleHandle: HMODULE; ResourceName, ResourceType: AnsiString): TResourceHandle;
+
+begin
+  Result:=FindResource(ModuleHandle,PChar(ResourceName),PChar(ResourceType));
+end;

@@ -3300,6 +3300,7 @@ rtl/inc/dosh.inc svneol=native#text/plain
 rtl/inc/dynarr.inc svneol=native#text/plain
 rtl/inc/dynarrh.inc svneol=native#text/plain
 rtl/inc/dynlibs.pp svneol=native#text/plain
+rtl/inc/elfres32.inc svneol=native#text/plain
 rtl/inc/except.inc svneol=native#text/plain
 rtl/inc/fexpand.inc svneol=native#text/plain
 rtl/inc/file.inc svneol=native#text/plain
@@ -3346,6 +3347,7 @@ rtl/inc/printer.inc svneol=native#text/plain
 rtl/inc/printerh.inc svneol=native#text/plain
 rtl/inc/readme -text
 rtl/inc/real2str.inc svneol=native#text/plain
+rtl/inc/resh.inc svneol=native#text/plain
 rtl/inc/rtti.inc svneol=native#text/plain
 rtl/inc/sockets.inc svneol=native#text/plain
 rtl/inc/socketsh.inc svneol=native#text/plain
@@ -3355,6 +3357,7 @@ rtl/inc/sstrings.inc svneol=native#text/plain
 rtl/inc/stdsock.inc svneol=native#text/plain
 rtl/inc/strings.pp svneol=native#text/plain
 rtl/inc/stringsi.inc svneol=native#text/plain
+rtl/inc/sysres.inc svneol=native#text/plain
 rtl/inc/system.fpd -text
 rtl/inc/system.inc svneol=native#text/plain
 rtl/inc/systemh.inc svneol=native#text/plain
@@ -4011,6 +4014,7 @@ rtl/win32/video.pp svneol=native#text/plain
 rtl/win32/wcygprt0.as -text
 rtl/win32/wdllprt0.as -text
 rtl/win32/win32.inc svneol=native#text/plain
+rtl/win32/win32res.inc svneol=native#text/plain
 rtl/win32/wincrt.pp svneol=native#text/plain
 rtl/win32/windows.pp svneol=native#text/plain
 rtl/win32/winevent.pp svneol=native#text/plain

@@ -90,7 +90,6 @@ var
 { Win32 Info }
   startupinfo : tstartupinfo;
   hprevinst,
-  HInstance,
   MainInstance,
   cmdshow     : longint;
   DLLreason,DLLparam:longint;
@@ -106,10 +105,15 @@ const
   Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
 
-type
-  HMODULE = THandle;
-
 implementation
+
+var
+  SysInstance : Longint;
+
+{$ifdef i386}
+{$define HAS_RESOURCES}
+{$i win32res.inc}
+{$endif}
 
 { used by wstrings.inc because wstrings.inc is included before sysos.inc
   this is put here (FK) }
@@ -1127,7 +1131,7 @@ begin
   { some misc Win32 stuff }
   hprevinst:=0;
   if not IsLibrary then
-    HInstance:=getmodulehandle(GetCommandFile);
+    SysInstance:=getmodulehandle(GetCommandFile);
   MainInstance:=HInstance;
   cmdshow:=startupinfo.wshowwindow;
   { Setup heap }

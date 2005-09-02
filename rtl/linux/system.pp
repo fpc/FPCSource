@@ -16,10 +16,12 @@
 
 { These things are set in the makefile, }
 { But you can override them here.}
-
-
 { If you use an aout system, set the conditional AOUT}
 { $Define AOUT}
+
+{$ifdef i386}
+{$DEFINE ELFRES32}
+{$endif}
 
 Unit System;
 
@@ -33,6 +35,12 @@ Interface
 
 Implementation
 
+{ Include ELF resources }
+
+{$ifdef ELFRES32}
+{$define HAS_RESOURCES}
+{$i elfres32.inc}
+{$endif}
 
 {$I system.inc}
 
