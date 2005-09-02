@@ -61,7 +61,7 @@ implementation
       secnames : array[TAsmSectionType] of string[4] = ('',
         'CODE','DATA','DATA','BSS',
         '','','','','','',
-        '','','','','',''
+        '','','','','','',''
       );
 
     function single2str(d : single) : string;

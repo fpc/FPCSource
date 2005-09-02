@@ -308,8 +308,8 @@ implementation
           ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
           ResourceInfo.Concat(Tai_const.Create_32bit(0));
           end;
-        maybe_new_object_file(asmlist[al_data]);
-        asmlist[al_data].concatlist(ResourceInfo);
+        maybe_new_object_file(DataSegment);
+        DataSegment.concatlist(ResourceInfo);
         ResourceInfo.free;
         end;
     end;
