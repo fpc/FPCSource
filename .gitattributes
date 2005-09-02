@@ -4179,6 +4179,7 @@ rtl/win32/varutils.pp svneol=native#text/plain
 rtl/win32/video.pp svneol=native#text/plain
 rtl/win32/wcygprt0.as -text
 rtl/win32/wdllprt0.as -text
+rtl/win32/win32res.inc svneol=native#text/plain
 rtl/win32/wincrt.pp svneol=native#text/plain
 rtl/win32/windows.pp svneol=native#text/plain
 rtl/win32/winevent.pp svneol=native#text/plain
