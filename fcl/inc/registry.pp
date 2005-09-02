@@ -67,7 +67,8 @@ type
                   BufSize: Integer; RegData: TRegDataType);
     procedure SetCurrentKey(Value: HKEY);
   public
-    constructor Create;
+    constructor Create; overload;
+    constructor Create(aaccess:longword);
     destructor Destroy; override;
 
     function CreateKey(const Key: string): Boolean;
@@ -180,6 +181,13 @@ begin
   FLazyWrite  := True;
   FCurrentKey := 0;
   SysRegCreate;
+end;
+
+Constructor TRegistry.Create(aaccess:longword);
+
+begin
+  Create;
+  FAccess     := aaccess;
 end;
 
 Destructor TRegistry.Destroy;
