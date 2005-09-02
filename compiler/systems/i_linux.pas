@@ -25,8 +25,22 @@ unit i_linux;
 
     uses
        systems;
-
+       
     const
+       res_elf32_info : tresinfo =
+          (
+             id     : res_elf;
+             resbin : 'fpcres';
+             rescmd : '-o $OBJ -i $RES'
+          );
+          
+       res_elf64_info : tresinfo =
+          (
+             id     : res_elf;
+             resbin : 'fpcres';
+             rescmd : '-o $OBJ -i $RES'
+          );
+                                                              
        system_i386_linux_info : tsysteminfo =
           (
             system       : system_i386_LINUX;
@@ -64,7 +78,7 @@ unit i_linux;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             script       : script_unix;
             endian       : endian_little;
             alignment    :

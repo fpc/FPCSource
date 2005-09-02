@@ -287,7 +287,8 @@ var
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame'
+          '.debug_frame',
+          'fpc.resptrs'
         );
       begin
         if use_smartlink_section and
@@ -320,7 +321,9 @@ var
               sec_code :
                 AsmWrite(',"x"');
             end;
-          end;
+          end
+        else if atype=sec_fpc then
+          AsmWrite(', "a", @progbits');
         AsmLn;
 {$ifdef GDB}
         { this is needed for line info in data }
