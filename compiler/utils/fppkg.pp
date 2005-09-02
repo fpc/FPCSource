@@ -737,7 +737,7 @@ begin
   C:=GetCompiler;
   O:=FFPmakeSrc;
   If Extra then
-    O:='-Fafpmakeex '+O;
+    O:='-Fafpmkext '+O;
   Log(SLogCompilingFPMake+C+' '+O);
   If ExecuteProcess(C,O)<>0 then
     Error(SErrFailedToCompileFPCMake)
