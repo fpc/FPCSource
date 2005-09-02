@@ -10,7 +10,7 @@
 
  **********************************************************************}
 
-{$undef USERESSTRINGS} { this doesn't compile under FP!!! why? }
+{ $undef USERESSTRINGS} { this doesn't compile under FP!!! why? }
 
 {$ifdef USERESSTRINGS}
     resourcestring
@@ -38,22 +38,22 @@
     label_find_entirescope = '~E~ntire scope';
 
     dialog_replace = 'Replace';
-    label_replace_texttofind = label_find_texttofind;
+    label_replace_texttofind = '~T~ext to find';
     label_replace_newtext = '    ~N~ew text';
-    label_replace_options = label_find_options;
-    label_replace_casesensitive = label_find_casesensitive;
-    label_replace_useregexp = label_find_useregexp;
-    label_replace_wholewordsonly = label_find_wholewordsonly;
+    label_replace_options = 'Options';
+    label_replace_casesensitive = '~C~ase sensitive';
+    label_replace_useregexp = '~U~se regular expr.';
+    label_replace_wholewordsonly = '~W~hole words only';
     label_replace_promptonreplace = '~P~rompt on replace';
-    label_replace_direction = label_find_direction;
-    label_replace_forward = label_find_forward;
-    label_replace_backward = label_find_backward;
-    label_replace_scope = label_find_scope;
-    label_replace_global = label_find_global;
-    label_replace_selectedtext = label_find_selectedtext;
-    label_replace_origin = label_find_origin;
-    label_replace_fromcursor = label_find_fromcursor;
-    label_replace_entirescope = label_find_entirescope;
+    label_replace_direction = 'Direction';
+    label_replace_forward = 'Forwar~d~';
+    label_replace_backward = '~B~ackward';
+    label_replace_scope = 'Scope';
+    label_replace_global = '~G~lobal';
+    label_replace_selectedtext = '~S~elected text';
+    label_replace_origin = 'Origin';
+    label_replace_fromcursor = '~F~rom cursor';
+    label_replace_entirescope = '~E~ntire scope';
     btn_replace_changeall = 'Change ~a~ll';
 
     dialog_gotoline = 'Goto line';

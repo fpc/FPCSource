@@ -10,7 +10,7 @@
 
  **********************************************************************}
 
-{$undef USERESSTRINGS} { this doesn't compile under FP!!! why? }
+{ $undef USERESSTRINGS} { this doesn't compile under FP!!! why? }
 
 {$ifdef USERESSTRINGS}
     resourcestring
