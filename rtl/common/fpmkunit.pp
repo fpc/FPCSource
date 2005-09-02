@@ -618,6 +618,9 @@ Const
   PowerPC = PPC;
   dos = go32v2;
 
+  AllOSs  = [Low(TOS)..High(TOS)];
+  AllCPUs = [Low(TCPU)..High(TCPU)];
+  
   // Useful
   UnitExt = '.ppu';
   PPUExt  = UnitExt;
@@ -669,6 +672,9 @@ Var
   ArchiveFilesProc : TArchiveProc = Nil;
   OnDownloadFile : TDownloadEvent = Nil;
   DownloadFileProc : TDownloadProc = Nil;
+
+Function CurrentOS : String;
+Function CurrentCPU : String;
 
 Function Installer : TInstaller;
 Function Defaults : TDefaults; // Set by installer.
@@ -773,6 +779,18 @@ begin
   Result:='fpmake';
 end;
 
+
+Function CurrentOS : String;
+
+begin
+  Result:=OSToString(Defaults.OS);
+end;
+
+Function CurrentCPU : String;
+
+begin
+  Result:=CPUToString(Defaults.CPU);
+end;
 
 Function OSToString(OS: TOS) : String;
 

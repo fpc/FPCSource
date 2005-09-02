@@ -5,34 +5,6 @@ Const
   Unixes = [darwin,freebsd,linux,netbsd,openbsd];
   
  
-Var
-  FAllOS : TOses;
-  FAllCPUs : TCPUs;
-  
-Function AllOS : TOSes;
-
-Var
-  O : TOS;
-
-begin
-  If (FAllOS=[]) then
-    For O:=Low(TOS) to High(TOS) do
-      Include(FallOS,O);
-  Result:=FAllOS;    
-end;
-
-Function AllCPUs : TCPUs;
-
-Var
-  C : TCPU;
-
-begin
-  If (FAllCPUs=[]) then
-    For C:=Low(TCPU) to High(TCPU) do
-      Include(FallCPUs,C);
-  Result:=FAllCPUs;    
-end;
-  
 Function CurrentOS : String;
 
 begin
@@ -125,7 +97,7 @@ begin
     begin
     O:=T.OS;
     If (O=[]) then
-      O:=AllOS;
+      O:=AllOSs;
     Exclude(O,Defaults.OS);
     T.OS:=O;  
     end
@@ -143,7 +115,7 @@ Var
 begin
   With Installer.Targets do
     begin
-    DefaultOS:=AllOS;
+    DefaultOS:=AllOSs;
     DefaultCPU:=AllCPUs;
     { System unit. For all platforms. }
     T:=AddUnit(OSDIR(False)+'system.pp');
