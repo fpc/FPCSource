@@ -1774,7 +1774,7 @@ asmw_e_invalid_register=08019_E_Asm: Invalid register $1
 % \begin{description}
 exec_w_source_os_redefined=09000_W_Source operating system redefined
 exec_i_assembling_pipe=09001_I_Assembling (pipe) $1
-exec_d_cant_create_asmfile=09002_E_Can't create assember file: $1
+exec_d_cant_create_asmfile=09002_E_Can't create assembler file: $1
 % The mentioned file can't be created. Check if you have got
 % access permissions to create this file
 exec_e_cant_create_objectfile=09003_E_Can't create object file: $1
