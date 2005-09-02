@@ -1,4 +1,4 @@
-program fpmkpkg;
+program fppkg;
 
 {$mode objfpc}{$H+}
 
