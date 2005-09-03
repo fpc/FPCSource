@@ -91,7 +91,11 @@ begin
    if (ColumnStr = 'INTEGER') then
    begin
      AType:= ftInteger;
-     FieldSize:=SizeOf(Integer);
+     FieldSize:=SizeOf(LongInt);
+   end else if (ColumnStr = 'VARCHAR') then
+   begin
+     AType:= ftString;
+     FieldSize:=10;//??
    end else if (ColumnStr = 'BOOLEAN') then
    begin
      AType:= ftBoolean;
@@ -116,6 +120,14 @@ begin
    begin
      AType:= ftTime;
      FieldSize:=SizeOf(TDateTime);
+   end else if (ColumnStr = 'LARGEINT') then
+   begin
+     AType:= ftLargeInt;
+     FieldSize:=SizeOf(LargeInt);
+   end else if (ColumnStr = 'CURRENCY') then
+   begin
+     AType:= ftCurrency;
+     FieldSize:=SizeOf(Double);
    end else if (ColumnStr = 'MEMO') then
    begin
      AType:= ftMemo;
@@ -128,8 +140,7 @@ begin
        DummyAutoIncFieldNo:= Counter;
    end else
    begin
-     AType:= ftString;
-     FieldSize:=10; //??
+     DatabaseError('Field type "'+ColumnStr+'" not recognized',TDataset(TheDataset));
    end;
    TDataset(TheDataset).FieldDefs.Add(StrPas(ColumnNames[Counter]), AType, FieldSize, False);
  end;
