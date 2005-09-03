@@ -86,6 +86,7 @@ type
     FIndexFieldList: TList;
     function GetIndexFields(Value: Integer): TField;
     procedure UpdateIndexFields;
+    function FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions; DoResync:Boolean):PDataRecord;
   protected
     FFileName: String;
     FSql: String;
@@ -137,7 +138,6 @@ type
     procedure InternalPost; override;
     procedure InternalSetToRecord(Buffer: PChar); override;
     function IsCursorOpen: Boolean; override;
-    function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;    
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
     procedure SetExpectedAppends(AValue:Integer);
@@ -149,6 +149,9 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
+    function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean; override;   
+    function LocateNext(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean;
+    function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant;{$ifndef ver2_0_0}override;{$endif}
     // Additional procedures
     function ApplyUpdates: Boolean; virtual;
     function CreateTable: Boolean; virtual;
@@ -434,16 +437,26 @@ begin
       begin
         Move(FieldRow^,PChar(Buffer)^,StrLen(FieldRow)+1);
       end;
-    ftInteger,ftBoolean,ftWord,ftAutoInc:
+    ftInteger,ftAutoInc:
       begin
         Val(StrPas(FieldRow),LongInt(Buffer^),ValError);
         Result:= ValError = 0;  
       end;
-    ftFloat,ftDateTime,ftTime,ftDate:
+    ftBoolean,ftWord:
+      begin
+        Val(StrPas(FieldRow),Word(Buffer^),ValError);
+        Result:= ValError = 0;
+      end;    
+    ftFloat,ftDateTime,ftTime,ftDate,ftCurrency:
       begin
         Val(StrPas(FieldRow),Double(Buffer^),ValError);
         Result:= ValError = 0; 
-      end;    
+      end;
+    ftLargeInt:
+      begin
+        Val(StrPas(FieldRow),Int64(Buffer^),ValError);
+        Result:= ValError = 0;
+      end;        
     end;
   end;        
 end;
@@ -689,20 +702,17 @@ begin
    Result := FDataAllocated;
 end;
 
-function TCustomSqliteDataset.Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean;
+function TCustomSqliteDataset.FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions; DoResync:Boolean):PDataRecord;
 var
   AValue:String;
   AField:TField;
   AFieldIndex:Integer;
   TempItem:PDataRecord;
 begin
-  Result:=False;
+  Result:=nil;
   // Now, it allows to search only one field and ignores options 
-  AField:=Fields.FindField(keyfields);
-  if AField <> nil then
-    AFieldIndex:=AField.FieldNo - 1  
-  else
-    DatabaseError('Field "'+keyfields+'" not found',Self);
+  AField:=Fields.FieldByName(KeyFields); //FieldByName raises an exeception if field not found
+  AFieldIndex:=AField.FieldNo - 1;  
   //get float types in appropriate format
   if not (AField.DataType in [ftFloat,ftDateTime,ftTime,ftDate]) then
     AValue:=keyvalues
@@ -712,31 +722,52 @@ begin
     AValue:=Trim(AValue);
   end;  
   {$ifdef DEBUG}
-  writeln('=Locate=');
+  writeln('=FindRecord=');
   writeln('keyfields: ',keyfields);
   writeln('keyvalues: ',keyvalues);
   writeln('AValue: ',AValue);
   {$endif}        
   //Search the list
-  TempItem:=FBeginItem^.Next;
+  TempItem:=StartItem;
   while TempItem <> FEndItem do
   begin
     if TempItem^.Row[AFieldIndex] <> nil then
     begin
-      writeln('TempItem^.Row[AFieldIndex]: ',TempItem^.Row[AFieldIndex]);
-      writeln('PChar(AValue):              ',PChar(AValue));
-      writeln('StrComp result: ',StrComp(TempItem^.Row[AFieldIndex],PChar(AValue)));
       if StrComp(TempItem^.Row[AFieldIndex],PChar(AValue)) = 0 then
       begin
-        Result:=True;
-        FCurrentItem:=TempItem;
-        Resync([]);
+        Result:=TempItem;
+        if DoResync then
+        begin
+          FCurrentItem:=TempItem;
+          Resync([]);
+        end;  
         Break;
       end;
     end;    
     TempItem:=TempItem^.Next;
   end;      
 end;
+
+function TCustomSqliteDataset.Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean;
+begin
+  Result:=FindRecordItem(FBeginItem^.Next,KeyFields,KeyValues,Options,True) <> nil;  
+end;
+  
+function TCustomSqliteDataset.LocateNext(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean;
+begin
+  Result:=FindRecordItem(PPDataRecord(ActiveBuffer)^^.Next,KeyFields,KeyValues,Options,True) <> nil;
+end;
+  
+function TCustomSqliteDataset.Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant;
+var
+  TempItem:PDataRecord;
+begin
+  TempItem:=FindRecordItem(FBeginItem^.Next,KeyFields,KeyValues,[],False);
+  if TempItem <> nil then
+    Result:=TempItem^.Row[FieldByName(ResultFields).FieldNo - 1]
+  else
+    Result:=False;      
+end;  
 
 procedure TCustomSqliteDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
 begin
@@ -750,22 +781,18 @@ end;
 
 procedure TCustomSqliteDataset.SetExpectedAppends(AValue:Integer);
 begin
-  if Assigned(FAddedItems) then
-    FAddedItems.Capacity:=AValue;
+  FAddedItems.Capacity:=AValue;
 end;  
 
 procedure TCustomSqliteDataset.SetExpectedUpdates(AValue:Integer);
 begin
-  if Assigned(FUpdatedItems) then
-    FUpdatedItems.Capacity:=AValue;
+  FUpdatedItems.Capacity:=AValue;
 end;  
 
 procedure TCustomSqliteDataset.SetExpectedDeletes(AValue:Integer);
 begin
-  if Assigned(FDeletedItems) then
-    FDeletedItems.Capacity:=AValue;
-  if Assigned(FOrphanItems) then
-    FOrphanItems.Capacity:=AValue;  
+  FDeletedItems.Capacity:=AValue;
+  FOrphanItems.Capacity:=AValue;  
 end;  
 
 procedure TCustomSqliteDataset.SetFieldData(Field: TField; Buffer: Pointer);
@@ -785,18 +812,30 @@ begin
       begin            
         ActiveItem^.Row[Pred(Field.FieldNo)]:=StrNew(PChar(Buffer));
       end;
-    ftInteger,ftBoolean,ftWord:
+    ftInteger:
       begin          
         Str(LongInt(Buffer^),TempStr);  
         ActiveItem^.Row[Pred(Field.FieldNo)]:=StrAlloc(Length(TempStr)+1);
         StrPCopy(ActiveItem^.Row[Pred(Field.FieldNo)],TempStr);
       end;
-    ftFloat,ftDateTime,ftDate,ftTime:
+    ftBoolean,ftWord:
+      begin
+        Str(Word(Buffer^),TempStr);  
+        ActiveItem^.Row[Pred(Field.FieldNo)]:=StrAlloc(Length(TempStr)+1);
+        StrPCopy(ActiveItem^.Row[Pred(Field.FieldNo)],TempStr);        
+      end;  
+    ftFloat,ftDateTime,ftDate,ftTime,ftCurrency:
       begin
         Str(Double(Buffer^),TempStr);  
         ActiveItem^.Row[Pred(Field.FieldNo)]:=StrAlloc(Length(TempStr)+1);
         StrPCopy(ActiveItem^.Row[Pred(Field.FieldNo)],TempStr);
-      end;    
+      end;
+    ftLargeInt:
+      begin
+        Str(Int64(Buffer^),TempStr);  
+        ActiveItem^.Row[Pred(Field.FieldNo)]:=StrAlloc(Length(TempStr)+1);
+        StrPCopy(ActiveItem^.Row[Pred(Field.FieldNo)],TempStr);
+      end;        
     end;// case
   end//if
   else
@@ -834,14 +873,19 @@ var
   AFilter:String;
   i:Integer;
 begin
-  AFilter:=' where ';
-  for i:= 0 to FMasterLink.Fields.Count - 1 do
-  begin
-    AFilter:=AFilter + IndexFields[i].FieldName +' = '+ GetSqlStr(TField(FMasterLink.Fields[i]));
-    if i <> FMasterLink.Fields.Count - 1 then
-      AFilter:= AFilter + ' and ';
+  if FMasterLink.Dataset.RecordCount = 0 then //Retrieve all data
+    FSql:='Select * from '+FTableName
+  else
+  begin  
+    AFilter:=' where ';
+    for i:= 0 to FMasterLink.Fields.Count - 1 do
+    begin
+      AFilter:=AFilter + IndexFields[i].FieldName +' = '+ GetSqlStr(TField(FMasterLink.Fields[i]));
+      if i <> FMasterLink.Fields.Count - 1 then
+        AFilter:= AFilter + ' and ';
+    end;
+    FSql:='Select * from '+FTableName+AFilter;
   end;
-  FSql:='Select * from '+FTableName+AFilter;
   {$ifdef DEBUG}
   writeln('Sql used to filter detail dataset:');
   writeln(FSql);
@@ -1080,13 +1124,17 @@ begin
         ftDate:
           SqlTemp:=SqlTemp + ' DATE';
         ftTime:
-          SqlTemp:=SqlTemp + ' TIME';                
+          SqlTemp:=SqlTemp + ' TIME'; 
+        ftLargeInt:
+          SqlTemp:=SqlTemp + ' LARGEINT';
+        ftCurrency:
+          SqlTemp:=SqlTemp + ' CURRENCY';                     
         ftAutoInc:
           SqlTemp:=SqlTemp + ' AUTOINC'; 
         ftMemo:
           SqlTemp:=SqlTemp + ' MEMO';   
       else
-        SqlTemp:=SqlTemp + ' VARCHAR';    
+        DatabaseError('Field type "'+FieldTypeNames[FieldDefs[Counter].DataType]+'" not supported',Self);    
       end;
       if Counter <>  FieldDefs.Count - 1 then
         SqlTemp:=SqlTemp+ ' , ';   

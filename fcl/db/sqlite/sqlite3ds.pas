@@ -103,7 +103,11 @@ begin
    if (ColumnStr = 'INTEGER') then
    begin
      AType:= ftInteger;
-     FieldSize:=SizeOf(Integer);
+     FieldSize:=SizeOf(LongInt);
+   end else if (ColumnStr = 'VARCHAR') then
+   begin
+     AType:= ftString;
+     FieldSize:=10;//??
    end else if (ColumnStr = 'BOOLEAN') then
    begin
      AType:= ftBoolean;
@@ -124,6 +128,14 @@ begin
    begin
      AType:= ftDate;
      FieldSize:=SizeOf(TDateTime);
+   end else if (ColumnStr = 'LARGEINT') then
+   begin
+     AType:= ftLargeInt;
+     FieldSize:=SizeOf(Int64);
+   end else if (ColumnStr = 'CURRENCY') then
+   begin
+     AType:= ftCurrency;
+     FieldSize:=SizeOf(Double);
    end else if (ColumnStr = 'TIME') then
    begin
      AType:= ftTime;
@@ -140,8 +152,7 @@ begin
        FAutoIncFieldNo:= Counter;
    end else
    begin
-     AType:= ftString;
-     FieldSize:=10; //??
+     DatabaseError('Field type "'+ColumnStr+'" not recognized',Self);
    end;
    FieldDefs.Add(StrPas(sqlite3_column_name(vm,Counter)), AType, FieldSize, False);
    {$ifdef DEBUG}
