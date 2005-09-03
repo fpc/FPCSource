@@ -170,8 +170,8 @@ scan_f_cannot_open_includefile=02013_F_Can't open include file "$1"
 scan_e_illegal_pack_records=02015_E_Illegal record alignment specifier "$1"
 % You are specifying the \var{\{\$PACKRECORDS n\} } or \var{\{\$ALIGN n\} }
 % with an illegal value for \var{n}. For $PACKRECORDS valid alignments are 1, 2, 4, 8, 16, 32, C,
-% NORMAL, DEFAULT, and for $ALIGN valid alignment are 1, 2, 4, 8, 16, 32, ON,
-% OFF. Under mode MacPas $ALIGN also supports MAC68K, POWER and RESET.
+% NORMAL, DEFAULT, and for \$ALIGN valid alignment are 1, 2, 4, 8, 16, 32, ON,
+% OFF. Under mode MacPas \$ALIGN also supports MAC68K, POWER and RESET.
 scan_e_illegal_pack_enum=02016_E_Illegal enum minimum-size specifier "$1"
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
 % \var{n}. Only 1,2,4, NORMAL or DEFAULT are valid here.
@@ -1554,8 +1554,8 @@ asmr_e_relocatable_symbol_not_allowed=07013_E_Relocatable symbol is not allowed
 asmr_e_invalid_reference_syntax=07014_E_Invalid reference syntax
 % There is an error in the reference.
 asmr_e_local_para_unreachable=07015_E_You can not reach $1 from that code
-% You can not read directly the value of local or para
-% of a higher level in assembler code (except for
+% You can not read directly the value of a local variable or parameter
+% of a higher level procedure in assembler code (except for
 % local assembler code without parameter nor locals).
 asmr_e_local_label_not_allowed_as_ref=07016_E_Local symbols/labels aren't allowed as references
 % You can't use local symbols/labels as references
@@ -1868,7 +1868,7 @@ unit_u_ppu_invalid_target=10010_U_PPU is compiled for an other target
 % This unit file was compiled for a different target, and
 % cannot be read
 unit_u_ppu_source=10011_U_PPU Source: $1
-% When you use the \var{-vu} flag, the unit CRC check is shown.
+% When you use the \var{-vu} flag, the unit source file name is shown.
 unit_u_ppu_write=10012_U_Writing $1
 % When you specify the \var{-vu} switch, the compiler will tell you where it
 % writes the unit file.
