@@ -57,7 +57,7 @@ var
 function towlower(__wc:wint_t):wint_t;cdecl;external libiconvname name 'towlower';
 function towupper(__wc:wint_t):wint_t;cdecl;external libiconvname name 'towupper';
 function wcscoll (__s1:pwchar_t; __s2:pwchar_t):cint;cdecl;external libiconvname name 'wcscoll';
-function strcoll (__s1:pchar_t; __s2:pchar_t):cint;cdecl;external libiconvname name 'strcoll';
+function strcoll (__s1:pchar; __s2:pchar):cint;cdecl;external libiconvname name 'strcoll';
 
 const
 {$ifdef linux}
@@ -229,7 +229,7 @@ function CompareTextWideString(const s1, s2 : WideString): PtrInt;
   end;
 
 
-function StrCompAnsi(s1,s2 : AnsiString): PtrInt;
+function StrCompAnsi(s1,s2 : PChar): PtrInt;
   begin
     result:=strcoll(s1,s2);
   end;
