@@ -169,7 +169,7 @@ scan_f_cannot_open_includefile=02013_F_Can't open include file "$1"
 % statement.
 scan_e_illegal_pack_records=02015_E_Illegal record alignment specifier "$1"
 % You are specifying the \var{\{\$PACKRECORDS n\} } or \var{\{\$ALIGN n\} }
-% with an illegal value for \var{n}. For $PACKRECORDS valid alignments are 1, 2, 4, 8, 16, 32, C,
+% with an illegal value for \var{n}. For \$PACKRECORDS valid alignments are 1, 2, 4, 8, 16, 32, C,
 % NORMAL, DEFAULT, and for \$ALIGN valid alignment are 1, 2, 4, 8, 16, 32, ON,
 % OFF. Under mode MacPas \$ALIGN also supports MAC68K, POWER and RESET.
 scan_e_illegal_pack_enum=02016_E_Illegal enum minimum-size specifier "$1"
@@ -316,7 +316,7 @@ scan_e_utf8_bigger_than_65535=02069_E_UTF-8 code greater than 65535 found
 scan_e_utf8_malformed=02070_E_Malformed UTF-8 string
 % The given string isn't a valid UTF-8 string
 scan_c_switching_to_utf8=02071_C_UTF-8 signature found, using UTF-8 encoding
-% The compiler found an UTF-8 encoding signature ($ef, $bb, $bf) at the beginning of a file,
+% The compiler found an UTF-8 encoding signature (\$ef, \$bb, \$bf) at the beginning of a file,
 % so it interprets it as an UTF-8 file
 scan_e_compile_time_typeerror=02072_E_Compile time expression: Wanted $1 but got $2 at $3
 % Type check of a compile time expression failed.
@@ -1504,12 +1504,12 @@ cg_e_break_not_allowed=06044_E_BREAK not allowed
 % You're trying to use \var{break} outside a loop construction.
 cg_e_continue_not_allowed=06045_E_CONTINUE not allowed
 % You're trying to use \var{continue} outside a loop construction.
-% \end{description}
 cg_f_unknown_compiler=06046_F_Unknown compilerproc "$1". Check if you use the correct run time library.
 % The compiler expects that the runtime library contains some subrountines. If you see this error
 % and you didn't mess with the runtime library, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
 % that you removed a subroutine which the compiler needs for internal use.
+% \end{description}
 # EndOfTeX
 
 #
