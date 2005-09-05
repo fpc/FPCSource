@@ -653,6 +653,11 @@ begin
   old8087CW:=Get8087CW;
   SysLocale.MBCS:=GetSystemMetrics(SM_DBCSENABLED)<>0;
   SysLocale.RightToLeft:=GetSystemMetrics(SM_MIDEASTENABLED)<>0;
+  SysLocale.DefaultLCID := $0409;
+  SysLocale.PriLangID := LANG_ENGLISH;
+  SysLocale.SubLangID := SUBLANG_ENGLISH_US;
+  // probably needs update with getthreadlocale. post 2.0.2
+
   Set8087CW(old8087CW);
   InitAnsi;
   GetFormatSettings;

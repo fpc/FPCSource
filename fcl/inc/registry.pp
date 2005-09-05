@@ -328,17 +328,19 @@ Var
 
 begin
   GetDataInfo(Name,Info);
-  If Not (Info.RegData in [rdString,rdExpandString]) then
-    Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
-  SetLength(Result,Info.DataSize);
-  If Info.DataSize>0 then
+  if info.datasize>0 then
     begin
-    If StringSizeIncludesNull then
-      SetLength(Result, Info.DataSize-1)
-    else
-      SetLength(Result, Info.DataSize);
-    GetData(Name,@Result[1],Info.DataSize,Info.RegData);
-    end;
+     If Not (Info.RegData in [rdString,rdExpandString]) then
+       Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
+     SetLength(Result,Info.DataSize);
+     If StringSizeIncludesNull then
+       SetLength(Result, Info.DataSize-1)
+     else
+       SetLength(Result, Info.DataSize);
+     GetData(Name,@Result[1],Info.DataSize,Info.RegData);
+   end
+  else
+    result:='';
 end;
 
 function TRegistry.ReadTime(const Name: string): TDateTime;

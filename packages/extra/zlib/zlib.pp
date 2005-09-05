@@ -54,6 +54,7 @@ type
     adler : uLong;
     reserved : uLong;
   end;
+  TZStreamRec = TZStream;
   PZstream = ^TZStream;
   gzFile = pointer;
 
@@ -141,6 +142,8 @@ function zError(err:longint):string;
 function inflateSyncPoint(z:PZstream):longint;cdecl;external libz name 'inflateSyncPoint';
 function get_crc_table:pointer;cdecl;external libz name 'get_crc_table';
 
+function zlibAllocMem(AppData: Pointer; Items, Size: Integer): Pointer; cdecl;
+procedure zlibFreeMem(AppData, Block: Pointer);  cdecl;
 
 implementation
 
@@ -176,5 +179,18 @@ function zError(err:longint):string;
   begin
      zerror:=Strpas(zErrorpchar(err));
   end;
+
+function zlibAllocMem(AppData: Pointer; Items, Size: Integer): Pointer; cdecl;
+
+  begin
+    Result := AllocMem(Items * Size);
+  end;
+
+procedure zlibFreeMem(AppData, Block: Pointer);  cdecl;
+
+  begin
+    FreeMem(Block);
+  end;
+
 
 end.

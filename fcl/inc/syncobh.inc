@@ -62,3 +62,15 @@ type
    TSimpleEvent = class(TEventObject)
       constructor Create;
    end;
+
+   TMultiReadExclusiveWriteSynchronizer = class
+   private
+      crit:TCriticalsection;
+   public
+      constructor Create; virtual;
+      destructor  Destroy; override;
+      procedure Beginwrite;
+      procedure Endwrite;
+      procedure Beginread;
+      procedure Endread;
+   end;
