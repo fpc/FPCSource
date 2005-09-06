@@ -153,6 +153,7 @@ interface
             ,res_gnu_windres,res_emxbind
             ,res_m68k_palmos,res_m68k_mpw
             ,res_powerpc_mpw,res_elf
+            ,res_gnu_wince_windres
        );
 
        tscripttype = (script_none

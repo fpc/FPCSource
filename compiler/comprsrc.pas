@@ -83,9 +83,9 @@ begin
   resbin:='';
   resfound:=false;
   if utilsdirectory<>'' then
-   resfound:=FindFile(target_res.resbin+source_info.exeext,utilsdirectory,resbin);
+    resfound:=FindFile(utilsprefix+target_res.resbin+source_info.exeext,utilsdirectory,resbin);
   if not resfound then
-   resfound:=FindExe(target_res.resbin,resbin);
+    resfound:=FindExe(utilsprefix+target_res.resbin,resbin);
   { get also the path to be searched for the windres.h }
 {$IFDEF USE_SYSUTILS}
   respath := SplitPath(resbin);
@@ -169,19 +169,16 @@ begin
   if not (target_info.system in [system_i386_os2,
                                  system_i386_emx,system_powerpc_macos]) then
    While not current_module.ResourceFiles.Empty do
-    begin
-      case target_info.system of
-        system_m68k_palmos,
-        system_i386_win32,
-        system_i386_linux,
-        system_i386_wdosx :
-          hr:=new(presourcefile,init(current_module.ResourceFiles.getfirst));
-        else
-          Message(scan_e_resourcefiles_not_supported);
-      end;
-      hr^.compile;
-      dispose(hr,done);
-    end;
+     begin
+       if target_info.res<>res_none then
+         begin
+           hr:=new(presourcefile,init(current_module.ResourceFiles.getfirst));
+           hr^.compile;
+           dispose(hr,done);
+         end
+       else
+         Message(scan_e_resourcefiles_not_supported);
+     end;
 end;
 
 

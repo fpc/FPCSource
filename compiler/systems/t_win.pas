@@ -41,7 +41,7 @@ interface
      MAX_DEFAULT_EXTENSIONS = 3;
 
   type
-     tStr4=array[1..MAX_DEFAULT_EXTENSIONS]of string[4];
+     tStr4=array[1..MAX_DEFAULT_EXTENSIONS] of string[4];
      pStr4=^tStr4;
 
     twin32imported_item = class(timported_item)
@@ -102,6 +102,21 @@ implementation
   uses
     cpuinfo,cgutils;
 
+
+  const
+    res_gnu_windres_info : tresinfo =
+        (
+          id     : res_gnu_windres;
+          resbin : 'windres';
+          rescmd : '--include $INC -O coff -o $OBJ $RES'
+        );
+
+    res_gnu_wince_windres_info : tresinfo =
+        (
+          id     : res_gnu_wince_windres;
+          resbin : 'windres';
+          rescmd : '--include $INC -O coff -o $OBJ $RES'
+        );
 
 {*****************************************************************************
                              TIMPORTLIBWIN32
@@ -1685,7 +1700,7 @@ initialization
   RegisterExternalLinker(system_arm_wince_info,TLinkerWin32);
   RegisterImport(system_arm_wince,TImportLibWin32);
   RegisterExport(system_arm_wince,TExportLibWin32);
-  RegisterRes(res_gnu_windres_info);
+  RegisterRes(res_gnu_wince_windres_info);
   RegisterTarget(system_arm_wince_info);
 {$endif arm}
 end.
