@@ -575,21 +575,44 @@ interface
           procedure InsertAfter(Item,Loc : TLinkedListItem);override;
        end;
 
-       Tasmlist=({ default lists }
-                 al_code,al_bss,al_data,al_rodata,
-                 al_typedconsts,al_rotypedconsts,
-                 al_debug,al_threadvars,al_withdebug,al_imports,al_exports,
-                 al_resources,al_rtti,al_dwarf,
-                 { data used by pic code }
-                 al_picdata,al_resourcestrings);
+       { Type of asmlists. The order is important for the layout of the
+         information in the .o file. The stabs for the types must be defined
+         before they can be referenced and therefor they need to be written
+         first (PFV) }
+       Tasmlist=(al_typestabs,
+                 al_code,
+                 al_bss,
+                 al_data,
+                 al_rodata,
+                 al_typedconsts,
+                 al_rotypedconsts,
+                 al_threadvars,
+                 al_withdebug,
+                 al_imports,
+                 al_exports,
+                 al_resources,
+                 al_rtti,
+                 al_dwarf,
+                 al_picdata,
+                 al_resourcestrings);
     const
-       TasmlistStr : array[tasmlist] of string[24] =({ default lists }
-           'al_code','al_bss','al_data','al_rodata',
-           'al_typedconsts','al_rotypedconsts',
-           'al_debug','al_threadvars','al_withdebug','al_imports','al_exports',
-           'al_resources','al_rtti','al_dwarf',
-           { data used by pic code }
-           'al_picdata','al_resourcestrings');
+       TasmlistStr : array[tasmlist] of string[24] =(
+           'al_typestabs',
+           'al_code',
+           'al_bss',
+           'al_data',
+           'al_rodata',
+           'al_typedconsts',
+           'al_rotypedconsts',
+           'al_threadvars',
+           'al_withdebug',
+           'al_imports',
+           'al_exports',
+           'al_resources',
+           'al_rtti',
+           'al_dwarf',
+           'al_picdata',
+           'al_resourcestrings');
 
     var
       { array with all class types for tais }

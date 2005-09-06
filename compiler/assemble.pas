@@ -1601,7 +1601,7 @@ Implementation
       begin
         to_do:=[low(Tasmlist)..high(Tasmlist)];
         if not(cs_debuginfo in aktmoduleswitches) then
-          exclude(to_do,al_debug);
+          exclude(to_do,al_typestabs);
         if usedeffileforexports then
           exclude(to_do,al_exports);
         {$warning TODO internal writer support for dwarf}

@@ -181,13 +181,13 @@ implementation
         if assigned(asmlist[aasmtai.al_resourcestrings]) then
           fixseg(asmlist[aasmtai.al_resourcestrings],sec_data,'____seg_resstrings');
 {$ifdef GDB}
-        if assigned(asmlist[al_debug]) then
+        if assigned(asmlist[al_typestabs]) then
           begin
             oldaktfilepos:=aktfilepos;
             aktfilepos.line:=0;
-            asmlist[al_debug].insert(Tai_symbol.Createname('gcc2_compiled',AT_DATA,0));
-            asmlist[al_debug].insert(Tai_symbol.Createname('fpc_compiled',AT_DATA,0));
-            fixseg(asmlist[al_debug],sec_code,'____seg_debug');
+            asmlist[al_typestabs].insert(Tai_symbol.Createname('gcc2_compiled',AT_DATA,0));
+            asmlist[al_typestabs].insert(Tai_symbol.Createname('fpc_compiled',AT_DATA,0));
+            fixseg(asmlist[al_typestabs],sec_code,'____seg_debug');
             aktfilepos:=oldaktfilepos;
           end;
 {$endif GDB}
@@ -707,14 +707,14 @@ implementation
                    dependent stabs }
                  write_used_unit_type_info(pu.u);
                  if assigned(pu.u.globalsymtable) then
-                   tglobalsymtable(pu.u.globalsymtable).concattypestabto(asmlist[al_debug]);
+                   tglobalsymtable(pu.u.globalsymtable).concattypestabto(asmlist[al_typestabs]);
                end;
              pu:=tused_unit(pu.next);
            end;
        end;
 
       var
-        varal_debug : taasmoutput;
+        varal_typestabs : taasmoutput;
         storefilepos : tfileposinfo;
       begin
         if not (cs_debuginfo in aktmoduleswitches) then
@@ -726,37 +726,37 @@ implementation
         if current_module.is_unit then
           begin
             current_module.flags:=current_module.flags or uf_has_debuginfo;
-            asmlist[al_debug].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.globalsymtable,''),AT_DATA,0));
+            asmlist[al_typestabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.globalsymtable,''),AT_DATA,0));
           end
         else
-          asmlist[al_debug].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
+          asmlist[al_typestabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
         { first write all global/local symbols again to a temp list. This will flag
           all required tdefs. After that the temp list can be removed since the debuginfo is already
           written to the stabs when the variables/consts were written }
 {$warning Hack to get all needed types}
-        varal_debug:=taasmoutput.create;
-        new_section(varal_debug,sec_data,'',0);
+        varal_typestabs:=taasmoutput.create;
+        new_section(varal_typestabs,sec_data,'',0);
         if assigned(current_module.globalsymtable) then
-          tglobalsymtable(current_module.globalsymtable).concatstabto(varal_debug);
+          tglobalsymtable(current_module.globalsymtable).concatstabto(varal_typestabs);
         if assigned(current_module.localsymtable) then
-          tstaticsymtable(current_module.localsymtable).concatstabto(varal_debug);
-        varal_debug.free;
+          tstaticsymtable(current_module.localsymtable).concatstabto(varal_typestabs);
+        varal_typestabs.free;
         { reset unit type info flag }
         reset_unit_type_info;
         { write used types from the used units }
         write_used_unit_type_info(current_module);
         { last write the types from this unit }
         if assigned(current_module.globalsymtable) then
-          tglobalsymtable(current_module.globalsymtable).concattypestabto(asmlist[al_debug]);
+          tglobalsymtable(current_module.globalsymtable).concattypestabto(asmlist[al_typestabs]);
         if assigned(current_module.localsymtable) then
-          tstaticsymtable(current_module.localsymtable).concattypestabto(asmlist[al_debug]);
+          tstaticsymtable(current_module.localsymtable).concattypestabto(asmlist[al_typestabs]);
         { include files }
         if (cs_gdb_dbx in aktglobalswitches) then
           begin
-            asmlist[al_debug].concat(tai_comment.Create(strpnew('EINCL of global '+
+            asmlist[al_typestabs].concat(tai_comment.Create(strpnew('EINCL of global '+
               tglobalsymtable(current_module.globalsymtable).name^+' has index '+
               tostr(tglobalsymtable(current_module.globalsymtable).moduleid))));
-            asmlist[al_debug].concat(Tai_stabs.Create(strpnew('"'+
+            asmlist[al_typestabs].concat(Tai_stabs.Create(strpnew('"'+
               tglobalsymtable(current_module.globalsymtable).name^+'",'+
               tostr(N_EINCL)+',0,0,0')));
             tglobalsymtable(current_module.globalsymtable).dbx_count_ok:={true}false;

@@ -1533,8 +1533,8 @@ implementation
              unittypecount:=1;
              pglobaltypecount := @unittypecount;
              {moduleid:=current_module.unitcount;}
-             {al_debug.concat(tai_comment.Create(strpnew('Global '+name^+' has index '+tostr(moduleid))));
-             al_debug.concat(Tai_stabs.Create(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));}
+             {al_typestabs.concat(tai_comment.Create(strpnew('Global '+name^+' has index '+tostr(moduleid))));
+             al_typestabs.concat(Tai_stabs.Create(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));}
              {inc(current_module.unitcount);}
              { we can't use dbx_vcount, because we don't know
                if the object file will be loaded before or afeter PM }
