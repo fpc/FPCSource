@@ -285,20 +285,25 @@ begin
   Result:=0;
   If S1=Nil then
     begin
-    If S2=Nil Then Exit;
-    result:=-1;
-    exit;
+      If S2=Nil Then Exit;
+      result:=-1;
+      exit;
     end;
   If S2=Nil then
     begin
-    Result:=1;
-    exit;
+      Result:=1;
+      exit;
     end;
   Repeat
     Result:=Ord(S1[0])-Ord(S2[0]); //!! Must be replaced by ansi characters !!
     Inc(S1);
     Inc(S2);
-  Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0))
+  Until (Result<>0) or (S1^=#0) or (S2^=#0);
+  if Result=0 then
+    if s1=#0 then
+      result:=1
+    else
+      result:=-1;
 end;
 
 
