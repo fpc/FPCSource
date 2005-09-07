@@ -1595,25 +1595,6 @@ implementation
         { call startup helpers from main program }
         if (current_procinfo.procdef.proctypeoption=potype_proginit) then
          begin
-           { initialize profiling for win32 }
-           if (target_info.system in [system_i386_win32,system_i386_wdosx]) and
-              (cs_profile in aktmoduleswitches) then
-            begin
-              reference_reset_symbol(href,objectlibrary.newasmsymbol('etext',AB_EXTERNAL,AT_DATA),0);
-              paramanager.getintparaloc(pocall_default,1,paraloc1);
-              paramanager.getintparaloc(pocall_default,2,paraloc2);
-              paramanager.allocparaloc(list,paraloc2);
-              cg.a_paramaddr_ref(list,href,paraloc2);
-              reference_reset_symbol(href,objectlibrary.newasmsymbol('__image_base__',AB_EXTERNAL,AT_DATA),0);
-              paramanager.allocparaloc(list,paraloc1);
-              cg.a_paramaddr_ref(list,href,paraloc1);
-              paramanager.freeparaloc(list,paraloc2);
-              paramanager.freeparaloc(list,paraloc1);
-              cg.allocallcpuregisters(list);
-              cg.a_call_name(list,'_monstartup');
-              cg.deallocallcpuregisters(list);
-            end;
-
            if (target_info.system = system_powerpc_darwin) then
              begin
               { the parameters are already in the right registers }

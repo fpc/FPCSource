@@ -1,29 +1,46 @@
-// Startup code for WIN32 port of Free Pascal
-// with profiling enabled.
+//Startup code for WIN32 port of Free Pascal
+//Written by P.Ozerski 1998
+// modified by Pierre Muller
      .text
      .globl _mainCRTStartup
 _mainCRTStartup:
      movb   $1,U_SYSTEM_ISCONSOLE
-     call   _FPC_EXE_Entry
+     jmp    _start
+
      .globl _WinMainCRTStartup
 _WinMainCRTStartup:
      movb   $0,U_SYSTEM_ISCONSOLE
+_start:
+     subl   $0x8,%esp
+     andl   $0xfffffff0,%esp
+     push   $_cmain
+     call   _cygwin_crt0
+
+     .globl _cmain
+_cmain:
+     subl   $0x8,%esp
+     andl   $0xfffffff0,%esp
+     pushl  etext
+     pushl  __image_base__
+     call   _monstartup
+     call   ___main
      call   _FPC_EXE_Entry
-     
+     ret
+
      .globl asm_exit
-asm_exit:     
+asm_exit:
     pushl  %eax
     call   __mcleanup
     popl   %eax
-    pushl  %eax
-	call   exitprocess
-	
+    pushl   %eax
+    call    exitprocess
+
 .text
 .globl	exitprocess
 exitprocess:
 	jmp	*.L10
 	.balign 4,144
-	
+
 .text
 	.balign 4,144
 
@@ -40,7 +57,7 @@ exitprocess:
 
 .section .idata$5
 .L8:
-	
+
 
 .section .idata$5
 .L10:
@@ -56,12 +73,3 @@ exitprocess:
 .section .idata$7
 .L6:
 	.ascii	"kernel32.dll\000"
-     
-
-//
-
-// Revision 1.1  2002/11/30 18:17:35  carl
-//   + profiling support
-//
-//
-//
