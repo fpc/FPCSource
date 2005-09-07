@@ -143,6 +143,7 @@ interface
              ,as_x86_64_masm
              ,as_x86_64_pecoff
              ,as_i386_pecoffwince
+             ,as_arm_pecoffwince
        );
 
        tar = (ar_none
@@ -210,7 +211,7 @@ interface
        pasminfo = ^tasminfo;
        tasminfo = record
           id          : tasm;
-          idtxt       : string[9];
+          idtxt       : string[12];
           asmbin      : string[8];
           asmcmd      : string[50];
           supported_target : tsystem;

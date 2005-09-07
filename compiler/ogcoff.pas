@@ -1101,7 +1101,12 @@ const go32v2stub : array[0..2047] of byte=(
            sympos:=datapos;
          { COFF header }
            fillchar(header,sizeof(coffheader),0);
+{$ifdef i386}
            header.mach:=$14c;
+{$endif i386}
+{$ifdef arm}
+           header.mach:=$1c0;
+{$endif arm}
            header.nsects:=nsects;
            header.sympos:=sympos;
            header.syms:=symbols.count+initsym;
@@ -1614,7 +1619,12 @@ const go32v2stub : array[0..2047] of byte=(
               Comment(V_Error,'Error reading coff file');
               exit;
             end;
+{$ifdef i386}
            if header.mach<>$14c then
+{$endif i386}
+{$ifdef arm}
+           if header.mach<>$1c0 then
+{$endif arm}
             begin
               Comment(V_Error,'Not a coff file');
               exit;
@@ -1756,7 +1766,6 @@ const go32v2stub : array[0..2047] of byte=(
             comment : '';
           );
 
-    const
        as_i386_pecoff_info : tasminfo =
           (
             id     : as_i386_pecoff;
@@ -1794,9 +1803,26 @@ const go32v2stub : array[0..2047] of byte=(
           );
 
 
+       as_arm_pecoffwince_info : tasminfo =
+          (
+            id     : as_arm_pecoffwince;
+            idtxt  : 'PECOFFWINCE';
+            asmbin : '';
+            asmcmd : '';
+            supported_target : system_arm_wince;
+            flags : [af_outputbinary];
+            labelprefix : '.L';
+            comment : '';
+          );
+
 initialization
+{$ifdef i386}
   RegisterAssembler(as_i386_coff_info,TCoffAssembler);
   RegisterAssembler(as_i386_pecoff_info,TPECoffAssembler);
   RegisterAssembler(as_i386_pecoffwdosx_info,TPECoffAssembler);
   RegisterAssembler(as_i386_pecoffwince_info,TPECoffAssembler);
+{$endif i386}
+{$ifdef arm}
+  RegisterAssembler(as_arm_pecoffwince_info,TPECoffAssembler);
+{$endif arm}
 end.

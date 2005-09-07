@@ -52,6 +52,8 @@ implementation
     {$ifndef NOAGARMGAS}
       ,agarmgas
     {$endif}
+
+      ,ogcoff
       ;
 
 end.
