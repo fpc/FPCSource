@@ -77,7 +77,7 @@ interface
         'csect', {data}
         'csect', {read only data}
         'csect', {bss}
-        'csect','csect','csect','csect','','','','','','','',''
+        'csect','csect','csect','csect','','','','','','','','',''
       );
 
 {$ifdef GDB}
