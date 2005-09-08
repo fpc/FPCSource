@@ -16,9 +16,9 @@ units=$(SYSTEMUNIT) # ctypes objpas macpas strings \
 #     cpu mmx charset ucomplex getopts \
 #     wincrt winmouse winevent sockets printer \
 #     video mouse keyboard \
-#     winsysut
+#     winsysut fpmkunit
 
-rsts=math varutils typinfo variants classes dateutils sysconst
+rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
 
 [require]
 nortl=y

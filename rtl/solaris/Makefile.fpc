@@ -17,9 +17,9 @@ units=$(SYSTEMUNIT) objpas
 #       charset ucomplex getopts heaptrc lineinfo \
 #       errors terminfo termio video crt mouse keyboard console \
 #       variants types sysctl dateutils \
-#       sysconst cthreads strutils rtlconst
+#       sysconst cthreads strutils rtlconst fpmkunit
 
-rsts=math varutils typinfo classes variants dateutils systhrds sysconst rtlconst
+rsts=math varutils typinfo classes variants dateutils systhrds sysconst rtlconst fpmkunit
 
 [require]
 nortl=y
@@ -33,7 +33,7 @@ target=solaris
 
 [compiler]
 includedir=$(INC) $(PROCINC) $(UNIXINC) $(OSPROCINC) $(POSIXINC)
-sourcedir=$(INC) $(PROCINC) $(UNIXINC)
+sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(COMMON)
 
 
 [lib]
@@ -49,6 +49,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
 [prerules]
 RTL=..
 INC=$(RTL)/inc
+COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 OSPROCINC=$(RTL)/solaris/$(CPU_TARGET)
 POSIXINC=$(RTL)/posix
@@ -227,6 +228,8 @@ charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) math$(PPUEXT)
 
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
+
 #
 # Other system-dependent RTL Units
 #
@@ -253,4 +256,3 @@ cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp systhrds$(PPUEXT) unix$(PPUEXT) sysut
 initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 
 console$(PPUEXT) : baseunix$(PPUEXT) termio$(PPUEXT)
-

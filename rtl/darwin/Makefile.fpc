@@ -15,9 +15,9 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings sysctl baseunix unixut
       charset ucomplex getopts heaptrc lineinfo \
       errors terminfo termio video crt mouse keyboard console \
       variants types sysctl dateutils \
-      sysconst cthreads strutils rtlconsts cwstring
+      sysconst cthreads strutils rtlconsts cwstring fpmkunit
 
-rsts=math varutils typinfo classes variants dateutils sysconst rtlconsts
+rsts=math varutils typinfo classes variants dateutils sysconst rtlconsts fpmkunit
 
 [require]
 nortl=y
@@ -31,7 +31,7 @@ target=darwin
 
 [compiler]
 includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC) $(OSPROCINC)
-sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC)
+sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(COMMON)
 
 
 [lib]
@@ -47,6 +47,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
 [prerules]
 RTL=..
 INC=$(RTL)/inc
+COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 BSDINC=$(RTL)/bsd
 BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
@@ -266,3 +267,5 @@ console$(PPUEXT) : baseunix$(PPUEXT) termio$(PPUEXT)
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)
+
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
