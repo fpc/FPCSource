@@ -70,6 +70,7 @@ type
     FRole                : String;
 
     procedure SetTransaction(Value : TSQLTransaction);
+    procedure GetDBInfo(const SchemaType : TSchemaType; const SchemaObjectName, ReturnField : string; List: TStrings);
   protected
     FConnOptions         : TConnOptions;
 
@@ -106,6 +107,9 @@ type
     property ConnOptions: TConnOptions read FConnOptions;
     procedure ExecuteDirect(SQL : String); overload; virtual;
     procedure ExecuteDirect(SQL : String; Transaction : TSQLTransaction); overload; virtual;
+    procedure GetTableNames(List : TStrings; SystemTables : Boolean = false); virtual;
+    procedure GetProcedureNames(List : TStrings); virtual;
+    procedure GetFieldNames(const TableName : string; List :  TStrings); virtual;
   published
     property Password : string read FPassword write FPassword;
     property Transaction : TSQLTransaction read FTransaction write SetTransaction;
@@ -338,6 +342,49 @@ begin
   finally;
     DeAllocateCursorHandle(Cursor);
   end;
+end;
+
+procedure TSQLConnection.GetDBInfo(const SchemaType : TSchemaType; const SchemaObjectName, ReturnField : string; List: TStrings);
+
+var qry : TSQLQuery;
+
+begin
+  if not assigned(Transaction) then
+    DatabaseError(SErrConnTransactionnSet);
+
+  qry := tsqlquery.Create(nil);
+  qry.transaction := Transaction;
+  qry.database := Self;
+  with qry do
+    begin
+    ParseSQL := False;
+    SetSchemaInfo(SchemaType,SchemaObjectName,'');
+    open;
+    List.Clear;
+    while not eof do
+      begin
+      List.Append(fieldbyname(ReturnField).asstring);
+      Next;
+      end;
+    end;
+  qry.free;
+end;
+
+
+procedure TSQLConnection.GetTableNames(List: TStrings; SystemTables: Boolean);
+begin
+  if not systemtables then GetDBInfo(stTables,'','table_name',List)
+    else GetDBInfo(stSysTables,'','table_name',List);
+end;
+
+procedure TSQLConnection.GetProcedureNames(List: TStrings);
+begin
+  GetDBInfo(stProcedures,'','proc_name',List);
+end;
+
+procedure TSQLConnection.GetFieldNames(const TableName: string; List: TStrings);
+begin
+  GetDBInfo(stColumns,TableName,'column_name',List);
 end;
 
 function TSQLConnection.GetAsSQLText(Field : TField) : string;
