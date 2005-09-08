@@ -352,8 +352,8 @@ begin
           else
             break;
         until false;
-        for j:=1 to 3-ops do
-          optypes[3-j+1]:='ot_none';
+        for j:=1 to 4-ops do
+          optypes[4-j+1]:='ot_none';
         { codes }
         skipspace;
         j:=0;
@@ -363,6 +363,7 @@ begin
              while not(s[i] in [' ',#9]) do
                begin
                  code:=readnumber;
+(*
                  { for some codes we want also to change the optypes, but not
                    if the last byte was a 1 then this byte belongs to a direct
                    copy }
@@ -373,6 +374,7 @@ begin
                         optypes[code-11]:=optypes[code-11]+' or ot_signed';
                     end;
                   end;
+*)
                  codes:=codes+'#'+tostr(code);
                  last:=code;
                  inc(j);

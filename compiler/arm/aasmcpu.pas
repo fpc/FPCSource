@@ -37,25 +37,98 @@ uses
       { "mov reg,reg" source operand number }
       O_MOV_DEST = 0;
 
+      { Operand types }
+      OT_NONE      = $00000000;
+
+      OT_BITS8     = $00000001;  { size, and other attributes, of the operand  }
+      OT_BITS16    = $00000002;
+      OT_BITS32    = $00000004;
+      OT_BITS64    = $00000008;  { FPU only  }
+      OT_BITS80    = $00000010;
+      OT_FAR       = $00000020;  { this means 16:16 or 16:32, like in CALL/JMP }
+      OT_NEAR      = $00000040;
+      OT_SHORT     = $00000080;
+      OT_BITSTINY  = $00000100;  { fpu constant }
+
+      OT_SIZE_MASK = $000000FF;  { all the size attributes  }
+      OT_NON_SIZE  = longint(not OT_SIZE_MASK);
+
+      OT_SIGNED    = $00000100;  { the operand need to be signed -128-127 }
+
+      OT_TO        = $00000200;  { operand is followed by a colon  }
+                                 { reverse effect in FADD, FSUB &c  }
+      OT_COLON     = $00000400;
+
+      OT_REGISTER  = $00001000;
+      OT_IMMEDIATE = $00002000;
+      OT_REGLIST   = $00008000;
+      OT_IMM8      = $00002001;
+      OT_IMM16     = $00002002;
+      OT_IMM32     = $00002004;
+      OT_IMM64     = $00002008;
+      OT_IMM80     = $00002010;
+      OT_IMMTINY   = $00002100;
+      OT_IMMEDIATEFPU = OT_IMMTINY;
+
+      OT_REGMEM    = $00200000;  { for r/m, ie EA, operands  }
+      OT_REGNORM   = $00201000;  { 'normal' reg, qualifies as EA  }
+      OT_REG8      = $00201001;
+      OT_REG16     = $00201002;
+      OT_REG32     = $00201004;
+      OT_REG64     = $00201008;
+      OT_MMXREG    = $00201008;  { MMX registers  }
+      OT_XMMREG    = $00201010;  { Katmai registers  }
+      OT_MEMORY    = $00204000;  { register number in 'basereg'  }
+      OT_MEM8      = $00204001;
+      OT_MEM16     = $00204002;
+      OT_MEM32     = $00204004;
+      OT_MEM64     = $00204008;
+      OT_MEM80     = $00204010;
+      OT_FPUREG    = $01000000;  { floating point stack registers  }
+      OT_REG_SMASK = $00070000;  { special register operands: these may be treated differently  }
+                                 { a mask for the following  }
+
+      OT_MEM_OFFS  = $00604000;  { special type of EA  }
+                                 { simple [address] offset  }
+      OT_ONENESS   = $00800000;  { special type of immediate operand  }
+                                 { so UNITY == IMMEDIATE | ONENESS  }
+      OT_UNITY     = $00802000;  { for shift/rotate instructions  }
+
+      instabentries = {$i armnop.inc}
+
       maxinfolen = 5;
 
       IF_NONE   = $00000000;
 
       IF_ARMMASK    = $000F0000;
+      IF_ARM7       = $00070000;
+      IF_FPMASK     = $00F00000;
+      IF_FPA        = $00100000;
+
       { if the instruction can change in a second pass }
       IF_PASS2  = longint($80000000);
 
     type
+      TInsTabCache=array[TasmOp] of longint;
+      PInsTabCache=^TInsTabCache;
+
       tinsentry = record
         opcode  : tasmop;
         ops     : byte;
-        optypes : array[0..2] of longint;
+        optypes : array[0..3] of longint;
         code    : array[0..maxinfolen] of char;
         flags   : longint;
       end;
 
       pinsentry=^tinsentry;
 
+    const
+      InsTab : array[0..instabentries-1] of TInsEntry={$i armtab.inc}
+
+    var
+      InsTabCache : PInsTabCache;
+
+    type
       taicpu = class(tai_cpu_abstract)
          oppostfix : TOpPostfix;
          roundingmode : troundingmode;
@@ -101,7 +174,8 @@ uses
          procedure ResetPass1;
          procedure ResetPass2;
          function  CheckIfValid:boolean;
-         function  Pass1(offset:longint):longint;virtual;
+         function GetString:string;
+         function Pass1(offset:longint):longint;virtual;
          procedure Pass2(objdata:TAsmObjectdata);virtual;
       protected
          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
@@ -363,8 +437,6 @@ implementation
       end;
 
 
-{ ****************************** newra stuff *************************** }
-
     function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
         { allow the register allocator to remove unnecessary moves }
@@ -416,7 +488,7 @@ implementation
         case opcode of
           A_ADC,A_ADD,A_AND,
           A_EOR,A_CLZ,
-          A_LDR,A_LDRB,A_LDRD,A_LDRBT,A_LDRH,A_LDRSB,
+          A_LDR,A_LDRB,A_LDRBT,A_LDRH,A_LDRSB,
           A_LDRSH,A_LDRT,
           A_MOV,A_MVN,A_MLA,A_MUL,
           A_ORR,A_RSB,A_RSC,A_SBC,A_SUB,
@@ -445,7 +517,7 @@ implementation
               result:=operand_write
             else
               result:=operand_read;
-          A_STR,A_STRB,A_STRBT,A_STRD,
+          A_STR,A_STRB,A_STRBT,
           A_STRH,A_STRT,A_STF,A_SFM:
             { important is what happens with the involved registers }
             if opnr=0 then
@@ -563,6 +635,163 @@ implementation
       end;
 
 
+(*
+      Floating point instruction format information, taken from the linux kernel
+      ARM Floating Point Instruction Classes
+      | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+      |c o n d|1 1 0 P|U|u|W|L|   Rn  |v|  Fd |0|0|0|1|  o f f s e t  | CPDT
+      |c o n d|1 1 0 P|U|w|W|L|   Rn  |x|  Fd |0|0|1|0|  o f f s e t  | CPDT (copro 2)
+      | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+      |c o n d|1 1 1 0|a|b|c|d|e|  Fn |j|  Fd |0|0|0|1|f|g|h|0|i|  Fm | CPDO
+      |c o n d|1 1 1 0|a|b|c|L|e|  Fn |   Rd  |0|0|0|1|f|g|h|1|i|  Fm | CPRT
+      |c o n d|1 1 1 0|a|b|c|1|e|  Fn |1|1|1|1|0|0|0|1|f|g|h|1|i|  Fm | comparisons
+      | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+
+      CPDT            data transfer instructions
+                      LDF, STF, LFM (copro 2), SFM (copro 2)
+
+      CPDO            dyadic arithmetic instructions
+                      ADF, MUF, SUF, RSF, DVF, RDF,
+                      POW, RPW, RMF, FML, FDV, FRD, POL
+
+      CPDO            monadic arithmetic instructions
+                      MVF, MNF, ABS, RND, SQT, LOG, LGN, EXP,
+                      SIN, COS, TAN, ASN, ACS, ATN, URD, NRM
+
+      CPRT            joint arithmetic/data transfer instructions
+                      FIX (arithmetic followed by load/store)
+                      FLT (load/store followed by arithmetic)
+                      CMF, CNF CMFE, CNFE (comparisons)
+                      WFS, RFS (write/read floating point status register)
+                      WFC, RFC (write/read floating point control register)
+
+      cond            condition codes
+      P               pre/post index bit: 0 = postindex, 1 = preindex
+      U               up/down bit: 0 = stack grows down, 1 = stack grows up
+      W               write back bit: 1 = update base register (Rn)
+      L               load/store bit: 0 = store, 1 = load
+      Rn              base register
+      Rd              destination/source register
+      Fd              floating point destination register
+      Fn              floating point source register
+      Fm              floating point source register or floating point constant
+
+      uv              transfer length (TABLE 1)
+      wx              register count (TABLE 2)
+      abcd            arithmetic opcode (TABLES 3 & 4)
+      ef              destination size (rounding precision) (TABLE 5)
+      gh              rounding mode (TABLE 6)
+      j               dyadic/monadic bit: 0 = dyadic, 1 = monadic
+      i               constant bit: 1 = constant (TABLE 6)
+      */
+
+      /*
+      TABLE 1
+      +-------------------------+---+---+---------+---------+
+      |  Precision              | u | v | FPSR.EP | length  |
+      +-------------------------+---+---+---------+---------+
+      | Single                  | 0 | 0 |    x    | 1 words |
+      | Double                  | 1 | 1 |    x    | 2 words |
+      | Extended                | 1 | 1 |    x    | 3 words |
+      | Packed decimal          | 1 | 1 |    0    | 3 words |
+      | Expanded packed decimal | 1 | 1 |    1    | 4 words |
+      +-------------------------+---+---+---------+---------+
+      Note: x = don't care
+      */
+
+      /*
+      TABLE 2
+      +---+---+---------------------------------+
+      | w | x | Number of registers to transfer |
+      +---+---+---------------------------------+
+      | 0 | 1 |  1                              |
+      | 1 | 0 |  2                              |
+      | 1 | 1 |  3                              |
+      | 0 | 0 |  4                              |
+      +---+---+---------------------------------+
+      */
+
+      /*
+      TABLE 3: Dyadic Floating Point Opcodes
+      +---+---+---+---+----------+-----------------------+-----------------------+
+      | a | b | c | d | Mnemonic | Description           | Operation             |
+      +---+---+---+---+----------+-----------------------+-----------------------+
+      | 0 | 0 | 0 | 0 | ADF      | Add                   | Fd := Fn + Fm         |
+      | 0 | 0 | 0 | 1 | MUF      | Multiply              | Fd := Fn * Fm         |
+      | 0 | 0 | 1 | 0 | SUF      | Subtract              | Fd := Fn - Fm         |
+      | 0 | 0 | 1 | 1 | RSF      | Reverse subtract      | Fd := Fm - Fn         |
+      | 0 | 1 | 0 | 0 | DVF      | Divide                | Fd := Fn / Fm         |
+      | 0 | 1 | 0 | 1 | RDF      | Reverse divide        | Fd := Fm / Fn         |
+      | 0 | 1 | 1 | 0 | POW      | Power                 | Fd := Fn ^ Fm         |
+      | 0 | 1 | 1 | 1 | RPW      | Reverse power         | Fd := Fm ^ Fn         |
+      | 1 | 0 | 0 | 0 | RMF      | Remainder             | Fd := IEEE rem(Fn/Fm) |
+      | 1 | 0 | 0 | 1 | FML      | Fast Multiply         | Fd := Fn * Fm         |
+      | 1 | 0 | 1 | 0 | FDV      | Fast Divide           | Fd := Fn / Fm         |
+      | 1 | 0 | 1 | 1 | FRD      | Fast reverse divide   | Fd := Fm / Fn         |
+      | 1 | 1 | 0 | 0 | POL      | Polar angle (ArcTan2) | Fd := arctan2(Fn,Fm)  |
+      | 1 | 1 | 0 | 1 |          | undefined instruction | trap                  |
+      | 1 | 1 | 1 | 0 |          | undefined instruction | trap                  |
+      | 1 | 1 | 1 | 1 |          | undefined instruction | trap                  |
+      +---+---+---+---+----------+-----------------------+-----------------------+
+      Note: POW, RPW, POL are deprecated, and are available for backwards
+            compatibility only.
+      */
+
+      /*
+      TABLE 4: Monadic Floating Point Opcodes
+      +---+---+---+---+----------+-----------------------+-----------------------+
+      | a | b | c | d | Mnemonic | Description           | Operation             |
+      +---+---+---+---+----------+-----------------------+-----------------------+
+      | 0 | 0 | 0 | 0 | MVF      | Move                  | Fd := Fm              |
+      | 0 | 0 | 0 | 1 | MNF      | Move negated          | Fd := - Fm            |
+      | 0 | 0 | 1 | 0 | ABS      | Absolute value        | Fd := abs(Fm)         |
+      | 0 | 0 | 1 | 1 | RND      | Round to integer      | Fd := int(Fm)         |
+      | 0 | 1 | 0 | 0 | SQT      | Square root           | Fd := sqrt(Fm)        |
+      | 0 | 1 | 0 | 1 | LOG      | Log base 10           | Fd := log10(Fm)       |
+      | 0 | 1 | 1 | 0 | LGN      | Log base e            | Fd := ln(Fm)          |
+      | 0 | 1 | 1 | 1 | EXP      | Exponent              | Fd := e ^ Fm          |
+      | 1 | 0 | 0 | 0 | SIN      | Sine                  | Fd := sin(Fm)         |
+      | 1 | 0 | 0 | 1 | COS      | Cosine                | Fd := cos(Fm)         |
+      | 1 | 0 | 1 | 0 | TAN      | Tangent               | Fd := tan(Fm)         |
+      | 1 | 0 | 1 | 1 | ASN      | Arc Sine              | Fd := arcsin(Fm)      |
+      | 1 | 1 | 0 | 0 | ACS      | Arc Cosine            | Fd := arccos(Fm)      |
+      | 1 | 1 | 0 | 1 | ATN      | Arc Tangent           | Fd := arctan(Fm)      |
+      | 1 | 1 | 1 | 0 | URD      | Unnormalized round    | Fd := int(Fm)         |
+      | 1 | 1 | 1 | 1 | NRM      | Normalize             | Fd := norm(Fm)        |
+      +---+---+---+---+----------+-----------------------+-----------------------+
+      Note: LOG, LGN, EXP, SIN, COS, TAN, ASN, ACS, ATN are deprecated, and are
+            available for backwards compatibility only.
+      */
+
+      /*
+      TABLE 5
+      +-------------------------+---+---+
+      |  Rounding Precision     | e | f |
+      +-------------------------+---+---+
+      | IEEE Single precision   | 0 | 0 |
+      | IEEE Double precision   | 0 | 1 |
+      | IEEE Extended precision | 1 | 0 |
+      | undefined (trap)        | 1 | 1 |
+      +-------------------------+---+---+
+      */
+
+      /*
+      TABLE 5
+      +---------------------------------+---+---+
+      |  Rounding Mode                  | g | h |
+      +---------------------------------+---+---+
+      | Round to nearest (default)      | 0 | 0 |
+      | Round toward plus infinity      | 0 | 1 |
+      | Round toward negative infinity  | 1 | 0 |
+      | Round toward zero               | 1 | 1 |
+      +---------------------------------+---+---+
+*)
+    function taicpu.GetString:string;
+      begin
+        result:='';
+      end;
+
+
     procedure taicpu.ResetPass1;
       begin
         { we need to reset everything here, because the choosen insentry
@@ -657,8 +886,49 @@ implementation
       end;
 
 
-    function  taicpu.FindInsentry:boolean;
+    function taicpu.FindInsentry:boolean;
+      var
+        i : longint;
       begin
+        result:=false;
+      { Things which may only be done once, not when a second pass is done to
+        optimize }
+        if (Insentry=nil) or ((InsEntry^.flags and IF_PASS2)<>0) then
+         begin
+           { create the .ot fields }
+           create_ot;
+           { set the file postion }
+           aktfilepos:=fileinfo;
+         end
+        else
+         begin
+           { we've already an insentry so it's valid }
+           result:=true;
+           exit;
+         end;
+        { Lookup opcode in the table }
+        InsSize:=-1;
+        i:=instabcache^[opcode];
+        if i=-1 then
+         begin
+           Message1(asmw_e_opcode_not_in_table,gas_op2str[opcode]);
+           exit;
+         end;
+        insentry:=@instab[i];
+        while (insentry^.opcode=opcode) do
+         begin
+           if matches(insentry)=100 then
+             begin
+               result:=true;
+               exit;
+             end;
+           inc(i);
+           insentry:=@instab[i];
+         end;
+        Message1(asmw_e_invalid_opcode_and_operands,GetString);
+        { No instruction found, set insentry to nil and inssize to -1 }
+        insentry:=nil;
+        inssize:=-1;
       end;
 
 
