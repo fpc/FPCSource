@@ -54,7 +54,8 @@ implementation
 {$endif fpc}
     { this procedure reads typed constants }
     procedure readtypedconst(const t:ttype;sym : ttypedconstsym;writable : boolean);
-
+      label
+         myexit;
       type
          setbytes = array[0..31] of byte;
          Psetbytes = ^setbytes;
@@ -732,7 +733,7 @@ implementation
                    if (po_methodpointer in tprocvardef(t.def).procoptions) then
                      asmlist[cural].concat(Tai_const.Create_sym(nil));
                    consume(_NIL);
-                   exit;
+                   goto myexit;
                 end;
               { you can't assign a value other than NIL to a typed constant  }
               { which is a "procedure of object", because this also requires }
@@ -747,14 +748,14 @@ implementation
               if codegenerror then
                begin
                  p.free;
-                 exit;
+                 goto myexit;
                end;
               { let type conversion check everything needed }
               inserttypeconv(p,t);
               if codegenerror then
                begin
                  p.free;
-                 exit;
+                 goto myexit;
                end;
               { remove typeconvs, that will normally insert a lea
                 instruction which is not necessary for us }
@@ -812,7 +813,7 @@ implementation
                     begin
                       p.free;
                       Message(parser_e_illegal_expression);
-                      exit;
+                      goto myexit;
                     end;
                 end
               else
@@ -1026,6 +1027,7 @@ implementation
            end;
          else Message(parser_e_type_const_not_possible);
          end;
+      myexit:
          block_type:=old_block_type;
       end;
 {$ifdef fpc}
