@@ -15,9 +15,9 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       dateutils strutils convutils \
       charset ucomplex variants \
       rtlconsts math varutils freebidi utf8bidi \
-      mouse video keyboard cmem sockets ctypes
+      mouse video keyboard cmem sockets ctypes fpmkunit
 
-rsts=math varutils variants convutils typinfo classes dateutils sysconst rtlconsts system
+rsts=math varutils variants convutils typinfo classes dateutils sysconst rtlconsts system fpmkunit
 
 [require]
 nortl=y
@@ -31,12 +31,13 @@ target=netwlibc
 
 [compiler]
 includedir=$(INC) $(PROCINC)
-sourcedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
 
 
 [prerules]
 RTL=..
 INC=$(RTL)/inc
+COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 
 UNITPREFIX=rtl
@@ -248,6 +249,8 @@ keyboard$(PPUEXT) : $(INC)/keyboard.inc $(INC)/keybrdh.inc $(SYSTEMUNIT)$(PPUEXT
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

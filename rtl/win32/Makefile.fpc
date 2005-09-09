@@ -16,9 +16,9 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       cpu mmx charset ucomplex getopts \
       wincrt winmouse winevent sockets printer \
       video mouse keyboard \
-      winsysut
+      winsysut fpmkunit
 
-rsts=math varutils typinfo variants classes dateutils sysconst
+rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
 
 [require]
 nortl=y
@@ -32,12 +32,13 @@ target=win32
 
 [compiler]
 includedir=$(INC) $(PROCINC)
-sourcedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
 
 
 [prerules]
 RTL=..
 INC=$(RTL)/inc
+COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 WININC=wininc
 
@@ -234,6 +235,8 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

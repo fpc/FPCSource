@@ -12,8 +12,8 @@ units=system objpas macpas strings \
       cpu mmx ucomplex getopts heaptrc lineinfo \
       msmouse charset varutils \
       video mouse keyboard variants vesamode types \
-      sysconst rtlconst dateutil convutil strutils
-rsts=math varutils typinfo classes variants dateutil sysconst
+      sysconst rtlconst dateutil convutil strutils fpmkunit
+rsts=math varutils typinfo classes variants dateutil sysconst fpmkunit
 [require]
 nortl=y
 [install]
@@ -24,10 +24,11 @@ target=go32v2
 cpu=i386
 [compiler]
 includedir=$(INC) $(PROCINC)
-sourcedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
 [prerules]
 RTL=..
 INC=../inc
+COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
 # Use new feature from 1.0.5 version
@@ -150,6 +151,8 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
+
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
 #
 # Other system-dependent RTL Units
 #

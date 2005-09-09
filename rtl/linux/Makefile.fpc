@@ -15,9 +15,9 @@ units=$(SYSTEMUNIT) unixtype ctypes baseunix strings objpas macpas syscall unixu
       charset ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard variants types dateutils sysconst \
-      cthreads classes strutils rtlconsts dos objects cwstring
+      cthreads classes strutils rtlconsts dos objects cwstring fpmkunit
 
-rsts=math varutils typinfo variants sysconst rtlconsts
+rsts=math varutils typinfo variants sysconst rtlconsts fpmkunit
 
 [require]
 nortl=y
@@ -34,7 +34,7 @@ target=linux
 
 [compiler]
 includedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET)
-sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET)
+sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET) $(COMMON)
 targetdir=.
 
 [lib]
@@ -50,6 +50,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
 [prerules]
 RTL=..
 INC=$(RTL)/inc
+COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 
@@ -268,6 +269,8 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
 
 #
 # Other $(SYSTEMUNIT)-dependent RTL Units

@@ -14,8 +14,8 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       sysutils classes math typinfo varutils winsock \
       charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
       video mouse keyboard variants types rtlconst sysconst dateutil \
-      strutils convutil so32dll sockets
-rsts=math varutils typinfo variants pmhelp classes sysconst dateutil
+      strutils convutil so32dll sockets fpmkunit
+rsts=math varutils typinfo variants pmhelp classes sysconst dateutil fpmkunit
 
 [require]
 nortl=y
@@ -30,12 +30,13 @@ cpu=i386
 
 [compiler]
 includedir=$(INC) $(PROCINC)
-sourcedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
 
 
 [prerules]
 RTL=..
 INC=$(RTL)/inc
+COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 
 UNITPREFIX=rtl
@@ -226,6 +227,9 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
+
 #
 # Other system-dependent RTL Units
 #
