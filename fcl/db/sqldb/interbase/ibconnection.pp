@@ -758,7 +758,9 @@ begin
                         'from '+
                           'rdb$relations '+
                         'where '+
-                          '(rdb$system_flag = 0 or rdb$system_flag is null)'; // and rdb$view_blr is null
+                          '(rdb$system_flag = 0 or rdb$system_flag is null) ' + // and rdb$view_blr is null
+                        'order by rdb$relation_name';
+
     stSysTables  : s := 'select '+
                           'rdb$relation_id          as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
@@ -768,7 +770,9 @@ begin
                         'from '+
                           'rdb$relations '+
                         'where '+
-                          '(rdb$system_flag > 0)'; // and rdb$view_blr is null
+                          '(rdb$system_flag > 0) ' + // and rdb$view_blr is null
+                        'order by rdb$relation_name';
+
     stProcedures : s := 'select '+
                            'rdb$procedure_id        as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
@@ -782,11 +786,11 @@ begin
                         'WHERE '+
                           '(rdb$system_flag = 0 or rdb$system_flag is null)';
     stColumns    : s := 'select '+
-                           'rdb$procedure_id        as recno, '+
+                           'rdb$field_id            as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
                           '''''                     as schema_name, '+
                           'rdb$relation_name        as table_name, '+
-                          'rdb$field_name           as column name, '+
+                          'rdb$field_name           as column_name, '+
                           'rdb$field_position       as column_position, '+
                           '0                        as column_type, '+
                           '0                        as column_datatype, '+
@@ -799,7 +803,8 @@ begin
                         'from '+
                           'rdb$relation_fields '+
                         'WHERE '+
-                          '(rdb$system_flag = 0 or rdb$system_flag is null)';
+                          '(rdb$system_flag = 0 or rdb$system_flag is null) and (rdb$relation_name = ''' + Uppercase(SchemaObjectName) + ''') ' +
+                        'order by rdb$field_name';
   else
     DatabaseError(SMetadataUnavailable)
   end; {case}
