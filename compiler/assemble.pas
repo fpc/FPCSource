@@ -1040,6 +1040,11 @@ Implementation
                  objectdata.alloc(Taicpu(hp).Pass1(objectdata.currsec.datasize));
 {$endif NOAG386BIN}
 {$endif i386}
+{$ifdef arm}
+                 { reset instructions which could change in pass 2 }
+                 Taicpu(hp).resetpass2;
+                 objectdata.alloc(Taicpu(hp).Pass1(objectdata.currsec.datasize));
+{$endif arm}
                end;
              ait_cutobject :
                if SmartAsm then
@@ -1054,12 +1059,8 @@ Implementation
     function TInternalAssembler.TreePass1(hp:Tai):Tai;
       var
         InlineLevel,
-        l : longint;
-{$ifdef i386}
-{$ifndef NOAG386BIN}
+        l,
         i : longint;
-{$endif NOAG386BIN}
-{$endif i386}
       begin
         inlinelevel:=0;
         while assigned(hp) do
@@ -1210,6 +1211,25 @@ Implementation
                   end;
 {$endif NOAG386BIN}
 {$endif i386}
+{$ifdef arm}
+                 objectdata.alloc(Taicpu(hp).Pass1(objectdata.currsec.datasize));
+                 { fixup the references }
+                 for i:=1 to Taicpu(hp).ops do
+                  begin
+                    with Taicpu(hp).oper[i-1]^ do
+                     begin
+                       case typ of
+                         top_ref :
+                           begin
+                             if assigned(ref^.symbol) then
+                              objectlibrary.UsedAsmSymbolListInsert(ref^.symbol);
+                             if assigned(ref^.relsymbol) then
+                              objectlibrary.UsedAsmSymbolListInsert(ref^.symbol);
+                           end;
+                       end;
+                     end;
+                  end;
+{$endif arm}
                end;
              ait_direct :
                Message(asmw_f_direct_not_supported);
@@ -1340,12 +1360,8 @@ Implementation
                    but it's better to be on the safe side (PFV) }
                  objectoutput.exportsymbol(Tai_label(hp).l);
                end;
-{$ifdef i386}
-{$ifndef NOAG386BIN}
              ait_instruction :
                Taicpu(hp).Pass2(objectdata);
-{$endif NOAG386BIN}
-{$endif i386}
 {$ifdef GDB}
              ait_stabn :
                convertstabs(Tai_stabn(hp).str);

@@ -531,13 +531,36 @@ implementation
       end;
 
 
+    procedure BuildInsTabCache;
+      var
+        i : longint;
+      begin
+        new(instabcache);
+        FillChar(instabcache^,sizeof(tinstabcache),$ff);
+        i:=0;
+        while (i<InsTabEntries) do
+          begin
+            if InsTabCache^[InsTab[i].Opcode]=-1 then
+              InsTabCache^[InsTab[i].Opcode]:=i;
+            inc(i);
+          end;
+      end;
+
+
     procedure InitAsm;
       begin
+        if not assigned(instabcache) then
+          BuildInsTabCache;
       end;
 
 
     procedure DoneAsm;
       begin
+        if assigned(instabcache) then
+          begin
+            dispose(instabcache);
+            instabcache:=nil;
+          end;
       end;
 
 
@@ -823,6 +846,23 @@ implementation
 
     function taicpu.Pass1(offset:longint):longint;
       begin
+        Pass1:=0;
+        { Save the old offset and set the new offset }
+        InsOffset:=Offset;
+        { Error? }
+        if (Insentry=nil) and (InsSize=-1) then
+          exit;
+        { set the file postion }
+        aktfilepos:=fileinfo;
+        { Get InsEntry }
+        if FindInsEntry then
+         begin
+           InsSize:=4;
+           LastInsOffset:=InsOffset;
+           Pass1:=InsSize;
+           exit;
+         end;
+        LastInsOffset:=-1;
       end;
 
 
@@ -861,8 +901,130 @@ implementation
       end;
 
 
-    function  taicpu.Matches(p:PInsEntry):longint;
+    function taicpu.Matches(p:PInsEntry):longint;
+      { * IF_SM stands for Size Match: any operand whose size is not
+       * explicitly specified by the template is `really' intended to be
+       * the same size as the first size-specified operand.
+       * Non-specification is tolerated in the input instruction, but
+       * _wrong_ specification is not.
+       *
+       * IF_SM2 invokes Size Match on only the first _two_ operands, for
+       * three-operand instructions such as SHLD: it implies that the
+       * first two operands must match in size, but that the third is
+       * required to be _unspecified_.
+       *
+       * IF_SB invokes Size Byte: operands with unspecified size in the
+       * template are really bytes, and so no non-byte specification in
+       * the input instruction will be tolerated. IF_SW similarly invokes
+       * Size Word, and IF_SD invokes Size Doubleword.
+       *
+       * (The default state if neither IF_SM nor IF_SM2 is specified is
+       * that any operand with unspecified size in the template is
+       * required to have unspecified size in the instruction too...)
+      }
+      var
+        i,j,asize,oprs : longint;
+        siz : array[0..3] of longint;
       begin
+        Matches:=100;
+
+        { Check the opcode and operands }
+        if (p^.opcode<>opcode) or (p^.ops<>ops) then
+         begin
+           Matches:=0;
+           exit;
+         end;
+
+        { Check that no spurious colons or TOs are present }
+        for i:=0 to p^.ops-1 do
+         if (oper[i]^.ot and (not p^.optypes[i]) and (OT_COLON or OT_TO))<>0 then
+          begin
+            Matches:=0;
+            exit;
+          end;
+
+        { Check that the operand flags all match up }
+        for i:=0 to p^.ops-1 do
+         begin
+           if ((p^.optypes[i] and (not oper[i]^.ot)) or
+               ((p^.optypes[i] and OT_SIZE_MASK) and
+                ((p^.optypes[i] xor oper[i]^.ot) and OT_SIZE_MASK)))<>0 then
+            begin
+              if ((p^.optypes[i] and (not oper[i]^.ot) and OT_NON_SIZE) or
+                  (oper[i]^.ot and OT_SIZE_MASK))<>0 then
+               begin
+                 Matches:=0;
+                 exit;
+               end
+              else
+               Matches:=1;
+            end;
+         end;
+
+      { Check operand sizes }
+        { as default an untyped size can get all the sizes, this is different
+          from nasm, but else we need to do a lot checking which opcodes want
+          size or not with the automatic size generation }
+        asize:=longint($ffffffff);
+        (*
+        if (p^.flags and IF_SB)<>0 then
+          asize:=OT_BITS8
+        else if (p^.flags and IF_SW)<>0 then
+          asize:=OT_BITS16
+        else if (p^.flags and IF_SD)<>0 then
+          asize:=OT_BITS32;
+        if (p^.flags and IF_ARMASK)<>0 then
+         begin
+           siz[0]:=0;
+           siz[1]:=0;
+           siz[2]:=0;
+           if (p^.flags and IF_AR0)<>0 then
+            siz[0]:=asize
+           else if (p^.flags and IF_AR1)<>0 then
+            siz[1]:=asize
+           else if (p^.flags and IF_AR2)<>0 then
+            siz[2]:=asize;
+         end
+        else
+         begin
+         { we can leave because the size for all operands is forced to be
+           the same
+           but not if IF_SB IF_SW or IF_SD is set PM }
+           if asize=-1 then
+             exit;
+           siz[0]:=asize;
+           siz[1]:=asize;
+           siz[2]:=asize;
+         end;
+
+        if (p^.flags and (IF_SM or IF_SM2))<>0 then
+         begin
+           if (p^.flags and IF_SM2)<>0 then
+            oprs:=2
+           else
+            oprs:=p^.ops;
+           for i:=0 to oprs-1 do
+            if ((p^.optypes[i] and OT_SIZE_MASK) <> 0) then
+             begin
+               for j:=0 to oprs-1 do
+                siz[j]:=p^.optypes[i] and OT_SIZE_MASK;
+               break;
+             end;
+          end
+         else
+          oprs:=2;
+
+        { Check operand sizes }
+        for i:=0 to p^.ops-1 do
+         begin
+           if ((p^.optypes[i] and OT_SIZE_MASK)=0) and
+              ((oper[i]^.ot and OT_SIZE_MASK and (not siz[i]))<>0) and
+              { Immediates can always include smaller size }
+              ((oper[i]^.ot and OT_IMMEDIATE)=0) and
+               (((p^.optypes[i] and OT_SIZE_MASK) or siz[i])<(oper[i]^.ot and OT_SIZE_MASK)) then
+            Matches:=2;
+         end;
+        *)
       end;
 
 
@@ -930,8 +1092,6 @@ implementation
         insentry:=nil;
         inssize:=-1;
       end;
-
-
 
 end.
 
