@@ -158,12 +158,16 @@ interface
 
     type
       { Types of operand }
-      toptype=(top_none,top_reg,top_ref,top_const,top_bool,top_local,
+      toptype=(top_none,top_reg,top_ref,top_const,top_bool,top_local
+{$ifdef arm}
        { ARM only }
-       top_regset,
-       top_shifterop,
+       ,top_regset
+       ,top_shifterop
+{$endif arm}
+{$ifdef m68k}
        { m68k only }
-       top_reglist
+       ,top_reglist
+{$endif m68k}
        { i386 only});
 
       { kinds of operations that an instruction can perform on an operand }

@@ -76,8 +76,7 @@ uses
       OT_REG16     = $00201002;
       OT_REG32     = $00201004;
       OT_REG64     = $00201008;
-      OT_MMXREG    = $00201008;  { MMX registers  }
-      OT_XMMREG    = $00201010;  { Katmai registers  }
+      OT_VREG      = $00201010;  { vector register }
       OT_MEMORY    = $00204000;  { register number in 'basereg'  }
       OT_MEM8      = $00204001;
       OT_MEM16     = $00204002;
@@ -810,8 +809,73 @@ implementation
       +---------------------------------+---+---+
 *)
     function taicpu.GetString:string;
+      var
+        i : longint;
+        s : string;
+        addsize : boolean;
       begin
-        result:='';
+        s:='['+gas_op2str[opcode];
+        for i:=0 to ops-1 do
+         begin
+           with oper[i]^ do
+             begin
+               if i=0 then
+                s:=s+' '
+               else
+                s:=s+',';
+               { type }
+               addsize:=false;
+               if (ot and OT_VREG)=OT_VREG then
+                s:=s+'vreg'
+               else
+                 if (ot and OT_FPUREG)=OT_FPUREG then
+                  s:=s+'fpureg'
+               else
+                if (ot and OT_REGISTER)=OT_REGISTER then
+                 begin
+                   s:=s+'reg';
+                   addsize:=true;
+                 end
+               else
+                if (ot and OT_REGLIST)=OT_REGLIST then
+                 begin
+                   s:=s+'reglist';
+                   addsize:=false;
+                 end
+               else
+                if (ot and OT_IMMEDIATE)=OT_IMMEDIATE then
+                 begin
+                   s:=s+'imm';
+                   addsize:=true;
+                 end
+               else
+                if (ot and OT_MEMORY)=OT_MEMORY then
+                 begin
+                   s:=s+'mem';
+                   addsize:=true;
+                 end
+               else
+                 s:=s+'???';
+               { size }
+               if addsize then
+                begin
+                  if (ot and OT_BITS8)<>0 then
+                    s:=s+'8'
+                  else
+                   if (ot and OT_BITS16)<>0 then
+                    s:=s+'16'
+                  else
+                   if (ot and OT_BITS32)<>0 then
+                    s:=s+'32'
+                  else
+                    s:=s+'??';
+                  { signed }
+                  if (ot and OT_SIGNED)<>0 then
+                   s:=s+'s';
+                end;
+             end;
+         end;
+        GetString:=s+']';
       end;
 
 
@@ -897,7 +961,93 @@ implementation
 
 
     procedure taicpu.create_ot;
+      var
+        i,l,relsize : longint;
       begin
+        if ops=0 then
+         exit;
+        { update oper[].ot field }
+        for i:=0 to ops-1 do
+         with oper[i]^ do
+          begin
+            case typ of
+              top_regset:
+                begin
+                  ot:=OT_REGLIST;
+                end;
+              top_reg :
+                begin
+                  case getregtype(reg) of
+                    R_INTREGISTER:
+                      ot:=OT_REG32;
+                    R_FPUREGISTER:
+                      ot:=OT_FPUREG;
+                    else
+                      internalerror(2005090901);
+                  end;
+                end;
+              top_ref :
+                begin
+                  if ref^.refaddr=addr_no then
+                    begin
+                      { create ot field }
+                      { we should get the size here dependend on the
+                        instruction }
+                      if (ot and OT_SIZE_MASK)=0 then
+                        ot:=OT_MEMORY or OT_BITS32
+                      else
+                        ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
+                      if (ref^.base=NR_NO) and (ref^.index=NR_NO) then
+                        ot:=ot or OT_MEM_OFFS;
+                      { if we need to fix a reference, we do it here }
+                    end
+                  else
+                    begin
+                      l:=ref^.offset;
+                      if assigned(ref^.symbol) then
+                       inc(l,ref^.symbol.address);
+                      if (not assigned(ref^.symbol) or
+                          ((ref^.symbol.currbind<>AB_EXTERNAL) and (ref^.symbol.address<>0))) and
+                         (relsize>=-128) and (relsize<=127) then
+                       ot:=OT_IMM32 or OT_SHORT
+                      else
+                       ot:=OT_IMM32 or OT_NEAR;
+                    end;
+                end;
+              top_local :
+                begin
+                  { we should get the size here dependend on the
+                    instruction }
+                  if (ot and OT_SIZE_MASK)=0 then
+                    ot:=OT_MEMORY or OT_BITS32
+                  else
+                    ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
+                end;
+              top_const :
+                begin
+                  ot:=OT_IMMEDIATE;
+                  { fixme !!!!
+                  if opsize=S_NO then
+                    message(asmr_e_invalid_opcode_and_operand);
+                  if (opsize<>S_W) and (longint(val)>=-128) and (val<=127) then
+                    ot:=OT_IMM8 or OT_SIGNED
+                  else
+                    ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];
+                  }
+                end;
+              top_none :
+                begin
+                  { generated when there was an error in the
+                    assembler reader. It never happends when generating
+                    assembler }
+                end;
+              top_shifterop:
+                begin
+                end;
+              else
+                internalerror(200402261);
+            end;
+          end;
       end;
 
 
@@ -1301,7 +1451,7 @@ static char *CC[] =
 	      if (keep == 6)
 		{
 		  c = (ins->oprs[3].offset) & 0x1F;
-		
+
 		  // #imm
 		  bytes[2] |= c >> 1;
 		  if (c & 0x01)
@@ -1613,7 +1763,7 @@ static char *CC[] =
 	  ++codes;
 	
 	  bytes[0] = c | *codes++;
-	
+
 	  bytes[1] = *codes++;
 
 	  bytes[3] = *codes;
