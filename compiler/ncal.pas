@@ -1,7 +1,7 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
-
     This file implements the node for sub procedure calling.
+
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -2176,6 +2176,7 @@ type
                           funcretnode := ctemprefnode.create(tempnode);
                         para.left.free;
                         para.left := ctemprefnode.create(tempnode);
+
                         addstatement(deletestatement,ctempdeletenode.create_normal_temp(tempnode));
                       end
                   end
@@ -2250,6 +2251,7 @@ type
         if assigned(funcretnode) and
            (cnf_return_value_used in callnodeflags) then
           addstatement(createstatement,funcretnode.getcopy);
+
         { consider it must not be inlined if called
           again inside the args or itself }
         exclude(procdefinition.procoptions,po_inline);

@@ -486,6 +486,8 @@ interface
               if release_to_normal then
                 tempinfo^.location.loc := LOC_REGISTER;
             end;
+          else
+            internalerror(200507161);
         end;
       end;
 
