@@ -766,5 +766,8 @@ begin
   errno := 0;
 { Setup command line arguments }
   argc:=GetParamCount(args);
-  initvariantmanager;
+  InitVariantManager;
+{$ifdef HASWIDESTRING}
+  InitWideStringManager;
+{$endif HASWIDESTRING}
 end.
