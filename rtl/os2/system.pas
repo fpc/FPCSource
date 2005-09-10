@@ -753,7 +753,11 @@ begin
     DefaultFileType := '';
 
     InitSystemThreads;
-    initvariantmanager;
+    InitVariantManager;
+
+{$ifdef HASWIDESTRING}
+    InitWideStringManager;
+{$endif HASWIDESTRING}
 
 {$IFDEF EXTDUMPGROW}
 {    Int_HeapSize := high (cardinal);}

@@ -567,7 +567,11 @@ begin
 
     InitSystemThreads;
 
-    initvariantmanager;
+    InitVariantManager;
+
+{$ifdef HASWIDESTRING}
+    InitWideStringManager;
+{$endif HASWIDESTRING}
 
     if os_Mode in [osDOS,osDPMI] then
         DosEnvInit;
