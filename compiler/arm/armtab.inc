@@ -101,7 +101,7 @@
   (
     opcode  : A_B;
     ops     : 1;
-    optypes : (ot_immediate or ot_bits32,ot_none,ot_none,ot_none);
+    optypes : (ot_immediate24,ot_none,ot_none,ot_none);
     code    : #1#10;
     flags   : if_arm7
   ),
@@ -281,38 +281,17 @@
     flags   : if_arm7
   ),
   (
+    opcode  : A_LDRB;
+    ops     : 2;
+    optypes : (ot_reg32,ot_memoryam2,ot_none,ot_none);
+    code    : #23#7#16;
+    flags   : if_arm7
+  ),
+  (
     opcode  : A_LDR;
     ops     : 2;
-    optypes : (ot_reg32,ot_immediate or ot_bits32,ot_none,ot_none);
+    optypes : (ot_reg32,ot_memoryam2,ot_none,ot_none);
     code    : #23#5#16;
-    flags   : if_arm7
-  ),
-  (
-    opcode  : A_LDR;
-    ops     : 2;
-    optypes : (ot_reg32,ot_reg32,ot_none,ot_none);
-    code    : #24#4#16;
-    flags   : if_arm7
-  ),
-  (
-    opcode  : A_LDR;
-    ops     : 3;
-    optypes : (ot_reg32,ot_reg32,ot_immediate or ot_bits32,ot_none);
-    code    : #25#4#16;
-    flags   : if_arm7
-  ),
-  (
-    opcode  : A_LDR;
-    ops     : 3;
-    optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none);
-    code    : #32#6#16;
-    flags   : if_arm7
-  ),
-  (
-    opcode  : A_LDR;
-    ops     : 4;
-    optypes : (ot_reg32,ot_reg32,ot_reg32,ot_immediate or ot_bits32);
-    code    : #33#6#16;
     flags   : if_arm7
   ),
   (
@@ -424,6 +403,13 @@
     opcode  : A_MOV;
     ops     : 2;
     optypes : (ot_reg32,ot_shifterop,ot_none,ot_none);
+    code    : #8#1#160;
+    flags   : if_arm7
+  ),
+  (
+    opcode  : A_MOV;
+    ops     : 2;
+    optypes : (ot_reg32,ot_immediateshifter,ot_none,ot_none);
     code    : #8#1#160;
     flags   : if_arm7
   ),
@@ -619,36 +605,15 @@
   (
     opcode  : A_STR;
     ops     : 2;
-    optypes : (ot_reg32,ot_immediate or ot_bits32,ot_none,ot_none);
-    code    : #23#5#0;
+    optypes : (ot_reg32,ot_memoryam2,ot_none,ot_none);
+    code    : #23#4#0;
     flags   : if_arm7
   ),
   (
-    opcode  : A_STR;
+    opcode  : A_STRB;
     ops     : 2;
-    optypes : (ot_reg32,ot_reg32,ot_none,ot_none);
-    code    : #24#4#0;
-    flags   : if_arm7
-  ),
-  (
-    opcode  : A_STR;
-    ops     : 3;
-    optypes : (ot_reg32,ot_reg32,ot_immediate or ot_bits32,ot_none);
-    code    : #25#4#0;
-    flags   : if_arm7
-  ),
-  (
-    opcode  : A_STR;
-    ops     : 3;
-    optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none);
-    code    : #32#6#0;
-    flags   : if_arm7
-  ),
-  (
-    opcode  : A_STR;
-    ops     : 4;
-    optypes : (ot_reg32,ot_reg32,ot_reg32,ot_immediate or ot_bits32);
-    code    : #33#6#0;
+    optypes : (ot_reg32,ot_memoryam2,ot_none,ot_none);
+    code    : #23#6#0;
     flags   : if_arm7
   ),
   (

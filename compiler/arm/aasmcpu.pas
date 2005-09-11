@@ -102,6 +102,8 @@ uses
       OT_AM5       = $00080000;
       OT_AMMASK    = $000f0000;
 
+      OT_MEMORYAM2 = OT_MEMORY or OT_AM2;
+      OT_MEMORYAM3 = OT_MEMORY or OT_AM3;
       OT_MEMORYAM4 = OT_MEMORY or OT_AM4;
       OT_MEMORYAM5 = OT_MEMORY or OT_AM5;
 
@@ -960,6 +962,8 @@ implementation
               internalerror(2005091001);
             if opcode=A_None then
               internalerror(2005091004);
+            { postfix has been added to opcode }
+            oppostfix:=PF_None;
           end
         else if (opcode=A_STR) and (oppostfix<>PF_None) then
           begin
@@ -969,6 +973,8 @@ implementation
               internalerror(2005091002);
             if opcode=A_None then
               internalerror(2005091003);
+            { postfix has been added to opcode }
+            oppostfix:=PF_None;
           end;
 
         { Get InsEntry }
@@ -985,6 +991,12 @@ implementation
 
     procedure taicpu.Pass2(objdata:TAsmObjectdata);
       begin
+        { error in pass1 ? }
+        if insentry=nil then
+         exit;
+        aktfilepos:=fileinfo;
+        { Generate the instruction }
+        GenCode(objdata);
       end;
 
 
@@ -1054,6 +1066,16 @@ implementation
                       if (ref^.base=NR_NO) and (ref^.index=NR_NO) then
                         ot:=ot or OT_MEM_OFFS;
                       { if we need to fix a reference, we do it here }
+
+                      { pc relative addressing }
+                      if (ref^.base=NR_NO) and
+                        (ref^.index=NR_NO) and
+                        (ref^.shiftmode=SM_None)
+                        { at least we should check if the destination symbol
+                          is in a text section }
+                        { and
+                        (ref^.symbol^.owner="text") } then
+                        ref^.base:=NR_PC;
 
                       { determine possible address modes }
                       if (ref^.base<>NR_NO) and
@@ -1201,7 +1223,7 @@ implementation
         { update condition flags
           or floating point single }
       if (oppostfix=PF_S) and
-        not(p^.code[0] in []) then
+        not(p^.code[0] in [#$04]) then
         begin
           Matches:=0;
           exit;
@@ -1218,6 +1240,8 @@ implementation
       { multiple load/store address modes }
       if (oppostfix in [PF_IA,PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,PF_ED,PF_EA]) and
         not(p^.code[0] in [
+          // ldr,str,ldrb,strb
+          #$17,
           // stm,ldm
           #$26
         ]) then
@@ -1308,11 +1332,7 @@ implementation
 
     function  taicpu.calcsize(p:PInsEntry):shortint;
       begin
-      end;
-
-
-    procedure taicpu.gencode(objdata:TAsmObjectData);
-      begin
+        result:=4;
       end;
 
 
@@ -1370,6 +1390,72 @@ implementation
         insentry:=nil;
         inssize:=-1;
       end;
+
+
+    procedure taicpu.gencode(objdata:TAsmObjectData);
+      var
+        bytes : dword;
+        i_field : byte;
+
+      procedure setshifterop(op : byte);
+        begin
+          case oper[op]^.typ of
+            top_const:
+              begin
+                i_field:=1;
+                bytes:=bytes or (oper[op]^.val and $fff);
+              end;
+            top_reg:
+              begin
+                i_field:=0;
+                bytes:=bytes or (getsupreg(oper[op]^.reg) shl 16);
+
+                { does a real shifter op follow? }
+                if (op+1<=op) and (oper[op+1]^.typ=top_shifterop) then
+                  begin
+                  end;
+              end;
+          else
+            internalerror(2005091103);
+          end;
+        end;
+
+      begin
+        bytes:=$0;
+        { evaluate and set condition code }
+
+        { condition code allowed? }
+
+        { setup rest of the instruction }
+        case insentry^.code[0] of
+          #$08:
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 26);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 21);
+
+              { set destination }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+
+              { create shifter op }
+              setshifterop(1);
+
+              { set i field }
+              bytes:=bytes or (i_field shl 25);
+
+              { set s if necessary }
+              if oppostfix=PF_S then
+                bytes:=bytes or (1 shl 20);
+            end;
+          #$ff:
+            internalerror(2005091101);
+          else
+            internalerror(2005091102);
+        end;
+        { we're finished, write code }
+        objdata.writebytes(bytes,sizeof(bytes));
+      end;
+
 
 end.
 
