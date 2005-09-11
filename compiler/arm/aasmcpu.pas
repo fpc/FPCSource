@@ -75,6 +75,7 @@ uses
       OT_IMMEDIATE24 = OT_IMM24;
       OT_SHIFTIMM  = OT_SHIFTEROP or OT_IMMSHIFTER;
       OT_SHIFTIMMEDIATE = OT_SHIFTIMM;
+      OT_IMMEDIATESHIFTER = OT_IMMSHIFTER;
 
       OT_IMMEDIATEFPU = OT_IMMTINY;
 
@@ -195,8 +196,8 @@ uses
          procedure ResetPass2;
          function  CheckIfValid:boolean;
          function GetString:string;
-         function Pass1(offset:longint):longint;virtual;
-         procedure Pass2(objdata:TAsmObjectdata);virtual;
+         function Pass1(offset:longint):longint;override;
+         procedure Pass2(objdata:TAsmObjectdata);override;
       protected
          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
          procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);override;
@@ -875,7 +876,7 @@ implementation
                    s:=s+'mem';
                    addsize:=true;
                    if (ot and OT_AM2)<>0 then
-                     s:=s+' am2';
+                     s:=s+' am2 ';
                  end
                else
                  s:=s+'???';
@@ -886,7 +887,7 @@ implementation
                     s:=s+'8'
                   else
                    if (ot and OT_BITS16)<>0 then
-                    s:=s+'16'
+                    s:=s+'24'
                   else
                    if (ot and OT_BITS32)<>0 then
                     s:=s+'32'
@@ -1090,13 +1091,12 @@ implementation
                     begin
                       l:=ref^.offset;
                       if assigned(ref^.symbol) then
-                       inc(l,ref^.symbol.address);
-                      if (not assigned(ref^.symbol) or
-                          ((ref^.symbol.currbind<>AB_EXTERNAL) and (ref^.symbol.address<>0))) and
-                         (relsize>=-33554428) and (relsize<=33554428) and (relsize mod 4=0) then
-                       ot:=OT_IMM24
+                        inc(l,ref^.symbol.address);
+                      relsize:=(InsOffset+2)-l;
+                      if (relsize<-33554428) or (relsize>33554428) then
+                       ot:=OT_IMM32
                       else
-                       ot:=OT_IMM32 or OT_NEAR;
+                       ot:=OT_IMM24;
                     end;
                 end;
               top_local :

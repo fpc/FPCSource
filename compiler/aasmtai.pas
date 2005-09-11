@@ -554,6 +554,9 @@ interface
           function is_same_reg_move(regtype: Tregistertype):boolean;virtual;
           function spilling_get_operation_type(opnr: longint): topertype;virtual;
           function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;virtual;
+
+          function  Pass1(offset:longint):longint;virtual;abstract;
+          procedure Pass2(objdata:TAsmObjectdata);virtual;abstract;
        end;
        tai_cpu_class = class of tai_cpu_abstract;
 

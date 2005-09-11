@@ -276,7 +276,7 @@
   (
     opcode  : A_LDM;
     ops     : 2;
-    optypes : (ot_memoryam5,ot_reglist,ot_none,ot_none);
+    optypes : (ot_memoryam4,ot_reglist,ot_none,ot_none);
     code    : #38#129;
     flags   : if_arm7
   ),
@@ -682,7 +682,21 @@
   (
     opcode  : A_SUB;
     ops     : 3;
-    optypes : (ot_reg32,ot_reg32,ot_shiftimmediate,ot_none);
+    optypes : (ot_reg32,ot_reg32,ot_shifterop,ot_none);
+    code    : #4#0#64;
+    flags   : if_arm7
+  ),
+  (
+    opcode  : A_SUB;
+    ops     : 3;
+    optypes : (ot_reg32,ot_reg32,ot_immediateshifter,ot_none);
+    code    : #4#0#64;
+    flags   : if_arm7
+  ),
+  (
+    opcode  : A_SUB;
+    ops     : 3;
+    optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none);
     code    : #4#0#64;
     flags   : if_arm7
   ),

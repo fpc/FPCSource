@@ -238,8 +238,8 @@ interface
          procedure ResetPass1;
          procedure ResetPass2;
          function  CheckIfValid:boolean;
-         function  Pass1(offset:longint):longint;virtual;
-         procedure Pass2(objdata:TAsmObjectdata);virtual;
+         function  Pass1(offset:longint):longint;override;
+         procedure Pass2(objdata:TAsmObjectdata);override;
          procedure SetOperandOrder(order:TOperandOrder);
          function is_same_reg_move(regtype: Tregistertype):boolean;override;
          { register spilling code }
