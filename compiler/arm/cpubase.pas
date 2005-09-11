@@ -369,6 +369,8 @@ unit cpubase;
     procedure shifterop_reset(var so : tshifterop);
     function is_pc(const r : tregister) : boolean;
 
+    function is_shifter_const(d : aint;var imm_shift : byte) : boolean;
+
   implementation
 
     uses
@@ -492,5 +494,27 @@ unit cpubase;
         result := c1 = c2;
       end;
 
+
+    function rotl(d : dword;b : byte) : dword;
+      begin
+         result:=(d shr (32-b)) or (d shl b);
+      end;
+
+
+    function is_shifter_const(d : aint;var imm_shift : byte) : boolean;
+      var
+         i : longint;
+      begin
+         for i:=0 to 15 do
+           begin
+              if (dword(d) and not(rotl($ff,i*2)))=0 then
+                begin
+                   imm_shift:=i*2;
+                   result:=true;
+                   exit;
+                end;
+           end;
+         result:=false;
+      end;
 
 end.

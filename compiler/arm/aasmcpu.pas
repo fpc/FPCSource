@@ -49,8 +49,10 @@ uses
       OT_NEAR      = $00000040;
       OT_SHORT     = $00000080;
       OT_BITSTINY  = $00000100;  { fpu constant }
+      OT_BITSSHIFTER =
+                     $00000200;
 
-      OT_SIZE_MASK = $000000FF;  { all the size attributes  }
+      OT_SIZE_MASK = $000003FF;  { all the size attributes  }
       OT_NON_SIZE  = longint(not OT_SIZE_MASK);
 
       OT_SIGNED    = $00000100;  { the operand need to be signed -128-127 }
@@ -59,15 +61,21 @@ uses
                                  { reverse effect in FADD, FSUB &c  }
       OT_COLON     = $00000400;
 
+      OT_SHIFTEROP = $00000800;
       OT_REGISTER  = $00001000;
       OT_IMMEDIATE = $00002000;
       OT_REGLIST   = $00008000;
       OT_IMM8      = $00002001;
-      OT_IMM16     = $00002002;
+      OT_IMM24     = $00002002;
       OT_IMM32     = $00002004;
       OT_IMM64     = $00002008;
       OT_IMM80     = $00002010;
       OT_IMMTINY   = $00002100;
+      OT_IMMSHIFTER= $00002200;
+      OT_IMMEDIATE24 = OT_IMM24;
+      OT_SHIFTIMM  = OT_SHIFTEROP or OT_IMMSHIFTER;
+      OT_SHIFTIMMEDIATE = OT_SHIFTIMM;
+
       OT_IMMEDIATEFPU = OT_IMMTINY;
 
       OT_REGMEM    = $00200000;  { for r/m, ie EA, operands  }
@@ -83,6 +91,19 @@ uses
       OT_MEM32     = $00204004;
       OT_MEM64     = $00204008;
       OT_MEM80     = $00204010;
+      { word/byte load/store }
+      OT_AM2       = $00010000;
+      { misc ld/st operations }
+      OT_AM3       = $00020000;
+      { multiple ld/st operations }
+      OT_AM4       = $00040000;
+      { co proc. ld/st operations }
+      OT_AM5       = $00080000;
+      OT_AMMASK    = $000f0000;
+
+      OT_MEMORYAM4 = OT_MEMORY or OT_AM4;
+      OT_MEMORYAM5 = OT_MEMORY or OT_AM5;
+
       OT_FPUREG    = $01000000;  { floating point stack registers  }
       OT_REG_SMASK = $00070000;  { special register operands: these may be treated differently  }
                                  { a mask for the following  }
@@ -853,6 +874,8 @@ implementation
                  begin
                    s:=s+'mem';
                    addsize:=true;
+                   if (ot and OT_AM2)<>0 then
+                     s:=s+' am2';
                  end
                else
                  s:=s+'???';
@@ -867,6 +890,9 @@ implementation
                   else
                    if (ot and OT_BITS32)<>0 then
                     s:=s+'32'
+                  else
+                   if (ot and OT_BITSSHIFTER)<>0 then
+                    s:=s+'shifter'
                   else
                     s:=s+'??';
                   { signed }
@@ -909,6 +935,11 @@ implementation
 
 
     function taicpu.Pass1(offset:longint):longint;
+      var
+        ldr2op : array[PF_B..PF_T] of tasmop = (
+          A_LDRB,A_LDRSB,A_LDRBT,A_LDRH,A_LDRSH,A_LDRT);
+        str2op : array[PF_B..PF_T] of tasmop = (
+          A_STRB,A_None,A_STRBT,A_STRH,A_None,A_STRT);
       begin
         Pass1:=0;
         { Save the old offset and set the new offset }
@@ -918,6 +949,27 @@ implementation
           exit;
         { set the file postion }
         aktfilepos:=fileinfo;
+
+        { tranlate LDR+postfix to complete opcode }
+        if (opcode=A_LDR) and (oppostfix<>PF_None) then
+          begin
+            if (oppostfix in [low(ldr2op)..high(ldr2op)]) then
+              opcode:=ldr2op[oppostfix]
+            else
+              internalerror(2005091001);
+            if opcode=A_None then
+              internalerror(2005091004);
+          end
+        else if (opcode=A_STR) and (oppostfix<>PF_None) then
+          begin
+            if (oppostfix in [low(str2op)..high(str2op)]) then
+              opcode:=str2op[oppostfix]
+            else
+              internalerror(2005091002);
+            if opcode=A_None then
+              internalerror(2005091003);
+          end;
+
         { Get InsEntry }
         if FindInsEntry then
          begin
@@ -963,6 +1015,7 @@ implementation
     procedure taicpu.create_ot;
       var
         i,l,relsize : longint;
+        dummy : byte;
       begin
         if ops=0 then
          exit;
@@ -979,7 +1032,7 @@ implementation
                 begin
                   case getregtype(reg) of
                     R_INTREGISTER:
-                      ot:=OT_REG32;
+                      ot:=OT_REG32 or OT_SHIFTEROP;
                     R_FPUREGISTER:
                       ot:=OT_FPUREG;
                     else
@@ -1000,6 +1053,38 @@ implementation
                       if (ref^.base=NR_NO) and (ref^.index=NR_NO) then
                         ot:=ot or OT_MEM_OFFS;
                       { if we need to fix a reference, we do it here }
+
+                      { determine possible address modes }
+                      if (ref^.base<>NR_NO) and
+                        (
+                          (
+                            (ref^.index=NR_NO) and
+                            (ref^.shiftmode=SM_None) and
+                            (ref^.offset>=-4097) and
+                            (ref^.offset<=4097)
+                          ) or
+                          (
+                            (ref^.shiftmode=SM_None) and
+                            (ref^.offset=0)
+                          ) or
+                          (
+                            (ref^.index<>NR_NO) and
+                            (ref^.shiftmode<>SM_None) and
+                            (ref^.shiftimm<=31) and
+                            (ref^.offset=0)
+                          )
+                        ) then
+                        ot:=ot or OT_AM2;
+
+                      if (ref^.index<>NR_NO) and
+                        (oppostfix in [PF_IA,PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,PF_ED,PF_EA]) and
+                        (
+                          (ref^.base=NR_NO) and
+                          (ref^.shiftmode=SM_None) and
+                          (ref^.offset=0)
+                        ) then
+                        ot:=ot or OT_AM4;
+
                     end
                   else
                     begin
@@ -1008,8 +1093,8 @@ implementation
                        inc(l,ref^.symbol.address);
                       if (not assigned(ref^.symbol) or
                           ((ref^.symbol.currbind<>AB_EXTERNAL) and (ref^.symbol.address<>0))) and
-                         (relsize>=-128) and (relsize<=127) then
-                       ot:=OT_IMM32 or OT_SHORT
+                         (relsize>=-33554428) and (relsize<=33554428) and (relsize mod 4=0) then
+                       ot:=OT_IMM24
                       else
                        ot:=OT_IMM32 or OT_NEAR;
                     end;
@@ -1026,14 +1111,10 @@ implementation
               top_const :
                 begin
                   ot:=OT_IMMEDIATE;
-                  { fixme !!!!
-                  if opsize=S_NO then
-                    message(asmr_e_invalid_opcode_and_operand);
-                  if (opsize<>S_W) and (longint(val)>=-128) and (val<=127) then
-                    ot:=OT_IMM8 or OT_SIGNED
+                  if is_shifter_const(val,dummy) then
+                    ot:=OT_IMMSHIFTER
                   else
-                    ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];
-                  }
+                    ot:=OT_IMM32
                 end;
               top_none :
                 begin
@@ -1043,6 +1124,7 @@ implementation
                 end;
               top_shifterop:
                 begin
+                  ot:=OT_SHIFTEROP;
                 end;
               else
                 internalerror(200402261);
@@ -1077,6 +1159,7 @@ implementation
         siz : array[0..3] of longint;
       begin
         Matches:=100;
+        writeln(getstring,'---');
 
         { Check the opcode and operands }
         if (p^.opcode<>opcode) or (p^.ops<>ops) then
@@ -1110,6 +1193,51 @@ implementation
                Matches:=1;
             end;
          end;
+
+      { check postfixes:
+        the existance of a certain postfix requires a
+        particular code }
+
+        { update condition flags
+          or floating point single }
+      if (oppostfix=PF_S) and
+        not(p^.code[0] in []) then
+        begin
+          Matches:=0;
+          exit;
+        end;
+
+      { floating point size }
+      if (oppostfix in [PF_D,PF_E,PF_P,PF_EP]) and
+        not(p^.code[0] in []) then
+        begin
+          Matches:=0;
+          exit;
+        end;
+
+      { multiple load/store address modes }
+      if (oppostfix in [PF_IA,PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,PF_ED,PF_EA]) and
+        not(p^.code[0] in [
+          // stm,ldm
+          #$26
+        ]) then
+        begin
+          Matches:=0;
+          exit;
+        end;
+
+      { we shouldn't see any opsize prefixes here }
+      if (oppostfix in [PF_B,PF_SB,PF_BT,PF_H,PF_SH,PF_T]) then
+        begin
+          Matches:=0;
+          exit;
+        end;
+
+      if (roundingmode<>RM_None) and not(p^.code[0] in []) then
+        begin
+          Matches:=0;
+          exit;
+        end;
 
       { Check operand sizes }
         { as default an untyped size can get all the sizes, this is different
@@ -1559,7 +1687,7 @@ static char *CC[] =
 	
 	  out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
 	  return;
-	
+
 
         case 0xC:	// CMP Rn,Rm
         case 0xD:	// CMP Rn,Rm,<shift>Rs
@@ -1735,7 +1863,7 @@ static char *CC[] =
         case 0x14:	// MUL  Rd,Rm,Rs
         case 0x15:	// MULA Rd,Rm,Rs,Rn
 	  ++codes;
-	
+
 	  bytes[0] = c | *codes++;
 	
 	  bytes[1] = *codes++;
@@ -2027,7 +2155,7 @@ static char *CC[] =
 	    data = -8;
 	  else
 	    data = 0;
-	
+
 	  if (data < 0)
 	    {
 	      data = -data;

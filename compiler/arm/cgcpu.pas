@@ -118,8 +118,6 @@ unit cgcpu;
       OpCmp2AsmCond : Array[topcmp] of TAsmCond = (C_NONE,C_EQ,C_GT,
                            C_LT,C_GE,C_LE,C_NE,C_LS,C_CC,C_CS,C_HI);
 
-    function is_shifter_const(d : aint;var imm_shift : byte) : boolean;
-
     function get_fpu_postfix(def : tdef) : toppostfix;
 
   implementation
@@ -544,29 +542,6 @@ unit cgcpu;
               ));
         end;
       end;
-
-
-     function rotl(d : dword;b : byte) : dword;
-       begin
-          result:=(d shr (32-b)) or (d shl b);
-       end;
-
-
-     function is_shifter_const(d : aint;var imm_shift : byte) : boolean;
-       var
-          i : longint;
-       begin
-          for i:=0 to 15 do
-            begin
-               if (dword(d) and not(rotl($ff,i*2)))=0 then
-                 begin
-                    imm_shift:=i*2;
-                    result:=true;
-                    exit;
-                 end;
-            end;
-          result:=false;
-       end;
 
 
      procedure tcgarm.a_load_const_reg(list : taasmoutput; size: tcgsize; a : aint;reg : tregister);
