@@ -1595,7 +1595,8 @@ implementation
         { call startup helpers from main program }
         if (current_procinfo.procdef.proctypeoption=potype_proginit) then
          begin
-           if (target_info.system = system_powerpc_darwin) then
+           if (target_info.system = system_powerpc_darwin) or
+              (target_info.system = system_powerpc_macos) then
              begin
               { the parameters are already in the right registers }
               cg.a_call_name(list,target_info.cprefix+'FPC_SYSTEMMAIN');
