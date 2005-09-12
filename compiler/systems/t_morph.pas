@@ -113,7 +113,7 @@ begin
    begin
     s:=HPath.Str;
     if s<>'' then
-     LinkRes.Add('SEARCH_DIR('+maybequoted(s)+')');
+     LinkRes.Add('SEARCH_DIR('+PathConv(maybequoted(s))+')');
     HPath:=TStringListItem(HPath.Next);
    end;
 
@@ -129,7 +129,7 @@ begin
       { vlink doesn't use SEARCH_DIR for object files }
       if not(cs_link_on_target in aktglobalswitches) then
        s:=FindObjectFile(s,'',false);
-      LinkRes.AddFileName(maybequoted(s));
+      LinkRes.AddFileName(PathConv(maybequoted(s)));
      end;
    end;
 
@@ -145,7 +145,7 @@ begin
     while not StaticLibFiles.Empty do
      begin
       S:=StaticLibFiles.GetFirst;
-      LinkRes.AddFileName(maybequoted(s));
+      LinkRes.AddFileName(PathConv(maybequoted(s)));
      end;
    end;
   
