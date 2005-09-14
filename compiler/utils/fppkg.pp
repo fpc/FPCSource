@@ -814,6 +814,8 @@ begin
       FCompiler:='ppcarm';
     {$elseif defined(cpum68k)}
       FCompiler:='ppcm68k';
+   {$elseif defined(cpux86_64)}
+      FCompiler:='ppcx64';
     {$elseif defined(cpupowerpc)}
       FCompiler:='ppcppc';
     {$else}
