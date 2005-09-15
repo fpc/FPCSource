@@ -77,9 +77,9 @@ implementation
               genitem(list,t^.less);
             { fill possible hole }
             for i:=last+1 to t^._low-1 do
-              jumpSegment.concat(Tai_const.Create_sym(elselabel));
+              list.concat(Tai_const.Create_sym(elselabel));
             for i:=t^._low to t^._high do
-              jumpSegment.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
+              list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
             last:=t^._high;
             if assigned(t^.greater) then
               genitem(list,t^.greater);
