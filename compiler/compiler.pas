@@ -1,7 +1,7 @@
 {
     This unit is the interface of the compiler which can be used by
     external programs to link in the compiler
-    
+
     Copyright (c) 1998-2005 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
@@ -141,9 +141,13 @@ uses
 {$ENDIF MACOS_USE_FAKE_SYSUTILS}
   verbose,comphook,systems,
   cutils,cclasses,globals,options,fmodule,parser,symtable,
-  assemble,link,import,export,tokens,pass_1
-  { cpu overrides }
+  assemble,link,dbgbase,import,export,tokens,pass_1
+  { cpu specific commandline options }
   ,cpuswtch
+  { cpu parameter handling }
+  ,cpupara
+  { procinfo stuff }
+  ,cpupi
   { cpu codegenerator }
   ,cgcpu
 {$ifndef NOPASS2}
@@ -151,10 +155,6 @@ uses
 {$endif}
   { cpu targets }
   ,cputarg
-  { cpu parameter handling }
-  ,cpupara
-  { procinfo stuff }
-  ,cpupi
   { system information for source system }
   { the information about the target os  }
   { are pulled in by the t_* units       }
@@ -207,29 +207,6 @@ uses
 {$ifdef win32}
   ,i_win
 {$endif win32}
-  { assembler readers }
-{$ifdef i386}
-  {$ifndef NoRa386Int}
-       ,ra386int
-  {$endif NoRa386Int}
-  {$ifndef NoRa386Att}
-       ,ra386att
-  {$endif NoRa386Att}
-{$else}
-  ,rasm
-{$endif i386}
-{$ifdef powerpc}
-  ,rappcgas
-{$endif powerpc}
-{$ifdef x86_64}
-  ,rax64att
-{$endif x86_64}
-{$ifdef arm}
-  ,raarmgas
-{$endif arm}
-{$ifdef SPARC}
-  ,racpugas
-{$endif SPARC}
   ;
 
 function Compile(const cmd:string):longint;
@@ -273,6 +250,7 @@ begin
      DoneParser;
      DoneImport;
      DoneExport;
+     DoneDebuginfo;
      DoneLinker;
      DoneAssembler;
      DoneAsm;
@@ -316,6 +294,7 @@ begin
   InitExport;
   InitLinker;
   InitAssembler;
+  InitDebugInfo;
   InitAsm;
   CompilerInitedAfterArgs:=true;
 end;

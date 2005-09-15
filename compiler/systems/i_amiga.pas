@@ -65,6 +65,7 @@ unit i_amiga;
             linkextern   : nil;
             ar           : ar_gnu_ar;
             res          : res_none;
+            dbg          : dbg_stabs;
             script       : script_amiga;
             endian       : endian_big;
             alignment    :
@@ -127,6 +128,7 @@ unit i_amiga;
             linkextern   : nil;
             ar           : ar_gnu_ar;
             res          : res_none;
+            dbg          : dbg_stabs;
             script       : script_amiga;
             endian       : endian_big;
             alignment    :

@@ -59,6 +59,26 @@ implementation
 
       ,ogcoff
       ,ogelf
+
+{**************************************
+        Assembler Readers
+**************************************}
+
+  {$ifndef NoRax64att}
+       ,rax64att
+  {$endif NoRax64att}
+
+{**************************************
+             Debuginfo
+**************************************}
+
+  {$ifndef NoDbgStabs}
+      ,dbgstabs
+  {$endif NoDbgStabs}
+  {$ifndef NoDbgDwarf}
+      ,dbgdwarf
+  {$endif NoDbgDwarf}
+
       ;
 
 end.

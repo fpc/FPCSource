@@ -157,6 +157,10 @@ interface
             ,res_gnu_wince_windres
        );
 
+       tdbg = (dbg_none
+            ,dbg_stabs,dbg_dwarf
+       );
+
        tscripttype = (script_none
             ,script_dos,script_unix,script_amiga,
             script_mpw
@@ -233,6 +237,12 @@ interface
           rescmd  : string[50];
        end;
 
+       pdbginfo = ^tdbginfo;
+       tdbginfo = record
+          id      : tdbg;
+          idtxt   : string[12];
+       end;
+
        tsystemflags = (tf_none,
             tf_under_development,
             tf_need_export,tf_needs_isconsole,
@@ -284,6 +294,7 @@ interface
           linkextern   : tabstractlinkerclass;  { external linker, used by -s }
           ar           : tar;
           res          : tres;
+          dbg          : tdbg;
           script       : tscripttype;
           endian       : tendian;
           alignment    : talignmentinfo;
@@ -320,6 +331,7 @@ interface
        arinfos       : array[tar] of parinfo;
        resinfos      : array[tres] of presinfo;
        asminfos      : array[tasm] of pasminfo;
+       dbginfos      : array[tdbg] of pdbginfo;
 
        source_info : tsysteminfo;
        target_cpu  : tsystemcpu;
@@ -327,6 +339,7 @@ interface
        target_asm  : tasminfo;
        target_ar   : tarinfo;
        target_res  : tresinfo;
+       target_dbg  : tdbginfo;
        target_cpu_string,
        target_os_string   : string[12]; { for rtl/<X>/,fcl/<X>/, etc. }
        target_full_string : string[24];
@@ -335,9 +348,11 @@ interface
     function set_target_asm(t:tasm):boolean;
     function set_target_ar(t:tar):boolean;
     function set_target_res(t:tres):boolean;
+    function set_target_dbg(t:tdbg):boolean;
 
     function set_target_by_string(const s : string) : boolean;
     function set_target_asm_by_string(const s : string) : boolean;
+    function set_target_dbg_by_string(const s : string) : boolean;
 
     procedure set_source_info(const ti : tsysteminfo);
 
@@ -419,6 +434,7 @@ begin
      set_target_asm(target_info.assem);
      set_target_ar(target_info.ar);
      set_target_res(target_info.res);
+     set_target_dbg(target_info.dbg);
      target_cpu:=target_info.cpu;
      target_os_string:=lower(target_info.shortname);
      target_cpu_string:=cpu2str[target_cpu];
@@ -445,11 +461,11 @@ end;
 
 function set_target_ar(t:tar):boolean;
 begin
-  set_target_ar:=false;
+  result:=false;
   if assigned(arinfos[t]) then
    begin
      target_ar:=arinfos[t]^;
-     set_target_ar:=true;
+     result:=true;
      exit;
    end;
 end;
@@ -457,11 +473,23 @@ end;
 
 function set_target_res(t:tres):boolean;
 begin
-  set_target_res:=false;
+  result:=false;
   if assigned(resinfos[t]) then
    begin
      target_res:=resinfos[t]^;
-     set_target_res:=true;
+     result:=true;
+     exit;
+   end;
+end;
+
+
+function set_target_dbg(t:tdbg):boolean;
+begin
+  result:=false;
+  if assigned(dbginfos[t]) then
+   begin
+     target_dbg:=dbginfos[t]^;
+     result:=true;
      exit;
    end;
 end;
@@ -472,14 +500,13 @@ var
   hs : string;
   t  : tsystem;
 begin
-  set_target_by_string:=false;
-  { this should be case insensitive !! PM }
+  result:=false;
   hs:=upper(s);
   for t:=low(tsystem) to high(tsystem) do
    if assigned(targetinfos[t]) and
       (upper(targetinfos[t]^.shortname)=hs) then
     begin
-      set_target_by_string:=set_target(t);
+      result:=set_target(t);
       exit;
     end;
 end;
@@ -490,14 +517,30 @@ var
   hs : string;
   t  : tasm;
 begin
-  set_target_asm_by_string:=false;
-  { this should be case insensitive !! PM }
+  result:=false;
   hs:=upper(s);
   for t:=low(tasm) to high(tasm) do
    if assigned(asminfos[t]) and
       (asminfos[t]^.idtxt=hs) then
     begin
-      set_target_asm_by_string:=set_target_asm(t);
+      result:=set_target_asm(t);
+      exit;
+    end;
+end;
+
+
+function set_target_dbg_by_string(const s : string) : boolean;
+var
+  hs : string;
+  t  : tdbg;
+begin
+  result:=false;
+  hs:=upper(s);
+  for t:=low(tdbg) to high(tdbg) do
+   if assigned(dbginfos[t]) and
+      (dbginfos[t]^.idtxt=hs) then
+    begin
+      result:=set_target_dbg(t);
       exit;
     end;
 end;

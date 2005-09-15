@@ -65,6 +65,7 @@ unit i_win;
             linkextern   : nil;
             ar           : ar_gnu_ar;
             res          : res_gnu_windres;
+            dbg          : dbg_stabs;
             script       : script_dos;
             endian       : endian_little;
             alignment    :
@@ -126,6 +127,7 @@ unit i_win;
             linkextern   : nil;
             ar           : ar_gnu_ar;
             res          : res_gnu_windres;
+            dbg          : dbg_stabs;
             script       : script_dos;
             endian       : endian_little;
             alignment    :
@@ -187,6 +189,7 @@ unit i_win;
             linkextern   : nil;
             ar           : ar_gnu_ar;
             res          : res_gnu_wince_windres;
+            dbg          : dbg_stabs;
             script       : script_dos;
             endian       : endian_little;
             alignment    :
@@ -248,6 +251,7 @@ unit i_win;
             linkextern   : nil;
             ar           : ar_gnu_ar;
             res          : res_gnu_windres;
+            dbg          : dbg_stabs;
             script       : script_dos;
             endian       : endian_little;
             alignment    :

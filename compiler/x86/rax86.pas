@@ -86,24 +86,6 @@ uses
   cpuinfo,cgbase,cgutils,
   itcpugas,cgx86;
 
-{$define ATTOP}
-{$define INTELOP}
-
-{$ifdef NORA386INT}
-  {$ifdef NOAG386NSM}
-    {$ifdef NOAG386INT}
-      {$undef INTELOP}
-    {$endif}
-  {$endif}
-{$endif}
-
-{$ifdef NORA386ATT}
-  {$ifdef NOAG386ATT}
-    {$undef ATTOP}
-  {$endif}
-{$endif}
-
-
 
 {*****************************************************************************
                               Parser Helpers
@@ -548,15 +530,7 @@ begin
          opcode:=A_FDIVP
        else if opcode=A_FDIVR then
          opcode:=A_FDIVRP;
-{$ifdef ATTOP}
-       message1(asmr_w_fadd_to_faddp,gas_op2str[opcode]);
-{$else}
-  {$ifdef INTELOP}
        message1(asmr_w_fadd_to_faddp,std_op2str[opcode]);
-  {$else}
-       message1(asmr_w_fadd_to_faddp,'fXX');
-  {$endif INTELOP}
-{$endif ATTOP}
      end;
 
   {It is valid to specify some instructions without operand size.}
@@ -596,15 +570,7 @@ begin
       (opcode=A_FDIV) or
       (opcode=A_FDIVR)) then
      begin
-{$ifdef ATTOP}
-       message1(asmr_w_adding_explicit_args_fXX,gas_op2str[opcode]);
-{$else}
-  {$ifdef INTELOP}
        message1(asmr_w_adding_explicit_args_fXX,std_op2str[opcode]);
-  {$else}
-       message1(asmr_w_adding_explicit_args_fXX,'fXX');
-  {$endif INTELOP}
-{$endif ATTOP}
        ops:=2;
        operands[1].opr.typ:=OPR_REGISTER;
        operands[2].opr.typ:=OPR_REGISTER;
@@ -627,15 +593,7 @@ begin
       (opcode=A_FMULP)
      ) then
      begin
-{$ifdef ATTOP}
-       message1(asmr_w_adding_explicit_first_arg_fXX,gas_op2str[opcode]);
-{$else}
-  {$ifdef INTELOP}
        message1(asmr_w_adding_explicit_first_arg_fXX,std_op2str[opcode]);
-  {$else}
-       message1(asmr_w_adding_explicit_first_arg_fXX,'fXX');
-  {$endif INTELOP}
-{$endif ATTOP}
        ops:=2;
        operands[2].opr.typ:=OPR_REGISTER;
        operands[2].opr.reg:=operands[1].opr.reg;
@@ -658,15 +616,7 @@ begin
       (opcode=A_FMUL)
      ) then
      begin
-{$ifdef ATTOP}
-       message1(asmr_w_adding_explicit_second_arg_fXX,gas_op2str[opcode]);
-{$else}
-  {$ifdef INTELOP}
        message1(asmr_w_adding_explicit_second_arg_fXX,std_op2str[opcode]);
-  {$else}
-       message1(asmr_w_adding_explicit_second_arg_fXX,'fXX');
-  {$endif INTELOP}
-{$endif ATTOP}
        ops:=2;
        operands[2].opr.typ:=OPR_REGISTER;
        operands[2].opr.reg:=NR_ST0;

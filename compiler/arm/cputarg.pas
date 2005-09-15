@@ -54,6 +54,25 @@ implementation
     {$endif}
 
       ,ogcoff
+
+{**************************************
+        Assembler Readers
+**************************************}
+
+  {$ifndef NoRaarmgas}
+       ,raarmgas
+  {$endif NoRaarmgas}
+
+{**************************************
+             Debuginfo
+**************************************}
+
+  {$ifndef NoDbgStabs}
+      ,dbgstabs
+  {$endif NoDbgStabs}
+  {$ifndef NoDbgDwarf}
+      ,dbgdwarf
+  {$endif NoDbgDwarf}
       ;
 
 end.

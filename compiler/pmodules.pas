@@ -39,7 +39,7 @@ implementation
        aasmtai,aasmcpu,aasmbase,
        cgbase,cgobj,
        nbas,ncgutil,
-       link,assemble,import,export,gendef,ppu,comprsrc,
+       link,assemble,import,export,gendef,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
        dwarf,pexports,
 {$ifdef GDB}

@@ -1,6 +1,6 @@
 {
     This unit implements support information structures for GameBoy Advance
-    
+
     Copyright (c) 1998-2002 by Peter Vreman
 
     This program is free software; you can redistribute it and/or modify
@@ -54,7 +54,7 @@ unit i_gba;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
-            p_ext_support : false;            
+            p_ext_support : false;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -65,6 +65,7 @@ unit i_gba;
             linkextern   : nil;
             ar           : ar_gnu_ar;
             res          : res_none;
+            dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_little;
             alignment    :

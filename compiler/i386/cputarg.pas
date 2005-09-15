@@ -88,6 +88,29 @@ implementation
 
       ,ogcoff
       ,ogelf
+
+{**************************************
+        Assembler Readers
+**************************************}
+
+  {$ifndef NoRa386Int}
+       ,ra386int
+  {$endif NoRa386Int}
+  {$ifndef NoRa386Att}
+       ,ra386att
+  {$endif NoRa386Att}
+
+{**************************************
+             Debuginfo
+**************************************}
+
+  {$ifndef NoDbgStabs}
+      ,dbgstabs
+  {$endif NoDbgStabs}
+  {$ifndef NoDbgDwarf}
+      ,dbgdwarf
+  {$endif NoDbgDwarf}
+
       ;
 
 end.

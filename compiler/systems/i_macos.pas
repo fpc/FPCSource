@@ -64,6 +64,7 @@ unit i_macos;
             linkextern   : nil;
             ar           : ar_mpw_ar;
             res          : res_powerpc_mpw;
+            dbg          : dbg_stabs;
             script       : script_mpw;
             endian       : endian_big;
             alignment    :
