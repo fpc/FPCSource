@@ -203,8 +203,6 @@ Function SearchIConstant(const s:string; var l:aint): boolean;
   procedure ConcatAlign(p:TAAsmoutput;l:aint);
   Procedure ConcatPublic(p:TAAsmoutput;const s : string);
   Procedure ConcatLocal(p:TAAsmoutput;const s : string);
-  Procedure ConcatGlobalBss(const s : string;size : aint);
-  Procedure ConcatLocalBss(const s : string;size : aint);
 
 
 Implementation
@@ -1568,24 +1566,5 @@ end;
        p.concat(Tai_symbol.Createname(s,AT_FUNCTION,0));
    end;
 
-  Procedure ConcatGlobalBss(const s : string;size : aint);
-  {*********************************************************************}
-  { PROCEDURE ConcatGlobalBss                                           }
-  {  Description: This routine emits an global  datablock   to the      }
-  {  linked list of instructions.                                       }
-  {*********************************************************************}
-   begin
-       asmlist[al_bss].concat(Tai_datablock.Create_global(s,size));
-   end;
-
-  Procedure ConcatLocalBss(const s : string;size : aint);
-  {*********************************************************************}
-  { PROCEDURE ConcatLocalBss                                            }
-  {  Description: This routine emits a local datablcok      to the      }
-  {  linked list of instructions.                                       }
-  {*********************************************************************}
-   begin
-       asmlist[al_bss].concat(Tai_datablock.Create(s,size));
-   end;
 
 end.

@@ -47,6 +47,7 @@ implementation
 {$endif GDB}
        scanner,pbase,pexpr,psystem,psub,pdecsub;
 
+(*
     procedure fixseg(p:TAAsmoutput; sec:TAsmSectionType; secname: string);
       begin
         maybe_new_object_file(p);
@@ -55,7 +56,7 @@ implementation
         else
           p.insert(Tai_section.Create(sec,secname,0));
       end;
-
+*)
 
     procedure create_objectfile;
       var
@@ -103,7 +104,8 @@ implementation
         GenerateAsm(false);
 
         { Also create a smartlinked version ? }
-        if (cs_create_smart in aktmoduleswitches) then
+        if (cs_create_smart in aktmoduleswitches) and
+           not(af_smartlink_sections in target_asm.flags) then
          begin
            { regenerate the importssection for win32 }
            if assigned(asmlist[al_imports]) and
@@ -129,7 +131,8 @@ implementation
         current_module.linkunitofiles.add(current_module.objfilename^,link_static);
         current_module.flags:=current_module.flags or uf_static_linked;
 
-        if (cs_create_smart in aktmoduleswitches) then
+        if (cs_create_smart in aktmoduleswitches) and
+           not(af_smartlink_sections in target_asm.flags) then
          begin
            current_module.linkunitstaticlibs.add(current_module.staticlibfilename^,link_smart);
            current_module.flags:=current_module.flags or uf_smart_linked;
@@ -147,6 +150,7 @@ implementation
       end;
 
 
+(*
     procedure insertsegment;
       var
         oldaktfilepos : tfileposinfo;
@@ -160,17 +164,17 @@ implementation
            then
          begin
            { align the first data }
-           asmlist[al_data].insert(Tai_align.Create(const_align(32)));
-           asmlist[al_data].insert(Tai_string.Create('FPC '+full_version_string+
+           asmlist[al_globals].insert(Tai_align.Create(const_align(32)));
+           asmlist[al_globals].insert(Tai_string.Create('FPC '+full_version_string+
              ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
          end;
         { align code segment }
-        asmlist[al_code].concat(Tai_align.create(aktalignment.procalign));
+        asmlist[al_procedures].concat(Tai_align.create(aktalignment.procalign));
         { Insert start and end of sections }
-        fixseg(asmlist[al_code],sec_code,'____seg_code');
-        fixseg(asmlist[al_data],sec_data,'____seg_data');
-        fixseg(asmlist[al_rodata],sec_rodata,'____seg_rodata');
-        fixseg(asmlist[al_bss],sec_bss,'____seg_bss');
+        fixseg(asmlist[al_procedures],sec_code,'____seg_code');
+        fixseg(asmlist[al_globals],sec_data,'____seg_data');
+        fixseg(asmlist[al_const],sec_rodata,'____seg_rodata');
+//        fixseg(asmlist[al_bss],sec_bss,'____seg_bss');
         fixseg(asmlist[al_threadvars],sec_bss,'____seg_tbss');
         { we should use .rdata section for these two no ?
           .rdata is a read only data section (PM) }
@@ -187,11 +191,12 @@ implementation
             aktfilepos.line:=0;
             asmlist[al_typestabs].insert(Tai_symbol.Createname('gcc2_compiled',AT_DATA,0));
             asmlist[al_typestabs].insert(Tai_symbol.Createname('fpc_compiled',AT_DATA,0));
-            fixseg(asmlist[al_typestabs],sec_code,'____seg_debug');
+//            fixseg(asmlist[al_typestabs],sec_code,'____seg_debug');
             aktfilepos:=oldaktfilepos;
           end;
 {$endif GDB}
       end;
+*)
 
 {$ifndef segment_threadvars}
     procedure InsertThreadvarTablesTable;
@@ -218,14 +223,14 @@ implementation
            ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',current_module.localsymtable,''),AT_DATA,0));
            inc(count);
          end;
-        { TableCount }
+        { Insert TableCount at start }
         ltvTables.insert(Tai_const.Create_32bit(count));
-        ltvTables.insert(Tai_symbol.Createname_global('FPC_THREADVARTABLES',AT_DATA,0));
-        ltvTables.insert(Tai_align.Create(const_align(sizeof(aint))));
-        ltvTables.concat(Tai_symbol_end.Createname('FPC_THREADVARTABLES'));
         { insert in data segment }
-        maybe_new_object_file(asmlist[al_data]);
-        asmlist[al_data].concatlist(ltvTables);
+        maybe_new_object_file(asmlist[al_globals]);
+        new_section(asmlist[al_globals],sec_data,'FPC_THREADVARTABLES',sizeof(aint));
+        asmlist[al_globals].concat(Tai_symbol.Createname_global('FPC_THREADVARTABLES',AT_DATA,0));
+        asmlist[al_globals].concatlist(ltvTables);
+        asmlist[al_globals].concat(Tai_symbol_end.Createname('FPC_THREADVARTABLES'));
         ltvTables.free;
       end;
 
@@ -257,13 +262,14 @@ implementation
          if ltvTable.first<>nil then
           begin
             s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
-            { add begin and end of the list }
-            ltvTable.insert(tai_symbol.Createname_global(s,AT_DATA,0));
-            ltvTable.insert(Tai_align.Create(const_align(32)));
-            ltvTable.concat(tai_const.create_sym(nil));  { end of list marker }
-            ltvTable.concat(tai_symbol_end.createname(s));
-            maybe_new_object_file(asmlist[al_data]);
-            asmlist[al_data].concatlist(ltvTable);
+            { end of the list marker }
+            ltvTable.concat(tai_const.create_sym(nil));
+            { add to datasegment }
+            maybe_new_object_file(asmlist[al_globals]);
+            new_section(asmlist[al_globals],sec_data,s,sizeof(aint));
+            asmlist[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
+            asmlist[al_globals].concatlist(ltvTable);
+            asmlist[al_globals].concat(Tai_symbol_end.Createname(s));
             current_module.flags:=current_module.flags or uf_threadvars;
           end;
          ltvTable.Free;
@@ -311,8 +317,8 @@ implementation
           ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
           ResourceInfo.Concat(Tai_const.Create_32bit(0));
           end;
-        maybe_new_object_file(asmlist[al_data]);
-        asmlist[al_data].concatlist(ResourceInfo);
+        maybe_new_object_file(asmlist[al_globals]);
+        asmlist[al_globals].concatlist(ResourceInfo);
         ResourceInfo.free;
         end;
     end;
@@ -341,14 +347,14 @@ implementation
            ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),AT_DATA,0));
            Inc(Count);
          end;
-        { TableCount }
+        { Insert TableCount at start }
         ResourceStringTables.insert(Tai_const.Create_32bit(count));
-        ResourceStringTables.insert(Tai_symbol.Createname_global('FPC_RESOURCESTRINGTABLES',AT_DATA,0));
-        ResourceStringTables.insert(Tai_align.Create(const_align(4)));
-        ResourceStringTables.concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
-        { insert in data segment }
-        maybe_new_object_file(asmlist[al_data]);
-        asmlist[al_data].concatlist(ResourceStringTables);
+        { Add to data segment }
+        maybe_new_object_file(asmlist[al_globals]);
+        new_section(asmlist[al_globals],sec_data,'FPC_RESOURCESTRINGTABLES',sizeof(aint));
+        asmlist[al_globals].concat(Tai_symbol.Createname_global('FPC_RESOURCESTRINGTABLES',AT_DATA,0));
+        asmlist[al_globals].concatlist(ResourceStringTables);
+        asmlist[al_globals].concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
         ResourceStringTables.free;
       end;
 
@@ -392,15 +398,15 @@ implementation
             unitinits.concat(Tai_const.Create_sym(nil));
            inc(count);
          end;
-        { TableCount,InitCount }
+        { Insert TableCount,InitCount at start }
         unitinits.insert(Tai_const.Create_32bit(0));
         unitinits.insert(Tai_const.Create_32bit(count));
-        unitinits.insert(Tai_symbol.Createname_global('INITFINAL',AT_DATA,0));
-        unitinits.insert(Tai_align.Create(const_align(4)));
-        unitinits.concat(Tai_symbol_end.Createname('INITFINAL'));
-        { insert in data segment }
-        maybe_new_object_file(asmlist[al_data]);
-        asmlist[al_data].concatlist(unitinits);
+        { Add to data segment }
+        maybe_new_object_file(asmlist[al_globals]);
+        new_section(asmlist[al_globals],sec_data,'INITFINAL',sizeof(aint));
+        asmlist[al_globals].concat(Tai_symbol.Createname_global('INITFINAL',AT_DATA,0));
+        asmlist[al_globals].concatlist(unitinits);
+        asmlist[al_globals].concat(Tai_symbol_end.Createname('INITFINAL'));
         unitinits.free;
       end;
 
@@ -408,11 +414,15 @@ implementation
     procedure insertmemorysizes;
       begin
         { stacksize can be specified and is now simulated }
-        asmlist[al_data].concat(Tai_align.Create(const_align(4)));
-        asmlist[al_data].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,4));
-        asmlist[al_data].concat(Tai_const.Create_32bit(stacksize));
-        asmlist[al_data].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,4));
-        asmlist[al_data].concat(Tai_const.Create_32bit(heapsize));
+        maybe_new_object_file(asmlist[al_globals]);
+        new_section(asmlist[al_globals],sec_data,'__stklen',4);
+        asmlist[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,4));
+        asmlist[al_globals].concat(Tai_const.Create_32bit(stacksize));
+        { Initial heapsize }
+        maybe_new_object_file(asmlist[al_globals]);
+        new_section(asmlist[al_globals],sec_data,'__heapsize',4);
+        asmlist[al_globals].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,4));
+        asmlist[al_globals].concat(Tai_const.Create_32bit(heapsize));
       end;
 
 
@@ -714,8 +724,9 @@ implementation
        end;
 
       var
-        varal_typestabs : taasmoutput;
+        temptypestabs : taasmoutput;
         storefilepos : tfileposinfo;
+        st : tsymtable;
       begin
         if not (cs_debuginfo in aktmoduleswitches) then
          exit;
@@ -726,21 +737,22 @@ implementation
         if current_module.is_unit then
           begin
             current_module.flags:=current_module.flags or uf_has_debuginfo;
-            asmlist[al_typestabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.globalsymtable,''),AT_DATA,0));
+            st:=current_module.globalsymtable;
           end
         else
-          asmlist[al_typestabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
+          st:=current_module.localsymtable;
+        new_section(asmlist[al_typestabs],sec_data,lower(st.name^),0);
+        asmlist[al_typestabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',st,''),AT_DATA,0));
         { first write all global/local symbols again to a temp list. This will flag
           all required tdefs. After that the temp list can be removed since the debuginfo is already
           written to the stabs when the variables/consts were written }
 {$warning Hack to get all needed types}
-        varal_typestabs:=taasmoutput.create;
-        new_section(varal_typestabs,sec_data,'',0);
+        temptypestabs:=taasmoutput.create;
         if assigned(current_module.globalsymtable) then
-          tglobalsymtable(current_module.globalsymtable).concatstabto(varal_typestabs);
+          tglobalsymtable(current_module.globalsymtable).concatstabto(temptypestabs);
         if assigned(current_module.localsymtable) then
-          tstaticsymtable(current_module.localsymtable).concatstabto(varal_typestabs);
-        varal_typestabs.free;
+          tstaticsymtable(current_module.localsymtable).concatstabto(temptypestabs);
+        temptypestabs.free;
         { reset unit type info flag }
         reset_unit_type_info;
         { write used types from the used units }
@@ -958,9 +970,9 @@ implementation
       begin
         is_assembler_generated:=(Errorcount=0) and
           not(
-          asmlist[al_code].empty and
-          asmlist[al_data].empty and
-          asmlist[al_bss].empty and
+          asmlist[al_procedures].empty and
+          asmlist[al_globals].empty and
+//          asmlist[al_bss].empty and
           asmlist[al_threadvars].empty and
           asmlist[al_rtti].empty and
           ((asmlist[al_imports]=nil) or asmlist[al_imports].empty) and
@@ -1295,8 +1307,8 @@ implementation
 {$endif GDB}
 
          { generate wrappers for interfaces }
-         gen_intf_wrappers(asmlist[al_code],current_module.globalsymtable);
-         gen_intf_wrappers(asmlist[al_code],current_module.localsymtable);
+         gen_intf_wrappers(asmlist[al_procedures],current_module.globalsymtable);
+         gen_intf_wrappers(asmlist[al_procedures],current_module.localsymtable);
 
          { generate a list of threadvars }
 {$ifndef segment_threadvars}
@@ -1326,7 +1338,7 @@ implementation
             { create dwarf debuginfo }
             create_dwarf;
             { finish asmlist by adding segment starts }
-            insertsegment;
+//            insertsegment;
             { assemble }
             create_objectfile;
           end;
@@ -1548,7 +1560,7 @@ implementation
          if assigned(exportlib) and
             (target_info.system in [system_i386_win32,system_i386_wdosx]) and
             BinaryContainsExports then
-           asmlist[al_code].concat(tai_const.create_sym(exportlib.edatalabel));
+           asmlist[al_procedures].concat(tai_const.create_sym(exportlib.edatalabel));
 
          If al_resourcestrings.ResStrCount>0 then
           begin
@@ -1616,7 +1628,7 @@ implementation
 {$endif GDB}
 
          { generate wrappers for interfaces }
-         gen_intf_wrappers(asmlist[al_code],current_module.localsymtable);
+         gen_intf_wrappers(asmlist[al_procedures],current_module.localsymtable);
 
 {$ifndef segment_threadvars}
          { generate a list of threadvars }
@@ -1647,7 +1659,7 @@ implementation
          create_dwarf;
 
          { finish asmlist by adding segment starts }
-         insertsegment;
+//         insertsegment;
 
          { insert own objectfile }
          insertobjectfile;

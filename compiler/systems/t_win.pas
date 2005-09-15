@@ -316,7 +316,7 @@ implementation
                   {$ifdef ARM}
                     objectlibrary.getlabel(lpcode);
                   {$endif ARM}
-                    { place jump in al_code, insert a code section in the
+                    { place jump in al_procedures, insert a code section in the
                       al_imports to reduce the amount of .s files (PFV) }
                     new_section(asmlist[al_imports],sec_code,'',0);
 {$IfDef GDB}
@@ -437,7 +437,7 @@ implementation
          hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
            begin
-              { align al_code for the jumps }
+              { align al_procedures for the jumps }
               new_section(asmlist[al_imports],sec_code,'',sizeof(aint));
               { Get labels for the sections }
               objectlibrary.getlabel(l1);
@@ -487,7 +487,7 @@ implementation
                       objectlibrary.getlabel(l5);
                     {$endif ARM}
                       { create indirect jump and }
-                      { place jump in al_code }
+                      { place jump in al_procedures }
                       new_section(asmlist[al_imports],sec_code,'',0);
 {$IfDef GDB}
                       if (cs_debuginfo in aktmoduleswitches) then

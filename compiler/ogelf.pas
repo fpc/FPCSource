@@ -236,6 +236,13 @@ implementation
               AshType:=SHT_PROGBITS;
               AAlign:=max(sizeof(aint),AAlign);
             end;
+          sec_rodata :
+            begin
+{$warning TODO Remove rodata hack}
+              Ashflags:=SHF_ALLOC or SHF_WRITE;
+              AshType:=SHT_PROGBITS;
+              AAlign:=max(sizeof(aint),AAlign);
+            end;
           sec_bss,sec_threadvar :
             begin
               Ashflags:=SHF_ALLOC or SHF_WRITE;
@@ -259,6 +266,8 @@ implementation
               AshType:=SHT_PROGBITS ;
               AAlign:=4;// max(sizeof(aint),AAlign);
             end;
+          else
+            internalerror(200509122);
         end;
         create_ext(Aname,Atype,Ashtype,Ashflags,0,0,Aalign,Aentsize);
       end;
@@ -354,9 +363,8 @@ implementation
         );
       begin
         if use_smartlink_section and
-           not (atype in [sec_bss,sec_threadvar]) and
            (aname<>'') then
-          result:='.gnu.linkonce'+copy(secnames[atype],1,2)+'.'+aname
+          result:=secnames[atype]+'.'+aname
         else
           result:=secnames[atype];
       end;
@@ -628,7 +636,9 @@ implementation
                 AB_GLOBAL :
                   elfsym.st_info:=STB_GLOBAL shl 4;
               end;
-              if sym.currbind<>AB_EXTERNAL then
+              if (sym.currbind<>AB_EXTERNAL) and
+                 not(assigned(sym.section) and
+                     (sym.section.sectype=sec_bss)) then
                begin
                  case sym.typ of
                    AT_FUNCTION :
@@ -898,8 +908,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             supported_target : system_any;  //target_i386_linux;
-//            flags : [af_outputbinary,af_smartlink_sections];
-            flags : [af_outputbinary];
+            flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
           );

@@ -1106,7 +1106,7 @@ unit raatt;
                commname:=actasmpattern;
                Consume(AS_ID);
                Consume(AS_COMMA);
-               ConcatLocalBss(commname,BuildConstExpression(false,false));
+               curList.concat(Tai_datablock.Create(commname,BuildConstExpression(false,false)));
                if actasmtoken<>AS_SEPARATOR then
                 Consume(AS_SEPARATOR);
              end;
@@ -1117,7 +1117,7 @@ unit raatt;
                commname:=actasmpattern;
                Consume(AS_ID);
                Consume(AS_COMMA);
-               ConcatGlobalBss(commname,BuildConstExpression(false,false));
+               curList.concat(Tai_datablock.Create_global(commname,BuildConstExpression(false,false)));
                if actasmtoken<>AS_SEPARATOR then
                 Consume(AS_SEPARATOR);
              end;

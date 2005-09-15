@@ -157,7 +157,7 @@ procedure texportliblinux.generatelib;
 var
   hp2 : texported_item;
 begin
-  new_section(asmlist[al_code],sec_code,'',0);
+  new_section(asmlist[al_procedures],sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do
    begin
@@ -168,11 +168,11 @@ begin
           is declared with cdecl }
         if tprocsym(hp2.sym).first_procdef.mangledname<>hp2.name^ then
          begin
-           { place jump in al_code }
-           asmlist[al_code].concat(tai_align.create(target_info.alignment.procalign));
-           asmlist[al_code].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           cg.a_jmp_name(asmlist[al_code],tprocsym(hp2.sym).first_procdef.mangledname);
-           asmlist[al_code].concat(Tai_symbol_end.Createname(hp2.name^));
+           { place jump in al_procedures }
+           asmlist[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
+           asmlist[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
+           cg.a_jmp_name(asmlist[al_procedures],tprocsym(hp2.sym).first_procdef.mangledname);
+           asmlist[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
          end;
       end
      else
@@ -562,7 +562,7 @@ begin
    StaticStr:='-static';
   if (cs_link_strip in aktglobalswitches) then
    StripStr:='-s';
-  if (cs_link_smart in aktglobalswitches) and
+  if (af_smartlink_sections in target_asm.flags) and
      (tf_smartlink_sections in target_info.flags) then
    GCSectionsStr:='--gc-sections';
   If (cs_profile in aktmoduleswitches) or
@@ -592,11 +592,11 @@ begin
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
    RemoveFile(outputexedir+Info.ResName);
-   
+
   if (success) then
     success:=PostProcessExecutable(current_module.exefilename^,false);
-    
- 
+
+
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
 
@@ -669,13 +669,13 @@ begin
         Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
         hp:=tused_unit(hp.next);
         end;
-      end;  
+      end;
     if found then
-      begin  
+      begin
       cmdstr:=' -f -i '+maybequoted(fn);
       postprocessexecutable:=DoExec(FindUtil(utilsprefix+'fpcres'),cmdstr,false,false);
       end;
-    end;  
+    end;
 end;
 
 

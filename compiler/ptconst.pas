@@ -342,8 +342,8 @@ implementation
                     else
                      varalign:=0;
                     varalign:=const_align(varalign);
-                    asmlist[al_rodata].concat(Tai_align.Create(varalign));
-                    asmlist[al_rodata].concat(Tai_label.Create(ll));
+                    asmlist[al_const].concat(Tai_align.Create(varalign));
+                    asmlist[al_const].concat(Tai_label.Create(ll));
                     if p.nodetype=stringconstn then
                       begin
                         len:=tstringconstnode(p).len;
@@ -353,11 +353,11 @@ implementation
                          len:=255;
                         getmem(ca,len+2);
                         move(tstringconstnode(p).value_str^,ca^,len+1);
-                        asmlist[al_rodata].concat(Tai_string.Create_length_pchar(ca,len+1));
+                        asmlist[al_const].concat(Tai_string.Create_length_pchar(ca,len+1));
                       end
                     else
                       if is_constcharnode(p) then
-                        asmlist[al_rodata].concat(Tai_string.Create(char(byte(tordconstnode(p).value))+#0))
+                        asmlist[al_const].concat(Tai_string.Create(char(byte(tordconstnode(p).value))+#0))
                     else
                       message(parser_e_illegal_expression);
                 end
@@ -615,10 +615,10 @@ implementation
                           begin
                             objectlibrary.getdatalabel(ll);
                             asmlist[cural].concat(Tai_const.Create_sym(ll));
-                            asmlist[al_rodata].concat(tai_align.create(const_align(sizeof(aint))));
-                            asmlist[al_rodata].concat(Tai_const.Create_aint(-1));
-                            asmlist[al_rodata].concat(Tai_const.Create_aint(strlength));
-                            asmlist[al_rodata].concat(Tai_label.Create(ll));
+                            asmlist[al_const].concat(tai_align.create(const_align(sizeof(aint))));
+                            asmlist[al_const].concat(Tai_const.Create_aint(-1));
+                            asmlist[al_const].concat(Tai_const.Create_aint(strlength));
+                            asmlist[al_const].concat(Tai_label.Create(ll));
                             getmem(ca,strlength+2);
                             move(strval^,ca^,strlength);
                             { The terminating #0 to be stored in the .data section (JM) }
@@ -626,7 +626,7 @@ implementation
                             { End of the PChar. The memory has to be allocated because in }
                             { tai_string.done, there is a freemem(len+1) (JM)             }
                             ca[strlength+1]:=#0;
-                            asmlist[al_rodata].concat(Tai_string.Create_length_pchar(ca,strlength+1));
+                            asmlist[al_const].concat(Tai_string.Create_length_pchar(ca,strlength+1));
                           end;
                      end;
                    st_widestring:
@@ -638,14 +638,14 @@ implementation
                           begin
                             objectlibrary.getdatalabel(ll);
                             asmlist[cural].concat(Tai_const.Create_sym(ll));
-                            asmlist[al_rodata].concat(tai_align.create(const_align(sizeof(aint))));
-                            asmlist[al_rodata].concat(Tai_const.Create_aint(-1));
-                            asmlist[al_rodata].concat(Tai_const.Create_aint(strlength));
-                            asmlist[al_rodata].concat(Tai_label.Create(ll));
+                            asmlist[al_const].concat(tai_align.create(const_align(sizeof(aint))));
+                            asmlist[al_const].concat(Tai_const.Create_aint(-1));
+                            asmlist[al_const].concat(Tai_const.Create_aint(strlength));
+                            asmlist[al_const].concat(Tai_label.Create(ll));
                             for i:=0 to strlength-1 do
-                              asmlist[al_rodata].concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
+                              asmlist[al_const].concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
                             { ending #0 }
-                            asmlist[al_rodata].concat(Tai_const.Create_16bit(0))
+                            asmlist[al_const].concat(Tai_const.Create_16bit(0))
                           end;
                      end;
                    st_longstring:

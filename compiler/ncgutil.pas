@@ -121,7 +121,7 @@ interface
 implementation
 
   uses
-    strings,
+    strings,version,
     cutils,cclasses,
     globals,systems,verbose,
     ppu,defutil,
@@ -1566,11 +1566,8 @@ implementation
 
     procedure gen_entry_code(list:TAAsmoutput);
       var
-        href : treference;
         paraloc1,
-        paraloc2,
-        paraloc3 : tcgpara;
-        hp   : tused_unit;
+        paraloc2 : tcgpara;
       begin
         paraloc1.init;
         paraloc2.init;
@@ -1606,23 +1603,6 @@ implementation
            cg.allocallcpuregisters(list);
            cg.a_call_name(list,'FPC_INITIALIZEUNITS');
            cg.deallocallcpuregisters(list);
-
-{$ifdef GDB}
-           if (cs_debuginfo in aktmoduleswitches) then
-            if target_info.system <> system_powerpc_macos then
-             begin
-               { include reference to all debuginfo sections of used units }
-               hp:=tused_unit(usedunits.first);
-               while assigned(hp) do
-                 begin
-                   If (hp.u.flags and uf_has_debuginfo)=uf_has_debuginfo then
-                     current_procinfo.aktlocaldata.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',hp.u.globalsymtable,''),AT_DATA,0));
-                   hp:=tused_unit(hp.next);
-                 end;
-               { include reference to debuginfo for this program }
-               current_procinfo.aktlocaldata.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
-             end;
-{$endif GDB}
          end;
 
 {$ifdef GDB}
@@ -1700,9 +1680,40 @@ implementation
         stabsendlabel : tasmlabel;
         mangled_length : longint;
         p : pchar;
+        hp   : tused_unit;
 {$endif GDB}
       begin
+        if (current_procinfo.procdef.proctypeoption=potype_proginit) then
+          begin
+            { Insert Ident of the compiler in the main .text section }
+            if (not (cs_create_smart in aktmoduleswitches)) then
+             begin
+               list.insert(Tai_align.Create(const_align(32)));
+               list.insert(Tai_string.Create('FPC '+full_version_string+
+                 ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
+             end;
+
+{$ifdef GDB}
+            { Reference all DEBUGINFO sections from the main .text section }
+            if (target_info.system <> system_powerpc_macos) and
+               (cs_debuginfo in aktmoduleswitches) then
+              begin
+                { include reference to all debuginfo sections of used units }
+                hp:=tused_unit(usedunits.first);
+                while assigned(hp) do
+                  begin
+                    If (hp.u.flags and uf_has_debuginfo)=uf_has_debuginfo then
+                      list.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',hp.u.globalsymtable,''),AT_DATA,0));
+                    hp:=tused_unit(hp.next);
+                  end;
+                { include reference to debuginfo for this program }
+                list.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
+              end;
+{$endif GDB}
+          end;
+
         list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
+
 {$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) then
           begin
@@ -1891,7 +1902,7 @@ implementation
 
     procedure gen_external_stub(list:taasmoutput;pd:tprocdef;const externalname:string);
       begin
-        { add the procedure to the al_code }
+        { add the procedure to the al_procedures }
         maybe_new_object_file(list);
         new_section(list,sec_code,lower(pd.mangledname),aktalignment.procalign);
         list.concat(Tai_align.create(aktalignment.procalign));
@@ -1919,7 +1930,7 @@ implementation
      {$ifndef segment_threadvars}
         if (vo_is_thread_var in sym.varoptions) then
           inc(l,sizeof(aint));
-        list:=asmlist[al_bss];
+        list:=asmlist[al_globals];
         sectype:=sec_bss;
      {$else}
         if (vo_is_thread_var in sym.varoptions) then
@@ -1929,7 +1940,7 @@ implementation
           end
         else
           begin
-            list:=asmlist[al_bss];
+            list:=asmlist[al_globals];
             sectype:=sec_bss;
           end;
      {$endif}

@@ -1117,7 +1117,7 @@ implementation
                    if vs.typ=globalvarsym then
                      begin
                        tglobalvarsym(vs).set_mangledname(C_Name);
-                       { insert in the al_data when it is not external }
+                       { insert in the al_globals when it is not external }
                        if (not extern_var) then
                          insertbssdata(tglobalvarsym(vs));
                        { now we can insert it in the import lib if its a dll, or

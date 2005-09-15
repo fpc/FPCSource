@@ -800,10 +800,10 @@ var
       if not assigned(p) then
        exit;
       InlineLevel:=0;
-      { lineinfo is only needed for al_code (PFV) }
+      { lineinfo is only needed for al_procedures (PFV) }
       do_line:=((cs_asm_source in aktglobalswitches) or
                 (cs_lineinfo in aktmoduleswitches))
-                 and (p=asmlist[al_code]);
+                 and (p=asmlist[al_procedures]);
       DoNotSplitLine:=false;
       hp:=tai(p.first);
       while assigned(hp) do

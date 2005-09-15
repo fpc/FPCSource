@@ -882,7 +882,8 @@ Implementation
         hp : tasmsymbol;
         infile : tinputfile;
       begin
-        if not ((cs_debuginfo in aktmoduleswitches) or
+        if (objectdata.currsec.sectype<>sec_code) or
+           not ((cs_debuginfo in aktmoduleswitches) or
            (cs_gdb_lineinfo in aktglobalswitches)) then
          exit;
 
@@ -935,7 +936,7 @@ Implementation
         linecount:=1;
         includecount:=0;
         fileinfo.fileindex:=1;
-        fileinfo.line:=1;
+        fileinfo.line:=0;
         WriteFileLineInfo(fileinfo);
       end;
 
@@ -944,11 +945,11 @@ Implementation
       var
         hp : tasmsymbol;
       begin
-          if not ((cs_debuginfo in aktmoduleswitches) or
-             (cs_gdb_lineinfo in aktglobalswitches)) then
+        if (objectdata.currsec.sectype<>sec_code) or
+           not ((cs_debuginfo in aktmoduleswitches) or
+                (cs_gdb_lineinfo in aktglobalswitches)) then
            exit;
-        objectdata.createsection(sec_code,'',0,[]);
-        hp:=objectlibrary.newasmsymbol('Letext',AB_LOCAL,AT_FUNCTION);
+        hp:=objectlibrary.newasmsymbol('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
         if currpass=1 then
           begin
             objectdata.allocsymbol(currpass,hp,0);
@@ -956,7 +957,8 @@ Implementation
           end
         else
           objectdata.writesymbol(hp);
-        EmitStabs('"",'+tostr(n_sourcefile)+',0,0,Letext');
+        EmitStabs('"",'+tostr(n_sourcefile)+',0,0,Ltext'+ToStr(IncludeCount));
+        inc(IncludeCount);
       end;
 {$endif GDB}
 
@@ -1128,6 +1130,9 @@ Implementation
                end;
              ait_section:
                begin
+{$ifdef GDB}
+//                 emitlineinfostabs(n_line,0);
+{$endif GDB}
                  { use cached value }
                  objectdata.setsection(Tai_section(hp).sec);
 {$ifdef GDB}
@@ -1141,7 +1146,8 @@ Implementation
                    else
                      n_line:=n_dataline;
                  end;
-                 stabslastfileinfo.line:=-1;
+                 { force writing all fileinfo }
+                 FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
 {$endif GDB}
                end;
 {$ifdef GDB}
@@ -1283,6 +1289,9 @@ Implementation
                end;
              ait_section :
                begin
+{$ifdef GDB}
+//                 emitlineinfostabs(n_line,0);
+{$endif GDB}
                  { use cached value }
                  objectdata.setsection(Tai_section(hp).sec);
 {$ifdef GDB}
@@ -1293,7 +1302,8 @@ Implementation
                  else
                   n_line:=n_dataline;
                  end;
-                 stabslastfileinfo.line:=-1;
+                 { force writing all fileinfo }
+                 FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
 {$endif GDB}
                end;
              ait_symbol :
@@ -1435,6 +1445,7 @@ Implementation
            hp:=TreePass1(hp);
            MaybeNextList(hp);
          end;
+        objectdata.createsection(sec_code,'',0,[]);
 {$ifdef GDB}
         EndFileLineInfo;
 {$endif GDB}
@@ -1463,6 +1474,7 @@ Implementation
            hp:=TreePass2(hp);
            MaybeNextList(hp);
          end;
+        objectdata.createsection(sec_code,'',0,[]);
 {$ifdef GDB}
         EndFileLineInfo;
 {$endif GDB}

@@ -587,10 +587,9 @@ interface
          before they can be referenced and therefor they need to be written
          first (PFV) }
        Tasmlist=(al_typestabs,
-                 al_code,
-                 al_bss,
-                 al_data,
-                 al_rodata,
+                 al_procedures,
+                 al_globals,
+                 al_const,
                  al_typedconsts,
                  al_rotypedconsts,
                  al_threadvars,
@@ -605,10 +604,9 @@ interface
     const
        TasmlistStr : array[tasmlist] of string[24] =(
            'al_typestabs',
-           'al_code',
-           'al_bss',
-           'al_data',
-           'al_rodata',
+           'al_procedures',
+           'al_globals',
+           'al_const',
            'al_typedconsts',
            'al_rotypedconsts',
            'al_threadvars',
@@ -644,8 +642,12 @@ interface
 
     function  use_smartlink_section:boolean;
     function  maybe_smartlink_symbol:boolean;
+
     procedure maybe_new_object_file(list:taasmoutput);
     procedure new_section(list:taasmoutput;Asectype:TAsmSectionType;Aname:string;Aalign:byte);
+    procedure section_symbol_start(list:taasmoutput;const Aname:string;Asymtyp:Tasmsymtype;
+                                   Aglobal:boolean;Asectype:TAsmSectionType;Aalign:byte);
+    procedure section_symbol_end(list:taasmoutput;const Aname:string);
 
     function ppuloadai(ppufile:tcompilerppufile):tai;
     procedure ppuwriteai(ppufile:tcompilerppufile;n:tai);
@@ -710,8 +712,7 @@ implementation
     function use_smartlink_section:boolean;
       begin
         result:=(af_smartlink_sections in target_asm.flags) and
-                (tf_smartlink_sections in target_info.flags) and
-                not(cs_debuginfo in aktmoduleswitches);
+                (tf_smartlink_sections in target_info.flags);
       end;
 
 
@@ -734,6 +735,26 @@ implementation
       begin
         list.concat(tai_section.create(Asectype,Aname,Aalign));
         list.concat(cai_align.create(Aalign));
+      end;
+
+
+    procedure section_symbol_start(list:taasmoutput;const Aname:string;Asymtyp:Tasmsymtype;
+                                   Aglobal:boolean;Asectype:TAsmSectionType;Aalign:byte);
+      begin
+        maybe_new_object_file(list);
+        list.concat(tai_section.create(Asectype,Aname,Aalign));
+        list.concat(cai_align.create(Aalign));
+        if Aglobal or
+           maybe_smartlink_symbol then
+          list.concat(tai_symbol.createname_global(Aname,Asymtyp,0))
+        else
+          list.concat(tai_symbol.createname(Aname,Asymtyp,0));
+      end;
+
+
+    procedure section_symbol_end(list:taasmoutput;const Aname:string);
+      begin
+        list.concat(tai_symbol_end.createname(Aname));
       end;
 
 
@@ -821,6 +842,9 @@ implementation
         typ:=ait_section;
         sectype:=asectype;
         secalign:=Aalign;
+        if (Aname='') and
+           use_smartlink_section then
+          internalerror(200509131);
         name:=stringdup(Aname);
         sec:=nil;
       end;

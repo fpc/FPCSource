@@ -93,7 +93,7 @@ var
       funcname     : pchar;
       stabslastfileinfo : tfileposinfo;
 {$endif}
-      lasTSecType  : TAsmSectionType; { last section type written }
+      CurrSecType  : TAsmSectionType; { last section type written }
       lastfileinfo : tfileposinfo;
       infile,
       lastinfile   : tinputfile;
@@ -217,9 +217,10 @@ var
         var
           curr_n : byte;
         begin
-          if not ((cs_debuginfo in aktmoduleswitches) or
-             (cs_gdb_lineinfo in aktglobalswitches)) then
-           exit;
+          if (CurrSecType<>sec_code) or
+             not ((cs_debuginfo in aktmoduleswitches) or
+                  (cs_gdb_lineinfo in aktglobalswitches)) then
+            exit;
         { file changed ? (must be before line info) }
           if (fileinfo.fileindex<>0) and
              (stabslastfileinfo.fileindex<>fileinfo.fileindex) then
@@ -263,15 +264,21 @@ var
           stabslastfileinfo:=fileinfo;
         end;
 
-      procedure TGNUAssembler.WriteFileEndInfo;
 
+      procedure TGNUAssembler.WriteFileEndInfo;
         begin
-          if not ((cs_debuginfo in aktmoduleswitches) or
-             (cs_gdb_lineinfo in aktglobalswitches)) then
-           exit;
-          WriteSection(sec_code,'');
-          AsmWriteLn(#9'.stabs "",'+tostr(n_sourcefile)+',0,0,'+target_asm.labelprefix+'etext');
-          AsmWriteLn(target_asm.labelprefix+'etext:');
+          if (CurrSecType<>sec_code) or
+             not ((cs_debuginfo in aktmoduleswitches) or
+                  (cs_gdb_lineinfo in aktglobalswitches)) then
+            exit;
+          if (stabslastfileinfo.fileindex<>0) then
+            begin
+              AsmWriteLn(#9'.stabs "",'+tostr(n_sourcefile)+',0,0,'+target_asm.labelprefix+'text'+ToStr(IncludeCount));
+              AsmWriteLn(target_asm.labelprefix+'text'+ToStr(IncludeCount)+':');
+              inc(includecount);
+            end;
+          { force writing all fileinfo }
+          FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
         end;
 
 {$endif GDB}
@@ -292,9 +299,8 @@ var
         );
       begin
         if use_smartlink_section and
-           not (atype in [sec_bss,sec_threadvar]) and
            (aname<>'') then
-          result:='.gnu.linkonce'+copy(secnames[atype],1,2)+'.'+aname
+          result:=secnames[atype]+'.'+aname
         else
           result:=secnames[atype];
       end;
@@ -304,6 +310,12 @@ var
       var
         s : string;
       begin
+{$ifdef GDB}
+        { Maybe write end of section }
+        if currsectype<>sec_none then
+          WriteFileEndInfo;
+{$endif GDB}
+
         AsmLn;
         case target_info.system of
          system_powerpc_darwin, system_i386_OS2, system_i386_EMX: ;
@@ -312,17 +324,7 @@ var
         end;
         s:=sectionname(atype,aname);
         AsmWrite(s);
-        if copy(s,1,4)='.gnu' then
-          begin
-            case atype of
-              sec_rodata,
-              sec_data :
-                AsmWrite(',""');
-              sec_code :
-                AsmWrite(',"x"');
-            end;
-          end
-        else if atype=sec_fpc then
+        if atype=sec_fpc then
           AsmWrite(', "a", @progbits');
         AsmLn;
 {$ifdef GDB}
@@ -339,8 +341,10 @@ var
           else
             n_line:=n_dataline;
         end;
+        { force writing all fileinfo }
+        FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
 {$endif GDB}
-        LasTSecType:=atype;
+        CurrSecType:=atype;
       end;
 
 
@@ -370,10 +374,10 @@ var
 
       last_align := 2;
       InlineLevel:=0;
-      { lineinfo is only needed for al_code (PFV) }
+      { lineinfo is only needed for al_procedures (PFV) }
       do_line:=(cs_asm_source in aktglobalswitches) or
                ((cs_lineinfo in aktmoduleswitches)
-                 and (p=asmlist[al_code]));
+                 and (p=asmlist[al_procedures]));
       hp:=tai(p.first);
       while assigned(hp) do
        begin
@@ -382,10 +386,8 @@ var
             hp1 := hp as tailineinfo;
             aktfilepos:=hp1.fileinfo;
 {$ifdef GDB}
-             { write stabs }
-             if (cs_debuginfo in aktmoduleswitches) or
-                (cs_gdb_lineinfo in aktglobalswitches) then
-               WriteFileLineInfo(hp1.fileinfo);
+             { maybe write stabs }
+             WriteFileLineInfo(hp1.fileinfo);
 {$endif GDB}
              { no line info for inlined code }
              if do_line and (inlinelevel=0) then
@@ -533,8 +535,8 @@ var
                        asmwrite('.zerofill __DATA, __common, ');
                        asmwrite(tai_datablock(hp).sym.name);
                        asmwriteln(', '+tostr(tai_datablock(hp).size)+','+tostr(last_align));
-                       if not(lastSectype in [sec_data,sec_none]) then
-                         writesection(lastSectype,'');
+                       if not(CurrSecType in [sec_data,sec_none]) then
+                         writesection(CurrSecType,'');
                      end
                    else
                      begin
@@ -617,7 +619,7 @@ var
                  { Values with symbols are written on a single line to improve
                    reading of the .s file (PFV) }
                  if assigned(tai_const(hp).sym) or
-                    not(LasTSecType in [sec_data,sec_rodata]) or
+                    not(CurrSecType in [sec_data,sec_rodata]) or
                     (l>line_length) or
                     (hp.next=nil) or
                     (tai(hp.next).typ<>consttyp) or
@@ -893,7 +895,7 @@ var
                   while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
                    begin
                      if tai(hp.next).typ=ait_section then
-                       lasTSectype:=tai_section(hp.next).sectype;
+                       CurrSecType:=tai_section(hp.next).sectype;
                      hp:=tai(hp.next);
                    end;
 {$ifdef GDB}
@@ -903,8 +905,8 @@ var
                   funcname:=nil;
                   WriteFileLineInfo(aktfilepos);
 {$endif GDB}
-                  if lasTSectype<>sec_none then
-                    WriteSection(lasTSectype,'');
+                  if CurrSecType<>sec_none then
+                    WriteSection(CurrSecType,'');
                   AsmStartSize:=AsmSize;
                 end;
              end;
@@ -936,9 +938,6 @@ var
       p:dirstr;
       n:namestr;
       e:extstr;
-{$ifdef GDB}
-      fileinfo : tfileposinfo;
-{$endif GDB}
       hal : tasmlist;
     begin
 {$ifdef EXTDEBUG}
@@ -946,7 +945,7 @@ var
        Comment(V_Debug,'Start writing gas-styled assembler output for '+current_module.mainsource^);
 {$endif}
 
-      LasTSectype:=sec_none;
+      CurrSecType:=sec_none;
 {$ifdef GDB}
       FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
 {$endif GDB}
@@ -977,10 +976,6 @@ var
       funcname:=nil;
       linecount:=1;
       includecount:=0;
-      fileinfo.fileindex:=1;
-      fileinfo.line:=1;
-      { Write main file }
-      WriteFileLineInfo(fileinfo);
 {$endif GDB}
       AsmStartSize:=AsmSize;
       symendcount:=0;
@@ -993,7 +988,8 @@ var
         end;
 
       {$ifdef GDB}
-      WriteFileEndInfo;
+      if CurrSecType<>sec_none then
+        WriteFileEndInfo;
       {$ENDIF}
 
       AsmLn;
