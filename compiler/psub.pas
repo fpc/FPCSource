@@ -845,27 +845,18 @@ implementation
             aktproccode.concatlist(templist);
 
 {$ifdef ARM}
+            { because of the limited constant size of the arm, all data access is done pc relative }
             insertpcrelativedata(aktproccode,aktlocaldata);
 {$endif ARM}
-
-            { save local data (casetable) also in the same file }
-            if assigned(aktlocaldata) and
-               (not aktlocaldata.empty) then
-             begin
-               { because of the limited constant size of the arm, all data access is done pc relative }
-               if target_info.cpu=cpu_arm then
-                 aktproccode.concatlist(aktlocaldata)
-               else
-                 begin
-                   new_section(aktproccode,sec_data,lower(procdef.mangledname),0);
-                   aktproccode.concatlist(aktlocaldata);
-                 end;
-            end;
 
             { add the procedure to the al_procedures }
             maybe_new_object_file(asmlist[al_procedures]);
             new_section(asmlist[al_procedures],sec_code,lower(procdef.mangledname),aktalignment.procalign);
             asmlist[al_procedures].concatlist(aktproccode);
+            { save local data (casetable) also in the same file }
+            if assigned(aktlocaldata) and
+               (not aktlocaldata.empty) then
+              asmlist[al_procedures].concatlist(aktlocaldata);
 
             { only now we can remove the temps }
             tg.resettempgen;

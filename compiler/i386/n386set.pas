@@ -82,30 +82,24 @@ implementation
         last : TConstExprInt;
         indexreg : tregister;
         href : treference;
-        jumpsegment : TAAsmOutput;
 
-        procedure genitem(t : pcaselabel);
+        procedure genitem(list:taasmoutput;t : pcaselabel);
           var
             i : aint;
           begin
             if assigned(t^.less) then
-              genitem(t^.less);
+              genitem(list,t^.less);
             { fill possible hole }
             for i:=last+1 to t^._low-1 do
-              jumpSegment.concat(Tai_const.Create_sym(elselabel));
+              list.concat(Tai_const.Create_sym(elselabel));
             for i:=t^._low to t^._high do
-              jumpSegment.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
+              list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
             last:=t^._high;
             if assigned(t^.greater) then
-              genitem(t^.greater);
+              genitem(list,t^.greater);
           end;
 
       begin
-        if (cs_create_smart in aktmoduleswitches) or
-           (af_smartlink_sections in target_asm.flags) then
-          jumpsegment:=current_procinfo.aktlocaldata
-        else
-          jumpsegment:=asmlist[al_globals];
         if not(jumptable_no_range) then
           begin
              { case expr less than min_ => goto elselabel }
@@ -124,11 +118,10 @@ implementation
         href.scalefactor:=4;
         emit_ref(A_JMP,S_NO,href);
         { generate jump table }
-        if not(cs_littlesize in aktglobalswitches) then
-          jumpSegment.concat(Tai_Align.Create_Op(4,0));
-        jumpSegment.concat(Tai_label.Create(table));
+        new_section(current_procinfo.aktlocaldata,sec_data,current_procinfo.procdef.mangledname,sizeof(aint));
+        current_procinfo.aktlocaldata.concat(Tai_label.Create(table));
         last:=min_;
-        genitem(hp);
+        genitem(current_procinfo.aktlocaldata,hp);
       end;
 
 
