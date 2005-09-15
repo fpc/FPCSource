@@ -186,6 +186,7 @@ begin
   if asmlist[aasmtai.al_resourcestrings]=nil then
     asmlist[aasmtai.al_resourcestrings]:=taasmoutput.create;
   maybe_new_object_file(asmlist[aasmtai.al_resourcestrings]);
+  new_section(asmlist[aasmtai.al_resourcestrings],sec_data,'',4);
   asmlist[aasmtai.al_resourcestrings].concat(tai_align.create(const_align(sizeof(aint))));
   asmlist[aasmtai.al_resourcestrings].concat(tai_symbol.createname_global(
     make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),AT_DATA,0));
