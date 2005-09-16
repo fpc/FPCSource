@@ -725,6 +725,10 @@ begin
   Signed := false;
   DataSize := 4;
   case TypeInfo^.Kind of
+{$ifdef cpu64}
+    tkClass:
+      DataSize:=8;
+{$endif cpu64}
     tkChar, tkBool:
       DataSize:=1;
     tkWChar:
@@ -811,7 +815,12 @@ var
   DataSize: Integer;
   AMethod : TMethod;
 begin
-  if PropInfo^.PropType^.Kind in [tkInt64,tkQword] then
+  if PropInfo^.PropType^.Kind in [tkInt64,tkQword
+  { why do we have to handle classes here, see also below? (FK) }
+{$ifdef cpu64}
+    ,tkClass
+{$endif cpu64}
+    ] then
     DataSize := 8
   else
     DataSize := 4;
