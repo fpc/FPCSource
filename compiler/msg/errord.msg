@@ -168,9 +168,9 @@ scan_f_cannot_open_includefile=02013_F_Includedatei $1 kann nicht geîffnet werde
 % statement.
 scan_e_illegal_pack_records=02015_E_UngÅltige Record Ausrichtung "$1"
 % You are specifying the \var{\{\$PACKRECORDS n\} } or \var{\{\$ALIGN n\} }
-% with an illegal value for \var{n}. For $PACKRECORDS valid alignments are 1, 2, 4, 8, 16, 32, C,
-% NORMAL, DEFAULT, and for $ALIGN valid alignment are 1, 2, 4, 8, 16, 32, ON,
-% OFF. Under mode MacPas $ALIGN also supports MAC68K, POWER and RESET.
+% with an illegal value for \var{n}. For \$PACKRECORDS valid alignments are 1, 2, 4, 8, 16, 32, C,
+% NORMAL, DEFAULT, and for \$ALIGN valid alignment are 1, 2, 4, 8, 16, 32, ON,
+% OFF. Under mode MacPas \$ALIGN also supports MAC68K, POWER and RESET.
 scan_e_illegal_pack_enum=02016_E_UngÅltige minimale Grîsse der AufzÑhlung "$1"
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
 % \var{n}. Only 1,2 or 4 NORMAL or DEFAULT are valid in this case.
@@ -266,7 +266,7 @@ scan_e_illegal_asmmode_specifier=02050_E_Unbekannter Assemblermodusname: "$1"
 % the compiler didn't recognize the mode you specified.
 scan_w_no_asm_reader_switch_inside_asm=02051_W_ASM-Leser-Schalter ist innerhalb einer Asm-Sequenz nicht mîglich, $1 wird erst in der nÑchsten Sequenz wirksam
 % It is not possible to switch from one assembler reader to another
-% inside an assmebler block. The new reader will be used for next
+% inside an assembler block. The new reader will be used for next
 % assembler statement only.
 scan_e_wrong_switch_toggle=02052_E_Parameter fÅr Schalter falsch, verwenden Sie ON/OFF oder +/-
 % You need to use ON or OFF or a + or - to toggle the switch
@@ -316,7 +316,7 @@ scan_e_utf8_bigger_than_65535=02069_E_Der UTF-8 Kode ist grîsser als 65535
 scan_e_utf8_malformed=02070_E_UngÅltige UTF-8 Zeichenkette
 % The given string isn't a valid UTF-8 string
 scan_c_switching_to_utf8=02071_C_UTF-8 Signatur gefunden, verwende UTF-8 Kode
-% The compiler found an UTF-8 encoding signature ($ef, $bb, $bf) at the beginning of a file,
+% The compiler found an UTF-8 encoding signature (\$ef, \$bb, \$bf) at the beginning of a file,
 % so it interprets it as an UTF-8 file
 scan_e_compile_time_typeerror=02072_E_Compile time Ausdruck: Erwartete $1 aber erhielt $2 bei $3
 % Type check of a compile time expression failed.
@@ -512,12 +512,12 @@ parser_e_nothing_to_be_overridden=03058_E_Es gibt keine VorgÑngerklasse mit eine
 % exist.
 parser_e_no_procedure_to_access_property=03059_E_Es gibt keine Member-Funktion um auf diese Property zuzugreifen
 % You specified no \var{read} directive for a property.
-parser_w_stored_not_implemented=03060_W_Die Stored Property -  Direktive ist noch nicht implementiert
+parser_w_stored_not_implemented=03060_W_Die Stored Property - Direktive ist noch nicht implementiert
 % The \var{stored} directive is not yet implemented
 parser_e_ill_property_access_sym=03061_E_UngÅltiges Symbol fÅr den Zugriff auf die Property
 % There is an error in the \var{read} or \var{write} directives for an array
 % property. When you declare an array property, you can only access it with
-% procedures and functions. The following code woud cause such an error.
+% procedures and functions. The following code would cause such an error.
 % \begin{verbatim}
 % tmyobject = class
 %   i : integer;
@@ -526,7 +526,7 @@ parser_e_ill_property_access_sym=03061_E_UngÅltiges Symbol fÅr den Zugriff auf d
 %
 parser_e_cant_access_protected_member=03062_E_Kann an dieser Stelle nicht auf das geschÅtzte Feld des Objekts zugreifen
 % Fields that are declared in a \var{protected} section of an object or class
-% declaration cannot be accessed outside the module wher the object is
+% declaration cannot be accessed outside the module where the object is
 % defined, or outside descendent object methods.
 parser_e_cant_access_private_member=03063_E_Kann an dieser Stelle nicht auf das private Feld des Objekts zugreifen
 % Fields that are declared in a \var{private} section of an object or class
@@ -764,7 +764,7 @@ parser_e_cant_publish_that_property=03134_E_Diese Property-Art kann nicht Publis
 parser_e_empty_import_name=03136_E_Leerer Importname angegeben
 % Some targets need a name for the imported procedure or a cdecl specifier
 parser_e_division_by_zero=03138_E_Division durch Null
-% There is a divsion by zero encounted
+% There is a division by zero encounted
 parser_e_invalid_float_operation=03139_E_UngÅltige Fliesskomma-Operation
 % An operation on two real type values produced an overflow or a division
 % by zero.
@@ -1496,23 +1496,22 @@ cg_w_parasize_too_big=06041_W_Grîsse der Parameter Åberschreitet die Grenze fÅr 
 % This indicates that you are declaring more than 64K of parameters, which
 % might not be supported on other processor targets.
 cg_w_localsize_too_big=06042_W_Grîsse der lokalen Variablen Åberschreitet die Grenze fÅr bestimmte CPUs
-% This indicates that you are declaring more than 32K of lcoal variables, which
+% This indicates that you are declaring more than 32K of local variables, which
 % might not be supported on other processor targets.
 cg_e_localsize_too_big=06043_E_Grîsse der lokalen Variablen Åberschreitet die unterstÅtzte Grenze
-% This indicates that you are declaring more than 32K of lcoal variables, which
+% This indicates that you are declaring more than 32K of local variables, which
 % is not supported by this processor.
 cg_e_break_not_allowed=06044_E_BREAK nicht zulÑssig
 % You're trying to use \var{break} outside a loop construction.
 cg_e_continue_not_allowed=06045_E_CONTINUE nicht zulÑssig
 % You're trying to use \var{continue} outside a loop construction.
-% \end{description}
-cg_f_unknown_compiler=06046_F_Unbekannte Compiler-Prozedur "$1". öberprÅfe, ob die korrekte Laufzeit-Bibliothek verwendet wird.
+cg_f_unknown_compilerproc=06046_F_Unbekannte Compiler-Prozedur "$1". öberprÅfe, ob die korrekte Laufzeit-Bibliothek verwendet wird.
 % The compiler expects that the runtime library contains some subrountines. If you see this error
 % and you didn't mess with the runtime library, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
 % that you removed a subroutine which the compiler needs for internal use.
+% \end{description}
 # EndOfTeX
-
 
 #
 # Assembler reader
@@ -1556,8 +1555,8 @@ asmr_e_relocatable_symbol_not_allowed=07013_E_Verschiebbares Symbol ist nicht zu
 asmr_e_invalid_reference_syntax=07014_E_UngÅltige Verweis-Syntax
 % There is an error in the reference.
 asmr_e_local_para_unreachable=07015_E_Sie kînnen "$1" von diesem Code aus nicht erreichen
-% You can not read directly the value of local or para
-% of a higher level in assembler code (except for
+% You can not read directly the value of a local variable or parameter
+% of a higher level procedure in assembler code (except for
 % local assembler code without parameter nor locals).
 asmr_e_local_label_not_allowed_as_ref=07016_E_Lokale Symbole/Labels sind nicht als Referenz zulÑssig
 % You can't use local symbols/labels as references
@@ -1869,7 +1868,7 @@ unit_u_ppu_invalid_target=10010_U_PPU ist fÅr ein anderes Zielsystem kompiliert
 % This unit file was compiled for a different processor type, and
 % cannot be read
 unit_u_ppu_source=10011_U_PPU Quelle: $1
-% When you use the \var{-vu} flag, the unit CRC check is shown.
+% When you use the \var{-vu} flag, the unit source file name is shown.
 unit_u_ppu_write=10012_U_Schreibe $1
 % When you specify the \var{-vu} switch, the compiler will tell you where it
 % writes the unit file.
