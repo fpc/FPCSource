@@ -23,14 +23,14 @@
    gchar    = char;
 
    Pgshort = ^gshort;
-   gshort = smallint;
+   gshort = cshort;
 
    Pglong = ^glong;
-   glong  = longint;
+   glong  = clong;
 
    Pgint = ^gint;
    PPgint = ^Pgint;
-   gint  = longint;
+   gint  = cint;
 
    Pgboolean = ^gboolean;
    gboolean  = longbool;
@@ -40,19 +40,19 @@
    guchar = byte;
 
    Pgushort = ^gushort;
-   gushort = word;
+   gushort = cushort;
 
    Pgulong = ^gulong;
-   gulong = dword;
+   gulong = culong;
 
    Pguint = ^guint;
-   guint = dword;
+   guint = cuint;
 
    Pgfloat = ^gfloat;
-   gfloat = single;
+   gfloat = cfloat;
 
    Pgdouble = ^gdouble;
-   gdouble = double;
+   gdouble = cdouble;
 
    pgpointer     = ^gpointer;
    gpointer      = pointer;

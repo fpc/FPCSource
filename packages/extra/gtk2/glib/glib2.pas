@@ -35,7 +35,7 @@ unit glib2; // keep unit name lowercase for kylix
 interface
 
 uses
-  SysUtils;
+  ctypes,SysUtils;
 
 const
 {$ifdef win32}
