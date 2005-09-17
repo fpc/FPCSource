@@ -711,7 +711,10 @@ Unit Ra386int;
          begin
            Consume(AS_DOT);
            if actasmtoken in [AS_BYTE,AS_ID,AS_WORD,AS_DWORD,AS_QWORD] then
-             s:=s+'.'+actasmpattern
+             begin
+               s:=s+'.'+actasmpattern;
+               consume(actasmtoken);
+             end
            else
             begin
               Consume(AS_ID);
@@ -1485,10 +1488,11 @@ Unit Ra386int;
         expr    : string;
         tempreg : tregister;
         typesize,
-        l       : aint;
+        l,k     : aint;
         hl      : tasmlabel;
         toffset,
         tsize   : aint;
+        tempstr : string;
       begin
         expr:='';
         repeat
