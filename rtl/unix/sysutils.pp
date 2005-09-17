@@ -280,6 +280,8 @@ begin
      Result:=Result or faReadOnly;
   If fpS_ISSOCK(Info.st_mode) or fpS_ISBLK(Info.st_mode) or fpS_ISCHR(Info.st_mode) or fpS_ISFIFO(Info.st_mode) Then
      Result:=Result or faSysFile;
+  If fpS_ISLNK(Info.st_mode) Then
+    Result:=Result or faSymLink;
 end;
 
 type
@@ -520,6 +522,7 @@ begin
     begin
     GlobSearchRec^.GlobHandle:=P^.Next;
     Result:=Fpstat(GlobSearchRec^.Path+StrPas(p^.name),SInfo)>=0;
+    Info.PathOnly:=GlobSearchRec^.Path;
     If Result then
       begin
       Info.Attr:=LinuxToWinAttr(p^.name,SInfo);
