@@ -1175,3 +1175,86 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 {$endif FPC_SYSTEM_HAS_REAL2DOUBLE}
 {$endif SUPPORT_DOUBLE}
 
+{$ifdef SUPPORT_EXTENDED}
+{ fast 10^n routine }
+function FPower10(val: Extended; Power: Longint): Extended;
+  const
+    pow32 : array[0..31] of extended =
+      (
+        1e0,1e1,1e2,1e3,1e4,1e5,1e6,1e7,1e8,1e9,1e10,
+        1e11,1e12,1e13,1e14,1e15,1e16,1e17,1e18,1e19,1e20,
+        1e21,1e22,1e23,1e24,1e25,1e26,1e27,1e28,1e29,1e30,
+        1e31
+      );
+    pow512 : array[0..15] of extended =
+      (
+        1,1e32,1e64,1e96,1e128,1e160,1e192,1e224,
+        1e256,1e288,1e320,1e352,1e384,1e416,1e448,
+        1e480
+      );
+    pow4096 : array[0..9] of extended =
+      (1,1e512,1e1024,1e1536,
+       1e2048,1e2560,1e3072,1e3584,
+       1e4096,1e4608
+      );
+
+    negpow32 : array[0..31] of extended =
+      (
+        1e-0,1e-1,1e-2,1e-3,1e-4,1e-5,1e-6,1e-7,1e-8,1e-9,1e-10,
+        1e-11,1e-12,1e-13,1e-14,1e-15,1e-16,1e-17,1e-18,1e-19,1e-20,
+        1e-21,1e-22,1e-23,1e-24,1e-25,1e-26,1e-27,1e-28,1e-29,1e-30,
+        1e-31
+      );
+    negpow512 : array[0..15] of extended =
+      (
+        0,1e-32,1e-64,1e-96,1e-128,1e-160,1e-192,1e-224,
+        1e-256,1e-288,1e-320,1e-352,1e-384,1e-416,1e-448,
+        1e-480
+      );
+    negpow4096 : array[0..9] of extended =
+      (
+        0,1e-512,1e-1024,1e-1536,
+        1e-2048,1e-2560,1e-3072,1e-3584,
+        1e-4096,1e-4608
+      );
+
+  begin
+    if Power<0 then
+      begin
+        Power:=-Power;
+        result:=val*negpow32[Power and $1f];
+        power:=power shr 5;
+        if power<>0 then
+          begin
+            result:=result*negpow512[Power and $f];
+            power:=power shr 4;
+            if power<>0 then
+              begin
+                if power<=9 then
+                  result:=result*negpow4096[Power]
+                else
+                  result:=1.0/0.0;
+              end;
+          end;
+      end
+    else
+      begin
+        result:=val*pow32[Power and $1f];
+        power:=power shr 5;
+        if power<>0 then
+          begin
+            result:=result*pow512[Power and $f];
+            power:=power shr 4;
+            if power<>0 then
+              begin
+                if power<=9 then
+                  result:=result*pow4096[Power]
+                else
+                  result:=1.0/0.0;
+              end;
+          end;
+      end;     
+  end;
+{$endif SUPPORT_EXTENDED}
+
+
