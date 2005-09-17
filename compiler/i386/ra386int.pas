@@ -1653,6 +1653,8 @@ Unit Ra386int;
                                 if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
                                   oper.SetSize(typesize,true);
                               end;
+                            else
+                              oper.SetSize(typesize,true);
                           end;
                         end
                        else
