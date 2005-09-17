@@ -114,6 +114,7 @@ Function StrFmt(Buffer,Fmt : PChar; Const args: Array of const) : Pchar;
 Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const) : Pchar;
 Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
 Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
+Function CurrToStrF(Value: Currency; Format: TFloatFormat; Digits: Integer): string;
 Function FloatToStr(Value: Extended): String;
 Function StrToFloat(Const S : String) : Extended;
 Function StrToFloatDef(Const S: String; Const Default: Extended): Extended;

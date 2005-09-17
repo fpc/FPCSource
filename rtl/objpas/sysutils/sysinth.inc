@@ -127,6 +127,8 @@ Const
   { Currency notation. Default is $ for dollars. }
   CurrencyString : String[7] = '$';
 
+  ListSeparator: Char = ',';
+
 type
   TSysLocale = record
     { Delphi compat fields}
