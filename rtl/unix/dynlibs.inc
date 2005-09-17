@@ -20,10 +20,11 @@
   ---------------------------------------------------------------------}
 
 Type
-  TLibHandle = Pointer;
+  { using PtrInt here is compliant with the other platforms }
+  TLibHandle = PtrInt;
 
 Const
-  NilHandle = Nil;
+  NilHandle : TLibHandle = 0;
 
 {$else}
 
@@ -36,7 +37,7 @@ uses dl;
 Function LoadLibrary(Name : AnsiString) : TLibHandle;
 
 begin
-  Result:=dlopen(Pchar(Name),RTLD_LAZY);
+  Result:=TLibHandle(dlopen(Pchar(Name),RTLD_LAZY));
 end;
 
 Function GetProcedureAddress(Lib : TLibHandle; ProcName : AnsiString) : Pointer;
