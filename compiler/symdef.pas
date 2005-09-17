@@ -5213,6 +5213,13 @@ implementation
 
     function tobjectdef.getparentdef:tdef;
       begin
+{$warning TODO Remove getparentdef hack}
+        { With 2 forward declared classes with the child class before the
+	  parent class the child class is written earlier to the ppu. Leaving it
+	  possible to have a reference to the parent class for property overriding,
+	  but the parent class still has the childof not resolved yet (PFV) }
+        if childof=nil then
+          childof:=tobjectdef(childofderef.resolve);
         result:=childof;
       end;
 
