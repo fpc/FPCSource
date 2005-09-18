@@ -2447,7 +2447,7 @@ Var I : longint;
 begin
   T:=Value;
   Repeat
-    I:=Pos(T,';');
+    I:=Pos(';',T);
     If I=0 Then I:=Length(T)+1;
     S:=Copy(T,1,I-1);
     Delete(T,1,I);
