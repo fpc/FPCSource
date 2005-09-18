@@ -24,8 +24,8 @@ type
 
   TIOStream = class(THandleStream)
   private
-    FType,
-    FPos : LongInt;
+    FType : longint;
+    FPos : Int64;
     zIOSType : TIOSType;
   public
     constructor Create(aIOSType : TiosType);
@@ -59,7 +59,7 @@ end;
 
 function TIOStream.Read(var Buffer; Count : LongInt) : Longint;
 begin
-  if (zIOSType = iosOutput) then
+  if (zIOSType <> iosInput) then
     raise EIOStreamError.Create(SWriteOnlyStream)
   else begin
     result := inherited Read(Buffer,Count);
@@ -84,7 +84,7 @@ end;
 
 function TIOStream.Seek(Offset: Longint; Origin: Word): Longint;
 const
-  BufSize = 100;
+  BufSize = 1024;
 var
   Buf : array[1..BufSize] of Byte;
 begin
