@@ -30,7 +30,7 @@ Type
 
   TInputPipeStream = Class(THandleStream)
     Private
-      FPos : longint;
+      FPos : Int64;
     public
       Function Write (Const Buffer; Count : Longint) :Longint; Override;
       Function Seek (Offset : Longint;Origin : Word) : longint;override;
